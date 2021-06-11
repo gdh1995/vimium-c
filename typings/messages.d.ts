@@ -662,7 +662,8 @@ interface OpenUrlOptions extends UserSedOptions {
 }
 
 interface OpenPageUrlOptions extends OpenUrlOptions {
-  keyword?: string | null; replace?: string | ValidUrlMatchers | null; testUrl?: null | boolean | "whole-string"
+  keyword?: string | null; replace?: string | ValidUrlMatchers | null
+  testUrl?: /** use `! .keyword` */ null | boolean | "whole" | "whole-string"
 }
 type _ParsedOpenPageUrlOptionNames = {
   g: "group"; i: "incognito"; k: "keyword"; m: "replace"

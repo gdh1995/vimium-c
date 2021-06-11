@@ -341,12 +341,29 @@ var BgUtils_ = {
       let s = str.slice(0, i - 1).trim().toLowerCase();
       if (s !== "link" && s !== "\u94fe\u63a5") { return str; }
       url = str.slice(i).trim()
+      i = url.indexOf("\uff1a") + 1 || url.indexOf(":") + 1
+      if (!i || !(<RegExpOne> /^[\w+-]+((?:\.[\w+-])*\.[a-z]{2,6})?\//).test(url)) { return str }
     }
-    url = url.split(" ", 1)[0];
-    if (',.;")\u2018\u2019\u201c\u201d\u3002\u300b\uff09\uff0c\uff1b\uff1e'.includes(url.slice(-1))) {
-      url = url.slice(0, -1)
+    const sepArr = (<RegExpOne> /\s|[^=][\u3002\uff0c\uff1b]([^a-z?&#-]|$)/).exec(url)
+    const isSepSpace = !!sepArr && sepArr![0].length === 1
+    const first = sepArr ? url.slice(0, sepArr.index + (isSepSpace ? 0 : 1)) : null
+    const endChar = ',.;\u3002\uff0c\uff1b'
+    const leftCharRe = <RegExpOne> /["(\u2018\u201c\u300a\uff08\uff1c]/
+    const rightChar = '")\u2019\u201d\u300b\uff09\uff1e'
+    let todo = 7 // 1: left, 2: right, 4: end
+    if (first) {
+      if (!isSepSpace) { url = first, todo = 3 }
+      else if (endChar.lastIndexOf(first.slice(-1), 2) >= 0) { url = first.slice(0, -1), todo = 3 }
+      else if (rightChar.includes(first.slice(-1))) {
+        todo = !leftCharRe.test(first.slice(i)) ? (url = first.slice(0, -1), 1) : 0
+      }
     }
-    '"(\u2018\u2019\u201c\u201d\u300a\uff08\uff1c'.includes(url[0]) && (url = url.slice(1))
+    if (todo & 4 && endChar.includes(url.slice(-1))) { url = url.slice(0, -1) }
+    if (todo & 2 && rightChar.includes(url.slice(-1))) {
+      !leftCharRe.test(url.slice(i)) ? url = url.slice(0, -1) : todo = 0
+    }
+    if (url && endChar.includes(url[0])) { url = url.slice(1).trim() }
+    if (todo & 1 && url && leftCharRe.test(url[0])) { url = url.slice(1) }
     url = BgUtils_.fixCharsInUrl_(url, false, true)
     return BgUtils_.lastUrlType_ <= Urls.Type.MaxOfInputIsPlainUrl && !url.startsWith("vimium:") ? url : str;
   },
@@ -638,7 +655,7 @@ var BgUtils_ = {
     const a = BgUtils_;
     let q2: string[] | undefined, delta = 0;
     url = query.length === 0 && blank ? blank : url.replace(a.searchWordRe_,
-    function (_s: string, s1: string | undefined, s2: string, ind: number): string {
+        (_s: string, s1: string, s2: string | undefined, ind: number): string => {
       let arr: string[];
       if (s1 === "S") {
         arr = query;
