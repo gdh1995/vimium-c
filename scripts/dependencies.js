@@ -353,9 +353,8 @@ exports.logFileSize = (filePath, logger) => {
  * @return {string}
  */
 exports.addMetaData = (path, data) => {
-  const isAMDModule = data.startsWith("define") || data.startsWith("(factory")
-      || data.startsWith("(function(factory)") || data.startsWith("(function (factory)");
-  if (!isAMDModule) { return data; }
+  const isAMDModule = /define\(|\(factory|\(function ?\(factory\)/.test(data.slice(0, 1024))
+  if (!isAMDModule || data.startsWith("__filename = ")) { return data; }
   path = path.replace(/\\/g, "/").replace(projectRoot, "").replace(/^\//, "")
   var banner = "__filename = " + JSON.stringify(path) + ";\n"
   return banner + data;

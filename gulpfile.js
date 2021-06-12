@@ -62,7 +62,7 @@ const KnownBackendGlobals = [
 
 var CompileTasks = {
   background: ["background/*.ts", "background/*.d.ts"],
-  content: [["content/*.ts", "lib/*.ts", "!" + POLYFILL_FILE, "!lib/injector.ts"], "lib/*.d.ts"],
+  content: [["content/*.ts", "lib/*.ts", "!" + POLYFILL_FILE, "!lib/injector.ts"], "lib/*.d.ts", {module: "distES6"}],
   lib: ["lib/*.ts"].concat(has_polyfill ? [] : ["!" + POLYFILL_FILE]),
   front: [["front/*.ts", has_polyfill ? POLYFILL_FILE : "!" + POLYFILL_FILE
             , "lib/injector.ts"], ["lib/base.omni.d.ts"], { inBatch: false }],
@@ -249,29 +249,16 @@ var Tasks = {
     var config = loadTerserConfig(!!exArgs.nameCache)
     config.nameCache = exArgs.nameCache;
     patchTerser()
-    require("terser").minify("var " + KnownBackendGlobals.join(" = {},\n") + " = {};", config)
-
-    var sources = manifest.background.scripts;
-    sources = ("\n" + sources.join("\n")).replace(/\n\//g, "\n").trim().split("\n");
-    var ori_sources = sources.slice(0);
-    // on Firefox, a browser-inner file `resource://devtools/server/main.js` is also shown as `main.js`
-    // which makes debugging annoying
-    var globals = sources.splice(0, sources.indexOf("background/exclusions.js") + 1, "background/globals.js");
-    var body = sources.splice(1, sources.indexOf("background/main.js"), "background/main.js");
-    var index = sources.indexOf("background/tools.js") + 1;
-    var tail = sources.splice(index, sources.length - index, "background/tail.js");
-    var rest = ["background/*.js"];
-    for (var arr = ori_sources, i = 0, len = arr.length; i < len; i++) { rest.push("!" + arr[i]); }
-    var maps = [
-      [globals, sources[0]],
-      [body, sources[1], { rollup: true }],
-      [sources.slice(2, index), "."],
-      [tail, sources[index]],
-      [rest, "."]
-    ];
-    manifest.background.scripts = sources;
-    gulpUtils.checkJSAndMinifyAll(1, maps, "min/bg", exArgs, cb
-        , jsmin_status, debugging, getNameCacheFilePath, cacheNames)
+    const q = require("terser").minify("var " + KnownBackendGlobals.join(" = {},\n") + " = {};", config)
+    Promise.resolve(q).then(() => {
+      const { props: { props }, vars: { props: vars } } = exArgs.nameCache
+      for (const key of Object.keys(vars)) {
+        props[key] = vars[key]
+      }
+      var sources = manifest.background.scripts;
+      gulpUtils.checkJSAndMinifyAll(1, [ [sources, "."], [["background/*.js"].concat(sources.map(i => "!" + i)), "."] ]
+        , "min/bg", exArgs, cb, jsmin_status, debugging, getNameCacheFilePath, cacheNames)
+    })
   }],
   "min/others": ["min/bg", function(cb) {
     if (jsmin_status[2]) {
@@ -294,7 +281,7 @@ var Tasks = {
             throw new Error('Unknown global variable in backend: ' + key2);
           }
           KnownBackendGlobals.splice(idx, 1);
-          if (props[key] != null) {
+          if (props[key] != null && props[key] !== vars[key]) {
             throw new Error('The name cache #bg can not be used to build others: values differ for ' + key2);
           }
           props[key] = vars[key];
@@ -665,7 +652,11 @@ function compile(pathOrStream, header_files, done, options) {
   var extra = ignoreHeaderChanges || header_files === false ? undefined
     : ["typings/**/*.d.ts", "typings/*.d.ts", "!typings/build/*.ts"].concat(header_files
         ).concat(buildConfig ? ["scripts/gulp.tsconfig.json"] : []);
-  if (locally && options && (options.module || "").toLowerCase() === "mayes6") {
+  const moduleType = options && (options.module || "").toLowerCase()
+  if (!locally && moduleType === "distes6") {
+    options.module = "es6"
+  }
+  if (moduleType === "mayes6") {
     options.module = getBuildItem("BTypes") & BrowserType.Edge || getBuildItem("BTypes") & BrowserType.Chrome
         && getBuildItem("MinCVer") < /* MinUsableScript$type$$module$InExtensions */ 63
         ? null : "es6"
@@ -685,24 +676,24 @@ function outputJSResult(stream, forceES6Module) {
     stream = stream.pipe(gulpMap(postTerser.bind(null, config)))
   }
   {
-    const es5 = locally ? !forceES6Module && !compilerOptions.module.startsWith("es")
+    const es5Module = locally ? !forceES6Module && !compilerOptions.module.startsWith("es")
         : getBuildItem("BTypes") & BrowserType.Edge || getBuildItem("BTypes") & BrowserType.Chrome
           && getBuildItem("MinCVer") < /* MinUsableScript$type$$module$InExtensions */ 63
     stream = stream.pipe(gulpMap(file => {
       const path = file.relative.replace(/\\/g, "/")
+      const data = ToString(file)
+      if (es5Module) {
+        const patched = addMetaData(file.relative, data)
+        if (patched.startsWith("__filename")) {
+          ToBuffer(file, patched)
+          return
+        }
+      }
       if (path.includes("pages/") && /show|options|async_bg/.test(path)) {
-        const data = ToString(file)
-        const isAMDModule = data.startsWith("define") || data.startsWith("(factory")
-            || data.startsWith("(function(factory)") || data.startsWith("(function (factory)");
-        if (es5) {
-          var banner = "__filename = " + JSON.stringify(path.replace(/^\//, "")) + ";\n"
-          if (isAMDModule) {
-            ToBuffer(file, banner + data)
-            return
-          }
+        if (es5Module) {
           return gulpUtils.rollupOne(file, {
             treeshake: false, output: { format: "amd", preserveModules: true }
-          }, code => banner + code)
+          }, code => addMetaData(file.relative, code))
         } else {
           ToBuffer(file, data.replace(/\bimport\b[^'"}]+\}?\s?\bfrom\b\s?['"][.\/\w]+['"]/g, s => {
             return s.includes(".js") ? s : s.slice(0, -1) + ".js" + s.slice(-1)
@@ -791,9 +782,7 @@ const postTerser = exports.postTerser = async (terserConfig, file, allPaths) => 
     get();
     contents = patchExtendClick(contents);
   }
-  if (locally
-      && (allPathStr.includes("content/") || allPathStr.includes("lib/") && !allPathStr.includes("/env.js")
-          || allPathStr.includes("background/"))) {
+  if (locally) {
     get();
     contents = addMetaData(file.relative, contents)
   }
@@ -831,11 +820,7 @@ function loadValidCompilerOptions(tsConfigFile) {
   gulpUtils.normalizeTSConfig(tsconfig)
   var opts = tsconfig.compilerOptions;
   if (buildOptionCache) {
-    var btypes = getBuildItem("BTypes"), cver = getBuildItem("MinCVer");
-    outputES6 = !(btypes & BrowserType.Chrome && cver < /* MinTestedES6Environment */ 49);
-    opts.target = outputES6
-        ? !(btypes & BrowserType.Chrome && cver < /* MinEnsuredAsyncFunctions */ 57) ? "es2017"
-        : "es6" : "es5";
+    createBuildConfigCache()
   }
   var oldTS = gTypescript || compilerOptions && compilerOptions.typescript;
   if (oldTS && !opts.typescript) {
@@ -886,12 +871,8 @@ function createBuildConfigCache() {
   }
   var btypes = getBuildItem("BTypes"), cver = getBuildItem("MinCVer");
   outputES6 = !(btypes & BrowserType.Chrome && cver < /* MinTestedES6Environment */ 49);
-  compilerOptions.target = outputES6
-    ? !(btypes & BrowserType.Chrome && cver < /* MinEnsuredAsyncFunctions */ 57) ? "es2017"
-    : "es6" : "es5";
-  if (getBuildItem("NDEBUG")) {
-    compilerOptions.module = "es6";
-  }
+  compilerOptions.target = !outputES6 ? "es5"
+      : !(btypes & BrowserType.Chrome && cver < /* MinEnsuredAsyncFunctions */ 57) ? "es2017" : "es6"
 }
 
 function getNonNullBuildItem(key) {

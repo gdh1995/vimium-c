@@ -35,7 +35,7 @@ const executeShortcutEntry = (cmd: StandardShortcutNames | kShortcutAliases): vo
   }
 }
 
-Backend_ = {
+globalThis.Backend_ = {
     reqH_,
     getExcluded_: null,
     getPortUrl_: getPortUrl,

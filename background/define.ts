@@ -1,7 +1,12 @@
 declare var define: any // eslint-disable-line no-var
+declare var trans_: typeof chrome.i18n.getMessage // eslint-disable-line no-var
+
+if (typeof globalThis === "undefined") {
+  (window as any as Writable<typeof globalThis>).globalThis = window as any
+}
 
 if (!Build.BTypes || Build.BTypes & (Build.BTypes - 1)) {
-  (window as Writable<Window>).OnOther = Build.BTypes & BrowserType.Chrome
+  globalThis.OnOther = Build.BTypes & BrowserType.Chrome
       && (typeof browser === "undefined" || (browser && (browser as typeof chrome).runtime) == null
           || location.protocol.lastIndexOf("chrome", 0) >= 0) // in case Chrome also supports `browser` in the future
       ? BrowserType.Chrome
@@ -9,21 +14,23 @@ if (!Build.BTypes || Build.BTypes & (Build.BTypes - 1)) {
       : Build.BTypes & BrowserType.Firefox ? BrowserType.Firefox
       : /* an invalid state */ BrowserType.Unknown
 }
+if (Build.BTypes & ~BrowserType.Chrome && (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome)) {
+  globalThis.chrome = browser as typeof chrome
+}
 
-// eslint-disable-next-line no-var
-var Backend_: BackendHandlersNS.BackendHandlers,
-CurCVer_: BrowserVer = Build.BTypes & BrowserType.Chrome ? 0 | (
+globalThis.Backend_ = null as never
+globalThis.CurCVer_ = Build.BTypes & BrowserType.Chrome ? 0 | (
     (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)
     && navigator.appVersion.match(<RegExpOne> /\bChrom(?:e|ium)\/(\d+)/)
     || [0, BrowserVer.assumedVer])[1] as number : BrowserVer.assumedVer,
-IsEdg_: boolean = Build.BTypes & BrowserType.Chrome
+globalThis.IsEdg_ = Build.BTypes & BrowserType.Chrome
     && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)
     ? (<RegExpOne> /\sEdg\//).test(navigator.appVersion) : false,
-CurFFVer_: FirefoxBrowserVer = !(Build.BTypes & ~BrowserType.Firefox)
+globalThis.CurFFVer_ = !(Build.BTypes & ~BrowserType.Firefox)
     || Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox
     ? 0 | (navigator.userAgent.match(<RegExpOne> /\bFirefox\/(\d+)/) || [0, FirefoxBrowserVer.assumedVer])[1] as number
     : FirefoxBrowserVer.assumedVer,
-BrowserProtocol_ = Build.BTypes & ~BrowserType.Chrome
+globalThis.BrowserProtocol_ = Build.BTypes & ~BrowserType.Chrome
       && (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome)
     ? Build.BTypes & BrowserType.Firefox
       && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox) ? "moz"
@@ -38,13 +45,9 @@ if (Build.BTypes & BrowserType.Chrome && Build.MinCVer <= BrowserVer.FlagFreezeU
   CurCVer_ = BrowserVer.FlagFreezeUserAgentGiveFakeUAMajor
 }
 
-if (Build.BTypes & ~BrowserType.Chrome && (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome)) {
-  window.chrome = browser as typeof chrome
-}
+globalThis.trans_ = chrome.i18n.getMessage; // eslint-disable-line no-var
 
-var trans_ = chrome.i18n.getMessage // eslint-disable-line no-var
-
-Build.NDEBUG || (function (): void {
+(function (): void {
   type ModuleTy = Dict<any> & { __esModule?: boolean }
   type RequireTy = (target: string) => ModuleTy
   interface DefineTy {
@@ -66,11 +69,11 @@ Build.NDEBUG || (function (): void {
     target = target.replace(<RegExpG> /\.(\/|js)/g, "")
     return modules[target] || (modules[target] = {} as ModuleTy)
   }
+  myDefine.amd = true
   if (!Build.NDEBUG) {
-    myDefine.amd = true
     myDefine.modules_ = modules
   }
-  (window as PartialOf<typeof globalThis, "define">).define = myDefine
+  globalThis.define = myDefine
 })()
 
 if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$Array$$find$$findIndex && ![].find) {
@@ -115,12 +118,12 @@ if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$Array$$f
       const setProto = Build.MinCVer < BrowserVer.Min$Object$$setPrototypeOf && Build.BTypes & BrowserType.Chrome
           && !Object.setPrototypeOf ? (obj: SimulatedMap): void => { (obj as any).__proto__ = proto }
           : (opt: SimulatedMap): void => { Object.setPrototypeOf(opt, proto as any as null) };
-      (window as any as typeof globalThis).Set = function (this: SimulatedMap): any {
+      globalThis.Set = function (this: SimulatedMap): any {
         setProto(this)
         this.map_ = BgUtils_.safeObj_<1>()
         this.isSet_ = 1
       } as any;
-      (window as any as typeof globalThis).Map = function (this: SimulatedMap): any {
+      globalThis.Map = function (this: SimulatedMap): any {
         setProto(this)
         this.map_ = BgUtils_.safeObj_<any>()
         this.isSet_ = 0
