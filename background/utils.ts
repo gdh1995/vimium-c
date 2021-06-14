@@ -452,7 +452,7 @@ var BgUtils_ = {
     } }
     if (workType === Urls.WorkType.ActIfNoSideEffects) { switch (cmd) {
     case "e": case "exec": case "eval": case "expr": case "calc": case "m": case "math":
-      return a.require_("MathParser").catch(a.blank_).then<Urls.MathEvalResult>(a.tryEvalMath_.bind(0, path))
+      return a.require_("MathParser").then<Urls.MathEvalResult>(a.tryEvalMath_.bind(0, path))
     case "error":
       return [path, Urls.kEval.ERROR];
     } }
@@ -606,26 +606,26 @@ var BgUtils_ = {
   copy_: (() => "") as (text: string | any[], join?: FgReq[kFgReq.copy]["j"], sed?: MixedSedOpts | null) => string,
   paste_: (() => "") as (this: void, sed?: MixedSedOpts | null, len?: number) => string | Promise<string | null> | null,
   sed_: null as never as (text: string, context: SedContext, sed?: MixedSedOpts | null) => string,
-  require_ <K extends SettingsNS.DynamicFiles> (name: K): Promise<NonNullable<Window[K]>> {
+  require_ <K extends "MathParser"> (name: K): Promise<NonNullable<Window[K]>> {
     type T = NonNullable<Window[K]>;
     type P = Promise<T>;
     const p: P | T | null | undefined = window[name] as P | Window[K] as P | T | null | undefined;
     if (p) {
       return Promise.resolve(p);
     }
-    return (window as { -readonly [K2 in keyof Window]?: any })[name] = new Promise<T>(function (resolve, reject) {
+    return (window as { -readonly [K2 in keyof Window]?: any })[name] = new Promise<T>((resolve) => {
       const script = document.createElement("script");
       script.src = Settings_.CONST_[name];
       if (!Build.NDEBUG) {
         script.onerror = function (): void {
           this.remove();
-          reject("ImportError: " + name);
+          resolve(null as never)
         };
       }
       script.onload = function (): void {
         this.remove();
         if (!Build.NDEBUG && window[name] instanceof Promise) {
-          reject("ImportError: " + name);
+          resolve(null as never)
         } else {
           resolve(window[name] as T);
         }

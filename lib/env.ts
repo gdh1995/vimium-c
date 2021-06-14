@@ -27,8 +27,7 @@ if (Build.BTypes & BrowserType.ChromeOrFirefox) {
 
 var VApi: VApiTy, VimiumInjector: VimiumInjectorTy | undefined | null;
 
-declare var define: any
-declare var __filename: string | null | undefined
+declare var define: any, __filename: string | null | undefined
 
 Build.NDEBUG || (function (): void {
   type ModuleTy = Dict<any> & { __esModule: boolean }

@@ -1,4 +1,4 @@
-declare var define: any // eslint-disable-line no-var
+declare var define: any, __filename: string | null | undefined // eslint-disable-line no-var
 declare var trans_: typeof chrome.i18n.getMessage // eslint-disable-line no-var
 
 if (typeof globalThis === "undefined") {
@@ -19,6 +19,7 @@ if (Build.BTypes & ~BrowserType.Chrome && (!(Build.BTypes & BrowserType.Chrome) 
 }
 
 globalThis.Backend_ = null as never
+globalThis.__filename = null
 globalThis.CurCVer_ = Build.BTypes & BrowserType.Chrome ? 0 | (
     (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)
     && navigator.appVersion.match(<RegExpOne> /\bChrom(?:e|ium)\/(\d+)/)
@@ -56,24 +57,46 @@ globalThis.trans_ = chrome.i18n.getMessage; // eslint-disable-line no-var
     modules_?: Dict<ModuleTy>
   }
   const modules: Dict<ModuleTy> = {}
+  const getName = (name: string): string => name.slice(name.lastIndexOf("/") + 1).replace(".js", "")
   const myDefine: DefineTy = (_, factory): void => {
-    const name = (document.currentScript as HTMLScriptElement).src
-    const filename = name.slice(name.lastIndexOf("/") + 1).replace(".js", "")
-    const exports: ModuleTy = modules[filename] || (modules[filename] = {})
+    const filename = getName(__filename || (document.currentScript as HTMLScriptElement).src)
+    const exports: ModuleTy = modules[filename] && !(modules[filename] instanceof Promise)
+        ? modules[filename]! : (modules[filename] = {})
     if (!Build.NDEBUG) {
       (myDefine as any)[filename] = exports
     }
     factory(require, exports)
   }
-  const require = (target: string): ModuleTy => {
+  const require = (target: string | string[], resolve?: any): ModuleTy => {
+    if (typeof target === "object") { doImport(target[0], resolve); return {} }
     target = target.replace(<RegExpG> /\.(\/|js)/g, "")
     return modules[target] || (modules[target] = {} as ModuleTy)
+  }
+  const doImport = (path: string, callback: (module: ModuleTy) => void): void => {
+    const name = getName(path)
+    let module: ModuleTy | Promise<ModuleTy> | undefined = modules[name]
+    module || (modules[name] = module = new Promise((resolve, reject): void => {
+      const script = document.createElement("script")
+      script.src = path
+      script.onload = (): void => {
+        if (!Build.NDEBUG && modules[name] instanceof Promise) {
+          modules[name] = void 0
+          reject(name + " is not an AMD module!")
+        } else {
+          resolve(modules[name]!); script.remove()
+        }
+      }
+      if (!Build.NDEBUG) { script.onerror = (ev) => { modules[name] = void 0; reject(ev.message) } }
+      document.head!.appendChild(script)
+    }))
+    module instanceof Promise ? module.then(callback) : callback(module)
   }
   myDefine.amd = true
   if (!Build.NDEBUG) {
     myDefine.modules_ = modules
   }
-  globalThis.define = myDefine
+  globalThis.define = myDefine;
+  (globalThis as any).__importStar = (obj: {}): {} => obj
 })()
 
 if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$Array$$find$$findIndex && ![].find) {

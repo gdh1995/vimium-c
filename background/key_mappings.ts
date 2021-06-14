@@ -774,4 +774,3 @@ Settings_.updateHooks_.keyMappings = function (this: {}, value: string | null): 
     }
   });
 };
-Settings_.temp_.getNormalizedOptions_ = normalizedOptions_ as (item: CommandsNS.BaseItem) => CommandsNS.Options | null

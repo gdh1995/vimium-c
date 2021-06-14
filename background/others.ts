@@ -575,15 +575,16 @@ function (details: chrome.runtime.InstalledDetails): void {
 BgUtils_.timeout_(1200, function (): void {
   Settings_.temp_.onInstall_ && chrome.runtime.onInstalled.removeListener(Settings_.temp_.onInstall_);
   Settings_.temp_.onInstall_ = null;
+  const doc = globalThis.document
   if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSetInnerTextOnHTMLHtmlElement) {
-    (document.documentElement as HTMLHtmlElement).innerHTML = "";
-  } else {
-    (document.documentElement as HTMLHtmlElement).innerText = "";
+    (doc.body as HTMLBodyElement).innerHTML = ""
+  } else if (doc && doc.body) {
+    (doc.body as HTMLBodyElement).innerText = ""
   }
   BgUtils_.resetRe_();
   if (!Build.NDEBUG) {
-    interface WindowExForDebug extends Window { a: unknown; cb: (i: any) => void }
-    (window as WindowExForDebug).a = null;
-    (window as WindowExForDebug).cb = function (b) { (window as WindowExForDebug).a = b; console.log("%o", b); };
+    type GlobalExForDebug = (typeof globalThis) & { a: unknown; cb: (i: any) => void }
+    (globalThis as GlobalExForDebug).a = null;
+    (globalThis as GlobalExForDebug).cb = function (b) { (globalThis as GlobalExForDebug).a = b; console.log("%o", b); }
   }
 });

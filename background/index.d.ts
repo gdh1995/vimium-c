@@ -368,8 +368,6 @@ declare namespace SettingsNS {
       > {
   }
 
-  type DynamicFiles = "HelpDialog" | "MathParser";
-
   interface Sync {
     set<K extends keyof PersistentSettings> (key: K, value: PersistentSettings[K] | null): void;
   }
@@ -665,6 +663,7 @@ declare const enum Consts {
 declare var OnOther: BrowserType, Backend_: BackendHandlersNS.BackendHandlers, CommandsData_: CommandsDataTy
 declare var CurCVer_: BrowserVer, CurFFVer_: FirefoxBrowserVer, IsEdg_: boolean, BrowserProtocol_: string
 declare var setTimeout: SetTimeout;
+declare var trans_: typeof chrome.i18n.getMessage // eslint-disable-line no-var
 /* eslint-enable no-var */
 
 interface SetTimeout {

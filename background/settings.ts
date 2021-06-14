@@ -21,7 +21,6 @@ var Settings_ = {
     IconBuffer_: null as IconNS.AccessIconBuffer | null,
     loadI18nPayload_: null as (() => void) | null,
     omniStyleOverridden_: false,
-    getNormalizedOptions_: null as never as (item: CommandsNS.BaseItem) => CommandsNS.Options | null,
     shownHash_: null as ((this: void) => string) | null
   },
   payload_: <SettingsNS.FrontendSettingCache> As_<SettingsNS.DeclaredFrontendValues>({
@@ -517,7 +516,7 @@ js\\:|Js: javascript:\\ $S; JavaScript`,
     Injector_: "/lib/injector.js",
     KnownPages_: ["blank", "newtab", "options", "show"],
     MathParser: "/lib/math_parser.js",
-    HelpDialog: "/background/help_dialog.js",
+    HelpDialogJS: "/background/help_dialog.js" as const,
     InjectEnd_: "content/injected_end.js",
     NewTabForNewUser_: Build.MayOverrideNewTab ? "pages/options.html#!newTabUrl" : "",
     OverrideNewTab_: Build.MayOverrideNewTab ? true : false,

@@ -141,7 +141,7 @@ set_bgC_([
     if (cPort.s.frameId_ === 0 && !(cPort.s.flags_ & Frames.Flags.hadHelpDialog)) {
       initHelp({ a: get_cOptions<C.showHelp, true>() }, cPort)
     } else {
-      window.HelpDialog || BgUtils_.require_("HelpDialog")
+      import(Settings_.CONST_.HelpDialogJS)
       sendFgCmd(kFgCmd.showHelpDialog, true, get_cOptions<C.showHelp, true>())
     }
   },

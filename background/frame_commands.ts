@@ -84,19 +84,19 @@ export const performFind = (): void | kBgCmd.performFind => {
 
 export const initHelp = (request: FgReq[kFgReq.initHelp], port: Port): void => {
   const kHD = "helpDialog";
-  Promise.all(As_<readonly [Promise<BaseHelpDialog>, unknown]>([
-    BgUtils_.require_("HelpDialog"),
-    (kHD in settings.cache_) || new Promise<void>((resolve): void => {
+  Promise.all([
+    import(Settings_.CONST_.HelpDialogJS) as Promise<typeof import("background/help_dialog")>,
+    (kHD in settings.cache_) || new Promise<boolean | void>((resolve): void => {
       settings.fetchFile_(kHD, (text): void => { settings.set_(kHD, text); resolve() })
     })
-  ])).then((args): void => {
+  ]).then(([helpDialog]): void => {
     const port2 = request.w && indexFrame(port.s.tabId_, 0) || port,
     isOptionsPage = port2.s.url_.startsWith(settings.CONST_.OptionsPage_),
     options = request.a || {};
     (port2 as Frames.Port).s.flags_ |= Frames.Flags.hadHelpDialog
     set_cPort(port2)
     sendFgCmd(kFgCmd.showHelpDialog, true, {
-      h: args[0].render_(isOptionsPage),
+      h: helpDialog.render_(isOptionsPage),
       o: settings.CONST_.OptionsPage_,
       e: !!options.exitOnClick,
       c: settings.get_("showAdvancedCommands", true) || isOptionsPage && !!CommandsData_.errors_
