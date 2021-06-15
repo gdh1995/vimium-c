@@ -1387,7 +1387,7 @@ Completers = {
       }
     } else {
       chrome.windows.getCurrent({populate: wantInCurrentWindow}, function (wnd): void {
-        TabRecency_.incognito_ = inNormal ? IncognitoType.ensuredFalse : IncognitoType.true;
+        TabRecency_.incognito_ = wnd.incognito ? IncognitoType.true : IncognitoType.ensuredFalse;
         if (!query.o) {
           Completers.requireNormalOrIncognito_(func, query, wantInCurrentWindow ? wnd.tabs : null);
         }
@@ -1722,10 +1722,10 @@ knownCs = {
         if (HistoryCache.domains_) {
           HistoryCache.domains_ = BgUtils_.domains_ = new Map()
         }
-        const d2 = new Map<string, string>()
-        for (const i of bookmarkEngine.bookmarks_) {
-          d.delete(i.u)
-        }
+        const d2 = new Set!<string>(bookmarkEngine.bookmarks_.map(i => i.u))
+        d.forEach((_, k): void => {
+          d2.has(k) || d.delete(k)
+        })
         Decoder.dict_ = d2;
         return;
       }
@@ -2095,7 +2095,6 @@ Completion_ = {
     if (arr === knownCs.tab) {
        wantInCurrentWindow = !!(otherFlags & CompletersNS.QueryFlags.TabInCurrentWindow);
     }
-    autoSelect = arr.length === 1
     if (str.length === 2 && str[0] === ":") {
       str = str[1];
       const newArr = str === "b" ? knownCs.bookm : str === "h" ? knownCs.history
@@ -2107,7 +2106,6 @@ Completion_ = {
         : str === "d" ? knownCs.domain : str === "s" ? knownCs.search : str === "o" ? knownCs.omni : null;
       if (newArr) {
         arr = newArr
-        autoSelect = arr.length === 2
         rawMode = queryTerms.shift()!
         rawComponents |= CompletersNS.QComponent.mode
         rawQuery = rawQuery.slice(3);
@@ -2131,6 +2129,7 @@ Completion_ = {
     }
     showThoseInBlocklist = !omniBlockList || BlockListFilter.IsExpectingHidden_(queryTerms);
     allExpectedTypes = expectedTypes & allowedEngines
+    autoSelect = arr.length === 2
     if (rawQuery) {
       rawComponents |= CompletersNS.QComponent.query
     }

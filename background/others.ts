@@ -561,12 +561,13 @@ function (details: chrome.runtime.InstalledDetails): void {
     let err: any;
     if (err = BgUtils_.runtimeError_()) { return err; }
     reason = notificationId || reason;
-    chrome.notifications.onClicked.addListener(function (id): void {
+    chrome.notifications.onClicked.addListener(function callback(id): void {
       if (id !== reason) { return; }
       chrome.notifications.clear(reason);
       Backend_.reqH_[kFgReq.focusOrLaunch]({
         u: BgUtils_.convertToUrl_("vimium://release")
       });
+      chrome.notifications.onClicked.removeListener(callback)
     });
   });
   });

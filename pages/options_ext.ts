@@ -289,6 +289,7 @@ function _importSettings(time: number, new_data: ExportedSettings, is_recommende
     const item: Option_<any> = _ref[_key as keyof AllowedOptions];
     let key: keyof AllowedOptions = item.field_, new_value: any = new_data[key];
     delete new_data[key];
+    if (!(key in all)) { continue } // such as "optionalPermissions"
     if (new_value == null) {
       // NOTE: we assume all nullable settings have the same default value: null
       new_value = all[key];
