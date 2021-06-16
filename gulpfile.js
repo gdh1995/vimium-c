@@ -176,7 +176,7 @@ var Tasks = {
   "build/scripts": ["build/background", "build/content", "build/front"],
   "build/_clean_diff": function() {
     return cleanByPath([".build/**", "manifest.json", "pages/dialog_ui.*", "*/vomnibar.html"
-        , "*/*.html", "*/*.css", "**/*.json", "**/*.js", "!helpers/*/*.js"
+        , "*/*.html", "*/*.css", "**/*.json", "**/*.js", "!helpers/*/*.js", ".snapshot.sh"
         , FILE_URLS_CSS], DEST)
   },
   "build/_all": ["build/scripts", "build/pages"],
@@ -292,15 +292,7 @@ var Tasks = {
       }
     }
     gulp.task("min/others/omni", function() {
-      var props = exArgs.nameCache.props && exArgs.nameCache.props.props || null;
-      props = props && {};
-      return minifyJSFiles(["front/vomnibar*.js"], ".", {
-        passAll: null,
-        nameCache: exArgs.nameCache && {
-          vars: deepcopy(exArgs.nameCache.vars),
-          props: { props: props }
-        }
-      });
+      return minifyJSFiles(["front/vomnibar*.js"], ".", { passAll: null, nameCache: {} })
     });
     gulp.task("min/others/pages", function() {
       exArgs.passAll = null;
@@ -657,15 +649,24 @@ function compile(pathOrStream, header_files, done, options) {
     options.module = "es6"
   }
   if (moduleType === "mayes6") {
-    options.module = getBuildItem("BTypes") & BrowserType.Edge || getBuildItem("BTypes") & BrowserType.Chrome
-        && getBuildItem("MinCVer") < /* MinUsableScript$type$$module$InExtensions */ 63
-        ? null : "es6"
+    options.module = getBestModuleType()
   }
   gulpUtils.compileTS(stream, options, extra, done, doesMergeProjects
       , debugging, JSDEST, willListFiles, getBuildConfigStream, beforeCompile, outputJSResult, tsProject)
 }
 
-function outputJSResult(stream, forceES6Module) {
+function getBestModuleType() {
+  const btypes = getBuildItem("BTypes")
+  return btypes & BrowserType.Edge
+      || btypes & BrowserType.Chrome && (
+        getBuildItem("MinCVer") < /* MinUsableScript$type$$module$InExtensions */ 63
+        || getBuildItem("MinCVer") < /* MinES$DynamicImport */ 63)
+      ? null
+      : btypes & BrowserType.Firefox && getBuildItem("MinFFVer") < /* MinEnsuredES$DynamicImport */ 67 ? "es6"
+      : "es2020"
+}
+
+function outputJSResult(stream, withES6Module) {
   if (locally) {
     stream = stream.pipe(gulpMap(beforeTerser))
     var config
@@ -675,31 +676,18 @@ function outputJSResult(stream, forceES6Module) {
     }
     stream = stream.pipe(gulpMap(postTerser.bind(null, config)))
   }
-  {
-    const es5Module = locally ? !forceES6Module && !compilerOptions.module.startsWith("es")
-        : getBuildItem("BTypes") & BrowserType.Edge || getBuildItem("BTypes") & BrowserType.Chrome
-          && getBuildItem("MinCVer") < /* MinUsableScript$type$$module$InExtensions */ 63
+  if (!locally || withES6Module) {
     stream = stream.pipe(gulpMap(file => {
-      const path = file.relative.replace(/\\/g, "/")
       const data = ToString(file)
-      if (es5Module) {
-        const patched = addMetaData(file.relative, data)
-        if (patched.startsWith("__filename")) {
-          ToBuffer(file, patched)
-          return
-        }
-      }
-      if (path.includes("pages/") && /show|options|async_bg/.test(path)) {
-        if (es5Module) {
-          return gulpUtils.rollupOne(file, {
-            treeshake: false, output: { format: "amd", preserveModules: true }
-          }, code => addMetaData(file.relative, code))
-        } else {
-          ToBuffer(file, data.replace(/\bimport\b[^'"}]+\}?\s?\bfrom\b\s?['"][.\/\w]+['"]/g, s => {
+      let patched
+      if (!withES6Module) {
+        patched = addMetaData(file.relative, data)
+      } else {
+        patched = data.replace(/\bimport\b[^'"}]+\}?\s?\bfrom\b\s?['"][.\/\w]+['"]/g, s => {
             return s.includes(".js") ? s : s.slice(0, -1) + ".js" + s.slice(-1)
-          }))
-        }
+        })
       }
+      if (patched.length !== data.length) { ToBuffer(file, patched) }
     }))
   }
   return destCached(stream, JSDEST, willListEmittedFiles, gulpUtils.compareContentAndTouch)

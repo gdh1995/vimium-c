@@ -15,6 +15,11 @@
     "dead_code": true,
     "drop_debugger": true,
     "evaluate": true,
+    "global_defs": {
+      "define.amd": true,
+      "@exports": "undefined",
+      "@module": "undefined"
+    },
     "hoist_funs": true,
     "hoist_props": true,
     "hoist_vars": true,
@@ -73,19 +78,18 @@
   },
   "mangle": {
     "properties": {
-      "regex": "/^_|_$/",
+      "regex": "/^_[^_]|_$/", // not uglify /^__.*$/ like module.__default
       "builtins": true,
-      "reserved": [ "__proto__", "__esModule", "__importStar", "$_", "_", "_get", "__filename", "__extends" ],
+      "reserved": [ "__proto__", "$_", "_", "_get" ],
       "undeclared": true
     },
     "reserved": [
       // # globals
-      "define",
+      "browser", "chrome", "define", "__filename",
       // # expected names in content
       "WeakMap", "WeakSet", "Set", "InputDeviceCapabilities", "visualViewport",
       "requestIdleCallback", "WeakRef",
       // # content global names:
-      "__filename", "browser",
       "VimiumInjector", "VApi",
       // # fixed background global names:
       "OnOther",

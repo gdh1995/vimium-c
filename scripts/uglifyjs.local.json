@@ -15,6 +15,11 @@
     "dead_code": true,
     "defaults": false,
     "evaluate": true,
+    "global_defs": {
+      "define.amd": true,
+      "@exports": "undefined",
+      "@module": "undefined"
+    },
     "hoist_vars": false,
     "join_vars": false,
     "keep_fargs": false,
