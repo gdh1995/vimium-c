@@ -23,9 +23,7 @@ var gTypescript = null;
 var buildConfig = null;
 var cacheNames = process.env.ENABLE_NAME_CACHE !== "0";
 var needCommitInfo = process.env.NEED_COMMIT === "1";
-var doesMergeProjects = process.env.MERGE_TS_PROJECTS !== "0";
 var doesMinifyLocalFiles = process.env.MINIFY_LOCAL !== "0";
-var LOCAL_SILENT = process.env.LOCAL_SILENT === "1";
 var minifyDistPasses = +process.env.MINIFY_DIST_PASSES || 0;
 var maxDistSequences = +process.env.MAX_DIST_SEQUENCES || 0;
 var gNoComments = process.env.NO_COMMENT === "1";
@@ -468,7 +466,6 @@ var Tasks = {
   "local/": ["local"],
   tsc: ["locally", function(done) {
     debugging = true;
-    doesMergeProjects = true;
     compile(["*/*.ts", "!helpers/**"], false, done);
   }],
   "default": ["local"],
@@ -600,7 +597,7 @@ function _tsProject(forceES6Module, allowForOf) {
   return disableErrors ? ts(localOptions, ts.reporter.nullReporter()) : ts(localOptions);
 }
 
-function tsProject(forceES6Module) {
+exports.tsProject = (forceES6Module) => {
   var btypes = getBuildItem("BTypes"), cver = getBuildItem("MinCVer");
   var allowForOfSpecially = !!(btypes & BrowserType.Chrome)
       && cver >= /* MinEnsuredES6$ForOf$Map$SetAnd$Symbol & BuildMinForOf */ 38
@@ -651,8 +648,7 @@ function compile(pathOrStream, header_files, done, options) {
   if (moduleType === "mayes6") {
     options.module = getBestModuleType()
   }
-  gulpUtils.compileTS(stream, options, extra, done, doesMergeProjects
-      , debugging, JSDEST, willListFiles, getBuildConfigStream, beforeCompile, outputJSResult, tsProject)
+  gulpUtils.compileTS(stream, options, extra, done, debugging, JSDEST, willListFiles)
 }
 
 function getBestModuleType() {
@@ -666,7 +662,7 @@ function getBestModuleType() {
       : "es2020"
 }
 
-function outputJSResult(stream, withES6Module) {
+exports.outputJSResult = (stream, withES6Module) => {
   if (locally) {
     stream = stream.pipe(gulpMap(beforeTerser))
     var config
@@ -693,7 +689,7 @@ function outputJSResult(stream, withES6Module) {
   return destCached(stream, JSDEST, willListEmittedFiles, gulpUtils.compareContentAndTouch)
 }
 
-function beforeCompile(file) {
+exports.beforeCompile = (file) => {
   var allPathStr = file.history.join("|").replace(/\\/g, "/");
   var contents = null, oldLen = 0;
   function get() { contents == null && (contents = ToString(file), oldLen = contents.length) }
@@ -826,7 +822,7 @@ function loadValidCompilerOptions(tsConfigFile) {
 }
 
 var _buildConfigPrinted = false;
-function getBuildConfigStream() {
+exports.getBuildConfigStream = () => {
   return gulp.src("typings/build/index.d.ts").pipe(gulpMap(function(file) {
     if (debugging && !_buildConfigPrinted) {
       _buildConfigPrinted = true;
@@ -891,7 +887,7 @@ function getBuildItem(key, literalVal, notParse) {
     }
     return notParse || parseBuildItem(key, cached[1])
   }
-  var newVal = gulpUtils.parseBuildEnv(key, literalVal, LOCAL_SILENT, locally)
+  var newVal = gulpUtils.parseBuildEnv(key, literalVal, locally)
   if (newVal != null) {
     buildOptionCache[key] = [literalVal, newVal]
     return notParse || parseBuildItem(key, newVal)

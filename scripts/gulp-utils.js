@@ -370,8 +370,7 @@ exports.normalizeTSConfig = function (tsconfig) {
 
 var _mergedProject5 = null, _mergedProjectInput5 = null, _mergedProject6 = null, _mergedProjectInput6 = null
 
-exports.compileTS = function (stream, options, extra, done, doesMergeProjects
-    , debugging, dest, willListFiles, getBuildConfigStream, beforeCompile, outputJSResult, tsProject) {
+exports.compileTS = function (stream, options, extra, done, debugging, dest, willListFiles) {
   var localCompileInBatch = options && options.inBatch != null ? options.inBatch : true;
   var allIfNotEmpty = localCompileInBatch && exports.gulpAllIfNotEmpty()
   if (allIfNotEmpty) {
@@ -388,30 +387,28 @@ exports.compileTS = function (stream, options, extra, done, doesMergeProjects
     stream = stream.pipe(allIfNotEmpty.cond);
   }
   if (willListFiles) { stream = stream.pipe(gulpPrint()); }
-  stream = stream.pipe(exports.gulpMap(beforeCompile));
-  var es6 = !!options && options.module === "es6"
-  var merged = doesMergeProjects ? es6 ? _mergedProjectInput6 : _mergedProjectInput5 : null
+  stream = stream.pipe(exports.gulpMap(gulpfile.beforeCompile));
+  var es6Module = !!options && !!options.module?.toLowerCase().startsWith("es")
+  var merged = es6Module ? _mergedProjectInput6 : _mergedProjectInput5
   var isInitingMerged = merged == null;
   if (isInitingMerged) {
     merged = exports.gulpMerge();
-    doesMergeProjects && (es6 ? _mergedProjectInput6 = merged : _mergedProjectInput5 = merged)
+    es6Module ? _mergedProjectInput6 = merged : _mergedProjectInput5 = merged
   }
   stream.pipe(merged.attachSource());
   if (isInitingMerged) {
-    getBuildConfigStream().pipe(merged.attachSource());
-    merged.on("end", () => es6 ? _mergedProjectInput6 = _mergedProject6 = null
+    gulpfile.getBuildConfigStream().pipe(merged.attachSource());
+    merged.on("end", () => es6Module ? _mergedProjectInput6 = _mergedProject6 = null
         : _mergedProjectInput5 = _mergedProject5 = null)
     merged = merged.pipe(gulpSome(function(file) {
       var t = file.relative, s = ".d.ts", i = t.length - s.length;
       return i < 0 || t.indexOf(s, i) !== i;
     })).pipe(exports.gulpMap(exports.correctBuffer))
-    merged = merged.pipe(tsProject(es6));
-    merged = outputJSResult(merged, es6);
-    if (doesMergeProjects) {
-      es6 ? _mergedProject6 = merged : _mergedProject5 = merged;
-    }
+    merged = merged.pipe(gulpfile.tsProject(es6Module));
+    merged = gulpfile.outputJSResult(merged, es6Module);
+    es6Module ? _mergedProject6 = merged : _mergedProject5 = merged;
   }
-  if (doesMergeProjects) { merged = es6 ? _mergedProject6 : _mergedProject5 }
+  merged = es6Module ? _mergedProject6 : _mergedProject5
   merged.on("finish", done);
 }
 
@@ -685,31 +682,7 @@ function gulpRollupContent(localExcludedPathRe) {
   return transformer
 }
 
-exports.rollupOne = function (file, oriRollupConfig, codeCB) {
-  const rollup = require("rollup")
-  const input = exports.ToString(file)
-  const path = file.relative
-  const preserve = oriRollupConfig.output.preserveModules
-  return rollup.rollup({ ...oriRollupConfig, output: null, input: path,
-    plugins: [ {
-      name: 'virtual',
-      resolveId(id) {
-        if (preserve) {
-          return id === path ? id : { id, external: true }
-        }
-      },
-      load(id) { if (id === path) { return input } }
-    } ]
-  })
-  .then(builder => builder.generate({ ...oriRollupConfig.output, file: null }))
-  .then(result => {
-    let code = result.output[0].code
-    code = codeCB ? codeCB(code, file) : code
-    exports.ToBuffer(file, code)
-  })
-}
-
-exports.parseBuildEnv = function (key, literalVal, LOCAL_SILENT) {
+exports.parseBuildEnv = function (key, literalVal) {
   var newVal = process.env["BUILD_" + key];
   if (!newVal) {
     let env_key = key.replace(/[A-Z]+[a-z\d]*/g, word => "_" + word.toUpperCase()).replace(/^_/, "");
@@ -720,7 +693,7 @@ exports.parseBuildEnv = function (key, literalVal, LOCAL_SILENT) {
     if (newVal2 == null && key === "Commit") { newVal2 = newVal }
     if (newVal2 != null) {
       newVal = newVal2
-      LOCAL_SILENT || print("Use env:", "BUILD_" + key, "=", newVal);
+      print("Use env:", "BUILD_" + key, "=", newVal);
     }
   } else if (key.startsWith("Random")) {
     // @ts-ignore

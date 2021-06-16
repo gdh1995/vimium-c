@@ -188,16 +188,6 @@ exports.loadTerserConfig = (path, reload) => {
       f.comments = ToRegExp(comments);
     }
     exports.patchTerser();
-    var ver = ""
-    try {
-      ver = require("terser/package.json").version;
-    } catch (e) {
-      console.log("Can not read the version of terser.");
-      throw e;
-    }
-    if (!ver) {
-      console.log("Warning: Can not get the version of terser.")
-    }
   }
   return a;
 }
@@ -490,6 +480,16 @@ exports.patchTerser = () => {
   if (mod) {
     require("fs").writeFileSync(path, JSON.stringify(terserPackage, null, 2))
     delete require.cache[require("path").resolve(path)]
+    var ver = ""
+    try {
+      ver = require("terser/package.json").version;
+    } catch (e) {
+      console.log("Can not read the version of terser.");
+      throw e;
+    }
+    if (!ver) {
+      console.log("Warning: Can not get the version of terser.")
+    }
     require("fancy-log")("Patch terser/package.json: succeed");
   }
 }
