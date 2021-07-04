@@ -1,6 +1,8 @@
 /// <reference path="../lib/base.d.ts" />
 /// <reference path="../background/exclusions.ts" />
 
+import { CurCVer_, BG_, bgSettings_, OnChrome, $, $$, nextTick_, pageLangs_, _pTrans } from "./async_bg"
+
 export type AllowedOptions = SettingsNS.PersistentSettings
 export type PossibleOptionNames<T> = PossibleKeys<AllowedOptions, T>
 interface BaseChecker<V extends AllowedOptions[keyof AllowedOptions]> {
@@ -8,7 +10,7 @@ interface BaseChecker<V extends AllowedOptions[keyof AllowedOptions]> {
   check_ (value: V): V;
 }
 export type Checker<T extends keyof AllowedOptions> = BaseChecker<AllowedOptions[T]>
-import {
+import type {
   UniversalNumberSettings, NumberOption_, JSONOptionNames, JSONOption_, TextualizedOptionNames, TextOption_,
   BooleanOption_
 } from "./options_defs"
@@ -32,28 +34,23 @@ export interface KnownOptionsDataset extends KnownDataset {
   href: `vimium://${string}`
 }
 
-import { CurCVer_, BG_, bgSettings_, OnFirefox, OnEdge, OnChrome, $, $$, pTrans_ } from "./async_bg"
-
-let flagAllowNextTick_ = false
-export const allowNextTick = (): void => { flagAllowNextTick_ = true }
-
-const lang_ = chrome.i18n.getMessage("lang1")
 export const showI18n = (): void => {
-    if (!lang_) { return }
-    const langInput = navigator.language as string || pTrans_("lang2")
-    let el: HTMLElement | null = $("#keyMappings"), t = el && pTrans_("keyMappingsP")
+    if (pageLangs_ === "en") { return }
+    const lang1 = pageLangs_.split(",")[0]
+    const langInput = navigator.language as string || lang1
+    let el: HTMLElement | null = $("#keyMappings"), t = el && oTrans_("keyMappingsP")
     t && ((el as HTMLInputElement).placeholder = t)
-    if (langInput && (lang_ !== "zh" || langInput !== "zh-CN")) {
+    if (langInput && (!lang1.startsWith("zh") || langInput !== "zh-CN")) {
       for (el of $$("input[type=text], textarea")) {
         el.lang = langInput as ""
       }
     }
     for (el of $$("[data-i]")) {
       const i = (el.dataset as KnownOptionsDataset).i, isTitle = i.endsWith("-t")
-      t = pTrans_(isTitle ? i.slice(0, -2) : i);
+      t = (oTrans_ as typeof _pTrans)(isTitle ? i.slice(0, -2) : i);
       (t || i === "NS") && (isTitle ? el.title = t : el.innerText = t)
     }
-    (document.documentElement as HTMLHtmlElement).lang = lang_ === "zh" ? "zh-CN" as "" : lang_ as "";
+    (document.documentElement as HTMLHtmlElement).lang = lang1 === "zh" ? "zh-CN" as "" : lang1 as ""
 }
 
 (window as unknown as any).__extends = function<Child, Super, Base> (
@@ -72,50 +69,6 @@ export const showI18n = (): void => {
   __.prototype = parent.prototype;
   child.prototype = new __();
 }
-
-export const nextTick_ = ((): { <T>(task: (self: T) => void, self: T): void; (task: (this: void) => void): void } => {
-  type Callback = () => void;
-  const tasks: Callback[] = [],
-  ticked = function (): void {
-    const oldSize = tasks.length;
-    for (const task of tasks) {
-      task();
-    }
-    if (tasks.length > oldSize) {
-      tasks.splice(0, oldSize);
-      if (OnChrome ? Build.MinCVer >= BrowserVer.Min$queueMicrotask
-          : OnFirefox ? Build.MinFFVer >= FirefoxBrowserVer.Min$queueMicrotask
-          : !OnEdge) {
-        queueMicrotask(ticked);
-      } else {
-        void Promise.resolve().then(ticked)
-      }
-    } else {
-      tasks.length = 0;
-    }
-  };
-  return <T> (task: ((firstArg: T) => void) | ((this: void) => void), context?: T): void => {
-    if (!(Build.NDEBUG || flagAllowNextTick_)) {
-      setTimeout(() => { alert("Should not call nextTick before inited") }, 17)
-      throw new Error("Should not call nextTick before inited")
-    }
-    if (tasks.length <= 0) {
-      if (OnChrome ? Build.MinCVer >= BrowserVer.Min$queueMicrotask
-          : OnFirefox ? Build.MinFFVer >= FirefoxBrowserVer.Min$queueMicrotask
-          : !OnEdge) {
-        queueMicrotask(ticked);
-      } else {
-        void Promise.resolve().then(ticked)
-      }
-    }
-    if (context as unknown as number === 9) {
-      // here ignores the case of re-entry
-      tasks.unshift(task as (this: void) => void);
-    } else {
-      tasks.push(context ? (task as (firstArg: T) => void).bind(null, context) : task as (this: void) => void);
-    }
-  };
-})()
 
 export const debounce_ = function<T> (func: (this: T) => void
     , wait: number, bound_context: T, also_immediate: number
@@ -236,8 +189,9 @@ static needSaveOptions_: (this: void) => boolean;
 }
 export type OptionErrorType = "has-error" | "highlight"
 
-interface ExclusionBaseVirtualNode {
+export interface ExclusionBaseVirtualNode {
   rule_: ExclusionsNS.StoredRule;
+  matcher_: Promise<RegExpUrlMatcher | PrefixUrlMatcher | false> | RegExpUrlMatcher | PrefixUrlMatcher | false | null
   changed_: boolean;
   visible_: boolean;
 }
@@ -248,7 +202,7 @@ interface ExclusionInvisibleVirtualNode extends ExclusionBaseVirtualNode {
   $keys_: null;
 }
 export interface ExclusionVisibleVirtualNode extends ExclusionBaseVirtualNode {
-  rule_: ExclusionsNS.StoredRule;
+  rule_: Readonly<ExclusionsNS.StoredRule>
   changed_: boolean;
   visible_: true;
   $pattern_: HTMLInputElement & ExclusionRealNode;
@@ -298,8 +252,8 @@ override populateElement_ (rules: ExclusionsNS.StoredRule[]): void {
   if (!this._rendered) {
     this._rendered = true
     if (Option_.syncToFrontend_) { this.template_.draggable = true }
-    for (const el of lang_ ? $$("[title]", this.template_) : []) {
-      const t = pTrans_(el.title)
+    for (const el of pageLangs_ !== "en" ? $$("[title]", this.template_) : []) {
+      const t = (oTrans_ as typeof _pTrans)(el.title)
       t && (el.title = t)
     }
   }
@@ -319,18 +273,20 @@ override populateElement_ (rules: ExclusionsNS.StoredRule[]): void {
   }
   return this.onRowChange_(rules.length);
 }
-isPatternMatched_ (_pattern: string): boolean { return true; }
+checkNodeVisible_ (_vnode: ExclusionBaseVirtualNode): boolean { return true }
 appendRuleTo_ (this: ExclusionRulesOption_
     , list: HTMLTableSectionElement | DocumentFragment, { pattern, passKeys }: ExclusionsNS.StoredRule): void {
   const vnode: ExclusionVisibleVirtualNode | ExclusionInvisibleVirtualNode = {
     // rebuild a rule, to ensure a consistent memory layout
     rule_: { pattern, passKeys },
+    matcher_: null,
     changed_: false,
     visible_: false,
     $pattern_: null,
     $keys_: null
   };
-  if (!this.isPatternMatched_(pattern)) {
+  (vnode as ExclusionBaseVirtualNode).visible_ = this.checkNodeVisible_(vnode)
+  if (!vnode.visible_) {
     this.list_.push(vnode);
     return;
   }
@@ -346,8 +302,7 @@ appendRuleTo_ (this: ExclusionRulesOption_
   if (trimmedKeys) {
     passKeysEl.placeholder = "";
   }
-  const vnode2 = vnode as ExclusionVisibleVirtualNode | ExclusionInvisibleVirtualNode as ExclusionVisibleVirtualNode;
-  vnode2.visible_ = true;
+  const vnode2 = vnode as ExclusionVisibleVirtualNode
   vnode2.$pattern_ = patternEl; vnode2.$keys_ = passKeysEl;
   patternEl.vnode = vnode2;
   passKeysEl.vnode = vnode2;
@@ -409,12 +364,19 @@ override readValueFromElement_ (part?: boolean): AllowedOptions["exclusionRules"
       pattern = (schemeLen < 0 ? ":http://" : ":") + pattern;
     } else if (!pattern.startsWith("^")) {
       fixTail = !pattern.includes("/", schemeLen + 3);
+      if (pattern.endsWith("*")) {
+        pattern = pattern.slice(0, -1)
+        fixTail = false
+      }
       pattern = (schemeLen < 0 ? "^https?://" : "^") +
           (!pattern.startsWith("*") || pattern[1] === "."
             ? ((pattern = pattern.replace(<RegExpG> /\./g, "\\.")), // lgtm [js/incomplete-sanitization]
               !pattern.startsWith("*") ? pattern.replace("://*\\.", "://(?:[^./]+\\.)*?")
                 : pattern.replace("*\\.", "(?:[^./]+\\.)*?"))
             : "[^/]" + pattern);
+    } else {
+      const ind = ".*$".includes(pattern.slice(-2)) ? pattern.endsWith(".*$") ? 3 : pattern.endsWith(".*") ? 2 : 0 : 0
+      pattern = ind !== 0 && pattern[pattern.length - ind] !== "\\" ? pattern.slice(0, -ind) : pattern
     }
     if (fixTail) {
       pattern += "/";
@@ -442,6 +404,7 @@ override readValueFromElement_ (part?: boolean): AllowedOptions["exclusionRules"
 updateVNode_ (vnode: ExclusionVisibleVirtualNode, pattern: string, keys: string): void {
   const hasNewKeys = !vnode.rule_.passKeys && !!keys;
   vnode.rule_ = { pattern, passKeys: keys };
+  vnode.matcher_ = null
   vnode.changed_ = false;
   if (hasNewKeys) {
     ExclusionRulesOption_.OnNewKeys_(vnode);
@@ -480,3 +443,7 @@ export let setupBorderWidth_ = (OnChrome && Build.MinCVer < BrowserVer.MinEnsure
   css.textContent = onlyInputs ? `html { --tiny: ${scale}px; }` : `* { border-width: ${scale}px !important; }`;
   (document.head as HTMLHeadElement).appendChild(css);
 } : null;
+
+import type * as i18n_options from "../i18n/zh/options.json"
+
+export const oTrans_ = _pTrans as (key: keyof typeof i18n_options, arg1?: (string | number)[]) => string

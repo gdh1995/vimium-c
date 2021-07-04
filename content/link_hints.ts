@@ -94,7 +94,7 @@ import {
 import {
   querySelector_unsafe_, isHTML_, scrollingEl_, docEl_unsafe_, IsInDOM_, GetParent_unsafe_,
   getComputedStyle_, isStyleVisible_, htmlTag_, fullscreenEl_unsafe_, removeEl_s, UNL, toggleClass_s, doesSupportDialog,
-  getSelectionFocusEdge_, activeEl_unsafe_, SafeEl_not_ff_, rangeCount_, compareDocumentPosition, notSafe_not_ff_
+  getSelectionFocusEdge_, SafeEl_not_ff_, rangeCount_, compareDocumentPosition, deepActiveEl_unsafe_
 } from "../lib/dom_utils"
 import {
   ViewBox, getViewBox_, prepareCrop_, wndSize_, bZoom_, wdZoom_, dScale_, padClientRect_, getBoundingClientRect_,
@@ -518,9 +518,9 @@ const activateDirectly = (options: ContentOptions, count: number): void => {
     timeout_(next, count > 99 ? 1 : count && 17)
   },
   computeOffset = (): number => {
-    const cur = deref_(currentScrolling) || activeEl_unsafe_() !== doc.body && activeEl_unsafe_()
+    const cur = deref_(currentScrolling)
     let low = 0, mid: number | undefined,
-    high = cur && (!OnFirefox && notSafe_not_ff_!(cur) || IsInDOM_(cur as SafeElement)) ? matches!.length - 1 : -1
+    high = cur && IsInDOM_(cur) ? matches!.length - 1 : -1
     while (low <= high) {
       mid = (low + high) >> 1
       const midEl = matches![mid][0]
@@ -530,7 +530,7 @@ const activateDirectly = (options: ContentOptions, count: number): void => {
     }
     return low < -matchIndex ? matches!.length : low + matchIndex
   }
-  let docActive: SafeElement | null, isSel: boolean | undefined
+  let isSel: boolean | undefined
   let matches: (Hint | Hint0)[] | undefined, oneMatch: Hint | Hint0 | undefined, matchIndex: number
   let el: SafeElement | null | undefined
   el = (prepareCrop_(), allTypes || d.includes("ele")) && options.match // target | element
@@ -544,8 +544,7 @@ const activateDirectly = (options: ContentOptions, count: number): void => {
           && isSelARange(getSelection()) && (el = getSelectionFocusEdge_(getSelected()), isSel = !!el, el)
       || (allTypes || d.includes("f")) // focused
           && (insert_Lock_()
-              || (docActive = OnFirefox ? <SafeElement | null> activeEl_unsafe_() : SafeEl_not_ff_!(activeEl_unsafe_()),
-                  docActive !== doc.body && docActive !== docEl_unsafe_() && docActive))
+              || (OnFirefox ? <SafeElement | null> deepActiveEl_unsafe_() : SafeEl_not_ff_!(deepActiveEl_unsafe_())))
       || (allTypes || d.includes("h") || d.includes("i") ? deref_(lastHovered_) : null) // hover | clicked
   el = mode < HintMode.min_job || el && htmlTag_(el) ? el : null
   if (!el || !IsInDOM_(el)) {

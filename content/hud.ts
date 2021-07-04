@@ -1,7 +1,7 @@
 import {
-  fgCache, doc, isEnabled_, VTr, isAlive_, timeout_, clearTimeout_, interval_, clearInterval_, isLocked_, OnChrome,
+  fgCache, isEnabled_, VTr, isAlive_, timeout_, clearTimeout_, interval_, clearInterval_, isLocked_, OnChrome
 } from "../lib/utils"
-import { isHTML_, createElement_, setClassName_s, appendNode_s, setVisibility_s } from "../lib/dom_utils"
+import { isHTML_, createElement_, setClassName_s, appendNode_s, setVisibility_s, docHasFocus_ } from "../lib/dom_utils"
 import { ui_box, ensureBorder, addUIElement, adjustUI, getBoxTagName_old_cr } from "./dom_ui"
 import { allHints, isHintsActive, hintManager, setMode as setHintMode, hintMode_ } from "./link_hints"
 import { insert_global_ } from "./insert"
@@ -51,7 +51,7 @@ const tween = (fake?: TimerType.fake): void => { // safe-interval
     $text.data = text;
     toggleOpacity(OnChrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake && fake || fgCache.m ? "" : "0.25")
     return adjustUI();
-  } else if (!fgCache.m && doc.hasFocus()) {
+  } else if (!fgCache.m && docHasFocus_()) {
     opacity += opacity < opacity_ ? 0.25 : -0.25;
   } else {
     opacity = opacity_;

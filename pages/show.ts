@@ -1,5 +1,11 @@
 /// <reference path="../lib/base.d.ts" />
-interface VDataTy2 extends VDataTy {
+import {
+  CurCVer_, CurFFVer_, BG_, bgSettings_, OnChrome, OnFirefox, OnEdge, $, _pTrans, asyncBackend_, browser_, nextTick_,
+  enableNextTick_, kReadyInfo, import2
+} from "./async_bg"
+
+interface VDataTy {
+  full: string
   type: "image" | "url" | "";
   original: string;
   url: string;
@@ -15,11 +21,7 @@ interface KnownShowDataset extends KnownDataset {
   colon: string // colon string in i18n
 }
 
-import { CurCVer_, CurFFVer_, BG_, OnChrome, OnFirefox, OnEdge, $, pTrans_ } from "./async_bg"
-// eslint-disable-next-line no-var
-declare var define: any, __filename: string | null | undefined
-
-let VData: VDataTy2 = null as never
+let VData: VDataTy = null as never
 
 interface ViewerType {
   scrollbarWidth: number
@@ -62,11 +64,7 @@ let _shownBlobURL = "", _shownBlob: Blob | null | 0 = null;
 let loadingTimer: (() => void) | null | undefined
 let _nextUrl: string | undefined
 
-if (chrome.i18n.getMessage("lang1")) {
-  document.title = pTrans_("vDisplay") && "Vimium C " + pTrans_("vDisplay") || document.title
-}
-
-window.onhashchange = function (this: void): void {
+function App (this: void): void {
   if (VShown) {
     clean();
     bgLink.style.display = "none";
@@ -74,12 +72,12 @@ window.onhashchange = function (this: void): void {
     VShown = null;
   }
 
-  VData = (window as unknown as typeof globalThis).VData = Object.create(null);
-  VData.o = getOmni_;
-  let url = location.hash, type: VDataTy2["type"] = "", file = "";
-  if (_nextUrl || !url && BG_ && BG_.Settings_ && BG_.Settings_.temp_.shownHash_) {
-    url = _nextUrl || BG_.Settings_.temp_.shownHash_!()
-    _nextUrl = ""
+  VData = (window as any).VData = Object.create(null)
+  let url = location.hash, type: VDataTy["type"] = "", file = ""
+  let _shownHash: string | null
+  if (_nextUrl || !url && asyncBackend_ && (_shownHash = asyncBackend_.shownHash_())) {
+    url = _nextUrl || _shownHash!
+    _nextUrl = _shownHash = ""
     if ((<RegExpI> /^[^:]+[ &]data:/i).test(url)) {
       encryptKey = -1;
     }
@@ -136,8 +134,8 @@ window.onhashchange = function (this: void): void {
   } else if (url.toLowerCase().startsWith("javascript:")) {
     type = url = file = VData.file = "";
   } else if (BG_) {
-    const str2 = BG_.BgUtils_.convertToUrl_(url, null, Urls.WorkType.KeepAll);
-    if (BG_.BgUtils_.lastUrlType_ <= Urls.Type.MaxOfInputIsPlainUrl) {
+    const str2 = asyncBackend_.convertToUrl_(url, null, Urls.WorkType.KeepAll)
+    if (asyncBackend_.lastUrlType_() <= Urls.Type.MaxOfInputIsPlainUrl) {
       url = str2;
     }
   } else if (url.startsWith("//")) {
@@ -167,18 +165,18 @@ window.onhashchange = function (this: void): void {
       resetOnceProperties_();
       VData.auto = false;
       this.onerror = this.onload = null as never;
-      this.alt = VData.error = pTrans_("failInLoading")
+      this.alt = VData.error = sTrans_("failInLoading")
       if (!OnChrome || Build.MinCVer >= BrowserVer.MinNoBorderForBrokenImage
           || CurCVer_ >= BrowserVer.MinNoBorderForBrokenImage) {
         this.classList.add("broken");
       }
       setTimeout(showBgLink, 34);
       this.onclick = function (e) {
-        if (BG_ && BG_.Backend_.checkHarmfulUrl_(VData.url)) {
+        if (BG_ && asyncBackend_.checkHarmfulUrl_(VData.url)) {
           return;
         }
-        !e.ctrlKey && !e.shiftKey && !e.altKey && chrome.tabs && chrome.tabs.update
-        ? chrome.tabs.update({ url: VData.url })
+        !e.ctrlKey && !e.shiftKey && !e.altKey && browser_.tabs && browser_.tabs.update
+        ? browser_.tabs.update({ url: VData.url })
         : clickLink({ target: "_top" }, e);
       };
     };
@@ -213,13 +211,13 @@ window.onhashchange = function (this: void): void {
         if (VData.pixel) {
           body.classList.add("pixel")
           const dpr = devicePixelRatio
-          if (1 || width > innerWidth * dpr * 0.9 && height > (innerHeight as number) * dpr * 0.9) {
+          if (width > innerWidth * dpr * 0.9 && height > (innerHeight as number) * dpr * 0.9) {
             const el = importBody("snapshot-banner", true);
             (el.querySelector(".banner-close") as SVGElement)!.onclick = _e => { el.remove() }
             let arr = el.querySelectorAll("[data-i]") as ArrayLike<Element> as HTMLElement[]
             for (let i = 0; i < arr.length; i++) { // eslint-disable-line @typescript-eslint/prefer-for-of
               const s = (arr[i].dataset as KnownShowDataset).i, isTitle = s.endsWith("-t")
-              const t = pTrans_(isTitle ? s.slice(0, -2) : s)
+              const t = (sTrans_ as typeof _pTrans)(isTitle ? s.slice(0, -2) : s)
               t && (isTitle ? arr[i].title = t : arr[i]!.textContent = t)
             }
             body.insertBefore(el, body.firstChild)
@@ -233,7 +231,7 @@ window.onhashchange = function (this: void): void {
     } else {
       url = VData.url = "";
       VShown.onerror(null as never);
-      VShown.alt = VData.error = pTrans_("none");
+      VShown.alt = VData.error = sTrans_("none")
     }
     if (file) {
       VData.file = file = tryToFixFileExt_(file) || file;
@@ -242,19 +240,18 @@ window.onhashchange = function (this: void): void {
       VShown.alt = file;
       VShown.setAttribute("aria-title", file)
     }
-    listenWheelForImage(true);
     break;
   case "url":
     VShown = (importBody as ImportBody)("shownText");
     if (url && BG_) {
       let str1: Urls.Url | null = null;
       if (url.startsWith("vimium://")) {
-        str1 = BG_.BgUtils_.evalVimiumUrl_(url.slice(9), Urls.WorkType.ActIfNoSideEffects, true);
+        str1 = asyncBackend_.evalVimiumUrl_(url.slice(9), Urls.WorkType.ActIfNoSideEffects, true)
       }
-      str1 = str1 !== null ? str1 : BG_.BgUtils_.convertToUrl_(url, null, Urls.WorkType.ConvertKnown);
+      str1 = str1 !== null ? str1 : asyncBackend_.convertToUrl_(url, null, Urls.WorkType.ConvertKnown)
       if (typeof str1 === "string") {
-        str1 = BG_.BgUtils_.detectLinkDeclaration_(str1);
-        str1 = BG_.BgUtils_.reformatURL_(str1);
+        str1 = asyncBackend_.findUrlInText_(str1, "whole")
+        str1 = asyncBackend_.reformatURL_(str1)
       }
       else if (str1 instanceof BG_.Promise) {
         void str1.then(function (arr): void {
@@ -277,7 +274,6 @@ window.onhashchange = function (this: void): void {
     VShown = (importBody as ImportBody)("shownImage");
     VShown.src = "../icons/icon128.png";
     bgLink.style.display = "none";
-    listenWheelForImage(true);
     break;
   }
 
@@ -290,13 +286,26 @@ window.onhashchange = function (this: void): void {
     bgLink.removeAttribute("download");
   }
   bgLink.onclick = VShown ? clickShownNode : defaultOnClick;
-};
+}
 
-(window.onhashchange as () => void)();
+import type * as i18n_options from "../i18n/zh/show.json"
 
-window.onpopstate = function () {
-  (window.onhashchange as () => void)();
-};
+export const sTrans_ = _pTrans as (key: keyof typeof i18n_options, arg1?: (string | number)[]) => string
+
+enableNextTick_(kReadyInfo.platformInfo)
+
+nextTick_((): void => {
+  window.onhashchange = App
+  window.onpopstate = App
+  App()
+})
+
+addEventListener(GlobalConsts.kLoadEvent, function onContentLoaded(): void {
+  if (OnChrome && Build.MinCVer < BrowserVer.Min$addEventListener$support$once) {
+    removeEventListener(GlobalConsts.kLoadEvent, onContentLoaded, { capture: true })
+  }
+  window.VApi && (VApi.u = getContentUrl_)
+}, { once: true, capture: true })
 
 window.onunload = destroyObject_;
 
@@ -307,7 +316,7 @@ body.ondrop = (e): void => {
     if (file.type.startsWith("image/") || ImageExtRe.test(name)) {
       (e as Event as EventToPrevent).preventDefault()
       _nextUrl = "#!image download=" + name + "&" + URL.createObjectURL(file);
-      (onhashchange as () => void)()
+      App()
     }
   }
 }
@@ -341,18 +350,6 @@ document.addEventListener("keydown", function (this: void, event): void {
   }
 });
 
-function listenWheelForImage(_doListen: boolean): void {
-  // (doListen ? addEventListener : removeEventListener)("wheel", myOnWheel, { passive: false, capture: true } as const);
-}
-
-function myOnWheel(this: void, event: WheelEvent & ToPrevent): void {
-  if (event.ctrlKey) {
-    event.preventDefault();
-    event.stopImmediatePropagation();
-    defaultOnClick(event);
-  }
-}
-
 function showBgLink(this: void): void {
   const height = (VShown as ValidNodeTypes).scrollHeight, width = (VShown as ValidNodeTypes).scrollWidth;
   bgLink.style.height = height + "px";
@@ -365,13 +362,7 @@ function clickLink(this: void, options: { [key: string]: string }
   event.preventDefault();
   if (!VData.url) { return; }
   const a = document.createElement("a")
-  const setProto_old_cr = OnChrome && Build.MinCVer < BrowserVer.Min$Object$$setPrototypeOf
-      ? Object.setPrototypeOf : 0 as never as null;
-  if (OnChrome && Build.MinCVer < BrowserVer.Min$Object$$setPrototypeOf) {
-    setProto_old_cr ? setProto_old_cr(options, null) : ((options as any).__proto__ = null);
-  } else {
     Object.setPrototypeOf(options, null);
-  }
   for (const i in options) {
     a.setAttribute(i, options[i]);
   }
@@ -380,7 +371,7 @@ function clickLink(this: void, options: { [key: string]: string }
     simulateClick(a, event)
     return
   }
-  chrome.permissions.contains({ permissions: ["downloads"] }, (permitted: boolean): void => {
+  browser_.permissions.contains({ permissions: ["downloads"] }, (permitted: boolean): void => {
     if (!permitted) {
       simulateClick(a, event);
     } else {
@@ -388,7 +379,7 @@ function clickLink(this: void, options: { [key: string]: string }
       if (a.download) { opts.filename = a.download }
       (browser as typeof chrome).downloads.download!(opts).catch((): void => { /* empty */ })
     }
-    return chrome.runtime.lastError
+    return browser_.runtime.lastError
   })
 }
 
@@ -477,7 +468,7 @@ function defaultOnClick(event: MouseEventToPrevent): void {
   case "image":
     if (VData.error) { return; }
     const isCtrl = event.ctrlKey || event.metaKey
-    loadViewer().then(module => showSlide(module, isCtrl)).catch(defaultOnError);
+    loadViewer().then(exports => showSlide(exports, isCtrl)).catch(defaultOnError)
     break;
   default: break;
   } }
@@ -495,8 +486,8 @@ function showText(tip: string | Urls.kEval, details: string | string[]): void {
   tip = typeof tip === "number" ? ["math", "copy", "search", "ERROR", "status", "paste"
       , "url"
       ][tip] : tip;
-  ($("#textTip").dataset as KnownShowDataset).text = pTrans_("t_" + tip) || tip;
-  ($(".colon").dataset as KnownShowDataset).colon = pTrans_("colon") + pTrans_("NS");
+  ($("#textTip").dataset as KnownShowDataset).text = sTrans_(`t_${tip as "math" | "copy"}`) || tip;
+  ($(".colon").dataset as KnownShowDataset).colon = sTrans_("colon") + sTrans_("NS")
   const textBody = $("#textBody");
   if (details) {
     textBody.textContent = typeof details !== "string" ? details.join(" ") : details;
@@ -581,12 +572,6 @@ function toggleInvert(event: EventToPrevent): void {
   }
 }
 
-function requireJS(url: string): Promise<any> {
-  const filename = url.slice(url.lastIndexOf("/") + 1).replace(".js", "")
-  __filename = "__loader_" + filename
-  return define([url]) // eslint-disable-line @typescript-eslint/no-unsafe-call
-}
-
 function loadCSS(src: string): void {
   if ($('link[href="' + src + '"]')) {
     return;
@@ -606,16 +591,17 @@ function loadViewer(): Promise<ViewerModule> {
     return Promise.resolve(ViewerModule)
   }
   loadCSS("../lib/viewer.min.css");
-  return requireJS("../lib/viewer.min.js").then<ViewerModule>(viewerJS => {
+  return import2("../lib/viewer.min.js").then((viewerJS: any): ViewerModule => {
+    viewerJS = viewerJS && typeof viewerJS === "function" ? viewerJS
+        : (window as unknown as { Viewer: typeof viewerJS }).Viewer
     viewerJS.setDefaults({ // eslint-disable-line @typescript-eslint/no-unsafe-call
       navbar: false,
       shown (this: void) {
         bgLink.style.display = "none";
       },
-      viewed (): void { if (tempEmit) { listenWheelForImage(false); tempEmit(true); } },
+      viewed (): void { if (tempEmit) { tempEmit(true); } },
       hide (this: void) {
         bgLink.style.display = "";
-        listenWheelForImage(true);
         if (tempEmit) { tempEmit(false); }
       }
     });
@@ -676,7 +662,6 @@ function clean(): void {
     loadingTimer = null
   }
   if (VData.type === "image") {
-    listenWheelForImage(false);
     const boxClass = (document.body as HTMLBodyElement).classList
     VShown!.classList.remove("svg")
     boxClass.remove("pixel")
@@ -692,7 +677,7 @@ function clean(): void {
 
 function parseSmartImageUrl_(originUrl: string): string | null {
   const stdUrl = originUrl;
-  originUrl = BG_ && BG_.BgUtils_.sed_(originUrl, SedContext.image) || originUrl;
+  originUrl = BG_ && asyncBackend_.substitute_(originUrl, SedContext.image) || originUrl
   function safeParseURL(url1: string): URL | null { try { return new URL(url1); } catch {} return null; }
   const parsed = safeParseURL(originUrl);
   if (!parsed || !(<RegExpI> /^(ht|s?f)tp/i).test(parsed.protocol)) { return null; }
@@ -826,7 +811,7 @@ function fetchImage_(url: string, element: HTMLImageElement): void {
     element.classList.add("svg")
   }
   if (!is_blob && (!is_data || url.length < 1e4)
-      && ((!VData.incognito && !BG_.Settings_.get_("showInIncognito"))
+      && ((!VData.incognito && !bgSettings_.get_("showInIncognito"))
           || !(<RegExpOne> /^(ht|s?f)tp|^data:/).test(url_prefix)
           || OnChrome && Build.MinCVer < BrowserVer.MinEnsured$fetch
               && !(window as any).fetch
@@ -861,7 +846,7 @@ function fetchImage_(url: string, element: HTMLImageElement): void {
       clearTimer();
     } else if (!text.parentNode) {
       body.insertBefore(text, element);
-      text.data = pTrans_("loading")
+      text.data = sTrans_("loading")
     }
   }, 400);
 }
@@ -897,7 +882,7 @@ function disableAutoAndReload_(): void {
   console.log("Failed to visit the predicted URL, so go back to the original version.");
   resetOnceProperties_();
   VData.auto = false;
-  (window.onhashchange as () => void)();
+  App()
 }
 
 function resetOnceProperties_(): boolean {
@@ -917,7 +902,7 @@ function recoverHash_(notUpdateHistoryState?: BOOL): void {
   }
   let url = "#!" + type + " "
       + (VData.incognito ? "incognito=1&" : "")
-      + (VData.file ? "download=" + encodeAsciiComponent(VData.file)
+      + (VData.file ? "download=" + encodeAsciiComponent_(VData.file)
           + "&" : "")
       + (VData.auto ? "auto=" + (VData.auto === "once" ? "once" : 1) + "&" : "")
       + (VData.pixel ? "pixel=1&" : "")
@@ -928,7 +913,7 @@ function recoverHash_(notUpdateHistoryState?: BOOL): void {
   history.replaceState(encryptedUrl, "", "");
 }
 
-function encodeAsciiComponent (url: string): string { return url.replace(
+function encodeAsciiComponent_ (url: string): string { return url.replace(
     OnEdge || OnChrome && Build.MinCVer < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
         && CurCVer_ < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
       || OnFirefox && Build.MinFFVer < FirefoxBrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
@@ -965,17 +950,17 @@ function encrypt_(message: string, password: number, doEncrypt: boolean): string
   return message;
 }
 
-function getOmni_(oldUrl: string): string {
-  if (!VData.full) { return oldUrl; }
+function getContentUrl_(): string {
+  if (!VData || !VData.full) { return location.href }
   return location.href.split("#", 1)[0] + VData.full;
 }
 
 if (!Build.NDEBUG) {
   const exported: Dict<any> = {
-    listenWheelForImage, myOnWheel, showBgLink, clickLink, simulateClick, imgOnKeydown, doImageAction, decodeURLPart_,
-    importBody, defaultOnClick, clickShownNode, showText, copyThing, _copyStr, toggleInvert, requireJS, loadCSS,
+    showBgLink, clickLink, simulateClick, imgOnKeydown, doImageAction, decodeURLPart_,
+    importBody, defaultOnClick, clickShownNode, showText, copyThing, _copyStr, toggleInvert, import2, loadCSS,
     defaultOnError, loadViewer, showSlide, clean, parseSmartImageUrl_, tryToFixFileExt_, fetchImage_,
-    destroyObject_, tryDecryptUrl, disableAutoAndReload_, resetOnceProperties_, recoverHash_, encrypt_, getOmni_,
+    destroyObject_, tryDecryptUrl, disableAutoAndReload_, resetOnceProperties_, recoverHash_, encrypt_, getOmni_: getContentUrl_,
   };
   for (let key in exported) { if (exported.hasOwnProperty(key)) { (window as any)[key] = exported[key]; } }
   (window as any).VShown = () => ({

@@ -556,7 +556,7 @@ FProto[kToS] = myToStr
         && appVer < BrowserVer.MinEnsuredES6ArrowFunction) {
       injected = injected.replace(<RegExpG> (Build.Minify ? /\(([\w,]*\))=>/g : /\(([\w, ]*\))=>/g), "function($1")
     }
-    injected = injected.replace(GlobalConsts.MarkAcrossJSWorlds, "$&" + secret)
+    injected = injected.replace(GlobalConsts.MarkAcrossJSWorlds, `$&${secret}`)
     vApi.e = execute;
     setupEventListener(0, kHookRand, hook);
     setupEventListener(0, kVOnClick1, onClick);

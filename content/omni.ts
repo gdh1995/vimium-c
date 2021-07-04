@@ -1,6 +1,6 @@
 /// <reference path="../lib/base.omni.d.ts" />
 import {
-  injector, isAlive_, keydownEvents_, readyState_, timeout_, clearTimeout_, loc_, recordLog, chromeVer_, math, OnChrome,
+  isAlive_, keydownEvents_, readyState_, timeout_, clearTimeout_, recordLog, chromeVer_, math, OnChrome,
   interval_, clearInterval_, locHref, vApi, createRegExp, isTY, safeObj, isTop, OnFirefox, OnEdge, safeCall
 } from "../lib/utils"
 import { removeHandler_, replaceOrSuppressMost_, getMappedKey, isEscape_ } from "../lib/keyboard_utils"
@@ -128,7 +128,7 @@ const init = ({k: secret, v: page, t: type, i: inner}: FullOptions): void => {
         const channel = new MessageChannel();
         portToOmni = channel.port1;
         (portToOmni as typeof channel.port1).onmessage = onOmniMessage
-        const sec: VomnibarNS.MessageData = [secret, omniOptions as VomnibarNS.FgOptionsToFront]
+        const sec: VomnibarNS.MessageData = ["VimiumC", secret, omniOptions as VomnibarNS.FgOptionsToFront]
         wnd.postMessage(sec, !isFile ? new URL(page).origin : "*" // lgtm [js/cross-window-information-leak]
             , [channel.port2])
       }
@@ -189,7 +189,7 @@ const onOmniMessage = function (this: OmniPort, msg: { data: any, target?: Messa
               && OnChrome ? wndSize_(2) : 1),
         top = screenHeight_ > topHalfThreshold * 2 ? ((50 - maxBoxHeight * 0.6 / screenHeight_ * 100) | 0
             ) + (canUseVW ? "vh" : "%") : ""
-        style.top = !Build.NoDialogUI && VimiumInjector === null && loc_.hash === "#dialog-ui" ? "8px" : top;
+        style.top = top
         setDisplaying_s(box!, 1)
         timeout_(refreshKeyHandler, 160)
       }
@@ -301,17 +301,13 @@ const refreshKeyHandler = (): void => {
     url = options.url = url || options.u
     upper = count > 1 ? 1 - count : count < 0 ? -count : 0
   }
-  options.k = 0; options.v = options.i = ""
   options.N = VomnibarNS.kCReq.activate
-  options.u = ""
+  options.k = options.v = options.i = options.u = ""
   if (!url || !url.includes("://")) {
     options.p = ""
     status > Status.Initing ? postToOmni(options as VomnibarNS.FgOptions as VomnibarNS.FgOptionsToFront)
         : (omniOptions = options as VomnibarNS.FgOptions as VomnibarNS.FgOptionsToFront)
     return
-  }
-  if (injector === null && (window as PartialOf<typeof globalThis, "VData">).VData) {
-    url = VData!.o(url)
   }
   send_(kFgReq.parseSearchUrl, { t: options.s, p: upper, u: url }, function (search): void {
     options.p = search

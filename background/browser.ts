@@ -1,6 +1,11 @@
-import { settings } from "./store"
+import {
+  CurCVer_, CurFFVer_, curIncognito_, curWndId_, newTabUrls_, OnChrome, OnEdge, OnFirefox, settingsCache_, blank_,
+  CONST_, IsEdg_, hasGroupPermission_ff_
+} from "./store"
+import { DecodeURLPart_ } from "./utils"
 
-export type Tab = chrome.tabs.Tab
+type AtomPermission = { origins: [chrome.permissions.kPermissions]; permissions?: undefined }
+    | { origins?: undefined; permissions: [chrome.permissions.kPermissions] }
 export type Window = chrome.windows.Window
 
 export interface IncNormalWnd extends Window { incognito: true; type: "normal" }
@@ -11,47 +16,60 @@ export interface InfoToCreateMultiTab extends
       Partial<Pick<chrome.tabs.CreateProperties, "index" | "openerTabId" | "windowId" | "pinned">> {
     url: string; active: boolean; }
 
-export const browser_: typeof chrome = Build.BTypes & ~BrowserType.Chrome
-    && (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome)
-    ? (browser as typeof chrome) : chrome
-export const browserTabs = browser_.tabs
-export const browserWindows = browser_.windows
-export const browserSessions = (): typeof chrome.sessions => browser_.sessions
-export const browserWebNav = (): typeof chrome.webNavigation | undefined => browser_.webNavigation
+export const browser_: typeof chrome = OnChrome ? chrome : browser as typeof chrome
+if (!OnChrome && globalThis.chrome) {
+  globalThis.chrome = null as never
+}
 
-export const runtimeError_ = BgUtils_.runtimeError_
+export const Tabs_ = browser_.tabs
+export const Windows_ = browser_.windows
+export const browserSessions_ = (): typeof chrome.sessions => browser_.sessions
+export const browserWebNav_ = (): typeof chrome.webNavigation | undefined => browser_.webNavigation
 
-export const tabsGet = browserTabs.get
-export const tabsUpdate = browserTabs.update
+export const runtimeError_ = (): any => browser_.runtime.lastError
 
-export const getGroupId: (tab: Tab) => chrome.tabs.GroupId | null = !(Build.BTypes & ~BrowserType.Firefox)
-    || Build.BTypes & BrowserType.Firefox && OnOther & BrowserType.Firefox
+export const tabsGet = Tabs_.get
+export const tabsUpdate = Tabs_.update
+
+export const getGroupId: (tab: Tab) => chrome.tabs.GroupId | null = OnFirefox
     ? tab => tab.cookieStoreId && tab.cookieStoreId !== "firefox-default" ? tab.cookieStoreId : null
-    : Build.BTypes & ~BrowserType.Edge ? i => i.groupId !== -1 && i.groupId != null ? i.groupId : null
+    : !OnEdge ? i => i.groupId !== -1 && i.groupId != null ? i.groupId : null
     : () => null
 
-export const getTabUrl = (tab_may_pending: Pick<Tab, "url" | "pendingUrl">): string =>
-    Build.BTypes & BrowserType.Chrome ? tab_may_pending.url || tab_may_pending.pendingUrl : tab_may_pending.url
+export const getTabUrl = OnChrome ? (tab_may_pending: Pick<Tab, "url" | "pendingUrl">): string =>
+    tab_may_pending.url || tab_may_pending.pendingUrl : (tab_with_url: Pick<Tab, "url">): string => tab_with_url.url
 
-export const getCurTab = browserTabs.query.bind<null, { active: true; currentWindow: true }
+export const isTabMuted = OnChrome && Build.MinCVer < BrowserVer.MinMutedInfo && CurCVer_ < BrowserVer.MinMutedInfo
+    ? (maybe_muted: Tab): boolean => maybe_muted.muted! : (maybe_muted: Tab): boolean => maybe_muted.mutedInfo.muted
+
+export const getCurTab = Tabs_.query.bind<null, { active: true; currentWindow: true }
     , [(result: [Tab], _ex: FakeArg) => void], 1>(null, { active: true, currentWindow: true })
 
-export const getCurTabs = browserTabs.query.bind(null, {currentWindow: true})
+export const getCurTabs = Tabs_.query.bind(null, {currentWindow: true})
 
-export const getCurShownTabs_ff_only = Build.BTypes & BrowserType.Firefox
-      && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
-    ? browserTabs.query.bind(null, { currentWindow: true, hidden: false }) : 0 as never as null
+export const getCurShownTabs_ff_only_ = OnFirefox
+    ? Tabs_.query.bind(null, { currentWindow: true, hidden: false }) : 0 as never as null
+
+export const overrideTabsIndexes_ff_ = OnFirefox ? (tabs: readonly Tab[]): void => {
+  const len = tabs.length
+  if (len > 0 && tabs[len - 1].index !== len - 1) {
+    for (let i = 0; i < len; i++) {
+      tabs[i].index = i
+    }
+  }
+} : null
 
 export const getCurWnd = ((populate: boolean, callback: (window: Window, exArg: FakeArg) => void): void | 1 => {
-  const wndId = TabRecency_.curWnd_, args = { populate }
-  wndId >= 0 ? browserWindows.get(wndId, args, callback) : browserWindows.getCurrent(args, callback)
+  const args = { populate }
+  curWndId_ >= 0 ? Windows_.get(curWndId_, args, callback) : Windows_.getCurrent(args, callback)
 }) as {
   (populate: true, callback: (window: PopWindow | undefined, exArg: FakeArg) => void): 1
   (populate: false, callback: (window: Window, exArg: FakeArg) => void): 1
+  (populate: boolean, callback: (window: PopWindow | Window | undefined, exArg: FakeArg) => void): 1
 }
 
 export const selectFrom = (tabs: readonly Tab[], overrideIndexes?: BOOL): ActiveTab => {
-  Build.BTypes & BrowserType.Firefox && overrideIndexes && BgUtils_.overrideTabsIndexes_ff_!(tabs)
+  OnFirefox && overrideIndexes && overrideTabsIndexes_ff_!(tabs)
   for (let i = tabs.length; 0 < --i; ) {
     if (tabs[i].active) {
       return tabs[i]! as ActiveTab
@@ -60,7 +78,25 @@ export const selectFrom = (tabs: readonly Tab[], overrideIndexes?: BOOL): Active
   return tabs[0]! as ActiveTab
 }
 
-/** action section */
+/** `0` means the query is invalid */
+export const doPermissionsContain_ = ((query: chrome.permissions.Request | null): Promise<boolean | 0> | null =>
+    !query ? null : OnChrome ? new Promise((resolve): void => {
+      browser_.permissions.contains(query, (allowed): void => {
+        resolve(runtimeError_() ? 0 : allowed)
+        return runtimeError_()
+      })
+    }) : browser_.permissions.contains(query).catch(() => 0)
+) as {
+  (query: chrome.permissions.Request): Promise<boolean | 0>
+  (query: chrome.permissions.Request | null): Promise<boolean | 0> | null
+}
+
+const doesIgnoreUrlField_ = (url: string, incognito?: boolean): boolean => {
+  const type = newTabUrls_.get(url)
+  return type === Urls.NewTabType.browser || type === Urls.NewTabType.cNewNTP && !(OnChrome && !IsEdg_ && !incognito)
+}
+
+//#region actions
 
 /** if `alsoWnd`, then it's safe when tab does not exist */
 export const selectTab = (tabId: number, callback?: ((tab?: Tab) => void) | null): void => {
@@ -68,65 +104,37 @@ export const selectTab = (tabId: number, callback?: ((tab?: Tab) => void) | null
 }
 
 export const selectWnd = (tab?: { windowId: number }): void => {
-  tab && browserWindows.update(tab.windowId, { focused: true })
+  tab && Windows_.update(tab.windowId, { focused: true })
   return runtimeError_()
 }
 
 export const selectWndIfNeed = (tab: { windowId: number }): void => {
-  tab.windowId !== TabRecency_.curWnd_ && selectWnd(tab)
+  tab.windowId !== curWndId_ && selectWnd(tab)
 }
 
 /* if not args.url, then "openerTabId" must not in args */
 export const tabsCreate = (args: chrome.tabs.CreateProperties, callback?: ((tab: Tab, exArg: FakeArg) => void) | null
     , evenIncognito?: boolean | -1 | null): 1 => {
-  let { url } = args, type: Urls.NewTabType | undefined
+  let { url } = args
   if (!url) {
-    url = settings.cache_.newTabUrl_f
-    if (TabRecency_.incognito_ === IncognitoType.true
-        && (evenIncognito === -1 ? url.endsWith(settings.CONST_.BlankNewTab_) && url.startsWith(location.origin)
+    url = settingsCache_.newTabUrl_f
+    if (curIncognito_ === IncognitoType.true
+        && (evenIncognito === -1 ? url.endsWith(CONST_.BlankNewTab_) && url.startsWith(location.origin)
             : !evenIncognito && url.startsWith(location.protocol))) { /* empty */ }
-    else if (Build.MayOverrideNewTab && settings.CONST_.OverrideNewTab_
-        ? settings.cache_.focusNewTabContent
-        : !(Build.BTypes & BrowserType.Firefox)
-          || (Build.BTypes & ~BrowserType.Firefox && OnOther !== BrowserType.Firefox)
-          || !settings.newTabs_.has(url)) {
+    else if (!doesIgnoreUrlField_(url, curIncognito_ === IncognitoType.true)) {
       args.url = url
     }
     if (!args.url) {
       delete args.url
     }
-  } else if (!(type = settings.newTabs_.get(url))) { /* empty */ }
-  else if (type === Urls.NewTabType.browser) {
-    // ignore Build.MayOverrideNewTab and other things,
-    // so that if another extension manages the NTP, this line still works
+  } else if (doesIgnoreUrlField_(url, curIncognito_ === IncognitoType.true)) {
+    // if another extension manages the NTP, this line still works
     delete args.url
-  } else if (Build.MayOverrideNewTab && type === Urls.NewTabType.vimium) {
-    /** if not MayOverride, no .vimium cases in {@link settings.ts#__init__} */
-    args.url = settings.cache_.newTabUrl_f
   }
-  if (Build.BTypes & BrowserType.Edge && (!(Build.BTypes & ~BrowserType.Edge) || OnOther === BrowserType.Edge)) {
+  if (OnEdge) {
     delete args.openerTabId
   }
-  return browserTabs.create(args, callback)
-}
-
-export const safeUpdate = (url: string, secondTimes?: true, tabs1?: [Tab]): void => {
-  if (Backend_.checkHarmfulUrl_(url)) {
-    return
-  }
-  if (!tabs1) {
-    if (BgUtils_.isRefusingIncognito_(url) && secondTimes !== true) {
-      getCurTab(safeUpdate.bind(null, url, true))
-      return
-    }
-  } else if (tabs1.length > 0 && tabs1[0].incognito && BgUtils_.isRefusingIncognito_(url)) {
-    tabsCreate({ url })
-    BgUtils_.resetRe_()
-    return
-  }
-  const arg = { url }
-  tabs1 ? tabsUpdate(tabs1[0].id, arg, runtimeError_) : tabsUpdate(arg, runtimeError_)
-  BgUtils_.resetRe_()
+  return Tabs_.create(args, callback)
 }
 
 /** the order is [A,B,C; A,B,C; ...]; require urls.length === 0 || args.url === urls[0] */
@@ -138,35 +146,33 @@ export const openMultiTabs = (options: InfoToCreateMultiTab, count: number
     if (runtimeError_()) { return runtimeError_() }
       options.index = newTab.index
       options.windowId = newTab.windowId
-    !(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && OnOther & BrowserType.Firefox
-    ? (options as chrome.tabs.CreateProperties).cookieStoreId = getGroupId(newTab) ?? undefined
-    : Build.BTypes & ~BrowserType.Edge && groupId != null
-      && browserTabs.group({ tabIds: newTab.id, groupId: groupId as number })
+    OnFirefox ? (options as chrome.tabs.CreateProperties).cookieStoreId = getGroupId(newTab) ?? undefined
+    : !OnEdge && groupId != null && Tabs_.group({ tabIds: newTab.id, groupId: groupId as number })
     callback && callback(newTab)
     options.active = false
     const hasIndex = options.index != null, loopSize = urls ? urls.length : 1
-    const onOtherTabs = Build.BTypes & ~(BrowserType.Edge | BrowserType.Firefox) && groupId != null
-        ? (t2?: Tab): void => (t2 && browserTabs.group({ tabIds: t2.id, groupId: groupId as number }), runtimeError_())
+    const onOtherTabs = !(OnEdge || OnFirefox) && groupId != null
+        ? (t2?: Tab): void => (t2 && Tabs_.group({ tabIds: t2.id, groupId: groupId as number }), runtimeError_())
         : runtimeError_
     urls.length > 1 && (urls[0] = options.url)
     for (let i = 0; i < count; i++) {
       for (let j = i > 0 ? 0 : 1; j < loopSize; j++) {
         urls.length > 1 && (options.url = urls[j]!)
         hasIndex && ++options.index
-        browserTabs.create(options, onOtherTabs)
+        Tabs_.create(options, onOtherTabs)
       }
     }
   }
   let groupId: chrome.tabs.GroupId | null | undefined
   doesGroup = doesGroup !== false
-  if (!(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && OnOther & BrowserType.Firefox) {
-    if (doesGroup) {
+  if (OnFirefox) {
+    if (doesGroup && hasGroupPermission_ff_) {
       if (curTab && (groupId = getGroupId(curTab)) != null) {
         (options as chrome.tabs.CreateProperties).cookieStoreId = groupId
         tabsCreate(options, (newTab): void => {
           if (runtimeError_() && (runtimeError_() + "").includes("No permission for cookieStoreId")) {
             delete (options as chrome.tabs.CreateProperties).cookieStoreId
-            browserTabs.create(options, cb1)
+            Tabs_.create(options, cb1)
           } else {
             cb1(newTab)
           }
@@ -177,10 +183,10 @@ export const openMultiTabs = (options: InfoToCreateMultiTab, count: number
     } else if (options.openerTabId != null && (!curTab || curTab.cookieStoreId !== "firefox-default")) {
       delete options.openerTabId
     }
-  } else if (Build.BTypes & ~BrowserType.Edge) {
+  } else if (!OnEdge) {
     groupId = curTab != null ? getGroupId(curTab) as number | null : null
     if (!doesGroup && groupId != null) { delete options.index }
-    groupId = doesGroup && groupId != null && browserTabs.group ? groupId : undefined
+    groupId = doesGroup && groupId != null && Tabs_.group ? groupId : undefined
   }
   tabsCreate(options, cb1, evenIncognito)
 }
@@ -190,32 +196,30 @@ export const makeWindow = (options: chrome.windows.CreateData, state?: chrome.wi
   const focused = options.focused !== false, kM = "minimized"
   state = !state ? "" : ((state === kM) === focused) || options.type === "popup"
       || state === "normal" || state === "docked" ? "" : state
-  if ((Build.MinCVer >= BrowserVer.MinCreateWndWithState || !(Build.BTypes & BrowserType.Chrome)
-                || CurCVer_ >= BrowserVer.MinCreateWndWithState)) {
+  if (!OnChrome || Build.MinCVer >= BrowserVer.MinCreateWndWithState || CurCVer_ >= BrowserVer.MinCreateWndWithState) {
     if (state && !state.includes("fullscreen")) {
       (options as chrome.windows.CreateDataEx).state = state
       state = ""
     }
   }
-  if (Build.BTypes & BrowserType.Firefox
-      && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)) {
+  if (OnFirefox) {
     delete options.focused
   } else {
     options.focused = true
   }
   let url = options.url
   if (!url && options.tabId == null) {
-    url = options.url = settings.cache_.newTabUrl_f
+    url = options.url = settingsCache_.newTabUrl_f
   }
-  if (typeof url === "string" && (settings.newTabs_.get(url) === Urls.NewTabType.browser)) {
+  if (typeof url === "string" && doesIgnoreUrlField_(url, options.incognito)) {
     delete options.url
   }
-  browserWindows.create(options, state || !focused ? (wnd): void => {
+  Windows_.create(options, state || !focused ? (wnd): void => {
     const res = callback && callback(wnd)
     if (!wnd) { return callback === runtimeError_ ? runtimeError_() : res || undefined }
     const opt: chrome.windows.UpdateInfo = focused ? {} : { focused: false }
     state && (opt.state = state)
-    browserWindows.update(wnd.id, opt)
+    Windows_.update(wnd.id, opt)
   } : callback || null)
 }
 
@@ -225,32 +229,29 @@ export const makeTempWindow = (tabIdUrl: number | "about:blank", incognito: bool
     type: "normal", focused: false, incognito, state: "minimized",
     tabId: isId ? tabIdUrl as number : undefined, url: isId ? undefined : tabIdUrl as string
   }
-  if (Build.BTypes & BrowserType.Firefox
-      && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)) {
+  if (OnFirefox) {
     delete options.focused
   }
-  if (Build.BTypes & BrowserType.Firefox && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
-      || Build.MinCVer < BrowserVer.MinCreateWndWithState && Build.BTypes & BrowserType.Chrome
-      && CurCVer_ < BrowserVer.MinCreateWndWithState) {
+  if (OnFirefox
+      || OnChrome && Build.MinCVer < BrowserVer.MinCreateWndWithState && CurCVer_ < BrowserVer.MinCreateWndWithState) {
     delete options.state
     options.left = options.top = 0, options.width = options.height = 50
   }
-  browserWindows.create(options, callback)
+  Windows_.create(options, callback)
 }
 
 export const downloadFile = (url: string, filename?: string | null, refer?: string | null
     , onRefused?: (() => void) | null): void => {
-  if (!(Build.BTypes & BrowserType.ChromeOrFirefox)
-      || Build.BTypes & ~BrowserType.ChromeOrFirefox && OnOther & ~BrowserType.ChromeOrFirefox) {
+  if (!(OnChrome || OnFirefox)) {
     onRefused && onRefused()
     return
   }
-  browser_.permissions.contains({ permissions: ["downloads"] }, (permitted: boolean): void => {
+  doPermissionsContain_({ permissions: ["downloads"] }).then((permitted): void => {
     if (permitted) {
       const opts: chrome.downloads.DownloadOptions = { url }
       if (filename) {
         const extRe = <RegExpI> /\.[a-z\d]{1,4}(?=$|[?&])/i
-        filename = BgUtils_.DecodeURLPart_(filename)
+        filename = DecodeURLPart_(filename)
         filename = filename[0] === "#" ? filename.slice(1) : filename
         filename = filename.replace(<RegExpG> /[\r\n]+/g, " ").replace(<RegExpG> /[/\\?%*:|"<>_]+/g, "_")
         if (!extRe.test(filename)) {
@@ -259,14 +260,12 @@ export const downloadFile = (url: string, filename?: string | null, refer?: stri
         }
         opts.filename = filename
       }
-      if (Build.BTypes & BrowserType.Firefox
-          && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther & BrowserType.Firefox)
+      if (OnFirefox
           && (Build.MinFFVer >= FirefoxBrowserVer.Min$downloads$$download$acceptReferer
               || CurFFVer_ > FirefoxBrowserVer.Min$downloads$$download$acceptReferer - 1) && refer) {
         opts.headers = [ { name: "Referer", value: refer } ]
       }
-      if (Build.BTypes & BrowserType.Chrome
-          && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther & BrowserType.Chrome)) {
+      if (OnChrome) {
         void browser_.downloads.download!(opts, runtimeError_)
       } else {
         browser_.downloads.download!(opts).catch((): void => { /* empty */ })
@@ -274,30 +273,97 @@ export const downloadFile = (url: string, filename?: string | null, refer?: stri
     } else if (onRefused) {
       onRefused()
     }
-    return runtimeError_()
   })
 }
-
-/** special actions for Firefox */
 
 interface LatestPromise extends Promise<void> {
   finally (onFinally: (() => void) | Promise<void>): LatestPromise
 }
-
-let _lockToRemoveTempTab: {p: LatestPromise} | null | 0 = Build.BTypes & BrowserType.Firefox ? null : 0
-
+let _lockToRemoveTempTab: {p: LatestPromise} | null | 0 = OnFirefox ? null : 0
 const _removeTempTab = async (tabId: number, windowId: number, url: string, selfLock: object): Promise<void> => {
-  await (browserTabs.remove(tabId) as never as Promise<void>).catch(BgUtils_.blank_)
-  const sessions = await (browser as typeof chrome).sessions.getRecentlyClosed({ maxResults: 1 })
+  await (Tabs_.remove(tabId) as never as Promise<void>).catch(blank_)
+  const sessions = await browser_.sessions.getRecentlyClosed({ maxResults: 1 })
   const tab = sessions && sessions[0] && sessions[0].tab
   if (tab && tab.url === url) {
-    await (browser as typeof chrome).sessions.forgetClosedTab(windowId, tab.sessionId!).catch(BgUtils_.blank_)
+    await browser_.sessions.forgetClosedTab(windowId, tab.sessionId!).catch(blank_)
   }
   if (_lockToRemoveTempTab === selfLock) { _lockToRemoveTempTab = null }
 }
-
 export const removeTempTab = (tabId: number, wndId: number, url: string): void => {
   const lock = {} as {p: LatestPromise}, p = _removeTempTab(tabId, wndId, url, lock)
   lock.p = _lockToRemoveTempTab ? _lockToRemoveTempTab.p.finally(p) : p as LatestPromise
-  _lockToRemoveTempTab = lock as EnsureItemsNonNull<typeof lock>
+  _lockToRemoveTempTab = lock
 }
+
+export const isRefusingIncognito_ = (url: string): boolean => {
+  url = url.slice(0, 99).toLowerCase()
+  // https://cs.chromium.org/chromium/src/url/url_constants.cc?type=cs&q=kAboutBlankWithHashPath&g=0&l=12
+  return newTabUrls_.get(url) === Urls.NewTabType.browser ? false
+    : url.startsWith("about:") ? url !== "about:blank"
+    : !OnChrome ? url.startsWith(CONST_.BrowserProtocol_)
+    : url.startsWith("chrome:") ? !url.startsWith("chrome://downloads")
+    : url.startsWith(CONST_.BrowserProtocol_) && !url.startsWith(CONST_.NtpNewTab_)
+      || IsEdg_ && (<RegExpOne> /^(edge|extension):/).test(url) && !url.startsWith("edge://downloads")
+}
+
+export const watchPermissions_ = (queries: (AtomPermission | null)[]
+    , onChange: (allowList: (boolean | 0 | null)[], mutable: boolean) => void | false): void => {
+  const browserPermissions_ = browser_.permissions
+  if (OnEdge) { Promise.resolve(queries.map(() => 0 as const)).then(list => onChange(list, false)); return }
+  const promise = Promise.all(queries.map(doPermissionsContain_))
+  if (OnFirefox && Build.MinFFVer < FirefoxBrowserVer.Min$permissions$$onAdded && !browserPermissions_.onAdded) {
+    promise.then(list => onChange(list, false))
+    return
+  }
+  const ids = queries.map(i => i && (i.permissions || i.origins)[0])
+  promise.then((allowList): void => {
+    let listenAdd = false, listenRemove = false
+    const didChange = (added: boolean, changes?: chrome.permissions.Request | null): void => {
+      let related = !changes
+      if (changes) {
+        const newPermissions = changes.permissions
+        for (const permission of newPermissions || []) {
+          const ind = ids.indexOf(permission)
+          ind >= 0 && (allowList[ind] = added, related = true)
+        }
+        for (const origin of (!newPermissions || newPermissions.length <= 0) && changes.origins || []) {
+          if (!OnChrome || origin !== "chrome://*/*") {
+            const ind = ids.indexOf(origin)
+            ind >= 0 && (allowList[ind] = added, related = true)
+          } else {
+            for (let ind = 0; ind < ids.length; ind++) {
+              if ((ids[ind] || "").startsWith("chrome://")) {
+                allowList[ind] = added, related = true
+              }
+            }
+          }
+        }
+      }
+      if (!related) { return }
+      if (onChange(allowList, true) === false) {
+        listenAdd = listenRemove = false
+      }
+      if (listenAdd !== allowList.includes!(false)) {
+        browserPermissions_.onAdded[(listenAdd = !listenAdd) ? "addListener" : "removeListener"](onAdded)
+      }
+      if (listenRemove !== allowList.includes!(true)) {
+        browserPermissions_.onRemoved[(listenRemove = !listenRemove) ? "addListener" : "removeListener"](onRemoved)
+      }
+    }
+    const onAdded = didChange.bind(null, true), onRemoved = didChange.bind(null, false)
+    if (allowList.includes!(false) || allowList.includes!(true)) {
+      didChange(true)
+    } else {
+      onChange(allowList, false)
+    }
+  })
+}
+
+export const runContentScriptsOn_ = (tabId: number): void => {
+  const offset = location.origin.length
+  for (let js of CONST_.ContentScripts_.slice(0, -1)) {
+    Tabs_.executeScript(tabId, {file: js.slice(offset), allFrames: true}, runtimeError_)
+  }
+}
+
+//#endregion

@@ -1,12 +1,12 @@
 import {
-  chromeVer_, doc, esc, EscF, fgCache, isTop, set_esc, VTr, safer, timeout_, loc_, weakRef_, deref_,
+  chromeVer_, doc, esc, fgCache, isTop, set_esc, VTr, safer, timeout_, loc_, weakRef_, deref_,
   keydownEvents_, parseSedOptions, Stop_, suppressCommonEvents, setupEventListener, vApi, locHref, isTY, max_, min_,
   OnChrome, OnFirefox, OnEdge, firefoxVer_, safeCall, parseOpenPageUrlOptions
 } from "../lib/utils"
 import {
   isHTML_, htmlTag_, createElement_, querySelectorAll_unsafe_, SafeEl_not_ff_, docEl_unsafe_, MDW, CLK,
   querySelector_unsafe_, DAC, removeEl_s, appendNode_s, setClassName_s, INP, contains_s, toggleClass_s, modifySel,
-  focus_, testMatch
+  focus_, testMatch, docHasFocus_
 } from "../lib/dom_utils"
 import {
   pushHandler_, removeHandler_, getMappedKey, prevent_, isEscape_, keybody_, DEL, BSP, ENTER, handler_stack,
@@ -56,10 +56,10 @@ set_contentCommands_([
         runFallbackKey(options, !1)
       }, 17)
     }
-    else if ((OnChrome ? Build.MinCVer >= BrowserVer.Min$Tabs$$goBack
-              : OnFirefox ? Build.MinFFVer >= FirefoxBrowserVer.Min$Tabs$$goBack : !OnEdge)
-        || (OnChrome && chromeVer_ > BrowserVer.Min$Tabs$$goBack - 1
-              || OnFirefox && firefoxVer_ > FirefoxBrowserVer.Min$Tabs$$goBack - 1
+    else if ((OnChrome ? Build.MinCVer >= BrowserVer.Min$tabs$$goBack
+              : OnFirefox ? Build.MinFFVer >= FirefoxBrowserVer.Min$tabs$$goBack : !OnEdge)
+        || (OnChrome && chromeVer_ > BrowserVer.Min$tabs$$goBack - 1
+              || OnFirefox && firefoxVer_ > FirefoxBrowserVer.Min$tabs$$goBack - 1
             ) && maxStep > 1 && !reuse
         || maxStep && reuse && reuse !== "current" // then reuse !== ReuseType.current
     ) {
@@ -123,7 +123,7 @@ set_contentCommands_([
       }
       const oldEsc = esc!, oldPassKeys = passKeys;
       set_passKeys(null)
-      set_esc(((i: HandlerResult): HandlerResult => {
+      set_esc((i: HandlerResult): HandlerResult => {
         if (i === HandlerResult.Prevent && 0 >= --count || i === HandlerResult.ExitPassMode) {
           hudHide();
           set_passKeys(oldPassKeys)
@@ -137,7 +137,7 @@ set_contentCommands_([
           hudShow(kTip.normalMode, count > 1 ? VTr(kTip.nTimes, [count]) : "")
         }
         return i;
-      }) as EscF)
+      })
       esc!(HandlerResult.Nothing);
       return;
     }
@@ -439,17 +439,13 @@ set_contentCommands_([
       prevent_(event)
       shouldShowAdvanced = !shouldShowAdvanced
       toggleAdvanced()
-      post_({
-        H: kFgReq.setSetting,
-        k: 0,
-        v: shouldShowAdvanced
-      })
+      post_({ H: kFgReq.setSetting, k: 0, v: shouldShowAdvanced })
     }
     shouldShowAdvanced && toggleAdvanced()
     ensureBorder(wdZoom_) // safe to skip `getZoom_`
     addUIElement(outerBox, AdjustType.Normal, true)
     options.e && setupExitOnClick(kExitOnClick.helpDialog)
-    doc.hasFocus() || vApi.f()
+    docHasFocus_() || vApi.f()
     set_currentScrolling(weakRef_(box))
     set_helpBox(box)
     handler_stack.splice((handler_stack.indexOf(kHandler.omni) + 1 || handler_stack.length + 2) - 2, 0, event => {

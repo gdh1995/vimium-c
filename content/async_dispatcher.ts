@@ -2,7 +2,8 @@ import {
   OnChrome, OnFirefox, OnEdge, doc, deref_, weakRef_, chromeVer_, isJSUrl, getTime, parseOpenPageUrlOptions, safeCall
 } from "../lib/utils"
 import {
-  IsInDOM_, activeEl_unsafe_, isInTouchMode_cr_, MDW, htmlTag_, CLK, attr_s, contains_s, focus_, fullscreenEl_unsafe_
+  IsInDOM_, isInTouchMode_cr_, MDW, htmlTag_, CLK, attr_s, contains_s, focus_, fullscreenEl_unsafe_,
+  deepActiveEl_unsafe_
 } from "../lib/dom_utils"
 import { suppressTail_ } from "../lib/keyboard_utils"
 import { Point2D, center_, getVisibleClientRect_, view_ } from "../lib/rect"
@@ -67,11 +68,8 @@ const __myAwaiter = Build.BTypes & BrowserType.Chrome ? Build.MinCVer < BrowserV
         throw Error("Assert error: unsupported async status: " + nextInst)
       }
     }
-    if (nextInst < Instruction.return + 1) {
-      resolve(value_)
-    } else {
-      Promise.resolve(value_).then(resume_).catch(Build.NDEBUG ? resolveVoid : logDebugAndResolve)
-    }
+    Promise.resolve(value_).then(nextInst < Instruction.return + 1 ? resolve : resume_
+        , Build.NDEBUG ? resolveVoid : logDebugAndResolve)
   }
   function logDebugAndResolve(err: any): void {
     console.log("Vimium C: an async function fails:", err)
@@ -84,12 +82,14 @@ const __myAwaiter = Build.BTypes & BrowserType.Chrome ? Build.MinCVer < BrowserV
   const resolveVoid = Build.MinCVer < BrowserVer.MinTestedES6Environment ? resolve.bind(0, void 0) : () => resolve()
   const generator = generatorFunction()
   const resume_ = (lastVal?: TNext): void => {
-    let yielded = generator.next(lastVal), value = yielded.value
-    if (yielded.done) {
-      resolve(value as TReturn | Promise<TReturn>)
+    const yielded = generator.next(lastVal), value = yielded.value
+    if (Build.MinCVer < BrowserVer.Min$resolve$Promise$MeansThen) {
+      Promise.resolve(value).then((yielded.done ? resolve : resume_) as (value: TReturn | TNext) => void
+          , Build.NDEBUG ? resolveVoid : logDebugAndResolve)
+    } else if (yielded.done) {
+      resolve(value as TReturn | Promise<TReturn> as /** just to satisfy type checks */ TReturn)
     } else {
-      Promise.resolve(value as TNext | Promise<TNext>).then(resume_)
-          .catch(Build.NDEBUG ? resolveVoid : logDebugAndResolve)
+      Promise.resolve(value as TNext | Promise<TNext>).then(resume_, Build.NDEBUG ? resolveVoid : logDebugAndResolve)
     }
   }
   resume_()
@@ -199,8 +199,7 @@ export const hover_async = (async (newEl?: NullableSafeElForM
     await mouse_(last, "mouseout", [0, 0], N, notSame ? newEl : N)
     if ((!newEl || notSame && !IsInDOM_(newEl, last, 1)) && IsInDOM_(last, doc)) {
       mouse_(last, "mouseleave", [0, 0], N, newEl)
-      if (doesFocus && last.blur && IsInDOM_(last)) { // always blur even when moved to another document
-        await 0
+      if (doesFocus && last.blur && IsInDOM_(await last)) { // always blur even when moved to another document
         last.blur()
       }
     }
@@ -234,7 +233,7 @@ export const unhover_async = (!OnChrome || Build.MinCVer >= BrowserVer.MinEnsure
   }
   lastHovered_ = weakRef_(element)
   await hover_async()
-  if (active && activeEl_unsafe_() === active) { active.blur && active.blur() }
+  if (active && deepActiveEl_unsafe_() === active) { active.blur && active.blur() }
 }
 : (el?: NullableSafeElForM, step?: 1 | 2, old?: NullableSafeElForM): Promise<void | false> | void | false => {
   if (!step) {
@@ -245,7 +244,7 @@ export const unhover_async = (!OnChrome || Build.MinCVer >= BrowserVer.MinEnsure
     lastHovered_ = weakRef_(el)
     return hover_async().then(unhover_async.bind<0, NullableSafeElForM, 2, [], void | false>(0, old, 2))
   } else {
-    return <void | false> <any> (el && activeEl_unsafe_() === el && el.blur && el.blur())
+    return <void | false> <any> (el && deepActiveEl_unsafe_() === el && el.blur && el.blur())
   }
 }) as {
   (element?: NullableSafeElForM, step?: undefined, active?: undefined): Promise<void | false>
@@ -294,7 +293,7 @@ export const click_async = (async (element: SafeElementForMouse
   await 0
   if (!IsInDOM_(element)) { return }
   // Note: here we can check doc.activeEl only when @click is used on the current focused document
-  if (addFocus && mousedownNotPrevented && element !== insert_Lock_() && element !== activeEl_unsafe_() &&
+  if (addFocus && mousedownNotPrevented && element !== insert_Lock_() && element !== deepActiveEl_unsafe_() &&
       !(element as Partial<HTMLInputElement>).disabled) {
     focus_(element)
     if (!IsInDOM_(element)) { return }

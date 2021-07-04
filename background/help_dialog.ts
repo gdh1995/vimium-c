@@ -1,67 +1,56 @@
+import { CONST_, CurCVer_, helpDialogData_, IsEdg_, keyToCommandMap_, OnChrome, OnFirefox } from "./store"
+import * as BgUtils_ from "./utils"
 import { browser_ } from "./browser"
+import { convertToUrl_ } from "./normalize_urls"
 import { normalizedOptions_ } from "./key_mappings"
 
-type NoaliasInCNames<k extends kCName> = 
+type NoaliasInCNames<k extends kCName> =
     k extends `${string}activate${string}Mode${string}` | `${string}Unhover` | `${string}CS${string}`
         | `${string}vateUrl${string}` | `${string}TabSelection`
-        | "clearContentSetting" | kShortcutAliases.nextTab1 | "newTab" | `simBackspace` | "wait"
+        | "clearContentSetting" | kShortcutAliases.nextTab1 | "newTab" | "simBackspace" | "wait"
     ? never : k
 
 // eslint-disable-next-line no-var
 let html_: [string, string] | null = null
-let template_: HTMLTableDataCellElement | DOMParser | null = null
+let i18n_: SafeDict<string>
+let template_: HTMLTableDataCellElement | null = null
+let parser_ff_: DOMParser | null = null
 const descriptions_ = new Map<kCName, string>()
 
 export const parseHTML = (template: string): [string, string] => {
-      const noShadow = !( (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
-            && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
-            && !(Build.BTypes & ~BrowserType.ChromeOrFirefox))
-          && !(Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
-                ? window.ShadowRoot || document.documentElement!.webkitCreateShadowRoot : window.ShadowRoot),
-      noContain = Build.MinCVer <= BrowserVer.CSS$Contain$BreaksHelpDialogSize && Build.BTypes & BrowserType.Chrome
+      const noShadow = !( (!OnChrome || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
+            && (!OnFirefox || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
+            && (OnChrome || OnFirefox))
+          && !(OnChrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
+                ? globalThis.ShadowRoot || document.body!.webkitCreateShadowRoot : globalThis.ShadowRoot),
+      noContain = OnChrome && Build.MinCVer <= BrowserVer.CSS$Contain$BreaksHelpDialogSize
           && CurCVer_ === BrowserVer.CSS$Contain$BreaksHelpDialogSize;
       let pos = template.indexOf("</style>") + 8, head = template.slice(0, pos), body = template.slice(pos).trim();
-      if (Build.BTypes & BrowserType.Firefox
-          && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)) {
+      if (OnFirefox) {
         const arr = head.match(<RegExpOne> /<style.*?>/)!;
         body = head.slice(0, arr.index).trim() + body;
         head = head.slice(arr.index + arr[0].length, -8);
       }
-      if (!((!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
-            && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
-            && !(Build.BTypes & ~BrowserType.ChromeOrFirefox))
-          && noShadow
-          || Build.MinCVer <= BrowserVer.CSS$Contain$BreaksHelpDialogSize && Build.BTypes & BrowserType.Chrome
-              && noContain) {
-        if (Build.MinCVer <= BrowserVer.CSS$Contain$BreaksHelpDialogSize && Build.BTypes & BrowserType.Chrome
-            && noContain) {
+      if (noShadow || noContain) {
+        if (noContain) {
           head = head.replace(<RegExpG> /contain:\s?[\w\s]+/g, "contain: none !important");
         }
-        if (!((!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
-              && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
-              && !(Build.BTypes & ~BrowserType.ChromeOrFirefox))
-            && noShadow) {
+        if (noShadow) {
           head = head.replace(<RegExpG> /[#.][A-Z][^,{};]*[,{]/g, "#VimiumUI $&");
         }
-        Settings_.set_("helpDialog", "");
       }
-      body = body.replace(<RegExpG & RegExpSearchable<1>> /\$(\w+)/g
-          , (_, s) => trans_(s) || (s[0] === "_" || s === "NS" ? "" : s))
+      body = body.replace(<RegExpG & RegExpSearchable<1>> /\$(\w+)/g, (_, s) => i18n_[s] ?? "")
       const consts = BgUtils_.safer_<Dict<string>>({
-      homePage: Settings_.CONST_.HomePage_,
-      version: Settings_.CONST_.VerName_,
-      release: BgUtils_.convertToUrl_("vimium://release"),
-      reviewPage: !(Build.BTypes & ~BrowserType.Firefox)
-              || Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox
+      homePage: CONST_.HomePage_,
+      version: CONST_.VerName_,
+      release: convertToUrl_("vimium://release"),
+      reviewPage: OnFirefox
           ? GlobalConsts.FirefoxAddonPrefix + "vimium-c/reviews/?src=external-help-dialog"
-          : (Build.BTypes & BrowserType.Chrome && IsEdg_
-              ? GlobalConsts.EdgStorePage : GlobalConsts.ChromeWebStorePage).replace("$id", browser_.runtime.id),
-      webStore: !(Build.BTypes & ~BrowserType.Firefox)
-            || Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox
-          ? trans_("addons") : trans_(IsEdg_ ? "edgestore" : "webstore"),
-      browserHelp: !(Build.BTypes & ~BrowserType.Firefox)
-          || Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox ? GlobalConsts.FirefoxHelp as string
-          : Build.BTypes & BrowserType.Chrome && IsEdg_ ? GlobalConsts.EdgHelp
+          : (OnChrome && IsEdg_
+              ? GlobalConsts.EdgStorePage : GlobalConsts.ChromeWebStorePage).replace("$id", () => browser_.runtime.id),
+      webStore: i18n_[OnFirefox ? "addons" : IsEdg_ ? "edgestore" : "webstore"],
+      browserHelp: OnFirefox ? GlobalConsts.FirefoxHelp as string
+          : OnChrome && IsEdg_ ? GlobalConsts.EdgHelp
           : GlobalConsts.ChromeHelp
       });
       body = body.replace(<RegExpSearchable<1>> /\{\{(\w+)}}/g, (_, group: string) => consts[group] || _);
@@ -69,12 +58,14 @@ export const parseHTML = (template: string): [string, string] => {
 }
 
 export const render_ = (isOptionsPage: boolean): NonNullable<CmdOptions[kFgCmd.showHelpDialog]["h"]> => {
-    if (!html_ || !Build.NDEBUG && /** {@link ../pages/loader.ts#updateUI} */Settings_.cache_.helpDialog) {
-      html_ = parseHTML(Settings_.cache_.helpDialog!)
+    i18n_ = helpDialogData_![1]!
+    if (!html_ || helpDialogData_![0]) {
+      html_ = parseHTML(helpDialogData_![0]!)
+      helpDialogData_![0] = ""
     }
     const commandToKeys = new Map<string, [string, CommandsNS.Item][]>(),
-    ref = CommandsData_.keyToCommandRegistry_, hideUnbound = !isOptionsPage, showNames = isOptionsPage;
-    ref.forEach((registry, key): void => {
+    hideUnbound = !isOptionsPage, showNames = isOptionsPage
+    keyToCommandMap_.forEach((registry, key): void => {
       if (key.startsWith("<v-") && key.endsWith(">")) { return }
       const command = normalizeCmdName(registry.command_)
       let keys = commandToKeys.get(command)
@@ -85,19 +76,18 @@ export const render_ = (isOptionsPage: boolean): NonNullable<CmdOptions[kFgCmd.s
       keys.push([key, registry])
     })
     const result = BgUtils_.safer_<Dict<string>>({
-      title: trans_(isOptionsPage ? "cmdList" : "help"),
-      tip: showNames ? trans_("tipClickToCopy")  : "",
+      title: i18n_[isOptionsPage ? "cmdList" : "help"] || "",
+      tip: showNames && i18n_["tipClickToCopy"] || "",
       lbPad: showNames ? '\n\t\t<tr><td class="HelpTd TdBottom">&#160;</td></tr>' : ""
     });
     const div = html_[1].replace(<RegExpG & RegExpSearchable<1>> /\{\{(\w+)}}/g
         , (_, group: string) => result[group] ?? renderGroup(group, commandToKeys, hideUnbound, showNames))
+    OnFirefox && (parser_ff_ = null)
     template_ = null
-    return Build.BTypes & BrowserType.Firefox
-          && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
-        ? { h: html_[0], b: div } : (html_[0] + div) as any as "html"
+    return OnFirefox ? { h: html_[0], b: div } : (html_[0] + div) as any as "html"
 }
 
-const normalizeCmdName = (command: kCName) => {
+const normalizeCmdName = (command: kCName): string => {
       if (command.includes("Mode") && command.includes(".activate")) {
         if (command.includes(".activateMode")) {
           command = (command as StringIncluded<kCName, ".activateMode">).replace("ModeTo", "")
@@ -127,7 +117,7 @@ const normalizeCmdName = (command: kCName) => {
 
 const renderGroup = (group: string, commandToKeys: Map<string, [string, CommandsNS.Item][]>
       , hideUnbound: boolean, showNames: boolean): string => {
-    const cmdParams = trans_("cmdParams")
+    const cmdParams = i18n_["cmdParams"] || " (use *)", i18nParams = helpDialogData_![2]!
     let html = "";
     for (const command of commandGroups_[group as keyof typeof commandGroups_]) {
       let keys = commandToKeys.get(command)
@@ -135,9 +125,9 @@ const renderGroup = (group: string, commandToKeys: Map<string, [string, Commands
       const isAdvanced = advancedCommands_[command] === 1;
       let keyLen = -2, bindings = "", description = descriptions_.get(command)
       if (!description) {
-        let key = command.replace(".", "_"), params = trans_(key + "_p");
-        description = trans_(key).replace("<", "&lt;").replace(">", "&gt;") // lgtm [js/incomplete-sanitization]
-            + (params ? cmdParams.replace("*", params) : " "); // lgtm [js/incomplete-sanitization]
+        const params = i18nParams[command]
+        description = i18n_[command]!.replace("<", "&lt;").replace(">", "&gt;") // lgtm [js/incomplete-sanitization]
+            + (params ? cmdParams.replace("*", () => params) : " ") // lgtm [js/incomplete-sanitization]
         descriptions_.set(command, description)
         if (!(Build.NDEBUG || description)) {
           console.log("Assert error: lack a description for %c%s", "color:red", command);
@@ -150,7 +140,7 @@ const renderGroup = (group: string, commandToKeys: Map<string, [string, Commands
           const key = help && help.$key_ || BgUtils_.escapeText_(item[0]), desc2 = help && help.$desc_;
           if (desc2) {
             let singleBinding = `\n\t\t<span class="HelpKey">${key}</span>\n\t`;
-            html += commandHtml_(isAdvanced, singleBinding, showNames ? desc2 + " " : desc2, showNames ? command : "");
+            html += commandHTML_(isAdvanced, singleBinding, showNames ? desc2 + " " : desc2, showNames ? command : "")
             continue;
           }
           if (keyLen >= 0) {
@@ -163,16 +153,16 @@ const renderGroup = (group: string, commandToKeys: Map<string, [string, Commands
       }
       // keep rendering if not hideUnbound
       if (keyLen <= 12) {
-        html += commandHtml_(isAdvanced, bindings, description, showNames ? command : "");
+        html += commandHTML_(isAdvanced, bindings, description, showNames ? command : "")
       } else {
-        html += commandHtml_(isAdvanced, bindings, "", "");
-        html += commandHtml_(isAdvanced, "", description, showNames ? command : "");
+        html += commandHTML_(isAdvanced, bindings, "", "")
+        html += commandHTML_(isAdvanced, "", description, showNames ? command : "")
       }
     }
     return html;
 }
 
-const commandHtml_ = (isAdvanced: boolean, bindings: string, description: string, command: string): string => {
+const commandHTML_ = (isAdvanced: boolean, bindings: string, description: string, command: string): string => {
     let html = isAdvanced ? '<tr class="HelpAdv">\n\t' : "<tr>\n\t";
     if (description) {
       html += '<td class="HelpTd HelpKeys">';
@@ -194,14 +184,15 @@ const commandHtml_ = (isAdvanced: boolean, bindings: string, description: string
 const normalizeHelpInfo_ = (item: CommandsNS.BaseHelpItem): CommandsNS.NormalizedCustomHelpInfo | null => {
     const help = item.help_
     if (!help || help.$key_ != null) { return help }
-    if (Build.BTypes & ~BrowserType.Firefox && !template_) {
+    if (OnFirefox ? parser_ff_ : template_) { /* empty */ }
+    else if (!OnFirefox) {
       const template = document.createElement("template"),
       td = document.createElement("td");
       template.content.appendChild(td);
       // make `<td>` inert, so that "onclick" won't be parsed
       template_ = td;
-    } else if (!template_) {
-      template_ = new DOMParser()
+    } else {
+      parser_ff_ = new DOMParser()
     }
     return (item as CommandsNS.ItemWithHelpInfo).help_ = {
       $key_: help.key_ ? safeHTML_(help.key_) : "",
@@ -222,18 +213,17 @@ const _safeTags: SafeEnum = {
 }
 
 const safeHTML_ = (raw: string): string => {
-    type RootElement = Exclude<typeof template_, DOMParser | null>;
-    if (Build.BTypes & ~BrowserType.Firefox) {
-      (template_ as RootElement).innerHTML = raw
+    if (!OnFirefox) {
+      template_!.innerHTML = raw
     } else {
-      template_ = (template_ as DOMParser).parseFromString(`<td>${raw}</td>`, "text/html"
+      template_ = parser_ff_!.parseFromString(`<td>${raw}</td>`, "text/html"
           ).body.firstChild as HTMLTableDataCellElement;
       if (!template_) { return "" }
     }
-    for (let arr = (template_ as RootElement).querySelectorAll("*"), i = 0, end = arr.length; i < end; i++) {
+    for (let arr = template_!.querySelectorAll("*"), i = 0, end = arr.length; i < end; i++) {
       const el = arr[i];
       // here force to match ignoring cases - safer
-      if (!((Build.BTypes & ~BrowserType.Firefox ? el.localName + "" : el.localName as string) in _safeTags)
+      if (!((!OnFirefox ? el.localName + "" : el.localName as string) in _safeTags)
           && !(el instanceof HTMLUnknownElement)) {
         el.remove();
         continue;
@@ -249,7 +239,7 @@ const safeHTML_ = (raw: string): string => {
         el.removeAttributeNode(attr);
       }
     }
-    return (template_ as RootElement).innerHTML
+    return template_!.innerHTML
 }
 
 const commandGroups_: {
@@ -297,7 +287,7 @@ const commandGroups_: {
     misc: ["showHelp", "autoCopy", "autoOpen", "searchAs", "searchInAnother"
       , "addBookmark"
       , "toggleStyle", "toggleLinkHintCharacters"
-      , "toggleSwitchTemp", "passNextKey", "debugBackground", "closeDownloadBar"
+      , "toggleSwitchTemp", "passNextKey", "debugBackground"
       , "reset", "runKey", "sendToExtension", "blank"]
 }
 
@@ -320,12 +310,13 @@ const advancedCommands_: { readonly [k in NoaliasInCNames<kCName>]?: 1 | 0; } & 
     , "LinkHints.activateHover": 1, "LinkHints.unhoverLast": 1
     , toggleLinkHintCharacters: 1, toggleSwitchTemp: 1, "LinkHints.activateLeave": 1
     , "Vomnibar.activateEditUrl": 1, "Vomnibar.activateEditUrlInNewTab": 1
-    , closeDownloadBar: Build.BTypes & BrowserType.Chrome ? 0 : 1
+    , closeDownloadBar: OnChrome ? 0 : 1
 }
 
-if (Build.BTypes & BrowserType.Firefox
-    && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther & BrowserType.Firefox)
-    || Build.BTypes & BrowserType.Chrome && IsEdg_) {
-  (commandGroups_.tabManipulation as Writable<typeof commandGroups_.tabManipulation>
-      ).push("toggleReaderMode")
+if (OnChrome) {
+  (commandGroups_.misc as Writable<typeof commandGroups_.misc>).push("closeDownloadBar")
+}
+
+if (OnFirefox || OnChrome && IsEdg_) {
+  (commandGroups_.tabManipulation as Writable<typeof commandGroups_.tabManipulation>).push("toggleReaderMode")
 }

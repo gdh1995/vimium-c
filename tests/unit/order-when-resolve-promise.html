@@ -1,0 +1,42 @@
+<html>
+<head><title>Test resolve(Promise)</title></head>
+<body style="margin: 40px 0 0 80px;">
+<div id="output" style="white-space: pre-line">
+</div>
+<div id="error" style="color: red; margin-top: 1em; font-weight: bold;">
+</div>
+
+<script>
+// BrowserVer.Min$resolve$Promise$MeansThen
+var ar = null, hasB = 0
+var a = new Promise(function (resolve) { ar = resolve })
+a.then(function() { print(">>> a resolved ") })
+var b = new Promise(function (resolve) { setTimeout(function(){ resolve(a) }, 1) })
+b.then(function() { print(">>> b resolved ") })
+setTimeout(function() {
+  b.then(function() {
+    print("do jobs after b")
+    hasB = 1
+  })
+  setTimeout(function() {
+    a.then(function() {
+      print("do jobs after a")
+      if (hasB) {
+        error.textContent = "Find an error: B did before A."
+      } else {
+        error.style.color = "green";
+        error.textContent = "Good."
+      }
+    })
+    print("[start] resolve a")
+    ar()
+  }, 10)
+}, 10)
+function print(msg) {
+  msg = arguments.length > 1 ? [].slice.call(arguments, 0).join(" ") : msg
+  output.textContent += msg + "\n"
+}
+
+</script>
+</body>
+</html>

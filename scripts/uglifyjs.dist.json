@@ -18,6 +18,10 @@
     "global_defs": {
       "define.amd": true,
       "@exports": "undefined",
+      // "@As_": "(_unknown)=>_unknown",
+      // "@AsC_": "(_unknown2)=>_unknown2",
+      // "@AsOmni_": "(_unknown3)=>_unknown3",
+      // "@__importStar": "function(_unknown4){return _unknown4}",
       "@module": "undefined"
     },
     "hoist_funs": true,
@@ -27,7 +31,7 @@
     "inline": true,
     "join_vars": true,
     "keep_fargs": false,
-    "keep_fnames": "/^(startsWith|endsWith|addEventListener|toString|VC)$/",
+    "keep_fnames": "/^(startsWith|endsWith|includes|addEventListener|toString|VC)$/",
     "keep_infinity": false,
     "loops": true,
     "negate_iife": false,
@@ -43,9 +47,8 @@
       "Math.max", "Math.min", "Math.floor", "Math.round", "Math.abs", "Math.random",
       "safeObj", "safeObj_", "weakRef_", "deref_",
       "docEl_unsafe_",
-      "__awaiter", "__generator", "sent", "_a.sent", "_b.sent", "_c.sent",
-      "onRuntimeError", "BgUtils_.runtimeError_",
-      "trans_", "pTrans_", "sTrans_", "VTr", "contains_s", "attr_s", "isTY", "getMediaTag",
+      "__importStar", "__awaiter", "__generator", "sent", "_a.sent", "_b.sent", "_c.sent",
+      "trans_", "pTrans_", "VTr", "contains_s", "attr_s", "isTY", "getMediaTag",
       "readyState", "binarySearch_",
       "getMatchRanges",
       "document", "Math", "docEl_", "devRatio_", "activeEl_", "querySelector_", "querySelectorAll_",
@@ -85,24 +88,18 @@
     },
     "reserved": [
       // # globals
-      "browser", "chrome", "define", "__filename",
+      "browser", "chrome", "define", "__filename", "__importStar",
       // # expected names in content
       "WeakMap", "WeakSet", "Set", "InputDeviceCapabilities", "visualViewport",
       "requestIdleCallback", "WeakRef",
       // # content global names:
       "VimiumInjector", "VApi",
-      // # fixed background global names:
-      "OnOther",
-      "KeyMappings", "Exclusions", "HelpDialog",
       // # front/vomnibar
       "VCID",
       // # lib/
       "MathParser",
       // # pages/
-      "VData",
-      // # inner names:
-      "startsWith", "endsWith", "addEventListener", "toString",
-      "VC"
+      "VData"
     ],
     "toplevel": true
   } //*/

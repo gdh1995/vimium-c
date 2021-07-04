@@ -18,6 +18,7 @@ ALSO_VC=0
 UBO=0
 HOME_PAGE=
 default_vc_root=/e/Git/weidu+vim/vimium-c
+default_chrome_root="/d/Program Files/Google"
 
 function wp() {
   local dir=${2}
@@ -86,6 +87,7 @@ case "$1" in
     ;;
   installed|--installed)
     USE_INSTALLED=1
+    VER=
     shift
     ;;
   vc|--vc)
@@ -180,7 +182,7 @@ if test -f "/usr/bin/env.exe"; then
   RUN=$(which start2.exe)
   REALPATH=/usr/bin/cygpath.exe
 else
-  RUN=$(which env.exe)' start2.exe'
+  RUN="$(which env.exe) start2.exe"
   REALPATH=/bin/wslpath
 fi
 
@@ -190,10 +192,10 @@ if test -f "$dir"/Chrome/chrome.exe; then
   CHROME_ROOT=$dir
   VC_ROOT=${VC_ROOT:-$default_vc_root}
 else
-  CHROME_ROOT=${CHROME_ROOT:-/d/Program Files/Google}
+  CHROME_ROOT=${CHROME_ROOT:-$default_chrome_root}
   VC_ROOT=${VC_ROOT:-${dir%/*}}
 fi
-if test -z "$VER" && test -f "$WORKING_DIR"/Chrome-bin/chrome.exe; then
+if test -z "$VER" -a $USE_INSTALLED -le 0 && test -f "$WORKING_DIR"/Chrome-bin/chrome.exe; then
   VER=wo
 fi
 test "$VER" == cur && VER=
@@ -202,7 +204,7 @@ elif test "$VER" == wo; then
   EXE=$WORKING_DIR/Chrome-bin/chrome.exe
 else
   EXE=$WORKING_DIR/${VER:-cur}/chrome.exe
-  if ! test -f "$EXE"; then
+  if test $USE_INSTALLED -gt 0 || ! test -f "$EXE"; then
     EXE=$CHROME_ROOT/${VER:-Chrome}/chrome.exe
     if test ! -f "$EXE" -a -n "$VER" && find "$CHROME_ROOT/Chrome/" -name "${VER}.*" | grep . >/dev/null 2>&1; then
       EXE=$CHROME_ROOT/Chrome/chrome.exe
@@ -223,7 +225,7 @@ else
   wp vc_ext_w "$VC_EXT"
 fi
 if test $UBO -le 0; then UBO=
-elif test "$VER" == wo -o "$VER" == prev || test ${VER:-99} -ge 45; then
+elif test "$VER" == wo -o "$VER" == prev -o ${VER:-99} -ge 45; then
   UBO=${VC_ROOT}/../uBlock/dist/build/uBlock0.chromium
   if test -d "$UBO"; then
     wp UBO "${UBO}"
@@ -236,7 +238,7 @@ if ! test -f "$EXE"; then
   echo -E "No such a file: "$exe_w >&2
   exit 1
 fi
-if test -n "$VER" -o "$CHROME_ROOT" == '/d/Program Files/Google'; then
+if test -n "$VER" -o "$CHROME_ROOT" == "$default_chrome_root"; then
   rm -f "${EXE%/*}/default_apps/"* "${EXE%/*}/"[0-9]*"/default_apps/"*
 fi
 

@@ -1,3 +1,18 @@
+import {
+  curTabId_, Completion_, omniPayload_, reqH_, OnFirefox, CurCVer_, IsEdg_, OnChrome, restoreSettings_, blank_,
+  set_needIcon_, set_setIcon_, CONST_, installation_, backupToLocal_, set_installation_, set_backupToLocal_, framesForTab_
+} from "./store"
+import { Tabs_, browser_, getCurWnd, runtimeError_, watchPermissions_, browserWebNav_, runContentScriptsOn_ } from "./browser"
+import * as BgUtils_ from "./utils"
+import * as settings_ from "./settings"
+import { trans_ } from "./i18n"
+import { convertToUrl_, formatVimiumUrl_ } from "./normalize_urls"
+import { decodeFileURL_ } from "./parse_urls"
+import { openUrlReq } from "./open_urls"
+
+import SugType = CompletersNS.SugType
+import MatchType = CompletersNS.MatchType
+
 declare const enum OmniboxData {
   DefaultMaxChars = 128,
   MarginH = 160,
@@ -5,120 +20,27 @@ declare const enum OmniboxData {
   PreservedTitle = 16,
 }
 
-BgUtils_.timeout_(150, function (): void {
-  const browserAction = chrome.browserAction;
-  if (!browserAction) { return; }
-  let imageData: IconNS.StatusMap<IconNS.IconBuffer> | null, tabIds: Map<Frames.ValidStatus, number[] | null> | null
-  let mayShowIcons = true;
-  const func = Settings_.updateHooks_.showActionIcon,
-  onerror = (err: any): void => {
-      if (!mayShowIcons) { return; }
-      mayShowIcons = false;
-      console.log("Can not access binary icon data:", err);
-      Backend_.setIcon_ = BgUtils_.blank_;
-      browserAction.setTitle({ title: "Vimium C\n\nFailed in showing dynamic icons." });
-  },
-  loadBinaryImagesAndSetIcon = (type: Frames.ValidStatus): void => {
-      const path = Settings_.icons_[type] as IconNS.BinaryPath;
-      const loadFromRawArray = (array: ArrayBuffer): void => {
-      const uint8Array = new Uint8ClampedArray(array), firstSize = array.byteLength / 5,
-      small = (Math.sqrt(firstSize / 4) | 0) as IconNS.ValidSizes, large = (small + small) as IconNS.ValidSizes,
-      cache = BgUtils_.safeObj_() as IconNS.IconBuffer;
-      cache[small] = new ImageData(uint8Array.subarray(0, firstSize), small, small);
-      cache[large] = new ImageData(uint8Array.subarray(firstSize), large, large);
-      imageData![type] = cache;
-      const arr = tabIds!.get(type)!
-      tabIds!.delete(type)
-      for (let w = 0, h = arr.length; w < h; w++) {
-        Backend_.setIcon_(arr[w], type, true);
-      }
-      };
-      if (Build.MinCVer >= BrowserVer.MinFetchExtensionFiles
-          || CurCVer_ >= BrowserVer.MinFetchExtensionFiles) {
-        const p = fetch(path).then(r => r.arrayBuffer()).then(loadFromRawArray);
-        if (!Build.NDEBUG) { p.catch(onerror); }
-      } else {
-        const req = new XMLHttpRequest() as ArrayXHR;
-        req.open("GET", path, true);
-        req.responseType = "arraybuffer";
-        if (!Build.NDEBUG) { req.onerror = onerror; }
-        req.onload = function (this: typeof req) { loadFromRawArray(this.response); };
-        req.send();
-      }
-  };
-  Settings_.temp_.IconBuffer_ = function (this: void, enabled?: boolean): boolean | void {
-    if (enabled == null) { return !!imageData; }
-    if (!enabled) {
-      imageData && setTimeout(function () {
-        if (Settings_.get_("showActionIcon")) { return; }
-        imageData = null;
-        if (Build.BTypes & BrowserType.Chrome) { tabIds = null; }
-        if (Build.BTypes & ~BrowserType.Chrome
-            && (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome)) {
-          Backend_.indexPorts_().forEach(({ cur_: { s: sender } }): void => {
-            if (sender.status_ !== Frames.Status.enabled) {
-              Backend_.setIcon_(sender.tabId_, Frames.Status.enabled)
-            }
-          })
-          return;
-        }
-      }, 200);
-      return;
-    }
-    if (imageData) { return; }
-    if (!(Build.BTypes & BrowserType.Chrome)) {
-      imageData = 1 as unknown as IconNS.StatusMap<IconNS.IconBuffer>;
-    } else {
-      imageData = [null, null, null];
-      tabIds = new Map()
-    }
-    // only do partly updates: ignore "rare" cases like `sender.s` is enabled but the real icon isn't
-    Backend_.indexPorts_().forEach(({ cur_: { s: sender } }): void => {
-      if (sender.status_ !== Frames.Status.enabled) {
-        Backend_.setIcon_(sender.tabId_, sender.status_)
-      }
-    })
-  } as IconNS.AccessIconBuffer;
-  Backend_.setIcon_ = function (this: void, tabId: number, type: Frames.ValidStatus, isLater?: true): void {
-    if (tabId < 0) {
+const enableShowIcon = settings_.updateHooks_.showActionIcon = (value): void => {
+    const api = (browser_ as any).action as typeof chrome.browserAction || browser_.browserAction
+    if (!api) {
+      settings_.updateHooks_.showActionIcon = undefined
       return
     }
-    /** Firefox does not use ImageData as inner data format
-     * * https://dxr.mozilla.org/mozilla-central/source/toolkit/components/extensions/schemas/manifest.json#577
-     *   converts ImageData objects in parameters into data:image/png,... URLs
-     * * https://dxr.mozilla.org/mozilla-central/source/browser/components/extensions/parent/ext-browserAction.js#483
-     *   builds a css text of "--webextension-***: url(icon-url)",
-     *   and then set the style of an extension's toolbar button to it
-     */
-    if (Build.BTypes & ~BrowserType.Chrome
-        && (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome)) {
-      browserAction.setIcon({ tabId, path: Settings_.icons_[type]! });
-      return;
-    }
-    let data: IconNS.IconBuffer | null | undefined;
-    if (data = imageData![type]) {
-      const f = browserAction.setIcon
-      const args: chrome.browserAction.TabIconDetails = { tabId, imageData: data }
-      isLater ? f(args, BgUtils_.runtimeError_) : f(args);
-    } else if (tabIds!.has(type)) {
-      tabIds!.get(type)!.push(tabId)
-    } else {
-      setTimeout(loadBinaryImagesAndSetIcon, 0, type);
-      tabIds!.set(type, [tabId])
-    }
-  };
-  Settings_.updateHooks_.showActionIcon = function (value): void {
-    func(value);
-    Settings_.temp_.IconBuffer_!(value);
+    set_needIcon_(value)
+    void (import(CONST_.ActionIconJS)as Promise<typeof import("./action_icon")>).then(m => { m.toggleIconBuffer_() })
     let title = trans_("name");
     value || (title += "\n\n" + trans_("noActiveState"));
-    browserAction.setTitle({ title });
-  };
-  Settings_.postUpdate_("showActionIcon");
-});
+    api.setTitle({ title })
+}
 
-BgUtils_.timeout_(600, function (): void {
-  const omnibox = chrome.omnibox;
+if (settings_.get_("showActionIcon")) {
+  enableShowIcon(true)
+} else {
+  set_setIcon_(blank_)
+}
+
+(OnChrome || OnFirefox) && ((): void => {
+  const omnibox = browser_.omnibox
   if (!omnibox) { return; }
   type OmniboxCallback = (this: void, suggestResults: chrome.omnibox.SuggestResult[]) => true | void;
   const enum FirstSugType {
@@ -135,11 +57,9 @@ BgUtils_.timeout_(600, function (): void {
     sessionId_?: number | string;
   }
   const colon2 = trans_("colon") + trans_("NS")
-  const onDel = (Build.BTypes & ~BrowserType.Firefox || Build.DetectAPIOnFirefox)
-      ? omnibox.onDeleteSuggestion : null,
-  mayDelete = !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinOmniboxSupportDeleting
-      || (Build.BTypes & ~BrowserType.Firefox || Build.DetectAPIOnFirefox)
-          && !!onDel && typeof onDel.addListener === "function";
+  const onDel = (!OnFirefox || Build.DetectAPIOnFirefox) ? omnibox.onDeleteSuggestion : null,
+  mayDelete = OnChrome && Build.MinCVer >= BrowserVer.MinOmniboxSupportDeleting
+      || (!OnFirefox || Build.DetectAPIOnFirefox) && !!onDel && typeof onDel.addListener === "function"
   let last: string | null = null, firstResultUrl = "", lastSuggest: SuggestCallback | null = null
     , timer = 0, subInfoMap: Map<string, SubInfo> | null = null
     , maxChars = OmniboxData.DefaultMaxChars
@@ -147,12 +67,8 @@ BgUtils_.timeout_(600, function (): void {
     , defaultSuggestionType = FirstSugType.Default, matchType: CompletersNS.MatchType = CompletersNS.MatchType.Default
     , matchedSugTypes = CompletersNS.SugType.Empty;
   const
-  maxResults = !(Build.BTypes & ~BrowserType.Firefox)
-    || Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox
-    || Build.MinCVer < BrowserVer.MinOmniboxUIMaxAutocompleteMatchesMayBe12
-      && Build.BTypes & BrowserType.Chrome
+  maxResults = OnFirefox || OnChrome && Build.MinCVer < BrowserVer.MinOmniboxUIMaxAutocompleteMatchesMayBe12
       && CurCVer_ < BrowserVer.MinOmniboxUIMaxAutocompleteMatchesMayBe12 ? 6 : 12
-  ;
   function clean(): void {
     if (lastSuggest) { lastSuggest.suggest_ = null; }
     subInfoMap = suggestions = lastSuggest = last = null;
@@ -197,36 +113,33 @@ BgUtils_.timeout_(600, function (): void {
     matchType = newMatchType;
     matchedSugTypes = newMatchedSugTypes;
     if (notEmpty
-        && (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinOmniboxSupportDeleting
-            || (Build.BTypes & ~BrowserType.Firefox || Build.DetectAPIOnFirefox) && mayDelete
+        && (OnChrome && Build.MinCVer >= BrowserVer.MinOmniboxSupportDeleting
+            || (!OnFirefox || Build.DetectAPIOnFirefox) && mayDelete
             || response[0].s != null)) {
       subInfoMap = new Map()
     }
     suggestions = [];
-    const urlDict: TextSet = new Set!()
-    const showTypeLetter = ` ${Settings_.omniPayload_.s} `.includes(" type-letter ")
+    const urlDict: Set<string> = new Set!()
+    const showTypeLetter = ` ${omniPayload_.s} `.includes(" type-letter ")
     for (let i = 0, di = autoSelect ? 0 : 1, len = response.length; i < len; i++) {
       let sugItem = response[i], { title, u: url, e: type } = sugItem, desc = "", hasSessionId = sugItem.s != null
-        , canBeDeleted = (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinOmniboxSupportDeleting
-              || (Build.BTypes & ~BrowserType.Firefox || Build.DetectAPIOnFirefox) && mayDelete)
+        , canBeDeleted = (OnChrome && Build.MinCVer >= BrowserVer.MinOmniboxSupportDeleting
+              || (!OnFirefox || Build.DetectAPIOnFirefox) && mayDelete)
             && !(autoSelect && i === 0) && (
-          type === "tab" ? sugItem.s !== TabRecency_.curTab_
-          : type === "history" && (!(Build.BTypes & ~BrowserType.Firefox)
-              || Build.BTypes & BrowserType.Firefox && OnOther & BrowserType.Firefox || !hasSessionId)
+          type === "tab" ? sugItem.s !== curTabId_ : type === "history" && (OnFirefox || !hasSessionId)
         );
       if (urlDict.has(url)) {
         url = `:${i + di} ${url}`
       } else {
         urlDict.add(url)
       }
-      url = BgUtils_.encodeAsciiURI(url, 1).replace(<RegExpG> /%20/g, " ")
-      url = BgUtils_.decodeFileURL_(url)
+      url = BgUtils_.encodeAsciiURI_(url, 1).replace(<RegExpG> /%20/g, " ")
+      url = decodeFileURL_(url)
       if (canBeDeleted) {
         info.type_ = <SubInfo["type_"]> type;
         desc = ` ~${i + di}~`
       }
-      if (Build.BTypes & BrowserType.Firefox
-          && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)) {
+      if (OnFirefox) {
         desc = (title && title + " - ") + sugItem.textSplit! + desc
       } else {
         desc = (title || showTypeLetter ? (title ? title + " <dim>" : "<dim>")
@@ -245,8 +158,7 @@ BgUtils_.timeout_(600, function (): void {
     }
     last = suggest.key_;
     if (!autoSelect) {
-      if (Build.BTypes & BrowserType.Firefox
-          && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)) {
+      if (OnFirefox) {
         defaultDesc = trans_("OpenC") + "<input>";
       } else if (defaultSuggestionType !== FirstSugType.defaultOpen) {
         defaultDesc = `<dim>${trans_("OpenC")}</dim><url>%s</url>`;
@@ -254,8 +166,7 @@ BgUtils_.timeout_(600, function (): void {
       }
     } else if (sug.e === "search") {
       let text = (sug as CompletersNS.SearchSuggestion).p;
-      if (Build.BTypes & BrowserType.Firefox
-          && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)) {
+      if (OnFirefox) {
         defaultDesc = (text && text + colon2) + sug.textSplit!
       } else {
         defaultDesc = (text && `<dim>${BgUtils_.escapeText_(text) + colon2}</dim>`) + `<url>${sug.textSplit}</url>`
@@ -264,8 +175,7 @@ BgUtils_.timeout_(600, function (): void {
       if (sug = response[1]) {
         switch (sug.e) {
         case "math":
-          suggestions[1].description = Build.BTypes & BrowserType.Firefox
-                && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
+          suggestions[1].description = OnFirefox
               ? sug.textSplit! + " = " + sug.t
               : `${sug.textSplit} = <url><match>${sug.t}</match></url>`
           break;
@@ -279,7 +189,7 @@ BgUtils_.timeout_(600, function (): void {
       firstResultUrl = response[0].u;
       suggestions.shift();
     }
-    defaultDesc && chrome.omnibox.setDefaultSuggestion({ description: defaultDesc });
+    defaultDesc && browser_.omnibox.setDefaultSuggestion({ description: defaultDesc })
     suggest.suggest_(suggestions);
     BgUtils_.resetRe_();
     return;
@@ -298,21 +208,20 @@ BgUtils_.timeout_(600, function (): void {
       return;
     }
     if (matchType === CompletersNS.MatchType.emptyResult && key.startsWith(last!)) {
-      // avoid Chrome showing results from its inner search engine because of `suggest` being destroyed
-      if (Build.BTypes & BrowserType.Firefox
-          && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)) {
+      if (OnFirefox) {
         // note: firefox always uses a previous version of "default suggestion" for `current` query
         // which is annoying, so here should not show dynamic content;
         // in other cases like searching, do show the real result to provide as much info as possible
-        chrome.omnibox.setDefaultSuggestion({ description: "Open: <input>" });
+        browser_.omnibox.setDefaultSuggestion({ description: "Open: <input>" })
       }
+      // avoid Chrome showing results from its inner search engine because of `suggest` being destroyed
       suggest([]);
       return;
     }
     lastSuggest = { suggest_: suggest, key_: key, sent_: false };
     if (timer) { return; }
     const now = Date.now(),
-    delta = Settings_.omniPayload_.t + inputTime - now; /** it's made safe by {@see #onTimer} */
+    delta = omniPayload_.t + inputTime - now; /** it's made safe by {@see #onTimer} */
     if (delta > 30 && delta < 3000) { // in case of system time jumping
       timer = setTimeout(onTimer, delta);
       return;
@@ -355,22 +264,24 @@ BgUtils_.timeout_(600, function (): void {
   function open(this: void, text: string, disposition?: chrome.omnibox.OnInputEnteredDisposition
       , sessionId?: string | number | null): void {
     if (!text) {
-      text = BgUtils_.convertToUrl_("");
+      text = convertToUrl_("")
     } else if (text[0] === ":" && (<RegExpOne> /^:([1-9]|1[0-2]) /).test(text)) {
       text = text.slice(text[2] === " " ? 3 : 4);
     }
     if (text.slice(0, 7).toLowerCase() === "file://") {
-      text = BgUtils_.showFileUrl_(text);
+      // SVG is not blocked by images CS
+      text = (<RegExpI & RegExpOne> /\.(?:avif|bmp|gif|icon?|jpe?g|a?png|tiff?|webp)$/i).test(text)
+        ? formatVimiumUrl_("show image " + text, false, Urls.WorkType.Default)
+        : text
     }
-    return sessionId != null ? Backend_.reqH_[kFgReq.gotoSession]({ s: sessionId })
-        : Backend_.reqH_[kFgReq.openUrl]({
+    return sessionId != null ? reqH_[kFgReq.gotoSession]({ s: sessionId }) : openUrlReq({
       u: text,
       r: (disposition === "currentTab" ? ReuseType.current
         : disposition === "newForegroundTab" ? ReuseType.newFg : ReuseType.newBg)
-    }, null as never as Frames.Port);
+    })
   }
   omnibox.onInputStarted.addListener(function (): void {
-    chrome.windows.getCurrent(function (wnd?: chrome.windows.Window): void {
+    getCurWnd(false, (wnd): void => {
       const width = wnd && wnd.width;
       maxChars = width
         ? Math.floor((width - OmniboxData.MarginH / devicePixelRatio) / OmniboxData.MeanWidthOfChar)
@@ -382,8 +293,8 @@ BgUtils_.timeout_(600, function (): void {
   });
   omnibox.onInputChanged.addListener(onInput);
   omnibox.onInputEntered.addListener(onEnter);
-  (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinOmniboxSupportDeleting
-    || (Build.BTypes & ~BrowserType.Firefox || Build.DetectAPIOnFirefox) && mayDelete) &&
+  (OnChrome && Build.MinCVer >= BrowserVer.MinOmniboxSupportDeleting
+    || (!OnFirefox || Build.DetectAPIOnFirefox) && mayDelete) &&
   onDel!.addListener(function (text): void {
     // eslint-disable-next-line radix
     const ind = parseInt(text.slice(text.lastIndexOf("~", text.length - 2) + 1)) - 1;
@@ -396,118 +307,62 @@ BgUtils_.timeout_(600, function (): void {
     if (url![0] === ":") {
       url = url!.slice(url!.indexOf(" ") + 1);
     }
-    Backend_.reqH_[kFgReq.removeSug]({ t: type, u: type === "tab" ? info!.sessionId_ as string : url! }, null)
-  });
-});
+    reqH_[kFgReq.removeSug]({ t: type, s: info!.sessionId_, u: url! }, null)
+  })
+})()
 
-declare const enum I18nConsts {
-  storageKey = "i18n_f",
-}
-if (Build.BTypes & BrowserType.Firefox
-    && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)) {
-setTimeout(function (loadI18nPayload: () => void): void {
-  const nativeTrans = trans_, lang2 = nativeTrans("lang2"), lang1 = trans_("lang1"),
-  i18nVer = `${lang2 || lang1 || "en"},${Settings_.CONST_.VerCode_},`,
-  // eslint-disable-next-line arrow-body-style
-  newTrans: typeof chrome.i18n.getMessage = (messageName, substitutions): string => {
-    return i18nKeys.has(messageName) || "0" <= messageName && messageName < "9" + kChar.minNotNum
-        ? nativeTrans(messageName, substitutions) : ""
-  };
-  let oldStr = localStorage.getItem(I18nConsts.storageKey), keyArrays: string[] = [], i18nKeys: Set<string>, toDos = 0,
-  fixTrans = (updateCache: BOOL): void => {
-    i18nKeys = new Set!<string>(keyArrays);
-    trans_ = newTrans;
-    keyArrays = fixTrans = null as never;
-    if (updateCache) {
-      localStorage.setItem(I18nConsts.storageKey, i18nVer + [...(i18nKeys as any)].join(","));
-    }
-    Settings_.temp_.loadI18nPayload_ = loadI18nPayload;
-  };
-  if (oldStr && oldStr.startsWith(i18nVer)) {
-    keyArrays = oldStr.slice(i18nVer.length).split(",");
-    fixTrans(0);
-    return;
-  }
-  const onload = (messages: Dict<{ message: string }>): void => {
-    keyArrays = keyArrays.concat(Object.keys(messages).filter(i => !("0" <= i && i < "9" + kChar.minNotNum)))
-    if (0 === --toDos) {
-      fixTrans(1);
-    }
-  };
-  for (const langName of new Set!<string>(["en", lang1, lang2]) as unknown as string[]) {
-    if (langName) {
-      void fetch(`/_locales/${langName}/messages.json`).then(r => r.json<Dict<any>>()).then(onload)
-      toDos++;
-    }
-  }
-}, 33, Settings_.temp_.loadI18nPayload_!);
-Settings_.temp_.loadI18nPayload_ = null;
-}
-
-Build.BTypes & BrowserType.Chrome && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)
-&& BgUtils_.timeout_(100, (): void => {
-  let status: 0 | 1 | 2 | 3 = 0
+OnChrome && ((): void => {
+  let status: 0 | 1 | 2 | 3 = 0, listened = false, refreshTimer = 0
   const protocol = IsEdg_ ? "edge:" : "chrome:",
   ntp = !IsEdg_ ? protocol + "//newtab/" : "", ntp2 = !IsEdg_ ? protocol + "//new-tab-page/" : ""
-  const onTabsUpdated = (tabId: number, changeInfo: chrome.tabs.TabChangeInfo, tab: chrome.tabs.Tab): void => {
-    if (tab.url.startsWith(protocol) && status & (tab.url === ntp || tab.url === ntp2 ? 2 : 1)
-        && changeInfo.status === "loading") {
-      const js = Settings_.CONST_.ContentScripts_, offset = location.origin.length
-      for (let _j = 0, _len = js.length - 1; _j < _len; ++_j) {
-        chrome.tabs.executeScript(tabId, { file: js[_j].slice(offset) }, BgUtils_.runtimeError_)
-      }
+  const onCommitted = (nav: chrome.webNavigation.WebNavigationTransitionCallbackDetails): void => {
+    if (nav.frameId === 0 && nav.url.startsWith(protocol)
+        && status & (nav.url.startsWith(ntp) || nav.url.startsWith(ntp2) ? 2 : 1) && !refreshTimer) {
+      runContentScriptsOn_(nav.tabId)
     }
   }
-  const recheck = (): void => {
-    chrome.permissions.contains({ origins: ["chrome://*/*"] }, allAllowed => {
-      const err = BgUtils_.runtimeError_()
-      if (err) { return err }
-      const cb = (ntpAllowed: boolean | null): void => {
-        chrome.permissions.onAdded[allAllowed && ntpAllowed !== false ? "removeListener" : "addListener"](recheck)
-        status = ((allAllowed ? 1 : 0) + (ntpAllowed ? 2 : 0)) as 0 | 1 | 2 | 3
-        chrome.permissions.onRemoved[status ? "addListener" : "removeListener"](recheck)
-        chrome.tabs.onUpdated[status ? "addListener" : "removeListener"](onTabsUpdated)
-      }
-      if ((Build.MinCVer >= BrowserVer.MinChromeURL$NewTabPage || CurCVer_ > BrowserVer.MinChromeURL$NewTabPage - 1)
-          && !IsEdg_) {
-        chrome.permissions.contains({ origins: ["chrome://new-tab-page/"] }, cb)
-      } else {
-        cb(null)
-      }
-    })
-  }
-  recheck()
-})
+  watchPermissions_([ { origins: ["chrome://*/*"] },
+    (Build.MinCVer >= BrowserVer.MinChromeURL$NewTabPage || CurCVer_ > BrowserVer.MinChromeURL$NewTabPage - 1)
+    && !IsEdg_ ? { origins: ["chrome://new-tab-page/*"] } : null
+  ], function onChange (allowList): void | false {
+    status = ((allowList[0] ? 1 : 0) + (allowList[1] ? 2 : 0)) as 0 | 1 | 2 | 3
+    if (status & 1 && !settings_.get_("allBrowserUrls")) { status ^= 1 }
+    if (listened !== !!status) {
+      const webNav = browserWebNav_()
+      if (!webNav) { return false }
+      // tabs.onUpdated can be triggered too many times: https://github.com/gdh1995/vimium-c/issues/381
+      webNav.onCommitted[(listened = !listened) ? "addListener" : "removeListener"](onCommitted)
+    }
+    refreshTimer = refreshTimer || status && setTimeout((): void => {
+      status ? Tabs_.query({ url: protocol + "//*/*" }, (tabs): void => {
+        refreshTimer = 0
+        for (const tab of tabs || []) {
+          if (!framesForTab_.has(tab.id) && (status & (tab.url.startsWith(ntp) || tab.url.startsWith(ntp2) ? 2 : 1))) {
+            runContentScriptsOn_(tab.id)
+          }
+        }
+        return runtimeError_()
+      }) : refreshTimer = 0
+    }, 120)
+    if (status && !settings_.updateHooks_.allBrowserUrls) {
+      settings_.updateHooks_.allBrowserUrls = onChange.bind(null, allowList, false)
+    }
+  })
+})()
 
 // According to tests: onInstalled will be executed after 0 ~ 16 ms if needed
-chrome.runtime.onInstalled.addListener(Settings_.temp_.onInstall_ =
-function (details: chrome.runtime.InstalledDetails): void {
+installation_ && void installation_.then((details): void => {
+  set_installation_(null)
   let reason = details.reason;
   if (reason === "install") { reason = ""; }
   else if (reason === "update") { reason = details.previousVersion!; }
   else { return; }
-  if (Settings_.temp_.onInstall_) {
-    chrome.runtime.onInstalled.removeListener(Settings_.temp_.onInstall_)
-    Settings_.temp_.onInstall_ = null
-  } else {
-    return
-  }
 
-  BgUtils_.timeout_(500, function (): void {
-  Build.BTypes & ~BrowserType.Firefox &&
-  (!(Build.BTypes & BrowserType.Firefox) || OnOther !== BrowserType.Firefox) &&
-  chrome.tabs.query({
-    status: "complete"
-  }, function (tabs) {
-    const t = chrome.tabs, callback = BgUtils_.runtimeError_,
-    allowedRe = <RegExpOne> /^(file|ftps?|https?):/,
-    offset = location.origin.length, js = Settings_.CONST_.ContentScripts_;
-    for (let _i = tabs.length, _len = js.length - 1; 0 <= --_i; ) {
-      if (!allowedRe.test(tabs[_i].url)) { continue; }
-      let tabId = tabs[_i].id;
-      for (let _j = 0; _j < _len; ++_j) {
-        t.executeScript(tabId, {file: js[_j].slice(offset), allFrames: true}, callback);
-      }
+  setTimeout((): void => {
+  OnFirefox || Tabs_.query({ status: "complete" }, (tabs): void => {
+    const allowedRe = <RegExpOne> /^(file|ftps?|https?):/
+    for (const tab of tabs) {
+      allowedRe.test(tab.url) && runContentScriptsOn_(tab.id)
     }
   });
   function now(): string {
@@ -516,68 +371,64 @@ function (details: chrome.runtime.InstalledDetails): void {
   console.log("%cVimium C%c has been %cinstalled%c with %o at %c%s%c.", "color:red", "color:auto"
     , "color:#0c85e9", "color:auto", details, "color:#0c85e9", now(), "color:auto");
 
-  if (Settings_.CONST_.DisallowIncognito_) {
+  if (CONST_.DisallowIncognito_) {
     console.log("Sorry, but some commands of Vimium C require the permission to run in incognito mode.");
   }
 
   if (!reason) {
-    const p = Settings_.restore_ && Settings_.restore_() || Promise.resolve()
+    const p = restoreSettings_ && restoreSettings_() || Promise.resolve()
     void p.then(() => Backend_.onInit_ ? new Promise(resolve => setTimeout(resolve, 200)) : 0).then((): void => {
-      Backend_.reqH_[kFgReq.focusOrLaunch]({
-        u: Settings_.CONST_.OptionsPage_ + (Build.NDEBUG ? "#commands" : "#installed")
+      reqH_[kFgReq.focusOrLaunch]({
+        u: CONST_.OptionsPage_ + (Build.NDEBUG ? "#commands" : "#installed")
       })
     })
     return
   }
-  if (parseFloat(Settings_.CONST_.VerCode_) <= parseFloat(reason)) { return; }
+  if (parseFloat(CONST_.VerCode_) <= parseFloat(reason)) { return }
 
-  const ref1 = Settings_.temp_;
-  if (ref1.backupSettingsToLocal_) {
-    (ref1.backupSettingsToLocal_ as Exclude<typeof ref1.backupSettingsToLocal_, true | null>)(6000);
+  if (backupToLocal_) {
+    (backupToLocal_ as Exclude<typeof backupToLocal_, true | null>)(6000)
   } else {
-    ref1.backupSettingsToLocal_ = true;
+    set_backupToLocal_(true)
   }
 
-  if (!Settings_.get_("notifyUpdate")) { return; }
+  if (!settings_.get_("notifyUpdate")) { return }
 
   reason = "vimium_c-upgrade-notification";
   const args: chrome.notifications.NotificationOptions = {
     type: "basic",
     iconUrl: location.origin + "/icons/icon128.png",
     title: "Vimium C " + trans_("Upgrade"),
-    message: trans_("upgradeMsg", [Settings_.CONST_.VerName_]) + trans_("upgradeMsg2")
+    message: trans_("upgradeMsg", [CONST_.VerName_]) + trans_("upgradeMsg2")
         + "\n\n" + trans_("clickForMore")
   };
-  if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$NotificationOptions$$isClickable$IsDeprecated
+  if (OnChrome && Build.MinCVer < BrowserVer.Min$NotificationOptions$$isClickable$IsDeprecated
       && CurCVer_ < BrowserVer.Min$NotificationOptions$$isClickable$IsDeprecated) {
     args.isClickable = true; // not supported on Firefox
   }
-  if (Build.BTypes & BrowserType.Chrome
-      && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)
-      && CurCVer_ >= BrowserVer.Min$NotificationOptions$$silent) {
+  if (OnChrome && CurCVer_ >= BrowserVer.Min$NotificationOptions$$silent) {
     args.silent = true;
   }
-  chrome.notifications && chrome.notifications.create(reason, args, function (notificationId): void {
+  const browserNotifications = browser_.notifications
+  browserNotifications && browserNotifications.create(reason, args, function (notificationId): void {
     let err: any;
-    if (err = BgUtils_.runtimeError_()) { return err; }
+    if (err = runtimeError_()) { return err }
     reason = notificationId || reason;
-    chrome.notifications.onClicked.addListener(function callback(id): void {
+    browserNotifications.onClicked.addListener(function callback(id): void {
       if (id !== reason) { return; }
-      chrome.notifications.clear(reason);
-      Backend_.reqH_[kFgReq.focusOrLaunch]({
-        u: BgUtils_.convertToUrl_("vimium://release")
+      browserNotifications.clear(reason)
+      reqH_[kFgReq.focusOrLaunch]({
+        u: convertToUrl_("vimium://release")
       });
-      chrome.notifications.onClicked.removeListener(callback)
+      browserNotifications.onClicked.removeListener(callback)
     });
   });
-  });
-});
+  }, 500)
+})
 
-BgUtils_.timeout_(1200, function (): void {
-  Settings_.temp_.onInstall_ && chrome.runtime.onInstalled.removeListener(Settings_.temp_.onInstall_);
-  Settings_.temp_.onInstall_ = null;
+setTimeout((): void => {
   const doc = globalThis.document
-  if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSetInnerTextOnHTMLHtmlElement) {
+  if (OnChrome && Build.MinCVer < BrowserVer.MinSetInnerTextOnHTMLHtmlElement) {
     (doc.body as HTMLBodyElement).innerHTML = ""
   } else if (doc && doc.body) {
     (doc.body as HTMLBodyElement).innerText = ""
@@ -586,6 +437,6 @@ BgUtils_.timeout_(1200, function (): void {
   if (!Build.NDEBUG) {
     type GlobalExForDebug = (typeof globalThis) & { a: unknown; cb: (i: any) => void }
     (globalThis as GlobalExForDebug).a = null;
-    (globalThis as GlobalExForDebug).cb = function (b) { (globalThis as GlobalExForDebug).a = b; console.log("%o", b); }
+    (globalThis as GlobalExForDebug).cb = (b): void => { (globalThis as GlobalExForDebug).a = b; console.log("%o", b) }
   }
-});
+}, 1000)

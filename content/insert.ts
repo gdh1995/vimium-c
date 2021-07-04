@@ -1,13 +1,3 @@
-const enum kNodeInfo {
-  NONE = 0,
-  ShadowBlur = 1, ShadowFull = 2,
-}
-interface ShadowNodeMap {
-  set (node: Node, info: kNodeInfo.ShadowBlur | kNodeInfo.ShadowFull): any
-  get (node: Node): kNodeInfo | undefined
-  delete (node: Node): any
-}
-
 import {
   doc, keydownEvents_, safeObj, fgCache, isTop, set_keydownEvents_, setupEventListener, Stop_, OnChrome, OnFirefox,
   esc, onWndFocus, isEnabled_, readyState_, injector, recordLog, weakRef_, OnEdge
@@ -18,11 +8,18 @@ import { hudHide } from "./hud"
 import { set_currentScrolling, scrollTick, set_cachedScrollable } from "./scroller"
 import { set_isCmdTriggered, resetAnyClickHandler } from "./key_handler"
 import {
-  activeEl_unsafe_, isHTML_, docEl_unsafe_, getEditableType_, GetShadowRoot_, getSelection_, frameElement_,
-  SafeEl_not_ff_, MDW, fullscreenEl_unsafe_, removeEl_s, isNode_, BU
+  activeEl_unsafe_, getEditableType_, GetShadowRoot_, getSelection_, frameElement_, deepActiveEl_unsafe_,
+  SafeEl_not_ff_, MDW, fullscreenEl_unsafe_, removeEl_s, isNode_, BU, docHasFocus_
 } from "../lib/dom_utils"
 import { pushHandler_, removeHandler_, prevent_ } from "../lib/keyboard_utils"
 import { InputHintItem } from "./link_hints"
+
+const enum kNodeInfo { NONE = 0, ShadowBlur = 1, ShadowFull = 2 }
+interface ShadowNodeMap {
+  set (node: Node, info: kNodeInfo.ShadowBlur | kNodeInfo.ShadowFull): any
+  get (node: Node): kNodeInfo | undefined
+  delete (node: Node): any
+}
 
 let shadowNodeMap: ShadowNodeMap | undefined
 let lock_ = null as LockableElement | null
@@ -33,7 +30,8 @@ let suppressType: string | null = null
 let insert_last_: WeakRef<LockableElement> | null | undefined
 let is_last_mutable: BOOL = 1
 let lastWndFocusTime = 0
-let grabBackFocus: boolean | ((event: Event, target: LockableElement) => void) = readyState_ > "l"
+// the `readyState_ > "c"` is just to grab focus on `chrome://*/*` URLs
+let grabBackFocus: boolean | ((event: Event, target: LockableElement) => void) = readyState_ > (OnChrome ? "c" : "l")
 let exitPassMode: ((this: void) => void) | undefined | null
 let onExitSuppress: ((this: void) => void) | null = null
 let onWndBlur2: ((this: void) => void) | undefined | null
@@ -54,23 +52,24 @@ export function set_onWndBlur2 (_newOnBlur: typeof onWndBlur2): void { onWndBlur
 export function set_exitPassMode <T extends typeof exitPassMode> (_nEPM: T): T { return exitPassMode = _nEPM as T }
 
 export const insertInit = (): void => {
-  /** if `notBody` then `activeEl` is not null */
-  let activeEl = activeEl_unsafe_(),
-  notBody = activeEl !== doc.body && (!OnFirefox ? true : isHTML_() || activeEl !== docEl_unsafe_()) && !!activeEl
+  let activeEl = deepActiveEl_unsafe_() // https://github.com/gdh1995/vimium-c/issues/381#issuecomment-873529695
+  let counter = 0
   set_keydownEvents_(safeObj(null))
   if (injector ? injector.$g : fgCache.g && grabBackFocus) {
-    let counter = 0
-    if (notBody = notBody && !!getEditableType_(activeEl!)) {
+    if (activeEl && getEditableType_(activeEl)) {
       insert_last_ = null;
       counter = 1
       recordLog(kTip.logGrabFocus);
-      (activeEl as LockableElement).blur();
+      activeEl.blur()
       // here ignore the rare case of an XMLDocument with a editable node on Firefox, for smaller code
-      notBody = (activeEl = activeEl_unsafe_()) !== doc.body;
+      activeEl = deepActiveEl_unsafe_()
+    } else {
+      activeEl = null
     }
-    if (!notBody) {
+    if (!activeEl) {
       grabBackFocus = (event: Event, target: LockableElement): void => {
         const activeEl1 = activeEl_unsafe_();
+        // on Chrome, password saver won't set doc.activeElement when dispatching "focus" events
         if (activeEl1 === target || activeEl1 && GetShadowRoot_(activeEl1)) {
           Stop_(event);
           counter++ || recordLog(kTip.logGrabFocus)
@@ -83,9 +82,8 @@ export const insertInit = (): void => {
     }
   }
   grabBackFocus = false;
-  if (notBody && getEditableType_(activeEl!)) {
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-    lock_ = activeEl as LockableElement;
+  if (activeEl && getEditableType_(activeEl)) {
+    lock_ = activeEl
   }
 }
 
@@ -119,6 +117,7 @@ export const isInInsert = (): boolean => {
   if (suppressType || lock_ || insert_global_) {
     return !suppressType;
   }
+  // ignore those in Shadow DOMs, since no issues have been reported
   const el: Element | null = activeEl_unsafe_();
   /* eslint-disable max-len */
 /** Ignore standalone usages of `{-webkit-user-modify:}` without `[contenteditable]`
@@ -299,7 +298,7 @@ export const onBlur = (event: Event | FocusEvent): void => {
   }
   if (lock_ === target) {
     lock_ = null;
-    if (inputHint && !isHintingInput && doc.hasFocus()) {
+    if (inputHint && !isHintingInput && docHasFocus_()) {
       exitInputHint();
     }
   }

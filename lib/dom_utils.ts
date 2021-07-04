@@ -15,7 +15,7 @@ export const DAC = "DOMActivate", MDW = "mousedown", CLK = "click", HDN = "hidde
 export const INP = "input", BU = "blur", ALA = "aria-label", UNL = "unload"
 export const kDir = ["backward", "forward"] as const
 
-  /** data and DOM-shortcut section */
+//#region data and DOM-shortcut section
 
 let unsafeFramesetTag_old_cr_: "frameset" | "" | null =
     OnChrome && Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter ? "" : 0 as never as null
@@ -84,7 +84,11 @@ export const doesSupportDialog = (): boolean => typeof HTMLDialogElement == OBJE
 export const parentNode_unsafe_s = (el: SafeElement | HTMLStyleElement | Text
     ): Element | Document | DocumentFragment | null => el.parentNode as any
 
-  /** DOM-compatibility section */
+export const docHasFocus_ = (): boolean => doc.hasFocus()
+
+//#endregion
+
+//#region DOM-compatibility section
 
 export const isHTML_ = OnFirefox ? (): boolean => doc instanceof HTMLDocument
     : (): boolean => "lang" in <ElementToHTML> (docEl_unsafe_() || {})
@@ -130,12 +134,12 @@ export let notSafe_not_ff_ = !OnFirefox ? (el: Element): el is HTMLFormElement =
 
   /** @safe_even_if_any_overridden_property */
 export const SafeEl_not_ff_ = !OnFirefox ? function (
-      this: void, el: Element | null, type?: PNType.DirectElement | undefined): Node | null {
+      el: Element | null, type?: PNType.DirectElement | undefined): Node | null {
   return el && notSafe_not_ff_!(el)
     ? SafeEl_not_ff_!(GetParent_unsafe_(el, type || PNType.RevealSlotAndGotoParent), type) : el
 } as {
-    (this: void, el: SafeElement | null, type?: any): unknown;
-    (this: void, el: Element | null, type?: PNType.DirectElement): SafeElement | null;
+  (el: SafeElement | null, type?: any): unknown
+  (el: Element | null, type?: PNType.DirectElement): SafeElement | null
 } : 0 as never as null
 
 export const GetShadowRoot_ = (el: Element): ShadowRoot | null => {
@@ -168,7 +172,7 @@ export const GetChildNodes_not_ff = !OnFirefox ? (el: Element): NodeList => {
 export const ElementProto = Element.prototype as SafeElement
 
 /** Try its best to find a real parent */
-export const GetParent_unsafe_ = function (this: void, el: Node | Element
+export const GetParent_unsafe_ = function (el: Node | Element
     , type: PNType.DirectNode | PNType.DirectElement | PNType.RevealSlot | PNType.RevealSlotAndGotoParent
     ): Node | null {
   /** Chrome: a selection / range can only know nodes and text in a same tree scope */
@@ -210,9 +214,9 @@ export const GetParent_unsafe_ = function (this: void, el: Node | Element
       : (pn as Node as NodeToElement).tagName ? pn as Element /* in doc and .pN+.pE are overridden */
       : null /* pn is null, or some unknown type ... */;
 } as {
-    (this: void, el: Element, type: PNType.DirectElement
+  (el: Element, type: PNType.DirectElement
         | PNType.ResolveShadowHost | PNType.RevealSlot | PNType.RevealSlotAndGotoParent): Element | null;
-    (this: void, el: Node, type: PNType.DirectNode): ShadowRoot | DocumentFragment | Document | Element | null;
+  (el: Node, type: PNType.DirectNode): ShadowRoot | DocumentFragment | Document | Element | null
 }
 
 export const scrollingEl_ = (fallback?: 1): SafeElement | null => {
@@ -252,21 +256,16 @@ export const fullscreenEl_unsafe_ = (): Element | null => {
 
 // Note: sometimes a cached frameElement is not the wanted
 export let frameElement_ = (): SafeHTMLElement | null | void => {
-    let el: typeof frameElement | undefined;
     if (OnEdge || OnChrome && Build.MinCVer < BrowserVer.MinSafeGlobal$frameElement) {
       try {
-        if (!OnFirefox) { return frameElement as SafeHTMLElement }
-        else { el = frameElement; }
+        return frameElement as SafeHTMLElement
       } catch {}
+    } else if (!OnFirefox) {
+      return frameElement as SafeHTMLElement
     } else {
-      if (!OnFirefox) { return frameElement as SafeHTMLElement }
-      el = frameElement;
-    }
-    if (OnFirefox) {
-      if (el) {
-        frameElement_ = () => el as SafeHTMLElement;
-      }
-      return el as SafeHTMLElement
+      const el = frameElement as SafeHTMLElement | null
+      if (el) { frameElement_ = () => el }
+      return el
     }
 }
 
@@ -284,7 +283,9 @@ export const getAccessibleSelectedNode = (sel: Selection, focused?: 1): Node | n
   return node
 }
 
-/** computation section */
+//#endregion
+
+//#region computation section
 
 export const findMainSummary_ = ((details: HTMLDetailsElement | Element | null): SafeHTMLElement | null => {
     // not query `:scope>summary` for more consistent performance
@@ -303,7 +304,7 @@ export const findMainSummary_ = ((details: HTMLDetailsElement | Element | null):
     return found
 }) as (details: HTMLDetailsElement) => SafeHTMLElement | null
 
-export const IsInDOM_ = function (this: void, element: Element, root?: Element | Document | Window | RadioNodeList
+export const IsInDOM_ = function (element: Element, root?: Element | Document | Window | RadioNodeList
       , checkMouseEnter?: 1): boolean {
     if (!root || isNode_(root as Element | Document, kNode.DOCUMENT_NODE)) {
       const isConnected = element.isConnected; /** {@link #BrowserVer.Min$Node$$isConnected} */
@@ -331,7 +332,7 @@ export const IsInDOM_ = function (this: void, element: Element, root?: Element |
     // if not pe, then PNType.DirectNode won't return an Element
     // because .GetParent_ will only return a real parent, but not a fake <form>.parentNode
     return (pe || GetParent_unsafe_(element, PNType.DirectNode)) === root;
-} as (this: void, element: SafeElement, root?: Element | Document, checkMouseEnter?: 1) => boolean
+} as (element: SafeElement, root?: Element | Document, checkMouseEnter?: 1) => boolean
 
 export const isStyleVisible_ = (element: Element): boolean => isRawStyleVisible(getComputedStyle_(element))
 export const isRawStyleVisible = (style: CSSStyleDeclaration): boolean => style.visibility === "visible"
@@ -355,6 +356,18 @@ export const getMediaUrl = (element: HTMLImageElement | SafeHTMLElement, isMedia
       || isMedia && (element as HTMLImageElement).currentSrc
       || (srcValue = attr_s(element, kSrcAttr = isMedia ? "src" : "href" as never) || "",
           srcValue && (element as Partial<HTMLImageElement>)[kSrcAttr] || srcValue)
+}
+
+/** not return `<body>` or `<html>` */
+export const deepActiveEl_unsafe_ = (): Element | null => {
+  let el: Element | null | undefined = activeEl_unsafe_()
+  let active: Element | null | undefined, shadowRoot: ShadowRoot | null
+  if (el !== doc.body && el !== docEl_unsafe_()) {
+    while (el && (shadowRoot = GetShadowRoot_(active = el))) {
+      el = shadowRoot.activeElement
+    }
+  }
+  return active || null
 }
 
 export const uneditableInputs_: SafeEnum = { __proto__: null as never,
@@ -394,8 +407,8 @@ export const getEditableType_ = function (element: Element): EditableType {
 }
 
 export const isSelected_ = (): boolean => {
-    const element = activeEl_unsafe_()!, sel = getSelection_(), node = getAccessibleSelectedNode(sel)
-    return !node ? false
+    const element = activeEl_unsafe_(), sel = getSelection_(), node = getAccessibleSelectedNode(sel)
+    return !node || !element ? false
       : (element as TypeToAssert<Element, HTMLElement, "isContentEditable">).isContentEditable === true
       ? OnFirefox ? contains_s(element as SafeElement, node) : doc.contains.call(element, node)
       : element === node || !!(node as NodeToElement).tagName
@@ -441,7 +454,9 @@ export const getSelectionFocusEdge_ = (sel: Selection, knownDi?: VisualModeNS.Fo
     return SafeEl_not_ff_!(<Element | null> (o || el), PNType.DirectElement)
 }
 
-  /** action section */
+//#endregion
+
+//#region action section
 
   /** Note: won't call functions if Vimium C is destroyed */
 let OnDocLoaded_: (callback: (this: void) => any, onloaded?: 1) => void
@@ -451,7 +466,7 @@ export function set_OnDocLoaded_ (_newOnDocLoaded: typeof OnDocLoaded_): void { 
 
 export let createElement_ = doc.createElement.bind(doc) as {
   <K extends "div" | "span" | "style" | "iframe" | "a" | "script" | "dialog" | "body"> (
-      this: void, htmlTagName: K): HTMLElementTagNameMap[K] & SafeHTMLElement
+      htmlTagName: K): HTMLElementTagNameMap[K] & SafeHTMLElement
 }
 export function set_createElement_ (_newCreateEl: typeof createElement_): void { createElement_ = _newCreateEl }
 
@@ -540,3 +555,5 @@ export const runJS_ = (code: string, returnEl?: HTMLScriptElement | null | 0
 }
 
 export const focus_ = (el: SafeElement): void => { el.focus && el.focus() }
+
+//#endregion

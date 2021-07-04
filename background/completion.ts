@@ -1,138 +1,54 @@
+import {
+  bookmarkCache_, Completion_, contentPayload_, CurCVer_, curTabId_, curWndId_, historyCache_, OnChrome, OnFirefox,
+  blank_, recencyForTab_, settingsCache_, evalVimiumUrl_
+} from "./store"
+import { overrideTabsIndexes_ff_, browser_, getTabUrl, isTabMuted } from "./browser"
+import * as BgUtils_ from "./utils"
+import { convertToUrl_, lastUrlType_, createSearch_ } from "./normalize_urls"
+import { fixCharsInUrl_ } from "./parse_urls"
+import {
+  MatchCacheManager_, RankingEnums, RegExpCache_, requireNormalOrIncognitoTabs_, TabEx,
+  tabsInNormal, setupQueryTerms, set_tabsInNormal, TimeEnums, WritableTabEx, ComputeRecency, ComputeRelevancy,
+  ComputeWordRelevancy, get2ndArg, match2_, prepareHTML_, getWordRelevancy_, cutTitle, highlight, shortenUrl, sortBy0,
+  calcBestFaviconSource_only_cr_, SearchKeywords_, set_maxScoreP_, set_timeAgo_, maxScoreP_
+} from "./completion_utils"
+import {
+  BlockListFilter_, BookmarkManager_, UrlDecoder_, HistoryManager_, TestNotBlocked_
+} from "./browsing_data_manager"
+
 import MatchType = CompletersNS.MatchType;
 import SugType = CompletersNS.SugType;
+import HistoryItem = CompletersNS.HistoryItem
+import BookmarkStatus = CompletersNS.BookmarkStatus
+import kVisibility = CompletersNS.kVisibility
 
-interface Performance extends EventTarget {
-  timeOrigin?: number;
-}
-
-BgUtils_.timeout_(200, function (): void {
 type Domain = CompletersNS.Domain;
 
-const enum RankingEnums {
-  recCalibrator = 0.666667, // 2 / 3,
-  anywhere = 1,
-  startOfWord = 1,
-  wholeWord = 1,
-  maximumScore = 3,
-}
-const enum TimeEnums {
-  timeCalibrator = 1814400000, // 21 days
-  futureTimeTolerance = 1.000165, // 1 + 5 * 60 * 1000 / timeCalibrator, // +5min
-  futureTimeScore = 0.666446, // (1 - 5 * 60 * 1000 / timeCalibrator) ** 2 * RankingEnums.recCalibrator, // -5min
-  bookmarkFakeVisitTime = 1000 * 60 * 5,
-  NegativeScoreForFakeBookmarkVisitTime = -futureTimeScore,
-}
-const enum InnerConsts {
-  bookmarkBasicDelay = 1000 * 60, bookmarkFurtherDelay = bookmarkBasicDelay / 2,
-  historyMaxSize = 20000,
-}
-
-type MatchRange = [number, number];
-
-const enum BookmarkStatus {
-  notInited = 0,
-  initing = 1,
-  inited = 2,
-}
-
-interface DecodedItem {
-  readonly u: string;
-  t: string;
-}
-
-interface Bookmark extends DecodedItem {
-  readonly id_: string;
-  readonly t: string;
-  readonly path_: string;
-  readonly title_: string;
-  readonly visible_: Visibility;
-  readonly u: string;
-  readonly jsUrl_: string | null;
-  readonly jsText_: string | null;
-}
-interface JSBookmark extends Bookmark {
-  readonly jsUrl_: string;
-  readonly jsText_: string;
-}
-interface HistoryItem extends DecodedItem {
-  readonly u: string;
-  time_: number;
-  title_: string;
-  visible_: Visibility;
-}
 interface BrowserUrlItem {
   u: string;
   title_: string | null;
   sessionId_: string | number | null | undefined;
   visit_: number
 }
-interface UrlDomain {
-  domain_: string;
-  scheme_: Urls.SchemeId;
-}
-interface WritableTabEx extends Readonly<chrome.tabs.Tab> {
-  text?: string;
-}
-interface TabEx extends WritableTabEx {
-  readonly text: string;
-}
-
 interface Completer {
   filter_ (query: CompletersNS.QueryStatus, index: number): void;
 }
 interface CompleterList extends ReadonlyArray<Completer> {
   /** in fact, SugType */ readonly [0]: never;
 }
-
 type SuggestionConstructor =
   // pass enough arguments, so that it runs faster
   new (type: CompletersNS.ValidSugTypes, url: string, text: string, title: string,
        computeRelevancy: (this: void, sug: CompletersNS.CoreSuggestion, data: number) => number,
        extraData: number) => Suggestion;
 
-type CachedRegExp = (RegExpOne | RegExpI) & RegExpSearchable<0>;
-
-type HistoryCallback = (this: void, history: ReadonlyArray<Readonly<HistoryItem>>) => void;
-
-type ItemToDecode = string | DecodedItem;
-
 type SearchSuggestion = CompletersNS.SearchSuggestion;
 
-const enum kVisibility {
-  // as required in HistoryCache.OnPageVisited_, .visible must be 1
-  hidden = 0,
-  visible = 1,
-  _mask = 2,
-}
-type Visibility = kVisibility.hidden | kVisibility.visible;
-
-const enum MatchCacheType {
-  history = 1, bookmarks = 2, tabs = 3,
-}
-const enum TabCacheType {
-  none = 0, currentWindow = 1, onlyNormal = 2, evenHidden = 4,
-}
-
-interface TabCacheData {
-  tabs_: readonly WritableTabEx[] | null;
-  type_: TabCacheType;
-}
-
-interface MatchCacheData {
-  history_: readonly HistoryItem[] | null;
-  bookmarks_: readonly Bookmark[] | null;
-}
-
-interface MatchCacheRecord extends MatchCacheData {
-  query_: string[];
-  showThoseInBlockList_: boolean;
-  time_: number;
-}
 
 let matchType: MatchType = MatchType.plain,
-    inNormal: boolean | null = null, autoSelect = false, isForAddressBar = false,
+    autoSelect = false, isForAddressBar = false,
     otherFlags = CompletersNS.QueryFlags.None,
-    maxChars = 0, maxResults = 0, maxTotal = 0, matchedTotal = 0, offset = 0,
+    maxResults = 0, maxTotal = 0, matchedTotal = 0, offset = 0,
     queryTerms: string[] = [""], rawInput = "", rawMode = "", rawQuery = "", rawMore = "",
     rawComponents = CompletersNS.QComponent.NONE,
     mayRawQueryChangeNextTime_ = false,
@@ -154,224 +70,40 @@ const Suggestion: SuggestionConstructor = function (
   this.visit = 0
 } as any;
 
-function prepareHtml(sug: Suggestion): void {
-  if (Build.BTypes & BrowserType.Chrome && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)) {
-    if (!isForAddressBar && !sug.v) {
-      sug.v = searchEngine.calcBestFaviconSource_only_cr_!(sug.u);
-    }
-  }
-  if (sug.textSplit != null) {
-    if (sug.t === sug.u) { sug.t = ""; }
-    return;
-  }
-  sug.title = cutTitle(sug.title);
-  const text = sug.t
-  let str = BgUtils_.decodeFileURL_(text), range: number[]
-  if (str.length !== text.length) {
-    range = getMatchRangesWithOffset(text, str[0] === "\\" ? 5 : 8)
-  } else {
-    str = shortenUrl(text)
-    range = getMatchRanges(str)
-  }
-  sug.t = text.length !== sug.u.length ? str : "";
-  sug.textSplit = /*#__NOINLINE__*/ cutUrl(str, range, text.length - str.length
-    , isForAddressBar ? maxChars - 13 - Math.min(sug.title.length, 40) : maxChars);
-}
-function cutTitle(title: string, knownRange?: [number, number] | []): string {
-  let cut = title.length > maxChars + 40;
-  cut && (title = BgUtils_.unicodeSubstring_(title, 0, maxChars + 39));
-  return highlight(cut ? title + "\u2026" : title, knownRange || getMatchRanges(title))
-}
-function highlight(this: void, str: string, ranges: number[]): string {
-  if (Build.BTypes & BrowserType.Firefox && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
-      && isForAddressBar) {
-    return str;
-  }
-  if (ranges.length === 0) { return BgUtils_.escapeText_(str); }
-  let out = "", end = 0;
-  for (let _i = 0; _i < ranges.length; _i += 2) {
-    const start = ranges[_i], end2 = ranges[_i + 1];
-    if (start >= str.length) { continue }
-    out += BgUtils_.escapeText_(str.slice(end, start));
-    out += "<match>";
-    out += BgUtils_.escapeText_(str.slice(start, end2));
-    out += "</match>";
-    end = end2;
-  }
-  return out + BgUtils_.escapeText_(str.slice(end));
-}
-function shortenUrl(this: void, url: string): string {
-  const i = BgUtils_.IsURLHttp_(url);
-  return !i || i >= url.length ? url : url.slice(i, url.length - +(url.endsWith("/") && !url.endsWith("://")));
-}
-function getMatchRangesWithOffset(str: string, offset1: number): number[] {
-  const range = getMatchRanges(str)
-  for (let i = 0; i < range.length; ) {
-    if (range[i + 1] <= offset1) {
-      range.splice(i, 2)
-    } else {
-      range[i] = Math.max(range[i] - offset1, 0)
-      range[i + 1] -= offset1
-      i += 2
-    }
-  }
-  return range
-}
-function getMatchRanges(str: string): number[] {
-  const ranges: MatchRange[] = [];
-  for (let i = 0, len = queryTerms.length; i < len; i++) {
-    let index = 0, textPosition = 0, matchedEnd: number;
-    const splits = str.split(RegExpCache.parts_[i]), last = splits.length - 1, tl = queryTerms[i].length;
-    for (; index < last; index++, textPosition = matchedEnd) {
-      matchedEnd = (textPosition += splits[index].length) + tl;
-      ranges.push([textPosition, matchedEnd]);
-    }
-  }
-  if (ranges.length === 0) { return ranges as never[]; }
-  if (ranges.length === 1) { return ranges[0]; }
-  ranges.sort(sortBy0);
-  const mergedRanges: number[] = ranges[0];
-  for (let i = 1, j = 1, len = ranges.length; j < len; j++) {
-    const range = ranges[j];
-    if (mergedRanges[i] >= range[0]) {
-      if (mergedRanges[i] < range[1]) {
-        mergedRanges[i] = range[1];
-      }
-    } else {
-      mergedRanges.push(range[0], range[1]);
-      i += 2;
-    }
-  }
-  return mergedRanges;
-}
-function sortBy0(this: void, a: MatchRange, b: MatchRange): number { return a[0] - b[0]; }
-// deltaLen may be: 0, 1, 7/8/9
-function cutUrl(this: void, str: string, ranges: number[], deltaLen: number, maxLen: number): string {
-  let out = "", end = str.length, cutStart = end, slice = "";
-  if (end <= maxLen) { /* empty */ }
-  else if (deltaLen > 1) { cutStart = str.indexOf("/") + 1 || end; }
-  else if ((cutStart = str.indexOf(":")) < 0) { cutStart = end; }
-  else if (BgUtils_.protocolRe_.test(str.slice(0, cutStart + 3).toLowerCase())) {
-    cutStart = str.indexOf("/", cutStart + 4) + 1 || end;
-  } else {
-    cutStart += 22; // for data:text/javascript,var xxx; ...
-  }
-  if (cutStart < end && ranges.length) {
-    for (let i = ranges.length, start = end + 8; (i -= 2) > -4 && start >= cutStart; start = i < 0 ? 0 : ranges[i]) {
-      const subEndInLeft = i < 0 ? cutStart : ranges[i + 1], delta = start - 20 - Math.max(subEndInLeft, cutStart);
-      if (delta > 0) {
-        end -= delta;
-        if (end <= maxLen) {
-          cutStart = subEndInLeft + (maxLen - end);
-          break;
-        }
-      }
-    }
-  }
-  end = 0;
-  for (let i = 0; end < maxLen && i < ranges.length; i += 2) {
-    const start = ranges[i], temp = Math.max(end, cutStart), delta = start - 20 - temp;
-    if (delta > 0) {
-      maxLen += delta;
-      slice = BgUtils_.unicodeSubstring_(str, end, temp + 11);
-      out += Build.BTypes & BrowserType.Firefox
-          && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox) && isForAddressBar
-          ? slice : BgUtils_.escapeText_(slice);
-      out += "\u2026";
-      slice = BgUtils_.unicodeLSubstring_(str, start - 8, start);
-      out += Build.BTypes & BrowserType.Firefox
-          && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox) && isForAddressBar
-          ? slice : BgUtils_.escapeText_(slice);
-    } else if (end < start) {
-      slice = str.slice(end, start);
-      out += Build.BTypes & BrowserType.Firefox
-          && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox) && isForAddressBar
-          ? slice : BgUtils_.escapeText_(slice);
-    }
-    end = ranges[i + 1];
-    slice = str.slice(start, end);
-    if (Build.BTypes & BrowserType.Firefox
-        && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox) && isForAddressBar) {
-      out += slice;
-      continue;
-    }
-    out += "<match>";
-    out += BgUtils_.escapeText_(slice);
-    out += "</match>";
-  }
-  if (str.length <= maxLen) {
-    slice = str.slice(end);
-    return Build.BTypes & BrowserType.Firefox
-        && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox) && isForAddressBar
-        ? out + slice : out + BgUtils_.escapeText_(slice);
-  } else {
-    slice = BgUtils_.unicodeSubstring_(str, end, maxLen - 1 > end ? maxLen - 1 : end + 10);
-    return out + (Build.BTypes & BrowserType.Firefox
-                  && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox) && isForAddressBar
-                  ? slice : BgUtils_.escapeText_(slice)) +
-      "\u2026";
-  }
-}
-function ComputeWordRelevancy(this: void, suggestion: CompletersNS.CoreSuggestion): number {
-  return RankingUtils.wordRelevancy_(suggestion.t, suggestion.title);
-}
-function ComputeRecency(lastAccessedTime: number): number {
-  let score = (lastAccessedTime - RankingUtils.timeAgo_) / TimeEnums.timeCalibrator;
-  return score < 0 ? 0 : score < 1 ? score * score * RankingEnums.recCalibrator
-    : score < TimeEnums.futureTimeTolerance ? TimeEnums.futureTimeScore : 0;
-}
-function ComputeRelevancy(this: void, text: string, title: string, lastVisitTime: number): number {
-  const recencyScore = ComputeRecency(lastVisitTime),
-    wordRelevancy = RankingUtils.wordRelevancy_(text, title);
-  return recencyScore <= wordRelevancy ? wordRelevancy : (wordRelevancy + recencyScore) / 2;
-}
-function get2ndArg(_s: CompletersNS.CoreSuggestion, score: number): number { return score; }
-
-const perf = performance,
-bookmarkEngine = {
-  bookmarks_: [] as Bookmark[],
-  dirs_: [] as string[],
-  currentSearch_: null as CompletersNS.QueryStatus | null,
-  path_: "",
-  depth_: 0,
-  status_: BookmarkStatus.notInited,
+const bookmarkEngine = {
   filter_ (query: CompletersNS.QueryStatus, index: number): void {
-    if (Build.BTypes & BrowserType.Firefox && Build.MayAndroidOnFirefox && !chrome.bookmarks) {
-      Completers.next_([], SugType.bookmark)
-      return
-    }
     if (queryTerms.length === 0 || !(allExpectedTypes & SugType.bookmark)) {
       Completers.next_([], SugType.bookmark);
       if (index) { return; }
-    } else if (bookmarkEngine.status_ === BookmarkStatus.inited) {
+    } else if (bookmarkCache_.status_ === BookmarkStatus.inited) {
       bookmarkEngine.performSearch_();
     } else {
-      bookmarkEngine.currentSearch_ = query;
+      BookmarkManager_.onLoad_ = (): void => { if (!query.o) { bookmarkEngine.performSearch_() } }
     }
-    if (bookmarkEngine.status_ === BookmarkStatus.notInited) { bookmarkEngine.refresh_(); }
+    bookmarkCache_.status_ === BookmarkStatus.notInited && BookmarkManager_.refresh_()
   },
-  StartsWithSlash_ (str: string): boolean { return str.charCodeAt(0) === kCharCode.slash; },
   performSearch_ (): void {
-    const isPath = queryTerms.some(bookmarkEngine.StartsWithSlash_),
-    buildCache = !!MatchCacheManager.newMatch_, newCache = [],
-    arr = MatchCacheManager.current_ && MatchCacheManager.current_.bookmarks_ || bookmarkEngine.bookmarks_,
+    const isPath = queryTerms.some(str => str.charCodeAt(0) === kCharCode.slash),
+    oldCache = MatchCacheManager_.current_?.bookmarks_,
+    newCache = MatchCacheManager_.newMatch_ ? [] as CompletersNS.Bookmark[] : null,
+    arr = oldCache && oldCache[0] === isPath ? oldCache[1] : bookmarkCache_.bookmarks_,
     len = arr.length;
     let results: Array<[number, number]> = [], resultLength: number;
     for (let ind = 0; ind < len; ind++) {
       const i = arr[ind];
       const title = isPath ? i.path_ : i.title_;
-      if (!RankingUtils.Match2_(i.t, title)) { continue; }
+      if (!match2_(i.t, title)) { continue }
       if (showThoseInBlocklist || i.visible_) {
-        buildCache && newCache.push(i);
+        newCache !== null && newCache.push(i)
         if (bookmarkUrlToSkip && i.u.length < bookmarkUrlToSkip.length + 2
             && bookmarkUrlToSkip === (i.u.endsWith("/") ? i.u.slice(0, -1) : i.u)) {
           continue;
         }
-        results.push([-RankingUtils.wordRelevancy_(i.t, i.title_), ind]);
+        results.push([-getWordRelevancy_(i.t, i.title_), ind])
       }
     }
-    if (buildCache) {
-      MatchCacheManager.newMatch_!.bookmarks_ = newCache;
+    if (newCache) {
+      MatchCacheManager_.newMatch_!.bookmarks_ = [isPath, newCache]
     }
     resultLength = results.length;
     matchedTotal += resultLength;
@@ -398,180 +130,45 @@ bookmarkEngine = {
       }
       const sug = new Suggestion("bookm", i.u, i.t, isPath ? i.path_ : i.title_, get2ndArg, -score);
       const historyIdx = otherFlags & CompletersNS.QueryFlags.ShowTime
-          && HistoryCache.sorted_ ? HistoryCache.binarySearch_(i.u) : -1
-      sug.visit = historyIdx < 0 ? 0 : HistoryCache.history_![historyIdx].time_
+          && HistoryManager_.sorted_ ? HistoryManager_.binarySearch_(i.u) : -1
+      sug.visit = historyIdx < 0 ? 0 : historyCache_.history_![historyIdx].time_
       results2.push(sug);
       if (i.jsUrl_ === null) { continue; }
-      (sug as CompletersNS.WritableCoreSuggestion).u = (i as JSBookmark).jsUrl_;
+      (sug as CompletersNS.WritableCoreSuggestion).u = (i as CompletersNS.JSBookmark).jsUrl_
       sug.title = cutTitle(isPath ? i.path_ : i.title_)
       sug.textSplit = "javascript: \u2026";
-      sug.t = (i as JSBookmark).jsText_;
+      sug.t = (i as CompletersNS.JSBookmark).jsText_
     }
     Completers.next_(results2, SugType.bookmark);
-  },
-  Listen_: function (): void {
-    const bBm = chrome.bookmarks;
-    if (Build.BTypes & BrowserType.Edge && !bBm.onCreated) { return; }
-    bBm.onCreated.addListener(bookmarkEngine.Delay_);
-    bBm.onRemoved.addListener(bookmarkEngine.Expire_);
-    bBm.onChanged.addListener(bookmarkEngine.Expire_);
-    bBm.onMoved.addListener(bookmarkEngine.Delay_);
-    if (!(Build.BTypes & ~BrowserType.Chrome)
-        || Build.BTypes & BrowserType.Chrome && OnOther === BrowserType.Chrome) {
-      bBm.onImportBegan.addListener(function (): void {
-        chrome.bookmarks.onCreated.removeListener(bookmarkEngine.Delay_);
-      });
-      bBm.onImportEnded.addListener(function (): void {
-        const f = bookmarkEngine.Delay_;
-        chrome.bookmarks.onCreated.addListener(f);
-        f();
-      });
-    }
-  } as ((this: void) => void) | null,
-  refresh_ (): void {
-    bookmarkEngine.status_ = BookmarkStatus.initing;
-    if (bookmarkEngine._timer) {
-      clearTimeout(bookmarkEngine._timer);
-      bookmarkEngine._timer = 0;
-    }
-    chrome.bookmarks.getTree(bookmarkEngine.readTree_);
-  },
-  readTree_ (this: void, tree: chrome.bookmarks.BookmarkTreeNode[]): void {
-    bookmarkEngine.status_ = BookmarkStatus.inited;
-    bookmarkEngine.bookmarks_ = [];
-    bookmarkEngine.dirs_ = [];
-    MatchCacheManager.clear_(MatchCacheType.bookmarks);
-    tree.forEach(bookmarkEngine.traverseBookmark_, bookmarkEngine);
-    const query = bookmarkEngine.currentSearch_;
-    bookmarkEngine.currentSearch_ = null;
-    setTimeout(() => Decoder.decodeList_(bookmarkEngine.bookmarks_), 50);
-    if (bookmarkEngine.Listen_) {
-      setTimeout(bookmarkEngine.Listen_, 0);
-      bookmarkEngine.Listen_ = null;
-    }
-    if (query && !query.o) {
-      return bookmarkEngine.performSearch_();
-    }
-  },
-  traverseBookmark_ (bookmark: chrome.bookmarks.BookmarkTreeNode): void {
-    const title = bookmark.title, id = bookmark.id, path = bookmarkEngine.path_ + "/" + (title || id);
-    if (bookmark.children) {
-      bookmarkEngine.dirs_.push(id);
-      const oldPath = bookmarkEngine.path_;
-      if (2 < ++bookmarkEngine.depth_) {
-        bookmarkEngine.path_ = path;
-      }
-      bookmark.children.forEach(bookmarkEngine.traverseBookmark_, bookmarkEngine);
-      --bookmarkEngine.depth_;
-      bookmarkEngine.path_ = oldPath;
-      return;
-    }
-    const url = bookmark.url!, jsScheme = "javascript:", isJS = url.startsWith(jsScheme);
-    bookmarkEngine.bookmarks_.push({
-      id_: id, path_: path, title_: title || id,
-      t: isJS ? jsScheme : url,
-      visible_: omniBlockList ? BlockListFilter.TestNotMatched_(url, title) : kVisibility.visible,
-      u: isJS ? jsScheme : url,
-      jsUrl_: isJS ? url : null, jsText_: isJS ? BgUtils_.DecodeURLPart_(url) : null
-    });
-  },
-  _timer: 0,
-  _stamp: 0,
-  _expiredUrls: false,
-  Later_ (this: void): void {
-    const last = perf.now() - bookmarkEngine._stamp;
-    if (bookmarkEngine.status_ !== BookmarkStatus.notInited) { return; }
-    if (last >= InnerConsts.bookmarkBasicDelay || last < -GlobalConsts.ToleranceOfNegativeTimeDelta) {
-      bookmarkEngine._timer = bookmarkEngine._stamp = 0;
-      bookmarkEngine._expiredUrls = false;
-      bookmarkEngine.refresh_();
-    } else {
-      bookmarkEngine.bookmarks_ = [];
-      bookmarkEngine.dirs_ = [];
-      bookmarkEngine._timer = setTimeout(bookmarkEngine.Later_, InnerConsts.bookmarkFurtherDelay);
-      MatchCacheManager.clear_(MatchCacheType.bookmarks);
-    }
-  },
-  Delay_ (this: void): void {
-    bookmarkEngine._stamp = perf.now();
-    if (bookmarkEngine.status_ < BookmarkStatus.inited) { return; }
-    bookmarkEngine._timer = setTimeout(bookmarkEngine.Later_, InnerConsts.bookmarkBasicDelay);
-    bookmarkEngine.status_ = BookmarkStatus.notInited;
-  },
-  Expire_ (
-      this: void, id: string, info?: chrome.bookmarks.BookmarkRemoveInfo | chrome.bookmarks.BookmarkChangeInfo): void {
-    const arr = bookmarkEngine.bookmarks_, len = arr.length,
-    title = info && (info as chrome.bookmarks.BookmarkChangeInfo).title;
-    let i = 0; for (; i < len && arr[i].id_ !== id; i++) { /* empty */ }
-    if (i < len) {
-      const cur: Bookmark = arr[i], url = cur.u,
-      url2 = info && (info as chrome.bookmarks.BookmarkChangeInfo).url;
-      type WBookmark = Writable<Bookmark>;
-      if (Decoder.enabled_ && (title == null ? url !== cur.t || !info : url2 != null && url !== url2)) {
-        Decoder.dict_.has(url) && HistoryCache.sorted_ && HistoryCache.binarySearch_(url) < 0 &&
-        Decoder.dict_.delete(url)
-      }
-      if (title != null) {
-        (cur as WBookmark).path_ = cur.path_.slice(0, -cur.title_.length) + (title || cur.id_);
-        (cur as WBookmark).title_ = title || cur.id_;
-        if (url2) {
-          (cur as WBookmark).u = url2;
-          (cur as WBookmark).t = Decoder.decodeURL_(url2, cur as WBookmark);
-          Decoder.continueToWork_();
-        }
-        if (omniBlockList) {
-          (cur as WBookmark).visible_ = BlockListFilter.TestNotMatched_(cur.u, cur.title_);
-        }
-      } else {
-        arr.splice(i, 1);
-        info || bookmarkEngine.Delay_(); // may need to re-add it in case of lacking info
-      }
-      return;
-    }
-    if (bookmarkEngine.dirs_.indexOf(id) < 0) { return; } // some "new" items which haven't been read are changed
-    if (title != null) { /* a folder is renamed */ return bookmarkEngine.Delay_(); }
-    // a folder is removed
-    if (!bookmarkEngine._expiredUrls && Decoder.enabled_) {
-      const dict = Decoder.dict_, bs = HistoryCache.binarySearch_;
-      for (const { u: url } of (HistoryCache.sorted_ ? arr : [])) {
-        if (dict.has(url) && bs(url) < 0) {
-          dict.delete(url)
-        }
-      }
-      bookmarkEngine._expiredUrls = true;
-    }
-    return bookmarkEngine.Delay_();
   }
 },
 
 historyEngine = {
   filter_ (query: CompletersNS.QueryStatus, index: number): void {
-    if ((Build.BTypes & BrowserType.Edge || Build.BTypes & BrowserType.Firefox && Build.MayAndroidOnFirefox)
-        && !chrome.history
-        || (!queryTerms.length && otherFlags & CompletersNS.QueryFlags.NoSessions)
+    if ((!queryTerms.length && otherFlags & CompletersNS.QueryFlags.NoSessions)
         || !(allExpectedTypes & SugType.history)) { return Completers.next_([], SugType.history); }
-    const history = HistoryCache.history_, someQuery = queryTerms.length > 0;
+    const history = historyCache_.history_, someQuery = queryTerms.length > 0
     if (history) {
       if (someQuery) {
-        return Completers.next_(historyEngine.quickSearch_(history), SugType.history);
+        Completers.next_(historyEngine.performSearch_(), SugType.history)
+        return
       }
-      if (HistoryCache.updateCount_ > 10 || HistoryCache.toRefreshCount_ > 0) {
-        HistoryCache.refreshInfo_();
+      if (historyCache_.updateCount_ > 10 || historyCache_.toRefreshCount_ > 0) {
+        HistoryManager_.refreshInfo_()
       }
     } else {
-      const loadAllHistory: Parameters<typeof HistoryCache.use_>[0] = !someQuery ? null : historyList => {
-        if (query.o) { return; }
-        return Completers.next_(historyEngine.quickSearch_(historyList), SugType.history);
+      const loadAllHistory: Parameters<typeof HistoryManager_.use_>[0] = !someQuery ? null : (): void => {
+        query.o || Completers.next_(historyEngine.performSearch_(), SugType.history)
       };
-      if (someQuery && (isForAddressBar || HistoryCache.loadingTimer_)) {
-        HistoryCache.loadingTimer_ > 0 && clearTimeout(HistoryCache.loadingTimer_);
-        HistoryCache.loadingTimer_ = 0;
-        HistoryCache.use_(loadAllHistory);
+      if (someQuery && (isForAddressBar || HistoryManager_.loadingTimer_)) {
+        HistoryManager_.loadingTimer_ > 0 && clearTimeout(HistoryManager_.loadingTimer_)
+        HistoryManager_.loadingTimer_ = 0
+        HistoryManager_.use_(loadAllHistory)
       } else {
-        if (!HistoryCache.loadingTimer_) {
-          HistoryCache.loadingTimer_ = setTimeout(() => {
-            HistoryCache.loadingTimer_ = 0;
-            HistoryCache.use_(loadAllHistory);
+        if (!HistoryManager_.loadingTimer_) {
+          HistoryManager_.loadingTimer_ = setTimeout((): void => {
+            HistoryManager_.loadingTimer_ = 0
+            HistoryManager_.use_(loadAllHistory)
           }, someQuery ? 200 : 150);
         }
         if (someQuery) {
@@ -582,40 +179,36 @@ historyEngine = {
       }
       if (someQuery) { return; }
     }
-    autoSelect = false;
     if (index === 0) {
-      Completers.requireNormalOrIncognito_(historyEngine.loadTabs_, query);
-    } else if (chrome.sessions) {
-      chrome.sessions.getRecentlyClosed(historyEngine.loadSessions_.bind(historyEngine, query));
+      requireNormalOrIncognitoTabs_(wantInCurrentWindow, otherFlags, historyEngine.loadTabs_, query)
+    } else if (browser_.sessions) {
+      browser_.sessions.getRecentlyClosed(historyEngine.loadSessions_.bind(historyEngine, query))
     } else {
       historyEngine.filterFill_([], query, new Set!(), 0, 0)
     }
   },
-  quickSearch_ (history: ReadonlyArray<Readonly<HistoryItem>>): Suggestion[] {
+  performSearch_ (): Suggestion[] {
     const firstTerm = queryTerms.length === 1 ? queryTerms[0] : "",
     onlyUseTime = firstTerm && (firstTerm[0] === "." ? (<RegExpOne> /^\.[\da-zA-Z]+$/).test(firstTerm)
-      : (BgUtils_.convertToUrl_(firstTerm, null, Urls.WorkType.KeepAll),
-        BgUtils_.lastUrlType_ <= Urls.Type.MaxOfInputIsPlainUrl)
+      : (convertToUrl_(firstTerm, null, Urls.WorkType.KeepAll),
+        lastUrlType_ <= Urls.Type.MaxOfInputIsPlainUrl)
     ),
     firstTermRe = !onlyUseTime ? null
-        : firstTerm[0] === "." || BgUtils_.lastUrlType_ > Urls.Type.Full ? RegExpCache.parts_[0]
-        : (RegExpCache.starts_ || RegExpCache.buildOthers_(), RegExpCache.starts_[0]),
-    noOldCache = !(MatchCacheManager.current_ && MatchCacheManager.current_.history_),
-    newCache = MatchCacheManager.newMatch_ ? [] as HistoryItem[] : null,
-    results = [-1.1, -1.1], sugs: Suggestion[] = [], Match2 = RankingUtils.Match2_,
+        : firstTerm[0] === "." || lastUrlType_ > Urls.Type.Full ? RegExpCache_.parts_[0]
+        : (RegExpCache_.starts_ || RegExpCache_.buildOthers_(), RegExpCache_.starts_[0]),
+    newCache = MatchCacheManager_.newMatch_ ? [] as HistoryItem[] : null,
+    results = [-1.1, -1.1], sugs: Suggestion[] = [], Match2 = match2_,
     isEncodedURL = onlyUseTime && firstTerm.includes("%") && !(<RegExpOne> /[^\x21-\x7e]|%[^A-F\da-f]/).test(firstTerm)
     let maxNum = maxResults + offset, curMinScore = -1.1, i = 0, j = 0, matched = 0
     historyUrlToSkip && maxNum++;
     for (j = maxNum; --j; ) { results.push(-1.1, -1.1); }
     maxNum = maxNum * 2 - 2;
-    if (!noOldCache) {
-      history = MatchCacheManager.current_!.history_!;
-    }
+    const history: readonly Readonly<HistoryItem>[] = MatchCacheManager_.current_?.history_ || historyCache_.history_!
     for (const len = history.length; i < len; i++) {
       const item = history[i];
       if (onlyUseTime ? firstTermRe!.test(isEncodedURL ? item.u : item.t) : Match2(item.t, item.title_)) {
         if (showThoseInBlocklist || item.visible_) {
-          newCache && newCache.push(item);
+          newCache !== null && newCache.push(item)
           matched++;
           const score = onlyUseTime ? ComputeRecency(item.time_) || /* < 0.0002 */ 1e-16 * Math.max(0, item.time_)
               : ComputeRelevancy(item.t, item.title_, item.time_);
@@ -631,7 +224,7 @@ historyEngine = {
       }
     }
     if (newCache) {
-      MatchCacheManager.newMatch_!.history_ = newCache;
+      MatchCacheManager_.newMatch_!.history_ = newCache
     }
     matchedTotal += matched;
     if (!matched) {
@@ -653,48 +246,48 @@ historyEngine = {
         sugs.push(sug)
       }
     }
-    Decoder.continueToWork_();
+    UrlDecoder_.continueToWork_()
     return sugs;
   },
   loadTabs_ (this: void, query: CompletersNS.QueryStatus, tabs: readonly WritableTabEx[]): void {
-    MatchCacheManager.cacheTabs_(tabs);
+    MatchCacheManager_.cacheTabs_(tabs)
     if (query.o) { return; }
-    const arr: TextSet = new Set!()
+    const arr: Set<string> = new Set!()
     let count = 0;
     for (const tab of tabs) {
-      if (tab.incognito && inNormal) { continue; }
-      let url = Build.BTypes & BrowserType.Chrome ? tab.url || tab.pendingUrl : tab.url;
+      if (tab.incognito && tabsInNormal) { continue }
+      let url = getTabUrl(tab)
       if (!arr.has(url)) { arr.add(url), count++ }
     }
     return historyEngine.filterFill_([], query, arr, offset, count);
   },
   loadSessions_ (query: CompletersNS.QueryStatus, sessions: chrome.sessions.Session[]): void {
     if (query.o) { return; }
-    const historyArr: BrowserUrlItem[] = [], arr: TextSet = new Set!();
+    const historyArr: BrowserUrlItem[] = [], arr: Set<string> = new Set!()
     let i = -offset;
     return sessions.some(function (item): boolean {
       const entry = item.tab as chrome.sessions.Session["tab"] & BrowserUrlItem
       if (!entry) { return false; }
       let url = entry.url, key: string, t: number;
       if (url.length > GlobalConsts.MaxHistoryURLLength) {
-        entry.url = url = HistoryCache.trimURLAndTitleWhenTooLong_(url, entry);
+        entry.url = url = HistoryManager_.trimURLAndTitleWhenTooLong_(url, entry)
       }
-      if (!showThoseInBlocklist && !BlockListFilter.TestNotMatched_(url, entry.title)) { return false; }
+      if (!showThoseInBlocklist && !TestNotBlocked_(url, entry.title)) { return false }
       key = url + "\n" + entry.title;
       if (arr.has(key)) { return false }
       arr.add(key), arr.add(url)
       ++i > 0 && historyArr.push({
         u: entry.url, title_: entry.title,
-        visit_: !(Build.BTypes & ~BrowserType.Firefox) ? item.lastModified
+        visit_: OnFirefox ? item.lastModified
             : (t = item.lastModified, t < /* as ms: 1979-07 */ 3e11 && t > /* as ms: 1968-09 */ -4e10 ? t * 1000 : t),
         sessionId_: entry.sessionId
       });
       return historyArr.length >= maxResults;
     }) ? historyEngine.filterFinish_(historyArr) : historyEngine.filterFill_(historyArr, query, arr, -i, 0);
   },
-  filterFill_ (historyArr: BrowserUrlItem[], query: CompletersNS.QueryStatus, urlSet: TextSet,
+  filterFill_ (historyArr: BrowserUrlItem[], query: CompletersNS.QueryStatus, urlSet: Set<string>,
       cut: number, neededMore: number): void {
-    chrome.history.search({
+    browser_.history.search({
       text: "",
       maxResults: offset + maxResults * (showThoseInBlocklist ? 1 : 2) + neededMore
     }, function (rawArr2: chrome.history.HistoryItem[]): void {
@@ -702,10 +295,10 @@ historyEngine = {
       rawArr2 = rawArr2.filter((i): boolean => {
         let url = i.url;
         if (url.length > GlobalConsts.MaxHistoryURLLength) {
-          i.url = url = HistoryCache.trimURLAndTitleWhenTooLong_(url, i);
+          i.url = url = HistoryManager_.trimURLAndTitleWhenTooLong_(url, i)
         }
         return !urlSet.has(url)
-            && (showThoseInBlocklist || BlockListFilter.TestNotMatched_(i.url, i.title || "") !== kVisibility.hidden)
+            && (showThoseInBlocklist || TestNotBlocked_(i.url, i.title || "") !== kVisibility.hidden)
       })
       if (cut < 0) {
         rawArr2.length = Math.min(rawArr2.length, maxResults - historyArr.length)
@@ -724,11 +317,11 @@ historyEngine = {
   filterFinish_: function (historyArr: Array<BrowserUrlItem | Suggestion>): void {
     (historyArr as BrowserUrlItem[]).forEach(historyEngine.MakeSuggestion_);
     offset = 0;
-    Decoder.continueToWork_();
+    UrlDecoder_.continueToWork_()
     Completers.next_(historyArr as Suggestion[], SugType.history);
   } as (historyArr: BrowserUrlItem[]) => void,
   MakeSuggestion_ (e: BrowserUrlItem, i: number, arr: Array<BrowserUrlItem | Suggestion>): void {
-    const u = e.u, o = new Suggestion("history", u, Decoder.decodeURL_(u, u), e.title_ || "",
+    const u = e.u, o = new Suggestion("history", u, UrlDecoder_.decodeURL_(u, u), e.title_ || "",
       get2ndArg, (99 - i) / 100),
     sessionId = e.sessionId_
     o.visit = e.visit_
@@ -744,26 +337,26 @@ domainEngine = {
         || queryTerms[0].lastIndexOf("/", queryTerms[0].length - 2) >= 0) {
       return Completers.next_([], SugType.domain);
     }
-    if (HistoryCache.domains_) { /* empty */ }
-    else if (HistoryCache.history_) {
-      domainEngine.refresh_(HistoryCache.history_);
+    if (historyCache_.domains_) { /* empty */ }
+    else if (historyCache_.history_) {
+      HistoryManager_.parseDomains_ && HistoryManager_.parseDomains_(historyCache_.history_)
     } else {
-      return index > 0 ? Completers.next_([], SugType.domain) : HistoryCache.use_(function (): void {
-        if (query.o) { return; }
-        return domainEngine.filter_(query, 0);
+      return index > 0 ? Completers.next_([], SugType.domain) : HistoryManager_.use_((): void => {
+        query.o || domainEngine.filter_(query, 0)
       });
     }
     return domainEngine.performSearch_();
   } ,
   performSearch_ (): void {
-    const ref = BgUtils_.domains_, p = RankingUtils.maxScoreP_,
+    const ref = historyCache_.domains_, oldMaxScoreP = maxScoreP_,
     ret_many: Array<{r: number, d: string, m: Domain}> | null =
         allExpectedTypes === SugType.domain && autoSelect ? [] : null, // autoSelect means there's only 1 engine in mode
     word = queryTerms[0].replace("/", "").toLowerCase();
     const extraSlash = word === queryTerms[0]
     let sugs: Suggestion[] = [], result = "", matchedDomain: Domain | undefined, result_score = -1.1
-    RankingUtils.maxScoreP_ = RankingEnums.maximumScore;
-    if (Build.MinCVer >= BrowserVer.MinTestedES6Environment || !(Build.BTypes & BrowserType.Chrome)) {
+    set_maxScoreP_(RankingEnums.maximumScore)
+    if (Build.MinCVer >= BrowserVer.BuildMinForOf && Build.MinCVer >= BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol
+        || !(Build.BTypes & BrowserType.Chrome)) {
       for (const domain of (ref as IterableMap<string, Domain>).keys()) {
         if (!domain.includes(word)) { continue }
         matchedDomain = ref.get(domain)!
@@ -773,7 +366,7 @@ domainEngine = {
           : score > result_score ? (result_score = score, result = domain) : 0
         }
       }
-    } else if (Build.MinCVer >= BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol
+    } else if (!OnChrome || Build.MinCVer >= BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol
         || CurCVer_ > BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol - 1) {
       const iterator: IterableIterator<string> = (ref as IterableMap<string, Domain>).keys()
       let iter_i: IteratorResult<string> | undefined
@@ -837,14 +430,14 @@ domainEngine = {
         sugs.push(domainEngine.createDomainSug_(i.d, i.m, i.r, extraSlash)[0])
       }
     }
-    RankingUtils.maxScoreP_ = p;
+    set_maxScoreP_(oldMaxScoreP)
     Completers.next_(sugs, SugType.domain);
   },
   createDomainSug_ (key: string, matchedDomain: Domain, scoreInMany: number, extraSlash: boolean): Suggestion[] {
       let useHttps = matchedDomain.https_ > 0, title = ""
-      if (bookmarkEngine.status_ === BookmarkStatus.inited) {
-        const re: RegExpOne = new RegExp(`^https?://${key.replace(escapeAllRe, "\\$&")}/?$`)
-        let matchedBookmarks = bookmarkEngine.bookmarks_.filter(
+      if (bookmarkCache_.status_ === BookmarkStatus.inited) {
+        const re: RegExpOne = new RegExp(`^https?://${BgUtils_.escapeAllForRe_(key)}/?$`)
+        let matchedBookmarks = bookmarkCache_.bookmarks_.filter(
             item => re.test(item.u) && (showThoseInBlocklist || item.visible_))
         if (matchedBookmarks.length > 0) {
           const matched2 = matchedBookmarks.filter(i => i.u[4] === "s")
@@ -861,9 +454,9 @@ domainEngine = {
         if (offset > 0) { offset--; return [] }
       }
         const sug = new Suggestion("domain", url, extraSlash ? key : key + "/", "", get2ndArg, scoreInMany || 2)
-        const ind = HistoryCache.sorted_ ? HistoryCache.binarySearch_(url) : -1,
-        item = ind > 0 ? HistoryCache.history_![ind] : null;
-        prepareHtml(sug);
+        const ind = HistoryManager_.sorted_ ? HistoryManager_.binarySearch_(url) : -1
+        const item = ind > 0 ? historyCache_.history_![ind] : null
+        prepareHTML_(sug)
         if (item && (showThoseInBlocklist || item.visible_)) {
           sug.visit = item.time_
           title = title || item.title_
@@ -871,32 +464,6 @@ domainEngine = {
         sug.title = cutTitle(title, [])
         --maxResults;
         return [sug]
-  },
-  refresh_ (history: HistoryItem[]): void {
-    domainEngine.refresh_ = null as never;
-    const parse = domainEngine.ParseDomainAndScheme_, d = HistoryCache.domains_ = BgUtils_.domains_;
-    for (const { u: url, time_: time, visible_: visible } of history) {
-      const item = parse(url);
-      if (!item) { continue; }
-      const {domain_: domain, scheme_: scheme} = item, slot = d.get(domain)
-      if (slot) {
-        if (slot.time_ < time) { slot.time_ = time; }
-        slot.count_ += visible;
-        if (scheme >= Urls.SchemeId.HTTP) { slot.https_ = scheme === Urls.SchemeId.HTTPS ? 1 : 0; }
-      } else {
-        d.set(domain, {time_: time, count_: visible, https_: scheme === Urls.SchemeId.HTTPS ? 1 : 0})
-      }
-    }
-  },
-  ParseDomainAndScheme_ (this: void, url: string): UrlDomain | null {
-    let n = url.lastIndexOf(":", 5), scheme = n > 0 ? url.slice(0, n) : "", d: Urls.SchemeId, i: number;
-    if (scheme === "http") { d = Urls.SchemeId.HTTP; }
-    else if (scheme === "https") { d = Urls.SchemeId.HTTPS; }
-    else if (scheme === "ftp") { d = Urls.SchemeId.FTP; }
-    else { return null; }
-    i = url.indexOf("/", d);
-    url = url.slice(d, i < 0 ? url.length : i);
-    return { domain_: url !== "__proto__" ? url : ".__proto__", scheme_: d };
   },
   rsortByR_: (a: { r: number }, b: { r: number }): number => b.r - a.r
 },
@@ -907,13 +474,13 @@ tabEngine = {
         || index && (!queryTerms.length || otherFlags & CompletersNS.QueryFlags.NoTabEngine)) {
       Completers.next_([], SugType.tab);
     } else {
-      Completers.requireNormalOrIncognito_(tabEngine.performSearch_, query);
+      requireNormalOrIncognitoTabs_(wantInCurrentWindow, otherFlags, tabEngine.performSearch_, query)
     }
   },
   performSearch_ (this: void, query: CompletersNS.QueryStatus, tabs0: readonly WritableTabEx[]): void {
-    MatchCacheManager.cacheTabs_(tabs0);
+    MatchCacheManager_.cacheTabs_(tabs0)
     if (query.o) { return; }
-    const curTabId = TabRecency_.curTab_, noFilter = queryTerms.length <= 0,
+    const curTabId = curTabId_, noFilter = queryTerms.length <= 0,
     hasOtherSuggestions = allExpectedTypes & (SugType.MultipleCandidates ^ SugType.tab),
     treeMode = !!(otherFlags & CompletersNS.QueryFlags.TabTree) && wantInCurrentWindow && noFilter && !isForAddressBar;
     let suggestions: CompletersNS.TabSuggestion[] = [];
@@ -922,7 +489,7 @@ tabEngine = {
       const treeMap = new Map<number, Tab>()
       for (const tab of tabs0) { treeMap.set(tab.id, tab) }
       {
-        Build.BTypes & BrowserType.Firefox && BgUtils_.overrideTabsIndexes_ff_!(tabs0)
+        OnFirefox && overrideTabsIndexes_ff_!(tabs0)
         let curTab = treeMap.get(curTabId), pId = curTab ? curTab.openerTabId : 0, pTab = pId ? treeMap.get(pId) : null,
         start = pTab ? pTab.index : curTab ? curTab.index - 1 : 0, i = pTab ? 0 : (maxTotal / 2) | 0;
         for (; 1 < --i && start > 0 && tabs0[start - 1].openerTabId === pId; start--) { /* empty */ }
@@ -932,29 +499,27 @@ tabEngine = {
     const tabs: TabEx[] = [], wndIds: number[] = [];
     const hasMarks = !noFilter && (<RegExpG & RegExpSearchable<0>> /^:[a-z]+/gm).test(queryTerms.join("\n"))
     for (const tab of tabs0) {
-      if (!wantInCurrentWindow && inNormal && tab.incognito) { continue; }
-      const url = Build.BTypes & BrowserType.Chrome ? tab.url || tab.pendingUrl : tab.url
-      let text = tab.text || (tab.text = Decoder.decodeURL_(url, tab.incognito ? "" : url))
+      if (!wantInCurrentWindow && tabsInNormal && tab.incognito) { continue }
+      const url = getTabUrl(tab)
+      let text = tab.text || (tab.text = UrlDecoder_.decodeURL_(url, tab.incognito ? "" : url))
       let title = tab.title
       if (hasMarks) {
         if (queryTerms.length === 1) { text = title = "" }
         if (tab.audible) {
           title += " :audible :audio"
-          title += Build.MinCVer < BrowserVer.MinMutedInfo && Build.BTypes & BrowserType.Chrome
-              && CurCVer_ < BrowserVer.MinMutedInfo ? tab.muted : tab.mutedInfo.muted
-              ? " :muted" : " :unmuted"
+          title += isTabMuted(tab) ? " :muted" : " :unmuted"
         }
         tab.discarded && (title += " :discarded")
         tab.incognito && (title += " :incognito")
         tab.pinned && (title += " :pinned")
       }
-      if (noFilter || RankingUtils.Match2_(text, title)) {
+      if (noFilter || match2_(text, title)) {
         const wndId = tab.windowId;
         !wantInCurrentWindow && wndIds.lastIndexOf(wndId) < 0 && wndIds.push(wndId);
         tabs.push(tab as TabEx);
       }
     }
-    if (hasOtherSuggestions && tabs.length === 1 && tabs[0].id === TabRecency_.curTab_) {
+    if (hasOtherSuggestions && tabs.length === 1 && tabs[0].id === curTabId) {
       tabs.length = 0 // here `hasOtherSuggestions` is enough
     }
     const matched = tabs.length;
@@ -970,7 +535,7 @@ tabEngine = {
     wndIds.sort(tabEngine.SortNumbers_);
     const c = noFilter ? treeMode ? tabEngine.computeIndex_ : tabEngine.computeRecency_ : ComputeWordRelevancy,
     treeLevels: SafeDict<number> = treeMode ? BgUtils_.safeObj_() : null as never,
-    curWndId = wndIds.length > 1 ? TabRecency_.curWnd_ : 0;
+    curWndId = wndIds.length > 1 ? curWndId_ : 0
     if (treeMode) {
       for (const tab of tabs) { // only from start to end, and should not execute nested queries
         const pid = tab.openerTabId, pLevel = pid && treeLevels[pid];
@@ -979,15 +544,15 @@ tabEngine = {
       }
     }
     const timeOffset = !(otherFlags & CompletersNS.QueryFlags.ShowTime) ? 0
-        : Build.BTypes & BrowserType.ChromeOrFirefox && Settings_.payload_.o === kOS.unixLike ? 0
-        : Build.MinCVer < BrowserVer.Min$performance$$timeOrigin && Build.BTypes & BrowserType.Chrome
+        : (OnChrome || OnFirefox) && contentPayload_.o === kOS.unixLike ? 0
+        : OnChrome && Build.MinCVer < BrowserVer.Min$performance$$timeOrigin
           && CurCVer_ < BrowserVer.Min$performance$$timeOrigin
-        ? Date.now() - performance.now() : performance.timeOrigin!
+        ? Date.now() - performance.now() : (performance as Performance & { timeOrigin?: number }).timeOrigin!
     for (let ind = 0; ind < tabs.length; ) {
       const tab = tabs[ind++]
       const tabId = tab.id, level = treeMode ? treeLevels[tabId]! : 1,
-      url = Build.BTypes & BrowserType.Chrome ? tab.url || tab.pendingUrl : tab.url,
-      visit = TabRecency_.tabs_.get(tabId),
+      url = getTabUrl(tab),
+      visit = recencyForTab_.get(tabId),
       suggestion = new Suggestion("tab", url, tab.text, tab.title,
           c, treeMode ? ind : tabId) as CompletersNS.TabSuggestion;
       let id = curWndId && tab.windowId !== curWndId ? `${wndIds.indexOf(tab.windowId) + 1}:` : "", label = ""
@@ -998,18 +563,14 @@ tabEngine = {
       } else if (!visit) {
         id = `**${id}**`
       }
-      if (!inNormal && tab.incognito) { label += "*" }
-      if (tab.discarded || Build.BTypes & BrowserType.Firefox && tab.hidden) { label += "~" }
-      if (tab.audible) { label += (Build.MinCVer < BrowserVer.MinMutedInfo && Build.BTypes & BrowserType.Chrome
-        && CurCVer_ < BrowserVer.MinMutedInfo ? tab.muted : tab.mutedInfo.muted) ? "\u266a" : "\u266c" }
+      if (!tabsInNormal && tab.incognito) { label += "*" }
+      if (tab.discarded || OnFirefox && tab.hidden) { label += "~" }
+      if (tab.audible) { label += isTabMuted(tab) ? "\u266a" : "\u266c" }
       suggestion.visit = visit ? visit.t + timeOffset
-          : Build.BTypes & BrowserType.Firefox
-            && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther & BrowserType.Firefox)
-            && (tab as Tab & {lastAccessed?: number}).lastAccessed || 0
+          : OnFirefox && (tab as Tab & {lastAccessed?: number}).lastAccessed || 0
       suggestion.s = tabId;
       suggestion.label = `#${id}${label && " " + label}`
-      if (Build.BTypes & BrowserType.Firefox
-          && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)) {
+      if (OnFirefox) {
         suggestion.favIcon = tab.favIconUrl;
       }
       if (level > 1) {
@@ -1042,12 +603,12 @@ tabEngine = {
       }
       offset = 0;
     }
-    Decoder.continueToWork_();
+    UrlDecoder_.continueToWork_()
     Completers.next_(suggestions, SugType.tab);
   },
   SortNumbers_ (this: void, a: number, b: number): number { return a - b; },
   computeRecency_ (_0: CompletersNS.CoreSuggestion, tabId: number): number {
-    const n = TabRecency_.tabs_.get(tabId)
+    const n = recencyForTab_.get(tabId)
     return n ? n.i :
         (otherFlags & CompletersNS.QueryFlags.PreferNewOpened ? GlobalConsts.MaxTabRecency + tabId : -tabId);
   },
@@ -1058,7 +619,7 @@ tabEngine = {
 
 searchEngine = {
   _nestedEvalCounter: 0,
-  filter_: BgUtils_.blank_,
+  filter_: blank_,
   preFilter_: function (query: CompletersNS.QueryStatus, failIfNull?: true): void | true | Promise<void> {
     if (!(allExpectedTypes & SugType.search)) {
       return Completers.next_([], SugType.search);
@@ -1073,7 +634,7 @@ searchEngine = {
         q.shift();
       }
       keyword = rawQuery.slice(1).trimLeft();
-      showThoseInBlocklist = !omniBlockList || showThoseInBlocklist || BlockListFilter.IsExpectingHidden_([keyword]);
+      showThoseInBlocklist = !omniBlockList || showThoseInBlocklist || BlockListFilter_.IsExpectingHidden_([keyword])
       if (offset) {
         offset--
         return Completers.next_([], SugType.search)
@@ -1081,13 +642,13 @@ searchEngine = {
       sug = searchEngine.makeUrlSuggestion_(keyword)
       return Completers.next_([sug], SugType.search);
     } else {
-      pattern = Settings_.cache_.searchEngineMap.get(keyword)
+      pattern = settingsCache_.searchEngineMap.get(keyword)
     }
     if (failIfNull === true) {
       if (!pattern) { return true; }
     } else if (!pattern && !keyword.startsWith("vimium://")) {
       if (matchType === MatchType.plain && q.length <= 1) {
-        matchType = q.length ? searchEngine.calcNextMatchType_() : MatchType.reset;
+        matchType = q.length ? SearchKeywords_.isPrefix_() ? MatchType.searching_ : MatchType.plain : MatchType.reset
       }
       return Completers.next_([], SugType.search);
     } else {
@@ -1108,18 +669,18 @@ searchEngine = {
     } else if (pattern) {
       q = [];
     }
-    showThoseInBlocklist = !omniBlockList || showThoseInBlocklist && BlockListFilter.IsExpectingHidden_([keyword]);
+    showThoseInBlocklist = !omniBlockList || showThoseInBlocklist && BlockListFilter_.IsExpectingHidden_([keyword])
 
     let url: string, indexes: number[], text: string;
     if (pattern) {
-      let res = BgUtils_.createSearch_(q, pattern.url_, pattern.blank_, []);
+      let res = createSearch_(q, pattern.url_, pattern.blank_, [])
       text = url = res.url_; indexes = res.indexes_;
     } else {
       text = url = q.join(" "); indexes = [];
     }
     if (keyword === "~") { /* empty */ }
     else if (url.startsWith("vimium://")) {
-      const ret = BgUtils_.evalVimiumUrl_(url.slice(9), Urls.WorkType.ActIfNoSideEffects, true);
+      const ret = evalVimiumUrl_(url.slice(9), Urls.WorkType.ActIfNoSideEffects, true)
       const getSug = searchEngine.plainResult_.bind(searchEngine, q, url, text, pattern, indexes);
       if (ret instanceof Promise) {
         return ret.then<void>(searchEngine.onEvalUrl_.bind(searchEngine, query, getSug));
@@ -1129,7 +690,7 @@ searchEngine = {
         url = text = ret; indexes = [];
       }
     } else {
-      url = BgUtils_.convertToUrl_(url, null, Urls.WorkType.KeepAll);
+      url = convertToUrl_(url, null, Urls.WorkType.KeepAll)
     }
     sug = searchEngine.plainResult_(q, url, text, pattern, indexes);
     return Completers.next_([sug], SugType.search);
@@ -1152,9 +713,9 @@ searchEngine = {
           rawQuery = "\\ " + pasted;
           rawMore = "";
           queryTerms = (rawQuery.length < Consts.MaxCharsInQuery + 1 ? rawQuery
-              : BgUtils_.unicodeSubstring_(rawQuery, 0, Consts.MaxCharsInQuery).trim()).split(" ");
+              : BgUtils_.unicodeRSubstring_(rawQuery, 0, Consts.MaxCharsInQuery).trim()).split(" ")
           if (queryTerms.length > 1) {
-            queryTerms[1] = BgUtils_.fixCharsInUrl_(queryTerms[1], queryTerms.length > 2);
+            queryTerms[1] = fixCharsInUrl_(queryTerms[1], queryTerms.length > 2)
           }
           return searchEngine.preFilter_(query);
     case Urls.kEval.search:
@@ -1186,72 +747,22 @@ searchEngine = {
       sug.textSplit = highlight(sug.t, indexes);
     } else {
       sug.t = BgUtils_.DecodeURLPart_(shortenUrl(text));
-      if (!(Build.BTypes & BrowserType.Firefox
-            && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox) && isForAddressBar)) {
-        sug.title = cutTitle(sug.title, [])
-      }
-      sug.textSplit = Build.BTypes & BrowserType.Firefox
-          && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox) && isForAddressBar
-          ? sug.t : BgUtils_.escapeText_(sug.t);
+      sug.title = OnFirefox && isForAddressBar ? "" : cutTitle(sug.title, [])
+      sug.textSplit = OnFirefox && isForAddressBar ? sug.t : BgUtils_.escapeText_(sug.t)
     }
-    if (Build.BTypes & BrowserType.Chrome && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)
-        && !isForAddressBar) {
-      sug.v = pattern && pattern.blank_ || searchEngine.calcBestFaviconSource_only_cr_!(url);
-    }
-    if (Build.BTypes & BrowserType.Chrome || isForAddressBar) {
-      sug.p = pattern ? pattern.name_ : "";
-    }
+    sug.v = OnChrome && !isForAddressBar ? pattern && pattern.blank_ || calcBestFaviconSource_only_cr_!(url) : ""
+    sug.p = isForAddressBar && pattern ? pattern.name_ : ""
     return sug;
   },
   mathResult_ (stdSug: SearchSuggestion, arr: Urls.MathEvalResult): [SearchSuggestion, Suggestion] {
     const result = arr[0];
     const sug = new Suggestion("math", "vimium://copy " + result, result, result, get2ndArg, 9);
     --sug.r;
-    if (!(Build.BTypes & BrowserType.Firefox
-          && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox) && isForAddressBar)) {
+    if (!(OnFirefox && isForAddressBar)) {
       sug.title = `<match style="text-decoration: none;">${cutTitle(sug.title, [])}<match>`
     }
-    sug.textSplit = Build.BTypes & BrowserType.Firefox
-        && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox) && isForAddressBar
-        ? arr[2] : BgUtils_.escapeText_(arr[2]);
+    sug.textSplit = OnFirefox && isForAddressBar ? arr[2] : BgUtils_.escapeText_(arr[2])
     return [stdSug, sug];
-  },
-  calcBestFaviconSource_only_cr_: Build.BTypes & BrowserType.Chrome
-      && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome) ? (url: string): string => {
-    const pos0 = HistoryCache.sorted_ && url.startsWith("http") ? HistoryCache.binarySearch_(url) : -1,
-    mostHigh = pos0 < 0 ? ~pos0 - 1 : pos0,
-    arr = mostHigh < 0 ? [] as never : HistoryCache.history_!;
-    let slashInd = url.indexOf(":") + 3, low = 0, left = 0, u = "", e = "", m = 0, h = 0;
-    for (
-        ; low <= mostHigh
-          && (slashInd = url[slashInd] === "/" ? slashInd + 1 : url.indexOf("/", slashInd + 1) + (left ? 0 : 1)) > 0
-        ; left = slashInd) {
-      for (u = url.slice(left, slashInd), h = mostHigh; low <= h; ) {
-        m = (low + h) >>> 1;
-        e = arr[m].u.slice(left);
-        if (e > u) { h = m - 1; }
-        else if (e !== u) { low = m + 1; }
-        else { return left ? arr[m].u : ""; }
-      }
-      if (low <= mostHigh && left) {
-        u = arr[low].u;
-        if (u[slashInd] === "/" && u.length <= ++slashInd) {
-          return u;
-        }
-      }
-    }
-    return "";
-  } : 0 as never as null,
-  searchKeywordMaxLength_: 0,
-  timer_: 0,
-  calcNextMatchType_ (): MatchType {
-    const key = queryTerms[0], arr = Settings_.cache_.searchKeywords;
-    if (arr == null) {
-      searchEngine.timer_ = searchEngine.timer_ || setTimeout(searchEngine.BuildSearchKeywords_, 67);
-      return MatchType.searching_;
-    }
-    if (key.length >= searchEngine.searchKeywordMaxLength_) { return MatchType.plain; }
-    return arr.includes("\n" + key) ? MatchType.searching_ : MatchType.plain;
   },
   makeText_ (url: string, arr: number[]): string {
     let len = arr.length, i: number, str: string, ind: number;
@@ -1272,38 +783,16 @@ searchEngine = {
     return str;
   },
   makeUrlSuggestion_ (keyword: string): SearchSuggestion {
-    const url = BgUtils_.convertToUrl_(keyword, null, Urls.WorkType.KeepAll),
-    isSearch = BgUtils_.lastUrlType_ === Urls.Type.Search,
+    const url = convertToUrl_(keyword, null, Urls.WorkType.KeepAll),
+    isSearch = lastUrlType_ === Urls.Type.Search,
     sug = new Suggestion("search", url, BgUtils_.DecodeURLPart_(shortenUrl(url))
       , "", get2ndArg, 9) as SearchSuggestion;
     sug.title = isSearch ? "~: " + cutTitle(keyword, [0, keyword.length]) : cutTitle(keyword, [])
-    sug.textSplit = Build.BTypes & BrowserType.Firefox
-        && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox) && isForAddressBar
-        ? sug.t : BgUtils_.escapeText_(sug.t);
-    if (Build.BTypes & BrowserType.Chrome && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)
-        && !isForAddressBar) {
-      sug.v = searchEngine.calcBestFaviconSource_only_cr_!(url);
-    }
-    if (Build.BTypes & BrowserType.Chrome || isForAddressBar) {
-      sug.p = isSearch ? "~" : "";
-    }
+    sug.textSplit = OnFirefox && isForAddressBar ? sug.t : BgUtils_.escapeText_(sug.t)
+    sug.v = OnChrome && !isForAddressBar ? calcBestFaviconSource_only_cr_!(url) : ""
+    sug.p = isForAddressBar && isSearch ? "~" : ""
     sug.n = 1
     return sug;
-  },
-  BuildSearchKeywords_ (): void {
-    let arr = BgUtils_.keys_(Settings_.cache_.searchEngineMap).sort(), max = 0, last = "", dedup: string[] = []
-    for (let ind = arr.length; 0 <= --ind; ) {
-      const key = arr[ind]
-      if (!last.startsWith(key)) {
-        let j = key.length
-        max = j > max ? j : max
-        last = key
-        dedup.push(key)
-      }
-    }
-    Settings_.set_("searchKeywords", "\n" + dedup.join("\n"))
-    searchEngine.searchKeywordMaxLength_ = max;
-    searchEngine.timer_ = 0;
   }
 },
 
@@ -1338,61 +827,20 @@ Completers = {
     Completers._filter2(completers, query, i);
   },
   _filter2 (this: void, completers: readonly Completer[], query: CompletersNS.QueryStatus, i: number): void {
-    RankingUtils.timeAgo_ = Date.now() - TimeEnums.timeCalibrator; // safe for time change
-    RankingUtils.maxScoreP_ = RankingEnums.maximumScore * queryTerms.length || 0.01;
+    set_timeAgo_(Date.now() - TimeEnums.timeCalibrator) // safe for time change
+    set_maxScoreP_(RankingEnums.maximumScore * queryTerms.length || 0.01)
     if (queryTerms.indexOf("__proto__") >= 0) {
       queryTerms = queryTerms.join(" ").replace(<RegExpG> /(^| )__proto__(?=$| )/g, " __proto_").trimLeft().split(" ");
     }
-    MatchCacheManager.update_();
+    MatchCacheManager_.update_(showThoseInBlocklist)
     queryTerms.sort(Completers.rSortQueryTerms_);
-    RegExpCache.buildParts_();
+    RegExpCache_.buildParts_()
     for (; i < completers.length; i++) {
       completers[i].filter_(query, i - 1);
     }
   },
   rSortQueryTerms_ (a: string, b: string): number {
     return b.length - a.length || (a < b ? -1 : a === b ? 0 : 1);
-  },
-  requireNormalOrIncognito_ (
-      func: (this: void, query: CompletersNS.QueryStatus, tabs: readonly WritableTabEx[]) => void
-      , query: CompletersNS.QueryStatus, __tabs?: readonly Tab[] | null): 1 | void {
-    let wndIncognito = TabRecency_.incognito_;
-    if (Build.MinCVer < BrowserVer.MinNoAbnormalIncognito && Build.BTypes & BrowserType.Chrome && inNormal === null) {
-      wndIncognito = wndIncognito !== IncognitoType.mayFalse ? wndIncognito
-        : CurCVer_ >= BrowserVer.MinNoAbnormalIncognito || Settings_.CONST_.DisallowIncognito_
-          || !!MatchCacheManager.tabs_.tabs_
-        ? (TabRecency_.incognito_ = IncognitoType.ensuredFalse) : IncognitoType.mayFalse;
-    }
-    if (Build.MinCVer >= BrowserVer.MinNoAbnormalIncognito || !(Build.BTypes & BrowserType.Chrome)
-        || wndIncognito !== IncognitoType.mayFalse) {
-      inNormal = wndIncognito !== IncognitoType.true;
-      let newType = (inNormal ? TabCacheType.onlyNormal : 0) | (wantInCurrentWindow ? TabCacheType.currentWindow : 0)
-      if (!(Build.BTypes & ~BrowserType.Firefox)
-          || Build.BTypes & BrowserType.Firefox && OnOther & BrowserType.Firefox) {
-        newType = newType | (wantInCurrentWindow && otherFlags & CompletersNS.QueryFlags.EvenHiddenTabs
-              ? TabCacheType.evenHidden : 0)
-      }
-      if (MatchCacheManager.tabs_.type_ !== newType) {
-        MatchCacheManager.tabs_ = { tabs_: null, type_: newType };
-      }
-      __tabs = __tabs || MatchCacheManager.tabs_.tabs_;
-      if (__tabs) {
-        func(query, __tabs);
-      } else {
-        chrome.tabs.query(!wantInCurrentWindow ? {} : !(Build.BTypes & BrowserType.Firefox)
-              || Build.BTypes & ~BrowserType.Firefox && OnOther !== BrowserType.Firefox
-              || otherFlags & CompletersNS.QueryFlags.EvenHiddenTabs ? { currentWindow: true }
-            : { currentWindow: true, hidden: false },
-        func.bind(null, query));
-      }
-    } else {
-      chrome.windows.getCurrent({populate: wantInCurrentWindow}, function (wnd): void {
-        TabRecency_.incognito_ = wnd.incognito ? IncognitoType.true : IncognitoType.ensuredFalse;
-        if (!query.o) {
-          Completers.requireNormalOrIncognito_(func, query, wantInCurrentWindow ? wnd.tabs : null);
-        }
-      });
-    }
   },
   next_ (newSugs: Suggestion[], type: Exclude<SugType, SugType.Empty>): void {
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
@@ -1421,15 +869,15 @@ Completers = {
     } else if (suggestions.length > maxTotal) {
       suggestions.length = maxTotal;
     }
-    RegExpCache.words_ = RegExpCache.starts_ = null as never;
+    RegExpCache_.words_ = RegExpCache_.starts_ = null as never
     if (queryTerms.length > 0) {
       let s0 = queryTerms[0], s1 = shortenUrl(s0), cut = s0.length !== s1.length;
       if (cut || s0.endsWith("/") && s0.length > 1 && !s0.endsWith("//")) {
         queryTerms[0] = cut ? s1 : s0.slice(0, -1);
-        RegExpCache.fixParts_();
+        RegExpCache_.fixParts_(queryTerms[0])
       }
     }
-    suggestions.forEach(prepareHtml);
+    suggestions.forEach(prepareHTML_)
 
     const someMatches = suggestions.length > 0,
     newAutoSelect = autoSelect && someMatches, matched = matchedTotal,
@@ -1445,21 +893,20 @@ Completers = {
     realMode = rawMode, components = rawComponents,
     newSugTypes = newMatchType === MatchType.someMatches && !mayGoToAnotherMode ? Completers.sugTypes_ : SugType.Empty,
     func = Completers.callback_!;
-    Completers.cleanGlobals_();
+    Completers.clearGlobals_()
     return func(suggestions, newAutoSelect, newMatchType, newSugTypes, matched, realMode, components)
   },
-  cleanGlobals_ (): void {
-    Completers.mostRecentQuery_ = Completers.callback_ = inNormal = null;
-    queryTerms = [];
+  clearGlobals_ (): void {
+    Completers.mostRecentQuery_ = Completers.callback_ = null
+    set_tabsInNormal(null)
+    setupQueryTerms(queryTerms = [], isForAddressBar = false, 0)
     rawInput = rawMode = rawQuery = rawMore = historyUrlToSkip = bookmarkUrlToSkip = "";
-    RegExpCache.parts_ = null as never;
-    RankingUtils.maxScoreP_ = RankingEnums.maximumScore;
-    RankingUtils.timeAgo_ = matchType =
-    Completers.sugTypes_ = otherFlags =
-    maxResults = maxTotal = matchedTotal = maxChars = 0;
+    RegExpCache_.parts_ = null as never
+    set_maxScoreP_(RankingEnums.maximumScore), set_timeAgo_(0)
+    matchType = Completers.sugTypes_ = otherFlags = maxResults = maxTotal = matchedTotal = 0
     allExpectedTypes = SugType.Empty;
     rawComponents = CompletersNS.QComponent.NONE
-    autoSelect = isForAddressBar = false;
+    autoSelect = false
     mayRawQueryChangeNextTime_ = wantInCurrentWindow = false
     showThoseInBlocklist = true;
   },
@@ -1492,571 +939,11 @@ knownCs = {
   omni: [SugType.Full as never, searchEngine, domainEngine, historyEngine, bookmarkEngine, tabEngine] as CompleterList,
   search: [SugType.search as never, searchEngine] as CompleterList,
   tab: [SugType.tab as never, tabEngine] as CompleterList
-},
+}
 
-  RankingUtils = {
-    Match2_ (s1: string, s2: string): boolean {
-      const { parts_: parts } = RegExpCache;
-      for (let i = 0, len = queryTerms.length; i < len; i++) {
-        if (!(parts[i].test(s1) || parts[i].test(s2))) { return false; }
-      }
-      return true;
-    },
-    maxScoreP_: RankingEnums.maximumScore,
-    _emptyScores: [0, 0] as [number, number],
-    scoreTerm_ (term: number, str: string): [number, number] {
-      let count = 0, score = 0;
-      count = str.split(RegExpCache.parts_[term]).length;
-      if (count < 1) { return RankingUtils._emptyScores; }
-      score = RankingEnums.anywhere;
-      if (RegExpCache.starts_[term].test(str)) {
-        score += RankingEnums.startOfWord;
-        if (RegExpCache.words_[term].test(str)) {
-          score += RankingEnums.wholeWord;
-        }
-      }
-      return [score, (count - 1) * queryTerms[term].length];
-    },
-    wordRelevancy_ (url: string, title: string): number {
-      let titleCount = 0, titleScore = 0, urlCount = 0, urlScore = 0, useTitle = !!title;
-      RegExpCache.starts_ || RegExpCache.buildOthers_();
-      for (let term = 0, len = queryTerms.length; term < len; term++) {
-        let a = RankingUtils.scoreTerm_(term, url);
-        urlScore += a[0]; urlCount += a[1];
-        if (useTitle) {
-          a = RankingUtils.scoreTerm_(term, title);
-          titleScore += a[0]; titleCount += a[1];
-        }
-      }
-      urlScore = urlScore / RankingUtils.maxScoreP_ * RankingUtils.normalizeDifference_(urlCount, url.length);
-      if (titleCount === 0) {
-        return title ? urlScore / 2 : urlScore;
-      }
-      titleScore = titleScore / RankingUtils.maxScoreP_ * RankingUtils.normalizeDifference_(titleCount, title.length);
-      return (urlScore < titleScore) ? titleScore : ((urlScore + titleScore) / 2);
-    },
-    timeAgo_: 0,
-    normalizeDifference_ (a: number, b: number): number {
-      return a < b ? a / b : b / a;
-    }
-  },
-
-  escapeAllRe = <RegExpG & RegExpSearchable<0>> /[$()*+.?\[\\\]\^{|}]/g,
-  RegExpCache = {
-    parts_: null as never as CachedRegExp[],
-    starts_: null as never as CachedRegExp[],
-    words_: null as never as CachedRegExp[],
-    buildParts_ (): void {
-      const d: CachedRegExp[] = RegExpCache.parts_ = [];
-      RegExpCache.starts_ = RegExpCache.words_ = null as never;
-      for (const s of queryTerms) {
-        d.push(new RegExp(s.replace(escapeAllRe, "\\$&"), /** has lower */ s !== s.toUpperCase()
-            && /** no upper */ s.toLowerCase() === s ? "i" as "" : "") as CachedRegExp)
-      }
-    },
-    buildOthers_ (): void {
-      const ss: CachedRegExp[] = RegExpCache.starts_ = [], ws: CachedRegExp[] = RegExpCache.words_ = [];
-      for (const partRe of RegExpCache.parts_) {
-        const start = "\\b" + partRe.source, flags = partRe.flags as "";
-        ss.push(new RegExp(start, flags) as CachedRegExp);
-        ws.push(new RegExp(start + "\\b", flags) as CachedRegExp);
-      }
-    },
-    fixParts_ (): void {
-      if (!RegExpCache.parts_) { return; }
-      let s = queryTerms[0];
-      RegExpCache.parts_[0] = new RegExp(s.replace(escapeAllRe, "\\$&"), RegExpCache.parts_[0].flags as ""
-        ) as CachedRegExp;
-    }
-  },
-
-  HistoryCache = {
-    lastRefresh_: 0,
-    updateCount_: 0,
-    toRefreshCount_: 0,
-    sorted_: false,
-    loadingTimer_: 0,
-    history_: null as HistoryItem[] | null,
-    _callbacks: null as HistoryCallback[] | null,
-    domains_: null as typeof BgUtils_.domains_ | null,
-    use_ (this: void, callback?: HistoryCallback | null): void {
-      if ((Build.BTypes & BrowserType.Edge || Build.BTypes & BrowserType.Firefox && Build.MayAndroidOnFirefox)
-          && !chrome.history) { callback && callback([]); return; }
-      if (HistoryCache._callbacks) {
-        callback && HistoryCache._callbacks.push(callback);
-        return;
-      }
-      HistoryCache._callbacks = callback ? [callback] : [];
-      HistoryCache.lastRefresh_ = Date.now(); // safe for time changes
-      if (HistoryCache.loadingTimer_) { return; }
-      chrome.history.search({
-        text: "",
-        maxResults: InnerConsts.historyMaxSize,
-        startTime: 0
-      }, function (history: chrome.history.HistoryItem[]): void {
-        setTimeout(HistoryCache.Clean_!, 0, history);
-      });
-    },
-    Clean_: function (this: void, arr: Array<chrome.history.HistoryItem | HistoryItem>): void {
-      HistoryCache.Clean_ = null;
-      for (let i = 0, len = arr.length; i < len; i++) {
-        let j = arr[i] as chrome.history.HistoryItem, url = j.url;
-        if (url.length > GlobalConsts.MaxHistoryURLLength) {
-          url = HistoryCache.trimURLAndTitleWhenTooLong_(url, j);
-        }
-        (arr as HistoryItem[])[i] = {
-          t: url,
-          title_: Build.BTypes & ~BrowserType.Chrome ? j.title || "" : j.title!,
-          time_: j.lastVisitTime,
-          visible_: kVisibility.visible,
-          u: url
-        };
-      }
-      if (omniBlockList) {
-        for (const k of arr as HistoryItem[]) {
-          if (BlockListFilter.TestNotMatched_(k.t, k.title_) === 0) {
-            k.visible_ = kVisibility.hidden;
-          }
-        }
-      }
-      setTimeout(function (): void {
-        setTimeout(function (): void {
-          const arr1 = HistoryCache.history_!;
-          for (let i = arr1.length - 1; 0 < i; ) {
-            const j = arr1[i], url = j.u, text = j.t = Decoder.decodeURL_(url, j),
-            isSame = text.length >= url.length;
-            while (0 <= --i) {
-              const k = arr1[i], url2 = k.u;
-              if (url2.length >= url.length || !url.startsWith(url2)) {
-                break;
-              }
-              (k as Writable<HistoryItem>).u = url.slice(0, url2.length);
-              const decoded = isSame ? url2 : Decoder.decodeURL_(url2, k);
-              // handle the case that j has been decoded in another charset but k hasn't
-              k.t = isSame || decoded.length < url2.length ? text.slice(0, decoded.length) : decoded;
-            }
-          }
-          HistoryCache.domains_ || setTimeout(function (): void {
-            domainEngine.refresh_ && domainEngine.refresh_(HistoryCache.history_!);
-          }, 200);
-        }, 100);
-        HistoryCache.history_!.sort((a, b) => a.u > b.u ? 1 : -1);
-        HistoryCache.sorted_ = true;
-        chrome.history.onVisitRemoved.addListener(HistoryCache.OnVisitRemoved_);
-        chrome.history.onVisited.addListener(HistoryCache.OnPageVisited_);
-      }, 100);
-      HistoryCache.history_ = arr as HistoryItem[];
-      HistoryCache.use_ = (callback): void => {
-        if (callback) { callback(HistoryCache.history_!); }
-      };
-      HistoryCache._callbacks && HistoryCache._callbacks.length > 0 &&
-      setTimeout(function (ref: HistoryCallback[]): void {
-        for (const f of ref) {
-          f(HistoryCache.history_!);
-        }
-      }, 1, HistoryCache._callbacks);
-      HistoryCache._callbacks = null;
-    } as ((arr: chrome.history.HistoryItem[]) => void) | null,
-    OnPageVisited_ (this: void, newPage: chrome.history.HistoryItem): void {
-      let url = newPage.url;
-      if (url.length > GlobalConsts.MaxHistoryURLLength) {
-        url = HistoryCache.trimURLAndTitleWhenTooLong_(url, newPage);
-      }
-      const time = newPage.lastVisitTime,
-      title = Build.BTypes & ~BrowserType.Chrome ? newPage.title || "" : newPage.title!,
-      updateCount = ++HistoryCache.updateCount_,
-      d = HistoryCache.domains_, i = HistoryCache.binarySearch_(url);
-      if (i < 0) { HistoryCache.toRefreshCount_++; }
-      if (updateCount > 59
-          || (updateCount > 10 && Date.now() - HistoryCache.lastRefresh_ > 300000)) { // safe for time change
-        HistoryCache.refreshInfo_();
-      }
-      const j: HistoryItem = i >= 0 ? HistoryCache.history_![i] : {
-        t: "",
-        title_: title,
-        time_: time,
-        visible_: omniBlockList ? BlockListFilter.TestNotMatched_(url, title) : kVisibility.visible,
-        u: url
-      };
-      let slot: Domain | undefined;
-      if (d) {
-        let domain = domainEngine.ParseDomainAndScheme_(url);
-        if (!domain) { /* empty */ }
-        else if (slot = d.get(domain.domain_)) {
-          slot.time_ = time;
-          if (i < 0) { slot.count_ += j.visible_; }
-          if (domain.scheme_ >= Urls.SchemeId.HTTP) { slot.https_ = domain.scheme_ === Urls.SchemeId.HTTPS ? 1 : 0; }
-        } else {
-          d.set(domain.domain_, {
-            time_: time, count_: j.visible_, https_: domain.scheme_ === Urls.SchemeId.HTTPS ? 1 : 0
-          })
-        }
-      }
-      if (i >= 0) {
-        j.time_ = time;
-        if (title && title !== j.title_) {
-          j.title_ = title;
-          MatchCacheManager.timer_ && MatchCacheManager.clear_(MatchCacheType.history);
-          if (omniBlockList) {
-            const newVisible = BlockListFilter.TestNotMatched_(url, title);
-            if (j.visible_ !== newVisible) {
-              j.visible_ = newVisible;
-              if (slot) {
-                slot.count_ += newVisible || -1;
-              }
-            }
-          }
-        }
-        return;
-      }
-      j.t = Decoder.decodeURL_(url, j);
-      HistoryCache.history_!.splice(~i, 0, j);
-      MatchCacheManager.timer_ && MatchCacheManager.clear_(MatchCacheType.history);
-    },
-    OnVisitRemoved_ (this: void, toRemove: chrome.history.RemovedResult): void {
-      Decoder._jobs.length = 0;
-      const d = Decoder.dict_;
-      MatchCacheManager.clear_(MatchCacheType.history);
-      if (toRemove.allHistory) {
-        HistoryCache.history_ = [];
-        if (HistoryCache.domains_) {
-          HistoryCache.domains_ = BgUtils_.domains_ = new Map()
-        }
-        const d2 = new Set!<string>(bookmarkEngine.bookmarks_.map(i => i.u))
-        d.forEach((_, k): void => {
-          d2.has(k) || d.delete(k)
-        })
-        Decoder.dict_ = d2;
-        return;
-      }
-      const {binarySearch_: bs, history_: h, domains_: domains} = HistoryCache;
-      let entry: Domain | undefined;
-      for (const j of toRemove.urls) {
-        const i = bs(j);
-        if (i >= 0) {
-          if (domains && h![i].visible_) {
-            const item = domainEngine.ParseDomainAndScheme_(j);
-            if (item && (entry = domains.get(item.domain_)) && (--entry.count_) <= 0) {
-              domains.delete(item.domain_)
-            }
-          }
-          h!.splice(i, 1);
-          d.delete(j)
-        }
-      }
-    },
-    trimURLAndTitleWhenTooLong_ (url: string, history: chrome.history.HistoryItem | Tab): string {
-      // should be idempotent
-      const colon = url.lastIndexOf(":", 9), hasHost = colon > 0 && url.substr(colon, 3) === "://",
-      title = history.title;
-      url = url.slice(0, (hasHost ? url.indexOf("/", colon + 4) : colon)
-                + GlobalConsts.TrimmedURLPathLengthWhenURLIsTooLong) + "\u2026";
-      if (title && title.length > GlobalConsts.TrimmedTitleLengthWhenURLIsTooLong) {
-        history.title = BgUtils_.unicodeSubstring_(title, 0, GlobalConsts.TrimmedTitleLengthWhenURLIsTooLong);
-      }
-      return url;
-    },
-    refreshInfo_ (): void {
-      type Q = chrome.history.HistoryQuery;
-      type C = (results: chrome.history.HistoryItem[]) => void;
-      const i = Date.now(); // safe for time change
-      if (HistoryCache.toRefreshCount_ <= 0) { /* empty */ }
-      else if (i < HistoryCache.lastRefresh_ + 1000 && i >= HistoryCache.lastRefresh_) { return; }
-      else {
-        setTimeout(chrome.history.search as ((q: Q, c: C) => void | 1) as (q: Q, c: C) => void, 50, {
-          text: "",
-          maxResults: Math.min(999, HistoryCache.updateCount_ + 10),
-          startTime: i < HistoryCache.lastRefresh_ ? i - 5 * 60 * 1000 : HistoryCache.lastRefresh_
-        }, HistoryCache.OnInfo_);
-      }
-      HistoryCache.lastRefresh_ = i;
-      HistoryCache.toRefreshCount_ = HistoryCache.updateCount_ = 0;
-      return Decoder.continueToWork_();
-    },
-    OnInfo_ (history: chrome.history.HistoryItem[]): void {
-      const arr = HistoryCache.history_!, bs = HistoryCache.binarySearch_;
-      if (arr.length <= 0) { return; }
-      for (const info of history) {
-        let url = info.url;
-        if (url.length > GlobalConsts.MaxHistoryURLLength) {
-          info.url = url = HistoryCache.trimURLAndTitleWhenTooLong_(url, info);
-        }
-        const j = bs(url);
-        if (j < 0) {
-          HistoryCache.toRefreshCount_--;
-        } else {
-          const item = arr[j], title = info.title;
-          if (!title || title === item.title_) {
-            continue;
-          }
-        }
-        HistoryCache.updateCount_--;
-        HistoryCache.OnPageVisited_(info);
-      }
-    },
-    binarySearch_ (this: void, u: string): number {
-      let e = "", a = HistoryCache.history_!, h = a.length - 1, l = 0, m = 0;
-      while (l <= h) {
-        m = (l + h) >>> 1;
-        e = a[m].u;
-        if (e > u) { h = m - 1; }
-        else if (e !== u) { l = m + 1; }
-        else { return m; }
-      }
-      // if e > u, then l == h + 1 && l == m
-      // else if e < u, then l == h + 1 && l == m + 1
-      // (e < u ? -2 : -1) - m = (e < u ? -1 - 1 - m : -1 - m) = (e < u ? -1 - l : -1 - l)
-      // = -1 - l = ~l
-      return ~l;
-    }
-  },
-
-  BlockListFilter = {
-    TestNotMatched_ (url: string, title: string): Visibility {
-      for (const phrase of <string[]> omniBlockList) {
-        if (title.includes(phrase) || url.includes(phrase)) {
-          return kVisibility.hidden;
-        }
-      }
-      return kVisibility.visible;
-    },
-    IsExpectingHidden_ (query: string[]): boolean {
-      if (omniBlockList) {
-      for (const word of query) {
-        for (let phrase of omniBlockList) {
-          phrase = phrase.trim();
-          if (word.includes(phrase) || phrase.length > 9 && word.length + 2 >= phrase.length
-              && phrase.includes(word)) {
-            return true;
-          }
-        }
-      }
-      }
-      return false;
-    },
-    UpdateAll_ (this: void): void {
-      if (bookmarkEngine.bookmarks_) {
-        for (const k of bookmarkEngine.bookmarks_) {
-          (k as Writable<Bookmark>).visible_ = omniBlockList ? BlockListFilter.TestNotMatched_(k.t, k.path_)
-            : kVisibility.visible;
-        }
-      }
-      if (!HistoryCache.history_) {
-        return;
-      }
-      const d = HistoryCache.domains_;
-      for (const k of HistoryCache.history_) {
-        const newVisible = omniBlockList ? BlockListFilter.TestNotMatched_(k.t, k.title_) : kVisibility.visible;
-        if (k.visible_ !== newVisible) {
-          k.visible_ = newVisible;
-          if (d) {
-            const domain = domainEngine.ParseDomainAndScheme_(k.u);
-            if (domain) {
-              const slot = d.get(domain.domain_)
-              if (slot) {
-                slot.count_ += newVisible || -1;
-              }
-            }
-          }
-        }
-      }
-    },
-    OnUpdate_ (this: void, newList: string): void {
-      const arr: string[] = [];
-      for (let line of newList.split("\n")) {
-        if (line.trim() && line[0] !== "#") {
-          arr.push(line);
-        }
-      }
-      omniBlockList = arr.length > 0 ? arr : null;
-      (HistoryCache.history_ || bookmarkEngine.bookmarks_) && setTimeout(BlockListFilter.UpdateAll_, 100);
-    }
-  },
-
-  MatchCacheManager = {
-    current_: null as MatchCacheData | null,
-    newMatch_: null as MatchCacheRecord | null,
-    tabs_: As_<TabCacheData>({ tabs_: null, type_: TabCacheType.none }),
-    all_: [] as MatchCacheRecord[],
-    timer_: 0,
-    tabTimer_: 0,
-    update_ (): void {
-      let q2 = queryTerms, found: MatchCacheRecord | null = null, now = 0, full_query = q2.join(" ");
-      for (let records = MatchCacheManager.all_, ind = full_query ? records.length : 0; 0 <= --ind; ) {
-        if (!records[ind].showThoseInBlockList_ && showThoseInBlocklist) { continue; }
-        let q1 = records[ind].query_, i1 = 0, i2 = 0;
-        for (; i1 < q1.length && i2 < q2.length; i2++) {
-          if (q2[i2].includes(q1[i1])) { i1++; }
-        }
-        if (i1 >= q1.length) {
-          found = records[ind];
-          break;
-        }
-      }
-      MatchCacheManager.current_ = found;
-      if (found && (Settings_.omniPayload_.t < 200 || !found.history_ || found.history_.length > 1000)
-          && (now = perf.now()) - found.time_ < Math.max(300, Settings_.omniPayload_.t * 1.3)) {
-        MatchCacheManager.newMatch_ = found;
-        found.query_ = q2.slice(0);
-      }
-      else if (full_query && (!found || full_query !== found.query_.join(" "))
-          && (full_query.length > 4 || (<RegExpOne> /\w\S|[^\x00-\x80]/).test(full_query))) {
-        MatchCacheManager.newMatch_ = {
-          query_: q2.slice(0), showThoseInBlockList_: showThoseInBlocklist, time_: now || perf.now(),
-          history_: found && found.history_, bookmarks_: found && found.bookmarks_
-        };
-        MatchCacheManager.all_.push(MatchCacheManager.newMatch_);
-        if (!MatchCacheManager.timer_) {
-          MatchCacheManager.timer_ = setInterval(MatchCacheManager._didTimeout, GlobalConsts.MatchCacheLifeTime);
-        }
-      } else {
-        MatchCacheManager.newMatch_ = null;
-      }
-    },
-    _didTimeout (): void {
-      let records = MatchCacheManager.all_, ind = -1,
-      min_time = perf.now() - (GlobalConsts.MatchCacheLifeTime - 17);
-      while (++ind < records.length && records[ind].time_ < min_time) { /* empty */ }
-      ind++;
-      if (ind < records.length) {
-        records.splice(0, ind);
-      } else {
-        records.length = 0;
-        clearInterval(MatchCacheManager.timer_);
-        MatchCacheManager.timer_ = 0
-      }
-    },
-    clear_ (type: MatchCacheType): void {
-      for (const record of MatchCacheManager.all_) {
-        type < MatchCacheType.bookmarks ? record.history_ = null
-        : type < MatchCacheType.tabs ? record.bookmarks_ = null
-        : MatchCacheManager.tabs_.tabs_ = null;
-      }
-    },
-    cacheTabs_ (tabs: readonly Tab[] | null): void {
-      if (MatchCacheManager.tabs_.tabs_ === tabs) { return; }
-      if (MatchCacheManager.tabTimer_) {
-        clearTimeout(MatchCacheManager.tabTimer_);
-        MatchCacheManager.tabTimer_ = 0
-      }
-      MatchCacheManager.tabs_.tabs_ = tabs;
-      if (tabs) {
-        MatchCacheManager.tabTimer_ = setTimeout(MatchCacheManager.cacheTabs_, GlobalConsts.TabCacheLifeTime, null);
-      }
-    }
-  },
-
-  _decodeFunc = decodeURIComponent, // core function
-  Decoder = {
-    decodeURL_ (a: string, o: ItemToDecode): string {
-      if (a.length >= 400 || a.lastIndexOf("%") < 0) { return a; }
-      try {
-        return _decodeFunc(a);
-      } catch {}
-      return Decoder.dict_.get(a) || (o && Decoder._jobs.push(o), a)
-    },
-    decodeList_ (a: DecodedItem[]): void {
-      const { dict_: m, _jobs: w } = Decoder;
-      let i = -1, j: DecodedItem | undefined, l = a.length, s: string | undefined;
-      for (; ; ) {
-        try {
-          while (++i < l) {
-            j = a[i]; s = j.u;
-            j.t = s.length >= 400 || s.lastIndexOf("%") < 0 ? s : _decodeFunc(s);
-          }
-          break;
-        } catch {
-          j!.t = m.get(s!) || (w.push(j!), s!)
-        }
-      }
-      Decoder.continueToWork_();
-    },
-    dict_: new Map<string, string>(),
-    _jobs: [] as ItemToDecode[],
-    _ind: -1,
-    continueToWork_ (): void {
-      if (Decoder._jobs.length === 0 || Decoder._ind !== -1) { return; }
-      Decoder._ind = 0;
-      setTimeout(Decoder.Work_, 17, null);
-    },
-    Work_ (xhr: XMLHttpRequest | null): void {
-      let text: string | undefined;
-      for (; Decoder._ind < Decoder._jobs.length; Decoder._ind++) {
-        const url = Decoder._jobs[Decoder._ind], isStr = typeof url === "string",
-        str = isStr ? url as string : (url as DecodedItem).u;
-        if (text = Decoder.dict_.get(str)) {
-          isStr || ((url as DecodedItem).t = text);
-          continue;
-        }
-        if (!xhr && !(xhr = Decoder.xhr_())) {
-          Decoder._jobs.length = 0;
-          Decoder._ind = -1;
-          return;
-        }
-        const arr = Build.MinCVer >= BrowserVer.MinWarningOfEscapingHashInBodyOfDataURL
-            || !(Build.BTypes & BrowserType.Chrome) || CurCVer_ >= BrowserVer.MinWarningOfEscapingHashInBodyOfDataURL
-            ? str.split("#", 3) : []
-        const num = arr.length
-        const escaped = num < 2 ? str : num < 3 ? arr[0] + "%23" + arr[1] : str.replace(<RegExpG> /#/g, "%23")
-        xhr.open("GET", Decoder._dataUrl + escaped, true);
-        return xhr.send();
-      }
-    },
-    OnXHR_ (this: XMLHttpRequest): void {
-      if (Decoder._ind < 0) { return; } // disabled by the outsides
-      const text = this.responseText, url = Decoder._jobs[Decoder._ind++];
-      if (typeof url !== "string") {
-        Decoder.dict_.set(url.u, url.t = text)
-      } else {
-        Decoder.dict_.set(url, text)
-      }
-      if (Decoder._ind < Decoder._jobs.length) {
-        Decoder.Work_(this);
-      } else {
-        Decoder._jobs.length = 0;
-        Decoder._ind = -1;
-      }
-    },
-    enabled_: true,
-    _dataUrl: "1",
-    xhr_ (this: void): XMLHttpRequest | null {
-      if (!Decoder._dataUrl) { return null; }
-      const xhr = new XMLHttpRequest();
-      xhr.responseType = "text";
-      xhr.onload = Decoder.OnXHR_;
-      return xhr;
-    },
-    onUpdate_ (this: void, charset: string): void {
-      const enabled = charset ? !(charset = charset.toLowerCase()).startsWith("utf") : false,
-      newDataUrl = enabled ? ("data:text/plain;charset=" + charset + ",") : "",
-      oldUrl = Decoder._dataUrl;
-      if (newDataUrl === oldUrl) { return; }
-      Decoder._dataUrl = newDataUrl;
-      if (enabled) {
-        oldUrl !== "1" && /* inited */
-        setTimeout(function (): void {
-          if (HistoryCache.history_) {
-            Decoder.decodeList_(HistoryCache.history_);
-          }
-          return Decoder.decodeList_(bookmarkEngine.bookmarks_);
-        }, 100);
-      } else {
-        Decoder.dict_.clear()
-        Decoder._jobs.length = 0;
-      }
-      if (Decoder.enabled_ === enabled) { return; }
-      Decoder._jobs = enabled ? [] as ItemToDecode[] : { length: 0, push: BgUtils_.blank_ } as any;
-      Decoder.enabled_ = enabled;
-      Decoder._ind = -1;
-    }
-  };
-
-Completion_ = {
-  filter_ (this: void, query: string, options: CompletersNS.FullOptions
-      , callback: CompletersNS.Callback): void {
-    autoSelect = false;
+Completion_.filter_ = (query: string, options: CompletersNS.FullOptions, callback: CompletersNS.Callback): void => {
     query = query.trim()
-    if (query && Settings_.payload_.o === kOS.win) {
+    if (query && contentPayload_.o === kOS.win) {
       if ((<RegExpI> /^[a-z]:\\|^\\\\[\w$.-]+(\\|$)|^\\\\$/i).test(query)) {
         query = (query[1] === ":" ? "" : "//")
             + query.slice(query[1] === ":" ? 0 : 2).replace(<RegExpG> /\\+/g, "/").toLowerCase()
@@ -2071,9 +958,9 @@ Completion_ = {
     query = rawQuery;
     queryTerms = query
       ? (query = query.length < Consts.MaxCharsInQuery + 1 ? query
-          : BgUtils_.unicodeSubstring_(query, 0, Consts.MaxCharsInQuery).trimRight()).split(" ")
+          : BgUtils_.unicodeRSubstring_(query, 0, Consts.MaxCharsInQuery).trimRight()).split(" ")
       : [];
-    maxChars = (options.c! | 0) || 128;
+    let maxChars = (options.c! | 0) || 128
     if (maxChars) {
       // take CJK characters into consideration
       maxChars -= query.replace(<RegExpG>
@@ -2099,7 +986,7 @@ Completion_ = {
       str = str[1];
       const newArr = str === "b" ? knownCs.bookm : str === "h" ? knownCs.history
         : str === "t" || str === "w" || str === "W" ? (wantInCurrentWindow = str !== "t",
-            otherFlags |= Build.BTypes & BrowserType.Firefox && str > "Z" ? CompletersNS.QueryFlags.EvenHiddenTabs : 0,
+            otherFlags |= OnFirefox && str > "Z" ? CompletersNS.QueryFlags.EvenHiddenTabs : 0,
             knownCs.tab)
         : str === "B" ? (otherFlags |= CompletersNS.QueryFlags.PreferBookmarks, knownCs.omni)
         : str === "H" ? (otherFlags |= CompletersNS.QueryFlags.NoTabEngine, knownCs.omni)
@@ -2114,7 +1001,7 @@ Completion_ = {
     }
     if (queryTerms.length > 0 && ((str = queryTerms[0]).includes("\u3002") || str.includes("\uff1a"))) {
       mayRawQueryChangeNextTime_ = queryTerms.length < 2
-      let newStr = BgUtils_.fixCharsInUrl_(str, mayRawQueryChangeNextTime_)
+      let newStr = fixCharsInUrl_(str, mayRawQueryChangeNextTime_)
       if (newStr !== str) {
         queryTerms[0] = newStr
         rawQuery = newStr + rawQuery.slice(str.length)
@@ -2127,73 +1014,17 @@ Completion_ = {
             && !(<RegExpOne> /\uff1a([^\/\d]|\d[^\0-\xff])/).test(str)
       }
     }
-    showThoseInBlocklist = !omniBlockList || BlockListFilter.IsExpectingHidden_(queryTerms);
+    showThoseInBlocklist = !omniBlockList || BlockListFilter_.IsExpectingHidden_(queryTerms)
     allExpectedTypes = expectedTypes & allowedEngines
     autoSelect = arr.length === 2
     if (rawQuery) {
       rawComponents |= CompletersNS.QComponent.query
     }
+    setupQueryTerms(queryTerms, isForAddressBar, maxChars)
     Completers.filter_(arr)
-  },
-  removeSug_ (url, type, callback): void {
-    switch (type) {
-    case "tab":
-      chrome.tabs.remove(+url, function (): void {
-        const err = BgUtils_.runtimeError_();
-        err || MatchCacheManager.cacheTabs_(null);
-        callback(!<boolean> <boolean | void> err);
-        return err;
-      });
-      break;
-    case "history":
-      {
-        const found = !HistoryCache.sorted_ || HistoryCache.binarySearch_(url) >= 0;
-        chrome.history.deleteUrl({ url });
-        found && MatchCacheManager.clear_(MatchCacheType.history);
-        callback(found);
-      }
-      break;
-    }
-  },
-  onWndChange_ (): void {
-    if (MatchCacheManager.tabs_.tabs_) {
-      if (MatchCacheManager.tabs_.type_ & TabCacheType.currentWindow
-          || !(MatchCacheManager.tabs_.type_ & TabCacheType.onlyNormal) /* old-in-incognito */
-              !== (TabRecency_.incognito_ === IncognitoType.true)) {
-        // ignore IncognitoType.mayFalse on old Chrome - the line below does not harm
-        MatchCacheManager.cacheTabs_(null);
-      }
-    }
-  },
-  isExpectingHidden_: BlockListFilter.IsExpectingHidden_
-};
-
-Settings_.updateHooks_.omniBlockList = BlockListFilter.OnUpdate_;
-Settings_.postUpdate_("omniBlockList");
-if (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinRequestDataURLOnBackgroundPage
-    || CurCVer_ >= BrowserVer.MinRequestDataURLOnBackgroundPage) {
-  Settings_.updateHooks_.localeEncoding = Decoder.onUpdate_;
-  Settings_.postUpdate_("localeEncoding");
-} else {
-  Decoder.onUpdate_("");
 }
 
-BgUtils_.timeout_(80, function () {
-  Settings_.postUpdate_("searchEngines", null);
-});
 if (!Build.NDEBUG) {
-  (window as any).Completers = Completers;
-  (window as any).knownCs = knownCs;
-  (window as any).HistoryCache = HistoryCache;
-  (window as any).Decoder = Decoder;
-  (window as any).BlockListFilter = BlockListFilter;
-  (window as any).MatchCacheManager = MatchCacheManager;
+  (globalThis as any).Completers = Completers;
+  (Completers as any).knownCs = knownCs
 }
-});
-
-// eslint-disable-next-line no-var
-var Completion_: CompletersNS.GlobalCompletersConstructor = { filter_ (a, b, c): void {
-  BgUtils_.timeout_(210, function () {
-    return Completion_.filter_(a, b, c);
-  });
-}, removeSug_: BgUtils_.blank_, onWndChange_: BgUtils_.blank_ };

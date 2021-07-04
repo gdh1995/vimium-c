@@ -156,7 +156,7 @@ if (!(isTop || injector)) {
     /*#__NOINLINE__*/ (function (): void {
       try { // `vApi` is still unsafe
           const state = scoped_parApi.y()
-          if ((OnFirefox ? state.b && XPCNativeWrapper(state.b) : state.b) === frameElement_()) {
+          if ((state.b && XPCNativeWrapper(state.b)) === frameElement_()) {
             safeDestroy(1);
             scoped_parApi.n()
           } else {

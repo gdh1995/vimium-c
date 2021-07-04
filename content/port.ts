@@ -1,7 +1,8 @@
 import {
-  injector, safeObj, timeout_, isAlive_, isTop, doc, set_i18n_getMsg, locHref, OnEdge, OnChrome, OnFirefox, isTY
+  injector, safeObj, timeout_, isAlive_, isTop, set_i18n_getMsg, locHref, OnEdge, OnChrome, OnFirefox, isTY
 } from "../lib/utils"
 import { suppressTail_ } from "../lib/keyboard_utils"
+import { docHasFocus_ } from "../lib/dom_utils"
 import { style_ui } from "./dom_ui"
 import { hudTip } from "./hud"
 
@@ -63,7 +64,7 @@ export const runtimeConnect = (function (this: void): void {
   status = requestHandlers[kBgReq.init] ? PortType.initing
       : PortType.reconnect + (PortType.hasCSS * <number> <boolean | number> !!style_ui),
   name = (PortType.isTop === 1 ? <number> <boolean | number> isTop : PortType.isTop * <number> <number | boolean> isTop)
-      + PortType.hasFocus * <number> <number | boolean> doc.hasFocus() + status,
+      + PortType.hasFocus * <number> <number | boolean> docHasFocus_() + status,
   data = { name: injector ? PortNameEnum.Prefix + name + injector.$h
                   : OnEdge ? name + PortNameEnum.Delimiter + locHref() : "" + name },
   connect = api.runtime.connect

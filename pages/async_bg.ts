@@ -1,33 +1,15 @@
 /// <reference path="../background/index.d.ts" />
-/// <reference path="../background/utils.ts" />
-/// <reference path="../background/settings.ts" />
+/// <reference path="../background/typed_commands.d.ts" />
 
 export interface BgWindow extends Window {
-  BgUtils_: typeof BgUtils_;
-  Settings_: typeof Settings_;
+  Backend_: typeof Backend_ & {
+    Settings_: typeof import("../background/settings")
+  }
 }
+export declare const enum kReadyInfo { platformInfo = 1, popup = 1, i18n = 2, NONE = 0, FINISHED = 3 }
 
-if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafe$String$$StartsWith && !"".includes) {
-  (function (): void {
-    const StringCls = String.prototype;
-    /** startsWith may exist - {@see #BrowserVer.Min$String$$StartsWithEndsWithAndIncludes$ByDefault} */
-    if (!"".startsWith) {
-      StringCls.startsWith = function (this: string, s: string): boolean {
-        return this.lastIndexOf(s, 0) === 0;
-      };
-      StringCls.endsWith = function (this: string, s: string): boolean {
-        const i = this.length - s.length;
-        return i >= 0 && this.indexOf(s, i) === i;
-      };
-    } else if (Build.MinCVer <= BrowserVer.Maybe$Promise$onlyHas$$resolved) {
-      Promise.resolve || (Promise.resolve = Promise.resolved!)
-    }
-    StringCls.includes = function (this: string, s: string, pos?: number): boolean {
-      // eslint-disable-next-line @typescript-eslint/prefer-includes
-      return this.indexOf(s, pos) >= 0;
-    };
-  })();
-}
+// eslint-disable-next-line no-var
+declare var define: any
 
 const OnOther: BrowserType = Build.BTypes && !(Build.BTypes & (Build.BTypes - 1))
     ? Build.BTypes as number
@@ -47,43 +29,57 @@ export const OnEdge: boolean = !(Build.BTypes & ~BrowserType.Edge)
     || !!(Build.BTypes & BrowserType.Edge && OnOther & BrowserType.Edge)
 export const OnSafari: boolean = false // eslint-disable-line @typescript-eslint/no-inferrable-types
 
-export let CurCVer_: BrowserVer = OnChrome ? 0 | (
-    navigator.appVersion.match(<RegExpOne> /\bChrom(?:e|ium)\/(\d+)/)
-    || [0, BrowserVer.assumedVer])[1] as number : BrowserVer.assumedVer
+export const IsEdg_: boolean = OnChrome && (<RegExpOne> /\sEdg\//).test(navigator.appVersion)
+export const CurCVer_: BrowserVer = !OnChrome ? BrowserVer.assumedVer
+    : Build.MinCVer <= BrowserVer.FlagFreezeUserAgentGiveFakeUAMajor ? ((): BrowserVer => {
+      const ver = navigator.appVersion.match(<RegExpOne> /\bChrom(?:e|ium)\/(\d+)/)
+      return !ver ? BrowserVer.assumedVer : +ver[1] === BrowserVer.FakeUAMajorWhenFreezeUserAgent
+          && matchMedia("(prefers-color-scheme)").matches ? BrowserVer.FlagFreezeUserAgentGiveFakeUAMajor
+          : 0 | ver[1] as string | number as number
+    })()
+    : 0 | (navigator.appVersion.match(<RegExpOne> /\bChrom(?:e|ium)\/(\d+)/) || [0, BrowserVer.assumedVer])[1] as number
 export const CurFFVer_: FirefoxBrowserVer = OnFirefox
     && 0 | (navigator.userAgent.match(<RegExpOne> /\bFirefox\/(\d+)/) || [0, FirefoxBrowserVer.assumedVer])[1] as number
     || FirefoxBrowserVer.assumedVer
-if (OnChrome && Build.MinCVer <= BrowserVer.FlagFreezeUserAgentGiveFakeUAMajor
-    && CurCVer_ === BrowserVer.FakeUAMajorWhenFreezeUserAgent && matchMedia("(prefers-color-scheme)").matches) {
-  CurCVer_ = BrowserVer.FlagFreezeUserAgentGiveFakeUAMajor
+
+export const browser_: typeof chrome = OnChrome ? chrome : browser as typeof chrome
+if (!OnChrome && window.chrome) {
+  window.chrome = null as never
 }
 
-if (!OnChrome) { window.chrome = browser as typeof chrome }
-
-export let BG_ = chrome.extension && chrome.extension.getBackgroundPage() as Window as BgWindow
-if (!(BG_ && BG_.BgUtils_ && BG_.BgUtils_.convertToUrl_)) {
+export let BG_ = browser_.extension && browser_.extension.getBackgroundPage() as Window as BgWindow
+if (!(BG_ && BG_.Backend_)) {
   BG_ = null as never;
 }
-export let bgSettings_ = BG_ && BG_.Settings_
+
+export let asyncBackend_ = BG_ && BG_.Backend_
+export let bgSettings_ = asyncBackend_ && asyncBackend_.Settings_
+let readyInfo_ = kReadyInfo.NONE
+let i18nDict_: SafeDict<string> = Object.create(null)
 
 export const reloadBG_ = (): void => {
-  BG_ = chrome.extension.getBackgroundPage() as Window as BgWindow
+  BG_ = browser_.extension.getBackgroundPage() as Window as BgWindow
   if (BG_) { // a user may call `close()` in the console panel, then `BG_` is null
-    bgSettings_ = BG_.Settings_
+    asyncBackend_ = BG_.Backend_
+    bgSettings_ = asyncBackend_ && asyncBackend_.Settings_
     if (!bgSettings_) { BG_ = null as never }
   }
 }
 
-export const pTrans_: typeof chrome.i18n.getMessage = OnFirefox
-      ? (i, j) => BG_.trans_(i, j) : chrome.i18n.getMessage;
+export const _pTrans = (key: string, arg1?: (string | number)[]): string => {
+  let val = key in i18nDict_ ? i18nDict_[key]! : ""
+  if (arg1 != null && val) {
+    val = val.replace(<RegExpG & RegExpSearchable<0>> /\$\d/g, (i): string => arg1[+i[1] - 1] as string)
+  }
+  return val
+}
 
 export const $ = <T extends HTMLElement>(selector: string): T => document.querySelector(selector) as T
 
 export const $$ = ((selector: string, root?: HTMLElement | ShadowRoot | null): ArrayLike<Element> => {
   const list = (root || document).querySelectorAll(selector)
   return OnChrome && Build.MinCVer < BrowserVer.MinEnsured$ForOf$ForDOMListTypes
-      && Build.MinCVer >= BrowserVer.BuildMinForOf
-      && CurCVer_ < BrowserVer.MinEnsured$ForOf$ForDOMListTypes
+      && Build.MinCVer >= BrowserVer.BuildMinForOf && CurCVer_ < BrowserVer.MinEnsured$ForOf$ForDOMListTypes
       ? [].slice.call(list) : list
 }) as <T extends HTMLElement>(selector: string, root?: HTMLElement | ShadowRoot | null
     ) => T[] & { forEach: never }
@@ -96,5 +92,95 @@ export const toggleReduceMotion = (reduced: boolean): void => {
   document.documentElement!.classList.toggle("less-motion", reduced)
 }
 
-bgSettings_.payload_.d || toggleDark(false)
-bgSettings_.payload_.m && toggleReduceMotion(true)
+asyncBackend_.contentPayload_.d || toggleDark(false)
+asyncBackend_.contentPayload_.m && toggleReduceMotion(true)
+
+export let enableNextTick_: (type: kReadyInfo) => void
+
+export const nextTick_ = ((): { <T>(task: (self: T) => void, self: T): void; (task: (this: void) => void): void } => {
+  const ticked = function (): void {
+    const oldSize = tasks.length
+    for (const task of tasks) { task() }
+    if (tasks.length > oldSize) {
+      tasks.splice(0, oldSize)
+      if (OnChrome ? Build.MinCVer >= BrowserVer.Min$queueMicrotask
+          : OnFirefox ? Build.MinFFVer >= FirefoxBrowserVer.Min$queueMicrotask : !OnEdge) {
+        queueMicrotask(ticked)
+      } else {
+        void Promise.resolve().then(ticked)
+      }
+    } else {
+      tasks.length = 0
+    }
+  }, tasks: (() => void)[] = []
+  enableNextTick_ = (type): void => {
+    readyInfo_ |= type
+    if (readyInfo_ === kReadyInfo.FINISHED) {
+      enableNextTick_ = null as never
+      nextTick_((): void => { document.documentElement!.classList.remove("loading") })
+      ticked()
+    }
+  }
+  return <T> (task: ((firstArg: T) => void) | ((this: void) => void), context?: T): void => {
+    if (tasks.length <= 0 && readyInfo_ === kReadyInfo.FINISHED) {
+      if (OnChrome ? Build.MinCVer >= BrowserVer.Min$queueMicrotask
+          : OnFirefox ? Build.MinFFVer >= FirefoxBrowserVer.Min$queueMicrotask : !OnEdge) {
+        queueMicrotask(ticked)
+      } else {
+        void Promise.resolve().then(ticked)
+      }
+    }
+    if (context as unknown as number === 9) {
+      tasks.unshift(task as (this: void) => void) // here ignores the case of re-entry
+    } else {
+      tasks.push(context ? (task as (firstArg: T) => void).bind(null, context) : task as (this: void) => void)
+    }
+  }
+})()
+
+export const import2 = (url: string): Promise<unknown> => {
+  if (!(Build.BTypes & BrowserType.Edge)
+      && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinUsableScript$type$$module$InExtensions)
+      && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinES$DynamicImport)
+      && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredES$DynamicImport)
+      ) {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    return import(url)
+  }
+  return define([url]) // eslint-disable-line @typescript-eslint/no-unsafe-call
+}
+
+/** @see {@link ../background/i18n#getI18nJson } */
+const transPart_ = (msg: string, key: string): string =>
+    (msg && msg.split(" ").find(i => i.startsWith(key)) || "").slice(key.length + 1)
+const bTrans_ = browser_.i18n.getMessage
+const curPath = location.pathname.replace("/pages/", "").split(".")[0]
+export const pageLangs_ = transPart_(bTrans_("i18n"), curPath) || bTrans_("lang1") || "en"
+
+Promise.all(pageLangs_.split(",").map((lang): Promise<Dict<string> | null> => {
+  const langFile = `/i18n/${lang}/${curPath}.json`
+  return (!OnChrome || Build.MinCVer >= BrowserVer.MinFetchExtensionFiles
+      || CurCVer_ >= BrowserVer.MinFetchExtensionFiles ? fetch(langFile).then(r => r.json() as {})
+      : new Promise<{}>((resolve): void => {
+    const req = new XMLHttpRequest() as JSONXHR
+    req.responseType = "json"
+    req.onload = function (): void { resolve(this.response as {}) }
+    req.open("GET", langFile, true), req.send()
+  })).catch((err): null => {
+    Build.NDEBUG || console.log("Can not load the language file:", langFile, ":", err)
+    return null
+  })
+})).then((dicts): void => {
+  const dest = Object.setPrototypeOf(dicts[0] || {}, null)
+  for (let i = 1; i < dicts.length; i++) {
+    const src = dicts[i]
+    for (const key in src) {
+      if (!(key in dest)) {
+        dest[key] = src[key]
+      }
+    }
+  }
+  i18nDict_ = dest
+  enableNextTick_(kReadyInfo.i18n)
+})

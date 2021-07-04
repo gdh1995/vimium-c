@@ -5,6 +5,7 @@ declare var VApi: VApiTy
 declare var parent: unknown
 
 const enum SimpleKeyResult { Nothing, Suppress, Prevent }
+type SugToExec = Writable<Pick<CompletersNS.Suggestion, "u">>
 interface SuggestionE extends Readonly<CompletersNS.BaseSuggestion> {
   favIcon?: string;
   label?: string;
@@ -555,7 +556,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       }
       key = isLong || mod ? mod + chLower : char;
       if (Vomnibar_.mappedKeyRegistry_) {
-        mapped = Vomnibar_.mappedKeyRegistry_[key + GlobalConsts.DelimeterForKeyCharAndMode
+        mapped = Vomnibar_.mappedKeyRegistry_[key + GlobalConsts.DelimiterBetweenKeyCharAndMode
             + GlobalConsts.OmniModeId] || Vomnibar_.mappedKeyRegistry_[key];
         key = mapped ? mapped : !isLong && (mapped = Vomnibar_.mappedKeyRegistry_[chLower]) && mapped.length < 2
             && (baseMod = mapped.toUpperCase()) !== mapped
@@ -788,12 +789,12 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       a.onUpdate_ = a.onEnter_;
       return;
     }
-    type UrlInfo = Writable<Pick<CompletersNS.Suggestion, "u">> & Partial<Pick<CompletersNS.Suggestion, "s">>;
+    type UrlInfo = SugToExec & Partial<Pick<CompletersNS.Suggestion, "s">>
     const item: SuggestionE | UrlInfo = sel >= 0 ? a.completions_[sel] : { u: a.input_.value.trim() },
     action = a.actionType_, https = a.isHttps_, incognito = a.doesOpenInIncognito_,
     func = function (this: void): void {
       !VPort_ ? 0 : item.s != null ? Vomnibar_.gotoSession_(item as SuggestionE & Ensure<SuggestionE, "s">)
-        : Vomnibar_.navigateToUrl_(item.u, action, https, incognito, sel);
+        : Vomnibar_.navigateToUrl_(item, action, https, incognito, sel);
       (<RegExpOne> /a?/).test("");
     };
     if (sel === -1 && event && event !== !0 && event & KeyStat.altKey && (<RegExpOne> /^\w+(-\w+)?$/).test(item.u)) {
@@ -913,7 +914,12 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     if (str === (a.selection_ === -1 || a.isSelOriginal_ ? s0 : a.completions_[a.selection_].t)) {
       return;
     }
-    if (a.matchType_ === CompletersNS.MatchType.emptyResult && str.startsWith(s0)) { return; }
+    if (a.matchType_ === CompletersNS.MatchType.emptyResult && str.startsWith(s0)) {
+      if (!str.includes(" /", s0.length) || (<RegExpOne> /^\/|\s\//).test(str.slice(0, s0.length - 1))
+          || !(a.mode_.e ? a.mode_.e & CompletersNS.SugType.bookmark : "bomni bookmarks".includes(a.mode_.o))) {
+        return
+      }
+    }
     if (!str) { a.isHttps_ = a.baseHttps_ = null; }
     let i = a.input_.selectionStart, arr: RegExpExecArray | null;
     if (a.isSearchOnTop_) { /* empty */ }
@@ -1405,7 +1411,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         "&quot;);";
   },
   _parseFavIcon (item: SuggestionE, url: string): string {
-    let str = url.slice(0, 11).toLowerCase(), optionsPage = "/pages/options.html";
+    let str = url.slice(0, 11).toLowerCase(), optionsPage = "/" + GlobalConsts.OptionsPage
     let i: number;
     return str.startsWith("vimium://")
       ? Vomnibar_.pageType_ !== VomnibarNS.PageType.ext
@@ -1417,16 +1423,18 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
               || str.lastIndexOf("-", str.indexOf(":") + 1 || 8) > 0 && url.lastIndexOf("://", 21) > 0
             ? (i = url.indexOf("/", url.indexOf("://") + 3), i > 0 ? url.slice(0, i + 1) : url + "/") : url);
   },
-  navigateToUrl_ (url: string, reuse: ReuseType, https: boolean | null, incognito: Options["incognito"]
+  navigateToUrl_ (item: SugToExec, reuse: ReuseType, https: boolean | null, incognito: Options["incognito"]
       , sel: number): void {
+    const { u: url } = item
     if ((<RegExpI> /^javascript:/i).test(url)) {
       VPort_.postToOwner_({ N: VomnibarNS.kFReq.evalJS, u: url });
       return;
     }
-    const formatted = sel !== -1
-    VPort_.post_({ H: kFgReq.openUrl, f: formatted, r: reuse, h: https, u: url,
-        o: { i: incognito, s: formatted ? { r: false, k: "" } : Vomnibar_.sed_,
-             p: Vomnibar_.position_, t: formatted ? false : "whole" }})
+    // not set .formatted, so that convertToUrl is always called with Urls.WorkType.EvenAffectStatus
+    const noTest = sel !== -1
+    VPort_.post_({ H: kFgReq.openUrl, f: false, r: reuse, h: noTest ? null : https, u: url,
+        o: { i: incognito, s: noTest ? { r: false, k: "" } : Vomnibar_.sed_,
+             p: Vomnibar_.position_, t: noTest ? false : "whole" }})
     if (reuse === ReuseType.newBg
         && (!Vomnibar_.lastQuery_ || (<RegExpOne> /^\+\d{0,2}$/).exec(Vomnibar_.lastQuery_))) {
       return Vomnibar_.refresh_();
@@ -1761,21 +1769,17 @@ if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType
     return;
   }
 
-  const unsafeMsg: Array<[number, VomnibarNS.IframePort, Options | null]> = [],
+  const unsafeMsg: Array<[unsafeSecretCode: string, port: VomnibarNS.IframePort, options: Options | null]> = [],
   isWeb = curEl === null;
-  let _sec = 0 as number
-  const handler = function (this: void, secret: number, port: VomnibarNS.IframePort, options: Options | null): void {
-    if (_sec < 1 || secret !== _sec) {
-      _sec || unsafeMsg.push([secret, port, options]);
+  let _sec = ""
+  const handler = (unsafeSecretCode: string, port: VomnibarNS.IframePort, options: Options | null): void => {
+    if (!_sec || unsafeSecretCode !== _sec) {
+      _sec || unsafeMsg.push([unsafeSecretCode, port, options])
       return;
     }
-    _sec = -1;
+    _sec = "1"
     clearTimeout(autoUnloadTimer);
-    if (isWeb) {
       removeEventListener("message", onUnknownMsg, true);
-    } else {
-      window.onmessage = null as never;
-    }
     VPort_.postToOwner_ = port.postMessage.bind(port);
     port.onmessage = VPort_._OnOwnerMessage;
     window.onunload = Vomnibar_.OnUnload_;
@@ -1793,6 +1797,14 @@ if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType
   }, 700)
   Vomnibar_.secret_ = function (this: void, {l: payload, s: secret}): void {
     Vomnibar_.secret_ = null;
+    if (!secret) { // see https://github.com/philc/vimium/issues/3832
+      _sec = "2"; unsafeMsg.length = 0
+      removeEventListener("message", onUnknownMsg, true)
+      console.log("%cVimium C: warning: Vomnibar was unexpectedly opened without triggering Vomnibar.activate!!!"
+          , "color: red; background: lightyellow;")
+      if (!Build.NDEBUG) { clearTimeout(autoUnloadTimer); setTimeout(() => { location.href = "about:blank" }, 500) }
+      return
+    }
     if (!Build.BTypes || Build.BTypes & (Build.BTypes - 1)) {
       Vomnibar_.browser_ = payload.b!;
     }
@@ -1816,17 +1828,16 @@ if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType
       }
     }
   };
-  if (isWeb) {
     addEventListener("message", onUnknownMsg, true);
-  } else {
-    window.onmessage = onUnknownMsg;
-  }
   function onUnknownMsg(event: MessageEvent): void {
     if (event.source === parent) {
       const data: VomnibarNS.MessageData = event.data;
-      if (!(data && data.length === 2 && data[0] >= 0)) { return; }
+      if (!(data && data.length === 3 && data[0] === "VimiumC"
+            && typeof data[1] === "string" && typeof data[2] === "object")) { return }
       isWeb && VUtils_.Stop_(event, 0); // smell like VomnibarNS.MessageData
-      handler(data[0], event.ports[0], data[1]);
+      if (data[1].length === GlobalConsts.VomnibarSecretLength) {
+        handler(data[1], event.ports[0], data[2])
+      }
     }
   }
   VPort_.connect_(PortType.omnibar);

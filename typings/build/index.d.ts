@@ -4,9 +4,7 @@ declare const enum Build {
   BTypes = 3, // supported browser types: BrowserType.Chrome | BrowserType.Firefox
   Minify = 0,
   NDEBUG = 0,
-  NoDialogUI = 1,
   NativeWordMoveOnFirefox = 1,
-  MayOverrideNewTab = 0,
   MayAndroidOnFirefox = 1,
   DetectAPIOnFirefox = 1,
 }

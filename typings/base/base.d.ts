@@ -126,6 +126,7 @@ declare namespace chrome.tabs {
   interface CreateProperties {
     groupId?: Tab["groupId"]
     cookieStoreId?: GroupId
+    openInReaderMode?: boolean
   }
   export function group (options: { tabIds: number | number[], groupId?: number }): Promise<object>
 }
@@ -151,10 +152,11 @@ declare module chrome.downloads {
 
 declare module chrome.permissions {
   export type kPermissions = "downloads" | "downloads.shelf"
-      | "chrome://new-tab-page/" | "chrome://newtab/" | "chrome://*/*"
+      | "chrome://new-tab-page/*" | "chrome://newtab/*" | "chrome://*/*"
       | "clipboardRead" | "contentSettings" | "notifications" | "cookies"
   export interface Request { origins?: kPermissions[]; permissions?: kPermissions[] }
   export function contains(query: Request, callback: (result: boolean) => void): void
+  export function contains(query: Request): Promise<boolean>
   export function remove(query: Request, callback: (result: boolean) => void): void
   export function request(query: Request, callback: (result: boolean) => void): void
   export const onAdded: chrome.events.Event<(changes: Request, _fake: FakeArg) => void>
@@ -176,4 +178,8 @@ interface Navigator {
     isInputPending (options?: { includeContinuous?: boolean }): boolean // options must be an cls intance on C84 if exp
     isFramePending? (options?: {}): boolean
   }
+}
+
+declare module crypto {
+  const getRandomValues: (buffer: Uint8Array) => unknown
 }

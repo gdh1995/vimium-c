@@ -202,8 +202,16 @@ test -d "$WORKING_DIR" && cd "$WORKING_DIR" 2>/dev/null || cd "${EXE%/*}"
 WEB_EXT=node_modules/web-ext/bin/web-ext
 if test -f "$VC_ROOT/$WEB_EXT"; then
   WEB_EXT=$VC_ROOT/$WEB_EXT
-else
+elif test -f "$default_vc_root/$WEB_EXT"; then
   WEB_EXT=$default_vc_root/$WEB_EXT
+else
+  WEB_EXT=web-ext
+  NODE=$(which node.exe 2>/dev/null)
+  if test -n "$NODE"; then
+    NODE=$(dirname "$NODE")/npx
+  else
+    NODE=npx
+  fi
 fi
 
 if test $AUTO_RELOAD -le 0; then
@@ -212,7 +220,7 @@ fi
 
 # Refer: https://extensionworkshop.com/documentation/develop/getting-started-with-web-ext/
 echo -E web-ext run: "${exe_w}" at ${fud_w} with "${vc_ext_w}"
-$NODE $WEB_EXT run \
+"$NODE" $WEB_EXT run \
   --firefox "$EXE" \
   --firefox-profile "$FUD" \
   --source-dir "$VC_EXT" \

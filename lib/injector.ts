@@ -134,6 +134,7 @@ const call = useBrowser ? (): void => {
   }, (res): void => {
     const err = runtime.lastError as void | LastError
     err ? handler(undefined, err) : handler(res)
+    return err as void
   });
 }
 function start(): void {

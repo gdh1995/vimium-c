@@ -1,4 +1,11 @@
-import { framesForTab, findCSS_, innerCSS_, omniPayload, settings, set_findCSS_, set_innerCSS_ } from "./store"
+import {
+  findCSS_, innerCSS_, omniPayload_, set_findCSS_, set_innerCSS_, CurCVer_, CurFFVer_, IsEdg_, omniStyleOverridden_,
+  OnChrome, OnEdge, OnFirefox, isHighContrast_ff_, set_isHighContrast_ff_, bgIniting_, CONST_, set_helpDialogData_,
+  framesForOmni_, settingsCache_, set_omniStyleOverridden_
+} from "./store"
+import { asyncIter_, fetchFile_, spacesRe_ } from "./utils"
+import { broadcastOmni_, get_, postUpdate_, storage_, updateHooks_ } from "./settings"
+import { asyncIterFrames_ } from "./ports"
 
 declare const enum MergeAction {
   virtual = -1, readFromCache = 0, rebuildWhenInit = 1, rebuildAndBroadcast = 2,
@@ -9,100 +16,86 @@ interface ParsedSections {
   ui?: string; find?: string; "find:host"?: string; omni?: string
 }
 
-const StyleCacheId_ = settings.CONST_.VerCode_ + ","
-    + ( !(Build.BTypes & ~BrowserType.Chrome) || Build.BTypes & BrowserType.Chrome && OnOther === BrowserType.Chrome
-        ? CurCVer_
-        : !(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && OnOther & BrowserType.Firefox
-        ? CurFFVer_ : 0)
-    + ( (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
-          && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
-          && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
+const StyleCacheId_ = CONST_.VerCode_ + ","
+    + (OnChrome ? CurCVer_ : OnFirefox ? CurFFVer_ : 0)
+    + ( !OnEdge && (!OnChrome || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
+          && (!OnFirefox || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
         ? ""
-        : (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
-            ? window.ShadowRoot || document.body!.webkitCreateShadowRoot : window.ShadowRoot)
+        : (OnChrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
+            ? globalThis.ShadowRoot || document.body!.webkitCreateShadowRoot : globalThis.ShadowRoot)
         ? "s" : "")
-    + (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinUsableCSS$All ? ""
-      : (Build.MinCVer >= BrowserVer.MinUsableCSS$All || CurCVer_ > BrowserVer.MinUsableCSS$All - 1)
-        && (!(Build.BTypes & BrowserType.Edge) || Build.BTypes & ~BrowserType.Edge && OnOther !== BrowserType.Edge
-          || "all" in (document.body as HTMLElement).style)
+    + (OnChrome && Build.MinCVer >= BrowserVer.MinUsableCSS$All ? ""
+      : (!OnChrome || CurCVer_ > BrowserVer.MinUsableCSS$All - 1)
+        && (!OnEdge || "all" in (document.body as HTMLElement).style)
       ? "a" : "")
     + ";"
 
-const loadCSS = (action: MergeAction, cssStr?: string): SettingsNS.MergedCustomCSS | void => {
+export const reloadCSS_ = (action: MergeAction, cssStr?: string): SettingsNS.MergedCustomCSS | void => {
   if (action === MergeAction.virtual) {
     return mergeCSS(cssStr!, MergeAction.virtual)
   }
+  if (action === MergeAction.rebuildAndBroadcast) { set_helpDialogData_(null) }
   {
     let findCSSStr: string | null | false
-    if (findCSSStr = action === MergeAction.readFromCache && settings.storage_.getItem("findCSS")) {
+    if (findCSSStr = action === MergeAction.readFromCache && storage_.getItem("findCSS")) {
       // Note: The lines below are allowed as a special use case
       set_findCSS_(parseFindCSS_(findCSSStr))
       set_innerCSS_(cssStr!.slice(StyleCacheId_.length))
-      omniPayload.c = settings.storage_.getItem("omniCSS") || ""
+      omniPayload_.c = storage_.getItem("omniCSS") || ""
       return
     }
   }
-  settings.fetchFile_("baseCSS", (css: string): void => {
+  fetchFile_(CONST_.baseCSS).then((css: string): void => {
     const browserInfo = StyleCacheId_.slice(StyleCacheId_.indexOf(",") + 1),
-    hasAll = !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinUsableCSS$All
-        || browserInfo.includes("a")
+    hasAll = OnChrome && Build.MinCVer >= BrowserVer.MinUsableCSS$All || browserInfo.includes("a")
     if (!(Build.NDEBUG || css.startsWith(":host{"))) {
       console.log('Assert error: `css.startsWith(":host{")` in settings.updateHooks_.baseCSS')
     }
-    if (Build.BTypes & BrowserType.Firefox && Build.MinFFVer < FirefoxBrowserVer.MinUnprefixedUserSelect
-          && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
+    if (OnFirefox && Build.MinFFVer < FirefoxBrowserVer.MinUnprefixedUserSelect
         ? CurFFVer_ < FirefoxBrowserVer.MinUnprefixedUserSelect
-        : Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinUnprefixedUserSelect
-          && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)
-        ? CurCVer_ < BrowserVer.MinUnprefixedUserSelect
-        : false) {
+        : OnChrome && Build.MinCVer < BrowserVer.MinUnprefixedUserSelect
+          && CurCVer_ < BrowserVer.MinUnprefixedUserSelect) {
       // on Firefox, the `-webkit` prefix is in the control of `layout.css.prefixes.webkit`
-      css = css.replace(<RegExpG> /user-select\b/g, Build.BTypes & BrowserType.Firefox
-          && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox) ? "-moz-$&" : "-webkit-$&")
+      css = css.replace(<RegExpG> /user-select\b/g, OnFirefox ? "-moz-$&" : "-webkit-$&")
     }
     if (!Build.NDEBUG) {
       css = css.replace(<RegExpG> /\r\n?/g, "\n")
     }
     const cssFile = parseSections_(css)
     let isHighContrast_ff = false, hcChanged_ff = false
-    if (!(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && OnOther & BrowserType.Firefox) {
+    if (OnFirefox) {
       if (!matchMedia("(forced-colors)").matches) {
-        isHighContrast_ff = settings.storage_.getItem(GlobalConsts.kIsHighContrast) === "1"
+        isHighContrast_ff = storage_.getItem(GlobalConsts.kIsHighContrast) === "1"
       }
-      hcChanged_ff = settings.temp_.isHighContrast_ff_ !== isHighContrast_ff
-      settings.temp_.isHighContrast_ff_ = isHighContrast_ff
+      hcChanged_ff = isHighContrast_ff_ !== isHighContrast_ff
+      set_isHighContrast_ff_(isHighContrast_ff)
     }
     css = cssFile.ui!
-    if (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinUsableCSS$All || hasAll) {
+    if (hasAll) {
       // Note: must not move "all:" into ":host" even when "s" and >= MinSelector$deep$InDynamicCssMeansNothing
       // in case that ":host" is set [style="all:unset"]
       const ind2 = css.indexOf("all:"), ind1 = css.lastIndexOf("{", ind2),
-      ind3 = Build.MinCVer >= BrowserVer.MinEnsuredSafeInnerCSS || !(Build.BTypes & BrowserType.Chrome)
-            || CurCVer_ >= BrowserVer.MinEnsuredSafeInnerCSS
-        ? css.indexOf(";", ind2) : css.length
+      ind3 = !OnChrome || Build.MinCVer >= BrowserVer.MinEnsuredSafeInnerCSS
+          || CurCVer_ >= BrowserVer.MinEnsuredSafeInnerCSS ? css.indexOf(";", ind2) : css.length
       css = css.slice(0, ind1 + 1) + css.slice(ind2, ind3 + 1)
           + css.slice(css.indexOf("\n", ind3) + 1 || css.length)
     } else {
       css = css.replace(<RegExpOne> /all:\s?\w+;?/, "")
     }
-    if ((Build.MinCVer >= BrowserVer.MinEnsuredDisplayContents || !(Build.BTypes & BrowserType.Chrome)
+    if ((!OnChrome || Build.MinCVer >= BrowserVer.MinEnsuredDisplayContents
           || CurCVer_ > BrowserVer.MinEnsuredDisplayContents - 1)
-        && !(Build.BTypes & BrowserType.Edge
-              && (!(Build.BTypes & ~BrowserType.Edge) || OnOther === BrowserType.Edge))) {
+        && !OnEdge) {
       const ind2 = css.indexOf("display:"), ind1 = css.lastIndexOf("{", ind2)
       css = css.slice(0, ind1 + 1) + css.slice(ind2)
     } else {
       css = css.replace("contents", "block")
     }
-    if (Build.MinCVer < BrowserVer.MinSpecCompliantShadowBlurRadius
-        && Build.BTypes & BrowserType.Chrome
+    if (OnChrome && Build.MinCVer < BrowserVer.MinSpecCompliantShadowBlurRadius
         && CurCVer_ < BrowserVer.MinSpecCompliantShadowBlurRadius) {
       css = css.replace("3px 5px", "3px 7px")
     }
-    if ((Build.BTypes & (BrowserType.Chrome | BrowserType.Edge) && Build.MinCVer < BrowserVer.MinCSS$Color$$RRGGBBAA
-        && ((!(Build.BTypes & ~BrowserType.Edge) || Build.BTypes & BrowserType.Edge && OnOther === BrowserType.Edge)
-          || CurCVer_ < BrowserVer.MinCSS$Color$$RRGGBBAA
-        ))) {
+    if (OnEdge || OnChrome && Build.MinCVer < BrowserVer.MinCSS$Color$$RRGGBBAA
+        && CurCVer_ < BrowserVer.MinCSS$Color$$RRGGBBAA) {
       css = css.replace(<RegExpG & RegExpSearchable<0>> /#[\da-f]{4}([\da-f]{4})?\b/gi, (s: string): string => {
         s = s.length === 5 ? "#" + s[1] + s[1] + s[2] + s[2] + s[3] + s[3] + s[4] + s[4] : s
         const color = parseInt(s.slice(1), 16),
@@ -110,32 +103,30 @@ const loadCSS = (action: MergeAction, cssStr?: string): SettingsNS.MergedCustomC
         return `rgba(${r},${g},${b},${alpha.slice(0, 4)})`
       })
     }
-    if (!(Build.BTypes & BrowserType.Chrome) || Build.BTypes & ~BrowserType.Chrome && OnOther !== BrowserType.Chrome
-        || (Build.MinCVer < BrowserVer.MinAbsolutePositionNotCauseScrollbar
+    if (!OnChrome || (Build.MinCVer < BrowserVer.MinAbsolutePositionNotCauseScrollbar
             && CurCVer_ < BrowserVer.MinAbsolutePositionNotCauseScrollbar)) {
       css = css.replace(".LH{", ".LH{box-sizing:border-box;")
     }
-    if (!(Build.BTypes & ~BrowserType.Firefox)
-        || Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox) {
+    if (OnFirefox) {
       const ind1 = css.indexOf(".LH{") + 4, ind2 = css.indexOf("}", ind1)
       let items = css.slice(ind1, ind2).replace("2.5px 3px 2px", "3px").replace("0.5px", "1px")
       css = css.slice(0, ind1) + items + css.slice(ind2)
     }
-    if (Build.BTypes & BrowserType.Firefox && isHighContrast_ff) {
+    if (OnFirefox && isHighContrast_ff) {
       css = css.replace(<RegExpOne> /\n\.D[^@]+/, "").replace("@media(forced-colors:active){", "").slice(0, -1)
-    } else if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinForcedColorsMode
+    } else if (OnChrome && Build.MinCVer < BrowserVer.MinForcedColorsMode
         && IsEdg_ && CurCVer_ < BrowserVer.MinForcedColorsMode) {
       css = css.replace("forced-colors", "-ms-high-contrast")
     }
-    if (!((!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
-          && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
-          && !(Build.BTypes & ~BrowserType.ChromeOrFirefox))
+    if (!((!OnChrome || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
+          && (!OnFirefox || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
+          && !OnEdge)
         && !browserInfo.includes("s")) {
       /** Note: {@link ../front/vimium-c.css}: this requires `:host{` is at the beginning */
       const hostEnd = css.indexOf("}") + 1, secondEnd = css.indexOf("}", hostEnd) + 1,
       prefix = "#VimiumUI"
       let body = css.slice(secondEnd)
-      if (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinUsableCSS$All || hasAll) {
+      if (hasAll) {
         body = body.replace(<RegExpG> /\b[IL]H\s?\{/g, "$&all:inherit;")
       }
       body += `${prefix}:before,${prefix}:after,.R:before,.R:not(.HUD):after{display:none!important}`
@@ -144,19 +135,19 @@ const loadCSS = (action: MergeAction, cssStr?: string): SettingsNS.MergedCustomC
           body.replace(<RegExpG> /\.[A-Z][^,{]*/g, prefix + " $&")
     }
     css = css.replace(<RegExpG> /\n/g, "")
-    if (Build.MinCVer < BrowserVer.MinBorderWidth$Ensure1$Or$Floor && Build.BTypes & BrowserType.Chrome
+    if (OnChrome && Build.MinCVer < BrowserVer.MinBorderWidth$Ensure1$Or$Floor
         && CurCVer_ < BrowserVer.MinBorderWidth$Ensure1$Or$Floor) {
       const defaultWidth = Build.MinCVer < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo
           && CurCVer_ < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo ? 1 : 0.5
       css = css.replace(<RegExpG> /0\.01|\/\*!DPI\*\/ ?[\d.]+/g, "/*!DPI*/" + defaultWidth)
     }
-    settings.storage_.setItem("innerCSS", StyleCacheId_ + css)
+    storage_.setItem("innerCSS", StyleCacheId_ + css)
     let findCSS = cssFile.find!
-    settings.storage_.setItem("findCSS", findCSS.length + "\n" + findCSS)
-    if (Build.BTypes & BrowserType.Firefox && hcChanged_ff && Backend_) {
-      settings.postUpdate_("vomnibarOptions")
+    storage_.setItem("findCSS", findCSS.length + "\n" + findCSS)
+    if (OnFirefox && hcChanged_ff && bgIniting_ === BackendHandlersNS.kInitStat.FINISHED) {
+      postUpdate_("vomnibarOptions")
     }
-    mergeCSS(settings.get_("userDefinedCss"), action)
+    mergeCSS(get_("userDefinedCss"), action)
   })
 }
 
@@ -178,12 +169,12 @@ const parseFindCSS_ = (find2: string): FindCSS => {
 }
 
 const mergeCSS = (css2Str: string, action: MergeAction | "userDefinedCss"): SettingsNS.MergedCustomCSS | void => {
-  let css = settings.storage_.getItem("innerCSS")!, idx = css.indexOf("\n")
+  let css = storage_.getItem("innerCSS")!, idx = css.indexOf("\n")
   css = idx > 0 ? css.slice(0, idx) : css
   const css2 = parseSections_(css2Str)
   let newInnerCSS = css2.ui ? css + "\n" + css2.ui : css
   let findh = css2["find:host"], find2 = css2.find, omni2 = css2.omni, F = "findCSS", O = "omniCSS"
-  css = settings.storage_.getItem(F)!
+  css = storage_.getItem(F)!
   idx = css.indexOf("\n")
   css = css.slice(0, idx + 1 + +css.slice(0, idx))
   let endFH = css.indexOf("\n", css.indexOf("\n", idx + 1) + 1), offsetFH = css.lastIndexOf("  ", endFH)
@@ -193,46 +184,61 @@ const mergeCSS = (css2Str: string, action: MergeAction | "userDefinedCss"): Sett
     css = css.length + "\n" + css
   }
   find2 = find2 ? css + "\n" + find2 : css
-  css = (settings.storage_.getItem(O) || "").split("\n", 1)[0]
+  css = (storage_.getItem(O) || "").split("\n", 1)[0]
   omni2 = omni2 ? css + "\n" + omni2 : css
   if (action === MergeAction.virtual) {
     return { ui: newInnerCSS.slice(StyleCacheId_.length), find: parseFindCSS_(find2), omni: omni2 }
   }
 
-  settings.storage_.setItem("innerCSS", newInnerCSS)
-  settings.storage_.setItem(F, find2)
-  omni2 ? settings.storage_.setItem(O, omni2) : settings.storage_.removeItem(O)
-  loadCSS(MergeAction.readFromCache, newInnerCSS)
+  storage_.setItem("innerCSS", newInnerCSS)
+  storage_.setItem(F, find2)
+  omni2 ? storage_.setItem(O, omni2) : storage_.removeItem(O)
+  reloadCSS_(MergeAction.readFromCache, newInnerCSS)
   if (action !== MergeAction.readFromCache && action !== MergeAction.rebuildWhenInit) {
-    const request: Req.bg<kBgReq.showHUD> = { N: kBgReq.showHUD, H: innerCSS_, f: findCSS_ }
-    if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.BuildMinForOf) {
-      framesForTab.forEach((frames: Frames.Frames): void => {
+    asyncIterFrames_((frames: Frames.Frames): void => {
         for (const port of frames.ports_) {
+          const flags = port.s.flags_
           if (port.s.flags_ & Frames.Flags.hasCSS) {
-            port.postMessage(request)
-            port.s.flags_ |= Frames.Flags.hasFindCSS
+            port.postMessage({
+              N: kBgReq.showHUD, H: innerCSS_, f: flags & Frames.Flags.hasFindCSS ? findCSS_ : void 0
+            })
           }
         }
-      })
-    } else for (const frames of framesForTab.values()) { // eslint-disable-line curly
-      for (const port of frames.ports_) {
-        if (port.s.flags_ & Frames.Flags.hasCSS) {
-          port.postMessage(request)
-          port.s.flags_ |= Frames.Flags.hasFindCSS
-        }
-      }
-    }
-    settings.broadcastOmni_({ N: kBgReq.omni_updateOptions, d: { c: omniPayload.c } })
+    })
+    broadcastOmni_({ N: kBgReq.omni_updateOptions, d: { c: omniPayload_.c } })
   }
 }
 
-settings.updateHooks_.userDefinedCss = mergeCSS
-settings.reloadCSS_ = loadCSS as typeof settings.reloadCSS_
+export const setOmniStyle_ = (req: FgReq[kFgReq.setOmniStyle], port?: Port): void => {
+  let styles: string, curStyles = omniPayload_.s
+  if (!req.o && omniStyleOverridden_) {
+    return
+  }
+  {
+    let toggled = ` ${req.t} `, extSt = curStyles && ` ${curStyles} `, exists = extSt.includes(toggled),
+    newExist = req.e != null ? req.e : exists
+    styles = newExist ? exists ? curStyles : curStyles + toggled : extSt.replace(toggled, " ")
+    styles = styles.trim().replace(spacesRe_, " ")
+    if (req.b === false) { omniPayload_.s = styles; return }
+    if (req.o) {
+      set_omniStyleOverridden_(newExist !== (` ${settingsCache_.vomnibarOptions.styles} `.includes(toggled)))
+    }
+  }
+  if (styles === curStyles) { return }
+  omniPayload_.s = styles
+  const request2: Req.bg<kBgReq.omni_updateOptions> = { N: kBgReq.omni_updateOptions, d: { s: styles } }
+  asyncIter_(framesForOmni_.slice(0), (frame): number => {
+    frame !== port && framesForOmni_.includes!(frame) && frame.postMessage(request2)
+    return 1
+  })
+}
 
-set_innerCSS_(settings.storage_.getItem("innerCSS") || "")
-if (innerCSS_ && innerCSS_.startsWith(StyleCacheId_)) {
-  settings.storage_.removeItem("vomnibarPage_f")
-  loadCSS(MergeAction.rebuildWhenInit, innerCSS_)
+updateHooks_.userDefinedCss = mergeCSS
+
+set_innerCSS_(storage_.getItem("innerCSS") || "")
+if (innerCSS_ && !innerCSS_.startsWith(StyleCacheId_)) {
+  storage_.removeItem("vomnibarPage_f")
+  reloadCSS_(MergeAction.rebuildWhenInit, innerCSS_)
 } else {
-  loadCSS(MergeAction.readFromCache, innerCSS_)
+  reloadCSS_(MergeAction.readFromCache, innerCSS_)
 }

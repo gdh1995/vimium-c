@@ -1,14 +1,25 @@
 import {
-  browserTabs, browserWindows, makeTempWindow, makeWindow, PopWindow, Tab, tabsCreate, Window, getTabUrl, selectFrom,
-  runtimeError_, IncNormalWnd, selectWnd, selectTab, getCurWnd, getCurTabs, getCurTab, getGroupId, tabsUpdate
+  cRepeat, get_cOptions, cPort, cNeedConfirm, curIncognito_, curTabId_, curWndId_, recencyForTab_,
+  copy_, settingsCache_, CurCVer_, IsEdg_, OnChrome, OnEdge, OnFirefox, CONST_, reqH_
+} from "./store"
+import * as BgUtils_ from "./utils"
+import {
+  Tabs_, Windows_, makeTempWindow, makeWindow, PopWindow, tabsCreate, Window, getTabUrl, selectFrom, tabsGet,
+  runtimeError_, IncNormalWnd, selectWnd, selectTab, getCurWnd, getCurTabs, getCurTab, getGroupId, tabsUpdate,
+  browserSessions_, InfoToCreateMultiTab, openMultiTabs, isTabMuted, isRefusingIncognito_
 } from "./browser"
-import { cRepeat, get_cOptions, cPort, cNeedConfirm, set_cPort, settings } from "./store"
-import { complainLimits, requireURL, showHUD } from "./ports"
-import { copy_, parseSedOptions_ } from "./clipboard"
+import { convertToUrl_ } from "./normalize_urls"
+import { parseSearchUrl_ } from "./parse_urls"
+import { complainLimits, requireURL_, showHUD } from "./ports"
+import { trans_ } from "./i18n"
 import { confirm_, runNextCmd, overrideCmdOptions } from "./run_commands"
+import { parseSedOptions_ } from "./clipboard"
 import { newTabIndex, preferLastWnd, openUrlWithActions } from "./open_urls"
 import { focusFrame } from "./frame_commands"
+import { TabRecency_ } from "./tools"
+
 import C = kBgCmd
+declare const enum RefreshTabStep { start = 0, s1, s2, s3, s4, end }
 
 const abs = Math.abs
 
@@ -28,29 +39,6 @@ export const getTabRange = (current: number, total: number, countToAutoLimitBefo
 
 const notifyCKey = (): void => { cPort && focusFrame(cPort, false, FrameMaskType.NoMaskAndNoFocus) }
 
-export const copyData = (request: FgReq[kFgReq.copy], port: Port): void => {
-  let str: string | string[] | object[] | undefined
-  str = request.u || request.s
-  if (request.d) {
-    if (typeof str !== "string") {
-      for (let i = str.length; 0 <= --i; ) {
-        str[i] = BgUtils_.decodeUrlForCopy_(str[i] + "")
-      }
-    } else {
-      str = BgUtils_.decodeUrlForCopy_(str)
-    }
-  } else {
-    if (str.length < 4 && !(str as string).trim() && str[0] === " ") {
-      str = ""
-    }
-  }
-  str = str && copy_(str, request.j, request.e)
-  set_cPort(port)
-  str = request.s && typeof request.s === "object" ? `[${request.s.length}] ` + request.s.slice(-1)[0] : str
-  showHUD(request.d ? str.replace(<RegExpG & RegExpSearchable<0>> /%[0-7][\dA-Fa-f]/g, decodeURIComponent)
-      : str, request.u ? kTip.noUrlCopied : kTip.noTextCopied)
-}
-
 export const copyWindowInfo = (): void | kBgCmd.copyWindowInfo => {
   let decoded = !!(get_cOptions<C.copyWindowInfo>().decoded || get_cOptions<C.copyWindowInfo>().decode),
   type = get_cOptions<C.copyWindowInfo>().type
@@ -61,23 +49,23 @@ export const copyWindowInfo = (): void | kBgCmd.copyWindowInfo => {
         N: kBgReq.url, H: kFgReq.copy, d: decoded, e: sed
       } as Req.bg<kBgReq.url> & FgReq[kFgReq.copy])
     } else {
-      requireURL({ H: kFgReq.copy, u: "" as "url", d: decoded, e: sed })
+      requireURL_({ H: kFgReq.copy, u: "" as "url", d: decoded, e: sed })
     }
     return
   }
   // include those hidden on Firefox
-  browserTabs.query(type === "browser" ? {windowType: "normal"}
+  Tabs_.query(type === "browser" ? {windowType: "normal"}
       : { active: type !== "window" && (type !== "tab" || abs(cRepeat) < 2) || void 0,
           currentWindow: true }, (tabs): void => {
     if (!type || type === "title" || type === "frame" || type === "url") {
-      copyData({
+      reqH_[kFgReq.copy]({
         u: (type === "title" ? tabs[0].title : getTabUrl(tabs[0])) as "url",
         d: decoded, e: sed
       }, cPort)
       runNextCmd<C.copyWindowInfo>(1)
       return
     }
-    const incognito = cPort ? cPort.s.incognito_ : TabRecency_.incognito_ === IncognitoType.true,
+    const incognito = cPort ? cPort.s.incognito_ : curIncognito_ === IncognitoType.true,
     rawFormat = get_cOptions<C.copyWindowInfo>().format, format = "" + (rawFormat || "${title}: ${url}"),
     join = get_cOptions<C.copyWindowInfo, true>().join, isPlainJSON = join === "json" && !rawFormat,
     nameRe = <RegExpG & RegExpSearchable<1>> /\$\{([^}]+)\}/g
@@ -108,19 +96,18 @@ export const joinTabs = (): void | kBgCmd.joinTabs => {
       : get_cOptions<C.joinTabs, true>().sort
   const windowsOpt: string | undefined | null = get_cOptions<C.joinTabs, true>().windows
   const onlyCurrent = windowsOpt === "current"
-  if (Build.BTypes & BrowserType.Edge && (!(Build.BTypes & ~BrowserType.Edge) || OnOther & BrowserType.Edge)
-      && !onlyCurrent) {
+  if (OnEdge && !onlyCurrent) {
     showHUD("Can not collect tab info of all windows")
     return
   }
   const onWindows = (wnds: Array<Window & {tabs: Tab[]}>): void => {
-    if (Build.MinCVer < BrowserVer.Min$windows$$GetAll$SupportWindowTypes && Build.BTypes & BrowserType.Chrome
+    if (OnChrome && Build.MinCVer < BrowserVer.Min$windows$$GetAll$SupportWindowTypes
         && CurCVer_ < BrowserVer.Min$windows$$GetAll$SupportWindowTypes) {
       wnds = wnds.filter(wnd => wnd.type === "normal" || wnd.type === "popup")
     }
-    const isCurTabIncognito = TabRecency_.incognito_ === IncognitoType.true
+    const isCurTabIncognito = curIncognito_ === IncognitoType.true
     wnds = onlyCurrent ? wnds : wnds.filter(wnd => wnd.incognito === isCurTabIncognito)
-    const _cur0 = onlyCurrent ? wnds : wnds.filter(wnd => wnd.id === TabRecency_.curWnd_)
+    const _cur0 = onlyCurrent ? wnds : wnds.filter(wnd => wnd.id === curWndId_)
     const _curWnd = _cur0.length ? _cur0[0] : null
     if (!onlyCurrent && !_curWnd) { return }
     const cb = (curWnd: typeof wnds[0] | null): void => {
@@ -143,11 +130,9 @@ export const joinTabs = (): void | kBgCmd.joinTabs => {
           scale = key[0] === "r" ? -1 : 1
           if (key.includes("time") && !key.includes("creat") || key.includes("recen")) {
             list[0].time == null && list.forEach(i => {
-              const id = i.tab.id, recency = TabRecency_.tabs_.get(id)
-              i.time = id === TabRecency_.curTab_ ? 1 : recency != null ? GlobalConsts.MaxTabRecency - recency.i
-                : Build.BTypes & BrowserType.Firefox
-                  && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther & BrowserType.Firefox)
-                  && (i.tab as Tab & {lastAccessed?: number}).lastAccessed || id + 2
+              const id = i.tab.id, recency = recencyForTab_.get(id)
+              i.time = id === curTabId_ ? 1 : recency != null ? GlobalConsts.MaxTabRecency - recency.i
+                : OnFirefox && (i.tab as Tab & {lastAccessed?: number}).lastAccessed || id + 2
             })
             scale = key[0] === "r" && key[1] !== "e" ? -1 : 1
             work = 1
@@ -182,10 +167,10 @@ export const joinTabs = (): void | kBgCmd.joinTabs => {
         changed && (allTabs = list.map(i => i.tab))
       }
       let start = curWnd ? curWnd.tabs.length : 0
-      const curWndId = curWnd ? curWnd.id : TabRecency_.curWnd_
+      const curWndId = curWnd ? curWnd.id : curWndId_
       // Note: on Edge 84, the result of `tabs.move(number[], {index: number})` is (stable but) unpredictable
       for (const tab of allTabs) {
-        browserTabs.move(tab.id, { windowId: curWndId, index: start++ })
+        Tabs_.move(tab.id, { windowId: curWndId, index: start++ })
       }
       for (const tab of allTabs) {
         tab.pinned && tabsUpdate(tab.id, { pinned: true })
@@ -205,8 +190,8 @@ export const joinTabs = (): void | kBgCmd.joinTabs => {
   if (onlyCurrent) {
     getCurWnd(true, wnd => wnd ? onWindows([wnd]) : runtimeError_())
   } else {
-    browserWindows.getAll(Build.MinCVer < BrowserVer.Min$windows$$GetAll$SupportWindowTypes
-        && Build.BTypes & BrowserType.Chrome && CurCVer_ < BrowserVer.Min$windows$$GetAll$SupportWindowTypes
+    Windows_.getAll(OnChrome && Build.MinCVer < BrowserVer.Min$windows$$GetAll$SupportWindowTypes
+        && CurCVer_ < BrowserVer.Min$windows$$GetAll$SupportWindowTypes
         ? {populate: true} : {populate: true, windowTypes: ["normal", "popup"]},
     onWindows)
   }
@@ -221,7 +206,7 @@ export const moveTabToNewWindow = (): void | kBgCmd.moveTabToNewWindow => {
     const { incognito: curIncognito, index: activeTabIndex } = selectFrom(tabs)
     let range: [number, number], count: number
     if (all) {
-      if (Build.BTypes & ~BrowserType.Edge) {
+      if (!OnEdge) {
         for (const i of tabs) {
           if (getGroupId(i) != null) {
             /** @todo: fix it with Manifest V3 */
@@ -235,24 +220,17 @@ export const moveTabToNewWindow = (): void | kBgCmd.moveTabToNewWindow => {
       range = getTabRange(activeTabIndex, total), count = range[1] - range[0]
       if (count >= total) { return showHUD(trans_("moveAllTabs")) }
       if (count > 30) {
-        if (!(Build.BTypes & BrowserType.Chrome)
-            || Build.BTypes & ~BrowserType.Chrome && OnOther !== BrowserType.Chrome) {
           if (cNeedConfirm) {
-            confirm_("moveTabToNewWindow", count, moveTabToNewWindow0.bind(null, wnd))
+            void confirm_("moveTabToNewWindow", count).then(moveTabToNewWindow0.bind(null, wnd))
             return
           }
-        } else {
-          if (!(count = confirm_("moveTabToNewWindow", count)!)) { return }
-          if (count < 2) { range = [activeTabIndex, activeTabIndex + 1] }
-        }
       }
     }
     makeWindow({ tabId: tabs[activeTabIndex].id, incognito: curIncognito }, wnd.type === "normal" ? wnd.state : ""
         , count < 2 ? notifyCKey : (wnd2: Window): void => {
       notifyCKey()
       let leftTabs = tabs.slice(range[0], activeTabIndex), rightTabs = tabs.slice(activeTabIndex + 1, range[1])
-      if (Build.MinCVer < BrowserVer.MinNoAbnormalIncognito
-          && Build.BTypes & BrowserType.Chrome
+      if (OnChrome && Build.MinCVer < BrowserVer.MinNoAbnormalIncognito
           && wnd.incognito && CurCVer_ < BrowserVer.MinNoAbnormalIncognito) {
         const filter = (tab2: Tab): boolean => tab2.incognito === curIncognito
         leftTabs = leftTabs.filter(filter)
@@ -261,26 +239,24 @@ export const moveTabToNewWindow = (): void | kBgCmd.moveTabToNewWindow => {
       const leftNum = leftTabs.length, rightNum = rightTabs.length
       const getId = (tab2: Tab): number => tab2.id
       if (!leftNum) { /* empty */ }
-      else if (Build.BTypes & BrowserType.Firefox
-          && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)) {
+      else if (OnFirefox) {
         for (let i = 0; i < leftNum; i++) {
-          browserTabs.move(leftTabs[i].id, { index: i, windowId: wnd2.id }, runtimeError_)
+          Tabs_.move(leftTabs[i].id, { index: i, windowId: wnd2.id }, runtimeError_)
         }
       } else {
-        browserTabs.move(leftTabs.map(getId), {index: 0, windowId: wnd2.id}, runtimeError_)
+        Tabs_.move(leftTabs.map(getId), {index: 0, windowId: wnd2.id}, runtimeError_)
         if (leftNum > 1) {
           // on Chrome, current order is [left[0], activeTabIndex, ...left[1:]], so need to move again
-          browserTabs.move(tabs[activeTabIndex].id, { index: leftNum })
+          Tabs_.move(tabs[activeTabIndex].id, { index: leftNum })
         }
       }
       if (!rightNum) { /* empty */ }
-      else if (Build.BTypes & BrowserType.Firefox
-          && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)) {
+      else if (OnFirefox) {
         for (let i = 0; i < rightNum; i++) {
-          browserTabs.move(rightTabs[i].id, { index: leftNum + 1 + i, windowId: wnd2.id }, runtimeError_)
+          Tabs_.move(rightTabs[i].id, { index: leftNum + 1 + i, windowId: wnd2.id }, runtimeError_)
         }
       } else {
-        browserTabs.move(rightTabs.map(getId), { index: leftNum + 1, windowId: wnd2.id }, runtimeError_)
+        Tabs_.move(rightTabs.map(getId), { index: leftNum + 1, windowId: wnd2.id }, runtimeError_)
       }
       for (const tab of tabs) {
         tab.pinned && tabsUpdate(tab.id, { pinned: true })
@@ -295,38 +271,38 @@ export const moveTabToNewWindow = (): void | kBgCmd.moveTabToNewWindow => {
     const options: {tabId?: number, url?: string, incognito: true, focused?: true} = {incognito: true},
     url = getTabUrl(tab)
     if (tab.incognito) { /* empty */ }
-    else if (Build.MinCVer < BrowserVer.MinNoAbnormalIncognito && Build.BTypes & BrowserType.Chrome
+    else if (OnChrome && Build.MinCVer < BrowserVer.MinNoAbnormalIncognito
         && wnd.incognito) {
-      if (BgUtils_.isRefusingIncognito_(url)) {
+      if (isRefusingIncognito_(url)) {
         return showHUD(trans_(kInc))
       }
-      return Backend_.reopenTab_(tab)
-    } else if (BgUtils_.isRefusingIncognito_(url)) {
+      return reopenTab_(tab)
+    } else if (isRefusingIncognito_(url)) {
       return complainLimits(trans_("openIncog"))
     } else {
       options.url = url
     }
     wnd.tabs = null as never
-    browserWindows.getAll((wnds): void => {
+    Windows_.getAll((wnds): void => {
       // eslint-disable-next-line arrow-body-style
       wnds = wnds.filter((wnd2: Window): wnd2 is IncNormalWnd => {
         return wnd2.incognito && wnd2.type === "normal"
       })
       if (wnds.length) {
-        browserTabs.query({ windowId: preferLastWnd(wnds).id, active: true }, ([tab2]): void => {
+        Tabs_.query({ windowId: preferLastWnd(wnds).id, active: true }, ([tab2]): void => {
           /* safe-for-group */ tabsCreate({
               url, windowId: tab2.windowId,
               index: newTabIndex(tab2, get_cOptions<C.moveTabToNewWindow>().position, false, false)
           })
           selectWnd(tab2)
-          browserTabs.remove(tabId)
+          Tabs_.remove(tabId)
         })
         return
       }
       let state: chrome.windows.ValidStates | "" = wnd.type === "normal" ? wnd.state : ""
       let useUrl: boolean
       if (useUrl = options.url != null) {
-        if (settings.CONST_.DisallowIncognito_) {
+        if (CONST_.DisallowIncognito_) {
           options.focused = true
           state = ""
         }
@@ -337,12 +313,12 @@ export const moveTabToNewWindow = (): void | kBgCmd.moveTabToNewWindow => {
       // so there's no need to worry about stranger edge cases like "normal window + incognito tab + not allowed"
       makeWindow(options, state, tabId ? null : notifyCKey)
       if (useUrl) {
-        browserTabs.remove(tabId)
+        Tabs_.remove(tabId)
       }
     })
   }
   const incognito = !!get_cOptions<C.moveTabToNewWindow>().incognito
-  if (incognito && (cPort ? cPort.s.incognito_ : TabRecency_.incognito_ === IncognitoType.true)) {
+  if (incognito && (cPort ? cPort.s.incognito_ : curIncognito_ === IncognitoType.true)) {
     showHUD(trans_(kInc))
   } else {
     getCurWnd(true, incognito ? moveTabToIncognito : moveTabToNewWindow0)
@@ -350,7 +326,7 @@ export const moveTabToNewWindow = (): void | kBgCmd.moveTabToNewWindow => {
 }
 
 export const moveTabToNextWindow = ([tab]: [Tab]): void | kBgCmd.moveTabToNextWindow => {
-  browserWindows.getAll((wnds0: Window[]): void => {
+  Windows_.getAll((wnds0: Window[]): void => {
     let wnds: Window[], ids: number[]
     const noMin = get_cOptions<C.moveTabToNextWindow>().minimized === false
         || get_cOptions<C.moveTabToNextWindow>().min === false
@@ -363,21 +339,30 @@ export const moveTabToNextWindow = ([tab]: [Tab]): void | kBgCmd.moveTabToNextWi
         let dest = (index + cRepeat) % ids.length
         index < 0 && cRepeat < 0 && dest++
         dest < 0 && (dest += ids.length)
-        browserTabs.query({windowId: ids[dest], active: true}, ([tab2]): void => {
+        Tabs_.query({windowId: ids[dest], active: true}, ([tab2]): void => {
           const newIndex = get_cOptions<C.moveTabToNextWindow>().end ? null
               : get_cOptions<C.moveTabToNextWindow>().position != null
               ? newTabIndex(tab, get_cOptions<C.moveTabToNextWindow>().position, false, false)
-              : tab2.index + (get_cOptions<C.moveTabToNextWindow>().right ? 1 : 0)
+              : tab2.index + (get_cOptions<C.moveTabToNextWindow>().right !== false ? 1 : 0)
+          const toRight = newIndex == null || newIndex > tab2.index
           const callback = (): void => {
-            browserTabs.move(tab.id, { index: newIndex ?? 3e4, windowId: tab2.windowId }, (): void => {
-              notifyCKey()
-              selectTab(tab.id, selectWnd)
-            })
+            if (toActivateInOld === -1) {
+              Tabs_.query({ windowId: tab.windowId, index: tab.index + (toRight ? -1 : 1) }, (toActivate): void => {
+                toActivateInOld = toActivate && toActivate[0] && toActivate[0].id || -9
+                callback()
+                return runtimeError_()
+              })
+              return
+            }
+            Tabs_.move(tab.id, { index: newIndex ?? -1, windowId: tab2.windowId }, notifyCKey)
+            selectWnd(tab2)
+            selectTab(tab.id)
+            toActivateInOld > 0 && selectTab(toActivateInOld)
           }
-          Build.MinCVer >= BrowserVer.MinNoAbnormalIncognito || !(Build.BTypes & BrowserType.Chrome)
-          ? /*#__INLINE__*/ callback()
+          let toActivateInOld = toRight && !tab.index ? -9 : -1
+          !OnChrome || Build.MinCVer >= BrowserVer.MinNoAbnormalIncognito ? /*#__INLINE__*/ callback()
           : index >= 0 || CurCVer_ >= BrowserVer.MinNoAbnormalIncognito ? callback()
-          : makeTempWindow(tab.id, tab.incognito, callback)
+          : (toActivateInOld = -9, makeTempWindow(tab.id, tab.incognito, callback))
         })
         return
       }
@@ -394,7 +379,7 @@ export const reloadTab = (tabs?: Tab[] | never[] | [Tab]): void => {
   const reloadProperties = {
     bypassCache: (get_cOptions<C.reloadTab>().hard || get_cOptions<C.reloadTab>().bypassCache) === true
   },
-  reload = browserTabs.reload
+  reload = Tabs_.reload
   if (!tabs || tabs.length < 1) {
     if (tabs) {
       getCurWnd(true, wnd => {
@@ -416,19 +401,10 @@ export const reloadTab = (tabs?: Tab[] | never[] | [Tab]): void => {
   }
   let count = end - start
   if (count > 20) {
-    if (!(Build.BTypes & BrowserType.Chrome) || Build.BTypes & ~BrowserType.Chrome && OnOther !== BrowserType.Chrome) {
       if (cNeedConfirm) {
-        confirm_("reloadTab", count, reloadTab.bind(null, tabs))
+        void confirm_("reloadTab", count).then(reloadTab.bind(null, tabs))
         return
       }
-    } else {
-      if (!(count = confirm_("reloadTab", count)!)) {
-        return
-      }
-      if (count === 1) {
-        start = ind, end = ind + 1
-      }
-    }
   }
   reload(tabs[ind].id, reloadProperties)
   for (; start !== end; start++) {
@@ -456,15 +432,10 @@ export const removeTab = (phase?: 1 | 2, tabs?: readonly Tab[]): void => {
     const range = getTabRange(i, total - skipped, total)
     count = range[1] - range[0]
     if (count > 20) {
-      if (!(Build.BTypes & BrowserType.Chrome)
-          || Build.BTypes & ~BrowserType.Chrome && OnOther !== BrowserType.Chrome) {
         if (cNeedConfirm) {
-          confirm_("removeTab", count, removeTab.bind(null, 2, tabs))
+          void confirm_("removeTab", count).then(removeTab.bind(null, 2, tabs))
           return
         }
-      } else if (!(count = confirm_("removeTab", count)!)) {
-        return
-      }
     }
     if (count > 1) {
       start = skipped + range[0], end = skipped + range[1]
@@ -473,7 +444,7 @@ export const removeTab = (phase?: 1 | 2, tabs?: readonly Tab[]): void => {
     const highlighted = tabs.filter(j => j.highlighted && j !== tab), noCurrent = optHighlighted === "no-current"
     count = highlighted.length
     if (count > 0 && (noCurrent || count < total - 1)) {
-      browserTabs.remove(highlighted.map(j => j.id), runtimeError_)
+      Tabs_.remove(highlighted.map(j => j.id), runtimeError_)
       count = 1
     }
     if (noCurrent) { count > 0 && runNextCmd<kBgCmd.removeTab>(1); return }
@@ -484,7 +455,7 @@ export const removeTab = (phase?: 1 | 2, tabs?: readonly Tab[]): void => {
     if (phase < 2) { // from `getCurTab`
       getCurTabs(removeTab.bind(null, 2))
     } else {
-      browserWindows.getAll(/*#__NOINLINE__*/ removeAllTabsInWnd.bind(null, tab, tabs))
+      Windows_.getAll(/*#__NOINLINE__*/ removeAllTabsInWnd.bind(null, tab, tabs))
     }
     return
   } else if (phase < 2) {
@@ -494,8 +465,8 @@ export const removeTab = (phase?: 1 | 2, tabs?: readonly Tab[]): void => {
   goToIndex = count >= total ? total : goto === "left" ? start > 0 ? start - 1 : end
       : goto === "right" ? end < total ? end : start - 1 : goto === "previous" ? -2 : total
   if (goToIndex === -2) {
-    let nextTab: Tab | null | undefined = end < total && !TabRecency_.tabs_.has(tabs[end].id) ? tabs[end]
-        : tabs.filter((j, ind) => (ind < start || ind >= end) && TabRecency_.tabs_.has(j.id))
+    let nextTab: Tab | null | undefined = end < total && !recencyForTab_.has(tabs[end].id) ? tabs[end]
+        : tabs.filter((j, ind) => (ind < start || ind >= end) && recencyForTab_.has(j.id))
             .sort(TabRecency_.rCompare_)[0]
     goToIndex = nextTab ? nextTab.index : total
   }
@@ -517,7 +488,7 @@ const removeAllTabsInWnd = (tab: Tab, curTabs: readonly Tab[], wnds: Window[]): 
     protect = true
     if (!(wnd = wnds[0])) { /* empty */ }
     else if (wnd.id !== tab.windowId) { protect = false } // the tab may be in a popup window
-    else if (wnd.incognito && !BgUtils_.isRefusingIncognito_(settings.cache_.newTabUrl_f)) {
+    else if (wnd.incognito && !isRefusingIncognito_(settingsCache_.newTabUrl_f)) {
       windowId = wnd.id
     }
     // other urls will be disabled if incognito else auto in current window
@@ -538,27 +509,24 @@ const removeAllTabsInWnd = (tab: Tab, curTabs: readonly Tab[], wnds: Window[]): 
 }
 
 const removeTabsInOrder = (tab: Tab, tabs: readonly Tab[], start: number, end: number): void => {
-  browserTabs.remove(tab.id, runtimeError_)
+  Tabs_.remove(tab.id, runtimeError_)
   let parts1 = tabs.slice(tab.index + 1, end), parts2 = tabs.slice(start, tab.index)
   if (cRepeat < 0) {
     [parts1, parts2] = [parts2, parts1]
   }
-  parts1.length > 0 && browserTabs.remove(parts1.map(j => j.id), runtimeError_)
-  parts2.length > 0 && browserTabs.remove(parts2.map(j => j.id), runtimeError_)
+  parts1.length > 0 && Tabs_.remove(parts1.map(j => j.id), runtimeError_)
+  parts2.length > 0 && Tabs_.remove(parts2.map(j => j.id), runtimeError_)
 }
 
 export const toggleMuteTab = (): void | kBgCmd.toggleMuteTab => {
-  if (!(Build.BTypes & ~BrowserType.Edge)
-      || (Build.BTypes & BrowserType.Edge && OnOther === BrowserType.Edge)
-      || Build.MinCVer < BrowserVer.MinMuted && Build.BTypes & BrowserType.Chrome
-          && CurCVer_ < BrowserVer.MinMuted) {
-    return showHUD(trans_("noMute", [BrowserVer.MinMuted]))
+  if (OnEdge || OnChrome && Build.MinCVer < BrowserVer.MinMuted && CurCVer_ < BrowserVer.MinMuted) {
+    OnEdge ? complainLimits("mute tabs") : showHUD(trans_("noMute", [BrowserVer.MinMuted]))
+    return
   }
   if (!(get_cOptions<C.toggleMuteTab>().all
         || get_cOptions<C.toggleMuteTab>().other || get_cOptions<C.toggleMuteTab>().others)) {
     getCurTab(([tab]: [Tab]): void => {
-      const neg = Build.MinCVer < BrowserVer.MinMutedInfo && Build.BTypes & BrowserType.Chrome
-          && CurCVer_ < BrowserVer.MinMutedInfo ? !tab.muted : !tab.mutedInfo.muted
+      const neg = !isTabMuted(tab)
       const mute = get_cOptions<kBgCmd.toggleMuteTab>().mute != null ? !!get_cOptions<kBgCmd.toggleMuteTab>().mute : neg
       mute === neg && tabsUpdate(tab.id, { muted: mute })
       showHUD(trans_(mute ? "muted" : "unmuted"))
@@ -566,29 +534,26 @@ export const toggleMuteTab = (): void | kBgCmd.toggleMuteTab => {
     })
     return
   }
-  browserTabs.query({audible: true}, (tabs: Tab[]): void => {
+  Tabs_.query({audible: true}, (tabs: Tab[]): void => {
     let curId = get_cOptions<C.toggleMuteTab>().other || get_cOptions<C.toggleMuteTab>().others
-          ? cPort ? cPort.s.tabId_ : TabRecency_.curTab_ : GlobalConsts.TabIdNone
-      , prefix = curId === GlobalConsts.TabIdNone ? "All" : "Other"
+          ? cPort ? cPort.s.tabId_ : curTabId_ : GlobalConsts.TabIdNone
       , mute = tabs.length === 0 || curId !== GlobalConsts.TabIdNone && tabs.length === 1 && tabs[0].id === curId
     if (get_cOptions<kBgCmd.toggleMuteTab>().mute != null) {
       mute = !!get_cOptions<kBgCmd.toggleMuteTab>().mute
     } else for (const tab of tabs) { // eslint-disable-line curly
-      if (tab.id !== curId && (Build.MinCVer < BrowserVer.MinMutedInfo && Build.BTypes & BrowserType.Chrome
-              && CurCVer_ < BrowserVer.MinMutedInfo ? !tab.muted : !tab.mutedInfo.muted)) {
+      if (tab.id !== curId && !isTabMuted(tab)) {
         mute = true
         break
       }
     }
     const action = { muted: mute }
     for (const tab of tabs) {
-      if (tab.id !== curId
-          && mute === (Build.MinCVer < BrowserVer.MinMutedInfo && Build.BTypes & BrowserType.Chrome
-              && CurCVer_ < BrowserVer.MinMutedInfo ? !tab.muted : !tab.mutedInfo.muted)) {
+      if (tab.id !== curId && mute !== isTabMuted(tab)) {
         tabsUpdate(tab.id, action)
       }
     }
-    showHUD(trans_(mute ? "mute" : "unmute", [trans_(prefix)]))
+    const prefix = curId === GlobalConsts.TabIdNone ? "All" : "Other"
+    showHUD(trans_(mute ? "mute" : "unmute", [trans_(prefix) || prefix]))
     runNextCmd<C.toggleMuteTab>(1)
   })
 }
@@ -609,16 +574,10 @@ export const togglePinTab = (tabs: Tab[]): void => {
   }
   end = wantedTabIds.length
   if (end > 30) {
-    if (!(Build.BTypes & BrowserType.Chrome) || Build.BTypes & ~BrowserType.Chrome && OnOther !== BrowserType.Chrome) {
       if (cNeedConfirm) {
-        confirm_("togglePinTab", end, togglePinTab.bind(null, tabs))
+        void confirm_("togglePinTab", end).then(togglePinTab.bind(null, tabs))
         return
       }
-    } else if (!(end = confirm_("togglePinTab", end)!)) {
-      return
-    } else if (end === 1) {
-      wantedTabIds = [tab.id]
-    }
   }
   for (start = 0; start < end; start++) {
     tabsUpdate(wantedTabIds[start], action)
@@ -629,34 +588,32 @@ export const togglePinTab = (tabs: Tab[]): void => {
 export const toggleTabUrl = (tabs: [Tab]): void | kBgCmd.toggleTabUrl => {
   let tab = tabs[0], url = getTabUrl(tab)
   const reader = get_cOptions<C.toggleTabUrl>().reader, keyword = get_cOptions<C.toggleTabUrl, true>().keyword
-  if (url.startsWith(BrowserProtocol_)) {
+  if (url.startsWith(CONST_.BrowserProtocol_)) {
     complainLimits(trans_(reader ? "noReader" : "openExtSrc"))
     return
   }
   if (reader && keyword) {
-    const query = Backend_.parse_({ u: url })
+    const query = parseSearchUrl_({ u: url })
     if (query && query.k === keyword) {
       overrideCmdOptions<kBgCmd.openUrl>({ keyword: ""})
       openUrlWithActions(query.u, Urls.WorkType.Default, tabs)
     } else {
-      url = BgUtils_.convertToUrl_(query && get_cOptions<C.toggleTabUrl>().parsed ? query.u : url, keyword)
+      url = convertToUrl_(query && get_cOptions<C.toggleTabUrl>().parsed ? query.u : url, keyword)
       openUrlWithActions(url, Urls.WorkType.FakeType, tabs)
     }
     return
   }
-  if (Build.BTypes & BrowserType.Firefox
-      && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther & BrowserType.Firefox)
-      && reader) {
-    (browserTabs as { toggleReaderMode? (tabId: number): Promise<void> }).toggleReaderMode!(tab.id).catch((): void => {
-      Backend_.reopenTab_(tab, 0, { openInReaderMode: true })
+  if (OnFirefox && reader) {
+    (Tabs_ as { toggleReaderMode? (tabId: number): Promise<void> }).toggleReaderMode!(tab.id).catch((): void => {
+      reopenTab_(tab, 0, { openInReaderMode: true })
     })
     return
   }
   if (reader) {
-    if (Build.BTypes & BrowserType.Chrome && IsEdg_ && BgUtils_.protocolRe_.test(url)) {
+    if (OnChrome && IsEdg_ && BgUtils_.protocolRe_.test(url)) {
       url = url.startsWith("read:") ? BgUtils_.DecodeURLPart_(url.slice(url.indexOf("?url=") + 5))
           : `read://${new URL(url).origin.replace(<RegExpG> /:\/\/|:/g, "_")}/?url=${
-              BgUtils_.encodeAsciiComponent(url)}`
+              BgUtils_.encodeAsciiComponent_(url)}`
       openUrlWithActions(url, Urls.WorkType.FakeType, tabs)
     } else {
       complainLimits(trans_("noReader"))
@@ -665,4 +622,59 @@ export const toggleTabUrl = (tabs: [Tab]): void | kBgCmd.toggleTabUrl => {
   }
   url = url.startsWith("view-source:") ? url.slice(12) : ("view-source:" + url)
   openUrlWithActions(url, Urls.WorkType.FakeType, tabs)
+}
+
+export const reopenTab_ = (tab: Tab, refresh?: /* false */ 0 | /* a temp blank tab */ 1 | /* directly */ 2
+    , exProps?: chrome.tabs.CreateProperties, useGroup?: true | false): void => {
+  const tabId = tab.id, needTempBlankTab = refresh === 1
+  if ((OnEdge || OnFirefox && Build.MayAndroidOnFirefox
+        || OnChrome && Build.MinCVer < BrowserVer.MinSessions
+      ? refresh && browserSessions_() : refresh) && (useGroup !== false || getGroupId(tab) == null)) {
+    let step = RefreshTabStep.start, tempTabId = -1,
+    onRefresh = (): void => {
+      const err = runtimeError_()
+      if (err) {
+        browserSessions_().restore()
+        tempTabId >= 0 && Tabs_.remove(tempTabId)
+        tempTabId = 0
+        return err
+      }
+      step = step + 1
+      if (step >= RefreshTabStep.end) { return }
+      setTimeout((): void => { tabsGet(tabId, onRefresh) }, 50 * step * step)
+    }
+    if (needTempBlankTab) {
+      /* safe-for-group */ tabsCreate({url: "about:blank", active: false, windowId: tab.windowId}, (t2): void => {
+        tempTabId /* === -1 */ ? (tempTabId = t2.id) : Tabs_.remove(t2.id)
+      })
+    }
+    Tabs_.remove(tabId, () => (tabsGet(tabId, onRefresh), runtimeError_()))
+    return
+  }
+  let callback: ((this: void, tab: Tab) => void) | null | undefined
+  if (OnEdge || OnChrome && Build.MinCVer < BrowserVer.MinMuted && CurCVer_ < BrowserVer.MinMuted) {
+    /* empty */
+  } else {
+    const muted = isTabMuted(tab)
+    callback = (tab2: Tab): void => {
+      if (muted !== isTabMuted(tab2)) {
+        tabsUpdate(tab2.id, { muted })
+      }
+    }
+  }
+  const args: InfoToCreateMultiTab = {
+    windowId: tab.windowId, index: tab.index, url: getTabUrl(tab), active: tab.active,
+    pinned: tab.pinned, openerTabId: tab.openerTabId
+  }
+  if (OnFirefox) {
+    exProps && BgUtils_.extendIf_(args, exProps)
+    // on Firefox 88, if `.cookieStorageId && (create; remove)`, then tab will unexpectedly move right
+    args.index != null && getGroupId(tab) == null && args.index++
+  } else if (args.index != null) {
+    args.index++
+  }
+  openMultiTabs(args, 1, true, [null], useGroup, tab, callback)
+  Tabs_.remove(tabId)
+  // should never remove its session item - in case that goBack/goForward might be wanted
+  // not seems to need to restore muted status
 }

@@ -7,7 +7,7 @@ import {
   IsInDOM_, createElement_, htmlTag_, getComputedStyle_, getEditableType_, isIFrameElement, GetParent_unsafe_, focus_,
   kMediaTag, ElementProto, querySelector_unsafe_, getInputType, uneditableInputs_, GetShadowRoot_, scrollingEl_,
   findMainSummary_, getSelection_, removeEl_s, appendNode_s, getMediaUrl, getMediaTag, INP, ALA, attr_s,
-  setOrRemoveAttr_s, toggleClass_s, textContent_s, notSafe_not_ff_, modifySel, SafeEl_not_ff_, testMatch
+  setOrRemoveAttr_s, toggleClass_s, textContent_s, notSafe_not_ff_, modifySel, SafeEl_not_ff_, testMatch, docHasFocus_
 } from "../lib/dom_utils"
 import { getPreferredRectOfAnchor } from "./local_links"
 import {
@@ -138,7 +138,7 @@ const hoverEl = (): void => {
     // here not check lastHovered on purpose
     // so that "HOVER" -> any mouse events from users -> "HOVER" can still work
     set_currentScrolling(weakRef_(clickEl))
-  retPromise = catchAsyncErrorSilently(hover_async(clickEl, center_(rect!), doesFocus)).then((): void => {
+  retPromise = catchAsyncErrorSilently(hover_async(clickEl, center_(rect), doesFocus)).then((): void => {
     set_cachedScrollable(currentScrolling)
     if (mode1_ < HintMode.min_job) { // called from Modes[-1]
       hintApi.t({ k: kTip.hoverScrollable })
@@ -185,6 +185,21 @@ const hoverEl = (): void => {
   })
 }
 
+const extractTextInOtherElements = (): string => {
+  let str = textContent_s(clickEl).trim()
+  if (str && (clickEl as ElementToSVG).ownerSVGElement) {
+    const clone = clickEl.cloneNode(true) as SVGElement
+    const titles = clone.querySelectorAll("title")
+    if (OnChrome && Build.MinCVer < BrowserVer.MinEnsured$ForOf$ForDOMListTypes) {
+      for (let i = 0; i < titles.length; i++) { titles[i].remove() }
+    } else {
+      for (let i of titles as ArrayLike<Element> as Element[]) { i.remove() }
+    }
+    str = textContent_s(clone).trim() || str
+  }
+  return str.trim()
+}
+
 const copyText = (): void => {
     let isUrl = mode1_ > HintMode.min_link_job - 1 && mode1_ < HintMode.max_link_job + 1,
         childEl: Element | null, files: HTMLInputElement["files"],
@@ -218,7 +233,7 @@ const copyText = (): void => {
                 || GetShadowRoot_(clickEl) && (childEl = querySelector_unsafe_("div,span", GetShadowRoot_(clickEl)!))
                     && htmlTag_<1>(childEl) && childEl.innerText
                 || str).trim()
-            || (str = textContent_s(clickEl).trim()) && str.replace(<RegExpG> /\s+/g, " ")
+            || (str = extractTextInOtherElements()) && str.replace(<RegExpG> /\s+/g, " ")
       }
       str = str && str.trim();
       if (!str && tag) {
@@ -453,7 +468,7 @@ const checkFocus = (defaultVal: boolean): boolean => {
     }
     if (!removeFlash && showRect !== 0 && (rect || (rect = getVisibleClientRect_(clickEl)))) {
       timeout_(function (): void {
-        (showRect || doc.hasFocus()) && flash_(null, rect!)
+        (showRect || docHasFocus_()) && flash_(null, rect!)
       }, 17)
     }
   } else {

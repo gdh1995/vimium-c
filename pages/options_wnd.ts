@@ -1,16 +1,11 @@
 import {
-  CurCVer_, CurFFVer_, BG_, bgSettings_, reloadBG_, OnFirefox, OnChrome, OnEdge, $, $$, pTrans_,
-  toggleDark, toggleReduceMotion
+  CurCVer_, CurFFVer_, BG_, bgSettings_, reloadBG_, OnFirefox, OnChrome, OnEdge, $, $$,
+  toggleDark, toggleReduceMotion, asyncBackend_, browser_, enableNextTick_, nextTick_, kReadyInfo, IsEdg_, import2
 } from "./async_bg"
 import {
-  KnownOptionsDataset, showI18n, allowNextTick,
-  setupBorderWidth_, nextTick_, Option_, PossibleOptionNames, AllowedOptions, debounce_
+  KnownOptionsDataset, showI18n, setupBorderWidth_, Option_, PossibleOptionNames, AllowedOptions, debounce_, oTrans_
 } from "./options_base"
-import { saveBtn, exportBtn, savedStatus, createNewOption, BooleanOption_, registerClass } from "./options_defs"
-import kPermissions = chrome.permissions.kPermissions
-
-// eslint-disable-next-line no-var
-declare var define: any, __filename: string | null | undefined
+import { saveBtn, exportBtn, savedStatus, BooleanOption_ } from "./options_defs"
 
 interface ElementWithHash extends HTMLElement {
   onclick (this: ElementWithHash, event: MouseEventToPrevent | null, hash?: "hash"): void;
@@ -19,16 +14,25 @@ export interface ElementWithDelay extends HTMLElement {
   onclick (this: ElementWithDelay, event?: MouseEventToPrevent | null): void;
 }
 
-const IsEdg: boolean = OnChrome && (<RegExpOne> /\sEdg\//).test(navigator.appVersion)
-
+export let Platform_: "win" | "linux" | "mac" | "unknown"
 export let delayed_task: [string, MouseEventToPrevent | null] | null | undefined
 export const clear_delayed_task = (): void => { delayed_task = null }
 
-Build.NDEBUG || allowNextTick()
+
+if (!OnEdge || browser_.runtime.getPlatformInfo) {
+  browser_.runtime.getPlatformInfo((info): void => {
+    Platform_ = (OnChrome ? info.os : info.os || "").toLowerCase() as "mac" | "win" | "linux"
+    enableNextTick_(kReadyInfo.platformInfo)
+  })
+} else {
+  Platform_ = OnEdge ? "win" : "unknown"
+  enableNextTick_(kReadyInfo.platformInfo)
+}
 nextTick_(showI18n)
 setupBorderWidth_ && nextTick_(setupBorderWidth_);
 nextTick_((versionEl): void => {
-  versionEl.textContent = bgSettings_.CONST_.VerName_;
+  const manifest = browser_.runtime.getManifest()
+  versionEl.textContent = manifest.version_name || manifest.version
 }, $(".version"))
 
 export interface AdvancedOptBtn extends HTMLButtonElement {
@@ -47,7 +51,7 @@ saveBtn.onclick = function (virtually): void {
       this.blur();
     }
     this.disabled = true;
-    (this.firstChild as Text).data = pTrans_("o115_3");
+    (this.firstChild as Text).data = oTrans_("o115_3");
     exportBtn.disabled = false;
     savedStatus(false)
     window.onbeforeunload = null as never;
@@ -71,34 +75,19 @@ let optionsInit1_ = function (): void {
     }
     nextTick_((): void => {
     (el.previousElementSibling as HTMLElement).style.display = el.style.display = advancedMode ? "" : "none";
-    let s = advancedMode ? "Hide" : "Show";
-    (this.firstChild as Text).data = pTrans_(s) || s;
+    const s = advancedMode ? "Hide" : "Show";
+    (this.firstChild as Text).data = oTrans_(s) || s
     this.setAttribute("aria-checked", "" + advancedMode);
     }, 9);
   };
   (_element as AdvancedOptBtn).onclick(null, true);
-
-  if (Build.MayOverrideNewTab && bgSettings_.CONST_.OverrideNewTab_) {
-    _element = $("#focusNewTabContent");
-    (_element.dataset as KnownOptionsDataset).model = "Boolean"
-    createNewOption(_element)
-    nextTick_(box => box.style.display = "", $("#focusNewTabContentBox"));
-    nextTick_(([el1, el2]) => el2.previousElementSibling !== el1 && el2.parentElement.insertBefore(el1, el2)
-      , [$("#newTabUrlBox"), $<EnsuredMountedHTMLElement>("#searchUrlBox")] as const)
-  }
-  if (!Build.NoDialogUI && bgSettings_.CONST_.OptionsUIOpenInTab_) {
-    _element = $("#dialogMode");
-    (_element.dataset as KnownOptionsDataset).model = "Boolean"
-    createNewOption(_element)
-    nextTick_(box => box.style.display = "", $("#dialogModeBox"));
-  }
 
   let _ref: { length: number; [index: number]: HTMLElement }
   for (let key in Option_.all_) { Option_.all_[key as "vimSync"].fetch_() }
   nextTick_((): void => {
     for (let key in Option_.all_) {
       const obj = Option_.all_[key as "vimSync"]
-      if (OnFirefox && bgSettings_.payload_.o === kOS.unixLike && obj instanceof BooleanOption_) {
+      if (OnFirefox && asyncBackend_.contentPayload_.o === kOS.unixLike && obj instanceof BooleanOption_) {
         obj.element_.classList.add("text-bottom");
       }
       obj.populateElement_(obj.previous_)
@@ -170,13 +159,13 @@ let optionsInit1_ = function (): void {
     if (str === "event") { e = event || null; }
     delayed_task = ["#" + this.id, e]
     if (document.readyState === "complete") {
-      void loadJS("options_ext.js")
+      void import2("./options_ext.js")
       return;
     }
     window.addEventListener("load", function onLoad(event1): void {
       if (event1.target === document) {
         window.removeEventListener("load", onLoad);
-        void loadJS("options_ext.js")
+        void import2("./options_ext.js")
       }
     });
   } as ElementWithDelay["onclick"];
@@ -198,46 +187,9 @@ let optionsInit1_ = function (): void {
   }
   }
 
-  let setUI = function (curTabId: number | null): void {
-    const ratio = BG_.devicePixelRatio, element2 = document.getElementById("openInTab") as HTMLAnchorElement;
-    const mainHeader = document.getElementById("mainHeader") as HTMLElement;
-    element2.onclick = function (this: HTMLAnchorElement): void {
-      setTimeout(window.close, 17);
-    };
-    nextTick_(() => {
-    (document.body as HTMLBodyElement).classList.add("dialog-ui");
-    mainHeader.remove();
-    element2.style.display = "";
-    (element2.nextElementSibling as SafeHTMLElement).style.display = "none";
-    });
-    if (!OnChrome || Build.MinCVer >= BrowserVer.MinCorrectBoxWidthForOptionsUI
-        || CurCVer_ >= BrowserVer.MinCorrectBoxWidthForOptionsUI) { return; }
-    ratio > 1 && ((document.body as HTMLBodyElement).style.width = 910 / ratio + "px");
-    !OnEdge && (!OnChrome || Build.MinCVer >= BrowserVer.Min$Tabs$$getZoom || chrome.tabs.getZoom) &&
-    chrome.tabs.getZoom(curTabId, function (zoom): void {
-      if (!zoom) { return chrome.runtime.lastError; }
-      const ratio2 = Math.round(devicePixelRatio / zoom * 1024) / 1024;
-      (document.body as HTMLBodyElement).style.width = ratio2 !== 1 ? 910 / ratio2 + "px" : "";
-    });
-  }
-  if (Build.NoDialogUI) { /* empty */ }
-  else if (location.hash.toLowerCase() === "#dialog-ui") {
-    setUI(null);
-    setUI = null as never;
-  } else if (chrome.tabs.query) {
-    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs): void {
-      let url: string;
-      if (tabs[0] && (<RegExpOne> /^(about|chrome|edge):/).test(url = tabs[0].url)
-          && !url.startsWith(location.protocol)) {
-        setUI(tabs[0].id);
-      }
-      setUI = null as never;
-    });
-  }
-
   _ref = $$("[data-permission]");
   _ref.length > 0 && ((els: typeof _ref): void => {
-    const manifest = chrome.runtime.getManifest();
+    const manifest = browser_.runtime.getManifest()
     for (const key of manifest.permissions || []) {
       manifest[key] = true;
     }
@@ -255,12 +207,12 @@ let optionsInit1_ = function (): void {
         } else if (CurCVer_ >= +key.slice(1)) {
           continue;
         }
-        key = pTrans_("beforeChromium", [key.slice(1)]);
+        key = oTrans_("beforeChromium", [key.slice(1)]);
       } else {
         if (key in manifest) { continue; }
-        key = pTrans_("lackPermission", [key ? ":\n* " + key : ""]);
+        key = oTrans_("lackPermission", [key ? ":\n* " + key : ""]);
       }
-      key = pTrans_("invalidOption", [key]);
+      key = oTrans_("invalidOption", [key]);
       nextTick_((el1): void => {
         (el1 as TextElement).disabled = true;
         if (el1 instanceof HTMLInputElement && el1.type === "checkbox") {
@@ -279,32 +231,25 @@ let optionsInit1_ = function (): void {
       this.onclick = null as never;
       if (!el) { return; }
       const key = (el.dataset as KnownOptionsDataset).permission
-      el.placeholder = pTrans_("lackPermission", [key ? `: "${key}"` : ""]);
+      el.placeholder = oTrans_("lackPermission", [key ? `: "${key}"` : ""]);
     }
   })(_ref);
-  if (BG_.Settings_.CONST_.GlobalCommands_.length === 0) {
-    nextTick_((ref2): void => {
-      for (let _i = ref2.length; 0 <= --_i; ) {
-        ref2[_i].remove();
-      }
-    }, $$(".require-shortcuts"));
-  }
   if (OnEdge) {
     nextTick_((tipForNoShadow): void => {
       tipForNoShadow.innerHTML = '(On Edge, may need "<kbd>#VimiumUI</kbd>" as prefix if no Shadow DOM)';
     }, $("#tipForNoShadow"));
   }
 
-  setTimeout((): void => {
+  nextTick_((): void => { setTimeout((): void => {
     const ref2 = $$("[data-href]")
     for (let _i = ref2.length; 0 <= --_i; ) {
     const element = ref2[_i] as HTMLInputElement;
-    let str = BG_.BgUtils_.convertToUrl_((element.dataset as KnownOptionsDataset).href
+    let str = asyncBackend_.convertToUrl_((element.dataset as KnownOptionsDataset).href
         , null, Urls.WorkType.ConvertKnown)
     element.removeAttribute("data-href");
     element.setAttribute("href", str);
     }
-  }, 100)
+  }, 100) })
 
 
   _element = $<HTMLAnchorElement>("#openExtensionsPage");
@@ -315,8 +260,8 @@ let optionsInit1_ = function (): void {
     nextTick_(([el, el2, el3]) => {
       el.textContent = el.href = "about:addons";
       const el1 = el.parentElement as HTMLElement, prefix = GlobalConsts.FirefoxAddonPrefix;
-      el1.insertBefore(new Text(pTrans_("manageShortcut")), el); // lgtm [js/superfluous-trailing-arguments]
-      el1.insertBefore(new Text(pTrans_("manageShortcut_2")) // lgtm [js/superfluous-trailing-arguments]
+      el1.insertBefore(new Text(oTrans_("manageShortcut")), el); // lgtm [js/superfluous-trailing-arguments]
+      el1.insertBefore(new Text(oTrans_("manageShortcut_2")) // lgtm [js/superfluous-trailing-arguments]
           , el.nextSibling);
       el2.href = prefix + "shortcut-forwarding-tool/?src=external-vc-options";
       el3.href = prefix + "newtab-adapter/?src=external-vc-options";
@@ -326,21 +271,22 @@ let optionsInit1_ = function (): void {
   (_element as HTMLAnchorElement).onclick = function (event): void {
     event.preventDefault();
     if (OnFirefox) {
-      window.VApi ? VApi.t({ k: kTip.haveToOpenManually }) : alert(pTrans_("" + kTip.haveToOpenManually));
+      window.VApi ? VApi.t({ k: kTip.haveToOpenManually })
+      : alert(browser_.i18n.getMessage("" + kTip.haveToOpenManually))
     } else {
-      BG_.Backend_.reqH_[kFgReq.focusOrLaunch]({ u: this.href, p: true })
+      asyncBackend_.focusOrLaunch_({ u: this.href, p: true })
     }
   };
 
   if (OnFirefox || OnChrome) {
     nextTick_((el): void => {
-      const children = el.children, anchor = children[1] as HTMLAnchorElement, name = pTrans_("NewTabAdapter");
+      const children = el.children, anchor = children[1] as HTMLAnchorElement, name = oTrans_("NewTabAdapter");
       if (OnFirefox) {
         children[0].textContent = "moz";
         anchor.textContent = name;
         anchor.href = GlobalConsts.FirefoxAddonPrefix + "newtab-adapter/?src=external-vc-options_omni";
       }
-      anchor.title = name + " - " + pTrans_(OnFirefox ? "addons" : "webstore");
+      anchor.title = name + " - " + oTrans_(OnFirefox ? "addons" : "webstore");
     }, $("#chromeExtVomnibar"));
   }
 
@@ -369,7 +315,7 @@ let optionsInit1_ = function (): void {
     opt.onSave_ = (): void => {
       oldOnSave.call(opt)
       nextTick_((ref2): void => {
-        ref2.textContent = pTrans_(opt.readValueFromElement_() > 1 ? "o145_2" : "o144")
+        ref2.textContent = oTrans_(opt.readValueFromElement_() > 1 ? "o145_2" : "o144")
       }, $(`#${opt.element_.id}Status`))
     }
     _ref[_i].onclick = onRefStatClick;
@@ -388,7 +334,7 @@ for (let key in Option_.all_) {
 const newTabUrlOption_ = Option_.all_.newTabUrl
 newTabUrlOption_.checker_!.check_(newTabUrlOption_.previous_)
 
-if (!bgSettings_.payload_.o) {
+if (!asyncBackend_.contentPayload_.o) {
   nextTick_((el): void => { el.textContent = "Cmd" }, $("#Ctrl"))
 }
 
@@ -401,7 +347,7 @@ if (OnChrome ? (Build.MinCVer >= BrowserVer.MinMediaQuery$PrefersColorScheme
     : !OnEdge) {
   const media = matchMedia("(prefers-color-scheme: dark)");
   media.onchange = function (): void {
-    bgSettings_.updateMediaQueries_();
+    asyncBackend_.updateMediaQueries_()
     setTimeout(useLocalStyle, 34)
   }
   const useLocalStyle = (first?: 1 | TimerType.fake): void => {
@@ -412,6 +358,7 @@ if (OnChrome ? (Build.MinCVer >= BrowserVer.MinMediaQuery$PrefersColorScheme
         const root = VApi.y().r
         if (root) {
           for (let el of OnChrome && Build.MinCVer < BrowserVer.MinEnsured$ForOf$ForDOMListTypes
+                && Build.MinCVer >= BrowserVer.BuildMinForOf && CurCVer_ < BrowserVer.MinEnsured$ForOf$ForDOMListTypes
                 ? [].slice.call(root.children) : root.children as ArrayLike<Element> as HTMLElement[]) {
             if (el.localName !== "style") {
               el.classList.toggle("D", val)
@@ -431,7 +378,7 @@ if (OnChrome ? (Build.MinCVer >= BrowserVer.MinMediaQuery$PrefersColorScheme
           }
         }
         bgSettings_.updatePayload_("d", val, VApi.z)
-      } else if (first === 1 && (val !== !!bgSettings_.payload_.d)) {
+      } else if (first === 1 && (val !== !!asyncBackend_.contentPayload_.d)) {
         setTimeout(useLocalStyle, 500)
       }
       toggleDark(val)
@@ -443,7 +390,7 @@ if (OnChrome ? (Build.MinCVer >= BrowserVer.MinMediaQuery$PrefersColorScheme
 }
 
 Option_.all_.autoDarkMode.onSave_ = function (): void {
-  bgSettings_.updateMediaQueries_()
+  asyncBackend_.updateMediaQueries_()
   toggleDark(this.previous_)
 }
 Option_.all_.autoReduceMotion.onSave_ = function (): void { toggleReduceMotion(this.previous_) }
@@ -467,183 +414,23 @@ if (OnFirefox) {
       const oldIsHC = storage.getItem(K) === "1"
       if (isHC !== oldIsHC) {
         isHC ? storage.setItem(K, "1") : storage.removeItem(K);
-        delete (bgSettings_.cache_ as Partial<SettingsNS.FullCache>).helpDialog
-        bgSettings_.reloadCSS_(2)
+        asyncBackend_.reloadCSS_(2)
       }
     }, { timeout: 1e3 })
   }, 34)
 }
 };
 
-let optional = (!OnEdge && chrome.runtime.getManifest().optional_permissions || []) as kPermissions[]
-if (!OnEdge) {
-  const ignored: Array<kPermissions | RegExpOne> = OnFirefox ? ["downloads.shelf"] : ["downloads"]
-  OnChrome || ignored.push(<RegExpOne> /^chrome:/, "contentSettings")
-  OnChrome && !IsEdg || ignored.push("chrome://new-tab-page/")
-  OnFirefox || ignored.push("cookies")
-  optional = optional.filter(i => !ignored.some(j => typeof j === "string" ? i === j : j.test(i)))
-}
-if (OnEdge || !optional.length) {
-  nextTick_((): void => { $("#optionalPermissionsBox").style.display = "none" })
-} else {
-  ((optional_permissions: kPermissions[]): void => {
-    const browserPermissions = chrome.permissions
-    interface PermissionItem { name_: kPermissions; previous_: boolean; element_: HTMLInputElement }
-    const fragment = document.createDocumentFragment()
-    const i18nItems: { [key in kPermissions]?: string } = {
-      "chrome://*/*": "opt_chromeUrl",
-      "chrome://new-tab-page/": "opt_cNewtab",
-      "downloads.shelf": "opt_closeShelf"
-    }
-    const placeholder = $<HTMLTemplateElement & EnsuredMountedHTMLElement>("#optionalPermissionsTemplate")
-    const template = placeholder.content.firstElementChild as HTMLElement
-    const shownItems: PermissionItem[] = []
-    for (const name of optional_permissions) {
-      const node = document.importNode(template, true) as EnsuredMountedHTMLElement
-      const checkbox = node.querySelector("input")!
-      const i18nKey = i18nItems[name]
-      checkbox.value = name
-      let i18nName = pTrans_(i18nKey || "opt_" + name) || name
-      let suffix = ""
-      if (name.startsWith("chrome:")) {
-        i18nName = IsEdg ? i18nName.replace("chrome:", "edge:") : i18nName
-        suffix = pTrans_("optOfChromeUrl").replace(IsEdg ? "chrome" : "edge", "edge")
-      }
-      if (Build.BTypes & BrowserType.Chrome && name === "chrome://new-tab-page/"
-          && (Build.MinCVer < BrowserVer.MinChromeURL$NewTabPage && CurCVer_ < BrowserVer.MinChromeURL$NewTabPage)) {
-        suffix = pTrans_("requireChromium", [BrowserVer.MinChromeURL$NewTabPage])
-        checkbox.disabled = true
-        checkbox.checked = false
-        node.title = pTrans_("invalidOption", [pTrans_("beforeChromium", [BrowserVer.MinChromeURL$NewTabPage])])
-      }
-      node.lastElementChild.textContent = i18nName + suffix
-      if (optional.length === 1) {
-        node.classList.add("single")
-      }
-      fragment.appendChild(node)
-      shownItems.push({ name_: name, previous_: false, element_: checkbox })
-    }
-    const container = placeholder.parentElement
-    nextTick_((children): void => { container.appendChild(children) }, fragment)
-    registerClass("OptionalPermissions", class extends Option_<"nextPatterns"> {
-      override init_ (): void { this.element_.onchange = this.onUpdated_ }
-      override readValueFromElement_ = () => shownItems.map(i => i.element_.checked ? "1" : "0").join("")
-      override innerFetch_ = () => shownItems.map(i => i.previous_ ? "1" : "0").join("")
-      override populateElement_ (value: string): void {
-        for (let i = 0; i < shownItems.length; i++) {
-          shownItems[i].element_.checked = value[i] === "1"
-        }
-      }
-      override executeSave_ (wanted_value: string): string {
-        const new_permissions: kPermissions[] = [], new_origins: kPermissions[] = []
-        const changed: { [key in kPermissions]?: PermissionItem } = {}
-        let waiting = 1
-        for (const i of shownItems) {
-          const wanted = i.element_.checked
-          if (i.previous_ === wanted) { continue }
-          const orig2: kPermissions | "" = i.name_ === "chrome://new-tab-page/" ? "chrome://newtab/" : ""
-          i.previous_ = wanted
-          if (wanted) {
-            i.name_ === "downloads.shelf" && new_permissions.push("downloads");
-            (i.name_.includes(":") ? new_origins : new_permissions).push(i.name_)
-            orig2 && new_origins.push(orig2)
-            changed[i.name_] = i
-          } else {
-            waiting++
-            browserPermissions.remove(i.name_.includes(":") ? { origins: orig2 ? [i.name_, orig2] : [i.name_] } : {
-              permissions: i.name_ === "downloads.shelf" ? ["downloads", i.name_] : [i.name_]
-            }, (ok): void => {
-              const err = chrome.runtime.lastError as any
-              (err || !ok) && console.log("Can not remove the permission %o :", i.name_, err && err.message || err)
-              tryRefreshing()
-              return err
-            })
-          }
-        }
-        const cb = (arr: kPermissions[], ok?: boolean): void => {
-          const err = chrome.runtime.lastError as any
-          (err || !ok) && console.log("Can not request permissions of %o :", arr, err && err.message || err)
-          if (!ok) {
-            for (const name of arr) {
-              const item = changed[name]
-              if (item) {
-                item.previous_ = false
-                if (err) {
-                  const box = item.element_.parentElement as Element as EnsuredMountedHTMLElement
-                  let errEl = box.nextElementSibling as HTMLElement | null
-                  if (!errEl || !errEl.classList.contains("tip")) {
-                    errEl = document.createElement("div")
-                    errEl.className = "tip"
-                    box.parentElement.insertBefore(errEl, box.nextElementSibling)
-                  }
-                  let msg = (err && err.message || JSON.stringify(err)) + ""
-                  if (name.startsWith("chrome://") && msg.includes("Only permissions specified in the manifest")) {
-                    if (name.startsWith("chrome:")) {
-                      msg = pTrans_("optNeedChromeUrlFirst")
-                      msg = IsEdg ? msg.replace("chrome:", "edge:") : msg
-                    }
-                  }
-                  errEl.textContent = box.title = pTrans_("exc") + msg
-                  box.lastElementChild.classList.add("has-error")
-                }
-              }
-            }
-            this.fetch_()
-          }
-          tryRefreshing()
-          return err
-        }
-        const tryRefreshing = (): void => {
-          waiting--
-          if (waiting > 0) { return }
-          let refreshing = 0
-          for (const i of shownItems) {
-            const name = i.name_
-            refreshing++
-            browserPermissions.contains(name.includes(":") ? { origins: [name] }
-                : { permissions: name === "downloads.shelf" ? ["downloads", name] : [name] }, allowed => {
-              i.previous_ = allowed || false
-              refreshing--
-              refreshing || this.fetch_()
-            })
-          }
-        }
-        waiting += (new_permissions.length && 1) + (new_origins.length && 1)
-        new_permissions.length && browserPermissions.request({ permissions: new_permissions }
-            , cb.bind(0, new_permissions))
-        new_origins.length && browserPermissions.request({ origins: new_origins }, cb.bind(0, new_origins))
-        tryRefreshing()
-        return wanted_value
-      }
-    })
-    setTimeout((): void => {
-      let done = 0
-      for (const item of shownItems) {
-        const name = item.name_
-        browserPermissions.contains(name.includes(":") ? { origins: [name] }
-              : { permissions: name === "downloads.shelf" ? ["downloads", name] : [name] }, (result): void => {
-          item.previous_ = item.element_.checked = result || false
-          done++
-          if (done === shownItems.length) {
-            (container.dataset as KnownOptionsDataset).model = "OptionalPermissions"
-            createNewOption(container).fetch_()
-          }
-        })
-      }
-    }, 17)
-  })(optional)
-}
-
 (Option_.all_.userDefinedCss.element_ as HTMLTextAreaElement).addEventListener("input", debounce_((): void => {
   const self = Option_.all_.userDefinedCss
   const isDebugging = self.element_.classList.contains("debugging")
   if (self.saved_ && !isDebugging || !window.VApi || !VApi.z) { return }
   const newVal = self.readValueFromElement_(), isSame = newVal === self.previous_,
-  css = bgSettings_.reloadCSS_(-1, newVal), misc = VApi.y(), root = misc.r
+  css = asyncBackend_.reloadCSS_(-1, newVal), misc = VApi.y(), root = misc.r
   if (!isDebugging && BG_) {
-    chrome.tabs.query({ currentWindow: true, active: true }, (tabs?: [chrome.tabs.Tab?]): void => {
+    browser_.tabs.query({ currentWindow: true, active: true }, (tabs?: [chrome.tabs.Tab?]): void => {
       if (tabs && tabs[0] && tabs[0].url === location.href) {
-        const port = BG_.Backend_.indexPorts_(tabs[0].id, 0) as Frames.Port | null
+        const port = asyncBackend_.indexPorts_(tabs[0].id, 0) as Frames.Port | null
         port && (port.s.flags_ |= Frames.Flags.hasCSS | Frames.Flags.hasFindCSS)
       }
     })
@@ -679,35 +466,18 @@ $("#importButton").onclick = function (): void {
 };
 
 nextTick_((el0): void => {
-const platform = bgSettings_.CONST_.Platform_;
 el0.textContent = (OnEdge ? "MS Edge (EdgeHTML)"
     : OnFirefox ? "Firefox " + CurFFVer_
-    : (IsEdg ? ["MS Edge"]
-        : (<RegExpOne> /\bChromium\b/).exec(navigator.appVersion) || ["Chrome"])[0] + " " + CurCVer_
-  ) + pTrans_("comma") + pTrans_("NS") + (pTrans_(platform)
-        || platform[0].toUpperCase() + platform.slice(1));
-if (OnChrome && IsEdg) {
+    : (IsEdg_ ? ["MS Edge"] : (<RegExpOne> /\bChromium\b/).exec(navigator.appVersion) || ["Chrome"])[0] + " " + CurCVer_
+  ) + oTrans_("comma") + oTrans_("NS")
+  + (oTrans_(Platform_ as "win" | "mac") || Platform_[0].toUpperCase() + Platform_.slice(1))
+if (OnChrome && IsEdg_) {
   const a = $<HTMLAnchorElement>("#openExtensionsPage");
   a.textContent = a.href = "edge://extensions/shortcuts";
 }
 }, $("#browserName"));
 
-export const loadJS = (url: string): Promise<void> => {
-  if (!(Build.BTypes & BrowserType.Edge)
-      && (Build.MinCVer >= BrowserVer.MinUsableScript$type$$module$InExtensions
-          && Build.MinCVer >= BrowserVer.MinES$DynamicImport || !(Build.BTypes & BrowserType.Chrome))
-      && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredES$DynamicImport)
-      ) {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    return import("./" + url)
-  }
-  const filename = url.slice(url.lastIndexOf("/") + 1).replace(".js", "")
-  __filename = "__loader_" + filename
-  return define([url]) // eslint-disable-line @typescript-eslint/no-unsafe-call
-}
-
-export const loadChecker = (): void => { void loadJS("options_checker.js") }
+export const loadChecker = (): void => { void import2("./options_checker.js") }
 
 document.addEventListener("keydown", (event): void => {
   if (event.keyCode !== kKeyCode.space) {
@@ -740,10 +510,6 @@ document.addEventListener("keydown", (event): void => {
 window.onhashchange = (): void => {
   let hash = location.hash, node: HTMLElement | null;
   hash = hash.slice(hash[1] === "!" ? 2 : 1);
-  if (Build.MayOverrideNewTab
-      && !hash && Option_.all_.newTabUrl.previous_ === bgSettings_.CONST_.NewTabForNewUser_) {
-    hash = "newTabUrl";
-  }
   if (!hash || !(<RegExpI> /^[a-z][a-z\d_-]*$/i).test(hash)) { return; }
   if (node = $(`[data-hash="${hash}"]`) as HTMLElement | null) {
     if (node.onclick) {
@@ -772,9 +538,9 @@ window.onhashchange = (): void => {
   }
 };
 
-bgSettings_.restore_ && bgSettings_.restore_() ? (
+asyncBackend_.restoreSettings_() && asyncBackend_.restoreSettings_()!() ? (
   Build.NDEBUG || console.log("Now restore settings before page loading"),
-  void bgSettings_.restore_()!.then(optionsInitAll_)
+  void asyncBackend_.restoreSettings_()!()!.then(optionsInitAll_)
 ) : optionsInitAll_();
 
 // below is for programmer debugging
@@ -783,7 +549,7 @@ window.onunload = function (): void {
 };
 
 function OnBgUnload(): void {
-  BG_.removeEventListener("unload", OnBgUnload);
+  BG_.removeEventListener("unload", OnBgUnload, { capture: false as never })
   setTimeout(function (): void {
     reloadBG_()
     if (!BG_) {
@@ -793,10 +559,12 @@ function OnBgUnload(): void {
     }
     BG_.addEventListener("unload", OnBgUnload);
     if (BG_.document.readyState !== "loading") { setTimeout(callback, 67); return; }
-    BG_.addEventListener("DOMContentLoaded", function load(): void {
-      BG_.removeEventListener("DOMContentLoaded", load, true);
+    (BG_ as unknown as typeof globalThis).addEventListener("DOMContentLoaded", function load(): void {
+      if (OnChrome && Build.MinCVer < BrowserVer.Min$addEventListener$support$once) {
+        BG_.removeEventListener("DOMContentLoaded", load, { capture: true })
+      }
       setTimeout(callback, 100);
-    }, true);
+    }, { capture: true, once: true })
   }, 200);
   function callback(): void {
     const ref = Option_.all_;
@@ -808,13 +576,12 @@ function OnBgUnload(): void {
     }
   }
 }
-BG_.addEventListener("unload", OnBgUnload);
+(BG_ as unknown as typeof globalThis).addEventListener("unload", OnBgUnload, { capture: false as never, once: true })
 
-const cmdRegistry = BG_.CommandsData_.keyToCommandRegistry_.get("?")
+const cmdRegistry = asyncBackend_.CommandsData_().keyToCommandMap_.get("?")
 if (!cmdRegistry || cmdRegistry.alias_ !== kBgCmd.showHelp) {
-  const arr = BG_.CommandsData_.keyToCommandRegistry_
   let matched = "";
-  arr.forEach((item, key): void => {
+  asyncBackend_.CommandsData_().keyToCommandMap_.forEach((item, key): void => {
     if (item.alias_ === kBgCmd.showHelp) {
       matched = matched && matched.length < key.length ? matched : key;
     }
@@ -846,10 +613,10 @@ document.addEventListener("click", function onClickOnce(): void {
     if (stat && stat.b && !stat.a) { // .b: showing hints; !.a : is calling executor
       const m1 = stat.m & ~HintMode.queue
       if (m1 < HintMode.min_job && m1 & HintMode.newTab && !(m1 & HintMode.focused)) {
-        const curTab = BG_.Backend_.curTab_()
+        const curTab = asyncBackend_.curTab_()
         if (curTab >= 0) {
           setTimeout(() => {
-            chrome.tabs.update(curTab, { active: true })
+            browser_.tabs.update(curTab, { active: true })
           }, 0)
         }
       }

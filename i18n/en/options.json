@@ -1,0 +1,67 @@
+{
+  "comma": ",",
+  "win": "Windows",
+  "mac": "macOS",
+  "o3_2": "(Sorted)",
+  "o115": "No Changes",
+  "o115_2": "Save Changes",
+  "o115_3": "Saved",
+  "o144": "disabled",
+  "o145_2": "enabled",
+  "optOfChromeUrl": " (need #extensions-on-chrome-urls)",
+  "optNeedChromeUrlFirst": "Please enable the \"#extensions-on-chrome-urls\" browser flag first.",
+  "opt_closeShelf": "Close the download bar and allow an alternative API to download files",
+  "opt_downloads": "Let browser download files",
+  "opt_chromeUrl": "Run on chrome://*/* pages",
+  "opt_cNewtab": "Run on Chrome's native New Tab Page",
+  "opt_contentSettings": "Modify content settings of websites like images and JavaScript",
+  "opt_cookies": "cookies: only for contextual info to work with Multi-Account Containers",
+  "opt_clipboardRead": "Read text in system clipboard (only during related commands)",
+  "dirtyOptions":
+    "Such options have been changed at other places:\n      * $1\n    Continue to save and override these changes?",
+  "clickToUnmask": "# Click to unmask the content…",
+  "beforeUnload": "You have unsaved changes to options.",
+  "ignoredNonEN": "Keyboard layout has been ignored! Please consider disabling the option.",
+  "onlyExtVomnibar": "Extension vomnibar pages can only work before Chromium $1.",
+  "fileVomnibar": "A file vomnibar is limited by browser to only work on file:///* pages.",
+  "httpVomnibar": "An HTTP vomnibar is limited by browser and doesn't work on HTTPS pages.",
+  "requireChromium": " (need Chromium $1+)",
+  "beforeChromium": "before Chromium $1",
+  "lackPermission": "for lacking permission$1",
+  "invalidOption": "This option is invalid $1",
+  "manageShortcut": "\"Manage Shortcuts\" in \"Tools Menu\" of ",
+  "addons": "Firefox Add-ons",
+  "webstore": "Chrome Web Store",
+  "edgestore": "MS Edge Add-ons",
+  "NewTabAdapter": "NewTab Adapter",
+  "refusedURLs": "The URL \"$1\" is restricted to be opened by a WebExtension from Firefox browser.",
+  "nonPlainURL": "The value \"$1\" is not a valid plain URL.",
+  "changedBeforeSync":
+"        Error:\nSorry, but you're enabling the \"Sync settings\" option\n    while some other options are also modified.\nPlease only perform one action at a time!"
+ ,
+  "warningForSync":
+"        Warning:\nthe current settings will be OVERRIDDEN the next time Vimium C starts!\nPlease back up your settings using the \"Export Settings\" button\n!!!        RIGHT NOW        !!!"
+ ,
+  "confirmImport":
+"You are loading $1:\n      * from $2Vimium C$3\n      * for $4\n      * exported $5\n\nAre you sure you want to continue?"
+ ,
+  "backupFile": "a settings copy",
+  "recommendedFile": "the recommended settings",
+  "fileVCVer": "version * of ",
+  "fileVCNewer": " (newer)",
+  "filePlatform": "the $1 platform",
+  "commonPlatform": "common platforms",
+  "atTime": "at $1",
+  "before": "before",
+  "keepSyncing":
+    "Do you want to keep settings synchronized with your current browser account?\n\nPress \"Cancel\" to stop it.",
+  "notJSON": "No JSON data found!",
+  "JSONParseError":
+    "Sorry, Vimium C cannot parse the JSON file:\n  an unexpected character at line $1, column $2",
+  "notVCJSON": "Sorry, no Vimium C settings data found!",
+  "exc": "Error: ",
+  "unknown": "(unknown)",
+  "JSONTooLarge":
+"    Fatal Error:\n\nYour settings file \"$1\" seems too large!\n\nAs limited by your browser, the max size is only $2 KB."
+ 
+}

@@ -1,30 +1,46 @@
-type CSTypes = chrome.contentSettings.ValidTypes;
-type Tab = chrome.tabs.Tab;
+import {
+  curIncognito_, curTabId_, curWndId_, framesForTab_, incognitoFindHistoryList_, recencyForTab_, set_curIncognito_,
+  set_curTabId_, set_curWndId_, set_incognitoFindHistoryList_, set_lastWndId_, set_recencyForTab_, incognitoMarkCache_,
+  set_incognitoMarkCache_, contentPayload_, reqH_, settingsCache_, OnFirefox, OnChrome, CurCVer_,
+  OnEdge, isHighContrast_ff_, omniPayload_, blank_, CONST_
+} from "./store"
+import * as BgUtils_ from "./utils"
+import { Tabs_, Windows_, browser_, tabsGet, getCurWnd, getTabUrl, runtimeError_ } from "./browser"
+import { hostRe_, removeComposedScheme_ } from "./normalize_urls"
+import { prepareReParsingPrefix_ } from "./parse_urls"
+import * as settings_ from "./settings"
+import { complainLimits, showHUD } from "./ports"
+import { setOmniStyle_ } from "./ui_css"
+import { trans_ } from "./i18n"
+import { parseOpenPageUrlOptions, preferLastWnd } from "./open_urls"
+import { reopenTab_ } from "./tab_commands"
 
-const ContentSettings_ = Build.BTypes & BrowserType.Chrome ? {
+type CSTypes = chrome.contentSettings.ValidTypes;
+
+export const ContentSettings_ = OnChrome ? {
   makeKey_ (this: void, contentType: CSTypes, url?: string): string {
     return "vimiumContent|" + contentType + (url ? "|" + url : "");
   },
   complain_ (this: void, contentType: CSTypes, url: string): boolean {
-    let css: typeof chrome.contentSettings | null = chrome.contentSettings
+    let bcs: typeof chrome.contentSettings | null = browser_.contentSettings
     try {
-      css && css.images.get({ primaryUrl: "https://127.0.0.1/" }, BgUtils_.runtimeError_)
+      bcs && bcs.images.get({ primaryUrl: "https://127.0.0.1/" }, runtimeError_)
     } catch { // Chrome 89 would throw an exception if .cs was disabled after being used
-      css = null
+      bcs = null
     }
-    if (!css) {
-      Backend_.showHUD_("Has not permitted to set contentSettings")
+    if (!bcs) {
+      showHUD("Has not permitted to set contentSettings")
       return true;
     }
-    if (!css[contentType] || (<RegExpOne> /^[A-Z]/).test(contentType) || !css[contentType].get) {
-      Backend_.showHUD_(trans_("unknownCS", [contentType]));
+    if (!bcs[contentType] || (<RegExpOne> /^[A-Z]/).test(contentType) || !bcs[contentType].get) {
+      showHUD(trans_("unknownCS", [contentType]))
       return true;
     }
-    if ((!(Build.BTypes & BrowserType.Chrome) || !url.startsWith("read:"))
-        && BgUtils_.protocolRe_.test(url) && !url.startsWith(BrowserProtocol_)) {
+    if ((!OnChrome || !url.startsWith("read:"))
+        && BgUtils_.protocolRe_.test(url) && !url.startsWith(CONST_.BrowserProtocol_)) {
       return false;
     }
-    Backend_.complain_(trans_("changeItsCS"));
+    complainLimits(trans_("changeItsCS"))
     return true;
   },
   parsePattern_ (this: void, pattern: string, level: number): string[] {
@@ -32,18 +48,18 @@ const ContentSettings_ = Build.BTypes & BrowserType.Chrome ? {
       const a = Build.MinCVer >= BrowserVer.MinFailToToggleImageOnFileURL
           || CurCVer_ >= BrowserVer.MinFailToToggleImageOnFileURL ? 1 : level > 1 ? 2 : 0;
       if (a) {
-        Backend_.complain_(a === 1 ? trans_("setFileCS", [BrowserVer.MinFailToToggleImageOnFileURL])
+        complainLimits(a === 1 ? trans_("setFileCS", [BrowserVer.MinFailToToggleImageOnFileURL])
           : trans_("setFolderCS"));
         return [];
       }
       return [pattern.split(<RegExpOne> /[?#]/, 1)[0]];
     }
     if (pattern.startsWith("ftp:")) {
-      Backend_.complain_(trans_("setFTPCS"));
+      complainLimits(trans_("setFTPCS"))
       return [];
     }
     let info: string[] = pattern.match(<RegExpOne> /^([^:]+:\/\/)([^\/]+)/)!
-      , hosts = BgUtils_.hostRe_.exec(info[2])!
+      , hosts = hostRe_.exec(info[2])!
       , result: string[], host = hosts[3] + (hosts[4] || "");
     pattern = info[1];
     result = [pattern + host + "/*"];
@@ -71,21 +87,21 @@ const ContentSettings_ = Build.BTypes & BrowserType.Chrome ? {
     return false
   },
   Clear_ (this: void, contentType: CSTypes, incognito?: Frames.Sender["incognito_"]): void {
-    const css = chrome.contentSettings, cs = css[contentType],
+    const bcs = browser_.contentSettings, cs = bcs[contentType],
     kIncognito = "incognito_session_only", kRegular = "regular";
     if (incognito != null) {
       cs.clear({ scope: (incognito ? kIncognito : kRegular) });
       return;
     }
     cs.clear({ scope: kRegular });
-    cs.clear({ scope: kIncognito }, BgUtils_.runtimeError_);
+    cs.clear({ scope: kIncognito }, runtimeError_)
     localStorage.removeItem(ContentSettings_.makeKey_(contentType));
   },
   clearCS_ (options: KnownOptions<kBgCmd.clearCS>, port: Port | null): void {
     const ty = (options.type ? "" + options.type : "images") as NonNullable<typeof options.type>
     if (!ContentSettings_.complain_(ty, "http://a.cc/")) {
-      ContentSettings_.Clear_(ty, port ? port.s.incognito_ : TabRecency_.incognito_ === IncognitoType.true);
-      return Backend_.showHUD_(trans_("csCleared", [trans_(ty) || ty]));
+      ContentSettings_.Clear_(ty, port ? port.s.incognito_ : curIncognito_ === IncognitoType.true)
+      showHUD(trans_("csCleared", [ty === "images" && trans_(ty) || ty[0].toUpperCase() + ty.slice(1)]))
     }
   },
   toggleCS_ (options: KnownOptions<kBgCmd.toggleCS>, count: number, tabs: [Tab]): void {
@@ -94,9 +110,9 @@ const ContentSettings_ = Build.BTypes & BrowserType.Chrome ? {
       : ContentSettings_.toggleCurrent_(ty, count, tab, options.action === "reopen");
   },
   toggleCurrent_ (this: void, contentType: CSTypes, count: number, tab: Tab, reopen: boolean): void {
-    const pattern = BgUtils_.removeComposedScheme_(tab.url);
+    const pattern = removeComposedScheme_(tab.url)
     if (ContentSettings_.complain_(contentType, pattern)) { return; }
-    chrome.contentSettings[contentType].get({
+    browser_.contentSettings[contentType].get({
       primaryUrl: pattern,
       incognito: tab.incognito
     }, function (opt): void {
@@ -109,67 +125,67 @@ const ContentSettings_ = Build.BTypes & BrowserType.Chrome ? {
           const key = ContentSettings_.makeKey_(contentType);
           localStorage.getItem(key) !== "1" && localStorage.setItem(key, "1");
         }
-        let arr: Frames.Frames | null,
-        couldNotRefresh = !!(Build.BTypes & BrowserType.Edge
-                || Build.BTypes & BrowserType.Firefox && Build.MayAndroidOnFirefox
-                || Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSessions) && !chrome.sessions
-            || !!(Build.BTypes & BrowserType.Chrome)
+        let arr: Frames.Frames | undefined,
+        couldNotRefresh = (OnEdge || OnFirefox && !!Build.MayAndroidOnFirefox
+                || OnChrome && Build.MinCVer < BrowserVer.MinSessions) && !browser_.sessions
+            || OnChrome
                 // work around a bug of Chrome
                 && (Build.MinCVer >= BrowserVer.MinIframeInRestoredSessionTabHasPreviousTopFrameContentSettings
                     || CurCVer_ >= BrowserVer.MinIframeInRestoredSessionTabHasPreviousTopFrameContentSettings)
-                && (arr = Backend_.indexPorts_(tab.id)) && arr.ports_.length > 1
+                && (arr = framesForTab_.get(tab.id)) && arr.ports_.length > 1
                 && ContentSettings_.hasOtherOrigins_(arr)
             ;
         if (tab.incognito || reopen) {
-          return Backend_.reopenTab_(tab);
+          reopenTab_(tab)
         } else if (tab.index > 0) {
-          return Backend_.reopenTab_(tab, couldNotRefresh ? 0 : 2);
+          reopenTab_(tab, couldNotRefresh ? 0 : 2)
+        } else {
+          getCurWnd(true, (wnd): void => {
+            !wnd || wnd.type !== "normal" ? Tabs_.reload(runtimeError_)
+                : reopenTab_(tab, couldNotRefresh ? 0 : wnd.tabs.length > 1 ? 2 : 1)
+            return runtimeError_()
+          })
         }
-        chrome.windows.getCurrent({populate: true}, function (wnd) {
-          !wnd || wnd.type !== "normal" ? chrome.tabs.reload(BgUtils_.runtimeError_)
-            : Backend_.reopenTab_(tab, couldNotRefresh ? 0 : wnd.tabs.length > 1 ? 2 : 1);
-          return BgUtils_.runtimeError_();
-        });
       });
     });
   },
   ensureIncognito_ (this: void, count: number, contentType: CSTypes, tab: Tab): void {
-    if (Settings_.CONST_.DisallowIncognito_) {
-      return Backend_.complain_("setIncogCS");
+    if (CONST_.DisallowIncognito_) {
+      complainLimits("setIncogCS")
+      return
     }
-    const pattern = BgUtils_.removeComposedScheme_(tab.url);
+    const pattern = removeComposedScheme_(tab.url)
     if (ContentSettings_.complain_(contentType, pattern)) { return; }
-    chrome.contentSettings[contentType].get({primaryUrl: pattern, incognito: true }, function (opt): void {
-      if (BgUtils_.runtimeError_()) {
-        chrome.contentSettings[contentType].get({primaryUrl: pattern}, function (opt2) {
+    browser_.contentSettings[contentType].get({primaryUrl: pattern, incognito: true }, function (opt): void {
+      if (runtimeError_()) {
+        browser_.contentSettings[contentType].get({primaryUrl: pattern}, function (opt2) {
           if (opt2 && opt2.setting === "allow") { return; }
           const wndOpt: chrome.windows.CreateData = {
             type: "normal", incognito: true, focused: false, url: "about:blank"
           };
-          if (Build.BTypes & BrowserType.Firefox
-              && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)) {
+          if (OnFirefox) {
             delete wndOpt.focused;
           }
-          chrome.windows.create(wndOpt, function (wnd: chrome.windows.Window): void {
+          Windows_.create(wndOpt, function (wnd: chrome.windows.Window): void {
             const leftTabId = wnd.tabs![0].id;
             return ContentSettings_.setAndUpdate_(count, contentType, tab, pattern, wnd.id, true, function (): void {
-              chrome.tabs.remove(leftTabId);
+              Tabs_.remove(leftTabId)
             });
           });
         });
-        return BgUtils_.runtimeError_();
+        return runtimeError_()
       }
       if (opt && opt.setting === "allow" && tab.incognito) {
         return ContentSettings_.updateTab_(tab);
       }
-      chrome.windows.getAll(function (wnds): void {
+      Windows_.getAll((wnds): void => {
         wnds = wnds.filter(wnd => wnd.incognito && wnd.type === "normal");
         if (!wnds.length) {
           console.log("%cContentSettings.ensure", "color:red"
             , "get incognito content settings", opt, " but can not find an incognito window.");
           return;
         }
-        const preferred = wnds.find(i => i.id === TabRecency_.lastWnd_) || wnds[wnds.length - 1]!
+        const preferred = preferLastWnd(wnds)
         if (opt && opt.setting === "allow") {
           return ContentSettings_.updateTab_(tab, preferred.id)
         }
@@ -188,7 +204,7 @@ const ContentSettings_ = Build.BTypes & BrowserType.Chrome ? {
       , syncState && wndId !== tab.windowId
       ? function (err): void {
         if (err) { return cb(err); }
-        chrome.windows.get(tab.windowId, cb);
+        Windows_.get(tab.windowId, cb)
       } : cb);
   } as {
     (this: void, count: number, contentType: CSTypes, tab: Tab, pattern: string
@@ -200,8 +216,8 @@ const ContentSettings_ = Build.BTypes & BrowserType.Chrome ? {
       , settings: Readonly<Pick<chrome.contentSettings.SetDetails, "scope" | "setting">>
       , callback: (this: void, has_err: boolean) => void): void {
     let left: number, has_err = false;
-    const ref = chrome.contentSettings[contentType], func = function (): void {
-      const err = BgUtils_.runtimeError_();
+    const ref = browser_.contentSettings[contentType], func = (): void => {
+      const err = runtimeError_()
       err && console.log("[%o]", Date.now(), err);
       if (has_err) { return err; }
       --left; has_err = !!<boolean> <boolean | void> err;
@@ -224,7 +240,7 @@ const ContentSettings_ = Build.BTypes & BrowserType.Chrome ? {
     if (oldWnd !== true) { ContentSettings_.updateTab_(tab, wndId); }
     callback && callback();
     if (oldWnd === true) { return; }
-    wndId && chrome.windows.update(wndId, {
+    wndId && Windows_.update(wndId, {
       focused: true,
       state: oldWnd ? oldWnd.state : undefined
     });
@@ -235,16 +251,15 @@ const ContentSettings_ = Build.BTypes & BrowserType.Chrome ? {
       (tab as chrome.tabs.CreateProperties).index = undefined;
       tab.windowId = newWindowId;
     }
-    Backend_.reopenTab_(tab);
+    reopenTab_(tab)
   }
 } : {
   complain_ () {
-    Backend_.showHUD_("This version of Vimium C has no permissions to set CSs");
+    showHUD("This version of Vimium C has no permissions to set CSs")
   }
-} as never,
-Marks_ = { // NOTE: all public members should be static
+} as never
+export const Marks_ = { // NOTE: all public members should be static
   cache_: localStorage,
-  cacheI_: null as Map<string, string> | null,
   set_ ({ l: local, n: markName, u: url, s: scroll }: MarksNS.NewMark, incognito: boolean, tabId?: number): void {
     if (local && scroll[0] === 0 && scroll[1] === 0) {
       if (scroll.length === 2) {
@@ -257,7 +272,7 @@ Marks_ = { // NOTE: all public members should be static
     const key = Marks_.getLocationKey_(markName, local ? url : "")
     const val = JSON.stringify<MarksNS.StoredGlobalMark | MarksNS.ScrollInfo>(local ? scroll
         : { tabId: tabId!, url, scroll })
-    incognito ? (Marks_.cacheI_ || (IncognitoWatcher_.watch_(), Marks_.cacheI_ = new Map())).set(key, val)
+    incognito ? (incognitoMarkCache_ || (IncognitoWatcher_.watch_(), set_incognitoMarkCache_(new Map()))).set(key, val)
         : Marks_.cache_.setItem(key, val)
   },
   createMark_ (this: void, request: MarksNS.NewTopMark | MarksNS.NewMark, port: Port): void {
@@ -266,14 +281,14 @@ Marks_ = { // NOTE: all public members should be static
       Marks_.set_(request, port.s.incognito_, tabId)
       return
     }
-    (port = Backend_.indexPorts_(tabId, 0) || port) && port.postMessage({
+    (port = framesForTab_.get(tabId)?.top_ || port) && port.postMessage({
       N: kBgReq.createMark,
       n: request.n
     });
   },
   gotoMark_ (this: void, request: Extract<FgReq[kFgReq.marks], { a: kMarkAction.goto }>, port: Port): void {
     const { n: markName } = request, key = Marks_.getLocationKey_(markName, request.u)
-    const str = port.s.incognito_ && Marks_.cacheI_ && Marks_.cacheI_.get(key) || Marks_.cache_.getItem(key)
+    const str = port.s.incognito_ && incognitoMarkCache_?.get(key) || Marks_.cache_.getItem(key)
     const options = request.c
     if (request.l) {
       let scroll: MarksNS.FgMark | null = str ? JSON.parse(str) as MarksNS.FgMark : null;
@@ -289,47 +304,44 @@ Marks_ = { // NOTE: all public members should be static
       }
     }
     if (!str) {
-      Backend_.showHUD_(trans_("noMark", [trans_(request.l ? "Local_" : "Global_"), markName]))
+      showHUD(trans_("noMark", [trans_(request.l ? "Local_" : "Global_"), markName]))
       return
     }
     const stored = JSON.parse(str) as MarksNS.StoredGlobalMark;
     const tabId = +stored.tabId, markInfo: MarksNS.MarkToGo = {
       u: stored.url, s: stored.scroll, t: stored.tabId,
       n: markName, p: true,
-      q: { g: options.group, i: options.incognito, m: options.replace,
-           o: options.opener, r: options.reuse, p: options.position, w: options.window },
+      q: parseOpenPageUrlOptions(options),
       f: options // parseFallbackOptions(options)
     };
     markInfo.p = options.prefix !== false && markInfo.s[1] === 0 && markInfo.s[0] === 0 &&
         !!BgUtils_.IsURLHttp_(markInfo.u);
-    if (tabId >= 0 && Backend_.indexPorts_(tabId)) {
-      chrome.tabs.get(tabId, Marks_.checkTab_.bind(0, markInfo));
+    if (tabId >= 0 && framesForTab_.has(tabId)) {
+      tabsGet(tabId, Marks_.checkTab_.bind(0, markInfo))
     } else {
-      Backend_.reqH_[kFgReq.focusOrLaunch](markInfo)
+      reqH_[kFgReq.focusOrLaunch](markInfo)
     }
   },
-  checkTab_ (this: 0, mark: MarksNS.MarkToGo, tab: chrome.tabs.Tab): void {
-    const url = (Build.BTypes & BrowserType.Chrome ? tab.url || tab.pendingUrl : tab.url).split("#", 1)[0]
+  checkTab_ (this: 0, mark: MarksNS.MarkToGo, tab: Tab): void {
+    const url = getTabUrl(tab).split("#", 1)[0]
     if (url === mark.u || mark.p && mark.u.startsWith(url)) {
-      Backend_.reqH_[kFgReq.gotoSession]({ s: tab.id });
+      reqH_[kFgReq.gotoSession]({ s: tab.id })
       return Marks_.scrollTab_(mark, tab);
     } else {
-      return Backend_.reqH_[kFgReq.focusOrLaunch](mark);
+      reqH_[kFgReq.focusOrLaunch](mark)
     }
   },
   getLocationKey_ (markName: string, url: string | undefined): string {
-    return url ? "vimiumMark|" + BgUtils_.prepareReParsingPrefix_(url.split("#", 1)[0])
+    return url ? "vimiumMark|" + prepareReParsingPrefix_(url.split("#", 1)[0])
         + (url.length > 1 ? "|" + markName : "") : "vimiumGlobalMark|" + markName
   },
-  scrollTab_ (this: void, markInfo: MarksNS.InfoToGo, tab: chrome.tabs.Tab): void {
-    const tabId = tab.id, port = Backend_.indexPorts_(tabId, 0);
+  scrollTab_ (this: void, markInfo: MarksNS.InfoToGo, tab: Tab): void {
+    const tabId = tab.id, port = framesForTab_.get(tabId)?.top_
     if (port) {
       port.postMessage({ N: kBgReq.goToMark, l: 0, n: markInfo.n, s: markInfo.s, f: markInfo.f })
-    } else {
-      // markInfo.f && runNextCmdBy(1, markInfo.f)
     }
     if (markInfo.t !== tabId && markInfo.n) {
-      return Marks_.set_(markInfo as MarksNS.MarkToGo, TabRecency_.incognito_ === IncognitoType.true, tabId);
+      return Marks_.set_(markInfo as MarksNS.MarkToGo, curIncognito_ === IncognitoType.true, tabId)
     }
   },
   clear_ (this: void, url?: string): void {
@@ -343,44 +355,46 @@ Marks_ = { // NOTE: all public members should be static
     }
     for (const key of toRemove) { storage.removeItem(key); }
     let num = toRemove.length;
-    const storage2 = Marks_.cacheI_
+    const storage2 = incognitoMarkCache_
     storage2 && storage2.forEach((_v, key): void => {
       if (key.startsWith(key_start)) {
         num++
         storage2.delete(key)
       }
     })
-    return Backend_.showHUD_(trans_("markRemoved", [
-      num, trans_(url ? url === "#" ? "allLocal" : kTip.local + "" : kTip.global + ""),
+    return showHUD(trans_("markRemoved", [
+      num, trans_(url ? url === "#" ? "allLocal" : (kTip.local + "") as "41" : (kTip.global + "") as "39"),
       trans_(num !== 1 ? "have" : "has")
     ]));
   }
-},
-FindModeHistory_ = {
+}
+
+export const FindModeHistory_ = {
   key_: "findModeRawQueryList" as const,
   list_: null as string[] | null,
-  listI_: null as string[] | null,
   timer_: 0,
   init_ (): void {
-    const str: string = Settings_.get_(FindModeHistory_.key_);
+    const str: string = settings_.get_(FindModeHistory_.key_)
     FindModeHistory_.list_ = str ? str.split("\n") : [];
     FindModeHistory_.init_ = null as never;
   },
   query_: function (incognito: boolean, query?: string, nth?: number): string | void {
     const a = FindModeHistory_;
     a.init_ && a.init_();
-    const list = incognito ? a.listI_ || (IncognitoWatcher_.watch_(), a.listI_ = a.list_!.slice(0)) : a.list_!;
+    const list = incognito ? incognitoFindHistoryList_
+        || (IncognitoWatcher_.watch_(), set_incognitoFindHistoryList_(a.list_!.slice(0))) : a.list_!
     if (!query) {
       return list[list.length - (nth || 1)] || "";
     }
     query = query.replace(/\n/g as RegExpG, " ");
     if (incognito) {
-      return a.refreshIn_(query, list, true);
+      a.refreshIn_(query, list, true)
+      return
     }
-    query = BgUtils_.unicodeSubstring_(query, 0, 99);
+    query = BgUtils_.unicodeRSubstring_(query, 0, 99)
     const str = a.refreshIn_(query, list);
-    str && Settings_.set_(a.key_, str);
-    if (a.listI_) { return a.refreshIn_(query, a.listI_, true); }
+    str && settings_.set_(a.key_, str)
+    if (incognitoFindHistoryList_) { a.refreshIn_(query, incognitoFindHistoryList_, true) }
   } as {
     (incognito: boolean, query?: undefined | "", nth?: number): string;
     (incognito: boolean, query: string, nth?: undefined): void;
@@ -403,20 +417,20 @@ FindModeHistory_ = {
   },
   removeAll_ (incognito: boolean): void {
     if (incognito) {
-      FindModeHistory_.listI_ && (FindModeHistory_.listI_ = []);
+      incognitoFindHistoryList_ && (set_incognitoFindHistoryList_([]))
       return;
     }
     FindModeHistory_.init_ = null as never;
     FindModeHistory_.list_ = [];
-    Settings_.set_(FindModeHistory_.key_, "");
+    settings_.set_(FindModeHistory_.key_, "")
   }
-},
-IncognitoWatcher_ = {
+}
+const IncognitoWatcher_ = {
   watching_: false,
   timer_: 0,
   watch_ (): void {
     if (IncognitoWatcher_.watching_) { return; }
-    chrome.windows.onRemoved.addListener(IncognitoWatcher_.OnWndRemoved_);
+    Windows_.onRemoved.addListener(IncognitoWatcher_.OnWndRemoved_)
     IncognitoWatcher_.watching_ = true;
   },
   OnWndRemoved_ (this: void): void {
@@ -426,51 +440,51 @@ IncognitoWatcher_ = {
   TestIncognitoWnd_ (this: void): void {
     IncognitoWatcher_.timer_ = 0;
     let next: IteratorResult<Frames.Frames>
-    if (Build.MinCVer >= BrowserVer.MinNoAbnormalIncognito || !(Build.BTypes & BrowserType.Chrome)
+    if (!OnChrome || Build.MinCVer >= BrowserVer.MinNoAbnormalIncognito
         || CurCVer_ > BrowserVer.MinNoAbnormalIncognito - 1) {
-      if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol
+      if (OnChrome && Build.MinCVer < BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol
           && CurCVer_ < BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol) {
-        const map = (Backend_.indexPorts_() as any as SimulatedMap).map_ as Dict<any> as Dict<Frames.Frames>
+        const map = (framesForTab_ as any as SimulatedMap).map_ as Dict<any> as Dict<Frames.Frames>
         for (let tabId in map) {
           if (map[tabId]!.cur_.s.incognito_) { return }
         }
       } else if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.BuildMinForOf) {
-        const iter = Backend_.indexPorts_().values() as Iterable<Frames.Frames> as IterableIterator<Frames.Frames>
+        const iter = framesForTab_.values() as Iterable<Frames.Frames> as IterableIterator<Frames.Frames>
         while (next = iter.next(), !next.done) {
           if (next.value.cur_.s.incognito_) { return }
         }
       } else {
-        for (let frames of Backend_.indexPorts_().values()) {
+        for (let frames of framesForTab_.values()) {
           if (frames.cur_.s.incognito_) { return }
         }
       }
     }
-    chrome.windows.getAll(function (wnds): void {
+    Windows_.getAll((wnds): void => {
       wnds.some(wnd => wnd.incognito) || IncognitoWatcher_.cleanI_();
     });
   },
   cleanI_ (): void {
-    FindModeHistory_.listI_ = null;
-    Marks_.cacheI_ = null;
-    chrome.windows.onRemoved.removeListener(IncognitoWatcher_.OnWndRemoved_);
+    set_incognitoFindHistoryList_(null)
+    set_incognitoMarkCache_(null)
+    Windows_.onRemoved.removeListener(IncognitoWatcher_.OnWndRemoved_)
     IncognitoWatcher_.watching_ = false;
   }
-},
-MediaWatcher_ = {
+}
+export const MediaWatcher_ = {
   watchers_: [
-    Build.BTypes & ~BrowserType.ChromeOrFirefox ? MediaNS.Watcher.WaitToTest
-    : !(Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinMediaQuery$PrefersReducedMotion)
-      && !(Build.BTypes & BrowserType.Firefox && Build.MinFFVer < FirefoxBrowserVer.MinMediaQuery$PrefersReducedMotion)
+    !(OnChrome || OnFirefox) ? MediaNS.Watcher.WaitToTest
+    : !(OnChrome && Build.MinCVer < BrowserVer.MinMediaQuery$PrefersReducedMotion)
+      && !(OnFirefox && Build.MinFFVer < FirefoxBrowserVer.MinMediaQuery$PrefersReducedMotion)
     ? MediaNS.Watcher.NotWatching
-    : Build.BTypes & BrowserType.Chrome && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)
+    : OnChrome
     ? CurCVer_ >= BrowserVer.MinMediaQuery$PrefersReducedMotion ? MediaNS.Watcher.NotWatching
       : MediaNS.Watcher.InvalidMedia
     : Build.DetectAPIOnFirefox ? MediaNS.Watcher.WaitToTest : MediaNS.Watcher.NotWatching,
-    Build.BTypes & ~BrowserType.ChromeOrFirefox ? MediaNS.Watcher.WaitToTest
-    : !(Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinMediaQuery$PrefersColorScheme)
-      && !(Build.BTypes & BrowserType.Firefox && Build.MinFFVer < FirefoxBrowserVer.MinMediaQuery$PrefersColorScheme)
+    !(OnChrome || OnFirefox) ? MediaNS.Watcher.WaitToTest
+    : !(OnChrome && Build.MinCVer < BrowserVer.MinMediaQuery$PrefersColorScheme)
+      && !(OnFirefox && Build.MinFFVer < FirefoxBrowserVer.MinMediaQuery$PrefersColorScheme)
     ? MediaNS.Watcher.NotWatching
-    : Build.BTypes & BrowserType.Chrome && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)
+    : OnChrome
     ? CurCVer_ >= BrowserVer.MinMediaQuery$PrefersColorScheme ? MediaNS.Watcher.NotWatching
       : MediaNS.Watcher.InvalidMedia
     : MediaNS.Watcher.WaitToTest
@@ -491,21 +505,7 @@ MediaWatcher_ = {
       const query = matchMedia(`(${name}: ${!key ? "reduce" : "dark"})`);
       query.onchange = a._onChange;
       watchers[key] = query;
-      if (!(Build.BTypes & ~BrowserType.ChromeOrFirefox)
-          && (!(Build.BTypes & BrowserType.Firefox)
-              || Build.MinFFVer >= FirefoxBrowserVer.MinMediaChangeEventsOnBackgroundPage)
-          && (!(Build.BTypes & BrowserType.Chrome)
-              || Build.MinCVer >= BrowserVer.MinMediaChangeEventsOnBackgroundPage)) { /* empty */ }
-      else if (!a._timer) {
-        if (!(Build.BTypes & ~BrowserType.Firefox)
-              || Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox
-            ? CurFFVer_ < FirefoxBrowserVer.MinMediaChangeEventsOnBackgroundPage
-            : !(Build.BTypes & ~BrowserType.Chrome) || Build.BTypes & BrowserType.Chrome && OnOther & BrowserType.Chrome
-            ? CurCVer_ < BrowserVer.MinMediaChangeEventsOnBackgroundPage
-            : true) {
-          a._timer = setInterval(MediaWatcher_.RefreshAll_, GlobalConsts.MediaWatchInterval);
-        }
-      }
+      a._timer = a._timer || setInterval(MediaWatcher_.RefreshAll_, GlobalConsts.MediaWatchInterval)
       a.update_(key, 0);
     } else if (!doListen && typeof cur === "object") {
       cur.onchange = null;
@@ -522,25 +522,22 @@ MediaWatcher_ = {
   update_ (this: void, key: MediaNS.kName, embed?: 1 | 0): void {
     type ObjWatcher = Exclude<typeof watcher, number>;
     let watcher = MediaWatcher_.watchers_[key], isObj = typeof watcher === "object";
-    if ((!(Build.BTypes & ~BrowserType.Firefox)
-          || Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox)
-        && embed == null && isObj) {
+    if (OnFirefox && embed == null && isObj) {
       let watcher2 = matchMedia((watcher as ObjWatcher).media);
       watcher2.onchange = (watcher as ObjWatcher).onchange;
       (watcher as ObjWatcher).onchange = null;
       MediaWatcher_.watchers_[key] = watcher = watcher2;
     }
-    const settings = Settings_, payload = settings.payload_,
-    omniToggled = key ? "dark" : "less-motion",
+    const omniToggled = key ? "dark" : "less-motion",
     bMatched: boolean = isObj ? (watcher as ObjWatcher).matches : false;
-    const payloadKey = key ? "d" : "m", newPayloadVal = settings.updatePayload_(payloadKey, bMatched)
-    if (payload[payloadKey] !== newPayloadVal) {
-      (payload as Generalized<Pick<typeof payload, typeof payloadKey>>)[payloadKey] = newPayloadVal;
-      embed || settings.broadcast_({ N: kBgReq.settingsUpdate, d: [payloadKey] });
+    const payloadKey = key ? "d" : "m", newPayloadVal = settings_.updatePayload_(payloadKey, bMatched)
+    if (contentPayload_[payloadKey] !== newPayloadVal) {
+      (contentPayload_ as Generalized<Pick<typeof contentPayload_, typeof payloadKey>>)[payloadKey] = newPayloadVal
+      embed || settings_.broadcast_({ N: kBgReq.settingsUpdate, d: [payloadKey] })
     }
-    Backend_.reqH_[kFgReq.setOmniStyle]({
+    setOmniStyle_({
       t: omniToggled,
-      e: bMatched || ` ${settings.cache_.vomnibarOptions.styles} `.includes(` ${omniToggled} `),
+      e: bMatched || ` ${settingsCache_.vomnibarOptions.styles} `.includes(` ${omniToggled} `),
       b: !embed
     });
   },
@@ -566,21 +563,15 @@ MediaWatcher_ = {
           matchMedia(this.media).matches, "/", index < 0 ? index : MediaWatcher_.get_(index));
     }
   }
-},
-TabRecency_ = {
-  tabs_: new Map<number, { /* index */ i: number; /* mono clock */ t: number }>(),
-  curTab_: (chrome.tabs.TAB_ID_NONE || GlobalConsts.TabIdNone) as number,
-  curWnd_: (!(Build.BTypes & BrowserType.Firefox && Build.MayAndroidOnFirefox) || chrome.windows)
-      && chrome.windows.WINDOW_ID_NONE || GlobalConsts.WndIdNone,
-  lastWnd_: GlobalConsts.WndIdNone as number,
-  incognito_: Build.MinCVer >= BrowserVer.MinNoAbnormalIncognito || !(Build.BTypes & BrowserType.Chrome)
-      ? IncognitoType.ensuredFalse : IncognitoType.mayFalse,
-  rCompare_: null as never as (a: {id: number}, b: {id: number}) => number
+}
+export const TabRecency_ = {
+  rCompare_: null as never as (a: {id: number}, b: {id: number}) => number,
+  onWndChange_: blank_
 };
 
-BgUtils_.timeout_(120, function (): void {
-  const noneWnd = TabRecency_.curWnd_
-  let cache = TabRecency_.tabs_, stamp = 1, time = 0
+setTimeout((): void => {
+  const noneWnd = curWndId_
+  let cache = recencyForTab_, stamp = 1, time = 0
   const clean = (tabs: Tab[] | undefined): void => {
     const existing = tabs ? tabs.map(i => [i.id, cache.get(i.id)] as const)
         .filter((i): i is [number, {i: number, t: number}] => <boolean> <any> i[1])
@@ -591,111 +582,132 @@ BgUtils_.timeout_(120, function (): void {
     existing.forEach((i, ind) => i[1].i = ind + 2)
     stamp = existing.length > 0 ? existing[existing.length - 1][1].i : 1
     if (stamp > 1) {
-      cache = TabRecency_.tabs_ = new Map(existing)
+      set_recencyForTab_(cache = new Map(existing))
       return
     }
-    cache.forEach((val, i) => {
+    cache.forEach((val, i): void => {
       if (val.i < GlobalConsts.MaxTabRecency - GlobalConsts.MaxTabsKeepingRecency + 2) { cache.delete(i as number) }
       else { val.i -= GlobalConsts.MaxTabRecency - GlobalConsts.MaxTabsKeepingRecency }
     })
     stamp = GlobalConsts.MaxTabsKeepingRecency + 1;
   }
   function listener(info: chrome.tabs.TabActiveInfo): void {
-    if (info.windowId !== TabRecency_.curWnd_) {
-      chrome.windows.get(info.windowId, maybeOnBgWndActiveTabChange)
+    if (info.windowId !== curWndId_) {
+      Windows_.get(info.windowId, maybeOnBgWndActiveTabChange)
       return
     }
     const now = performance.now();
     if (now - time > GlobalConsts.MinStayTimeToRecordTabRecency) {
-      const old = cache.get(TabRecency_.curTab_),
-      monoNow = Build.BTypes & BrowserType.ChromeOrFirefox && Settings_.payload_.o === kOS.unixLike ? Date.now() : now
-      old ? (old.i = ++stamp, old.t = monoNow) : cache.set(TabRecency_.curTab_, { i: ++stamp, t: monoNow })
+      const old = cache.get(curTabId_),
+      monoNow = (OnChrome || OnFirefox) && contentPayload_.o === kOS.unixLike ? Date.now() : now
+      old ? (old.i = ++stamp, old.t = monoNow) : cache.set(curTabId_, { i: ++stamp, t: monoNow })
       if (stamp > GlobalConsts.MaxTabRecency - 10) { // with MinStayTimeToRecordTabRecency, safe enough
-        chrome.tabs.query({}, clean)
+        Tabs_.query({}, clean)
       }
     }
-    TabRecency_.curTab_ = info.tabId; time = now;
+    set_curTabId_(info.tabId); time = now
   }
   function maybeOnBgWndActiveTabChange(wnd: chrome.windows.Window): void {
     if (!wnd.focused) { return }
-    const newWndId = wnd.id, curWnd = TabRecency_.curWnd_
-    if (newWndId !== curWnd) {
-      TabRecency_.lastWnd_ = curWnd
-      TabRecency_.curWnd_ = newWndId
+    const newWndId = wnd.id
+    if (newWndId !== curWndId_) {
+      set_lastWndId_(curWndId_)
+      set_curWndId_(newWndId)
     }
-    chrome.tabs.query({windowId: newWndId, active: true}, (tabs): void => {
-      if (tabs && tabs.length > 0 && newWndId === TabRecency_.curWnd_) {
+    Tabs_.query({windowId: newWndId, active: true}, (tabs): void => {
+      if (tabs && tabs.length > 0 && newWndId === curWndId_) {
         onFocusChanged(tabs)
       }
     })
   }
-  function onFocusChanged(tabs: [chrome.tabs.Tab] | never[]): void {
-    if (!tabs || tabs.length === 0) { return BgUtils_.runtimeError_() }
-    let a = tabs[0], current = a.windowId, last = TabRecency_.curWnd_
+  function onFocusChanged(tabs: [Tab] | never[]): void {
+    if (!tabs || tabs.length === 0) { return runtimeError_() }
+    let a = tabs[0], current = a.windowId, last = curWndId_
     if (current !== last) {
-      TabRecency_.curWnd_ = current
-      TabRecency_.lastWnd_ = last
+      set_curWndId_(current)
+      set_lastWndId_(last)
     }
-    {
-      TabRecency_.incognito_ = a.incognito ? IncognitoType.true
-        : Build.MinCVer >= BrowserVer.MinNoAbnormalIncognito || !(Build.BTypes & BrowserType.Chrome)
-        ? IncognitoType.ensuredFalse : IncognitoType.mayFalse;
-      Completion_.onWndChange_();
-      listener({ tabId: a.id, windowId: current })
-    }
+    set_curIncognito_(a.incognito ? IncognitoType.true
+        : !OnChrome || Build.MinCVer >= BrowserVer.MinNoAbnormalIncognito
+        ? IncognitoType.ensuredFalse : IncognitoType.mayFalse)
+    TabRecency_.onWndChange_()
+    listener({ tabId: a.id, windowId: current })
   }
-  chrome.tabs.onActivated.addListener(listener);
-  (!(Build.BTypes & BrowserType.Firefox && Build.MayAndroidOnFirefox) || chrome.windows) &&
-  chrome.windows.onFocusChanged.addListener(function (windowId): void {
+  Tabs_.onActivated.addListener(listener)
+  OnFirefox && Build.MayAndroidOnFirefox && !Windows_ ||
+  Windows_.onFocusChanged.addListener(function (windowId): void {
     if (windowId === noneWnd) { return; }
     // here windowId may pointer to a devTools window on C45 - see BrowserVer.Min$windows$APIsFilterOutDevToolsByDefault
-    chrome.tabs.query({windowId, active: true}, onFocusChanged);
+    Tabs_.query({windowId, active: true}, onFocusChanged)
   });
-  chrome.tabs.query({currentWindow: true, active: true}, function (tabs: [chrome.tabs.Tab]): void {
+  Tabs_.query({currentWindow: true, active: true}, function (tabs: [Tab]): void {
     time = performance.now();
     const a = tabs && tabs[0];
-    if (!a) { return BgUtils_.runtimeError_(); }
-    TabRecency_.curTab_ = a.id;
-    TabRecency_.curWnd_ = a.windowId;
-    TabRecency_.incognito_ = a.incognito ? IncognitoType.true
-      : Build.MinCVer >= BrowserVer.MinNoAbnormalIncognito || !(Build.BTypes & BrowserType.Chrome)
-      ? IncognitoType.ensuredFalse : IncognitoType.mayFalse;
+    if (!a) { return runtimeError_() }
+    set_curTabId_(a.id)
+    set_curWndId_(a.windowId)
+    set_curIncognito_(a.incognito ? IncognitoType.true
+      : !OnChrome || Build.MinCVer >= BrowserVer.MinNoAbnormalIncognito
+      ? IncognitoType.ensuredFalse : IncognitoType.mayFalse)
   });
   TabRecency_.rCompare_ = (a, b): number => cache.get(b.id)!.i - cache.get(a.id)!.i
 
-  const settings = Settings_;
-  settings.updateHooks_.autoDarkMode = settings.updateHooks_.autoReduceMotion = (value: boolean
+  if (!OnChrome) { return }
+  for (const i of ["images", "plugins", "javascript", "cookies"] as const) {
+    localStorage.getItem(ContentSettings_.makeKey_(i)) != null &&
+    browser_.contentSettings && setTimeout(ContentSettings_.Clear_, 100, i)
+  }
+}, 120)
+
+settings_.updateHooks_.autoDarkMode = settings_.updateHooks_.autoReduceMotion = (value: boolean
       , keyName: "autoReduceMotion" | "autoDarkMode"): void => {
     const key = keyName.length > 12 ? MediaNS.kName.PrefersReduceMotion
         : MediaNS.kName.PrefersColorScheme;
     MediaWatcher_.listen_(key, value);
-  };
-  settings.postUpdate_("autoDarkMode");
-  settings.postUpdate_("autoReduceMotion");
-  settings.updateOmniStyles_ = MediaWatcher_.update_;
-  settings.updateMediaQueries_ = MediaWatcher_.RefreshAll_;
+}
 
-  if (!(Build.BTypes & BrowserType.Chrome) || Build.BTypes & ~BrowserType.Chrome && OnOther !== BrowserType.Chrome) {
-    return
+settings_.updateHooks_.vomnibarOptions = (options: SettingsNS.BackendSettings["vomnibarOptions"] | null): void => {
+  const defaultOptions = settings_.defaults_.vomnibarOptions,
+  payload = omniPayload_
+  let isSame = true
+  let { actions, maxMatches, queryInterval, styles, sizes } = defaultOptions
+  if (options !== defaultOptions && options && typeof options === "object") {
+    const newMaxMatches = Math.max(3, Math.min((options.maxMatches | 0) || maxMatches
+        , GlobalConsts.MaxLimitOfVomnibarMatches)),
+    newActions = ((options.actions || "") + "").trim(),
+    newInterval = +options.queryInterval,
+    newSizes = ((options.sizes || "") + "").trim(),
+    newStyles = ((options.styles || "") + "").trim(),
+    newQueryInterval = Math.max(0, Math.min(newInterval >= 0 ? newInterval : queryInterval, 1200))
+    isSame = maxMatches === newMaxMatches && queryInterval === newQueryInterval
+              && newSizes === sizes && actions === newActions
+              && styles === newStyles
+    if (!isSame) {
+      maxMatches = newMaxMatches
+      queryInterval = newQueryInterval
+      sizes = newSizes
+      styles = newStyles
+    }
+    options.actions = newActions
+    options.maxMatches = newMaxMatches
+    options.queryInterval = newQueryInterval
+    options.sizes = newSizes
+    options.styles = newStyles
   }
-  for (const i of ["images", "plugins", "javascript", "cookies"] as const) {
-    localStorage.getItem(ContentSettings_.makeKey_(i)) != null &&
-    chrome.contentSettings && setTimeout(ContentSettings_.Clear_, 100, i);
+  if (OnFirefox && isHighContrast_ff_ && !(<RegExpOne> /(^|\s)high-contrast(\s|$)/).test(styles)) {
+    styles += " high-contrast"
   }
-});
-
-Settings_.temp_.loadI18nPayload_ = function (): void {
-  Settings_.temp_.loadI18nPayload_ = null;
-  const arr: string[] = Settings_.i18nPayload_ = [],
-  args = ["$1", "$2", "$3", "$4"];
-  for (let i = 0; i < kTip.INJECTED_CONTENT_END; i++) {
-    arr.push(trans_("" + i, args));
-  }
-};
-
-Settings_.temp_.initing_ |= BackendHandlersNS.kInitStat.others;
-Backend_.onInit_!();
-
-chrome.extension.isAllowedIncognitoAccess(function (isAllowedAccess): void {
-  Settings_.CONST_.DisallowIncognito_ = isAllowedAccess === false;
-});
+  (settingsCache_ as settings_.WritableSettingsCache).vomnibarOptions = isSame ? defaultOptions : options!
+  payload.n = maxMatches
+  payload.t = queryInterval
+  payload.l = sizes
+  payload.s = styles
+  MediaWatcher_.update_(MediaNS.kName.PrefersReduceMotion, 1)
+  MediaWatcher_.update_(MediaNS.kName.PrefersColorScheme, 1)
+  settings_.broadcastOmni_({ N: kBgReq.omni_updateOptions, d: {
+    n: maxMatches,
+    t: queryInterval,
+    l: sizes,
+    s: payload.s
+  } })
+}

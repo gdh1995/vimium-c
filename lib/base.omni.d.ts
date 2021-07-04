@@ -9,7 +9,7 @@ interface BaseFgOptions extends Pick<CmdOptions[kFgCmd.vomnibar], "s" | "t"> {
 interface FgOptions extends BaseFgOptions, Partial<GlobalOptions> {
   url?: string | null;
 }
-type MessageData = [number, FgOptions | null];
+type MessageData = [id: "VimiumC", secret: string, options: FgOptions | null]
 interface Msg<T extends (kCReq | kFReq) & number> { N: T }
 
 const enum kCReq {

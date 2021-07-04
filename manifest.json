@@ -4,26 +4,27 @@
     "persistent": true,
     "scripts": [
       "background/define.js",
-      "background/utils.js",
-      "background/settings.js",
-      "background/exclusions.js",
       "background/store.js",
+      "background/utils.js",
       "background/browser.js",
-      "background/ui_css.js",
-      "background/clipboard.js",
-      "background/key_mappings.js",
+      "background/normalize_urls.js",
+      "background/parse_urls.js",
+      "background/settings.js",
       "background/ports.js",
+      "background/exclusions.js",
+      "background/ui_css.js",
+      "background/i18n.js",
+      "background/key_mappings.js",
       "background/run_commands.js",
+      "background/tools.js",
+      "background/clipboard.js",
+      "background/eval_urls.js",
       "background/open_urls.js",
       "background/frame_commands.js",
       "background/tab_commands.js",
-      "background/request_handlers.js",
       "background/all_commands.js",
-      "background/main.js",
-      "background/tools.js",
-      "background/completion.js",
-      "background/sync.js",
-      "background/others.js"
+      "background/request_handlers.js",
+      "background/main.js"
     ]
   },
   "browser_action": {
@@ -32,7 +33,7 @@
       "38": "icons/enabled_38.png"
     },
     "default_popup": "pages/popup.html",
-    "default_title": "Vimium C"
+    "default_title": "Vimium C\n\n__MSG_noActiveState__"
   },
   "commands": {
     "createTab": {
@@ -119,6 +120,7 @@
   },
   "optional_permissions": [
     "chrome://*/*",
+    "chrome://new-tab-page/*",
     "contentSettings",
     "cookies",
     "downloads",

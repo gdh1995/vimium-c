@@ -1,16 +1,21 @@
 /** limitation: file names must be unique */
 // eslint-disable-next-line no-var
-var define: any, __filename: string | null | undefined
+var __filename: string | null | undefined
 
-(function (): void {
+!(Build.BTypes & BrowserType.Edge)
+&& (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinUsableScript$type$$module$InExtensions)
+&& (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinES$DynamicImport)
+&& (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredES$DynamicImport)
+|| (function (): void {
   type ModuleTy = Dict<any> & { __esModule?: boolean, __default?: Function }
-  type RequireTy = (target: string) => ModuleTy
-  type FactoryTy = (require?: RequireTy, exports?: ModuleTy, ...deps: ModuleTy[]) => any
+  type LoadingPromise = Promise<void> & { __esModule?: ModuleTy }
+  type AsyncRequireTy = (target: [string], resolve: (exports: ModuleTy) => void, reject?: (msg: any) => void) => void
+  type FactoryTy = (require?: AsyncRequireTy, exports?: ModuleTy, ...deps: ModuleTy[]) => (() => any) | void
   interface DefineTy {
-    (deps: string[], factory: FactoryTy): any
-    (factory: FactoryTy): any
+    (deps: string[], factory: FactoryTy): void
+    (factory: FactoryTy): void
     amd: boolean
-    modules_?: Dict<ModuleTy>
+    modules_?: Dict<ModuleTy | LoadingPromise>
     noConflict (): void
   }
 
@@ -27,128 +32,146 @@ var define: any, __filename: string | null | undefined
       ? navigator.appVersion.match(<RegExpOne & RegExpSearchable<1>> /\bChrom(?:e|ium)\/(\d+)/) : 0 as const
   const navVer = OnChrome && Build.MinCVer < BrowserVer.MinUsableScript$type$$module$InExtensions
       ? navInfo && <BrowserVer> +navInfo[1] || 0 : 0
-  const WithModule = OnEdge ? false
-      : !OnChrome || Build.MinCVer >= BrowserVer.MinUsableScript$type$$module$InExtensions ? true
-      : navVer > BrowserVer.MinUsableScript$type$$module$InExtensions - 1
 
-  const modules: Dict<ModuleTy | ((url: string, exports: ModuleTy) => void)> = {}
-  const readyMap: Dict<Promise<1 | void> | 1> = {}
-  const fullFeaturedDefine: DefineTy = (rawDepNames: string[] | FactoryTy, rawFactory?: FactoryTy
+  const modules: Dict<ModuleTy | LoadingPromise> = {}
+  const getName = (name: string): string => name.slice(name.lastIndexOf("/") + 1).replace(".js", "")
+  const myDefine: DefineTy = (rawDepNames: string[] | FactoryTy, rawFactory?: FactoryTy
       ): void | Promise<ModuleTy> => {
+    const depNames = typeof rawDepNames !== "function" && rawDepNames || []
+    const factory = typeof rawDepNames === "function" ? rawDepNames : rawFactory
+    if (!factory) { // `define([url])`
+      return new Promise(doImport.bind(null, depNames[0], null))
+    }
     const selfScript = document.currentScript as HTMLScriptElement
     const url = selfScript != null ? selfScript.src
         : __filename!.lastIndexOf("pages/", 0) === 0 ? "/" + __filename : __filename!
-    const filename = url.slice(url.lastIndexOf("/") + 1).replace(".js", "")
-    if (!Build.NDEBUG && modules[filename]) {
-      throw new Error(`module filenames must be unique: duplicated "${filename}"`)
+    const name = getName(url)
+    let exports = modules[name]
+    if (!(Build.NDEBUG || !exports || exports instanceof Promise)) {
+      throw new Error(`module filenames must be unique: duplicated "${name}"`)
     }
-    const isRoot = !readyMap[filename]
-    const depNames = typeof rawDepNames !== "function" && rawDepNames || []
-    const factory = typeof rawDepNames === "function" ? rawDepNames : rawFactory!
-    const depsReady = Promise.all(depNames.map(waitJS.bind(0, url)))
-    if (depNames.length === 1 && WithModule) {
-      __filename = depNames[0]
-    }
-    if (OnChrome && Build.MinCVer < BrowserVer.MinSafe$String$$StartsWith
-        ? filename.indexOf("__loader_", 0) === 0 : filename.startsWith("__loader_")) {
-      return depsReady.then(() => depNames.map(myRequire)[0])
-    }
-    readyMap[filename] = isRoot ? 1 : depsReady.then((): void => {
-      readyMap[filename] = 1
-    })
-    isRoot && depsReady.then((): void => {
-      myRequire(url)
-    })
-    modules[filename] = (_url, exports): void => {
-      const args = depNames.map(dep => dep === "require" ? myRequire : dep === "exports" ? exports : myRequire(dep))
-      if (OnChrome && Build.MinCVer < BrowserVer.MinEnsuredES6$Array$$Includes
-          ? args.indexOf(exports) >= 0 : args.includes!(exports)) {
-        factory(... <[RequireTy, ...ModuleTy[]]> args)
-      } else {
-        const obj = factory(... <[RequireTy, ...ModuleTy[]]> args)
-        modules[filename] = !obj ? exports : typeof obj === "function" ? { __default: obj } : obj
-      }
+    if (exports && exports instanceof Promise) {
+      const promise: LoadingPromise = exports.then((): void => {
+        modules[name] = exports
+        _innerDefine(name, depNames, factory, exports as {})
+      })
+      exports = promise.__esModule = exports.__esModule || {}
+      modules[name] = promise
+    } else {
+      _innerDefine(name, depNames, factory, exports || (modules[name] = {}))
     }
   }
-  const waitJS = (baseUrl: string, targetFile: string): Promise<1 | void> | 1 => {
-    if (targetFile === "require" || targetFile === "exports") { return 1 }
-    const filename = targetFile.slice(targetFile.lastIndexOf("/") + 1).replace(".js", "")
-    let ready = readyMap[filename]
-    if (!ready) {
-      const ind = baseUrl.lastIndexOf("/")
-      let base = ind > 0 ? baseUrl.slice(0, ind) : ind === 0 ? "" : "."
-      let ensuredAbsolute = ind === 0
-      let targetPath = targetFile.slice(-3) !== ".js" ? targetFile + ".js" : targetFile, i: number
-      while ((i = targetPath.indexOf("/")) >= 0) {
-        const folder = targetPath.slice(0, i)
-        if (folder === "..") {
-          let j = base.lastIndexOf("/")
-          base = j > 0 ? base.slice(0, j) : ""
-          ensuredAbsolute = !base
-        } else if (!folder) {
-          base = ""
-          targetPath = targetPath.slice(1)
-          ensuredAbsolute = true
-          break
-        } else if (folder !== ".") {
-          base = base ? base + "/" + folder : folder
-        }
-        targetPath = targetPath.slice(i + 1)
-      }
+  const _innerDefine = (name: string, depNames: string[], factory: FactoryTy, exports: ModuleTy): void => {
+    const obj = factory.bind(null, throwOnDynamicImport, exports).apply(null, depNames.slice(2).map(myRequire))
+    obj && (exports.__default = obj)
+    if (!Build.NDEBUG) { (myDefine as any)[name] = obj || exports }
+  }
+  const throwOnDynamicImport = (): never => {
+    throw new Error("Must avoid dynamic import in content scripts")
+  }
+  const myRequire = (name: string): ModuleTy => {
+    name = getName(name)
+    let exports = modules[name]
+    exports = !exports ? modules[name] = {}
+        : exports instanceof Promise ? exports.__esModule || (exports.__esModule = {}) : exports
+    return exports.__default as never || exports
+  }
+  const doImport = (path: string, deps?: Promise<void> | null
+        , callback?: (exports: ModuleTy) => void): ModuleTy | Promise<void> => {
+    const name = getName(path)
+    const exports = modules[name] || (modules[name] = new Promise((resolve, reject): void => {
       const script = document.createElement("script")
-      if (WithModule) {
-        __filename = null
+      if (!(Build.BTypes & BrowserType.Edge) && (!(Build.BTypes & BrowserType.Chrome)
+            || Build.MinCVer >= BrowserVer.MinUsableScript$type$$module$InExtensions)) {
+        __filename = path
         script.type = "module"
         if (OnChrome) {
           script.async = true /** @todo: trace https://bugs.chromium.org/p/chromium/issues/detail?id=717643 */
         }
       }
-      script.src = (ensuredAbsolute && base ? "/" : "" ) + base + "/" + targetPath
-      ready = new Promise((resolve, reject): void => {
-        script.onload = (): void => {
-          const newReady = readyMap[filename]
-          if (modules[filename] == null) {
-            modules[filename] = {}
-          }
-          resolve(newReady !== ready ? newReady : 1)
+      script.src = path
+      script.onload = (): void => {
+        if (!(Build.BTypes & BrowserType.Edge) && (!(Build.BTypes & BrowserType.Chrome)
+            || Build.MinCVer >= BrowserVer.MinUsableScript$type$$module$InExtensions)) {
+          modules[name] instanceof Promise && (modules[name] = { __esModule: true })
         }
-        script.onerror = reject
-      })
+        deps ? deps.then(resolve) : resolve()
+        script.remove()
+      }
+      if (!Build.NDEBUG) { script.onerror = (ev): void => {
+        reject(ev.message)
+        setTimeout((): void => { modules[name] = void 0 }, 1)
+      } }
       document.head!.appendChild(script)
-      readyMap[filename] = ready
-    }
-    return ready
+    }))
+    !callback ? 0 :
+    exports instanceof Promise ? void exports.then(() => { doImport(path, null, callback) }) : callback(myRequire(name))
+    return exports
   }
-  const myRequire = (url: string): ModuleTy => {
-    const filename = url.slice(url.lastIndexOf("/") + 1).replace(".js", "")
-    let exportsOrFactory = modules[filename]!
-    if (typeof exportsOrFactory === "function") {
-      const factory = exportsOrFactory
-      modules[filename] = exportsOrFactory = {}
-      Build.NDEBUG || ((fullFeaturedDefine as any)[filename] = exportsOrFactory)
-      factory(url, exportsOrFactory)
-      exportsOrFactory = modules[filename]!
-    }
-    return (exportsOrFactory as ModuleTy).__default as never || exportsOrFactory
+  myDefine.amd = true
+  if (!Build.NDEBUG) {
+    myDefine.modules_ = modules
   }
-  fullFeaturedDefine.amd = true
-  if (!Build.NDEBUG) { fullFeaturedDefine.modules_ = modules }
-  fullFeaturedDefine.noConflict = (): void => { /* empty */ }
-  define = fullFeaturedDefine
+  myDefine.noConflict = (): void => { /* empty */ }
+  (window as any).define = myDefine
 
-  if (OnEdge || OnChrome && !WithModule) {
+  if (OnEdge || OnChrome && Build.MinCVer < BrowserVer.MinUsableScript$type$$module$InExtensions
+      && navVer < BrowserVer.MinUsableScript$type$$module$InExtensions) {
     addEventListener("DOMContentLoaded", function onNoModule() {
       removeEventListener("DOMContentLoaded", onNoModule, true)
       if (OnChrome && __filename !== undefined) { return }
       const scripts = document.querySelectorAll("script[type=module]") as NodeListOf<HTMLScriptElement>
       if (scripts.length === 0) { return }
-      const deps: string[] = [], pathOffset = location.origin.length
+      const pathOffset = location.origin.length
+      let prev: Promise<void> | null = null
       for (let i = 0; i < scripts.length; i++) { // eslint-disable-line @typescript-eslint/prefer-for-of
-        deps.push(scripts[i].src.slice(pathOffset))
         scripts[i].remove()
+        prev = doImport(scripts[i].src.slice(pathOffset), prev) as Promise<void>
       }
-      __filename = "__module_polyfill"
-      fullFeaturedDefine(deps, (): void => { /* empty */ })
     }, { once: true })
   }
 })()
+
+Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES6$Array$$Includes &&
+![].includes && (function (): void {
+  const noArrayFind = ![].find
+  Array.prototype.includes = function (value: any, ind?: number): boolean { return this.indexOf(value, ind) >= 0 }
+  if (!(Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$Array$$find$$findIndex)) { return }
+  if (noArrayFind) {
+    Array.prototype.find = function (this: any[], cond: (i: any, index: number, obj: any[]) => boolean): any {
+      const ind = this.findIndex(cond)
+      return ind >= 0 ? this[ind] : undefined
+    }
+    Array.prototype.findIndex = function (this: any[], cond: (i: any, index: number, obj: any[]) => boolean): any {
+      for (let i = 0; i < this.length; i++) { if (cond(this[i], i, this)) { return i } }
+      return -1
+    }
+  }
+  if (Build.MinCVer >= BrowserVer.MinSafe$String$$StartsWith || "".includes) { return }
+  const StringCls = String.prototype
+  /** startsWith may exist - {@see #BrowserVer.Min$String$$StartsWithEndsWithAndIncludes$ByDefault} */
+  if (!"".startsWith) {
+    StringCls.startsWith = function (this: string, s: string): boolean {
+      return this.lastIndexOf(s, 0) === 0
+    }
+    StringCls.endsWith = function (this: string, s: string): boolean {
+      const i = this.length - s.length
+      return i >= 0 && this.indexOf(s, i) === i
+    }
+    if (!Object.setPrototypeOf) {
+      Object.setPrototypeOf = (opt: {}, proto: any): any => ((opt as { __proto__: unknown }).__proto__ = proto, opt)
+    }
+  } else if (Build.MinCVer <= BrowserVer.Maybe$Promise$onlyHas$$resolved) {
+    Promise.resolve || (Promise.resolve = Promise.resolved!)
+  }
+  StringCls.includes = function (this: string, s: string, pos?: number): boolean {
+    // eslint-disable-next-line @typescript-eslint/prefer-includes
+    return this.indexOf(s, pos) >= 0
+  }
+})()
+if (!(Build.NDEBUG || BrowserVer.MinMaybeES6$Array$$Includes >= BrowserVer.Min$Array$$find$$findIndex)) {
+  alert("expect BrowserVer.MinMaybeES6$Array$$Includes >= BrowserVer.Min$Array$$find$$findIndex")
+}
+if (!(Build.NDEBUG || BrowserVer.BuildMinForOf >= BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol)) {
+  alert("expect BrowserVer.BuildMinForOf >= BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol")
+}

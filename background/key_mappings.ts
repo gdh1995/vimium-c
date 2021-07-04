@@ -1,4 +1,10 @@
-import { contentPayload } from "./store"
+import {
+  bgIniting_, CONST_, contentPayload_, keyFSM_, keyToCommandMap_, mappedKeyRegistry_, mappedKeyTypes_, omniPayload_,
+  OnChrome, OnEdge, OnFirefox, OnOther_, set_keyFSM_, set_keyToCommandMap_, set_mappedKeyRegistry_, set_mappedKeyTypes_
+} from "./store"
+import * as BgUtils_ from "./utils"
+import * as settings_ from "./settings"
+import * as Exclusions from "./exclusions"
 
 type WiderOmit<T, K> = Pick<T, Exclude<keyof T, K>>
 type RawCmdDesc<c extends kCName, e extends CmdNameIds[c] = CmdNameIds[c]> =
@@ -14,6 +20,7 @@ type RawCmdDesc<c extends kCName, e extends CmdNameIds[c] = CmdNameIds[c]> =
 type NameMetaMap = {
   readonly [k in keyof CmdNameIds]: RawCmdDesc<k>
 }
+interface OtherCNamesForDebug { focusOptions: kBgCmd.openUrl }
 type NameMetaMapEx = NameMetaMap & {
   readonly [k in keyof OtherCNamesForDebug]: OtherCNamesForDebug[k] extends keyof BgCmdOptions
       ? RawCmdDesc<kCName, OtherCNamesForDebug[k]> : never
@@ -21,13 +28,17 @@ type NameMetaMapEx = NameMetaMap & {
 type ValidMappingInstructions = "map" | "mapkey" | "mapKey" | "env" | "shortcut" | "command"
     | "unmap" | "unmapAll" | "unmapall"
 
+const keyRe_ = <RegExpG & RegExpSearchable<0>> /<(?!<)(?:.-){0,4}.\w*?(?::i)?>|./g /* need to support "<<left>" */
 let builtinKeys_: Set<string> | null | undefined
-let mappedKeyTypes_ = kMapKey.NONE
 let shortcutRegistry_: Map<StandardShortcutNames, CommandsNS.Item | null> | null | undefined
 let envRegistry_: Map<string, CommandsNS.EnvItem | "__not_parsed__"> | null | undefined
 let flagDoesCheck_ = true
+let errors_: null | string[][] = null
 
-export { mappedKeyTypes_, envRegistry_, shortcutRegistry_ }
+export { keyRe_, envRegistry_, shortcutRegistry_, errors_ as keyMappingErrors_ }
+
+export const stripKey_ = (key: string): string =>
+    key.length > 1 ? key === "<escape>" ? kChar.esc : key.slice(1, -1) : key
 
 const getOptions_ = (line: string, start: number): CommandsNS.RawOptions | "__not_parsed__" | null => {
   return line.length <= start ? null
@@ -105,7 +116,7 @@ export const normalizeCommand_ = (cmd: Writable<CommandsNS.BaseItem>, details?: 
         let mode = lhOpt.mode, stdMode = lhOpt.m!
         const rawChars = lhOpt.characters
         const action = lhOpt.action
-        const chars = rawChars && Settings_.updatePayload_<"c" | "n">("c", rawChars)
+        const chars = rawChars && settings_.updatePayload_<"c" | "n">("c", rawChars)
         chars ? lhOpt.c = chars : "c" in lhOpt && delete lhOpt.c
         rawChars != null && delete lhOpt.characters
         "action" in lhOpt && delete lhOpt.action
@@ -164,17 +175,17 @@ export const normalizedOptions_ = (item: CommandsNS.ValidItem): CommandsNS.Norma
 
 const doesMatchEnv_ = (options: CommandsNS.RawOptions | string | null): "t" | "f" | "" => {
     const condition = options && typeof options === "object" && options.$if
-    return condition ? !!condition.sys && condition.sys !== Settings_.CONST_.Platform_
+    return condition ? !!condition.sys && condition.sys !== CONST_.Platform_
         || !!condition.browser
           && !(condition.browser & (Build.BTypes && !(Build.BTypes & (Build.BTypes - 1))
-                ? Build.BTypes : OnOther)) ? "f" : "t"
-        : ""
+                ? Build.BTypes : OnOther_)) ? "f" : "t"
+        : options && typeof options === "string" && options[0] === "#" ? "t" : ""
 }
 
 const parseKeyMappings_ = (wholeMappings: string): void => {
     let lines: string[], mk = 0, _i = 0, key2: string | undefined
       , _len: number, details: CommandsNS.Description | null | undefined, ch: number
-      , registry: CommandsDataTy["keyToCommandRegistry_"] = new Map()
+      , registry = new Map<string, CommandsNS.Item>()
       , cmdMap: typeof shortcutRegistry_ = new Map(), envMap: typeof envRegistry_ = null
       , regItem: CommandsNS.Item | null, options: ReturnType<typeof getOptions_>
       , noCheck = false
@@ -242,14 +253,14 @@ const parseKeyMappings_ = (wholeMappings: string): void => {
         envMap = null
         builtinKeys_ = null;
         mkReg = BgUtils_.safeObj_<string>(), mk = 0;
-        if (CommandsData_.errors_) {
+        if (errors_) {
           logError_("All key mappings is unmapped, but there %s been %c%d error%s%c before this instruction"
-              , CommandsData_.errors_.length > 1 ? "have" : "has"
-              , colorRed, CommandsData_.errors_.length, CommandsData_.errors_.length > 1 ? "s" : "", "color:auto")
+              , errors_.length > 1 ? "have" : "has"
+              , colorRed, errors_.length, errors_.length > 1 ? "s" : "", "color:auto")
         }
         break
       case "mapKey": case "mapkey":
-        if (noCheck) { key2 = BgUtils_.stripKey_(key) }
+        if (noCheck) { key2 = stripKey_(key) }
         else if (!val || line.length > knownLen
             && (key2 = doesMatchEnv_(getOptions_(line, knownLen)), !key2)) {
           logError_("mapKey: need %s source and target keys:", val ? "only" : "both", line)
@@ -259,14 +270,14 @@ const parseKeyMappings_ = (wholeMappings: string): void => {
           logError_("mapKey: a source key should be a single key with an optional mode id:", line)
         } else if (val.length > 1 && !(<RegExpOne> /^<(?!<|__proto__>)([a-z]-){0,4}.\w*>$/).test(val)) {
           logError_("mapKey: a target key should be a single key:", line)
-        } else if (key2 = BgUtils_.stripKey_(key), key2 in mkReg && mkReg[key2] !== BgUtils_.stripKey_(val)) {
+        } else if (key2 = stripKey_(key), key2 in mkReg && mkReg[key2] !== stripKey_(val)) {
           logError_('The key %c"%s"', colorRed, key, "has been mapped to another key:"
               , mkReg[key2]!.length > 1 ? `<${mkReg[key2]!}>` : mkReg[key2]!)
         } else {
           doesPass = true
         }
         if (doesPass) {
-          mkReg[key2!] = BgUtils_.stripKey_(val)
+          mkReg[key2!] = stripKey_(val)
           mk++;
         }
         break
@@ -275,7 +286,7 @@ const parseKeyMappings_ = (wholeMappings: string): void => {
         else if (!val) {
           logError_("Lacking command name and options in shortcut:", line)
         } else if (!(key.startsWith(CNameLiterals.userCustomized) && key.length > 14)
-            && (Settings_.CONST_.GlobalCommands_ as Array<StandardShortcutNames | string>).indexOf(key) < 0) {
+            && (CONST_.GlobalCommands_ as Array<StandardShortcutNames | string>).indexOf(key) < 0) {
           logError_(shortcutLogPrefix, colorRed, key, "is not a valid name")
         } else if (cmdMap.has(key as StandardShortcutNames)) {
           logError_(shortcutLogPrefix, colorRed, key, "has been configured")
@@ -309,7 +320,7 @@ const parseKeyMappings_ = (wholeMappings: string): void => {
         }
         break
       case "unmap":
-        if (!key || val) {
+        if (!key || val && val[0] !== "#") {
           logError_(`unmap: ${val ? "only " : ""}needs one mapped key:`, line)
         } else if (registry.has(key)) {
           builtinKeys_ && builtinKeys_.delete(key)
@@ -323,17 +334,17 @@ const parseKeyMappings_ = (wholeMappings: string): void => {
         break
       }
     }
-    for (const shortcut of Settings_.CONST_.GlobalCommands_) {
+    for (const shortcut of CONST_.GlobalCommands_) {
       if (!shortcut.startsWith("user") && !cmdMap.has(shortcut)) {
         if (regItem = makeCommand_(shortcut, null)) {
           cmdMap.set(shortcut, regItem)
         }
       }
     }
-    CommandsData_.keyToCommandRegistry_ = registry;
+    set_keyToCommandMap_(registry)
     shortcutRegistry_ = cmdMap
     envRegistry_ = envMap
-    CommandsData_.mappedKeyRegistry_ = Settings_.omniPayload_.k = mk > 0 ? mkReg : null;
+    set_mappedKeyRegistry_(omniPayload_.k = mk > 0 ? mkReg : null)
 }
 
 const setupUserCustomized_ = (cmdMap: NonNullable<typeof shortcutRegistry_>, key: StandardShortcutNames
@@ -353,7 +364,7 @@ const setupUserCustomized_ = (cmdMap: NonNullable<typeof shortcutRegistry_>, key
     return ret < 1 ? 'requires a "command" option' : ret > 1 ? "" : "gets an unknown command";
 }
 
-const collectMapKeyTypes_ = (mapKeys: NonNullable<CommandsDataTy["mappedKeyRegistry_"]>): kMapKey => {
+const collectMapKeyTypes_ = (mapKeys: SafeDict<string>): kMapKey => {
     let types = kMapKey.NONE
     for (const key in mapKeys) {
       const len = key.length
@@ -361,7 +372,7 @@ const collectMapKeyTypes_ = (mapKeys: NonNullable<CommandsDataTy["mappedKeyRegis
         const val = mapKeys[key]!
         types |= val.length > 1 ? kMapKey.normal | kMapKey.normal_long
             : key.toUpperCase() !== key && val.toUpperCase() !== val ? kMapKey.char : kMapKey.normal
-      } else if (len > 2 && key[len - 2] === GlobalConsts.DelimeterForKeyCharAndMode) {
+      } else if (len > 2 && key[len - 2] === GlobalConsts.DelimiterBetweenKeyCharAndMode) {
         types |= key[len - 1] === GlobalConsts.InsertModeId ? kMapKey.insertMode
             : key[len - 1] === GlobalConsts.NormalOnlyModeId ? kMapKey.normalOnlyMode : kMapKey.otherMode
       } else {
@@ -373,34 +384,34 @@ const collectMapKeyTypes_ = (mapKeys: NonNullable<CommandsDataTy["mappedKeyRegis
 
 /** @argument detectNewError hasFoundChanges */
 const populateKeyMap_ = (value: string | null): void => {
-    const d = CommandsData_, ref = BgUtils_.safeObj_<ValidKeyAction | ChildKeyFSM>(),
+    const ref = BgUtils_.safeObj_<ValidKeyAction | ChildKeyFSM>(),
     hasFoundChanges = value !== null,
-    keyRe = BgUtils_.keyRe_, strip = BgUtils_.stripKey_,
-    kWarn = 'Inactive key: %o with "%s"', isOldWrong = d.errors_ !== null
+    strip = stripKey_,
+    kWarn = 'Inactive key: %o with "%s"', isOldWrong = errors_ !== null
     if (hasFoundChanges) {
-      d.errors_ = d.keyFSM_ = null
+      set_keyFSM_(errors_ = null)
       /*#__NOINLINE__*/ parseKeyMappings_(value!)
     }
-    const allKeys = BgUtils_.keys_(d.keyToCommandRegistry_),
-    mappedKeyReg = d.mappedKeyRegistry_,
+    const allKeys = BgUtils_.keys_(keyToCommandMap_),
+    mappedKeyReg = mappedKeyRegistry_,
     doesLog = hasFoundChanges && flagDoesCheck_,
     customKeys = builtinKeys_ ? allKeys.filter(i => !builtinKeys_!.has(i)) : allKeys,
     countOfCustomKeys = customKeys.length,
     sortedKeys = builtinKeys_ ? customKeys.concat(BgUtils_.keys_(builtinKeys_)) : allKeys
     if (hasFoundChanges) {
       const mayHaveInsert = allKeys.join().includes(":i>") ? kMapKey.directInsert : kMapKey.NONE
-      mappedKeyTypes_ = mappedKeyReg ? collectMapKeyTypes_(mappedKeyReg) | mayHaveInsert : mayHaveInsert
+      set_mappedKeyTypes_(mappedKeyReg ? collectMapKeyTypes_(mappedKeyReg) | mayHaveInsert : mayHaveInsert)
     }
     for (let ch = 10; 0 <= --ch; ) { ref[ch] = KeyAction.count; }
     ref["-"] = KeyAction.count;
     for (let index = 0; index < sortedKeys.length; index++) {
       const key = sortedKeys[index];
-      const arr = key.match(keyRe)!, last = arr.length - 1;
+      const arr = key.match(keyRe_)!, last = arr.length - 1
       if (last === 0) {
         let key2 = strip(key);
         if (key2 in ref) {
           if (index >= countOfCustomKeys) {
-            d.keyToCommandRegistry_.delete(key)
+            keyToCommandMap_.delete(key)
             continue;
           }
           doesLog && logError_(kWarn, ref[key2] as ReadonlyChildKeyFSM, key)
@@ -411,7 +422,7 @@ const populateKeyMap_ = (value: string | null): void => {
       let ref2 = ref as ChildKeyFSM, tmp: ChildKeyFSM | ValidChildKeyAction | undefined, j = 0;
       while ((tmp = ref2[strip(arr[j])]) && j < last) { j++; ref2 = tmp; }
       if (tmp != null && (index >= countOfCustomKeys || tmp === KeyAction.cmd)) {
-        index >= countOfCustomKeys ? d.keyToCommandRegistry_.delete(key) :
+        index >= countOfCustomKeys ? keyToCommandMap_.delete(key) :
         doesLog && logError_(kWarn, key, arr.slice(0, j + 1).join(""))
         continue;
       }
@@ -420,21 +431,21 @@ const populateKeyMap_ = (value: string | null): void => {
       ref2[strip(arr[last])] = KeyAction.cmd;
     }
     if (!hasFoundChanges) { /* empty */ }
-    else if (d.errors_) {
-      if (d.errors_.length > 1) {
-        console.group(d.errors_.length + " Errors in custom Key mappings:");
-        d.errors_.map(line => console.log(...line))
+    else if (errors_) {
+      if (errors_.length > 1) {
+        console.group(errors_.length + " Errors in custom Key mappings:")
+        errors_.map(line => console.log(...line))
         console.groupEnd()
       } else {
-        console.log.apply(console, d.errors_[0])
+        console.log.apply(console, errors_[0])
       }
     } else if (isOldWrong) {
       console.log("The new key mappings have no errors");
     }
-    d.keyFSM_ = ref
+    set_keyFSM_(ref)
     builtinKeys_ = null
     const maybePassed = Exclusions.getAllPassed_();
-    const func = function (obj: ChildKeyFSM): void {
+    const func = (obj: ChildKeyFSM): void => {
       for (const key in obj) {
         const val = obj[key]!;
         if (val !== KeyAction.cmd) { func(val); }
@@ -455,12 +466,12 @@ const populateKeyMap_ = (value: string | null): void => {
       }
     }
     if (value) {
-      /*#__NOINLINE__*/ upgradeKeymappings(value)
+      /*#__NOINLINE__*/ upgradeKeyMappings(value)
     }
 }
 
 const logError_ = function (): void {
-  (CommandsData_.errors_ || (CommandsData_.errors_ = [])).push([].slice.call(arguments, 0))
+  (errors_ || (errors_ = [])).push([].slice.call(arguments, 0))
 } as (firstMsg: string, ...args: any[]) => void
 
 const defaultKeyMappings_: string =
@@ -571,12 +582,8 @@ export const availableCommands_: Dict<CommandsNS.Description> & SafeObject =
   debugBackground: [ kBgCmd.openUrl, 1, 1,
     {
       reuse: ReuseType.reuse,
-      url: Build.BTypes & ~BrowserType.Chrome &&
-            (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome)
-        ? Build.BTypes & BrowserType.Firefox &&
-            (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
-          ? "about:debugging#addons" : Settings_.CONST_.OptionsPage_
-        : "chrome://extensions/?id=$id",
+      url: OnChrome ? "chrome://extensions/?id=$id"
+          : OnFirefox ? "about:debugging#addons" : CONST_.OptionsPage_,
       id_mask: "$id", url_mask: ""
     }],
   discardTab: [ kBgCmd.discardTab, 1, /* 20 in all_commands.ts */ 0 ],
@@ -691,13 +698,6 @@ const hintModes_: SafeDict<HintMode> = {
   visual: HintMode.ENTER_VISUAL_MODE
 }
 
-CommandsData_ = {
-  keyFSM_: null,
-  mappedKeyRegistry_: null,
-  keyToCommandRegistry_: null as never as Map<string, CommandsNS.Item>,
-  errors_: null
-}
-
 export const visualGranularities_: GranularityNames = [
     "character", "word", "", "lineboundary", "line", "sentence", "paragraph", "documentboundary"]
 
@@ -735,42 +735,42 @@ if (!Build.NDEBUG) {
   ];
 }
 
-if (Settings_.temp_.initing_ & BackendHandlersNS.kInitStat.platformInfo) {
-  populateKeyMap_(Settings_.get_("keyMappings"))
-  if (Build.BTypes & ~BrowserType.Edge && contentPayload.o === kOS.mac) {
-    visualKeys_["m-s-c"] = VisualAction.YankRichText
-  }
-}
-
-const upgradeKeymappings = (value: string) => {
+const upgradeKeyMappings = (value: string): void => {
   let newFlags = "", prefix = `${kMappingsFlag.char0}${kMappingsFlag.char1}`
-  if (!CommandsData_.errors_ && flagDoesCheck_) { newFlags += `${prefix} ${kMappingsFlag.noCheck}\n` }
+  if (!errors_ && flagDoesCheck_) { newFlags += `${prefix} ${kMappingsFlag.noCheck}\n` }
   if (newFlags) {
-    const hooks = Settings_.updateHooks_, old = hooks.keyMappings
+    const hooks = settings_.updateHooks_, old = hooks.keyMappings
     hooks.keyMappings = undefined
     try {
-      Settings_.set_("keyMappings", newFlags + value)
+      settings_.set_("keyMappings", newFlags + value)
     } catch {}
     hooks.keyMappings = old
   }
 }
 
-Settings_.updateHooks_.keyMappings = function (this: {}, value: string | null): void {
-  const oldMappedKeys = CommandsData_.mappedKeyRegistry_, oldFSM = CommandsData_.keyFSM_
+if (bgIniting_ & BackendHandlersNS.kInitStat.platformInfo) {
+  populateKeyMap_(settings_.get_("keyMappings"))
+  if (!OnEdge && contentPayload_.o === kOS.mac) {
+    visualKeys_["m-s-c"] = VisualAction.YankRichText
+  }
+}
+
+settings_.updateHooks_.keyMappings = (value: string | null): void => {
+  const oldMappedKeys = mappedKeyRegistry_, oldFSM = keyFSM_
   populateKeyMap_(value)
-  const f = JSON.stringify, curMapped = CommandsData_.mappedKeyRegistry_,
-  updatesInKeyFSM = !!oldFSM && f(CommandsData_.keyFSM_) !== f(oldFSM),
+  const f = JSON.stringify, curMapped = mappedKeyRegistry_,
+  updatesInKeyFSM = !!oldFSM && f(keyFSM_) !== f(oldFSM),
   updatesInMappedKeys = oldMappedKeys ? !curMapped || f(oldMappedKeys) !== f(curMapped) : !!oldFSM && !!curMapped;
-  (updatesInMappedKeys || updatesInKeyFSM) && Settings_.broadcast_({
+  (updatesInMappedKeys || updatesInKeyFSM) && settings_.broadcast_({
     N: kBgReq.keyFSM,
-    m: CommandsData_.mappedKeyRegistry_,
+    m: mappedKeyRegistry_,
     t: mappedKeyTypes_,
-    k: updatesInKeyFSM ? CommandsData_.keyFSM_ : null
+    k: updatesInKeyFSM ? keyFSM_ : null
   });
-  updatesInMappedKeys && Settings_.broadcastOmni_({
+  updatesInMappedKeys && settings_.broadcastOmni_({
     N: kBgReq.omni_updateOptions,
     d: {
-      k: CommandsData_.mappedKeyRegistry_
+      k: mappedKeyRegistry_
     }
   });
 };

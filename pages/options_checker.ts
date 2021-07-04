@@ -1,5 +1,5 @@
-import { BG_, bgSettings_, $$, pTrans_ } from "./async_bg"
-import { Option_, AllowedOptions, KnownOptionsDataset } from "./options_base"
+import { BG_, bgSettings_, $$, asyncBackend_ } from "./async_bg"
+import { Option_, AllowedOptions, KnownOptionsDataset, oTrans_ } from "./options_base"
 import { loadChecker } from "./options_wnd"
 
 let keyMappingChecker_ = {
@@ -77,7 +77,7 @@ let keyMappingChecker_ = {
       const destKey2 = destKey && this.normalizeKeys_(destKey)
       if (destKey2 !== destKey) {
         console.log("KeyMappings Checker:", destKey, "is corrected into", destKey2)
-        options = options.replace(destKey!, destKey2!)
+        options = options.replace(destKey!, destKey2!) as string
       }
     }
     return this.normalizeCmd_("", cmd, keys, options);
@@ -125,19 +125,19 @@ Option_.all_.searchUrl.checker_ = {
   check_ (str): string {
     const map = new (BG_ as unknown as typeof globalThis).Map<string, Search.RawEngine>()
     const opt = Option_.all_.searchUrl
-    BG_.BgUtils_.parseSearchEngines_("k:" + str, map);
+    asyncBackend_.parseSearchEngines_("k:" + str, map)
     const obj = map.get("k")
     if (obj == null) {
       return opt.innerFetch_()
     }
-    let str2 = BG_.BgUtils_.convertToUrl_(obj.url_, null, Urls.WorkType.KeepAll);
-    if (BG_.BgUtils_.lastUrlType_ > Urls.Type.MaxOfInputIsPlainUrl) {
-      const err = pTrans_("nonPlainURL", [obj.url_]);
+    let str2 = asyncBackend_.convertToUrl_(obj.url_, null, Urls.WorkType.KeepAll)
+    if (asyncBackend_.lastUrlType_() > Urls.Type.MaxOfInputIsPlainUrl) {
+      const err = oTrans_("nonPlainURL", [obj.url_]);
       console.log("searchUrl checker:", err);
       opt.showError_(err)
       return opt.innerFetch_()
     }
-    str2 = str2.replace(BG_.BgUtils_.spacesRe_, "%20");
+    str2 = str2.replace(<RegExpG> /\s+/g, "%20")
     if (obj.name_ && obj.name_ !== "k") { str2 += " " + obj.name_; }
     opt.showError_("")
     return str2;
@@ -153,7 +153,7 @@ Option_.all_.vimSync.allowToSave_ = function (): boolean {
       arr[i as keyof AllowedOptions].saved_ || ++delta;
     }
     let tooMany = delta > 1;
-    setTimeout(alert, 100, pTrans_(tooMany ? "changedBeforeSync" : "warningForSync"));
+    setTimeout(alert, 100, oTrans_(tooMany ? "changedBeforeSync" : "warningForSync"));
     if (tooMany) {
       return false;
     }

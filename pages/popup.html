@@ -44,15 +44,11 @@ p {
   color: #15c;
   color: var(--state-color, #15c);
   line-height: 15px;
+  margin-left: 4px;
 }
 .action {
   color: #15c;
   color: var(--link-color);
-}
-.fixed-width {
-	display: inline-block;
-	min-width: 54px;
-	text-align: right;
 }
 a.decorate-none:not(:hover) {
   text-decoration: none;
@@ -67,6 +63,7 @@ a.decorate-none:not(:hover) {
 	box-sizing: border-box;
 	height: 36px;
 	padding: 5px 8px 2px 3px;
+	position: static !important;
 	text-align: right;
 	width: 100%;
 }
@@ -80,9 +77,10 @@ a.decorate-none:not(:hover) {
 	 matching rules, and the popup obscures the underlying page.
  */
 #exclusionRules {
-	height: 141px;
-	margin-bottom: 35px;
-	margin-top: 0;
+	height: 144px;
+	max-height: 144px;
+	margin-bottom: 0;
+	margin-top: 0 !important;
 	padding-bottom: 2px;
 }
     </style>
@@ -123,14 +121,14 @@ a.decorate-none:not(:hover) {
       <span id="helpText">
         <a id="toggleOnce" href="vimium://status toggle" class="decorate-none"
             tabindex="1" role="button" accesskey="x">
-        <span data-i="o120">Disable for once</span> (<span class="accesskey">X</span>)</a><span class="hidden"> /
+        <span>Disable for once</span> (<span class="accesskey">X</span>)</a><span class="hidden"> /
         <a id="resetStatus" href="vimium://status reset" class="decorate-none"
             tabindex="1" role="button" accesskey="z">
         <span data-i="o121">Reset</span> (<span class="accesskey">Z</span>)</a></span><span
             data-i="period">.</span><span data-i="NS">
         </span><a class="options-link" href="options.html" target="_blank" tabindex="1" data-i="o121_2">Options</a><span
             data-i="period">.</span>
-        <span data-i="ext"></span><span data-i="VerIs">Version </span><span class="version"></span><span
+        <span data-i="VerIs">Version </span><span class="version"></span><span
             data-i="period">.</span>
         <br>
         <span id="helpSpan" data-i="o122">In table are the rules matching this page.</span>

@@ -45,6 +45,7 @@ function patchTSC() {
   }
   if (i >= 3) { return; }
   var info = {};
+  lib.patchTypeScript(path)
   try {
     var code = lib.readFile(path, info).trim();
     var patched = "\n;\n\nmodule.exports = ts;\n"

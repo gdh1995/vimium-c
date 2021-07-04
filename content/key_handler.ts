@@ -5,7 +5,7 @@ import {
 import {
   set_getMappedKey, char_, getMappedKey, isEscape_, getKeyStat_, prevent_, handler_stack, keybody_, SPC
 } from "../lib/keyboard_utils"
-import { activeEl_unsafe_, getSelection_, ElementProto } from "../lib/dom_utils"
+import { deepActiveEl_unsafe_, getSelection_, ElementProto } from "../lib/dom_utils"
 import { wndSize_ } from "../lib/rect"
 import { post_ } from "./port"
 import { removeSelection } from "./dom_ui"
@@ -64,7 +64,7 @@ set_getMappedKey((eventWrapper: HandlerNS.Event, mode: kModeId): string => {
     key = isLong || mod ? mod + chLower : char;
     if (mappedKeys && mode < kModeId.NO_MAP_KEY) {
       mapped = mapKeyTypes & (mode ? kMapKey.insertMode | kMapKey.otherMode : kMapKey.normalOnlyMode)
-          && mappedKeys[key + GlobalConsts.DelimeterForKeyCharAndMode + GlobalConsts.ModeIds[mode]]
+          && mappedKeys[key + GlobalConsts.DelimiterBetweenKeyCharAndMode + GlobalConsts.ModeIds[mode]]
           || (mapKeyTypes & kMapKey.normal ? mappedKeys[key] : "")
       key = mapped || (mapKeyTypes & kMapKey.char && !isLong && (mapped = mappedKeys[chLower])
             && mapped.length < 2 && (baseMod = mapped.toUpperCase()) !== mapped
@@ -194,11 +194,12 @@ export const onKeydown = (event: KeyboardEventToPrevent): void => {
           : (!OnChrome || Build.MinCVer >= BrowserVer.MinEnsured$KeyboardEvent$$Key
               || event.key) && event.key!.length === 1 ? kChar.INVALID : ""
     if (insert_global_ ? insert_global_.k ? keyStr === insert_global_.k : isEscape_(keyStr)
-        : keyStr.length < 2 ? keyStr ? esc!(HandlerResult.Nothing) : HandlerResult.Nothing
+        : keyStr.length < 2 ? esc!(HandlerResult.Nothing)
         : (action = checkKey(eventWrapper
-            , (tempStr = keybody_(keyStr)) > kChar.maxNotF_num && tempStr < kChar.minNotF_num ? keyStr
+            , (tempStr = keybody_(keyStr)) > kChar.maxNotF_num && tempStr < kChar.minNotF_num
+              || keyStr.startsWith("v-") ? keyStr
               : getMappedKey(eventWrapper, kModeId.NO_MAP_KEY)
-                + GlobalConsts.DelimeterForKeyCharAndMode + GlobalConsts.InsertModeId
+                + GlobalConsts.DelimiterBetweenKeyCharAndMode + GlobalConsts.InsertModeId
             , keyStr)) > HandlerResult.MaxNotEsc
     ) {
       if (!insert_global_ && (raw_insert_lock && raw_insert_lock === doc.body || !isTop && wndSize_() < 5)) {
@@ -247,13 +248,13 @@ const onEscDown = (event: KeyboardEventToPrevent, key: kKeyCode
   ): HandlerResult.Default | HandlerResult.PassKey | HandlerResult.Prevent => {
   let action: HandlerResult.Default | HandlerResult.PassKey | HandlerResult.Prevent = HandlerResult.Prevent
   let repeat = event.repeat
-  let activeEl = activeEl_unsafe_(), body = doc.body;
+  let activeEl = repeat || !isTop ? deepActiveEl_unsafe_() : null
   /** if `notBody` then `activeEl` is not null */
   if (!repeat && removeSelection()) {
     /* empty */
-  } else if (repeat && !keydownEvents_[key] && activeEl !== body) {
-    (OnFirefox ? activeEl!.blur : isTY(activeEl!.blur, kTY.func)) && activeEl!.blur!()
-  } else if (!isTop && activeEl === body) {
+  } else if (repeat && !keydownEvents_[key] && activeEl) {
+    (OnFirefox ? activeEl.blur : isTY(activeEl.blur, kTY.func)) && activeEl.blur!()
+  } else if (!isTop && !activeEl) {
     focusUpper(key, repeat, event);
     action = HandlerResult.PassKey;
   } else {

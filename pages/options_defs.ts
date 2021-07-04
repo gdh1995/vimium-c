@@ -1,6 +1,6 @@
-import { CurCVer_, BG_, bgSettings_, OnChrome, OnFirefox, $, $$, pTrans_ } from "./async_bg"
+import { CurCVer_, bgSettings_, OnChrome, OnFirefox, $, $$, asyncBackend_, browser_, nextTick_ } from "./async_bg"
 import {
-  Option_, AllowedOptions, Checker, PossibleOptionNames, nextTick_, ExclusionRulesOption_,
+  Option_, AllowedOptions, Checker, PossibleOptionNames, ExclusionRulesOption_, oTrans_,
   KnownOptionsDataset, OptionErrorType, ExclusionRealNode
 } from "./options_base"
 
@@ -24,7 +24,7 @@ Option_.saveOptions_ = function (): boolean {
     }
   }
   if (dirty.length > 0) {
-    let ok = confirm(pTrans_("dirtyOptions", [dirty.join("\n  * ")]))
+    let ok = confirm(oTrans_("dirtyOptions", [dirty.join("\n  * ")]))
     if (!ok) {
       return false
     }
@@ -304,7 +304,7 @@ export class MaskedText_<T extends TextOptionNames> extends TextOption_<T> {
   }
   override populateElement_ (value: AllowedOptions[T], enableUndo?: boolean): void {
     if (this.masked_) {
-      this.element_.placeholder = pTrans_("clickToUnmask")
+      this.element_.placeholder = oTrans_("clickToUnmask")
       return
     }
     super.populateElement_(value, enableUndo)
@@ -366,7 +366,7 @@ export const createNewOption = ((): <T extends keyof AllowedOptions> (_element: 
           saveBtn.blur()
         }
         saveBtn.disabled = true;
-        (saveBtn.firstChild as Text).data = pTrans_("o115")
+        (saveBtn.firstChild as Text).data = oTrans_("o115")
         exportBtn.disabled = false
         savedStatus(false)
         window.onbeforeunload = null as never
@@ -375,10 +375,10 @@ export const createNewOption = ((): <T extends keyof AllowedOptions> (_element: 
     } else if (status) {
       return
     }
-    window.onbeforeunload = (): string => pTrans_("beforeUnload")
+    window.onbeforeunload = (): string => oTrans_("beforeUnload")
     savedStatus(true)
     saveBtn.disabled = false;
-    (saveBtn.firstChild as Text).data = pTrans_("o115_2")
+    (saveBtn.firstChild as Text).data = oTrans_("o115_2")
     if (OnFirefox) {
       exportBtn.blur()
     }
@@ -482,14 +482,14 @@ keyMappingsOption_.onSave_ = function (): void {
     }
     return output
   }
-  const bgCommandsData_ = BG_.CommandsData_
+  const bgCommandsData_ = asyncBackend_.CommandsData_()
   const errors = bgCommandsData_.errors_,
   msg = errors ? formatCmdErrors_(errors) : ""
-  if (bgSettings_.payload_.l && !msg) {
+  if (asyncBackend_.contentPayload_.l && !msg) {
     let str = Object.keys(bgCommandsData_.keyFSM_).join(""), mapKey = bgCommandsData_.mappedKeyRegistry_
     str += mapKey ? Object.keys(mapKey).join("") : ""
     if ((<RegExpOne> /[^ -\xff]/).test(str)) {
-      this.showError_(pTrans_("ignoredNonEN"), null)
+      this.showError_(oTrans_("ignoredNonEN"), null)
       return
     }
   }
@@ -501,7 +501,7 @@ const linkHintNumbersOption_ = Option_.all_.linkHintNumbers
 const filterLinkHintsOption_ = Option_.all_.filterLinkHints
 linkHintCharactersOption_.onSave_ = linkHintNumbersOption_.onSave_ = function (): void {
   this.showError_(!this.element_.style.display && this.previous_.length < GlobalConsts.MinHintCharSetSize
-      ? pTrans_("" + kTip.fewChars) : "")
+      ? browser_.i18n.getMessage("" + kTip.fewChars) : "")
 }
 filterLinkHintsOption_.onSave_ = function (): void {
   nextTick_((el): void => {
@@ -527,16 +527,16 @@ Option_.all_.vomnibarPage.onSave_ = function (): void {
       element2.style.textDecoration = isExtPage ? "" : "line-through"
     })
     return opt.showError_(url === bgSettings_.defaults_.vomnibarPage ? ""
-          : pTrans_("onlyExtVomnibar", [BrowserVer.Min$tabs$$executeScript$hasFrameIdArg])
+          : oTrans_("onlyExtVomnibar", [BrowserVer.Min$tabs$$executeScript$hasFrameIdArg])
         , null)
   }
-  url = bgSettings_.cache_.vomnibarPage_f || url // for the case Chrome is initing
+  url = asyncBackend_.settingsCache_.vomnibarPage_f || url // for the case Chrome is initing
   if (isExtPage) { /* empty */ }
   // Note: the old code here thought on Firefox web pages couldn't be used, but it was just because of wrappedJSObject
   else if (url.startsWith("file:")) {
-    return opt.showError_(pTrans_("fileVomnibar"), "highlight")
+    return opt.showError_(oTrans_("fileVomnibar"), "highlight")
   } else if ((<RegExpI> /^http:\/\/(?!localhost[:/])/i).test(url)) {
-    return opt.showError_(pTrans_("httpVomnibar"), "highlight")
+    return opt.showError_(oTrans_("httpVomnibar"), "highlight")
   }
   return opt.showError_("")
 }
@@ -545,17 +545,17 @@ Option_.all_.newTabUrl.checker_ = {
   status_: 0,
   check_ (value): string {
     let url = (<RegExpI> /^\/?pages\/[a-z]+.html\b/i).test(value)
-        ? chrome.runtime.getURL(value) : BG_.BgUtils_.convertToUrl_(value.toLowerCase())
+        ? browser_.runtime.getURL(value) : asyncBackend_.convertToUrl_(value.toLowerCase())
     url = url.split("?", 1)[0].split("#", 1)[0]
     if (OnFirefox) {
       let err = ""
       if ((<RegExpI> /^chrome|^(javascript|data|file):|^about:(?!(newtab|blank)\/?$)/i).test(url)) {
-        err = pTrans_("refusedURLs", [url])
+        err = oTrans_("refusedURLs", [url])
         console.log("newTabUrl checker:", err)
       }
       Option_.all_.newTabUrl.showError_(err)
     }
-    return !value.startsWith("http") && (bgSettings_.newTabs_.has(url)
+    return !value.startsWith("http") && (asyncBackend_.newTabUrls_.get(url) === Urls.NewTabType.browser
       || (<RegExpI> /^(?!http|ftp)[a-z\-]+:\/?\/?newtab\b\/?/i).test(value)
       ) ? bgSettings_.defaults_.newTabUrl : value
   }

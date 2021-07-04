@@ -250,12 +250,6 @@ interface VApiTy {
 
 declare var VimiumInjector: VimiumInjectorTy | undefined | null, VApi: VApiTy;
 
-interface VDataTy {
-  full: string;
-  o (oldUrl: string): string;
-}
-declare var VData: VDataTy | null | undefined
-
 declare const enum kContentCmd {
   _fake = 0,
   AutoFindAllOnClick = 1,

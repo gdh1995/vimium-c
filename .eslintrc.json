@@ -109,8 +109,8 @@
     "radix": "off",
     "space-before-function-paren": "off",
     "spaced-comment": [ "error", "always", {
-      "line": { "markers": [ "/" ] },
-      "block": { "exceptions": [ "#__NOINLINE__", "#__INLINE__" ] }
+      "line": { "markers": [ "/", "#region" ], "exceptions": ["#endregion"] },
+      "block": { "exceptions": [ "#__NOINLINE__", "#__INLINE__" ], "balanced": false }
     } ],
     "use-isnan": "error",
     "valid-typeof": "off"

@@ -7,6 +7,7 @@
     "indent_level": 2,
     "keep_quoted_props": false,
     "semicolons": true,
+    "wrap_func_args": false,
     "wrap_iife": true
   },
   "compress": {

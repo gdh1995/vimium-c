@@ -176,7 +176,7 @@ interface BgVomnibarSpecialReq {
     /** lastKey */ l: kKeyCode;
   } & Req.baseBg<kBgReq.omni_returnFocus>;
   [kBgReq.omni_init]: {
-    /** secret */ s: number;
+    /** secret */ s: string
     /** payload */ l: SettingsNS.VomnibarPayload;
   };
   [kBgReq.omni_parsed]: {
@@ -341,7 +341,7 @@ interface CmdOptions {
     /** pageType */ t: VomnibarNS.PageType;
     /** trailingSlash */ s: boolean | null | undefined;
     /** <script> */ j: string;
-    /** secret */ k: number;
+    /** secret */ k: string
     /** exitOnClick */ e: boolean;
   };
   [kFgCmd.goNext]: {
@@ -483,7 +483,6 @@ interface FgReqWithRes {
     /** trailingSlash */ t: boolean | null | undefined;
     /** (deprecated) trailingSlash (old) */ r?: boolean | null | undefined;
     /** sed : not for kFgReq.parseSearchUrl */ s?: MixedSedOpts | null;
-    /** execute / e: unknown; */
   };
   [kFgReq.parseSearchUrl]: {
     /** url */ u: string;
@@ -581,7 +580,8 @@ interface FgReq {
     /* keySequence */ k: string;
     /** lastKey */ l: kKeyCode;
     /** then/else counter */ f?: {
-      /** counter */ c: number; /** maxRetried */ r: number | null | undefined; /** may tab be updated */ u: boolean
+      /** counter */ c: number; /** maxRetried */ r: number | null | undefined
+      /** may tab be updated */ u: boolean; /** wait for a while; 0 means no waiting */ w?: number | null
     } | null
   };
   [kFgReq.marks]: ({ /** action */ a: kMarkAction.create } & (MarksNS.NewTopMark | MarksNS.NewMark)) | {
@@ -665,7 +665,7 @@ interface OpenPageUrlOptions extends OpenUrlOptions {
   keyword?: string | null; replace?: string | ValidUrlMatchers | null
   testUrl?: /** use `! .keyword` */ null | boolean | "whole" | "whole-string"
 }
-type _ParsedOpenPageUrlOptionNames = {
+interface _ParsedOpenPageUrlOptionNames {
   g: "group"; i: "incognito"; k: "keyword"; m: "replace"
   o: "opener"; p: "position"; r: "reuse"; t: "testUrl"; w: "window"
 }

@@ -1,5 +1,6 @@
 declare const enum kCmdInfo { NoTab = 0, ActiveTab = 1, CurWndTabsIfRepeat = 2, CurWndTabs = 3, CurShownTabs = 4 }
 
+type Tab = chrome.tabs.Tab
 type BgCmdNoTab<T extends kBgCmd> = (this: void, _fakeArg?: undefined) => void | T
 type BgCmdActiveTab<T extends kBgCmd> = (this: void, tabs1: [Tab]) => void | T
 type BgCmdActiveTabOrNoTab<T extends kBgCmd> = (this: void, tabs1?: [Tab]) => void | T
@@ -7,7 +8,7 @@ type BgCmdCurWndTabs<T extends kBgCmd> = (this: void, tabs1: Tab[]) => void | T
 
 interface BgCmdOptions {
   [kBgCmd.blank]: { /** ms */ for: CountValueOrRef; wait: CountValueOrRef } & Req.FallbackOptions
-  // region: need cport
+//#region need cport
   [kBgCmd.goNext]: {
     isNext: boolean; noRel: boolean; patterns: string | string[]; rel: string; $fmt: 1; absolute: true
   } & UserSedOptions & CSSOptions & Req.FallbackOptions & OpenUrlOptions
@@ -36,14 +37,13 @@ interface BgCmdOptions {
   } & Req.FallbackOptions
   [kBgCmd.toggle]: { key: string; value: any } & Req.FallbackOptions
   [kBgCmd.showHelp]: Omit<ShowHelpDialogOptions, "h">
-  [kBgCmd.showVomnibar]: VomnibarNS.GlobalOptions // in fact, also accept others in VomnibarNS.FgOptions
-      & { secret: number } & Pick<CmdOptions[kFgCmd.vomnibar], "v">
+  [kBgCmd.showVomnibar]: VomnibarNS.GlobalOptions
   [kBgCmd.visualMode]: {
     mode: "visual" | "Visual" | "caret" | "Caret" | "line" | "Line" | ""
     richText: boolean
     start: boolean
   } & Req.FallbackOptions
-  // endregion: need cport
+//#endregion
   [kBgCmd.addBookmark]: {
     folder: string; /** (deprecated) */ path: string
     all: true | "window"
@@ -82,7 +82,7 @@ interface BgCmdOptions {
   [kBgCmd.moveTab]: { group: "keep" | "ignore" | boolean }
   [kBgCmd.moveTabToNewWindow]: { all: boolean | BOOL }
       & Pick<OpenUrlOptions, "incognito" | "position"> & LimitedRangeOptions
-  [kBgCmd.moveTabToNextWindow]: { minimized: false; min: false; end: boolean; right: boolean }
+  [kBgCmd.moveTabToNextWindow]: { minimized: false; min: false; end: boolean; right: true | false }
       & Pick<OpenUrlOptions, "position">
   [kBgCmd.openUrl]: OpenUrlOptions & MasksForOpenUrl & {
     urls: string[]; $fmt: 1 | 2
@@ -232,10 +232,6 @@ declare namespace CommandsNS {
   interface EnvItemOptions extends Pick<CommandsNS.RawOptions, "count"> {}
 }
 
-interface CommandsDataTy {
-  keyToCommandRegistry_: Map<string, CommandsNS.Item>
-}
-
 interface StatefulBgCmdOptions {
   [kBgCmd.createTab]: null
   [kBgCmd.goNext]: "patterns" | "reuse"
@@ -262,3 +258,180 @@ interface CurrentEnvCache {
   fullscreen?: boolean
   url?: string
 }
+
+declare const enum CNameLiterals {
+  focusOptions = "focusOptions",
+  userCustomized = "userCustomized"
+}
+
+interface CmdNameIds {
+  "LinkHints.activate": kFgCmd.linkHints
+  "LinkHints.activateCopyLinkText": kFgCmd.linkHints
+  "LinkHints.activateCopyLinkUrl": kFgCmd.linkHints
+  "LinkHints.activateDownloadImage": kFgCmd.linkHints
+  "LinkHints.activateDownloadLink": kFgCmd.linkHints
+  "LinkHints.activateEdit": kFgCmd.linkHints
+  "LinkHints.activateHover": kFgCmd.linkHints
+  "LinkHints.activateLeave": kFgCmd.linkHints
+  "LinkHints.activateMode": kFgCmd.linkHints
+  "LinkHints.activateModeToCopyLinkText": kFgCmd.linkHints
+  "LinkHints.activateModeToCopyLinkUrl": kFgCmd.linkHints
+  "LinkHints.activateModeToDownloadImage": kFgCmd.linkHints
+  "LinkHints.activateModeToDownloadLink": kFgCmd.linkHints
+  "LinkHints.activateModeToEdit": kFgCmd.linkHints
+  "LinkHints.activateModeToHover": kFgCmd.linkHints
+  "LinkHints.activateModeToLeave": kFgCmd.linkHints
+  "LinkHints.activateModeToOpenImage": kFgCmd.linkHints
+  "LinkHints.activateModeToOpenIncognito": kFgCmd.linkHints
+  "LinkHints.activateModeToOpenInNewForegroundTab": kFgCmd.linkHints
+  "LinkHints.activateModeToOpenInNewTab": kFgCmd.linkHints
+  "LinkHints.activateModeToOpenVomnibar": kFgCmd.linkHints
+  "LinkHints.activateModeToSearchLinkText": kFgCmd.linkHints
+  "LinkHints.activateModeToSelect": kFgCmd.linkHints
+  "LinkHints.activateModeToUnhover": kFgCmd.linkHints
+  "LinkHints.activateModeWithQueue": kFgCmd.linkHints
+  "LinkHints.activateOpenImage": kFgCmd.linkHints
+  "LinkHints.activateOpenIncognito": kFgCmd.linkHints
+  "LinkHints.activateOpenInNewForegroundTab": kFgCmd.linkHints
+  "LinkHints.activateOpenInNewTab": kFgCmd.linkHints
+  "LinkHints.activateOpenVomnibar": kFgCmd.linkHints
+  "LinkHints.activateSearchLinkText": kFgCmd.linkHints
+  "LinkHints.activateSelect": kFgCmd.linkHints
+  "LinkHints.activateUnhover": kFgCmd.linkHints
+  "LinkHints.activateWithQueue": kFgCmd.linkHints
+  "LinkHints.click": kFgCmd.linkHints
+  "LinkHints.unhoverLast": kFgCmd.insertMode
+  "Marks.activate": kFgCmd.marks
+  "Marks.activateCreate": kFgCmd.marks
+  "Marks.activateCreateMode": kFgCmd.marks
+  "Marks.activateGoto": kFgCmd.marks
+  "Marks.activateGotoMode": kFgCmd.marks
+  "Marks.clearGlobal": kBgCmd.clearMarks
+  "Marks.clearLocal": kBgCmd.clearMarks
+  "Vomnibar.activate": kBgCmd.showVomnibar
+  "Vomnibar.activateBookmarks": kBgCmd.showVomnibar
+  "Vomnibar.activateBookmarksInNewTab": kBgCmd.showVomnibar
+  "Vomnibar.activateEditUrl": kBgCmd.showVomnibar
+  "Vomnibar.activateEditUrlInNewTab": kBgCmd.showVomnibar
+  "Vomnibar.activateHistory": kBgCmd.showVomnibar
+  "Vomnibar.activateHistoryInNewTab": kBgCmd.showVomnibar
+  "Vomnibar.activateInNewTab": kBgCmd.showVomnibar
+  "Vomnibar.activateTabs": kBgCmd.showVomnibar
+  "Vomnibar.activateTabSelection": kBgCmd.showVomnibar
+  "Vomnibar.activateUrl": kBgCmd.showVomnibar
+  "Vomnibar.activateUrlInNewTab": kBgCmd.showVomnibar
+  addBookmark: kBgCmd.addBookmark
+  autoCopy: kFgCmd.autoOpen
+  autoOpen: kFgCmd.autoOpen
+  blank: kBgCmd.blank
+  captureTab: kBgCmd.captureTab
+  clearCS: kBgCmd.clearCS
+  clearContentSetting: kBgCmd.clearCS
+  clearContentSettings: kBgCmd.clearCS
+  clearFindHistory: kBgCmd.clearFindHistory
+  closeDownloadBar: kBgCmd.closeDownloadBar
+  closeOtherTabs: kBgCmd.removeTabsR
+  closeTabsOnLeft: kBgCmd.removeTabsR
+  closeTabsOnRight: kBgCmd.removeTabsR
+  copyCurrentTitle: kBgCmd.copyWindowInfo
+  copyCurrentUrl: kBgCmd.copyWindowInfo
+  copyWindowInfo: kBgCmd.copyWindowInfo
+  createTab: kBgCmd.createTab
+  debugBackground: kBgCmd.openUrl
+  discardTab: kBgCmd.discardTab
+  duplicateTab: kBgCmd.duplicateTab
+  editText: kFgCmd.editText
+  enableCSTemp: kBgCmd.toggleCS
+  enableContentSettingTemp: kBgCmd.toggleCS
+  enterFindMode: kBgCmd.performFind
+  enterInsertMode: kBgCmd.insertMode
+  enterVisualLineMode: kBgCmd.visualMode
+  enterVisualMode: kBgCmd.visualMode
+  firstTab: kBgCmd.goToTab
+  focusInput: kFgCmd.focusInput
+  focusOrLaunch: kBgCmd.openUrl
+  goBack: kFgCmd.framesGoBack
+  goForward: kFgCmd.framesGoBack
+  goNext: kBgCmd.goNext
+  goPrevious: kBgCmd.goNext
+  goToRoot: kBgCmd.goUp
+  goUp: kBgCmd.goUp
+  joinTabs: kBgCmd.joinTabs
+  lastTab: kBgCmd.goToTab
+  mainFrame: kBgCmd.mainFrame
+  moveTabLeft: kBgCmd.moveTab
+  moveTabRight: kBgCmd.moveTab
+  moveTabToIncognito: kBgCmd.moveTabToNewWindow
+  moveTabToNewWindow: kBgCmd.moveTabToNewWindow
+  moveTabToNextWindow: kBgCmd.moveTabToNextWindow
+  newTab: kBgCmd.createTab
+  nextFrame: kBgCmd.nextFrame
+  nextTab: kBgCmd.goToTab
+  openCopiedUrlInCurrentTab: kBgCmd.openUrl
+  openCopiedUrlInNewTab: kBgCmd.openUrl
+  openUrl: kBgCmd.openUrl
+  parentFrame: kBgCmd.parentFrame
+  passNextKey: kFgCmd.passNextKey
+  performAnotherFind: kBgCmd.performFind
+  performBackwardsFind: kBgCmd.performFind
+  performFind: kBgCmd.performFind
+  previousTab: kBgCmd.goToTab
+  quickNext: kBgCmd.goToTab
+  reload: kFgCmd.framesGoBack
+  reloadGivenTab: kBgCmd.reloadTab
+  reloadTab: kBgCmd.reloadTab
+  removeRightTab: kBgCmd.removeRightTab
+  removeTab: kBgCmd.removeTab
+  reopenTab: kBgCmd.reopenTab
+  reset: kFgCmd.insertMode
+  restoreGivenTab: kBgCmd.restoreGivenTab
+  restoreTab: kBgCmd.restoreTab
+  runKey: kBgCmd.runKey
+  scrollDown: kFgCmd.scroll
+  scrollFullPageDown: kFgCmd.scroll
+  scrollFullPageUp: kFgCmd.scroll
+  scrollLeft: kFgCmd.scroll
+  scrollPageDown: kFgCmd.scroll
+  scrollPageUp: kFgCmd.scroll
+  scrollPxDown: kFgCmd.scroll
+  scrollPxLeft: kFgCmd.scroll
+  scrollPxRight: kFgCmd.scroll
+  scrollPxUp: kFgCmd.scroll
+  scrollRight: kFgCmd.scroll
+  scrollSelect: kFgCmd.scrollSelect
+  scrollTo: kFgCmd.scroll
+  scrollToBottom: kFgCmd.scroll
+  scrollToLeft: kFgCmd.scroll
+  scrollToRight: kFgCmd.scroll
+  scrollToTop: kFgCmd.scroll
+  scrollUp: kFgCmd.scroll
+  searchAs: kFgCmd.autoOpen
+  searchInAnother: kBgCmd.searchInAnother
+  sendToExtension: kBgCmd.sendToExtension
+  showHelp: kBgCmd.showHelp
+  simBackspace: kFgCmd.focusInput
+  simulateBackspace: kFgCmd.focusInput
+  sortTabs: kBgCmd.joinTabs
+  switchFocus: kFgCmd.focusInput
+  toggleCS: kBgCmd.toggleCS
+  toggleContentSetting: kBgCmd.toggleCS
+  toggleLinkHintCharacters: kBgCmd.toggle
+  toggleMuteTab: kBgCmd.toggleMuteTab
+  togglePinTab: kBgCmd.togglePinTab
+  toggleReaderMode: kBgCmd.toggleTabUrl
+  toggleStyle: kFgCmd.toggleStyle
+  toggleSwitchTemp: kBgCmd.toggle
+  toggleViewSource: kBgCmd.toggleTabUrl
+  toggleVomnibarStyle: kBgCmd.toggleVomnibarStyle
+  showTip: kBgCmd.showTip
+  visitPreviousTab: kBgCmd.visitPreviousTab
+  wait: kBgCmd.blank
+  zoomIn: kBgCmd.toggleZoom
+  zoomOut: kBgCmd.toggleZoom
+  zoomReset: kBgCmd.toggleZoom
+}
+type kCName = keyof CmdNameIds
+
+declare const enum kShortcutAliases { nextTab1 = "quickNext" }
+type StandardShortcutNames = "createTab" | "goBack" | "goForward" | "previousTab"
+    | "nextTab" | "reloadTab" | CNameLiterals.userCustomized

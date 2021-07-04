@@ -1,12 +1,13 @@
 {
   "name": "vimium-c",
-  "version": "1.0.0",
   "description": "A keyboard shortcut tool for keyboard-based page navigation and browser tab operations with an advanced omnibar and global shortcuts",
+  "author": "gdh1995",
+  "bugs": "https://github.com/gdh1995/vimium-c/issues",
   "private": true,
   "dependencies": {
     "pngjs": "^6.0.0",
-    "terser": "^5.6.1",
-    "typescript": "^4.3.4"
+    "terser": "^5.7.1",
+    "typescript": "^4.4.0-beta"
   },
   "devDependencies": {
     "clean-css": "^5.1.3",
@@ -19,15 +20,37 @@
     "gulp-some": "*",
     "gulp-typescript": "^6.0.0-alpha.1",
     "html-minifier": "^4.0.0",
-    "lodash": "^4.17.21",
     "rimraf": "^3.0.2",
     "rollup": "^2.44.0",
     "seedrandom": "^3.0.5"
   },
+  "engines": {
+    "node": ">=14",
+    "npm": ">=7"
+  },
+  "homepage": "https://github.com/gdh1995/vimium-c#readme",
+  "license": "MIT",
+  "keywords": [
+    "vimium",
+    "webextension",
+    "chrome-extension",
+    "web-extension",
+    "all-in-keyboard",
+    "all-by-keyboard",
+    "keyboard",
+    "shortcut",
+    "chrome",
+    "firefox",
+    "edge"
+  ],
   "optionalDependencies": {
     "@typescript-eslint/eslint-plugin": "^4.26.0",
     "@typescript-eslint/parser": "^4.26.0",
     "eslint": "^7.29.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/gdh1995/vimium-c.git"
   },
   "scripts": {
     "tsc": "node scripts/tsc.js",
@@ -50,6 +73,7 @@
     "rebuild": "gulp rebuild",
     "legacy": "bash -c \"BUILD_MinCVer=${BUILD_MinCVer:-32} BUILD_BTypes=1 BUILD_NDEBUG=0 gulp local2\"",
     "latest": "bash -c \"BUILD_BTypes=1 BUILD_NDEBUG=0 gulp local2\"",
+    "legacy-ff": "bash -c \"BUILD_MinFFVer=${BUILD_MinFFVer:-63} BUILD_BTypes=2 BUILD_NDEBUG=0 gulp local2\"",
     "latest-ff": "bash -c \"BUILD_BTypes=2 BUILD_NDEBUG=0 gulp local2\"",
     "latest-fx": "npm run latest-ff",
     "latest-edgehtml": "bash -c \"BUILD_MinCVer=${BUILD_MinCVer:-53} BUILD_BTypes=4 BUILD_NDEBUG=0 gulp local2\"",
@@ -71,25 +95,5 @@
     "start": "gulp local",
     "test": "gulp test"
   },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/gdh1995/vimium-c.git"
-  },
-  "keywords": [
-    "vimium",
-    "webextension",
-    "chrome-extension",
-    "browser-extension",
-    "shortcut",
-    "keyboard",
-    "chrome",
-    "firefox",
-    "edge"
-  ],
-  "author": "gdh1995",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/gdh1995/vimium-c/issues"
-  },
-  "homepage": "https://github.com/gdh1995/vimium-c"
+  "version": "1.0.0"
 }

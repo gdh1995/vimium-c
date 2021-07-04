@@ -1,21 +1,26 @@
-import { browserTabs, browserWebNav, downloadFile, getTabUrl, runtimeError_, selectTab } from "./browser"
 import {
-  cPort, NoFrameId, cRepeat, get_cOptions, set_cPort, getSecret, set_cOptions, set_cRepeat, framesForTab, framesForOmni,
-  omniPayload, settings, findCSS_, visualWordsRe_, cKey, reqH_
+  cPort, cRepeat, get_cOptions, set_cPort, set_cOptions, set_cRepeat, framesForTab_, findCSS_, cKey, reqH_,
+  curTabId_, settingsCache_, OnChrome, visualWordsRe_, CurCVer_, OnEdge, OnFirefox, substitute_, CONST_,
+  helpDialogData_, set_helpDialogData_
 } from "./store"
+import * as BgUtils_ from "./utils"
+import { Tabs_, browserWebNav_, downloadFile, getTabUrl, runtimeError_, selectTab } from "./browser"
+import { convertToUrl_ } from "./normalize_urls"
+import * as settings_ from "./settings"
 import { indexFrame, showHUD, complainLimits, ensureInnerCSS } from "./ports"
-import { substitute_ } from "./clipboard"
-import { visualGranularities_, visualKeys_ } from "./key_mappings"
+import { getI18nJson, trans_ } from "./i18n"
+import { keyMappingErrors_, visualGranularities_, visualKeys_ } from "./key_mappings"
 import {
   wrapFallbackOptions, copyCmdOptions, parseFallbackOptions, portSendFgCmd, sendFgCmd, replaceCmdOptions,
   overrideOption, runNextOnTabLoaded
 } from "./run_commands"
 import { parseReuse, newTabIndex, openUrlWithActions } from "./open_urls"
+import { FindModeHistory_ } from "./tools"
 import C = kBgCmd
 
 export const nextFrame = (): void | kBgCmd.nextFrame => {
   let port = cPort, ind = -1
-  const ref = framesForTab.get(port.s.tabId_), ports = ref && ref.ports_
+  const ref = framesForTab_.get(port.s.tabId_), ports = ref && ref.ports_
   if (ports && ports.length > 1) {
     ind = ports.indexOf(port)
     for (let count = Math.abs(cRepeat); count > 0; count--) {
@@ -32,18 +37,17 @@ export const nextFrame = (): void | kBgCmd.nextFrame => {
 
 export const parentFrame = (): void | kBgCmd.parentFrame => {
   const sender = cPort.s,
-  msg = Build.MinCVer < BrowserVer.MinWithFrameId && Build.BTypes & BrowserType.Chrome && NoFrameId
+  msg = OnChrome && Build.MinCVer < BrowserVer.MinWithFrameId && CurCVer_ < BrowserVer.MinWithFrameId
     ? `Vimium C can not know parent frame before Chrome ${BrowserVer.MinWithFrameId}`
-    : !(sender.tabId_ >= 0 && framesForTab.get(sender.tabId_)) ? "Vimium C can not access frames in current tab" : null
+    : !(sender.tabId_ >= 0 && framesForTab_.get(sender.tabId_)) ? "Vimium C can not access frames in current tab" : null
   msg && showHUD(msg)
-  if (!sender.frameId_
-      || Build.MinCVer < BrowserVer.MinWithFrameId && Build.BTypes & BrowserType.Chrome && NoFrameId
-      || !browserWebNav()) {
+  if (!sender.frameId_ || OnChrome && Build.MinCVer < BrowserVer.MinWithFrameId && CurCVer_ < BrowserVer.MinWithFrameId
+      || !browserWebNav_()) {
     mainFrame()
     return
   }
   let self = sender.frameId_, frameId = self, found: boolean, count = cRepeat
-  browserWebNav()!.getAllFrames({ tabId: sender.tabId_ }, (frames): void => {
+  browserWebNav_()!.getAllFrames({ tabId: sender.tabId_ }, (frames): void => {
     do {
       found = false
       for (const i of frames) {
@@ -83,25 +87,30 @@ export const performFind = (): void | kBgCmd.performFind => {
 }
 
 export const initHelp = (request: FgReq[kFgReq.initHelp], port: Port): void => {
-  const kHD = "helpDialog";
+  const curHData = helpDialogData_ || []
   Promise.all([
-    import(Settings_.CONST_.HelpDialogJS) as Promise<typeof import("background/help_dialog")>,
-    (kHD in settings.cache_) || new Promise<boolean | void>((resolve): void => {
-      settings.fetchFile_(kHD, (text): void => { settings.set_(kHD, text); resolve() })
-    })
-  ]).then(([helpDialog]): void => {
-    const port2 = request.w && indexFrame(port.s.tabId_, 0) || port,
-    isOptionsPage = port2.s.url_.startsWith(settings.CONST_.OptionsPage_),
+    import(CONST_.HelpDialogJS) as Promise<typeof import("./help_dialog")>,
+    curHData[0] != null ? null : BgUtils_.fetchFile_(CONST_.helpDialog),
+    curHData[1] != null ? null : getI18nJson("help_dialog"),
+    curHData[2] != null ? null : getI18nJson("params.json")
+  ]).then(([helpDialog, temp1, temp2, temp3]): void => {
+    const port2 = request.w && framesForTab_.get(port.s.tabId_)?.top_ || port,
+    isOptionsPage = port2.s.url_.startsWith(CONST_.OptionsPage_),
     options = request.a || {};
-    (port2 as Frames.Port).s.flags_ |= Frames.Flags.hadHelpDialog
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+    (port2.s as Frames.Sender).flags_ |= Frames.Flags.hadHelpDialog
     set_cPort(port2)
+    const newHData = helpDialogData_ || set_helpDialogData_([null, null, null])
+    temp1 && (newHData[0] = temp1)
+    temp2 && (newHData[1] = temp2)
+    temp3 && (newHData[2] = temp3)
     sendFgCmd(kFgCmd.showHelpDialog, true, {
       h: helpDialog.render_(isOptionsPage),
-      o: settings.CONST_.OptionsPage_,
+      o: CONST_.OptionsPage_,
       e: !!options.exitOnClick,
-      c: settings.get_("showAdvancedCommands", true) || isOptionsPage && !!CommandsData_.errors_
+      c: settings_.get_("showAdvancedCommands", true) || isOptionsPage && !!keyMappingErrors_
     })
-  }, Build.NDEBUG ? Build.MinCVer < BrowserVer.Min$Promise$$Then$Accepts$null && Build.BTypes & BrowserType.Chrome
+  }, Build.NDEBUG ? OnChrome && Build.MinCVer < BrowserVer.Min$Promise$$Then$Accepts$null
       ? undefined : null as never : (args): void => {
     console.error("Promises for initHelp failed:", args[0], ";", args[1])
   })
@@ -115,15 +124,16 @@ export const showVomnibar = (forceInner?: boolean): void | kBgCmd.showVomnibar =
     delete get_cOptions<C.showVomnibar, true>().url
   }
   if (!port) {
-    port = indexFrame(TabRecency_.curTab_, 0)
+    port = framesForTab_.get(curTabId_)?.top_ || null
     if (!port) { return }
     set_cPort(port)
     // not go to the top frame here, so that a current frame can suppress keys for a while
   }
   if (get_cOptions<C.showVomnibar>().mode === "bookmark") { overrideOption<C.showVomnibar, "mode">("mode", "bookm") }
-  const page = settings.cache_.vomnibarPage_f, { url_: url } = port.s, preferWeb = !page.startsWith(BrowserProtocol_),
-  isCurOnExt = url.startsWith(BrowserProtocol_),
-  inner = forceInner || !page.startsWith(location.origin) ? settings.CONST_.VomnibarPageInner_ : page
+  const page = settingsCache_.vomnibarPage_f, { url_: url } = port.s,
+  preferWeb = !page.startsWith(CONST_.BrowserProtocol_),
+  isCurOnExt = url.startsWith(CONST_.BrowserProtocol_),
+  inner = forceInner || !page.startsWith(location.origin) ? CONST_.VomnibarPageInner_ : page
   forceInner = forceInner ? forceInner
     : preferWeb ? isCurOnExt || page.startsWith("file:") && !url.startsWith("file:///")
       // it has occurred since Chrome 50 (BrowserVer.Min$tabs$$executeScript$hasFrameIdArg)
@@ -142,17 +152,17 @@ export const showVomnibar = (forceInner?: boolean): void | kBgCmd.showVomnibar =
     i: useInner ? null : inner,
     t: useInner ? VomnibarNS.PageType.inner : preferWeb ? VomnibarNS.PageType.web : VomnibarNS.PageType.ext,
     s: trailingSlash,
-    j: useInner ? "" : settings.CONST_.VomnibarScript_f_,
+    j: useInner ? "" : CONST_.VomnibarScript_f_,
     e: !!(get_cOptions<C.showVomnibar>()).exitOnClick,
-    k: getSecret()
+    k: BgUtils_.getOmniSecret_(true)
   }), get_cOptions<C.showVomnibar, true>()) as CmdOptions[kFgCmd.vomnibar] & SafeObject
   portSendFgCmd(port, kFgCmd.vomnibar, true, options, cRepeat)
-  options.k = -1
+  options.k = "omni"
   set_cOptions(options) // safe on renaming
 }
 
 export const enterVisualMode = (): void | kBgCmd.visualMode => {
-  if (Build.BTypes & BrowserType.Edge && (!(Build.BTypes & ~BrowserType.Edge) || OnOther === BrowserType.Edge)) {
+  if (OnEdge) {
     complainLimits("control selection on MS Edge")
     return
   }
@@ -163,8 +173,8 @@ export const enterVisualMode = (): void | kBgCmd.visualMode => {
   let words = "", keyMap: CmdOptions[kFgCmd.visualMode]["k"] = null
   let granularities: CmdOptions[kFgCmd.visualMode]["g"] = null
   if (~sender.flags_ & Frames.Flags.hadVisualMode) {
-    if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
-        || Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
+    if (OnFirefox && !Build.NativeWordMoveOnFirefox
+        || OnChrome && Build.MinCVer < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
             && Build.MinCVer < BrowserVer.MinSelExtendForwardOnlySkipWhitespaces) {
       words = visualWordsRe_
     }
@@ -208,10 +218,9 @@ export const captureTab = (tabs?: [Tab]): void | kBgCmd.captureTab => {
         doShow(finalUrl)
         return
       }
-      const port = cPort && indexFrame(cPort.s.tabId_, 0) || cPort
+      const port = cPort && framesForTab_.get(cPort.s.tabId_)?.top_ || cPort
       downloadFile(finalUrl, title, port ? port.s.url_ : null, (): void => {
-        if (!(Build.BTypes & ~BrowserType.Firefox)
-            || Build.BTypes & BrowserType.Firefox && OnOther & BrowserType.Firefox) {
+        if (OnFirefox) {
           doShow(finalUrl)
         } else {
           clickAnchor_cr(finalUrl)
@@ -233,8 +242,7 @@ export const captureTab = (tabs?: [Tab]): void | kBgCmd.captureTab => {
       a.click()
     }
     if (url.startsWith("data:")) {
-      if (Build.MinCVer >= BrowserVer.MinFetchExtensionFiles || !(Build.BTypes & BrowserType.Chrome)
-          || CurCVer_ >= BrowserVer.MinFetchDataURL) {
+      if (!OnChrome || Build.MinCVer >= BrowserVer.MinFetchExtensionFiles || CurCVer_ >= BrowserVer.MinFetchDataURL) {
         const p = fetch(url).then(r => r.blob()).then(cb2)
         if (!Build.NDEBUG) { p.catch(onerror) }
       } else {
@@ -249,17 +257,17 @@ export const captureTab = (tabs?: [Tab]): void | kBgCmd.captureTab => {
       cb2(url)
     }
   }
-  const tabId = tabs && tabs[0] ? tabs[0].id : TabRecency_.curTab_
+  const tabId = tabs && tabs[0] ? tabs[0].id : curTabId_
   let title = tabs && tabs[0] ? tabs[0].title : ""
   title = get_cOptions<C.captureTab>().name === "title" || !title || tabId < 0
       ? title || "" + tabId : tabId + "-" + title
-  if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinFormatOptionWhenCaptureTab
+  if (OnChrome && Build.MinCVer < BrowserVer.MinFormatOptionWhenCaptureTab
       && CurCVer_ < BrowserVer.MinFormatOptionWhenCaptureTab) {
     title += ".jpg"
-    browserTabs.captureVisibleTab(cb)
+    Tabs_.captureVisibleTab(cb)
   } else {
     title += jpeg > 0 ? ".jpg" : ".png"
-    browserTabs.captureVisibleTab(jpeg > 0 ? {format: "jpeg", quality: jpeg} : {format: "png"}, cb)
+    Tabs_.captureVisibleTab(jpeg > 0 ? {format: "jpeg", quality: jpeg} : {format: "png"}, cb)
   }
 }
 
@@ -284,18 +292,16 @@ export const openImgReq = (req: FgReq[kFgReq.openImage], port?: Port): void => {
     showHUD(trans_("invalidImg"))
     return
   }
-  let prefix = settings.CONST_.ShowPage_ + "#!image "
+  let prefix = CONST_.ShowPage_ + "#!image "
   if (req.f) {
-    prefix += "download=" + BgUtils_.encodeAsciiComponent(req.f) + "&"
+    prefix += "download=" + BgUtils_.encodeAsciiComponent_(req.f) + "&"
   }
   if (req.a !== false) {
     prefix += "auto=once&"
   }
   req.o && (prefix += req.o)
   const opts2 = req.q || As_<ParsedOpenPageUrlOptions>(BgUtils_.safeObj_() as {})
-  const keyword = Build.BTypes & BrowserType.Firefox
-      && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther & BrowserType.Firefox)
-      && req.m === HintMode.DOWNLOAD_MEDIA ? "" : opts2.k
+  const keyword = OnFirefox && req.m === HintMode.DOWNLOAD_MEDIA ? "" : opts2.k
   url = opts2.s ? substitute_(url, SedContext.paste, opts2.s) : url
   // no group during openImg
   replaceCmdOptions<C.openUrl>({
@@ -305,26 +311,18 @@ export const openImgReq = (req: FgReq[kFgReq.openImage], port?: Port): void => {
   // not use v:show for those from other extensions
   openUrlWithActions(typeof keyword !== "string"
         && (!url.startsWith(location.protocol) || url.startsWith(location.origin)) ? prefix + url
-        : keyword ? BgUtils_.convertToUrl_(url, keyword, Urls.WorkType.ActAnyway) : url
+        : keyword ? convertToUrl_(url, keyword, Urls.WorkType.ActAnyway) : url
       , Urls.WorkType.FakeType)
 }
 
 export const framesGoBack = (req: FgReq[kFgReq.framesGoBack], port: Port | null, curTab?: Tab): void => {
-  const hasTabsGoBack: boolean = !!(Build.BTypes & BrowserType.Chrome)
-        && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)
-        && Build.MinCVer >= BrowserVer.Min$Tabs$$goBack
-      || !!(Build.BTypes & BrowserType.Firefox)
-        && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
-        && Build.MinFFVer >= FirefoxBrowserVer.Min$Tabs$$goBack
-      || !!(Build.BTypes & ~BrowserType.Edge)
-        && (!(Build.BTypes & BrowserType.Edge) || OnOther !== BrowserType.Edge)
-        && !!browserTabs.goBack
+  const hasTabsGoBack: boolean = OnChrome && Build.MinCVer >= BrowserVer.Min$tabs$$goBack
+      || OnFirefox && Build.MinFFVer >= FirefoxBrowserVer.Min$tabs$$goBack
+      || !OnEdge && !!Tabs_.goBack
   if (!hasTabsGoBack) {
-    const url = curTab ? getTabUrl(curTab) : (port!.s.frameId_ ? framesForTab.get(port!.s.tabId_)!.top_! : port!).s.url_
-    if (!url.startsWith(BrowserProtocol_)
-        || !!(Build.BTypes & BrowserType.Firefox)
-            && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
-            && url.startsWith(location.origin)) {
+    const url = curTab ? getTabUrl(curTab)
+        : (port!.s.frameId_ ? framesForTab_.get(port!.s.tabId_)!.top_! : port!).s.url_
+    if (!url.startsWith(CONST_.BrowserProtocol_) || OnFirefox && url.startsWith(location.origin)) {
       /* empty */
     } else {
       set_cPort(port!) /* Port | null -> Port */
@@ -333,7 +331,7 @@ export const framesGoBack = (req: FgReq[kFgReq.framesGoBack], port: Port | null,
     }
   }
   const execGoBack = (tab: Pick<Tab, "id">, goStep: number): void => {
-    browserTabs.executeScript(tab.id, {
+    Tabs_.executeScript(tab.id, {
       code: `history.go(${goStep})`,
       runAt: "document_start"
     }, (): void => {
@@ -344,7 +342,7 @@ export const framesGoBack = (req: FgReq[kFgReq.framesGoBack], port: Port | null,
   const count = req.s, reuse = parseReuse(req.o.reuse || ReuseType.current)
   if (reuse) {
     const position = req.o.position
-    browserTabs.duplicate(tabID, (tab): void => {
+    Tabs_.duplicate(tabID, (tab): void => {
       if (!tab) { return runtimeError_() }
       if (reuse === ReuseType.newBg) {
         selectTab(tabID)
@@ -359,11 +357,11 @@ export const framesGoBack = (req: FgReq[kFgReq.framesGoBack], port: Port | null,
       const newTabIdx = tab.index--
       const wantedIdx = position === "end" ? 3e4 : newTabIndex(tab, position, false, true)
       if (wantedIdx != null && wantedIdx !== newTabIdx) {
-        browserTabs.move(tab.id, { index: wantedIdx }, runtimeError_)
+        Tabs_.move(tab.id, { index: wantedIdx }, runtimeError_)
       }
     })
   } else {
-    const jump = count > 0 ? browserTabs.goForward : browserTabs.goBack
+    const jump = count > 0 ? Tabs_.goForward : Tabs_.goBack
     if (hasTabsGoBack || jump) {
       for (let i = 0, end = count > 0 ? count : -count; i < end; i++) {
         jump!(tabID, runtimeError_)
@@ -376,65 +374,36 @@ export const framesGoBack = (req: FgReq[kFgReq.framesGoBack], port: Port | null,
 }
 
 export const mainFrame = (): void | kBgCmd.mainFrame => {
-  const tabId = cPort ? cPort.s.tabId_ : TabRecency_.curTab_, ref = framesForTab.get(tabId),
+  const tabId = cPort ? cPort.s.tabId_ : curTabId_, ref = framesForTab_.get(tabId),
   port = ref && ref.top_
   port && focusFrame(port, true, port === ref!.cur_ ? FrameMaskType.OnlySelf : FrameMaskType.ForcedSelf
       , get_cOptions<C.mainFrame, true>())
 }
 
-export const setOmniStyle = (req: FgReq[kFgReq.setOmniStyle], port?: Port): void => {
-  let styles: string, curStyles = omniPayload.s
-  if (!req.o && settings.temp_.omniStyleOverridden_) {
-    return
-  }
-  {
-    let toggled = ` ${req.t} `, extSt = curStyles && ` ${curStyles} `, exists = extSt.includes(toggled),
-    newExist = req.e != null ? req.e : exists
-    styles = newExist ? exists ? curStyles : curStyles + toggled : extSt.replace(toggled, " ")
-    styles = styles.trim().replace(BgUtils_.spacesRe_, " ")
-    if (req.b === false) { omniPayload.s = styles; return }
-    if (req.o) {
-      settings.temp_.omniStyleOverridden_ = newExist !==
-          (` ${settings.cache_.vomnibarOptions.styles} `.includes(toggled))
-    }
-  }
-  if (styles === curStyles) { return }
-  omniPayload.s = styles
-  const request2: Req.bg<kBgReq.omni_updateOptions> = { N: kBgReq.omni_updateOptions, d: { s: styles } }
-  for (const frame of framesForOmni) {
-    frame !== port && frame.postMessage(request2)
-  }
-}
-
 export const toggleZoom = (): void | kBgCmd.toggleZoom => {
-  if (Build.BTypes & BrowserType.Edge && (!(Build.BTypes & ~BrowserType.Edge) || OnOther === BrowserType.Edge)
-      || Build.BTypes & BrowserType.Firefox && Build.MayAndroidOnFirefox && !browserTabs.getZoom) {
+  if (OnEdge || OnFirefox && Build.MayAndroidOnFirefox && !Tabs_.getZoom) {
     complainLimits("control zoom settings of tabs")
     return
   }
-  if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$Tabs$$setZoom
-      && CurCVer_ < BrowserVer.Min$Tabs$$setZoom) {
+  if (OnChrome && Build.MinCVer < BrowserVer.Min$Tabs$$setZoom && CurCVer_ < BrowserVer.Min$Tabs$$setZoom) {
     showHUD(`Vimium C can not control zoom settings before Chrome ${BrowserVer.Min$Tabs$$setZoom}`)
     return
   }
-  browserTabs.getZoom(curZoom => {
+  Tabs_.getZoom((curZoom): void => {
     if (!curZoom) { return runtimeError_() }
     cRepeat < -4 && set_cRepeat(-cRepeat)
     let newZoom: number, level = +get_cOptions<kBgCmd.toggleZoom, true>().level!, M = Math
     if (level) {
       newZoom = 1 + level * cRepeat
-      newZoom = !(Build.BTypes & ~BrowserType.Firefox)
-          || Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox
+      newZoom = OnFirefox
           ? M.max(0.3, M.min(newZoom, 3)) : M.max(0.25, M.min(newZoom, 5))
     } else if (cRepeat > 4) {
       newZoom = cRepeat / (cRepeat > 1000 ? cRepeat : cRepeat > 49 ? 100 : 10)
-      newZoom = !(Build.BTypes & ~BrowserType.Firefox)
-          || Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox
+      newZoom = OnFirefox
           ? M.max(0.3, M.min(newZoom, 3)) : M.max(0.25, M.min(newZoom, 5))
     } else {
       let nearest = 0, delta = 9,
-      steps = !(Build.BTypes & ~BrowserType.Firefox)
-          || Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox
+      steps = OnFirefox
           ? [0.3, 0.5, 0.67, 0.8, 0.9, 1, 1.1, 1.2, 1.33, 1.5, 1.7, 2, 2.4, 3]
           : [0.25, 1 / 3, 0.5, 2 / 3, 0.75, 0.8, 0.9, 1, 1.1, 1.25, 1.5, 1.75, 2, 2.5, 3, 4, 5]
       for (let ind = 0, d2 = 0; ind < steps.length && (d2 = Math.abs(steps[ind] - curZoom)) < delta; ind++) {
@@ -443,7 +412,7 @@ export const toggleZoom = (): void | kBgCmd.toggleZoom => {
       newZoom = steps[nearest + cRepeat < 0 ? 0 : M.min(nearest + cRepeat, steps.length - 1)]
     }
     if (Math.abs(newZoom - curZoom) > 0.005) {
-      browserTabs.setZoom(newZoom)
+      Tabs_.setZoom(newZoom)
     }
   })
 }
@@ -452,7 +421,7 @@ export const framesGoNext = (isNext: boolean, rel: string): void => {
   let rawPatterns = get_cOptions<C.goNext>().patterns, patterns = rawPatterns, useDefaultPatterns = false
   if (!patterns || !(patterns instanceof Array)) {
     patterns = patterns && typeof patterns === "string" ? patterns
-        : (useDefaultPatterns = true, isNext ? settings.cache_.nextPatterns : settings.cache_.previousPatterns)
+        : (useDefaultPatterns = true, isNext ? settingsCache_.nextPatterns : settingsCache_.previousPatterns)
     patterns = patterns.split(",")
   }
   if (useDefaultPatterns || !get_cOptions<C.goNext>().$fmt) {

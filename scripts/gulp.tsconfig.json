@@ -12,7 +12,6 @@
     "MinCVer": [ 89, 47 ], // keep dist to be 47 : the release version
     "MinFFVer": [ 78, 63 ],
     "BTypes": [ 3, 1 ], // [ Chrome | Firefox, Chrome ]
-    "NoDialogUI": [ 1, 1 ],
     "DetectAPIOnFirefox": [1, 0],
     "CreateFakeIncognito": [0, 0],
     "Minify": [0, 1],

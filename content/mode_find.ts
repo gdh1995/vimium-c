@@ -8,7 +8,7 @@ import {
   DEL, BSP, ENTER,
 } from "../lib/keyboard_utils"
 import {
-  attachShadow_, getSelectionFocusEdge_, activeEl_unsafe_, rangeCount_, setClassName_s, compareDocumentPosition,
+  attachShadow_, getSelectionFocusEdge_, deepActiveEl_unsafe_, rangeCount_, setClassName_s, compareDocumentPosition,
   getEditableType_, scrollIntoView_, SafeEl_not_ff_, GetParent_unsafe_, focus_, fullscreenEl_unsafe_, docEl_unsafe_,
   getSelection_, isSelected_, docSelectable_, isHTML_, createElement_, CLK, MDW, removeEl_s, appendNode_s,
   setDisplaying_s,
@@ -169,7 +169,7 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
     }
     if (i > FindAction.MaxExitButNoWork && hasResult && (!el || el !== insert_Lock_())) {
       let container = focusFoundLinkIfAny()
-      if (container && i === FindAction.ExitAndReFocus && (el2 = activeEl_unsafe_())
+      if (container && i === FindAction.ExitAndReFocus && (el2 = deepActiveEl_unsafe_())
           && getEditableType_<0>(el2) > EditableType.TextBox - 1 && contains_s(container, el2)) {
         prepareCrop_();
         void select_(el2 as LockableElement).then((): void => {
@@ -548,7 +548,7 @@ const onHostKeydown = (event: HandlerNS.Event): HandlerResult => {
     return HandlerResult.Prevent;
   } else if (key.length > 1 && "c-m-".includes(key[0] + key[1])
       && ((keybody = keybody_(key)) === kChar.j || keybody === kChar.k)) {
-    if (!hasResults) { /* empty */ }
+    if (!hasResults && wrapAround) { /* empty */ }
     else if (key.length > 4) {
       highlightInViewport()
     } else {

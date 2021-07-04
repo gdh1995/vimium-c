@@ -1,13 +1,14 @@
 <!DOCTYPE html>
-<html spellcheck="false" data-vimium-hints="ordinal">
+<html spellcheck="false" data-vimium-hints="ordinal" class="loading">
   <head>
     <meta charset="utf-8">
-    <title data-i="vOptions">Vimium C Options</title>
+    <title>Vimium C Options</title>
     <meta name="color-scheme" content="light dark">
     <script defer src="define.js"></script>
     <script type="module" src="async_bg.js"></script>
     <script type="module" src="options_base.js"></script>
     <script type="module" src="options_defs.js"></script>
+    <script type="module" src="options_permissions.js"></script>
     <script type="module" src="options_wnd.js"></script>
     <link rel="stylesheet" href="options.css">
     <script defer src="loader.js"></script>
@@ -102,8 +103,8 @@
 map f LinkHints.activate
 unmap &lt;a-f1&gt;
 mapKey &lt;c-s-e&gt; &lt;esc&gt;
-<span class="require-shortcuts">shortcut createTab position="end"</span>
-<span class="require-shortcuts">shortcut userCustomized1 command="goBack"</span>
+<span>shortcut createTab position="end"</span>
+<span>shortcut userCustomized1 command="goBack"</span>
 # "unmapAll" <span data-i="o18">unmaps all above and default</span></pre>
           </code>
           <a id="showCommands" href="#commands" data-hash="commands" data-delay="" data-i="o19">
@@ -119,7 +120,7 @@ mapKey &lt;c-s-e&gt; &lt;esc&gt;
               data-href="vimium://home/wiki/Map-a-key-to-different-commands-on-different-websites" data-i="o20_2">
             How to map differently on some websites?
           </a>
-          <span class="require-shortcuts"><br><i data-i="o21">Global shortcuts</i><span data-i="o22"> are
+          <span><br><i data-i="o21">Global shortcuts</i><span data-i="o22"> are
             on </span><a id="openExtensionsPage" href="chrome://extensions/shortcuts"
             >chrome://extensions/&#8230;</a><span data-i="o23">. </span><a id="shortcutHelper" data-i="o24"
               target="_blank" rel="noopener noreferrer"
@@ -276,23 +277,6 @@ key: https://c.com/$s/space=\s\ space_end
             Prevent pages from focusing an input in loading (e.g. Google, Bing, etc.).
           </div></td>
         </tr>
-        <tr id="focusNewTabContentBox" style="display: none;">
-          <td class="caption"></td>
-          <td>
-            <label class="booleanOption deprecated">
-              <input id="focusNewTabContent" type="checkbox" />
-              <span>Focus web page when creating a new tab (deprecated)</span>
-            </label>
-          </td>
-          <td class="help"><div class="help-inner">
-            This option has been removed since the published v1.77.0.
-            It can be replaced by extensions like
-            <a title="NewTab Adapter:&#10;Take over browser's new tab settings"
-                target="_blank" rel="noopener noreferrer"
-                href="https://chrome.google.com/webstore/detail/newtab-adapter/cglpcedifkgalfdklahhcchnjepcckfn">
-              NewTab Adapter</a>.
-          </div></td>
-        </tr>
         <tr>
           <td class="caption"></td>
           <td>
@@ -442,22 +426,6 @@ key: https://c.com/$s/space=\s\ space_end
           </td>
           <td class="help"><div class="help-inner line-2x" data-i="o66">
             Need to reload Vimium C manually.
-          </div></td>
-        </tr>
-        <tr id="dialogModeBox" style="display: none;"
-title="Warning: Chrome has a bug of mistaken dialogue width if you has changed screen text size.
-    And the dialogue can not work properly if Chrome has the flag &quot;#enable-md-extensions&quot;."
-            >
-          <td class="caption"></td>
-          <td>
-            <label class="booleanOption">
-              <input id="dialogMode" type="checkbox" data-permission="options_ui" />
-              <span>Show the dialogue mode of this options page</span>
-            </label>
-          </td>
-          <td class="help"><div class="help-inner">
-            The "Options" link on chrome://extensions will open a dialogue.
-            This will only work since Chrome 40.
           </div></td>
         </tr>
         <tr id="newTabUrlBox">

@@ -247,6 +247,12 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode]): void => {
         && type === SelType.Caret && diType_ && ("" + curSelection) ? SelType.Range : type
   }
 
+  /** @tolerate_di_if_caret di will be 1 */
+  const collapseToFocus = (toFocus: BOOL): void => {
+    selType() === SelType.Range && collapseToRight((getDirection() ^ toFocus ^ 1) as BOOL)
+    di_ = kDirTy.right
+  }
+  
     const typeIdx = { None: SelType.None, Caret: SelType.Caret, Range: SelType.Range }
     const initialScope: {r?: ShadowRoot | null} = {}
     let mode_: Mode = options.m || Mode.Visual
@@ -277,7 +283,7 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode]): void => {
  *   * \w = \p{Alpha | gc=Mark | Digit | gc=Connector_Punctuation | Join_Control}
  *   * Alphabetic: https://unicode.org/reports/tr44/#Alphabetic
  * But \p{L} = \p{Lu | Ll | Lt | Lm | Lo}, so it's much more accurate to use \p{L}
- * if no unicode RegExp, The list of words will be loaded into {@link background/settings.ts#Settings_.CONST_.WordsRe_}
+ * if no unicode RegExp, The list of words will be loaded into {@link background/store.ts#visualWordsRe_}
  */
   // icu@u_isalnum: http://icu-project.org/apiref/icu4c/uchar_8h.html#a5dff81615fcb62295bf8b1c63dd33a14
       if (OnFirefox && !Build.NativeWordMoveOnFirefox
@@ -756,12 +762,6 @@ const ensureLine = (command1: number): void => {
 const isLockedInputInTextMode_cr_old = !OnChrome || Build.MinCVer >= BrowserVer.Min$selectionStart$MayBeNull
     ? 0 as never : (): boolean | void => {
   return (raw_insert_lock! as TextElement).selectionEnd != null
-}
-
-  /** @tolerate_di_if_caret di will be 1 */
-const collapseToFocus = (toFocus: BOOL): void => {
-  selType() === SelType.Range && collapseToRight((getDirection() ^ toFocus ^ 1) as BOOL)
-  di_ = kDirTy.right
 }
 
   /** @argument el must be in text mode  */

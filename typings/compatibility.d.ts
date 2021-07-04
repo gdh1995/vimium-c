@@ -132,6 +132,7 @@ declare const enum BrowserVer {
   // for VHints.traverse_, Array.from takes >= 2x time to convert a static NodeList of 7242 elements to an array
   // and the average time data is 119~126ms / 255~266ms for 100 times
   Min$Array$$From = 45,
+  Min$TypedArray$reduce = 45,
   // even if LEGACY
   MinEnsuredES6MethodFunction = 45, // e.g.: `a = { b() {} }`
   MinMuted = 45,
@@ -144,6 +145,7 @@ declare const enum BrowserVer {
   MinMutedInfo = 46,
   // occur on Chrome 46 if EXPERIMENTAL; always enabled since C47 even if LEGACY
   MinMayBe$requestIdleCallback = 46,
+  MinMaybeES6$Array$$Includes = 46, // if EXPERIMENTAL
   Min$windows$APIsFilterOutDevToolsByDefault = 46,
   Min$windows$$GetAll$SupportWindowTypes = 46,
   MinEnsured$requestIdleCallback = 47,
@@ -176,10 +178,12 @@ declare const enum BrowserVer {
   MinMayNoDOMActivateInClosedShadowRootPassedToFrameDocument = 48, // if EXPERIMENTAL
   MinEnsuredTouchEventConstructor = 48, // even if LEGACY
   MinEnsuredBorderAndBoxWidthWithoutDeviceInfo = 49, // inc 0.0001px to the min "visible" width
+  // since C46 (MinMaybeES6$Array$$Includes) if EXPERIMENTAL; since C47 if not LEGACY
   MinEnsuredES6$Array$$Includes = 49, // even if LEGACY
-  // the 2 below are correct even if EXPERIMENTAL or LEGACY
+  // the 3 below are correct even if EXPERIMENTAL or LEGACY
   MinSafeWndPostMessageAcrossProcesses = 49,
   MinES6No$Promise$$defer = 49,
+  Min$resolve$Promise$MeansThen = 49, // see {@doc ./tests/unit/order-when-resolve-promise.html}
   /* content scripts are always injected (tested on Chrome from 35 to 66), and can always be listed by the Dev Tools */
   // even if EXPERIMENTAL or LEGACY; length of an older addEventListener is 0
   Min$addEventListener$$length$Is2 = 49,
@@ -246,7 +250,7 @@ declare const enum BrowserVer {
   Min$Extension$$GetView$AcceptsTabId = 54,
   Min$tabs$$discard = 54,
   MinEnsured$ParentNode$$appendAndPrepend = 54, // even if LEGACY
-  // the 7 below are correct even if EXPERIMENTAL or LEGACY
+  // the 11 below are correct even if EXPERIMENTAL or LEGACY
   MinUnprefixedUserSelect = 54,
   MinHighDPIOnWindows = 54, // replace MinPhysicalPixelOnWindows
   MinNo$KeyboardEvent$$keyIdentifier = 54,
@@ -260,17 +264,17 @@ declare const enum BrowserVer {
   Min$SVGElement$$dataset = 55,
   // MinStricterArgsIn$Windows$$Create = 55, // I forget what's stricter
   MinSomeDocumentListenersArePassiveByDefault = 56,
+  Min$addEventListener$support$once = 55,
   // not need if LEGACY or EMPTY (even on Chrome 66)
   MinMayNeedCSPForScriptsFromOtherExtensions = 56, // if EXPERIMENTAL
-  // the 4 below are correct even if EXPERIMENTAL or LEGACY
+  // the 3 below are correct even if EXPERIMENTAL or LEGACY
   MinDOMActivateInClosedShadowRootHasNoShadowNodesInPathWhenOnDocument = 56,
   MinFailToToggleImageOnFileURL = 56,
   // note: an "input" event is not KeyboardEvent: {@see Min$InputEvent$$isComposing}
   Min$KeyboardEvent$$isComposing = 56,
-  Min$addEventListener$support$once = 56,
   // the static selector `>>>` is not supported since MinNoSelector$GtGtGt
   // `>>>` can only match those under "open"-mode shadow roots
-  MinStaticSelector$GtGtGt$IfFlag$ExperimentalWebPlatformFeatures$Enabled = 56,
+  MinMaybeStaticSelector$GtGtGt = 56, // only if EXPERIMENTAL
   // the 2 below are correct even if EXPERIMENTAL or LEGACY
   MinNoKeygenElement = 57,
   MinCSSPlaceholderPseudo = 57,
@@ -430,9 +434,10 @@ declare const enum BrowserVer {
   Min$Tabs$$Update$DoesNotAcceptJavaScriptURLs = 71,
   MinTabIdBeSmallAgain = 71,
   Min$queueMicrotask = 71, // even if EXPERIMENTAL or LEGACY
+  Min$globalThis = 71,
   // since C59 if EXPERIMENTAL; enabled by default since C66; C71 is even if LEGACY
   MinEnsured$Function$$toString$preservesWhitespace = 71, // also preserve comments
-  Min$Tabs$$goBack = 72, // and tabs.goForward; even if EXPERIMENTAL or LEGACY
+  Min$tabs$$goBack = 72, // and tabs.goForward; even if EXPERIMENTAL or LEGACY
   // https://www.chromestatus.com/features/5656049583390720
   // deprecation is since C66
   MinEscapeHashInBodyOfDataURL = 72,
@@ -440,6 +445,8 @@ declare const enum BrowserVer {
   MinElement$Focus$MayMakeArrowKeySelectIt = 72, // if only EXPERIMENTAL (feature #KeyboardFocusableScrollers)
   // https://www.chromestatus.com/features/5722065667620864 , https://mustaqahmed.github.io/user-activation-v2/
   MinUserActivationV2 = 72, // even if EXPERIMENTAL or LEGACY
+  // before C72, chrome.permissions report "allowed" on chrome://new-tab-page/*
+  MinCorrectExtPermissionsOnChromeURL$NewTabPage = 72, // even if EXPERIMENTAL or LEGACY
   // https://www.chromestatus.com/features/6569666117894144
   // @see https://bugs.chromium.org/p/chromium/issues/detail?id=179006#c45
   MinSpecCompliantShadowBlurRadius = 73,
@@ -482,6 +489,9 @@ declare const enum BrowserVer {
   // https://www.chromestatus.com/features/4507242028072960
   MinNoShadowDOMv0 = 80,
   Min$CrossOriginIsolation$Flag = 80, // #cross-origin-isolation; will break Vomnibar; included by EXPERIMENTAL on C81
+  // blank on C80, too simple on C81, usable since C83 and work as default since C85;
+  // with a fresh user data on C85, the newtab is chrome-search://... , and chrome://new-tab-page/ since a second start
+  MinChromeURL$NewTabPage = 80, // chrome://new-tab-page/ ; even if EXPERIMENTAL or LEGACY
   // https://github.com/philc/vimium/issues/3449#issuecomment-568248237
   FlagOutOfBlinkCorsMayCauseBug = 81,
   // #freeze-user-agent: https://www.chromestatus.com/features/5704553745874944
@@ -497,7 +507,6 @@ declare const enum BrowserVer {
   MinMaybe$WeakRef = 84, // no `WeakRef` if LEGACY
   // 2->0.25/0.5; 5->0.04/0.2; 6->0.027778/0.166667
   MinBorderWidth$Ensure1$Or$Floor = 85, // even if EXPERIMENTAL or LEGACY
-  MinChromeURL$NewTabPage = 85, // chrome://new-tab-page/ ; even if EXPERIMENTAL or LEGACY
   // on C84 options must be `new IsInputPendingOptions()`
   // before C84 it logs a warning of "requires site-per-process" on Vimium C Options page
   MinMaybeUsableNavigator$scheduling$$isInputPending = 85, // if EXPERIMENTAL
@@ -510,8 +519,6 @@ declare const enum BrowserVer {
   MinCaptureBeforeBubbleOnEventTarget = 89, // even if EXPERIMENTAL or LEGACY
   MinCSS$overflow$clip = 90, // even if EXPERIMENTAL or LEGACY
   MinESModulesInServiceWorker = 91,
-  /** @todo: trace https://bugs.chromium.org/p/chromium/issues/detail?id=968651&can=2&q=reduced-motion%20change */
-  MinMediaChangeEventsOnBackgroundPage = 1000,
   MinNo$TimerType$$Fake = 999,
   assumedVer = 998,
 }
@@ -526,12 +533,13 @@ declare const enum FirefoxBrowserVer {
   // Min$globalThis = 65, // should not export `globalThis` into the outside
   Min$find$NotReturnFakeTrueOnPlaceholderAndSoOn = 65,
   Min$Intl$$RelativeTimeFormat = 65,
+  Min$globalThis = 65,
   MinMediaQuery$PrefersColorScheme = 67,
   // See https://bugzilla.mozilla.org/show_bug.cgi?id=1408996 and https://bugzilla.mozilla.org/show_bug.cgi?id=1514050
   MinExpandoObjectForSandboxWindowWrapperNotGetLost = 67, // https://github.com/philc/vimium/issues/2675
   // https://bugzilla.mozilla.org/show_bug.cgi?id=1522083
   Min$TargetIsBlank$Implies$Noopener = 67, // treats `[rel]=null` as `[rel=noopener]`
-  MinEnsuredES$DynamicImport = 67,
+  MinEnsuredES$DynamicImport = 67, // static import is ensured since FF60
   MinFollowSelectionColorOnInactiveFrame = 68,
   Min$visualViewport$OnAndroid = 68, // for desktop version: https://bugzilla.mozilla.org/show_bug.cgi?id=1551302
   MinNoKeygenElement = 69,
@@ -546,15 +554,18 @@ declare const enum FirefoxBrowserVer {
   Min$downloads$$download$acceptReferer = 70,
   Min$MathMLElement$Prototype = 71,
   MinCrossOriginResourcePolicy = 74, // not break Vomnibar
-  Min$Tabs$$goBack = 77,
+  Min$tabs$$goBack = 77,
+  Min$permissions$$onAdded = 77,
   MinCSS$readOnly$selector = 78, // https://developer.mozilla.org/en-US/docs/Web/CSS/:read-only
   MinEnsuredUnicodePropertyEscapesInRegExp = 78,
   MinMaybe$WeakRef = 79, // no `WeakRef` if javascript.options.weakrefs=false
   MinEnsuredCSS$is$selector = 81,
-  /** @todo: trace https://bugzilla.mozilla.org/show_bug.cgi?id=1587723 */
-  MinMediaChangeEventsOnBackgroundPage = 1000,
   // members of a Selection are never updated when an <input> gets focused, so no work-around
   Min$Selection$SupportTextBox = 999,
   None = 0,
   assumedVer = 999,
 }
+
+/** @todo: trace https://bugs.chromium.org/p/chromium/issues/detail?id=968651&can=2&q=reduced-motion%20change */
+/** @todo: trace https://bugzilla.mozilla.org/show_bug.cgi?id=1587723 */
+// MinMediaChangeEventsOnBackgroundPage = 1000,

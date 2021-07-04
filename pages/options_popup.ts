@@ -1,9 +1,12 @@
-import { BG_, bgSettings_, OnFirefox, OnEdge, OnChrome, $, pTrans_ } from "./async_bg"
 import {
-  ExclusionVisibleVirtualNode, ExclusionRulesOption_, nextTick_, setupBorderWidth_, showI18n, allowNextTick
+  BG_, bgSettings_, OnFirefox, OnEdge, OnChrome, $, _pTrans, asyncBackend_, browser_, enableNextTick_, nextTick_,
+  kReadyInfo
+} from "./async_bg"
+import {
+  ExclusionVisibleVirtualNode, ExclusionRulesOption_, setupBorderWidth_, showI18n, ExclusionBaseVirtualNode
 } from "./options_base"
 
-let bgExclusions: typeof Exclusions
+type CachedMatcher = PrefixUrlMatcher | RegExpUrlMatcher | false
 let frameInfo: Frames.Sender
 let url: string, topUrl = ""
 let inited: 0 | 1 /* no initial matches */ | 2 /* some matched */ | 3 /* is saving (temp status) */ = 0
@@ -11,30 +14,31 @@ let saved = true, oldPass: string | null = null, curLockedStatus = Frames.Status
 let exclusions: PopExclusionRulesOption = null as never
 let toggleAction: "Disable" | "Enable", curIsLocked = false
 
+const protocolRe = <RegExpOne> /^[a-z][\+\-\.\da-z]+:\/\//
 const stateAction = $<EnsuredMountedHTMLElement>("#state-action")
 const saveBtn2 = $<HTMLButtonElement>("#saveOptions") as HTMLButtonElement & { firstChild: Text }
 let stateValue = stateAction.nextElementSibling, stateTail = stateValue.nextElementSibling
+let testers_: SafeDict<Promise<CachedMatcher> | CachedMatcher> = Object.create(null)
+const _onlyFirstMatch = bgSettings_.get_("exclusionOnlyFirstMatch")
+
+import type * as i18n_popup from "../i18n/zh/popup.json"
+
+const pTrans_ = _pTrans as (key: keyof typeof i18n_popup, arg1?: (string | number)[]) => string
 
 class PopExclusionRulesOption extends ExclusionRulesOption_ {
-  addRule_ (_pattern: string, autoFocus?: false): void {
+  override addRule_ (_pattern: string, autoFocus?: false): void {
     super.addRule_(PopExclusionRulesOption.generateDefaultPattern_(), autoFocus)
   }
-  isPatternMatched_ (pattern: string): boolean {
-    if (!pattern) { return false }
-    const rule = bgExclusions.testers_.get(pattern)!
-    if (rule.t === kMatchUrl.StringPrefix
-        ? url.startsWith(rule.v) && (!topUrl || topUrl.startsWith(rule.v))
-        : rule.v.test(url) && (!topUrl || rule.v.test(topUrl))) {
-      return true
-    }
-    return false
+  override checkNodeVisible_ (vnode: ExclusionBaseVirtualNode): boolean {
+    vnode.matcher_ = vnode.rule_.pattern && testers_[vnode.rule_.pattern] as CachedMatcher | undefined || false
+    return doesMatchCur_(vnode.matcher_)
   }
-  populateElement_ (rules1: ExclusionsNS.StoredRule[]): void {
+  override populateElement_ (rules1: ExclusionsNS.StoredRule[]): void {
     super.populateElement_(rules1)
     this.populateElement_ = null as never // ensure .populateElement_ is only executed for once
     (document.documentElement as HTMLHtmlElement).style.height = ""
-    PopExclusionRulesOption.prototype.isPatternMatched_ = ExclusionRulesOption_.prototype.isPatternMatched_
-    let visible_ = this.list_.filter(i => i.visible_) as ExclusionVisibleVirtualNode[], some = visible_.length > 0
+    PopExclusionRulesOption.prototype.checkNodeVisible_ = ExclusionRulesOption_.prototype.checkNodeVisible_
+    let visible_ = this.list_.filter((i): i is ExclusionVisibleVirtualNode => i.visible_), some = visible_.length > 0
     let element1: SafeHTMLElement
     inited = some ? 2 : 1
     if (some) {
@@ -46,15 +50,23 @@ class PopExclusionRulesOption extends ExclusionRulesOption_ {
     }
     nextTick_(() => element1.focus())
   }
-  updateVNode_ (vnode: ExclusionVisibleVirtualNode, pattern: string, keys: string): void {
-    const patternIsSame = vnode.rule_.pattern === pattern
+  override updateVNode_ (vnode: ExclusionVisibleVirtualNode, pattern: string, keys: string): void {
+    const patternIsSame = vnode.rule_.pattern === pattern, oldMatcher = vnode.matcher_
     super.updateVNode_(vnode, pattern, keys)
     if (patternIsSame) {
+      vnode.matcher_ = oldMatcher
       return
     }
-    const parsedPattern = bgExclusions.createRule_(pattern, ""), patternElement = vnode.$pattern_
-    if (parsedPattern.t === kMatchUrl.StringPrefix
-        ? url.startsWith(parsedPattern.v) : parsedPattern.v.test(url)) {
+    this.updateLineStyle_(vnode, pattern)
+  }
+  updateLineStyle_ (vnode: ExclusionVisibleVirtualNode, pattern: string): void {
+    const patternElement = vnode.$pattern_
+    let matcher: ReturnType<typeof parseMatcher>
+    if (!pattern || pattern === PopExclusionRulesOption.generateDefaultPattern_()) {
+      patternElement.title = patternElement.style.color = ""
+    } else if ((matcher = parseMatcher(vnode)) instanceof Promise) {
+      void matcher.then((): void => { this.updateLineStyle_(vnode, pattern) })
+    } else if (doesMatchCur_(matcher)) {
       patternElement.title = patternElement.style.color = ""
     } else {
       patternElement.style.color = "red"
@@ -76,14 +88,23 @@ class PopExclusionRulesOption extends ExclusionRulesOption_ {
 }
 
 const updateState = (updateOldPass: boolean): void => {
-  const isSaving = inited === 3
-  let pass = isSaving ? bgExclusions.GetPassKeys_(url, frameInfo)
-        : bgExclusions.getTemp_(url, frameInfo, exclusions.readValueFromElement_(true))
+  exclusions.readValueFromElement_(false)
+  const toCheck = exclusions.list_.filter((i): i is ExclusionVisibleVirtualNode => i.visible_ && !!i.rule_.pattern)
+  const oldInited = inited
+  inited = 2
+  void Promise.all(toCheck.map(
+    (i): ExclusionBaseVirtualNode["matcher_"] | false | void => i.matcher_ == null && parseMatcher(i)
+  )).then((): void => { _doUpdateState(oldInited, updateOldPass, toCheck) })
+}
+
+const _doUpdateState = (oldInited: typeof inited
+    , updateOldPass: boolean, toCheck: ExclusionVisibleVirtualNode[]): void => {
+  const isSaving = oldInited === 3
+  let pass = getExcluded_(!!topUrl, toCheck)
   pass && (pass = collectPass(pass))
   if (updateOldPass) {
-    oldPass = inited >= 2 ? pass : null
+    oldPass = oldInited >= 2 ? pass : null
   }
-  inited = 2
   const same = pass === oldPass
   const isReversed = !!pass && pass.length > 2 && pass[0] === "^"
   stateAction.textContent =
@@ -91,7 +112,8 @@ const updateState = (updateOldPass: boolean): void => {
       : pTrans_(same ? "o141" : "o142") + pTrans_(pass ? isReversed ? "o138" : "o139" : same ? "o143" : "o143_2")
       ).replace(" to be", "")
     + pTrans_("colon") + (pass ? pTrans_("NS") : "")
-  stateValue.className = pass ? "code" : "fixed-width"
+  /* note: on C91, Win10, text may have a negative margin-left (zh/fr) when inline-block and its left is inline */
+  stateValue.className = pass ? "code" : ""
   stateValue.textContent = pass ? isReversed ? pass.slice(2) : pass
     : pTrans_(pass !== null ? "o144" : "o145") + pTrans_("o146")
   stateTail.textContent = curIsLocked && !isSaving && same
@@ -105,11 +127,9 @@ const saveOptions = (): void => {
   if (saveBtn2.disabled) {
     return
   }
-  const testers = bgExclusions.testers_
-  BG_.Backend_.forceStatus_("reset silent", frameInfo.tabId_)
+  void asyncBackend_.evalVimiumUrl_(`status/${frameInfo.tabId_}/reset/silent`, Urls.WorkType.EvenAffectStatus)
   exclusions.save_()
   setTimeout(function () {
-    bgExclusions.testers_ = testers
     setTimeout(initBottomLeft, 150)
   }, 50)
   inited = 3
@@ -135,8 +155,55 @@ const collectPass = (pass: string): string => {
 
 const forceState = (act: "Reset" | "Enable" | "Disable", event?: EventToPrevent): void => {
   event && event.preventDefault()
-  BG_.Backend_.forceStatus_(act.toLowerCase(), frameInfo.tabId_)
+  void asyncBackend_.evalVimiumUrl_(`status/${frameInfo.tabId_}/${act}`, Urls.WorkType.EvenAffectStatus)
   window.close()
+}
+
+const doesMatchCur_ = (rule: RegExpUrlMatcher | PrefixUrlMatcher | false): boolean => {
+  if (!rule) { return false }
+  return rule.t === kMatchUrl.StringPrefix ? url.startsWith(rule.v) || (!!topUrl && topUrl.startsWith(rule.v))
+      : rule.v.test(url) || (!!topUrl && rule.v.test(topUrl))
+}
+
+const parseMatcher = (vnode: ExclusionVisibleVirtualNode): Promise<CachedMatcher> | CachedMatcher => {
+  const pattern = vnode.rule_.pattern
+  const cached = testers_[pattern]
+  if (cached) {
+    return vnode.matcher_ = cached instanceof Promise ? cached.then(i => vnode.matcher_ = i) : cached
+  }
+  const serialized = Promise.resolve(asyncBackend_.parseMatcher_(pattern)[0])
+  return testers_[pattern] = vnode.matcher_ =
+      serialized.then(i => testers_[pattern] = vnode.matcher_ = deserializeMatcher(i))
+}
+
+const deserializeMatcher = (serialized: BaseUrlMatcher): PrefixUrlMatcher | RegExpUrlMatcher => {
+  return serialized.t === kMatchUrl.StringPrefix ? { t: serialized.t, v: serialized.v as string }
+      : { t: serialized.t, v: new RegExp(serialized.v as string, "") }
+}
+
+const buildTester = (matchers: BaseUrlMatcher[]): void => {
+  const rules = bgSettings_.get_("exclusionRules")
+  for (let i = 0, len = rules.length; i < len; i++) {
+    testers_[rules[i].pattern !== "__proto__" ? rules[i].pattern : "_"] = deserializeMatcher(matchers[i])
+  }
+}
+
+const getExcluded_ = (inIframe: boolean, vnodes: ExclusionVisibleVirtualNode[]): string | null => {
+  let matchedKeys = ""
+  for (const node of vnodes) {
+    const rule = node.matcher_! as Exclude<ExclusionBaseVirtualNode["matcher_"], null | Promise<any>>
+    if (rule && (rule.t === kMatchUrl.StringPrefix ? url.startsWith(rule.v) : rule.v.test(url))) {
+      const str = node.rule_.passKeys
+      if (str.length === 0 || _onlyFirstMatch || str[0] === "^" && str.length > 2) { return str }
+      matchedKeys += str
+    }
+  }
+  if (!matchedKeys && inIframe && url.lastIndexOf("://", 5) < 0 && !protocolRe.test(url)) {
+    if (topUrl) {
+      return getExcluded_(false, vnodes)
+    }
+  }
+  return matchedKeys || null
 }
 
 const initBottomLeft = (): void => {
@@ -154,7 +221,7 @@ const initBottomLeft = (): void => {
 }
 
 const initOptionsLink = (_url: string): void => {
-  const element = $<HTMLAnchorElement>(".options-link"), optionsUrl = bgSettings_.CONST_.OptionsPage_
+  const element = $<HTMLAnchorElement>(".options-link"), optionsUrl = location.origin + "/" + GlobalConsts.OptionsPage
   if (_url.startsWith(optionsUrl)) {
     nextTick_((): void => {
       (element.nextElementSibling as HTMLElement).remove()
@@ -167,21 +234,15 @@ const initOptionsLink = (_url: string): void => {
     element.onclick = (event: EventToPrevent): void => {
       event.preventDefault()
       const a: MarksNS.FocusOrLaunch = BG_.Object.create(null)
-      a.u = bgSettings_.CONST_.OptionsPage_
-      BG_.Backend_.reqH_[kFgReq.focusOrLaunch](a)
+      a.u = optionsUrl
+      asyncBackend_.focusOrLaunch_(a)
       window.close()
     }
   }
 }
 
 const initExclusionRulesTable = (): void => {
-  const rules = bgSettings_.get_("exclusionRules")
-    , ref1: typeof bgExclusions.testers_ = bgExclusions.testers_ = new (BG_ as {} as typeof globalThis).Map()
-    , ref2 = bgExclusions.rules_
-  for (let _i = 0, _len = rules.length; _i < _len; _i++) {
-    ref1.set(rules[_i].pattern, ref2[_i])
-  }
-  OnChrome && bgSettings_.payload_.o || window.addEventListener("keydown", function (event): void {
+  OnChrome && asyncBackend_.contentPayload_.o || window.addEventListener("keydown", function (event): void {
     if (event.altKey
         && (event.keyCode === kKeyCode.X || curIsLocked && event.keyCode === kKeyCode.Z)
         && !(event.shiftKey || event.ctrlKey || event.metaKey)
@@ -202,6 +263,7 @@ const initExclusionRulesTable = (): void => {
       saveBtn2.removeAttribute("disabled")
       saveBtn2.firstChild.data = pTrans_("o115_2")
     }
+    testers_ = Object.create(null)
     updateState(inited < 2)
   })
   nextTick_((): void => {
@@ -211,19 +273,18 @@ const initExclusionRulesTable = (): void => {
     interface WindowEx extends Window { exclusions?: PopExclusionRulesOption }
     (window as WindowEx).exclusions = exclusions
   }
-  window.onunload = function (): void {
-    bgExclusions.testers_ = null as never
-  }
 }
 
-void Promise.all([bgSettings_.restore_ && bgSettings_.restore_(), new Promise<[chrome.tabs.Tab]>(resolve => {
-  chrome.tabs.query({currentWindow: true, active: true}, resolve)
+void Promise.all([asyncBackend_.restoreSettings_() && asyncBackend_.restoreSettings_()
+    , asyncBackend_.parseMatcher_(null)
+    , new Promise<[chrome.tabs.Tab]>((resolve): void => {
+  browser_.tabs.query({currentWindow: true, active: true}, resolve)
 })]).then((_resolved): void => {
-  const activeTabs: [chrome.tabs.Tab] | never[] = _resolved[1]
+  const activeTabs: [chrome.tabs.Tab] | never[] = _resolved[2]
   const curTab = activeTabs[0], _url = curTab.url
-  let ref = BG_.Backend_.indexPorts_(curTab.id), blockedMsg = $("#blocked-msg")
+  let ref = asyncBackend_.indexPorts_(curTab.id), blockedMsg = $("#blocked-msg")
   const notRunnable = !(ref || curTab && _url && curTab.status === "loading" && (<RegExpOne> /^(ht|s?f)tp/).test(_url))
-  Build.NDEBUG || allowNextTick()
+  enableNextTick_(kReadyInfo.popup)
   if (notRunnable || hasUnknownExt(ref)) {
     onNotRunnable(blockedMsg, curTab, _url, ref)
     initOptionsLink(_url)
@@ -234,17 +295,17 @@ void Promise.all([bgSettings_.restore_ && bgSettings_.restore_(), new Promise<[c
     blockedMsg.remove()
     blockedMsg = null as never
     const docCls = (document.documentElement as HTMLHtmlElement).classList
-    docCls.toggle("no-dark", !bgSettings_.payload_.d)
-    docCls.toggle("less-motion", !!bgSettings_.payload_.m)
-    versionEl.textContent = bgSettings_.CONST_.VerName_
+    docCls.toggle("no-dark", !asyncBackend_.contentPayload_.d)
+    docCls.toggle("less-motion", !!asyncBackend_.contentPayload_.m)
+    const manifest = browser_.runtime.getManifest()
+    versionEl.textContent = manifest.version_name || manifest.version
   }, $(".version"))
 
-  bgExclusions = BG_.Exclusions as typeof Exclusions
   if (ref && ref.lock_) {
     curIsLocked = true
     curLockedStatus = ref.lock_.status_
   }
-  frameInfo = ref && (!ref.cur_.s.frameId_ || BG_.BgUtils_.protocolRe_.test(ref.cur_.s.url_)) ? ref.cur_.s : {
+  frameInfo = ref && (!ref.cur_.s.frameId_ || protocolRe.test(ref.cur_.s.url_)) ? ref.cur_.s : {
     /** must keep aligned with {@link ../background/main.ts#formatPortSender} */
     frameId_: 0,
     incognito_: curTab.incognito,
@@ -254,7 +315,7 @@ void Promise.all([bgSettings_.restore_ && bgSettings_.restore_(), new Promise<[c
     url_: _url
   }
   if (frameInfo.frameId_) {
-    topUrl = ((BG_.Backend_.indexPorts_(curTab.id, 0) || {} as Frames.Port).s || {} as Frames.Sender).url_ || _url
+    topUrl = ref?.top_?.s.url_ || _url
   }
   url = frameInfo.url_
 
@@ -266,6 +327,7 @@ void Promise.all([bgSettings_.restore_ && bgSettings_.restore_(), new Promise<[c
     }
   })
 
+  buildTester(_resolved[1])
   initOptionsLink(_url)
   initBottomLeft()
   initExclusionRulesTable()
@@ -275,7 +337,7 @@ void Promise.all([bgSettings_.restore_ && bgSettings_.restore_(), new Promise<[c
 
 const hasUnknownExt = (frames: Frames.Frames | null): boolean => {
   return !!frames && typeof frames.unknownExt_ === "string"
-      && bgSettings_.extAllowList_.get(frames.unknownExt_) !== true
+      && asyncBackend_.extAllowList_.get(frames.unknownExt_) !== true
 }
 
 const onNotRunnable = (blockedMsg: HTMLElement, curTab: chrome.tabs.Tab | null, _url: string
@@ -283,7 +345,8 @@ const onNotRunnable = (blockedMsg: HTMLElement, curTab: chrome.tabs.Tab | null, 
   const body = document.body as HTMLBodyElement, docEl = document.documentElement as HTMLHtmlElement
   body.innerText = ""
   blockedMsg.style.display = ""
-  blockedMsg.querySelector(".version")!.textContent = bgSettings_.CONST_.VerName_
+  const manifest = browser_.runtime.getManifest()
+  blockedMsg.querySelector(".version")!.textContent = manifest.version_name || manifest.version
   const refreshTip = blockedMsg.querySelector("#refresh-after-install") as HTMLElement
   if (OnFirefox
       || !curTab || !_url || !(<RegExpI> /^(ht|s?f)tp/i).test(_url)
@@ -299,7 +362,7 @@ const onNotRunnable = (blockedMsg: HTMLElement, curTab: chrome.tabs.Tab | null, 
   body.appendChild(blockedMsg)
   const extHost = hasUnknownExt(frames) ? frames!.unknownExt_ as string
       : _url.startsWith(location.protocol) && !_url.startsWith(location.origin) ? new URL(_url).host : "",
-  extStat = extHost ? bgSettings_.extAllowList_.get(extHost) : null
+  extStat = extHost ? asyncBackend_.extAllowList_.get(extHost) : null
   if (extStat != null && extStat !== true) {
     const refusedEl = $<EnsuredMountedHTMLElement>("#injection-refused")
     refusedEl.style.display = ""
@@ -310,7 +373,7 @@ const onNotRunnable = (blockedMsg: HTMLElement, curTab: chrome.tabs.Tab | null, 
     $<HTMLAnchorElement>("#doAllowExt").onclick = function () {
       let list = bgSettings_.get_("extAllowList"), old = list.split("\n"), extIdToAdd = extHost
       if (!OnChrome) {
-        let maybeId = bgSettings_.extAllowList_.get(extHost)
+        let maybeId = asyncBackend_.extAllowList_.get(extHost)
         extIdToAdd = typeof maybeId === "string" && maybeId ? maybeId : extIdToAdd
       }
       if (old.indexOf(extIdToAdd) < 0) {
@@ -321,27 +384,24 @@ const onNotRunnable = (blockedMsg: HTMLElement, curTab: chrome.tabs.Tab | null, 
       }
       frames && (frames.unknownExt_ = null)
       this.onclick = null as never
-      chrome.tabs.query({ active: true, currentWindow: true }, (tabs1): void => {
+      browser_.tabs.query({ active: true, currentWindow: true }, (tabs1): void => {
         const cb = (): void => {
           setTimeout((): void => location.reload(), 500)
-          return chrome.runtime.lastError
+          return browser_.runtime.lastError
         }
-        tabs1 && tabs1[0] ? chrome.tabs.reload(tabs1[0].id, cb) : chrome.tabs.reload(cb)
-        return chrome.runtime.lastError
+        tabs1 && tabs1[0] ? browser_.tabs.reload(tabs1[0].id, cb) : browser_.tabs.reload(cb)
+        return browser_.runtime.lastError
       })
     }
   }
-  docEl.classList.toggle("no-dark", !bgSettings_.payload_.d)
+  docEl.classList.toggle("no-dark", !asyncBackend_.contentPayload_.d)
   docEl.style.height = ""
   const retryInjectElement = $<HTMLAnchorElement>("#retryInject")
   if (!OnFirefox && (<RegExpOne> /^(file|ftps?|https?):/).test(_url) && curTab) {
     retryInjectElement.onclick = (event): void => {
       event.preventDefault()
-      if (!BG_.Backend_.indexPorts_(curTab.id)) {
-        const offset = location.origin.length, ignoreErr = (): void => { /* empty */ }
-        for (let js of bgSettings_.CONST_.ContentScripts_) {
-          chrome.tabs.executeScript(curTab.id, {file: js.slice(offset), allFrames: true}, ignoreErr)
-        }
+      if (!asyncBackend_.indexPorts_(curTab.id)) {
+        asyncBackend_.runContentScriptsOn_(curTab.id)
       }
       window.close()
     }

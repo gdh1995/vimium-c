@@ -302,7 +302,7 @@ declare const enum PortNameEnum {
 declare const enum PortType {
   initing = 0, isTop = 1, hasFocus = 2, reconnect = 4, hasCSS = 8,
   omnibar = 16, otherExtension = 32,
-  CloseSelf = 999,
+  /** for external extensions like NewTab Adapter */ CloseSelf = 999,
 }
 
 declare namespace SettingsNS {
@@ -352,7 +352,6 @@ declare namespace SettingsNS {
 
   interface BaseBackendSettings {
     autoReduceMotion: boolean;
-    focusNewTabContent: boolean;
     grabBackFocus: boolean;
     /** if want to rework it, must search it in all files and take care */
     ignoreCapsLock: 0 | 1 | 2;
@@ -501,6 +500,7 @@ declare const enum GlobalConsts {
   MaxLengthOfShownText = 35, // include the length of ": "
   MaxLengthOfHintText = 252, // [512 bytes - (sizeof(uchar*) = 8)] / sizeof(uchar) = 252
   MatchingScoreFactorForHintText = 1e4,
+  VomnibarSecretLength = 16, // *4 = 64 bits; should >= 8 (*4 = 32 bits); other values: "" | "1" | "2" | "omni"
   VomnibarSecretTimeout = 8000, // should be much larger than {@see ../content/omni.ts#init::slowLoadTimer}'s
   VomnibarWheelStepForPage = 300,
   VomnibarWheelIntervalForPage = 150,
@@ -563,12 +563,14 @@ declare const enum GlobalConsts {
   kIsHighContrast = "isHC_f",
 
   SelectorPrefixesInPatterns = ".#[",
-  DelimeterForKeyCharAndMode = ":",
+  DelimiterBetweenKeyCharAndMode = ":",
   ModeIds = "nilofvmes",
   InsertModeId = "i",
   NormalOnlyModeId = "n",
   OmniModeId = "o",
   KeySequenceTimeout = 3e5,
+  OptionsPage = "pages/options.html",
+  kLoadEvent = "VimiumC"
 }
 
 declare const enum kModeId {
@@ -633,6 +635,7 @@ declare const enum BrowserType {
   Chrome = 1,
   Firefox = 2,
   Edge = 4,
-  Unknown = 8,
+  Safari = 8,
+  Unknown = 16,
   ChromeOrFirefox = Chrome | Firefox,
 }

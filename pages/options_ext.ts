@@ -1,7 +1,11 @@
-import { CurCVer_, CurFFVer_, BG_, bgSettings_, OnChrome, OnEdge, OnFirefox, $, pTrans_ } from "./async_bg"
-import { AllowedOptions, ExclusionRulesOption_, Option_ } from "./options_base"
+import {
+  CurCVer_, CurFFVer_, bgSettings_, OnChrome, OnEdge, OnFirefox, $, asyncBackend_, browser_, import2
+} from "./async_bg"
+import { AllowedOptions, ExclusionRulesOption_, Option_, oTrans_ } from "./options_base"
 import { SaveBtn } from "./options_defs"
-import { AdvancedOptBtn, click, ElementWithDelay, loadJS, delayed_task, clear_delayed_task } from "./options_wnd"
+import {
+  AdvancedOptBtn, click, ElementWithDelay, delayed_task, clear_delayed_task, Platform_
+} from "./options_wnd"
 
 $<ElementWithDelay>("#showCommands").onclick = function showHelp(this: void, event): void {
   if (!window.VApi || !VApi.z) {
@@ -55,7 +59,7 @@ ExclusionRulesOption_.prototype.sortRules_ = function (this: ExclusionRulesOptio
   this.timer_ = setTimeout(function (el, text) {
     (el.firstChild as Text).data = text, self.timer_ = 0;
   }, 1000, element, (element.firstChild as Text).data);
-  (element.firstChild as Text).data = pTrans_("o3_2");
+  (element.firstChild as Text).data = oTrans_("o3_2");
 };
 
 $("#exclusionSortButton").onclick = function (): void {
@@ -101,9 +105,10 @@ $<ElementWithDelay>("#exportButton").onclick = function (event): void {
     exported_object["@time"] = d.toLocaleString();
     exported_object.time = d.getTime();
   }
+  const manifest = browser_.runtime.getManifest()
   exported_object.environment = {
-    extension: bgSettings_.CONST_.VerCode_,
-    platform: bgSettings_.CONST_.Platform_
+    extension: manifest.version,
+    platform: Platform_
   };
   if (OnChrome) {
     exported_object.environment.chrome = CurCVer_;
@@ -174,7 +179,7 @@ $<ElementWithDelay>("#exportButton").onclick = function (event): void {
 
 function maskStr (key: keyof SettingsNS.PersistentSettings, str: string): string {
   // this solution is from https://stackoverflow.com/a/30106551/5789722
-  return str && (key === "omniBlockList" || BG_.Completion_.isExpectingHidden_!([str]))
+  return str && (key === "omniBlockList" || asyncBackend_.isExpectingHidden_([str]))
       ? "$base64:" + btoa(encodeURIComponent(str).replace(<RegExpG & RegExpSearchable<1>> /%([0-9A-F]{2})/g,
           (_s, hex): string => String.fromCharCode(parseInt(hex, 16))
       )) : str
@@ -199,28 +204,22 @@ function decodeStrOption (new_value: string | string[]): string {
 function _importSettings(time: number, new_data: ExportedSettings, is_recommended?: boolean): void {
   let env = new_data.environment, plat = env && env.platform || ""
     , ext_ver = env && parseFloat(env.extension || 0) || 0
-    , newer = ext_ver > parseFloat(bgSettings_.CONST_.VerCode_);
+    , newer = ext_ver > parseFloat(browser_.runtime.getManifest().version)
   plat && (plat = ("" + plat).slice(0, 10));
-  if (!confirm(pTrans_("confirmImport", [
-        pTrans_(is_recommended !== true ? "backupFile" : "recommendedFile"),
-        ext_ver > 1 ? pTrans_("fileVCVer").replace("*", "" + ext_ver) : "", // lgtm [js/incomplete-sanitization]
-        (ext_ver > 1 ? pTrans_("fileVCVer_2").replace("*", "" + ext_ver) : "" // lgtm [js/incomplete-sanitization]
-          ) + (newer ? pTrans_("fileVCNewer") : ""),
-        plat ? pTrans_("filePlatform", [pTrans_(plat) || plat[0].toUpperCase() + plat.slice(1)])
-          : pTrans_("commonPlatform"),
-        time ? pTrans_("atTime", [formatDate_(time)]) : pTrans_("before")]))) {
+  if (!confirm(oTrans_("confirmImport", [
+        oTrans_(is_recommended !== true ? "backupFile" : "recommendedFile"),
+        ext_ver > 1 ? oTrans_("fileVCVer").replace("*", `${ext_ver}`) : "", // lgtm [js/incomplete-sanitization]
+        (ext_ver > 1 ? oTrans_("fileVCVer_2").replace("*", `${ext_ver}`) : "" // lgtm [js/incomplete-sanitization]
+          ) + (newer ? oTrans_("fileVCNewer") : ""),
+        plat ? oTrans_("filePlatform", [oTrans_(plat as "win" | "mac") || plat[0].toUpperCase() + plat.slice(1)])
+          : oTrans_("commonPlatform"),
+        time ? oTrans_("atTime", [formatDate_(time)]) : oTrans_("before")]))) {
     window.VApi && VApi.t({ k: kTip.cancelImport })
     return;
   }
-  const setProto_old_cr = OnChrome && Build.MinCVer < BrowserVer.Min$Object$$setPrototypeOf
-      ? Object.setPrototypeOf : 0 as never as null;
-  if (OnChrome && Build.MinCVer < BrowserVer.Min$Object$$setPrototypeOf) {
-    setProto_old_cr ? setProto_old_cr(new_data, null) : ((new_data as any).__proto__ = null);
-  } else {
     Object.setPrototypeOf(new_data, null);
-  }
   if (new_data.vimSync == null) {
-    const now = bgSettings_.get_("vimSync"), keep = now && confirm(pTrans_("keepSyncing"));
+    const now = bgSettings_.get_("vimSync"), keep = now && confirm(oTrans_("keepSyncing"));
     new_data.vimSync = keep || null;
     if (now) {
       console.log("Before importing: You chose to", keep ? "keep settings synced." : "stop syncing settings.");
@@ -247,7 +246,7 @@ function _importSettings(time: number, new_data: ExportedSettings, is_recommende
     console.info("load the settings:", is_recommended ? "recommended." : "saved before.")
   }
 
-  const delKeys = (keys: string): void => keys.split(" ").forEach(k => delete new_data[k]);
+  const delKeys = (keys: string): void => keys.split(/\s+/g).forEach(k => k && delete new_data[k])
   delKeys("name time environment author description");
   for (let key in new_data) {
     if (key[0] === "@") {
@@ -263,7 +262,8 @@ function _importSettings(time: number, new_data: ExportedSettings, is_recommende
       new_data[key] = null;
     }
   }
-  delKeys("findModeRawQueryList innerCSS findCSS omniCSS newTabUrl_f vomnibarPage_f")
+  delKeys(`findModeRawQueryList innerCSS findCSS omniCSS newTabUrl_f vomnibarPage_f
+      focusNewTabContent dialogMode`)
   if (OnFirefox) {
     delKeys("i18n_f");
   }
@@ -365,13 +365,13 @@ function importSettings_(time: number | string | Date, data: string, is_recommen
   try {
     let d = parseJSON_(is_recommended ? data : data.replace(<RegExpG> /\xa0/g, " "));
     if (d instanceof Error) { e = d; }
-    else if (!d) { err_msg = pTrans_("notJSON"); }
+    else if (!d) { err_msg = oTrans_("notJSON"); }
     else { new_data = d; }
-  } catch (_e) { e = _e; }
+  } catch (_e) { e = _e as Error }
   if (e != null) {
-    err_msg = e ? (e.message || e) + "" : pTrans_("exc") + (e !== "" ? e : pTrans_("unknown"));
+    err_msg = e ? (e.message || e) + "" : oTrans_("exc") + (e !== "" ? e : oTrans_("unknown"));
     let arr = (<RegExpSearchable<2> & RegExpOne> /^(\d+):(\d+)$/).exec(err_msg);
-    err_msg = !arr ? err_msg : pTrans_("JSONParseError", [arr[1], arr[2]]);
+    err_msg = !arr ? err_msg : oTrans_("JSONParseError", [arr[1], arr[2]]);
   }
   if (!new_data) {
     return alert(err_msg);
@@ -379,11 +379,11 @@ function importSettings_(time: number | string | Date, data: string, is_recommen
   {
     time = +new Date(new_data.time || (typeof time === "object" ? +time : time)) || 0;
     if ((new_data.name !== "Vimium C" && new_data.name !== "Vimium++") || (time < 10000 && time > 0)) {
-      err_msg = pTrans_("notVCJSON");
+      err_msg = oTrans_("notVCJSON");
       return alert(err_msg);
     }
   }
-  const promisedChecker = Option_.all_.keyMappings.checker_ ? Promise.resolve() : loadJS("options_checker.js")
+  const promisedChecker = Option_.all_.keyMappings.checker_ ? Promise.resolve() : import2("./options_checker.js")
   const t2 = time, d2 = new_data
   void promisedChecker.then((): void => {
     setTimeout(_importSettings, 17, t2, d2, is_recommended);
@@ -398,7 +398,7 @@ _el.onchange = function (this: HTMLInputElement): void {
   if (!file) { return; }
   const max_size = Option_.all_.vimSync.previous_ ? GlobalConsts.SYNC_QUOTA_BYTES : GlobalConsts.LOCAL_STORAGE_BYTES;
   if (file.size && file.size > max_size) {
-    alert(pTrans_("JSONTooLarge", [file.name, max_size / 1024]));
+    alert(oTrans_("JSONTooLarge", [file.name, max_size / 1024]));
     return;
   }
   const reader = new FileReader(), lastModified = file.lastModified || file.lastModifiedDate || 0;

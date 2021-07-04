@@ -16,6 +16,12 @@ html {
 .less-motion {
   --transition-duration: 0;
 }
+html.loading { content-visibility: hidden; }
+@supports not (content-visibility: hidden) {
+  html.loading { visibility: hidden; }
+  html.loading #exclusionAddButton { visibility: hidden; }
+}
+html.loading #exclusionToolbar { visibility: hidden; }
 @media (prefers-color-scheme: dark) {
   html:not(.no-dark) {
     --plain-color: #abb0b5;
@@ -371,6 +377,7 @@ label:active {
   padding-left: 20px;
   width: 300px;
   color: #777;
+  color: var(--help-color, #777);
 }
 #wrapper:hover .help {
   color: black;

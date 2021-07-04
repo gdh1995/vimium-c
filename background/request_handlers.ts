@@ -1,37 +1,50 @@
 import {
-  tabsUpdate, runtimeError_, selectTab, selectWnd, browserSessions, browserWebNav, downloadFile
-} from "./browser"
-import {
-  set_cPort, set_cRepeat, set_cOptions, needIcon_, set_cKey, cKey, get_cOptions, set_reqH_, reqH_,
-  settings, innerCSS_, framesForTab, cRepeat
+  set_cPort, set_cRepeat, set_cOptions, needIcon_, set_cKey, cKey, get_cOptions, set_reqH_, reqH_, restoreSettings_,
+  innerCSS_, framesForTab_, cRepeat, curTabId_, Completion_, CurCVer_, OnChrome, OnEdge, OnFirefox, setIcon_, blank_,
+  substitute_, paste_, keyToCommandMap_, CONST_, copy_
 } from "./store"
+import * as BgUtils_ from "./utils"
 import {
-  findCPort, isNotVomnibarPage, indexFrame, onExitGrab, safePost, complainNoSession, showHUD, complainLimits
-} from "./ports"
-import { paste_, substitute_ } from "./clipboard"
+  tabsUpdate, runtimeError_, selectTab, selectWnd, browserSessions_, browserWebNav_, downloadFile
+} from "./browser"
+import { parseSearchUrl_, parseUpperUrl_ } from "./parse_urls"
+import * as settings_ from "./settings"
+import { findCPort, isNotVomnibarPage, indexFrame, safePost, complainNoSession, showHUD, complainLimits } from "./ports"
+import { exclusionListening_, getExcluded_ } from "./exclusions"
+import { setOmniStyle_ } from "./ui_css"
+import { i18nPayload_, loadI18nPayload_, transPart_, trans_ } from "./i18n"
+import { keyRe_ } from "./key_mappings"
 import {
-  sendFgCmd, replaceCmdOptions, runKeyWithCond, onConfirmResponse, executeCommand, normalizeClassesToMatch,
+  sendFgCmd, replaceCmdOptions, runKeyWithCond, onConfirmResponse, executeCommand,
   waitAndRunKeyReq, runNextCmdBy, parseFallbackOptions
 } from "./run_commands"
-import { focusAndExecute, focusOrLaunch, openJSUrl, openUrlReq } from "./open_urls"
+import { focusAndExecute, focusOrLaunch_, openJSUrl, openUrlReq } from "./open_urls"
 import {
-  initHelp, openImgReq, setOmniStyle, framesGoBack, enterVisualMode, showVomnibar, parentFrame,
-  nextFrame, performFind, focusFrame
+  initHelp, openImgReq, framesGoBack, enterVisualMode, showVomnibar, parentFrame, nextFrame, performFind, focusFrame
 } from "./frame_commands"
-import { copyData } from "./tab_commands"
+import { FindModeHistory_, Marks_ } from "./tools"
 
 let gTabIdOfExtWithVomnibar: number = GlobalConsts.TabIdNone
 
+const _AsReqH = <K extends (keyof FgReq) & keyof BackendHandlersNS.FgRequestHandlers, RequirePort = true>(
+    handler: (req: FgReq[K], port: RequirePort extends true ? Port : Port | null | undefined) => void
+        ): (req: FgReq[K], port: RequirePort extends true ? Port : Port | null | undefined) => void => {
+  if (!(Build.NDEBUG || handler != null)) {
+    throw new ReferenceError("Refer a request handler before it gets inited")
+  }
+  return Build.NDEBUG ? handler : (req, port) => { handler(req, port) }
+}
+
 set_reqH_([
-  /** kFgReq.setSetting: */ (request: SetSettingReq<keyof SettingsNS.FrontUpdateAllowedSettings>, port: Port): void => {
-    const k = request.k, allowed = settings.frontUpdateAllowed_
+  /** kFgReq.setSetting: */ (request: FgReq[kFgReq.setSetting], port: Port): void => {
+    const k = request.k, allowed = settings_.frontUpdateAllowed_
     if (!(k >= 0 && k < allowed.length)) {
       set_cPort(port)
       return complainLimits(trans_("notModify", [k]))
     }
-    const key = allowed[k], p = settings.restore_ && settings.restore_()
-    if (settings.get_(key) === request.v) { return }
-    p ? void p.then(() => { settings.set_(key, request.v) }) : settings.set_(key, request.v)
+    const key = allowed[k], p = restoreSettings_ && restoreSettings_()
+    if (settings_.get_(key) === request.v) { return }
+    p ? void p.then(() => { settings_.set_(key, request.v) }) : settings_.set_(key, request.v)
     interface BaseCheck { key: 123 }
     type Map1<T> = T extends keyof SettingsNS.DirectlySyncedItems ? T : 123
     interface Check extends BaseCheck { key: Map1<keyof SettingsNS.FrontUpdateAllowedSettings> }
@@ -48,7 +61,7 @@ set_reqH_([
   },
   /** kFgReq.parseSearchUrl: */ (request: FgReqWithRes[kFgReq.parseSearchUrl]
       , port: Port): FgRes[kFgReq.parseSearchUrl] | void => {
-    let search = Backend_.parse_(request)
+    let search = parseSearchUrl_(request)
     if ("i" in request) {
       port.postMessage({ N: kBgReq.omni_parsed, i: request.i!, s: search })
     } else {
@@ -57,9 +70,10 @@ set_reqH_([
   },
   /** kFgReq.parseUpperUrl: */ ((request: FgReqWithRes[kFgReq.parseUpperUrl]
       , port?: Port | null): FgRes[kFgReq.parseUpperUrl] | void => {
+    const result = parseUpperUrl_(request)
+    BgUtils_.resetRe_()
     if ((request as FgReq[kFgReq.parseUpperUrl]).e) {
       (request as FgReq[kFgReq.parseUpperUrl]).e = false
-      const result = reqH_[kFgReq.parseUpperUrl](request)
       if (result.p == null) {
         set_cPort(port!)
         showHUD(result.u)
@@ -70,155 +84,10 @@ set_reqH_([
       }
       return
     }
-    let { u: url } = request, url_l = url.toLowerCase()
-    if (request.p === 1) {
-      let url2 = substitute_(url, SedContext.goToRoot, request.s)
-      if (url2 !== url && url2 && url2 !== url + "/" && url2 + "/" !== url) {
-        const url3 = BgUtils_.convertToUrl_(url2, null, Urls.WorkType.KeepAll)
-        if (BgUtils_.lastUrlType_ === Urls.Type.Full) {
-          return { u: url3, p: "(sed)" }
-        }
-      }
-    }
-    if (!BgUtils_.protocolRe_.test(BgUtils_.removeComposedScheme_(url_l))) {
-      BgUtils_.resetRe_()
-      return { u: "This url has no upper paths", p: null }
-    }
-    const enc = encodeURIComponent
-    let hash = "", str: string, arr: RegExpExecArray | null, startWithSlash = false, endSlash = false
-      , removeSlash = false
-      , path: string | null = null, i: number, start = 0, end = 0, decoded = false, arr2: RegExpExecArray | null
-    if (i = url.lastIndexOf("#") + 1) {
-      hash = url.slice(i + +(url.substr(i, 1) === "!"))
-      str = BgUtils_.DecodeURLPart_(hash)
-      i = str.lastIndexOf("/")
-      if (i > 0 || (i === 0 && str.length > 1)) {
-        decoded = str !== hash
-        const argRe = <RegExpOne> /([^&=]+=)([^&\/=]*\/[^&]*)/
-        arr = argRe.exec(str) || (<RegExpOne> /(^|&)([^&\/=]*\/[^&=]*)(?:&|$)/).exec(str)
-        path = arr ? arr[2] : str
-        // here `path` is ensured not empty
-        if (path === "/" || path.includes("://")) { path = null }
-        else if (!arr) { start = 0 }
-        else if (!decoded) { start = arr.index + arr[1].length }
-        else {
-          str = "https://example.com/"
-          str = encodeURI(str + path).slice(str.length)
-          i = hash.indexOf(str)
-          if (i < 0) {
-            i = hash.indexOf(str = enc(path))
-          }
-          if (i < 0) {
-            decoded = false
-            i = hash.indexOf(str = path)
-          }
-          end = i + str.length
-          if (i < 0 && arr[1] !== "&") {
-            i = hash.indexOf(str = arr[1])
-            if (i < 0) {
-              decoded = true
-              str = arr[1]
-              str = enc(str.slice(0, -1))
-              i = hash.indexOf(str)
-            }
-            if (i >= 0) {
-              i += str.length
-              end = hash.indexOf("&", i) + 1
-            }
-          }
-          if (i >= 0) {
-            start = i
-          } else if (arr2 = argRe.exec(hash)) {
-            path = BgUtils_.DecodeURLPart_(arr2[2])
-            start = arr2.index + arr2[1].length
-            end = start + arr2[2].length
-          } else if ((str = arr[1]) !== "&") {
-            i = url.length - hash.length
-            hash = str + enc(path)
-            url = url.slice(0, i) + hash
-            start = str.length
-            end = 0
-          }
-        }
-        if (path) {
-          i = url.length - hash.length
-          start += i
-          end > 0 && (end += i)
-        }
-      }
-    }
-    if (!path) {
-      if (url_l.startsWith(BrowserProtocol_) && !request.f) {
-        BgUtils_.resetRe_()
-        return { u: "An extension has no upper-level pages", p: null }
-      }
-      hash = ""
-      start = url.indexOf("/", url.indexOf("://") + 3)
-      if (url_l.startsWith("filesystem:")) { start = url.indexOf("/", start + 1) }
-      start = start < 0 ? 0 : start
-      i = url.indexOf("?", start)
-      end = url.indexOf("#", start)
-      i = end < 0 ? i : i < 0 ? end : i < end ? i : end
-      i = i > 0 ? i : url.length
-      path = url.slice(start, i)
-      end = 0
-      decoded = false
-    }
-    // Note: here should ensure `end` >= 0
-    i = request.p
-    startWithSlash = path.startsWith("/")
-    if (!hash && url_l.startsWith("file:")) {
-      if (path.length <= 1 || url.length === 11 && url.endsWith(":/")) {
-        if (request.f) {
-          i = 0
-        } else {
-          BgUtils_.resetRe_()
-          return { u: "This has been the root path", p: null }
-        }
-      }
-      endSlash = true
-      request.f || i === 1 && (i = -1)
-    } else if (!hash && url_l.startsWith("ftp:")) {
-      endSlash = true
-    } else {
-      endSlash = request.t != null ? !!request.t : request.r != null ? !!request.r
-          : path.length > 1 && path.endsWith("/")
-            || (<RegExpI> /\.([a-z]{2,3}|apng|jpeg|tiff)$/i).test(path) // just a try: not include .html
-    }
-    {
-      const arr3 = path.slice(+startWithSlash, path.length - +path.endsWith("/")).split("/")
-      const len = arr3.length, level = i < 0 ? i + len : i
-      removeSlash = len <= 1 && i <= -2 && url.lastIndexOf("#", start) > 0
-      i = level > len ? len : i > 0 ? level - 1 : level > 0 ? level : 0
-      {
-        arr3.length = i
-        path = arr3.join("/")
-      }
-    }
-    if (str = request.a || "") {
-      path += str[0] === "/" ? str : "/" + str
-    }
-    path = path ? (path[0] === "/" ? "" : "/") + path + (!endSlash || path.endsWith("/") ? "" : "/") : "/"
-    if (!end && url.lastIndexOf("git", start - 3) > 0) {
-      path = /*#__NOINLINE__*/ upperGitUrls(url, path) || path
-    }
-    if (removeSlash && (!path || path === "/")) {
-      url = url.split("#", 1)[0]
-    } else {
-      str = decoded ? enc(path) : path
-      url = url.slice(0, start) + (end ? str + url.slice(end) : str)
-    }
-    let substituted = substitute_(url, SedContext.gotoUpperUrl, request.s) || url
-    if (substituted !== url) {
-      // if substitution returns an invalid URL, then refuse it
-      const url4 = BgUtils_.convertToUrl_(substituted, null, Urls.WorkType.KeepAll)
-      url = BgUtils_.lastUrlType_ === Urls.Type.Full ? url4 : url
-    }
-    BgUtils_.resetRe_()
-    return { u: url, p: path }
+    return result
   }) as BackendHandlersNS.SpecialHandlers[kFgReq.parseUpperUrl],
   /** kFgReq.searchAs: */ (request: FgReq[kFgReq.searchAs], port: Port): void => {
-    let search = Backend_.parse_(request), query: string | null | Promise<string | null>
+    let search = parseSearchUrl_(request), query: string | null | Promise<string | null>
     if (!search || !search.k) {
       set_cPort(port)
       showHUD(trans_("noEngineFound"))
@@ -251,39 +120,38 @@ set_reqH_([
       })
       return
     }
-    if ((Build.BTypes & BrowserType.Edge || Build.BTypes & BrowserType.Firefox && Build.MayAndroidOnFirefox
-          || Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSessions) && !browserSessions()) {
+    if ((OnEdge || OnFirefox && Build.MayAndroidOnFirefox || OnChrome && Build.MinCVer < BrowserVer.MinSessions)
+        && !browserSessions_()) {
       complainNoSession()
       return
     }
-    browserSessions().restore(id, (): void => {
+    browserSessions_().restore(id, (): void => {
       const err = runtimeError_()
       err && showHUD(trans_("noSessionItem"))
       return err
     })
     if (active) { return }
     let tabId = port!.s.tabId_
-    tabId >= 0 || (tabId = TabRecency_.curTab_)
+    tabId >= 0 || (tabId = curTabId_)
     if (tabId >= 0) { selectTab(tabId) }
   },
-  /** kFgReq.openUrl: */ openUrlReq,
+  /** kFgReq.openUrl: */ _AsReqH<kFgReq.openUrl>(openUrlReq),
   /** kFgReq.onFrameFocused: */ (_0: FgReq[kFgReq.onFrameFocused], port: Port): void => {
-    if (!(Build.BTypes & ~BrowserType.Firefox)
-        || Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox) {
+    if (OnFirefox) {
       if (port.s.flags_ & Frames.Flags.OtherExtension) {
         port.postMessage({ N: kBgReq.injectorRun, t: InjectorTask.reportLiving })
       }
     }
-    let tabId = port.s.tabId_, ref = framesForTab.get(tabId), status: Frames.ValidStatus
+    let tabId = port.s.tabId_, ref = framesForTab_.get(tabId), status: Frames.ValidStatus
     if (!ref) {
-      needIcon_ && Backend_.setIcon_(tabId, port.s.status_)
+      needIcon_ && setIcon_(tabId, port.s.status_)
       return
     }
     let last = ref.cur_
     if (port === last) { return }
     ref.cur_ = port
     if (needIcon_ && (status = port.s.status_) !== last.s.status_) {
-      Backend_.setIcon_(tabId, status)
+      setIcon_(tabId, status)
     }
   },
   /** kFgReq.checkIfEnabled: */ (request: ExclusionsNS.Details & {u?: undefined} | FgReq[kFgReq.checkIfEnabled]
@@ -295,17 +163,17 @@ set_reqH_([
     }
     const { s: sender } = port, { url_: oldUrl } = sender,
     url1: string | undefined = (request as ExclusionsNS.Details).url,
-    ref = framesForTab.get(sender.tabId_)
+    ref = framesForTab_.get(sender.tabId_)
     if (ref && ref.lock_) { return }
-    const pattern = Backend_.getExcluded_ === null ? null
-        : Backend_.getExcluded_(sender.url_ = from_content ? request.u! : url1, sender),
+    const pattern = !exclusionListening_ ? null
+        : getExcluded_(sender.url_ = from_content ? request.u! : url1, sender),
     status = pattern === null ? Frames.Status.enabled : pattern ? Frames.Status.partial : Frames.Status.disabled
     if (sender.status_ !== status) {
       sender.status_ = status
       if (needIcon_ && ref!.cur_ === port) {
-        Backend_.setIcon_(sender.tabId_, status)
+        setIcon_(sender.tabId_, status)
       }
-    } else if (!pattern || pattern === Backend_.getExcluded_!(oldUrl, sender)) {
+    } else if (!pattern || pattern === getExcluded_(oldUrl, sender)) {
       return
     }
     port.postMessage({ N: kBgReq.reset, p: pattern, f: 0 })
@@ -319,16 +187,27 @@ set_reqH_([
     let ref: Frames.Frames | undefined
     if (type !== Frames.NextType.current) {
       type === Frames.NextType.parent ? parentFrame() : nextFrame()
-    } else if (ref = framesForTab.get(port.s.tabId_)) {
+    } else if (ref = framesForTab_.get(port.s.tabId_)) {
       focusFrame(ref.cur_, ref.ports_.length <= 2, FrameMaskType.NoMask, get_cOptions<kBgCmd.nextFrame, true>())
     } else {
       safePost(port, { N: kBgReq.omni_returnFocus, l: cKey })
     }
   },
-  /** kFgReq.exitGrab: */ onExitGrab,
-  /** kFgReq.execInChild: */ (request: FgReqWithRes[kFgReq.execInChild]
-      , port: Port): FgRes[kFgReq.execInChild] => {
-    const tabId = port.s.tabId_, ref = framesForTab.get(tabId), url = request.u
+  /** kFgReq.exitGrab: */ (_: FgReq[kFgReq.exitGrab], port: Port): void => {
+    const ref = framesForTab_.get(port.s.tabId_)
+    if (!ref) { return }
+    ref.flags_ |= Frames.Flags.userActed
+    if (ref.ports_.length < 2) { return }
+    const msg: Req.bg<kBgReq.exitGrab> = { N: kBgReq.exitGrab }
+    for (const p of ref.ports_) {
+      if (p !== port) {
+        p.postMessage(msg)
+      }
+      p.s.flags_ |= Frames.Flags.userActed
+    }
+  },
+  /** kFgReq.execInChild: */ (request: FgReqWithRes[kFgReq.execInChild], port: Port): FgRes[kFgReq.execInChild] => {
+    const tabId = port.s.tabId_, ref = framesForTab_.get(tabId), url = request.u
     if (!ref || ref.ports_.length < 2) { return false }
     let iport: Port | null | undefined
     for (const i of ref.ports_) {
@@ -341,7 +220,7 @@ set_reqH_([
       set_cKey(request.k)
       focusAndExecute(request, port, iport, 1)
     } else {
-      browserWebNav() && browserWebNav()!.getAllFrames({tabId: port.s.tabId_}, (frames): void => {
+      browserWebNav_() && browserWebNav_()!.getAllFrames({tabId: port.s.tabId_}, (frames): void => {
         let childId = 0, self = port.s.frameId_
         for (const i1 of frames) {
           if (i1.parentFrameId === self) {
@@ -360,9 +239,9 @@ set_reqH_([
     }
     return !!iport
   },
-  /** kFgReq.initHelp: */ initHelp,
+  /** kFgReq.initHelp: */ _AsReqH<kFgReq.initHelp>(initHelp),
   /** kFgReq.css: */ (_0: FgReq[kFgReq.css], port: Port): void => {
-    const ref = framesForTab.get(port.s.tabId_)!
+    const ref = framesForTab_.get(port.s.tabId_)!
     ref.flags_ |= Frames.Flags.userActed;
     (port as Frames.Port).s.flags_ |= Frames.Flags.hasCSS | Frames.Flags.userActed
     port.postMessage({ N: kBgReq.showHUD, H: innerCSS_ })
@@ -376,11 +255,14 @@ set_reqH_([
       set_cRepeat(1)
     } else if (request.r !== true) {
       return
-    } else if (get_cOptions<any>() == null || get_cOptions<kBgCmd.showVomnibar>().secret !== -1) {
+    } else if (get_cOptions<any>() == null
+        || (get_cOptions<kBgCmd.showVomnibar>() as SafeObject as SafeObject & CmdOptions[kFgCmd.vomnibar]
+            ).k !== "omni") {
       if (inner) { return }
       set_cOptions(BgUtils_.safeObj_())
       set_cRepeat(1)
-    } else if (inner && get_cOptions<kBgCmd.showVomnibar>().v === settings.CONST_.VomnibarPageInner_) {
+    } else if (inner && (get_cOptions<kBgCmd.showVomnibar>() as SafeObject & CmdOptions[kFgCmd.vomnibar]
+        ).v === CONST_.VomnibarPageInner_) {
       return
     }
     set_cPort(port)
@@ -392,12 +274,33 @@ set_reqH_([
         /*#__NOINLINE__*/ onCompletions.bind<Port, 0 | 1 | 2, Parameters<CompletersNS.Callback>, void>(
           port, (request.i! | 0) as 0 | 1 | 2))
   },
-  /** kFgReq.copy: */ copyData,
+  /** kFgReq.copy: */ (request: FgReq[kFgReq.copy], port: Port): void => {
+    let str: string | string[] | object[] | undefined
+    str = request.u || request.s
+    if (request.d) {
+      if (typeof str !== "string") {
+        for (let i = str.length; 0 <= --i; ) {
+          str[i] = BgUtils_.decodeUrlForCopy_(str[i] + "")
+        }
+      } else {
+        str = BgUtils_.decodeUrlForCopy_(str)
+      }
+    } else {
+      if (str.length < 4 && !(str as string).trim() && str[0] === " ") {
+        str = ""
+      }
+    }
+    str = str && copy_(str, request.j, request.e)
+    set_cPort(port)
+    str = request.s && typeof request.s === "object" ? `[${request.s.length}] ` + request.s.slice(-1)[0] : str
+    showHUD(request.d ? str.replace(<RegExpG & RegExpSearchable<0>> /%[0-7][\dA-Fa-f]/g, decodeURIComponent)
+        : str, request.u ? kTip.noUrlCopied : kTip.noTextCopied)
+  },
   /** kFgReq.key: */ (request: FgReq[kFgReq.key], port: Port | null): void => {
     const sender = port != null ? (port as Frames.Port).s : null
     if (sender !== null && !(sender.flags_ & Frames.Flags.userActed)) {
       sender.flags_ |= Frames.Flags.userActed
-      const ref = framesForTab.get(sender.tabId_)
+      const ref = framesForTab_.get(sender.tabId_)
       ref && (ref.flags_ |= Frames.Flags.userActed)
     }
     let key: string = request.k, count = 1
@@ -407,16 +310,19 @@ set_reqH_([
       key = key.slice(prefix.length)
       count = prefix !== "-" ? parseInt(prefix, 10) || 1 : -1
     }
-    let registryEntry = CommandsData_.keyToCommandRegistry_.get(key)
+    let registryEntry = keyToCommandMap_.get(key)
     if (!registryEntry) {
-      arr = key.match(BgUtils_.keyRe_)!
+      arr = key.match(keyRe_)!
       key = arr[arr.length - 1]
       count = 1
-      registryEntry = CommandsData_.keyToCommandRegistry_.get(key)
+      registryEntry = keyToCommandMap_.get(key)
     }
     BgUtils_.resetRe_()
     if (!registryEntry) { /* empty */ }
     else if (request.f != null) {
+      if (request.f.w === 0) {
+        executeCommand(registryEntry, count, request.l, port, 0, request.f)
+      }
       waitAndRunKeyReq(request as (typeof request) & Ensure<typeof request, "f">, port)
     } else {
       executeCommand(registryEntry, count, request.l, port, 0, null)
@@ -431,35 +337,35 @@ set_reqH_([
     default: return
     }
   },
-  /** kFgReq.focusOrLaunch: */ focusOrLaunch,
-  /** kFgReq.cmd: */ onConfirmResponse,
+  /** kFgReq.focusOrLaunch: */ _AsReqH<kFgReq.focusOrLaunch, false>(focusOrLaunch_),
+  /** kFgReq.cmd: */ _AsReqH<kFgReq.cmd>(onConfirmResponse),
   /** kFgReq.removeSug: */ ({ t: rawType, s: sId, u: url }: FgReq[kFgReq.removeSug], port?: Port | null): void => {
     const type = rawType === "history" && sId != null ? "session" : rawType
     const name = type === "tab" ? type : type + " item"
     const cb = (succeed?: boolean | BOOL | void): void => {
-      showHUD(trans_(succeed ? "delSug" : "notDelSug", [trans_("sug_" + type) || name]))
+      showHUD(trans_(succeed ? "delSug" : "notDelSug", [transPart_("sugs", type[0]) || name]))
     }
     set_cPort(findCPort(port)!)
-    if (type === "tab" && TabRecency_.curTab_ === +sId!) {
+    if (type === "tab" && curTabId_ === +sId!) {
       showHUD(trans_("notRemoveCur"))
     } else if (type !== "session") {
-      Completion_.removeSug_(url, type, cb)
+      Completion_.removeSug_(type === "tab" ? sId! : url, type, cb)
     } else {
-      const sessions = browserSessions()
-      if ((Build.BTypes & BrowserType.Edge || Build.BTypes & BrowserType.Firefox && Build.MayAndroidOnFirefox
-            || Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSessions) && !sessions) {
+      const sessions = browserSessions_()
+      if ((OnEdge || OnFirefox && Build.MayAndroidOnFirefox || OnChrome && Build.MinCVer < BrowserVer.MinSessions)
+          && !sessions) {
         return
       }
       void (sessions.getRecentlyClosed as unknown as () => Promise<chrome.sessions.Session[]>)().then((list): void => {
         const found = list.filter(i => i.tab && i.tab.sessionId === sId)[0]
         if (found) {
-          void sessions.forgetClosedTab(found.tab!.windowId, sId as string)
-              .then(() => 1 as const, BgUtils_.blank_).then(cb)
+          void browserSessions_().forgetClosedTab(found.tab!.windowId, sId as string)
+              .then(() => 1 as const, blank_).then(cb)
         }
       })
     }
   },
-  /** kFgReq.openImage: */ openImgReq,
+  /** kFgReq.openImage: */ _AsReqH<kFgReq.openImage>(openImgReq),
   /** kFgReq.evalJSFallback" */ (req: FgReq[kFgReq.evalJSFallback], port: Port): void => {
     set_cPort(null as never)
     openJSUrl(req.u, {}, (): void => {
@@ -469,20 +375,20 @@ set_reqH_([
   },
   /** kFgReq.gotoMainFrame: */ (req: FgReq[kFgReq.gotoMainFrame], port: Port): void => {
     // Now that content scripts always auto-reconnect, it's not needed to find a parent frame.
-    focusAndExecute(req, port, indexFrame(port.s.tabId_, 0), req.f)
+    focusAndExecute(req, port, framesForTab_.get(port.s.tabId_)?.top_ || null, req.f)
   },
-  /** kFgReq.setOmniStyle: */ setOmniStyle,
-  /** kFgReq.findFromVisual */ (_: FgReq[kFgReq.findFromVisual], port: Port): void => {
+  /** kFgReq.setOmniStyle: */ _AsReqH<kFgReq.setOmniStyle>(setOmniStyle_),
+  /** kFgReq.findFromVisual: */ (_: FgReq[kFgReq.findFromVisual], port: Port): void => {
     replaceCmdOptions<kBgCmd.performFind>({ active: true, returnToViewport: true })
     set_cPort(port), set_cRepeat(1)
     performFind()
   },
-  /** kFgReq.framesGoBack: */ framesGoBack,
+  /** kFgReq.framesGoBack: */ _AsReqH<kFgReq.framesGoBack>(framesGoBack),
   /** kFgReq.i18n: */ (): FgRes[kFgReq.i18n] => {
-    settings.temp_.loadI18nPayload_ && settings.temp_.loadI18nPayload_()
-    return { m: settings.i18nPayload_ }
+    loadI18nPayload_ && loadI18nPayload_()
+    return { m: i18nPayload_ }
   },
-  /** kFgReq.learnCSS */ (_req: FgReq[kFgReq.learnCSS], port: Port): void => {
+  /** kFgReq.learnCSS: */ (_req: FgReq[kFgReq.learnCSS], port: Port): void => {
     (port as Frames.Port).s.flags_ |= Frames.Flags.hasCSS
   },
   /** kFgReq.visualMode: */ (request: FgReq[kFgReq.visualMode], port: Port): void => {
@@ -494,7 +400,7 @@ set_reqH_([
   /** kFgReq.respondForRunAs: */ (request: FgReq[kFgReq.respondForRunKey]): void => {
     if (performance.now() - request.r.n < 500) {
       const info = request.r.c
-      info.element = request.e && (request.e[2] = normalizeClassesToMatch(request.e[2]), request.e)
+      info.element = request.e && (request.e[2] = BgUtils_.normalizeClassesToMatch_(request.e[2]), request.e)
       runKeyWithCond(info)
     }
   },
@@ -505,47 +411,23 @@ set_reqH_([
   }
 ])
 
-const upperGitUrls = (url: string, path: string): string | void | null => {
-  const obj = BgUtils_.safeParseURL_(url), host: string | undefined = obj ? obj.host : ""
-  if (!host) { return }
-  if (!(<RegExpI> /git\b|\bgit/i).test(host) || !(<RegExpI> /^[\w\-]+(\.\w+)?(:\d{2,5})?$/).test(host)) {
-    return
-  }
-  let arr = path.split("/"), lastIndex = arr.length - 1
-  if (!arr[lastIndex]) { lastIndex--, arr.pop() }
-  let last = arr[lastIndex]
-  if (host === "github.com") {
-    if (lastIndex === 3) {
-      return last === "pull" || last === "milestone" || last === "commit" ? path + "s"
-        : last === "tree" || last === "blob" ? arr.slice(0, 3).join("/")
-        : null
-    } else if (lastIndex === 4 && arr[3] === "releases" && (arr[4] === "tag" || arr[4] === "edit")) {
-      return arr.slice(0, 4).join("/")
-    } else if (lastIndex > 3) {
-      return arr[3] === "blob" ? (arr[3] = "tree", arr.join("/")) : null
-    }
-  }
-}
-
 const onCompletions = function (this: Port, favIcon0: 0 | 1 | 2, list: Array<Readonly<Suggestion>>
     , autoSelect: boolean, matchType: CompletersNS.MatchType, sugTypes: CompletersNS.SugType, total: number
     , realMode: string, queryComponents: CompletersNS.QComponent): void {
   let { url_: url } = this.s, favIcon: 0 | 1 | 2 = favIcon0 === 2 ? 2 : 0
   let next: IteratorResult<Frames.Frames>
   let top: Frames.Frames["top_"], sender: Frames.Sender | null
-  if (Build.BTypes & BrowserType.Firefox
-      && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)) {
+  if (OnFirefox) {
     favIcon = list.some(i => i.e === "tab") ? favIcon && 2 : 0
-  }
-  else if (Build.BTypes & BrowserType.Edge
-      && (!(Build.BTypes & ~BrowserType.Edge) || OnOther === BrowserType.Edge)) {
+  } else if (OnEdge) {
     favIcon = 0
   }
-  else if (Build.BTypes & BrowserType.Chrome && favIcon0 === 1
+  else if (OnChrome && favIcon0 === 1
       && (Build.MinCVer >= BrowserVer.MinExtensionContentPageAlwaysCanShowFavIcon
         || CurCVer_ >= BrowserVer.MinExtensionContentPageAlwaysCanShowFavIcon)) {
     url = url.slice(0, url.indexOf("/", url.indexOf("://") + 3) + 1)
-    let frame1 = gTabIdOfExtWithVomnibar !== GlobalConsts.TabIdNone ? indexFrame(gTabIdOfExtWithVomnibar, 0) : null
+    let frame1 = gTabIdOfExtWithVomnibar !== GlobalConsts.TabIdNone
+        ? framesForTab_.get(gTabIdOfExtWithVomnibar)?.top_ : null
     if (frame1 != null) {
       if (frame1.s.url_.startsWith(url)) {
         favIcon = 1
@@ -554,9 +436,9 @@ const onCompletions = function (this: Port, favIcon0: 0 | 1 | 2, list: Array<Rea
       }
     }
     if (favIcon) { /* empty */ }
-    else if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol
+    else if (OnChrome && Build.MinCVer < BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol
         && CurCVer_ < BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol) {
-      const map = (framesForTab as any as SimulatedMap).map_ as Dict<any> as Dict<Frames.Frames>
+      const map = (framesForTab_ as any as SimulatedMap).map_ as Dict<any> as Dict<Frames.Frames>
       for (let tabId in map) {
         top = map[tabId]!.top_, sender = top && top.s
         if (sender && sender.url_.startsWith(url)) {
@@ -565,7 +447,7 @@ const onCompletions = function (this: Port, favIcon0: 0 | 1 | 2, list: Array<Rea
         }
       }
     } else if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.BuildMinForOf) {
-      const iter = framesForTab.values() as Iterable<Frames.Frames> as IterableIterator<Frames.Frames>
+      const iter = framesForTab_.values() as Iterable<Frames.Frames> as IterableIterator<Frames.Frames>
       while (next = iter.next(), !next.done) {
         top = next.value.top_, sender = top && top.s
         if (sender && sender.url_.startsWith(url)) {
@@ -574,7 +456,7 @@ const onCompletions = function (this: Port, favIcon0: 0 | 1 | 2, list: Array<Rea
         }
       }
     } else {
-      for (const frames of framesForTab.values()) {
+      for (const frames of framesForTab_.values()) {
         top = frames.top_, sender = top && top.s
         if (sender) {
           if (sender.url_.startsWith(url)) {

@@ -4,10 +4,13 @@
 var dependencies = require("./dependencies");
 var fs = require("fs");
 var gulp = require("gulp");
+/** @typedef { (stream: NodeJS.ReadWriteStream, sourceFile: any, targetPath: string) => void } ICompareContents */
+/** @type { typeof import("gulp-changed") & { compareContents?: ICompareContents } } */
 var gulpChanged = require("gulp-changed");
 var gulpPrint = require("gulp-print").default;
 var gulpSome = require("gulp-some");
 var logger = require("fancy-log");
+/** @type { (options: Parameters<typeof import("gulp-newer")>[0] & { extra?: string | null}) => NodeJS.ReadWriteStream } */
 var newer = require("gulp-newer");
 var osPath = require("path");
 var gulpfile = require("../gulpfile")
@@ -404,7 +407,7 @@ exports.compileTS = function (stream, options, extra, done, debugging, dest, wil
       var t = file.relative, s = ".d.ts", i = t.length - s.length;
       return i < 0 || t.indexOf(s, i) !== i;
     })).pipe(exports.gulpMap(exports.correctBuffer))
-    merged = merged.pipe(gulpfile.tsProject(es6Module));
+    merged = merged.pipe(gulpfile.tsProject(options?.module?.toLowerCase()))
     merged = gulpfile.outputJSResult(merged, es6Module);
     es6Module ? _mergedProject6 = merged : _mergedProject5 = merged;
   }
@@ -500,7 +503,10 @@ exports.makeTasks = function (Tasks) {
       gulp.task(key, task);
       continue;
     }
-    const knownTasks = gulp.tree().nodes, toTest = task[0] instanceof Array ? task[0] : task;
+    /** @type { string[] } */
+    // @ts-ignore
+    const knownTasks = gulp.tree().nodes
+    const toTest = task[0] instanceof Array ? task[0] : task
     let notFound = false;
     for (const i of toTest) {
       if (typeof i === "string" && knownTasks.indexOf(i) < 0) {
@@ -612,6 +618,7 @@ exports.minifyJSFiles = function (path, output, exArgs) {
   }
   if (is_file) {
     if (willListEmittedFiles) {
+      // @ts-ignore
       stream = stream.pipe(gulpPrint());
     }
     if (exArgs.rollup) {

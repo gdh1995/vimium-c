@@ -31,15 +31,15 @@ declare var define: any, __filename: string | null | undefined
 
 Build.NDEBUG || (function (): void {
   type ModuleTy = Dict<any> & { __esModule: boolean }
-  type RequireTy = (target: string) => ModuleTy
   interface DefineTy {
-    (deps: string[], factory: (require: RequireTy, exports: ModuleTy) => any): any
+    (deps: string[], factory: (asyncRequire: () => never, exports: ModuleTy, ...deps: ModuleTy[]) => any): void
     amd?: boolean
     modules_?: Dict<ModuleTy>
     noConflict (): void
   }
   const oldDefine: DefineTy = typeof define !== "undefined" ? define : void 0
-  let modules: Dict<ModuleTy> = {}
+  const modules: Dict<ModuleTy> = {}
+  const getName = (name: string): string => name.slice(name.lastIndexOf("/") + 1).replace(".js", "")
   const myDefine: DefineTy = function (this: any, deps, factory): void {
     let filename = __filename
     if (!filename || filename.lastIndexOf("content/", 0) === -1 && filename.lastIndexOf("lib/", 0) === -1) {
@@ -53,42 +53,26 @@ Build.NDEBUG || (function (): void {
       return oldDefine.apply(this, arguments)
     }
     __filename = null
-    filename = filename.replace(".js", "")
-    const exports = modules[filename] || (modules[filename] = {} as ModuleTy)
-    const ind = filename.lastIndexOf("/")
+    const exports = myRequire(filename)
     if (!Build.NDEBUG) {
-      (myDefine as any)[ind > 0 ? filename.slice(ind + 1) : filename] = exports
+      (myDefine as any)[getName(filename)] = exports
     }
-    const base = ind > 0 ? filename.slice(0, ind) : filename
-    return (factory || deps)(require.bind(null, base), exports)
+    return factory.bind(null, throwOnDynamicImport, exports).apply(null, deps.slice(2).map(myRequire))
   }
-  const require = (base: string, target: string): ModuleTy => {
-    let i: number
-    while ((i = target.indexOf("/")) >= 0) {
-      const folder = target.slice(0, i)
-      if (folder === "..") {
-        let j = base.lastIndexOf("/")
-        base = j > 0 ? base.slice(0, j) : ""
-      } else if (folder !== ".") {
-        base = base ? base + "/" + folder : folder
-      }
-      target = target.slice(i + 1)
-    }
-    target = base + "/" + target.replace(".js", "")
+  const throwOnDynamicImport = (): never => {
+    throw new Error("Must avoid dynamic import in content scripts")
+  }
+  const myRequire = function (target: string): ModuleTy {
+    target = getName(target)
     return modules[target] || (modules[target] = {} as ModuleTy)
   }
   myDefine.amd = true;
-  myDefine.modules_ = modules;
   myDefine.noConflict = (): void => {
     if ((window as PartialOf<typeof globalThis, "define">).define !== myDefine) { return }
     (window as PartialOf<typeof globalThis, "define">).define = oldDefine
     if (!oldDefine) { return }
-    if (oldDefine.modules_) {
-      for (let key in modules) {
-        oldDefine.modules_[key] = modules[key]
-      }
-    } else {
-      oldDefine.modules_ = modules;
+    for (let key in modules) {
+      (oldDefine as any)[key] = modules[key]
     }
   }
   (window as PartialOf<typeof globalThis, "__filename">).__filename = undefined;

@@ -1,21 +1,18 @@
-export interface EscF {
-  <T extends Exclude<HandlerResult, HandlerResult.ExitPassMode>> (this: void, i: T): T;
-  (this: void, i: HandlerResult.ExitPassMode): unknown;
-}
 export type XrayedObject<T extends object> = T & { wrappedJSObject: T }
 
-const _browser: BrowserType = Build.BTypes && !(Build.BTypes & (Build.BTypes - 1))
+const OnOther_: BrowserType = Build.BTypes && !(Build.BTypes & (Build.BTypes - 1))
     ? Build.BTypes as number
     : Build.BTypes & BrowserType.Edge && !!(window as {} as {StyleMedia: unknown}).StyleMedia ? BrowserType.Edge
     : Build.BTypes & BrowserType.Firefox && browser ? BrowserType.Firefox
     : BrowserType.Chrome
 export const OnChrome: boolean = !(Build.BTypes & ~BrowserType.Chrome)
-    || !!(Build.BTypes & BrowserType.Chrome && _browser & BrowserType.Chrome)
+    || !!(Build.BTypes & BrowserType.Chrome && OnOther_ & BrowserType.Chrome)
 export const OnFirefox: boolean = !(Build.BTypes & ~BrowserType.Firefox)
-    || !!(Build.BTypes & BrowserType.Firefox && _browser & BrowserType.Firefox)
+    || !!(Build.BTypes & BrowserType.Firefox && OnOther_ & BrowserType.Firefox)
 export const OnEdge: boolean = !(Build.BTypes & ~BrowserType.Edge)
-    || !!(Build.BTypes & BrowserType.Edge && _browser & BrowserType.Edge)
-export const OnSafari: boolean = false // eslint-disable-line @typescript-eslint/no-inferrable-types
+    || !!(Build.BTypes & BrowserType.Edge && OnOther_ & BrowserType.Edge)
+export const OnSafari: boolean = !(Build.BTypes & ~BrowserType.Safari)
+    || !!(Build.BTypes & BrowserType.Safari && OnOther_ & BrowserType.Safari)
 export const WithDialog: boolean = OnChrome || OnFirefox
 
 /** its initial value should be 0, need by {@see ../content/request_handlers#hookOnWnd} */
@@ -31,7 +28,10 @@ export const doc = document
 export const loc_ = location
 export const initialDocState = doc.readyState
 
-let esc: EscF | null
+let esc: {
+  <T extends Exclude<HandlerResult, HandlerResult.ExitPassMode>> (this: void, i: T): T;
+  (this: void, i: HandlerResult.ExitPassMode): unknown;
+} | null
 
 /** ==== Status ==== */
 
@@ -73,7 +73,7 @@ export const setupKeydownEvents = function (arr?: KeydownCacheArray): KeydownCac
 /** ==== util functions ==== */
 
 export { esc }
-export function set_esc (_newEsc: EscF): void { esc = _newEsc }
+export function set_esc (_newEsc: typeof esc): void { esc = _newEsc }
 
 export let vApi: VApiTy
 export function set_vApi (_newVApi: VApiTy): void { vApi = _newVApi }

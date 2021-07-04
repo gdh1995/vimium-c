@@ -1,0 +1,52 @@
+{
+  "dirtyOptions":
+"De telles options ont été changées à d'autres endroits:\n      * $1\n    Continuer à sauvegarder et écraser avec ces modifications ?"
+,
+  "clickToUnmask": "# Cliquez pour retirer le masque du contenu…",
+  "beforeUnload": "Vous avez des modifications non-sauvegardées dans les options",
+  "ignoredNonEN": "La configuration Clavier a été ignorée ! Merci de considérer de désactiver l'option.",
+  "onlyExtVomnibar": "Seules les pages d'extension de Vomnibar peuvent fonctionner avant Chromium $1",
+  "fileVomnibar" :
+    "Une page de fichier de Vomnibar est limitée par le navigateur pour fonctionner uniquement sur file:///* pages.",
+  "httpVomnibar" :
+    "Une page HTTP de Vomnibar est limitée par le navigateur et ne fonctionne pas sur les pages HTTPS.",
+  "beforeChromium": "sur navigateurs Chromium avant v$1",
+  "lackPermission": "pour manquer de permissions$1",
+  "invalidOption": "Cette option est invalide $1",
+  "manageShortcut": "\"Paramétrer les raccourcis\" dans \"le menu Outils\" de ",
+  "addons": "Extensions Firefox",
+  "webstore": "Chrome Web Store",
+  "edgestore": "Extensions MS Edge",
+  "NewTabAdapter": "NewTab Adapter (Adaptateur de nouvel onglet)",
+  "refusedURLs":
+    "L'ouverture de l'URL \"$1\" par une WebExtension est refusée par le navigateur Firefox.",
+  "nonPlainURL": "La valeur \"$1\" n'est pas une URL ordinaire valide",
+  "changedBeforeSync":
+"        Erreur:\nDésolé, mais vous êtes en train d'activer les options de \"Sync\"\n    tandis que d'autres options sont également modifiées.\nMerci d'effectuer une action à la fois!"
+ ,
+  "warningForSync":
+"        Attention:\nles paramètres courants seront RÉÉCRIS par la prochaine que Vimium C démarre !\nMerci de sauvegarder vos paramètres en utilisant le bouton \"Exporter les paramètres\"\n!!!        MAINTENANT        !!!"
+ ,
+  "confirmImport":
+"Vous êtes en train de charger $1:\n      * depuis $2Vimium C$3\n      * pour $4\n      * exporté $5\n\nÊtes-vous sûr de vouloir continuer ?"
+ ,
+  "backupFile": "une copie des paramètres",
+  "recommendedFile": "les paramètres recommandés",
+  "fileVCVer": "version * de ",
+  "fileVCNewer": " (plus récent(e))",
+  "filePlatform": "la plateforme $1",
+  "commonPlatform": "les plateformes communes",
+  "atTime": "à $1",
+  "before": "avant",
+  "keepSyncing":
+"Voulez-vous conserver les paramètres synchronisés avec votre compte de navigateur courant ?\n\nAppuyez sur \"Annuler\" pour arrêter."
+,
+  "notJSON": "Aucune donnée JSON trouvée !",
+  "JSONParseError":
+    "Désolé, Vimium C ne peut analyser le fichier JSON :\n un caractère inattendu à la ligne $1, colonne $2",
+  "notVCJSON": "Désolé, pas de données de paramètres Vimium C trouvées !",
+  "exc": "Erreur: ",
+  "unknown": "(inconnu(es))",
+  "JSONTooLarge":
+"    Erreur Fatale :\n\nVotre fichier de paramètres \"$1\" semble trop grand !\n\nTel que limité par votre navigateur, la taille maximale est de seulement $2 Ko."
+}

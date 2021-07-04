@@ -1,22 +1,27 @@
 import {
-  runtimeError_, getTabUrl, tabsGet, browserTabs, tabsCreate, browserSessions, browser_, openMultiTabs,
-  InfoToCreateMultiTab, getGroupId, tabsUpdate
-} from "./browser"
-import {
-  framesForTab, framesForOmni,
-  contentPayload, cPort, needIcon_, reqH_, settings, set_cPort, set_needIcon_, set_visualWordsRe_
+  framesForTab_, framesForOmni_, OnChrome, CurCVer_, OnEdge, OnFirefox, extAllowList_, omniPayload_, settingsCache_,
+  contentPayload_, set_visualWordsRe_, curTabId_, bgIniting_, keyToCommandMap_, restoreSettings_, Completion_, CONST_,
+  substitute_, newTabUrls_, evalVimiumUrl_, keyFSM_, mappedKeyRegistry_, bgC_, reqH_, set_bgIniting_, shownHash_,
+  set_hasGroupPermission_ff_
 } from "./store"
-import "./ui_css"
-import { shortcutRegistry_, visualKeys_ } from "./key_mappings"
-import { indexFrame, OnConnect, isExtIdAllowed, getPortUrl, showHUD, complainLimits } from "./ports"
+import * as BgUtils_ from "./utils"
+import { runtimeError_, tabsGet, Tabs_, browser_, watchPermissions_, runContentScriptsOn_} from "./browser"
+import { convertToUrl_, lastUrlType_, reformatURL_ } from "./normalize_urls"
+import { findUrlInText_, parseSearchEngines_ } from "./parse_urls"
+import * as settings_ from "./settings"
+import { indexFrame, OnConnect, isExtIdAllowed, getPortUrl_ } from "./ports"
+import * as Exclusions from "./exclusions"
+import { reloadCSS_ } from "./ui_css"
+import { keyMappingErrors_, shortcutRegistry_, visualKeys_ } from "./key_mappings"
 import { executeShortcut, executeExternalCmd } from "./run_commands"
-import "./request_handlers"
+import "./eval_urls"
+import { focusOrLaunch_, checkHarmfulUrl_ } from "./open_urls"
 import "./all_commands"
-
-declare const enum RefreshTabStep { start = 0, s1, s2, s3, s4, end }
+import "./request_handlers"
+import { MediaWatcher_ } from "./tools"
 
 const executeShortcutEntry = (cmd: StandardShortcutNames | kShortcutAliases): void => {
-  const tabId = TabRecency_.curTab_, ref = framesForTab.get(tabId)
+  const ref = framesForTab_.get(curTabId_)
   if (cmd === kShortcutAliases.nextTab1) { cmd = "nextTab" }
   const map = shortcutRegistry_
   if (!map || !map.get(cmd)) {
@@ -25,266 +30,77 @@ const executeShortcutEntry = (cmd: StandardShortcutNames | kShortcutAliases): vo
       map.set(cmd, null)
       console.log("Shortcut %o has not been configured.", cmd)
     }
-  } else if (ref == null || (ref.flags_ & Frames.Flags.userActed) || tabId < 0) {
+  } else if (ref == null || (ref.flags_ & Frames.Flags.userActed) || curTabId_ < 0) {
     executeShortcut(cmd, ref)
   } else {
-    tabsGet(tabId, (tab): void => {
-      executeShortcut(cmd as StandardShortcutNames, tab && tab.status === "complete" ? framesForTab.get(tab.id) : null)
+    tabsGet(curTabId_, (tab): void => {
+      executeShortcut(cmd as StandardShortcutNames, tab && tab.status === "complete" ? framesForTab_.get(tab.id) : null)
       return runtimeError_()
     })
   }
 }
 
-globalThis.Backend_ = {
-    reqH_,
-    getExcluded_: null,
-    getPortUrl_: getPortUrl,
-    setIcon_ (): void { /* empty */ },
-    complain_: complainLimits,
-    parse_ (this: void, request: FgReqWithRes[kFgReq.parseSearchUrl]): FgRes[kFgReq.parseSearchUrl] {
-      let s0 = request.u, url = s0.toLowerCase(), pattern: Search.Rule | undefined
-        , arr: string[] | null = null, _i: number, selectLast = false;
-      if (!BgUtils_.protocolRe_.test(BgUtils_.removeComposedScheme_(url))) {
-        BgUtils_.resetRe_();
-        return null;
-      }
-      if (request.p) {
-        const obj = reqH_[kFgReq.parseUpperUrl](request),
-        didSucceed = obj.p != null;
-        return { k: "", s: 0, u: didSucceed ? obj.u : s0, e: didSucceed ? obj.p : obj.u };
-      }
-      const decoders = settings.cache_.searchEngineRules;
-      if (_i = BgUtils_.IsURLHttp_(url)) {
-        url = url.slice(_i);
-        s0 = s0.slice(_i);
-      }
-      for (_i = decoders.length; 0 <= --_i; ) {
-        pattern = decoders[_i];
-        if (!url.startsWith(pattern.prefix_)) { continue; }
-        arr = s0.slice(pattern.prefix_.length).match(pattern.matcher_ as RegExpG);
-        if (arr) { break; }
-      }
-      if (!arr || !pattern) {
-        const showPage = settings.CONST_.ShowPage_
-        if (url.startsWith(showPage)) {
-          s0 = s0.slice(showPage.length).replace(<RegExpOne> /^#!?/, "")
-          return {
-            k: "vimium://show",
-            u: s0,
-            s: s0.startsWith("image") && s0.lastIndexOf("&", s0.indexOf(":") + 1) + 1 || s0.indexOf(" ") + 1,
-          }
-        }
-        BgUtils_.resetRe_()
-        return null
-      }
-      if (arr.length > 1 && !pattern.matcher_.global) { arr.shift(); }
-      const re = pattern.delimiter_;
-      if (arr.length > 1) {
-        selectLast = true;
-      } else if (re instanceof RegExp) {
-        url = arr[0];
-        if (arr = url.match(re)) {
-          arr.shift();
-          selectLast = true;
-        } else {
-          arr = [url];
-        }
-      } else {
-        arr = arr[0].split(re);
-      }
-      url = "";
-      for (_i = 0; _i < arr.length; _i++) { url += " " + BgUtils_.DecodeURLPart_(arr[_i]); }
-      url = url.trim().replace(BgUtils_.spacesRe_, " ");
-      BgUtils_.resetRe_();
-      return {
-        k: pattern.name_,
-        u: url,
-        s: selectLast ? url.lastIndexOf(" ") + 1 : 0
-      };
-    },
-    reopenTab_ (this: void, tab: Tab, refresh, exProps, useGroup): void {
-      const tabId = tab.id, needTempBlankTab = refresh === 1;
-      if ((Build.BTypes & BrowserType.Edge || Build.BTypes & BrowserType.Firefox && Build.MayAndroidOnFirefox
-            || Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSessions
-          ? refresh && browserSessions() : refresh) && (useGroup !== false || getGroupId(tab) == null)) {
-        let step = RefreshTabStep.start,
-        tempTabId = -1,
-        onRefresh = function (this: void): void {
-          const err = runtimeError_();
-          if (err) {
-            browserSessions().restore();
-            tempTabId >= 0 && browserTabs.remove(tempTabId);
-            tempTabId = 0;
-            return err;
-          }
-          step = step + 1;
-          if (step >= RefreshTabStep.end) { return; }
-          setTimeout(function (): void {
-            tabsGet(tabId, onRefresh);
-          }, 50 * step * step);
-        };
-        if (needTempBlankTab) {
-          /* safe-for-group */ tabsCreate({url: "about:blank", active: false, windowId: tab.windowId}, (t2): void => {
-            tempTabId /* === -1 */ ? (tempTabId = t2.id) : browserTabs.remove(t2.id)
-          });
-        }
-        browserTabs.remove(tabId, runtimeError_);
-        tabsGet(tabId, onRefresh);
-        return;
-      }
-      let callback: ((this: void, tab: Tab) => void) | null | undefined
-      if (!(Build.BTypes & ~BrowserType.Edge)
-          || (Build.BTypes & BrowserType.Edge && OnOther === BrowserType.Edge)
-          || Build.MinCVer < BrowserVer.MinMuted && Build.BTypes & BrowserType.Chrome
-              && CurCVer_ < BrowserVer.MinMuted) {
-        /* empty */
-      } else {
-        const muted = Build.MinCVer < BrowserVer.MinMutedInfo && Build.BTypes & BrowserType.Chrome
-            && CurCVer_ < BrowserVer.MinMutedInfo ? tab.muted : tab.mutedInfo.muted
-        callback = (tab2: Tab): void => {
-          if ((Build.MinCVer < BrowserVer.MinMutedInfo && Build.BTypes & BrowserType.Chrome
-              && CurCVer_ < BrowserVer.MinMutedInfo ? tab2.muted : tab2.mutedInfo.muted) !== muted) {
-            tabsUpdate(tab2.id, { muted })
-          }
-        }
-      }
-      const args: Parameters<BackendHandlersNS.BackendHandlers["reopenTab_"]>[2] = {
-        windowId: tab.windowId,
-        index: tab.index,
-        url: getTabUrl(tab),
-        active: tab.active,
-        pinned: tab.pinned,
-        openerTabId: tab.openerTabId
-      }
-      if (!(Build.BTypes & ~BrowserType.Firefox)
-          || Build.BTypes & BrowserType.Firefox && OnOther & BrowserType.Firefox) {
-        exProps && BgUtils_.extendIf_(args, exProps)
-        // on Firefox 88, if `.cookieStorageId && (create; remove)`, then tab will unexpectedly move right
-        args.index != null && getGroupId(tab) == null && args.index++
-      } else if (args.index != null) {
-        args.index++
-      }
-      openMultiTabs(args as InfoToCreateMultiTab, 1, true, [null], useGroup, tab, callback)
-      browserTabs.remove(tabId);
-      // should never remove its session item - in case that goBack/goForward might be wanted
-      // not seems to need to restore muted status
-    },
-    showHUD_: showHUD,
-    checkHarmfulUrl_ (url: string, port?: Port | null): boolean {
-      url = url.slice(0, 128).split("?")[0].replace(<RegExpG> /\\/g, "/")
-      let bsod = Settings_.payload_.o === kOS.win
-          && (<RegExpOne> /\/globalroot\/device\/condrv|\bdevice\/condrv\/kernelconnect/).test(url)
-      if (bsod) {
-        set_cPort(port || cPort)
-        showHUD(trans_("harmfulURL"))
-      }
-      return bsod
-    },
-    forceStatus_ (act: Frames.ForcedStatusText, tabId?: number): void {
-      const ref = framesForTab.get(tabId || (tabId = TabRecency_.curTab_));
-      if (!ref) { return; }
-      set_cPort(ref.top_ || ref.cur_)
-      let spaceInd = act.search(<RegExpOne> /\/| /), newPassedKeys = spaceInd > 0 ? act.slice(spaceInd + 1) : ""
-      act = act.toLowerCase() as Frames.ForcedStatusText;
-      if (spaceInd > 0) {
-        act = act.slice(0, spaceInd) as Frames.ForcedStatusText;
-      }
-      act.includes("-") && act.endsWith("able") && (act += "d")
-      const silent = !!newPassedKeys && (<RegExpOne> /^silent/i).test(newPassedKeys);
-      newPassedKeys = (silent ? newPassedKeys.slice(7) : newPassedKeys).trim()
-      let shown: BOOL = 0
-      const logAndShow = (msg: string): void => { console.log(msg), shown || showHUD(msg); shown = 1 }
-      if (newPassedKeys && !newPassedKeys.startsWith("^ ")) {
-        logAndShow('"vimium://status" only accepts a list of hooked keys')
-        newPassedKeys = "";
-      } else if (newPassedKeys) {
-        newPassedKeys = newPassedKeys.replace(<RegExpG> /<(\S+)>/g, "$1").replace(BgUtils_.spacesRe_, " ")
-      }
-      let pattern: string | null
-      const curSender = cPort.s, oldStatus = curSender.status_,
-      stdStatus = Backend_.getExcluded_ == null ? Frames.Status.enabled
-          : oldStatus === Frames.Status.partial ? oldStatus
-          : (pattern = Backend_.getExcluded_(curSender.url_, curSender),
-              pattern ? Frames.Status.partial : pattern === null ? Frames.Status.enabled : Frames.Status.disabled),
-      stat = act === "enable" ? Frames.Status.enabled : act === "disable" ? Frames.Status.disabled
-        : act === "toggle-disabled" ? oldStatus !== Frames.Status.disabled
-            ? stdStatus === Frames.Status.disabled ? null : Frames.Status.disabled
-            : stdStatus === Frames.Status.disabled ? Frames.Status.enabled : null
-        : act === "toggle-enabled" ? oldStatus !== Frames.Status.enabled
-            ? stdStatus === Frames.Status.enabled ? null : Frames.Status.enabled
-            : stdStatus === Frames.Status.enabled ? Frames.Status.disabled : null
-        : act === "toggle-next" ? oldStatus === Frames.Status.partial ? Frames.Status.enabled
-            : oldStatus === Frames.Status.enabled ? stdStatus === Frames.Status.disabled ? null : Frames.Status.disabled
-            : stdStatus === Frames.Status.disabled ? Frames.Status.enabled : null
-        : act === "toggle" || act === "next"
-        ? oldStatus !== Frames.Status.enabled ? Frames.Status.enabled : Frames.Status.disabled
-        : (act !== "reset" && logAndShow(`Unknown status action: "${act}", so reset`) , null),
-      enableWithPassedKeys = !!newPassedKeys && act === "enable",
-      locked = stat === null ? Frames.Flags.blank
-          : stat === Frames.Status.disabled ? Frames.Flags.lockedAndDisabled : Frames.Flags.locked,
-      msg: Req.bg<kBgReq.reset> = {
-        N: kBgReq.reset,
-        p: stat === Frames.Status.disabled || enableWithPassedKeys ? newPassedKeys : null,
-        f: locked
-      };
-      // avoid Status.partial even if `newPassedKeys`, to keep other checks about Flags.locked correct
-      let newStatus: Frames.ValidStatus = locked ? stat! : Frames.Status.enabled;
-      ref.lock_ = locked ? { status_: newStatus, passKeys_: msg.p } : null
-      for (const port of ref.ports_) {
-        const sender = port.s
-        if (!locked && Backend_.getExcluded_ !== null) {
-          pattern = msg.p = Backend_.getExcluded_(sender.url_, sender)
-          newStatus = pattern === null ? Frames.Status.enabled : pattern
-            ? Frames.Status.partial : Frames.Status.disabled;
-          if (newStatus !== Frames.Status.partial && sender.status_ === newStatus) { continue; }
-        }
-        // must send "reset" messages even if port keeps enabled by 'v.st enable'
-        // - frontend may need to reinstall listeners
-        sender.status_ = newStatus;
-        port.postMessage(msg);
-      }
-      newStatus = ref.cur_.s.status_
-      silent || shown || showHUD(trans_("newStat", trans_(newStatus === Frames.Status.enabled && !enableWithPassedKeys
-          ? "fullEnabled" : newStatus === Frames.Status.disabled ? "fullDisabled" : "halfDisabled")))
-      if (needIcon_ && newStatus !== oldStatus) {
-        Backend_.setIcon_(tabId, newStatus);
-      }
-    },
+Backend_ = {
+    Settings_: settings_,
+    omniPayload_,
+    contentPayload_,
+    settingsCache_,
+    focusOrLaunch_,
+    shownHash_: () => shownHash_ && shownHash_(),
+    CommandsData_: () => ({ keyFSM_, mappedKeyRegistry_, errors_: keyMappingErrors_, keyToCommandMap_ }),
+    newTabUrls_,
+    extAllowList_,
+    convertToUrl_,
+    lastUrlType_: () => lastUrlType_,
+    evalVimiumUrl_,
+    reformatURL_,
+    parseSearchEngines_,
+    restoreSettings_: () => restoreSettings_,
+    substitute_,
+    isExpectingHidden_: queries => Completion_.isExpectingHidden_!(queries),
+    getPortUrl_,
+    checkHarmfulUrl_,
+    findUrlInText_,
+    parseMatcher_: Exclusions.parseMatcher_,
+    reloadCSS_: reloadCSS_ as BackendHandlersNS.BackendHandlers["reloadCSS_"],
+    runContentScriptsOn_,
     indexPorts_: function (tabId?: number, frameId?: number): Frames.FramesMap | Frames.Frames | Port[] | Port | null {
-      return tabId == null ? framesForTab
-        : frameId == null ? (tabId === GlobalConsts.VomnibarFakeTabId ? framesForOmni : framesForTab.get(tabId) || null)
+      return tabId == null ? framesForTab_
+        : frameId == null ? tabId === GlobalConsts.VomnibarFakeTabId ? framesForOmni_ : framesForTab_.get(tabId) || null
         : indexFrame(tabId, frameId);
     } as BackendHandlersNS.BackendHandlers["indexPorts_"],
-    curTab_: () => TabRecency_.curTab_,
+    curTab_: () => curTabId_,
     onInit_(): void {
-      if (settings.temp_.initing_ !== BackendHandlersNS.kInitStat.FINISHED) { return; }
-      if (!CommandsData_.keyFSM_) {
-        settings.postUpdate_("keyMappings");
-        if (Build.BTypes & ~BrowserType.Edge && contentPayload.o === kOS.mac) {
+      if (bgIniting_ !== BackendHandlersNS.kInitStat.FINISHED) { return }
+      if (!keyFSM_) {
+        settings_.postUpdate_("keyMappings")
+        if (!OnEdge && contentPayload_.o === kOS.mac) {
           visualKeys_["m-s-c"] = VisualAction.YankRichText
         }
       }
       // the line below requires all necessary have inited when calling this
       Backend_.onInit_ = null;
-      settings.get_("hideHud", true);
-      settings.get_("nextPatterns", true);
-      settings.get_("previousPatterns", true);
-      browser_.runtime.onConnect.addListener(function (port): void {
-        if (!(Build.BTypes & ~BrowserType.Edge) || Build.BTypes & BrowserType.Edge && OnOther & BrowserType.Edge) {
+      settings_.get_("hideHud", true)
+      settings_.get_("nextPatterns", true)
+      settings_.get_("previousPatterns", true)
+      settings_.postUpdate_("autoDarkMode")
+      settings_.postUpdate_("autoReduceMotion")
+          browser_.runtime.onConnect.addListener(function (port): void {
+        if (OnEdge) {
           let name = port.name, pos = name.indexOf(PortNameEnum.Delimiter), type = pos > 0 ? name.slice(0, pos) : name;
           port.sender.url = name.slice(type.length + 1);
           return OnConnect(port as Frames.Port, (type as string | number as number) | 0);
         }
         return OnConnect(port as Frames.Port, (port.name as string | number as number) | 0);
       });
-      if (Build.BTypes & BrowserType.Edge && !browser_.runtime.onConnectExternal) {
+      if (OnEdge && !browser_.runtime.onConnectExternal) {
         return;
       }
       browser_.runtime.onConnectExternal!.addListener(function (port): void {
         let { sender, name } = port, arr: string[];
         if (sender && isExtIdAllowed(sender)
             && name.startsWith(PortNameEnum.Prefix) && (arr = name.split(PortNameEnum.Delimiter)).length > 1) {
-          if (arr[1] !== settings.CONST_.GitVer) {
+          if (arr[1] !== CONST_.GitVer) {
             (port as Port).postMessage({ N: kBgReq.injectorRun, t: InjectorTask.reload });
             port.disconnect();
             return;
@@ -295,17 +111,30 @@ globalThis.Backend_ = {
           port.disconnect();
         }
       });
-    }
+    },
+    updateMediaQueries_: MediaWatcher_.RefreshAll_
 };
+if (!Build.NDEBUG) {
+  let lacking: any[] = Object.keys(Backend_).filter(i => Backend_[i as keyof BackendHandlersNS.BackendHandlers] == null)
+  if (lacking.length > 0) {
+    throw new Error("Some functions in Backend_ are not inited: " + lacking.join(", "))
+  }
+  lacking = (bgC_ as { [K: number]: any } as any[]).map((i, ind) => !!i ? -1 : ind).filter(i => i >= 0)
+  if (lacking.length > 0) {
+    throw new Error("Some functions in bgC_ are not inited: " + lacking.join(", "))
+  }
+  lacking = (reqH_ as { [K: number]: any } as any[]).map((i, ind) => !!i ? -1 : ind).filter(i => i >= 0)
+  if (lacking.length > 0) {
+    throw new Error("Some functions in reqH_ are not inited: " + lacking.join(", "))
+  }
+}
 
-(Build.BTypes & BrowserType.Edge || Build.BTypes & BrowserType.Firefox && Build.MayAndroidOnFirefox)
-    && !chrome.commands ||
-(chrome.commands.onCommand as chrome.events.Event<
+(OnEdge || OnFirefox && Build.MayAndroidOnFirefox) && !browser_.commands ||
+(browser_.commands.onCommand as chrome.events.Event<
       (command: StandardShortcutNames | kShortcutAliases & string, exArg: FakeArg) => void
     >).addListener(executeShortcutEntry);
 
-(!(Build.BTypes & BrowserType.Edge) || browser_.runtime.onMessageExternal) &&
-(browser_.runtime.onMessageExternal!.addListener((
+OnEdge || (browser_.runtime.onMessageExternal!.addListener((
       message: boolean | number | string | null | undefined | ExternalMsgs[keyof ExternalMsgs]["req"]
       , sender, sendResponse): void => {
     if (!isExtIdAllowed(sender)) {
@@ -331,65 +160,81 @@ globalThis.Backend_ = {
         name: "Vimium C",
         host: location.host,
         shortcuts: true,
-        injector: settings.CONST_.Injector_,
-        version: settings.CONST_.VerCode_
+        injector: CONST_.Injector_,
+        version: CONST_.VerCode_
       });
       break;
     case kFgReq.inject:
       (sendResponse as (res: ExternalMsgs[kFgReq.inject]["res"]) => void | 1)({
-        s: message.scripts ? settings.CONST_.ContentScripts_ : null,
-        version: settings.CONST_.VerCode_,
-        host: !(Build.BTypes & ~BrowserType.Chrome) ? "" : location.host,
-        h: PortNameEnum.Delimiter + settings.CONST_.GitVer
+        s: message.scripts ? CONST_.ContentScripts_ : null,
+        version: CONST_.VerCode_,
+        host: OnChrome ? "" : location.host,
+        h: PortNameEnum.Delimiter + CONST_.GitVer
       });
       break;
     case kFgReq.command:
       executeExternalCmd(message, sender)
       break;
     }
-}), settings.postUpdate_("extAllowList"))
+}), settings_.postUpdate_("extAllowList"))
 
-browserTabs.onReplaced.addListener((addedTabId, removedTabId) => {
-    const frames = framesForTab.get(removedTabId)
+Tabs_.onReplaced.addListener((addedTabId, removedTabId) => {
+    const frames = framesForTab_.get(removedTabId)
     if (!frames) { return; }
-    framesForTab.delete(removedTabId)
-    framesForTab.set(addedTabId, frames)
+    framesForTab_.delete(removedTabId)
+    framesForTab_.set(addedTabId, frames)
     for (const port of frames.ports_) {
       (port.s as Writable<Frames.Sender>).tabId_ = addedTabId;
     }
 });
 
-if (settings.storage_.getItem("exclusionRules") !== "[]") {
-  Exclusions.setRules_(settings.get_("exclusionRules"))
-}
+settings_.postUpdate_("vomnibarOptions")
+settings_.postUpdate_("vomnibarPage", null)
+settings_.postUpdate_("searchUrl", null) // will also update newTabUrl
 
-settings.updateHooks_.showActionIcon = (value): void => { set_needIcon_(value && !!browser_.browserAction) }
+Completion_.filter_ = (a, b, c): void => { setTimeout(() => { Completion_.filter_(a, b, c) }, 210) }
 
-  settings.postUpdate_("vomnibarPage", null);
-  settings.postUpdate_("searchUrl", null); // will also update newTabUrl
-  settings.postUpdate_("vomnibarOptions");
+OnFirefox && watchPermissions_([{ permissions: ["cookies"] }], (allowed): void => {
+  set_hasGroupPermission_ff_(allowed[0]!)
+})
+
+set_bgIniting_(bgIniting_ | BackendHandlersNS.kInitStat.main)
+
+Backend_.onInit_!()
+
+setTimeout((): void => {
+  setTimeout((): void => {
+    import("/background/browsing_data_manager.js" as any)
+    import("/background/completion_utils.js" as any)
+    import("/background/completion.js" as any)
+  }, 400)
+  import("/background/others.js" as any)
+
+  browser_.extension.isAllowedIncognitoAccess((isAllowedAccess): void => {
+    CONST_.DisallowIncognito_ = isAllowedAccess === false
+  })
+}, 200)
 
   // will run only on <kbd>F5</kbd>, not on runtime.reload
-window.onunload = (event): void => {
-    if (event
-        && (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
+globalThis.onunload = (event): void => {
+    if (event && (!OnChrome || Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted
             ? !event.isTrusted : event.isTrusted === false)) { return; }
-    framesForTab.set("-1" as string | number as number, { ports_: framesForOmni } as Frames.Frames)
-    framesForTab.forEach((frames): void => {
-      for (let port of frames.ports_) {
+    for (let port of framesForOmni_) {
+      port.disconnect()
+    }
+    framesForTab_.forEach((frames): void => {
+      for (let port of frames.ports_.slice(0)) {
         port.disconnect();
       }
     })
 }
+if (!globalThis.window) { (globalThis as any).onclose = onunload }
 
-if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
-    || Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
+if (OnFirefox && !Build.NativeWordMoveOnFirefox
+    || OnChrome && Build.MinCVer < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
       && Build.MinCVer < BrowserVer.MinSelExtendForwardOnlySkipWhitespaces) {
-  ( (Build.BTypes & BrowserType.Firefox && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox))
-    ? !Build.NativeWordMoveOnFirefox
-      && !BgUtils_.makeRegexp_("\\p{L}", "u", 0)
-    : Build.BTypes & ~BrowserType.Chrome && (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome)
-      ? false
+  ( OnFirefox ? !Build.NativeWordMoveOnFirefox && !BgUtils_.makeRegexp_("\\p{L}", "u", 0)
+    : !OnChrome ? false
     : Build.MinCVer < BrowserVer.MinSelExtendForwardOnlySkipWhitespaces
       && Build.MinCVer < BrowserVer.MinMaybeUnicodePropertyEscapesInRegExp
       && (BrowserVer.MinSelExtendForwardOnlySkipWhitespaces < BrowserVer.MinMaybeUnicodePropertyEscapesInRegExp
@@ -398,7 +243,7 @@ if (Build.BTypes & BrowserType.Firefox && !Build.NativeWordMoveOnFirefox
           ? BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp : BrowserVer.MinSelExtendForwardOnlySkipWhitespaces)
         : CurCVer_ < BrowserVer.MinMaybeUnicodePropertyEscapesInRegExp
           || !BgUtils_.makeRegexp_("\\p{L}", "u", 0))
-  ) ? settings.fetchFile_("words", (text): void => {
+  ) ? BgUtils_.fetchFile_(CONST_.words).then((text): void => {
     set_visualWordsRe_(text.replace(<RegExpG> /[\n\r]/g, "")
         .replace(<RegExpG & RegExpSearchable<1>> /\\u(\w{4})/g, (_, s1) => String.fromCharCode(+("0x" + s1))))
   }) : set_visualWordsRe_("")

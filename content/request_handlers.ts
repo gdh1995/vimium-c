@@ -6,9 +6,9 @@ import {
 } from "../lib/utils"
 import { set_keyIdCorrectionOffset_old_cr_, handler_stack } from "../lib/keyboard_utils"
 import {
-  editableTypes_, markFramesetTagUnsafe_old_cr, OnDocLoaded_, BU, notSafe_not_ff_,
+  editableTypes_, markFramesetTagUnsafe_old_cr, OnDocLoaded_, BU, notSafe_not_ff_, docHasFocus_, deepActiveEl_unsafe_,
   htmlTag_, querySelector_unsafe_, isHTML_, createElement_, setClassName_s,
-  docEl_unsafe_, scrollIntoView_, activeEl_unsafe_, CLK, ElementProto, isIFrameElement, DAC, removeEl_s, toggleClass_s
+  docEl_unsafe_, scrollIntoView_, CLK, ElementProto, isIFrameElement, DAC, removeEl_s, toggleClass_s
 } from "../lib/dom_utils"
 import {
   port_callbacks, post_, safePost, set_requestHandlers, requestHandlers, hookOnWnd, set_hookOnWnd,
@@ -77,6 +77,7 @@ set_requestHandlers([
     requestHandlers[kBgReq.init] = null as never;
     OnDocLoaded_(function (): void {
       set_onWndFocus(safePost.bind(0, <Req.fg<kFgReq.onFrameFocused>> { H: kFgReq.onFrameFocused }))
+      isTop || docHasFocus_() && onWndFocus()
       timeout_(function (): void {
         const parApi = getParentVApi(),
         oldSet = clickable_ as any as Element[] & Set<Element>,
@@ -220,14 +221,14 @@ set_requestHandlers([
     let n = parseInt(currentKeys, 10) || 1, count2: 0 | 1 | 2 | 3 = 0;
     esc!(HandlerResult.Nothing);
     exitGrab();
-    if (!OnChrome && request.m) {
+    if (request.m) {
       const now = getTime(), result = confirm(request.m);
       count2 = math.abs(getTime() - now) > 9 ? result ? 3 : 1 : 2
     }
     post_({ H: kFgReq.cmd, c: request.c, n, i: request.i, r: count2 });
   },
   /* kBgReq.queryForRunAs: */ (request: BgReq[kBgReq.queryForRunKey]): void => {
-    const lock = (OnFirefox ? insert_Lock_() : raw_insert_lock) || activeEl_unsafe_()
+    const lock = (OnFirefox ? insert_Lock_() : raw_insert_lock) || deepActiveEl_unsafe_() || doc.body
     post_({ H: kFgReq.respondForRunKey, r: request,
       e: lock && (OnFirefox || !notSafe_not_ff_!(lock))
           && [(lock as SafeElement).localName, lock.id, lock.className] || 0
@@ -284,8 +285,7 @@ export const focusAndRun = (cmd?: FgCmdAcrossFrames, options?: FgOptions, count?
   set_onWndFocus((): void => { failed = false })
   if (OnFirefox) {
     omni_status === VomnibarStatus.Showing && omni_box!.blur()
-    // cur is safe because on Firefox
-    const cur = activeEl_unsafe_() as SafeElement | null;
+    const cur = deepActiveEl_unsafe_()
     cur && isIFrameElement(cur) && cur.blur()
   }
   focus();

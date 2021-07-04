@@ -1,7 +1,5 @@
 /// <reference path="../lib/base.d.ts" />
 /// <reference path="../background/index.d.ts" />
-/// <reference path="../background/utils.ts" />
-/// <reference path="../background/settings.ts" />
 /* eslint-disable @typescript-eslint/prefer-string-starts-ends-with, @typescript-eslint/prefer-includes */
 (window as PartialOf<typeof globalThis, "VimiumInjector">).VimiumInjector = null
 if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType.Chrome) ? true
@@ -22,7 +20,7 @@ chrome.runtime && chrome.runtime.getManifest && (function () {
   const head = loader.parentElement as HTMLElement
     , scripts: HTMLScriptElement[] = [loader]
     , prefix = chrome.runtime.getURL("")
-    , curPath = location.pathname.toLowerCase()
+    , curPath = location.pathname.replace("/pages/", "").split(".")[0]
     , arr = chrome.runtime.getManifest().content_scripts[0].js;
   if (OnOther !== BrowserType.Edge) {
     for (const src of arr) {
@@ -39,25 +37,18 @@ chrome.runtime && chrome.runtime.getManifest && (function () {
       }
     }, 100);
   }
-  interface BgWindow2 extends Window { Settings_: typeof Settings_ }
   function onLastLoad(): void {
     for (let i = scripts.length; 0 <= --i; ) { scripts[i].remove(); }
-    let bg: BgWindow2;
-    if (OnOther === BrowserType.Firefox && Build.MayOverrideNewTab
-        && (bg = chrome.extension.getBackgroundPage() as BgWindow2)
-        && bg.Settings_ && bg.Settings_.CONST_.OverrideNewTab_
-        && curPath.indexOf("newtab") >= 0) {
-      setTimeout(function (): void {
-        const api = (window as {} as {VApi?: VApiTy}).VApi;
-        api && api.t({ k: kTip.firefoxRefuseURL })
-      }, 100);
+    document.dispatchEvent(new CustomEvent(GlobalConsts.kLoadEvent))
+    if (!Build.NDEBUG) { // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+      (window as any).define && (window as any).define.noConflict()
     }
   }
-  const bg0 = chrome.extension.getBackgroundPage() as BgWindow2;
-  if (bg0 && bg0.Settings_) {
-    bg0.Settings_.updateMediaQueries_();
-    if (curPath.indexOf("options") < 0) {
-      const uiStyles = bg0.Settings_.omniPayload_.s;
+  const bg0 = chrome.extension.getBackgroundPage()
+  if (bg0 && bg0.Backend_) {
+    bg0.Backend_.updateMediaQueries_()
+    if (curPath !== "options") {
+      const uiStyles = bg0.Backend_.omniPayload_.s
       if (uiStyles && ` ${uiStyles} `.indexOf(" dark ") >= 0) {
         const style = document.createElement("style");
         style.textContent = "body { background: #000; color: #aab0b6; }";
@@ -65,17 +56,15 @@ chrome.runtime && chrome.runtime.getManifest && (function () {
       }
     }
   }
-  if (curPath.indexOf("blank") > 0) {
-    if (chrome.i18n.getMessage("lang1")) {
-      let s = (OnOther === BrowserType.Firefox && bg0 && bg0.trans_ || chrome.i18n.getMessage)("vBlank");
-      s && (document.title = s);
+  if (chrome.i18n.getMessage("lang1")) {
+    const s = chrome.i18n.getMessage("v" + curPath)
+    s && (document.title = (curPath !== "blank" ? "Vimium C " : "") + s)
+  }
+  if (!Build.NDEBUG) {
+    (window as any).updateUI = (): void => {
+      chrome.extension.getBackgroundPage()!.Backend_.reloadCSS_(2)
     }
   }
-  (window as {} as {updateUI(): void}).updateUI = function (): void {
-      const settings = (chrome.extension.getBackgroundPage() as BgWindow2).Settings_;
-      delete (settings.cache_ as Partial<SettingsNS.FullCache>).helpDialog
-      settings.reloadCSS_(2)
-  };
   if (!Build.NDEBUG) {
       interface WindowExForDebug extends Window { a: unknown; cb: (i: any) => void }
     (window as WindowExForDebug).a = null;

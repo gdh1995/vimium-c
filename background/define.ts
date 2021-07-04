@@ -1,110 +1,103 @@
 declare var define: any, __filename: string | null | undefined // eslint-disable-line no-var
-declare var trans_: typeof chrome.i18n.getMessage // eslint-disable-line no-var
 
-if (typeof globalThis === "undefined") {
+if (Build.BTypes & (Build.BTypes & BrowserType.ChromeOrFirefox | BrowserType.Edge)
+    && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer < BrowserVer.Min$globalThis)
+    && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer < FirefoxBrowserVer.Min$globalThis)
+    && typeof globalThis === "undefined") {
   (window as any as Writable<typeof globalThis>).globalThis = window as any
-}
-
-if (!Build.BTypes || Build.BTypes & (Build.BTypes - 1)) {
-  globalThis.OnOther = Build.BTypes & BrowserType.Chrome
-      && (typeof browser === "undefined" || (browser && (browser as typeof chrome).runtime) == null
-          || location.protocol.lastIndexOf("chrome", 0) >= 0) // in case Chrome also supports `browser` in the future
-      ? BrowserType.Chrome
-      : Build.BTypes & BrowserType.Edge && !!(window as {} as {StyleMedia: unknown}).StyleMedia ? BrowserType.Edge
-      : Build.BTypes & BrowserType.Firefox ? BrowserType.Firefox
-      : /* an invalid state */ BrowserType.Unknown
-}
-if (Build.BTypes & ~BrowserType.Chrome && (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome)) {
-  globalThis.chrome = browser as typeof chrome
 }
 
 globalThis.Backend_ = null as never
 globalThis.__filename = null
-globalThis.CurCVer_ = Build.BTypes & BrowserType.Chrome ? 0 | (
-    (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)
-    && navigator.appVersion.match(<RegExpOne> /\bChrom(?:e|ium)\/(\d+)/)
-    || [0, BrowserVer.assumedVer])[1] as number : BrowserVer.assumedVer,
-globalThis.IsEdg_ = Build.BTypes & BrowserType.Chrome
-    && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)
-    ? (<RegExpOne> /\sEdg\//).test(navigator.appVersion) : false,
-globalThis.CurFFVer_ = !(Build.BTypes & ~BrowserType.Firefox)
-    || Build.BTypes & BrowserType.Firefox && OnOther === BrowserType.Firefox
-    ? 0 | (navigator.userAgent.match(<RegExpOne> /\bFirefox\/(\d+)/) || [0, FirefoxBrowserVer.assumedVer])[1] as number
-    : FirefoxBrowserVer.assumedVer,
-globalThis.BrowserProtocol_ = Build.BTypes & ~BrowserType.Chrome
-      && (!(Build.BTypes & BrowserType.Chrome) || OnOther !== BrowserType.Chrome)
-    ? Build.BTypes & BrowserType.Firefox
-      && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox) ? "moz"
-    : Build.BTypes & BrowserType.Edge
-      && (!(Build.BTypes & ~BrowserType.Edge) || OnOther === BrowserType.Edge) ? "ms-browser" : "about"
-    : "chrome"
-
-if (Build.BTypes & BrowserType.Chrome && Build.MinCVer <= BrowserVer.FlagFreezeUserAgentGiveFakeUAMajor
-    && CurCVer_ === BrowserVer.FakeUAMajorWhenFreezeUserAgent
-    && (!(Build.BTypes & ~BrowserType.Chrome) || OnOther === BrowserType.Chrome)
-    && matchMedia("(prefers-color-scheme)").matches) {
-  CurCVer_ = BrowserVer.FlagFreezeUserAgentGiveFakeUAMajor
+if (!Build.NDEBUG) {
+  globalThis.As_ = <T> (i: T): T => i
+  globalThis.AsC_ = <T extends kCName> (i: T): T => i
 }
-
-globalThis.trans_ = chrome.i18n.getMessage; // eslint-disable-line no-var
 
 (function (): void {
   type ModuleTy = Dict<any> & { __esModule?: boolean }
-  type RequireTy = (target: string) => ModuleTy
+  type LoadingPromise = Promise<void> & { __esModule?: ModuleTy }
+  type AsyncRequireTy = (target: [string], resolve: (exports: ModuleTy) => void, reject?: (msg: any) => void) => void
+  type FactoryTy = (asyncRequire: AsyncRequireTy, exports: ModuleTy, ...deps: ModuleTy[]) => (() => any) | void
   interface DefineTy {
-    (deps: string[], factory: (require: RequireTy, exports: ModuleTy) => any): any
+    (deps: string[], factory: FactoryTy): void
     amd?: boolean
-    modules_?: Dict<ModuleTy>
+    modules_?: Dict<any>
   }
-  const modules: Dict<ModuleTy> = {}
+  const modules: Dict<ModuleTy | LoadingPromise> = {}
   const getName = (name: string): string => name.slice(name.lastIndexOf("/") + 1).replace(".js", "")
-  const myDefine: DefineTy = (_, factory): void => {
-    const filename = getName(__filename || (document.currentScript as HTMLScriptElement).src)
-    const exports: ModuleTy = modules[filename] && !(modules[filename] instanceof Promise)
-        ? modules[filename]! : (modules[filename] = {})
-    if (!Build.NDEBUG) {
-      (myDefine as any)[filename] = exports
+  const myDefine: DefineTy = (depNames, factory): void => {
+    const name = getName(__filename || (document.currentScript as HTMLScriptElement).src)
+    let exports = modules[name]
+    if (!(Build.NDEBUG || !exports || !exports.__esModule || exports instanceof Promise)) {
+      throw new Error(`module filenames must be unique: duplicated "${name}"`)
     }
-    factory(require, exports)
+    if (exports && exports instanceof Promise) {
+      const promise: LoadingPromise = exports.then((): void => {
+        modules[name] = exports
+        _innerDefine(name, depNames, factory, exports as {})
+      })
+      exports = promise.__esModule = exports.__esModule || {}
+      modules[name] = promise
+    } else {
+      _innerDefine(name, depNames, factory, exports || (modules[name] = {}))
+    }
   }
-  const require = (target: string | string[], resolve?: any): ModuleTy => {
-    if (typeof target === "object") { doImport(target[0], resolve); return {} }
-    target = target.replace(<RegExpG> /\.(\/|js)/g, "")
-    return modules[target] || (modules[target] = {} as ModuleTy)
+  const _innerDefine = (name: string, depNames: string[], factory: FactoryTy, exports: ModuleTy): void => {
+    const obj = factory.bind(null, doImport, exports).apply(null, depNames.slice(2).map(myRequire))
+    if (!(Build.NDEBUG || !obj)) {
+      throw new Error("Unexpected return-style module")
+    }
+    if (!Build.NDEBUG) { (myDefine as any)[name] = exports }
   }
-  const doImport = (path: string, callback: (module: ModuleTy) => void): void => {
+  const myRequire = (name: string): ModuleTy => {
+    name = getName(name)
+    let exports = modules[name]
+    exports = !exports ? modules[name] = {}
+        : exports instanceof Promise ? exports.__esModule || (exports.__esModule = {}) : exports
+    return exports
+  }
+  const doImport: AsyncRequireTy = ([path], callback): void => {
     const name = getName(path)
-    let module: ModuleTy | Promise<ModuleTy> | undefined = modules[name]
-    module || (modules[name] = module = new Promise((resolve, reject): void => {
+    const exports = modules[name] || (modules[name] = new Promise((resolve, reject): void => {
       const script = document.createElement("script")
       script.src = path
       script.onload = (): void => {
-        if (!Build.NDEBUG && modules[name] instanceof Promise) {
-          modules[name] = void 0
-          reject(name + " is not an AMD module!")
-        } else {
-          resolve(modules[name]!); script.remove()
+        if (!(Build.NDEBUG || modules[name] !== exports)) {
+          throw new Error(`The module "${name}" didn't call define()!`)
         }
+        resolve()
+        script.remove()
       }
-      if (!Build.NDEBUG) { script.onerror = (ev) => { modules[name] = void 0; reject(ev.message) } }
+      if (!Build.NDEBUG) { script.onerror = (ev): void => {
+        reject(ev.message)
+        setTimeout((): void => { modules[name] = void 0 }, 1)
+      } }
       document.head!.appendChild(script)
     }))
-    module instanceof Promise ? module.then(callback) : callback(module)
+    exports instanceof Promise ? void exports.then(() => { doImport([path], callback) }) : callback(exports)
   }
   myDefine.amd = true
-  if (!Build.NDEBUG) {
-    myDefine.modules_ = modules
-  }
   globalThis.define = myDefine;
   (globalThis as any).__importStar = (obj: {}): {} => obj
 })()
 
-if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$Array$$find$$findIndex && ![].find) {
-  (function (): void {
-    Array.prototype.find = function (this: any[], cond: (i: any) => boolean): any { return this.filter(cond)[0] } as any
-    if (Build.MinCVer >= BrowserVer.MinSafe$String$$StartsWith || "".includes) {
-      return
+Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES6$Array$$Includes &&
+![].includes && (function (): void {
+    const noArrayFind = ![].find
+    Array.prototype.includes = function (value: any, ind?: number): boolean { return this.indexOf(value, ind) >= 0 }
+    if (!(Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$Array$$find$$findIndex)) { return }
+    if (noArrayFind) {
+      Array.prototype.find = function (this: any[], cond: (i: any, index: number, obj: any[]) => boolean): any {
+        const ind = this.findIndex(cond)
+        return ind >= 0 ? this[ind] : undefined
+      }
+      Array.prototype.findIndex = function (this: any[], cond: (i: any, index: number, obj: any[]) => boolean): any {
+        for (let i = 0; i < this.length; i++) { if (cond(this[i], i, this)) { return i } }
+        return -1
+      }
     }
+    if (Build.MinCVer >= BrowserVer.MinSafe$String$$StartsWith || "".includes) { return }
     const StringCls = String.prototype
     /** startsWith may exist - {@see #BrowserVer.Min$String$$StartsWithEndsWithAndIncludes$ByDefault} */
     if (!"".startsWith) {
@@ -122,11 +115,12 @@ if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$Array$$f
       // eslint-disable-next-line @typescript-eslint/prefer-includes
       return this.indexOf(s, pos) >= 0
     }
-    if (Build.MinCVer < BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol
-        && CurCVer_ < BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol) {
+    if (Build.MinCVer >= BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol) { return }
+    const ver = navigator.appVersion.match(<RegExpOne> /\bChrom(?:e|ium)\/(\d+)/)
+    if (ver && +ver[1] < BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol) {
       const proto = {
         add (k: string): any { this.map_[k] = 1 },
-        clear (): void { this.map_ = BgUtils_.safeObj_<any>() },
+        clear (): void { this.map_ = Object.create(null) },
         delete (k: string): any { delete this.map_[k] },
         forEach (cb): any {
           const isSet = this.isSet_, map = this.map_
@@ -143,14 +137,13 @@ if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$Array$$f
           : (opt: SimulatedMap): void => { Object.setPrototypeOf(opt, proto as any as null) };
       globalThis.Set = function (this: SimulatedMap): any {
         setProto(this)
-        this.map_ = BgUtils_.safeObj_<1>()
+        this.map_ = Object.create(null)
         this.isSet_ = 1
       } as any;
       globalThis.Map = function (this: SimulatedMap): any {
         setProto(this)
-        this.map_ = BgUtils_.safeObj_<any>()
+        this.map_ = Object.create(null)
         this.isSet_ = 0
       } as any
     }
-  })()
-}
+})()

@@ -1,20 +1,20 @@
 import {
-  browserTabs, runtimeError_, getCurTab, getCurShownTabs_ff_only, getCurTabs, tabsGet, getCurWnd
-} from "./browser"
-import {
-  framesForTab, get_cOptions, cPort, cRepeat, reqH_, bgC_, cmdInfo_,
-  set_cOptions, set_cPort, cKey, set_cKey, set_cRepeat, set_cNeedConfirm
+  framesForTab_, get_cOptions, cPort, cRepeat, reqH_, bgC_, cmdInfo_, OnFirefox, set_helpDialogData_, helpDialogData_,
+  set_cOptions, set_cPort, cKey, set_cKey, set_cRepeat, set_cNeedConfirm, curTabId_, OnEdge, keyToCommandMap_
 } from "./store"
+import * as BgUtils_ from "./utils"
+import { Tabs_, runtimeError_, getCurTab, getCurShownTabs_ff_only_, getCurTabs, tabsGet, getCurWnd } from "./browser"
+import { ensureInnerCSS, getPortUrl_, indexFrame, safePost, showHUD } from "./ports"
+import * as Exclusions from "./exclusions"
+import { getI18nJson, trans_ } from "./i18n"
 import {
   shortcutRegistry_, normalizedOptions_, envRegistry_, parseOptions_, normalizeCommand_, availableCommands_,
   makeCommand_
 } from "./key_mappings"
-import { ensureInnerCSS, getPortUrl, indexFrame, safePost, showHUD } from "./ports"
 import C = kBgCmd
 
 const abs = Math.abs
 let _gCmdTimer = 0
-let _confirmationMayFail = 0
 let gOnConfirmCallback: ((force1: boolean, arg?: FakeArg) => void) | null | undefined
 
 /** operate command options */
@@ -69,8 +69,8 @@ const executeCmdOnTabs = (tabs: Tab[] | [Tab] | undefined): void => {
   return tabs ? void 0 : runtimeError_()
 }
 
-const onLargeCountConfirmed = (registryEntry: CommandsNS.Item): void => {
-  executeCommand(registryEntry, 1, cKey, cPort, cRepeat)
+const onLargeCountConfirmed = (registryEntry: CommandsNS.Item, newCount: number): void => {
+  executeCommand(registryEntry, 1, cKey, cPort, newCount)
 }
 
 export const executeCommand = (registryEntry: CommandsNS.Item, count: number, lastKey: kKeyCode, port: Port | null
@@ -84,7 +84,7 @@ export const executeCommand = (registryEntry: CommandsNS.Item, count: number, la
   let options = normalizedOptions_(registryEntry), repeat = registryEntry.repeat_
   // .count may be invalid, if from other extensions
   if (options && (scale = options.$count)) { count = count * scale || 1 }
-  count = Build.BTypes & ~BrowserType.Chrome && overriddenCount
+  count = overriddenCount
     || (count >= GlobalConsts.CommandCountLimit + 1 ? GlobalConsts.CommandCountLimit
         : count <= -GlobalConsts.CommandCountLimit - 1 ? -GlobalConsts.CommandCountLimit
         : (count | 0) || 1)
@@ -93,19 +93,14 @@ export const executeCommand = (registryEntry: CommandsNS.Item, count: number, la
   else if (repeat > 0 && (count > repeat || count < -repeat)) {
     if (fallbackCounter != null) {
       count = count < 0 ? -1 : 1
-    } else if (Build.BTypes & ~BrowserType.Chrome) {
-      if (!overriddenCount) {
+    } else if (!overriddenCount) {
         set_cKey(lastKey)
         set_cOptions(null)
         set_cPort(port!)
         set_cRepeat(count)
-        confirm_<kCName, 1>(registryEntry.command_, abs(count),
-        (/*#__NOINLINE__*/ onLargeCountConfirmed).bind(null, registryEntry))
+        void confirm_<kCName, 1>(registryEntry.command_, count)
+        .then((/*#__NOINLINE__*/ onLargeCountConfirmed).bind(null, registryEntry))
         return
-      }
-    } else {
-      count = confirm_<kCName, 1>(registryEntry.command_, abs(count))! * (count < 0 ? -1 : 1)
-      if (!count) { return }
     }
   } else { count = count || 1 }
   if (fallbackCounter != null) {
@@ -148,7 +143,7 @@ export const executeCommand = (registryEntry: CommandsNS.Item, count: number, la
   } else {
     gOnConfirmCallback = func as BgCmdCurWndTabs<kBgCmd> as any;
     (count < kCmdInfo.CurWndTabsIfRepeat || count === kCmdInfo.CurWndTabsIfRepeat && abs(cRepeat) < 2 ? getCurTab
-        : Build.BTypes & BrowserType.Firefox && count > kCmdInfo.CurWndTabs ? getCurShownTabs_ff_only!
+        : OnFirefox && count > kCmdInfo.CurWndTabs ? getCurShownTabs_ff_only_!
         : getCurTabs)(/*#__NOINLINE__*/ executeCmdOnTabs)
   }
 }
@@ -158,45 +153,44 @@ export const executeCommand = (registryEntry: CommandsNS.Item, count: number, la
 /** 0=cancel, 1=force1, count=accept */
 export const confirm_ = <T extends kCName, force extends BOOL = 0> (
     command: CmdNameIds[T] extends kBgCmd ? T : force extends 1 ? kCName : never
-    , count: number, callback?: (_arg?: FakeArg) => void): number | void => {
+    , askedCount: number): Promise<number> => {
   if (!(Build.NDEBUG || !command.includes("."))) {
     console.log("Assert error: command should has no limit on repeats: %c%s", "color:red", command)
   }
-  let msg = trans_("cmdConfirm", [count, trans_(command)])
-  if (!(Build.BTypes & BrowserType.Chrome) || Build.BTypes & ~BrowserType.Chrome && OnOther !== BrowserType.Chrome) {
-    if (cPort) {
-      gOnConfirmCallback = onConfirmWrapper.bind(0, get_cOptions() as any, cRepeat, cPort, callback!)
-      setupSingletonCmdTimer(setTimeout(onConfirm, 3000, 0));
-      (indexFrame(cPort.s.tabId_, 0) || cPort).postMessage({
-        N: kBgReq.count, c: "", i: _gCmdTimer, m: msg
-      })
-    } else {
-      gOnConfirmCallback = null // clear old commands
-    }
-    return
+  if (!cPort) {
+    gOnConfirmCallback = null // clear old commands
+    return Promise.resolve(askedCount > 0 ? 1 : -1)
   }
-  const now = Date.now(), result = window.confirm(msg)
-  return Math.abs(Date.now() - now) > 9 ? result ? count : 0
-      : (Build.NDEBUG || _confirmationMayFail || (_confirmationMayFail = 1,
-          console.log("A confirmation dialog may fail in showing.")), 1)
+  if (!helpDialogData_ || !helpDialogData_[1]) {
+    return getI18nJson("help_dialog").then<number>(dict => {
+      helpDialogData_ ? helpDialogData_[1] = dict : set_helpDialogData_([null, dict, null])
+      return confirm_(command, askedCount)
+    })
+  }
+  let msg = trans_("cmdConfirm", [abs(askedCount), helpDialogData_[1][command] || `### ${command} ###`])
+  const { promise_, resolve_ } = BgUtils_.deferPromise_<number>()
+  const countToReplay = cRepeat, bakOptions = get_cOptions() as any, bakPort = cPort
+  setupSingletonCmdTimer(setTimeout(onConfirm, 3000, 0))
+  gOnConfirmCallback = (cancel: boolean): void => {
+    if (cancel) { return }
+    set_cKey(kKeyCode.None)
+    set_cOptions(bakOptions)
+    set_cPort(bakPort)
+    resolve_(countToReplay)
+  }
+  (framesForTab_.get(cPort.s.tabId_)?.top_ || cPort).postMessage({
+    N: kBgReq.count, c: "", i: _gCmdTimer, m: msg
+  })
+  return promise_
 }
 
-const onConfirmWrapper = (bakOptions: SafeObject, count: number, port: Port
-    , callback: (arg?: FakeArg) => void, force1?: boolean): void => {
-  force1 || set_cKey(kKeyCode.None)
-  set_cOptions(bakOptions)
-  set_cRepeat(force1 ? count > 0 ? 1 : -1 : count)
-  set_cPort(port)
-  callback()
-}
-
-export const onConfirm = (response: FgReq[kFgReq.cmd]["r"]): void => {
+const onConfirm = (response: FgReq[kFgReq.cmd]["r"]): void => {
   const callback = gOnConfirmCallback
   gOnConfirmCallback = null
   if (response > 1 && callback) {
     set_cNeedConfirm(0)
     callback(response < 3)
-    set_cNeedConfirm(1)
+    BgUtils_.nextTick_((): void => { set_cNeedConfirm(1) })
   }
 }
 
@@ -242,9 +236,7 @@ export const executeShortcut = (shortcutName: StandardShortcutNames, ref: Frames
   let registry = shortcutRegistry_!.get(shortcutName)!, cmdName = registry.command_,
   cmdFallback: keyof BgCmdOptions = 0
   if (cmdName === "goBack" || cmdName === "goForward") {
-    if (Build.BTypes & ~BrowserType.Edge
-        && (!(Build.BTypes & BrowserType.Edge) || OnOther !== BrowserType.Edge)
-        && browserTabs.goBack) {
+    if (!OnEdge && Tabs_.goBack) {
       cmdFallback = kBgCmd.goBackFallback
     }
   } else if (cmdName === "autoOpen") {
@@ -282,7 +274,7 @@ export const executeExternalCmd = (
   if (!description) { return; }
   let ref: Frames.Frames | undefined
   const port: Port | null = sender.tab ? indexFrame(sender.tab.id, sender.frameId || 0)
-      || (ref = framesForTab.get(sender.tab.id), ref ? ref.cur_ : null) : null
+      || (ref = framesForTab_.get(sender.tab.id), ref ? ref.cur_ : null) : null
   if (!port && !description[1]) { /** {@link index.d.ts#CommandsNS.FgDescription} */
     return;
   }
@@ -302,11 +294,6 @@ export const executeExternalCmd = (
 
 declare const enum EnvMatchResult { abort, nextEnv, matched }
 
-export const normalizeClassesToMatch = (s: string): string => {
-  s = s && ` ${s.trim().split(<RegExpG> /[.\s]+/g).sort().join(" ").trim()} `
-  return s && ` ${s} `
-}
-
 const matchEnvRule = (rule: CommandsNS.EnvItem, info: CurrentEnvCache): EnvMatchResult => {
   // avoid sending messages to content scripts - in case a current tab is running slow
   let host = rule.host, iframe = rule.iframe, fullscreen = rule.fullscreen, elSelector = rule.element
@@ -321,12 +308,13 @@ const matchEnvRule = (rule: CommandsNS.EnvItem, info: CurrentEnvCache): EnvMatch
     let url: string | null | undefined | Promise<string> = info.url
     if (url == null && host.t === kMatchUrl.StringPrefix
         && host.v.indexOf("/", host.v.indexOf("://") + 3) === host.v.length - 1) {
-      const port = indexFrame(cPort ? cPort.s.tabId_ : TabRecency_.curTab_, 0) || cPort
+      const port = framesForTab_.get(cPort ? cPort.s.tabId_ : curTabId_)?.top_ || cPort
       url = port ? port.s.url_ : null
     }
-    if (url == null && (url = getPortUrl(null, true)) instanceof Promise) {
+    if (url == null && (url = getPortUrl_(null, true)) instanceof Promise) {
       void url.then((s): void => {
-        info.url = s || (cPort ? (indexFrame(cPort.s.tabId_, 0) || cPort).s.url_ : /** should not reach here */ "")
+        info.url = s || (cPort ? (framesForTab_.get(cPort.s.tabId_)?.top_ || cPort).s.url_
+            : /** should not reach here */ "")
         runKeyWithCond(info)
       })
       return EnvMatchResult.abort
@@ -363,7 +351,7 @@ const matchEnvRule = (rule: CommandsNS.EnvItem, info: CurrentEnvCache): EnvMatch
       s && selectorArr.push({
         tag: s.slice(0, hash < 0 ? dot < 0 ? len : dot : dot < 0 ? hash : Math.min(dot, hash)),
         id: hash >= 0 ? s.slice(hash + 1, dot > hash ? dot : len) : "",
-        className: normalizeClassesToMatch(dot >= 0 ? s.slice(dot + 1, hash > dot ? hash : len) : ""),
+        className: BgUtils_.normalizeClassesToMatch_(dot >= 0 ? s.slice(dot + 1, hash > dot ? hash : len) : "")
       })
       return s === "*" || s.includes(" ")
     }) ? (selectorArr.length = 0, "*") : selectorArr)
@@ -372,7 +360,7 @@ const matchEnvRule = (rule: CommandsNS.EnvItem, info: CurrentEnvCache): EnvMatch
     else if (cur == null) {
       cPort && safePost(cPort, { N: kBgReq.queryForRunKey, n: performance.now(), c: info })
       return EnvMatchResult.abort
-    } else if (cur === 0 || ! selectorArr.some((s): any =>
+    } else if (! selectorArr.some((s): any => cur === 0 ? s.tag === "body" && !s.id && !s.className :
         (!s.tag || cur[0] === s.tag) && (!s.id || cur[1] === s.id) && (!s.className || cur[2].includes(s.className))
     )) {
       return EnvMatchResult.nextEnv
@@ -383,12 +371,12 @@ const matchEnvRule = (rule: CommandsNS.EnvItem, info: CurrentEnvCache): EnvMatch
 
 export const runKeyWithCond = (info?: CurrentEnvCache): void => {
   let expected_rules = get_cOptions<kBgCmd.runKey>().expect
-  const absCRepeat = Math.abs(cRepeat)
+  const absCRepeat = abs(cRepeat)
   let matchedIndex: number | string = -1
   let matchedRule: KnownOptions<kBgCmd.runKey> | CommandsNS.EnvItem | CommandsNS.EnvItemWithKeys
       = get_cOptions<kBgCmd.runKey, true>()
   let keys: string | string[] | null | undefined
-  const frames = framesForTab.get(cPort ? cPort.s.tabId_ : TabRecency_.curTab_)
+  const frames = framesForTab_.get(cPort ? cPort.s.tabId_ : curTabId_)
   if (!cPort) {
     set_cPort(frames ? frames.cur_ : null as never)
   }
@@ -494,10 +482,8 @@ const runKeyWithOptions = (key: string, countScale: number, exOptions?: Commands
     key = key.slice(prefix.length)
     count = prefix !== "-" ? parseInt(prefix, 10) || 1 : -1
   }
-  let registryEntry = Build.BTypes & BrowserType.Chrome
-      && Build.MinCVer < BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol && key === "__proto__" ? null
-      : CommandsData_.keyToCommandRegistry_.get(key)
-  if (!registryEntry) {
+  let registryEntry = key !== "__proto__" ? keyToCommandMap_.get(key) : null
+  if (registryEntry == null) {
     showHUD(`the "${key}" has not been mapped`)
     return
   } else if (registryEntry.alias_ === kBgCmd.runKey && registryEntry.background_) {
@@ -551,14 +537,14 @@ export const runNextCmd = <T extends KeysWithFallback<BgCmdOptions> = never> (
   return runNextCmdBy(useThen, get_cOptions<T, true>() as Req.FallbackOptions)
 }
 
-export const runNextCmdBy = (useThen: BOOL, options: Req.FallbackOptions, timeout?: number): boolean => {
+export const runNextCmdBy = (useThen: BOOL, options: Req.FallbackOptions, timeout?: number | null): boolean => {
   const nextKey = useThen ? options.$then : options.$else
   const hasFallback = !!nextKey && typeof nextKey === "string"
   if (hasFallback) {
-    const fStatus: NonNullable<FgReq[kFgReq.key]["f"]> = { c: options.$f! | 0, r: options.$retry, u: false }
+    const fStatus: NonNullable<FgReq[kFgReq.key]["f"]> = { c: options.$f! | 0, r: options.$retry, u: false, w: 0 }
     setTimeout((): void => {
-      const frames = framesForTab.get(TabRecency_.curTab_),
-      port = cPort && cPort.s.tabId_ === TabRecency_.curTab_ && frames && frames.ports_.indexOf(cPort) > 0 ? cPort
+      const frames = framesForTab_.get(curTabId_),
+      port = cPort && cPort.s.tabId_ === curTabId_ && frames && frames.ports_.indexOf(cPort) > 0 ? cPort
           : !frames ? null : frames.cur_.s.status_ === Frames.Status.disabled
           && frames.ports_.filter(i => i.s.status_ !== Frames.Status.disabled)
               .sort((a, b) => a.s.frameId_ - b.s.frameId_)[0] || frames.cur_
@@ -585,19 +571,20 @@ export const runNextOnTabLoaded = (options: OpenUrlOptions | Req.FallbackOptions
     if (isTimedOut || tab1.status === "complete") {
       // not check injection status - let the command of `wait for="ready"` check it
       // so some commands not using cPort can run earlier
-      if (callback && !isTimedOut && !framesForTab.has(tab1.id)) {
+      if (callback && !isTimedOut && !framesForTab_.has(tab1.id)) {
         return
       }
       setupSingletonCmdTimer(0)
+      gOnConfirmCallback = null
       callback && callback()
       nextKey && runNextCmdBy(1, options as {}, callback ? 67 : 0)
     }
   }
   const timeout = targetTab !== false ? 1500 : 500
-  let tabId = targetTab ? targetTab.id : targetTab !== false ? GlobalConsts.TabIdNone : TabRecency_.curTab_,
+  let tabId = targetTab ? targetTab.id : targetTab !== false ? GlobalConsts.TabIdNone : curTabId_,
   start = Date.now()
   setupSingletonCmdTimer(setInterval((): void => {
-    tabsGet(tabId !== GlobalConsts.TabIdNone ? tabId : TabRecency_.curTab_, onTimer)
+    tabsGet(tabId !== GlobalConsts.TabIdNone ? tabId : curTabId_, onTimer)
   }, 100)) // it's safe to clear an interval using `clearTimeout`
 }
 
@@ -608,6 +595,6 @@ export const waitAndRunKeyReq = (request: WithEnsured<FgReq[kFgReq.key], "f">, p
   if (request.f.u) {
     runNextOnTabLoaded(fallback, null)
   } else {
-    runNextCmdBy(1, fallback)
+    runNextCmdBy(1, fallback, request.f.w)
   }
 }

@@ -40,8 +40,13 @@
 /** @type {FileSystem} */
 // @ts-ignore
 var fs = require("fs");
-var fsPath = require("path");
-var projectRoot = fsPath.dirname(fsPath.dirname(__filename)).replace(/\\/g, "/");
+// @ts-ignore
+var pathDirname = require("path").dirname
+/** @type {string} */
+// @ts-ignore
+var projectRoot = pathDirname(pathDirname(__filename)).replace(/\\/g, "/")
+/** @type { { [func in "log" | "warn"]: (...messages: any[]) => unknown } } */
+var console = globalThis.console
 
 /**
  * Read file to string and remember info like BOM (support utf-8 / utf16le)
@@ -342,11 +347,12 @@ exports.logFileSize = (filePath, logger) => {
  * @param {string} data
  * @return {string}
  */
+const kFilenameHeader = '"use strict";\n__filename = '
 exports.addMetaData = (path, data) => {
-  const isAMDModule = /define\(|\(factory|\(function ?\(factory\)/.test(data.slice(0, 1024))
-  if (!isAMDModule || data.startsWith("__filename = ")) { return data; }
+  const isAMDModule = /^define\(\[/m.test(data.slice(0, 512))
+  if (!isAMDModule || data.startsWith(kFilenameHeader)) { return data }
   path = path.replace(/\\/g, "/").replace(projectRoot, "").replace(/^\//, "")
-  var banner = "__filename = " + JSON.stringify(path) + ";\n"
+  var banner = kFilenameHeader + JSON.stringify(path) + ";\n"
   return banner + data;
 }
 
@@ -386,27 +392,45 @@ var tsPatched = ""
 /** @argument {string} path */
 exports.patchTypeScript = (path) => {
   if (tsPatched && tsPatched === path) { return }
-  let todo = 1
+  let todo = 2
   let code = fs.readFileSync(path).toString("utf8")
   const oldSize = code.length
   {
     const start = code.indexOf("function convertIterationStatementBodyIfNecessary(")
     const slice = start > 0 ? code.substr(start, 4096) : ""
-    const ind1 = slice.includes("ts.allowForOf") ? (todo--, -1)
+    const ind1 = slice.includes("ts.allowForOf") ? (todo--, -2)
         : slice.indexOf("{", 0)
     if (ind1 > 0) {
       code = code.slice(0, start + ind1 + 1)
           + "\n            convert = ts.allowForOf ? null : convert;"
           + code.slice(start + ind1 + 1)
       todo--
+    } else if (ind1 === -1) {
+      throw new Error("Can not patch convertIterationStatementBodyIfNecessary in TypeScript")
     }
   }
+  {
+    const start = code.indexOf("function emitCallExpression(")
+    const slice = start > 0 ? code.substr(start, 512) : ""
+    const ind1 = slice.includes("indirectCall = 0; //") ? (todo--, -2)
+        : slice.indexOf("indirectCall = ts.getEmitFlags(", 0)
+    if (ind1 > 0) {
+      const pos = start + ind1 + "indirectCall = ".length
+      code = code.slice(0, pos) + "0; // " + code.slice(pos)
+      todo--
+    } else if (ind1 === -1) {
+      throw new Error("Can not patch IndirectCall in TypeScript")
+    }
+  }
+  let name = path.replace(/\\/g, "/")
+  name = name.toLowerCase().includes("typescript/lib") ? "TypeScript/lib/" + name.split("/").slice(-1)[0]
+      : name.split("node_modules/").slice(-1)[0]
   if (code.length !== oldSize) {
-    require("fancy-log")("Patch TypeScript/lib/typescript.js: succeed")
+    require("fancy-log")(`Patch ${name}: succeed`)
     fs.writeFileSync(path, code)
     tsPatched = path
   } else if (todo) {
-    throw new Error("Can not patch TypeScript/lib/typescript.js")
+    throw new Error("Can not patch " + name)
   }
 }
 
@@ -478,7 +502,8 @@ exports.patchTerser = () => {
     }
   }
   if (mod) {
-    require("fs").writeFileSync(path, JSON.stringify(terserPackage, null, 2))
+    fs.writeFileSync(path, JSON.stringify(terserPackage, null, 2))
+    // @ts-ignore
     delete require.cache[require("path").resolve(path)]
     var ver = ""
     try {
@@ -498,6 +523,7 @@ const BrowserType = exports.BrowserType = {
   Chrome: 1,
   Firefox: 2,
   Edge: 4,
+  Safari: 8,
   WithDialog: 3,
 }
 

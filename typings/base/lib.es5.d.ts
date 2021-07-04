@@ -1461,7 +1461,7 @@ declare type PropertyDecorator = (target: Object, propertyKey: string) => void;
 declare type MethodDecorator = <T>(target: Object, propertyKey: string, descriptor: TypedPropertyDescriptor<T>) => TypedPropertyDescriptor<T> | void;
 declare type ParameterDecorator = (target: Object, propertyKey: string, parameterIndex: number) => void;
 
-declare type PromiseConstructorLike = new <T>(executor: (resolve: (value: T | PromiseLike<T>) => void, reject: (reason?: any) => void) => void) => PromiseLike<T>;
+declare type PromiseConstructorLike = new <T>(executor: (resolve: (value: T) => void, reject: (reason?: any) => void) => void) => PromiseLike<T>
 
 interface PromiseLike<T> {
     /**

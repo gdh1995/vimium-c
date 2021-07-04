@@ -1,4 +1,12 @@
-BgUtils_.timeout_(1000, (): void => {
+import {
+  blank_, set_sync_, sync_, restoreSettings_, set_restoreSettings_, contentPayload_, OnChrome, OnEdge,
+  hasEmptyLocalStorage_, set_backupToLocal_, backupToLocal_
+} from "./store"
+import { browser_, runtimeError_ } from "./browser"
+import * as BgUtils_ from "./utils"
+import * as settings_ from "./settings"
+
+import SettingsWithDefaults = SettingsNS.SettingsWithDefaults
 
 type SettingsToSync = SettingsNS.PersistentSettings
 type SettingsToUpdate = { [key in keyof SettingsToSync]?: SettingsToSync[key] | null }
@@ -13,6 +21,7 @@ const doNotSync: PartialTypedSafeEnum<SettingsToSync> = BgUtils_.safer_({
   findModeRawQueryList: 1, innerCSS: 1, keyboard: 1, newTabUrl_f: 1
   , vomnibarPage_f: 1
 } as const)
+const browserStorage_ = browser_.storage
 
 let __sync: chrome.storage.StorageArea | undefined
 let to_update: SettingsToUpdate | null = null
@@ -24,7 +33,7 @@ let cachedSync: SettingsWithDefaults["vimSync"]
 
 const storage = (): chrome.storage.StorageArea & {
   onChanged?: chrome.events.Event<(changes: EnsuredDict<StorageChange>, exArg: FakeArg) => void>
-} => __sync || (__sync = chrome.storage && chrome.storage.sync)
+} => __sync || (__sync = browserStorage_ && browserStorage_.sync)
 
 const HandleSyncAreaUpdate = (changes: EnsuredDict<StorageChange>): void => {
   HandleStorageUpdate(changes, "sync")
@@ -46,7 +55,7 @@ const HandleStorageUpdate = (changes: EnsuredDict<StorageChange>, area: string |
     }
   }
   BgUtils_.safer_(changes)
-  const needToRestoreFirst = Settings_.restore_ && Settings_.restore_()
+  const needToRestoreFirst = restoreSettings_ && restoreSettings_()
   if (needToRestoreFirst) {
     changes_to_merge && BgUtils_.extendIf_(changes, changes_to_merge)
     changes_to_merge = changes
@@ -69,14 +78,14 @@ const HandleStorageUpdate = (changes: EnsuredDict<StorageChange>, area: string |
   }
 }
 
-const log = function (... _: any[]): void {
+const log: (... _: any[]) => void = function (): void {
   console.log.apply(console, [new Date().toLocaleString()].concat.call([].slice.call(arguments as any, 0)) as any)
 }
 
 /** return `8` only when expect a valid `map` */
 const storeAndPropagate = (key: string, value: any, map?: Dict<any>): void | 8 => {
-  if (!(key in Settings_.defaults_) || key in Settings_.nonPersistent_ || !shouldSyncKey(key)) { return }
-  const defaultVal = Settings_.defaults_[key]
+  if (!(key in settings_.defaults_) || key in settings_.nonPersistent_ || !shouldSyncKey(key)) { return }
+  const defaultVal = settings_.defaults_[key]
   const serialized = value && typeof value === "object"
       && (value as Partial<SerializationMetaData | SingleSerialized>).$_serialize || ""
   if (serialized) {
@@ -94,7 +103,7 @@ const storeAndPropagate = (key: string, value: any, map?: Dict<any>): void | 8 =
     }
     return
   }
-  let curVal = restoringPromise ? defaultVal : Settings_.get_(key)
+  let curVal = restoringPromise ? defaultVal : settings_.get_(key)
     , curJSON: string | boolean | number, jsonVal: string | boolean | number
     , notJSON: boolean
   if (notJSON = typeof defaultVal !== "object") {
@@ -119,11 +128,11 @@ const storeAndPropagate = (key: string, value: any, map?: Dict<any>): void | 8 =
 
 const setAndPost = (key: keyof SettingsToSync, value: any): void => {
   keyInDownloading = key
-  Settings_.set_(key, value)
+  settings_.set_(key, value)
   keyInDownloading = ""
-  if (key in Settings_.valuesToLoad_) {
-    Settings_.broadcast_({ N: kBgReq.settingsUpdate, d: [
-      Settings_.valuesToLoad_[key as keyof typeof Settings_.valuesToLoad_]
+  if (key in settings_.valuesToLoad_) {
+    settings_.broadcast_({ N: kBgReq.settingsUpdate, d: [
+      settings_.valuesToLoad_[key as keyof typeof settings_.valuesToLoad_]
     ] })
   }
 }
@@ -138,14 +147,13 @@ const TrySet = <K extends keyof SettingsToSync>(key: K, value: SettingsToSync[K]
 }
 
 if (!Build.NDEBUG) {
-  (window as any).serializeSync = (key: any, val: any, enc?: any): any => {
-    let serialized = serialize(key, val
-          , (Build.MinCVer >= BrowserVer.MinEnsuredTextEncoderAndDecoder || !(Build.BTypes & BrowserType.Chrome))
-            && !(Build.BTypes & BrowserType.Edge) || enc ? new TextEncoder() : null)
+  (globalThis as any).serializeSync = (key: any, val: any, enc?: any): any => {
+    let serialized = serialize(key, val, (!OnChrome || Build.MinCVer >= BrowserVer.MinEnsuredTextEncoderAndDecoder)
+        && !OnEdge || enc ? new TextEncoder() : null)
     return serialized ? typeof serialized === "object" ?  serialized
         : <SingleSerialized> { $_serialize: "single", d: JSON.parse(serialized) } : val
   }
-  (window as any).deserializeSync = (key: any, val: any, items?: any): any => {
+  (globalThis as any).deserializeSync = (key: any, val: any, items?: any): any => {
     if (items) {
       val = val || items[key] || val
     } else {
@@ -160,12 +168,12 @@ if (!Build.NDEBUG) {
 
 const SetLocal = <K extends keyof SettingsToSync>(key: K, value: SettingsToSync[K] | null): void => {
   if (!storage()) {
-    Settings_.sync_ = BgUtils_.blank_
+    set_sync_(blank_)
     return
   }
-  const local_ = chrome.storage.local
+  const local_ = browserStorage_.local
   const cb = (): void => {
-    const err = BgUtils_.runtimeError_()
+    const err = runtimeError_()
     if (err) {
       log("storage.local: Failed to update", key, ":", err.message || err)
       return err
@@ -212,7 +220,7 @@ const deserialize = (key: keyof SettingsToUpdate, value: SingleSerialized | Seri
         , (value as unknown as SerializationMetaData | SingleSerialized).$_serialize)
     return null
   }
-  if (typeof Settings_.defaults_[key] === "string") {
+  if (typeof settings_.defaults_[key] === "string") {
     serialized = revertEscaping(serialized)
     return serialized
   }
@@ -233,17 +241,16 @@ const serialize = (key: keyof SettingsToUpdate, value: boolean | string | number
       })
   jsonStr = fixCharsInJSON(jsonStr)
   if (jsonStr.length * /* utf-8 limit */ 4 < GlobalConsts.SYNC_QUOTA_BYTES_PER_ITEM - 99) { return jsonStr }
-  if ((Build.MinCVer >= BrowserVer.MinEnsuredTextEncoderAndDecoder || !(Build.BTypes & BrowserType.Chrome))
-      && !(Build.BTypes & BrowserType.Edge) || encoder) {
+  const hasEncoder = (!OnChrome || Build.MinCVer >= BrowserVer.MinEnsuredTextEncoderAndDecoder) && !OnEdge || !!encoder
+  if (hasEncoder) {
     encoded = encoder!.encode(jsonStr)
   } else {
     encoded = jsonStr = ensureSingleBytes(jsonStr)
   }
   if (encoded.length < GlobalConsts.SYNC_QUOTA_BYTES_PER_ITEM - 99) { return jsonStr }
   let slice = 0, prefix = Date.now().toString(36) + ":", dict: MultiLineSerialized = {}
-  jsonStr = typeof Settings_.defaults_[key] === "string" ? jsonStr.slice(1, -1) : escapeQuotes(jsonStr)
-  if ((Build.MinCVer >= BrowserVer.MinEnsuredTextEncoderAndDecoder || !(Build.BTypes & BrowserType.Chrome))
-      && !(Build.BTypes & BrowserType.Edge) || encoder) {
+  jsonStr = typeof settings_.defaults_[key] === "string" ? jsonStr.slice(1, -1) : escapeQuotes(jsonStr)
+  if (hasEncoder) {
     textDecoder || (textDecoder = new TextDecoder())
     encoded = encoder!.encode(jsonStr)
   } else {
@@ -252,8 +259,7 @@ const serialize = (key: keyof SettingsToUpdate, value: boolean | string | number
   for (let start = 0, end = encoded.length; start < end; ) {
     let pos = Math.min(start + (GlobalConsts.SYNC_QUOTA_BYTES_PER_ITEM - 40 - 16 - 2), end), part: string,
     delta = 0
-    if ((Build.MinCVer >= BrowserVer.MinEnsuredTextEncoderAndDecoder || !(Build.BTypes & BrowserType.Chrome))
-        && !(Build.BTypes & BrowserType.Edge) || encoder) {
+    if (hasEncoder) {
       // find a boundary of char points
       for (; pos < end && ((encoded as Uint8Array)[pos] & 0xc0) === 0x80; pos--) { /* empty */ }
       part = textDecoder!.decode((encoded as Uint8Array).subarray(start, pos))
@@ -293,13 +299,13 @@ const DoUpdate = (): void => {
   delayedSerializedItems: EnsuredSafeDict<MultiLineSerialized> = BgUtils_.safeObj_(),
   serializedDict: Dict<boolean | string | number | object> = {}
   to_update = null
-  if (!items || Settings_.sync_ !== TrySet) { return }
-  let encoder = (Build.MinCVer >= BrowserVer.MinEnsuredTextEncoderAndDecoder || !(Build.BTypes & BrowserType.Chrome))
-      && !(Build.BTypes & BrowserType.Edge) || (window as any).TextEncoder ? new TextEncoder() : null
+  if (!items || sync_ !== TrySet) { return }
+  let encoder = (!OnChrome || Build.MinCVer >= BrowserVer.MinEnsuredTextEncoderAndDecoder) && !OnEdge
+      || (globalThis as any).TextEncoder ? new TextEncoder() : null
   for (const _key in items) {
     const key = _key as keyof SettingsToUpdate
     let value = items[key],
-    defaultVal = Settings_.defaults_[key],
+    defaultVal = settings_.defaults_[key],
     startToResetList = typeof defaultVal === "string"
         || typeof defaultVal === "object" && key !== "vimSync"
         ? 0 : GlobalConsts.MaxSyncedSlices
@@ -334,7 +340,7 @@ const DoUpdate = (): void => {
   }
   for (let key in delayedSerializedItems) {
     storage().set(delayedSerializedItems[key], (): void => {
-      const err = BgUtils_.runtimeError_()
+      const err = runtimeError_()
       if (err) {
         log("Failed to update", key, ":", err.message || err)
       } else {
@@ -348,16 +354,16 @@ const DoUpdate = (): void => {
 const shouldSyncKey = (key: string): key is keyof SettingsToSync => !(key in doNotSync)
 
 const saveAllToLocal = (timeout: number): void => {
-  Settings_.temp_.backupSettingsToLocal_ = null
-  BgUtils_.timeout_(timeout, (): void => {
-    chrome.storage.local.get((items): void => {
-      if (Settings_.get_("vimSync") || !localStorage.length) { return }
+  set_backupToLocal_(null)
+  setTimeout((): void => {
+    browserStorage_.local.get((items): void => {
+      if (settings_.get_("vimSync") || !localStorage.length) { return }
       log("storage.local: backup all settings from localStorage")
       BgUtils_.safer_(items)
       for (let i = 0, end = localStorage.length; i < end; i++) {
         const key = localStorage.key(i)!
-        if (key in Settings_.defaults_ && (shouldSyncKey(key) || key === "keyboard")) {
-          const defaultVal = Settings_.defaults_[key], value = items[key], curVal = Settings_.get_(key)
+        if (key in settings_.defaults_ && (shouldSyncKey(key) || key === "keyboard")) {
+          const defaultVal = settings_.defaults_[key], value = items[key], curVal = settings_.get_(key)
           let curJSON = curVal, jsonVal: string = value
           if (typeof defaultVal === "object") { jsonVal = JSON.stringify(value), curJSON = JSON.stringify(curVal) }
           if (curJSON !== jsonVal) {
@@ -367,17 +373,17 @@ const saveAllToLocal = (timeout: number): void => {
         }
       }
       const left = Object.keys(items)
-      if (left.length > 0) { chrome.storage.local.remove(left) }
+      if (left.length > 0) { browserStorage_.local.remove(left) }
     })
-  })
+  }, timeout)
 }
 
 interface LocalSettings extends Dict<any> { vimSync?: SettingsNS.BackendSettings["vimSync"] }
 const beginToRestore = (items: LocalSettings, kSources: 1 | 2 | 3, resolve: () => void): void => {
-  kSources & 2 && chrome.storage.local.get((items2: LocalSettings): void => {
-    const err = BgUtils_.runtimeError_()
+  kSources & 2 && browserStorage_.local.get((items2: LocalSettings): void => {
+    const err = runtimeError_()
     if (err) {
-      Settings_.restore_ = null;
+      set_restoreSettings_(null);
       (kSources -= 2) || resolve()
       return err
     }
@@ -388,28 +394,28 @@ const beginToRestore = (items: LocalSettings, kSources: 1 | 2 | 3, resolve: () =
       log("storage.local: restore settings to localStorage")
     }
     for (let key in items2) {
-      if (key in Settings_.defaults_) {
+      if (key in settings_.defaults_) {
         let val = items2[key]
         keyInDownloading = key as keyof SettingsWithDefaults
-        val = val == null ? Settings_.defaults_[key as keyof SettingsWithDefaults] : val
-        Settings_.set_(key as keyof SettingsWithDefaults, val)
+        val = val == null ? settings_.defaults_[key as keyof SettingsWithDefaults] : val
+        settings_.set_(key as keyof SettingsWithDefaults, val)
       }
     }
     keyInDownloading = ""
     if (vimSync2 != null) {
-      Settings_.set_("vimSync", vimSync2)
+      settings_.set_("vimSync", vimSync2)
     }
-    BgUtils_.timeout_(100, (): void => {
-      Settings_.broadcast_({ N: kBgReq.settingsUpdate, d: Settings_.payload_ })
-    });
+    setTimeout((): void => {
+      settings_.broadcast_({ N: kBgReq.settingsUpdate, d: contentPayload_ })
+    }, 100);
     (kSources -= 2) || resolve()
   })
   if (kSources === 2) { return }
   BgUtils_.safer_(items)
-  const vimSync = items.vimSync || Settings_.get_("vimSync")
+  const vimSync = items.vimSync || settings_.get_("vimSync")
   if (!vimSync) {
     cachedSync = vimSync
-    Settings_.sync_ = SetLocal
+    set_sync_(SetLocal)
     --kSources || resolve()
     return // no settings have been modified
   } else if (!items.vimSync) {
@@ -419,10 +425,10 @@ const beginToRestore = (items: LocalSettings, kSources: 1 | 2 | 3, resolve: () =
     storage().set({ vimSync })
   }
   const toReset: string[] = []
-  for (const key in items) { if (key in Settings_.legacyNames_) { toReset.push(key) } }
+  for (const key in items) { if (key in settings_.legacyNames_) { toReset.push(key) } }
   const toRemove: string[] = [], toAdd: Dict<string> = {}
   for (let key of toReset) {
-    const newKey = Settings_.legacyNames_[key as keyof SettingsNS.LegacyNames]
+    const newKey = settings_.legacyNames_[key as keyof SettingsNS.LegacyNames]
     for (let i = -1, j: string; i < GlobalConsts.MaxSyncedSlices && (j = i < 0 ? key : key + ":" + i) in items; i++) {
       const newJ = i < 0 ? newKey : newKey + ":" + i
       toAdd[newJ] = items[newJ] = items[j]
@@ -431,17 +437,17 @@ const beginToRestore = (items: LocalSettings, kSources: 1 | 2 | 3, resolve: () =
     }
   }
   if (toReset.length > 0) {
-    chrome.storage.onChanged.removeListener(HandleStorageUpdate)
-    Settings_.sync_ = BgUtils_.blank_
+    browserStorage_.onChanged.removeListener(HandleStorageUpdate)
+    set_sync_(blank_)
     storage().remove(toRemove)
-    storage().set(toAdd, BgUtils_.runtimeError_)
+    storage().set(toAdd, runtimeError_)
     toReset.length = 0
   }
   for (let i = 0, end = localStorage.length; i < end; i++) {
     const key = localStorage.key(i)!
     // although storeAndPropagate indeed checks @shouldSyncKey(key)
     // here check it for easier debugging
-    if (!(key in items) && key in Settings_.defaults_ && shouldSyncKey(key)) {
+    if (!(key in items) && key in settings_.defaults_ && shouldSyncKey(key)) {
       toReset.push(key)
     }
   }
@@ -453,45 +459,43 @@ const beginToRestore = (items: LocalSettings, kSources: 1 | 2 | 3, resolve: () =
       storeAndPropagate(key, items[key], items)
     }
   }
-  Settings_.postUpdate_("vimSync")
-  BgUtils_.timeout_(4, (): void => { --kSources || resolve() })
+  settings_.postUpdate_("vimSync")
+  setTimeout((): void => { --kSources || resolve() }, 4)
   restoringPromise &&
   log("sync.cloud: download settings to localStorage")
 }
 
-Settings_.updateHooks_.vimSync = (value): void => {
+settings_.updateHooks_.vimSync = (value): void => {
   cachedSync = value
   if (!storage()) { return }
-  const areaOnChanged = !(Build.BTypes & BrowserType.Chrome) && Build.MinCVer > BrowserVer.Min$StorageArea$$onChanged
-      ? storage().onChanged!
-      : !(Build.BTypes & ~BrowserType.Chrome) || Build.BTypes & BrowserType.Chrome && OnOther & BrowserType.Chrome
-      ? storage().onChanged : null
-  const event = !(Build.BTypes & BrowserType.Chrome) && Build.MinCVer > BrowserVer.Min$StorageArea$$onChanged
-      ? areaOnChanged! : Build.BTypes & BrowserType.Chrome && areaOnChanged || chrome.storage.onChanged
-  const listener = !(Build.BTypes & BrowserType.Chrome) && Build.MinCVer > BrowserVer.Min$StorageArea$$onChanged
-      || Build.BTypes & BrowserType.Chrome && areaOnChanged ? HandleSyncAreaUpdate : HandleStorageUpdate
+  const areaOnChanged_cr = OnChrome && Build.MinCVer > BrowserVer.Min$StorageArea$$onChanged
+      ? storage().onChanged! : OnChrome ? storage().onChanged : null
+  const event = OnChrome && Build.MinCVer > BrowserVer.Min$StorageArea$$onChanged
+      ? areaOnChanged_cr! : OnChrome && areaOnChanged_cr || browserStorage_.onChanged
+  const listener = OnChrome && (Build.MinCVer > BrowserVer.Min$StorageArea$$onChanged || areaOnChanged_cr)
+      ? HandleSyncAreaUpdate : HandleStorageUpdate
   if (!value) {
     event.removeListener(listener)
-    if (Settings_.sync_ !== SetLocal) {
-      Settings_.sync_ = SetLocal
+    if (sync_ !== SetLocal) {
+      set_sync_(SetLocal)
       saveAllToLocal(600)
     }
     return
-  } else if (Settings_.sync_ !== TrySet) {
+  } else if (sync_ !== TrySet) {
     event.addListener(listener)
-    Settings_.sync_ = TrySet
-    chrome.storage.local.clear()
+    set_sync_(TrySet)
+    browserStorage_.local.clear()
   }
 }
 
-Settings_.restore_ = (): Promise<void> | null => {
+set_restoreSettings_((): Promise<void> | null => {
   if (restoringPromise) { /* empty */ }
   else if (!localStorage.length) {
     // eslint-disable-next-line arrow-body-style
     restoringPromise = new Promise<void>(resolve => {
         cachedSync ? storage().get(items => {
-          const err = BgUtils_.runtimeError_()
-          err ? (Settings_.restore_ = null, resolve()) : beginToRestore(items, 1, resolve)
+          const err = runtimeError_()
+          err ? (set_restoreSettings_(null), resolve()) : beginToRestore(items, 1, resolve)
           return err
         }) : beginToRestore({}, 2, resolve)
     }).then(_ => { restoringPromise = null })
@@ -499,28 +503,25 @@ Settings_.restore_ = (): Promise<void> | null => {
     return null
   }
   return restoringPromise
-}
+})
 
-cachedSync = Settings_.get_("vimSync")
-if (cachedSync === false || !cachedSync && !Settings_.temp_.hasEmptyLocalStorage_) {
-  let doBackup = Settings_.temp_.backupSettingsToLocal_
-  Settings_.temp_.backupSettingsToLocal_ = doBackup ? null : saveAllToLocal
+cachedSync = settings_.get_("vimSync")
+if (cachedSync === false || !cachedSync && !hasEmptyLocalStorage_) {
+  let doBackup = backupToLocal_
+  set_backupToLocal_(doBackup ? null : saveAllToLocal)
   doBackup && saveAllToLocal(6000)
-  Settings_.sync_ = SetLocal
-  return
-}
-
-if (!storage()) { Settings_.restore_ = null; return }
-storage().get((items): void => {
-  const err = BgUtils_.runtimeError_()
+  set_sync_(SetLocal)
+} else {
+!storage() ? (set_sync_(blank_), set_restoreSettings_(null)) : storage().get((items): void => {
+  const err = runtimeError_()
   if (err) {
     log("Error: failed to get storage:", err, "\n\tSo disable syncing temporarily.")
-    Settings_.updateHooks_.vimSync = Settings_.sync_ = BgUtils_.blank_
-    Settings_.restore_ = null
+    settings_.updateHooks_.vimSync = undefined
+    set_sync_(blank_)
+    set_restoreSettings_(null)
     return err
   }
   restoringPromise = Promise.resolve()
   restoringPromise = new Promise<void>(r => beginToRestore(items, 3, r)).then<void>(_ => { restoringPromise = null })
 })
-
-})
+}

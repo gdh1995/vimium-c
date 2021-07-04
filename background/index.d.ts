@@ -113,9 +113,7 @@ declare namespace Urls {
     (query: string[], keyword?: string | null, vimiumUrlWork?: WorkType): Url;
   }
 
-  const enum NewTabType {
-    browser = 1, vimium = 2,
-  }
+  const enum NewTabType { browser = 1, cNewNTP = 2 }
 
   const enum SchemeId {
     HTTP = 7, HTTPS = 8,
@@ -248,13 +246,29 @@ declare namespace CompletersNS {
   };
 
   interface GlobalCompletersConstructor {
-    filter_ (this: GlobalCompletersConstructor, query: string, options: FullOptions, callback: Callback): void;
-    removeSug_ (url: string, type: FgReq[kFgReq.removeSug]["t"], callback: (succeed: boolean) => void): void;
-    onWndChange_ (): void;
-    isExpectingHidden_? (queries: string[]): boolean | void
+    filter_ (this: void, query: string, options: FullOptions, callback: Callback): void
+    removeSug_ (url: string | number, type: FgReq[kFgReq.removeSug]["t"], callback: (succeed: boolean) => void): void
+    isExpectingHidden_? (this: void, queries: string[]): boolean | void
   }
+  const enum kVisibility { hidden = 0, visible = 1, _mask = 2 }
+  type Visibility = kVisibility.hidden | kVisibility.visible
+  interface DecodedItem { readonly u: string; t: string }
+  interface HistoryItem extends DecodedItem { readonly u: string; time_: number; title_: string; visible_: Visibility }
+  const enum BookmarkStatus { notInited = 0, initing = 1, inited = 2 }
+  interface Bookmark extends DecodedItem {
+    readonly id_: string
+    readonly t: string
+    readonly path_: string
+    readonly title_: string
+    readonly visible_: Visibility
+    readonly u: string
+    readonly jsUrl_: string | null
+    readonly jsText_: string | null
+  }
+  interface JSBookmark extends Bookmark { readonly jsUrl_: string; readonly jsText_: string }
 }
 type Suggestion = CompletersNS.Suggestion;
+
 
 declare namespace IconNS {
   type ValidSizes = 19 | 38;
@@ -274,10 +288,6 @@ declare namespace IconNS {
     readonly [size in ValidSizes]: string;
   };
   type BinaryPath = string;
-  interface AccessIconBuffer {
-    (this: void, enabled: boolean): void;
-    (this: void, enabled?: undefined): boolean;
-  }
 }
 
 declare namespace MediaNS {
@@ -296,7 +306,6 @@ declare namespace SettingsNS {
   interface BackendSettings extends BaseBackendSettings {
     autoDarkMode: boolean;
     clipSub: string;
-    dialogMode: boolean;
     exclusionListenHash: boolean;
     exclusionOnlyFirstMatch: boolean;
     exclusionRules: ExclusionsNS.StoredRule[];
@@ -309,6 +318,7 @@ declare namespace SettingsNS {
     newTabUrl: string;
     nextPatterns: string;
     previousPatterns: string;
+    allBrowserUrls: boolean
     searchUrl: string;
     searchEngines: string;
     showActionIcon: boolean;
@@ -321,39 +331,32 @@ declare namespace SettingsNS {
     vomnibarPage_f: string;
     omniBlockList: string;
   }
-  interface CachedFiles { helpDialog: string }
-  interface ReadableFiles extends CachedFiles { baseCSS: string; words: string }
+  interface ReadableFiles { helpDialog: string; baseCSS: string; words: string }
   interface BaseNonPersistentSettings {
     searchEngineMap: Map<string, Search.Engine>
     searchEngineRules: Search.Rule[];
     searchKeywords: string | null;
   }
-  interface NonPersistentSettings extends BaseNonPersistentSettings, CachedFiles {}
+  interface NonPersistentSettings extends BaseNonPersistentSettings {}
   interface PersistentSettings extends FrontendSettings, BackendSettings {}
 
   interface SettingsWithDefaults extends PersistentSettings {}
   interface FullSettings extends PersistentSettings, NonPersistentSettings {}
 
   interface SimpleUpdateHook<K extends keyof FullSettings> {
-    (this: {}, value: FullSettings[K], key: K): void;
+    (this: void, value: FullSettings[K], key: K): void
   }
   interface NullableUpdateHook<K extends keyof FullSettings> {
-    (this: {}, value: FullSettings[K] | null, key: K): void;
-  }
-  interface UpdateHookWoThis<K extends keyof FullSettings> {
-    (this: void, value: FullSettings[K]): void;
+    (this: void, value: FullSettings[K] | null, key: K): void
   }
 
-  type NullableUpdateHooks = "searchEngines" | "searchUrl" | "keyMappings" | "vomnibarPage";
-  type WoThisUpdateHooks = "showActionIcon";
-  type SpecialUpdateHooks = "newTabUrl_f";
+  type NullableUpdateHooks = "searchEngines" | "searchUrl" | "keyMappings" | "vomnibarPage"
 
   type DeclaredUpdateHooks = "newTabUrl" | "searchEngines" | "searchUrl"
-        | "vomnibarPage" | "extAllowList" | "grabBackFocus" | "mapModifier" | "vomnibarOptions";
-  type EnsuredUpdateHooks = DeclaredUpdateHooks | WoThisUpdateHooks | SpecialUpdateHooks;
+        | "vomnibarPage" | "extAllowList" | "grabBackFocus" | "mapModifier"
+  type EnsuredUpdateHooks = DeclaredUpdateHooks
   type UpdateHook<key extends keyof FullSettings> =
         key extends NullableUpdateHooks ? NullableUpdateHook<key>
-      : key extends WoThisUpdateHooks ? UpdateHookWoThis<key>
       : key extends EnsuredUpdateHooks | keyof SettingsWithDefaults ? SimpleUpdateHook<key>
       : never;
   type BaseFullUpdateHookMap =  { [key in EnsuredUpdateHooks]: UpdateHook<key> } & {
@@ -363,10 +366,8 @@ declare namespace SettingsNS {
 
   interface FullCache extends SafeObject, PartialOrEnsured<FullSettings
       , "newTabUrl_f" | "searchEngineMap" | "searchEngineRules" | "vomnibarPage_f"
-        | "vomnibarOptions" | "focusNewTabContent"
-        | "hideHud" | "previousPatterns" | "nextPatterns"
-      > {
-  }
+        | "vomnibarOptions" | "hideHud" | "previousPatterns" | "nextPatterns"
+      > {}
 
   interface Sync {
     set<K extends keyof PersistentSettings> (key: K, value: PersistentSettings[K] | null): void;
@@ -383,190 +384,8 @@ declare namespace SettingsNS {
 }
 import FullSettings = SettingsNS.FullSettings;
 
-interface OtherCNamesForDebug {
-  focusOptions: kBgCmd.openUrl
-}
-declare const enum CNameLiterals {
-  focusOptions = "focusOptions",
-  userCustomized = "userCustomized"
-}
-
-interface CmdNameIds {
-  "LinkHints.activate": kFgCmd.linkHints
-  "LinkHints.activateCopyLinkText": kFgCmd.linkHints
-  "LinkHints.activateCopyLinkUrl": kFgCmd.linkHints
-  "LinkHints.activateDownloadImage": kFgCmd.linkHints
-  "LinkHints.activateDownloadLink": kFgCmd.linkHints
-  "LinkHints.activateEdit": kFgCmd.linkHints
-  "LinkHints.activateHover": kFgCmd.linkHints
-  "LinkHints.activateLeave": kFgCmd.linkHints
-  "LinkHints.activateMode": kFgCmd.linkHints
-  "LinkHints.activateModeToCopyLinkText": kFgCmd.linkHints
-  "LinkHints.activateModeToCopyLinkUrl": kFgCmd.linkHints
-  "LinkHints.activateModeToDownloadImage": kFgCmd.linkHints
-  "LinkHints.activateModeToDownloadLink": kFgCmd.linkHints
-  "LinkHints.activateModeToEdit": kFgCmd.linkHints
-  "LinkHints.activateModeToHover": kFgCmd.linkHints
-  "LinkHints.activateModeToLeave": kFgCmd.linkHints
-  "LinkHints.activateModeToOpenImage": kFgCmd.linkHints
-  "LinkHints.activateModeToOpenIncognito": kFgCmd.linkHints
-  "LinkHints.activateModeToOpenInNewForegroundTab": kFgCmd.linkHints
-  "LinkHints.activateModeToOpenInNewTab": kFgCmd.linkHints
-  "LinkHints.activateModeToOpenVomnibar": kFgCmd.linkHints
-  "LinkHints.activateModeToSearchLinkText": kFgCmd.linkHints
-  "LinkHints.activateModeToSelect": kFgCmd.linkHints
-  "LinkHints.activateModeToUnhover": kFgCmd.linkHints
-  "LinkHints.activateModeWithQueue": kFgCmd.linkHints
-  "LinkHints.activateOpenImage": kFgCmd.linkHints
-  "LinkHints.activateOpenIncognito": kFgCmd.linkHints
-  "LinkHints.activateOpenInNewForegroundTab": kFgCmd.linkHints
-  "LinkHints.activateOpenInNewTab": kFgCmd.linkHints
-  "LinkHints.activateOpenVomnibar": kFgCmd.linkHints
-  "LinkHints.activateSearchLinkText": kFgCmd.linkHints
-  "LinkHints.activateSelect": kFgCmd.linkHints
-  "LinkHints.activateUnhover": kFgCmd.linkHints
-  "LinkHints.activateWithQueue": kFgCmd.linkHints
-  "LinkHints.click": kFgCmd.linkHints
-  "LinkHints.unhoverLast": kFgCmd.insertMode
-  "Marks.activate": kFgCmd.marks
-  "Marks.activateCreate": kFgCmd.marks
-  "Marks.activateCreateMode": kFgCmd.marks
-  "Marks.activateGoto": kFgCmd.marks
-  "Marks.activateGotoMode": kFgCmd.marks
-  "Marks.clearGlobal": kBgCmd.clearMarks
-  "Marks.clearLocal": kBgCmd.clearMarks
-  "Vomnibar.activate": kBgCmd.showVomnibar
-  "Vomnibar.activateBookmarks": kBgCmd.showVomnibar
-  "Vomnibar.activateBookmarksInNewTab": kBgCmd.showVomnibar
-  "Vomnibar.activateEditUrl": kBgCmd.showVomnibar
-  "Vomnibar.activateEditUrlInNewTab": kBgCmd.showVomnibar
-  "Vomnibar.activateHistory": kBgCmd.showVomnibar
-  "Vomnibar.activateHistoryInNewTab": kBgCmd.showVomnibar
-  "Vomnibar.activateInNewTab": kBgCmd.showVomnibar
-  "Vomnibar.activateTabs": kBgCmd.showVomnibar
-  "Vomnibar.activateTabSelection": kBgCmd.showVomnibar
-  "Vomnibar.activateUrl": kBgCmd.showVomnibar
-  "Vomnibar.activateUrlInNewTab": kBgCmd.showVomnibar
-  addBookmark: kBgCmd.addBookmark
-  autoCopy: kFgCmd.autoOpen
-  autoOpen: kFgCmd.autoOpen
-  blank: kBgCmd.blank
-  captureTab: kBgCmd.captureTab
-  clearCS: kBgCmd.clearCS
-  clearContentSetting: kBgCmd.clearCS
-  clearContentSettings: kBgCmd.clearCS
-  clearFindHistory: kBgCmd.clearFindHistory
-  closeDownloadBar: kBgCmd.closeDownloadBar
-  closeOtherTabs: kBgCmd.removeTabsR
-  closeTabsOnLeft: kBgCmd.removeTabsR
-  closeTabsOnRight: kBgCmd.removeTabsR
-  copyCurrentTitle: kBgCmd.copyWindowInfo
-  copyCurrentUrl: kBgCmd.copyWindowInfo
-  copyWindowInfo: kBgCmd.copyWindowInfo
-  createTab: kBgCmd.createTab
-  debugBackground: kBgCmd.openUrl
-  discardTab: kBgCmd.discardTab
-  duplicateTab: kBgCmd.duplicateTab
-  editText: kFgCmd.editText
-  enableCSTemp: kBgCmd.toggleCS
-  enableContentSettingTemp: kBgCmd.toggleCS
-  enterFindMode: kBgCmd.performFind
-  enterInsertMode: kBgCmd.insertMode
-  enterVisualLineMode: kBgCmd.visualMode
-  enterVisualMode: kBgCmd.visualMode
-  firstTab: kBgCmd.goToTab
-  focusInput: kFgCmd.focusInput
-  focusOrLaunch: kBgCmd.openUrl
-  goBack: kFgCmd.framesGoBack
-  goForward: kFgCmd.framesGoBack
-  goNext: kBgCmd.goNext
-  goPrevious: kBgCmd.goNext
-  goToRoot: kBgCmd.goUp
-  goUp: kBgCmd.goUp
-  joinTabs: kBgCmd.joinTabs
-  lastTab: kBgCmd.goToTab
-  mainFrame: kBgCmd.mainFrame
-  moveTabLeft: kBgCmd.moveTab
-  moveTabRight: kBgCmd.moveTab
-  moveTabToIncognito: kBgCmd.moveTabToNewWindow
-  moveTabToNewWindow: kBgCmd.moveTabToNewWindow
-  moveTabToNextWindow: kBgCmd.moveTabToNextWindow
-  newTab: kBgCmd.createTab
-  nextFrame: kBgCmd.nextFrame
-  nextTab: kBgCmd.goToTab
-  openCopiedUrlInCurrentTab: kBgCmd.openUrl
-  openCopiedUrlInNewTab: kBgCmd.openUrl
-  openUrl: kBgCmd.openUrl
-  parentFrame: kBgCmd.parentFrame
-  passNextKey: kFgCmd.passNextKey
-  performAnotherFind: kBgCmd.performFind
-  performBackwardsFind: kBgCmd.performFind
-  performFind: kBgCmd.performFind
-  previousTab: kBgCmd.goToTab
-  quickNext: kBgCmd.goToTab
-  reload: kFgCmd.framesGoBack
-  reloadGivenTab: kBgCmd.reloadTab
-  reloadTab: kBgCmd.reloadTab
-  removeRightTab: kBgCmd.removeRightTab
-  removeTab: kBgCmd.removeTab
-  reopenTab: kBgCmd.reopenTab
-  reset: kFgCmd.insertMode
-  restoreGivenTab: kBgCmd.restoreGivenTab
-  restoreTab: kBgCmd.restoreTab
-  runKey: kBgCmd.runKey
-  scrollDown: kFgCmd.scroll
-  scrollFullPageDown: kFgCmd.scroll
-  scrollFullPageUp: kFgCmd.scroll
-  scrollLeft: kFgCmd.scroll
-  scrollPageDown: kFgCmd.scroll
-  scrollPageUp: kFgCmd.scroll
-  scrollPxDown: kFgCmd.scroll
-  scrollPxLeft: kFgCmd.scroll
-  scrollPxRight: kFgCmd.scroll
-  scrollPxUp: kFgCmd.scroll
-  scrollRight: kFgCmd.scroll
-  scrollSelect: kFgCmd.scrollSelect
-  scrollTo: kFgCmd.scroll
-  scrollToBottom: kFgCmd.scroll
-  scrollToLeft: kFgCmd.scroll
-  scrollToRight: kFgCmd.scroll
-  scrollToTop: kFgCmd.scroll
-  scrollUp: kFgCmd.scroll
-  searchAs: kFgCmd.autoOpen
-  searchInAnother: kBgCmd.searchInAnother
-  sendToExtension: kBgCmd.sendToExtension
-  showHelp: kBgCmd.showHelp
-  simBackspace: kFgCmd.focusInput
-  simulateBackspace: kFgCmd.focusInput
-  sortTabs: kBgCmd.joinTabs
-  switchFocus: kFgCmd.focusInput
-  toggleCS: kBgCmd.toggleCS
-  toggleContentSetting: kBgCmd.toggleCS
-  toggleLinkHintCharacters: kBgCmd.toggle
-  toggleMuteTab: kBgCmd.toggleMuteTab
-  togglePinTab: kBgCmd.togglePinTab
-  toggleReaderMode: kBgCmd.toggleTabUrl
-  toggleStyle: kFgCmd.toggleStyle
-  toggleSwitchTemp: kBgCmd.toggle
-  toggleViewSource: kBgCmd.toggleTabUrl
-  toggleVomnibarStyle: kBgCmd.toggleVomnibarStyle
-  showTip: kBgCmd.showTip
-  visitPreviousTab: kBgCmd.visitPreviousTab
-  wait: kBgCmd.blank
-  zoomIn: kBgCmd.toggleZoom
-  zoomOut: kBgCmd.toggleZoom
-  zoomReset: kBgCmd.toggleZoom
-}
-type kCName = keyof CmdNameIds
-
-declare const enum kShortcutAliases { nextTab1 = "quickNext" }
-type StandardShortcutNames = "createTab" | "goBack" | "goForward" | "previousTab"
-    | "nextTab" | "reloadTab" | CNameLiterals.userCustomized
-
 declare namespace BackendHandlersNS {
   interface SpecialHandlers {
-    [kFgReq.setSetting]: (this: void
-      , request: SetSettingReq<keyof SettingsNS.FrontUpdateAllowedSettings>, port: Port) => void;
     [kFgReq.gotoSession]: {
       (this: void, request: { s: string | number; a: false }, port: Port): void;
       (this: void, request: { s: string | number; a?: true }): void;
@@ -578,17 +397,12 @@ declare namespace BackendHandlersNS {
         request: FgReqWithRes[kFgReq.parseUpperUrl] & Pick<FgReq[kFgReq.parseUpperUrl], "e">, port: Port | null): void;
       (this: void, request: FgReqWithRes[kFgReq.parseUpperUrl], port?: Port): FgRes[kFgReq.parseUpperUrl];
     };
-    [kFgReq.focusOrLaunch]: (this: void, request: MarksNS.FocusOrLaunch, _port?: Port | null, notFolder?: true) => void;
-    [kFgReq.setOmniStyle]: (this: void, request: FgReq[kFgReq.setOmniStyle], _port?: Port) => void;
+    [kFgReq.focusOrLaunch]: (this: void, request: FgReq[kFgReq.focusOrLaunch], port?: Port | null) => void
     [kFgReq.removeSug]: (this: void, request: FgReq[kFgReq.removeSug], _port?: Port | null) => void
     [kFgReq.key]: (this: void, request: FgReq[kFgReq.key], port: Port | null) => void
-    [kFgReq.framesGoBack]: {
-      (this: void, req: FgReq[kFgReq.framesGoBack], port: Port): void;
-      (this: void, req: FgReq[kFgReq.framesGoBack], port: null, tab: chrome.tabs.Tab): void
-    };
   }
   type FgRequestHandlers = {
-    [K in keyof FgReqWithRes | keyof FgReq]:
+    readonly [K in keyof FgReqWithRes | keyof FgReq]:
       K extends keyof SpecialHandlers ? SpecialHandlers[K] :
       K extends keyof FgReqWithRes ? (((this: void, request: FgReqWithRes[K], port: Port) => FgRes[K])
         | (K extends keyof FgReq ? (this: void, request: FgReq[K], port: Port) => void : never)) :
@@ -597,22 +411,38 @@ declare namespace BackendHandlersNS {
   }
 
   interface BackendHandlers {
-    reqH_: FgRequestHandlers,
-    parse_ (this: void, request: FgReqWithRes[kFgReq.parseSearchUrl]): FgRes[kFgReq.parseSearchUrl];
+    readonly Settings_: object
+    CommandsData_ (): {
+      errors_: null | string[][]
+      keyFSM_: KeyFSM | null
+      mappedKeyRegistry_: SafeDict<string> | null
+      keyToCommandMap_: Map<string, CommandsNS.Item>
+    }
+    shownHash_ (): string | null
+    parseSearchEngines_ (str: string, map: Map<string, Search.Engine>): Search.Rule[]
+    newTabUrls_: ReadonlyMap<string, Urls.NewTabType>
+    convertToUrl_: Urls.Converter
+    lastUrlType_ (): Urls.Type
+    evalVimiumUrl_: Urls.Executor
+    reformatURL_ (url: string): string
+    readonly settingsCache_: Readonly<SettingsNS.FullCache>
+    readonly contentPayload_: SettingsNS.FrontendSettingCache
+    readonly omniPayload_: SettingsNS.VomnibarPayload
+    extAllowList_: ReadonlyMap<string, boolean | string>
+    substitute_ (text: string, context: SedContext, sed?: MixedSedOpts | null): string
+    isExpectingHidden_: NonNullable<CompletersNS.GlobalCompletersConstructor["isExpectingHidden_"]>
+    focusOrLaunch_ (request: FgReq[kFgReq.focusOrLaunch], _port?: undefined): void
+    restoreSettings_ (): (() => Promise<void> | null) | null
+    parseMatcher_ (pattern: string | null): BaseUrlMatcher[]
+    findUrlInText_ (this: void, url: string, testUrl: OpenPageUrlOptions["testUrl"]): string
     /**
      * @returns "" - in a child frame, so need to send request to content
      * @returns string - valid URL
      * @returns Promise<string> - valid URL or empty string for a top frame in "port's or the current" tab
      */
     getPortUrl_ (port?: Frames.Port | null, ignoreHash?: boolean, req?: Req.baseFg<kFgReq>): string | Promise<string>;
-    reopenTab_ (tab: chrome.tabs.Tab, refresh?: /* false */ 0 | /* a temp blank tab */ 1 | /* directly */ 2,
-        exProps?: chrome.tabs.CreateProperties & {openInReaderMode?: boolean}, useGroup?: true | false): void;
-    setIcon_ (tabId: number, type: Frames.ValidStatus, isLater?: true): void;
-    complain_ (this: BackendHandlers, message: string): void;
-    showHUD_ (message: string, isCopy?: kTip): void
-    checkHarmfulUrl_ (url: string, port?: Port | null): boolean
-    getExcluded_: ExclusionsNS.GetExcluded | null
-    forceStatus_ (this: BackendHandlers, act: Frames.ForcedStatusText, tabId?: number): void;
+    runContentScriptsOn_ (tabId: number): void
+    checkHarmfulUrl_ (url: string, port?: Port | null): boolean | void
     indexPorts_: {
       (this: void, tabId: number, frameId: number): Port | null;
       (this: void, tabId: GlobalConsts.VomnibarFakeTabId): readonly Frames.Port[];
@@ -621,37 +451,16 @@ declare namespace BackendHandlersNS {
     };
     curTab_ (): number,
     onInit_: ((this: void) => void) | null;
+    reloadCSS_: <T extends -1 | 2> (action: T, customCSS?: string) => T extends -1 ? SettingsNS.MergedCustomCSS : void
+    updateMediaQueries_ (): void
   }
   const enum kInitStat {
-    none = 0, platformInfo = 1, others = 2,
-    START = none, FINISHED = platformInfo | others,
+    none = 0, platformInfo = 1, main = 2, START = none, FINISHED = platformInfo | main
   }
-}
-
-interface TextSet extends Set<string> {}
-interface CommandsDataTy {
-  errors_: null | string[][]
-  keyFSM_: KeyFSM | null
-  mappedKeyRegistry_: SafeDict<string> | null;
-}
-
-interface BaseHelpDialog {
-  render_ (this: {}, isOptionsPage: boolean): NonNullable<CmdOptions[kFgCmd.showHelpDialog]["h"]>;
 }
 
 interface Window {
-  readonly MathParser?: object;
-  readonly CommandsData_: CommandsDataTy & { keyToCommandRegistry_: Map<string, CommandsNS.BaseItem> }
-  readonly Completion_: CompletersNS.GlobalCompletersConstructor;
-  readonly Exclusions?: object;
-  readonly HelpDialog?: BaseHelpDialog;
-  readonly OnOther?: BrowserType;
-  readonly CurCVer_: BrowserVer;
-  readonly IsEdg_: boolean | 0;
-  readonly CurFFVer_: FirefoxBrowserVer;
-
   readonly Backend_: BackendHandlersNS.BackendHandlers;
-  readonly trans_: typeof chrome.i18n.getMessage;
 }
 
 declare const enum Consts {
@@ -660,10 +469,9 @@ declare const enum Consts {
 }
 
 /* eslint-disable no-var */
-declare var OnOther: BrowserType, Backend_: BackendHandlersNS.BackendHandlers, CommandsData_: CommandsDataTy
-declare var CurCVer_: BrowserVer, CurFFVer_: FirefoxBrowserVer, IsEdg_: boolean, BrowserProtocol_: string
-declare var setTimeout: SetTimeout;
-declare var trans_: typeof chrome.i18n.getMessage // eslint-disable-line no-var
+declare var Backend_: BackendHandlersNS.BackendHandlers
+declare var As_: <T> (i: T) => T
+declare var AsC_: <T extends kCName> (i: T) => T
 /* eslint-enable no-var */
 
 interface SetTimeout {

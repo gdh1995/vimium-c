@@ -5,7 +5,7 @@ import {
 import { prevent_ } from "../lib/keyboard_utils"
 import {
   createElement_, attachShadow_, NONE, fullscreenEl_unsafe_, docEl_unsafe_, getComputedStyle_, set_docSelectable_,
-  GetParent_unsafe_, getSelection_, ElementProto, GetChildNodes_not_ff, GetShadowRoot_, getEditableType_, htmlTag_,
+  GetParent_unsafe_, getSelection_, GetChildNodes_not_ff, GetShadowRoot_, getEditableType_, htmlTag_,
   notSafe_not_ff_, CLK, frameElement_, runJS_, isStyleVisible_, rangeCount_, getAccessibleSelectedNode, removeEl_s,
   appendNode_s, append_not_ff, setClassName_s, isNode_, INP, contains_s, setOrRemoveAttr_s, selOffset_, textContent_s,
   parentNode_unsafe_s, setDisplaying_s
@@ -273,10 +273,7 @@ export const getSelected = (notExpectCount?: {r?: ShadowRoot | null}): Selection
     let sel2: Selection | null = sel
     if (OnChrome && Build.MinCVer >= BrowserVer.MinShadowDOMV0
         || OnFirefox && Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1
-        || (OnChrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
-          && chromeVer_ < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
-          ? Build.MinCVer >= BrowserVer.MinShadowDOMV0 || ElementProto.webkitCreateShadowRoot
-          : typeof ShadowRoot == OBJECT_TYPES[kTY.func])) {
+        || typeof ShadowRoot == OBJECT_TYPES[kTY.func]) {
     while (sel2) {
       sel2 = null;
       el = getAccessibleSelectedNode(sel)

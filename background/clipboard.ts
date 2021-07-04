@@ -1,4 +1,9 @@
-import { settings } from "./store"
+import {
+  CurCVer_, CurFFVer_, OnChrome, OnEdge, OnFirefox, paste_, substitute_, set_copy_, set_paste_, set_substitute_, CONST_
+} from "./store"
+import * as BgUtils_ from "./utils"
+import * as settings_ from "./settings"
+import * as Exclusions from "./exclusions"
 
 declare const enum SedAction {
   NONE = 0, decodeForCopy = 1, decode = 1, decodeuri = 1, decodeurl = 1,
@@ -10,7 +15,8 @@ declare const enum SedAction {
 }
 interface Contexts { normal_: SedContext, extras_: kCharCode[] | null }
 interface ClipSubItem {
-  readonly contexts_: Contexts; readonly host_: string | null; readonly match_: RegExp
+  readonly contexts_: Contexts; readonly match_: RegExp
+  host_: string | ValidUrlMatchers | /** regexp is broken */ -1 | null
   readonly retainMatched_: BOOL; readonly actions_: SedAction[]; readonly replaced_: string
 }
 
@@ -90,12 +96,10 @@ const convertCaseWithLocale = (text: string, action: SedAction): string => {
   const camel = action === SedAction.camel, dash = action === SedAction.dash, cap = action === SedAction.capitalize
   const capAll = action === SedAction.capitalizeAll
   const re = <RegExpG>
-    (Build.BTypes & BrowserType.Edge && (!(Build.BTypes & ~BrowserType.Edge) || OnOther & BrowserType.Edge)
-      || Build.MinCVer < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp && Build.BTypes & BrowserType.Chrome
+    (OnEdge
+      || OnChrome && Build.MinCVer < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
         && CurCVer_ < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
-      || Build.MinFFVer < FirefoxBrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
-        && Build.BTypes & BrowserType.Firefox
-        && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther & BrowserType.Firefox)
+      || OnFirefox && Build.MinFFVer < FirefoxBrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
         && CurFFVer_ < FirefoxBrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
     ? camel || dash
       ? /(?:[-_\s\/+\u2010-\u2015]|(\d)|^)([a-z\u03b1-\u03c9]|[A-Z\u0391-\u03a9]+[a-z\u03b1-\u03c9]?)|[\t\r\n\/+]/g
@@ -103,7 +107,7 @@ const convertCaseWithLocale = (text: string, action: SedAction): string => {
     : (Build.MinCVer >= BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp || !(Build.BTypes & BrowserType.Chrome))
       && (Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
           || !(Build.BTypes & BrowserType.Firefox))
-      && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
+      && (Build.BTypes & ~BrowserType.ChromeOrFirefox)
     ? camel || dash ? /(?:[-_\t\r\n\/+\u2010-\u2015\p{Z}]|(\p{N})|^)(\p{Ll}|\p{Lu}+\p{Ll}?)|[\t\r\n\/+]/ug
       : cap ? /(\b|_)\p{Ll}/u : capAll ? /(\b|_)\p{Ll}/ug : null
     : new RegExp(camel || dash
@@ -123,20 +127,17 @@ const convertCaseWithLocale = (text: string, action: SedAction): string => {
     return (resetStart ? s[0] : (p || "") + (p || dash && !isFirst ? "-" : "")) + b
   }) : cap || capAll ? text.replace(re as RegExpG & RegExpSearchable<1>, s => toLower(s, false)) : text
   if (dash) {
-    text = text.replace(<RegExpG & RegExpSearchable<1>> (Build.BTypes & BrowserType.Edge
-        && (!(Build.BTypes & ~BrowserType.Edge) || OnOther & BrowserType.Edge)
-      || Build.MinCVer < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp && Build.BTypes & BrowserType.Chrome
+    text = text.replace(<RegExpG & RegExpSearchable<1>> (OnEdge
+      || OnChrome && Build.MinCVer < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
         && CurCVer_ < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
-      || Build.MinFFVer < FirefoxBrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
-        && Build.BTypes & BrowserType.Firefox
-        && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther & BrowserType.Firefox)
+      || OnFirefox && Build.MinFFVer < FirefoxBrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
         && CurFFVer_ < FirefoxBrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
       ? /[a-z\u03b1-\u03c9]([A-Z\u0391-\u03a9]+[a-z\u03b1-\u03c9]?)/g
       : (Build.MinCVer >= BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp || !(Build.BTypes & BrowserType.Chrome))
         && (Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
             || !(Build.BTypes & BrowserType.Firefox))
         && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
-      ? /\p{Ll}(\p{Lu}+\p{Ll}?)/ : new RegExp("\\p{Ll}(\\p{Lu}+\\p{Ll})", "ug" as "g"))
+      ? /\p{Ll}(\p{Lu}+\p{Ll}?)/u : new RegExp("\\p{Ll}(\\p{Lu}+\\p{Ll})", "ug" as "g"))
     , (s, b, i): string => {
       // s[0] + "-" + toLower(s.slice(1), true))
       b = b.length > 2 && b.slice(-1).toLowerCase() === b.slice(-1)
@@ -164,8 +165,7 @@ const parseSedKeys_ = (keys: string | object, parsed?: ParsedSedOpts): Contexts 
     const code = keys.charCodeAt(i)
     if (code > 0x7f) {
       extras_ || (extras_ = [])
-      if (parsed || (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES6$Array$$Includes
-                      ? extras_.indexOf(code) < 0 : !extras_.includes!(code))) {
+      if (parsed || !extras_.includes!(code)) {
         extras_.push(code)
       }
       continue
@@ -183,8 +183,7 @@ const intersectContexts = (a: Contexts, b: Contexts): boolean => {
   const e2 = b.extras_
   if (!a.extras_ || !e2) { return false }
   for (const i of a.extras_) {
-    if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES6$Array$$Includes
-        ?  e2.indexOf(i) >= 0 : e2.includes!(i)) { return true }
+    if (e2.includes!(i)) { return true }
   }
   return false
 }
@@ -194,7 +193,7 @@ export const doesNeedToSed = (context: SedContext, sed: ParsedSedOpts | null): b
   // if (!sed || sed.r === false || !sed.k && )
   const contexts: Contexts | null = sed && sed.k && parseSedKeys_(sed.k, sed)
       || (context ? { normal_: context, extras_: null } : null)
-  staticSeds_ || contexts && (staticSeds_ = parseSeds_(settings.get_("clipSub"), null))
+  staticSeds_ || contexts && (staticSeds_ = parseSeds_(settings_.get_("clipSub"), null))
   for (const item of contexts ? staticSeds_! : []) {
     if (intersectContexts(item.contexts_, contexts!)) {
       return true
@@ -203,10 +202,10 @@ export const doesNeedToSed = (context: SedContext, sed: ParsedSedOpts | null): b
   return false
 }
 
-export const substitute_ = (text: string, normalContext: SedContext, mixedSed?: MixedSedOpts | null): string => {
+set_substitute_((text: string, normalContext: SedContext, mixedSed?: MixedSedOpts | null): string => {
   const rules = !mixedSed || typeof mixedSed !== "object" ? mixedSed : mixedSed.r
   if (rules === false) { return text }
-  let arr = staticSeds_ || (staticSeds_ = parseSeds_(settings.get_("clipSub"), null))
+  let arr = staticSeds_ || (staticSeds_ = parseSeds_(settings_.get_("clipSub"), null))
   let contexts = mixedSed && typeof mixedSed === "object" && mixedSed.k && parseSedKeys_(mixedSed.k, mixedSed)
       || (normalContext ? { normal_: normalContext, extras_: null } : null)
   // note: `sed` may come from options of key mappings, so here always convert it to a string
@@ -216,15 +215,10 @@ export const substitute_ = (text: string, normalContext: SedContext, mixedSed?: 
           <RegExpG> /(?!\\) ([A-Za-z\x80-\ufffd]{1,6})(?![\x00- A-Za-z\\\x7f-\uffff])/g, "\n$1")
         , contexts || (contexts = { normal_: SedContext.NO_STATIC, extras_: null })).concat(arr)
   }
-  let parsedUrl: URL | null, host: string | null = "", hostType: number
   for (const item of contexts ? arr : []) {
     if (intersectContexts(item.contexts_, contexts!) && (!item.host_
-          || (host = host !== "" ? host
-                : (parsedUrl = BgUtils_.safeParseURL_(text), parsedUrl && parsedUrl.host.toLowerCase()))
-              && (hostType = 2 * +item.host_.endsWith(".*") + +item.host_.startsWith("*."),
-                  hostType > 2 ? `.${host}.`.includes(item.host_.slice(1, -1))
-                  : hostType > 1 ? `${host}.`.startsWith(item.host_.slice(0, -1))
-                  : hostType ? `.${host}`.endsWith(item.host_.slice(1)) : host === item.host_)
+          || (typeof item.host_ === "string" && (item.host_ = Exclusions.createSimpleUrlMatcher_(item.host_) || -1),
+              item.host_ !== -1 && Exclusions.matchSimply_(item.host_, text))
         )) {
       let end = -1
       if (item.retainMatched_) {
@@ -246,24 +240,23 @@ export const substitute_ = (text: string, normalContext: SedContext, mixedSed?: 
       if (end < 0 || !text) {
         continue
       }
-      host = ""
       for (const action of item.actions_) {
         text = action === SedAction.decodeForCopy ? BgUtils_.decodeUrlForCopy_(text)
             : action === SedAction.decodeMaybeEscaped ? BgUtils_.decodeEscapedURL_(text)
             : action === SedAction.unescape ? decodeSlash_(text)
             : action === SedAction.upper ? text.toLocaleUpperCase!()
             : action === SedAction.lower ? text.toLocaleLowerCase!()
-            : action === SedAction.encode ? BgUtils_.encodeAsciiURI(text)
-            : action === SedAction.encodeComp ? BgUtils_.encodeAsciiComponent(text)
+            : action === SedAction.encode ? BgUtils_.encodeAsciiURI_(text)
+            : action === SedAction.encodeComp ? BgUtils_.encodeAsciiComponent_(text)
             : action === SedAction.encodeAll ? encodeURI(text)
             : action === SedAction.encodeAllComp ? encodeURIComponent(text)
             : action === SedAction.base64Decode ? BgUtils_.DecodeURLPart_(text, "atob")
             : action === SedAction.base64Encode ? btoa(text)
             : (text = (action === SedAction.normalize || action === SedAction.reverseText)
-                  && (Build.MinCVer >= BrowserVer.Min$String$$Normalize || !(Build.BTypes & BrowserType.Chrome)
+                  && (!OnChrome || Build.MinCVer >= BrowserVer.Min$String$$Normalize
                       || text.normalize) ? text.normalize() : text,
               action === SedAction.reverseText
-              ? (Build.MinCVer < BrowserVer.Min$Array$$From && Build.BTypes & BrowserType.Chrome
+              ? (OnChrome && Build.MinCVer < BrowserVer.Min$Array$$From
                 && !Array.from ? text.split("") : Array.from(text)).reverse().join("")
               : action === SedAction.camel || action === SedAction.dash || action === SedAction.capitalize ||
                 action === SedAction.capitalizeAll ? convertCaseWithLocale(text, action)
@@ -274,15 +267,14 @@ export const substitute_ = (text: string, normalContext: SedContext, mixedSed?: 
   }
   BgUtils_.resetRe_()
   return text
-}
+})
 
 const getTextArea_ = (): HTMLTextAreaElement => {
   const el = document.createElement("textarea")
   el.style.position = "absolute"
   el.style.left = "-99px"
   el.style.width = "0"
-  Build.BTypes & BrowserType.Firefox && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
-    && (el.contentEditable = "true")
+  OnFirefox && (el.contentEditable = "true")
   return el
 }
 
@@ -291,7 +283,7 @@ const format_ = (data: string | any[], join?: FgReq[kFgReq.copy]["j"], sed?: Mix
     data = join === "json" ? JSON.stringify(data, null, 2) : data.join(join !== !!join && (join as string) || "\n") +
         (data.length > 1 && (!join || join === !!join) ? "\n" : "")
   }
-  data = data.replace(BgUtils_.A0Re_, " ").replace(<RegExpG & RegExpSearchable<0>> /[ \t]+(\r\n?|\n)|\r\n?/g, "\n")
+  data = data.replace(<RegExpG> /\xa0/g, " ").replace(<RegExpG & RegExpSearchable<0>> /[ \t]+(\r\n?|\n)|\r\n?/g, "\n")
   let i = data.charCodeAt(data.length - 1)
   if (i !== kCharCode.space && i !== kCharCode.tab) { /* empty */ }
   else if (i = data.lastIndexOf("\n") + 1) {
@@ -305,15 +297,13 @@ const format_ = (data: string | any[], join?: FgReq[kFgReq.copy]["j"], sed?: Mix
 
 const reformat_ = (copied: string, sed?: MixedSedOpts | null): string => {
   if (copied) {
-  copied = copied.replace(BgUtils_.A0Re_, " ")
+  copied = copied.replace(<RegExpG> /\xa0/g, " ")
   copied = substitute_(copied, SedContext.paste, sed)
   }
   return copied
 }
 
-export const copy_: typeof BgUtils_.copy_ = Build.BTypes & BrowserType.Firefox && navigator.clipboard
-    && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
-? (data, join, sed): string => {
+set_copy_(OnFirefox && navigator.clipboard ? (data, join, sed): string => {
   data = format_(data, join, sed)
   data && navigator.clipboard!.writeText!(data)
   return data
@@ -322,25 +312,24 @@ export const copy_: typeof BgUtils_.copy_ = Build.BTypes & BrowserType.Firefox &
   if (data) {
     const doc = document, textArea = getTextArea_()
     textArea.value = data
-    doc.documentElement!.appendChild(textArea)
+    doc.body!.appendChild(textArea)
     textArea.select()
     doc.execCommand("copy")
     textArea.remove()
     textArea.value = ""
   }
   return data
-}
+})
 
-export const paste_: typeof BgUtils_.paste_ = !settings.CONST_.AllowClipboardRead_ ? () => null
-: Build.BTypes & BrowserType.Firefox && (!(Build.BTypes & ~BrowserType.Firefox) || OnOther === BrowserType.Firefox)
-? (sed): Promise<string | null> | null => {
+set_paste_(!CONST_.AllowClipboardRead_ ? () => null
+: OnFirefox ? (sed): Promise<string | null> | null => {
   const clipboard = navigator.clipboard
   return clipboard ? clipboard.readText!().then(s => reformat_(
       s.slice(0, GlobalConsts.MaxBufferLengthForPastingLongURL), sed), () => null) : null
 } : (sed, newLenLimit?: number): string => {
   const textArea = getTextArea_()
   textArea.maxLength = newLenLimit || GlobalConsts.MaxBufferLengthForPastingNormalText
-  document.documentElement!.appendChild(textArea)
+  document.body!.appendChild(textArea)
   textArea.focus()
   document.execCommand("paste")
   let value = textArea.value.slice(0, newLenLimit || GlobalConsts.MaxBufferLengthForPastingNormalText)
@@ -349,13 +338,9 @@ export const paste_: typeof BgUtils_.paste_ = !settings.CONST_.AllowClipboardRea
   textArea.removeAttribute("maxlength")
   if (!newLenLimit && value.length >= GlobalConsts.MaxBufferLengthForPastingNormalText * 0.8
       && (value.slice(0, 5).toLowerCase() === "data:" || BgUtils_.isJSUrl_(value))) {
-    return BgUtils_.paste_(sed, GlobalConsts.MaxBufferLengthForPastingLongURL) as string
+    return paste_(sed, GlobalConsts.MaxBufferLengthForPastingLongURL) as string
   }
   return reformat_(value, sed)
-}
+})
 
-BgUtils_.copy_ = copy_
-BgUtils_.paste_ = paste_
-BgUtils_.sed_ = substitute_
-
-settings.updateHooks_.clipSub = (): void => { staticSeds_ = null }
+settings_.updateHooks_.clipSub = (): void => { staticSeds_ = null }
