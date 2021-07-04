@@ -10,9 +10,7 @@
   )](https://github.com/gdh1995/vimium-c/stargazers)
 [![Gitee star](https://gitee.com/gdh1995/vimium-c/badge/star.svg?theme=dark
   )](https://gitee.com/gdh1995/vimium-c/stargazers)
-[![Current build status](https://travis-ci.org/gdh1995/vimium-c.svg?branch=master
-  )](https://travis-ci.org/gdh1995/vimium-c)
-[![Code alerts](https://img.shields.io/lgtm/alerts/g/gdh1995/vimium-c?logo=lgtm&logoWidth=18
+[![Code alerts](https://img.shields.io/lgtm/alerts/g/gdh1995/vimium-c?logo=lgtm&logoWidth=18&label=lgtm
   )](https://lgtm.com/projects/g/gdh1995/vimium-c/alerts/)
 
 [![Firefox 63+](https://img.shields.io/amo/v/vimium-c@gdh1995.cn?logo=Firefox%20Browser&logoColor=white&label=Firefox%2063%2B&labelColor=FF7139
@@ -21,7 +19,7 @@
   )](https://addons.mozilla.org/firefox/addon/vimium-c/?src=external-readme)
 [![rating](https://img.shields.io/amo/rating/vimium-c@gdh1995.cn?logo=Firefox%20Browser&logoColor=white&label=rating&labelColor=FF7139&color=blue
   )](https://addons.mozilla.org/firefox/addon/vimium-c/reviews/?src=external-readme)
-[![Chrome 47+](https://img.shields.io/chrome-web-store/v/hfjbmagddngcpeloejdejnfgbamkjaeg?logo=Google%20Chrome&logoColor=white&label=Chrome%2043%2B&labelColor=4285F4&color=critical
+[![Chrome 47+](https://img.shields.io/chrome-web-store/v/hfjbmagddngcpeloejdejnfgbamkjaeg?logo=Google%20Chrome&logoColor=white&label=Chrome%2047%2B&labelColor=4285F4&color=critical
   )](https://chrome.google.com/webstore/detail/vimium-c-all-by-keyboard/hfjbmagddngcpeloejdejnfgbamkjaeg)
 [![users](https://img.shields.io/chrome-web-store/users/hfjbmagddngcpeloejdejnfgbamkjaeg?logo=Google%20Chrome&logoColor=white&label=users&labelColor=4285F4&color=critical
   )](https://chrome.google.com/webstore/detail/vimium-c-all-by-keyboard/hfjbmagddngcpeloejdejnfgbamkjaeg)

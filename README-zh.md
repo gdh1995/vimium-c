@@ -10,9 +10,7 @@
   )](https://github.com/gdh1995/vimium-c/stargazers)
 [![Gitee 收藏](https://gitee.com/gdh1995/vimium-c/badge/star.svg?theme=dark
   )](https://gitee.com/gdh1995/vimium-c/stargazers)
-[![构建状态](https://travis-ci.org/gdh1995/vimium-c.svg?branch=master
-  )](https://travis-ci.org/gdh1995/vimium-c)
-[![异常代码数](https://img.shields.io/lgtm/alerts/g/gdh1995/vimium-c?logo=lgtm&logoWidth=18
+[![异常代码数](https://img.shields.io/lgtm/alerts/g/gdh1995/vimium-c?logo=lgtm&logoWidth=18&label=lgtm
   )](https://lgtm.com/projects/g/gdh1995/vimium-c/alerts/)
 
 [![Firefox 63+](https://img.shields.io/amo/v/vimium-c@gdh1995.cn?logo=Firefox%20Browser&logoColor=white&label=Firefox%2063%2B&labelColor=FF7139
@@ -21,7 +19,7 @@
   )](https://addons.mozilla.org/firefox/addon/vimium-c/?src=external-readme)
 [![评分](https://img.shields.io/amo/rating/vimium-c@gdh1995.cn?logo=Firefox%20Browser&logoColor=white&label=评分&labelColor=FF7139&color=blue
   )](https://addons.mozilla.org/firefox/addon/vimium-c/reviews/?src=external-readme)
-[![Chrome 47+](https://img.shields.io/chrome-web-store/v/hfjbmagddngcpeloejdejnfgbamkjaeg?logo=Google%20Chrome&logoColor=white&label=Chrome%2043%2B&labelColor=4285F4&color=critical
+[![Chrome 47+](https://img.shields.io/chrome-web-store/v/hfjbmagddngcpeloejdejnfgbamkjaeg?logo=Google%20Chrome&logoColor=white&label=Chrome%2047%2B&labelColor=4285F4&color=critical
   )](https://chrome.google.com/webstore/detail/vimium-c-all-by-keyboard/hfjbmagddngcpeloejdejnfgbamkjaeg)
 [![用户数](https://img.shields.io/chrome-web-store/users/hfjbmagddngcpeloejdejnfgbamkjaeg?logo=Google%20Chrome&logoColor=white&label=用户数&labelColor=4285F4&color=critical
   )](https://chrome.google.com/webstore/detail/vimium-c-all-by-keyboard/hfjbmagddngcpeloejdejnfgbamkjaeg)
