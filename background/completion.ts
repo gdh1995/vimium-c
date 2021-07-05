@@ -13,7 +13,7 @@ import {
   calcBestFaviconSource_only_cr_, SearchKeywords_, set_maxScoreP_, set_timeAgo_, maxScoreP_
 } from "./completion_utils"
 import {
-  BlockListFilter_, BookmarkManager_, UrlDecoder_, HistoryManager_, TestNotBlocked_
+  BlockListFilter_, BookmarkManager_, UrlDecoder_, HistoryManager_, TestNotBlocked_, getRecentSessions_, BrowserUrlItem
 } from "./browsing_data_manager"
 
 import MatchType = CompletersNS.MatchType;
@@ -24,12 +24,6 @@ import kVisibility = CompletersNS.kVisibility
 
 type Domain = CompletersNS.Domain;
 
-interface BrowserUrlItem {
-  u: string;
-  title_: string | null;
-  sessionId_: string | number | null | undefined;
-  visit_: number
-}
 interface Completer {
   filter_ (query: CompletersNS.QueryStatus, index: number): void;
 }
@@ -182,7 +176,7 @@ historyEngine = {
     if (index === 0) {
       requireNormalOrIncognitoTabs_(wantInCurrentWindow, otherFlags, historyEngine.loadTabs_, query)
     } else if (browser_.sessions) {
-      browser_.sessions.getRecentlyClosed(historyEngine.loadSessions_.bind(historyEngine, query))
+      getRecentSessions_(offset + maxResults, showThoseInBlocklist, historyEngine.loadSessions_.bind(null, query))
     } else {
       historyEngine.filterFill_([], query, new Set!(), 0, 0)
     }
@@ -261,27 +255,16 @@ historyEngine = {
     }
     return historyEngine.filterFill_([], query, arr, offset, count);
   },
-  loadSessions_ (query: CompletersNS.QueryStatus, sessions: chrome.sessions.Session[]): void {
+  loadSessions_ (this: void, query: CompletersNS.QueryStatus, sessions: BrowserUrlItem[]): void {
     if (query.o) { return; }
     const historyArr: BrowserUrlItem[] = [], arr: Set<string> = new Set!()
     let i = -offset;
     return sessions.some(function (item): boolean {
-      const entry = item.tab as chrome.sessions.Session["tab"] & BrowserUrlItem
-      if (!entry) { return false; }
-      let url = entry.url, key: string, t: number;
-      if (url.length > GlobalConsts.MaxHistoryURLLength) {
-        entry.url = url = HistoryManager_.trimURLAndTitleWhenTooLong_(url, entry)
-      }
-      if (!showThoseInBlocklist && !TestNotBlocked_(url, entry.title)) { return false }
-      key = url + "\n" + entry.title;
+      let url = item.u, key: string
+      key = url + "\n" + item.title_
       if (arr.has(key)) { return false }
       arr.add(key), arr.add(url)
-      ++i > 0 && historyArr.push({
-        u: entry.url, title_: entry.title,
-        visit_: OnFirefox ? item.lastModified
-            : (t = item.lastModified, t < /* as ms: 1979-07 */ 3e11 && t > /* as ms: 1968-09 */ -4e10 ? t * 1000 : t),
-        sessionId_: entry.sessionId
-      });
+      ++i > 0 && historyArr.push(item)
       return historyArr.length >= maxResults;
     }) ? historyEngine.filterFinish_(historyArr) : historyEngine.filterFill_(historyArr, query, arr, -i, 0);
   },
@@ -306,7 +289,7 @@ historyEngine = {
         rawArr2 = rawArr2.slice(cut, cut + maxResults)
       }
       let historyArr2 = rawArr2.map((i): BrowserUrlItem => ({
-          u: i.url, title_: i.title, visit_: i.lastVisitTime, sessionId_: null
+          u: i.url, title_: i.title || "", visit_: i.lastVisitTime, sessionId_: null
       }))
       if (cut < 0) {
         historyArr2 = historyArr.concat(historyArr2);

@@ -439,25 +439,26 @@ set_bgC_([
         && !sessions) {
       return complainNoSession()
     }
+    const count = Math.abs(cRepeat)
     const doRestore = (list: chrome.sessions.Session[]): void => {
-      if (cRepeat > list.length) {
+      if (count > list.length) {
         return showHUD(trans_("indexOOR"))
       }
-      const session = list[cRepeat - 1], item = session.tab || session.window
+      const session = list[count - 1], item = session.tab || session.window
       if (item) {
         sessions.restore(item.sessionId)
         runNextCmd<C.restoreGivenTab>(1)
       }
     }
-    if (cRepeat > sessions.MAX_SESSION_RESULTS) {
+    if (count > sessions.MAX_SESSION_RESULTS) {
       return doRestore([])
     }
-    if (cRepeat <= 1) {
+    if (count <= 1) {
       sessions.restore(null, runtimeError_)
       runNextCmd<C.restoreGivenTab>(1)
       return
     }
-    sessions.getRecentlyClosed(doRestore)
+    sessions.getRecentlyClosed({ maxResults: count }, doRestore)
   },
   /* kBgCmd.restoreTab: */ (): void | kBgCmd.restoreTab => {
     const sessions = browserSessions_()

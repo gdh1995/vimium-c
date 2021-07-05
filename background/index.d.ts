@@ -387,8 +387,8 @@ import FullSettings = SettingsNS.FullSettings;
 declare namespace BackendHandlersNS {
   interface SpecialHandlers {
     [kFgReq.gotoSession]: {
-      (this: void, request: { s: string | number; a: false }, port: Port): void;
-      (this: void, request: { s: string | number; a?: true }): void;
+      (this: void, request: { s: CompletersNS.SessionId; a: false }, port: Port): void;
+      (this: void, request: { s: CompletersNS.SessionId; a?: true }): void;
     };
     [kFgReq.checkIfEnabled]: ExclusionsNS.Listener & (
         (this: void, request: FgReq[kFgReq.checkIfEnabled], port: Frames.Port) => void);

@@ -3,7 +3,7 @@ export const OnOther_ = !Build.BTypes || Build.BTypes & (Build.BTypes - 1) ? Bui
     && (typeof browser === "undefined" || (browser && (browser as typeof chrome).runtime) == null
         || location.protocol.lastIndexOf("chrome", 0) >= 0) // in case Chrome also supports `browser` in the future
     ? BrowserType.Chrome
-    : Build.BTypes & BrowserType.Edge && !!(window as {} as {StyleMedia: unknown}).StyleMedia ? BrowserType.Edge
+    : Build.BTypes & BrowserType.Edge && globalThis.StyleMedia ? BrowserType.Edge
     : Build.BTypes & BrowserType.Firefox ? BrowserType.Firefox
     : /* an invalid state */ BrowserType.Unknown
     : Build.BTypes as number as BrowserType

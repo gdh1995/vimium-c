@@ -19,7 +19,12 @@ declare const enum InnerConsts {
 }
 interface UrlDomain { domain_: string; scheme_: Urls.SchemeId }
 type ItemToDecode = string | DecodedItem
+export interface BrowserUrlItem {
+  u: string; title_: string; visit_: number; sessionId_: CompletersNS.SessionId | null
+}
 
+const WithTextDecoder = !OnEdge && (Build.MinCVer >= BrowserVer.MinEnsuredTextEncoderAndDecoder || !OnChrome
+    || CurCVer_ > BrowserVer.MinEnsuredTextEncoderAndDecoder - 1 || !!globalThis.TextDecoder)
 const _decodeFunc = decodeURIComponent
 let decodingEnabled = false, decodingJobs: ItemToDecode[], decodingIndex = -1, dataUrlToDecode_ = "1"
 let charsetDecoder_: TextDecoder | null = null
@@ -430,6 +435,38 @@ export const HistoryManager_ = {
   }
 }
 
+export const getRecentSessions_ = (expected: number, showBlocked: boolean
+    , callback: (list: BrowserUrlItem[]) => void) => {
+  let timer = setTimeout((): void => { timer = 0; callback([]) }, 100)
+  browser_.sessions.getRecentlyClosed({
+    maxResults: Math.min((expected * 1.2) | 0, browser_.sessions.MAX_SESSION_RESULTS)
+  }, (sessions): void => {
+    if (!timer) { return }
+    clearTimeout(timer)
+    let arr2: BrowserUrlItem[] = [], t: number
+    for (const item of sessions) {
+      const entry = item.tab
+      if (!entry) { continue }
+      let url = entry.url, title = entry.title
+      if (url.length > GlobalConsts.MaxHistoryURLLength) {
+        entry.url = url = HistoryManager_.trimURLAndTitleWhenTooLong_(url, entry)
+      }
+      if (!showBlocked && !TestNotBlocked_(url, title)) { continue }
+      arr2.push({
+        u: url, title_: title,
+        visit_: OnFirefox ? item.lastModified
+            : (t = item.lastModified, t < /* as ms: 1979-07 */ 3e11 && t > /* as ms: 1968-09 */ -4e10 ? t * 1000 : t),
+        sessionId_: [entry.windowId, entry.sessionId!]
+      })
+    }
+    if (OnFirefox) { // for GC
+      setTimeout(callback, 0, arr2)
+    } else {
+      callback(arr2)
+    }
+  })
+}
+
 export const TestNotBlocked_ = (url: string, title: string): CompletersNS.Visibility => {
   return omniBlockListRe!.test(title) || omniBlockListRe!.test(url)
       ? kVisibility.hidden : kVisibility.visible
@@ -514,12 +551,12 @@ const doDecoding_ = (xhr?: TextXHR | null): void => {
   let text: string | undefined, end = decodingJobs.length
   if (!dataUrlToDecode_ || decodingIndex >= end) {
     decodingJobs.length = 0, decodingIndex = -1
-    if (!OnChrome || Build.MinCVer >= BrowserVer.MinFetchDataURL || CurCVer_ > BrowserVer.MinFetchDataURL - 1) {
+    if (WithTextDecoder) {
       charsetDecoder_ = null
     }
     return
   }
-  if (!OnChrome || Build.MinCVer >= BrowserVer.MinFetchDataURL || CurCVer_ > BrowserVer.MinFetchDataURL - 1) {
+  if (WithTextDecoder) {
     end = Math.min(decodingIndex + 32, end)
     charsetDecoder_ = charsetDecoder_ || new TextDecoder(dataUrlToDecode_)
   }
@@ -530,14 +567,9 @@ const doDecoding_ = (xhr?: TextXHR | null): void => {
       isStr || ((url as DecodedItem).t = text)
       continue
     }
-    if (OnChrome && Build.MinCVer < BrowserVer.MinFetchDataURL && CurCVer_ < BrowserVer.MinFetchDataURL) {
-      const arr = !OnChrome || Build.MinCVer >= BrowserVer.MinWarningOfEscapingHashInBodyOfDataURL
-          || CurCVer_ >= BrowserVer.MinWarningOfEscapingHashInBodyOfDataURL
-          ? str.split("#", 3) : []
-      const num = arr.length
-      const escaped = num < 2 ? str : num < 3 ? arr[0] + "%23" + arr[1] : str.replace(<RegExpG> /#/g, "%23")
+    if (!WithTextDecoder) {
       xhr || (xhr = /*#__NOINLINE__*/ createXhr_())
-      xhr.open("GET", dataUrlToDecode_ + escaped, true)
+      xhr.open("GET", dataUrlToDecode_ + str, true)
       xhr.send()
       return 
     }
@@ -549,9 +581,9 @@ const doDecoding_ = (xhr?: TextXHR | null): void => {
       urlDecodingDict_.set(url, text)
     }
   }
-  if (!OnChrome || Build.MinCVer >= BrowserVer.MinFetchDataURL || CurCVer_ > BrowserVer.MinFetchDataURL - 1) {
+  if (WithTextDecoder) {
     if (decodingIndex < decodingJobs.length) {
-      (setTimeout as (handler: () => void, timeout: number) => number)(doDecoding_, 4)
+      (setTimeout as (handler: (arg?: undefined) => void, timeout: number) => number)(doDecoding_, 4)
     } else {
       decodingJobs.length = 0
       decodingIndex = -1
@@ -604,11 +636,11 @@ settings_.updateHooks_.omniBlockList = (newList: string): void => {
 settings_.postUpdate_("omniBlockList")
 
 if (!OnChrome || Build.MinCVer >= BrowserVer.MinRequestDataURLOnBackgroundPage
-    || CurCVer_ > BrowserVer.MinRequestDataURLOnBackgroundPage - 1) {
+    || WithTextDecoder || CurCVer_ > BrowserVer.MinRequestDataURLOnBackgroundPage - 1) {
   settings_.updateHooks_.localeEncoding = (charset: string): void => {
     let enabled = charset ? !(charset = charset.toLowerCase()).startsWith("utf") : false
     const oldUrl = dataUrlToDecode_
-    if (!OnChrome || Build.MinCVer >= BrowserVer.MinFetchDataURL || CurCVer_ > BrowserVer.MinFetchDataURL - 1) {
+    if (WithTextDecoder) {
       dataUrlToDecode_ = enabled ? charset : ""
       if (dataUrlToDecode_ === oldUrl) { return }
       try { new TextDecoder(dataUrlToDecode_) }

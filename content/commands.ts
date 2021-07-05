@@ -20,7 +20,7 @@ import { post_, set_contentCommands_, runFallbackKey } from "./port"
 import {
   addElementList, ensureBorder, evalIfOK, getSelected, getSelectionText, getParentVApi, curModalElement, createStyle,
   getBoxTagName_old_cr, setupExitOnClick, addUIElement, removeSelection, ui_root, kExitOnClick, collpaseSelection,
-  hideHelp, set_hideHelp, set_helpBox,
+  hideHelp, set_hideHelp, set_helpBox, checkHidden,
 } from "./dom_ui"
 import { hudHide, hudShow, hudTip, hud_text } from "./hud"
 import { onKeyup2, set_onKeyup2, passKeys, set_nextKeys, set_passKeys, keyFSM } from "./key_handler"
@@ -52,7 +52,12 @@ set_contentCommands_([
     realStep = rawStep! < 0 ? -maxStep : maxStep;
     if (options.r) {
       timeout_((): void => {
-        options.url ? (loc_.href = options.url) : loc_.reload(!!options.hard)
+        if (!options.url) {
+          if (checkHidden(kFgCmd.framesGoBack, options as typeof options & SafeObject, 1)) { return }
+          loc_.reload(!!options.hard)
+        } else {
+          loc_.href = options.url
+        }
         runFallbackKey(options, !1)
       }, 17)
     }

@@ -14,7 +14,7 @@
 "Un outil de raccourcis clavier pour une navigation de page centrée sur l'usage du clavier, des opérations sur les onglets du navigateur avec une omnibar avancée ainsi que des raccourcis globaux"
   },
   "lang1": { "message": "fr" },
-  "i18n": { "message": "options=fr,en popup=fr" },
+  "i18n": { "message": "options=fr,en show=en" },
   "noActiveState": { "message": "Tel que configuré, pas d'état actif présent" },
   "Upgrade": { "message": "Mise à jour" },
   "upgradeMsg": { "message": "Vimium C a été mise à jour vers la v$1.\n" },

@@ -69,12 +69,13 @@ declare namespace CompletersNS {
 
   type CoreSuggestion = Readonly<WritableCoreSuggestion>;
 
+  type SessionId = [windowId: number, sessionId: string] | /** tabId */ number
   interface BaseSuggestion extends CoreSuggestion {
     t: string;
     textSplit?: string;
     title: string;
     visit: number
-    /** sessionId */ s?: string | number;
+    /** sessionId */ s?: SessionId
     label?: string;
     /** source page of favIcon */ v?: string;
     favIcon?: string;

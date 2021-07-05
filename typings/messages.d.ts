@@ -219,7 +219,7 @@ declare const enum kFgCmd {
   END, ENDS = "END",
 }
 
-type FgCmdAcrossFrames = kFgCmd.linkHints | kFgCmd.scroll | kFgCmd.vomnibar | kFgCmd.goNext
+type FgCmdAcrossFrames = kFgCmd.linkHints | kFgCmd.scroll | kFgCmd.vomnibar | kFgCmd.goNext | kFgCmd.framesGoBack
 
 interface FgOptions extends SafeDict<any> {}
 type SelectActions = "" | "all" | "all-input" | "all-line" | "start" | "end";
@@ -511,7 +511,7 @@ interface FgReq {
     /** index */ i?: undefined;
   };
   [kFgReq.gotoSession]: {
-    /** sessionId */ s: string | number;
+    /** sessionId */ s: CompletersNS.SessionId
     /** active: default to true  */ a?: boolean;
   };
   [kFgReq.openUrl]: {
@@ -598,7 +598,7 @@ interface FgReq {
   };
   [kFgReq.removeSug]: {
     /** type */ t: "tab" | "history";
-    /** sessionId / tabId */ s?: string | number | null
+    /** sessionId / tabId */ s?: CompletersNS.SessionId | null
     /** url */ u: string
   };
   [kFgReq.openImage]: {

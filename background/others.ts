@@ -52,10 +52,7 @@ if (settings_.get_("showActionIcon")) {
     sent_: boolean;
     key_: string;
   }
-  interface SubInfo {
-    type_?: "history" | "tab";
-    sessionId_?: number | string;
-  }
+  interface SubInfo { type_?: "history" | "tab"; sessionId_?: CompletersNS.SessionId }
   const colon2 = trans_("colon") + trans_("NS")
   const onDel = (!OnFirefox || Build.DetectAPIOnFirefox) ? omnibox.onDeleteSuggestion : null,
   mayDelete = OnChrome && Build.MinCVer >= BrowserVer.MinOmniboxSupportDeleting
@@ -262,7 +259,7 @@ if (settings_.get_("showActionIcon")) {
     return open(text, disposition, sessionId);
   }
   function open(this: void, text: string, disposition?: chrome.omnibox.OnInputEnteredDisposition
-      , sessionId?: string | number | null): void {
+      , sessionId?: CompletersNS.SessionId | null): void {
     if (!text) {
       text = convertToUrl_("")
     } else if (text[0] === ":" && (<RegExpOne> /^:([1-9]|1[0-2]) /).test(text)) {

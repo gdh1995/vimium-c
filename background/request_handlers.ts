@@ -125,7 +125,7 @@ set_reqH_([
       complainNoSession()
       return
     }
-    browserSessions_().restore(id, (): void => {
+    browserSessions_().restore(id[1], (): void => {
       const err = runtimeError_()
       err && showHUD(trans_("noSessionItem"))
       return err
@@ -346,23 +346,19 @@ set_reqH_([
       showHUD(trans_(succeed ? "delSug" : "notDelSug", [transPart_("sugs", type[0]) || name]))
     }
     set_cPort(findCPort(port)!)
-    if (type === "tab" && curTabId_ === +sId!) {
+    if (type === "tab" && curTabId_ === sId) {
       showHUD(trans_("notRemoveCur"))
     } else if (type !== "session") {
-      Completion_.removeSug_(type === "tab" ? sId! : url, type, cb)
+      Completion_.removeSug_(type === "tab" ? sId as number : url, type, cb)
     } else {
       const sessions = browserSessions_()
       if ((OnEdge || OnFirefox && Build.MayAndroidOnFirefox || OnChrome && Build.MinCVer < BrowserVer.MinSessions)
           && !sessions) {
         return
       }
-      void (sessions.getRecentlyClosed as unknown as () => Promise<chrome.sessions.Session[]>)().then((list): void => {
-        const found = list.filter(i => i.tab && i.tab.sessionId === sId)[0]
-        if (found) {
-          void browserSessions_().forgetClosedTab(found.tab!.windowId, sId as string)
-              .then(() => 1 as const, blank_).then(cb)
-        }
-      })
+      const sessionId = sId as Extract<CompletersNS.SessionId, object>
+      void browserSessions_().forgetClosedTab(sessionId[0], sessionId[1])
+          .then(() => 1 as const, blank_).then(cb)
     }
   },
   /** kFgReq.openImage: */ _AsReqH<kFgReq.openImage>(openImgReq),

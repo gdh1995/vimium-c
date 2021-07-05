@@ -18,6 +18,7 @@
   "changeTabs": "Manipule les onglets",
   "misc": "Divers",
   "advCmd": " commandes avancées",
+  "VerIs": "Version ",
   "HStar": "Activez l'étoile GitHub",
   "HStar2": "Activez l'étoile Gitee",
   "HReview": "Ecrire une revue sur ",
@@ -160,5 +161,6 @@
   "toggleVomnibarStyle": "Alterner les styles de la page Vomnibar",
   "visitPreviousTab": "Aller à l'onglet précédemment visité sur la fenêtre courante",
   "zoomIn": "Zoomer l'onglet courant",
-  "zoomOut": "Dézoomer l'onglet courant"
+  "zoomOut": "Dézoomer l'onglet courant",
+  "zoomReset": "Réinitialiser le niveau de zoom"
 }
