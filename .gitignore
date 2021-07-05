@@ -36,7 +36,6 @@ scripts/*public_suffix*
 scripts/*releases*
 icons/*.bin
 package-lock.json
-npm-shrinkwrap.json
 # the below are just to make vscode ignore those on finding
 /.eslintrc.json
 typings/base/

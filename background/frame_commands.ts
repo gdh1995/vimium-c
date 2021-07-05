@@ -398,7 +398,7 @@ export const toggleZoom = (): void | kBgCmd.toggleZoom => {
       newZoom = OnFirefox
           ? M.max(0.3, M.min(newZoom, 3)) : M.max(0.25, M.min(newZoom, 5))
     } else if (cRepeat > 4) {
-      newZoom = cRepeat / (cRepeat > 1000 ? cRepeat : cRepeat > 49 ? 100 : 10)
+      newZoom = cRepeat > 1000 ? 1 : cRepeat / (cRepeat > 49 ? 100 : 10)
       newZoom = OnFirefox
           ? M.max(0.3, M.min(newZoom, 3)) : M.max(0.25, M.min(newZoom, 5))
     } else {
