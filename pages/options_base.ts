@@ -365,15 +365,20 @@ override readValueFromElement_ (part?: boolean): AllowedOptions["exclusionRules"
     } else if (!pattern.startsWith("^")) {
       fixTail = !pattern.includes("/", schemeLen + 3);
       if (pattern.endsWith("*")) {
-        pattern = pattern.slice(0, -1)
+        pattern = pattern.slice(0, (<RegExpOne> /^[^\\]\.\*$/).test(pattern.slice(-3)) ? -2 : -1)
         fixTail = false
       }
-      pattern = (schemeLen < 0 ? "^https?://" : "^") +
-          (!pattern.startsWith("*") || pattern[1] === "."
-            ? ((pattern = pattern.replace(<RegExpG> /\./g, "\\.")), // lgtm [js/incomplete-sanitization]
-              !pattern.startsWith("*") ? pattern.replace("://*\\.", "://(?:[^./]+\\.)*?")
-                : pattern.replace("*\\.", "(?:[^./]+\\.)*?"))
-            : "[^/]" + pattern);
+      pattern = pattern.startsWith(".*") && !(<RegExpOne> /[(\\[]/).test(pattern) ? "*." + pattern.slice(2) : pattern
+      let host2 = pattern
+      host2 = (schemeLen < 0 ? "^https?://" : "^") +
+          (!host2.startsWith("*") || host2[1] === "."
+            ? ((host2 = host2.replace(<RegExpG> /\./g, "\\.")), // lgtm [js/incomplete-sanitization]
+              !host2.startsWith("*") ? host2.replace("://*\\.", "://(?:[^./]+\\.)*?")
+                : host2.replace("*\\.", "(?:[^./]+\\.)*?"))
+            : "[^/]" + host2);
+      pattern = _testRe(host2, "") ? host2
+          : pattern.includes("*") || pattern.includes("/") ? ":" + pattern
+          : ":https://" + (pattern.startsWith(".") ? pattern.slice(1) : pattern)
     } else {
       const ind = ".*$".includes(pattern.slice(-2)) ? pattern.endsWith(".*$") ? 3 : pattern.endsWith(".*") ? 2 : 0 : 0
       pattern = ind !== 0 && pattern[pattern.length - ind] !== "\\" ? pattern.slice(0, -ind) : pattern
@@ -426,6 +431,14 @@ override onSave_ (): void {
 override readonly areEqual_ = Option_.areJSONEqual_;
 sortRules_: (el?: HTMLElement) => void;
 timer_?: number;
+}
+
+const _testRe = (pattern: string, suffix: string): RegExp | null => {
+  try {
+    return new RegExp(pattern, suffix as "");
+  } catch {
+    return null
+  }
 }
 
 export let setupBorderWidth_ = (OnChrome && Build.MinCVer < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo

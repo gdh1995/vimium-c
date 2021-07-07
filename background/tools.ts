@@ -5,13 +5,14 @@ import {
   OnEdge, isHighContrast_ff_, omniPayload_, blank_, CONST_
 } from "./store"
 import * as BgUtils_ from "./utils"
-import { Tabs_, Windows_, browser_, tabsGet, getCurWnd, getTabUrl, runtimeError_ } from "./browser"
+import { Tabs_, Windows_, browser_, tabsGet, getCurWnd, getTabUrl, runtimeError_, browserSessions_ } from "./browser"
 import { hostRe_, removeComposedScheme_ } from "./normalize_urls"
 import { prepareReParsingPrefix_ } from "./parse_urls"
 import * as settings_ from "./settings"
 import { complainLimits, showHUD } from "./ports"
 import { setOmniStyle_ } from "./ui_css"
 import { trans_ } from "./i18n"
+import { parseFallbackOptions } from "./run_commands"
 import { parseOpenPageUrlOptions, preferLastWnd } from "./open_urls"
 import { reopenTab_ } from "./tab_commands"
 
@@ -126,8 +127,7 @@ export const ContentSettings_ = OnChrome ? {
           localStorage.getItem(key) !== "1" && localStorage.setItem(key, "1");
         }
         let arr: Frames.Frames | undefined,
-        couldNotRefresh = (OnEdge || OnFirefox && !!Build.MayAndroidOnFirefox
-                || OnChrome && Build.MinCVer < BrowserVer.MinSessions) && !browser_.sessions
+        couldNotRefresh = OnEdge || !browserSessions_()
             || OnChrome
                 // work around a bug of Chrome
                 && (Build.MinCVer >= BrowserVer.MinIframeInRestoredSessionTabHasPreviousTopFrameContentSettings
@@ -312,7 +312,7 @@ export const Marks_ = { // NOTE: all public members should be static
       u: stored.url, s: stored.scroll, t: stored.tabId,
       n: markName, p: true,
       q: parseOpenPageUrlOptions(options),
-      f: options // parseFallbackOptions(options)
+      f: parseFallbackOptions(options)
     };
     markInfo.p = options.prefix !== false && markInfo.s[1] === 0 && markInfo.s[0] === 0 &&
         !!BgUtils_.IsURLHttp_(markInfo.u);

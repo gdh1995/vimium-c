@@ -2,7 +2,7 @@ import {
   CurCVer_, CurFFVer_, curIncognito_, curWndId_, newTabUrls_, OnChrome, OnEdge, OnFirefox, settingsCache_, blank_,
   CONST_, IsEdg_, hasGroupPermission_ff_
 } from "./store"
-import { DecodeURLPart_ } from "./utils"
+import { DecodeURLPart_, deferPromise_ } from "./utils"
 
 type AtomPermission = { origins: [chrome.permissions.kPermissions]; permissions?: undefined }
     | { origins?: undefined; permissions: [chrome.permissions.kPermissions] }
@@ -78,18 +78,42 @@ export const selectFrom = (tabs: readonly Tab[], overrideIndexes?: BOOL): Active
   return tabs[0]! as ActiveTab
 }
 
-/** `0` means the query is invalid */
-export const doPermissionsContain_ = ((query: chrome.permissions.Request | null): Promise<boolean | 0> | null =>
-    !query ? null : OnChrome ? new Promise((resolve): void => {
-      browser_.permissions.contains(query, (allowed): void => {
-        resolve(runtimeError_() ? 0 : allowed)
-        return runtimeError_()
-      })
-    }) : browser_.permissions.contains(query).catch(() => 0)
-) as {
-  (query: chrome.permissions.Request): Promise<boolean | 0>
-  (query: chrome.permissions.Request | null): Promise<boolean | 0> | null
-}
+type PromisifyApi1<F extends Function> =
+    F extends ((...args: [...infer A, (res: infer R, ex?: FakeArg) => void]) => void | 1)
+    ? (...args: A) => Promise<R> : F
+type PromisifyApi2<F extends Function> =
+    F extends { (...args: infer A1) : infer R1; (...args: infer A2): infer R2 }
+    ? R1 extends Promise<any> ? (...args: A1) => R1 : PromisifyApi1<(...args: A2) => R2>
+    : PromisifyApi1<F>
+type ApiParams<F extends Function> = Parameters<PromisifyApi2<F>>
+type ApiCb<F extends Function> = PromisifyApi2<F> extends (...args: any[]) => Promise<infer R>
+    ? R extends FakeArg | undefined ? null : R : never
+type ApiTemplate<Params extends any[]> = (...args: [...Params, (res: any, exArgs?: FakeArg) => void]) => void | 1
+
+export const Q_: {
+  <F extends ApiTemplate<[]>              > (browserApi: F): Promise<ApiCb<F> | undefined>
+  <F extends ApiTemplate<[any]>           > (browserApi: F, ...args: ApiParams<F>): Promise<ApiCb<F> | undefined>
+  <F extends ApiTemplate<[any, any]>      > (browserApi: F, ...args: ApiParams<F>): Promise<ApiCb<F> | undefined>
+  <F extends ApiTemplate<[any, any, any]> > (browserApi: F, ...args: ApiParams<F>): Promise<ApiCb<F> | undefined>
+} = (OnChrome || OnEdge ? function (func: Function): Promise<unknown> {
+  const arr: unknown[] = [].slice.call(arguments, 1)
+  const { promise_, resolve_ } = deferPromise_<unknown>();
+  arr.push((res: unknown): void => {` `
+    const err = runtimeError_(); resolve_(err ? void 0 : res != null ? res : null)
+    return err
+  })
+  func.apply(void 0, arr)
+  return promise_
+} : function (func: Function): Promise<unknown> {
+  return func.apply(void 0, [].slice.call(arguments, 1)).then(/*#__NOINLINE__*/ _orNull, blank_)
+}) as (func: Function, ...args: any[]) => Promise<any>
+const _orNull = (result: unknown) => result !== void 0 ? result : null
+
+export const R_ = (resolve: OnCmdResolved): () => void => resolve !== blank_ ? () => {
+  const error = runtimeError_()
+  resolve(!error)
+  return error
+} : runtimeError_
 
 const doesIgnoreUrlField_ = (url: string, incognito?: boolean): boolean => {
   const type = newTabUrls_.get(url)
@@ -246,7 +270,7 @@ export const downloadFile = (url: string, filename?: string | null, refer?: stri
     onRefused && onRefused()
     return
   }
-  doPermissionsContain_({ permissions: ["downloads"] }).then((permitted): void => {
+  Q_(browser_.permissions.contains, { permissions: ["downloads"] }).then((permitted): void => {
     if (permitted) {
       const opts: chrome.downloads.DownloadOptions = { url }
       if (filename) {
@@ -276,22 +300,21 @@ export const downloadFile = (url: string, filename?: string | null, refer?: stri
   })
 }
 
-interface LatestPromise extends Promise<void> {
-  finally (onFinally: (() => void) | Promise<void>): LatestPromise
-}
-let _lockToRemoveTempTab: {p: LatestPromise} | null | 0 = OnFirefox ? null : 0
-const _removeTempTab = async (tabId: number, windowId: number, url: string, selfLock: object): Promise<void> => {
-  await (Tabs_.remove(tabId) as never as Promise<void>).catch(blank_)
-  const sessions = await browser_.sessions.getRecentlyClosed({ maxResults: 1 })
-  const tab = sessions && sessions[0] && sessions[0].tab
-  if (tab && tab.url === url) {
-    await browser_.sessions.forgetClosedTab(windowId, tab.sessionId!).catch(blank_)
-  }
-  if (_lockToRemoveTempTab === selfLock) { _lockToRemoveTempTab = null }
-}
+let _lockToRemoveTempTab: Promise<void> | null = null
 export const removeTempTab = (tabId: number, wndId: number, url: string): void => {
-  const lock = {} as {p: LatestPromise}, p = _removeTempTab(tabId, wndId, url, lock)
-  lock.p = _lockToRemoveTempTab ? _lockToRemoveTempTab.p.finally(p) : p as LatestPromise
+  if (OnChrome || OnEdge || !(browserSessions_()?.forgetClosedTab)) { Tabs_.remove(tabId); return }
+  const old = _lockToRemoveTempTab
+  let lock: Promise<void> | undefined
+  lock = (async (): Promise<void> => {
+    await (Tabs_.remove(tabId) as never as Promise<void>).catch(blank_)
+    await old
+    const sessions = await browserSessions_().getRecentlyClosed({ maxResults: 1 })
+    const tab = sessions && sessions[0] && sessions[0].tab
+    if (tab && tab.url === url) {
+      await browserSessions_().forgetClosedTab(wndId, tab.sessionId!).catch(blank_)
+    }
+    if (_lockToRemoveTempTab === lock) { _lockToRemoveTempTab = null }
+  })()
   _lockToRemoveTempTab = lock
 }
 
@@ -307,10 +330,10 @@ export const isRefusingIncognito_ = (url: string): boolean => {
 }
 
 export const watchPermissions_ = (queries: (AtomPermission | null)[]
-    , onChange: (allowList: (boolean | 0 | null)[], mutable: boolean) => void | false): void => {
+    , onChange: (allowList: (boolean | undefined | null)[], mutable: boolean) => void | false): void => {
   const browserPermissions_ = browser_.permissions
-  if (OnEdge) { Promise.resolve(queries.map(() => 0 as const)).then(list => onChange(list, false)); return }
-  const promise = Promise.all(queries.map(doPermissionsContain_))
+  if (OnEdge) { Promise.resolve(queries.map(() => void 0)).then(list => onChange(list, false)); return }
+  const promise = Promise.all(queries.map(i => i && Q_(browser_.permissions.contains, i)))
   if (OnFirefox && Build.MinFFVer < FirefoxBrowserVer.Min$permissions$$onAdded && !browserPermissions_.onAdded) {
     promise.then(list => onChange(list, false))
     return

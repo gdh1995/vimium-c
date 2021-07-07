@@ -275,7 +275,7 @@ const initExclusionRulesTable = (): void => {
   }
 }
 
-void Promise.all([asyncBackend_.restoreSettings_() && asyncBackend_.restoreSettings_()
+void Promise.all([asyncBackend_.restoreSettings_()
     , asyncBackend_.parseMatcher_(null)
     , new Promise<[chrome.tabs.Tab]>((resolve): void => {
   browser_.tabs.query({currentWindow: true, active: true}, resolve)

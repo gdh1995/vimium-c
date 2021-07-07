@@ -627,9 +627,7 @@ export const toggleTabUrl = (tabs: [Tab]): void | kBgCmd.toggleTabUrl => {
 export const reopenTab_ = (tab: Tab, refresh?: /* false */ 0 | /* a temp blank tab */ 1 | /* directly */ 2
     , exProps?: chrome.tabs.CreateProperties, useGroup?: true | false): void => {
   const tabId = tab.id, needTempBlankTab = refresh === 1
-  if ((OnEdge || OnFirefox && Build.MayAndroidOnFirefox
-        || OnChrome && Build.MinCVer < BrowserVer.MinSessions
-      ? refresh && browserSessions_() : refresh) && (useGroup !== false || getGroupId(tab) == null)) {
+  if (!OnEdge && refresh && browserSessions_() && (useGroup !== false || getGroupId(tab) == null)) {
     let step = RefreshTabStep.start, tempTabId = -1,
     onRefresh = (): void => {
       const err = runtimeError_()

@@ -77,7 +77,7 @@ function App (this: void): void {
   let _shownHash: string | null
   if (_nextUrl || !url && asyncBackend_ && (_shownHash = asyncBackend_.shownHash_())) {
     url = _nextUrl || _shownHash!
-    _nextUrl = _shownHash = ""
+    _nextUrl = ""
     if ((<RegExpI> /^[^:]+[ &]data:/i).test(url)) {
       encryptKey = -1;
     }

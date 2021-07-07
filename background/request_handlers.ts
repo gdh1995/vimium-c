@@ -120,8 +120,7 @@ set_reqH_([
       })
       return
     }
-    if ((OnEdge || OnFirefox && Build.MayAndroidOnFirefox || OnChrome && Build.MinCVer < BrowserVer.MinSessions)
-        && !browserSessions_()) {
+    if (OnEdge || !browserSessions_()) {
       complainNoSession()
       return
     }
@@ -322,8 +321,9 @@ set_reqH_([
     else if (request.f != null) {
       if (request.f.w === 0) {
         executeCommand(registryEntry, count, request.l, port, 0, request.f)
+      } else {
+        waitAndRunKeyReq(request as (typeof request) & Ensure<typeof request, "f">, port)
       }
-      waitAndRunKeyReq(request as (typeof request) & Ensure<typeof request, "f">, port)
     } else {
       executeCommand(registryEntry, count, request.l, port, 0, null)
     }
@@ -350,12 +350,7 @@ set_reqH_([
       showHUD(trans_("notRemoveCur"))
     } else if (type !== "session") {
       Completion_.removeSug_(type === "tab" ? sId as number : url, type, cb)
-    } else {
-      const sessions = browserSessions_()
-      if ((OnEdge || OnFirefox && Build.MayAndroidOnFirefox || OnChrome && Build.MinCVer < BrowserVer.MinSessions)
-          && !sessions) {
-        return
-      }
+    } else if (!OnEdge && browserSessions_()?.forgetClosedTab) {
       const sessionId = sId as Extract<CompletersNS.SessionId, object>
       void browserSessions_().forgetClosedTab(sessionId[0], sessionId[1])
           .then(() => 1 as const, blank_).then(cb)

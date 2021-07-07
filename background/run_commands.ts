@@ -111,7 +111,7 @@ export const executeCommand = (registryEntry: CommandsNS.Item, count: number, la
       showHUD(`Has ran sequential commands for ${maxRetried} times`)
       return
     }
-    if (options && (registryEntry.alias_ === kBgCmd.runKey || parseFallbackOptions(options as Req.FallbackOptions))) {
+    if (options && (registryEntry.alias_ === kBgCmd.runKey || hasFallbackOptions(options as Req.FallbackOptions))) {
       set_cOptions(options)
       overrideCmdOptions<kBgCmd.runKey>(As_<Req.FallbackOptions>({
         $f: (fallbackCounter.c | 0) + 1, $retry: -maxRetried
@@ -517,6 +517,8 @@ const runKeyWithOptions = (key: string, countScale: number, exOptions?: Commands
 }
 
 /** execute a command referred by .$then or .$else */
+
+export const hasFallbackOptions = (options: Req.FallbackOptions): boolean => !!(options.$then || options.$else)
 
 export const parseFallbackOptions = (options: Req.FallbackOptions): Req.FallbackOptions | null => {
   const thenKey = options.$then, elseKey = options.$else

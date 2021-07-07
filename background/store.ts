@@ -106,7 +106,6 @@ export let bgC_: {
     ? BgCmdInfoMap[K] extends kCmdInfo.ActiveTab ? BgCmdActiveTab<K>
       : BgCmdInfoMap[K] extends kCmdInfo.CurWndTabsIfRepeat | kCmdInfo.CurWndTabs | kCmdInfo.CurShownTabs
       ? BgCmdCurWndTabs<K>
-      : BgCmdInfoMap[K] extends kCmdInfo.ActiveTab | kCmdInfo.NoTab ? BgCmdActiveTabOrNoTab<K>
       : never
     : BgCmdNoTab<K>
 }

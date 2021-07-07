@@ -34,7 +34,7 @@ export const OnConnect = (port: Frames.Port, type: PortType): void => {
   const url = sender.url_, isOmni = url === settingsCache_.vomnibarPage_f
   if (type > PortType.reconnect - 1 || isOmni) {
     if (type === PortType.CloseSelf) {
-      !OnChrome && sender.tabId_ >= 0 && !sender.frameId_ &&
+      sender.tabId_ >= 0 && !sender.frameId_ &&
       removeTempTab(sender.tabId_, (port as Frames.BrowserPort).sender.tab!.windowId, sender.url_)
       return
     } else if (type & PortType.omnibar || isOmni) {

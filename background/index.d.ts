@@ -432,7 +432,7 @@ declare namespace BackendHandlersNS {
     substitute_ (text: string, context: SedContext, sed?: MixedSedOpts | null): string
     isExpectingHidden_: NonNullable<CompletersNS.GlobalCompletersConstructor["isExpectingHidden_"]>
     focusOrLaunch_ (request: FgReq[kFgReq.focusOrLaunch], _port?: undefined): void
-    restoreSettings_ (): (() => Promise<void> | null) | null
+    restoreSettings_ (): Promise<void> | null
     parseMatcher_ (pattern: string | null): BaseUrlMatcher[]
     findUrlInText_ (this: void, url: string, testUrl: OpenPageUrlOptions["testUrl"]): string
     /**

@@ -3,7 +3,6 @@ declare const enum kCmdInfo { NoTab = 0, ActiveTab = 1, CurWndTabsIfRepeat = 2, 
 type Tab = chrome.tabs.Tab
 type BgCmdNoTab<T extends kBgCmd> = (this: void, _fakeArg?: undefined) => void | T
 type BgCmdActiveTab<T extends kBgCmd> = (this: void, tabs1: [Tab]) => void | T
-type BgCmdActiveTabOrNoTab<T extends kBgCmd> = (this: void, tabs1?: [Tab]) => void | T
 type BgCmdCurWndTabs<T extends kBgCmd> = (this: void, tabs1: Tab[]) => void | T
 
 interface BgCmdOptions {
@@ -135,7 +134,6 @@ interface BgCmdInfoMap {
   [kBgCmd.goToTab]: kCmdInfo.CurShownTabs | kCmdInfo.CurWndTabs
   [kBgCmd.moveTab]: kCmdInfo.CurShownTabs | kCmdInfo.CurWndTabs
   [kBgCmd.moveTabToNextWindow]: kCmdInfo.ActiveTab
-  [kBgCmd.openUrl]: kCmdInfo.ActiveTab | kCmdInfo.NoTab
   [kBgCmd.reloadTab]: kCmdInfo.CurWndTabsIfRepeat
   [kBgCmd.removeRightTab]: kCmdInfo.CurWndTabs
   [kBgCmd.removeTabsR]: kCmdInfo.CurWndTabs

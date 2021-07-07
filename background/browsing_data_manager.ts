@@ -1,7 +1,7 @@
 import {
   blank_, bookmarkCache_, Completion_, CurCVer_, historyCache_, OnChrome, OnEdge, OnFirefox, urlDecodingDict_
 } from "./store"
-import { Tabs_, browser_, runtimeError_ } from "./browser"
+import { Tabs_, browser_, runtimeError_, browserSessions_ } from "./browser"
 import * as BgUtils_ from "./utils"
 import * as settings_ from "./settings"
 import { MatchCacheManager_, MatchCacheType } from "./completion_utils"
@@ -437,12 +437,16 @@ export const HistoryManager_ = {
 
 export const getRecentSessions_ = (expected: number, showBlocked: boolean
     , callback: (list: BrowserUrlItem[]) => void) => {
-  let timer = setTimeout((): void => { timer = 0; callback([]) }, 100)
-  browser_.sessions.getRecentlyClosed({
-    maxResults: Math.min((expected * 1.2) | 0, browser_.sessions.MAX_SESSION_RESULTS)
+  const browserSession = !OnEdge ? browserSessions_() : null
+  if (!browserSession) { callback([]); return }
+  let timer = OnFirefox ? setTimeout((): void => { timer = 0; callback([]) }, 100) : 0
+  browserSession.getRecentlyClosed({
+    maxResults: Math.min((expected * 1.2) | 0, browserSession.MAX_SESSION_RESULTS)
   }, (sessions): void => {
-    if (!timer) { return }
-    clearTimeout(timer)
+    if (OnFirefox) {
+      if (!timer) { return }
+      clearTimeout(timer)
+    }
     let arr2: BrowserUrlItem[] = [], t: number
     for (const item of sessions) {
       const entry = item.tab
@@ -631,7 +635,7 @@ settings_.updateHooks_.omniBlockList = (newList: string): void => {
   }
   omniBlockListRe = arr.length > 0 ? new RegExp(arr.map(BgUtils_.escapeAllForRe_).join("|"), "") : null
   omniBlockList = arr.length > 0 ? arr : null;
-  (historyCache_.history_ || bookmarkCache_.bookmarks_) && setTimeout(BlockListFilter_.UpdateAll_, 100)
+  (historyCache_.history_ || bookmarkCache_.bookmarks_.length) && setTimeout(BlockListFilter_.UpdateAll_, 100)
 }
 settings_.postUpdate_("omniBlockList")
 

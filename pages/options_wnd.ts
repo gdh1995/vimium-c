@@ -538,9 +538,9 @@ window.onhashchange = (): void => {
   }
 };
 
-asyncBackend_.restoreSettings_() && asyncBackend_.restoreSettings_()!() ? (
+asyncBackend_.restoreSettings_() && asyncBackend_.restoreSettings_() ? (
   Build.NDEBUG || console.log("Now restore settings before page loading"),
-  void asyncBackend_.restoreSettings_()!()!.then(optionsInitAll_)
+  void asyncBackend_.restoreSettings_()!.then(optionsInitAll_)
 ) : optionsInitAll_();
 
 // below is for programmer debugging

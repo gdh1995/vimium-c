@@ -7,7 +7,7 @@ import * as BgUtils_ from "./utils"
 import {
   Tabs_, Windows_, InfoToCreateMultiTab, openMultiTabs, tabsGet, getTabUrl, selectFrom, runtimeError_,
   selectTab, getCurWnd, getCurTabs, getCurTab, getCurShownTabs_ff_only_, browserSessions_, browser_, selectWndIfNeed,
-  getGroupId, isRefusingIncognito_, doPermissionsContain_
+  getGroupId, isRefusingIncognito_, Q_
 } from "./browser"
 import { createSearchUrl_ } from "./normalize_urls"
 import { parseSearchUrl_ } from "./parse_urls"
@@ -250,6 +250,7 @@ set_bgC_([
   /* kBgCmd.discardTab: */ (tabs: Tab[]): void | kBgCmd.discardTab => {
     if (OnChrome && Build.MinCVer < BrowserVer.Min$tabs$$discard && CurCVer_ < BrowserVer.Min$tabs$$discard) {
       showHUD(trans_("noDiscardIfOld", [BrowserVer.Min$tabs$$discard]))
+      return
     }
     let current = (OnFirefox ? selectFrom(tabs, 1) : selectFrom(tabs)).index
       , end = Math.max(0, Math.min(current + cRepeat, tabs.length - 1)),
@@ -313,24 +314,27 @@ set_bgC_([
     framesGoBack({ s: cRepeat, o: get_cOptions<C.goBackFallback, true>() }, null, tabs[0])
   },
   /* kBgCmd.goToTab: */ (tabs: Tab[]): void | kBgCmd.goToTab => {
-    if (tabs.length < 2) { return }
-    const count = cRepeat, len = tabs.length
-    let cur: Tab | undefined, index = get_cOptions<C.goToTab>().absolute
-      ? count > 0 ? Math.min(len, count) - 1 : Math.max(0, len + count)
-      : Math.abs(count) > tabs.length * 2 ? (count > 0 ? -1 : 0)
-      : (cur = OnFirefox ? selectFrom(tabs, 1) : selectFrom(tabs)).index + count
+    let len = tabs.length
+    if (len < 2) { return }
+    const count = cRepeat, absolute = !!get_cOptions<C.goToTab>().absolute
+    const cur = OnFirefox ? selectFrom(tabs, 1) : selectFrom(tabs)
+    let index = absolute ? count > 0 ? Math.min(len, count) - 1 : Math.max(0, len + count)
+        : Math.abs(count) > len * 2 ? (count > 0 ? len - 1 : 0)
+        : cur.index + count
     index = index >= 0 ? index % len : len + (index % len || -len)
-    let toSelect: Tab = tabs[index]
-    if (toSelect.pinned && count < 0 && get_cOptions<C.goToTab>().noPinned) {
-      let curIndex = (cur || (OnFirefox ? selectFrom(tabs, 1) : selectFrom(tabs))).index
-      if (curIndex > index && !tabs[curIndex - 1].pinned) {
-        while (tabs[index].pinned) { index++ }
-        if (count > 1 && get_cOptions<C.goToTab>().absolute) {
-          index = Math.min(len, index + count) - 1
-        }
-        toSelect = tabs[index]
+    if (tabs[0].pinned && get_cOptions<C.goToTab>().noPinned && !cur.pinned && (count < 0 || absolute)) {
+      let start = 1
+      while (tabs[start].pinned) { start++ }
+      len -= start
+      if (absolute || Math.abs(count) > len * 2) {
+        index = absolute ? Math.max(start, index) : index || start
+      } else {
+        index = (cur.index - start) + count
+        index = index >= 0 ? index % len : len + (index % len || -len)
+        index += start
       }
     }
+    const toSelect: Tab = tabs[index]
     if (!toSelect.active) { selectTab(toSelect.id) }
   },
   /* kBgCmd.goUp: */ (): void | kBgCmd.goUp => {
@@ -371,7 +375,7 @@ set_bgC_([
   },
   /* kBgCmd.moveTabToNewWindow: */ _AsBgC<BgCmdNoTab<kBgCmd.moveTabToNewWindow>>(moveTabToNewWindow),
   /* kBgCmd.moveTabToNextWindow: */ _AsBgC<BgCmdActiveTab<kBgCmd.moveTabToNextWindow>>(moveTabToNextWindow),
-  /* kBgCmd.openUrl: */ _AsBgC<BgCmdActiveTabOrNoTab<kBgCmd.openUrl>>(openUrl),
+  /* kBgCmd.openUrl: */ _AsBgC<BgCmdNoTab<kBgCmd.openUrl>>(openUrl),
   /* kBgCmd.reloadTab: */ _AsBgC<BgCmdCurWndTabs<kBgCmd.reloadTab>>(reloadTab),
   /* kBgCmd.removeRightTab: */ (tabs: Tab[]): void | kBgCmd.removeRightTab => {
     if (!tabs) { return }
@@ -434,9 +438,8 @@ set_bgC_([
     }
   },
   /* kBgCmd.restoreGivenTab: */ (): void | kBgCmd.restoreGivenTab => {
-    const sessions = browserSessions_()
-    if ((OnEdge || OnFirefox && Build.MayAndroidOnFirefox || OnChrome && Build.MinCVer < BrowserVer.MinSessions)
-        && !sessions) {
+    const sessions = !OnEdge ? browserSessions_() : null
+    if (!sessions) {
       return complainNoSession()
     }
     const count = Math.abs(cRepeat)
@@ -461,9 +464,8 @@ set_bgC_([
     sessions.getRecentlyClosed({ maxResults: count }, doRestore)
   },
   /* kBgCmd.restoreTab: */ (): void | kBgCmd.restoreTab => {
-    const sessions = browserSessions_()
-    if ((OnEdge || OnFirefox && Build.MayAndroidOnFirefox || OnChrome && Build.MinCVer < BrowserVer.MinSessions)
-        && !sessions) {
+    const sessions = !OnEdge ? browserSessions_() : null
+    if (!sessions) {
       return complainNoSession()
     }
     let count = cRepeat
@@ -563,7 +565,7 @@ set_bgC_([
       bgC_[kBgCmd.moveTabToNewWindow]()
       return
     }
-    doPermissionsContain_({ permissions: ["downloads.shelf", "downloads"] }).then((permitted): void => {
+    Q_(browser_.permissions.contains, { permissions: ["downloads.shelf", "downloads"] }).then((permitted): void => {
       if (permitted) {
         const toggleShelf = browser_.downloads.setShelfEnabled
         let err: string | undefined
@@ -577,7 +579,6 @@ set_bgC_([
       } else {
         bgC_[kBgCmd.moveTabToNewWindow]()
       }
-      return runtimeError_()
     })
   }
 ])

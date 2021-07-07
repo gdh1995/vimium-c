@@ -147,3 +147,70 @@ Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES6$Ar
       } as any
     }
 })()
+
+declare const enum Instruction { next = 0, return = 2, /** aka. "goto" */ break = 3, yield = 4 }
+
+Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredAsyncFunctions &&
+((): void => {
+  interface YieldedValue { 42: true }
+  /** no .trys, so unexpected try/catch whould make it throw as soon as possible */
+  interface YieldedPos { label_: number; sent_ (): YieldedValue | undefined }
+  type YieldableFunc = (pos: YieldedPos) => [/** step */ number, /** returned */ YieldedValue?]
+
+  const __myAwaiter = Build.MinCVer < BrowserVer.MinEnsuredGeneratorFunction
+  ? (branchedFunc: () => YieldableFunc): Promise<any> => new Promise<any> ((resolve): void => {
+    const resolveVoid = resolve.bind(0, void 0)
+    const generator = branchedFunc()
+    let value_: YieldedValue | undefined, async_pos_: YieldedPos = { label_: 0, sent_: () => value_ }
+    resume_()
+    function resume_(newValue?: YieldedValue): void {
+      value_ = newValue
+      let nextInst = Instruction.next
+      while (~nextInst & Instruction.return) {
+        let tmp = generator(async_pos_)
+        nextInst = tmp[0], value_ = tmp.length > 1 ? tmp[1] : void 0
+        if (Build.NDEBUG ? nextInst > Instruction.yield - 1 : nextInst === Instruction.yield) {
+          async_pos_.label_++; nextInst = Instruction.yield | Instruction.return
+        } else if (Build.NDEBUG ? nextInst > Instruction.break - 1 : nextInst === Instruction.break) {
+          async_pos_.label_ = value_ as unknown as number
+        } else if (!(Build.NDEBUG || nextInst === Instruction.next || nextInst === Instruction.return)) {
+          throw Error("Assert error: unsupported async status: " + nextInst)
+        }
+      }
+      Promise.resolve(value_).then(nextInst < Instruction.return + 1 ? resolve : resume_
+          , Build.NDEBUG ? resolveVoid : logDebugAndResolve)
+    }
+    function logDebugAndResolve(err: any): void {
+      console.log("Vimium C: an async function fails:", err)
+      resolveVoid()
+    }
+  })
+  : <TNext, TReturn> (generatorFunction: () => Generator<TNext | TReturn | Promise<TNext | TReturn>, TReturn, TNext>
+      ): Promise<TReturn | void> => new Promise<TReturn | void> ((resolve): void => {
+    const resolveVoid = Build.MinCVer < BrowserVer.MinTestedES6Environment ? resolve.bind(0, void 0) : () => resolve()
+    const generator = generatorFunction()
+    const resume_ = (lastVal?: TNext): void => {
+      const yielded = generator.next(lastVal), value = yielded.value
+      if (Build.MinCVer < BrowserVer.Min$resolve$Promise$MeansThen) {
+        Promise.resolve(value).then((yielded.done ? resolve : resume_) as (value: TReturn | TNext) => void
+            , Build.NDEBUG ? resolveVoid : logDebugAndResolve)
+      } else if (yielded.done) {
+        resolve(value as TReturn | Promise<TReturn> as /** just to satisfy type checks */ TReturn)
+      } else {
+        Promise.resolve(value as TNext | Promise<TNext>).then(resume_, Build.NDEBUG ? resolveVoid : logDebugAndResolve)
+      }
+    }
+    resume_()
+    function logDebugAndResolve(err: any): void {
+      if (!Build.NDEBUG) { console.log("Vimium C: an async function fails:", err) }
+      resolveVoid()
+    }
+  })
+
+  if (Build.MinCVer < BrowserVer.MinEnsuredGeneratorFunction) {
+    (globalThis as any).__generator = (_0: void | undefined, branchedFunc: YieldableFunc): YieldableFunc => branchedFunc
+  }
+  (globalThis as any).__awaiter = (_self: void | 0 | undefined, _args: unknown, _p: PromiseConstructor | 0 | undefined
+      , func_to_await: Function): Promise<YieldedValue> => __myAwaiter(func_to_await as any)
+
+})()

@@ -175,10 +175,8 @@ historyEngine = {
     }
     if (index === 0) {
       requireNormalOrIncognitoTabs_(wantInCurrentWindow, otherFlags, historyEngine.loadTabs_, query)
-    } else if (browser_.sessions) {
-      getRecentSessions_(offset + maxResults, showThoseInBlocklist, historyEngine.loadSessions_.bind(null, query))
     } else {
-      historyEngine.filterFill_([], query, new Set!(), 0, 0)
+      getRecentSessions_(offset + maxResults, showThoseInBlocklist, historyEngine.loadSessions_.bind(null, query))
     }
   },
   performSearch_ (): Suggestion[] {

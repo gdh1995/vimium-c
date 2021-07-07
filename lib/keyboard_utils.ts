@@ -162,7 +162,7 @@ export const suppressTail_ = ((timeout?: number
   (timeout: number, callback: HandlerNS.VoidHandler<any>): HandlerNS.VoidHandler<HandlerResult>
 }
 
-export const pushHandler_ = handlers_.push.bind(handlers_) as (func: HandlerNS.Handler, id: kHandler) => void
+export const pushHandler_ = handlers_.push.bind(handlers_) as (func: HandlerNS.Handler, id: kHandler) => number
 
 export const removeHandler_ = (id: kHandler): void => {
   let i = handlers_.lastIndexOf(id)

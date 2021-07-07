@@ -55,7 +55,7 @@ Backend_ = {
     evalVimiumUrl_,
     reformatURL_,
     parseSearchEngines_,
-    restoreSettings_: () => restoreSettings_,
+    restoreSettings_: () => restoreSettings_ && restoreSettings_(),
     substitute_,
     isExpectingHidden_: queries => Completion_.isExpectingHidden_!(queries),
     getPortUrl_,

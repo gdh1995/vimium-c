@@ -349,10 +349,10 @@ const defaultClick = (): void => {
         , specialActions, isRight ? kClickButton.second : kClickButton.none
         , !OnChrome || otherActions || newTab ? 0 : hintOptions.touch
         , hintOptions))
-    .then((ret): void => {
+    .then((ret): void | false | number | Promise<unknown> =>
       autoUnhover && !interactive ? catchAsyncErrorSilently(unhover_async())
       : isQueue || ret && pushHandler_(unhoverOnEsc, kHandler.unhoverOnEsc)
-    })
+    )
 }
 
 const checkFocus = (defaultVal: boolean): boolean => {
@@ -366,7 +366,7 @@ const checkFocus = (defaultVal: boolean): boolean => {
   const tag = htmlTag_(clickEl)
   const kD = "download", kLW = "last-window"
   let rect: Rect | null = null
-  let retPromise: Promise<void | false> | undefined
+  let retPromise: Promise<unknown> | undefined
   let showRect: BOOL | undefined
   if (hintManager) {
     set_keydownEvents_(hintApi.a())

@@ -40,13 +40,16 @@ export const createSimpleUrlMatcher_ = (host: string): ValidUrlMatchers | null =
     } else if (host === "localhost" || !host.includes("/") && host.includes(".")
         && (!(<RegExpOne> /:(?!\d+$)/).test(host) || BgUtils_.isIPHost_(host, 6))) { // ignore rare `IPV6 + :port`
       host = host.toLowerCase()
-      host = host.endsWith("*") ? host.slice(0, -1) : host
-      return { t: kMatchUrl.RegExp, v: new RegExp(
-        "^https?://" + (!host.startsWith("*") || host[1] === "."
-          ? (host = host.replace(<RegExpG> /\./g, "\\."), // lgtm [js/incomplete-sanitization]
-            !host.startsWith("*") ? host : host.replace("*\\.", "(?:[^./]+\\.)*?"))
-          : "[^/]" + host), ""
-      ) }
+      host = host.endsWith("*") ? host.slice(0, (<RegExpOne> /^[^\\]\.\*$/).test(host.slice(-3)) ? -2 : -1) : host
+      host = host.startsWith(".*") && !(<RegExpOne> /[(\\[]/).test(host) ? "*." + host.slice(2) : host
+      let host2: string
+      const re = BgUtils_.makeRegexp_("^https?://" + (!host.startsWith("*") || host[1] === "."
+            ? (host2 = host.replace(<RegExpG> /\./g, "\\."), // lgtm [js/incomplete-sanitization]
+              !host2.startsWith("*") ? host2 : host2.replace("*\\.", "(?:[^./]+\\.)*?"))
+            : "[^/]" + host)
+            , "", 0)
+      return re ? { t: kMatchUrl.RegExp, v: re as RegExpOne } : host.includes("*") ? null
+          : { t: kMatchUrl.StringPrefix, v: "https://" + (host.startsWith(".") ? host.slice(1) : host) + "/" }
     } else {
       host = (host[0] === ":" ? host.slice(1) : host).replace(<RegExpOne> /([\/?#])\*$/, "$1")
       host = host.startsWith("vimium://")
