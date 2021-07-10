@@ -51,5 +51,14 @@
   "VerIs": "版本：",
   "Disable": "禁用",
   "Enable": "启用",
-  "Once": "一次"
+  "Once": "一次",
+  "failInLoading": "（图片加载失败）",
+  "s1": "以下是截图：",
+  "Close": "关闭",
+  "none": "（空）",
+  "loading": "正在加载……",
+  "t_math": "计算器",
+  "t_copy": "复制",
+  "t_search": "搜索",
+  "t_ERROR": "错误"
 }

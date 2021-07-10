@@ -159,6 +159,7 @@
   "toggleViewSource": "View page source",
   "toggleVomnibarStyle": "Toggle styles of vomnibar page",
   "visitPreviousTab": "Go to previously-visited tab on current window",
+  "zoom": "Make a current tab zoom",
   "zoomIn": "Make a current tab zoom in",
   "zoomOut": "Make a current tab zoom out",
   "zoomReset": "Reset zoom level"

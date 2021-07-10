@@ -159,7 +159,7 @@ const curPath = location.pathname.replace("/pages/", "").split(".")[0]
 export const pageLangs_ = transPart_(bTrans_("i18n"), curPath) || bTrans_("lang1") || "en"
 
 Promise.all(pageLangs_.split(",").map((lang): Promise<Dict<string> | null> => {
-  const langFile = `/i18n/${lang}/${curPath}.json`
+  const langFile = `/i18n/${lang}/${curPath === "show" ? "popup" : curPath}.json`
   return (!OnChrome || Build.MinCVer >= BrowserVer.MinFetchExtensionFiles
       || CurCVer_ >= BrowserVer.MinFetchExtensionFiles ? fetch(langFile).then(r => r.json() as {})
       : new Promise<{}>((resolve): void => {
