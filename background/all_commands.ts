@@ -519,6 +519,10 @@ set_bgC_([
   },
   /* kBgCmd.showHUD: */ (): void | kBgCmd.showHUD => {
     let text = get_cOptions<C.showHUD>().text
+    if (!text && get_cOptions<C.showHUD>().$f) {
+      const fallbackContext = get_cOptions<C.showHUD, true>().$f
+      text = fallbackContext && fallbackContext.t ? trans_(`${fallbackContext.t as 99}`) : ""
+    }
     showHUD(text ? text + "" : trans_("needText"))
     text && runNextCmd<C.showHUD>(1)
   },

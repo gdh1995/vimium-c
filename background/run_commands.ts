@@ -107,17 +107,19 @@ export const executeCommand = (registryEntry: CommandsNS.Item, count: number, la
   if (fallbackCounter != null) {
     let maxRetried = fallbackCounter.r! | 0
     maxRetried = Math.max(1, maxRetried >= 0 && maxRetried < 100 ? Math.min(maxRetried || 6, 20) : abs(maxRetried))
-    if (fallbackCounter.c >= maxRetried) {
+    if (fallbackCounter.c && fallbackCounter.c.i >= maxRetried
+        && (!options || (options as Req.FallbackOptions).$else !== "showTip")) {
       set_cPort(port!)
       showHUD(`Has ran sequential commands for ${maxRetried} times`)
       return
     }
-    if (options && (registryEntry.alias_ === kBgCmd.runKey || hasFallbackOptions(options as Req.FallbackOptions))) {
-      set_cOptions(options)
-      overrideCmdOptions<kBgCmd.runKey>(As_<Req.FallbackOptions>({
-        $f: (fallbackCounter.c | 0) + 1, $retry: -maxRetried
-      }))
-      options = get_cOptions()
+    const context = makeFallbackContext(fallbackCounter.c, 1, fallbackCounter.u)
+    if (options && (registryEntry.alias_ === kBgCmd.runKey || hasFallbackOptions(options as Req.FallbackOptions)
+        || context.t && registryEntry.background_)) {
+      const opt2: Req.FallbackOptions = { $retry: -maxRetried, $f: context }
+      context.t && registryEntry.background_ && !(options as Req.FallbackOptions).$else && (opt2.$else = "showTip")
+      options ? overrideCmdOptions<kBgCmd.blank>(opt2, false, options) : BgUtils_.safer_(opt2)
+      options = opt2 as typeof opt2 & SafeObject
     }
   }
   if (!registryEntry.background_) {
@@ -535,6 +537,14 @@ export const wrapFallbackOptions = <T extends KeysWithFallback<CmdOptions>, S ex
   return options as unknown as CmdOptions[T]
 }
 
+const makeFallbackContext = (old: Req.FallbackOptions["$f"], counterStep: number, newTip: kTip | 0 | false
+    ): NonNullable<Req.FallbackOptions["$f"]> => {
+  return {
+    i: (old ? old.i : 0) + counterStep,
+    t: newTip && newTip !== 2 ? newTip : old ? old.t : 0
+  }
+}
+
 export const runNextCmd = <T extends KeysWithFallback<BgCmdOptions> = never> (
     useThen: T extends kBgCmd ? BOOL : "need kBgCmd"): boolean => {
   return runNextCmdBy(useThen, get_cOptions<T, true>() as Req.FallbackOptions)
@@ -544,8 +554,8 @@ export const runNextCmdBy = (useThen: BOOL, options: Req.FallbackOptions, timeou
   const nextKey = useThen ? options.$then : options.$else
   const hasFallback = !!nextKey && typeof nextKey === "string"
   if (hasFallback) {
-    const fStatus: NonNullable<FgReq[kFgReq.key]["f"]> = { c: options.$f! | 0, r: options.$retry, u: false, w: 0 }
-    setTimeout((): void => {
+    const fStatus: NonNullable<FgReq[kFgReq.key]["f"]> = { c: options.$f, r: options.$retry, u: 0, w: 0 }
+    setupSingletonCmdTimer(setTimeout((): void => {
       const frames = framesForTab_.get(curTabId_),
       port = cPort && cPort.s.tabId_ === curTabId_ && frames && frames.ports_.indexOf(cPort) > 0 ? cPort
           : !frames ? null : frames.cur_.s.status_ === Frames.Status.disabled
@@ -556,7 +566,7 @@ export const runNextCmdBy = (useThen: BOOL, options: Req.FallbackOptions, timeou
       } else {
         reqH_[kFgReq.key](As_<Req.fg<kFgReq.key>>({ H: kFgReq.key, k: nextKey!, l: kKeyCode.None, f: fStatus }), port)
       }
-    }, timeout || 50)
+    }, timeout || 50))
   }
   return hasFallback
 }
@@ -592,10 +602,11 @@ export const runNextOnTabLoaded = (options: OpenUrlOptions | Req.FallbackOptions
 }
 
 export const waitAndRunKeyReq = (request: WithEnsured<FgReq[kFgReq.key], "f">, port: Port | null): void => {
-  const fallback: Req.FallbackOptions = { $then: request.k, $else: null, $retry: request.f.r, $f: request.f.c }
+  const fallback: Req.FallbackOptions = { $then: request.k, $else: null, $retry: request.f.r,
+        $f: makeFallbackContext(request.f.c, 0, request.f.u) }
   set_cKey(request.l)
   set_cPort(port!)
-  if (request.f.u) {
+  if (request.f.u === false) {
     runNextOnTabLoaded(fallback, null)
   } else {
     runNextCmdBy(1, fallback, request.f.w)

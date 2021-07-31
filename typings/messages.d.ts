@@ -580,8 +580,10 @@ interface FgReq {
     /* keySequence */ k: string;
     /** lastKey */ l: kKeyCode;
     /** then/else counter */ f?: {
-      /** counter */ c: number; /** maxRetried */ r: number | null | undefined
-      /** may tab be updated */ u: boolean; /** wait for a while; 0 means no waiting */ w?: number | null
+      /** context: counter and last tip */ c: Req.FallbackOptions["$f"];
+      /** maxRetried */ r: number | null | undefined
+      /** kTip | 0 | 2: tip; false: tab will be updated */ u: kTip | false;
+      /** wait for a while; 0 means no waiting */ w?: number | null
     } | null
   };
   [kFgReq.marks]: ({ /** action */ a: kMarkAction.create } & (MarksNS.NewTopMark | MarksNS.NewMark)) | {
@@ -706,7 +708,10 @@ declare namespace Req {
     /** key sequence if succeed */ $then?: string | null
     /** key sequence if fail */ $else?: string | null
     /** [1..20] */ $retry?: number | null
-    /** fallback counter */ $f?: number | null
+    /** fallback context */ $f?: {
+      /** curRetried */ i: number
+      /** lastTip */ t: kTip | 0
+    } | null
   }
 }
 
