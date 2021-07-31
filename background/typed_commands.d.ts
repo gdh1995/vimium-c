@@ -4,9 +4,9 @@ type Tab = chrome.tabs.Tab
 type CmdResult = /** false */ 0 | /** true */ 1 | false | true | /** true and timeout=50 */ 50 | Tab | /** stop */ -1
 // if not call it, then it means do nothing
 type OnCmdResolved = (result: CmdResult) => void
-type BgCmdNoTab<T extends kBgCmd> = (this: void, _fakeArg?: undefined) => void | T
-type BgCmdActiveTab<T extends kBgCmd> = (this: void, tabs1: [Tab]) => void | T
-type BgCmdCurWndTabs<T extends kBgCmd> = (this: void, tabs1: Tab[]) => void | T
+type BgCmdNoTab<T extends kBgCmd> = (this: void, resolve: OnCmdResolved) => void | T
+type BgCmdActiveTab<T extends kBgCmd> = (this: void, tabs: [Tab], resolve: OnCmdResolved) => void | T
+type BgCmdCurWndTabs<T extends kBgCmd> = (this: void, tabs: Tab[], resolve: OnCmdResolved) => void | T
 
 interface BgCmdOptions {
   [kBgCmd.blank]: { /** ms */ for: CountValueOrRef; wait: CountValueOrRef } & Req.FallbackOptions
@@ -107,7 +107,7 @@ interface BgCmdOptions {
     filter: "url" | "hash" | "host" | "url+title" | "hash+title" | "host+title"
     other: boolean
   } & Req.FallbackOptions
-  [kBgCmd.reopenTab]: Pick<OpenUrlOptions, "group">
+  [kBgCmd.reopenTab]: Pick<OpenUrlOptions, "group"> & Req.FallbackOptions
   [kBgCmd.restoreTab]: { incognito: "force" | true; one: boolean }
   [kBgCmd.runKey]: {
     expect: CommandsNS.EnvItemWithKeys[] | Dict<string | string[]> | `${string}:${string},${string}:${string},`
@@ -213,6 +213,7 @@ declare namespace CommandsNS {
     readonly options_: Options | RawOptions | "__not_parsed__" | null
     readonly repeat_: number
     readonly command_: kCName
+    hasNext_: boolean | null
   }
   interface NormalizedItem extends BaseItem {
     readonly options_: Options | null

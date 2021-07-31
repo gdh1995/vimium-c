@@ -1,6 +1,6 @@
 import {
   framesForTab_, get_cOptions, cPort, cRepeat, reqH_, bgC_, cmdInfo_, OnFirefox, set_helpDialogData_, helpDialogData_,
-  set_cOptions, set_cPort, cKey, set_cKey, set_cRepeat, set_cNeedConfirm, curTabId_, OnEdge, keyToCommandMap_
+  set_cOptions, set_cPort, cKey, set_cKey, set_cRepeat, set_cNeedConfirm, curTabId_, OnEdge, keyToCommandMap_, blank_
 } from "./store"
 import * as BgUtils_ from "./utils"
 import { Tabs_, runtimeError_, getCurTab, getCurShownTabs_, getCurTabs, tabsGet, getCurWnd } from "./browser"
@@ -16,6 +16,7 @@ import C = kBgCmd
 const abs = Math.abs
 let _gCmdTimer = 0
 let gOnConfirmCallback: ((force1: boolean, arg?: FakeArg) => void) | null | undefined
+let _gCmdHasNext: boolean | null
 
 /** operate command options */
 
@@ -66,12 +67,20 @@ export const overrideOption = <T extends BgCmdCanBeOverride, K extends KeyCanBeO
 const executeCmdOnTabs = (tabs: Tab[] | [Tab] | undefined): void => {
   const callback = gOnConfirmCallback
   gOnConfirmCallback = null
-  callback && (callback as unknown as BgCmdCurWndTabs<kBgCmd>)(tabs!)
+  if (callback) {
+    if (_gCmdHasNext) {
+      const { promise_, resolve_ } = BgUtils_.deferPromise_<CmdResult>();
+      (callback as unknown as BgCmdCurWndTabs<kBgCmd>)(tabs!, resolve_)
+      promise_.then(runNextCmdByResult)
+    } else {
+      (callback as unknown as BgCmdCurWndTabs<kBgCmd>)(tabs!, blank_)
+    }
+  }
   return tabs ? void 0 : runtimeError_()
 }
 
-const onLargeCountConfirmed = (registryEntry: CommandsNS.Item, newCount: number): void => {
-  executeCommand(registryEntry, 1, cKey, cPort, newCount)
+const onLargeCountConfirmed = (registryEntry: CommandsNS.Item): void => {
+  executeCommand(registryEntry, 1, cKey, cPort, cRepeat)
 }
 
 export const executeCommand = (registryEntry: CommandsNS.Item, count: number, lastKey: kKeyCode, port: Port | null
@@ -99,7 +108,7 @@ export const executeCommand = (registryEntry: CommandsNS.Item, count: number, la
         set_cOptions(null)
         set_cPort(port!)
         set_cRepeat(count)
-        void confirm_<kCName, 1>(registryEntry.command_, count)
+        void confirm_(registryEntry.command_ as never, Math.abs(count))
         .then((/*#__NOINLINE__*/ onLargeCountConfirmed).bind(null, registryEntry))
         return
     }
@@ -133,6 +142,10 @@ export const executeCommand = (registryEntry: CommandsNS.Item, count: number, la
     return
   }
   const { alias_: alias } = registryEntry, func = bgC_[alias]
+  _gCmdHasNext = registryEntry.hasNext_
+  if (_gCmdHasNext === null) {
+    _gCmdHasNext = registryEntry.hasNext_ = options != null && hasFallbackOptions(options as Req.FallbackOptions)
+  }
   // safe on renaming
   set_cKey(lastKey)
   set_cOptions(options || ((registryEntry as Writable<typeof registryEntry>).options_ = BgUtils_.safeObj_()))
@@ -142,8 +155,15 @@ export const executeCommand = (registryEntry: CommandsNS.Item, count: number, la
   if (port == null && alias < kBgCmd.MAX_NEED_CPORT + 1 && alias > kBgCmd.MIN_NEED_CPORT - 1) {
     /* empty */
   } else if (count < kCmdInfo.ActiveTab) {
-    (func as BgCmdNoTab<kBgCmd>)()
+    if (_gCmdHasNext) {
+      const { promise_, resolve_ } = BgUtils_.deferPromise_<CmdResult>();
+      (func as unknown as BgCmdNoTab<kBgCmd>)(resolve_)
+      promise_.then(runNextCmdByResult)
+    } else {
+      (func as BgCmdNoTab<kBgCmd>)(blank_)
+    }
   } else {
+    _gCmdHasNext = registryEntry.hasNext_
     gOnConfirmCallback = func as BgCmdCurWndTabs<kBgCmd> as any;
     (count < kCmdInfo.CurWndTabsIfRepeat || count === kCmdInfo.CurWndTabsIfRepeat && abs(cRepeat) < 2 ? getCurTab
         : OnFirefox && count > kCmdInfo.CurWndTabs ? getCurShownTabs_
@@ -154,15 +174,15 @@ export const executeCommand = (registryEntry: CommandsNS.Item, count: number, la
 /** show a confirmation dialog */
 
 /** 0=cancel, 1=force1, count=accept */
-export const confirm_ = <T extends kCName, force extends BOOL = 0> (
-    command: CmdNameIds[T] extends kBgCmd ? T : force extends 1 ? kCName : never
-    , askedCount: number): Promise<number> => {
+export const confirm_ = <T extends kCName> (command: CmdNameIds[T] extends kBgCmd ? T : never
+    , askedCount: number): Promise<boolean> => {
   if (!(Build.NDEBUG || !command.includes("."))) {
     console.log("Assert error: command should has no limit on repeats: %c%s", "color:red", command)
   }
   if (!cPort) {
     gOnConfirmCallback = null // clear old commands
-    return Promise.resolve(askedCount > 0 ? 1 : -1)
+    set_cRepeat(cRepeat > 0 ? 1 : -1)
+    return Promise.resolve(cRepeat > 0)
   }
   if (!helpDialogData_ || !helpDialogData_[1]) {
     return getI18nJson("help_dialog").then(dict => {
@@ -170,16 +190,18 @@ export const confirm_ = <T extends kCName, force extends BOOL = 0> (
       return confirm_(command, askedCount)
     })
   }
-  let msg = trans_("cmdConfirm", [abs(askedCount), helpDialogData_[1][command] || `### ${command} ###`])
-  const { promise_, resolve_ } = BgUtils_.deferPromise_<number>()
+  let msg = trans_("cmdConfirm", [askedCount, helpDialogData_[1][command] || `### ${command} ###`])
+  const { promise_, resolve_ } = BgUtils_.deferPromise_<boolean>()
   const countToReplay = cRepeat, bakOptions = get_cOptions() as any, bakPort = cPort
   setupSingletonCmdTimer(setTimeout(onConfirm, 3000, 0))
-  gOnConfirmCallback = (cancel: boolean): void => {
-    if (cancel) { return }
+  gOnConfirmCallback = (force1: boolean): void => {
     set_cKey(kKeyCode.None)
     set_cOptions(bakOptions)
     set_cPort(bakPort)
-    resolve_(countToReplay)
+    set_cRepeat(force1 ? countToReplay > 0 ? 1 : -1 : countToReplay)
+    set_cNeedConfirm(0)
+    resolve_(force1)
+    setTimeout((): void => { set_cNeedConfirm(1) }, 0)
   }
   (framesForTab_.get(cPort.s.tabId_)?.top_ || cPort).postMessage({
     N: kBgReq.count, c: "", i: _gCmdTimer, m: msg
@@ -190,11 +212,7 @@ export const confirm_ = <T extends kCName, force extends BOOL = 0> (
 const onConfirm = (response: FgReq[kFgReq.cmd]["r"]): void => {
   const callback = gOnConfirmCallback
   gOnConfirmCallback = null
-  if (response > 1 && callback) {
-    set_cNeedConfirm(0)
-    callback(response < 3)
-    BgUtils_.nextTick_((): void => { set_cNeedConfirm(1) })
-  }
+  response > 1 && callback && callback(response < 3)
 }
 
 const setupSingletonCmdTimer = (newTimer: number): void => {
@@ -249,7 +267,7 @@ export const executeShortcut = (shortcutName: StandardShortcutNames, ref: Frames
     /** this object shape should keep the same as the one in {@link key_mappings.ts#makeCommand_} */
     registry = <CommandsNS.Item> As_<CommandsNS.ValidItem>({
       alias_: cmdFallback, background_: 1, command_: cmdName, help_: null,
-      options_: registry.options_, repeat_: registry.repeat_
+      options_: registry.options_, hasNext_: null, repeat_: registry.repeat_
     })
   }
   if (!registry.background_) {
@@ -548,6 +566,23 @@ const makeFallbackContext = (old: Req.FallbackOptions["$f"], counterStep: number
 export const runNextCmd = <T extends KeysWithFallback<BgCmdOptions> = never> (
     useThen: T extends kBgCmd ? BOOL : "need kBgCmd"): boolean => {
   return runNextCmdBy(useThen, get_cOptions<T, true>() as Req.FallbackOptions)
+}
+
+export declare const enum kRunOn { otherCb = 0, tabCb = 1, otherPromise = 2, tabPromise = 3 }
+
+export const getRunNextCmdBy = <T extends kRunOn> (isResultTab: T
+    ): (result?: T extends kRunOn.tabCb | kRunOn.tabPromise ? Tab : unknown) => void =>
+  hasFallbackOptions(get_cOptions<C.blank, true>()) ? (result?: unknown): void => {
+    const err = isResultTab & 2 ? result === undefined : runtimeError_(), options = get_cOptions<C.blank, true>()
+    err ? runNextCmdBy(0, options) : runNextOnTabLoaded(options, isResultTab & 1 ? result as Tab : null)
+    return isResultTab & 2 ? undefined : err
+  } : isResultTab & 2 ? blank_ : runtimeError_
+
+const runNextCmdByResult = (result: CmdResult): void => {
+  typeof result === "object" ? runNextOnTabLoaded(get_cOptions<C.blank, true>(), result)
+  : typeof result === "boolean" ? runNextCmdBy(result ? 1 : 0, get_cOptions<C.blank, true>(), null)
+  : As_<0 | 1 | -1 | 50>(result) < 0 ? void 0
+  : runNextCmdBy(result ? 1 : 0, get_cOptions<C.blank, true>(), result > 1 ? result : null)
 }
 
 export const runNextCmdBy = (useThen: BOOL, options: Req.FallbackOptions, timeout?: number | null): boolean => {

@@ -154,6 +154,7 @@ export const makeCommand_ = <T extends CommandsNS.RawOptions | "__not_parsed__" 
       command_: command as kCName,
       help_: null,
       options_: options || (details.length < 4 ? null : BgUtils_.safer_(details[3]!)),
+      hasNext_: null,
       repeat_: details[2]
   }
   if (options && typeof options === "object") {

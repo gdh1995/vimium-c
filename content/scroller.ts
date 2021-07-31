@@ -24,7 +24,7 @@ interface ElementScrollInfo {
 import {
   isAlive_, setupEventListener, timeout_, clearTimeout_, fgCache, doc, allowRAF_old_cr_, readyState_, loc_, chromeVer_,
   vApi, deref_, weakRef_, VTr, createRegExp, max_, math, min_, Lower, OnChrome, OnFirefox, OnEdge, WithDialog, OnSafari,
-  isTop, injector
+  isTop, injector, isTY
 } from "../lib/utils"
 import {
   rAF_, scrollingEl_, SafeEl_not_ff_, docEl_unsafe_, NONE, frameElement_, OnDocLoaded_, GetParent_unsafe_, UNL,
@@ -52,6 +52,7 @@ let currentScrolling: WeakRef<SafeElement> | null = null
 let cachedScrollable: WeakRef<SafeElement> | 0 | null = 0
 let keyIsDown = 0
 let preventPointEvents: BOOL | 2 | ScrollConsts.MinLatencyToAutoPreventHover
+let doesSucceed_: ReturnType<VApiTy["$"]>
 let scale = 1
 let joined: VApiTy | null | undefined
 let scrolled: 0 | 1 | 2 = 0
@@ -65,7 +66,7 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
   let amount: number, sign: number, calibration: number, di: ScrollByY, duration: number, element: SafeElement | null,
   beforePos: number, timestamp: number, rawTimestamp: number, totalDelta: number, totalElapsed: number, min_delta = 0,
   running = 0, flags: kScFlag & number, timer: ValidTimeoutID = TimerID.None, calibTime: number, lostFrames: number,
-  styleTop: SafeElement | null = null,
+  styleTop: SafeElement | null | undefined, onFinish: ((succeed: number) => void) | 0 | undefined,
   animate = (newRawTimestamp: number): void => {
     const continuous = keyIsDown > 0, rawElapsed = newRawTimestamp - rawTimestamp
     let newTimestamp = newRawTimestamp, elapsed: number
@@ -146,7 +147,7 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
       beforePos += delta
       totalDelta += math.abs(delta)
     }
-    if (delta) {
+    if (delta && (!onFinish || totalDelta < amount)) {
       if (totalDelta >= amount && continuous && totalElapsed < minDelay - min_delta
           && (flags & kScFlag.TO || amount < ScrollConsts.AmountLimitToScrollAndWaitRepeatedKeys)) {
         running = 0
@@ -166,6 +167,7 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
         (notEl ? doc : element!).dispatchEvent(
             new Event("scrollend", {cancelable: false, bubbles: notEl}));
       }
+      onFinish && onFinish(totalDelta)
       checkCurrent(element)
       toggleAnimation!();
     } else {
@@ -206,7 +208,7 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
     timer && clearTimeout_(timer)
     timer = TimerID.None
     totalDelta = totalElapsed = 0.0
-    timestamp = rawTimestamp = calibTime = lostFrames = 0
+    timestamp = rawTimestamp = calibTime = lostFrames = onFinish = 0
     const keyboard = fgCache.k;
     keyboard.length > 2 && (min_delta = min_(min_delta, +keyboard[2]! || min_delta))
     maxKeyInterval = max_(min_delta, keyboard[1]) * 2 + ScrollConsts.DelayTolerance
@@ -217,6 +219,9 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
           , "color: #1155cc", "color: auto", di ? "y" : "x", amount, sign, min_delta)
     }
     running = running || rAF_(animate)
+    if (doesSucceed_ != null) {
+      doesSucceed_ = new Promise((newResolve) => { onFinish = newResolve })
+    }
   };
   performAnimate(newEl, newDi, newAmount, nFs)
 }
@@ -239,7 +244,7 @@ const performScroll = ((el: SafeElement | null, di: ScrollByY, amount: number, b
 /** should not use `scrollingTop` (including `dimSize_(scrollingTop, clientH/W)`) */
 export const $sc: VApiTy["$"] = (element, di, amount, options): void => {
     if (hasSpecialScrollSnap(element)) {
-      while (amount * amount >= 1 && !performScroll(element, di, amount)) {
+      while (amount * amount >= 1 && !(doesSucceed_ = performScroll(element, di, amount))) {
         amount /= 2;
       }
       checkCurrent(element)
@@ -248,7 +253,7 @@ export const $sc: VApiTy["$"] = (element, di, amount, options): void => {
       amount && performAnimate(element, di, amount, options && options.flags)
       scrollTick(1)
     } else if (amount) {
-      performScroll(element, di, amount)
+      doesSucceed_ = performScroll(element, di, amount)
       checkCurrent(element)
     }
 }
@@ -314,6 +319,7 @@ export const executeScroll: VApiTy["c"] = function (di: ScrollByY, amount0: numb
     }
     amount = amount * amount > 0.01 ? amount : 0
     let core: ReturnType<typeof getParentVApi>
+    doesSucceed_ = null
     if (mayUpperFrame && (core = getParentVApi())
         && (!amount && !amount0 || Lower(attr_s(frameElement_()!, "scrolling") || "") === "no"
             || !doesScroll(element, di, amount || toMax))) {
@@ -328,6 +334,8 @@ export const executeScroll: VApiTy["c"] = function (di: ScrollByY, amount0: numb
         && (!amount && !amount0 || !core && !doesScroll(element, di, amount || toMax))) {
       post_({ H: kFgReq.gotoMainFrame, f: 1, c: kFgCmd.scroll, n: oriCount!, a: options as OptionsWithForce })
       amount = 0
+    } else if (options && (options.$then || options.$else)) {
+      doesSucceed_ = 0
     }
     if (toFlags && isTopElement && amount) {
       di && setPreviousMarkPosition()
@@ -345,10 +353,15 @@ export const executeScroll: VApiTy["c"] = function (di: ScrollByY, amount0: numb
     if (amount && readyState_ > "i" && overrideScrollRestoration) {
       overrideScrollRestoration("scrollRestoration", "manual")
     }
-    vApi.$(element, di, amount, options)
+    const rawRet = vApi.$(element, di, amount, options),
+    ret = amount ? rawRet != null ? rawRet : doesSucceed_ : doesSucceed_
     preventPointEvents = keyIsDown ? preventPointEvents : 0
-    scrolled = 0
-    options && runFallbackKey(options, amount ? 0 : 2)
+    scrolled = doesSucceed_ = 0
+    if (ret && isTY(ret, kTY.obj)) {
+      ret.then((succeed): void => { runFallbackKey(options!, succeed ? 0 : 2) })
+    } else if (ret != null) {
+      runFallbackKey(options, ret ? 0 : 2)
+    }
 }
 
 let overrideScrollRestoration = function (kScrollRestoration, kManual): void {
@@ -522,13 +535,15 @@ export const scrollIntoView_s = (el?: SafeElement | null): void => {
         }
       }
       if (hasX) {
+        doesSucceed_ = null;
         (hasY ? performScroll : vApi.$)(findScrollable(0, hasX), 0, hasX);
       }
       if (hasY) {
+        doesSucceed_ = null
         vApi.$(findScrollable(1, hasY), 1, hasY)
       }
     }
-    scrolled = 0
+    scrolled = doesSucceed_ = 0
     scrollTick(0); // it's safe to only clean keyIsDown here
 }
 

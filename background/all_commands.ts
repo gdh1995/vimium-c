@@ -1,11 +1,11 @@
 import {
   cPort, cRepeat, cKey, get_cOptions, set_cPort, set_cRepeat, cNeedConfirm, contentPayload_, framesForTab_,
   framesForOmni_, bgC_, set_bgC_, set_cmdInfo_, curIncognito_, curTabId_, recencyForTab_, settingsCache_, CurCVer_,
-  OnChrome, OnFirefox, OnEdge, blank_, substitute_, CONST_, curWndId_
+  OnChrome, OnFirefox, OnEdge, substitute_, CONST_, curWndId_
 } from "./store"
 import * as BgUtils_ from "./utils"
 import {
-  Tabs_, Windows_, InfoToCreateMultiTab, openMultiTabs, tabsGet, getTabUrl, selectFrom, runtimeError_,
+  Tabs_, Windows_, InfoToCreateMultiTab, openMultiTabs, tabsGet, getTabUrl, selectFrom, runtimeError_, R_,
   selectTab, getCurWnd, getCurTab, getCurShownTabs_, browserSessions_, browser_, selectWndIfNeed,
   getGroupId, isRefusingIncognito_, Q_, isNotHidden_, ShownTab
 } from "./browser"
@@ -18,7 +18,7 @@ import { trans_ } from "./i18n"
 import { stripKey_ } from "./key_mappings"
 import {
   confirm_, overrideCmdOptions, runNextCmd, runKeyWithCond, portSendFgCmd, sendFgCmd, overrideOption, runNextCmdBy,
-  runNextOnTabLoaded
+  runNextOnTabLoaded, getRunNextCmdBy, kRunOn
 } from "./run_commands"
 import { doesNeedToSed, parseSedOptions_ } from "./clipboard"
 import { goToNextUrl, newTabIndex, openUrl } from "./open_urls"
@@ -120,7 +120,7 @@ set_bgC_([
   /* kBgCmd.nextFrame: */ _AsBgC<BgCmdNoTab<kBgCmd.nextFrame>>(nextFrame),
   /* kBgCmd.parentFrame: */ _AsBgC<BgCmdNoTab<kBgCmd.parentFrame>>(parentFrame),
   /* kBgCmd.performFind: */ _AsBgC<BgCmdNoTab<kBgCmd.performFind>>(performFind),
-  /* kBgCmd.toggle: */ (): void | kBgCmd.toggle => {
+  /* kBgCmd.toggle: */ (resolve): void | kBgCmd.toggle => {
     type Keys = SettingsNS.FrontendSettingsSyncingItems[keyof SettingsNS.FrontendSettingsSyncingItems][0]
     type ManualNamesMap = SelectNameToKey<SettingsNS.ManuallySyncedItems>
     const key: Keys = (get_cOptions<C.toggle>().key || "") + "" as Keys,
@@ -148,7 +148,7 @@ set_bgC_([
         let isCur = port === cur
         portSendFgCmd(port, kFgCmd.toggle, isCur, { k: key2, n: isCur ? keyRepr : "", v: value }, 1)
       }
-      runNextCmd<C.toggle>(1)
+      resolve(1)
     }
   },
   /* kBgCmd.showHelp: */ (): void | kBgCmd.showHelp => {
@@ -159,18 +159,18 @@ set_bgC_([
       sendFgCmd(kFgCmd.showHelpDialog, true, get_cOptions<C.showHelp, true>())
     }
   },
-  /* kBgCmd.showVomnibar: */ _AsBgC<BgCmdNoTab<kBgCmd.showVomnibar>>(showVomnibar),
+  /* kBgCmd.showVomnibar: */ (): void | kBgCmd.showVomnibar => { showVomnibar() },
   /* kBgCmd.visualMode: */ _AsBgC<BgCmdNoTab<kBgCmd.visualMode>>(enterVisualMode),
 //#endregion
 
-  /* kBgCmd.addBookmark: */ (): void | kBgCmd.addBookmark => {
+  /* kBgCmd.addBookmark: */ (resolve): void | kBgCmd.addBookmark => {
     const path: string | UnknownValue = get_cOptions<C.addBookmark>().folder || get_cOptions<C.addBookmark>().path
     const nodes = path ? (path + "").replace(<RegExpG & RegExpSearchable<0>> /\\\/?|\//g
           , s => s.length > 1 ? "/" : "\n").split("\n").filter(i => i) : []
     const allTabs = !!get_cOptions<C.addBookmark>().all
-    if (!nodes.length) { showHUD('Need "path" to a bookmark folder.'); return }
+    if (!nodes.length) { showHUD('Need "path" to a bookmark folder.'); resolve(0); return }
     browser_.bookmarks.getTree((tree): void => {
-      if (!tree) { return runtimeError_() }
+      if (!tree) { resolve(0); return runtimeError_() }
       let roots = tree[0].children!
       let doesMatchRoot = roots.filter(i => i.title === nodes[0])
       if (doesMatchRoot.length) {
@@ -182,11 +182,11 @@ set_bgC_([
       for (let node of nodes) {
         roots = roots.filter(i => i.title === node)
         if (!roots.length) {
+          resolve(0)
           return showHUD("The bookmark folder is not found.")
         }
         folder = roots[0]
-        roots = folder.children!
-        if (!roots) { break }
+        if (!folder.children) { break }
       }
       (!allTabs && cRepeat * cRepeat < 2 ? getCurTab : getCurShownTabs_)(function doAddBookmarks(tabs?: Tab[]): void {
         if (!tabs || !tabs.length) { runtimeError_(); return }
@@ -201,54 +201,60 @@ set_bgC_([
           browser_.bookmarks.create({ parentId: folder!.id, title: tab.title, url: getTabUrl(tab) }, runtimeError_)
         }
         showHUD(`Added ${end - start} bookmark${end > start + 1 ? "s" : ""}.`)
+        resolve(1)
       })
     })
   },
-  /* kBgCmd.autoOpenFallback: */ (): void | kBgCmd.autoOpenFallback => {
-    if (get_cOptions<kBgCmd.autoOpenFallback>().copied === false) { return }
+  /* kBgCmd.autoOpenFallback: */ (resolve): void | kBgCmd.autoOpenFallback => {
+    if (get_cOptions<kBgCmd.autoOpenFallback>().copied === false) { resolve(0); return }
     overrideCmdOptions<C.openUrl>({ copied: true })
     openUrl()
   },
   /* kBgCmd.captureTab: */ _AsBgC<BgCmdActiveTab<kBgCmd.captureTab>>(captureTab),
-  /* kBgCmd.clearCS: */ (): void | kBgCmd.clearCS => {
-    OnChrome ? ContentSettings_.clearCS_(get_cOptions<C.clearCS, true>(), cPort)
-    : (ContentSettings_.complain_ as () => any)()
+  /* kBgCmd.clearCS: */ (resolve): void | kBgCmd.clearCS => {
+    OnChrome ? resolve(ContentSettings_.clearCS_(get_cOptions<C.clearCS, true>(), cPort))
+    : (ContentSettings_.complain_ as (_: any) => any)(resolve(0))
   },
-  /* kBgCmd.clearFindHistory: */ (): void | kBgCmd.clearFindHistory => {
+  /* kBgCmd.clearFindHistory: */ (resolve): void | kBgCmd.clearFindHistory => {
     const incognito = cPort ? cPort.s.incognito_ : curIncognito_ === IncognitoType.true
     FindModeHistory_.removeAll_(incognito)
-    return showHUD(trans_("fhCleared", [incognito ? trans_("incog") : ""]))
+    showHUD(trans_("fhCleared", [incognito ? trans_("incog") : ""]))
+    resolve(1)
   },
-  /* kBgCmd.clearMarks: */ (): void | kBgCmd.clearMarks => {
-    get_cOptions<C.clearMarks>().local ? get_cOptions<C.clearMarks>().all ? Marks_.clear_("#")
+  /* kBgCmd.clearMarks: */ (resolve): void | kBgCmd.clearMarks => {
+    const p = get_cOptions<C.clearMarks>().local ? get_cOptions<C.clearMarks>().all ? Marks_.clear_("#")
     : requireURL_({ H: kFgReq.marks, u: "" as "url", a: kMarkAction.clear }, true) : Marks_.clear_()
+    p && p instanceof Promise ? p.then((url): void => { url && resolve(1) }) : resolve(1)
   },
   /* kBgCmd.copyWindowInfo: */ _AsBgC<BgCmdNoTab<kBgCmd.copyWindowInfo>>(copyWindowInfo),
-  /* kBgCmd.createTab: */ function createTab(tabs: [Tab] | undefined, dedup?: "createTab-dedup"): void {
+  /* kBgCmd.createTab: */ function createTab(tabs: [Tab] | undefined, resolve: OnCmdResolved, dedup?: "dedup"): void {
     let pure = get_cOptions<C.createTab, true>().$pure, tab: Tab | null
     if (pure == null) {
       overrideOption<C.createTab, "$pure">("$pure", pure = !(Object.keys(get_cOptions<C.createTab>()
           ) as (keyof BgCmdOptions[C.createTab])[])
-          .some(i => i !== "opener" && i !== "position" && i !== "evenIncognito"))
+          .some(i => i !== "opener" && i !== "position" && i !== "evenIncognito" && i[0] !== "$"))
     }
     if (!pure) {
       openUrl(tabs)
     } else if (!(tab = tabs && tabs.length > 0 ? tabs[0] : null) && curTabId_ >= 0 && !runtimeError_()
-        && dedup !== "createTab-dedup") {
-      tabsGet(curTabId_, newTab => createTab(newTab && [newTab], "createTab-dedup"))
+        && dedup !== "dedup") {
+      Q_(tabsGet, curTabId_).then((newTab): void => { createTab(newTab && [newTab], resolve, "dedup") })
     } else {
       const opener = get_cOptions<C.createTab>().opener === true
       openMultiTabs(<InfoToCreateMultiTab> As_<Omit<InfoToCreateMultiTab, "url">>(tab ? {
         active: true, windowId: tab.windowId,
         openerTabId: opener ? tab.id : void 0,
         index: newTabIndex(tab, get_cOptions<C.createTab>().position, opener, true)
-      } : {active: true}), cRepeat, get_cOptions<C.createTab, true>().evenIncognito, [null], true, tab, selectWndIfNeed)
+      } : {active: true}), cRepeat, get_cOptions<C.createTab, true>().evenIncognito, [null], true, tab, (tab2) => {
+        tab2 && selectWndIfNeed(tab2)
+        resolve(!!tab2)
+      })
     }
-    return runtimeError_()
   },
-  /* kBgCmd.discardTab: */ (tabs: Tab[]): void | kBgCmd.discardTab => {
+  /* kBgCmd.discardTab: */ (tabs: [Tab] | Tab[], oriResolve: OnCmdResolved): void | kBgCmd.discardTab => {
     if (OnChrome && Build.MinCVer < BrowserVer.Min$tabs$$discard && CurCVer_ < BrowserVer.Min$tabs$$discard) {
       showHUD(trans_("noDiscardIfOld", [BrowserVer.Min$tabs$$discard]))
+      oriResolve(0)
       return
     }
     let current = (OnFirefox ? selectFrom(tabs, 1) : selectFrom(tabs)).index
@@ -256,7 +262,7 @@ set_bgC_([
     count = Math.abs(end - current), step = end > current ? 1 : -1
     if (count > 20) {
         if (cNeedConfirm) {
-          void confirm_("discardTab", count).then(bgC_[kBgCmd.discardTab].bind(null, tabs))
+          void confirm_("discardTab", count).then(bgC_[kBgCmd.discardTab].bind(null, tabs, oriResolve))
           return
         }
     }
@@ -276,16 +282,18 @@ set_bgC_([
       }
     }
   },
-  /* kBgCmd.duplicateTab: */ (): void | kBgCmd.duplicateTab => {
+  /* kBgCmd.duplicateTab: */ (resolve: OnCmdResolved): void | kBgCmd.duplicateTab => {
     const tabId = cPort ? cPort.s.tabId_ : curTabId_
     if (tabId < 0) {
-      return complainLimits(trans_("dupTab"))
+      complainLimits(trans_("dupTab"))
+      resolve(0)
+      return
     }
     const notActive = get_cOptions<C.duplicateTab>().active === false
     Q_(Tabs_.duplicate, tabId).then((result): void => {
-      if (!result) { return }
+      if (!result) { resolve(0); return }
       notActive && selectTab(tabId, runtimeError_)
-      notActive ? 0 : runNextOnTabLoaded(get_cOptions<C.duplicateTab, true>(), result)
+      notActive ? resolve(1) : runNextOnTabLoaded(get_cOptions<C.duplicateTab, true>(), result)
       if (cRepeat < 2) { return }
     const fallback = (tab: Tab): void => {
       openMultiTabs({
@@ -307,11 +315,12 @@ set_bgC_([
         for (let count = cRepeat; 0 < --count; ) {
           Tabs_.duplicate(tabId)
         }
+        resolve(1)
       })
     })
     notActive && selectTab(tabId, runtimeError_)
   },
-  OnEdge ? blank_ :
+  OnEdge ? (_tabs, resolve) => { resolve(0) } :
   /* kBgCmd.goBackFallback: */ (tabs: [Tab]): void | kBgCmd.goBackFallback => {
     tabs.length &&
     framesGoBack({ s: cRepeat, o: get_cOptions<C.goBackFallback, true>() }, null, tabs[0])
@@ -350,7 +359,12 @@ set_bgC_([
       s: parseSedOptions_(get_cOptions<C.goUp, true>()),
       e: get_cOptions<C.goUp>().reloadOnRoot !== false
     }
-    requireURL_(arg)
+    const p = requireURL_(arg)
+    Promise.resolve(p || "url").then((): void => {
+      if (typeof arg.e === "object") {
+        getRunNextCmdBy(kRunOn.otherPromise)(arg.e.p != null || void 0)
+      }
+    })
   },
   /* kBgCmd.joinTabs: */ _AsBgC<BgCmdNoTab<kBgCmd.joinTabs>>(joinTabs),
   /* kBgCmd.mainFrame: */ _AsBgC<BgCmdNoTab<kBgCmd.mainFrame>>(mainFrame),
@@ -379,7 +393,7 @@ set_bgC_([
   },
   /* kBgCmd.moveTabToNewWindow: */ _AsBgC<BgCmdNoTab<kBgCmd.moveTabToNewWindow>>(moveTabToNewWindow),
   /* kBgCmd.moveTabToNextWindow: */ _AsBgC<BgCmdActiveTab<kBgCmd.moveTabToNextWindow>>(moveTabToNextWindow),
-  /* kBgCmd.openUrl: */ _AsBgC<BgCmdNoTab<kBgCmd.openUrl>>(openUrl),
+  /* kBgCmd.openUrl: */ (): void | kBgCmd.openUrl => { openUrl() },
   /* kBgCmd.reloadTab: */ _AsBgC<BgCmdCurWndTabs<kBgCmd.reloadTab>>(reloadTab),
   /* kBgCmd.removeRightTab: */ (tabs: Tab[]): void | kBgCmd.removeRightTab => {
     if (!tabs) { return }
@@ -424,8 +438,8 @@ set_bgC_([
       runNextCmd<C.removeTabsR>(1)
     }
   },
-  /* kBgCmd.reopenTab: */ (tabs: [Tab] | never[]): void | kBgCmd.reopenTab => {
-    if (tabs.length <= 0) { return }
+  /* kBgCmd.reopenTab: */ (tabs: [Tab] | never[], resolve): void | kBgCmd.reopenTab => {
+    if (tabs.length <= 0) { resolve(0);return }
     const tab = tabs[0], group = get_cOptions<C.reopenTab>().group !== false
     if (!OnChrome || Build.MinCVer >= BrowserVer.MinNoAbnormalIncognito
         || CurCVer_ >= BrowserVer.MinNoAbnormalIncognito
@@ -441,43 +455,47 @@ set_bgC_([
       })
     }
   },
-  /* kBgCmd.restoreTab: */ (): void | kBgCmd.restoreTab => {
+  /* kBgCmd.restoreTab: */ (resolve): void | kBgCmd.restoreTab => {
     const sessions = !OnEdge ? browserSessions_() : null
     if (!sessions) {
+      resolve(0)
       return complainNoSession()
     }
     const onlyOne = !!get_cOptions<C.restoreTab>().one, limit = sessions.MAX_SESSION_RESULTS
     let count = Math.abs(cRepeat)
     if (count > limit) {
       if (onlyOne) {
-        showHUD(trans_("indexOOR"))
+        resolve(0); showHUD(trans_("indexOOR"))
         return
       }
       count = limit
     }
     if (!onlyOne && count < 2 && (cPort ? cPort.s.incognito_ : curIncognito_ === IncognitoType.true)
         && !get_cOptions<C.restoreTab>().incognito) {
+      resolve(0)
       return showHUD(trans_("notRestoreIfIncog"))
     }
     if (onlyOne && count > 1) {
       sessions.getRecentlyClosed({ maxResults: count }, (list: chrome.sessions.Session[]): void => {
         if (count > list.length) {
+          resolve(0)
           return showHUD(trans_("indexOOR"))
         }
         const session = list[count - 1], item = session && (session.tab || session.window)
         if (!item) {
+          resolve(0)
         } else {
-          sessions.restore(item.sessionId, runtimeError_)
+          sessions.restore(item.sessionId, getRunNextCmdBy(kRunOn.otherCb))
         }
       })
       return
     }
-    sessions.restore(null, runtimeError_)
+    sessions.restore(null, getRunNextCmdBy(kRunOn.otherCb))
     while (0 < --count) {
       sessions.restore(null, runtimeError_)
     }
   },
-  /* kBgCmd.runKey: */ _AsBgC<BgCmdNoTab<kBgCmd.runKey>>(runKeyWithCond),
+  /* kBgCmd.runKey: */ (): void | kBgCmd.runKey => { runKeyWithCond() },
   /* kBgCmd.searchInAnother: */ (tabs: [Tab]): void | kBgCmd.searchInAnother => {
     let keyword = (get_cOptions<C.searchInAnother>().keyword || "") + ""
     const query = parseSearchUrl_({ u: getTabUrl(tabs[0]) })
@@ -496,7 +514,7 @@ set_bgC_([
     })
     openUrl(tabs)
   },
-  /* kBgCmd.sendToExtension: */ (): void | kBgCmd.sendToExtension => {
+  /* kBgCmd.sendToExtension: */ (resolve): void | kBgCmd.sendToExtension => {
     let targetID = get_cOptions<C.sendToExtension>().id, data = get_cOptions<C.sendToExtension>().data
     if (targetID && typeof targetID === "string" && data !== void 0) {
       const now = Date.now()
@@ -507,55 +525,60 @@ set_bgC_([
         if (err) {
           console.log("Can not send message to the extension %o:", targetID, err)
           showHUD("Error: " + (err.message || err))
+          resolve(0)
         } else if (typeof cb === "string" && Math.abs(Date.now() - now) < 1e3) {
           showHUD(cb)
         }
-        err || runNextCmd<C.sendToExtension>(1)
+        err || resolve(cb !== false)
         return err
       })
     } else {
       showHUD('Require a string "id" and message "data"')
+      resolve(0)
     }
   },
-  /* kBgCmd.showHUD: */ (): void | kBgCmd.showHUD => {
+  /* kBgCmd.showHUD: */ (resolve): void | kBgCmd.showHUD => {
     let text = get_cOptions<C.showHUD>().text
     if (!text && get_cOptions<C.showHUD>().$f) {
       const fallbackContext = get_cOptions<C.showHUD, true>().$f
       text = fallbackContext && fallbackContext.t ? trans_(`${fallbackContext.t as 99}`) : ""
     }
     showHUD(text ? text + "" : trans_("needText"))
-    text && runNextCmd<C.showHUD>(1)
+    resolve(!!text)
   },
-  /* kBgCmd.toggleCS: */ (tabs: [Tab]): void | kBgCmd.toggleCS => {
-    OnChrome ? ContentSettings_.toggleCS_(get_cOptions<C.toggleCS, true>(), cRepeat, tabs)
-        : (ContentSettings_.complain_ as () => any)()
+  /* kBgCmd.toggleCS: */ (tabs: [Tab], resolve): void | kBgCmd.toggleCS => {
+    OnChrome ? ContentSettings_.toggleCS_(get_cOptions<C.toggleCS, true>(), cRepeat, tabs, resolve)
+        : (ContentSettings_.complain_ as (_: any) => any)(resolve(0))
   },
   /* kBgCmd.toggleMuteTab: */ _AsBgC<BgCmdNoTab<kBgCmd.toggleMuteTab>>(toggleMuteTab),
   /* kBgCmd.togglePinTab: */ _AsBgC<BgCmdCurWndTabs<kBgCmd.togglePinTab>>(togglePinTab),
   /* kBgCmd.toggleTabUrl: */ _AsBgC<BgCmdActiveTab<kBgCmd.toggleTabUrl>>(toggleTabUrl),
-  /* kBgCmd.toggleVomnibarStyle: */ (tabs: [Tab]): void | kBgCmd.toggleVomnibarStyle => {
+  /* kBgCmd.toggleVomnibarStyle: */ (tabs: [Tab], resolve): void | kBgCmd.toggleVomnibarStyle => {
     const tabId = tabs[0].id, toggled = ((get_cOptions<C.toggleVomnibarStyle>().style || "") + "").trim(),
     current = !!get_cOptions<C.toggleVomnibarStyle>().current
     if (!toggled) {
       showHUD(trans_("noStyleName"))
+      resolve(0)
       return
     }
     for (const frame of framesForOmni_) {
       if (frame.s.tabId_ === tabId) {
         frame.postMessage({ N: kBgReq.omni_toggleStyle, t: toggled, c: current })
+        setTimeout(resolve, 100, 1)
         return
       }
     }
     current || setOmniStyle_({ t: toggled, o: 1 })
+    setTimeout(resolve, 100, 1)
   },
   /* kBgCmd.toggleZoom: */ _AsBgC<BgCmdNoTab<kBgCmd.toggleZoom>>(toggleZoom),
-  /* kBgCmd.visitPreviousTab: */ (): void | kBgCmd.visitPreviousTab => {
+  /* kBgCmd.visitPreviousTab: */ (resolve: OnCmdResolved): void | kBgCmd.visitPreviousTab => {
     const acrossWindows = !!get_cOptions<C.visitPreviousTab>().acrossWindows
     const onlyActive = !!get_cOptions<C.visitPreviousTab>().onlyActive
     const cb = (tabs: Tab[]): void => {
       if (tabs.length < 2) {
         if (onlyActive) { showHUD("Only found one browser window") }
-        return runtimeError_()
+        resolve(0); return runtimeError_()
       }
       const curIdx = tabs.findIndex(i => i.id === curTabId_)
       if (curIdx >= 0) { tabs.splice(curIdx, 1) }
@@ -563,11 +586,13 @@ set_bgC_([
       tabs = onlyActive && tabs2.length === 0 ? tabs.sort((a, b) => b.id - a.id) : tabs2
       const tab = tabs[cRepeat > 0 ? Math.min(cRepeat, tabs.length) - 1 : Math.max(0, tabs.length + cRepeat)]
       if (tab) {
-        onlyActive ? Windows_.update(tab.windowId, { focused: true, }, runtimeError_) : doActivate(tab.id)
+        onlyActive ? Windows_.update(tab.windowId, { focused: true, }, R_(resolve)) : doActivate(tab.id)
+      } else {
+        resolve(0)
       }
     }
     const doActivate = (tabId: number): void => {
-      selectTab(tabId, (tab): void => (tab && selectWndIfNeed(tab), runtimeError_()))
+      selectTab(tabId, (tab): void => (tab && selectWndIfNeed(tab), R_(resolve)()))
     }
     if (cRepeat === 1 && !onlyActive && curTabId_ !== GlobalConsts.TabIdNone) {
       let indMax = 0, tabId = -1
@@ -583,10 +608,10 @@ set_bgC_([
     acrossWindows || onlyActive ? Tabs_.query(onlyActive ? { active: true } : OnFirefox ? { hidden: false } : {}, cb)
     : getCurShownTabs_(cb)
   },
-  /* kBgCmd.closeDownloadBar: */ (): void | kBgCmd.closeDownloadBar => {
+  /* kBgCmd.closeDownloadBar: */ (resolve: OnCmdResolved): void | kBgCmd.closeDownloadBar => {
     const newWindow = get_cOptions<C.closeDownloadBar>().newWindow
     if (OnFirefox || newWindow === true || !OnChrome && !browser_.permissions) {
-      bgC_[kBgCmd.moveTabToNewWindow]()
+      bgC_[kBgCmd.moveTabToNewWindow](resolve)
       return
     }
     Q_(browser_.permissions.contains, { permissions: ["downloads.shelf", "downloads"] }).then((permitted): void => {
@@ -595,13 +620,15 @@ set_bgC_([
         let err: string | undefined
         try {
           toggleShelf(false)
-          setTimeout((): void => { toggleShelf(true) }, 256)
+          setTimeout((): void => { toggleShelf(true); resolve(1) }, 256)
         } catch (e: any) { err = (e && e.message || e) + "" }
         showHUD(err ? "Can not close the shelf: " + err : "The download bar has been closed")
+        err && resolve(0)
       } else if (newWindow === false && cPort) {
         showHUD("No permissions to close download bar")
+        resolve(0)
       } else {
-        bgC_[kBgCmd.moveTabToNewWindow]()
+        bgC_[kBgCmd.moveTabToNewWindow](resolve)
       }
     })
   }

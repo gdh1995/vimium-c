@@ -14,7 +14,7 @@ import * as settings_ from "./settings"
 import { complainLimits, showHUD } from "./ports"
 import { setOmniStyle_ } from "./ui_css"
 import { trans_ } from "./i18n"
-import { parseFallbackOptions } from "./run_commands"
+import { parseFallbackOptions, runNextCmd, getRunNextCmdBy, kRunOn } from "./run_commands"
 import { parseOpenPageUrlOptions, preferLastWnd } from "./open_urls"
 import { reopenTab_ } from "./tab_commands"
 
@@ -100,21 +100,24 @@ export const ContentSettings_ = OnChrome ? {
     cs.clear({ scope: kIncognito }, runtimeError_)
     localStorage.removeItem(ContentSettings_.makeKey_(contentType));
   },
-  clearCS_ (options: KnownOptions<kBgCmd.clearCS>, port: Port | null): void {
+  clearCS_ (options: KnownOptions<kBgCmd.clearCS>, port: Port | null): boolean {
     const ty = (options.type ? "" + options.type : "images") as NonNullable<typeof options.type>
     if (!ContentSettings_.complain_(ty, "http://a.cc/")) {
       ContentSettings_.Clear_(ty, port ? port.s.incognito_ : curIncognito_ === IncognitoType.true)
       showHUD(trans_("csCleared", [ty === "images" && trans_(ty) || ty[0].toUpperCase() + ty.slice(1)]))
+      return true
     }
+    return false
   },
-  toggleCS_ (options: KnownOptions<kBgCmd.toggleCS>, count: number, tabs: [Tab]): void {
+  toggleCS_ (options: KnownOptions<kBgCmd.toggleCS>, count: number, tabs: [Tab], resolve: OnCmdResolved): void {
     const ty = (options.type ? "" + options.type : "images") as NonNullable<typeof options.type>, tab = tabs[0]
-    return options.incognito ? ContentSettings_.ensureIncognito_(count, ty, tab)
-      : ContentSettings_.toggleCurrent_(ty, count, tab, options.action === "reopen");
+    options.incognito ? ContentSettings_.ensureIncognito_(count, ty, tab, resolve)
+      : ContentSettings_.toggleCurrent_(ty, count, tab, options.action === "reopen", resolve)
   },
-  toggleCurrent_ (this: void, contentType: CSTypes, count: number, tab: Tab, reopen: boolean): void {
+  toggleCurrent_ (this: void, contentType: CSTypes, count: number, tab: Tab, reopen: boolean
+      , resolve: OnCmdResolved): void {
     const pattern = removeComposedScheme_(tab.url)
-    if (ContentSettings_.complain_(contentType, pattern)) { return; }
+    if (ContentSettings_.complain_(contentType, pattern)) { resolve(0); return }
     browser_.contentSettings[contentType].get({
       primaryUrl: pattern,
       incognito: tab.incognito
@@ -123,7 +126,7 @@ export const ContentSettings_ = OnChrome ? {
         scope: tab.incognito ? "incognito_session_only" : "regular",
         setting: (opt && opt.setting === "allow") ? "block" : "allow"
       }, function (err): void {
-        if (err) { return; }
+        if (err) { resolve(0); return }
         if (!tab.incognito) {
           const key = ContentSettings_.makeKey_(contentType);
           localStorage.getItem(key) !== "1" && localStorage.setItem(key, "1");
@@ -143,7 +146,7 @@ export const ContentSettings_ = OnChrome ? {
           reopenTab_(tab, couldNotRefresh ? 0 : 2)
         } else {
           getCurWnd(true, (wnd): void => {
-            !wnd || wnd.type !== "normal" ? Tabs_.reload(runtimeError_)
+            !wnd || wnd.type !== "normal" ? Tabs_.reload(getRunNextCmdBy(kRunOn.otherCb))
                 : reopenTab_(tab, couldNotRefresh ? 0 : wnd.tabs.length > 1 ? 2 : 1)
             return runtimeError_()
           })
@@ -151,17 +154,18 @@ export const ContentSettings_ = OnChrome ? {
       });
     });
   },
-  ensureIncognito_ (this: void, count: number, contentType: CSTypes, tab: Tab): void {
+  ensureIncognito_ (this: void, count: number, contentType: CSTypes, tab: Tab, resolve: OnCmdResolved): void {
     if (CONST_.DisallowIncognito_) {
       complainLimits("setIncogCS")
+      resolve(0)
       return
     }
     const pattern = removeComposedScheme_(tab.url)
-    if (ContentSettings_.complain_(contentType, pattern)) { return; }
+    if (ContentSettings_.complain_(contentType, pattern)) { resolve(0); return }
     browser_.contentSettings[contentType].get({primaryUrl: pattern, incognito: true }, function (opt): void {
       if (runtimeError_()) {
         browser_.contentSettings[contentType].get({primaryUrl: pattern}, function (opt2) {
-          if (opt2 && opt2.setting === "allow") { return; }
+          if (opt2 && opt2.setting === "allow") { resolve(1); return }
           const wndOpt: chrome.windows.CreateData = {
             type: "normal", incognito: true, focused: false, url: "about:blank"
           };
@@ -241,7 +245,7 @@ export const ContentSettings_ = OnChrome ? {
       , oldWnd: chrome.windows.Window | boolean): void {
     if (oldWnd !== true) { ContentSettings_.updateTab_(tab, wndId); }
     callback && callback();
-    if (oldWnd === true) { return; }
+    if (oldWnd === true) { runNextCmd<kBgCmd.reopenTab>(0); return }
     wndId && Windows_.update(wndId, {
       focused: true,
       state: oldWnd ? oldWnd.state : undefined

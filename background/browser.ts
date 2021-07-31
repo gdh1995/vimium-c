@@ -66,9 +66,9 @@ export const getCurWnd = ((populate: boolean, callback: (window: Window, exArg: 
   const args = { populate }
   curWndId_ >= 0 ? Windows_.get(curWndId_, args, callback) : Windows_.getCurrent(args, callback)
 }) as {
-  (populate: true, callback: (window: PopWindow | undefined, exArg: FakeArg) => void): 1
-  (populate: false, callback: (window: Window, exArg: FakeArg) => void): 1
-  (populate: boolean, callback: (window: PopWindow | Window | undefined, exArg: FakeArg) => void): 1
+  (populate: true, callback: (window?: PopWindow | undefined, exArg?: FakeArg) => void): 1
+  (populate: false, callback: (window?: Window, exArg?: FakeArg) => void): 1
+  (populate: boolean, callback: (window?: PopWindow | Window | undefined, exArg?: FakeArg) => void): 1
 }
 
 export interface ShownTab extends Omit<Tab, "index"> {}
@@ -172,9 +172,9 @@ export const tabsCreate = (args: chrome.tabs.CreateProperties, callback?: ((tab:
 export const openMultiTabs = (options: InfoToCreateMultiTab, count: number
     , evenIncognito: boolean | -1 | null | undefined, urls: string[] | [null]
     , doesGroup: boolean | null | undefined, curTab: Tab | null | undefined
-    , callback: ((tab: Tab) => void) | null | undefined): void => {
+    , callback: ((tab?: Tab) => void) | null | undefined): void => {
   const cb1 = (newTab: Tab): void => {
-    if (runtimeError_()) { return runtimeError_() }
+    if (runtimeError_()) { callback && callback(); return runtimeError_() }
       options.index = newTab.index
       options.windowId = newTab.windowId
     OnFirefox ? (options as chrome.tabs.CreateProperties).cookieStoreId = getGroupId(newTab) ?? undefined

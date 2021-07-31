@@ -4,7 +4,7 @@ import {
   helpDialogData_, set_helpDialogData_, curWndId_
 } from "./store"
 import * as BgUtils_ from "./utils"
-import { Tabs_, downloadFile, getTabUrl, runtimeError_, selectTab, Q_ } from "./browser"
+import { Tabs_, downloadFile, getTabUrl, runtimeError_, selectTab, R_, Q_ } from "./browser"
 import { convertToUrl_ } from "./normalize_urls"
 import * as settings_ from "./settings"
 import { showHUD, complainLimits, ensureInnerCSS, getParentFrame } from "./ports"
@@ -12,7 +12,7 @@ import { getI18nJson, trans_ } from "./i18n"
 import { keyMappingErrors_, visualGranularities_, visualKeys_ } from "./key_mappings"
 import {
   wrapFallbackOptions, copyCmdOptions, parseFallbackOptions, portSendFgCmd, sendFgCmd, replaceCmdOptions,
-  overrideOption, runNextOnTabLoaded
+  overrideOption, runNextCmd, hasFallbackOptions, getRunNextCmdBy, kRunOn
 } from "./run_commands"
 import { parseReuse, newTabIndex, openUrlWithActions } from "./open_urls"
 import { FindModeHistory_ } from "./tools"
@@ -99,7 +99,7 @@ export const initHelp = (request: FgReq[kFgReq.initHelp], port: Port): void => {
   })
 }
 
-export const showVomnibar = (forceInner?: boolean): void | kBgCmd.showVomnibar => {
+export const showVomnibar = (forceInner?: boolean): void => {
   let port = cPort as Port | null
   let optUrl: VomnibarNS.GlobalOptions["url"] | UnknownValue = get_cOptions<C.showVomnibar>().url
   if (optUrl != null && optUrl !== true && typeof optUrl !== "string") {
@@ -178,12 +178,12 @@ export const enterVisualMode = (): void | kBgCmd.visualMode => {
 
 let _tempBlob: [number, string] | null | undefined
 
-export const captureTab = (tabs?: [Tab]): void | kBgCmd.captureTab => {
+export const captureTab = (tabs: [Tab] | undefined, resolve: OnCmdResolved): void | kBgCmd.captureTab => {
   const show = get_cOptions<C.captureTab>().show,
   png = !!get_cOptions<C.captureTab>().png,
   jpeg = png ? 0 : Math.min(Math.max(get_cOptions<C.captureTab, true>().jpeg! | 0, 0), 100)
   const cb = (url?: string): void => {
-    if (!url) { return runtimeError_() }
+    if (!url) { resolve(0); return runtimeError_() }
     const onerror = (err: any | Event): void => {
       console.log("captureTab: can not request a data: URL:", err)
     }
@@ -199,11 +199,13 @@ export const captureTab = (tabs?: [Tab]): void | kBgCmd.captureTab => {
       }
       if (show) {
         doShow(finalUrl)
+        resolve(1)
         return
       }
       const port = cPort && framesForTab_.get(cPort.s.tabId_)?.top_ || cPort
       downloadFile(finalUrl, title, port ? port.s.url_ : null, (succeed): void => {
         succeed ? 0 : OnFirefox ? doShow(finalUrl) : clickAnchor_cr(finalUrl)
+        resolve(succeed)
       })
     }
     const doShow = (finalUrl: string): void => {
@@ -307,23 +309,24 @@ export const framesGoBack = (req: FgReq[kFgReq.framesGoBack], port: Port | null,
     } else {
       set_cPort(port!) /* Port | null -> Port */
       showHUD(trans_("noTabHistory"))
+      runNextCmd<C.goBackFallback>(0)
       return
     }
   }
+  const onApiCallback = !hasFallbackOptions(req.o) ? runtimeError_
+      : (replaceCmdOptions(req.o) , getRunNextCmdBy(kRunOn.otherCb))
   const execGoBack = (tab: Pick<Tab, "id">, goStep: number): void => {
     Tabs_.executeScript(tab.id, {
       code: `history.go(${goStep})`,
       runAt: "document_start"
-    }, (): void => {
-      return runtimeError_() || runNextOnTabLoaded(req.o, curTab)
-    })
+    }, onApiCallback)
   }
   const tabID = curTab ? curTab.id : port!.s.tabId_
   const count = req.s, reuse = parseReuse(req.o.reuse || ReuseType.current)
   if (reuse) {
     const position = req.o.position
     Tabs_.duplicate(tabID, (tab): void => {
-      if (!tab) { return runtimeError_() }
+      if (!tab) { return onApiCallback() }
       if (reuse === ReuseType.newBg) {
         selectTab(tabID)
       }
@@ -344,9 +347,8 @@ export const framesGoBack = (req: FgReq[kFgReq.framesGoBack], port: Port | null,
     const jump = count > 0 ? Tabs_.goForward : Tabs_.goBack
     if (hasTabsGoBack || jump) {
       for (let i = 0, end = count > 0 ? count : -count; i < end; i++) {
-        jump!(tabID, runtimeError_)
+        jump!(tabID, i ? runtimeError_ : onApiCallback)
       }
-      runNextOnTabLoaded(req.o, curTab)
     } else {
       execGoBack(curTab!, count)
     }
@@ -360,17 +362,19 @@ export const mainFrame = (): void | kBgCmd.mainFrame => {
       , get_cOptions<C.mainFrame, true>())
 }
 
-export const toggleZoom = (): void | kBgCmd.toggleZoom => {
+export const toggleZoom = (resolve: OnCmdResolved): void | kBgCmd.toggleZoom => {
   if (OnEdge || OnFirefox && Build.MayAndroidOnFirefox && !Tabs_.getZoom) {
     complainLimits("control zoom settings of tabs")
+    resolve(0)
     return
   }
   if (OnChrome && Build.MinCVer < BrowserVer.Min$Tabs$$setZoom && CurCVer_ < BrowserVer.Min$Tabs$$setZoom) {
     showHUD(`Vimium C can not control zoom settings before Chrome ${BrowserVer.Min$Tabs$$setZoom}`)
+    resolve(0)
     return
   }
   Q_(Tabs_.getZoom).then((curZoom): void => {
-    if (!curZoom) { return }
+    if (!curZoom) { resolve(0); return }
     let absCount = cRepeat < -4 ? -cRepeat : cRepeat
     if (get_cOptions<kBgCmd.toggleZoom, true>().in || get_cOptions<kBgCmd.toggleZoom, true>().out) {
       absCount = 0
@@ -396,7 +400,9 @@ export const toggleZoom = (): void | kBgCmd.toggleZoom => {
       newZoom = steps[nearest + cRepeat < 0 ? 0 : M.min(nearest + cRepeat, steps.length - 1)]
     }
     if (Math.abs(newZoom - curZoom) > 0.005) {
-      Tabs_.setZoom(newZoom)
+      Tabs_.setZoom(newZoom, R_(resolve))
+    } else {
+      resolve(0)
     }
   })
 }
