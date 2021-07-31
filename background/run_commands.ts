@@ -1,9 +1,9 @@
 import {
-  framesForTab_, get_cOptions, cPort, cRepeat, reqH_, bgC_, cmdInfo_, OnFirefox, set_helpDialogData_, helpDialogData_,
+  framesForTab_, get_cOptions, cPort, cRepeat, reqH_, bgC_, cmdInfo_, set_helpDialogData_, helpDialogData_,
   set_cOptions, set_cPort, cKey, set_cKey, set_cRepeat, set_cNeedConfirm, curTabId_, OnEdge, keyToCommandMap_, blank_
 } from "./store"
 import * as BgUtils_ from "./utils"
-import { Tabs_, runtimeError_, getCurTab, getCurShownTabs_, getCurTabs, tabsGet, getCurWnd } from "./browser"
+import { Tabs_, runtimeError_, getCurTab, getCurShownTabs_, tabsGet, getCurWnd } from "./browser"
 import { ensureInnerCSS, getPortUrl_, indexFrame, safePost, showHUD } from "./ports"
 import * as Exclusions from "./exclusions"
 import { getI18nJson, trans_ } from "./i18n"
@@ -165,9 +165,8 @@ export const executeCommand = (registryEntry: CommandsNS.Item, count: number, la
   } else {
     _gCmdHasNext = registryEntry.hasNext_
     gOnConfirmCallback = func as BgCmdCurWndTabs<kBgCmd> as any;
-    (count < kCmdInfo.CurWndTabsIfRepeat || count === kCmdInfo.CurWndTabsIfRepeat && abs(cRepeat) < 2 ? getCurTab
-        : OnFirefox && count > kCmdInfo.CurWndTabs ? getCurShownTabs_
-        : getCurTabs)(/*#__NOINLINE__*/ executeCmdOnTabs)
+    (count < kCmdInfo.CurShownTabsIfRepeat || count === kCmdInfo.CurShownTabsIfRepeat && abs(cRepeat) < 2 ? getCurTab
+        : getCurShownTabs_)(/*#__NOINLINE__*/ executeCmdOnTabs)
   }
 }
 

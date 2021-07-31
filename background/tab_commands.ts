@@ -6,7 +6,7 @@ import * as BgUtils_ from "./utils"
 import {
   Tabs_, Windows_, makeTempWindow_r, makeWindow, PopWindow, tabsCreate, Window, getTabUrl, selectFrom, tabsGet, R_,
   runtimeError_, IncNormalWnd, selectWnd, selectTab, getCurWnd, getCurTabs, getCurTab, getGroupId, tabsUpdate,
-  browserSessions_, InfoToCreateMultiTab, openMultiTabs, isTabMuted, isRefusingIncognito_
+  browserSessions_, InfoToCreateMultiTab, openMultiTabs, isTabMuted, isRefusingIncognito_, ShownTab
 } from "./browser"
 import { convertToUrl_ } from "./normalize_urls"
 import { parseSearchUrl_ } from "./parse_urls"
@@ -16,7 +16,7 @@ import { confirm_, overrideCmdOptions, runNextOnTabLoaded, runNextCmd, getRunNex
 import { parseSedOptions_ } from "./clipboard"
 import { newTabIndex, preferLastWnd, openUrlWithActions } from "./open_urls"
 import { focusFrame } from "./frame_commands"
-import { getTabRange } from "./filter_tabs"
+import { getTabRange, Range3 } from "./filter_tabs"
 import { TabRecency_ } from "./tools"
 
 import C = kBgCmd
@@ -379,34 +379,19 @@ export const moveTabToNextWindow = ([tab]: [Tab], resolve: OnCmdResolved): void 
   })
 }
 
-export const reloadTab = (tabs?: Tab[] | never[] | [Tab]): void => {
+export const reloadTab = (tabs: ShownTab[], [start, ind, end]: Range3, r: OnCmdResolved, force1?: boolean): void => {
   const reloadProperties = {
     bypassCache: (get_cOptions<C.reloadTab>().hard || get_cOptions<C.reloadTab>().bypassCache) === true
   },
   reload = Tabs_.reload
-  if (!tabs || tabs.length < 1) {
-    if (tabs) {
-      getCurWnd(true, wnd => {
-        wnd && wnd.tabs.length && reloadTab(wnd.tabs)
-        return runtimeError_()
-      })
-    }
+  if (abs(cRepeat) < 2 || get_cOptions<C.reloadTab>().single) {
+    reload(tabs[force1 ? ind : start].id, reloadProperties, getRunNextCmdBy(kRunOn.otherCb))
     return
-  }
-  if (abs(cRepeat) < 2) {
-    reload(selectFrom(tabs).id, reloadProperties)
-    return
-  }
-  let ind = selectFrom(tabs).index
-    , [start, end] = getTabRange(ind, tabs.length)
-  if (get_cOptions<C.reloadTab>().single) {
-    ind = ind + 1 === end || cRepeat > 0 && start !== ind ? start : end - 1
-    start = ind; end = ind + 1
   }
   let count = end - start
   if (count > 20 && cNeedConfirm) {
-        void confirm_("reloadTab", count).then(reloadTab.bind(null, tabs))
-        return
+    void confirm_("reloadTab", count).then(reloadTab.bind(null, tabs, [start, ind, end], r))
+    return
   }
   reload(tabs[ind].id, reloadProperties, getRunNextCmdBy(kRunOn.otherCb))
   for (; start !== end; start++) {
@@ -563,13 +548,15 @@ export const toggleMuteTab = (resolve: OnCmdResolved): void | kBgCmd.toggleMuteT
   })
 }
 
-export const togglePinTab = (tabs: Tab[]): void => {
-  const tab = selectFrom(tabs), pin = !tab.pinned, action = {pinned: pin}, offset = pin ? 0 : 1
+export const togglePinTab = (tabs: ShownTab[], oriRange: Range3, resolve: OnCmdResolved, force1?: boolean): void => {
+  const current = oriRange[1]
+  const tab = tabs[current], pin = !tab.pinned, action = {pinned: pin}, offset = pin ? 0 : 1
   let skipped = 0
+  if (force1) { oriRange = [current, current, current + 1] }
   if (abs(cRepeat) > 1 && pin) {
     while (tabs[skipped].pinned) { skipped++ }
   }
-  const range = getTabRange(tabs.length < 2 ? 0 : tab.index, tabs.length - skipped, tabs.length)
+  const range = getTabRange(current - skipped, tabs.length - skipped, tabs.length)
   let start = skipped + range[offset] - offset, end = skipped + range[1 - offset] - offset
   let wantedTabIds: number[] = []
   for (; start !== end; start += pin ? 1 : -1) {
@@ -579,13 +566,12 @@ export const togglePinTab = (tabs: Tab[]): void => {
   }
   end = wantedTabIds.length
   if (end > 30 && cNeedConfirm) {
-        void confirm_("togglePinTab", end).then(togglePinTab.bind(null, tabs))
-        return
+    void confirm_("togglePinTab", end).then(togglePinTab.bind(null, tabs, oriRange, resolve))
+    return
   }
-  for (start = 0; start < end; start++) {
-    tabsUpdate(wantedTabIds[start], action)
+  for (const id of wantedTabIds) {
+    tabsUpdate(id, action, id === tab.id ? R_(resolve) : runtimeError_)
   }
-  runNextCmd<C.togglePinTab>(1)
 }
 
 export const toggleTabUrl = (tabs: [Tab], resolve: OnCmdResolved): void | kBgCmd.toggleTabUrl => {

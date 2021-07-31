@@ -1,4 +1,4 @@
-declare const enum kCmdInfo { NoTab = 0, ActiveTab = 1, CurWndTabsIfRepeat = 2, CurWndTabs = 3, CurShownTabs = 4 }
+declare const enum kCmdInfo { NoTab = 0, ActiveTab = 1, CurShownTabsIfRepeat = 2, CurShownTabs = 3 }
 
 type Tab = chrome.tabs.Tab
 type CmdResult = /** false */ 0 | /** true */ 1 | false | true | /** true and timeout=50 */ 50 | Tab | /** stop */ -1
@@ -131,18 +131,16 @@ interface BgCmdOptions {
 interface BgCmdInfoMap {
   [kBgCmd.captureTab]: kCmdInfo.ActiveTab
   [kBgCmd.createTab]: kCmdInfo.ActiveTab
-  [kBgCmd.discardTab]: kCmdInfo.CurWndTabs
+  [kBgCmd.discardTab]: kCmdInfo.CurShownTabsIfRepeat
   [kBgCmd.goBackFallback]: kCmdInfo.ActiveTab
-  [kBgCmd.goToTab]: kCmdInfo.CurShownTabs | kCmdInfo.CurWndTabs
-  [kBgCmd.moveTab]: kCmdInfo.CurShownTabs | kCmdInfo.CurWndTabs
+  [kBgCmd.moveTab]: kCmdInfo.CurShownTabsIfRepeat
   [kBgCmd.moveTabToNextWindow]: kCmdInfo.ActiveTab
-  [kBgCmd.reloadTab]: kCmdInfo.CurWndTabsIfRepeat
-  [kBgCmd.removeRightTab]: kCmdInfo.CurWndTabs
-  [kBgCmd.removeTabsR]: kCmdInfo.CurWndTabs
+  [kBgCmd.reloadTab]: kCmdInfo.CurShownTabsIfRepeat
+  [kBgCmd.removeRightTab]: kCmdInfo.CurShownTabsIfRepeat
   [kBgCmd.reopenTab]: kCmdInfo.ActiveTab
   [kBgCmd.searchInAnother]: kCmdInfo.ActiveTab
   [kBgCmd.toggleCS]: kCmdInfo.ActiveTab
-  [kBgCmd.togglePinTab]: kCmdInfo.CurWndTabsIfRepeat
+  [kBgCmd.togglePinTab]: kCmdInfo.CurShownTabsIfRepeat
   [kBgCmd.toggleTabUrl]: kCmdInfo.ActiveTab
   [kBgCmd.toggleVomnibarStyle]: kCmdInfo.ActiveTab
 }

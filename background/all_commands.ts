@@ -26,7 +26,7 @@ import {
   parentFrame, enterVisualMode, showVomnibar, toggleZoom, captureTab,
   initHelp, framesGoBack, mainFrame, nextFrame, performFind, framesGoNext
 } from "./frame_commands"
-import { getTabRange } from "./filter_tabs"
+import { onShownTabsIfRepeat_, getTabRange, getTabsIfRepeat_ } from "./filter_tabs"
 import {
   copyWindowInfo, joinTabs, moveTabToNewWindow, moveTabToNextWindow, reloadTab, removeTab, toggleMuteTab,
   togglePinTab, toggleTabUrl, reopenTab_
@@ -41,14 +41,13 @@ set_cmdInfo_(As_<{
   /* kBgCmd.blank           */ Info.NoTab, Info.NoTab, Info.NoTab, Info.NoTab, Info.NoTab,
   /* kBgCmd.performFind     */ Info.NoTab, Info.NoTab, Info.NoTab, Info.NoTab, Info.NoTab,
   /* kBgCmd.addBookmark     */ Info.NoTab, Info.NoTab, Info.ActiveTab, Info.NoTab, Info.NoTab,
-  /* kBgCmd.clearMarks      */ Info.NoTab, Info.NoTab, Info.ActiveTab, Info.CurWndTabs, Info.NoTab,
-  /* kBgCmd.goBackFallback  */ Info.ActiveTab,
-      OnFirefox ? Info.CurShownTabs : Info.CurWndTabs, Info.NoTab, Info.NoTab, Info.NoTab,
-  /* kBgCmd.moveTab         */
-      OnFirefox ? Info.CurShownTabs : Info.CurWndTabs, Info.NoTab, Info.ActiveTab, Info.NoTab, Info.CurWndTabsIfRepeat,
-  /* kBgCmd.removeRightTab  */ Info.CurWndTabs, Info.NoTab, Info.CurWndTabs, Info.ActiveTab, Info.NoTab,
+  /* kBgCmd.clearMarks      */ Info.NoTab, Info.NoTab, Info.ActiveTab, Info.CurShownTabsIfRepeat, Info.NoTab,
+  /* kBgCmd.goBackFallback  */ Info.ActiveTab, Info.NoTab, Info.NoTab, Info.NoTab, Info.NoTab,
+  /* kBgCmd.moveTab         */ Info.CurShownTabsIfRepeat, Info.NoTab, Info.ActiveTab, Info.NoTab,
+      Info.CurShownTabsIfRepeat,
+  /* kBgCmd.removeRightTab  */ Info.CurShownTabsIfRepeat, Info.NoTab, Info.NoTab, Info.ActiveTab, Info.NoTab,
   /* kBgCmd.restoreTab      */ Info.NoTab, Info.ActiveTab, Info.NoTab, Info.NoTab, Info.ActiveTab,
-  /* kBgCmd.togglePinTab    */ Info.NoTab, Info.CurWndTabsIfRepeat, Info.ActiveTab, Info.ActiveTab, Info.NoTab,
+  /* kBgCmd.togglePinTab    */ Info.NoTab, Info.CurShownTabsIfRepeat, Info.ActiveTab, Info.ActiveTab, Info.NoTab,
       Info.NoTab,
   /* kBgCmd.closeDownloadBar*/ Info.NoTab
 ]))
@@ -251,36 +250,43 @@ set_bgC_([
       })
     }
   },
-  /* kBgCmd.discardTab: */ (tabs: [Tab] | Tab[], oriResolve: OnCmdResolved): void | kBgCmd.discardTab => {
+  /* kBgCmd.discardTab: */ (curOrTabs: [Tab] | Tab[], oriResolve: OnCmdResolved): void | kBgCmd.discardTab => {
     if (OnChrome && Build.MinCVer < BrowserVer.Min$tabs$$discard && CurCVer_ < BrowserVer.Min$tabs$$discard) {
       showHUD(trans_("noDiscardIfOld", [BrowserVer.Min$tabs$$discard]))
       oriResolve(0)
       return
     }
-    let current = (OnFirefox ? selectFrom(tabs, 1) : selectFrom(tabs)).index
-      , end = Math.max(0, Math.min(current + cRepeat, tabs.length - 1)),
-    count = Math.abs(end - current), step = end > current ? 1 : -1
-    if (count > 20) {
-        if (cNeedConfirm) {
-          void confirm_("discardTab", count).then(bgC_[kBgCmd.discardTab].bind(null, tabs, oriResolve))
-          return
-        }
-    }
-    if (!count) { return }
-    const near = tabs[current + step]
-    if (!near.discarded && (count < 2 || near.autoDiscardable)) {
-      Tabs_.discard(near.id, count > 1 ? runtimeError_ : (): void => {
-        const err = runtimeError_()
-        err && showHUD(trans_("discardFail"))
-        return err
-      })
-    }
-    for (let i = 2; i <= count; i++) {
-      const tab = tabs[current + step * i]
-      if (!tab.discarded && tab.autoDiscardable) {
-        Tabs_.discard(tab.id, runtimeError_)
+    onShownTabsIfRepeat_(true, 1, function onTabs(tabs, [start, current, end], resolve, force1?: boolean): void {
+      if (force1) { [start, end] = getTabRange(current, tabs.length, 0, 1) }
+      let count = end - start - 1
+      if (count > 20 && cNeedConfirm) {
+        void confirm_("discardTab", count).then(onTabs.bind(null, tabs, [start, current, end], resolve))
+        return
       }
-    }
+      const near = tabs.length === 1 && !tabs[0].active ? tabs[0]
+          : tabs[current + ((cRepeat > 0 ? current + 1 < end : current === 0) ? 1 : -1)]
+      let changed: Promise<null | undefined>[] = [], aliveExist = !near.discarded
+      if (aliveExist && (count < 2 || near.autoDiscardable)) {
+        changed.push(Q_(Tabs_.discard, near.id))
+      }
+      for (let i = start; i < end; i++) {
+        const tab = tabs[i]
+        if (i !== current && tab !== near && !tab.discarded) {
+          aliveExist = true
+          tab.autoDiscardable && changed.push(Q_(Tabs_.discard, tab.id))
+        }
+      }
+      if (!changed.length) {
+        showHUD(aliveExist ? trans_("discardFail") : "Discarded.")
+        resolve(0)
+      } else {
+        void Promise.all(changed).then((arr): void => {
+          const done = arr.filter(i => i !== void 0), succeed = done.length > 0
+          showHUD(succeed ? `Discarded ${done.length} tab(s).` : trans_("discardFail"))
+          resolve(succeed)
+        })
+      }
+    }, curOrTabs, oriResolve)
   },
   /* kBgCmd.duplicateTab: */ (resolve: OnCmdResolved): void | kBgCmd.duplicateTab => {
     const tabId = cPort ? cPort.s.tabId_ : curTabId_
@@ -325,11 +331,11 @@ set_bgC_([
     tabs.length &&
     framesGoBack({ s: cRepeat, o: get_cOptions<C.goBackFallback, true>() }, null, tabs[0])
   },
-  /* kBgCmd.goToTab: */ (tabs: Tab[]): void | kBgCmd.goToTab => {
-    let len = tabs.length
-    if (len < 2) { return }
+  /* kBgCmd.goToTab: */ (resolve): void | kBgCmd.goToTab => {
     const count = cRepeat, absolute = !!get_cOptions<C.goToTab>().absolute
-    const cur = OnFirefox ? selectFrom(tabs, 1) : selectFrom(tabs)
+    const goToTab = (tabs: ShownTab[]): void => {
+      const cur = selectFrom(tabs)
+      let len = tabs.length
     let index = absolute ? count > 0 ? Math.min(len, count) - 1 : Math.max(0, len + count)
         : Math.abs(count) > len * 2 ? (count > 0 ? len - 1 : 0)
         : cur.index + count
@@ -346,8 +352,24 @@ set_bgC_([
         index += start
       }
     }
-    const toSelect: ShownTab = tabs[index]
-    if (!toSelect.active) { selectTab(toSelect.id) }
+      const toSelect: ShownTab = tabs[index], doesGo = !toSelect.active
+      if (doesGo) { selectTab(toSelect.id) }
+      resolve(doesGo)
+    }
+    if (absolute) {
+      if (cRepeat === 1) {
+        Q_(Tabs_.query, { currentWindow: true, index: 0 }).then((tabs): void => {
+          tabs && tabs[0] && isNotHidden_(tabs[0]) ? goToTab(tabs)
+          : onShownTabsIfRepeat_(false, 1, goToTab, [], resolve)
+        })
+      } else {
+        onShownTabsIfRepeat_(false, 1, goToTab, [], resolve)
+      }
+    } else if (Math.abs(cRepeat) === 1) {
+      Q_(getCurTab).then((curs): void => { onShownTabsIfRepeat_(false, 1, goToTab, curs || [], resolve) })
+    } else {
+      onShownTabsIfRepeat_(false, 1, goToTab, [], resolve)
+    }
   },
   /* kBgCmd.goUp: */ (): void | kBgCmd.goUp => {
     if (get_cOptions<C.goUp>().type !== "frame" && cPort && cPort.s.frameId_) {
@@ -368,12 +390,15 @@ set_bgC_([
   },
   /* kBgCmd.joinTabs: */ _AsBgC<BgCmdNoTab<kBgCmd.joinTabs>>(joinTabs),
   /* kBgCmd.mainFrame: */ _AsBgC<BgCmdNoTab<kBgCmd.mainFrame>>(mainFrame),
-  /* kBgCmd.moveTab: */ (tabs: Tab[]): void | kBgCmd.moveTab => {
-    const tab = selectFrom(tabs), pinned = tab.pinned, useGroup = get_cOptions<kBgCmd.moveTab>().group
+  /* kBgCmd.moveTab: */ (curOrTabs: Tab[] | [Tab], resolve): void | kBgCmd.moveTab => {
+    const _rawGroup = !OnEdge && get_cOptions<kBgCmd.moveTab>().group
+    const useGroup = _rawGroup !== "ignore" && _rawGroup !== false
+    onShownTabsIfRepeat_(false, 1, (tabs): void => {
+    const tab = selectFrom(tabs), pinned = tab.pinned
     const curIndex = tabs.indexOf(tab)
     let index = Math.max(0, Math.min(tabs.length - 1, curIndex + cRepeat))
     while (pinned !== tabs[index].pinned) { index -= cRepeat > 0 ? 1 : -1 }
-    if (!OnEdge && index !== curIndex && useGroup !== "ignore" && useGroup !== false) {
+    if (!OnEdge && index !== curIndex && useGroup) {
       let curGroup = getGroupId(tab), newGroup = getGroupId(tabs[index])
       if (newGroup !== curGroup && (Math.abs(cRepeat) === 1 || curGroup !== getGroupId(tabs[
             cRepeat > 0 ? index < tabs.length - 1 ? index + 1 : index : index && index - 1]))) {
@@ -386,28 +411,32 @@ set_bgC_([
         index -= cRepeat > 0 ? 1 : -1
       }
     }
-    if (index !== curIndex) {
-      Tabs_.move(tab.id, { index: index < 0 ? 0
-          : index < tabs.length ? tabs[index].index : tabs[tabs.length - 1].index + 1 })
-    }
+      if (index !== curIndex || !tab.active) {
+        Tabs_.move((tab.active ? tab : curOrTabs[0]).id, { index: (tabs as Tab[])[index].index }, R_(resolve))
+      } else {
+        resolve(0)
+      }
+    }, curOrTabs, resolve
+    , !OnEdge && useGroup ? theOther => getGroupId(curOrTabs[0]) === getGroupId(theOther) : null)
   },
   /* kBgCmd.moveTabToNewWindow: */ _AsBgC<BgCmdNoTab<kBgCmd.moveTabToNewWindow>>(moveTabToNewWindow),
   /* kBgCmd.moveTabToNextWindow: */ _AsBgC<BgCmdActiveTab<kBgCmd.moveTabToNextWindow>>(moveTabToNextWindow),
   /* kBgCmd.openUrl: */ (): void | kBgCmd.openUrl => { openUrl() },
-  /* kBgCmd.reloadTab: */ _AsBgC<BgCmdCurWndTabs<kBgCmd.reloadTab>>(reloadTab),
-  /* kBgCmd.removeRightTab: */ (tabs: Tab[]): void | kBgCmd.removeRightTab => {
-    if (!tabs) { return }
-    const ind = selectFrom(tabs).index, [start, end] = getTabRange(ind, tabs.length, 0, 1)
-    Tabs_.remove(tabs[ind + 1 === end || cRepeat > 0 && start !== ind ? start : end - 1].id)
-    runNextCmd<C.removeRightTab>(1)
+  /* kBgCmd.reloadTab: */ (tabs: Tab[] | [Tab], resolve: OnCmdResolved): void | kBgCmd.reloadTab => {
+    onShownTabsIfRepeat_(!get_cOptions<C.reloadTab>().single, 0, reloadTab, tabs, resolve)
+  },
+  /* kBgCmd.removeRightTab: */ (curTabs: Tab[] | [Tab] | undefined, resolve): void | kBgCmd.removeRightTab => {
+    onShownTabsIfRepeat_(false, 1, (tabs, [dest], r): void => { Tabs_.remove(tabs[dest].id, R_(r)) }, curTabs, resolve)
   },
   /* kBgCmd.removeTab: */ _AsBgC<BgCmdNoTab<kBgCmd.removeTab>>(removeTab),
-  /* kBgCmd.removeTabsR: */ (tabs: Tab[]): void | kBgCmd.removeTabsR => {
+  /* kBgCmd.removeTabsR: */ (resolve): void | kBgCmd.removeTabsR => {
     /** `direction` is treated as limited; limited by pinned */
-    let activeTab = selectFrom(tabs), direction = get_cOptions<C.removeTabsR>().other ? 0 : cRepeat
-    let i = activeTab ? activeTab.index : 0, noPinned = false
+    const direction = get_cOptions<C.removeTabsR>().other ? 0 : cRepeat
+    getTabsIfRepeat_(direction, (tabs: Tab[] | undefined): void => {
+      if (!tabs || tabs.length === 0) { return runtimeError_() }
+    const activeTab = selectFrom(tabs)
+    let i = tabs!.indexOf(activeTab), noPinned = false
     const filter = get_cOptions<C.removeTabsR, true>().filter
-    if (!activeTab) { return }
     if (direction > 0) {
       ++i
       tabs = tabs.slice(i, i + direction)
@@ -434,9 +463,11 @@ set_bgC_([
       })
     }
     if (tabs.length > 0) {
-      Tabs_.remove(tabs.map(tab => tab.id), runtimeError_)
-      runNextCmd<C.removeTabsR>(1)
+      Tabs_.remove(tabs.map(tab => tab.id), R_(resolve))
+    } else {
+      resolve(0)
     }
+    })
   },
   /* kBgCmd.reopenTab: */ (tabs: [Tab] | never[], resolve): void | kBgCmd.reopenTab => {
     if (tabs.length <= 0) { resolve(0);return }
@@ -551,7 +582,9 @@ set_bgC_([
         : (ContentSettings_.complain_ as (_: any) => any)(resolve(0))
   },
   /* kBgCmd.toggleMuteTab: */ _AsBgC<BgCmdNoTab<kBgCmd.toggleMuteTab>>(toggleMuteTab),
-  /* kBgCmd.togglePinTab: */ _AsBgC<BgCmdCurWndTabs<kBgCmd.togglePinTab>>(togglePinTab),
+  /* kBgCmd.togglePinTab: */ (curs: Tab[] | [Tab], resolve: OnCmdResolved): void | kBgCmd.togglePinTab => {
+    onShownTabsIfRepeat_(true, 0, togglePinTab, curs, resolve)
+  },
   /* kBgCmd.toggleTabUrl: */ _AsBgC<BgCmdActiveTab<kBgCmd.toggleTabUrl>>(toggleTabUrl),
   /* kBgCmd.toggleVomnibarStyle: */ (tabs: [Tab], resolve): void | kBgCmd.toggleVomnibarStyle => {
     const tabId = tabs[0].id, toggled = ((get_cOptions<C.toggleVomnibarStyle>().style || "") + "").trim(),

@@ -109,7 +109,7 @@ export let reqH_: BackendHandlersNS.FgRequestHandlers
 export let bgC_: {
   readonly [K in keyof BgCmdOptions]: K extends keyof BgCmdInfoMap
     ? BgCmdInfoMap[K] extends kCmdInfo.ActiveTab ? BgCmdActiveTab<K>
-      : BgCmdInfoMap[K] extends kCmdInfo.CurWndTabsIfRepeat | kCmdInfo.CurWndTabs | kCmdInfo.CurShownTabs
+      : BgCmdInfoMap[K] extends kCmdInfo.CurShownTabsIfRepeat | kCmdInfo.CurShownTabs
       ? BgCmdCurWndTabs<K>
       : never
     : BgCmdNoTab<K>
