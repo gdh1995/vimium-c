@@ -1,7 +1,8 @@
 import {
-  framesForTab_, cKey, cPort, cRepeat, get_cOptions, set_cOptions, set_cPort, set_cRepeat, set_lastWndId_,
-  lastWndId_, curIncognito_, curTabId_, curWndId_, recencyForTab_, reqH_, settingsCache_, OnFirefox, OnChrome, OnEdge,
-  CurCVer_, IsEdg_, paste_, substitute_, newTabUrls_, contentPayload_, CONST_, shownHash_, set_shownHash_, hasGroupPermission_ff_
+  framesForTab_, cPort, cRepeat, get_cOptions, set_cOptions, set_cPort, set_cRepeat, set_lastWndId_,
+  lastWndId_, curIncognito_, curTabId_, curWndId_, recencyForTab_, settingsCache_, OnFirefox, OnChrome, OnEdge,
+  CurCVer_, IsEdg_, paste_, substitute_, newTabUrls_, contentPayload_, CONST_, shownHash_, set_shownHash_,
+  hasGroupPermission_ff_
 } from "./store"
 import * as BgUtils_ from "./utils"
 import {
@@ -11,11 +12,11 @@ import {
 } from "./browser"
 import { convertToUrl_, createSearchUrl_, lastUrlType_, quotedStringRe_, reformatURL_ } from "./normalize_urls"
 import { findUrlInText_ } from "./parse_urls"
-import { ensureInnerCSS, safePost, showHUD, complainLimits, findCPort, isNotVomnibarPage } from "./ports"
+import { safePost, showHUD, complainLimits, findCPort, isNotVomnibarPage } from "./ports"
 import { createSimpleUrlMatcher_, matchSimply_ } from "./exclusions"
 import { trans_ } from "./i18n"
 import {
-  copyCmdOptions, runNextCmdBy, parseFallbackOptions, portSendFgCmd, replaceCmdOptions, overrideOption, runNextCmd,
+  copyCmdOptions, runNextCmdBy, parseFallbackOptions, replaceCmdOptions, overrideOption, runNextCmd,
   overrideCmdOptions, runNextOnTabLoaded
 } from "./run_commands"
 import { parseSedOptions_ } from "./clipboard"
@@ -364,7 +365,7 @@ const replaceOrOpenInNewTab = <Reuse extends Exclude<ReuseType, ReuseType.curren
     })
   })).then<void>(matchedTab => {
     if (matchedTab == null || matchedTab.id === curTabId_ && reuse !== ReuseType.reuse) {
-      reuse === ReuseType.reuse ? reqH_[kFgReq.focusOrLaunch](reuseOptions!)
+      reuse === ReuseType.reuse ? focusOrLaunch_(reuseOptions!)
       : runNextCmdBy(0, options!) ? 0
       : curTabs ? openUrlInNewTab([url], reuse, options!, curTabs)
       : getCurTab(openUrlInNewTab.bind(null, [url], reuse, options!))
@@ -697,23 +698,6 @@ export const openUrlReq = (request: FgReq[kFgReq.openUrl], port?: Port | null): 
 
 //#region focusOrLaunch
 
-export const focusAndExecute = (req: Omit<FgReq[kFgReq.gotoMainFrame], "f">
-    , port: Port, targetPort: Port | null, focusAndShowFrameBorder: BOOL): void => {
-  if (targetPort && targetPort.s.status_ !== Frames.Status.disabled) {
-    targetPort.postMessage({
-      N: kBgReq.focusFrame,
-      H: focusAndShowFrameBorder || req.c !== kFgCmd.scroll ? ensureInnerCSS(port.s) : null,
-      m: focusAndShowFrameBorder ? FrameMaskType.ForcedSelf : FrameMaskType.NoMaskAndNoFocus,
-      k: focusAndShowFrameBorder ? cKey : kKeyCode.None,
-      f: {},
-      c: req.c, n: req.n, a: req.a
-    })
-  } else {
-    req.a.$forced = 1
-    portSendFgCmd(port, req.c, false, req.a as any, req.n)
-  }
-}
-
 /** safe when cPort is null */
 export const focusOrLaunch_ = (request: FgReq[kFgReq.focusOrLaunch], port?: Port | null): void => {
 
@@ -738,7 +722,7 @@ const onMatchedTabs = (tabs: Tab[]): void => {
     makeWindow({ url: request.u, type: normalizeWndType(opts2.w),
       incognito: curIncognito_ === IncognitoType.true && !isRefusingIncognito_(request.u)
     }, "", (wnd): void => {
-      if (wnd.tabs && wnd.tabs.length > 0) { callback(wnd.tabs[0]) }
+      callback(wnd && wnd.tabs && wnd.tabs.length > 0 ? wnd.tabs[0] : null)
     })
   } else {
     openMultiTabs({
@@ -769,7 +753,7 @@ const updateMatchedTab = (tabs2: Tab[]): void => {
   }
 }
 
-const callback = (tab?: Tab): void => {
+const callback = (tab?: Tab | null): void => {
   if (!tab) { return runtimeError_(); }
   runNextOnTabLoaded(request.f || {}, tab, request.s && ((): void => {
     Marks_.scrollTab_(request as MarksNS.MarkToGo, tab)

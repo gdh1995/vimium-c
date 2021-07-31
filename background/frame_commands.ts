@@ -4,10 +4,10 @@ import {
   helpDialogData_, set_helpDialogData_
 } from "./store"
 import * as BgUtils_ from "./utils"
-import { Tabs_, browserWebNav_, downloadFile, getTabUrl, runtimeError_, selectTab } from "./browser"
+import { Tabs_, downloadFile, getTabUrl, runtimeError_, selectTab } from "./browser"
 import { convertToUrl_ } from "./normalize_urls"
 import * as settings_ from "./settings"
-import { indexFrame, showHUD, complainLimits, ensureInnerCSS } from "./ports"
+import { showHUD, complainLimits, ensureInnerCSS, getParentFrame } from "./ports"
 import { getI18nJson, trans_ } from "./i18n"
 import { keyMappingErrors_, visualGranularities_, visualKeys_ } from "./key_mappings"
 import {
@@ -41,24 +41,7 @@ export const parentFrame = (): void | kBgCmd.parentFrame => {
     ? `Vimium C can not know parent frame before Chrome ${BrowserVer.MinWithFrameId}`
     : !(sender.tabId_ >= 0 && framesForTab_.get(sender.tabId_)) ? "Vimium C can not access frames in current tab" : null
   msg && showHUD(msg)
-  if (!sender.frameId_ || OnChrome && Build.MinCVer < BrowserVer.MinWithFrameId && CurCVer_ < BrowserVer.MinWithFrameId
-      || !browserWebNav_()) {
-    mainFrame()
-    return
-  }
-  let self = sender.frameId_, frameId = self, found: boolean, count = cRepeat
-  browserWebNav_()!.getAllFrames({ tabId: sender.tabId_ }, (frames): void => {
-    do {
-      found = false
-      for (const i of frames) {
-        if (i.frameId === frameId) {
-          frameId = i.parentFrameId
-          found = frameId > 0
-          break
-        }
-      }
-    } while (found && 0 < --count)
-    const port = frameId > 0 && frameId !== self ? indexFrame(sender.tabId_, frameId) : null
+  getParentFrame(sender.tabId_, sender.frameId_, cRepeat).then(port => {
     port ? focusFrame(port, true, FrameMaskType.ForcedSelf, get_cOptions<C.parentFrame, true>()) : mainFrame()
   })
 }

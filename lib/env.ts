@@ -71,8 +71,12 @@ Build.NDEBUG || (function (): void {
     if ((window as PartialOf<typeof globalThis, "define">).define !== myDefine) { return }
     (window as PartialOf<typeof globalThis, "define">).define = oldDefine
     if (!oldDefine) { return }
-    for (let key in modules) {
-      (oldDefine as any)[key] = modules[key]
+    if (!Build.NDEBUG && VimiumInjector === null) {
+      if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$Object$$asign) {
+        for (let key in modules) { (oldDefine as any)[key] = modules[key] }
+      } else {
+        Object.assign(oldDefine, modules)
+      }
     }
   }
   (window as PartialOf<typeof globalThis, "__filename">).__filename = undefined;

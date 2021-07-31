@@ -4,7 +4,7 @@ import {
 } from "./store"
 import * as BgUtils_ from "./utils"
 import {
-  Tabs_, Windows_, makeTempWindow, makeWindow, PopWindow, tabsCreate, Window, getTabUrl, selectFrom, tabsGet,
+  Tabs_, Windows_, makeTempWindow_r, makeWindow, PopWindow, tabsCreate, Window, getTabUrl, selectFrom, tabsGet,
   runtimeError_, IncNormalWnd, selectWnd, selectTab, getCurWnd, getCurTabs, getCurTab, getGroupId, tabsUpdate,
   browserSessions_, InfoToCreateMultiTab, openMultiTabs, isTabMuted, isRefusingIncognito_
 } from "./browser"
@@ -16,26 +16,13 @@ import { confirm_, runNextCmd, overrideCmdOptions } from "./run_commands"
 import { parseSedOptions_ } from "./clipboard"
 import { newTabIndex, preferLastWnd, openUrlWithActions } from "./open_urls"
 import { focusFrame } from "./frame_commands"
+import { getTabRange } from "./filter_tabs"
 import { TabRecency_ } from "./tools"
 
 import C = kBgCmd
 declare const enum RefreshTabStep { start = 0, s1, s2, s3, s4, end }
 
 const abs = Math.abs
-
-export const getTabRange = (current: number, total: number, countToAutoLimitBeforeScale?: number
-    , /** must be positive */ extraCount?: number | null): [number, number] => {
-  let count = cRepeat
-  if (extraCount) { count += count > 0 ? extraCount : -extraCount }
-  const end = current + count, pos = count > 0
-  return end <= total && end > -2 ? pos ? [current, end] : [end + 1, current + 1] // normal range
-      : !get_cOptions<C.removeTab | C.reloadTab | C.copyWindowInfo>().limited
-      && (abs(count) < (countToAutoLimitBeforeScale || total) * GlobalConsts.ThresholdToAutoLimitTabOperation
-          || count < 10)
-      ? abs(count) < total ? pos ? [total - count, total] : [0, -count] // go forward and backward
-        : [0, total] // all
-      : pos ? [current, total] : [0, current + 1] // limited
-}
 
 const notifyCKey = (): void => { cPort && focusFrame(cPort, false, FrameMaskType.NoMaskAndNoFocus) }
 
@@ -219,11 +206,9 @@ export const moveTabToNewWindow = (): void | kBgCmd.moveTabToNewWindow => {
     } else {
       range = getTabRange(activeTabIndex, total), count = range[1] - range[0]
       if (count >= total) { return showHUD(trans_("moveAllTabs")) }
-      if (count > 30) {
-          if (cNeedConfirm) {
+      if (count > 30 && cNeedConfirm) {
             void confirm_("moveTabToNewWindow", count).then(moveTabToNewWindow0.bind(null, wnd))
             return
-          }
       }
     }
     makeWindow({ tabId: tabs[activeTabIndex].id, incognito: curIncognito }, wnd.type === "normal" ? wnd.state : ""
@@ -364,7 +349,7 @@ export const moveTabToNextWindow = ([tab]: [Tab]): void | kBgCmd.moveTabToNextWi
           let toActivateInOld = toRight && !tab.index ? -9 : -1
           !OnChrome || Build.MinCVer >= BrowserVer.MinNoAbnormalIncognito ? /*#__INLINE__*/ callback()
           : index >= 0 || CurCVer_ >= BrowserVer.MinNoAbnormalIncognito ? callback()
-          : (toActivateInOld = -9, makeTempWindow(tab.id, tab.incognito, callback))
+          : (toActivateInOld = -9, makeTempWindow_r(tab.id, tab.incognito, callback))
         })
         return
       }
@@ -402,11 +387,9 @@ export const reloadTab = (tabs?: Tab[] | never[] | [Tab]): void => {
     start = ind; end = ind + 1
   }
   let count = end - start
-  if (count > 20) {
-      if (cNeedConfirm) {
+  if (count > 20 && cNeedConfirm) {
         void confirm_("reloadTab", count).then(reloadTab.bind(null, tabs))
         return
-      }
   }
   reload(tabs[ind].id, reloadProperties)
   for (; start !== end; start++) {
@@ -433,11 +416,9 @@ export const removeTab = (phase?: 1 | 2, tabs?: readonly Tab[]): void => {
     }
     const range = getTabRange(i, total - skipped, total)
     count = range[1] - range[0]
-    if (count > 20) {
-        if (cNeedConfirm) {
+    if (count > 20 && cNeedConfirm) {
           void confirm_("removeTab", count).then(removeTab.bind(null, 2, tabs))
           return
-        }
     }
     if (count > 1) {
       start = skipped + range[0], end = skipped + range[1]
@@ -574,11 +555,9 @@ export const togglePinTab = (tabs: Tab[]): void => {
     }
   }
   end = wantedTabIds.length
-  if (end > 30) {
-      if (cNeedConfirm) {
+  if (end > 30 && cNeedConfirm) {
         void confirm_("togglePinTab", end).then(togglePinTab.bind(null, tabs))
         return
-      }
   }
   for (start = 0; start < end; start++) {
     tabsUpdate(wantedTabIds[start], action)
@@ -650,12 +629,10 @@ export const reopenTab_ = (tab: Tab, refresh?: /* false */ 0 | /* a temp blank t
     Tabs_.remove(tabId, () => (tabsGet(tabId, onRefresh), runtimeError_()))
     return
   }
-  let callback: ((this: void, tab: Tab) => void) | null | undefined
-  if (OnEdge || OnChrome && Build.MinCVer < BrowserVer.MinMuted && CurCVer_ < BrowserVer.MinMuted) {
-    /* empty */
-  } else {
+  let recoverMuted: ((this: void, newTab: Tab) => void) | null | undefined
+  if (!(OnEdge || OnChrome && Build.MinCVer < BrowserVer.MinMuted && CurCVer_ < BrowserVer.MinMuted)) {
     const muted = isTabMuted(tab)
-    callback = (tab2: Tab): void => {
+    recoverMuted = (tab2: Tab): void => {
       if (muted !== isTabMuted(tab2)) {
         tabsUpdate(tab2.id, { muted })
       }
@@ -672,7 +649,7 @@ export const reopenTab_ = (tab: Tab, refresh?: /* false */ 0 | /* a temp blank t
   } else if (args.index != null) {
     args.index++
   }
-  openMultiTabs(args, 1, true, [null], useGroup, tab, callback)
+  openMultiTabs(args, 1, true, [null], useGroup, tab, recoverMuted)
   Tabs_.remove(tabId)
   // should never remove its session item - in case that goBack/goForward might be wanted
   // not seems to need to restore muted status

@@ -2,8 +2,8 @@ import {
   blank_, set_sync_, sync_, restoreSettings_, set_restoreSettings_, contentPayload_, OnChrome, OnEdge,
   hasEmptyLocalStorage_, set_backupToLocal_, backupToLocal_
 } from "./store"
-import { browser_, runtimeError_ } from "./browser"
 import * as BgUtils_ from "./utils"
+import { browser_, runtimeError_ } from "./browser"
 import * as settings_ from "./settings"
 
 import SettingsWithDefaults = SettingsNS.SettingsWithDefaults

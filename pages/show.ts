@@ -961,9 +961,14 @@ if (!Build.NDEBUG) {
     showBgLink, clickLink, simulateClick, imgOnKeydown, doImageAction, decodeURLPart_,
     importBody, defaultOnClick, clickShownNode, showText, copyThing, _copyStr, toggleInvert, import2, loadCSS,
     defaultOnError, loadViewer, showSlide, clean, parseSmartImageUrl_, tryToFixFileExt_, fetchImage_,
-    destroyObject_, tryDecryptUrl, disableAutoAndReload_, resetOnceProperties_, recoverHash_, encrypt_, getOmni_: getContentUrl_,
-  };
-  for (let key in exported) { if (exported.hasOwnProperty(key)) { (window as any)[key] = exported[key]; } }
+    destroyObject_, tryDecryptUrl, disableAutoAndReload_, resetOnceProperties_, recoverHash_, encrypt_,
+    getOmni_: getContentUrl_,
+  }
+  if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$Object$$asign) {
+    for (let key in exported) { if (exported.hasOwnProperty(key)) { (window as any)[key] = exported[key] } }
+  } else {
+    Object.assign(window, exported)
+  }
   (window as any).VShown = () => ({
     VShown, bgLink, tempEmit, viewer_, encryptKey, ImageExtRe, _shownBlobURL,
   })

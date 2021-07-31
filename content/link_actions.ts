@@ -125,7 +125,7 @@ const downloadOrOpenMedia = (): void => {
 const openTextOrUrl = (url: string, incognito?: boolean): void => {
   hintApi.p({
     H: kFgReq.openUrl,
-    r: hintOptions.reuse != null ? hintOptions.reuse : (hintMode_ & HintMode.queue ? ReuseType.newBg : ReuseType.newFg)
+    r: (hintMode_ & HintMode.queue ? ReuseType.newBg : ReuseType.newFg)
        + ReuseType.OFFSET_LAST_WINDOW * <number> <number | boolean> (hintOptions.newtab === kLW),
     u: url, f: incognito, i: incognito, o: parseOpenPageUrlOptions(hintOptions)
   });

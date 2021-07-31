@@ -27,12 +27,12 @@ const enableShowIcon = settings_.updateHooks_.showActionIcon = (value): void => 
       return
     }
     set_needIcon_(value)
-    void (import(CONST_.ActionIconJS)as Promise<typeof import("./action_icon")>).then(m => { m.toggleIconBuffer_() })
+    void (import("/background/action_icon.js" as string
+        ) as Promise<typeof import("./action_icon")>).then(m => { m.toggleIconBuffer_() })
     let title = trans_("name");
     value || (title += "\n\n" + trans_("noActiveState"));
     api.setTitle({ title })
 }
-
 if (settings_.get_("showActionIcon")) {
   enableShowIcon(true)
 } else {

@@ -6,8 +6,8 @@ import {
 import * as BgUtils_ from "./utils"
 import {
   Tabs_, Windows_, InfoToCreateMultiTab, openMultiTabs, tabsGet, getTabUrl, selectFrom, runtimeError_,
-  selectTab, getCurWnd, getCurTabs, getCurTab, getCurShownTabs_ff_only_, browserSessions_, browser_, selectWndIfNeed,
-  getGroupId, isRefusingIncognito_, Q_
+  selectTab, getCurWnd, getCurTab, getCurShownTabs_, browserSessions_, browser_, selectWndIfNeed,
+  getGroupId, isRefusingIncognito_, Q_, ShownTab
 } from "./browser"
 import { createSearchUrl_ } from "./normalize_urls"
 import { parseSearchUrl_ } from "./parse_urls"
@@ -26,8 +26,9 @@ import {
   parentFrame, enterVisualMode, showVomnibar, toggleZoom, captureTab,
   initHelp, framesGoBack, mainFrame, nextFrame, performFind, framesGoNext
 } from "./frame_commands"
+import { getTabRange } from "./filter_tabs"
 import {
-  copyWindowInfo, getTabRange, joinTabs, moveTabToNewWindow, moveTabToNextWindow, reloadTab, removeTab, toggleMuteTab,
+  copyWindowInfo, joinTabs, moveTabToNewWindow, moveTabToNextWindow, reloadTab, removeTab, toggleMuteTab,
   togglePinTab, toggleTabUrl, reopenTab_
 } from "./tab_commands"
 import { ContentSettings_, FindModeHistory_, Marks_, TabRecency_ } from "./tools"
@@ -186,17 +187,14 @@ set_bgC_([
         roots = folder.children!
         if (!roots) { break }
       }
-      (!allTabs && cRepeat * cRepeat < 2 ? getCurTab : OnFirefox ? getCurShownTabs_ff_only_! : getCurTabs
-          )(function doAddBookmarks(tabs?: Tab[]): void {
+      (!allTabs && cRepeat * cRepeat < 2 ? getCurTab : getCurShownTabs_)(function doAddBookmarks(tabs?: Tab[]): void {
         if (!tabs || !tabs.length) { runtimeError_(); return }
         const ind = (OnFirefox ? selectFrom(tabs, 1) : selectFrom(tabs)).index
         let [start, end] = allTabs ? [0, tabs.length] : getTabRange(ind, tabs.length)
         let count = end - start
-        if (count > 20) {
-            if (cNeedConfirm) {
+        if (count > 20 && cNeedConfirm) {
               void confirm_("addBookmark", count).then(doAddBookmarks.bind(0, tabs))
               return
-            }
         }
         for (const tab of tabs.slice(start, end)) {
           browser_.bookmarks.create({ parentId: folder!.id, title: tab.title, url: getTabUrl(tab) }, runtimeError_)
@@ -334,19 +332,19 @@ set_bgC_([
         index += start
       }
     }
-    const toSelect: Tab = tabs[index]
+    const toSelect: ShownTab = tabs[index]
     if (!toSelect.active) { selectTab(toSelect.id) }
   },
   /* kBgCmd.goUp: */ (): void | kBgCmd.goUp => {
     if (get_cOptions<C.goUp>().type !== "frame" && cPort && cPort.s.frameId_) {
       set_cPort(framesForTab_.get(cPort.s.tabId_)?.top_ || cPort)
     }
-    requireURL_({ H: kFgReq.parseUpperUrl, u: "" as "url",
+    const arg: Req.fg<kFgReq.parseUpperUrl> & {u: "url"} = { H: kFgReq.parseUpperUrl, u: "" as "url",
       p: cRepeat,
       t: get_cOptions<C.goUp, true>().trailingSlash, r: get_cOptions<C.goUp, true>().trailing_slash,
       s: parseSedOptions_(get_cOptions<C.goUp, true>()),
-      e: true
-    })
+    }
+    requireURL_(arg)
   },
   /* kBgCmd.joinTabs: */ _AsBgC<BgCmdNoTab<kBgCmd.joinTabs>>(joinTabs),
   /* kBgCmd.mainFrame: */ _AsBgC<BgCmdNoTab<kBgCmd.mainFrame>>(mainFrame),
@@ -520,10 +518,10 @@ set_bgC_([
       showHUD('Require a string "id" and message "data"')
     }
   },
-  /* kBgCmd.showTip: */ (): void | kBgCmd.showTip => {
-    let text = get_cOptions<C.showTip>().text
+  /* kBgCmd.showHUD: */ (): void | kBgCmd.showHUD => {
+    let text = get_cOptions<C.showHUD>().text
     showHUD(text ? text + "" : trans_("needText"))
-    text && runNextCmd<C.showTip>(1)
+    text && runNextCmd<C.showHUD>(1)
   },
   /* kBgCmd.toggleCS: */ (tabs: [Tab]): void | kBgCmd.toggleCS => {
     OnChrome ? ContentSettings_.toggleCS_(get_cOptions<C.toggleCS, true>(), cRepeat, tabs)

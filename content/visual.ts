@@ -694,7 +694,7 @@ const ensureLine = (command1: number): void => {
 
   const mode = mode_
   if (command > VisualAction.MaxNotScroll) {
-    executeScroll(1, command - VisualAction.ScrollDown ? -count : count, 0)
+    executeScroll(1, command - VisualAction.ScrollDown ? -count : count, kScFlag.scBy)
     return;
   }
   if (command > VisualAction.MaxNotNewMode) {

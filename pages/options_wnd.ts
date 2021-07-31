@@ -630,8 +630,3 @@ export const click = function (a: Element): boolean {
     , false, false, false, false, 0, null);
   return a.dispatchEvent(mouseEvent);
 }
-
-if (!Build.NDEBUG) {
-  const exported: Dict<any> = { Option_, BG_, bgSettings_, nextTick_ }
-  for (let key in exported) { if (exported.hasOwnProperty(key)) { (window as any)[key] = exported[key]; } }
-}

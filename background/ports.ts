@@ -4,7 +4,7 @@ import {
   keyFSM_, mappedKeyRegistry_, CONST_, mappedKeyTypes_, recencyForTab_
 } from "./store"
 import { asyncIter_, getOmniSecret_, keys_ } from "./utils"
-import { removeTempTab, tabsGet, runtimeError_, getCurTab, getTabUrl, Tabs_, browserWebNav_ } from "./browser"
+import { removeTempTab, tabsGet, runtimeError_, getCurTab, getTabUrl, Tabs_, browserWebNav_, Q_ } from "./browser"
 import { exclusionListening_, getExcluded_, exclusionListenHash_ } from "./exclusions"
 import { trans_ } from "./i18n"
 
@@ -202,16 +202,18 @@ export const getPortUrl_ = (port?: Port | null, ignoreHash?: boolean, request?: 
   })
 }
 
-export const requireURL_ = <k extends keyof FgReq>(request: Req.fg<k> & {u: "url"}, ignoreHash?: true): void => {
+export const requireURL_ = <k extends keyof FgReq>(request: Req.fg<k> & {u: "url"}, ignoreHash?: true
+    ): Promise<string> | void => {
   type T1 = keyof FgReq
   type Req1 = { [K in T1]: (req: FgReq[K], port: Frames.Port) => void }
   type Req2 = { [K in T1]: <T extends T1>(req: FgReq[T], port: Frames.Port) => void }
   set_cPort(cPort || framesForTab_.get(curTabId_)?.top_)
   const res = getPortUrl_(cPort, ignoreHash, request)
   if (typeof res !== "string") {
-    void res.then(url => {
+    return res.then(url => {
       request.u = url as "url"
       url && (reqH_ as Req1 as Req2)[request.H](request, cPort)
+      return url
     })
   } else {
     request.u = res as "url"
@@ -345,4 +347,26 @@ if (OnChrome && Build.MinCVer < BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol
       callback(map[key]!, +key)
     }
   }
+}
+
+export const getParentFrame = (tabId: number, curFrameId: number, level: number): Promise<Port | null> => {
+  if (!curFrameId || OnChrome && Build.MinCVer < BrowserVer.MinWithFrameId && CurCVer_ < BrowserVer.MinWithFrameId
+      || !browserWebNav_()) {
+    return Promise.resolve(null)
+  }
+  return Q_(browserWebNav_()!.getAllFrames, { tabId }).then((frames) => {
+    let found = false, frameId = curFrameId
+    if (!frames) { return null }
+    do {
+      found = false
+      for (const i of frames!) {
+        if (i.frameId === frameId) {
+          frameId = i.parentFrameId
+          found = frameId > 0
+          break
+        }
+      }
+    } while (found && 0 < --level)
+    return frameId > 0 && frameId !== curFrameId ? indexFrame(tabId, frameId) : null
+  })
 }

@@ -154,6 +154,7 @@ declare const enum BrowserVer {
   Min$KeyboardEvent$MayHave$$Key = 47, // if EXPERIMENTAL
   Min$IFrame$MayHave$$Referrerpolicy = 47, // if EXPERIMENTAL
   MinEnsured$InputDeviceCapabilities = 47, // even if LEGACY; also ensured UIEvent.sourceCapabilities
+  MinEnsured$Object$$asign = 47, // even if LEGACY; since C45 if only no LEGACY
   MinFetchExtensionFiles = 47, // even if EXPERIMENTAL or LEGACY
   MinFetchDataURL = 48, // even if EXPERIMENTAL; test code: fetch('data:,abc').then(i=>i.text()).then(cb,cb)
   // even if EXPERIMENTAL or LEGACY

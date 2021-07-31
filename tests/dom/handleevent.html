@@ -23,8 +23,9 @@
     console.log("test start")
     document.body.dispatchEvent(new Event(eventName));
     setTimeout(function() { console.log("test end") });
-    result.innerText = "Open console to see results of " + arr.length + " tests.\n";
-    result.append("On 2019-11-17, Chrome 78 has no exceptions, but Firefox 70 reports 11 errors");
+    result.innerText = "Open console to see results of " + arr.length + " tests.\n"
+        + "Chrome 78/92 has no exceptions, but Firefox 70/91 reports 11 errors;\n"
+        + "Chrome should pause if enabling \"pause on caught exceptions\" on DevTools.";
   }
 </script>
 </body>

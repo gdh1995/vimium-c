@@ -657,7 +657,7 @@ export const availableCommands_: Dict<CommandsNS.Description> & SafeObject =
   searchInAnother: [ kBgCmd.searchInAnother, 1, 1 ],
   sendToExtension: [ kBgCmd.sendToExtension, 1, 0 ],
   showHelp: [ kBgCmd.showHelp, 1, 1 ],
-  showTip: [ kBgCmd.showTip, 1, 1 ],
+  showTip: [ kBgCmd.showHUD, 1, 1 ],
   simBackspace: [ kFgCmd.focusInput, 0, 1, { act: "backspace" } ],
   simulateBackspace: [ kFgCmd.focusInput, 0, 1, { act: "backspace" } ],
   sortTabs: [ kBgCmd.joinTabs, 1, 1, { sort: "recency", windows: "current" } ],

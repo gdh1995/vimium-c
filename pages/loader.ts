@@ -1,12 +1,14 @@
 /// <reference path="../lib/base.d.ts" />
 /// <reference path="../background/index.d.ts" />
 /* eslint-disable @typescript-eslint/prefer-string-starts-ends-with, @typescript-eslint/prefer-includes */
-(window as PartialOf<typeof globalThis, "VimiumInjector">).VimiumInjector = null
-if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType.Chrome) ? true
-    : typeof browser !== "undefined" && browser && (browser as typeof chrome).runtime) {
-  window.chrome = browser as typeof chrome;
-}
-chrome.runtime && chrome.runtime.getManifest && (function () {
+(window as PartialOf<typeof globalThis, "VimiumInjector">).VimiumInjector = null;
+
+(function () {
+  const MayChrome = !!(Build.BTypes & BrowserType.Chrome), MayNotChrome = !!(Build.BTypes & ~BrowserType.Chrome)
+  const mayBrowser_ = MayChrome && MayNotChrome && typeof browser === "object" ? (browser as typeof chrome) : null
+  const useBrowser = !MayNotChrome ? false : !MayChrome ? true : !!(mayBrowser_ && mayBrowser_.runtime)
+  const browser_ = useBrowser ? browser as never : chrome
+  if (!Build.NDEBUG && Build.BTypes & ~BrowserType.Chrome && useBrowser) { window.chrome = browser_ }
   const OnOther: BrowserType = Build.BTypes && !(Build.BTypes & (Build.BTypes - 1))
       ? Build.BTypes as number
       : Build.BTypes & BrowserType.Chrome
@@ -19,9 +21,9 @@ chrome.runtime && chrome.runtime.getManifest && (function () {
   let loader = document.currentScript as HTMLScriptElement;
   const head = loader.parentElement as HTMLElement
     , scripts: HTMLScriptElement[] = [loader]
-    , prefix = chrome.runtime.getURL("")
+    , prefix = browser_.runtime.getURL("")
     , curPath = location.pathname.replace("/pages/", "").split(".")[0]
-    , arr = chrome.runtime.getManifest().content_scripts[0].js;
+    , arr = browser_.runtime.getManifest().content_scripts[0].js;
   if (OnOther !== BrowserType.Edge) {
     for (const src of arr) {
       const scriptElement = document.createElement("script");
@@ -40,11 +42,14 @@ chrome.runtime && chrome.runtime.getManifest && (function () {
   function onLastLoad(): void {
     for (let i = scripts.length; 0 <= --i; ) { scripts[i].remove(); }
     document.dispatchEvent(new CustomEvent(GlobalConsts.kLoadEvent))
-    if (!Build.NDEBUG) { // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-      (window as any).define && (window as any).define.noConflict()
-    }
+    !(Build.BTypes & BrowserType.Edge)
+    && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinUsableScript$type$$module$InExtensions)
+    && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinES$DynamicImport)
+    && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredES$DynamicImport)
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+    || !Build.NDEBUG && (window as any).define && (window as any).define.noConflict()
   }
-  const bg0 = chrome.extension.getBackgroundPage()
+  const bg0 = browser_.extension.getBackgroundPage()
   if (bg0 && bg0.Backend_) {
     bg0.Backend_.updateMediaQueries_()
     if (curPath !== "options") {
@@ -56,13 +61,13 @@ chrome.runtime && chrome.runtime.getManifest && (function () {
       }
     }
   }
-  if (chrome.i18n.getMessage("lang1")) {
-    const s = chrome.i18n.getMessage("v" + curPath)
+  if (browser_.i18n.getMessage("lang1")) {
+    const s = browser_.i18n.getMessage("v" + curPath)
     s && (document.title = (curPath !== "blank" ? "Vimium C " : "") + s)
   }
   if (!Build.NDEBUG) {
     (window as any).updateUI = (): void => {
-      chrome.extension.getBackgroundPage()!.Backend_.reloadCSS_(2)
+      browser_.extension.getBackgroundPage()!.Backend_.reloadCSS_(2)
     }
   }
   if (!Build.NDEBUG) {

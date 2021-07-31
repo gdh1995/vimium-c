@@ -207,7 +207,7 @@ declare const enum kBgCmd {
   discardTab, duplicateTab, goBackFallback, goToTab, goUp, joinTabs,
   mainFrame, moveTab, moveTabToNewWindow, moveTabToNextWindow, openUrl,
   reloadTab, removeRightTab, removeTab, removeTabsR, reopenTab, restoreGivenTab, restoreTab, runKey,
-  searchInAnother, sendToExtension, showTip,
+  searchInAnother, sendToExtension, showHUD,
   toggleCS, toggleMuteTab, togglePinTab, toggleTabUrl, toggleVomnibarStyle, toggleZoom,
   visitPreviousTab, closeDownloadBar,
   END, ENDS = "END",
@@ -302,6 +302,8 @@ interface TrailingSlashOptions {
   trailingSlash?: boolean | null
   /** (deprecated) */ trailing_slash?: boolean | null
 }
+
+declare const enum kScFlag { scBy = 0, INC = 1, TO = 2, toMin = 2, toMax = 3, _mask = "mask" }
 
 interface CmdOptions {
   [kFgCmd.linkHints]: HintsNS.Options;
@@ -456,13 +458,11 @@ declare const enum SedContext {
   NO_STATIC = 1 << 30,
 }
 
+interface ParsedUpperUrl { /** url */ u: string; /** path */ p: string | null }
+
 interface FgRes {
   [kFgReq.findQuery]: string;
   [kFgReq.parseSearchUrl]: ParsedSearch | null;
-  [kFgReq.parseUpperUrl]: {
-    /** url */ u: string;
-    /** path */ p: string | null;
-  };
   [kFgReq.execInChild]: boolean;
   [kFgReq.i18n]: { /** rawMessages */ m: string[] | null };
 }
@@ -474,21 +474,11 @@ interface FgReqWithRes {
     /** query */ q?: undefined;
     /** index */ i?: undefined;
   };
-  [kFgReq.parseUpperUrl]: {
-    /** url */ u: string;
-    /** upper */ p: number;
-    /** appended */ a?: string;
-    /** force */ f?: BOOL;
-    /** id */ i?: undefined;
-    /** trailingSlash */ t: boolean | null | undefined;
-    /** (deprecated) trailingSlash (old) */ r?: boolean | null | undefined;
-    /** sed : not for kFgReq.parseSearchUrl */ s?: MixedSedOpts | null;
-  };
   [kFgReq.parseSearchUrl]: {
     /** url */ u: string;
     /** upper */ p?: undefined;
     /** id */ i?: number;
-  } | FgReqWithRes[kFgReq.parseUpperUrl];
+  } | FgReq[kFgReq.parseUpperUrl]
   [kFgReq.execInChild]: {
     /** url */ u: string;
     /** lastKey */ k: kKeyCode;
@@ -503,8 +493,15 @@ interface FgReq {
     /** id */ i: number;
     /** url */ u: string;
   };
-  [kFgReq.parseUpperUrl]: FgReqWithRes[kFgReq.parseUpperUrl] & {
-    /** execute */ e: boolean;
+  [kFgReq.parseUpperUrl]: {
+    /** url */ u: string;
+    /** upper */ p: number;
+    /** appended */ a?: string;
+    /** force */ f?: BOOL;
+    /** id */ i?: undefined;
+    /** trailingSlash */ t: boolean | null | undefined;
+    /** (deprecated) trailingSlash (old) */ r?: boolean | null | undefined;
+    /** sed : not for kFgReq.parseSearchUrl */ s?: MixedSedOpts | null;
   };
   [kFgReq.findQuery]: {
     /** query */ q: string;
@@ -629,7 +626,7 @@ interface FgReq {
   [kFgReq.framesGoBack]: {
     /** step */ s: number
     /** only use o.position */ o: PickIn<Extract<CmdOptions[kFgCmd.framesGoBack], {r?: null}>
-        , keyof (OpenUrlOptions & Req.FallbackOptions)>
+        , keyof OpenUrlOptions | keyof Req.FallbackOptions>
   }
   [kFgReq.learnCSS]: {};
   [kFgReq.visualMode]: {

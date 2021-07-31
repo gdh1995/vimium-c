@@ -118,7 +118,7 @@ interface BgCmdOptions {
   [kBgCmd.searchInAnother]: { keyword: string; reuse: UserReuseType } & Req.FallbackOptions
       & OpenUrlOptions & MasksForOpenUrl & OpenPageUrlOptions
   [kBgCmd.sendToExtension]: { id: string; data: any; raw: true } & Req.FallbackOptions
-  [kBgCmd.showTip]: { text: string } & Req.FallbackOptions
+  [kBgCmd.showHUD]: { text: string } & Req.FallbackOptions
   [kBgCmd.toggleCS]: { action: "" | "reopen"; incognito: boolean; type: chrome.contentSettings.ValidTypes }
   [kBgCmd.toggleMuteTab]: { all: boolean; other: boolean; others: boolean; mute: boolean } & Req.FallbackOptions
   [kBgCmd.togglePinTab]: LimitedRangeOptions & Req.FallbackOptions
@@ -424,7 +424,7 @@ interface CmdNameIds {
   toggleSwitchTemp: kBgCmd.toggle
   toggleViewSource: kBgCmd.toggleTabUrl
   toggleVomnibarStyle: kBgCmd.toggleVomnibarStyle
-  showTip: kBgCmd.showTip
+  showTip: kBgCmd.showHUD
   visitPreviousTab: kBgCmd.visitPreviousTab
   wait: kBgCmd.blank
   zoomIn: kBgCmd.toggleZoom

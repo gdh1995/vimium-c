@@ -1,6 +1,6 @@
 import {
   set_evalVimiumUrl_, copy_, evalVimiumUrl_, substitute_, paste_, cPort, curTabId_, framesForTab_, needIcon_, setIcon_,
-  set_cPort, CONST_
+  set_cPort
 } from "./store"
 import { decodeEscapedURL_, spacesRe_ } from "./utils"
 import { convertToUrl_, lastUrlType_, createSearchUrl_, quotedStringRe_ } from "./normalize_urls"
@@ -37,7 +37,7 @@ set_evalVimiumUrl_(function (path: string, workType?: Urls.WorkType, onlyOnce?: 
   } }
   if (workType === Urls.WorkType.ActIfNoSideEffects) { switch (cmd) {
   case "e": case "exec": case "eval": case "expr": case "calc": case "m": case "math":
-    return (import(CONST_.MathParser) as Promise<typeof import("../lib/math_parser")>
+    return (import("/lib/math_parser.js" as string) as Promise<typeof import("../lib/math_parser")>
         ).then(/*#__NOINLINE__*/ tryEvalMath_.bind(0, path))
   case "error":
     return [path, Urls.kEval.ERROR];

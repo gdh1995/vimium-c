@@ -392,11 +392,6 @@ declare namespace BackendHandlersNS {
     };
     [kFgReq.checkIfEnabled]: ExclusionsNS.Listener & (
         (this: void, request: FgReq[kFgReq.checkIfEnabled], port: Frames.Port) => void);
-    [kFgReq.parseUpperUrl]: {
-      (this: void,
-        request: FgReqWithRes[kFgReq.parseUpperUrl] & Pick<FgReq[kFgReq.parseUpperUrl], "e">, port: Port | null): void;
-      (this: void, request: FgReqWithRes[kFgReq.parseUpperUrl], port?: Port): FgRes[kFgReq.parseUpperUrl];
-    };
     [kFgReq.focusOrLaunch]: (this: void, request: FgReq[kFgReq.focusOrLaunch], port?: Port | null) => void
     [kFgReq.removeSug]: (this: void, request: FgReq[kFgReq.removeSug], _port?: Port | null) => void
     [kFgReq.key]: (this: void, request: FgReq[kFgReq.key], port: Port | null) => void

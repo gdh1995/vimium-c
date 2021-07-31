@@ -66,7 +66,7 @@ export const parseSearchUrl_ = (request: FgReqWithRes[kFgReq.parseSearchUrl]): F
   };
 }
 
-export const parseUpperUrl_ = (request: FgReqWithRes[kFgReq.parseUpperUrl]): FgRes[kFgReq.parseUpperUrl] => {
+export const parseUpperUrl_ = (request: FgReq[kFgReq.parseUpperUrl]): ParsedUpperUrl => {
   let { u: url } = request, url_l = url.toLowerCase()
   if (request.p === 1) {
     let url2 = substitute_(url, SedContext.goToRoot, request.s)
@@ -144,7 +144,7 @@ export const parseUpperUrl_ = (request: FgReqWithRes[kFgReq.parseUpperUrl]): FgR
   if (!hash && url_l.startsWith("file:")) {
     if (path.length <= 1 || url.length === 11 && url.endsWith(":/")) {
       if (!request.f) {
-        return { u: "This has been the root path", p: null }
+        return { u: "Here has been the root path", p: null }
       }
       i = 0
     }

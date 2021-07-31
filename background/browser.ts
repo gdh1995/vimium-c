@@ -31,9 +31,9 @@ export const runtimeError_ = (): any => browser_.runtime.lastError
 export const tabsGet = Tabs_.get
 export const tabsUpdate = Tabs_.update
 
-export const getGroupId: (tab: Tab) => chrome.tabs.GroupId | null = OnFirefox
-    ? tab => tab.cookieStoreId && tab.cookieStoreId !== "firefox-default" ? tab.cookieStoreId : null
-    : !OnEdge ? i => i.groupId !== -1 && i.groupId != null ? i.groupId : null
+export const getGroupId: (tab: ShownTab) => chrome.tabs.GroupId | null = OnFirefox
+    ? tab => { const id = tab.cookieStoreId; return id !== "firefox-default" && id || null }
+    : !OnEdge ? i => { const id = i.groupId; return id !== -1 && id != null ? id : null }
     : () => null
 
 export const getTabUrl = OnChrome ? (tab_may_pending: Pick<Tab, "url" | "pendingUrl">): string =>
@@ -43,13 +43,13 @@ export const isTabMuted = OnChrome && Build.MinCVer < BrowserVer.MinMutedInfo &&
     ? (maybe_muted: Tab): boolean => maybe_muted.muted!
     : OnEdge ? (_tab: Tab) => false : (maybe_muted: Tab): boolean => maybe_muted.mutedInfo.muted
 
-export const getCurTab = Tabs_.query.bind<null, { active: true; currentWindow: true }
-    , [(result: [Tab], _ex: FakeArg) => void], 1>(null, { active: true, currentWindow: true })
+export const getCurTab = Tabs_.query.bind(null, { active: true, currentWindow: true }
+  ) as (callback: (result: [Tab], _ex: FakeArg) => void) => 1
 
 export const getCurTabs = Tabs_.query.bind(null, {currentWindow: true})
 
-export const getCurShownTabs_ff_only_ = OnFirefox
-    ? Tabs_.query.bind(null, { currentWindow: true, hidden: false }) : 0 as never as null
+export const getCurShownTabs_ = OnFirefox
+    ? Tabs_.query.bind(null, { currentWindow: true, hidden: false }) : getCurTabs
 
 export const overrideTabsIndexes_ff_ = OnFirefox ? (tabs: readonly Tab[]): void => {
   const len = tabs.length
@@ -69,8 +69,11 @@ export const getCurWnd = ((populate: boolean, callback: (window: Window, exArg: 
   (populate: boolean, callback: (window: PopWindow | Window | undefined, exArg: FakeArg) => void): 1
 }
 
-export const selectFrom = (tabs: readonly Tab[], overrideIndexes?: BOOL): ActiveTab => {
-  OnFirefox && overrideIndexes && overrideTabsIndexes_ff_!(tabs)
+export interface ShownTab extends Omit<Tab, "index"> {}
+
+export const selectFrom = <O extends BOOL = 0>(tabs: O extends 1 ? readonly Tab[] : readonly ShownTab[]
+    , overrideIndexes?: O): ActiveTab => {
+  OnFirefox && overrideIndexes && overrideTabsIndexes_ff_!(tabs as readonly Tab[])
   for (let i = tabs.length; 0 < --i; ) {
     if (tabs[i].active) {
       return tabs[i]! as ActiveTab
@@ -140,7 +143,7 @@ export const selectWndIfNeed = (tab: { windowId: number }): void => {
 
 /* if not args.url, then "openerTabId" must not in args */
 export const tabsCreate = (args: chrome.tabs.CreateProperties, callback?: ((tab: Tab, exArg: FakeArg) => void) | null
-    , evenIncognito?: boolean | -1 | null): 1 => {
+    , evenIncognito?: boolean | -1 | null): void | 1 => {
   let { url } = args
   if (!url) {
     url = settingsCache_.newTabUrl_f
@@ -160,7 +163,7 @@ export const tabsCreate = (args: chrome.tabs.CreateProperties, callback?: ((tab:
   if (OnEdge) {
     delete args.openerTabId
   }
-  return Tabs_.create(args, callback)
+  Tabs_.create(args, callback)
 }
 
 /** the order is [A,B,C; A,B,C; ...]; require urls.length === 0 || args.url === urls[0] */
@@ -249,7 +252,7 @@ export const makeWindow = (options: chrome.windows.CreateData, state?: chrome.wi
   } : runtimeError_)
 }
 
-export const makeTempWindow = (tabIdUrl: number | "about:blank", incognito: boolean
+export const makeTempWindow_r = (tabIdUrl: number | "about:blank", incognito: boolean
     , callback: (wnd: Window, exArg: FakeArg) => void): void => {
   const isId = typeof tabIdUrl === "number", options: chrome.windows.CreateDataEx = {
     type: "normal", focused: false, incognito, state: "minimized",

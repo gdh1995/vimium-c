@@ -3,7 +3,7 @@ import {
   set_cOptions, set_cPort, cKey, set_cKey, set_cRepeat, set_cNeedConfirm, curTabId_, OnEdge, keyToCommandMap_
 } from "./store"
 import * as BgUtils_ from "./utils"
-import { Tabs_, runtimeError_, getCurTab, getCurShownTabs_ff_only_, getCurTabs, tabsGet, getCurWnd } from "./browser"
+import { Tabs_, runtimeError_, getCurTab, getCurShownTabs_, getCurTabs, tabsGet, getCurWnd } from "./browser"
 import { ensureInnerCSS, getPortUrl_, indexFrame, safePost, showHUD } from "./ports"
 import * as Exclusions from "./exclusions"
 import { getI18nJson, trans_ } from "./i18n"
@@ -26,7 +26,7 @@ export const replaceCmdOptions = <T extends keyof BgCmdOptions> (known: CmdOptio
 /** skip commands' private ".$xxx" options and ".$count", except those shared public fields */
 export const copyCmdOptions = (dest: CommandsNS.RawOptions, src: CommandsNS.Options): CommandsNS.RawOptions => {
   for (const i in src) {
-    if (i[0] !== "$" || !i.includes("=") && "$then=$else=$retry=$f=".includes(i + "=")) {
+    if (i[0] !== "$" || "$then=$else=$retry=$f=".includes(i + "=") && !i.includes("=")) {
       i in dest || (dest[i] = src[i])
     }
   }
@@ -35,12 +35,13 @@ export const copyCmdOptions = (dest: CommandsNS.RawOptions, src: CommandsNS.Opti
 
 /** keep all private and public fields in cOptions */
 export const overrideCmdOptions = <T extends keyof BgCmdOptions> (known: CmdOptionSafeToClone<T>
-    , disconnected?: true): void => {
-  BgUtils_.extendIf_(BgUtils_.safer_(known as KnownOptions<T>), get_cOptions<T, true>());
+    , disconnected?: boolean, oriOptions?: KnownOptions<T> & SafeObject): void => {
+  const old = oriOptions || get_cOptions<T, true>()
+  BgUtils_.extendIf_(BgUtils_.safer_(known as KnownOptions<T>), old);
   if (!disconnected) {
-    (known as any as CommandsNS.Options).$o = get_cOptions<T, true>()
+    (known as any as CommandsNS.Options).$o = old
   }
-  set_cOptions(known as KnownOptions<T> as KnownOptions<T> & SafeObject)
+  oriOptions || set_cOptions(known as KnownOptions<T> as KnownOptions<T> & SafeObject)
 }
 
 type StrStartWith$<K extends string> = K extends `$${string}` ? K : never
@@ -143,7 +144,7 @@ export const executeCommand = (registryEntry: CommandsNS.Item, count: number, la
   } else {
     gOnConfirmCallback = func as BgCmdCurWndTabs<kBgCmd> as any;
     (count < kCmdInfo.CurWndTabsIfRepeat || count === kCmdInfo.CurWndTabsIfRepeat && abs(cRepeat) < 2 ? getCurTab
-        : OnFirefox && count > kCmdInfo.CurWndTabs ? getCurShownTabs_ff_only_!
+        : OnFirefox && count > kCmdInfo.CurWndTabs ? getCurShownTabs_
         : getCurTabs)(/*#__NOINLINE__*/ executeCmdOnTabs)
   }
 }
@@ -162,7 +163,7 @@ export const confirm_ = <T extends kCName, force extends BOOL = 0> (
     return Promise.resolve(askedCount > 0 ? 1 : -1)
   }
   if (!helpDialogData_ || !helpDialogData_[1]) {
-    return getI18nJson("help_dialog").then<number>(dict => {
+    return getI18nJson("help_dialog").then(dict => {
       helpDialogData_ ? helpDialogData_[1] = dict : set_helpDialogData_([null, dict, null])
       return confirm_(command, askedCount)
     })

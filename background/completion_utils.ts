@@ -2,7 +2,7 @@ import {
   CONST_,
   CurCVer_, curIncognito_, historyCache_, omniPayload_, OnChrome, OnFirefox, settingsCache_, set_curIncognito_
 } from "./store"
-import { getCurWnd, Tabs_ } from "./browser"
+import { getCurShownTabs_, getCurTabs, getCurWnd, Tabs_ } from "./browser"
 import * as BgUtils_ from "./utils"
 import * as settings_ from "./settings"
 import { decodeFileURL_ } from "./parse_urls"
@@ -458,9 +458,9 @@ export const requireNormalOrIncognitoTabs_ = (wantInCurrentWindow: boolean, flag
     if (__tabs) {
       func(query, __tabs);
     } else {
-      Tabs_.query(!wantInCurrentWindow ? {} : !OnFirefox || flags & CompletersNS.QueryFlags.EvenHiddenTabs
-          ? { currentWindow: true } : { currentWindow: true, hidden: false },
-      func.bind(null, query));
+      const cb = func.bind(null, query)
+      !wantInCurrentWindow ? Tabs_.query({}, cb)
+      : (flags & CompletersNS.QueryFlags.EvenHiddenTabs ? getCurTabs : getCurShownTabs_)(cb)
     }
   } else {
     getCurWnd(wantInCurrentWindow, (wnd): void => {

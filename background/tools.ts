@@ -5,7 +5,9 @@ import {
   OnEdge, isHighContrast_ff_, omniPayload_, blank_, CONST_, RecencyMap
 } from "./store"
 import * as BgUtils_ from "./utils"
-import { Tabs_, Windows_, browser_, tabsGet, getCurWnd, getTabUrl, runtimeError_, browserSessions_ } from "./browser"
+import {
+  Tabs_, Windows_, browser_, tabsGet, getCurWnd, getTabUrl, runtimeError_, browserSessions_, getCurTab
+} from "./browser"
 import { hostRe_, removeComposedScheme_ } from "./normalize_urls"
 import { prepareReParsingPrefix_ } from "./parse_urls"
 import * as settings_ from "./settings"
@@ -511,7 +513,7 @@ export const MediaWatcher_ = {
       cur.onchange = null;
       watchers[key] = MediaNS.Watcher.NotWatching;
       if (a._timer > 0) {
-        if (!watchers.some(i => typeof i === "object")) {
+        if (watchers.every(i => typeof i !== "object")) {
           clearInterval(a._timer);
           a._timer = 0;
         }
@@ -648,7 +650,7 @@ setTimeout((): void => {
     // here windowId may pointer to a devTools window on C45 - see BrowserVer.Min$windows$APIsFilterOutDevToolsByDefault
     Tabs_.query({windowId, active: true}, onFocusChanged)
   });
-  Tabs_.query({currentWindow: true, active: true}, function (tabs: [Tab]): void {
+  getCurTab((tabs: [Tab]): void => {
     time = performance.now();
     const a = tabs && tabs[0];
     if (!a) { return runtimeError_() }

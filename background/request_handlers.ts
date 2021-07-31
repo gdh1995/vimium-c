@@ -9,16 +9,18 @@ import {
 } from "./browser"
 import { parseSearchUrl_, parseUpperUrl_ } from "./parse_urls"
 import * as settings_ from "./settings"
-import { findCPort, isNotVomnibarPage, indexFrame, safePost, complainNoSession, showHUD, complainLimits } from "./ports"
+import {
+  findCPort, isNotVomnibarPage, indexFrame, safePost, complainNoSession, showHUD, complainLimits, ensureInnerCSS,
+} from "./ports"
 import { exclusionListening_, getExcluded_ } from "./exclusions"
 import { setOmniStyle_ } from "./ui_css"
 import { i18nPayload_, loadI18nPayload_, transPart_, trans_ } from "./i18n"
 import { keyRe_ } from "./key_mappings"
 import {
-  sendFgCmd, replaceCmdOptions, runKeyWithCond, onConfirmResponse, executeCommand,
+  sendFgCmd, replaceCmdOptions, runKeyWithCond, onConfirmResponse, executeCommand, portSendFgCmd,
   waitAndRunKeyReq, runNextCmdBy, parseFallbackOptions
 } from "./run_commands"
-import { focusAndExecute, focusOrLaunch_, openJSUrl, openUrlReq } from "./open_urls"
+import { focusOrLaunch_, openJSUrl, openUrlReq } from "./open_urls"
 import {
   initHelp, openImgReq, framesGoBack, enterVisualMode, showVomnibar, parentFrame, nextFrame, performFind, focusFrame
 } from "./frame_commands"
@@ -68,12 +70,9 @@ set_reqH_([
       return search
     }
   },
-  /** kFgReq.parseUpperUrl: */ ((request: FgReqWithRes[kFgReq.parseUpperUrl]
-      , port?: Port | null): FgRes[kFgReq.parseUpperUrl] | void => {
+  /** kFgReq.parseUpperUrl: */ (request: FgReq[kFgReq.parseUpperUrl], port?: Port | null): void => {
     const result = parseUpperUrl_(request)
     BgUtils_.resetRe_()
-    if ((request as FgReq[kFgReq.parseUpperUrl]).e) {
-      (request as FgReq[kFgReq.parseUpperUrl]).e = false
       if (result.p == null) {
         set_cPort(port!)
         showHUD(result.u)
@@ -82,10 +81,7 @@ set_reqH_([
       } else {
         tabsUpdate({ url: result.u })
       }
-      return
-    }
-    return result
-  }) as BackendHandlersNS.SpecialHandlers[kFgReq.parseUpperUrl],
+  },
   /** kFgReq.searchAs: */ (request: FgReq[kFgReq.searchAs], port: Port): void => {
     let search = parseSearchUrl_(request), query: string | null | Promise<string | null>
     if (!search || !search.k) {
@@ -464,4 +460,21 @@ const onCompletions = function (this: Port, favIcon0: 0 | 1 | 2, list: Array<Rea
     r: realMode, s: sugTypes, t: total
   })
   BgUtils_.resetRe_()
+}
+
+const focusAndExecute = (req: Omit<FgReq[kFgReq.gotoMainFrame], "f">
+    , port: Port, targetPort: Port | null, focusAndShowFrameBorder: BOOL): void => {
+  if (targetPort && targetPort.s.status_ !== Frames.Status.disabled) {
+    targetPort.postMessage({
+      N: kBgReq.focusFrame,
+      H: focusAndShowFrameBorder || req.c !== kFgCmd.scroll ? ensureInnerCSS(port.s) : null,
+      m: focusAndShowFrameBorder ? FrameMaskType.ForcedSelf : FrameMaskType.NoMaskAndNoFocus,
+      k: focusAndShowFrameBorder ? cKey : kKeyCode.None,
+      f: {},
+      c: req.c, n: req.n || 0, a: req.a
+    })
+  } else {
+    req.a.$forced = 1
+    portSendFgCmd(port, req.c, false, req.a as any, req.n || 0)
+  }
 }

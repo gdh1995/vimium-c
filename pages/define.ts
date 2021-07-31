@@ -1,6 +1,4 @@
-/** limitation: file names must be unique */
-// eslint-disable-next-line no-var
-var __filename: string | null | undefined
+declare var define: any, __filename: string | null | undefined // eslint-disable-line no-var
 
 !(Build.BTypes & BrowserType.Edge)
 && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinUsableScript$type$$module$InExtensions)
@@ -113,7 +111,9 @@ var __filename: string | null | undefined
     myDefine.modules_ = modules
   }
   myDefine.noConflict = (): void => { /* empty */ }
-  (window as any).define = myDefine
+  (window as unknown as typeof globalThis).define = myDefine;
+  // limitation: file names must be unique
+  (window as unknown as typeof globalThis).__filename = undefined
 
   if (OnEdge || OnChrome && Build.MinCVer < BrowserVer.MinUsableScript$type$$module$InExtensions
       && navVer < BrowserVer.MinUsableScript$type$$module$InExtensions) {

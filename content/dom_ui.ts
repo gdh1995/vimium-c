@@ -7,8 +7,8 @@ import {
   createElement_, attachShadow_, NONE, fullscreenEl_unsafe_, docEl_unsafe_, getComputedStyle_, set_docSelectable_,
   GetParent_unsafe_, getSelection_, GetChildNodes_not_ff, GetShadowRoot_, getEditableType_, htmlTag_,
   notSafe_not_ff_, CLK, frameElement_, runJS_, isStyleVisible_, rangeCount_, getAccessibleSelectedNode, removeEl_s,
-  appendNode_s, append_not_ff, setClassName_s, isNode_, INP, contains_s, setOrRemoveAttr_s, selOffset_, textContent_s,
-  parentNode_unsafe_s, setDisplaying_s
+  appendNode_s, append_not_ff, setClassName_s, isNode_, contains_s, setOrRemoveAttr_s, selOffset_, textContent_s,
+  parentNode_unsafe_s, setDisplaying_s, editableTypes_
 } from "../lib/dom_utils"
 import {
   bZoom_, dScale_, getZoom_, wdZoom_, getSelectionBoundingBox_, prepareCrop_, getClientRectsForAreas_,
@@ -115,9 +115,10 @@ export const addElementList = function <T extends boolean | BOOL> (
       ): (T extends true | 1 ? HTMLDialogElement : HTMLDivElement) & SafeElement {
     const parent = createElement_(WithDialog && dialogContainer ? "dialog"
         : OnChrome && Build.MinCVer < BrowserVer.MinForcedColorsMode ? getBoxTagName_old_cr() : "div");
-    let cls = "R HM" + fgCache.d
+    const style = parent.style
+    const cls = "R HM" + fgCache.d, zoom = bZoom_ / (WithDialog && dialogContainer ? 1 : dScale_)
     let innerBox: HTMLDivElement | HTMLBodyElement | HTMLDialogElement | undefined = parent
-    setClassName_s(parent, cls + (WithDialog && dialogContainer ? " DHM" : ""))
+    setClassName_s(parent, WithDialog && dialogContainer ? cls + " DHM" : cls)
     if (OnChrome && Build.MinCVer < BrowserVer.MinForcedColorsMode
         && dialogContainer && array.length && getBoxTagName_old_cr() < "d") { // <body>
       innerBox = createElement_(getBoxTagName_old_cr())
@@ -135,9 +136,7 @@ export const addElementList = function <T extends boolean | BOOL> (
         appendNode_s(innerBox, el.m)
       }
     }
-    const style = parent.style,
-    zoom = bZoom_ / (WithDialog && dialogContainer ? 1 : dScale_),
-    left = offset[0] + "px", top = offset[1] + "px";
+    const left = offset[0] + "px", top = offset[1] + "px"
     if (OnFirefox && zoom - 1) {
       style.cssText = `left:0;top:0;transform:scale(${zoom})translate(${left},${top})`;
     } else {
@@ -352,10 +351,9 @@ export const resetSelectionToDocStart = (sel?: Selection, range?: Range | null):
 export const selectAllOfNode = (node: Node): void => { getSelection_().selectAllChildren(node) }
 
 export const moveSel_s_throwable = (element: LockableElement, action: SelectActions | undefined): void => {
-    const elTag = htmlTag_(element), type = elTag === "textarea" ? EditableType.TextBox
-        : elTag === INP ? EditableType.input_
-        : element.isContentEditable ? EditableType.rich_
-        : EditableType.Default;
+    const elTag = htmlTag_(element), _rawType = editableTypes_[elTag]
+    const type = _rawType ? _rawType > EditableType.MaxNotTextModeElement ? _rawType : EditableType.Default
+        : element.isContentEditable ? EditableType.rich_ : EditableType.Default
     if (type === EditableType.Default) { return; }
     const isBox = type === EditableType.TextBox || type === EditableType.rich_
         && textContent_s(element).includes("\n"),
