@@ -354,6 +354,13 @@ export const getParentFrame = (tabId: number, curFrameId: number, level: number)
       || !browserWebNav_()) {
     return Promise.resolve(null)
   }
+  if (!OnEdge && level === 1 && (!OnChrome || Build.MinCVer < BrowserVer.Min$webNavigation$$getFrame$IgnoreProcessId
+      || CurCVer_ > BrowserVer.Min$webNavigation$$getFrame$IgnoreProcessId - 1)) {
+    return Q_(browserWebNav_()!.getFrame, { tabId, frameId: curFrameId }).then((frame) => {
+      const frameId = frame ? frame.parentFrameId : 0
+      return frameId > 0 ? indexFrame(tabId, frameId) : null
+    })
+  }
   return Q_(browserWebNav_()!.getAllFrames, { tabId }).then((frames) => {
     let found = false, frameId = curFrameId
     if (!frames) { return null }

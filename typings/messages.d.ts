@@ -206,7 +206,7 @@ declare const enum kBgCmd {
   captureTab, clearCS, clearFindHistory, clearMarks, copyWindowInfo, createTab,
   discardTab, duplicateTab, goBackFallback, goToTab, goUp, joinTabs,
   mainFrame, moveTab, moveTabToNewWindow, moveTabToNextWindow, openUrl,
-  reloadTab, removeRightTab, removeTab, removeTabsR, reopenTab, restoreGivenTab, restoreTab, runKey,
+  reloadTab, removeRightTab, removeTab, removeTabsR, reopenTab, restoreTab, runKey,
   searchInAnother, sendToExtension, showHUD,
   toggleCS, toggleMuteTab, togglePinTab, toggleTabUrl, toggleVomnibarStyle, toggleZoom,
   visitPreviousTab, closeDownloadBar,
@@ -478,7 +478,7 @@ interface FgReqWithRes {
     /** url */ u: string;
     /** upper */ p?: undefined;
     /** id */ i?: number;
-  } | FgReq[kFgReq.parseUpperUrl]
+  } | Omit<FgReq[kFgReq.parseUpperUrl], "e">
   [kFgReq.execInChild]: {
     /** url */ u: string;
     /** lastKey */ k: kKeyCode;
@@ -502,6 +502,7 @@ interface FgReq {
     /** trailingSlash */ t: boolean | null | undefined;
     /** (deprecated) trailingSlash (old) */ r?: boolean | null | undefined;
     /** sed : not for kFgReq.parseSearchUrl */ s?: MixedSedOpts | null;
+    /** reloadOnRoot / result */ e?: boolean | ParsedUpperUrl
   };
   [kFgReq.findQuery]: {
     /** query */ q: string;
@@ -653,7 +654,8 @@ interface OpenUrlOptions extends UserSedOptions {
   incognito?: boolean | /** even when url is like chrome-extension:// */ "force" | "reverse" | "keep" | "same" | null
   opener?: boolean | null
   pinned?: boolean | null
-  position?: null | "next" | "start" | "begin" | "end" | "before" | "after" | "default"
+  position?: null | "next" | "prev" | "previous" | "left" | "right" | "start" | "begin" | "end" | "before" | "after"
+      | "default"
   reuse?: UserReuseType | null
   window?: boolean | "popup" | "normal" | null
 }

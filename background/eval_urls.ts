@@ -218,7 +218,8 @@ const forceStatus_ = (act: Frames.ForcedStatusText): void => {
     logAndShow('"vimium://status" only accepts a list of hooked keys')
     newPassedKeys = "";
   } else if (newPassedKeys) {
-    newPassedKeys = newPassedKeys.replace(<RegExpG> /<(\S+)>/g, "$1").replace(spacesRe_, " ")
+    const passArr = newPassedKeys.match(<RegExpG> /<(?!<)(?:a-)?(?:c-)?(?:m-)?(?:s-)?(?:[a-z]\w+|[^\sA-Z])>|\S/g)
+    newPassedKeys = passArr ? passArr.join(" ").replace(<RegExpG> /<(\S+)>/g, "$1") : ""
   }
   let pattern: string | null
   const curSender = cPort.s, oldStatus = curSender.status_,

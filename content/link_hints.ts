@@ -794,7 +794,7 @@ export const doesWantToReloadLinkHints = (reason: NonNullable<ContentOptions["au
         ? accept && !navigator.scheduling!.isInputPending()
         : accept && !((Build.MinCVer >= BrowserVer.MinMaybeUsableNavigator$scheduling$$isInputPending
               || chromeVer_ > BrowserVer.MinMaybeUsableNavigator$scheduling$$isInputPending - 1)
-            && (scheduling = navigator.scheduling) && scheduling.isInputPending())
+            && (scheduling = navigator.scheduling) && scheduling.isInputPending({includeContinuous: true}))
   }
   return accept
 }

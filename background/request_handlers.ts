@@ -71,11 +71,17 @@ set_reqH_([
     }
   },
   /** kFgReq.parseUpperUrl: */ (request: FgReq[kFgReq.parseUpperUrl], port?: Port | null): void => {
+    const oldUrl = request.u, alwaysExec = (request as FgReq[kFgReq.parseUpperUrl]).e as boolean
     const result = parseUpperUrl_(request)
     BgUtils_.resetRe_()
+    request.e = result
       if (result.p == null) {
         set_cPort(port!)
         showHUD(result.u)
+      } else if (!alwaysExec && oldUrl === result.u) {
+        set_cPort(port!)
+        showHUD("Here is just root")
+        request.e = { p: null, u: "(just root)" }
       } else if (port) {
         sendFgCmd(kFgCmd.framesGoBack, false, { r: 1, url: result.u })
       } else {
@@ -392,8 +398,8 @@ set_reqH_([
     }
   },
   /** kFgReq.downloadLink: */ (req: FgReq[kFgReq.downloadLink], port): void => {
-    downloadFile(req.u, req.f, req.r, req.m ? (): void => {
-      reqH_[kFgReq.openImage]({ r: ReuseType.newFg, f: req.f, u: req.u }, port)
+    downloadFile(req.u, req.f, req.r, req.m ? (succeed): void => {
+      succeed || reqH_[kFgReq.openImage]({ r: ReuseType.newFg, f: req.f, u: req.u }, port)
     } : null)
   }
 ])

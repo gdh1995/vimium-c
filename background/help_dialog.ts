@@ -109,6 +109,8 @@ const normalizeCmdName = (command: kCName): string => {
         command = AsC_("createTab")
       } else if (command === AsC_("simBackspace")) {
         command = AsC_("simulateBackspace")
+      } else if (command === AsC_("showHUD")) {
+        command = AsC_("showTip")
       } else if (command === AsC_("wait")) {
         command = AsC_("blank")
       }
@@ -253,7 +255,7 @@ const commandGroups_: {
       , "scrollPxDown", "scrollPxUp", "scrollPxLeft", "scrollPxRight"
       , "scrollFullPageDown", "scrollFullPageUp", "scrollSelect"
       , "reload", "reloadTab", "reloadGivenTab"
-      , "zoomIn", "zoomOut", "zoomReset", "toggleViewSource"
+      , "zoom", "zoomIn", "zoomOut", "zoomReset", "toggleViewSource"
       , "copyCurrentUrl", "copyCurrentTitle", "switchFocus", "simulateBackspace"
       , "LinkHints.activateCopyLinkUrl", "LinkHints.activateCopyLinkText"
       , "openCopiedUrlInCurrentTab", "openCopiedUrlInNewTab", "goUp", "goToRoot"
@@ -310,7 +312,7 @@ const advancedCommands_: { readonly [k in NoaliasInCNames<kCName>]?: 1 | 0; } & 
     , "LinkHints.activateHover": 1, "LinkHints.unhoverLast": 1
     , toggleLinkHintCharacters: 1, toggleSwitchTemp: 1, "LinkHints.activateLeave": 1
     , "Vomnibar.activateEditUrl": 1, "Vomnibar.activateEditUrlInNewTab": 1
-    , closeDownloadBar: OnChrome ? 0 : 1
+    , closeDownloadBar: OnChrome ? 0 : 1, zoomIn: 1, zoomOut: 1, zoomReset: 1
 }
 
 if (OnChrome) {

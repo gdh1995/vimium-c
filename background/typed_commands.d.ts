@@ -69,10 +69,10 @@ interface BgCmdOptions {
   } & Req.FallbackOptions
   [kBgCmd.createTab]: OpenUrlOptions & { url: string; urls: string[]; evenIncognito: boolean | -1, $pure: boolean }
   [kBgCmd.discardTab]: {}
-  [kBgCmd.duplicateTab]: {}
+  [kBgCmd.duplicateTab]: { active: false }
   [kBgCmd.goBackFallback]: Extract<CmdOptions[kFgCmd.framesGoBack], {r?: null}>
   [kBgCmd.goToTab]: { absolute: boolean; noPinned: boolean }
-  [kBgCmd.goUp]: { type: "tab" | "frame" } & TrailingSlashOptions & UserSedOptions
+  [kBgCmd.goUp]: { type: "tab" | "frame"; reloadOnRoot: true | false } & TrailingSlashOptions & UserSedOptions
   [kBgCmd.joinTabs]: {
     sort: "" | /** time */ true | "time" | "create" | "recency" | "id" | "url" | "host" | "title" | "reverse"
     order: /** split by "," */ ("time" | "rtime" | "recent" | "recency"
@@ -97,7 +97,7 @@ interface BgCmdOptions {
   [kBgCmd.removeRightTab]: LimitedRangeOptions & Req.FallbackOptions
   [kBgCmd.removeTab]: LimitedRangeOptions & {
     highlighted: boolean | "no-current"
-    goto: "left" | "right" | "previous"
+    goto: "left" | "right" | "previous" | "near" | "reverse" | "backward" | "forward"
     /** (deprecated) */ left: boolean
     mayClose: boolean
     /** (deprecated) */ allow_close: boolean
@@ -108,8 +108,7 @@ interface BgCmdOptions {
     other: boolean
   } & Req.FallbackOptions
   [kBgCmd.reopenTab]: Pick<OpenUrlOptions, "group">
-  [kBgCmd.restoreGivenTab]: Req.FallbackOptions
-  [kBgCmd.restoreTab]: { incognito: "force" | true } & Req.FallbackOptions
+  [kBgCmd.restoreTab]: { incognito: "force" | true; one: boolean }
   [kBgCmd.runKey]: {
     expect: CommandsNS.EnvItemWithKeys[] | Dict<string | string[]> | `${string}:${string},${string}:${string},`
     keys: string[] | /** space-seperated list */ string
@@ -124,8 +123,8 @@ interface BgCmdOptions {
   [kBgCmd.togglePinTab]: LimitedRangeOptions & Req.FallbackOptions
   [kBgCmd.toggleTabUrl]: { keyword: string; parsed: string; reader: boolean } & OpenUrlOptions
   [kBgCmd.toggleVomnibarStyle]: { style: string; current: boolean }
-  [kBgCmd.toggleZoom]: { level: number }
-  [kBgCmd.visitPreviousTab]: Req.FallbackOptions
+  [kBgCmd.toggleZoom]: { level: number; in?: true; out?: true; reset?: true }
+  [kBgCmd.visitPreviousTab]: { acrossWindows: true; onlyActive: true } & Req.FallbackOptions
   [kBgCmd.closeDownloadBar]: { newWindow?: null | true | false; all: 1 }
 }
 
@@ -146,7 +145,6 @@ interface BgCmdInfoMap {
   [kBgCmd.togglePinTab]: kCmdInfo.CurWndTabsIfRepeat
   [kBgCmd.toggleTabUrl]: kCmdInfo.ActiveTab
   [kBgCmd.toggleVomnibarStyle]: kCmdInfo.ActiveTab
-  [kBgCmd.visitPreviousTab]: kCmdInfo.CurShownTabs | kCmdInfo.CurWndTabs
 }
 
 type UnknownValue = "42" | -0 | false | { fake: 42 } | undefined | null
@@ -385,7 +383,7 @@ interface CmdNameIds {
   removeTab: kBgCmd.removeTab
   reopenTab: kBgCmd.reopenTab
   reset: kFgCmd.insertMode
-  restoreGivenTab: kBgCmd.restoreGivenTab
+  restoreGivenTab: kBgCmd.restoreTab
   restoreTab: kBgCmd.restoreTab
   runKey: kBgCmd.runKey
   scrollDown: kFgCmd.scroll
@@ -424,9 +422,11 @@ interface CmdNameIds {
   toggleSwitchTemp: kBgCmd.toggle
   toggleViewSource: kBgCmd.toggleTabUrl
   toggleVomnibarStyle: kBgCmd.toggleVomnibarStyle
+  showHUD: kBgCmd.showHUD
   showTip: kBgCmd.showHUD
   visitPreviousTab: kBgCmd.visitPreviousTab
   wait: kBgCmd.blank
+  zoom: kBgCmd.toggleZoom
   zoomIn: kBgCmd.toggleZoom
   zoomOut: kBgCmd.toggleZoom
   zoomReset: kBgCmd.toggleZoom

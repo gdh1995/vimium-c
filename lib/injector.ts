@@ -35,8 +35,7 @@ const mayBrowser_ = MayChrome && MayNotChrome
     && typeof browser === "object" && !("tagName" in (browser as unknown as Element))
     ? (browser as typeof chrome) : null
 const useBrowser = !MayNotChrome ? false : !MayChrome ? true
-    : !(typeof chrome === "object" && chrome && chrome.runtime && chrome.runtime.connect)
-      && !!(mayBrowser_ && mayBrowser_.runtime && mayBrowser_.runtime.connect)
+    : !!(mayBrowser_ && mayBrowser_.runtime && mayBrowser_.runtime.connect)
 let runtime = (useBrowser ? (browser as typeof chrome) : chrome).runtime
 const curEl = document.currentScript as HTMLScriptElement, scriptSrc = curEl.src, i0 = scriptSrc.indexOf("://") + 3
 const confBlockFocus = curEl.dataset.blockFocus

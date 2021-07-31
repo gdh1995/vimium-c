@@ -147,7 +147,10 @@ declare module chrome.downloads {
     incognito?: boolean
   }
   export function setShelfEnabled(enable: boolean, _exArg?: FakeArg): void
-  export const download: ((opts: DownloadOptions, cb?: () => void) => Promise<string>) | undefined
+  export const download: {
+    (opts: DownloadOptions, cb: () => void): void | 1
+    (opts: DownloadOptions): Promise<string>
+  } | undefined
 }
 
 declare module chrome.permissions {

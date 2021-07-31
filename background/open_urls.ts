@@ -40,7 +40,8 @@ const ReuseValues: {
 export const newTabIndex = (tab: Readonly<Tab>
       , pos: OpenUrlOptions["position"] | UnknownValue, opener: boolean
       , doesGroup: OpenUrlOptions["group"]): number | undefined =>
-    pos === "before" ? tab.index : pos === "after" || pos === "next" ? tab.index + 1 : pos === "default" ? undefined
+    pos === "before" || pos === "left" || pos === "prev" || pos === "previous" ? tab.index
+    : pos === "after" || pos === "next" || pos === "right" ? tab.index + 1 : pos === "default" ? undefined
     : doesGroup !== false && getGroupId(tab) != null
     // next to the current if no opener - in case of failing in setting group
     ? pos === "start" || pos === "begin" ? tab.index
@@ -133,21 +134,23 @@ const onEvalUrl_ = (workType: Urls.WorkType, options: KnownOptions<C.openUrl>, t
   }
 }
 
-const safeUpdate = (url: string, secondTimes?: true, tabs1?: [Tab]): void => {
-  if (checkHarmfulUrl_(url)) {
-    return
-  }
+const runNextIf = (succeed: boolean | Tab | Window | undefined, options: OpenUrlOptions | Req.FallbackOptions
+    , result?: Tab | null | false) => {
+  succeed ? runNextOnTabLoaded(options!, result) : runNextCmdBy(0, options as OpenUrlOptions & Req.FallbackOptions)
+}
+
+const safeUpdate = (options: OpenUrlOptions, url: string, secondTimes?: true, tabs1?: [Tab]): void => {
+  const callback = (tab?: Tab): void => { runNextIf(tab, options, tab); return runtimeError_() }
   if (!tabs1) {
     if (isRefusingIncognito_(url) && secondTimes !== true) {
-      getCurTab(safeUpdate.bind(null, url, true))
+      getCurTab(safeUpdate.bind(null, options, url, true))
       return
     }
   } else if (tabs1.length > 0 && tabs1[0].incognito && isRefusingIncognito_(url)) {
-    tabsCreate({ url })
+    tabsCreate({ url }, callback)
     return
   }
-  const arg = { url }
-  tabs1 ? tabsUpdate(tabs1[0].id, arg, runtimeError_) : tabsUpdate(arg, runtimeError_)
+  tabs1 ? tabsUpdate(tabs1[0].id, { url }, callback) : tabsUpdate({ url }, callback)
 }
 
 const makeWindowFrom = (url: string | string[], focused: boolean, incognito: boolean, options: OpenUrlOptions
@@ -157,8 +160,7 @@ const makeWindowFrom = (url: string | string[], focused: boolean, incognito: boo
     left: exOpts.left, top: exOpts.top, width: exOpts.width, height: exOpts.height
   }, exOpts.state != null ? exOpts.state as chrome.windows.ValidStates
       : wnd && wnd.state !== "minimized" ? wnd.state : "", (wnd2): void => {
-    wnd2 && runNextOnTabLoaded(options, wnd2.tabs[0])
-    return runtimeError_()
+    runNextIf(wnd2, options, wnd2 && wnd2.tabs[0])
   })
 }
 
@@ -372,10 +374,10 @@ const replaceOrOpenInNewTab = <Reuse extends Exclude<ReuseType, ReuseType.curren
     } else {
       const active = reuse !== ReuseType.newBg && reuse !== ReuseType.lastWndBgInactive
       const activeWnd = matchedTab.windowId !== curWndId_ && reuse > ReuseType.lastWndBg
-      tabsUpdate(matchedTab.id, { url }, (): void => {
-        active && selectTab(matchedTab.id)
-        if (activeWnd) {
-          selectWnd(matchedTab)
+      tabsUpdate(matchedTab.id, { url }, (newTab): void => {
+        if (newTab) {
+          active && (selectTab(newTab.id), newTab.active = true)
+          activeWnd && selectWnd(newTab)
         }
         runNextOnTabLoaded(reuse === ReuseType.reuse ? reuseOptions!.f || {} : options!, activeWnd && matchedTab)
       })
@@ -523,11 +525,11 @@ export const openUrlWithActions = (url: Urls.Url, workType: Urls.WorkType, tabs?
       ? /*#__NOINLINE__*/ onEvalUrl_(workType, options, tabs, url)
       : /*#__NOINLINE__*/ openShowPage(url, reuse, options) ? 0
       : BgUtils_.isJSUrl_(url) ? /*#__NOINLINE__*/ openJSUrl(url, options)
-      : checkHarmfulUrl_(url) ? 0
+      : checkHarmfulUrl_(url) ? runNextCmdBy(0, options)
       : reuse === ReuseType.reuse ? replaceOrOpenInNewTab(url, reuse, options.replace
             , null, { u: url, p: options.prefix, q: parseOpenPageUrlOptions(options), f: parseFallbackOptions(options)
             }, tabs)
-      : reuse === ReuseType.current ? /*#__NOINLINE__*/ safeUpdate(url)
+      : reuse === ReuseType.current ? /*#__NOINLINE__*/ safeUpdate(options, url)
       : options.replace ? replaceOrOpenInNewTab(url, reuse, options.replace, options, null, tabs)
       : tabs ? openUrlInNewTab([url], reuse, options, tabs)
       : getCurTab(openUrlInNewTab.bind(null, [url], reuse, options))

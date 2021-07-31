@@ -93,7 +93,7 @@ export const getExcluded_ = (url: string, sender: Frames.Sender): string | null 
       if (rule.t === kMatchUrl.StringPrefix
           ? url.startsWith(rule.v) : rule.v.test(url)) {
         const str = rule.k;
-        if (str.length === 0 || str[0] === "^" && str.length > 2 || _onlyFirstMatch) { return str }
+        if (str.length === 0 || str[0] === "^" && str.length > 2 || _onlyFirstMatch) { return str && str.trim() }
         matchedKeys += str;
       }
     }
@@ -103,7 +103,7 @@ export const getExcluded_ = (url: string, sender: Frames.Sender): string | null 
         return getExcluded_(top.s.url_, top.s)
       }
     }
-    return matchedKeys || null;
+    return matchedKeys ? matchedKeys.trim() : null
 }
 
 let getOnURLChange_ = (): null | ExclusionsNS.Listener => {

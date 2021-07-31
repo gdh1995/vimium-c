@@ -132,7 +132,7 @@ const getClickable = (hints: Hint[], element: SafeHTMLElement): void => {
     break;
   }
   if (isClickable === null) {
-    type = (s = element.contentEditable) !== "inherit" && s && s !== "false" ? ClickType.edit
+    type = (s = element.contentEditable) !== "inherit" && s !== "false" ? ClickType.edit
       : (OnFirefox ? (anotherEl = unwrap_ff(element)).onclick
             || (anotherEl as TypeToAssert<Element, SafeHTMLElement, "onmousedown">).onmousedown
           : element.getAttribute("onclick"))
@@ -246,7 +246,7 @@ export const getEditable = (hints: Hint[], element: SafeHTMLElement): void => {
   if ((s === INP || s === "textarea")
       ? s < "t" && uneditableInputs_[getInputType(element as HTMLInputElement)]
         || (element as TextElement).disabled || (element as TextElement).readOnly
-      : (s = element.contentEditable) === "inherit" || s === "false" || !s) {
+      : (s = element.contentEditable) === "inherit" || s === "false") {
     return
   }
   getIfOnlyVisible(hints, element)
@@ -753,14 +753,17 @@ export const getVisibleElements = (view: ViewBox): readonly Hint[] => {
     : _i > HintMode.min_link_job - 1 && _i < HintMode.max_link_job + 1
     ? traverse("a,[role=link]" + (OnFirefox ? "" : kSafeAllSelector)
           , hintOptions, (hints: Hint[], element: SafeHTMLElement): void => {
-        let a = element.dataset.vimUrl || element.localName === "a" && attr_s(element, "href")
+        let a = element.localName === "a" && attr_s(element, "href") || element.dataset.vimUrl
         if (a && a !== "#" && !isJSUrl(a)) {
           getIfOnlyVisible(hints, element)
         }
       })
-    : _i - HintMode.FOCUS_EDITABLE ? traverse(kSafeAllSelector, hintOptions
-          , _i - HintMode.ENTER_VISUAL_MODE && !hintOptions.anyText ? getClickable
-            : (hints: Hint[], element: SafeHTMLElement): void => {
+    : !(_i - HintMode.FOCUS_EDITABLE) ? traverse(OnFirefox ? VTr(kTip.editableSelector)
+        : VTr(kTip.editableSelector) + kSafeAllSelector, hintOptions, /*#__NOINLINE__*/ getEditable)
+    : !(_i - HintMode.ENTER_VISUAL_MODE) || hintOptions.anyText
+    // not use `":not(:empty)"`, because it will require another selectAll to collect shadow hosts
+    ? traverse(OnFirefox ? ":not(:-moz-only-whitespace)" : kSafeAllSelector
+          , hintOptions, (hints: Hint[], element: SafeHTMLElement): void => {
         const arr = element.childNodes as NodeList
         if (!OnChrome || Build.MinCVer >= BrowserVer.MinEnsured$ForOf$ForDOMListTypes) {
           for (const node of arr as ArrayLike<Node> as Node[]) {
@@ -779,8 +782,7 @@ export const getVisibleElements = (view: ViewBox): readonly Hint[] => {
           }
         }
       })
-    : traverse(OnFirefox ? VTr(kTip.editableSelector) : VTr(kTip.editableSelector) + kSafeAllSelector
-        , hintOptions, /*#__NOINLINE__*/ getEditable)
+    : traverse(kSafeAllSelector, hintOptions, getClickable)
   if ((reachable != null ? reachable
         : (_i < HintMode.max_mouse_events + 1 || _i === HintMode.FOCUS_EDITABLE) && fgCache.e)
       && visibleElements.length < GlobalConsts.MinElementCountToStopPointerDetection) {

@@ -180,7 +180,7 @@ set_requestHandlers([
       isAlive_ && runFallbackKey(req.f, mask === FrameMaskType.OnlySelf ? 2 : 0)
     }, 1); // require FrameMaskType.NoMaskAndNoFocus is 0
     keydownEvents_[req.k] = 1;
-    showFrameMask(mask);
+    (mask === FrameMaskType.OnlySelf && req.f) || showFrameMask(mask)
   },
   /* kBgReq.exitGrab: */ exitGrab as (this: void, request: Req.bg<kBgReq.exitGrab>) => void,
   /* kBgReq.keyFSM: */ function (request: BgReq[kBgReq.keyFSM]): void {

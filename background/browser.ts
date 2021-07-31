@@ -51,6 +51,8 @@ export const getCurTabs = Tabs_.query.bind(null, {currentWindow: true})
 export const getCurShownTabs_ = OnFirefox
     ? Tabs_.query.bind(null, { currentWindow: true, hidden: false }) : getCurTabs
 
+export const isNotHidden_ = OnFirefox ? (tab: Tab): boolean => !tab.hidden : () => true
+
 export const overrideTabsIndexes_ff_ = OnFirefox ? (tabs: readonly Tab[]): void => {
   const len = tabs.length
   if (len > 0 && tabs[len - 1].index !== len - 1) {
@@ -221,7 +223,7 @@ export const openMultiTabs = (options: InfoToCreateMultiTab, count: number
 }
 
 export const makeWindow = (options: chrome.windows.CreateData, state?: chrome.windows.ValidStates | ""
-    , callback?: ((wnd: Window & {tabs: [Tab]}, exArg?: FakeArg) => void) | null): void => {
+    , callback?: ((wnd?: Window & {tabs: [Tab]}, exArg?: FakeArg) => void) | null): void => {
   const focused = options.focused !== false, kM = "minimized"
   state = !state ? "" : ((state === kM) === focused) || options.type === "popup"
       || state === "normal" || state === "docked" ? "" : state
@@ -270,9 +272,9 @@ export const makeTempWindow_r = (tabIdUrl: number | "about:blank", incognito: bo
 }
 
 export const downloadFile = (url: string, filename?: string | null, refer?: string | null
-    , onRefused?: (() => void) | null): void => {
+    , onFinish?: ((succeed: boolean) => void) | null): void => {
   if (!(OnChrome || OnFirefox)) {
-    onRefused && onRefused()
+    onFinish && onFinish(false)
     return
   }
   Q_(browser_.permissions.contains, { permissions: ["downloads"] }).then((permitted): void => {
@@ -294,13 +296,10 @@ export const downloadFile = (url: string, filename?: string | null, refer?: stri
               || CurFFVer_ > FirefoxBrowserVer.Min$downloads$$download$acceptReferer - 1) && refer) {
         opts.headers = [ { name: "Referer", value: refer } ]
       }
-      if (OnChrome) {
-        void browser_.downloads.download!(opts, runtimeError_)
-      } else {
-        browser_.downloads.download!(opts).catch((): void => { /* empty */ })
-      }
-    } else if (onRefused) {
-      onRefused()
+      const q = Q_(browser_.downloads.download!, opts)
+      onFinish && q.then(res => onFinish(res !== void 0))
+    } else if (onFinish) {
+      onFinish(false)
     }
   })
 }

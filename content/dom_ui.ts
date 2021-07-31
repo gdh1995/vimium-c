@@ -113,6 +113,7 @@ export const getBoxTagName_old_cr = OnChrome && Build.MinCVer < BrowserVer.MinFo
 export const addElementList = function <T extends boolean | BOOL> (
       array: readonly DrawableHintItem[], offset: ViewOffset, dialogContainer?: T
       ): (T extends true | 1 ? HTMLDialogElement : HTMLDivElement) & SafeElement {
+    const kMaxSlice = 2048, needToSlice = array.length > kMaxSlice
     const parent = createElement_(WithDialog && dialogContainer ? "dialog"
         : OnChrome && Build.MinCVer < BrowserVer.MinForcedColorsMode ? getBoxTagName_old_cr() : "div");
     const style = parent.style
@@ -125,12 +126,14 @@ export const addElementList = function <T extends boolean | BOOL> (
       appendNode_s(parent, innerBox)
       setClassName_s(innerBox, cls)
     }
-    if (!OnChrome || Build.MinCVer >= BrowserVer.MinTestedES6Environment
-          && Build.MinCVer >= BrowserVer.MinEnsured$ParentNode$$appendAndPrepend) {
-      innerBox.append!(...array.map(el => el.m))
-    } else if (Build.MinCVer >= BrowserVer.MinEnsured$ParentNode$$appendAndPrepend
-        || chromeVer_ > BrowserVer.MinEnsured$ParentNode$$appendAndPrepend - 1) {
-      innerBox.append!.apply(innerBox, array.map(el => el.m))
+    if ((!OnChrome || Build.MinCVer >= BrowserVer.MinEnsured$ParentNode$$appendAndPrepend
+        || chromeVer_ > BrowserVer.MinEnsured$ParentNode$$appendAndPrepend - 1)) {
+      for (let i = 0; i < array.length; i += kMaxSlice) {
+        const slice = (needToSlice ? array.slice(i, i + kMaxSlice) : array).map(el => el.m)
+        !(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinTestedES6Environment
+        && Build.MinCVer >= BrowserVer.MinEnsured$ParentNode$$appendAndPrepend
+        ? innerBox.append!(...slice) : innerBox.append!.apply(innerBox, slice)
+      }
     } else {
       for (const el of array) {
         appendNode_s(innerBox, el.m)

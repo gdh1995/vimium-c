@@ -1,13 +1,13 @@
 import {
   cPort, cRepeat, cKey, get_cOptions, set_cPort, set_cRepeat, cNeedConfirm, contentPayload_, framesForTab_,
   framesForOmni_, bgC_, set_bgC_, set_cmdInfo_, curIncognito_, curTabId_, recencyForTab_, settingsCache_, CurCVer_,
-  OnChrome, OnFirefox, OnEdge, blank_, substitute_, CONST_
+  OnChrome, OnFirefox, OnEdge, blank_, substitute_, CONST_, curWndId_
 } from "./store"
 import * as BgUtils_ from "./utils"
 import {
   Tabs_, Windows_, InfoToCreateMultiTab, openMultiTabs, tabsGet, getTabUrl, selectFrom, runtimeError_,
   selectTab, getCurWnd, getCurTab, getCurShownTabs_, browserSessions_, browser_, selectWndIfNeed,
-  getGroupId, isRefusingIncognito_, Q_, ShownTab
+  getGroupId, isRefusingIncognito_, Q_, isNotHidden_, ShownTab
 } from "./browser"
 import { createSearchUrl_ } from "./normalize_urls"
 import { parseSearchUrl_ } from "./parse_urls"
@@ -47,9 +47,9 @@ set_cmdInfo_(As_<{
   /* kBgCmd.moveTab         */
       OnFirefox ? Info.CurShownTabs : Info.CurWndTabs, Info.NoTab, Info.ActiveTab, Info.NoTab, Info.CurWndTabsIfRepeat,
   /* kBgCmd.removeRightTab  */ Info.CurWndTabs, Info.NoTab, Info.CurWndTabs, Info.ActiveTab, Info.NoTab,
-  /* kBgCmd.restoreTab      */ Info.NoTab, Info.NoTab, Info.ActiveTab, Info.NoTab, Info.NoTab, Info.ActiveTab,
+  /* kBgCmd.restoreTab      */ Info.NoTab, Info.ActiveTab, Info.NoTab, Info.NoTab, Info.ActiveTab,
   /* kBgCmd.togglePinTab    */ Info.NoTab, Info.CurWndTabsIfRepeat, Info.ActiveTab, Info.ActiveTab, Info.NoTab,
-      OnFirefox ? Info.CurShownTabs : Info.CurWndTabs,
+      Info.NoTab,
   /* kBgCmd.closeDownloadBar*/ Info.NoTab
 ]))
 
@@ -165,7 +165,8 @@ set_bgC_([
 
   /* kBgCmd.addBookmark: */ (): void | kBgCmd.addBookmark => {
     const path: string | UnknownValue = get_cOptions<C.addBookmark>().folder || get_cOptions<C.addBookmark>().path
-    const nodes = path ? (path + "").replace(<RegExpG> /\\/g, "/").split("/").filter(i => i) : []
+    const nodes = path ? (path + "").replace(<RegExpG & RegExpSearchable<0>> /\\\/?|\//g
+          , s => s.length > 1 ? "/" : "\n").split("\n").filter(i => i) : []
     const allTabs = !!get_cOptions<C.addBookmark>().all
     if (!nodes.length) { showHUD('Need "path" to a bookmark folder.'); return }
     browser_.bookmarks.getTree((tree): void => {
@@ -280,21 +281,24 @@ set_bgC_([
     if (tabId < 0) {
       return complainLimits(trans_("dupTab"))
     }
-    Tabs_.duplicate(tabId)
-    if (cRepeat < 2) { return }
+    const notActive = get_cOptions<C.duplicateTab>().active === false
+    Q_(Tabs_.duplicate, tabId).then((result): void => {
+      if (!result) { return }
+      notActive && selectTab(tabId, runtimeError_)
+      notActive ? 0 : runNextOnTabLoaded(get_cOptions<C.duplicateTab, true>(), result)
+      if (cRepeat < 2) { return }
     const fallback = (tab: Tab): void => {
       openMultiTabs({
         url: getTabUrl(tab), active: false, windowId: tab.windowId,
         pinned: tab.pinned, index: tab.index + 2, openerTabId: tab.id
-      }, cRepeat - 1, true, [null], true, tab, runtimeError_)
+      }, cRepeat - 1, true, [null], true, tab, null)
     }
-    if (!OnChrome || Build.MinCVer >= BrowserVer.MinNoAbnormalIncognito
-        || CurCVer_ >= BrowserVer.MinNoAbnormalIncognito
-        || curIncognito_ === IncognitoType.ensuredFalse
-        || CONST_.DisallowIncognito_
-        ) {
-      tabsGet(tabId, fallback)
-    } else {
+      if (!OnChrome
+          || Build.MinCVer >= BrowserVer.MinNoAbnormalIncognito || CurCVer_ >= BrowserVer.MinNoAbnormalIncognito
+          || curIncognito_ === IncognitoType.ensuredFalse || CONST_.DisallowIncognito_) {
+        tabsGet(tabId, fallback)
+        return
+      }
       getCurWnd(true, (wnd): void => {
         const tab = wnd && wnd.tabs.find(tab2 => tab2.id === tabId)
         if (!tab || !wnd!.incognito || tab.incognito) {
@@ -304,7 +308,8 @@ set_bgC_([
           Tabs_.duplicate(tabId)
         }
       })
-    }
+    })
+    notActive && selectTab(tabId, runtimeError_)
   },
   OnEdge ? blank_ :
   /* kBgCmd.goBackFallback: */ (tabs: [Tab]): void | kBgCmd.goBackFallback => {
@@ -343,6 +348,7 @@ set_bgC_([
       p: cRepeat,
       t: get_cOptions<C.goUp, true>().trailingSlash, r: get_cOptions<C.goUp, true>().trailing_slash,
       s: parseSedOptions_(get_cOptions<C.goUp, true>()),
+      e: get_cOptions<C.goUp>().reloadOnRoot !== false
     }
     requireURL_(arg)
   },
@@ -435,48 +441,41 @@ set_bgC_([
       })
     }
   },
-  /* kBgCmd.restoreGivenTab: */ (): void | kBgCmd.restoreGivenTab => {
-    const sessions = !OnEdge ? browserSessions_() : null
-    if (!sessions) {
-      return complainNoSession()
-    }
-    const count = Math.abs(cRepeat)
-    const doRestore = (list: chrome.sessions.Session[]): void => {
-      if (count > list.length) {
-        return showHUD(trans_("indexOOR"))
-      }
-      const session = list[count - 1], item = session.tab || session.window
-      if (item) {
-        sessions.restore(item.sessionId)
-        runNextCmd<C.restoreGivenTab>(1)
-      }
-    }
-    if (count > sessions.MAX_SESSION_RESULTS) {
-      return doRestore([])
-    }
-    if (count <= 1) {
-      sessions.restore(null, runtimeError_)
-      runNextCmd<C.restoreGivenTab>(1)
-      return
-    }
-    sessions.getRecentlyClosed({ maxResults: count }, doRestore)
-  },
   /* kBgCmd.restoreTab: */ (): void | kBgCmd.restoreTab => {
     const sessions = !OnEdge ? browserSessions_() : null
     if (!sessions) {
       return complainNoSession()
     }
-    let count = cRepeat
-    if (Math.abs(count) < 2 && (cPort ? cPort.s.incognito_ : curIncognito_ === IncognitoType.true)
+    const onlyOne = !!get_cOptions<C.restoreTab>().one, limit = sessions.MAX_SESSION_RESULTS
+    let count = Math.abs(cRepeat)
+    if (count > limit) {
+      if (onlyOne) {
+        showHUD(trans_("indexOOR"))
+        return
+      }
+      count = limit
+    }
+    if (!onlyOne && count < 2 && (cPort ? cPort.s.incognito_ : curIncognito_ === IncognitoType.true)
         && !get_cOptions<C.restoreTab>().incognito) {
       return showHUD(trans_("notRestoreIfIncog"))
     }
-    const limit = sessions.MAX_SESSION_RESULTS
-    count > limit && (count = limit)
-    do {
+    if (onlyOne && count > 1) {
+      sessions.getRecentlyClosed({ maxResults: count }, (list: chrome.sessions.Session[]): void => {
+        if (count > list.length) {
+          return showHUD(trans_("indexOOR"))
+        }
+        const session = list[count - 1], item = session && (session.tab || session.window)
+        if (!item) {
+        } else {
+          sessions.restore(item.sessionId, runtimeError_)
+        }
+      })
+      return
+    }
+    sessions.restore(null, runtimeError_)
+    while (0 < --count) {
       sessions.restore(null, runtimeError_)
-    } while (0 < --count)
-    runNextCmd<C.restoreTab>(1)
+    }
   },
   /* kBgCmd.runKey: */ _AsBgC<BgCmdNoTab<kBgCmd.runKey>>(runKeyWithCond),
   /* kBgCmd.searchInAnother: */ (tabs: [Tab]): void | kBgCmd.searchInAnother => {
@@ -546,16 +545,39 @@ set_bgC_([
     current || setOmniStyle_({ t: toggled, o: 1 })
   },
   /* kBgCmd.toggleZoom: */ _AsBgC<BgCmdNoTab<kBgCmd.toggleZoom>>(toggleZoom),
-  /* kBgCmd.visitPreviousTab: */ (tabs: Tab[]): void | kBgCmd.visitPreviousTab => {
-    if (tabs.length < 2) { runNextCmd<C.visitPreviousTab>(1); return }
-    tabs.splice((OnFirefox ? selectFrom(tabs, 1) : selectFrom(tabs)).index, 1)
-    tabs = tabs.filter(i => recencyForTab_.has(i.id)).sort(TabRecency_.rCompare_)
-    const tab = tabs[cRepeat > 0 ? Math.min(cRepeat, tabs.length) - 1
-      : Math.max(0, tabs.length + cRepeat)]
-    if (tab) {
-      selectTab(tab.id)
-      runNextCmd<C.visitPreviousTab>(1)
+  /* kBgCmd.visitPreviousTab: */ (): void | kBgCmd.visitPreviousTab => {
+    const acrossWindows = !!get_cOptions<C.visitPreviousTab>().acrossWindows
+    const onlyActive = !!get_cOptions<C.visitPreviousTab>().onlyActive
+    const cb = (tabs: Tab[]): void => {
+      if (tabs.length < 2) {
+        if (onlyActive) { showHUD("Only found one browser window") }
+        return runtimeError_()
+      }
+      const curIdx = tabs.findIndex(i => i.id === curTabId_)
+      if (curIdx >= 0) { tabs.splice(curIdx, 1) }
+      const tabs2 = tabs.filter(i => recencyForTab_.has(i.id)).sort(TabRecency_.rCompare_)
+      tabs = onlyActive && tabs2.length === 0 ? tabs.sort((a, b) => b.id - a.id) : tabs2
+      const tab = tabs[cRepeat > 0 ? Math.min(cRepeat, tabs.length) - 1 : Math.max(0, tabs.length + cRepeat)]
+      if (tab) {
+        onlyActive ? Windows_.update(tab.windowId, { focused: true, }, runtimeError_) : doActivate(tab.id)
+      }
     }
+    const doActivate = (tabId: number): void => {
+      selectTab(tabId, (tab): void => (tab && selectWndIfNeed(tab), runtimeError_()))
+    }
+    if (cRepeat === 1 && !onlyActive && curTabId_ !== GlobalConsts.TabIdNone) {
+      let indMax = 0, tabId = -1
+      recencyForTab_.forEach((v, i): void => { if (v.i > indMax && i !== curTabId_) { indMax = v.i, tabId = i } })
+      if (tabId >= 0) {
+        void Q_(tabsGet, tabId).then((tab?: Tab): void => {
+          tab && (acrossWindows || tab.windowId === curWndId_) && isNotHidden_(tab) ? doActivate(tab.id)
+          : acrossWindows ? Tabs_.query(OnFirefox ? { hidden: false } : {}, cb) : getCurShownTabs_(cb)
+        })
+        return
+      }
+    }
+    acrossWindows || onlyActive ? Tabs_.query(onlyActive ? { active: true } : OnFirefox ? { hidden: false } : {}, cb)
+    : getCurShownTabs_(cb)
   },
   /* kBgCmd.closeDownloadBar: */ (): void | kBgCmd.closeDownloadBar => {
     const newWindow = get_cOptions<C.closeDownloadBar>().newWindow

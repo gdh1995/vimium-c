@@ -49,5 +49,7 @@
   "toggleMuteTab": "all, other",
   "toggleStyle": "id/selector:string, css: string",
   "toggleSwitchTemp": "key:string [, value:any]",
-  "toggleVomnibarStyle": "style=dark, current"
+  "toggleVomnibarStyle": "style=dark, current",
+  "visitPreviousTab": "acrossWindows, onlyActive",
+  "zoom": "in, out, reset"
 }

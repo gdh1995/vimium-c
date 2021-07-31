@@ -120,13 +120,14 @@ set_contentCommands_([
         1000, [options.n, notBool ? JSON.stringify(val) : ""]);
   },
   /* kFgCmd.passNextKey: */ (options: CmdOptions[kFgCmd.passNextKey], count0: number): void => {
+    const oldEsc = esc!, oldPassKeys = passKeys
+    const keys = safer<{ [keyCode in kKeyCode]: BOOL }>({})
     let keyCount = 0, count = count0 > 0 ? count0 : -count0
     if (!!options.normal === (count0 > 0)) {
       esc!(HandlerResult.ExitPassMode); // singleton
       if (!passKeys) {
         return hudTip(kTip.noPassKeys);
       }
-      const oldEsc = esc!, oldPassKeys = passKeys;
       set_passKeys(null)
       set_esc((i: HandlerResult): HandlerResult => {
         if (i === HandlerResult.Prevent && 0 >= --count || i === HandlerResult.ExitPassMode) {
@@ -146,14 +147,14 @@ set_contentCommands_([
       esc!(HandlerResult.Nothing);
       return;
     }
-    const keys = safer<{ [keyCode in kKeyCode]: BOOL }>({})
     replaceOrSuppressMost_(kHandler.passNextKey, event => {
-      keyCount += +!keys[event.i];
+      // not check .repeat, in case of missing corresponding keyup events
+      keyCount += !keys[event.i] as boolean | BOOL as BOOL
       keys[event.i] = 1;
       return HandlerResult.PassKey;
     })
     set_onKeyup2((event): void => {
-      if (keyCount === 0 || --keyCount || --count) {
+      if (!event || --keyCount > 0 || (keyCount = 0, --count > 0)) {
         keys[event && event.keyCode] = 0
         hudShow(kTip.passNext, count > 1 ? VTr(kTip.nTimes, [count]) : "");
       } else {
@@ -162,9 +163,9 @@ set_contentCommands_([
     })
     onKeyup2!(<0> kKeyCode.None)
     set_exitPassMode((): void => {
+      removeHandler_(kHandler.passNextKey)
       set_exitPassMode(null)
       set_onKeyup2(null)
-      removeHandler_(kHandler.passNextKey)
       hudHide();
     })
   },

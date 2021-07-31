@@ -97,7 +97,7 @@ export const joinTabs = (): void | kBgCmd.joinTabs => {
     const _cur0 = onlyCurrent ? wnds : wnds.filter(wnd => wnd.id === curWndId_)
     const _curWnd = _cur0.length ? _cur0[0] : null
     if (!onlyCurrent && !_curWnd) { return }
-    const cb = (curWnd: typeof wnds[0] | null): void => {
+    const cb = (curWnd?: typeof wnds[0] | null): void => {
       let allTabs: Tab[] = [], push = (j: Tab): void => { allTabs.push(j) }
       wnds.sort((i, j) => i.id - j.id).forEach(i => i.tabs.forEach(push))
       if (!allTabs.length) { return }
@@ -212,7 +212,8 @@ export const moveTabToNewWindow = (): void | kBgCmd.moveTabToNewWindow => {
       }
     }
     makeWindow({ tabId: tabs[activeTabIndex].id, incognito: curIncognito }, wnd.type === "normal" ? wnd.state : ""
-        , count < 2 ? notifyCKey : (wnd2: Window): void => {
+        , count < 2 ? notifyCKey : (wnd2?: Window): void => {
+      if (!wnd2) { return }
       notifyCKey()
       let leftTabs = tabs.slice(range[0], activeTabIndex), rightTabs = tabs.slice(activeTabIndex + 1, range[1])
       if (OnChrome && Build.MinCVer < BrowserVer.MinNoAbnormalIncognito
@@ -358,7 +359,9 @@ export const moveTabToNextWindow = ([tab]: [Tab]): void | kBgCmd.moveTabToNextWi
     }
     makeWindow({
       tabId: tab.id, incognito: tab.incognito
-    }, wnds.length === 1 && wnds[0].type === "normal" ? wnds[0].state : "", notifyCKey)
+    }, wnds.length === 1 && wnds[0].type === "normal" ? wnds[0].state : "", (newWnd): void => {
+      newWnd && notifyCKey()
+    })
   })
 }
 
@@ -443,9 +446,15 @@ export const removeTab = (phase?: 1 | 2, tabs?: readonly Tab[]): void => {
   } else if (phase < 2) {
     start = tab.index = 0, end = 1
   }
-  let goto = get_cOptions<C.removeTab>().goto || (get_cOptions<C.removeTab>().left ? "left" : ""),
-  goToIndex = count >= total ? total : goto === "left" ? start > 0 ? start - 1 : end
-      : goto === "right" ? end < total ? end : start - 1 : goto === "previous" ? -2 : total
+  const rawGoto = get_cOptions<C.removeTab, true>().goto || (get_cOptions<C.removeTab>().left ? "left" : ""),
+  gotos = (rawGoto + "").split(/[\/,;\s]/)
+  const gotoVal = (gotos.length > 1 ? gotos[count > 1 ? 1 : 0] : rawGoto + "") as string & typeof rawGoto
+  let isGotoReverse = gotoVal === "near" || gotoVal === "reverse" || gotoVal.startsWith("back"),
+  isGotoForward = gotoVal.startsWith("forw"),
+  gotoLeft = isGotoReverse ? cRepeat > 0 : isGotoForward ? cRepeat < 0 : gotoVal === "left",
+  gotoRight = isGotoReverse ? cRepeat < 0 : isGotoForward ? cRepeat > 0 : gotoVal === "right",
+  goToIndex = count >= total ? total : gotoLeft ? start > 0 ? start - 1 : end
+      : gotoRight ? end < total ? end : start - 1 : gotoVal === "previous" ? -2 : total
   if (goToIndex === -2) {
     let nextTab: Tab | null | undefined = end < total && !recencyForTab_.has(tabs[end].id) ? tabs[end]
         : tabs.filter((j, ind) => (ind < start || ind >= end) && recencyForTab_.has(j.id))
@@ -649,7 +658,9 @@ export const reopenTab_ = (tab: Tab, refresh?: /* false */ 0 | /* a temp blank t
   } else if (args.index != null) {
     args.index++
   }
-  openMultiTabs(args, 1, true, [null], useGroup, tab, recoverMuted)
+  openMultiTabs(args, 1, true, [null], useGroup, tab, (newTab?: Tab): void => {
+    newTab && recoverMuted && recoverMuted(newTab)
+  })
   Tabs_.remove(tabId)
   // should never remove its session item - in case that goBack/goForward might be wanted
   // not seems to need to restore muted status

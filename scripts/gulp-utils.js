@@ -455,7 +455,7 @@ exports.getGulpTerser = function (aggressiveMangle, unique_passes, noComments) {
           _hasLoggedTerserPasses || print("terser: middle pass #%o", i)
           ast = (await terser.minify(ast, { ...config,
             format: { ...config.format, comments: /^[!@#]/, preserve_annotations: true, ast: true, code: false },
-            compress: { ...config.compress, sequences: false, passes: 1 },
+            compress: { ...config.compress, sequences: false, passes: 1, global_defs: null },
             mangle: null,
           // @ts-ignore
           })).ast
@@ -463,7 +463,7 @@ exports.getGulpTerser = function (aggressiveMangle, unique_passes, noComments) {
         _hasLoggedTerserPasses || print("terser: last pass #%o, seqences=%o", unique_passes, maxDistSequences)
         _hasLoggedTerserPasses = true
         return await terser.minify(ast, { ...config, mangle: aggressiveMangle ? null : config.mangle,
-          compress: { ...config.compress, sequences: maxDistSequences, passes: 1 },
+          compress: { ...config.compress, sequences: maxDistSequences, passes: 1, global_defs: null },
           format: { ...config.format, comments: noComments ? false : /^!/,
             preserve_annotations: false, ast: false, code: true },
         })

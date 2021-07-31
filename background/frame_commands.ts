@@ -1,10 +1,10 @@
 import {
   cPort, cRepeat, get_cOptions, set_cPort, set_cOptions, set_cRepeat, framesForTab_, findCSS_, cKey, reqH_,
   curTabId_, settingsCache_, OnChrome, visualWordsRe_, CurCVer_, OnEdge, OnFirefox, substitute_, CONST_,
-  helpDialogData_, set_helpDialogData_
+  helpDialogData_, set_helpDialogData_, curWndId_
 } from "./store"
 import * as BgUtils_ from "./utils"
-import { Tabs_, downloadFile, getTabUrl, runtimeError_, selectTab } from "./browser"
+import { Tabs_, downloadFile, getTabUrl, runtimeError_, selectTab, Q_ } from "./browser"
 import { convertToUrl_ } from "./normalize_urls"
 import * as settings_ from "./settings"
 import { showHUD, complainLimits, ensureInnerCSS, getParentFrame } from "./ports"
@@ -202,12 +202,8 @@ export const captureTab = (tabs?: [Tab]): void | kBgCmd.captureTab => {
         return
       }
       const port = cPort && framesForTab_.get(cPort.s.tabId_)?.top_ || cPort
-      downloadFile(finalUrl, title, port ? port.s.url_ : null, (): void => {
-        if (OnFirefox) {
-          doShow(finalUrl)
-        } else {
-          clickAnchor_cr(finalUrl)
-        }
+      downloadFile(finalUrl, title, port ? port.s.url_ : null, (succeed): void => {
+        succeed ? 0 : OnFirefox ? doShow(finalUrl) : clickAnchor_cr(finalUrl)
       })
     }
     const doShow = (finalUrl: string): void => {
@@ -240,17 +236,18 @@ export const captureTab = (tabs?: [Tab]): void | kBgCmd.captureTab => {
       cb2(url)
     }
   }
-  const tabId = tabs && tabs[0] ? tabs[0].id : curTabId_
-  let title = tabs && tabs[0] ? tabs[0].title : ""
+  const tab = tabs && tabs[0]
+  const tabId = tab ? tab.id : curTabId_, wndId = tab ? tab.windowId : curWndId_
+  let title = tab ? tab.title : ""
   title = get_cOptions<C.captureTab>().name === "title" || !title || tabId < 0
       ? title || "" + tabId : tabId + "-" + title
   if (OnChrome && Build.MinCVer < BrowserVer.MinFormatOptionWhenCaptureTab
       && CurCVer_ < BrowserVer.MinFormatOptionWhenCaptureTab) {
     title += ".jpg"
-    Tabs_.captureVisibleTab(cb)
+    Tabs_.captureVisibleTab(wndId, cb)
   } else {
     title += jpeg > 0 ? ".jpg" : ".png"
-    Tabs_.captureVisibleTab(jpeg > 0 ? {format: "jpeg", quality: jpeg} : {format: "png"}, cb)
+    Tabs_.captureVisibleTab(wndId, jpeg > 0 ? {format: "jpeg", quality: jpeg} : {format: "png"}, cb)
   }
 }
 
@@ -372,18 +369,22 @@ export const toggleZoom = (): void | kBgCmd.toggleZoom => {
     showHUD(`Vimium C can not control zoom settings before Chrome ${BrowserVer.Min$Tabs$$setZoom}`)
     return
   }
-  Tabs_.getZoom((curZoom): void => {
-    if (!curZoom) { return runtimeError_() }
-    cRepeat < -4 && set_cRepeat(-cRepeat)
-    let newZoom: number, level = +get_cOptions<kBgCmd.toggleZoom, true>().level!, M = Math
-    if (level) {
+  Q_(Tabs_.getZoom).then((curZoom): void => {
+    if (!curZoom) { return }
+    let absCount = cRepeat < -4 ? -cRepeat : cRepeat
+    if (get_cOptions<kBgCmd.toggleZoom, true>().in || get_cOptions<kBgCmd.toggleZoom, true>().out) {
+      absCount = 0
+      set_cRepeat(get_cOptions<kBgCmd.toggleZoom, true>().in ? cRepeat : -cRepeat)
+    }
+    let newZoom: number, level = get_cOptions<kBgCmd.toggleZoom, true>().level, M = Math
+    if (get_cOptions<kBgCmd.toggleZoom, true>().reset) {
+      newZoom = 1
+    } else if (level != null && !isNaN(+level)) {
       newZoom = 1 + level * cRepeat
-      newZoom = OnFirefox
-          ? M.max(0.3, M.min(newZoom, 3)) : M.max(0.25, M.min(newZoom, 5))
-    } else if (cRepeat > 4) {
-      newZoom = cRepeat > 1000 ? 1 : cRepeat / (cRepeat > 49 ? 100 : 10)
-      newZoom = OnFirefox
-          ? M.max(0.3, M.min(newZoom, 3)) : M.max(0.25, M.min(newZoom, 5))
+      newZoom = OnFirefox ? M.max(0.3, M.min(newZoom, 3)) : M.max(0.25, M.min(newZoom, 5))
+    } else if (absCount > 4) {
+      newZoom = absCount > 1000 ? 1 : absCount / (absCount > 49 ? 100 : 10)
+      newZoom = OnFirefox ? M.max(0.3, M.min(newZoom, 3)) : M.max(0.25, M.min(newZoom, 5))
     } else {
       let nearest = 0, delta = 9,
       steps = OnFirefox
