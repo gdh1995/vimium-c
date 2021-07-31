@@ -11,6 +11,7 @@ import { parseSearchUrl_, parseUpperUrl_ } from "./parse_urls"
 import * as settings_ from "./settings"
 import {
   findCPort, isNotVomnibarPage, indexFrame, safePost, complainNoSession, showHUD, complainLimits, ensureInnerCSS,
+  getParentFrame
 } from "./ports"
 import { exclusionListening_, getExcluded_ } from "./exclusions"
 import { setOmniStyle_ } from "./ui_css"
@@ -367,6 +368,12 @@ set_reqH_([
     })
   },
   /** kFgReq.gotoMainFrame: */ (req: FgReq[kFgReq.gotoMainFrame], port: Port): void => {
+    if (req.c === kFgCmd.linkHints || req.c === kFgCmd.scroll) {
+      getParentFrame(port.s.tabId_, port.s.frameId_, 1).then(port2 => {
+        focusAndExecute(req, port, port2 || framesForTab_.get(port.s.tabId_)?.top_ || null, req.f)
+      })
+      return
+    }
     // Now that content scripts always auto-reconnect, it's not needed to find a parent frame.
     focusAndExecute(req, port, framesForTab_.get(port.s.tabId_)?.top_ || null, req.f)
   },

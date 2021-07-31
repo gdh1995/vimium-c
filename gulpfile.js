@@ -84,15 +84,6 @@ var Tasks = {
     if (getBuildItem("BTypes") === BrowserType.Firefox) {
       path.push("!_locales/*_*/**")
     }
-    for (const lang of "ru".split(" ")) {
-      const file = "_locales/" + lang + "/messages.json"
-      if (fs.existsSync(file)) {
-        const obj = readJSON(file)
-        if (!obj.name || !obj.description) {
-          path.push("!" + file)
-        }
-      }
-    }
     if (!getBuildItem("Minify")) {
       return copyByPath(path);
     }

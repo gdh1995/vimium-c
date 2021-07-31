@@ -561,6 +561,7 @@ declare const enum FirefoxBrowserVer {
   MinEnsuredUnicodePropertyEscapesInRegExp = 78,
   MinMaybe$WeakRef = 79, // no `WeakRef` if javascript.options.weakrefs=false
   MinEnsuredCSS$is$selector = 81,
+  MinContentEditableInShadowOfBodyRefuseShortcuts = 91,
   // members of a Selection are never updated when an <input> gets focused, so no work-around
   Min$Selection$SupportTextBox = 999,
   None = 0,

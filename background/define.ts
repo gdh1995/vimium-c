@@ -21,7 +21,6 @@ if (!Build.NDEBUG) {
   type FactoryTy = (asyncRequire: AsyncRequireTy, exports: ModuleTy, ...deps: ModuleTy[]) => (() => any) | void
   interface DefineTy {
     (deps: string[], factory: FactoryTy): void
-    amd?: boolean
     modules_?: Dict<any>
   }
   const modules: Dict<ModuleTy | LoadingPromise> = {}
@@ -77,7 +76,6 @@ if (!Build.NDEBUG) {
     }))
     exports instanceof Promise ? void exports.then(() => { doImport([path], callback) }) : callback(exports)
   }
-  myDefine.amd = true
   globalThis.define = myDefine;
   (globalThis as any).__importStar = (obj: {}): {} => obj
 })()

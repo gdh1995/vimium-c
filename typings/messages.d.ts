@@ -317,6 +317,8 @@ interface CmdOptions {
     axis?: "y" | "x";
     smooth?: boolean
     keepHover?: true | false | "auto" | "never" | /* or >= 20 */ 20
+    acrossFrames?: true | false
+    /** inner flags */ flags?: kScFlag & number
   } & ({
     dir?: 1 | -1 | 0.5 | -0.5;
     view?: 0 | /** means 0 */ undefined | 1 | "max" | /* all others are treated as "view" */ 2 | "view";

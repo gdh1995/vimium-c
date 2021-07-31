@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Test behavior of rich text editing in shadow DOM</title>
+<style>code {font-weight: bold;}</style>
+<!-- <script src="/pages/loader.js"></script> -->
+</head>
+<body style="margin: 10px 0 0 50px">
+<div>
+  On Firefox 91.0b7 / Firefox and Linux-Like system,<br>
+  a <code>[<span style="color: #132c79;">contenteditable</span>=<span
+      style="color: #9e3379">true</span>]</code> in
+    <code><span style="color: #4a69c9;">&lt;body&gt;</span>.shadowRoot</code>
+  doesn't respond on <code>Backspace</code> / <code>Delete</code>.
+</div>
+<p>
+  Current is on <code id="browserVer"></code>
+</p>
+<div style="margin-top: 20px;">
+  <div><code style="color: #4a69c9;">&lt;body&gt;</code> .shadow</div>
+  <div id="box" style="overflow:auto;width:400px;height:80px;display:inline-block;outline:1px solid #ff7777">
+    <iframe id="testBody" name="_frame1" style="width:400px;border:none;height:76px"></iframe>
+  </div>
+</div>
+<div style="margin-top: 20px;">
+  <div><code style="color: #4a69c9;">body &gt; div</code> .shadow</div>
+  <div id="box" style="overflow:auto;width:400px;height:80px;display:inline-block;outline:1px solid #7777ff">
+    <iframe id="testDiv" name="_frame2" style="width:400px;border:none;height:76px"></iframe>
+  </div>
+</div>
+<script type="text/javascript">
+"use strict";
+/** @argument box {HTMLElement} */
+function makeEditable(box) {
+  const doc = box.ownerDocument, shadow = box.attachShadow({ mode: "open" })
+  shadow.innerHTML = `
+    <div class="r" spellcheck="false"
+      ><span id="s" data-vimium="/"
+      ></span><span id="i" contenteditable="true"
+      ></span><span id="h"
+      ></span><span id="c" data-vimium=" (find hud)"
+    ></span></div>
+    <style type="text/css">
+*{cursor:text;font:14px/16px "Helvetica Neue",Helvetica,Arial,sans-serif;margin:0;outline:none;white-space:pre}
+.r{all:initial;background:#fff;border-radius:3px 3px 0 0;box-shadow:inset 0 0 1.5px 1px #aaa;color:#000;
+cursor:text;display:flex;height:21px;padding:4px 4px 0}.r.D{background:#222;color:#d4d4d4}
+#s{flex:0 0 4px}#i{flex:0 1 auto;height:16px;min-width:9px;margin-left:2px;overflow:hidden;padding:0 2px 0 0}
+#h{flex:1 0 auto}br{all:inherit!important;display:inline!important}#c{flex:0 0 auto;margin-left:2px}
+#s:after,#c:after{content:attr(data-vimium);display:inline}
+:host,body{margin:0!important}
+    </style>
+    `
+  const input = shadow.querySelector("#i")
+  const holder = shadow.querySelector("#h")
+  holder.setAttribute("aria-hidden", "")
+  holder.addEventListener("click", () => { input.focus() }, {capture: true, passive: false})
+}
+
+browserVer.textContent = (navigator.userAgent.match(/(Firefox|Chrom\w+)\/[\d.]+/) || [""])[0] || navigator.userAgent
+addEventListener("load", function() {
+  /** @type {Document} */
+  const doc = testBody.contentDocument
+  const body = doc.body
+  doc.documentElement.style.padding = "8px";
+  body.style = "width:384px; height:60px;"
+  body.setAttribute("role", "textbox")
+  body.setAttribute("aria-multiline", "true")
+  makeEditable(body)
+});
+
+addEventListener("load", function() {
+  /** @type {Document} */
+  const doc = testDiv.contentDocument
+  const body = doc.body
+  body.style = "width:384px; height:60px;"
+  body.setAttribute("role", "textbox")
+  body.setAttribute("aria-multiline", "true")
+  const div = doc.createElement("div")
+  div.style="height: 100%;"
+  makeEditable(div)
+  body.append(div)
+});
+</script>
+</body>
+</html>

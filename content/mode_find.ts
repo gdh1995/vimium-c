@@ -318,7 +318,9 @@ export const onLoad = (later?: Event): void => {
     // add `<div>` to fix that a body with backgroundColor doesn't follow border-radius on FF63; and on Linux
     // an extra <div> may be necessary for Ctrl+A: https://github.com/gdh1995/vimium-c/issues/79#issuecomment-540921532
     const box = OnFirefox
-        && (Build.MinFFVer < FirefoxBrowserVer.MinContentEditableInShadowSupportIME
+        && (Build.MinFFVer >= FirefoxBrowserVer.MinContentEditableInShadowOfBodyRefuseShortcuts
+            || firefoxVer_ > FirefoxBrowserVer.MinContentEditableInShadowOfBodyRefuseShortcuts - 1
+            || Build.MinFFVer < FirefoxBrowserVer.MinContentEditableInShadowSupportIME
             && firefoxVer_ < FirefoxBrowserVer.MinContentEditableInShadowSupportIME
             || fgCache.o === kOS.unixLike)
         ? addElement("div") as HTMLDivElement & SafeHTMLElement : body as HTMLBodyElement & SafeHTMLElement,
@@ -333,8 +335,6 @@ export const onLoad = (later?: Event): void => {
     setClassName_s(root2, "r" + fgCache.d)
     root2.spellcheck = false;
     appendNode_s(root2, list)
-    setOrRemoveAttr_s(box, "role", "textbox")
-    setOrRemoveAttr_s(box, "aria-multiline", "true")
     if (AlwaysInShadow || !OnEdge && root !== box) {
       root_ = root as ShadowRoot
       // here can not use `box.contentEditable = "true"`, otherwise Backspace will break on Firefox, Win
@@ -348,8 +348,16 @@ export const onLoad = (later?: Event): void => {
     } else {
       appendNode_s(docEl, styleInHUD)
     }
+    setOrRemoveAttr_s(body, "role", "textbox")
+    setOrRemoveAttr_s(body, "aria-multiline", "true")
+    if (AlwaysInShadow
+        || OnFirefox && Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1
+            && FirefoxBrowserVer.MinEnsuredShadowDOMV1 <= FirefoxBrowserVer.MinContentEditableInShadowSupportIME
+        || !OnEdge && root2 !== body) {
+      setClassName_s(body, fgCache.d.trim())
+    }
     if (OnFirefox) {
-      if (box !== body) {
+      if (Build.MinFFVer >= FirefoxBrowserVer.MinContentEditableInShadowOfBodyRefuseShortcuts || box !== body) {
         const css = findCSS.i, i1 = css.indexOf("body{"), i2 = css.indexOf("}", i1) + 1
         appendNode_s(innerDoc_.head! as HTMLHeadElement & SafeHTMLElement
             , createStyle(css.slice(i1, i2), addElement("style") as HTMLStyleElement))
@@ -357,11 +365,6 @@ export const onLoad = (later?: Event): void => {
       }
     } else if (zoom < 1) {
       docEl.style.zoom = "" + 1 / zoom;
-    }
-    if (OnChrome && Build.MinCVer >= BrowserVer.MinShadowDOMV0
-        || OnFirefox && Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1
-        || !OnEdge && root2 !== body) {
-      setClassName_s(body, fgCache.d.trim())
     }
     setDisplaying_s(outerBox_, 1)
     replaceOrSuppressMost_(kHandler.find, onHostKeydown)

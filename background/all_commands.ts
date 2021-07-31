@@ -482,7 +482,7 @@ set_bgC_([
     let keyword = (get_cOptions<C.searchInAnother>().keyword || "") + ""
     const query = parseSearchUrl_({ u: getTabUrl(tabs[0]) })
     if (!query || !keyword) {
-      if (query || !runNextCmd<C.searchInAnother>(0)) {
+      if (!runNextCmd<C.searchInAnother>(0)) {
         showHUD(trans_(keyword ? "noQueryFound" : "noKw"))
       }
       return

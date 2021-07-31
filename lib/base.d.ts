@@ -197,12 +197,12 @@ interface VApiTy {
     (this: void): KeydownCacheArray
   }
   /** baseHintWorker */ b: HintsNS.BaseHintWorker
-  /* scroll */ c: {
-    (di: ScrollByY, amount: number, isTo: 0
-      , factor?: NonNullable<CmdOptions[kFgCmd.scroll]["view"]> | undefined, fromMax?: false
-      , options?: CmdOptions[kFgCmd.scroll]): void
-    (di: ScrollByY, amount: number, isTo: 1
-      , factor?: undefined | 0, fromMax?: boolean, options?: CmdOptions[kFgCmd.scroll]): void
+  /** @see {../content/scroller.ts#executeScroll} */ c: {
+    (di: ScrollByY, amount: number, flags: kScFlag.scBy
+      , factor?: NonNullable<CmdOptions[kFgCmd.scroll]["view"]> | undefined
+      , options?: CmdOptions[kFgCmd.scroll], oriCount?: number): void
+    (di: ScrollByY, amount: number, flags: kScFlag.scBy | kScFlag.toMin | kScFlag.toMax
+      , factor?: undefined | 0, options?: CmdOptions[kFgCmd.scroll], oriCount?: number): void
   }
   /** execute content commands */ e: ((this: void, cmd: ValidContentCommands) => void) | null
   /** focusAndRun */ f: {
@@ -239,13 +239,13 @@ interface VApiTy {
     /** onWndFocus */ w?: (this: void) => void
     /** find box */ b: HTMLIFrameElement | null
     /** clickable */ c: ElementSet
-    /** Scroller::keyIsDown */ k: number
+    /** @see {../content/scroller.ts#keyIsDown} */ k: number
     /** UI root */ r: VUIRoot | null
     /** find input */ f: SafeHTMLElement | null
   }
   /** cache */ z: SettingsNS.FrontendSettingCache | null
-  /** VScroller.$sc */ $: (element: SafeElement | null, di: ScrollByY, amount: number
-      , options?: CmdOptions[kFgCmd.scroll]) => void
+  /** @see {../content/scroller.ts#$sc} */ $: (element: SafeElement | null, di: ScrollByY, amount: number
+      , options?: CmdOptions[kFgCmd.scroll]) => void | boolean | number | Promise<boolean | number> | null
 }
 
 declare var VimiumInjector: VimiumInjectorTy | undefined | null, VApi: VApiTy;

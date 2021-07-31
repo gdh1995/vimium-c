@@ -12,7 +12,6 @@ declare var define: any, __filename: string | null | undefined // eslint-disable
   interface DefineTy {
     (deps: string[], factory: FactoryTy): void
     (factory: FactoryTy): void
-    amd: boolean
     modules_?: Dict<ModuleTy | LoadingPromise>
     noConflict (): void
   }
@@ -106,7 +105,6 @@ declare var define: any, __filename: string | null | undefined // eslint-disable
     exports instanceof Promise ? void exports.then(() => { doImport(path, null, callback) }) : callback(myRequire(name))
     return exports
   }
-  myDefine.amd = true
   if (!Build.NDEBUG) {
     myDefine.modules_ = modules
   }

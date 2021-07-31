@@ -1,7 +1,10 @@
 VApi.e = function (cmd): void {
   const injector = VimiumInjector;
   if (cmd === kContentCmd.Destroy && injector) {
-    removeEventListener("hashchange", injector.checkIfEnabled);
+    const rEL = removeEventListener, onHashChnage = injector.checkIfEnabled
+    if (onHashChnage) {
+      rEL("hashchange", onHashChnage); rEL("hashchange", onHashChnage, true)
+    }
     injector.alive = 0;
     injector.destroy = injector.checkIfEnabled = injector.getCommandCount = null as never;
     injector.$ = injector.$r = injector.$m = null as never;
@@ -113,7 +116,7 @@ VApi.e = function (cmd): void {
       if (i18nMessages) {
         injector1.callback && injector1.callback(2, "complete")
       }
-      addEventListener("hashchange", injector1.checkIfEnabled);
+      // not listen hash here; a 3rd-party page may add listeners by itself if it indeed wants
       return;
     }
   };

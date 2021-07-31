@@ -23,7 +23,8 @@ interface ElementScrollInfo {
 
 import {
   isAlive_, setupEventListener, timeout_, clearTimeout_, fgCache, doc, allowRAF_old_cr_, readyState_, loc_, chromeVer_,
-  vApi, deref_, weakRef_, VTr, createRegExp, max_, math, min_, Lower, OnChrome, OnFirefox, OnEdge, WithDialog, OnSafari
+  vApi, deref_, weakRef_, VTr, createRegExp, max_, math, min_, Lower, OnChrome, OnFirefox, OnEdge, WithDialog, OnSafari,
+  isTop, injector
 } from "../lib/utils"
 import {
   rAF_, scrollingEl_, SafeEl_not_ff_, docEl_unsafe_, NONE, frameElement_, OnDocLoaded_, GetParent_unsafe_, UNL,
@@ -42,7 +43,7 @@ import { isCmdTriggered } from "./key_handler"
 import { hint_box, tryNestedFrame } from "./link_hints"
 import { setPreviousMarkPosition } from "./marks"
 import { keyNames_, prevent_ } from "../lib/keyboard_utils"
-import { runFallbackKey } from "./port"
+import { post_, runFallbackKey } from "./port"
 
 let toggleAnimation: ((scrolling?: BOOL) => void) | null = null
 let maxKeyInterval = 1
@@ -60,10 +61,10 @@ export function set_scrolled (_newScrolled: 0): void { scrolled = _newScrolled }
 export function set_currentScrolling (_newCurSc: WeakRef<SafeElement> | null): void { currentScrolling = _newCurSc }
 export function set_cachedScrollable (_newCachedSc: typeof cachedScrollable): void { cachedScrollable = _newCachedSc }
 
-let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: number): void => {
+let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: number, nFs?: kScFlag & number): void => {
   let amount: number, sign: number, calibration: number, di: ScrollByY, duration: number, element: SafeElement | null,
   beforePos: number, timestamp: number, rawTimestamp: number, totalDelta: number, totalElapsed: number, min_delta = 0,
-  running = 0, timer: ValidTimeoutID = TimerID.None, calibTime: number, lostFrames: number,
+  running = 0, flags: kScFlag & number, timer: ValidTimeoutID = TimerID.None, calibTime: number, lostFrames: number,
   styleTop: SafeElement | null = null,
   animate = (newRawTimestamp: number): void => {
     const continuous = keyIsDown > 0, rawElapsed = newRawTimestamp - rawTimestamp
@@ -97,7 +98,10 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
           preventPointEvents = 2
           toggleAnimation!(1)
         }
-        rawTimestamp && (min_delta = min_(rawElapsed + 0.1, min_delta || 1e5))
+        if (rawTimestamp) {
+          min_delta = !min_delta ? rawElapsed + 0.1
+              : rawElapsed < min_delta + 2 ? (min_delta + rawElapsed) / 2 : (min_delta * 7 + rawElapsed) / 8
+        }
       }
     }
     totalElapsed += elapsed
@@ -124,21 +128,27 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
       }
     }
     let delta = amount * (elapsed / duration) * calibration;
-    continuous || (delta = min_(delta, amount - totalDelta))
+    if (!continuous || flags & kScFlag.TO && totalElapsed < minDelay) {
+      delta = max_(0, min_(delta, amount - totalDelta))
+    }
     // not use `sign * _performScroll()`, so that the code is safer even though there're bounce effects
     if (delta > 0) {
+      const oldDelta = delta
+      delta = performScroll(element, di, sign * math.ceil(delta), beforePos)
       if (!Build.NDEBUG && ScrollConsts.DEBUG & 2) {
-        console.log("do scroll: %o + ceil(%o); amount=%o ; keyIsDown=%o"
-            , ((totalDelta * 100) | 0) / 100, ((delta * 100) | 0) / 100, amount
+        console.log("do scroll: %o + ceil(%o); effect=%o ; amount=%o ; keyIsDown=%o"
+            , ((totalDelta * 100) | 0) / 100, ((oldDelta * 100) | 0) / 100, ((delta * 100) | 0) / 100, amount
             , ((keyIsDown * 10) | 0) / 10)
       }
-      delta = performScroll(element, di, sign * math.ceil(delta), beforePos)
+      // if `scrollPageDown`, then amount is very large, but when it has been at page top/bottom,
+      // `performScroll` will only return 0, then `delta || 1` is never enough.
+      // In such cases stop directly
       beforePos += delta
       totalDelta += math.abs(delta)
     }
     if (delta) {
       if (totalDelta >= amount && continuous && totalElapsed < minDelay - min_delta
-          && amount < ScrollConsts.AmountLimitToScrollAndWaitRepeatedKeys) {
+          && (flags & kScFlag.TO || amount < ScrollConsts.AmountLimitToScrollAndWaitRepeatedKeys)) {
         running = 0
         timer = timeout_(/*#__NOINLINE__*/ restartAnimate, minDelay - totalElapsed)
         if (!Build.NDEBUG && ScrollConsts.DEBUG) {
@@ -165,16 +175,17 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
   hasDialog = OnChrome && Build.MinCVer >= BrowserVer.MinEnsuredHTMLDialogElement || WithDialog && doesSupportDialog(),
   restartAnimate = (): void => {
     if (!keyIsDown) { toggleAnimation!(); return }
+    flags & kScFlag.TO && amount > fgCache.t && (amount = min_(amount, dimSize_(element, di + kDim.viewW) / 2) | 0)
     totalElapsed = minDelay
     running = running || rAF_(animate);
   };
   toggleAnimation = (scrolling?: BOOL): void => {
     if (!scrolling) {
       if (!Build.NDEBUG && ScrollConsts.DEBUG) {
-        console.log("[animation] stop after %o ms / %o px"
+        console.log(">>> [animation] stop after %o ms / %o px"
             , ((totalElapsed * 1e2) | 0) / 1e2, ((totalDelta * 1e2) | 0) / 1e2)
       }
-      running = rawTimestamp = beforePos = calibTime = preventPointEvents = lostFrames = 0
+      running = timestamp = rawTimestamp = beforePos = calibTime = preventPointEvents = lostFrames = 0
       element = null
     }
     if (WithDialog && (OnChrome && Build.MinCVer >= BrowserVer.MinEnsuredHTMLDialogElement || hasDialog)) {
@@ -186,8 +197,9 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
     styleTop = scrolling ? el : null
     el && el.style ? el.style.pointerEvents = scrolling ? NONE : "" : 0;
   };
-  performAnimate = (newEl1, newDi1, newAmount1): void => {
+  performAnimate = (newEl1, newDi1, newAmount1, newFlags1): void => {
     amount = max_(1, newAmount1 > 0 ? newAmount1 : -newAmount1), calibration = 1.0, di = newDi1
+    flags = newFlags1! | 0
     duration = max_(ScrollConsts.minDuration, ScrollConsts.durationScaleForAmount * math.log(amount))
     element = newEl1
     sign = newAmount1 < 0 ? -1 : 1
@@ -201,11 +213,12 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
     minDelay = keyboard[0] + max_(keyboard[1], ScrollConsts.DelayMinDelta) + ScrollConsts.DelayTolerance;
     (preventPointEvents === 2 || preventPointEvents === 1 && !isSelARange(getSelection_())) && toggleAnimation!(1)
     if (!Build.NDEBUG && ScrollConsts.DEBUG) {
-      console.log("[animation] start with axis = %o, amount = %o, dir = %o", di ? "y" : "x", amount, sign)
+      console.log("%c[animation]%c start with axis = %o, amount = %o, dir = %o, min_delta = %o"
+          , "color: #1155cc", "color: auto", di ? "y" : "x", amount, sign, min_delta)
     }
     running = running || rAF_(animate)
   };
-  performAnimate(newEl, newDi, newAmount)
+  performAnimate(newEl, newDi, newAmount, nFs)
 }
 
 const performScroll = ((el: SafeElement | null, di: ScrollByY, amount: number, before?: number): number => {
@@ -224,8 +237,7 @@ const performScroll = ((el: SafeElement | null, di: ScrollByY, amount: number, b
 }
 
 /** should not use `scrollingTop` (including `dimSize_(scrollingTop, clientH/W)`) */
-export const $sc = (element: SafeElement | null, di: ScrollByY, amount: number
-      , options?: CmdOptions[kFgCmd.scroll]): void => {
+export const $sc: VApiTy["$"] = (element, di, amount, options): void => {
     if (hasSpecialScrollSnap(element)) {
       while (amount * amount >= 1 && !performScroll(element, di, amount)) {
         amount /= 2;
@@ -233,7 +245,7 @@ export const $sc = (element: SafeElement | null, di: ScrollByY, amount: number
       checkCurrent(element)
     } else if ((options && options.smooth != null ? options.smooth : fgCache.s)
         && !(OnChrome && Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage && !allowRAF_old_cr_)) {
-      amount && performAnimate(element, di, amount)
+      amount && performAnimate(element, di, amount, options && options.flags)
       scrollTick(1)
     } else if (amount) {
       performScroll(element, di, amount)
@@ -247,7 +259,7 @@ export const activate = (options: CmdOptions[kFgCmd.scroll] & SafeObject, count:
     }
     if (checkHidden(kFgCmd.scroll, options, count)) { return }
     if (tryNestedFrame(kFgCmd.scroll, options, count)) { return }
-    const di: ScrollByY = options.axis === "x" ? 0 : 1,
+    const di: ScrollByY = options.axis === "x" ? 0 : 1, oriCount = count,
     dest = options.dest;
     let fromMax = dest === "max";
     if (dest) {
@@ -256,7 +268,8 @@ export const activate = (options: CmdOptions[kFgCmd.scroll] & SafeObject, count:
     } else {
       count *= +(options.dir!) || 1;
     }
-    executeScroll(di, count, dest ? 1 as never : 0, options.view, fromMax as false, options)
+    executeScroll(di, count, dest ? fromMax ? kScFlag.toMax : kScFlag.toMin : kScFlag.scBy as never
+        , options.view as undefined, options, oriCount)
     if (keyIsDown && !options.$c) {
       scrollTick(0)
     }
@@ -267,45 +280,57 @@ export const activate = (options: CmdOptions[kFgCmd.scroll] & SafeObject, count:
    * @param factor `!!factor` can be true only if `isTo` is 0
    * @param fromMax can not be true, if `isTo` is 0
    */
-export const executeScroll = function (di: ScrollByY, amount0: number, isTo: BOOL
-      , factor?: NonNullable<CmdOptions[kFgCmd.scroll]["view"]> | undefined, fromMax?: boolean
-      , options?: CmdOptions[kFgCmd.scroll]): void {
+export const executeScroll: VApiTy["c"] = function (di: ScrollByY, amount0: number, flags: kScFlag & number
+      , factor?: NonNullable<CmdOptions[kFgCmd.scroll]["view"]> | undefined
+      , options?: CmdOptions[kFgCmd.scroll], oriCount?: number): void {
     set_scrollingTop(scrollingEl_(1))
     if (scrollingTop) {
       getZoom_(1)
       getPixelScaleToScroll()
     }
-    const element = findScrollable(di, isTo ? fromMax ? 1 : -1 : amount0)
+    const toFlags = flags & (kScFlag.TO | kScFlag.INC), toMax = (toFlags - kScFlag.TO) as BOOL
+    const element = findScrollable(di, toFlags ? toMax || -1 : amount0)
     const isTopElement = element === scrollingTop
+    const mayUpperFrame = !isTop && isTopElement && element && !fullscreenEl_unsafe_()
     let amount = !factor ?
         (!di && amount0 && element && dimSize_(element, kDim.scrollW)
             <= dimSize_(element, kDim.scrollH) * (dimSize_(element, kDim.scrollW) < 720 ? 2 : 1)
           ? amount0 * 0.6 : amount0) * fgCache.t
       : factor === 1 ? amount0
       : amount0 * dimSize_(element, di + (factor === "max" ? kDim.scrollW : kDim.viewW))
-    if (isTo) {
+    if (toFlags) {
       const curPos = dimSize_(element, di + kDim.positionX),
       viewSize = dimSize_(element, di + kDim.viewW),
-      rawMax = (fromMax || amount) && dimSize_(element, di + kDim.scrollW),
+      rawMax = (toMax || amount) && dimSize_(element, di + kDim.scrollW),
       boundingMax = isTopElement && element ? getBoundingClientRect_(element).height : 0,
       max = (boundingMax > rawMax && boundingMax < rawMax + 1 ? boundingMax : rawMax) - viewSize
-      amount = element ? max_(0, min_(fromMax ? max - amount : amount, max)) - curPos
-          : fromMax ? max : amount - curPos;
+      const oldAmount = amount
+      amount = max_(0, min_(toMax ? max - amount : amount, max)) - curPos
+      amount = amount0 ? amount : toMax ? max_(amount, 0) : min_(amount, 0)
+      if (!Build.NDEBUG && ScrollConsts.DEBUG & 8) {
+        console.log("[scrollTo] cur=%o top_max=%o view=%o amount=%o, so final amount=%o", curPos, viewSize, max
+            , oldAmount, amount)
+      }
     }
-    let core: ReturnType<typeof getParentVApi> | false;
-    if (element === scrollingTop && element
-      && (core = !fullscreenEl_unsafe_() && getParentVApi())
-      && (Lower(attr_s(frameElement_()!, "scrolling") || "") === "no"
-          || !doesScroll(element, di, amount || (fromMax ? 1 : 0)))) {
-        core.c(di, amount0, isTo as 0, factor, fromMax as false, options)
+    amount = amount * amount > 0.01 ? amount : 0
+    let core: ReturnType<typeof getParentVApi>
+    if (mayUpperFrame && (core = getParentVApi())
+        && (!amount && !amount0 || Lower(attr_s(frameElement_()!, "scrolling") || "") === "no"
+            || !doesScroll(element, di, amount || toMax))) {
+        core.c(di, amount0, flags as 0, factor, options, oriCount)
         if (core.y().k) {
           scrollTick(1)
           joined = core
         }
         amount = 0;
+    } else if (mayUpperFrame && options && !injector && !(options as OptionsWithForce).$forced
+        && options.acrossFrames !== false
+        && (!amount && !amount0 || !core && !doesScroll(element, di, amount || toMax))) {
+      post_({ H: kFgReq.gotoMainFrame, f: 1, c: kFgCmd.scroll, n: oriCount!, a: options as OptionsWithForce })
+      amount = 0
     }
-    if (isTo && element === scrollingTop) {
-      amount && di && setPreviousMarkPosition()
+    if (toFlags && isTopElement && amount) {
+      di && setPreviousMarkPosition()
       if (!joined && options && (options as Extract<typeof options, {dest: string}>).sel === "clear") {
         resetSelectionToDocStart()
       }
@@ -316,21 +341,14 @@ export const executeScroll = function (di: ScrollByY, amount0: number, isTo: BOO
         : keepHover === "auto" ? ScrollConsts.MinLatencyToAutoPreventHover
         : keepHover! > ScrollConsts.MinLatencyToAutoPreventHover - 1
         ? keepHover as ScrollConsts.MinLatencyToAutoPreventHover : 0
-    const thenKey = options && options.$then
-    thenKey && amount && (options!.smooth = false)
-    vApi.$(element, di, amount, options)
-    preventPointEvents = keyIsDown ? preventPointEvents : 0
-    scrolled = 0
+    ; ((options || (options = {} as { dest: "min" | "max" } as CmdOptions[kFgCmd.scroll])).flags = flags)
     if (amount && readyState_ > "i" && overrideScrollRestoration) {
       overrideScrollRestoration("scrollRestoration", "manual")
     }
+    vApi.$(element, di, amount, options)
+    preventPointEvents = keyIsDown ? preventPointEvents : 0
+    scrolled = 0
     options && runFallbackKey(options, amount ? 0 : 2)
-} as {
-    (di: ScrollByY, amount: number, isTo: 0
-      , factor?: NonNullable<CmdOptions[kFgCmd.scroll]["view"]> | undefined, fromMax?: false
-      , options?: CmdOptions[kFgCmd.scroll]): void;
-    (di: ScrollByY, amount: number, isTo: 1
-      , factor?: undefined | 0, fromMax?: boolean, options?: CmdOptions[kFgCmd.scroll]): void;
 }
 
 let overrideScrollRestoration = function (kScrollRestoration, kManual): void {
@@ -365,11 +383,11 @@ export const beginScroll = (eventWrapper: 0 | Pick<HandlerNS.Event, "e">, key: s
     const index = keyNames_.indexOf(keybody) as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8
     (index > 2 || key === keybody) && eventWrapper && prevent_(eventWrapper.e);
     if (index > 4) {
-      executeScroll((~index & 1) as BOOL, index < 7 ? -1 : 1, 0)
+      executeScroll((~index & 1) as BOOL, index < 7 ? -1 : 1, kScFlag.scBy)
     } else if (index > 2) {
-      executeScroll(1, 0, 1, 0, index < 4)
+      executeScroll(1, 0, (6 - index) as 2 | 3 as kScFlag.toMin | kScFlag.toMax, 0)
     } else if (key === keybody) {
-      executeScroll(1, index - 1.5, 0, 2)
+      executeScroll(1, index - 1.5, kScFlag.scBy, 2)
     }
 }
 
@@ -386,10 +404,10 @@ export const onScrolls = (event: KeyboardEventToPrevent): boolean => {
    */
 const findScrollable = (di: ScrollByY, amount: number): SafeElement | null => {
   const selectFirst = (info: ElementScrollInfo, skipPrepare?: 1): ElementScrollInfo | null | undefined => {
-    let cur_el = info.e
+    let cur_el = info.e, type: 0 | 1 | -1
     if (dimSize_(cur_el, kDim.elClientH) + 3 < dimSize_(cur_el, kDim.scrollH) &&
-        ((cur_el === scrollingTop ? shouldScroll_s(cur_el, kDim.byY, 1) > 0 : doesScroll(cur_el, kDim.byY, 1))
-          || dimSize_(cur_el, kDim.positionY) > 0 && doesScroll(cur_el, kDim.byY, 0))) {
+        (type = shouldScroll_s(cur_el, cur_el !== scrollingTop ? selectFirstType : 1, 1),
+          type > 0 || !type && dimSize_(cur_el, kDim.positionY) > 0 && doesScroll(cur_el, kDim.byY, 0))) {
       return info
     }
     skipPrepare || prepareCrop_()
@@ -411,11 +429,11 @@ const findScrollable = (di: ScrollByY, amount: number): SafeElement | null => {
   }
 
     const top = scrollingTop, activeEl: SafeElement | null | undefined = deref_(currentScrolling)
+    const selectFirstType = isTop || !!injector ? 3 : 1
     let element = activeEl;
     if (element) {
-      while (element !== top && shouldScroll_s(element!
-              , element === cachedScrollable ? (di + 2) as 2 | 3 : di
-              , amount) < 1) {
+      while (element !== top
+          && shouldScroll_s(element!, element === cachedScrollable ? (di + 2) as 2 | 3 : di, amount) < 1) {
         element = (!OnFirefox
             ? SafeEl_not_ff_!(GetParent_unsafe_(element!, PNType.RevealSlotAndGotoParent))
             : GetParent_unsafe_(element!, PNType.RevealSlotAndGotoParent) as SafeElement | null
