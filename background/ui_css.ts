@@ -51,6 +51,9 @@ export const reloadCSS_ = (action: MergeAction, cssStr?: string): SettingsNS.Mer
     if (!(Build.NDEBUG || css.startsWith(":host{"))) {
       console.log('Assert error: `css.startsWith(":host{")` in settings.updateHooks_.baseCSS')
     }
+    if (!Build.NDEBUG) {
+      css = css.replace(<RegExpG> /\r\n?/g, "\n")
+    }
     if (OnFirefox && Build.MinFFVer < FirefoxBrowserVer.MinUnprefixedUserSelect
         ? CurFFVer_ < FirefoxBrowserVer.MinUnprefixedUserSelect
         : OnChrome && Build.MinCVer < BrowserVer.MinUnprefixedUserSelect
@@ -58,8 +61,14 @@ export const reloadCSS_ = (action: MergeAction, cssStr?: string): SettingsNS.Mer
       // on Firefox, the `-webkit` prefix is in the control of `layout.css.prefixes.webkit`
       css = css.replace(<RegExpG> /user-select\b/g, OnFirefox ? "-moz-$&" : "-webkit-$&")
     }
-    if (!Build.NDEBUG) {
-      css = css.replace(<RegExpG> /\r\n?/g, "\n")
+    if (OnEdge || OnChrome && Build.MinCVer < BrowserVer.MinCSS$Color$$RRGGBBAA
+        && CurCVer_ < BrowserVer.MinCSS$Color$$RRGGBBAA) {
+      css = css.replace(<RegExpG & RegExpSearchable<0>> /#[\da-f]{4}([\da-f]{4})?\b/gi, (s: string): string => {
+        s = s.length === 5 ? "#" + s[1] + s[1] + s[2] + s[2] + s[3] + s[3] + s[4] + s[4] : s
+        const color = parseInt(s.slice(1), 16),
+        r = color >>> 24, g = (color >> 16) & 0xff, b = (color >> 8) & 0xff, alpha = (color & 0xff) / 255 + ""
+        return `rgba(${r},${g},${b},${alpha.slice(0, 4)})`
+      })
     }
     const cssFile = parseSections_(css)
     let isHighContrast_ff = false, hcChanged_ff = false
@@ -93,15 +102,6 @@ export const reloadCSS_ = (action: MergeAction, cssStr?: string): SettingsNS.Mer
     if (OnChrome && Build.MinCVer < BrowserVer.MinSpecCompliantShadowBlurRadius
         && CurCVer_ < BrowserVer.MinSpecCompliantShadowBlurRadius) {
       css = css.replace("3px 5px", "3px 7px")
-    }
-    if (OnEdge || OnChrome && Build.MinCVer < BrowserVer.MinCSS$Color$$RRGGBBAA
-        && CurCVer_ < BrowserVer.MinCSS$Color$$RRGGBBAA) {
-      css = css.replace(<RegExpG & RegExpSearchable<0>> /#[\da-f]{4}([\da-f]{4})?\b/gi, (s: string): string => {
-        s = s.length === 5 ? "#" + s[1] + s[1] + s[2] + s[2] + s[3] + s[3] + s[4] + s[4] : s
-        const color = parseInt(s.slice(1), 16),
-        r = color >>> 24, g = (color >> 16) & 0xff, b = (color >> 8) & 0xff, alpha = (color & 0xff) / 255 + ""
-        return `rgba(${r},${g},${b},${alpha.slice(0, 4)})`
-      })
     }
     if (!OnChrome || (Build.MinCVer < BrowserVer.MinAbsolutePositionNotCauseScrollbar
             && CurCVer_ < BrowserVer.MinAbsolutePositionNotCauseScrollbar)) {

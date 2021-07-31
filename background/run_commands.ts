@@ -322,7 +322,7 @@ const matchEnvRule = (rule: CommandsNS.EnvItem, info: CurrentEnvCache): EnvMatch
     if (!Exclusions.matchSimply_(host, url)) { return EnvMatchResult.nextEnv }
   }
   if (iframe != null) {
-    if (!cPort && iframe !== false) { return EnvMatchResult.abort }
+    if (!cPort && iframe !== false) { return EnvMatchResult.nextEnv }
     if (typeof iframe === "string") {
       iframe = rule.iframe = Exclusions.createSimpleUrlMatcher_(iframe) || true
     }
@@ -359,7 +359,7 @@ const matchEnvRule = (rule: CommandsNS.EnvItem, info: CurrentEnvCache): EnvMatch
     if (!selectorArr.length) { /* empty */ }
     else if (cur == null) {
       cPort && safePost(cPort, { N: kBgReq.queryForRunKey, n: performance.now(), c: info })
-      return EnvMatchResult.abort
+      return cPort ? EnvMatchResult.abort : EnvMatchResult.nextEnv
     } else if (! selectorArr.some((s): any => cur === 0 ? s.tag === "body" && !s.id && !s.className :
         (!s.tag || cur[0] === s.tag) && (!s.id || cur[1] === s.id) && (!s.className || cur[2].includes(s.className))
     )) {

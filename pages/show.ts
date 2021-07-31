@@ -288,9 +288,9 @@ function App (this: void): void {
   bgLink.onclick = VShown ? clickShownNode : defaultOnClick;
 }
 
-import type * as i18n_options from "../i18n/zh/show.json"
+import type * as i18n_options from "../i18n/zh/popup.json"
 
-export const sTrans_ = _pTrans as (key: keyof typeof i18n_options, arg1?: (string | number)[]) => string
+const sTrans_ = _pTrans as (key: keyof typeof i18n_options, arg1?: (string | number)[]) => string
 
 enableNextTick_(kReadyInfo.platformInfo)
 
@@ -591,6 +591,7 @@ function loadViewer(): Promise<ViewerModule> {
     return Promise.resolve(ViewerModule)
   }
   loadCSS("../lib/viewer.min.css");
+  !Build.NDEBUG && (window as any).define && (window as any).define.noConflict()
   return import2("../lib/viewer.min.js").then((viewerJS: any): ViewerModule => {
     viewerJS = viewerJS && typeof viewerJS === "function" ? viewerJS
         : (window as unknown as { Viewer: typeof viewerJS }).Viewer

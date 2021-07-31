@@ -11,7 +11,7 @@ declare const enum ScrollConsts {
     // high:  60f / 1000ms :  400ms / 24f # 660 / 28
     // low:   15f /  250ms :   33ms /  2f # 200 / 6
 
-    AmountLimitToScrollAndWaitRepeatedKeys = 20,
+    AmountLimitToScrollAndWaitRepeatedKeys = 40,
     MinLatencyToAutoPreventHover = 20,
     DEBUG = 0,
 }
@@ -81,6 +81,8 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
       } else /** when (rawElapsed < -1e-5 || rawElapsed ~= 0 && VOther !== BrowserType.Firefox) */ {
         elapsed = 0
       }
+    } else if (timer) {
+      elapsed = min_delta; timer = TimerID.None
     } else {
       elapsed = newRawTimestamp > timestamp ? newRawTimestamp - timestamp : 0
       if (OnFirefox
@@ -91,7 +93,7 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
         newTimestamp = timestamp + elapsed
       } else {
         if (preventPointEvents > ScrollConsts.MinLatencyToAutoPreventHover - 1 && rawElapsed > preventPointEvents
-            && rawElapsed > min_delta * 1.8 && ++lostFrames > 2) {
+            && min_delta && rawElapsed > min_delta * 1.8 && ++lostFrames > 2) {
           preventPointEvents = 2
           toggleAnimation!(1)
         }
@@ -99,7 +101,6 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
       }
     }
     totalElapsed += elapsed
-    if (timer) { elapsed = min_delta; timer = 0 }
     if (!Build.NDEBUG && ScrollConsts.DEBUG & 1) {
       console.log("rawOld>rawNew: +%o = %o ; old>new: +%o = %o ; elapsed: +%o = %o; min_delta = %o"
           , (((newRawTimestamp - rawTimestamp) * 1e2) | 0) / 1e2
@@ -109,15 +110,6 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
     rawTimestamp = newRawTimestamp
     timestamp = newTimestamp
     if (!isAlive_ || !running) { toggleAnimation!(); return }
-    if (amount < ScrollConsts.AmountLimitToScrollAndWaitRepeatedKeys
-        && totalElapsed < minDelay - 2 && continuous && totalDelta >= amount) {
-      running = 0;
-      timer = timeout_(startAnimate, minDelay - totalElapsed)
-      if (!Build.NDEBUG && ScrollConsts.DEBUG) {
-        console.log("[animation] wait for %o - %o ms", minDelay, ((totalElapsed * 1e2) | 0) / 1e2)
-      }
-      return;
-    }
     if (continuous) {
       if (totalElapsed >= ScrollConsts.delayToChangeSpeed) {
         if (totalElapsed > minDelay) { keyIsDown = keyIsDown > elapsed ? keyIsDown - elapsed : 0 }
@@ -142,8 +134,19 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
       }
       delta = performScroll(element, di, sign * math.ceil(delta), beforePos)
       beforePos += delta
-      totalDelta += math.abs(delta) || 1
-      rAF_(animate);
+      totalDelta += math.abs(delta)
+    }
+    if (delta) {
+      if (totalDelta >= amount && continuous && totalElapsed < minDelay - min_delta
+          && amount < ScrollConsts.AmountLimitToScrollAndWaitRepeatedKeys) {
+        running = 0
+        timer = timeout_(/*#__NOINLINE__*/ restartAnimate, minDelay - totalElapsed)
+        if (!Build.NDEBUG && ScrollConsts.DEBUG) {
+          console.log(">>> [animation] wait for %o - %o ms", minDelay, ((totalElapsed * 1e2) | 0) / 1e2)
+        }
+      } else {
+        rAF_(animate)
+      }
     } else if (elapsed) {
       if ((!OnChrome || chromeVer_ > BrowserVer.MinMaybeScrollEndAndOverScrollEvents - 1)
           && "onscrollend" in (OnFirefox ? doc : Image.prototype)) {
@@ -160,7 +163,9 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
     }
   },
   hasDialog = OnChrome && Build.MinCVer >= BrowserVer.MinEnsuredHTMLDialogElement || WithDialog && doesSupportDialog(),
-  startAnimate = (): void => {
+  restartAnimate = (): void => {
+    if (!keyIsDown) { toggleAnimation!(); return }
+    totalElapsed = minDelay
     running = running || rAF_(animate);
   };
   toggleAnimation = (scrolling?: BOOL): void => {
@@ -198,7 +203,7 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
     if (!Build.NDEBUG && ScrollConsts.DEBUG) {
       console.log("[animation] start with axis = %o, amount = %o, dir = %o", di ? "y" : "x", amount, sign)
     }
-    startAnimate();
+    running = running || rAF_(animate)
   };
   performAnimate(newEl, newDi, newAmount)
 }
@@ -271,6 +276,7 @@ export const executeScroll = function (di: ScrollByY, amount0: number, isTo: BOO
       getPixelScaleToScroll()
     }
     const element = findScrollable(di, isTo ? fromMax ? 1 : -1 : amount0)
+    const isTopElement = element === scrollingTop
     let amount = !factor ?
         (!di && amount0 && element && dimSize_(element, kDim.scrollW)
             <= dimSize_(element, kDim.scrollH) * (dimSize_(element, kDim.scrollW) < 720 ? 2 : 1)
@@ -280,9 +286,11 @@ export const executeScroll = function (di: ScrollByY, amount0: number, isTo: BOO
     if (isTo) {
       const curPos = dimSize_(element, di + kDim.positionX),
       viewSize = dimSize_(element, di + kDim.viewW),
-      max = (fromMax || amount) && dimSize_(element, di + kDim.scrollW) - viewSize
+      rawMax = (fromMax || amount) && dimSize_(element, di + kDim.scrollW),
+      boundingMax = isTopElement && element ? getBoundingClientRect_(element).height : 0,
+      max = (boundingMax > rawMax && boundingMax < rawMax + 1 ? boundingMax : rawMax) - viewSize
       amount = element ? max_(0, min_(fromMax ? max - amount : amount, max)) - curPos
-          : fromMax ? viewSize : amount - curPos;
+          : fromMax ? max : amount - curPos;
     }
     let core: ReturnType<typeof getParentVApi> | false;
     if (element === scrollingTop && element
@@ -508,7 +516,7 @@ export const scrollIntoView_s = (el?: SafeElement | null): void => {
 
 export const shouldScroll_s = (element: SafeElement, di: BOOL | 2 | 3, amount: number): -1 | 0 | 1 => {
     const st = getComputedStyle_(element), overflow = di ? st.overflowY : st.overflowX
-    return (overflow === HDN || overflow === "clip") && di < 2
+    return (overflow === HDN && di < 2 || overflow === "clip")
       || st.display === NONE || !isRawStyleVisible(st) ? -1
       : <BOOL> +doesScroll(element, (di & 1) as BOOL, amount || +!dimSize_(element, kDim.positionX + di))
 }

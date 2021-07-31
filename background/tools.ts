@@ -2,7 +2,7 @@ import {
   curIncognito_, curTabId_, curWndId_, framesForTab_, incognitoFindHistoryList_, recencyForTab_, set_curIncognito_,
   set_curTabId_, set_curWndId_, set_incognitoFindHistoryList_, set_lastWndId_, set_recencyForTab_, incognitoMarkCache_,
   set_incognitoMarkCache_, contentPayload_, reqH_, settingsCache_, OnFirefox, OnChrome, CurCVer_,
-  OnEdge, isHighContrast_ff_, omniPayload_, blank_, CONST_
+  OnEdge, isHighContrast_ff_, omniPayload_, blank_, CONST_, RecencyMap
 } from "./store"
 import * as BgUtils_ from "./utils"
 import { Tabs_, Windows_, browser_, tabsGet, getCurWnd, getTabUrl, runtimeError_, browserSessions_ } from "./browser"
@@ -582,7 +582,15 @@ setTimeout((): void => {
     existing.forEach((i, ind) => i[1].i = ind + 2)
     stamp = existing.length > 0 ? existing[existing.length - 1][1].i : 1
     if (stamp > 1) {
-      set_recencyForTab_(cache = new Map(existing))
+      if (OnChrome && Build.MinCVer < BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol
+          && CurCVer_ < BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol) {
+        cache.clear()
+        for (const item of existing) {
+          cache.set(item[0], item[1])
+        }
+      } else {
+        set_recencyForTab_(cache = new Map(existing) as RecencyMap)
+      }
       return
     }
     cache.forEach((val, i): void => {

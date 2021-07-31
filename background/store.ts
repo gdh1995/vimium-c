@@ -60,7 +60,12 @@ export let bgIniting_ = BackendHandlersNS.kInitStat.START
 //#region info about opened tabs
 export const framesForTab_ = new Map() as Frames.FramesMap
 export const framesForOmni_: Port[] = []
-export let recencyForTab_ = new Map<number, { /* index */ i: number; /* mono clock */ t: number }>()
+interface RecencyItem { /* index */ i: number; /* mono clock */ t: number }
+export interface RecencyMap extends Map<number, RecencyItem> {
+  keys: never; entries: never; values: never
+  forEach (callback: (frames: RecencyItem, tabId: number) => void): void
+}
+export let recencyForTab_ = new Map() as RecencyMap
 export let curTabId_: number = GlobalConsts.TabIdNone
 export let curWndId_: number = GlobalConsts.WndIdNone
 export let lastWndId_: number = GlobalConsts.WndIdNone

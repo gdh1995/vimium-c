@@ -221,7 +221,12 @@ export const deferPromise_ = <T> (): { promise_: Promise<T>, resolve_ (result: T
   const promise = new Promise<any>(/*#__NOINLINE__*/ _exposeResolve)
   const newResolve = _tmpResolve!
   _tmpResolve = null
-  return { promise_: promise, resolve_: newResolve }
+  return {
+    promise_: promise,
+    resolve_: OnChrome && Build.MinCVer < BrowserVer.Min$resolve$Promise$MeansThen
+        && CurCVer_ < BrowserVer.Min$resolve$Promise$MeansThen
+      ? (i: T): void => { Promise.resolve(i).then(newResolve) } : newResolve
+  }
 }
 
 export const nextTick_ = !OnEdge

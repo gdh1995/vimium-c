@@ -1,7 +1,7 @@
 import {
   needIcon_, cPort, set_cPort, reqH_, contentPayload_, omniPayload_, innerCSS_, extAllowList_, framesForTab_,
   framesForOmni_, getNextFakeTabId, curTabId_, settingsCache_, OnChrome, CurCVer_, OnEdge, setIcon_,
-  keyFSM_, mappedKeyRegistry_, CONST_, mappedKeyTypes_
+  keyFSM_, mappedKeyRegistry_, CONST_, mappedKeyTypes_, recencyForTab_
 } from "./store"
 import { asyncIter_, getOmniSecret_, keys_ } from "./utils"
 import { removeTempTab, tabsGet, runtimeError_, getCurTab, getTabUrl, Tabs_, browserWebNav_ } from "./browser"
@@ -339,7 +339,7 @@ export const complainNoSession = (): void => {
 
 if (OnChrome && Build.MinCVer < BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol
     && CurCVer_ < BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol) {
-  framesForTab_.forEach = (callback): void => {
+  framesForTab_.forEach = recencyForTab_.forEach = (callback: (value: any, key: number) => void): void => {
     const map = (framesForTab_ as any as SimulatedMap).map_ as Dict<any> as Dict<Frames.Frames>
     for (const key in map) {
       callback(map[key]!, +key)

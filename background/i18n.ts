@@ -13,7 +13,8 @@ const endsWith = <A extends string, S extends string> (a: A, child: S
 
 export const transPart_ = (name: "i18n" | "sugs", child: string): string => {
   const msg = trans_(name)
-  return (msg && msg.split(" ").find(i => i.startsWith(child)) || "").slice(child.length + 1)
+  return msg && msg.split(" ").reduce((old, i) => old ? old : !i.includes("=") ? i
+      : i.startsWith(child) ? i.slice(child.length + 1) : old, "")
 }
 
 export const getI18nJson = (file_name: "help_dialog" | "params.json"): Promise<SafeDict<string>> => {

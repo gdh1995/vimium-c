@@ -1,6 +1,9 @@
 declare const enum kCmdInfo { NoTab = 0, ActiveTab = 1, CurWndTabsIfRepeat = 2, CurWndTabs = 3, CurShownTabs = 4 }
 
 type Tab = chrome.tabs.Tab
+type CmdResult = /** false */ 0 | /** true */ 1 | false | true | /** true and timeout=50 */ 50 | Tab | /** stop */ -1
+// if not call it, then it means do nothing
+type OnCmdResolved = (result: CmdResult) => void
 type BgCmdNoTab<T extends kBgCmd> = (this: void, _fakeArg?: undefined) => void | T
 type BgCmdActiveTab<T extends kBgCmd> = (this: void, tabs1: [Tab]) => void | T
 type BgCmdCurWndTabs<T extends kBgCmd> = (this: void, tabs1: Tab[]) => void | T

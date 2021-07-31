@@ -151,9 +151,11 @@ export const import2 = (url: string): Promise<unknown> => {
   return define([url]) // eslint-disable-line @typescript-eslint/no-unsafe-call
 }
 
-/** @see {@link ../background/i18n#getI18nJson } */
-const transPart_ = (msg: string, key: string): string =>
-    (msg && msg.split(" ").find(i => i.startsWith(key)) || "").slice(key.length + 1)
+/** @see {@link ../background/i18n#transPart_ } */
+const transPart_ = (msg: string, child: string): string => {
+  return msg && msg.split(" ").reduce((old, i) => old ? old : !i.includes("=") ? i
+      : i.startsWith(child) ? i.slice(child.length + 1) : old, "")
+}
 const bTrans_ = browser_.i18n.getMessage
 const curPath = location.pathname.replace("/pages/", "").split(".")[0]
 export const pageLangs_ = transPart_(bTrans_("i18n"), curPath) || bTrans_("lang1") || "en"

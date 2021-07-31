@@ -40,7 +40,8 @@ export const getTabUrl = OnChrome ? (tab_may_pending: Pick<Tab, "url" | "pending
     tab_may_pending.url || tab_may_pending.pendingUrl : (tab_with_url: Pick<Tab, "url">): string => tab_with_url.url
 
 export const isTabMuted = OnChrome && Build.MinCVer < BrowserVer.MinMutedInfo && CurCVer_ < BrowserVer.MinMutedInfo
-    ? (maybe_muted: Tab): boolean => maybe_muted.muted! : (maybe_muted: Tab): boolean => maybe_muted.mutedInfo.muted
+    ? (maybe_muted: Tab): boolean => maybe_muted.muted!
+    : OnEdge ? (_tab: Tab) => false : (maybe_muted: Tab): boolean => maybe_muted.mutedInfo.muted
 
 export const getCurTab = Tabs_.query.bind<null, { active: true; currentWindow: true }
     , [(result: [Tab], _ex: FakeArg) => void], 1>(null, { active: true, currentWindow: true })
@@ -83,7 +84,8 @@ type PromisifyApi1<F extends Function> =
     ? (...args: A) => Promise<R> : F
 type PromisifyApi2<F extends Function> =
     F extends { (...args: infer A1) : infer R1; (...args: infer A2): infer R2 }
-    ? R1 extends Promise<any> ? (...args: A1) => R1 : PromisifyApi1<(...args: A2) => R2>
+    ? R1 extends Promise<any> ? (...args: A1) => R1
+    : PromisifyApi1<(...args: A1) => R1> | PromisifyApi1<(...args: A2) => R2>
     : PromisifyApi1<F>
 type ApiParams<F extends Function> = Parameters<PromisifyApi2<F>>
 type ApiCb<F extends Function> = PromisifyApi2<F> extends (...args: any[]) => Promise<infer R>
@@ -204,7 +206,7 @@ export const openMultiTabs = (options: InfoToCreateMultiTab, count: number
         }, evenIncognito)
         return
       }
-    } else if (options.openerTabId != null && (!curTab || curTab.cookieStoreId !== "firefox-default")) {
+    } else if (!doesGroup && options.openerTabId != null && (!curTab || getGroupId(curTab))) {
       delete options.openerTabId
     }
   } else if (!OnEdge) {
@@ -238,13 +240,13 @@ export const makeWindow = (options: chrome.windows.CreateData, state?: chrome.wi
   if (typeof url === "string" && doesIgnoreUrlField_(url, options.incognito)) {
     delete options.url
   }
-  Windows_.create(options, state || !focused ? (wnd): void => {
-    const res = callback && callback(wnd)
-    if (!wnd) { return callback === runtimeError_ ? runtimeError_() : res || undefined }
+  Windows_.create(options, state || !focused || callback ? (wnd): void => {
+    callback && callback(wnd)
+    if (!(state || !focused) || !wnd) { return runtimeError_() }
     const opt: chrome.windows.UpdateInfo = focused ? {} : { focused: false }
     state && (opt.state = state)
     Windows_.update(wnd.id, opt)
-  } : callback || null)
+  } : runtimeError_)
 }
 
 export const makeTempWindow = (tabIdUrl: number | "about:blank", incognito: boolean
@@ -302,7 +304,7 @@ export const downloadFile = (url: string, filename?: string | null, refer?: stri
 
 let _lockToRemoveTempTab: Promise<void> | null = null
 export const removeTempTab = (tabId: number, wndId: number, url: string): void => {
-  if (OnChrome || OnEdge || !(browserSessions_()?.forgetClosedTab)) { Tabs_.remove(tabId); return }
+  if (OnChrome || OnEdge || !(browserSessions_()?.forgetClosedTab)) { Tabs_.remove(tabId, runtimeError_); return }
   const old = _lockToRemoveTempTab
   let lock: Promise<void> | undefined
   lock = (async (): Promise<void> => {

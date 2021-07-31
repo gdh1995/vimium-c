@@ -19,11 +19,12 @@
 <div style="clear:both">after iframe</div>
   <!-- '<script src="/pages/loader.js"></script>', -->
 <script type="text/javascript">
+"use strict";
 addEventListener("load", function() {
 var doc = iframe1.contentDocument;
 doc.firstElementChild.innerHTML = [
   // '<body style="width:100%;height:600px;margin:0;',
-  '<body style="width:600px;height:360px;margin:0;',
+  '<body style="width:580px;height:360px;margin:0;',
       'text-align:center;vertical-align:middle;">',
   '<div role="button" style="margin:0 10px;height:100px;">[  0, 100) px</div>',
   '<div role="button" style="margin:0 10px;height:100px;">[100, 200) px</div>',
@@ -38,7 +39,7 @@ doc.firstElementChild.innerHTML = [
 doc.firstElementChild.style.background = "#eee";
 doc.onclick = function(e){
   e.target.style.backgroundColor = e.target.style.backgroundColor ? "" : "#ff9999";
-  e.target.ownerDocument.defaultView.location.reload();
+  // e.target.ownerDocument.defaultView.location.reload();
 }
 });
 addEventListener("load", function() {

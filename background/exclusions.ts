@@ -1,4 +1,4 @@
-import { CurCVer_, framesForTab_, iconData_, keyFSM_, OnChrome, reqH_, setIcon_ } from "./store"
+import { CurCVer_, framesForTab_, iconData_, keyFSM_, OnChrome, OnFirefox, reqH_, setIcon_ } from "./store"
 import * as BgUtils_ from "./utils"
 import { browserWebNav_ } from "./browser"
 import { formatVimiumUrl_ } from "./normalize_urls"
@@ -107,7 +107,8 @@ export const getExcluded_ = (url: string, sender: Frames.Sender): string | null 
 }
 
 let getOnURLChange_ = (): null | ExclusionsNS.Listener => {
-  const onURLChange: null | ExclusionsNS.Listener = !browserWebNav_()! ? null
+  const onURLChange: null | ExclusionsNS.Listener = !browserWebNav_()!
+        || !(!OnChrome || OnFirefox || browserWebNav_()!.onHistoryStateUpdated) ? null
       : !OnChrome || Build.MinCVer >= BrowserVer.MinWithFrameId || CurCVer_ >= BrowserVer.MinWithFrameId
       ? (details): void => { reqH_[kFgReq.checkIfEnabled](details) }
       : (details): void => {

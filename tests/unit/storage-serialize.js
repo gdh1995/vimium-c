@@ -5,7 +5,7 @@ function doTest(step, encoder, repeat) {
   var encoder = encoder != null ? +encoder : 1;
   var key = 'keyMappings';
   var BG_ = window.BG_ || window;
-  var bgSettings_ = BG_.Settings_ || Settings_;
+  var bgSettings_ = BG_.define.settings;
   var d = bgSettings_.get_(key, true);
   repeat > 1 && (d = d.repeat(repeat));
   var err = [];

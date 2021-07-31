@@ -284,7 +284,7 @@ const commandGroups_: {
       , "togglePinTab", "toggleMuteTab", "visitPreviousTab", "closeTabsOnLeft"
       , "closeTabsOnRight", "closeOtherTabs", "moveTabLeft", "moveTabRight"
       , "enableContentSettingTemp", "toggleContentSetting", "clearContentSettings", "copyWindowInfo", "captureTab"],
-    misc: ["showHelp", "autoCopy", "autoOpen", "searchAs", "searchInAnother"
+    misc: ["showHelp", "autoCopy", "autoOpen", "searchAs", "searchInAnother", "showTip"
       , "addBookmark"
       , "toggleStyle", "toggleLinkHintCharacters"
       , "toggleSwitchTemp", "passNextKey", "debugBackground"

@@ -326,23 +326,16 @@ export const onLoad = (later?: Event): void => {
         && (Build.MinFFVer < FirefoxBrowserVer.MinContentEditableInShadowSupportIME
           && firefoxVer_ < FirefoxBrowserVer.MinContentEditableInShadowSupportIME)
         ? box : attachShadow_(box),
-    inShadow = OnChrome && Build.MinCVer >= BrowserVer.MinShadowDOMV0
+    AlwaysInShadow = OnChrome && Build.MinCVer >= BrowserVer.MinShadowDOMV0
         || OnFirefox && Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1
             && Build.MinFFVer >= FirefoxBrowserVer.MinContentEditableInShadowSupportIME
-        || !OnEdge && root !== box,
-    root2 = OnChrome && Build.MinCVer >= BrowserVer.MinShadowDOMV0
-        || OnFirefox && Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1
-            && Build.MinFFVer >= FirefoxBrowserVer.MinContentEditableInShadowSupportIME
-        || !OnEdge && inShadow ? addElement("div") as HTMLDivElement : box
+    const root2 = AlwaysInShadow || !OnEdge && root !== box ? addElement("div") as HTMLDivElement : box
     setClassName_s(root2, "r" + fgCache.d)
     root2.spellcheck = false;
     appendNode_s(root2, list)
     setOrRemoveAttr_s(box, "role", "textbox")
     setOrRemoveAttr_s(box, "aria-multiline", "true")
-    if (OnChrome && Build.MinCVer >= BrowserVer.MinShadowDOMV0
-        || OnFirefox && Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1
-            && Build.MinFFVer >= FirefoxBrowserVer.MinContentEditableInShadowSupportIME
-        || !OnEdge && inShadow) {
+    if (AlwaysInShadow || !OnEdge && root !== box) {
       root_ = root as ShadowRoot
       // here can not use `box.contentEditable = "true"`, otherwise Backspace will break on Firefox, Win
       setupEventListener(root2, MDW, onMousedown, 0, 1)
@@ -357,8 +350,9 @@ export const onLoad = (later?: Event): void => {
     }
     if (OnFirefox) {
       if (box !== body) {
+        const css = findCSS.i, i1 = css.indexOf("body{"), i2 = css.indexOf("}", i1) + 1
         appendNode_s(innerDoc_.head! as HTMLHeadElement & SafeHTMLElement
-            , createStyle("body{margin:0!important}", addElement("style") as HTMLStyleElement))
+            , createStyle(css.slice(i1, i2), addElement("style") as HTMLStyleElement))
         appendNode_s(body, box)
       }
     } else if (zoom < 1) {

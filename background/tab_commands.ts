@@ -311,7 +311,9 @@ export const moveTabToNewWindow = (): void | kBgCmd.moveTabToNewWindow => {
       }
       // in tests on Chrome 46/51, Chrome hangs at once after creating a new normal window from an incognito tab
       // so there's no need to worry about stranger edge cases like "normal window + incognito tab + not allowed"
-      makeWindow(options, state, tabId ? null : notifyCKey)
+      makeWindow(options, state, (newWnd): void => {
+        useUrl || newWnd && notifyCKey()
+      })
       if (useUrl) {
         Tabs_.remove(tabId)
       }
@@ -442,12 +444,11 @@ export const removeTab = (phase?: 1 | 2, tabs?: readonly Tab[]): void => {
     }
   } else if (optHighlighted) {
     const highlighted = tabs.filter(j => j.highlighted && j !== tab), noCurrent = optHighlighted === "no-current"
-    count = highlighted.length
-    if (count > 0 && (noCurrent || count < total - 1)) {
+    count = highlighted.length + 1
+    if (count > 1 && (noCurrent || count < total)) {
       Tabs_.remove(highlighted.map(j => j.id), runtimeError_)
-      count = 1
     }
-    if (noCurrent) { count > 0 && runNextCmd<kBgCmd.removeTab>(1); return }
+    if (noCurrent) { count > 1 && runNextCmd<kBgCmd.removeTab>(1); return }
   }
   if (!start && count >= total
       && (get_cOptions<C.removeTab>().mayClose != null ? get_cOptions<C.removeTab>().mayClose

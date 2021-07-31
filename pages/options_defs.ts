@@ -289,6 +289,7 @@ export class MaskedText_<T extends TextOptionNames> extends TextOption_<T> {
   masked_: boolean
   _myCancelMask: (() => void) | null
   override init_ (): void {
+    super.init_()
     this.masked_ = true
     this._myCancelMask = this.cancelMask_.bind(this);
     this.element_.addEventListener("focus", this._myCancelMask)

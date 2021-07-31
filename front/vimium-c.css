@@ -25,11 +25,10 @@ padding:4px 4px 1px;right:152px;text-overflow:ellipsis;white-space:nowrap}
 /*#find*/
 ::selection { background: #ff9632 !important; }
 html, body, * { user-select: auto; }
-*{cursor:text;font:14px/16px "Helvetica Neue",Helvetica,Arial,sans-serif;margin:0;outline:none;white-space:nowrap}
+*{cursor:text;font:14px/16px "Helvetica Neue",Helvetica,Arial,sans-serif;margin:0;outline:none;white-space:pre}
 .r{all:initial;background:#fff;border-radius:3px 3px 0 0;box-shadow:inset 0 0 1.5px 1px #aaa;color:#000;
 cursor:text;display:flex;height:21px;padding:4px 4px 0}.r.D{background:#222;color:#d4d4d4}
 #s{flex:0 0 4px}#i{flex:0 1 auto;height:16px;min-width:9px;margin-left:2px;overflow:hidden;padding:0 2px 0 0}
 #h{flex:1 0 auto}br{all:inherit!important;display:inline!important}#c{flex:0 0 auto;margin-left:2px}
 #s:after,#c:after{content:attr(data-vimium);display:inline}
-:host,body{background-color:#eee!important;margin:0!important;height:24px}
-:host(.D),body.D{background-color:#222!important}
+:host,body{background:#0000!important;margin:0!important;height:24px}

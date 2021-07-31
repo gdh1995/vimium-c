@@ -110,8 +110,8 @@ set_requestHandlers([
     const newPassKeys = request.p, old = isEnabled_
     set_isEnabled_(newPassKeys !== "")
     if (newPassKeys) {
-      const arr = (isPassKeysReversed ? newPassKeys.slice(2) : newPassKeys).split(" ")
       set_isPassKeysReversed(newPassKeys[0] === "^" && newPassKeys.length > 2)
+      const arr = (isPassKeysReversed ? newPassKeys.slice(2) : newPassKeys).split(" ")
       if (OnChrome && Build.MinCVer < BrowserVer.Min$Set$accept$Symbol$$Iterator
           && chromeVer_ < BrowserVer.Min$Set$accept$Symbol$$Iterator) {
         type StringArraySet = string[] & Set<string>;
