@@ -12,6 +12,7 @@ import {
   makeCommand_
 } from "./key_mappings"
 import C = kBgCmd
+import NormalizedEnvCond = CommandsNS.NormalizedEnvCond
 
 const abs = Math.abs
 let _gCmdTimer = 0
@@ -389,100 +390,79 @@ const matchEnvRule = (rule: CommandsNS.EnvItem, info: CurrentEnvCache): EnvMatch
   return EnvMatchResult.matched
 }
 
+const normalizeExpects = (options: KnownOptions<C.runKey>): (NormalizedEnvCond | null)[] => {
+  const expected_rules = options.expect
+  if (options.$normalized) { return expected_rules as NormalizedEnvCond[] }
+  const normalizeKeys = (keys: string | string[] | null | undefined): string[] => {
+    return keys ? typeof keys === "string" ? keys.trim().split(<RegExpG> /[, ]+/)
+        : keys instanceof Array ? keys : [] : []
+  }
+  let new_rules: (NormalizedEnvCond | null)[] = []
+  if (!expected_rules) { /* empty */ }
+  else if (expected_rules instanceof Array) {
+    new_rules = expected_rules.map((rule): NormalizedEnvCond | null => rule instanceof Array
+        ? { env: rule[0] + "", keys: normalizeKeys(rule[1]), options: rule[2] as any }
+        : !rule || typeof rule !== "object" ? null
+        : { env: rule.env || rule, keys: normalizeKeys(rule.keys), options: rule.options })
+  } else if (typeof expected_rules === "object") {
+    new_rules = Object.keys(expected_rules).map((name): NormalizedEnvCond => {
+      const val = expected_rules[name], isDict = val && typeof val === "object" && !(val instanceof Array)
+      return { env: name, keys: normalizeKeys(isDict ? val.keys : val), options: isDict ? val.options : null }
+    })
+  } else if (typeof expected_rules === "string" && (<RegExpOne> /^[^{].*?[:=]/).test(expected_rules)) {
+    new_rules = expected_rules.split(expected_rules.includes(";") ? <RegExpG> /[;\s]+/g : <RegExpG> /[,\s]+/g)
+        .map(i => i.split(<RegExpOne> /[:=]/))
+        .map((rule): NormalizedEnvCond | null => rule.length !== 2 ? null
+              : ({ env: rule[0], keys: normalizeKeys(rule[1]), options: null }))
+  }
+  new_rules = new_rules.map((i): NormalizedEnvCond | null =>
+        i && i.env && i.env !== "__proto__" && i.keys.length ? i : null)
+  overrideOption<C.runKey, "expect">("expect", new_rules)
+  overrideOption<C.runKey, "$normalized">("$normalized", true)
+  return new_rules
+}
+
+/** not call runNextCmd on invalid env/key info, but just show HUD to alert */
 export const runKeyWithCond = (info?: CurrentEnvCache): void => {
-  let expected_rules = get_cOptions<kBgCmd.runKey>().expect
   const absCRepeat = abs(cRepeat)
-  let matchedIndex: number | string = -1
-  let matchedRule: KnownOptions<kBgCmd.runKey> | CommandsNS.EnvItem | CommandsNS.EnvItemWithKeys
-      = get_cOptions<kBgCmd.runKey, true>()
-  let keys: string | string[] | null | undefined
+  let matched: NormalizedEnvCond | undefined
   const frames = framesForTab_.get(cPort ? cPort.s.tabId_ : curTabId_)
   if (!cPort) {
     set_cPort(frames ? frames.cur_ : null as never)
   }
   frames && (frames.flags_ |= Frames.Flags.userActed)
   info = info || {}
-  for (let i = 0, size = expected_rules instanceof Array ? expected_rules.length : 0
-        ; i < size; i++) {
-    let rule: CommandsNS.EnvItem | "__not_parsed__" | CommandsNS.EnvItemWithKeys | null | undefined
-        = (expected_rules as CommandsNS.EnvItemWithKeys[])[i]
-    const ruleName = (rule as CommandsNS.EnvItemWithKeys).env
-    if (ruleName) {
+  const expected_rules = normalizeExpects(get_cOptions<C.runKey, true>())
+  for (const normalizedRule of expected_rules) {
+    if (!normalizedRule) { continue }
+    const ruleName = normalizedRule.env
+    let rule: CommandsNS.EnvItem | string | undefined = ruleName
+    if (typeof rule === "string") {
       if (!envRegistry_) {
         showHUD("No environments have been declared")
         return
       }
-      rule = envRegistry_.get(ruleName)
+      rule = envRegistry_.get(rule)
       if (!rule) {
         showHUD(`No environment named "${ruleName}"`)
         return
       }
       if (typeof rule === "string") {
         rule = parseOptions_(rule) as CommandsNS.EnvItem
-        envRegistry_.set(ruleName, rule)
+        envRegistry_.set(ruleName as string, rule)
       }
-    } else {
-      BgUtils_.safer_(rule)
     }
     const res = matchEnvRule(rule, info)
     if (res === EnvMatchResult.abort) { return }
     if (res === EnvMatchResult.matched) {
-      matchedIndex = ruleName || i
-      matchedRule = rule
-      if (ruleName) {
-        keys = (expected_rules as CommandsNS.EnvItemWithKeys[])[i].keys
-      }
+      matched = normalizedRule
       break
     }
   }
-  if (typeof expected_rules === "string" && (<RegExpOne> /^[^{].*?[:=]/).test(expected_rules)) {
-    expected_rules = expected_rules.split(<RegExpG> /[,\s]+/g).map((i): string[] => i.split(<RegExpOne> /[:=]/)
-        ).reduce((obj, i): SafeDict<string> => {
-      if (i.length === 2 && i[0] !== "__proto__" && (<RegExpOne> /^[\x21-\x7f]+$/).test(i[1])) {
-        obj[i[0]] = i[1]
-      }
-      return obj
-    }, BgUtils_.safeObj_<string>())
-    overrideOption<C.runKey, "expect">("expect", expected_rules)
-  }
-  if (matchedIndex === -1 && expected_rules
-      && typeof expected_rules === "object" && !(expected_rules instanceof Array)) {
-    BgUtils_.safer_(expected_rules)
-    if (!envRegistry_) {
-      showHUD("No environments have been declared")
-      return
-    }
-    for (let ruleName in expected_rules) {
-      let rule = envRegistry_.get(ruleName)
-      if (!rule) {
-        showHUD(`No environment named "${ruleName}"`)
-        return
-      }
-      if (typeof rule === "string") {
-        rule = parseOptions_(rule) as CommandsNS.EnvItem
-        envRegistry_.set(ruleName, rule)
-      }
-      const res = matchEnvRule(rule, info)
-      if (res === EnvMatchResult.abort) { return }
-      if (res === EnvMatchResult.matched) {
-        matchedIndex = ruleName
-        matchedRule = rule
-        keys = (expected_rules as Exclude<BgCmdOptions[kBgCmd.runKey]["expect"] & object, unknown[]>)[ruleName]
-        break
-      }
-    }
-  }
-  keys = keys || (matchedRule as KnownOptions<kBgCmd.runKey> | CommandsNS.EnvItemWithKeys).keys
-  if (typeof keys === "string") {
-    keys = keys.trim().split(BgUtils_.spacesRe_);
-    if (typeof matchedIndex === "number") {
-      (matchedRule as KnownOptions<kBgCmd.runKey> | CommandsNS.EnvItemWithKeys).keys = keys
-    } else {
-      (expected_rules as Dict<string | string[]>)[matchedIndex] = keys
-    }
-  }
+  const keys = matched ? matched.keys : get_cOptions<C.runKey>().keys
   let key: string
-  const sub_name = typeof matchedIndex === "number" && matchedIndex >= 0 ? `[${matchedIndex + 1}] ` : ""
+  const sub_name = matched ? typeof matched.env === "string" ? `[${matched.env}]: `
+      : `(${expected_rules.indexOf(matched)})` : ""
   if (!(keys instanceof Array)) {
     showHUD(sub_name + "Require keys: space-seperated-string | string[]")
   } else if (absCRepeat > keys.length && keys.length !== 1) {
@@ -491,7 +471,7 @@ export const runKeyWithCond = (info?: CurrentEnvCache): void => {
     showHUD(sub_name + "The key is invalid")
   } else {
     runKeyWithOptions(key, keys.length === 1 ? cRepeat : absCRepeat !== cRepeat ? -1 : 1
-        , matchedRule.options || get_cOptions<kBgCmd.runKey, true>().options)
+        , matched && matched.options || get_cOptions<C.runKey, true>().options)
   }
 }
 

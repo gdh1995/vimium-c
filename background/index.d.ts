@@ -219,11 +219,7 @@ declare namespace CommandsNS {
     /** (deprecated) @see host */ url?: string
     fullscreen?: boolean
     iframe?: string | boolean | ValidUrlMatchers | null
-    options?: object & EnvItemOptions
-  }
-  interface EnvItemWithKeys extends EnvItem {
-    env: string
-    keys: string[] | string
+    options?: (object & EnvItemOptions) | null
   }
 }
 

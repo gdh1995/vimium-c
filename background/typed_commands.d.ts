@@ -110,9 +110,11 @@ interface BgCmdOptions {
   [kBgCmd.reopenTab]: Pick<OpenUrlOptions, "group"> & Req.FallbackOptions
   [kBgCmd.restoreTab]: { incognito: "force" | true; one: boolean }
   [kBgCmd.runKey]: {
-    expect: CommandsNS.EnvItemWithKeys[] | Dict<string | string[]> | `${string}:${string},${string}:${string},`
+    expect: (CommandsNS.CondItem | null)[] | Dict<CommandsNS.CondItem | CommandsNS.CondKeys>
+        | `${string}:${string},${string}:${string},`
     keys: string[] | /** space-seperated list */ string
-    options?: CommandsNS.EnvItemWithKeys["options"]
+    options?: CommandsNS.EnvItem["options"]
+    $normalized?: boolean
   } & Req.FallbackOptions
   [kBgCmd.searchInAnother]: { keyword: string; reuse: UserReuseType } & Req.FallbackOptions
       & OpenUrlOptions & MasksForOpenUrl & OpenPageUrlOptions
@@ -228,15 +230,23 @@ declare namespace CommandsNS {
       } | { readonly alias_: keyof CmdOptions; readonly background_: 0 })
   interface EnvItemOptions extends CommandsNS.SharedPublicOptions {}
   interface EnvItemOptions extends Pick<CommandsNS.RawOptions, "count"> {}
+
+  type CondKeys = string | string[]
+  interface CondValueItem extends Pick<EnvItem, "options"> { keys: CondKeys }
+  interface NormalizedEnvCond extends CondValueItem {
+    env: string | EnvItem
+    keys: string[]
+  }
+  type CondItem = EnvItem & { env?: undefined } & CondValueItem | NormalizedEnvCond
 }
 
 interface StatefulBgCmdOptions {
   [kBgCmd.createTab]: null
   [kBgCmd.goNext]: "patterns" | "reuse"
   [kBgCmd.openUrl]: "urls" | "group" | "replace"
+  [kBgCmd.runKey]: "expect"
 }
 interface SafeStatefulBgCmdOptions {
-  [kBgCmd.runKey]: "expect"
   [kBgCmd.showVomnibar]: "mode"
 }
 
