@@ -128,6 +128,7 @@ interface BgCmdOptions {
   [kBgCmd.toggleZoom]: { level: number; in?: true; out?: true; reset?: true }
   [kBgCmd.visitPreviousTab]: { acrossWindows: true; onlyActive: true } & Req.FallbackOptions
   [kBgCmd.closeDownloadBar]: { newWindow?: null | true | false; all: 1 }
+  [kBgCmd.reset]: {}
 }
 
 interface BgCmdInfoMap {
@@ -253,7 +254,7 @@ interface SafeStatefulBgCmdOptions {
 type KeysWithFallback<O extends object, K extends keyof O = keyof O> =
     K extends keyof O ? O[K] extends Req.FallbackOptions ? K : never : never
 type SafeOptionKeys<O, K extends keyof O = keyof O> =
-    K extends keyof O ? K extends `$${string}` ? K extends "$f" | "$retry"? K : never
+    K extends keyof O ? K extends `$${string}` ? K extends "$f" | "$retry" ? K : never
     : K extends "fallback" ? never : K : never
 type OptionalPick<T, K extends keyof T> = { [P in K]?: T[P] | null; };
 type CmdOptionSafeToClone<K extends keyof BgCmdOptions | keyof CmdOptions> =
@@ -391,7 +392,7 @@ interface CmdNameIds {
   removeRightTab: kBgCmd.removeRightTab
   removeTab: kBgCmd.removeTab
   reopenTab: kBgCmd.reopenTab
-  reset: kFgCmd.insertMode
+  reset: kBgCmd.reset
   restoreGivenTab: kBgCmd.restoreTab
   restoreTab: kBgCmd.restoreTab
   runKey: kBgCmd.runKey

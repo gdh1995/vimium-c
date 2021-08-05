@@ -358,8 +358,13 @@ export const framesGoBack = (req: FgReq[kFgReq.framesGoBack], port: Port | null,
 export const mainFrame = (): void | kBgCmd.mainFrame => {
   const tabId = cPort ? cPort.s.tabId_ : curTabId_, ref = framesForTab_.get(tabId),
   port = ref && ref.top_
-  port && focusFrame(port, true, port === ref!.cur_ ? FrameMaskType.OnlySelf : FrameMaskType.ForcedSelf
+  if (port && port === ref.cur_ && get_cOptions<C.mainFrame>().$else
+      && typeof get_cOptions<C.mainFrame>().$else === "string") {
+    runNextCmd<C.mainFrame>(0)
+  } else {
+    port && focusFrame(port, true, port === ref.cur_ ? FrameMaskType.OnlySelf : FrameMaskType.ForcedSelf
       , get_cOptions<C.mainFrame, true>())
+  }
 }
 
 export const toggleZoom = (resolve: OnCmdResolved): void | kBgCmd.toggleZoom => {

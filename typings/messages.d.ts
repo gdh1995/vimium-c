@@ -43,7 +43,7 @@ interface ParsedSearch {
 
 declare const enum kAria { hidden = 0, disabled = 1 }
 declare const enum kHidden {
-  None = 0, VisibilityHidden = 1,
+  None = 0, VisibilityHidden = 1, OverflowHidden = 2,
   BASE_ARIA = 16, AriaHidden = BASE_ARIA << kAria.hidden, AriaDisabled = BASE_ARIA << kAria.disabled,
 }
 // Note: `clickable` is not used in `focusInput`
@@ -52,6 +52,7 @@ interface CSSOptions {
   clickable?: "css-selector" | null | undefined
   exclude?: "css-selector" | null | undefined
   evenIf?: kHidden | null | undefined
+  /* same as `.evenIf |= kHidden.OverflowHidden` */ scroll?: "force"
 }
 interface OtherFilterOptions {
   typeFilter?: /** 1 <<< kClickType */ number | null | undefined
@@ -72,7 +73,7 @@ declare const enum kBgReq {
   START = 0,
   init = START, reset, injectorRun, url, msg, eval,
   settingsUpdate, focusFrame, exitGrab, keyFSM, execute,
-  createMark, showHUD, count, queryForRunKey, goToMark,
+  createMark, showHUD, count, queryForRunKey, goToMark, suppressForAWhile,
   OMNI_MIN = 42,
   omni_init = OMNI_MIN, omni_omni, omni_parsed, omni_returnFocus,
   omni_toggleStyle, omni_updateOptions,
@@ -159,6 +160,7 @@ interface BgReq {
     /** scroll */ s: MarksNS.FgMark
     /** fallback options */ f?: Req.FallbackOptions | null
   }
+  [kBgReq.suppressForAWhile]: { /** timeout */ t: number }
 }
 
 interface BgVomnibarSpecialReq {
@@ -209,7 +211,7 @@ declare const enum kBgCmd {
   reloadTab, removeRightTab, removeTab, removeTabsR, reopenTab, restoreTab, runKey,
   searchInAnother, sendToExtension, showHUD,
   toggleCS, toggleMuteTab, togglePinTab, toggleTabUrl, toggleVomnibarStyle, toggleZoom,
-  visitPreviousTab, closeDownloadBar,
+  visitPreviousTab, closeDownloadBar, reset,
   END, ENDS = "END",
 }
 
@@ -266,7 +268,6 @@ declare namespace HintsNS {
         | "last-window" | "window" | /** Firefox-only */ "no-prevent"
     reuse?: UserReuseType
     button?: "right";
-    scroll?: "force";
     touch?: null | boolean | "auto";
     join?: FgReq[kFgReq.copy]["j"];
     decoded?: boolean;
@@ -318,8 +319,8 @@ interface CmdOptions {
     smooth?: boolean
     keepHover?: true | false | "auto" | "never" | /* or >= 20 */ 20
     acrossFrames?: true | false
-    /** inner flags */ flags?: kScFlag & number
-  } & ({
+    /** inner flags */ f?: kScFlag & number
+  } & Pick<CSSOptions, "evenIf" | "scroll"> & ({
     dir?: 1 | -1 | 0.5 | -0.5;
     view?: 0 | /** means 0 */ undefined | 1 | "max" | /* all others are treated as "view" */ 2 | "view";
     dest?: undefined;

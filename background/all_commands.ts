@@ -18,7 +18,7 @@ import { trans_ } from "./i18n"
 import { stripKey_ } from "./key_mappings"
 import {
   confirm_, overrideCmdOptions, runNextCmd, runKeyWithCond, portSendFgCmd, sendFgCmd, overrideOption, runNextCmdBy,
-  runNextOnTabLoaded, getRunNextCmdBy, kRunOn
+  runNextOnTabLoaded, getRunNextCmdBy, kRunOn, hasFallbackOptions
 } from "./run_commands"
 import { doesNeedToSed, parseSedOptions_ } from "./clipboard"
 import { goToNextUrl, newTabIndex, openUrl } from "./open_urls"
@@ -49,7 +49,7 @@ set_cmdInfo_(As_<{
   /* kBgCmd.restoreTab      */ Info.NoTab, Info.ActiveTab, Info.NoTab, Info.NoTab, Info.ActiveTab,
   /* kBgCmd.togglePinTab    */ Info.NoTab, Info.CurShownTabsIfRepeat, Info.ActiveTab, Info.ActiveTab, Info.NoTab,
       Info.NoTab,
-  /* kBgCmd.closeDownloadBar*/ Info.NoTab
+  /* kBgCmd.closeDownloadBar*/ Info.NoTab, Info.NoTab
 ]))
 
 const _AsBgC = <T extends Function>(command: T): T => {
@@ -67,8 +67,13 @@ set_bgC_([
       runNextOnTabLoaded({}, null, (): void => { runNextCmdBy(1, get_cOptions<C.blank, true>(), 1) })
       return
     }
-    wait = !wait ? 0 : Math.abs(wait === "count" || wait === "number" ? cRepeat : wait | 0)
-    wait && runNextCmdBy(1, get_cOptions<C.blank, true>(), Math.max(34, wait))
+    wait = !wait ? hasFallbackOptions(get_cOptions<C.blank, true>()) ? Math.abs(cRepeat) : 0
+        : Math.abs(wait === "count" || wait === "number" ? cRepeat : wait | 0)
+    if (wait) {
+      wait = Math.max(34, wait)
+      wait > 17 && wait <= 1000 && cPort && cPort.postMessage({ N: kBgReq.suppressForAWhile, t: wait + 50 })
+      runNextCmdBy(1, get_cOptions<C.blank, true>(), wait)
+    }
   },
 
 //#region need cport
@@ -664,5 +669,13 @@ set_bgC_([
         bgC_[kBgCmd.moveTabToNewWindow](resolve)
       }
     })
+  },
+  /* kBgCmd.reset */ (resolve): void | kBgCmd.reset => {
+    const ref = framesForTab_.get(cPort ? cPort.s.tabId_ : curTabId_)
+    for (const frame of ref ? ref.ports_ : []) {
+      portSendFgCmd(frame, kFgCmd.insertMode, false, { r: 1 }, 1)
+    }
+    ref && ref.cur_.postMessage({ N: kBgReq.suppressForAWhile, t: 150 })
+    resolve(1)
   }
 ])

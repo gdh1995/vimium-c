@@ -17,7 +17,7 @@ import { find_box } from "./mode_find"
 import { omni_box } from "./omni"
 import {
   kSafeAllSelector, coreHints, addChildFrame_, mode1_, forHover_, hintOptions, AddChildDirectly, wantDialogMode_,
-  isClickListened_, forceToScroll_, hintMode_, set_isClickListened_, tooHigh_, useFilter_, hintChars, hintManager
+  isClickListened_, hintMode_, set_isClickListened_, tooHigh_, useFilter_, hintChars, hintManager
 } from "./link_hints"
 import { shouldScroll_s, getPixelScaleToScroll, scrolled, set_scrolled, suppressScroll } from "./scroller"
 import { ui_root, ui_box, helpBox, curModalElement } from "./dom_ui"
@@ -165,7 +165,8 @@ const getClickable = (hints: Hint[], element: SafeHTMLElement): void => {
       && (isAriaNotTrue_(element, kAria.hidden) || extraClickable_ && extraClickable_.has(element))
       && (type < ClickType.scrollX
         || shouldScroll_s(element
-            , (((type - ClickType.scrollX) as ScrollByY) + forceToScroll_) as BOOL | 2 | 3, 0) > 0)
+            , (<ScrollByY> (type - ClickType.scrollX) + <0 | 2> (evenHidden_ & kHidden.OverflowHidden)) as BOOL | 2 | 3
+            , 0) > 0)
       && (mode1_ > HintMode.min_job - 1 || isAriaNotTrue_(element, kAria.disabled))
       && (type < ClickType.codeListener || type > ClickType.classname
           || !(s = element.getAttribute("unselectable")) || s.toLowerCase() !== "on")
@@ -354,7 +355,7 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
       ? selector = kSafeAllSelector : selector) === kSafeAllSelector && !matchSelector,
   output: Hint[] | Hint0[] = [],
   cur_arr: HintSources | null = matchSafeElements(selector, traverseRoot, matchSelector, 1) || (matchSelector = " ", [])
-  set_evenHidden_(options.evenIf! | 0)
+  set_evenHidden_(options.evenIf! | (options.scroll === "force" ? kHidden.OverflowHidden : 0))
   if (wantClickable) {
     getPixelScaleToScroll();
     initTestRegExps()

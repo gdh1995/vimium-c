@@ -632,7 +632,7 @@ export const availableCommands_: Dict<CommandsNS.Description> & SafeObject =
   removeRightTab: [ kBgCmd.removeRightTab, 1, 0 ],
   removeTab: [ kBgCmd.removeTab, 1, /** 20 in tab_commands.ts */ 0 ],
   reopenTab: [ kBgCmd.reopenTab, 1, 1 ],
-  reset: [kFgCmd.insertMode, 0, 1, { r: 1 }],
+  reset: [kBgCmd.reset, 1, 1],
   restoreGivenTab: [ kBgCmd.restoreTab, 1, 0, { one: true } ],
   restoreTab: [ kBgCmd.restoreTab, 1, 25 as 0 ],
   runKey: [ kBgCmd.runKey, 1, 0 ],

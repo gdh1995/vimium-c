@@ -134,7 +134,6 @@ let forHover_ = false
 let count_ = 0
 let lastMode_: HintMode = 0
 let tooHigh_: null | boolean = false
-let forceToScroll_: 0 | 2 = 0
 let isClickListened_ = true
 let chars_ = ""
 let useFilter_ = false
@@ -156,7 +155,7 @@ export {
   isActive as isHintsActive, box_ as hint_box, wantDialogMode_,
   hints_ as allHints, keyStatus_ as hintKeyStatus, useFilter_, frameArray, chars_ as hintChars,
   mode_ as hintMode_, mode1_, options_ as hintOptions, count_ as hintCount_,
-  forHover_, isClickListened_, forceToScroll_, tooHigh_, kSafeAllSelector, addChildFrame_,
+  forHover_, isClickListened_, tooHigh_, kSafeAllSelector, addChildFrame_,
   api_ as hintApi, manager_ as hintManager, isHC_
 }
 export function set_kSafeAllSelector (_newKSafeAll: string): void { kSafeAllSelector = _newKSafeAll as any }
@@ -281,7 +280,6 @@ const collectFrameHints = (options: ContentOptions, count: number
           && dimSize_(scrolling, kDim.scrollH) / wndSize_() > GlobalConsts.LinkHintTooHighThreshold
     }
     removeModal()
-    forceToScroll_ = options.scroll === "force" ? 2 : 0;
     addChildFrame_ = newAddChildFrame
     const elements = /*#__NOINLINE__*/ getVisibleElements(view)
     const hintItems = elements.map(createHint);
@@ -386,7 +384,7 @@ const onKeydown = (event: HandlerNS.Event): HandlerResult => {
     if (manager_) {
       set_keydownEvents_(api_.a())
       ret = manager_.n(event)
-    } else if (onWaitingKey) {
+    } else if (onWaitingKey && !isEscape_(getMappedKey(event, kModeId.Link))) {
       onWaitingKey()
     } else if (event.e.repeat || !isActive) {
       // NOTE: should always prevent repeated keys.
@@ -719,7 +717,7 @@ export const clear = (onlySelfOrEvent?: 0 | 1 | Event, suppressTimeout?: number)
     set_removeFlash(null)
     /*#__INLINE__*/ localLinkClear()
     set_maxPrefixLen_(0)
-    lastMode_ = mode_ = mode1_ = count_ = forceToScroll_ = coreHints.h = 0
+    lastMode_ = mode_ = mode1_ = count_ = coreHints.h = 0
     useFilter_ = noHUD_ = tooHigh_ = false
     if (WithDialog) { coreHints.d = 0 }
     chars_ = "";

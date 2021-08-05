@@ -194,7 +194,7 @@ const upperGitUrls = (url: string, path: string): string | void | null => {
   let arr = path.split("/"), lastIndex = arr.length - 1
   if (!arr[lastIndex]) { lastIndex--, arr.pop() }
   let last = arr[lastIndex]
-  if (host === "github.com") {
+  if (host.startsWith("github.")) {
     if (lastIndex === 3) {
       return last === "pull" || last === "milestone" || last === "commit" ? path + "s"
         : last === "tree" || last === "blob" ? arr.slice(0, 3).join("/")

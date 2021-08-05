@@ -250,7 +250,7 @@ export const $sc: VApiTy["$"] = (element, di, amount, options): void => {
       checkCurrent(element)
     } else if ((options && options.smooth != null ? options.smooth : fgCache.s)
         && !(OnChrome && Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage && !allowRAF_old_cr_)) {
-      amount && performAnimate(element, di, amount, options && options.flags)
+      amount && performAnimate(element, di, amount, options && options.f)
       scrollTick(1)
     } else if (amount) {
       doesSucceed_ = performScroll(element, di, amount)
@@ -288,13 +288,15 @@ export const activate = (options: CmdOptions[kFgCmd.scroll] & SafeObject, count:
 export const executeScroll: VApiTy["c"] = function (di: ScrollByY, amount0: number, flags: kScFlag & number
       , factor?: NonNullable<CmdOptions[kFgCmd.scroll]["view"]> | undefined
       , options?: CmdOptions[kFgCmd.scroll], oriCount?: number): void {
+    const toFlags = flags & (kScFlag.TO | kScFlag.INC), toMax = (toFlags - kScFlag.TO) as BOOL
     set_scrollingTop(scrollingEl_(1))
     if (scrollingTop) {
       getZoom_(1)
       getPixelScaleToScroll()
     }
-    const toFlags = flags & (kScFlag.TO | kScFlag.INC), toMax = (toFlags - kScFlag.TO) as BOOL
-    const element = findScrollable(di, toFlags ? toMax || -1 : amount0)
+    const element = findScrollable(di, toFlags ? toMax || -1 : amount0
+        , options && (options.scroll ? options.scroll === "force"
+            : options.evenIf != null ? !!(options.evenIf! & kHidden.OverflowHidden) : null))
     const isTopElement = element === scrollingTop
     const mayUpperFrame = !isTop && isTopElement && element && !fullscreenEl_unsafe_()
     let amount = !factor ?
@@ -349,7 +351,7 @@ export const executeScroll: VApiTy["c"] = function (di: ScrollByY, amount0: numb
         : keepHover === "auto" ? ScrollConsts.MinLatencyToAutoPreventHover
         : keepHover! > ScrollConsts.MinLatencyToAutoPreventHover - 1
         ? keepHover as ScrollConsts.MinLatencyToAutoPreventHover : 0
-    ; ((options || (options = {} as { dest: "min" | "max" } as CmdOptions[kFgCmd.scroll])).flags = flags)
+    ; ((options || (options = {} as { dest: "min" | "max" } as CmdOptions[kFgCmd.scroll])).f = flags)
     if (amount && readyState_ > "i" && overrideScrollRestoration) {
       overrideScrollRestoration("scrollRestoration", "manual")
     }
@@ -415,7 +417,8 @@ export const onScrolls = (event: KeyboardEventToPrevent): boolean => {
   /**
    * @param amount should not be 0
    */
-const findScrollable = (di: ScrollByY, amount: number): SafeElement | null => {
+const findScrollable = (di: ScrollByY, amount: number
+    , evenOverflowHidden?: boolean | 2 | null | undefined): SafeElement | null => {
   const selectFirst = (info: ElementScrollInfo, skipPrepare?: 1): ElementScrollInfo | null | undefined => {
     let cur_el = info.e, type: 0 | 1 | -1
     if (dimSize_(cur_el, kDim.elClientH) + 3 < dimSize_(cur_el, kDim.scrollH) &&
@@ -442,7 +445,7 @@ const findScrollable = (di: ScrollByY, amount: number): SafeElement | null => {
   }
 
     const top = scrollingTop, activeEl: SafeElement | null | undefined = deref_(currentScrolling)
-    const selectFirstType = isTop || !!injector ? 3 : 1
+    const selectFirstType = (evenOverflowHidden != null ? evenOverflowHidden : isTop || !!injector) ? 3 : 1
     let element = activeEl;
     if (element) {
       while (element !== top

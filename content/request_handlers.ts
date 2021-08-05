@@ -4,7 +4,7 @@ import {
   set_isEnabled_, set_onWndFocus, onWndFocus, timeout_, safer,
   interval_, getTime, vApi, clearInterval_, locHref, set_firefoxVer_, firefoxVer_,
 } from "../lib/utils"
-import { set_keyIdCorrectionOffset_old_cr_, handler_stack } from "../lib/keyboard_utils"
+import { set_keyIdCorrectionOffset_old_cr_, handler_stack, suppressTail_ } from "../lib/keyboard_utils"
 import {
   editableTypes_, markFramesetTagUnsafe_old_cr, OnDocLoaded_, BU, notSafe_not_ff_, docHasFocus_, deepActiveEl_unsafe_,
   htmlTag_, querySelector_unsafe_, isHTML_, createElement_, setClassName_s,
@@ -180,7 +180,7 @@ set_requestHandlers([
       isAlive_ && runFallbackKey(req.f, mask === FrameMaskType.OnlySelf ? 2 : 0)
     }, 1); // require FrameMaskType.NoMaskAndNoFocus is 0
     keydownEvents_[req.k] = 1;
-    (mask === FrameMaskType.OnlySelf && req.f) || showFrameMask(mask)
+    (mask === FrameMaskType.OnlySelf && req.f.$else) || showFrameMask(mask)
   },
   /* kBgReq.exitGrab: */ exitGrab as (this: void, request: Req.bg<kBgReq.exitGrab>) => void,
   /* kBgReq.keyFSM: */ function (request: BgReq[kBgReq.keyFSM]): void {
@@ -234,7 +234,8 @@ set_requestHandlers([
           && [(lock as SafeElement).localName, lock.id, lock.className] || 0
     })
   },
-  /* kBgReq.goToMark: */ gotoMark
+  /* kBgReq.goToMark: */ gotoMark,
+  /* kBgReq.suppressForAWhile: */ (request: BgReq[kBgReq.suppressForAWhile]): void => { suppressTail_(request.t) }
 ])
 
 export const showFrameMask = (mask: FrameMaskType): void => {

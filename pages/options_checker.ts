@@ -49,7 +49,7 @@ let keyMappingChecker_ = {
       s3 = value;
     }
     try {
-      const obj = JSON.parse(value);
+      const obj = JSON.parse(value.includes("\\\r") ? value.replace(<RegExpG> /\\\r/g, " ") : value)
       if (typeof obj !== "string") {
         return obj !== true ? s3 ? "=" + s3 + tail : str : "";
       }
@@ -91,7 +91,7 @@ let keyMappingChecker_ = {
         && !(<RegExpI> /\surls?=/i).test(options)) {
       options = this.convertFromLegacyUrlList_(options);
     }
-    options = options ? options.replace(<RegExpG & RegExpSearchable<3>> /=("(\S*(?:\s[^=]*)?)"|\S+)(\s|$)/g,
+    options = options ? options.replace(<RegExpG & RegExpSearchable<3>> /=("(\S*(?:\s[^=]*)?)"|[\S\r]+)(\s|$)/g,
         this.normalizeOptions_) : "";
     return cmd + name + options;
   },
