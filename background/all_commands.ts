@@ -18,7 +18,7 @@ import { trans_ } from "./i18n"
 import { stripKey_ } from "./key_mappings"
 import {
   confirm_, overrideCmdOptions, runNextCmd, runKeyWithCond, portSendFgCmd, sendFgCmd, overrideOption, runNextCmdBy,
-  runNextOnTabLoaded, getRunNextCmdBy, kRunOn, hasFallbackOptions
+  runNextOnTabLoaded, getRunNextCmdBy, kRunOn, hasFallbackOptions, runKeyInSeq
 } from "./run_commands"
 import { doesNeedToSed, parseSedOptions_ } from "./clipboard"
 import { goToNextUrl, newTabIndex, openUrl } from "./open_urls"
@@ -531,7 +531,10 @@ set_bgC_([
       sessions.restore(null, runtimeError_)
     }
   },
-  /* kBgCmd.runKey: */ (): void | kBgCmd.runKey => { runKeyWithCond() },
+  /* kBgCmd.runKey: */ (): void | kBgCmd.runKey => {
+    get_cOptions<C.runKey>().$seq == null ? runKeyWithCond()
+    : runKeyInSeq(get_cOptions<C.runKey, true>().$seq!, cRepeat, get_cOptions<C.runKey, true>().$f)
+  },
   /* kBgCmd.searchInAnother: */ (tabs: [Tab]): void | kBgCmd.searchInAnother => {
     let keyword = (get_cOptions<C.searchInAnother>().keyword || "") + ""
     const query = parseSearchUrl_({ u: getTabUrl(tabs[0]) })

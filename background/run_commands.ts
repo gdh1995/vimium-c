@@ -14,6 +14,7 @@ import {
 import C = kBgCmd
 import NormalizedEnvCond = CommandsNS.NormalizedEnvCond
 
+const kRunKeyInSeq = "<v-runkey:s>"
 const abs = Math.abs
 let _gCmdTimer = 0
 let gOnConfirmCallback: ((force1: boolean, arg?: FakeArg) => void) | null | undefined
@@ -417,9 +418,18 @@ const normalizeExpects = (options: KnownOptions<C.runKey>): (NormalizedEnvCond |
   }
   new_rules = new_rules.map((i): NormalizedEnvCond | null =>
         i && i.env && i.env !== "__proto__" && i.keys.length ? i : null)
-  overrideOption<C.runKey, "expect">("expect", new_rules)
-  overrideOption<C.runKey, "$normalized">("$normalized", true)
+  overrideOption<C.runKey, "expect">("expect", new_rules, options)
+  overrideOption<C.runKey, "keys">("keys", normalizeKeys(options.keys), options)
+  overrideOption<C.runKey, "$normalized">("$normalized", true, options)
   return new_rules
+}
+
+const collectOptions = (opts: { [key: `o.${string}`]: any }): CommandsNS.Options => {
+  const o2 = BgUtils_.safeObj_<any>()
+  for (const key in opts) {
+    if (key.startsWith("o.") && key.length > 2 && !key.includes("$")) { o2[key.slice(2)] = opts[key as `o.${string}`] }
+  }
+  return o2
 }
 
 /** not call runNextCmd on invalid env/key info, but just show HUD to alert */
@@ -459,39 +469,168 @@ export const runKeyWithCond = (info?: CurrentEnvCache): void => {
       break
     }
   }
-  const keys = matched ? matched.keys : get_cOptions<C.runKey>().keys
-  let key: string
+  const keys = (matched ? matched.keys : get_cOptions<C.runKey, true>().keys) as (string | BlockNode)[]
+  let key: string | BlockNode
   const sub_name = matched ? typeof matched.env === "string" ? `[${matched.env}]: `
       : `(${expected_rules.indexOf(matched)})` : ""
-  if (!(keys instanceof Array)) {
-    showHUD(sub_name + "Require keys: space-seperated-string | string[]")
+  if (keys.length === 0) {
+    showHUD(sub_name + "Require keys: comma-seperated-string | string[]")
   } else if (absCRepeat > keys.length && keys.length !== 1) {
     showHUD(sub_name + "Has no such a key")
-  } else if (key = keys[keys.length === 1 ? 0 : absCRepeat - 1], typeof key !== "string" || !key) {
+  } else if (key = keys[keys.length === 1 ? 0 : absCRepeat - 1],
+      typeof key !== "string" && (typeof key !== "object" || key.t !== kN.block) || !key) {
     showHUD(sub_name + "The key is invalid")
   } else {
-    runKeyWithOptions(key, keys.length === 1 ? cRepeat : absCRepeat !== cRepeat ? -1 : 1
-        , matched && matched.options || get_cOptions<C.runKey, true>().options)
+    const repeat = keys.length === 1 ? cRepeat : absCRepeat !== cRepeat ? -1 : 1
+    const options = matched && matched.options || get_cOptions<C.runKey, true>().options
+        || collectOptions(get_cOptions<C.runKey, true>())
+    if (typeof key !== "string" || (<RegExpOne> /[()?:+%]/).test(key)) {
+      typeof key === "string" && (key = keys[keys.length === 1 ? 0 : absCRepeat - 1] = parseKeySeq(key))
+      const fakeOptions: KnownOptions<C.runKey> = {
+        $seq: { keys: key, repeat, options, cursor: key, timeout: 0 },
+        $then: kRunKeyInSeq, $else: "-" + kRunKeyInSeq, $retry: -999
+      }
+      replaceCmdOptions(fakeOptions)
+      keyToCommandMap_.set(kRunKeyInSeq, makeCommand_("runKey", fakeOptions as CommandsNS.Options)!)
+      runKeyInSeq(fakeOptions.$seq!, 1, null)
+    } else {
+      let count = 1, arr: null | string[] = (<RegExpOne> /^\d+|^-\d*/).exec(key)
+      if (arr != null) {
+        let prefix = arr[0]
+        key = key.slice(prefix.length)
+        count = prefix !== "-" ? parseInt(prefix, 10) || 1 : -1
+      }
+      runKeyWithOptions(key, count * repeat, options)
+    }
   }
 }
 
-const runKeyWithOptions = (key: string, countScale: number, exOptions?: CommandsNS.EnvItemOptions | null): void => {
-  let count = 1, arr: null | string[] = (<RegExpOne> /^\d+|^-\d*/).exec(key)
+declare const enum kN { key = 0, block = 1, ifElse = 2 }
+interface BaseNode { t: kN; val: unknown; par: Node | null }
+interface KeyNode extends BaseNode { t: kN.key; val: string; par: BlockNode }
+interface BlockNode extends BaseNode { t: kN.block; val: (Node | KeyNode)[] }
+interface IfElseNode extends BaseNode { t: kN.ifElse; val: { cond: Node, t: Node | null, f: Node | null}; par: Node }
+type Node = BlockNode | IfElseNode
+export const parseKeySeq = (keys: string): BlockNode => {
+  let cur: BlockNode = { t: kN.block, val: [], par: null }, root: BlockNode = cur, last: Node | null
+  for (let i = 0; i < keys.length; i++) {
+    switch (keys[i]) {
+    case "(":
+      last = cur; cur = { t: kN.block, val: [], par: cur }; last.val.push(cur)
+      break
+    case ")": last = cur; do { last = last.par! } while (last.t === kN.ifElse); cur = last; break
+    case "?": case ":":
+      last = keys[i] === "?" ? null : cur
+      while (last && last.t !== kN.ifElse) { last = last.par } 
+      if (!last || last.val.f) {
+        last = cur.par
+        cur.par = { t: kN.ifElse, val: { cond: cur, t: null, f: null },
+                    par: last || (root = { t: kN.block, val: [], par: null }) }
+        !last ? root.val.push(cur.par)
+            : last.t === kN.block ? last.val.splice(last.val.indexOf(cur), 1, cur.par)
+            : last.val.t === cur ? last.val.t = cur.par : last.val.f = cur.par
+        last = cur.par
+      }
+      cur = { t: kN.block, val: [], par: last }
+      keys[i] === "?" ? last.val.t = cur : last.val.f = cur
+      break
+    case "+": break
+    default:
+      const key = (<RegExpOne>/^(?:[$%]c)?(?:[\d-]\d*)?([$%]c)?(?:<(?!<)(?:.-){0,4}.\w*?(?::i)?>|\w+)/
+          ).exec(keys.slice(i).split("+")[0])
+      key && (cur.val.push({ t: kN.key, val: key[0], par: cur }), i += key[0].length - 1)
+      break
+    }
+  }
+  if (!Build.NDEBUG) { (root as Object as {toJSON?: any}).toJSON = exprKeySeq }
+  return root
+}
+
+const exprKeySeq = function (this: BlockNode): object | string | null {
+  const ifNotEmpty = (arr: any[]): any[] | null => arr.some(i => i != null) ? arr : null
+  const iter = (node: Node | KeyNode | null): object | string | null => {
+    return !node ? null
+        : node.t == kN.block ? node.val.length === 1 ? iter(node.val[0])
+            : node.val.length === 0 ? null : ifNotEmpty(node.val.map(iter))
+        : node.t !== kN.ifElse ? As_<string>(node.val)
+        : { if: iter(node.val.cond), then: iter(node.val.t), else: iter(node.val.f) }
+  }
+  return iter(this)
+}
+
+/**
+ * syntax: a?b+c+2d:(e+-3f?-4g:h+i)?:j
+ * * `"-"` only contributes to number prefixes
+ * * `"%c" | "$c"` means the outer repeat
+ */
+export const runKeyInSeq = (seq: BgCmdOptions[C.runKey]["$seq"], dir: number
+    , fallback: Req.FallbackOptions["$f"] | null): void => {
+  let cursor: Node | KeyNode | null = seq.cursor as BlockNode | KeyNode
+  let down = true
+  if (cursor.t === kN.key) {
+    const par: BlockNode = cursor.par, ind = par.val.indexOf(cursor)
+    cursor = ind < par.val.length - 1 && dir > 0 ? par.val[ind + 1] : (down = false, par)
+  }
+  while (cursor && cursor.t !== kN.key) {
+    if (down && cursor.t === kN.block && cursor.val.length > 0) {
+      cursor = cursor.val[0]
+    } else if (down && cursor.t === kN.ifElse) {
+      cursor = cursor.val.cond
+    } else if (!cursor.par) {
+      cursor = null
+      break
+    } else if (cursor.par.t === kN.block) {
+      const par: BlockNode = cursor.par, ind = par.val.indexOf(cursor)
+      dir < 0 && ind < par.val.length - 1 && (dir = 1)
+      down = ind < par.val.length - 1
+      cursor = down ? par.val[ind + 1] : par
+    } else {
+      const par: IfElseNode = cursor.par
+      down = cursor === par.val.cond
+      cursor = down && (dir > 0 ? par.val.t : (dir = 1, par.val.f)) || (down = false, par)
+    }
+  }
+  if (!cursor) {
+    keyToCommandMap_.set(kRunKeyInSeq, makeCommand_("blank", null))
+    clearTimeout(seq.timeout || 0)
+    dir < 0 && fallback && fallback.t && showHUD(trans_(`${fallback.t as 99}`))
+    return
+  }
+  const timeout = seq.timeout = setTimeout(() => {
+    const old = keyToCommandMap_.get(kRunKeyInSeq)
+    const opts2 = old && (old.options_ as KnownOptions<C.runKey>)
+    if (opts2 && opts2.$seq && opts2.$seq.timeout === timeout) {
+      keyToCommandMap_.set(kRunKeyInSeq, makeCommand_("blank", null))
+    }
+  }, 10000)
+  seq.cursor = As_<KeyNode>(cursor)
+  let key = cursor.val, hasCount = key.includes("%c")
+  hasCount && (key = key.replace("%c", ""))
+  let subCount = 1, arr: null | string[] = (<RegExpOne> /^\d+|^-\d*/).exec(key)
   if (arr != null) {
     let prefix = arr[0]
     key = key.slice(prefix.length)
-    count = prefix !== "-" ? parseInt(prefix, 10) || 1 : -1
+    subCount = prefix !== "-" ? parseInt(prefix, 10) || 1 : -1
   }
+  runKeyWithOptions(key.includes("<") || key in availableCommands_ ? key
+      : keyToCommandMap_.has(key) ? key : `<v-${key}>`
+      , subCount * (hasCount ? seq.repeat : 1), seq.options)
+}
+
+const runKeyWithOptions = (key: string, count: number, exOptions?: CommandsNS.EnvItemOptions | null): void => {
   let registryEntry = key !== "__proto__" ? keyToCommandMap_.get(key) : null
+  if (registryEntry == null && key in availableCommands_) {
+    registryEntry = makeCommand_(key, null)
+  }
   if (registryEntry == null) {
     showHUD(`the "${key}" has not been mapped`)
     return
-  } else if (registryEntry.alias_ === kBgCmd.runKey && registryEntry.background_) {
+  } else if (registryEntry.alias_ === kBgCmd.runKey && registryEntry.background_
+      && !(exOptions as KnownOptions<C.runKey>).$seq) {
     showHUD('"runKey" can not be nested')
     return
   }
   BgUtils_.resetRe_()
-  count = count * countScale
   const fallOpts = parseFallbackOptions(get_cOptions<C.runKey, true>())
   const fStatus = get_cOptions<C.runKey, true>().$f
   if (exOptions && typeof exOptions === "object" || fallOpts || fStatus) {

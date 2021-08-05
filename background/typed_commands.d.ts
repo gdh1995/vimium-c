@@ -115,6 +115,11 @@ interface BgCmdOptions {
     keys: string[] | /** space-seperated list */ string
     options?: CommandsNS.EnvItem["options"]
     $normalized?: boolean
+    [key: `o.${string}`]: any
+    $seq: {
+      /** node tree */ keys: object, repeat: number, options: CommandsNS.EnvItem["options"] | undefined
+      cursor: object | null, timeout: number
+    }
   } & Req.FallbackOptions
   [kBgCmd.searchInAnother]: { keyword: string; reuse: UserReuseType } & Req.FallbackOptions
       & OpenUrlOptions & MasksForOpenUrl & OpenPageUrlOptions
@@ -245,7 +250,7 @@ interface StatefulBgCmdOptions {
   [kBgCmd.createTab]: null
   [kBgCmd.goNext]: "patterns" | "reuse"
   [kBgCmd.openUrl]: "urls" | "group" | "replace"
-  [kBgCmd.runKey]: "expect"
+  [kBgCmd.runKey]: "expect" | "keys"
 }
 interface SafeStatefulBgCmdOptions {
   [kBgCmd.showVomnibar]: "mode"
