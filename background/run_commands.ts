@@ -612,6 +612,7 @@ export const runKeyInSeq = (seq: BgCmdOptions[C.runKey]["$seq"], dir: number
     key = key.slice(prefix.length)
     subCount = prefix !== "-" ? parseInt(prefix, 10) || 1 : -1
   }
+  key = key !== "__proto__" ? key : "<v-__proto__>"
   runKeyWithOptions(key.includes("<") || key in availableCommands_ ? key
       : keyToCommandMap_.has(key) ? key : `<v-${key}>`
       , subCount * (hasCount ? seq.repeat : 1), seq.options)

@@ -228,6 +228,7 @@ input, textarea {
   color: var(--input-color);
   font: inherit;
   height: 28px;
+  overflow-wrap: normal; /* before C49 (MinCSS$whiteSpace$$pre$Means$overflowWrap$$normal) */
   padding: 3px;
   white-space: pre;
   width: 100%;
