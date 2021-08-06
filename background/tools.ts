@@ -236,9 +236,8 @@ export const ContentSettings_ = OnChrome ? {
     if (left <= 0) { return callback(true); }
     BgUtils_.safer_(settings);
     for (const pattern of arr) {
-      const info = BgUtils_.extendIf_(BgUtils_.safeObj_() as any as chrome.contentSettings.SetDetails, settings);
-      info.primaryPattern = pattern;
-      ref.set(info, func);
+      ref.set(Object.assign<chrome.contentSettings.SetDetails, "primaryPattern">(
+          { primaryPattern: pattern }, settings), func)
     }
   },
   updateTabAndWindow_ (this: void, tab: Tab, wndId: number | undefined, callback: ((this: void) => void) | undefined

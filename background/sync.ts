@@ -56,16 +56,13 @@ const HandleStorageUpdate = (changes: EnsuredDict<StorageChange>, area: string |
   }
   BgUtils_.safer_(changes)
   const needToRestoreFirst = restoreSettings_ && restoreSettings_()
+  changes_to_merge ? Object.assign(changes_to_merge, changes) : (changes_to_merge = changes)
   if (needToRestoreFirst) {
-    changes_to_merge && BgUtils_.extendIf_(changes, changes_to_merge)
-    changes_to_merge = changes
     void needToRestoreFirst.then(() => HandleStorageUpdate({}, area))
     return
   }
-  if (changes_to_merge) {
-    BgUtils_.extendIf_(changes, changes_to_merge)
-    changes_to_merge = null
-  }
+  changes = changes_to_merge
+  changes_to_merge = null
   for (const key in changes) {
     const change = changes[key], is_part = key.includes(":"),
     result = is_part ? 8 : storeAndPropagate(key, change != null ? change.newValue : null)

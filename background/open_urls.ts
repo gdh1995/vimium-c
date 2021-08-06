@@ -660,7 +660,7 @@ export const openUrlReq = (request: FgReq[kFgReq.openUrl], port?: Port | null): 
   set_cPort(isWeb ? port! : findCPort(port) || cPort)
   let url: Urls.Url | undefined = request.u
   // { url_f: string, ... } | { copied: true, ... }
-  const opts: KnownOptions<C.openUrl> = {}
+  const opts: KnownOptions<C.openUrl> = request.n && parseFallbackOptions(request.n) || {}
   const o2: Readonly<Partial<FgReq[kFgReq.openUrl]["o"]>> = request.o || BgUtils_.safeObj_() as {}
   const keyword = (o2.k || "") + "", testUrl = o2.t ?? !keyword
   const sed = o2.s
@@ -670,8 +670,6 @@ export const openUrlReq = (request: FgReq[kFgReq.openUrl], port?: Port | null): 
   opts.position = o2.p
   opts.reuse = o2.r != null ? o2.r : request.r
   opts.window = o2.w
-  const fallback = request.n && parseFallbackOptions(request.n)
-  fallback && BgUtils_.extendIf_(opts, fallback)
   if (url) {
     if (url[0] === ":" && !isWeb && (<RegExpOne> /^:[bhtwWBHdso]\s/).test(url)) {
       url = url.slice(2).trim()

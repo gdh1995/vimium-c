@@ -1,5 +1,5 @@
 import {
-  cPort, cRepeat, cKey, get_cOptions, set_cPort, set_cRepeat, cNeedConfirm, contentPayload_, framesForTab_,
+  cPort, cRepeat, cKey, get_cOptions, set_cPort, set_cRepeat, contentPayload_, framesForTab_,
   framesForOmni_, bgC_, set_bgC_, set_cmdInfo_, curIncognito_, curTabId_, recencyForTab_, settingsCache_, CurCVer_,
   OnChrome, OnFirefox, OnEdge, substitute_, CONST_, curWndId_
 } from "./store"
@@ -18,7 +18,7 @@ import { trans_ } from "./i18n"
 import { stripKey_ } from "./key_mappings"
 import {
   confirm_, overrideCmdOptions, runNextCmd, runKeyWithCond, portSendFgCmd, sendFgCmd, overrideOption, runNextCmdBy,
-  runNextOnTabLoaded, getRunNextCmdBy, kRunOn, hasFallbackOptions, runKeyInSeq
+  runNextOnTabLoaded, getRunNextCmdBy, kRunOn, hasFallbackOptions, runKeyInSeq, needConfirm_
 } from "./run_commands"
 import { doesNeedToSed, parseSedOptions_ } from "./clipboard"
 import { goToNextUrl, newTabIndex, openUrl } from "./open_urls"
@@ -26,7 +26,7 @@ import {
   parentFrame, enterVisualMode, showVomnibar, toggleZoom, captureTab,
   initHelp, framesGoBack, mainFrame, nextFrame, performFind, framesGoNext
 } from "./frame_commands"
-import { onShownTabsIfRepeat_, getTabRange, getTabsIfRepeat_ } from "./filter_tabs"
+import { onShownTabsIfRepeat_, getTabRange, getTabsIfRepeat_, tryLastActiveTab_ } from "./filter_tabs"
 import {
   copyWindowInfo, joinTabs, moveTabToNewWindow, moveTabToNextWindow, reloadTab, removeTab, toggleMuteTab,
   togglePinTab, toggleTabUrl, reopenTab_
@@ -104,7 +104,7 @@ set_bgC_([
       }
     })
   },
-  /* kBgCmd.insertMode: */ (): void | kBgCmd.insertMode => {
+  /* kBgCmd.insertMode: */ (resolve): void | kBgCmd.insertMode => {
     let _key = get_cOptions<C.insertMode>().key, _hud: boolean | UnknownValue,
     hud = (_hud = get_cOptions<C.insertMode>().hideHUD) != null ? !_hud
         : (_hud = get_cOptions<C.insertMode>().hideHud) != null ? !_hud
@@ -120,6 +120,7 @@ set_bgC_([
       r: <BOOL> +!!get_cOptions<C.insertMode>().reset,
       u: !!get_cOptions<C.insertMode>().unhover
     })
+    resolve(1)
   },
   /* kBgCmd.nextFrame: */ _AsBgC<BgCmdNoTab<kBgCmd.nextFrame>>(nextFrame),
   /* kBgCmd.parentFrame: */ _AsBgC<BgCmdNoTab<kBgCmd.parentFrame>>(parentFrame),
@@ -197,7 +198,7 @@ set_bgC_([
         const ind = (OnFirefox ? selectFrom(tabs, 1) : selectFrom(tabs)).index
         let [start, end] = allTabs ? [0, tabs.length] : getTabRange(ind, tabs.length)
         let count = end - start
-        if (count > 20 && cNeedConfirm) {
+        if (count > 20 && needConfirm_()) {
               void confirm_("addBookmark", count).then(doAddBookmarks.bind(0, tabs))
               return
         }
@@ -264,7 +265,7 @@ set_bgC_([
     onShownTabsIfRepeat_(true, 1, function onTabs(tabs, [start, current, end], resolve, force1?: boolean): void {
       if (force1) { [start, end] = getTabRange(current, tabs.length, 0, 1) }
       let count = end - start - 1
-      if (count > 20 && cNeedConfirm) {
+      if (count > 20 && needConfirm_()) {
         void confirm_("discardTab", count).then(onTabs.bind(null, tabs, [start, current, end], resolve))
         return
       }
@@ -363,7 +364,7 @@ set_bgC_([
     }
     if (absolute) {
       if (cRepeat === 1) {
-        Q_(Tabs_.query, { currentWindow: true, index: 0 }).then((tabs): void => {
+        Q_(Tabs_.query, { windowId: curWndId_, index: 0 }).then((tabs): void => {
           tabs && tabs[0] && isNotHidden_(tabs[0]) ? goToTab(tabs)
           : onShownTabsIfRepeat_(false, 1, goToTab, [], resolve)
         })
@@ -437,16 +438,17 @@ set_bgC_([
   /* kBgCmd.removeTabsR: */ (resolve): void | kBgCmd.removeTabsR => {
     /** `direction` is treated as limited; limited by pinned */
     const direction = get_cOptions<C.removeTabsR>().other ? 0 : cRepeat
-    getTabsIfRepeat_(direction, (tabs: Tab[] | undefined): void => {
+    getTabsIfRepeat_(direction, function onRemoveTabsR(oriTabs: Tab[] | undefined): void {
+      let tabs = oriTabs
       if (!tabs || tabs.length === 0) { return runtimeError_() }
     const activeTab = selectFrom(tabs)
-    let i = tabs!.indexOf(activeTab), noPinned = false
+    let i = tabs!.indexOf(activeTab), noPinned = get_cOptions<C.removeTabsR, true>().noPinned
     const filter = get_cOptions<C.removeTabsR, true>().filter
     if (direction > 0) {
       ++i
       tabs = tabs.slice(i, i + direction)
     } else {
-      noPinned = i > 0 && tabs[0].pinned && !tabs[i - 1].pinned
+      noPinned = noPinned != null ? noPinned && tabs[0].pinned : i > 0 && tabs[0].pinned && !tabs[i - 1].pinned
       if (direction < 0) {
         tabs = tabs.slice(Math.max(i + direction, 0), i)
       } else {
@@ -466,6 +468,11 @@ set_bgC_([
         const url = parsed ? parsed.host : full ? tabUrl : tabUrl.split("#", 1)[0]
         return url === urlToFilter && (!title || tab.title === title)
       })
+    }
+    const mayConfirm = get_cOptions<C.removeTabsR>().mayConfirm
+    if (mayConfirm && tabs.length > (typeof mayConfirm === "number" ? Math.max(mayConfirm, 5) : 20)
+        && needConfirm_()) {
+      void confirm_("closeOtherTabs", tabs.length).then(onRemoveTabsR.bind(null, oriTabs))
     }
     if (tabs.length > 0) {
       Tabs_.remove(tabs.map(tab => tab.id), R_(resolve))
@@ -636,8 +643,7 @@ set_bgC_([
       selectTab(tabId, (tab): void => (tab && selectWndIfNeed(tab), R_(resolve)()))
     }
     if (cRepeat === 1 && !onlyActive && curTabId_ !== GlobalConsts.TabIdNone) {
-      let indMax = 0, tabId = -1
-      recencyForTab_.forEach((v, i): void => { if (v.i > indMax && i !== curTabId_) { indMax = v.i, tabId = i } })
+      let tabId = tryLastActiveTab_()
       if (tabId >= 0) {
         void Q_(tabsGet, tabId).then((tab?: Tab): void => {
           tab && (acrossWindows || tab.windowId === curWndId_) && isNotHidden_(tab) ? doActivate(tab.id)

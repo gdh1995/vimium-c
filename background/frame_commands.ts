@@ -333,9 +333,9 @@ export const framesGoBack = (req: FgReq[kFgReq.framesGoBack], port: Port | null,
       if (!hasTabsGoBack) {
         execGoBack(tab, count)
       } else {
-        framesGoBack({ s: count,
-          o: BgUtils_.extendIf_({ reuse: ReuseType.current }, parseFallbackOptions(req.o) || {})
-        }, null, tab)
+        const opts: FgReq[kFgReq.framesGoBack]["o"] = parseFallbackOptions(req.o) || {}
+        opts.reuse = ReuseType.current
+        framesGoBack({ s: count, o: opts }, null, tab)
       }
       const newTabIdx = tab.index--
       const wantedIdx = position === "end" ? 3e4 : newTabIndex(tab, position, false, true)
@@ -388,12 +388,12 @@ export const toggleZoom = (resolve: OnCmdResolved): void | kBgCmd.toggleZoom => 
     let newZoom: number, level = get_cOptions<kBgCmd.toggleZoom, true>().level, M = Math
     if (get_cOptions<kBgCmd.toggleZoom, true>().reset) {
       newZoom = 1
-    } else if (level != null && !isNaN(+level)) {
-      newZoom = 1 + level * cRepeat
-      newZoom = OnFirefox ? M.max(0.3, M.min(newZoom, 3)) : M.max(0.25, M.min(newZoom, 5))
-    } else if (absCount > 4) {
-      newZoom = absCount > 1000 ? 1 : absCount / (absCount > 49 ? 100 : 10)
-      newZoom = OnFirefox ? M.max(0.3, M.min(newZoom, 3)) : M.max(0.25, M.min(newZoom, 5))
+    } else if (level != null && !isNaN(+level) || absCount > 4) {
+      const min = M.max(0.1, M.min((get_cOptions<kBgCmd.toggleZoom, true>().min! | 0) || (OnFirefox ? 0.3 : 0.25), 0.9))
+      const max = M.max(1.1, M.min((get_cOptions<kBgCmd.toggleZoom, true>().min! | 0) || (OnFirefox ? 3 : 5), 100))
+      newZoom = level != null && !isNaN(+level) ? 1 + level * cRepeat
+          : absCount > 1000 ? 1 : absCount / (absCount > 49 ? 100 : 10)
+      newZoom = M.max(min, M.min(newZoom, max))
     } else {
       let nearest = 0, delta = 9,
       steps = OnFirefox

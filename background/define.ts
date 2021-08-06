@@ -84,6 +84,14 @@ Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES6$Ar
 ![].includes && (function (): void {
     const noArrayFind = ![].find
     Array.prototype.includes = function (value: any, ind?: number): boolean { return this.indexOf(value, ind) >= 0 }
+    Build.MinCVer >= BrowserVer.MinEnsured$Object$$assign ||
+    Object.assign || (Object.assign = function (dest: object): object {
+      for (let i = 1, len = arguments.length; i < len; i++) {
+        const src = arguments[i]
+        for (let key in src) { (dest as Dict<unknown>)[key] = src[key] }
+      }
+      return dest
+    })
     if (!(Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$Array$$find$$findIndex)) { return }
     if (noArrayFind) {
       Array.prototype.find = function (this: any[], cond: (i: any, index: number, obj: any[]) => boolean): any {

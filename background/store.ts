@@ -100,7 +100,6 @@ export let keyToCommandMap_: Map<string, CommandsNS.Item>
 export let mappedKeyTypes_ = kMapKey.NONE
 
 export let cKey: kKeyCode = kKeyCode.None
-export let cNeedConfirm: BOOL = 1
 let cOptions: CommandsNS.Options = null as never
 export let cPort: Frames.Port = null as never
 /** any change to `cRepeat` should ensure it won't be `0` */
@@ -135,7 +134,6 @@ export const set_mappedKeyRegistry_ = (_newDict: typeof mappedKeyRegistry_): voi
 export const set_keyToCommandMap_ = (_newMap: typeof keyToCommandMap_): void => { keyToCommandMap_ = _newMap }
 export const set_mappedKeyTypes_ = (_newTypes: typeof mappedKeyTypes_): void => { mappedKeyTypes_ = _newTypes }
 export const set_cKey = (_newKey: kKeyCode): void => { cKey = _newKey }
-export const set_cNeedConfirm = (_newNeedC: BOOL): void => { cNeedConfirm = _newNeedC }
 export const get_cOptions = <K extends keyof BgCmdOptions = kBgCmd.blank, Trust extends boolean = false> (
     ): (Trust extends true ? KnownOptions<K> : UnknownOptions<K>) & SafeObject => cOptions as any
 export const set_cOptions = <T> (_newOpts: CommandsNS.Options & T | null): void => { cOptions = _newOpts! }

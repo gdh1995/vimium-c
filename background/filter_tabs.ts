@@ -1,4 +1,4 @@
-import { OnFirefox, cRepeat, get_cOptions, curWndId_ } from "./store"
+import { OnFirefox, cRepeat, get_cOptions, curWndId_, curTabId_, recencyForTab_ } from "./store"
 import {
   selectFrom, Tabs_, getCurShownTabs_, getCurWnd, runtimeError_, isNotHidden_, ShownTab, getCurTab, getCurTabs
 } from "./browser"
@@ -57,6 +57,12 @@ export const onShownTabsIfRepeat_ = <All extends boolean> (allInRange: All, noSe
       return runtimeError_()
     })
   }
+}
+
+export const tryLastActiveTab_ = () => {
+  let indMax = 0, tabId = -1
+  recencyForTab_.forEach((v, i): void => { if (v.i > indMax && i !== curTabId_) { indMax = v.i, tabId = i } })
+  return tabId
 }
 
 /** @argument count may be 0 */

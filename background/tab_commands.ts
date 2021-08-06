@@ -1,22 +1,22 @@
 import {
-  cRepeat, get_cOptions, cPort, cNeedConfirm, curIncognito_, curTabId_, curWndId_, recencyForTab_,
+  cRepeat, get_cOptions, cPort, curIncognito_, curTabId_, curWndId_, recencyForTab_,
   copy_, settingsCache_, CurCVer_, IsEdg_, OnChrome, OnEdge, OnFirefox, CONST_, reqH_
 } from "./store"
 import * as BgUtils_ from "./utils"
 import {
   Tabs_, Windows_, makeTempWindow_r, makeWindow, PopWindow, tabsCreate, Window, getTabUrl, selectFrom, tabsGet, R_,
   runtimeError_, IncNormalWnd, selectWnd, selectTab, getCurWnd, getCurTabs, getCurTab, getGroupId, tabsUpdate,
-  browserSessions_, InfoToCreateMultiTab, openMultiTabs, isTabMuted, isRefusingIncognito_, ShownTab
+  browserSessions_, InfoToCreateMultiTab, openMultiTabs, isTabMuted, isRefusingIncognito_, ShownTab, Q_, isNotHidden_
 } from "./browser"
 import { convertToUrl_ } from "./normalize_urls"
 import { parseSearchUrl_ } from "./parse_urls"
 import { complainLimits, requireURL_, showHUD } from "./ports"
 import { trans_ } from "./i18n"
-import { confirm_, overrideCmdOptions, runNextOnTabLoaded, runNextCmd, getRunNextCmdBy, kRunOn } from "./run_commands"
+import { confirm_, overrideCmdOptions, runNextOnTabLoaded, runNextCmd, getRunNextCmdBy, kRunOn, needConfirm_ } from "./run_commands"
 import { parseSedOptions_ } from "./clipboard"
 import { newTabIndex, preferLastWnd, openUrlWithActions } from "./open_urls"
 import { focusFrame } from "./frame_commands"
-import { getTabRange, Range3 } from "./filter_tabs"
+import { getTabRange, Range3, tryLastActiveTab_ } from "./filter_tabs"
 import { TabRecency_ } from "./tools"
 
 import C = kBgCmd
@@ -214,7 +214,7 @@ export const moveTabToNewWindow = (resolve: OnCmdResolved): void | kBgCmd.moveTa
     } else {
       range = getTabRange(activeTabIndex, total), count = range[1] - range[0]
       if (count >= total) { return showHUD(trans_("moveAllTabs")) }
-      if (count > 30 && cNeedConfirm) {
+      if (count > 30 && needConfirm_()) {
             void confirm_("moveTabToNewWindow", count).then(moveTabToNewWindow0.bind(null, wnd))
             return
       }
@@ -389,7 +389,7 @@ export const reloadTab = (tabs: ShownTab[], [start, ind, end]: Range3, r: OnCmdR
     return
   }
   let count = end - start
-  if (count > 20 && cNeedConfirm) {
+  if (count > 20 && needConfirm_()) {
     void confirm_("reloadTab", count).then(reloadTab.bind(null, tabs, [start, ind, end], r))
     return
   }
@@ -399,11 +399,18 @@ export const reloadTab = (tabs: ShownTab[], [start, ind, end]: Range3, r: OnCmdR
   }
 }
 
-export const removeTab = (resolve: OnCmdResolved, phase?: 1 | 2, tabs?: readonly Tab[]): void => {
+export const removeTab = (resolve: OnCmdResolved, phase?: 1 | 2 | 3, tabs?: readonly Tab[]): void => {
   const optHighlighted = get_cOptions<C.removeTab, true>().highlighted
+  const rawGoto = get_cOptions<C.removeTab, true>().goto || (get_cOptions<C.removeTab>().left ? "left" : ""),
+  gotos = (rawGoto + "").split(/[\/,;\s]/),
+  gotoVal = (gotos.length > 1 ? gotos[abs(cRepeat) > 1 ? 1 : 0] : rawGoto + "") as string & typeof rawGoto,
+  isGotoReverse = gotoVal === "near" || gotoVal === "reverse" || gotoVal.startsWith("back"),
+  isGotoForward = gotoVal.startsWith("forw"),
+  gotoLeft = isGotoReverse ? cRepeat > 0 : isGotoForward ? cRepeat < 0 : gotoVal === "left",
+  gotoRight = isGotoReverse ? cRepeat < 0 : isGotoForward ? cRepeat > 0 : gotoVal === "right",
+  gotoPrevious = gotoVal.includes("previous"), previousOnly = gotoPrevious && gotoVal.includes("only")
   if (!phase) {
-    const needTabs = abs(cRepeat) > 1 || optHighlighted
-        || get_cOptions<C.removeTab>().goto || get_cOptions<C.removeTab>().left;
+    const needTabs = abs(cRepeat) > 1 || optHighlighted || gotoPrevious && !previousOnly;
     (needTabs ? getCurTabs : getCurTab)(removeTab.bind(null, resolve, needTabs ? 2 : 1))
     return
   }
@@ -418,7 +425,7 @@ export const removeTab = (resolve: OnCmdResolved, phase?: 1 | 2, tabs?: readonly
     }
     const range = getTabRange(i, total - skipped, total)
     count = range[1] - range[0]
-    if (count > 20 && cNeedConfirm) {
+    if (count > 20 && needConfirm_() && phase < 3) {
       void confirm_("removeTab", count).then(removeTab.bind(null, resolve, 2, tabs))
       return
     }
@@ -437,28 +444,45 @@ export const removeTab = (resolve: OnCmdResolved, phase?: 1 | 2, tabs?: readonly
       && (get_cOptions<C.removeTab>().mayClose != null ? get_cOptions<C.removeTab>().mayClose
             : get_cOptions<C.removeTab>().allow_close) !== true) {
     if (phase < 2) { // from `getCurTab`
-      getCurTabs(removeTab.bind(null, resolve, 2))
+      getCurTabs(removeTab.bind(null, resolve, 3))
     } else {
       Windows_.getAll(/*#__NOINLINE__*/ removeAllTabsInWnd.bind(null, resolve, tab, tabs))
     }
     return
-  } else if (phase < 2) {
-    start = tab.index = 0, end = 1
   }
-  const rawGoto = get_cOptions<C.removeTab, true>().goto || (get_cOptions<C.removeTab>().left ? "left" : ""),
-  gotos = (rawGoto + "").split(/[\/,;\s]/)
-  const gotoVal = (gotos.length > 1 ? gotos[count > 1 ? 1 : 0] : rawGoto + "") as string & typeof rawGoto
-  let isGotoReverse = gotoVal === "near" || gotoVal === "reverse" || gotoVal.startsWith("back"),
-  isGotoForward = gotoVal.startsWith("forw"),
-  gotoLeft = isGotoReverse ? cRepeat > 0 : isGotoForward ? cRepeat < 0 : gotoVal === "left",
-  gotoRight = isGotoReverse ? cRepeat < 0 : isGotoForward ? cRepeat > 0 : gotoVal === "right",
-  goToIndex = count >= total ? total : gotoLeft ? start > 0 ? start - 1 : end
-      : gotoRight ? end < total ? end : start - 1 : gotoVal === "previous" ? -2 : total
-  if (goToIndex === -2) {
-    let nextTab: Tab | null | undefined = end < total && !recencyForTab_.has(tabs[end].id) ? tabs[end]
+  let q: Promise<Tab | undefined> | undefined
+  if (phase < 2) {
+    if (previousOnly) {
+      const lastActiveId = tryLastActiveTab_()
+      if (lastActiveId >= 0) {
+        q = Q_(tabsGet, lastActiveId)
+      }
+    } else if (gotoRight || gotoLeft && start > 0) {
+      q = Q_(Tabs_.query, { windowId: tab.windowId, index: gotoLeft ? start - 1 : start + 1 }).then(i => i && i[0])
+    }
+    if (q) {
+      q.then((destTab): void => {
+        if (destTab && destTab.windowId === tab.windowId && isNotHidden_(destTab)) {
+          selectTab(destTab.id)
+          Tabs_.remove(tab.id, resolve ? R_(resolve) : runtimeError_)
+        } else {
+          getCurTabs(removeTab.bind(null, resolve, 3))
+        }
+      })
+      return
+    }
+  }
+  let goToIndex = total
+  if (count >= total) { /* empty */ }
+  else if (gotoPrevious) {
+    let nextTab: Tab | null | undefined = !previousOnly && end < total && !recencyForTab_.has(tabs[end].id) ? tabs[end]
         : tabs.filter((j, ind) => (ind < start || ind >= end) && recencyForTab_.has(j.id))
             .sort(TabRecency_.rCompare_)[0]
     goToIndex = nextTab ? nextTab.index : total
+  } else if (gotoLeft || gotoRight) {
+    let i2 = goToIndex = gotoLeft ? start > 0 ? start - 1 : end : end < total ? end : start - 1
+    while (i2 >= 0 && i2 < total && (i2 < start || i2 >= end) && !isNotHidden_(tabs[i2])) { i2 += i2 < start ? -1 : 1 }
+    goToIndex = i2 >= 0 && i2 < total ? i2 : goToIndex
   }
   if (goToIndex >= 0 && goToIndex < total) {
     // note: here not wait real removing, otherwise the browser window may flicker
@@ -565,7 +589,7 @@ export const togglePinTab = (tabs: ShownTab[], oriRange: Range3, resolve: OnCmdR
     }
   }
   end = wantedTabIds.length
-  if (end > 30 && cNeedConfirm) {
+  if (end > 30 && needConfirm_()) {
     void confirm_("togglePinTab", end).then(togglePinTab.bind(null, tabs, oriRange, resolve))
     return
   }
@@ -616,7 +640,7 @@ export const toggleTabUrl = (tabs: [Tab], resolve: OnCmdResolved): void | kBgCmd
 }
 
 export const reopenTab_ = (tab: Tab, refresh?: /* false */ 0 | /* a temp blank tab */ 1 | /* directly */ 2
-    , exProps?: chrome.tabs.CreateProperties, useGroup?: true | false): void => {
+    , exProps_mutable?: chrome.tabs.CreateProperties, useGroup?: true | false): void => {
   const tabId = tab.id, needTempBlankTab = refresh === 1
   if (!OnEdge && refresh && browserSessions_() && (useGroup !== false || getGroupId(tab) == null)) {
     let step = RefreshTabStep.start, tempTabId = -1,
@@ -649,12 +673,12 @@ export const reopenTab_ = (tab: Tab, refresh?: /* false */ 0 | /* a temp blank t
       }
     }
   }
-  const args: InfoToCreateMultiTab = {
+  let args: InfoToCreateMultiTab = {
     windowId: tab.windowId, index: tab.index, url: getTabUrl(tab), active: tab.active,
     pinned: tab.pinned, openerTabId: tab.openerTabId
   }
+  exProps_mutable && (args = Object.assign(exProps_mutable, args))
   if (OnFirefox) {
-    exProps && BgUtils_.extendIf_(args, exProps)
     // on Firefox 88, if `.cookieStorageId && (create; remove)`, then tab will unexpectedly move right
     args.index != null && getGroupId(tab) == null && args.index++
   } else if (args.index != null) {

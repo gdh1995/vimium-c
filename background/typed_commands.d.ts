@@ -105,7 +105,7 @@ interface BgCmdOptions {
   } & Req.FallbackOptions
   [kBgCmd.removeTabsR]: {
     filter: "url" | "hash" | "host" | "url+title" | "hash+title" | "host+title"
-    other: boolean
+    other: boolean; mayConfirm: true; noPinned: boolean
   } & Req.FallbackOptions
   [kBgCmd.reopenTab]: Pick<OpenUrlOptions, "group"> & Req.FallbackOptions
   [kBgCmd.restoreTab]: { incognito: "force" | true; one: boolean }
@@ -130,7 +130,7 @@ interface BgCmdOptions {
   [kBgCmd.togglePinTab]: LimitedRangeOptions & Req.FallbackOptions
   [kBgCmd.toggleTabUrl]: { keyword: string; parsed: string; reader: boolean } & OpenUrlOptions
   [kBgCmd.toggleVomnibarStyle]: { style: string; current: boolean }
-  [kBgCmd.toggleZoom]: { level: number; in?: true; out?: true; reset?: true }
+  [kBgCmd.toggleZoom]: { level: number; in?: true; out?: true; reset?: true; min: number; max: number }
   [kBgCmd.visitPreviousTab]: { acrossWindows: true; onlyActive: true } & Req.FallbackOptions
   [kBgCmd.closeDownloadBar]: { newWindow?: null | true | false; all: 1 }
   [kBgCmd.reset]: {}
@@ -189,6 +189,7 @@ declare namespace CommandsNS {
   interface Options extends ReadonlySafeDict<any>, SharedPublicOptions, SharedInnerOptions {}
   interface SharedPublicOptions {
     $count?: number
+    confirmed?: true
   }
   interface SharedInnerOptions {
     $o?: Options
@@ -259,11 +260,10 @@ interface SafeStatefulBgCmdOptions {
 type KeysWithFallback<O extends object, K extends keyof O = keyof O> =
     K extends keyof O ? O[K] extends Req.FallbackOptions ? K : never : never
 type SafeOptionKeys<O, K extends keyof O = keyof O> =
-    K extends keyof O ? K extends `$${string}` ? K extends "$f" | "$retry" ? K : never
-    : K extends "fallback" ? never : K : never
-type OptionalPick<T, K extends keyof T> = { [P in K]?: T[P] | null; };
+    K extends keyof O ? K extends `$${string}` ? never : K : never
+type OptionalPickOptions<T, K extends keyof T> = { [P in K]?: T[P] | null; }
 type CmdOptionSafeToClone<K extends keyof BgCmdOptions | keyof CmdOptions> =
-  K extends keyof BgCmdOptions ? OptionalPick<BgCmdOptions[K], SafeOptionKeys<BgCmdOptions[K]>>
+  K extends keyof BgCmdOptions ? OptionalPickOptions<BgCmdOptions[K], SafeOptionKeys<BgCmdOptions[K]>>
   : K extends keyof CmdOptions ? Pick<CmdOptions[K], SafeOptionKeys<CmdOptions[K]>>
   : never
 
@@ -451,3 +451,8 @@ type kCName = keyof CmdNameIds
 declare const enum kShortcutAliases { nextTab1 = "quickNext" }
 type StandardShortcutNames = "createTab" | "goBack" | "goForward" | "previousTab"
     | "nextTab" | "reloadTab" | CNameLiterals.userCustomized
+
+interface ObjectConstructor {
+  assign<T extends object, Ensured extends keyof T>(target: PartialOrEnsured<T, Ensured>
+      , source: Readonly<PartialOrEnsured<T, Exclude<keyof T, Ensured>>>): T
+}

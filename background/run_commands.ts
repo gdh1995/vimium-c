@@ -1,6 +1,6 @@
 import {
   framesForTab_, get_cOptions, cPort, cRepeat, reqH_, bgC_, cmdInfo_, set_helpDialogData_, helpDialogData_,
-  set_cOptions, set_cPort, cKey, set_cKey, set_cRepeat, set_cNeedConfirm, curTabId_, OnEdge, keyToCommandMap_, blank_
+  set_cOptions, set_cPort, cKey, set_cKey, set_cRepeat, curTabId_, OnEdge, keyToCommandMap_, blank_
 } from "./store"
 import * as BgUtils_ from "./utils"
 import { Tabs_, runtimeError_, getCurTab, getCurShownTabs_, tabsGet, getCurWnd } from "./browser"
@@ -19,6 +19,7 @@ const abs = Math.abs
 let _gCmdTimer = 0
 let gOnConfirmCallback: ((force1: boolean, arg?: FakeArg) => void) | null | undefined
 let _gCmdHasNext: boolean | null
+let _cNeedConfirm: BOOL = 1
 
 /** operate command options */
 
@@ -38,7 +39,7 @@ export const copyCmdOptions = (dest: CommandsNS.RawOptions, src: CommandsNS.Opti
 
 /** keep all private and public fields in cOptions */
 export const overrideCmdOptions = <T extends keyof BgCmdOptions> (known: CmdOptionSafeToClone<T>
-    , disconnected?: boolean, oriOptions?: KnownOptions<T> & SafeObject): void => {
+    , disconnected?: boolean, oriOptions?: Readonly<KnownOptions<T>> & SafeObject): void => {
   const old = oriOptions || get_cOptions<T, true>()
   BgUtils_.extendIf_(BgUtils_.safer_(known as KnownOptions<T>), old);
   if (!disconnected) {
@@ -105,7 +106,7 @@ export const executeCommand = (registryEntry: CommandsNS.Item, count: number, la
   else if (repeat > 0 && (count > repeat || count < -repeat)) {
     if (fallbackCounter != null) {
       count = count < 0 ? -1 : 1
-    } else if (!overriddenCount) {
+    } else if (!overriddenCount && (!options || options.confirmed !== true)) {
         set_cKey(lastKey)
         set_cOptions(null)
         set_cPort(port!)
@@ -127,9 +128,10 @@ export const executeCommand = (registryEntry: CommandsNS.Item, count: number, la
     const context = makeFallbackContext(fallbackCounter.c, 1, fallbackCounter.u)
     if (options && (registryEntry.alias_ === kBgCmd.runKey || hasFallbackOptions(options as Req.FallbackOptions)
         || context.t && registryEntry.background_)) {
-      const opt2: Req.FallbackOptions = { $retry: -maxRetried, $f: context }
+      const opt2: Req.FallbackOptions = {}
+      options ? overrideCmdOptions<kBgCmd.blank>(opt2 as {}, false, options) : BgUtils_.safer_(opt2)
+      opt2.$retry = -maxRetried, opt2.$f = context
       context.t && registryEntry.background_ && !(options as Req.FallbackOptions).$else && (opt2.$else = "showTip")
-      options ? overrideCmdOptions<kBgCmd.blank>(opt2, false, options) : BgUtils_.safer_(opt2)
       options = opt2 as typeof opt2 & SafeObject
     }
   }
@@ -174,6 +176,10 @@ export const executeCommand = (registryEntry: CommandsNS.Item, count: number, la
 
 /** show a confirmation dialog */
 
+export const needConfirm_ = () => {
+  return _cNeedConfirm && (get_cOptions<C.blank>() as CommandsNS.Options).confirmed !== true
+}
+
 /** 0=cancel, 1=force1, count=accept */
 export const confirm_ = <T extends kCName> (command: CmdNameIds[T] extends kBgCmd ? T : never
     , askedCount: number): Promise<boolean> => {
@@ -200,9 +206,9 @@ export const confirm_ = <T extends kCName> (command: CmdNameIds[T] extends kBgCm
     set_cOptions(bakOptions)
     set_cPort(bakPort)
     set_cRepeat(force1 ? countToReplay > 0 ? 1 : -1 : countToReplay)
-    set_cNeedConfirm(0)
+    _cNeedConfirm = 0
     resolve_(force1)
-    setTimeout((): void => { set_cNeedConfirm(1) }, 0)
+    setTimeout((): void => { _cNeedConfirm = 1 }, 0)
   }
   (framesForTab_.get(cPort.s.tabId_)?.top_ || cPort).postMessage({
     N: kBgReq.count, c: "", i: _gCmdTimer, m: msg
@@ -619,8 +625,9 @@ export const runKeyInSeq = (seq: BgCmdOptions[C.runKey]["$seq"], dir: number
 }
 
 const runKeyWithOptions = (key: string, count: number, exOptions?: CommandsNS.EnvItemOptions | null): void => {
-  let registryEntry = key !== "__proto__" ? keyToCommandMap_.get(key) : null
+  let registryEntry = key !== "__proto__" ? keyToCommandMap_.get(key) : null, entryReadonly = true
   if (registryEntry == null && key in availableCommands_) {
+    entryReadonly = false
     registryEntry = makeCommand_(key, null)
   }
   if (registryEntry == null) {
@@ -636,10 +643,10 @@ const runKeyWithOptions = (key: string, count: number, exOptions?: CommandsNS.En
   const fStatus = get_cOptions<C.runKey, true>().$f
   if (exOptions && typeof exOptions === "object" || fallOpts || fStatus) {
     const originalOptions = normalizedOptions_(registryEntry)
-    registryEntry = BgUtils_.extendIf_(BgUtils_.safeObj_<{}>(), registryEntry)
+    registryEntry = entryReadonly ? Object.assign({}, registryEntry) : registryEntry
     let newOptions: CommandsNS.RawOptions & NonNullable<CommandsNS.EnvItem["options"]> = BgUtils_.safeObj_()
     exOptions && copyCmdOptions(newOptions, BgUtils_.safer_(exOptions))
-    fallOpts && BgUtils_.extendIf_(newOptions, BgUtils_.safer_(fallOpts))
+    fallOpts && copyCmdOptions(newOptions, BgUtils_.safer_(fallOpts))
     originalOptions && copyCmdOptions(newOptions, originalOptions)
     newOptions.$f = fStatus
     if (exOptions && "$count" in exOptions) {
@@ -668,10 +675,10 @@ export const parseFallbackOptions = (options: Req.FallbackOptions): Req.Fallback
 }
 
 export const wrapFallbackOptions = <T extends KeysWithFallback<CmdOptions>, S extends KeysWithFallback<BgCmdOptions>> (
-    options: CmdOptionSafeToClone<T>): CmdOptions[T] => {
+    options_mutable: CmdOptionSafeToClone<T>): CmdOptions[T] => {
   const fallback = parseFallbackOptions(get_cOptions<S, true>() as Partial<BgCmdOptions[S]>)
-  fallback && BgUtils_.extendIf_(BgUtils_.safer_(options as unknown as CmdOptions[T]), fallback)
-  return options as unknown as CmdOptions[T]
+  fallback && Object.assign(options_mutable as unknown as CmdOptions[T], fallback)
+  return options_mutable as unknown as CmdOptions[T]
 }
 
 const makeFallbackContext = (old: Req.FallbackOptions["$f"], counterStep: number, newTip: kTip | 0 | false
