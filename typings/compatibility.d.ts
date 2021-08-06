@@ -154,7 +154,7 @@ declare const enum BrowserVer {
   Min$KeyboardEvent$MayHave$$Key = 47, // if EXPERIMENTAL
   Min$IFrame$MayHave$$Referrerpolicy = 47, // if EXPERIMENTAL
   MinEnsured$InputDeviceCapabilities = 47, // even if LEGACY; also ensured UIEvent.sourceCapabilities
-  MinEnsured$Object$$asign = 47, // even if LEGACY; since C45 if only no LEGACY
+  MinEnsured$Object$$assign = 47, // even if LEGACY; since C45 if only no LEGACY
   MinFetchExtensionFiles = 47, // even if EXPERIMENTAL or LEGACY
   MinFetchDataURL = 48, // even if EXPERIMENTAL; test code: fetch('data:,abc').then(i=>i.text()).then(cb,cb)
   // even if EXPERIMENTAL or LEGACY
@@ -195,6 +195,7 @@ declare const enum BrowserVer {
   MinSVG$Path$MayHave$d$CSSAttribute = 49, // if EXPERIMENTAL
   MinEnsuredCSSVariables = 49, // even if LEGACY; works on C48 if EXPERIMENTAL
   MinTestedES6Environment = 49, // must be <= MinEnsuredFullES6Environment
+  MinCSS$whiteSpace$$pre$Means$overflowWrap$$normal = 49, // even if EXPERIMENTAL
   // Object.observe is from C36 to C49 even if EXPERIMENTAL or LEGACY
   MinES6No$Object$$Observe = 50,
   // The real support for arg frameId of chrome.tabs.executeScript is since C50,

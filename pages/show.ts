@@ -964,7 +964,7 @@ if (!Build.NDEBUG) {
     destroyObject_, tryDecryptUrl, disableAutoAndReload_, resetOnceProperties_, recoverHash_, encrypt_,
     getOmni_: getContentUrl_,
   }
-  if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$Object$$asign) {
+  if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$Object$$assign) {
     for (let key in exported) { if (exported.hasOwnProperty(key)) { (window as any)[key] = exported[key] } }
   } else {
     Object.assign(window, exported)
