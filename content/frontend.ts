@@ -18,7 +18,7 @@ import { grabBackFocus } from "./insert"
 import { currentKeys } from "./key_handler"
 import { coreHints } from "./link_hints"
 import { executeScroll, scrollTick, $sc, keyIsDown as scroll_keyIsDown } from "./scroller"
-import { onLoad as findOnLoad, find_box, find_input } from "./mode_find"
+import { find_box, find_input } from "./mode_find"
 import { filterTextToGoNext, jumpToNextLink } from "./pagination"
 import { set_needToRetryParentClickable, focusAndRun } from "./request_handlers"
 import { RSC } from "./commands"
@@ -57,7 +57,7 @@ set_safeDestroy((silent?: Parameters<SafeDestoryF>[0]): void => {
 set_vApi(VApi = {
   b: coreHints, e: null, z: null,
   p: post_, a: setupKeydownEvents, f: focusAndRun, d: safeDestroy, g: filterTextToGoNext, j: jumpToNextLink,
-  n: findOnLoad, c: executeScroll,
+  n: 0 as never as null, c: executeScroll,
   k: scrollTick, $: $sc, l: learnCSS, m: getMappedKey,
   i: OnFirefox ? wndSize_ : 0 as never,
   r: injector && [send_, safePost, (task: 0 | 1 | 2, arg?: string | ElementSet | VTransType): any => {
@@ -158,7 +158,7 @@ if (!(isTop || injector)) {
           const state = scoped_parApi.y()
           if ((state.b && XPCNativeWrapper(state.b)) === frameElement_()) {
             safeDestroy(1);
-            scoped_parApi.n()
+            scoped_parApi.n!()
           } else {
             set_clickable_(state.c)
           }
@@ -177,7 +177,7 @@ if (!(isTop || injector)) {
       // if not `vfind`, then a parent may have destroyed for unknown reasons
       if (scoped_parApi.y().b === frameElement_()) {
         safeDestroy(1);
-        scoped_parApi.n();
+        scoped_parApi.n!()
       } else {
         set_clickable_(scoped_parApi.y().c)
       }

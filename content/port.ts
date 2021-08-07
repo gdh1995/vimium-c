@@ -109,7 +109,7 @@ export const runFallbackKey = ((options: Req.FallbackOptions
     tip && hudTip(tip, 0, tipArgs)
   }
 }) as {
-  /** if anotherTip is 0 / false, then use .$then; otherwise use .$else */
+  /** if `anotherTip` is `0` / `false`, then use `.$then`; otherwise use `.$else` */
   (options: Req.FallbackOptions, anotherTip: 0 | 2 | false, tipArgs?: TimerType.fake): void
   (options: Req.FallbackOptions, anotherTip: kTip, tipArgs?: string | Array<string | number>): void
 }
