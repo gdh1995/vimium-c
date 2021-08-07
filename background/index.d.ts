@@ -395,7 +395,7 @@ declare namespace BackendHandlersNS {
   type FgRequestHandlers = {
     readonly [K in keyof FgReqWithRes | keyof FgReq]:
       K extends keyof SpecialHandlers ? SpecialHandlers[K] :
-      K extends keyof FgReqWithRes ? (((this: void, request: FgReqWithRes[K], port: Port) => FgRes[K])
+      K extends keyof FgReqWithRes ? (((this: void, req: FgReqWithRes[K], port: Port, msgId: number) => FgRes[K] | Port)
         | (K extends keyof FgReq ? (this: void, request: FgReq[K], port: Port) => void : never)) :
       K extends keyof FgReq ? ((this: void, request: FgReq[K], port: Port) => void) :
       never;

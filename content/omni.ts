@@ -108,10 +108,9 @@ const init = ({k: secret, v: page, t: type, i: inner}: FullOptions): void => {
         reload()
         return
       }
-      timeout_((): void => {
-        // if `noTimer_cr_`, then always use inner page, so that `status` will be updated ASAP - reliable in most time
-        // but if it's because JavaScript is disabled on `chrome://settings/content/siteDetails`,
-        // then the code is fast enough only when DevTools is not open
+      (noTimer_cr_ ? send_.bind(0, kFgReq.wait, 400) as (cb: () => void) => void : timeout_)((): void => {
+        // Note: if JavaScript is disabled on `chrome://settings/content/siteDetails`,
+        // then the iframe will always fail if only when DevTools is open
         clearInterval_(initMsgInterval)
         if (!isAlive_ || status !== Status.Initing) {
           // only clear `onload` when receiving `VomnibarNS.kFReq.iframeIsAlive`, to avoid checking `i`

@@ -22,7 +22,7 @@ interface ElementScrollInfo {
 }
 
 import {
-  isAlive_, setupEventListener, timeout_, clearTimeout_, fgCache, doc, allowRAF_old_cr_, readyState_, loc_, chromeVer_,
+  isAlive_, setupEventListener, timeout_, clearTimeout_, fgCache, doc, noRAF_old_cr_, readyState_, loc_, chromeVer_,
   vApi, deref_, weakRef_, VTr, createRegExp, max_, math, min_, Lower, OnChrome, OnFirefox, OnEdge, WithDialog, OnSafari,
   isTop, injector, isTY
 } from "../lib/utils"
@@ -249,7 +249,7 @@ export const $sc: VApiTy["$"] = (element, di, amount, options): void => {
       }
       checkCurrent(element)
     } else if ((options && options.smooth != null ? options.smooth : fgCache.s)
-        && !(OnChrome && Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage && !allowRAF_old_cr_)) {
+        && !(OnChrome && Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage && noRAF_old_cr_)) {
       amount && performAnimate(element, di, amount, options && options.f)
       scrollTick(1)
     } else if (amount) {
@@ -558,7 +558,7 @@ export const shouldScroll_s = (element: SafeElement, di: BOOL | 2 | 3, amount: n
 }
 
 export const suppressScroll = (): void => {
-    if (OnChrome && Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage && !allowRAF_old_cr_) {
+    if (OnChrome && Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage && noRAF_old_cr_) {
       scrolled = 0
       return;
     }

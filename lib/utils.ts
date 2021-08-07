@@ -46,11 +46,8 @@ export function set_isLocked_ (_newIsLocked: typeof isLocked_): void { isLocked_
 export let readyState_: Document["readyState"] = initialDocState
 export function set_readyState_ (_newReadyState: Document["readyState"]): void { readyState_ = _newReadyState }
 
-export let allowRAF_old_cr_: BOOL = 1
-export function set_allowRAF_old_cr_ (_newAllowRAF: BOOL): void { allowRAF_old_cr_ = _newAllowRAF }
-
-export let evenHidden_: kHidden = kHidden.None
-export function set_evenHidden_ (_newEvenHidden_: kHidden): void { evenHidden_ = _newEvenHidden_ }
+export let noRAF_old_cr_: BOOL | undefined
+export function set_noRAF_old_cr_ (_newNoRAF: BOOL): void { noRAF_old_cr_ = _newNoRAF }
 
 export let noTimer_cr_: 1 | undefined
 
@@ -61,6 +58,9 @@ export function set_fgCache (_newCache: SettingsNS.FrontendSettingCache): void {
 
 export let clickable_: ElementSet
 export function set_clickable_ (_newClickable: ElementSet): void { clickable_ = _newClickable }
+
+export let evenHidden_: kHidden = kHidden.None
+export function set_evenHidden_ (_newEvenHidden_: kHidden): void { evenHidden_ = _newEvenHidden_ }
 
 export let keydownEvents_: KeydownCacheArray;
 export function set_keydownEvents_ (_newKeydownEvents: KeydownCacheArray): void { keydownEvents_ = _newKeydownEvents }

@@ -424,7 +424,7 @@ const commandHandler = (command: VisualAction, count: number): void => {
 
 const findV = (count1: number): void => {
     if (!find_query) {
-      send_(kFgReq.findQuery, {}, (query): void => {
+      send_(kFgReq.findQuery, 1, (query): void => {
         if (query) {
           findUpdateQuery(query);
           findV(count1)

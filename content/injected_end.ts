@@ -42,23 +42,16 @@ VApi.e = function (cmd): void {
     }
   }
 
-  let i18nMessages: FgRes[kFgReq.i18n]["m"] = null,
-  i18nCallback: ((res: FgRes[kFgReq.i18n]) => void) | null = res => {
-    i18nMessages = res.m;
-    if (!i18nMessages && i18nCallback) {
-      setTimeout(() => VApi && VApi.r![0](kFgReq.i18n, {}, i18nCallback!), 150);
-    }
-    i18nCallback = null;
-    if (VApi.z && i18nMessages) {
+  let i18nMessages: FgRes[kFgReq.i18n] = []
+  thisApi.r![0](kFgReq.i18n, 0, (res): void => {
+    i18nMessages = res;
+    if (VApi.z) {
       const injector1 = VimiumInjector!
       injector1.callback && injector1.callback(2, "complete")
     }
-  };
-  thisApi.r![0](kFgReq.i18n, {}, i18nCallback);
+  })
   thisApi.r![2]!(2, (tid, args): string => {
-    return !i18nMessages
-        ? "T" + tid // must be a valid regexp source / CSS selector
-        : args ? i18nMessages[tid].replace(trArgsRe, s => typeof args === "string" ? args : <string> args[+s[1] - 1])
+    return args ? i18nMessages[tid].replace(trArgsRe, s => typeof args === "string" ? args : <string> args[+s[1] - 1])
         : i18nMessages[tid];
   })
 

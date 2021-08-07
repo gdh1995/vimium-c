@@ -27,7 +27,7 @@ let contentCommands_: {
 }
 let hookOnWnd: (action: HookAction) => void
 
-export { port_ as runtime_port, port_callbacks, safeDestroy, requestHandlers, contentCommands_, hookOnWnd }
+export { port_ as runtime_port, safeDestroy, requestHandlers, contentCommands_, hookOnWnd }
 
 export function set_port_ (_newRuntimePort: null): void { port_ = _newRuntimePort }
 export function set_safeDestroy (_newSafeDestroy: SafeDestoryF): void { safeDestroy = _newSafeDestroy }
@@ -43,6 +43,12 @@ export const send_  = <k extends keyof FgRes> (cmd: k, args: Req.fgWithRes<k>["a
     , callback: (this: void, res: FgRes[k]) => void): void => {
   (post_ as Port["postMessage"])({ H: kFgReq.msg, i: ++tick, c: cmd, a: args })
   port_callbacks[tick] = callback as <K2 extends keyof FgRes>(this: void, res: FgRes[K2]) => void
+}
+
+export const onPortRes_ = function<k extends keyof FgRes> (response: Omit<Req.res<k>, "N">): void {
+  const id = response.m, handler = port_callbacks[id]
+  delete port_callbacks[id]
+  handler(response.r)
 }
 
 export const safePost = <k extends keyof FgReq> (request: FgReq[k] & Req.baseFg<k>): void => {

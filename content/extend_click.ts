@@ -1,6 +1,6 @@
 import {
-  clickable_, setupEventListener, timeout_, doc, isAlive_, set_allowRAF_old_cr_, math, isTop, OnChrome,
-  loc_, replaceBrokenTimerFunc, allowRAF_old_cr_, getTime, recordLog, VTr, vApi, Stop_, isTY, OnEdge, OnFirefox
+  clickable_, setupEventListener, timeout_, doc, isAlive_, set_noRAF_old_cr_, math, isTop, OnChrome,
+  loc_, replaceBrokenTimerFunc, noRAF_old_cr_, getTime, recordLog, VTr, vApi, Stop_, isTY, OnEdge, OnFirefox
 } from "../lib/utils"
 import {
   createElement_, set_createElement_, OnDocLoaded_, runJS_, rAF_, removeEl_s, attr_s, setOrRemoveAttr_s,
@@ -577,8 +577,8 @@ FProto[kToS] = myToStr
   }
   if (OnChrome && Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage
       && appVer === BrowserVer.NoRAFOrRICOnSandboxedPage) {
-    set_allowRAF_old_cr_(0)
-    rAF_((): void => { set_allowRAF_old_cr_(1) })
+    set_noRAF_old_cr_(1)
+    rAF_((): void => { set_noRAF_old_cr_(0) })
   }
   // not check MinEnsuredNewScriptsFromExtensionOnSandboxedPage
   // for the case JavaScript is disabled in CS: https://github.com/philc/vimium/issues/3187
@@ -615,7 +615,7 @@ FProto[kToS] = myToStr
     const cb = (): void => { func(TimerType.fake); };
     const rIC = Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback ? requestIdleCallback : 0 as never as null
     // in case there's `$("#requestIdleCallback")`
-    return OnChrome && Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage && !allowRAF_old_cr_
+    return OnChrome && Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage && !noRAF_old_cr_
       ? (Promise.resolve().then(cb), 1)
       : (Build.MinCVer >= BrowserVer.MinEnsured$requestIdleCallback ? timeout > 19 : timeout > 19 && rIC)
       ? (Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback ? rIC : requestIdleCallback)!(cb, { timeout })

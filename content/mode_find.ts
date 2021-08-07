@@ -28,7 +28,7 @@ import { keyIsDown as scroll_keyIsDown, beginScroll, onScrolls } from "./scrolle
 import { scrollToMark, setPreviousMarkPosition } from "./marks"
 import { hudHide, hud_box, hudTip, hud_opacity, toggleOpacity as hud_toggleOpacity } from "./hud"
 import { post_, send_, runFallbackKey } from "./port"
-import { insert_Lock_, setupSuppress } from "./insert"
+import { insert_Lock_, raw_insert_lock, setupSuppress } from "./insert"
 import { lastHovered_, set_lastHovered_, select_ } from "./async_dispatcher"
 
 export declare const enum FindAction {
@@ -245,10 +245,6 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
       return
   }
     postOnEsc = options.p
-    if (OnChrome && (Build.MinCVer >= BrowserVer.MinBorderWidth$Ensure1$Or$Floor
-          || chromeVer_ > BrowserVer.MinBorderWidth$Ensure1$Or$Floor - 1)) {
-      getZoom_()
-    }
   if (isActive) {
       hudHide(TimerType.noTimer);
       setFirstQuery(query)
@@ -279,7 +275,7 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
   }
 }
 
-export const onLoad = (later?: Event): void => {
+export const onLoad: VApiTy["n"] = (later): void => {
 
   const onLoad2 = (): void => {
     const docEl = innerDoc_.documentElement as HTMLHtmlElement,
@@ -459,7 +455,7 @@ const onIFrameKeydown = (event: KeyboardEventToPrevent): void => {
         if (scroll >= 0) {
           historyIndex = scroll
           if (keybody > "u") {
-            send_(kFgReq.findQuery, { i: scroll }, setQuery)
+            send_(kFgReq.findQuery, scroll, setQuery)
           } else {
             execCommand("undo")
             collpaseSelection(getSelectionOf(innerDoc_)!, VisualModeNS.kDir.right)

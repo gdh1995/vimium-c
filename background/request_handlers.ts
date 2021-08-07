@@ -11,7 +11,7 @@ import { parseSearchUrl_, parseUpperUrl_ } from "./parse_urls"
 import * as settings_ from "./settings"
 import {
   findCPort, isNotVomnibarPage, indexFrame, safePost, complainNoSession, showHUD, complainLimits, ensureInnerCSS,
-  getParentFrame
+  getParentFrame, sendResponse
 } from "./ports"
 import { exclusionListening_, getExcluded_ } from "./exclusions"
 import { setOmniStyle_ } from "./ui_css"
@@ -60,17 +60,18 @@ set_reqH_([
   },
   /** kFgReq.findQuery: */ (request: FgReq[kFgReq.findQuery] | FgReqWithRes[kFgReq.findQuery]
       , port: Port): FgRes[kFgReq.findQuery] | void => {
-    return FindModeHistory_.query_(port.s.incognito_, request.q, request.i)
+    const isObj = typeof request === "object", query = isObj ? request.q : "", index = isObj ? 1 : request
+    return FindModeHistory_.query_(port.s.incognito_, query, index)
   },
-  /** kFgReq.parseSearchUrl: */ (request: FgReqWithRes[kFgReq.parseSearchUrl]
+  /** kFgReq.parseSearchUrl: */ ((request: FgReqWithRes[kFgReq.parseSearchUrl]
       , port: Port): FgRes[kFgReq.parseSearchUrl] | void => {
     let search = parseSearchUrl_(request)
-    if ("i" in request) {
-      port.postMessage({ N: kBgReq.omni_parsed, i: request.i!, s: search })
+    if (request.i != null) {
+      port.postMessage({ N: kBgReq.omni_parsed, i: request.i, s: search })
     } else {
       return search
     }
-  },
+  }) as BackendHandlersNS.FgRequestHandlers[kFgReq.parseSearchUrl],
   /** kFgReq.parseUpperUrl: */ (request: FgReq[kFgReq.parseUpperUrl], port?: Port | null): void => {
     const oldUrl = request.u, alwaysExec = (request as FgReq[kFgReq.parseUpperUrl]).e as boolean
     const result = parseUpperUrl_(request)
@@ -208,7 +209,8 @@ set_reqH_([
       p.s.flags_ |= Frames.Flags.userActed
     }
   },
-  /** kFgReq.execInChild: */ (request: FgReqWithRes[kFgReq.execInChild], port: Port): FgRes[kFgReq.execInChild] => {
+  /** kFgReq.execInChild: */ (request: FgReqWithRes[kFgReq.execInChild], port: Port
+      , msgId: number): FgRes[kFgReq.execInChild] | Port => {
     const tabId = port.s.tabId_, ref = framesForTab_.get(tabId), url = request.u
     if (!ref || ref.ports_.length < 2) { return false }
     let iport: Port | null | undefined
@@ -221,8 +223,11 @@ set_reqH_([
     if (iport) {
       set_cKey(request.k)
       focusAndExecute(request, port, iport, 1)
+      return true
+    } else if (!browserWebNav_()) {
+      return false
     } else {
-      browserWebNav_() && browserWebNav_()!.getAllFrames({tabId: port.s.tabId_}, (frames): void => {
+      browserWebNav_()!.getAllFrames({tabId: port.s.tabId_}, (frames): void => {
         let childId = 0, self = port.s.frameId_
         for (const i1 of frames) {
           if (i1.parentFrameId === self) {
@@ -235,11 +240,12 @@ set_reqH_([
           set_cKey(request.k)
           focusAndExecute(request, port, port2, 1)
         }
+        sendResponse(port, msgId, !!port2)
         // here seems useless if to retry to inject content scripts,
         // see https://github.com/philc/vimium/issues/3353#issuecomment-505564921
       })
+      return port
     }
-    return !!iport
   },
   /** kFgReq.initHelp: */ _AsReqH<kFgReq.initHelp>(initHelp),
   /** kFgReq.css: */ (_0: FgReq[kFgReq.css], port: Port): void => {
@@ -386,7 +392,7 @@ set_reqH_([
   /** kFgReq.framesGoBack: */ _AsReqH<kFgReq.framesGoBack>(framesGoBack),
   /** kFgReq.i18n: */ (): FgRes[kFgReq.i18n] => {
     loadI18nPayload_ && loadI18nPayload_()
-    return { m: i18nPayload_ }
+    return i18nPayload_
   },
   /** kFgReq.learnCSS: */ (_req: FgReq[kFgReq.learnCSS], port: Port): void => {
     (port as Frames.Port).s.flags_ |= Frames.Flags.hasCSS
@@ -408,6 +414,10 @@ set_reqH_([
     downloadFile(req.u, req.f, req.r, req.m ? (succeed): void => {
       succeed || reqH_[kFgReq.openImage]({ r: ReuseType.newFg, f: req.f, u: req.u }, port)
     } : null)
+  },
+  /** kFgReq.wait: */ (req: FgReqWithRes[kFgReq.wait], port, msgId): Port => {
+    setTimeout(() => { sendResponse(port, msgId, 0) }, req)
+    return port
   }
 ])
 

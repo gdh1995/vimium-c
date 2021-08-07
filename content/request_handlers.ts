@@ -1,7 +1,7 @@
 import {
   chromeVer_, clickable_, doc, esc, fgCache, injector, isEnabled_, isLocked_, isAlive_, isTop, math, includes_,
   keydownEvents_, safeObj, set_chromeVer_, set_clickable_, set_fgCache, set_isLocked_, OnChrome, OnFirefox,
-  set_isEnabled_, set_onWndFocus, onWndFocus, timeout_, safer,
+  set_isEnabled_, set_onWndFocus, onWndFocus, timeout_, safer, noTimer_cr_,
   interval_, getTime, vApi, clearInterval_, locHref, set_firefoxVer_, firefoxVer_,
 } from "../lib/utils"
 import { set_keyIdCorrectionOffset_old_cr_, handler_stack, suppressTail_ } from "../lib/keyboard_utils"
@@ -11,7 +11,7 @@ import {
   docEl_unsafe_, scrollIntoView_, CLK, ElementProto, isIFrameElement, DAC, removeEl_s, toggleClass_s
 } from "../lib/dom_utils"
 import {
-  port_callbacks, post_, safePost, set_requestHandlers, requestHandlers, hookOnWnd, set_hookOnWnd,
+  onPortRes_, post_, safePost, set_requestHandlers, requestHandlers, hookOnWnd, set_hookOnWnd,
   HookAction, contentCommands_, runFallbackKey,
 } from "./port"
 import {
@@ -146,11 +146,7 @@ set_requestHandlers([
     request.u = (request.H === kFgReq.copy ? vApi.u : locHref)()
     post_<T>(request);
   },
-  /* kBgReq.msg: */ function<k extends keyof FgRes> (response: Omit<Req.res<k>, "N">): void {
-    const id = response.m, handler = port_callbacks[id];
-    delete port_callbacks[id];
-    handler(response.r);
-  },
+  /* kBgReq.msg: */ onPortRes_,
   /* kBgReq.eval: */ evalIfOK,
   /* kBgReq.settingsUpdate: */function ({ d: delta }: BgReq[kBgReq.settingsUpdate]): void {
     type Keys = keyof typeof delta;
@@ -253,10 +249,10 @@ export const showFrameMask = (mask: FrameMaskType): void => {
     framemask_node = createElement_(OnChrome
         && Build.MinCVer < BrowserVer.MinForcedColorsMode ? getBoxTagName_old_cr() : "div")
     setClassName_s(framemask_node, "R Frame" + (mask === FrameMaskType.OnlySelf ? " One" : ""))
-    framemask_fmTimer = interval_((fake?: TimerType.fake): void => { // safe-interval
+    framemask_fmTimer = interval_((): void => { // safe-interval
       const more_ = framemask_more;
       framemask_more = false;
-      if (more_ && !(OnChrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake && fake)) { return }
+      if (more_ && !(OnChrome && noTimer_cr_)) { return }
       if (framemask_node) { removeEl_s(framemask_node); framemask_node = null; }
       clearInterval_(framemask_fmTimer);
     }, isTop ? 200 : 350);

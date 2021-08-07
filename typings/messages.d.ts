@@ -89,7 +89,7 @@ declare const enum kFgReq {
   /** can be used only with `FgCmdAcrossFrames` and when a fg command is just being called */
   gotoMainFrame,
   setOmniStyle, findFromVisual, framesGoBack, i18n, learnCSS, visualMode,
-  respondForRunKey, downloadLink,
+  respondForRunKey, downloadLink, wait,
   END,
   msg = 90, inject = 99,
   command = "command", id = "id", shortcut = "shortcut",
@@ -467,33 +467,29 @@ interface FgRes {
   [kFgReq.findQuery]: string;
   [kFgReq.parseSearchUrl]: ParsedSearch | null;
   [kFgReq.execInChild]: boolean;
-  [kFgReq.i18n]: { /** rawMessages */ m: string[] | null };
+  [kFgReq.i18n]: /** rawMessages */ string[]
+  [kFgReq.wait]: 0
 }
 interface FgReqWithRes {
-  [kFgReq.findQuery]: {
-    /** query */ q?: undefined;
-    /** index */ i: number;
-  } | {
-    /** query */ q?: undefined;
-    /** index */ i?: undefined;
-  };
+  [kFgReq.findQuery]: /** index */ number
   [kFgReq.parseSearchUrl]: {
     /** url */ u: string;
     /** upper */ p?: undefined;
-    /** id */ i?: number;
+    /** suggestionId */ i?: undefined
   } | Omit<FgReq[kFgReq.parseUpperUrl], "e">
   [kFgReq.execInChild]: {
     /** url */ u: string;
     /** lastKey */ k: kKeyCode;
     /** ensured args */ a: FgOptions;
   } & Omit<BaseExecute<FgOptions, FgCmdAcrossFrames>, "H">;
-  [kFgReq.i18n]: {};
+  [kFgReq.i18n]: 0
+  [kFgReq.wait]: number
 }
 
 interface FgReq {
   [kFgReq.setSetting]: SetSettingReq<keyof SettingsNS.FrontUpdateAllowedSettings>;
   [kFgReq.parseSearchUrl]: {
-    /** id */ i: number;
+    /** suggestionId */ i: number
     /** url */ u: string;
   };
   [kFgReq.parseUpperUrl]: {
@@ -501,7 +497,7 @@ interface FgReq {
     /** upper */ p: number;
     /** appended */ a?: string;
     /** force */ f?: BOOL;
-    /** id */ i?: undefined;
+    /** suggestionId */ i?: undefined
     /** trailingSlash */ t: boolean | null | undefined;
     /** (deprecated) trailingSlash (old) */ r?: boolean | null | undefined;
     /** sed : not for kFgReq.parseSearchUrl */ s?: MixedSedOpts | null;

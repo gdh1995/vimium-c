@@ -19,13 +19,22 @@ const onMessage = <K extends keyof FgReq, T extends keyof FgRes> (request: Req.f
       [T2 in ReqK]: <T3 extends ReqK>(req: Req.fg<T3>, port: Frames.Port) => void
     })[request.H](request as Req.fg<K>, port)
   } else {
-    port.postMessage<2>({ N: kBgReq.msg, m: (request as Req.fgWithRes<T>).i,
-      r: (reqH_ as {
-        [T2 in ResK]: (req: Req.fgWithRes<T2>["a"], port: Frames.Port) => FgRes[T2]
+    const ret = (reqH_ as {
+        [T2 in ResK]: (req: Req.fgWithRes<T2>["a"], port: Port, msgId: number) => FgRes[T2] | Port
       } as {
-        [T2 in ResK]: <T3 extends ResK>(req: Req.fgWithRes<T3>["a"], port: Frames.Port) => FgRes[T3]
-      })[(request as Req.fgWithRes<T>).c]((request as Req.fgWithRes<T>).a, port)
-    })
+        [T2 in ResK]: <T3 extends ResK>(req: Req.fgWithRes<T3>["a"], port: Port, msgId: number) => FgRes[T3] | Port
+      })[(request as Req.fgWithRes<T>).c]((request as Req.fgWithRes<T>).a, port, (request as Req.fgWithRes<T>).i)
+    ret !== port &&
+    port.postMessage<2>({ N: kBgReq.msg, m: (request as Req.fgWithRes<T>).i, r: ret as FgRes[T] })
+  }
+}
+
+export const sendResponse = <T extends keyof FgRes> (port: Port, msgId: number, response: FgRes[T]) => {
+  const frames = framesForTab_.get(port.s.tabId_)
+  if (frames && frames.ports_.includes!(port)) { // for less exceptions
+    try {
+      port.postMessage<2>({ N: kBgReq.msg, m: msgId, r: response })
+    } catch {}
   }
 }
 
