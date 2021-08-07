@@ -52,6 +52,8 @@ export function set_allowRAF_old_cr_ (_newAllowRAF: BOOL): void { allowRAF_old_c
 export let evenHidden_: kHidden = kHidden.None
 export function set_evenHidden_ (_newEvenHidden_: kHidden): void { evenHidden_ = _newEvenHidden_ }
 
+export let noTimer_cr_: 1 | undefined
+
 /** ==== Cache ==== */
 
 export let fgCache: OnlyEnsureItemsNonNull<SettingsNS.FrontendSettingCache>
@@ -135,6 +137,7 @@ export const clearInterval_: (timer: ValidIntervalID) => void =
 
 export function replaceBrokenTimerFunc (_newTimerFunc: TimerFunc<number>): void {
   timeout_ = interval_ = _newTimerFunc as TimerFunc<TimerID & number>
+  noTimer_cr_ = 1
 }
 
 /**
@@ -145,8 +148,8 @@ export function replaceBrokenTimerFunc (_newTimerFunc: TimerFunc<number>): void 
  * @param activeMode Default to `{passive: true, capture: true}`; `1` means `passive: false`;
  *        on Firefox, `3` means "on bubbling and not passive"
  */
-export const setupEventListener =
-  <T extends EventTarget, Active extends 3 | 1 | 0 | undefined = undefined, E extends string = string> (
+export const setupEventListener = <
+      T extends EventTarget, Active extends 3 | 1 | 0 | undefined = undefined, E extends string = string> (
     target: T | 0, eventType: E
     , func?: ((this: T, e: E extends keyof HTMLElementEventMap
       ? Active extends 1 ? HTMLElementEventMap[E] & ToPrevent : HTMLElementEventMap[E]

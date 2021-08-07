@@ -137,7 +137,6 @@ case "$1" in
   *)
     if test -d "$1" && test -f "$1/manifest.json"; then
       VC_ROOT=$1
-      DIST=0
       shift
     else
       echo "Unknown arg: $1" >&2
@@ -172,10 +171,14 @@ if test $DO_CLEAN -eq 2; then exit 0; fi
 if test $ALSO_VC -gt 0; then
   if test $DIST -gt 0; then
     wp deafault_vc_ext_w "$default_vc_root/dist"
+    DIST=0
   else
     wp deafault_vc_ext_w "$default_vc_root"
   fi
   OTHER_EXT=${OTHER_EXT},${deafault_vc_ext_w}
+  test -z "$VC_ROOT" && VC_ROOT=.
+elif test -n "$VC_ROOT"; then
+  DIST=0
 fi
 
 if test -f "/usr/bin/env.exe"; then

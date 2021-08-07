@@ -1,6 +1,6 @@
 /// <reference path="../lib/base.omni.d.ts" />
 import {
-  isAlive_, keydownEvents_, readyState_, timeout_, clearTimeout_, recordLog, chromeVer_, math, OnChrome,
+  isAlive_, keydownEvents_, readyState_, timeout_, clearTimeout_, recordLog, chromeVer_, math, OnChrome, noTimer_cr_,
   interval_, clearInterval_, locHref, vApi, createRegExp, isTY, safeObj, isTop, OnFirefox, OnEdge, safeCall
 } from "../lib/utils"
 import { removeHandler_, replaceOrSuppressMost_, getMappedKey, isEscape_ } from "../lib/keyboard_utils"
@@ -81,7 +81,8 @@ const init = ({k: secret, v: page, t: type, i: inner}: FullOptions): void => {
     setDisplaying_s(el)
     // setOrRemoveAttr_s(el, "allow", "clipboard-read; clipboard-write")
     if (type !== VomnibarNS.PageType.web) { /* empty */ }
-    else if (createRegExp(kTip.nonLocalhostRe, "i").test(page) && !(<RegExpOne> /^http:/).test(locHref())) {
+    else if (OnChrome && noTimer_cr_
+        || createRegExp(kTip.nonLocalhostRe, "i").test(page) && !(<RegExpOne> /^http:/).test(locHref())) {
       // not allowed by Chrome; recheck because of `tryNestedFrame`
       reload();
     } else {
@@ -107,10 +108,12 @@ const init = ({k: secret, v: page, t: type, i: inner}: FullOptions): void => {
         reload()
         return
       }
-      timeout_((i?: TimerType.fake): void => {
+      timeout_((): void => {
+        // if `noTimer_cr_`, then always use inner page, so that `status` will be updated ASAP - reliable in most time
+        // but if it's because JavaScript is disabled on `chrome://settings/content/siteDetails`,
+        // then the code is fast enough only when DevTools is not open
         clearInterval_(initMsgInterval)
-        const ok = !isAlive_ || status !== Status.Initing
-        if (OnFirefox ? ok : ok || i) {
+        if (!isAlive_ || status !== Status.Initing) {
           // only clear `onload` when receiving `VomnibarNS.kFReq.iframeIsAlive`, to avoid checking `i`
           isAlive_ && secondActivateWithNewOptions && secondActivateWithNewOptions()
           return
@@ -287,7 +290,7 @@ const refreshKeyHandler = (): void => {
     init(options)
   } else if (safeCall(isAboutBlank_throwable)) {
     secondActivateWithNewOptions = activate.bind(0, options, count);
-    (status > Status.ToShow - 1 || timeout_ === interval_) && resetWhenBoxExists()
+    (status > Status.ToShow - 1 || noTimer_cr_) && resetWhenBoxExists()
     return
   } else if (status === Status.Inactive) {
     status = Status.ToShow

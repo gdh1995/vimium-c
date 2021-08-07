@@ -409,7 +409,7 @@ const checkFocus = (defaultVal: boolean): boolean => {
         } else {
           send_(kFgReq.execInChild, {
             u: clickEl.src, c: kFgCmd.linkHints, n: hintCount_, k: event ? event.i : kKeyCode.None, a: hintOptions
-          }, (res): void => { !res || clickEl.contentWindow.focus() })
+          }, (res): void => { res || clickEl.contentWindow.focus() })
         }
       } else {
         focusOmni()

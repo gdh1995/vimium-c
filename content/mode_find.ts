@@ -1,7 +1,7 @@
 import {
   setupEventListener, VTr, keydownEvents_, isAlive_, suppressCommonEvents, onWndFocus, timeout_, safer, fgCache,
   doc, getTime, chromeVer_, deref_, escapeAllForRe, tryCreateRegExp, vApi, callFunc, clearTimeout_, Stop_, isTY, Lower,
-  math, max_, min_, OnFirefox, OnChrome, OnEdge, firefoxVer_
+  math, max_, min_, OnFirefox, OnChrome, OnEdge, firefoxVer_, noTimer_cr_
 } from "../lib/utils"
 import {
   pushHandler_, replaceOrSuppressMost_, removeHandler_, prevent_, getMappedKey, keybody_, isEscape_, keyNames_,
@@ -131,16 +131,16 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
     isActive || query === query_ && options.l || setPreviousMarkPosition()
     checkDocSelectable();
     ensureBorder()
-
+    doesNormalizeLetters = options.n
 
   /** Note: host page may have no range (type is "None"), if:
    * * press <Enter> on HUD to exit FindMode
    * * a host script has removed all ranges
    */
   deactivate = deactivate || ((i: FindAction): void => {
-    let sin = styleSelColorIn, noStyle = !sin || !parentNode_unsafe_s(sin), hasResult = hasResults
-      , maxNotRunPost = postOnEsc ? FindAction.ExitAndReFocus - 1 : FindAction.ExitToPostMode - 1
-      , el: SafeElement | null | undefined, el2: Element | null
+    const sin = styleSelColorIn, styleSheet = sin && sin.sheet, knownHasResult = hasResults
+    const maxNotRunPost = postOnEsc ? FindAction.ExitAndReFocus - 1 : FindAction.ExitToPostMode - 1
+    let el: SafeElement | null | undefined, el2: Element | null
     lastInputTime_ = 0
     i === FindAction.ExitNoAnyFocus ? hookSel(1) : focus()
     coords && scrollToMark(coords)
@@ -154,20 +154,22 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
     historyIndex = matchCount = doesCheckAlive = 0;
     styleInHUD = onUnexpectedBlur = outerBox_ = isRegex = ignoreCase =
     box_ = innerDoc_ = root_ = input_ = countEl = parsedRegexp_ =
-    initialRange = regexMatches = coords = cachedInnerText = null as never
+    deactivate = initialRange = regexMatches = coords = cachedInnerText = null as never
     if (i > FindAction.MaxExitButNoWork) {
       el = getSelectionFocusEdge_(getSelected())
       el && focus_(el)
     }
-    if ((i === FindAction.ExitAndReFocus || !hasResult || visual_mode_name) && !noStyle) {
+    if ((i === FindAction.ExitAndReFocus || !knownHasResult || visual_mode_name) && styleSheet) {
       toggleStyle(1)
       restoreSelection(true)
+    } else if (OnChrome && noTimer_cr_ && styleSheet) {
+      hookSel(0)
     }
     if (visual_mode_name) {
       visualActivate(safer<CmdOptions[kFgCmd.visualMode]>({ r: true }))
       return;
     }
-    if (i > FindAction.MaxExitButNoWork && hasResult && (!el || el !== insert_Lock_())) {
+    if (i > FindAction.MaxExitButNoWork && knownHasResult && (!el || el !== insert_Lock_())) {
       let container = focusFoundLinkIfAny()
       if (container && i === FindAction.ExitAndReFocus && (el2 = deepActiveEl_unsafe_())
           && getEditableType_<0>(el2) > EditableType.TextBox - 1 && contains_s(container, el2)) {
@@ -188,6 +190,7 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
     }
   })
 
+  isActive && adjustUI()
   if (options.l) {
       if (query = query || query_) {
         styleSelColorOut || initSelColors(AdjustType.MustAdjust)
@@ -222,7 +225,7 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
           focusFoundLinkIfAny()
           if (!isActive) {
             replaceOrSuppressMost_(kHandler.find, (event: HandlerNS.Event): HandlerResult => {
-              const exit = isEscape_(getMappedKey(event, kModeId.Insert))
+              const exit = isEscape_(getMappedKey(event, raw_insert_lock ? kModeId.Insert : kModeId.Normal))
               removeHandler_(kHandler.find)
               if (exit) {
                 const old = initialRange
@@ -242,13 +245,11 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
       return
   }
     postOnEsc = options.p
-    doesNormalizeLetters = options.n
     if (OnChrome && (Build.MinCVer >= BrowserVer.MinBorderWidth$Ensure1$Or$Floor
           || chromeVer_ > BrowserVer.MinBorderWidth$Ensure1$Or$Floor - 1)) {
       getZoom_()
     }
   if (isActive) {
-      adjustUI()
       hudHide(TimerType.noTimer);
       setFirstQuery(query)
       replaceOrSuppressMost_(kHandler.find, onHostKeydown)
@@ -881,7 +882,7 @@ export const executeFind = (query: string | null, options: ExecuteOptions): Rect
 }
 
 const hookSel = (t?: TimerType.fake | 1): void => {
-  setupEventListener(0, "selectionchange", toggleStyle, t! > 0)
+  setupEventListener(0, "selectionchange", /*#__NOINLINE__*/ toggleStyle, t as BOOL | undefined)
 }
 
   /** must be called after initing */
