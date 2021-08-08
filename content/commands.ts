@@ -1,7 +1,7 @@
 import {
   chromeVer_, doc, esc, fgCache, isTop, set_esc, VTr, safer, timeout_, loc_, weakRef_, deref_,
   keydownEvents_, parseSedOptions, Stop_, suppressCommonEvents, setupEventListener, vApi, locHref, isTY, max_, min_,
-  OnChrome, OnFirefox, OnEdge, firefoxVer_, safeCall, parseOpenPageUrlOptions
+  OnChrome, OnFirefox, OnEdge, firefoxVer_, safeCall, parseOpenPageUrlOptions, os_
 } from "../lib/utils"
 import {
   isHTML_, htmlTag_, createElement_, querySelectorAll_unsafe_, SafeEl_not_ff_, docEl_unsafe_, MDW, CLK,
@@ -10,7 +10,7 @@ import {
 } from "../lib/dom_utils"
 import {
   pushHandler_, removeHandler_, getMappedKey, prevent_, isEscape_, keybody_, DEL, BSP, ENTER, handler_stack,
-  replaceOrSuppressMost_
+  replaceOrSuppressMost_, getKeyStat_
 } from "../lib/keyboard_utils"
 import {
   view_, wndSize_, isNotInViewport, getZoom_, prepareCrop_, getViewBox_, padClientRect_, isSelARange,
@@ -121,7 +121,7 @@ set_contentCommands_([
   },
   /* kFgCmd.passNextKey: */ (options: CmdOptions[kFgCmd.passNextKey], count0: number): void => {
     const oldEsc = esc!, oldPassKeys = passKeys
-    const keys = safer<{ [keyCode in kKeyCode]: BOOL }>({})
+    const keys = safer<{ [keyCode in kKeyCode]: number | false }>({})
     let keyCount = 0, count = count0 > 0 ? count0 : -count0
     if (!!options.normal === (count0 > 0)) {
       esc!(HandlerResult.ExitPassMode); // singleton
@@ -147,21 +147,36 @@ set_contentCommands_([
       esc!(HandlerResult.Nothing);
       return;
     }
+    const shouldExit_delayed = (event: KeyboardEvent, isDown: BOOL): boolean => {
+      if (!os_ && keyCount && (isDown || !getKeyStat_(event))) {
+        for (const rawKey in keys) {
+          const key = +rawKey
+          if (keys[key] && event.timeStamp - <number> keys[key] > (
+                (key > kKeyCode.altKey ? key < kKeyCode.maxNotMetaKey + 1 || key > kKeyCode.minNotMetaKeyOrMenu - 1
+                  : key < kKeyCode.shiftKey) ? fgCache.k[0] + 800 : 5e3)) {
+            keys[key] = false, --keyCount
+          }
+        }
+        keyCount > 0 || (keyCount = 0, --count) || exitPassMode!()
+      }
+      return !count
+    }
     replaceOrSuppressMost_(kHandler.passNextKey, event => {
-      // not check .repeat, in case of missing corresponding keyup events
+      if (!event.e.repeat && shouldExit_delayed(event.e, 1)) { return HandlerResult.Nothing }
       keyCount += !keys[event.i] as boolean | BOOL as BOOL
-      keys[event.i] = 1;
+      keys[event.i] = os_ ? 1 : event.e.timeStamp
       return HandlerResult.PassKey;
     })
     set_onKeyup2((event): void => {
-      if (!event || --keyCount > 0 || (keyCount = 0, --count > 0)) {
+      if (event && shouldExit_delayed(event, 0)) { /* empty */ }
+      else if (event && keys[event.keyCode] ? --keyCount > 0 || (keyCount = 0, --count) : keyCount || count) {
         keys[event && event.keyCode] = 0
-        hudShow(kTip.passNext, count > 1 ? VTr(kTip.nTimes, [count]) : "");
+        keyCount || hudShow(kTip.passNext, count > 1 ? VTr(kTip.nTimes, [count]) : "")
       } else {
         exitPassMode!();
       }
     })
-    onKeyup2!(<0> kKeyCode.None)
+    onKeyup2!(0)
     set_exitPassMode((): void => {
       removeHandler_(kHandler.passNextKey)
       set_exitPassMode(null)
