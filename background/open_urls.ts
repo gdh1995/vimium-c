@@ -2,7 +2,6 @@ import {
   framesForTab_, cPort, cRepeat, get_cOptions, set_cOptions, set_cPort, set_cRepeat, set_lastWndId_,
   lastWndId_, curIncognito_, curTabId_, curWndId_, recencyForTab_, settingsCache_, OnFirefox, OnChrome, OnEdge,
   CurCVer_, IsEdg_, paste_, substitute_, newTabUrls_, contentPayload_, CONST_, shownHash_, set_shownHash_,
-  hasGroupPermission_ff_
 } from "./store"
 import * as BgUtils_ from "./utils"
 import {
@@ -45,8 +44,8 @@ export const newTabIndex = (tab: Readonly<Tab>
     : doesGroup !== false && getGroupId(tab) != null
     // next to the current if no opener - in case of failing in setting group
     ? pos === "start" || pos === "begin" ? tab.index
-      : !OnFirefox || As_<"end" | UnknownValue>(pos) === "end" ? undefined
-      : opener || hasGroupPermission_ff_ ? undefined : tab.index + 1
+      : As_<"end" | UnknownValue>(pos) === "end" ? undefined
+      : OnFirefox && opener ? undefined : tab.index + 1
     : pos === "start" || pos === "begin" ? 0
     : As_<"end" | UnknownValue>(pos) === "end" ? opener ? 3e4 : undefined
     /** pos is undefined, or "default" */
