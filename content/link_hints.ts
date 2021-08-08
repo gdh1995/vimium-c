@@ -89,7 +89,7 @@ export type AddChildIndirectly = (officer: BaseHintWorker
 import {
   VTr, isAlive_, isEnabled_, setupEventListener, keydownEvents_, set_keydownEvents_, timeout_, max_, min_, math, OnEdge,
   clearTimeout_, fgCache, doc, readyState_, chromeVer_, vApi, deref_, getTime, weakRef_, unwrap_ff, OnFirefox, OnChrome,
-  WithDialog, Lower, safeCall, loc_
+  WithDialog, Lower, safeCall, loc_, os_
 } from "../lib/utils"
 import {
   querySelector_unsafe_, isHTML_, scrollingEl_, docEl_unsafe_, IsInDOM_, GetParent_unsafe_,
@@ -428,7 +428,7 @@ const onKeydown = (event: HandlerNS.Event): HandlerResult => {
       resetMode(num1 as BOOL | undefined)
       num1 && timeout_(reinit, 0)
     } else if ((i < kKeyCode.maxAcsKeys + 1 && i > kKeyCode.minAcsKeys - 1
-            || !fgCache.o && (i > kKeyCode.maxNotMetaKey && i < kKeyCode.minNotMetaKeyOrMenu))
+            || !os_ && (i > kKeyCode.maxNotMetaKey && i < kKeyCode.minNotMetaKeyOrMenu))
         && !key) {
       num1 = mode1 > HintMode.min_copying - 1 && mode1 < HintMode.max_copying + 1
         ? i === kKeyCode.ctrlKey || i > kKeyCode.maxNotMetaKey ? (mode1 | HintMode.queue) ^ HintMode.list

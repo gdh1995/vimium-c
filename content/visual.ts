@@ -34,8 +34,8 @@ declare const enum kYank { // should have no overlap with ReuseType
 declare const enum SelType { None = 0, Caret = 1, Range = 2 }
 
 import {
-  VTr, safer, fgCache, doc, chromeVer_, tryCreateRegExp, isTY, OnFirefox, OnChrome, safeCall, parseOpenPageUrlOptions,
-  parseSedOptions
+  VTr, safer, os_, doc, chromeVer_, tryCreateRegExp, isTY, OnFirefox, OnChrome, safeCall, parseOpenPageUrlOptions,
+  parseSedOptions,
 } from "../lib/utils"
 import {
   getSelection_, getSelectionFocusEdge_, isHTML_, docEl_unsafe_, notSafe_not_ff_, getEditableType_, editableTypes_,
@@ -387,7 +387,7 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode]): void => {
       collapseToRight(<BOOL> +(!options.s && ("" + curSelection).length > 1) && getDirection())
   }
   replaceOrSuppressMost_(kHandler.visual, (event: HandlerNS.Event): HandlerResult => {
-    const doPass = event.i === kKeyCode.ime || event.i === kKeyCode.menuKey && fgCache.o,
+    const doPass = event.i === kKeyCode.ime || event.i === kKeyCode.menuKey && os_,
     key = doPass ? "" : getMappedKey(event, kModeId.Visual), keybody = keybody_(key);
     if (!key || isEscape_(key)) {
       !key || currentCount || currentSeconds ? resetKeys() : deactivate(1)
@@ -505,7 +505,7 @@ const runMovements = (direction: ForwardDir, granularity: kG | kVimG.vimWord
 // https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/editing/editing_behavior.h?type=cs&q=ShouldSkipSpaceWhenMovingRight&g=0&l=99
       if (direction &&
           (OnFirefox ? !Build.NativeWordMoveOnFirefox || shouldSkipSpaceWhenMovingRight
-            : (fgCache.o > kOS.MAX_NOT_WIN) !== shouldSkipSpaceWhenMovingRight)) {
+            : (os_ > kOS.MAX_NOT_WIN) !== shouldSkipSpaceWhenMovingRight)) {
         fixWord = 1;
         if (OnFirefox ? !Build.NativeWordMoveOnFirefox : !shouldSkipSpaceWhenMovingRight) {
           count1--;

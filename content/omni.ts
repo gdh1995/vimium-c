@@ -1,7 +1,7 @@
 /// <reference path="../lib/base.omni.d.ts" />
 import {
   isAlive_, keydownEvents_, readyState_, timeout_, clearTimeout_, recordLog, chromeVer_, math, OnChrome, noTimer_cr_,
-  interval_, clearInterval_, locHref, vApi, createRegExp, isTY, safeObj, isTop, OnFirefox, OnEdge, safeCall
+  interval_, clearInterval_, locHref, vApi, createRegExp, isTY, safer, isTop, OnFirefox, OnEdge, safeCall
 } from "../lib/utils"
 import { removeHandler_, replaceOrSuppressMost_, getMappedKey, isEscape_ } from "../lib/keyboard_utils"
 import {
@@ -121,7 +121,7 @@ const init = ({k: secret, v: page, t: type, i: inner}: FullOptions): void => {
         resetWhenBoxExists()
         focus();
         status = Status.KeepBroken
-        activate(safeObj(null), 1)
+        activate(safer({}) as any, 1)
       }, 400)
       const doPostMsg = (postMsgStat?: TimerType.fake | 1): void => {
         const wnd = el.contentWindow, isFile = page.startsWith("file:")

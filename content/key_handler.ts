@@ -1,5 +1,5 @@
 import {
-  doc, esc, fgCache, isEnabled_, isTop, keydownEvents_, set_esc, safer, Stop_, isTY, Lower, OnChrome, OnFirefox,
+  doc, esc, os_, isEnabled_, isTop, keydownEvents_, set_esc, safer, Stop_, isTY, Lower, OnChrome, OnFirefox,
   chromeVer_
 } from "../lib/utils"
 import {
@@ -130,7 +130,7 @@ const checkAccessKey_cr = OnChrome ? (event: HandlerNS.Event): void => {
     event.c === kChar.INVALID && char_(event);
     if (isWaitingAccessKey !== (event.c.length === 1 || event.c === SPC)
         && (getKeyStat_(event.e) & KeyStat.ExceptShift /* Chrome ignore .shiftKey */) ===
-            (fgCache.o ? KeyStat.altKey : KeyStat.altKey | KeyStat.ctrlKey)
+            (os_ ? KeyStat.altKey : KeyStat.altKey | KeyStat.ctrlKey)
         ) {
       isWaitingAccessKey = !isWaitingAccessKey;
       anyClickHandler.handleEvent = isWaitingAccessKey ? /*#__NOINLINE__*/ onAnyClick_cr : noopEventHandler

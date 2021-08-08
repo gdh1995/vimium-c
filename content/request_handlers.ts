@@ -1,8 +1,8 @@
 import {
   chromeVer_, clickable_, doc, esc, fgCache, injector, isEnabled_, isLocked_, isAlive_, isTop, math, includes_,
-  keydownEvents_, safeObj, set_chromeVer_, set_clickable_, set_fgCache, set_isLocked_, OnChrome, OnFirefox,
-  set_isEnabled_, set_onWndFocus, onWndFocus, timeout_, safer, noTimer_cr_,
-  interval_, getTime, vApi, clearInterval_, locHref, set_firefoxVer_, firefoxVer_,
+  keydownEvents_, set_chromeVer_, set_clickable_, set_fgCache, set_isLocked_, OnChrome, OnFirefox,
+  set_isEnabled_, set_onWndFocus, onWndFocus, timeout_, safer, noTimer_cr_, set_os_,
+  interval_, getTime, vApi, clearInterval_, locHref, set_firefoxVer_, firefoxVer_, os_,
 } from "../lib/utils"
 import { set_keyIdCorrectionOffset_old_cr_, handler_stack, suppressTail_ } from "../lib/keyboard_utils"
 import {
@@ -45,8 +45,9 @@ set_requestHandlers([
     OnChrome && set_chromeVer_(load.v as BrowserVer)
     OnFirefox && set_firefoxVer_(load.v as FirefoxBrowserVer)
     set_fgCache(vApi.z = load)
+    set_os_(fgCache.o)
     if (OnChrome && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key) {
-      load.o || set_keyIdCorrectionOffset_old_cr_(300)
+      os_ || set_keyIdCorrectionOffset_old_cr_(300)
     }
     if (OnChrome && Build.MinCVer < BrowserVer.MinNoKeygenElement && chromeVer_ < BrowserVer.MinNoKeygenElement
         || OnFirefox && Build.MinFFVer < FirefoxBrowserVer.MinNoKeygenElement
@@ -198,7 +199,7 @@ set_requestHandlers([
       [key in Keys]: <T2 extends Keys>(this: void, options: CmdOptions[T2] & SafeObject, count: number) => void;
     };
     if (isEnabled_) { // in case of $then / $else
-      (contentCommands_ as TypeToCheck as TypeChecked)[request.c](options ? safer(options) : safeObj(null), request.n)
+      (contentCommands_ as TypeToCheck as TypeChecked)[request.c](safer(options || {}), request.n)
     }
   } as (req: BaseExecute<object, keyof CmdOptions>) => void,
   /* kBgReq.createMark: */ createMark,

@@ -1,7 +1,7 @@
 import {
   setupEventListener, VTr, keydownEvents_, isAlive_, suppressCommonEvents, onWndFocus, timeout_, safer, fgCache,
   doc, getTime, chromeVer_, deref_, escapeAllForRe, tryCreateRegExp, vApi, callFunc, clearTimeout_, Stop_, isTY, Lower,
-  math, max_, min_, OnFirefox, OnChrome, OnEdge, firefoxVer_, noTimer_cr_
+  math, max_, min_, OnFirefox, OnChrome, OnEdge, firefoxVer_, noTimer_cr_, os_
 } from "../lib/utils"
 import {
   pushHandler_, replaceOrSuppressMost_, removeHandler_, prevent_, getMappedKey, keybody_, isEscape_, keyNames_,
@@ -431,7 +431,7 @@ const onLoad2 = (): void => {
             || firefoxVer_ > FirefoxBrowserVer.MinContentEditableInShadowOfBodyRefuseShortcuts - 1
             || Build.MinFFVer < FirefoxBrowserVer.MinContentEditableInShadowSupportIME
             && firefoxVer_ < FirefoxBrowserVer.MinContentEditableInShadowSupportIME
-            || fgCache.o === kOS.unixLike)
+            || os_ === kOS.unixLike)
         ? addElement("div") as HTMLDivElement & SafeHTMLElement : body as HTMLBodyElement & SafeHTMLElement,
     root = OnEdge || OnFirefox
         && (Build.MinFFVer < FirefoxBrowserVer.MinContentEditableInShadowSupportIME
@@ -524,8 +524,8 @@ const onPaste_not_cr = !OnChrome ? (event: ClipboardEvent & ToPrevent): void => 
 } : 0 as never as null
 
 const onIFrameKeydown = (event: KeyboardEventToPrevent): void => {
-    Stop_(event);
     const n = event.keyCode
+    Stop_(event)
     if (!OnChrome || Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted
         ? !event.isTrusted : event.isTrusted === false) { return; }
     if (n === kKeyCode.ime || scroll_keyIsDown && onScrolls(event) || event.type === "keyup") { return; }
@@ -537,9 +537,9 @@ const onIFrameKeydown = (event: KeyboardEventToPrevent): void => {
           : (query_ && post_({ H: kFgReq.findQuery, q: query0_ }), FindAction.ExitForEnter)
       : keybody !== DEL && keybody !== BSP
         ? isEscape_(key) ? FindAction.ExitForEsc : FindAction.DoNothing
-      : OnFirefox && fgCache.o === kOS.unixLike && "cs".includes(key[0])
+      : OnFirefox && os_ === kOS.unixLike && "cs".includes(key[0])
         ? FindAction.CtrlDelete
-      : query_ || (n === kKeyCode.deleteKey && fgCache.o || event.repeat) ? FindAction.PassDirectly
+      : query_ || (n === kKeyCode.deleteKey && os_ || event.repeat) ? FindAction.PassDirectly
       : FindAction.Exit;
     let h = HandlerResult.Prevent, scroll: number;
     if (!i) {
@@ -561,6 +561,8 @@ const onIFrameKeydown = (event: KeyboardEventToPrevent): void => {
       else if (keybody === kChar.f2) {
         OnFirefox && box_.blur()
         focus(); keydownEvents_[n] = 1;
+        const el = hasResults && getSelectionFocusEdge_(getSelected())
+        el && focus_(el)
       }
       else if (keybody === kChar.up || keybody === kChar.down) {
         scroll = historyIndex + (keybody < "u" ? -1 : 1)

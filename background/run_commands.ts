@@ -643,7 +643,7 @@ const runKeyWithOptions = (key: string, count: number, exOptions?: CommandsNS.En
   const fStatus = get_cOptions<C.runKey, true>().$f
   if (exOptions && typeof exOptions === "object" || fallOpts || fStatus) {
     const originalOptions = normalizedOptions_(registryEntry)
-    registryEntry = entryReadonly ? Object.assign({}, registryEntry) : registryEntry
+    registryEntry = entryReadonly ? Object.assign<{}, CommandsNS.Item>({}, registryEntry) : registryEntry
     let newOptions: CommandsNS.RawOptions & NonNullable<CommandsNS.EnvItem["options"]> = BgUtils_.safeObj_()
     exOptions && copyCmdOptions(newOptions, BgUtils_.safer_(exOptions))
     fallOpts && copyCmdOptions(newOptions, BgUtils_.safer_(fallOpts))

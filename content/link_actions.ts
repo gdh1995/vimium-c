@@ -1,5 +1,5 @@
 import {
-  safer, fgCache, isImageUrl, isJSUrl, set_keydownEvents_, keydownEvents_, timeout_, doc, chromeVer_, weakRef_,
+  safer, fgCache, isImageUrl, isJSUrl, set_keydownEvents_, keydownEvents_, timeout_, doc, chromeVer_, weakRef_, os_,
   parseSedOptions, createRegExp, isTY, max_, min_, OnFirefox, OnChrome, safeCall, loc_, parseOpenPageUrlOptions
 } from "../lib/utils"
 import { getVisibleClientRect_, center_, view_, selRange_ } from "../lib/rect"
@@ -310,7 +310,7 @@ const downloadLink = (url?: string, filename?: string): void => {
 }
 
 const defaultClick = (): void => {
-    const mask = hintMode_ & HintMode.mask_focus_new, isMac = !fgCache.o,
+    const mask = hintMode_ & HintMode.mask_focus_new, isMac = !os_,
     isRight = hintOptions.button === "right",
     dblClick = !!hintOptions.dblclick && !isRight,
     newTabStr = (hintOptions.newtab + "") as ToString<Exclude<HintsNS.Options["newtab"], boolean>>,

@@ -1,5 +1,5 @@
 import {
-  injector, safeObj, timeout_, isAlive_, isTop, set_i18n_getMsg, locHref, OnEdge, OnChrome, OnFirefox, isTY
+  injector, safer, timeout_, isAlive_, isTop, set_i18n_getMsg, locHref, OnEdge, OnChrome, OnFirefox, isTY
 } from "../lib/utils"
 import { suppressTail_ } from "../lib/keyboard_utils"
 import { docHasFocus_ } from "../lib/dom_utils"
@@ -15,7 +15,7 @@ export interface Port extends chrome.runtime.Port {
 export declare const enum HookAction { Install = 0, SuppressListenersOnDocument = 1, Suppress = 2, Destroy = 3 }
 export type SafeDestoryF = (silent?: boolean | BOOL | 9) => void
 
-const port_callbacks: { [msgId: number]: <k extends keyof FgRes>(this: void, res: FgRes[k]) => void } = safeObj(null)
+let port_callbacks: { [msgId: number]: <k extends keyof FgRes>(this: void, res: FgRes[k]) => void }
 let port_: Port | null = null
 let tick = 1
 let safeDestroy: SafeDestoryF
@@ -42,7 +42,9 @@ export const post_ = <k extends keyof FgReq>(request: FgReq[k] & Req.baseFg<k>):
 export const send_  = <k extends keyof FgRes> (cmd: k, args: Req.fgWithRes<k>["a"]
     , callback: (this: void, res: FgRes[k]) => void): void => {
   (post_ as Port["postMessage"])({ H: kFgReq.msg, i: ++tick, c: cmd, a: args })
-  port_callbacks[tick] = callback as <K2 extends keyof FgRes>(this: void, res: FgRes[K2]) => void
+  ; port_callbacks = port_callbacks || safer({})
+  port_callbacks[tick] =
+          callback as <K2 extends keyof FgRes>(this: void, res: FgRes[K2]) => void
 }
 
 export const onPortRes_ = function<k extends keyof FgRes> (response: Omit<Req.res<k>, "N">): void {

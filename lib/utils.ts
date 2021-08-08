@@ -21,6 +21,8 @@ export let chromeVer_: BrowserVer = 0
 export let firefoxVer_: FirefoxBrowserVer = 0
 export function set_chromeVer_ (_newRealChromeVer: BrowserVer): void { chromeVer_ = _newRealChromeVer }
 export function set_firefoxVer_ (_newRealVer: FirefoxBrowserVer): void { firefoxVer_ = _newRealVer }
+export let os_: kOS
+export function set_os_ (_newOS: kOS): void { os_ = _newOS }
 
 export const isTop = top === window
 export const injector = VimiumInjector
