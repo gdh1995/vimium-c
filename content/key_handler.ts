@@ -30,7 +30,7 @@ let noopEventHandler: EventListenerObject["handleEvent"] = Object.is as any
 interface MouseEventListener extends EventListenerObject { handleEvent (evt: MouseEventToPrevent): ELRet }
 let anyClickHandler: MouseEventListener = { handleEvent: noopEventHandler }
 
-let onKeyup2: ((this: void, event: Pick<KeyboardEvent, "keyCode"> | 0) => void) | null | undefined
+let onKeyup2: ((this: void, event: KeyboardEvent | 0) => void) | null | undefined
 
 set_esc(function<T extends Exclude<HandlerResult, HandlerResult.ExitPassMode>> (i: T): T {
   currentKeys = ""; nextKeys = null; curKeyTimestamp = 0; return i
@@ -229,7 +229,13 @@ export const onKeydown = (event: KeyboardEventToPrevent): void => {
         action = HandlerResult.Prevent;
       }
   }
-  if (action < HandlerResult.MinStopOrPreventEvents) { return; }
+  if (action < HandlerResult.MinStopOrPreventEvents) {
+    // https://github.com/gdh1995/vimium-c/issues/390#issuecomment-894687506
+    if (!os_ && keydownEvents_[key] === 1 && !event.repeat) {
+      keydownEvents_[key] = 0
+    }
+    return
+  }
   if (action > HandlerResult.MaxNotPrevent) {
     OnChrome && checkAccessKey_cr(eventWrapper)
     if (OnChrome && !evIDC_cr && (Build.MinCVer >= BrowserVer.MinEnsured$InputDeviceCapabilities
