@@ -464,7 +464,7 @@ set_bgC_([
       onlyHost = filter.includes("host") ? BgUtils_.safeParseURL_(activeTabUrl) : null,
       urlToFilter = full ? activeTabUrl : onlyHost ? onlyHost.host : activeTabUrl.split("#", 1)[0]
       tabs = tabs.filter(tab => {
-        const tabUrl = getTabUrl(tab), parsed = onlyHost ? BgUtils_.safeParseURL_(activeTabUrl) : null
+        const tabUrl = getTabUrl(tab), parsed = onlyHost ? BgUtils_.safeParseURL_(tabUrl) : null
         const url = parsed ? parsed.host : full ? tabUrl : tabUrl.split("#", 1)[0]
         return url === urlToFilter && (!title || tab.title === title)
       })
