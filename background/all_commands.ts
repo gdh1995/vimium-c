@@ -3,7 +3,6 @@ import {
   framesForOmni_, bgC_, set_bgC_, set_cmdInfo_, curIncognito_, curTabId_, recencyForTab_, settingsCache_, CurCVer_,
   OnChrome, OnFirefox, OnEdge, substitute_, CONST_, curWndId_
 } from "./store"
-import * as BgUtils_ from "./utils"
 import {
   Tabs_, Windows_, InfoToCreateMultiTab, openMultiTabs, tabsGet, getTabUrl, selectFrom, runtimeError_, R_,
   selectTab, getCurWnd, getCurTab, getCurShownTabs_, browserSessions_, browser_, selectWndIfNeed,
@@ -26,7 +25,7 @@ import {
   parentFrame, enterVisualMode, showVomnibar, toggleZoom, captureTab,
   initHelp, framesGoBack, mainFrame, nextFrame, performFind, framesGoNext
 } from "./frame_commands"
-import { onShownTabsIfRepeat_, getTabRange, getTabsIfRepeat_, tryLastActiveTab_ } from "./filter_tabs"
+import { onShownTabsIfRepeat_, getTabRange, getTabsIfRepeat_, tryLastActiveTab_, filterTabsByCond_ } from "./filter_tabs"
 import {
   copyWindowInfo, joinTabs, moveTabToNewWindow, moveTabToNextWindow, reloadTab, removeTab, toggleMuteTab,
   togglePinTab, toggleTabUrl, reopenTab_
@@ -439,7 +438,7 @@ set_bgC_([
     /** `direction` is treated as limited; limited by pinned */
     const direction = get_cOptions<C.removeTabsR>().other ? 0 : cRepeat
     getTabsIfRepeat_(direction, function onRemoveTabsR(oriTabs: Tab[] | undefined): void {
-      let tabs = oriTabs
+      let tabs: Readonly<Tab>[] | undefined = oriTabs
       if (!tabs || tabs.length === 0) { return runtimeError_() }
     const activeTab = selectFrom(tabs)
     let i = tabs!.indexOf(activeTab), noPinned = get_cOptions<C.removeTabsR, true>().noPinned
@@ -459,15 +458,7 @@ set_bgC_([
       tabs = tabs.filter(tab => !tab.pinned)
     }
     if (filter) {
-      const title = filter.includes("title") ? activeTab.title : "",
-      full = filter.includes("hash"), activeTabUrl = getTabUrl(activeTab),
-      onlyHost = filter.includes("host") ? BgUtils_.safeParseURL_(activeTabUrl) : null,
-      urlToFilter = full ? activeTabUrl : onlyHost ? onlyHost.host : activeTabUrl.split("#", 1)[0]
-      tabs = tabs.filter(tab => {
-        const tabUrl = getTabUrl(tab), parsed = onlyHost ? BgUtils_.safeParseURL_(tabUrl) : null
-        const url = parsed ? parsed.host : full ? tabUrl : tabUrl.split("#", 1)[0]
-        return url === urlToFilter && (!title || tab.title === title)
-      })
+      tabs = filterTabsByCond_(activeTab, tabs, filter)
     }
     const mayConfirm = get_cOptions<C.removeTabsR>().mayConfirm
     if (mayConfirm && tabs.length > (typeof mayConfirm === "number" ? Math.max(mayConfirm, 5) : 20)

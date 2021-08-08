@@ -79,6 +79,7 @@ interface BgCmdOptions {
           | "host" | "url" | "rhost" | "title" | "create" | "rcreate" | "id" | "window" | "rwindow"
           | "index" | "rindex" | "reverse")[]
     windows: "" | "current" | "all"
+    filter: BgCmdOptions[kBgCmd.removeTabsR]["filter"]
   }
   [kBgCmd.mainFrame]: Req.FallbackOptions
   [kBgCmd.moveTab]: { group: "keep" | "ignore" | boolean }
