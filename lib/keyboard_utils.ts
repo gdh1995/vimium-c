@@ -76,7 +76,7 @@ export const char_ = (eventWrapper: HandlerNS.Event): kChar => {
     key = _getKeyName(event) // it's safe to skip the check of `event.keyCode`
         || /*#__NOINLINE__*/ _getKeyCharUsingKeyIdentifier_old_cr(event as Pick<OldKeyboardEvent, "keyIdentifier">
             , +shiftKey as BOOL)
-  } else if (!OnEdge && fgCache.l > 0 && (fgCache.l > 1 || event.altKey)) {
+  } else if (!OnEdge && (fgCache.l > 0 && (fgCache.l > 1 || event.altKey) || key === "Dead")) {
       /** return strings of 1-N characters and CapsLock is ignored */
     let code = event.code!, prefix = code.slice(0, 2);
     if (prefix !== "Nu") { // not (Numpad* or NumLock)

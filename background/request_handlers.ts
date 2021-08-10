@@ -326,17 +326,11 @@ set_reqH_([
       registryEntry = keyToCommandMap_.get(key)
     }
     BgUtils_.resetRe_()
-    if (!registryEntry) { /* empty */ }
-    else if (request.f != null) {
-      if (request.f.w === 0) {
-        executeCommand(registryEntry, count, request.l, port, 0, request.f)
-      } else {
-        waitAndRunKeyReq(request as (typeof request) & Ensure<typeof request, "f">, port)
-      }
-    } else {
+    if (registryEntry) {
       executeCommand(registryEntry, count, request.l, port, 0, null)
     }
   },
+  /** kFgReq.nextKey: */ _AsReqH<kFgReq.nextKey>(waitAndRunKeyReq),
   /** kFgReq.marks: */ (request: FgReq[kFgReq.marks], port: Port): void => {
     set_cPort(port)
     switch (request.a) {

@@ -40,7 +40,7 @@ let portToOmni: OmniPort = null as never
 let status = Status.NotInited
 let omniOptions: VomnibarNS.FgOptionsToFront | null = null
 let secondActivateWithNewOptions: (() => void) | null = null
-let timer: ValidTimeoutID = TimerID.None
+let timer_: ValidTimeoutID = TimerID.None
 
 export { box as omni_box, status as omni_status }
 
@@ -222,25 +222,26 @@ const refreshKeyHandler = (): void => {
   }) as (event: HandlerNS.Event) => HandlerResult)
 }
 
-  const timer1 = timeout_(refreshKeyHandler, GlobalConsts.TimeOfSuppressingTailKeydownEvents)
+  const timer1 = timeout_(refreshKeyHandler, GlobalConsts.TimeOfSuppressingTailKeydownEvents), oldTimer = timer_
   const scale = wndSize_(2)
   let url = options.url, upper = 0, screenHeight_ = 0 // unit: physical pixel (if C<52)
   // hide all further key events to wait iframe loading and focus changing from JS
   replaceOrSuppressMost_(kHandler.omni)
   secondActivateWithNewOptions = null
+  timer_ = TimerID.None
+  oldTimer && clearTimeout_(oldTimer)
   if (checkHidden(kFgCmd.vomnibar, options, count)) { return }
   if (status === Status.KeepBroken) {
     return hudTip(kTip.omniFrameFail, 2000)
   }
   if (!options || !options.k || !options.v) { return; }
-  if (readyState_ > "l") {
-    if (!timer) {
+  if (status === Status.NotInited && readyState_ > "l") { // a second `o` should show Vomnibar at once
+    if (!oldTimer) {
       clearTimeout_(timer1)
-      timer = timeout_(activate.bind(0, options, count), 500)
+      timer_ = timeout_(activate.bind(0, options, count), 500)
       return
     }
   }
-  timer = TimerID.None
   if (isTop || !options.u || !isTY(options.u)) {
     options.u = vApi.u()
   }

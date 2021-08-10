@@ -104,7 +104,7 @@ export const runFallbackKey = ((options: Req.FallbackOptions
     }
     suppressTail_(GlobalConsts.TimeOfSuppressingUnexpectedKeydownEvents)
     post_({
-      H: kFgReq.key, k: fallback, l: kKeyCode.None, f: { c: context, r: options.$retry, u: anotherTip }
+      H: kFgReq.nextKey, k: fallback, f: { c: context, r: options.$retry, u: anotherTip }
     })
   } else {
     const tip = anotherTip && anotherTip !== 2 ? anotherTip : context ? context.t : 0

@@ -87,7 +87,7 @@ const onLargeCountConfirmed = (registryEntry: CommandsNS.Item): void => {
 }
 
 export const executeCommand = (registryEntry: CommandsNS.Item, count: number, lastKey: kKeyCode, port: Port | null
-    , overriddenCount: number, fallbackCounter?: FgReq[kFgReq.key]["f"]): void => {
+    , overriddenCount: number, fallbackCounter?: FgReq[kFgReq.nextKey]["f"] | null): void => {
   setupSingletonCmdTimer(0)
   if (gOnConfirmCallback) {
     gOnConfirmCallback = null // just in case that some callbacks were thrown away
@@ -731,17 +731,30 @@ export const runNextCmdBy = (useThen: BOOL, options: Req.FallbackOptions, timeou
   const nextKey = useThen ? options.$then : options.$else
   const hasFallback = !!nextKey && typeof nextKey === "string"
   if (hasFallback) {
-    const fStatus: NonNullable<FgReq[kFgReq.key]["f"]> = { c: options.$f, r: options.$retry, u: 0, w: 0 }
+    const fStatus: NonNullable<FgReq[kFgReq.nextKey]["f"]> = { c: options.$f, r: options.$retry, u: 0, w: 0 }
     setupSingletonCmdTimer(setTimeout((): void => {
       const frames = framesForTab_.get(curTabId_),
       port = cPort && cPort.s.tabId_ === curTabId_ && frames && frames.ports_.indexOf(cPort) > 0 ? cPort
           : !frames ? null : frames.cur_.s.status_ === Frames.Status.disabled
           && frames.ports_.filter(i => i.s.status_ !== Frames.Status.disabled)
               .sort((a, b) => a.s.frameId_ - b.s.frameId_)[0] || frames.cur_
-      if ((<RegExpI> /^[a-z]+(\.[a-zA-Z]+)?$/i).test(nextKey!) && nextKey! in availableCommands_) {
+      if ((<RegExpI> /^[a-z]+(\.[a-z]+)?$/i).test(nextKey!) && nextKey! in availableCommands_) {
         executeCommand(makeCommand_(nextKey!, null), 1, kKeyCode.None, port, 0, fStatus)
       } else {
-        reqH_[kFgReq.key](As_<Req.fg<kFgReq.key>>({ H: kFgReq.key, k: nextKey!, l: kKeyCode.None, f: fStatus }), port)
+        let key: string = nextKey!, count = 1
+          , arr: null | string[] = (<RegExpOne> /^\d+|^-\d*/).exec(key)
+        if (arr != null) {
+          let prefix = arr[0]
+          key = key.slice(prefix.length)
+          count = prefix !== "-" ? parseInt(prefix, 10) || 1 : -1
+        }
+        let registryEntry = keyToCommandMap_.get(key)
+        BgUtils_.resetRe_()
+        if (!registryEntry) {
+          showHUD(`" ${key} " has not been mapped.`)
+        } else {
+          executeCommand(registryEntry, count, kKeyCode.None, port, 0, fStatus)
+        }
       }
     }, timeout || 50))
   }
@@ -778,14 +791,14 @@ export const runNextOnTabLoaded = (options: OpenUrlOptions | Req.FallbackOptions
   }, 100)) // it's safe to clear an interval using `clearTimeout`
 }
 
-export const waitAndRunKeyReq = (request: WithEnsured<FgReq[kFgReq.key], "f">, port: Port | null): void => {
-  const fallback: Req.FallbackOptions = { $then: request.k, $else: null, $retry: request.f.r,
-        $f: makeFallbackContext(request.f.c, 0, request.f.u) }
-  set_cKey(request.l)
+export const waitAndRunKeyReq = (request: FgReq[kFgReq.nextKey], port: Port | null): void => {
+  const fallbackInfo = request.f
+  const options: Req.FallbackOptions = { $then: request.k, $else: null, $retry: fallbackInfo.r,
+        $f: makeFallbackContext(fallbackInfo.c, 0, fallbackInfo.u) }
   set_cPort(port!)
-  if (request.f.u === false) {
-    runNextOnTabLoaded(fallback, null)
+  if (fallbackInfo.u === false) {
+    runNextOnTabLoaded(options, null)
   } else {
-    runNextCmdBy(1, fallback, request.f.w)
+    runNextCmdBy(1, options, fallbackInfo.w)
   }
 }

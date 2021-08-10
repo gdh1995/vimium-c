@@ -12,6 +12,7 @@ declare var define: any, __filename: string | null | undefined // eslint-disable
   interface DefineTy {
     (deps: string[], factory: FactoryTy): void
     (factory: FactoryTy): void
+    amd?: boolean
     modules_?: Dict<ModuleTy | LoadingPromise>
     noConflict (): void
   }
@@ -90,7 +91,7 @@ declare var define: any, __filename: string | null | undefined // eslint-disable
       script.onload = (): void => {
         if (!(Build.BTypes & BrowserType.Edge) && (!(Build.BTypes & BrowserType.Chrome)
             || Build.MinCVer >= BrowserVer.MinUsableScript$type$$module$InExtensions)) {
-          modules[name] instanceof Promise && (modules[name] = { __esModule: true })
+          modules[name] === exports && (modules[name] = { __esModule: true })
         }
         deps ? deps.then(resolve) : resolve()
         script.remove()
@@ -102,9 +103,11 @@ declare var define: any, __filename: string | null | undefined // eslint-disable
       document.head!.appendChild(script)
     }))
     !callback ? 0 :
-    exports instanceof Promise ? void exports.then(() => { doImport(path, null, callback) }) : callback(myRequire(name))
+    exports instanceof Promise ? void exports.then(() => {}).then(() => { doImport(path, null, callback) })
+    : callback(myRequire(name))
     return exports
   }
+  myDefine.amd = true
   if (!Build.NDEBUG) {
     myDefine.modules_ = modules
   }

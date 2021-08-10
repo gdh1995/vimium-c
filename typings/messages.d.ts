@@ -84,7 +84,7 @@ declare const enum kFgReq {
   setSetting, findQuery, parseSearchUrl, parseUpperUrl,
   searchAs, gotoSession, openUrl, onFrameFocused, checkIfEnabled,
   nextFrame, exitGrab, execInChild, initHelp, css,
-  vomnibar, omni, copy, key, marks,
+  vomnibar, omni, copy, key, nextKey, marks,
   focusOrLaunch, cmd, removeSug, openImage, evalJSFallback,
   /** can be used only with `FgCmdAcrossFrames` and when a fg command is just being called */
   gotoMainFrame,
@@ -576,12 +576,15 @@ interface FgReq {
   [kFgReq.key]: {
     /* keySequence */ k: string;
     /** lastKey */ l: kKeyCode;
-    /** then/else counter */ f?: {
+  };
+  [kFgReq.nextKey]: {
+    /* keySequence */ k: string
+    /** $then/$else info */ f: {
       /** context: counter and last tip */ c: Req.FallbackOptions["$f"];
       /** maxRetried */ r: number | null | undefined
       /** kTip | 0 | 2: tip; false: tab will be updated */ u: kTip | false;
       /** wait for a while; 0 means no waiting */ w?: number | null
-    } | null
+    }
   };
   [kFgReq.marks]: ({ /** action */ a: kMarkAction.create } & (MarksNS.NewTopMark | MarksNS.NewMark)) | {
     /** action */ a: kMarkAction.clear;
