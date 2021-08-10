@@ -32,6 +32,7 @@ declare const enum kYank { // should have no overlap with ReuseType
   MIN = 7, Exit = 7, NotExit = 8, RichTextButNotExit = 9,
 }
 declare const enum SelType { None = 0, Caret = 1, Range = 2 }
+type InfoToMoveRightByWord = [oldSelected: string, oldDi: ForwardDir]
 
 import {
   VTr, safer, os_, doc, chromeVer_, tryCreateRegExp, isTY, OnFirefox, OnChrome, safeCall, parseOpenPageUrlOptions,
@@ -252,7 +253,7 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode]): void => {
     selType() === SelType.Range && collapseToRight((getDirection() ^ toFocus ^ 1) as BOOL)
     di_ = kDirTy.right
   }
-  
+
     const typeIdx = { None: SelType.None, Caret: SelType.Caret, Range: SelType.Range }
     const initialScope: {r?: ShadowRoot | null} = {}
     let mode_: Mode = options.m || Mode.Visual
@@ -500,16 +501,22 @@ const getNextRightCharacter = (isMove: BOOL): string => {
 const runMovements = (direction: ForwardDir, granularity: kG | kVimG.vimWord
       , count1: number): void => {
     const shouldSkipSpaceWhenMovingRight = granularity === kVimG.vimWord
-    let fixWord: BOOL = 0;
+    let fixWord: boolean | undefined
+    // https://source.chromium.org/chromium/chromium/src/+/67fe5a41bff92a7bd4f425a24e4858317f8700e5
+    let fixDeltaHasOnlySpaces_cr_win: InfoToMoveRightByWord | null | undefined
     if (shouldSkipSpaceWhenMovingRight || granularity === kG.word) {
 // https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/editing/editing_behavior.h?type=cs&q=ShouldSkipSpaceWhenMovingRight&g=0&l=99
-      if (direction &&
-          (OnFirefox ? !Build.NativeWordMoveOnFirefox || shouldSkipSpaceWhenMovingRight
-            : (os_ > kOS.MAX_NOT_WIN) !== shouldSkipSpaceWhenMovingRight)) {
-        fixWord = 1;
-        if (OnFirefox ? !Build.NativeWordMoveOnFirefox : !shouldSkipSpaceWhenMovingRight) {
-          count1--;
-        }
+      if (!direction) { /* empty */ }
+      else if (OnFirefox) {
+        fixWord = !Build.NativeWordMoveOnFirefox || shouldSkipSpaceWhenMovingRight
+        if (!Build.NativeWordMoveOnFirefox) { count1 -= fixWord as boolean | BOOL as BOOL }
+      } else {
+        fixWord = (os_ > kOS.MAX_NOT_WIN) !== shouldSkipSpaceWhenMovingRight
+        count1 -= (OnChrome && os_ > kOS.MAX_NOT_WIN
+            && (Build.MinCVer >= BrowserVer.Min$Selection$$extend$stopWhenWhiteSpaceEnd
+                || chromeVer_ > BrowserVer.Min$Selection$$extend$stopWhenWhiteSpaceEnd - 1)
+            && !!(fixDeltaHasOnlySpaces_cr_win = moveRightByWordButNotSkipSpaces!(0))
+            || fixWord && !shouldSkipSpaceWhenMovingRight) as boolean | BOOL as BOOL
       }
       granularity = kG.word
     }
@@ -522,12 +529,15 @@ const runMovements = (direction: ForwardDir, granularity: kG | kVimG.vimWord
     mode_ !== Mode.Caret && (diType_ &= ~DiType.isUnsafe)
     di_ = direction === oldDi ? direction : kDirTy.unknown
     granularity - kG.lineBoundary || hudTip(kTip.selectLineBoundary, 2000)
-    if (!fixWord) { return }
-    if (!(OnFirefox && Build.NativeWordMoveOnFirefox) && !shouldSkipSpaceWhenMovingRight) {
-        moveRightByWordButNotSkipSpace!()
-        return;
+    if (OnChrome && mode_ === Mode.Caret && fixDeltaHasOnlySpaces_cr_win !== undefined) {
+      (!fixWord || shouldSkipSpaceWhenMovingRight) && collapseToRight(kDirTy.right)
     }
-    if (OnFirefox && !Build.NativeWordMoveOnFirefox && moveRightByWordButNotSkipSpace!()) {
+    if (!fixWord) { return }
+    if (OnFirefox && Build.NativeWordMoveOnFirefox) { /* empty */ }
+    else if (!shouldSkipSpaceWhenMovingRight) {
+      OnChrome ? moveRightByWordButNotSkipSpaces!(fixDeltaHasOnlySpaces_cr_win) : moveRightByWordButNotSkipSpaces!()
+      return
+    } else if (OnFirefox && moveRightByWordButNotSkipSpaces!()) {
       return
     }
 
@@ -574,34 +584,38 @@ const runMovements = (direction: ForwardDir, granularity: kG | kVimG.vimWord
 
   /**
    * if Build.NativeWordMoveOnFirefox, then should never be called if browser is Firefox
+   *
+   * when by word, not skip following spaces
    */
-const moveRightByWordButNotSkipSpace = OnFirefox && Build.NativeWordMoveOnFirefox ? null
-      : (): boolean => {
-    const sel = curSelection
-    let str = "" + sel, len = str.length, di = getDirection()
-    extend(kDirTy.right, kG.word)
-    const str2 = "" + sel;
-    if (!di) { di_ = str2 ? kDirTy.unknown : kDirTy.right }
-    str = di ? str2.slice(len) : getDirection() ? str + str2 : str.slice(0, len - str2.length)
+const moveRightByWordButNotSkipSpaces = OnFirefox && Build.NativeWordMoveOnFirefox ? null
+      : ((testOnlySpace_cr?: InfoToMoveRightByWord | null | 0): InfoToMoveRightByWord | null | boolean => {
+    const oldStr = testOnlySpace_cr ? testOnlySpace_cr[0] : "" + curSelection, oldLen = oldStr.length
+    let di = testOnlySpace_cr ? testOnlySpace_cr[1] : getDirection()
+    testOnlySpace_cr || extend(kDirTy.right, kG.word)
+    let newStr = "" + curSelection, newLen = newStr.length
+    if (!di) { di_ = newStr ? kDirTy.unknown : kDirTy.right }
+    newStr = di ? newStr.slice(oldLen) : getDirection() ? oldStr + newStr : oldStr.slice(0, oldLen - newLen)
     // now di_ is correct, and can be left / right
     let match = (OnFirefox ? WordsRe_ff_old_cr!
         : !OnChrome || Build.MinCVer >= BrowserVer.MinSelExtendForwardOnlySkipWhitespaces
           ? rightWhiteSpaceRe! : (rightWhiteSpaceRe || WordsRe_ff_old_cr)!
-        ).exec(str),
+        ).exec(newStr),
     toGoLeft = match ? (OnFirefox ? false : !OnChrome ? true
           : Build.MinCVer >= BrowserVer.MinSelExtendForwardOnlySkipWhitespaces || rightWhiteSpaceRe)
-      ? match[0].length : str.length - match.index - match[0].length : 0;
-    const needBack = toGoLeft > 0 && toGoLeft < str.length;
+        ? match[0].length : newStr.length - match.index - match[0].length : 0
+    const needBack = toGoLeft > 0 && toGoLeft < newStr.length
+    if (OnChrome && testOnlySpace_cr === 0) {
+      return toGoLeft <= 0 || needBack ? [oldStr!, di] : null
+    }
     if (needBack) {
       // after word are some spaces (>= C59) or non-word chars (< C59 || Firefox)
-      len = str2.length;
       if (!(diType_ & DiType.TextBox)) {
         while (toGoLeft > 0) {
           extend(kDirTy.left)
-          len || (di_ = kDirTy.left)
-          const reduced = len - ("" + sel).length;
+          newLen || (di_ = kDirTy.left)
+          const reduced = newLen - ("" + curSelection).length;
           toGoLeft -= reduced > 0 ? reduced : -reduced || toGoLeft
-          len -= reduced;
+          newLen -= reduced;
         }
         if (toGoLeft < 0) { // may be a "user-select: all"
           extend(kDirTy.right)
@@ -609,17 +623,17 @@ const moveRightByWordButNotSkipSpace = OnFirefox && Build.NativeWordMoveOnFirefo
       } else {
         di = di_ as ForwardDir
         let el = insert_Lock_() as TextElement,
-        start = TextOffset(el, 0), end = start + len
+        start = TextOffset(el, 0), end = start + newLen
         di ? (end -= toGoLeft) :  (start -= toGoLeft);
         di = di && start > end ? (di_ = kDirTy.left) : kDirTy.right
         // di is BOOL := start < end; a.di_ will be correct
-        el.setSelectionRange(di ? start : end, di ? end : start
-          , kDir[<ForwardDir> di_])
+        el.setSelectionRange(di ? start : end, di ? end : start, kDir[di])
       }
     }
     mode_ === Mode.Caret && collapseToRight(kDirTy.right)
-    return needBack;
-}
+    return needBack
+}) as <BySpace extends InfoToMoveRightByWord | null | 0 = null>(bySpace_cr?: BySpace
+      ) => BySpace extends 0 ? InfoToMoveRightByWord | null : boolean
 
   /** @tolerate_di_if_caret */
 const reverseSelection = (): void => {

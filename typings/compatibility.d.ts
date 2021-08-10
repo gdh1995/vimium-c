@@ -491,6 +491,7 @@ declare const enum BrowserVer {
   // https://www.chromestatus.com/features/4507242028072960
   MinNoShadowDOMv0 = 80,
   Min$CrossOriginIsolation$Flag = 80, // #cross-origin-isolation; will break Vomnibar; included by EXPERIMENTAL on C81
+  MinSelectionTreatPunctuationsAsWords = 80, // even if EXPERIMENTAL
   // blank on C80, too simple on C81, usable since C83 and work as default since C85;
   // with a fresh user data on C85, the newtab is chrome-search://... , and chrome://new-tab-page/ since a second start
   MinChromeURL$NewTabPage = 80, // chrome://new-tab-page/ ; even if EXPERIMENTAL or LEGACY
@@ -520,6 +521,7 @@ declare const enum BrowserVer {
   MinForcedColorsMode = 89, // even if EXPERIMENTAL or LEGACY; enable `(forced-colors: active|none)` and color schemes
   MinCaptureBeforeBubbleOnEventTarget = 89, // even if EXPERIMENTAL or LEGACY
   MinCSS$overflow$clip = 90, // even if EXPERIMENTAL or LEGACY
+  Min$Selection$$extend$stopWhenWhiteSpaceEnd = 90, // even if EXPERIMENTAL
   MinESModulesInServiceWorker = 91,
   MinNo$TimerType$$Fake = 999,
   assumedVer = 998,
