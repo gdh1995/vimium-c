@@ -1,7 +1,7 @@
 import {
   chromeVer_, doc, esc, fgCache, isTop, set_esc, VTr, safer, timeout_, loc_, weakRef_, deref_,
-  keydownEvents_, parseSedOptions, Stop_, suppressCommonEvents, setupEventListener, vApi, locHref, isTY, max_, min_,
-  OnChrome, OnFirefox, OnEdge, firefoxVer_, safeCall, parseOpenPageUrlOptions, os_
+  keydownEvents_, parseSedOptions, Stop_, suppressCommonEvents, setupEventListener, vApi, locHref, isTY, min_,
+  OnChrome, OnFirefox, OnEdge, firefoxVer_, safeCall, parseOpenPageUrlOptions, os_, math
 } from "../lib/utils"
 import {
   isHTML_, htmlTag_, createElement_, querySelectorAll_unsafe_, SafeEl_not_ff_, docEl_unsafe_, MDW, CLK,
@@ -264,19 +264,14 @@ set_contentCommands_([
       runFallbackKey(options, sel ? 0 : kTip.noInputToFocus)
       return
     }
-    let preferredSelector = (options.prefer || "") + ""
-    preferredSelector && safeCall(testMatch, preferredSelector, firstInput) == null && (preferredSelector = "")
-    for (let ind = 0; ind < sel; ind++) {
+    let ind = 0
+    for (; ind < sel; ind++) {
       const hint = visibleInputs[ind] as Hint & InputHint, j = hint[0].tabIndex;
-      hint[2] = preferredSelector && testMatch(preferredSelector, hint)
-          ? (OnChrome ? Build.MinCVer >= BrowserVer.MinStableSort : !OnEdge) ? 0.5 : 0.5 + ind / 8192
-          : j < 1 ? -ind
-          : (OnChrome ? Build.MinCVer >= BrowserVer.MinStableSort : !OnEdge)
-          ? j : j + ind / 8192;
+      hint[2] = j > 0 ? (OnChrome ? Build.MinCVer >= BrowserVer.MinStableSort : !OnEdge) ? j : j + ind / 8192
+          : j < 0 ? -ind - sel : -ind
     }
-    const hints: InputHintItem[] = (visibleInputs as Array<Hint & InputHint>).sort(
-        (a, b) => a[2] < 1 || b[2] < 1 ? b[2] - a[2] : a[2] - b[2]).map(
-          (link): InputHintItem => {
+    (visibleInputs as Array<Hint & InputHint>).sort((a, b) => a[2] < 1 || b[2] < 1 ? b[2] - a[2] : a[2] - b[2])
+    const hints: InputHintItem[] = visibleInputs.map((link): InputHintItem => {
       const marker = createElement_("span") as InputHintItem["m"],
       rect = padClientRect_(getBoundingClientRect_(link[0]), 3);
       rect.l--, rect.t--, rect.r--, rect.b--;
@@ -284,14 +279,18 @@ set_contentCommands_([
       setBoundary_(marker.style, rect);
       return {m: marker, d: link[0]};
     })
-    if (count === 1 && known_last) {
-      if (OnChrome && Build.MinCVer < BrowserVer.Min$Array$$find$$findIndex) {
-        sel = max_(0, hints.map(link => link.d).indexOf(known_last))
-      } else {
-        sel = max_(0, hints.findIndex(link => link.d === known_last))
-      }
+    count -= (count > 0) as boolean | BOOL as BOOL
+    if (math.abs(count) > 2 * sel) {
+      sel = count < 0 ? 0 : sel - 1
     } else {
-      sel = count > 0 ? min_(count, sel) - 1 : max_(0, sel + count);
+      if (!count && known_last) {
+        for (ind = 0; ind < sel && hints[ind].d !== known_last; ind++) { /* empty */ }
+      } else {
+        let preferredSelector = (options.prefer || "") + ""
+        for (ind = preferredSelector && safeCall(testMatch, preferredSelector, visibleInputs[0]) === false ? 0 : sel;
+            ind < sel && !testMatch(preferredSelector, visibleInputs[ind]); ind++) { /* empty */ }
+      }
+      sel = (((ind + count) % sel) + sel) % sel
     }
     setClassName_s(hints[sel].m, S)
     ensureBorder(wdZoom_ / dScale_);
@@ -320,7 +319,7 @@ set_contentCommands_([
         return HandlerResult.Prevent;
       }
       // check `!key` for mapModifier
-      else if (!key && (keyCode === kKeyCode.shiftKey || keep && (keyCode === kKeyCode.altKey
+      else if (keyCode === kKeyCode.shiftKey || (keep && !key && (keyCode === kKeyCode.altKey
                         || keyCode === kKeyCode.ctrlKey
                         || keyCode > kKeyCode.maxNotMetaKey && keyCode < kKeyCode.minNotMetaKeyOrMenu))
               || repeat) {
