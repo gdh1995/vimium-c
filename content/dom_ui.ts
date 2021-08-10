@@ -119,6 +119,7 @@ export const addElementList = function <T extends boolean | BOOL> (
     const style = parent.style
     const cls = "R HM" + fgCache.d, zoom = bZoom_ / (WithDialog && dialogContainer ? 1 : dScale_)
     let innerBox: HTMLDivElement | HTMLBodyElement | HTMLDialogElement | undefined = parent
+    let i = 0
     setClassName_s(parent, WithDialog && dialogContainer ? cls + " DHM" : cls)
     if (OnChrome && Build.MinCVer < BrowserVer.MinForcedColorsMode
         && dialogContainer && array.length && getBoxTagName_old_cr() < "d") { // <body>
@@ -128,8 +129,8 @@ export const addElementList = function <T extends boolean | BOOL> (
     }
     if ((!OnChrome || Build.MinCVer >= BrowserVer.MinEnsured$ParentNode$$appendAndPrepend
         || chromeVer_ > BrowserVer.MinEnsured$ParentNode$$appendAndPrepend - 1)) {
-      for (let i = 0; i < array.length; i += kMaxSlice) {
-        const slice = (needToSlice ? array.slice(i, i + kMaxSlice) : array).map(el => el.m)
+      for (; i < array.length; i += kMaxSlice) {
+        var slice = (needToSlice ? array.slice(i, i + kMaxSlice) : array).map(el => el.m) // eslint-disable-line no-var
         !(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinTestedES6Environment
         && Build.MinCVer >= BrowserVer.MinEnsured$ParentNode$$appendAndPrepend
         ? innerBox.append!(...slice) : innerBox.append!.apply(innerBox, slice)
@@ -342,7 +343,7 @@ export const removeSelection = function (root?: VUIRoot & Pick<DocumentOrShadowR
     const sel = (OnChrome && Build.MinCVer >= BrowserVer.MinShadowDOMV0
         ? root : root && root.getSelection) ? getSelectionOf(root as ShadowRoot) : getSelection_()
     const ret = sel && isSelARange(sel) && getAccessibleSelectedNode(sel)
-    ret && collpaseSelection(sel!)
+    ret && collpaseSelection(sel)
     return !!ret
 } as (root?: VUIRoot) => boolean
 

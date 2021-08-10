@@ -475,8 +475,8 @@ export const runKeyWithCond = (info?: CurrentEnvCache): void => {
       break
     }
   }
-  const keys = (matched ? matched.keys : get_cOptions<C.runKey, true>().keys) as (string | BlockNode | ErrorNode)[]
-  let key: string | BlockNode | ErrorNode
+  const keys = (matched ? matched.keys : get_cOptions<C.runKey, true>().keys) as (string | ListNode | ErrorNode)[]
+  let key: string | ListNode | ErrorNode
   const sub_name = matched ? typeof matched.env === "string" ? `[${matched.env}]: `
       : `(${expected_rules.indexOf(matched)})` : ""
   if (keys.length === 0) {
@@ -515,20 +515,20 @@ export const runKeyWithCond = (info?: CurrentEnvCache): void => {
   }
 }
 
-declare const enum kN { key = 0, block = 1, ifElse = 2, error = 3 }
+declare const enum kN { key = 0, list = 1, ifElse = 2, error = 3 }
 interface BaseNode { t: kN; val: unknown; par: Node | null }
-interface KeyNode extends BaseNode { t: kN.key; val: string; par: BlockNode }
-interface BlockNode extends BaseNode { t: kN.block; val: (Node | KeyNode)[] }
+interface KeyNode extends BaseNode { t: kN.key; val: string; par: ListNode }
+interface ListNode extends BaseNode { t: kN.list; val: (Node | KeyNode)[] }
 interface IfElseNode extends BaseNode { t: kN.ifElse; val: { cond: Node, t: Node | null, f: Node | null}; par: Node }
 interface ErrorNode extends BaseNode { t: kN.error; val: string; par: null }
-type Node = BlockNode | IfElseNode
-export const parseKeySeq = (keys: string): BlockNode | ErrorNode => {
+type Node = ListNode | IfElseNode
+export const parseKeySeq = (keys: string): ListNode | ErrorNode => {
   const re = <RegExpOne> /^([$%][a-z]\+?)*([\d-]\d*\+?)?([$%][a-z]\+?)*(<([a-z]-){0,4}\w+(:i)?>|[A-Z_a-z]\w*)/
-  let cur: BlockNode = { t: kN.block, val: [], par: null }, root: BlockNode = cur, last: Node | null
+  let cur: ListNode = { t: kN.list, val: [], par: null }, root: ListNode = cur, last: Node | null
   for (let i = 0; i < keys.length; i++) {
     switch (keys[i]) {
     case "(":
-      last = cur; cur = { t: kN.block, val: [], par: cur }; last.val.push(cur)
+      last = cur; cur = { t: kN.list, val: [], par: cur }; last.val.push(cur)
       break
     case ")": last = cur; do { last = last.par! } while (last.t === kN.ifElse); cur = last; break
     case "?": case ":":
@@ -537,13 +537,13 @@ export const parseKeySeq = (keys: string): BlockNode | ErrorNode => {
       if (!last || last.val.f) {
         last = cur.par
         cur.par = { t: kN.ifElse, val: { cond: cur, t: null, f: null },
-                    par: last || (root = { t: kN.block, val: [], par: null }) }
+                    par: last || (root = { t: kN.list, val: [], par: null }) }
         !last ? root.val.push(cur.par)
-            : last.t === kN.block ? last.val.splice(last.val.indexOf(cur), 1, cur.par)
+            : last.t === kN.list ? last.val.splice(last.val.indexOf(cur), 1, cur.par)
             : last.val.t === cur ? last.val.t = cur.par : last.val.f = cur.par
         last = cur.par
       }
-      cur = { t: kN.block, val: [], par: last }
+      cur = { t: kN.list, val: [], par: last }
       keys[i] === "?" ? last.val.t = cur : last.val.f = cur
       break
     case "+": break
@@ -568,11 +568,11 @@ export const parseKeySeq = (keys: string): BlockNode | ErrorNode => {
   return root
 }
 
-const exprKeySeq = function (this: BlockNode): object | string | null {
+const exprKeySeq = function (this: ListNode): object | string | null {
   const ifNotEmpty = (arr: any[]): any[] | null => arr.some(i => i != null) ? arr : null
   const iter = (node: Node | KeyNode | null): object | string | null => {
     return !node ? null
-        : node.t == kN.block ? node.val.length === 1 ? iter(node.val[0])
+        : node.t == kN.list ? node.val.length === 1 ? iter(node.val[0])
             : node.val.length === 0 ? null : ifNotEmpty(node.val.map(iter))
         : node.t !== kN.ifElse ? As_<string>(node.val)
         : { if: iter(node.val.cond), then: iter(node.val.t), else: iter(node.val.f) }
@@ -587,22 +587,22 @@ const exprKeySeq = function (this: BlockNode): object | string | null {
  */
 export const runKeyInSeq = (seq: BgCmdOptions[C.runKey]["$seq"], dir: number
     , fallback: Req.FallbackOptions["$f"] | null): void => {
-  let cursor: Node | KeyNode | null = seq.cursor as BlockNode | KeyNode
+  let cursor: Node | KeyNode | null = seq.cursor as ListNode | KeyNode
   let down = true
   if (cursor.t === kN.key) {
-    const par: BlockNode = cursor.par, ind = par.val.indexOf(cursor)
+    const par: ListNode = cursor.par, ind = par.val.indexOf(cursor)
     cursor = ind < par.val.length - 1 && dir > 0 ? par.val[ind + 1] : (down = false, par)
   }
   while (cursor && cursor.t !== kN.key) {
-    if (down && cursor.t === kN.block && cursor.val.length > 0) {
+    if (down && cursor.t === kN.list && cursor.val.length > 0) {
       cursor = cursor.val[0]
     } else if (down && cursor.t === kN.ifElse) {
       cursor = cursor.val.cond
     } else if (!cursor.par) {
       cursor = null
       break
-    } else if (cursor.par.t === kN.block) {
-      const par: BlockNode = cursor.par, ind = par.val.indexOf(cursor)
+    } else if (cursor.par.t === kN.list) {
+      const par: ListNode = cursor.par, ind = par.val.indexOf(cursor)
       dir < 0 && ind < par.val.length - 1 && (dir = 1)
       down = ind < par.val.length - 1
       cursor = down ? par.val[ind + 1] : par

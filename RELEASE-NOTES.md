@@ -4,6 +4,23 @@ Release Notes of Vimium C
 ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 说明文档: https://gitee.com/gdh1995/vimium-c#readme , https://github.com/gdh1995/vimium-c/blob/master/README-zh.md .
 
+#### 1.92.0
+* **improved key mappings**
+* `Vomnibar`: fix URLs with space characters would break
+* `map`: fix bugs of `$then` and `$else`, and apply them to much more commands
+  * for example, `enterFindMode` supports `$then="enterVisualMode"`, and `scroll*` runs `$then` when something is scrolled
+  * most commands operating tabs support `$then` and `$else`
+* `runKey` command: change syntax of `.keys`, to **support command trees**
+  * see https://github.com/gdh1995/vimium-c/wiki/Auto-run-a-tree-of-commands
+* `env`: now `host` only considers about top frame URL; add `iframe: boolean | string` to match iframes
+* `mapKey`: support `<...:n>` and they will only take effect in normal mode
+* `LinkHints`: image mode: now can open simple SVG images
+* Firefox: some commands operating tabs will run faster when repeating count is 1
+* fix `w` and `e` in `VisualMode` on Chrome 90+ on Windows
+* fix `passNextKey` on macOS
+* fix a bug about `filter` in `closeOtherTabs`; `joinTabs` and `sortTabs` now supports `filter`
+* some other improvements and bug fixes
+
 #### 1.90.2
 * fix broken `mapKey`
 * fix simulated `mouseenter` and `mouseleave`

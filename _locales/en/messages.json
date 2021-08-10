@@ -21,7 +21,7 @@
   "OpenC": { "message": "Open: " },
   "Upgrade": { "message": "Upgrade" },
   "upgradeMsg": { "message": "Vimium C has been upgraded to v$1.\n" },
-  "upgradeMsg2": { "message": "Support optional permissions to empower Vimium C as you like" },
+  "upgradeMsg2": { "message": "Now one single key can trigger a sequence of commands" },
   "clickForMore": { "message": "Click here for more information." },
   "noCopied": { "message": "No text copied!" },
   "quoteA": { "message": "\"$1\"" },

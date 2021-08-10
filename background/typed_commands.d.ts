@@ -185,6 +185,7 @@ declare namespace CommandsNS {
     $if?: {
       sys?: string
       browser?: BrowserType
+      before?: string
     } | null
   }
   interface Options extends ReadonlySafeDict<any>, SharedPublicOptions, SharedInnerOptions {}

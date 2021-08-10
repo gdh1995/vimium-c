@@ -112,25 +112,19 @@ __Other extensions supporting Vimium C:__
 
 # Release Notes
 
-#### 1.90.0
-* key mappings: now a name of key can include <kbd>_</kbd> ("underscore")
-  * so a key can be named `<v-hint_mode1>` - much more readable
-  * now all directives support `$if`
-  * add `$then:Key $else:Key` for many commands, to run a sequence of commands
-    * please search `Req.FallbackOptions` in source code to find which support them
-  * `runKey`: add a simpler syntax: `expect="envName1:keySeq1,env2:key2"`
-* open URL: now most options can work together (orthorhombic)
-  * change meaning of `reuse=last-wnd-bg`: create an active tab but not activate the last window
-  * add `replace:URLPattern` to find (match) a tab by URL and replace it with a target URL
-  * improve URL detection when open copied URL, and add `copied=urls|any-urls` to open a list of copied URLs
-  * most commands to open URL now support options including `keyword testUrl replace position sed window`
-  * `createTab` is now full featured and works just like an alias of `openUrl` (#344)
-  * `Vomnibar`: decode `file:///` URLs on Windows system
-* `LinkHints`: add lots of options to do whatever needed
-  * improve in focus (#328), newtab (#340), downloading (#332) and `video,audio` (#323)
-  * add `.evenIf:enum typeFilter:enum textFilter:RegExp anyText:bool` to allow/refuse elements
-  * `LinkHints.click`: add an object option `directOptions={}` to iterate in matches
-* text substitution: add some actions and allow non-EN context keys for users to customize rules
+#### 1.92.0
+
+improved key mappings
+* `Vomnibar`: fix URLs with space characters would break
+* `map`: fix bugs of `$then` and `$else`, and apply them to much more commands
+  * for example, `enterFindMode` supports `$then="enterVisualMode"`, and `scroll*` runs `$then` when something is scrolled
+  * most commands operating tabs support `$then` and `$else`
+* `runKey` command: change syntax of `.keys`, to **support command trees**
+  * see https://github.com/gdh1995/vimium-c/wiki/Auto-run-a-tree-of-commands
+* `env`: now `host` only considers about top frame URL; add `iframe: boolean | string` to match iframes
+* `mapKey`: support `<...:n>` and they will only take effect in normal mode
+* Firefox: some commands operating tabs will run faster when repeating count is 1
+* fix `w` and `e` in `VisualMode` on Chrome 90+ on Windows
 * some other improvements and bug fixes
 
 Refer to [RELEASE-NOTES.md](RELEASE-NOTES.md).

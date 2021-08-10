@@ -177,6 +177,7 @@ export const normalizedOptions_ = (item: CommandsNS.ValidItem): CommandsNS.Norma
 const doesMatchEnv_ = (options: CommandsNS.RawOptions | string | null): "t" | "f" | "" => {
     const condition = options && typeof options === "object" && options.$if
     return condition ? !!condition.sys && condition.sys !== CONST_.Platform_
+        || !!condition.before && condition.before.replace("v", "") <= CONST_.VerCode_
         || !!condition.browser
           && !(condition.browser & (Build.BTypes && !(Build.BTypes & (Build.BTypes - 1))
                 ? Build.BTypes : OnOther_)) ? "f" : "t"
@@ -228,7 +229,8 @@ const parseKeyMappings_ = (wholeMappings: string): void => {
           details = availableCommands_[val]
         } else if (!key || key.length > 8 && (key === "__proto__" || key.includes("<__proto__>"))) {
           logError_('Unsupported key sequence %c"%s"', colorRed, key || '""', `for "${val || ""}"`)
-        } else if (registry.has(key) && !(builtinKeys_ && builtinKeys_.has(key))) {
+        } else if (registry.has(key) && !(builtinKeys_ && builtinKeys_.has(key))
+            && doesMatchEnv_(getOptions_(line, knownLen)) !== "f") {
           logError_('Key %c"%s"', colorRed, key, "has been mapped to", registry.get(key)!.command_)
         } else if (!val) {
           logError_('Lacking command when mapping %c"%s"', colorRed, key)
@@ -308,7 +310,7 @@ const parseKeyMappings_ = (wholeMappings: string): void => {
           logError_("Lacking conditions in env declaration:", line)
         } else if (key === "__proto__") {
           logError_('Unsupported env name %c"%s"', colorRed, key)
-        } else if (envMap && envMap.has(key)) {
+        } else if (envMap && envMap.has(key) && (doesMatchEnv_(getOptions_(line, knownLen - 1 - val.length)) !== "f")) {
           logError_('The environment name %c"%s"', colorRed, key, "has been used")
         } else {
           doesPass = true
