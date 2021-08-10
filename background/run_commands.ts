@@ -475,8 +475,8 @@ export const runKeyWithCond = (info?: CurrentEnvCache): void => {
       break
     }
   }
-  const keys = (matched ? matched.keys : get_cOptions<C.runKey, true>().keys) as (string | BlockNode)[]
-  let key: string | BlockNode
+  const keys = (matched ? matched.keys : get_cOptions<C.runKey, true>().keys) as (string | BlockNode | ErrorNode)[]
+  let key: string | BlockNode | ErrorNode
   const sub_name = matched ? typeof matched.env === "string" ? `[${matched.env}]: `
       : `(${expected_rules.indexOf(matched)})` : ""
   if (keys.length === 0) {
@@ -484,7 +484,7 @@ export const runKeyWithCond = (info?: CurrentEnvCache): void => {
   } else if (absCRepeat > keys.length && keys.length !== 1) {
     showHUD(sub_name + "Has no such a key")
   } else if (key = keys[keys.length === 1 ? 0 : absCRepeat - 1],
-      typeof key !== "string" && (typeof key !== "object" || key.t !== kN.block) || !key) {
+      typeof key !== "string" && (typeof key !== "object" || typeof key.t !== "number") || !key) {
     showHUD(sub_name + "The key is invalid")
   } else {
     const repeat = keys.length === 1 ? cRepeat : absCRepeat !== cRepeat ? -1 : 1
@@ -492,6 +492,10 @@ export const runKeyWithCond = (info?: CurrentEnvCache): void => {
         || collectOptions(get_cOptions<C.runKey, true>())
     if (typeof key !== "string" || (<RegExpOne> /[()?:+%]/).test(key)) {
       typeof key === "string" && (key = keys[keys.length === 1 ? 0 : absCRepeat - 1] = parseKeySeq(key))
+      if (key.t === kN.error) {
+        showHUD(key.val)
+        return
+      }
       const fakeOptions: KnownOptions<C.runKey> = {
         $seq: { keys: key, repeat, options, cursor: key, timeout: 0 },
         $then: kRunKeyInSeq, $else: "-" + kRunKeyInSeq, $retry: -999
@@ -511,13 +515,15 @@ export const runKeyWithCond = (info?: CurrentEnvCache): void => {
   }
 }
 
-declare const enum kN { key = 0, block = 1, ifElse = 2 }
+declare const enum kN { key = 0, block = 1, ifElse = 2, error = 3 }
 interface BaseNode { t: kN; val: unknown; par: Node | null }
 interface KeyNode extends BaseNode { t: kN.key; val: string; par: BlockNode }
 interface BlockNode extends BaseNode { t: kN.block; val: (Node | KeyNode)[] }
 interface IfElseNode extends BaseNode { t: kN.ifElse; val: { cond: Node, t: Node | null, f: Node | null}; par: Node }
+interface ErrorNode extends BaseNode { t: kN.error; val: string; par: null }
 type Node = BlockNode | IfElseNode
-export const parseKeySeq = (keys: string): BlockNode => {
+export const parseKeySeq = (keys: string): BlockNode | ErrorNode => {
+  const re = <RegExpOne> /^([$%][a-z]\+?)*([\d-]\d*\+?)?([$%][a-z]\+?)*(<([a-z]-){0,4}\w+(:i)?>|[A-Z_a-z]\w*)/
   let cur: BlockNode = { t: kN.block, val: [], par: null }, root: BlockNode = cur, last: Node | null
   for (let i = 0; i < keys.length; i++) {
     switch (keys[i]) {
@@ -542,13 +548,23 @@ export const parseKeySeq = (keys: string): BlockNode => {
       break
     case "+": break
     default:
-      const key = (<RegExpOne>/^(?:[$%]c)?(?:[\d-]\d*)?([$%]c)?(?:<(?!<)(?:.-){0,4}.\w*?(?::i)?>|\w+)/
-          ).exec(keys.slice(i).split("+")[0])
-      key && (cur.val.push({ t: kN.key, val: key[0], par: cur }), i += key[0].length - 1)
+      while (i < keys.length && !"()?:+".includes(keys[i])) {
+        const key = re.exec(keys.slice(i))
+        if (key) {
+          cur.val.push({ t: kN.key, val: key[0], par: cur })
+          i += key[0].length
+        } else {
+          const err = keys.slice(i)
+          return { t: kN.error,
+              val: "Invalid key item: " + (err.length > 16 ? err.slice(0, 15) + "\u2026" : err), par: null }
+        }
+      }
+      i--
       break
     }
   }
   if (!Build.NDEBUG) { (root as Object as {toJSON?: any}).toJSON = exprKeySeq }
+  BgUtils_.resetRe_()
   return root
 }
 
@@ -608,17 +624,17 @@ export const runKeyInSeq = (seq: BgCmdOptions[C.runKey]["$seq"], dir: number
     if (opts2 && opts2.$seq && opts2.$seq.timeout === timeout) {
       keyToCommandMap_.set(kRunKeyInSeq, makeCommand_("blank", null))
     }
-  }, 10000)
-  seq.cursor = As_<KeyNode>(cursor)
-  let key = cursor.val, hasCount = key.includes("%c")
-  hasCount && (key = key.replace("%c", ""))
+  }, 30000)
+  let key = cursor.val, hasCount = (<RegExpOne> /[$%]c/).test(key) || seq.cursor === seq.keys
+  key = key.replace(<RegExpG & RegExpI> /[$%][a-z]\+?/gi, "")
   let subCount = 1, arr: null | string[] = (<RegExpOne> /^\d+|^-\d*/).exec(key)
   if (arr != null) {
     let prefix = arr[0]
-    key = key.slice(prefix.length)
+    key = key.slice(prefix.length + (key[prefix.length] === "+" ? 1 : 0))
     subCount = prefix !== "-" ? parseInt(prefix, 10) || 1 : -1
   }
   key = key !== "__proto__" ? key : "<v-__proto__>"
+  seq.cursor = As_<KeyNode>(cursor)
   runKeyWithOptions(key.includes("<") || key in availableCommands_ ? key
       : keyToCommandMap_.has(key) ? key : `<v-${key}>`
       , subCount * (hasCount ? seq.repeat : 1), seq.options)
