@@ -438,7 +438,7 @@ interface CmdOptions {
     selector: string
     id?: undefined
     css?: undefined
-  }) & Req.FallbackOptions
+  }) & { disabled?: boolean } & Req.FallbackOptions
 }
 
 declare const enum kMarkAction {

@@ -468,7 +468,7 @@ keyMappingsOption_.normalize_ = function (value: string): string {
 }
 keyMappingsOption_.onSave_ = function (): void {
   const formatCmdErrors_ = (errors: string[][]): string => {
-    let i: number, line: string[], output = errors.length > 1 ? "Errors:\n" : "Error: "
+    let i: number, line: string[], output = errors.length > 1 ? errors.length + " Errors:\n" : "Error: "
     for (line of errors) {
       i = 0
       output += line[0].replace(<RegExpG & RegExpSearchable<1>>/%([a-z])/g, (_, s: string): string => {

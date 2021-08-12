@@ -376,9 +376,10 @@ set_contentCommands_([
   },
   /* kFgCmd.toggleStyle: */ (options: CmdOptions[kFgCmd.toggleStyle]): void => {
     let id = options.id, nodes = querySelectorAll_unsafe_(id ? "#" + id : options.selector!),
-    el = nodes && nodes[0], par: SafeElement | null
+    disable = options.disabled, el = nodes && nodes[0], par: SafeElement | null
     if (el) {
-      (el as HTMLStyleElement | HTMLLinkElement).disabled = !(el as HTMLStyleElement | HTMLLinkElement).disabled
+      ((el as HTMLStyleElement).sheet || el as HTMLLinkElement).disabled =
+          disable != null ? !!disable : !(el as HTMLStyleElement | HTMLLinkElement).disabled
     } else if (id) {
       el = createStyle(options.css!)
       el.id = id

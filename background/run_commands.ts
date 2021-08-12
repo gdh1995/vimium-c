@@ -261,35 +261,33 @@ export const executeShortcut = (shortcutName: StandardShortcutNames, ref: Frames
     ref.flags_ |= Frames.Flags.userActed
     return
   }
-  let registry = shortcutRegistry_!.get(shortcutName)!, cmdName = registry.command_,
-  cmdFallback: keyof BgCmdOptions = 0
+  const registry = shortcutRegistry_!.get(shortcutName)!, cmdName = registry.command_
+  let realAlias: keyof BgCmdOptions = 0, realRegistry = registry
   if (cmdName === "goBack" || cmdName === "goForward") {
     if (!OnEdge && Tabs_.goBack) {
-      cmdFallback = kBgCmd.goBackFallback
+      realAlias = kBgCmd.goBackFallback
     }
   } else if (cmdName === "autoOpen") {
-    cmdFallback = kBgCmd.autoOpenFallback
+    realAlias = kBgCmd.autoOpenFallback
   }
-  if (cmdFallback) {
+  const opts = normalizedOptions_(registry)
+  if (realAlias) {
     /** this object shape should keep the same as the one in {@link key_mappings.ts#makeCommand_} */
-    registry = <CommandsNS.Item> As_<CommandsNS.ValidItem>({
-      alias_: cmdFallback, background_: 1, command_: cmdName, help_: null,
-      options_: registry.options_, hasNext_: null, repeat_: registry.repeat_
+    realRegistry = As_<CommandsNS.Item & CommandsNS.NormalizedItem>({
+      alias_: realAlias, background_: 1, command_: cmdName, help_: null,
+      options_: opts, hasNext_: null, repeat_: registry.repeat_
     })
-  }
-  if (!registry.background_) {
+  } else if (!registry.background_) {
     return
-  }
-  if (registry.alias_ > kBgCmd.MAX_NEED_CPORT || registry.alias_ < kBgCmd.MIN_NEED_CPORT) {
-    executeCommand(registry, 1, kKeyCode.None, null as never as Port, 0)
   } else {
-    let opts = normalizedOptions_(registry)
-    if (!opts || !opts.$noWarn) {
-      opts = opts || ((registry as Writable<typeof registry>).options_ = BgUtils_.safeObj_<any>());
-      (overrideOption as (field: keyof CommandsNS.SharedInnerOptions, value: true
-          , curOptions: CommandsNS.SharedInnerOptions) => void)("$noWarn", true, opts)
+    realAlias = registry.alias_
+  }
+  if (realAlias > kBgCmd.MAX_NEED_CPORT || realAlias < kBgCmd.MIN_NEED_CPORT) {
+    executeCommand(realRegistry, 1, kKeyCode.None, null as never as Port, 0)
+  } else if (!opts || !opts.$noWarn) {
+    ((opts || ((registry as Writable<typeof registry>).options_ = BgUtils_.safeObj_<any>())
+      ) as CommandsNS.SharedInnerOptions).$noWarn = true
       console.log("Error: Command", cmdName, "must run on pages which have run Vimium C")
-    }
   }
 }
 
