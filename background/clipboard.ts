@@ -12,6 +12,7 @@ declare const enum SedAction {
   base64Decode = 8, atob = 8, base64 = 8, base64Encode = 9, btoa = 9,
   encode = 10, encodeComp = 11, encodeAll = 12, encodeAllComp = 13,
   camel = 14, camelcase = 14, dash = 15, dashed = 15, hyphen = 15, capitalize = 16, capitalizeAll = 17,
+  break = 99, stop = 99, return = 99,
 }
 interface Contexts { normal_: SedContext, extras_: kCharCode[] | null }
 interface ClipSubItem {
@@ -35,6 +36,7 @@ const SedActionMap: ReadonlySafeDict<SedAction> = As_<SafeObject & {
   camel: SedAction.camel, camelcase: SedAction.camelcase, dash: SedAction.dash, dashed: SedAction.dash,
   hyphen: SedAction.hyphen,
   normalize: SedAction.normalize, reverse: SedAction.reverseText, reversetext: SedAction.reverseText,
+  break: SedAction.break, stop: SedAction.stop, return: SedAction.return
 })
 
 let staticSeds_: readonly ClipSubItem[] | null = null
@@ -59,10 +61,11 @@ const parseSeds_ = (text: string, fixedContexts: Contexts | null): readonly Clip
     let actions: SedAction[] = [], host: string | null = null, retainMatched = <BOOL> +suffix.includes("r")
     suffix.includes("d") ? actions.push(SedAction.decodeMaybeEscaped)
         : suffix.includes("D") ? actions.push(SedAction.decodeForCopy) : 0
-    for (const i of body[4].toLowerCase().split(",")) {
+    for (const rawI of body[4].split(",")) {
+      const i = rawI.toLowerCase()
       if (i.startsWith("host=")) {
-        host = i.slice(5)
-      } else if (i === "matched") {
+        host = rawI.slice(5)
+      } else if (i.startsWith("match")) {
         retainMatched = 1
       } else {
         let action = SedActionMap[i.replace(<RegExpG> /-/g, "")] || SedAction.NONE
@@ -76,18 +79,19 @@ const parseSeds_ = (text: string, fixedContexts: Contexts | null): readonly Clip
       match_: matchRe,
       retainMatched_: retainMatched,
       actions_: actions,
-      replaced_: decodeSlash_(body[2])
+      replaced_: decodeSlash_(body[2], 1)
     })
   }
   return result
 }
 
-const decodeSlash_ = (text: string): string =>
+const decodeSlash_ = (text: string, numbersInRe?: 1): string =>
     text.replace(<RegExpSearchable<1>> /\\(x[0-9a-fA-F]{2}|u[0-9a-fA-F]{4}|[^])|\$0/g,
-        (_, s: string): string =>
-            !s ? "$&" : s[0] === "x" || s[0] === "u"
+        (raw, s: string): string =>
+            !s ? numbersInRe ? "$&" : raw : s[0] === "x" || s[0] === "u"
             ? (s = String.fromCharCode(parseInt(s.slice(1), 16)), s === "$" ? s + s : s)
             : s === "t" ? "\t" : s === "r" ? "\r" : s === "n" ? "\n"
+            : !numbersInRe ? s
             : s === "0" ? "$&" : s >= "1" && s <= "9" ? "$" + s // like r"\1" in sed
             : s // like r"abc\.def" / r"abc\\def"
     )
@@ -237,9 +241,11 @@ set_substitute_((text: string, normalContext: SedContext, mixedSed?: MixedSedOpt
         end = (item.match_ as RegExpG).lastIndex = 0
         text = text.replace(item.match_ as RegExpG, item.replaced_)
       }
-      if (end < 0 || !text) {
+      if (end < 0) {
         continue
       }
+      if (!text) { break }
+      let doesReturn = false
       for (const action of item.actions_) {
         text = action === SedAction.decodeForCopy ? BgUtils_.decodeUrlForCopy_(text)
             : action === SedAction.decodeMaybeEscaped ? BgUtils_.decodeEscapedURL_(text)
@@ -262,7 +268,9 @@ set_substitute_((text: string, normalContext: SedContext, mixedSed?: MixedSedOpt
                 action === SedAction.capitalizeAll ? convertCaseWithLocale(text, action)
               : text
             )
+        doesReturn = action === SedAction.return
       }
+      if (doesReturn) { break }
     }
   }
   BgUtils_.resetRe_()
@@ -280,7 +288,8 @@ const getTextArea_ = (): HTMLTextAreaElement => {
 
 const format_ = (data: string | any[], join?: FgReq[kFgReq.copy]["j"], sed?: MixedSedOpts | null): string => {
   if (typeof data !== "string") {
-    data = join === "json" ? JSON.stringify(data, null, 2) : data.join(join !== !!join && (join as string) || "\n") +
+    data = typeof join === "string" && join.startsWith("json") ? JSON.stringify(data, null, join.slice(4) || 2)
+      : data.join(join !== !!join && (join as string) || "\n") +
         (data.length > 1 && (!join || join === !!join) ? "\n" : "")
   }
   data = data.replace(<RegExpG> /\xa0/g, " ").replace(<RegExpG & RegExpSearchable<0>> /[ \t]+(\r\n?|\n)|\r\n?/g, "\n")

@@ -61,7 +61,16 @@ export const copyWindowInfo = (resolve: OnCmdResolved): void | kBgCmd.copyWindow
     rawFormat = get_cOptions<C.copyWindowInfo>().format, format = "" + (rawFormat || "${title}: ${url}"),
     join = get_cOptions<C.copyWindowInfo, true>().join, isPlainJSON = join === "json" && !rawFormat,
     nameRe = <RegExpG & RegExpSearchable<1>> /\$\{([^}]+)\}/g
-    if (type === "tab") {
+    let filter = get_cOptions<C.joinTabs, true>().filter
+    if (filter) {
+      const curId = cPort ? cPort.s.tabId_ : curTabId_
+      let tabs2 = tabs.filter(i => i.incognito === incognito)
+      const activeTab = tabs2.find(i => i.id === curId), oldLen = tabs2.length
+      activeTab && (tabs2 = filterTabsByCond_(activeTab, tabs2, filter))
+      filter = tabs2.length < oldLen ? filter : null
+      filter && (tabs = tabs2)
+    }
+    if (type === "tab" && !filter) {
       const ind = tabs.length < 2 ? 0 : selectFrom(tabs).index, range = getTabRange(ind, tabs.length)
       tabs = tabs.slice(range[0], range[1])
     } else {

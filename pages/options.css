@@ -342,6 +342,10 @@ label:active {
   padding-bottom: 2px;
   min-height: 75px;
 }
+.min-height-5 {
+  padding-bottom: 2px;
+  min-height: 91px;
+}
 #vomnibarOptions {
   line-height: 16px;
   min-height: 124px;
@@ -432,6 +436,10 @@ label:active {
 .has-error {
   background: #fbebe9;
   background-color: var(--error-background-color, #fbebe9);
+}
+.indent {
+  text-indent: -2em;
+  margin-left: 2em;
 }
 
 /* Boolean options have a tighter form representation than text options. */
