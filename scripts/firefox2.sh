@@ -4,6 +4,7 @@ VER=
 FLAGS=
 OTHER_EXT=
 OTHER_ARGS=
+USE_INSTALLED=0
 FUD=
 DO_CLEAN=0
 WORKING_DIR=${WORKING_DIR:-/r/working}
@@ -13,6 +14,7 @@ AUTO_RELOAD=0
 ALSO_VC=0
 HOME_PAGE=
 default_vc_root=/e/Git/weidu+vim/vimium-c
+default_firefox_root="/d/Program Files/Firefox"
 debugger_url="about:debugging#/runtime/this-firefox"
 export WSLENV=PATH/l
 unset "${!WEB_EXT@}"
@@ -45,19 +47,19 @@ case "$1" in
     shift
     ;;
   test|--test) # no the "Disable developer mode extensions" dialog, but add an extra infobar
-    FLAGS=$FLAGS" --pref browser.aboutConfig.showWarning=false"
+    FLAGS=$FLAGS" --pref=browser.aboutConfig.showWarning=false"
     shift
     ;;
   zh|cn|zh-cn|zh-CN|--zh|--cn|--zh-cn|--zh-CN)
-    FLAGS=$FLAGS" --pref general.useragent.locale=zh-CN"
+    FLAGS=$FLAGS" --pref=general.useragent.locale=zh-CN"
     shift
     ;;
   en|en-us|en-US|--en|--en-us|--en-US)
-    FLAGS=$FLAGS" --pref general.useragent.locale=en-US"
+    FLAGS=$FLAGS" --pref=general.useragent.locale=en-US"
     shift
     ;;
   fr|fr-fr|fr-FR|--fr|--fr-fr|--fr-FR)
-    FLAGS=$FLAGS" --pref general.useragent.locale=fr-FR"
+    FLAGS=$FLAGS" --pref=general.useragent.locale=fr-FR"
     shift
     ;;
   dist|--dist)
@@ -66,6 +68,11 @@ case "$1" in
     ;;
   local|--local)
     DIST=0
+    shift
+    ;;
+  installed|--installed)
+    USE_INSTALLED=1
+    VER=
     shift
     ;;
   vc|--vc)
@@ -95,7 +102,6 @@ case "$1" in
   *)
     if test -d "$1" && test -f "$1/manifest.json"; then
       VC_ROOT=$1
-      DIST=0
       shift
     else
       echo "Unknown arg: $1" >&2
@@ -105,9 +111,12 @@ case "$1" in
 esac
 done
 
-FUD=${FUD:-/r/TEMP/FUD}
+test $USE_INSTALLED -le 0 && FUD=${FUD:-/r/TEMP/FUD} || FUD=${FUD:-${default_firefox_root}/FUD}
 if test $DO_CLEAN -gt 0 -a -e "$FUD"; then
-
+  if test $USE_INSTALLED -gt 0; then
+    echo -E "MUST NOT clean the default Profile folder"
+    exit 1
+  fi
   rm -rf "$FUD" || exit $?
   wp fud_w "$FUD"
   echo -E "Clean ${fud_w} : done."
@@ -117,10 +126,14 @@ if test $DO_CLEAN -eq 2; then exit 0; fi
 if test $ALSO_VC -gt 0; then
   if test $DIST -gt 0; then
     wp deafault_vc_ext_w "$default_vc_root/dist"
+    DIST=0
   else
     wp deafault_vc_ext_w "$default_vc_root"
   fi
   OTHER_EXT=${OTHER_EXT},${deafault_vc_ext_w}
+  test -z "$VC_ROOT" && VC_ROOT=.
+elif test -n "$VC_ROOT"; then
+  DIST=0
 fi
 
 if test -f "/usr/bin/env.exe"; then
@@ -140,13 +153,17 @@ if test -f "$dir"/core/firefox.exe; then
   FIREFOX_ROOT=$dir
   VC_ROOT=${VC_ROOT:-$default_vc_root}
 else
-  FIREFOX_ROOT='/r/working'
+  FIREFOX_ROOT=${FIREFOX_ROOT:-$default_firefox_root}
   VC_ROOT=${VC_ROOT:-${dir%/*}}
 fi
-if test -z "$VER" && test -f "$WORKING_DIR"/core/firefox.exe; then
+if test $USE_INSTALLED -gt 0 && ! grep '"id": "vimium-c@gdh1995.cn"' "${VC_ROOT}/manifest.json" >/dev/null 2>&1; then
+  echo "Error: MUST use a version of Vimium C only built for Firefox when use_installed is true" >&2
+  exit 1
+fi
+if test -z "$VER" -a $USE_INSTALLED -le 0 && test -f "$WORKING_DIR"/core/firefox.exe; then
   VER=wo
 fi
-if test -z "$VER"; then
+if test -z "$VER" -a $USE_INSTALLED -le 0; then
   VER_MIN=63
   for ((i=99;i>=VER_MIN;i--)); do
     if test -f "$WORKING_DIR/core$i/firefox.exe"; then
@@ -155,12 +172,18 @@ if test -z "$VER"; then
   done
 fi
 test "$VER" == cur && VER=
-if test "$VER" == wo -o -z "$VER"; then
+if test "$VER" == wo || test -z "$VER" -a $USE_INSTALLED -le 0; then
   EXE=$WORKING_DIR/core/firefox.exe
 else
   EXE=$WORKING_DIR/core${VER}/firefox.exe
   test -f "$EXE" || EXE=$FIREFOX_ROOT/core${VER}/firefox.exe
-  if test $VER -le 68; then
+  if test $USE_INSTALLED -gt 0 || ! test -f "$EXE"; then
+    EXE=$FIREFOX_ROOT/${VER:-core}/firefox.exe
+    if test ! -f "$EXE" -a -n "$VER" \
+        && find "$FIREFOX_ROOT/core/" -name "${VER}.*" 2>/dev/null | grep . >/dev/null 2>&1; then
+      EXE=$FIREFOX_ROOT/core/firefox.exe
+    fi
+  elif test $VER -le 68; then
     debugger_url="about:debugging#addons"
   fi
 fi

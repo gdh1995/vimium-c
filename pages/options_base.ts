@@ -1,7 +1,7 @@
 /// <reference path="../lib/base.d.ts" />
 /// <reference path="../background/exclusions.ts" />
 
-import { CurCVer_, BG_, bgSettings_, OnChrome, $, $$, nextTick_, pageLangs_, _pTrans } from "./async_bg"
+import { CurCVer_, BG_, bgSettings_, OnChrome, $, $$, nextTick_, pageLangs_, TransTy, pageTrans_ } from "./async_bg"
 
 export type AllowedOptions = SettingsNS.PersistentSettings
 export type PossibleOptionNames<T> = PossibleKeys<AllowedOptions, T>
@@ -38,7 +38,7 @@ export const showI18n = (): void => {
     if (pageLangs_ === "en") { return }
     const lang1 = pageLangs_.split(",")[0]
     const langInput = navigator.language as string || lang1
-    let el: HTMLElement | null = $("#keyMappings"), t = el && oTrans_("keyMappingsP")
+    let el: HTMLElement | null = $("#keyMappings"), t: string | null | undefined = el && oTrans_("keyMappingsP")
     t && ((el as HTMLInputElement).placeholder = t)
     if (langInput && (!lang1.startsWith("zh") || langInput !== "zh-CN")) {
       for (el of $$("input[type=text], textarea")) {
@@ -47,8 +47,8 @@ export const showI18n = (): void => {
     }
     for (el of $$("[data-i]")) {
       const i = (el.dataset as KnownOptionsDataset).i, isTitle = i.endsWith("-t")
-      t = (oTrans_ as typeof _pTrans)(isTitle ? i.slice(0, -2) : i);
-      (t || i === "NS") && (isTitle ? el.title = t : el.innerText = t)
+      t = pageTrans_(isTitle ? i.slice(0, -2) : i)
+      t != null && (isTitle ? el.title = t : el.innerText = t)
     }
     (document.documentElement as HTMLHtmlElement).lang = lang1 === "zh" ? "zh-CN" as "" : lang1 as ""
 }
@@ -253,7 +253,7 @@ override populateElement_ (rules: ExclusionsNS.StoredRule[]): void {
     this._rendered = true
     if (Option_.syncToFrontend_) { this.template_.draggable = true }
     for (const el of pageLangs_ !== "en" ? $$("[title]", this.template_) : []) {
-      const t = (oTrans_ as typeof _pTrans)(el.title)
+      const t = pageTrans_(el.title)
       t && (el.title = t)
     }
   }
@@ -459,4 +459,4 @@ export let setupBorderWidth_ = (OnChrome && Build.MinCVer < BrowserVer.MinEnsure
 
 import type * as i18n_options from "../i18n/zh/options.json"
 
-export const oTrans_ = _pTrans as (key: keyof typeof i18n_options, arg1?: (string | number)[]) => string
+export const oTrans_ = pageTrans_ as TransTy<keyof typeof i18n_options>

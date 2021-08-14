@@ -1,6 +1,6 @@
 import {
-  BG_, bgSettings_, OnFirefox, OnEdge, OnChrome, $, _pTrans, asyncBackend_, browser_, enableNextTick_, nextTick_,
-  kReadyInfo
+  BG_, bgSettings_, OnFirefox, OnEdge, OnChrome, $, pageTrans_, asyncBackend_, browser_, enableNextTick_, nextTick_,
+  kReadyInfo, TransTy
 } from "./async_bg"
 import {
   ExclusionVisibleVirtualNode, ExclusionRulesOption_, setupBorderWidth_, showI18n, ExclusionBaseVirtualNode
@@ -23,7 +23,7 @@ const _onlyFirstMatch = bgSettings_.get_("exclusionOnlyFirstMatch")
 
 import type * as i18n_popup from "../i18n/zh/popup.json"
 
-const pTrans_ = _pTrans as (key: keyof typeof i18n_popup, arg1?: (string | number)[]) => string
+const pTrans_ = pageTrans_ as TransTy<keyof typeof i18n_popup>
 
 class PopExclusionRulesOption extends ExclusionRulesOption_ {
   override addRule_ (_pattern: string, autoFocus?: false): void {

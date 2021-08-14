@@ -1,7 +1,7 @@
 /// <reference path="../lib/base.d.ts" />
 import {
-  CurCVer_, CurFFVer_, BG_, bgSettings_, OnChrome, OnFirefox, OnEdge, $, _pTrans, asyncBackend_, browser_, nextTick_,
-  enableNextTick_, kReadyInfo, import2
+  CurCVer_, CurFFVer_, BG_, bgSettings_, OnChrome, OnFirefox, OnEdge, $, pageTrans_, asyncBackend_, browser_, nextTick_,
+  enableNextTick_, kReadyInfo, import2, TransTy
 } from "./async_bg"
 
 interface VDataTy {
@@ -217,7 +217,7 @@ function App (this: void): void {
             let arr = el.querySelectorAll("[data-i]") as ArrayLike<Element> as HTMLElement[]
             for (let i = 0; i < arr.length; i++) { // eslint-disable-line @typescript-eslint/prefer-for-of
               const s = (arr[i].dataset as KnownShowDataset).i, isTitle = s.endsWith("-t")
-              const t = (sTrans_ as typeof _pTrans)(isTitle ? s.slice(0, -2) : s)
+              const t = pageTrans_(isTitle ? s.slice(0, -2) : s)
               t && (isTitle ? arr[i].title = t : arr[i]!.textContent = t)
             }
             body.insertBefore(el, body.firstChild)
@@ -288,9 +288,9 @@ function App (this: void): void {
   bgLink.onclick = VShown ? clickShownNode : defaultOnClick;
 }
 
-import type * as i18n_options from "../i18n/zh/popup.json"
+import type * as i18n_popup from "../i18n/zh/popup.json"
 
-const sTrans_ = _pTrans as (key: keyof typeof i18n_options, arg1?: (string | number)[]) => string
+const sTrans_ = pageTrans_ as TransTy<keyof typeof i18n_popup>
 
 enableNextTick_(kReadyInfo.platformInfo)
 

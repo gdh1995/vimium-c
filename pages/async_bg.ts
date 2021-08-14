@@ -66,8 +66,11 @@ export const reloadBG_ = (): void => {
   }
 }
 
-export const _pTrans = (key: string, arg1?: (string | number)[]): string => {
-  let val = key in i18nDict_ ? i18nDict_[key]! : ""
+export type TransTy<Keys extends string> = (key: Keys, arg1?: (string | number)[]
+    ) => string extends Keys ? string | undefined : string
+
+export const pageTrans_: TransTy<string> = (key, arg1): string | undefined => {
+  let val = i18nDict_[key]
   if (arg1 != null && val) {
     val = val.replace(<RegExpG & RegExpSearchable<0>> /\$\d/g, (i): string => arg1[+i[1] - 1] as string)
   }

@@ -3,13 +3,16 @@ import { fetchFile_, safer_ } from "./utils"
 import { browser_ } from "./browser"
 import type * as i18n_map from "../_locales/en/messages.json"
 
+type StringEndsWith<A extends string, S extends string>
+    = string extends S ? string : string extends A ? string : A extends `${string}${S}` ? A : never
+
 export const i18nPayload_: string[] = []
 
 export const trans_: (messageName: keyof typeof i18n_map
     , substitutions?: Array<string | number> | string) => string = browser_.i18n.getMessage
 
-const endsWith = <A extends string, S extends string> (a: A, child: S
-    ): a is A & StringEndsWith<A, S> => a.endsWith(child)
+const endsWith = <A extends string, S extends string> (name: A, tail: S): name is A & StringEndsWith<A, S> =>
+    name.endsWith(tail)
 
 export const transPart_ = (name: "i18n" | "sugs", child: string): string => {
   const msg = trans_(name)

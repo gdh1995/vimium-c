@@ -12,7 +12,7 @@ type NoaliasInCNames<k extends kCName> =
 
 // eslint-disable-next-line no-var
 let html_: [string, string] | null = null
-let i18n_: SafeDict<string>
+let i18n_: { [key in keyof typeof import("../i18n/zh/help_dialog.json")]: string }
 let template_: HTMLTableDataCellElement | null = null
 let parser_ff_: DOMParser | null = null
 const descriptions_ = new Map<kCName, string>()
@@ -39,7 +39,7 @@ export const parseHTML = (template: string): [string, string] => {
           head = head.replace(<RegExpG> /[#.][A-Z][^,{};]*[,{]/g, "#VimiumUI $&");
         }
       }
-      body = body.replace(<RegExpG & RegExpSearchable<1>> /\$(\w+)/g, (_, s) => i18n_[s] ?? "")
+      body = body.replace(<RegExpG & RegExpSearchable<1>> /\$(\w+)/g, (_, s): string => (i18n_ as Dict<string>)[s] ?? s)
       const consts = BgUtils_.safer_<Dict<string>>({
       homePage: CONST_.HomePage_,
       version: CONST_.VerName_,
@@ -58,7 +58,7 @@ export const parseHTML = (template: string): [string, string] => {
 }
 
 export const render_ = (isOptionsPage: boolean): NonNullable<CmdOptions[kFgCmd.showHelpDialog]["h"]> => {
-    i18n_ = helpDialogData_![1]!
+    i18n_ = helpDialogData_![1] as Dict<string> as typeof i18n_
     if (!html_ || helpDialogData_![0]) {
       html_ = parseHTML(helpDialogData_![0]!)
       helpDialogData_![0] = ""
@@ -87,23 +87,55 @@ export const render_ = (isOptionsPage: boolean): NonNullable<CmdOptions[kFgCmd.s
     return OnFirefox ? { h: html_[0], b: div } : (html_[0] + div) as any as "html"
 }
 
-const normalizeCmdName = (command: kCName): string => {
-      if (command.includes("Mode") && command.includes(".activate")) {
-        if (command.includes(".activateMode")) {
-          command = (command as StringIncluded<kCName, ".activateMode">).replace("ModeTo", "")
-        }
-        command = (command as StringIncluded<StringEndsWith<kCName, "Mode">, ".activate">).replace("Mode", "")
+type StringIncluded<A extends string, S extends string>
+    = string extends S ? string : string extends A ? string : A extends `${string}${S}${string}` ? A : never
+type StringStartsWith<A extends string, S extends string>
+    = string extends S ? string : string extends A ? string : A extends `${S}${string}` ? A : never
+type StringEndsWith<A extends string, S extends string>
+    = string extends S ? string : string extends A ? string : A extends `${string}${S}` ? A : never
+const includes = <A extends string, S extends string> (name: A, part: S): name is A & StringIncluded<A, S> =>
+    name.includes(part)
+const startsWith = <A extends string, S extends string> (name: A, tail: S): name is A & StringStartsWith<A, S> =>
+    name.startsWith(tail)
+const endsWith = <A extends string, S extends string> (name: A, tail: S): name is A & StringEndsWith<A, S> =>
+    name.endsWith(tail)
+
+type _NormalizedNames1<T extends kCName> =  
+      T extends `${infer A}.activate${infer B}ModeTo${infer C}` ? `${A}.activate${B}${C}`
+    : T extends `${infer A}.activate${infer B}Mode${infer C}` ? `${A}.activate${B}${C}`
+    : T
+type _NormalizedNames2<T extends kCName> =  
+      T extends `${infer A}Unhover` ? `${A}Leave`
+    : T extends `${infer A}Goto` ? `${A}`
+    : T extends `clearContentSetting` ? `${T}s`
+    : T extends `${infer A}CS${infer B}` ? A extends "clear" ? "clearContentSettings" : `${A}ContentSetting${B}`
+    : T extends `${infer A}vateUrl${infer B}` ? `${A}vateEditUrl${B}`
+    : T extends `${infer A}TabSelection` ? `${A}Tabs`
+    : T extends "quickNext" ? "nextTab"
+    : T extends "newTab" ? "createTab" : T extends "simBackspace" ? "simulateBackspace"
+    : T extends "showHUD" ? "showTip" : T extends "wait" ? "blank"
+    : T
+type NormalizedNames = _NormalizedNames2<_NormalizedNames1<kCName>>
+
+const normalizeCmdName = (command: kCName): NormalizedNames => {
+      if (/*#__INLINE__*/ includes(command, "Mode") && /*#__INLINE__*/ includes(command, ".activate")) {
+        command = /*#__INLINE__*/ includes(command, "ModeTo") ? command.replace("ModeTo", "")
+            : command.replace("Mode", "")
       }
-      if (command.endsWith("Unhover")) {
+      if (/*#__INLINE__*/ endsWith(command, "Unhover")) {
         command = command.replace("Unhover", "Leave")
-      } else if (command.includes("CS")) {
-        command = command.startsWith("clear") ? "clearContentSettings"
-            : (command as Exclude<StringIncluded<kCName, "CS">, `clear${string}`>).replace("CS", "ContentSetting")
-      } else if (command.endsWith("vateUrl")) {
+      } else if (/*#__INLINE__*/ endsWith(command, "Goto")) {
+        command = command.replace("Goto", "")
+      } else if (command === "clearContentSetting") {
+        command = `${command}s`
+      } else if (/*#__INLINE__*/ includes(command, "CS")) {
+        command = /*#__INLINE__*/ startsWith(command, "clear") ? "clearContentSettings"
+            : command.replace("CS", "ContentSetting")
+      } else if (/*#__INLINE__*/ includes(command, "vateUrl")) {
         command = command.replace("vateUrl", "vateEditUrl")
-      } else if (command.endsWith("TabSelection")) {
+      } else if (/*#__INLINE__*/ endsWith(command, "TabSelection")) {
         command = command.replace("TabSelection", "Tabs")
-      } else if (command === <string> <unknown> kShortcutAliases.nextTab1) {
+      } else if (command === kShortcutAliases.nextTab1) {
         command = AsC_("nextTab");
       } else if (command === AsC_("newTab")) {
         command = AsC_("createTab")
@@ -113,6 +145,8 @@ const normalizeCmdName = (command: kCName): string => {
         command = AsC_("showTip")
       } else if (command === AsC_("wait")) {
         command = AsC_("blank")
+      } else {
+        command = command
       }
       return command
 }
@@ -128,7 +162,7 @@ const renderGroup = (group: string, commandToKeys: Map<string, [string, Commands
       let keyLen = -2, bindings = "", description = descriptions_.get(command)
       if (!description) {
         const params = i18nParams[command]
-        description = i18n_[command]!.replace("<", "&lt;").replace(">", "&gt;") // lgtm [js/incomplete-sanitization]
+        description = i18n_[command as NormalizedNames]!.replace("<", "&lt;").replace(">", "&gt;")
             + (params ? cmdParams.replace("*", () => params) : " ") // lgtm [js/incomplete-sanitization]
         descriptions_.set(command, description)
         if (!(Build.NDEBUG || description)) {
