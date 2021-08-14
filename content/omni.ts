@@ -1,12 +1,12 @@
 /// <reference path="../lib/base.omni.d.ts" />
 import {
   isAlive_, keydownEvents_, readyState_, timeout_, clearTimeout_, recordLog, chromeVer_, math, OnChrome, noTimer_cr_,
-  interval_, clearInterval_, locHref, vApi, createRegExp, isTY, safer, isTop, OnFirefox, OnEdge, safeCall
+  interval_, clearInterval_, locHref, vApi, createRegExp, isTY, safer, isTop, OnFirefox, OnEdge, safeCall, WithDialog
 } from "../lib/utils"
 import { removeHandler_, replaceOrSuppressMost_, getMappedKey, isEscape_ } from "../lib/keyboard_utils"
 import {
   isHTML_, fullscreenEl_unsafe_, setDisplaying_s, createElement_, removeEl_s, setClassName_s, setOrRemoveAttr_s,
-  toggleClass_s
+  toggleClass_s, doesSupportDialog, hasInCSSFilter_, appendNode_s
 } from "../lib/dom_utils"
 import { getViewBox_, docZoom_, dScale_, prepareCrop_, bZoom_, wndSize_, viewportRight } from "../lib/rect"
 import { beginScroll, scrollTick } from "./scroller"
@@ -41,6 +41,7 @@ let status = Status.NotInited
 let omniOptions: VomnibarNS.FgOptionsToFront | null = null
 let secondActivateWithNewOptions: (() => void) | null = null
 let timer_: ValidTimeoutID = TimerID.None
+let dialogWrapper_: HTMLDialogElement | false | null | undefined
 
 export { box as omni_box, status as omni_status }
 
@@ -63,6 +64,7 @@ export const hide = ((fromInner?: 1 | null): void => {
     } else {
       box!.style.cssText = "display:none"
     }
+    WithDialog && dialogWrapper_ && (setDisplaying_s(dialogWrapper_))
 }) as InnerHide as (_arg?: null) => void
 
 export const activate = function (options: FullOptions, count: number): void {
@@ -136,7 +138,16 @@ const init = ({k: secret, v: page, t: type, i: inner}: FullOptions): void => {
       }
       type === VomnibarNS.PageType.web ? initMsgInterval = interval_(doPostMsg, 66) : doPostMsg(1)
     };
-    addUIElement(box = el, AdjustType.MustAdjust, hud_box)
+    if (WithDialog) {
+      dialogWrapper_ = (OnChrome && Build.MinCVer >= BrowserVer.MinEnsuredHTMLDialogElement || doesSupportDialog())
+          && hasInCSSFilter_() && createElement_("dialog")
+      if (dialogWrapper_) {
+        (dialogWrapper_.className = "R DLG")
+        appendNode_s(dialogWrapper_, el)
+      }
+    }
+    box = el
+    addUIElement(WithDialog && dialogWrapper_ || el, AdjustType.MustAdjust, hud_box)
     slowLoadTimer = type !== VomnibarNS.PageType.inner ? timeout_(function (i): void {
       clearInterval_(initMsgInterval)
       loaded || (OnChrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake && i) ||
@@ -155,6 +166,7 @@ const resetWhenBoxExists = (redo?: boolean): void | 1 => {
     }
     removeEl_s(box!)
     portToOmni = box = omniOptions = null as never
+    WithDialog && (dialogWrapper_ = null)
     refreshKeyHandler(); // just for safer code
     if (secondActivateWithNewOptions) { secondActivateWithNewOptions(); }
     else if (redo && oldStatus > Status.ToShow - 1) {
@@ -193,6 +205,9 @@ const onOmniMessage = function (this: OmniPort, msg: { data: any, target?: Messa
             ) + (canUseVW ? "vh" : "%") : ""
         style.top = top
         setDisplaying_s(box!, 1)
+        if (WithDialog && dialogWrapper_) {
+          setDisplaying_s(dialogWrapper_, 1), dialogWrapper_.open || dialogWrapper_.showModal()
+        }
         timeout_(refreshKeyHandler, 160)
       }
       break;

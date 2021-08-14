@@ -247,6 +247,7 @@ declare const enum BrowserVer {
   // before Chrome 53, there may be window.VisualViewport under flags, but not the instance
   // between C53 and C59, `visualViewport` only has .clientW/H .scrollL/T, .pageX/Y and .scale
   Min$visualViewport$UnderFlags = 53, // window.visualViewport occurs if EXPERIMENTAL (though not on C60)
+  MinCSS$filter = 53,
   // only Chrome accepts it:
   // https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/extension/getViews
   Min$Extension$$GetView$AcceptsTabId = 54,

@@ -92,7 +92,7 @@ import {
   WithDialog, Lower, safeCall, loc_, os_
 } from "../lib/utils"
 import {
-  querySelector_unsafe_, isHTML_, scrollingEl_, docEl_unsafe_, IsInDOM_, GetParent_unsafe_,
+  querySelector_unsafe_, isHTML_, scrollingEl_, docEl_unsafe_, IsInDOM_, GetParent_unsafe_, hasInCSSFilter_,
   getComputedStyle_, isStyleVisible_, htmlTag_, fullscreenEl_unsafe_, removeEl_s, UNL, toggleClass_s, doesSupportDialog,
   getSelectionFocusEdge_, SafeEl_not_ff_, rangeCount_, compareDocumentPosition, deepActiveEl_unsafe_
 } from "../lib/dom_utils"
@@ -203,7 +203,7 @@ export const activate = (options: ContentOptions, count: number, force?: 2 | Tim
       }
       coreHints.d = <BOOL> +(
         (OnChrome && Build.MinCVer >= BrowserVer.MinEnsuredHTMLDialogElement || doesSupportDialog())
-        && (wantDialogMode_ != null ? wantDialogMode_ : !!querySelector_unsafe_("dialog[open]"))
+        && (wantDialogMode_ != null ? wantDialogMode_ : hasInCSSFilter_() || !!querySelector_unsafe_("dialog[open]"))
         )
     }
     let allHints: readonly HintItem[], child: ChildFrame | undefined, insertPos = 0

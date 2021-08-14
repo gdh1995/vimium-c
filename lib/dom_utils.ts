@@ -342,6 +342,12 @@ export const isAriaNotTrue_ = (element: SafeElement, ariaType: kAria): boolean =
     return s === null || (!!s && Lower(s) !== "true") || !!(evenHidden_ & (kHidden.BASE_ARIA << ariaType))
 }
 
+export const hasInCSSFilter_ = (): boolean => {
+  const el = fullscreenEl_unsafe_() || docEl_unsafe_(), st = el && getComputedStyle_(el)
+  return !!st && (OnChrome && Build.MinCVer < BrowserVer.MinCSS$filter
+      && chromeVer_ < BrowserVer.MinCSS$filter ? st.webkitFilter : st.filter) !== "none"
+}
+
 export const getMediaTag = (element: SafeHTMLElement): kMediaTag => {
   const tag = element.localName
   return tag === "img" ? kMediaTag.img : tag === "video" || tag === "audio" ? kMediaTag.otherMedias

@@ -120,7 +120,7 @@ export const addElementList = function <T extends boolean | BOOL> (
     const cls = "R HM" + fgCache.d, zoom = bZoom_ / (WithDialog && dialogContainer ? 1 : dScale_)
     let innerBox: HTMLDivElement | HTMLBodyElement | HTMLDialogElement | undefined = parent
     let i = 0
-    setClassName_s(parent, WithDialog && dialogContainer ? cls + " DHM" : cls)
+    setClassName_s(parent, WithDialog && dialogContainer ? cls + " DLG" : cls)
     if (OnChrome && Build.MinCVer < BrowserVer.MinForcedColorsMode
         && dialogContainer && array.length && getBoxTagName_old_cr() < "d") { // <body>
       innerBox = createElement_(getBoxTagName_old_cr())
