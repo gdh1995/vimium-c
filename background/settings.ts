@@ -17,10 +17,6 @@ type SettingsUpdateMsg = {
       : Req.bg<kBgReq.settingsUpdate>[K]
 }
 
-// eslint-disable-next-line no-var
-export const temp_ = {
-}
-
 export const storage_ = localStorage
 let newSettingsToBroadcast_: Extract<SettingsUpdateMsg["d"], string[]> | null = null
 

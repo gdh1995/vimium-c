@@ -30,6 +30,7 @@ let changes_to_merge: EnsuredDict<StorageChange> | null = null
 let textDecoder: TextDecoder | null = null
 let restoringPromise: Promise<void> | null = null
 let cachedSync: SettingsWithDefaults["vimSync"]
+let longDelayedAction: TimerType = TimerType.noTimer
 
 const storage = (): chrome.storage.StorageArea & {
   onChanged?: chrome.events.Event<(changes: EnsuredDict<StorageChange>, exArg: FakeArg) => void>
@@ -75,8 +76,12 @@ const HandleStorageUpdate = (changes: EnsuredDict<StorageChange>, area: string |
   }
 }
 
+function _now(): string {
+  return new Date(Date.now() - new Date().getTimezoneOffset() * 1000 * 60).toJSON().slice(0, -5).replace("T", " ")
+}
+
 const log: (... _: any[]) => void = function (): void {
-  console.log.apply(console, [new Date().toLocaleString()].concat.call([].slice.call(arguments as any, 0)) as any)
+  console.log.apply(console, [`[${_now()}]`].concat([].slice.call(arguments as any)))
 }
 
 /** return `8` only when expect a valid `map` */
@@ -352,7 +357,9 @@ const shouldSyncKey = (key: string): key is keyof SettingsToSync => !(key in doN
 
 const saveAllToLocal = (timeout: number): void => {
   set_backupToLocal_(null)
-  setTimeout((): void => {
+  longDelayedAction && clearTimeout(longDelayedAction)
+  longDelayedAction = setTimeout((): void => {
+    longDelayedAction = TimerType.noTimer
     browserStorage_.local.get((items): void => {
       if (settings_.get_("vimSync") || !localStorage.length) { return }
       log("storage.local: backup all settings from localStorage")
@@ -458,7 +465,7 @@ const beginToRestore = (items: LocalSettings, kSources: 1 | 2 | 3, resolve: () =
   }
   settings_.postUpdate_("vimSync")
   setTimeout((): void => { --kSources || resolve() }, 4)
-  restoringPromise &&
+  restoringPromise && kSources !== 3 &&
   log("sync.cloud: download settings to localStorage")
 }
 
@@ -481,7 +488,19 @@ settings_.updateHooks_.vimSync = (value): void => {
   } else if (sync_ !== TrySet) {
     event.addListener(listener)
     set_sync_(TrySet)
-    browserStorage_.local.clear()
+    longDelayedAction && clearTimeout(longDelayedAction)
+    longDelayedAction = TimerType.noTimer
+    browserStorage_.local.getBytesInUse((bytesInLocal): void => {
+      if (bytesInLocal <= 0) { return }
+      browserStorage_.local.get((items) => {
+        delete (items as SettingsNS.FullCache).vimSync
+        log("switch to sync.cloud, when old settings data in storage.local is:\n" + JSON.stringify(items, null, 2))
+        longDelayedAction = setTimeout((): void => {
+          longDelayedAction = TimerType.noTimer
+          browserStorage_.local.clear()
+        }, 8000)
+      })
+    })
   }
 }
 
@@ -504,7 +523,7 @@ set_restoreSettings_((): Promise<void> | null => {
 
 cachedSync = settings_.get_("vimSync")
 if (cachedSync === false || !cachedSync && !hasEmptyLocalStorage_) {
-  let doBackup = backupToLocal_
+  let doBackup = backupToLocal_ === true
   set_backupToLocal_(doBackup ? null : saveAllToLocal)
   doBackup && saveAllToLocal(6000)
   set_sync_(SetLocal)
