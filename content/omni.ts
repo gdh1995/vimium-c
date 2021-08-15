@@ -64,7 +64,7 @@ export const hide = ((fromInner?: 1 | null): void => {
     } else {
       box!.style.cssText = "display:none"
     }
-    WithDialog && dialogWrapper_ && (setDisplaying_s(dialogWrapper_))
+    WithDialog && dialogWrapper_ && (dialogWrapper_.close(), setDisplaying_s(dialogWrapper_))
 }) as InnerHide as (_arg?: null) => void
 
 export const activate = function (options: FullOptions, count: number): void {

@@ -1,5 +1,5 @@
 import {
-  doc, isTop, injector, initialDocState, set_esc, esc, setupEventListener, set_isEnabled_, XrayedObject,
+  doc, isTop, injector, set_esc, esc, setupEventListener, set_isEnabled_, XrayedObject,
   set_clickable_, clickable_, isAlive_, set_VTr, setupKeydownEvents, onWndFocus, includes_,
   set_readyState_, readyState_, callFunc, recordLog, set_vApi, vApi, locHref, unwrap_ff, raw_unwrap_ff, math, OnFirefox,
   OnChrome, OnEdge
@@ -193,7 +193,7 @@ if (isAlive_) {
     }))
     // here we call it before vPort.connect, so that the code works well even if runtime.connect is sync
     hookOnWnd(HookAction.Install);
-    if (initialDocState < "i") {
+    if (readyState_ < "i") {
       set_OnDocLoaded_(callFunc)
     } else {
       set_OnDocLoaded_((callback, onloaded) => {
@@ -211,7 +211,7 @@ if (isAlive_) {
     }
   }
 
-  initialDocState < "i" || setupEventListener(0, RSC, function _onReadyStateChange(): void {
+  readyState_ < "i" || setupEventListener(0, RSC, function _onReadyStateChange(): void {
     set_readyState_(doc.readyState)
     const loaded = readyState_ < "i", arr = loaded ? completeListeners : docReadyListeners
     if (loaded) {

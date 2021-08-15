@@ -28,7 +28,6 @@ export const isTop = top === window
 export const injector = VimiumInjector
 export const doc = document
 export const loc_ = location
-export const initialDocState = doc.readyState
 
 let esc: {
   <T extends Exclude<HandlerResult, HandlerResult.ExitPassMode>> (this: void, i: T): T;
@@ -45,7 +44,7 @@ export function set_isEnabled_ (_newIsEnabled: boolean): void { isEnabled_ = _ne
 export let isLocked_: Frames.Flags.blank | Frames.Flags.locked | Frames.Flags.lockedAndDisabled = 0
 export function set_isLocked_ (_newIsLocked: typeof isLocked_): void { isLocked_ = _newIsLocked }
 
-export let readyState_: Document["readyState"] = initialDocState
+export let readyState_: Document["readyState"] = doc.readyState
 export function set_readyState_ (_newReadyState: Document["readyState"]): void { readyState_ = _newReadyState }
 
 export let noRAF_old_cr_: BOOL | undefined
