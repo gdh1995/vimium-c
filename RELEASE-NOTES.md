@@ -4,6 +4,12 @@ Release Notes of Vimium C
 ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 说明文档: https://gitee.com/gdh1995/vimium-c#readme , https://github.com/gdh1995/vimium-c/blob/master/README-zh.md .
 
+#### 1.92.1
+* keyMappings: not treat a line as an error if with `$if={...}`
+  * add `unmap!` to unmap a key sequence when it exists - aka ignoring errros
+* word around some configurations of `Dark Reader`
+* fix settings has no backup in `storage.local` when syncing is disabled
+
 #### 1.92.0
 * **improved key mappings**
 * `Vomnibar`: fix URLs with space characters would break

@@ -112,7 +112,7 @@ __Other extensions supporting Vimium C:__
 
 # Release Notes
 
-#### 1.92.0
+#### latest version
 
 improved key mappings
 * `Vomnibar`: fix URLs with space characters would break

@@ -212,7 +212,7 @@ var Tasks = {
         logFileSize(DEST + "/" + cs.js[0], logger);
       }
       cb(err);
-    }, jsmin_status, debugging, getNameCacheFilePath, cacheNames);
+    }, jsmin_status, debugging, null, false);
   }],
   "min/bg": ["min/content", function(cb) {
     if (jsmin_status[1]) {
