@@ -141,6 +141,9 @@ export const reloadCSS_ = (action: MergeAction, cssStr?: string): SettingsNS.Mer
           && CurCVer_ < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo ? 1 : 0.5
       css = css.replace(<RegExpG> /0\.01|\/\*!DPI\*\/ ?[\d.]+/g, "/*!DPI*/" + defaultWidth)
     }
+    if (OnFirefox) { /** {@link ../tests/dom/firefox-position_fixed-in-dialog.html} */
+      css += ".DLG>.Omnibar{position:absolute}"
+    }
     storage_.setItem("innerCSS", StyleCacheId_ + css)
     let findCSS = cssFile.find!
     storage_.setItem("findCSS", findCSS.length + "\n" + findCSS)

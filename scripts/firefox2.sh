@@ -83,7 +83,7 @@ case "$1" in
     if test $DO_CLEAN -eq 1; then DO_CLEAN=2; fi
     shift
     ;;
-  [3-9][0-9]|cur|wo|prev|[1-9a-f][1-9a-f][1-9a-f][1-9a-f][1-9a-f][1-9a-f]*) # ver
+  [3-9][0-9]|[1-9][0-9][0-9]|[3-9][0-9]esr|[1-9][0-9][0-9]esr|cur|wo|prev) # ver
     VER=$1
     shift
     ;;
@@ -156,10 +156,6 @@ else
   FIREFOX_ROOT=${FIREFOX_ROOT:-$default_firefox_root}
   VC_ROOT=${VC_ROOT:-${dir%/*}}
 fi
-if test $USE_INSTALLED -gt 0 && ! grep '"id": "vimium-c@gdh1995.cn"' "${VC_ROOT}/manifest.json" >/dev/null 2>&1; then
-  echo "Error: MUST use a version of Vimium C only built for Firefox when use_installed is true" >&2
-  exit 1
-fi
 if test -z "$VER" -a $USE_INSTALLED -le 0 && test -f "$WORKING_DIR"/core/firefox.exe; then
   VER=wo
 fi
@@ -183,7 +179,7 @@ else
         && find "$FIREFOX_ROOT/core/" -name "${VER}.*" 2>/dev/null | grep . >/dev/null 2>&1; then
       EXE=$FIREFOX_ROOT/core/firefox.exe
     fi
-  elif test $VER -le 68; then
+  elif test "${VER%esr}" -le 68; then
     debugger_url="about:debugging#addons"
   fi
 fi
@@ -203,6 +199,10 @@ if test ${DIST:-0} -gt 0; then
 else
   VC_EXT="$VC_ROOT"
   wp vc_ext_w "$VC_EXT"
+fi
+if test $USE_INSTALLED -gt 0 && ! grep '"id": "vimium-c@gdh1995.cn"' "${VC_EXT}/manifest.json" >/dev/null 2>&1; then
+  echo "Error: MUST use a version of Vimium C only built for Firefox when use_installed is true" >&2
+  exit 1
 fi
 
 exe_w=$($REALPATH -m "$EXE")

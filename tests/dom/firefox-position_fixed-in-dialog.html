@@ -1,0 +1,67 @@
+<html style="filter: invert(1)">
+  <head>
+    <!-- Online version: https://jsfiddle.net/rvnz4q9e/ -->
+    <!-- Bug report: https://bugzilla.mozilla.org/show_bug.cgi?id=840640#c57 -->
+    <meta charset="utf-8">
+    <title>Test position:fixed in dialog</title>
+  </head>
+
+<body style="margin: 0; padding: 0;">
+  <div>
+    <div style="position: fixed; top: 0; font-size: 24px; color: lightgreen; margin: 20px;">
+      Test position:fixed on a child of &lt;dialog&gt; when there's a global filter.
+    </div>
+    <div id="test">
+      <dialog>
+        <div id="omni">
+          Here should in fixed-center<br/><br/>
+          <button>Refresh position:fixed</button>
+        </div>
+      </dialog>
+      <style type="text/css">
+        #omni {
+          position: fixed;
+          left: 10vw;
+          width: 80vw;
+          top: 20vh;
+          color: red;
+          border: 3px solid skyblue;
+        }
+        dialog {
+          box-sizing: border-box; height:100%; left:0; top:0; width:100%; margin: 0; padding: 0;
+          background: none; border: none;
+        }
+        dialog::backdrop{background:#0000}
+      </style>
+
+    </div>
+    <br/>
+    <div style="height: 4096px; width: 100px;"></div>
+  </div>
+  <script>
+
+const test = document.querySelector('#test')
+if (typeof HTMLDialogElement !== "function") {
+  test.previousElementSibling.append(
+    document.createElement("br"),
+    "Please enable <dialog> on about:config firstly!")
+} else {
+  setTimeout(start, 100)
+}
+
+function start() {
+  test.firstElementChild.showModal()
+  test.querySelector("button").onclick = () => {
+    const el = test.querySelector("#omni")
+    el.style.position = "absolute";
+    setTimeout(() => {
+      el.style.position = "fixed";
+    }, 300)
+  }
+  // const dialog = document.createElement("dialog")
+  // dialog.innerH
+}
+
+  </script>
+</body>
+</html>

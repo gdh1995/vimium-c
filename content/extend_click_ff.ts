@@ -1,7 +1,6 @@
 import {
   clickable_, timeout_, loc_, getTime, clearTimeout_, vApi, recordLog, doc, setupEventListener, VTr, raw_unwrap_ff,
-  isTY,
-  OnFirefox
+  isTY, OnFirefox
 } from "../lib/utils"
 import { CLK, MDW, OnDocLoaded_, isHTML_, set_createElement_, createElement_ } from "../lib/dom_utils"
 import { grabBackFocus } from "./insert"
@@ -17,6 +16,9 @@ let isClickEventPreventedByPage: BOOL = 0
 let preventEventOnWindow: ((wnd: Window) => Promise<void>) | undefined
 
 export const main_ff = (OnFirefox ? (): void => {
+  isHTML_() || set_createElement_(doc.createElementNS.bind(doc, VTr(kTip.XHTML) as "http://www.w3.org/1999/xhtml"
+      ) as typeof createElement_)
+  if (!grabBackFocus) { return }
 (function (): void {
   const apply = OnDocLoaded_.apply, call = OnDocLoaded_.call
   const doExport = <T extends object, K extends (keyof T) & string> (obj: T, name: K, func: T[K]): void => {
@@ -59,24 +61,17 @@ export const main_ff = (OnFirefox ? (): void => {
     } : 0 as never
 
     let alive = false, timer: ValidTimeoutID = TimerID.None, resolved = 0, counterResolvePath = 0
-    if (grabBackFocus) {
-      if (alive = isTY(_listen, kTY.func)) {
+    if (alive = isTY(_listen, kTY.func)) {
         doExport(Cls!, _listen.name as "addEventListener", newListen)
         vApi.e = (cmd: ValidContentCommands): void => { alive = alive && cmd < kContentCmd._minSuppressClickable }
-      }
-      OnDocLoaded_((): void => {
+    }
+    OnDocLoaded_((): void => {
         timeout_(function (): void {
           coreHints.h - 1 || doesWantToReloadLinkHints("lo") && timeout_(coreHints.x, 34)
         }, GlobalConsts.ExtendClick_DelayToFindAll)
-      }, 1)
-    }
+    }, 1)
   } catch (e) {
     Build.NDEBUG || (recordLog("Vimium C: extending click crashed in %o @t=%o ."), console.log(e))
-  }
-  if (!isHTML_()) {
-    // for <script>
-    set_createElement_(doc.createElementNS.bind(doc, VTr(kTip.XHTML) as "http://www.w3.org/1999/xhtml"
-        ) as typeof createElement_)
   }
   /**
    * This idea of hooking and appending `preventDefault` is from lydell's `LinkHints`:
@@ -89,7 +84,7 @@ export const main_ff = (OnFirefox ? (): void => {
     EventCls = PEvent && PEvent.prototype as EventToPrevent,
     wrappedCls = EventCls && raw_unwrap_ff(EventCls),
     stdMembers: readonly [Pair<kAct.prevent>, Pair<kAct.stopImm>, Pair<kAct.stopProp>] & { [i in kAct]: Pair<i> }
-        = grabBackFocus && wrappedCls ? [[wrappedCls.preventDefault, kAct.prevent]
+        = wrappedCls ? [[wrappedCls.preventDefault, kAct.prevent]
             , [wrappedCls.stopImmediatePropagation, kAct.stopImm]
             , [wrappedCls.stopPropagation, kAct.stopProp]] as const : [] as never,
     tryToPreventClick = (event: Event): void => {

@@ -1,6 +1,6 @@
 import {
   blank_, set_sync_, sync_, restoreSettings_, set_restoreSettings_, contentPayload_, OnChrome, OnEdge,
-  hasEmptyLocalStorage_, set_backupToLocal_, backupToLocal_
+  hasEmptyLocalStorage_, set_backupToLocal_, backupToLocal_, OnFirefox
 } from "./store"
 import * as BgUtils_ from "./utils"
 import { browser_, runtimeError_ } from "./browser"
@@ -30,7 +30,7 @@ let changes_to_merge: EnsuredDict<StorageChange> | null = null
 let textDecoder: TextDecoder | null = null
 let restoringPromise: Promise<void> | null = null
 let cachedSync: SettingsWithDefaults["vimSync"]
-let longDelayedAction: TimerType = TimerType.noTimer
+let longDelayedAction: number = 0
 
 const storage = (): chrome.storage.StorageArea & {
   onChanged?: chrome.events.Event<(changes: EnsuredDict<StorageChange>, exArg: FakeArg) => void>
@@ -359,7 +359,7 @@ const saveAllToLocal = (timeout: number): void => {
   set_backupToLocal_(null)
   longDelayedAction && clearTimeout(longDelayedAction)
   longDelayedAction = setTimeout((): void => {
-    longDelayedAction = TimerType.noTimer
+    longDelayedAction = 0
     browserStorage_.local.get((items): void => {
       if (settings_.get_("vimSync") || !localStorage.length) { return }
       log("storage.local: backup all settings from localStorage")
@@ -489,14 +489,15 @@ settings_.updateHooks_.vimSync = (value): void => {
     event.addListener(listener)
     set_sync_(TrySet)
     longDelayedAction && clearTimeout(longDelayedAction)
-    longDelayedAction = TimerType.noTimer
-    browserStorage_.local.getBytesInUse((bytesInLocal): void => {
+    longDelayedAction = 0;
+    (OnFirefox ? (cb: (a: number) => void) => cb(1) : browserStorage_.local.getBytesInUse)((bytesInLocal): void => {
       if (bytesInLocal <= 0) { return }
       browserStorage_.local.get((items) => {
+        if (OnFirefox && Object.keys(items).length === 0) { return }
         delete (items as SettingsNS.FullCache).vimSync
         log("switch to sync.cloud, when old settings data in storage.local is:\n" + JSON.stringify(items, null, 2))
         longDelayedAction = setTimeout((): void => {
-          longDelayedAction = TimerType.noTimer
+          longDelayedAction = 0
           browserStorage_.local.clear()
         }, 8000)
       })
