@@ -39,14 +39,9 @@ if (settings_.get_("showActionIcon")) {
   set_setIcon_(blank_)
 }
 
-const enableSync = settings_.updateHooks_.vimSync = (value): void => {
-  if (value !== false) {
-    void (import("/background/sync.js" as string) as Promise<typeof import("./sync")>)
-  }
-}
-if (settings_.get_("vimSync") !== false) {
-  enableSync(true)
-}
+setTimeout((): void => {
+  void (import("/background/sync.js" as string) as Promise<typeof import("./sync")>)
+}, 100);
 
 (OnChrome || OnFirefox) && ((): void => {
   const omnibox = browser_.omnibox
