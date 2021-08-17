@@ -838,7 +838,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     VPort_.post_({ H: kFgReq.removeSug, t: type, s: completion.s, u: completion.u })
     return Vomnibar_.refresh_();
   },
-  onClick_ (event: MouseEventToPrevent): void {
+  onClick_ (this: void, event: MouseEventToPrevent): void {
     const a = Vomnibar_;
     let el: HTMLElement | null = event.target as HTMLElement;
     if ((Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome) ? !event.isTrusted
@@ -878,7 +878,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     }
   },
   OnTimer_ (this: void): void { if (VPort_ && Vomnibar_.isActive_) { Vomnibar_.fetch_() } },
-  onWheel_ (event: WheelEvent & ToPrevent): void {
+  onWheel_ (this: void, event: WheelEvent & ToPrevent): void {
     if (event.ctrlKey || event.metaKey
         || (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
             ? !event.isTrusted : event.isTrusted === false)) { return; }
@@ -908,7 +908,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     a.wheelStart_ = now;
     a.goPage_(deltaY > 0);
   },
-  onInput_ (event?: InputEvent): void {
+  onInput_ (this: void, event?: InputEvent): void {
     const a = Vomnibar_, s0 = a.lastQuery_, s1 = a.input_.value, str = s1.trim();
     a.blurWanted_ = false;
     if (str === (a.selection_ === -1 || a.isSelOriginal_ ? s0 : a.completions_[a.selection_].t)) {
@@ -1021,7 +1021,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   },
   toggleInputMode_ (): void {
     Vomnibar_.isInputComposing_ ||
-    Vomnibar_.toggleAttr_("inputmode", Vomnibar_.isSearchOnTop_ ? "search" : "url")
+    Vomnibar_.toggleAttr_("inputmode", Vomnibar_.isSearchOnTop_
+        || !(<RegExpOne> /[\/:]/).test(Vomnibar_.lastQuery_) ? "search" : "url")
   },
   toggleAttr_ (attr: string, value: string, trans?: BOOL) {
     if (trans && Vomnibar_.pageType_ === VomnibarNS.PageType.inner) {
@@ -1150,8 +1151,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   },
   init_ (): void {
     const a = Vomnibar_;
-    window.onclick = function (e) { Vomnibar_.onClick_(e); };
-    a.onWheel_ = a.onWheel_.bind(a);
+    window.onclick = Vomnibar_.onClick_
     VUtils_.safer_(a.ctrlCharOrShiftKeyMap_);
     VUtils_.safer_(a.normalMap_);
     VUtils_.safer_(a._modifierKeys)
@@ -1167,7 +1167,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     listen("keydown", a.HandleKeydown_, true);
     listen("focus", a.OnWndFocus_, true);
     listen("blur", a.OnWndFocus_, true);
-    input.oninput = (a.onInput_ as (e: InputEvent) => void as (e: Event) => void).bind(a);
+    input.oninput = a.onInput_ as (e: InputEvent) => void as (e: Event) => void
     input.onselect = a.OnSelect_;
 
     a.renderItems_ = VUtils_.makeListRenderer_((document.getElementById("template") as HTMLElement).innerHTML);
@@ -1201,7 +1201,6 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         && (!(Build.BTypes & BrowserType.Firefox) || a.browser_ !== BrowserType.Firefox)) {
       let func = function (this: HTMLInputElement, event: CompositionEvent): void {
         if (Vomnibar_.isInputComposing_ = event.type === "compositionstart") {
-          Vomnibar_.toggleInputMode_()
           if (Build.MinCVer >= BrowserVer.Min$InputEvent$$isComposing) { return; }
           Vomnibar_.lastNormalInput_ = this.value.trim();
         }

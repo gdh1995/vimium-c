@@ -25,7 +25,9 @@ import {
   parentFrame, enterVisualMode, showVomnibar, toggleZoom, captureTab,
   initHelp, framesGoBack, mainFrame, nextFrame, performFind, framesGoNext
 } from "./frame_commands"
-import { onShownTabsIfRepeat_, getTabRange, getTabsIfRepeat_, tryLastActiveTab_, filterTabsByCond_ } from "./filter_tabs"
+import {
+  onShownTabsIfRepeat_, getTabRange, getTabsIfRepeat_, tryLastActiveTab_, filterTabsByCond_
+} from "./filter_tabs"
 import {
   copyWindowInfo, joinTabs, moveTabToNewWindow, moveTabToNextWindow, reloadTab, removeTab, toggleMuteTab,
   togglePinTab, toggleTabUrl, reopenTab_
@@ -473,7 +475,7 @@ set_bgC_([
     })
   },
   /* kBgCmd.reopenTab: */ (tabs: [Tab] | never[], resolve): void | kBgCmd.reopenTab => {
-    if (tabs.length <= 0) { resolve(0);return }
+    if (tabs.length <= 0) { resolve(0); return }
     const tab = tabs[0], group = get_cOptions<C.reopenTab>().group !== false
     if (!OnChrome || Build.MinCVer >= BrowserVer.MinNoAbnormalIncognito
         || CurCVer_ >= BrowserVer.MinNoAbnormalIncognito

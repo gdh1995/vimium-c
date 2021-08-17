@@ -1,5 +1,5 @@
 import {
-  clickable_, setupEventListener, timeout_, doc, isAlive_, set_noRAF_old_cr_, math, isTop, OnChrome,
+  clickable_, setupEventListener, timeout_, doc, isAlive_, set_noRAF_old_cr_, math, isTop, OnChrome, readyState_,
   loc_, replaceBrokenTimerFunc, noRAF_old_cr_, getTime, recordLog, VTr, vApi, Stop_, isTY, OnEdge, OnFirefox
 } from "../lib/utils"
 import {
@@ -548,6 +548,10 @@ FProto[kToS] = myToStr
 // #endregion injected code
 
   if (isFirstTime) {
+    if (!Build.NDEBUG && readyState_ === "complete") {
+      alert("Vimium C: Error! should not run extend_click twice")
+      return
+    }
     if (OnChrome && Build.MinCVer < BrowserVer.MinEnsuredES6MethodFunction
         && appVer >= BrowserVer.MinEnsuredES6MethodFunction) {
       injected = injected.replace(<RegExpG> /: ?function \w+/g, "");
@@ -587,7 +591,7 @@ FProto[kToS] = myToStr
     OnDocLoaded_((): void => {
       // only for new versions of Chrome (and Edge);
       // CSP would block a <script> before MinEnsuredNewScriptsFromExtensionOnSandboxedPage
-      // not check isFirstTime, to auto clean VApi.execute_
+      // if !box, avoid checking isFirstTime, so that auto clean VApi.execute_
       !box ? execute(kContentCmd.DestroyForCSP) : isFirstTime && isAlive_ &&
       OnDocLoaded_(timeout_.bind(null, (): void => {
         isFirstResolve && dispatchCmd(kContentCmd.AutoFindAllOnClick);

@@ -57,7 +57,7 @@ const accessElAttr = (isUrl?: 1): [string: string, isUserCustomized?: BOOL] => {
     let json: Dict<primitiveObject | null> | primitiveObject | null | undefined | Element = el
     for (const prop of arr[+!!selector].split(".")) {
       if (json && isTY(json)) {
-        json = safeCall<string, any>(JSON.parse, json as string)
+        json = safeCall<string, any>(JSON.parse, json as unknown as string)
       }
       json = json !== el ? json && isTY(json, kTY.obj) && (json as Dict<primitiveObject | null>)[prop]
           : !el ? 0 : (el as TypeToAssert<Element, HTMLElement | SVGElement, "dataset", "tagName">).dataset

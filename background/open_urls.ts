@@ -333,8 +333,8 @@ const replaceOrOpenInNewTab = <Reuse extends Exclude<ReuseType, ReuseType.curren
   set_cRepeat(1)
   if (reuse === ReuseType.reuse) { reuseO2.m = null; reuseO2.g = useGroup }
   else {
-    overrideOption("group", useGroup, options!)
-    if (options!.replace != null) { overrideOption("replace", matcher!, options!) }
+    overrideOption<C.openUrl>("group", useGroup, options!)
+    if (options!.replace != null) { overrideOption<C.openUrl>("replace", matcher!, options!) }
   }
   let p: Promise<Pick<Window, "id"> | null>
   if (reuse < ReuseType.OFFSET_LAST_WINDOW + 1 && matcher) {

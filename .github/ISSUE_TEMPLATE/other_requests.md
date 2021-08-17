@@ -1,31 +1,32 @@
 ---
-name: Bug report
-about: File a bug
+name: Other requests
+about: Request features or usage documents
 title: ''
 labels: ''
 assignees: ''
 
 ---
 
-**Describe the bug**
+**What command or commands**
 
-<!-- Include a clear bug description. -->
+<!-- Add a feature to LinkHints, Vomnibar or `scroll*`, or need a new command -->
 
-**To Reproduce**
+**How should a feature do**
 
-Steps to reproduce the behavior:
+When a user has done such steps:
 
 <!-- 1. Go to URL "..."
-2. Click on "..." -->
+2. Select an ... element
+3. Press a key like "..." -->
 
-<!-- It will help a lot if here includes a screenshot when applicable. -->
+then Vimium C should do:
 
-**Browser, OS and Vimium C versions**
+<!-- 1. Click on "..." -->
+
+**Browser and OS**
 
 - Browser name: 
-- Browser version: 
-- Vimium C version: 
-- OS name and version: 
+- OS name: 
 
 <!-- If you're using MS Edge, Chrome, or other Chromium-based browsers,
 include the browser and OS version found at `chrome://version`.

@@ -270,7 +270,6 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode]): void => {
 
     set_findCSS(options.f || findCSS)
   if (!keyMap) {
-      const func = safer
 /**
  * Call stack (Chromium > icu):
  * * https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/editing/visible_units_word.cc?type=cs&q=NextWordPositionInternal&g=0&l=86
@@ -326,8 +325,8 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode]): void => {
       // on Firefox 65 stable, Win 10 x64, there're '\r\n' parts in Selection.toString()
       // ignore "\ufeff" for shorter code since it's too rare
       (rightWhiteSpaceRe = <RegExpOne> (OnFirefox ? /[^\S\n\r\u2029\u202f]+$/ : /[^\S\n\u2029\u202f]+$/))
-      func(keyMap = options.k! as VisualModeNS.SafeKeyMap)
-      func(keyMap.a as Dict<VisualAction>); func(keyMap.g as Dict<VisualAction>)
+      safer(keyMap = options.k! as VisualModeNS.SafeKeyMap)
+      safer(keyMap.a as Dict<VisualAction>); safer(keyMap.g as Dict<VisualAction>)
       kGranularity = options.g!
   }
   /** @safe_di */

@@ -403,7 +403,7 @@ label:active {
   top: 6px;
 }
 .line-2x {
-  top: 0px;
+  top: 0;
 }
 .line-2x:lang(zh) {
   top: 2px;

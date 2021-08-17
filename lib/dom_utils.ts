@@ -508,7 +508,7 @@ export const setOrRemoveAttr_s = (el: SafeElement, attr: string, newVal?: string
 }
 
 export const toggleClass_s = (el: SafeElement | HTMLDivElement | HTMLDialogElement
-    , className: string, force?: boolean | BOOL): void => {
+    , className: string, force?: boolean | BOOL | null): void => {
   const list = el.classList
   force != null ? list.toggle(className, !!force) : list.toggle(className)
 }
