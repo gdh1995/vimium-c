@@ -220,7 +220,7 @@ export const onKeydown = (event: KeyboardEventToPrevent): void => {
       tempStr = getMappedKey(eventWrapper, currentKeys ? kModeId.Next : kModeId.Normal)
       action = checkKey(eventWrapper, tempStr, tempStr);
       if (action > HandlerResult.MaxNotEsc) {
-        action = action > HandlerResult.PlainEsc ? /*#__NOINLINE__*/ onEscDown(event, key)
+        action = action > HandlerResult.PlainEsc ? /*#__NOINLINE__*/ onEscDown(event, key, event.repeat)
             : HandlerResult.Nothing;
       }
       if (action === HandlerResult.Nothing
@@ -250,10 +250,9 @@ export const onKeydown = (event: KeyboardEventToPrevent): void => {
 }
 
 /** @param key should be valid */
-const onEscDown = (event: KeyboardEventToPrevent, key: kKeyCode
+export const onEscDown = (event: KeyboardEventToPrevent | 0, key: kKeyCode, repeat: boolean
   ): HandlerResult.Default | HandlerResult.PassKey | HandlerResult.Prevent => {
   let action: HandlerResult.Default | HandlerResult.PassKey | HandlerResult.Prevent = HandlerResult.Prevent
-  let repeat = event.repeat
   let activeEl = repeat || !isTop ? deepActiveEl_unsafe_() : null
   /** if `notBody` then `activeEl` is not null */
   if (!repeat && removeSelection()) {

@@ -217,7 +217,7 @@ declare const enum kBgCmd {
 
 declare const enum kFgCmd {
   framesGoBack, findMode, linkHints, marks, scroll, visualMode, vomnibar, insertMode, toggle,
-  passNextKey, goNext, autoOpen, focusInput, editText, scrollSelect, toggleStyle, showHelpDialog,
+  passNextKey, goNext, autoOpen, focusInput, editText, scrollSelect, toggleStyle, dispatchEventCmd, showHelpDialog,
   END, ENDS = "END",
 }
 
@@ -439,6 +439,12 @@ interface CmdOptions {
     id?: undefined
     css?: undefined
   }) & { disabled?: boolean } & Req.FallbackOptions
+  [kFgCmd.dispatchEventCmd]: {
+    class?: string
+    type: string // if count < 0, then replace "down" with "up"
+    delay?: number
+    esc?: true // if true, then call onEscDown({ repeat: count > 1 })
+  } & Req.FallbackOptions
 }
 
 declare const enum kMarkAction {

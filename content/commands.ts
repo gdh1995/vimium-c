@@ -6,7 +6,7 @@ import {
 import {
   isHTML_, htmlTag_, createElement_, querySelectorAll_unsafe_, SafeEl_not_ff_, docEl_unsafe_, MDW, CLK,
   querySelector_unsafe_, DAC, removeEl_s, appendNode_s, setClassName_s, INP, contains_s, toggleClass_s, modifySel,
-  focus_, testMatch, docHasFocus_
+  focus_, testMatch, docHasFocus_, deepActiveEl_unsafe_
 } from "../lib/dom_utils"
 import {
   pushHandler_, removeHandler_, getMappedKey, prevent_, isEscape_, keybody_, DEL, BSP, ENTER, handler_stack,
@@ -23,7 +23,7 @@ import {
   hideHelp, set_hideHelp, set_helpBox, checkHidden,
 } from "./dom_ui"
 import { hudHide, hudShow, hudTip, hud_text } from "./hud"
-import { onKeyup2, set_onKeyup2, passKeys, set_nextKeys, set_passKeys, keyFSM } from "./key_handler"
+import { onKeyup2, set_onKeyup2, passKeys, set_nextKeys, set_passKeys, keyFSM, onEscDown } from "./key_handler"
 import { InputHintItem, activate as linkActivate, clear as linkClear, kSafeAllSelector } from "./link_hints"
 import { activate as markActivate } from "./marks"
 import { FindAction, activate as findActivate, deactivate as findDeactivate, execCommand } from "./mode_find"
@@ -387,6 +387,30 @@ set_contentCommands_([
       par && appendNode_s(par, el)
     }
     (el || id) && runFallbackKey(options, 0)
+  },
+  /* kFgCmd.dispatchEventCmd: */ (options: CmdOptions[kFgCmd.dispatchEventCmd], count: number): void => {
+    const type = options.type, rawClass = options.class
+    const evClass = (rawClass && (rawClass[0].toUpperCase() + rawClass.slice(1)) || "Keyboard") + "Event"
+    let event: Event | "" | undefined, delay = options.delay
+    if (options.esc) {
+      keydownEvents_[kKeyCode.None] = 0
+      onEscDown(0, kKeyCode.None, count > 1)
+      keydownEvents_[kKeyCode.None] = 0
+      runFallbackKey(options, 0, "", delay)
+    } else {
+      try {
+        event = type && new (window as any)[evClass](count < 0 ? type.replace("down", "up") : type, options)
+      } catch {}
+      if (event) {
+        const activeEl = deref_(currentScrolling)
+            || (OnFirefox ? deepActiveEl_unsafe_() : SafeEl_not_ff_!(deepActiveEl_unsafe_()))
+        // earlier, in case listeners are too slow
+        runFallbackKey(options, activeEl && activeEl !== doc.body ? 0 : 2, "", delay)
+        activeEl && activeEl.dispatchEvent(event)
+      } else {
+        hudTip(kTip.raw, 0, `Can not create ${evClass}#${type}`)
+      }
+    }
   },
   /* kFgCmd.showHelpDialog: */ ((options: Exclude<CmdOptions[kFgCmd.showHelpDialog], {h?: null}>): any => {
     // Note: not suppress key on the top, because help dialog may need a while to render,

@@ -79,6 +79,7 @@
   "createTab": "Créer de nouveaux onglets",
   "debugBackground": "Débugger le fond de la page",
   "discardTab": "Défausser d'autres onglets",
+  "dispatchEvent": "Simuler l'envoi d'un événement DOM arbitraire",
   "duplicateTab": "Dupliquer l'onglet courant N fois",
   "editText": "Envoyer l'action d'édition au navigateur",
   "enableContentSettingTemp": "Activer les feuilles de style du site en fenêtre incognito",

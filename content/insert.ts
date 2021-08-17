@@ -153,10 +153,10 @@ export const setupSuppress = (onExit?: (this: void) => void): void => {
 }
 
 /** should only be called during keydown events */
-export const focusUpper = (key: kKeyCode, force: boolean, event: ToPrevent): void | 1 => {
+export const focusUpper = (key: kKeyCode, force: boolean, event: ToPrevent | 0): void | 1 => {
   const parEl = frameElement_() && !fullscreenEl_unsafe_();
   if (!parEl && (!force || isTop)) { return; }
-  prevent_(event); // safer
+  event && prevent_(event); // safer
   if (parEl) {
     keydownEvents_[key] = 1;
     const parApi = getParentVApi()

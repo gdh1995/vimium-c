@@ -284,22 +284,23 @@ const commandGroups_: {
         ]: readonly NoaliasInCNames<kCName>[]
 } & SafeObject = {
     __proto__: null as never,
-    pageNavigation: ["scrollDown", "scrollUp", "scrollLeft", "scrollRight", "scrollToTop"
+    pageNavigation: [
+      "LinkHints.activate", "LinkHints.activateOpenInNewTab"
+      , "LinkHints.activateOpenInNewForegroundTab", "LinkHints.activateWithQueue"
+      , "scrollDown", "scrollUp", "scrollLeft", "scrollRight", "scrollToTop"
       , "scrollToBottom", "scrollToLeft", "scrollToRight", "scrollPageDown", "scrollPageUp"
       , "scrollPxDown", "scrollPxUp", "scrollPxLeft", "scrollPxRight"
       , "scrollFullPageDown", "scrollFullPageUp", "scrollSelect"
       , "reload", "reloadTab", "reloadGivenTab"
       , "zoom", "zoomIn", "zoomOut", "zoomReset", "toggleViewSource"
-      , "copyCurrentUrl", "copyCurrentTitle", "switchFocus", "simulateBackspace"
+      , "copyCurrentUrl", "copyCurrentTitle", "switchFocus", "focusInput"
       , "LinkHints.activateCopyLinkUrl", "LinkHints.activateCopyLinkText"
       , "openCopiedUrlInCurrentTab", "openCopiedUrlInNewTab", "goUp", "goToRoot"
-      , "focusInput", "LinkHints.activate", "LinkHints.activateOpenInNewTab"
-      , "LinkHints.activateOpenInNewForegroundTab", "LinkHints.activateWithQueue"
       , "LinkHints.activateDownloadImage", "LinkHints.activateOpenImage"
       , "LinkHints.activateDownloadLink", "LinkHints.activateOpenIncognito"
       , "LinkHints.activateHover", "LinkHints.activateLeave", "LinkHints.unhoverLast"
       , "LinkHints.activateSearchLinkText", "LinkHints.activateEdit"
-      , "LinkHints.activateSelect", "LinkHints.click"
+      , "LinkHints.activateSelect", "LinkHints.click", "simulateBackspace", "dispatchEvent"
       , "goPrevious", "goNext", "nextFrame", "mainFrame", "parentFrame"
       , "enterInsertMode", "enterVisualMode", "enterVisualLineMode"
       , "Marks.activateCreate", "Marks.activate"
@@ -328,11 +329,10 @@ const commandGroups_: {
 }
 
 const advancedCommands_: { readonly [k in NoaliasInCNames<kCName>]?: 1 | 0; } & SafeObject = { __proto__: null as never,
-    toggleViewSource: 1, clearFindHistory: 1
+    toggleViewSource: 1, clearFindHistory: 1, dispatchEvent: 1
     , scrollToLeft: 1, scrollToRight: 1, moveTabToNextWindow: 1
     , moveTabToNewWindow: 1, moveTabToIncognito: 1, reloadGivenTab: 1
     , focusOrLaunch: 1
-    , goUp: 1, goToRoot: 1, focusInput: 1, "LinkHints.activateWithQueue": 1
     , enableContentSettingTemp: 1, toggleContentSetting: 1, toggleStyle: 1, clearContentSettings: 1
     , "LinkHints.activateDownloadImage": 1, reopenTab: 1
     , "LinkHints.activateOpenImage": 1, removeRightTab: 1

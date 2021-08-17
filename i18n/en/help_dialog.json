@@ -78,6 +78,7 @@
   "createTab": "Create new tabs",
   "debugBackground": "Debug the background page",
   "discardTab": "Discard some other tabs",
+  "dispatchEvent": "Simulate dipatching arbitrary DOM event",
   "duplicateTab": "Duplicate current tab for N times",
   "editText": "Send editing action to browser",
   "enableContentSettingTemp": "Enable the site's ContentSetting in incognito window",

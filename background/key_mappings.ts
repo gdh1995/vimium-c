@@ -594,6 +594,7 @@ export const availableCommands_: Dict<CommandsNS.Description> & SafeObject =
       id_mask: "$id", url_mask: ""
     }],
   discardTab: [ kBgCmd.discardTab, 1, /* 20 in all_commands.ts */ 0 ],
+  dispatchEvent: [kFgCmd.dispatchEventCmd, 0, /** only 1 / -1, in fact */ 0],
   duplicateTab: [ kBgCmd.duplicateTab, 1, 20 as 0 ],
   editText: [ kFgCmd.editText, 0, 0 ],
   enableCSTemp: [ kBgCmd.toggleCS, 1, 0, { incognito: true } ],

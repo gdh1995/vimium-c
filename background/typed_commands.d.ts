@@ -105,7 +105,7 @@ interface BgCmdOptions {
     keepWindow: "at-least-one" | "always"
   } & Req.FallbackOptions
   [kBgCmd.removeTabsR]: {
-    filter: "url" | "hash" | "host" | "url+title" | "hash+title" | "host+title"
+    filter: "url" | "hash" | "url=..." | "host" | "host=..." | "title" | "title*" | "group" | "url+hash" | "host&title"
     other: boolean; mayConfirm: true; noPinned: boolean
   } & Req.FallbackOptions
   [kBgCmd.reopenTab]: Pick<OpenUrlOptions, "group"> & Req.FallbackOptions
@@ -355,6 +355,7 @@ interface CmdNameIds {
   createTab: kBgCmd.createTab
   debugBackground: kBgCmd.openUrl
   discardTab: kBgCmd.discardTab
+  dispatchEvent: kFgCmd.dispatchEventCmd
   duplicateTab: kBgCmd.duplicateTab
   editText: kFgCmd.editText
   enableCSTemp: kBgCmd.toggleCS

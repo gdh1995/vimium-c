@@ -85,6 +85,7 @@
   "createTab": "打开新的标签页",
   "debugBackground": "打开 Vimium C 扩展程序的管理页",
   "discardTab": "暂时丢弃某个网页以节约资源",
+  "dispatchEvent": "模拟触发任意 DOM 事件",
   "duplicateTab": "复制当前标签页",
   "editText": "向浏览器发送文字编辑指令",
   "enableContentSettingTemp": "在无痕窗口中赋予网站对一项功能的使用权限",
