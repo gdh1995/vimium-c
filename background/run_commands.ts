@@ -1,10 +1,10 @@
 import {
-  framesForTab_, get_cOptions, cPort, cRepeat, reqH_, bgC_, cmdInfo_, set_helpDialogData_, helpDialogData_,
+  framesForTab_, get_cOptions, cPort, cRepeat, bgC_, cmdInfo_, set_helpDialogData_, helpDialogData_,
   set_cOptions, set_cPort, cKey, set_cKey, set_cRepeat, curTabId_, OnEdge, keyToCommandMap_, blank_
 } from "./store"
 import * as BgUtils_ from "./utils"
 import { Tabs_, runtimeError_, getCurTab, getCurShownTabs_, tabsGet, getCurWnd } from "./browser"
-import { ensureInnerCSS, getPortUrl_, indexFrame, safePost, showHUD } from "./ports"
+import { ensureInnerCSS, ensuredExitAllGrab, getPortUrl_, indexFrame, safePost, showHUD } from "./ports"
 import * as Exclusions from "./exclusions"
 import { getI18nJson, trans_ } from "./i18n"
 import {
@@ -255,10 +255,7 @@ export const executeShortcut = (shortcutName: StandardShortcutNames, ref: Frames
     let port = ref.cur_
     setupSingletonCmdTimer(setTimeout(executeShortcut, 100, shortcutName, null))
     port.postMessage({ N: kBgReq.count, c: shortcutName, i: _gCmdTimer, m: "" })
-    if (!(port.s.flags_ & Frames.Flags.hasCSS || ref.flags_ & Frames.Flags.userActed)) {
-      reqH_[kFgReq.exitGrab]({}, port)
-    }
-    ref.flags_ |= Frames.Flags.userActed
+    ensuredExitAllGrab(ref)
     return
   }
   const registry = shortcutRegistry_!.get(shortcutName)!, cmdName = registry.command_
@@ -406,7 +403,7 @@ const normalizeExpects = (options: KnownOptions<C.runKey>): (NormalizedEnvCond |
   if (!expected_rules) { /* empty */ }
   else if (expected_rules instanceof Array) {
     new_rules = expected_rules.map((rule): NormalizedEnvCond | null => rule instanceof Array
-        ? { env: rule[0] + "", keys: normalizeKeys(rule[1]), options: rule[2] as any }
+        ? { env: rule[0], keys: normalizeKeys(rule[1]), options: rule[2] as any }
         : !rule || typeof rule !== "object" ? null
         : { env: rule.env || rule, keys: normalizeKeys(rule.keys), options: rule.options })
   } else if (typeof expected_rules === "object") {
@@ -444,7 +441,6 @@ export const runKeyWithCond = (info?: CurrentEnvCache): void => {
   if (!cPort) {
     set_cPort(frames ? frames.cur_ : null as never)
   }
-  frames && (frames.flags_ |= Frames.Flags.userActed)
   info = info || {}
   const expected_rules = normalizeExpects(get_cOptions<C.runKey, true>())
   for (const normalizedRule of expected_rules) {
@@ -736,6 +732,7 @@ export const runNextCmdBy = (useThen: BOOL, options: Req.FallbackOptions, timeou
           : !frames ? null : frames.cur_.s.status_ === Frames.Status.disabled
           && frames.ports_.filter(i => i.s.status_ !== Frames.Status.disabled)
               .sort((a, b) => a.s.frameId_ - b.s.frameId_)[0] || frames.cur_
+      frames && ensuredExitAllGrab(frames)
       if ((<RegExpI> /^[a-z]+(\.[a-z]+)?$/i).test(nextKey!) && nextKey! in availableCommands_) {
         executeCommand(makeCommand_(nextKey!, null), 1, kKeyCode.None, port, 0, fStatus)
       } else {

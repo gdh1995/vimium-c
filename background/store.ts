@@ -40,7 +40,7 @@ export const contentPayload_ = <SettingsNS.FrontendSettingCache> As_<SettingsNS.
   d: "", g: false, m: false, o: kOS.win
 })
 export const omniPayload_ = <SettingsNS.VomnibarPayload> As_<SettingsNS.DeclaredVomnibarPayload>({
-  v: !OnChrome ? CurCVer_ : OnFirefox ? CurFFVer_ : 0,
+  v: OnChrome ? CurCVer_ : OnFirefox ? CurFFVer_ : 0,
   a: 0, c: "", l: "", k: null, o: kOS.win, n: 0, s: "", t: 0
 })
 export let omniStyleOverridden_ = false

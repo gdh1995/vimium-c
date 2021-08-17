@@ -219,7 +219,7 @@ set_contentCommands_([
     const act = options.act || options.action, known_last = deref_(insert_last_);
     OnFirefox && insert_Lock_()
     if (act && (act[0] !== "l" || known_last && !raw_insert_lock)) {
-      let newEl: LockableElement | null | undefined = raw_insert_lock, ret: BOOL = 1;
+      let newEl: LockableElement | null | undefined = raw_insert_lock, ret: kTip | 0 | -1 = 0;
       if (newEl) {
         if (act === BSP) {
           if (view_(newEl)) { execCommand(DEL, doc); }
@@ -229,19 +229,18 @@ set_contentCommands_([
           newEl.blur();
         }
       } else if (!(newEl = known_last)) {
-        runFallbackKey(options, kTip.noFocused)
+        ret = kTip.noFocused
       } else if (act !== "last-visible" && view_(newEl) || !isNotInViewport(newEl)) {
         set_insert_last_(null)
         set_is_last_mutable(1)
         getZoom_(newEl);
         prepareCrop_();
         select_(newEl, null, !!options.flash, options.select, true);
-      } else if (act[0] === "l") {
-        ret = 0;
       } else {
-        runFallbackKey(options, kTip.focusedIsHidden)
+        ret = act[0] === "l" ? -1 : kTip.focusedIsHidden
       }
-      if (ret) {
+      if (ret >= 0) {
+        runFallbackKey(options, ret)
         return;
       }
     }

@@ -1808,7 +1808,7 @@ if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType
       Vomnibar_.browser_ = payload.b!;
     }
     if ((!(Build.BTypes & (Build.BTypes - 1)) ? Build.BTypes : payload.b!) & BrowserType.Chrome) {
-      Vomnibar_.browserVer_ = payload.v as BrowserVer;
+      Vomnibar_.browserVer_ = payload.v as BrowserVer || BrowserVer.assumedVer
     }
     if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key) {
       payload.o || (Vomnibar_.keyIdCorrectionOffset_old_cr_ = 300);

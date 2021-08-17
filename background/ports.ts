@@ -317,6 +317,18 @@ export const showHUD = (text: string, isCopy?: kTip): void => {
   }
 }
 
+export const ensuredExitAllGrab = (ref: Frames.Frames): void => {
+  const msg: Req.bg<kBgReq.exitGrab> = { N: kBgReq.exitGrab }
+  for (const p of ref.ports_) {
+    if (!(p.s.flags_ & Frames.Flags.userActed)) {
+      p.postMessage(msg)
+      p.s.flags_ |= Frames.Flags.userActed
+    }
+  }
+  ref.flags_ |= Frames.Flags.userActed
+  return
+}
+
 export const asyncIterFrames_ = (callback: (frames: Frames.Frames) => void, doesContinue?: () => boolean | void): void => {
   const MIN_ASYNC_ITER = 50
   const knownKeys = keys_(framesForTab_), knownCurTabId = curTabId_

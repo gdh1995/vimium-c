@@ -26,7 +26,7 @@ export interface BrowserUrlItem {
 const WithTextDecoder = !OnEdge && (Build.MinCVer >= BrowserVer.MinEnsuredTextEncoderAndDecoder || !OnChrome
     || CurCVer_ > BrowserVer.MinEnsuredTextEncoderAndDecoder - 1 || !!globalThis.TextDecoder)
 const _decodeFunc = decodeURIComponent
-let decodingEnabled = false, decodingJobs: ItemToDecode[], decodingIndex = -1, dataUrlToDecode_ = "1"
+let decodingEnabled: boolean | undefined, decodingJobs: ItemToDecode[], decodingIndex = -1, dataUrlToDecode_ = "1"
 let charsetDecoder_: TextDecoder | null = null
 let omniBlockList: string[] | null = null, omniBlockListRe: RegExpOne | null = null
 
@@ -663,7 +663,7 @@ if (!OnChrome || Build.MinCVer >= BrowserVer.MinRequestDataURLOnBackgroundPage
       }, 100)
     } else {
       urlDecodingDict_.clear()
-      decodingJobs.length = 0
+      decodingJobs && (decodingJobs.length = 0)
     }
     if (decodingEnabled === enabled) { return }
     decodingJobs = enabled ? [] as ItemToDecode[] : { length: 0, push: blank_ } as any
@@ -672,7 +672,7 @@ if (!OnChrome || Build.MinCVer >= BrowserVer.MinRequestDataURLOnBackgroundPage
   }
   settings_.postUpdate_("localeEncoding")
 } else {
-  decodingJobs = { length: 0, push: blank_ } as any
+  decodingJobs = { length: 0, push: blank_ } as any[]
 }
 
 Completion_.removeSug_ = (url, type: FgReq[kFgReq.removeSug]["t"], callback: (succeed: boolean) => void): void => {

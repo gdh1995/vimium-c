@@ -80,7 +80,7 @@ set_bgC_([
 //#region need cport
   /* kBgCmd.goNext: */ (): void | kBgCmd.goNext => {
     const rawRel = get_cOptions<C.goNext>().rel
-    const rel = rawRel ? rawRel + "" : "next"
+    const rel = rawRel ? (rawRel + "").toLowerCase() : "next"
     const isNext = get_cOptions<C.goNext>().isNext != null ? !!get_cOptions<C.goNext>().isNext
         : !rel.includes("prev") && !rel.includes("before")
     const sed = parseSedOptions_(get_cOptions<C.goNext, true>())
