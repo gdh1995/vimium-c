@@ -12,7 +12,9 @@ import { convertToUrl_ } from "./normalize_urls"
 import { parseSearchUrl_ } from "./parse_urls"
 import { complainLimits, requireURL_, showHUD } from "./ports"
 import { trans_ } from "./i18n"
-import { confirm_, overrideCmdOptions, runNextOnTabLoaded, runNextCmd, getRunNextCmdBy, kRunOn, needConfirm_ } from "./run_commands"
+import {
+  confirm_, overrideCmdOptions, runNextOnTabLoaded, runNextCmd, getRunNextCmdBy, kRunOn, needConfirm_
+} from "./run_commands"
 import { parseSedOptions_ } from "./clipboard"
 import { newTabIndex, preferLastWnd, openUrlWithActions } from "./open_urls"
 import { focusFrame } from "./frame_commands"
@@ -66,7 +68,7 @@ export const copyWindowInfo = (resolve: OnCmdResolved): void | kBgCmd.copyWindow
       const curId = cPort ? cPort.s.tabId_ : curTabId_
       let tabs2 = tabs.filter(i => i.incognito === incognito)
       const activeTab = tabs2.find(i => i.id === curId), oldLen = tabs2.length
-      activeTab && (tabs2 = filterTabsByCond_(activeTab, tabs2, filter))
+      tabs2 = filterTabsByCond_(activeTab, tabs2, filter)
       filter = tabs2.length < oldLen ? filter : null
       filter && (tabs = tabs2)
     }
@@ -119,9 +121,7 @@ export const joinTabs = (resolve: OnCmdResolved): void | kBgCmd.joinTabs => {
       let filter = get_cOptions<C.joinTabs, true>().filter
       if (filter) {
         const activeTab = allTabs.find(i => i.id === curTabId_), oldLen = allTabs.length
-        if (activeTab) {
-          allTabs = filterTabsByCond_(activeTab, allTabs, filter)
-        }
+        allTabs = filterTabsByCond_(activeTab, allTabs, filter)
         filter = allTabs.length < oldLen ? filter : null
       }
       if (sortOpt) {

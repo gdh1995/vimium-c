@@ -4,6 +4,7 @@ import {
   selectFrom, Tabs_, getCurShownTabs_, getCurWnd, runtimeError_, isNotHidden_, ShownTab, getCurTab, getCurTabs,
   getTabUrl, getGroupId
 } from "./browser"
+import * as Exclusions from "./exclusions"
 
 import C = kBgCmd
 
@@ -82,18 +83,35 @@ export const getTabsIfRepeat_ = (count: number, callback_r: (tabsIncludingActive
   }
 }
 
-export const filterTabsByCond_ = (activeTab: ShownTab, tabs: readonly Readonly<Tab>[]
+export const filterTabsByCond_ = (activeTab: ShownTab | null | undefined, tabs: readonly Readonly<Tab>[]
     , filter: NonNullable<BgCmdOptions[kBgCmd.removeTabsR]["filter"]>): Readonly<Tab>[] => {
-  filter = (filter + "") as typeof filter
-  const title = filter.includes("title") ? activeTab.title : "",
-  full = filter.includes("hash"), activeTabUrl = getTabUrl(activeTab),
-  onlyHost = filter.includes("host") ? BgUtils_.safeParseURL_(activeTabUrl) : null,
-  urlToFilter = full ? activeTabUrl : onlyHost ? onlyHost.host : activeTabUrl.split("#", 1)[0]
-  return tabs.filter(tab => {
-    const tabUrl = getTabUrl(tab), parsed = onlyHost ? BgUtils_.safeParseURL_(tabUrl) : null
-    const url = parsed ? parsed.host : full ? tabUrl : tabUrl.split("#", 1)[0]
-    return url === urlToFilter && (!title || tab.title === title)
-  })
+  let title: string | undefined, matcher: ValidUrlMatchers | null | undefined, host: string | undefined
+  let group: string | null | undefined, useHash = false
+  for (let item of (filter + "").split(/[&+]/)) {
+    const key = item.split("=", 1)[0] as typeof filter
+    const rawVal = item.slice(key.length + 1), val = rawVal && BgUtils_.DecodeURLPart_(rawVal)
+    if (key === "title" || key === "title*") {
+      title = val ? val : activeTab && activeTab.title || undefined
+    } else if (key === "url" || key === "hash") {
+      if (key === "url" && val) {
+        matcher = Exclusions.createSimpleUrlMatcher_(val)
+      } else {
+        const url = activeTab ? getTabUrl(activeTab) : null
+        useHash = useHash || key === "hash"
+        matcher = url ? Exclusions.createSimpleUrlMatcher_(":" + (useHash ? url : url.split("#", 1)[0])) : null
+      }
+    } else if (key === "host") {
+      host = val ? val : activeTab ? BgUtils_.safeParseURL_(getTabUrl(activeTab))?.host : ""
+    } else if (key === "group") {
+      group = val ? val : activeTab ? getGroupId(activeTab) != null ? getGroupId(activeTab) + "" : null : undefined
+    }
+  }
+  return tabs.filter(tab =>
+      (!title || (tab.title || "").includes(title))
+      && (!matcher || Exclusions.matchSimply_(matcher, getTabUrl(tab)))
+      && (!host || host === BgUtils_.safeParseURL_(getTabUrl(tab))?.host)
+      && (group === undefined || group === (getGroupId(tab) ?? "") + "")
+  )
 }
 
 export const sortTabsByCond_ = (allTabs: Readonly<Tab>[]

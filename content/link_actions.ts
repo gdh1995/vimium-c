@@ -172,8 +172,22 @@ const hoverEl = (): void => {
                     ] as SafeElement)
               : clickEl.closest!(selector))) {
           if (OnFirefox || !notSafe_not_ff_!(selected)) {
-            for (const classNameStr of toggleMap[key].split(" ")) {
-              classNameStr.trim() && toggleClass_s(selected as SafeElement, classNameStr)
+            for (const toggle of toggleMap[key].split(/[ ,]/)) {
+              const s0 = toggle[0], remove = s0 === "-", add = s0 === "+" || (!remove && null)
+              const idx = +(add || remove)
+              if (toggle[idx] === "[") {
+                const arr = toggle.slice(idx + 1, -1).split("="), rawAttr = arr[0], val = arr[1] || "",
+                isWord = rawAttr.endsWith("~"), attr = isWord ? rawAttr.slice(0, -1) : rawAttr,
+                rawOld = attr_s(selected as SafeElement, attr), old = rawOld || "",
+                valWord = " " + val + " ", oldWords = " " + old + " "
+                attr && setOrRemoveAttr_s(selected as SafeElement, attr,
+                    isWord && old ? (oldWords.includes(valWord) ? add ? old : oldWords.replace(valWord, " ")
+                        : remove ? old : old + valWord).trim()
+                    : add || !remove && rawOld !== val ? val : null)
+              } else {
+                let cls = toggle.slice(idx + ((toggle[idx] === ".") as boolean | BOOL as BOOL))
+                cls.trim() && toggleClass_s(selected as SafeElement, cls, add)
+              }
             }
           }
         }
