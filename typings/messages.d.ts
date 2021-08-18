@@ -245,6 +245,7 @@ declare namespace HintsNS {
     /** mode */ m: HintMode
     /** hint characters */ c?: string
     /** click directly */ direct?: boolean | "element" | "sel" | "focus" | "hover" | "click" | "element,sel,focus,hover"
+        | "scroll" | "DOMActivate"
     directOptions?: {
       search?: "view" | "doc" | "document"
       offset?: 0 | "cur" | "current" | "end" | "last"

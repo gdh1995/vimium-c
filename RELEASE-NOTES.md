@@ -4,6 +4,16 @@ Release Notes of Vimium C
 ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 说明文档: https://gitee.com/gdh1995/vimium-c#readme , https://github.com/gdh1995/vimium-c/blob/master/README-zh.md .
 
+#### 1.92.2
+* when `Local encoding` is `utf*`, fix broken Vomnibar and settings importing/exporting
+* fix Vomnibar didn't show favIcons on Chrome
+* fix some other bugs
+* add a new command of `dispatchEvent` to simulate dispatching events (options are used to init events)
+  * if with `esc=true`, then it will act as "`Escape` in normal mode"
+  * in other cases, Vimium C won't consume such events unless before Chrome 46
+* `.filter` option: support sub-arguments like `url=...` and `host=...`
+* `LinkHints.*`: `.toggle` option: accept `[+-]?(\[attr~?=.*\]|\.?\S*)` to modify attributes and classNames
+
 #### 1.92.1
 * keyMappings: not treat a line as an error if with `$if={...}`
   * add `unmap!` to unmap a key sequence when it exists - aka ignoring errros

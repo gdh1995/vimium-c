@@ -125,6 +125,7 @@ improved key mappings
 * `mapKey`: support `<...:n>` and they will only take effect in normal mode
 * Firefox: some commands operating tabs will run faster when repeating count is 1
 * fix `w` and `e` in `VisualMode` on Chrome 90+ on Windows
+* add a new command of `dispatchEvent` to simulate dispatching events
 * some other improvements and bug fixes
 
 Refer to [RELEASE-NOTES.md](RELEASE-NOTES.md).

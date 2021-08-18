@@ -527,23 +527,25 @@ const activateDirectly = (options: ContentOptions, count: number): void => {
       ? low = mid + 1 : high = mid - 1
     }
     return low < -matchIndex ? matches!.length : low + matchIndex
-  }
+  }, testD = offset.includes.bind(d + "")
   let isSel: boolean | undefined
   let matches: (Hint | Hint0)[] | undefined, oneMatch: Hint | Hint0 | undefined, matchIndex: number
   let el: SafeElement | null | undefined
-  el = (prepareCrop_(), allTypes || d.includes("ele")) && options.match // target | element
+  el = (prepareCrop_(), allTypes || testD("elem")) && options.match // element
       && (matches = traverse(kSafeAllSelector, options, wholeDoc ? (hints: Hint0[], el1: SafeElement): void => {
                 isInteractiveInPage(el1) && hints.push([el1 as SafeElementForMouse])
               } : getIfOnlyVisible, 1, wholeDoc),
           oneMatch = matches.slice((matchIndex = elIndex === "count" ? count < 0 ? count : count - 1 : +elIndex! || 0,
               offset > "e" ? ~matchIndex : offset < "c" ? matchIndex : computeOffset()))[0])
       ? oneMatch[0]
-      : (allTypes || d.includes("se")) // selected
+      : (allTypes || testD("sel")) // selected
           && isSelARange(getSelection()) && (el = getSelectionFocusEdge_(getSelected()), isSel = !!el, el)
-      || (allTypes || d.includes("f")) // focused
+      || (allTypes || testD("f")) // focused
           && (insert_Lock_()
               || (OnFirefox ? <SafeElement | null> deepActiveEl_unsafe_() : SafeEl_not_ff_!(deepActiveEl_unsafe_())))
-      || (allTypes || d.includes("h") || d.includes("i") ? deref_(lastHovered_) : null) // hover | clicked
+      || (allTypes || testD("h") || testD("cl")) && deref_(lastHovered_) // hover | clicked
+      || (!allTypes && (testD("s") || testD("a")) ? deref_(currentScrolling) // currentScrollable / DOMActivate
+        : null)
   el = mode < HintMode.min_job || el && htmlTag_(el) ? el : null
   if (!el || !IsInDOM_(el)) {
     runFallbackKey(options, kTip.noTargets)
