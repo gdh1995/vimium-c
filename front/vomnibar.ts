@@ -1400,13 +1400,10 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     (str = item.label) && (item.label = ` <span class="label">${str}</span>`);
     if (Build.BTypes & BrowserType.Firefox
         && (!(Build.BTypes & ~BrowserType.Firefox) || Vomnibar_.browser_ === BrowserType.Firefox)) {
-      if (item.favIcon) {
-        item.favIcon = `" style="background-image: url(&quot;${VUtils_.escapeCSSUrlInAttr_(item.favIcon)}&quot;);`;
-      }
       return;
     }
     item.favIcon = (str = Vomnibar_.showFavIcon_ ? item.u : "") && Vomnibar_._favPrefix +
-        VUtils_.escapeCSSUrlInAttr_(Vomnibar_._parseFavIcon(item, str) || "about:blank") +
+        VUtils_.escapeCSSUrlInAttr_not_ff_(Vomnibar_._parseFavIcon(item, str) || "about:blank") +
         "&quot;);";
   },
   _parseFavIcon (item: SuggestionE, url: string): string {
@@ -1491,6 +1488,9 @@ VUtils_ = {
           html += key === "typeIcon" ? Vomnibar_.getTypeIcon_(objectArray[index])
               : key === "index" ? index + 1
               : key === "time" ? Vomnibar_.showTime_ ? VUtils_.timeStr_(objectArray[index].visit) : ""
+              : Build.BTypes & BrowserType.Firefox
+                && (!(Build.BTypes & ~BrowserType.Firefox) || Vomnibar_.browser_ === BrowserType.Firefox)
+                && key === "favIcon" ? ""
               : objectArray[index][key as keyof SuggestionE] || "";
         }
         html += a[len];
@@ -1502,8 +1502,34 @@ VUtils_ = {
         element.append!(
           ... <Element[]> <ArrayLike<Element>> parser.parseFromString(html, "text/html").body.children);
       }
+      if (Build.BTypes & BrowserType.Firefox
+          && (!(Build.BTypes & ~BrowserType.Firefox) || Vomnibar_.browser_ === BrowserType.Firefox)) {
+        /*#__NOINLINE__*/ VUtils_.assignFavIcons_ff_(objectArray, element)
+      }
     };
   },
+  assignFavIcons_ff_: Build.BTypes & BrowserType.Firefox ? ((objectArray, element): void => {
+    const els = element.querySelectorAll(".icon") as NodeListOf<HTMLElement>
+    if (objectArray.length === 0 || els.length !== objectArray.length) { return }
+    const escapeRe = <RegExpG & RegExpSearchable<0>> /"/g
+    const escapeCallback = (): string => "%22"
+    const todos: [number, string][] = []
+    for (let index = 0; index < objectArray.length; index++) {
+      const favIcon = objectArray[index].favIcon
+      if (!favIcon) { /* empty */ }
+      else if (favIcon.length < 500) {
+        els[index].style.backgroundImage = `url("${favIcon.replace(escapeRe, escapeCallback)}")`
+      } else {
+        todos.push([index, favIcon])
+      }
+    }
+    todos.length > 0 && setTimeout((): void => {
+      if (Vomnibar_.completions_ !== objectArray) { return }
+      for (const [index, favIcon] of todos) {
+        els[index].style.backgroundImage = `url("${favIcon.replace(escapeRe, escapeCallback)}")`
+      }
+    }, 17)
+  }) as Render : 0 as never,
   decodeURL_ (this: void, url: string, decode?: (this: void, url: string) => string): string {
     try {
       url = (decode || decodeURI)(url);
@@ -1558,18 +1584,18 @@ VUtils_ = {
     return str === "amp" ? "&" : str === "apos" ? "'" : str === "quot" ? '"'
       : str === "gt" ? ">" : str === "lt" ? "<" : "";
   },
-  escapeCSSUrlInAttr_ (s0: string): string {
+  escapeCSSUrlInAttr_not_ff_: Build.BTypes & ~BrowserType.Firefox ? (s0: string): string => {
     const escapeRe = <RegExpG & RegExpSearchable<0>> /["&'<>]/g;
     function escapeCallback(c: string): string {
       const i = c.charCodeAt(0);
       return i === kCharCode.and ? "&amp;" : i === kCharCode.quote1 ? "&apos;"
         : i < kCharCode.quote1 ? "%22" : i === kCharCode.lt ? "%3C" : "%3E";
     }
-    VUtils_.escapeCSSUrlInAttr_ = function (s): string {
+    VUtils_.escapeCSSUrlInAttr_not_ff_ = function (s): string {
       return s.replace(escapeRe, escapeCallback);
     };
-    return VUtils_.escapeCSSUrlInAttr_(s0);
-  },
+    return VUtils_.escapeCSSUrlInAttr_not_ff_(s0);
+  } : 0 as never,
   timeCache_: 0,
   timeStr_ (timestamp: number | undefined): string {
     const cls = Intl.RelativeTimeFormat
