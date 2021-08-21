@@ -118,22 +118,22 @@ type _NormalizedNames2<T extends kCName> =
 type NormalizedNames = _NormalizedNames2<_NormalizedNames1<kCName>>
 
 const normalizeCmdName = (command: kCName): NormalizedNames => {
-      if (/*#__INLINE__*/ includes(command, "Mode") && /*#__INLINE__*/ includes(command, ".activate")) {
-        command = /*#__INLINE__*/ includes(command, "ModeTo") ? command.replace("ModeTo", "")
+      if (includes(command, "Mode") && includes(command, ".activate")) {
+        command = includes(command, "ModeTo") ? command.replace("ModeTo", "")
             : command.replace("Mode", "")
       }
-      if (/*#__INLINE__*/ endsWith(command, "Unhover")) {
+      if (endsWith(command, "Unhover")) {
         command = command.replace("Unhover", "Leave")
-      } else if (/*#__INLINE__*/ endsWith(command, "Goto")) {
+      } else if (endsWith(command, "Goto")) {
         command = command.replace("Goto", "")
       } else if (command === "clearContentSetting") {
         command = `${command}s`
-      } else if (/*#__INLINE__*/ includes(command, "CS")) {
-        command = /*#__INLINE__*/ startsWith(command, "clear") ? "clearContentSettings"
+      } else if (includes(command, "CS")) {
+        command = startsWith(command, "clear") ? "clearContentSettings"
             : command.replace("CS", "ContentSetting")
-      } else if (/*#__INLINE__*/ includes(command, "vateUrl")) {
+      } else if (includes(command, "vateUrl")) {
         command = command.replace("vateUrl", "vateEditUrl")
-      } else if (/*#__INLINE__*/ endsWith(command, "TabSelection")) {
+      } else if (endsWith(command, "TabSelection")) {
         command = command.replace("TabSelection", "Tabs")
       } else if (command === kShortcutAliases.nextTab1) {
         command = AsC_("nextTab");
@@ -145,8 +145,6 @@ const normalizeCmdName = (command: kCName): NormalizedNames => {
         command = AsC_("showTip")
       } else if (command === AsC_("wait")) {
         command = AsC_("blank")
-      } else {
-        command = command
       }
       return command
 }
