@@ -4,6 +4,9 @@ Release Notes of Vimium C
 ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 说明文档: https://gitee.com/gdh1995/vimium-c#readme , https://github.com/gdh1995/vimium-c/blob/master/README-zh.md .
 
+#### 1.92.3
+* Chrome: fix Vimium C Options can not show if only setting syncing is enabled
+
 #### 1.92.2
 * when `Local encoding` is `utf*`, fix broken Vomnibar and settings importing/exporting
 * fix Vomnibar didn't show favIcons on Chrome
