@@ -490,8 +490,7 @@ settings_.updateHooks_.vimSync = (value): void => {
     set_sync_(TrySet)
     longDelayedAction && clearTimeout(longDelayedAction)
     longDelayedAction = 0;
-    (OnFirefox ? (cb: (a: number) => void) => cb(1) : browserStorage_.local.getBytesInUse)((bytesInLocal): void => {
-      if (bytesInLocal <= 0) { return }
+    const testLocal = (): void => {
       browserStorage_.local.get((items) => {
         if (OnFirefox && Object.keys(items).length === 0) { return }
         delete (items as SettingsNS.FullCache).vimSync
@@ -501,6 +500,9 @@ settings_.updateHooks_.vimSync = (value): void => {
           browserStorage_.local.clear()
         }, 8000)
       })
+    }
+    OnFirefox ? /*#__INLINE__*/ testLocal() : browserStorage_.local.getBytesInUse((bytesInLocal): void => {
+      bytesInLocal > 0 && /*#__INLINE__*/ testLocal()
     })
   }
 }
