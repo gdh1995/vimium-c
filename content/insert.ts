@@ -9,7 +9,7 @@ import { set_currentScrolling, scrollTick, set_cachedScrollable } from "./scroll
 import { set_isCmdTriggered, resetAnyClickHandler } from "./key_handler"
 import {
   activeEl_unsafe_, getEditableType_, GetShadowRoot_, getSelection_, frameElement_, deepActiveEl_unsafe_,
-  SafeEl_not_ff_, MDW, fullscreenEl_unsafe_, removeEl_s, isNode_, BU, docHasFocus_
+  SafeEl_not_ff_, MDW, fullscreenEl_unsafe_, removeEl_s, isNode_, BU, docHasFocus_, getRootNode_mounted
 } from "../lib/dom_utils"
 import { pushHandler_, removeHandler_, prevent_ } from "../lib/keyboard_utils"
 import { InputHintItem } from "./link_hints"
@@ -106,7 +106,7 @@ export const exitGrab = function (this: void, event?: Req.fg<kFgReq.exitGrab> | 
 
 export const insert_Lock_ = (): LockableElement | null => {
   if (OnFirefox && lock_) {
-    const root = lock_.getRootNode!();
+    const root = getRootNode_mounted(lock_)
     lock_ = root && (root as TypeToPick<Node, DocumentOrShadowRoot, "activeElement">
         ).activeElement === lock_ ? lock_ : null;
   }

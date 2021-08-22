@@ -175,6 +175,11 @@ interface HTMLMediaElement {
 interface Element { mozRequestFullScreen(): void }
 interface Document { mozCancelFullScreen(): void }
 interface HTMLElementTagNameMap { "slot": HTMLSlotElement; "nav": HTMLElement }
+interface HTMLSelectElement { localName: "select" }
+interface HTMLElementTagNameMap {
+  [localName: `${string}-${string}`]: HTMLElement
+  [localName: `${string}_${string}`]: HTMLUnknownElement
+}
 
 interface Navigator {
   scheduling?: {

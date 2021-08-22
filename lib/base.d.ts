@@ -87,10 +87,13 @@ interface SafeHTMLElement extends BaseSafeHTMLElement {
   innerText: string;
   readonly parentElement: Element | null;
   readonly parentNode: Node | null;
-  readonly localName: keyof HTMLElementTagNameMap;
+  readonly localName: Exclude<keyof HTMLElementTagNameMap, "form" | "frameset">
 }
-interface LockableElement extends SafeHTMLElement {
+interface OtherLockableElement extends HTMLElement {
+  /** fake; just for type systems */ localName: `${string}-${string}` | `${string}_${string}`
+  isContentEditable: true
 }
+type LockableElement = SafeHTMLElement & (TextElement | HTMLSelectElement | OtherLockableElement)
 
 interface WritableRect {
   l: number; // left

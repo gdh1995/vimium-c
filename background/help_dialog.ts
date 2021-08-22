@@ -4,7 +4,7 @@ import { browser_ } from "./browser"
 import { convertToUrl_ } from "./normalize_urls"
 import { normalizedOptions_ } from "./key_mappings"
 
-type NoaliasInCNames<k extends kCName> =
+type NoAliasInCNames<k extends kCName> =
     k extends `${string}activate${string}Mode${string}` | `${string}Unhover` | `${string}CS${string}`
         | `${string}vateUrl${string}` | `${string}TabSelection`
         | "clearContentSetting" | kShortcutAliases.nextTab1 | "newTab" | "simBackspace" | "wait"
@@ -279,7 +279,7 @@ const safeHTML_ = (raw: string): string => {
 const commandGroups_: {
     readonly [key in
         "pageNavigation" | "vomnibarCommands" | "historyNavigation" | "findCommands" | "tabManipulation" | "misc"
-        ]: readonly NoaliasInCNames<kCName>[]
+        ]: readonly NoAliasInCNames<kCName>[]
 } & SafeObject = {
     __proto__: null as never,
     pageNavigation: [
@@ -326,7 +326,7 @@ const commandGroups_: {
       , "reset", "runKey", "sendToExtension", "blank"]
 }
 
-const advancedCommands_: { readonly [k in NoaliasInCNames<kCName>]?: 1 | 0; } & SafeObject = { __proto__: null as never,
+const advancedCommands_: { readonly [k in NoAliasInCNames<kCName>]?: 1 | 0; } & SafeObject = { __proto__: null as never,
     toggleViewSource: 1, clearFindHistory: 1, dispatchEvent: 1
     , scrollToLeft: 1, scrollToRight: 1, moveTabToNextWindow: 1
     , moveTabToNewWindow: 1, moveTabToIncognito: 1, reloadGivenTab: 1

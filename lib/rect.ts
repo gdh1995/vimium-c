@@ -1,10 +1,10 @@
 import {
-  doc, chromeVer_, Lower, max_, min_, math, OnChrome, OnFirefox, OnEdge, WithDialog, evenHidden_, set_evenHidden_
+  doc, chromeVer_, Lower, max_, min_, math, OnChrome, OnFirefox, WithDialog, evenHidden_, set_evenHidden_
 } from "./utils"
 import {
   docEl_unsafe_, scrollingEl_, notSafe_not_ff_, ElementProto, isRawStyleVisible, getComputedStyle_, NONE,
   querySelector_unsafe_, querySelectorAll_unsafe_, GetParent_unsafe_, HDN, createElement_, fullscreenEl_unsafe_,
-  IsInDOM_, scrollIntoView_, rangeCount_, removeEl_s, append_not_ff, htmlTag_
+  IsInDOM_, scrollIntoView_, rangeCount_, removeEl_s, append_not_ff, htmlTag_, getRootNode_mounted
 } from "./dom_utils"
 
 declare const enum VisibilityType { Visible = 0, OutOfView = 1, NoSpace = 2 }
@@ -180,8 +180,7 @@ export const getClientRectsForAreas_ = function (element: HTMLElementUsingMap, o
     const selector = `map[name="${element.useMap.replace(<RegExpOne> /^#/, "").replace(<RegExpG> /"|\\/g, "\\$&")}"]`
     // on C73, if a <map> is moved outside from a #shadowRoot, then the relation of the <img> and it is kept
     // while on F65 the relation will get lost.
-    const root = (OnFirefox || !OnEdge && (!OnChrome || Build.MinCVer >= BrowserVer.Min$Node$$getRootNode)
-        || element.getRootNode) ? element.getRootNode!() as ShadowRoot | Document : doc
+    const root = getRootNode_mounted(element as SafeHTMLElement)
     const map = querySelector_unsafe_(selector, root)
     if (!map || !htmlTag_<1>(map)) { return null }
     areas = querySelectorAll_unsafe_("area", map)!

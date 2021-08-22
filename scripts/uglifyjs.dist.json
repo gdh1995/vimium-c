@@ -48,7 +48,7 @@
       "safeObj", "safeObj_", "weakRef_", "deref_",
       "docEl_unsafe_",
       "__importStar", "__awaiter", "__generator", "sent", "_a.sent", "_b.sent", "_c.sent",
-      "trans_", "pTrans_", "VTr", "contains_s", "attr_s", "isTY", "getMediaTag",
+      "trans_", "pTrans_", "VTr", "contains_s", "attr_s", "getMediaTag",
       "readyState", "binarySearch_",
       "getMatchRanges",
       "document", "Math", "docEl_", "devRatio_", "activeEl_", "querySelector_", "querySelectorAll_",

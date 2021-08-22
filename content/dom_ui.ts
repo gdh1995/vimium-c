@@ -8,7 +8,7 @@ import {
   GetParent_unsafe_, getSelection_, GetChildNodes_not_ff, GetShadowRoot_, getEditableType_, htmlTag_,
   notSafe_not_ff_, CLK, frameElement_, runJS_, isStyleVisible_, rangeCount_, getAccessibleSelectedNode, removeEl_s,
   appendNode_s, append_not_ff, setClassName_s, isNode_, contains_s, setOrRemoveAttr_s, selOffset_, textContent_s,
-  parentNode_unsafe_s, setDisplaying_s, editableTypes_
+  parentNode_unsafe_s, setDisplaying_s, editableTypes_, getRootNode_mounted
 } from "../lib/dom_utils"
 import {
   bZoom_, dScale_, getZoom_, wdZoom_, getSelectionBoundingBox_, prepareCrop_, getClientRectsForAreas_,
@@ -253,16 +253,10 @@ export const checkDocSelectable = (): void => {
 export const getSelectionOf = (node: DocumentOrShadowRootMixin): Selection | null => node.getSelection!()
 
 export const getSelected = (notExpectCount?: {r?: ShadowRoot | null}): Selection => {
-  let el: Node | null | undefined, sel: Selection | null, offset: number
+  let el: Node | SafeElement | null | undefined, sel: Selection | null, offset: number
   let sr: ShadowRoot | null = null
-  let pn: Node | null
   if (el = deref_(currentScrolling)) {
-      if ((OnChrome ? Build.MinCVer >= BrowserVer.Min$Node$$getRootNode : !OnEdge)
-          || el.getRootNode) {
-        el = el.getRootNode!();
-      } else {
-        for (; pn = GetParent_unsafe_(el, PNType.DirectNode); el = pn) { /* empty */ }
-      }
+      el = getRootNode_mounted(el as NonNullable<ReturnType<NonNullable<typeof currentScrolling>["deref"]>>)
       if (el !== doc && isNode_(el, kNode.DOCUMENT_FRAGMENT_NODE)
           && isTY((el as ShadowRoot).getSelection, kTY.func)) {
         sel = getSelectionOf(el as ShadowRoot);

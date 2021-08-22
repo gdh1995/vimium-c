@@ -219,6 +219,21 @@ export const GetParent_unsafe_ = function (el: Node | Element
   (el: Node, type: PNType.DirectNode): ShadowRoot | DocumentFragment | Document | Element | null
 }
 
+/** acccept non-mounted elements if on Firefox */
+export const getRootNode_mounted = ((el: Node): Node => {
+  let pn: Node | null
+  if (!OnEdge && (!OnChrome
+      || Build.MinCVer >= BrowserVer.Min$Node$$getRootNode || chromeVer_ > BrowserVer.Min$Node$$getRootNode - 1)) {
+    return el.getRootNode!()
+  } else {
+    for (; pn = GetParent_unsafe_(el, PNType.DirectNode); el = pn) { /* empty */ }
+    return el
+  }
+}) as ((element: SafeElement) => Node) as {
+  /** OnFirefox */ (element: LockableElement): Node | null
+  (element: SafeElement): Document | ShadowRoot
+}
+
 export const scrollingEl_ = (fallback?: 1): SafeElement | null => {
     // Both C73 and FF66 still supports the Quirk mode (entered by `doc.open()`)
     let el = doc.scrollingElement, docEl = docEl_unsafe_();
@@ -303,6 +318,17 @@ export const findMainSummary_ = ((details: HTMLDetailsElement | Element | null):
     }
     return found
 }) as (details: HTMLDetailsElement) => SafeHTMLElement | null
+
+export const findAnchor_ = ((element: Element | null): SafeHTMLElement | null => {
+  if (OnEdge) {
+    element = element!.closest!("a")
+    return element && htmlTag_<1>(element) ? element : null
+  }
+  while (element && htmlTag_(element) !== "a") {
+    element = GetParent_unsafe_(element, PNType.RevealSlotAndGotoParent)
+  }
+  return element as SafeHTMLElement
+}) as (element: SafeElement) => SafeHTMLElement & HTMLAnchorElement | null
 
 export const IsInDOM_ = function (element: Element, root?: Element | Document | Window | RadioNodeList
       , checkMouseEnter?: 1): boolean {

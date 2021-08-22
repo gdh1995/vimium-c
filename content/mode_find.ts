@@ -11,7 +11,7 @@ import {
   attachShadow_, getSelectionFocusEdge_, deepActiveEl_unsafe_, rangeCount_, setClassName_s, compareDocumentPosition,
   getEditableType_, scrollIntoView_, SafeEl_not_ff_, GetParent_unsafe_, focus_, fullscreenEl_unsafe_, docEl_unsafe_,
   getSelection_, isSelected_, docSelectable_, isHTML_, createElement_, CLK, MDW, removeEl_s, appendNode_s,
-  setDisplaying_s,
+  setDisplaying_s, findAnchor_,
   getAccessibleSelectedNode,  INP, BU, UNL, contains_s, setOrRemoveAttr_s, textContent_s, modifySel, parentNode_unsafe_s
 } from "../lib/dom_utils"
 import {
@@ -112,13 +112,8 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
   const focusFoundLinkIfAny = (): SafeElement | null | void => {
     let cur = OnFirefox ? getSelectionParent_unsafe(getSelected()) as SafeElement | null
         : SafeEl_not_ff_!(getSelectionParent_unsafe(getSelected()))
-    for (let i = 0, el: Element | null = cur; el && el !== doc.body && i++ < 5;
-        el = GetParent_unsafe_(el, PNType.RevealSlotAndGotoParent)) {
-      if (el.localName === "a") {
-        return focus_(el as SafeElement)
-      }
-    }
-    return cur;
+    const link = cur && findAnchor_(cur)
+    return link ? focus_(link) : cur
   }
   const setFirstQuery = (query: string): void => {
     doFocus()
