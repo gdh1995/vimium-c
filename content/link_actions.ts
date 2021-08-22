@@ -331,34 +331,30 @@ const defaultClick = (): void => {
     otherActions = isRight || dblClick,
     newWindow = newTabStr === "window" && !otherActions,
     newTab = mask > HintMode.newTab - 1 && !newWindow && !otherActions,
-    newtab_n_active = newTab && mask > HintMode.newtab_n_active - 1,
+    newTabAndActive = newTab && mask > HintMode.newtab_n_active - 1,
     cnsForWin = hintOptions.ctrlShiftForWindow,
     autoUnhover = hintOptions.autoUnhover,
     isQueue = hintMode_ & HintMode.queue,
     noCtrlPlusShiftForActive: boolean | undefined = cnsForWin != null ? cnsForWin : hintOptions.noCtrlPlusShift,
-    ctrl = newTab && !(newtab_n_active && noCtrlPlusShiftForActive) || newWindow && !!noCtrlPlusShiftForActive,
-    shift = newWindow || newtab_n_active,
+    ctrl = newTab && !(newTabAndActive && noCtrlPlusShiftForActive) || newWindow && !!noCtrlPlusShiftForActive,
+    shift = newWindow || newTabAndActive,
     interactive = (tag === "video" || tag === "audio") && !isRight && (clickEl as HTMLMediaElement).controls,
     doInteract = interactive && hintOptions.interact !== !1,
-    specialActions = dblClick || doInteract
+    reuseFlag = newTab ? kClickAction.FlagMayInactive : kClickAction.none,
+    specialActions = otherActions || doInteract
         ? kClickAction.BaseMayInteract + +dblClick + kClickAction.FlagInteract * <number> <number | boolean> doInteract
-        : otherActions || (!OnChrome || Build.MinCVer >= BrowserVer.MinEnsured$Element$$Closest
-            || clickEl.closest ? !clickEl.closest!("a") : tag !== "a") ? kClickAction.none
-        : newTabStr === "force-mode" ? newTab
-            ? kClickAction.forceToOpenInNewTab | kClickAction.newTabFromMode : kClickAction.forceToOpenInCurrnt
-        : newTabStr === "force-current" ? kClickAction.forceToOpenInCurrnt
-        : newTabStr === "force" ? newTab
-            ? kClickAction.forceToOpenInNewTab | kClickAction.newTabFromMode : kClickAction.forceToOpenInNewTab
-        : newTabStr === kLW ? newTab
-            ? kClickAction.forceToOpenInLastWnd | kClickAction.newTabFromMode : kClickAction.forceToOpenInLastWnd
-        : OnFirefox
-        ? newWindow ? kClickAction.openInNewWindow
-          : newTabStr.startsWith("no-") ? kClickAction.none // to skip "click" events, one should use "force*"
-          : newTab // need to work around Firefox's popup blocker
-            ? kClickAction.plainMayOpenManually | kClickAction.newTabFromMode : kClickAction.plainMayOpenManually
-        : kClickAction.none;
+        : newTabStr.startsWith("no-") ? kClickAction.none
+        : newWindow ? kClickAction.plainInNewWindow
+        : newTabStr === "force-current" ? kClickAction.forceToOpenInCurrent
+        : newTabStr === "force-mode" ? newTab ? kClickAction.forceInNewTab | kClickAction.FlagMayInactive
+            : kClickAction.forceToOpenInCurrent
+        : newTabStr === "force" ? kClickAction.forceInNewTab | reuseFlag
+        : newTabStr === kLW ? kClickAction.forceToOpenInLastWnd | reuseFlag
+        : OnFirefox ? kClickAction.plainMayOpenManually | reuseFlag
+        : hintOptions.sedIf ? kClickAction.forceToSedIf | reuseFlag
+        : kClickAction.none
     retPromise = catchAsyncErrorSilently(click_async(clickEl, rect
-        , checkFocus(mask > 0 || interactive || (clickEl as ElementToHTMLorOtherFormatted).tabIndex! >= 0)
+        , /*#__PURE__*/ checkFocus(mask > 0 || interactive || (clickEl as ElementToHTMLorOtherFormatted).tabIndex! >= 0)
         , [!1, ctrl && !isMac, ctrl && isMac, shift]
         , specialActions, isRight ? kClickButton.second : kClickButton.none
         , !OnChrome || otherActions || newTab ? 0 : hintOptions.touch

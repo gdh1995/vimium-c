@@ -39,7 +39,7 @@ import { activate as omniActivate, hide as omniHide } from "./omni"
 import { findNextInText, findNextInRel } from "./pagination"
 import { traverse, getEditable, filterOutNonReachable } from "./local_links"
 import {
-  select_, unhover_async, set_lastHovered_, hover_async, lastHovered_, catchAsyncErrorSilently
+  select_, unhover_async, set_lastHovered_, hover_async, lastHovered_, catchAsyncErrorSilently, setupIDC_cr
 } from "./async_dispatcher"
 /* eslint-disable @typescript-eslint/no-floating-promises */
 
@@ -397,15 +397,17 @@ set_contentCommands_([
       keydownEvents_[kKeyCode.None] = 0
       runFallbackKey(options, 0, "", delay)
     } else {
+      OnChrome && setupIDC_cr!(options as UIEventInit)
       try {
         event = type && new (window as any)[evClass](count < 0 ? type.replace("down", "up") : type, options)
       } catch {}
       if (event) {
         const activeEl = deref_(currentScrolling)
-            || (OnFirefox ? deepActiveEl_unsafe_() : SafeEl_not_ff_!(deepActiveEl_unsafe_()))
+            || (OnFirefox ? deepActiveEl_unsafe_() as SafeElement | null : SafeEl_not_ff_!(deepActiveEl_unsafe_()))
         // earlier, in case listeners are too slow
         runFallbackKey(options, activeEl && activeEl !== doc.body ? 0 : 2, "", delay)
-        activeEl && activeEl.dispatchEvent(event)
+        activeEl && (options.click && (activeEl as Partial<HTMLElement>).click
+            ? (activeEl as HTMLElement).click() : activeEl.dispatchEvent(event))
       } else {
         hudTip(kTip.raw, 0, `Can not create ${evClass}#${type}`)
       }

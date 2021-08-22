@@ -446,6 +446,7 @@ interface CmdOptions {
     type: string // if count < 0, then replace "down" with "up"
     delay?: number
     esc?: true // if true, then call onEscDown({ repeat: count > 1 })
+    click?: true // if true, call `activeElement.click()` directly
   } & Req.FallbackOptions
 }
 

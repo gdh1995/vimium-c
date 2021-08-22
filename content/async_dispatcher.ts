@@ -1,8 +1,9 @@
 import {
-  OnChrome, OnFirefox, OnEdge, doc, deref_, weakRef_, chromeVer_, isJSUrl, getTime, parseOpenPageUrlOptions, safeCall
+  OnChrome, OnFirefox, OnEdge, doc, deref_, weakRef_, chromeVer_, isJSUrl, getTime, parseOpenPageUrlOptions, safeCall,
+  tryCreateRegExp
 } from "../lib/utils"
 import {
-  IsInDOM_, isInTouchMode_cr_, MDW, htmlTag_, CLK, attr_s, contains_s, focus_, fullscreenEl_unsafe_,
+  IsInDOM_, isInTouchMode_cr_, MDW, htmlTag_, CLK, attr_s, contains_s, focus_, fullscreenEl_unsafe_, findAnchor_,
   deepActiveEl_unsafe_
 } from "../lib/dom_utils"
 import { suppressTail_ } from "../lib/keyboard_utils"
@@ -10,18 +11,18 @@ import { Point2D, center_, getVisibleClientRect_, view_ } from "../lib/rect"
 import { insert_Lock_ } from "./insert"
 import { post_ } from "./port"
 import { flash_, moveSel_s_throwable } from "./dom_ui"
-import { hintApi } from "./link_hints"
+import { hintApi, hintOptions } from "./link_hints"
 import { beginToPreventClick_ff, wrappedDispatchMouseEvent_ff } from "./extend_click_ff"
 /* eslint-disable @typescript-eslint/await-thenable */
 
 export declare const enum kClickAction {
   none = 0,
-  /** should only be used on Firefox */ plainMayOpenManually = 1,
-  forceToOpenInNewTab = 2, forceToOpenInLastWnd = 4, newTabFromMode = 8,
-  openInNewWindow = 16, forceToOpenInCurrnt = 32,
+  plainMayOpenManually = 1, plainInNewWindow = 2, forceToOpenInLastWnd = 3, forceInNewTab = 4,
+  forceToOpenInCurrent = 5, forceToSedIf = 6, MaxPlain = 2, TargetMask = 7,
+  /** inactive by default, unless `.shiftKey` is `true` */ FlagMayInactive = 8,
   // the 1..MaxOpenForAnchor before this line should always mean HTML <a>
   MinNotPlainOpenManually = 2, MaxOpenForAnchor = 63,
-  BaseMayInteract = 64, FlagDblClick = 1, FlagInteract = 2, MaxNeverInteract = 68,
+  BaseMayInteract = 64, FlagDblClick = 1, FlagInteract = 2, MinNeverInteract = 68,
 }
 export declare const enum kClickButton { none = 0, primary = 1, second = 2, primaryAndTwice = 4 }
 type AcceptableClickButtons = kClickButton.none | kClickButton.second | kClickButton.primaryAndTwice
@@ -138,14 +139,8 @@ export const mouse_ = function (element: SafeElementForMouse
       screenX: x, screenY: y, clientX: x, clientY: y, ctrlKey, shiftKey, altKey, metaKey,
       button, buttons: tyKey === "d" ? button || 1 : 0,
       relatedTarget
-    },
-    IDC = !OnChrome || Build.MinCVer >= BrowserVer.MinEnsured$InputDeviceCapabilities
-        ? null : InputDeviceCapabilities
-    if (OnChrome && (Build.MinCVer >= BrowserVer.MinEnsured$InputDeviceCapabilities || IDC)) {
-      init.sourceCapabilities = evIDC_cr = evIDC_cr ||
-          new (Build.MinCVer >= BrowserVer.MinEnsured$InputDeviceCapabilities ? InputDeviceCapabilities
-                : IDC)!({fireTouchEvents: !1})
     }
+    OnChrome && setupIDC_cr!(init)
     mouseEvent = new MouseEvent(type, init)
   } else {
     mouseEvent = doc1.createEvent("MouseEvents")
@@ -164,6 +159,14 @@ export const mouse_ = function (element: SafeElementForMouse
   (element: SafeElementForMouse, type: kMouseMoveEvents, center: Point2D
     , modifiers?: null, related?: NullableSafeElForM): boolean
 }
+
+export const setupIDC_cr = OnChrome ? (init: UIEventInit): void => {
+  const IDC = Build.MinCVer < BrowserVer.MinEnsured$InputDeviceCapabilities ? InputDeviceCapabilities : null
+  if (Build.MinCVer >= BrowserVer.MinEnsured$InputDeviceCapabilities || IDC) {
+    init.sourceCapabilities = evIDC_cr = evIDC_cr || new (Build.MinCVer < BrowserVer.MinEnsured$InputDeviceCapabilities
+        ? IDC : InputDeviceCapabilities)!({fireTouchEvents: !1})
+  }
+} : 0 as never as null
 
 export const touch_cr_ = OnChrome ? (element: SafeElementForMouse
     , [x, y]: Point2D, id?: number): number => {
@@ -305,33 +308,31 @@ export const click_async = (async (element: SafeElementForMouse
   if (button === kClickButton.second) {
     // if button is the right, then auxclick can be triggered even if element.disabled
     mouse_(element, "auxclick", center, modifiers, null, button)
+    return
   }
-  if (button === kClickButton.second) { return }
   if (OnChrome && (element as Partial<HTMLInputElement /* |HTMLSelectElement|HTMLButtonElement */>).disabled) {
     return
   }
   const enum ActionType {
     OnlyDispatch = 0,
     dblClick = kClickAction.FlagDblClick, interact = kClickAction.FlagInteract,
-    MinOpenUrl = kClickAction.MaxNeverInteract - kClickAction.MaxOpenForAnchor,
+    MinOpenUrl = kClickAction.MinNeverInteract - kClickAction.BaseMayInteract,
     DispatchAndMayOpenTab = MinOpenUrl, OpenTabButNotDispatch,
   }
   let result: ActionType = ActionType.OnlyDispatch, url: string | null
-  type ParAnchor = Pick<HTMLAnchorElement, "target" | "href" | "rel">
-  let parentAnchor: ParAnchor & Partial<SafeHTMLElement> | Element | null | undefined
+  let parentAnchor: HTMLAnchorElement & SafeHTMLElement | null, sedIfRe: RegExpOne | void
+  const actionTarget = specialAction! & kClickAction.TargetMask
   if (specialAction) {
     // for forceToDblclick, element can be OtherSafeElement; for 1..MaxOpenForAnchor, element must be in <html:a>
-    result = specialAction > kClickAction.BaseMayInteract ? specialAction - kClickAction.BaseMayInteract
-        : !(parentAnchor = (OnChrome && Build.MinCVer < BrowserVer.MinEnsured$Element$$Closest && !element.closest
-                ? element : (parentAnchor = element.closest!("a")) && htmlTag_<1>(parentAnchor) ? parentAnchor : null
-              ) as ParAnchor | null)
+    result = specialAction > kClickAction.BaseMayInteract - 1 ? specialAction - kClickAction.BaseMayInteract
+        : !(parentAnchor = findAnchor_(element))
           || (OnFirefox ? specialAction < kClickAction.MinNotPlainOpenManually && parentAnchor.target !== "_blank" : 0)
-          || !(url = attr_s(parentAnchor as SafeElement, "href"))
-          || specialAction & (kClickAction.forceToOpenInNewTab
-                | kClickAction.forceToOpenInLastWnd | kClickAction.openInNewWindow) && url[0] === "#"
-          || isJSUrl(url)
+          || !(url = attr_s(parentAnchor as SafeElement, "href")) || url[0] === "#" || isJSUrl(url)
         ? ActionType.OnlyDispatch
-        : OnFirefox && specialAction & (kClickAction.plainMayOpenManually | kClickAction.openInNewWindow)
+        : hintOptions.sedIf && (sedIfRe = tryCreateRegExp(hintOptions.sedIf, "")) && sedIfRe.test(parentAnchor.href)
+        ? ActionType.OpenTabButNotDispatch
+        : sedIfRe && actionTarget > kClickAction.forceToSedIf - 1 ? ActionType.OnlyDispatch
+        : OnFirefox && actionTarget < kClickAction.MaxPlain + 1
         ? ActionType.DispatchAndMayOpenTab : ActionType.OpenTabButNotDispatch
   }
   if ((result > ActionType.OpenTabButNotDispatch - 1
@@ -371,14 +372,15 @@ export const click_async = (async (element: SafeElementForMouse
     }
     // use latest attributes
     /** ignore {@link #BrowserVer.Min$TargetIsBlank$Implies$Noopener}, since C91 and FF88 always set openerTabId */
-    const reuse = specialAction! & kClickAction.openInNewWindow
-        ? ReuseType.newWnd : specialAction! & kClickAction.forceToOpenInCurrnt ? ReuseType.current
-        : specialAction! & kClickAction.forceToOpenInLastWnd
-          ? specialAction! < kClickAction.newTabFromMode ? ReuseType.lastWndFg : ReuseType.lastWndBg
-        : /** result > 0, so specialAction exists */ modifiers![3] || specialAction! < kClickAction.newTabFromMode
+    const reuse = actionTarget === kClickAction.plainInNewWindow ? ReuseType.newWnd
+        : actionTarget > kClickAction.forceToOpenInCurrent - 1
+          && specialAction! < kClickAction.TargetMask + 1 ? ReuseType.current
+        : actionTarget === kClickAction.forceToOpenInLastWnd
+          ? specialAction! < kClickAction.TargetMask + 1 ? ReuseType.lastWndFg : ReuseType.lastWndBg
+        : /** result > 0, so specialAction exists */ modifiers![3] || specialAction! < kClickAction.TargetMask + 1
           ? ReuseType.newFg : ReuseType.newBg;
     (hintApi ? hintApi.p : post_)({
-      H: kFgReq.openUrl, u: (parentAnchor as ParAnchor).href, f: !0,
+      H: kFgReq.openUrl, u: parentAnchor!.href, f: !0,
       r: reuse, o: userOptions && parseOpenPageUrlOptions(userOptions)
     })
     return 1
