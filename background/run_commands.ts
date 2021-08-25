@@ -374,7 +374,7 @@ const matchEnvRule = (rule: CommandsNS.EnvItem, info: CurrentEnvCache): EnvMatch
       s && selectorArr.push({
         tag: s.slice(0, hash < 0 ? dot < 0 ? len : dot : dot < 0 ? hash : Math.min(dot, hash)),
         id: hash >= 0 ? s.slice(hash + 1, dot > hash ? dot : len) : "",
-        className: BgUtils_.normalizeClassesToMatch_(dot >= 0 ? s.slice(dot + 1, hash > dot ? hash : len) : "")
+        classList: BgUtils_.normalizeClassesToMatch_(dot >= 0 ? s.slice(dot + 1, hash > dot ? hash : len) : "")
       })
       return s === "*" || s.includes(" ")
     }) ? (selectorArr.length = 0, "*") : selectorArr)
@@ -383,8 +383,9 @@ const matchEnvRule = (rule: CommandsNS.EnvItem, info: CurrentEnvCache): EnvMatch
     else if (cur == null) {
       cPort && safePost(cPort, { N: kBgReq.queryForRunKey, n: performance.now(), c: info })
       return cPort ? EnvMatchResult.abort : EnvMatchResult.nextEnv
-    } else if (! selectorArr.some((s): any => cur === 0 ? s.tag === "body" && !s.id && !s.className :
-        (!s.tag || cur[0] === s.tag) && (!s.id || cur[1] === s.id) && (!s.className || cur[2].includes(s.className))
+    } else if (! selectorArr.some((s): any => cur === 0 ? s.tag === "body" && !s.id && !s.classList :
+        (!s.tag || cur[0] === s.tag) && (!s.id || cur[1] === s.id)
+        && (!s.classList.length || cur[2].length > 0 && s.classList.every(i => cur[2].includes!(i)))
     )) {
       return EnvMatchResult.nextEnv
     }
@@ -629,19 +630,19 @@ export const runKeyInSeq = (seq: BgCmdOptions[C.runKey]["$seq"], dir: number
   }
   key = key !== "__proto__" ? key : "<v-__proto__>"
   seq.cursor = As_<KeyNode>(cursor)
-  runKeyWithOptions(key.includes("<") || key in availableCommands_ ? key
-      : keyToCommandMap_.has(key) ? key : `<v-${key}>`
-      , subCount * (hasCount ? seq.repeat : 1), seq.options)
+  runKeyWithOptions(key, subCount * (hasCount ? seq.repeat : 1), seq.options)
 }
 
 const runKeyWithOptions = (key: string, count: number, exOptions?: CommandsNS.EnvItemOptions | null): void => {
-  let registryEntry = key !== "__proto__" ? keyToCommandMap_.get(key) : null, entryReadonly = true
+  let finalKey = key, registryEntry = key !== "__proto__" && keyToCommandMap_.get(key)
+      || !key.includes("<") && keyToCommandMap_.get(finalKey = `<v-${key}>`) || null
+  let entryReadonly = true
   if (registryEntry == null && key in availableCommands_) {
     entryReadonly = false
     registryEntry = makeCommand_(key, null)
   }
   if (registryEntry == null) {
-    showHUD(`the "${key}" has not been mapped`)
+    showHUD(`the "${finalKey}" has not been mapped`)
     return
   } else if (registryEntry.alias_ === kBgCmd.runKey && registryEntry.background_
       && !(exOptions as KnownOptions<C.runKey>).$seq) {

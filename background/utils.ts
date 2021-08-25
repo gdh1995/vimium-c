@@ -201,10 +201,8 @@ export const IsURLHttp_ = (url: string): ProtocolType => {
       : ProtocolType.others;
 }
 
-export const normalizeClassesToMatch_ = (s: string): string => {
-  s = s && ` ${s.trim().split(<RegExpG> /[.\s]+/g).sort().join(" ").trim()} `
-  return s && ` ${s} `
-}
+export const normalizeClassesToMatch_ = (s: string): string[] =>
+    s.trim() ? s.trim().split(<RegExpG> /[.\s]+/g).sort().filter(s => !!s) : []
 
 export const makeRegexp_ = (pattern: string, suffix: string, logError?: 0): RegExp | null => {
     try {

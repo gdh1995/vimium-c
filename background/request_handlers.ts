@@ -400,7 +400,7 @@ set_reqH_([
   /** kFgReq.respondForRunAs: */ (request: FgReq[kFgReq.respondForRunKey]): void => {
     if (performance.now() - request.r.n < 500) {
       const info = request.r.c
-      info.element = request.e && (request.e[2] = BgUtils_.normalizeClassesToMatch_(request.e[2]), request.e)
+      info.element = request.e && [request.e[0], request.e[1], BgUtils_.normalizeClassesToMatch_(request.e[2])]
       runKeyWithCond(info)
     }
   },

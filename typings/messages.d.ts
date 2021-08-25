@@ -648,7 +648,7 @@ interface FgReq {
   };
   [kFgReq.respondForRunKey]: {
     r: BgReq[kBgReq.queryForRunKey]
-    /** active element */ e: NonNullable<CurrentEnvCache["element"]>
+    /** active element */ e: [tag: string, id: string, className: string] | 0
   }
   [kFgReq.downloadLink]: {
     /** url */ u: string
@@ -659,7 +659,7 @@ interface FgReq {
 }
 
 interface CurrentEnvCache {
-  /** active element */ element?: [tag: string, id: string, className: string] | 0
+  /** active element */ element?: [tag: string, id: string, classList: string[]] | 0
 }
 
 interface OpenUrlOptions extends UserSedOptions {

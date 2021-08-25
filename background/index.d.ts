@@ -214,7 +214,7 @@ declare namespace CommandsNS {
   interface EnvItemOptions extends Req.FallbackOptions {}
   interface EnvItem {
     /** e.g.: `tag#id.cls1.cls2, tag2, ...` */
-    element?: string | /* inner usage */ { readonly tag: string, readonly id: string, readonly className: string }[]
+    element?: string | /* inner usage */ { readonly tag: string, readonly id: string, readonly classList: string[] }[]
     host?: string | ValidUrlMatchers | null
     /** (deprecated) @see host */ url?: string
     fullscreen?: boolean
