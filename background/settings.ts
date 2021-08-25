@@ -4,7 +4,7 @@ import {
   OnOther_
 } from "./store"
 import { asyncIter_, nextTick_ } from "./utils"
-import { browser_ } from "./browser"
+import { browser_, normalizeExtOrigin_ } from "./browser"
 import { convertToUrl_, reformatURL_ } from "./normalize_urls"
 import { parseSearchEngines_ } from "./parse_urls"
 import SettingsWithDefaults = SettingsNS.SettingsWithDefaults
@@ -144,7 +144,7 @@ export const updateHooks_ = As_<{ [key in SettingsNS.DeclaredUpdateHooks]: Setti
     grabBackFocus (value: FullSettings["grabBackFocus"]): void { contentPayload_.g = value },
     newTabUrl (url): void {
       url = (<RegExpI> /^\/?pages\/[a-z]+.html\b/i).test(url)
-        ? browser_.runtime.getURL(url) : convertToUrl_(url)
+        ? browser_.runtime.getURL(url) : normalizeExtOrigin_(convertToUrl_(url))
       set_("newTabUrl_f", url)
     },
     searchEngines (): void {
@@ -181,7 +181,7 @@ export const updateHooks_ = As_<{ [key in SettingsNS.DeclaredUpdateHooks]: Setti
         (settingsCache_ as WritableSettingsCache).vomnibarPage_f = cur
         return;
       }
-      url = url || get_("vomnibarPage")
+      url = url ? normalizeExtOrigin_(url) : get_("vomnibarPage")
       if (url === defaults_.vomnibarPage) {
         url = CONST_.VomnibarPageInner_
       } else if (url.startsWith("front/")) {

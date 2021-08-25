@@ -189,9 +189,10 @@ export const CONST_ = {
   BaseCSSLength_: 0,
   BlankNewTab_: "pages/blank.html",
   // should keep lower case
-  NtpNewTab_: OnEdge || OnChrome && IsEdg_ ? "https://www.msn.cn/spartan/ntp"
+  NtpNewTab_: OnEdge ? <RegExpOne> /^https:\/\/www\.msn\.\w+\/spartan\/ntp\b/
+      : OnChrome && IsEdg_ ? <RegExpOne> /^https:\/\/(ntp|www)\.msn\.\w+\/(edge|spartan)\/ntp\b/
       : OnChrome ? "chrome-search://local-ntp/local-ntp.html"
-      : "pages/blank.html",
+      : ":",
   DisallowIncognito_: false,
   ContentScripts_: null as never as string[],
   VerCode_: "", VerName_: "",

@@ -255,6 +255,19 @@ function _importSettings(time: number, new_data: ExportedSettings, is_recommende
       delete new_data[key];
     }
   }
+  const normalizeExtOrigin_ = (key: PossibleKeys<SettingsNS.PersistentSettings, string>): void => {
+    type SettingsDict = Partial<SettingsNS.PersistentSettings>;
+    let newUrl = (new_data as unknown as SettingsDict)[key]
+    if (typeof newUrl === "string" && newUrl.includes("extension://", 2)) {
+      if (!(<RegExpOne> (OnFirefox ? /^moz-/ : OnEdge ? /^ms-/ : /^(chrome|edge)-/)).test(newUrl)) {
+        delete (new_data as unknown as SettingsDict)[key]
+      } else if (OnChrome && newUrl.startsWith("edge-")) {
+        (new_data as unknown as SettingsDict)[key] = newUrl.replace("edge-", "chrome-")
+      }
+    }
+  }
+  normalizeExtOrigin_("vomnibarPage")
+  normalizeExtOrigin_("newTabUrl")
 
   const storage = localStorage, all = bgSettings_.defaults_, _ref = Option_.all_
   for (let i = storage.length; 0 <= --i; ) {

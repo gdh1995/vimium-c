@@ -84,6 +84,10 @@ export const selectFrom = <O extends BOOL = 0>(tabs: O extends 1 ? readonly Tab[
   return tabs[0]! as ActiveTab
 }
 
+export const normalizeExtOrigin_ = (url: string): string =>
+    (<RegExpOne> (OnChrome ? /^(edge-)?extension:/ : /^extension:/)).test(url)
+    ? CONST_.BrowserProtocol_ + "-" + url.slice(url.indexOf("ext")) : url
+
 type PromisifyApi1<F extends Function> =
     F extends ((...args: [...infer A, (res: infer R, ex?: FakeArg) => void]) => void | 1)
     ? (...args: A) => Promise<R> : F
@@ -329,7 +333,8 @@ export const isRefusingIncognito_ = (url: string): boolean => {
     : url.startsWith("about:") ? url !== "about:blank"
     : !OnChrome ? url.startsWith(CONST_.BrowserProtocol_)
     : url.startsWith("chrome:") ? !url.startsWith("chrome://downloads")
-    : url.startsWith(CONST_.BrowserProtocol_) && !url.startsWith(CONST_.NtpNewTab_)
+    : url.startsWith(CONST_.BrowserProtocol_) && !(typeof CONST_.NtpNewTab_ !== "string"
+          ? CONST_.NtpNewTab_.test(url) : url.startsWith(CONST_.NtpNewTab_))
       || IsEdg_ && (<RegExpOne> /^(edge|extension):/).test(url) && !url.startsWith("edge://downloads")
 }
 

@@ -385,6 +385,7 @@ installation_ && void installation_.then((details): void => {
     })
     return
   }
+  settings_.postUpdate_("vomnibarPage")
   if (parseFloat(CONST_.VerCode_) <= parseFloat(reason)) { return }
 
   if (backupToLocal_) {
@@ -392,6 +393,7 @@ installation_ && void installation_.then((details): void => {
   } else {
     set_backupToLocal_(true)
   }
+  settings_.postUpdate_("newTabUrl")
 
   if (!settings_.get_("notifyUpdate")) { return }
 
