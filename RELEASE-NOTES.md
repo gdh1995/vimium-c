@@ -4,6 +4,11 @@ Release Notes of Vimium C
 ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 说明文档: https://gitee.com/gdh1995/vimium-c#readme , https://github.com/gdh1995/vimium-c/blob/master/README-zh.md .
 
+#### 1.92.4
+* fix a crash during importing settings when browser language is not Chinese
+* small improvements on `runKey`
+* `LinkHints.*`: `.toggle` option: accept `[+-]?(\[attr[~*]?=.*\]|\.?\S*)` to modify attributes and classNames
+
 #### 1.92.3
 * Chrome: fix Vimium C Options can not show if only setting syncing is enabled
 
@@ -15,7 +20,6 @@ ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
   * if with `esc=true`, then it will act as "`Escape` in normal mode"
   * in other cases, Vimium C won't consume such events unless before Chrome 46
 * `.filter` option: support sub-arguments like `url=...` and `host=...`
-* `LinkHints.*`: `.toggle` option: accept `[+-]?(\[attr~?=.*\]|\.?\S*)` to modify attributes and classNames
 
 #### 1.92.1
 * keyMappings: not treat a line as an error if with `$if={...}`

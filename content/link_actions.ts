@@ -177,9 +177,10 @@ const hoverEl = (): void => {
               const idx = +(add || remove)
               if (toggle[idx] === "[") {
                 const arr = toggle.slice(idx + 1, -1).split("="), rawAttr = arr[0], val = arr[1] || "",
-                isWord = rawAttr.endsWith("~"), attr = isWord ? rawAttr.slice(0, -1) : rawAttr,
+                op = rawAttr.slice(-1), isOnlyIncluded = op === "*", isWord = op === "~" || isOnlyIncluded,
+                attr = isWord ? rawAttr.slice(0, -1) : rawAttr,
                 rawOld = attr_s(selected as SafeElement, attr), old = rawOld || "",
-                valWord = " " + val + " ", oldWords = " " + old + " "
+                valWord = isOnlyIncluded ? val :  " " + val + " ", oldWords = isOnlyIncluded ? old : " " + old + " "
                 attr && setOrRemoveAttr_s(selected as SafeElement, attr,
                     isWord && old ? (oldWords.includes(valWord) ? add ? old : oldWords.replace(valWord, " ")
                         : remove ? old : old + valWord).trim()

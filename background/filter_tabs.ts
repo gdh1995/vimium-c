@@ -89,7 +89,8 @@ export const filterTabsByCond_ = (activeTab: ShownTab | null | undefined, tabs: 
   let group: string | null | undefined, useHash = false
   for (let item of (filter + "").split(/[&+]/)) {
     const key = item.split("=", 1)[0] as typeof filter
-    const rawVal = item.slice(key.length + 1), val = rawVal && BgUtils_.DecodeURLPart_(rawVal)
+    const rawVal = item.slice(key || item[0] === "=" ? key.length + 1 : 0)
+    const val = rawVal && BgUtils_.DecodeURLPart_(rawVal)
     if (key === "title" || key === "title*") {
       title = val ? val : activeTab && activeTab.title || undefined
     } else if (key === "url" || key === "hash") {
@@ -100,10 +101,12 @@ export const filterTabsByCond_ = (activeTab: ShownTab | null | undefined, tabs: 
         useHash = useHash || key === "hash"
         matcher = url ? Exclusions.createSimpleUrlMatcher_(":" + (useHash ? url : url.split("#", 1)[0])) : null
       }
-    } else if (key === "host") {
-      host = val ? val : activeTab ? BgUtils_.safeParseURL_(getTabUrl(activeTab))?.host : ""
+    } else if (key === "host" || !key) {
+      host = val ? val : key && activeTab ? BgUtils_.safeParseURL_(getTabUrl(activeTab))?.host : ""
     } else if (key === "group") {
       group = val ? val : activeTab ? getGroupId(activeTab) != null ? getGroupId(activeTab) + "" : null : undefined
+    } else if (!(title || matcher || host || group)) { // all parts are unknown, so abort
+      return []
     }
   }
   return tabs.filter(tab =>

@@ -134,6 +134,8 @@ if test $ALSO_VC -gt 0; then
   test -z "$VC_ROOT" && VC_ROOT=.
 elif test -n "$VC_ROOT"; then
   DIST=0
+elif test $DIST -gt 0 && test -f "./dist/manifest.json"; then
+  VC_ROOT=.
 fi
 
 if test -f "/usr/bin/env.exe"; then

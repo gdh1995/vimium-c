@@ -410,6 +410,11 @@ export const removeTab = (resolve: OnCmdResolved, phase?: 1 | 2 | 3, tabs?: read
       Tabs_.remove(highlighted.map(j => j.id), runtimeError_)
     }
     if (noCurrent) { resolve(count > 1); return }
+  } else if (get_cOptions<C.removeTab, true>().filter) {
+    if (filterTabsByCond_(tab, [tab], get_cOptions<C.removeTab, true>().filter!).length == 0) {
+      resolve(false)
+      return
+    }
   }
   if (!start && count >= total
       && (get_cOptions<C.removeTab>().mayClose != null ? get_cOptions<C.removeTab>().mayClose
@@ -435,7 +440,7 @@ export const removeTab = (resolve: OnCmdResolved, phase?: 1 | 2 | 3, tabs?: read
       q.then((destTab): void => {
         if (destTab && destTab.windowId === tab.windowId && isNotHidden_(destTab)) {
           selectTab(destTab.id)
-          Tabs_.remove(tab.id, resolve ? R_(resolve) : runtimeError_)
+          Tabs_.remove(tab.id, R_(resolve))
         } else {
           getCurTabs(removeTab.bind(null, resolve, 3))
         }

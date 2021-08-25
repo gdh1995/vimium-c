@@ -340,8 +340,8 @@ set_contentCommands_([
   /* kFgCmd.editText: */ (options: CmdOptions[kFgCmd.editText], count: number) => {
     const editable = insert_Lock_();
     (editable || options.dom) && timeout_((): void => {
-      let commands = options.run.split(<RegExpG> /,\s*/g), sel: Selection | undefined;
-      while (0 < count--) {
+      let commands = options.run.split(<RegExpG> /,\s*/g), sel: Selection | undefined, absCount = math.abs(count)
+      while (0 < absCount--) {
         for (let i = 0; i < commands.length; i += 3) {
           const cmd = commands[i], a1 = commands[i + 1], a2 = commands[i + 2]
           if (cmd === "exec") {
@@ -351,7 +351,8 @@ set_contentCommands_([
           } else if (sel = sel || getSelected(), cmd === "collapse") {
             collpaseSelection(sel, a1 === "end")
           } else {
-            modifySel(sel, cmd === "auto" ? isSelARange(sel) : cmd < kChar.f, a1 > kChar.f, a2 as any)
+            modifySel(sel, cmd === "auto" ? isSelARange(sel) : cmd < kChar.f
+                , a1 === "count" ? count > 0 : a1 > kChar.f, a2 as any)
           }
         }
       }
@@ -362,16 +363,16 @@ set_contentCommands_([
     const { dir, position: pos } = options
     const el = insert_Lock_() as HTMLSelectElement | null
     if (!el || htmlTag_(el) !== "select") { return }
-    let max = el.options.length
+    let max = el.options.length, old = el.selectedIndex
       , absCount = count > 0 ? count : -count, step: number
     if (pos) {
       step = (pos > "e" && pos < "m" && pos !== "home") === count > 0 ? max - absCount : absCount - 1
     } else {
-      step = el.selectedIndex + (isTY(dir) ? dir > "p" ? -1 : 1 : dir || 1) * count
+      step = old + (isTY(dir) ? dir > "p" ? -1 : 1 : dir || 1) * count
     }
     step = step >= max ? max - 1 : step < 0 ? 0 : step
     el.selectedIndex = step
-    runFallbackKey(options, 0)
+    runFallbackKey(options, step !== old ? 0 : 2)
   },
   /* kFgCmd.toggleStyle: */ (options: CmdOptions[kFgCmd.toggleStyle]): void => {
     let id = options.id, nodes = querySelectorAll_unsafe_(id ? "#" + id : options.selector!),
@@ -397,6 +398,9 @@ set_contentCommands_([
       keydownEvents_[kKeyCode.None] = 0
       runFallbackKey(options, 0, "", delay)
     } else {
+      for (const i of ["bubbles", "cancelable", "composed"] as const) {
+        options[i] = options[i] !== false
+      }
       OnChrome && setupIDC_cr!(options as UIEventInit)
       try {
         event = type && new (window as any)[evClass](count < 0 ? type.replace("down", "up") : type, options)

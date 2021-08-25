@@ -119,9 +119,9 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     if (Build.MinCVer < BrowserVer.MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent
         && (!(Build.BTypes & ~BrowserType.Chrome)
             || Build.BTypes & BrowserType.Chrome && a.browser_ === BrowserType.Chrome)) {
-      a.onInnerWidth_((options.w * PixelData.WindowSizeX + PixelData.MarginH * options.z) / scale);
+      a.onInnerWidth_((options.w * a.panelWidth_ + PixelData.MarginH * options.z) / scale);
     } else {
-      a.onInnerWidth_(options.w * PixelData.WindowSizeX + PixelData.MarginH);
+      a.onInnerWidth_(options.w * a.panelWidth_ + PixelData.MarginH);
     }
     const max = Math.max(3, Math.min(0 | ((options.h / dz
           / (Build.MinCVer < BrowserVer.MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent
@@ -246,6 +246,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   heightIfEmpty_: VomnibarNS.PixelData.OthersIfEmpty,
   baseHeightIfNotEmpty_: VomnibarNS.PixelData.OthersIfNotEmpty,
   itemHeight_: VomnibarNS.PixelData.Item,
+  panelWidth_: VomnibarNS.PixelData.WindowSizeX,
   styles_: "",
   styleEl_: null as HTMLStyleElement | null,
   darkBtn_: null as HTMLElement | null,
@@ -1107,6 +1108,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
           + (n || (VomnibarNS.PixelData.OthersIfNotEmpty - VomnibarNS.PixelData.OthersIfEmpty)), 320));
       n = +sizes[2];
       Vomnibar_.itemHeight_ = M(14, m(n || VomnibarNS.PixelData.Item, 120));
+      n = sizes.length > 3 ? +sizes[3] : 0
+      Vomnibar_.panelWidth_ = M(0.3, m(n || VomnibarNS.PixelData.WindowSizeX, 0.95));
     }
   },
   OnWndFocus_ (this: void, event: Event): void {

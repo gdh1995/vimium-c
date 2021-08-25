@@ -398,7 +398,7 @@ const cutUrl = (str: string, ranges: number[], deltaLen: number, maxLen: number)
     out += BgUtils_.escapeText_(slice);
     out += "</match>";
   }
-  if (str.length > maxLen) {
+  if (str.length <= maxLen) {
     slice = str.slice(end);
   } else {
     slice = BgUtils_.unicodeRSubstring_(str, end, maxLen - 1 > end ? maxLen - 1 : end + 10);

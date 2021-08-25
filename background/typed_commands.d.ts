@@ -103,6 +103,7 @@ interface BgCmdOptions {
     mayClose: boolean
     /** (deprecated) */ allow_close: boolean
     keepWindow: "at-least-one" | "always"
+    /** only work when close one tab */ filter: BgCmdOptions[kBgCmd.removeTabsR]["filter"]
   } & Req.FallbackOptions
   [kBgCmd.removeTabsR]: {
     filter: "url" | "hash" | "url=..." | "host" | "host=..." | "title" | "title*" | "group" | "url+hash" | "host&title"

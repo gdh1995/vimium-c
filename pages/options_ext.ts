@@ -1,5 +1,5 @@
 import {
-  CurCVer_, CurFFVer_, bgSettings_, OnChrome, OnEdge, OnFirefox, $, asyncBackend_, browser_, import2, IsEdg_
+  CurCVer_, CurFFVer_, bgSettings_, OnChrome, OnEdge, OnFirefox, $, asyncBackend_, browser_, import2, OnSafari
 } from "./async_bg"
 import { AllowedOptions, ExclusionRulesOption_, Option_, oTrans_ } from "./options_base"
 import { SaveBtn } from "./options_defs"
@@ -219,7 +219,11 @@ function _importSettings(time: number, new_data: ExportedSettings, is_recommende
     window.VApi && VApi.t({ k: kTip.cancelImport })
     return;
   }
-    Object.setPrototypeOf(new_data, null);
+  Object.setPrototypeOf(new_data, null)
+  {
+    const dict2 = new_data[OnFirefox ? "firefox" : OnEdge ? "edge" : OnSafari ? "safari" : "chrome"]
+    dict2 && typeof dict2 === "object" && Object.assign(new_data, dict2)
+  }
   if (new_data.vimSync == null) {
     const now = bgSettings_.get_("vimSync"), keep = now && confirm(oTrans_("keepSyncing"));
     new_data.vimSync = keep || null;
@@ -249,7 +253,7 @@ function _importSettings(time: number, new_data: ExportedSettings, is_recommende
   }
 
   const delKeys = (keys: string): void => keys.split(/\s+/g).forEach(k => k && delete new_data[k])
-  delKeys("name time environment author description");
+  delKeys("name time environment author description chrome firefox edge safari")
   for (let key in new_data) {
     if (key[0] === "@") {
       delete new_data[key];

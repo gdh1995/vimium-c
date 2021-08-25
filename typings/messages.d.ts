@@ -447,7 +447,7 @@ interface CmdOptions {
     delay?: number
     esc?: true // if true, then call onEscDown({ repeat: count > 1 })
     click?: true // if true, call `activeElement.click()` directly
-  } & Req.FallbackOptions
+  } & Req.FallbackOptions & EventInit
 }
 
 declare const enum kMarkAction {
