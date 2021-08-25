@@ -138,18 +138,20 @@ export const replaceOrSuppressMost_ = (id: kHandler, newHandler?: HandlerNS.Hand
    * @argument callback can be valid only if `timeout`
    */
 export const suppressTail_ = ((timeout?: number
-    , callback?: HandlerNS.VoidHandler<unknown>): HandlerNS.Handler | HandlerNS.VoidHandler<HandlerResult> => {
+    , callback?: HandlerNS.VoidHandler<unknown> | 0): HandlerNS.Handler | HandlerNS.VoidHandler<HandlerResult> => {
   let timer: ValidTimeoutID = TimerID.None, func = (event?: HandlerNS.Event): HandlerResult => {
       if (!timeout) {
         if (event!.e.repeat) { return HandlerResult.Prevent }
         removeHandler_(func as never as kHandler.suppressTail)
         return HandlerResult.Nothing;
       }
-      clearTimeout_(timer);
-      timer = timeout_((): void => { // safe-interval
-        removeHandler_(func as never as kHandler.suppressTail)
-        callback && isAlive_ && callback()
-      }, timeout);
+      if (!timer || callback !== 0) {
+        clearTimeout_(timer)
+        timer = timeout_((): void => { // safe-interval
+          removeHandler_(func as never as kHandler.suppressTail)
+          callback && isAlive_ && callback()
+        }, timeout)
+      }
       return HandlerResult.Prevent;
   };
   timeout && func()
@@ -159,7 +161,8 @@ export const suppressTail_ = ((timeout?: number
   return func
 }) as {
   (timeout?: number, callback?: undefined): unknown
-  (timeout: number, callback: HandlerNS.VoidHandler<any>): HandlerNS.VoidHandler<HandlerResult>
+  /** if `callback` is 0, then never reset timer on keys */
+  (timeout: number, callback: HandlerNS.VoidHandler<any> | 0): HandlerNS.VoidHandler<HandlerResult>
 }
 
 export const pushHandler_ = handlers_.push.bind(handlers_) as (func: HandlerNS.Handler, id: kHandler) => number

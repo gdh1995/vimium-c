@@ -102,7 +102,7 @@ export const runFallbackKey = ((options: Req.FallbackOptions
     if (!(Build.NDEBUG || Build.Minify)) {
       console.log("Vimium C: run another command %o for type & tip = %o", fallback, anotherTip)
     }
-    suppressTail_(GlobalConsts.TimeOfSuppressingUnexpectedKeydownEvents)
+    suppressTail_(wait || 60, 0)
     post_({
       H: kFgReq.nextKey, k: fallback, f: { c: context, r: options.$retry, u: anotherTip, w: wait }
     })

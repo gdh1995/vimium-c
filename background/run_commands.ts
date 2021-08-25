@@ -510,6 +510,11 @@ export const runKeyWithCond = (info?: CurrentEnvCache): void => {
   }
 }
 
+/**
+ * syntax: a?b+c+2d:(e+-3f?-4g:h+i)?:j
+ * * `"-"` only contributes to number prefixes
+ * * `"%c" | "$c"` means the outer repeat
+ */
 declare const enum kN { key = 0, list = 1, ifElse = 2, error = 3 }
 interface BaseNode { t: kN; val: unknown; par: Node | null }
 interface KeyNode extends BaseNode { t: kN.key; val: string; par: ListNode }
@@ -575,17 +580,11 @@ const exprKeySeq = function (this: ListNode): object | string | null {
   return iter(this)
 }
 
-/**
- * syntax: a?b+c+2d:(e+-3f?-4g:h+i)?:j
- * * `"-"` only contributes to number prefixes
- * * `"%c" | "$c"` means the outer repeat
- */
-export const runKeyInSeq = (seq: BgCmdOptions[C.runKey]["$seq"], dir: number
-    , fallback: Req.FallbackOptions["$f"] | null): void => {
-  let cursor: Node | KeyNode | null = seq.cursor as ListNode | KeyNode
-  let down = true
+const nextKeyInSeq = (lastCursor: ListNode | KeyNode, dir: number): KeyNode | null => {
+  let down = true, par: ListNode | IfElseNode, ind: number
+  let cursor: Node | KeyNode | null = lastCursor
   if (cursor.t === kN.key) {
-    const par: ListNode = cursor.par, ind = par.val.indexOf(cursor)
+    par = cursor.par, ind = par.val.indexOf(cursor!)
     cursor = ind < par.val.length - 1 && dir > 0 ? par.val[ind + 1] : (down = false, par)
   }
   while (cursor && cursor.t !== kN.key) {
@@ -597,19 +596,30 @@ export const runKeyInSeq = (seq: BgCmdOptions[C.runKey]["$seq"], dir: number
       cursor = null
       break
     } else if (cursor.par.t === kN.list) {
-      const par: ListNode = cursor.par, ind = par.val.indexOf(cursor)
-      dir < 0 && ind < par.val.length - 1 && (dir = 1)
+      par = cursor.par, ind = par.val.indexOf(cursor)
       down = ind < par.val.length - 1
+      down && dir < 0 && (dir = 1)
       cursor = down ? par.val[ind + 1] : par
     } else {
-      const par: IfElseNode = cursor.par
+      par = cursor.par
       down = cursor === par.val.cond
       cursor = down && (dir > 0 ? par.val.t : (dir = 1, par.val.f)) || (down = false, par)
     }
   }
-  if (!cursor) {
+  return cursor
+}
+
+export const runKeyInSeq = (seq: BgCmdOptions[C.runKey]["$seq"], dir: number
+    , fallback: Req.FallbackOptions["$f"] | null): void => {
+  const cursor: KeyNode | null = nextKeyInSeq(seq.cursor as ListNode | KeyNode, dir)
+  if (!cursor || !(nextKeyInSeq(cursor, 1) || nextKeyInSeq(cursor, -1))) {
     keyToCommandMap_.set(kRunKeyInSeq, makeCommand_("blank", null))
     clearTimeout(seq.timeout || 0)
+    if (cursor) {
+      delete get_cOptions<C.runKey, true>().$then, delete get_cOptions<C.runKey, true>().$else
+    }
+  }
+  if (!cursor) {
     dir < 0 && fallback && fallback.t && showHUD(trans_(`${fallback.t as 99}`))
     return
   }
