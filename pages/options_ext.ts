@@ -1,5 +1,5 @@
 import {
-  CurCVer_, CurFFVer_, bgSettings_, OnChrome, OnEdge, OnFirefox, $, asyncBackend_, browser_, import2
+  CurCVer_, CurFFVer_, bgSettings_, OnChrome, OnEdge, OnFirefox, $, asyncBackend_, browser_, import2, IsEdg_
 } from "./async_bg"
 import { AllowedOptions, ExclusionRulesOption_, Option_, oTrans_ } from "./options_base"
 import { SaveBtn } from "./options_defs"
@@ -203,13 +203,15 @@ function decodeStrOption (new_value: string | string[]): string {
 
 function _importSettings(time: number, new_data: ExportedSettings, is_recommended?: boolean): void {
   let env = new_data.environment, plat = env && env.platform || ""
-    , ext_ver = env && parseFloat(env.extension || 0) || 0
+    , raw_ext_ver = (env && env.extension && env.extension + "" || "")
+    , ext_ver = parseFloat(raw_ext_ver || 0) || 0
+    , ext_ver_f = ext_ver > 1 ? raw_ext_ver.split(".", 2).join(".") as `${number}.${number}` : "" as const
     , newer = ext_ver > parseFloat(browser_.runtime.getManifest().version)
   plat && (plat = ("" + plat).slice(0, 10));
   if (!confirm(oTrans_("confirmImport", [
         oTrans_(is_recommended !== true ? "backupFile" : "recommendedFile"),
-        ext_ver > 1 ? oTrans_("fileVCVer").replace("*", `${ext_ver}`) : "", // lgtm [js/incomplete-sanitization]
-        (ext_ver > 1 ? oTrans_("fileVCVer_2").replace("*", `${ext_ver}`) : "" // lgtm [js/incomplete-sanitization]
+        ext_ver_f ? oTrans_("fileVCVer").replace("*", ext_ver_f) : "", // lgtm [js/incomplete-sanitization]
+        (ext_ver_f ? oTrans_("fileVCVer_2").replace("*", ext_ver_f) : "" // lgtm [js/incomplete-sanitization]
           ) + (newer ? oTrans_("fileVCNewer") : ""),
         plat ? oTrans_("filePlatform", [oTrans_(plat as "win" | "mac") || plat[0].toUpperCase() + plat.slice(1)])
           : oTrans_("commonPlatform"),

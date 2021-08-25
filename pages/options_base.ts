@@ -459,4 +459,4 @@ export let setupBorderWidth_ = (OnChrome && Build.MinCVer < BrowserVer.MinEnsure
 
 import type * as i18n_options from "../i18n/zh/options.json"
 
-export const oTrans_ = pageTrans_ as TransTy<keyof typeof i18n_options>
+export const oTrans_: TransTy<keyof typeof i18n_options> = (k, a): string => pageTrans_(k, a) || ""

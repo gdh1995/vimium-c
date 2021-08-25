@@ -290,7 +290,7 @@ function App (this: void): void {
 
 import type * as i18n_popup from "../i18n/zh/popup.json"
 
-const sTrans_ = pageTrans_ as TransTy<keyof typeof i18n_popup>
+export const sTrans_: TransTy<keyof typeof i18n_popup> = (k, a): string => pageTrans_(k, a) || ""
 
 enableNextTick_(kReadyInfo.platformInfo)
 

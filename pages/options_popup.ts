@@ -23,7 +23,7 @@ const _onlyFirstMatch = bgSettings_.get_("exclusionOnlyFirstMatch")
 
 import type * as i18n_popup from "../i18n/zh/popup.json"
 
-const pTrans_ = pageTrans_ as TransTy<keyof typeof i18n_popup>
+const pTrans_: TransTy<keyof typeof i18n_popup> = (k, a): string => pageTrans_(k, a) || ""
 
 class PopExclusionRulesOption extends ExclusionRulesOption_ {
   override addRule_ (_pattern: string, autoFocus?: false): void {
@@ -111,7 +111,7 @@ const _doUpdateState = (oldInited: typeof inited
     (isSaving ? pass ? pTrans_("o137") + pTrans_(isReversed ? "o138" : "o139") : pTrans_("o140")
       : pTrans_(same ? "o141" : "o142") + pTrans_(pass ? isReversed ? "o138" : "o139" : same ? "o143" : "o143_2")
       ).replace(" to be", "")
-    + pTrans_("colon") + (pass ? pTrans_("NS") : "")
+    + pTrans_("colon") + pTrans_("NS")
   /* note: on C91, Win10, text may have a negative margin-left (zh/fr) when inline-block and its left is inline */
   stateValue.className = pass ? "code" : ""
   stateValue.textContent = pass ? isReversed ? pass.slice(2) : pass
