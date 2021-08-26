@@ -386,8 +386,8 @@ interface LocalSettings extends Dict<any> { vimSync?: SettingsNS.BackendSettings
 const beginToRestore = (items: LocalSettings, kSources: 1 | 2 | 3, resolve: () => void): void => {
   kSources & 2 && browserStorage_.local.get((items2: LocalSettings): void => {
     const err = runtimeError_()
-    if (err) {
-      set_restoreSettings_(null);
+    err && set_restoreSettings_(null)
+    if (err || !hasEmptyLocalStorage_ && settings_.get_("vimSync") === true) {
       (kSources -= 2) || resolve()
       return err
     }
@@ -494,7 +494,7 @@ settings_.updateHooks_.vimSync = (value): void => {
       browserStorage_.local.get((items) => {
         if (OnFirefox && Object.keys(items).length === 0) { return }
         delete (items as SettingsNS.FullCache).vimSync
-        log("switch to sync.cloud, when old settings data in storage.local is:\n" + JSON.stringify(items, null, 2))
+        log("switch to sync.cloud, when old settings data in storage.local is:", "\n" + JSON.stringify(items, null, 2))
         longDelayedAction = setTimeout((): void => {
           longDelayedAction = 0
           browserStorage_.local.clear()
