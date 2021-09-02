@@ -7,7 +7,7 @@
 
   count = 0;
 
-  var table = document.getElementById("keyTable");
+  var table = document.getElementById("keyTable").querySelector("tbody");
   var templateContent = document.querySelector("#rowTemplate").content;
   var preventAllCheckbox = document.querySelector("#preventAll");
 
@@ -42,12 +42,17 @@
         element.querySelector(".modifierColumn").textContent = modifiers.join("-");
         element.querySelector(".keyCodeColumn").textContent = event.keyCode;
         if (n < table.rows.length) {
-          table.deleteRow(1);
+          table.firstElementChild.remove()
         }
         table.appendChild(element);
         if (preventAllCheckbox.checked) {
           event.preventDefault();
           event.stopImmediatePropagation();
         }
+  }
+
+  document.querySelector("#reset").onclick = function () {
+    table.textContent = "";
+    document.querySelector("#input").value = "";
   }
 }).call(this);

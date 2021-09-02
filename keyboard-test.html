@@ -8,7 +8,9 @@
 
     <style media="screen" type="text/css">
       body { font: normal 15px/18px helvetica,arial; padding: 0 0 0 20px; }
-      .column { width: 120px }
+      #input { width: 200px; }
+      #toolbar { display: inline-block; margin-left: 20px; }
+      .column { width: 120px; }
       .eventNumber { width: 40px; }
     </style>
 
@@ -19,18 +21,23 @@
     <p>Firstly, please <b>disable Vimium C / Vimium / VimFx</b> on this page.</p>
     <p>
       Press keys to see which keyboard events are triggered.
-      <label><input type="checkbox" id="preventAll">Prevent all keyboard events</label>
+      <label><input type="checkbox" id="preventAll" />Prevent all keyboard events</label>
+    </p>
+    <p>
+      <label>Test typing on an input box: <input id="input" type="text" spellcheck="false" /></label>
+      <span id="toolbar"><button id="reset">Clear outputs</button></span>
     </p>
     <div>
       <table id="keyTable">
-        <tr>
+        <thead><tr>
           <th align="left" class="eventNumber"></th>
           <th align="left" class="column">Event</th>
           <th align="left" class="column">Code</th>
           <th align="left" class="column">Key</th>
           <th align="left" class="column">Modifiers</th>
           <th align="left" class="column">KeyCode (legacy)</th>
-        </tr>
+        </tr></thead>
+        <tbody></tbody>
       </table>
     </div>
 
