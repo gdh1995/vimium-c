@@ -164,6 +164,8 @@ var Tasks = {
       curConfig[1] = getNonNullBuildItem("MinFFVer");
       curConfig.push(getNonNullBuildItem("FirefoxID"));
       curConfig.push(getNonNullBuildItem("NativeWordMoveOnFirefox"));
+    } else {
+      curConfig.push(getBuildItem("EdgeC"));
     }
     curConfig.push(getNonNullBuildItem("NDEBUG"));
     curConfig = JSON.stringify(curConfig);

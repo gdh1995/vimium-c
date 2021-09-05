@@ -134,7 +134,7 @@ if test $ALSO_VC -gt 0; then
   test -z "$VC_ROOT" && VC_ROOT=.
 elif test -n "$VC_ROOT"; then
   DIST=0
-elif test $DIST -gt 0 && test -f "./dist/manifest.json"; then
+elif test ${DIST:-0} -gt 0 && test -f "./dist/manifest.json"; then
   VC_ROOT=.
 fi
 
@@ -166,6 +166,8 @@ if test -z "$VER" -a $USE_INSTALLED -le 0; then
   for ((i=99;i>=VER_MIN;i--)); do
     if test -f "$WORKING_DIR/core$i/firefox.exe"; then
       VER=$i; break
+    elif test -f "$WORKING_DIR/core${i}esr/firefox.exe"; then
+      VER=${i}esr; break
     fi
   done
 fi

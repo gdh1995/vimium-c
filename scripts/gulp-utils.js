@@ -689,6 +689,10 @@ function gulpRollupContent(localExcludedPathRe) {
   return transformer
 }
 
+exports.kAllBuildEnv = Object.entries(process.env)
+    .filter((i) => i[0].startsWith("BUILD_") && !i[0].toLowerCase().includes("random"))
+    .map(i => i[0] + "=" + i[1]).sort().join("&")
+
 exports.parseBuildEnv = function (key, literalVal) {
   var newVal = process.env["BUILD_" + key];
   if (!newVal) {
@@ -705,9 +709,9 @@ exports.parseBuildEnv = function (key, literalVal) {
   } else if (key.startsWith("Random")) {
     // @ts-ignore
     newVal = (id, locally) => exports.getRandom(id, locally
-        , () =>  `${osPath.resolve(__dirname).replace(/\\/g, "/")}@${
+        , () =>  `${osPath.resolve(__dirname).replace(/\\/g, "/")}:${id}?${exports.kAllBuildEnv}&t=${
                   // @ts-ignore
-                  parseInt(+fs.statSync("manifest.json").mtimeMs)}/`)
+                  parseInt(+fs.statSync("manifest.json").mtimeMs)}`)
   } else if (key === "Commit") {
     // @ts-ignore
     newVal = (_, locally) => locally ? exports.safeJSONParse(literalVal, null, String) : dependencies.getGitCommit()
@@ -755,6 +759,8 @@ exports.getRandom = function (id, locally, getSeed) {
   if (!randMap) {
     randMap = {};
     _randSeed = getSeed()
+    const name = _randSeed.split("?").slice(-1)[0]
+    name && print("Get random seed:", name)
     var rng;
     if (!locally) {
       try {
@@ -762,7 +768,7 @@ exports.getRandom = function (id, locally, getSeed) {
       } catch (e) {}
     }
     if (rng) {
-      _randSeed = rng(_randSeed);
+      _randSeed = rng(_randSeed + "/" + id)
     }
   }
   if (!locally) {
