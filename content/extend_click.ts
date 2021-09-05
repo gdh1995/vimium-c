@@ -31,9 +31,10 @@ export const main_not_ff = (!OnFirefox ? (): void => {
     kVOnClick = "VimiumCClickable",
     kHook = "VimiumC",
     kCmd = "VC",
+    kModToExposeSecret = 1e4,
+    kRandStrLenInBuild = 7,
   }
-  type ClickableEventDetail = [ /** inDocument */ number[], /** forDetached */ number[]
-          , /** fromAttrs */ BOOL, /** _noop */ number ] | string;
+  type ClickableEventDetail = [ inDocument: number[], forDetached: number[], fromAttrs: BOOL ] | string
 /** Note: on Firefox, a `[sec, cmd]` can not be visited by the main world:
  * https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Sharing_objects_with_page_scripts#Constructors_from_the_page_context.
  */
@@ -49,12 +50,13 @@ export const main_not_ff = (!OnFirefox ? (): void => {
   }
   interface DelegateEventCls {
     prototype: FocusEvent;
-    new (typeArg: InnerConsts.kVOnClick | InnerConsts.kHook
+    new (typeArg: InnerConsts.kVOnClick | GlobalConsts.MarkAcrossJSWorlds
         , eventInitDict: Pick<FocusEventInit, "relatedTarget" | "composed">): FocusEvent;
   }
 
   const kVOnClick1 = InnerConsts.kVOnClick
-    , kHookRand = (InnerConsts.kHook + BuildStr.RandomClick) as InnerConsts.kHook
+    , outKMK = GlobalConsts.MarkAcrossJSWorlds
+    , kHookRand = (outKMK + BuildStr.RandomClick) as InnerConsts.kHook
     , appInfo = OnChrome
         && (Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage
             || Build.MinCVer < BrowserVer.MinEnsuredNewScriptsFromExtensionOnSandboxedPage
@@ -70,28 +72,7 @@ export const main_not_ff = (!OnFirefox ? (): void => {
         : OnChrome ? 1 : 0
     , secret: string = ((math.random() * GlobalConsts.SecretRange + GlobalConsts.SecretBase) | 0) + ""
     , script = createElement_("script");
-/**
- * Note:
- *   should not create HTML/SVG elements before document gets ready,
- *   otherwise the default XML parser will not enter a "xml_viewer_mode"
- * Stack trace:
- * * https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/xml/parser/xml_document_parser.cc?q=XMLDocumentParser::end&l=390
- * * https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/xml/parser/xml_document_parser.cc?q=XMLDocumentParser::DoEnd&l=1543
- * * https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/xml/parser/xml_document_parser.cc?g=0&q=HasNoStyleInformation&l=106
- * * https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/dom/document.cc?g=0&q=Document::CreateRawElement&l=946
- * Vimium issue: https://github.com/philc/vimium/pull/1797#issuecomment-135761835
- */
-  if ((script as Element as ElementToHTML).lang == null) {
-    set_createElement_(doc.createElementNS.bind(doc, VTr(kTip.XHTML) as "http://www.w3.org/1999/xhtml"
-        ) as typeof createElement_)
-    isFirstTime != null && OnDocLoaded_(extendClick); // retry after a while, using a real <script>
-    return
-  }
-  script.dataset.vimium = secret
-
-  let box: Element | undefined | 0, hookRetryTimes = 0, counterResolvePath = 0,
-  isFirstResolve: 0 | 1 | 2 | 3 | 4 = isTop ? 3 : 4,
-  hook = function (event: Event): void {
+  let hook = function (event: Event): void {
     const t = (event as TypeToAssert<Event, DelegateEventCls["prototype"], "relatedTarget">).relatedTarget,
     S = InnerConsts.kSecretAttr;
     // use `instanceof` to require the `t` element is a new instance which has never entered this extension world
@@ -125,10 +106,12 @@ export const main_not_ff = (!OnFirefox ? (): void => {
             : (path = event.path) && path.length > 1 ? path[0] as Element : null)
     if (detail) {
       resolve(0, detail[0]); resolve(1, detail[1]);
-    } else if (/* safer */ target && (isSafe && !rawDetail || secret + target.tagName === rawDetail)) {
+    } else if (/* safer */ target
+        && (isSafe && !rawDetail || +secret % InnerConsts.kModToExposeSecret + <string> target.tagName === rawDetail)) {
       clickable_.add(target);
     } else {
-      if (!Build.NDEBUG && !isSafe && target && secret + target.tagName !== rawDetail) {
+      if (!Build.NDEBUG && !isSafe && target
+          && +secret % InnerConsts.kModToExposeSecret + <string> target.tagName !== rawDetail) {
         console.error("extend click: unexpected: detail =", rawDetail, target);
         return;
       }
@@ -155,7 +138,7 @@ export const main_not_ff = (!OnFirefox ? (): void => {
     }
     reHint && timeout_(coreHints.x, reHint)
   }
-  function resolve(isBox: BOOL, nodeIndexArray: number[]): void {
+  const resolve = (isBox: BOOL, nodeIndexArray: number[]): void => {
     if (!nodeIndexArray.length) { return; }
     const list = (isBox ? box as Element : doc).getElementsByTagName("*");
     for (const index of nodeIndexArray) {
@@ -163,13 +146,13 @@ export const main_not_ff = (!OnFirefox ? (): void => {
       el && clickable_.add(el);
     }
   }
-  function dispatchCmd(cmd: SecondLevelContentCmds): void {
+  const dispatchCmd = (cmd: SecondLevelContentCmds): void => {
     box && box.dispatchEvent(new (CustomEvent as CustomEventCls)(
         InnerConsts.kCmd, {
       detail: (+secret << kContentCmd.MaskedBitNumber) | cmd
     }));
   }
-  function execute(cmd: ValidContentCommands): void {
+  const execute = (cmd: ValidContentCommands): void => {
     if (cmd < kContentCmd._minSuppressClickable) {
       isFirstResolve = 0;
       dispatchCmd(cmd as ValidContentCommands & ContentCommandsNotSuppress);
@@ -187,15 +170,36 @@ export const main_not_ff = (!OnFirefox ? (): void => {
         // normally, if here, must have: limited by CSP; not C or C >= MinEnsuredNewScriptsFromExtensionOnSandboxedPage
         // ignore the rare (unexpected) case that injected code breaks even when not limited by CSP,
         //     which might mean curCVer has no ES6...
-        runJS_("`${" + GlobalConsts.MarkAcrossJSWorlds + "=>" + secret + "}`")
+        runJS_("`${" + outKMK + "=>" + secret + "}`")
       }
     }
     box = 0;
     vApi.e = null;
   }
 
-// #region injected code
+/**
+ * Note:
+ *   should not create HTML/SVG elements before document gets ready,
+ *   otherwise the default XML parser will not enter a "xml_viewer_mode"
+ * Stack trace:
+ * * https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/xml/parser/xml_document_parser.cc?q=XMLDocumentParser::end&l=390
+ * * https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/xml/parser/xml_document_parser.cc?q=XMLDocumentParser::DoEnd&l=1543
+ * * https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/xml/parser/xml_document_parser.cc?g=0&q=HasNoStyleInformation&l=106
+ * * https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/dom/document.cc?g=0&q=Document::CreateRawElement&l=946
+ * Vimium issue: https://github.com/philc/vimium/pull/1797#issuecomment-135761835
+ */
+  if ((script as Element as ElementToHTML).lang == null) {
+    set_createElement_(doc.createElementNS.bind(doc, VTr(kTip.XHTML) as "http://www.w3.org/1999/xhtml"
+        ) as typeof createElement_)
+    isFirstTime != null && OnDocLoaded_(extendClick); // retry after a while, using a real <script>
+    return
+  }
+  script.dataset.vimium = secret
 
+  let box: Element | undefined | 0, hookRetryTimes = 0, counterResolvePath = 0,
+  isFirstResolve: 0 | 1 | 2 | 3 | 4 = isTop ? 3 : 4
+
+// #region injected code
   /** the `InnerVerifier` needs to satisfy
    * * never return any object (aka. keep void) if only "not absolutely safe"
    * * never change the global environment / break this closure
@@ -208,14 +212,11 @@ export const main_not_ff = (!OnFirefox ? (): void => {
 
 type FUNC = (this: unknown, ...args: never[]) => unknown;
 const V = /** verifier */ (maybeSecret: string): void | boolean => {
-  if (MayChrome && Build.MinCVer < BrowserVer.MinTestedES6Environment) {
-    I = GlobalConsts.MarkAcrossJSWorlds === maybeSecret
-  } else {
-    return I = GlobalConsts.MarkAcrossJSWorlds === maybeSecret
-  }
+    I = GlobalConsts.MarkAcrossJSWorlds + BuildStr.RandomClick === maybeSecret
 },
 MayChrome = !!(Build.BTypes & BrowserType.Chrome),
 MayEdge = !!(Build.BTypes & BrowserType.Edge), MayNotEdge = !!(Build.BTypes & ~BrowserType.Edge),
+MayES5 = MayChrome && Build.MinCVer < BrowserVer.MinTestedES6Environment,
 doc0 = document, curScript = doc0.currentScript as HTMLScriptElement,
 sec = curScript.dataset.vimium!,
 kAEL = "addEventListener", kToS = "toString", kProto = "prototype", kByTag = "getElementsByTagName",
@@ -249,22 +250,22 @@ listen = _call.bind<(this: (this: EventTarget,
 rEL = MayChrome && Build.MinCVer < BrowserVer.Min$addEventListener$support$once
     ? removeEventListener : 0 as never as null, clearTimeout1 = clearTimeout,
 kVOnClick = InnerConsts.kVOnClick,
-kEventName2 = kVOnClick + BuildStr.RandomClick,
+kRand = BuildStr.RandomClick, kEventName2 = kVOnClick + kRand,
 kReady = "readystatechange", kFunc = "function",
 docCreateElement = doc0.createElement,
-StringSplit = !Build.Minify ? kReady.split : 0 as never, StringSubstr = kReady.substr,
+StringSplit = !Build.NDEBUG ? kReady.split : 0 as never, StringSubstr = kReady.substr,
 checkIsNotVerifier = (func?: InnerVerifier | unknown): void | 42 => {
-  if (!Build.Minify && !verifierPrefixLen) {
+  if (!Build.NDEBUG && !verifierPrefixLen) {
     verifierLen = (verifierStrPrefix = call(_toString, V)).length,
     verifierPrefixLen = (verifierStrPrefix = call(StringSplit, verifierStrPrefix, sec)[0]).length
   }
   func && (func as InnerVerifier)(
         call(StringSubstr, call(_toString, func as InnerVerifier)
-          , (!Build.Minify ? verifierPrefixLen! : GlobalConsts.LengthOfMarkAcrossJSWorlds
+          , !Build.NDEBUG ? verifierPrefixLen!
+                - (GlobalConsts.LengthOfMarkAcrossJSWorlds + InnerConsts.kRandStrLenInBuild)
               /** `16` is for {@see #BrowserVer.MinEnsured$Function$$toString$preservesWhitespace} */
-              + (MayChrome && Build.MinCVer < BrowserVer.MinTestedES6Environment ? 16 : 6)
-             ) - GlobalConsts.LengthOfMarkAcrossJSWorlds
-          , GlobalConsts.LengthOfMarkAcrossJSWorlds + GlobalConsts.SecretStringLength)
+              : MayES5 ? 16 : 7
+          , GlobalConsts.LengthOfMarkAcrossJSWorlds + InnerConsts.kRandStrLenInBuild + GlobalConsts.SecretStringLength)
   )
 }
 const hooks = {
@@ -275,32 +276,29 @@ const hooks = {
     const mayStrBeToStr: boolean
         = str !== (myAELStr
                   || (myToStrStr = call(_toString, myToStr),
-                      Build.Minify
+                      Build.NDEBUG
                       ? verifierStrPrefix = call(StringSubstr, call(_toString, V), 0
-                            , GlobalConsts.LengthOfMarkAcrossJSWorlds
-                              + (MayChrome && Build.MinCVer < BrowserVer.MinTestedES6Environment ? 16 : 6))
+                        , GlobalConsts.LengthOfMarkAcrossJSWorlds + InnerConsts.kRandStrLenInBuild + (MayES5 ? 16 : 7))
                       : (verifierLen = (verifierStrPrefix = call(_toString, V)).length,
                         verifierPrefixLen = (verifierStrPrefix = call(StringSplit, verifierStrPrefix, sec)[0]).length),
                       myAELStr = call(_toString, myAEL)))
-    args[0] === kMk && checkIsNotVerifier(args[1])
+    args[0] === kMk + BuildStr.RandomClick && checkIsNotVerifier(args[1])
     detectDisabled && str === detectDisabled && executeCmd()
     return mayStrBeToStr && str !== myToStrStr
-        ? str.length !== (!Build.Minify ? verifierLen
-              : GlobalConsts.LengthOfMarkAcrossJSWorlds + GlobalConsts.SecretStringLength
-                + (MayChrome && Build.MinCVer < BrowserVer.MinTestedES6Environment ? 22 : 11))
-          || call(StringSubstr, str, 0, !Build.Minify ? verifierPrefixLen! : GlobalConsts.LengthOfMarkAcrossJSWorlds
-                + (MayChrome && Build.MinCVer < BrowserVer.MinTestedES6Environment ? 16 : 6)
-              ) !== verifierStrPrefix
+        ? str.length !== (!Build.NDEBUG ? verifierLen
+              : GlobalConsts.LengthOfMarkAcrossJSWorlds + GlobalConsts.SecretStringLength + (MayES5 ? 22 : 13))
+          || call(StringSubstr, str, 0, !Build.NDEBUG ? verifierPrefixLen! : GlobalConsts.LengthOfMarkAcrossJSWorlds
+                  + InnerConsts.kRandStrLenInBuild + (MayES5 ? 16 : 7)) !== verifierStrPrefix
           ? str : call(_toString, noop)
         : a === myToStr || a === myAEL || (I = 0,
           // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-          mayStrBeToStr ? call(a as any, noop, kMk, V) : (a as any)(kVOnClick, noop, 0, V), I)
+          mayStrBeToStr ? call(a as any, noop, kMk + kRand, V) : (a as any)(kMk + kRand, noop, 0, V), I)
         ? call(_toString, mayStrBeToStr ? _toString : _listen) : str
   },
   addEventListener: function addEventListener(this: EventTarget, type: string
       , listener: EventListenerOrEventListenerObject): void {
     const a = this, args = arguments, len = args.length;
-    const ret = type === kVOnClick ? checkIsNotVerifier(args[3])
+    const ret = type === GlobalConsts.MarkAcrossJSWorlds + BuildStr.RandomClick ? checkIsNotVerifier(args[3])
         : len === 2 ? listen(a, type, listener) : len === 3 ? listen(a, type, listener, args[2])
         : call(_apply as (this: (this: EventTarget, ...args: any[]) => void
                         , self: EventTarget, args: IArguments) => void,
@@ -336,7 +334,7 @@ let doInit = (): void => {
   if (!docEl2) { return executeCmd(); }
   call(Attr, el, S, sec);
   listen(el, InnerConsts.kCmd, executeCmd, !0);
-  dispatch(window, new DECls((InnerConsts.kHook + BuildStr.RandomClick) as InnerConsts.kHook, {relatedTarget: el}));
+  dispatch(window, new DECls((kMk + kRand) as typeof kMk, {relatedTarget: el}));
   if (call(HasAttr, el, S)) {
     executeCmd();
   } else {
@@ -444,7 +442,7 @@ const prepareRegister = (element: Element): void => {
           && typeof (s = element.tagName) === "string") {
         parent !== doc0 && parent !== root && call(Append, root, parent);
         unsafeDispatchCounter++;
-        dispatch(element, new CECls(kVOnClick, {detail: sec + s, composed: !0}));
+        dispatch(element, new CECls(kVOnClick, {detail: +sec % InnerConsts.kModToExposeSecret + s, composed: !0}))
       }
     } else {
       unsafeDispatchCounter++;
@@ -461,9 +459,8 @@ const prepareRegister = (element: Element): void => {
 }
 const doRegister = (fromAttrs: BOOL): void => {
   if (nodeIndexListInDocument.length + nodeIndexListForDetached.length) {
-    dispatch(root, new CECls(kVOnClick, {
-      detail: [nodeIndexListInDocument, nodeIndexListForDetached, fromAttrs, unsafeDispatchCounter++]
-    }));
+    unsafeDispatchCounter++
+    dispatch(root, new CECls(kVOnClick, { detail: [nodeIndexListInDocument, nodeIndexListForDetached, fromAttrs] }))
   }
   nodeIndexListInDocument.length = nodeIndexListForDetached.length = 0
 // check lastChild, so avoid a mutation scope created in
@@ -560,7 +557,7 @@ FProto[kToS] = myToStr
         && appVer < BrowserVer.MinEnsuredES6ArrowFunction) {
       injected = injected.replace(<RegExpG> (Build.Minify ? /\(([\w,]*\))=>/g : /\(([\w, ]*\))=>/g), "function($1")
     }
-    injected = injected.replace(GlobalConsts.MarkAcrossJSWorlds, `$&${secret}`)
+    injected = injected.replace("" + BuildStr.RandomClick, `$&${secret}`)
     vApi.e = execute;
     setupEventListener(0, kHookRand, hook);
     setupEventListener(0, kVOnClick1, onClick);

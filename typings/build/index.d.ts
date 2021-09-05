@@ -12,7 +12,7 @@ declare const enum Build {
 declare const enum BuildStr {
   Commit = "dev",
   /** used by {@link ../../content/extend_click.ts} */
-  RandomClick = 1000,
+  RandomClick = 2021831,
   /** used by {@link ../../content/frontend.ts} */
   RandomReq = 2019070,
   CoreGetterFuncName = "__VimiumC_priv__",
