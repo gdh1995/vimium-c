@@ -20,6 +20,7 @@ let _gCmdTimer = 0
 let gOnConfirmCallback: ((force1: boolean, arg?: FakeArg) => void) | null | undefined
 let _gCmdHasNext: boolean | null
 let _cNeedConfirm: BOOL = 1
+let loopIdToRunSeq = 0
 
 /** operate command options */
 
@@ -122,7 +123,7 @@ export const executeCommand = (registryEntry: CommandsNS.Item, count: number, la
     if (fallbackCounter.c && fallbackCounter.c.i >= maxRetried
         && (!options || (options as Req.FallbackOptions).$else !== "showTip")) {
       set_cPort(port!)
-      showHUD(`Has ran sequential commands for ${maxRetried} times`)
+      showHUD(`Has run sequential commands for ${maxRetried} times`)
       return
     }
     const context = makeFallbackContext(fallbackCounter.c, 1, fallbackCounter.u)
@@ -471,41 +472,37 @@ export const runKeyWithCond = (info?: CurrentEnvCache): void => {
     }
   }
   const keys = (matched ? matched.keys : get_cOptions<C.runKey, true>().keys) as (string | ListNode | ErrorNode)[]
-  let key: string | ListNode | ErrorNode
+  let key: string | ListNode | ErrorNode, keysInd: number
   const sub_name = matched ? typeof matched.env === "string" ? `[${matched.env}]: `
       : `(${expected_rules.indexOf(matched)})` : ""
   if (keys.length === 0) {
     showHUD(sub_name + "Require keys: comma-seperated-string | string[]")
   } else if (absCRepeat > keys.length && keys.length !== 1) {
     showHUD(sub_name + "Has no such a key")
-  } else if (key = keys[keys.length === 1 ? 0 : absCRepeat - 1],
+  } else if (key = keys[keysInd = keys.length === 1 ? 0 : cRepeat > 0 ? absCRepeat - 1 : keys.length - absCRepeat],
       typeof key !== "string" && (typeof key !== "object" || typeof key.t !== "number") || !key) {
     showHUD(sub_name + "The key is invalid")
   } else {
-    const repeat = keys.length === 1 ? cRepeat : absCRepeat !== cRepeat ? -1 : 1
+    const repeat = keys.length === 1 ? cRepeat : 1
     const options = matched && matched.options || get_cOptions<C.runKey, true>().options
         || collectOptions(get_cOptions<C.runKey, true>())
-    if (typeof key !== "string" || (<RegExpOne> /[()?:+%]/).test(key)) {
-      typeof key === "string" && (key = keys[keys.length === 1 ? 0 : absCRepeat - 1] = parseKeySeq(key))
-      if (key.t === kN.error) {
-        showHUD(key.val)
-        return
-      }
+    typeof key === "string" && (key = keys[keysInd] = parseKeySeq(key))
+    if (key.t === kN.error) { showHUD(key.val) }
+    else if (As_<ListNode>(key).val.length === 0) { /* should never enter here */ }
+    else if (key.val.length > 1 || key.val[0].t !== kN.key) {
+      loopIdToRunSeq = (loopIdToRunSeq + 1) % 64 || 1
       const fakeOptions: KnownOptions<C.runKey> = {
-        $seq: { keys: key, repeat, options, cursor: key, timeout: 0 },
-        $then: kRunKeyInSeq, $else: "-" + kRunKeyInSeq, $retry: -999
+        $seq: { keys: key, repeat, options, cursor: key, timeout: 0, id: loopIdToRunSeq,
+                fallback: parseFallbackOptions(get_cOptions<C.runKey, true>()) },
+        $then: loopIdToRunSeq + kRunKeyInSeq, $else: "-" + loopIdToRunSeq + kRunKeyInSeq, $retry: -999
       }
       replaceCmdOptions(fakeOptions)
       keyToCommandMap_.set(kRunKeyInSeq, makeCommand_("runKey", fakeOptions as CommandsNS.Options)!)
-      runKeyInSeq(fakeOptions.$seq!, 1, null)
+      runKeyInSeq(fakeOptions.$seq!, loopIdToRunSeq, null)
     } else {
-      let count = 1, arr: null | string[] = (<RegExpOne> /^\d+|^-\d*/).exec(key)
-      if (arr != null) {
-        let prefix = arr[0]
-        key = key.slice(prefix.length)
-        count = prefix !== "-" ? parseInt(prefix, 10) || 1 : -1
-      }
-      runKeyWithOptions(key, count * repeat, options)
+      runOneKey(key.val[0], {
+        keys: key, repeat, options, cursor: key, timeout: 0, id: 0, fallback: null
+      })
     }
   }
 }
@@ -525,7 +522,7 @@ type Node = ListNode | IfElseNode
 export const parseKeySeq = (keys: string): ListNode | ErrorNode => {
   const re = <RegExpOne> /^([$%][a-z]\+?)*([\d-]\d*\+?)?([$%][a-z]\+?)*(<([a-z]-){0,4}\w+(:i)?>|[A-Z_a-z]\w*)/
   let cur: ListNode = { t: kN.list, val: [], par: null }, root: ListNode = cur, last: Node | null
-  for (let i = 0; i < keys.length; i++) {
+  for (let i = keys.length > 1 ? 0 : keys.length; i < keys.length; i++) {
     switch (keys[i]) {
     case "(":
       last = cur; cur = { t: kN.list, val: [], par: cur }; last.val.push(cur)
@@ -563,6 +560,7 @@ export const parseKeySeq = (keys: string): ListNode | ErrorNode => {
       break
     }
   }
+  if (keys.length === 1) { root.val.push({ t: kN.key, val: keys, par: root }) }
   if (!Build.NDEBUG) { (root as Object as {toJSON?: any}).toJSON = exprKeySeq }
   BgUtils_.resetRe_()
   return root
@@ -611,26 +609,42 @@ const nextKeyInSeq = (lastCursor: ListNode | KeyNode, dir: number): KeyNode | nu
 
 export const runKeyInSeq = (seq: BgCmdOptions[C.runKey]["$seq"], dir: number
     , fallback: Req.FallbackOptions["$f"] | null): void => {
+  if (abs(dir) !== seq.id) { return } // overdue
   const cursor: KeyNode | null = nextKeyInSeq(seq.cursor as ListNode | KeyNode, dir)
-  if (!cursor || !(nextKeyInSeq(cursor, 1) || nextKeyInSeq(cursor, -1))) {
+  const isLast = !cursor || !(nextKeyInSeq(cursor, 1) || nextKeyInSeq(cursor, -1))
+  const finalFallback = seq.fallback
+  if (isLast) {
     keyToCommandMap_.set(kRunKeyInSeq, makeCommand_("blank", null))
     clearTimeout(seq.timeout || 0)
+    loopIdToRunSeq = 0
     if (cursor) {
       delete get_cOptions<C.runKey, true>().$then, delete get_cOptions<C.runKey, true>().$else
+      if (finalFallback) {
+        seq.options = seq.options ? Object.assign(finalFallback, seq.options) : finalFallback
+      }
     }
   }
   if (!cursor) {
+    if (finalFallback) {
+      finalFallback.$f ? finalFallback.$f.t = fallback && fallback.t || finalFallback.$f.t
+          : finalFallback.$f = fallback
+      if (runNextCmdBy(dir > 0 ? 1 : 0, finalFallback, 1)) { return }
+    }
     dir < 0 && fallback && fallback.t && showHUD(trans_(`${fallback.t as 99}`))
     return
   }
-  const timeout = seq.timeout = setTimeout(() => {
+  const timeout = isLast ? 0 : seq.timeout = setTimeout((): void => {
     const old = keyToCommandMap_.get(kRunKeyInSeq)
     const opts2 = old && (old.options_ as KnownOptions<C.runKey>)
     if (opts2 && opts2.$seq && opts2.$seq.timeout === timeout) {
       keyToCommandMap_.set(kRunKeyInSeq, makeCommand_("blank", null))
     }
   }, 30000)
-  let key = cursor.val, hasCount = (<RegExpOne> /[$%]c/).test(key) || seq.cursor === seq.keys
+  runOneKey(cursor, seq)
+}
+
+export const runOneKey = (cursor: KeyNode, seq: BgCmdOptions[C.runKey]["$seq"]) => {
+  let key = cursor.val, hasCount = (<RegExpOne> /[$%]c/).test(key) || !seq || seq.cursor === seq.keys
   key = key.replace(<RegExpG & RegExpI> /[$%][a-z]\+?/gi, "")
   let subCount = 1, arr: null | string[] = (<RegExpOne> /^\d+|^-\d*/).exec(key)
   if (arr != null) {
@@ -640,10 +654,17 @@ export const runKeyInSeq = (seq: BgCmdOptions[C.runKey]["$seq"], dir: number
   }
   key = key !== "__proto__" ? key : "<v-__proto__>"
   seq.cursor = As_<KeyNode>(cursor)
-  runKeyWithOptions(key, subCount * (hasCount ? seq.repeat : 1), seq.options)
+  /*#__NOINLINE__*/ runKeyWithOptions(key, subCount * (hasCount ? seq.repeat : 1), seq.options)
 }
 
-const runKeyWithOptions = (key: string, count: number, exOptions?: CommandsNS.EnvItemOptions | null): void => {
+const doesInheritOptions = (baseOptions: CommandsNS.Options): boolean => {
+  let cur = get_cOptions<C.blank>() as CommandsNS.Options | undefined
+  while (cur && cur !== baseOptions) { cur = cur.$o }
+  return cur === baseOptions
+}
+
+const runKeyWithOptions = (key: string, count: number, exOptions: CommandsNS.EnvItemOptions | null | undefined
+    ): void => {
   let finalKey = key, registryEntry = key !== "__proto__" && keyToCommandMap_.get(key)
       || !key.includes("<") && keyToCommandMap_.get(finalKey = `<v-${key}>`) || null
   let entryReadonly = true
@@ -655,8 +676,9 @@ const runKeyWithOptions = (key: string, count: number, exOptions?: CommandsNS.En
     showHUD(`the "${finalKey}" has not been mapped`)
     return
   } else if (registryEntry.alias_ === kBgCmd.runKey && registryEntry.background_
-      && !(exOptions as KnownOptions<C.runKey>).$seq) {
-    showHUD('"runKey" can not be nested')
+      && registryEntry.options_ && typeof registryEntry.options_ === "object"
+      && doesInheritOptions(registryEntry.options_)) {
+    showHUD('"runKey" should not call itself')
     return
   }
   BgUtils_.resetRe_()

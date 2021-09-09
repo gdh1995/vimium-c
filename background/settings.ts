@@ -1,6 +1,6 @@
 import {
   contentPayload_, extAllowList_, newTabUrls_, omniPayload_, OnChrome, OnEdge, OnFirefox, framesForOmni_, sync_, IsEdg_,
-  settingsCache_, bgIniting_, set_bgIniting_, CurCVer_, CONST_, installation_, set_installation_, hasEmptyLocalStorage_,
+  settingsCache_, bgIniting_, set_bgIniting_, CurCVer_, CONST_, installation_, hasEmptyLocalStorage_,
   OnOther_
 } from "./store"
 import { asyncIter_, nextTick_ } from "./utils"
@@ -219,7 +219,10 @@ p@^https://item\\.m\\.jd\\.com/product/(\\d+)\\.html\\b@https://item.jd.com/$1.h
 hdnehngglnbnehkfcidabjckinphnief
 nacjakoppgmdcpemlfnfegmlhipddanj
 cglpcedifkgalfdklahhcchnjepcckfn
-clnalilglegcjmlgenoppklmfppddien`
+clnalilglegcjmlgenoppklmfppddien
+# EdgeTranslate
+bocbaocobfecmglnmeaeppambideimao
+bfdogplmndidlpjfhoijckpakkdjkkil`
 : OnFirefox
 ? `# extension id or hostname
 newtab-adapter@gdh1995.cn
@@ -467,16 +470,6 @@ browser_.runtime.getPlatformInfo((info): void => {
 })()
 
 if (bgIniting_ < BackendHandlersNS.kInitStat.FINISHED) {
-  set_installation_(new Promise((resolve): void => {
-    const ev = browser_.runtime.onInstalled
-    let onInstalled: ((details: chrome.runtime.InstalledDetails) => void) | null = (details): void => {
-      onInstalled && (ev.removeListener(onInstalled), onInstalled = null, resolve(details))
-    }
-    ev.addListener(onInstalled)
-    setTimeout(() => { if (onInstalled) {
-      ev.removeListener(onInstalled), onInstalled = null, set_installation_(null)
-    } }, 2500, onInstalled)
-  }))
   void installation_!.then((reason): void => {
     if (!reason || reason.reason !== "install" || !hasEmptyLocalStorage_) { return }
     const platform = (navigator.platform || "").toLowerCase()

@@ -1,6 +1,6 @@
 import {
   CurCVer_, CurFFVer_, curIncognito_, curWndId_, newTabUrls_, OnChrome, OnEdge, OnFirefox, settingsCache_, blank_,
-  CONST_, IsEdg_, hasGroupPermission_ff_
+  CONST_, IsEdg_, hasGroupPermission_ff_, bgIniting_, set_installation_
 } from "./store"
 import { DecodeURLPart_, deferPromise_ } from "./utils"
 
@@ -399,3 +399,13 @@ export const runContentScriptsOn_ = (tabId: number): void => {
 }
 
 //#endregion
+
+bgIniting_ < BackendHandlersNS.kInitStat.FINISHED && set_installation_(new Promise((resolve) => {
+  const ev = browser_.runtime.onInstalled
+  let onInstalled: ((details: chrome.runtime.InstalledDetails | null) => void) | null = (details): void => {
+      const cb = onInstalled
+      cb && (onInstalled = null, details && resolve(details), ev.removeListener(cb))
+  }
+  ev.addListener(onInstalled)
+  setTimeout(onInstalled, 10000, null)
+}));

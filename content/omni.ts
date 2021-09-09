@@ -164,7 +164,7 @@ const resetWhenBoxExists = (redo?: boolean): void | 1 => {
         && Build.MinCVer < BrowserVer.Min$Event$$IsTrusted) {
       box!.onload = null as never
     }
-    removeEl_s(box!)
+    removeEl_s(WithDialog && dialogWrapper_ || box!)
     portToOmni = box = omniOptions = null as never
     WithDialog && (dialogWrapper_ = null)
     refreshKeyHandler(); // just for safer code

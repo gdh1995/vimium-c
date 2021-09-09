@@ -353,7 +353,6 @@ OnChrome && ((): void => {
 
 // According to tests: onInstalled will be executed after 0 ~ 16 ms if needed
 installation_ && void installation_.then((details): void => {
-  set_installation_(null)
   let reason = details.reason;
   if (reason === "install") { reason = ""; }
   else if (reason === "update") { reason = details.previousVersion!; }
@@ -428,6 +427,7 @@ installation_ && void installation_.then((details): void => {
   });
   }, 500)
 })
+set_installation_(null)
 
 setTimeout((): void => {
   const doc = globalThis.document

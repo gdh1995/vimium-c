@@ -765,6 +765,12 @@ export const getVisibleElements = (view: ViewBox): readonly Hint[] => {
     // not use `":not(:empty)"`, because it will require another selectAll to collect shadow hosts
     ? traverse(OnFirefox ? ":not(:-moz-only-whitespace)" : kSafeAllSelector
           , hintOptions, (hints: Hint[], element: SafeHTMLElement): void => {
+        if (!OnFirefox && isIFrameElement(element)) {
+            if (addChildFrame_ && element !== omni_box && element !== find_box) {
+                addChildFrame_(coreHints, element, getIFrameRect(element))
+            }
+            return
+        }
         const arr = element.childNodes as NodeList
         if (!OnChrome || Build.MinCVer >= BrowserVer.MinEnsured$ForOf$ForDOMListTypes) {
           for (const node of arr as ArrayLike<Node> as Node[]) {
