@@ -7,7 +7,7 @@ import {
   contains_s, notSafe_not_ff_
 } from "../lib/dom_utils"
 import { getBoundingClientRect_, view_ } from "../lib/rect"
-import { kSafeAllSelector, detectUsableChild, set_addChildFrame_ } from "./link_hints"
+import { kSafeAllSelector, detectUsableChild } from "./link_hints"
 import { traverse, ngEnabled } from "./local_links"
 import { find_box } from "./mode_find"
 import { omni_box } from "./omni"
@@ -46,9 +46,7 @@ export const filterTextToGoNext: VApiTy["g"] = (candidates, names, options, maxL
         hints.push([element as SafeElementForMouse])
       }
     }
-  }, (set_addChildFrame_((_, el, _view, subList): void => {
-    subList.push(el as KnownIFrameElement & SafeHTMLElement)
-  }), 1), 1, 1) : [],
+  }, 1, 1, 1) : [],
   isNext = options.n, lenLimits = options.l, totalMax = options.m,
   quirk = isNext ? ">>" : "<<", quirkIdx = names.indexOf(quirk),
   rel = isNext ? "next" : "prev", relIdx = names.indexOf(rel),
@@ -57,7 +55,6 @@ export const filterTextToGoNext: VApiTy["g"] = (candidates, names, options, maxL
   refusedStr = isNext ? "<" : ">";
   let i = isAlive_ ? 0 : GlobalConsts.MaxNumberOfNextPatterns + 1
   let candInd = 0, index = links.length
-  set_addChildFrame_(null)
   links.push(docEl_unsafe_() as never);
   for (; i < names.length; i++) {
     if (GlobalConsts.SelectorPrefixesInPatterns.includes(names[i][0])) {

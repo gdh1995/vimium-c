@@ -272,6 +272,7 @@ type CmdOptionSafeToClone<K extends keyof BgCmdOptions | keyof CmdOptions> =
 
 /** must keep plain, because it may be sent to content scripts */
 interface CurrentEnvCache {
+  element?: [tag: string, id: string, classList: string[]] | 0
   fullscreen?: boolean
   url?: string
 }

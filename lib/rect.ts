@@ -2,7 +2,7 @@ import {
   doc, chromeVer_, Lower, max_, min_, math, OnChrome, OnFirefox, WithDialog, evenHidden_, set_evenHidden_
 } from "./utils"
 import {
-  docEl_unsafe_, scrollingEl_, notSafe_not_ff_, ElementProto, isRawStyleVisible, getComputedStyle_, NONE,
+  docEl_unsafe_, scrollingEl_, notSafe_not_ff_, ElementProto_not_ff, isRawStyleVisible, getComputedStyle_, NONE,
   querySelector_unsafe_, querySelectorAll_unsafe_, GetParent_unsafe_, HDN, createElement_, fullscreenEl_unsafe_,
   IsInDOM_, scrollIntoView_, rangeCount_, removeEl_s, append_not_ff, htmlTag_, getRootNode_mounted
 } from "./dom_utils"
@@ -98,7 +98,7 @@ export const cropRectToVisible_ = (left: number, top: number, right: number, bot
 
 export let getBoundingClientRect_: (el: Element) => ClientRect = !OnFirefox ? el => {
   type ClientRectGetter = (this: Element) => ClientRect
-  const func = ElementProto.getBoundingClientRect as ClientRectGetter
+  const func = ElementProto_not_ff!.getBoundingClientRect as ClientRectGetter
   getBoundingClientRect_ = func.call.bind<(this: ClientRectGetter, self: Element) => ClientRect>(func)
   return getBoundingClientRect_(el)
 } : el => el.getBoundingClientRect()
@@ -415,7 +415,7 @@ export const instantScOpt = (di: number, amount: number): ScrollToOptions =>
 
 export const scrollWndBy_ = (di: ScrollByY, amount: number): void => {
   OnFirefox || OnChrome && Build.MinCVer >= BrowserVer.MinEnsuredCSS$ScrollBehavior ||
-  ElementProto.scrollBy ? scrollBy(instantScOpt(di, amount)) : scrollBy(di ? 0 : amount, di && amount)
+  ElementProto_not_ff!.scrollBy ? scrollBy(instantScOpt(di, amount)) : scrollBy(di ? 0 : amount, di && amount)
 }
 
 export const center_ = (rect: Rect | null): Point2D => {

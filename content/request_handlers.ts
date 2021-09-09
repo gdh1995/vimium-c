@@ -6,9 +6,9 @@ import {
 } from "../lib/utils"
 import { set_keyIdCorrectionOffset_old_cr_, handler_stack, suppressTail_ } from "../lib/keyboard_utils"
 import {
-  editableTypes_, markFramesetTagUnsafe_old_cr, OnDocLoaded_, BU, notSafe_not_ff_, docHasFocus_, deepActiveEl_unsafe_,
+  editableTypes_, markFramesetTagUnsafe_old_cr, OnDocLoaded_, BU, docHasFocus_, deepActiveEl_unsafe_,
   htmlTag_, querySelector_unsafe_, isHTML_, createElement_, setClassName_s,
-  docEl_unsafe_, scrollIntoView_, CLK, ElementProto, isIFrameElement, DAC, removeEl_s, toggleClass_s
+  docEl_unsafe_, scrollIntoView_, CLK, ElementProto_not_ff, isIFrameElement, DAC, removeEl_s, toggleClass_s, getElDesc_
 } from "../lib/dom_utils"
 import {
   onPortRes_, post_, safePost, set_requestHandlers, requestHandlers, hookOnWnd, set_hookOnWnd,
@@ -226,10 +226,7 @@ set_requestHandlers([
   },
   /* kBgReq.queryForRunAs: */ (request: BgReq[kBgReq.queryForRunKey]): void => {
     const lock = (OnFirefox ? insert_Lock_() : raw_insert_lock) || deepActiveEl_unsafe_() || doc.body
-    post_({ H: kFgReq.respondForRunKey, r: request,
-      e: lock && (OnFirefox || !notSafe_not_ff_!(lock))
-          && [(lock as SafeElement).localName, lock.id, lock.className] || 0
-    })
+    post_({ H: kFgReq.respondForRunKey, r: request, e: getElDesc_(lock) })
   },
   /* kBgReq.goToMark: */ gotoMark,
   /* kBgReq.suppressForAWhile: */ (request: BgReq[kBgReq.suppressForAWhile]): void => { suppressTail_(request.t) }
@@ -240,7 +237,7 @@ export const showFrameMask = (mask: FrameMaskType): void => {
     let docEl = docEl_unsafe_();
     if (docEl) {
       OnChrome && Build.MinCVer < BrowserVer.MinScrollIntoViewOptions
-      ? ElementProto.scrollIntoViewIfNeeded!.call(docEl) : scrollIntoView_(docEl)
+      ? ElementProto_not_ff!.scrollIntoViewIfNeeded!.call(docEl) : scrollIntoView_(docEl)
     }
   }
   if (mask < FrameMaskType.minWillMask || !isHTML_()) { return; }

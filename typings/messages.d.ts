@@ -585,7 +585,7 @@ interface FgReq {
   [kFgReq.key]: {
     /* keySequence */ k: string;
     /** lastKey */ l: kKeyCode;
-  };
+  } & Pick<FgReq[kFgReq.respondForRunKey], "e">
   [kFgReq.nextKey]: {
     /* keySequence */ k: string
     /** $then/$else info */ f: {
@@ -648,7 +648,7 @@ interface FgReq {
   };
   [kFgReq.respondForRunKey]: {
     r: BgReq[kBgReq.queryForRunKey]
-    /** active element */ e: [tag: string, id: string, className: string] | 0
+    /** active element */ e: [tag: string, id: string, className: string] | null
   }
   [kFgReq.downloadLink]: {
     /** url */ u: string
@@ -658,9 +658,7 @@ interface FgReq {
   }
 }
 
-interface CurrentEnvCache {
-  /** active element */ element?: [tag: string, id: string, classList: string[]] | 0
-}
+interface CurrentEnvCache {}
 
 interface OpenUrlOptions extends UserSedOptions {
   group?: true | null | false

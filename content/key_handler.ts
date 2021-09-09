@@ -5,7 +5,7 @@ import {
 import {
   set_getMappedKey, char_, getMappedKey, isEscape_, getKeyStat_, prevent_, handler_stack, keybody_, SPC
 } from "../lib/keyboard_utils"
-import { deepActiveEl_unsafe_, getSelection_, ElementProto } from "../lib/dom_utils"
+import { deepActiveEl_unsafe_, getSelection_, ElementProto_not_ff, getElDesc_ } from "../lib/dom_utils"
 import { wndSize_ } from "../lib/rect"
 import { post_ } from "./port"
 import { removeSelection } from "./dom_ui"
@@ -101,7 +101,7 @@ const checkKey = (event: HandlerNS.Event, key: string, keyWithoutModeID: string
   }
   currentKeys += key.length > 1 ? `<${key}>` : key;
   if (j === KeyAction.cmd) {
-    post_({ H: kFgReq.key, k: currentKeys, l: event.i });
+    post_({ H: kFgReq.key, k: currentKeys, l: event.i, e: getElDesc_(raw_insert_lock) });
     esc!(HandlerResult.Prevent);
     isCmdTriggered = event.i || kKeyCode.True
   } else {
@@ -154,7 +154,7 @@ const onAnyClick_cr = OnChrome ? (event: MouseEventToPrevent): void => {
          ? Build.MinCVer >= BrowserVer.MinEnsured$Event$$Path || path
          : (Build.MinCVer >= BrowserVer.MinEnsured$Event$$Path || path) && path!.length > 1)
         ? path![0] as Element : event.target as Element;
-    if (ElementProto.getAttribute.call(t, "accesskey")) {
+    if (ElementProto_not_ff!.getAttribute.call(t, "accesskey")) {
       // if a script has modified [accesskey], then do nothing on - just in case.
       /*#__NOINLINE__*/ resetAnyClickHandler();
       prevent_(event);

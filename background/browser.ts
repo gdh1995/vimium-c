@@ -40,8 +40,8 @@ export const getTabUrl = OnChrome ? (tab_may_pending: Pick<Tab, "url" | "pending
     tab_may_pending.url || tab_may_pending.pendingUrl : (tab_with_url: Pick<Tab, "url">): string => tab_with_url.url
 
 export const isTabMuted = OnChrome && Build.MinCVer < BrowserVer.MinMutedInfo && CurCVer_ < BrowserVer.MinMutedInfo
-    ? (maybe_muted: Tab): boolean => maybe_muted.muted!
-    : OnEdge ? (_tab: Tab) => false : (maybe_muted: Tab): boolean => maybe_muted.mutedInfo.muted
+    ? (maybe_muted: ShownTab): boolean => maybe_muted.muted!
+    : OnEdge ? (_tab: ShownTab) => false : (maybe_muted: ShownTab): boolean => maybe_muted.mutedInfo.muted
 
 export const getCurTab = Tabs_.query.bind(null, { active: true, currentWindow: true }
   ) as (callback: (result: [Tab], _ex: FakeArg) => void) => 1
@@ -51,7 +51,7 @@ export const getCurTabs = Tabs_.query.bind(null, {currentWindow: true})
 export const getCurShownTabs_ = OnFirefox
     ? Tabs_.query.bind(null, { currentWindow: true, hidden: false }) : getCurTabs
 
-export const isNotHidden_ = OnFirefox ? (tab: Tab): boolean => !tab.hidden : () => true
+export const isNotHidden_ = OnFirefox ? (tab: ShownTab): boolean => !tab.hidden : () => true
 
 export const overrideTabsIndexes_ff_ = OnFirefox ? (tabs: readonly Tab[]): void => {
   const len = tabs.length

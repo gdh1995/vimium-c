@@ -1,7 +1,7 @@
 import {
   set_cPort, set_cRepeat, set_cOptions, needIcon_, set_cKey, cKey, get_cOptions, set_reqH_, reqH_, restoreSettings_,
   innerCSS_, framesForTab_, cRepeat, curTabId_, Completion_, CurCVer_, OnChrome, OnEdge, OnFirefox, setIcon_, blank_,
-  substitute_, paste_, keyToCommandMap_, CONST_, copy_
+  substitute_, paste_, keyToCommandMap_, CONST_, copy_, set_cEnv
 } from "./store"
 import * as BgUtils_ from "./utils"
 import {
@@ -400,7 +400,7 @@ set_reqH_([
   /** kFgReq.respondForRunAs: */ (request: FgReq[kFgReq.respondForRunKey]): void => {
     if (performance.now() - request.r.n < 500) {
       const info = request.r.c
-      info.element = request.e && [request.e[0], request.e[1], BgUtils_.normalizeClassesToMatch_(request.e[2])]
+      info.element = BgUtils_.normalizeElDesc_(request.e)
       runKeyWithCond(info)
     }
   },

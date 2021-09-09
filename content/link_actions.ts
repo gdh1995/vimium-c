@@ -5,7 +5,7 @@ import {
 import { getVisibleClientRect_, center_, view_, selRange_ } from "../lib/rect"
 import {
   IsInDOM_, createElement_, htmlTag_, getComputedStyle_, getEditableType_, isIFrameElement, GetParent_unsafe_, focus_,
-  kMediaTag, ElementProto, querySelector_unsafe_, getInputType, uneditableInputs_, GetShadowRoot_, scrollingEl_,
+  kMediaTag, ElementProto_not_ff, querySelector_unsafe_, getInputType, uneditableInputs_, GetShadowRoot_, scrollingEl_,
   findMainSummary_, getSelection_, removeEl_s, appendNode_s, getMediaUrl, getMediaTag, INP, ALA, attr_s,
   setOrRemoveAttr_s, toggleClass_s, textContent_s, notSafe_not_ff_, modifySel, SafeEl_not_ff_, testMatch, docHasFocus_
 } from "../lib/dom_utils"
@@ -166,7 +166,7 @@ const hoverEl = (): void => {
       try {
         if (selector && (selected = up
               ? !OnFirefox
-                ? ElementProto.querySelector.call(ancestors[max_(0, min_(up + 1, ancestors.length - 1))]
+                ? ElementProto_not_ff!.querySelector.call(ancestors[max_(0, min_(up + 1, ancestors.length - 1))]
                     , selector)
                 : querySelector_unsafe_(selector, ancestors[max_(0, min_(up + 1, ancestors.length - 1))
                     ] as SafeElement)

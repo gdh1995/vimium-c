@@ -28,6 +28,8 @@ export function set_docSelectable_ (_newDocSelectable: boolean): void { docSelec
 export const rAF_: (callback: FrameRequestCallback) => number =
     Build.NDEBUG ? requestAnimationFrame : f => requestAnimationFrame(f)
 
+export const ElementProto_not_ff = !OnFirefox ? Element.prototype as SafeElement : 0 as never as null
+
 export const getComputedStyle_: (element: Element) => CSSStyleDeclaration =
     Build.NDEBUG ? getComputedStyle : el => getComputedStyle(el)
 
@@ -45,7 +47,7 @@ export const querySelectorAll_unsafe_ = ((selector: string, scope?: Element | Sh
     , isScopeAnElementOrNull?: 1): NodeListOf<Element> | void => {
   try {
     if (!OnFirefox) {
-      return (scope && isScopeAnElementOrNull ? ElementProto : scope || doc
+      return (scope && isScopeAnElementOrNull ? ElementProto_not_ff! : scope || doc
           ).querySelectorAll.call(scope || doc, selector)
     } else {
       return (scope || doc).querySelectorAll(selector)
@@ -115,7 +117,7 @@ export const isInTouchMode_cr_ = OnChrome ? (): boolean => {
 } : 0 as never as null
 
 /** refer to {@link #BrowserVer.MinParentNodeGetterInNodePrototype } */
-export const Getter_not_ff_ = !OnFirefox ? function <Ty extends Node, Key extends keyof Ty
+const _getter_unsafeOnly_not_ff_ = !OnFirefox ? function <Ty extends Node, Key extends keyof Ty
     , ensured extends boolean = false>(Cls: { prototype: Ty; new (): Ty }, instance: Ty
       , property: Key & (Ty extends Element ? "assignedSlot" : "childNodes" | "parentNode")
       ): Exclude<NonNullable<Ty[Key]>, Window | RadioNodeList | HTMLCollection
@@ -161,15 +163,13 @@ export const GetShadowRoot_ = (el: Element): ShadowRoot | null => {
 
 export const GetChildNodes_not_ff = !OnFirefox ? (el: Element): NodeList => {
   if (!OnChrome || Build.MinCVer >= BrowserVer.MinParentNodeGetterInNodePrototype) {
-    return Getter_not_ff_!(Node, el, "childNodes")!
+    return notSafe_not_ff_!(el) ? _getter_unsafeOnly_not_ff_!(Node, el, "childNodes")! : el.childNodes as NodeList
   } else {
     let cn = el.childNodes
-    return cn instanceof NodeList && !("value" in cn) ? cn
-        : Getter_not_ff_!(Node, el, "childNodes") || <NodeList> <{[index: number]: Node}> []
+    return !notSafe_not_ff_!(el) || cn instanceof NodeList && !("value" in cn) ? cn as NodeList
+        : _getter_unsafeOnly_not_ff_!(Node, el, "childNodes") || <NodeList> <{[index: number]: Node}> []
   }
 } : 0 as never as null
-
-export const ElementProto = Element.prototype as SafeElement
 
 /** Try its best to find a real parent */
 export const GetParent_unsafe_ = function (el: Node | Element
@@ -178,13 +178,13 @@ export const GetParent_unsafe_ = function (el: Node | Element
   /** Chrome: a selection / range can only know nodes and text in a same tree scope */
   if (!OnEdge && type >= PNType.RevealSlot) {
       if (OnChrome && Build.MinCVer < BrowserVer.MinNoShadowDOMv0 && chromeVer_ < BrowserVer.MinNoShadowDOMv0) {
-        const func = ElementProto.getDestinationInsertionPoints,
+        const func = ElementProto_not_ff!.getDestinationInsertionPoints,
         arr = func ? func.call(el) : [], len = arr.length;
         len > 0 && (el = arr[len - 1]);
       }
       let slot = (el as Element).assignedSlot;
       !OnFirefox && slot && notSafe_not_ff_!(el as Element) &&
-      (slot = Getter_not_ff_!(Element, el as Element, "assignedSlot"));
+      (slot = _getter_unsafeOnly_not_ff_!(Element, el as Element, "assignedSlot"));
       if (slot) {
         if (type === PNType.RevealSlot) { return slot; }
         while (slot = slot.assignedSlot) { el = slot; }
@@ -199,7 +199,7 @@ export const GetParent_unsafe_ = function (el: Node | Element
           || !unsafeFramesetTag_old_cr_ || (pn as ParentNodeProp as WindowWithTop).top !== top)
         && pn.nodeType && doc.contains.call(pn, el) ? pn
         : !OnChrome || Build.MinCVer >= BrowserVer.MinParentNodeGetterInNodePrototype
-          || chromeVer_ > BrowserVer.MinParentNodeGetterInNodePrototype - 1 ? Getter_not_ff_!(Node, el, "parentNode")
+          || chromeVer_ > BrowserVer.MinParentNodeGetterInNodePrototype - 1 ? _getter_unsafeOnly_not_ff_!(Node, el, "parentNode")
         : (Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter
           ? pe && (!unsafeFramesetTag_old_cr_ || (pe as ParentNodeProp as WindowWithTop).top !== top) : pe)
         && pe!.nodeType && doc.contains.call(pe as Element, el) ? (type = PNType.DirectNode, pe)
@@ -486,6 +486,9 @@ export const getSelectionFocusEdge_ = (sel: Selection, knownDi?: VisualModeNS.Fo
     return SafeEl_not_ff_!(<Element | null> (o || el), PNType.DirectElement)
 }
 
+export const getElDesc_ = (el: Element | null): FgReq[kFgReq.respondForRunKey]["e"] =>
+    el && (OnFirefox || !notSafe_not_ff_!(el)) && [(el as SafeElement).localName, el.id, el.className] || null
+
 //#endregion
 
 //#region action section
@@ -510,7 +513,7 @@ export const appendNode_s = (parent: SafeElement | Document | HTMLDivElement | H
 
 export const append_not_ff = !OnFirefox ? (parent: Element, child: HTMLElement): void => {
   (OnChrome && Build.MinCVer < BrowserVer.MinEnsured$ParentNode$$appendAndPrepend
-      ? ElementProto.appendChild : ElementProto.append!).call(parent, child)
+      ? ElementProto_not_ff!.appendChild : ElementProto_not_ff!.append!).call(parent, child)
 } : 0 as never
 
 export const removeEl_s = (el: SafeHTMLElement | HTMLDialogElement | HTMLScriptElement | HTMLSpanElement): void => {
@@ -561,7 +564,7 @@ export const attachShadow_ = <T extends HTMLDivElement | HTMLBodyElement> (box: 
 
 export const scrollIntoView_ = (el: Element, dir?: boolean): void => {
     OnFirefox ? el.scrollIntoView({ block: "nearest" })
-      : ElementProto.scrollIntoView.call(el,
+      : ElementProto_not_ff!.scrollIntoView.call(el,
           OnChrome && Build.MinCVer < BrowserVer.MinScrollIntoViewOptions && dir != null ? dir : { block: "nearest" })
 }
 

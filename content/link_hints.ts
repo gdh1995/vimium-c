@@ -83,8 +83,6 @@ interface FrameHintsInfo {
 }
 /** return whether the element's VHints is not accessible */
 export type AddChildDirectly = (officer: BaseHintWorker, el: KnownIFrameElement, rect: Rect | null) => boolean
-export type AddChildIndirectly = (officer: BaseHintWorker
-    , el: KnownIFrameElement, rect: Rect | null, elList: SafeElement[]) => void
 
 import {
   VTr, isAlive_, isEnabled_, setupEventListener, keydownEvents_, set_keydownEvents_, timeout_, max_, min_, math, OnEdge,
@@ -148,7 +146,7 @@ let _timer: ValidTimeoutID = TimerID.None
 let kSafeAllSelector = OnFirefox ? "*" as const : ":not(form)" as const
 let manager_: HintManager | null = null
 let api_: VApiTy = null as never
-let addChildFrame_: AddChildDirectly | AddChildIndirectly | null | undefined
+let addChildFrame_: AddChildDirectly | null | undefined
 let isHC_: boolean | null | undefined
 
 export {
