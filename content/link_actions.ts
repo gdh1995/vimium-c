@@ -425,7 +425,7 @@ const checkFocus = (defaultVal: boolean): boolean => {
       } else {
         focusOmni()
       }
-    } else if (m < HintMode.min_job) {
+    } else if (m < HintMode.min_job || m === HintMode.FOCUS_EDITABLE) {
       if (tag === "details") {
         const summary = findMainSummary_(clickEl as HTMLDetailsElement)
         if (summary) {
@@ -467,9 +467,6 @@ const checkFocus = (defaultVal: boolean): boolean => {
       evalIfOK(url) || openTextOrUrl(url, !0)
     } else if (m < HintMode.max_edit + 1) {
       copyText()
-    } else if (m < HintMode.FOCUS_EDITABLE + 1) {
-      retPromise = select_(clickEl as LockableElement, rect, !removeFlash)
-      showRect = 0
     } else { // HintMode.ENTER_VISUAL_MODE
       selectAllOfNode(clickEl)
       const sel = getSelection_()

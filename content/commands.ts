@@ -6,7 +6,7 @@ import {
 import {
   isHTML_, htmlTag_, createElement_, querySelectorAll_unsafe_, SafeEl_not_ff_, docEl_unsafe_, MDW, CLK,
   querySelector_unsafe_, DAC, removeEl_s, appendNode_s, setClassName_s, INP, contains_s, toggleClass_s, modifySel,
-  focus_, testMatch, docHasFocus_, deepActiveEl_unsafe_
+  focus_, testMatch, docHasFocus_, deepActiveEl_unsafe_, getEditableType_
 } from "../lib/dom_utils"
 import {
   pushHandler_, removeHandler_, getMappedKey, prevent_, isEscape_, keybody_, DEL, BSP, ENTER, handler_stack,
@@ -20,7 +20,7 @@ import { post_, set_contentCommands_, runFallbackKey } from "./port"
 import {
   addElementList, ensureBorder, evalIfOK, getSelected, getSelectionText, getParentVApi, curModalElement, createStyle,
   getBoxTagName_old_cr, setupExitOnClick, addUIElement, removeSelection, ui_root, kExitOnClick, collpaseSelection,
-  hideHelp, set_hideHelp, set_helpBox, checkHidden,
+  hideHelp, set_hideHelp, set_helpBox, checkHidden, flash_,
 } from "./dom_ui"
 import { hudHide, hudShow, hudTip, hud_text } from "./hud"
 import { onKeyup2, set_onKeyup2, passKeys, set_nextKeys, set_passKeys, keyFSM, onEscDown } from "./key_handler"
@@ -40,7 +40,7 @@ import { activate as omniActivate, hide as omniHide } from "./omni"
 import { findNextInText, findNextInRel } from "./pagination"
 import { traverse, getEditable, filterOutNonReachable } from "./local_links"
 import {
-  select_, unhover_async, set_lastHovered_, hover_async, lastHovered_, catchAsyncErrorSilently, setupIDC_cr
+  select_, unhover_async, set_lastHovered_, hover_async, lastHovered_, catchAsyncErrorSilently, setupIDC_cr, click_async
 } from "./async_dispatcher"
 /* eslint-disable @typescript-eslint/no-floating-promises */
 
@@ -218,6 +218,10 @@ set_contentCommands_([
   /* kFgCmd.focusInput: */ (options: CmdOptions[kFgCmd.focusInput], count: number): void => {
     const S = "IH IHS"
     const act = options.act || options.action, known_last = deref_(insert_last_);
+    const selectOrClick = (el: SafeHTMLElement, rect?: Rect | null, onlyOnce?: true): Promise<void> => {
+      return getEditableType_(el) ? select_(el, rect, onlyOnce, action, onlyOnce)
+          : click_async(el, rect, true).then((): void => { onlyOnce && flash_(el) })
+    }
     OnFirefox && insert_Lock_()
     if (act && (act[0] !== "l" || known_last && !raw_insert_lock)) {
       let newEl: LockableElement | null | undefined = raw_insert_lock, ret: kTip | 0 | -1 = 0;
@@ -248,11 +252,10 @@ set_contentCommands_([
     insert_inputHint && (insert_inputHint.h = null as never);
     const arr = getViewBox_()
     prepareCrop_(1);
-    interface InputHint { [0]: InputHintItem["d"]; [1]: Rect }
     // here those editable and inside UI root are always detected, in case that a user modifies the shadow DOM
     const visibleInputs = traverse(!OnFirefox
           ? VTr(kTip.editableSelector) + kSafeAllSelector : VTr(kTip.editableSelector), options, getEditable
-        ) as InputHint[],
+        ) as (Hint & { [0]: SafeHTMLElement })[],
     action = options.select, keep = options.keep, pass = options.passExitKey, reachable = options.reachable;
     if (reachable != null ? reachable : fgCache.e) {
       curModalElement || filterOutNonReachable(visibleInputs as Hint[], 1)
@@ -260,17 +263,17 @@ set_contentCommands_([
     let sel = visibleInputs.length, firstInput = visibleInputs[0]
     if (sel < 2) {
       exitInputHint();
-      sel && select_(firstInput[0], firstInput[1], true, action, true)
+      sel && selectOrClick(firstInput[0], firstInput[1], true)
       runFallbackKey(options, sel ? 0 : kTip.noInputToFocus)
       return
     }
     let ind = 0
     for (; ind < sel; ind++) {
-      const hint = visibleInputs[ind] as Hint & InputHint, j = hint[0].tabIndex;
+      const hint = visibleInputs[ind], j = hint[0].tabIndex;
       hint[2] = j > 0 ? (OnChrome ? Build.MinCVer >= BrowserVer.MinStableSort : !OnEdge) ? j : j + ind / 8192
           : j < 0 ? -ind - sel : -ind
     }
-    (visibleInputs as Array<Hint & InputHint>).sort((a, b) => a[2] < 1 || b[2] < 1 ? b[2] - a[2] : a[2] - b[2])
+    visibleInputs.sort((a, b) => a[2] < 1 || b[2] < 1 ? b[2] - a[2] : a[2] - b[2])
     const hints: InputHintItem[] = visibleInputs.map((link): InputHintItem => {
       const marker = createElement_("span") as InputHintItem["m"],
       rect = padClientRect_(getBoundingClientRect_(link[0]), 3);
@@ -294,7 +297,7 @@ set_contentCommands_([
     }
     setClassName_s(hints[sel].m, S)
     ensureBorder(wdZoom_ / dScale_);
-    select_(hints[sel].d, visibleInputs[sel][1], false, action, false).then((): void => {
+    selectOrClick(hints[sel].d, visibleInputs[sel][1]).then((): void => {
       insert_inputHint!.b = addElementList<false>(hints, arr)
     })
     exitInputHint();
@@ -311,7 +314,7 @@ set_contentCommands_([
         sel = (oldSel + (key < "t" ? len - 1 : 1)) % len;
         set_isHintingInput(1)
         prevent_(event.e); // in case that selecting is too slow
-        select_(hints2[sel].d, null, false, action).then((): void => {
+        selectOrClick(hints2[sel].d).then((): void => {
           set_isHintingInput(0)
           setClassName_s(hints2[oldSel].m, "IH")
           setClassName_s(hints2[sel].m, S)

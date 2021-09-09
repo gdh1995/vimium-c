@@ -34,10 +34,10 @@ type Filter<T> = BaseFilter<T> | HTMLFilter<T>
 type AllowedClickTypeForNonHTML = ClickType.attrListener | ClickType.tabindex
 type HintSources = readonly SafeElement[] | NodeListOf<SafeElement>
 type NestedFrame = false | 0 | null | KnownIFrameElement
-type BareElementSet = Pick<ElementSet, "has">
+type IterableElementSet = Pick<ElementSet, "has"> & { forEach (callback: (value: Element) => void): void }
 
 let frameNested_: NestedFrame = false
-let extraClickable_: BareElementSet | null
+let extraClickable_: IterableElementSet | null = null
 // let withClickableAttrs_: BareElementSet | null
 let clickTypeFilter_: ClickType = 0
 let ngEnabled: boolean | undefined
@@ -137,7 +137,7 @@ const getClickable = (hints: Hint[], element: SafeHTMLElement): void => {
             || (anotherEl as TypeToAssert<Element, SafeHTMLElement, "onmousedown">).onmousedown
           : element.getAttribute("onclick"))
         || (s = element.getAttribute("role")) && clickableRoles_.test(s)
-        || extraClickable_ && extraClickable_.has(element)
+        || extraClickable_ !== null && extraClickable_.has(element)
         || ngEnabled && attr_s(element, "ng-click")
         || forHover_ && attr_s(element, "onmouseover")
         || jsaEnabled_ && (s = attr_s(element, "jsaction")) && checkJSAction(s)
@@ -276,28 +276,36 @@ const matchSafeElements = ((selector1: string, rootNode: Element | ShadowRoot | 
   (selector: string, rootNode: Element | null, udSelector: string | null, mayBeUnsafe: 1): HintSources | void
 }
 
-const createElementSet = (list: NodeListOf<Element> | Element[]): BareElementSet | null => {
-  let set: ElementSet | null
+const createElementSet = (list: NodeListOf<Element> | Element[]): IterableElementSet | null => {
+  let set: IterableElementSet | null
   if (!list.length) { set = null }
   else if (!OnChrome
       || Build.MinCVer >= BrowserVer.MinEnsured$ForOf$ForDOMListTypes
       || chromeVer_ > BrowserVer.MinEnsured$ForOf$ForDOMListTypes - 1) {
-    set = new WeakSet!(list as ArrayLike<Element> as readonly Element[])
-  } else if (Build.MinCVer >= BrowserVer.MinEnsuredES6WeakMapAndWeakSet || WeakSet) {
-    set = new WeakSet!;
+    set = new Set!(list as ArrayLike<Element> as readonly Element[])
+  } else if (Build.MinCVer >= BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol
+      || (Build.MinCVer >= BrowserVer.Min$Set$Has$$forEach || chromeVer_ > BrowserVer.Min$Set$Has$$forEach - 1)
+          && Set) {
+    set = new Set!;
     [].forEach.call<readonly Element[], [callback: (this: ElementSet, el: Element) => any, cbSelf: ElementSet], any>(
-        list as ArrayLike<Element> as readonly Element[], set.add, set)
+        list as ArrayLike<Element> as readonly Element[], (set as Set<Element>).add, set as Set<Element>)
   } else {
-    set = [].slice.call(list) as {} as ElementSet
+    set = [].slice.call(list) as {} as IterableElementSet
     set.has = includes_
   }
   return set
 }
 
+const addExtraVisibleToHints = (hints: (Hint | Hint0)[], element: Element): void => {
+  for (const hint of hints) { if (hint[0] == element) { return } }
+  let arr = htmlTag_<1>(element) && getVisibleClientRect_(element, null)
+  arr && hints.push([element as SafeHTMLElement, arr, ClickType.Default])
+}
+
 const addChildTrees = (parts: HintSources, allNodes: NodeListOf<SafeElement>): HintSources => {
   let matchWebkit = OnChrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
                     && chromeVer_ < BrowserVer.MinEnsuredUnprefixedShadowDOMV0;
-  let local_addChildFrame_ = addChildFrame_, hosts: SafeElement[] = []
+  const local_addChildFrame_ = addChildFrame_, hosts: SafeElement[] = []
   for (let i = 0, len = allNodes.length; i < len; i++) {
     let el = allNodes[i]
     if (OnChrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
@@ -307,7 +315,7 @@ const addChildTrees = (parts: HintSources, allNodes: NodeListOf<SafeElement>): H
       if (OnChrome && Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1
           || OnFirefox && Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1
           || el !== omni_box && el !== find_box) {
-        local_addChildFrame_(coreHints, el, getIFrameRect(el), hosts)
+        local_addChildFrame_(coreHints, el, getIFrameRect(el))
       }
     }
   }
@@ -350,7 +358,7 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
   traverseRoot = !wholeDoc ? fullscreenEl_unsafe_() : !Build.NDEBUG && isInAnElement && wholeDoc as Element || null
   let matchSelector = options.match || null,
   textFilter: OtherFilterOptions["textFilter"] | void | RegExpI | RegExpOne | false = options.textFilter,
-  clickableSelector = wantClickable && options.clickable || null,
+  clickableSelector = options.clickable || null,
   matchAll = (!Build.NDEBUG && selector === "*" // for easier debugging
       ? selector = kSafeAllSelector : selector) === kSafeAllSelector && !matchSelector,
   output: Hint[] | Hint0[] = [],
@@ -409,7 +417,7 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
   const tree_scopes: Array<typeof cur_scope> = [[cur_arr, 0
       , createElementSet(clickableSelector && querySelectorAll_unsafe_(clickableSelector, traverseRoot, 1)
           || (clickableSelector = null, [])) ]]
-  let cur_scope: [HintSources, number, BareElementSet | null] | undefined, cur_tree: HintSources, cur_ind: number
+  let cur_scope: [HintSources, number, IterableElementSet | null] | undefined, cur_tree: HintSources, cur_ind: number
   for (; cur_scope = tree_scopes.pop(); ) {
     for ([cur_tree, cur_ind, extraClickable_] = cur_scope; cur_ind < cur_tree.length; ) {
       const el: SafeElement = cur_tree[cur_ind++]
@@ -430,6 +438,9 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
       } else if (checkNonHTML) {
         checkNonHTML(output, el)
       }
+    }
+    if (extraClickable_ && !wantClickable) {
+      extraClickable_.forEach(addExtraVisibleToHints.bind(0, output))
     }
   }
   extraClickable_ = cur_tree = cur_arr = null as never

@@ -26,7 +26,7 @@ export interface HintItem extends DrawableHintItem, ExecutableHintItem {
   /** zIndex */ z?: number
 }
 export interface FilteredHintItem extends HintItem { h: HintText }
-export interface InputHintItem extends DrawableHintItem { d: LockableElement }
+export interface InputHintItem extends DrawableHintItem { d: SafeHTMLElement }
 
 export interface KeyStatus {
     /** curHints */ c: readonly HintItem[];
