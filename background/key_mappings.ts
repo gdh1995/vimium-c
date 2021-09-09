@@ -25,7 +25,7 @@ type NameMetaMapEx = NameMetaMap & {
   readonly [k in keyof OtherCNamesForDebug]: OtherCNamesForDebug[k] extends keyof BgCmdOptions
       ? RawCmdDesc<kCName, OtherCNamesForDebug[k]> : never
 }
-type ValidMappingInstructions = "map" | "mapkey" | "mapKey" | "env" | "shortcut" | "command"
+type ValidMappingInstructions = "map" | "run" | "mapkey" | "mapKey" | "env" | "shortcut" | "command"
     | "unmap" | "unmap!" | "unmapAll" | "unmapall"
 
 const keyRe_ = <RegExpG & RegExpSearchable<0>> /<(?!<)(?:.-){0,4}.\w*?(?::i)?>|./g /* need to support "<<left>" */
@@ -192,7 +192,7 @@ const doesMatchEnv_ = (options: CommandsNS.RawOptions | string | null): boolean 
 
 const parseKeyMappings_ = (wholeMappings: string): void => {
     let lines: string[], mk = 0, _i = 0, key2: string | undefined
-      , _len: number, details: CommandsNS.Description | null | undefined, ch: number
+      , _len: number, details: CommandsNS.Description | undefined, ch: number
       , registry = new Map<string, CommandsNS.Item>()
       , cmdMap: typeof shortcutRegistry_ = new Map(), envMap: typeof envRegistry_ = null
       , regItem: CommandsNS.Item | null, options: ReturnType<typeof getOptions_>
@@ -230,16 +230,17 @@ const parseKeyMappings_ = (wholeMappings: string): void => {
       const knownLen = cmd.length + key.length + val.length + 2
       let doesPass = noCheck
       switch (cmd) {
-      case "map":
+      case "map": case "run":
+        const isRun = cmd === "run" && !(val in availableCommands_)
+        details = undefined
         if (noCheck) {
-          details = availableCommands_[val]
         } else if (!key || key.length > 8 && (key === "__proto__" || key.includes("<__proto__>"))) {
           logError_('Unsupported key sequence %c"%s"', colorRed, key || '""', `for "${val || ""}"`)
         } else if (registry.has(key) && !(builtinKeys_ && builtinKeys_.has(key)) && !hasIfOption(line, knownLen)) {
           logError_('Key %c"%s"', colorRed, key, "has been mapped to", registry.get(key)!.command_)
         } else if (!val) {
-          logError_('Lacking command when mapping %c"%s"', colorRed, key)
-        } else if (!(details = availableCommands_[val])) {
+          logError_((isRun ? "Lacking target when running" : "Lacking command when mapping") + ' %c"%s"', colorRed, key)
+        } else if (!isRun && !(details = availableCommands_[val])) {
           logError_('Command %c"%s"', colorRed, val, "doesn't exist!")
         } else if ((ch = key.charCodeAt(0)) > kCharCode.maxNotNum && ch < kCharCode.minNotNum
             || ch === kCharCode.dash) {
@@ -248,7 +249,9 @@ const parseKeyMappings_ = (wholeMappings: string): void => {
           doesPass = true
         }
         if (doesPass) {
-          regItem = makeCommand_(val, getOptions_(line, knownLen), details!)
+          regItem = !isRun ? makeCommand_(val, getOptions_(line, knownLen), details)
+              : makeCommand_(AsC_("runKey")
+                  , getOptions_(` keys=${JSON.stringify(val)}` + line.slice(knownLen), 0), undefined)
           if (regItem) {
             registry.set(key, regItem)
             builtinKeys_ && builtinKeys_.delete(key)
