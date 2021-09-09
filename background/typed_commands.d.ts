@@ -50,7 +50,7 @@ interface BgCmdOptions {
   [kBgCmd.addBookmark]: {
     folder: string; /** (deprecated) */ path: string
     all: true | "window"
-  } & LimitedRangeOptions
+  } & LimitedRangeOptions & TabFilterOptions
   [kBgCmd.autoOpenFallback]: Extract<CmdOptions[kFgCmd.autoOpen], { o?: 1 }>
   [kBgCmd.captureTab]: {
     /** 0..100; 0 means .png */ jpeg: number
@@ -61,7 +61,7 @@ interface BgCmdOptions {
   [kBgCmd.clearCS]: { type: chrome.contentSettings.ValidTypes }
   [kBgCmd.clearFindHistory]: {}
   [kBgCmd.clearMarks]: { local: boolean; all: boolean }
-  [kBgCmd.copyWindowInfo]: UserSedOptions & LimitedRangeOptions & {
+  [kBgCmd.copyWindowInfo]: UserSedOptions & LimitedRangeOptions & TabFilterOptions & {
     /** (deprecated) */ decoded: boolean
     decode: boolean
     type: "" | "frame" | "browser" | "window" | "tab" | "title" | "url"
@@ -69,10 +69,10 @@ interface BgCmdOptions {
     join: "json" | string | boolean
   } & Req.FallbackOptions
   [kBgCmd.createTab]: OpenUrlOptions & { url: string; urls: string[]; evenIncognito: boolean | -1, $pure: boolean }
-  [kBgCmd.discardTab]: {}
+  [kBgCmd.discardTab]: TabFilterOptions
   [kBgCmd.duplicateTab]: { active: false }
   [kBgCmd.goBackFallback]: Extract<CmdOptions[kFgCmd.framesGoBack], {r?: null}>
-  [kBgCmd.goToTab]: { absolute: boolean; noPinned: boolean }
+  [kBgCmd.goToTab]: { absolute: boolean; noPinned: boolean } & TabFilterOptions
   [kBgCmd.goUp]: { type: "tab" | "frame"; reloadOnRoot: true | false } & TrailingSlashOptions & UserSedOptions
   [kBgCmd.joinTabs]: {
     sort: "" | /** time */ true | "time" | "create" | "recency" | "id" | "url" | "host" | "title" | "reverse"
@@ -80,12 +80,11 @@ interface BgCmdOptions {
           | "host" | "url" | "rhost" | "title" | "create" | "rcreate" | "id" | "window" | "rwindow"
           | "index" | "rindex" | "reverse")[]
     windows: "" | "current" | "all"
-    filter: BgCmdOptions[kBgCmd.removeTabsR]["filter"]
-  }
+  } & TabFilterOptions
   [kBgCmd.mainFrame]: Req.FallbackOptions
   [kBgCmd.moveTab]: { group: "keep" | "ignore" | boolean }
   [kBgCmd.moveTabToNewWindow]: { all: boolean | BOOL }
-      & Pick<OpenUrlOptions, "incognito" | "position"> & LimitedRangeOptions
+      & Pick<OpenUrlOptions, "incognito" | "position"> & LimitedRangeOptions & TabFilterOptions
   [kBgCmd.moveTabToNextWindow]: { minimized: false; min: false; end: boolean; right: true | false }
       & Pick<OpenUrlOptions, "position">
   [kBgCmd.openUrl]: OpenUrlOptions & MasksForOpenUrl & {
@@ -95,8 +94,9 @@ interface BgCmdOptions {
     goNext: boolean | "absolute"; /** for ReuseType.reuse */ prefix: boolean
   } & Ensure<OpenPageUrlOptions, keyof OpenPageUrlOptions>
     & /** for .replace, ReuseType.reuse and JS URLs */ Req.FallbackOptions
-  [kBgCmd.reloadTab]: { hard: true; /** (deprecated) */ bypassCache: true; single: boolean } & LimitedRangeOptions
-  [kBgCmd.removeRightTab]: LimitedRangeOptions & Req.FallbackOptions
+  [kBgCmd.reloadTab]: { hard: true; /** (deprecated) */ bypassCache: true; single: boolean }
+      & LimitedRangeOptions & TabFilterOptions
+  [kBgCmd.removeRightTab]: LimitedRangeOptions & TabFilterOptions & Req.FallbackOptions
   [kBgCmd.removeTab]: LimitedRangeOptions & {
     highlighted: boolean | "no-current"
     goto: "left" | "right" | "previous" | "near" | "reverse" | "backward" | "forward"
@@ -104,12 +104,11 @@ interface BgCmdOptions {
     mayClose: boolean
     /** (deprecated) */ allow_close: boolean
     keepWindow: "at-least-one" | "always"
-    /** only work when close one tab */ filter: BgCmdOptions[kBgCmd.removeTabsR]["filter"]
+    /** only work when close one tab */ filter: TabFilterOptions["filter"]
   } & Req.FallbackOptions
   [kBgCmd.removeTabsR]: {
-    filter: "url" | "hash" | "url=..." | "host" | "host=..." | "title" | "title*" | "group" | "url+hash" | "host&title"
     other: boolean; mayConfirm: true; noPinned: boolean
-  } & Req.FallbackOptions
+  } & TabFilterOptions & Req.FallbackOptions
   [kBgCmd.reopenTab]: Pick<OpenUrlOptions, "group"> & Req.FallbackOptions
   [kBgCmd.restoreTab]: { incognito: "force" | true; one: boolean }
   [kBgCmd.runKey]: {
@@ -130,12 +129,13 @@ interface BgCmdOptions {
   [kBgCmd.sendToExtension]: { id: string; data: any; raw: true } & Req.FallbackOptions
   [kBgCmd.showHUD]: { text: string } & Req.FallbackOptions
   [kBgCmd.toggleCS]: { action: "" | "reopen"; incognito: boolean; type: chrome.contentSettings.ValidTypes }
-  [kBgCmd.toggleMuteTab]: { all: boolean; other: boolean; others: boolean; mute: boolean } & Req.FallbackOptions
-  [kBgCmd.togglePinTab]: LimitedRangeOptions & Req.FallbackOptions
+  [kBgCmd.toggleMuteTab]: { all: boolean; other: boolean; others: boolean; mute: boolean }
+      & TabFilterOptions & Req.FallbackOptions
+  [kBgCmd.togglePinTab]: LimitedRangeOptions & TabFilterOptions & Req.FallbackOptions
   [kBgCmd.toggleTabUrl]: { keyword: string; parsed: string; reader: boolean } & OpenUrlOptions
   [kBgCmd.toggleVomnibarStyle]: { style: string; current: boolean }
   [kBgCmd.toggleZoom]: { level: number; in?: true; out?: true; reset?: true; min: number; max: number }
-  [kBgCmd.visitPreviousTab]: { acrossWindows: true; onlyActive: true } & Req.FallbackOptions
+  [kBgCmd.visitPreviousTab]: { acrossWindows: true; onlyActive: true } & TabFilterOptions & Req.FallbackOptions
   [kBgCmd.closeDownloadBar]: { newWindow?: null | true | false; all: 1 }
   [kBgCmd.reset]: {}
 }
@@ -177,6 +177,10 @@ interface MasksForOpenUrl {
 
 interface LimitedRangeOptions {
   limited: boolean
+}
+
+interface TabFilterOptions {
+  filter: "url" | "hash" | "url=..." | "host" | "host=..." | "title" | "title*" | "group" | "url+hash" | "host&title"
 }
 
 declare namespace CommandsNS {

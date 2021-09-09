@@ -136,6 +136,7 @@ declare const enum BrowserVer {
   // even if LEGACY
   MinEnsuredES6MethodFunction = 45, // e.g.: `a = { b() {} }`
   MinMuted = 45,
+  MinTabAudible = 45,
   // https://www.chromestatus.com/features/5697181675683840
   MinNoMousePositionUpdatesWhenScrolling = 45, // replaced by MinRuntimeFlag$UpdateHoverAtBeginFrame
   // the 3 below are even if EXPERIMENTAL or LEGACY

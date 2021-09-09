@@ -27,7 +27,8 @@ import {
   initHelp, framesGoBack, mainFrame, nextFrame, performFind, framesGoNext
 } from "./frame_commands"
 import {
-  onShownTabsIfRepeat_, getTabRange, getTabsIfRepeat_, tryLastActiveTab_, filterTabsByCond_
+  onShownTabsIfRepeat_, getTabRange, getTabsIfRepeat_, tryLastActiveTab_, filterTabsByCond_, testBoolFilter_,
+  getNearTabInd
 } from "./filter_tabs"
 import {
   copyWindowInfo, joinTabs, moveTabToNewWindow, moveTabToNextWindow, reloadTab, removeTab, toggleMuteTab,
@@ -204,7 +205,7 @@ set_bgC_([
     const path: string | UnknownValue = get_cOptions<C.addBookmark>().folder || get_cOptions<C.addBookmark>().path
     const nodes = path ? (path + "").replace(<RegExpG & RegExpSearchable<0>> /\\\/?|\//g
           , s => s.length > 1 ? "/" : "\n").split("\n").filter(i => i) : []
-    const allTabs = !!get_cOptions<C.addBookmark>().all
+    const wantAll = !!get_cOptions<C.addBookmark>().all
     if (!nodes.length) { showHUD('Need "path" to a bookmark folder.'); resolve(0); return }
     browser_.bookmarks.getTree((tree): void => {
       if (!tree) { resolve(0); return runtimeError_() }
@@ -225,19 +226,25 @@ set_bgC_([
         folder = roots[0]
         if (!folder.children) { break }
       }
-      (!allTabs && cRepeat * cRepeat < 2 ? getCurTab : getCurShownTabs_)(function doAddBookmarks(tabs?: Tab[]): void {
-        if (!tabs || !tabs.length) { runtimeError_(); return }
-        const ind = (OnFirefox ? selectFrom(tabs, 1) : selectFrom(tabs)).index
-        let [start, end] = allTabs ? [0, tabs.length] : getTabRange(ind, tabs.length)
-        let count = end - start
+      (!wantAll && cRepeat * cRepeat < 2 ? getCurTab : getCurShownTabs_)(function doAddBookmarks(tabs?: Tab[]): void {
+        if (!tabs || !tabs.length) { resolve(0); return runtimeError_() }
+        const activeTab = (OnFirefox ? selectFrom(tabs, 1) : selectFrom(tabs)), ind = activeTab.index
+        let [start, end] = wantAll ? [0, tabs.length] : getTabRange(ind, tabs.length)
+        const filter = get_cOptions<C.addBookmark, true>().filter, allTabs = tabs
+        tabs = tabs.slice(start, end);
+        if (filter) {
+          tabs = filterTabsByCond_(activeTab, tabs, filter)
+          if (!tabs.length) { resolve(0); return }
+        }
+        const count = tabs.length
         if (count > 20 && needConfirm_()) {
-              void confirm_("addBookmark", count).then(doAddBookmarks.bind(0, tabs))
+              void confirm_("addBookmark", count).then(doAddBookmarks.bind(0, allTabs))
               return
         }
-        for (const tab of tabs.slice(start, end)) {
+        for (const tab of tabs) {
           browser_.bookmarks.create({ parentId: folder!.id, title: tab.title, url: getTabUrl(tab) }, runtimeError_)
         }
-        showHUD(`Added ${end - start} bookmark${end > start + 1 ? "s" : ""}.`)
+        showHUD(`Added ${count} bookmark${count > 1 ? "s" : ""}.`)
         resolve(1)
       })
     })
@@ -296,20 +303,24 @@ set_bgC_([
     }
     onShownTabsIfRepeat_(true, 1, function onTabs(tabs, [start, current, end], resolve, force1?: boolean): void {
       if (force1) { [start, end] = getTabRange(current, tabs.length, 0, 1) }
-      let count = end - start - 1
+      const filter = get_cOptions<C.discardTab, true>().filter, allTabs = tabs
+      tabs = tabs.slice(start, end)
+      tabs.length > 1 && (tabs as Tab[]).forEach((i, ind) => i.index = ind)
+      const activeTab = selectFrom(tabs.length <= 1 && curOrTabs || tabs)
+      tabs = filter ? filterTabsByCond_(activeTab, tabs, filter) : tabs
+      const count = tabs.length
+      if (!count) { resolve(0); return }
       if (count > 20 && needConfirm_()) {
-        void confirm_("discardTab", count).then(onTabs.bind(null, tabs, [start, current, end], resolve))
+        void confirm_("discardTab", count).then(onTabs.bind(null, allTabs, [start, current, end], resolve))
         return
       }
-      const near = tabs.length === 1 && !tabs[0].active ? tabs[0]
-          : tabs[current + ((cRepeat > 0 ? current + 1 < end : current === 0) ? 1 : -1)]
+      const near = tabs[getNearTabInd(tabs as Tab[], activeTab.index, cRepeat > 0)]
       let changed: Promise<null | undefined>[] = [], aliveExist = !near.discarded
       if (aliveExist && (count < 2 || near.autoDiscardable)) {
         changed.push(Q_(Tabs_.discard, near.id))
       }
-      for (let i = start; i < end; i++) {
-        const tab = tabs[i]
-        if (i !== current && tab !== near && !tab.discarded) {
+      for (const tab of tabs) {
+        if (tab !== activeTab && tab !== near && !tab.discarded) {
           aliveExist = true
           tab.autoDiscardable && changed.push(Q_(Tabs_.discard, tab.id))
         }
@@ -371,21 +382,30 @@ set_bgC_([
   },
   /* kBgCmd.goToTab: */ (resolve): void | kBgCmd.goToTab => {
     const count = cRepeat, absolute = !!get_cOptions<C.goToTab>().absolute
+    const filter = get_cOptions<C.goToTab, true>().filter
     const goToTab = (tabs: ShownTab[]): void => {
       const cur = selectFrom(tabs)
+      const allLen = tabs.length
+      allLen > 1 && (tabs as Tab[]).forEach((i, ind) => i.index = ind)
+      if (filter) {
+        tabs = filterTabsByCond_(cur, tabs, filter)
+        if (!tabs.length) { resolve(0); return }
+      }
       let len = tabs.length
+      const _curInd2 = tabs.indexOf(cur)
+      const baseInd = _curInd2 >= 0 ? _curInd2 : getNearTabInd(tabs as Tab[], cur.index, cRepeat < 0)
     let index = absolute ? count > 0 ? Math.min(len, count) - 1 : Math.max(0, len + count)
-        : Math.abs(count) > len * 2 ? (count > 0 ? len - 1 : 0)
-        : cur.index + count
+        : Math.abs(count) > allLen * 2 ? (count > 0 ? len - 1 : 0) : baseInd + count
     index = index >= 0 ? index % len : len + (index % len || -len)
     if (tabs[0].pinned && get_cOptions<C.goToTab>().noPinned && !cur.pinned && (count < 0 || absolute)) {
       let start = 1
-      while (tabs[start].pinned) { start++ }
+      while (start < len && tabs[start].pinned) { start++ }
       len -= start
-      if (absolute || Math.abs(count) > len * 2) {
+      if (len < 1) { resolve(0); return }
+      if (absolute || Math.abs(count) > allLen * 2) {
         index = absolute ? Math.max(start, index) : index || start
       } else {
-        index = (cur.index - start) + count
+        index = (baseInd - start) + count
         index = index >= 0 ? index % len : len + (index % len || -len)
         index += start
       }
@@ -394,19 +414,23 @@ set_bgC_([
       if (doesGo) { selectTab(toSelect.id) }
       resolve(doesGo)
     }
+    const reqireAllTabs = (curs?: Tab[]): void => {
+      const evenHidden = OnFirefox && testBoolFilter_(filter, "hidden") === true
+      onShownTabsIfRepeat_(false, 1, goToTab, curs || [], resolve, evenHidden || null)
+    }
     if (absolute) {
-      if (cRepeat === 1) {
+      if (cRepeat === 1 && !filter) {
         Q_(Tabs_.query, { windowId: curWndId_, index: 0 }).then((tabs): void => {
           tabs && tabs[0] && isNotHidden_(tabs[0]) ? goToTab(tabs)
-          : onShownTabsIfRepeat_(false, 1, goToTab, [], resolve)
+          : reqireAllTabs()
         })
       } else {
-        onShownTabsIfRepeat_(false, 1, goToTab, [], resolve)
+        reqireAllTabs()
       }
     } else if (Math.abs(cRepeat) === 1) {
-      Q_(getCurTab).then((curs): void => { onShownTabsIfRepeat_(false, 1, goToTab, curs || [], resolve) })
+      Q_(getCurTab).then(reqireAllTabs)
     } else {
-      onShownTabsIfRepeat_(false, 1, goToTab, [], resolve)
+      reqireAllTabs()
     }
   },
   /* kBgCmd.goUp: */ (): void | kBgCmd.goUp => {
@@ -648,13 +672,21 @@ set_bgC_([
   /* kBgCmd.visitPreviousTab: */ (resolve: OnCmdResolved): void | kBgCmd.visitPreviousTab => {
     const acrossWindows = !!get_cOptions<C.visitPreviousTab>().acrossWindows
     const onlyActive = !!get_cOptions<C.visitPreviousTab>().onlyActive
+    const filter = get_cOptions<C.visitPreviousTab, true>().filter
+    const evenHidden = OnFirefox ? testBoolFilter_(filter, "hidden") : null
+    const defaultCondition: chrome.tabs.QueryInfo = OnFirefox && evenHidden !== true ? { hidden: false } : {}
     const cb = (tabs: Tab[]): void => {
       if (tabs.length < 2) {
         if (onlyActive) { showHUD("Only found one browser window") }
         resolve(0); return runtimeError_()
       }
-      const curIdx = tabs.findIndex(i => i.id === curTabId_)
+      const curTabId = cPort ? cPort.s.tabId_ : curTabId_, curIdx = tabs.findIndex(i => i.id === curTabId)
+      const activeTab = curIdx >= 0 ? tabs[curIdx] : null
       if (curIdx >= 0) { tabs.splice(curIdx, 1) }
+      if (filter) {
+        tabs = filterTabsByCond_(activeTab, tabs, filter)
+        if (!tabs.length) { resolve(0); return }
+      }
       const tabs2 = tabs.filter(i => recencyForTab_.has(i.id)).sort(TabRecency_.rCompare_)
       tabs = onlyActive && tabs2.length === 0 ? tabs.sort((a, b) => b.id - a.id) : tabs2
       const tab = tabs[cRepeat > 0 ? Math.min(cRepeat, tabs.length) - 1 : Math.max(0, tabs.length + cRepeat)]
@@ -671,13 +703,16 @@ set_bgC_([
       let tabId = tryLastActiveTab_()
       if (tabId >= 0) {
         void Q_(tabsGet, tabId).then((tab?: Tab): void => {
-          tab && (acrossWindows || tab.windowId === curWndId_) && isNotHidden_(tab) ? doActivate(tab.id)
-          : acrossWindows ? Tabs_.query(OnFirefox ? { hidden: false } : {}, cb) : getCurShownTabs_(cb)
+          tab && (acrossWindows || tab.windowId === curWndId_)
+          && (!OnFirefox || evenHidden !== true ? isNotHidden_(tab)
+              : /* hidden=true */ testBoolFilter_(filter, "hidden", 1) == null || !isNotHidden_(tab)
+              ) ? doActivate(tab.id)
+          : acrossWindows ? Tabs_.query(defaultCondition, cb) : getCurShownTabs_(cb)
         })
         return
       }
     }
-    acrossWindows || onlyActive ? Tabs_.query(onlyActive ? { active: true } : OnFirefox ? { hidden: false } : {}, cb)
+    acrossWindows || onlyActive ? Tabs_.query(onlyActive ? { active: true } : defaultCondition, cb)
     : getCurShownTabs_(cb)
   },
   /* kBgCmd.closeDownloadBar: */ (resolve: OnCmdResolved): void | kBgCmd.closeDownloadBar => {
