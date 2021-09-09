@@ -201,7 +201,7 @@ declare const enum kBgCmd {
   blank,
   // region: need cport
   goNext, insertMode, nextFrame, parentFrame,
-  performFind, toggle, showHelp, showVomnibar, visualMode,
+  performFind, toggle, showHelp, dispatchEventCmd, showVomnibar, visualMode,
   MIN_NEED_CPORT = goNext, MAX_NEED_CPORT = visualMode,
   // endregion: need cport
   addBookmark, autoOpenFallback,
@@ -444,6 +444,8 @@ interface CmdOptions {
   [kFgCmd.dispatchEventCmd]: {
     class?: string
     type: string // if count < 0, then replace "down" with "up"
+    key: string | `${string},${number}${string}` | [ key: `<${string}>` | string, keyCode: number, code?: string ]
+    return?: boolean
     delay?: number
     esc?: true // if true, then call onEscDown({ repeat: count > 1 })
     click?: true // if true, call `activeElement.click()` directly

@@ -1,3 +1,4 @@
+import * as BgUtils_ from "./utils"
 import {
   cPort, cRepeat, cKey, get_cOptions, set_cPort, set_cRepeat, contentPayload_, framesForTab_,
   framesForOmni_, bgC_, set_bgC_, set_cmdInfo_, curIncognito_, curTabId_, recencyForTab_, settingsCache_, CurCVer_,
@@ -17,7 +18,7 @@ import { trans_ } from "./i18n"
 import { stripKey_ } from "./key_mappings"
 import {
   confirm_, overrideCmdOptions, runNextCmd, runKeyWithCond, portSendFgCmd, sendFgCmd, overrideOption, runNextCmdBy,
-  runNextOnTabLoaded, getRunNextCmdBy, kRunOn, hasFallbackOptions, runKeyInSeq, needConfirm_
+  runNextOnTabLoaded, getRunNextCmdBy, kRunOn, hasFallbackOptions, runKeyInSeq, needConfirm_, copyCmdOptions
 } from "./run_commands"
 import { doesNeedToSed, parseSedOptions_ } from "./clipboard"
 import { goToNextUrl, newTabIndex, openUrl } from "./open_urls"
@@ -41,7 +42,7 @@ set_cmdInfo_(As_<{
 }>([
   /* kBgCmd.blank           */ Info.NoTab, Info.NoTab, Info.NoTab, Info.NoTab, Info.NoTab,
   /* kBgCmd.performFind     */ Info.NoTab, Info.NoTab, Info.NoTab, Info.NoTab, Info.NoTab,
-  /* kBgCmd.addBookmark     */ Info.NoTab, Info.NoTab, Info.ActiveTab, Info.NoTab, Info.NoTab,
+  /* kBgCmd.addBookmark     */ Info.NoTab, Info.NoTab, Info.NoTab, Info.ActiveTab, Info.NoTab, Info.NoTab,
   /* kBgCmd.clearMarks      */ Info.NoTab, Info.NoTab, Info.ActiveTab, Info.CurShownTabsIfRepeat, Info.NoTab,
   /* kBgCmd.goBackFallback  */ Info.ActiveTab, Info.NoTab, Info.NoTab, Info.NoTab, Info.NoTab,
   /* kBgCmd.moveTab         */ Info.CurShownTabsIfRepeat, Info.NoTab, Info.ActiveTab, Info.NoTab,
@@ -164,6 +165,36 @@ set_bgC_([
       import(CONST_.HelpDialogJS)
       sendFgCmd(kFgCmd.showHelpDialog, true, get_cOptions<C.showHelp, true>())
     }
+  },
+  /* kBgCmd.dispatchEventCmd: */ (): void | kBgCmd.dispatchEventCmd => {
+    const opts2 = copyCmdOptions(BgUtils_.safeObj_(), get_cOptions<C.dispatchEventCmd>()
+        ) as KnownOptions<C.dispatchEventCmd> & SafeObject
+    if (!opts2.esc) {
+      let key = opts2.key
+      let type = (opts2.type || (key ? "keydown" : "")) + ""
+      if (opts2.click) {
+        type = "click"
+      } else if (cRepeat < 0) {
+        for (const replace of "down up;enter leave;start end;over out".split(";")) {
+          const [a, b] = replace.split(" ")
+          type = type.replace(a, b) as string
+        }
+      }
+      opts2.type = type
+      for (const i of ["bubbles", "cancelable", "composed"] as const) {
+        opts2[i] = opts2[i] !== false
+      }
+      if (key && key !== "," && (typeof key === "object" || key.includes(","))) {
+        const info = typeof key === "object" ? key : key.split(",") as Extract<typeof key, string[]>
+        if (info.length >= 2 && +info[1] > 0) {
+          const dict = opts2 as KeyboardEventInit
+          dict.key = info[0]
+          ; (dict as Writable<KeyboardEvent>).keyCode = (dict as Writable<KeyboardEvent>).which = +info[1]
+          dict.code = info[2] || info[0]
+        }
+      }
+    }
+    portSendFgCmd(cPort, kFgCmd.dispatchEventCmd, false, opts2 as CmdOptions[kFgCmd.dispatchEventCmd], cRepeat)
   },
   /* kBgCmd.showVomnibar: */ (): void | kBgCmd.showVomnibar => { showVomnibar() },
   /* kBgCmd.visualMode: */ _AsBgC<BgCmdNoTab<kBgCmd.visualMode>>(enterVisualMode),

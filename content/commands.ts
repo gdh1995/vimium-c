@@ -30,6 +30,7 @@ import { FindAction, activate as findActivate, deactivate as findDeactivate, exe
 import {
   exitInputHint, insert_inputHint, insert_last_, raw_insert_lock, insert_Lock_, resetInsert, set_is_last_mutable,
   set_inputHint, set_insert_global_, set_isHintingInput, set_insert_last_, onWndBlur, exitPassMode, set_exitPassMode,
+  exitInsertMode
 } from "./insert"
 import { activate as visualActivate, deactivate as visualDeactivate } from "./visual"
 import {
@@ -392,29 +393,32 @@ set_contentCommands_([
     const type = options.type, rawClass = options.class
     const evClass = (rawClass && (rawClass[0].toUpperCase() + rawClass.slice(1)) || "Keyboard") + "Event"
     let event: Event | "" | undefined, delay = options.delay
+    let useResult: BOOL | boolean | undefined, result: boolean | undefined
     if (options.esc) {
       keydownEvents_[kKeyCode.None] = 0
-      onEscDown(0, kKeyCode.None, count > 1)
+      const ok = !!insert_Lock_() || count > 0
+      raw_insert_lock ? exitInsertMode(raw_insert_lock) : ok && onEscDown(0, kKeyCode.None, count > 1)
       keydownEvents_[kKeyCode.None] = 0
-      runFallbackKey(options, 0, "", delay)
+      useResult = 1, result = ok
     } else {
-      for (const i of ["bubbles", "cancelable", "composed"] as const) {
-        options[i] = options[i] !== false
-      }
       OnChrome && setupIDC_cr!(options as UIEventInit)
       try {
-        event = type && new (window as any)[evClass](count < 0 ? type.replace("down", "up") : type, options)
+        event = type && new (window as any)[evClass](type, options)
       } catch {}
       if (event) {
         const activeEl = deref_(currentScrolling)
             || (OnFirefox ? deepActiveEl_unsafe_() as SafeElement | null : SafeEl_not_ff_!(deepActiveEl_unsafe_()))
+        const useClick = options.click
+        useResult = !useClick && options.return && !!activeEl
         // earlier, in case listeners are too slow
-        runFallbackKey(options, activeEl && activeEl !== doc.body ? 0 : 2, "", delay)
-        activeEl && (options.click && (activeEl as Partial<HTMLElement>).click
-            ? (activeEl as HTMLElement).click() : activeEl.dispatchEvent(event))
+        useResult || runFallbackKey(options, activeEl && activeEl !== doc.body ? 0 : 2, "", delay)
+        // todo: use result of dispatchEvent as command result
+        activeEl && (useClick && (activeEl as Partial<HTMLElement>).click
+            ? (activeEl as HTMLElement).click() : result = activeEl.dispatchEvent(event))
       } else {
         hudTip(kTip.raw, 0, `Can not create ${evClass}#${type}`)
       }
+      useResult && runFallbackKey(options, result ? 0 : 2, "", delay)
     }
   },
   /* kFgCmd.showHelpDialog: */ ((options: Exclude<CmdOptions[kFgCmd.showHelpDialog], {h?: null}>): any => {

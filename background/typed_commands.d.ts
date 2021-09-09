@@ -39,6 +39,7 @@ interface BgCmdOptions {
   } & Req.FallbackOptions
   [kBgCmd.toggle]: { key: string; value: any } & Req.FallbackOptions
   [kBgCmd.showHelp]: Omit<ShowHelpDialogOptions, "h">
+  [kBgCmd.dispatchEventCmd]: CmdOptions[kFgCmd.dispatchEventCmd]
   [kBgCmd.showVomnibar]: VomnibarNS.GlobalOptions
   [kBgCmd.visualMode]: {
     mode: "visual" | "Visual" | "caret" | "Caret" | "line" | "Line" | ""
@@ -357,7 +358,7 @@ interface CmdNameIds {
   createTab: kBgCmd.createTab
   debugBackground: kBgCmd.openUrl
   discardTab: kBgCmd.discardTab
-  dispatchEvent: kFgCmd.dispatchEventCmd
+  dispatchEvent: kBgCmd.dispatchEventCmd
   duplicateTab: kBgCmd.duplicateTab
   editText: kFgCmd.editText
   enableCSTemp: kBgCmd.toggleCS
