@@ -327,6 +327,7 @@ set_reqH_([
     }
     BgUtils_.resetRe_()
     if (registryEntry) {
+      request.e && set_cEnv({ element: BgUtils_.normalizeElDesc_(request.e) })
       executeCommand(registryEntry, count, request.l, port, 0, null)
     }
   },

@@ -564,7 +564,7 @@ set_bgC_([
   },
   /* kBgCmd.runKey: */ (): void | kBgCmd.runKey => {
     get_cOptions<C.runKey>().$seq == null ? runKeyWithCond()
-    : runKeyInSeq(get_cOptions<C.runKey, true>().$seq!, cRepeat, get_cOptions<C.runKey, true>().$f)
+    : runKeyInSeq(get_cOptions<C.runKey, true>().$seq!, cRepeat, get_cOptions<C.runKey, true>().$f, null)
   },
   /* kBgCmd.searchInAnother: */ (tabs: [Tab]): void | kBgCmd.searchInAnother => {
     let keyword = (get_cOptions<C.searchInAnother>().keyword || "") + ""

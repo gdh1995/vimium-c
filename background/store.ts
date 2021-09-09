@@ -104,6 +104,7 @@ let cOptions: CommandsNS.Options = null as never
 export let cPort: Frames.Port = null as never
 /** any change to `cRepeat` should ensure it won't be `0` */
 export let cRepeat = 1
+let cEnv: CurrentEnvCache | null = null
 export let reqH_: BackendHandlersNS.FgRequestHandlers
 export let bgC_: {
   readonly [K in keyof BgCmdOptions]: K extends keyof BgCmdInfoMap
@@ -139,6 +140,8 @@ export const get_cOptions = <K extends keyof BgCmdOptions = kBgCmd.blank, Trust 
 export const set_cOptions = <T> (_newOpts: CommandsNS.Options & T | null): void => { cOptions = _newOpts! }
 export const set_cPort = (_newPort: Frames.Port): void => { cPort = _newPort! }
 export const set_cRepeat = (_newRepeat: number): void => { cRepeat = _newRepeat }
+export const get_cEnv = (): typeof cEnv => cEnv
+export const set_cEnv = (_newEnv: typeof cEnv): void => { cEnv = _newEnv }
 
 export const set_omniStyleOverridden_ = (_newOverridden: boolean): void => { omniStyleOverridden_ = _newOverridden }
 export const set_findCSS_ = (_newFindCSS: FindCSS): void => { findCSS_ = _newFindCSS }

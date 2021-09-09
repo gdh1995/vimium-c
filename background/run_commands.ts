@@ -1,6 +1,6 @@
 import {
   framesForTab_, get_cOptions, cPort, cRepeat, bgC_, cmdInfo_, set_helpDialogData_, helpDialogData_,
-  set_cOptions, set_cPort, cKey, set_cKey, set_cRepeat, curTabId_, OnEdge, keyToCommandMap_, blank_
+  set_cOptions, set_cPort, cKey, set_cKey, set_cRepeat, curTabId_, OnEdge, keyToCommandMap_, blank_, get_cEnv, set_cEnv
 } from "./store"
 import * as BgUtils_ from "./utils"
 import { Tabs_, runtimeError_, getCurTab, getCurShownTabs_, tabsGet, getCurWnd } from "./browser"
@@ -80,6 +80,7 @@ const executeCmdOnTabs = (tabs: Tab[] | [Tab] | undefined): void => {
       (callback as unknown as BgCmdCurWndTabs<kBgCmd>)(tabs!, blank_)
     }
   }
+  set_cEnv(null)
   return tabs ? void 0 : runtimeError_()
 }
 
@@ -92,6 +93,7 @@ export const executeCommand = (registryEntry: CommandsNS.Item, count: number, la
   setupSingletonCmdTimer(0)
   if (gOnConfirmCallback) {
     gOnConfirmCallback = null // just in case that some callbacks were thrown away
+    set_cEnv(null)
     return
   }
   let scale: number | undefined
@@ -112,6 +114,7 @@ export const executeCommand = (registryEntry: CommandsNS.Item, count: number, la
         set_cOptions(null)
         set_cPort(port!)
         set_cRepeat(count)
+        set_cEnv(null)
         void confirm_(registryEntry.command_ as never, Math.abs(count))
         .then((/*#__NOINLINE__*/ onLargeCountConfirmed).bind(null, registryEntry))
         return
@@ -124,6 +127,7 @@ export const executeCommand = (registryEntry: CommandsNS.Item, count: number, la
         && (!options || (options as Req.FallbackOptions).$else !== "showTip")) {
       set_cPort(port!)
       showHUD(`Has run sequential commands for ${maxRetried} times`)
+      set_cEnv(null)
       return
     }
     const context = makeFallbackContext(fallbackCounter.c, 1, fallbackCounter.u)
@@ -143,6 +147,7 @@ export const executeCommand = (registryEntry: CommandsNS.Item, count: number, la
     ) >> fgAlias) & 1)
         || fgAlias === kFgCmd.scroll && (!!options && (options as CmdOptions[kFgCmd.scroll]).keepHover === false)
     set_cPort(port!)
+    set_cEnv(null)
     port == null || portSendFgCmd(port, fgAlias, wantCSS, options as any, count)
     return
   }
@@ -167,6 +172,7 @@ export const executeCommand = (registryEntry: CommandsNS.Item, count: number, la
     } else {
       (func as BgCmdNoTab<kBgCmd>)(blank_)
     }
+    set_cEnv(null)
   } else {
     _gCmdHasNext = registryEntry.hasNext_
     gOnConfirmCallback = func as BgCmdCurWndTabs<kBgCmd> as any;
@@ -443,7 +449,8 @@ export const runKeyWithCond = (info?: CurrentEnvCache): void => {
   if (!cPort) {
     set_cPort(frames ? frames.cur_ : null as never)
   }
-  info = info || {}
+  info = info || get_cEnv() || {}
+  set_cEnv(null)
   const expected_rules = normalizeExpects(get_cOptions<C.runKey, true>())
   for (const normalizedRule of expected_rules) {
     if (!normalizedRule) { continue }
@@ -498,11 +505,11 @@ export const runKeyWithCond = (info?: CurrentEnvCache): void => {
       }
       replaceCmdOptions(fakeOptions)
       keyToCommandMap_.set(kRunKeyInSeq, makeCommand_("runKey", fakeOptions as CommandsNS.Options)!)
-      runKeyInSeq(fakeOptions.$seq!, loopIdToRunSeq, null)
+      runKeyInSeq(fakeOptions.$seq!, loopIdToRunSeq, null, info)
     } else {
       runOneKey(key.val[0], {
         keys: key, repeat, options, cursor: key, timeout: 0, id: 0, fallback: null
-      })
+      }, info)
     }
   }
 }
@@ -608,7 +615,7 @@ const nextKeyInSeq = (lastCursor: ListNode | KeyNode, dir: number): KeyNode | nu
 }
 
 export const runKeyInSeq = (seq: BgCmdOptions[C.runKey]["$seq"], dir: number
-    , fallback: Req.FallbackOptions["$f"] | null): void => {
+    , fallback: Req.FallbackOptions["$f"] | null, envInfo: CurrentEnvCache | null): void => {
   if (abs(dir) !== seq.id) { return } // overdue
   const cursor: KeyNode | null = nextKeyInSeq(seq.cursor as ListNode | KeyNode, dir)
   const isLast = !cursor || !(nextKeyInSeq(cursor, 1) || nextKeyInSeq(cursor, -1))
@@ -640,10 +647,10 @@ export const runKeyInSeq = (seq: BgCmdOptions[C.runKey]["$seq"], dir: number
       keyToCommandMap_.set(kRunKeyInSeq, makeCommand_("blank", null))
     }
   }, 30000)
-  runOneKey(cursor, seq)
+  runOneKey(cursor, seq, envInfo)
 }
 
-export const runOneKey = (cursor: KeyNode, seq: BgCmdOptions[C.runKey]["$seq"]) => {
+export const runOneKey = (cursor: KeyNode, seq: BgCmdOptions[C.runKey]["$seq"], envInfo: CurrentEnvCache | null) => {
   let key = cursor.val, hasCount = (<RegExpOne> /[$%]c/).test(key) || !seq || seq.cursor === seq.keys
   key = key.replace(<RegExpG & RegExpI> /[$%][a-z]\+?/gi, "")
   let subCount = 1, arr: null | string[] = (<RegExpOne> /^\d+|^-\d*/).exec(key)
@@ -654,7 +661,7 @@ export const runOneKey = (cursor: KeyNode, seq: BgCmdOptions[C.runKey]["$seq"]) 
   }
   key = key !== "__proto__" ? key : "<v-__proto__>"
   seq.cursor = As_<KeyNode>(cursor)
-  /*#__NOINLINE__*/ runKeyWithOptions(key, subCount * (hasCount ? seq.repeat : 1), seq.options)
+  /*#__NOINLINE__*/ runKeyWithOptions(key, subCount * (hasCount ? seq.repeat : 1), seq.options, envInfo)
 }
 
 const doesInheritOptions = (baseOptions: CommandsNS.Options): boolean => {
@@ -664,7 +671,7 @@ const doesInheritOptions = (baseOptions: CommandsNS.Options): boolean => {
 }
 
 const runKeyWithOptions = (key: string, count: number, exOptions: CommandsNS.EnvItemOptions | null | undefined
-    ): void => {
+    , envInfo: CurrentEnvCache | null): void => {
   let finalKey = key, registryEntry = key !== "__proto__" && keyToCommandMap_.get(key)
       || !key.includes("<") && keyToCommandMap_.get(finalKey = `<v-${key}>`) || null
   let entryReadonly = true
@@ -703,6 +710,7 @@ const runKeyWithOptions = (key: string, count: number, exOptions: CommandsNS.Env
     }
     normalizeCommand_(registryEntry)
   }
+  set_cEnv(envInfo)
   executeCommand(registryEntry, count, cKey, cPort, 0)
 }
 
