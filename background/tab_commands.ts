@@ -282,8 +282,8 @@ export const moveTabToNewWindow = (resolve: OnCmdResolved): void | kBgCmd.moveTa
         return
       }
       let state: chrome.windows.ValidStates | "" = wnd.type === "normal" ? wnd.state : ""
-      let useUrl: boolean
-      if (useUrl = options.url != null) {
+      const useUrl = options.url != null
+      if (useUrl) {
         if (CONST_.DisallowIncognito_) {
           options.focused = true
           state = ""
@@ -295,7 +295,11 @@ export const moveTabToNewWindow = (resolve: OnCmdResolved): void | kBgCmd.moveTa
       // so there's no need to worry about stranger edge cases like "normal window + incognito tab + not allowed"
       makeWindow(options, state, (newWnd): void => {
         useUrl || newWnd && notifyCKey()
-        resolve(!!newWnd)
+        if (useUrl && newWnd) {
+          getRunNextCmdBy(kRunOn.otherCb)(newWnd.tabs && newWnd.tabs[0] || null)
+        } else {
+          resolve(!!newWnd)
+        }
       })
       if (useUrl) {
         Tabs_.remove(tabId)
@@ -313,7 +317,7 @@ export const moveTabToNewWindow = (resolve: OnCmdResolved): void | kBgCmd.moveTa
         return tabs && tabs.length ? wnd as PopWindow : undefined
       })
     }) : Q_(getCurWnd, true) as Promise<PopWindow | undefined>)
-    .then((w): void => { w ? (incognito ? moveTabToIncognito : moveTabToNewWindow0)(w) : resolve(false) })
+    .then((w): void => { w ? (incognito ? moveTabToIncognito : moveTabToNewWindow0)(w) : resolve(0) })
   }
 }
 
@@ -519,7 +523,7 @@ const removeAllTabsInWnd = (resolve: OnCmdResolved, tab: Tab, curTabs: readonly 
   if (protect) {
     /* safe-for-group */ tabsCreate({ index: curTabs.length, url: "", windowId }, getRunNextCmdBy(kRunOn.tabPromise))
   }
-  removeTabsInOrder(tab, curTabs, 0, curTabs.length, protect ? resolve : null)
+  removeTabsInOrder(tab, curTabs, 0, curTabs.length, protect ? null : resolve)
 }
 
 const removeTabsInOrder = (tab: Tab, tabs: readonly Tab[], start: number, end: number

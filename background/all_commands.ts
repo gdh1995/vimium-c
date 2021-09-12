@@ -271,7 +271,7 @@ set_bgC_([
     p && p instanceof Promise ? p.then((url): void => { url && resolve(1) }) : resolve(1)
   },
   /* kBgCmd.copyWindowInfo: */ _AsBgC<BgCmdNoTab<kBgCmd.copyWindowInfo>>(copyWindowInfo),
-  /* kBgCmd.createTab: */ function createTab(tabs: [Tab] | undefined, resolve: OnCmdResolved, dedup?: "dedup"): void {
+  /* kBgCmd.createTab: */ function createTab(tabs: [Tab] | undefined, _: OnCmdResolved | 0, dedup?: "dedup"): void {
     let pure = get_cOptions<C.createTab, true>().$pure, tab: Tab | null
     if (pure == null) {
       overrideOption<C.createTab, "$pure">("$pure", pure = !(Object.keys(get_cOptions<C.createTab>()
@@ -282,7 +282,7 @@ set_bgC_([
       openUrl(tabs)
     } else if (!(tab = tabs && tabs.length > 0 ? tabs[0] : null) && curTabId_ >= 0 && !runtimeError_()
         && dedup !== "dedup") {
-      Q_(tabsGet, curTabId_).then((newTab): void => { createTab(newTab && [newTab], resolve, "dedup") })
+      Q_(tabsGet, curTabId_).then((newTab): void => { createTab(newTab && [newTab], 0, "dedup") })
     } else {
       const opener = get_cOptions<C.createTab>().opener === true
       openMultiTabs(<InfoToCreateMultiTab> As_<Omit<InfoToCreateMultiTab, "url">>(tab ? {
@@ -291,7 +291,7 @@ set_bgC_([
         index: newTabIndex(tab, get_cOptions<C.createTab>().position, opener, true)
       } : {active: true}), cRepeat, get_cOptions<C.createTab, true>().evenIncognito, [null], true, tab, (tab2) => {
         tab2 && selectWndIfNeed(tab2)
-        resolve(!!tab2)
+        getRunNextCmdBy(kRunOn.tabPromise)(tab2)
       })
     }
   },

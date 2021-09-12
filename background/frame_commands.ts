@@ -448,5 +448,3 @@ export const focusFrame = (port: Port, css: boolean, mask: FrameMaskType, fallba
     f: fallback && parseFallbackOptions(fallback) || {}
   })
 }
-
-/** `confirm()` simulator section */
