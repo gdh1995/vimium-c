@@ -632,7 +632,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     }
     if (char === kChar.enter) {
       if (event.key === "Enter" || n === kKeyCode.enter) {
-        window.onkeyup = a.OnEnterUp_;
+        window.onkeyup = a.OnEnterUp_.bind(null, key)
       } else {
         a.onEnter_(key);
       }
@@ -806,14 +806,15 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     a.doEnter_ = func;
     a.hide_();
   },
-  OnEnterUp_ (this: void, event: KeyboardEvent): void {
+  OnEnterUp_ (this: void, key: string, event: KeyboardEvent): void {
     const keyCode = event.keyCode;
     if (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome) ? event.isTrusted
         : event.isTrusted !== false
     ) { // call onEnter once an enter / control key is up
       window.onkeyup = null as never;
       Vomnibar_.lastKey_ = kKeyCode.None;
-      Vomnibar_.onEnter_((event.altKey || keyCode === kKeyCode.altKey ? KeyStat.altKey : 0)
+      Vomnibar_.onEnter_(key !== kChar.enter ? key
+          : (event.altKey || keyCode === kKeyCode.altKey ? KeyStat.altKey : 0)
           + (event.ctrlKey || keyCode === kKeyCode.ctrlKey ? KeyStat.ctrlKey : 0)
           + (event.metaKey || keyCode > kKeyCode.maxNotMetaKey && keyCode < kKeyCode.minNotMetaKeyOrMenu
               ? KeyStat.metaKey : 0)
@@ -851,6 +852,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     while (el && el.parentElement !== a.list_) { el = el.parentElement as HTMLElement | null; }
     if (!el) { return; }
     a.lastKey_ = kKeyCode.None;
+    VUtils_.Stop_(event, 1)
     a.onEnter_(<number> <boolean|number> event.altKey |
       (<number> <boolean|number> event.ctrlKey * 2) |
       (<number> <boolean|number> event.metaKey * 4) |
