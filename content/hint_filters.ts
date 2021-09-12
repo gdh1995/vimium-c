@@ -440,7 +440,9 @@ export const initAlphabetEngine = (hintItems: readonly HintItem[]): void => {
     }
     hintItems[i].a = hintString;
     if (!Build.NDEBUG) {
-      (hintItems as any)[hintString.toLowerCase()] = hintItems[i]
+      if (hintString >= kChar.minNotNum || hintString < "0") {
+        (hintItems as any)[hintString.toLowerCase()] = hintItems[i]
+      }
     }
 }
 }

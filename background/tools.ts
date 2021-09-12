@@ -579,8 +579,8 @@ setTimeout((): void => {
   let cache = recencyForTab_, stamp = 1, time = 0
   const clean = (tabs: Tab[] | undefined): void => {
     const existing = tabs ? tabs.map(i => [i.id, cache.get(i.id)] as const)
-        .filter((i): i is [number, {i: number, t: number}] => <boolean> <any> i[1])
-        .sort(i => i[1].i) : []
+        .filter((i): i is readonly [number, NonNullable<ReturnType<RecencyMap["get"]>>] => <boolean> <any> i[1])
+        .sort((i, j): number => i[1].i - j[1].i) : []
     if (existing.length > GlobalConsts.MaxTabsKeepingRecency) {
       existing.splice(0, existing.length - GlobalConsts.MaxTabsKeepingRecency)
     }
