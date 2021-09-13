@@ -87,7 +87,7 @@ export type AddChildDirectly = (officer: BaseHintWorker, el: KnownIFrameElement,
 import {
   VTr, isAlive_, isEnabled_, setupEventListener, keydownEvents_, set_keydownEvents_, timeout_, max_, min_, math, OnEdge,
   clearTimeout_, fgCache, doc, readyState_, chromeVer_, vApi, deref_, getTime, weakRef_, unwrap_ff, OnFirefox, OnChrome,
-  WithDialog, Lower, safeCall, loc_, os_
+  WithDialog, Lower, safeCall, loc_, os_, firefoxVer_
 } from "../lib/utils"
 import {
   querySelector_unsafe_, isHTML_, scrollingEl_, docEl_unsafe_, IsInDOM_, GetParent_unsafe_, hasInCSSFilter_,
@@ -195,8 +195,9 @@ export const activate = (options: ContentOptions, count: number, force?: 2 | Tim
         ? kTip.highContrast_WOB : kTip.forcedColors)).matches
     if (WithDialog) {
       if (OnFirefox && Build.MinFFVer < FirefoxBrowserVer.MinEnsuredShadowDOMV1
-          || BrowserVer.MinEnsuredHTMLDialogElement < BrowserVer.MinShadowDOMV0
-              && OnChrome && Build.MinCVer < BrowserVer.MinShadowDOMV0) {
+          ? firefoxVer_ < FirefoxBrowserVer.MinEnsuredShadowDOMV1
+          : OnChrome && BrowserVer.MinEnsuredHTMLDialogElement < BrowserVer.MinShadowDOMV0
+              && Build.MinCVer < BrowserVer.MinShadowDOMV0 && chromeVer_ < BrowserVer.MinShadowDOMV0) {
         removeModal()
       }
       coreHints.d = <BOOL> +(

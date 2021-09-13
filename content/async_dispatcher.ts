@@ -337,7 +337,7 @@ export const click_async = (async (element: SafeElementForMouse
   }
   if ((result > ActionType.OpenTabButNotDispatch - 1
         || (OnFirefox && /*#__INLINE__*/ beginToPreventClick_ff(result === ActionType.DispatchAndMayOpenTab),
-            (await await mouse_(element, CLK, center, modifiers)) && result))
+            (await await mouse_(element, CLK, center, modifiers) || result === ActionType.dblClick) && result))
       && getVisibleClientRect_(element)) {
     // require element is still visible
     if (result < ActionType.MinOpenUrl) {
