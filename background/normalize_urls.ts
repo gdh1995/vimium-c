@@ -134,7 +134,9 @@ export const convertToUrl_ = function (str: string, keyword?: string | null, vim
     // the new gTLDs allow long and notEnglish TLDs
     // https://en.wikipedia.org/wiki/Generic_top-level_domain#New_top-level_domains
     type = expected !== Urls.Type.NoScheme && (index < 0 || index2 >= 3 && index2 <= 5)
-      || checkInDomain_(str, arr[4]) > 0 ? expected : Urls.Type.Search;
+        // most of TLDs longer than 14 chars mean some specific business companies (2021-09-13)
+        || expected === Urls.Type.Full && index > 0 && index2 >= 2 && index2 <= 14
+        || checkInDomain_(str, arr[4]) > 0 ? expected : Urls.Type.Search
   } else if ((<RegExpOne> /[^.\da-z\-]|xn--|^-/).test(str)) {
     // non-English domain, maybe with an English but non-CC TLD
     type = (str.startsWith("xn--") || str.includes(".xn--") ? true
