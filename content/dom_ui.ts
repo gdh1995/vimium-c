@@ -164,7 +164,8 @@ export const adjustUI = (event?: Event | /* enable */ 1 | /* disable */ 2): void
     // Chrome also always remove node from its parent since 58 (just like Firefox), which meets the specification
     // doc: https://dom.spec.whatwg.org/#dom-node-appendchild
     //  -> #concept-node-append -> #concept-node-pre-insert -> #concept-node-adopt -> step 2
-    disableUI ? removeEl_s(box_!) : el2 !== parentNode_unsafe_s(box_!) &&
+    disableUI ? removeEl_s(box_!) : el2 === parentNode_unsafe_s(box_!)
+        && (curModalElement || omni_box || !box_!.nextElementSibling) ||
     (OnFirefox ? (appendNode_s as typeof append_not_ff) : append_not_ff)(el2, box_!)
     const sin = styleIn_, s = sin && (sin as HTMLStyleElement).sheet
     s && (s.disabled = false);

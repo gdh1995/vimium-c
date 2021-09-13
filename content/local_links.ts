@@ -337,7 +337,7 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
         || tabIndex != null && (OnFirefox
             ? (anotherEl = unwrap_ff(element as NonHTMLButFormattedElement)).onclick || anotherEl.onmousedown
             : attr_s(element, "onclick") || attr_s(element, "onmousedown"))
-        || (s = attr_s(element, "role")) && (<RegExpI> /^button$/i).test(s)
+        || (s = attr_s(element, "role")) && clickableRoles_.test(s)
         || ngEnabled && attr_s(element, "ng-click")
         || jsaEnabled_ && (s = attr_s(element, "jsaction")) && checkJSAction(s)
       ? ClickType.attrListener

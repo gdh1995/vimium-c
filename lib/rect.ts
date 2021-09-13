@@ -277,26 +277,28 @@ let _getPageZoom_cr = OnChrome ? function (devRatio: number, docElZoom: number, 
   return pageZoom || docElZoom
 } as (devRatio: number, docElZoom: number, docEl: Element) => number : 0 as never as null
 
+const elZoom_ = (st: CSSStyleDeclaration): number => st && st.display !== NONE && +st.zoom || 1
+
 /**
  * also update docZoom_
  * update bZoom_ if target
  */
 export const getZoom_ = !OnFirefox ? function (target?: 1 | SafeElement): void {
   let docEl = docEl_unsafe_()!, ratio = wndSize_(2)
-    , gcs = getComputedStyle_, st = gcs(docEl), zoom = +st.zoom || 1
+    , st = getComputedStyle_(docEl), zoom = +st.zoom || 1
     , el: Element | null = fullscreenEl_unsafe_()
   OnChrome && (zoom = _fixDocZoom_cr!(zoom, docEl, ratio))
   if (target) {
     const body = el ? null : doc.body
     // if fullscreen and there's nested "contain" styles,
     // then it's a whole mess and nothing can be ensured to be right
-    bZoom_ = body && (target === 1 || IsInDOM_(target, body)) && +gcs(body).zoom || 1
+    bZoom_ = body && (target === 1 || IsInDOM_(target, body)) ? elZoom_(getComputedStyle_(body)) : 1
   }
   for (; el && el !== docEl;
       el = GetParent_unsafe_(el, OnChrome && Build.MinCVer < BrowserVer.MinSlotIsNotDisplayContents
             && chromeVer_ < BrowserVer.MinSlotIsNotDisplayContents
           ? PNType.RevealSlotAndGotoParent : PNType.RevealSlot)) {
-    zoom *= +gcs(el).zoom || 1
+    zoom *= elZoom_(getComputedStyle_(el))
   }
   paintBox_ = null; // it's not so necessary to get a new paintBox here
   docZoom_ = zoom
@@ -310,7 +312,7 @@ export const getViewBox_ = function (needBox?: 1 | /** dialog-found */ 2): ViewB
   const ratio = wndSize_(2), round = math.round, float = parseFloat,
   box = docEl_unsafe_()!, st = getComputedStyle_(box),
   box2 = doc.body, st2 = box2 ? getComputedStyle_(box2) : st,
-  zoom2 = !OnFirefox ? bZoom_ = box2 && +st2.zoom || 1 : 1,
+  zoom2 = !OnFirefox ? bZoom_ = elZoom_(st2) : 1,
   containHasPaint = (<RegExpOne> /c|p/).test(st.contain!),
   kM = "matrix(1,",
   stacking = !(WithDialog && needBox === 2) && (st.position !== "static" || containHasPaint || st.transform !== NONE),
