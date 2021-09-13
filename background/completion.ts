@@ -318,9 +318,9 @@ domainEngine = {
         || queryTerms[0].lastIndexOf("/", queryTerms[0].length - 2) >= 0) {
       return Completers.next_([], SugType.domain);
     }
-    if (historyCache_.domains_) { /* empty */ }
+    if (!HistoryManager_.parseDomains_) { /* empty */ }
     else if (historyCache_.history_) {
-      HistoryManager_.parseDomains_ && HistoryManager_.parseDomains_(historyCache_.history_)
+      HistoryManager_.parseDomains_(historyCache_.history_)
     } else {
       return index > 0 ? Completers.next_([], SugType.domain) : HistoryManager_.use_((): void => {
         query.o || domainEngine.filter_(query, 0)

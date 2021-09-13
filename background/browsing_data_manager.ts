@@ -248,7 +248,7 @@ export const HistoryManager_ = {
             k.t = isSame || decoded.length < url2.length ? text.slice(0, decoded.length) : decoded
           }
         }
-        historyCache_.domains_ || setTimeout(function (): void {
+        HistoryManager_.parseDomains_ && setTimeout((): void => {
           HistoryManager_.parseDomains_ && HistoryManager_.parseDomains_(historyCache_.history_!)
         }, 200)
       }, 100)
