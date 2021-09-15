@@ -293,8 +293,8 @@ set_reqH_([
       } else {
         str = BgUtils_.decodeUrlForCopy_(str)
       }
-    } else {
-      if (str.length < 4 && !(str as string).trim() && str[0] === " ") {
+    } else if (typeof str === "string") {
+      if (str.length < 4 && str.trim() && str[0] === " ") {
         str = ""
       }
     }
