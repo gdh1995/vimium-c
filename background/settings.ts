@@ -469,10 +469,10 @@ browser_.runtime.getPlatformInfo((info): void => {
   }
 })()
 
-if (bgIniting_ < BackendHandlersNS.kInitStat.FINISHED) {
+if (bgIniting_ < BackendHandlersNS.kInitStat.FINISHED && hasEmptyLocalStorage_) {
   void installation_!.then((reason): void => {
-    if (!reason || reason.reason !== "install" || !hasEmptyLocalStorage_) { return }
-    const platform = (navigator.platform || "").toLowerCase()
+    if (!reason || reason.reason !== "install") { return }
+    const platform = ((navigator.userAgentData || navigator).platform || "").toLowerCase()
     if (platform.startsWith("mac") || platform.startsWith("ip")) {
       set_("ignoreKeyboardLayout", 1)
     }

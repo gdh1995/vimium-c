@@ -26,8 +26,9 @@ declare var define: any, __filename: string | null | undefined // eslint-disable
       || !!(Build.BTypes & BrowserType.Chrome && _browser & BrowserType.Chrome)
   const OnEdge: boolean = !(Build.BTypes & ~BrowserType.Edge)
       || !!(Build.BTypes & BrowserType.Edge && _browser & BrowserType.Edge)
-  const navInfo = OnChrome && Build.MinCVer < BrowserVer.MinUsableScript$type$$module$InExtensions
-      ? navigator.appVersion.match(<RegExpOne & RegExpSearchable<1>> /\bChrom(?:e|ium)\/(\d+)/) : 0 as const
+  const navInfo = OnChrome ? (Build.MinCVer >= BrowserVer.MinEnsuredFetchRequestCache
+        || "cache" in Request.prototype) ? [0, BrowserVer.MinEnsuredFetchRequestCache]
+      : navigator.appVersion!.match(<RegExpOne & RegExpSearchable<1>> /\bChrom(?:e|ium)\/(\d+)/) : 0 as const
   const navVer = OnChrome && Build.MinCVer < BrowserVer.MinUsableScript$type$$module$InExtensions
       ? navInfo && <BrowserVer> +navInfo[1] || 0 : 0
 
@@ -183,4 +184,7 @@ if (!(Build.NDEBUG || BrowserVer.MinMaybeES6$Array$$Includes >= BrowserVer.Min$A
 }
 if (!(Build.NDEBUG || BrowserVer.BuildMinForOf >= BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol)) {
   alert("expect BrowserVer.BuildMinForOf >= BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol")
+}
+if (!(Build.NDEBUG || BrowserVer.MinEnsuredFetchRequestCache >= BrowserVer.MinUsableScript$type$$module$InExtensions)) {
+  alert("expect BrowserVer.MinEnsuredFetchRequestCache >= BrowserVer.MinUsableScript$type$$module$InExtensions")
 }

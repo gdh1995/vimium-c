@@ -122,7 +122,7 @@ Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES6$Ar
       return this.indexOf(s, pos) >= 0
     }
     if (Build.MinCVer >= BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol) { return }
-    const ver = navigator.appVersion.match(<RegExpOne> /\bChrom(?:e|ium)\/(\d+)/)
+    const ver = navigator.userAgent!.match(<RegExpOne> /\bChrom(?:e|ium)\/(\d+)/)
     if (ver && +ver[1] < BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol) {
       const proto = {
         add (k: string): any { this.map_[k] = 1 },

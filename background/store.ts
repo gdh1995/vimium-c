@@ -17,17 +17,26 @@ export const OnEdge: boolean = !(Build.BTypes & ~BrowserType.Edge)
 export const OnSafari: boolean = !(Build.BTypes & ~BrowserType.Safari)
     || !!(Build.BTypes & BrowserType.Safari && OnOther_ & BrowserType.Safari)
 
-export const IsEdg_: boolean = OnChrome && (<RegExpOne> /\sEdg\//).test(navigator.appVersion)
+const userAgentData = navigator.userAgentData
+let tmpBrand: NonNullable<Navigator["userAgentData"]>["brands"][0] | undefined
+export const IsEdg_: boolean = OnChrome && (!userAgentData ? matchMedia("(-ms-high-contrast)").matches
+    : !!userAgentData.brands.find(i => i.brand.includes("Edge") || i.brand.includes("Microsoft"))) 
 export const CurCVer_: BrowserVer = !OnChrome ? BrowserVer.assumedVer
-    : Build.MinCVer <= BrowserVer.FlagFreezeUserAgentGiveFakeUAMajor ? ((): BrowserVer => {
-      const ver = navigator.appVersion.match(<RegExpOne> /\bChrom(?:e|ium)\/(\d+)/)
+    : userAgentData ? (tmpBrand = userAgentData.brands.find(i => i.brand.includes("Chromium")))
+      ? tmpBrand.version : BrowserVer.MinMaybe$navigator$$userAgentData > Build.MinCVer
+      ? BrowserVer.MinMaybe$navigator$$userAgentData : Build.MinCVer
+    : (Build.MinCVer <= BrowserVer.FlagFreezeUserAgentGiveFakeUAMajor ? ((): BrowserVer => {
+      const ver = navigator.userAgent!.match(<RegExpOne> /\bChrom(?:e|ium)\/(\d+)/)
       return !ver ? BrowserVer.assumedVer : +ver[1] === BrowserVer.FakeUAMajorWhenFreezeUserAgent
           && matchMedia("(prefers-color-scheme)").matches ? BrowserVer.FlagFreezeUserAgentGiveFakeUAMajor
           : 0 | ver[1] as string | number as number
     })()
-    : 0 | (navigator.appVersion.match(<RegExpOne> /\bChrom(?:e|ium)\/(\d+)/) || [0, BrowserVer.assumedVer])[1] as number
+    : 0 | <number> (navigator.userAgent!.match(<RegExpOne> /\bChrom(?:e|ium)\/(\d+)/) || [0, BrowserVer.assumedVer])[1])
 export const CurFFVer_ = !OnFirefox ? FirefoxBrowserVer.assumedVer
-    : 0 | (navigator.userAgent.match(<RegExpOne> /\bFirefox\/(\d+)/) || [0, FirefoxBrowserVer.assumedVer])[1] as number
+    : userAgentData ? (tmpBrand = userAgentData.brands.find(i => i.brand.includes("Firefox")))
+      ? tmpBrand.version : FirefoxBrowserVer.MinMaybe$navigator$$userAgentData > Build.MinFFVer
+      ? FirefoxBrowserVer.MinMaybe$navigator$$userAgentData : Build.MinFFVer
+    : 0 | <number>(navigator.userAgent!.match(<RegExpOne> /\bFirefox\/(\d+)/) || [0, FirefoxBrowserVer.assumedVer])[1]
 export let installation_: Promise<chrome.runtime.InstalledDetails> | null | undefined
 //#endregion
 

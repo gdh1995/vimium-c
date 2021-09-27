@@ -181,10 +181,27 @@ interface HTMLElementTagNameMap {
   [localName: `${string}_${string}`]: HTMLUnknownElement
 }
 
+interface NavigatorID {
+  readonly appCodeName: string;
+  readonly appName: string;
+  /** @deprecated */ readonly appVersion?: string;
+  /** @deprecated */ readonly platform?: string;
+  readonly product: string;
+  readonly productSub: string;
+  /** @deprecated */ readonly userAgent?: string;
+  readonly vendor: string;
+  readonly vendorSub: string;
+}
+
 interface Navigator {
   scheduling?: {
     isInputPending (options?: { includeContinuous?: boolean }): boolean // options must be an cls intance on C84 if exp
     isFramePending? (options?: {}): boolean
+  }
+  userAgentData?: {
+    brands: {brand: string, version: number}[]
+    mobile: boolean
+    platform: string
   }
 }
 

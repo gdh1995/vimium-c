@@ -8510,10 +8510,10 @@ interface Window extends EventTarget, WindowSessionStorage, WindowLocalStorage, 
     readonly scrollY: number;
     readonly scrollbars: BarProp;
     readonly self: Window;
-    status: string;
-    readonly statusbar: BarProp;
-    readonly styleMedia: StyleMedia;
-    readonly toolbar: BarProp;
+    // status: string;
+    // readonly statusbar: BarProp;
+    // readonly styleMedia: StyleMedia;
+    // readonly toolbar: BarProp;
     // readonly top: Window;
     readonly window: Window;
     URL: typeof URL;
@@ -8785,18 +8785,6 @@ interface LinkStyle {
 }
 
 interface NavigatorContentUtils {
-}
-
-interface NavigatorID {
-    readonly appCodeName: string;
-    readonly appName: string;
-    readonly appVersion: string;
-    readonly platform: string;
-    readonly product: string;
-    readonly productSub: string;
-    readonly userAgent: string;
-    readonly vendor: string;
-    readonly vendorSub: string;
 }
 
 interface NavigatorOnLine {

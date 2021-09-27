@@ -509,6 +509,7 @@ declare const enum BrowserVer {
   MinOriginIsolation = 84, // https://www.chromestatus.com/features/5683766104162304
   /** This fixes that {@see #Min$CrossOriginIsolation$Flag} would break Vomnibar */
   MinExtensionResourcesHaveCOEP = 84, // https://bugs.chromium.org/p/chromium/issues/detail?id=1085915
+  MinCSS$appearance = 84, // even if EXPERIMENTAL or LEGACY
   MinMaybe$WeakRef = 84, // no `WeakRef` if LEGACY
   // 2->0.25/0.5; 5->0.04/0.2; 6->0.027778/0.166667
   MinBorderWidth$Ensure1$Or$Floor = 85, // even if EXPERIMENTAL or LEGACY
@@ -524,7 +525,9 @@ declare const enum BrowserVer {
   MinCaptureBeforeBubbleOnEventTarget = 89, // even if EXPERIMENTAL or LEGACY
   MinCSS$overflow$clip = 90, // even if EXPERIMENTAL or LEGACY
   MinOnWindows$Selection$$extend$stopWhenWhiteSpaceEnd = 90, // even if EXPERIMENTAL
+  MinMaybe$navigator$$userAgentData = 90,
   MinESModulesInServiceWorker = 91,
+  MinEnsured$string$$replaceAll = 91,
   MinNo$TimerType$$Fake = 999,
   assumedVer = 998,
 }
@@ -567,6 +570,7 @@ declare const enum FirefoxBrowserVer {
   MinMaybe$WeakRef = 79, // no `WeakRef` if javascript.options.weakrefs=false
   MinEnsuredCSS$is$selector = 81,
   MinContentEditableInShadowOfBodyRefuseShortcuts = 91,
+  MinMaybe$navigator$$userAgentData = 99,
   // members of a Selection are never updated when an <input> gets focused, so no work-around
   Min$Selection$SupportTextBox = 999,
   None = 0,

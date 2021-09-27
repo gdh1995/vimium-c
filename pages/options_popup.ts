@@ -1,6 +1,6 @@
 import {
   BG_, bgSettings_, OnFirefox, OnEdge, OnChrome, $, pageTrans_, asyncBackend_, browser_, enableNextTick_, nextTick_,
-  kReadyInfo, TransTy
+  kReadyInfo, TransTy, IsEdg_
 } from "./async_bg"
 import {
   ExclusionVisibleVirtualNode, ExclusionRulesOption_, setupBorderWidth_, showI18n, ExclusionBaseVirtualNode
@@ -354,7 +354,8 @@ const onNotRunnable = (blockedMsg: HTMLElement, curTab: chrome.tabs.Tab | null, 
     refreshTip.remove()
   } else if (OnEdge) {
     (refreshTip.querySelector(".action") as HTMLElement).textContent = "open a new web page"
-  } else if ((<RegExpOne> /\bOpera\//).test(navigator.userAgent)
+  } else if (!IsEdg_ && (navigator.userAgentData ? navigator.userAgentData.brands.find(i => i.brand.includes("Opera"))
+        : (<RegExpOne> /\bOpera\//).test(navigator.userAgent!))
       && (<RegExpOne> /\.(google|bing|baidu)\./).test(_url.split("/", 4).slice(0, 3).join("/"))) {
     (blockedMsg.querySelector("#opera-warning") as HTMLElement).style.display = ""
   }

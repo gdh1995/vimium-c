@@ -466,9 +466,12 @@ $("#importButton").onclick = function (): void {
 };
 
 nextTick_((el0): void => {
-el0.textContent = (OnEdge ? "MS Edge (EdgeHTML)"
-    : OnFirefox ? "Firefox " + CurFFVer_
-    : (IsEdg_ ? ["MS Edge"] : (<RegExpOne> /\bChromium\b/).exec(navigator.appVersion) || ["Chrome"])[0] + " " + CurCVer_
+  const data = navigator.userAgentData
+  const brand = (data && data.brands || []).find(i => i.version === CurCVer_ && i.brand !== "Chromium")
+  const nameFallback = OnFirefox ? "Firefox" : IsEdg_ ? "MS Edge" : ""
+  const name = brand ? brand.brand : data ? nameFallback || "Chromium"
+      : OnChrome && ((<RegExpOne> /\bChromium\b/).exec(navigator.userAgent!) || [""])[0] || nameFallback || "Chrome"
+el0.textContent = (OnEdge ? "MS Edge (EdgeHTML)" : name + " " + (OnFirefox ? CurFFVer_ : CurCVer_)
   ) + oTrans_("comma") + oTrans_("NS")
   + (oTrans_(Platform_ as "win" | "mac") || Platform_[0].toUpperCase() + Platform_.slice(1))
 if (OnChrome && IsEdg_) {

@@ -62,8 +62,10 @@ export const main_not_ff = (!OnFirefox ? (): void => {
             || Build.MinCVer < BrowserVer.MinEnsuredNewScriptsFromExtensionOnSandboxedPage
             || Build.MinCVer < BrowserVer.MinEnsuredES6MethodFunction
             || Build.MinCVer < BrowserVer.MinEventListenersFromExtensionOnSandboxedPage)
-        ? navigator.appVersion.match(<RegExpOne & RegExpSearchable<1>> /\bChrom(?:e|ium)\/(\d+)/) : 0 as const
-    , appVer: BrowserVer | 1 | 0 = OnChrome
+        ? !isTY((window as PartialOf<typeof globalThis, "queueMicrotask">).queueMicrotask, kTY.func)
+          ? navigator.userAgent!.match(<RegExpOne & RegExpSearchable<1>> /\bChrom(?:e|ium)\/(\d+)/) : 0 as const
+        : [BrowserVer.Min$queueMicrotask]
+    , tmpChromeVer: BrowserVer | 1 | 0 = OnChrome
         && (Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage
             || Build.MinCVer < BrowserVer.MinEnsuredNewScriptsFromExtensionOnSandboxedPage
             || Build.MinCVer < BrowserVer.MinEnsuredES6MethodFunction
@@ -550,11 +552,11 @@ FProto[kToS] = myToStr
       return
     }
     if (OnChrome && Build.MinCVer < BrowserVer.MinEnsuredES6MethodFunction
-        && appVer >= BrowserVer.MinEnsuredES6MethodFunction) {
+        && tmpChromeVer >= BrowserVer.MinEnsuredES6MethodFunction) {
       injected = injected.replace(<RegExpG> /: ?function \w+/g, "");
     }
     if (OnChrome && Build.MinCVer < BrowserVer.MinEnsuredES6ArrowFunction
-        && appVer < BrowserVer.MinEnsuredES6ArrowFunction) {
+        && tmpChromeVer < BrowserVer.MinEnsuredES6ArrowFunction) {
       injected = injected.replace(<RegExpG> (Build.Minify ? /\(([\w,]*\))=>/g : /\(([\w, ]*\))=>/g), "function($1")
     }
     injected = injected.replace("" + BuildStr.RandomClick, `$&${secret}`)
@@ -577,7 +579,7 @@ FProto[kToS] = myToStr
     console.log("Assert error: Warning: may no timer function on sandbox page!");
   }
   if (OnChrome && Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage
-      && appVer === BrowserVer.NoRAFOrRICOnSandboxedPage) {
+      && tmpChromeVer === BrowserVer.NoRAFOrRICOnSandboxedPage) {
     set_noRAF_old_cr_(1)
     rAF_((): void => { set_noRAF_old_cr_(0) })
   }
@@ -606,8 +608,8 @@ FProto[kToS] = myToStr
   }
   // ensured on Chrome
   recordLog(kTip.logNotWorkOnSandboxed)
-  if (Build.MinCVer < BrowserVer.MinEventListenersFromExtensionOnSandboxedPage
-      && appVer && appVer < BrowserVer.MinEventListenersFromExtensionOnSandboxedPage) {
+  if (OnChrome && Build.MinCVer < BrowserVer.MinEventListenersFromExtensionOnSandboxedPage
+      && tmpChromeVer && tmpChromeVer < BrowserVer.MinEventListenersFromExtensionOnSandboxedPage) {
     safeDestroy(1)
     return
   }
@@ -624,3 +626,10 @@ FProto[kToS] = myToStr
   } as any)
 })(grabBackFocus as boolean)
 } : 0 as never) as () => void
+
+if (!(Build.NDEBUG || BrowserVer.Min$queueMicrotask >= BrowserVer.NoRAFOrRICOnSandboxedPage
+    && BrowserVer.Min$queueMicrotask >= BrowserVer.MinEnsuredNewScriptsFromExtensionOnSandboxedPage
+    && BrowserVer.Min$queueMicrotask >= BrowserVer.MinEnsuredES6MethodFunction
+    && BrowserVer.Min$queueMicrotask >= BrowserVer.MinEventListenersFromExtensionOnSandboxedPage)) {
+  alert(`Assert error: missing chrome version detection before ${BrowserVer.Min$queueMicrotask}`)
+}
