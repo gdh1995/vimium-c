@@ -151,6 +151,7 @@ select.right {
   -webkit-padding-start: 0;
   -webkit-padding-end: 17px;
   -webkit-appearance: none;
+  appearance: none;
   background: url(
 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="7px" height="7px"><polygon points="0,1 6,1 3,7"/></svg>'
     ) 8px 8px / 7px 7px no-repeat border-box,
@@ -664,8 +665,8 @@ select:-moz-focusring {
   #keyMappings {
     min-height: 182px;
   }
-  input.text-bottom[type=checkbox] {
-    vertical-align: text-bottom;
+  input.baseline[type=checkbox] {
+    vertical-align: baseline;
   }
 }
 @supports (display: -ms-grid) {

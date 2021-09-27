@@ -442,13 +442,14 @@ export const getRecentSessions_ = (expected: number, showBlocked: boolean
   let timer = OnFirefox ? setTimeout((): void => { timer = 0; callback([]) }, 100) : 0
   browserSession.getRecentlyClosed({
     maxResults: Math.min((expected * 1.2) | 0, browserSession.MAX_SESSION_RESULTS)
-  }, (sessions): void => {
+  }, (sessions?: chrome.sessions.Session[]): void => {
+    // Note: sessions may be undefined, see log in https://github.com/gdh1995/vimium-c/issues/437#issuecomment-921878143
     if (OnFirefox) {
       if (!timer) { return }
       clearTimeout(timer)
     }
     let arr2: BrowserUrlItem[] = [], t: number
-    for (const item of sessions) {
+    for (const item of sessions || []) {
       const entry = item.tab
       if (!entry) { continue }
       let url = entry.url, title = entry.title
@@ -468,6 +469,7 @@ export const getRecentSessions_ = (expected: number, showBlocked: boolean
     } else {
       callback(arr2)
     }
+    return runtimeError_()
   })
 }
 

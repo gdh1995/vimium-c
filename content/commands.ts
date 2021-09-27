@@ -286,9 +286,9 @@ set_contentCommands_([
     if (math.abs(count) > 2 * sel) {
       sel = count < 0 ? 0 : sel - 1
     } else {
-      if (!count && known_last) {
-        for (ind = 0; ind < sel && hints[ind].d !== known_last; ind++) { /* empty */ }
-      } else {
+      ind = !known_last || count ? sel : 0
+      for (ind = 0; ind < sel && hints[ind].d !== known_last; ind++) { /* empty */ }
+      if (ind >= sel) {
         let preferredSelector = (options.prefer || "") + ""
         for (ind = preferredSelector && safeCall(testMatch, preferredSelector, visibleInputs[0]) === false ? 0 : sel;
             ind < sel && !testMatch(preferredSelector, visibleInputs[ind]); ind++) { /* empty */ }
@@ -409,6 +409,10 @@ set_contentCommands_([
         event = type && new (window as any)[evClass](type, options)
       } catch {}
       if (event) {
+        if (OnChrome && Build.MinCVer < BrowserVer.Min$Event$$IsTrusted
+            && chromeVer_ < BrowserVer.Min$Event$$IsTrusted) {
+          (event as Writable<typeof event>).isTrusted = false
+        }
         const activeEl = deref_(currentScrolling)
             || (OnFirefox ? deepActiveEl_unsafe_() as SafeElement | null : SafeEl_not_ff_!(deepActiveEl_unsafe_()))
         const useClick = options.click

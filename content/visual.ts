@@ -512,8 +512,8 @@ const runMovements = (direction: ForwardDir, granularity: kG | kVimG.vimWord
       } else {
         fixWord = (os_ > kOS.MAX_NOT_WIN) !== shouldSkipSpaceWhenMovingRight
         count1 -= (OnChrome && os_ > kOS.MAX_NOT_WIN
-            && (Build.MinCVer >= BrowserVer.Min$Selection$$extend$stopWhenWhiteSpaceEnd
-                || chromeVer_ > BrowserVer.Min$Selection$$extend$stopWhenWhiteSpaceEnd - 1)
+            && (Build.MinCVer >= BrowserVer.MinOnWindows$Selection$$extend$stopWhenWhiteSpaceEnd
+                || chromeVer_ > BrowserVer.MinOnWindows$Selection$$extend$stopWhenWhiteSpaceEnd - 1)
             && !!(fixDeltaHasOnlySpaces_cr_win = moveRightByWordButNotSkipSpaces!(0))
             || fixWord && !shouldSkipSpaceWhenMovingRight) as boolean | BOOL as BOOL
       }

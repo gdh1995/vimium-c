@@ -258,6 +258,8 @@ export const openImgReq = (req: FgReq[kFgReq.openImage], port?: Port): void => {
   if ((<RegExpI> /^<svg[\s>]/i).test(url)) {
     let svg = new DOMParser().parseFromString(url, "image/svg+xml").firstElementChild as SVGSVGElement | null
     if (svg) {
+      svg.removeAttribute("id")
+      svg.removeAttribute("class")
       for (const el of ([] as Element[]).slice.call(svg.querySelectorAll("script,use"))) { el.remove() }
     }
     if (!svg || !svg.lastElementChild) {

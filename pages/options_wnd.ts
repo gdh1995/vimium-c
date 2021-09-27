@@ -88,7 +88,7 @@ let optionsInit1_ = function (): void {
     for (let key in Option_.all_) {
       const obj = Option_.all_[key as "vimSync"]
       if (OnFirefox && asyncBackend_.contentPayload_.o === kOS.unixLike && obj instanceof BooleanOption_) {
-        obj.element_.classList.add("text-bottom");
+        obj.element_.classList.add("baseline")
       }
       obj.populateElement_(obj.previous_)
     }

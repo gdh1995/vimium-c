@@ -750,7 +750,7 @@ if (!Build.NDEBUG) {
 
 const upgradeKeyMappings = (value: string): void => {
   let newFlags = "", prefix = `${kMappingsFlag.char0}${kMappingsFlag.char1}`
-  if (!errors_ && flagDoesCheck_) { newFlags += `${prefix} ${kMappingsFlag.noCheck}\n` }
+  if (!errors_ && flagDoesCheck_) { newFlags = `${prefix}${kMappingsFlag.noCheck}\n` }
   if (newFlags) {
     const hooks = settings_.updateHooks_, old = hooks.keyMappings
     hooks.keyMappings = undefined

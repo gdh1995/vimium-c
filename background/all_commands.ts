@@ -112,11 +112,11 @@ set_bgC_([
     hud = (_hud = get_cOptions<C.insertMode>().hideHUD) != null ? !_hud
         : (_hud = get_cOptions<C.insertMode>().hideHud) != null ? !_hud
         : !settingsCache_.hideHud,
-    key = _key && typeof _key === "string"
-        && (_key.length > 2 || _key.length < 2 && !(<RegExpI> /[0-9a-z]/i).test(_key)) ? stripKey_(_key) : ""
+    key = _key && typeof _key === "string" ? stripKey_(_key).trim() : ""
+    key = key.length > 1 || key.length === 1 && !(<RegExpI> /[0-9a-z]/i).test(key) ? key : ""
     sendFgCmd(kFgCmd.insertMode, hud, {
-      h: hud ? trans_(`${kTip.globalInsertMode}` as "5", [key && ": " + (key.length === 1 ? `" ${key} "` : _key)])
-          : null,
+      h: hud ? trans_(`${kTip.globalInsertMode}` as "5", [key && ": " + (key.length === 1 ? `" ${key} "`
+          : `<${key}>`)]) : null,
       k: key || null,
       i: !!get_cOptions<C.insertMode>().insert,
       p: !!get_cOptions<C.insertMode>().passExitKey,
@@ -567,8 +567,8 @@ set_bgC_([
       return showHUD(trans_("notRestoreIfIncog"))
     }
     if (onlyOne && count > 1) {
-      sessions.getRecentlyClosed({ maxResults: count }, (list: chrome.sessions.Session[]): void => {
-        if (count > list.length) {
+      sessions.getRecentlyClosed({ maxResults: count }, (list?: chrome.sessions.Session[]): void => {
+        if (!list || count > list.length) {
           resolve(0)
           return showHUD(trans_("indexOOR"))
         }

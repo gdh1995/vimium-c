@@ -1,4 +1,6 @@
-import { $, OnEdge, browser_, OnFirefox, OnChrome, nextTick_, CurCVer_, IsEdg_, bgSettings_ } from "./async_bg"
+import {
+  $, OnEdge, browser_, OnFirefox, OnChrome, nextTick_, CurCVer_, IsEdg_, bgSettings_, asyncBackend_
+} from "./async_bg"
 import { Option_, KnownOptionsDataset, oTrans_ } from "./options_base"
 import { registerClass, createNewOption } from "./options_defs"
 import kPermissions = chrome.permissions.kPermissions
@@ -109,6 +111,9 @@ registerClass("OptionalPermissions", class extends Option_<"nextPatterns"> {
 
 const initOptionalPermissions = (): void => {
   const fragment = document.createDocumentFragment()
+  if (OnFirefox && asyncBackend_.contentPayload_.o === kOS.unixLike) {
+    template.querySelector("input")!.classList.add("baseline")
+  }
   for (const name of optional_permissions) {
     const node = document.importNode(template, true) as EnsuredMountedHTMLElement
     const checkbox = node.querySelector("input")!
