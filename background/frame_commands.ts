@@ -5,7 +5,7 @@ import {
 } from "./store"
 import * as BgUtils_ from "./utils"
 import { Tabs_, downloadFile, getTabUrl, runtimeError_, selectTab, R_, Q_ } from "./browser"
-import { convertToUrl_ } from "./normalize_urls"
+import { convertToUrl_, createSearchUrl_ } from "./normalize_urls"
 import * as settings_ from "./settings"
 import { showHUD, complainLimits, ensureInnerCSS, getParentFrame } from "./ports"
 import { getI18nJson, trans_ } from "./i18n"
@@ -286,17 +286,21 @@ export const openImgReq = (req: FgReq[kFgReq.openImage], port?: Port): void => {
   req.o && (prefix += req.o)
   const opts2 = req.q || As_<ParsedOpenPageUrlOptions>(BgUtils_.safeObj_() as {})
   const keyword = OnFirefox && req.m === HintMode.DOWNLOAD_MEDIA ? "" : opts2.k
-  url = opts2.s ? substitute_(url, SedContext.paste, opts2.s) : url
+  const testUrl = opts2.t ?? !keyword
+  const urlAfterSed = opts2.s ? substitute_(url, SedContext.paste, opts2.s) : url
+  const hasSed = urlAfterSed !== url
+  url = urlAfterSed
   // no group during openImg
   replaceCmdOptions<C.openUrl>({
     opener: true, reuse: opts2.r != null ? opts2.r : req.r, replace: opts2.m, position: opts2.p, window: opts2.w
   })
   set_cRepeat(1)
+  const urlToOpen = !keyword && !hasSed ? url : testUrl ? convertToUrl_(url, keyword, Urls.WorkType.ActAnyway)
+        : createSearchUrl_(url.trim().split(BgUtils_.spacesRe_), keyword, Urls.WorkType.ActAnyway)
   // not use v:show for those from other extensions
-  openUrlWithActions(typeof keyword !== "string"
-        && (!url.startsWith(location.protocol) || url.startsWith(location.origin)) ? prefix + url
-        : keyword ? convertToUrl_(url, keyword, Urls.WorkType.ActAnyway) : url
-      , Urls.WorkType.FakeType)
+  openUrlWithActions(typeof urlToOpen === "string" && testUrl
+      && (!urlToOpen.startsWith(location.protocol) || urlToOpen.startsWith(location.origin)) ? prefix + urlToOpen
+      : urlToOpen, Urls.WorkType.FakeType)
 }
 
 export const framesGoBack = (req: FgReq[kFgReq.framesGoBack], port: Port | null, curTab?: Tab): void => {

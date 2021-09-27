@@ -46,7 +46,7 @@ const unhoverOnEsc: HandlerNS.Handler = event1 => {
   return HandlerResult.Nothing;
 }
 
-const accessElAttr = (isUrl?: 1): [string: string, isUserCustomized?: BOOL] => {
+const accessElAttr = (isUrlOrText?: 1 | 2): [string: string, isUserCustomized?: BOOL] => {
   type primitiveObject = boolean | number | string | { arguments?: undefined } & Dict<any>
   const dataset = (clickEl as SafeHTMLElement).dataset
   for (let accessor of ((hintOptions.access || "") + "").split(",")) {
@@ -65,7 +65,8 @@ const accessElAttr = (isUrl?: 1): [string: string, isUserCustomized?: BOOL] => {
     }
     if (json && isTY(json)) { return [json, 1] }
   }
-  return [(isUrl ? dataset.vimUrl : dataset.canonicalSrc || dataset.src) || ""]
+  return [(isUrlOrText ? isUrlOrText < 2 ? dataset.vimUrl : dataset.vimText
+      : dataset.canonicalSrc || dataset.src) || ""]
 }
 
 const getUrlData = (): string => {
@@ -223,8 +224,7 @@ const copyText = (): void => {
       str = getUrlData()
       str && (<RegExpI> /^mailto:./).test(str) && (str = str.slice(7).trim());
     }
-    else if ((str = attr_s(clickEl, "data-vim-text"))
-        && (str = str.trim())) { /* empty */ }
+    else if (str = accessElAttr(2)[0].trim()) { /* empty */ }
     else {
       if (tag === INP) {
         let type = getInputType(clickEl as HTMLInputElement)
