@@ -514,7 +514,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
             : i === kKeyCode.altKey ? kChar.Alt
             : kChar.None
         : i > kKeyCode.maxNotFn && i < kKeyCode.minNotFn ? "f" + (i - kKeyCode.maxNotFn)
-        : (key = Build.BTypes & ~BrowserType.Chrome ? <string | undefined> event.keyIdentifier || ""
+        : i && (key = Build.BTypes & ~BrowserType.Chrome ? <string | undefined> event.keyIdentifier || ""
               : event.keyIdentifier as string).startsWith("U+") && (keyId = parseInt(key.slice(2), 16))
         ? keyId < kCharCode.minNotAlphabet && keyId > kCharCode.minNotSpace - 1
           ? shiftKey && keyId > kCharCode.maxNotNum && keyId < kCharCode.minNotNum ? enNumTrans[keyId - kCharCode.N0]
@@ -524,9 +524,9 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
           : ""
         : "";
     } else {
-      let code = event.code!, prefix = code.slice(0, 2), mapped: number | undefined;
-      if (prefix !== "Nu") { // not (Numpad* or NumLock)
-        if (prefix === "Ke" || prefix === "Di" || prefix === "Ar") {
+      let code = event.code!, prefix = code.slice(0, 3), mapped: number | undefined
+      if (prefix !== "Num") { // not (Numpad* or NumLock)
+        if (prefix === "Key" || prefix === "Dig" || prefix === "Arr") {
           code = code.slice(code < "K" ? 5 : 3);
         }
         key = code.length === 1 && key.length < 2
@@ -535,8 +535,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
                 ? Vomnibar_.mapModifier_ && event.location === Vomnibar_.mapModifier_ ? kChar.Modifier
                 : key === "Alt" ? key : ""
               : key === "Escape" ? kChar.esc
-              // e.g. https://github.com/philc/vimium/issues/3451#issuecomment-569124026
-              : code.length < 2 ? key.startsWith("Arrow") ? key.slice(5) : key
+              /** {@link ../lib/keyboard_utils#char_} */
+              : code.length < 2 || key.length > 1 && key !== "Dead" ? key.startsWith("Arrow") ? key.slice(5) : key
               : (mapped = this._codeCorrectionMap.indexOf(code)) < 0 ? code
               : charCorrectionList[mapped + 12 * +shiftKey]
             ;

@@ -68,7 +68,7 @@ const _getKeyCharUsingKeyIdentifier_old_cr = !OnChrome
 export const char_ = (eventWrapper: HandlerNS.Event): kChar => {
   let event: Pick<KeyboardEvent, "code" | "key" | "keyCode" | "keyIdentifier" | "location" | "shiftKey" | "altKey">
         = eventWrapper.e
-  let mapped: number | undefined, key = event.key!, shiftKey = event.shiftKey
+  let mapped: number | undefined, key = event.key!, shiftKey = event.shiftKey, isDeadKey = !OnEdge && key === "Dead"
   if (Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key && OnChrome && !key) {
     // since Browser.Min$KeyboardEvent$MayHave$$Key and before .MinEnsured$KeyboardEvent$$Key
     // event.key may be an empty string if some modifier keys are held on
@@ -76,23 +76,25 @@ export const char_ = (eventWrapper: HandlerNS.Event): kChar => {
     key = _getKeyName(event) // it's safe to skip the check of `event.keyCode`
         || /*#__NOINLINE__*/ _getKeyCharUsingKeyIdentifier_old_cr(event as Pick<OldKeyboardEvent, "keyIdentifier">
             , +shiftKey as BOOL)
-  } else if (!OnEdge && (fgCache.l > 0 && (fgCache.l > 1 || event.altKey) || key === "Dead")) {
+  } else if (!OnEdge && (fgCache.l > 0 && (fgCache.l > 1 || event.altKey) || isDeadKey)) {
       /** return strings of 1-N characters and CapsLock is ignored */
-    let code = event.code!, prefix = code.slice(0, 2);
-    if (prefix !== "Nu") { // not (Numpad* or NumLock)
+    let code = event.code!, prefix = code.slice(0, 3), isKeyShort = key.length < 2 || isDeadKey
+    if (prefix !== "Num") { // not (Numpad* or NumLock)
       // https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/code/code_values
-      if (prefix === "Ke" || prefix === "Di" || prefix === "Ar") {
+      if (prefix === "Key" || prefix === "Dig" || prefix === "Arr") {
         code = code.slice(code < "K" ? 5 : 3);
       }
       // Note: <Alt+P> may generate an upper-case '\u013b' on Mac,
       // so for /^Key[A-Z]/, can assume the status of CapsLock.
       // https://github.com/philc/vimium/issues/2161#issuecomment-225813082
-      key = code.length === 1 && key.length < 2
+      key = code.length === 1 && isKeyShort
             ? !shiftKey || code < "0" || code > "9" ? code : kChar.EnNumTrans[+code]
             : _modifierKeys[key] ? fgCache.a && event.location === fgCache.a ? kChar.Modifier : ""
             : key === "Escape" ? kChar.esc // e.g. https://github.com/gdh1995/vimium-c/issues/129
-            // e.g. https://github.com/philc/vimium/issues/3451#issuecomment-569124026
-            : code.length < 2 ? key.startsWith("Arrow") ? key.slice(5) : key
+            // 1. an example of code is empty is https://github.com/philc/vimium/issues/3451#issuecomment-569124026
+            // 2. if both `key` is long, then prefer `key` to support outside mappings (like composed-key-as-an-action).
+            //    see https://github.com/gdh1995/vimium-c/issues/435
+            : code.length < 2 || !isKeyShort ? key.startsWith("Arrow") ? key.slice(5) : key
             : (mapped = _codeCorrectionMap.indexOf(code)) < 0 ? code
             : (OnChrome && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key
                 ? kCrct! : kChar.CharCorrectionList)[mapped + 12 * +shiftKey]

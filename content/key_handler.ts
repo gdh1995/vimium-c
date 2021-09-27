@@ -181,7 +181,7 @@ export const onKeydown = (event: KeyboardEventToPrevent): void => {
   }
   if (action) { /* empty */ }
   else if (/*#__NOINLINE__*/ isInInsert()) {
-    let keyStr = mapKeyTypes & (insert_global_ && insert_global_.k
+    let keyStr = key === kKeyCode.ime ? "" : mapKeyTypes & (insert_global_ && insert_global_.k
                 ? kMapKey.normal_long | kMapKey.char | kMapKey.insertMode : kMapKey.insertMode | kMapKey.normal_long)
           || (insert_global_ ? insert_global_.k
                 : mapKeyTypes & kMapKey.directInsert || key > kKeyCode.maxNotFn && key < kKeyCode.minNotFn)

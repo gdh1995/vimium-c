@@ -523,7 +523,7 @@ const onIFrameKeydown = (event: KeyboardEventToPrevent): void => {
     Stop_(event)
     if (!OnChrome || Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted
         ? !event.isTrusted : event.isTrusted === false) { return; }
-    if (n === kKeyCode.ime || scroll_keyIsDown && onScrolls(event) || event.type === "keyup") { return; }
+    if (!n || n === kKeyCode.ime || scroll_keyIsDown && onScrolls(event) || event.type === "keyup") { return }
     const eventWrapper: HandlerNS.Event = {c: kChar.INVALID, e: event, i: n},
     key = getMappedKey(eventWrapper, kModeId.Find), keybody = keybody_(key);
     const i: FindAction | KeyStat = key.includes("a-") && event.altKey ? FindAction.DoNothing
