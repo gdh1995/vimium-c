@@ -1196,7 +1196,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       css.type = "text/css";
       css.textContent = !(Build.BTypes & ~BrowserType.Chrome)
         || Build.BTypes & BrowserType.Chrome && a.browser_ === BrowserType.Chrome
-        ? `body:after, #input, .item { border-width: ${
+        ? `body::after, #input, .item { border-width: ${
           Build.MinCVer < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo &&
           ver < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo ? 1 : 0.01}px; }`
         : "#input::-ms-clear { display: none; }";

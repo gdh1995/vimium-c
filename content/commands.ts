@@ -4,7 +4,7 @@ import {
   OnChrome, OnFirefox, OnEdge, firefoxVer_, safeCall, parseOpenPageUrlOptions, os_, math
 } from "../lib/utils"
 import {
-  isHTML_, htmlTag_, createElement_, querySelectorAll_unsafe_, SafeEl_not_ff_, docEl_unsafe_, MDW, CLK,
+  isHTML_, hasTag_, createElement_, querySelectorAll_unsafe_, SafeEl_not_ff_, docEl_unsafe_, MDW, CLK,
   querySelector_unsafe_, DAC, removeEl_s, appendNode_s, setClassName_s, INP, contains_s, toggleClass_s, modifySel,
   focus_, testMatch, docHasFocus_, deepActiveEl_unsafe_, getEditableType_
 } from "../lib/dom_utils"
@@ -330,7 +330,7 @@ set_contentCommands_([
       }
       else if (keep ? isEscape_(key) || (
           keybody_(key) === ENTER
-          && (/* a?c?m?-enter */ key < "s" && (key[0] !== "e" || htmlTag_(insert_inputHint!.h[sel].d) === INP))
+          && (/* a?c?m?-enter */ key < "s" && (key[0] !== "e" || hasTag_(INP, insert_inputHint!.h[sel].d)))
         ) : !isIME && keyCode !== kKeyCode.f12
       ) {
         exitInputHint();
@@ -365,8 +365,8 @@ set_contentCommands_([
   },
   /* kFgCmd.scrollSelect: */ (options: CmdOptions[kFgCmd.scrollSelect], count: number): void => {
     const { dir, position: pos } = options
-    const el = insert_Lock_() as HTMLSelectElement | null
-    if (!el || htmlTag_(el) !== "select") { return }
+    const el = insert_Lock_()
+    if (!el || !hasTag_("select", el)) { return }
     let max = el.options.length, old = el.selectedIndex
       , absCount = count > 0 ? count : -count, step: number
     if (pos) {

@@ -1,7 +1,7 @@
 import { chromeVer_, createRegExp, Lower, math, max_, OnChrome, OnEdge, OnFirefox } from "../lib/utils"
 import {
   createElement_, querySelector_unsafe_, getInputType, htmlTag_, docEl_unsafe_, removeEl_s, ALA, attr_s,
-  contains_s, setClassName_s, setVisibility_s, toggleClass_s, textContent_s, appendNode_s
+  contains_s, setClassName_s, setVisibility_s, toggleClass_s, textContent_s, appendNode_s, hasTag_
 } from "../lib/dom_utils"
 import {
   HintItem, FilteredHintItem, MarkerElement, HintText, isHC_,
@@ -202,8 +202,8 @@ export const generateHintText = (hint: Hint, hintInd: number, allItems: readonly
       ind && (ind = text.indexOf("\n", ind)) > 0 ? text = text.slice(0, ind) : 0;
     } else if (localName === "a") {
       let el2 = el.firstElementChild as Element | null;
-      text = el2 && htmlTag_(el2) === "img" && !(hintInd + 1 < allItems.length && el2 === allItems[hintInd + 1].d)
-          ? generateHintText([el2 as SafeHTMLElement] as {[0]: SafeHTMLElement} as Hint, hintInd, allItems).t : ""
+      text = el2 && hasTag_("img", el2) && !(hintInd + 1 < allItems.length && el2 === allItems[hintInd + 1].d)
+          ? generateHintText([el2] as {[0]: Hint[0]} as Hint, hintInd, allItems).t : ""
       show = text ? 2 : 0
     }
     text = text || el.title || attr_s(el, ALA)
@@ -268,7 +268,7 @@ export const getMatchingHints = (keyStatus: KeyStatus, text: string, seq: string
         }
         if (!hasSearch
             && (hintOptions.ordinal != null ? hintOptions.ordinal :
-                ((OnFirefox || htmlTag_(docEl_unsafe_()!)) && (docEl_unsafe_()! as HTMLElement).dataset.vimiumHints
+                ((OnFirefox || htmlTag_<1>(docEl_unsafe_()!)) && (docEl_unsafe_()! as HTMLElement).dataset.vimiumHints
                 || "").includes("ordinal"))) {
           /* empty */
         }

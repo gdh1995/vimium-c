@@ -129,7 +129,7 @@ export const reloadCSS_ = (action: MergeAction, cssStr?: string): SettingsNS.Mer
       if (hasAll) {
         body = body.replace(<RegExpG> /\b[IL]H\s?\{/g, "$&all:inherit;")
       }
-      body += `${prefix}:before,${prefix}:after,.R:before,.R:not(.HUD):after{display:none!important}`
+      body += `${prefix}::before,${prefix}::after,.R::before,.R:not(.HUD)::after{display:none!important}`
       css = prefix + css.slice(5, hostEnd) +
           /** Note: {@link ../front/vimium-c.css}: this requires no ID/attr selectors in "ui" styles */
           body.replace(<RegExpG> /\.[A-Z][^,{]*/g, prefix + " $&")

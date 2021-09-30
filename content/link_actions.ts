@@ -6,7 +6,7 @@ import { getVisibleClientRect_, center_, view_, selRange_ } from "../lib/rect"
 import {
   IsInDOM_, createElement_, htmlTag_, getComputedStyle_, getEditableType_, isIFrameElement, GetParent_unsafe_, focus_,
   kMediaTag, ElementProto_not_ff, querySelector_unsafe_, getInputType, uneditableInputs_, GetShadowRoot_, scrollingEl_,
-  findMainSummary_, getSelection_, removeEl_s, appendNode_s, getMediaUrl, getMediaTag, INP, ALA, attr_s,
+  findMainSummary_, getSelection_, removeEl_s, appendNode_s, getMediaUrl, getMediaTag, INP, ALA, attr_s, hasTag_,
   setOrRemoveAttr_s, toggleClass_s, textContent_s, notSafe_not_ff_, modifySel, SafeEl_not_ff_, testMatch, docHasFocus_
 } from "../lib/dom_utils"
 import { getPreferredRectOfAnchor } from "./local_links"
@@ -75,7 +75,7 @@ const getUrlData = (): string => {
     (link = createElement_("a")).href = str.trim();
   }
   // $1.href is ensured well-formed by @GetLinks_
-  return htmlTag_(link) === "a" ? (link as HTMLAnchorElement).href : "";
+  return hasTag_("a", link) ? link.href : ""
 }
 
 /** return: img is HTMLImageElement | HTMLAnchorElement | HTMLElement[style={backgroundImage}] */

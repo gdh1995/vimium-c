@@ -3,7 +3,7 @@ import {
   tryCreateRegExp
 } from "../lib/utils"
 import {
-  IsInDOM_, isInTouchMode_cr_, MDW, htmlTag_, CLK, attr_s, contains_s, focus_, fullscreenEl_unsafe_, findAnchor_,
+  IsInDOM_, isInTouchMode_cr_, MDW, hasTag_, CLK, attr_s, contains_s, focus_, fullscreenEl_unsafe_, findAnchor_,
   deepActiveEl_unsafe_
 } from "../lib/dom_utils"
 import { suppressTail_ } from "../lib/keyboard_utils"
@@ -352,7 +352,7 @@ export const click_async = (async (element: SafeElementForMouse
         /* empty */
       } else if (result & ActionType.interact) {
         if (result & ActionType.dblClick) {
-          if (htmlTag_(element) === "video") {
+          if (hasTag_("video", element)) {
             if ((!OnChrome ? !OnFirefox || element.requestFullscreen
                   : Build.MinCVer >= BrowserVer.MinEnsured$Document$$fullscreenElement
                     || chromeVer_ > BrowserVer.MinEnsured$Document$$fullscreenElement - 1)) {

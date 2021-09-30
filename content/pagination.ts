@@ -4,7 +4,7 @@ import {
 } from "../lib/utils"
 import {
   docEl_unsafe_, htmlTag_, isAriaNotTrue_, isStyleVisible_, querySelectorAll_unsafe_, isIFrameElement, ALA, attr_s,
-  contains_s, notSafe_not_ff_
+  contains_s, notSafe_not_ff_, hasTag_
 } from "../lib/dom_utils"
 import { getBoundingClientRect_, view_ } from "../lib/rect"
 import { kSafeAllSelector, detectUsableChild } from "./link_hints"
@@ -139,17 +139,17 @@ export const findNextInRel = (relName: string): GoNextBaseCandidate | null | und
       : OnFirefox ? VTr(kTip.webkitWithRel).replace("webkit", "moz") : VTr(kTip.webkitWithRel))!
   let s: string | null | undefined;
   type HTMLElementWithRel = HTMLAnchorElement | HTMLAreaElement | HTMLLinkElement;
-  let matched: HTMLElementWithRel | undefined, tag: "a" | "area" | "link"
+  let matched: HTMLElementWithRel | undefined, tag: "a" | "area" | "link" | ""
   const re1 = <RegExpOne> /\s/
   if (OnChrome && Build.MinCVer < BrowserVer.MinEnsured$ForOf$ForDOMListTypes
       && Build.MinCVer >= BrowserVer.BuildMinForOf
       && chromeVer_ < BrowserVer.MinEnsured$ForOf$ForDOMListTypes) {
     elements = [].slice.call(elements)
   }
-  for (const element of elements as Element[]) {
+  for (const element of elements as SafeHTMLElement[]) {
     if ((tag = htmlTag_(element) as typeof tag)
         && (s = OnChrome && Build.MinCVer < BrowserVer.Min$HTMLAreaElement$rel
-                ? attr_s(element as SafeHTMLElement, "rel")
+                ? attr_s(element, "rel")
                 : (element as TypeToPick<HTMLElement, HTMLElementWithRel, "rel">).rel)
         && Lower(s).split(re1).indexOf(relName) >= 0
         && ((s = (element as HTMLElementWithRel).href) || tag < "aa")
@@ -166,7 +166,7 @@ export const findNextInRel = (relName: string): GoNextBaseCandidate | null | und
 }
 
 export const jumpToNextLink = (linkElement: GoNextBaseCandidate[0]): void => {
-  let url = htmlTag_(linkElement) === "link" && (linkElement as HTMLLinkElement).href
+  let url = hasTag_("link", linkElement) && (linkElement as HTMLLinkElement).href
   view_(linkElement)
   flash_(linkElement) // here calls getRect -> preparCrop_
   if (url) {

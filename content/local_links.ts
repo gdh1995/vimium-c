@@ -6,7 +6,7 @@ import {
   isIFrameElement, getInputType, uneditableInputs_, getComputedStyle_, findMainSummary_, htmlTag_, isAriaNotTrue_,
   kMediaTag, NONE, querySelector_unsafe_, isStyleVisible_, fullscreenEl_unsafe_, notSafe_not_ff_, docEl_unsafe_,
   GetParent_unsafe_, unsafeFramesetTag_old_cr_, isHTML_, querySelectorAll_unsafe_, isNode_, INP, attr_s,
-  getMediaTag, getMediaUrl, contains_s, GetShadowRoot_, parentNode_unsafe_s, testMatch
+  getMediaTag, getMediaUrl, contains_s, GetShadowRoot_, parentNode_unsafe_s, testMatch, hasTag_
 } from "../lib/dom_utils"
 import {
   getVisibleClientRect_, getZoomedAndCroppedRect_, getClientRectsForAreas_, getCroppedRect_, padClientRect_,
@@ -120,7 +120,7 @@ const getClickable = (hints: Hint[], element: SafeHTMLElement): void => {
     if ((element as HTMLImageElement).useMap) {
       getClientRectsForAreas_(element as HTMLImageElement, hints);
     }
-    if ((forHover_ && (!(anotherEl = element.parentElement) || htmlTag_(anotherEl) !== "a"))
+    if ((forHover_ && (!(anotherEl = element.parentElement) || !hasTag_("a", anotherEl)))
         || ((s = element.style.cursor!) ? s !== "default"
             : (s = getComputedStyle_(element).cursor!) && (s.includes("zoom") || s.startsWith("url"))
         )) {
@@ -154,7 +154,7 @@ const getClickable = (hints: Hint[], element: SafeHTMLElement): void => {
       : (((s = element.className) && clickableClasses_.test(s) ? type = ClickType.classname : tag === "li")
             && (!(anotherEl = element.parentElement)
                 || (type ? (s = htmlTag_(anotherEl), !s.includes("button") && s !== "a")
-                    : clickable_.has(anotherEl) && htmlTag_(anotherEl) === "ul" && !s.includes("active")))
+                    : clickable_.has(anotherEl) && hasTag_("ul", anotherEl) && !s.includes("active")))
             || element.hasAttribute("aria-selected")
             || element.getAttribute("data-tab") ? ClickType.classname : ClickType.Default);
     isClickable = type > ClickType.Default
@@ -237,7 +237,7 @@ const inferTypeOfListener = ((el: SafeHTMLElement, tag: "" | keyof HTMLElementTa
                       tag = el2 ? htmlTag_(el2) : ""))
               && (<RegExpOne> /^h\d$/).test(tag)
               && (el2 = (el2 as HTMLHeadingElement).firstElementChild as Element | null)
-              && htmlTag_(el2) === "a")
+              && hasTag_("a", el2))
         );
 }) as (el: SafeHTMLElement, tag: keyof HTMLElementTagNameMap) => boolean
 
@@ -479,7 +479,7 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
               = i > 0 && buttonOrATags_.test(list[i - 1][0].localName)
               ? (s < "i" || !element.innerHTML.trim()) && isDescendant(element, list[i - 1][0], s < "i")
               : !!(element = (element as SafeHTMLElement).parentElement)
-                && htmlTag_(element) === "button" && (element as HTMLButtonElement).disabled
+                && hasTag_("button", element) && (element as HTMLButtonElement).disabled
               ) {
             // icons: button > i; button > div@mousedown; (button[disabled] >) div@mousedown
             ++splice
@@ -522,7 +522,7 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
         }
       } else if (notRemoveParents
           = k === ClickType.edit && i > 0 && (element = list[i - 1][0]) === parentNode_unsafe_s(list[i][0])
-          && element.childElementCount < 2 && htmlTag_(element) === "a" && !(element as SafeHTMLElement).innerText) {
+          && element.childElementCount < 2 && hasTag_("a", element) && !(element as SafeHTMLElement).innerText) {
         // a rare case that <a> has only a clickable <input>
         splice = i--
       }
@@ -665,7 +665,7 @@ export const filterOutNonReachable = (list: Hint[], notForAllClickable?: boolean
       continue;
     }
     if (nodeType === kNode.DOCUMENT_FRAGMENT_NODE
-        && (temp = el.lastElementChild as Element | null) && htmlTag_(temp) === "slot"
+        && (temp = el.lastElementChild as Element | null) && hasTag_("slot", temp)
         && contains_s((root as ShadowRoot).host as SafeElement, fromPoint!)) {
       continue;
     }
@@ -673,8 +673,8 @@ export const filterOutNonReachable = (list: Hint[], notForAllClickable?: boolean
     if ((tag = el.localName as keyof HTMLElementTagNameMap) === "img"
         ? isDescendant(el, fromPoint!, 0)
         : tag === "area" ? fromPoint === list[i][4]
-        : tag === INP && ((OnFirefox ? htmlTag_(fromPoint!) !== "label"
-                : htmlTag_(fromPoint!) !== "label" && !notSafe_not_ff_!(fromPoint!)
+        : tag === INP && ((OnFirefox ? !hasTag_("label", fromPoint!)
+                : !hasTag_("label", fromPoint!) && !notSafe_not_ff_!(fromPoint!)
               && fromPoint!.parentElement || fromPoint!) as MayBeLabel).control === el
           && (notForAllClickable
               || (i < 1 || list[i - 1][0] !== el) && (i + 2 > list.length || list[i + 1][0] !== el))) {

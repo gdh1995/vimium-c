@@ -110,6 +110,9 @@ export const htmlTag_ = (!OnFirefox ? (element: Element | HTMLElement): string =
   (element: Element): "" | keyof HTMLElementTagNameMap; // this line is just to avoid a warning on VS Code
 }
 
+export const hasTag_ = <Tag extends keyof HTMLElementTagNameMap> (htmlTag: Tag
+    , el: Element | HTMLElement): el is HTMLElementTagNameMap[Tag] => el.localName === htmlTag && "lang" in el
+
 export const isInTouchMode_cr_ = OnChrome ? (): boolean => {
     const viewport_meta = querySelector_unsafe_("meta[name=viewport]")
     return !!viewport_meta && createRegExp(kTip.metaKeywordsForMobile, "i").test(
@@ -309,12 +312,12 @@ export const findMainSummary_ = ((details: HTMLDetailsElement | Element | null):
     // https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/html/html_details_element.cc?g=0&l=101
     if (!OnChrome || Build.MinCVer >= BrowserVer.Min$Array$$find$$findIndex) {
       return ([].find as (predicate: (el: Element) => el is SafeHTMLElement) => SafeHTMLElement | undefined
-          ).call(details!.children, (el): el is SafeHTMLElement => htmlTag_(el) === "summary") || null
+          ).call(details!.children, hasTag_.bind(0, "summary") as (el: Element) => el is SafeHTMLElement) || null
     }
     let found: SafeHTMLElement | null = null
     for (let summaries = details!.children, i = 0; i < summaries.length && !found; i++) {
       // there's no window.HTMLSummaryElement on C70
-      found = htmlTag_(summaries[i]) === "summary" ? summaries[i] as SafeHTMLElement : found
+      found = hasTag_("summary", summaries[i]) ? summaries[i] as SafeHTMLElement : found
     }
     return found
 }) as (details: HTMLDetailsElement) => SafeHTMLElement | null
@@ -324,7 +327,7 @@ export const findAnchor_ = ((element: Element | null): SafeHTMLElement | null =>
     element = element!.closest!("a")
     return element && htmlTag_<1>(element) ? element : null
   }
-  while (element && htmlTag_(element) !== "a") {
+  while (element && !hasTag_("a", element)) {
     element = GetParent_unsafe_(element, PNType.RevealSlotAndGotoParent)
   }
   return element as SafeHTMLElement

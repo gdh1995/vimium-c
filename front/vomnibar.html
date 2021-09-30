@@ -7,7 +7,7 @@
 	<style>
 body{border-radius:5px;box-shadow:0 2px 7px 0.5px rgba(0,0,0,0.8);contain:content;margin:9px 12px 10px;
 overflow:hidden;padding:0;position:relative;white-space:nowrap;}
-body:after{border:0.5px solid #555;border-radius:5px;bottom:0;left:0;pointer-events:none;position:fixed;right:0;top:0;}
+body::after{border:0.5px solid #555;border-radius:5px;bottom:0;left:0;pointer-events:none;position:fixed;right:0;top:0;}
 .transparent{opacity:0.6667;transition:opacity 167ms 33ms;}
 #bar{background:#f1f1f1;border-bottom:1px dashed #ccc;border-radius:4px 4px 0 0;
 contain:strict;font-size:0;height:34px;padding:10px;}#bar.empty{border-radius:4px;border:none;}
@@ -21,7 +21,7 @@ color:#000;contain:strict;font-size:20px;height:34px;outline:none;padding:4px 9.
 .item{border-bottom:0.5px solid #ddd;box-sizing:border-box;contain:strict;height:44px;padding:4px 20px 0;}
 .b{border-bottom-style:none;border-radius:0 0 4px 4px;height:46px;}
 .item:hover{background-color:#cddbef;border-style:none;}
-.alt .item:after{background:rgba(255,255,255,0.8);border-radius:21px;color:#333;content:attr(data-index);font-size:24px;
+.alt .item::after{background:rgba(255,255,255,0.8);border-radius:21px;color:#333;content:attr(data-index);font-size:24px;
 height:39px;line-height:39px;position:absolute;left:calc(50% - 20px);text-align:center;top:2px;width:39px}
 .p{border-color:#bbcee9;}.s{background-color:#bbcee9;border-style:none;}
 .top{height:20px;overflow:hidden;font:16px/20px "Helvetica Neue",Helvetica,Arial,"PingFang SC",
@@ -47,12 +47,12 @@ match{color:#000;font-weight:bold;}.title>match{text-decoration:underline;}
 .history{d:path("M8 10.8A32 32 0 1 1 0 32h6a26 26 1 1 0 6.25-17L20 23H0V3zM28 18v21l15 8 4-5-13-7V18");}
 </style>
 	<style data-media="(forced-colors: active), (-ms-high-contrast: active)" id="high-contrast">
-*{border-radius:0 !important;}body:after{content:"";border-radius:0;}
+*{border-radius:0 !important;}body::after{content:"";border-radius:0;}
 .transparent,#toolbar{opacity:1;}#toggle-dark{display:none;}.btn_svg{stroke:#999;}:hover>.btn_svg{stroke:currentColor;}
 .s,.item:hover{border-bottom-style:solid;}.s>.top,:hover>.top{font-weight:bold;--c:currentColor;}
 </style>
 	<style id="dark">
-body:after{content:"";}
+body::after{content:"";}
 #bar{background:#333;border-color:#666;}#list{background:#000;}
 #input{background:#000;border-color:#171717;box-shadow:0 0 1.5px #ccc;color:#ccc;}
 #toolbar{color:#666;opacity:1;}.button:hover{background:#000;color:#999;}
