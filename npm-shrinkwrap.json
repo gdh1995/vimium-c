@@ -9,7 +9,7 @@
       "license": "MIT",
       "dependencies": {
         "pngjs": "^6.0.0",
-        "terser": "^5.7.1",
+        "terser": "^5.9.0",
         "typescript": "^4.4.2"
       },
       "devDependencies": {
@@ -4941,8 +4941,9 @@
       }
     },
     "node_modules/source-map-support": {
-      "version": "0.5.19",
-      "integrity": "sha512-Wonm7zOCIJzBGQdB+thsPar0kYuCIzYvxZwlBa87yi/Mdjv7Tip2cyVbLj5o0cFPN4EVkuTwb3GDDyUx2DGnGw==",
+      "version": "0.5.20",
+      "resolved": "https://registry.nlark.com/source-map-support/download/source-map-support-0.5.20.tgz",
+      "integrity": "sha1-EhZgifj15ejFaSazd2Mzkt0stsk=",
       "dependencies": {
         "buffer-from": "^1.0.0",
         "source-map": "^0.6.0"
@@ -5180,13 +5181,13 @@
       "optional": true
     },
     "node_modules/terser": {
-      "version": "5.7.1",
-      "resolved": "https://registry.npmjs.org/terser/-/terser-5.7.1.tgz",
-      "integrity": "sha512-b3e+d5JbHAe/JSjwsC3Zn55wsBIM7AsHLjKxT31kGCldgbpFePaFo+PiddtO6uwRZWRw7sPXmAN8dTW61xmnSg==",
+      "version": "5.9.0",
+      "resolved": "https://registry.nlark.com/terser/download/terser-5.9.0.tgz",
+      "integrity": "sha1-R9bmKaUiljJA8rVfyqPJkIPSw1E=",
       "dependencies": {
         "commander": "^2.20.0",
         "source-map": "~0.7.2",
-        "source-map-support": "~0.5.19"
+        "source-map-support": "~0.5.20"
       },
       "bin": {
         "terser": "bin/terser"
