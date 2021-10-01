@@ -46,21 +46,18 @@ const parseSeds_ = (text: string, fixedContexts: Contexts | null): readonly Clip
   const sepReCache: Map<string, RegExpOne> = new Map()
   for (let line of text.split("\n")) {
     line = line.trim()
-    const prefix = (<RegExpOne> /^([A-Za-z\x80-\ufffd]{1,6})([^\x00- A-Za-z\\\x7f-\uffff])/).exec(line)
+    const prefix = (<RegExpOne> /^([\w\x80-\ufffd]{1,6})([^\x00- \w\\\x7f-\uffff])/).exec(line)
     if (!prefix) { continue }
     let sep = prefix[2], sepRe = sepReCache.get(sep)
     if (!sepRe) {
       const s = "\\u" + (sep.charCodeAt(0) + 0x10000).toString(16).slice(1)
-      sepRe = new RegExp(`^((?:\\\\${s}|[^${s}])+)${s}(.*)${s}([a-zD]{0,9})((?:,[A-Za-z-]+|,host=[\\w.*-]+)*)$`)
+      sepRe = new RegExp(`^((?:\\\\${s}|[^${s}])+)${s}(.*)${s}([a-z]{0,9})((?:,[A-Za-z-]+|,host=[\\w.*-]+)*)$`)
       sepReCache.set(sep, sepRe)
     }
-    const head = prefix[1], body = sepRe.exec(line.slice(prefix[0].length))
+    const body = sepRe.exec(line.slice(prefix[0].length))
     if (!body) { continue }
-    let suffix = body[3]
-    let flags = suffix.replace(<RegExpG> /[dDr]/g, "")
-    let actions: SedAction[] = [], host: string | null = null, retainMatched = <BOOL> +suffix.includes("r")
-    suffix.includes("d") ? actions.push(SedAction.decodeMaybeEscaped)
-        : suffix.includes("D") ? actions.push(SedAction.decodeForCopy) : 0
+    const head = prefix[1], flags = body[3], actions: SedAction[] = []
+    let host: string | null = null, retainMatched: BOOL = 0
     for (const rawI of body[4].split(",")) {
       const i = rawI.toLowerCase()
       if (i.startsWith("host=")) {
@@ -216,7 +213,7 @@ set_substitute_((text: string, normalContext: SedContext, mixedSed?: MixedSedOpt
   if (rules && rules !== true) {
     contexts || (arr = [])
     arr = parseSeds_((rules + "").replace(
-          <RegExpG> /(?!\\) ([A-Za-z\x80-\ufffd]{1,6})(?![\x00- A-Za-z\\\x7f-\uffff])/g, "\n$1")
+          <RegExpG> /(?!\\) ([\w\x80-\ufffd]{1,6})(?![\x00- \w\\\x7f-\uffff])/g, "\n$1")
         , contexts || (contexts = { normal_: SedContext.NO_STATIC, extras_: null })).concat(arr)
   }
   for (const item of contexts ? arr : []) {

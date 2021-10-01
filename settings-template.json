@@ -5,8 +5,9 @@
 	},
 	"autoReduceMotion": true,
 	"clipSub": [
-		"r@^https://github\\.com/[^\\s\\/?#]+/[^\\s\\/?#]+(?=/)@@r",
-		"g@^https://www\\.zhihu\\.com/question/\\d+(?=/answer/?$)@@r",
+		"p=^git@([^/:]+):=https://$1/=",
+		"r@^https://github\\.com/[^\\s\\/?#]+/[^\\s\\/?#]+(?=/)@@,matched",
+		"g@^https://www\\.zhihu\\.com/question/\\d+(?=/answer/?$)@@,matched",
 		"p@^https://item\\.m\\.jd\\.com/product/(\\d+)\\.html\\b@https://item.jd.com/$1.html@",
 		""
 	],
