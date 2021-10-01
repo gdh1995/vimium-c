@@ -45,7 +45,7 @@ import { setPreviousMarkPosition } from "./marks"
 import { keyNames_, prevent_ } from "../lib/keyboard_utils"
 import { post_, runFallbackKey } from "./port"
 
-let toggleAnimation: ((scrolling?: BOOL) => void) | null = null
+let toggleAnimation: ((scrolling?: BOOL | /** resume */ 2) => void) | null = null
 let maxKeyInterval = 1
 let minDelay: number
 let currentScrolling: WeakRef<SafeElement> | null = null
@@ -151,7 +151,7 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
       if (totalDelta >= amount && continuous && totalElapsed < minDelay - min_delta
           && (flags & kScFlag.TO || amount < ScrollConsts.AmountLimitToScrollAndWaitRepeatedKeys)) {
         running = 0
-        timer = timeout_(/*#__NOINLINE__*/ restartAnimate, minDelay - totalElapsed)
+        timer = timeout_(/*#__NOINLINE__*/ resumeAnimation, minDelay - totalElapsed)
         if (!Build.NDEBUG && ScrollConsts.DEBUG) {
           console.log(">>> [animation] wait for %o - %o ms", minDelay, ((totalElapsed * 1e2) | 0) / 1e2)
         }
@@ -175,13 +175,14 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
     }
   },
   hasDialog = OnChrome && Build.MinCVer >= BrowserVer.MinEnsuredHTMLDialogElement || WithDialog && doesSupportDialog(),
-  restartAnimate = (): void => {
+  resumeAnimation = (): void => {
     if (!keyIsDown) { toggleAnimation!(); return }
     flags & kScFlag.TO && amount > fgCache.t && (amount = min_(amount, dimSize_(element, di + kDim.viewW) / 2) | 0)
     totalElapsed = minDelay
     running = running || rAF_(animate);
   };
-  toggleAnimation = (scrolling?: BOOL): void => {
+  toggleAnimation = (scrolling?: BOOL | 2): void => {
+    if (scrolling === 2) { running || (clearTimeout_(timer), resumeAnimation()); return }
     if (!scrolling) {
       if (!Build.NDEBUG && ScrollConsts.DEBUG) {
         console.log(">>> [animation] stop after %o ms / %o px"
@@ -411,6 +412,7 @@ export const onScrolls = (event: KeyboardEventToPrevent): boolean => {
         ? !!event.repeat : event.repeat
     repeat && prevent_(event);
     scrollTick(<BOOL> +repeat)
+    repeat && toggleAnimation && toggleAnimation(2)
     return repeat;
 }
 
