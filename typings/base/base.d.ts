@@ -205,6 +205,23 @@ interface Navigator {
   }
 }
 
+interface URLPatternDict {
+  hash: string
+  hostname: string
+  password?: string
+  pathname: string
+  port: string
+  protocol: string
+  search: string
+  username?: string
+}
+interface URLPattern extends URLPatternDict {
+  exec (url: string): URLPatternResult
+  test (url: string): boolean
+}
+interface URLPatternResult {}
+declare var URLPattern: { new (template: string | URLPatternDict): URLPattern } | undefined
+
 declare module crypto {
   const getRandomValues: (buffer: Uint8Array) => unknown
 }

@@ -216,6 +216,21 @@ export const makeRegexp_ = (pattern: string, suffix: string, logError?: 0): RegE
     return null;
 }
 
+export const makePattern_ = typeof URLPattern === "undefined" || !URLPattern ? (): null => null
+    : (pattern: string, logError?: 0): URLPattern | null => {
+  if (!pattern.endsWith("*")) {
+    const ind = pattern.indexOf("://")
+    const ind2 = ind > 0 ? pattern.indexOf("/", ind + 3) : -1
+    pattern += ind > 0 && (ind2 === pattern.length - 1 || ind2 < 0) ? (ind2 > 0 ? "" : "/") + "*\\?*#*" : ""
+  }
+  try {
+    return new URLPattern!(pattern)
+  } catch {
+    logError === 0 || console.log("%c/%s/%s", "color:#c41a16", pattern, "is not a valid URLPattern.")
+  }
+  return null;
+}
+
 let _tmpResolve: ((arg?: any) => void) | null = null
 const _exposeResolve = (newResolve: (arg: any) => void): void => { _tmpResolve = newResolve }
 export const deferPromise_ = <T> (): { promise_: Promise<T>, resolve_ (result: T): unknown } => {

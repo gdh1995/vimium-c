@@ -224,7 +224,7 @@ declare const enum kMappingsFlag {
   noCheck = "no-check",
 }
 
-declare const enum kMatchUrl { RegExp = 1, StringPrefix = 2 }
+declare const enum kMatchUrl { RegExp = 1, StringPrefix = 2, Pattern = 3 }
 interface BaseUrlMatcher {
   /** type */ readonly t: kMatchUrl
   /** value */ readonly v: unknown
@@ -237,7 +237,11 @@ interface PrefixUrlMatcher extends BaseUrlMatcher {
   /** type */ readonly t: kMatchUrl.StringPrefix
   /** value */ readonly v: string
 }
-type ValidUrlMatchers = RegExpUrlMatcher | PrefixUrlMatcher
+interface PatternUrlMatcher extends BaseUrlMatcher {
+  /** type */ readonly t: kMatchUrl.Pattern
+  /** value */ readonly v: URLPattern
+}
+type ValidUrlMatchers = RegExpUrlMatcher | PrefixUrlMatcher | PatternUrlMatcher
 
 type TextElement = HTMLInputElement | HTMLTextAreaElement;
 

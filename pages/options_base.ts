@@ -191,7 +191,7 @@ export type OptionErrorType = "has-error" | "highlight"
 
 export interface ExclusionBaseVirtualNode {
   rule_: ExclusionsNS.StoredRule;
-  matcher_: Promise<RegExpUrlMatcher | PrefixUrlMatcher | false> | RegExpUrlMatcher | PrefixUrlMatcher | false | null
+  matcher_: Promise<ValidUrlMatchers | false> | ValidUrlMatchers | false | null
   changed_: boolean;
   visible_: boolean;
 }
@@ -362,6 +362,8 @@ override readValueFromElement_ (part?: boolean): AllowedOptions["exclusionRules"
       fixTail = !pattern.includes("/", schemeLen + 3) && !pattern.startsWith("vimium:");
       pattern = pattern.replace(<RegExpG> /\\(.)/g, "$1");
       pattern = (schemeLen < 0 ? ":http://" : ":") + pattern;
+    } else if (pattern.startsWith("`")) {
+      /* empty */
     } else if (!pattern.startsWith("^")) {
       fixTail = !pattern.includes("/", schemeLen + 3);
       if (pattern.endsWith("*")) {

@@ -6,7 +6,7 @@ import {
   ExclusionVisibleVirtualNode, ExclusionRulesOption_, setupBorderWidth_, showI18n, ExclusionBaseVirtualNode
 } from "./options_base"
 
-type CachedMatcher = PrefixUrlMatcher | RegExpUrlMatcher | false
+type CachedMatcher = ValidUrlMatchers | false
 let frameInfo: Frames.Sender
 let url: string, topUrl = ""
 let inited: 0 | 1 /* no initial matches */ | 2 /* some matched */ | 3 /* is saving (temp status) */ = 0
@@ -159,9 +159,10 @@ const forceState = (act: "Reset" | "Enable" | "Disable", event?: EventToPrevent)
   window.close()
 }
 
-const doesMatchCur_ = (rule: RegExpUrlMatcher | PrefixUrlMatcher | false): boolean => {
+const doesMatchCur_ = (rule: ValidUrlMatchers | false): boolean => {
   if (!rule) { return false }
   return rule.t === kMatchUrl.StringPrefix ? url.startsWith(rule.v) || (!!topUrl && topUrl.startsWith(rule.v))
+      : rule.t === kMatchUrl.Pattern ? rule.v.test(url) || (!!topUrl && rule.v.test(topUrl))
       : rule.v.test(url) || (!!topUrl && rule.v.test(topUrl))
 }
 
@@ -176,8 +177,9 @@ const parseMatcher = (vnode: ExclusionVisibleVirtualNode): Promise<CachedMatcher
       serialized.then(i => testers_[pattern] = vnode.matcher_ = deserializeMatcher(i))
 }
 
-const deserializeMatcher = (serialized: BaseUrlMatcher): PrefixUrlMatcher | RegExpUrlMatcher => {
+const deserializeMatcher = (serialized: BaseUrlMatcher): ValidUrlMatchers => {
   return serialized.t === kMatchUrl.StringPrefix ? { t: serialized.t, v: serialized.v as string }
+      : serialized.t === kMatchUrl.Pattern ? { t: serialized.t, v: new URLPattern!(serialized.v as URLPatternDict) }
       : { t: serialized.t, v: new RegExp(serialized.v as string, "") }
 }
 
@@ -192,7 +194,8 @@ const getExcluded_ = (inIframe: boolean, vnodes: ExclusionVisibleVirtualNode[]):
   let matchedKeys = ""
   for (const node of vnodes) {
     const rule = node.matcher_! as Exclude<ExclusionBaseVirtualNode["matcher_"], null | Promise<any>>
-    if (rule && (rule.t === kMatchUrl.StringPrefix ? url.startsWith(rule.v) : rule.v.test(url))) {
+    if (rule && (rule.t === kMatchUrl.StringPrefix ? url.startsWith(rule.v)
+          : rule.t === kMatchUrl.Pattern ? rule.v.test(url) : rule.v.test(url))) {
       const str = node.rule_.passKeys
       if (str.length === 0 || _onlyFirstMatch || str[0] === "^" && str.length > 2) { return str }
       matchedKeys += str
