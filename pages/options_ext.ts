@@ -91,19 +91,13 @@ window.addEventListener("unload", function (): void {
   _lastBlobURL && URL.revokeObjectURL(_lastBlobURL);
 });
 
-$<ElementWithDelay>("#exportButton").onclick = function (event): void {
-  if (_lastBlobURL) {
-    URL.revokeObjectURL(_lastBlobURL);
-    _lastBlobURL = "";
-  }
+const buildExportedFile = (now: Date, want_static: boolean): { blob: Blob, options: number } => {
   let exported_object: ExportedSettings | null;
-  const all_static = event ? event.ctrlKey || event.metaKey || event.shiftKey : false;
-  const d = new Date();
   exported_object = Object.create(null) as ExportedSettings & SafeObject;
   exported_object.name = "Vimium C";
-  if (!all_static) {
-    exported_object["@time"] = d.toLocaleString();
-    exported_object.time = d.getTime();
+  if (!want_static) {
+    exported_object["@time"] = now.toLocaleString();
+    exported_object.time = now.getTime();
   }
   const manifest = browser_.runtime.getManifest()
   exported_object.environment = {
@@ -145,12 +139,22 @@ $<ElementWithDelay>("#exportButton").onclick = function (event): void {
       }
     }
   }
-  let exported_data = JSON.stringify(exported_object, null, "\t") + "\n", d_s = formatDate_(d);
+  let exported_data = JSON.stringify(exported_object, null, "\t") + "\n"
   if (exported_object.environment.platform === "win") {
     // in case "endings" didn't work
     exported_data = exported_data.replace(<RegExpG> /\n/g, "\r\n");
   }
-  exported_object = null;
+  return { blob: new Blob([exported_data], {type: "application/json", endings: "native"}), options: storedKeys.length }
+}
+
+$<ElementWithDelay>("#exportButton").onclick = function (event): void {
+  if (_lastBlobURL) {
+    URL.revokeObjectURL(_lastBlobURL);
+    _lastBlobURL = "";
+  }
+  const now = new Date()
+  const all_static = event ? event.ctrlKey || event.metaKey || event.shiftKey : false
+  const blob = buildExportedFile(now, all_static).blob, d_s = formatDate_(now)
   let file_name = "vimium_c-";
   if (all_static) {
     file_name += "settings";
@@ -158,7 +162,6 @@ $<ElementWithDelay>("#exportButton").onclick = function (event): void {
     file_name += d_s.replace(<RegExpG> /[\-:]/g, "").replace(" ", "_");
   }
   file_name += ".json";
-  const blob = new Blob([exported_data], {type: "application/json", endings: "native"});
 
   type BlobSaver = (blobData: Blob, fileName: string) => any;
   interface NavigatorEx extends Navigator { msSaveOrOpenBlob?: BlobSaver }
@@ -219,15 +222,17 @@ function _importSettings(time: number, new_data: ExportedSettings, is_recommende
     window.VApi && VApi.t({ k: kTip.cancelImport })
     return;
   }
+  const now = new Date()
+  const old_settings_file = buildExportedFile(now, false)
   Object.setPrototypeOf(new_data, null)
   {
     const dict2 = new_data[OnFirefox ? "firefox" : OnEdge ? "edge" : OnSafari ? "safari" : "chrome"]
     dict2 && typeof dict2 === "object" && Object.assign(new_data, dict2)
   }
   if (new_data.vimSync == null) {
-    const now = bgSettings_.get_("vimSync"), keep = now && confirm(oTrans_("keepSyncing"));
+    const curSync = bgSettings_.get_("vimSync"), keep = curSync && confirm(oTrans_("keepSyncing"));
     new_data.vimSync = keep || null;
-    if (now) {
+    if (curSync) {
       console.log("Before importing: You chose to", keep ? "keep settings synced." : "stop syncing settings.");
     }
     // if `new_data.vimSync` was undefined, then now it's null
@@ -236,16 +241,17 @@ function _importSettings(time: number, new_data: ExportedSettings, is_recommende
 
   const logUpdate = function (method: string, key: string, a2: string | any, a3?: any): any {
     let hasA3 = arguments.length > 3, val = hasA3 ? a3 : a2, args = ["%s %c%s", method, "color:darkred", key];
-    val = typeof val !== "string" || val.length <= 72 ? val
-      : val.slice(0, 71).trimRight() + "\u2026";
+    val = typeof val !== "string" || val.length <= 72 ? val : val.slice(0, 71).trimRight() + " \u2026"
     hasA3 && args.push(a2);
     args.push(val);
+    really_updated++
     console.log(...args);
   } as {
     (method: string, key: string, val: any): any;
     (method: string, key: string, actionName: string, val: any): any;
   };
-  console.group("Import settings at " + formatDate_(Date.now()))
+  let really_updated = 0
+  console.group("Import settings at " + formatDate_(+now + 1))
   if (time > 10000) {
     console.info("load settings saved at %c%s%c.", "color:darkblue", formatDate_(time), "color:auto")
   } else {
@@ -367,6 +373,13 @@ function _importSettings(time: number, new_data: ExportedSettings, is_recommende
   $<SaveBtn>("#saveOptions").onclick(false);
   if ($("#advancedOptionsButton").getAttribute("aria-checked") !== "" + bgSettings_.get_("showAdvancedOptions")) {
     $<AdvancedOptBtn>("#advancedOptionsButton").onclick(null, true);
+  }
+  if (really_updated <= 0) {
+    console.info("no differences found.")
+  } else if (old_settings_file.options > 0) {
+    console.info(`[message] you may recover old configuration of ${old_settings_file.options
+        } options, by open the blob: URL below IN THIS TAB:\n%c${URL.createObjectURL(old_settings_file.blob)}`
+        , "color: #15c;")
   }
   console.info("import settings: finished.")
   console.groupEnd()
