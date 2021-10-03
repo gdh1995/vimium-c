@@ -31,7 +31,7 @@ type ValidMappingInstructions = "map" | "run" | "mapkey" | "mapKey" | "env" | "s
 const keyRe_ = <RegExpG & RegExpSearchable<0>> /<(?!<)(?:.-){0,4}.\w*?(?::i)?>|./g /* need to support "<<left>" */
 let builtinKeys_: Set<string> | null | undefined
 let shortcutRegistry_: Map<StandardShortcutNames, CommandsNS.Item | null> | null | undefined
-let envRegistry_: Map<string, CommandsNS.EnvItem | "__not_parsed__"> | null | undefined
+let envRegistry_: Map<string, CommandsNS.EnvItem | "__not_parsed__" | null> | null | undefined
 let flagDoesCheck_ = true
 let errors_: null | string[][] = null
 
@@ -40,6 +40,7 @@ export { keyRe_, envRegistry_, shortcutRegistry_, errors_ as keyMappingErrors_ }
 export const stripKey_ = (key: string): string =>
     key.length > 1 ? key === "<escape>" ? kChar.esc : key.slice(1, -1) : key
 
+/** should never export it, to avoid `logError_` crashes */
 const getOptions_ = (line: string, start: number): CommandsNS.RawOptions | "__not_parsed__" | null => {
   return line.length <= start ? null
       : line.includes(" $", start) || line.includes(" =", start)
@@ -47,14 +48,14 @@ const getOptions_ = (line: string, start: number): CommandsNS.RawOptions | "__no
       : line.slice(start + 1) as "__not_parsed__"
 }
 
-export const parseOptions_ = ((options_line: string, fakeVal?: 1 | 0): CommandsNS.RawOptions | string | null => {
+export const parseOptions_ = ((options_line: string, fakeVal?: 0 | 1 | 2): CommandsNS.RawOptions | string | null => {
   let opt: CommandsNS.RawOptions = BgUtils_.safeObj_(), hasOpt = 0
   for (let str of options_line.split(" ")) {
     const ind = str.indexOf("=")
     if ("$#/=_".includes(str[0])) {
       if (ind === 0 || str === "__proto__"
           || str[0] === "$" && !"$if=$key=$desc=$count=$then=$else=$retry=".includes(str.slice(0, ind + 1))) {
-        fakeVal != null && logError_("%s option key:", ind === 0 ? "Missing" : "Unsupported", str)
+        (fakeVal === 0 || fakeVal === 1) && logError_("%s option key:", ind === 0 ? "Missing" : "Unsupported", str)
         continue
       } else if (str[0] === "#" || str.startsWith("//")) { // treat the following as comment
         break
@@ -66,14 +67,14 @@ export const parseOptions_ = ((options_line: string, fakeVal?: 1 | 0): CommandsN
     } else {
       const val = str.slice(ind + 1)
       str = str.slice(0, ind);
-      opt[str] = fakeVal === 1 ? 1 : val && parseVal_(val)
+      opt[str] = typeof fakeVal === "number" ? fakeVal === 2 ? val && parseVal_limited(val) : 1 : val && parseVal_(val)
       hasOpt = 1
     }
   }
   return hasOpt === 1 ? fakeVal === 1 ? options_line : opt : null
 }) as {
-  (options_line: string, fakeVal: 1 | 0 | undefined): CommandsNS.RawOptions | "__not_parsed__" | null
-  (options_line: string): CommandsNS.RawOptions | null
+  (options_line: string, fakeVal: 0 | 1): CommandsNS.RawOptions | "__not_parsed__" | null
+  (options_line: string, lessException?: 2): CommandsNS.RawOptions | null
 }
 
 const parseVal_ = (val: string): any => {
@@ -81,6 +82,12 @@ const parseVal_ = (val: string): any => {
       return JSON.parse(val);
     } catch {}
     return val;
+}
+
+const parseVal_limited = (val: string): any => {
+  return val === "false" ? false : val === "null" ? null : val === "true" ? true
+      : (val >= "0" ? val < kChar.minNotNum : val[0] === "-") ? parseInt(val, 10)
+      : '{["'.includes(val[0]) ? parseVal_(val) : val
 }
 
 export const normalizeCommand_ = (cmd: Writable<CommandsNS.BaseItem>, details?: CommandsNS.Description

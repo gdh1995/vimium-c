@@ -420,8 +420,9 @@ const normalizeExpects = (options: KnownOptions<C.runKey>): (NormalizedEnvCond |
       return { env: name, keys: normalizeKeys(isDict ? val.keys : val), options: isDict ? val.options : null }
     })
   } else if (typeof expected_rules === "string" && (<RegExpOne> /^[^{].*?[:=]/).test(expected_rules)) {
+    const delimiterRe = expected_rules.includes(":") ? <RegExpOne> /:/ : <RegExpOne> /=/
     new_rules = expected_rules.split(expected_rules.includes(";") ? <RegExpG> /[;\s]+/g : <RegExpG> /[,\s]+/g)
-        .map(i => i.split(<RegExpOne> /[:=]/))
+        .map(i => i.split(delimiterRe))
         .map((rule): NormalizedEnvCond | null => rule.length !== 2 ? null
               : ({ env: rule[0], keys: normalizeKeys(rule[1]), options: null }))
   }
@@ -433,12 +434,15 @@ const normalizeExpects = (options: KnownOptions<C.runKey>): (NormalizedEnvCond |
   return new_rules
 }
 
-const collectOptions = (opts: { [key: `o.${string}`]: any }): CommandsNS.Options => {
+const collectOptions = (opts: { [key: `o.${string}`]: any }): CommandsNS.Options | null => {
   const o2 = BgUtils_.safeObj_<any>()
+  let found = ""
   for (const key in opts) {
-    if (key.startsWith("o.") && key.length > 2 && !key.includes("$")) { o2[key.slice(2)] = opts[key as `o.${string}`] }
+    if (key.startsWith("o.") && key.length > 2 && !key.includes("$")) {
+      o2[found = key.slice(2)] = opts[key as `o.${string}`]
+    }
   }
-  return o2
+  return found ? o2 : null
 }
 
 /** not call runNextCmd on invalid env/key info, but just show HUD to alert */
@@ -455,21 +459,22 @@ export const runKeyWithCond = (info?: CurrentEnvCache): void => {
   for (const normalizedRule of expected_rules) {
     if (!normalizedRule) { continue }
     const ruleName = normalizedRule.env
-    let rule: CommandsNS.EnvItem | string | undefined = ruleName
+    let rule: CommandsNS.EnvItem | string | null | undefined = ruleName
     if (typeof rule === "string") {
       if (!envRegistry_) {
         showHUD("No environments have been declared")
         return
       }
       rule = envRegistry_.get(rule)
-      if (!rule) {
+      if (rule === undefined) {
         showHUD(`No environment named "${ruleName}"`)
         return
       }
       if (typeof rule === "string") {
-        rule = parseOptions_(rule) as CommandsNS.EnvItem
+        rule = parseOptions_(rule, 2) as CommandsNS.EnvItem | null
         envRegistry_.set(ruleName as string, rule)
       }
+      if (rule === null) { continue }
     }
     const res = matchEnvRule(rule, info)
     if (res === EnvMatchResult.abort) { return }
@@ -478,22 +483,34 @@ export const runKeyWithCond = (info?: CurrentEnvCache): void => {
       break
     }
   }
-  const keys = (matched ? matched.keys : get_cOptions<C.runKey, true>().keys) as (string | ListNode | ErrorNode)[]
-  let key: string | ListNode | ErrorNode, keysInd: number
+  interface SingleSequence { tree: ListNode | ErrorNode; options: CommandsNS.RawOptions | null }
+  const keys = (matched ? matched.keys : get_cOptions<C.runKey, true>().keys) as (string | SingleSequence)[]
+  let seq: string | SingleSequence, key: string | ListNode | ErrorNode, keysInd: number
   const sub_name = matched ? typeof matched.env === "string" ? `[${matched.env}]: `
       : `(${expected_rules.indexOf(matched)})` : ""
   if (keys.length === 0) {
     showHUD(sub_name + "Require keys: comma-seperated-string | string[]")
   } else if (absCRepeat > keys.length && keys.length !== 1) {
     showHUD(sub_name + "Has no such a key")
-  } else if (key = keys[keysInd = keys.length === 1 ? 0 : cRepeat > 0 ? absCRepeat - 1 : keys.length - absCRepeat],
-      typeof key !== "string" && (typeof key !== "object" || typeof key.t !== "number") || !key) {
+  } else if (seq = keys[keysInd = keys.length === 1 ? 0 : cRepeat > 0 ? absCRepeat - 1 : keys.length - absCRepeat],
+      !seq || typeof seq !== "string" && (typeof seq !== "object"
+        || !seq.tree || typeof seq.tree !== "object" || typeof seq.tree.t !== "number")) {
     showHUD(sub_name + "The key is invalid")
   } else {
     const repeat = keys.length === 1 ? cRepeat : 1
-    const options = matched && matched.options || get_cOptions<C.runKey, true>().options
+    let options = matched && matched.options || get_cOptions<C.runKey, true>().options
         || collectOptions(get_cOptions<C.runKey, true>())
-    typeof key === "string" && (key = keys[keysInd] = parseKeySeq(key))
+    let options2: CommandsNS.RawOptions | null
+    if (typeof seq === "string") {
+      const optionsPrefix = seq.startsWith("#") ? seq.split("+", 1)[0] : ""
+      options2 = optionsPrefix.length > 1 ? parseEmbeddedOptions(optionsPrefix) : null
+      key = parseKeySeq(seq.slice(optionsPrefix ? optionsPrefix.length + 1 : 0))
+      seq = keys[keysInd] = { tree: key, options: options2 }
+    } else {
+      key = seq.tree, options2 = seq.options
+    }
+    options = !options2 || !options ? options || options2
+        : copyCmdOptions(copyCmdOptions(BgUtils_.safeObj_(), options2), options as CommandsNS.Options)
     if (key.t === kN.error) { showHUD(key.val) }
     else if (As_<ListNode>(key).val.length === 0) { /* should never enter here */ }
     else if (key.val.length > 1 || key.val[0].t !== kN.key) {
@@ -521,13 +538,15 @@ export const runKeyWithCond = (info?: CurrentEnvCache): void => {
  */
 declare const enum kN { key = 0, list = 1, ifElse = 2, error = 3 }
 interface BaseNode { t: kN; val: unknown; par: Node | null }
-interface KeyNode extends BaseNode { t: kN.key; val: string; par: ListNode }
+interface OneKeyInstance { prefix: string, count: number, key: string, options: CommandsNS.RawOptions | null }
+interface KeyNode extends BaseNode { t: kN.key; val: string | OneKeyInstance; par: ListNode }
 interface ListNode extends BaseNode { t: kN.list; val: (Node | KeyNode)[] }
 interface IfElseNode extends BaseNode { t: kN.ifElse; val: { cond: Node, t: Node | null, f: Node | null}; par: Node }
 interface ErrorNode extends BaseNode { t: kN.error; val: string; par: null }
 type Node = ListNode | IfElseNode
 export const parseKeySeq = (keys: string): ListNode | ErrorNode => {
-  const re = <RegExpOne> /^([$%][a-z]\+?)*([\d-]\d*\+?)?([$%][a-z]\+?)*(<([a-z]-){0,4}\w+(:i)?>|[A-Z_a-z]\w*(\.\w+)?)/
+  const re = <RegExpOne>
+      /^([$%][a-z]\+?)*([\d-]\d*\+?)?([$%][a-z]\+?)*(<([a-z]-){0,4}\w+(:i)?>|[A-Z_a-z]\w*(\.\w+)?)(#[\w%=&]*)?/
   let cur: ListNode = { t: kN.list, val: [], par: null }, root: ListNode = cur, last: Node | null
   for (let i = keys.length > 1 ? 0 : keys.length; i < keys.length; i++) {
     switch (keys[i]) {
@@ -579,11 +598,14 @@ const exprKeySeq = function (this: ListNode): object | string | null {
     return !node ? null
         : node.t == kN.list ? node.val.length === 1 ? iter(node.val[0])
             : node.val.length === 0 ? null : ifNotEmpty(node.val.map(iter))
-        : node.t !== kN.ifElse ? As_<string>(node.val)
+        : node.t !== kN.ifElse ? As_<string | OneKeyInstance>(node.val)
         : { if: iter(node.val.cond), then: iter(node.val.t), else: iter(node.val.f) }
   }
   return iter(this)
 }
+
+const parseEmbeddedOptions = (/** start with "#" */ embeded: string): CommandsNS.RawOptions | null =>
+    parseOptions_(BgUtils_.DecodeURLPart_(embeded.slice(1).replace(<RegExpG> /&/g, " ")), 2)
 
 const nextKeyInSeq = (lastCursor: ListNode | KeyNode, dir: number): KeyNode | null => {
   let down = true, par: ListNode | IfElseNode, ind: number
@@ -650,18 +672,34 @@ export const runKeyInSeq = (seq: BgCmdOptions[C.runKey]["$seq"], dir: number
   runOneKey(cursor, seq, envInfo)
 }
 
-export const runOneKey = (cursor: KeyNode, seq: BgCmdOptions[C.runKey]["$seq"], envInfo: CurrentEnvCache | null) => {
-  let key = cursor.val, hasCount = (<RegExpOne> /[$%]c/).test(key) || !seq || seq.cursor === seq.keys
-  key = key.replace(<RegExpG & RegExpI> /[$%][a-z]\+?/gi, "")
-  let subCount = 1, arr: null | string[] = (<RegExpOne> /^\d+|^-\d*/).exec(key)
-  if (arr != null) {
-    let prefix = arr[0]
-    key = key.slice(prefix.length + (key[prefix.length] === "+" ? 1 : 0))
-    subCount = prefix !== "-" ? parseInt(prefix, 10) || 1 : -1
+const parseKeyNode = (cursor: KeyNode): OneKeyInstance => {
+  let str = cursor.val
+  if (typeof str !== "string") { return str }
+  let arr = (<RegExpOne> /^([$%][a-zA-Z]\+?|-)+/).exec(str)
+  const isNegative = !!arr && arr[0].includes("-"), allowPlus = !arr || "+-".includes(arr[0].slice(-1))
+  const prefix = !arr ? "" : arr[0].replace(<RegExpOne> /[+-]/g, "").replace(<RegExpOne> /%/g, "$")
+  str = arr ? str.slice(arr[0].length) : str
+  arr = (<RegExpOne> /^\d+/).exec(str)
+  const count = (isNegative ? -1 : 1) * (arr && parseInt(arr[0], 10) || 1)
+  str = arr ? str.slice(arr[0].length) : str
+  str = allowPlus || arr || !str.startsWith("+") ? str : str.slice(1)
+  const hashIndex = str.indexOf("#", 1)
+  const key = hashIndex > 0 ? str.slice(0, hashIndex) : str
+  let options: CommandsNS.RawOptions | null = null
+  if (hashIndex > 0 && hashIndex < str.length - 1) {
+    str = str.slice(hashIndex)
+    options = parseEmbeddedOptions(str)
   }
-  key = key !== "__proto__" ? key : "<v-__proto__>"
-  seq.cursor = As_<KeyNode>(cursor)
-  /*#__NOINLINE__*/ runKeyWithOptions(key, subCount * (hasCount ? seq.repeat : 1), seq.options, envInfo)
+  return cursor.val = { prefix, count, key: key !== "__proto__" ? key : "<v-__proto__>", options }
+}
+
+export const runOneKey = (cursor: KeyNode, seq: BgCmdOptions[C.runKey]["$seq"], envInfo: CurrentEnvCache | null) => {
+  const info = parseKeyNode(cursor)
+  const hasCount = !seq || seq.cursor === seq.keys || info.prefix.includes("$c")
+  let options = !seq.options || !info.options ? seq.options || info.options
+      : copyCmdOptions(copyCmdOptions(BgUtils_.safeObj_(), info.options), seq.options as CommandsNS.Options)
+  seq.cursor = cursor
+  /*#__NOINLINE__*/ runKeyWithOptions(info.key, info.count * (hasCount ? seq.repeat : 1), options, envInfo)
 }
 
 const doesInheritOptions = (baseOptions: CommandsNS.Options): boolean => {

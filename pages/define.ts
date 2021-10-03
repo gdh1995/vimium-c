@@ -142,6 +142,7 @@ Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES6$Ar
   Object.assign || (Object.assign = function (dest: object): object {
     for (let i = 1, len = arguments.length; i < len; i++) {
       const src = arguments[i]
+      if (!src) { continue }
       for (let key in src) { (dest as Dict<unknown>)[key] = src[key] }
     }
     return dest

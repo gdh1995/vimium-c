@@ -65,27 +65,34 @@ let keyMappingChecker_ = {
     const hex = s.charCodeAt(0) + 0x100000;
     return "\\u" + hex.toString(16).slice(2);
   },
-  normalizeMap_ (_0: string, cmd: string, keys: string, options: string): string {
+  normalizeMap_ (_0: string, prefix: string, cmd: string, keys: string, options: string): string {
     const keys2 = this.normalizeKeys_(keys);
     if (keys2 !== keys) {
       console.log("KeyMappings Checker:", keys, "is corrected into", keys2);
       keys = keys2;
     }
-    if (cmd.replace("#", "").trim().toLowerCase() === "mapkey") {
-      const destKeyArr = options.match(<RegExpOne> /^\s*\S+/)
-      let destKey = destKeyArr && destKeyArr[0].trim()
+    if (cmd.toLowerCase() === "mapkey") {
+      const destKeyArr = (<RegExpOne> /^\S+/).exec(options.trimLeft())
+      const destKey = destKeyArr && destKeyArr[0]
       const destKey2 = destKey && this.normalizeKeys_(destKey)
       if (destKey2 !== destKey) {
         console.log("KeyMappings Checker:", destKey, "is corrected into", destKey2)
         options = options.replace(destKey!, destKey2!) as string
       }
+    } else if (!cmd.startsWith("unmap")) {
+      const mapped = options.trimLeft().split(<RegExpOne> /\s/, 1)[0]
+      if (mapped) {
+        const offset = options.indexOf(mapped) + mapped.length
+        keys += options.slice(0, offset)
+        options = options.slice(offset)
+      }
     }
-    return this.normalizeCmd_("", cmd, keys, options);
+    return this.normalizeCmd_("", prefix, keys, options);
   },
   correctMapKey_ (_0: string, mapA: string, B: string): string {
     return mapA.replace("map", "mapKey") + (B.length === 3 ? B[1] : B)
   },
-  normalizeCmd_ (_0: string, cmd: string, name: string, options: string) {
+  normalizeCmd_ (_0: string, prefix: string, name: string, options: string) {
     if ((options.includes("createTab") || options.includes("openUrl"))
         && (<RegExpOne> /^\s+(createTab|openUrl)\s/).test(options)
         && !(<RegExpI> /\surls?=/i).test(options)) {
@@ -93,7 +100,7 @@ let keyMappingChecker_ = {
     }
     options = options ? options.replace(<RegExpG & RegExpSearchable<3>> /=("(\S*(?:\s[^=]*)?)"|[\S\r]+)(\s|$)/g,
         this.normalizeOptions_) : "";
-    return cmd + name + options;
+    return prefix + name + options;
   },
   convertFromLegacyUrlList_ (this: void, options: string): string {
     const urls: string[] = [];
@@ -109,7 +116,7 @@ let keyMappingChecker_ = {
     str = str.replace(<RegExpG & RegExpSearchable<3>
         > /^([ \t]*(?:#\s?)?map\s+(?:<(?!<)(?:.-){0,4}.[\w:]*?>|\S)\s+)(<(?!<)(?:[ACMSVacmsv]-){0,4}.\w*?>)(?=\s|$)/gm
         , this.correctMapKey_);
-    str = str.replace(<RegExpG & RegExpSearchable<3>> /^([ \t]*(?:#\s?)?(?:map(?:[kK]ey)?|run|unmap)\s+)(\S+)([^\n]*)/gm
+    str = str.replace(<RegExpG & RegExpSearchable<4>> /^([ \t]*(?:#\s?)?(map(?:[kK]ey)?|run|unmap!?)\s+)(\S+)([^\n]*)/gm
         , this.normalizeMap_);
     str = str.replace(<RegExpG & RegExpSearchable<3>> /^([ \t]*(?:#\s?)?(?:command|shortcut)\s+)(\S+)([^\n]*)/gm,
         this.normalizeCmd_);
