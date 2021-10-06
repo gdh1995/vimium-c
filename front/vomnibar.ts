@@ -83,6 +83,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     a.updateQueryFlag_(CompletersNS.QueryFlags.ShowTime, null);
     a.updateQueryFlag_(CompletersNS.QueryFlags.NoTabEngine, !!options.noTabs);
     a.updateQueryFlag_(CompletersNS.QueryFlags.EvenHiddenTabs, !!options.hiddenTabs);
+    a.updateQueryFlag_(CompletersNS.QueryFlags.IncognitoTabs, !!options.incognitoTabs)
     a.doesOpenInIncognito_ = options.incognito;
     a.updateQueryFlag_(CompletersNS.QueryFlags.NoSessions, !!options.noSessions)
     let engines = options.engines

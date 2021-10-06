@@ -49,6 +49,7 @@ declare namespace CompletersNS {
     NoTabEngine = 256,
     EvenHiddenTabs = 512,
     NoSessions = 1024,
+    IncognitoTabs = 2048,
   }
   interface Options {
     /** maxChars */ c?: number;
@@ -450,6 +451,7 @@ declare namespace VomnibarNS {
         | ReadonlyArray<keyof typeof CompletersNS.SugType>
     noTabs?: boolean;
     hiddenTabs?: boolean;
+    incognitoTabs?: boolean;
     icase?: boolean;
     searchInput?: boolean;
     tree?: boolean | "from-start"; // show tabs in tree mode

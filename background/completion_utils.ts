@@ -444,8 +444,8 @@ export const requireNormalOrIncognitoTabs_ = (wantInCurrentWindow: boolean, flag
       ? (set_curIncognito_(IncognitoType.ensuredFalse)) : IncognitoType.mayFalse
   }
   if (!OnChrome || Build.MinCVer >= BrowserVer.MinNoAbnormalIncognito
-      || wndIncognito !== IncognitoType.mayFalse) {
-    tabsInNormal = wndIncognito !== IncognitoType.true;
+      || wndIncognito !== IncognitoType.mayFalse || flags & CompletersNS.QueryFlags.IncognitoTabs) {
+    tabsInNormal = wndIncognito !== IncognitoType.true && !(flags & CompletersNS.QueryFlags.IncognitoTabs)
     let newType = (tabsInNormal ? TabCacheType.onlyNormal : 0) | (wantInCurrentWindow ? TabCacheType.currentWindow : 0)
     if (OnFirefox) {
       newType = newType | (wantInCurrentWindow && flags & CompletersNS.QueryFlags.EvenHiddenTabs

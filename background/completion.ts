@@ -966,8 +966,9 @@ Completion_.filter_ = (query: string, options: CompletersNS.FullOptions, callbac
     if (str.length === 2 && str[0] === ":") {
       str = str[1];
       const newArr = str === "b" ? knownCs.bookm : str === "h" ? knownCs.history
-        : str === "t" || str === "w" || str === "W" ? (wantInCurrentWindow = str !== "t",
+        : str === "t" || str === "T" || str === "w" || str === "W" ? (wantInCurrentWindow = str !== "t" && str !== "T",
             otherFlags |= OnFirefox && str > "Z" ? CompletersNS.QueryFlags.EvenHiddenTabs : 0,
+            otherFlags |= str === "T" ? CompletersNS.QueryFlags.IncognitoTabs : 0,
             knownCs.tab)
         : str === "B" ? (otherFlags |= CompletersNS.QueryFlags.PreferBookmarks, knownCs.omni)
         : str === "H" ? (otherFlags |= CompletersNS.QueryFlags.NoTabEngine, knownCs.omni)
