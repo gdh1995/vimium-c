@@ -25,8 +25,8 @@
   StrProto = StrCls.prototype,
   toStr = Object.prototype.toString;
 
-  "".startsWith || (
-  StrProto.startsWith = function startsWith(this: ObjectCoercible, searchString: anyNotSymbol): boolean {
+  "".startsWith || Object.defineProperty(StrProto, "startsWith", { enumerable: false, value:
+  function startsWith(this: ObjectCoercible, searchString: anyNotSymbol): boolean {
     const err = check(this, searchString), a = this != null && err !== 1 ? StrCls(this) : "";
     if (err !== 0) {
       if (err === 1 || err === 2) { return !((err < 2 ? this : searchString) + ""); }
@@ -36,10 +36,10 @@
     c = c > 0 ? c | 0 : 0;
     c > a.length && (c = a.length);
     return a.lastIndexOf(b, c) === c;
-  });
+  } })
 
-  "".endsWith || (
-  StrProto.endsWith = function endsWith(this: ObjectCoercible, searchString: anyNotSymbol): boolean {
+  "".endsWith || Object.defineProperty(StrProto, "endsWith", { enumerable: false, value:
+  function endsWith(this: ObjectCoercible, searchString: anyNotSymbol): boolean {
     const err = check(this, searchString), a = this != null && err !== 1 ? StrCls(this) : "";
     if (err !== 0) {
       if (err === 1 || err === 2) { return !((err < 2 ? this : searchString) + ""); }
@@ -50,10 +50,10 @@
     c = (p === u ? l : (c = +<number | string> p) > 0 ? c | 0 : 0) - b.length;
     c > l && (c = l);
     return c >= 0 && a.indexOf(b, c) === c;
-  });
+  } })
 
-  "".includes || (
-  StrProto.includes = function includes(this: ObjectCoercible, searchString: anyNotSymbol): boolean {
+  "".includes || Object.defineProperty(StrProto, "includes", { enumerable: false, value:
+  function includes(this: ObjectCoercible, searchString: anyNotSymbol): boolean {
     const err = check(this, searchString), a = this != null && err !== 1 ? StrCls(this) : "";
     if (err !== 0) {
       if (err === 1 || err === 2) { return !((err < 2 ? this : searchString) + ""); }
@@ -64,7 +64,7 @@
     c > a.length && (c = a.length);
     // eslint-disable-next-line @typescript-eslint/prefer-includes
     return a.indexOf(b, c) >= 0;
-  });
+  } })
 
   function check(a: primitive | object, b: primitive | object): 0 | string | 1 | 2 {
     /** note: should never call `valueOf` or `toString` on a / b */

@@ -364,7 +364,13 @@ export const HistoryManager_ = {
     if (toRemove.allHistory) {
       historyCache_.history_ = []
       historyCache_.domains_ = new Map()
-      const d2 = new Set!<string>(bookmarkCache_.bookmarks_.map(i => i.u))
+      const d2 = OnChrome && Build.MinCVer < BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol
+          && CurCVer_ < BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol ? new Set!<string>()
+          : new Set!<string>(bookmarkCache_.bookmarks_.map(i => i.u))
+      if (OnChrome && Build.MinCVer < BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol
+          && CurCVer_ < BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol) {
+        bookmarkCache_.bookmarks_.forEach(i => d2.add(i.u))
+      }
       d.forEach((_, k): void => {
         d2.has(k) || d.delete(k)
       })

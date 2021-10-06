@@ -83,7 +83,9 @@ if (!Build.NDEBUG) {
 Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES6$Array$$Includes &&
 ![].includes && (function (): void {
     const noArrayFind = ![].find
-    Array.prototype.includes = function (value: any, ind?: number): boolean { return this.indexOf(value, ind) >= 0 }
+  Object.defineProperty(Array.prototype, "includes", { enumerable: false,
+    value: function includes(this: any[], value: any, ind?: number): boolean { return this.indexOf(value, ind) >= 0 }
+  })
     Build.MinCVer >= BrowserVer.MinEnsured$Object$$assign ||
     Object.assign || (Object.assign = function (dest: object): object {
       for (let i = 1, len = arguments.length; i < len; i++) {
@@ -94,34 +96,41 @@ Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES6$Ar
       return dest
     })
     if (!(Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$Array$$find$$findIndex)) { return }
-    if (noArrayFind) {
-      Array.prototype.find = function (this: any[], cond: (i: any, index: number, obj: any[]) => boolean): any {
+  if (noArrayFind) {
+    Object.defineProperties(Array.prototype, {
+      find: { enumerable: false, value: function find(
+          this: any[], cond: (i: any, index: number, obj: any[]) => boolean): any {
         const ind = this.findIndex(cond)
         return ind >= 0 ? this[ind] : undefined
-      }
-      Array.prototype.findIndex = function (this: any[], cond: (i: any, index: number, obj: any[]) => boolean): any {
+      } },
+      findIndex: { enumerable: false, value: function findIndex(
+          this: any[], cond: (i: any, index: number, obj: any[]) => boolean): any {
         for (let i = 0; i < this.length; i++) { if (cond(this[i], i, this)) { return i } }
         return -1
-      }
-    }
+      } }
+    })
+  }
     if (Build.MinCVer >= BrowserVer.MinSafe$String$$StartsWith || "".includes) { return }
     const StringCls = String.prototype
     /** startsWith may exist - {@see #BrowserVer.Min$String$$StartsWithEndsWithAndIncludes$ByDefault} */
-    if (!"".startsWith) {
-      StringCls.startsWith = function (this: string, s: string): boolean {
-        return this.lastIndexOf(s, 0) === 0
-      }
-      StringCls.endsWith = function (this: string, s: string): boolean {
+  if (!"".startsWith) {
+    Object.defineProperties(StringCls, {
+      startsWith: { enumerable: false,
+        value: function startsWith(this: string, s: string): boolean { return this.lastIndexOf(s, 0) === 0 } },
+      endsWith: { enumerable: false, value: function endsWith(this: string, s: string): boolean {
         const i = this.length - s.length
         return i >= 0 && this.indexOf(s, i) === i
-      }
+      } }
+    })
     } else if (Build.MinCVer <= BrowserVer.Maybe$Promise$onlyHas$$resolved) {
       Promise.resolve || (Promise.resolve = Promise.resolved!)
     }
-    StringCls.includes = function (this: string, s: string, pos?: number): boolean {
+  Object.defineProperty(StringCls, "includes", { enumerable: false,
+    value: function myIncludes(this: string, s: string, pos?: number): boolean {
       // eslint-disable-next-line @typescript-eslint/prefer-includes
       return this.indexOf(s, pos) >= 0
     }
+  })
     if (Build.MinCVer >= BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol) { return }
     const ver = navigator.userAgent!.match(<RegExpOne> /\bChrom(?:e|ium)\/(\d+)/)
     if (ver && +ver[1] < BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol) {

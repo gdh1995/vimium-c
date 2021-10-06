@@ -321,11 +321,11 @@ const addChildTrees = (parts: HintSources, allNodes: NodeListOf<SafeElement>): H
   }
   if (!hosts.length) { return parts }
   parts = ([] as SafeElement[]).slice.call(parts)
-  const set = OnChrome && Build.MinCVer < BrowserVer.Min$Set$accept$Symbol$$Iterator
-      && chromeVer_ < BrowserVer.Min$Set$accept$Symbol$$Iterator ? parts : new Set!(parts)
+  const set = OnChrome && Build.MinCVer < BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol
+      && chromeVer_ < BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol ? parts : new Set!(parts)
   return parts.concat((hosts as readonly SafeElement[]).filter(
-      OnChrome && Build.MinCVer < BrowserVer.Min$Set$accept$Symbol$$Iterator
-      && chromeVer_ < BrowserVer.Min$Set$accept$Symbol$$Iterator ? el => (set as SafeElement[]).indexOf(el) < 0
+      OnChrome && Build.MinCVer < BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol
+      && chromeVer_ < BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol ? el => (set as SafeElement[]).indexOf(el) < 0
       :el => !(set as Set<SafeElement>).has(el)))
 }
 

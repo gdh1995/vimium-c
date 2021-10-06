@@ -12,6 +12,7 @@ declare const enum BrowserVer {
   MinShadowDOMV0 = 31, // the real version is <= C31; it's prefixed
   // mouseEvent.buttons is since C43 but a `buttons` property does no harm on Chrome <= 42
   MinUsable$MouseEvent$$constructor = 31, // the real version is <= C31
+  MinMaybe$String$$StartsWithAndEndsWith = 39, // the real version is <= C31; if EXPERIMENTAL
   MinEnsured$onwheel = 31, // even if LEGACY
   MinFormatOptionWhenCaptureTab = 31, // even if LEGACY
   MinSupported = 32,
@@ -77,7 +78,6 @@ declare const enum BrowserVer {
   MinNewWeakSetWithSetOrArray = 38, // `s=new Set();s.add(a={});new WeakSet(s).has(a)` : even if EXPERIMENTAL or LEGACY
   MinCmdArg$__javascript_harmony = 39, // before C39, it's not `--javascript-harmony` but `--js-flags=--harmony`
   MinWithFrameIdInArg = 39,
-  MinMaybe$String$$StartsWithAndEndsWith = 39, // if EXPERIMENTAL
   // only cause event#load even if failing in decoding its data. Test code:
   // var a=new XMLHttpRequest();a.open("GET","data:text/plain;charset=utf-8,%E9%9A",!0);
   // a.onerror=a.onload=function(i){console.log(i.type,i)};a.responseType='text';a.send();
@@ -109,7 +109,7 @@ declare const enum BrowserVer {
   Min$EnableSitePerProcess$Flag = 42,
   // 'shadowRoot' in Element.prototype since C43, and 'assignedSlot' since C53, even if EXPERIMENTAL or LEGACY
   MinParentNodeGetterInNodePrototype = 42, // also .childNodes; even if EXPERIMENTAL or LEGACY
-  MinEnsured$fetch = 42, // even if LEGACY; can not fetch chrome-extension:// before C47
+  MinEnsured$fetch = 42, // even if LEGACY; also window.Request; can not fetch chrome-extension:// before C47
   // before C43, "font-size: ***" of <select> overrides those of its <options>s'
   // since C42@exp, <option> is visible, but its text has a strange extra prefix of "A" - fixed on C43
   Min$Option$HasReliableFontSize = 43, // even if LEGACY

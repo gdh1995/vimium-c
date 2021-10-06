@@ -9701,6 +9701,7 @@ interface Request {
   referrer: string;
 }
 declare var Request: {
+  new (_invalidArg: "should never call this"): Request
   prototype: Request;
 }
 declare function fetch(input: RequestInfo, init?: Partial<Request>): Promise<Response>;

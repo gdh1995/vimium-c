@@ -818,7 +818,8 @@ function fetchImage_(url: string, element: HTMLImageElement): void {
               && !(window as any).fetch
           || OnChrome && Build.MinCVer < BrowserVer.MinEnsuredFetchRequestCache
               // has known MinMaybe$fetch$And$Request == MinMaybe$fetch == 41
-              && !("cache" in Request.prototype))) {
+              && !((Build.MinCVer >= BrowserVer.MinEnsured$fetch || typeof Request === "function")
+                    && "cache" in Request.prototype))) {
     element.src = url; // lgtm [js/client-side-unvalidated-url-redirection]
   } else {
     destroyObject_();

@@ -512,7 +512,7 @@ export const runKeyWithCond = (info?: CurrentEnvCache): void => {
     options = !options2 || !options ? options || options2
         : copyCmdOptions(copyCmdOptions(BgUtils_.safeObj_(), options2), options as CommandsNS.Options)
     if (key.t === kN.error) { showHUD(key.val) }
-    else if (As_<ListNode>(key).val.length === 0) { /* should never enter here */ }
+    else if ((As_<ListNode>(key)).val.length === 0) { /* should never enter here */ }
     else if (key.val.length > 1 || key.val[0].t !== kN.key) {
       loopIdToRunSeq = (loopIdToRunSeq + 1) % 64 || 1
       const fakeOptions: KnownOptions<C.runKey> = {
