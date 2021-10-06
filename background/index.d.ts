@@ -26,8 +26,7 @@ declare namespace Search {
 
 declare namespace Urls {
   const enum kEval {
-    math = 0, copy = 1, search = 2, ERROR = 3, status = 4, paste = 5,
-    plainUrl = 6,
+    math = 0, copy = 1, search = 2, ERROR = 3, status = 4, paste = 5, run = 6, plainUrl = 7,
   }
 
   interface BaseEvalResult extends Array<any> {
@@ -251,13 +250,13 @@ declare namespace CompletersNS {
   interface DecodedItem { readonly u: string; t: string }
   interface HistoryItem extends DecodedItem { readonly u: string; time_: number; title_: string; visible_: Visibility }
   const enum BookmarkStatus { notInited = 0, initing = 1, inited = 2 }
-  interface Bookmark extends DecodedItem {
+  interface BaseBookmark {
     readonly id_: string
-    readonly t: string
     readonly path_: string
     readonly title_: string
+  }
+  interface Bookmark extends BaseBookmark, DecodedItem {
     readonly visible_: Visibility
-    readonly u: string
     readonly jsUrl_: string | null
     readonly jsText_: string | null
   }

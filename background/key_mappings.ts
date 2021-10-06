@@ -633,6 +633,7 @@ export const availableCommands_: Dict<CommandsNS.Description> & SafeObject =
   newTab: [ kBgCmd.createTab, 1, 20 as 0 ],
   nextFrame: [ kBgCmd.nextFrame, 1, 0 ],
   nextTab: [ kBgCmd.goToTab, 1, 0 ],
+  openBookmark: [ kBgCmd.openBookmark, 1, 0 ],
   openCopiedUrlInCurrentTab: [ kBgCmd.openUrl, 1, 1, { reuse: ReuseType.current, copied: true } ],
   openCopiedUrlInNewTab: [ kBgCmd.openUrl, 1, 20 as 0, {copied: true} ],
   openUrl: [ kBgCmd.openUrl, 1, 20 as 0 ],

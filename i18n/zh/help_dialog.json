@@ -112,6 +112,7 @@
   "moveTabToNextWindow": "移动当前标签页到下一个窗口",
   "nextFrame": "移动键盘焦点到下一个子页面",
   "nextTab": "切换到右侧标签页",
+  "openBookmark": "打开收藏的网址",
   "openCopiedUrlInCurrentTab": "在当前标签页打开复制的网址",
   "openCopiedUrlInNewTab": "新建标签页访问复制的网址",
   "openUrl": "访问网址",

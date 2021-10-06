@@ -1,5 +1,6 @@
 import {
-  blank_, bookmarkCache_, Completion_, CurCVer_, historyCache_, OnChrome, OnEdge, OnFirefox, urlDecodingDict_
+  blank_, bookmarkCache_, Completion_, CurCVer_, historyCache_, OnChrome, OnEdge, OnFirefox, urlDecodingDict_,
+  set_findBookmark, findBookmark
 } from "./store"
 import { Tabs_, browser_, runtimeError_, browserSessions_ } from "./browser"
 import * as BgUtils_ from "./utils"
@@ -96,9 +97,10 @@ export const BookmarkManager_ = {
     callback && callback()
   },
   traverseBookmark_ (bookmark: chrome.bookmarks.BookmarkTreeNode): void {
-    const title = bookmark.title, id = bookmark.id, path = BookmarkManager_.iterPath_ + "/" + (title || id)
+    const rawTitle = bookmark.title, id = bookmark.id
+    const title = rawTitle || id, path = BookmarkManager_.iterPath_ + "/" + title
     if (bookmark.children) {
-      bookmarkCache_.dirs_.push(id)
+      bookmarkCache_.dirs_.push({ id_: id, path_: path, title_: title })
       const oldPath = BookmarkManager_.iterPath_
       if (2 < ++BookmarkManager_.iterDepth_) {
         BookmarkManager_.iterPath_ = path
@@ -109,9 +111,9 @@ export const BookmarkManager_ = {
     } else {
       const url = bookmark.url!, jsScheme = "javascript:", isJS = url.startsWith(jsScheme)
       bookmarkCache_.bookmarks_.push({
-        id_: id, path_: path, title_: title || id,
+        id_: id, path_: path, title_: title,
         t: isJS ? jsScheme : url,
-        visible_: omniBlockList ? TestNotBlocked_(url, title) : kVisibility.visible,
+        visible_: omniBlockList ? TestNotBlocked_(url, rawTitle) : kVisibility.visible,
         u: isJS ? jsScheme : url,
         jsUrl_: isJS ? url : null, jsText_: isJS ? BgUtils_.DecodeURLPart_(url) : null
       })
@@ -167,7 +169,7 @@ export const BookmarkManager_ = {
       }
       return
     }
-    if (bookmarkCache_.dirs_.indexOf(id) < 0) { return } // some "new" items which haven't been read are changed
+    if (!bookmarkCache_.dirs_.find(i => i.id_ === id)) { return } // "new" items which haven't been read are changed
     if (title != null) { /* a folder is renamed */ return BookmarkManager_.Delay_() }
     // a folder is removed
     if (!bookmarkCache_.expiredUrls_ && decodingEnabled) {
@@ -182,6 +184,38 @@ export const BookmarkManager_ = {
     return BookmarkManager_.Delay_()
   }
 }
+
+set_findBookmark((wantFolder, titleOrPath: string) => {
+  if (bookmarkCache_.status_ !== CompletersNS.BookmarkStatus.inited) {
+    const defer = BgUtils_.deferPromise_<void>()
+    BookmarkManager_.onLoad_ = defer.resolve_
+    BookmarkManager_.refresh_()
+    return defer.promise_.then(findBookmark.bind(0, wantFolder, titleOrPath))
+  }
+  const maybePath = titleOrPath.includes("/")
+  const nodes = maybePath ? (titleOrPath + "").replace(<RegExpG & RegExpSearchable<0>> /\\\/?|\//g
+      , s => s.length > 1 ? "/" : "\n").split("\n").filter(i => i) : []
+  if (!titleOrPath || maybePath && !nodes.length) { return Promise.resolve(false) }
+  const path2 = maybePath ? "/" + nodes.slice(1).join("/") : "", path1 = maybePath ? "/" + nodes[0] + path2 : ""
+  for (const item of wantFolder ? [] : bookmarkCache_.bookmarks_) {
+    if (maybePath && (item.path_ === path1 || item.path_ === path2) || item.title_ === titleOrPath) {
+      return Promise.resolve(item)
+    }
+  }
+  for (const item of wantFolder ? bookmarkCache_.dirs_ : []) {
+    if (maybePath && (item.path_ === path1 || item.path_ === path2) || item.title_ === titleOrPath) {
+      return Promise.resolve(item)
+    }
+  }
+  let lastFound: CompletersNS.BaseBookmark | null = null
+  for (const item of wantFolder ? [] : bookmarkCache_.bookmarks_) {
+    if (item.title_.includes(titleOrPath)) {
+      if (lastFound) { lastFound = null; break }
+      lastFound = item
+    }
+  }
+  return Promise.resolve(lastFound)
+})
 
 const finalUseHistory = (callback?: (() => void) | null): void => {
   if (callback) { callback() }

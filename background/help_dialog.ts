@@ -320,7 +320,7 @@ const commandGroups_: {
       , "closeTabsOnRight", "closeOtherTabs", "moveTabLeft", "moveTabRight"
       , "enableContentSettingTemp", "toggleContentSetting", "clearContentSettings", "copyWindowInfo", "captureTab"],
     misc: ["showHelp", "autoCopy", "autoOpen", "searchAs", "searchInAnother", "showTip"
-      , "addBookmark"
+      , "openBookmark", "addBookmark"
       , "toggleStyle", "toggleLinkHintCharacters"
       , "toggleSwitchTemp", "passNextKey", "debugBackground"
       , "reset", "runKey", "sendToExtension", "blank"]
@@ -344,7 +344,7 @@ const advancedCommands_: { readonly [k in NoAliasInCNames<kCName>]?: 1 | 0; } & 
     , "LinkHints.activateHover": 1, "LinkHints.unhoverLast": 1
     , toggleLinkHintCharacters: 1, toggleSwitchTemp: 1, "LinkHints.activateLeave": 1
     , "Vomnibar.activateEditUrl": 1, "Vomnibar.activateEditUrlInNewTab": 1
-    , closeDownloadBar: OnChrome ? 0 : 1, zoomIn: 1, zoomOut: 1, zoomReset: 1
+    , closeDownloadBar: OnChrome ? 0 : 1, zoomIn: 1, zoomOut: 1, zoomReset: 1, addBookmark: 1
 }
 
 if (OnChrome) {

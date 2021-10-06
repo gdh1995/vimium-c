@@ -138,6 +138,7 @@ interface BgCmdOptions {
   [kBgCmd.visitPreviousTab]: { acrossWindows: true; onlyActive: true } & TabFilterOptions & Req.FallbackOptions
   [kBgCmd.closeDownloadBar]: { newWindow?: null | true | false; all: 1 }
   [kBgCmd.reset]: {}
+  [kBgCmd.openBookmark]: { title: string; path: string }
 }
 
 interface BgCmdInfoMap {
@@ -392,6 +393,7 @@ interface CmdNameIds {
   newTab: kBgCmd.createTab
   nextFrame: kBgCmd.nextFrame
   nextTab: kBgCmd.goToTab
+  openBookmark: kBgCmd.openBookmark
   openCopiedUrlInCurrentTab: kBgCmd.openUrl
   openCopiedUrlInNewTab: kBgCmd.openUrl
   openUrl: kBgCmd.openUrl

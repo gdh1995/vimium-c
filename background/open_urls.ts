@@ -130,6 +130,9 @@ const onEvalUrl_ = (workType: Urls.WorkType, options: KnownOptions<C.openUrl>, t
       runNextCmdBy(1, options as {})
     }
     break
+  case Urls.kEval.run:
+    runNextCmdBy(1, options as {})
+    break
   }
 }
 

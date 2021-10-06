@@ -2,7 +2,7 @@ import * as BgUtils_ from "./utils"
 import {
   cPort, cRepeat, cKey, get_cOptions, set_cPort, set_cRepeat, contentPayload_, framesForTab_,
   framesForOmni_, bgC_, set_bgC_, set_cmdInfo_, curIncognito_, curTabId_, recencyForTab_, settingsCache_, CurCVer_,
-  OnChrome, OnFirefox, OnEdge, substitute_, CONST_, curWndId_
+  OnChrome, OnFirefox, OnEdge, substitute_, CONST_, curWndId_, findBookmark
 } from "./store"
 import {
   Tabs_, Windows_, InfoToCreateMultiTab, openMultiTabs, tabsGet, getTabUrl, selectFrom, runtimeError_, R_,
@@ -52,7 +52,7 @@ set_cmdInfo_(As_<{
   /* kBgCmd.restoreTab      */ Info.NoTab, Info.ActiveTab, Info.NoTab, Info.NoTab, Info.ActiveTab,
   /* kBgCmd.togglePinTab    */ Info.NoTab, Info.CurShownTabsIfRepeat, Info.ActiveTab, Info.ActiveTab, Info.NoTab,
       Info.NoTab,
-  /* kBgCmd.closeDownloadBar*/ Info.NoTab, Info.NoTab
+  /* kBgCmd.closeDownloadBar*/ Info.NoTab, Info.NoTab, Info.NoTab
 ]))
 
 const _AsBgC = <T extends Function>(command: T): T => {
@@ -203,28 +203,14 @@ set_bgC_([
 
   /* kBgCmd.addBookmark: */ (resolve): void | kBgCmd.addBookmark => {
     const path: string | UnknownValue = get_cOptions<C.addBookmark>().folder || get_cOptions<C.addBookmark>().path
-    const nodes = path ? (path + "").replace(<RegExpG & RegExpSearchable<0>> /\\\/?|\//g
-          , s => s.length > 1 ? "/" : "\n").split("\n").filter(i => i) : []
     const wantAll = !!get_cOptions<C.addBookmark>().all
-    if (!nodes.length) { showHUD('Need "path" to a bookmark folder.'); resolve(0); return }
-    browser_.bookmarks.getTree((tree): void => {
-      if (!tree) { resolve(0); return runtimeError_() }
-      let roots = tree[0].children!
-      let doesMatchRoot = roots.filter(i => i.title === nodes[0])
-      if (doesMatchRoot.length) {
-        roots = doesMatchRoot
-      } else {
-        roots = roots.reduce((i, j) => i.concat(j.children!), [] as chrome.bookmarks.BookmarkTreeNode[])
-      }
-      let folder: chrome.bookmarks.BookmarkTreeNode | null = null
-      for (let node of nodes) {
-        roots = roots.filter(i => i.title === node)
-        if (!roots.length) {
-          resolve(0)
-          return showHUD("The bookmark folder is not found.")
-        }
-        folder = roots[0]
-        if (!folder.children) { break }
+    if (!path || typeof path !== "string") { showHUD('Need "folder" to refer a bookmark folder.'); resolve(0); return }
+    findBookmark(1, path).then((folder): void => {
+      if (!folder || (folder as CompletersNS.Bookmark).u != null) {
+        resolve(0)
+        showHUD(folder === false ? 'Need valid "folder".' : folder === null ? "The bookmark folder is not found."
+            : "The bookmark is not a folder.")
+        return
       }
       (!wantAll && cRepeat * cRepeat < 2 ? getCurTab : getCurShownTabs_)(function doAddBookmarks(tabs?: Tab[]): void {
         if (!tabs || !tabs.length) { resolve(0); return runtimeError_() }
@@ -242,7 +228,7 @@ set_bgC_([
               return
         }
         for (const tab of tabs) {
-          browser_.bookmarks.create({ parentId: folder!.id, title: tab.title, url: getTabUrl(tab) }, runtimeError_)
+          browser_.bookmarks.create({ parentId: folder.id_, title: tab.title, url: getTabUrl(tab) }, runtimeError_)
         }
         showHUD(`Added ${count} bookmark${count > 1 ? "s" : ""}.`)
         resolve(1)
@@ -746,5 +732,21 @@ set_bgC_([
     }
     ref && ref.cur_.postMessage({ N: kBgReq.suppressForAWhile, t: 150 })
     resolve(1)
+  },
+  /* kBgCmd.openBookmark: */ (resolve): void | kBgCmd.openBookmark => {
+    const title = get_cOptions<C.openBookmark>().path || get_cOptions<C.openBookmark>().title
+    if (!title || typeof title !== "string") {
+      showHUD("Invalid bookmark " + (get_cOptions<C.openBookmark>().path ? "path" : "title")); resolve(0); return
+    }
+    findBookmark(0, title).then((node): void => {
+      if (!node || (node as CompletersNS.Bookmark).u == null) {
+        resolve(0)
+        showHUD(node === false ? 'Need valid "title" or "title".' : node === null ? "The bookmark node is not found."
+            : "The bookmark is a folder.")
+      } else {
+        overrideCmdOptions({ url: (node as CompletersNS.Bookmark).u })
+        openUrl()
+      }
+    })
   }
 ])

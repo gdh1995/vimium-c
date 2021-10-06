@@ -483,7 +483,7 @@ function clickShownNode(event: MouseEventToPrevent): void {
 }
 
 function showText(tip: string | Urls.kEval, details: string | string[]): void {
-  tip = typeof tip === "number" ? ["math", "copy", "search", "ERROR", "status", "paste"
+  tip = typeof tip === "number" ? ["math", "copy", "search", "ERROR", "status", "paste", "run"
       , "url"
       ][tip] : tip;
   ($("#textTip").dataset as KnownShowDataset).text = sTrans_(`t_${tip as "math" | "copy"}`) || tip;

@@ -87,7 +87,7 @@ export let incognitoFindHistoryList_: string[] | null = null
 export let incognitoMarkCache_: Map<string, string> | null = null
 export const bookmarkCache_ = {
   bookmarks_: [] as CompletersNS.Bookmark[],
-  dirs_: [] as string[],
+  dirs_: [] as CompletersNS.BaseBookmark[],
   status_: CompletersNS.BookmarkStatus.notInited,
   stamp_: 0,
   expiredUrls_: false
@@ -100,6 +100,7 @@ export const historyCache_ = {
   toRefreshCount_: 0
 }
 export const urlDecodingDict_ = new Map<string, string>()
+export let findBookmark: (folder: BOOL, titleOrPath: string) => Promise<CompletersNS.BaseBookmark | false | null>
 //#endregion
 
 //#region command context
@@ -136,6 +137,7 @@ export const set_recencyForTab_ = (_newRecencyMap: typeof recencyForTab_): void 
 /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
 export const set_incognitoFindHistoryList_ = <T extends string[] | null>(l: T): T => incognitoFindHistoryList_ = l as T
 export const set_incognitoMarkCache_ = <T extends Map<string, string> | null>(_c: T): T => incognitoMarkCache_ = _c as T
+export const set_findBookmark = (newFind: typeof findBookmark): void => { findBookmark = newFind }
 export const set_helpDialogData_ = <T extends typeof helpDialogData_> (_newDat: T): T => helpDialogData_ = _newDat as T
 /* eslint-enable @typescript-eslint/no-unnecessary-type-assertion */
 
