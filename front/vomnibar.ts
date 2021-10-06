@@ -187,13 +187,12 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   doesOpenInIncognito_: null as VomnibarNS.GlobalOptions["incognito"],
   inputText_: "",
   lastQuery_: "",
-  lastNormalInput_: "",
   useInput_: true,
   completions_: null as never as SuggestionE[],
   total_: 0,
   maxPageNum_: Math.min(Math.max(3, (window.VomnibarMaxPageNum! | 0) || 10), 100),
   isEditing_: false,
-  isInputComposing_: false,
+  isInputComposing_: null as [left: number, right: number] | null,
   position_: null as OpenPageUrlOptions["position"],
   baseHttps_: null as boolean | null,
   isHttps_: null as boolean | null,
@@ -262,8 +261,9 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   },
   hide_ (fromContent?: BOOL): void {
     const a = Vomnibar_, el = a.input_;
-    a.isActive_ = a.showing_ = a.isEditing_ = a.isInputComposing_ = a.blurWanted_ = a.codeFocusReceived_ = false;
+    a.isActive_ = a.showing_ = a.isEditing_ = a.blurWanted_ = a.codeFocusReceived_ = false;
     a.noSessionsOnStart_ = false
+    a.isInputComposing_ = null
     a.codeFocusTime_ = 0;
     ((document.body as Element).removeEventListener as typeof removeEventListener)("wheel", a.onWheel_, a.wheelOptions_)
     a.timer_ > 0 && clearTimeout(a.timer_);
@@ -305,7 +305,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     a.docZoom_ = 1;
     a.clickLike_ =
     a.sed_ = a.doesOpenInIncognito_ = a.completions_ = a.onUpdate_ = a.isHttps_ = a.baseHttps_ = null as never
-    a.mode_.q = a.lastQuery_ = a.inputText_ = a.lastNormalInput_ = a.resMode_ = "";
+    a.mode_.q = a.lastQuery_ = a.inputText_ = a.resMode_ = "";
     a.mode_.o = "omni";
     a.mode_.t = CompletersNS.SugType.Empty;
     a.isSearchOnTop_ = false;
@@ -363,7 +363,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     const a = Vomnibar_;
     a.onUpdate_ = callback || null;
     if (updateDelay >= 0) {
-      a.isInputComposing_ = false;
+      a.isInputComposing_ = null
       if (a.timer_ > 0) {
         clearTimeout(a.timer_);
       }
@@ -759,7 +759,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     const oldStart = a.input_.selectionStart, oldDi = a.input_.selectionDirection;
     a.input_.value = str;
     a.input_.setSelectionRange(oldStart, i, oldDi);
-    a.isInputComposing_ = false;
+    a.isInputComposing_ = null
     a.update_(0);
   },
   onEnter_ (event?: KeyStat | true | string, newSel?: number | null): void {
@@ -938,16 +938,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         a.input_.setSelectionRange(i, i);
       }
     }
-    const isComposing = !!event && event.isComposing;
-    if (Build.MinCVer >= BrowserVer.Min$InputEvent$$isComposing && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
-        || !(Build.BTypes & ~BrowserType.Firefox) || isComposing != null) {
-      if (isComposing && !a.isInputComposing_) {
-        a.lastNormalInput_ = a.input_.value.trim();
-      } else if (!isComposing && a.isInputComposing_) {
-        a.toggleInputMode_()
-      }
-      a.isInputComposing_ = isComposing!;
-    }
+    a.isInputComposing_ && (!event || event.isComposing === false) && (a.isInputComposing_ = null)
     a.update_(-1, a.inAlt_ ? a.toggleAlt_ : null)
   },
   omni_ (response: BgVomnibarSpecialReq[kBgReq.omni_omni]): void {
@@ -1206,14 +1197,9 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     if (Build.BTypes & ~BrowserType.Firefox
         && (!(Build.BTypes & BrowserType.Firefox) || a.browser_ !== BrowserType.Firefox)) {
       let func = function (this: HTMLInputElement, event: CompositionEvent): void {
-        if (Vomnibar_.isInputComposing_ = event.type === "compositionstart") {
-          if (Build.MinCVer >= BrowserVer.Min$InputEvent$$isComposing) { return; }
-          Vomnibar_.lastNormalInput_ = this.value.trim();
-        }
+        const doesStart = event.type === "compositionstart", input = Vomnibar_.input_
+        Vomnibar_.isInputComposing_ = doesStart ? [input.selectionStart, input.value.length - input.selectionEnd] : null
       };
-      (Build.BTypes & BrowserType.Edge && (!(Build.BTypes & ~BrowserType.Edge) || a.browser_ === BrowserType.Edge)
-        || Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$InputEvent$$isComposing
-            && ver < BrowserVer.Min$InputEvent$$isComposing) &&
       input.addEventListener("compositionstart", func);
       input.addEventListener("compositionend", func);
     }
@@ -1372,8 +1358,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     if (a.useInput_) {
       a.lastQuery_ = str = a.input_.value.trim();
       if (a.isInputComposing_) {
-        let last = a.lastNormalInput_, isStart = str.startsWith(last);
-        str = (isStart ? last : "") + (isStart ? str.slice(last.length) : str).replace(<RegExpG> /'/g, "");
+        const left = a.isInputComposing_[0], end = str.length - a.isInputComposing_[1]
+        str = str.slice(0, left) + str.slice(left, end).replace(<RegExpG> /'/g, "") + str.slice(end)
       }
       str = str.replace(a.spacesRe_, " ");
       if (a.caseInsensitive_) {
