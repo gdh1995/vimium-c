@@ -1,6 +1,6 @@
 import {
   cRepeat, get_cOptions, cPort, curIncognito_, curTabId_, curWndId_, recencyForTab_,
-  copy_, settingsCache_, CurCVer_, IsEdg_, OnChrome, OnEdge, OnFirefox, CONST_, reqH_
+  copy_, settingsCache_, CurCVer_, IsEdg_, OnChrome, OnEdge, OnFirefox, CONST_, reqH_, set_cRepeat
 } from "./store"
 import * as BgUtils_ from "./utils"
 import {
@@ -18,7 +18,7 @@ import {
 import { parseSedOptions_ } from "./clipboard"
 import { newTabIndex, preferLastWnd, openUrlWithActions } from "./open_urls"
 import { focusFrame } from "./frame_commands"
-import { filterTabsByCond_, getTabRange, Range3, sortTabsByCond_, tryLastActiveTab_ } from "./filter_tabs"
+import { FilterInfo, filterTabsByCond_, getTabRange, Range3, sortTabsByCond_, tryLastActiveTab_ } from "./filter_tabs"
 import { TabRecency_ } from "./tools"
 
 import C = kBgCmd
@@ -29,8 +29,10 @@ const abs = Math.abs
 const notifyCKey = (): void => { cPort && focusFrame(cPort, false, FrameMaskType.NoMaskAndNoFocus) }
 
 export const copyWindowInfo = (resolve: OnCmdResolved): void | kBgCmd.copyWindowInfo => {
-  let decoded = !!(get_cOptions<C.copyWindowInfo>().decoded || get_cOptions<C.copyWindowInfo>().decode),
+  let filter = get_cOptions<C.joinTabs, true>().filter
+  const decoded = !!(get_cOptions<C.copyWindowInfo>().decoded || get_cOptions<C.copyWindowInfo>().decode),
   type = get_cOptions<C.copyWindowInfo>().type
+  const wantNTabs = type === "tab" && (abs(cRepeat) > 1 || !!filter)
   const sed = parseSedOptions_(get_cOptions<C.copyWindowInfo, true>())
   if (type === "frame" && cPort) {
     let p: Promise<"tab" | void> | "tab" | void | 1
@@ -48,8 +50,7 @@ export const copyWindowInfo = (resolve: OnCmdResolved): void | kBgCmd.copyWindow
     return
   }
   // include those hidden on Firefox
-  Tabs_.query(type === "browser" ? {windowType: "normal"}
-      : { active: type !== "window" && (type !== "tab" || abs(cRepeat) < 2) || void 0,
+  Tabs_.query(type === "browser" ? {windowType: "normal"} : { active: type !== "window" && !wantNTabs || void 0,
           currentWindow: true }, (tabs): void => {
     if (!type || type === "title" || type === "frame" || type === "url") {
       reqH_[kFgReq.copy]({
@@ -63,21 +64,20 @@ export const copyWindowInfo = (resolve: OnCmdResolved): void | kBgCmd.copyWindow
     rawFormat = get_cOptions<C.copyWindowInfo>().format, format = "" + (rawFormat || "${title}: ${url}"),
     join = get_cOptions<C.copyWindowInfo, true>().join, isPlainJSON = join === "json" && !rawFormat,
     nameRe = <RegExpG & RegExpSearchable<1>> /\$\{([^}]+)\}/g
-    let filter = get_cOptions<C.joinTabs, true>().filter
-    if (filter) {
-      const curId = cPort ? cPort.s.tabId_ : curTabId_
-      let tabs2 = tabs.filter(i => i.incognito === incognito)
-      const activeTab = tabs2.find(i => i.id === curId), oldLen = tabs2.length
-      tabs2 = filterTabsByCond_(activeTab, tabs2, filter)
-      if (oldLen && !tabs2.length) { resolve(0); return }
-      filter = tabs2.length < oldLen ? filter : null
-      filter && (tabs = tabs2)
-    }
-    if (type === "tab" && !filter) {
+    if (wantNTabs) {
       const ind = tabs.length < 2 ? 0 : selectFrom(tabs).index, range = getTabRange(ind, tabs.length)
       tabs = tabs.slice(range[0], range[1])
     } else {
       tabs = tabs.filter(i => i.incognito === incognito)
+    }
+    if (filter) {
+      const curId = cPort ? cPort.s.tabId_ : curTabId_
+      const activeTab = tabs.find(i => i.id === curId), extra: FilterInfo = {}
+      tabs = filterTabsByCond_(activeTab, tabs, filter, extra)
+      filter = extra.known ? filter : null
+    }
+    if (!tabs.length) { resolve(0); return }
+    if (type === "browser") {
       tabs.sort((a, b) => (a.windowId - b.windowId || a.index - b.index))
     }
     const data: any[] = tabs.map(i => isPlainJSON ? {
@@ -119,10 +119,15 @@ export const joinTabs = (resolve: OnCmdResolved): void | kBgCmd.joinTabs => {
       let allTabs: Readonly<Tab>[] = [], push = (j: Tab): void => { allTabs.push(j) }
       wnds.sort((i, j) => i.id - j.id).forEach(i => { i.tabs.forEach(push) })
       let filter = get_cOptions<C.joinTabs, true>().filter
+      if (onlyCurrent && abs(cRepeat) > 1 && allTabs.length > 1) {
+        const ind = selectFrom(allTabs).index, range = getTabRange(ind, allTabs.length)
+        allTabs = allTabs.slice(range[0], range[1])
+      }
       if (filter) {
-        const activeTab = allTabs.find(i => i.id === curTabId_), oldLen = allTabs.length
-        allTabs = filterTabsByCond_(activeTab, allTabs, filter)
-        filter = allTabs.length < oldLen ? filter : null
+        const curId = cPort ? cPort.s.tabId_ : curTabId_
+        const activeTab = allTabs.find(i => i.id === curId), extra: FilterInfo = {}
+        allTabs = filterTabsByCond_(activeTab, allTabs, filter, extra)
+        filter = extra.known ? filter : null
       }
       if (!allTabs.length) { resolve(0); return }
       if (sortOpt) {
@@ -148,14 +153,14 @@ export const joinTabs = (resolve: OnCmdResolved): void | kBgCmd.joinTabs => {
       _curWnd.tabs = _curWnd.tabs.filter(i => i.id !== curTabId)
       makeWindow({ tabId: curTabId, incognito: _curWnd.incognito }, _curWnd.state, cb)
     } else {
-      wnds = onlyCurrent || !_curWnd || windowsOpt === "all" ? wnds
-          : wnds.filter(wnd => wnd.id !== _curWnd.id)
+      wnds = onlyCurrent || !_curWnd || windowsOpt === "all" ? wnds : wnds.filter(wnd => wnd.id !== _curWnd.id)
       cb(_curWnd)
     }
   }
   if (onlyCurrent) {
     getCurWnd(true, wnd => wnd ? onWindows([wnd]) : runtimeError_())
   } else {
+    set_cRepeat(1)
     Windows_.getAll(OnChrome && Build.MinCVer < BrowserVer.Min$windows$$GetAll$SupportWindowTypes
         && CurCVer_ < BrowserVer.Min$windows$$GetAll$SupportWindowTypes
         ? {populate: true} : {populate: true, windowTypes: ["normal", "popup"]},

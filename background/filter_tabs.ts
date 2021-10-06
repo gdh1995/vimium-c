@@ -110,8 +110,11 @@ export const testBoolFilter_ = (filter: TabFilterOptions["filter"] | null | unde
   return val !== null ? parseBool(val, only) : null
 }
 
+export interface FilterInfo { known?: boolean }
+
 export const filterTabsByCond_ = <T extends ShownTab = Tab>(activeTab: ShownTab | null | undefined
-    , tabs: readonly T[], filter: NonNullable<BgCmdOptions[kBgCmd.removeTabsR]["filter"]>): T[] => {
+    , tabs: readonly T[], filter: NonNullable<BgCmdOptions[kBgCmd.removeTabsR]["filter"]>
+    , extraOutputs?: FilterInfo): T[] => {
   let title: string | undefined, matcher: ValidUrlMatchers | null | undefined, host: string | undefined
   let group: string | null | undefined, useHash = false, hidden: boolean | null = null, muted: boolean | null = null
   let audio: boolean | null = null, pinned: boolean | null = null, known = 0;
@@ -156,6 +159,7 @@ export const filterTabsByCond_ = <T extends ShownTab = Tab>(activeTab: ShownTab 
     default: known--; break
     }
   }
+  extraOutputs && (extraOutputs.known = known > 0)
   if (known === 0) {
       return tabs.slice(0);
   }
