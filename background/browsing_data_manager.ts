@@ -32,10 +32,10 @@ let charsetDecoder_: TextDecoder | null = null
 let omniBlockList: string[] | null = null, omniBlockListRe: RegExpOne | null = null
 
 export const parseDomainAndScheme_ = (url: string): UrlDomain | null => {
-  let n = url.lastIndexOf(":", 5), scheme = n > 0 ? url.slice(0, n) : "", d: Urls.SchemeId, i: number
-  if (scheme === "http") { d = Urls.SchemeId.HTTP }
-  else if (scheme === "https") { d = Urls.SchemeId.HTTPS }
-  else if (scheme === "ftp") { d = Urls.SchemeId.FTP }
+  let scheme = url.slice(0, 5), d: Urls.SchemeId, i: number
+  if (scheme === "https") { d = Urls.SchemeId.HTTPS }
+  else if (scheme === "http:") { d = Urls.SchemeId.HTTP }
+  else if (scheme.startsWith("ftp")) { d = Urls.SchemeId.FTP } // Firefox and Chrome doesn't support FTPS
   else { return null }
   i = url.indexOf("/", d)
   url = url.slice(d, i < 0 ? url.length : i)
@@ -329,7 +329,7 @@ export const HistoryManager_ = {
       else if (slot = d.get(domain.domain_)) {
         slot.time_ = time
         if (i < 0) { slot.count_ += j.visible_ }
-        if (domain.scheme_ >= Urls.SchemeId.HTTP) { slot.https_ = domain.scheme_ === Urls.SchemeId.HTTPS ? 1 : 0 }
+        if (domain.scheme_ > Urls.SchemeId.HTTP - 1) { slot.https_ = domain.scheme_ === Urls.SchemeId.HTTPS ? 1 : 0 }
       } else {
         d.set(domain.domain_, {
           time_: time, count_: j.visible_, https_: domain.scheme_ === Urls.SchemeId.HTTPS ? 1 : 0
@@ -431,7 +431,7 @@ export const HistoryManager_ = {
       if (slot) {
         if (slot.time_ < time) { slot.time_ = time }
         slot.count_ += visible
-        if (scheme >= Urls.SchemeId.HTTP) { slot.https_ = scheme === Urls.SchemeId.HTTPS ? 1 : 0 }
+        if (scheme > Urls.SchemeId.HTTP - 1) { slot.https_ = scheme === Urls.SchemeId.HTTPS ? 1 : 0 }
       } else {
         d.set(domain, {time_: time, count_: visible, https_: scheme === Urls.SchemeId.HTTPS ? 1 : 0})
       }

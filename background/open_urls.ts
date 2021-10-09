@@ -785,7 +785,7 @@ const callback = (tab?: Tab | null): void => {
   getCurTab((curTabs1): void => {
   curTabs = curTabs1
   let preTest: string | undefined, windowType = normalizeWndType(opts2.w) || "normal"
-  if ((toTest.startsWith("file:") || toTest.startsWith("ftp:")) && !toTest.includes(".", toTest.lastIndexOf("/") + 1)) {
+  if ((toTest.startsWith("file:") || toTest.startsWith("ftp")) && !toTest.includes(".", toTest.lastIndexOf("/") + 1)) {
     preTest = toTest + (request.p ? "/*" : "/")
   }
   request.p && (toTest += "*")

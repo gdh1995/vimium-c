@@ -57,7 +57,7 @@ export const ContentSettings_ = OnChrome ? {
       }
       return [pattern.split(<RegExpOne> /[?#]/, 1)[0]];
     }
-    if (pattern.startsWith("ftp:")) {
+    if (pattern.startsWith("ftp")) {
       complainLimits(trans_("setFTPCS"))
       return [];
     }

@@ -150,7 +150,7 @@ export const parseUpperUrl_ = (request: FgReq[kFgReq.parseUpperUrl]): ParsedUppe
     }
     endSlash = true
     request.f || i === 1 && (i = -1)
-  } else if (!hash && url_l.startsWith("ftp:")) {
+  } else if (!hash && url_l.startsWith("ftp")) {
     endSlash = true
   } else {
     endSlash = request.t != null ? !!request.t : request.r != null ? !!request.r
