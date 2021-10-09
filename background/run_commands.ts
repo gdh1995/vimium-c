@@ -503,7 +503,7 @@ export const runKeyWithCond = (info?: CurrentEnvCache): void => {
     let options2: CommandsNS.RawOptions | null
     if (typeof seq === "string") {
       const optionsPrefix = seq.startsWith("#") ? seq.split("+", 1)[0] : ""
-      options2 = optionsPrefix.length > 1 ? parseEmbeddedOptions(optionsPrefix) : null
+      options2 = optionsPrefix.length > 1 ? parseEmbeddedOptions(optionsPrefix.slice(1)) : null
       key = parseKeySeq(seq.slice(optionsPrefix ? optionsPrefix.length + 1 : 0))
       seq = keys[keysInd] = { tree: key, options: options2 }
     } else {
@@ -574,6 +574,7 @@ export const parseKeySeq = (keys: string): ListNode | ErrorNode => {
       while (i < keys.length && !"()?:+".includes(keys[i])) {
         const key = re.exec(keys.slice(i))
         if (key) {
+          (<RegExpOne> /^[#&]#/).test(keys.slice(i + key[0].length - 1)) && (key[0] = keys.slice(i))
           cur.val.push({ t: kN.key, val: key[0], par: cur })
           i += key[0].length
         } else {
@@ -604,8 +605,26 @@ const exprKeySeq = function (this: ListNode): object | string | null {
   return iter(this)
 }
 
-const parseEmbeddedOptions = (/** start with "#" */ embeded: string): CommandsNS.RawOptions | null =>
-    parseOptions_(BgUtils_.DecodeURLPart_(embeded.slice(1).replace(<RegExpG> /&/g, " ")), 2)
+export const parseEmbeddedOptions = (/** has no prefixed "#" */ str: string): CommandsNS.RawOptions | null => {
+  const secondInd = str.indexOf("#") + 1, hasSecond = secondInd === 1 || secondInd >= 2 && str[secondInd - 2] === "&"
+  const left = BgUtils_.DecodeURLPart_(str.slice(0, hasSecond ? secondInd - 1 : str.length)
+      .replace(<RegExpG> /&/g, " "))
+  if (hasSecond) {
+    str = str.slice(secondInd)
+    str = str.startsWith("#") ? str.slice(1) : BgUtils_.DecodeURLPart_(str)
+    const equation = str.indexOf("=") + 1
+    const beforeEquation = equation > 0 ? str.slice(0, equation) : str
+    str = equation > 0 ? str.slice(equation) : ""
+    if (str && !'{["'.includes(str[0]) && (<RegExpOne> /[^a-z\d\.-]/).test(str)) {
+      str = JSON.stringify(str).replace(<RegExpG & RegExpSearchable<0>> /\s/g
+          , (s): string => "\\u" + (s.charCodeAt(0) + 0x10000).toString(16).slice(1))
+    }
+    str = beforeEquation + str
+  } else {
+    str = ""
+  }
+  return parseOptions_(left + str, 2)
+}
 
 const nextKeyInSeq = (lastCursor: ListNode | KeyNode, dir: number): KeyNode | null => {
   let down = true, par: ListNode | IfElseNode, ind: number
@@ -686,8 +705,8 @@ const parseKeyNode = (cursor: KeyNode): OneKeyInstance => {
   const hashIndex = str.indexOf("#", 1)
   const key = hashIndex > 0 ? str.slice(0, hashIndex) : str
   let options: CommandsNS.RawOptions | null = null
-  if (hashIndex > 0 && hashIndex < str.length - 1) {
-    str = str.slice(hashIndex)
+  if (hashIndex > 0 && hashIndex + 1 < str.length) {
+    str = str.slice(hashIndex + 1)
     options = parseEmbeddedOptions(str)
   }
   return cursor.val = { prefix, count, key: key !== "__proto__" ? key : "<v-__proto__>", options }
