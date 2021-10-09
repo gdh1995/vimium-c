@@ -593,6 +593,12 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
           ? SimpleKeyResult.Suppress : SimpleKeyResult.Nothing;
       return;
     }
+    if (key.startsWith("v-")) {
+      VPort_.post_({ H: kFgReq.keyFromOmni, k: `<${key}>`, l: n,
+          e: focused ? [ a.input_.localName, a.input_.id, a.input_.className ] : ["body", "", ""] })
+      a.inAlt_ && a.toggleAlt_(0)
+      return
+    }
     let action: AllowedActions = AllowedActions.nothing, ind: number;
     const char = (key.slice(key.lastIndexOf("-") + 1) || key && kChar.minus) as kChar,
     mainModifier = key.length > 1 ? key.slice(0, key.indexOf("-") + 1) as "a-" | "c-" | "m-" | "s-" | "" : "";
@@ -1292,7 +1298,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       }
       if (stop) { window.onkeyup = null as never; }
     } else if (Vomnibar_.isActive_) {
-      Vomnibar_.onKeydown_(event);
+      /*#__NOINLINE__*/ Vomnibar_.onKeydown_(event)
     }
     if (Vomnibar_.keyResult_ === SimpleKeyResult.Nothing) { return; }
     VUtils_.Stop_(event, Vomnibar_.keyResult_ === SimpleKeyResult.Prevent);

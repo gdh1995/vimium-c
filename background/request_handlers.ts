@@ -413,6 +413,10 @@ set_reqH_([
   /** kFgReq.wait: */ (req: FgReqWithRes[kFgReq.wait], port, msgId): Port => {
     setTimeout(() => { sendResponse(port, msgId, 0) }, req)
     return port
+  },
+  /** kFgReq.keyFromOmni: */ (req: FgReq[kFgReq.keyFromOmni], port): void => {
+    const tabId = port.s.tabId_, frames = framesForTab_.get(tabId >= 0 ? tabId : curTabId_)
+    reqH_[kFgReq.key](req, frames ? frames.cur_ : null)
   }
 ])
 

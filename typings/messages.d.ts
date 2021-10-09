@@ -89,7 +89,7 @@ declare const enum kFgReq {
   /** can be used only with `FgCmdAcrossFrames` and when a fg command is just being called */
   gotoMainFrame,
   setOmniStyle, findFromVisual, framesGoBack, i18n, learnCSS, visualMode,
-  respondForRunKey, downloadLink, wait,
+  respondForRunKey, downloadLink, wait, keyFromOmni,
   END,
   msg = 90, inject = 99,
   command = "command", id = "id", shortcut = "shortcut",
@@ -658,6 +658,8 @@ interface FgReq {
     /** referer */ r: string
     /** is media */ m: boolean | BOOL
   }
+  [kFgReq.keyFromOmni]: { /* keySequence */ k: string; /** lastKey */ l: kKeyCode;
+  } & Pick<FgReq[kFgReq.respondForRunKey], "e">
 }
 
 interface CurrentEnvCache {}
