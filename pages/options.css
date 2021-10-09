@@ -47,7 +47,7 @@ html.loading #exclusionToolbar { visibility: hidden; }
     --input-border-color: #777;
     --highlight-background-color: #59594c;
     --error-background-color: #50140c;
-    --input-focus-border-color: #004fa3;
+    --input-focus-border-color: #6697cc;
     --button-color: #bdc2c7;
     --button-disabled-color: #abb0b5;
     --button-background-color: #18191b;

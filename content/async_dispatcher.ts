@@ -206,6 +206,7 @@ export const hover_async = (async (newEl?: NullableSafeElForM
         last.blur()
       }
     }
+    last = notSame ? last : N
     await 0 // should keep function effects stable - not related to what `newEl` is
   } else {
     last = N

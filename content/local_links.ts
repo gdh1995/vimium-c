@@ -565,7 +565,6 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
     frameNested_ = null
   }
   }
-  clickTypeFilter_ = 0
   if (excludedSelector) {
     output = safeCall((output as Hint0[]).filter.bind(output), testMatch.bind(null, excludedSelector)) || output
   }
@@ -602,6 +601,7 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
     }
     OnFirefox || set_bZoom_(bz)
     hasHookedScroll || set_scrolled(0)
+    clickTypeFilter_ = 0
   }
   return output
 }) as {

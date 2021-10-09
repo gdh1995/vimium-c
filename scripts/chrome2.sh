@@ -2,6 +2,7 @@
 
 VER=
 FLAGS=
+PAGE_FLAGS=
 OTHER_EXT=
 OTHER_ARGS=
 USE_INSTALLED=0
@@ -58,6 +59,14 @@ case "$1" in
     ;;
   dark)
     FLAGS=$FLAGS" --force-dark-mode"
+    shift
+    ;;
+  force-dark|forcedark)
+    PAGE_FLAGS=$PAGE_FLAGS",WebContentsForceDark"
+    shift
+    ;;
+  --flags=*)
+    PAGE_FLAGS=$PAGE_FLAGS",${1#--flags=}"
     shift
     ;;
   test|--test) # no the "Disable developer mode extensions" dialog, but add an extra infobar
@@ -245,6 +254,10 @@ if ! test -f "$EXE"; then
 fi
 if test -n "$VER" -o "$CHROME_ROOT" == "$default_chrome_root"; then
   rm -f "${EXE%/*}/default_apps/"* "${EXE%/*}/"[0-9]*"/default_apps/"*
+fi
+
+if test -n "$PAGE_FLAGS"; then
+  FLAGS=$FLAGS" --flag-switches-begin --enable-features="${PAGE_FLAGS#,}" --flag-switches-end"
 fi
 
 if test $USE_INSTALLED -gt 0; then

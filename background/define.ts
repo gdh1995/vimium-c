@@ -72,7 +72,7 @@ if (!Build.NDEBUG) {
         reject(ev.message)
         setTimeout((): void => { modules[name] = void 0 }, 1)
       } }
-      document.head!.appendChild(script)
+      (document.body || document.documentElement)!.appendChild(script)
     }))
     exports instanceof Promise ? void exports.then(() => { doImport([path], callback) }) : callback(exports)
   }

@@ -55,7 +55,7 @@ interface CSSOptions {
   /* same as `.evenIf |= kHidden.OverflowHidden` */ scroll?: "force"
 }
 interface OtherFilterOptions {
-  typeFilter?: /** 1 <<< kClickType */ number | null | undefined
+  typeFilter?: /** 1 <<< {@link ../content/local_hints.ts#ClickType} */ number | null | undefined
   textFilter?: "regexp"
 }
 

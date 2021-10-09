@@ -400,25 +400,24 @@ const onKeydown = (event: HandlerNS.Event): HandlerResult => {
       onTailEnter(event, key, keybody);
     } else if (keybody > kChar.maxNotF_num && keybody < kChar.minNotF_num && key !== kChar.f1) { // exclude plain <f1>
       if (keybody > kChar.f1 && keybody !== kChar.f2) { ret = HandlerResult.Nothing }
-      else if (keybody < kChar.f2) {
-        if (key < "b" && useFilter_) {
+      else if (keybody < kChar.f2) { // <*-f1> or <*-f0***>
+        if (key < "b" && useFilter_) { // <a-*-f1>
           locateHint(activeHint_!).l(activeHint_!);
-        } else if (key > "s") {
-          // `/^s-(f1|f0[a-z0-9]+)$/`
+        } else if (key > "s") { // <s-f1> or <s-f0[_a-z0-9]+>
           frameArray.forEach((/*#__NOINLINE__*/ toggleClassForKey).bind(0, keybody))
         }
-      } // the below mens f2, f0***
-      else if (num1 = 1, key.includes("-s")) {
+      } // the below mens <*-f2>
+      else if (num1 = 1, key.includes("-s")) { // <a-s-f2>, <c-s-f2>
         fgCache.e = !fgCache.e;
-      } else if (key < "b") { // a-
+      } else if (key < "b") { // <a-f2> or <a-c-f2>
         WithDialog ? wantDialogMode_ = !wantDialogMode_ : num1 = 0
-      } else if ("cm".includes(key[0])) {
+      } else if (key < "d" && key[0] === "m") { // <c-f2> or <m-f2>
         options_.useFilter = fgCache.f = !useFilter_;
       } else if (key !== keybody) { // <s-f2>
         isClickListened_ = !isClickListened_;
       } else if (OnFirefox && isClickListened_ || !vApi.e) {
         num1 = 0
-      } else {
+      } else { // plain <f2>
         isClickListened_ = true;
         if (!OnFirefox) {
           vApi.e(kContentCmd.ManuallyFindAllOnClick);
