@@ -182,7 +182,7 @@ export const exitInsertMode = (target: Element): void => {
     (target as LockableElement).blur();
   }
   if (insert_global_) {
-    lock_ = null; insert_global_ = null;
+    insert_global_ = null
     hudHide();
   }
 }
