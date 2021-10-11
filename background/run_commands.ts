@@ -546,7 +546,7 @@ interface ErrorNode extends BaseNode { t: kN.error; val: string; par: null }
 type Node = ListNode | IfElseNode
 export const parseKeySeq = (keys: string): ListNode | ErrorNode => {
   const re = <RegExpOne>
-      /^([$%][a-z]\+?)*([\d-]\d*\+?)?([$%][a-z]\+?)*(<([a-z]-){0,4}\w+(:i)?>|[A-Z_a-z]\w*(\.\w+)?)(#[\w%=&]*)?/
+      /^([$%][a-z]\+?)*([\d-]\d*\+?)?([$%][a-z]\+?)*(<([a-z]-){0,4}\w+(:i)?>|[A-Z_a-z]\w*(\.\w+)?)(#[^()?:+]*)?/
   let cur: ListNode = { t: kN.list, val: [], par: null }, root: ListNode = cur, last: Node | null
   for (let i = keys.length > 1 ? 0 : keys.length; i < keys.length; i++) {
     switch (keys[i]) {
@@ -572,16 +572,19 @@ export const parseKeySeq = (keys: string): ListNode | ErrorNode => {
     case "+": break
     default:
       while (i < keys.length && !"()?:+".includes(keys[i])) {
-        const key = re.exec(keys.slice(i))
-        if (key) {
-          (<RegExpOne> /^[#&]#/).test(keys.slice(i + key[0].length - 1)) && (key[0] = keys.slice(i))
-          cur.val.push({ t: kN.key, val: key[0], par: cur })
-          i += key[0].length
-        } else {
+        const arr = re.exec(keys.slice(i))
+        if (!arr) {
           const err = keys.slice(i)
           return { t: kN.error,
               val: "Invalid key item: " + (err.length > 16 ? err.slice(0, 15) + "\u2026" : err), par: null }
         }
+        let oneKey = arr[0]
+        const hash = oneKey.indexOf("#")
+        if (hash > 0 && (<RegExpOne> /[#&]#/).test(oneKey.slice(hash))) {
+          oneKey = keys.slice(i)
+        }
+        cur.val.push({ t: kN.key, val: oneKey, par: cur })
+        i += oneKey.length
       }
       i--
       break
@@ -606,24 +609,20 @@ const exprKeySeq = function (this: ListNode): object | string | null {
 }
 
 export const parseEmbeddedOptions = (/** has no prefixed "#" */ str: string): CommandsNS.RawOptions | null => {
-  const secondInd = str.indexOf("#") + 1, hasSecond = secondInd === 1 || secondInd >= 2 && str[secondInd - 2] === "&"
-  const left = BgUtils_.DecodeURLPart_(str.slice(0, hasSecond ? secondInd - 1 : str.length)
-      .replace(<RegExpG> /&/g, " "))
-  if (hasSecond) {
-    str = str.slice(secondInd)
-    str = str.startsWith("#") ? str.slice(1) : BgUtils_.DecodeURLPart_(str)
-    const equation = str.indexOf("=") + 1
-    const beforeEquation = equation > 0 ? str.slice(0, equation) : str
-    str = equation > 0 ? str.slice(equation) : ""
-    if (str && !'{["'.includes(str[0]) && (<RegExpOne> /[^a-z\d\.-]/).test(str)) {
-      str = JSON.stringify(str).replace(<RegExpG & RegExpSearchable<0>> /\s/g
-          , (s): string => "\\u" + (s.charCodeAt(0) + 0x10000).toString(16).slice(1))
-    }
-    str = beforeEquation + str
-  } else {
-    str = ""
+  const arrHash = (<RegExpOne> /(^|&)#/).exec(str)
+  const rawPart = arrHash ? str.slice(arrHash.index + arrHash[0].length) : ""
+  const encodeUnicode = (s: string): string => "\\u" + (s.charCodeAt(0) + 0x10000).toString(16).slice(1)
+  const encodeValue = (s: string): string =>
+      (<RegExpOne> /\s/).test(s) ? JSON.stringify(s).replace(<RegExpG & RegExpSearchable<0>> /\s/g, encodeUnicode) : s
+  str = (arrHash ? str.slice(0, arrHash.index) : str).split("&").map((pair): string => {
+    const key = pair.split("=", 1)[0], val = pair.slice(key.length)
+    return key + (val ? "=" + encodeValue(BgUtils_.DecodeURLPart_(val.slice(1))) : "")
+  }).join(" ")
+  if (rawPart) {
+    const key2 = rawPart.split("=", 1)[0], val2 = rawPart.slice(key2.length)
+    str = (str ? str + " " : "") + key2 + (val2 ? "=" + encodeValue(val2.slice(1)) : "")
   }
-  return parseOptions_(left + str, 2)
+  return parseOptions_(str, 2)
 }
 
 const nextKeyInSeq = (lastCursor: ListNode | KeyNode, dir: number): KeyNode | null => {

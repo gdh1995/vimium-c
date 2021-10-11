@@ -85,8 +85,10 @@ const parseVal_ = (val: string): any => {
 }
 
 const parseVal_limited = (val: string): any => {
+  let n: number | undefined
   return val === "false" ? false : val === "null" ? null : val === "true" ? true
-      : (val >= "0" ? val < kChar.minNotNum : val[0] === "-") ? parseInt(val, 10)
+      : (val >= "0" ? val < kChar.minNotNum : val[0] === "-") ? (n = parseFloat(val)) + "" === val ? n
+        : !(<RegExpOne> /^-?(0|[1-9]\d*)(\.\d+)?([eE]\d+)?$/).test(val) ? val : !isNaN(n) ? n : parseVal_(val)
       : '{["'.includes(val[0]) ? parseVal_(val) : val
 }
 

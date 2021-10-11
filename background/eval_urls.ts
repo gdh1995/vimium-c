@@ -2,7 +2,7 @@ import {
   set_evalVimiumUrl_, copy_, evalVimiumUrl_, substitute_, paste_, cPort, curTabId_, framesForTab_, needIcon_, setIcon_,
   set_cPort, set_cEnv
 } from "./store"
-import { decodeEscapedURL_, safer_, spacesRe_ } from "./utils"
+import { decodeEscapedURL_, safer_, spacesRe_, DecodeURLPart_ } from "./utils"
 import { convertToUrl_, lastUrlType_, createSearchUrl_, quotedStringRe_ } from "./normalize_urls"
 import { parseSearchUrl_ } from "./parse_urls"
 import { getPortUrl_, showHUD } from "./ports"
@@ -222,6 +222,9 @@ const forceStatus_ = (act: Frames.ForcedStatusText): void => {
   newPassedKeys = (silent ? newPassedKeys.slice(7) : newPassedKeys).trim()
   let shown: BOOL = 0
   const logAndShow = (msg: string): void => { console.log(msg), shown || showHUD(msg); shown = 1 }
+  if (newPassedKeys.includes("%") && (<RegExpI> /%[a-f0-9]{2}/i).test(newPassedKeys)) {
+    newPassedKeys = DecodeURLPart_(newPassedKeys)
+  }
   if (newPassedKeys && !newPassedKeys.startsWith("^ ")) {
     logAndShow('"vimium://status" only accepts a list of hooked keys')
     newPassedKeys = "";
