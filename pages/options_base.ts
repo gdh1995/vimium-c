@@ -128,7 +128,7 @@ fetch_ (): void {
   this.saved_ = true;
   this.previous_ = this.innerFetch_()
   if (!Option_.suppressPopulate_) {
-    this.populateElement_(this.previous_);
+    nextTick_((): void => { this.populateElement_(this.previous_) })
   }
 }
 innerFetch_ (): AllowedOptions[T] {

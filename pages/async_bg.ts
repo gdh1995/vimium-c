@@ -77,6 +77,9 @@ export const reloadBG_ = (): void => {
 export type TransTy<Keys extends string> = (key: Keys, arg1?: (string | number)[]) => string
 
 export const pageTrans_ = (key: string, arg1?: (string | number)[]): string | undefined => {
+  if (!(Build.NDEBUG || readyInfo_ === kReadyInfo.FINISHED)) {
+    console.trace("Error: want to translate %s before finished (ready = %d)", key, readyInfo_)
+  }
   let val = i18nDict_[key]
   if (arg1 != null && val) {
     val = val.replace(<RegExpG & RegExpSearchable<0>> /\$\d/g, (i): string => arg1[+i[1] - 1] as string)

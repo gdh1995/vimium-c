@@ -196,6 +196,7 @@ let optionsInit1_ = function (): void {
     for (let i = els.length; 0 <= --i; ) {
       let el: HTMLElement = els[i];
       let key = (el.dataset as KnownOptionsDataset).permission
+      let transArgs: ["beforeChromium" | "lackPermission", string[]]
       if (key[0] === "C") {
         if (!OnChrome) {
           if (key === "C") { // hide directly
@@ -207,22 +208,25 @@ let optionsInit1_ = function (): void {
         } else if (CurCVer_ >= +key.slice(1)) {
           continue;
         }
-        key = oTrans_("beforeChromium", [key.slice(1)]);
+        transArgs = ["beforeChromium", [key.slice(1)]]
       } else {
         if (key in manifest) { continue; }
-        key = oTrans_("lackPermission", [key ? ":\n* " + key : ""]);
+        transArgs = ["lackPermission", [key ? ":\n* " + key : ""]]
       }
-      key = oTrans_("invalidOption", [key]);
       nextTick_((el1): void => {
         (el1 as TextElement).disabled = true;
+        const str = oTrans_("invalidOption", [oTrans_(transArgs[0], transArgs![1])])
         if (el1 instanceof HTMLInputElement && el1.type === "checkbox") {
           (el1 as SafeHTMLElement as EnsuredMountedHTMLElement).nextElementSibling.tabIndex = -1;
           el1 = el1.parentElement as HTMLElement;
-          el1.title = key;
+          el1.title = str
         } else {
           (el1 as TextElement).value = "";
-          el1.title = key;
+          el1.title = str;
           (el1.parentElement as HTMLElement).onclick = onclick;
+          if (el1 instanceof HTMLSpanElement) {
+            el1.style.textDecoration = "line-through"
+          }
         }
       }, el);
     }

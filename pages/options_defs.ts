@@ -305,7 +305,7 @@ export class MaskedText_<T extends TextOptionNames> extends TextOption_<T> {
   }
   override populateElement_ (value: AllowedOptions[T], enableUndo?: boolean): void {
     if (this.masked_) {
-      this.element_.placeholder = oTrans_("clickToUnmask")
+      nextTick_((): void => { this.element_.placeholder = oTrans_("clickToUnmask") })
       return
     }
     super.populateElement_(value, enableUndo)
