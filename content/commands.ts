@@ -1,7 +1,7 @@
 import {
   chromeVer_, doc, esc, fgCache, isTop, set_esc, VTr, safer, timeout_, loc_, weakRef_, deref_,
   keydownEvents_, parseSedOptions, Stop_, suppressCommonEvents, setupEventListener, vApi, locHref, isTY, min_,
-  OnChrome, OnFirefox, OnEdge, firefoxVer_, safeCall, parseOpenPageUrlOptions, os_, math
+  OnChrome, OnFirefox, OnEdge, firefoxVer_, safeCall, parseOpenPageUrlOptions, os_, math, Lower
 } from "../lib/utils"
 import {
   isHTML_, hasTag_, createElement_, querySelectorAll_unsafe_, SafeEl_not_ff_, docEl_unsafe_, MDW, CLK,
@@ -10,7 +10,7 @@ import {
 } from "../lib/dom_utils"
 import {
   pushHandler_, removeHandler_, getMappedKey, prevent_, isEscape_, keybody_, DEL, BSP, ENTER, handler_stack,
-  replaceOrSuppressMost_, getKeyStat_
+  getKeyStat_, suppressTail_
 } from "../lib/keyboard_utils"
 import {
   view_, wndSize_, isNotInViewport, getZoom_, prepareCrop_, getViewBox_, padClientRect_, isSelARange,
@@ -123,16 +123,34 @@ set_contentCommands_([
   /* kFgCmd.passNextKey: */ (options: CmdOptions[kFgCmd.passNextKey], count0: number): void => {
     const oldEsc = esc!, oldPassKeys = passKeys
     const keys = safer<{ [keyCode in kKeyCode]: number | false }>({})
+    const ignoreCase = options.ignoreCase
+    const expectedKeys = options.expect, hasExpected = isTY(expectedKeys) && !!expectedKeys
     let keyCount = 0, count = count0 > 0 ? count0 : -count0
-    if (!!options.normal === (count0 > 0)) {
-      esc!(HandlerResult.ExitPassMode); // singleton
-      if (!passKeys) {
+    removeHandler_(kHandler.passNextKey)
+    exitPassMode ? exitPassMode() : esc!(HandlerResult.ExitPassMode); // singleton
+    if (hasExpected || !!options.normal === (count0 > 0)) {
+      if (!hasExpected && !passKeys) {
         return hudTip(kTip.noPassKeys);
       }
       set_passKeys(null)
+      hasExpected && pushHandler_((event): HandlerResult => {
+        const rawKey = getMappedKey(event, raw_insert_lock ? kModeId.Insert : kModeId.Normal)
+        const key = rawKey.length > 1 ? `<${rawKey}>` : ignoreCase ? Lower(rawKey) : rawKey
+        const matched = !!key && (ignoreCase ? Lower(expectedKeys) : expectedKeys).slice(count - 1).startsWith(key)
+        matched && (count += key.length)
+        if (count > expectedKeys.length || key && !matched) {
+          esc!(HandlerResult.ExitPassMode)
+          matched || suppressTail_(GlobalConsts.TimeOfSuppressingTailKeydownEvents, 0)
+          runFallbackKey(options, matched ? 0 : 2)
+        } else {
+          esc!(HandlerResult.Nothing)
+        }
+        return HandlerResult.Prevent
+      }, kHandler.passNextKey)
       set_esc((i: HandlerResult): HandlerResult => {
         if (i === HandlerResult.Prevent && 0 >= --count || i === HandlerResult.ExitPassMode) {
           hudHide();
+          removeHandler_(kHandler.passNextKey)
           set_passKeys(oldPassKeys)
           set_esc(oldEsc)
           return oldEsc(HandlerResult.Prevent);
@@ -141,7 +159,8 @@ set_contentCommands_([
         set_nextKeys(keyFSM)
         if (keyCount - count || !hud_text) {
           keyCount = count;
-          hudShow(kTip.normalMode, count > 1 ? VTr(kTip.nTimes, [count]) : "")
+          hudShow(expectedKeys ? kTip.expectKeys : kTip.normalMode
+              , expectedKeys ? expectedKeys.slice(count - 1) : count > 1 ? VTr(kTip.nTimes, [count]) : "")
         }
         return i;
       })
@@ -162,12 +181,12 @@ set_contentCommands_([
       }
       return !count
     }
-    replaceOrSuppressMost_(kHandler.passNextKey, event => {
+    pushHandler_(event => {
       if (!event.e.repeat && shouldExit_delayed(event.e, 1)) { return HandlerResult.Nothing }
       keyCount += !keys[event.i] as boolean | BOOL as BOOL
       keys[event.i] = os_ ? 1 : event.e.timeStamp
       return HandlerResult.PassKey;
-    })
+    }, kHandler.passNextKey)
     set_onKeyup2((event): void => {
       if (event && shouldExit_delayed(event, 0)) { /* empty */ }
       else if (event && keys[event.keyCode] ? --keyCount > 0 || (keyCount = 0, --count) : keyCount || count) {

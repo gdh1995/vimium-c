@@ -138,6 +138,7 @@
   "115": { "message": "à la fin" },
   "116": { "message": "au début" },
   "117": { "message": "Aucune cible correspondante trouvée" },
+  "120": { "message": "Veuillez saisir: $1" },
   "200": { "message": "Non-autorisé à ouvrir l'URL de la cible du nouvel onglet" },
   "201": { "message": "Vous avez annulé l'importation" },
   "202": { "message": "Import des données de paramétrage : OK!" },

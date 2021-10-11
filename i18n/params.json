@@ -30,7 +30,7 @@
   "moveTabToNextWindow": "position, right=true",
   "openBookmark": "title, path",
   "openUrl": "url:string, urls:string[], reuse=newFg/current/newBg/reuse, incognito, window, position",
-  "passNextKey": "normal",
+  "passNextKey": "expect:string, normal",
   "reload": "hard",
   "reloadGivenTab": "hard",
   "reloadTab": "hard, bypassCache",

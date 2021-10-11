@@ -182,6 +182,7 @@
   "117": { "message": "No matching targets found" },
   "118": { "message": "\\b(?:[Cc]lose)(?:$$|[-\\sA-Z_])" },
   "119": { "message": "(-ms-high-contrast:active)" },
+  "120": { "message": "Please type: $1" },
   "200": { "message": "Not allowed to open the target new tab URL" },
   "201": { "message": "You cancelled importing" },
   "202": { "message": "Import settings data: OK!" },

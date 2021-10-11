@@ -19,6 +19,7 @@ declare const enum kTip {
   /* 105: */ invisibleHintText, notMatchedHintText, metaKeywordsForMobile, css0d01OrDPI, visibleElementsInScopeChildren,
   /* 110: */ voidJS = 110, nonLocalhostRe, redditHost, buttonOrA, wrapWhenFind,
   /* 115: */ atStart, atEnd, noTargets, closableClasses, highContrast_WOB,
+  /* 120: */ expectKeys,
   INJECTED_CONTENT_END,
   /* 200: */ firefoxRefuseURL = 200, cancelImport, importOK, XHTML, redditOverlay,
   /** used by {@link ../Gulpfile.js} */ extendClick = 999,
@@ -337,9 +338,7 @@ interface CmdOptions {
     n: string; // `"${SettingsNS.FrontendSettingsSyncingItems[keyof SettingsNS.FrontendSettingsSyncingItems][0]}"`
     v: SettingsNS.FrontendSettings[keyof SettingsNS.FrontendSettings] | null;
   };
-  [kFgCmd.passNextKey]: {
-    normal?: false | true;
-  };
+  [kFgCmd.passNextKey]: { normal?: false | true; expect: "<any-key>"; ignoreCase?: boolean } & Req.FallbackOptions
   [kFgCmd.framesGoBack]: (Pick<OpenUrlOptions, "reuse" | "position"> & { r?: null }
       | { r: 1 } & ({ url: string; hard?: undefined } | { url?: undefined; hard?: boolean })) & Req.FallbackOptions
   [kFgCmd.vomnibar]: {
