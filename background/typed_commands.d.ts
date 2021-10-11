@@ -121,7 +121,7 @@ interface BgCmdOptions {
     $seq: {
       /** node tree */ keys: object, repeat: number, options: CommandsNS.EnvItem["options"] | undefined
       cursor: object | null, timeout: number
-      id: number, fallback: Req.FallbackOptions | null
+      id: string, fallback: Req.FallbackOptions | null
     }
   } & Req.FallbackOptions
   [kBgCmd.searchInAnother]: { keyword: string; reuse: UserReuseType } & Req.FallbackOptions

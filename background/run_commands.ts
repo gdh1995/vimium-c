@@ -14,7 +14,7 @@ import {
 import C = kBgCmd
 import NormalizedEnvCond = CommandsNS.NormalizedEnvCond
 
-const kRunKeyInSeq = "<v-runkey:s>"
+const kRunKeyInSeq = "<v-runkey:$1>"
 const abs = Math.abs
 let _gCmdTimer = 0
 let gOnConfirmCallback: ((force1: boolean, arg?: FakeArg) => void) | null | undefined
@@ -511,21 +511,22 @@ export const runKeyWithCond = (info?: CurrentEnvCache): void => {
     }
     options = !options2 || !options ? options || options2
         : copyCmdOptions(copyCmdOptions(BgUtils_.safeObj_(), options2), options as CommandsNS.Options)
-    if (key.t === kN.error) { showHUD(key.val) }
-    else if ((As_<ListNode>(key)).val.length === 0) { /* should never enter here */ }
-    else if (key.val.length > 1 || key.val[0].t !== kN.key) {
-      loopIdToRunSeq = (loopIdToRunSeq + 1) % 64 || 1
+    if (key.t === kN.error) { showHUD(key.val); return }
+    else if ((As_<ListNode>(key)).val.length === 0) { return }
+    const newIntId = loopIdToRunSeq = (loopIdToRunSeq + 1) % 64 || 1
+    const seqId = kRunKeyInSeq.replace("$1", "" + newIntId as "1")
+    if (key.val.length > 1 || key.val[0].t !== kN.key) {
       const fakeOptions: KnownOptions<C.runKey> = {
-        $seq: { keys: key, repeat, options, cursor: key, timeout: 0, id: loopIdToRunSeq,
+        $seq: { keys: key, repeat, options, cursor: key, timeout: 0, id: seqId,
                 fallback: parseFallbackOptions(get_cOptions<C.runKey, true>()) },
-        $then: loopIdToRunSeq + kRunKeyInSeq, $else: "-" + loopIdToRunSeq + kRunKeyInSeq, $retry: -999
+        $then: seqId, $else: "-" + seqId, $retry: -999
       }
       replaceCmdOptions(fakeOptions)
-      keyToCommandMap_.set(kRunKeyInSeq, makeCommand_("runKey", fakeOptions as CommandsNS.Options)!)
-      runKeyInSeq(fakeOptions.$seq!, loopIdToRunSeq, null, info)
+      keyToCommandMap_.set(seqId, makeCommand_("runKey", fakeOptions as CommandsNS.Options)!)
+      runKeyInSeq(fakeOptions.$seq!, 1, null, info)
     } else {
       runOneKey(key.val[0], {
-        keys: key, repeat, options, cursor: key, timeout: 0, id: 0, fallback: null
+        keys: key, repeat, options, cursor: key, timeout: 0, id: seqId, fallback: null
       }, info)
     }
   }
@@ -656,14 +657,16 @@ const nextKeyInSeq = (lastCursor: ListNode | KeyNode, dir: number): KeyNode | nu
 
 export const runKeyInSeq = (seq: BgCmdOptions[C.runKey]["$seq"], dir: number
     , fallback: Req.FallbackOptions["$f"] | null, envInfo: CurrentEnvCache | null): void => {
-  if (abs(dir) !== seq.id) { return } // overdue
   const cursor: KeyNode | null = nextKeyInSeq(seq.cursor as ListNode | KeyNode, dir)
   const isLast = !cursor || !(nextKeyInSeq(cursor, 1) || nextKeyInSeq(cursor, -1))
   const finalFallback = seq.fallback
+  const seqId = seq.id
   if (isLast) {
-    keyToCommandMap_.set(kRunKeyInSeq, makeCommand_("blank", null))
+    keyToCommandMap_.delete(seqId)
     clearTimeout(seq.timeout || 0)
-    loopIdToRunSeq = 0
+    if (kRunKeyInSeq.replace("$1", "" + loopIdToRunSeq as "1") == seqId) {
+      loopIdToRunSeq = Math.max(--loopIdToRunSeq, 0)
+    }
     if (cursor) {
       delete get_cOptions<C.runKey, true>().$then, delete get_cOptions<C.runKey, true>().$else
       if (finalFallback) {
@@ -681,10 +684,10 @@ export const runKeyInSeq = (seq: BgCmdOptions[C.runKey]["$seq"], dir: number
     return
   }
   const timeout = isLast ? 0 : seq.timeout = setTimeout((): void => {
-    const old = keyToCommandMap_.get(kRunKeyInSeq)
+    const old = keyToCommandMap_.get(seqId)
     const opts2 = old && (old.options_ as KnownOptions<C.runKey>)
     if (opts2 && opts2.$seq && opts2.$seq.timeout === timeout) {
-      keyToCommandMap_.set(kRunKeyInSeq, makeCommand_("blank", null))
+      keyToCommandMap_.delete(seqId)
     }
   }, 30000)
   runOneKey(cursor, seq, envInfo)
