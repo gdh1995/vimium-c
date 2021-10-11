@@ -135,7 +135,7 @@ const openTextOrUrl = (url: string, incognito?: boolean): void => {
 const hoverEl = (): void => {
     const type = getEditableType_<0>(clickEl), toggleMap = hintOptions.toggle;
     const doesFocus = !type && !isIFrameElement(clickEl)
-        && checkFocus((clickEl as ElementToHTMLorOtherFormatted).tabIndex! >= 0)
+        && checkBoolOrSelector(hintOptions.focus, (clickEl as ElementToHTMLorOtherFormatted).tabIndex! >= 0)
     // here not check lastHovered on purpose
     // so that "HOVER" -> any mouse events from users -> "HOVER" can still work
     set_currentScrolling(weakRef_(clickEl))
@@ -334,13 +334,14 @@ const defaultClick = (): void => {
     newTab = mask > HintMode.newTab - 1 && !newWindow && !otherActions,
     newTabAndActive = newTab && mask > HintMode.newtab_n_active - 1,
     cnsForWin = hintOptions.ctrlShiftForWindow,
-    autoUnhover = hintOptions.autoUnhover,
+    autoUnhover = hintOptions.autoUnhover, doesUnhoverOnEsc = (autoUnhover + "")[0] === "<",
     isQueue = hintMode_ & HintMode.queue,
     noCtrlPlusShiftForActive: boolean | undefined = cnsForWin != null ? cnsForWin : hintOptions.noCtrlPlusShift,
     ctrl = newTab && !(newTabAndActive && noCtrlPlusShiftForActive) || newWindow && !!noCtrlPlusShiftForActive,
     shift = newWindow || newTabAndActive,
-    interactive = (tag === "video" || tag === "audio") && !isRight && (clickEl as HTMLMediaElement).controls,
-    doInteract = interactive && hintOptions.interact !== !1,
+    isSel = tag === "select",
+    interactive = isSel || (tag === "video" || tag === "audio") && !isRight && (clickEl as HTMLMediaElement).controls,
+    doInteract = interactive && !isSel && hintOptions.interact !== !1,
     reuseFlag = newTab ? kClickAction.FlagMayInactive : kClickAction.none,
     specialActions = otherActions || doInteract
         ? kClickAction.BaseMayInteract + +dblClick + kClickAction.FlagInteract * <number> <number | boolean> doInteract
@@ -353,23 +354,24 @@ const defaultClick = (): void => {
         : newTabStr === kLW ? kClickAction.forceToOpenInLastWnd | reuseFlag
         : OnFirefox ? kClickAction.plainMayOpenManually | reuseFlag
         : hintOptions.sedIf ? kClickAction.forceToSedIf | reuseFlag
-        : kClickAction.none
+        : kClickAction.none,
+    doesUnhoverAtOnce = !doesUnhoverOnEsc && /*#__PURE__*/ checkBoolOrSelector(autoUnhover, !1)
     retPromise = catchAsyncErrorSilently(click_async(clickEl, rect
-        , /*#__PURE__*/ checkFocus(mask > 0 || interactive || (clickEl as ElementToHTMLorOtherFormatted).tabIndex! >= 0)
+        , /*#__PURE__*/ checkBoolOrSelector(hintOptions.focus
+            , mask > 0 || interactive || (clickEl as ElementToHTMLorOtherFormatted).tabIndex! >= 0)
         , [!1, ctrl && !isMac, ctrl && isMac, shift]
         , specialActions, isRight ? kClickButton.second : kClickButton.none
         , !OnChrome || otherActions || newTab ? 0 : hintOptions.touch
         , hintOptions))
     .then((ret): void | false | number | Promise<unknown> =>
-      autoUnhover && !interactive ? catchAsyncErrorSilently(unhover_async())
-      : isQueue || ret && pushHandler_(unhoverOnEsc, kHandler.unhoverOnEsc)
+        doesUnhoverAtOnce && (!interactive || isTY(autoUnhover)) ? catchAsyncErrorSilently(unhover_async())
+        : isQueue || (ret || doesUnhoverOnEsc) && pushHandler_(unhoverOnEsc, kHandler.unhoverOnEsc)
     )
 }
 
-const checkFocus = (defaultVal: boolean): boolean => {
-  let userFocus: HintsNS.Options["focus"] | void = hintOptions.focus
-  return userFocus == null ? defaultVal : !!userFocus && (!isTY(userFocus)
-      || (userFocus = safeCall(testMatch, userFocus, [clickEl])), userFocus != null ? userFocus : defaultVal)
+const checkBoolOrSelector = (userVal: string | boolean | null | void | undefined, defaultVal: boolean): boolean => {
+  return userVal == null ? defaultVal : !!userVal && (!isTY(userVal)
+      || (userVal = safeCall(testMatch, userVal, [clickEl])), userVal != null ? userVal : defaultVal)
 }
 
   const masterOrA = hintManager || coreHints, keyStatus = masterOrA.$().k

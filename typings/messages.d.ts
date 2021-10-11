@@ -285,7 +285,7 @@ declare namespace HintsNS {
     swapCtrlAndShift?: boolean;
     hideHud?: boolean;
     hideHUD?: boolean;
-    autoUnhover?: boolean;
+    autoUnhover?: boolean | "css-selector"
     reachable?: null | boolean // null means "in modes for mouse events and settings.mouseReachable"
     richText?: boolean;
     visual?: false;

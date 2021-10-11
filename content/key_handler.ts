@@ -1,6 +1,6 @@
 import {
   doc, esc, os_, isEnabled_, isTop, keydownEvents_, set_esc, safer, Stop_, isTY, Lower, OnChrome, OnFirefox,
-  chromeVer_
+  chromeVer_, deref_
 } from "../lib/utils"
 import {
   set_getMappedKey, char_, getMappedKey, isEscape_, getKeyStat_, prevent_, handler_stack, keybody_, SPC
@@ -13,7 +13,7 @@ import {
   exitInsertMode, focusUpper, insert_global_, insert_Lock_, isInInsert, raw_insert_lock, setupSuppress, suppressType,
 } from "./insert"
 import { keyIsDown as scroll_keyIsDown, onScrolls, scrollTick } from "./scroller"
-import { evIDC_cr, set_evIDC_cr } from "./async_dispatcher"
+import { catchAsyncErrorSilently, evIDC_cr, lastHovered_, set_evIDC_cr, unhover_async } from "./async_dispatcher"
 
 let passKeys: Set<string> | null = null
 let isPassKeysReversed = false
@@ -258,6 +258,7 @@ export const onEscDown = (event: KeyboardEventToPrevent | 0, key: kKeyCode, repe
   if (!repeat && removeSelection()) {
     /* empty */
   } else if (repeat && !keydownEvents_[key] && activeEl) {
+    deref_(lastHovered_) === activeEl ? catchAsyncErrorSilently(unhover_async()) :
     (OnFirefox ? activeEl.blur : isTY(activeEl.blur, kTY.func)) && activeEl.blur!()
   } else if (!isTop && !activeEl) {
     focusUpper(key, repeat, event);
