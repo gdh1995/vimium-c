@@ -19,7 +19,7 @@
   "OpenC": { "message": "访问：" },
   "Upgrade": { "message": "已更新" },
   "upgradeMsg": { "message": "您的 Vimium C 已经更新至 $1 版。\n" },
-  "upgradeMsg2": { "message": "现在可以绑定按键到一连串命令上" },
+  "upgradeMsg2": { "message": "现在可以绑定按键到 一连串带参数的命令 上" },
   "clickForMore": { "message": "点击阅读详细信息。" },
   "voptions": { "message": "设置" },
   "vshow": { "message": "展示" },

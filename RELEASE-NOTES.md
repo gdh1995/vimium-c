@@ -4,6 +4,25 @@ Release Notes of Vimium C
 ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 说明文档: https://gitee.com/gdh1995/vimium-c#readme , https://github.com/gdh1995/vimium-c/blob/master/README-zh.md .
 
+#### 1.93.0
+* better compatibility
+  * keyboard: with some system-level shortcuts of composed keys
+  * with some extensions with card-style UI
+  * avoid reporting issues on latest Chromium browsers which recommends `userAgentData`
+* URL matching: support new `URLPattern` in W3C spec.
+* key mappings: `runKey` supports inline options which look like `#a=b&c=d%20e` (wiki added)
+  * key mappings: add a new syntax of `run key otherKeys` as an alias of `runKey key keys="otherKeys"`
+  * add `openBookmark` and `vimium://run/<key-tree>` to run long command sequences with complicated options
+  * now support nested calls (but still refuse to call itself directly)
+* `LinkHints`/`focusInput`: always add elements matching `.clickable` even in other modes
+* `LinkHints`: improve `autoUnhover` ([#325](https://github.com/gdh1995/vimium-c/issues/325#issuecomment-939656442))
+  and add a trick to copy image URLs ([#399](https://github.com/gdh1995/vimium-c/issues/399#issuecomment-927788170))
+* Vomnibar: support `mapKey` from keys to `<v-*>` (trigger commands) or `<enter>`
+* `dispatchEvent`: add a new mode: `key=Key,keyCode[,Code=Key]`
+* text substitution: remove old `/[dDr]/` keywords in "flag" parts
+* improve `.filter` in tab-related commands
+* fix some other small bugs
+
 #### 1.92.4
 * fix a crash during importing settings when browser language is not Chinese
 * small improvements on `runKey`
