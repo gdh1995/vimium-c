@@ -729,8 +729,8 @@ const doesInheritOptions = (baseOptions: CommandsNS.Options): boolean => {
   return cur === baseOptions
 }
 
-const runKeyWithOptions = (key: string, count: number, exOptions: CommandsNS.EnvItemOptions | null | undefined
-    , envInfo: CurrentEnvCache | null): void => {
+const runKeyWithOptions = (key: string, count: number, exOptions: CommandsNS.EnvItemOptions | string | null | undefined
+    , envInfo: CurrentEnvCache | null, fallbackCounter?: FgReq[kFgReq.nextKey]["f"] | null): void => {
   let finalKey = key, registryEntry = key !== "__proto__" && keyToCommandMap_.get(key)
       || !key.includes("<") && keyToCommandMap_.get(finalKey = `<v-${key}>`) || null
   let entryReadonly = true
@@ -739,7 +739,7 @@ const runKeyWithOptions = (key: string, count: number, exOptions: CommandsNS.Env
     registryEntry = makeCommand_(key, null)
   }
   if (registryEntry == null) {
-    showHUD(`the "${finalKey}" has not been mapped`)
+    showHUD(`"${(<RegExpOne> /^\w+$/).test(key) ? finalKey : key}" has not been mapped`)
     return
   } else if (registryEntry.alias_ === kBgCmd.runKey && registryEntry.background_
       && registryEntry.options_ && typeof registryEntry.options_ === "object"
@@ -747,9 +747,10 @@ const runKeyWithOptions = (key: string, count: number, exOptions: CommandsNS.Env
     showHUD('"runKey" should not call itself')
     return
   }
-  BgUtils_.resetRe_()
-  const fallOpts = parseFallbackOptions(get_cOptions<C.runKey, true>())
-  const fStatus = get_cOptions<C.runKey, true>().$f
+  typeof exOptions === "string" && (exOptions = parseEmbeddedOptions(exOptions))
+  const cmdOptions = get_cOptions<C.runKey, true>() as KnownOptions<C.runKey> | null
+  const fallOpts = cmdOptions && parseFallbackOptions(cmdOptions)
+  const fStatus = cmdOptions && cmdOptions.$f
   if (exOptions && typeof exOptions === "object" || fallOpts || fStatus) {
     const originalOptions = normalizedOptions_(registryEntry)
     registryEntry = entryReadonly ? Object.assign<{}, CommandsNS.Item>({}, registryEntry) : registryEntry
@@ -770,7 +771,8 @@ const runKeyWithOptions = (key: string, count: number, exOptions: CommandsNS.Env
     normalizeCommand_(registryEntry)
   }
   set_cEnv(envInfo)
-  executeCommand(registryEntry, count, cKey, cPort, 0)
+  BgUtils_.resetRe_()
+  executeCommand(registryEntry, count, cKey, cPort, 0, fallbackCounter)
 }
 
 /** execute a command referred by .$then or .$else */
@@ -833,24 +835,21 @@ export const runNextCmdBy = (useThen: BOOL, options: Req.FallbackOptions, timeou
           && frames.ports_.filter(i => i.s.status_ !== Frames.Status.disabled)
               .sort((a, b) => a.s.frameId_ - b.s.frameId_)[0] || frames.cur_
       frames && ensuredExitAllGrab(frames)
-      if ((<RegExpI> /^[a-z]+(\.[a-z]+)?$/i).test(nextKey!) && nextKey! in availableCommands_) {
-        executeCommand(makeCommand_(nextKey!, null), 1, kKeyCode.None, port, 0, fStatus)
-      } else {
-        let key: string = nextKey!, count = 1
-          , arr: null | string[] = (<RegExpOne> /^\d+|^-\d*/).exec(key)
+      let key: string = nextKey!, count = 1, arr: null | string[] = (<RegExpOne> /^\d+|^-\d*/).exec(key)
         if (arr != null) {
           let prefix = arr[0]
           key = key.slice(prefix.length)
           count = prefix !== "-" ? parseInt(prefix, 10) || 1 : -1
         }
-        let registryEntry = keyToCommandMap_.get(key)
-        BgUtils_.resetRe_()
-        if (!registryEntry) {
-          showHUD(`" ${key} " has not been mapped.`)
-        } else {
-          executeCommand(registryEntry, count, kKeyCode.None, port, 0, fStatus)
-        }
+      let hash = 1
+      while (hash = key.indexOf("#", hash) + 1) {
+        const slice = key.slice(0, hash - 1)
+        if (keyToCommandMap_.has(slice) || (<RegExpI> /^[a-z]+(\.[a-z]+)?$/i).test(slice)) { break }
       }
+      set_cPort(port!)
+      set_cKey(kKeyCode.None)
+      set_cOptions(null)
+      runKeyWithOptions(hash ? key.slice(0, hash - 1) : key, count, hash ? key.slice(hash) : null, null, fStatus)
     }, timeout || 50))
   }
   return hasFallback
