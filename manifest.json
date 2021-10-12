@@ -16,6 +16,7 @@
       "background/i18n.js",
       "background/key_mappings.js",
       "background/run_commands.js",
+      "background/run_keys.js",
       "background/tools.js",
       "background/clipboard.js",
       "background/eval_urls.js",

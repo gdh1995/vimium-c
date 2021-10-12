@@ -18,9 +18,10 @@ import { setOmniStyle_ } from "./ui_css"
 import { i18nPayload_, loadI18nPayload_, transPart_, trans_ } from "./i18n"
 import { keyRe_ } from "./key_mappings"
 import {
-  sendFgCmd, replaceCmdOptions, runKeyWithCond, onConfirmResponse, executeCommand, portSendFgCmd,
+  sendFgCmd, replaceCmdOptions, onConfirmResponse, executeCommand, portSendFgCmd,
   waitAndRunKeyReq, runNextCmdBy, parseFallbackOptions
 } from "./run_commands"
+import { runKeyWithCond } from "./run_keys"
 import { focusOrLaunch_, openJSUrl, openUrlReq } from "./open_urls"
 import {
   initHelp, openImgReq, framesGoBack, enterVisualMode, showVomnibar, parentFrame, nextFrame, performFind, focusFrame

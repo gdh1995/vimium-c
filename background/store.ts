@@ -125,6 +125,7 @@ export let bgC_: {
     : BgCmdNoTab<K>
 }
 export let cmdInfo_: { readonly [k in number]: kCmdInfo }
+export let runOneMapping_: (key: string, port: Port | null, fStatus: NonNullable<FgReq[kFgReq.nextKey]["f"]>) => void
 //#endregion
 
 //#region variable setter
@@ -168,6 +169,7 @@ export const set_reqH_ = (_newRH: BackendHandlersNS.FgRequestHandlers): void => 
 export const set_bgC_ = (_newBgC: typeof bgC_): void => { bgC_ = _newBgC }
 export const set_cmdInfo_ = (_newCmdInfo: typeof cmdInfo_): void => { cmdInfo_ = _newCmdInfo }
 export const set_installation_ = (_newInstallation: typeof installation_): void => { installation_ = _newInstallation }
+export const set_runOneMapping_ = (_newF: typeof runOneMapping_): void => { runOneMapping_ = _newF }
 //#endregion
 
 //#region some shared util functions

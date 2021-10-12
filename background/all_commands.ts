@@ -17,9 +17,10 @@ import { setOmniStyle_ } from "./ui_css"
 import { trans_ } from "./i18n"
 import { stripKey_ } from "./key_mappings"
 import {
-  confirm_, overrideCmdOptions, runNextCmd, runKeyWithCond, portSendFgCmd, sendFgCmd, overrideOption, runNextCmdBy,
-  runNextOnTabLoaded, getRunNextCmdBy, kRunOn, hasFallbackOptions, runKeyInSeq, needConfirm_, copyCmdOptions
+  confirm_, overrideCmdOptions, runNextCmd, portSendFgCmd, sendFgCmd, overrideOption, runNextCmdBy,
+  runNextOnTabLoaded, getRunNextCmdBy, kRunOn, hasFallbackOptions, needConfirm_, copyCmdOptions
 } from "./run_commands"
+import { runKeyWithCond, runKeyInSeq } from "./run_keys"
 import { doesNeedToSed, parseSedOptions_ } from "./clipboard"
 import { goToNextUrl, newTabIndex, openUrl } from "./open_urls"
 import {
