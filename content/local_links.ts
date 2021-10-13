@@ -1,5 +1,5 @@
 import {
-  clickable_, isJSUrl, doc, isImageUrl, fgCache, readyState_, chromeVer_, VTr, createRegExp, unwrap_ff, max_, OnChrome,
+  clickable_, isJSUrl, doc, isImageUrl, fgCache, readyState_, chromeVer_, VTr, createRegExp, max_, OnChrome,
   math, includes_, OnFirefox, OnEdge, WithDialog, safeCall, evenHidden_, set_evenHidden_, tryCreateRegExp
 } from "../lib/utils"
 import {
@@ -133,9 +133,7 @@ const getClickable = (hints: Hint[], element: SafeHTMLElement): void => {
   }
   if (isClickable === null) {
     type = (s = element.contentEditable) !== "inherit" && s !== "false" ? ClickType.edit
-      : (OnFirefox ? (anotherEl = unwrap_ff(element)).onclick
-            || (anotherEl as TypeToAssert<Element, SafeHTMLElement, "onmousedown">).onmousedown
-          : element.getAttribute("onclick"))
+      : /** on Firefox, `<custom-element-from-extension>.*` can throw */ element.getAttribute("onclick")
         || (s = element.getAttribute("role")) && clickableRoles_.test(s)
         || extraClickable_ !== null && extraClickable_.has(element)
         || ngEnabled && attr_s(element, "ng-click")
@@ -331,12 +329,10 @@ const addChildTrees = (parts: HintSources, allNodes: NodeListOf<SafeElement>): H
 
 const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | SafeElementWithoutFormat): void => {
   const tabIndex = (element as ElementToHTMLorOtherFormatted).tabIndex
-  let anotherEl: NonHTMLButFormattedElement, arr: Rect | null | undefined, s: string | null
+  let arr: Rect | null | undefined, s: string | null
   let type: ClickType.Default | AllowedClickTypeForNonHTML = clickable_.has(element)
         || extraClickable_ && extraClickable_.has(element)
-        || tabIndex != null && (OnFirefox
-            ? (anotherEl = unwrap_ff(element as NonHTMLButFormattedElement)).onclick || anotherEl.onmousedown
-            : attr_s(element, "onclick") || attr_s(element, "onmousedown"))
+        || tabIndex != null && (attr_s(element, "onclick") || attr_s(element, "onmousedown"))
         || (s = attr_s(element, "role")) && clickableRoles_.test(s)
         || ngEnabled && attr_s(element, "ng-click")
         || jsaEnabled_ && (s = attr_s(element, "jsaction")) && checkJSAction(s)

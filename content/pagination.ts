@@ -1,5 +1,5 @@
 import {
-  clickable_, vApi, isAlive_, safer, timeout_, escapeAllForRe, tryCreateRegExp, VTr, unwrap_ff, isTY, Lower, chromeVer_,
+  clickable_, vApi, isAlive_, safer, timeout_, escapeAllForRe, tryCreateRegExp, VTr, isTY, Lower, chromeVer_,
   OnChrome, OnFirefox, OnEdge, evenHidden_
 } from "../lib/utils"
 import {
@@ -39,7 +39,7 @@ export const filterTextToGoNext: VApiTy["g"] = (candidates, names, options, maxL
       }
     } else if (fromMatchSelector || (s = htmlTag_(element)) === "a"
         || (s === "button" ? !(element as HTMLButtonElement).disabled : s && clickable_.has(element))
-        || (OnFirefox ? unwrap_ff(element as HTMLElement | SVGElement).onclick : attr_s(element, "onclick"))
+        || attr_s(element, "onclick")
         || ((s = attr_s(element, "role")) ? (<RegExpI> /^(button|link)$/i).test(s)
           : ngEnabled && attr_s(element, "ng-click"))) {
       if (isInteractiveInPage(element)) {

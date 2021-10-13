@@ -77,7 +77,7 @@ set_getMappedKey((eventWrapper: HandlerNS.Event, mode: kModeId): string => {
 const checkKey = (event: HandlerNS.Event, key: string, keyWithoutModeID: string
     ): HandlerResult.Nothing | HandlerResult.Prevent | HandlerResult.PlainEsc | HandlerResult.AdvancedEsc => {
   // when checkKey, Vimium C must be enabled, so passKeys won't be `""`
-  const key0 = passKeys && key ? mappedKeys ? getMappedKey(event, kModeId.NO_MAP_KEY) : keyWithoutModeID : "";
+  const key0 = passKeys && key && (mappedKeys ? getMappedKey(event, kModeId.NO_MAP_KEY) : keyWithoutModeID)
   if (!key || key0 && !currentKeys && passKeys!.has(key0) !== isPassKeysReversed) {
     return key ? esc!(HandlerResult.Nothing) : HandlerResult.Nothing;
   }
