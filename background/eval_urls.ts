@@ -277,7 +277,7 @@ const forceStatus_ = (act: Frames.ForcedStatusText): void => {
   }
   newStatus = ref.cur_.s.status_
   silent || shown || showHUD(trans_("newStat", trans_(newStatus === Frames.Status.enabled && !enableWithPassedKeys
-      ? "fullEnabled" : newStatus === Frames.Status.disabled ? "fullDisabled" : "halfDisabled")))
+      ? "fullyEnabled" : newStatus === Frames.Status.disabled ? "fullyDisabled" : "halfDisabled")))
   if (needIcon_ && newStatus !== oldStatus) {
     setIcon_(tabId, newStatus);
   }

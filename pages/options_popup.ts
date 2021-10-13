@@ -115,7 +115,7 @@ const _doUpdateState = (oldInited: typeof inited
   /* note: on C91, Win10, text may have a negative margin-left (zh/fr) when inline-block and its left is inline */
   stateValue.className = pass ? "code" : ""
   stateValue.textContent = pass ? isReversed ? pass.slice(2) : pass
-    : pTrans_(pass !== null ? "o144" : "o145") + pTrans_("o146")
+    : pTrans_("o143_3") + pTrans_(pass !== null ? "o144" : "o145")
   stateTail.textContent = curIsLocked && !isSaving && same
     ? pTrans_("o147", [pTrans_(curLockedStatus !== Frames.Status.enabled ? "o144" : "o145")])
     : curIsLocked ? pTrans_("o148") : ""
