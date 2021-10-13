@@ -809,7 +809,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       const domains = a.completions_.filter(i => i.e === "domain");
       (item as UrlInfo).u = domains.length ? domains[0].u : `www.${item.u}.com`;
     }
-    if (a.actionType_ < ReuseType.newFg) { return func(); }
+    if (a.actionType_ < ReuseType.newFg
+        && !(typeof event === "number" && event & KeyStat.altKey && event & KeyStat.shiftKey)) { return func(); }
     a.doEnter_ = func;
     a.hide_();
   },
@@ -1440,9 +1441,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       a: Vomnibar_.actionType_ > ReuseType.newBg,
       s: item.s
     });
-    if (Vomnibar_.actionType_ === ReuseType.newBg) {
-      return Vomnibar_.refresh_(item.e === "tab");
-    }
+    Vomnibar_ && Vomnibar_.refresh_(item.e === "tab")
   },
   refresh_ (waitFocus?: boolean): void {
     getSelection().removeAllRanges();
