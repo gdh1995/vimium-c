@@ -2,9 +2,9 @@ import { OnFirefox, cRepeat, get_cOptions, curWndId_, curTabId_, recencyForTab_,
 import * as BgUtils_ from "./utils"
 import {
   selectFrom, Tabs_, getCurShownTabs_, getCurWnd, runtimeError_, isNotHidden_, ShownTab, getCurTab, getCurTabs,
-  getTabUrl, getGroupId, isTabMuted
+  getTabUrl, getGroupId, isTabMuted, Q_
 } from "./browser"
-import { showHUD } from "./ports"
+import { getPortUrl_, showHUD } from "./ports"
 import * as Exclusions from "./exclusions"
 
 import C = kBgCmd
@@ -97,6 +97,29 @@ export const getTabsIfRepeat_ = (count: number, callback_r: (tabsIncludingActive
   }
 }
 
+export const getNecessaryCurTabInfo = (filter: TabFilterOptions["filter"] | null | undefined
+    ): Promise<Tab | null> | null => {
+  if (!filter) { return null }
+  const wanted = mayRequireActiveTab(filter)
+  return wanted > 2 ? Q_(getCurTab).then(tabs => tabs && tabs[0] || null)
+      : wanted ? Promise.resolve(getPortUrl_(null, wanted > 1)).then(url => url ? { url } as Tab : null)
+      : null
+}
+
+export const mayRequireActiveTab = (filter: NonNullable<BgCmdOptions[kBgCmd.removeTabsR]["filter"]>): 0 | 1 | 2 | 3 => {
+  let ret: 0 | 1 | 2 = 0
+  for (const item of (filter + "").split(/[&+]/)) {
+    const rawKey = item.split("=", 1)[0], key = rawKey.includes(".") ? "" : rawKey || item
+    const val = item.slice(key ? key.length + 1 : 0);
+    if (key && val === "same" && key !== "hidden") { return 3 }
+    if (!val && key) {
+      if (key.startsWith("title") || key === "group") { return 3 }
+      ret = key === "hash" ? 2 : ret || (key === "host" || key === "url" ? 1 : 0)
+    }
+  }
+  return ret
+}
+
 const parseBool = (val: string, only?: 1): boolean | null => {
   val = val && val.toLowerCase()
   return val === "" || val === "1" || val === "true" ? only ? null : true : val === "only" ? true
@@ -119,7 +142,7 @@ export const filterTabsByCond_ = <T extends ShownTab = Tab>(activeTab: ShownTab 
   let group: string | null | undefined, useHash = false, hidden: boolean | null = null, muted: boolean | null = null
   let audio: boolean | null = null, pinned: boolean | null = null, known = 0;
   for (let item of (filter + "").split(/[&+]/)) {
-    const rawKey = item.split("=", 1)[0], key = rawKey.includes(".") ? "" : rawKey;
+    const rawKey = item.split("=", 1)[0], key = rawKey.includes(".") ? "" : rawKey || item
     const rawVal = item.slice(key ? key.length + 1 : 0);
     const val = rawVal && BgUtils_.DecodeURLPart_(rawVal);
     known++;
@@ -143,7 +166,7 @@ export const filterTabsByCond_ = <T extends ShownTab = Tab>(activeTab: ShownTab 
       group = val ? val : activeTab ? getGroupId(activeTab) != null ? getGroupId(activeTab) + "" : null : undefined
       break
     case "hidden":
-      hidden = !OnFirefox ? null : val == "same" ? activeTab ? !isNotHidden_(activeTab) : null : parseBool(val, 1)
+      hidden = !OnFirefox ? null : val == "same" ? false : parseBool(val, 1)
       break
     case "pinned": pinned = val == "same" ? activeTab ? activeTab.pinned : null : parseBool(val, 1); break
     case "mute": case "muted":

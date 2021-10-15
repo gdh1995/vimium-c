@@ -29,7 +29,7 @@ import {
 } from "./frame_commands"
 import {
   onShownTabsIfRepeat_, getTabRange, getTabsIfRepeat_, tryLastActiveTab_, filterTabsByCond_, testBoolFilter_,
-  getNearTabInd
+  getNearTabInd, getNecessaryCurTabInfo
 } from "./filter_tabs"
 import {
   copyWindowInfo, joinTabs, moveTabToNewWindow, moveTabToNextWindow, reloadTab, removeTab, toggleMuteTab,
@@ -689,11 +689,11 @@ set_bgC_([
     if (cRepeat === 1 && !onlyActive && curTabId_ !== GlobalConsts.TabIdNone) {
       let tabId = tryLastActiveTab_()
       if (tabId >= 0) {
-        void Q_(tabsGet, tabId).then((tab?: Tab): void => {
+        void Promise.all([Q_(tabsGet, tabId), getNecessaryCurTabInfo(filter)]).then(([tab, activeTab]): void => {
           tab && (acrossWindows || tab.windowId === curWndId_)
           && (!OnFirefox || evenHidden !== true ? isNotHidden_(tab)
-              : /* hidden=true */ testBoolFilter_(filter, "hidden", 1) == null || !isNotHidden_(tab)
-              ) ? doActivate(tab.id)
+              : /* .hidden != "only" */ testBoolFilter_(filter, "hidden", 1) == null || !isNotHidden_(tab)
+              ) && (!filter || filterTabsByCond_(activeTab, [tab], filter).length > 0) ? doActivate(tab.id)
           : acrossWindows ? Tabs_.query(defaultCondition, cb) : getCurShownTabs_(cb)
         })
         return

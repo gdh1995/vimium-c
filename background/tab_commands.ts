@@ -18,7 +18,9 @@ import {
 import { parseSedOptions_ } from "./clipboard"
 import { newTabIndex, preferLastWnd, openUrlWithActions } from "./open_urls"
 import { focusFrame } from "./frame_commands"
-import { FilterInfo, filterTabsByCond_, getTabRange, Range3, sortTabsByCond_, tryLastActiveTab_ } from "./filter_tabs"
+import {
+  FilterInfo, filterTabsByCond_, getNecessaryCurTabInfo, getTabRange, Range3, sortTabsByCond_, tryLastActiveTab_
+} from "./filter_tabs"
 import { TabRecency_ } from "./tools"
 
 import C = kBgCmd
@@ -560,7 +562,7 @@ export const toggleMuteTab = (resolve: OnCmdResolved): void | kBgCmd.toggleMuteT
     })
     return
   }
-  let activeTab: Tab | undefined
+  let activeTab: Tab | null | undefined
   const cb = (tabs: Tab[]): void => {
     let curId = get_cOptions<C.toggleMuteTab>().other || get_cOptions<C.toggleMuteTab>().others
           ? cPort ? cPort.s.tabId_ : curTabId_ : GlobalConsts.TabIdNone
@@ -587,11 +589,11 @@ export const toggleMuteTab = (resolve: OnCmdResolved): void | kBgCmd.toggleMuteT
     showHUD(trans_(mute ? "mute" : "unmute", [trans_(prefix) || prefix]))
     resolve(1)
   }
-  if (filter) {
-    getCurTab((tabs): void => {
-      activeTab = tabs && tabs[0]
+  const wantedCurTabInfo = getNecessaryCurTabInfo(filter)
+  if (wantedCurTabInfo) {
+    wantedCurTabInfo.then((tab): void => {
+      activeTab = tab
       Tabs_.query({ audible: true }, cb)
-      return runtimeError_()
     })
   }
   else {
