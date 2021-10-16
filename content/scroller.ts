@@ -29,7 +29,7 @@ import {
 import {
   rAF_, scrollingEl_, SafeEl_not_ff_, docEl_unsafe_, NONE, frameElement_, OnDocLoaded_, GetParent_unsafe_, UNL,
   querySelector_unsafe_, getComputedStyle_, notSafe_not_ff_, HDN, isRawStyleVisible, fullscreenEl_unsafe_,
-  doesSupportDialog, attr_s, getSelection_
+  doesSupportDialog, attr_s, getSelection_, isIFrameElement
 } from "../lib/dom_utils"
 import {
   scrollWndBy_, wndSize_, getZoom_, wdZoom_, bZoom_, isNotInViewport, prepareCrop_, padClientRect_, instantScOpt,
@@ -40,7 +40,7 @@ import {
   getParentVApi, resetSelectionToDocStart, checkHidden, addElementList, curModalElement, removeModal
 } from "./dom_ui"
 import { isCmdTriggered } from "./key_handler"
-import { hint_box, tryNestedFrame } from "./link_hints"
+import { detectUsableChild, hint_box, tryNestedFrame } from "./link_hints"
 import { setPreviousMarkPosition } from "./marks"
 import { keyNames_, prevent_ } from "../lib/keyboard_utils"
 import { post_, runFallbackKey } from "./port"
@@ -288,8 +288,16 @@ export const activate = (options: CmdOptions[kFgCmd.scroll] & SafeObject, count:
    */
 export const executeScroll: VApiTy["c"] = function (di: ScrollByY, amount0: number, flags: kScFlag & number
       , factor?: NonNullable<CmdOptions[kFgCmd.scroll]["view"]> | undefined
-      , options?: CmdOptions[kFgCmd.scroll], oriCount?: number): void {
+      , options?: CmdOptions[kFgCmd.scroll], oriCount?: number, force?: 1): void {
     const toFlags = flags & (kScFlag.TO | kScFlag.INC), toMax = (toFlags - kScFlag.TO) as BOOL
+    {
+      const childFrame = !force && deref_(currentScrolling)
+      const childApi = childFrame && isIFrameElement(childFrame) && detectUsableChild(childFrame)
+      if (childApi) {
+        childApi.c(di, amount0, flags as 0, factor, options, oriCount)
+        return
+      }
+    }
     set_scrollingTop(scrollingEl_(1))
     if (scrollingTop) {
       getZoom_(1)
@@ -326,7 +334,7 @@ export const executeScroll: VApiTy["c"] = function (di: ScrollByY, amount0: numb
     if (mayUpperFrame && (core = getParentVApi())
         && (!amount && !amount0 || Lower(attr_s(frameElement_()!, "scrolling") || "") === "no"
             || !doesScroll(element, di, amount || toMax))) {
-        core.c(di, amount0, flags as 0, factor, options, oriCount)
+        core.c(di, amount0, flags as 0, factor, options, oriCount, 1)
         if (core.y().k) {
           scrollTick(1)
           joined = core

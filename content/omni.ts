@@ -6,7 +6,7 @@ import {
 import { removeHandler_, replaceOrSuppressMost_, getMappedKey, isEscape_ } from "../lib/keyboard_utils"
 import {
   isHTML_, fullscreenEl_unsafe_, setDisplaying_s, createElement_, removeEl_s, setClassName_s, setOrRemoveAttr_s,
-  toggleClass_s, doesSupportDialog, hasInCSSFilter_, appendNode_s
+  toggleClass_s, doesSupportDialog, hasInCSSFilter_, appendNode_s, frameElement_
 } from "../lib/dom_utils"
 import { getViewBox_, docZoom_, dScale_, prepareCrop_, bZoom_, wndSize_, viewportRight } from "../lib/rect"
 import { beginScroll, scrollTick } from "./scroller"
@@ -239,6 +239,7 @@ const refreshKeyHandler = (): void => {
 
   const timer1 = timeout_(refreshKeyHandler, GlobalConsts.TimeOfSuppressingTailKeydownEvents), oldTimer = timer_
   const scale = wndSize_(2)
+  const notInFullScreen = !fullscreenEl_unsafe_()
   let url = options.url, upper = 0, screenHeight_ = 0 // unit: physical pixel (if C<52)
   // hide all further key events to wait iframe loading and focus changing from JS
   replaceOrSuppressMost_(kHandler.omni)
@@ -267,9 +268,9 @@ const refreshKeyHandler = (): void => {
     }
   }
   let parApi: ReturnType<typeof getParentVApi>
-  if (!isTop && !options.$forced) { // check $forced to avoid dead loops
-    if (parent === top && !fullscreenEl_unsafe_() && (parApi = getParentVApi())) {
-      parApi.f(kFgCmd.vomnibar, options, count)
+  if (!isTop && !options.$forced && notInFullScreen) { // check $forced to avoid dead loops
+    if (parent === top && (parApi = getParentVApi())) {
+      parApi.f(kFgCmd.vomnibar, options, count, 0, frameElement_())
     } else {
       post_({ H: kFgReq.gotoMainFrame, f: 0, c: kFgCmd.vomnibar, n: count, a: options })
     }
@@ -281,7 +282,7 @@ const refreshKeyHandler = (): void => {
   // `canUseVW` is computed for the gulp-built version of vomnibar.html
   const canUseVW = (!OnChrome || Build.MinCVer >= BrowserVer.MinCSSWidthUnit$vw$InCalc
           || chromeVer_ > BrowserVer.MinCSSWidthUnit$vw$InCalc - 1)
-      && !fullscreenEl_unsafe_() && docZoom_ === 1 && dScale_ === 1
+      && notInFullScreen && docZoom_ === 1 && dScale_ === 1
   let width = canUseVW ? wndSize_(1) : (prepareCrop_()
       , OnFirefox ? viewportRight : viewportRight * docZoom_ * bZoom_)
   if (OnChrome && Build.MinCVer < BrowserVer.MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent) {

@@ -92,7 +92,7 @@ import {
 import {
   querySelector_unsafe_, isHTML_, scrollingEl_, docEl_unsafe_, IsInDOM_, GetParent_unsafe_, hasInCSSFilter_,
   getComputedStyle_, isStyleVisible_, htmlTag_, fullscreenEl_unsafe_, removeEl_s, UNL, toggleClass_s, doesSupportDialog,
-  getSelectionFocusEdge_, SafeEl_not_ff_, rangeCount_, compareDocumentPosition, deepActiveEl_unsafe_
+  getSelectionFocusEdge_, SafeEl_not_ff_, rangeCount_, compareDocumentPosition, deepActiveEl_unsafe_, frameElement_
 } from "../lib/dom_utils"
 import {
   ViewBox, getViewBox_, prepareCrop_, wndSize_, bZoom_, wdZoom_, dScale_, padClientRect_, getBoundingClientRect_,
@@ -179,7 +179,7 @@ export const activate = (options: ContentOptions, count: number, force?: 2 | Tim
     if (parApi) {
       parApi.l(style_ui)
       // recursively go up and use the topest frame in a same origin
-      return parApi.f(kFgCmd.linkHints, options, count, 2)
+      return parApi.f(kFgCmd.linkHints, options, count, 2, frameElement_())
     }
     const useFilter0 = options.useFilter, useFilter = useFilter0 != null ? !!useFilter0 : fgCache.f,
     topFrameInfo: FrameHintsInfo = {h: [], v: null as never, s: coreHints},
@@ -719,6 +719,7 @@ export const clear = (onlySelfOrEvent?: 0 | 1 | Event, suppressTimeout?: number)
     set_maxPrefixLen_(0)
     lastMode_ = mode_ = mode1_ = count_ = coreHints.h = 0
     useFilter_ = noHUD_ = tooHigh_ = false
+    set_grabBackFocus(false)
     if (WithDialog) { coreHints.d = 0 }
     chars_ = "";
     removeBox()

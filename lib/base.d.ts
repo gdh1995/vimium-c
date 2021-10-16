@@ -203,15 +203,16 @@ interface VApiTy {
   /** @see {../content/scroller.ts#executeScroll} */ c: {
     (di: ScrollByY, amount: number, flags: kScFlag.scBy
       , factor?: NonNullable<CmdOptions[kFgCmd.scroll]["view"]> | undefined
-      , options?: CmdOptions[kFgCmd.scroll], oriCount?: number): void
+      , options?: CmdOptions[kFgCmd.scroll], oriCount?: number, force?: 1): void
     (di: ScrollByY, amount: number, flags: kScFlag.scBy | kScFlag.toMin | kScFlag.toMax
-      , factor?: undefined | 0, options?: CmdOptions[kFgCmd.scroll], oriCount?: number): void
+      , factor?: undefined | 0, options?: CmdOptions[kFgCmd.scroll], oriCount?: number, force?: 1): void
   }
   /** execute content commands */ e: ((this: void, cmd: ValidContentCommands) => void) | null
   /** focusAndRun */ f: {
     (this: void): void
-    (this: void, cmd: FgCmdAcrossFrames, options: FgOptions, count: number, showBorder?: 1 | 2): void
-    (this: void, cmd: 0, options: never, count: never, showBorder: 1): void
+    (this: void, cmd: FgCmdAcrossFrames, options: FgOptions, count: number
+        , showBorder?: 0 | 1 | 2, childFrame?: SafeHTMLElement | null | void): void
+    (this: void, cmd: 0, options: never, count: never, showBorder: 1, ): void
   }
   /** filterTextToGoNext */ g: (candidates: GoNextCandidate[], names: string[]
       , options: CmdOptions[kFgCmd.goNext], maxLen: number) => number

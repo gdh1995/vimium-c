@@ -2,7 +2,7 @@ import {
   chromeVer_, clickable_, doc, esc, fgCache, injector, isEnabled_, isLocked_, isAlive_, isTop, math, includes_,
   keydownEvents_, set_chromeVer_, set_clickable_, set_fgCache, set_isLocked_, OnChrome, OnFirefox,
   set_isEnabled_, set_onWndFocus, onWndFocus, timeout_, safer, noTimer_cr_, set_os_,
-  interval_, getTime, vApi, clearInterval_, locHref, set_firefoxVer_, firefoxVer_, os_,
+  interval_, getTime, vApi, clearInterval_, locHref, set_firefoxVer_, firefoxVer_, os_, weakRef_,
 } from "../lib/utils"
 import { set_keyIdCorrectionOffset_old_cr_, handler_stack, suppressTail_ } from "../lib/keyboard_utils"
 import {
@@ -28,7 +28,7 @@ import { set_findCSS, styleInHUD, styleSelectable } from "./mode_find"
 import {
   exitGrab, grabBackFocus, insertInit, set_grabBackFocus, onFocus, onBlur, insert_Lock_, raw_insert_lock
 } from "./insert"
-import { onActivate } from "./scroller"
+import { onActivate, set_currentScrolling } from "./scroller"
 import { Status as VomnibarStatus, omni_status, omni_box } from "./omni"
 
 let framemask_more = false
@@ -274,7 +274,8 @@ set_hookOnWnd(((action: HookAction): void => {
   f(OnChrome ? DAC: CLK, onActivate, t)
 }))
 
-export const focusAndRun = (cmd?: FgCmdAcrossFrames, options?: FgOptions, count?: number, showBorder?: 1 | 2): void => {
+export const focusAndRun = (cmd?: FgCmdAcrossFrames, options?: FgOptions, count?: number
+    , showBorder?: 0 | 1 | 2, childFrame?: SafeHTMLElement | null | void): void => {
   exitGrab();
   let oldOnWndFocus = onWndFocus, failed = true;
   set_onWndFocus((): void => { failed = false })
@@ -294,9 +295,10 @@ export const focusAndRun = (cmd?: FgCmdAcrossFrames, options?: FgOptions, count?
   oldOnWndFocus()
   if (isAlive_) {
     esc!(HandlerResult.Nothing);
+    set_currentScrolling(weakRef_(childFrame || null))
     if (cmd) {
       type TypeChecked = { [key in FgCmdAcrossFrames]: <T2 extends FgCmdAcrossFrames>(this: void,
-          options: CmdOptions[T2] & FgOptions, count: number, exArgsOrForce?: 1 | 2) => void; };
+          options: CmdOptions[T2] & FgOptions, count: number, exArgsOrForce?: 0 | 1 | 2) => void; };
       (contentCommands_ as TypeChecked)[cmd](options!, count!, showBorder);
     }
     showBorder! & 1 && showFrameMask(FrameMaskType.ForcedSelf);
