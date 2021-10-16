@@ -5,8 +5,9 @@ FLAGS=
 PAGE_FLAGS=
 OTHER_EXT=
 OTHER_ARGS=
+NO_EXT=
 USE_INSTALLED=0
-GUD=
+GUD=${TEST_USER_DATA}
 DO_CLEAN=0
 IS_EDGE=0
 EDGE_VER=
@@ -101,6 +102,10 @@ case "$1" in
     ;;
   vc|--vc)
     ALSO_VC=1
+    shift
+    ;;
+  novc|no-vc|--no-vc)
+    NO_EXT=1
     shift
     ;;
   ub|ubo)
@@ -258,6 +263,11 @@ fi
 
 if test -n "$PAGE_FLAGS"; then
   FLAGS=$FLAGS" --flag-switches-begin --enable-features="${PAGE_FLAGS#,}" --flag-switches-end"
+fi
+
+if test -n "$NO_EXT"; then
+  vc_ext_w=
+  OTHER_EXT=
 fi
 
 if test $USE_INSTALLED -gt 0; then
