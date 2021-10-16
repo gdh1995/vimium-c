@@ -37,13 +37,13 @@ export const convertToUrl_ = function (str: string, keyword?: string | null, vim
     str[1] === ":" && (str = str[0].toUpperCase() + ":/"
         + str.slice(3).replace(<RegExpG> /\\/g, "/"));
     resetRe_();
-    return "file://" + (str[0] === "/" ? str : "/" + str);
+    return "file://" + convertFromFilePath(str[0] === "/" ? str : "/" + str)
   }
   if (str.startsWith("\\\\") && str.length > 3) {
     str = str.slice(2).replace(<RegExpG> /\\/g, "/");
     str.lastIndexOf("/") <= 0 && (str += "/");
     resetRe_();
-    return "file://" + str;
+    return "file://" + convertFromFilePath(str)
   }
   str = oldString.toLowerCase();
   if ((index = str.indexOf(" ") + 1 || str.indexOf("\t") + 1) > 1) {
@@ -330,7 +330,7 @@ export const reformatURL_ = (url: string): string => {
       ind2 = -1;
     } else if (ind === 7 && url.slice(0, 4).toLowerCase() === "file") {
       // file:///*
-      ind = url.substr(9, 1) === ":" ? 3 : 0;
+      ind = url.charAt(9) === ":" ? 3 : url.substr(9, 3).toLowerCase() === "%3a" ? 5 : 0
       return "file:///" + (ind ? url[8].toUpperCase() + ":/" : "") + url.slice(ind + 8);
     }
     // may be file://*/
@@ -342,4 +342,27 @@ export const reformatURL_ = (url: string): string => {
     }
   }
   return origin !== o2 ? o2 + url.slice(ind) : url;
+}
+
+const convertFromFilePath = (path: string): string => {
+  if (!(<RegExpOne> /[%?#&\s]/).test(path)) { return path }
+  let hash = ""
+  if (path.indexOf("#")) {
+    let arr = (<RegExpOne> /\.[A-Za-z\d]{1,4}(\?[^#]*)?#/).exec(path)
+    if (arr) {
+      hash = path.slice(arr.index + arr[0].length - 1)
+      if (hash.includes("=") || !hash.includes("/") || hash.includes(":~:")) {
+        hash = arr[1] ? arr[1] + hash : hash
+      } else {
+        hash = ""
+      }
+    } else if (arr = (<RegExpOne> /#(\w+=|:~:)/).exec(path)) {
+      hash = path.slice(arr.index)
+    }
+    if (hash) {
+      path = path.slice(0, -hash.length)
+    }
+  }
+  return path.replace(<RegExpG & RegExpSearchable<0>> /[%?#&\s]/g, encodeURIComponent)
+      + hash.replace(<RegExpG & RegExpSearchable<0>> /\s/g, encodeURIComponent)
 }

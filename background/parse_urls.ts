@@ -276,7 +276,8 @@ export const decodeFileURL_ = (url: string): string => {
   if (contentPayload_.o === kOS.win && url.startsWith("file://")) {
     const slash = url.indexOf("/", 7)
     if (slash < 0 || slash === url.length - 1) { return slash < 0 ? url + "/" : url }
-    url = slash === 7 && url.substr(9, 1) === ":" ? url[8].toUpperCase() + url.slice(9) : "\\\\" + url.slice(7)
+    const type = slash === 7 ? url.charAt(9) === ":" ? 3 : url.substr(9, 3).toLowerCase() === "%3a" ? 5 : 0 : 0
+    url = type ? url[8].toUpperCase() + ":\\" + url.slice(type + 8) : slash === 7 ? url : "\\\\" + url.slice(7)
     let sep = (<RegExpOne> /[?#]/).exec(url), index = sep ? sep.index : 0
     let tail = index ? url.slice(index) : ""
     url = index ? url.slice(0, index) : url

@@ -446,7 +446,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   parsed_ ({ i: id, s: search }: BgVomnibarSpecialReq[kBgReq.omni_parsed]): void {
     const line = Vomnibar_.completions_[id] as SuggestionEx;
     line.parsed_ = search ? (Vomnibar_.mode_.o.endsWith("omni") && !Vomnibar_.resMode_ ? "" : ":o ")
-        + search.k + " " + search.u + " " : Vomnibar_.resMode_ + VUtils_.decodeFileURL_(line.t)
+        + search.k + " " + search.u + " " : Vomnibar_.resMode_ + line.t
     if (id === Vomnibar_.selection_) {
       return Vomnibar_._updateInput(line, line.parsed_);
     }
@@ -1533,11 +1533,12 @@ VUtils_ = {
     } catch {}
     return url;
   },
-  decodeFileURL_ (url: string): string {
+  decodeFileURL_ (url: string, decoded: boolean): string {
     if (Vomnibar_.os_ === kOS.win && url.startsWith("file://")) {
       const slash = url.indexOf("/", 7)
       if (slash < 0 || slash === url.length - 1) { return slash < 0 ? url + "/" : url }
-      url = slash === 7 && url.substr(9, 1) === ":" ? url[8].toUpperCase() + url.slice(9) : "\\\\" + url.slice(7)
+      const type = slash === 7 ? url.charAt(9) === ":" ? 3 : url.substr(9, 3).toLowerCase() === "%3a" ? 5 : 0 : 0
+      url = type ? url[8].toUpperCase() + ":\\" + url.slice(type + 8) : slash === 7 ? url : "\\\\" + url.slice(7)
       let sep = (<RegExpOne> /[?#]/).exec(url), index = sep ? sep.index : 0
       let tail = index ? url.slice(index) : ""
       url = (index ? url.slice(0, index) : url).replace(<RegExpG> /\/\/+/g, "/")
@@ -1546,7 +1547,7 @@ VUtils_ = {
           : url.replace(<RegExpG & RegExpSearchable<1>> /([^<])\//g, "$1\\")
       url = index ? url + tail : url
     }
-    return url
+    return decoded ? url : VUtils_.decodeURL_(url, decodeURIComponent)
   },
   ensureText_ (sug: SuggestionEx): ProtocolType {
     let { u: url, t: text } = sug, str = url.slice(0, 8).toLowerCase();
@@ -1570,7 +1571,7 @@ VUtils_ = {
         text += "/";
       }
     }
-    sug.t = VUtils_.decodeFileURL_(text)
+    sug.t = VUtils_.decodeFileURL_(text, !!sug.t)
     if (str = sug.title) {
       (sug as Writable<typeof sug>).title = str.replace(<RegExpG> /<\/?match[^>]*?>/g, "").replace(
           <RegExpG & RegExpSearchable<1>> /&(amp|apos|gt|lt|quot);|\u2026/g, VUtils_.onHTMLEntity);

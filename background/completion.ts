@@ -181,7 +181,7 @@ historyEngine = {
   },
   performSearch_ (): Suggestion[] {
     const firstTerm = queryTerms.length === 1 ? queryTerms[0] : "",
-    onlyUseTime = firstTerm && (firstTerm[0] === "." ? (<RegExpOne> /^\.[\da-zA-Z]+$/).test(firstTerm)
+    onlyUseTime = !!firstTerm && (firstTerm[0] === "." ? (<RegExpOne> /^\.[\da-zA-Z]+$/).test(firstTerm)
       : (convertToUrl_(firstTerm, null, Urls.WorkType.KeepAll),
         lastUrlType_ <= Urls.Type.MaxOfInputIsPlainUrl)
     ),

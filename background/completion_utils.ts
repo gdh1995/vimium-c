@@ -268,7 +268,8 @@ export const prepareHTML_ = (sug: Suggestion): void => {
   const text = sug.t
   let str = decodeFileURL_(text), range: number[]
   if (str.length !== text.length) {
-    range = /*#__NOINLINE__*/ getMatchRangesWithOffset(text, str[0] === "\\" ? 5 : 8)
+    range = /*#__NOINLINE__*/ getMatchRangesWithOffset(text, str[0] === "\\" ? 5
+        : text.charAt(7) === "/" && text.substr(9, 3).toLowerCase() === "%3a" ? 10 : 8)
   } else {
     str = shortenUrl(text)
     range = getMatchRanges(str)
