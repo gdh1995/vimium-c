@@ -514,6 +514,7 @@ declare const enum GlobalConsts {
   WheelTimeout = 330,
   TouchpadTimeout = 120,
   DefaultRectFlashTime = 400,
+  MaxCountToGrabBackFocus = 16,
   // limited by Pagination.findAndFollowLink_
   MaxNumberOfNextPatterns = 200,
   MaxBufferLengthForPastingNormalText = /** 100K */ 102400,

@@ -1,6 +1,6 @@
 import {
-  doc, keydownEvents_, safeObj, fgCache, isTop, set_keydownEvents_, setupEventListener, Stop_, OnChrome, OnFirefox,
-  esc, onWndFocus, isEnabled_, readyState_, injector, recordLog, weakRef_, OnEdge
+  doc, keydownEvents_, safeObj, isTop, set_keydownEvents_, setupEventListener, Stop_, OnChrome, OnFirefox,
+  esc, onWndFocus, isEnabled_, readyState_, injector, recordLog, weakRef_, OnEdge, getTime, math
 } from "../lib/utils"
 import { post_, safePost } from "./port"
 import { getParentVApi, ui_box } from "./dom_ui"
@@ -51,31 +51,35 @@ export function set_onWndBlur2 (_newOnBlur: typeof onWndBlur2): void { onWndBlur
 // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
 export function set_exitPassMode <T extends typeof exitPassMode> (_nEPM: T): T { return exitPassMode = _nEPM as T }
 
-export const insertInit = (): void => {
+export const insertInit = (doesGrab?: boolean | null, inLoading?: 1): void => {
   let activeEl = deepActiveEl_unsafe_() // https://github.com/gdh1995/vimium-c/issues/381#issuecomment-873529695
-  let counter = 0
-  set_keydownEvents_(safeObj(null))
-  if (injector ? injector.$g : fgCache.g && grabBackFocus) {
+  let counter = inLoading ? 0 : 1, tick = 0
+  if (doesGrab) {
     if (activeEl && getEditableType_(activeEl)) {
-      insert_last_ = null;
-      counter = 1
-      recordLog(kTip.logGrabFocus);
+      if (inLoading) {
+        insert_last_ = null;
+        counter = 1
+        recordLog(kTip.logGrabFocus);
+      }
       activeEl.blur()
-      // here ignore the rare case of an XMLDocument with a editable node on Firefox, for smaller code
+      // here ignore the rare case of an XMLDocument with an editable node on Firefox, for smaller code
       activeEl = deepActiveEl_unsafe_()
     } else {
       activeEl = null
     }
     if (!activeEl) {
       grabBackFocus = (event: Event, target: LockableElement): void => {
-        const activeEl1 = activeEl_unsafe_();
+        const activeEl1 = activeEl_unsafe_(), now = getTime()
         // on Chrome, password saver won't set doc.activeElement when dispatching "focus" events
         if (activeEl1 === target || activeEl1 && GetShadowRoot_(activeEl1)) {
           Stop_(event);
-          counter++ || recordLog(kTip.logGrabFocus)
+          counter && math.abs(now - tick) > 512 ? counter = 1 : counter++ || recordLog(kTip.logGrabFocus)
+          tick = now
+          counter > GlobalConsts.MaxCountToGrabBackFocus - 1 ? exitGrab(event) :
           target.blur();
         }
       };
+      if (!inLoading) { return }
       pushHandler_(exitGrab, kHandler.grabBackFocus)
       setupEventListener(0, MDW, exitGrab);
       return;

@@ -321,8 +321,8 @@ export const ensuredExitAllGrab = (ref: Frames.Frames): void => {
   const msg: Req.bg<kBgReq.exitGrab> = { N: kBgReq.exitGrab }
   for (const p of ref.ports_) {
     if (!(p.s.flags_ & Frames.Flags.userActed)) {
-      p.postMessage(msg)
       p.s.flags_ |= Frames.Flags.userActed
+      p.postMessage(msg)
     }
   }
   ref.flags_ |= Frames.Flags.userActed

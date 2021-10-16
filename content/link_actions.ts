@@ -20,7 +20,7 @@ import {
   collpaseSelection, evalIfOK, flash_, getRect, getSelected, lastFlashEl, resetSelectionToDocStart, selectAllOfNode,
 } from "./dom_ui"
 import { pushHandler_, removeHandler_, isEscape_, getMappedKey, prevent_, suppressTail_ } from "../lib/keyboard_utils"
-import { insert_Lock_ } from "./insert"
+import { insert_Lock_, set_grabBackFocus } from "./insert"
 import {
   kClickAction, kClickButton, unhover_async, hover_async, click_async, select_, catchAsyncErrorSilently
 } from "./async_dispatcher"
@@ -390,6 +390,7 @@ const checkBoolOrSelector = (userVal: string | boolean | null | void | undefined
     keydownEvents_[event.i] = 1
   }
   masterOrA.v() // here .keyStatus_ is reset
+  set_grabBackFocus(false)
   if (IsInDOM_(clickEl)) {
     // must get outline first, because clickEl may hide itself when activated
     // must use UI.getRect, so that zooms are updated, and prepareCrop is called

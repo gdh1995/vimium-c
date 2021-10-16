@@ -290,6 +290,7 @@ declare namespace HintsNS {
     reachable?: null | boolean // null means "in modes for mouse events and settings.mouseReachable"
     richText?: boolean;
     visual?: false;
+    suppressInput?: boolean
   }
 }
 

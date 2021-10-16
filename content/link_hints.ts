@@ -108,7 +108,7 @@ import {
 } from "./dom_ui"
 import { scrollTick, beginScroll, currentScrolling } from "./scroller"
 import { hudTip, hudShow, hudHide, hud_tipTimer } from "./hud"
-import { set_onWndBlur2, insert_Lock_ } from "./insert"
+import { set_onWndBlur2, insert_Lock_, set_grabBackFocus, insertInit } from "./insert"
 import {
   getVisibleElements, localLinkClear, frameNested_, checkNestedFrame, set_frameNested_, filterOutNonReachable, traverse,
   getIfOnlyVisible, ClickType
@@ -315,6 +315,7 @@ const render: BaseHintWorker["r"] = (hints, arr, raw_apis): void => {
     replaceOrSuppressMost_(kHandler.linkHints, coreHints.n)
     manager_ && setupEventListener(0, UNL, clear);
     isActive = 1;
+    options_.suppressInput && insertInit(true)
 }
 
 /** must be called from the manager context, or be used to sync mode from the manager */

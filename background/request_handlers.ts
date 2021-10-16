@@ -200,14 +200,16 @@ set_reqH_([
   /** kFgReq.exitGrab: */ (_: FgReq[kFgReq.exitGrab], port: Port): void => {
     const ref = framesForTab_.get(port.s.tabId_)
     if (!ref) { return }
+    (port.s as Frames.Sender).flags_ |= Frames.Flags.userActed
     ref.flags_ |= Frames.Flags.userActed
     if (ref.ports_.length < 2) { return }
     const msg: Req.bg<kBgReq.exitGrab> = { N: kBgReq.exitGrab }
     for (const p of ref.ports_) {
-      if (p !== port) {
+      const flags = p.s.flags_
+      p.s.flags_ |= Frames.Flags.userActed
+      if (!(flags & Frames.Flags.userActed)) {
         p.postMessage(msg)
       }
-      p.s.flags_ |= Frames.Flags.userActed
     }
   },
   /** kFgReq.execInChild: */ (request: FgReqWithRes[kFgReq.execInChild], port: Port
