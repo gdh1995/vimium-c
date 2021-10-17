@@ -4,6 +4,13 @@ Release Notes of Vimium C
 ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 说明文档: https://gitee.com/gdh1995/vimium-c#readme , https://github.com/gdh1995/vimium-c/blob/master/README-zh.md .
 
+#### 1.93.1
+* fix a compatibility issue with extensions which use CustomElement on Firefox
+* fix `visitPreviousTab` may ignore `.filter`
+* LinkHints: add `.suppressInput` to prevent IME from affecting selection
+* Vomnibar: now can open a background tab and hide by `<a-c-s-enter>`
+* Scroller: better support for scrolling in iframes
+
 #### 1.93.0
 * better compatibility
   * keyboard: with some system-level shortcuts of composed keys
