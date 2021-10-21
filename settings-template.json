@@ -271,6 +271,7 @@
 		"g.m|gm|gmap: https://www.google.com/maps?q=%s \\",
 		"  blank=https://www.google.com/maps Google Maps",
 		"dd|dg|ddg: https://duckduckgo.com/?q=%s DuckDuckGo",
+		"br|brave: https://search.brave.com/search?q=%s Brave",
 		"qw|qwant: https://www.qwant.com/?q=%s Qwant",
 		"",
 		"t|tb|taobao|ali|淘宝: https://s.taobao.com/search?ie=utf8&q=%s \\",
