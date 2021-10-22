@@ -96,10 +96,6 @@
     "match_about_blank": true,
     "matches": [ "<all_urls>" ],
     "run_at": "document_start"
-  }, {
-    "all_frames": true,
-    "css": [ "front/file_urls.css" ],
-    "matches": [ "file:///*" ]
   } ],
   "content_security_policy": "script-src 'self'; style-src 'self' 'unsafe-inline'; object-src 'none'",
   "default_locale": "en",

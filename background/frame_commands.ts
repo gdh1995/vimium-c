@@ -8,6 +8,7 @@ import { Tabs_, downloadFile, getTabUrl, runtimeError_, selectTab, R_, Q_ } from
 import { convertToUrl_, createSearchUrl_ } from "./normalize_urls"
 import * as settings_ from "./settings"
 import { showHUD, complainLimits, ensureInnerCSS, getParentFrame } from "./ports"
+import { getFindCSS_cr_ } from "./ui_css"
 import { getI18nJson, trans_ } from "./i18n"
 import { keyMappingErrors_, visualGranularities_, visualKeys_ } from "./key_mappings"
 import {
@@ -54,7 +55,7 @@ export const performFind = (): void | kBgCmd.performFind => {
   let sentFindCSS: CmdOptions[kFgCmd.findMode]["f"] = null
   if (!(sender.flags_ & Frames.Flags.hasFindCSS)) {
     sender.flags_ |= Frames.Flags.hasFindCSS
-    sentFindCSS = findCSS_
+    sentFindCSS = OnChrome ? getFindCSS_cr_!(sender) : findCSS_
   }
   sendFgCmd(kFgCmd.findMode, true, wrapFallbackOptions<kFgCmd.findMode, C.performFind>({
     c: nth > 0 ? cRepeat / absRepeat : cRepeat, l: leave, f: sentFindCSS,
@@ -163,7 +164,7 @@ export const enterVisualMode = (): void | kBgCmd.visualMode => {
     }
     if (!(sender.flags_ & Frames.Flags.hasFindCSS)) {
       sender.flags_ |= Frames.Flags.hasFindCSS
-      sentFindCSS = findCSS_
+      sentFindCSS = OnChrome ? getFindCSS_cr_!(sender) : findCSS_
     }
     keyMap = visualKeys_
     granularities = visualGranularities_

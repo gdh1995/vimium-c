@@ -29,6 +29,7 @@ const StyleCacheId_ = CONST_.VerCode_ + ","
         && (!OnEdge || "all" in (document.body as HTMLElement).style)
       ? "a" : "")
     + ";"
+let findCSS_file_old_cr: FindCSS | null
 
 export const reloadCSS_ = (action: MergeAction, cssStr?: string): SettingsNS.MergedCustomCSS | void => {
   if (action === MergeAction.virtual) {
@@ -38,7 +39,7 @@ export const reloadCSS_ = (action: MergeAction, cssStr?: string): SettingsNS.Mer
   {
     let findCSSStr: string | null | false
     if (findCSSStr = action === MergeAction.readFromCache && storage_.getItem("findCSS")) {
-      // Note: The lines below are allowed as a special use case
+      OnChrome && (findCSS_file_old_cr = null)
       set_findCSS_(parseFindCSS_(findCSSStr))
       set_innerCSS_(cssStr!.slice(StyleCacheId_.length))
       omniPayload_.c = storage_.getItem("omniCSS") || ""
@@ -203,7 +204,8 @@ const mergeCSS = (css2Str: string, action: MergeAction | "userDefinedCss"): Sett
           const flags = port.s.flags_
           if (port.s.flags_ & Frames.Flags.hasCSS) {
             port.postMessage({
-              N: kBgReq.showHUD, H: innerCSS_, f: flags & Frames.Flags.hasFindCSS ? findCSS_ : void 0
+              N: kBgReq.showHUD, H: innerCSS_,
+              f: flags & Frames.Flags.hasFindCSS ? OnChrome ? getFindCSS_cr_!(port.s) : findCSS_ : void 0
             })
           }
         }
@@ -235,6 +237,16 @@ export const setOmniStyle_ = (req: FgReq[kFgReq.setOmniStyle], port?: Port): voi
     return 1
   })
 }
+
+export const getFindCSS_cr_ = OnChrome ? (sender: Frames.Sender): FindCSS => {
+  const css = findCSS_
+  return Build.MinCVer < BrowserVer.MinFileNameIsSelectableOnFilesPage
+      && CurCVer_ < BrowserVer.MinFileNameIsSelectableOnFilesPage
+      && sender.url_.startsWith("file://") ? findCSS_file_old_cr || (findCSS_file_old_cr = {
+    c: css.c + "\n" + ".icon.file { -webkit-user-select: auto !important; user-select: auto !important; }",
+    s: css.s, i: css.i
+  }) : css
+} : 0 as never as null
 
 updateHooks_.userDefinedCss = mergeCSS
 

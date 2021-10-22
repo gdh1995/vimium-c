@@ -354,11 +354,6 @@ var Tasks = {
     if (browser & BrowserType.Firefox) {
       locally && permissions.push("tabHide")
     }
-    if (!(browser & BrowserType.Chrome)) {
-      manifest.content_scripts = manifest.content_scripts.filter(function(item) {
-        return item.matches.length > 1 || item.matches.indexOf("file:///*") < 0 && item.matches.indexOf("file://*") < 0;
-      });
-    }
     if (manifest.chrome_url_overrides && Object.keys(manifest.chrome_url_overrides) == 0) {
       delete manifest.chrome_url_overrides;
     }

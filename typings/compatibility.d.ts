@@ -517,6 +517,7 @@ declare const enum BrowserVer {
   // before C84 it logs a warning of "requires site-per-process" on Vimium C Options page
   MinMaybeUsableNavigator$scheduling$$isInputPending = 85, // if EXPERIMENTAL
   MinClipboardWriteHTML = 86,
+  MinFileNameIsSelectableOnFilesPage = 86, // even if EXPERIMENTAL or LEGACY
   // if EXPERIMENTAL, since 79 there's also `navigator.scheduling.isFramePending()`
   MinEnsuredNavigator$scheduling$$isInputPending = 87, // even if LEGACY; since 74 if EXPERIMENTAL
   Min$TargetIsBlank$Implies$Noopener = 88, // https://chromestatus.com/features/6140064063029248
