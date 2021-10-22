@@ -801,7 +801,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     const item: SuggestionE | UrlInfo = sel >= 0 ? a.completions_[sel] : { u: a.input_.value.trim() },
     action = a.actionType_, https = a.isHttps_, incognito = a.doesOpenInIncognito_,
     func = function (this: void): void {
-      !VPort_ ? 0 : item.s != null ? Vomnibar_.gotoSession_(item as SuggestionE & Ensure<SuggestionE, "s">)
+      !VPort_ ? 0 : item.s != null ? Vomnibar_.gotoSession_(item as SuggestionE & Ensure<SuggestionE, "s">, action)
         : Vomnibar_.navigateToUrl_(item, action, https, incognito, sel);
       (<RegExpOne> /a?/).test("");
     };
@@ -809,7 +809,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       const domains = a.completions_.filter(i => i.e === "domain");
       (item as UrlInfo).u = domains.length ? domains[0].u : `www.${item.u}.com`;
     }
-    if (a.actionType_ < ReuseType.newFg
+    if (action < ReuseType.newFg
         && !(typeof event === "number" && event & KeyStat.altKey && event & KeyStat.shiftKey)) { return func(); }
     a.doEnter_ = func;
     a.hide_();
@@ -1435,13 +1435,9 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       return Vomnibar_.refresh_();
     }
   },
-  gotoSession_ (item: SuggestionE & Ensure<SuggestionE, "s">): void {
-    VPort_.post_({
-      H: kFgReq.gotoSession,
-      a: Vomnibar_.actionType_ > ReuseType.newBg,
-      s: item.s
-    });
-    Vomnibar_ && Vomnibar_.refresh_(item.e === "tab")
+  gotoSession_ (item: SuggestionE & Ensure<SuggestionE, "s">, reuse: ReuseType): void {
+    VPort_.post_({ H: kFgReq.gotoSession, a: reuse > ReuseType.newBg, s: item.s })
+    Vomnibar_ && Vomnibar_.isActive_ && Vomnibar_.refresh_(item.e === "tab")
   },
   refresh_ (waitFocus?: boolean): void {
     getSelection().removeAllRanges();
