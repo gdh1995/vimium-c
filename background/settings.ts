@@ -262,8 +262,12 @@ bi|bing|Bing|\u5fc5\u5e94: https://www.bing.com/search?q=%s \\
 g|go|gg|google|Google|\u8c37\u6b4c: https://www.google.com/search?q=%s\\
   www.google.com re=/^(?:\\.[a-z]{2,4})?\\/search\\b.*?[#&?]q=([^#&]*)/i\\
   blank=https://www.google.com/ Google
-d|ddg|duckduckgo: https://duckduckgo.com/?q=%s DuckDuckGo
+br|brave: https://search.brave.com/search?q=%s Brave
+d|dd|ddg|duckduckgo: https://duckduckgo.com/?q=%s DuckDuckGo
+ec|ecosia: https://www.ecosia.org/search?q=%s Ecosia
 qw|qwant: https://www.qwant.com/?q=%s Qwant
+ya|yd|yandex: https://yandex.com/search/?text=%s Yandex
+yh|yahoo: https://search.yahoo.com/search?p=%s Yahoo
 
 b.m|bm|map|b.map|bmap|\u5730\u56fe|\u767e\u5ea6\u5730\u56fe: \\
   https://api.map.baidu.com/geocoder?output=html&address=%s&src=vimium-c\\
