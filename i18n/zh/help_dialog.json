@@ -77,6 +77,7 @@
   "clearFindHistory": "清理页内查找功能中最近用过的词语",
   "closeDownloadBar": "关闭窗口底部的下载进度栏",
   "closeOtherTabs": "关闭当前窗口的其它所有标签页",
+  "closeSomeOtherTabs": "关闭其它标签页",
   "closeTabsOnLeft": "关闭左侧所有标签页",
   "closeTabsOnRight": "关闭右侧所有标签页",
   "copyCurrentTitle": "复制当前标签页的标题",

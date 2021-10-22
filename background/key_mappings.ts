@@ -591,6 +591,7 @@ export const availableCommands_: Dict<CommandsNS.Description> & SafeObject =
   clearFindHistory: [ kBgCmd.clearFindHistory, 1, 1 ],
   closeDownloadBar: [ kBgCmd.closeDownloadBar, 1, 1, { all: 1 } ],
   closeOtherTabs: [ kBgCmd.removeTabsR, 1, 1, { other: true } ],
+  closeSomeOtherTabs: [ kBgCmd.removeTabsR, 1, 0 ],
   closeTabsOnLeft: [ kBgCmd.removeTabsR, 1, 0, { $count: -1e6 } ],
   closeTabsOnRight: [ kBgCmd.removeTabsR, 1, 0, { $count: 1e6 } ],
   captureTab: [ kBgCmd.captureTab, 1, 1 ],

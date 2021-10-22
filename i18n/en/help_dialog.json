@@ -70,6 +70,7 @@
   "clearFindHistory": "Clear find mode history",
   "closeDownloadBar": "Close the bottom download bar elegantly",
   "closeOtherTabs": "Close all other tabs",
+  "closeSomeOtherTabs": "Close other tabs",
   "closeTabsOnLeft": "Close all tabs on the left",
   "closeTabsOnRight": "Close all tabs on the right",
   "copyCurrentTitle": "Copy current tab's title",

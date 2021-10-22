@@ -225,8 +225,8 @@ set_bgC_([
         }
         const count = tabs.length
         if (count > 20 && needConfirm_()) {
-              void confirm_("addBookmark", count).then(doAddBookmarks.bind(0, allTabs))
-              return
+          void confirm_("addBookmark", count).then(doAddBookmarks.bind(0, allTabs))
+          return
         }
         for (const tab of tabs) {
           browser_.bookmarks.create({ parentId: folder.id_, title: tab.title, url: getTabUrl(tab) }, runtimeError_)
@@ -507,7 +507,8 @@ set_bgC_([
     const mayConfirm = get_cOptions<C.removeTabsR>().mayConfirm
     if (mayConfirm && tabs.length > (typeof mayConfirm === "number" ? Math.max(mayConfirm, 5) : 20)
         && needConfirm_()) {
-      void confirm_("closeOtherTabs", tabs.length).then(onRemoveTabsR.bind(null, oriTabs))
+      void confirm_("closeSomeOtherTabs", tabs.length).then(onRemoveTabsR.bind(null, oriTabs))
+      return
     }
     if (tabs.length > 0) {
       Tabs_.remove(tabs.map(tab => tab.id), R_(resolve))

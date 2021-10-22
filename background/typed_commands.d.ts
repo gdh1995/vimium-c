@@ -356,6 +356,7 @@ interface CmdNameIds {
   clearFindHistory: kBgCmd.clearFindHistory
   closeDownloadBar: kBgCmd.closeDownloadBar
   closeOtherTabs: kBgCmd.removeTabsR
+  closeSomeOtherTabs: kBgCmd.removeTabsR
   closeTabsOnLeft: kBgCmd.removeTabsR
   closeTabsOnRight: kBgCmd.removeTabsR
   copyCurrentTitle: kBgCmd.copyWindowInfo

@@ -15,7 +15,7 @@ let html_: [string, string] | null = null
 let i18n_: { [key in keyof typeof import("../i18n/zh/help_dialog.json")]: string }
 let template_: HTMLTableDataCellElement | null = null
 let parser_ff_: DOMParser | null = null
-const descriptions_ = new Map<kCName, string>()
+const descriptions_ = new Map<kCName, [/** description */ string, /** parameters */ string]>()
 
 export const parseHTML = (template: string): [string, string] => {
       const noShadow = !( (!OnChrome || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
@@ -112,6 +112,7 @@ type _NormalizedNames2<T extends kCName> =
     : T extends `${infer A}vateUrl${infer B}` ? `${A}vateEditUrl${B}`
     : T extends `${infer A}TabSelection` ? `${A}Tabs`
     : T extends "quickNext" ? "nextTab"
+    : T extends "closeSomeOtherTabs" ? "closeOtherTabs"
     : T extends "newTab" ? "createTab" : T extends "simBackspace" ? "simulateBackspace"
     : T extends "showHUD" ? "showTip" : T extends "wait" ? "blank"
     : T
@@ -139,6 +140,8 @@ const normalizeCmdName = (command: kCName): NormalizedNames => {
         command = AsC_("nextTab");
       } else if (command === AsC_("newTab")) {
         command = AsC_("createTab")
+      } else if (command === AsC_("closeSomeOtherTabs")) {
+        command = AsC_("closeOtherTabs")
       } else if (command === AsC_("simBackspace")) {
         command = AsC_("simulateBackspace")
       } else if (command === AsC_("showHUD")) {
@@ -160,8 +163,8 @@ const renderGroup = (group: string, commandToKeys: Map<string, [string, Commands
       let keyLen = -2, bindings = "", description = descriptions_.get(command)
       if (!description) {
         const params = i18nParams[command]
-        description = i18n_[command as NormalizedNames]!.replace("<", "&lt;").replace(">", "&gt;")
-            + (params ? cmdParams.replace("*", () => params) : " ") // lgtm [js/incomplete-sanitization]
+        description = [i18n_[command as NormalizedNames]!.replace("<", "&lt;").replace(">", "&gt;"),
+            (params ? cmdParams.replace("*", () => params) : " ")] // lgtm [js/incomplete-sanitization]
         descriptions_.set(command, description)
         if (!(Build.NDEBUG || description)) {
           console.log("Assert error: lack a description for %c%s", "color:red", command);
@@ -185,12 +188,13 @@ const renderGroup = (group: string, commandToKeys: Map<string, [string, Commands
         }
         bindings += "</span>\n\t";
       }
+      const curDesc = showNames ? description[0] + description[1] : description[0]
       // keep rendering if not hideUnbound
       if (keyLen <= 12) {
-        html += commandHTML_(isAdvanced, bindings, description, showNames ? command : "")
+        html += commandHTML_(isAdvanced, bindings, curDesc, showNames ? command : "")
       } else {
         html += commandHTML_(isAdvanced, bindings, "", "")
-        html += commandHTML_(isAdvanced, "", description, showNames ? command : "")
+        html += commandHTML_(isAdvanced, "", curDesc, showNames ? command : "")
       }
     }
     return html;
