@@ -48,8 +48,10 @@ set_evalVimiumUrl_(function (path: string, workType?: Urls.WorkType, onlyOnce?: 
   case "run":
     set_cEnv(null)
     const frames = framesForTab_.get(curTabId_)
-    executeCommand(makeCommand_(AsC_("runKey"), safer_({ keys: [path] }))!, 1, kKeyCode.None
-        , frames ? frames.cur_ : null, 0, null)
+    setTimeout((): void => {
+      executeCommand(makeCommand_(AsC_("runKey"), safer_({ keys: [path] }))!, 1, kKeyCode.None
+          , frames ? frames.cur_ : null, 0, null)
+    }, 0)
     return [path, Urls.kEval.run]
   case "status": case "state":
     if (workType >= Urls.WorkType.EvenAffectStatus) {

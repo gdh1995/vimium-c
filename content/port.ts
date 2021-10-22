@@ -107,7 +107,7 @@ export const runFallbackKey = ((options: Req.FallbackOptions
       H: kFgReq.nextKey, k: fallback, f: { c: context, r: options.$retry, u: anotherTip, w: wait }
     })
   } else {
-    const tip = anotherTip && anotherTip !== 2 ? anotherTip : context ? context.t : 0
+    const tip = anotherTip && (anotherTip !== 2 ? anotherTip : context && context.t)
     tip && hudTip(tip, 0, tipArgs)
   }
 }) as {

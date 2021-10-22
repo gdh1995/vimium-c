@@ -1,5 +1,6 @@
 import {
-  framesForTab_, get_cOptions, cPort, cRepeat, set_cPort, cKey, curTabId_, keyToCommandMap_, get_cEnv, set_cEnv, set_cKey, set_cOptions, set_runOneMapping_
+  framesForTab_, get_cOptions, cPort, cRepeat, set_cPort, cKey, curTabId_, keyToCommandMap_, get_cEnv, set_cEnv,
+  set_cKey, set_cOptions, set_runOneMapping_, runOneMapping_
 } from "./store"
 import * as BgUtils_ from "./utils"
 import { runtimeError_, getCurWnd } from "./browser"
@@ -20,12 +21,21 @@ const abs = Math.abs
 let loopIdToRunSeq = 0
 
 const collectOptions = (opts: { [key: `o.${string}`]: any }): CommandsNS.Options | null => {
-  const o2 = BgUtils_.safeObj_<any>()
+  const o2 = BgUtils_.safeObj_<any>(), todo = [] as string[]
   let found = ""
   for (const key in opts) {
-    if (key.startsWith("o.") && key.length > 2 && !key.includes("$")) {
+    if (key.includes("$")) { /* empty */ }
+    else if (!key.startsWith("o.")) {
+      const normalKey = key as Exclude<keyof BgCmdOptions[C.runKey], `o.${string}` | `$${string}`>
+      if (normalKey !== "keys" && normalKey !== "expect" && normalKey !== "options") {
+        todo.push(As_<never>(normalKey) as string)
+      }
+    } else if (key.length > 2) {
       o2[found = key.slice(2)] = opts[key as `o.${string}`]
     }
+  }
+  for (const key2 of todo) {
+    o2[found = key2] = opts[key2 as `o.${string}`]
   }
   return found ? o2 : null
 }
@@ -421,16 +431,22 @@ export const parseEmbeddedOptions = (/** has no prefixed "#" */ str: string): Co
   return parseOptions_(str, 2)
 }
 
-export const runOneKey = (cursor: KeyNode, seq: BgCmdOptions[C.runKey]["$seq"], envInfo: CurrentEnvCache | null) => {
+const runOneKey = (cursor: KeyNode, seq: BgCmdOptions[C.runKey]["$seq"], envInfo: CurrentEnvCache | null) => {
   const info = parseKeyNode(cursor)
-  const hasCount = !seq || seq.cursor === seq.keys || info.prefix.includes("$c")
+  const isFirst = seq.cursor === seq.keys, hasCount = isFirst || info.prefix.includes("$c")
   let options = !seq.options || !info.options ? seq.options || info.options
       : copyCmdOptions(copyCmdOptions(BgUtils_.safeObj_(), info.options), seq.options as CommandsNS.Options)
   seq.cursor = cursor
+  if (isFirst) {
+    const func = runKeyWithOptions.bind(null, info.key, info.count * (hasCount ? seq.repeat : 1), options
+        , envInfo, null)
+    setTimeout(func, 0)
+    return
+  }
   /*#__NOINLINE__*/ runKeyWithOptions(info.key, info.count * (hasCount ? seq.repeat : 1), options, envInfo)
 }
 
-set_runOneMapping_((key, port, fStatus): void => {
+set_runOneMapping_(As_<typeof runOneMapping_>((key, port, fStatus): void => {
   const arr: null | string[] = (<RegExpOne> /^\d+|^-\d*/).exec(key)
   let count = 1
   if (arr != null) {
@@ -447,7 +463,7 @@ set_runOneMapping_((key, port, fStatus): void => {
   set_cKey(kKeyCode.None)
   set_cOptions(null)
   runKeyWithOptions(hash ? key.slice(0, hash - 1) : key, count, hash ? key.slice(hash) : null, null, fStatus)
-})
+}))
 
 const doesInheritOptions = (baseOptions: CommandsNS.Options): boolean => {
   let cur = get_cOptions<C.blank>() as CommandsNS.Options | undefined

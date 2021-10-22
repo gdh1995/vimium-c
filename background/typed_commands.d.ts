@@ -118,6 +118,7 @@ interface BgCmdOptions {
     options?: CommandsNS.EnvItem["options"]
     $normalized?: boolean
     [key: `o.${string}`]: any
+    // [key2: string]: any // this will always be overwritten by its corresponding `o.${key2}` version
     $seq: {
       /** node tree */ keys: object, repeat: number, options: CommandsNS.EnvItem["options"] | undefined
       cursor: object | null, timeout: number
@@ -138,7 +139,7 @@ interface BgCmdOptions {
   [kBgCmd.visitPreviousTab]: { acrossWindows: true; onlyActive: true } & TabFilterOptions & Req.FallbackOptions
   [kBgCmd.closeDownloadBar]: { newWindow?: null | true | false; all: 1 }
   [kBgCmd.reset]: {}
-  [kBgCmd.openBookmark]: { title: string; path: string }
+  [kBgCmd.openBookmark]: { title: string; path: string; mask: string | true; name: string }
 }
 
 interface BgCmdInfoMap {

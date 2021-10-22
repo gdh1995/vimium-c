@@ -736,9 +736,24 @@ set_bgC_([
     resolve(1)
   },
   /* kBgCmd.openBookmark: */ (resolve): void | kBgCmd.openBookmark => {
-    const title = get_cOptions<C.openBookmark>().path || get_cOptions<C.openBookmark>().title
+    let title = get_cOptions<C.openBookmark>().path || get_cOptions<C.openBookmark>().title
     if (!title || typeof title !== "string") {
       showHUD("Invalid bookmark " + (get_cOptions<C.openBookmark>().path ? "path" : "title")); resolve(0); return
+    }
+    let mask = get_cOptions<C.openBookmark>().mask
+    if (mask === true) { mask = title.includes("$s") ? "$s" : "%s" }
+    if (mask && typeof mask === "string") {
+      let name = get_cOptions<C.openBookmark>().name
+      if (!name) {
+        const known: string[] = As_<(keyof BgCmdOptions[kBgCmd.openBookmark])[]>(["path", "title", "mask", "name"])
+        const keys = Object.keys(get_cOptions<C.openBookmark>()).filter(i => i[0] !== "$" && !known.includes!(i))
+        if (keys.length !== 1) {
+          showHUD((keys.length ? "Too many potential names" : "No name") + " to find bookmarks")
+          return
+        }
+        name = keys[0]
+      }
+      title = title.replace(mask, (): string => "" + name)
     }
     findBookmark(0, title).then((node): void => {
       if (!node || (node as CompletersNS.Bookmark).u == null) {
