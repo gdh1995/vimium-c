@@ -64,7 +64,7 @@ export const overrideTabsIndexes_ff_ = OnFirefox ? (tabs: readonly Tab[]): void 
 
 export const getCurWnd = ((populate: boolean, callback: (window: Window, exArg: FakeArg) => void): void | 1 => {
   const args = { populate }
-  curWndId_ >= 0 ? Windows_.get(curWndId_, args, callback) : Windows_.getCurrent(args, callback)
+  return curWndId_ >= 0 ? Windows_.get(curWndId_, args, callback) : Windows_.getCurrent(args, callback)
 }) as {
   (populate: true, callback: (window?: PopWindow | undefined, exArg?: FakeArg) => void): 1
   (populate: false, callback: (window?: Window, exArg?: FakeArg) => void): 1
@@ -109,7 +109,7 @@ export const Q_: {
 } = (OnChrome || OnEdge ? function (func: Function): Promise<unknown> {
   const arr: unknown[] = [].slice.call(arguments, 1)
   const { promise_, resolve_ } = deferPromise_<unknown>();
-  arr.push((res: unknown): void => {` `
+  arr.push((res: unknown): void => {
     const err = runtimeError_(); resolve_(err ? void 0 : res != null ? res : null)
     return err
   })
@@ -169,7 +169,7 @@ export const tabsCreate = (args: chrome.tabs.CreateProperties, callback?: ((tab:
   if (OnEdge) {
     delete args.openerTabId
   }
-  Tabs_.create(args, callback)
+  return Tabs_.create(args, callback)
 }
 
 /** the order is [A,B,C; A,B,C; ...]; require urls.length === 0 || args.url === urls[0] */
