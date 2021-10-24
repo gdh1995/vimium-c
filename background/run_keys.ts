@@ -437,13 +437,7 @@ const runOneKey = (cursor: KeyNode, seq: BgCmdOptions[C.runKey]["$seq"], envInfo
   let options = !seq.options || !info.options ? seq.options || info.options
       : copyCmdOptions(copyCmdOptions(BgUtils_.safeObj_(), info.options), seq.options as CommandsNS.Options)
   seq.cursor = cursor
-  if (isFirst) {
-    const func = runKeyWithOptions.bind(null, info.key, info.count * (hasCount ? seq.repeat : 1), options
-        , envInfo, null)
-    setTimeout(func, 0)
-    return
-  }
-  /*#__NOINLINE__*/ runKeyWithOptions(info.key, info.count * (hasCount ? seq.repeat : 1), options, envInfo)
+  runKeyWithOptions(info.key, info.count * (hasCount ? seq.repeat : 1), options, envInfo, null, isFirst)
 }
 
 set_runOneMapping_(As_<typeof runOneMapping_>((key, port, fStatus): void => {
@@ -472,7 +466,8 @@ const doesInheritOptions = (baseOptions: CommandsNS.Options): boolean => {
 }
 
 const runKeyWithOptions = (key: string, count: number, exOptions: CommandsNS.EnvItemOptions | string | null | undefined
-    , envInfo: CurrentEnvCache | null, fallbackCounter?: FgReq[kFgReq.nextKey]["f"] | null): void => {
+    , envInfo: CurrentEnvCache | null, fallbackCounter?: FgReq[kFgReq.nextKey]["f"] | null
+    , avoidStackOverflow?: boolean): void => {
   let finalKey = key, registryEntry = key !== "__proto__" && keyToCommandMap_.get(key)
       || !key.includes("<") && keyToCommandMap_.get(finalKey = `<v-${key}>`) || null
   let entryReadonly = true
@@ -512,8 +507,15 @@ const runKeyWithOptions = (key: string, count: number, exOptions: CommandsNS.Env
     }
     normalizeCommand_(registryEntry)
   }
-  set_cEnv(envInfo)
   BgUtils_.resetRe_()
+  if (avoidStackOverflow && registryEntry.alias_ === kBgCmd.runKey && registryEntry.background_) {
+    setTimeout((): void => {
+      set_cEnv(envInfo)
+      executeCommand(registryEntry!, count, cKey, cPort, 0, fallbackCounter)
+    }, 0)
+    return
+  }
+  set_cEnv(envInfo)
   executeCommand(registryEntry, count, cKey, cPort, 0, fallbackCounter)
 }
 
