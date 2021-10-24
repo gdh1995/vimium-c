@@ -417,6 +417,7 @@ interface CmdOptions {
   [kFgCmd.focusInput]: {
     act?: "" | "backspace" | "switch" | "last" | "last-visible";
     action?: "" | "backspace" | "switch" | "last" | "last-visible";
+    verify?: boolean
     select?: SelectActions;
     keep?: boolean;
     passExitKey?: boolean;

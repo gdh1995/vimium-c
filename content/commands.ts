@@ -6,7 +6,7 @@ import {
 import {
   isHTML_, hasTag_, createElement_, querySelectorAll_unsafe_, SafeEl_not_ff_, docEl_unsafe_, MDW, CLK,
   querySelector_unsafe_, DAC, removeEl_s, appendNode_s, setClassName_s, INP, contains_s, toggleClass_s, modifySel,
-  focus_, testMatch, docHasFocus_, deepActiveEl_unsafe_, getEditableType_
+  focus_, testMatch, docHasFocus_, deepActiveEl_unsafe_, getEditableType_, textOffset_, kDir
 } from "../lib/dom_utils"
 import {
   pushHandler_, removeHandler_, getMappedKey, prevent_, isEscape_, keybody_, DEL, BSP, ENTER, handler_stack,
@@ -282,8 +282,10 @@ set_contentCommands_([
     let sel = visibleInputs.length, firstInput = visibleInputs[0]
     if (sel < 2) {
       exitInputHint();
-      sel && selectOrClick(firstInput[0], firstInput[1], true)
-      runFallbackKey(options, sel ? 0 : kTip.noInputToFocus)
+      sel ? selectOrClick(firstInput[0], firstInput[1], true).then((): void => {
+        runFallbackKey(options, options.verify === !1 || insert_Lock_() || deepActiveEl_unsafe_()
+            ? 0 : kTip.noInputToFocus)
+      }) : runFallbackKey(options, kTip.noInputToFocus)
       return
     }
     let ind = 0
@@ -361,16 +363,35 @@ set_contentCommands_([
     }, kHandler.focusInput)
   },
   /* kFgCmd.editText: */ (options: CmdOptions[kFgCmd.editText], count: number) => {
-    const editable = insert_Lock_();
+    const lock = insert_Lock_()
+    const editable = lock && getEditableType_<0>(lock) === EditableType.TextBox ? lock as TextElement : 0;
     (editable || options.dom) && timeout_((): void => {
       let commands = options.run.split(<RegExpG> /,\s*/g), sel: Selection | undefined, absCount = math.abs(count)
+      let cur: string | 0, offset: number
+      let start: number, end: number, start0: number
       while (0 < absCount--) {
-        for (let i = 0; i < commands.length; i += 3) {
-          const cmd = commands[i], a1 = commands[i + 1], a2 = commands[i + 2]
+        for (var i = 0; i < commands.length; i += 3) {
+          var cmd = commands[i], a1 = commands[i + 1], a2 = commands[i + 2]
           if (cmd === "exec") {
             execCommand(a1, doc, commands[i + 2])
           } else if (cmd === "replace") {
-            (editable as HTMLInputElement).setRangeText(a1, null, null, a2)
+            start = editable && textOffset_(editable), end = editable && textOffset_(editable, 1)
+            cur = 0, offset = 0, start0 = start
+            execCommand("insertText", doc
+                , a1.replace(<RegExpG & RegExpSearchable<0>> /[$%]s|(?:%[a-f\d]{2})+/gi, (s, ind): string => {
+              if (s[1] !== "s") {
+                offset -= s.length
+                s = safeCall(decodeURIComponent, s) || s
+                offset += s.length
+                return s
+              } else {
+                cur === 0 && (cur = getSelectionText(1), start += ind + offset)
+                offset += cur.length - 2
+                end = start0 + ind + offset + 2
+                return cur
+              }
+            }))
+            editable === insert_Lock_() && editable.setSelectionRange(start, end, kDir[1])
           } else if (sel = sel || getSelected(), cmd === "collapse") {
             collpaseSelection(sel, a1 === "end")
           } else {
