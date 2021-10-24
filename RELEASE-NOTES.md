@@ -4,6 +4,20 @@ Release Notes of Vimium C
 ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 说明文档: https://gitee.com/gdh1995/vimium-c#readme , https://github.com/gdh1995/vimium-c/blob/master/README-zh.md .
 
+#### 1.94.0
+* `runKey` now support `mask=true|""|<placeholder>`
+  * in `run <v-lh> LinkHints.activate$s mask= \n run Fq lh WithQueue`, `Fq` works like `LinkHints.activateWithQueue`
+* fix broken `moveTabToNewWindow` and `moveTabToIncognito` on Firefox
+* improve `openBookmark`: if `.mask` then fill `.title` with one unknown key
+  * `runKey` now treats unknown options as command options (`o.` can be stripped)
+  * in `map <v-ob> openBookmark title="v:$s" mask \n run ot ob 1`, `ot` works like `openBookmark title=v:1`
+* improve `editText`: its `replace` command supports placeholder and URL-encoding text
+  * e.g.: `editText run="replace,_$s%20%s_"` will replace "`abc`" with "`_abc abc_`"
+* add more options to `moveTabToNewWindow` and `moveTabToNextWindow`
+* search engines: add some famous engines to the default list
+* the settings template is update to demonstrate latest syntaxes in key mappings
+* fix some found bugs
+
 #### 1.93.1
 * fix a compatibility issue with extensions which use CustomElement on Firefox
 * fix `visitPreviousTab` may ignore `.filter`
@@ -25,7 +39,7 @@ ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 * `LinkHints`: improve `autoUnhover` ([#325](https://github.com/gdh1995/vimium-c/issues/325#issuecomment-939656442))
   and add a trick to copy image URLs ([#399](https://github.com/gdh1995/vimium-c/issues/399#issuecomment-927788170))
 * Vomnibar: support `mapKey` from keys to `<v-*>` (trigger commands) or `<enter>`
-* `dispatchEvent`: add a new mode: `key=Key,keyCode[,Code=Key]`
+* `dispatchEvent`: add a new mode: `key="Key,keyCode[,Code]"` in which a default `Code` is its `Key` value
 * text substitution: remove old `/[dDr]/` keywords in "flag" parts
 * improve `.filter` in tab-related commands
 * fix some other small bugs
