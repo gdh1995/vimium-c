@@ -310,8 +310,12 @@ b|ba|baidu|\u767e\u5ea6: https://www.baidu.com/s?ie=utf-8&wd=%s \\
 g|go|gg|google|Google: https://www.google.com/search?q=%s \\
   www.google.com re=/^(?:\\.[a-z]{2,4})?\\/search\\b.*?[#&?]q=([^#&]*)/i\\
   blank=https://www.google.com/ Google
-d|ddg|duckduckgo: https://duckduckgo.com/?q=%s DuckDuckGo
+br|brave: https://search.brave.com/search?q=%s Brave
+d|dd|ddg|duckduckgo: https://duckduckgo.com/?q=%s DuckDuckGo
+ec|ecosia: https://www.ecosia.org/search?q=%s Ecosia
 qw|qwant: https://www.qwant.com/?q=%s Qwant
+ya|yd|yandex: https://yandex.com/search/?text=%s Yandex
+yh|yahoo: https://search.yahoo.com/search?p=%s Yahoo
 
 g.m|gm|g.map|gmap: https://www.google.com/maps?q=%s \\
   blank=https://www.google.com/maps Google Maps

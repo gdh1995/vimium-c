@@ -257,8 +257,8 @@ if ! test -f "$EXE"; then
   echo -E "No such a file: "$exe_w >&2
   exit 1
 fi
-if test -n "$VER" -o "$CHROME_ROOT" == "$default_chrome_root"; then
-  rm -f "${EXE%/*}/default_apps/"* "${EXE%/*}/"[0-9]*"/default_apps/"*
+if test -n "$VER"; then
+  rm -f "${EXE%/*}/default_apps/"* "${EXE%/*}/"[0-9]*"/default_apps/"* "${EXE%/*}/"[0-9]*"/Installer/"*
 fi
 
 if test -n "$PAGE_FLAGS"; then

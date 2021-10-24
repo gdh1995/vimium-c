@@ -5,7 +5,7 @@ import {
 import { prevent_ } from "../lib/keyboard_utils"
 import {
   createElement_, attachShadow_, NONE, fullscreenEl_unsafe_, docEl_unsafe_, getComputedStyle_, set_docSelectable_,
-  GetParent_unsafe_, getSelection_, GetChildNodes_not_ff, GetShadowRoot_, getEditableType_, htmlTag_,
+  GetParent_unsafe_, getSelection_, GetChildNodes_not_ff, GetShadowRoot_, getEditableType_, htmlTag_, textOffset_,
   notSafe_not_ff_, CLK, frameElement_, runJS_, isStyleVisible_, rangeCount_, getAccessibleSelectedNode, removeEl_s,
   appendNode_s, append_not_ff, setClassName_s, isNode_, contains_s, setOrRemoveAttr_s, selOffset_, textContent_s,
   parentNode_unsafe_s, setDisplaying_s, editableTypes_, getRootNode_mounted
@@ -324,14 +324,16 @@ export const getSelectionParent_unsafe = ((sel: Selection, re?: RegExpG & RegExp
   (sel: Selection, re?: undefined): Element | null
 }
 
-export const getSelectionText = (notTrim?: 1): string => {
-    let sel = getSelection_(), s = "" + sel, el: Element | null | undefined, rect: ClientRect;
+/** `type`: 0 means to trim; 1 means check blurred inputs; 2 means focus is reliable */
+export const getSelectionText = (type?: 0 | 1 | 2, sel?: Selection): string => {
+    sel = sel || getSelection_()
+    let s = "" + <SelWithToStr> sel, el: Element | null | undefined, rect: ClientRect
     if (s && !insert_Lock_()
         && (el = deref_(currentScrolling)) && getEditableType_<0>(el) === EditableType.TextBox
         && (rect = getSelectionBoundingBox_(sel), !rect.width || !rect.height)) {
       s = "";
     }
-    return notTrim ? s : s.trim();
+    return type ? s : s.trim()
 }
 
 export const removeSelection = function (root?: VUIRoot & Pick<DocumentOrShadowRoot, "getSelection">): boolean {
@@ -367,7 +369,7 @@ export const moveSel_s_throwable = (element: LockableElement, action: SelectActi
         selectAllOfNode(element)
       } else {
         let len = (element as TextElement).value.length
-          , { selectionStart: start, selectionEnd: end } = element as TextElement;
+          , start = textOffset_(element as TextElement), end = textOffset_(element as TextElement, 1)
         if (!len || (gotoEnd ? start === len : gotoStart && !end) || end && end < len || end !== start) {
           return;
         }

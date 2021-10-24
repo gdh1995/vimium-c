@@ -41,7 +41,7 @@ import {
 import {
   getSelection_, getSelectionFocusEdge_, isHTML_, docEl_unsafe_, notSafe_not_ff_, getEditableType_, editableTypes_,
   GetChildNodes_not_ff, rangeCount_, getAccessibleSelectedNode, scrollingEl_, isNode_,
-  getDirectionOfNormalSelection, selOffset_, modifySel, kDir, parentNode_unsafe_s
+  getDirectionOfNormalSelection, selOffset_, modifySel, kDir, parentNode_unsafe_s, textOffset_
 } from "../lib/dom_utils"
 import {
   padClientRect_, getSelectionBoundingBox_, getZoom_, prepareCrop_, cropRectToVisible_, getVisibleClientRect_,
@@ -133,8 +133,7 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode]): void => {
    * * `""` means only checking type, and may not detect `di_` when `DiType.Complicated`;
    * * `char[1..]` means initial selection text and not to extend back when `oldLen_ >= 2`
    */
-  const getDirection = function (magic?: string
-      ): kDirTy.left | kDirTy.right | kDirTy.unknown {
+  const getDirection = function (magic?: string): kDirTy.left | kDirTy.right | kDirTy.unknown {
     if (di_ !== kDirTy.unknown) { return di_ }
     const oldDiType = diType_, sel = curSelection, anchorNode = getAccessibleSelectedNode(sel)
     let num1 = -1, num2: number
@@ -147,7 +146,7 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode]): void => {
       // common HTML nodes
       if (anchorNode !== focusNode) {
         diType_ = DiType.Normal
-        return di_ = getDirectionOfNormalSelection(sel, anchorNode!, focusNode!)
+        return di_ = magic !== "" ? getDirectionOfNormalSelection(sel, anchorNode!, focusNode!) : kDirTy.unknown
       }
       num1 = selOffset_(sel)
       // here rechecks `!anchorNode` is just for safety.
@@ -158,16 +157,15 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode]): void => {
     }
     // editable text elements
     const lock = insert_Lock_()
-    if (lock && parentNode_unsafe_s(lock) === anchorNode) { // safe because lock is LockableElement
-      if ((oldDiType & DiType.Unknown)
-          && editableTypes_[lock.localName]! > EditableType.MaxNotTextModeElement) {
+    if (lock && parentNode_unsafe_s(lock) === anchorNode) {
+      if (oldDiType & DiType.Unknown && getEditableType_<0>(lock) > EditableType.MaxNotTextModeElement) {
         const child = (OnFirefox ? (anchorNode as Element).childNodes as NodeList
             : GetChildNodes_not_ff!(anchorNode as Element)
             )[num1 >= 0 ? num1 : selOffset_(sel)] as Node | undefined
         if (lock === child || /** tend to trust that the selected is a textbox */ !child) {
           if (!OnChrome || Build.MinCVer >= BrowserVer.Min$selectionStart$MayBeNull
-              ? (lock as TextElement).selectionEnd != null
-              : safeCall(/*#__NOINLINE__*/ isLockedInputInTextMode_cr_old)) {
+              ? textOffset_(lock as TextElement) != null
+              : safeCall(textOffset_, lock as TextElement) != null) {
             diType_ = DiType.TextBox | (oldDiType & DiType.isUnsafe)
           }
         }
@@ -182,7 +180,7 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode]): void => {
       ? DiType.Complicated | (oldDiType & DiType.isUnsafe)
       : oldDiType & (DiType.Complicated | DiType.isUnsafe)
     if (magic === "") { return kDirTy.unknown }
-    const initial = magic || "" + sel
+    const initial = magic || "" + <SelWithToStr> sel
     num1 = initial.length
     if (!num1) {
       return di_ = kDirTy.right
@@ -190,7 +188,7 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode]): void => {
     extend(kDirTy.right)
     diType_ = diType_ && selOffset_(sel) !== selOffset_(sel, 1) ? DiType.Normal
       : diType_ & ~DiType.isUnsafe
-    num2 = ("" + sel).length - num1
+    num2 = ("" + <SelWithToStr> sel).length - num1
     /**
      * Note (tested on C70):
      * the `extend` above may go back by 2 steps when cur pos is the right of an element with `select:all`,
@@ -198,7 +196,7 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode]): void => {
      */
     if (num2 && !magic) {
       extend(kDirTy.left)
-      "" + sel !== initial && extend(kDirTy.right)
+      "" + <SelWithToStr> sel !== initial && extend(kDirTy.right)
     } else {
       oldLen_ = 2 + num1
     }
@@ -220,11 +218,11 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode]): void => {
     if (diType_ & DiType.isUnsafe) {
       // Chrome 60/70 need this "extend" action; otherwise a text box would "blur" and a mess gets selected
       const sameEnd = toRight === <ForwardDir> di_
-      const fixSelAll = sameEnd && (diType_ & DiType.Complicated) && ("" + sel).length
+      const fixSelAll = sameEnd && (diType_ & DiType.Complicated) && ("" + <SelWithToStr> sel).length
       // r / r : l ; r / l : r ; l / r : l ; l / l : r
       extend(1 - <ForwardDir> di_)
       sameEnd && extend(toRight)
-      fixSelAll && ("" + sel).length !== fixSelAll && extend(1 - toRight)
+      fixSelAll && ("" + <SelWithToStr> sel).length !== fixSelAll && extend(1 - toRight)
     }
     collpaseSelection(sel, toRight)
     di_ = kDirTy.right
@@ -245,7 +243,7 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode]): void => {
     const type = typeIdx[curSelection.type]
     return OnChrome && Build.MinCVer <= BrowserVer.$Selection$NotShowStatusInTextBox
         && chromeVer_ === BrowserVer.$Selection$NotShowStatusInTextBox
-        && type === SelType.Caret && diType_ && ("" + curSelection) ? SelType.Range : type
+        && type === SelType.Caret && diType_ && ("" + <SelWithToStr> curSelection) ? SelType.Range : type
   }
 
   /** @tolerate_di_if_caret di will be 1 */
@@ -456,15 +454,13 @@ const findV = (count1: number): void => {
    * if return `''`, then `@hasModified_` is not defined
    */
 const getNextRightCharacter = (isMove: BOOL): string => {
-    const diType = diType_
-    oldLen_ = 0
-    if (diType & DiType.TextBox) {
-      const el = insert_Lock_() as TextElement;
-      return el.value.charAt(TextOffset(el
-          , di_ === kDirTy.right || el.selectionDirection !== kDir[0]))
-    }
     const sel = curSelection
-    if (!diType) {
+    oldLen_ = 0
+    if (diType_ & DiType.TextBox) {
+      const el = raw_insert_lock as TextElement
+      return el.value.charAt(textOffset_(el, di_ === kDirTy.right || el.selectionDirection !== kDir[0]))
+    }
+    if (!diType_) {
       let focusNode = getAccessibleSelectedNode(sel, 1)
       if (OnFirefox && !focusNode) {
         return ""
@@ -479,7 +475,7 @@ const getNextRightCharacter = (isMove: BOOL): string => {
     }
     let oldLen = 0;
     if (!isMove) {
-      const beforeText = "" + sel;
+      const beforeText = "" + <SelWithToStr> sel
       if (beforeText && (!getDirection(beforeText) || selType() === SelType.Caret)) {
         return beforeText[0];
       }
@@ -487,7 +483,7 @@ const getNextRightCharacter = (isMove: BOOL): string => {
     }
     // here, the real di must be kDir.right (range if in visual mode else caret)
     oldLen_ || extend(kDirTy.right)
-    const afterText = "" + sel, newLen = afterText.length;
+    const afterText = "" + <SelWithToStr> sel, newLen = afterText.length;
     if (newLen !== oldLen) {
       // if isMove, then cur sel is >= 1 char & di is right
       isMove && collapseToRight(newLen === 1 ? kDirTy.right : kDirTy.left)
@@ -604,7 +600,7 @@ const moveRightByWordButNotSkipSpaces = OnFirefox && Build.NativeWordMoveOnFiref
         ? match[0].length : newStr.length - match.index - match[0].length : 0
     const needBack = toGoLeft > 0 && toGoLeft < newStr.length
     if (OnChrome && testOnlySpace_cr === 0) {
-      return toGoLeft <= 0 || needBack ? [oldStr!, di] : null
+      return toGoLeft <= 0 || needBack ? [oldStr, di] : null
     }
     if (needBack) {
       // after word are some spaces (>= C59) or non-word chars (< C59 || Firefox)
@@ -612,7 +608,7 @@ const moveRightByWordButNotSkipSpaces = OnFirefox && Build.NativeWordMoveOnFiref
         while (toGoLeft > 0) {
           extend(kDirTy.left)
           newLen || (di_ = kDirTy.left)
-          const reduced = newLen - ("" + curSelection).length;
+          const reduced = newLen - ("" + <SelWithToStr> curSelection).length
           toGoLeft -= reduced > 0 ? reduced : -reduced || toGoLeft
           newLen -= reduced;
         }
@@ -621,8 +617,7 @@ const moveRightByWordButNotSkipSpaces = OnFirefox && Build.NativeWordMoveOnFiref
         }
       } else {
         di = di_ as ForwardDir
-        let el = insert_Lock_() as TextElement,
-        start = TextOffset(el, 0), end = start + newLen
+        let el = raw_insert_lock as TextElement, start = textOffset_(el), end = start + newLen
         di ? (end -= toGoLeft) :  (start -= toGoLeft);
         di = di && start > end ? (di_ = kDirTy.left) : kDirTy.right
         // di is BOOL := start < end; a.di_ will be correct
@@ -642,15 +637,15 @@ const reverseSelection = (): void => {
     }
     const sel = curSelection, direction = getDirection(), newDi = (1 - direction) as ForwardDir
     if (diType_ & DiType.TextBox) {
-      const el = insert_Lock_() as TextElement;
+      const el = raw_insert_lock as TextElement
       // Note: on C72/60/35, it can trigger document.onselectionchange
       //      and on C72/60, it can trigger <input|textarea>.onselect
-      el.setSelectionRange(TextOffset(el, 0), TextOffset(el, 1), kDir[newDi])
+      el.setSelectionRange(textOffset_(el), textOffset_(el, 1), kDir[newDi])
     } else if (diType_ & DiType.Complicated) {
-      let length = ("" + sel).length, i = 0;
+      let length = ("" + <SelWithToStr> sel).length, i = 0;
       collapseToRight(direction)
       for (; i < length; i++) { extend(newDi) }
-      for (let tick = 0; tick < 16 && (i = ("" + sel).length - length); tick++) {
+      for (let tick = 0; tick < 16 && (i = ("" + <SelWithToStr> sel).length - length); tick++) {
         extend(i < 0 ? newDi : direction)
       }
     } else {
@@ -693,9 +688,9 @@ const ensureLine = (command1: number): void => {
     selType() !== SelType.Range && modify(di, kG.line)
     di_ = di
     reverseSelection()
-    let len = (curSelection + "").length
+    let len = ("" + <SelWithToStr> curSelection).length
     modify(di = di_ = 1 - di, kG.lineBoundary);
-    (curSelection + "").length - len || modify(di, kG.line)
+    ("" + <SelWithToStr> curSelection).length - len || modify(di, kG.line)
     return
   }
   for (let _iter = 2; 0 < _iter--; ) {
@@ -770,16 +765,6 @@ const ensureLine = (command1: number): void => {
   }
   getDirection("")
   diType_ & DiType.Complicated || scrollIntoView_s(getSelectionFocusEdge_(curSelection, di_ as ForwardDir))
-}
-
-const isLockedInputInTextMode_cr_old = !OnChrome || Build.MinCVer >= BrowserVer.Min$selectionStart$MayBeNull
-    ? 0 as never : (): boolean | void => {
-  return (raw_insert_lock! as TextElement).selectionEnd != null
-}
-
-  /** @argument el must be in text mode  */
-const TextOffset = (el: TextElement, di: ForwardDir | boolean): number => {
-    return (di ? el.selectionEnd : el.selectionStart)!;
 }
 
   commandHandler(VisualAction.Noop, 1)

@@ -1230,7 +1230,7 @@ interface DOMTokenList {
     contains(token: string): boolean;
     item(index: number): string;
     remove(...token: string[]): void;
-    toString(): string;
+    // toString(): string;
     toggle(token: string, force?: boolean): boolean;
     // [index: number]: string;
 }
@@ -2413,7 +2413,7 @@ interface HTMLAnchorElement extends HTMLElement {
     /** 
       * Returns a string representation of an object.
       */
-    toString(): string;
+    // toString(): string;
     addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLAnchorElement, ev: HTMLElementEventMap[K]) => any, useCapture?: boolean): void;
     addEventListener(type: string, listener: EventListenerOrEventListenerObject, useCapture?: boolean): void;
 }
@@ -2561,7 +2561,7 @@ interface HTMLAreaElement extends HTMLElement {
     /** 
       * Returns a string representation of an object.
       */
-    toString(): string;
+    // toString(): string;
     addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLAreaElement, ev: HTMLElementEventMap[K]) => any, useCapture?: boolean): void;
     addEventListener(type: string, listener: EventListenerOrEventListenerObject, useCapture?: boolean): void;
 }
@@ -5370,7 +5370,7 @@ interface MediaList {
     appendMedium(newMedium: string): void;
     deleteMedium(oldMedium: string): void;
     item(index: number): string;
-    toString(): string;
+    // toString(): string;
     [index: number]: string;
 }
 
@@ -5858,7 +5858,7 @@ interface Range {
     setStartAfter(refNode: Node): void;
     setStartBefore(refNode: Node): void;
     surroundContents(newParent: Node): void;
-    toString(): string;
+    // toString(): string;
     readonly END_TO_END: number;
     readonly END_TO_START: number;
     readonly START_TO_END: number;
@@ -7719,7 +7719,7 @@ interface Selection {
     removeRange(range: Range): void;
     selectAllChildren(parentNode: Node): void;
     setBaseAndExtent(baseNode: Node, baseOffset: number, extentNode: Node, extentOffset: number): void;
-    toString(): string;
+    // toString(): string;
 }
 
 declare var Selection: {
@@ -8165,7 +8165,7 @@ interface URL {
     protocol: string;
     search: string;
     username: string;
-    toString(): string;
+    // toString(): string;
 }
 
 declare var URL: {
@@ -8244,7 +8244,7 @@ interface WebKitCSSMatrix {
     setMatrixValue(value: string): void;
     skewX(angle: number): WebKitCSSMatrix;
     skewY(angle: number): WebKitCSSMatrix;
-    toString(): string;
+    // toString(): string;
     translate(x: number, y: number, z?: number): WebKitCSSMatrix;
 }
 

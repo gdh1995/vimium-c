@@ -90,6 +90,11 @@ interface Selection {
   modify(alert: "extend" | "move", direction: "forward" | "backward",
          granularity: GranularityNames[VisualModeNS.kG]): void | 1;
 }
+interface AllowToString { toString(): string }
+interface ElementWithToStr extends Element, AllowToString {}
+interface SelWithToStr extends Selection, AllowToString {}
+interface Range extends AllowToString {}
+interface Function extends AllowToString {}
 
 interface EnsuredMountedElement extends Element {
     readonly firstElementChild: EnsuredMountedElement;

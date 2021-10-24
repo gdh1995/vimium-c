@@ -758,7 +758,8 @@ export const updateQuery = (query: string): void => {
         el = GetParent_unsafe_(el, PNType.DirectElement);
       }
       query = el && isTY(text = (el as HTMLElement).innerText) && text ||
-          (OnFirefox ? (docEl_unsafe_() as SafeHTMLElement).innerText : (docEl_unsafe_() as HTMLElement).innerText + "")
+          (OnFirefox ? (docEl_unsafe_() as SafeHTMLElement).innerText
+            : (docEl_unsafe_() as HTMLElement).innerText as string + "")
       query = didNorm ? normLetters(query) : query
       cachedInnerText = { i: query, t: now, n: didNorm }
     }
@@ -817,7 +818,8 @@ export const executeFind = (query: string | null, options: ExecuteOptions): Rect
         found = _do_find_not_cr!(q, !notSens, back, true, wholeWord, false, false)
       }
       if (!found) { break }
-      selNone = dedupID > count && !(wndSel + "") // if true, then the matched text may have `user-select: none`
+      // if true, then the matched text may have `user-select: none`
+      selNone = dedupID > count && !(wndSel as SelWithToStr + "")
       /**
        * Warning: on Firefox and before {@link #FirefoxBrowserVer.Min$find$NotReturnFakeTrueOnPlaceholderAndSoOn},
        * `found` may be unreliable,

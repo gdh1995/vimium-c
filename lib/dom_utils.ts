@@ -81,6 +81,9 @@ export const attr_s = (el: SafeElement, attr: string): string | null => el.getAt
 
 export const selOffset_ = (sel: Selection, focus?: 1): number => focus ? sel.focusOffset : sel.anchorOffset
 
+export const textOffset_ = (el: TextElement, dir?: VisualModeNS.ForwardDir | boolean): number =>
+    dir ? el.selectionEnd! : el.selectionStart!
+
 export const doesSupportDialog = (): boolean => typeof HTMLDialogElement == OBJECT_TYPES[kTY.func]
 
 export const parentNode_unsafe_s = (el: SafeElement | HTMLStyleElement | Text
@@ -202,7 +205,8 @@ export const GetParent_unsafe_ = function (el: Node | Element
           || !unsafeFramesetTag_old_cr_ || (pn as ParentNodeProp as WindowWithTop).top !== top)
         && pn.nodeType && doc.contains.call(pn, el) ? pn
         : !OnChrome || Build.MinCVer >= BrowserVer.MinParentNodeGetterInNodePrototype
-          || chromeVer_ > BrowserVer.MinParentNodeGetterInNodePrototype - 1 ? _getter_unsafeOnly_not_ff_!(Node, el, "parentNode")
+          || chromeVer_ > BrowserVer.MinParentNodeGetterInNodePrototype - 1
+        ? _getter_unsafeOnly_not_ff_!(Node, el, "parentNode")
         : (Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter
           ? pe && (!unsafeFramesetTag_old_cr_ || (pe as ParentNodeProp as WindowWithTop).top !== top) : pe)
         && pe!.nodeType && doc.contains.call(pe as Element, el) ? (type = PNType.DirectNode, pe)

@@ -123,7 +123,7 @@ export const main_not_ff = (!OnFirefox ? (): void => {
            Math.floor(Math.log(counterResolvePath - 1) / Math.log(1.414)))) {
       console.log(`Vimium C: extend click: resolve ${detail ? "[%o + %o]" : "<%o>%s"} in %o @t=%o .`
         , detail ? detail[0].length
-          : target && (isTY(target.localName) ? target.localName : target + "")
+          : target && (isTY(target.localName) ? target.localName : (target as ElementWithToStr) + "")
         , detail ? detail[2] ? -0 : detail[1].length
           : (event as FocusEvent).relatedTarget ? " (detached)"
           : this === window ? " (path on window)" : " (path on box)"
