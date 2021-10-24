@@ -378,14 +378,15 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode]): void => {
     ui_box || hudShow(kTip.raw)
     toggleSelectableStyle(1)
 
-  if (/* type === SelType.None */ !type && (options.$else || !establishInitialSelectionAnchor())) {
+  if (OnFirefox && raw_insert_lock
+      || /* type === SelType.None */ !type && (options.$else || !establishInitialSelectionAnchor())) {
       deactivate()
       runFallbackKey(options, kTip.needSel)
       return
   }
   if (!isAlertExtend && isRange) {
       // `sel` is not changed by @establish... , since `isRange`
-    collapseToRight(<BOOL> +(!options.s && (getSelectionText(2, curSelection)).length > 1) && getDirection())
+    collapseToRight(<BOOL> +(!options.s && (("" + <SelWithToStr> curSelection)).length > 1) && getDirection())
   }
   replaceOrSuppressMost_(kHandler.visual, (event: HandlerNS.Event): HandlerResult => {
     const doPass = event.i === kKeyCode.ime || event.i === kKeyCode.menuKey && os_,
@@ -567,14 +568,14 @@ const runMovements = (direction: ForwardDir, granularity: kG | kVimG.vimWord
       || rightWhiteSpaceRe ? rightWhiteSpaceRe!.test(ch) : !WordsRe_ff_old_cr!.test(ch)
     ));
     if (ch && oldLen_) {
-      const num1 = oldLen_ - 2, num2 = isMove || getSelectionText(2, curSelection).length
+      const num1 = oldLen_ - 2, num2 = isMove || ("" + <SelWithToStr> curSelection).length
       modify(kDirTy.left, kG.character)
       if (!isMove) {
         // in most cases, initial selection won't be a caret at the middle of `[style=user-select:all]`
         // - so correct selection won't be from the middle to the end
         // if in the case, selection can not be kept during @getDi,
         // so it's okay to ignore the case
-        getSelectionText(2, curSelection).length - num1 && extend(kDirTy.right)
+        ("" + <SelWithToStr> curSelection).length - num1 && extend(kDirTy.right)
         di_ = num2 < num1 ? kDirTy.left : kDirTy.right
       }
     }
@@ -587,10 +588,10 @@ const runMovements = (direction: ForwardDir, granularity: kG | kVimG.vimWord
    */
 const moveRightByWordButNotSkipSpaces = OnFirefox && Build.NativeWordMoveOnFirefox ? null
       : ((testOnlySpace_cr?: InfoToMoveRightByWord | null | 0): InfoToMoveRightByWord | null | boolean => {
-    const oldStr = testOnlySpace_cr ? testOnlySpace_cr[0] : getSelectionText(2, curSelection), oldLen = oldStr.length
+    const oldStr = testOnlySpace_cr ? testOnlySpace_cr[0] : ("" + <SelWithToStr> curSelection), oldLen = oldStr.length
     let di = testOnlySpace_cr ? testOnlySpace_cr[1] : getDirection()
     testOnlySpace_cr || extend(kDirTy.right, kG.word)
-    let newStr = getSelectionText(2, curSelection), newLen = newStr.length
+    let newStr = ("" + <SelWithToStr> curSelection), newLen = newStr.length
     if (!di) { di_ = newStr ? kDirTy.unknown : kDirTy.right }
     newStr = di ? newStr.slice(oldLen) : getDirection() ? oldStr + newStr : oldStr.slice(0, oldLen - newLen)
     // now di_ is correct, and can be left / right
@@ -675,7 +676,7 @@ const selectLine = (count1: number): void => {
   if (ch && num1 && ch !== "\n") {
     if (!OnFirefox || ch !== "\r") {
       extend(kDirTy.left);
-      getSelectionText(2, curSelection).length + 2 - num1 && extend(kDirTy.right)
+      ("" + <SelWithToStr> curSelection).length + 2 - num1 && extend(kDirTy.right)
     }
   }
 }

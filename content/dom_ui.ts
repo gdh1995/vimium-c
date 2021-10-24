@@ -316,14 +316,14 @@ export const getSelectionParent_unsafe = ((sel: Selection, re?: RegExpG & RegExp
   (sel: Selection, re?: undefined): Element | null
 }
 
-/** `type`: 0 means to trim; 0 and 1 means check blurred inputs; 2 means focus is reliable */
-export const getSelectionText = (type?: 0 | 1 | 2, sel?: Selection): string => {
+/** `type`: 0 means to trim; always check focused `<input>` on Firefox and blurred inputs on Chrome */
+export const getSelectionText = (type?: 0 | 1, sel?: Selection): string => {
     sel = sel || getSelection_()
     let s = "" + <SelWithToStr> sel, node: Element | null, rect: ClientRect
     if (OnFirefox && !s) {
       s = !insert_Lock_() || getEditableType_<0>(node = raw_insert_lock!) !== EditableType.TextBox ? s
           : (node as TextElement).value.slice(textOffset_(node as TextElement), textOffset_(node as TextElement, 1))
-    } else if (type !== 2 && s && !insert_Lock_()
+    } else if (s && !insert_Lock_()
         && (node = singleSelectionElement_unsafe(sel)) && getEditableType_<0>(node) === EditableType.TextBox
         && (rect = getSelectionBoundingBox_(sel), !rect.width || !rect.height)) {
       s = "";
