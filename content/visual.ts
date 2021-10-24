@@ -116,7 +116,8 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode]): void => {
   const yank = (action: kYank | ReuseType.current | ReuseType.newFg): void => {
     const str = "" + curSelection, rich = richText
     action < kYank.NotExit && deactivate()
-    if (action < kYank.MIN) {
+    if (!str) { hudTip(kTip.noTextCopied) }
+    else if (action < kYank.MIN) {
       post_({ H: kFgReq.openUrl, u: str, r: action as ReuseType, o: parseOpenPageUrlOptions(options) })
     } else if (rich || action > kYank.RichTextButNotExit - 1) {
       execCommand("copy", doc)
@@ -616,12 +617,10 @@ const moveRightByWordButNotSkipSpaces = OnFirefox && Build.NativeWordMoveOnFiref
           extend(kDirTy.right)
         }
       } else {
-        di = di_ as ForwardDir
         let el = raw_insert_lock as TextElement, start = textOffset_(el), end = start + newLen
-        di ? (end -= toGoLeft) :  (start -= toGoLeft);
-        di = di && start > end ? (di_ = kDirTy.left) : kDirTy.right
-        // di is BOOL := start < end; a.di_ will be correct
-        el.setSelectionRange(di ? start : end, di ? end : start, kDir[di])
+        di_ as ForwardDir ? (end -= toGoLeft) :  (start -= toGoLeft)
+        el.setSelectionRange(start < end ? start : end, start < end ? end : start
+            , kDir[start < end ? di_ as ForwardDir : di_ = kDirTy.left])
       }
     }
     mode_ === Mode.Caret && collapseToRight(kDirTy.right)
@@ -768,7 +767,7 @@ const ensureLine = (command1: number): void => {
 }
 
   commandHandler(VisualAction.Noop, 1)
-  diff ? hudTip(kTip.noUsableSel, 1000) : hudShow(kTip.inVisualMode, modeName, options.r)
+  modeName ? diff ? hudTip(kTip.noUsableSel, 1000) : hudShow(kTip.inVisualMode, modeName, options.r) : 0
 }
 
 export const highlightRange = (sel: Selection): void => {

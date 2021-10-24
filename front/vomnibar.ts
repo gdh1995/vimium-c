@@ -809,10 +809,12 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       const domains = a.completions_.filter(i => i.e === "domain");
       (item as UrlInfo).u = domains.length ? domains[0].u : `www.${item.u}.com`;
     }
-    if (action < ReuseType.newFg
-        && !(typeof event === "number" && event & KeyStat.altKey && event & KeyStat.shiftKey)) { return func(); }
-    a.doEnter_ = func;
-    a.hide_();
+    if (action > ReuseType.newBg || event && event !== !0 && event & KeyStat.altKey) {
+      a.doEnter_ = func
+      a.hide_()
+    } else {
+      func()
+    }
   },
   OnEnterUp_ (this: void, key: string, event: KeyboardEvent): void {
     const keyCode = event.keyCode;
