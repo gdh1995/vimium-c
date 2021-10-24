@@ -493,6 +493,15 @@ export const getSelectionFocusEdge_ = (sel: Selection, knownDi?: VisualModeNS.Fo
     return SafeEl_not_ff_!(<Element | null> (o || el), PNType.DirectElement)
 }
 
+/** may skip a `<form> having <input name="nodeType">` */
+export const singleSelectionElement_unsafe = (sel: Selection): Element | null => {
+  let el: Node | null | false | "" | undefined = getAccessibleSelectedNode(sel), offset: number
+  el = el && (el as NodeToElement).tagName && el === getAccessibleSelectedNode(sel, 1)
+      && (offset = selOffset_(sel)) === selOffset_(sel, 1)
+      && (OnFirefox ? el.childNodes as NodeList : GetChildNodes_not_ff!(el as Element))[offset]
+  return el && isNode_(el, kNode.ELEMENT_NODE) ? el : null
+}
+
 export const getElDesc_ = (el: Element | null): FgReq[kFgReq.respondForRunKey]["e"] =>
     el && (OnFirefox || !notSafe_not_ff_!(el)) && [(el as SafeElement).localName, el.id, el.className] || null
 

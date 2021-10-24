@@ -5,10 +5,10 @@ import {
 import { prevent_ } from "../lib/keyboard_utils"
 import {
   createElement_, attachShadow_, NONE, fullscreenEl_unsafe_, docEl_unsafe_, getComputedStyle_, set_docSelectable_,
-  GetParent_unsafe_, getSelection_, GetChildNodes_not_ff, GetShadowRoot_, getEditableType_, htmlTag_, textOffset_,
+  GetParent_unsafe_, getSelection_, GetShadowRoot_, getEditableType_, htmlTag_, textOffset_,
   notSafe_not_ff_, CLK, frameElement_, runJS_, isStyleVisible_, rangeCount_, getAccessibleSelectedNode, removeEl_s,
-  appendNode_s, append_not_ff, setClassName_s, isNode_, contains_s, setOrRemoveAttr_s, selOffset_, textContent_s,
-  parentNode_unsafe_s, setDisplaying_s, editableTypes_, getRootNode_mounted
+  appendNode_s, append_not_ff, setClassName_s, isNode_, contains_s, setOrRemoveAttr_s, textContent_s,
+  parentNode_unsafe_s, setDisplaying_s, editableTypes_, getRootNode_mounted, singleSelectionElement_unsafe
 } from "../lib/dom_utils"
 import {
   bZoom_, dScale_, getZoom_, wdZoom_, getSelectionBoundingBox_, prepareCrop_, getClientRectsForAreas_,
@@ -19,7 +19,7 @@ import { currentScrolling } from "./scroller"
 import { find_box, styleSelectable } from "./mode_find"
 import { DrawableHintItem, isHintsActive, hintManager, coreHints, isHC_ } from "./link_hints"
 import { post_, runFallbackKey } from "./port"
-import { insert_Lock_ } from "./insert"
+import { insert_Lock_, raw_insert_lock } from "./insert"
 import { hide as omniHide, omni_box } from "./omni"
 
 export declare const enum kExitOnClick { // eslint-disable-next-line @typescript-eslint/no-shadow
@@ -254,7 +254,7 @@ export const checkDocSelectable = (): void => {
 export const getSelectionOf = (node: DocumentOrShadowRootMixin): Selection | null => node.getSelection!()
 
 export const getSelected = (notExpectCount?: {r?: ShadowRoot | null}): Selection => {
-  let el: Node | SafeElement | null | undefined, sel: Selection | null, offset: number
+  let el: Node | SafeElement | null | undefined, sel: Selection | null
   let sr: ShadowRoot | null = null
   if (el = deref_(currentScrolling)) {
       el = getRootNode_mounted(el as NonNullable<ReturnType<NonNullable<typeof currentScrolling>["deref"]>>)
@@ -268,26 +268,18 @@ export const getSelected = (notExpectCount?: {r?: ShadowRoot | null}): Selection
   }
   if (!sr) {
     sel = getSelection_();
-    let sel2: Selection | null = sel
-    if (OnChrome && Build.MinCVer >= BrowserVer.MinShadowDOMV0
-        || OnFirefox && Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1
-        || typeof ShadowRoot == OBJECT_TYPES[kTY.func]) {
+    let sel2 = OnChrome && Build.MinCVer >= BrowserVer.MinShadowDOMV0
+        || !OnFirefox && typeof ShadowRoot == OBJECT_TYPES[kTY.func] ? sel : null
     while (sel2) {
       sel2 = null;
-      el = getAccessibleSelectedNode(sel)
-      if (el && el === getAccessibleSelectedNode(sel, 1) && (offset = selOffset_(sel)) === selOffset_(sel, 1)) {
-        if ((el as NodeToElement).tagName) {
-          el = (OnFirefox ? el.childNodes as NodeList : GetChildNodes_not_ff!(el as Element))[offset]
-          if (el && (el as NodeToElement).tagName && (sr = GetShadowRoot_(el as Element))) {
+          el = singleSelectionElement_unsafe(sel)
+          if (el && (sr = GetShadowRoot_(el as Element))) {
             if (OnChrome ? sel2 = getSelectionOf(sr) : sr.getSelection && (sel2 = getSelectionOf(sr))) {
               sel = sel2!;
             } else {
               sr = null;
             }
           }
-        }
-      }
-    }
     }
   }
   notExpectCount && (notExpectCount.r = sr)
@@ -324,12 +316,15 @@ export const getSelectionParent_unsafe = ((sel: Selection, re?: RegExpG & RegExp
   (sel: Selection, re?: undefined): Element | null
 }
 
-/** `type`: 0 means to trim; 1 means check blurred inputs; 2 means focus is reliable */
+/** `type`: 0 means to trim; 0 and 1 means check blurred inputs; 2 means focus is reliable */
 export const getSelectionText = (type?: 0 | 1 | 2, sel?: Selection): string => {
     sel = sel || getSelection_()
-    let s = "" + <SelWithToStr> sel, el: Element | null | undefined, rect: ClientRect
-    if (s && !insert_Lock_()
-        && (el = deref_(currentScrolling)) && getEditableType_<0>(el) === EditableType.TextBox
+    let s = "" + <SelWithToStr> sel, node: Element | null, rect: ClientRect
+    if (OnFirefox && !s) {
+      s = !insert_Lock_() || getEditableType_<0>(node = raw_insert_lock!) !== EditableType.TextBox ? s
+          : (node as TextElement).value.slice(textOffset_(node as TextElement), textOffset_(node as TextElement, 1))
+    } else if (type !== 2 && s && !insert_Lock_()
+        && (node = singleSelectionElement_unsafe(sel)) && getEditableType_<0>(node) === EditableType.TextBox
         && (rect = getSelectionBoundingBox_(sel), !rect.width || !rect.height)) {
       s = "";
     }
