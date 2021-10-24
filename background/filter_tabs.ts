@@ -141,6 +141,7 @@ export const filterTabsByCond_ = <T extends ShownTab = Tab>(activeTab: ShownTab 
   let title: string | undefined, matcher: ValidUrlMatchers | null | undefined, host: string | undefined
   let group: string | null | undefined, useHash = false, hidden: boolean | null = null, muted: boolean | null = null
   let audio: boolean | null = null, pinned: boolean | null = null, known = 0;
+  let incognito: boolean | null = null, highlighted: boolean | null = null
   for (let item of (filter + "").split(/[&+]/)) {
     const rawKey = item.split("=", 1)[0], key = rawKey.includes(".") ? "" : rawKey || item
     const rawVal = item.slice(key ? key.length + 1 : 0);
@@ -168,6 +169,10 @@ export const filterTabsByCond_ = <T extends ShownTab = Tab>(activeTab: ShownTab 
     case "hidden":
       hidden = !OnFirefox ? null : val == "same" ? false : parseBool(val, 1)
       break
+    case "highlight": case "highlighted":
+      highlighted = val == "same" ? activeTab ? activeTab.highlighted : null : parseBool(val); break
+    case "incognito": case "incognito":
+      incognito = val == "same" ? activeTab ? activeTab.incognito : null : parseBool(val); break
     case "pinned": pinned = val == "same" ? activeTab ? activeTab.pinned : null : parseBool(val, 1); break
     case "mute": case "muted":
       if (!OnChrome || Build.MinCVer >= BrowserVer.MinMuted || CurCVer_ > BrowserVer.MinMuted - 1) {
@@ -194,6 +199,8 @@ export const filterTabsByCond_ = <T extends ShownTab = Tab>(activeTab: ShownTab 
       && (pinned === null || pinned === tab.pinned)
       && (muted === null || muted === isTabMuted(tab))
       && (audio === null || audio === tab.audible)
+      && (highlighted === null || highlighted === tab.highlighted)
+      && (incognito === null || highlighted === tab.incognito)
       && (group === undefined || group === (getGroupId(tab) ?? "") + "")
   )
   if (!tabs.length) { showHUD("No tabs matched the filter parameter") }

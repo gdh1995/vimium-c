@@ -1,6 +1,6 @@
 import {
   cRepeat, get_cOptions, cPort, curIncognito_, curTabId_, curWndId_, recencyForTab_,
-  copy_, settingsCache_, CurCVer_, IsEdg_, OnChrome, OnEdge, OnFirefox, CONST_, reqH_, set_cRepeat
+  copy_, settingsCache_, CurCVer_, IsEdg_, OnChrome, OnEdge, OnFirefox, CONST_, reqH_, set_cRepeat, lastWndId_
 } from "./store"
 import * as BgUtils_ from "./utils"
 import {
@@ -19,7 +19,8 @@ import { parseSedOptions_ } from "./clipboard"
 import { newTabIndex, preferLastWnd, openUrlWithActions } from "./open_urls"
 import { focusFrame } from "./frame_commands"
 import {
-  FilterInfo, filterTabsByCond_, getNecessaryCurTabInfo, getTabRange, Range3, sortTabsByCond_, tryLastActiveTab_
+  FilterInfo, filterTabsByCond_, getNecessaryCurTabInfo, getTabRange, onShownTabsIfRepeat_, Range3, sortTabsByCond_,
+  tryLastActiveTab_
 } from "./filter_tabs"
 import { TabRecency_ } from "./tools"
 
@@ -174,6 +175,7 @@ export const moveTabToNewWindow = (resolve: OnCmdResolved): void | kBgCmd.moveTa
   const kInc = "hasIncog"
   const moveTabToNewWindow0 = (wnd: PopWindow): void => {
     const allTabs = wnd.tabs, total = allTabs.length, all = !!get_cOptions<C.moveTabToNewWindow>().all
+    const focused = get_cOptions<C.moveTabToNewWindow>().focused !== false
     const activeTab = selectFrom(allTabs), curIncognito = activeTab.incognito;
     if (!all && total <= 1 && (!total || activeTab.index === 0 && abs(cRepeat) > 1)) { resolve(0); return }
     let range: [number, number]
@@ -198,8 +200,8 @@ export const moveTabToNewWindow = (resolve: OnCmdResolved): void | kBgCmd.moveTa
       const count = tabs.length
       if (count >= total && total > 1) { resolve(0); showHUD(trans_("moveAllTabs")); return }
       if (count > 30 && needConfirm_()) {
-            void confirm_("moveTabToNewWindow", count).then(moveTabToNewWindow0.bind(null, wnd))
-            return
+          void confirm_("moveTabToNewWindow", count).then(moveTabToNewWindow0.bind(null, wnd))
+          return
       }
       if (total === 1 && activeTab.index === 0 && abs(cRepeat) === 1) {
         void Q_(Tabs_.query, { windowId: wnd.id, index: 1 }).then((tabs2): void => {
@@ -211,7 +213,7 @@ export const moveTabToNewWindow = (resolve: OnCmdResolved): void | kBgCmd.moveTa
       }
     }
     const firstTab = !filter || tabs.includes!(activeTab) ? activeTab : tabs[0]
-    makeWindow({ tabId: firstTab.id, incognito: curIncognito }, wnd.type === "normal" ? wnd.state : ""
+    makeWindow({ tabId: firstTab.id, incognito: curIncognito, focused }, wnd.type === "normal" ? wnd.state : ""
         , tabs.length < 2 ? notifyCKey : (wnd2?: Window): void => {
       if (!wnd2) { resolve(0); return }
       notifyCKey()
@@ -255,7 +257,7 @@ export const moveTabToNewWindow = (resolve: OnCmdResolved): void | kBgCmd.moveTa
     const tab = selectFrom(wnd.tabs)
     if (wnd.incognito && tab.incognito) { resolve(0); return showHUD(trans_(kInc)) }
     const tabId = tab.id
-    const options: {tabId?: number, url?: string, incognito: true, focused?: true} = {incognito: true},
+    const options: Pick<chrome.windows.CreateData, "tabId" | "url" | "incognito" | "focused"> = {incognito: true},
     url = getTabUrl(tab)
     if (tab.incognito) { /* empty */ }
     else if (OnChrome && Build.MinCVer < BrowserVer.MinNoAbnormalIncognito
@@ -273,6 +275,7 @@ export const moveTabToNewWindow = (resolve: OnCmdResolved): void | kBgCmd.moveTa
     }
     wnd.tabs = null as never
     Windows_.getAll((wnds): void => {
+      let focused = get_cOptions<C.moveTabToNewWindow>().focused !== false
       // eslint-disable-next-line arrow-body-style
       wnds = wnds.filter((wnd2: Window): wnd2 is IncNormalWnd => {
         return wnd2.incognito && wnd2.type === "normal"
@@ -280,10 +283,10 @@ export const moveTabToNewWindow = (resolve: OnCmdResolved): void | kBgCmd.moveTa
       if (wnds.length) {
         Tabs_.query({ windowId: preferLastWnd(wnds).id, active: true }, ([tab2]): void => {
           /* safe-for-group */ tabsCreate({
-              url, windowId: tab2.windowId,
+              url, windowId: tab2.windowId, active: get_cOptions<C.moveTabToNewWindow>().active !== false,
               index: newTabIndex(tab2, get_cOptions<C.moveTabToNewWindow>().position, false, false)
           }, getRunNextCmdBy(kRunOn.tabPromise))
-          selectWnd(tab2)
+          focused && selectWnd(tab2)
           Tabs_.remove(tabId)
         })
         return
@@ -292,12 +295,13 @@ export const moveTabToNewWindow = (resolve: OnCmdResolved): void | kBgCmd.moveTa
       const useUrl = options.url != null
       if (useUrl) {
         if (CONST_.DisallowIncognito_) {
-          options.focused = true
+          focused = true
           state = ""
         }
       } else {
         options.tabId = tabId
       }
+      options.focused = focused
       // in tests on Chrome 46/51, Chrome hangs at once after creating a new normal window from an incognito tab
       // so there's no need to worry about stranger edge cases like "normal window + incognito tab + not allowed"
       makeWindow(options, state, (newWnd): void => {
@@ -333,21 +337,29 @@ export const moveTabToNextWindow = ([tab]: [Tab], resolve: OnCmdResolved): void 
     let wnds: Window[], ids: number[]
     const noMin = get_cOptions<C.moveTabToNextWindow>().minimized === false
         || get_cOptions<C.moveTabToNextWindow>().min === false
+    const focused = get_cOptions<C.moveTabToNextWindow>().focused !== false
     wnds = wnds0.filter(wnd => wnd.incognito === tab.incognito && wnd.type === "normal"
         && (!noMin || wnd.state !== "minimized"))
     if (wnds.length > 0) {
       ids = wnds.map(wnd => wnd.id)
       const index = ids.indexOf(tab.windowId)
       if (ids.length >= 2 || index < 0) {
-        let dest = (index + cRepeat) % ids.length
-        index < 0 && cRepeat < 0 && dest++
-        dest < 0 && (dest += ids.length)
+        const filter = get_cOptions<C.moveTabToNextWindow, true>().filter
+        const useTabs = !!(get_cOptions<C.moveTabToNextWindow>().tabs || filter)
+        const lastWndIdx = ids.indexOf(lastWndId_)
+        const firstWndIdx = get_cOptions<C.moveTabToNextWindow>().last && lastWndIdx >= 0 ? lastWndIdx
+            : index >= 0 ? index + 1 : 0
+        let dest = useTabs ? firstWndIdx : cRepeat > 0 ? firstWndIdx + cRepeat - 1 : firstWndIdx + cRepeat
+        dest = ((dest % ids.length) + ids.length) % ids.length
+        dest = dest !== index ? dest : dest + (cRepeat > 0 ? 1 : -1)
+        dest = ((dest % ids.length) + ids.length) % ids.length
         Tabs_.query({windowId: ids[dest], active: true}, ([tab2]): void => {
           const newIndex = get_cOptions<C.moveTabToNextWindow>().end ? null
               : get_cOptions<C.moveTabToNextWindow>().position != null
-              ? newTabIndex(tab, get_cOptions<C.moveTabToNextWindow>().position, false, false)
+              ? newTabIndex(tab2, get_cOptions<C.moveTabToNextWindow>().position, false, false)
               : tab2.index + (get_cOptions<C.moveTabToNextWindow>().right !== false ? 1 : 0)
           const toRight = newIndex == null || newIndex > tab2.index
+          let allToMove: ShownTab[] | null = null
           const callback = (): void => {
             if (toActivateInOld === -1) {
               Tabs_.query({ windowId: tab.windowId, index: tab.index + (toRight ? -1 : 1) }, (toActivate): void => {
@@ -357,12 +369,43 @@ export const moveTabToNextWindow = ([tab]: [Tab], resolve: OnCmdResolved): void 
               })
               return
             }
-            Tabs_.move(tab.id, { index: newIndex ?? -1, windowId: tab2.windowId }, notifyCKey)
-            selectWnd(tab2)
-            selectTab(tab.id, R_(resolve))
+            Tabs_.move(tab.id, { index: newIndex ?? -1, windowId: tab2.windowId }, (resultCur): void => {
+              if (runtimeError_()) { resolve(0); return runtimeError_() }
+              if (allToMove) {
+                const curInd = allToMove.findIndex(i => i.id === resultCur.id)
+                for (let i = 0; i < allToMove.length; i++) {
+                  i !== curInd && Tabs_.move(allToMove[i].id, {
+                    index: resultCur.index + i, windowId: resultCur.windowId
+                  }, runtimeError_)
+                }
+              }
+              cPort && cPort.s.tabId_ === resultCur.id && notifyCKey()
+            })
+            focused && selectWnd(tab2)
+            get_cOptions<C.moveTabToNextWindow>().active !== false && selectTab(tab.id, R_(resolve))
             toActivateInOld > 0 && selectTab(toActivateInOld)
           }
           let toActivateInOld = toRight && !tab.index ? -9 : -1
+          if (useTabs && (!OnChrome || Build.MinCVer >= BrowserVer.MinNoAbnormalIncognito
+                || index >= 0 || CurCVer_ >= BrowserVer.MinNoAbnormalIncognito) && abs(cRepeat) !== 1) {
+            onShownTabsIfRepeat_(true, 0, (tabs, range): void => {
+              tab = tabs[range[1]] as Tab
+              tabs = tabs.slice(range[0], range[2])
+              if (OnChrome && Build.MinCVer && BrowserVer.MinNoAbnormalIncognito
+                  && CurCVer_ < BrowserVer.MinNoAbnormalIncognito) {
+                tabs = tabs.filter(i => i.incognito === tab.incognito)
+              }
+              if (filter) {
+                tabs = filterTabsByCond_(tab, tabs, filter)
+                if (!tabs.length) { resolve(0); return }
+                tab = tabs.includes!(tab) ? tab : tabs[0] as Tab
+              }
+              allToMove = tabs
+              toActivateInOld = -9
+              callback()
+            }, [], resolve)
+            return
+          }
           !OnChrome || Build.MinCVer >= BrowserVer.MinNoAbnormalIncognito ? /*#__INLINE__*/ callback()
           : index >= 0 || CurCVer_ >= BrowserVer.MinNoAbnormalIncognito ? callback()
           : (toActivateInOld = -9, makeTempWindow_r(tab.id, tab.incognito, callback))
@@ -372,8 +415,12 @@ export const moveTabToNextWindow = ([tab]: [Tab], resolve: OnCmdResolved): void 
     } else {
       wnds = wnds0.filter(wnd => wnd.id === tab.windowId)
     }
+    if (abs(cRepeat) > 1) {
+      moveTabToNewWindow(resolve)
+      return
+    }
     makeWindow({
-      tabId: tab.id, incognito: tab.incognito
+      tabId: tab.id, incognito: tab.incognito, focused
     }, wnds.length === 1 && wnds[0].type === "normal" ? wnds[0].state : "", (newWnd): void => {
       newWnd && notifyCKey()
       resolve(!!newWnd)

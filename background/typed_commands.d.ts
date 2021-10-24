@@ -83,10 +83,11 @@ interface BgCmdOptions {
   } & TabFilterOptions
   [kBgCmd.mainFrame]: Req.FallbackOptions
   [kBgCmd.moveTab]: { group: "keep" | "ignore" | boolean }
-  [kBgCmd.moveTabToNewWindow]: { all: boolean | BOOL }
+  [kBgCmd.moveTabToNewWindow]: { all: boolean | BOOL; focused: boolean; active: boolean }
       & Pick<OpenUrlOptions, "incognito" | "position"> & LimitedRangeOptions & TabFilterOptions
-  [kBgCmd.moveTabToNextWindow]: { minimized: false; min: false; end: boolean; right: true | false }
-      & Pick<OpenUrlOptions, "position">
+  [kBgCmd.moveTabToNextWindow]: { minimized: false; min: false; end: boolean; right: true | false
+      focused: boolean; active: boolean; last: boolean; tabs: boolean }
+      & Pick<OpenUrlOptions, "position"> & LimitedRangeOptions & TabFilterOptions
   [kBgCmd.openUrl]: OpenUrlOptions & MasksForOpenUrl & {
     urls: string[]; $fmt: 1 | 2
     url: string; url_f: Urls.Url
