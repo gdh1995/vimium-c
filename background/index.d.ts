@@ -326,7 +326,6 @@ declare namespace SettingsNS {
     vomnibarPage_f: string;
     omniBlockList: string;
   }
-  interface ReadableFiles { helpDialog: string; baseCSS: string; words: string }
   interface BaseNonPersistentSettings {
     searchEngineMap: Map<string, Search.Engine>
     searchEngineRules: Search.Rule[];

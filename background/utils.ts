@@ -1,4 +1,4 @@
-import { CONST_, CurCVer_, CurFFVer_, framesForTab_, OnChrome, OnEdge, OnFirefox } from "./store"
+import { CurCVer_, CurFFVer_, framesForTab_, OnChrome, OnEdge, OnFirefox } from "./store"
 
 export const spacesRe_ = <RegExpG & RegExpSearchable<0>> /\s+/g
 export const protocolRe_ = <RegExpOne> /^[a-z][\+\-\.\da-z]+:\/\//
@@ -291,8 +291,7 @@ export const fetchFile_ = ((filePath: string): Promise<string | {}> => {
     req.send()
   })
 }) as {
-  <T extends (typeof CONST_)[keyof SettingsNS.ReadableFiles] | `${string}.json`> (
-      file: T): Promise<T extends `${string}.json` ? Dict<any> : string>
+  <T extends string> (file: T): Promise<T extends `${string}.json` ? Dict<any> : string>
 }
 
 export const escapeAllForRe_ = (s: string): string =>

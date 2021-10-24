@@ -203,7 +203,6 @@ export const CONST_ = {
   BrowserProtocol_: OnChrome ? "chrome" : OnFirefox ? "moz" : OnEdge ? "ms-browser" : "about",
   AllowClipboardRead_: true,
   BaseCSSLength_: 0,
-  BlankNewTab_: "pages/blank.html",
   // should keep lower case
   NtpNewTab_: OnEdge ? <RegExpOne> /^https:\/\/www\.msn\.\w+\/spartan\/ntp\b/
       : OnChrome && IsEdg_ ? <RegExpOne> /^https:\/\/(ntp|www)\.msn\.\w+\/(edge|spartan)\/ntp\b/
@@ -214,26 +213,9 @@ export const CONST_ = {
   VerCode_: "", VerName_: "",
   GitVer: BuildStr.Commit as string,
   Injector_: "/lib/injector.js",
-  KnownPages_: ["blank", "newtab", "options", "show"],
   HelpDialogJS: "/background/help_dialog.js" as const,
-  InjectEnd_: "content/injected_end.js",
   OptionsPage_: GlobalConsts.OptionsPage as string, Platform_: "browser",
-  baseCSS: "vimium-c.css" as const,
-  helpDialog: "help_dialog.html" as const,
-  words: OnFirefox && !Build.NativeWordMoveOnFirefox
-      || OnChrome && Build.MinCVer < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
-        && Build.MinCVer < BrowserVer.MinSelExtendForwardOnlySkipWhitespaces
-      ? "words.txt" as const : "" as const,
-  PolyFill_: OnChrome && Build.MinCVer < BrowserVer.MinSafe$String$$StartsWith ? "lib/polyfill.js" : "",
   HomePage_: "https://github.com/gdh1995/vimium-c",
-  RedirectedUrls_: {
-    about: "", changelog: "/RELEASE-NOTES.md", help: "/wiki", home: "", license: "/LICENSE.txt",
-    permissions: "/PRIVACY-POLICY.md#permissions-required", policy: "/PRIVACY-POLICY.md",
-    popup: "options.html", privacy: "/PRIVACY-POLICY.md#privacy-policy",
-    readme: "#readme", release: "/RELEASE-NOTES.md", "release-notes": "/RELEASE-NOTES.md",
-    settings: "options.html", wiki: "/wiki",
-    __proto__: null as never
-  },
   GlobalCommands_: null as never as StandardShortcutNames[],
   ShowPage_: "pages/show.html",
   VomnibarPageInner_: "", VomnibarScript_: "/front/vomnibar.js", VomnibarScript_f_: ""

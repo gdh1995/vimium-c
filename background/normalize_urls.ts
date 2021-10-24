@@ -9,6 +9,17 @@ export const quotedStringRe_ = <RegExpOne> /^"[^"]*"$|^'[^']*'$|^\u201c[^\u201d]
 export const searchWordRe_ = <RegExpG & RegExpSearchable<2>> /\$([sS])(?:\{([^}]*)})?/g
 export const searchVariableRe_ = <RegExpG & RegExpSearchable<1>> /\$([+-]?\d+)/g
 
+const KnownPages_ = ["blank", "newtab", "options", "show"]
+const kOpts = "options.html"
+const RedirectedUrls_: SafeDict<string> = { __proto__: null as never,
+  about: "", changelog: "/RELEASE-NOTES.md", help: "/wiki", home: "", license: "/LICENSE.txt",
+  option: kOpts, permissions: "/PRIVACY-POLICY.md#permissions-required", policy: "/PRIVACY-POLICY.md",
+  popup: kOpts, preference: kOpts, preferences: kOpts,
+  privacy: "/PRIVACY-POLICY.md#privacy-policy", profile: kOpts, profiles: kOpts,
+  readme: "#readme", release: "/RELEASE-NOTES.md", releases: "/RELEASE-NOTES.md", "release-notes": "/RELEASE-NOTES.md",
+  setting: kOpts, settings: kOpts, wiki: "/wiki"
+}
+
 export let lastUrlType_ = Urls.Type.Default
 
 export const convertToUrl_ = function (str: string, keyword?: string | null, vimiumUrlWork?: Urls.WorkType): Urls.Url {
@@ -242,13 +253,14 @@ export const formatVimiumUrl_ = (fullPath: string, partly: boolean, vimiumUrlWor
   path === "display" && (path = "show");
   if (!(<RegExpOne> /\.\w+$/).test(path)) {
     path = path.toLowerCase();
-    if ((tempStr = (CONST_.RedirectedUrls_ as SafeDict<string>)[path]) != null) {
+    if ((tempStr = RedirectedUrls_[path]) != null) {
+      (path === "release" || path === "releases") && (tempStr += "#" + CONST_.VerCode_.replace(<RegExpG> /\D/g, ""))
       tempStr = path = !tempStr || tempStr[0] === "/" || tempStr[0] === "#"
         ? CONST_.HomePage_ + (tempStr.includes(".") ? "/blob/master" + tempStr : tempStr)
         : tempStr;
     } else if (path === "newtab") {
       return settingsCache_.newTabUrl_f;
-    } else if (path[0] === "/" || CONST_.KnownPages_.indexOf(path) >= 0) {
+    } else if (path[0] === "/" || KnownPages_.indexOf(path) >= 0) {
       path += ".html";
     } else if (vimiumUrlWork === Urls.WorkType.ActIfNoSideEffects  || vimiumUrlWork === Urls.WorkType.ConvertKnown) {
       return "vimium://" + fullPath.trim();

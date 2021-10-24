@@ -447,13 +447,12 @@ browser_.runtime.getPlatformInfo((info): void => {
   obj.VomnibarPageInner_ = func(defaults_.vomnibarPage)
   obj.VomnibarScript_f_ = func(obj.VomnibarScript_);
   obj.HomePage_ = ref.homepage_url || obj.HomePage_;
-  obj.RedirectedUrls_.release += "#" + obj.VerCode_.replace(<RegExpG> /\D/g, "");
   obj.Injector_ = func(obj.Injector_);
-  ref2.push(obj.InjectEnd_);
+  ref2.push("content/injected_end.js")
   if (OnChrome && Build.MinCVer < BrowserVer.MinSafe$String$$StartsWith
       && CurCVer_ < BrowserVer.MinSafe$String$$StartsWith
       && "".includes.name !== "includes") {
-    ref2.unshift(obj.PolyFill_);
+    ref2.unshift("lib/polyfill.js")
   }
   obj.ContentScripts_ = ref2.map(func);
 

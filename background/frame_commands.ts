@@ -74,7 +74,7 @@ export const initHelp = (request: FgReq[kFgReq.initHelp], port: Port): void => {
   const curHData = helpDialogData_ || []
   Promise.all([
     import(CONST_.HelpDialogJS) as Promise<typeof import("./help_dialog")>,
-    curHData[0] != null ? null : BgUtils_.fetchFile_(CONST_.helpDialog),
+    curHData[0] != null ? null : BgUtils_.fetchFile_("help_dialog.html"),
     curHData[1] != null ? null : getI18nJson("help_dialog"),
     curHData[2] != null ? null : getI18nJson("params.json")
   ]).then(([helpDialog, temp1, temp2, temp3]): void => {

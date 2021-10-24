@@ -154,7 +154,7 @@ export const tabsCreate = (args: chrome.tabs.CreateProperties, callback?: ((tab:
   if (!url) {
     url = settingsCache_.newTabUrl_f
     if (curIncognito_ === IncognitoType.true
-        && (evenIncognito === -1 ? url.endsWith(CONST_.BlankNewTab_) && url.startsWith(location.origin)
+        && (evenIncognito === -1 ? url.includes("pages/blank.html") && url.startsWith(location.origin)
             : !evenIncognito && url.startsWith(location.protocol))) { /* empty */ }
     else if (!doesIgnoreUrlField_(url, curIncognito_ === IncognitoType.true)) {
       args.url = url

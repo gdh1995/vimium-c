@@ -46,7 +46,7 @@ export const reloadCSS_ = (action: MergeAction, cssStr?: string): SettingsNS.Mer
       return
     }
   }
-  fetchFile_(CONST_.baseCSS).then((css: string): void => {
+  fetchFile_("vimium-c.css").then((css: string): void => {
     const browserInfo = StyleCacheId_.slice(StyleCacheId_.indexOf(",") + 1),
     hasAll = OnChrome && Build.MinCVer >= BrowserVer.MinUsableCSS$All || browserInfo.includes("a")
     if (!(Build.NDEBUG || css.startsWith(":host{"))) {
