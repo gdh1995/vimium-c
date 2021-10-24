@@ -11,13 +11,16 @@ import {
   normalizedOptions_, envRegistry_, parseOptions_, normalizeCommand_, availableCommands_, makeCommand_
 } from "./key_mappings"
 import {
-  copyCmdOptions, executeCommand, overrideOption, parseFallbackOptions, replaceCmdOptions, runNextCmdBy
+  copyCmdOptions, executeCommand, overrideOption, parseFallbackOptions, replaceCmdOptions, runNextCmdBy,
+  fillOptionWithMask
 } from "./run_commands"
 import C = kBgCmd
 import NormalizedEnvCond = CommandsNS.NormalizedEnvCond
 
 declare const enum kStr { RunKeyWithId = "<v-runkey:$1>" }
 const abs = Math.abs
+const kRunKeyOptionNames: readonly (Exclude<keyof BgCmdOptions[C.runKey], `$${string}` | `o.${string}`>)[] =
+    [ "expect", "keys", "options", "mask" ]
 let loopIdToRunSeq = 0
 
 const collectOptions = (opts: { [key: `o.${string}`]: any }): CommandsNS.Options | null => {
@@ -26,10 +29,7 @@ const collectOptions = (opts: { [key: `o.${string}`]: any }): CommandsNS.Options
   for (const key in opts) {
     if (key.includes("$")) { /* empty */ }
     else if (!key.startsWith("o.")) {
-      const normalKey = key as Exclude<keyof BgCmdOptions[C.runKey], `o.${string}` | `$${string}`>
-      if (normalKey !== "keys" && normalKey !== "expect" && normalKey !== "options") {
-        todo.push(As_<never>(normalKey) as string)
-      }
+      kRunKeyOptionNames.includes!(key) || todo.push(key)
     } else if (key.length > 2) {
       o2[found = key.slice(2)] = opts[key as `o.${string}`]
     }
@@ -206,18 +206,28 @@ export const runKeyWithCond = (info?: CurrentEnvCache): void => {
         || !seq.tree || typeof seq.tree !== "object" || typeof seq.tree.t !== "number")) {
     showHUD(sub_name + "The key is invalid")
   } else {
-    const repeat = keys.length === 1 ? cRepeat : 1
-    let options = matched && matched.options || get_cOptions<C.runKey, true>().options
-        || collectOptions(get_cOptions<C.runKey, true>())
     let options2: CommandsNS.RawOptions | null
     if (typeof seq === "string") {
+      let mask = get_cOptions<C.runKey, true>().mask
+      if (mask != null) {
+        const filled = fillOptionWithMask<C.runKey>(seq, mask, "", kRunKeyOptionNames)
+        if (!filled.ok) {
+          showHUD((filled.result ? "Too many potential keys" : "No key") + " to fill masks")
+          return
+        }
+        mask = filled.ok > 0, seq = filled.result
+      }
       const optionsPrefix = seq.startsWith("#") ? seq.split("+", 1)[0] : ""
       options2 = optionsPrefix.length > 1 ? parseEmbeddedOptions(optionsPrefix.slice(1)) : null
       key = parseKeySeq(seq.slice(optionsPrefix ? optionsPrefix.length + 1 : 0))
-      seq = keys[keysInd] = { tree: key, options: options2 }
+      seq = { tree: key, options: options2 }
+      mask || (keys[keysInd] = seq)
     } else {
       key = seq.tree, options2 = seq.options
     }
+    const repeat = keys.length === 1 ? cRepeat : 1
+    let options = matched && matched.options || get_cOptions<C.runKey, true>().options
+        || (get_cOptions<C.runKey, true>().$masked ? null : collectOptions(get_cOptions<C.runKey, true>()))
     options = !options2 || !options ? options || options2
         : copyCmdOptions(copyCmdOptions(BgUtils_.safeObj_(), options2), options as CommandsNS.Options)
     if (key.t === kN.error) { showHUD(key.val); return }

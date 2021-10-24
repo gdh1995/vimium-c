@@ -62,6 +62,38 @@ export const overrideOption = <T extends BgCmdCanBeOverride, K extends KeyCanBeO
   if (parentOptions != null) { overrideOption(field, value, parentOptions as unknown as KnownOptions<T>) }
 }
 
+export const fillOptionWithMask = <Cmd extends keyof BgCmdOptions>(template: string
+    , rawMask: MaskOptions["mask"] | UnknownValue, valueKey: (keyof BgCmdOptions[Cmd]) & string | ""
+    , stopWords: readonly (Exclude<keyof BgCmdOptions[Cmd], `$${string}` | `o.${string}`>)[]
+    ): { ok: 1 | -1, result: string } | { ok: 0, result: number } => {
+  let ok: 1 | -1 = -1, toDelete: string | undefined, mask = rawMask
+  if (mask === true || mask === "") { mask = template.includes("$s") ? "$s" : "%s" }
+  if (mask && typeof mask === "string" && template.includes(mask)) {
+    let name = valueKey && (get_cOptions<Cmd>())[valueKey] as string | UnknownValue
+    if (!name) {
+      const keys = Object.keys(get_cOptions<Cmd>()).filter(i => i[0] !== "$" && !stopWords.includes!(i))
+      if (keys.length !== 1 && rawMask !== "") { return { ok: 0, result: keys.length } }
+      if (keys.length === 1) {
+        name = toDelete = keys[0]
+      } else {
+        name = ""
+      }
+    } else {
+      toDelete = valueKey
+    }
+    template = template.replace(mask, (): string => "" + name)
+    ok = 1
+  }
+  if (mask) {
+    overrideCmdOptions<C.blank>({})
+    get_cOptions<C.runKey, true>().$masked = true
+    if (toDelete) {
+      delete get_cOptions<C.runKey, true>()[toDelete as keyof BgCmdOptions[C.runKey]]
+    }
+  }
+  return { ok, result: template }
+}
+
 /** execute a command normally */
 
 const executeCmdOnTabs = (tabs: Tab[] | [Tab] | undefined): void => {

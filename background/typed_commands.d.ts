@@ -125,7 +125,7 @@ interface BgCmdOptions {
       cursor: object | null, timeout: number
       id: string, fallback: Req.FallbackOptions | null
     }
-  } & Req.FallbackOptions
+  } & Req.FallbackOptions & MaskOptions
   [kBgCmd.searchInAnother]: { keyword: string; reuse: UserReuseType } & Req.FallbackOptions
       & OpenUrlOptions & MasksForOpenUrl & OpenPageUrlOptions
   [kBgCmd.sendToExtension]: { id: string; data: any; raw: true } & Req.FallbackOptions
@@ -140,7 +140,7 @@ interface BgCmdOptions {
   [kBgCmd.visitPreviousTab]: { acrossWindows: true; onlyActive: true } & TabFilterOptions & Req.FallbackOptions
   [kBgCmd.closeDownloadBar]: { newWindow?: null | true | false; all: 1 }
   [kBgCmd.reset]: {}
-  [kBgCmd.openBookmark]: { title: string; path: string; mask: string | true; name: string }
+  [kBgCmd.openBookmark]: { title: string; path: string; name: string } & MaskOptions
 }
 
 interface BgCmdInfoMap {
@@ -181,6 +181,7 @@ interface MasksForOpenUrl {
 interface LimitedRangeOptions {
   limited: boolean
 }
+interface MaskOptions { mask: boolean | string | ""; $masked: boolean }
 
 interface TabFilterOptions {
   filter: "url" | "hash" | "url=..." | "host" | "host=..." | "title" | "title*" | "group" | "url+hash" | "host&title"
