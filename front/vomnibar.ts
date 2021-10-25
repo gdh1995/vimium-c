@@ -546,7 +546,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     }
     return key;
   },
-  getMappedKey_ (event: KeyboardEvent): string {
+  getMappedKey_ (event: KeyboardEvent): { mapped: boolean, key: string } {
     const char = Vomnibar_.char_(event);
     let key: string = char, mapped: string | undefined;
     if (char) {
@@ -560,12 +560,12 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       if (Vomnibar_.mappedKeyRegistry_) {
         mapped = Vomnibar_.mappedKeyRegistry_[key + GlobalConsts.DelimiterBetweenKeyCharAndMode
             + GlobalConsts.OmniModeId] || Vomnibar_.mappedKeyRegistry_[key];
-        key = mapped ? mapped : !isLong && (mapped = Vomnibar_.mappedKeyRegistry_[chLower]) && mapped.length < 2
+        mapped = mapped ? mapped : !isLong && (mapped = Vomnibar_.mappedKeyRegistry_[chLower]) && mapped.length < 2
             && (baseMod = mapped.toUpperCase()) !== mapped
-            ? mod ? mod + mapped : char === chLower ? mapped : baseMod : key
+            ? mod ? mod + mapped : char === chLower ? mapped : baseMod : ""
       }
     }
-    return key;
+    return mapped ? { mapped: true, key: mapped } : { mapped: false, key }
   },
   ctrlCharOrShiftKeyMap_: AsOmni_<{ readonly [char in kChar]?: AllowedActions }>({
     // for Ctrl / Meta
@@ -584,7 +584,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   }),
   onKeydown_ (event: KeyboardEventToPrevent): void {
     const a = Vomnibar_, n = event.keyCode, focused = a.focused_,
-    key = n !== kKeyCode.ime ? a.getMappedKey_(event) : "";
+    { mapped, key } = n !== kKeyCode.ime ? a.getMappedKey_(event) : { mapped: false, key: "" }
     a.lastKey_ = n;
     if (!key) {
       a.inAlt_ && !a._modifierKeys[Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key
@@ -625,21 +625,17 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
           }
           return;
       }
-      if (mainModifier === "a-" && char === kChar.enter) {
-          a.onEnter_(key, !a.selection_ && a.isSelOriginal_ ? -1 : a.selection_);
-          return;
-      }
       if (!focused) { /* empty */ }
       else if (char.length === 1 && char > kChar.a && char < kChar.g && char !== kChar.c
           || char === kChar.backspace && a.os_) {
         return a.onBashAction_(char.length === 1
             ? char.charCodeAt(0) - (kCharCode.maxNotAlphabet | kCharCode.CASE_DELTA) : -1);
       }
-      if (mainModifier === "a-") { a.keyResult_ = SimpleKeyResult.Nothing; return; }
+      if (mainModifier === "a-" && char !== kChar.enter) { a.keyResult_ = SimpleKeyResult.Nothing; return; }
     }
     if (char === kChar.enter) {
       if (event.key === "Enter" || n === kKeyCode.enter) {
-        window.onkeyup = a.OnEnterUp_.bind(null, key)
+        window.onkeyup = a.OnEnterUp_.bind(null, key, mapped)
       } else {
         a.onEnter_(key);
       }
@@ -681,8 +677,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     }
     else if (char !== kChar.space) { /* empty */ }
     else if (!focused) { action = AllowedActions.focus; }
-    else if ((a.selection_ >= 0
-        || a.completions_.length <= 1) && a.input_.value.endsWith("  ")) {
+    else if (!mapped && (a.selection_ >= 0 || a.completions_.length <= 1) && a.input_.value.endsWith("  ")) {
       return a.onEnter_(true);
     }
     if (action) {
@@ -816,19 +811,22 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       func()
     }
   },
-  OnEnterUp_ (this: void, key: string, event: KeyboardEvent): void {
+  OnEnterUp_ (this: void, key: string, mapped: boolean, event: KeyboardEvent): void {
     const keyCode = event.keyCode;
     if (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome) ? event.isTrusted
         : event.isTrusted !== false
-    ) { // call onEnter once an enter / control key is up
+    ) { // call onEnter once an enter / modifier key is up
       window.onkeyup = null as never;
-      Vomnibar_.lastKey_ = kKeyCode.None;
-      Vomnibar_.onEnter_(key !== kChar.enter ? key
+      const a = Vomnibar_, key2 = key !== kChar.enter || mapped ? key
           : (event.altKey || keyCode === kKeyCode.altKey ? KeyStat.altKey : 0)
           + (event.ctrlKey || keyCode === kKeyCode.ctrlKey ? KeyStat.ctrlKey : 0)
           + (event.metaKey || keyCode > kKeyCode.maxNotMetaKey && keyCode < kKeyCode.minNotMetaKeyOrMenu
               ? KeyStat.metaKey : 0)
-          + (event.shiftKey || keyCode === kKeyCode.shiftKey ? KeyStat.shiftKey : 0));
+          + (event.shiftKey || keyCode === kKeyCode.shiftKey ? KeyStat.shiftKey : 0)
+      if (!a.isActive_) { return }
+      a.lastKey_ = kKeyCode.None
+      a.onEnter_(key, (typeof key2 === "string" ? key2 === "a-" + kChar.enter : key2 === KeyStat.altKey)
+          ? !a.selection_ && a.isSelOriginal_ ? -1 : a.selection_ : null)
     }
   },
   parseClickEventAs_ (event: KeyStat): ReuseType {

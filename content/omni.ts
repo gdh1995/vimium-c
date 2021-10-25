@@ -42,13 +42,15 @@ let omniOptions: VomnibarNS.FgOptionsToFront | null = null
 let secondActivateWithNewOptions: (() => void) | null = null
 let timer_: ValidTimeoutID = TimerID.None
 let dialogWrapper_: HTMLDialogElement | false | null | undefined
+let canUseVW: boolean
+let screenHeight_: number
 
 export { box as omni_box, status as omni_status }
 
 type InnerHide = (fromInner?: 1 | null) => void
 export const hide = ((fromInner?: 1 | null): void => {
     const oldIsActive = status > Status.Inactive
-    status = Status.Inactive
+    status = screenHeight_ = Status.Inactive
     setupExitOnClick(kExitOnClick.vomnibar | kExitOnClick.REMOVE)
     if (fromInner == null) {
       oldIsActive && postToOmni(VomnibarNS.kCReq.hide)
@@ -240,7 +242,8 @@ const refreshKeyHandler = (): void => {
   const timer1 = timeout_(refreshKeyHandler, GlobalConsts.TimeOfSuppressingTailKeydownEvents), oldTimer = timer_
   const scale = wndSize_(2)
   const notInFullScreen = !fullscreenEl_unsafe_()
-  let url = options.url, upper = 0, screenHeight_ = 0 // unit: physical pixel (if C<52)
+  let url = options.url, upper = 0
+  screenHeight_ = 0 // unit: physical pixel (if C<52)
   // hide all further key events to wait iframe loading and focus changing from JS
   replaceOrSuppressMost_(kHandler.omni)
   secondActivateWithNewOptions = null
@@ -280,7 +283,7 @@ const refreshKeyHandler = (): void => {
   omniOptions = null
   getViewBox_()
   // `canUseVW` is computed for the gulp-built version of vomnibar.html
-  const canUseVW = (!OnChrome || Build.MinCVer >= BrowserVer.MinCSSWidthUnit$vw$InCalc
+  canUseVW = (!OnChrome || Build.MinCVer >= BrowserVer.MinCSSWidthUnit$vw$InCalc
           || chromeVer_ > BrowserVer.MinCSSWidthUnit$vw$InCalc - 1)
       && notInFullScreen && docZoom_ === 1 && dScale_ === 1
   let width = canUseVW ? wndSize_(1) : (prepareCrop_()
@@ -328,12 +331,13 @@ const refreshKeyHandler = (): void => {
         : (omniOptions = options as VomnibarNS.FgOptions as VomnibarNS.FgOptionsToFront)
     return
   }
-  send_(kFgReq.parseSearchUrl, { t: options.s, p: upper, u: url }, function (search): void {
-    options.p = search
-    if (search != null) { options.url = ""; }
-    status > Status.Initing ? postToOmni(options as VomnibarNS.FgOptions as VomnibarNS.FgOptionsToFront)
-        : (omniOptions = options as VomnibarNS.FgOptions as VomnibarNS.FgOptionsToFront)
-  })
+  send_(kFgReq.parseSearchUrl, { t: options.s, p: upper, u: url }
+      , ((options2: FullOptions, search: ParsedSearch | null): void => {
+    options2.p = search
+    if (search != null) { options2.url = ""; }
+    status > Status.Initing ? postToOmni(options2 as VomnibarNS.FgOptions as VomnibarNS.FgOptionsToFront)
+        : (omniOptions = options2 as VomnibarNS.FgOptions as VomnibarNS.FgOptionsToFront)
+  }).bind(0, options))
 } as (options: CmdOptions[kFgCmd.vomnibar], count: number) => void
 
 export const focusOmni = (): void => {
