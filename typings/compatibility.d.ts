@@ -552,6 +552,7 @@ declare const enum FirefoxBrowserVer {
   MinEnsuredES$DynamicImport = 67, // static import is ensured since FF60
   MinFollowSelectionColorOnInactiveFrame = 68,
   Min$visualViewport$OnAndroid = 68, // for desktop version: https://bugzilla.mozilla.org/show_bug.cgi?id=1551302
+  Min$window$$focus$alwaysActivateTab = 68,
   MinNoKeygenElement = 69,
   MinUnprefixedUserSelect = 69,
   MinCSSEnableContain = 69,

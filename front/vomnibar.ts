@@ -226,7 +226,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   keyResult_: SimpleKeyResult.Nothing,
   list_: null as never as EnsuredMountedHTMLElement,
   onUpdate_: null as (() => void) | null,
-  doEnter_: null as ((this: void) => void) | null,
+  onWndBlur2_: null as (() => void) | null,
+  doEnter_: null as [callback: (this: void) => void, reuse: ReuseType] | null,
   renderItems_: null as never as Render,
   selection_: -1,
   afterHideTimer_: 0,
@@ -286,12 +287,17 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     a.barCls_.remove("empty");
     a.list_.classList.remove("no-favicon");
     a.toggleAlt_(0);
-    a.afterHideTimer_ = requestAnimationFrame(a.AfterHide_);
+    a.afterHideTimer_ = Build.BTypes & BrowserType.Firefox
+        && (!(Build.BTypes & ~BrowserType.Firefox) || a.browser_ === BrowserType.Firefox)
+        ? requestAnimationFrame(a.AfterHide_) : requestAnimationFrame((): void => {
+      a.afterHideTimer_ = requestAnimationFrame(a.AfterHide_)
+    })
     a.timer_ = setTimeout(a.AfterHide_, 35);
   },
   AfterHide_ (this: void): void {
     const a = Vomnibar_;
     cancelAnimationFrame(a.afterHideTimer_);
+    a.afterHideTimer_ = 0
     clearTimeout(a.timer_);
     if (a.height_) {
       a.onHidden_();
@@ -309,7 +315,24 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     a.mode_.o = "omni";
     a.mode_.t = CompletersNS.SugType.Empty;
     a.isSearchOnTop_ = false;
-    a.doEnter_ && VPort_ ? setTimeout(a.doEnter_, 0) : (<RegExpOne> /a?/).test("")
+    if (!a.doEnter_ || !VPort_) {
+      (<RegExpOne> /a?/).test("")
+    } else if (Build.BTypes & BrowserType.Firefox
+        && (!(Build.BTypes & ~BrowserType.Firefox) || a.browser_ === BrowserType.Firefox)
+        && document.hasFocus() && a.doEnter_[1] !== ReuseType.current) {
+      const cb = (): void => {
+        const curDoEnter = Vomnibar_.doEnter_
+        clearTimeout(timer)
+        Vomnibar_.doEnter_  =null
+        VPort_ && curDoEnter && (curDoEnter[0](), (<RegExpOne> /a?/).test(""))
+      }
+      let timer = setTimeout(cb, 67)
+      a.onWndBlur2_ = (): void => { Vomnibar_.onWndBlur2_ = null; setTimeout(cb, 1) }
+      return
+    } else {
+      setTimeout(a.doEnter_[0], Build.BTypes & BrowserType.Firefox
+          && (!(Build.BTypes & ~BrowserType.Firefox) || a.browser_ === BrowserType.Firefox) ? 1 : 0)
+    }
     a.doEnter_ = null;
   },
   reset_ (input: string, start?: number, end?: number): void {
@@ -805,7 +828,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       (item as UrlInfo).u = domains.length ? domains[0].u : `www.${item.u}.com`;
     }
     if (action > ReuseType.newBg || event && event !== !0 && event & KeyStat.altKey) {
-      a.doEnter_ = func
+      a.doEnter_ = [func, action]
       a.hide_()
     } else {
       func()
@@ -1115,11 +1138,12 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   },
   OnWndFocus_ (this: void, event: Event): void {
     const a = Vomnibar_, byCode = a.codeFocusTime_ && performance.now() - a.codeFocusTime_ < 120,
-    blurred = event.type === "blur", target = event.target;
+    blurred = event.type === "blur", target = event.target, isWnd = target === window
     if ((Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
           ? !event.isTrusted : event.isTrusted === false) || !VPort_) { return; }
     a.codeFocusReceived_ = true;
-    if (!a.isActive_ || target !== window) {
+    blurred && a.onWndBlur2_ && isWnd && a.onWndBlur2_()
+    if (!a.isActive_ || !isWnd) {
       target === a.input_ &&
       (Vomnibar_.focused_ = !blurred) && (Vomnibar_.blurWanted_ = false);
       return;
