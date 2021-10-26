@@ -1,5 +1,5 @@
 import {
-  framesForTab_, CurCVer_, OnChrome, set_setIcon_, setIcon_, set_iconData_, iconData_, blank_
+  framesForTab_, CurCVer_, OnChrome, set_setIcon_, setIcon_, set_iconData_, iconData_, blank_, set_needIcon_
 } from "./store"
 import * as BgUtils_ from "./utils"
 import * as settings_ from "./settings"
@@ -17,13 +17,13 @@ const knownIcons_ = OnChrome ? As_<readonly [IconNS.BinaryPath, IconNS.BinaryPat
 
 export const browserAction_ = (browser_ as any).action as undefined || browser_.browserAction
 let tabIds_cr_: Map<Frames.ValidStatus, number[] | null> | null
-let mayShowIcons = true
 
 const onerror = (err: any): void => {
-  if (!mayShowIcons) { return }
-  mayShowIcons = false;
+  if (setIcon_ === blank_) { return }
   console.log("Can not access binary icon data:", err);
   set_setIcon_(blank_)
+  set_needIcon_(false)
+  settings_.updateHooks_.showActionIcon = undefined
   browserAction_.setTitle({ title: trans_("name") + "\n\nFailed in showing dynamic icons." })
 }
 
@@ -92,7 +92,7 @@ export const toggleIconBuffer_ = (): void => {
  *   builds a css text of "--webextension-***: url(icon-url)",
  *   and then set the style of an extension's toolbar button to it
  */
-export const doSetIcon_: typeof setIcon_ = !OnChrome ? (tabId, type): void => {
+const doSetIcon_: typeof setIcon_ = !OnChrome ? (tabId, type): void => {
   tabId < 0 || browserAction_.setIcon({ tabId, path: knownIcons_[type]! })
 } : (tabId: number, type: Frames.ValidStatus, isLater?: true): void => {
   let data: IconNS.IconBuffer | null | undefined;
@@ -108,3 +108,5 @@ export const doSetIcon_: typeof setIcon_ = !OnChrome ? (tabId, type): void => {
     tabIds_cr_!.set(type, [tabId])
   }
 }
+
+set_setIcon_(doSetIcon_)
