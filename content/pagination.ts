@@ -39,7 +39,7 @@ export const filterTextToGoNext: VApiTy["g"] = (candidates, names, options, maxL
       }
     } else if (fromMatchSelector || (s = htmlTag_(element)) === "a"
         || (s === "button" ? !(element as HTMLButtonElement).disabled : s && clickable_.has(element))
-        || attr_s(element, "onclick")
+        || (OnFirefox ? (element as HTMLElement | SVGElement).onclick : attr_s(element, "onclick"))
         || ((s = attr_s(element, "role")) ? (<RegExpI> /^(button|link)$/i).test(s)
           : ngEnabled && attr_s(element, "ng-click"))) {
       if (isInteractiveInPage(element)) {

@@ -121,7 +121,7 @@ export const raw_unwrap_ff = OnFirefox ? <T extends object> (val: T): T | undefi
 
 export const unwrap_ff = (OnFirefox ? <T extends object> (obj: T): T => (obj as XrayedObject<T>).wrappedJSObject || obj
     : 0 as never) as {
-  (obj: Element): unknown
+  <T extends Element>(obj: T): never
   <T extends object>(obj: T): T extends XrayedObject<infer S> ? S : T
 }
 

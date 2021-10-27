@@ -133,7 +133,7 @@ const getClickable = (hints: Hint[], element: SafeHTMLElement): void => {
   }
   if (isClickable === null) {
     type = (s = element.contentEditable) !== "inherit" && s !== "false" ? ClickType.edit
-      : /** on Firefox, `<custom-element-from-extension>.*` can throw */ element.getAttribute("onclick")
+      : (OnFirefox ? element.onclick || element.onmousedown : element.getAttribute("onclick"))
         || (s = element.getAttribute("role")) && clickableRoles_.test(s)
         || extraClickable_ !== null && extraClickable_.has(element)
         || ngEnabled && attr_s(element, "ng-click")
@@ -332,7 +332,9 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
   let arr: Rect | null | undefined, s: string | null
   let type: ClickType.Default | AllowedClickTypeForNonHTML = clickable_.has(element)
         || extraClickable_ && extraClickable_.has(element)
-        || tabIndex != null && (attr_s(element, "onclick") || attr_s(element, "onmousedown"))
+        || tabIndex != null && (OnFirefox
+            ? (element as NonHTMLButFormattedElement).onclick ||(element as NonHTMLButFormattedElement).onmousedown
+            : attr_s(element, "onclick") || attr_s(element, "onmousedown"))
         || (s = attr_s(element, "role")) && clickableRoles_.test(s)
         || ngEnabled && attr_s(element, "ng-click")
         || jsaEnabled_ && (s = attr_s(element, "jsaction")) && checkJSAction(s)

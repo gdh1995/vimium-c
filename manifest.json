@@ -37,6 +37,12 @@
     "default_popup": "pages/popup.html",
     "default_title": "Vimium C\n\n__MSG_noActiveState__"
   },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "vimium-c@gdh1995.cn",
+      "strict_min_version": "78.0"
+    }
+  },
   "commands": {
     "createTab": {
       "description": "__MSG_createTab_s__"
