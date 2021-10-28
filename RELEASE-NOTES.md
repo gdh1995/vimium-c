@@ -7,7 +7,9 @@ ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 #### 1.94.0
 * `runKey` now support `mask=true|""|<placeholder>`
   * in `run <v-lh> LinkHints.activate$s mask= \n run Fq lh WithQueue`, `Fq` works like `LinkHints.activateWithQueue`
+* fix `Vomnibar` may fail to switch to another tab on Firefox
 * fix broken `moveTabToNewWindow` and `moveTabToIncognito` on Firefox
+* fix the extension icon was never updated to represent current working status
 * improve `openBookmark`: if `.mask` then fill `.title` with one unknown key
   * `runKey` now treats unknown options as command options (`o.` can be stripped)
   * in `map <v-ob> openBookmark title="v:$s" mask \n run ot ob 1`, `ot` works like `openBookmark title=v:1`
@@ -15,6 +17,7 @@ ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
   * e.g.: `editText run="replace,_$s%20%s_"` will replace "`abc`" with "`_abc abc_`"
 * add more options to `moveTabToNewWindow` and `moveTabToNextWindow`
 * search engines: add some famous engines to the default list
+* text substitution: now allow numbers and underscore in keys
 * the settings template is update to demonstrate latest syntaxes in key mappings
 * fix some found bugs
 
