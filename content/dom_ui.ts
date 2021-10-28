@@ -1,6 +1,6 @@
 import {
   setupEventListener, isTop, keydownEvents_, timeout_, fgCache, doc, isAlive_, isJSUrl, chromeVer_, VTr, deref_, OnEdge,
-  vApi, Stop_, createRegExp, isTY, OBJECT_TYPES, OnChrome, OnFirefox, WithDialog, injector, safeCall, max_
+  vApi, Stop_, createRegExp, isTY, OBJECT_TYPES, OnChrome, OnFirefox, WithDialog, isAsContent, safeCall, max_
 } from "../lib/utils"
 import { prevent_ } from "../lib/keyboard_utils"
 import {
@@ -458,7 +458,7 @@ export function set_getWndVApi_ff (_newGetWndVApi: typeof getWndVApi_ff): void {
  *
  * So even if it returns a valid object, `parent.***` may still be blocked
  */
-export let getParentVApi = OnFirefox && injector === void 0 ? (): VApiTy | null | void => {
+export let getParentVApi = OnFirefox && isAsContent ? (): VApiTy | null | void => {
     // in Firefox, not use the cached version of frameElement - for less exceptions in the below code
   // Note: the functionality below should keep the same even if the cached version is used - for easier debugging
   const core = frameElement && getWndVApi_ff!(parent as Window);

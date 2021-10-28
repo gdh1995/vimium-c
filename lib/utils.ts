@@ -26,6 +26,7 @@ export function set_os_ (_newOS: kOS): void { os_ = _newOS }
 
 export const isTop = top === window
 export const injector = VimiumInjector
+export const isAsContent = injector === void 0
 export const doc = document
 export const loc_ = location
 

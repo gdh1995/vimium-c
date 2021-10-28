@@ -1,5 +1,5 @@
 import {
-  doc, isTop, injector, set_esc, esc, setupEventListener, set_isEnabled_, XrayedObject,
+  doc, isTop, injector, isAsContent, set_esc, esc, setupEventListener, set_isEnabled_, XrayedObject,
   set_clickable_, clickable_, isAlive_, set_VTr, setupKeydownEvents, onWndFocus, includes_,
   set_readyState_, readyState_, callFunc, recordLog, set_vApi, vApi, locHref, unwrap_ff, raw_unwrap_ff, math, OnFirefox,
   OnChrome, OnEdge
@@ -71,7 +71,7 @@ set_vApi(VApi = {
   } ) : () => ( {  b: find_box, c: clickable_, k: scroll_keyIsDown, r: ui_root, f: find_input } )
 })
 
-if (OnFirefox && injector === void 0) {
+if (OnFirefox && isAsContent) {
   ((): void => {
     type Comparer = (this: void, rand2: number, testEncrypted: string) => boolean
     type SandboxGetterFunc = (this: void, comparer: Comparer, rand1: number) => VApiTy | 0 | null | undefined | void
@@ -203,7 +203,7 @@ if (isAlive_) {
 
     runtimeConnect();
 
-  if (injector === void 0) {
+  if (isAsContent) {
     if (OnFirefox) {
       /*#__INLINE__*/ extend_click_ff()
     } else {

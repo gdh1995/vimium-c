@@ -12,7 +12,7 @@ import { insert_Lock_ } from "./insert"
 import { post_ } from "./port"
 import { flash_, moveSel_s_throwable } from "./dom_ui"
 import { hintApi, hintOptions } from "./link_hints"
-import { beginToPreventClick_ff, wrappedDispatchMouseEvent_ff } from "./extend_click_ff"
+import { prepareToBlockClick_ff, clickEventToPrevent_, dispatchAndBlockClickOnce_ff } from "./extend_click_ff"
 /* eslint-disable @typescript-eslint/await-thenable */
 
 export declare const enum kClickAction {
@@ -147,8 +147,8 @@ export const mouse_ = function (element: SafeElementForMouse
     mouseEvent.initMouseEvent(type, bubbles, bubbles, view, detail, x, y, x, y
       , ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget)
   }
-  if (OnFirefox) {
-    return wrappedDispatchMouseEvent_ff(element, mouseEvent)
+  if (OnFirefox && type === CLK && clickEventToPrevent_) {
+    return dispatchAndBlockClickOnce_ff(element, mouseEvent)
   }
   return element.dispatchEvent(mouseEvent)
 } as {
@@ -337,8 +337,8 @@ export const click_async = (async (element: SafeElementForMouse
         ? ActionType.DispatchAndMayOpenTab : ActionType.OpenTabButNotDispatch
   }
   if ((result > ActionType.OpenTabButNotDispatch - 1
-        || (OnFirefox && /*#__INLINE__*/ beginToPreventClick_ff(result === ActionType.DispatchAndMayOpenTab),
-            (await await mouse_(element, CLK, center, modifiers) || result === ActionType.dblClick) && result))
+        || (OnFirefox && /*#__INLINE__*/ prepareToBlockClick_ff(result === ActionType.DispatchAndMayOpenTab),
+            (await await mouse_(element, CLK, center, modifiers)) && result || result === ActionType.dblClick))
       && getVisibleClientRect_(element)) {
     // require element is still visible
     if (result < ActionType.MinOpenUrl) {

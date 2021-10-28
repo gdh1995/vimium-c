@@ -1,10 +1,11 @@
 import {
   clickable_, timeout_, loc_, getTime, clearTimeout_, vApi, recordLog, doc, setupEventListener, VTr, raw_unwrap_ff,
-  isTY, OnFirefox
+  isTY, OnFirefox, Stop_, isAsContent
 } from "../lib/utils"
 import { CLK, MDW, OnDocLoaded_, isHTML_, set_createElement_, createElement_ } from "../lib/dom_utils"
 import { grabBackFocus } from "./insert"
 import { coreHints, doesWantToReloadLinkHints } from "./link_hints"
+import { prevent_ } from "../lib/keyboard_utils"
 /* eslint-disable @typescript-eslint/await-thenable */
 
 declare function exportFunction(func: unknown, targetScope: object
@@ -14,6 +15,8 @@ declare function exportFunction(func: unknown, targetScope: object
 let clickEventToPrevent_: BOOL | Event | null = null
 let isClickEventPreventedByPage: BOOL = 0
 let preventEventOnWindow: ((wnd: Window) => Promise<void>) | undefined
+
+export { clickEventToPrevent_ }
 
 export const main_ff = (OnFirefox ? (): void => {
   isHTML_() || set_createElement_(doc.createElementNS.bind(doc, VTr(kTip.XHTML) as "http://www.w3.org/1999/xhtml"
@@ -148,29 +151,38 @@ export const main_ff = (OnFirefox ? (): void => {
 })()
 } : 0 as never) as () => void
 
-export const beginToPreventClick_ff = (doesBeginPrevent: boolean): void => {
-  clickEventToPrevent_ = clickEventToPrevent_ != null ? <BOOL> +doesBeginPrevent : clickEventToPrevent_
+export const prepareToBlockClick_ff = (doesBeginPrevent: boolean): void => {
+  clickEventToPrevent_ = !isAsContent || clickEventToPrevent_ != null ? <BOOL> +doesBeginPrevent : clickEventToPrevent_
 }
 
-export const wrappedDispatchMouseEvent_ff = (targetElement: Element, mouseEventMayBePrevented: MouseEvent): boolean => {
-  let view: Window | undefined
-  clickEventToPrevent_ = clickEventToPrevent_ && (mouseEventMayBePrevented.type === CLK
-      && (view = (targetElement.ownerDocument as Document).defaultView) === window
-      && mouseEventMayBePrevented || 0)
-  if (!(Build.NDEBUG || !view || view !== raw_unwrap_ff(window))) {
+export const dispatchAndBlockClickOnce_ff = (targetElement: SafeElement, clickEvent: MouseEvent): boolean => {
+  const view = (targetElement.ownerDocument as Document).defaultView
+  const doesBlock = view === window
+  if (!(Build.NDEBUG || view !== raw_unwrap_ff(window))) {
     console.log("Assert error: a target element is bound to window.wrappedJSObject");
   }
-  if (clickEventToPrevent_) {
-    void preventEventOnWindow!(view!)
+  if (doesBlock && preventEventOnWindow) {
+    clickEventToPrevent_ = clickEvent
+    void preventEventOnWindow(view)
   }
-  const rawDispatchRetVal = targetElement.dispatchEvent(mouseEventMayBePrevented),
-  wrappedRetVal = rawDispatchRetVal || !!clickEventToPrevent_ && !isClickEventPreventedByPage
-  if (!Build.NDEBUG && mouseEventMayBePrevented.type === CLK) {
-    console.log("Vimium C: dispatch a click event and returned is %o, %s %o, so return %o"
+  const rawDispatchRetVal = targetElement.dispatchEvent(clickEvent),
+  wrappedRetVal = isAsContent ? rawDispatchRetVal || doesBlock && !isClickEventPreventedByPage
+      : /** doesBlock ? false : rawDispatchRetVal */ (!doesBlock && rawDispatchRetVal)
+  if (!Build.NDEBUG) {
+    console.log("Vimium C: try blocking a click event, and the returned is %o when %s %o, so return %o"
         , rawDispatchRetVal, "clickEventToPrevent_ is"
         , clickEventToPrevent_ && isTY(clickEventToPrevent_, kTY.obj) ? "<Event>" : clickEventToPrevent_
         , wrappedRetVal)
   }
-  clickEventToPrevent_ = clickEventToPrevent_ && 0
+  clickEventToPrevent_ = 0
   return wrappedRetVal
+}
+
+export const preventClickOnSelf_ff = (testClickEvent: MouseEventToPrevent): void => {
+  if (testClickEvent === clickEventToPrevent_ && isAsContent) {
+    isClickEventPreventedByPage = 0
+    prevent_(testClickEvent)
+  } else {
+    Stop_(testClickEvent)
+  }
 }
