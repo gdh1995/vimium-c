@@ -113,7 +113,7 @@ export let enableNextTick_: (type: kReadyInfo) => void
 export const nextTick_ = ((): { <T>(task: (self: T) => void, self: T): void; (task: (this: void) => void): void } => {
   const ticked = function (): void {
     const oldSize = tasks.length
-    for (const task of tasks) { task() }
+    for (let i = 0; i < oldSize; i++) { tasks[i]() }
     if (tasks.length > oldSize) {
       tasks.splice(0, oldSize)
       if (OnChrome ? Build.MinCVer >= BrowserVer.Min$queueMicrotask

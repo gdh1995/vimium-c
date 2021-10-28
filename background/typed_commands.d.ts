@@ -140,7 +140,8 @@ interface BgCmdOptions {
   [kBgCmd.visitPreviousTab]: { acrossWindows: true; onlyActive: true } & TabFilterOptions & Req.FallbackOptions
   [kBgCmd.closeDownloadBar]: { newWindow?: null | true | false; all: 1 }
   [kBgCmd.reset]: {}
-  [kBgCmd.openBookmark]: { title: string; path: string; name: string } & MaskOptions
+  [kBgCmd.openBookmark]: { title: string; path: string; name: string;
+      $cache: WeakRef<CompletersNS.Bookmark> | null } & MaskOptions
 }
 
 interface BgCmdInfoMap {
@@ -262,6 +263,7 @@ declare namespace CommandsNS {
 
 interface StatefulBgCmdOptions {
   [kBgCmd.createTab]: null
+  [kBgCmd.openBookmark]: null
   [kBgCmd.goNext]: "patterns" | "reuse"
   [kBgCmd.openUrl]: "urls" | "group" | "replace"
   [kBgCmd.runKey]: "expect" | "keys"

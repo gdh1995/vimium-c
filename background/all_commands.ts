@@ -2,7 +2,7 @@ import * as BgUtils_ from "./utils"
 import {
   cPort, cRepeat, cKey, get_cOptions, set_cPort, set_cRepeat, contentPayload_, framesForTab_,
   framesForOmni_, bgC_, set_bgC_, set_cmdInfo_, curIncognito_, curTabId_, recencyForTab_, settingsCache_, CurCVer_,
-  OnChrome, OnFirefox, OnEdge, substitute_, CONST_, curWndId_, findBookmark
+  OnChrome, OnFirefox, OnEdge, substitute_, CONST_, curWndId_, findBookmark, bookmarkCache_
 } from "./store"
 import {
   Tabs_, Windows_, InfoToCreateMultiTab, openMultiTabs, tabsGet, getTabUrl, selectFrom, runtimeError_, R_,
@@ -736,6 +736,18 @@ set_bgC_([
     resolve(1)
   },
   /* kBgCmd.openBookmark: */ (resolve): void | kBgCmd.openBookmark => {
+    const rawCache = get_cOptions<C.openBookmark, true>().$cache
+    let p: Promise<false | CompletersNS.BaseBookmark | null> | undefined
+    if (rawCache != null) {
+      const cached = rawCache && rawCache.deref()
+      if (cached && bookmarkCache_.bookmarks_.includes!(cached)) {
+        p = Promise.resolve(cached)
+      } else {
+        overrideOption<C.openBookmark, "$cache">("$cache", null)
+      }
+    }
+    const hasValidCache = !!p
+    if (!p) {
     let title = get_cOptions<C.openBookmark>().path || get_cOptions<C.openBookmark>().title
     if (!title || typeof title !== "string") {
       showHUD("Invalid bookmark " + (get_cOptions<C.openBookmark>().path ? "path" : "title")); resolve(0); return
@@ -746,13 +758,17 @@ set_bgC_([
       showHUD((result.result ? "Too many potential names" : "No name") + " to find bookmarks")
       return
     }
-    findBookmark(0, result.result).then((node): void => {
+      p = findBookmark(0, result.result)
+    }
+    p.then((node): void => {
       if (!node || (node as CompletersNS.Bookmark).u == null) {
         resolve(0)
         showHUD(node === false ? 'Need valid "title" or "title".' : node === null ? "The bookmark node is not found."
             : "The bookmark is a folder.")
       } else {
-        overrideCmdOptions({ url: (node as CompletersNS.Bookmark).u })
+        hasValidCache || typeof WeakRef === "function" && overrideOption<C.openBookmark, "$cache">(
+            "$cache", new (WeakRef as WeakRefConstructor)(node as CompletersNS.Bookmark))
+        overrideCmdOptions({ url: (node as CompletersNS.Bookmark).u }, true)
         openUrl()
       }
     })

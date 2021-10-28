@@ -75,6 +75,11 @@ case "$1" in
     VER=
     shift
     ;;
+  installedonly | installed-only|--installed-only)
+    USE_INSTALLED=2
+    VER=
+    shift
+    ;;
   vc|--vc)
     ALSO_VC=1
     shift
@@ -243,6 +248,14 @@ fi
 
 if test $AUTO_RELOAD -le 0; then
   FLAGS=$FLAGS" --no-reload"
+fi
+
+if test $USE_INSTALLED -ge 2; then
+  echo -E start: "${exe_w}" "(installed)"
+  "$EXE" -foreground -no-remote -profile "$FUD"
+    --url about:home \
+    ${HOME_PAGE//start-/} "$@"
+  exit
 fi
 
 # Refer: https://extensionworkshop.com/documentation/develop/getting-started-with-web-ext/

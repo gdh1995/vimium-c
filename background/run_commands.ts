@@ -41,6 +41,8 @@ export const overrideCmdOptions = <T extends keyof BgCmdOptions> (known: CmdOpti
   BgUtils_.extendIf_(BgUtils_.safer_(known as KnownOptions<T>), old);
   if (!disconnected) {
     (known as any as CommandsNS.Options).$o = old
+  } else {
+    delete (known as any as CommandsNS.Options).$o
   }
   oriOptions || set_cOptions(known as KnownOptions<T> as KnownOptions<T> & SafeObject)
 }
@@ -54,10 +56,11 @@ type KeyCanBeOverride<T extends BgCmdCanBeOverride> =
       | Exclude<StrStartWith$<keyof BgCmdOptions[T] & string>, keyof Req.FallbackOptions>
     : never
 export const overrideOption = <T extends BgCmdCanBeOverride, K extends KeyCanBeOverride<T> = KeyCanBeOverride<T>>(
-    field: K, value: K extends keyof BgCmdOptions[T] ? NonNullable<BgCmdOptions[T][K]> : never,
+    field: K, value: K extends keyof BgCmdOptions[T]
+        ? K extends `$${string}` ? BgCmdOptions[T][K] : NonNullable<BgCmdOptions[T][K]> : never,
     curOptions?: KnownOptions<T>): void => {
   curOptions = curOptions || get_cOptions<T, true>() as KnownOptions<T>
-  curOptions[field as keyof BgCmdOptions[T]] = value!
+  curOptions[field as keyof BgCmdOptions[T]] = value
   const parentOptions = (curOptions as unknown as CommandsNS.Options).$o
   if (parentOptions != null) { overrideOption(field, value, parentOptions as unknown as KnownOptions<T>) }
 }
