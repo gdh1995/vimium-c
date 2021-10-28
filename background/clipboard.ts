@@ -163,17 +163,15 @@ const parseSedKeys_ = (keys: string | object, parsed?: ParsedSedOpts): Contexts 
   }
   let extras_: kCharCode[] | null = null, normal_ = SedContext.NONE
   for (let i = 0; i < keys.length; i++) {
-    const code = keys.charCodeAt(i)
-    if (code > 0x7f) {
+    const code = keys.charCodeAt(i), ch = code & ~kCharCode.CASE_DELTA
+    if (!(code > kCharCode.maxNotAlphabet && code < kCharCode.minNotAlphabet)) {
       extras_ || (extras_ = [])
       if (parsed || !extras_.includes!(code)) {
         extras_.push(code)
       }
       continue
     }
-    const ch = code & ~kCharCode.CASE_DELTA
-    normal_ |= ch < kCharCode.minAlphabet || ch > kCharCode.maxAlphabet ? SedContext.NONE
-      : ch === kCharCode.S ? SedContext.copy | SedContext.paste : (1 << (ch - kCharCode.A)) as SedContext
+    normal_ |= ch === kCharCode.S ? SedContext.copy | SedContext.paste : (1 << (ch - kCharCode.A)) as SedContext
   }
   const result = normal_ || extras_ ? { normal_, extras_ } : null
   return parsed ? parsed.k = result : result
