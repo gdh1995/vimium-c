@@ -30,5 +30,5 @@ html, body, * { user-select: auto; }
 cursor:text;display:flex;height:21px;padding:4px 4px 0}.r.D{background:#222;color:#d4d4d4}
 #s{flex:0 0 4px}#i{flex:0 1 auto;height:16px;min-width:9px;margin-left:2px;overflow:hidden;padding:0 2px 0 0}
 #h{flex:1 0 auto}br{all:inherit!important;display:inline!important}#c{flex:0 0 auto;margin-left:2px}
-#s::after,#c::after{content:attr(data-vimium);display:inline}
+#s::after{content:"/"}#c::after{content:attr(data-vimium);display:inline}
 :host,body{background:#0000!important;margin:0!important;height:24px}

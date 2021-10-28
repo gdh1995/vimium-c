@@ -198,17 +198,15 @@ let optionsInit1_ = function (): void {
       let key = (el.dataset as KnownOptionsDataset).permission
       let transArgs: ["beforeChromium" | "lackPermission", string[]]
       if (key[0] === "C") {
-        if (!OnChrome) {
-          if (key === "C") { // hide directly
-            nextTick_((parentEl): void => {
-              parentEl.style.display = "none";
-            }, (el as EnsuredMountedHTMLElement).parentElement.parentElement.parentElement);
-          }
-          continue;
-        } else if (CurCVer_ >= +key.slice(1)) {
-          continue;
+        if (OnChrome && CurCVer_ >= parseInt(key.slice(1))) { continue }
+        const secondCond = key.split(",", 2)[1] || ","
+        if (secondCond[0] === "." ? (window as Dict<any>)[secondCond.slice(1)] != null
+            : secondCond[0] === "(" && matchMedia(secondCond.slice(1, -1))) { continue }
+        if (!OnChrome && secondCond[0] === ".") {
+          nextTick_((el2): void => { el2.style.display = "none" }, el.parentElement as HTMLElement)
+          continue
         }
-        transArgs = ["beforeChromium", [key.slice(1)]]
+        transArgs = ["beforeChromium", [key.slice(1).split(",", 1)[0]]]
       } else {
         if (key in manifest) { continue; }
         transArgs = ["lackPermission", [key ? ":\n* " + key : ""]]

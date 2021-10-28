@@ -394,7 +394,7 @@ const onLoad2 = (): void => {
       id && (newEl.id = id, appendNode_s(list, newEl))
       return newEl;
     };
-    addElement(0, "s").dataset.vimium = "/"
+    addElement(0, "s")
     const el = input_ = addElement(0, "i")
     addElement(0, "h");
     if (OnFirefox && !Build.DetectAPIOnFirefox) {
