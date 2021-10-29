@@ -330,7 +330,7 @@ export const click_async = (async (element: SafeElementForMouse
           || (OnFirefox ? specialAction < kClickAction.MinNotPlainOpenManually && parentAnchor.target !== "_blank" : 0)
           || !(url = attr_s(parentAnchor as SafeElement, "href")) || url[0] === "#" || isJSUrl(url)
         ? ActionType.OnlyDispatch
-        : hintOptions.sedIf && (sedIfRe = tryCreateRegExp(hintOptions.sedIf, "")) && sedIfRe.test(parentAnchor.href)
+        : hintOptions.sedIf && (sedIfRe = tryCreateRegExp(hintOptions.sedIf)) && sedIfRe.test(parentAnchor.href)
         ? ActionType.OpenTabButNotDispatch
         : sedIfRe && actionTarget > kClickAction.forceToSedIf - 1 ? ActionType.OnlyDispatch
         : OnFirefox && actionTarget < kClickAction.MaxPlain + 1

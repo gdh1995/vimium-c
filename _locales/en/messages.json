@@ -174,7 +174,9 @@
   "109": { "message": ":scope>:not(link):not(style)" },
   "110": { "message": "^void\\s*\\( ?0 ?\\)\\s*;?$$|^;?$$" },
   "111": { "message": "^http://(?!localhost[:/])" },
-  "112": { "message": "^(new\\.|www\\.|)reddit\\.com$$" },
+  "112": { "message":
+"^(new\\.|www\\.|)reddit\\.com$$###overlayScrollContainer;^twitter\\.com$$##div.permalink-container div.permalink[role=main];^web\\.telegram\\.org$$##.MessageList"
+  },
   "113": { "message": "(^|-)(button|a$$)" },
   "114": { "message": "Search has arrived at the $1" },
   "115": { "message": "start" },
@@ -184,7 +186,6 @@
   "119": { "message": "(-ms-high-contrast:active)" },
   "120": { "message": "Please type: $1" },
   "200": { "message": "http://www.w3.org/1999/xhtml" },
-  "201": { "message": "#overlayScrollContainer" },
   "0": { "message": "Open link in current tab" },
   "2": { "message": "Open link in new tab" },
   "3": { "message": "Open link in new active tab" },

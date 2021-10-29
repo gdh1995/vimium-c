@@ -292,7 +292,7 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode]): void => {
               && chromeVer_ < BrowserVer.MinSelExtendForwardOnlySkipWhitespaces) {
           if (BrowserVer.MinSelExtendForwardOnlySkipWhitespaces <= BrowserVer.MinMaybeUnicodePropertyEscapesInRegExp
               && OnChrome) {
-            WordsRe_ff_old_cr = tryCreateRegExp(options.w!, "")!
+            WordsRe_ff_old_cr = tryCreateRegExp(options.w!)!
           } else {
             // note: here thinks the `/[^]*[~~~]/` has acceptable performance
             WordsRe_ff_old_cr = tryCreateRegExp(options.w! || "[^]*[\\p{L}\\p{Nd}_]", options.w! ? "" : "u" as never)!

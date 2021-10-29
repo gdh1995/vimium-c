@@ -123,7 +123,7 @@ export const findNextInText = (names: string[], options: CmdOptions[kFgCmd.goNex
   for (let i = array.length ? array[0][2] >> 23 : GlobalConsts.MaxNumberOfNextPatterns; i < names.length; ) {
     s = names[i++];
     const re = tryCreateRegExp(wordRe.test(s[0]) || wordRe.test(s.slice(-1))
-        ? `\\b${escapeAllForRe(s)}\\b` : escapeAllForRe(s), "")!, j = i << 23
+        ? `\\b${escapeAllForRe(s)}\\b` : escapeAllForRe(s))!, j = i << 23
     for (const candidate of array) {
       if (candidate[2] > j) { break }
       if (!candidate[3] || re.test(candidate[3])) { return candidate }

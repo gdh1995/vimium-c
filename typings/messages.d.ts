@@ -17,11 +17,11 @@ declare const enum kTip {
   /* 95: */ failToDelSug, fewChars, editableSelector, removeCurScript, webkitWithRel,
   /* 100: */ notANestedFrame, cssUrl, imgExt, clickableClasses, clickableRoles,
   /* 105: */ invisibleHintText, notMatchedHintText, metaKeywordsForMobile, css0d01OrDPI, visibleElementsInScopeChildren,
-  /* 110: */ voidJS = 110, nonLocalhostRe, redditHost, buttonOrA, wrapWhenFind,
+  /* 110: */ voidJS = 110, nonLocalhostRe, scrollable, buttonOrA, wrapWhenFind,
   /* 115: */ atStart, atEnd, noTargets, closableClasses, highContrast_WOB,
   /* 120: */ expectKeys,
   INJECTED_CONTENT_END,
-  /* 200: */ XHTML, redditOverlay,
+  /* 200: */ XHTML,
   /** used by {@link ../Gulpfile.js} */ extendClick = 999,
 }
 
@@ -323,6 +323,7 @@ interface CmdOptions {
     smooth?: boolean
     keepHover?: true | false | "auto" | "never" | /* or >= 20 */ 20
     acrossFrames?: true | false
+    scrollable?: "css-selector"
     /** inner flags */ f?: kScFlag & number
   } & Pick<CSSOptions, "evenIf" | "scroll"> & ({
     dir?: 1 | -1 | 0.5 | -0.5;

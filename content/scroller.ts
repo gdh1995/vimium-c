@@ -23,8 +23,8 @@ interface ElementScrollInfo {
 
 import {
   isAlive_, setupEventListener, timeout_, clearTimeout_, fgCache, doc, noRAF_old_cr_, readyState_, loc_, chromeVer_,
-  vApi, deref_, weakRef_, VTr, createRegExp, max_, math, min_, Lower, OnChrome, OnFirefox, OnEdge, WithDialog, OnSafari,
-  isTop, injector, isTY
+  vApi, deref_, weakRef_, VTr, max_, math, min_, Lower, OnChrome, OnFirefox, OnEdge, WithDialog, OnSafari,
+  isTop, injector, isTY, safeCall, tryCreateRegExp
 } from "../lib/utils"
 import {
   rAF_, scrollingEl_, SafeEl_not_ff_, docEl_unsafe_, NONE, frameElement_, OnDocLoaded_, GetParent_unsafe_, UNL,
@@ -305,7 +305,8 @@ export const executeScroll: VApiTy["c"] = function (di: ScrollByY, amount0: numb
     }
     const element = findScrollable(di, toFlags ? toMax || -1 : amount0
         , options && (options.scroll ? options.scroll === "force"
-            : options.evenIf != null ? !!(options.evenIf! & kHidden.OverflowHidden) : null))
+            : options.evenIf != null ? !!(options.evenIf! & kHidden.OverflowHidden) : null)
+        , options && options.scrollable)
     const isTopElement = element === scrollingTop
     const mayUpperFrame = !isTop && isTopElement && element && !fullscreenEl_unsafe_()
     let amount = !factor ?
@@ -428,7 +429,7 @@ export const onScrolls = (event: KeyboardEventToPrevent): boolean => {
    * @param amount should not be 0
    */
 const findScrollable = (di: ScrollByY, amount: number
-    , evenOverflowHidden?: boolean | 2 | null | undefined): SafeElement | null => {
+    , evenOverflowHidden?: boolean | 2 | null | undefined, selectable?: string): SafeElement | null => {
   const selectFirst = (info: ElementScrollInfo, skipPrepare?: 1): ElementScrollInfo | null | undefined => {
     let cur_el = info.e, type: 0 | 1 | -1
     if (dimSize_(cur_el, kDim.elClientH) + 3 < dimSize_(cur_el, kDim.scrollH) &&
@@ -454,9 +455,9 @@ const findScrollable = (di: ScrollByY, amount: number
     return children.reduce((cur, info1) => cur || selectFirst(info1, 1), null as ElementScrollInfo | null | undefined)
   }
 
-    const top = scrollingTop, activeEl: SafeElement | null | undefined = deref_(currentScrolling)
+    const top = scrollingTop, activeEl: SafeElement | null | undefined = deref_(currentScrolling) || null
     const selectFirstType = (evenOverflowHidden != null ? evenOverflowHidden : isTop || !!injector) ? 3 : 1
-    let element = activeEl;
+    let element = activeEl
     if (element) {
       while (element !== top
           && shouldScroll_s(element!, element === cachedScrollable ? (di + 2) as 2 | 3 : di, amount) < 1) {
@@ -470,9 +471,14 @@ const findScrollable = (di: ScrollByY, amount: number
     }
     if (!element) {
       // note: twitter auto focuses its dialog panel, so it's not needed to detect it here
-      const candidate = createRegExp(kTip.redditHost, "").test(loc_.host)
-          ? querySelector_unsafe_(VTr(kTip.redditOverlay)) : null;
-      element = OnFirefox ? candidate as SafeElement | null : SafeEl_not_ff_!(candidate)
+      for (const arr of ((selectable || "") + ";" + VTr(kTip.scrollable)).split(";")) {
+        const items = arr.split("##"), re = items[0] && tryCreateRegExp(items[0])
+        if (re && re.test(loc_.host)) {
+          element = OnFirefox ? (safeCall(querySelector_unsafe_, items[1]) || null) as SafeElement | null
+                  : SafeEl_not_ff_!(safeCall(querySelector_unsafe_, items[1]) || null)
+          if (element) { break }
+        }
+      }
     }
     if (!element && top) {
       const candidate = selectFirst({ a: 0, e: top, h: 0 })

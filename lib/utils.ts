@@ -206,9 +206,12 @@ export const createRegExp = <S extends kTip, T extends "g" | "i" | ""> (pattern:
     ): T extends "" ? RegExpOne : T extends "i" ? RegExpI : RegExpG =>
     <any> new RegExp(VTr(<kTip> pattern), flags as "g")
 
-export const tryCreateRegExp = <T extends "g" | "gi" | "gim" | "gm" | "i" | "u" | ""> (pattern: string, flags: T
-    ): (T extends "" ? RegExpOne : T extends "i" ? RegExpI : RegExpG) | void => {
+export const tryCreateRegExp = function (pattern: string, flags: string ): RegExp | void {
   return safeCall(RegExp as any, pattern, flags)
+} as {
+  <T extends "g" | "gi" | "gim" | "gm" | "i" | "u" | ""> (pattern: string, flags: T
+    ): (T extends "" ? RegExpOne : T extends "i" ? RegExpI : RegExpG) | void
+  (pattern: string): RegExpOne | void
 }
 
 export const safeCall = (<T1, T2, Ret>(func: (arg1: T1, arg2: T2) => Ret, arg1: T1, arg2: T2): Ret | void => {
