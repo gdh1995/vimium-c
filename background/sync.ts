@@ -241,15 +241,22 @@ const serialize = (key: keyof SettingsToUpdate, value: boolean | string | number
         let code = ch.charCodeAt(0)
         return "\\u" + (code > 0xfff ? "" : "0") + code.toString(16)
       })
-  jsonStr = fixCharsInJSON(jsonStr)
-  if (jsonStr.length * /* utf-8 limit */ 4 < GlobalConsts.SYNC_QUOTA_BYTES_PER_ITEM - 99) { return jsonStr }
   const hasEncoder = (!OnChrome || Build.MinCVer >= BrowserVer.MinEnsuredTextEncoderAndDecoder) && !OnEdge || !!encoder
+  const lenStdJSON = jsonStr.length
+  jsonStr = fixCharsInJSON(jsonStr)
+  const lenPreConverted = jsonStr.length // /[<`\u2028\u2029]/g, and `"\\u003C".length` is 6
+  if ((lenPreConverted - lenStdJSON) * 3 + lenStdJSON * 3 < GlobalConsts.SYNC_QUOTA_BYTES_PER_ITEM - 99) { return }
   if (hasEncoder) {
     encoded = encoder!.encode(jsonStr)
   } else {
     encoded = jsonStr = ensureSingleBytes(jsonStr)
   }
-  if (encoded.length < GlobalConsts.SYNC_QUOTA_BYTES_PER_ITEM - 99) { return jsonStr }
+  if (encoded.length < GlobalConsts.SYNC_QUOTA_BYTES_PER_ITEM - 99) {
+    const lenUpperLimit = hasEncoder ? encoded.length + (lenPreConverted - lenStdJSON) * 4
+        : Math.ceil((encoded.length - lenPreConverted) / 5 * 3 + (lenPreConverted - lenStdJSON) * 6
+          + (lenStdJSON - (encoded.length - lenPreConverted) / 5 - (lenPreConverted - lenStdJSON)))
+    return lenUpperLimit < GlobalConsts.SYNC_QUOTA_BYTES_PER_ITEM - 99 ? void 0 : jsonStr
+  }
   let slice = 0, prefix = Date.now().toString(36) + ":", dict: MultiLineSerialized = {}
   jsonStr = typeof settings_.defaults_[key] === "string" ? jsonStr.slice(1, -1) : escapeQuotes(jsonStr)
   if (hasEncoder) {
@@ -269,8 +276,8 @@ const serialize = (key: keyof SettingsToUpdate, value: boolean | string | number
       part = (encoded as string).slice(start, pos)
     }
     jsonStr = part.slice(-6)
-    delta = jsonStr.lastIndexOf("\\")
-    if (delta > jsonStr.length - 2) {
+    delta = pos < end ? jsonStr.lastIndexOf("\\") : -1
+    if (delta > 0 && delta > jsonStr.length - 2) {
       part += "b"
       delta = 1
     } else if (delta > 0 && jsonStr[delta + 1] === "u") {
