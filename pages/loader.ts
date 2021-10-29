@@ -61,9 +61,9 @@
       }
     }
   }
-  if (browser_.i18n.getMessage("lang1")) {
-    const s = browser_.i18n.getMessage("v" + curPath)
-    s && (document.title = (curPath !== "blank" ? "Vimium C " : "") + s)
+  if (curPath === "blank" && browser_.i18n.getMessage("lang1")) {
+    const s = browser_.i18n.getMessage("vblank")
+    s && (document.title = s)
   }
   if (!Build.NDEBUG) {
     (window as any).updateUI = (): void => {

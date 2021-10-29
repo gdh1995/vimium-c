@@ -15,7 +15,7 @@ import {
 } from "./ports"
 import { exclusionListening_, getExcluded_ } from "./exclusions"
 import { setOmniStyle_ } from "./ui_css"
-import { i18nPayload_, loadI18nPayload_, transPart_, trans_ } from "./i18n"
+import { contentI18n_, loadContentI18n_, transPart_, trans_ } from "./i18n"
 import { keyRe_ } from "./key_mappings"
 import {
   sendFgCmd, replaceCmdOptions, onConfirmResponse, executeCommand, portSendFgCmd,
@@ -350,7 +350,9 @@ set_reqH_([
     const type = rawType === "history" && sId != null ? "session" : rawType
     const name = type === "tab" ? type : type + " item"
     const cb = (succeed?: boolean | BOOL | void): void => {
-      showHUD(trans_(succeed ? "delSug" : "notDelSug", [transPart_("sugs", type[0]) || name]))
+      Promise.resolve(trans_("sugs")).then((sugs): void => {
+        showHUD(trans_(succeed ? "delSug" : "notDelSug", [transPart_(sugs as "sugs", type[0]) || name]))
+      })
     }
     set_cPort(findCPort(port)!)
     if (type === "tab" && curTabId_ === sId) {
@@ -389,8 +391,8 @@ set_reqH_([
   },
   /** kFgReq.framesGoBack: */ _AsReqH<kFgReq.framesGoBack>(framesGoBack),
   /** kFgReq.i18n: */ (): FgRes[kFgReq.i18n] => {
-    loadI18nPayload_ && loadI18nPayload_()
-    return i18nPayload_
+    loadContentI18n_ && loadContentI18n_()
+    return contentI18n_
   },
   /** kFgReq.learnCSS: */ (_req: FgReq[kFgReq.learnCSS], port: Port): void => {
     (port as Frames.Port).s.flags_ |= Frames.Flags.hasCSS

@@ -169,7 +169,7 @@ const transPart_ = (msg: string, child: string): string => {
   return msg && msg.split(" ").reduce((old, i) => old ? old : !i.includes("=") ? i
       : i.startsWith(child) ? i.slice(child.length + 1) : old, "")
 }
-const bTrans_ = browser_.i18n.getMessage
+export const bTrans_ = browser_.i18n.getMessage
 const curPath = location.pathname.replace("/pages/", "").split(".")[0]
 export const pageLangs_ = transPart_(bTrans_("i18n"), curPath) || bTrans_("lang1") || "en"
 
@@ -197,5 +197,9 @@ Promise.all(pageLangs_.split(",").map((lang): Promise<Dict<string> | null> => {
     }
   }
   i18nDict_ = dest
+  if (pageLangs_ !== "en") {
+    const s = pageTrans_("v" + curPath)
+    s && (document.title = "Vimium C " + s)
+  }
   enableNextTick_(kReadyInfo.i18n)
 })

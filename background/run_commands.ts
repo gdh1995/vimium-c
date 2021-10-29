@@ -235,7 +235,6 @@ export const confirm_ = <T extends kCName> (command: CmdNameIds[T] extends kBgCm
       return confirm_(command, askedCount)
     })
   }
-  let msg = trans_("cmdConfirm", [askedCount, helpDialogData_[1][command] || `### ${command} ###`])
   const { promise_, resolve_ } = BgUtils_.deferPromise_<boolean>()
   const countToReplay = cRepeat, bakOptions = get_cOptions() as any, bakPort = cPort
   setupSingletonCmdTimer(setTimeout(onConfirm, 3000, 0))
@@ -248,8 +247,10 @@ export const confirm_ = <T extends kCName> (command: CmdNameIds[T] extends kBgCm
     resolve_(force1)
     setTimeout((): void => { _cNeedConfirm = 1 }, 0)
   }
-  (framesForTab_.get(cPort.s.tabId_)?.top_ || cPort).postMessage({
-    N: kBgReq.count, c: "", i: _gCmdTimer, m: msg
+  Promise.resolve(trans_("cmdConfirm", [askedCount, helpDialogData_[1].get(command) || `### ${command} ###`]))
+  .then((msg): void => {
+    (framesForTab_.get(cPort.s.tabId_)?.top_ || cPort).postMessage({
+        N: kBgReq.count, c: "", i: _gCmdTimer, m: msg })
   })
   return promise_
 }

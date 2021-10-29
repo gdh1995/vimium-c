@@ -37,6 +37,7 @@
   "NewTabAdapter": "NewTab Adapter",
   "refusedURLs": "The URL \"$1\" is restricted to be opened by a WebExtension from Firefox browser.",
   "nonPlainURL": "The value \"$1\" is not a valid plain URL.",
+  "haveToOpenManually": "On Firefox you have to visit this URL manually",
   "changedBeforeSync":
 "        Error:\nSorry, but you're enabling the \"Sync settings\" option\n    while some other options are also modified.\nPlease only perform one action at a time!"
  ,

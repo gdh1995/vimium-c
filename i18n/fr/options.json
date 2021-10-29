@@ -21,6 +21,7 @@
   "refusedURLs":
     "L'ouverture de l'URL \"$1\" par une WebExtension est refusée par le navigateur Firefox.",
   "nonPlainURL": "La valeur \"$1\" n'est pas une URL ordinaire valide",
+  "haveToOpenManually": "Sur Firefox vous devez visiter cette URL manuellement",
   "changedBeforeSync":
 "        Erreur:\nDésolé, mais vous êtes en train d'activer les options de \"Sync\"\n    tandis que d'autres options sont également modifiées.\nMerci d'effectuer une action à la fois!"
  ,

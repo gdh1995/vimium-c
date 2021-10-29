@@ -6,7 +6,7 @@ import * as BgUtils_ from "./utils"
 import { runtimeError_, getCurWnd } from "./browser"
 import { getPortUrl_, safePost, showHUD } from "./ports"
 import { createSimpleUrlMatcher_, matchSimply_ } from "./exclusions"
-import { trans_ } from "./i18n"
+import { extTrans_ } from "./i18n"
 import {
   normalizedOptions_, envRegistry_, parseOptions_, normalizeCommand_, availableCommands_, makeCommand_
 } from "./key_mappings"
@@ -386,7 +386,7 @@ export const runKeyInSeq = (seq: BgCmdOptions[C.runKey]["$seq"], dir: number
           : finalFallback.$f = fallback
       if (runNextCmdBy(dir > 0 ? 1 : 0, finalFallback, 1)) { return }
     }
-    dir < 0 && fallback && fallback.t && showHUD(trans_(`${fallback.t as 99}`))
+    dir < 0 && fallback && fallback.t && showHUD(extTrans_(`${fallback.t as 99}`))
     return
   }
   const timeout = isLast ? 0 : seq.timeout = setTimeout((): void => {

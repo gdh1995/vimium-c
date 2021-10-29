@@ -1049,9 +1049,10 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     Vomnibar_.toggleAttr_("inputmode", Vomnibar_.isSearchOnTop_
         || !(<RegExpOne> /[\/:]/).test(Vomnibar_.lastQuery_) ? "search" : "url")
   },
-  toggleAttr_ (attr: string, value: string, trans?: BOOL) {
+  toggleAttr_: <V extends "Search" | "Go" | "search" | "url"> (attr: string
+      , value: V, trans?: V extends "Search" | "Go" ? 1 : 0) => {
     if (trans && Vomnibar_.pageType_ === VomnibarNS.PageType.inner) {
-      value = chrome.i18n.getMessage(value) || value;
+      value = chrome.i18n.getMessage(value) as never || value
     }
     if (Vomnibar_.input_.getAttribute(attr) !== value) {
       Vomnibar_.input_.setAttribute(attr, value);
@@ -1245,7 +1246,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       const els = document.querySelectorAll("[title]")
       for (let i = 0; i < els.length; i++) { // eslint-disable-line @typescript-eslint/prefer-for-of
         const el = els[i] as HTMLElement
-        let t = chrome.i18n.getMessage(el.title.replace(" ", "_"));
+        let t = chrome.i18n.getMessage(el.title.replace(" ", "_") as "Close" | "Toggle_Dark")
         t && (el.title = t);
       }
     }

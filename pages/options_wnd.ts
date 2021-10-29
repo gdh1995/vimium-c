@@ -273,8 +273,8 @@ let optionsInit1_ = function (): void {
   (_element as HTMLAnchorElement).onclick = function (event): void {
     event.preventDefault();
     if (OnFirefox) {
-      window.VApi ? VApi.t({ k: kTip.haveToOpenManually })
-      : alert(browser_.i18n.getMessage("" + kTip.haveToOpenManually))
+      window.VApi ? VApi.t({ k: kTip.raw, t: oTrans_("haveToOpenManually") })
+      : alert(oTrans_("haveToOpenManually"))
     } else {
       asyncBackend_.focusOrLaunch_({ u: this.href, p: true })
     }

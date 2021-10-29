@@ -8,7 +8,7 @@ import {
 } from "./browser"
 import * as BgUtils_ from "./utils"
 import * as settings_ from "./settings"
-import { trans_ } from "./i18n"
+import { extTrans_, i18nLang_, trans_ } from "./i18n"
 import { convertToUrl_, formatVimiumUrl_ } from "./normalize_urls"
 import { decodeFileURL_ } from "./parse_urls"
 import { openUrlReq } from "./open_urls"
@@ -32,8 +32,8 @@ const enableShowIcon = settings_.updateHooks_.showActionIcon = (value): void => 
     set_needIcon_(value)
     void (import("/background/action_icon.js" as string
         ) as Promise<typeof import("./action_icon")>).then(m => { m.toggleIconBuffer_() })
-    let title = trans_("name");
-    value || (title += "\n\n" + trans_("noActiveState"));
+    let title = extTrans_("name")
+    value || (title += "\n\n" + extTrans_("noActiveState"))
     api.setTitle({ title })
 }
 if (settings_.get_("showActionIcon")) {
@@ -60,7 +60,7 @@ setTimeout((): void => {
     key_: string;
   }
   interface SubInfo { type_?: "history" | "tab"; sessionId_?: CompletersNS.SessionId | null }
-  const colon2 = trans_("colon") + trans_("NS")
+  let colon2 = ": ", msg_inited = false
   const onDel = (!OnFirefox || Build.DetectAPIOnFirefox) ? omnibox.onDeleteSuggestion : null,
   mayDelete = OnChrome && Build.MinCVer >= BrowserVer.MinOmniboxSupportDeleting
       || (!OnFirefox || Build.DetectAPIOnFirefox) && !!onDel && typeof onDel.addListener === "function"
@@ -287,6 +287,12 @@ setTimeout((): void => {
         ? Math.floor((width - OmniboxData.MarginH / devicePixelRatio) / OmniboxData.MeanWidthOfChar)
         : OmniboxData.DefaultMaxChars;
     });
+    if (!msg_inited) {
+      msg_inited = true
+      if (i18nLang_() !== "en") {
+        Promise.all([trans_("colon"), trans_("NS")]).then(([colon, ns]): void => { colon2 = colon + ns || colon2 })
+      }
+    }
     if (cleanTimer) {
       return clean();
     }
@@ -396,12 +402,13 @@ installation_ && void installation_.then((details): void => {
   if (!settings_.get_("notifyUpdate")) { return }
 
   reason = "vimium_c-upgrade-notification";
+  Promise.all([ trans_("Upgrade"), trans_("upgradeMsg", [CONST_.VerName_]), trans_("upgradeMsg2")
+      , trans_("clickForMore") ]).then(([upgrade, msg, msg2, clickForMore]): void => {
   const args: chrome.notifications.NotificationOptions = {
     type: "basic",
     iconUrl: location.origin + "/icons/icon128.png",
-    title: "Vimium C " + trans_("Upgrade"),
-    message: trans_("upgradeMsg", [CONST_.VerName_]) + trans_("upgradeMsg2")
-        + "\n\n" + trans_("clickForMore")
+    title: "Vimium C " + upgrade,
+    message: msg + msg2 + "\n\n" + clickForMore
   };
   if (OnChrome && Build.MinCVer < BrowserVer.Min$NotificationOptions$$isClickable$IsDeprecated
       && CurCVer_ < BrowserVer.Min$NotificationOptions$$isClickable$IsDeprecated) {
@@ -424,6 +431,7 @@ installation_ && void installation_.then((details): void => {
       browserNotifications.onClicked.removeListener(callback)
     });
   });
+  })
   }, 500)
 })
 set_installation_(null)

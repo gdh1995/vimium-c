@@ -13,7 +13,7 @@ import { prepareReParsingPrefix_ } from "./parse_urls"
 import * as settings_ from "./settings"
 import { complainLimits, showHUD } from "./ports"
 import { setOmniStyle_ } from "./ui_css"
-import { trans_ } from "./i18n"
+import { extTrans_, trans_ } from "./i18n"
 import { parseFallbackOptions, runNextCmd, getRunNextCmdBy, kRunOn } from "./run_commands"
 import { parseOpenPageUrlOptions, preferLastWnd } from "./open_urls"
 import { reopenTab_ } from "./tab_commands"
@@ -104,7 +104,9 @@ export const ContentSettings_ = OnChrome ? {
     const ty = (options.type ? "" + options.type : "images") as NonNullable<typeof options.type>
     if (!ContentSettings_.complain_(ty, "http://a.cc/")) {
       ContentSettings_.Clear_(ty, port ? port.s.incognito_ : curIncognito_ === IncognitoType.true)
-      showHUD(trans_("csCleared", [ty === "images" && trans_(ty) || ty[0].toUpperCase() + ty.slice(1)]))
+      Promise.resolve(ty === "images" && trans_(ty)).then((tyI18n): void => {
+        showHUD(trans_("csCleared", [tyI18n || ty[0].toUpperCase() + ty.slice(1)]))
+      })
       return true
     }
     return false
@@ -260,7 +262,7 @@ export const ContentSettings_ = OnChrome ? {
   }
 } : {
   complain_ () {
-    showHUD("This version of Vimium C has no permissions to set CSs")
+    showHUD("Vimium C has no permissions to set CSs")
   }
 } as never
 export const Marks_ = { // NOTE: all public members should be static
@@ -309,7 +311,10 @@ export const Marks_ = { // NOTE: all public members should be static
       }
     }
     if (!str) {
-      showHUD(trans_("noMark", [trans_(request.l ? "Local_" : "Global_"), markName]))
+      const type = request.l ? "Local" : "Global"
+      Promise.resolve(trans_(type)).then((typeI18n): void => {
+        showHUD(trans_("noMark", [typeI18n || type, markName]))
+      })
       return
     }
     const stored = JSON.parse(str) as MarksNS.StoredGlobalMark;
@@ -367,10 +372,10 @@ export const Marks_ = { // NOTE: all public members should be static
         storage2.delete(key)
       }
     })
-    return showHUD(trans_("markRemoved", [
-      num, trans_(url ? url === "#" ? "allLocal" : (kTip.local + "") as "41" : (kTip.global + "") as "39"),
-      trans_(num !== 1 ? "have" : "has")
-    ]));
+    Promise.all([url === "#" ? trans_("allLocal") : extTrans_((url ? kTip.local + "" : kTip.global + "") as "41" | "39")
+        , trans_(num !== 1 ? "have" : "has")]).then(([arg2, arg3]): void => {
+      showHUD(trans_("markRemoved", [ num, arg2, arg3 ]))
+    })
   }
 }
 

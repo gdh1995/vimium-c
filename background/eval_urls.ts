@@ -278,8 +278,9 @@ const forceStatus_ = (act: Frames.ForcedStatusText): void => {
     port.postMessage(msg);
   }
   newStatus = ref.cur_.s.status_
-  silent || shown || showHUD(trans_("newStat", trans_(newStatus === Frames.Status.enabled && !enableWithPassedKeys
-      ? "fullyEnabled" : newStatus === Frames.Status.disabled ? "fullyDisabled" : "halfDisabled")))
+  silent || shown || Promise.resolve(trans_(newStatus === Frames.Status.enabled && !enableWithPassedKeys
+        ? "fullyEnabled" : newStatus === Frames.Status.disabled ? "fullyDisabled" : "halfDisabled"))
+      .then((statStr): void => { showHUD(trans_("newStat", [statStr])) })
   if (needIcon_ && newStatus !== oldStatus) {
     setIcon_(tabId, newStatus);
   }

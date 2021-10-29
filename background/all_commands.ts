@@ -14,7 +14,7 @@ import { parseSearchUrl_ } from "./parse_urls"
 import * as settings_ from "./settings"
 import { requireURL_, complainNoSession, showHUD, complainLimits, getPortUrl_ } from "./ports"
 import { setOmniStyle_ } from "./ui_css"
-import { trans_ } from "./i18n"
+import { trans_, I18nNames, extTrans_ } from "./i18n"
 import { stripKey_ } from "./key_mappings"
 import {
   confirm_, overrideCmdOptions, runNextCmd, portSendFgCmd, sendFgCmd, overrideOption, runNextCmdBy, fillOptionWithMask,
@@ -116,7 +116,7 @@ set_bgC_([
     key = _key && typeof _key === "string" ? stripKey_(_key).trim() : ""
     key = key.length > 1 || key.length === 1 && !(<RegExpI> /[0-9a-z]/i).test(key) ? key : ""
     sendFgCmd(kFgCmd.insertMode, hud, {
-      h: hud ? trans_(`${kTip.globalInsertMode}` as "5", [key && ": " + (key.length === 1 ? `" ${key} "`
+      h: hud ? extTrans_(`${kTip.globalInsertMode as 5}`, [key && ": " + (key.length === 1 ? `" ${key} "`
           : `<${key}>`)]) : null,
       k: key || null,
       i: !!get_cOptions<C.insertMode>().insert,
@@ -137,28 +137,32 @@ set_bgC_([
         : key === "reduceMotion" ? "m" as ManualNamesMap["reduceMotion"]
         : settings_.valuesToLoad_[key],
     old = key2 ? contentPayload_[key2] : 0, keyRepr = trans_("quoteA", [key])
-    let value = get_cOptions<C.toggle>().value, isBool = typeof value === "boolean", msg = ""
+    let value = get_cOptions<C.toggle>().value, isBool = typeof value === "boolean"
+    let msg: I18nNames | null = null, msgArg2 = ""
     if (!key2) {
-      msg = trans_(key in settings_.defaults_ ? "notFgOpt" : "unknownA", [keyRepr])
+      msg = key in settings_.defaults_ ? "notFgOpt" : "unknownA"
     } else if (typeof old === "boolean") {
       isBool || (value = null)
     } else if (isBool || value === undefined) {
-      msg = trans_(isBool ? "notBool" : "needVal", [keyRepr])
+      msg = isBool ? "notBool" : "needVal"
     } else if (typeof value !== typeof old) {
-      msg = JSON.stringify(old)
-      msg = trans_("unlikeVal", [keyRepr, msg.length > 10 ? msg.slice(0, 9) + "\u2026" : msg])
+      msgArg2 = JSON.stringify(old)
+      msg = "unlikeVal"
+      msgArg2 = msgArg2.length > 10 ? msgArg2.slice(0, 9) + "\u2026" : msgArg2
     }
+    Promise.resolve(keyRepr).then((keyReprStr): void => {
     if (msg) {
-      showHUD(msg)
+        showHUD(trans_(msg!, [keyReprStr, msgArg2]))
     } else {
       value = settings_.updatePayload_(key2, value)
       const frames = framesForTab_.get(cPort.s.tabId_)!, cur = frames.cur_
       for (const port of frames.ports_) {
         let isCur = port === cur
-        portSendFgCmd(port, kFgCmd.toggle, isCur, { k: key2, n: isCur ? keyRepr : "", v: value }, 1)
+        portSendFgCmd(port, kFgCmd.toggle, isCur, { k: key2, n: isCur ? keyReprStr : "", v: value }, 1)
       }
       resolve(1)
     }
+    })
   },
   /* kBgCmd.showHelp: */ (): void | kBgCmd.showHelp => {
     if (cPort.s.frameId_ === 0 && !(cPort.s.flags_ & Frames.Flags.hadHelpDialog)) {
@@ -249,8 +253,10 @@ set_bgC_([
   /* kBgCmd.clearFindHistory: */ (resolve): void | kBgCmd.clearFindHistory => {
     const incognito = cPort ? cPort.s.incognito_ : curIncognito_ === IncognitoType.true
     FindModeHistory_.removeAll_(incognito)
-    showHUD(trans_("fhCleared", [incognito ? trans_("incog") : ""]))
-    resolve(1)
+    Promise.resolve(incognito ? trans_("incog") : "").then((incogStr): void => {
+      showHUD(trans_("fhCleared", [incogStr]))
+      resolve(1)
+    })
   },
   /* kBgCmd.clearMarks: */ (resolve): void | kBgCmd.clearMarks => {
     const p = get_cOptions<C.clearMarks>().local ? get_cOptions<C.clearMarks>().all ? Marks_.clear_("#")
@@ -623,7 +629,7 @@ set_bgC_([
     let text = get_cOptions<C.showHUD>().text
     if (!text && get_cOptions<C.showHUD>().$f) {
       const fallbackContext = get_cOptions<C.showHUD, true>().$f
-      text = fallbackContext && fallbackContext.t ? trans_(`${fallbackContext.t as 99}`) : ""
+      text = fallbackContext && fallbackContext.t ? extTrans_(`${fallbackContext.t as 99}`) : ""
       if (!text) { resolve(false); return }
     }
     showHUD(text ? text + "" : trans_("needText"))

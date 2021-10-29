@@ -633,8 +633,10 @@ export const toggleMuteTab = (resolve: OnCmdResolved): void | kBgCmd.toggleMuteT
       }
     }
     const prefix = curId === GlobalConsts.TabIdNone ? "All" : "Other"
-    showHUD(trans_(mute ? "mute" : "unmute", [trans_(prefix) || prefix]))
-    resolve(1)
+    Promise.resolve(trans_(prefix)).then((prefixStr): void => {
+      showHUD(trans_(mute ? "mute" : "unmute", [prefixStr || prefix]))
+      resolve(1)
+    })
   }
   const wantedCurTabInfo = getNecessaryCurTabInfo(filter)
   if (wantedCurTabInfo) {

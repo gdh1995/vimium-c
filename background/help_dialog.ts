@@ -12,7 +12,7 @@ type NoAliasInCNames<k extends kCName> =
 
 // eslint-disable-next-line no-var
 let html_: [string, string] | null = null
-let i18n_: { [key in keyof typeof import("../i18n/zh/help_dialog.json")]: string }
+let i18n_: Map<keyof typeof import("../i18n/zh/help_dialog.json"), string>
 let template_: HTMLTableDataCellElement | null = null
 let parser_ff_: DOMParser | null = null
 const descriptions_ = new Map<kCName, [/** description */ string, /** parameters */ string]>()
@@ -39,7 +39,7 @@ export const parseHTML = (template: string): [string, string] => {
           head = head.replace(<RegExpG> /[#.][A-Z][^,{};]*[,{]/g, "#VimiumUI $&");
         }
       }
-      body = body.replace(<RegExpG & RegExpSearchable<1>> /\$(\w+)/g, (_, s): string => (i18n_ as Dict<string>)[s] ?? s)
+      body = body.replace(<RegExpG & RegExpSearchable<1>> /\$(\w+)/g, (_, s): string => i18n_.get(s as "misc") ?? s)
       const consts = BgUtils_.safer_<Dict<string>>({
       homePage: CONST_.HomePage_,
       version: CONST_.VerName_,
@@ -48,7 +48,7 @@ export const parseHTML = (template: string): [string, string] => {
           ? GlobalConsts.FirefoxAddonPrefix + "vimium-c/reviews/?src=external-help-dialog"
           : (OnChrome && IsEdg_
               ? GlobalConsts.EdgStorePage : GlobalConsts.ChromeWebStorePage).replace("$id", () => browser_.runtime.id),
-      webStore: i18n_[OnFirefox ? "addons" : IsEdg_ ? "edgestore" : "webstore"],
+      webStore: i18n_.get(OnFirefox ? "addons" : IsEdg_ ? "edgestore" : "webstore"),
       browserHelp: OnFirefox ? GlobalConsts.FirefoxHelp as string
           : OnChrome && IsEdg_ ? GlobalConsts.EdgHelp
           : GlobalConsts.ChromeHelp
@@ -58,7 +58,7 @@ export const parseHTML = (template: string): [string, string] => {
 }
 
 export const render_ = (isOptionsPage: boolean): NonNullable<CmdOptions[kFgCmd.showHelpDialog]["h"]> => {
-    i18n_ = helpDialogData_![1] as Dict<string> as typeof i18n_
+    i18n_ = helpDialogData_![1] as typeof i18n_
     if (!html_ || helpDialogData_![0]) {
       html_ = parseHTML(helpDialogData_![0]!)
       helpDialogData_![0] = ""
@@ -76,8 +76,8 @@ export const render_ = (isOptionsPage: boolean): NonNullable<CmdOptions[kFgCmd.s
       keys.push([key, registry])
     })
     const result = BgUtils_.safer_<Dict<string>>({
-      title: i18n_[isOptionsPage ? "cmdList" : "help"] || "",
-      tip: showNames && i18n_["tipClickToCopy"] || "",
+      title: i18n_.get(isOptionsPage ? "cmdList" : "help") || "",
+      tip: showNames && i18n_.get("tipClickToCopy") || "",
       lbPad: showNames ? '\n\t\t<tr><td class="HelpTd TdBottom">&#160;</td></tr>' : ""
     });
     const div = html_[1].replace(<RegExpG & RegExpSearchable<1>> /\{\{(\w+)}}/g
@@ -154,7 +154,7 @@ const normalizeCmdName = (command: kCName): NormalizedNames => {
 
 const renderGroup = (group: string, commandToKeys: Map<string, [string, CommandsNS.Item][]>
       , hideUnbound: boolean, showNames: boolean): string => {
-    const cmdParams = i18n_["cmdParams"] || " (use *)", i18nParams = helpDialogData_![2]!
+    const cmdParams = i18n_.get("cmdParams") || " (use *)", i18nParams = helpDialogData_![2]!
     let html = "";
     for (const command of commandGroups_[group as keyof typeof commandGroups_]) {
       let keys = commandToKeys.get(command)
@@ -162,8 +162,8 @@ const renderGroup = (group: string, commandToKeys: Map<string, [string, Commands
       const isAdvanced = advancedCommands_[command] === 1;
       let keyLen = -2, bindings = "", description = descriptions_.get(command)
       if (!description) {
-        const params = i18nParams[command]
-        description = [i18n_[command as NormalizedNames]!.replace("<", "&lt;").replace(">", "&gt;"),
+        const params = i18nParams.get(command)
+        description = [i18n_.get(command as NormalizedNames)!.replace("<", "&lt;").replace(">", "&gt;"),
             (params ? cmdParams.replace("*", () => params) : " ")] // lgtm [js/incomplete-sanitization]
         descriptions_.set(command, description)
         if (!(Build.NDEBUG || description)) {

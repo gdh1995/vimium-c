@@ -1,4 +1,6 @@
-import { CurCVer_, bgSettings_, OnChrome, OnFirefox, $, $$, asyncBackend_, browser_, nextTick_ } from "./async_bg"
+import {
+  CurCVer_, bgSettings_, OnChrome, OnFirefox, $, $$, asyncBackend_, browser_, nextTick_, bTrans_
+} from "./async_bg"
 import {
   Option_, AllowedOptions, Checker, PossibleOptionNames, ExclusionRulesOption_, oTrans_,
   KnownOptionsDataset, OptionErrorType, ExclusionRealNode
@@ -502,7 +504,7 @@ const linkHintNumbersOption_ = Option_.all_.linkHintNumbers
 const filterLinkHintsOption_ = Option_.all_.filterLinkHints
 linkHintCharactersOption_.onSave_ = linkHintNumbersOption_.onSave_ = function (): void {
   this.showError_(!this.element_.style.display && this.previous_.length < GlobalConsts.MinHintCharSetSize
-      ? browser_.i18n.getMessage("" + kTip.fewChars) : "")
+      ? bTrans_("" + kTip.fewChars) : "")
 }
 filterLinkHintsOption_.onSave_ = function (): void {
   nextTick_((el): void => {

@@ -303,7 +303,10 @@ export const safePost = <K extends keyof FullBgReq>(port: Port, req: Req.bg<K>):
   } catch { return 0 }
 }
 
-export const showHUD = (text: string, isCopy?: kTip): void => {
+const show2 = (isCopy: kTip | undefined, text: string) => { showHUD(text, isCopy) }
+
+export const showHUD = (text: string | Promise<string>, isCopy?: kTip): void => {
+  if (typeof text !== "string") { text.then(/*#__NOINLINE__*/ show2.bind(null, isCopy)); return }
   if (isCopy) {
     if (text.startsWith(CONST_.BrowserProtocol_ + "-") && text.includes("://")) {
       text = text.slice(text.indexOf("/", text.indexOf("/") + 2) + 1) || text
@@ -352,7 +355,9 @@ export const asyncIterFrames_ = (callback: (frames: Frames.Frames) => void, does
   }
 }
 
-export const complainLimits = (action: string): void => { showHUD(trans_("notAllowA", [action])) }
+export const complainLimits = (action: string | Promise<string>): void => {
+  Promise.resolve(action).then((msg): void => { showHUD(trans_("notAllowA", [msg])) })
+}
 
 export const complainNoSession = (): void => {
   !OnChrome || Build.MinCVer >= BrowserVer.MinSessions || CurCVer_ >= BrowserVer.MinSessions

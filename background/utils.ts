@@ -281,17 +281,32 @@ export const fetchFile_ = ((filePath: string): Promise<string | {}> => {
   filePath = !filePath.includes("/") ? "/front/" + filePath : filePath
   if (!OnChrome || Build.MinCVer >= BrowserVer.MinFetchExtensionFiles
       || CurCVer_ >= BrowserVer.MinFetchExtensionFiles) {
-    return fetch(filePath).then(r => json ? r.json() : r.text())
+    return fetch(filePath).then(r => json ? r.json<Dict<string>>().then((res): Map<string, any> => {
+      safer_(res)
+      const map = new Map<string, any>()
+      for (let key in res) { map.set(key, res[key]) }
+      return map
+    }) : r.text())
   }
   const req = new XMLHttpRequest() as TextXHR | JSONXHR
   req.open("GET", filePath, true)
   req.responseType = json ? "json" : "text"
   return new Promise<string | {}>((resolve): void => {
-    req.onload = function (): void { resolve(this.response as (string | {})) }
+    req.onload = function (): void {
+      const res = this.response as string | Dict<any>
+      if (typeof res === "string") {
+        resolve(res)
+      } else {
+        safer_(res)
+        const map = new Map<string, any>()
+        for (let key in res) { map.set(key, res[key]) }
+        resolve(map)
+      }
+    }
     req.send()
   })
 }) as {
-  <T extends string> (file: T): Promise<T extends `${string}.json` ? Dict<any> : string>
+  <T extends string> (file: T): Promise<T extends `${string}.json` ? Map<string, any> : string>
 }
 
 export const escapeAllForRe_ = (s: string): string =>

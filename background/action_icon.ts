@@ -3,7 +3,7 @@ import {
 } from "./store"
 import * as BgUtils_ from "./utils"
 import * as settings_ from "./settings"
-import { trans_ } from "./i18n"
+import { extTrans_ } from "./i18n"
 import { browser_, runtimeError_ } from "./browser"
 import { asyncIterFrames_ } from "./ports"
 
@@ -24,7 +24,7 @@ const onerror = (err: any): void => {
   set_setIcon_(blank_)
   set_needIcon_(false)
   settings_.updateHooks_.showActionIcon = undefined
-  browserAction_.setTitle({ title: trans_("name") + "\n\nFailed in showing dynamic icons." })
+  browserAction_.setTitle({ title: extTrans_("name") + "\n\nFailed in showing dynamic icons." })
 }
 
 const loadBinaryImagesAndSetIcon_cr = (type: Frames.ValidStatus): void => {
