@@ -219,7 +219,7 @@ function _importSettings(time: number, new_data: ExportedSettings, is_recommende
         plat ? oTrans_("filePlatform", [oTrans_(plat as "win" | "mac") || plat[0].toUpperCase() + plat.slice(1)])
           : oTrans_("commonPlatform"),
         time ? oTrans_("atTime", [formatDate_(time)]) : oTrans_("before")]))) {
-    window.VApi && VApi.t({ k: kTip.cancelImport })
+    window.VApi && VApi.t({ k: kTip.raw, t: oTrans_("cancelImport") })
     return;
   }
   const now = new Date()
@@ -389,7 +389,7 @@ function _importSettings(time: number, new_data: ExportedSettings, is_recommende
     node.click();
     $("#showCommands").click();
   }
-  if (window.VApi) { VApi.t({ k: kTip.importOK }); }
+  if (window.VApi) { VApi.t({ k: kTip.raw, t: oTrans_("importOK") }) }
 }
 
 function importSettings_(time: number | string | Date, data: string, is_recommended?: boolean): void {

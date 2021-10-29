@@ -1,8 +1,11 @@
 import {
   curTabId_, Completion_, omniPayload_, reqH_, OnFirefox, CurCVer_, IsEdg_, OnChrome, restoreSettings_, blank_,
-  set_needIcon_, set_setIcon_, CONST_, installation_, backupToLocal_, set_installation_, set_backupToLocal_, framesForTab_
+  set_needIcon_, set_setIcon_, CONST_, installation_, backupToLocal_, set_installation_, set_backupToLocal_,
+  framesForTab_
 } from "./store"
-import { Tabs_, browser_, getCurWnd, runtimeError_, watchPermissions_, browserWebNav_, runContentScriptsOn_ } from "./browser"
+import {
+  Tabs_, browser_, getCurWnd, runtimeError_, watchPermissions_, browserWebNav_, runContentScriptsOn_
+} from "./browser"
 import * as BgUtils_ from "./utils"
 import * as settings_ from "./settings"
 import { trans_ } from "./i18n"

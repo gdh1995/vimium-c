@@ -63,6 +63,7 @@
   "exc": "Error: ",
   "unknown": "(unknown)",
   "JSONTooLarge":
-"    Fatal Error:\n\nYour settings file \"$1\" seems too large!\n\nAs limited by your browser, the max size is only $2 KB."
- 
+"    Fatal Error:\n\nYour settings file \"$1\" seems too large!\n\nAs limited by your browser, the max size is only $2 KB.",
+  "cancelImport": "You cancelled importing",
+  "importOK": "Import settings data: OK!"
 }

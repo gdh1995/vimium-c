@@ -193,7 +193,8 @@ const openUrlInIncognito = (urls: string[], reuse: ReuseType
 
 export const parseReuse = (reuse: UserReuseType | null | undefined): ReuseType =>
     reuse == null ? ReuseType.newFg
-    : typeof reuse !== "string" ? isNaN(+reuse) ? ReuseType.newFg : reuse | 0
+    : typeof reuse !== "string" ? typeof reuse === "boolean" ? reuse ? ReuseType.reuse : ReuseType.newFg
+       : isNaN(+reuse) ? ReuseType.newFg : reuse | 0
     : (reuse = reuse.toLowerCase().replace("window", "wnd").replace(<RegExpG & { source: "-" }> /-/g, ""),
       reuse in ReuseValues ? ReuseValues[reuse as keyof typeof ReuseValues] : ReuseType.newFg)
 

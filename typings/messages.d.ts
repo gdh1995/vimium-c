@@ -21,7 +21,7 @@ declare const enum kTip {
   /* 115: */ atStart, atEnd, noTargets, closableClasses, highContrast_WOB,
   /* 120: */ expectKeys,
   INJECTED_CONTENT_END,
-  /* 200: */ firefoxRefuseURL = 200, cancelImport, importOK, XHTML, redditOverlay,
+  /* 200: */ XHTML, redditOverlay,
   /** used by {@link ../Gulpfile.js} */ extendClick = 999,
 }
 

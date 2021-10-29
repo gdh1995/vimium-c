@@ -27,7 +27,7 @@
   "goNext": "sed=true, patterns:string, rel:string, noRel, isNext",
   "goUp": "trailingSlash=null/true/false",
   "moveTabToNewWindow": "limited=null/true/false",
-  "moveTabToNextWindow": "position, right=true",
+  "moveTabToNextWindow": "last, position, right=true",
   "openBookmark": "title, path",
   "openUrl": "url:string, urls:string[], reuse=newFg/current/newBg/reuse, incognito, window, position",
   "passNextKey": "expect:string, normal",

@@ -48,5 +48,7 @@
   "exc": "Erreur: ",
   "unknown": "(inconnu(es))",
   "JSONTooLarge":
-"    Erreur Fatale :\n\nVotre fichier de paramètres \"$1\" semble trop grand !\n\nTel que limité par votre navigateur, la taille maximale est de seulement $2 Ko."
+"    Erreur Fatale :\n\nVotre fichier de paramètres \"$1\" semble trop grand !\n\nTel que limité par votre navigateur, la taille maximale est de seulement $2 Ko.",
+  "cancelImport": "Vous avez annulé l'importation",
+  "importOK": "Import des données de paramétrage : OK!"
 }
