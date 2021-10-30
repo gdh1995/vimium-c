@@ -69,9 +69,9 @@ const accessElAttr = (isUrlOrText?: 1 | 2): [string: string, isUserCustomized?: 
       : dataset.canonicalSrc || dataset.src) || ""]
 }
 
-const getUrlData = (): string => {
-  let link = clickEl as SafeHTMLElement, str = accessElAttr(1)[0]
-  if (str) {
+const getUrlData = (str?: string): string => {
+  let link = clickEl as SafeHTMLElement
+  if (str = str || accessElAttr(1)[0]) {
     (link = createElement_("a")).href = str.trim();
   }
   // $1.href is ensured well-formed by @GetLinks_
@@ -96,11 +96,7 @@ const downloadOrOpenMedia = (): void => {
   if (mediaTag > kMediaTag.MIN_NOT_MEDIA_EL - 1) {
     if (tag && !isImageUrl(text)) {
       let arr = createRegExp(kTip.cssUrl, "i").exec(getComputedStyle_(clickEl).backgroundImage!)
-      if (arr && arr[1]) {
-        const a1 = createElement_("a");
-        a1.href = arr[1].replace(<RegExpG> /\\('|")/g, "$1");
-        text = a1.href;
-      }
+      text = arr && arr[1] ? arr[1].replace(<RegExpG> /\\('|")/g, "$1") : text
     }
   }
   if (!text || isJSUrl(text)
@@ -109,10 +105,10 @@ const downloadOrOpenMedia = (): void => {
   }
   if (!text) { hintApi.t({ k: kTip.notImg }) }
   else if (OnFirefox && hintOptions.keyword != null || mode1_ === HintMode.OPEN_IMAGE || /** <svg> */ !tag) {
-    post_({
+    hintApi.p({
       H: kFgReq.openImage, r: hintMode_ & HintMode.queue ? ReuseType.newBg : ReuseType.newFg,
       m: mode1_, q: parseOpenPageUrlOptions(hintOptions), a: hintOptions.auto,
-      f: filename, u: text
+      f: filename, u: tag ? text && getUrlData(text) : text
     })
   } else {
     downloadLink(text, filename)
@@ -257,8 +253,7 @@ const copyText = (): void => {
     }
   if (mode1_ > HintMode.min_edit - 1 && mode1_ < HintMode.max_edit + 1) {
       let newtab = hintOptions.newtab;
-      // this frame is normal, so during Vomnibar.activate, checkHidden will only pass (in most cases)
-      (post_ as (req: Partial<VomnibarNS.GlobalOptions> & Req.fg<kFgReq.vomnibar>) => void | 1)({
+      hintApi.p({
         H: kFgReq.vomnibar,
         c: 1,
         u: str,
@@ -295,7 +290,7 @@ const downloadLink = (url?: string, filename?: string): void => {
   url = url || getUrlData()
   filename = filename || attr_s(clickEl, kD) || ""
   if (OnFirefox || OnChrome && hintOptions.download === "force") {
-      post_({
+    hintApi.p({
         H: kFgReq.downloadLink, u: url, f: filename, r: loc_.href, m: mode1_ < HintMode.DOWNLOAD_LINK
       })
       return
