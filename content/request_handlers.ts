@@ -117,7 +117,7 @@ set_requestHandlers([
       if (OnChrome && Build.MinCVer < BrowserVer.Min$Set$accept$Symbol$$Iterator
           && chromeVer_ < BrowserVer.Min$Set$accept$Symbol$$Iterator) {
         type StringArraySet = string[] & Set<string>;
-        (arr as StringArraySet).has = Build.MinCVer >= BrowserVer.MinEnsuredES6$Array$$Includes ? arr.includes!
+        (arr as StringArraySet).has = Build.MinCVer >= BrowserVer.MinEnsuredES$Array$$Includes ? arr.includes!
             : includes_
         set_passKeys(arr as StringArraySet)
       } else {

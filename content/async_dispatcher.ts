@@ -77,7 +77,7 @@ const __myAwaiter = Build.BTypes & BrowserType.Chrome ? Build.MinCVer < BrowserV
     resolveVoid()
   }
 })
-: Build.MinCVer < BrowserVer.MinEnsuredAsyncFunctions
+: Build.MinCVer < BrowserVer.MinEnsuredES2017AsyncFunctions
 ? <TNext, TReturn> (generatorFunction: () => Generator<TNext | TReturn | Promise<TNext | TReturn>, TReturn, TNext>
     ): Promise<TReturn | void> => new Promise<TReturn | void> ((resolve): void => {
   const resolveVoid = Build.MinCVer < BrowserVer.MinTestedES6Environment ? resolve.bind(0, void 0) : () => resolve()
@@ -101,7 +101,7 @@ const __myAwaiter = Build.BTypes & BrowserType.Chrome ? Build.MinCVer < BrowserV
 })
 : 0 as never : 0 as never
 
-const __awaiter = Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredAsyncFunctions
+const __awaiter = Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES2017AsyncFunctions
 ? (_aw_self: void | 0 | undefined, _aw_args: unknown, _aw_p: PromiseConstructor | 0 | undefined
     , func_to_await: Function): Promise<YieldedValue> => __myAwaiter(func_to_await as any)
 : 0 as never
@@ -109,7 +109,7 @@ const __awaiter = Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVe
 export { __generator as __asyncGenerator, __awaiter as __asyncAwaiter }
 
 export const catchAsyncErrorSilently = <T> (p: Promise<T>): Promise<T | void> =>
-    OnChrome && Build.MinCVer < BrowserVer.MinEnsuredAsyncFunctions ? p
+    OnChrome && Build.MinCVer < BrowserVer.MinEnsuredES2017AsyncFunctions ? p
     : p.catch(Build.NDEBUG ? (): void => { /* empty  */} : e => { console.log("Vimium C: unexpected error\n", e) })
 
 /** sync dispatchers */

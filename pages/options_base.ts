@@ -112,80 +112,80 @@ export abstract class Option_<T extends keyof AllowedOptions> {
   static syncToFrontend_: Array<keyof SettingsNS.AutoSyncedNameMap>;
   static suppressPopulate_ = false
 
-constructor (element: HTMLElement, onUpdated: () => void) {
-  this.element_ = element;
-  this.field_ = element.id as T;
-  this.previous_ = this.onUpdated_ = null as never;
-  this.saved_ = false;
-  if (this.field_ in bgSettings_.valuesToLoad_) {
-    onUpdated = this._onCacheUpdated.bind(this, onUpdated);
+  constructor (element: HTMLElement, onUpdated: () => void) {
+    this.element_ = element;
+    this.field_ = element.id as T;
+    this.previous_ = this.onUpdated_ = null as never;
+    this.saved_ = false;
+    if (this.field_ in bgSettings_.valuesToLoad_) {
+      onUpdated = this._onCacheUpdated.bind(this, onUpdated);
+    }
+    this.onUpdated_ = debounce_(onUpdated, 330, this, 1);
+    this.init_(element)
   }
-  this.onUpdated_ = debounce_(onUpdated, 330, this, 1);
-  this.init_(element)
-}
 
-fetch_ (): void {
-  this.saved_ = true;
-  this.previous_ = this.innerFetch_()
-  if (!Option_.suppressPopulate_) {
-    nextTick_((): void => { this.populateElement_(this.previous_) })
-  }
-}
-innerFetch_ (): AllowedOptions[T] {
-  return bgSettings_.get_(this.field_)
-}
-normalize_ (value: AllowedOptions[T], isJSON: boolean, str?: string): AllowedOptions[T] {
-  const checker = this.checker_;
-  if (isJSON) {
-    str = checker || !str ? JSON.stringify(checker ? checker.check_(value) : value) : str;
-    return BG_.JSON.parse(str);
-  }
-  return checker ? checker.check_(value) : value;
-}
-allowToSave_ (): boolean { return true; }
-save_ (): void {
-  let value = this.readValueFromElement_(), isJSON = typeof value === "object"
-    , previous = isJSON ? JSON.stringify(this.previous_) : this.previous_
-    , pod = isJSON ? JSON.stringify(value) : value as string
-  if (pod === previous) { return; }
-  previous = pod;
-  value = this.normalize_(value, isJSON, isJSON ? pod : "");
-  this.previous_ = value = this.executeSave_(value, isJSON, pod)
-  this.saved_ = true
-  if (previous !== (isJSON ? JSON.stringify(value) : value) || this.doesPopulateOnSave_(value)) {
-    this.populateElement_(value, true)
-  }
-  this.onSave_()
-}
-_isDirty (): boolean {
-  return !this.areEqual_(this.previous_, this.innerFetch_())
-}
-executeSave_ (value: AllowedOptions[T], isJSON: boolean, pod: string): AllowedOptions[T] {
-  if (isJSON) {
-    pod = JSON.stringify(value);
-    if (pod === JSON.stringify(bgSettings_.defaults_[this.field_])) {
-      value = bgSettings_.defaults_[this.field_];
+  fetch_ (): void {
+    this.saved_ = true;
+    this.previous_ = this.innerFetch_()
+    if (!Option_.suppressPopulate_) {
+      nextTick_((): void => { this.populateElement_(this.previous_) })
     }
   }
-  bgSettings_.set_<keyof AllowedOptions>(this.field_, value);
-  if (this.field_ in bgSettings_.valuesToLoad_) {
-    Option_.syncToFrontend_.push(this.field_ as keyof typeof bgSettings_.valuesToLoad_);
+  innerFetch_ (): AllowedOptions[T] {
+    return bgSettings_.get_(this.field_)
   }
-  return this.innerFetch_()
-}
-abstract init_ (element: HTMLElement): void
-abstract readValueFromElement_ (): AllowedOptions[T];
-abstract populateElement_ (value: AllowedOptions[T], enableUndo?: boolean): void;
-doesPopulateOnSave_ (_val: AllowedOptions[T]): boolean { return false }
-_onCacheUpdated: (this: Option_<T>, onUpdated: (this: Option_<T>) => void) => void;
-areEqual_: (this: Option_<T>, a: AllowedOptions[T], b: AllowedOptions[T]) => boolean;
-atomicUpdate_: (this: Option_<T> & {element_: TextElement}, value: string, undo: boolean, locked: boolean) => void;
+  normalize_ (value: AllowedOptions[T], isJSON: boolean, str?: string): AllowedOptions[T] {
+    const checker = this.checker_;
+    if (isJSON) {
+      str = checker || !str ? JSON.stringify(checker ? checker.check_(value) : value) : str;
+      return BG_.JSON.parse(str);
+    }
+    return checker ? checker.check_(value) : value;
+  }
+  allowToSave_ (): boolean { return true; }
+  save_ (): void {
+    let value = this.readValueFromElement_(), isJSON = typeof value === "object"
+      , previous = isJSON ? JSON.stringify(this.previous_) : this.previous_
+      , pod = isJSON ? JSON.stringify(value) : value as string
+    if (pod === previous) { return; }
+    previous = pod;
+    value = this.normalize_(value, isJSON, isJSON ? pod : "");
+    this.previous_ = value = this.executeSave_(value, isJSON, pod)
+    this.saved_ = true
+    if (previous !== (isJSON ? JSON.stringify(value) : value) || this.doesPopulateOnSave_(value)) {
+      this.populateElement_(value, true)
+    }
+    this.onSave_()
+  }
+  _isDirty (): boolean {
+    return !this.areEqual_(this.previous_, this.innerFetch_())
+  }
+  executeSave_ (value: AllowedOptions[T], isJSON: boolean, pod: string): AllowedOptions[T] {
+    if (isJSON) {
+      pod = JSON.stringify(value);
+      if (pod === JSON.stringify(bgSettings_.defaults_[this.field_])) {
+        value = bgSettings_.defaults_[this.field_];
+      }
+    }
+    bgSettings_.set_<keyof AllowedOptions>(this.field_, value);
+    if (this.field_ in bgSettings_.valuesToLoad_) {
+      Option_.syncToFrontend_.push(this.field_ as keyof typeof bgSettings_.valuesToLoad_);
+    }
+    return this.innerFetch_()
+  }
+  abstract init_ (element: HTMLElement): void
+  abstract readValueFromElement_ (): AllowedOptions[T];
+  abstract populateElement_ (value: AllowedOptions[T], enableUndo?: boolean): void;
+  doesPopulateOnSave_ (_val: AllowedOptions[T]): boolean { return false }
+  _onCacheUpdated: (this: Option_<T>, onUpdated: (this: Option_<T>) => void) => void;
+  areEqual_: (this: Option_<T>, a: AllowedOptions[T], b: AllowedOptions[T]) => boolean;
+  atomicUpdate_: (this: Option_<T> & {element_: TextElement}, value: string, undo: boolean, locked: boolean) => void;
 
-static areJSONEqual_ (this: void, a: object, b: object): boolean {
-  return JSON.stringify(a) === JSON.stringify(b);
-}
-static saveOptions_: (this: void) => boolean;
-static needSaveOptions_: (this: void) => boolean;
+  static areJSONEqual_ (this: void, a: object, b: object): boolean {
+    return JSON.stringify(a) === JSON.stringify(b);
+  }
+  static saveOptions_: (this: void) => boolean;
+  static needSaveOptions_: (this: void) => boolean;
 }
 export type OptionErrorType = "has-error" | "highlight"
 

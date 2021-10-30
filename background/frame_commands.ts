@@ -117,7 +117,7 @@ export const showVomnibar = (forceInner?: boolean): void => {
   const page = settingsCache_.vomnibarPage_f, { url_: url } = port.s,
   preferWeb = !page.startsWith(CONST_.BrowserProtocol_),
   isCurOnExt = url.startsWith(CONST_.BrowserProtocol_),
-  inner = forceInner || !page.startsWith(location.origin) ? CONST_.VomnibarPageInner_ : page
+  inner = forceInner || !page.startsWith(location.origin + "/") ? CONST_.VomnibarPageInner_ : page
   forceInner = forceInner ? forceInner
     : preferWeb ? isCurOnExt || page.startsWith("file:") && !url.startsWith("file:///")
       // it has occurred since Chrome 50 (BrowserVer.Min$tabs$$executeScript$hasFrameIdArg)
@@ -300,7 +300,7 @@ export const openImgReq = (req: FgReq[kFgReq.openImage], port?: Port): void => {
         : createSearchUrl_(url.trim().split(BgUtils_.spacesRe_), keyword, Urls.WorkType.ActAnyway)
   // not use v:show for those from other extensions
   openUrlWithActions(typeof urlToOpen === "string" && testUrl
-      && (!urlToOpen.startsWith(location.protocol) || urlToOpen.startsWith(location.origin)) ? prefix + urlToOpen
+      && (!urlToOpen.startsWith(location.protocol) || urlToOpen.startsWith(location.origin + "/")) ? prefix + urlToOpen
       : urlToOpen, Urls.WorkType.FakeType)
 }
 
@@ -311,7 +311,7 @@ export const framesGoBack = (req: FgReq[kFgReq.framesGoBack], port: Port | null,
   if (!hasTabsGoBack) {
     const url = curTab ? getTabUrl(curTab)
         : (port!.s.frameId_ ? framesForTab_.get(port!.s.tabId_)!.top_! : port!).s.url_
-    if (!url.startsWith(CONST_.BrowserProtocol_) || OnFirefox && url.startsWith(location.origin)) {
+    if (!url.startsWith(CONST_.BrowserProtocol_) || OnFirefox && url.startsWith(location.origin + "/")) {
       /* empty */
     } else {
       set_cPort(port!) /* Port | null -> Port */

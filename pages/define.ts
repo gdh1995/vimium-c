@@ -135,8 +135,10 @@ declare var define: any, __filename: string | null | undefined // eslint-disable
   }
 })()
 
-Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES6$Array$$Includes &&
-![].includes && (function (): void {
+Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES$Object$$values &&
+!Object.values && (function (): void {
+  Object.values = (item): any[] => Object.keys(item).map(i => (item as Dict<any>)[i])
+  if (Build.MinCVer >= BrowserVer.MinEnsuredES$Array$$Includes || [].includes) { return }
   const noArrayFind = ![].find
   Object.defineProperty(Array.prototype, "includes", { enumerable: false,
     value: function includes(this: any[], value: any, ind?: number): boolean { return this.indexOf(value, ind) >= 0 }
@@ -190,8 +192,11 @@ Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES6$Ar
     }
   })
 })()
-if (!(Build.NDEBUG || BrowserVer.MinMaybeES6$Array$$Includes >= BrowserVer.Min$Array$$find$$findIndex)) {
-  alert("expect BrowserVer.MinMaybeES6$Array$$Includes >= BrowserVer.Min$Array$$find$$findIndex")
+if (!(Build.NDEBUG || BrowserVer.MinMaybeES$Object$$values >= BrowserVer.MinEnsuredES$Array$$Includes)) {
+  alert("expect BrowserVer.MinMaybeES$Object$$values >= BrowserVer.MinEnsuredES$Array$$Includes")
+}
+if (!(Build.NDEBUG || BrowserVer.MinMaybeES$Array$$Includes >= BrowserVer.Min$Array$$find$$findIndex)) {
+  alert("expect BrowserVer.MinMaybeES$Array$$Includes >= BrowserVer.Min$Array$$find$$findIndex")
 }
 if (!(Build.NDEBUG || BrowserVer.BuildMinForOf >= BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol)) {
   alert("expect BrowserVer.BuildMinForOf >= BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol")

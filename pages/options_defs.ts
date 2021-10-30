@@ -521,27 +521,27 @@ Option_.all_.ignoreKeyboardLayout.onSave_ = function (): void {
 }
 
 Option_.all_.vomnibarPage.onSave_ = function (): void {
-  const opt = this
-  let {element_: element2} = opt, url: string = opt.previous_
+  let {element_: element2} = this, url: string = this.previous_
     , isExtPage = url.startsWith(location.protocol) || url.startsWith("front/")
   if (OnChrome && Build.MinCVer < BrowserVer.Min$tabs$$executeScript$hasFrameIdArg
       && CurCVer_ < BrowserVer.Min$tabs$$executeScript$hasFrameIdArg) {
     nextTick_((): void => {
       element2.style.textDecoration = isExtPage ? "" : "line-through"
     })
-    return opt.showError_(url === bgSettings_.defaults_.vomnibarPage ? ""
+    return this.showError_(url === bgSettings_.defaults_.vomnibarPage ? ""
           : oTrans_("onlyExtVomnibar", [BrowserVer.Min$tabs$$executeScript$hasFrameIdArg])
         , null)
   }
   url = asyncBackend_.settingsCache_.vomnibarPage_f || url // for the case Chrome is initing
-  if (isExtPage) { /* empty */ }
+  if (isExtPage) { this.showError_("") }
   // Note: the old code here thought on Firefox web pages couldn't be used, but it was just because of wrappedJSObject
   else if (url.startsWith("file:")) {
-    return opt.showError_(oTrans_("fileVomnibar"), "highlight")
+    this.showError_(oTrans_("fileVomnibar"), "highlight")
   } else if ((<RegExpI> /^http:\/\/(?!localhost[:/])/i).test(url)) {
-    return opt.showError_(oTrans_("httpVomnibar"), "highlight")
+    this.showError_(oTrans_("httpVomnibar"), "highlight")
+  } else {
+    this.showError_("")
   }
-  return opt.showError_("")
 }
 
 Option_.all_.newTabUrl.checker_ = {

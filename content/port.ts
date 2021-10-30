@@ -6,17 +6,11 @@ import { docHasFocus_ } from "../lib/dom_utils"
 import { style_ui } from "./dom_ui"
 import { hudTip } from "./hud"
 
-export interface Port extends chrome.runtime.Port {
-  postMessage<k extends keyof FgRes>(request: Req.fgWithRes<k>): 1;
-  // eslint-disable-next-line @typescript-eslint/unified-signatures
-  postMessage<k extends keyof FgReq>(request: Req.fg<k>): 1;
-  onMessage: chrome.events.Event<(message: any, port: Port, exArg: FakeArg) => void>;
-}
 export declare const enum HookAction { Install = 0, SuppressListenersOnDocument = 1, Suppress = 2, Destroy = 3 }
 export type SafeDestoryF = (silent?: boolean | BOOL | 9) => void
 
 let port_callbacks: { [msgId: number]: <k extends keyof FgRes>(this: void, res: FgRes[k]) => void }
-let port_: Port | null = null
+let port_: ContentNS.Port | null = null
 let tick = 1
 let safeDestroy: SafeDestoryF
 let requestHandlers: { [k in keyof BgReq]: (this: void, request: BgReq[k]) => unknown }
@@ -41,7 +35,7 @@ export const post_ = <k extends keyof FgReq>(request: FgReq[k] & Req.baseFg<k>):
 
 export const send_  = <k extends keyof FgRes> (cmd: k, args: Req.fgWithRes<k>["a"]
     , callback: (this: void, res: FgRes[k]) => void): void => {
-  (post_ as Port["postMessage"])({ H: kFgReq.msg, i: ++tick, c: cmd, a: args })
+  (post_ as ContentNS.Port["postMessage"])({ H: kFgReq.msg, i: ++tick, c: cmd, a: args })
   ; port_callbacks = port_callbacks || safer({})
   port_callbacks[tick] =
           callback as <K2 extends keyof FgRes>(this: void, res: FgRes[K2]) => void
@@ -76,7 +70,7 @@ export const runtimeConnect = (function (this: void): void {
   data = { name: injector ? PortNameEnum.Prefix + name + injector.$h
                   : OnEdge ? name + PortNameEnum.Delimiter + locHref() : "" + name },
   connect = api.runtime.connect
-  port_ = injector ? connect(injector.id, data) as Port : connect(data) as Port
+  port_ = (injector ? connect(injector.id, data) : connect(data)) as ContentNS.Port
   port_.onDisconnect.addListener((): void => {
     port_ = null
     timeout_(function (i): void {

@@ -43,14 +43,15 @@ VApi.e = function (cmd): void {
   }
 
   let i18nMessages: FgRes[kFgReq.i18n] = []
-  thisApi.r![0](kFgReq.i18n, 0, (res): void => {
+  const ref = thisApi.r as Exclude<typeof thisApi.r, boolean>
+  ref[0](kFgReq.i18n, 0, (res): void => {
     i18nMessages = res;
     if (VApi.z) {
       const injector1 = VimiumInjector!
       injector1.callback && injector1.callback(2, "complete")
     }
   })
-  thisApi.r![2]!(2, (tid, args): string => {
+  ref[2]!(2, (tid, args): string => {
     return args ? i18nMessages[tid].replace(trArgsRe, s => typeof args === "string" ? args : <string> args[+s[1] - 1])
         : i18nMessages[tid];
   })
@@ -60,17 +61,17 @@ VApi.e = function (cmd): void {
       && (parent as Window & {VimiumInjector?: typeof VimiumInjector}).VimiumInjector,
   // share the set of all clickable, if .dataset.vimiumHooks is not "false"
   clickable = injector.clickable = parentInjector && parentInjector.clickable || injector.clickable;
-  clickable && (thisApi.r![2]!(1, clickable));
+  clickable && (ref[2]!(1, clickable));
 
-  injector.checkIfEnabled = (function (this: null, func: NonNullable<NonNullable<VApiTy["r"]>[1]>): void {
+  injector.checkIfEnabled = (function (this: null, func: NonNullable<(typeof ref)[1]>): void {
     func({ H: kFgReq.checkIfEnabled, u: location.href });
-  }).bind(null, thisApi.r![1]!);
-  injector.getCommandCount = ((func: NonNullable<VApiTy["r"]>[2]): number => {
+  }).bind(null, ref[1]!);
+  injector.getCommandCount = ((func: (typeof ref)[2]): number => {
     let currentKeys = func!(0)
     return currentKeys !== "-" ? parseInt(currentKeys, 10) || 1 : -1;
-  }).bind(null, thisApi.r![2]!);
+  }).bind(null, ref[2]!);
 
-  thisApi.r!.length = 1;
+  ref.length = 1;
   if (OnFirefox) {
     (window as Writable<Window>).VApi = thisApi
   }

@@ -80,7 +80,7 @@ if (!Build.NDEBUG) {
   (globalThis as any).__importStar = (obj: {}): {} => obj
 })()
 
-Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES6$Array$$Includes &&
+Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES$Array$$Includes &&
 ![].includes && (function (): void {
     const noArrayFind = ![].find
   Object.defineProperty(Array.prototype, "includes", { enumerable: false,
@@ -166,7 +166,7 @@ Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES6$Ar
 
 declare const enum Instruction { next = 0, return = 2, /** aka. "goto" */ break = 3, yield = 4 }
 
-Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredAsyncFunctions &&
+Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES2017AsyncFunctions &&
 ((): void => {
   interface YieldedValue { 42: true }
   /** no .trys, so unexpected try/catch whould make it throw as soon as possible */

@@ -186,6 +186,10 @@ interface HTMLElementTagNameMap {
   [localName: `${string}_${string}`]: HTMLUnknownElement
 }
 
+interface ObjectConstructor {
+  values <T extends object> (target: T): Array<T[keyof T]>
+}
+
 interface NavigatorID {
   readonly appCodeName: string;
   readonly appName: string;

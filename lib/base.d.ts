@@ -194,6 +194,15 @@ type VUIRoot = ShadowRoot | (HTMLDivElement & { mode?: undefined });
 
 type VTransType = (tid: kTip | HintMode, args?: Array<string | number> | string) => string
 
+declare namespace ContentNS {
+  interface Port extends chrome.runtime.Port {
+    postMessage<k extends keyof FgRes>(request: Req.fgWithRes<k>): 1;
+    // eslint-disable-next-line @typescript-eslint/unified-signatures
+    postMessage<k extends keyof FgReq>(request: Req.fg<k>): 1;
+    onMessage: chrome.events.Event<(message: any, port: Port, exArg: FakeArg) => void>;
+  }
+}
+
 interface VApiTy {
   /** KeydownCacheArray */ a: {
     (this: void, srcCacheArray: KeydownCacheArray): boolean
@@ -231,7 +240,7 @@ interface VApiTy {
       (task: 1, newClickable: ElementSet): unknown
       (task: 2, newTr: VTransType): unknown
     }?
-  ] | null | undefined;
+  ] | true;
   /** suppressTailKeys */ s (timeout?: 0): unknown
   /** tip */ t (request: BgReq[kBgReq.showHUD]): void
   /** urlToCopy */ u (): string

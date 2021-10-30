@@ -337,8 +337,7 @@ function _importSettings(time: number, new_data: ExportedSettings, is_recommende
     } else {
       item.fetch_();
     }
-  }
-  for (const key in new_data) {
+  })).catch((): void => {  })
     let new_value = new_data[key];
     type SettingKeys = keyof SettingsNS.SettingsWithDefaults;
     if (new_value == null) {

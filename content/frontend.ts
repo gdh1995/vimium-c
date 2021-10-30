@@ -60,7 +60,7 @@ set_vApi(VApi = {
   n: 0 as never as null, c: executeScroll,
   k: scrollTick, $: $sc, l: learnCSS, m: getMappedKey,
   i: OnFirefox ? wndSize_ : 0 as never,
-  r: injector && [send_, safePost, (task: 0 | 1 | 2, arg?: string | ElementSet | VTransType): any => {
+  r: isAsContent || [send_, safePost, (task: 0 | 1 | 2, arg?: string | ElementSet | VTransType): any => {
     task < 1 ? (arg = currentKeys, /*#__NOINLINE__*/ esc!(HandlerResult.Nothing))
       : task < 2 ? set_clickable_(arg as ElementSet)
       : set_VTr(arg as VTransType)
@@ -148,7 +148,7 @@ if (!(isTop || injector)) {
           clickable_.add = (clickable_ as ElementArraySet).push;
           // a temp collection on a very old Chrome, so it's okay just to ignore its elements
           clickable_.has =
-              !OnChrome || Build.MinCVer >= BrowserVer.MinEnsuredES6$Array$$Includes
+              !OnChrome || Build.MinCVer >= BrowserVer.MinEnsuredES$Array$$Includes
               ? (clickable_ as ElementArraySet).includes! : includes_
         }
       }

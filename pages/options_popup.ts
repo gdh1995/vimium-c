@@ -77,7 +77,7 @@ class PopExclusionRulesOption extends ExclusionRulesOption_ {
     const url2 = url.startsWith("http:")
       ? "^https?://"
         + url.split("/", 3)[2].replace(<RegExpG> /[.[\]]/g, "\\$&") + "/" // lgtm [js/incomplete-sanitization]
-      : url.startsWith(location.origin)
+      : url.startsWith(location.origin + "/")
       ? ":vimium:/" + new URL(url).pathname.replace("/pages", "")
       : (<RegExpOne> /^[^:]+:\/\/./).test(url) && !url.startsWith("file:")
       ? ":" + (url.split("/", 3).join("/") + "/")
@@ -365,7 +365,7 @@ const onNotRunnable = (blockedMsg: HTMLElement, curTab: chrome.tabs.Tab | null, 
   body.style.width = "auto"
   body.appendChild(blockedMsg)
   const extHost = hasUnknownExt(frames) ? frames!.unknownExt_ as string
-      : _url.startsWith(location.protocol) && !_url.startsWith(location.origin) ? new URL(_url).host : "",
+      : _url.startsWith(location.protocol) && !_url.startsWith(location.origin + "/") ? new URL(_url).host : "",
   extStat = extHost ? asyncBackend_.extAllowList_.get(extHost) : null
   if (extStat != null && extStat !== true) {
     const refusedEl = $<EnsuredMountedHTMLElement>("#injection-refused")

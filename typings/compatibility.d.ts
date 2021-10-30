@@ -146,7 +146,7 @@ declare const enum BrowserVer {
   MinMutedInfo = 46,
   // occur on Chrome 46 if EXPERIMENTAL; always enabled since C47 even if LEGACY
   MinMayBe$requestIdleCallback = 46,
-  MinMaybeES6$Array$$Includes = 46, // if EXPERIMENTAL
+  MinMaybeES$Array$$Includes = 46, // if EXPERIMENTAL
   Min$windows$APIsFilterOutDevToolsByDefault = 46,
   Min$windows$$GetAll$SupportWindowTypes = 46,
   MinEnsured$requestIdleCallback = 47,
@@ -180,8 +180,8 @@ declare const enum BrowserVer {
   MinMayNoDOMActivateInClosedShadowRootPassedToFrameDocument = 48, // if EXPERIMENTAL
   MinEnsuredTouchEventConstructor = 48, // even if LEGACY
   MinEnsuredBorderAndBoxWidthWithoutDeviceInfo = 49, // inc 0.0001px to the min "visible" width
-  // since C46 (MinMaybeES6$Array$$Includes) if EXPERIMENTAL; since C47 if not LEGACY
-  MinEnsuredES6$Array$$Includes = 49, // even if LEGACY
+  // since C46 (MinMaybeES$Array$$Includes) if EXPERIMENTAL; since C47 if not LEGACY
+  MinEnsuredES$Array$$Includes = 49, // even if LEGACY
   // the 3 below are correct even if EXPERIMENTAL or LEGACY
   MinSafeWndPostMessageAcrossProcesses = 49,
   MinES6No$Promise$$defer = 49,
@@ -224,6 +224,7 @@ declare const enum BrowserVer {
   MinEnsured$ForOf$ForDOMListTypes = 51, // NodeList has also forEach (neither HTMLCollection nor ClientRectList)
   // test: var {a,b,c}={a:(...a)=>[-1,`${Math.sign(2)}`,...a],b(i=2){return i*6}, ['c'](d){let j=class A{};return ""+j}}
   // on C51, the above passes, but the Developer Tools can not be opened if LEGACY
+  MinMaybeES$Object$$values = 51, // if EXPERIMENTAL; since C56 even if LEGACY
   MinEnsuredFullES6Environment = 52,
   // the 2 below are correct even if EXPERIMENTAL or LEGACY
   MinNoAbnormalIncognito = 52,
@@ -279,11 +280,12 @@ declare const enum BrowserVer {
   // the static selector `>>>` is not supported since MinNoSelector$GtGtGt
   // `>>>` can only match those under "open"-mode shadow roots
   MinMaybeStaticSelector$GtGtGt = 56, // only if EXPERIMENTAL
+  MinEnsuredES$Object$$values = 56, // even if LEGACY; since C54 if not LEGACY; since C51 if EXPERIMENTAL
   // the 2 below are correct even if EXPERIMENTAL or LEGACY
   MinNoKeygenElement = 57,
   MinCSSPlaceholderPseudo = 57,
   MinEnsuredCSSGrid = 57, // even if LEGACY; still partly works on C35 if EXPERIMENTAL
-  MinEnsuredAsyncFunctions = 57, // even if LEGACY
+  MinEnsuredES2017AsyncFunctions = 57, // even if LEGACY
   /*
    * Chrome before 58 does this if #enable-site-per-process or #enable-top-document-isolation;
    * Chrome 56 / 57 always merge extension iframes if EXPERIMENTAL

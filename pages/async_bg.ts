@@ -63,7 +63,16 @@ if (!(BG_ && BG_.Backend_)) {
 export let asyncBackend_ = BG_ && BG_.Backend_
 export let bgSettings_ = asyncBackend_ && asyncBackend_.Settings_
 let readyInfo_ = kReadyInfo.NONE
-let i18nDict_: SafeDict<string> = Object.create(null)
+const __oldI18nMap = {} as Dict<string>
+const i18nDict_: Pick<Map<string, string>, "get" | "set"> = !OnChrome
+    || Build.MinCVer >= BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol || typeof Map === "function"
+    ? new Map() : {
+  get (k: string): any { return __oldI18nMap[k] },
+  set (k: string, v: any): any { __oldI18nMap[k] = v }
+}
+
+
+//#region utils
 
 export const reloadBG_ = (): void => {
   BG_ = browser_.extension.getBackgroundPage() as Window as BgWindow
@@ -72,19 +81,6 @@ export const reloadBG_ = (): void => {
     bgSettings_ = asyncBackend_ && asyncBackend_.Settings_
     if (!bgSettings_) { BG_ = null as never }
   }
-}
-
-export type TransTy<Keys extends string> = (key: Keys, arg1?: (string | number)[]) => string
-
-export const pageTrans_ = (key: string, arg1?: (string | number)[]): string | undefined => {
-  if (!(Build.NDEBUG || readyInfo_ === kReadyInfo.FINISHED)) {
-    console.trace("Error: want to translate %s before finished (ready = %d)", key, readyInfo_)
-  }
-  let val = i18nDict_[key]
-  if (arg1 != null && val) {
-    val = val.replace(<RegExpG & RegExpSearchable<0>> /\$\d/g, (i): string => arg1[+i[1] - 1] as string)
-  }
-  return val
 }
 
 export const $ = <T extends HTMLElement>(selector: string): T => document.querySelector(selector) as T
@@ -164,6 +160,23 @@ export const import2 = (url: string): Promise<unknown> => {
   return define([url]) // eslint-disable-line @typescript-eslint/no-unsafe-call
 }
 
+//#endregion
+
+//#region i18n
+
+export type TransTy<Keys extends string> = (key: Keys, arg1?: (string | number)[]) => string
+
+export const pageTrans_ = (key: string, arg1?: (string | number)[]): string | undefined => {
+  if (!(Build.NDEBUG || readyInfo_ === kReadyInfo.FINISHED)) {
+    console.trace("Error: want to translate %s before finished (ready = %d)", key, readyInfo_)
+  }
+  let val = i18nDict_.get(key)
+  if (arg1 != null && val) {
+    val = val.replace(<RegExpG & RegExpSearchable<0>> /\$\d/g, (i): string => arg1[+i[1] - 1] as string)
+  }
+  return val
+}
+
 /** @see {@link ../background/i18n#transPart_ } */
 const transPart_ = (msg: string, child: string): string => {
   return msg && msg.split(" ").reduce((old, i) => old ? old : !i.includes("=") ? i
@@ -175,31 +188,31 @@ export const pageLangs_ = transPart_(bTrans_("i18n"), curPath) || bTrans_("lang1
 
 Promise.all(pageLangs_.split(",").map((lang): Promise<Dict<string> | null> => {
   const langFile = `/i18n/${lang}/${curPath === "show" ? "popup" : curPath}.json`
-  return (!OnChrome || Build.MinCVer >= BrowserVer.MinFetchExtensionFiles
+  const p = (!OnChrome || Build.MinCVer >= BrowserVer.MinFetchExtensionFiles
       || CurCVer_ >= BrowserVer.MinFetchExtensionFiles ? fetch(langFile).then(r => r.json() as {})
       : new Promise<{}>((resolve): void => {
     const req = new XMLHttpRequest() as JSONXHR
     req.responseType = "json"
     req.onload = function (): void { resolve(this.response as {}) }
     req.open("GET", langFile, true), req.send()
-  })).catch((err): null => {
-    Build.NDEBUG || console.log("Can not load the language file:", langFile, ":", err)
+  }))
+  return !Build.NDEBUG ? p : p.catch((err): null => {
+    console.log("Can not load the language file:", langFile, ":", err)
     return null
   })
 })).then((dicts): void => {
-  const dest = Object.setPrototypeOf(dicts[0] || {}, null)
-  for (let i = 1; i < dicts.length; i++) {
-    const src = dicts[i]
+  const dest = i18nDict_
+  for (const src of dicts.reverse()) {
+    if (!src) { continue }
     for (const key in src) {
-      if (!(key in dest)) {
-        dest[key] = src[key]
-      }
+      dest.set(key, src[key]!)
     }
   }
-  i18nDict_ = dest
   if (pageLangs_ !== "en") {
-    const s = pageTrans_("v" + curPath)
+    const s = dest.get("v" + curPath)
     s && (document.title = "Vimium C " + s)
   }
   enableNextTick_(kReadyInfo.i18n)
 })
+
+//#endregion

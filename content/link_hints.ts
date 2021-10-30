@@ -562,7 +562,7 @@ const locateHint = (matchedHint: ExecutableHintItem): BaseHintWorker => {
     /** safer; necessary since {@link #highlightChild} calls {@link #detectUsableChild} */
   let i = frameArray.length
   while (0 < --i) {
-    if (OnChrome && Build.MinCVer < BrowserVer.MinEnsuredES6$Array$$Includes
+    if (OnChrome && Build.MinCVer < BrowserVer.MinEnsuredES$Array$$Includes
         ? frameArray[i].h.indexOf(matchedHint as HintItem) >= 0 : frameArray[i].h.includes!(matchedHint as HintItem)) {
       break
     }
@@ -817,6 +817,6 @@ export { HintManager, coreHints }
 if (!(Build.NDEBUG || HintMode.min_not_hint <= <number> kTip.START_FOR_OTHERS)) {
   console.log("Assert error: HintMode.min_not_hint <= kTip.START_FOR_OTHERS");
 }
-if (!(Build.NDEBUG || BrowserVer.Min$Array$$find$$findIndex <= BrowserVer.MinEnsuredES6$Array$$Includes)) {
-  console.log("Assert error: BrowserVer.Min$Array$$find$$findIndex <= BrowserVer.MinEnsuredES6$Array$$Includes")
+if (!(Build.NDEBUG || BrowserVer.Min$Array$$find$$findIndex <= BrowserVer.MinEnsuredES$Array$$Includes)) {
+  console.log("Assert error: BrowserVer.Min$Array$$find$$findIndex <= BrowserVer.MinEnsuredES$Array$$Includes")
 }
