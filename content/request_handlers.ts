@@ -80,7 +80,7 @@ set_requestHandlers([
     OnDocLoaded_(function (): void {
       set_onWndFocus(safePost.bind(0, <Req.fg<kFgReq.onFrameFocused>> { H: kFgReq.onFrameFocused }))
       isTop || docHasFocus_() && onWndFocus()
-      timeout_(function (): void {
+      isTop || timeout_(function (): void {
         const parApi = getParentVApi(),
         oldSet = clickable_ as any as Element[] & Set<Element>,
         parHints = parApi && parApi.b as HintManager;

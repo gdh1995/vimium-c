@@ -4,8 +4,8 @@ import {
   math, max_, min_, OnFirefox, OnChrome, OnEdge, firefoxVer_, noTimer_cr_, os_
 } from "../lib/utils"
 import {
-  pushHandler_, replaceOrSuppressMost_, removeHandler_, prevent_, getMappedKey, keybody_, isEscape_, keyNames_,
-  DEL, BSP, ENTER,
+  replaceOrSuppressMost_, removeHandler_, prevent_, getMappedKey, keybody_, isEscape_, keyNames_, DEL, BSP, ENTER,
+  whenNextIsEsc_
 } from "../lib/keyboard_utils"
 import {
   attachShadow_, getSelectionFocusEdge_, deepActiveEl_unsafe_, rangeCount_, setClassName_s, compareDocumentPosition,
@@ -28,7 +28,7 @@ import { keyIsDown as scroll_keyIsDown, beginScroll, onScrolls } from "./scrolle
 import { scrollToMark, setPreviousMarkPosition } from "./marks"
 import { hudHide, hud_box, hudTip, hud_opacity, toggleOpacity as hud_toggleOpacity } from "./hud"
 import { post_, send_, runFallbackKey } from "./port"
-import { insert_Lock_, raw_insert_lock, setupSuppress } from "./insert"
+import { insert_Lock_, setupSuppress } from "./insert"
 import { lastHovered_, set_lastHovered_, select_ } from "./async_dispatcher"
 
 export declare const enum FindAction {
@@ -163,11 +163,7 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
     }
     const el = insert_Lock_()
     if (!el) { postExit(); return }
-    pushHandler_((event: HandlerNS.Event): HandlerResult => {
-      const exit = isEscape_(getMappedKey(event, kModeId.Insert))
-      exit ? postExit() : removeHandler_(kHandler.postFind)
-      return exit ? HandlerResult.Prevent : HandlerResult.Nothing
-    }, kHandler.postFind)
+    whenNextIsEsc_(kHandler.postFind, kModeId.Find, postExit)
     if (el === postLock) { return }
     if (!postLock) {
       setupEventListener(0, CLK, postExit)
@@ -344,16 +340,12 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
         } else {
           focusFoundLinkIfAny()
           if (!isActive) {
-            replaceOrSuppressMost_(kHandler.find, (event: HandlerNS.Event): HandlerResult => {
-              const exit = isEscape_(getMappedKey(event, raw_insert_lock ? kModeId.Insert : kModeId.Normal))
-              removeHandler_(kHandler.find)
-              if (exit) {
+            whenNextIsEsc_(kHandler.find, kModeId.Find, (): HandlerResult => {
                 const old = initialRange
                 deactivate(FindAction.ExitNoAnyFocus)
                 toggleStyle(1)
                 resetSelectionToDocStart(getSelection_(), old)
-              }
-              return exit ? HandlerResult.Prevent : HandlerResult.Nothing;
+                return HandlerResult.Prevent
             })
           }
           postActivate()

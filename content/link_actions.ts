@@ -19,8 +19,8 @@ import { post_, send_ } from "./port"
 import {
   collpaseSelection, evalIfOK, flash_, getRect, getSelected, lastFlashEl, resetSelectionToDocStart, selectAllOfNode,
 } from "./dom_ui"
-import { pushHandler_, removeHandler_, isEscape_, getMappedKey, prevent_, suppressTail_ } from "../lib/keyboard_utils"
-import { insert_Lock_, set_grabBackFocus } from "./insert"
+import { prevent_, suppressTail_, whenNextIsEsc_ } from "../lib/keyboard_utils"
+import { set_grabBackFocus } from "./insert"
 import {
   kClickAction, kClickButton, unhover_async, hover_async, click_async, select_, catchAsyncErrorSilently
 } from "./async_dispatcher"
@@ -37,14 +37,7 @@ export function set_removeFlash (_newRmFlash: null): void { removeFlash = _newRm
 export const executeHintInOfficer = (hint: ExecutableHintItem
     , event?: HandlerNS.Event | null | 0, knownRect?: Rect | null | 0 | false): Promise<Rect | null> | null => {
 
-const unhoverOnEsc: HandlerNS.Handler = event1 => {
-  removeHandler_(kHandler.unhoverOnEsc)
-  if (isEscape_(getMappedKey(event1, kModeId.Link)) && !insert_Lock_()) {
-    catchAsyncErrorSilently(unhover_async())
-    return HandlerResult.Prevent;
-  }
-  return HandlerResult.Nothing;
-}
+const unhoverOnEsc = Build.NDEBUG ? unhover_async : (): void => { catchAsyncErrorSilently(unhover_async()) }
 
 const accessElAttr = (isUrlOrText?: 1 | 2): [string: string, isUserCustomized?: BOOL] => {
   type primitiveObject = boolean | number | string | { arguments?: undefined } & Dict<any>
@@ -129,8 +122,8 @@ const openTextOrUrl = (url: string, incognito?: boolean): void => {
 }
 
 const hoverEl = (): void => {
-    const type = getEditableType_<0>(clickEl), toggleMap = hintOptions.toggle;
-    const doesFocus = !type && !isIFrameElement(clickEl)
+    const toggleMap = hintOptions.toggle
+    const doesFocus = !elType && !isIFrameElement(clickEl)
         && checkBoolOrSelector(hintOptions.focus, (clickEl as ElementToHTMLorOtherFormatted).tabIndex! >= 0)
     // here not check lastHovered on purpose
     // so that "HOVER" -> any mouse events from users -> "HOVER" can still work
@@ -141,7 +134,8 @@ const hoverEl = (): void => {
       hintApi.t({ k: kTip.hoverScrollable })
       return
     }
-    hintMode_ & HintMode.queue || pushHandler_(unhoverOnEsc, kHandler.unhoverOnEsc)
+    hintMode_ & HintMode.queue || elType > EditableType.MaxNotTextModeElement
+        || whenNextIsEsc_(kHandler.unhoverOnEsc, kModeId.Link, unhoverOnEsc)
     if (!toggleMap || !isTY(toggleMap, kTY.obj)) { return }
     safer(toggleMap);
     let ancestors: Element[] = [], top: Element | null = clickEl, re = <RegExpOne> /^-?\d+/;
@@ -231,7 +225,7 @@ const copyText = (): void => {
           str = (clickEl as HTMLInputElement).value || (clickEl as HTMLInputElement).placeholder;
         } else if (type === "fi") {
           str = (files = (clickEl as HTMLInputElement).files) && files.length > 0 ? files[0].name : ""
-        } else if ("buimsure".includes(type)) {
+        } else if ("bu im su re".includes(type)) {
           str = (clickEl as HTMLInputElement).value;
         }
       } else {
@@ -360,7 +354,8 @@ const defaultClick = (): void => {
         , hintOptions))
     .then((ret): void | false | number | Promise<unknown> =>
         doesUnhoverAtOnce && (!interactive || isTY(autoUnhover)) ? catchAsyncErrorSilently(unhover_async())
-        : isQueue || (ret || doesUnhoverOnEsc) && pushHandler_(unhoverOnEsc, kHandler.unhoverOnEsc)
+        : isQueue || elType
+          || (ret || doesUnhoverOnEsc) && whenNextIsEsc_(kHandler.unhoverOnEsc, kModeId.Link, unhoverOnEsc)
     )
 }
 
@@ -371,7 +366,7 @@ const checkBoolOrSelector = (userVal: string | boolean | null | void | undefined
 
   const masterOrA = hintManager || coreHints, keyStatus = masterOrA.$().k
   const clickEl: LinkEl = hint.d
-  const tag = htmlTag_(clickEl)
+  const tag = htmlTag_(clickEl), elType = getEditableType_<0>(clickEl)
   const kD = "download", kLW = "last-window"
   let rect: Rect | null = null
   let retPromise: Promise<unknown> | undefined
@@ -439,7 +434,7 @@ const checkBoolOrSelector = (userVal: string | boolean | null | void | undefined
         }
       } else if (hint.r && hint.r === clickEl) {
         hoverEl()
-      } else if (getEditableType_<0>(clickEl) > EditableType.TextBox - 1) {
+      } else if (elType > EditableType.MaxNotTextModeElement) {
         retPromise = select_(clickEl as LockableElement, rect, !removeFlash)
         showRect = 0
       } else {

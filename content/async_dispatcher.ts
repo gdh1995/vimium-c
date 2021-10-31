@@ -108,9 +108,9 @@ const __awaiter = Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVe
 
 export { __generator as __asyncGenerator, __awaiter as __asyncAwaiter }
 
-export const catchAsyncErrorSilently = <T> (p: Promise<T>): Promise<T | void> =>
-    OnChrome && Build.MinCVer < BrowserVer.MinEnsuredES2017AsyncFunctions ? p
-    : p.catch(Build.NDEBUG ? (): void => { /* empty  */} : e => { console.log("Vimium C: unexpected error\n", e) })
+export const catchAsyncErrorSilently = <T> (__pFromAsync: Promise<T>): Promise<T | void> =>
+    Build.NDEBUG ? __pFromAsync : OnChrome && Build.MinCVer < BrowserVer.MinEnsuredES2017AsyncFunctions ? __pFromAsync
+    : __pFromAsync.catch(e => { console.log("Vimium C: unexpected error\n", e) })
 
 /** sync dispatchers */
 

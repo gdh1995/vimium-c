@@ -134,6 +134,14 @@ export const replaceOrSuppressMost_ = (id: kHandler, newHandler?: HandlerNS.Hand
   }), id)
 }
 
+export const whenNextIsEsc_ = (id: kHandler, modeId: kModeId, onEsc: HandlerNS.VoidHandler<void>) => {
+  replaceOrSuppressMost_(id, (event): HandlerResult => {
+    const key = getMappedKey(event, modeId)
+    key && removeHandler_(id)
+    return isEscape_(key) ? (onEsc(), HandlerResult.Prevent) : HandlerResult.Nothing
+  })
+}
+
   /**
    * if not timeout, then only suppress repeated keys
    *
