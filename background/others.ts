@@ -1,7 +1,7 @@
 import {
   curTabId_, Completion_, omniPayload_, reqH_, OnFirefox, CurCVer_, IsEdg_, OnChrome, restoreSettings_, blank_,
   set_needIcon_, set_setIcon_, CONST_, installation_, backupToLocal_, set_installation_, set_backupToLocal_,
-  framesForTab_
+  framesForTab_, onInit_
 } from "./store"
 import {
   Tabs_, browser_, getCurWnd, runtimeError_, watchPermissions_, browserWebNav_, runContentScriptsOn_
@@ -382,7 +382,7 @@ installation_ && void installation_.then((details): void => {
 
   if (!reason) {
     const p = restoreSettings_ && restoreSettings_() || Promise.resolve()
-    void p.then(() => Backend_.onInit_ ? new Promise(resolve => setTimeout(resolve, 200)) : 0).then((): void => {
+    void p.then(() => onInit_ ? new Promise(resolve => setTimeout(resolve, 200)) : 0).then((): void => {
       reqH_[kFgReq.focusOrLaunch]({
         u: CONST_.OptionsPage_ + (Build.NDEBUG ? "#commands" : "#installed")
       })

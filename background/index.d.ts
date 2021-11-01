@@ -439,7 +439,6 @@ declare namespace BackendHandlersNS {
       (this: void): Frames.FramesMap;
     };
     curTab_ (): number,
-    onInit_: ((this: void) => void) | null;
     reloadCSS_: <T extends -1 | 2> (action: T, customCSS?: string) => T extends -1 ? SettingsNS.MergedCustomCSS : void
     updateMediaQueries_ (): void
   }
@@ -460,7 +459,6 @@ declare const enum Consts {
 /* eslint-disable no-var */
 declare var Backend_: BackendHandlersNS.BackendHandlers
 declare var As_: <T> (i: T) => T
-declare var AsC_: <T extends kCName> (i: T) => T
 /* eslint-enable no-var */
 
 interface SetTimeout {

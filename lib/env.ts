@@ -25,7 +25,7 @@ if (Build.BTypes & BrowserType.ChromeOrFirefox) {
   var WeakRef: unknown;
 }
 
-var VApi: VApiTy, VimiumInjector: VimiumInjectorTy | undefined | null;
+var VApi: VApiTy | undefined, VimiumInjector: VimiumInjectorTy | undefined | null
 
 declare var define: any, __filename: string | null | undefined
 

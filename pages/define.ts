@@ -1,5 +1,12 @@
 declare var define: any, __filename: string | null | undefined // eslint-disable-line no-var
 
+if (Build.BTypes & (Build.BTypes & BrowserType.ChromeOrFirefox | BrowserType.Edge)
+    && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer < BrowserVer.Min$globalThis)
+    && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer < FirefoxBrowserVer.Min$globalThis)
+    && typeof globalThis === "undefined") {
+  (window as any as Writable<typeof globalThis>).globalThis = window as any
+}
+
 !(Build.BTypes & BrowserType.Edge)
 && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinUsableScript$type$$module$InExtensions)
 && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinES$DynamicImport)
@@ -40,6 +47,7 @@ declare var define: any, __filename: string | null | undefined // eslint-disable
     const depNames = typeof rawDepNames !== "function" && rawDepNames || []
     const factory = typeof rawDepNames === "function" ? rawDepNames : rawFactory
     if (!factory) { // `define([url])`
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
       return new Promise(doImport.bind(null, depNames[0], null))
     }
     const selfScript = document.currentScript as HTMLScriptElement
@@ -95,7 +103,7 @@ declare var define: any, __filename: string | null | undefined // eslint-disable
             || Build.MinCVer >= BrowserVer.MinUsableScript$type$$module$InExtensions)) {
           modules[name] === exports && (modules[name] = { __esModule: true })
         }
-        deps ? deps.then(resolve) : resolve()
+        deps ? void deps.then(resolve) : resolve()
         script.remove()
       }
       if (!Build.NDEBUG) { script.onerror = (ev): void => {
@@ -105,7 +113,8 @@ declare var define: any, __filename: string | null | undefined // eslint-disable
       document.head!.appendChild(script)
     }))
     !callback ? 0 :
-    exports instanceof Promise ? void exports.then(() => {}).then(() => { doImport(path, null, callback) })
+    exports instanceof Promise ? void exports.then(() => { /* empty */ })
+        .then((): void => { void doImport(path, null, callback) })
     : callback(myRequire(name))
     return exports
   }
@@ -114,9 +123,9 @@ declare var define: any, __filename: string | null | undefined // eslint-disable
     myDefine.modules_ = modules
   }
   myDefine.noConflict = (): void => { /* empty */ }
-  (window as unknown as typeof globalThis).define = myDefine;
+  globalThis.define = myDefine
   // limitation: file names must be unique
-  (window as unknown as typeof globalThis).__filename = undefined
+  globalThis.__filename = undefined
 
   if (OnEdge || OnChrome && Build.MinCVer < BrowserVer.MinUsableScript$type$$module$InExtensions
       && navVer < BrowserVer.MinUsableScript$type$$module$InExtensions) {

@@ -58,14 +58,14 @@ set_vApi(VApi = {
   b: coreHints, e: null, z: null,
   p: post_, a: setupKeydownEvents, f: focusAndRun, d: safeDestroy, g: filterTextToGoNext, j: jumpToNextLink,
   n: 0 as never as null, c: executeScroll,
-  k: scrollTick, $: $sc, l: learnCSS, m: getMappedKey,
+  k: scrollTick, $: $sc, l: learnCSS,
   i: OnFirefox ? wndSize_ : 0 as never,
-  r: isAsContent || [send_, safePost, (task: 0 | 1 | 2, arg?: string | ElementSet | VTransType): any => {
+  r: isAsContent as false || [send_, safePost, (task: 0 | 1 | 2, arg?: string | ElementSet | VTransType): any => {
     task < 1 ? (arg = currentKeys, /*#__NOINLINE__*/ esc!(HandlerResult.Nothing))
       : task < 2 ? set_clickable_(arg as ElementSet)
       : set_VTr(arg as VTransType)
     return arg
-  }], s: suppressTail_, t: requestHandlers[kBgReq.showHUD], u: locHref, x: flash_,
+  }, getMappedKey], s: suppressTail_, t: requestHandlers[kBgReq.showHUD], u: locHref, x: flash_,
   y: OnFirefox ? () => ( {
     w: onWndFocus, b: find_box, c: clickable_, k: scroll_keyIsDown, r: ui_root, f: find_input
   } ) : () => ( {  b: find_box, c: clickable_, k: scroll_keyIsDown, r: ui_root, f: find_input } )

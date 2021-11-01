@@ -234,3 +234,5 @@ declare var URLPattern: { new (template: string | URLPatternDict): URLPattern } 
 declare module crypto {
   const getRandomValues: (buffer: Uint8Array) => unknown
 }
+
+declare const enum Instruction { next = 0, return = 2, /** aka. "goto" */ break = 3, yield = 4 }

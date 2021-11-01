@@ -70,9 +70,9 @@ export const performFind = (): void | kBgCmd.performFind => {
   }))
 }
 
-export const initHelp = (request: FgReq[kFgReq.initHelp], port: Port): void => {
+export const initHelp = (request: FgReq[kFgReq.initHelp], port: Port): Promise<void> => {
   const curHData = helpDialogData_ || []
-  Promise.all([
+  return Promise.all([
     import(CONST_.HelpDialogJS) as Promise<typeof import("./help_dialog")>,
     curHData[0] != null ? null : BgUtils_.fetchFile_("help_dialog.html"),
     curHData[1] != null ? null : getI18nJson("help_dialog"),
@@ -90,9 +90,9 @@ export const initHelp = (request: FgReq[kFgReq.initHelp], port: Port): void => {
     temp3 && (newHData[2] = temp3)
     sendFgCmd(kFgCmd.showHelpDialog, true, {
       h: helpDialog.render_(isOptionsPage),
-      o: CONST_.OptionsPage_,
+      o: CONST_.OptionsPage_, f: request.f,
       e: !!options.exitOnClick,
-      c: settings_.get_("showAdvancedCommands", true) || isOptionsPage && !!keyMappingErrors_
+      c: isOptionsPage && !!keyMappingErrors_ || settings_.get_("showAdvancedCommands", true)
     })
   }, Build.NDEBUG ? OnChrome && Build.MinCVer < BrowserVer.Min$Promise$$Then$Accepts$null
       ? undefined : null as never : (args): void => {

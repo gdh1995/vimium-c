@@ -66,3 +66,8 @@ interface String {
 
 type NormalizeKeywords<K extends string> = K extends `${infer x}-${infer y}`
     ? `${Lowercase<x>}${NormalizeKeywords<y>}` : Lowercase<K>
+
+type DeepKeys<T> = T extends [infer T1, ...infer T2] ? DeepKeys<T1> | DeepKeys<T2>
+    : T extends { [keys in infer K]: infer V } ? K & string | DeepKeys<V> : never
+type StringWithOneEnd<A extends string, S extends string>
+    = string extends S ? never : string extends A ? never : A extends `${string}${S}` | `${S}${string}` ? A : never

@@ -36,7 +36,6 @@ class PopExclusionRulesOption extends ExclusionRulesOption_ {
   override populateElement_ (rules1: ExclusionsNS.StoredRule[]): void {
     super.populateElement_(rules1)
     this.populateElement_ = null as never // ensure .populateElement_ is only executed for once
-    (document.documentElement as HTMLHtmlElement).style.height = ""
     PopExclusionRulesOption.prototype.checkNodeVisible_ = ExclusionRulesOption_.prototype.checkNodeVisible_
     let visible_ = this.list_.filter((i): i is ExclusionVisibleVirtualNode => i.visible_), some = visible_.length > 0
     let element1: SafeHTMLElement
@@ -120,7 +119,7 @@ const _doUpdateState = (oldInited: typeof inited
     ? pTrans_("o147", [pTrans_(curLockedStatus !== Frames.Status.enabled ? "o144" : "o145")])
     : curIsLocked ? pTrans_("o148") : ""
   saveBtn2.disabled = same
-  saveBtn2.firstChild.data = pTrans_(same ? "o115" : "o115_2")
+  saveBtn2.firstChild.data = pTrans_(isSaving ? "o115_3" : same ? "o115" : "o115_2")
 }
 
 const saveOptions = (): void => {
@@ -292,6 +291,7 @@ void Promise.all([asyncBackend_.restoreSettings_()
     onNotRunnable(blockedMsg, curTab, _url, ref)
     initOptionsLink(_url)
     nextTick_(showI18n)
+    nextTick_(didShow)
     return
   }
   nextTick_((versionEl): void => {
@@ -336,7 +336,15 @@ void Promise.all([asyncBackend_.restoreSettings_()
   initExclusionRulesTable()
   nextTick_(showI18n)
   setupBorderWidth_ && nextTick_(setupBorderWidth_)
+  nextTick_(didShow)
 })
+
+const didShow = (): void => {
+  const docEl = document.documentElement as HTMLHtmlElement
+  docEl.classList.remove("loading")
+  docEl.style.width = ""
+  docEl.style.height = ""
+}
 
 const hasUnknownExt = (frames: Frames.Frames | null): boolean => {
   return !!frames && typeof frames.unknownExt_ === "string"
@@ -362,7 +370,6 @@ const onNotRunnable = (blockedMsg: HTMLElement, curTab: chrome.tabs.Tab | null, 
       && (<RegExpOne> /\.(google|bing|baidu)\./).test(_url.split("/", 4).slice(0, 3).join("/"))) {
     (blockedMsg.querySelector("#opera-warning") as HTMLElement).style.display = ""
   }
-  body.style.width = "auto"
   body.appendChild(blockedMsg)
   const extHost = hasUnknownExt(frames) ? frames!.unknownExt_ as string
       : _url.startsWith(location.protocol) && !_url.startsWith(location.origin + "/") ? new URL(_url).host : "",
@@ -399,8 +406,8 @@ const onNotRunnable = (blockedMsg: HTMLElement, curTab: chrome.tabs.Tab | null, 
     }
   }
   docEl.classList.toggle("no-dark", !asyncBackend_.contentPayload_.d)
-  docEl.style.height = ""
   const retryInjectElement = $<HTMLAnchorElement>("#retryInject")
+  if (!retryInjectElement) { return }
   if (!OnFirefox && (<RegExpOne> /^(file|ftps?|https?):/).test(_url) && curTab) {
     retryInjectElement.onclick = (event): void => {
       event.preventDefault()

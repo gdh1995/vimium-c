@@ -92,7 +92,7 @@ function App (this: void): void {
   }
   else if (url || !history.state) { /* empty */ }
   else if (encryptKey) {
-    url = encrypt_(history.state, encryptKey, false);
+    url = encrypt_(history.state as string, encryptKey, false)
     window.name = "" + encryptKey;
   } else {
     history.replaceState(null, "", ""); // clear useless data
@@ -304,7 +304,7 @@ addEventListener(GlobalConsts.kLoadEvent, function onContentLoaded(): void {
   if (OnChrome && Build.MinCVer < BrowserVer.Min$addEventListener$support$once) {
     removeEventListener(GlobalConsts.kLoadEvent, onContentLoaded, { capture: true })
   }
-  window.VApi && (VApi.u = getContentUrl_)
+  VApi && (VApi.u = getContentUrl_)
 }, { once: true, capture: true })
 
 window.onunload = destroyObject_;
@@ -393,15 +393,15 @@ function simulateClick(a: HTMLElement, event: MouseEvent | KeyboardEvent): boole
 function imgOnKeydown(event: KeyboardEventToPrevent): boolean {
   if (VData.error) { return false; }
   const {keyCode} = event,
-  key = window.VApi && VApi.z ? VApi.m({c: kChar.INVALID, e: event, i: keyCode}, kModeId.Show)
+  key = VApi && VApi.z ? VApi.r[3]({c: kChar.INVALID, e: event, i: keyCode}, kModeId.Show)
       : keyCode === kKeyCode.space ? kChar.space : keyCode === kKeyCode.enter ? kChar.enter : "",
   keybody = (key.slice(key.lastIndexOf("-") + 1) || key && kChar.minus) as kChar;
   if (keybody === kChar.space || keybody === kChar.enter) {
     if (VData.pixel) {
       const active = document.activeElement, banner = active && document.querySelector("#snapshot-banner")
-      if (banner && banner.contains(active!)) {
+      if (banner && banner.contains(active)) {
         const close = banner.querySelector(".banner-close") as SVGElement
-        if (close.contains(active!)) {
+        if (close.contains(active)) {
           close.onclick(null as never)
         }
         return true
@@ -499,7 +499,7 @@ function showText(tip: string | Urls.kEval, details: string | string[]): void {
 }
 
 function copyThing(event: EventToPrevent): void {
-  const sel = getSelection(), selText = "" + sel
+  const sel = getSelection(), selText = "" + <SelWithToStr> sel
   if (selText && (VData.type !== "image" || selText.trim() !== (VShown as HTMLImageElement).alt.trim())) {
     // on Firefox, Selection will grab .alt text
     return
@@ -527,7 +527,7 @@ function copyThing(event: EventToPrevent): void {
           "text/html": new Blob,
           "text/plain": new Blob([VData.url], {type: "text/plain"})
         }
-        const doWrite = (): Promise<void> => clipboard!.write!([new ClipboardItem(item)])
+        const doWrite = (): Promise<void> => clipboard!.write!([new ClipboardItem(item) as object])
         if (!OnChrome
             || Build.MinCVer < BrowserVer.MinClipboardWriteHTML && CurCVer_ < BrowserVer.MinClipboardWriteHTML) {
           return doWrite()
@@ -554,7 +554,7 @@ function copyThing(event: EventToPrevent): void {
 }
 
 function _copyStr(str: string, event?: EventToPrevent): void {
-  if (!(str && window.VApi)) { return; }
+  if (!(str && VApi)) { return; }
   event && event.preventDefault();
   VApi.p({
     H: kFgReq.copy,
@@ -591,6 +591,7 @@ function loadViewer(): Promise<ViewerModule> {
     return Promise.resolve(ViewerModule)
   }
   loadCSS("../lib/viewer.min.css");
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
   !Build.NDEBUG && (window as any).define && (window as any).define.noConflict()
   return import2("../lib/viewer.min.js").then((viewerJS: any): ViewerModule => {
     viewerJS = viewerJS && typeof viewerJS === "function" ? viewerJS
@@ -958,19 +959,14 @@ function getContentUrl_(): string {
 }
 
 if (!Build.NDEBUG) {
-  const exported: Dict<any> = {
+  Object.assign(window as any, {
     showBgLink, clickLink, simulateClick, imgOnKeydown, doImageAction, decodeURLPart_,
     importBody, defaultOnClick, clickShownNode, showText, copyThing, _copyStr, toggleInvert, import2, loadCSS,
     defaultOnError, loadViewer, showSlide, clean, parseSmartImageUrl_, tryToFixFileExt_, fetchImage_,
     destroyObject_, tryDecryptUrl, disableAutoAndReload_, resetOnceProperties_, recoverHash_, encrypt_,
     getOmni_: getContentUrl_,
-  }
-  if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$Object$$assign) {
-    for (let key in exported) { if (exported.hasOwnProperty(key)) { (window as any)[key] = exported[key] } }
-  } else {
-    Object.assign(window, exported)
-  }
-  (window as any).VShown = () => ({
-    VShown, bgLink, tempEmit, viewer_, encryptKey, ImageExtRe, _shownBlobURL,
+    VShown: () => ({
+      VShown, bgLink, tempEmit, viewer_, encryptKey, ImageExtRe, _shownBlobURL,
+    })
   })
 }

@@ -62,7 +62,7 @@
     "@typescript-eslint/triple-slash-reference": "off",
     "@typescript-eslint/type-annotation-spacing": "error",
     "@typescript-eslint/unbound-method": "off",
-    "@typescript-eslint/unified-signatures": "error",
+    "@typescript-eslint/unified-signatures": "off",
     "arrow-body-style": "off",
     "arrow-parens": [ "error", "as-needed" ],
     "camelcase": "off",

@@ -2,7 +2,7 @@ import {
   chromeVer_, clickable_, doc, esc, fgCache, injector, isEnabled_, isLocked_, isAlive_, isTop, math, includes_,
   keydownEvents_, set_chromeVer_, set_clickable_, set_fgCache, set_isLocked_, OnChrome, OnFirefox,
   set_isEnabled_, set_onWndFocus, onWndFocus, timeout_, safer, noTimer_cr_, set_os_, safeObj, set_keydownEvents_,
-  interval_, getTime, vApi, clearInterval_, locHref, set_firefoxVer_, firefoxVer_, os_, weakRef_,
+  interval_, getTime, vApi, clearInterval_, locHref, set_firefoxVer_, firefoxVer_, os_, weakRef_, isAsContent,
 } from "../lib/utils"
 import { set_keyIdCorrectionOffset_old_cr_, handler_stack, suppressTail_ } from "../lib/keyboard_utils"
 import {
@@ -106,7 +106,7 @@ set_requestHandlers([
         }
       }, 330);
     });
-    injector && injector.$r(InjectorTask.extInited);
+    isAsContent || (injector || vApi).$r!(InjectorTask.extInited);
   },
   /* kBgReq.reset: */ function (request: BgReq[kBgReq.reset | kBgReq.init], initing?: 1): void {
     const newPassKeys = request.p, old = isEnabled_
@@ -142,7 +142,7 @@ set_requestHandlers([
     }
     if (ui_box) { adjustUI(+isEnabled_ ? 1 : 2) }
   },
-  /* kBgReq.injectorRun: */ injector ? injector.$m : 0 as never,
+  /* kBgReq.injectorRun: */ injector! && injector.$m,
   /* kBgReq.url: */ function<T extends keyof FgReq> (this: void, request: BgReq[kBgReq.url] & Req.fg<T>): void {
     delete request.N
     request.u = (request.H === kFgReq.copy ? vApi.u : locHref)()

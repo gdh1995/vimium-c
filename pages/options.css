@@ -16,12 +16,8 @@ html {
 .less-motion {
   --transition-duration: 0;
 }
-html.loading { content-visibility: hidden; }
-@supports not (content-visibility: hidden) {
-  html.loading { visibility: hidden; }
-  html.loading #exclusionAddButton { visibility: hidden; }
-}
-html.loading #exclusionToolbar { visibility: hidden; }
+/* content-visibility will cause size to be 0x0, affecting scrollbar position */
+html.loading, html.loading #exclusionAddButton, html.loading #exclusionToolbar { visibility: hidden; }
 @media (prefers-color-scheme: dark) {
   html:not(.no-dark) {
     --plain-color: #abb0b5;

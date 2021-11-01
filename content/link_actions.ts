@@ -37,7 +37,7 @@ export function set_removeFlash (_newRmFlash: null): void { removeFlash = _newRm
 export const executeHintInOfficer = (hint: ExecutableHintItem
     , event?: HandlerNS.Event | null | 0, knownRect?: Rect | null | 0 | false): Promise<Rect | null> | null => {
 
-const unhoverOnEsc = Build.NDEBUG ? unhover_async : (): void => { catchAsyncErrorSilently(unhover_async()) }
+const unhoverOnEsc_d = Build.NDEBUG ? null : (): void => { catchAsyncErrorSilently(unhover_async()) }
 
 const accessElAttr = (isUrlOrText?: 1 | 2): [string: string, isUserCustomized?: BOOL] => {
   type primitiveObject = boolean | number | string | { arguments?: undefined } & Dict<any>
@@ -135,7 +135,7 @@ const hoverEl = (): void => {
       return
     }
     hintMode_ & HintMode.queue || elType > EditableType.MaxNotTextModeElement
-        || whenNextIsEsc_(kHandler.unhoverOnEsc, kModeId.Link, unhoverOnEsc)
+        || whenNextIsEsc_(kHandler.unhoverOnEsc, kModeId.Link, Build.NDEBUG ? unhover_async : unhoverOnEsc_d!)
     if (!toggleMap || !isTY(toggleMap, kTY.obj)) { return }
     safer(toggleMap);
     let ancestors: Element[] = [], top: Element | null = clickEl, re = <RegExpOne> /^-?\d+/;
@@ -354,8 +354,8 @@ const defaultClick = (): void => {
         , hintOptions))
     .then((ret): void | false | number | Promise<unknown> =>
         doesUnhoverAtOnce && (!interactive || isTY(autoUnhover)) ? catchAsyncErrorSilently(unhover_async())
-        : isQueue || elType
-          || (ret || doesUnhoverOnEsc) && whenNextIsEsc_(kHandler.unhoverOnEsc, kModeId.Link, unhoverOnEsc)
+        : isQueue || elType || (ret || doesUnhoverOnEsc) &&
+          whenNextIsEsc_(kHandler.unhoverOnEsc, kModeId.Link, Build.NDEBUG ? unhover_async : unhoverOnEsc_d!)
     )
 }
 

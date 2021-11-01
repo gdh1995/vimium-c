@@ -7,30 +7,30 @@ import {
   AdvancedOptBtn, click, ElementWithDelay, delayed_task, clear_delayed_task, Platform_
 } from "./options_wnd"
 
-$<ElementWithDelay>("#showCommands").onclick = function showHelp(this: void, event): void {
-  if (!window.VApi || !VApi.z) {
+const showHelp = (event?: EventToPrevent | "force" | void | null): void => {
+  if (!VApi || !VApi.z) {
     typeof VimiumInjector !== "undefined" && setTimeout(showHelp, 120, null)
     return;
   }
   let node: HTMLElement | null, root = VApi.y().r;
-  event && event.preventDefault();
+  event && event !== "force" && event.preventDefault()
   if (!root) { /* empty */ }
   else if (node = root.querySelector("#HCls") as HTMLElement | null) {
-    const isCommand = root.querySelector(".HelpCommandName") != null;
-    click(node);
-    if (isCommand) { return; }
+    if (event !== "force" && root.querySelector(".HelpCommandName") != null) { click(node); return }
   }
-  VApi.p({ H: kFgReq.initHelp });
+  VApi.p({ H: kFgReq.initHelp, f: true })
   if (event) { return; }
   setTimeout(function (): void {
-    const misc = VApi.y()
-    const node2 = misc.r && misc.r.querySelector("#HDlg") as HTMLElement;
+    const misc = VApi && VApi.y()
+    const node2 = misc && misc.r && misc.r.querySelector("#HDlg") as HTMLElement
     if (!node2) { return; }
     (node2.querySelector("#HCls") as HTMLElement).addEventListener("click", function (): void {
       location.hash = "";
     }, true);
   }, 100);
 };
+
+$<ElementWithDelay>("#showCommands").onclick = showHelp
 
 ExclusionRulesOption_.prototype.sortRules_ = function (this: ExclusionRulesOption_
     , element?: HTMLElement): void {
@@ -219,7 +219,7 @@ function _importSettings(time: number, new_data: ExportedSettings, is_recommende
         plat ? oTrans_("filePlatform", [oTrans_(plat as "win" | "mac") || plat[0].toUpperCase() + plat.slice(1)])
           : oTrans_("commonPlatform"),
         time ? oTrans_("atTime", [formatDate_(time)]) : oTrans_("before")]))) {
-    window.VApi && VApi.t({ k: kTip.raw, t: oTrans_("cancelImport") })
+    VApi && VApi.t({ k: kTip.raw, t: oTrans_("cancelImport") })
     return;
   }
   const now = new Date()
@@ -337,7 +337,8 @@ function _importSettings(time: number, new_data: ExportedSettings, is_recommende
     } else {
       item.fetch_();
     }
-  })).catch((): void => {  })
+  }
+  for (const key in new_data) {
     let new_value = new_data[key];
     type SettingKeys = keyof SettingsNS.SettingsWithDefaults;
     if (new_value == null) {
@@ -382,13 +383,12 @@ function _importSettings(time: number, new_data: ExportedSettings, is_recommende
   }
   console.info("import settings: finished.")
   console.groupEnd()
-  const root = window.VApi && VApi.y().r
+  const root = VApi && VApi.y().r
   const node = root && root.querySelector("#HCls") as HTMLElement;
   if (node) { // reload help dialog
-    node.click();
-    $("#showCommands").click();
+    showHelp("force")
   }
-  if (window.VApi) { VApi.t({ k: kTip.raw, t: oTrans_("importOK") }) }
+  if (VApi) { VApi.t({ k: kTip.raw, t: oTrans_("importOK") }) }
 }
 
 function importSettings_(time: number | string | Date, data: string, is_recommended?: boolean): void {

@@ -1,5 +1,4 @@
 {
-  "voptions": "设置",
   "period": "。",
   "semicolon": "；",
   "comma": "，",
@@ -189,7 +188,7 @@
   "needToInstallExt": "使用此页面需要先安装相应的扩展程序",
   "webPageLimits":
     "注意：扩展程序内置页面中不能访问普通网页，\n因此在这种情况下仅会使用 Vimium C 内置的搜索框页面。",
-  "dirtyOptions": "以下配置已经在其它地方被修改：\n      * $1\n    是否继续保存并覆盖这些改动？",
+  "dirtyOptions": "以下配置已经在其它地方被修改：\n      * $1\n\n是否继续保存并覆盖这些改动？",
   "clickToUnmask": "# 点击显示隐藏内容",
   "beforeUnload": "您有尚未保存的改动！",
   "ignoredNonEN": "请留意“忽略键盘布局”这一选项已启用！也许需要停用它后才能正确映射非英文的按键。",

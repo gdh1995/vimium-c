@@ -7,7 +7,6 @@ if (Build.BTypes & (Build.BTypes & BrowserType.ChromeOrFirefox | BrowserType.Edg
   (window as any as Writable<typeof globalThis>).globalThis = window as any
 }
 
-globalThis.Backend_ = null as never
 globalThis.__filename = null
 if (!Build.NDEBUG) {
   globalThis.As_ = <T> (i: T): T => i
@@ -163,8 +162,6 @@ Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES$Arr
       } as any
     }
 })()
-
-declare const enum Instruction { next = 0, return = 2, /** aka. "goto" */ break = 3, yield = 4 }
 
 Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES2017AsyncFunctions &&
 ((): void => {

@@ -273,7 +273,7 @@ let optionsInit1_ = function (): void {
   (_element as HTMLAnchorElement).onclick = function (event): void {
     event.preventDefault();
     if (OnFirefox) {
-      window.VApi ? VApi.t({ k: kTip.raw, t: oTrans_("haveToOpenManually") })
+      VApi ? VApi.t({ k: kTip.raw, t: oTrans_("haveToOpenManually") })
       : alert(oTrans_("haveToOpenManually"))
     } else {
       asyncBackend_.focusOrLaunch_({ u: this.href, p: true })
@@ -307,7 +307,7 @@ let optionsInit1_ = function (): void {
       : node2.scrollIntoView({ block: "center" });
       node2.focus();
     }
-    if (window.VApi) {
+    if (VApi) {
       VApi.x((node2 as EnsuredMountedHTMLElement).parentElement.parentElement as SafeHTMLElement)
     }
   };
@@ -356,7 +356,7 @@ if (OnChrome ? (Build.MinCVer >= BrowserVer.MinMediaQuery$PrefersColorScheme
     const darkOpt = Option_.all_.autoDarkMode
     if (darkOpt.previous_ && darkOpt.saved_) {
       const val = media.matches
-      if (window.VApi && VApi.z) {
+      if (VApi && VApi.z) {
         const root = VApi.y().r
         if (root) {
           for (let el of OnChrome && Build.MinCVer < BrowserVer.MinEnsured$ForOf$ForDOMListTypes
@@ -426,7 +426,7 @@ if (OnFirefox) {
 (Option_.all_.userDefinedCss.element_ as HTMLTextAreaElement).addEventListener("input", debounce_((): void => {
   const self = Option_.all_.userDefinedCss
   const isDebugging = self.element_.classList.contains("debugging")
-  if (self.saved_ && !isDebugging || !window.VApi || !VApi.z) { return }
+  if (self.saved_ && !isDebugging || !VApi || !VApi.z) { return }
   const newVal = self.readValueFromElement_(), isSame = newVal === self.previous_,
   css = asyncBackend_.reloadCSS_(-1, newVal), misc = VApi.y(), root = misc.r
   if (!isDebugging && BG_) {
@@ -486,8 +486,8 @@ export const loadChecker = (): void => { void import2("./options_checker.js") }
 
 document.addEventListener("keydown", (event): void => {
   if (event.keyCode !== kKeyCode.space) {
-    if (!window.VApi || !VApi.z || "input textarea".includes(document.activeElement!.localName as string)) { return; }
-    const key = VApi.m({c: kChar.INVALID, e: event, i: event.keyCode}, kModeId.NO_MAP_KEY)
+    if (!VApi || !VApi.z || "input textarea".includes(document.activeElement!.localName as string)) { return; }
+    const key = VApi.r[3]({c: kChar.INVALID, e: event, i: event.keyCode}, kModeId.NO_MAP_KEY)
     if (key === "a-" + kChar.f12) {
       let el2 = $<HTMLSelectElement>("#importOptions");
       const oldSelected = el2.selectedIndex, callback = (): void => {
@@ -597,7 +597,7 @@ if (!cmdRegistry || cmdRegistry.alias_ !== kBgCmd.showHelp) {
 }
 
 document.addEventListener("click", function onClickOnce(): void {
-  const api1 = window.VApi, misc = api1 && api1.y()
+  const api1 = VApi, misc = api1 && api1.y()
   if (!misc || !misc.r) { return; }
   document.removeEventListener("click", onClickOnce, true);
   misc.r.addEventListener("click", function (event): void {
@@ -614,7 +614,7 @@ document.addEventListener("click", function onClickOnce(): void {
   OnChrome && document.addEventListener("click", (event): void => {
     const el = event.target as Element
     if (el.localName !== "a" || !(event.ctrlKey || event.metaKey)) { return }
-    const api2 = window.VApi, hintWorker = api2 && api2.b, stat = hintWorker && hintWorker.$()
+    const api2 = VApi, hintWorker = api2 && api2.b, stat = hintWorker && hintWorker.$()
     if (stat && stat.b && !stat.a) { // .b: showing hints; !.a : is calling executor
       const m1 = stat.m & ~HintMode.queue
       if (m1 < HintMode.min_job && m1 & HintMode.newTab && !(m1 & HintMode.focused)) {

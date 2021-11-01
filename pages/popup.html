@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html spellcheck="false" style="height: 200px;">
+<html spellcheck="false" style="width: 495px; height: 204px;" class="loading">
   <head>
     <meta charset="utf-8">
     <title>Vimium C Popup</title>
@@ -14,6 +14,7 @@
 	margin: 0;
 	padding: 0;
 }
+html.loading { content-visibility: hidden; }
 body {
 	width: 495px;
 	background: var(--background-color, white);
@@ -137,7 +138,7 @@ a.decorate-none:not(:hover) {
       <button id="exclusionAddButton" class="fixed-size" data-i="o2">Add Rule</button>
       <button id="saveOptions" class="fixed-size" disabled="disabled">No Changes</button>
     </div>
-    <div id="blocked-msg" style="width: 400px; margin: 5px; display: none;">
+    <div id="blocked-msg" style="box-sizing: border-box; display: none; padding: 8px 20px 12px;">
       <h4>
         <span class="Vim">Vim</span>ium <span class="C">C</span><span data-i="o125">
           is </span><span id="state-value" data-i="o126">not running</span><span data-i="o127"> on this page</span>
@@ -162,16 +163,16 @@ a.decorate-none:not(:hover) {
             >has a special security option preventing extensions (like Vimium C)
             from working on some search result pages. And you can turn it off manually.</span>
       </p>
+      <br>
       <p id="refresh-after-install">
         <span data-i="o130">If </span><span class="Vim">Vim</span>ium <span class="C">C</span><span data-i="o131">
         is newly installed, please </span><span class="action" data-i="o132">refresh</span><span data-i="o133">
-        to get it work.</span>
+        to get it work.</span><a id="retryInject" href="vimium://status enable" class="decorate-none" role="button"
+            accesskey="z"><span data-i="o133_2">Retry</span> (<span class="accesskey">Z</span>)</a><span
+            data-i="period">.</span>
       </p>
       </div>
       <p>
-        <a id="retryInject" href="vimium://status enable" class="decorate-none" role="button" accesskey="z">
-        <span data-i="o133_2">Retry</span> (<span class="accesskey">Z</span>)</a><span
-            data-i="period">.</span><span data-i="NS">
         </span><span data-i="o134">Configure more on the </span><a
             class="options-link" href="options.html" target="_blank" data-i="o135">options</a><span
             data-i="o136"> page. </span><span

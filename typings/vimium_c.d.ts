@@ -307,7 +307,7 @@ declare const enum PortNameEnum {
 
 declare const enum PortType {
   initing = 0, isTop = 1, hasFocus = 2, reconnect = 4, hasCSS = 8,
-  omnibar = 16, otherExtension = 32,
+  omnibar = 16, otherExtension = 32, selfPages = 64,
   /** for external extensions like NewTab Adapter */ CloseSelf = 999,
 }
 
@@ -474,6 +474,7 @@ declare const enum InjectorTask {
   extInited = 4,
 }
 interface VApiTy {
+  $r?: VimiumInjectorTy["$r"]
   /** destroy */ d: (this: void, silent?: boolean | BOOL | 9) => void
 }
 interface VimiumInjectorTy {

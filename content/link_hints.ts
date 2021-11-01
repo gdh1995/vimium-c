@@ -37,7 +37,6 @@ export interface KeyStatus {
 }
 interface HintStatus extends HintsNS.BaseHintStatus {
   /** keyStatus */ k: Readonly<KeyStatus>
-  /** is newly activated */ n: boolean | BOOL | null
 }
 interface BaseHintWorker extends HintsNS.BaseHintWorker {
   /** get stat */ $ (): Readonly<HintStatus>

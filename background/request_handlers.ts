@@ -166,11 +166,10 @@ set_reqH_([
       if (!port) { return }
     }
     const { s: sender } = port, { url_: oldUrl } = sender,
-    url1: string | undefined = (request as ExclusionsNS.Details).url,
     ref = framesForTab_.get(sender.tabId_)
     if (ref && ref.lock_) { return }
     const pattern = !exclusionListening_ ? null
-        : getExcluded_(sender.url_ = from_content ? request.u! : url1, sender),
+        : getExcluded_(sender.url_ = from_content ? request.u! : (request as ExclusionsNS.Details).url, sender),
     status = pattern === null ? Frames.Status.enabled : pattern ? Frames.Status.partial : Frames.Status.disabled
     if (sender.status_ !== status) {
       sender.status_ = status
@@ -250,7 +249,7 @@ set_reqH_([
       return port
     }
   },
-  /** kFgReq.initHelp: */ _AsReqH<kFgReq.initHelp>(initHelp),
+  /** kFgReq.initHelp: */ (req: FgReq[kFgReq.initHelp], port): void => { void initHelp(req, port) },
   /** kFgReq.css: */ (_0: FgReq[kFgReq.css], port: Port): void => {
     const ref = framesForTab_.get(port.s.tabId_)!
     ref.flags_ |= Frames.Flags.userActed;

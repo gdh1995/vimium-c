@@ -1,6 +1,6 @@
 {
   "dirtyOptions":
-"De telles options ont été changées à d'autres endroits:\n      * $1\n    Continuer à sauvegarder et écraser avec ces modifications ?"
+"De telles options ont été changées à d'autres endroits:\n      * $1\n\nContinuer à sauvegarder et écraser avec ces modifications ?"
 ,
   "clickToUnmask": "# Cliquez pour retirer le masque du contenu…",
   "beforeUnload": "Vous avez des modifications non-sauvegardées dans les options",

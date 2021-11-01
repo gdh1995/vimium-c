@@ -12,7 +12,7 @@ Option_.syncToFrontend_ = []
 Option_.prototype._onCacheUpdated = function<T extends keyof SettingsNS.AutoSyncedNameMap
     > (this: Option_<T>, func: (this: Option_<T>) => void): void {
   func.call(this)
-  if (window.VApi) {
+  if (VApi) {
     bgSettings_.updatePayload_(bgSettings_.valuesToLoad_[this.field_], this.readValueFromElement_() as any, VApi.z!)
   }
 }
@@ -565,10 +565,9 @@ Option_.all_.newTabUrl.checker_ = {
 }
 
 Option_.all_.userDefinedCss.onSave_ = function () {
-  if (!window.VApi || !VApi.z) { return }
   if (!this.element_.classList.contains("debugging")) { return }
   setTimeout(function () {
-    const root = VApi.y().r
+    const root = VApi!.y().r
     for (const frame of $$<HTMLIFrameElement>("iframe", root)) {
       const isFind = frame.classList.contains("HUD"),
       style = frame.contentDocument!.querySelector("style.debugged") as HTMLStyleElement | null

@@ -114,6 +114,7 @@ const initOptionalPermissions = (): void => {
   if (OnFirefox && asyncBackend_.contentPayload_.o === kOS.unixLike) {
     template.querySelector("input")!.classList.add("baseline")
   }
+  let itemInd = 0
   for (const name of optional_permissions) {
     const node = document.importNode(template, true) as EnsuredMountedHTMLElement
     const checkbox = node.querySelector("input")!
@@ -139,16 +140,10 @@ const initOptionalPermissions = (): void => {
       node.classList.add("single")
     }
     fragment.appendChild(node)
-    shownItems.push({ name_: name, previous_: 0, element_: checkbox })
+    shownItems[itemInd++].element_ = checkbox
   }
   container.appendChild(fragment)
   container.addEventListener("change", onChange, true)
-  setTimeout((): void => {
-    Promise.all(shownItems.map(doPermissionsContain_)).then(() => {
-      (container.dataset as KnownOptionsDataset).model = "OptionalPermissions"
-      createNewOption(container).fetch_()
-    })
-  }, 17)
 }
 
 const doPermissionsContain_ = (item: PermissionItem): Promise<void> => {
@@ -169,7 +164,7 @@ const doPermissionsContain_ = (item: PermissionItem): Promise<void> => {
   return p
 }
 
-const onChange = (e: Event) => {
+const onChange = (e: Event): void => {
   const el = e.target as HTMLInputElement
   const item = shownItems.find(i => i.element_ === el)
   if (!item) { return }
@@ -198,5 +193,17 @@ if (!OnEdge) {
   optional_permissions = optional_permissions.filter(
       i => !ignored.some(j => typeof j === "string" ? i === j : j.test(i)))
 }
-nextTick_(!OnEdge && optional_permissions.length ? initOptionalPermissions
-      : (): void => { $("#optionalPermissionsBox").style.display = "none" })
+if (OnEdge || !optional_permissions.length) {
+  nextTick_((): void => { $("#optionalPermissionsBox").style.display = "none" })
+} else {
+  for (const name of optional_permissions) {
+    shownItems.push({ name_: name, previous_: 0, element_: null as never })
+  }
+  nextTick_(initOptionalPermissions)
+  void Promise.all(shownItems.map(doPermissionsContain_)).then((): void => {
+    nextTick_((): void => {
+      (container.dataset as KnownOptionsDataset).model = "OptionalPermissions"
+      void createNewOption(container).fetch_()
+    })
+  })
+}

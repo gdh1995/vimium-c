@@ -1,7 +1,7 @@
 import {
   contentPayload_, extAllowList_, newTabUrls_, omniPayload_, OnChrome, OnEdge, OnFirefox, framesForOmni_, sync_, IsEdg_,
   settingsCache_, bgIniting_, set_bgIniting_, CurCVer_, CONST_, installation_, hasEmptyLocalStorage_,
-  OnOther_
+  OnOther_, onInit_
 } from "./store"
 import { asyncIter_, nextTick_ } from "./utils"
 import { browser_, normalizeExtOrigin_ } from "./browser"
@@ -403,7 +403,7 @@ browser_.runtime.getPlatformInfo((info): void => {
   updatePayload_("i", ignoreCapsLock, contentPayload_)
   if (bgIniting_ > BackendHandlersNS.kInitStat.FINISHED - 1) { return }
   set_bgIniting_(bgIniting_ | BackendHandlersNS.kInitStat.platformInfo)
-  Backend_ && Backend_.onInit_!();
+  onInit_ && onInit_()
 });
 } else {
   CONST_.Platform_ = OnEdge ? "win" : "unknown"

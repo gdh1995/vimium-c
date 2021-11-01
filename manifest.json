@@ -35,7 +35,7 @@
       "38": "icons/enabled_38.png"
     },
     "default_popup": "pages/popup.html",
-    "default_title": "Vimium C\n\n__MSG_noActiveState__"
+    "default_title": "__MSG_name__\n\n__MSG_noActiveState__"
   },
   "browser_specific_settings": {
     "gecko": {

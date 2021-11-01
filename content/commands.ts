@@ -460,7 +460,6 @@ set_contentCommands_([
         useResult = !useClick && options.return && !!activeEl
         // earlier, in case listeners are too slow
         useResult || runFallbackKey(options, activeEl && activeEl !== doc.body ? 0 : 2, "", delay)
-        // todo: use result of dispatchEvent as command result
         activeEl && (useClick && (activeEl as Partial<HTMLElement>).click
             ? (activeEl as HTMLElement).click() : result = activeEl.dispatchEvent(event))
       } else {
@@ -469,11 +468,12 @@ set_contentCommands_([
       useResult && runFallbackKey(options, result ? 0 : 2, "", delay)
     }
   },
-  /* kFgCmd.showHelpDialog: */ ((options: Exclude<CmdOptions[kFgCmd.showHelpDialog], {h?: null}>): any => {
+  /* kFgCmd.showHelpDialog: */ ((options: CmdOptions[kFgCmd.showHelpDialog]): any => {
     // Note: not suppress key on the top, because help dialog may need a while to render,
     // and then a keyup may occur before or after it
-    const html = options.h, notHTML = !isHTML_()
-    if (hideHelp || html && notHTML) { hideHelp && hideHelp(); return }
+    const html = options.h, notHTML = !isHTML_(), oldHide = hideHelp
+    oldHide && oldHide()
+    if (oldHide && !options.f || html && notHTML) { return }
     if (!html) {
       isTop && notHTML || post_({ H: kFgReq.initHelp,
           a: options as CmdOptions[kFgCmd.showHelpDialog] as ShowHelpDialogOptions,

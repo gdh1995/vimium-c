@@ -1,4 +1,4 @@
-VApi.e = function (cmd): void {
+VApi!.e = function (cmd): void {
   const injector = VimiumInjector;
   if (cmd === kContentCmd.Destroy && injector) {
     const rEL = removeEventListener, onHashChnage = injector.checkIfEnabled
@@ -27,7 +27,7 @@ VApi.e = function (cmd): void {
   const OnFirefox = !(Build.BTypes & ~BrowserType.Firefox) || !!(_OnOther & BrowserType.Firefox)
   const OnEdge = !(Build.BTypes & ~BrowserType.Edge) || !!(_OnOther & BrowserType.Edge)
 
-  const thisApi = VApi
+  const thisApi = VApi!
   const injector = VimiumInjector!
   const trArgsRe = <RegExpSearchable<0>> /\$\d/g
   const runtime: typeof chrome.runtime = (!(Build.BTypes & BrowserType.Chrome) ? browser as typeof chrome
@@ -43,10 +43,10 @@ VApi.e = function (cmd): void {
   }
 
   let i18nMessages: FgRes[kFgReq.i18n] = []
-  const ref = thisApi.r as Exclude<typeof thisApi.r, boolean>
+  const ref = thisApi.r
   ref[0](kFgReq.i18n, 0, (res): void => {
     i18nMessages = res;
-    if (VApi.z) {
+    if (VApi!.z) {
       const injector1 = VimiumInjector!
       injector1.callback && injector1.callback(2, "complete")
     }
@@ -71,7 +71,7 @@ VApi.e = function (cmd): void {
     return currentKeys !== "-" ? parseInt(currentKeys, 10) || 1 : -1;
   }).bind(null, ref[2]!);
 
-  ref.length = 1;
+  ref[1] = ref[2] = void 0
   if (OnFirefox) {
     (window as Writable<Window>).VApi = thisApi
   }
@@ -106,7 +106,7 @@ VApi.e = function (cmd): void {
     switch (task) {
     case InjectorTask.extInited:
       const injector1 = VimiumInjector!;
-      injector1.cache = VApi.z;
+      injector1.cache = VApi!.z
       if (i18nMessages) {
         injector1.callback && injector1.callback(2, "complete")
       }

@@ -35,7 +35,6 @@ type NullableSafeElForM = SafeElementForMouse | null | undefined
 interface YieldedValue { 42: true }
 interface YieldedPos { label_: number; sent_ (): YieldedValue | undefined }
 type YieldableFunction = (pos: YieldedPos) => [/** step */ number, /** returned */ YieldedValue?]
-declare const enum Instruction { next = 0, return = 2, /** aka. "goto" */ break = 3, yield = 4 }
 
 let evIDC_cr: InputDeviceCapabilities | undefined
 let lastHovered_: WeakRef<SafeElementForMouse> | null | undefined

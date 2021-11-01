@@ -7,7 +7,7 @@ import { asyncIter_, fetchFile_, spacesRe_ } from "./utils"
 import { broadcastOmni_, get_, postUpdate_, storage_, updateHooks_ } from "./settings"
 import { asyncIterFrames_ } from "./ports"
 
-declare const enum MergeAction {
+export declare const enum MergeAction {
   virtual = -1, readFromCache = 0, rebuildWhenInit = 1, rebuildAndBroadcast = 2,
   saveOption = "userDefinedCss",
 }

@@ -2,7 +2,7 @@ import {
   framesForTab_, framesForOmni_, OnChrome, CurCVer_, OnEdge, OnFirefox, extAllowList_, omniPayload_, settingsCache_,
   contentPayload_, set_visualWordsRe_, curTabId_, bgIniting_, keyToCommandMap_, restoreSettings_, Completion_, CONST_,
   substitute_, newTabUrls_, evalVimiumUrl_, keyFSM_, mappedKeyRegistry_, bgC_, reqH_, set_bgIniting_, shownHash_,
-  set_hasGroupPermission_ff_
+  set_hasGroupPermission_ff_, onInit_, set_onInit_
 } from "./store"
 import * as BgUtils_ from "./utils"
 import { runtimeError_, tabsGet, Tabs_, browser_, watchPermissions_, runContentScriptsOn_} from "./browser"
@@ -40,7 +40,7 @@ const executeShortcutEntry = (cmd: StandardShortcutNames | kShortcutAliases): vo
   }
 }
 
-Backend_ = {
+globalThis.Backend_ = {
     Settings_: settings_,
     omniPayload_,
     contentPayload_,
@@ -70,7 +70,10 @@ Backend_ = {
         : indexFrame(tabId, frameId);
     } as BackendHandlersNS.BackendHandlers["indexPorts_"],
     curTab_: () => curTabId_,
-    onInit_(): void {
+    updateMediaQueries_: MediaWatcher_.RefreshAll_
+}
+
+set_onInit_(As_<typeof onInit_>((): void => {
       if (bgIniting_ !== BackendHandlersNS.kInitStat.FINISHED) { return }
       if (!keyFSM_) {
         settings_.postUpdate_("keyMappings")
@@ -79,13 +82,13 @@ Backend_ = {
         }
       }
       // the line below requires all necessary have inited when calling this
-      Backend_.onInit_ = null;
+      set_onInit_(null)
       settings_.get_("hideHud", true)
       settings_.get_("nextPatterns", true)
       settings_.get_("previousPatterns", true)
       settings_.postUpdate_("autoDarkMode")
       settings_.postUpdate_("autoReduceMotion")
-          browser_.runtime.onConnect.addListener(function (port): void {
+      browser_.runtime.onConnect.addListener((port): void => {
         if (OnEdge) {
           let name = port.name, pos = name.indexOf(PortNameEnum.Delimiter), type = pos > 0 ? name.slice(0, pos) : name;
           port.sender.url = name.slice(type.length + 1);
@@ -111,9 +114,8 @@ Backend_ = {
           port.disconnect();
         }
       });
-    },
-    updateMediaQueries_: MediaWatcher_.RefreshAll_
-};
+}))
+
 if (!Build.NDEBUG) {
   let lacking: any[] = Object.keys(Backend_).filter(i => Backend_[i as keyof BackendHandlersNS.BackendHandlers] == null)
   if (lacking.length > 0) {
@@ -199,8 +201,7 @@ OnFirefox && watchPermissions_([{ permissions: ["cookies"] }], (allowed): void =
 })
 
 set_bgIniting_(bgIniting_ | BackendHandlersNS.kInitStat.main)
-
-Backend_.onInit_!()
+onInit_!()
 
 setTimeout((): void => {
   setTimeout((): void => {

@@ -300,6 +300,7 @@ interface InsertModeOptions {
 }
 interface ShowHelpDialogOptions {
   h?: null
+  /** forced to show */ f?: false | null
   exitOnClick?: boolean | null
 }
 interface TrailingSlashOptions {
@@ -383,6 +384,7 @@ interface CmdOptions {
   } & OpenPageUrlOptions & UserSedOptions & Req.FallbackOptions
   [kFgCmd.showHelpDialog]: {
     /** html */ h: "html" | /** for Firefox */ { /** head->style */ h: string; /** body */ b: string };
+    /** forced to show */ f?: boolean
     /** optionUrl */ o: string;
     /** exitOnClick */ e: boolean;
     /** advanced */ c: boolean;
@@ -552,6 +554,7 @@ interface FgReq {
   };
   [kFgReq.exitGrab]: {};
   [kFgReq.initHelp]: {
+    /** forced to show */ f?: boolean
     /** wantTop */ w?: boolean;
     /** args */ a?: ShowHelpDialogOptions
   };

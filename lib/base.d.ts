@@ -146,6 +146,7 @@ declare namespace HintsNS {
     /** isActive */ a: BOOL
     /** box */ b: HTMLDivElement | HTMLDialogElement | null
     /** mode */ m: HintMode
+    /** is newly activated */ n: boolean | BOOL | null
   }
   interface BaseHintWorker {
     /** get stat */ $ (): Readonly<BaseHintStatus>
@@ -229,18 +230,18 @@ interface VApiTy {
   /** jumpToNext */ j: (nextLink: Hint0[0]) => void
   /** scrollTick */ k: (willContinue: BOOL | 2) => void
   /** learnCSS */ l: (srcStyleUI: HTMLStyleElement | string | null, force?: undefined) => void
-  /** getMappedKey */ m: (eventWrapper: HandlerNS.Event, mode: kModeId) => string
   /** findOnLoad */ n: ((event?: Event) => void) | null
   /** post */ p: <K extends keyof FgReq>(this: void, req: FgReq[K] & Req.baseFg<K>) => void | 1;
-  /** for injector */ r: [
+  /** for injector */ r: [ send:
     <k extends keyof FgRes> (cmd: k, args: Req.fgWithRes<k>["a"], callback: (this: void, res: FgRes[k]) => void) => void
-    , (<K extends keyof FgReq> (this: void, request: FgReq[K] & Req.baseFg<K>) => void)?
-    , {
+    , _safePost: (<K extends keyof FgReq> (this: void, request: FgReq[K] & Req.baseFg<K>) => void) | undefined
+    , _otherSetters: {
       (task: 0, args?: string): string
       (task: 1, newClickable: ElementSet): unknown
       (task: 2, newTr: VTransType): unknown
-    }?
-  ] | true;
+    } | undefined
+    , getMappedKey: (eventWrapper: HandlerNS.Event, mode: kModeId) => string
+  ];
   /** suppressTailKeys */ s (timeout?: 0): unknown
   /** tip */ t (request: BgReq[kBgReq.showHUD]): void
   /** urlToCopy */ u (): string
@@ -261,7 +262,7 @@ interface VApiTy {
       , options?: CmdOptions[kFgCmd.scroll]) => void | boolean | number | Promise<boolean | number> | null
 }
 
-declare var VimiumInjector: VimiumInjectorTy | undefined | null, VApi: VApiTy;
+declare var VApi: VApiTy | undefined, VimiumInjector: VimiumInjectorTy | undefined | null
 
 declare const enum kContentCmd {
   _fake = 0,
@@ -285,7 +286,7 @@ type ValidTimeoutID = 0 | 42 | "43"
 type ValidIntervalID = 0 | 42 | "44"
 
 interface Window {
-  readonly VApi?: VApiTy;
+  readonly VApi?: VApiTy | undefined
 }
 
 /** Warning on Firefox:

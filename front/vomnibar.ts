@@ -1,8 +1,5 @@
 /// <reference path="../lib/base.omni.d.ts" />
-// eslint-disable-next-line no-var
-declare var VApi: VApiTy
-// eslint-disable-next-line no-var
-declare var parent: unknown
+declare var VApi: VApiTy | undefined, parent: unknown // eslint-disable-line no-var
 
 const enum SimpleKeyResult { Nothing, Suppress, Prevent }
 type SugToExec = Writable<Pick<CompletersNS.Suggestion, "u">>

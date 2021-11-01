@@ -169,7 +169,7 @@ export const BookmarkManager_ = {
       }
       return
     }
-    if (!bookmarkCache_.dirs_.find(i => i.id_ === id)) { return } // "new" items which haven't been read are changed
+    if (!bookmarkCache_.dirs_.find(dir => dir.id_ === id)) { return } // "new" items which haven't been read are changed
     if (title != null) { /* a folder is renamed */ return BookmarkManager_.Delay_() }
     // a folder is removed
     if (!bookmarkCache_.expiredUrls_ && decodingEnabled) {
@@ -476,7 +476,7 @@ export const HistoryManager_ = {
 }
 
 export const getRecentSessions_ = (expected: number, showBlocked: boolean
-    , callback: (list: BrowserUrlItem[]) => void) => {
+    , callback: (list: BrowserUrlItem[]) => void): void => {
   const browserSession = !OnEdge ? browserSessions_() : null
   if (!browserSession) { callback([]); return }
   let timer = OnFirefox ? setTimeout((): void => { timer = 0; callback([]) }, 100) : 0
@@ -608,16 +608,16 @@ const doDecoding_ = (xhr?: TextXHR | null): void => {
   }
   for (; decodingIndex < end; decodingIndex++) {
     const url = decodingJobs[decodingIndex], isStr = typeof url === "string",
-    str = isStr ? url as string : (url as DecodedItem).u
+    str = isStr ? url : url.u
     if (text = urlDecodingDict_.get(str)) {
-      isStr || ((url as DecodedItem).t = text)
+      isStr || (url.t = text)
       continue
     }
     if (!WithTextDecoder) {
       xhr || (xhr = /*#__NOINLINE__*/ createXhr_())
       xhr.open("GET", dataUrlToDecode_ + str, true)
       xhr.send()
-      return 
+      return
     }
     text = str.replace(<RegExpG & RegExpSearchable<0>> /%[a-f\d]{2}(?:%[a-f\d]{2})+/gi, doDecodePart_)
     text = text.length !== str.length ? text : str
@@ -668,6 +668,7 @@ const createXhr_ = (): TextXHR => {
   return xhr
 }
 
+/** @see {@link ../pages/options_ext.ts#isExpectingHidden_} */
 settings_.updateHooks_.omniBlockList = (newList: string): void => {
   const arr: string[] = []
   for (let line of newList.split("\n")) {
@@ -740,8 +741,5 @@ Completion_.removeSug_ = (url, type: FgReq[kFgReq.removeSug]["t"], callback: (su
 Completion_.isExpectingHidden_ = BlockListFilter_.IsExpectingHidden_
 
 if (!Build.NDEBUG) {
-  (globalThis as any).BookmarkManager = BookmarkManager_;
-  (globalThis as any).HistoryManager = HistoryManager_;
-  (globalThis as any).BlockListFilter = BlockListFilter_;
-  (globalThis as any).UrlDecoder = UrlDecoder_
+  Object.assign(globalThis as any, { BookmarkManager_, HistoryManager_, BlockListFilter_, UrlDecoder_ })
 }

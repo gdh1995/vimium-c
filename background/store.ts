@@ -65,6 +65,7 @@ export let helpDialogData_: [
 export const newTabUrls_: ReadonlyMap<string, Urls.NewTabType> = new Map()
 export const extAllowList_: Map<string, boolean | string> = !OnEdge ? new Map() : null as never
 export let bgIniting_ = BackendHandlersNS.kInitStat.START
+export let onInit_: (() => void) | null
 //#endregion
 
 //#region info about opened tabs
@@ -163,6 +164,7 @@ export const set_isHighContrast_ff_ = (_newHC: boolean): void => { isHighContras
 export const set_needIcon_ = (_newNeedIcon: boolean): void => { needIcon_ = _newNeedIcon }
 export const set_visualWordsRe_ = (_newVisualWord: string): void => { visualWordsRe_ = _newVisualWord }
 export const set_bgIniting_ = (_newIniting_: typeof bgIniting_): void => { bgIniting_ = _newIniting_ }
+export const set_onInit_ = (_newInit: typeof onInit_): void => { onInit_ = _newInit }
 export const set_iconData_ = (_newIconData: typeof iconData_): void => { iconData_ = _newIconData }
 export const set_hasGroupPermission_ff_ = (_newAllowed: boolean | 0): void => { hasGroupPermission_ff_ = _newAllowed }
 

@@ -8,8 +8,7 @@ export interface BgWindow extends Window {
 }
 export declare const enum kReadyInfo { platformInfo = 1, popup = 1, i18n = 2, NONE = 0, FINISHED = 3 }
 
-// eslint-disable-next-line no-var
-declare var define: any
+declare var define: any, VApi: VApiTy | undefined // eslint-disable-line no-var
 
 const OnOther: BrowserType = Build.BTypes && !(Build.BTypes & (Build.BTypes - 1))
     ? Build.BTypes as number
@@ -32,7 +31,7 @@ export const OnSafari: boolean = false // eslint-disable-line @typescript-eslint
 const userAgentData = navigator.userAgentData
 let tmpBrand: NonNullable<Navigator["userAgentData"]>["brands"][0] | undefined
 export const IsEdg_: boolean = OnChrome && (!userAgentData ? matchMedia("(-ms-high-contrast)").matches
-    : !!userAgentData.brands.find(i => i.brand.includes("Edge") || i.brand.includes("Microsoft"))) 
+    : !!userAgentData.brands.find(i => i.brand.includes("Edge") || i.brand.includes("Microsoft")))
 export const CurCVer_: BrowserVer = !OnChrome ? BrowserVer.assumedVer
     : userAgentData ? (tmpBrand = userAgentData.brands.find(i => i.brand.includes("Chromium")))
       ? tmpBrand.version : BrowserVer.MinMaybe$navigator$$userAgentData > Build.MinCVer
@@ -183,10 +182,10 @@ const transPart_ = (msg: string, child: string): string => {
       : i.startsWith(child) ? i.slice(child.length + 1) : old, "")
 }
 export const bTrans_ = browser_.i18n.getMessage
-const curPath = location.pathname.replace("/pages/", "").split(".")[0]
-export const pageLangs_ = transPart_(bTrans_("i18n"), curPath) || bTrans_("lang1") || "en"
+const curPath = location.pathname.replace("/pages/", "").split(".")[0], browserLang = bTrans_("lang1")
+export const pageLangs_ = transPart_(bTrans_("i18n"), curPath) || browserLang || "en"
 
-Promise.all(pageLangs_.split(",").map((lang): Promise<Dict<string> | null> => {
+void Promise.all(pageLangs_.split(",").map((lang): Promise<Dict<string> | null> => {
   const langFile = `/i18n/${lang}/${curPath === "show" ? "popup" : curPath}.json`
   const p = (!OnChrome || Build.MinCVer >= BrowserVer.MinFetchExtensionFiles
       || CurCVer_ >= BrowserVer.MinFetchExtensionFiles ? fetch(langFile).then(r => r.json() as {})
@@ -208,11 +207,14 @@ Promise.all(pageLangs_.split(",").map((lang): Promise<Dict<string> | null> => {
       dest.set(key, src[key]!)
     }
   }
-  if (pageLangs_ !== "en") {
-    const s = dest.get("v" + curPath)
-    s && (document.title = "Vimium C " + s)
-  }
   enableNextTick_(kReadyInfo.i18n)
 })
 
 //#endregion
+
+if (browserLang && curPath !== "popup") {
+  const s = bTrans_("v" + curPath)
+  s && (document.title = "Vimium C " + s)
+}
+
+if (typeof VApi === "undefined") { globalThis.VApi = undefined }

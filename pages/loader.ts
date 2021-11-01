@@ -1,7 +1,7 @@
 /// <reference path="../lib/base.d.ts" />
 /// <reference path="../background/index.d.ts" />
 /* eslint-disable @typescript-eslint/prefer-string-starts-ends-with, @typescript-eslint/prefer-includes */
-(window as PartialOf<typeof globalThis, "VimiumInjector">).VimiumInjector = null;
+var VApi: VApiTy | undefined, VimiumInjector: VimiumInjectorTy | undefined | null = null; // eslint-disable-line no-var
 
 (function () {
   const MayChrome = !!(Build.BTypes & BrowserType.Chrome), MayNotChrome = !!(Build.BTypes & ~BrowserType.Chrome)
@@ -41,7 +41,10 @@
   }
   function onLastLoad(): void {
     for (let i = scripts.length; 0 <= --i; ) { scripts[i].remove(); }
-    document.dispatchEvent(new CustomEvent(GlobalConsts.kLoadEvent))
+    VApi && (VApi.$r = (event: InjectorTask) => {
+      event === InjectorTask.extInited &&
+      document.dispatchEvent(new CustomEvent(GlobalConsts.kLoadEvent))
+    })
     !(Build.BTypes & BrowserType.Edge)
     && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinUsableScript$type$$module$InExtensions)
     && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinES$DynamicImport)
@@ -61,9 +64,11 @@
       }
     }
   }
-  if (curPath === "blank" && browser_.i18n.getMessage("lang1")) {
-    const s = browser_.i18n.getMessage("vblank")
-    s && (document.title = s)
+  if (curPath === "blank") {
+    if (browser_.i18n.getMessage("lang1")) {
+      const s = browser_.i18n.getMessage("vblank")
+      s && (document.title = s)
+    }
   }
   if (!Build.NDEBUG) {
     (window as any).updateUI = (): void => {
