@@ -257,6 +257,7 @@ declare namespace HintsNS {
     caret?: boolean;
     download?: "" | "force"
     focus?: boolean | "css-selector"
+    then?: object | string
     ordinal?: boolean
     useFilter?: boolean;
     url?: boolean;
@@ -563,6 +564,7 @@ interface FgReq {
     /** count */ c: 1;
     /** url */ u: string | null
     /** newtab */ n: boolean
+    /** forwarded options */ f: object | string | null | undefined
     /** only use .keyword */ o: Pick<ParsedOpenPageUrlOptions, "k">
     /** redo */ r?: undefined;
   } | {
@@ -651,6 +653,7 @@ interface FgReq {
   [kFgReq.learnCSS]: {};
   [kFgReq.visualMode]: {
     /** caret mode */ c?: boolean
+    /** forwarded options */ f: object | string | null | undefined
   };
   [kFgReq.respondForRunKey]: {
     r: BgReq[kBgReq.queryForRunKey]
@@ -666,7 +669,7 @@ interface FgReq {
   } & Pick<FgReq[kFgReq.respondForRunKey], "e">
 }
 
-interface CurrentEnvCache {}
+interface CurrentEnvCache {} // eslint-disable-line @typescript-eslint/no-empty-interface
 
 interface OpenUrlOptions extends UserSedOptions {
   group?: true | null | false

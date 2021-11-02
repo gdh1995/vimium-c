@@ -21,7 +21,7 @@ import {
   sendFgCmd, replaceCmdOptions, onConfirmResponse, executeCommand, portSendFgCmd,
   waitAndRunKeyReq, runNextCmdBy, parseFallbackOptions
 } from "./run_commands"
-import { runKeyWithCond } from "./run_keys"
+import { parseEmbeddedOptions, runKeyWithCond } from "./run_keys"
 import { focusOrLaunch_, openJSUrl, openUrlReq } from "./open_urls"
 import {
   initHelp, openImgReq, framesGoBack, enterVisualMode, showVomnibar, parentFrame, nextFrame, performFind, focusFrame
@@ -262,6 +262,7 @@ set_reqH_([
     set_cKey(kKeyCode.None) // it's only from LinkHints' task / Vomnibar reloading, so no Key to suppress
     if (request.c != null) {
       replaceCmdOptions<kBgCmd.showVomnibar>({ url: request.u, newtab: request.n, keyword: request.o.k })
+      replaceForwardedOptions(request.f)
       set_cRepeat(1)
     } else if (request.r !== true) {
       return
@@ -399,6 +400,7 @@ set_reqH_([
   /** kFgReq.visualMode: */ (request: FgReq[kFgReq.visualMode], port: Port): void => {
     const isCaret = !!request.c
     replaceCmdOptions<kBgCmd.visualMode>({ mode: isCaret ? "caret" : "", start: true })
+    replaceForwardedOptions(request.f)
     set_cPort(port), set_cRepeat(1)
     enterVisualMode()
   },
@@ -503,4 +505,11 @@ const focusAndExecute = (req: Omit<FgReq[kFgReq.gotoMainFrame], "f">
     req.a.$forced = 1
     portSendFgCmd(port, req.c, false, req.a as any, req.n || 0)
   }
+}
+
+const replaceForwardedOptions = (toForward?: object | string | null): void => {
+  if (!toForward) { return }
+  typeof toForward === "string" && (toForward = parseEmbeddedOptions(toForward))
+  toForward && typeof toForward === "object" &&
+  Object.assign(get_cOptions<kBgCmd.blank, true>(), BgUtils_.safer_(toForward))
 }

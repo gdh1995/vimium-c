@@ -116,7 +116,7 @@ const openTextOrUrl = (url: string, incognito?: boolean): void => {
   hintApi.p({
     H: kFgReq.openUrl,
     r: (hintMode_ & HintMode.queue ? ReuseType.newBg : ReuseType.newFg)
-       + ReuseType.OFFSET_LAST_WINDOW * <number> <number | boolean> (hintOptions.newtab === kLW),
+       + ReuseType.OFFSET_LAST_WINDOW * <number> <number | boolean> (newtab === kLW),
     u: url, f: incognito, i: incognito, o: parseOpenPageUrlOptions(hintOptions)
   });
 }
@@ -246,11 +246,11 @@ const copyText = (): void => {
       }
     }
   if (mode1_ > HintMode.min_edit - 1 && mode1_ < HintMode.max_edit + 1) {
-      let newtab = hintOptions.newtab;
       hintApi.p({
         H: kFgReq.vomnibar,
         c: 1,
         u: str,
+        f: hintOptions.then,
         n: newtab != null ? !!newtab : !isUrl,
         o: parseOpenPageUrlOptions(hintOptions)
       });
@@ -317,7 +317,7 @@ const defaultClick = (): void => {
     const mask = hintMode_ & HintMode.mask_focus_new, isMac = !os_,
     isRight = hintOptions.button === "right",
     dblClick = !!hintOptions.dblclick && !isRight,
-    newTabStr = (hintOptions.newtab + "") as ToString<Exclude<HintsNS.Options["newtab"], boolean>>,
+    newTabStr = (newtab + "") as ToString<Exclude<HintsNS.Options["newtab"], boolean>>,
     otherActions = isRight || dblClick,
     newWindow = newTabStr === "window" && !otherActions,
     newTab = mask > HintMode.newTab - 1 && !newWindow && !otherActions,
@@ -368,6 +368,7 @@ const checkBoolOrSelector = (userVal: string | boolean | null | void | undefined
   const clickEl: LinkEl = hint.d
   const tag = htmlTag_(clickEl), elType = getEditableType_<0>(clickEl)
   const kD = "download", kLW = "last-window"
+  const newtab = hintOptions.newtab
   let rect: Rect | null = null
   let retPromise: Promise<unknown> | undefined
   let showRect: BOOL | undefined
@@ -465,7 +466,7 @@ const checkBoolOrSelector = (userVal: string | boolean | null | void | undefined
       const sel = getSelection_()
       collpaseSelection(sel)
       modifySel(sel, 1, 1, "word")
-      hintOptions.visual === !1 || post_({ H: kFgReq.visualMode, c: hintOptions.caret })
+      hintOptions.visual === !1 || post_({ H: kFgReq.visualMode, c: hintOptions.caret, f: hintOptions.then })
     }
     if (!removeFlash && showRect !== 0 && (rect || (rect = getVisibleClientRect_(clickEl)))) {
       timeout_(function (): void {
