@@ -158,7 +158,14 @@ export abstract class Option_<T extends keyof AllowedOptions> {
     this.onSave_()
   }
   _isDirty (): boolean {
-    return !this.areEqual_(this.previous_, this.innerFetch_())
+    const latest = this.innerFetch_() as AllowedOptions[T]
+    const diff = !this.areEqual_(this.previous_, latest)
+    if (diff && this.areEqual_(this.readValueFromElement_(), latest)) {
+      this.previous_ = latest
+      this.saved_ = true
+      return false
+    }
+    return diff
   }
   executeSave_ (value: AllowedOptions[T], isJSON: boolean, pod: string): AllowedOptions[T] {
     if (isJSON) {
@@ -186,6 +193,7 @@ export abstract class Option_<T extends keyof AllowedOptions> {
   }
   static saveOptions_: (this: void) => boolean;
   static needSaveOptions_: (this: void) => boolean;
+  i18nName_: () => string
 }
 export type OptionErrorType = "has-error" | "highlight"
 

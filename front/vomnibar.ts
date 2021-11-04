@@ -1560,7 +1560,9 @@ VUtils_ = {
       let sep = (<RegExpOne> /[?#]/).exec(url), index = sep ? sep.index : 0
       let tail = index ? url.slice(index) : ""
       url = (index ? url.slice(0, index) : url).replace(<RegExpG> /\/\/+/g, "/")
-      url = !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinEnsuredLookBehindInRegexp
+      url = !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
+          && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsuredLookBehindInRegexp)
+          && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinLookBehindInRegexp)
           ? url.replace(<RegExpG> /(?<!<)\//g, "\\")
           : url.replace(<RegExpG & RegExpSearchable<1>> /([^<])\//g, "$1\\")
       url = index ? url + tail : url

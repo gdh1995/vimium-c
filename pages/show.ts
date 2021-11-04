@@ -181,6 +181,7 @@ function App (this: void): void {
       };
     };
     if ((<RegExpOne> /[:.]/).test(url)) {
+      VShown.alt = sTrans_("loading")
       VShown.onclick = defaultOnClick;
       VShown.onload = function (this: HTMLImageElement): void {
         const width = this.naturalWidth, height = this.naturalHeight;
@@ -207,6 +208,7 @@ function App (this: void): void {
           (VShown as HTMLImageElement).src = (VShown as HTMLImageElement).src; // trigger replay for gif
         }, 0);
         showBgLink();
+        this.alt = file
         this.classList.add("zoom-in");
         if (VData.pixel) {
           body.classList.add("pixel")
@@ -237,7 +239,6 @@ function App (this: void): void {
       VData.file = file = tryToFixFileExt_(file) || file;
       const path = file.split(<RegExpOne> /[/\\]+/);
       path.length > 1 && VShown.setAttribute("download", path[path.length - 1]);
-      VShown.alt = file;
       VShown.setAttribute("aria-title", file)
     }
     break;

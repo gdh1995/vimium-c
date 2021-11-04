@@ -201,6 +201,19 @@ export const doesNeedToSed = (context: SedContext, sed: ParsedSedOpts | null): b
   return false
 }
 
+const convertJoinedRules = (rules: string): string => {
+  return !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
+  && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsuredLookBehindInRegexp)
+  && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinLookBehindInRegexp)
+  ? rules.replace(<RegExpG> /(?<!\\) ([\w\x80-\ufffd]{1,6})(?![\x00- \w\\\x7f-\uffff])/g, "\n$1")
+  : OnChrome && CurCVer_ > BrowserVer.MinEnsuredLookBehindInRegexp - 1
+    || OnFirefox && CurFFVer_ > FirefoxBrowserVer.MinLookBehindInRegexp - 1
+  ? rules.replace(<RegExpG> new RegExp("(?<!\\\\) ([\\w\\x80-\\ufffd]{1,6})(?![\\x00- \\w\\\\\\x7f-\\uffff])", "g")
+      , "\n$1")
+  : rules.replace(<RegExpG & RegExpSearchable<1>> /\\ | ([\w\x80-\ufffd]{1,6})(?![\x00- \w\\\x7f-\uffff])/g
+      , (s, a): string => s[1] === " " ? s : "\n" + a)
+}
+
 set_substitute_((text: string, normalContext: SedContext, mixedSed?: MixedSedOpts | null): string => {
   const rules = !mixedSed || typeof mixedSed !== "object" ? mixedSed : mixedSed.r
   if (rules === false) { return text }
@@ -210,8 +223,7 @@ set_substitute_((text: string, normalContext: SedContext, mixedSed?: MixedSedOpt
   // note: `sed` may come from options of key mappings, so here always convert it to a string
   if (rules && rules !== true) {
     contexts || (arr = [])
-    arr = parseSeds_((rules + "").replace(
-          <RegExpG> /(?!\\) ([\w\x80-\ufffd]{1,6})(?![\x00- \w\\\x7f-\uffff])/g, "\n$1")
+    arr = parseSeds_(convertJoinedRules(rules + "")
         , contexts || (contexts = { normal_: SedContext.NO_STATIC, extras_: null })).concat(arr)
   }
   for (const item of contexts ? arr : []) {

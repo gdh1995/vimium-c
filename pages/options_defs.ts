@@ -22,7 +22,7 @@ Option_.saveOptions_ = function (): boolean {
   for (const i in arr) {
     const opt = arr[i as keyof AllowedOptions]
     if (!opt.saved_ && opt._isDirty()) {
-      dirty.push(opt.field_)
+      dirty.push(opt.i18nName_())
     }
   }
   if (dirty.length > 0) {
@@ -53,6 +53,29 @@ Option_.needSaveOptions_ = function (): boolean {
     }
   }
   return false
+}
+
+Option_.prototype.i18nName_ = function (): string {
+  let el: EnsuredMountedHTMLElement | null = this.element_ as EnsuredMountedHTMLElement
+  if (this instanceof BooleanOption_) { return el.nextElementSibling.textContent }
+  if (OnChrome && Build.MinCVer < BrowserVer.MinEnsured$Element$$Closest
+      && CurCVer_ < BrowserVer.MinEnsured$Element$$Closest) {
+    while (el && el.localName !== "tr") {
+      el = el.parentElement as EnsuredMountedHTMLElement | null
+    }
+  } else {
+    el = el.closest!("tr") as EnsuredMountedHTMLElement | null
+  }
+  if (!Build.NDEBUG) {
+    el = el && el.querySelector(".caption") as EnsuredMountedHTMLElement | null
+    if (!el) {
+      console.log("[WARNING] No i18n name found for Option #" + this.field_)
+      return this.field_
+    }
+  } else {
+    el = el!.querySelector(".caption") as EnsuredMountedHTMLElement
+  }
+  return (el.innerText as string).replace(<RegExpG> /[\r\n]/g, "")
 }
 
 Option_.prototype.areEqual_ = (a, b) => a === b
@@ -169,6 +192,7 @@ type TextOptionNames = PossibleOptionNames<string>
 export class TextOption_<T extends TextualizedOptionNames> extends Option_<T> {
   override readonly element_: TextElement
   override checker_?: Checker<T> & { ops_?: string[], status_: 0 | 1 | 2 | 3 }
+  _lastError = false
   override init_ (): void {
     const converter = (this.element_.dataset as KnownOptionsDataset).converter || ""
     const ops = converter ? converter.split(" ") : []
@@ -211,14 +235,16 @@ export class TextOption_<T extends TextualizedOptionNames> extends Option_<T> {
     return value as AllowedOptions[T]
   }
   override doesPopulateOnSave_ (val: AllowedOptions[T]): boolean { return val !== this.readRaw_() }
-  showError_ (msg: string, tag?: OptionErrorType | null, errors?: boolean): void {
+  showError_ (msg: string, tag?: OptionErrorType | null): void {
+    const hasError = !!msg
+    if (!hasError && !this._lastError) { return }
+    this._lastError = hasError
     const { element_: el, element_: { classList: cls, parentElement: par } } = this
     let errEl = el.nextElementSibling as HTMLElement | null
     errEl = errEl && errEl.classList.contains("tip") ? errEl : null
-    errors != null || (errors = !!msg)
-    if (!errors && !errEl) { return }
+    if (!hasError && !errEl) { return }
     nextTick_((): void => {
-      if (errors) {
+      if (hasError) {
         if (errEl == null) {
           errEl = document.createElement("div")
           errEl.className = "tip"
@@ -307,7 +333,7 @@ export class MaskedText_<T extends TextOptionNames> extends TextOption_<T> {
   }
   override populateElement_ (value: AllowedOptions[T], enableUndo?: boolean): void {
     if (this.masked_) {
-      nextTick_((): void => { this.element_.placeholder = oTrans_("clickToUnmask") })
+      this.element_.placeholder = oTrans_("clickToUnmask")
       return
     }
     super.populateElement_(value, enableUndo)

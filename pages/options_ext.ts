@@ -1,5 +1,5 @@
 import {
-  CurCVer_, CurFFVer_, bgSettings_, OnChrome, OnEdge, OnFirefox, $, asyncBackend_, browser_, import2, OnSafari
+  CurCVer_, CurFFVer_, bgSettings_, OnChrome, OnEdge, OnFirefox, $, browser_, import2, OnSafari
 } from "./async_bg"
 import { AllowedOptions, ExclusionRulesOption_, Option_, oTrans_ } from "./options_base"
 import { SaveBtn } from "./options_defs"
@@ -122,6 +122,7 @@ const buildExportedFile = (now: Date, want_static: boolean): { blob: Blob, optio
     }
   }
   storedKeys.sort();
+  omniBlockListRe = null
   for (const key of storedKeys) {
     const storedVal = storage.getItem(key) as string;
     if (typeof all[key] !== "string") {
@@ -132,13 +133,15 @@ const buildExportedFile = (now: Date, want_static: boolean): { blob: Blob, optio
       exported_object[key] = storedVal;
     }
     if (typeof all[key] === "string") {
-      if (typeof exported_object[key] === "string") {
-        exported_object[key] = maskStr(key, exported_object[key])
+      const val2 = exported_object[key] as string | string[]
+      if (typeof val2 === "string") {
+        exported_object[key] = maskStr(key, val2)
       } else {
-        exported_object[key] = (exported_object[key] as string[]).map(line => maskStr(key, line))
+        exported_object[key] = val2.map(line => maskStr(key, line))
       }
     }
   }
+  omniBlockListRe = null
   let exported_data = JSON.stringify(exported_object, null, "\t") + "\n"
   if (exported_object.environment.platform === "win") {
     // in case "endings" didn't work
@@ -182,10 +185,27 @@ $<ElementWithDelay>("#exportButton").onclick = function (event): void {
 
 function maskStr (key: keyof SettingsNS.PersistentSettings, str: string): string {
   // this solution is from https://stackoverflow.com/a/30106551/5789722
-  return str && (key === "omniBlockList" || asyncBackend_.isExpectingHidden_([str]))
+  return str && (key === "omniBlockList" || isExpectingHidden(str))
       ? "$base64:" + btoa(encodeURIComponent(str).replace(<RegExpG & RegExpSearchable<1>> /%([0-9A-F]{2})/g,
           (_s, hex): string => String.fromCharCode(parseInt(hex, 16))
       )) : str
+}
+
+let omniBlockListRe: RegExpOne | null | false = null
+
+/** @see {@link ../background/browsing_data_manager.ts#settings_.updateHooks_.omniBlockList} */
+function isExpectingHidden (word: string): boolean {
+  if (omniBlockListRe == null) {
+    const arr: string[] = []
+    for (let line of (<string> bgSettings_.get_("omniBlockList")).split("\n")) {
+      if (line.trim() && line[0] !== "#") {
+        arr.push(line)
+      }
+    }
+    omniBlockListRe = arr.length > 0 ? new RegExp(arr.map((s: string): string =>
+        s.replace(<RegExpG & RegExpSearchable<0>> /[$()*+.?\[\\\]\^{|}]/g, "\\$&")).join("|"), "") : false
+  }
+  return omniBlockListRe !== false && omniBlockListRe.test(word)
 }
 
 function decodeStrOption (new_value: string | string[]): string {
@@ -400,7 +420,7 @@ function importSettings_(time: number | string | Date, data: string, is_recommen
     else { new_data = d; }
   } catch (_e) { e = _e as Error }
   if (e != null) {
-    err_msg = e ? (e.message || e) + "" : oTrans_("exc") + (e !== "" ? e : oTrans_("unknown"));
+    err_msg = e ? (e.message || e as AllowToString) + "" : oTrans_("exc") + (e !== "" ? e : oTrans_("unknown"))
     let arr = (<RegExpSearchable<2> & RegExpOne> /^(\d+):(\d+)$/).exec(err_msg);
     err_msg = !arr ? err_msg : oTrans_("JSONParseError", [arr[1], arr[2]]);
   }
@@ -417,6 +437,7 @@ function importSettings_(time: number | string | Date, data: string, is_recommen
   const promisedChecker = Option_.all_.keyMappings.checker_ ? Promise.resolve() : import2("./options_checker.js")
   const t2 = time, d2 = new_data
   void promisedChecker.then((): void => {
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
     setTimeout(_importSettings, 17, t2, d2, is_recommended);
   });
 }

@@ -122,7 +122,6 @@ set_contentCommands_([
         1000, [options.n, notBool ? JSON.stringify(val) : ""]);
   },
   /* kFgCmd.passNextKey: */ (options: CmdOptions[kFgCmd.passNextKey], count0: number): void => {
-    const oldEsc = esc!, oldPassKeys = passKeys
     const keys = safer<{ [keyCode in kKeyCode]: number | false }>({})
     const ignoreCase = options.ignoreCase
     const expectedKeys = options.expect, hasExpected = isTY(expectedKeys) && !!expectedKeys
@@ -130,9 +129,8 @@ set_contentCommands_([
     removeHandler_(kHandler.passNextKey)
     exitPassMode ? exitPassMode() : esc!(HandlerResult.ExitPassMode); // singleton
     if (hasExpected || !!options.normal === (count0 > 0)) {
-      if (!hasExpected && !passKeys) {
-        return hudTip(kTip.noPassKeys);
-      }
+      const oldEsc = esc!, oldPassKeys = passKeys
+      if (!hasExpected && !oldPassKeys) { return hudTip(kTip.noPassKeys) }
       set_passKeys(null)
       hasExpected && pushHandler_((event): HandlerResult => {
         const rawKey = getMappedKey(event, raw_insert_lock ? kModeId.Insert : kModeId.Normal)

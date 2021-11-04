@@ -1,6 +1,6 @@
 import {
   BG_, bgSettings_, OnFirefox, OnEdge, OnChrome, $, pageTrans_, asyncBackend_, browser_, enableNextTick_, nextTick_,
-  kReadyInfo, TransTy, IsEdg_
+  kReadyInfo, TransTy, IsEdg_, toggleDark, toggleReduceMotion, CurCVer_
 } from "./async_bg"
 import {
   ExclusionVisibleVirtualNode, ExclusionRulesOption_, setupBorderWidth_, showI18n, ExclusionBaseVirtualNode
@@ -75,24 +75,29 @@ class PopExclusionRulesOption extends ExclusionRulesOption_ {
   static generateDefaultPattern_ (this: void): string {
     const url2 = url.startsWith("http:")
       ? "^https?://"
-        + url.split("/", 3)[2].replace(<RegExpG> /[.[\]]/g, "\\$&") + "/" // lgtm [js/incomplete-sanitization]
+        + url.split("/", 3)[2].replace(<RegExpG> /[$()*+.?\[\\\]\^{|}]/g, "\\$&") + "/"
       : url.startsWith(location.origin + "/")
       ? ":vimium:/" + new URL(url).pathname.replace("/pages", "")
       : (<RegExpOne> /^[^:]+:\/\/./).test(url) && !url.startsWith("file:")
       ? ":" + (url.split("/", 3).join("/") + "/")
       : ":" + url
+    if (!testers_[url2]) {
+      testers_[url2] = deserializeMatcher(url2[0] === "^" ? { t: kMatchUrl.RegExp, v: url2 }
+          : { t: kMatchUrl.StringPrefix,
+              v: url2.startsWith(":vimium:") ? url.split(<RegExpOne> /[?#]/)[0] : url2.slice(1)})
+    }
     PopExclusionRulesOption.generateDefaultPattern_ = () => url2
     return url2
   }
 }
 
 const updateState = (updateOldPass: boolean): void => {
-  exclusions.readValueFromElement_(false)
+  exclusions.readValueFromElement_(true)
   const toCheck = exclusions.list_.filter((i): i is ExclusionVisibleVirtualNode => i.visible_ && !!i.rule_.pattern)
   const oldInited = inited
   inited = 2
   void Promise.all(toCheck.map(
-    (i): ExclusionBaseVirtualNode["matcher_"] | false | void => i.matcher_ == null && parseMatcher(i)
+    (i): NonNullable<ExclusionBaseVirtualNode["matcher_"]> => i.matcher_ !== null ? i.matcher_ : parseMatcher(i)
   )).then((): void => { _doUpdateState(oldInited, updateOldPass, toCheck) })
 }
 
@@ -265,15 +270,13 @@ const initExclusionRulesTable = (): void => {
       saveBtn2.removeAttribute("disabled")
       saveBtn2.firstChild.data = pTrans_("o115_2")
     }
-    testers_ = Object.create(null)
     updateState(inited < 2)
   })
   nextTick_((): void => {
     exclusions.fetch_()
   })
   if (!Build.NDEBUG) {
-    interface WindowEx extends Window { exclusions?: PopExclusionRulesOption }
-    (window as WindowEx).exclusions = exclusions
+    Object.assign(globalThis, { exclusions })
   }
 }
 
@@ -297,9 +300,8 @@ void Promise.all([asyncBackend_.restoreSettings_()
   nextTick_((versionEl): void => {
     blockedMsg.remove()
     blockedMsg = null as never
-    const docCls = (document.documentElement as HTMLHtmlElement).classList
-    docCls.toggle("no-dark", !asyncBackend_.contentPayload_.d)
-    docCls.toggle("less-motion", !!asyncBackend_.contentPayload_.m)
+    toggleDark(!!asyncBackend_.contentPayload_.d)
+    toggleReduceMotion(!!asyncBackend_.contentPayload_.m)
     const manifest = browser_.runtime.getManifest()
     versionEl.textContent = manifest.version_name || manifest.version
   }, $(".version"))
@@ -365,7 +367,8 @@ const onNotRunnable = (blockedMsg: HTMLElement, curTab: chrome.tabs.Tab | null, 
     refreshTip.remove()
   } else if (OnEdge) {
     (refreshTip.querySelector(".action") as HTMLElement).textContent = "open a new web page"
-  } else if (!IsEdg_ && (navigator.userAgentData ? navigator.userAgentData.brands.find(i => i.brand.includes("Opera"))
+  } else if (OnChrome && !IsEdg_ && (navigator.userAgentData
+        ? navigator.userAgentData.brands.find(i => i.brand.includes("Opera") && i.version === CurCVer_)
         : (<RegExpOne> /\bOpera\//).test(navigator.userAgent!))
       && (<RegExpOne> /\.(google|bing|baidu)\./).test(_url.split("/", 4).slice(0, 3).join("/"))) {
     (blockedMsg.querySelector("#opera-warning") as HTMLElement).style.display = ""

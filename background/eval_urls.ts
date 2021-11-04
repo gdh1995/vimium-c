@@ -177,7 +177,7 @@ const tryEvalMath_ = (path: string, math_parser: typeof import("../lib/math_pars
       out += ch < "\xba" ? ch > "\xb3" ? 1 : ch < "\xb3" ? 2 : 3 : ch.charCodeAt(0) - 0x2070
     }
     return out && "**" + out
-  }).replace(<RegExpG>/\*PI\+(?!\s*\d)/g, "*PI").replace(<RegExpG> /([\d.])rad\b/g, "$1")
+  }).replace(<RegExpG> /([\d.])rad\b/g, "$1")
   path = path.replace(<RegExpG> /^=+|=+$/g, "").trim()
   let nParenthesis = ([].reduce as (cb: (o: number, c: string) => number, o: number) => number
       ).call(path, (n, ch) => n + (ch === "(" ? 1 : ch === ")" ? -1 : 0), 0)

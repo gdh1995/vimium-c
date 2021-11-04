@@ -571,6 +571,7 @@ declare const enum FirefoxBrowserVer {
   Min$permissions$$onAdded = 77,
   MinCSS$readOnly$selector = 78, // https://developer.mozilla.org/en-US/docs/Web/CSS/:read-only
   MinEnsuredUnicodePropertyEscapesInRegExp = 78,
+  MinLookBehindInRegexp = 78, // even if LEGACY
   MinMaybe$WeakRef = 79, // no `WeakRef` if javascript.options.weakrefs=false
   MinEnsuredCSS$is$selector = 81,
   MinContentEditableInShadowOfBodyRefuseShortcuts = 91,

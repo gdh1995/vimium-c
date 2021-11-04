@@ -168,7 +168,7 @@ set_bgC_([
   },
   /* kBgCmd.showHelp: */ (): void | kBgCmd.showHelp => {
     if (cPort.s.frameId_ === 0 && !(cPort.s.flags_ & Frames.Flags.hadHelpDialog)) {
-      initHelp({ a: get_cOptions<C.showHelp, true>() }, cPort)
+      void initHelp({ a: get_cOptions<C.showHelp, true>() }, cPort)
     } else {
       import(CONST_.HelpDialogJS)
       sendFgCmd(kFgCmd.showHelpDialog, true, get_cOptions<C.showHelp, true>())

@@ -858,12 +858,12 @@ const hookSel = (t?: TimerType.fake | 1): void => {
 
   /** must be called after initing */
 const toggleStyle = (disable: BOOL | boolean | Event): void => {
-    const sout = styleSelColorOut, sin = styleSelColorIn, active = isActive
+    const sout = styleSelColorOut, sin = styleSelColorIn
     if (!sout) { return; }
     hookSel(1)
     disable = !!disable;
     // Note: `<doc/root>.adoptedStyleSheets` should not be modified in an extension world
-    if (!active && disable) {
+    if (!isActive && disable) {
       toggleSelectableStyle()
       removeEl_s(sout); removeEl_s(sin!)
       styleSelColorOut = styleSelColorIn = null as never
@@ -883,7 +883,7 @@ const toggleStyle = (disable: BOOL | boolean | Event): void => {
 }
 
 export const toggleSelectableStyle = (enable?: 1): void => {
-  !enable ? styleSelectable && (removeEl_s(styleSelectable), styleSelectable = null)
-  : docSelectable_ && !findCSS.s.includes("\n")
-    || appendNode_s(ui_box!, styleSelectable = createStyle(findCSS.s))
+  !enable || docSelectable_ && !findCSS.s.includes("\n")
+  ? styleSelectable && (removeEl_s(styleSelectable), styleSelectable = null)
+  : appendNode_s(ui_box!, styleSelectable = createStyle(findCSS.s, styleSelectable))
 }

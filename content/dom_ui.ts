@@ -212,7 +212,7 @@ export const ensureBorder = (zoom?: number): void => {
     (vApi.l as typeof learnCSS)(styleIn_, 1)
 }
 
-export const createStyle = (text: string, css?: HTMLStyleElement): HTMLStyleElement => {
+export const createStyle = (text: string, css?: HTMLStyleElement | null): HTMLStyleElement => {
     css = css || createElement_("style");
     css.type = "text/css";
     textContent_s(css, text)

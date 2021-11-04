@@ -84,13 +84,12 @@ let optionsInit1_ = function (): void {
 
   let _ref: { length: number; [index: number]: HTMLElement }
   for (let key in Option_.all_) { Option_.all_[key as "vimSync"].fetch_() }
-  nextTick_((): void => {
+  OnFirefox && asyncBackend_.contentPayload_.o === kOS.unixLike && nextTick_((): void => {
     for (let key in Option_.all_) {
       const obj = Option_.all_[key as "vimSync"]
-      if (OnFirefox && asyncBackend_.contentPayload_.o === kOS.unixLike && obj instanceof BooleanOption_) {
+      if (obj instanceof BooleanOption_) {
         obj.element_.classList.add("baseline")
       }
-      obj.populateElement_(obj.previous_)
     }
   });
   if (Option_.all_.exclusionRules.previous_.length > 0) {
@@ -190,9 +189,7 @@ let optionsInit1_ = function (): void {
   _ref = $$("[data-permission]");
   _ref.length > 0 && ((els: typeof _ref): void => {
     const manifest = browser_.runtime.getManifest()
-    for (const key of manifest.permissions || []) {
-      manifest[key] = true;
-    }
+    const validKeys2 = manifest.permissions || []
     for (let i = els.length; 0 <= --i; ) {
       let el: HTMLElement = els[i];
       let key = (el.dataset as KnownOptionsDataset).permission
@@ -208,7 +205,7 @@ let optionsInit1_ = function (): void {
         }
         transArgs = ["beforeChromium", [key.slice(1).split(",", 1)[0]]]
       } else {
-        if (key in manifest) { continue; }
+        if (key in manifest || validKeys2.includes!(key)) { continue }
         transArgs = ["lackPermission", [key ? ":\n* " + key : ""]]
       }
       nextTick_((el1): void => {
@@ -257,9 +254,9 @@ let optionsInit1_ = function (): void {
   _element = $<HTMLAnchorElement>("#openExtensionsPage");
   if (OnChrome && Build.MinCVer < BrowserVer.MinEnsuredChromeURL$ExtensionShortcuts
       && CurCVer_ < BrowserVer.MinEnsuredChromeURL$ExtensionShortcuts) {
-    (_element as HTMLAnchorElement).href = "chrome://extensions/configureCommands";
+    nextTick_((el): void => { el.href = "chrome://extensions/configureCommands" }, _element as HTMLAnchorElement)
   } else if (OnFirefox) {
-    nextTick_(([el, el2, el3]) => {
+    nextTick_(([el, el2, el3]): void => {
       el.textContent = el.href = "about:addons";
       const el1 = el.parentElement as HTMLElement, prefix = GlobalConsts.FirefoxAddonPrefix;
       el1.insertBefore(new Text(oTrans_("manageShortcut")), el); // lgtm [js/superfluous-trailing-arguments]
@@ -397,8 +394,7 @@ Option_.all_.autoDarkMode.onSave_ = function (): void {
 }
 Option_.all_.autoReduceMotion.onSave_ = function (): void { toggleReduceMotion(this.previous_) }
 
-if (OnFirefox) {
-  setTimeout((): void => {
+  OnFirefox && setTimeout((): void => {
     const K = GlobalConsts.kIsHighContrast, storage = localStorage
     const hasFC = matchMedia("(forced-colors)").matches
     const test = hasFC ? null : document.createElement("div")
@@ -420,7 +416,6 @@ if (OnFirefox) {
       }
     }, { timeout: 1e3 })
   }, 34)
-}
 };
 
 (Option_.all_.userDefinedCss.element_ as HTMLTextAreaElement).addEventListener("input", debounce_((): void => {
@@ -615,7 +610,7 @@ document.addEventListener("click", function onClickOnce(): void {
     const el = event.target as Element
     if (el.localName !== "a" || !(event.ctrlKey || event.metaKey)) { return }
     const api2 = VApi, hintWorker = api2 && api2.b, stat = hintWorker && hintWorker.$()
-    if (stat && stat.b && !stat.a) { // .b: showing hints; !.a : is calling executor
+    if (stat && stat.b && stat.n === null) { // .b: showing hints; .n === null : is calling executor
       const m1 = stat.m & ~HintMode.queue
       if (m1 < HintMode.min_job && m1 & HintMode.newTab && !(m1 & HintMode.focused)) {
         const curTab = asyncBackend_.curTab_()

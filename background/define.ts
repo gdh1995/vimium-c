@@ -221,7 +221,8 @@ Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES2017
   })
 
   if (Build.MinCVer < BrowserVer.MinEnsuredGeneratorFunction) {
-    (globalThis as any).__generator = (_0: void | undefined, branchedFunc: YieldableFunc): YieldableFunc => branchedFunc
+    (globalThis as any).__generator = (self: void | undefined, branchedFunc: YieldableFunc): YieldableFunc =>
+        branchedFunc.bind(self)
   }
   (globalThis as any).__awaiter = (_self: void | 0 | undefined, _args: unknown, _p: PromiseConstructor | 0 | undefined
       , func_to_await: Function): Promise<YieldedValue> => __myAwaiter(func_to_await as any)

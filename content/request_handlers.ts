@@ -19,12 +19,12 @@ import {
 } from "./dom_ui"
 import { hudTip, hud_box } from "./hud"
 import {
-  currentKeys, mappedKeys, set_keyFSM, anyClickHandler, onKeydown, onKeyup,
+  currentKeys, mappedKeys, set_keyFSM, anyClickHandler, onKeydown, onKeyup, passKeys,
   set_isPassKeysReversed, isPassKeysReversed, set_passKeys, set_mappedKeys, set_mapKeyTypes, keyFSM,
 } from "./key_handler"
 import { HintManager, kSafeAllSelector, set_kSafeAllSelector } from "./link_hints"
 import { createMark, gotoMark } from "./marks"
-import { set_findCSS, styleInHUD, styleSelectable } from "./mode_find"
+import { set_findCSS, styleInHUD, styleSelectable, deactivate as findExit, toggleSelectableStyle } from "./mode_find"
 import {
   exitGrab, grabBackFocus, insertInit, set_grabBackFocus, onFocus, onBlur, insert_Lock_, raw_insert_lock
 } from "./insert"
@@ -129,11 +129,14 @@ set_requestHandlers([
     if (initing) {
       return;
     }
+    const oldPassKeys = passKeys
+    esc!(HandlerResult.ExitPassMode) // for passNextKey#normal
+    set_passKeys(oldPassKeys)
     set_isLocked_((request as BgReq[kBgReq.reset]).f)
     // if true, recover listeners on shadow roots;
     // otherwise listeners on shadow roots will be removed on next blur events
     if (isEnabled_) {
-      esc!(HandlerResult.ExitPassMode); // for passNextKey#normal
+      set_keydownEvents_(keydownEvents_ || safeObj(null))
       old || insertInit();
       (old && !isLocked_) || hookOnWnd(HookAction.Install);
       // here should not return even if old - a url change may mean the fullscreen mode is changed
@@ -211,6 +214,8 @@ set_requestHandlers([
         set_findCSS(req.f)
         styleInHUD && createStyle(req.f.i, styleInHUD)
         styleSelectable && createStyle(req.f.s, styleSelectable)
+        // @ts-ignore
+        findExit && toggleSelectableStyle(1)
       }
     }
     req.k ? hudTip(req.k, req.d, [req.t || ""]) : 0
