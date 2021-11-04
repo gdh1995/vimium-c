@@ -63,6 +63,8 @@ const _AsBgC = <T extends Function>(command: T): T => {
   return Build.NDEBUG ? command : function (this: unknown) { return command.apply(this, arguments) } as unknown as T
 }
 
+/* eslint-disable @typescript-eslint/no-base-to-string, @typescript-eslint/no-floating-promises */
+
 set_bgC_([
   /* kBgCmd.blank: */ (): void | kBgCmd.blank => {
     let wait = get_cOptions<C.blank, true>().for || get_cOptions<C.blank, true>().wait
@@ -152,9 +154,9 @@ set_bgC_([
     }
     Promise.resolve(keyRepr).then((keyReprStr): void => {
     if (msg) {
-        showHUD(trans_(msg!, [keyReprStr, msgArg2]))
+      showHUD(trans_(msg, [keyReprStr, msgArg2]))
     } else {
-      value = settings_.updatePayload_(key2, value)
+      value = settings_.updatePayload_(key2, value) // eslint-disable-line @typescript-eslint/no-unsafe-argument
       const frames = framesForTab_.get(cPort.s.tabId_)!, cur = frames.cur_
       for (const port of frames.ports_) {
         let isCur = port === cur
@@ -282,7 +284,7 @@ set_bgC_([
         active: true, windowId: tab.windowId,
         openerTabId: opener ? tab.id : void 0,
         index: newTabIndex(tab, get_cOptions<C.createTab>().position, opener, true)
-      } : {active: true}), cRepeat, get_cOptions<C.createTab, true>().evenIncognito, [null], true, tab, (tab2) => {
+      } : {active: true}), cRepeat, get_cOptions<C.createTab, true>().evenIncognito, [null], true, tab, tab2 => {
         tab2 && selectWndIfNeed(tab2)
         getRunNextCmdBy(kRunOn.tabPromise)(tab2)
       })
@@ -357,7 +359,7 @@ set_bgC_([
       }
       getCurWnd(true, (wnd): void => {
         const tab = wnd && wnd.tabs.find(tab2 => tab2.id === tabId)
-        if (!tab || !wnd!.incognito || tab.incognito) {
+        if (!tab || !wnd.incognito || tab.incognito) {
           return tab ? fallback(tab) : runtimeError_()
         }
         for (let count = cRepeat; 0 < --count; ) {
@@ -374,9 +376,10 @@ set_bgC_([
     framesGoBack({ s: cRepeat, o: get_cOptions<C.goBackFallback, true>() }, null, tabs[0])
   },
   /* kBgCmd.goToTab: */ (resolve): void | kBgCmd.goToTab => {
-    const count = cRepeat, absolute = !!get_cOptions<C.goToTab>().absolute
+    const absolute = !!get_cOptions<C.goToTab>().absolute
     const filter = get_cOptions<C.goToTab, true>().filter
     const goToTab = (tabs: ShownTab[]): void => {
+      const count = cRepeat
       const cur = selectFrom(tabs)
       const allLen = tabs.length
       allLen > 1 && (tabs as Tab[]).forEach((i, ind) => i.index = ind)
@@ -386,7 +389,7 @@ set_bgC_([
       }
       let len = tabs.length
       const _curInd2 = tabs.indexOf(cur)
-      const baseInd = _curInd2 >= 0 ? _curInd2 : getNearTabInd(tabs as Tab[], cur.index, cRepeat < 0)
+      const baseInd = _curInd2 >= 0 ? _curInd2 : getNearTabInd(tabs as Tab[], cur.index, count < 0)
     let index = absolute ? count > 0 ? Math.min(len, count) - 1 : Math.max(0, len + count)
         : Math.abs(count) > allLen * 2 ? (count > 0 ? len - 1 : 0) : baseInd + count
     index = index >= 0 ? index % len : len + (index % len || -len)
@@ -409,7 +412,7 @@ set_bgC_([
     }
     const reqireAllTabs = (curs?: Tab[]): void => {
       const evenHidden = OnFirefox && testBoolFilter_(filter, "hidden") === true
-      onShownTabsIfRepeat_(false, 1, goToTab, curs || [], resolve, evenHidden || null)
+      onShownTabsIfRepeat_(true, 1, goToTab, curs || [], resolve, evenHidden || null)
     }
     if (absolute) {
       if (cRepeat === 1 && !filter) {
@@ -448,7 +451,7 @@ set_bgC_([
   /* kBgCmd.moveTab: */ (curOrTabs: Tab[] | [Tab], resolve): void | kBgCmd.moveTab => {
     const _rawGroup = !OnEdge && get_cOptions<kBgCmd.moveTab>().group
     const useGroup = _rawGroup !== "ignore" && _rawGroup !== false
-    onShownTabsIfRepeat_(false, 1, (tabs): void => {
+    onShownTabsIfRepeat_(true, 1, (tabs): void => {
     const tab = selectFrom(tabs), pinned = tab.pinned
     const curIndex = tabs.indexOf(tab)
     let index = Math.max(0, Math.min(tabs.length - 1, curIndex + cRepeat))
@@ -491,7 +494,7 @@ set_bgC_([
       let tabs: Readonly<Tab>[] | undefined = oriTabs
       if (!tabs || tabs.length === 0) { return runtimeError_() }
     const activeTab = selectFrom(tabs)
-    let i = tabs!.indexOf(activeTab), noPinned = get_cOptions<C.removeTabsR, true>().noPinned
+    let i = tabs.indexOf(activeTab), noPinned = get_cOptions<C.removeTabsR, true>().noPinned
     const filter = get_cOptions<C.removeTabsR, true>().filter
     if (direction > 0) {
       ++i
@@ -685,7 +688,7 @@ set_bgC_([
       tabs = onlyActive && tabs2.length === 0 ? tabs.sort((a, b) => b.id - a.id) : tabs2
       const tab = tabs[cRepeat > 0 ? Math.min(cRepeat, tabs.length) - 1 : Math.max(0, tabs.length + cRepeat)]
       if (tab) {
-        onlyActive ? Windows_.update(tab.windowId, { focused: true, }, R_(resolve)) : doActivate(tab.id)
+        onlyActive ? Windows_.update(tab.windowId, { focused: true }, R_(resolve)) : doActivate(tab.id)
       } else {
         resolve(0)
       }

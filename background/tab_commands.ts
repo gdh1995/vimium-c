@@ -26,6 +26,7 @@ import { TabRecency_ } from "./tools"
 
 import C = kBgCmd
 declare const enum RefreshTabStep { start = 0, s1, s2, s3, s4, end }
+/* eslint-disable @typescript-eslint/no-base-to-string, @typescript-eslint/no-floating-promises */
 
 const abs = Math.abs
 
@@ -323,7 +324,7 @@ export const moveTabToNewWindow = (resolve: OnCmdResolved): void | kBgCmd.moveTa
     resolve(0)
   } else {
     (abs(cRepeat) === 1 || incognito ? Q_(getCurWnd, false).then<PopWindow | null | undefined>(wnd => {
-      return wnd && Q_(Tabs_.query, { windowId: wnd.id, active: true }).then((tabs) => {
+      return wnd && Q_(Tabs_.query, { windowId: wnd.id, active: true }).then(tabs => {
         wnd.tabs = tabs
         return tabs && tabs.length ? wnd as PopWindow : undefined
       })
@@ -387,7 +388,7 @@ export const moveTabToNextWindow = ([tab]: [Tab], resolve: OnCmdResolved): void 
           }
           let toActivateInOld = toRight && !tab.index ? -9 : -1
           if (useTabs && (!OnChrome || Build.MinCVer >= BrowserVer.MinNoAbnormalIncognito
-                || index >= 0 || CurCVer_ >= BrowserVer.MinNoAbnormalIncognito) && abs(cRepeat) !== 1) {
+                || index >= 0 || CurCVer_ >= BrowserVer.MinNoAbnormalIncognito) && (filter || abs(cRepeat) !== 1)) {
             onShownTabsIfRepeat_(true, 0, (tabs, range): void => {
               tab = tabs[range[1]] as Tab
               tabs = tabs.slice(range[0], range[2])
@@ -470,15 +471,15 @@ export const removeTab = (resolve: OnCmdResolved, phase?: 1 | 2 | 3, tabs?: read
     return
   }
   if (!tabs || !tabs.length) { resolve(0); return runtimeError_() }
-  const total = tabs.length, tab = selectFrom(tabs), i = tab.index
-  let count = 1, start = i, end = i + 1
+  const total = tabs.length, tab = selectFrom(tabs), curInd = tab.index
+  let count = 1, start = curInd, end = curInd + 1
   if (abs(cRepeat) > 1 && total > 1) {
-    const noPinned = tabs[0].pinned !== tab.pinned && !(cRepeat < 0 && tabs[i - 1].pinned)
+    const noPinned = tabs[0].pinned !== tab.pinned && !(cRepeat < 0 && tabs[curInd - 1].pinned)
     let skipped = 0
     if (noPinned) {
       while (tabs[skipped].pinned) { skipped++ }
     }
-    const range = getTabRange(i, total - skipped, total)
+    const range = getTabRange(curInd, total - skipped, total)
     count = range[1] - range[0]
     if (count > 20 && needConfirm_() && phase < 3) {
       void confirm_("removeTab", count).then(removeTab.bind(null, resolve, 2, tabs))
@@ -495,7 +496,7 @@ export const removeTab = (resolve: OnCmdResolved, phase?: 1 | 2 | 3, tabs?: read
     }
     if (noCurrent) { resolve(count > 1); return }
   } else if (get_cOptions<C.removeTab, true>().filter) {
-    if (filterTabsByCond_(tab, [tab], get_cOptions<C.removeTab, true>().filter!).length == 0) {
+    if (filterTabsByCond_(tab, [tab], get_cOptions<C.removeTab, true>().filter!).length === 0) {
       resolve(0)
       return
     }
@@ -650,11 +651,14 @@ export const toggleMuteTab = (resolve: OnCmdResolved): void | kBgCmd.toggleMuteT
   }
 }
 
-export const togglePinTab = (tabs: ShownTab[], oriRange: Range3, resolve: OnCmdResolved, force1?: boolean): void => {
+export const togglePinTab = (tabs: ShownTab[], oriRange: Range3, resolve: OnCmdResolved): void => {
+  const filter = get_cOptions<C.togglePinTab, true>().filter
   const current = oriRange[1]
-  const tab = tabs[current], pin = !tab.pinned, action = {pinned: pin}, offset = pin ? 0 : 1
+  const tab = tabs[current]
+  tabs = filter ? filterTabsByCond_(tab, tabs, filter) : tabs
+  const pin = !filter || tabs.includes!(tab) ? !tab.pinned : !!tabs.find(i => !i.pinned)
+  const action = {pinned: pin}, offset = pin ? 0 : 1
   let skipped = 0
-  if (force1) { oriRange = [current, current, current + 1] }
   if (abs(cRepeat) > 1 && pin) {
     while (tabs[skipped].pinned) { skipped++ }
   }
@@ -666,18 +670,16 @@ export const togglePinTab = (tabs: ShownTab[], oriRange: Range3, resolve: OnCmdR
       wantedTabs.push(tabs[start])
     }
   }
-  const filter = get_cOptions<C.togglePinTab, true>().filter
-  wantedTabs = filter ? filterTabsByCond_(tab, wantedTabs, filter) : wantedTabs
   end = wantedTabs.length
-  if (end > 30 && needConfirm_()) {
-    void confirm_("togglePinTab", end).then(togglePinTab.bind(null, tabs, oriRange, resolve))
-    return
-  }
   if (!end) { resolve(0); return }
+  (end <= 30 || !needConfirm_() ? Promise.resolve(false) : confirm_("togglePinTab", end))
+  .then((force1): void => { force1 && (wantedTabs.length = 1) })
+  .then((): void => {
   const firstTabId = wantedTabs.includes!(tab) ? tab.id : wantedTabs[0].id
   for (const i of wantedTabs) {
     tabsUpdate(i.id, action, i.id === firstTabId ? R_(resolve) : runtimeError_)
   }
+  })
 }
 
 export const toggleTabUrl = (tabs: [Tab], resolve: OnCmdResolved): void | kBgCmd.toggleTabUrl => {

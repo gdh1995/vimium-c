@@ -181,6 +181,7 @@ interface MasksForOpenUrl {
 
 interface LimitedRangeOptions {
   limited: boolean
+  $limit: number // for "limit=count" in .filter
 }
 interface MaskOptions { mask: boolean | string | ""; $masked: boolean }
 
@@ -267,6 +268,7 @@ interface StatefulBgCmdOptions {
   [kBgCmd.goNext]: "patterns" | "reuse"
   [kBgCmd.openUrl]: "urls" | "group" | "replace"
   [kBgCmd.runKey]: "expect" | "keys"
+  [kBgCmd.togglePinTab]: "limited"
 }
 interface SafeStatefulBgCmdOptions {
   [kBgCmd.showVomnibar]: "mode"

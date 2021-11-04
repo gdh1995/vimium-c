@@ -1,11 +1,14 @@
-import { OnFirefox, cRepeat, get_cOptions, curWndId_, curTabId_, recencyForTab_, CurCVer_, OnChrome } from "./store"
+import {
+  OnFirefox, cRepeat, get_cOptions, curWndId_, curTabId_, recencyForTab_, CurCVer_, OnChrome, set_cRepeat
+} from "./store"
 import * as BgUtils_ from "./utils"
 import {
   selectFrom, Tabs_, getCurShownTabs_, getCurWnd, runtimeError_, isNotHidden_, ShownTab, getCurTab, getCurTabs,
-  getTabUrl, getGroupId, isTabMuted, Q_
+  getTabUrl, getGroupId, isTabMuted, Q_, Windows_
 } from "./browser"
 import { getPortUrl_, showHUD } from "./ports"
 import * as Exclusions from "./exclusions"
+import { overrideCmdOptions, overrideOption } from "./run_commands"
 
 import C = kBgCmd
 
@@ -13,12 +16,18 @@ export type Range3 = readonly [start: number, ind: number, end: number]
 
 export const getTabRange = (current: number, total: number, countToAutoLimitBeforeScale?: number
     , /** must be positive */ extraCount?: 1 | 0): [number, number] => {
-  let count = cRepeat, dir = count > 0
+  return innerGetTabRange(current, total, countToAutoLimitBeforeScale, cRepeat, extraCount
+      , get_cOptions<C.removeTab | C.reloadTab | C.copyWindowInfo, true>().limited)
+}
+
+const innerGetTabRange = (current: number, total: number, countToAutoLimitBeforeScale: number | undefined
+    , count: number, extraCount: 1 | 0 | undefined
+    , limited: LimitedRangeOptions["limited"] | null | undefined): [number, number] => {
+  const dir = count > 0
   if (extraCount) { count += dir ? extraCount : -extraCount }
   const end = current + count
   return end <= total && end > -2 ? dir ? [current, end] : [end + 1, current + 1] // normal range
-      : get_cOptions<C.removeTab | C.reloadTab | C.copyWindowInfo>().limited === false
-      || get_cOptions<C.removeTab | C.reloadTab | C.copyWindowInfo>().limited == null
+      : limited === false || limited == null
       && (Math.abs(count) < (countToAutoLimitBeforeScale || total) * GlobalConsts.ThresholdToAutoLimitTabOperation
           || count < 10)
       ? Math.abs(count) < total ? dir ? [total - count, total] : [0, -count] // go forward and backward
@@ -34,27 +43,37 @@ export const onShownTabsIfRepeat_ = <All extends boolean> (allInRange: All, noSe
     if (!shownTabs || !shownTabs.length) { resolve(0); return runtimeError_() }
     let ind = !OnFirefox ? selectFrom(shownTabs).index : !isUsable ? selectFrom(shownTabs, 1).index
         : Math.max(shownTabs.findIndex(i => i.active), 0)
-    const [start, end] = getTabRange(ind, shownTabs.length, 0, noSelf)
+    const [start, end] = limitCount ? [0, shownTabs.length] : getTabRange(ind, shownTabs.length, 0, noSelf)
+    if (limitCount) {
+      overrideCmdOptions<C.togglePinTab>({ limited: false }, true)
+      overrideOption<C.togglePinTab>("$limit", cRepeat)
+      set_cRepeat(cRepeat > 0 ? GlobalConsts.CommandCountLimit : -GlobalConsts.CommandCountLimit)
+    }
     if (allInRange) {
       callback(shownTabs, [start, ind, end], resolve)
     } else {
       callback(shownTabs, [ind + 1 === end || cRepeat > 0 && start !== ind ? start : end - 1, ind, end], resolve)
     }
   }
+  const filter = get_cOptions<C.togglePinTab, true>().filter
+  const limitCount = filter && (<RegExpOne> /(^|[&+])limit(ed)?=count\b/).test(filter + "")
   if (!curOrTabs) {
     resolve(0)
-  } else if (curOrTabs.length === 0) {
-    if (OnFirefox && curWndId_ >= 0) {
-      Tabs_.query(isUsable === true ? { windowId: curWndId_ } : { windowId: curWndId_, hidden: false }, onTabs)
+  } else if (curOrTabs.length === 0 || Math.abs(cRepeat) > 1 || limitCount) {
+    if (curOrTabs.length === 0 || limitCount || /* should be avoided */ OnFirefox && isUsable === true) {
+      const windowId = curOrTabs[0] ? curOrTabs[0].windowId : curWndId_
+      if (OnFirefox && windowId >= 0) {
+        Tabs_.query(isUsable === true ? { windowId } : { windowId, hidden: false }, onTabs)
+      } else {
+        void (windowId >= 0 ? Q_(Windows_.get, windowId, { populate: true }) : Q_(getCurWnd, true)).then(wnd => {
+          onTabs(wnd ? OnFirefox && isUsable !== true ? wnd.tabs!.filter(isNotHidden_) : wnd.tabs! : [])
+        })
+      }
     } else {
-      getCurWnd(true, (wnd): void => {
-        onTabs(wnd ? OnFirefox && isUsable !== true ? wnd.tabs.filter(isNotHidden_) : wnd.tabs : [])
-      })
+      onTabs(curOrTabs)
     }
-  } else if (Math.abs(cRepeat) > 1) {
-    onTabs(curOrTabs)
   } else if (!noSelf) {
-    callback(curOrTabs!, [0, 0, 1], resolve)
+    callback(curOrTabs, [0, 0, 1], resolve)
   } else if (curOrTabs[0].index + cRepeat < 0) {
     getCurShownTabs_(onTabs)
   } else {
@@ -67,7 +86,7 @@ export const onShownTabsIfRepeat_ = <All extends boolean> (allInRange: All, noSe
   }
 }
 
-export const tryLastActiveTab_ = () => {
+export const tryLastActiveTab_ = (): number => {
   let indMax = 0, tabId = -1
   recencyForTab_.forEach((v, i): void => { if (v.i > indMax && i !== curTabId_) { indMax = v.i, tabId = i } })
   return tabId
@@ -141,7 +160,7 @@ export const filterTabsByCond_ = <T extends ShownTab = Tab>(activeTab: ShownTab 
     , extraOutputs?: FilterInfo): T[] => {
   let title: string | undefined, matcher: ValidUrlMatchers | null | undefined, host: string | undefined
   let group: string | null | undefined, useHash = false, hidden: boolean | null = null, muted: boolean | null = null
-  let audio: boolean | null = null, pinned: boolean | null = null, known = 0;
+  let audio: boolean | null = null, pinned: boolean | null = null, known = 0, limit = 0;
   let incognito: boolean | null = null, highlighted: boolean | null = null
   for (let item of (filter + "").split(/[&+]/)) {
     const rawKey = item.split("=", 1)[0], key = rawKey.includes(".") ? "" : rawKey || item
@@ -168,23 +187,26 @@ export const filterTabsByCond_ = <T extends ShownTab = Tab>(activeTab: ShownTab 
       group = val ? val : activeTab ? getGroupId(activeTab) != null ? getGroupId(activeTab) + "" : null : undefined
       break
     case "hidden":
-      hidden = !OnFirefox ? null : val == "same" ? false : parseBool(val, 1)
+      hidden = !OnFirefox ? null : val === "same" ? false : parseBool(val, 1)
       break
     case "highlight": case "highlighted":
-      highlighted = val == "same" ? activeTab ? activeTab.highlighted : null : parseBool(val); break
+      highlighted = val === "same" ? activeTab ? activeTab.highlighted : null : parseBool(val); break
     case "incognito": case "incognito":
-      incognito = val == "same" ? activeTab ? activeTab.incognito : null : parseBool(val); break
-    case "pinned": pinned = val == "same" ? activeTab ? activeTab.pinned : null : parseBool(val, 1); break
+      incognito = val === "same" ? activeTab ? activeTab.incognito : null : parseBool(val); break
+    case "pinned": pinned = val === "same" ? activeTab ? activeTab.pinned : null : parseBool(val, 1); break
     case "mute": case "muted":
       if (!OnChrome || Build.MinCVer >= BrowserVer.MinMuted || CurCVer_ > BrowserVer.MinMuted - 1) {
-        muted = val == "same" ? activeTab ? isTabMuted(activeTab) : null : parseBool(val);
+        muted = val === "same" ? activeTab ? isTabMuted(activeTab) : null : parseBool(val);
       }
       break;
     case "audible": case "audio":
       if (!OnChrome || Build.MinCVer >= BrowserVer.MinTabAudible || tabs[0] && tabs[0].audible != null) {
-        audio = val == "same" ? activeTab ? activeTab.audible : null : parseBool(val)
+        audio = val === "same" ? activeTab ? activeTab.audible : null : parseBool(val)
       }
       break;
+    case "limit": case "limited":
+      limit = val === "count" ? get_cOptions<C.togglePinTab, true>().$limit || cRepeat : parseInt(val) || 1
+      break
     default: known--; break
     }
   }
@@ -192,7 +214,8 @@ export const filterTabsByCond_ = <T extends ShownTab = Tab>(activeTab: ShownTab 
   if (known === 0) {
       return tabs.slice(0);
   }
-  tabs = tabs.filter(tab =>
+  const oriTabs = tabs as readonly ShownTab[]
+  let newTabs = tabs.filter(tab =>
       (!title || (tab.title || "").includes(title))
       && (!matcher || Exclusions.matchSimply_(matcher, getTabUrl(tab)))
       && (!host || host === BgUtils_.safeParseURL_(getTabUrl(tab))?.host)
@@ -204,8 +227,26 @@ export const filterTabsByCond_ = <T extends ShownTab = Tab>(activeTab: ShownTab 
       && (incognito === null || highlighted === tab.incognito)
       && (group === undefined || group === (getGroupId(tab) ?? "") + "")
   )
-  if (!tabs.length) { showHUD("No tabs matched the filter parameter") }
-  return tabs as T[]
+  if (!newTabs.length) { showHUD("No tabs matched the filter parameter") }
+  if (limit) {
+    let oriCurInd = activeTab ? oriTabs.indexOf(activeTab) : -1
+    if (oriCurInd < 0) {
+      const cur = activeTab ? activeTab.id : curTabId_
+      oriCurInd = oriTabs.findIndex(i => i.id === cur)
+    }
+    if (oriCurInd >= 0) {
+      const near = newTabs.findIndex(i => oriTabs.indexOf(i) >= oriCurInd)
+      const doesInsert = near >= 0 && oriTabs.indexOf(newTabs[near]) > oriCurInd
+      if (doesInsert) { newTabs.splice(near, 0, null as never) }
+      const range = innerGetTabRange(near >= 0 ? near : newTabs.length - 1, newTabs.length, 0
+          , cRepeat > 0 ? limit : -limit, doesInsert ? 1 : 0, false)
+      newTabs = newTabs.slice(range[0], range[1])
+      doesInsert && (newTabs = newTabs.filter(i => !!i))
+    } else {
+      newTabs = limit > 0 ? newTabs.slice(0, limit) : newTabs.slice(-limit)
+    }
+  }
+  return newTabs
 }
 
 export const sortTabsByCond_ = (allTabs: Readonly<Tab>[]
