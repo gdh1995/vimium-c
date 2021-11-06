@@ -4,7 +4,7 @@ import {
   helpDialogData_, set_helpDialogData_, curWndId_
 } from "./store"
 import * as BgUtils_ from "./utils"
-import { Tabs_, downloadFile, getTabUrl, runtimeError_, selectTab, R_, Q_ } from "./browser"
+import { Tabs_, downloadFile, getTabUrl, runtimeError_, selectTab, R_, Q_, browser_ } from "./browser"
 import { convertToUrl_, createSearchUrl_ } from "./normalize_urls"
 import * as settings_ from "./settings"
 import { showHUD, complainLimits, ensureInnerCSS, getParentFrame } from "./ports"
@@ -180,17 +180,18 @@ export const enterVisualMode = (): void | kBgCmd.visualMode => {
 let _tempBlob: [number, string] | null | undefined
 
 export const captureTab = (tabs: [Tab] | undefined, resolve: OnCmdResolved): void | kBgCmd.captureTab => {
-  const show = get_cOptions<C.captureTab>().show,
+  const show = get_cOptions<C.captureTab>().show, copy = OnFirefox && !!get_cOptions<C.captureTab>().copy,
+  rawDownload = get_cOptions<C.captureTab>().download, noDownload = copy ? rawDownload !== true : rawDownload === false,
   png = !!get_cOptions<C.captureTab>().png,
-  jpeg = png ? 0 : Math.min(Math.max(get_cOptions<C.captureTab, true>().jpeg! | 0, 0), 100)
+  jpeg = png || copy ? 0 : Math.min(Math.max(get_cOptions<C.captureTab, true>().jpeg! | 0, 0), 100)
   const cb = (url?: string): void => {
     if (!url) { resolve(0); return runtimeError_() }
     const onerror = (err: any | Event): void => {
       console.log("captureTab: can not request a data: URL:", err)
     }
     const cb2 = (msg: Blob | string): void => {
-      const finalUrl = typeof msg !== "string" ? URL.createObjectURL(msg) : msg
-      if (finalUrl.startsWith("blob:")) {
+      const finalUrl = noDownload && !show ? null : typeof msg !== "string" ? URL.createObjectURL(msg) : msg
+      if (finalUrl && finalUrl.startsWith("blob:")) {
         if (_tempBlob) {
           clearTimeout(_tempBlob[0]), URL.revokeObjectURL(_tempBlob[1])
         }
@@ -198,14 +199,27 @@ export const captureTab = (tabs: [Tab] | undefined, resolve: OnCmdResolved): voi
           _tempBlob && URL.revokeObjectURL(_tempBlob[1]); _tempBlob = null
         }, show ? 5000 : 30000), finalUrl]
       }
+      if (copy) {
+        if (typeof msg !== "string") {
+          msg.arrayBuffer().then((buf): void => {
+            browser_.clipboard.setImageData(buf, "png").then((): void => {
+                showHUD(trans_("imgCopied") || "Image copied"); resolve(1)
+            }, (err): void => { showHUD("Error: " + err); resolve(0) })
+          })
+        } else {
+          showHUD("Can not copy image to clipboard")
+          if (noDownload && show) { resolve(0) }
+        }
+      }
       if (show) {
-        doShow(finalUrl)
+        doShow(finalUrl!)
         resolve(1)
         return
       }
+      if (noDownload) { return }
       const port = cPort && framesForTab_.get(cPort.s.tabId_)?.top_ || cPort
-      downloadFile(finalUrl, title, port ? port.s.url_ : null, (succeed): void => {
-        succeed ? 0 : OnFirefox ? doShow(finalUrl) : clickAnchor_cr(finalUrl)
+      downloadFile(finalUrl!, title, port ? port.s.url_ : null, (succeed): void => {
+        succeed ? 0 : OnFirefox ? doShow(finalUrl!) : clickAnchor_cr(finalUrl!)
         resolve(succeed)
       })
     }

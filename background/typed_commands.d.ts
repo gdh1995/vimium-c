@@ -56,7 +56,7 @@ interface BgCmdOptions {
     /** 0..100; 0 means .png */ jpeg: number
     /** if true, then ignore .jpeg */ png: boolean
     name: "" | "title"
-    show: boolean
+    show: boolean; download: boolean; /** only on Firefox */ copy: boolean
   } & Pick<OpenPageUrlOptions, "reuse" | "replace" | "position" | "window">
   [kBgCmd.clearCS]: { type: chrome.contentSettings.ValidTypes }
   [kBgCmd.clearFindHistory]: {}

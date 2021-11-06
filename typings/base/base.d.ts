@@ -141,7 +141,7 @@ declare namespace chrome.bookmarks {
 }
 
 declare namespace chrome.clipboard {
-  export function setImageData(data: ArrayBuffer, format: "png"): void
+  export function setImageData(data: ArrayBuffer, format: "png"): Promise<void>
 }
 
 declare module chrome.downloads {

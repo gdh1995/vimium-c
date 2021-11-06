@@ -131,7 +131,7 @@ export const mayRequireActiveTab = (filter: NonNullable<BgCmdOptions[kBgCmd.remo
   for (const item of (filter + "").split(/[&+]/)) {
     const rawKey = item.split("=", 1)[0], key = rawKey.includes(".") ? "" : rawKey || item
     const val = item.slice(key ? key.length + 1 : 0);
-    if (key && val === "same" && key !== "hidden") { return 3 }
+    if (key && val === "same" && key !== "hidden" && !key.startsWith("discard")) { return 3 }
     if (!val && key) {
       if (key.startsWith("title") || key === "group") { return 3 }
       ret = key === "hash" ? 2 : ret || (key === "host" || key === "url" ? 1 : 0)
@@ -161,7 +161,7 @@ export const filterTabsByCond_ = <T extends ShownTab = Tab>(activeTab: ShownTab 
   let title: string | undefined, matcher: ValidUrlMatchers | null | undefined, host: string | undefined
   let group: string | null | undefined, useHash = false, hidden: boolean | null = null, muted: boolean | null = null
   let audio: boolean | null = null, pinned: boolean | null = null, known = 0, limit = 0;
-  let incognito: boolean | null = null, highlighted: boolean | null = null
+  let incognito: boolean | null = null, highlighted: boolean | null = null, discarded: boolean | null = null
   for (let item of (filter + "").split(/[&+]/)) {
     const rawKey = item.split("=", 1)[0], key = rawKey.includes(".") ? "" : rawKey || item
     const rawVal = item.slice(key ? key.length + 1 : 0);
@@ -183,6 +183,7 @@ export const filterTabsByCond_ = <T extends ShownTab = Tab>(activeTab: ShownTab 
     case "host": case "":
       host = val ? val : key && activeTab ? BgUtils_.safeParseURL_(getTabUrl(activeTab))?.host : ""
       break
+    case "discarded": case "discard": discarded = val === "same" ? false : parseBool(val, 1); break
     case "group":
       group = val ? val : activeTab ? getGroupId(activeTab) != null ? getGroupId(activeTab) + "" : null : undefined
       break
@@ -220,6 +221,7 @@ export const filterTabsByCond_ = <T extends ShownTab = Tab>(activeTab: ShownTab 
       && (!matcher || Exclusions.matchSimply_(matcher, getTabUrl(tab)))
       && (!host || host === BgUtils_.safeParseURL_(getTabUrl(tab))?.host)
       && (hidden === null || hidden !== isNotHidden_(tab))
+      && (discarded === null || discarded !== tab.discarded)
       && (pinned === null || pinned === tab.pinned)
       && (muted === null || muted === isTabMuted(tab))
       && (audio === null || audio === tab.audible)

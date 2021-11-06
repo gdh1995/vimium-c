@@ -24,7 +24,9 @@ import {
 } from "./key_handler"
 import { HintManager, kSafeAllSelector, set_kSafeAllSelector } from "./link_hints"
 import { createMark, gotoMark } from "./marks"
-import { set_findCSS, styleInHUD, styleSelectable, deactivate as findExit, toggleSelectableStyle } from "./mode_find"
+import {
+  set_findCSS, styleInHUD, deactivate as findExit, toggleSelectableStyle, styleSelColorIn, styleSelColorOut
+} from "./mode_find"
 import {
   exitGrab, grabBackFocus, insertInit, set_grabBackFocus, onFocus, onBlur, insert_Lock_, raw_insert_lock
 } from "./insert"
@@ -213,7 +215,7 @@ set_requestHandlers([
       if (req.f) {
         set_findCSS(req.f)
         styleInHUD && createStyle(req.f.i, styleInHUD)
-        styleSelectable && createStyle(req.f.s, styleSelectable)
+        styleSelColorIn && (createStyle(req.f.c, styleSelColorIn), createStyle(req.f.c, styleSelColorOut))
         // @ts-ignore
         findExit && toggleSelectableStyle(1)
       }

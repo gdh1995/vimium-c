@@ -13,7 +13,7 @@ export declare const enum MergeAction {
 }
 
 interface ParsedSections {
-  ui?: string; find?: string; "find:host"?: string; omni?: string
+  ui?: string; find?: string; "find:host"?: string; "find:selection"?: string; omni?: string
 }
 
 const StyleCacheId_ = CONST_.VerCode_ + ","
@@ -159,7 +159,7 @@ const parseSections_ = (css: string): ParsedSections => {
   const arr = css ? css.split(<RegExpG & RegExpSearchable<1>> /^\/\*\s?#!?([A-Za-z:]+)\s?\*\//m) : [""]
   const sections: ParsedSections = { ui: arr[0].trim() }
   for (let i = 1; i < arr.length; i += 2) {
-    let key = arr[i].toLowerCase() as "ui" | "find" | "find:host" | "omni"
+    const key = arr[i].toLowerCase() as keyof ParsedSections
     sections[key] = (sections[key] || "") + arr[i + 1].trim()
   }
   return sections
@@ -168,7 +168,7 @@ const parseSections_ = (css: string): ParsedSections => {
 const parseFindCSS_ = (find2: string): FindCSS => {
   find2 = find2.slice(find2.indexOf("\n") + 1)
   let idx = find2.indexOf("\n") + 1, endFH = find2.indexOf("\n", idx)
-  return { c: find2.slice(0, idx - 1), s: find2.slice(idx, endFH).replace("  ", "\n"),
+  return { c: find2.slice(0, idx - 1).replace("  ", "\n"), s: find2.slice(idx, endFH).replace("  ", "\n"),
     i: find2.slice(endFH + 1) }
 }
 
@@ -177,16 +177,26 @@ const mergeCSS = (css2Str: string, action: MergeAction | "userDefinedCss"): Sett
   css = idx > 0 ? css.slice(0, idx) : css
   const css2 = parseSections_(css2Str)
   let newInnerCSS = css2.ui ? css + "\n" + css2.ui : css
-  let findh = css2["find:host"], find2 = css2.find, omni2 = css2.omni, F = "findCSS", O = "omniCSS"
+  let findh = css2["find:host"], findSel = css2["find:selection"]
+  let find2 = css2.find, omni2 = css2.omni, F = "findCSS", O = "omniCSS"
   css = storage_.getItem(F)!
   idx = css.indexOf("\n")
   css = css.slice(0, idx + 1 + +css.slice(0, idx))
-  let endFH = css.indexOf("\n", css.indexOf("\n", idx + 1) + 1), offsetFH = css.lastIndexOf("  ", endFH)
+  let endFSel = css.indexOf("\n", idx + 1), offsetFSel = css.slice(0, endFSel).indexOf("  ")
+  findSel = findSel ? "  " + findSel.replace(<RegExpG> /\n/g, " ") : ""
+  if (offsetFSel > 0 ? css.slice(offsetFSel, endFSel) !== findSel : findSel) {
+    offsetFSel = offsetFSel > 0 ? offsetFSel : endFSel
+    css = css.slice(idx + 1, offsetFSel) + findSel + css.slice(endFSel)
+    endFSel = offsetFSel - (idx + 1) + findSel.length
+    idx = -1
+  }
+  let endFH = css.indexOf("\n", endFSel + 1), offsetFH = css.slice(0, endFH).indexOf("  ", endFSel)
   findh = findh ? "  " + findh.replace(<RegExpG> /\n/g, " ") : ""
   if (offsetFH > 0 ? css.slice(offsetFH, endFH) !== findh : findh) {
     css = css.slice(idx + 1, offsetFH > 0 ? offsetFH : endFH) + findh + css.slice(endFH)
-    css = css.length + "\n" + css
+    idx = -1
   }
+  if (idx < 0) { css = css.length + "\n" + css }
   find2 = find2 ? css + "\n" + find2 : css
   css = (storage_.getItem(O) || "").split("\n", 1)[0]
   omni2 = omni2 ? css + "\n" + omni2 : css
