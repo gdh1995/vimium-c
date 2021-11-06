@@ -1,12 +1,11 @@
 /// <reference path="../background/index.d.ts" />
-/// <reference path="../background/typed_commands.d.ts" />
+/// <reference path="../lib/base.d.ts" />
+import { kPgReq, PgReq, Req2 } from "../background/page_messages"
 
-export interface BgWindow extends Window {
-  Backend_: typeof Backend_ & {
-    Settings_: typeof import("../background/settings")
-  }
+export declare const enum kReadyInfo {
+  show = 1, popup = 1, options = 1, i18n = 2,
+  NONE = 0, FINISHED = 3, LOCK = 4,
 }
-export declare const enum kReadyInfo { platformInfo = 1, popup = 1, i18n = 2, NONE = 0, FINISHED = 3 }
 
 declare var define: any, VApi: VApiTy | undefined // eslint-disable-line no-var
 
@@ -50,17 +49,17 @@ export const CurFFVer_: FirefoxBrowserVer = !OnFirefox ? FirefoxBrowserVer.assum
     : 0 | <number>(navigator.userAgent!.match(<RegExpOne> /\bFirefox\/(\d+)/) || [0, FirefoxBrowserVer.assumedVer])[1]
 
 export const browser_: typeof chrome = OnChrome ? chrome : browser as typeof chrome
-if (!OnChrome && window.chrome) {
-  window.chrome = null as never
-}
+if (!OnChrome && window.chrome) { window.chrome = null as never }
 
-export let BG_ = browser_.extension && browser_.extension.getBackgroundPage() as Window as BgWindow
-if (!(BG_ && BG_.Backend_)) {
-  BG_ = null as never;
-}
-
-export let asyncBackend_ = BG_ && BG_.Backend_
-export let bgSettings_ = asyncBackend_ && asyncBackend_.Settings_
+export const isVApiReady_ = new Promise<void>((resolve): void => {
+  addEventListener(GlobalConsts.kLoadEvent, function onContentLoaded(): void {
+    if (OnChrome && Build.MinCVer < BrowserVer.Min$addEventListener$support$once
+        && CurCVer_ < BrowserVer.Min$addEventListener$support$once) {
+      removeEventListener(GlobalConsts.kLoadEvent, onContentLoaded, { capture: true })
+    }
+    nextTick_(resolve)
+  }, { once: true, capture: true })
+})
 let readyInfo_ = kReadyInfo.NONE
 const __oldI18nMap = {} as Dict<string>
 const i18nDict_: Pick<Map<string, string>, "get" | "set"> = !OnChrome
@@ -70,17 +69,110 @@ const i18nDict_: Pick<Map<string, string>, "get" | "set"> = !OnChrome
   set (k: string, v: any): any { __oldI18nMap[k] = v }
 }
 
+let _todoMsgs = null as Req2.pgReq<keyof PgReq>[] | null
+const _todoCallbacks = {} as { [key: number]: (response: PgReq[keyof PgReq][1]) => void }
+let _queryId = 1
+let _tempPort = null as null | ContentNS.Port
+
+//#region async messages
+
+const onRespond = (res: FgRes[kFgReq.pages]): void => {
+  if (!Build.NDEBUG && res === false) {
+    alert("Can not send info to the background: not trusted")
+    return
+  }
+  for (const { i: id, a: answer } of res as Req2.pgRes[]) {
+    const callback = _todoCallbacks[id]
+    delete _todoCallbacks[id]
+    callback(answer)
+  }
+}
+
+const onDisconnect = (): void => {
+  _tempPort = null
+  if (!Build.NDEBUG && _todoMsgs) {
+    console.log("Error: unexpected disconnection when some messages are waiting")
+  }
+  _todoMsgs = []
+  for (let id in _todoCallbacks) {
+    const callback = _todoCallbacks[id]
+    delete _todoCallbacks[id]
+    try {
+      callback(null)
+    } catch { /* empty */ }
+  }
+  _todoMsgs = null
+}
+
+const postAll = (knownSize?: number): void => {
+  if (!_todoMsgs) { return }
+  const api = VApi, len = _todoMsgs.length
+  if (len > (knownSize || 1)) { queueTask_(postAll.bind(null, len)); return }
+  api && _tempPort && _disconnect()
+  if (!Build.NDEBUG && len) {
+    console.log("[debug] in pages/, post_: %c%s", "color: #15c;", len > 5 ? `[${len}]`
+        : _todoMsgs.map(i => i.n).join(","))
+  }
+  if (knownSize === 0) { /* empty */ }
+  else if (api) {
+    api.r[0]<kFgReq.pages>(kFgReq.pages, { c: _todoMsgs }, onRespond)
+  } else {
+    if (!_tempPort) {
+      _tempPort = browser_.runtime.connect({ name: "" + PortType.selfPages }) as ContentNS.Port
+      _tempPort.onMessage.addListener(onRespond)
+      _tempPort.onDisconnect.addListener(onDisconnect)
+    }
+    _tempPort.postMessage({ H: kFgReq.pages, c: _todoMsgs })
+  }
+  _todoMsgs = null
+}
+
+type ExtractKeyObj<T> = T extends { key: infer Keys } ? Keys : never
+type ExtractNullArg<T> = T extends keyof PgReq ? PgReq[T][0] extends null | void ? T : never : never
+type ExtractNonNullArg<T> = T extends keyof PgReq ? PgReq[T][0] extends null | void ? never : T : never
+type SyncingItems = SettingsNS.FrontendSettingsSyncingItems
+
+export const post_ = (<T extends keyof PgReq> (action: T, messageBody: PgReq[T][0]): Promise<PgReq[T][1]> => {
+  return new Promise((resolve): void => {
+    if (!_todoMsgs) { queueTask_(postAll); _todoMsgs = [] }
+    const id = _queryId++
+    _todoMsgs.push({ n: action, i: id, q: messageBody })
+    _todoCallbacks[id] = resolve
+  })
+}) as {
+  <T extends keyof PgReq, K extends ExtractKeyObj<PgReq[T][0]> & keyof SyncingItems> (
+    action: T, messageBody: { key: K, val: SyncingItems[K][1] | SettingsNS.BackendSettings["autoDarkMode"] }
+  ): Promise<SyncingItems[K][1]>
+  <T extends keyof PgReq, K extends ExtractKeyObj<PgReq[T][0]> & keyof SettingsNS.SettingsWithDefaults> (
+    action: T, messageBody: PgReq[T][0] extends { val: any }
+      ? { key: K, val: SettingsNS.SettingsWithDefaults[K] | null } : { key: K }
+  ): Promise<SettingsNS.SettingsWithDefaults[K] | (void extends PgReq[T][1] ? void : never)>
+  <T extends ExtractNullArg<keyof PgReq>> (action: T): Promise<PgReq[T][1]>
+  <T extends ExtractNonNullArg<keyof PgReq>> (action: T, messageBody: PgReq[T][0]): Promise<PgReq[T][1]>
+}
+
+export const disconnect_ = (): void => {
+  _todoMsgs = _todoMsgs || []
+  queueTask_(postAll)
+}
+
+const _disconnect = (): void => {
+  const port = _tempPort
+  _tempPort = null
+  if (port) {
+    port.onDisconnect.removeListener(onDisconnect)
+    port.onMessage.removeListener(onRespond)
+    port.disconnect()
+  }
+}
+
+//#endregion
 
 //#region utils
 
-export const reloadBG_ = (): void => {
-  BG_ = browser_.extension.getBackgroundPage() as Window as BgWindow
-  if (BG_) { // a user may call `close()` in the console panel, then `BG_` is null
-    asyncBackend_ = BG_.Backend_
-    bgSettings_ = asyncBackend_ && asyncBackend_.Settings_
-    if (!bgSettings_) { BG_ = null as never }
-  }
-}
+const queueTask_ = (OnChrome ? Build.MinCVer >= BrowserVer.Min$queueMicrotask
+  : OnFirefox ? Build.MinFFVer >= FirefoxBrowserVer.Min$queueMicrotask : !OnEdge) ? queueMicrotask
+  : (task: () => void) => { void Promise.resolve().then(task) }
 
 export const $ = <T extends HTMLElement>(selector: string): T => document.querySelector(selector) as T
 
@@ -92,18 +184,19 @@ export const $$ = ((selector: string, root?: HTMLElement | ShadowRoot | null): A
 }) as <T extends HTMLElement>(selector: string, root?: HTMLElement | ShadowRoot | null
     ) => T[] & { forEach: never }
 
-export const toggleDark = (dark: boolean): void => {
-  (document.head!.querySelector("meta[name=color-scheme]") as HTMLMetaElement).content = dark ? "light dark" : "light"
-  document.documentElement!.classList.toggle("no-dark", !dark)
+export const toggleDark = (dark?: boolean): void => {
+  const el = document.head!.querySelector("meta[name=color-scheme]") as HTMLMetaElement
+  const content = dark ? "light dark" : "light"
+  if (el.content !== content) {
+    el.content = content
+    document.documentElement!.classList.toggle("no-dark", !dark)
+  }
 }
 export const toggleReduceMotion = (reduced: boolean): void => {
   document.documentElement!.classList.toggle("less-motion", reduced)
 }
 
-asyncBackend_.contentPayload_.d || toggleDark(false)
-asyncBackend_.contentPayload_.m && toggleReduceMotion(true)
-
-export let enableNextTick_: (type: kReadyInfo) => void
+export let enableNextTick_: (type: kReadyInfo, toRemove?: kReadyInfo) => void
 
 export const nextTick_ = ((): { <T>(task: (self: T) => void, self: T): void; (task: (this: void) => void): void } => {
   const ticked = function (): void {
@@ -111,32 +204,20 @@ export const nextTick_ = ((): { <T>(task: (self: T) => void, self: T): void; (ta
     for (let i = 0; i < oldSize; i++) { tasks[i]() }
     if (tasks.length > oldSize) {
       tasks.splice(0, oldSize)
-      if (OnChrome ? Build.MinCVer >= BrowserVer.Min$queueMicrotask
-          : OnFirefox ? Build.MinFFVer >= FirefoxBrowserVer.Min$queueMicrotask : !OnEdge) {
-        queueMicrotask(ticked)
-      } else {
-        void Promise.resolve().then(ticked)
-      }
+      queueTask_(ticked)
     } else {
       tasks.length = 0
     }
   }, tasks: (() => void)[] = []
-  enableNextTick_ = (type): void => {
-    readyInfo_ |= type
+  enableNextTick_ = (type, toRemove): void => {
+    readyInfo_ = (readyInfo_ | type) & ~(toRemove || 0)
     if (readyInfo_ === kReadyInfo.FINISHED) {
-      enableNextTick_ = null as never
-      nextTick_((): void => { document.documentElement!.classList.remove("loading") })
-      ticked()
+      queueTask_(ticked)
     }
   }
   return <T> (task: ((firstArg: T) => void) | ((this: void) => void), context?: T): void => {
     if (tasks.length <= 0 && readyInfo_ === kReadyInfo.FINISHED) {
-      if (OnChrome ? Build.MinCVer >= BrowserVer.Min$queueMicrotask
-          : OnFirefox ? Build.MinFFVer >= FirefoxBrowserVer.Min$queueMicrotask : !OnEdge) {
-        queueMicrotask(ticked)
-      } else {
-        void Promise.resolve().then(ticked)
-      }
+      queueTask_(ticked)
     }
     if (context as unknown as number === 9) {
       tasks.unshift(task as (this: void) => void) // here ignores the case of re-entry
@@ -159,6 +240,7 @@ export const import2 = (url: string): Promise<unknown> => {
   return define([url]) // eslint-disable-line @typescript-eslint/no-unsafe-call
 }
 
+if (!Build.NDEBUG) { (window as any).updateUI = (): void => { void post_(kPgReq.reloadCSS) } }
 //#endregion
 
 //#region i18n
@@ -166,7 +248,7 @@ export const import2 = (url: string): Promise<unknown> => {
 export type TransTy<Keys extends string> = (key: Keys, arg1?: (string | number)[]) => string
 
 export const pageTrans_ = (key: string, arg1?: (string | number)[]): string | undefined => {
-  if (!(Build.NDEBUG || readyInfo_ === kReadyInfo.FINISHED)) {
+  if (!(Build.NDEBUG || (readyInfo_ & kReadyInfo.FINISHED) === kReadyInfo.FINISHED)) {
     console.trace("Error: want to translate %s before finished (ready = %d)", key, readyInfo_)
   }
   let val = i18nDict_.get(key)
@@ -212,9 +294,95 @@ void Promise.all(pageLangs_.split(",").map((lang): Promise<Dict<string> | null> 
 
 //#endregion
 
+//#region async/await helper
+
+Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES2017AsyncFunctions &&
+((): void => {
+  interface YieldedValue { 42: true }
+  /** no .trys, so unexpected try/catch whould make it throw as soon as possible */
+  interface YieldedPos { label_: number; sent_ (): YieldedValue | undefined }
+  type YieldableFunc = (pos: YieldedPos) => [/** step */ number, /** returned */ YieldedValue?]
+
+  const __myAwaiter = Build.MinCVer < BrowserVer.MinEnsuredGeneratorFunction
+  ? (branchedFunc: () => YieldableFunc, self: unknown): Promise<any> => new Promise<any> ((resolve): void => {
+    const resolveVoid = resolve.bind(0, void 0)
+    const generator = branchedFunc.call(self)
+    let value_: YieldedValue | undefined, async_pos_: YieldedPos = { label_: 0, sent_: () => value_ }
+    resume_()
+    function resume_(newValue?: YieldedValue): void {
+      value_ = newValue
+      let nextInst = Instruction.next
+      while (~nextInst & Instruction.return) {
+        let tmp = generator(async_pos_)
+        nextInst = tmp[0], value_ = tmp.length > 1 ? tmp[1] : void 0
+        if (Build.NDEBUG ? nextInst > Instruction.yield - 1 : nextInst === Instruction.yield) {
+          async_pos_.label_++; nextInst = Instruction.yield | Instruction.return
+        } else if (Build.NDEBUG ? nextInst > Instruction.break - 1 : nextInst === Instruction.break) {
+          async_pos_.label_ = value_ as unknown as number
+        } else if (!(Build.NDEBUG || nextInst === Instruction.next || nextInst === Instruction.return)) {
+          throw Error("Assert error: unsupported async status: " + nextInst)
+        }
+      }
+      Promise.resolve(value_).then(nextInst < Instruction.return + 1 ? resolve : resume_
+          , Build.NDEBUG ? resolveVoid : logDebugAndResolve)
+    }
+    function logDebugAndResolve(err: any): void {
+      console.log("Vimium C: an async function fails:", err)
+      resolveVoid()
+    }
+  })
+  : <TNext, TReturn> (generatorFunction: () => Generator<TNext | TReturn | Promise<TNext | TReturn>, TReturn, TNext>
+      , self: unknown): Promise<TReturn | void> => new Promise<TReturn | void> ((resolve): void => {
+    const resolveVoid = Build.MinCVer < BrowserVer.MinTestedES6Environment ? resolve.bind(0, void 0) : () => resolve()
+    const generator = generatorFunction.call(self)
+    const resume_ = (lastVal?: TNext): void => {
+      const yielded = generator.next(lastVal), value = yielded.value
+      if (Build.MinCVer < BrowserVer.Min$resolve$Promise$MeansThen) {
+        Promise.resolve(value).then((yielded.done ? resolve : resume_) as (value: TReturn | TNext) => void
+            , Build.NDEBUG ? resolveVoid : logDebugAndResolve)
+      } else if (yielded.done) {
+        resolve(value as TReturn | Promise<TReturn> as /** just to satisfy type checks */ TReturn)
+      } else {
+        Promise.resolve(value as TNext | Promise<TNext>).then(resume_, Build.NDEBUG ? resolveVoid : logDebugAndResolve)
+      }
+    }
+    resume_()
+    function logDebugAndResolve(err: any): void {
+      if (!Build.NDEBUG) { console.log("Vimium C: an async function fails:", err) }
+      resolveVoid()
+    }
+  })
+
+  if (Build.MinCVer < BrowserVer.MinEnsuredGeneratorFunction) {
+    (globalThis as any).__generator = (self: void | undefined, branchedFunc: YieldableFunc): YieldableFunc =>
+        branchedFunc.bind(self)
+  }
+  (globalThis as any).__awaiter = (_self: void | 0 | undefined, _args: unknown, _p: PromiseConstructor | 0 | undefined
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+      , func_to_await: Function): Promise<YieldedValue> => __myAwaiter(func_to_await as any, _self)
+
+})()
+
+//#endregion
+
+if (OnChrome ? (Build.MinCVer >= BrowserVer.MinMediaQuery$PrefersColorScheme
+        || CurCVer_ > BrowserVer.MinMediaQuery$PrefersColorScheme - 1)
+    : OnFirefox ? (Build.MinFFVer >= FirefoxBrowserVer.MinMediaQuery$PrefersColorScheme
+        || CurFFVer_ > FirefoxBrowserVer.MinMediaQuery$PrefersColorScheme)
+    : !OnEdge) {
+  type Keys = keyof SettingsNS.PersistentSettings
+  const storage = browser_.storage.local as { get <K extends Keys> (k: K, cb: (r: { [k in K]: any }) => void): void }
+  storage.get("autoDarkMode", (res): void => {
+    res.autoDarkMode === false && toggleDark(false); return browser_.runtime.lastError
+  })
+}
 if (browserLang && curPath !== "popup") {
   const s = bTrans_("v" + curPath)
   s && (document.title = "Vimium C " + s)
 }
 
 if (typeof VApi === "undefined") { globalThis.VApi = undefined }
+
+type ToTest = StringWithOneEnd<DeepKeys<PgReq>, "_">;
+// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+((_value: never): void => { /* empty */ })("" as string as ToTest)

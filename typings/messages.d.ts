@@ -89,7 +89,7 @@ declare const enum kFgReq {
   /** can be used only with `FgCmdAcrossFrames` and when a fg command is just being called */
   gotoMainFrame,
   setOmniStyle, findFromVisual, framesGoBack, i18n, learnCSS, visualMode,
-  respondForRunKey, downloadLink, wait, keyFromOmni,
+  respondForRunKey, downloadLink, wait, keyFromOmni, pages,
   END,
   msg = 90, inject = 99,
   command = "command", id = "id", shortcut = "shortcut",
@@ -484,6 +484,7 @@ interface FgRes {
   [kFgReq.execInChild]: boolean;
   [kFgReq.i18n]: /** rawMessages */ string[]
   [kFgReq.wait]: 0
+  [kFgReq.pages]: unknown[] | false
 }
 interface FgReqWithRes {
   [kFgReq.findQuery]: /** index */ number
@@ -499,6 +500,7 @@ interface FgReqWithRes {
   } & Omit<BaseExecute<FgOptions, FgCmdAcrossFrames>, "H">;
   [kFgReq.i18n]: 0
   [kFgReq.wait]: number
+  [kFgReq.pages]: FgReq[kFgReq.pages]
 }
 
 interface FgReq {
@@ -667,6 +669,7 @@ interface FgReq {
   }
   [kFgReq.keyFromOmni]: { /* keySequence */ k: string; /** lastKey */ l: kKeyCode;
   } & Pick<FgReq[kFgReq.respondForRunKey], "e">
+  [kFgReq.pages]: { /** commands */ c: unknown[] }
 }
 
 interface CurrentEnvCache {} // eslint-disable-line @typescript-eslint/no-empty-interface

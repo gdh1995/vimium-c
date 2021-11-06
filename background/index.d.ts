@@ -136,9 +136,9 @@ declare namespace Frames {
   }
 
   type BrowserPort = chrome.runtime.Port
-  interface Port extends BrowserPort {
+  interface BasePort extends BrowserPort {
     readonly sender: never;
-    s: Sender;
+    s: unknown
     postMessage<K extends 1, O extends keyof CmdOptions>(request: Req.FgCmd<O>): K;
     postMessage<K extends keyof FgRes>(response: Req.res<K>): 1;
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -147,6 +147,9 @@ declare namespace Frames {
     onDisconnect: chrome.events.Event<(port: Frames.Port, exArg: FakeArg) => void>;
     onMessage: chrome.events.Event<(message: any, port: Frames.Port, exArg: FakeArg) => void>;
   }
+  interface Port extends BasePort { s: Sender }
+  interface FirstPagePort extends BasePort { readonly s: false }
+  type PagePort = Port | Frames.FirstPagePort
 
   interface Frames {
     cur_: Port
@@ -398,57 +401,9 @@ declare namespace BackendHandlersNS {
       K extends keyof FgReq ? ((this: void, request: FgReq[K], port: Port) => void) :
       never;
   }
-
-  interface BackendHandlers {
-    readonly Settings_: object
-    CommandsData_ (): {
-      errors_: null | string[][]
-      keyFSM_: KeyFSM | null
-      mappedKeyRegistry_: SafeDict<string> | null
-      keyToCommandMap_: Map<string, CommandsNS.Item>
-    }
-    shownHash_ (): string | null
-    parseSearchEngines_ (str: string, map: Map<string, Search.Engine>): Search.Rule[]
-    newTabUrls_: ReadonlyMap<string, Urls.NewTabType>
-    convertToUrl_: Urls.Converter
-    lastUrlType_ (): Urls.Type
-    evalVimiumUrl_: Urls.Executor
-    reformatURL_ (url: string): string
-    readonly settingsCache_: Readonly<SettingsNS.FullCache>
-    readonly contentPayload_: SettingsNS.FrontendSettingCache
-    readonly omniPayload_: SettingsNS.VomnibarPayload
-    extAllowList_: ReadonlyMap<string, boolean | string>
-    substitute_ (text: string, context: SedContext, sed?: MixedSedOpts | null): string
-    isExpectingHidden_: NonNullable<CompletersNS.GlobalCompletersConstructor["isExpectingHidden_"]>
-    focusOrLaunch_ (request: FgReq[kFgReq.focusOrLaunch], _port?: undefined): void
-    restoreSettings_ (): Promise<void> | null
-    parseMatcher_ (pattern: string | null): BaseUrlMatcher[]
-    findUrlInText_ (this: void, url: string, testUrl: OpenPageUrlOptions["testUrl"]): string
-    /**
-     * @returns "" - in a child frame, so need to send request to content
-     * @returns string - valid URL
-     * @returns Promise<string> - valid URL or empty string for a top frame in "port's or the current" tab
-     */
-    getPortUrl_ (port?: Frames.Port | null, ignoreHash?: boolean, req?: Req.baseFg<kFgReq>): string | Promise<string>;
-    runContentScriptsOn_ (tabId: number): void
-    checkHarmfulUrl_ (url: string, port?: Port | null): boolean | void
-    indexPorts_: {
-      (this: void, tabId: number, frameId: number): Port | null;
-      (this: void, tabId: GlobalConsts.VomnibarFakeTabId): readonly Frames.Port[];
-      (this: void, tabId: number): Frames.Frames | null;
-      (this: void): Frames.FramesMap;
-    };
-    curTab_ (): number,
-    reloadCSS_: <T extends -1 | 2> (action: T, customCSS?: string) => T extends -1 ? SettingsNS.MergedCustomCSS : void
-    updateMediaQueries_ (): void
-  }
   const enum kInitStat {
     none = 0, platformInfo = 1, main = 2, START = none, FINISHED = platformInfo | main
   }
-}
-
-interface Window {
-  readonly Backend_: BackendHandlersNS.BackendHandlers;
 }
 
 declare const enum Consts {
@@ -457,7 +412,6 @@ declare const enum Consts {
 }
 
 /* eslint-disable no-var */
-declare var Backend_: BackendHandlersNS.BackendHandlers
 declare var As_: <T> (i: T) => T
 /* eslint-enable no-var */
 
@@ -471,3 +425,5 @@ interface SetTimeout {
 interface IterableMap<K extends string | number, V> extends Map<K, V> {
   keys (): IterableIterator<K> & K[]
 }
+
+type ExtApiResult<T> = [T, undefined] | [undefined, { message?: any }]

@@ -1,13 +1,14 @@
-/// <reference path="../lib/base.d.ts" />
-/// <reference path="../background/exclusions.ts" />
-
-import { CurCVer_, BG_, bgSettings_, OnChrome, $, $$, nextTick_, pageLangs_, TransTy, pageTrans_ } from "./async_bg"
+import {
+  CurCVer_, OnChrome, $, $$, nextTick_, pageLangs_, TransTy, pageTrans_, post_, enableNextTick_, kReadyInfo
+} from "./async_bg"
+import { kPgReq } from "../background/page_messages"
+import type * as i18n_options from "../i18n/zh/options.json"
 
 export type AllowedOptions = SettingsNS.PersistentSettings
 export type PossibleOptionNames<T> = PossibleKeys<AllowedOptions, T>
 interface BaseChecker<V extends AllowedOptions[keyof AllowedOptions]> {
   init_? (): any;
-  check_ (value: V): V;
+  check_ (value: V): V | Promise<V>
 }
 export type Checker<T extends keyof AllowedOptions> = BaseChecker<AllowedOptions[T]>
 import type {
@@ -33,6 +34,7 @@ export interface KnownOptionsDataset extends KnownDataset {
   permission: "webNavigation" | "C76" | string // required permissions
   href: `vimium://${string}`
 }
+declare const enum kExclusionChange { NONE = 0, pattern = 1, passKeys = 2, ALL = 3 }
 
 export const showI18n = (): void => {
     if (pageLangs_ === "en") { return }
@@ -97,6 +99,91 @@ export const debounce_ = function<T> (func: (this: T) => void
   };
 } as <T> (func: (this: T) => void, wait: number, bound_context: T, also_immediate: BOOL) => (this: void) => void
 
+//#region async settings
+
+import SettingsWithDefaults = SettingsNS.SettingsWithDefaults
+import PersistentSettings = SettingsNS.PersistentSettings
+type UpdateLock = [id: typeof _updateLock, count: number]
+const _updateLock = "__locking"
+let settingsCache_ = null as {
+  [key in keyof SettingsWithDefaults]?: SettingsWithDefaults[key] | UpdateLock
+} | Promise<void> | null
+
+const As_ = <T> (i: T): T => i
+
+export let selfTabId_: number = GlobalConsts.TabIdNone
+
+export const setupSettingsCache_ = (cache: Partial<SettingsNS.PersistentSettings>): void => { settingsCache_ = cache }
+
+export const bgSettings_ = {
+  platform_: "" as "win" | "linux" | "mac" | "unknown",
+  os_: kOS.UNKNOWN,
+  defaults_: null as never as SettingsWithDefaults,
+  resetCache_ (): void { settingsCache_ = null },
+  preloadCache_ (this: void): Promise<void> {
+    if (settingsCache_) { return settingsCache_ instanceof Promise ? settingsCache_ : Promise.resolve()  }
+    bgSettings_.defaults_ || post_(kPgReq.settingsDefaults).then((res): void => {
+      bgSettings_.defaults_ = res[0]
+      bgSettings_.os_ = res[1]
+      bgSettings_.platform_ = res[2] as typeof bgSettings_.platform_
+      selfTabId_ = res[3]
+      enableNextTick_(kReadyInfo.options)
+    })
+    return settingsCache_ = post_(kPgReq.settingsCache).then((res): void => { settingsCache_ = res })
+  },
+  get_ <T extends keyof SettingsWithDefaults> (key: T): SettingsWithDefaults[T] | Promise<SettingsWithDefaults[T]> {
+    if (settingsCache_ == null) { void this.preloadCache_() }
+    if (settingsCache_ instanceof Promise) {
+      return settingsCache_.then(() => this.get_(key))
+    }
+    const cached = settingsCache_![key]
+    if (!Build.NDEBUG && cached && cached instanceof Array && cached[0] === _updateLock) {
+      throw new Error("unexpected bgSettings_.get_() when set_() is still waiting, with key = " + key)
+    }
+    return cached !== void 0 ? cached as SettingsWithDefaults[T] : this.defaults_[key]
+  },
+  set_ <T extends keyof PersistentSettings> (key: T, val: PersistentSettings[T] | null): Promise<void> {
+    if (Build.NDEBUG) { /* empty */ }
+    else if (settingsCache_ == null || settingsCache_ instanceof Promise) {
+      throw new Error("invalid settingsCache_ when bgSettings_.set_() with key = " + key)
+    } else {
+      let lock = settingsCache_[key]
+      if (lock instanceof Array && lock[0] === _updateLock) {
+        lock[1]++
+        console.trace("Warning: %o times of bgSettings_.set_() with key =", lock[1], key)
+      } else {
+        settingsCache_[key] = [_updateLock, 1]
+      }
+    }
+    const val0 = bgSettings_.defaults_[key]
+    let val2 = val
+    if (val0 !== void 0 && (typeof val0 === "object" ? JSON.stringify(val) === JSON.stringify(val0) : val === val0)) {
+      val2 = null
+    }
+    return post_(kPgReq.setSetting, { key, val: val2 }).then((val3): void => {
+      if (Build.NDEBUG) { /* empty */ }
+      else if (settingsCache_ == null || settingsCache_ instanceof Promise) {
+        throw new Error("settingsCache_ became invalid when bgSettings_.set_() with key = " + key)
+      } else {
+        const lock = settingsCache_[key] as UpdateLock
+        if (--lock[1] > 0) { return }
+      }
+      (settingsCache_ as Dict<any>)[key] = val3 !== null ? val3 : val
+    })
+  },
+  valuesToLoad_: <SettingsNS.AutoSyncedNameMap> As_<SettingsNS.AutoSyncedNameMap & SafeObject>({
+    __proto__: null as never,
+    filterLinkHints: "f",
+    ignoreCapsLock: "i",
+    ignoreKeyboardLayout: "l",
+    mapModifier: "a",
+    mouseReachable: "e",
+    keyboard: "k", linkHintCharacters: "c", linkHintNumbers: "n",
+    regexFindMode: "r", smoothScroll: "s", scrollStepSize: "t", waitForEnter: "w"
+  })
+}
+
+//#endregion
 
 export abstract class Option_<T extends keyof AllowedOptions> {
   readonly element_: HTMLElement;
@@ -105,7 +192,7 @@ export abstract class Option_<T extends keyof AllowedOptions> {
   saved_: boolean;
   locked_?: boolean;
   readonly onUpdated_: (this: void) => void;
-  onSave_ (): void { /* empty */ }
+  onSave_ (): void | Promise<void> { /* empty */ }
   checker_?: Checker<T>;
 
   static all_: { [N in keyof AllowedOptions]: OptionType<N> } & SafeObject
@@ -124,38 +211,40 @@ export abstract class Option_<T extends keyof AllowedOptions> {
     this.init_(element)
   }
 
-  fetch_ (): void {
+  fetch_ (): void | Promise<void> {
     this.saved_ = true;
-    this.previous_ = this.innerFetch_()
+    const value = this.innerFetch_()
+    if (value instanceof Promise) {
+      return value.then(Option_.prototype.fetch_.bind(this))
+    }
+    this.previous_ = value
     if (!Option_.suppressPopulate_) {
       nextTick_((): void => { this.populateElement_(this.previous_) })
     }
   }
-  innerFetch_ (): AllowedOptions[T] {
+  innerFetch_ (): AllowedOptions[T] | Promise<AllowedOptions[T]> {
     return bgSettings_.get_(this.field_)
   }
-  normalize_ (value: AllowedOptions[T], isJSON: boolean, str?: string): AllowedOptions[T] {
+  normalize_ (value: AllowedOptions[T]): AllowedOptions[T] | Promise<AllowedOptions[T]> {
     const checker = this.checker_;
-    if (isJSON) {
-      str = checker || !str ? JSON.stringify(checker ? checker.check_(value) : value) : str;
-      return BG_.JSON.parse(str);
-    }
-    return checker ? checker.check_(value) : value;
+    return checker ? checker.check_(value) : value
   }
   allowToSave_ (): boolean { return true; }
-  save_ (): void {
+  async save_ (): Promise<void> {
     let value = this.readValueFromElement_(), isJSON = typeof value === "object"
       , previous = isJSON ? JSON.stringify(this.previous_) : this.previous_
       , pod = isJSON ? JSON.stringify(value) : value as string
-    if (pod === previous) { return; }
+    if (pod === previous) { return }
     previous = pod;
-    value = this.normalize_(value, isJSON, isJSON ? pod : "");
-    this.previous_ = value = this.executeSave_(value, isJSON, pod)
+    const _val = this.normalize_(value)
+    value = _val instanceof Promise ? await _val : _val
+    value = await this.executeSave_(value)
+    this.previous_ = value
     this.saved_ = true
     if (previous !== (isJSON ? JSON.stringify(value) : value) || this.doesPopulateOnSave_(value)) {
-      this.populateElement_(value, true)
+      nextTick_((): void => { this.populateElement_(this.previous_, true) })
     }
-    this.onSave_()
+    return this.onSave_()
   }
   _isDirty (): boolean {
     const latest = this.innerFetch_() as AllowedOptions[T]
@@ -167,14 +256,8 @@ export abstract class Option_<T extends keyof AllowedOptions> {
     }
     return diff
   }
-  executeSave_ (value: AllowedOptions[T], isJSON: boolean, pod: string): AllowedOptions[T] {
-    if (isJSON) {
-      pod = JSON.stringify(value);
-      if (pod === JSON.stringify(bgSettings_.defaults_[this.field_])) {
-        value = bgSettings_.defaults_[this.field_];
-      }
-    }
-    bgSettings_.set_<keyof AllowedOptions>(this.field_, value);
+  async executeSave_ (value: AllowedOptions[T] | null): Promise<AllowedOptions[T]> {
+    await bgSettings_.set_<keyof AllowedOptions>(this.field_, value)
     if (this.field_ in bgSettings_.valuesToLoad_) {
       Option_.syncToFrontend_.push(this.field_ as keyof typeof bgSettings_.valuesToLoad_);
     }
@@ -191,7 +274,7 @@ export abstract class Option_<T extends keyof AllowedOptions> {
   static areJSONEqual_ (this: void, a: object, b: object): boolean {
     return JSON.stringify(a) === JSON.stringify(b);
   }
-  static saveOptions_: (this: void) => boolean;
+  static saveOptions_: (this: void) => Promise<boolean>
   static needSaveOptions_: (this: void) => boolean;
   i18nName_: () => string
 }
@@ -200,18 +283,17 @@ export type OptionErrorType = "has-error" | "highlight"
 export interface ExclusionBaseVirtualNode {
   rule_: ExclusionsNS.StoredRule;
   matcher_: Promise<ValidUrlMatchers | false> | ValidUrlMatchers | false | null
-  changed_: boolean;
+  changed_: kExclusionChange
   visible_: boolean;
 }
 interface ExclusionInvisibleVirtualNode extends ExclusionBaseVirtualNode {
-  changed_: false;
+  changed_: kExclusionChange.NONE
   visible_: false;
   $pattern_: null;
   $keys_: null;
 }
 export interface ExclusionVisibleVirtualNode extends ExclusionBaseVirtualNode {
   rule_: Readonly<ExclusionsNS.StoredRule>
-  changed_: boolean;
   visible_: true;
   $pattern_: HTMLInputElement & ExclusionRealNode;
   $keys_: HTMLInputElement & ExclusionRealNode;
@@ -239,8 +321,10 @@ export class ExclusionRulesOption_ extends Option_<"exclusionRules"> {
   }
 onRowChange_ (_isInc: number): void { /* empty */ }
 static MarkChanged_ (this: void, event: Event): void {
-  const vnode = (event.target as HTMLInputElement & Partial<ExclusionRealNode>).vnode;
-  vnode && (vnode.changed_ = true);
+  const target = event.target as HTMLInputElement & Partial<ExclusionRealNode>
+  const vnode = target.vnode;
+  vnode && (vnode.changed_ |= target.classList.contains("pattern")
+      ? kExclusionChange.pattern : kExclusionChange.passKeys)
 }
 addRule_ (pattern: string, autoFocus?: false | undefined): void {
   this.appendRuleTo_(this.$list_, {
@@ -288,7 +372,7 @@ appendRuleTo_ (this: ExclusionRulesOption_
     // rebuild a rule, to ensure a consistent memory layout
     rule_: { pattern, passKeys },
     matcher_: null,
-    changed_: false,
+    changed_: kExclusionChange.NONE,
     visible_: false,
     $pattern_: null,
     $keys_: null
@@ -352,18 +436,22 @@ override readValueFromElement_ (part?: boolean): AllowedOptions["exclusionRules"
     if (part && !vnode.visible_) {
       continue;
     }
-    if (!vnode.changed_) {
+    const changed = vnode.changed_
+    if (!changed) {
       if (vnode.rule_.pattern) {
         rules.push(vnode.rule_);
       }
       continue;
     }
-    let pattern = vnode.$pattern_.value.trim();
-    let fixTail = false, passKeys = vnode.$keys_.value;
+    let pattern = changed & kExclusionChange.pattern ? vnode.$pattern_.value.trim() : vnode.rule_.pattern;
+    let fixTail = false, passKeys = changed & kExclusionChange.pattern ? vnode.$keys_.value : vnode.rule_.passKeys
     if (!pattern) {
+      vnode.$pattern_.title && (vnode.$pattern_.title = "")
+      vnode.$keys_.title && (vnode.$keys_.title = "")
       this.updateVNode_(vnode, "", passKeys);
       continue;
     }
+    if (changed & kExclusionChange.pattern) {
     let schemeLen = pattern.startsWith(":") ? 0 : pattern.indexOf("://");
     if (!schemeLen) { /* empty */ }
     else if (!(<RegExpOne> /^[\^*]|[^\\][$()*+?\[\]{|}]/).test(pattern)) {
@@ -396,7 +484,8 @@ override readValueFromElement_ (part?: boolean): AllowedOptions["exclusionRules"
     if (fixTail) {
       pattern += "/";
     }
-    if (passKeys) {
+    }
+    if (changed & kExclusionChange.passKeys && passKeys) {
       passKeys = ExclusionRulesOption_.formatKeys_(passKeys)
       const passArr = passKeys.match(<RegExpG> /<(?!<)(?:a-)?(?:c-)?(?:m-)?(?:s-)?(?:[a-z]\w+|[^\sA-Z])>|\S/g);
       if (passArr) {
@@ -408,8 +497,10 @@ override readValueFromElement_ (part?: boolean): AllowedOptions["exclusionRules"
       passKeys = passArr ? (passArr.join(" ") + " ") : "";
       passKeys = passKeys.replace(<RegExpG> /<escape>/gi, "<esc>");
     }
-    let tip = passKeys ? passKeys.length > 1 && passKeys[0] === "^" ? "only hook such keys" : "pass through such keys"
-              : "completely disabled";
+    const tip = !passKeys ? oTrans_("completelyDisabled") || "completely disabled"
+        : passKeys.length > 1 && passKeys[0] === "^"
+        ? oTrans_("onlyHook") || "only hook such keys" : oTrans_("passThrough") || "pass through such keys"
+    vnode.$pattern_.title !== pattern && (vnode.$pattern_.title = pattern)
     vnode.$keys_.title !== tip && (vnode.$keys_.title = tip);
     this.updateVNode_(vnode, pattern, passKeys);
     rules.push(vnode.rule_);
@@ -420,7 +511,7 @@ updateVNode_ (vnode: ExclusionVisibleVirtualNode, pattern: string, keys: string)
   const hasNewKeys = !vnode.rule_.passKeys && !!keys;
   vnode.rule_ = { pattern, passKeys: keys };
   vnode.matcher_ = null
-  vnode.changed_ = false;
+  vnode.changed_ = kExclusionChange.NONE;
   if (hasNewKeys) {
     ExclusionRulesOption_.OnNewKeys_(vnode);
   }
@@ -467,6 +558,6 @@ export let setupBorderWidth_ = (OnChrome && Build.MinCVer < BrowserVer.MinEnsure
   (document.head as HTMLHeadElement).appendChild(css);
 } : null;
 
-import type * as i18n_options from "../i18n/zh/options.json"
-
 export const oTrans_: TransTy<keyof typeof i18n_options> = (k, a): string => pageTrans_(k, a) || ""
+
+if (!Build.NDEBUG) { Object.assign(window as any, { Option_, oTrans_ }) }

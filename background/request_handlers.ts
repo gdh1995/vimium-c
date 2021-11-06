@@ -423,6 +423,15 @@ set_reqH_([
   /** kFgReq.keyFromOmni: */ (req: FgReq[kFgReq.keyFromOmni], port): void => {
     const tabId = port.s.tabId_, frames = framesForTab_.get(tabId >= 0 ? tabId : curTabId_)
     reqH_[kFgReq.key](req, frames ? frames.cur_ : null)
+  },
+  /** kFgReq.pages: */ (req: FgReqWithRes[kFgReq.pages], port: Frames.PagePort, msgId: number): false | Port => {
+    if (port.s !== false && !port.s.url_.startsWith(location.origin + "/")) { return false }
+    (import("/background/page_handlers.js" as any) as Promise<typeof import("./page_handlers")>)
+    .then((module) => Promise.all(req.c.map(i => module.onReq(i, port))))
+    .then((res): void => {
+      port.postMessage<2>(msgId ? { N: kBgReq.msg, m: msgId, r: res as unknown[] } : res as never)
+    })
+    return port as Port
   }
 ])
 

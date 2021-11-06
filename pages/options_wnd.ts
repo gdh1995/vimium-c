@@ -1,11 +1,14 @@
+import { kPgReq } from "../background/page_messages"
 import {
-  CurCVer_, CurFFVer_, BG_, bgSettings_, reloadBG_, OnFirefox, OnChrome, OnEdge, $, $$,
-  toggleDark, toggleReduceMotion, asyncBackend_, browser_, enableNextTick_, nextTick_, kReadyInfo, IsEdg_, import2
+  CurCVer_, CurFFVer_, OnFirefox, OnChrome, OnEdge, $, $$, post_, disconnect_, isVApiReady_,
+  toggleDark, browser_, enableNextTick_, nextTick_, kReadyInfo, IsEdg_, import2
 } from "./async_bg"
 import {
+  bgSettings_, selfTabId_,
   KnownOptionsDataset, showI18n, setupBorderWidth_, Option_, PossibleOptionNames, AllowedOptions, debounce_, oTrans_
 } from "./options_base"
-import { saveBtn, exportBtn, savedStatus, BooleanOption_ } from "./options_defs"
+import { saveBtn, exportBtn, savedStatus, BooleanOption_, onKeyMappingsError } from "./options_defs"
+import { manifest } from "./options_permissions"
 
 interface ElementWithHash extends HTMLElement {
   onclick (this: ElementWithHash, event: MouseEventToPrevent | null, hash?: "hash"): void;
@@ -13,63 +16,51 @@ interface ElementWithHash extends HTMLElement {
 export interface ElementWithDelay extends HTMLElement {
   onclick (this: ElementWithDelay, event?: MouseEventToPrevent | null): void;
 }
-
-export let Platform_: "win" | "linux" | "mac" | "unknown"
-export let delayed_task: [string, MouseEventToPrevent | null] | null | undefined
-export const clear_delayed_task = (): void => { delayed_task = null }
-
-
-if (!OnEdge || browser_.runtime.getPlatformInfo) {
-  browser_.runtime.getPlatformInfo((info): void => {
-    Platform_ = (OnChrome ? info.os : info.os || "").toLowerCase() as "mac" | "win" | "linux"
-    enableNextTick_(kReadyInfo.platformInfo)
-  })
-} else {
-  Platform_ = OnEdge ? "win" : "unknown"
-  enableNextTick_(kReadyInfo.platformInfo)
-}
-nextTick_(showI18n)
-setupBorderWidth_ && nextTick_(setupBorderWidth_);
-nextTick_((versionEl): void => {
-  const manifest = browser_.runtime.getManifest()
-  versionEl.textContent = manifest.version_name || manifest.version
-}, $(".version"))
-
-export interface AdvancedOptBtn extends HTMLButtonElement {
+interface AdvancedOptBtn extends HTMLButtonElement {
   onclick (_0: MouseEvent | null, init?: "hash" | true): void;
 }
 
-saveBtn.onclick = function (virtually): void {
+export let delayed_task: [string, MouseEventToPrevent | null] | null | undefined
+export const advancedOptBtn = $<AdvancedOptBtn>("#advancedOptionsButton")
+let advancedMode = false
+export const clear_delayed_task = (): void => { delayed_task = null }
+
+enableNextTick_(kReadyInfo.LOCK)
+nextTick_(showI18n)
+setupBorderWidth_ && nextTick_(setupBorderWidth_);
+nextTick_((versionEl): void => {
+  versionEl.textContent = manifest.version_name || manifest.version
+}, $(".version"))
+
+saveBtn.onclick = (virtually): void => {
     if (virtually !== false) {
-      if (!Option_.saveOptions_()) {
-        return;
-      }
+      void Option_.saveOptions_().then((changed): void => { changed && saveBtn.onclick(false) })
+      return
     }
     const toSync = Option_.syncToFrontend_;
     Option_.syncToFrontend_ = [];
     if (OnFirefox) {
-      this.blur();
+      saveBtn.blur()
     }
-    this.disabled = true;
-    (this.firstChild as Text).data = oTrans_("o115_3");
+    saveBtn.disabled = true;
+    (saveBtn.firstChild as Text).data = oTrans_("o115_3")
     exportBtn.disabled = false;
     savedStatus(false)
     window.onbeforeunload = null as never;
     if (toSync.length === 0) { return; }
     setTimeout((toSync1: typeof Option_.syncToFrontend_): void => {
-      bgSettings_.broadcast_({ N: kBgReq.settingsUpdate, d: toSync1.map(key => bgSettings_.valuesToLoad_[key]) })
+      void post_(kPgReq.notifyUpdate, toSync1.map(key => bgSettings_.valuesToLoad_[key]))
     }, 100, toSync)
 }
 
 let optionsInit1_ = function (): void {
-  let advancedMode = false, _element: HTMLElement = $<AdvancedOptBtn>("#advancedOptionsButton");
-  (_element as AdvancedOptBtn).onclick = function (this: AdvancedOptBtn, _0, init): void {
+  advancedOptBtn.onclick = function (ev, init): void {
     const el = $("#advancedOptions")
     let oldVal: boolean | null = null
-    const loadOld = (): boolean => oldVal = bgSettings_.get_("showAdvancedOptions")
-    if (init == null || (init === "hash" && loadOld() === false)) {
+    const loadOld = (): boolean => oldVal = <boolean> bgSettings_.get_("showAdvancedOptions")
+    if (ev != null || (init === "hash" && loadOld() === false)) {
       advancedMode = !advancedMode;
-      bgSettings_.set_("showAdvancedOptions", advancedMode);
+      void bgSettings_.set_("showAdvancedOptions", advancedMode)
     } else {
       advancedMode = oldVal != null ? oldVal : loadOld()
     }
@@ -80,11 +71,19 @@ let optionsInit1_ = function (): void {
     this.setAttribute("aria-checked", "" + advancedMode);
     }, 9);
   };
-  (_element as AdvancedOptBtn).onclick(null, true);
-
+  advancedOptBtn.onclick(null, true)
+  let _element: HTMLElement
   let _ref: { length: number; [index: number]: HTMLElement }
-  for (let key in Option_.all_) { Option_.all_[key as "vimSync"].fetch_() }
-  OnFirefox && asyncBackend_.contentPayload_.o === kOS.unixLike && nextTick_((): void => {
+  Option_.suppressPopulate_ = false
+  if (Build.NDEBUG) {
+    for (let key in Option_.all_) { void Option_.all_[key as "vimSync"].fetch_() }
+  } else {
+    const fetching = Object.values(Option_.all_).map(i => i.fetch_() && i.field_).filter(i => i)
+    if (fetching.length > 0) {
+      console.log("Warning: some options are not ready to fetch:", fetching.join(", "))
+    }
+  }
+  OnFirefox && bgSettings_.os_ === kOS.unixLike && nextTick_((): void => {
     for (let key in Option_.all_) {
       const obj = Option_.all_[key as "vimSync"]
       if (obj instanceof BooleanOption_) {
@@ -188,7 +187,6 @@ let optionsInit1_ = function (): void {
 
   _ref = $$("[data-permission]");
   _ref.length > 0 && ((els: typeof _ref): void => {
-    const manifest = browser_.runtime.getManifest()
     const validKeys2 = manifest.permissions || []
     for (let i = els.length; 0 <= --i; ) {
       let el: HTMLElement = els[i];
@@ -242,12 +240,15 @@ let optionsInit1_ = function (): void {
   nextTick_((): void => { setTimeout((): void => {
     const ref2 = $$("[data-href]")
     for (let _i = ref2.length; 0 <= --_i; ) {
-    const element = ref2[_i] as HTMLInputElement;
-    let str = asyncBackend_.convertToUrl_((element.dataset as KnownOptionsDataset).href
-        , null, Urls.WorkType.ConvertKnown)
-    element.removeAttribute("data-href");
-    element.setAttribute("href", str);
+      const element = ref2[_i] as HTMLAnchorElement & { dataset: KnownOptionsDataset }
+      void post_(kPgReq.convertToUrl, [element.dataset.href, Urls.WorkType.ConvertKnown]).then(([str]): void => {
+        element.removeAttribute("data-href")
+        element.href = str
+      })
     }
+    void post_(kPgReq.whatsHelp).then((matched): void => {
+      matched !== "?" && nextTick_(([el, text]) => el.textContent = text, [$("#questionShortcut"), matched] as const)
+    })
   }, 100) })
 
 
@@ -273,7 +274,7 @@ let optionsInit1_ = function (): void {
       VApi ? VApi.t({ k: kTip.raw, t: oTrans_("haveToOpenManually") })
       : alert(oTrans_("haveToOpenManually"))
     } else {
-      asyncBackend_.focusOrLaunch_({ u: this.href, p: true })
+      void post_(kPgReq.focusOrLaunch, { u: this.href, p: true })
     }
   };
 
@@ -311,46 +312,44 @@ let optionsInit1_ = function (): void {
   for (let _i = _ref.length; 0 <= --_i; ) {
     const opt = Option_.all_[ _ref[_i].getAttribute("for") as PossibleOptionNames<boolean> as "ignoreKeyboardLayout"]
     const oldOnSave = opt.onSave_
-    opt.onSave_ = (): void => {
-      oldOnSave.call(opt)
+    opt.onSave_ = (): void | Promise<void> => {
       nextTick_((ref2): void => {
         ref2.textContent = oTrans_(opt.readValueFromElement_() > 1 ? "o145_2" : "o144")
       }, $(`#${opt.element_.id}Status`))
+      return oldOnSave.call(opt)
     }
     _ref[_i].onclick = onRefStatClick;
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
     opt.element_.addEventListener("change", opt.onSave_, true)
   }
 },
 optionsInitAll_ = function (): void {
+  optionsInit1_()
+  optionsInit1_ = optionsInitAll_ = null as never
 
-Option_.suppressPopulate_ = false
-optionsInit1_();
-optionsInit1_ = optionsInitAll_ = null as never
-
-for (let key in Option_.all_) {
-  Option_.all_[key as keyof AllowedOptions].onSave_()
-}
-const newTabUrlOption_ = Option_.all_.newTabUrl
-newTabUrlOption_.checker_!.check_(newTabUrlOption_.previous_)
-
-if (!asyncBackend_.contentPayload_.o) {
+  bgSettings_.os_ ||
   nextTick_((el): void => { el.textContent = "Cmd" }, $("#Ctrl"))
-}
+  for (let key in Option_.all_) {
+    void Option_.all_[key as keyof AllowedOptions].onSave_()
+  }
+  nextTick_((): void => { document.documentElement!.classList.remove("loading") })
+  void isVApiReady_.then(disconnect_)
+  location.hash && nextTick_(window.onhashchange as () => void)
+  enableNextTick_(kReadyInfo.NONE, kReadyInfo.LOCK);
 
-(window.onhashchange as () => void)();
-
+  Option_.all_.keyMappings.onSave_ = () => post_(kPgReq.keyMappingErrors).then(onKeyMappingsError)
 if (OnChrome ? (Build.MinCVer >= BrowserVer.MinMediaQuery$PrefersColorScheme
         || CurCVer_ > BrowserVer.MinMediaQuery$PrefersColorScheme - 1)
     : OnFirefox ? (Build.MinFFVer >= FirefoxBrowserVer.MinMediaQuery$PrefersColorScheme
         || CurFFVer_ > FirefoxBrowserVer.MinMediaQuery$PrefersColorScheme)
     : !OnEdge) {
   const media = matchMedia("(prefers-color-scheme: dark)");
-  media.onchange = function (): void {
-    asyncBackend_.updateMediaQueries_()
-    setTimeout(useLocalStyle, 34)
+  const onChange = (): void => {
+    void post_(kPgReq.updateMediaQueries)
+    darkOpt.previous_ && darkOpt.saved_ && setTimeout(useLocalStyle, 34)
   }
-  const useLocalStyle = (first?: 1 | TimerType.fake): void => {
-    const darkOpt = Option_.all_.autoDarkMode
+  const darkOpt = Option_.all_.autoDarkMode
+  const useLocalStyle = (): void => {
     if (darkOpt.previous_ && darkOpt.saved_) {
       const val = media.matches
       if (VApi && VApi.z) {
@@ -376,23 +375,17 @@ if (OnChrome ? (Build.MinCVer >= BrowserVer.MinMediaQuery$PrefersColorScheme
             }
           }
         }
-        bgSettings_.updatePayload_("d", val, VApi.z)
-      } else if (first === 1 && (val !== !!asyncBackend_.contentPayload_.d)) {
-        setTimeout(useLocalStyle, 500)
+        void post_(kPgReq.updatePayload, { key: "d", val }).then((val2): void => { VApi!.z!.d = val2 })
       }
       toggleDark(val)
     }
   }
   // As https://bugzilla.mozilla.org/show_bug.cgi?id=1550804 said, to simulate color schemes, enable
   // https://developer.mozilla.org/en-US/docs/Mozilla/Firefox/Experimental_features#Color_scheme_simulation
-  useLocalStyle(1)
+  darkOpt.onSave_ = (): void => { (darkOpt.previous_ ? onChange : toggleDark)() }
+  darkOpt.previous_ && void isVApiReady_.then(onChange)
+  media.onchange = onChange
 }
-
-Option_.all_.autoDarkMode.onSave_ = function (): void {
-  asyncBackend_.updateMediaQueries_()
-  toggleDark(this.previous_)
-}
-Option_.all_.autoReduceMotion.onSave_ = function (): void { toggleReduceMotion(this.previous_) }
 
   OnFirefox && setTimeout((): void => {
     const K = GlobalConsts.kIsHighContrast, storage = localStorage
@@ -412,7 +405,7 @@ Option_.all_.autoReduceMotion.onSave_ = function (): void { toggleReduceMotion(t
       const oldIsHC = storage.getItem(K) === "1"
       if (isHC !== oldIsHC) {
         isHC ? storage.setItem(K, "1") : storage.removeItem(K);
-        asyncBackend_.reloadCSS_(2)
+        void post_(kPgReq.reloadCSS)
       }
     }, { timeout: 1e3 })
   }, 34)
@@ -423,18 +416,11 @@ Option_.all_.autoReduceMotion.onSave_ = function (): void { toggleReduceMotion(t
   const isDebugging = self.element_.classList.contains("debugging")
   if (self.saved_ && !isDebugging || !VApi || !VApi.z) { return }
   const newVal = self.readValueFromElement_(), isSame = newVal === self.previous_,
-  css = asyncBackend_.reloadCSS_(-1, newVal), misc = VApi.y(), root = misc.r
-  if (!isDebugging && BG_) {
-    browser_.tabs.query({ currentWindow: true, active: true }, (tabs?: [chrome.tabs.Tab?]): void => {
-      if (tabs && tabs[0] && tabs[0].url === location.href) {
-        const port = asyncBackend_.indexPorts_(tabs[0].id, 0) as Frames.Port | null
-        port && (port.s.flags_ |= Frames.Flags.hasCSS | Frames.Flags.hasFindCSS)
-      }
-    })
-  }
+  cssPromise = post_(kPgReq.parseCSS, newVal), misc = VApi.y(), root = misc.r
+  void cssPromise.then(css => {
   self.element_.classList.toggle("debugging", !isSame)
-  VApi.t({
-    k: root || isSame ? 0 : kTip.raw, t: "Debugging CSS\u2026",
+  VApi!.t({
+    k: root || isSame ? 0 : kTip.raw, t: oTrans_("livePreview") || "Live preview CSS\u2026",
     H: css.ui, f: css.find
   })
   const frame = root && root.querySelector("iframe.Omnibar") as HTMLIFrameElement | null
@@ -450,6 +436,7 @@ Option_.all_.autoReduceMotion.onSave_ = function (): void { toggleReduceMotion(t
     styleDebug.classList.add("debugged")
     styleDebug.textContent = (isSame ? "\n" : "\n.transparent { opacity: 1; }\n") + (css.omni && css.omni + "\n" || "")
   }
+  })
 }, 1200, null, 0))
 
 if (OnChrome && Build.MinCVer < BrowserVer.Min$Option$HasReliableFontSize
@@ -463,6 +450,7 @@ $("#importButton").onclick = function (): void {
 };
 
 nextTick_((el0): void => {
+  const platform = bgSettings_.platform_
   const data = navigator.userAgentData
   const brand = (data && data.brands || []).find(i => i.version === CurCVer_ && i.brand !== "Chromium")
   const nameFallback = OnFirefox ? "Firefox" : IsEdg_ ? "MS Edge" : ""
@@ -470,7 +458,7 @@ nextTick_((el0): void => {
       : OnChrome && ((<RegExpOne> /\bChromium\b/).exec(navigator.userAgent!) || [""])[0] || nameFallback || "Chrome"
 el0.textContent = (OnEdge ? "MS Edge (EdgeHTML)" : name + " " + (OnFirefox ? CurFFVer_ : CurCVer_)
   ) + oTrans_("comma") + oTrans_("NS")
-  + (oTrans_(Platform_ as "win" | "mac") || Platform_[0].toUpperCase() + Platform_.slice(1))
+  + (oTrans_(platform as "win" | "mac") || platform[0].toUpperCase() + platform.slice(1))
 if (OnChrome && IsEdg_) {
   const a = $<HTMLAnchorElement>("#openExtensionsPage");
   a.textContent = a.href = "edge://extensions/shortcuts";
@@ -513,14 +501,11 @@ window.onhashchange = (): void => {
   if (!hash || !(<RegExpI> /^[a-z][a-z\d_-]*$/i).test(hash)) { return; }
   if (node = $(`[data-hash="${hash}"]`) as HTMLElement | null) {
     if (node.onclick) {
-      nextTick_(() => {
         (node as ElementWithHash).onclick(null, "hash");
-      });
     }
   } else if (node = $("#" + hash)) {
-    nextTick_((): void => {
-    if (((node as HTMLElement).dataset as KnownOptionsDataset).model) {
-      (node as HTMLElement).classList.add("highlight");
+    if ((node.dataset as KnownOptionsDataset).model) {
+      node.classList.add("highlight")
     }
     const callback = function (event?: Event): void {
       if (event && event.target !== window) { return; }
@@ -534,62 +519,10 @@ window.onhashchange = (): void => {
     if (document.readyState === "complete") { return callback(); }
     window.scrollTo(0, 0);
     window.onload = callback;
-    });
   }
 };
 
-asyncBackend_.restoreSettings_() && asyncBackend_.restoreSettings_() ? (
-  Build.NDEBUG || console.log("Now restore settings before page loading"),
-  void asyncBackend_.restoreSettings_()!.then(optionsInitAll_)
-) : optionsInitAll_();
-
-// below is for programmer debugging
-window.onunload = function (): void {
-  BG_.removeEventListener("unload", OnBgUnload);
-};
-
-function OnBgUnload(): void {
-  BG_.removeEventListener("unload", OnBgUnload, { capture: false as never })
-  setTimeout(function (): void {
-    reloadBG_()
-    if (!BG_) {
-      window.onbeforeunload = null as any;
-      window.close();
-      return;
-    }
-    BG_.addEventListener("unload", OnBgUnload);
-    if (BG_.document.readyState !== "loading") { setTimeout(callback, 67); return; }
-    (BG_ as unknown as typeof globalThis).addEventListener("DOMContentLoaded", function load(): void {
-      if (OnChrome && Build.MinCVer < BrowserVer.Min$addEventListener$support$once) {
-        BG_.removeEventListener("DOMContentLoaded", load, { capture: true })
-      }
-      setTimeout(callback, 100);
-    }, { capture: true, once: true })
-  }, 200);
-  function callback(): void {
-    const ref = Option_.all_;
-    for (const key in ref) {
-      const opt = ref[key as keyof AllowedOptions], { previous_: previous } = opt;
-      if (typeof previous === "object" && previous) {
-        opt.previous_ = opt.innerFetch_()
-      }
-    }
-  }
-}
-(BG_ as unknown as typeof globalThis).addEventListener("unload", OnBgUnload, { capture: false as never, once: true })
-
-const cmdRegistry = asyncBackend_.CommandsData_().keyToCommandMap_.get("?")
-if (!cmdRegistry || cmdRegistry.alias_ !== kBgCmd.showHelp) {
-  let matched = "";
-  asyncBackend_.CommandsData_().keyToCommandMap_.forEach((item, key): void => {
-    if (item.alias_ === kBgCmd.showHelp) {
-      matched = matched && matched.length < key.length ? matched : key;
-    }
-  })
-  if (matched) {
-    nextTick_(([el, text]) => el.textContent = text, [$("#questionShortcut"), matched] as const)
-  }
-}
+void bgSettings_.preloadCache_().then(optionsInitAll_)
 
 document.addEventListener("click", function onClickOnce(): void {
   const api1 = VApi, misc = api1 && api1.y()
@@ -606,19 +539,16 @@ document.addEventListener("click", function onClickOnce(): void {
     }
   }, true);
 
-  OnChrome && document.addEventListener("click", (event): void => {
+  OnChrome && selfTabId_ >= 0 && document.addEventListener("click", (event): void => {
     const el = event.target as Element
     if (el.localName !== "a" || !(event.ctrlKey || event.metaKey)) { return }
     const api2 = VApi, hintWorker = api2 && api2.b, stat = hintWorker && hintWorker.$()
     if (stat && stat.b && stat.n === null) { // .b: showing hints; .n === null : is calling executor
       const m1 = stat.m & ~HintMode.queue
       if (m1 < HintMode.min_job && m1 & HintMode.newTab && !(m1 & HintMode.focused)) {
-        const curTab = asyncBackend_.curTab_()
-        if (curTab >= 0) {
           setTimeout(() => {
-            browser_.tabs.update(curTab, { active: true })
+            browser_.tabs.update(selfTabId_, { active: true })
           }, 0)
-        }
       }
     }
   })

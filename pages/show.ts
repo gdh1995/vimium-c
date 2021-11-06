@@ -1,8 +1,9 @@
-/// <reference path="../lib/base.d.ts" />
 import {
-  CurCVer_, CurFFVer_, BG_, bgSettings_, OnChrome, OnFirefox, OnEdge, $, pageTrans_, asyncBackend_, browser_, nextTick_,
-  enableNextTick_, kReadyInfo, import2, TransTy
+  CurCVer_, CurFFVer_, OnChrome, OnFirefox, OnEdge, $, pageTrans_, browser_, nextTick_, enableNextTick_, kReadyInfo,
+  import2, TransTy, isVApiReady_, post_, disconnect_
 } from "./async_bg"
+import { kPgReq } from "../background/page_messages"
+import type * as i18n_popup from "../i18n/zh/popup.json"
 
 interface VDataTy {
   full: string
@@ -49,6 +50,7 @@ interface ImportBody {
 }
 type ValidNodeTypes = HTMLImageElement | HTMLDivElement;
 
+const useBG = true
 const blobCache: Dict<Blob> = {}
 const body = document.body as HTMLBodyElement
 
@@ -64,7 +66,7 @@ let _shownBlobURL = "", _shownBlob: Blob | null | 0 = null;
 let loadingTimer: (() => void) | null | undefined
 let _nextUrl: string | undefined
 
-function App (this: void): void {
+async function App (this: void): Promise<void> {
   if (VShown) {
     clean();
     bgLink.style.display = "none";
@@ -75,7 +77,7 @@ function App (this: void): void {
   VData = (window as any).VData = Object.create(null)
   let url = location.hash, type: VDataTy["type"] = "", file = ""
   let _shownHash: string | null
-  if (_nextUrl || !url && asyncBackend_ && (_shownHash = asyncBackend_.shownHash_())) {
+  if (_nextUrl || !url && useBG && (_shownHash = await post_(kPgReq.shownHash))) {
     url = _nextUrl || _shownHash!
     _nextUrl = ""
     if ((<RegExpI> /^[^:]+[ &]data:/i).test(url)) {
@@ -133,10 +135,10 @@ function App (this: void): void {
     type === "image" && (type = "");
   } else if (url.toLowerCase().startsWith("javascript:")) {
     type = url = file = VData.file = "";
-  } else if (BG_) {
-    const str2 = asyncBackend_.convertToUrl_(url, null, Urls.WorkType.KeepAll)
-    if (asyncBackend_.lastUrlType_() <= Urls.Type.MaxOfInputIsPlainUrl) {
-      url = str2;
+  } else if (useBG) {
+    const res = await post_(kPgReq.convertToUrl, [url, Urls.WorkType.KeepAll])
+    if (res[1] <= Urls.Type.MaxOfInputIsPlainUrl) {
+      url = res[0]
     }
   } else if (url.startsWith("//")) {
     url = "http:" + url;
@@ -150,7 +152,7 @@ function App (this: void): void {
   switch (type) {
   case "image":
     if (VData.auto) {
-      let newUrl = parseSmartImageUrl_(url);
+      let newUrl = await parseSmartImageUrl_(url);
       if (newUrl) {
         console.log("Auto predict a better URL:\n %o =>\n %o", url, newUrl);
         url = VData.url = newUrl;
@@ -171,8 +173,8 @@ function App (this: void): void {
         this.classList.add("broken");
       }
       setTimeout(showBgLink, 34);
-      this.onclick = function (e) {
-        if (BG_ && asyncBackend_.checkHarmfulUrl_(VData.url)) {
+      this.onclick = async function (e) {
+        if (useBG && await post_(kPgReq.checkHarmfulUrl, VData.url)) {
           return;
         }
         !e.ctrlKey && !e.shiftKey && !e.altKey && browser_.tabs && browser_.tabs.update
@@ -229,7 +231,8 @@ function App (this: void): void {
           body.classList.add("filled");
         }
       };
-      fetchImage_(url, VShown);
+      const setUrlDirectly = await doesSetUrlDirectly(url)
+      fetchImage_(url, VShown, setUrlDirectly)
     } else {
       url = VData.url = "";
       VShown.onerror(null as never);
@@ -244,30 +247,15 @@ function App (this: void): void {
     break;
   case "url":
     VShown = (importBody as ImportBody)("shownText");
-    if (url && BG_) {
-      let str1: Urls.Url | null = null;
-      if (url.startsWith("vimium://")) {
-        str1 = asyncBackend_.evalVimiumUrl_(url.slice(9), Urls.WorkType.ActIfNoSideEffects, true)
-      }
-      str1 = str1 !== null ? str1 : asyncBackend_.convertToUrl_(url, null, Urls.WorkType.ConvertKnown)
-      if (typeof str1 === "string") {
-        str1 = asyncBackend_.findUrlInText_(str1, "whole")
-        str1 = asyncBackend_.reformatURL_(str1)
-      }
-      else if (str1 instanceof BG_.Promise) {
-        void str1.then(function (arr): void {
-          showText(arr[1], arr[0] || (arr[2] || ""));
-        });
-        break;
-      } else if (str1 instanceof BG_.Array) {
-        showText(str1[1], str1[0]);
+    if (url) {
+      let str1 = await post_(kPgReq.showUrl, url)
+      if (typeof str1 !== "string") {
+        showText(str1[1], str1[0] || (str1[2] || ""))
         break;
       }
       url = str1;
     }
-    if (typeof url === "string") {
-      url = tryDecryptUrl(url) || url;
-    }
+    url = tryDecryptUrl(url) || url;
     showText(type, url);
     break;
   default:
@@ -289,24 +277,16 @@ function App (this: void): void {
   bgLink.onclick = VShown ? clickShownNode : defaultOnClick;
 }
 
-import type * as i18n_popup from "../i18n/zh/popup.json"
-
 export const sTrans_: TransTy<keyof typeof i18n_popup> = (k, a): string => pageTrans_(k, a) || ""
 
-enableNextTick_(kReadyInfo.platformInfo)
+enableNextTick_(kReadyInfo.show)
+void isVApiReady_.then((): void => { VApi!.u = getContentUrl_ })
 
 nextTick_((): void => {
-  window.onhashchange = App
-  window.onpopstate = App
-  App()
+  window.onhashchange = App // eslint-disable-line @typescript-eslint/no-misused-promises
+  window.onpopstate = App // eslint-disable-line @typescript-eslint/no-misused-promises
+  void App().then((): void => { void isVApiReady_.then(disconnect_) })
 })
-
-addEventListener(GlobalConsts.kLoadEvent, function onContentLoaded(): void {
-  if (OnChrome && Build.MinCVer < BrowserVer.Min$addEventListener$support$once) {
-    removeEventListener(GlobalConsts.kLoadEvent, onContentLoaded, { capture: true })
-  }
-  VApi && (VApi.u = getContentUrl_)
-}, { once: true, capture: true })
 
 window.onunload = destroyObject_;
 
@@ -317,7 +297,7 @@ body.ondrop = (e): void => {
     if (file.type.startsWith("image/") || ImageExtRe.test(name)) {
       (e as Event as EventToPrevent).preventDefault()
       _nextUrl = "#!image download=" + name + "&" + URL.createObjectURL(file);
-      App()
+      void App()
     }
   }
 }
@@ -429,8 +409,7 @@ function imgOnKeydown(event: KeyboardEventToPrevent): boolean {
   if (viewer_ && viewer_.viewed) {
     doImageAction(viewer_, action);
   } else {
-    let p = loadViewer().then(showSlide);
-    p.then(function (viewer) {
+    loadViewer().then(showSlide).then(function (viewer) {
       doImageAction(viewer, action);
     }).catch(defaultOnError);
   }
@@ -678,9 +657,9 @@ function clean(): void {
   }
 }
 
-function parseSmartImageUrl_(originUrl: string): string | null {
+async function parseSmartImageUrl_(originUrl: string): Promise<string | null> {
   const stdUrl = originUrl;
-  originUrl = BG_ && asyncBackend_.substitute_(originUrl, SedContext.image) || originUrl
+  originUrl = useBG && await post_(kPgReq.substitute, [originUrl, SedContext.image]) || originUrl
   function safeParseURL(url1: string): URL | null { try { return new URL(url1); } catch {} return null; }
   const parsed = safeParseURL(originUrl);
   if (!parsed || !(<RegExpI> /^(ht|s?f)tp/i).test(parsed.protocol)) { return null; }
@@ -797,7 +776,25 @@ function tryToFixFileExt_(file: string): string | void {
   }
 }
 
-function fetchImage_(url: string, element: HTMLImageElement): void {
+const doesSetUrlDirectly = (url: string): boolean | Promise<boolean> => {
+  const url_prefix = url.slice(0, 20).toLowerCase()
+  if (url_prefix.startsWith("blob:") || (url_prefix.startsWith("data:") && url.length > 1e4)) {
+    return false
+  }
+  if (!(<RegExpOne> /^(ht|s?f)tp|^data:/).test(url_prefix)
+      || OnChrome && Build.MinCVer < BrowserVer.MinEnsured$fetch
+          && !(window as any).fetch
+      || OnChrome && Build.MinCVer < BrowserVer.MinEnsuredFetchRequestCache
+          // has known MinMaybe$fetch$And$Request == MinMaybe$fetch == 41
+          && !((Build.MinCVer >= BrowserVer.MinEnsured$fetch || typeof Request === "function")
+                && "cache" in Request.prototype)) {
+    return true
+  }
+  if (VData.incognito) { return false }
+  return post_(kPgReq.settingItem, { key: "showInIncognito" })
+}
+
+function fetchImage_(url: string, element: HTMLImageElement, setUrlDirectly: boolean): void {
   const text = new Text(),
   clearTimer = loadingTimer = (): void => {
     element.removeEventListener("load", clearTimer);
@@ -813,15 +810,7 @@ function fetchImage_(url: string, element: HTMLImageElement): void {
   if (is_data && url_prefix.startsWith("data:image/svg+xml,")) {
     element.classList.add("svg")
   }
-  if (!is_blob && (!is_data || url.length < 1e4)
-      && ((!VData.incognito && !bgSettings_.get_("showInIncognito"))
-          || !(<RegExpOne> /^(ht|s?f)tp|^data:/).test(url_prefix)
-          || OnChrome && Build.MinCVer < BrowserVer.MinEnsured$fetch
-              && !(window as any).fetch
-          || OnChrome && Build.MinCVer < BrowserVer.MinEnsuredFetchRequestCache
-              // has known MinMaybe$fetch$And$Request == MinMaybe$fetch == 41
-              && !((Build.MinCVer >= BrowserVer.MinEnsured$fetch || typeof Request === "function")
-                    && "cache" in Request.prototype))) {
+  if (setUrlDirectly) {
     element.src = url; // lgtm [js/client-side-unvalidated-url-redirection]
   } else {
     destroyObject_();
@@ -886,7 +875,7 @@ function disableAutoAndReload_(): void {
   console.log("Failed to visit the predicted URL, so go back to the original version.");
   resetOnceProperties_();
   VData.auto = false;
-  App()
+  void App()
 }
 
 function resetOnceProperties_(): boolean {

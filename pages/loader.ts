@@ -1,5 +1,3 @@
-/// <reference path="../lib/base.d.ts" />
-/// <reference path="../background/index.d.ts" />
 /* eslint-disable @typescript-eslint/prefer-string-starts-ends-with, @typescript-eslint/prefer-includes */
 var VApi: VApiTy | undefined, VimiumInjector: VimiumInjectorTy | undefined | null = null; // eslint-disable-line no-var
 
@@ -52,27 +50,19 @@ var VApi: VApiTy | undefined, VimiumInjector: VimiumInjectorTy | undefined | nul
     // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     || !Build.NDEBUG && (window as any).define && (window as any).define.noConflict()
   }
-  const bg0 = browser_.extension.getBackgroundPage()
-  if (bg0 && bg0.Backend_) {
-    bg0.Backend_.updateMediaQueries_()
-    if (curPath !== "options") {
-      const uiStyles = bg0.Backend_.omniPayload_.s
-      if (uiStyles && ` ${uiStyles} `.indexOf(" dark ") >= 0) {
-        const style = document.createElement("style");
-        style.textContent = "body { background: #000; color: #aab0b6; }";
-        (document.head as HTMLHeadElement).appendChild(style);
-      }
-    }
-  }
   if (curPath === "blank") {
+    type Keys = keyof SettingsNS.PersistentSettings
+    const storage = browser_.storage.local as { get <K extends Keys> (k: K, cb: (r: { [k in K]: any }) => void): void }
+    storage.get("autoDarkMode", (res): void => {
+      if (res.autoDarkMode === false) {
+        const el = document.head!.querySelector("meta[name=color-scheme]") as HTMLMetaElement | null
+        el && (el.content = "light")
+      }
+      return browser_.runtime.lastError
+    })
     if (browser_.i18n.getMessage("lang1")) {
       const s = browser_.i18n.getMessage("vblank")
       s && (document.title = s)
-    }
-  }
-  if (!Build.NDEBUG) {
-    (window as any).updateUI = (): void => {
-      browser_.extension.getBackgroundPage()!.Backend_.reloadCSS_(2)
     }
   }
   if (!Build.NDEBUG) {

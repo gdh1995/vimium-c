@@ -39,6 +39,10 @@ export const sendResponse = <T extends keyof FgRes> (port: Port, msgId: number, 
 }
 
 export const OnConnect = (port: Frames.Port, type: PortType): void => {
+  if (type & PortType.selfPages) {
+    /*#__NOINLINE__*/ _onPageConnect(port, type)
+    return
+  }
   const sender = /*#__NOINLINE__*/ formatPortSender(port)
   const url = sender.url_, isOmni = url === settingsCache_.vomnibarPage_f
   if (type > PortType.reconnect - 1 || isOmni) {
@@ -173,18 +177,33 @@ const onOmniDisconnect = (port: Port): void => {
   }
 }
 
+const _onPageConnect = (port: Port, type: PortType): void => {
+  if (type & PortType.otherExtension) {
+    port.disconnect()
+    return
+  }
+  (port as Frames.Port).s = false as never
+  port.onMessage.addListener(onMessage)
+}
+
 const formatPortSender = (port: Port): Frames.Sender => {
   const sender = (port as Frames.BrowserPort).sender
-  const tab = sender.tab || { id: -1, incognito: false }
-  const url = OnEdge ? sender.url || (tab as Partial<Tab>).url || "" : sender.url!
+  const tab = sender.tab // || { id: -3, incognito: false }
   if (OnChrome) { sender.tab = null as never }
   return (port as Frames.Port).s = {
     frameId_: sender.frameId || 0, // frameId may not exist if no sender.tab
-    incognito_: tab.incognito, status_: Frames.Status.enabled, flags_: Frames.Flags.blank, tabId_: tab.id, url_: url
+    status_: Frames.Status.enabled, flags_: Frames.Flags.blank,
+    incognito_: tab != null ? tab.incognito : false,
+    tabId_: tab != null ? tab.id : -3,
+    url_: OnEdge ? sender.url || tab != null && tab.url || "" : sender.url!
   }
 }
 
-/** @see {#BackendHandlers.getPortUrl_} */
+/**
+ * @returns "" - in a child frame, so need to send request to content
+ * @returns string - valid URL
+ * @returns Promise&lt;string> - valid URL or empty string for a top frame in "port's or the current" tab
+ */
 export const getPortUrl_ = (port?: Port | null, ignoreHash?: boolean, request?: Req.baseFg<kFgReq>
     ): string | Promise<string> => {
   port = port || framesForTab_.get(curTabId_)?.top_

@@ -1,15 +1,16 @@
 import {
-  CurCVer_, CurFFVer_, bgSettings_, OnChrome, OnEdge, OnFirefox, $, browser_, import2, OnSafari
+  CurCVer_, CurFFVer_, OnChrome, OnEdge, OnFirefox, $, import2, OnSafari, enableNextTick_, isVApiReady_, kReadyInfo,
+  post_
 } from "./async_bg"
-import { AllowedOptions, ExclusionRulesOption_, Option_, oTrans_ } from "./options_base"
-import { SaveBtn } from "./options_defs"
-import {
-  AdvancedOptBtn, click, ElementWithDelay, delayed_task, clear_delayed_task, Platform_
-} from "./options_wnd"
+import { bgSettings_, AllowedOptions, ExclusionRulesOption_, Option_, oTrans_ } from "./options_base"
+import { exportBtn, saveBtn } from "./options_defs"
+import { manifest } from "./options_permissions";
+import { advancedOptBtn, click, ElementWithDelay, delayed_task, clear_delayed_task } from "./options_wnd"
+import { kPgReq } from "../background/page_messages"
 
 const showHelp = (event?: EventToPrevent | "force" | void | null): void => {
   if (!VApi || !VApi.z) {
-    typeof VimiumInjector !== "undefined" && setTimeout(showHelp, 120, null)
+    void isVApiReady_.then(showHelp)
     return;
   }
   let node: HTMLElement | null, root = VApi.y().r;
@@ -18,16 +19,16 @@ const showHelp = (event?: EventToPrevent | "force" | void | null): void => {
   else if (node = root.querySelector("#HCls") as HTMLElement | null) {
     if (event !== "force" && root.querySelector(".HelpCommandName") != null) { click(node); return }
   }
-  VApi.p({ H: kFgReq.initHelp, f: true })
+  const p = post_(kPgReq.initHelp)
   if (event) { return; }
-  setTimeout(function (): void {
+  void p.then((): void => {
     const misc = VApi && VApi.y()
     const node2 = misc && misc.r && misc.r.querySelector("#HDlg") as HTMLElement
     if (!node2) { return; }
     (node2.querySelector("#HCls") as HTMLElement).addEventListener("click", function (): void {
       location.hash = "";
     }, true);
-  }, 100);
+  })
 };
 
 $<ElementWithDelay>("#showCommands").onclick = showHelp
@@ -99,10 +100,9 @@ const buildExportedFile = (now: Date, want_static: boolean): { blob: Blob, optio
     exported_object["@time"] = now.toLocaleString();
     exported_object.time = now.getTime();
   }
-  const manifest = browser_.runtime.getManifest()
   exported_object.environment = {
     extension: manifest.version,
-    platform: Platform_
+    platform: bgSettings_.platform_
   };
   if (OnChrome) {
     exported_object.environment.chrome = CurCVer_;
@@ -126,7 +126,7 @@ const buildExportedFile = (now: Date, want_static: boolean): { blob: Blob, optio
   for (const key of storedKeys) {
     const storedVal = storage.getItem(key) as string;
     if (typeof all[key] !== "string") {
-      exported_object[key] = (key in all) ? bgSettings_.get_(key) : storedVal;
+      exported_object[key] = (key in all) ? <any> bgSettings_.get_(key) : storedVal;
     } else if (storedVal.includes("\n")) {
       (exported_object[key] = storedVal.split("\n")).push("");
     } else {
@@ -150,7 +150,7 @@ const buildExportedFile = (now: Date, want_static: boolean): { blob: Blob, optio
   return { blob: new Blob([exported_data], {type: "application/json", endings: "native"}), options: storedKeys.length }
 }
 
-$<ElementWithDelay>("#exportButton").onclick = function (event): void {
+exportBtn.onclick = function (event): void {
   if (_lastBlobURL) {
     URL.revokeObjectURL(_lastBlobURL);
     _lastBlobURL = "";
@@ -224,12 +224,12 @@ function decodeStrOption (new_value: string | string[]): string {
   })
 }
 
-function _importSettings(time: number, new_data: ExportedSettings, is_recommended?: boolean): void {
+async function _importSettings(time: number, new_data: ExportedSettings, is_recommended?: boolean): Promise<void> {
   let env = new_data.environment, plat = env && env.platform || ""
     , raw_ext_ver = (env && env.extension && env.extension + "" || "")
     , ext_ver = parseFloat(raw_ext_ver || 0) || 0
     , ext_ver_f = ext_ver > 1 ? raw_ext_ver.split(".", 2).join(".") as `${number}.${number}` : "" as const
-    , newer = ext_ver > parseFloat(browser_.runtime.getManifest().version)
+    , newer = ext_ver > parseFloat(manifest.version)
   plat && (plat = ("" + plat).slice(0, 10));
   if (!confirm(oTrans_("confirmImport", [
         oTrans_(is_recommended !== true ? "backupFile" : "recommendedFile"),
@@ -250,7 +250,7 @@ function _importSettings(time: number, new_data: ExportedSettings, is_recommende
     dict2 && typeof dict2 === "object" && Object.assign(new_data, dict2)
   }
   if (new_data.vimSync == null) {
-    const curSync = bgSettings_.get_("vimSync"), keep = curSync && confirm(oTrans_("keepSyncing"));
+    const curSync = <boolean> bgSettings_.get_("vimSync"), keep = curSync && confirm(oTrans_("keepSyncing"));
     new_data.vimSync = keep || null;
     if (curSync) {
       console.log("Before importing: You chose to", keep ? "keep settings synced." : "stop syncing settings.");
@@ -260,18 +260,19 @@ function _importSettings(time: number, new_data: ExportedSettings, is_recommende
   }
 
   const logUpdate = function (method: string, key: string, a2: string | any, a3?: any): any {
-    let hasA3 = arguments.length > 3, val = hasA3 ? a3 : a2, args = ["%s %c%s", method, "color:darkred", key];
+    let hasA3 = arguments.length > 3, val = hasA3 ? a3 : a2, args: any[] = ["%s %c%s", method, "color:darkred", key]
     val = typeof val !== "string" || val.length <= 72 ? val : val.slice(0, 71).trimRight() + " \u2026"
     hasA3 && args.push(a2);
     args.push(val);
     really_updated++
-    console.log(...args);
+    console.log.apply(console, args)
   } as {
     (method: string, key: string, val: any): any;
     (method: string, key: string, actionName: string, val: any): any;
   };
   let really_updated = 0
   console.group("Import settings at " + formatDate_(+now + 1))
+  enableNextTick_(kReadyInfo.LOCK)
   if (time > 10000) {
     console.info("load settings saved at %c%s%c.", "color:darkblue", formatDate_(time), "color:auto")
   } else {
@@ -312,16 +313,20 @@ function _importSettings(time: number, new_data: ExportedSettings, is_recommende
   if (OnFirefox) {
     delKeys("i18n_f");
   }
-  for (let key in bgSettings_.legacyNames_) {
+  const As_ = <T> (i: T): T => i
+  const legacyNames_ = As_<SettingsNS.LegacyNames & SafeObject>({ __proto__: null as never,
+    extWhiteList: "extAllowList", phraseBlacklist: "omniBlockList"
+  })
+  for (let key in legacyNames_) {
     if (key in new_data) {
-      new_data[bgSettings_.legacyNames_[key as keyof SettingsNS.LegacyNames]] = new_data[key];
+      new_data[legacyNames_[key as keyof SettingsNS.LegacyNames]] = new_data[key];
       delete new_data[key];
     }
   }
-  if (new_data.vimSync !== bgSettings_.get_("vimSync")) {
+  if (new_data.vimSync !== <boolean> bgSettings_.get_("vimSync")) {
     logUpdate("import", "vimSync", new_data.vimSync);
-    bgSettings_.set_("vimSync", new_data.vimSync);
-    _ref.vimSync.fetch_();
+    await bgSettings_.set_("vimSync", new_data.vimSync)
+    await _ref.vimSync.fetch_()
   }
   { // delay the update of keyMappings
     const tmp1 = _ref.keyMappings;
@@ -330,69 +335,66 @@ function _importSettings(time: number, new_data: ExportedSettings, is_recommende
       _ref.keyMappings = tmp1;
     }
   }
-  for (const _key in _ref) {
-    const item: Option_<any> = _ref[_key as keyof AllowedOptions];
-    let key: keyof AllowedOptions = item.field_, new_value: any = new_data[key];
+  await Promise.all((Object.values(_ref) as Option_<keyof AllowedOptions>[]).map(async (item): Promise<void> => {
+    let key: keyof AllowedOptions = item.field_, new_value: (typeof item)["previous_"] = new_data[key];
     delete new_data[key];
-    if (!(key in all)) { continue } // such as "optionalPermissions"
+    if (!(key in all)) { return } // such as "optionalPermissions"
     if (new_value == null) {
       // NOTE: we assume all nullable settings have the same default value: null
       new_value = all[key];
     } else {
       if (typeof all[key] === "string") {
-        new_value = decodeStrOption(new_value)
+        new_value = decodeStrOption(new_value as string | string[])
       }
-      new_value = item.normalize_(new_value, typeof all[key] === "object");
+      new_value = await item.normalize_(new_value)
     }
-    if (!item.areEqual_(item.innerFetch_(), new_value)) {
+    if (!item.areEqual_(await item.innerFetch_(), new_value)) {
       logUpdate("import", key, new_value);
-      bgSettings_.set_(key, new_value);
+      await bgSettings_.set_(key, new_value)
       if (key in bgSettings_.valuesToLoad_) {
         Option_.syncToFrontend_.push(key as keyof typeof bgSettings_.valuesToLoad_);
       }
-      item.fetch_();
-      item.onSave_ && item.onSave_();
-    } else if (item.saved_) {
-      continue;
-    } else {
-      item.fetch_();
+      await item.fetch_()
+      return item.onSave_()
+    } else if (!item.saved_) {
+      return item.fetch_()
     }
-  }
-  for (const key in new_data) {
+  })).catch((err): void => { logUpdate("[ERROR] importing options failed", "cause:", err) })
+  await Promise.all(Object.keys(new_data).map(async (key): Promise<void> => {
     let new_value = new_data[key];
-    type SettingKeys = keyof SettingsNS.SettingsWithDefaults;
+    type SettingKeys = Exclude<keyof SettingsNS.SettingsWithDefaults, keyof typeof _ref>;
     if (new_value == null) {
       if (key in all) {
         new_value = all[key as SettingKeys];
-        if (bgSettings_.get_(key as SettingKeys) !== new_value) {
-          bgSettings_.set_(key as SettingKeys, new_value);
+        if (<any> bgSettings_.get_(key as SettingKeys) !== new_value) {
           logUpdate("reset", key, new_value);
-          continue;
+          return bgSettings_.set_(key as SettingKeys, new_value as never)
         }
-        new_value = bgSettings_.get_(key as SettingKeys);
       } else {
         new_value = storage.getItem(key as SettingKeys);
       }
-      storage.removeItem(key as SettingKeys);
+      if (storage.getItem(key) == null) { return }
       logUpdate("remove", key, ":=", new_value);
-      continue;
+      return storage.removeItem(key as SettingKeys)
     }
     if (typeof all[key as SettingKeys] === "string") {
-      new_value = decodeStrOption(new_value)
+      new_value = decodeStrOption(new_value as string | string[])
     }
     if (key in all) {
-      if (bgSettings_.get_(key as SettingKeys) !== new_value) {
-        bgSettings_.set_(key as SettingKeys, new_value);
+      if (<any> bgSettings_.get_(key as SettingKeys) !== new_value) {
         logUpdate("update", key, new_value);
+        return bgSettings_.set_(key as SettingKeys, new_value as never)
       }
     } else {
-      storage.setItem(key, new_value);
       logUpdate("save", key, new_value);
+      return storage.setItem(key, "" + new_value)
     }
-  }
-  $<SaveBtn>("#saveOptions").onclick(false);
-  if ($("#advancedOptionsButton").getAttribute("aria-checked") !== "" + bgSettings_.get_("showAdvancedOptions")) {
-    $<AdvancedOptBtn>("#advancedOptionsButton").onclick(null, true);
+  })).catch((err): void => { logUpdate("[ERROR] saving fields failed", "cause:", err) })
+  enableNextTick_(kReadyInfo.NONE, kReadyInfo.LOCK)
+  await 0 // eslint-disable-line @typescript-eslint/await-thenable
+  saveBtn.onclick(false);
+  if (advancedOptBtn.getAttribute("aria-checked") !== "" + <boolean> bgSettings_.get_("showAdvancedOptions")) {
+    advancedOptBtn.onclick(null, true)
   }
   if (really_updated <= 0) {
     console.info("no differences found.")

@@ -1,24 +1,23 @@
 import {
-  framesForTab_, framesForOmni_, OnChrome, CurCVer_, OnEdge, OnFirefox, extAllowList_, omniPayload_, settingsCache_,
-  contentPayload_, set_visualWordsRe_, curTabId_, bgIniting_, keyToCommandMap_, restoreSettings_, Completion_, CONST_,
-  substitute_, newTabUrls_, evalVimiumUrl_, keyFSM_, mappedKeyRegistry_, bgC_, reqH_, set_bgIniting_, shownHash_,
-  set_hasGroupPermission_ff_, onInit_, set_onInit_
+  framesForTab_, framesForOmni_, OnChrome, CurCVer_, OnEdge, OnFirefox, contentPayload_, curTabId_, bgC_,
+  set_visualWordsRe_, bgIniting_, Completion_, CONST_, keyFSM_, reqH_, set_bgIniting_, set_hasGroupPermission_ff_,
+  onInit_, set_onInit_
 } from "./store"
 import * as BgUtils_ from "./utils"
-import { runtimeError_, tabsGet, Tabs_, browser_, watchPermissions_, runContentScriptsOn_} from "./browser"
-import { convertToUrl_, lastUrlType_, reformatURL_ } from "./normalize_urls"
-import { findUrlInText_, parseSearchEngines_ } from "./parse_urls"
+import { runtimeError_, tabsGet, Tabs_, browser_, watchPermissions_} from "./browser"
+import "./normalize_urls"
+import "./parse_urls"
 import * as settings_ from "./settings"
-import { indexFrame, OnConnect, isExtIdAllowed, getPortUrl_ } from "./ports"
-import * as Exclusions from "./exclusions"
-import { reloadCSS_ } from "./ui_css"
-import { keyMappingErrors_, shortcutRegistry_, visualKeys_ } from "./key_mappings"
+import { OnConnect, isExtIdAllowed } from "./ports"
+import "./exclusions"
+import "./ui_css"
+import { shortcutRegistry_, visualKeys_ } from "./key_mappings"
 import { executeShortcut, executeExternalCmd } from "./run_commands"
 import "./eval_urls"
-import { focusOrLaunch_, checkHarmfulUrl_ } from "./open_urls"
+import "./open_urls"
 import "./all_commands"
 import "./request_handlers"
-import { MediaWatcher_ } from "./tools"
+import "./tools"
 
 const executeShortcutEntry = (cmd: StandardShortcutNames | kShortcutAliases): void => {
   const ref = framesForTab_.get(curTabId_)
@@ -38,39 +37,6 @@ const executeShortcutEntry = (cmd: StandardShortcutNames | kShortcutAliases): vo
       return runtimeError_()
     })
   }
-}
-
-globalThis.Backend_ = {
-    Settings_: settings_,
-    omniPayload_,
-    contentPayload_,
-    settingsCache_,
-    focusOrLaunch_,
-    shownHash_: () => shownHash_ && shownHash_(),
-    CommandsData_: () => ({ keyFSM_, mappedKeyRegistry_, errors_: keyMappingErrors_, keyToCommandMap_ }),
-    newTabUrls_,
-    extAllowList_,
-    convertToUrl_,
-    lastUrlType_: () => lastUrlType_,
-    evalVimiumUrl_,
-    reformatURL_,
-    parseSearchEngines_,
-    restoreSettings_: () => restoreSettings_ && restoreSettings_(),
-    substitute_,
-    isExpectingHidden_: queries => Completion_.isExpectingHidden_!(queries),
-    getPortUrl_,
-    checkHarmfulUrl_,
-    findUrlInText_,
-    parseMatcher_: Exclusions.parseMatcher_,
-    reloadCSS_: reloadCSS_ as BackendHandlersNS.BackendHandlers["reloadCSS_"],
-    runContentScriptsOn_,
-    indexPorts_: function (tabId?: number, frameId?: number): Frames.FramesMap | Frames.Frames | Port[] | Port | null {
-      return tabId == null ? framesForTab_
-        : frameId == null ? tabId === GlobalConsts.VomnibarFakeTabId ? framesForOmni_ : framesForTab_.get(tabId) || null
-        : indexFrame(tabId, frameId);
-    } as BackendHandlersNS.BackendHandlers["indexPorts_"],
-    curTab_: () => curTabId_,
-    updateMediaQueries_: MediaWatcher_.RefreshAll_
 }
 
 set_onInit_(As_<typeof onInit_>((): void => {
@@ -117,11 +83,7 @@ set_onInit_(As_<typeof onInit_>((): void => {
 }))
 
 if (!Build.NDEBUG) {
-  let lacking: any[] = Object.keys(Backend_).filter(i => Backend_[i as keyof BackendHandlersNS.BackendHandlers] == null)
-  if (lacking.length > 0) {
-    throw new Error("Some functions in Backend_ are not inited: " + lacking.join(", "))
-  }
-  lacking = (bgC_ as { [K: number]: any } as any[]).map((i, ind) => !!i ? -1 : ind).filter(i => i >= 0)
+  let lacking: any[] = (bgC_ as { [K: number]: any } as any[]).map((i, ind) => !!i ? -1 : ind).filter(i => i >= 0)
   if (lacking.length > 0) {
     throw new Error("Some functions in bgC_ are not inited: " + lacking.join(", "))
   }

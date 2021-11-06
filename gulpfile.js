@@ -6,7 +6,7 @@ var logger = require("fancy-log");
 var newer = require("gulp-newer");
 var osPath = require("path");
 var {
-  getGitCommit, readJSON, readFile, patchTSNamespace, logFileSize, addMetaData, patchTerser,
+  getGitCommit, readJSON, readFile, patchTSNamespace, logFileSize, addMetaData,
   patchExtendClick: _patchExtendClick, BrowserType, fill_global_defs, replace_global_defs,
   loadTerserConfig: _loadTerserConfig, skip_declaring_known_globals,
 } = require("./scripts/dependencies");
@@ -31,7 +31,7 @@ var onlyTestSize = false;
 /** @type {chrome.runtime.Manifest} */
 var manifest = readJSON("manifest.json", true);
 var compilerOptions = loadValidCompilerOptions("scripts/gulp.tsconfig.json");
-var jsmin_status = [false, false, false];
+var jsmin_status = [false, false, false, false, false];
 var buildOptionCache = Object.create(null);
 var outputES6 = false;
 gulpUtils.set_dest(DEST, JSDEST)
@@ -45,8 +45,6 @@ var minify_viewer = !(getBuildItem("BTypes") & BrowserType.Chrome)
 const POLYFILL_FILE = "lib/polyfill.ts"
 const VIEWER_JS = "lib/viewer.min.js";
 const FILE_URLS_CSS = "front/file_urls.css";
-
-const KnownBackendGlobals = [ "Backend_" ]
 
 var CompileTasks = {
   background: ["background/*.ts", "background/*.d.ts"],
@@ -139,7 +137,7 @@ var Tasks = {
         || btypes & BrowserType.Firefox && !getNonNullBuildItem("NativeWordMoveOnFirefox");
     if (!has_wordsRe) {
       arr.push("!front/words.txt");
-      gulp.series(function() { return cleanByPath("front/words.txt", DEST); })();
+      cleanByPath("front/words.txt", DEST)
     }
     if (btypes & BrowserType.Chrome) {
       gulp.series("png2bin")();
@@ -195,14 +193,14 @@ var Tasks = {
     }
   },
 
-  "min/content": ["static/json", function(cb) {
+  "min/content": function(cb) {
     var cs = manifest.content_scripts[0], sources = cs.js;
     if (sources.length <= 1 || jsmin_status[0]) {
       jsmin_status[0] = true;
       return cb();
     }
     cs.js = ["content/vimium-c.js"];
-    var exArgs = { nameCache: { vars: {}, props: {}, timestamp: 0 }, aggressiveMangle: true };
+    var exArgs = { nameCache: {}, aggressiveMangle: true };
     var rest = ["content/*.js"];
     for (var arr = sources, i = 0, len = arr.length; i < len; i++) { rest.push("!" + arr[i]); }
     var maps = [
@@ -214,62 +212,29 @@ var Tasks = {
         logFileSize(DEST + "/" + cs.js[0], logger);
       }
       cb(err);
-    }, jsmin_status, debugging, null, false);
-  }],
-  "min/bg": ["min/content", function(cb) {
+    }, jsmin_status, debugging, false);
+  },
+  "min/bg": function(cb) {
     if (jsmin_status[1]) {
       return cb();
     }
-    var exArgs = { nameCache: { vars: {}, props: {}, timestamp: 0 } };
-    var config = loadTerserConfig(!!exArgs.nameCache)
-    config.nameCache = exArgs.nameCache;
-    patchTerser()
-    const q = require("terser").minify("var " + KnownBackendGlobals.join(" = {},\n") + " = {};", config)
-    Promise.resolve(q).then(() => {
-      const { props: { props }, vars: { props: vars } } = exArgs.nameCache
-      for (const key of Object.keys(vars)) {
-        props[key] = vars[key] = "g" + vars[key].replace(/^[a-z]/, i => i.toUpperCase())
-      }
-      var sources = manifest.background.scripts;
-      gulpUtils.checkJSAndMinifyAll(1, [ [sources, "."], [["background/*.js"].concat(sources.map(i => "!" + i)), "."] ]
-        , "min/bg", exArgs, cb, jsmin_status, debugging, getNameCacheFilePath, cacheNames)
-    })
-  }],
-  "min/others": ["min/bg", function(cb) {
+    gulpUtils.checkJSAndMinifyAll(1, [ [manifest.background.scripts.concat(["background/*.js"]), "."] ]
+      , "min/bg", { nameCache: {} }, cb, jsmin_status, debugging, cacheNames)
+  },
+  "min/pages": function(cb) {
     if (jsmin_status[2]) {
       return cb();
     }
-    var exArgs = { nameCache: gulpUtils.loadNameCache("bg", cacheNames, getNameCacheFilePath),
-        nameCachePath: getNameCacheFilePath("bg") };
-    var deepcopy = require("deepcopy");
-    if (getBuildItem("Minify") && exArgs.nameCache.vars && exArgs.nameCache.props) {
-      let {vars: {props: vars}, props: {props: props}} = exArgs.nameCache;
-      for (let key in vars) {
-        if (vars.hasOwnProperty(key)) {
-          let key2 = key.replace(/^\$/, ""), idx = KnownBackendGlobals.indexOf(key2);
-          if (idx < 0) {
-            throw new Error('Unknown global variable in backend: ' + key2);
-          }
-          KnownBackendGlobals.splice(idx, 1);
-          if (props[key] != null && props[key] !== vars[key]) {
-            throw new Error('The name cache #bg can not be used to build others: values differ for ' + key2);
-          }
-          props[key] = vars[key];
-        }
-      }
-      if (KnownBackendGlobals.length > 0 && loadTerserConfig(false).mangle) {
-        throw new Error('Some global variable are not found: ' + KnownBackendGlobals.join(", "));
-      }
-    }
-    gulp.task("min/others/omni", function() {
-      return minifyJSFiles(["front/vomnibar*.js"], ".", { passAll: null, nameCache: {} })
-    });
-    gulp.task("min/others/pages", function() {
-      exArgs.passAll = null;
-      return minifyJSFiles(["pages/options*.js", "pages/show*", "pages/async_bg*"]
-          , ".", deepcopy(exArgs));
-    });
-    gulp.task("min/others/misc", function() {
+    gulpUtils.checkJSAndMinifyAll(2, [ [["pages/options*.js", "pages/show*", "pages/async_bg*"], "."] ]
+        , "min/pages", { nameCache: {} }, cb, jsmin_status, debugging, cacheNames)
+  },
+  "min/omni": function(cb) {
+    if (jsmin_status[3]) { return cb(); }
+    gulpUtils.checkJSAndMinifyAll(3, [ [["front/vomnibar*.js"], "."] ]
+        , "min/omni", { nameCache: {} }, cb, jsmin_status, debugging, cacheNames)
+  },
+  "min/misc": function(cb) {
+      if (jsmin_status[4]) { return cb() }
       var oriManifest = readJSON("manifest.json", true);
       var res = ["front/*.js", "lib/*.js", "pages/*.js", "!front/vomnibar*"
           , "!pages/options*", "!pages/show*", "!pages/async_bg*"];
@@ -279,15 +244,9 @@ var Tasks = {
           res.push("!" + arr[i]);
         }
       }
-      exArgs.passAll = false;
-      return minifyJSFiles(res, ".", deepcopy(exArgs))
-    });
-    gulp.parallel("min/others/omni", "min/others/pages", "min/others/misc")(function() {
-      jsmin_status[2] = true;
-      cb();
-    });
-  }],
-  "min/js": ["min/others"],
+      minifyJSFiles(res, ".").on("end", () => { jsmin_status[4] = true; cb() })
+  },
+  "min/others": ["min/pages", "min/omni", "min/misc"],
   _manifest: function(cb) {
     var minVer = getBuildItem("MinCVer"), browser = getBuildItem("BTypes");
     minVer = minVer ? (minVer | 0) : 0;
@@ -371,7 +330,7 @@ var Tasks = {
       var oldData = readFile(file);
       if (data === oldData) {
         if (willListEmittedFiles) {
-          print('skip', file);
+          print('skip', file.replace(/\\/g, "/"))
         }
         return cb();
       }
@@ -379,7 +338,7 @@ var Tasks = {
     fs.writeFile(file, data, cb);
     print("Save manifest file: " + file);
   },
-  manifest: [["min/bg"], "_manifest"],
+  manifest: [["min/content", "min/bg"], "_manifest"],
   dist: [["build/ts"], ["static", "manifest", "min/others", function (done) {
     const rands = Object.setPrototypeOf(gulpUtils.getRandMap() || {}, null), names = Object.keys(rands)
     let cmd = "", isEdge = getBuildItem("EdgeC") == 1;
@@ -665,7 +624,7 @@ const beforeTerser = exports.beforeTerser = (file) => {
   }
   var btypes = getBuildItem("BTypes"), minCVer = getBuildItem("MinCVer");
   if (btypes & BrowserType.Chrome && minCVer < /* MinEnsuredAsyncFunctions */ 57
-      && (allPathStr.includes("/vimium-c") || allPathStr.includes("/async"))) {
+      && allPathStr.includes("/vimium-c.js")) {
     get();
     if (contents.includes("__awaiter(this")) {
       print("Warning: should avoid using `this` in async functions")
@@ -922,11 +881,4 @@ const loadTerserConfig = exports.loadTerserConfig = (reload) => {
     a.format.comments = /^!/
   }
   return a;
-}
-
-function getNameCacheFilePath(path) {
-  if (path.indexOf(".cache") >= 0 ) {
-    return path;
-  }
-  return osPath.join(JSDEST, ".names-" + path.replace("min/", "") + ".cache");
 }

@@ -96,7 +96,7 @@ var writeFile = function(path, data, writeBom) {
   var isJS = path.slice(-3) === ".js";
   var srcPath = isJS ? path.slice(0, -3) + ".ts" : path;
   var same = fs.existsSync(path);
-  var skip = logPrefix !== "background" && path.indexOf("background/") >= 0;
+  var skip = false;
   PROMISES.push((async function () {
   try {
   if (!skip) {

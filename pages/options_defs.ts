@@ -1,10 +1,12 @@
 import {
-  CurCVer_, bgSettings_, OnChrome, OnFirefox, $, $$, asyncBackend_, browser_, nextTick_, bTrans_
+  CurCVer_, OnChrome, OnFirefox, $, $$, nextTick_, bTrans_, post_, enableNextTick_, kReadyInfo, toggleReduceMotion
 } from "./async_bg"
 import {
-  Option_, AllowedOptions, Checker, PossibleOptionNames, ExclusionRulesOption_, oTrans_,
+  bgSettings_, Option_, AllowedOptions, Checker, PossibleOptionNames, ExclusionRulesOption_, oTrans_,
   KnownOptionsDataset, OptionErrorType, ExclusionRealNode
 } from "./options_base"
+import type { OptionalPermissionsOption_ } from "./options_permissions"
+import { kPgReq } from "../background/page_messages"
 
 Option_.all_ = Object.create(null)
 Option_.syncToFrontend_ = []
@@ -13,12 +15,19 @@ Option_.prototype._onCacheUpdated = function<T extends keyof SettingsNS.AutoSync
     > (this: Option_<T>, func: (this: Option_<T>) => void): void {
   func.call(this)
   if (VApi) {
-    bgSettings_.updatePayload_(bgSettings_.valuesToLoad_[this.field_], this.readValueFromElement_() as any, VApi.z!)
+    const shortKey = bgSettings_.valuesToLoad_[this.field_], val = this.readValueFromElement_()
+    void post_(kPgReq.updatePayload, { key: shortKey, val }).then((val2): void => {
+      VApi!.z![shortKey] = val2 !== void 0 ? val2 : val as any
+    })
   }
 }
 
-Option_.saveOptions_ = function (): boolean {
+Option_.saveOptions_ = async function (): Promise<boolean> {
   const arr = Option_.all_, dirty: string[] = []
+  bgSettings_.resetCache_()
+  const permissions = (arr as Dict<Option_<any>>)["optionalPermissions"] as OptionalPermissionsOption_ | undefined
+  const permissionsPromise = permissions && permissions.save_()
+  await Promise.all([bgSettings_.preloadCache_(), permissionsPromise])
   for (const i in arr) {
     const opt = arr[i as keyof AllowedOptions]
     if (!opt.saved_ && opt._isDirty()) {
@@ -37,11 +46,16 @@ Option_.saveOptions_ = function (): boolean {
       return false
     }
   }
-  arr.vimSync.saved_ || arr.vimSync.save_()
-  arr.exclusionRules.saved_ || arr.exclusionRules.save_()
+  enableNextTick_(kReadyInfo.LOCK)
+  arr.vimSync.saved_ || await arr.vimSync.save_()
+  arr.exclusionRules.saved_ || await arr.exclusionRules.save_()
+  const q: Promise<void>[] = []
   for (const i in arr) {
-    arr[i as keyof AllowedOptions].saved_ || arr[i as keyof AllowedOptions].save_()
+    const item = arr[i as keyof AllowedOptions]
+    item.saved_ || q.push(item.save_())
   }
+  await Promise.all(q)
+  enableNextTick_(kReadyInfo.NONE, kReadyInfo.LOCK)
   return true
 }
 
@@ -96,11 +110,14 @@ export class NumberOption_<T extends UniversalNumberSettings> extends Option_<T>
     this.checker_ = {
       min: (s = this.element_.min) && !isNaN(i = parseFloat(s)) ? i : null,
       max: (s = this.element_.max) && !isNaN(i = parseFloat(s)) ? i : null,
-      default: bgSettings_.defaults_[this.field_],
+      default: 0,
       check_: NumberOption_.Check_
     }
     this.element_.oninput = this.onUpdated_
     this.element_.onfocus = this.addWheelListener_.bind(this)
+    void bgSettings_.preloadCache_().then((): void => {
+      this.checker_.default = bgSettings_.defaults_[this.field_]
+    })
   }
   override populateElement_ (value: number): void {
     this.element_.value = "" + value
@@ -205,14 +222,21 @@ export class TextOption_<T extends TextualizedOptionNames> extends Option_<T> {
       }
     }
   }
-  override fetch_ (): void {
-    super.fetch_()
+  override fetch_ (): void | Promise<void> {
+    let p = super.fetch_()
     const checker = this.checker_
     if (checker) {
       // allow old users to correct mistaken chars and save
       checker.status_ = 0
-      checker.status_ = checker.check_(this.previous_) === this.previous_ ? 1 : 0
+      if (!p) {
+        checker.status_ = checker.check_(this.previous_) === this.previous_ ? 1 : 0
+      } else {
+        p = p.then((): void => {
+          checker.status_ = checker.check_(this.previous_) === this.previous_ ? 1 : 0
+        })
+      }
     }
+    return p
   }
   override populateElement_ (value: AllowedOptions[T] | string, enableUndo?: boolean): void {
     const value2 = (value as string).replace(<RegExpG> / /g, "\xa0")
@@ -229,7 +253,7 @@ export class TextOption_<T extends TextualizedOptionNames> extends Option_<T> {
     const checker = (this as any as TextOption_<TextOptionNames>).checker_
     if (value && checker && checker.check_ === TextOption_.normalizeByOps_) {
       checker.status_ |= 2
-      value = checker.check_(value)
+      value = TextOption_.normalizeByOps_.call(checker, value)
       checker.status_ &= ~2
     }
     return value as AllowedOptions[T]
@@ -239,7 +263,11 @@ export class TextOption_<T extends TextualizedOptionNames> extends Option_<T> {
     const hasError = !!msg
     if (!hasError && !this._lastError) { return }
     this._lastError = hasError
-    const { element_: el, element_: { classList: cls, parentElement: par } } = this
+    TextOption_.showError_(msg, tag, this.element_)
+  }
+  static showError_ (msg: string, tag: OptionErrorType | null | undefined, el: HTMLElement): void {
+    const hasError = !!msg
+    const { classList: cls, parentElement: par } = el as EnsuredMountedHTMLElement
     let errEl = el.nextElementSibling as HTMLElement | null
     errEl = errEl && errEl.classList.contains("tip") ? errEl : null
     if (!hasError && !errEl) { return }
@@ -248,7 +276,7 @@ export class TextOption_<T extends TextualizedOptionNames> extends Option_<T> {
         if (errEl == null) {
           errEl = document.createElement("div")
           errEl.className = "tip"
-          par!.insertBefore(errEl, el.nextElementSibling as Element | null)
+          par.insertBefore(errEl, el.nextElementSibling as Element | null)
         }
         errEl.textContent = msg
         tag !== null && cls.add(tag || "has-error")
@@ -329,7 +357,7 @@ export class MaskedText_<T extends TextOptionNames> extends TextOption_<T> {
     this._myCancelMask = null
     this.masked_ = false
     this.element_.removeAttribute("placeholder")
-    this.fetch_()
+    void this.fetch_()
   }
   override populateElement_ (value: AllowedOptions[T], enableUndo?: boolean): void {
     if (this.masked_) {
@@ -484,46 +512,22 @@ const normalizeKeyMappings = (value: string): string => {
       }
     }
   }
-  value = value.replace(<RegExpG> /\.activateMode(To)?/g, ".activate")
+  value = value.replace(<RegExpG> /\.activateMode(?:To)?/g, ".activate")
   return value
 }
-keyMappingsOption_.innerFetch_ = function (): string {
-  return normalizeKeyMappings(Option_.prototype.innerFetch_.call(this))
+keyMappingsOption_.innerFetch_ = function (): Promise<string> | string {
+  const val = (Option_.prototype as Option_<"keyMappings">).innerFetch_.call(this)
+  return val instanceof Promise ? val.then(normalizeKeyMappings) : normalizeKeyMappings(val)
 }
 keyMappingsOption_.normalize_ = function (value: string): string {
   value = normalizeKeyMappings(value)
-  return Option_.prototype.normalize_.call(this, value, false)
+  return Option_.prototype.normalize_.call(this, value)
 }
-keyMappingsOption_.onSave_ = function (): void {
-  const formatCmdErrors_ = (errors: string[][]): string => {
-    let i: number, line: string[], output = errors.length > 1 ? errors.length + " Errors:\n" : "Error: "
-    for (line of errors) {
-      i = 0
-      output += line[0].replace(<RegExpG & RegExpSearchable<1>>/%([a-z])/g, (_, s: string): string => {
-        ++i
-        return s === "c" ? "" : s === "s" || s === "d" ? line[i] : JSON.stringify(line[i])
-      })
-      if (i + 1 < line.length) {
-        output += ` ${
-            line.slice(i + 1).map(x => typeof x === "object" && x ? JSON.stringify(x) : x
-            ).join(" ") }.\n`
-      }
-    }
-    return output
-  }
-  const bgCommandsData_ = asyncBackend_.CommandsData_()
-  const errors = bgCommandsData_.errors_,
-  msg = errors ? formatCmdErrors_(errors) : ""
-  if (asyncBackend_.contentPayload_.l && !msg) {
-    let str = Object.keys(bgCommandsData_.keyFSM_).join(""), mapKey = bgCommandsData_.mappedKeyRegistry_
-    str += mapKey ? Object.keys(mapKey).join("") : ""
-    if ((<RegExpOne> /[^ -\xff]/).test(str)) {
-      this.showError_(oTrans_("ignoredNonEN"), null)
-      return
-    }
-  }
-  this.showError_(msg)
+export const onKeyMappingsError = (err: string | true): void => {
+  err === true ? keyMappingsOption_.showError_(oTrans_("ignoredNonEN"), null)
+  : keyMappingsOption_.showError_(err)
 }
+void post_(kPgReq.keyMappingErrors).then(onKeyMappingsError)
 
 const linkHintCharactersOption_ = Option_.all_.linkHintCharacters
 const linkHintNumbersOption_ = Option_.all_.linkHintNumbers
@@ -537,8 +541,8 @@ filterLinkHintsOption_.onSave_ = function (): void {
     const enableFilterLinkHints = filterLinkHintsOption_.readValueFromElement_() // also used during change events
     el.style.display = linkHintNumbersOption_.element_.style.display = enableFilterLinkHints ? "" : "none"
     linkHintCharactersOption_.element_.style.display = enableFilterLinkHints ? "none" : ""
-    linkHintCharactersOption_.onSave_()
-    linkHintNumbersOption_.onSave_()
+    void linkHintCharactersOption_.onSave_()
+    void linkHintNumbersOption_.onSave_()
   }, $("#waitForEnterBox"))
 }
 
@@ -547,7 +551,7 @@ Option_.all_.ignoreKeyboardLayout.onSave_ = function (): void {
 }
 
 Option_.all_.vomnibarPage.onSave_ = function (): void {
-  let {element_: element2} = this, url: string = this.previous_
+  const {element_: element2} = this, url: string = this.previous_
     , isExtPage = url.startsWith(location.protocol) || url.startsWith("front/")
   if (OnChrome && Build.MinCVer < BrowserVer.Min$tabs$$executeScript$hasFrameIdArg
       && CurCVer_ < BrowserVer.Min$tabs$$executeScript$hasFrameIdArg) {
@@ -558,7 +562,6 @@ Option_.all_.vomnibarPage.onSave_ = function (): void {
           : oTrans_("onlyExtVomnibar", [BrowserVer.Min$tabs$$executeScript$hasFrameIdArg])
         , null)
   }
-  url = asyncBackend_.settingsCache_.vomnibarPage_f || url // for the case Chrome is initing
   if (isExtPage) { this.showError_("") }
   // Note: the old code here thought on Firefox web pages couldn't be used, but it was just because of wrappedJSObject
   else if (url.startsWith("file:")) {
@@ -570,29 +573,9 @@ Option_.all_.vomnibarPage.onSave_ = function (): void {
   }
 }
 
-Option_.all_.newTabUrl.checker_ = {
-  status_: 0,
-  check_ (value): string {
-    let url = (<RegExpI> /^\/?pages\/[a-z]+.html\b/i).test(value)
-        ? browser_.runtime.getURL(value) : asyncBackend_.convertToUrl_(value.toLowerCase())
-    url = url.split("?", 1)[0].split("#", 1)[0]
-    if (OnFirefox) {
-      let err = ""
-      if ((<RegExpI> /^chrome|^(javascript|data|file):|^about:(?!(newtab|blank)\/?$)/i).test(url)) {
-        err = oTrans_("refusedURLs", [url])
-        console.log("newTabUrl checker:", err)
-      }
-      Option_.all_.newTabUrl.showError_(err)
-    }
-    return !value.startsWith("http") && (asyncBackend_.newTabUrls_.get(url) === Urls.NewTabType.browser
-      || (<RegExpI> /^(?!http|ftp)[a-z\-]+:\/?\/?newtab\b\/?/i).test(value)
-      ) ? bgSettings_.defaults_.newTabUrl : value
-  }
-}
-
 Option_.all_.userDefinedCss.onSave_ = function () {
   if (!this.element_.classList.contains("debugging")) { return }
-  setTimeout(function () {
+  nextTick_((): void => {
     const root = VApi!.y().r
     for (const frame of $$<HTMLIFrameElement>("iframe", root)) {
       const isFind = frame.classList.contains("HUD"),
@@ -604,6 +587,10 @@ Option_.all_.userDefinedCss.onSave_ = function () {
         style.classList.remove("debugged")
       }
     }
-    Option_.all_.userDefinedCss.element_.classList.remove("debugging")
-  }, 500)
+    this.element_.classList.remove("debugging")
+  })
+}
+
+Option_.all_.autoReduceMotion.onSave_ = function (): void {
+  nextTick_(() => { toggleReduceMotion(this.previous_) })
 }

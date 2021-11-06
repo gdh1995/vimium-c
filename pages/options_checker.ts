@@ -1,6 +1,7 @@
-import { BG_, bgSettings_, $$, asyncBackend_ } from "./async_bg"
-import { Option_, AllowedOptions, KnownOptionsDataset, oTrans_ } from "./options_base"
+import { $$, browser_, OnFirefox, post_ } from "./async_bg"
+import { bgSettings_, Option_, AllowedOptions, KnownOptionsDataset, oTrans_ } from "./options_base"
 import { loadChecker } from "./options_wnd"
+import { kPgReq } from "../background/page_messages"
 
 let keyMappingChecker_ = {
   status_: 0 as const,
@@ -129,27 +130,41 @@ keyMappingChecker_ = null as never;
 
 Option_.all_.searchUrl.checker_ = {
   status_: 0,
-  check_ (str): string {
-    const map = new (BG_ as unknown as typeof globalThis).Map<string, Search.RawEngine>()
+  check_: (str): Promise<string> => post_(kPgReq.checkSearchUrl, str).then((obj): string | Promise<string> => {
     const opt = Option_.all_.searchUrl
-    asyncBackend_.parseSearchEngines_("k:" + str, map)
-    const obj = map.get("k")
     if (obj == null) {
       return opt.innerFetch_()
     }
-    let str2 = asyncBackend_.convertToUrl_(obj.url_, null, Urls.WorkType.KeepAll)
-    if (asyncBackend_.lastUrlType_() > Urls.Type.MaxOfInputIsPlainUrl) {
-      const err = oTrans_("nonPlainURL", [obj.url_]);
+    let str2 = obj[1]
+    if (!obj[0]) {
+      const err = oTrans_("nonPlainURL", [str2]);
       console.log("searchUrl checker:", err);
       opt.showError_(err)
       return opt.innerFetch_()
     }
-    str2 = str2.replace(<RegExpG> /\s+/g, "%20")
-    if (obj.name_ && obj.name_ !== "k") { str2 += " " + obj.name_; }
     opt.showError_("")
     return str2;
-  }
+  })
 };
+
+Option_.all_.newTabUrl.checker_ = {
+  status_: 0,
+  check_: (value): Promise<string> => post_(kPgReq.checkNewTabUrl, (<RegExpI> /^\/?pages\/[a-z]+.html\b/i).test(value)
+      ? browser_.runtime.getURL(value) : value.toLowerCase()).then(([url, type]): string => {
+    url = url.split("?", 1)[0].split("#", 1)[0]
+    if (OnFirefox) {
+      let err = ""
+      if ((<RegExpI> /^chrome|^(javascript|data|file):|^about:(?!(newtab|blank)\/?$)/i).test(url)) {
+        err = oTrans_("refusedURLs", [url])
+        console.log("newTabUrl checker:", err)
+      }
+      Option_.all_.newTabUrl.showError_(err)
+    }
+    return !value.startsWith("http") && (type === Urls.NewTabType.browser
+      || (<RegExpI> /^(?!http|s?ftp)[a-z\-]+:\/?\/?newtab\b\/?/i).test(value)
+      ) ? bgSettings_.defaults_.newTabUrl : value
+  })
+}
 
 Option_.all_.vimSync.allowToSave_ = function (): boolean {
   const newlyEnableSyncing = !this.saved_ && this.readValueFromElement_() === true;

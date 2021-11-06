@@ -1,9 +1,47 @@
-import {
-  $, OnEdge, browser_, OnFirefox, OnChrome, nextTick_, CurCVer_, IsEdg_, bgSettings_, asyncBackend_
-} from "./async_bg"
-import { Option_, KnownOptionsDataset, oTrans_ } from "./options_base"
-import { registerClass, createNewOption } from "./options_defs"
+import { kPgReq } from "../background/page_messages"
+import { $, OnEdge, browser_, OnFirefox, OnChrome, nextTick_, CurCVer_, IsEdg_, post_ } from "./async_bg"
+import { Option_, KnownOptionsDataset, oTrans_, bgSettings_ } from "./options_base"
+import { registerClass, createNewOption, TextOption_ } from "./options_defs"
 import kPermissions = chrome.permissions.kPermissions
+
+type AllowedApi = "contains" | "request" | "remove"
+
+//#region Api wrapper
+type PromisifyApi1<F> = F extends ((...args: [...infer A, (res: infer R, ex?: FakeArg) => void]) => void | 1)
+    ? (...args: A) => Promise<ExtApiResult<R>> : never
+type PromisifyApi<F extends Function> =
+    F extends { (...args: infer A1) : infer R1; (...args: infer A2): infer R2 }
+    ? PromisifyApi1<(...args: A1) => R1> | PromisifyApi1<(...args: A2) => R2>
+    : PromisifyApi1<F>
+// When loading Vimium C on Chrome 60 startup using scripts/chrome2.sh, an options page may have no chrome.permissions
+const _rawPermissionAPI = OnEdge ? null as never : browser_.permissions
+const wrapApi = ((funcName: AllowedApi): Function => {
+  if (!_rawPermissionAPI) {
+    return function () {
+      return post_(kPgReq.callApi, { module: "permissions", name: funcName, args: [].slice.call(arguments) })
+    }
+  }
+  const func = _rawPermissionAPI[funcName as "contains"] as (args: unknown[]) => void | Promise<unknown>
+  return function () {
+    const arr: unknown[] = [].slice.call(arguments)
+    if (!OnChrome) {
+      return (func.apply(_rawPermissionAPI, arr as any) as Promise<unknown>).then(i => [i, void 0]
+          , err => [void 0, err as { message?: unknown}])
+    }
+    return new Promise<ExtApiResult<unknown>>((resolve): void => {
+      arr.push((res: unknown): void => {
+        const err = browser_.runtime.lastError as unknown
+        resolve(err ? [void 0, err as { message?: unknown }] : [res, void 0])
+        return err as void
+      })
+      func.apply(_rawPermissionAPI, arr as any)
+    })
+  }
+}) as <T extends AllowedApi> (funcName: T) => PromisifyApi<typeof chrome.permissions[T]>
+const browserPermissions_ = OnEdge ? null as never : {
+  contains: wrapApi("contains"), request: wrapApi("request"), remove: wrapApi("remove")
+}
+//#endregion
 
 interface PermissionItem { name_: kPermissions; previous_: 0 | 1 | 2; element_: HTMLInputElement }
 
@@ -13,14 +51,14 @@ const i18nItems = {
   [kNTP]: "opt_cNewtab",
   [kShelf]: "opt_closeShelf"
 } as const
-const placeholder = $<HTMLTemplateElement & EnsuredMountedHTMLElement>("#optionalPermissionsTemplate")
-const template = placeholder.content.firstElementChild as HTMLElement
+const placeholder = <true> !OnEdge && $<HTMLTemplateElement & EnsuredMountedHTMLElement>("#optionalPermissionsTemplate")
+const template = <true> !OnEdge && placeholder.content.firstElementChild as HTMLElement
+const container = <true> !OnEdge && placeholder.parentElement
 const shownItems: PermissionItem[] = []
-const container = placeholder.parentElement
-const browserPermissions_ = browser_.permissions
-let optional_permissions = (!OnEdge && browser_.runtime.getManifest().optional_permissions || []) as kPermissions[]
+export const manifest = browser_.runtime.getManifest() as Readonly<chrome.runtime.Manifest>
+let optional_permissions = (!OnEdge && manifest.optional_permissions || []) as readonly kPermissions[]
 
-registerClass("OptionalPermissions", class extends Option_<"nextPatterns"> {
+export class OptionalPermissionsOption_ extends Option_<"nextPatterns"> {
   override init_ (): void { this.element_.onchange = this.onUpdated_ }
   override readValueFromElement_ = (): string => shownItems.map(
       i => i.element_.checked ? i.element_.indeterminate ? "1" : "2" : "0").join("")
@@ -31,7 +69,7 @@ registerClass("OptionalPermissions", class extends Option_<"nextPatterns"> {
       shownItems[i].element_.indeterminate = value[i] === "1"
     }
   }
-  override executeSave_ (wanted_value: string): string {
+  override executeSave_ (wanted_value: string): Promise<string> {
     const new_permissions: kPermissions[] = [], new_origins: kPermissions[] = []
     const changed: { [key in kPermissions]?: PermissionItem } = {}
     let waiting = 1
@@ -42,8 +80,8 @@ registerClass("OptionalPermissions", class extends Option_<"nextPatterns"> {
       const orig2: kPermissions | "" = i.name_ === kNTP ? "chrome://newtab/*" : ""
       i.previous_ = wanted
       if (i.name_ === kCrURL) {
-        if (bgSettings_.get_("allBrowserUrls") !== (wanted === 2)) {
-          bgSettings_.set_("allBrowserUrls", wanted === 2)
+        if (<boolean> bgSettings_.get_("allBrowserUrls") !== (wanted === 2)) {
+          void bgSettings_.set_("allBrowserUrls", wanted === 2)
         }
       }
       if (wanted) {
@@ -55,29 +93,24 @@ registerClass("OptionalPermissions", class extends Option_<"nextPatterns"> {
         waiting++
         browserPermissions_.remove(i.name_.includes(":") ? { origins: orig2 ? [i.name_, orig2] : [i.name_] } : {
           permissions: i.name_ === kShelf ? ["downloads", i.name_] : [i.name_]
-        }, (ok): void => {
-          const err = browser_.runtime.lastError as any
-          (err || !ok) && console.log("Can not remove the permission %o :", i.name_, err && err.message || err)
+        }).then(([ok, err]): void => {
+          const msg1 = "Can not remove the permission %o :", msg2 = err && err.message || err;
+          (err || !ok) && console.log(msg1, i.name_, msg2)
+          const box = i.element_.parentElement as Element as EnsuredMountedHTMLElement
+          TextOption_.showError_(err ? msg1.replace("%o", i.name_) + msg2 : "", void 0, box)
           tryRefreshing()
-          return err
         })
       }
     }
-    const cb = (arr: kPermissions[], ok?: boolean): void => {
-      const err = browser_.runtime.lastError as any
+    const cb = (arr: kPermissions[], [ok, err]: ExtApiResult<boolean>): void => {
       (err || !ok) && console.log("Can not request permissions of %o :", arr, err && err.message || err)
       if (!ok) {
         for (const name of arr) {
           const item = changed[name]
-          item && (item.previous_ = 0)
-          if (!item || !err) { return }
+          if (!item) { continue }
+          item.previous_ = 0
           const box = item.element_.parentElement as Element as EnsuredMountedHTMLElement
-          let errEl = box.nextElementSibling as HTMLElement | null
-          if (!errEl || !errEl.classList.contains("tip")) {
-            errEl = document.createElement("div")
-            errEl.className = "tip"
-            box.parentElement.insertBefore(errEl, box.nextElementSibling)
-          }
+          if (!err) { return TextOption_.showError_("", void 0, box)  }
           let msg = (err && err.message || JSON.stringify(err)) + ""
           if (name.startsWith("chrome://") && msg.includes("Only permissions specified in the manifest")) {
             if (name.startsWith("chrome:")) {
@@ -85,33 +118,34 @@ registerClass("OptionalPermissions", class extends Option_<"nextPatterns"> {
               msg = IsEdg_ ? msg.replace("chrome:", "edge:") : msg
             }
           }
-          errEl.textContent = box.title = oTrans_("exc") + msg
-          box.lastElementChild.classList.add("has-error")
+          msg = oTrans_("exc") + msg
+          TextOption_.showError_(msg, void 0, box)
+          nextTick_((): void => { box.title = msg })
         }
-        this.fetch_()
+        void this.fetch_()
       }
       tryRefreshing()
-      return err
     }
     const tryRefreshing = (): void => {
       waiting--
       if (waiting > 0) { return }
-      Promise.all(shownItems.map(doPermissionsContain_)).then(() => {
-        this.fetch_()
+      void Promise.all(shownItems.map(doPermissionsContain_)).then(() => {
+        void this.fetch_()
       })
     }
     waiting += (new_permissions.length && 1) + (new_origins.length && 1)
-    new_permissions.length && browserPermissions_.request({ permissions: new_permissions }
-        , cb.bind(0, new_permissions))
-    new_origins.length && browserPermissions_.request({ origins: new_origins }, cb.bind(0, new_origins))
+    new_permissions.length &&
+        browserPermissions_.request({ permissions: new_permissions }).then(cb.bind(0, new_permissions))
+    new_origins.length && browserPermissions_.request({ origins: new_origins }).then(cb.bind(0, new_origins))
     tryRefreshing()
-    return wanted_value
+    return Promise.resolve(wanted_value)
   }
-})
+}
+OnEdge || registerClass("OptionalPermissions", OptionalPermissionsOption_)
 
 const initOptionalPermissions = (): void => {
   const fragment = document.createDocumentFragment()
-  if (OnFirefox && asyncBackend_.contentPayload_.o === kOS.unixLike) {
+  if (OnFirefox && bgSettings_.os_ === kOS.unixLike) {
     template.querySelector("input")!.classList.add("baseline")
   }
   let itemInd = 0
@@ -150,16 +184,15 @@ const doPermissionsContain_ = (item: PermissionItem): Promise<void> => {
   const name = item.name_
   let resolve: () => void, p = new Promise<void>(curResolve => { resolve = curResolve })
   browserPermissions_.contains(name.includes(":") ? { origins: [name] }
-      : { permissions: name === kShelf ? ["downloads", name] : [name] }, (result): void => {
+      : { permissions: name === kShelf ? ["downloads", name] : [name] }).then(([result]): void => {
     if (OnChrome && Build.MinCVer < BrowserVer.MinCorrectExtPermissionsOnChromeURL$NewTabPage
         && CurCVer_ < BrowserVer.MinCorrectExtPermissionsOnChromeURL$NewTabPage
         && name === "chrome://new-tab-page/*") {
       result = false
     }
-    const val = result ? item.name_ !== kCrURL || bgSettings_.get_("allBrowserUrls") ? 2 : 1 : 0
+    const val = result ? item.name_ !== kCrURL || <boolean> bgSettings_.get_("allBrowserUrls") ? 2 : 1 : 0
     item.previous_ = val
     resolve()
-    return browser_.runtime.lastError
   })
   return p
 }

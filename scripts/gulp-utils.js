@@ -520,7 +520,8 @@ exports.makeTasks = function (Tasks) {
     }
     if (typeof task[1] === "function" || task[0] instanceof Array) {
       gulp.task(key, Tasks[key] =
-          gulp.series(task[0] instanceof Array ? gulp.parallel(...task[0]) : task[0], task[1]));
+          gulp.series(task[0] instanceof Array ? gulp.parallel(...task[0]) : task[0]
+              , task[1] instanceof Array ? gulp.parallel(...task[1]) : task[1]))
     } else {
       gulp.task(key, task.length === 1 && typeof Tasks[task[0]] === "function" ? Tasks[task[0]]
           : gulp.parallel(...task));
@@ -528,8 +529,15 @@ exports.makeTasks = function (Tasks) {
   }
 }
 
+function getNameCacheFilePath(path) {
+  if (path.indexOf(".cache") >= 0 ) {
+    return path;
+  }
+  return osPath.join(JSDEST, ".names-" + path.replace("min/", "") + ".cache");
+}
+
 exports.checkJSAndMinifyAll = function (taskOrder, maps, key, exArgs, cb
-    , jsmin_status, debugging, getNameCacheFilePath, cacheNames) {
+    , jsmin_status, debugging, cacheNames) {
   Promise.all(maps.map(function(i) {
     if (debugging) { return true; }
     var is_file = i[1] && i[1] !== ".";
@@ -537,10 +545,10 @@ exports.checkJSAndMinifyAll = function (taskOrder, maps, key, exArgs, cb
   })).then(function(all) {
     var isNewer = false;
     for (var i = 0; i < all.length; i++) { if (all[i]) { isNewer = true; break; } }
-    if (!isNewer && exArgs.nameCache && "timestamp" in exArgs.nameCache && cacheNames) {
+    if (!isNewer && exArgs.nameCache && cacheNames) {
       var path = getNameCacheFilePath(key);
       var stat = fs.existsSync(path) ? fs.statSync(path) : null;
-      if (!stat || +stat.mtime < exArgs.nameCache.timestamp - 4) {
+      if (!stat || +stat.mtime < (exArgs.nameCache.timestamp || 0) - 4) {
         isNewer = true;
       }
     }
@@ -562,7 +570,7 @@ exports.checkJSAndMinifyAll = function (taskOrder, maps, key, exArgs, cb
     }
     gulp.series(...tasks)(function(err) {
       jsmin_status[taskOrder] = true;
-      saveNameCacheIfNeeded(key, exArgs.nameCache, cacheNames, getNameCacheFilePath);
+      saveNameCacheIfNeeded(key, exArgs.nameCache, cacheNames)
       cb(err);
     });
   });
@@ -588,20 +596,8 @@ exports.minifyJSFiles = function (path, output, exArgs) {
   var is_file = output.endsWith(ext);
 
   if (!exArgs.passAll) {
-    const newerTransform = newer(is_file ? {
-      extra: exArgs.nameCachePath || null,
-      dest: osPath.join(DEST, output)
-    } : exArgs.nameCache ? {
-      dest: DEST,
-      ext: ext,
-      extra: exArgs.passAll === false ? exArgs.nameCachePath || null
-        : (exArgs.nameCachePath && path.push(exArgs.nameCachePath), path)
-    } : {
-      dest: DEST,
-      extra: exArgs.nameCachePath || null,
-      ext: ext
-    });
-    if (!is_file && exArgs.nameCachePath && exArgs.passAll !== false) {
+    const newerTransform = newer(is_file ? { dest: osPath.join(DEST, output) } : { dest: DEST, ext })
+    if (!is_file && exArgs.nameCache) {
       if (!("_bufferedFiles" in newerTransform)) {
         throw new Error("This version of `gulp-newer` is unsupported!");
       }
@@ -719,7 +715,7 @@ exports.parseBuildEnv = function (key, literalVal) {
   return newVal
 }
 
-function saveNameCacheIfNeeded(key, nameCache, cacheNames, getNameCacheFilePath) {
+function saveNameCacheIfNeeded(key, nameCache, cacheNames) {
   if (nameCache && cacheNames) {
     nameCache.timestamp = 0;
     const path = getNameCacheFilePath(key);
@@ -735,14 +731,6 @@ function saveNameCacheIfNeeded(key, nameCache, cacheNames, getNameCacheFilePath)
     fs.writeFileSync(path, JSON.stringify(nameCache));
     print("Saved nameCache for " + key.replace("min/", ""));
   }
-}
-
-exports.loadNameCache = function (path, cacheNames, getNameCacheFilePath) {
-  var nameCache = cacheNames ? dependencies.readJSON(getNameCacheFilePath(path), false) : null;
-  if (nameCache) {
-    print("Loaded nameCache of " + path);
-  }
-  return nameCache || { vars: {}, props: {}, timestamp: 0 };
 }
 
 var randMap, _randSeed;

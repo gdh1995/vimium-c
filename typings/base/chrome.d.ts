@@ -747,12 +747,14 @@ declare namespace chrome.extension {
     var lastError: LastError;
 
     /** Returns the JavaScript 'window' object for the background page running inside the current extension. Returns null if the extension has no background page. */
-    export function getBackgroundPage(): Window | null;
+    // export function getBackgroundPage(): Window | null;
+
     /**
      * Converts a relative path within an extension install directory to a fully-qualified URL.
      * @param path A path to a resource within an extension expressed relative to its install directory.
      */
-    export function getURL(path: string): string;
+    // export function getURL(path: string): string;
+
     /**
      * Sets the value of the ap CGI parameter used in the extension's update URL. This value is ignored for extensions that are hosted in the Chrome Extension Gallery.
      * Since Chrome 9.
@@ -1556,7 +1558,8 @@ declare namespace chrome.runtime {
      */
     export function connectNative(application: string): Port;
     /** Retrieves the JavaScript 'window' object for the background page running inside the current extension/app. If the background page is an event page, the system will ensure it is loaded before calling the callback. If there is no background page, an error is set. */
-    export function getBackgroundPage(callback: (backgroundPage?: Window) => void): 1;
+    // export function getBackgroundPage(callback: (backgroundPage?: Window) => void): 1;
+
     /**
      * Returns details about the app or extension from the manifest. The object returned is a serialization of the full manifest file.
      * @returns The manifest details.
