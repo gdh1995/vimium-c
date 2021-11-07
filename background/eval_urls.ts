@@ -1,15 +1,13 @@
 import {
   set_evalVimiumUrl_, copy_, evalVimiumUrl_, substitute_, paste_, cPort, curTabId_, framesForTab_, needIcon_, setIcon_,
-  set_cPort, set_cEnv
+  set_cPort, settingsCache_
 } from "./store"
-import { decodeEscapedURL_, safer_, spacesRe_, DecodeURLPart_ } from "./utils"
+import { decodeEscapedURL_, spacesRe_, DecodeURLPart_ } from "./utils"
 import { convertToUrl_, lastUrlType_, createSearchUrl_, quotedStringRe_ } from "./normalize_urls"
 import { parseSearchUrl_ } from "./parse_urls"
 import { getPortUrl_, showHUD } from "./ports"
 import * as Exclusions from "./exclusions"
 import { trans_ } from "./i18n"
-import { executeCommand } from "./run_commands"
-import { makeCommand_ } from "./key_mappings"
 
 let _nestedEvalCounter = 0
 
@@ -45,14 +43,10 @@ set_evalVimiumUrl_(function (path: string, workType?: Urls.WorkType, onlyOnce?: 
     return [path, Urls.kEval.ERROR];
   } }
   else if (workType >= Urls.WorkType.ActAnyway) { switch (cmd) {
+  case "urls":
+    return callOpenUrls(path)
   case "run":
-    set_cEnv(null)
-    const frames = framesForTab_.get(curTabId_)
-    setTimeout((): void => {
-      executeCommand(makeCommand_(AsC_("runKey"), safer_({ keys: [path] }))!, 1, kKeyCode.None
-          , frames ? frames.cur_ : null, 0, null)
-    }, 0)
-    return [path, Urls.kEval.run]
+    return [["run", path], Urls.kEval.run]
   case "status": case "state":
     if (workType >= Urls.WorkType.EvenAffectStatus) {
       /*#__NOINLINE__*/ forceStatus_(path as Frames.ForcedStatusText)
@@ -284,4 +278,20 @@ const forceStatus_ = (act: Frames.ForcedStatusText): void => {
   if (needIcon_ && newStatus !== oldStatus) {
     setIcon_(tabId, newStatus);
   }
+}
+
+const callOpenUrls = (path: string): Urls.Url => {
+  const ind = path.indexOf(":") + 1 || path.indexOf(" ") + 1
+  if (ind <= 0) {
+    return ["No search engines given", Urls.kEval.ERROR]
+  }
+  const keys = path.slice(0, ind - 1).split(path.lastIndexOf(" ", ind - 1) >= 0 ? " " : "|")
+      .filter(i => settingsCache_.searchEngineMap.has(i))
+  if (keys.length <= 0) {
+    return ["No valid search engines found", Urls.kEval.ERROR]
+  }
+  const query = path.slice(ind).split(" ")
+  const urls = keys.map((keyword): string => createSearchUrl_(query, keyword, Urls.WorkType.Default))
+  urls.unshift("openUrl")
+  return [urls, Urls.kEval.run]
 }

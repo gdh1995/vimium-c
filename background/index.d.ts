@@ -55,6 +55,7 @@ declare namespace Urls {
   interface StatusEvalResult extends BasePlainEvalResult<kEval.status> {
     readonly [0]: Frames.ForcedStatusText;
   }
+  interface RunEvalResult extends Urls.BasePlainEvalResult<Urls.kEval.run> { readonly [0]: string[] }
 
   type EvalArrayResultWithSideEffects = CopyEvalResult;
 

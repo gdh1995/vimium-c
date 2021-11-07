@@ -1,5 +1,5 @@
 import {
-  framesForTab_, cPort, cRepeat, get_cOptions, set_cOptions, set_cPort, set_cRepeat, set_lastWndId_,
+  framesForTab_, cPort, cRepeat, get_cOptions, set_cOptions, set_cPort, set_cRepeat, set_lastWndId_, set_cEnv,
   lastWndId_, curIncognito_, curTabId_, curWndId_, recencyForTab_, settingsCache_, OnFirefox, OnChrome, OnEdge,
   CurCVer_, IsEdg_, paste_, substitute_, newTabUrls_, contentPayload_, CONST_, shownHash_, set_shownHash_,
 } from "./store"
@@ -14,9 +14,10 @@ import { findUrlInText_ } from "./parse_urls"
 import { safePost, showHUD, complainLimits, findCPort, isNotVomnibarPage } from "./ports"
 import { createSimpleUrlMatcher_, matchSimply_ } from "./exclusions"
 import { trans_ } from "./i18n"
+import { makeCommand_ } from "./key_mappings"
 import {
   copyCmdOptions, runNextCmdBy, parseFallbackOptions, replaceCmdOptions, overrideOption, runNextCmd,
-  overrideCmdOptions, runNextOnTabLoaded
+  overrideCmdOptions, runNextOnTabLoaded, executeCommand
 } from "./run_commands"
 import { parseSedOptions_ } from "./clipboard"
 import { Marks_ } from "./tools"
@@ -131,7 +132,19 @@ const onEvalUrl_ = (workType: Urls.WorkType, options: KnownOptions<C.openUrl>, t
     }
     break
   case Urls.kEval.run:
-    runNextCmdBy(1, options as {})
+    const cmd = (arr as Urls.RunEvalResult)[0]
+    const curOpts = get_cOptions<C.openUrl>(), curTab = curTabId_
+    setTimeout((): void => {
+      const frames = framesForTab_.get(curTab)
+      const opts: KnownOptions<C.runKey> & SafeObject = BgUtils_.safer_(cmd[0] === "run" ? { keys: [cmd[1]] }
+          : { keys: [cmd[0]], "o.urls": cmd.slice(1) })
+      curOpts && copyCmdOptions(opts, curOpts)
+      delete (opts as KnownOptions<C.openUrl>).url
+      delete (opts as KnownOptions<C.openUrl>).url_f
+      delete (opts as KnownOptions<C.openUrl>).copied
+      set_cEnv(null)
+      executeCommand(makeCommand_(AsC_("runKey"), opts)!, 1, kKeyCode.None, frames ? frames.cur_ : null, 0, null)
+    }, 0)
     break
   }
 }
