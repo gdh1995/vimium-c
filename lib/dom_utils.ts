@@ -398,9 +398,9 @@ export const getMediaUrl = (element: HTMLImageElement | SafeHTMLElement, isMedia
 }
 
 /** not return `<body>` or `<html>` */
-export const deepActiveEl_unsafe_ = (): Element | null => {
+export const deepActiveEl_unsafe_ = (alsoBody?: 1): Element | null => {
   let el: Element | null | undefined = activeEl_unsafe_()
-  let active: Element | null | undefined, shadowRoot: ShadowRoot | null
+  let active: Element | null | undefined = alsoBody && (el || docEl_unsafe_()), shadowRoot: ShadowRoot | null
   if (el !== doc.body && el !== docEl_unsafe_()) {
     while (el && (shadowRoot = GetShadowRoot_(active = el))) {
       el = shadowRoot.activeElement

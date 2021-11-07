@@ -133,15 +133,16 @@ const onEvalUrl_ = (workType: Urls.WorkType, options: KnownOptions<C.openUrl>, t
     break
   case Urls.kEval.run:
     const cmd = (arr as Urls.RunEvalResult)[0]
-    const curOpts = get_cOptions<C.openUrl>(), curTab = curTabId_
+    const curTab = curTabId_
+    if (cmd[0] === "openUrls") {
+      replaceCmdOptions<C.openUrl>(options)
+      overrideCmdOptions<C.openUrl>({ urls: cmd.slice(1), url: null, url_f: null, copied: null }, true)
+      getCurTab(openUrls)
+      return
+    }
     setTimeout((): void => {
       const frames = framesForTab_.get(curTab)
-      const opts: KnownOptions<C.runKey> & SafeObject = BgUtils_.safer_(cmd[0] === "run" ? { keys: [cmd[1]] }
-          : { keys: [cmd[0]], "o.urls": cmd.slice(1) })
-      curOpts && copyCmdOptions(opts, curOpts)
-      delete (opts as KnownOptions<C.openUrl>).url
-      delete (opts as KnownOptions<C.openUrl>).url_f
-      delete (opts as KnownOptions<C.openUrl>).copied
+      const opts: KnownOptions<C.runKey> & SafeObject = BgUtils_.safer_({ keys: [cmd[1]] })
       set_cEnv(null)
       executeCommand(makeCommand_(AsC_("runKey"), opts)!, 1, kKeyCode.None, frames ? frames.cur_ : null, 0, null)
     }, 0)

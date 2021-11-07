@@ -27,9 +27,7 @@ import { createMark, gotoMark } from "./marks"
 import {
   set_findCSS, styleInHUD, deactivate as findExit, toggleSelectableStyle, styleSelColorIn, styleSelColorOut
 } from "./mode_find"
-import {
-  exitGrab, grabBackFocus, insertInit, set_grabBackFocus, onFocus, onBlur, insert_Lock_, raw_insert_lock
-} from "./insert"
+import { exitGrab, grabBackFocus, insertInit, set_grabBackFocus, onFocus, onBlur, insert_Lock_ } from "./insert"
 import { onActivate, set_currentScrolling } from "./scroller"
 import { Status as VomnibarStatus, omni_status, omni_box } from "./omni"
 
@@ -233,7 +231,7 @@ set_requestHandlers([
     post_({ H: kFgReq.cmd, c: request.c, n, i: request.i, r: count2 });
   },
   /* kBgReq.queryForRunAs: */ (request: BgReq[kBgReq.queryForRunKey]): void => {
-    const lock = (OnFirefox ? insert_Lock_() : raw_insert_lock) || deepActiveEl_unsafe_() || doc.body
+    const lock = insert_Lock_() || deepActiveEl_unsafe_(1)
     post_({ H: kFgReq.respondForRunKey, r: request, e: getElDesc_(lock) })
   },
   /* kBgReq.goToMark: */ gotoMark,

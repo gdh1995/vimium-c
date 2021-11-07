@@ -280,18 +280,14 @@ const forceStatus_ = (act: Frames.ForcedStatusText): void => {
   }
 }
 
-const callOpenUrls = (path: string): Urls.Url => {
+const callOpenUrls = (path: string): Urls.ErrorEvalResult | Urls.RunEvalResult => {
   const ind = path.indexOf(":") + 1 || path.indexOf(" ") + 1
-  if (ind <= 0) {
-    return ["No search engines given", Urls.kEval.ERROR]
-  }
+  if (ind <= 0) { return ["No search engines given", Urls.kEval.ERROR] }
   const keys = path.slice(0, ind - 1).split(path.lastIndexOf(" ", ind - 1) >= 0 ? " " : "|")
       .filter(i => settingsCache_.searchEngineMap.has(i))
-  if (keys.length <= 0) {
-    return ["No valid search engines found", Urls.kEval.ERROR]
-  }
+  if (keys.length <= 0) { return ["No valid search engines found", Urls.kEval.ERROR] }
   const query = path.slice(ind).split(" ")
-  const urls = keys.map((keyword): string => createSearchUrl_(query, keyword, Urls.WorkType.Default))
-  urls.unshift("openUrl")
+  const urls: Urls.RunEvalResult[0] = ["openUrls"]
+  for (const keyword of keys) { urls.push(createSearchUrl_(query, keyword, Urls.WorkType.Default)) }
   return [urls, Urls.kEval.run]
 }

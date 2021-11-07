@@ -429,7 +429,7 @@ export const onScrolls = (event: KeyboardEventToPrevent): boolean => {
    * @param amount should not be 0
    */
 const findScrollable = (di: ScrollByY, amount: number
-    , evenOverflowHidden?: boolean | 2 | null | undefined, selectable?: string): SafeElement | null => {
+    , evenOverflowHidden?: boolean | 2 | null | undefined, scrollable?: string): SafeElement | null => {
   const selectFirst = (info: ElementScrollInfo, skipPrepare?: 1): ElementScrollInfo | null | undefined => {
     let cur_el = info.e, type: 0 | 1 | -1
     if (dimSize_(cur_el, kDim.elClientH) + 3 < dimSize_(cur_el, kDim.scrollH) &&
@@ -471,7 +471,7 @@ const findScrollable = (di: ScrollByY, amount: number
     }
     if (!element) {
       // note: twitter auto focuses its dialog panel, so it's not needed to detect it here
-      for (const arr of ((selectable || "") + ";" + VTr(kTip.scrollable)).split(";")) {
+      for (const arr of ((scrollable || "") + ";" + VTr(kTip.scrollable)).split(";")) {
         const items = arr.split("##"), re = items[0] && tryCreateRegExp(items[0])
         if (re && re.test(loc_.host)) {
           element = OnFirefox ? (safeCall(querySelector_unsafe_, items[1]) || null) as SafeElement | null

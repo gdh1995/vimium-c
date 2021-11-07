@@ -453,7 +453,7 @@ set_contentCommands_([
           (event as Writable<typeof event>).isTrusted = false
         }
         const activeEl = deref_(currentScrolling)
-            || (OnFirefox ? deepActiveEl_unsafe_() as SafeElement | null : SafeEl_not_ff_!(deepActiveEl_unsafe_()))
+            || (OnFirefox ? deepActiveEl_unsafe_(1) as SafeElement | null : SafeEl_not_ff_!(deepActiveEl_unsafe_(1)))
         const useClick = options.click
         useResult = !useClick && options.return && !!activeEl
         // earlier, in case listeners are too slow
