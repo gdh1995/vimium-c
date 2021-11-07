@@ -25,7 +25,14 @@
         }
         element.querySelector(".eventColumn").textContent = type;
         element.querySelector(".codeColumn").textContent = event.code;
-        element.querySelector(".keyColumn").textContent = event.key;
+        let key = event.key;
+        key = key ? key : key == "" : "(empty)" : "(" + key + ")";
+        if (key.trim() !== key) {
+          key = "(" + key.replace(/\s/g, function(s) {
+            return "\\u" + (s.charCodeAt() + 0x10000).toString(16).slice(1)
+          }) + ")");
+        }
+        element.querySelector(".keyColumn").textContent = key
         modifiers = [];
         if (event.ctrlKey) {
           modifiers.push("Control");
