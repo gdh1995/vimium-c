@@ -140,6 +140,7 @@ const setAndPost = (key: keyof SettingsToSync, value: any): void => {
 }
 
 const TrySet = <K extends keyof SettingsToSync>(key: K, value: SettingsToSync[K] | null): void => {
+  SetLocal(key, value)
   if (!shouldSyncKey(key) || key === keyInDownloading) { return }
   if (!to_update) {
     setTimeout(DoUpdate, 800)
@@ -368,7 +369,7 @@ const saveAllToLocal = (timeout: number): void => {
   longDelayedAction = setTimeout((): void => {
     longDelayedAction = 0
     browserStorage_.local.get((items): void => {
-      if (settings_.get_("vimSync") || !localStorage.length) { return }
+      if (!localStorage.length) { return }
       log("storage.local: backup all settings from localStorage")
       BgUtils_.safer_(items)
       for (let i = 0, end = localStorage.length; i < end; i++) {
@@ -502,10 +503,6 @@ settings_.updateHooks_.vimSync = (value): void => {
         if (OnFirefox && Object.keys(items).length === 0) { return }
         delete (items as SettingsNS.FullCache).vimSync
         log("switch to sync.cloud, when old settings data in storage.local is:", "\n" + JSON.stringify(items, null, 2))
-        longDelayedAction = setTimeout((): void => {
-          longDelayedAction = 0
-          browserStorage_.local.clear()
-        }, 8000)
       })
     }
     OnFirefox ? /*#__INLINE__*/ testLocal() : browserStorage_.local.getBytesInUse((bytesInLocal): void => {
