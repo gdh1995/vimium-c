@@ -427,9 +427,11 @@ set_reqH_([
   /** kFgReq.pages: */ (req: FgReqWithRes[kFgReq.pages], port: Frames.PagePort, msgId: number): false | Port => {
     if (port.s !== false && !port.s.url_.startsWith(location.origin + "/")) { return false }
     (import("/background/page_handlers.js" as any) as Promise<typeof import("./page_handlers")>)
-    .then((module) => Promise.all(req.c.map(i => module.onReq(i, port))))
-    .then((res): void => {
-      port.postMessage<2>(msgId ? { N: kBgReq.msg, m: msgId, r: res as unknown[] } : res as never)
+    .then((module) => Promise.all(req.q.map(i => module.onReq(i, port))))
+    .then((answers): void => {
+      const res: FgRes[kFgReq.pages] = { i: req.i, a: answers.map(i => i !== void 0 ? i : null) }
+      req = null as never
+      port.postMessage<2>(msgId ? { N: kBgReq.msg, m: msgId, r: res } : res as never)
     })
     return port as Port
   }

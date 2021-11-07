@@ -243,15 +243,11 @@ const parseErr = (err: any): NonNullable<ExtApiResult<0>[1]> => {
 
 export const onReq = (<K extends keyof PgReq> (req: Req2.pgReq<K>, port: PagePort): OrPromise<Req2.pgRes> => {
   type ReqK = keyof PgReq;
-  const res = (pageRequestHandlers_ as {
+  return (pageRequestHandlers_ as {
     [T2 in keyof PgReq]: (req: PgReq[T2][0], port: PagePort) => OrPromise<PgReq[T2][1]>
   } as {
     [T2 in keyof PgReq]: <T3 extends ReqK>(req: PgReq[T3][0], port: PagePort) => OrPromise<PgReq[T3][1]>
   })[req.n](req.q, port)
-  if (res instanceof Promise) {
-    return res.then(a => ({ i: req.i, a: a ?? null }))
-  }
-  return { i: req.i, a: res ?? null }
 }) as (req: unknown, port: PagePort) => OrPromise<Req2.pgRes>
 
 const getUnknownExt = (frames?: Frames.Frames | null): string | null => {

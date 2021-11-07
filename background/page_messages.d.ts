@@ -57,11 +57,7 @@ export interface PgReq {
 export declare namespace Req2 {
   interface pgReq<K extends keyof PgReq> {
     /** name */ n: K
-    /** message id */ i: number
     /** query body */ q: PgReq[K][0]
   }
-  interface pgRes {
-    /** message id */ i: number
-    /** query body */ a: PgReq[keyof PgReq][1]
-  }
+  type pgRes = PgReq[keyof PgReq][1]
 }

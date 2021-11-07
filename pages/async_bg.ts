@@ -69,60 +69,68 @@ const i18nDict_: Pick<Map<string, string>, "get" | "set"> = !OnChrome
   set (k: string, v: any): any { __oldI18nMap[k] = v }
 }
 
+type AnswerCallback = (answer: Req2.pgRes) => void
 let _todoMsgs = null as Req2.pgReq<keyof PgReq>[] | null
-const _todoCallbacks = {} as { [key: number]: (response: PgReq[keyof PgReq][1]) => void }
+let _ansCallbacks = null as AnswerCallback[] | null
+const _todoCallbacks = Object.create(null) as { [key: number]: AnswerCallback[] }
 let _queryId = 1
 let _tempPort = null as null | ContentNS.Port
 
 //#region async messages
 
 const onRespond = (res: FgRes[kFgReq.pages]): void => {
-  if (!Build.NDEBUG && res === false) {
+  if (res === false) {
     alert("Can not send info to the background: not trusted")
     return
   }
-  for (const { i: id, a: answer } of res as Req2.pgRes[]) {
-    const callback = _todoCallbacks[id]
-    delete _todoCallbacks[id]
-    callback(answer)
+  const callbacks = _todoCallbacks[res.i]
+  delete _todoCallbacks[res.i]
+  for (let arr = res.a as Req2.pgRes[], i = 0; i < callbacks.length; i++) {
+    callbacks[i](arr[i])
   }
+  VApi && _tempPort && Object.keys(_todoCallbacks).length === 0 && _disconnect()
 }
 
 const onDisconnect = (): void => {
   _tempPort = null
   if (!Build.NDEBUG && _todoMsgs) {
-    console.log("Error: unexpected disconnection when some messages are waiting")
+    console.log(`Error: unexpected disconnection when ${_todoMsgs.length} message(s) are waiting`)
   }
-  _todoMsgs = []
+  _todoMsgs = [], _ansCallbacks = []
   for (let id in _todoCallbacks) {
-    const callback = _todoCallbacks[id]
+    const callbacks = _todoCallbacks[id]
     delete _todoCallbacks[id]
-    try {
-      callback(null)
-    } catch { /* empty */ }
+    for (const callback of callbacks) {
+      try {
+        callback(null)
+      } catch { /* empty */ }
+    }
   }
-  _todoMsgs = null
+  _todoMsgs = _ansCallbacks = null
 }
 
 const postAll = (knownSize?: number): void => {
   if (!_todoMsgs) { return }
   const api = VApi, len = _todoMsgs.length
   if (len > (knownSize || 1)) { queueTask_(postAll.bind(null, len)); return }
-  api && _tempPort && _disconnect()
+  api && _tempPort && Object.keys(_todoCallbacks).length === 0 && _disconnect()
   if (!Build.NDEBUG && len) {
     console.log("[debug] in pages/, post_: %c%s", "color: #15c;", len > 5 ? `[${len}]`
         : _todoMsgs.map(i => i.n).join(","))
   }
-  if (knownSize === 0) { /* empty */ }
-  else if (api) {
-    api.r[0]<kFgReq.pages>(kFgReq.pages, { c: _todoMsgs }, onRespond)
+  if (knownSize === 0) { _todoMsgs = _ansCallbacks = null; return }
+  const id = _queryId++
+  _todoCallbacks[id] = _ansCallbacks!
+  _ansCallbacks = null
+  if (api) {
+    api.r[0]<kFgReq.pages>(kFgReq.pages, { i: id, q: _todoMsgs }, onRespond)
   } else {
     if (!_tempPort) {
       _tempPort = browser_.runtime.connect({ name: "" + PortType.selfPages }) as ContentNS.Port
       _tempPort.onMessage.addListener(onRespond)
       _tempPort.onDisconnect.addListener(onDisconnect)
     }
-    _tempPort.postMessage({ H: kFgReq.pages, c: _todoMsgs })
+    _tempPort.postMessage({ H: kFgReq.pages, i: id, q: _todoMsgs })
   }
   _todoMsgs = null
 }
@@ -134,10 +142,9 @@ type SyncingItems = SettingsNS.FrontendSettingsSyncingItems
 
 export const post_ = (<T extends keyof PgReq> (action: T, messageBody: PgReq[T][0]): Promise<PgReq[T][1]> => {
   return new Promise((resolve): void => {
-    if (!_todoMsgs) { queueTask_(postAll); _todoMsgs = [] }
-    const id = _queryId++
-    _todoMsgs.push({ n: action, i: id, q: messageBody })
-    _todoCallbacks[id] = resolve
+    _todoMsgs || prepareToPostAll()
+    _todoMsgs!.push({ n: action, q: messageBody })
+    _ansCallbacks!.push(resolve)
   })
 }) as {
   <T extends keyof PgReq, K extends ExtractKeyObj<PgReq[T][0]> & keyof SyncingItems> (
@@ -151,10 +158,8 @@ export const post_ = (<T extends keyof PgReq> (action: T, messageBody: PgReq[T][
   <T extends ExtractNonNullArg<keyof PgReq>> (action: T, messageBody: PgReq[T][0]): Promise<PgReq[T][1]>
 }
 
-export const disconnect_ = (): void => {
-  _todoMsgs = _todoMsgs || []
-  queueTask_(postAll)
-}
+const prepareToPostAll = (): void => { _todoMsgs || (_todoMsgs = [], _ansCallbacks = [], queueTask_(postAll)) }
+export { prepareToPostAll as disconnect_ }
 
 const _disconnect = (): void => {
   const port = _tempPort

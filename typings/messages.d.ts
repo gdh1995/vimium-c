@@ -484,7 +484,7 @@ interface FgRes {
   [kFgReq.execInChild]: boolean;
   [kFgReq.i18n]: /** rawMessages */ string[]
   [kFgReq.wait]: 0
-  [kFgReq.pages]: unknown[] | false
+  [kFgReq.pages]: { /** id of query array */ i: number; /** answers */ a: unknown[] } | false
 }
 interface FgReqWithRes {
   [kFgReq.findQuery]: /** index */ number
@@ -669,7 +669,7 @@ interface FgReq {
   }
   [kFgReq.keyFromOmni]: { /* keySequence */ k: string; /** lastKey */ l: kKeyCode;
   } & Pick<FgReq[kFgReq.respondForRunKey], "e">
-  [kFgReq.pages]: { /** commands */ c: unknown[] }
+  [kFgReq.pages]: { /** id of query array */ i: number; /** queries */ q: unknown[] }
 }
 
 interface CurrentEnvCache {} // eslint-disable-line @typescript-eslint/no-empty-interface
