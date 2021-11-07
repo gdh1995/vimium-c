@@ -4,6 +4,24 @@ Release Notes of Vimium C
 ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 说明文档: https://gitee.com/gdh1995/vimium-c#readme , https://github.com/gdh1995/vimium-c/blob/master/README-zh.md .
 
+
+#### 1.95.0
+* Firefox: fix the Options page would break in a tab container
+  * it may causes bugs on Firefox and Chromium. For example the process of updating settings may be affected
+  * if any potential problem is found, please file a new issue on https://github.com/gdh1995/vimium-c/issues
+* fix some key handlers didn't support composed keys, like `LinkHints autoUnhover=<esc>`
+  ([325 (comment)](https://github.com/gdh1995/vimium-c/issues/325#issuecomment-954472931))
+* `LinkHints:` use `then={...}` to configure following Vomnibar / Visual Mode
+* `Scroller`: support `scrollable=host-regexp##css-selectors;hostRe2##selectors2` to select default scrollable elements
+* `.filter` of tab commands: add `limit=number|"count"` and `discarded=false`
+* `captureTab`: add `copy` and `download=false` on Firefox
+* Custom CSS: add a new section named `#find:selection` to render selection areas
+  ([#481](https://github.com/gdh1995/vimium-c/issues/481))
+* add `vimium://urls/key1|key2:query words`, to open multiple URLs in one command
+  * for example, `vimium://urls/g|bing:$S` will open Bing and Google search results
+* `dispatchEvent`: now can dispatch to `<body>` if no element is focused (still call `$else` though)
+* fix some other bugs and issues
+
 #### 1.94.0
 * `runKey` now support `mask=true|""|<placeholder>`
   * in `run <v-lh> LinkHints.activate$s mask= \n run Fq lh WithQueue`, `Fq` works like `LinkHints.activateWithQueue`
