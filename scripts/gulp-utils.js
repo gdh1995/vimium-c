@@ -630,10 +630,11 @@ exports.minifyJSFiles = function (path, output, exArgs) {
   if (!isJson) {
     stream = stream.pipe(exports.gulpMap(gulpfile.beforeTerser))
   }
-  const config = stdConfig;
+  let config = stdConfig
   if (isJson) {
     stream = stream.pipe(exports.gulpMap(exports.minifyJson))
   } else if (minifyDistPasses > 0) {
+    if (exArgs.format) { config = { ...config, format: { ...(config.format || {}), ...exArgs.format} } }
     stream = stream.pipe(exports.getGulpTerser(!!(exArgs.aggressiveMangle && config.mangle)
         , minifyDistPasses, gNoComments)(config))
     if (exArgs.aggressiveMangle) {

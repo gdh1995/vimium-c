@@ -34,6 +34,7 @@ var compilerOptions = loadValidCompilerOptions("scripts/gulp.tsconfig.json");
 var jsmin_status = [false, false, false, false, false];
 var buildOptionCache = Object.create(null);
 var outputES6 = false;
+const MaxLineLen = 120, MaxLineLen2 = 480
 gulpUtils.set_dest(DEST, JSDEST)
 set_minifier_env(willListEmittedFiles, /[\\\/](env|define)\./, 1, gNoComments, false)
 
@@ -107,7 +108,7 @@ var Tasks = {
     return copyByPath(arr, file => { ToBuffer(file, require("html-minifier").minify(ToString(file), {
       collapseWhitespace: true,
       minifyCSS: true,
-      maxLineLength: 4096
+      maxLineLength: MaxLineLen2
     })) })
   },
   "static/minify": function(cb) {
@@ -219,7 +220,7 @@ var Tasks = {
       return cb();
     }
     gulpUtils.checkJSAndMinifyAll(1, [ [manifest.background.scripts.concat(["background/*.js"]), "."] ]
-      , "min/bg", { nameCache: {} }, cb, jsmin_status, debugging, cacheNames)
+      , "min/bg", { nameCache: {}, format: { max_line_len: MaxLineLen } }, cb, jsmin_status, debugging, cacheNames)
   },
   "min/pages": function(cb) {
     if (jsmin_status[2]) {
@@ -680,6 +681,13 @@ const postTerser = exports.postTerser = async (terserConfig, file, allPaths) => 
   if (locally) {
     get();
     contents = addMetaData(file.relative, contents)
+  }
+  if (terserConfig.format && terserConfig.format.max_line_len) {
+    get()
+    const tooLong = contents.split("\n").filter(i => i.length > MaxLineLen2)
+    if (tooLong.length > 0) {
+      throw new Error(file.relative.replace(/\\/g, "/") + `: ${tooLong.length} some lines are too long`)
+    }
   }
   if (oldLen > 0 && contents.length !== oldLen) {
     ToBuffer(file, contents);
