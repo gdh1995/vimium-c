@@ -133,12 +133,12 @@ const _doUpdateState = (oldInited: typeof inited
   saveBtn2.firstChild.data = pTrans_(isSaving ? "o115_3" : same ? "o115" : "o115_2")
 }
 
-const saveOptions = (): void => {
+const saveOptions = (): void | Promise<void> => {
   if (saveBtn2.disabled) {
     return
   }
   enableNextTick_(kReadyInfo.LOCK)
-  void exclusions.save_().then((): void => {
+  return exclusions.save_().then((): void => {
   enableNextTick_(kReadyInfo.NONE, kReadyInfo.LOCK)
   inited = 3
   updateBottomLeft()
@@ -322,9 +322,17 @@ void post_(kPgReq.popupInit).then((_resolved): void => {
 
   saveBtn2.onclick = saveOptions
   document.addEventListener("keyup", function (event): void {
-    if (event.keyCode === kKeyCode.enter && (event.ctrlKey || event.metaKey)) {
-      setTimeout(window.close, 300)
-      if (!saved) { saveOptions() }
+    if (event.keyCode === kKeyCode.enter) {
+      const el = event.target as Element
+      if (el instanceof HTMLAnchorElement) {
+        el.hasAttribute("href") || setTimeout(function (el1) {
+          el1.click()
+          el1.blur()
+        }, 0, el);
+      } else if (event.ctrlKey || event.metaKey) {
+        const q = !saved && saveOptions()
+        q && q.then((): void => { setTimeout(window.close, 300) })
+      }
     }
   })
 
