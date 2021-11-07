@@ -514,9 +514,8 @@ const activateDirectly = (options: ContentOptions, count: number): void => {
     timeout_(next, count > 99 ? 1 : count && 17)
   },
   computeOffset = (): number => {
-    const cur = deref_(currentScrolling)
-    let low = 0, mid: number | undefined,
-    high = cur && IsInDOM_(cur) ? matches!.length - 1 : -1
+    const cur = deref_(currentScrolling), end = matches!.length
+    let low = 0, mid: number | undefined, high = cur && IsInDOM_(cur) ? end - 1 : -1
     while (low <= high) {
       mid = (low + high) >> 1
       const midEl = matches![mid][0]
@@ -524,7 +523,7 @@ const activateDirectly = (options: ContentOptions, count: number): void => {
       compareDocumentPosition(midEl, cur as Element) & kNode.DOCUMENT_POSITION_FOLLOWING // midEl < cur
       ? low = mid + 1 : high = mid - 1
     }
-    return low < -matchIndex ? matches!.length : low + matchIndex
+    return low < -matchIndex ? end : low + matchIndex
   }, testD = offset.includes.bind(d + "")
   let isSel: boolean | undefined
   let matches: (Hint | Hint0)[] | undefined, oneMatch: Hint | Hint0 | undefined, matchIndex: number
@@ -533,8 +532,8 @@ const activateDirectly = (options: ContentOptions, count: number): void => {
       && (matches = traverse(kSafeAllSelector, options, wholeDoc ? (hints: Hint0[], el1: SafeElement): void => {
                 isInteractiveInPage(el1) && hints.push([el1 as SafeElementForMouse])
               } : getIfOnlyVisible, 1, wholeDoc),
-          oneMatch = matches.slice((matchIndex = elIndex === "count" ? count < 0 ? count : count - 1 : +elIndex! || 0,
-              offset > "e" ? ~matchIndex : offset < "c" ? matchIndex : computeOffset()))[0])
+          matchIndex = elIndex === "count" ? count < 0 ? count : count - 1 : +elIndex! || 0,
+          oneMatch = matches.slice(offset > "e" ? ~matchIndex : offset < "c" ? matchIndex : computeOffset())[0])
       ? oneMatch[0]
       : (allTypes || testD("sel")) // selected
           && isSelARange(getSelection()) && (el = getSelectionFocusEdge_(getSelected()), isSel = !!el, el)

@@ -444,15 +444,16 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     }
     const onlyUrl = !line.t, url = line.u;
     const ind = VUtils_.ensureText_(line);
-    let str = onlyUrl ? url : VUtils_.decodeURL_(url, decodeURIComponent);
-    if (!onlyUrl && str.length === url.length && url.includes("%")) {
+    const useUrl = onlyUrl || !(<RegExpOne> /[^\x00-\x7f]/).test(line.t)
+    let str = useUrl ? url : VUtils_.decodeURL_(url, decodeURIComponent)
+    if (!useUrl && str.length === url.length && url.includes("%")) {
       // has error during decoding
       str = line.t;
       if (ind) {
         if (str.lastIndexOf("://", 5) < 0) {
           str = (ind === ProtocolType.http ? "http://" : "https://") + str;
         }
-        if (url.endsWith("/") || !str.endsWith("/")) {
+        if (url.endsWith("/") && !str.endsWith("/")) {
           str += "/";
         }
       }
