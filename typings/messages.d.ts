@@ -473,6 +473,7 @@ declare const enum SedContext {
   /** `p` */ paste = 1 << 15,
   /** `r` */ goToRoot = 1 << 17,
   /** `t` */ pageText = 1 << 19,
+  /** `u` */ pageURL = 1 << 20,
   NO_STATIC = 1 << 30,
 }
 
@@ -535,10 +536,10 @@ interface FgReq {
     /** command options with "$" */ n?: CmdOptions[kFgCmd.autoOpen]
     /** formatted-by-<a>.href */ f?: boolean;
     /** copied */ c?: boolean | "urls" | "any-urls";
-    /** incognito */ i?: boolean
     /** https */ h?: boolean | null;
-    /** a fallback of reuse, in case of `! .o.reuse` */ r?: UserReuseType
-  };
+    /** a fallback of reuse, in case of `! .o.reuse` */ r?: ReuseType
+    /** linkhints .newtab */ t?: HintsNS.Options["newtab"]
+  } & Partial<WithHintModeOptions>
   [kFgReq.searchAs]: {
     /** url */ u: string;
     /** selected text */ t: string;
@@ -563,14 +564,13 @@ interface FgReq {
   };
   [kFgReq.css]: {};
   [kFgReq.vomnibar]: ({
-    /** count */ c: 1;
-    /** url */ u: string | null
-    /** newtab */ n: boolean
+    /** url */ u: string
+    /** newtab */ t?: HintsNS.Options["newtab"]
     /** forwarded options */ f: object | string | null | undefined
     /** only use .keyword */ o: Pick<ParsedOpenPageUrlOptions, "k">
     /** redo */ r?: undefined;
-  } | {
-    /** count */ c?: undefined
+  } & WithHintModeOptions | {
+    /** url */ u?: undefined
     /** redo */ r: boolean;
   }) & {
     /** inner */ i?: boolean;
@@ -585,9 +585,9 @@ interface FgReq {
     /** sed */ e?: ParsedSedOpts | null;
     u?: undefined | "";
     /** decode */ d?: boolean;
-  } | {
+  } & Partial<WithHintModeOptions> | {
     /** url */ u: "url";
-    /** data */ s?: undefined | "";
+    /** data */ s?: undefined
     j?: undefined | null
     /** sed */ e?: ParsedSedOpts | null;
     /** decode */ d?: boolean;
@@ -625,12 +625,10 @@ interface FgReq {
   [kFgReq.openImage]: {
     /** file */ f: string | null;
     /** url */ u: string;
-    /** hint mode */ m?: HintMode
-    /** a fallback of reuse, in case of `! .o.reuse` */ r: ReuseType;
     /** other options */ o?: string;
     /** options for openUrl */ q?: ParsedOpenPageUrlOptions
     /** auto: default to true */ a?: boolean;
-  };
+  } & WithHintModeOptions
   [kFgReq.evalJSFallback]: {
     u: string
   }
@@ -665,14 +663,15 @@ interface FgReq {
     /** url */ u: string
     /** filename */ f: string | null
     /** referer */ r: string
-    /** is media */ m: boolean | BOOL
-  }
+  } & WithHintModeOptions
   [kFgReq.keyFromOmni]: { /* keySequence */ k: string; /** lastKey */ l: kKeyCode;
   } & Pick<FgReq[kFgReq.respondForRunKey], "e">
   [kFgReq.pages]: { /** id of query array */ i: number; /** queries */ q: unknown[] }
 }
 
 interface CurrentEnvCache {} // eslint-disable-line @typescript-eslint/no-empty-interface
+
+interface WithHintModeOptions { /** hint mode "w/ or w/o" queue info */ m: HintMode }
 
 interface OpenUrlOptions extends UserSedOptions {
   group?: true | null | false

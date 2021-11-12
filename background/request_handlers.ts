@@ -7,7 +7,7 @@ import * as BgUtils_ from "./utils"
 import {
   tabsUpdate, runtimeError_, selectTab, selectWnd, browserSessions_, browserWebNav_, downloadFile
 } from "./browser"
-import { parseSearchUrl_, parseUpperUrl_ } from "./parse_urls"
+import { findUrlEndingWithPunctuation_, parseSearchUrl_, parseUpperUrl_ } from "./parse_urls"
 import * as settings_ from "./settings"
 import {
   findCPort, isNotVomnibarPage, indexFrame, safePost, complainNoSession, showHUD, complainLimits, ensureInnerCSS,
@@ -261,8 +261,11 @@ set_reqH_([
     const { i: inner } = request
     set_cKey(kKeyCode.None) // it's only from LinkHints' task / Vomnibar reloading, so no Key to suppress
     if (request.u != null) {
-      const {m, t} = request, newtab = t != null ? !!t : m < HintMode.min_link_job || m > HintMode.max_link_job
-      replaceCmdOptions<kBgCmd.showVomnibar>({ url: request.u, newtab, keyword: request.o.k })
+      const {m, t} = request, isLinkJob = m >= HintMode.min_link_job && m <= HintMode.max_link_job
+      let url = request.u
+      url = isLinkJob ? findUrlEndingWithPunctuation_(url, true) : url
+      url = substitute_(url, isLinkJob ? SedContext.pageURL : SedContext.pageText)
+      replaceCmdOptions<kBgCmd.showVomnibar>({ url, newtab: t != null ? !!t : !isLinkJob, keyword: request.o.k })
       replaceForwardedOptions(request.f)
       set_cRepeat(1)
     } else if (request.r !== true) {
@@ -289,12 +292,17 @@ set_reqH_([
   /** kFgReq.copy: */ (request: FgReq[kFgReq.copy], port: Port): void => {
     let str: string | string[] | object[] | undefined
     str = request.u || request.s
+    const mode1 = request.s != null && request.m || HintMode.DEFAULT, sed = request.e
+    const correctUrl = mode1 >= HintMode.min_link_job && mode1 <= HintMode.max_link_job
+        && (!sed || sed.r !== false)
     if (request.d) {
       if (typeof str !== "string") {
         for (let i = str.length; 0 <= --i; ) {
+          correctUrl && (str[i] = findUrlEndingWithPunctuation_(str[i] + ""))
           str[i] = BgUtils_.decodeUrlForCopy_(str[i] + "")
         }
       } else {
+        correctUrl && (str = findUrlEndingWithPunctuation_(str))
         str = BgUtils_.decodeUrlForCopy_(str)
       }
     } else if (typeof str === "string") {
@@ -302,7 +310,7 @@ set_reqH_([
         str = ""
       }
     }
-    str = str && copy_(str, request.j, request.e)
+    str = str && copy_(str, request.j, sed)
     set_cPort(port)
     str = request.s && typeof request.s === "object" ? `[${request.s.length}] ` + request.s.slice(-1)[0] : str
     showHUD(request.d ? str.replace(<RegExpG & RegExpSearchable<0>> /%[0-7][\dA-Fa-f]/g, decodeURIComponent)
@@ -413,6 +421,7 @@ set_reqH_([
     }
   },
   /** kFgReq.downloadLink: */ (req: FgReq[kFgReq.downloadLink], port): void => {
+    req.u = substitute_(findUrlEndingWithPunctuation_(req.u, true), SedContext.pageURL)
     downloadFile(req.u, req.f, req.r, req.m < HintMode.DOWNLOAD_LINK ? (succeed): void => {
       succeed || reqH_[kFgReq.openImage]({ m: HintMode.OPEN_IMAGE, f: req.f, u: req.u }, port)
     } : null)

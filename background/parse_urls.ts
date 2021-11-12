@@ -1,4 +1,6 @@
-import { CONST_, contentPayload_, settingsCache_, substitute_ } from "./store"
+import {
+  CONST_, contentPayload_, CurCVer_, CurFFVer_, OnChrome, OnEdge, OnFirefox, settingsCache_, substitute_
+} from "./store"
 import * as BgUtils_ from "./utils"
 import {
   convertToUrl_, formatVimiumUrl_, lastUrlType_, removeComposedScheme_, searchVariableRe_, searchWordRe_
@@ -210,6 +212,34 @@ const upperGitUrls = (url: string, path: string): string | void | null => {
 export const findUrlInText_ = (url: string, testUrl: OpenPageUrlOptions["testUrl"] | UnknownValue): string => {
   return typeof testUrl === "string" && testUrl.toLowerCase().startsWith("whole")
     ? fixCharsInUrl_(url) : detectLinkDeclaration_(url)
+}
+
+export const findUrlEndingWithPunctuation_ = (url: string, _formatted?: boolean): string => {
+  if (!(<RegExpI> /^https?:\/\//i).test(url)) { return url }
+  let start = url.indexOf("://") + 3, end = url.indexOf("/", start)
+  const host = url.slice(start, end > 0 ? end : url.length).toLowerCase()
+  const sepMatch = (<RegExpOne> (OnEdge
+      || OnChrome && Build.MinCVer < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
+        && CurCVer_ < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
+      || OnFirefox && Build.MinFFVer < FirefoxBrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
+        && CurFFVer_ < FirefoxBrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
+      ? /[\s"(),;>}\u2014\u2018\u2019\u201c\u201d\u3002\u300b\u3011\uff08\uff09\uff1b-\uff1e]/
+      : (Build.MinCVer >= BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp || !(Build.BTypes & BrowserType.Chrome))
+      && (Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
+          || !(Build.BTypes & BrowserType.Firefox))
+      && (Build.BTypes & ~BrowserType.ChromeOrFirefox)
+      ? /\p{S}|[^\P{P}.:\uff1a%-]/u : new RegExp("\\p{S}|[^\\P{P}.:\\uff1a%-]", "u"))).exec(host)
+  if (sepMatch) { return url.slice(0, start + sepMatch.index) }
+  const percentage = host.indexOf("%", host.indexOf("@") + 1)
+  const tldInd = host.lastIndexOf(".xn--", percentage > 0 ? percentage : void 0) + 5
+  if (tldInd > 5 && (<RegExpOne> /^[a-z\d]{2}/).test(host.slice(tldInd))) {
+    const tldWithSuffix = host.slice(tldInd), mayTld = ((<RegExpOne> /^[a-z\d]+/).exec(tldWithSuffix) || [""])[0]
+    if (mayTld && mayTld.length < tldWithSuffix.length && (BgUtils_.isTld_(mayTld, true)
+        || "%-".includes(tldWithSuffix[mayTld.length]))) {
+      return url.slice(0, start + tldInd - 4) + url.substr(start + tldInd, mayTld.length)
+    }
+  }
+  return url
 }
 
 const detectLinkDeclaration_ = (str: string): string => {

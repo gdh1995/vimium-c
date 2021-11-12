@@ -10,7 +10,7 @@ import {
   Windows_, tabsCreate, openMultiTabs, selectWndIfNeed, makeWindow, browser_, Q_
 } from "./browser"
 import { convertToUrl_, createSearchUrl_, lastUrlType_, quotedStringRe_, reformatURL_ } from "./normalize_urls"
-import { findUrlInText_ } from "./parse_urls"
+import { findUrlEndingWithPunctuation_, findUrlInText_ } from "./parse_urls"
 import { safePost, showHUD, complainLimits, findCPort, isNotVomnibarPage } from "./ports"
 import { createSimpleUrlMatcher_, matchSimply_ } from "./exclusions"
 import { trans_ } from "./i18n"
@@ -697,7 +697,8 @@ export const openUrlReq = (request: FgReq[kFgReq.openUrl], port?: Port | null): 
     if (url[0] === ":" && !isWeb && (<RegExpOne> /^:[bhtwWBHdso]\s/).test(url)) {
       url = request.u = url.slice(2).trim()
     }
-    url = substitute_(url, formatted ? SedContext.NONE : !isWeb ? SedContext.omni : SedContext.pageText, sed)
+    url = testUrl ? findUrlEndingWithPunctuation_(url, formatted) : url
+    url = substitute_(url, !isWeb ? SedContext.omni : formatted ? SedContext.pageURL : SedContext.pageText, sed)
     if (formatted) {
       url = url !== request.u ? convertToUrl_(url) : url
     }
