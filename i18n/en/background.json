@@ -51,7 +51,6 @@
   "notModify": "modify #$1 option",
   "notRemoveCur": "The current tab should be kept",
   "notRestoreIfIncog": "Cannot restore a tab in incognito mode!",
-  "OpenC": "Open: ",
   "openExtSrc": "visit HTML of an extension's page",
   "openIncog": "open this URL in incognito mode",
   "quoteA": "\"$1\"",

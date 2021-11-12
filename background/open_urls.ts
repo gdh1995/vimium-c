@@ -62,11 +62,11 @@ export const parseOpenPageUrlOptions = (options: OpenPageUrlOptions): SimplePars
 })
 
 const normalizeIncognito = (incognito: OpenUrlOptions["incognito"]): boolean | null => {
-  return incognito === !!incognito ? incognito
+  return typeof incognito === "boolean" ? incognito
       : !incognito ? null
       : incognito === "force" ? true
       : incognito === "reverse" ? curIncognito_ !== IncognitoType.true
-      : incognito === "same" || incognito === "keep" ? curIncognito_ === IncognitoType.true
+      : incognito === "same" || As_<"keep">(incognito) === "keep" ? curIncognito_ === IncognitoType.true
       : null
 }
 
@@ -681,18 +681,24 @@ export const openUrlReq = (request: FgReq[kFgReq.openUrl], port?: Port | null): 
   const o2: Readonly<Partial<FgReq[kFgReq.openUrl]["o"]>> = request.o || BgUtils_.safeObj_() as {}
   const keyword = (o2.k || "") + "", testUrl = o2.t ?? !keyword
   const sed = o2.s
+  const hintMode = request.m || HintMode.DEFAULT
+  const mode1 = hintMode < HintMode.min_disable_queue ? hintMode & ~HintMode.queue : hintMode
+  const formatted = request.f != null ? request.f : mode1 === HintMode.OPEN_INCOGNITO_LINK
   opts.group = isWeb ? o2.g : true
-  opts.incognito = normalizeIncognito(o2.i) != null ? o2.i : request.i
+  opts.incognito = normalizeIncognito(o2.i) != null ? o2.i : mode1 === HintMode.OPEN_INCOGNITO_LINK
   opts.replace = o2.m
   opts.position = o2.p
-  opts.reuse = o2.r != null ? o2.r : request.r
+  opts.reuse = o2.r != null ? o2.r : !hintMode ? request.r
+      : request.t === "window" ? ReuseType.newWnd
+      : (hintMode & HintMode.queue ? ReuseType.newBg : ReuseType.newFg)
+        + (request.t === "last-window" ? ReuseType.OFFSET_LAST_WINDOW : 0)
   opts.window = o2.w
   if (url) {
     if (url[0] === ":" && !isWeb && (<RegExpOne> /^:[bhtwWBHdso]\s/).test(url)) {
-      url = url.slice(2).trim()
+      url = request.u = url.slice(2).trim()
     }
-    url = substitute_(url, request.f ? SedContext.NONE : !isWeb ? SedContext.omni : SedContext.pageText, sed)
-    if (request.f) {
+    url = substitute_(url, formatted ? SedContext.NONE : !isWeb ? SedContext.omni : SedContext.pageText, sed)
+    if (formatted) {
       url = url !== request.u ? convertToUrl_(url) : url
     }
     else if (testUrl || !isWeb) {

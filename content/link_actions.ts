@@ -99,8 +99,7 @@ const downloadOrOpenMedia = (): void => {
   if (!text) { hintApi.t({ k: kTip.notImg }) }
   else if (OnFirefox && hintOptions.keyword != null || mode1_ === HintMode.OPEN_IMAGE || /** <svg> */ !tag) {
     hintApi.p({
-      H: kFgReq.openImage, r: hintMode_ & HintMode.queue ? ReuseType.newBg : ReuseType.newFg,
-      m: mode1_, q: parseOpenPageUrlOptions(hintOptions), a: hintOptions.auto,
+      H: kFgReq.openImage, m: hintMode_, q: parseOpenPageUrlOptions(hintOptions), a: hintOptions.auto,
       f: filename, u: tag ? text && getUrlData(text) : text
     })
   } else {
@@ -112,12 +111,10 @@ const downloadOrOpenMedia = (): void => {
   }
 }
 
-const openTextOrUrl = (url: string, incognito?: boolean): void => {
-  hintApi.p({
+const openTextOrUrl = (url: string): void => {
+  evalIfOK(url) || hintApi.p({
     H: kFgReq.openUrl,
-    r: (hintMode_ & HintMode.queue ? ReuseType.newBg : ReuseType.newFg)
-       + ReuseType.OFFSET_LAST_WINDOW * <number> <number | boolean> (newtab === kLW),
-    u: url, f: incognito, i: incognito, o: parseOpenPageUrlOptions(hintOptions)
+    u: url, m: hintMode_, t: newtab, o: parseOpenPageUrlOptions(hintOptions)
   });
 }
 
@@ -248,10 +245,9 @@ const copyText = (): void => {
   if (mode1_ > HintMode.min_edit - 1 && mode1_ < HintMode.max_edit + 1) {
       hintApi.p({
         H: kFgReq.vomnibar,
-        c: 1,
         u: str,
         f: hintOptions.then,
-        n: newtab != null ? !!newtab : !isUrl,
+        m: mode1_, t: newtab,
         o: parseOpenPageUrlOptions(hintOptions)
       });
   } else if (hintOptions.richText) {
@@ -270,7 +266,7 @@ const copyText = (): void => {
       hintApi.t({ k: kTip.noNewToCopy })
     } else {
       lastYanked && lastYanked.push(str)
-      hintApi.p({ H: kFgReq.copy, j: hintOptions.join, e: parseSedOptions(hintOptions),
+      hintApi.p({ H: kFgReq.copy, j: hintOptions.join, e: parseSedOptions(hintOptions), m: mode1_,
           d: isUrl && hintOptions.decoded !== !1, s: lastYanked || str })
     }
   }
@@ -285,7 +281,7 @@ const downloadLink = (url?: string, filename?: string): void => {
   filename = filename || attr_s(clickEl, kD) || ""
   if (OnFirefox || OnChrome && hintOptions.download === "force") {
     hintApi.p({
-        H: kFgReq.downloadLink, u: url, f: filename, r: loc_.href, m: mode1_ < HintMode.DOWNLOAD_LINK
+        H: kFgReq.downloadLink, u: url, f: filename, r: loc_.href, m: mode1_
       })
       return
   }
@@ -400,7 +396,6 @@ const checkBoolOrSelector = (userVal: string | boolean | null | void | undefined
     }
     hintManager && focus()
     // tolerate new rects in some cases
-    const m = mode1_
     if (hint.m && isIFrameElement(clickEl)) {
       hintOptions.m = hintMode_;
       (hintManager || coreHints).$(1)
@@ -419,7 +414,7 @@ const checkBoolOrSelector = (userVal: string | boolean | null | void | undefined
       } else {
         focusOmni()
       }
-    } else if (m < HintMode.min_job || m === HintMode.FOCUS_EDITABLE) {
+    } else if (mode1_ < HintMode.min_job || mode1_ === HintMode.FOCUS_EDITABLE) {
       if (tag === "details") {
         const summary = findMainSummary_(clickEl as HTMLDetailsElement)
         if (summary) {
@@ -441,25 +436,24 @@ const checkBoolOrSelector = (userVal: string | boolean | null | void | undefined
       } else {
         /*#__NOINLINE__*/ defaultClick()
       }
-    } else if (m < HintMode.max_hovering + 1) {
-      m < HintMode.HOVER + 1 ? hoverEl() : retPromise = catchAsyncErrorSilently(unhover_async(clickEl))
-    } else if (m < HintMode.FOCUS + 1) {
+    } else if (mode1_ < HintMode.max_hovering + 1) {
+      mode1_ < HintMode.HOVER + 1 ? hoverEl() : retPromise = catchAsyncErrorSilently(unhover_async(clickEl))
+    } else if (mode1_ < HintMode.FOCUS + 1) {
       view_(clickEl)
       focus_(clickEl)
       set_currentScrolling(weakRef_(clickEl))
       set_cachedScrollable(currentScrolling)
       removeFlash || flash_(clickEl)
       showRect = 0
-    } else if (m < HintMode.max_media + 1) {
+    } else if (mode1_ < HintMode.max_media + 1) {
       /*#__NOINLINE__*/ downloadOrOpenMedia()
-    } else if (m < HintMode.max_copying + 1) {
+    } else if (mode1_ < HintMode.max_copying + 1) {
       copyText()
-    } else if (m < HintMode.DOWNLOAD_LINK + 1) {
+    } else if (mode1_ < HintMode.DOWNLOAD_LINK + 1) {
       /*#__NOINLINE__*/ downloadLink()
-    } else if (m < HintMode.OPEN_INCOGNITO_LINK + 1) {
-      const url = getUrlData()
-      evalIfOK(url) || openTextOrUrl(url, !0)
-    } else if (m < HintMode.max_edit + 1) {
+    } else if (mode1_ < HintMode.OPEN_INCOGNITO_LINK + 1) {
+      openTextOrUrl(getUrlData())
+    } else if (mode1_ < HintMode.max_edit + 1) {
       copyText()
     } else { // HintMode.ENTER_VISUAL_MODE
       selectAllOfNode(clickEl)

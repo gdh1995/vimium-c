@@ -224,7 +224,7 @@ export const captureTab = (tabs: [Tab] | undefined, resolve: OnCmdResolved): voi
       })
     }
     const doShow = (finalUrl: string): void => {
-      reqH_[kFgReq.openImage]({ o: "pixel=1&", u: finalUrl, f: title, a: false, r: ReuseType.newFg, q: {
+      reqH_[kFgReq.openImage]({ o: "pixel=1&", u: finalUrl, f: title, a: false, m: HintMode.OPEN_IMAGE, q: {
         r: get_cOptions<C.captureTab, true>().reuse, m: get_cOptions<C.captureTab, true>().replace,
         p: get_cOptions<C.captureTab, true>().position, w: get_cOptions<C.captureTab, true>().window
       } }, cPort)
@@ -304,10 +304,11 @@ export const openImgReq = (req: FgReq[kFgReq.openImage], port?: Port): void => {
   const testUrl = opts2.t ?? !keyword
   const urlAfterSed = opts2.s ? substitute_(url, SedContext.paste, opts2.s) : url
   const hasSed = urlAfterSed !== url
+  const reuse = opts2.r != null ? opts2.r : req.m & HintMode.queue ? ReuseType.newBg : ReuseType.newFg
   url = urlAfterSed
   // no group during openImg
   replaceCmdOptions<C.openUrl>({
-    opener: true, reuse: opts2.r != null ? opts2.r : req.r, replace: opts2.m, position: opts2.p, window: opts2.w
+    opener: true, reuse, replace: opts2.m, position: opts2.p, window: opts2.w
   })
   set_cRepeat(1)
   const urlToOpen = !keyword && !hasSed ? url : testUrl ? convertToUrl_(url, keyword, Urls.WorkType.ActAnyway)

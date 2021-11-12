@@ -45,7 +45,7 @@ var minify_viewer = !(getBuildItem("BTypes") & BrowserType.Chrome)
     || getBuildItem("MinCVer") >= /* MinTestedES6Environment */ 49;
 const POLYFILL_FILE = "lib/polyfill.ts"
 const VIEWER_JS = "lib/viewer.min.js";
-const FILE_URLS_CSS = "front/file_urls.css";
+const LOCALES_EN = "_locales/en/messages.json"
 
 var CompileTasks = {
   background: ["background/*.ts", "background/*.d.ts"],
@@ -79,7 +79,7 @@ var Tasks = {
     return minifyJSFiles(path, ".", { base: "." });
   },
   "static/json": function() {
-    const path = ["_locales/*/messages.json", "settings-template.json", "i18n/**/*.json"]
+    const path = ["_locales/*/messages.json", "settings-template.json", "i18n/**/*.json", "!" + LOCALES_EN]
     if (getBuildItem("BTypes") === BrowserType.Firefox) {
       path.push("!_locales/*_*/**")
     }
@@ -87,6 +87,9 @@ var Tasks = {
       return copyByPath(path);
     }
     return minifyJSFiles(path, ".", { base: ".", json: true })
+  },
+  "locales_en/json": function() {
+    return !getBuildItem("Minify") ? copyByPath(LOCALES_EN) : minifyJSFiles(LOCALES_EN, ".", { base: ".", json: true })
   },
   "png2bin": function(cb) {
     const p2b = require("./scripts/icons-to-blob");
@@ -112,7 +115,7 @@ var Tasks = {
     })) })
   },
   "static/minify": function(cb) {
-    gulp.parallel("static/minify-js", "static/json", "minify-css", "minify-html")(cb)
+    gulp.parallel("static/minify-js", "static/json", "locales_en/json", "minify-css", "minify-html")(cb)
   },
   static: ["static/special", "static/minify", function() {
     var arr = ["front/*", "pages/*", "icons/*", "lib/*"
@@ -130,7 +133,6 @@ var Tasks = {
       arr.push("manifest.json");
     }
     var btypes = getBuildItem("BTypes");
-    btypes & BrowserType.Chrome || arr.push("!" + FILE_URLS_CSS);
     minify_viewer && arr.push("!" + VIEWER_JS)
     var has_wordsRe = btypes & ~BrowserType.Firefox
             && getBuildItem("MinCVer") <
@@ -150,7 +152,7 @@ var Tasks = {
   "build/_clean_diff": function() {
     return cleanByPath([".build/**", "manifest.json", "*/vomnibar.html"
         , "*/*.html", "*/*.css", "**/*.json", "**/*.js", "!helpers/*/*.js", ".snapshot.sh"
-        , FILE_URLS_CSS], DEST)
+        ], DEST)
   },
   "build/_all": ["build/scripts", "build/pages"],
   "build/ts": function(cb) {
@@ -194,7 +196,7 @@ var Tasks = {
     }
   },
 
-  "min/content": function(cb) {
+  "min/content": ["locales_en/json", function(cb) {
     var cs = manifest.content_scripts[0], sources = cs.js;
     if (sources.length <= 1 || jsmin_status[0]) {
       jsmin_status[0] = true;
@@ -214,7 +216,7 @@ var Tasks = {
       }
       cb(err);
     }, jsmin_status, debugging, false);
-  },
+  }],
   "min/bg": function(cb) {
     if (jsmin_status[1]) {
       return cb();
@@ -853,7 +855,7 @@ function patchExtendClick(source) {
     }
   }
   if (inJSON || !locally) {
-  const jsonPath = DEST + "/_locales/en/messages.json";
+    const jsonPath = DEST + "/" + LOCALES_EN
   print("Save extend_click into en/messages.json")
   const json = JSON.parse(readFile(jsonPath));
   if (inJSON) {

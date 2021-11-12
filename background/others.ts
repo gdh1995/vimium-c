@@ -60,7 +60,7 @@ setTimeout((): void => {
     key_: string;
   }
   interface SubInfo { type_?: "history" | "tab"; sessionId_?: CompletersNS.SessionId | null }
-  let colon2 = ": ", msg_inited = false
+  let colon2 = ": ", msg_inited = false, openColon = "Open: "
   const onDel = (!OnFirefox || Build.DetectAPIOnFirefox) ? omnibox.onDeleteSuggestion : null,
   mayDelete = OnChrome && Build.MinCVer >= BrowserVer.MinOmniboxSupportDeleting
       || (!OnFirefox || Build.DetectAPIOnFirefox) && !!onDel && typeof onDel.addListener === "function"
@@ -156,9 +156,9 @@ setTimeout((): void => {
     last = suggest.key_;
     if (!autoSelect) {
       if (OnFirefox) {
-        defaultDesc = trans_("OpenC") + "<input>";
+        defaultDesc = openColon + "<input>"
       } else if (defaultSuggestionType !== FirstSugType.defaultOpen) {
-        defaultDesc = `<dim>${trans_("OpenC")}</dim><url>%s</url>`;
+        defaultDesc = `<dim>${openColon}</dim><url>%s</url>`
         defaultSuggestionType = FirstSugType.defaultOpen;
       }
     } else if (sug.e === "search") {
@@ -290,7 +290,10 @@ setTimeout((): void => {
     if (!msg_inited) {
       msg_inited = true
       if (i18nLang_() !== "en") {
-        Promise.all([trans_("colon"), trans_("NS")]).then(([colon, ns]): void => { colon2 = colon + ns || colon2 })
+        Promise.resolve(trans_("colon")).then((colon): void => {
+          colon2 = colon + trans_("NS") || colon2
+          openColon = trans_("OpenC") as string || openColon
+        })
       }
     }
     if (cleanTimer) {

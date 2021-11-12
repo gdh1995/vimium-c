@@ -260,8 +260,9 @@ set_reqH_([
       , port: Port): void => {
     const { i: inner } = request
     set_cKey(kKeyCode.None) // it's only from LinkHints' task / Vomnibar reloading, so no Key to suppress
-    if (request.c != null) {
-      replaceCmdOptions<kBgCmd.showVomnibar>({ url: request.u, newtab: request.n, keyword: request.o.k })
+    if (request.u != null) {
+      const {m, t} = request, newtab = t != null ? !!t : m < HintMode.min_link_job || m > HintMode.max_link_job
+      replaceCmdOptions<kBgCmd.showVomnibar>({ url: request.u, newtab, keyword: request.o.k })
       replaceForwardedOptions(request.f)
       set_cRepeat(1)
     } else if (request.r !== true) {
@@ -412,8 +413,8 @@ set_reqH_([
     }
   },
   /** kFgReq.downloadLink: */ (req: FgReq[kFgReq.downloadLink], port): void => {
-    downloadFile(req.u, req.f, req.r, req.m ? (succeed): void => {
-      succeed || reqH_[kFgReq.openImage]({ r: ReuseType.newFg, f: req.f, u: req.u }, port)
+    downloadFile(req.u, req.f, req.r, req.m < HintMode.DOWNLOAD_LINK ? (succeed): void => {
+      succeed || reqH_[kFgReq.openImage]({ m: HintMode.OPEN_IMAGE, f: req.f, u: req.u }, port)
     } : null)
   },
   /** kFgReq.wait: */ (req: FgReqWithRes[kFgReq.wait], port, msgId): Port => {
