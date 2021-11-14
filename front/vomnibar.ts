@@ -1227,8 +1227,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     if (Build.BTypes & ~BrowserType.Firefox
         && (!(Build.BTypes & BrowserType.Firefox) || a.browser_ !== BrowserType.Firefox)) {
       let func = function (this: HTMLInputElement, event: CompositionEvent): void {
-        const doesStart = event.type === "compositionstart", input = Vomnibar_.input_
-        Vomnibar_.isInputComposing_ = doesStart ? [input.selectionStart, input.value.length - input.selectionEnd] : null
+        const doesStart = event.type === "compositionstart", box = Vomnibar_.input_
+        Vomnibar_.isInputComposing_ = doesStart ? [box.selectionStart, box.value.length - box.selectionEnd] : null
       };
       input.addEventListener("compositionstart", func);
       input.addEventListener("compositionend", func);
@@ -1880,7 +1880,7 @@ if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType
             && typeof data[1] === "string" && typeof data[2] === "object")) { return }
       isWeb && VUtils_.Stop_(event, 0); // smell like VomnibarNS.MessageData
       if (data[1].length === GlobalConsts.VomnibarSecretLength) {
-        handler(data[1], event.ports[0], data[2])
+        handler(data[1], event.ports[0] as VomnibarNS.IframePort, data[2])
       }
     }
   }

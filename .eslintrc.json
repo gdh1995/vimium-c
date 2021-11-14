@@ -111,7 +111,7 @@
     "space-before-function-paren": "off",
     "spaced-comment": [ "error", "always", {
       "line": { "markers": [ "/", "#region" ], "exceptions": ["#endregion"] },
-      "block": { "exceptions": [ "#__NOINLINE__", "#__INLINE__" ], "balanced": false }
+      "block": { "exceptions": [ "#__NOINLINE__", "#__INLINE__", "#__PURE__" ], "balanced": false }
     } ],
     "use-isnan": "error",
     "valid-typeof": "off"

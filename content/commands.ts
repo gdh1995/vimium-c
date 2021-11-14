@@ -369,8 +369,8 @@ set_contentCommands_([
       let cur: string | 0, offset: number
       let start: number, end: number, start0: number
       while (0 < absCount--) {
-        for (var i = 0; i < commands.length; i += 3) {
-          var cmd = commands[i], a1 = commands[i + 1], a2 = commands[i + 2]
+        for (let i = 0; i < commands.length; i += 3) {
+          var cmd = commands[i], a1 = commands[i + 1], a2 = commands[i + 2] // eslint-disable-line no-var
           if (cmd === "exec") {
             execCommand(a1, doc, commands[i + 2])
           } else if (cmd === "replace") {
@@ -395,6 +395,7 @@ set_contentCommands_([
             collpaseSelection(sel, a1 === "end")
           } else {
             modifySel(sel, cmd === "auto" ? isSelARange(sel) : cmd < kChar.f
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                 , a1 === "count" ? count > 0 : a1 > kChar.f, a2 as any)
           }
         }
@@ -445,6 +446,7 @@ set_contentCommands_([
     } else {
       OnChrome && setupIDC_cr!(options as UIEventInit)
       try {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
         event = type && new (window as any)[evClass](type, options)
       } catch {}
       if (event) {

@@ -151,8 +151,8 @@ const onEvalUrl_ = (workType: Urls.WorkType, options: KnownOptions<C.openUrl>, t
 }
 
 const runNextIf = (succeed: boolean | Tab | Window | undefined, options: OpenUrlOptions | Req.FallbackOptions
-    , result?: Tab | null | false) => {
-  succeed ? runNextOnTabLoaded(options!, result) : runNextCmdBy(0, options as OpenUrlOptions & Req.FallbackOptions)
+    , result?: Tab | null | false): void => {
+  succeed ? runNextOnTabLoaded(options, result) : runNextCmdBy(0, options as OpenUrlOptions & Req.FallbackOptions)
 }
 
 const safeUpdate = (options: OpenUrlOptions, url: string, secondTimes?: true, tabs1?: [Tab]): void => {
@@ -201,6 +201,7 @@ const openUrlInIncognito = (urls: string[], reuse: ReuseType
       runNextIf(tab2, options, tab2)
     })
   } else {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     makeWindowFrom(urls, true, true, options, options as any, curWnd)
   }
 }
@@ -266,7 +267,7 @@ const openUrlInAnotherWindow = (urls: string[], reuse: Exclude<ReuseType, ReuseT
         return
       }
       makeWindowFrom(urls, reuse > ReuseType.lastWndBgInactive, incognito != null ? !!incognito : isCurWndIncognito
-          , options, options as any, wnd)
+          , options, options as any, wnd) // eslint-disable-line @typescript-eslint/no-unsafe-argument
       return
     }
     const curTab = wnd.tabs && wnd.tabs.length > 0 ? selectFrom(wnd.tabs) : null
@@ -419,7 +420,7 @@ export const openJSUrl = (url: string, options: Req.FallbackOptions, onBrowserFa
   const callback1 = (opt?: object | -1): void => {
     if (opt !== -1 && !runtimeError_()) { runNextOnTabLoaded(options, null); return; }
     const code = BgUtils_.DecodeURLPart_(url.slice(11))
-    Q_(Tabs_.executeScript, { code }).then((result): void => {
+    void Q_(Tabs_.executeScript, { code }).then((result): void => {
       result === undefined && onBrowserFail && onBrowserFail()
       runNextIf(result !== undefined, options, null)
     })
@@ -522,7 +523,7 @@ export const openUrlWithActions = (url: Urls.Url, workType: Urls.WorkType, tabs?
       url = /*#__NOINLINE__*/ fillUrlMasks(url, tabs, url_mask != null ? url_mask : umark!)
     }
     if (workType !== Urls.WorkType.FakeType) {
-      const keyword = (get_cOptions<C.openUrl>().keyword || "") + ""
+      const keyword = (get_cOptions<C.openUrl>().keyword as AllowToString || "") + ""
       const testUrl = get_cOptions<C.openUrl>().testUrl ?? !keyword
       url = testUrl ? convertToUrl_(url, keyword, workType)
           : createSearchUrl_(url.trim().split(BgUtils_.spacesRe_), keyword || "~")
@@ -655,7 +656,7 @@ export const openUrl = (tabs?: [Tab] | []): void => {
   let rawUrl = get_cOptions<C.openUrl>().url
   if (rawUrl) {
     let sed = parseSedOptions_(get_cOptions<C.openUrl, true>())
-    rawUrl = sed ? substitute_(rawUrl + "", SedContext.NONE, sed) : rawUrl + ""
+    rawUrl = sed ? substitute_(rawUrl as AllowToString + "", SedContext.NONE, sed) : rawUrl as AllowToString + ""
     openUrlWithActions(rawUrl, Urls.WorkType.EvenAffectStatus, tabs)
   } else if (get_cOptions<C.openUrl>().copied) {
     const url = paste_(parseSedOptions_(get_cOptions<C.openUrl, true>()))

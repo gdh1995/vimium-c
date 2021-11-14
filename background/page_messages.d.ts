@@ -8,7 +8,7 @@ export declare const enum kPgReq {
   __mask = ""
 }
 
-type KVPair<T extends object, K extends keyof T = keyof T> = { key: K, val: T[K] }
+interface KVPair<T extends object, K extends keyof T = keyof T> { key: K, val: T[K] }
 type Values<T extends object, K extends keyof T = keyof T> = T[K]
 
 export interface PgReq {

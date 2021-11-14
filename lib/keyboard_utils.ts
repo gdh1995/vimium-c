@@ -134,7 +134,7 @@ export const replaceOrSuppressMost_ = (id: kHandler, newHandler?: HandlerNS.Hand
   }), id)
 }
 
-export const whenNextIsEsc_ = (id: kHandler, modeId: kModeId, onEsc: HandlerNS.VoidHandler<void>) => {
+export const whenNextIsEsc_ = (id: kHandler, modeId: kModeId, onEsc: HandlerNS.VoidHandler<void>): void => {
   replaceOrSuppressMost_(id, (event): HandlerResult => {
     const key = getMappedKey(event, modeId)
     key && removeHandler_(id)

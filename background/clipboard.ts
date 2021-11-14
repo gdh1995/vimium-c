@@ -225,7 +225,7 @@ const convertJoinedRules = (rules: string): string => {
   ? rules.replace(<RegExpG> /(?<!\\) ([\w\x80-\ufffd]{1,6})(?![\x00- \w\\\x7f-\uffff])/g, "\n$1")
   : OnChrome && CurCVer_ > BrowserVer.MinEnsuredLookBehindInRegexp - 1
     || OnFirefox && CurFFVer_ > FirefoxBrowserVer.MinLookBehindInRegexp - 1
-  ? rules.replace(<RegExpG> new RegExp("(?<!\\\\) ([\\w\\x80-\\ufffd]{1,6})(?![\\x00- \\w\\\\\\x7f-\\uffff])", "g")
+  ? rules.replace(new RegExp("(?<!\\\\) ([\\w\\x80-\\ufffd]{1,6})(?![\\x00- \\w\\\\\\x7f-\\uffff])", "g")
       , "\n$1")
   : rules.replace(<RegExpG & RegExpSearchable<1>> /\\ | ([\w\x80-\ufffd]{1,6})(?![\x00- \w\\\x7f-\uffff])/g
       , (s, a): string => s[1] === " " ? s : "\n" + a)

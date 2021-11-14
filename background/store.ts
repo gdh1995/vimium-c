@@ -20,7 +20,7 @@ export const OnSafari: boolean = !(Build.BTypes & ~BrowserType.Safari)
 const userAgentData = navigator.userAgentData
 let tmpBrand: NonNullable<Navigator["userAgentData"]>["brands"][0] | undefined
 export const IsEdg_: boolean = OnChrome && (!userAgentData ? matchMedia("(-ms-high-contrast)").matches
-    : !!userAgentData.brands.find(i => i.brand.includes("Edge") || i.brand.includes("Microsoft"))) 
+    : !!userAgentData.brands.find(i => i.brand.includes("Edge") || i.brand.includes("Microsoft")))
 export const CurCVer_: BrowserVer = !OnChrome ? BrowserVer.assumedVer
     : userAgentData ? (tmpBrand = userAgentData.brands.find(i => i.brand.includes("Chromium")))
       ? tmpBrand.version : BrowserVer.MinMaybe$navigator$$userAgentData > Build.MinCVer

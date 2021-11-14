@@ -35,7 +35,7 @@ export const main_ff = (OnFirefox ? (): void => {
     newListen = function (this: EventTarget, type: string
         , listener: EventListenerOrEventListenerObject): void {
       const a = this, args = arguments, len = args.length
-      len === 2 ? listen(a, type, listener) : len === 3 ? listen(a, type, listener, args[2])
+      len === 2 ? listen(a, type, listener) : len === 3 ? listen(a, type, listener, args[2] as EventListenerOptions)
         : (apply as (this: (this: EventTarget, ...args: any[]) => void
               , self: EventTarget, args: IArguments) => void
           ).call(_listen as (this: EventTarget, ...args1: any[]) => void, a, args)

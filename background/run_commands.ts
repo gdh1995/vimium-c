@@ -106,7 +106,7 @@ const executeCmdOnTabs = (tabs: Tab[] | [Tab] | undefined): void => {
     if (_gCmdHasNext) {
       const { promise_, resolve_ } = BgUtils_.deferPromise_<CmdResult>();
       (callback as unknown as BgCmdCurWndTabs<kBgCmd>)(tabs!, resolve_)
-      promise_.then(runNextCmdByResult)
+      void promise_.then(runNextCmdByResult)
     } else {
       (callback as unknown as BgCmdCurWndTabs<kBgCmd>)(tabs!, blank_)
     }
@@ -179,7 +179,7 @@ export const executeCommand = (registryEntry: CommandsNS.Item, count: number, la
         || fgAlias === kFgCmd.scroll && (!!options && (options as CmdOptions[kFgCmd.scroll]).keepHover === false)
     set_cPort(port!)
     set_cEnv(null)
-    port == null || portSendFgCmd(port, fgAlias, wantCSS, options as any, count)
+    port == null || portSendFgCmd(port, fgAlias, wantCSS, options as Dict<any>, count)
     return
   }
   const { alias_: alias } = registryEntry, func = bgC_[alias]
@@ -199,7 +199,7 @@ export const executeCommand = (registryEntry: CommandsNS.Item, count: number, la
     if (_gCmdHasNext) {
       const { promise_, resolve_ } = BgUtils_.deferPromise_<CmdResult>();
       (func as unknown as BgCmdNoTab<kBgCmd>)(resolve_)
-      promise_.then(runNextCmdByResult)
+      void promise_.then(runNextCmdByResult)
     } else {
       (func as BgCmdNoTab<kBgCmd>)(blank_)
     }
@@ -214,7 +214,7 @@ export const executeCommand = (registryEntry: CommandsNS.Item, count: number, la
 
 /** show a confirmation dialog */
 
-export const needConfirm_ = () => {
+export const needConfirm_ = (): boolean | BOOL => {
   return _cNeedConfirm && (get_cOptions<C.blank>() as CommandsNS.Options).confirmed !== true
 }
 
@@ -247,7 +247,7 @@ export const confirm_ = <T extends kCName> (command: CmdNameIds[T] extends kBgCm
     resolve_(force1)
     setTimeout((): void => { _cNeedConfirm = 1 }, 0)
   }
-  Promise.resolve(trans_("cmdConfirm", [askedCount, helpDialogData_[1].get(command) || `### ${command} ###`]))
+  void Promise.resolve(trans_("cmdConfirm", [askedCount, helpDialogData_[1].get(command) || `### ${command} ###`]))
   .then((msg): void => {
     (framesForTab_.get(cPort.s.tabId_)?.top_ || cPort).postMessage({
         N: kBgReq.count, c: "", i: _gCmdTimer, m: msg })

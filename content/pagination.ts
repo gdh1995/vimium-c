@@ -153,7 +153,7 @@ export const findNextInRel = (relName: string): GoNextBaseCandidate | null | und
                 : (element as TypeToPick<HTMLElement, HTMLElementWithRel, "rel">).rel)
         && Lower(s).split(re1).indexOf(relName) >= 0
         && ((s = (element as HTMLElementWithRel).href) || tag < "aa")
-        && (tag > "b" || isInteractiveInPage(element as SafeHTMLElement))) {
+        && (tag > "b" || isInteractiveInPage(element))) {
       if (matched) {
         if (s && matched.href && s.split("#")[0] !== matched.href.split("#")[0]) {
           return null;

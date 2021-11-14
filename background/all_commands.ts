@@ -195,9 +195,9 @@ set_bgC_([
       if (key && key !== "," && (typeof key === "object" || key.includes(","))) {
         const info = typeof key === "object" ? key : key.split(",") as Extract<typeof key, string[]>
         if (info.length >= 2 && +info[1] > 0) {
-          let dict = opts2 as KeyboardEventInit, key = info[0]
-          dict.key = key === "Space" ? " " : key === "Comma" ? ","
-              : key === "$" && key.length > 1 ? (key = key.slice(1)) :key
+          let dict = opts2 as KeyboardEventInit, evKey = info[0]
+          dict.key = evKey === "Space" ? " " : evKey === "Comma" ? ","
+              : evKey === "$" && evKey.length > 1 ? (evKey = evKey.slice(1)) :evKey
           ; (dict as Writable<KeyboardEvent>).keyCode = (dict as Writable<KeyboardEvent>).which = +info[1]
           dict.code = info[2] || info[0]
         }

@@ -42,7 +42,7 @@ export const parentFrame = (): void | kBgCmd.parentFrame => {
     ? `Vimium C can not know parent frame before Chrome ${BrowserVer.MinWithFrameId}`
     : !(sender.tabId_ >= 0 && framesForTab_.get(sender.tabId_)) ? "Vimium C can not access frames in current tab" : null
   msg && showHUD(msg)
-  getParentFrame(sender.tabId_, sender.frameId_, cRepeat).then(port => {
+  void getParentFrame(sender.tabId_, sender.frameId_, cRepeat).then(port => {
     port ? focusFrame(port, true, FrameMaskType.ForcedSelf, get_cOptions<C.parentFrame, true>()) : mainFrame()
   })
 }
@@ -201,7 +201,7 @@ export const captureTab = (tabs: [Tab] | undefined, resolve: OnCmdResolved): voi
       }
       if (copy) {
         if (typeof msg !== "string") {
-          msg.arrayBuffer().then((buf): void => {
+          void msg.arrayBuffer().then((buf): void => {
             browser_.clipboard.setImageData(buf, "png").then((): void => {
                 showHUD(trans_("imgCopied") || "Image copied"); resolve(1)
             }, (err): void => { showHUD("Error: " + err); resolve(0) })
@@ -400,7 +400,7 @@ export const toggleZoom = (resolve: OnCmdResolved): void | kBgCmd.toggleZoom => 
     resolve(0)
     return
   }
-  Q_(Tabs_.getZoom).then((curZoom): void => {
+  void Q_(Tabs_.getZoom).then((curZoom): void => {
     if (!curZoom) { resolve(0); return }
     let absCount = cRepeat < -4 ? -cRepeat : cRepeat
     if (get_cOptions<kBgCmd.toggleZoom, true>().in || get_cOptions<kBgCmd.toggleZoom, true>().out) {

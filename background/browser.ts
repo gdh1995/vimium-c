@@ -92,7 +92,7 @@ type PromisifyApi1<F extends Function> =
     F extends ((...args: [...infer A, (res: infer R, ex?: FakeArg) => void]) => void | 1)
     ? (...args: A) => Promise<R> : F
 type PromisifyApi2<F extends Function> =
-    F extends { (...args: infer A1) : infer R1; (...args: infer A2): infer R2 }
+    F extends { (...args: infer A1): infer R1; (...args: infer A2): infer R2 }
     ? R1 extends Promise<any> ? (...args: A1) => R1
     : PromisifyApi1<(...args: A1) => R1> | PromisifyApi1<(...args: A2) => R2>
     : PromisifyApi1<F>
@@ -116,9 +116,10 @@ export const Q_: {
   func.apply(void 0, arr)
   return promise_
 } : function (func: Function): Promise<unknown> {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
   return func.apply(void 0, [].slice.call(arguments, 1)).then(/*#__NOINLINE__*/ _orNull, blank_)
 }) as (func: Function, ...args: any[]) => Promise<any>
-const _orNull = (result: unknown) => result !== void 0 ? result : null
+const _orNull = (result: unknown): unknown => result !== void 0 ? result : null
 
 export const R_ = (resolve: OnCmdResolved): () => void => resolve !== blank_ ? () => {
   const error = runtimeError_()
@@ -262,7 +263,7 @@ export const makeTempWindow_r = (tabIdUrl: number | "about:blank", incognito: bo
     , callback: (wnd: Window, exArg: FakeArg) => void): void => {
   const isId = typeof tabIdUrl === "number", options: chrome.windows.CreateDataEx = {
     type: "normal", focused: false, incognito, state: "minimized",
-    tabId: isId ? tabIdUrl as number : undefined, url: isId ? undefined : tabIdUrl as string
+    tabId: isId ? tabIdUrl : undefined, url: isId ? undefined : tabIdUrl
   }
   if (OnFirefox) {
     delete options.focused
@@ -281,7 +282,7 @@ export const downloadFile = (url: string, filename?: string | null, refer?: stri
     onFinish && onFinish(false)
     return
   }
-  Q_(browser_.permissions.contains, { permissions: ["downloads"] }).then((permitted): void => {
+  void Q_(browser_.permissions.contains, { permissions: ["downloads"] }).then((permitted): void => {
     if (permitted) {
       const opts: chrome.downloads.DownloadOptions = { url }
       if (filename) {
@@ -341,14 +342,14 @@ export const isRefusingIncognito_ = (url: string): boolean => {
 export const watchPermissions_ = (queries: (AtomPermission | null)[]
     , onChange: (allowList: (boolean | undefined | null)[], mutable: boolean) => void | false): void => {
   const browserPermissions_ = browser_.permissions
-  if (OnEdge) { Promise.resolve(queries.map(() => void 0)).then(list => onChange(list, false)); return }
+  if (OnEdge) { void Promise.resolve(queries.map(() => void 0)).then(list => onChange(list, false)); return }
   const promise = Promise.all(queries.map(i => i && Q_(browser_.permissions.contains, i)))
   if (OnFirefox && Build.MinFFVer < FirefoxBrowserVer.Min$permissions$$onAdded && !browserPermissions_.onAdded) {
-    promise.then(list => onChange(list, false))
+    void promise.then((list): void => { onChange(list, false) })
     return
   }
   const ids = queries.map(i => i && (i.permissions || i.origins)[0])
-  promise.then((allowList): void => {
+  void promise.then((allowList): void => {
     let listenAdd = false, listenRemove = false
     const didChange = (added: boolean, changes?: chrome.permissions.Request | null): void => {
       let related = !changes
@@ -400,7 +401,7 @@ export const runContentScriptsOn_ = (tabId: number): void => {
 
 //#endregion
 
-bgIniting_ < BackendHandlersNS.kInitStat.FINISHED && set_installation_(new Promise((resolve) => {
+bgIniting_ < BackendHandlersNS.kInitStat.FINISHED && set_installation_(new Promise((resolve): void => {
   const ev = browser_.runtime.onInstalled
   let onInstalled: ((details: chrome.runtime.InstalledDetails | null) => void) | null = (details): void => {
       const cb = onInstalled

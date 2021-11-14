@@ -25,6 +25,7 @@ Option_.prototype._onCacheUpdated = function<T extends keyof SettingsNS.AutoSync
 Option_.saveOptions_ = async function (): Promise<boolean> {
   const arr = Option_.all_, dirty: string[] = []
   bgSettings_.resetCache_()
+  // eslint-disable-next-line dot-notation
   const permissions = (arr as Dict<Option_<any>>)["optionalPermissions"] as OptionalPermissionsOption_ | undefined
   const permissionsPromise = permissions && permissions.save_()
   await Promise.all([bgSettings_.preloadCache_(), permissionsPromise])

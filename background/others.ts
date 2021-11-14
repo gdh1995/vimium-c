@@ -290,8 +290,8 @@ setTimeout((): void => {
     if (!msg_inited) {
       msg_inited = true
       if (i18nLang_() !== "en") {
-        Promise.resolve(trans_("colon")).then((colon): void => {
-          colon2 = colon + trans_("NS") || colon2
+        void Promise.resolve(trans_("colon")).then((colon): void => {
+          colon2 = colon + <string> trans_("NS") || colon2
           openColon = trans_("OpenC") as string || openColon
         })
       }
@@ -405,7 +405,7 @@ installation_ && void installation_.then((details): void => {
   if (!settings_.get_("notifyUpdate")) { return }
 
   reason = "vimium_c-upgrade-notification";
-  Promise.all([ trans_("Upgrade"), trans_("upgradeMsg", [CONST_.VerName_]), trans_("upgradeMsg2")
+  void Promise.all([ trans_("Upgrade"), trans_("upgradeMsg", [CONST_.VerName_]), trans_("upgradeMsg2")
       , trans_("clickForMore") ]).then(([upgrade, msg, msg2, clickForMore]): void => {
   const args: chrome.notifications.NotificationOptions = {
     type: "basic",

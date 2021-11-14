@@ -10,7 +10,7 @@ type AllowedApi = "contains" | "request" | "remove"
 type PromisifyApi1<F> = F extends ((...args: [...infer A, (res: infer R, ex?: FakeArg) => void]) => void | 1)
     ? (...args: A) => Promise<ExtApiResult<R>> : never
 type PromisifyApi<F extends Function> =
-    F extends { (...args: infer A1) : infer R1; (...args: infer A2): infer R2 }
+    F extends { (...args: infer A1): infer R1; (...args: infer A2): infer R2 }
     ? PromisifyApi1<(...args: A1) => R1> | PromisifyApi1<(...args: A2) => R2>
     : PromisifyApi1<F>
 // When loading Vimium C on Chrome 60 startup using scripts/chrome2.sh, an options page may have no chrome.permissions
@@ -25,6 +25,7 @@ const wrapApi = ((funcName: AllowedApi): Function => {
   return function () {
     const arr: unknown[] = [].slice.call(arguments)
     if (!OnChrome) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       return (func.apply(_rawPermissionAPI, arr as any) as Promise<unknown>).then(i => [i, void 0]
           , err => [void 0, err as { message?: unknown}])
     }
@@ -34,7 +35,7 @@ const wrapApi = ((funcName: AllowedApi): Function => {
         resolve(err ? [void 0, err as { message?: unknown }] : [res, void 0])
         return err as void
       })
-      func.apply(_rawPermissionAPI, arr as any)
+      void func.apply(_rawPermissionAPI, arr as any) // eslint-disable-line @typescript-eslint/no-unsafe-argument
     })
   }
 }) as <T extends AllowedApi> (funcName: T) => PromisifyApi<typeof chrome.permissions[T]>
@@ -91,7 +92,7 @@ export class OptionalPermissionsOption_ extends Option_<"nextPatterns"> {
         changed[i.name_] = i
       } else {
         waiting++
-        browserPermissions_.remove(i.name_.includes(":") ? { origins: orig2 ? [i.name_, orig2] : [i.name_] } : {
+        void browserPermissions_.remove(i.name_.includes(":") ? { origins: orig2 ? [i.name_, orig2] : [i.name_] } : {
           permissions: i.name_ === kShelf ? ["downloads", i.name_] : [i.name_]
         }).then(([ok, err]): void => {
           const msg1 = "Can not remove the permission %o :", msg2 = err && err.message || err;
@@ -183,7 +184,7 @@ const initOptionalPermissions = (): void => {
 const doPermissionsContain_ = (item: PermissionItem): Promise<void> => {
   const name = item.name_
   let resolve: () => void, p = new Promise<void>(curResolve => { resolve = curResolve })
-  browserPermissions_.contains(name.includes(":") ? { origins: [name] }
+  void browserPermissions_.contains(name.includes(":") ? { origins: [name] }
       : { permissions: name === kShelf ? ["downloads", name] : [name] }).then(([result]): void => {
     if (OnChrome && Build.MinCVer < BrowserVer.MinCorrectExtPermissionsOnChromeURL$NewTabPage
         && CurCVer_ < BrowserVer.MinCorrectExtPermissionsOnChromeURL$NewTabPage

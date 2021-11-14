@@ -125,7 +125,7 @@ const init = ({k: secret, v: page, t: type, i: inner}: FullOptions): void => {
         resetWhenBoxExists()
         focus();
         status = Status.KeepBroken
-        activate(safer({}) as any, 1)
+        activate(safer({}) as never, 1)
       }, 400)
       const doPostMsg = (postMsgStat?: TimerType.fake | 1): void => {
         const wnd = el.contentWindow, isFile = page.startsWith("file:")

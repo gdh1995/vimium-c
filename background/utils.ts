@@ -89,7 +89,8 @@ const _tlds = ["", "",
     ".aaa.abb.abc.aco.ads.aeg.afl.aig.anz.aol.app.art.aws.axa.bar.bbc.bbt.bcg.bcn.bet.bid.bio.biz.bms.bmw.bnl.bom.boo\
 .bot.box.buy.bzh.cab.cal.cam.car.cat.cba.cbn.cbs.ceb.ceo.cfa.cfd.com.cpa.crs.csc.dad.day.dds.dev.dhl.diy.dnp.dog.dot\
 .dtv.dvr.eat.eco.edu.esq.eus.fan.fit.fly.foo.fox.frl.ftr.fun.fyi.gal.gap.gdn.gea.gle.gmo.gmx.goo.gop.got.gov\
-.hbo.hiv.hkt.hot.how.ibm.ice.icu.ifm.inc.ing.ink.int.ist.itv.iwc.jcb.jcp.jio.jlc.jll.jmp.jnj.jot.joy.kfh.kia.kim.kpn.krd.lat\
+.hbo.hiv.hkt.hot.how.ibm.ice.icu.ifm.inc.ing.ink.int.ist.itv.iwc.jcb.jcp.jio.jlc.jll.jmp.jnj.jot.joy.kfh.kia.kim.kpn\
+.krd.lat\
 .law.lds.llc.llp.lol.lpl.ltd.man.map.mba.med.men.mil.mit.mlb.mls.mma.moe.moi.mom.mov.msd.mtn.mtr.nab.nba.nec.net\
 .new.nfl.ngo.nhk.now.nra.nrw.ntt.nyc.obi.off.one.ong.onl.ooo.org.ott.ovh.pay.pet.phd.pid.pin.pnc.pro.pru.pub.pwc\
 .qvc.red.ren.ril.rio.rip.run.rwe.sap.sas.sbi.sbs.sca.scb.ses.sew.sex.sfr.ski.sky.soy.spa.srl.srt.stc.tab.tax.tci.tdk\
@@ -202,7 +203,7 @@ export const IsURLHttp_ = (url: string): ProtocolType => {
 }
 
 export const normalizeClassesToMatch_ = (s: string): string[] =>
-    s.trim() ? s.trim().split(<RegExpG> /[.\s]+/g).sort().filter(s => !!s) : []
+    s.trim() ? s.trim().split(<RegExpG> /[.\s]+/g).sort().filter(i => !!i) : []
 
 export const normalizeElDesc_ = (e: FgReq[kFgReq.respondForRunKey]["e"]): CurrentEnvCache["element"] =>
     e && [e[0], e[1], normalizeClassesToMatch_(e[2])] || 0
@@ -241,7 +242,7 @@ export const deferPromise_ = <T> (): { promise_: Promise<T>, resolve_ (result: T
     promise_: promise,
     resolve_: OnChrome && Build.MinCVer < BrowserVer.Min$resolve$Promise$MeansThen
         && CurCVer_ < BrowserVer.Min$resolve$Promise$MeansThen
-      ? (i: T): void => { Promise.resolve(i).then(newResolve) } : newResolve
+      ? (i: T): void => { void Promise.resolve(i).then(newResolve) } : newResolve
   }
 }
 

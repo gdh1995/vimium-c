@@ -46,7 +46,7 @@ export const reloadCSS_ = (action: MergeAction, cssStr?: string): SettingsNS.Mer
       return
     }
   }
-  fetchFile_("vimium-c.css").then((css: string): void => {
+  void fetchFile_("vimium-c.css").then((css: string): void => {
     const browserInfo = StyleCacheId_.slice(StyleCacheId_.indexOf(",") + 1),
     hasAll = OnChrome && Build.MinCVer >= BrowserVer.MinUsableCSS$All || browserInfo.includes("a")
     if (!(Build.NDEBUG || css.startsWith(":host{"))) {
@@ -172,7 +172,8 @@ const parseFindCSS_ = (find2: string): FindCSS => {
     i: find2.slice(endFH + 1) }
 }
 
-const mergeCSS = (css2Str: string, action: MergeAction | "userDefinedCss"): SettingsNS.MergedCustomCSS | void => {
+export const mergeCSS = (css2Str: string, action: MergeAction | "userDefinedCss"
+    ): SettingsNS.MergedCustomCSS | void => {
   let css = storage_.getItem("innerCSS")!, idx = css.indexOf("\n")
   css = idx > 0 ? css.slice(0, idx) : css
   const css2 = parseSections_(css2Str)

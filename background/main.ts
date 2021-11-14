@@ -206,7 +206,7 @@ if (OnFirefox && !Build.NativeWordMoveOnFirefox
           ? BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp : BrowserVer.MinSelExtendForwardOnlySkipWhitespaces)
         : CurCVer_ < BrowserVer.MinMaybeUnicodePropertyEscapesInRegExp
           || !BgUtils_.makeRegexp_("\\p{L}", "u", 0))
-  ) ? BgUtils_.fetchFile_("words.txt").then((text): void => {
+  ) ? void BgUtils_.fetchFile_("words.txt").then((text): void => {
     set_visualWordsRe_(text.replace(<RegExpG> /[\n\r]/g, "")
         .replace(<RegExpG & RegExpSearchable<1>> /\\u(\w{4})/g, (_, s1) => String.fromCharCode(+("0x" + s1))))
   }) : set_visualWordsRe_("")

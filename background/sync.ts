@@ -30,7 +30,7 @@ let changes_to_merge: EnsuredDict<StorageChange> | null = null
 let textDecoder: TextDecoder | null = null
 let restoringPromise: Promise<void> | null = null
 let cachedSync: SettingsWithDefaults["vimSync"]
-let longDelayedAction: number = 0
+let longDelayedAction = 0
 
 const storage = (): chrome.storage.StorageArea & {
   onChanged?: chrome.events.Event<(changes: EnsuredDict<StorageChange>, exArg: FakeArg) => void>
@@ -92,7 +92,7 @@ const storeAndPropagate = (key: string, value: any, map?: Dict<any>): void | 8 =
       && (value as Partial<SerializationMetaData | SingleSerialized>).$_serialize || ""
   if (serialized) {
     if (serialized === "split" && !map) { return 8 }
-    value = deserialize(key, value, map)
+    value = deserialize(key, value as SingleSerialized | SerializationMetaData, map)
     if (value === 8) { // still lack fields
       return
     }
@@ -130,7 +130,7 @@ const storeAndPropagate = (key: string, value: any, map?: Dict<any>): void | 8 =
 
 const setAndPost = (key: keyof SettingsToSync, value: any): void => {
   keyInDownloading = key
-  settings_.set_(key, value)
+  settings_.set_(key, value) // eslint-disable-line @typescript-eslint/no-unsafe-argument
   keyInDownloading = ""
   if (key in settings_.valuesToLoad_) {
     settings_.broadcast_({ N: kBgReq.settingsUpdate, d: [
@@ -151,6 +151,7 @@ const TrySet = <K extends keyof SettingsToSync>(key: K, value: SettingsToSync[K]
 
 if (!Build.NDEBUG) {
   (globalThis as any).serializeSync = (key: any, val: any, enc?: any): any => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     let serialized = serialize(key, val, (!OnChrome || Build.MinCVer >= BrowserVer.MinEnsuredTextEncoderAndDecoder)
         && !OnEdge || enc ? new TextEncoder() : null)
     return serialized ? typeof serialized === "object" ?  serialized
@@ -164,7 +165,7 @@ if (!Build.NDEBUG) {
       val = items && items[key] || val
     }
     if (!val || !val.$_serialize) { return val }
-    let result = deserialize(key, val, items)
+    let result = deserialize(key, val, items) // eslint-disable-line @typescript-eslint/no-unsafe-argument
     return result != null ? result : val
   }
 }
@@ -410,6 +411,7 @@ const beginToRestore = (items: LocalSettings, kSources: 1 | 2 | 3, resolve: () =
         let val = items2[key]
         keyInDownloading = key as keyof SettingsWithDefaults
         val = val == null ? settings_.defaults_[key as keyof SettingsWithDefaults] : val
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         settings_.set_(key as keyof SettingsWithDefaults, val)
       }
     }
@@ -499,7 +501,7 @@ settings_.updateHooks_.vimSync = (value): void => {
     longDelayedAction && clearTimeout(longDelayedAction)
     longDelayedAction = 0;
     const testLocal = (): void => {
-      browserStorage_.local.get((items) => {
+      void browserStorage_.local.get((items): void => {
         if (OnFirefox && Object.keys(items).length === 0) { return }
         delete (items as SettingsNS.FullCache).vimSync
         log("switch to sync.cloud, when old settings data in storage.local is:", "\n" + JSON.stringify(items, null, 2))

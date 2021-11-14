@@ -207,7 +207,7 @@ export const createRegExp = <S extends kTip, T extends "g" | "i" | ""> (pattern:
     <any> new RegExp(VTr(<kTip> pattern), flags as "g")
 
 export const tryCreateRegExp = function (pattern: string, flags: string ): RegExp | void {
-  return safeCall(RegExp as any, pattern, flags)
+  return safeCall(RegExp as any, pattern, flags) // eslint-disable-line @typescript-eslint/no-unsafe-argument
 } as {
   <T extends "g" | "gi" | "gim" | "gm" | "i" | "u" | ""> (pattern: string, flags: T
     ): (T extends "" ? RegExpOne : T extends "i" ? RegExpI : RegExpG) | void

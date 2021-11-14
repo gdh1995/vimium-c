@@ -225,6 +225,7 @@ kAEL = "addEventListener", kToS = "toString", kProto = "prototype", kByTag = "ge
 ETP = EventTarget[kProto], _listen = ETP[kAEL],
 toRegister: Element[] & { p (el: Element): void | 1; s: Element[]["splice"] } = [] as any,
 _apply = _listen.apply, _call = _listen.call,
+// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 call = _call.bind(_call as any) as <T, A extends any[], R>(func: (this: T, ...a: A) => R, thisArg: T, ...args: A) => R,
 dispatch = _call.bind<(this: (this: EventTarget, ev: Event) => boolean
     , self: EventTarget, evt: Event) => boolean>(ETP.dispatchEvent),
@@ -293,7 +294,7 @@ const hooks = {
                   + InnerConsts.kRandStrLenInBuild + (MayES5 ? 16 : 7)) !== verifierStrPrefix
           ? str : call(_toString, noop)
         : a === myToStr || a === myAEL || (I = 0,
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-argument
           mayStrBeToStr ? call(a as any, noop, kMk + kRand, V) : (a as any)(kMk + kRand, noop, 0, V), I)
         ? call(_toString, mayStrBeToStr ? _toString : _listen) : str
   },
@@ -301,9 +302,8 @@ const hooks = {
       , listener: EventListenerOrEventListenerObject): void {
     const a = this, args = arguments, len = args.length;
     const ret = type === GlobalConsts.MarkAcrossJSWorlds + BuildStr.RandomClick ? checkIsNotVerifier(args[3])
-        : len === 2 ? listen(a, type, listener) : len === 3 ? listen(a, type, listener, args[2])
-        : call(_apply as (this: (this: EventTarget, ...args: any[]) => void
-                        , self: EventTarget, args: IArguments) => void,
+        : len === 2 ? listen(a, type, listener) : len === 3 ? listen(a, type, listener, args[2] as EventListenerOptions)
+        : call(_apply as (this: (this: EventTarget, ...args: any[]) => void, o: EventTarget, args: IArguments) => void,
              _listen as (this: EventTarget, ...args1: any[]) => void, a, args);
     if (type === "click" || type === "mousedown" || type === "dblclick"
         ? listener && a instanceof ElCls && a.localName !== "a"
@@ -613,8 +613,7 @@ FProto[kToS] = myToStr
     safeDestroy(1)
     return
   }
-  /*#__INLINE__*/
-  replaceBrokenTimerFunc(function (func: (info?: TimerType.fake) => void, timeout: number): number {
+  /*#__INLINE__*/ replaceBrokenTimerFunc((func: (info?: TimerType.fake) => void, timeout: number): number => {
     const cb = (): void => { func(TimerType.fake); };
     const rIC = Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback ? requestIdleCallback : 0 as never as null
     // in case there's `$("#requestIdleCallback")`
@@ -623,7 +622,7 @@ FProto[kToS] = myToStr
       : (Build.MinCVer >= BrowserVer.MinEnsured$requestIdleCallback ? timeout > 19 : timeout > 19 && rIC)
       ? (Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback ? rIC : requestIdleCallback)!(cb, { timeout })
       : rAF_(cb)
-  } as any)
+  })
 })(grabBackFocus as boolean)
 } : 0 as never) as () => void
 

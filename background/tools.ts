@@ -104,7 +104,7 @@ export const ContentSettings_ = OnChrome ? {
     const ty = (options.type ? "" + options.type : "images") as NonNullable<typeof options.type>
     if (!ContentSettings_.complain_(ty, "http://a.cc/")) {
       ContentSettings_.Clear_(ty, port ? port.s.incognito_ : curIncognito_ === IncognitoType.true)
-      Promise.resolve(ty === "images" && trans_(ty)).then((tyI18n): void => {
+      void Promise.resolve(ty === "images" && trans_(ty)).then((tyI18n): void => {
         showHUD(trans_("csCleared", [tyI18n || ty[0].toUpperCase() + ty.slice(1)]))
       })
       return true
@@ -312,7 +312,7 @@ export const Marks_ = { // NOTE: all public members should be static
     }
     if (!str) {
       const type = request.l ? "Local" : "Global"
-      Promise.resolve(trans_(type)).then((typeI18n): void => {
+      void Promise.resolve(trans_(type)).then((typeI18n): void => {
         showHUD(trans_("noMark", [typeI18n || type, markName]))
       })
       return
@@ -372,7 +372,8 @@ export const Marks_ = { // NOTE: all public members should be static
         storage2.delete(key)
       }
     })
-    Promise.all([url === "#" ? trans_("allLocal") : extTrans_((url ? kTip.local + "" : kTip.global + "") as "41" | "39")
+    void Promise.all([url === "#" ? trans_("allLocal")
+        : extTrans_((url ? kTip.local + "" : kTip.global + "") as "41" | "39")
         , trans_(num !== 1 ? "have" : "has")]).then(([arg2, arg3]): void => {
       showHUD(trans_("markRemoved", [ num, arg2, arg3 ]))
     })
@@ -604,7 +605,7 @@ setTimeout((): void => {
       return
     }
     cache.forEach((val, i): void => {
-      if (val.i < GlobalConsts.MaxTabRecency - GlobalConsts.MaxTabsKeepingRecency + 2) { cache.delete(i as number) }
+      if (val.i < GlobalConsts.MaxTabRecency - GlobalConsts.MaxTabsKeepingRecency + 2) { cache.delete(i) }
       else { val.i -= GlobalConsts.MaxTabRecency - GlobalConsts.MaxTabsKeepingRecency }
     })
     stamp = GlobalConsts.MaxTabsKeepingRecency + 1;

@@ -258,7 +258,7 @@ export const onEscDown = (event: KeyboardEventToPrevent | 0, key: kKeyCode, repe
   if (!repeat && removeSelection()) {
     /* empty */
   } else if (repeat && !keydownEvents_[key] && activeEl) {
-    deref_(lastHovered_) === activeEl ? catchAsyncErrorSilently(unhover_async()) :
+    deref_(lastHovered_) === activeEl ? void catchAsyncErrorSilently(unhover_async()) :
     (OnFirefox ? activeEl.blur : isTY(activeEl.blur, kTY.func)) && activeEl.blur!()
   } else if (!isTop && !activeEl) {
     focusUpper(key, repeat, event);

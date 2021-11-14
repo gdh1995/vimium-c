@@ -9,7 +9,7 @@ import { findUrlInText_, parseSearchEngines_ } from "./parse_urls"
 import * as settings_ from "./settings"
 import { indexFrame } from "./ports"
 import * as Exclusions from "./exclusions"
-import { MergeAction, reloadCSS_ } from "./ui_css"
+import { MergeAction, mergeCSS, reloadCSS_ } from "./ui_css"
 import { keyMappingErrors_ } from "./key_mappings"
 import { runNextOnTabLoaded } from "./run_commands"
 import { MediaWatcher_ } from "./tools"
@@ -46,7 +46,7 @@ const pageRequestHandlers_ = As_<{
     // in fact, allow unknown key
     val = val ?? settings_.defaults_[key] ?? null
     settings_.set_(key, val)
-    const val2 = settingsCache_![key]!
+    const val2 = settingsCache_[key]!
     return val2 !== val ? val2 : null
   },
   /** kPgReq.updatePayload: */ (req): PgReq[kPgReq.updatePayload][1] => {
@@ -87,9 +87,9 @@ const pageRequestHandlers_ = As_<{
     if (port.s) {
       port.s.flags_ |= Frames.Flags.hasCSS | Frames.Flags.userActed | Frames.Flags.hasFindCSS
     }
-    return reloadCSS_(MergeAction.virtual, req)!
+    return mergeCSS(req, MergeAction.virtual)!
   },
-  /** kPgReq.reloadCSS: */ (): PgReq[kPgReq.reloadCSS][1] => { reloadCSS_(2) },
+  /** kPgReq.reloadCSS: */ (): PgReq[kPgReq.reloadCSS][1] => { reloadCSS_(MergeAction.rebuildAndBroadcast) },
   /** kPgReq.convertToUrl: */ (req): PgReq[kPgReq.convertToUrl][1] => {
     const url = convertToUrl_(req[0], null, req[1])
     return [url, lastUrlType_]
@@ -196,7 +196,7 @@ const pageRequestHandlers_ = As_<{
     })
   },
   /** kPgReq.toggleStatus: */ ([url, tabId, frameId]): PgReq[kPgReq.toggleStatus][1] => {
-    evalVimiumUrl_("status/" + url, Urls.WorkType.EvenAffectStatus)
+    evalVimiumUrl_("status/" + url, Urls.WorkType.EvenAffectStatus) as Urls.StatusEvalResult
     const port = indexFrame(tabId, frameId) || indexFrame(tabId, 0)
     const lock = port ? framesForTab_.get(tabId)!.lock_ : null
     if (port && !lock) {
@@ -216,8 +216,9 @@ const pageRequestHandlers_ = As_<{
     const module = browser_[mName], arr = req.args
     const func = module[req.name] as (args: unknown[]) => void | Promise<unknown>
     if (!OnChrome) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       return (func.apply(module, arr as any) as Promise<unknown>).then<ExtApiResult<unknown>, ExtApiResult<unknown>>(
-          i => [i, void 0], (err) => [void 0, parseErr(err)])
+          i => [i, void 0], err => [void 0, parseErr(err)])
     }
     return new Promise<ExtApiResult<unknown>>((resolve): void => {
       arr.push((res: unknown): void => {
@@ -225,7 +226,7 @@ const pageRequestHandlers_ = As_<{
         resolve(err ? [void 0, err as { message?: unknown }] : [parseErr(res), void 0])
         return err as void
       })
-      func.apply(module, arr as any)
+      void func.apply(module, arr as any) // eslint-disable-line @typescript-eslint/no-unsafe-argument
     })
   }
 ])
@@ -234,7 +235,7 @@ type _FuncKeys<K, T> = K extends keyof T ? T[K] extends Function
     ? K extends `${string}_${string}` ? never : K : never : never
 type FuncKeys<T> = _FuncKeys<keyof T, T>
 const validApis: { [T in keyof typeof chrome]?: FuncKeys<typeof chrome[T]>[] } = OnEdge ? {} : {
-  "permissions": ["contains", "request", "remove"]
+  permissions: ["contains", "request", "remove"]
 }
 
 const parseErr = (err: any): NonNullable<ExtApiResult<0>[1]> => {

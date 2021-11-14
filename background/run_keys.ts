@@ -131,7 +131,7 @@ const normalizeExpects = (options: KnownOptions<C.runKey>): (NormalizedEnvCond |
   if (!expected_rules) { /* empty */ }
   else if (expected_rules instanceof Array) {
     new_rules = expected_rules.map((rule): NormalizedEnvCond | null => rule instanceof Array
-        ? { env: rule[0], keys: normalizeKeys(rule[1]), options: rule[2] as any }
+        ? { env: rule[0], keys: normalizeKeys(rule[1] as string | string[]), options: rule[2] as Dict<any> }
         : !rule || typeof rule !== "object" ? null
         : { env: rule.env || rule, keys: normalizeKeys(rule.keys), options: rule.options })
   } else if (typeof expected_rules === "object") {
@@ -176,7 +176,7 @@ export const runKeyWithCond = (info?: CurrentEnvCache): void => {
       }
       rule = envRegistry_.get(rule)
       if (rule === undefined) {
-        showHUD(`No environment named "${ruleName}"`)
+        showHUD(`No environment named "${ruleName as string}"`)
         return
       }
       if (typeof rule === "string") {
@@ -280,7 +280,7 @@ export const parseKeySeq = (keys: string): ListNode | ErrorNode => {
     case ")": last = cur; do { last = last.par! } while (last.t === kN.ifElse); cur = last; break
     case "?": case ":":
       last = keys[i] === "?" ? null : cur
-      while (last && last.t !== kN.ifElse) { last = last.par } 
+      while (last && last.t !== kN.ifElse) { last = last.par }
       if (!last || last.val.f) {
         last = cur.par
         cur.par = { t: kN.ifElse, val: { cond: cur, t: null, f: null },
@@ -324,7 +324,7 @@ const exprKeySeq = function (this: ListNode): object | string | null {
   const ifNotEmpty = (arr: any[]): any[] | null => arr.some(i => i != null) ? arr : null
   const iter = (node: Node | KeyNode | null): object | string | null => {
     return !node ? null
-        : node.t == kN.list ? node.val.length === 1 ? iter(node.val[0])
+        : node.t === kN.list ? node.val.length === 1 ? iter(node.val[0])
             : node.val.length === 0 ? null : ifNotEmpty(node.val.map(iter))
         : node.t !== kN.ifElse ? As_<string | OneKeyInstance>(node.val)
         : { if: iter(node.val.cond), then: iter(node.val.t), else: iter(node.val.f) }
@@ -336,7 +336,7 @@ const nextKeyInSeq = (lastCursor: ListNode | KeyNode, dir: number): KeyNode | nu
   let down = true, par: ListNode | IfElseNode, ind: number
   let cursor: Node | KeyNode | null = lastCursor
   if (cursor.t === kN.key) {
-    par = cursor.par, ind = par.val.indexOf(cursor!)
+    par = cursor.par, ind = par.val.indexOf(cursor)
     cursor = ind < par.val.length - 1 && dir > 0 ? par.val[ind + 1] : (down = false, par)
   }
   while (cursor && cursor.t !== kN.key) {
@@ -370,7 +370,7 @@ export const runKeyInSeq = (seq: BgCmdOptions[C.runKey]["$seq"], dir: number
   if (isLast) {
     keyToCommandMap_.delete(seqId)
     clearTimeout(seq.timeout || 0)
-    if (kStr.RunKeyWithId.replace("$1", "" + loopIdToRunSeq as "1") == seqId) {
+    if (kStr.RunKeyWithId.replace("$1", "" + loopIdToRunSeq as "1") === seqId) {
       loopIdToRunSeq = Math.max(--loopIdToRunSeq, 0)
     }
     if (cursor) {
@@ -441,7 +441,7 @@ export const parseEmbeddedOptions = (/** has no prefixed "#" */ str: string): Co
   return parseOptions_(str, 2)
 }
 
-const runOneKey = (cursor: KeyNode, seq: BgCmdOptions[C.runKey]["$seq"], envInfo: CurrentEnvCache | null) => {
+const runOneKey = (cursor: KeyNode, seq: BgCmdOptions[C.runKey]["$seq"], envInfo: CurrentEnvCache | null): void => {
   const info = parseKeyNode(cursor)
   const isFirst = seq.cursor === seq.keys, hasCount = isFirst || info.prefix.includes("$c")
   let options = !seq.options || !info.options ? seq.options || info.options

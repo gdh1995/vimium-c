@@ -132,6 +132,7 @@ const hoverEl = (): void => {
       return
     }
     hintMode_ & HintMode.queue || elType > EditableType.MaxNotTextModeElement
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
         || whenNextIsEsc_(kHandler.unhoverOnEsc, kModeId.Link, Build.NDEBUG ? unhover_async : unhoverOnEsc_d!)
     if (!toggleMap || !isTY(toggleMap, kTY.obj)) { return }
     safer(toggleMap);
@@ -194,6 +195,7 @@ const extractTextInOtherElements = (): string => {
     const clone = clickEl.cloneNode(true) as SVGElement
     const titles = clone.querySelectorAll("title")
     if (OnChrome && Build.MinCVer < BrowserVer.MinEnsured$ForOf$ForDOMListTypes) {
+      // eslint-disable-next-line @typescript-eslint/prefer-for-of
       for (let i = 0; i < titles.length; i++) { titles[i].remove() }
     } else {
       for (let i of titles as ArrayLike<Element> as Element[]) { i.remove() }
@@ -349,8 +351,9 @@ const defaultClick = (): void => {
         , !OnChrome || otherActions || newTab ? 0 : hintOptions.touch
         , hintOptions))
     .then((ret): void | false | number | Promise<unknown> =>
-        doesUnhoverAtOnce && (!interactive || isTY(autoUnhover)) ? catchAsyncErrorSilently(unhover_async())
+        doesUnhoverAtOnce && (!interactive || isTY(autoUnhover)) ? void catchAsyncErrorSilently(unhover_async())
         : isQueue || elType || (ret || doesUnhoverOnEsc) &&
+          // eslint-disable-next-line @typescript-eslint/no-misused-promises
           whenNextIsEsc_(kHandler.unhoverOnEsc, kModeId.Link, Build.NDEBUG ? unhover_async : unhoverOnEsc_d!)
     )
 }

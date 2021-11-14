@@ -187,7 +187,7 @@ export const getClientRectsForAreas_ = function (element: HTMLElementUsingMap, o
   }
   const toInt = (a: string): number => (a as string | number as number) | 0
   for (let _i = 0, _len = areas.length; _i < _len; _i++) {
-    const area = areas[_i] as HTMLAreaElement | Element
+    const area = areas[_i]
     if (!htmlTag_<1>(area)) { continue }
     let coords = area.coords.split(",").map(toInt)
     switch (Lower(area.shape)) {

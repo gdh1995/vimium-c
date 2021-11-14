@@ -76,7 +76,7 @@ function handler(this: void, res: ExternalMsgs[kFgReq.inject]["res"] | undefined
       console.log("%cVimium C%c: %cfail%c to inject into %c%s%c %s"
         , colorRed, colorAuto, colorRed, colorAuto, "color:#0c85e9"
         , host, colorAuto, str);
-      oldCallback && _old!.callback!(-1, str);
+      oldCallback && _old.callback!(-1, str)
     }
   }
   if (_old && typeof _old.destroy === "function") {
@@ -126,13 +126,13 @@ function handler(this: void, res: ExternalMsgs[kFgReq.inject]["res"] | undefined
 const call = useBrowser ? (): void => {
   (runtime.sendMessage(extID, <ExternalMsgs[kFgReq.inject]["req"]> {
     handler: kFgReq.inject, scripts: true
-  }) as any as Promise<ExternalMsgs[kFgReq.inject]["res"]>).then(handler, err => handler(undefined, err))
+  }) as any as Promise<ExternalMsgs[kFgReq.inject]["res"]>).then(handler, err => handler(undefined, err as LastError))
 } : (): void => {
   runtime.sendMessage(extID, <ExternalMsgs[kFgReq.inject]["req"]> {
     handler: kFgReq.inject, scripts: true
   }, (res): void => {
     const err = runtime.lastError as void | LastError
-    err ? handler(undefined, err) : handler(res)
+    err ? handler(undefined, err) : handler(res as ExternalMsgs[kFgReq.inject]["res"])
     return err as void
   });
 }
@@ -216,6 +216,7 @@ function addEventListener(this: EventTarget, type: string, listener: EventListen
     injector && injector.clickable && injector.clickable.add(this);
   }
   const args = arguments, len = args.length;
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
   return len === 2 ? _listen.call(this, type, listener) : len === 3 ? _listen.call(this, type, listener, args[2])
     : _listen.apply(this, args);
 },

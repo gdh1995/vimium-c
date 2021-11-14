@@ -237,7 +237,7 @@ const parseKeyMappings_ = (wholeMappings: string): void => {
       case "map": case "run":
         const isRun = cmd === "run" && !(val in availableCommands_)
         details = undefined
-        if (noCheck) {
+        if (noCheck) { /* empty */
         } else if (!key || key.length > 8 && (key === "__proto__" || key.includes("<__proto__>"))) {
           logError_('Unsupported key sequence %c"%s"', colorRed, key || '""', `for "${val || ""}"`)
         } else if (registry.has(key) && !(builtinKeys_ && builtinKeys_.has(key)) && !hasIfOption(line, knownLen)) {
@@ -404,7 +404,7 @@ const populateKeyMap_ = (value: string | null): void => {
     kWarn = 'Inactive key: %o with "%s"', isOldWrong = errors_ !== null
     if (hasFoundChanges) {
       set_keyFSM_(errors_ = null)
-      /*#__NOINLINE__*/ parseKeyMappings_(value!)
+      /*#__NOINLINE__*/ parseKeyMappings_(value)
     }
     const allKeys = BgUtils_.keys_(keyToCommandMap_),
     mappedKeyReg = mappedKeyRegistry_,

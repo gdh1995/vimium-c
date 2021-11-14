@@ -74,7 +74,7 @@ set_reqH_([
     }
   }) as BackendHandlersNS.FgRequestHandlers[kFgReq.parseSearchUrl],
   /** kFgReq.parseUpperUrl: */ (request: FgReq[kFgReq.parseUpperUrl], port?: Port | null): void => {
-    const oldUrl = request.u, alwaysExec = (request as FgReq[kFgReq.parseUpperUrl]).e as boolean
+    const oldUrl = request.u, alwaysExec = request.e as boolean
     const result = parseUpperUrl_(request)
     BgUtils_.resetRe_()
     request.e = result
@@ -298,8 +298,8 @@ set_reqH_([
     if (request.d) {
       if (typeof str !== "string") {
         for (let i = str.length; 0 <= --i; ) {
-          correctUrl && (str[i] = findUrlEndingWithPunctuation_(str[i] + ""))
-          str[i] = BgUtils_.decodeUrlForCopy_(str[i] + "")
+          correctUrl && (str[i] = findUrlEndingWithPunctuation_(str[i] as AllowToString + ""))
+          str[i] = BgUtils_.decodeUrlForCopy_(str[i] as AllowToString + "")
         }
       } else {
         correctUrl && (str = findUrlEndingWithPunctuation_(str))
@@ -359,7 +359,7 @@ set_reqH_([
     const type = rawType === "history" && sId != null ? "session" : rawType
     const name = type === "tab" ? type : type + " item"
     const cb = (succeed?: boolean | BOOL | void): void => {
-      Promise.resolve(trans_("sugs")).then((sugs): void => {
+      void Promise.resolve(trans_("sugs")).then((sugs): void => {
         showHUD(trans_(succeed ? "delSug" : "notDelSug", [transPart_(sugs as "sugs", type[0]) || name]))
       })
     }
@@ -384,7 +384,7 @@ set_reqH_([
   },
   /** kFgReq.gotoMainFrame: */ (req: FgReq[kFgReq.gotoMainFrame], port: Port): void => {
     if (req.c === kFgCmd.linkHints || req.c === kFgCmd.scroll) {
-      getParentFrame(port.s.tabId_, port.s.frameId_, 1).then(port2 => {
+      void getParentFrame(port.s.tabId_, port.s.frameId_, 1).then((port2): void => {
         focusAndExecute(req, port, port2 || framesForTab_.get(port.s.tabId_)?.top_ || null, req.f)
       })
       return
@@ -436,8 +436,8 @@ set_reqH_([
   },
   /** kFgReq.pages: */ (req: FgReqWithRes[kFgReq.pages], port: Frames.PagePort, msgId: number): false | Port => {
     if (port.s !== false && !port.s.url_.startsWith(location.origin + "/")) { return false }
-    (import("/background/page_handlers.js" as any) as Promise<typeof import("./page_handlers")>)
-    .then((module) => Promise.all(req.q.map(i => module.onReq(i, port))))
+    void (import("/background/page_handlers.js" as any) as Promise<typeof import("./page_handlers")>)
+    .then(module => Promise.all(req.q.map(i => module.onReq(i, port))))
     .then((answers): void => {
       const res: FgRes[kFgReq.pages] = { i: req.i, a: answers.map(i => i !== void 0 ? i : null) }
       req = null as never
@@ -524,7 +524,7 @@ const focusAndExecute = (req: Omit<FgReq[kFgReq.gotoMainFrame], "f">
     })
   } else {
     req.a.$forced = 1
-    portSendFgCmd(port, req.c, false, req.a as any, req.n || 0)
+    portSendFgCmd(port, req.c, false, req.a as Dict<any>, req.n || 0)
   }
 }
 

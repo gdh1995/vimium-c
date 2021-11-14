@@ -29,7 +29,7 @@ const onMessage = <K extends keyof FgReq, T extends keyof FgRes> (request: Req.f
   }
 }
 
-export const sendResponse = <T extends keyof FgRes> (port: Port, msgId: number, response: FgRes[T]) => {
+export const sendResponse = <T extends keyof FgRes> (port: Port, msgId: number, response: FgRes[T]): void => {
   const frames = framesForTab_.get(port.s.tabId_)
   if (frames && frames.ports_.includes!(port)) { // for less exceptions
     try {
@@ -322,10 +322,10 @@ export const safePost = <K extends keyof FullBgReq>(port: Port, req: Req.bg<K>):
   } catch { return 0 }
 }
 
-const show2 = (isCopy: kTip | undefined, text: string) => { showHUD(text, isCopy) }
+const show2 = (isCopy: kTip | undefined, text: string): void => { showHUD(text, isCopy) }
 
 export const showHUD = (text: string | Promise<string>, isCopy?: kTip): void => {
-  if (typeof text !== "string") { text.then(/*#__NOINLINE__*/ show2.bind(null, isCopy)); return }
+  if (typeof text !== "string") { void text.then(/*#__NOINLINE__*/ show2.bind(null, isCopy)); return }
   if (isCopy) {
     if (text.startsWith(CONST_.BrowserProtocol_ + "-") && text.includes("://")) {
       text = text.slice(text.indexOf("/", text.indexOf("/") + 2) + 1) || text
@@ -351,7 +351,8 @@ export const ensuredExitAllGrab = (ref: Frames.Frames): void => {
   return
 }
 
-export const asyncIterFrames_ = (callback: (frames: Frames.Frames) => void, doesContinue?: () => boolean | void): void => {
+export const asyncIterFrames_ = (callback: (frames: Frames.Frames) => void, doesContinue?: () => boolean | void
+    ): void => {
   const MIN_ASYNC_ITER = 50
   const knownKeys = keys_(framesForTab_), knownCurTabId = curTabId_
   const iter = (tab: number): number => {
@@ -375,7 +376,7 @@ export const asyncIterFrames_ = (callback: (frames: Frames.Frames) => void, does
 }
 
 export const complainLimits = (action: string | Promise<string>): void => {
-  Promise.resolve(action).then((msg): void => { showHUD(trans_("notAllowA", [msg])) })
+  void Promise.resolve(action).then((msg): void => { showHUD(trans_("notAllowA", [msg])) })
 }
 
 export const complainNoSession = (): void => {
@@ -401,17 +402,17 @@ export const getParentFrame = (tabId: number, curFrameId: number, level: number)
   }
   if (!OnEdge && level === 1 && (!OnChrome || Build.MinCVer < BrowserVer.Min$webNavigation$$getFrame$IgnoreProcessId
       || CurCVer_ > BrowserVer.Min$webNavigation$$getFrame$IgnoreProcessId - 1)) {
-    return Q_(browserWebNav_()!.getFrame, { tabId, frameId: curFrameId }).then((frame) => {
+    return Q_(browserWebNav_()!.getFrame, { tabId, frameId: curFrameId }).then(frame => {
       const frameId = frame ? frame.parentFrameId : 0
       return frameId > 0 ? indexFrame(tabId, frameId) : null
     })
   }
-  return Q_(browserWebNav_()!.getAllFrames, { tabId }).then((frames) => {
+  return Q_(browserWebNav_()!.getAllFrames, { tabId }).then(frames => {
     let found = false, frameId = curFrameId
     if (!frames) { return null }
     do {
       found = false
-      for (const i of frames!) {
+      for (const i of frames) {
         if (i.frameId === frameId) {
           frameId = i.parentFrameId
           found = frameId > 0

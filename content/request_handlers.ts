@@ -65,7 +65,7 @@ set_requestHandlers([
     requestHandlers[kBgReq.keyFSM](request);
     (requestHandlers[kBgReq.reset] as (request: BgReq[kBgReq.reset | kBgReq.init], initing?: 1) => void)(request, 1)
     if (isEnabled_) {
-      set_keydownEvents_(safeObj(null))
+      set_keydownEvents_(safeObj<any>(null))
       insertInit(injector ? injector.$g : fgCache.g && grabBackFocus as boolean, 1)
       if (OnChrome && Build.MinCVer < BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow
           && chromeVer_ > BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow - 1) {
@@ -214,6 +214,7 @@ set_requestHandlers([
         set_findCSS(req.f)
         styleInHUD && createStyle(req.f.i, styleInHUD)
         styleSelColorIn && (createStyle(req.f.c, styleSelColorIn), createStyle(req.f.c, styleSelColorOut))
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         findExit && toggleSelectableStyle(1)
       }

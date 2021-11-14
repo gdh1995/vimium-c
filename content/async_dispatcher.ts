@@ -102,6 +102,7 @@ const __myAwaiter = Build.BTypes & BrowserType.Chrome ? Build.MinCVer < BrowserV
 
 const __awaiter = Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES2017AsyncFunctions
 ? (_aw_self: void | 0 | undefined, _aw_args: unknown, _aw_p: PromiseConstructor | 0 | undefined
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     , func_to_await: Function): Promise<YieldedValue> => __myAwaiter(func_to_await as any)
 : 0 as never
 

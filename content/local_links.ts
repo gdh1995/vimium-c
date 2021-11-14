@@ -16,7 +16,7 @@ import {
 import { find_box } from "./mode_find"
 import { omni_box } from "./omni"
 import {
-  kSafeAllSelector, coreHints, addChildFrame_, mode1_, forHover_, hintOptions, AddChildDirectly, wantDialogMode_,
+  kSafeAllSelector, coreHints, addChildFrame_, mode1_, forHover_, hintOptions, wantDialogMode_,
   isClickListened_, hintMode_, set_isClickListened_, tooHigh_, useFilter_, hintChars, hintManager
 } from "./link_hints"
 import { shouldScroll_s, getPixelScaleToScroll, scrolled, set_scrolled, suppressScroll } from "./scroller"
@@ -71,8 +71,7 @@ const getClickable = (hints: Hint[], element: SafeHTMLElement): void => {
     if (isClickable = element !== find_box) {
       arr = getIFrameRect(element)
       if (element !== omni_box) {
-        isClickable = addChildFrame_ ? (addChildFrame_ as AddChildDirectly)(coreHints
-            , element as KnownIFrameElement, arr) : !!arr
+        isClickable = addChildFrame_ ? addChildFrame_(coreHints, element as KnownIFrameElement, arr) : !!arr
       } else if (arr) {
         (arr as WritableRect).l += 12; (arr as WritableRect).t += 9;
       }
@@ -295,7 +294,7 @@ const createElementSet = (list: NodeListOf<Element> | Element[]): IterableElemen
 }
 
 const addExtraVisibleToHints = (hints: (Hint | Hint0)[], element: Element): void => {
-  for (const hint of hints) { if (hint[0] == element) { return } }
+  for (const hint of hints) { if (hint[0] === element) { return } }
   let arr = htmlTag_<1>(element) && getVisibleClientRect_(element, null)
   arr && hints.push([element as SafeHTMLElement, arr, ClickType.Default])
 }
@@ -353,7 +352,7 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
   const excludedSelector = options.exclude,
   wantClickable = filter === getClickable,
   isInAnElement = !Build.NDEBUG && !!wholeDoc && wholeDoc !== 1 && wholeDoc.tagName != null,
-  traverseRoot = !wholeDoc ? fullscreenEl_unsafe_() : !Build.NDEBUG && isInAnElement && wholeDoc as Element || null
+  traverseRoot = !wholeDoc ? fullscreenEl_unsafe_() : !Build.NDEBUG && isInAnElement && wholeDoc || null
   let matchSelector = options.match || null,
   textFilter: OtherFilterOptions["textFilter"] | void | RegExpI | RegExpOne | false = options.textFilter,
   clickableSelector = options.clickable || null,
@@ -477,7 +476,7 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
               = i > 0 && buttonOrATags_.test(list[i - 1][0].localName)
               ? (s < "i" || !element.innerHTML.trim()) && isDescendant(element, list[i - 1][0], s < "i")
               : !!(element = (element as SafeHTMLElement).parentElement)
-                && hasTag_("button", element) && (element as HTMLButtonElement).disabled
+                && hasTag_("button", element) && element.disabled
               ) {
             // icons: button > i; button > div@mousedown; (button[disabled] >) div@mousedown
             ++splice
@@ -664,7 +663,7 @@ export const filterOutNonReachable = (list: Hint[], notForAllClickable?: boolean
     }
     if (nodeType === kNode.DOCUMENT_FRAGMENT_NODE
         && (temp = el.lastElementChild as Element | null) && hasTag_("slot", temp)
-        && contains_s((root as ShadowRoot).host as SafeElement, fromPoint!)) {
+        && contains_s(root.host as SafeElement, fromPoint!)) {
       continue;
     }
     type MayBeLabel = TypeToAssert<Element, HTMLLabelElement, "control">;

@@ -87,8 +87,8 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
       elapsed = min_delta; timer = TimerID.None
     } else {
       elapsed = newRawTimestamp > timestamp ? newRawTimestamp - timestamp : 0
-      if (OnFirefox
-          && rawElapsed > ScrollConsts.FirefoxMinFakeInterval - 1 && (rawElapsed === parseInt(<any> rawElapsed))) {
+      if (OnFirefox && rawElapsed > ScrollConsts.FirefoxMinFakeInterval - 1
+          && (rawElapsed === parseInt(rawElapsed as number | string as string))) {
         if (elapsed > 1.5 * (min_delta || ScrollConsts.tickForUnexpectedTime)) {
           elapsed = min_delta || ScrollConsts.tickForUnexpectedTime
         }
@@ -221,7 +221,7 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
     }
     running = running || rAF_(animate)
     if (doesSucceed_ != null) {
-      doesSucceed_ = new Promise((newResolve) => { onFinish = newResolve })
+      doesSucceed_ = new Promise((newResolve): void => { onFinish = newResolve })
     }
   };
   performAnimate(newEl, newDi, newAmount, nFs)
@@ -305,7 +305,7 @@ export const executeScroll: VApiTy["c"] = function (di: ScrollByY, amount0: numb
     }
     const element = findScrollable(di, toFlags ? toMax || -1 : amount0
         , options && (options.scroll ? options.scroll === "force"
-            : options.evenIf != null ? !!(options.evenIf! & kHidden.OverflowHidden) : null)
+            : options.evenIf != null ? !!(options.evenIf & kHidden.OverflowHidden) : null)
         , options && options.scrollable)
     const isTopElement = element === scrollingTop
     const mayUpperFrame = !isTop && isTopElement && element && !fullscreenEl_unsafe_()
@@ -370,7 +370,7 @@ export const executeScroll: VApiTy["c"] = function (di: ScrollByY, amount0: numb
     preventPointEvents = keyIsDown ? preventPointEvents : 0
     scrolled = doesSucceed_ = 0
     if (ret && isTY(ret, kTY.obj)) {
-      ret.then((succeed): void => { runFallbackKey(options!, succeed ? 0 : 2) })
+      void ret.then((succeed): void => { runFallbackKey(options!, succeed ? 0 : 2) })
     } else if (ret != null) {
       runFallbackKey(options, ret ? 0 : 2)
     }
@@ -543,10 +543,10 @@ export const scrollIntoView_s = (el?: SafeElement | null): void => {
     ihm = min_(96, ih / 2), iwm = min_(64, iw / 2),
     hasY = r.b < ihm ? max_(r.b - ih + ihm, r.t - ihm) : ih < r.t + ihm ? min_(r.b - ih + ihm, r.t - ihm) : 0,
     hasX = r.r < 0 ? max_(r.l - iwm, r.r - iw + iwm) : iw < r.l ? min_(r.r - iw + iwm, r.l - iwm) : 0
-    currentScrolling = weakRef_(el!)
+    currentScrolling = weakRef_(el)
     cachedScrollable = 0
     if (hasX || hasY) {
-      for (let el2: Element | null = el!; el2; el2 = GetParent_unsafe_(el2, PNType.RevealSlotAndGotoParent)) {
+      for (let el2: Element | null = el; el2; el2 = GetParent_unsafe_(el2, PNType.RevealSlotAndGotoParent)) {
         const pos = getComputedStyle_(el2).position;
         if (pos === "fixed" || pos === "sticky") {
           hasX = hasY = 0;
@@ -555,11 +555,11 @@ export const scrollIntoView_s = (el?: SafeElement | null): void => {
       }
       if (hasX) {
         doesSucceed_ = null;
-        (hasY ? performScroll : vApi.$)(findScrollable(0, hasX), 0, hasX);
+        void (hasY ? performScroll : vApi.$)(findScrollable(0, hasX), 0, hasX);
       }
       if (hasY) {
         doesSucceed_ = null
-        vApi.$(findScrollable(1, hasY), 1, hasY)
+        void vApi.$(findScrollable(1, hasY), 1, hasY)
       }
     }
     scrolled = doesSucceed_ = 0

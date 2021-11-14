@@ -32,7 +32,7 @@ declare var define: any, __filename: string | null | undefined
 Build.NDEBUG || (function (): void {
   type ModuleTy = Dict<any> & { __esModule: boolean }
   interface DefineTy {
-    (deps: string[], factory: (asyncRequire: () => never, exports: ModuleTy, ...deps: ModuleTy[]) => any): void
+    (deps: string[], factory: (asyncRequire: () => never, exports: ModuleTy, ...resolved: ModuleTy[]) => any): void
     amd?: boolean
     modules_?: Dict<ModuleTy>
     noConflict (): void
@@ -50,7 +50,7 @@ Build.NDEBUG || (function (): void {
         (window as any)[fileName] = ((factory || deps) as () => any)()
         return
       }
-      return oldDefine.apply(this, arguments)
+      return oldDefine.apply(this, arguments) // eslint-disable-line @typescript-eslint/no-unsafe-argument
     }
     __filename = null
     const exports = myRequire(filename)

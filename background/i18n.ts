@@ -14,7 +14,7 @@ let ready_: Promise<Map<string, string>> | BOOL = 0
 
 export const contentI18n_: string[] = []
 
-export const extTrans_ = (msg: keyof typeof i18n_map, args?: string[]) => browser_.i18n.getMessage(msg, args)
+export const extTrans_ = (msg: keyof typeof i18n_map, args?: string[]): string => browser_.i18n.getMessage(msg, args)
 
 export const trans_ = (name: I18nNames, args?: (string | number)[]): string | Promise<string> => {
   if (ready_ === 1) {

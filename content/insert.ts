@@ -344,7 +344,7 @@ export const onWndBlur = (): void => {
   scrollTick(0);
   onWndBlur2 && onWndBlur2();
   exitPassMode && exitPassMode();
-  set_keydownEvents_(safeObj(null))
+  set_keydownEvents_(safeObj<any>(null))
   set_isCmdTriggered(kKeyCode.None)
   if (OnChrome) {
     /*#__NOINLINE__*/ resetAnyClickHandler();
