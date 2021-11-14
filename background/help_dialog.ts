@@ -13,8 +13,6 @@ type NoAliasInCNames<k extends kCName> =
 // eslint-disable-next-line no-var
 let html_: [string, string] | null = null
 let i18n_: Map<keyof typeof import("../i18n/zh/help_dialog.json"), string>
-let template_: HTMLTableDataCellElement | null = null
-let parser_ff_: DOMParser | null = null
 const descriptions_ = new Map<kCName, [/** description */ string, /** parameters */ string]>()
 
 export const parseHTML = (template: string): [string, string] => {
@@ -82,8 +80,6 @@ export const render_ = (isOptionsPage: boolean): NonNullable<CmdOptions[kFgCmd.s
     });
     const div = html_[1].replace(<RegExpG & RegExpSearchable<1>> /\{\{(\w+)}}/g
         , (_, group: string) => result[group] ?? renderGroup(group, commandToKeys, hideUnbound, showNames))
-    OnFirefox && (parser_ff_ = null)
-    template_ = null
     return OnFirefox ? { h: html_[0], b: div } : (html_[0] + div) as any as "html"
 }
 
@@ -100,14 +96,14 @@ const startsWith = <A extends string, S extends string> (name: A, tail: S): name
 const endsWith = <A extends string, S extends string> (name: A, tail: S): name is A & StringEndsWith<A, S> =>
     name.endsWith(tail)
 
-type _NormalizedNames1<T extends kCName> =  
+type _NormalizedNames1<T extends kCName> =
       T extends `${infer A}.activate${infer B}ModeTo${infer C}` ? `${A}.activate${B}${C}`
     : T extends `${infer A}.activate${infer B}Mode${infer C}` ? `${A}.activate${B}${C}`
     : T
-type _NormalizedNames2<T extends kCName> =  
+type _NormalizedNames2<T extends kCName> =
       T extends `${infer A}Unhover` ? `${A}Leave`
     : T extends `${infer A}Goto` ? `${A}`
-    : T extends `clearContentSetting` ? `${T}s`
+    : T extends "clearContentSetting" ? `${T}s`
     : T extends `${infer A}CS${infer B}` ? A extends "clear" ? "clearContentSettings" : `${A}ContentSetting${B}`
     : T extends `${infer A}vateUrl${infer B}` ? `${A}vateEditUrl${B}`
     : T extends `${infer A}TabSelection` ? `${A}Tabs`
@@ -178,13 +174,7 @@ const renderGroup = (group: string, commandToKeys: Map<string, [string, Commands
             break
           }
           const item = keys[i]
-          const help = normalizeHelpInfo_(item[1])
-          const key = help && help.$key_ || BgUtils_.escapeText_(item[0]), desc2 = help && help.$desc_;
-          if (desc2) {
-            let singleBinding = `\n\t\t<span class="HelpKey">${key}</span>\n\t`;
-            html += commandHTML_(isAdvanced, singleBinding, showNames ? desc2 + " " : desc2, showNames ? command : "")
-            continue;
-          }
+          const key = BgUtils_.escapeText_(item[0])
           if (keyLen >= 0) {
             bindings += '</span> <span class="HelpKey">';
           }
@@ -222,67 +212,6 @@ const commandHTML_ = (isAdvanced: boolean, bindings: string, description: string
       html += bindings;
     }
     return html + "</td>\n</tr>\n";
-}
-
-const normalizeHelpInfo_ = (item: CommandsNS.BaseHelpItem): CommandsNS.NormalizedCustomHelpInfo | null => {
-    const help = item.help_
-    if (!help || help.$key_ != null) { return help }
-    if (OnFirefox ? parser_ff_ : template_) { /* empty */ }
-    else if (!OnFirefox) {
-      const template = document.createElement("template"),
-      td = document.createElement("td");
-      template.content.appendChild(td);
-      // make `<td>` inert, so that "onclick" won't be parsed
-      template_ = td;
-    } else {
-      parser_ff_ = new DOMParser()
-    }
-    return (item as CommandsNS.ItemWithHelpInfo).help_ = {
-      $key_: help.key_ ? safeHTML_(help.key_) : "",
-      $desc_: help.desc_ ? safeHTML_(help.desc_) : ""
-    }
-}
-
-  // https://support.zendesk.com/hc/en-us/articles/115015895948-Allowing-unsafe-HTML-in-articles
-const _safeTags: SafeEnum = {
-    a: 1, abbr: 1, acronym: 1, address: 1, b: 1, big: 1, blockquote: 1, br: 1,
-    cite: 1, code: 1, colgroup: 1, dd: 1, del: 1, dfn: 1, div: 1, dl: 1, dt: 1,
-    em: 1, h1: 1, h2: 1, h3: 1, h4: 1, h5: 1, h6: 1, hr: 1, i: 1, id: 1, img: 1,
-    ins: 1, kbd: 1, li: 1, ol: 1, p: 1, pre: 1, samp: 1, small: 1, span: 1,
-    strong: 1, sub: 1, sup: 1, table: 1, tbody: 1, td: 1, tfoot: 1, th: 1,
-    thead: 1, tr: 1, tt: 1, u: 1, ul: 1, var: 1,
-    svg: 1, path: 1,
-    __proto__: null as never
-}
-
-const safeHTML_ = (raw: string): string => {
-    if (!OnFirefox) {
-      template_!.innerHTML = raw
-    } else {
-      template_ = parser_ff_!.parseFromString(`<td>${raw}</td>`, "text/html"
-          ).body.firstChild as HTMLTableDataCellElement;
-      if (!template_) { return "" }
-    }
-    for (let arr = template_!.querySelectorAll("*"), i = 0, end = arr.length; i < end; i++) {
-      const el = arr[i];
-      // here force to match ignoring cases - safer
-      if (!((!OnFirefox ? el.localName + "" : el.localName as string) in _safeTags)
-          && !(el instanceof HTMLUnknownElement)) {
-        el.remove();
-        continue;
-      }
-      const attrsToRemove: Attr[] = [];
-      for (let attrs = el.attributes, len2 = attrs.length, j = 0; j < len2; j++) {
-        const attrName = attrs[j].name.toLowerCase();
-        if ((<RegExpI> /^on|[^\w\-]|href$|^is/i).test(attrName)) {
-          attrsToRemove.push(attrs[j]);
-        }
-      }
-      for (let attr of attrsToRemove) {
-        el.removeAttributeNode(attr);
-      }
-    }
-    return template_!.innerHTML
 }
 
 const commandGroups_: {

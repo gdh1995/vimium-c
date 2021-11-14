@@ -193,8 +193,6 @@ declare namespace CommandsNS {
   interface RawOptions extends SafeDict<any> {
     count?: number | string // float factor to scale the `$count` in its default options
     $count?: number // absolute count: will ignore .count if manually specified
-    $desc?: string
-    $key?: string
     $if?: {
       sys?: string
       browser?: BrowserType
@@ -217,21 +215,11 @@ declare namespace CommandsNS {
     mode?: number | string | null
     characters?: string | null
   }
-  // encoded info
-  interface CustomHelpInfo {
-    key_: string; desc_: string; $key_?: undefined
-  }
-  interface NormalizedCustomHelpInfo {
-    $key_: string; $desc_: string
-  }
   type BgDescription = [ alias: keyof BgCmdOptions, background: 1, repeat: number, defaultOptions?: {} ]
   type FgDescription = [ alias: keyof CmdOptions, background: 0, repeat: number, defaultOptions?: {} ]
   /** [ enum, is background, count limit, default options ] */
   type Description = BgDescription | FgDescription
-  interface BaseHelpItem {
-    help_: CustomHelpInfo | NormalizedCustomHelpInfo | null
-  }
-  interface BaseItem extends BaseHelpItem {
+  interface BaseItem {
     readonly options_: Options | RawOptions | "__not_parsed__" | null
     readonly repeat_: number
     readonly command_: kCName
@@ -243,9 +231,6 @@ declare namespace CommandsNS {
   interface UnnormalizedItem extends BaseItem {
     readonly options_: "__not_parsed__"
     help_: null
-  }
-  interface ItemWithHelpInfo extends BaseHelpItem {
-    help_: NormalizedCustomHelpInfo | null
   }
   type ValidItem = NormalizedItem | UnnormalizedItem
   type Item = ValidItem & ({ readonly alias_: keyof BgCmdOptions; readonly background_: 1

@@ -109,11 +109,6 @@ export const normalizeCommand_ = (cmd: Writable<CommandsNS.BaseItem>, details?: 
               : (parseFloat(options.count || 1) || 1) * (opt && opt.$count || 1)
         delete options.count
       }
-      if (options.$desc || options.$key) {
-        cmd.help_ = { key_: options.$key || "", desc_: options.$desc || "" }
-        delete options.$key;
-        delete options.$desc;
-      }
       if (options.$if) {
         if (doesMatchEnv_(options) === false) { return false }
         delete options.$if;
@@ -162,7 +157,6 @@ export const makeCommand_ = <T extends CommandsNS.RawOptions | "__not_parsed__" 
       alias_: details[0] as Exclude<typeof details[0], kFgCmd>,
       background_: details[1] as Exclude<typeof details[1], 0>,
       command_: command as kCName,
-      help_: null,
       options_: options || (details.length < 4 ? null : BgUtils_.safer_(details[3]!)),
       hasNext_: null,
       repeat_: details[2]
