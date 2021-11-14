@@ -12,6 +12,7 @@ declare const enum SedAction {
   base64Decode = 8, atob = 8, base64 = 8, base64Encode = 9, btoa = 9,
   encode = 10, encodeComp = 11, encodeAll = 12, encodeAllComp = 13,
   camel = 14, camelcase = 14, dash = 15, dashed = 15, hyphen = 15, capitalize = 16, capitalizeAll = 17,
+  latin = 18, latinize = 18, latinise = 18, noaccent = 18, nodiacritic = 18,
   break = 99, stop = 99, return = 99,
 }
 interface Contexts { normal_: SedContext, extras_: kCharCode[] | null }
@@ -36,7 +37,9 @@ const SedActionMap: ReadonlySafeDict<SedAction> = As_<SafeObject & {
   camel: SedAction.camel, camelcase: SedAction.camelcase, dash: SedAction.dash, dashed: SedAction.dash,
   hyphen: SedAction.hyphen,
   normalize: SedAction.normalize, reverse: SedAction.reverseText, reversetext: SedAction.reverseText,
-  break: SedAction.break, stop: SedAction.stop, return: SedAction.return
+  break: SedAction.return, stop: SedAction.return, return: SedAction.return,
+  latin: SedAction.latin, latinize: SedAction.latin, latinise: SedAction.latin,
+  noaccent: SedAction.latin, nodiacritic: SedAction.latin,
 })
 
 let staticSeds_: readonly ClipSubItem[] | null = null
@@ -148,6 +151,20 @@ const convertCaseWithLocale = (text: string, action: SedAction): string => {
     })
   }
   return text
+}
+
+const latinize = (text: string): string => {
+  return text.replace(<RegExpG> (OnEdge
+    || OnChrome && Build.MinCVer < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
+        && CurCVer_ < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
+    || OnFirefox && Build.MinFFVer < FirefoxBrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
+        && CurFFVer_ < FirefoxBrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
+    ? /[\u0300-\u0362]/g
+    : (Build.MinCVer >= BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp || !(Build.BTypes & BrowserType.Chrome))
+    && (Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
+        || !(Build.BTypes & BrowserType.Firefox))
+    && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
+    ? /\p{Diacritic}/gu : new RegExp("\\p{Diacritic}", "gu" as "g")), "")
 }
 
 export const parseSedOptions_ = (sed: UserSedOptions): ParsedSedOpts | null => {
@@ -265,12 +282,13 @@ set_substitute_((text: string, normalContext: SedContext, mixedSed?: MixedSedOpt
             : action === SedAction.encodeAllComp ? encodeURIComponent(text)
             : action === SedAction.base64Decode ? BgUtils_.DecodeURLPart_(text, "atob")
             : action === SedAction.base64Encode ? btoa(text)
-            : (text = (action === SedAction.normalize || action === SedAction.reverseText)
+            : (text = (action === SedAction.normalize || action === SedAction.reverseText || action === SedAction.latin)
                   && (!OnChrome || Build.MinCVer >= BrowserVer.Min$String$$Normalize
-                      || text.normalize) ? text.normalize() : text,
+                      || text.normalize) ? text.normalize(action === SedAction.latin ? "NFD" : "NFC") : text,
               action === SedAction.reverseText
               ? (OnChrome && Build.MinCVer < BrowserVer.Min$Array$$From
                 && !Array.from ? text.split("") : Array.from(text)).reverse().join("")
+              : action === SedAction.latin ? latinize(text)
               : action === SedAction.camel || action === SedAction.dash || action === SedAction.capitalize ||
                 action === SedAction.capitalizeAll ? convertCaseWithLocale(text, action)
               : text
