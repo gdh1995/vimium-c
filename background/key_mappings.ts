@@ -724,7 +724,7 @@ const hintModes_: SafeDict<HintMode> = {
 }
 
 export const visualGranularities_: GranularityNames = [
-    "character", "word", "", "lineboundary", "line", "sentence", "paragraph", "documentboundary"]
+    "character", "word", "", "lineboundary", "line", "sentence", "paragraphboundary", "paragraph", "documentboundary"]
 
 export const visualKeys_: VisualModeNS.KeyMap = {
     l: VisualAction.char | VisualAction.inc, h: VisualAction.char | VisualAction.dec,
@@ -736,10 +736,9 @@ export const visualKeys_: VisualModeNS.KeyMap = {
     e: VisualAction.word | VisualAction.inc, b: VisualAction.word | VisualAction.dec,
     /* same as b */ B: VisualAction.word | VisualAction.dec,
     G: VisualAction.documentBoundary | VisualAction.inc, g: { g: VisualAction.documentBoundary | VisualAction.dec },
-    gg: VisualAction.documentBoundary | VisualAction.dec,
 
-    o: VisualAction.Reverse, a: { w: VisualAction.LexicalWord, s: VisualAction.LexicalSentence },
-    aw: VisualAction.LexicalWord, as: VisualAction.LexicalSentence,
+    o: VisualAction.Reverse, a: { w: VisualAction.LexicalWord, s: VisualAction.LexicalSentence,
+        p: VisualAction.LexicalParagraph, "}": VisualAction.LexicalParagraph },
 
     y: VisualAction.Yank, Y: VisualAction.YankLine, C: VisualAction.YankWithoutExit, "c-s-c": VisualAction.YankRichText,
     p: VisualAction.YankAndOpen, P: VisualAction.YankAndNewTab,

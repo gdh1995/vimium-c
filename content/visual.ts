@@ -108,7 +108,7 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode]): void => {
   }
 
   const resetKeys = (): void => {
-    currentCount = 0; currentSeconds = null
+    currentCount = 0; currentSeconds = void 0
   }
 
   /**
@@ -260,7 +260,7 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode]): void => {
     let mode_: Mode = options.m || Mode.Visual
     let curSelection: Selection
     let currentCount = 0
-    let currentSeconds: SafeDict<VisualAction> | null = null
+    let currentSeconds: SafeDict<VisualAction> | undefined
     let retainSelection: BOOL | boolean | undefined
     let richText: BOOL | boolean | undefined
     let isAlertExtend: BOOL | boolean
@@ -402,15 +402,17 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode]): void => {
       "cm".includes(key[0]) ? deactivate() : yank(key < "b" ? kYank.NotExit : kYank.Exit)
       return HandlerResult.Prevent;
     }
-    const count = currentCount, childAction = currentSeconds && currentSeconds[key],
-    newActions = childAction != null ? childAction : keyMap[key]
+    const childAction = currentSeconds && currentSeconds[key],
+    count = !currentSeconds || childAction ? currentCount : 0,
+    newActions = childAction != null ? childAction : (<RegExpOne> /^v\d/).test(key) ? +key.slice(1) : keyMap[key]
     if (!isTY(newActions, kTY.num)) {
-      // asserts newActions is SafeDict<VisualAction> | null | undefined
-      currentCount = !newActions && key.length < 2 && +key < 10 ? currentSeconds ? +key : +key + count * 10 : 0
-      currentSeconds = newActions || null
+      // asserts newActions is SafeDict<VisualAction> | undefined
+      currentCount = newActions ? currentCount : key.length < 2 && +key < 10 ? +key + count * 10 : 0
+      currentSeconds = newActions
       return newActions ? HandlerResult.Prevent
           : keybody.length > 1 || key !== keybody && key < "s"
-          ? keybody < kChar.f1 || keybody > kChar.maxF_num ? HandlerResult.Suppress : HandlerResult.Nothing
+          ? key.startsWith("v-") || keybody > kChar.maxNotF_num && keybody < kChar.minNotF_num
+            ? HandlerResult.Nothing : HandlerResult.Suppress
           : HandlerResult.Prevent;
     }
     resetKeys()
@@ -746,12 +748,13 @@ const ensureLine = (command1: number): void => {
     if (command !== VisualAction.YankWithoutExit && command !== VisualAction.YankRichText) { return; }
   } else if (command > VisualAction.MaxNotLexical) {
     const entity = (command - VisualAction.MaxNotLexical) as kG.sentence | kG.word
-    collapseToFocus(1)
+    collapseToFocus(0)
     entity - kG.word || modify(kDirTy.right, kG.character)
     modify(kDirTy.left, entity)
     di_ = kDirTy.left // safe
     collapseToFocus(1)
-    runMovements(kDirTy.right, entity, count)
+    runMovements(kDirTy.right, !(entity - kG.paragraphboundary) ? kG.paragraph
+        : !(entity - kG.lineBoundary) ? kG.line : entity, count)
   } else if (command === VisualAction.Reverse) {
     reverseSelection()
   } else if (command >= VisualAction.MinWrapSelectionModify) {

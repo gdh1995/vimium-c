@@ -81,11 +81,12 @@ interface Window {
 
 declare namespace VisualModeNS {
   const enum kG {
-    character = 0, word = 1, lineBoundary = 3, line = 4, sentence = 5, paragraph = 6, documentBoundary = 7,
+    character = 0, word = 1, lineBoundary = 3, line = 4, sentence = 5, paragraphboundary = 6, paragraph = 7,
+    documentBoundary = 8,
   }
 }
 type GranularityNames = readonly ["character", "word", /** VimG.vimWord */ "", "lineboundary", "line"
-    , "sentence", "paragraph", "documentboundary"]
+    , "sentence", "paragraphboundary", "paragraph", "documentboundary"]
 interface Selection {
   modify(alert: "extend" | "move", direction: "forward" | "backward",
          granularity: GranularityNames[VisualModeNS.kG]): void | 1;

@@ -188,8 +188,9 @@ declare const enum VisualAction {
   Reverse = MinNotWrapSelectionModify,
 
   MaxNotLexical = MinNotWrapSelectionModify,
-  LexicalSentence = MaxNotLexical + VisualModeNS.kG.sentence,
   LexicalWord = MaxNotLexical + VisualModeNS.kG.word,
+  LexicalSentence = MaxNotLexical + VisualModeNS.kG.sentence,
+  LexicalParagraph = MaxNotLexical + VisualModeNS.kG.paragraphboundary,
 
   MaxNotYank = 30, Yank, YankLine, YankWithoutExit, YankAndOpen, YankAndNewTab, YankRichText,
 
