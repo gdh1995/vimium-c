@@ -211,7 +211,6 @@ const copyText = (): void => {
         str: string | null | undefined;
     if (isUrl) {
       str = getUrlData()
-      str && (<RegExpI> /^mailto:./).test(str) && (str = str.slice(7).trim());
     }
     else if (str = accessElAttr(2)[0].trim()) { /* empty */ }
     else {
@@ -231,12 +230,9 @@ const copyText = (): void => {
         str = tag === "textarea" ? (clickEl as HTMLTextAreaElement).value
           : tag === "select" ? ((clickEl as HTMLSelectElement).selectedIndex < 0
               ? "" : (clickEl as HTMLSelectElement).options[(clickEl as HTMLSelectElement).selectedIndex].text)
-          : tag && (str = (clickEl as SafeHTMLElement).innerText.trim(),
-              (<RegExpI> /^mailto:./i).test(str) ? str.slice(7)
-              : str
+          : tag && ((clickEl as SafeHTMLElement).innerText.trim()
                 || GetShadowRoot_(clickEl) && (childEl = querySelector_unsafe_("div,span", GetShadowRoot_(clickEl)!))
-                    && htmlTag_<1>(childEl) && childEl.innerText
-                || str).trim()
+                    && htmlTag_<1>(childEl) && childEl.innerText.trim())
             || (str = extractTextInOtherElements()) && str.replace(<RegExpG> /\s+/g, " ")
       }
       str = str && str.trim();
@@ -244,6 +240,7 @@ const copyText = (): void => {
         str = (clickEl as SafeHTMLElement).title.trim() || (attr_s(clickEl, ALA) || "").trim();
       }
     }
+  str && (<RegExpI> /^mailto:./).test(str) && (str = str.slice(7).trim())
   if (mode1_ > HintMode.min_edit - 1 && mode1_ < HintMode.max_edit + 1) {
       hintApi.p({
         H: kFgReq.vomnibar,

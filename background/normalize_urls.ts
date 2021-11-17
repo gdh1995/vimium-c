@@ -375,6 +375,6 @@ const convertFromFilePath = (path: string): string => {
       path = path.slice(0, -hash.length)
     }
   }
-  return path.replace(<RegExpG & RegExpSearchable<0>> /[%?#&\s]/g, encodeURIComponent)
+  return path.replace(<RegExpG & RegExpSearchable<0>> /[?#&\s]/g, encodeURIComponent) // not re-encode "%"
       + hash.replace(<RegExpG & RegExpSearchable<0>> /\s/g, encodeURIComponent)
 }

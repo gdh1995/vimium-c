@@ -14,14 +14,10 @@ VApi!.e = function (cmd): void {
 };
 
 (function (): void {
-  const mayBrowser_ = Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome
-      && typeof browser === "object" && !("tagName" in (browser as unknown as Element))
-      ? (browser as typeof chrome) : null
-  const _OnOther: BrowserType = !(Build.BTypes & ~BrowserType.Chrome) || !(Build.BTypes & ~BrowserType.Firefox)
-        || !(Build.BTypes & ~BrowserType.Edge)
+  const _OnOther: BrowserType = Build.BTypes && !(Build.BTypes & (Build.BTypes - 1))
       ? Build.BTypes as number
       : Build.BTypes & BrowserType.Edge && !!(window as {} as {StyleMedia: unknown}).StyleMedia ? BrowserType.Edge
-      : Build.BTypes & BrowserType.Firefox && mayBrowser_ && mayBrowser_.runtime && mayBrowser_.runtime.connect
+      : Build.BTypes & BrowserType.Firefox && typeof InstallTrigger !== "undefined"
       ? BrowserType.Firefox : BrowserType.Chrome
   const OnChrome = !(Build.BTypes & ~BrowserType.Chrome) || !!(_OnOther & BrowserType.Chrome)
   const OnFirefox = !(Build.BTypes & ~BrowserType.Firefox) || !!(_OnOther & BrowserType.Firefox)
@@ -30,8 +26,7 @@ VApi!.e = function (cmd): void {
   const thisApi = VApi!
   const injector = VimiumInjector!
   const trArgsRe = <RegExpSearchable<0>> /\$\d/g
-  const runtime: typeof chrome.runtime = (!(Build.BTypes & BrowserType.Chrome) ? browser as typeof chrome
-      : !OnChrome ? mayBrowser_! : chrome).runtime
+  const runtime = (OnChrome ? chrome : browser as typeof chrome).runtime
   const safeFrameElement_ = (): HTMLIFrameElement | HTMLFrameElement | null | void => {
     if (OnChrome && Build.MinCVer < BrowserVer.MinSafeGlobal$frameElement || OnEdge) {
       try {
@@ -47,8 +42,7 @@ VApi!.e = function (cmd): void {
   ref[0](kFgReq.i18n, 0, (res): void => {
     i18nMessages = res;
     if (VApi!.z) {
-      const injector1 = VimiumInjector!
-      injector1.callback && injector1.callback(2, "complete")
+      VimiumInjector!.$r(InjectorTask.extInited)
     }
   })
   ref[2]!(2, (tid, args): string => {

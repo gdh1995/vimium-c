@@ -59,7 +59,7 @@ setTimeout((): void => {
     sent_: boolean;
     key_: string;
   }
-  interface SubInfo { type_?: "history" | "tab"; sessionId_?: CompletersNS.SessionId | null }
+  interface SubInfo { type_?: "history" | "tab"; sessionId_?: CompletersNS.SessionId | null; url_: string }
   let colon2 = ": ", msg_inited = false, openColon = "Open: "
   const onDel = (!OnFirefox || Build.DetectAPIOnFirefox) ? omnibox.onDeleteSuggestion : null,
   mayDelete = OnChrome && Build.MinCVer >= BrowserVer.MinOmniboxSupportDeleting
@@ -120,19 +120,16 @@ setTimeout((): void => {
     const urlDict: Set<string> = new Set!()
     const showTypeLetter = ` ${omniPayload_.s} `.includes(" type-letter ")
     for (let i = 0, di = autoSelect ? 0 : 1, len = response.length; i < len; i++) {
-      let sugItem = response[i], { title, u: url, e: type } = sugItem, desc = "", hasSessionId = sugItem.s != null
+      const sugItem = response[i], { title, u: rawUrl, e: type } = sugItem
+      let url = rawUrl, desc = "", hasSessionId = sugItem.s != null
         , canBeDeleted = (OnChrome && Build.MinCVer >= BrowserVer.MinOmniboxSupportDeleting
               || (!OnFirefox || Build.DetectAPIOnFirefox) && mayDelete)
             && !(autoSelect && i === 0) && (
           type === "tab" ? sugItem.s !== curTabId_ : type === "history" && (OnFirefox || !hasSessionId)
         );
-      if (urlDict.has(url)) {
-        url = `:${i + di} ${url}`
-      } else {
-        urlDict.add(url)
-      }
       url = BgUtils_.encodeAsciiURI_(url, 1).replace(<RegExpG> /%20/g, " ")
       url = decodeFileURL_(url)
+      urlDict.has(url) ? (url = `:${i + di} ${url}`) : urlDict.add(url)
       if (canBeDeleted) {
         desc = ` ~${i + di}~`
       }
@@ -149,7 +146,7 @@ setTimeout((): void => {
       if (canBeDeleted || hasSessionId) {
         if (!subInfoMap) { subInfoMap = new Map() }
         subInfoMap.has(url) || subInfoMap.set(url, { type_: <SubInfo["type_"]> type,
-            sessionId_: hasSessionId ? sugItem.s! : null })
+            sessionId_: hasSessionId ? sugItem.s! : null, url_: rawUrl })
       }
       suggestions.push(msg);
     }
@@ -257,9 +254,9 @@ setTimeout((): void => {
       });
     }
     if (firstResultUrl && text === last) { text = firstResultUrl; }
-    const sessionId = subInfoMap?.get(text)?.sessionId_
+    const info = subInfoMap?.get(text), sessionId = info?.sessionId_
     clean();
-    return open(text, disposition, sessionId);
+    return open(info ? info.url_ : text, disposition, sessionId)
   }
   function open(this: void, text: string, disposition?: chrome.omnibox.OnInputEnteredDisposition
       , sessionId?: CompletersNS.SessionId | null): void {
@@ -307,16 +304,13 @@ setTimeout((): void => {
   onDel!.addListener(function (text): void {
     // eslint-disable-next-line radix
     const ind = parseInt(text.slice(text.lastIndexOf("~", text.length - 2) + 1)) - 1;
-    let url = suggestions && suggestions[ind].content, info = url && subInfoMap?.get(url) || null,
+    const url = suggestions && suggestions[ind].content, info = url && subInfoMap ? subInfoMap.get(url) : null,
     type = info && info.type_;
     if (!type) {
       console.log("Error: want to delete a suggestion but no related info found (may spend too long before deleting).");
       return;
     }
-    if (url![0] === ":") {
-      url = url!.slice(url!.indexOf(" ") + 1);
-    }
-    reqH_[kFgReq.removeSug]({ t: type, s: info!.sessionId_, u: url! }, null)
+    reqH_[kFgReq.removeSug]({ t: type, s: info.sessionId_, u: info.url_ }, null)
   })
 })()
 

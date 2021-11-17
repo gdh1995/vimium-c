@@ -36,7 +36,8 @@ export const getGroupId: (tab: ShownTab) => chrome.tabs.GroupId | null = OnFiref
     : !OnEdge ? i => { const id = i.groupId; return id !== -1 && id != null ? id : null }
     : () => null
 
-export const getTabUrl = OnChrome ? (tab_may_pending: Pick<Tab, "url" | "pendingUrl">): string =>
+/** Note: not use pendingUrl, since no reports have said it's useful */
+export const getTabUrl = false && OnChrome ? (tab_may_pending: Pick<Tab, "url" | "pendingUrl">): string =>
     tab_may_pending.url || tab_may_pending.pendingUrl : (tab_with_url: Pick<Tab, "url">): string => tab_with_url.url
 
 export const isTabMuted = OnChrome && Build.MinCVer < BrowserVer.MinMutedInfo && CurCVer_ < BrowserVer.MinMutedInfo

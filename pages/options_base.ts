@@ -444,7 +444,7 @@ override readValueFromElement_ (part?: boolean): AllowedOptions["exclusionRules"
       continue;
     }
     let pattern = changed & kExclusionChange.pattern ? vnode.$pattern_.value.trim() : vnode.rule_.pattern;
-    let fixTail = false, passKeys = changed & kExclusionChange.pattern ? vnode.$keys_.value : vnode.rule_.passKeys
+    let fixTail = false, passKeys = changed & kExclusionChange.passKeys ? vnode.$keys_.value : vnode.rule_.passKeys
     if (!pattern) {
       vnode.$pattern_.title && (vnode.$pattern_.title = "")
       vnode.$keys_.title && (vnode.$keys_.title = "")

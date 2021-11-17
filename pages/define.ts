@@ -26,9 +26,13 @@ if (Build.BTypes & (Build.BTypes & BrowserType.ChromeOrFirefox | BrowserType.Edg
 
   const _browser: BrowserType = Build.BTypes && !(Build.BTypes & (Build.BTypes - 1))
       ? Build.BTypes as number
-      : Build.BTypes & BrowserType.Edge && !!(window as {} as {StyleMedia: unknown}).StyleMedia ? BrowserType.Edge
-      : Build.BTypes & BrowserType.Firefox && window.browser ? BrowserType.Firefox
-      : BrowserType.Chrome
+      : Build.BTypes & BrowserType.Chrome
+        && (typeof browser === "undefined" || (browser && (browser as typeof chrome).runtime) == null
+            || location.protocol.startsWith("chrome")) // in case Chrome also supports `browser` in the future
+      ? BrowserType.Chrome
+      : Build.BTypes & BrowserType.Edge && globalThis.StyleMedia ? BrowserType.Edge
+      : Build.BTypes & BrowserType.Firefox ? BrowserType.Firefox
+      : /* an invalid state */ BrowserType.Unknown
   const OnChrome: boolean = !(Build.BTypes & ~BrowserType.Chrome)
       || !!(Build.BTypes & BrowserType.Chrome && _browser & BrowserType.Chrome)
   const OnEdge: boolean = !(Build.BTypes & ~BrowserType.Edge)

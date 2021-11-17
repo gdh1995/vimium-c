@@ -12,7 +12,7 @@ declare const enum SedAction {
   base64Decode = 8, atob = 8, base64 = 8, base64Encode = 9, btoa = 9,
   encode = 10, encodeComp = 11, encodeAll = 12, encodeAllComp = 13,
   camel = 14, camelcase = 14, dash = 15, dashed = 15, hyphen = 15, capitalize = 16, capitalizeAll = 17,
-  latin = 18, latinize = 18, latinise = 18, noaccent = 18, nodiacritic = 18,
+  latin = 18, latinize = 18, latinise = 18, noaccent = 18, nodiacritic = 18, decodeAll = 19,
   break = 99, stop = 99, return = 99,
 }
 interface Contexts { normal_: SedContext, extras_: kCharCode[] | null }
@@ -29,7 +29,7 @@ const SedActionMap: ReadonlySafeDict<SedAction> = As_<SafeObject & {
   atob: SedAction.base64Decode, base64: SedAction.base64Decode, base64decode: SedAction.base64Decode,
   btoa: SedAction.base64Encode, base64encode: SedAction.base64Encode, decodeforcopy: SedAction.decodeForCopy,
   decode: SedAction.decodeForCopy, decodeuri: SedAction.decodeForCopy, decodeurl: SedAction.decodeForCopy,
-  decodemaybeescaped: SedAction.decodeMaybeEscaped,
+  decodemaybeescaped: SedAction.decodeMaybeEscaped, decodeall: SedAction.decodeAll,
   decodecomp: SedAction.decodeMaybeEscaped, encode: SedAction.encode, encodecomp: SedAction.encodeComp,
   encodeall: SedAction.encodeAll, encodeallcomp: SedAction.encodeAllComp,
   unescape: SedAction.unescape, upper: SedAction.upper, lower: SedAction.lower,
@@ -219,7 +219,7 @@ export const doesNeedToSed = (context: SedContext, sed: ParsedSedOpts | null): b
 }
 
 const convertJoinedRules = (rules: string): string => {
-  return !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
+  return rules.includes("\n") ? rules : !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
   && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsuredLookBehindInRegexp)
   && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinLookBehindInRegexp)
   ? rules.replace(<RegExpG> /(?<!\\) ([\w\x80-\ufffd]{1,6})(?![\x00- \w\\\x7f-\uffff])/g, "\n$1")
@@ -273,6 +273,7 @@ set_substitute_((text: string, normalContext: SedContext, mixedSed?: MixedSedOpt
       for (const action of item.actions_) {
         text = action === SedAction.decodeForCopy ? BgUtils_.decodeUrlForCopy_(text)
             : action === SedAction.decodeMaybeEscaped ? BgUtils_.decodeEscapedURL_(text)
+            : action === SedAction.decodeAll ? BgUtils_.decodeEscapedURL_(text, true)
             : action === SedAction.unescape ? decodeSlash_(text)
             : action === SedAction.upper ? text.toLocaleUpperCase!()
             : action === SedAction.lower ? text.toLocaleLowerCase!()

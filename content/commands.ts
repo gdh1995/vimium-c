@@ -54,11 +54,11 @@ set_contentCommands_([
     realStep = rawStep! < 0 ? -maxStep : maxStep;
     if (options.r) {
       timeout_((): void => {
-        if (!options.url) {
+        if (!options.u) {
           if (checkHidden(kFgCmd.framesGoBack, options as typeof options & SafeObject, 1)) { return }
           loc_.reload(!!options.hard)
         } else {
-          loc_.href = options.url
+          loc_.href = options.u
         }
         runFallbackKey(options, !1)
       }, 17)

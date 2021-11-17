@@ -343,7 +343,7 @@ interface CmdOptions {
   };
   [kFgCmd.passNextKey]: { normal?: false | true; expect: "<any-key>"; ignoreCase?: boolean } & Req.FallbackOptions
   [kFgCmd.framesGoBack]: (Pick<OpenUrlOptions, "reuse" | "position"> & { r?: null }
-      | { r: 1 } & ({ url: string; hard?: undefined } | { url?: undefined; hard?: boolean })) & Req.FallbackOptions
+      | { r: 1 } & ({ u: string; hard?: undefined } | { u?: undefined; hard?: boolean })) & Req.FallbackOptions
   [kFgCmd.vomnibar]: {
     /* vomnibar */ v: string;
     /* vomnibar2 */ i: string | null;

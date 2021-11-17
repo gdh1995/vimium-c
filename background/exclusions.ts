@@ -122,8 +122,8 @@ export const getExcluded_ = (url: string, sender: Frames.Sender): string | null 
 }
 
 let getOnURLChange_ = (): null | ExclusionsNS.Listener => {
-  const onURLChange: null | ExclusionsNS.Listener = !browserWebNav_()!
-        || !(!OnChrome || OnFirefox || browserWebNav_()!.onHistoryStateUpdated) ? null
+  const onURLChange: null | ExclusionsNS.Listener = !browserWebNav_()
+      || !(OnChrome || OnFirefox || browserWebNav_()!.onHistoryStateUpdated) ? null
       : !OnChrome || Build.MinCVer >= BrowserVer.MinWithFrameId || CurCVer_ >= BrowserVer.MinWithFrameId
       ? (details): void => { reqH_[kFgReq.checkIfEnabled](details) }
       : (details): void => {

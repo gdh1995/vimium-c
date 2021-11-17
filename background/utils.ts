@@ -145,21 +145,21 @@ export const DecodeURLPart_ = (url: string | undefined, wholeURL?: 1 | "atob"): 
     return url;
 }
 
-export const decodeUrlForCopy_ = (url: string): string => {
+export const decodeUrlForCopy_ = (url: string, allowSpace?: boolean): string => {
     const ori = url.replace(<RegExpG> /%25/g, "%2525").replace(<RegExpG> /%(?![\da-zA-Z]{2})/g, "%25")
     let str = DecodeURLPart_(ori, 1)
     str = str.length !== ori.length ? str : url
-    if (protocolRe_.test(str) || str.startsWith("data:") || str.startsWith("about:")
-        || isJSUrl_(str)) {
+    if (!allowSpace
+        && (protocolRe_.test(str) || str.startsWith("data:") || str.startsWith("about:") || isJSUrl_(str))) {
       str = str.trim().replace(spacesRe_, encodeURIComponent)
     }
     return str
 }
 
-export const decodeEscapedURL_ = (url: string): string => {
+export const decodeEscapedURL_ = (url: string, allowSpace?: boolean): string => {
     url = !url.includes("://") && (<RegExpI> /%(?:2[36f]|3[adf])/i).test(url)
         ? DecodeURLPart_(url).trim() : url
-    return decodeUrlForCopy_(url)
+    return decodeUrlForCopy_(url, allowSpace)
 }
 
 export const encodeAsciiURI_ = (url: string, encoded?: 1): string =>

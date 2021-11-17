@@ -237,3 +237,5 @@ declare module crypto {
 }
 
 declare const enum Instruction { next = 0, return = 2, /** aka. "goto" */ break = 3, yield = 4 }
+
+declare var InstallTrigger: object | undefined

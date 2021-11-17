@@ -721,13 +721,8 @@ const ensureLine = (command1: number): void => {
   if (scope && !rangeCount_(curSelection)) {
     scope = null
     curSelection = getSelection_()
-    if (!OnFirefox && command < VisualAction.MaxNotFind + 1 && !rangeCount_(curSelection)) {
-      deactivate()
-      suppressTail_(1000)
-      return hudTip(kTip.loseSel);
-    }
   }
-  if (OnFirefox && command < VisualAction.MaxNotFind + 1
+  if (command < VisualAction.MaxNotFind + 1
       && !(rangeCount_(curSelection) && getAccessibleSelectedNode(curSelection) )) {
     deactivate()
     suppressTail_(1500)

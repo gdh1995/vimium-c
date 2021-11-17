@@ -17,6 +17,8 @@ set_evalVimiumUrl_(function (path: string, workType?: Urls.WorkType, onlyOnce?: 
   workType = workType! | 0;
   if (path === "paste") {
     path += " .";
+  } else if (path.includes("%20") && !path.includes(" ")) {
+    path = path.replace(<RegExpG> /%20/g, " ")
   }
   if (workType < Urls.WorkType.ValidNormal || !(path = path.trim()) || (ind = path.search(<RegExpOne> /[/ ]/)) <= 0
       || !(<RegExpI> /^[a-z][\da-z\-]*(?:\.[a-z][\da-z\-]*)*$/i).test(cmd = path.slice(0, ind).toLowerCase())
@@ -124,12 +126,12 @@ set_evalVimiumUrl_(function (path: string, workType?: Urls.WorkType, onlyOnce?: 
     const second = cmd === "sed2" ? path.split(" ", 1)[0] : ""
     path = path.slice(second.length).trim()
     path = path && substitute_(path, cmd.endsWith("p") ? SedContext.paste : SedContext.NONE,
-            second ? { r: first, k: second }
-            : (<RegExpOne> /^[@#$-]?[a-z]+$|^\.$/).test(first) ? { r: null, k: first } : { r: first, k: null } )
+        second ? { r: first, k: second }
+        : (<RegExpOne> /^[@#$-]?[\w\x80-\ufffd]+$|^\.$/).test(first) ? { r: null, k: first } : { r: first, k: null } )
     return [path, Urls.kEval.paste]
   case "u": case "url": case "search":
     // here path is not empty, and so `decodeEscapedURL(path).trim()` is also not empty
-    arr = decodeEscapedURL_(path).split(spacesRe_);
+    arr = decodeEscapedURL_(path, true).split(spacesRe_)
     break;
   case "paste":
     if (workType > Urls.WorkType.ActIfNoSideEffects - 1) {
@@ -150,7 +152,7 @@ set_evalVimiumUrl_(function (path: string, workType?: Urls.WorkType, onlyOnce?: 
   if (ind > 0) { return createSearchUrl_(arr, "", workType); }
   res = createSearchUrl_(arr, "", workType);
   _nestedEvalCounter = 0;
-  return <Urls.Url> res;
+  return <ReturnType<typeof createSearchUrl_>> res
 } as Urls.Executor)
 
 const tryEvalMath_ = (path: string, math_parser: typeof import("../lib/math_parser")): Urls.MathEvalResult => {

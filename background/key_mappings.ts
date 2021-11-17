@@ -89,7 +89,7 @@ const parseVal_limited = (val: string): any => {
   let n: number | undefined
   return val === "false" ? false : val === "null" ? null : val === "true" ? true
       : (val >= "0" ? val < kChar.minNotNum : val[0] === "-") ? (n = parseFloat(val)) + "" === val ? n
-        : !(<RegExpOne> /^-?(0|[1-9]\d*)(\.\d+)?([eE]\d+)?$/).test(val) ? val : !isNaN(n) ? n : parseVal_(val)
+        : !(<RegExpOne> /^-?(0|[1-9]\d*)(\.\d+)?([eE][+-]\d+)?$/).test(val) ? val : !isNaN(n) ? n : parseVal_(val)
       : '{["'.includes(val[0]) ? parseVal_(val) : val
 }
 
@@ -255,7 +255,7 @@ const parseKeyMappings_ = (wholeMappings: string): void => {
         if (doesPass) {
           regItem = !isRun ? makeCommand_(val, getOptions_(line, knownLen), details)
               : makeCommand_(AsC_("runKey")
-                  , getOptions_(` keys=${JSON.stringify(val)}` + line.slice(knownLen), 0), undefined)
+                  , getOptions_(` keys="${val.replace(<RegExpG> /"/g, '\\"')}"` + line.slice(knownLen), 0), undefined)
           if (regItem) {
             registry.set(key, regItem)
             builtinKeys_ && builtinKeys_.delete(key)

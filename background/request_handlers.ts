@@ -85,8 +85,9 @@ set_reqH_([
         set_cPort(port!)
         showHUD("Here is just root")
         request.e = { p: null, u: "(just root)" }
-      } else if (port) {
-        sendFgCmd(kFgCmd.framesGoBack, false, { r: 1, url: result.u })
+      } else if (port
+          && (result.u.slice(0, 7).toLowerCase() !== "file://" || oldUrl.slice(0, 7).toLowerCase() === "file://")) {
+        sendFgCmd(kFgCmd.framesGoBack, false, { r: 1, u: result.u })
       } else {
         tabsUpdate({ url: result.u })
       }
