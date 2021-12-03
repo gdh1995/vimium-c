@@ -32,15 +32,16 @@ interface ViewerType {
   readonly viewed: boolean;
   readonly imageData: {
     naturalWidth: number, naturalHeight: number, aspectRatio: number
-    ratio: number, width: number, height: number
-    left: number, top: number
+    ratio: number, oldRatio: number, oldXY?: [number, number]
+    width: number, height: number, left: number, top: number, x: number, y: number
   }
-  initialImageData: unknown;
+  toggle(originalEvent: Event): ViewerType
+  initImage(done: () => void): void
   destroy(): any;
   show(): any;
   play(fullscreen: true): any;
   zoom(ratio: number, hasTooltip: boolean): ViewerType;
-  zoomTo(ratio: number): ViewerType;
+  zoomTo(ratio: number, hasTooltip?: boolean, _originalEvent?: Event): ViewerType;
   rotate(degree: number): any;
 }
 type ViewerModule = new (root: HTMLElement) => ViewerType
@@ -59,9 +60,9 @@ let VShown: ValidNodeTypes | null = null;
 let bgLink = $<HTMLAnchorElement & SafeHTMLElement>("#bgLink");
 let tempEmit: ((succeed: boolean) => void) | null = null;
 let viewer_: ViewerType | null = null;
-let _initialViewerData: unknown = null;
 let encryptKey = +window.name || 0;
-let ImageExtRe = <RegExpI> /\.(avif|bmp|gif|icon?|jpe?g|a?png|tiff?|webp)(?=[.\-_]|\b)/i;
+let zoomToFit = false, duringToggle = false
+let ImageExtRe = <RegExpI> /\.(?:avif|bmp|gif|icon?|jpe?g|a?png|svg|tiff?|webp)(?=[.\-_]|\b)/i;
 let _shownBlobURL = "", _shownBlob: Blob | null | 0 = null;
 let loadingTimer: (() => void) | null | undefined
 let _nextUrl: string | undefined
@@ -409,6 +410,7 @@ function imgOnKeydown(event: KeyboardEventToPrevent): boolean {
   if (viewer_ && viewer_.viewed) {
     doImageAction(viewer_, action);
   } else {
+    zoomToFit = false
     loadViewer().then(showSlide).then(function (viewer) {
       doImageAction(viewer, action);
     }).catch(defaultOnError);
@@ -447,8 +449,8 @@ function defaultOnClick(event: MouseEventToPrevent): void {
   case "url": clickLink({ target: "_blank" }, event); break;
   case "image":
     if (VData.error) { return; }
-    const isCtrl = event.ctrlKey || event.metaKey
-    loadViewer().then(exports => showSlide(exports, isCtrl)).catch(defaultOnError)
+    zoomToFit = event.ctrlKey || event.metaKey
+    loadViewer().then(showSlide).catch(defaultOnError)
     break;
   default: break;
   } }
@@ -582,17 +584,62 @@ function loadViewer(): Promise<ViewerModule> {
         bgLink.style.display = "none";
       },
       viewed (): void { if (tempEmit) { tempEmit(true); } },
+      zoom (event: CustomEvent) {
+        if (!duringToggle) { return }
+        const { ratio } = event.detail as { ratio: number, oldRatio: number }
+        const imageData = viewer_!.imageData, { width, height, naturalWidth, naturalHeight } = imageData
+        const newWidth = naturalWidth * ratio, newHeight = naturalHeight * ratio;
+        const offsetWidth = newWidth - width, offsetHeight = newHeight - height;
+        // will run ` imageData.x -= offsetWidth / 2, imageData.y -= offsetHeight / 2 `
+        if (ratio === 1) {
+          imageData.oldXY = [imageData.x, imageData.y]
+          imageData.x = ((innerWidth - newWidth) / 2) | 0, imageData.y = ((innerHeight as number - newHeight) / 2) | 0
+        } else {
+          if (!imageData.oldXY) { return }
+          imageData.x = imageData.oldXY![0], imageData.y = imageData.oldXY![1]
+        }
+        imageData.x += offsetWidth / 2, imageData.y += offsetHeight / 2
+      },
       hide (this: void) {
         bgLink.style.display = "";
         if (tempEmit) { tempEmit(false); }
       }
     });
+    const prototype = viewerJS.prototype as ViewerType, oldInit = prototype.initImage, oldToggle = prototype.toggle
+    prototype.initImage = function (done): void {
+      const args = [].slice.call(arguments);
+      (args[0] as typeof done) = function (this: unknown): void {
+        const imageData = viewer_ && viewer_.imageData
+        if (imageData) {
+          const nw = imageData.naturalWidth, nh = imageData.naturalHeight
+          const doc = document, fulled = !!(OnFirefox ? doc.mozFullScreenElement
+              : !OnEdge && (!OnChrome || Build.MinCVer >= BrowserVer.MinEnsured$Document$$fullscreenElement)
+              ? doc.fullscreenElement : doc.webkitFullscreenElement)
+          const dw = fulled ? window.screen.availWidth : nw, dh = fulled ? window.screen.availHeight : nh
+          if (fulled ? nw >= dw && nh >= dh : !zoomToFit && imageData.ratio < 1) {
+            const ratio = fulled ? Math.max(dw / nw, dh / nh) : 1
+            imageData.left = imageData.x = fulled ? ((dw - nw * ratio) / 2) | 0 : 0
+            imageData.top = imageData.y = fulled ? ((dh - nh * ratio) / 2) | 0 : 0
+            imageData.width = Math.round(nw * ratio), imageData.height = Math.round(nh * ratio)
+            imageData.ratio = ratio
+          }
+        }
+        done.apply(this, arguments)
+      }
+      oldInit.apply(this, args as unknown as IArguments)
+    }
+    prototype.toggle = function (event): ViewerType {
+      duringToggle = !event && !!viewer_ && (this.imageData.ratio !== 1 || this.imageData.oldRatio !== 1)
+      const ret = oldToggle.apply(this, arguments)
+      duringToggle = false
+      return ret
+    }
     ViewerModule = viewerJS
     return viewerJS
   });
 }
 
-function showSlide(viewerModule: ViewerModule, zoomToFit?: boolean): Promise<ViewerType> | ViewerType {
+function showSlide(viewerModule: ViewerModule): Promise<ViewerType> | ViewerType {
   const needToScroll = scrollX || scrollY;
   const sel = getSelection();
   sel.type === "Range" && sel.collapseToStart();
@@ -605,29 +652,6 @@ function showSlide(viewerModule: ViewerModule, zoomToFit?: boolean): Promise<Vie
   v.hiding = false
   needToScroll && scrollTo(0, 0);
   if (v.viewed) { v.zoomTo(1); return v; }
-  Object.defineProperty(v, "initialImageData", {
-    configurable: true,
-    enumerable: true,
-    get: () => _initialViewerData,
-    set (val: unknown): void {
-      _initialViewerData = val
-      if (viewer_ && !zoomToFit) {
-        zoomToFit = true
-        const imageData = viewer_.imageData
-        const ratio = 1
-        // the following lines are from viewer.js:src/js/methods.js#zoomTo
-        const newWidth = imageData.naturalWidth * ratio
-        const newHeight = imageData.naturalHeight * ratio
-        const offsetWidth = newWidth - imageData.width
-        const offsetHeight = newHeight - imageData.height
-        imageData.left -= offsetWidth / 2
-        imageData.top -= offsetHeight / 2
-        imageData.width = newWidth
-        imageData.height = newHeight
-        imageData.ratio = ratio
-      }
-    }
-  })
   return new Promise<ViewerType>(function (resolve, reject): void {
     tempEmit = function (succeed): void {
       tempEmit = null;
@@ -694,6 +718,10 @@ async function parseSmartImageUrl_(originUrl: string): Promise<string | null> {
       if (key === "name" && (<RegExpOne> /^(\d{2,4}x\d{2,4}|small)$/i).test(val0)
           && search.toLowerCase().includes("format=")) {
         return origin + path + search.replace(val, "large")
+      }
+      if (key === "x-bce-process" && val0.includes("image/resize")) {
+        search = search.replace(key + "=" + val0, "")
+        return origin + path + (search.length > 1 ? search : "")
       }
     }
   }

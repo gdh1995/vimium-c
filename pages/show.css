@@ -138,3 +138,7 @@ img.broken {
 .viewer-player {
   cursor: default !important;
 }
+
+@media (display-mode: fullscreen) {
+  .filled .viewer-footer:not(:hover), .filled .viewer-close:not(:hover) { opacity: 0; }
+}
