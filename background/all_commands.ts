@@ -18,7 +18,7 @@ import { trans_, I18nNames, extTrans_ } from "./i18n"
 import { stripKey_ } from "./key_mappings"
 import {
   confirm_, overrideCmdOptions, runNextCmd, portSendFgCmd, sendFgCmd, overrideOption, runNextCmdBy, fillOptionWithMask,
-  runNextOnTabLoaded, getRunNextCmdBy, kRunOn, hasFallbackOptions, needConfirm_, copyCmdOptions
+  runNextOnTabLoaded, getRunNextCmdBy, kRunOn, hasFallbackOptions, needConfirm_, copyCmdOptions, parseFallbackOptions
 } from "./run_commands"
 import { runKeyWithCond, runKeyInSeq } from "./run_keys"
 import { doesNeedToSed, parseSedOptions_ } from "./clipboard"
@@ -110,7 +110,7 @@ set_bgC_([
       }
     })
   },
-  /* kBgCmd.insertMode: */ (resolve): void | kBgCmd.insertMode => {
+  /* kBgCmd.insertMode: */ (): void | kBgCmd.insertMode => {
     let _key = get_cOptions<C.insertMode>().key, _hud: boolean | UnknownValue,
     hud = (_hud = get_cOptions<C.insertMode>().hideHUD) != null ? !_hud
         : (_hud = get_cOptions<C.insertMode>().hideHud) != null ? !_hud
@@ -124,9 +124,9 @@ set_bgC_([
       i: !!get_cOptions<C.insertMode>().insert,
       p: !!get_cOptions<C.insertMode>().passExitKey,
       r: <BOOL> +!!get_cOptions<C.insertMode>().reset,
+      t: parseFallbackOptions(get_cOptions<C.insertMode, true>()),
       u: !!get_cOptions<C.insertMode>().unhover
     })
-    resolve(1)
   },
   /* kBgCmd.nextFrame: */ _AsBgC<BgCmdNoTab<kBgCmd.nextFrame>>(nextFrame),
   /* kBgCmd.parentFrame: */ _AsBgC<BgCmdNoTab<kBgCmd.parentFrame>>(parentFrame),

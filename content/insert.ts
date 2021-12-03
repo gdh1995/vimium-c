@@ -2,7 +2,7 @@ import {
   doc, keydownEvents_, safeObj, isTop, set_keydownEvents_, setupEventListener, Stop_, OnChrome, OnFirefox,
   esc, onWndFocus, isEnabled_, readyState_, injector, recordLog, weakRef_, OnEdge, getTime, math
 } from "../lib/utils"
-import { post_, safePost } from "./port"
+import { post_, runFallbackKey, safePost } from "./port"
 import { getParentVApi, ui_box } from "./dom_ui"
 import { hudHide } from "./hud"
 import { set_currentScrolling, scrollTick, set_cachedScrollable } from "./scroller"
@@ -184,6 +184,7 @@ export const exitInsertMode = (target: Element): void => {
     (target as LockableElement).blur();
   }
   if (insert_global_) {
+    insert_global_.t && runFallbackKey(insert_global_.t, 0)
     insert_global_ = null
     hudHide();
   }

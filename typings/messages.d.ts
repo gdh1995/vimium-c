@@ -297,6 +297,7 @@ declare namespace HintsNS {
 interface InsertModeOptions {
   /** stripped key */ k: string | null;
   /** passExitKey */ p: boolean;
+  /** passExitKey */ t: Req.FallbackOptions | null;
   /** hud message */ h: [string] | string | null;
 }
 interface ShowHelpDialogOptions {
@@ -364,7 +365,7 @@ interface CmdOptions {
     /** unhover last */ u: true;
     /** reset all: 2=destroying */ r?: 0;
     /** insert mode */ i?: false;
-  } | {
+  } & Req.FallbackOptions | {
     /** unhover last */ u?: false;
     /** reset all: 2=destroying */ r: 0 | 1 | 2;
     /** insert mode */ i?: false;

@@ -6,7 +6,7 @@ import {
 import {
   isHTML_, hasTag_, createElement_, querySelectorAll_unsafe_, SafeEl_not_ff_, docEl_unsafe_, MDW, CLK,
   querySelector_unsafe_, DAC, removeEl_s, appendNode_s, setClassName_s, INP, contains_s, toggleClass_s, modifySel,
-  focus_, testMatch, docHasFocus_, deepActiveEl_unsafe_, getEditableType_, textOffset_, kDir
+  focus_, testMatch, docHasFocus_, deepActiveEl_unsafe_, getEditableType_, textOffset_, kDir, IsInDOM_
 } from "../lib/dom_utils"
 import {
   pushHandler_, removeHandler_, getMappedKey, prevent_, isEscape_, keybody_, DEL, BSP, ENTER, handler_stack,
@@ -23,14 +23,13 @@ import {
   hideHelp, set_hideHelp, set_helpBox, checkHidden, flash_,
 } from "./dom_ui"
 import { hudHide, hudShow, hudTip, hud_text } from "./hud"
-import { onKeyup2, set_onKeyup2, passKeys, set_nextKeys, set_passKeys, keyFSM, onEscDown } from "./key_handler"
+import { onPassKey, set_onPassKey, passKeys, set_nextKeys, set_passKeys, keyFSM, onEscDown } from "./key_handler"
 import { InputHintItem, activate as linkActivate, clear as linkClear, kSafeAllSelector } from "./link_hints"
 import { activate as markActivate } from "./marks"
 import { FindAction, activate as findActivate, deactivate as findDeactivate, execCommand } from "./mode_find"
 import {
   exitInputHint, insert_inputHint, insert_last_, raw_insert_lock, insert_Lock_, resetInsert, set_is_last_mutable,
-  set_inputHint, set_insert_global_, set_isHintingInput, set_insert_last_, onWndBlur, exitPassMode, set_exitPassMode,
-  exitInsertMode
+  set_inputHint, set_insert_global_, set_isHintingInput, set_insert_last_, onWndBlur, exitInsertMode
 } from "./insert"
 import { activate as visualActivate, deactivate as visualDeactivate } from "./visual"
 import {
@@ -85,8 +84,10 @@ set_contentCommands_([
   /* kFgCmd.vomnibar: */ omniActivate,
   /* kFgCmd.insertMode: */ (opt: CmdOptions[kFgCmd.insertMode]): void => {
     if (opt.u) {
+      const el = deref_(lastHovered_), done = opt.i ? 9 : el && IsInDOM_(el, doc) ? 0 : 2
       catchAsyncErrorSilently(unhover_async()).then((): void => {
         hudTip(kTip.didUnHoverLast)
+        done < 9 && runFallbackKey(opt as Extract<typeof opt, { u: true }>, done)
       })
     }
     if (opt.r) {
@@ -152,6 +153,7 @@ set_contentCommands_([
           removeHandler_(kHandler.passNextKey)
           set_passKeys(oldPassKeys)
           set_esc(oldEsc)
+          runFallbackKey(options, count ? 2 : 0)
           return oldEsc(HandlerResult.Prevent);
         }
         oldEsc(HandlerResult.Nothing)
@@ -196,6 +198,7 @@ set_contentCommands_([
         removeHandler_(kHandler.passNextKey)
         set_onPassKey(null)
         hudHide()
+        runFallbackKey(options, count ? 2 : 0)
       }
     })
     onPassKey!(0)
