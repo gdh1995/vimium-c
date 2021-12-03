@@ -14,7 +14,7 @@ var VimiumInjector: VimiumInjectorTy | undefined | null
 ((): void => {
   const old = VimiumInjector, cur: VimiumInjectorTy = {
     id: "", alive: -1, host: "", version: "", cache: null,
-    clickable: undefined, reload: null as never, checkIfEnabled: null as never,
+    clickable: undefined, eval: null, reload: null as never, checkIfEnabled: null as never,
     $: null as never, $h: "", $m: null as never, $r: null as never, $g: null,
     getCommandCount: null as never, callback: null, destroy: null
   };
@@ -90,6 +90,7 @@ function handler(this: void, res: ExternalMsgs[kFgReq.inject]["res"] | undefined
     version: res ? res.version : "",
     cache: null,
     clickable: oldClickable,
+    eval: null,
     reload: injectorBuilder(scriptSrc),
     checkIfEnabled: null as never,
     $: null as never,

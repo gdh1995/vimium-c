@@ -218,6 +218,7 @@ declare const enum BrowserVer {
   MinShadowDOMV1HasMode = 51,
   Min$Node$$isConnected = 51, // not on Edge
   Min$ScrollIntoView$SetTabNavigationNode = 51,
+  MinEnsured$Reflect$$apply$And$$construct = 51, // even if LEGACY
   // Chrome also began to put contain attr in use on 51 if EXPERIMENTAL
   // but obviously there's some bugs about this feature
   CSS$Contain$BreaksHelpDialogSize = 51,

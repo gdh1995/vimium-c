@@ -495,6 +495,7 @@ interface VimiumInjectorTy {
   reload (req?: boolean | InjectorTask.reload): void;
   destroy: ((this: void, silent?: boolean) => void) | null;
   callback: ((this: void, code: number, error: string) => unknown) | null;
+  eval: ((this: void, code: string) => unknown) | null | undefined
   /** block focus */ $g: null | boolean // null means false
 }
 

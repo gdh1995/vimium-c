@@ -103,6 +103,7 @@ VApi!.e = function (cmd): void {
       injector1.cache = VApi!.z
       if (i18nMessages) {
         injector1.callback && injector1.callback(2, "complete")
+        VApi!.v = injector1.eval || ((code: string): unknown => injector.eval && injector.eval(code))
       }
       // not listen hash here; a 3rd-party page may add listeners by itself if it indeed wants
       return;
