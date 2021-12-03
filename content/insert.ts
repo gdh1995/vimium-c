@@ -1,6 +1,6 @@
 import {
-  doc, keydownEvents_, safeObj, isTop, set_keydownEvents_, setupEventListener, Stop_, OnChrome, OnFirefox,
-  esc, onWndFocus, isEnabled_, readyState_, injector, recordLog, weakRef_, OnEdge, getTime, math
+  doc, keydownEvents_, safeObj, isTop, set_keydownEvents_, setupEventListener, Stop_, OnChrome, OnFirefox, weakRef_ff,
+  esc, onWndFocus, isEnabled_, readyState_, injector, recordLog, weakRef_not_ff, OnEdge, getTime, math
 } from "../lib/utils"
 import { post_, runFallbackKey, safePost } from "./port"
 import { getParentVApi, ui_box } from "./dom_ui"
@@ -251,9 +251,10 @@ export const onFocus = (event: Event | FocusEvent): void => {
   if (!lastWndFocusTime || event.timeStamp - lastWndFocusTime > 30) {
     if (!OnFirefox) {
       let el: SafeElement | null = SafeEl_not_ff_!(target as Element)
-      el && set_currentScrolling(weakRef_(el))
+      el && set_currentScrolling(OnFirefox ? weakRef_ff(el, kElRef.currentScrolling) : weakRef_not_ff!(el))
     } else {
-      set_currentScrolling(weakRef_(target as SafeElement))
+      set_currentScrolling(OnFirefox ? weakRef_ff(target as SafeElement, kElRef.currentScrolling)
+          : weakRef_not_ff!(target as SafeElement))
     }
     set_cachedScrollable(0)
   }
@@ -267,7 +268,7 @@ export const onFocus = (event: Event | FocusEvent): void => {
       if (is_last_mutable) {
         // here ignore the rare case of an XMLDocument with a editable node on Firefox, for smaller code
         if (activeEl_unsafe_() !== doc.body) {
-          insert_last_ = weakRef_(target)
+          insert_last_ = OnFirefox ? weakRef_ff(target, kElRef.lastEditable) : weakRef_not_ff!(target)
         }
       }
     }

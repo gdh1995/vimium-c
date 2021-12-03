@@ -23,8 +23,8 @@ interface ElementScrollInfo {
 
 import {
   isAlive_, setupEventListener, timeout_, clearTimeout_, fgCache, doc, noRAF_old_cr_, readyState_, loc_, chromeVer_,
-  vApi, deref_, weakRef_, VTr, max_, math, min_, Lower, OnChrome, OnFirefox, OnEdge, WithDialog, OnSafari,
-  isTop, injector, isTY, safeCall, tryCreateRegExp
+  vApi, deref_, weakRef_not_ff, VTr, max_, math, min_, Lower, OnChrome, OnFirefox, OnEdge, WithDialog, OnSafari,
+  isTop, injector, isTY, safeCall, tryCreateRegExp, weakRef_ff
 } from "../lib/utils"
 import {
   rAF_, scrollingEl_, SafeEl_not_ff_, docEl_unsafe_, NONE, frameElement_, OnDocLoaded_, GetParent_unsafe_, UNL,
@@ -467,7 +467,7 @@ const findScrollable = (di: ScrollByY, amount: number
           ) || top;
       }
       element = element !== top ? element : null
-      cachedScrollable = weakRef_(element)
+      cachedScrollable = OnFirefox ? weakRef_ff(element, kElRef.cachedScrollable) : weakRef_not_ff!(element)
     }
     if (!element) {
       // note: twitter auto focuses its dialog panel, so it's not needed to detect it here
@@ -487,7 +487,8 @@ const findScrollable = (di: ScrollByY, amount: number
           ? candidate.e : top;
       // if current_, then delay update to current_, until scrolling ends and ._checkCurrent is called;
       // otherwise, cache selected element for less further cost
-      activeEl || (currentScrolling = weakRef_(element), cachedScrollable = 0);
+      activeEl || (currentScrolling = OnFirefox ? weakRef_ff(element, kElRef.currentScrolling)
+          : weakRef_not_ff!(element), cachedScrollable = 0)
     }
     return element;
 }
@@ -503,7 +504,7 @@ export const getPixelScaleToScroll = (): void => {
 const checkCurrent = (el: SafeElement | null): void => {
   let cur = deref_(currentScrolling)
   if (cur ? cur !== el && isNotInViewport(cur) : currentScrolling) {
-    currentScrolling = weakRef_(el), cachedScrollable = 0
+    currentScrolling = OnFirefox ? weakRef_ff(el, kElRef.currentScrolling) : weakRef_not_ff!(el), cachedScrollable = 0
   }
 }
 
@@ -543,7 +544,7 @@ export const scrollIntoView_s = (el?: SafeElement | null): void => {
     ihm = min_(96, ih / 2), iwm = min_(64, iw / 2),
     hasY = r.b < ihm ? max_(r.b - ih + ihm, r.t - ihm) : ih < r.t + ihm ? min_(r.b - ih + ihm, r.t - ihm) : 0,
     hasX = r.r < 0 ? max_(r.l - iwm, r.r - iw + iwm) : iw < r.l ? min_(r.r - iw + iwm, r.l - iwm) : 0
-    currentScrolling = weakRef_(el)
+    currentScrolling = OnFirefox ? weakRef_ff(el, kElRef.currentScrolling) : weakRef_not_ff!(el)
     cachedScrollable = 0
     if (hasX || hasY) {
       for (let el2: Element | null = el; el2; el2 = GetParent_unsafe_(el2, PNType.RevealSlotAndGotoParent)) {
@@ -596,7 +597,8 @@ export const onActivate = (event: Event): void => {
               || Build.MinCVer >= BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow)
         || (OnEdge || Build.MinCVer >= BrowserVer.MinEnsured$Event$$Path || path) && path!.length > 1
         ? path![0] as Element : event.target as Element;
-    currentScrolling = weakRef_(OnFirefox ? el as SafeElement | null : SafeEl_not_ff_!(el))
+    currentScrolling = OnFirefox ? weakRef_ff(el as SafeElement | null, kElRef.currentScrolling)
+        : weakRef_not_ff!(SafeEl_not_ff_!(el))
     cachedScrollable = 0
   }
 }

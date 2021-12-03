@@ -189,6 +189,9 @@ interface HTMLElementTagNameMap {
 
 interface ObjectConstructor {
   values <T extends object> (target: T): Array<T[keyof T]>
+  entries? (object: object): [property: string, value: unknown][]
+  hasOwn? (object: object, prop: string): boolean
+  hasOwn? <T extends object> (object: object, prop: string): prop is (keyof T) & string
 }
 
 interface NavigatorID {

@@ -225,7 +225,7 @@ declare const enum BrowserVer {
   MinEnsured$ForOf$ForDOMListTypes = 51, // NodeList has also forEach (neither HTMLCollection nor ClientRectList)
   // test: var {a,b,c}={a:(...a)=>[-1,`${Math.sign(2)}`,...a],b(i=2){return i*6}, ['c'](d){let j=class A{};return ""+j}}
   // on C51, the above passes, but the Developer Tools can not be opened if LEGACY
-  MinMaybeES$Object$$values = 51, // if EXPERIMENTAL; since C56 even if LEGACY
+  MinMaybeES$Object$$values$and$$entries = 51, // if EXPERIMENTAL; since C56 even if LEGACY
   MinEnsuredFullES6Environment = 52,
   // the 2 below are correct even if EXPERIMENTAL or LEGACY
   MinNoAbnormalIncognito = 52,
@@ -281,7 +281,7 @@ declare const enum BrowserVer {
   // the static selector `>>>` is not supported since MinNoSelector$GtGtGt
   // `>>>` can only match those under "open"-mode shadow roots
   MinMaybeStaticSelector$GtGtGt = 56, // only if EXPERIMENTAL
-  MinEnsuredES$Object$$values = 56, // even if LEGACY; since C54 if not LEGACY; since C51 if EXPERIMENTAL
+  MinEnsuredES$Object$$values$and$$entries = 56, // even if LEGACY; since C54 if not LEGACY; since C51 if EXPERIMENTAL
   // the 2 below are correct even if EXPERIMENTAL or LEGACY
   MinNoKeygenElement = 57,
   MinCSSPlaceholderPseudo = 57,
@@ -532,6 +532,7 @@ declare const enum BrowserVer {
   MinMaybe$navigator$$userAgentData = 90,
   MinESModulesInServiceWorker = 91,
   MinEnsured$string$$replaceAll = 91,
+  MinEnsured$WeakRef = 92, // even if LEGACY
   MinNo$TimerType$$Fake = 999,
   assumedVer = 998,
 }

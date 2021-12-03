@@ -85,8 +85,8 @@ export type AddChildDirectly = (officer: BaseHintWorker, el: KnownIFrameElement,
 
 import {
   VTr, isAlive_, isEnabled_, setupEventListener, keydownEvents_, set_keydownEvents_, timeout_, max_, min_, math, OnEdge,
-  clearTimeout_, fgCache, doc, readyState_, chromeVer_, vApi, deref_, getTime, weakRef_, unwrap_ff, OnFirefox, OnChrome,
-  WithDialog, Lower, safeCall, loc_, os_, firefoxVer_
+  clearTimeout_, fgCache, doc, readyState_, chromeVer_, vApi, deref_, getTime, unwrap_ff, OnFirefox, OnChrome,
+  WithDialog, Lower, safeCall, loc_, os_, firefoxVer_, weakRef_not_ff, weakRef_ff
 } from "../lib/utils"
 import {
   querySelector_unsafe_, isHTML_, scrollingEl_, docEl_unsafe_, IsInDOM_, GetParent_unsafe_, hasInCSSFilter_,
@@ -476,7 +476,8 @@ const rotateHints = (reverse: boolean, list: FrameHintsInfo): void => {
 }
 
 const callExecuteHint = (hint: ExecutableHintItem, event?: HandlerNS.Event): void => {
-  const selectedHintWorker = locateHint(hint), clickEl = weakRef_(hint.d),
+  const selectedHintWorker = locateHint(hint),
+  clickEl = OnFirefox ? weakRef_ff(hint.d, kElRef.lastClicked) : weakRef_not_ff!(hint.d),
   p = selectedHintWorker.e(hint, event)
   p && p.then(result => timeout_((): void => {
     (<RegExpOne> /a?/).test("")

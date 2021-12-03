@@ -318,3 +318,5 @@ interface KnownDataset {
   src: string // used in getMediaUrl
   canonicalSrc: string // used in HintMode.{OPEN_IMAGE,DOWNLOAD_MEDIA}
 }
+
+declare const enum kElRef { lastHovered = 1, lastEditable, lastClicked, currentScrolling, cachedScrollable }

@@ -1,6 +1,7 @@
 import {
-  safer, fgCache, isImageUrl, isJSUrl, set_keydownEvents_, keydownEvents_, timeout_, doc, chromeVer_, weakRef_, os_,
-  parseSedOptions, createRegExp, isTY, max_, min_, OnFirefox, OnChrome, safeCall, loc_, parseOpenPageUrlOptions
+  safer, fgCache, isImageUrl, isJSUrl, set_keydownEvents_, keydownEvents_, timeout_, doc, chromeVer_, weakRef_ff, os_,
+  parseSedOptions, createRegExp, isTY, max_, min_, OnFirefox, OnChrome, safeCall, loc_, parseOpenPageUrlOptions,
+  weakRef_not_ff
 } from "../lib/utils"
 import { getVisibleClientRect_, center_, view_, selRange_ } from "../lib/rect"
 import {
@@ -124,7 +125,7 @@ const hoverEl = (): void => {
         && checkBoolOrSelector(hintOptions.focus, (clickEl as ElementToHTMLorOtherFormatted).tabIndex! >= 0)
     // here not check lastHovered on purpose
     // so that "HOVER" -> any mouse events from users -> "HOVER" can still work
-    set_currentScrolling(weakRef_(clickEl))
+    set_currentScrolling(OnFirefox ? weakRef_ff(clickEl, kElRef.currentScrolling) : weakRef_not_ff!(clickEl))
   retPromise = catchAsyncErrorSilently(hover_async(clickEl, center_(rect), doesFocus)).then((): void => {
     set_cachedScrollable(currentScrolling)
     if (mode1_ < HintMode.min_job) { // called from Modes[-1]
@@ -441,7 +442,7 @@ const checkBoolOrSelector = (userVal: string | boolean | null | void | undefined
     } else if (mode1_ < HintMode.FOCUS + 1) {
       view_(clickEl)
       focus_(clickEl)
-      set_currentScrolling(weakRef_(clickEl))
+      set_currentScrolling(OnFirefox ? weakRef_ff(clickEl, kElRef.currentScrolling) : weakRef_not_ff!(clickEl))
       set_cachedScrollable(currentScrolling)
       removeFlash || flash_(clickEl)
       showRect = 0

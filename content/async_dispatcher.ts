@@ -1,6 +1,6 @@
 import {
-  OnChrome, OnFirefox, OnEdge, doc, deref_, weakRef_, chromeVer_, isJSUrl, getTime, parseOpenPageUrlOptions, safeCall,
-  tryCreateRegExp
+  OnChrome, OnFirefox, OnEdge, doc, deref_, weakRef_ff, chromeVer_, isJSUrl, getTime, parseOpenPageUrlOptions, safeCall,
+  tryCreateRegExp, weakRef_not_ff
 } from "../lib/utils"
 import {
   IsInDOM_, isInTouchMode_cr_, MDW, hasTag_, CLK, attr_s, contains_s, focus_, fullscreenEl_unsafe_, findAnchor_,
@@ -219,7 +219,7 @@ export const hover_async = (async (newEl?: NullableSafeElForM
       if (canDispatchMove && IsInDOM_(newEl)) {
         mouse_(newEl, "mousemove", center!)
       }
-      lastHovered_ = IsInDOM_(newEl) ? weakRef_(newEl) : N
+      lastHovered_ = IsInDOM_(newEl) ? OnFirefox ? weakRef_ff(newEl, kElRef.lastHovered) : weakRef_not_ff!(newEl) : N
       notSame && doesFocus && lastHovered_ && focus_(newEl)
     }
   }
@@ -235,7 +235,7 @@ export const unhover_async = (!OnChrome || Build.MinCVer >= BrowserVer.MinEnsure
   if (old !== element) {
     await hover_async()
   }
-  lastHovered_ = weakRef_(element)
+  lastHovered_ = OnFirefox ? weakRef_ff(element, kElRef.lastHovered) : weakRef_not_ff!(element)
   await hover_async()
   if (active && deepActiveEl_unsafe_() === active) { active.blur && active.blur() }
 }
@@ -245,7 +245,7 @@ export const unhover_async = (!OnChrome || Build.MinCVer >= BrowserVer.MinEnsure
     return Promise.resolve<void | false>(old !== el && hover_async()).then(unhover_async
         .bind<void, NullableSafeElForM, 1, NullableSafeElForM, [], Promise<void | false>>(0, el, 1, el || old))
   } else if (step < 2) {
-    lastHovered_ = weakRef_(el)
+    lastHovered_ = OnFirefox ? weakRef_ff(el, kElRef.lastHovered) : weakRef_not_ff!(el)
     return hover_async().then(unhover_async.bind<0, NullableSafeElForM, 2, [], void | false>(0, old, 2))
   } else {
     return <void | false> <any> (el && deepActiveEl_unsafe_() === el && el.blur && el.blur())

@@ -1,5 +1,5 @@
 import {
-  chromeVer_, doc, esc, fgCache, isTop, set_esc, VTr, safer, timeout_, loc_, weakRef_, deref_,
+  chromeVer_, doc, esc, fgCache, isTop, set_esc, VTr, safer, timeout_, loc_, weakRef_not_ff, weakRef_ff, deref_,
   keydownEvents_, parseSedOptions, Stop_, suppressCommonEvents, setupEventListener, vApi, locHref, isTY, min_,
   OnChrome, OnFirefox, OnEdge, firefoxVer_, safeCall, parseOpenPageUrlOptions, os_, math, Lower
 } from "../lib/utils"
@@ -247,7 +247,7 @@ set_contentCommands_([
         if (act === BSP) {
           if (view_(newEl)) { execCommand(DEL, doc); }
         } else {
-          set_insert_last_(weakRef_(newEl))
+          set_insert_last_(OnFirefox ? weakRef_ff(newEl, kElRef.lastEditable) : weakRef_not_ff!(newEl))
           set_is_last_mutable(0)
           newEl.blur();
         }
@@ -548,7 +548,7 @@ set_contentCommands_([
     addUIElement(outerBox, AdjustType.Normal, true)
     options.e && setupExitOnClick(kExitOnClick.helpDialog)
     docHasFocus_() || vApi.f()
-    set_currentScrolling(weakRef_(box))
+    set_currentScrolling(OnFirefox ? weakRef_ff(box, kElRef.currentScrolling) : weakRef_not_ff!(box))
     set_helpBox(box)
     handler_stack.splice((handler_stack.indexOf(kHandler.omni) + 1 || handler_stack.length + 2) - 2, 0, event => {
       if (!insert_Lock_() && isEscape_(getMappedKey(event, kModeId.Normal))) {

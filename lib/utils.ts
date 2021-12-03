@@ -104,17 +104,26 @@ export const safer: <T extends object> (opt: T) => T & SafeObject
       ? <T extends object> (obj: T): T & SafeObject => { (obj as any).__proto__ = null; return obj as T & SafeObject; }
       : <T extends object> (opt: T): T & SafeObject => Object.setPrototypeOf(opt, null);
 
-export let weakRef_ = (OnChrome || OnFirefox ? <T extends object>(val: T | null | undefined
+export let weakRef_not_ff = (!OnEdge ? OnFirefox ? null as never : <T extends object>(val: T | null | undefined
       ): WeakRef<T> | null | undefined => val && new (WeakRef as WeakRefConstructor)(val)
     : (_newObj: object | null | undefined) => _newObj) as {
   <T extends object>(val: T): WeakRef<T>
   <T extends object>(val: T | null): WeakRef<T> | null
   <T extends object>(val: T | null | undefined): WeakRef<T> | null | undefined
+} | null
+
+export let weakRef_ff = !OnFirefox ? null as never : (<T extends object>(val: T | null | undefined, id: kElRef
+      ): WeakRef<T> | null | undefined =>
+      val && ((window as any)["_ref" + id] = new (WeakRef as WeakRefConstructor)(val))) as {
+  <T extends object>(val: T, id: kElRef): WeakRef<T>
+  <T extends object>(val: T | null, id: kElRef): WeakRef<T> | null
+  <T extends object>(val: T | null | undefined, id: kElRef): WeakRef<T> | null | undefined
 }
-export const deref_ = !(OnChrome || OnFirefox) ? weakRef_ as any as never
-    : WeakRef ? <T extends object>(val: WeakRef<T> | null | undefined
-      ): T | null | undefined => val && val.deref()
-    : (weakRef_ = ((val: object) => val) as any) as never
+
+export const deref_ = OnEdge ? weakRef_not_ff as never
+    : OnChrome && Build.MinCVer >= BrowserVer.MinEnsured$WeakRef || OnSafari || WeakRef
+    ? <T extends object>(val: WeakRef<T> | null | undefined): T | null | undefined => val && val.deref()
+    : (weakRef_not_ff = weakRef_ff = <T> (val: T): T => val) as never
 
 export const raw_unwrap_ff = OnFirefox ? <T extends object> (val: T): T | undefined => {
   return (val as XrayedObject<T>).wrappedJSObject

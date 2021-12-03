@@ -148,7 +148,7 @@ if (Build.BTypes & (Build.BTypes & BrowserType.ChromeOrFirefox | BrowserType.Edg
   }
 })()
 
-Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES$Object$$values &&
+Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES$Object$$values$and$$entries &&
 !Object.values && (function (): void {
   Object.values = (item): any[] => Object.keys(item).map(i => (item as Dict<any>)[i])
   if (Build.MinCVer >= BrowserVer.MinEnsuredES$Array$$Includes || [].includes) { return }
@@ -205,8 +205,8 @@ Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES$Obj
     }
   })
 })()
-if (!(Build.NDEBUG || BrowserVer.MinMaybeES$Object$$values >= BrowserVer.MinEnsuredES$Array$$Includes)) {
-  alert("expect BrowserVer.MinMaybeES$Object$$values >= BrowserVer.MinEnsuredES$Array$$Includes")
+if (!(Build.NDEBUG || BrowserVer.MinMaybeES$Object$$values$and$$entries >= BrowserVer.MinEnsuredES$Array$$Includes)) {
+  alert("expect BrowserVer.MinMaybeES$Object$$values$and$$entries >= BrowserVer.MinEnsuredES$Array$$Includes")
 }
 if (!(Build.NDEBUG || BrowserVer.MinMaybeES$Array$$Includes >= BrowserVer.Min$Array$$find$$findIndex)) {
   alert("expect BrowserVer.MinMaybeES$Array$$Includes >= BrowserVer.Min$Array$$find$$findIndex")

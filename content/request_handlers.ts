@@ -1,8 +1,8 @@
 import {
   chromeVer_, clickable_, doc, esc, fgCache, injector, isEnabled_, isLocked_, isAlive_, isTop, math, includes_,
-  keydownEvents_, set_chromeVer_, set_clickable_, set_fgCache, set_isLocked_, OnChrome, OnFirefox,
+  keydownEvents_, set_chromeVer_, set_clickable_, set_fgCache, set_isLocked_, OnChrome, OnFirefox, weakRef_ff,
   set_isEnabled_, set_onWndFocus, onWndFocus, timeout_, safer, noTimer_cr_, set_os_, safeObj, set_keydownEvents_,
-  interval_, getTime, vApi, clearInterval_, locHref, set_firefoxVer_, firefoxVer_, os_, weakRef_, isAsContent,
+  interval_, getTime, vApi, clearInterval_, locHref, set_firefoxVer_, firefoxVer_, os_, weakRef_not_ff, isAsContent,
 } from "../lib/utils"
 import { set_keyIdCorrectionOffset_old_cr_, handler_stack, suppressTail_ } from "../lib/keyboard_utils"
 import {
@@ -302,7 +302,8 @@ export const focusAndRun = (cmd?: FgCmdAcrossFrames, options?: FgOptions, count?
   oldOnWndFocus()
   if (isAlive_) {
     esc!(HandlerResult.Nothing);
-    set_currentScrolling(weakRef_(childFrame || null))
+    set_currentScrolling(OnFirefox ? weakRef_ff(childFrame || null, kElRef.currentScrolling)
+        : weakRef_not_ff!(childFrame || null))
     if (cmd) {
       type TypeChecked = { [key in FgCmdAcrossFrames]: <T2 extends FgCmdAcrossFrames>(this: void,
           options: CmdOptions[T2] & FgOptions, count: number, exArgsOrForce?: 0 | 1 | 2) => void; };
