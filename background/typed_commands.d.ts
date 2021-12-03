@@ -22,7 +22,7 @@ interface BgCmdOptions {
     passExitKey: boolean
     reset: boolean
     unhover: boolean
-  }
+  } & Req.FallbackOptions
   [kBgCmd.nextFrame]: Req.FallbackOptions
   [kBgCmd.parentFrame]: Req.FallbackOptions
   [kBgCmd.performFind]: {
@@ -141,7 +141,7 @@ interface BgCmdOptions {
   [kBgCmd.closeDownloadBar]: { newWindow?: null | true | false; all: 1 }
   [kBgCmd.reset]: {}
   [kBgCmd.openBookmark]: { title: string; path: string; name: string;
-      $cache: WeakRef<CompletersNS.Bookmark> | null } & MaskOptions
+      $cache: CompletersNS.Bookmark["id_"] | null } & MaskOptions
 }
 
 interface BgCmdInfoMap {

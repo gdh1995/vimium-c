@@ -749,8 +749,8 @@ set_bgC_([
     const rawCache = get_cOptions<C.openBookmark, true>().$cache
     let p: Promise<false | CompletersNS.BaseBookmark | null> | undefined
     if (rawCache != null) {
-      const cached = rawCache && rawCache.deref()
-      if (cached && bookmarkCache_.bookmarks_.includes!(cached)) {
+      const cached = bookmarkCache_.bookmarks_.find(i => i.id_ === rawCache)
+      if (cached) {
         p = Promise.resolve(cached)
       } else {
         overrideOption<C.openBookmark, "$cache">("$cache", null)
@@ -778,8 +778,7 @@ set_bgC_([
         showHUD(node === false ? 'Need valid "title" or "title".' : node === null ? "The bookmark node is not found."
             : "The bookmark is a folder.")
       } else {
-        hasValidCache || dynamicResult || typeof WeakRef === "function" && overrideOption<C.openBookmark, "$cache">(
-            "$cache", new (WeakRef as WeakRefConstructor)(node as CompletersNS.Bookmark))
+        hasValidCache || dynamicResult || overrideOption<C.openBookmark, "$cache">("$cache", node.id_)
         overrideCmdOptions({ url: (node as CompletersNS.Bookmark).u }, true)
         set_cRepeat(dynamicResult ? 1 : count)
         openUrl()

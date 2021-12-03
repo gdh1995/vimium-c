@@ -127,7 +127,7 @@ set_contentCommands_([
     const expectedKeys = options.expect, hasExpected = isTY(expectedKeys) && !!expectedKeys
     let keyCount = 0, count = count0 > 0 ? count0 : -count0
     removeHandler_(kHandler.passNextKey)
-    exitPassMode ? exitPassMode() : esc!(HandlerResult.ExitPassMode); // singleton
+    onPassKey ? onPassKey() : esc!(HandlerResult.ExitNormalMode); // singleton
     if (hasExpected || !!options.normal === (count0 > 0)) {
       const oldEsc = esc!, oldPassKeys = passKeys
       if (!hasExpected && !oldPassKeys) { return hudTip(kTip.noPassKeys) }
@@ -138,16 +138,16 @@ set_contentCommands_([
         const matched = !!key && (ignoreCase ? Lower(expectedKeys) : expectedKeys).slice(count - 1).startsWith(key)
         matched && (count += key.length)
         if (count > expectedKeys.length || key && !matched) {
-          esc!(HandlerResult.ExitPassMode)
+          count = +!matched
+          esc!(HandlerResult.ExitNormalMode)
           matched || suppressTail_(GlobalConsts.TimeOfSuppressingTailKeydownEvents, 0)
-          runFallbackKey(options, matched ? 0 : 2)
         } else {
           esc!(HandlerResult.Nothing)
         }
         return HandlerResult.Prevent
       }, kHandler.passNextKey)
       set_esc((i: HandlerResult): HandlerResult => {
-        if (i === HandlerResult.Prevent && 0 >= --count || i === HandlerResult.ExitPassMode) {
+        if (i === HandlerResult.Prevent && 0 >= --count || i === HandlerResult.ExitNormalMode) {
           hudHide();
           removeHandler_(kHandler.passNextKey)
           set_passKeys(oldPassKeys)
@@ -176,7 +176,7 @@ set_contentCommands_([
             keys[key] = false, --keyCount
           }
         }
-        keyCount > 0 || (keyCount = 0, --count) || exitPassMode!()
+        keyCount > 0 || (keyCount = 0, --count) || onPassKey!()
       }
       return !count
     }
@@ -186,22 +186,19 @@ set_contentCommands_([
       keys[event.i] = os_ ? 1 : event.e.timeStamp
       return HandlerResult.PassKey;
     }, kHandler.passNextKey)
-    set_onKeyup2((event): void => {
+    set_onPassKey((event): void => {
       if (event && shouldExit_delayed(event, 0)) { /* empty */ }
-      else if (event && keys[event.keyCode] ? --keyCount > 0 || (keyCount = 0, --count) : keyCount || count) {
-        keys[event && event.keyCode] = 0
+      else if (event && keys[event.keyCode] ? --keyCount > 0 || (keyCount = 0, --count)
+          : event === 0 && keyCount || count) {
+        keys[event! && event.keyCode] = 0
         keyCount || hudShow(kTip.passNext, count > 1 ? VTr(kTip.nTimes, [count]) : "")
       } else {
-        exitPassMode!();
+        removeHandler_(kHandler.passNextKey)
+        set_onPassKey(null)
+        hudHide()
       }
     })
-    onKeyup2!(0)
-    set_exitPassMode((): void => {
-      removeHandler_(kHandler.passNextKey)
-      set_exitPassMode(null)
-      set_onKeyup2(null)
-      hudHide();
-    })
+    onPassKey!(0)
   },
   /* kFgCmd.goNext: */ (req: CmdOptions[kFgCmd.goNext]): void => {
     let parApi: VApiTy | null | void, chosen: GoNextBaseCandidate | false | 0 | null

@@ -477,12 +477,12 @@ export const evalIfOK = (req: BgReq[kBgReq.eval] | string): boolean => {
     return false;
   }
   let str = url.slice(11).trim();
-  let el: HTMLScriptElement | undefined
+  let el: HTMLScriptElement & SafeHTMLElement | undefined
   if (createRegExp(kTip.voidJS, "").test(str)) { /* empty */ }
   else if (!parentNode_unsafe_s(el = runJS_(VTr(kTip.removeCurScript), 0)!)) {
     str = safeCall(decodeURIComponent, str) || str
     timeout_((): void => {
-      runJS_(str)
+      vApi.v(str)
       isTY(req) || req.f && runFallbackKey(req.f, 0)
     }, 0)
   } else {

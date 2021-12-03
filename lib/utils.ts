@@ -31,8 +31,8 @@ export const doc = document
 export const loc_ = location
 
 let esc: {
-  <T extends Exclude<HandlerResult, HandlerResult.ExitPassMode>> (this: void, i: T): T;
-  (this: void, i: HandlerResult.ExitPassMode): unknown;
+  <T extends Exclude<HandlerResult, HandlerResult.ExitNormalMode>> (this: void, i: T): T;
+  (this: void, i: HandlerResult.ExitNormalMode): unknown;
 } | null
 
 /** ==== Status ==== */

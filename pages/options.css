@@ -217,9 +217,9 @@ td {
 input, textarea {
   background-color: white;
   background-color: var(--background-color, white);
-  border: 0.5px solid #bfbfbf;
+  border: 0.5px solid #b3b3b3;
   border-width: var(--tiny);
-  border-color: var(--input-border-color, #bfbfbf);
+  border-color: var(--input-border-color, #b3b3b3);
   border-radius: 2px;
   box-sizing: border-box;
   color: var(--input-color);
@@ -317,9 +317,6 @@ label:active {
   margin-right: 10px;
   min-width: 130px;
   padding-top: 3px;
-  vertical-align: top;
-  /* Make the caption in the settings table as small as possible, to pull the other fields to the right. */
-  white-space: nowrap;
   width: 1px;
 }
 .hidden {

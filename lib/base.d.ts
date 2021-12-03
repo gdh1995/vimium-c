@@ -10,7 +10,7 @@ declare const enum HandlerResult {
   MinStopOrPreventEvents = 1,
   MaxNotPrevent = 1,
   Prevent = 2,
-  ExitPassMode = 3,
+  ExitNormalMode = 3,
   // for `<c-[>`, do nothing advanced; but treat any mapped `<esc>` as a plain `<esc>` (apply `AdvancedFlag`)
   PlainEsc = 4, MaxNotEsc = 3,
   AdvancedEsc = 5,

@@ -75,8 +75,13 @@ case "$1" in
     VER=
     shift
     ;;
-  installedonly | installed-only|--installed-only)
+  installeddebug|installed-debug|--installed-debug)
     USE_INSTALLED=2
+    VER=
+    shift
+    ;;
+  installedonly|installed-only|--installed-only)
+    USE_INSTALLED=3
     VER=
     shift
     ;;
@@ -116,9 +121,9 @@ case "$1" in
 esac
 done
 
-test $USE_INSTALLED -le 0 && FUD=${FUD:-/r/TEMP/FUD} || FUD=${FUD:-${default_firefox_root}/FUD}
+test $USE_INSTALLED -le 1 && FUD=${FUD:-/r/TEMP/FUD} || FUD=${FUD:-${default_firefox_root}/FUD}
 if test $DO_CLEAN -gt 0 -a -e "$FUD"; then
-  if test $USE_INSTALLED -gt 0; then
+  if test $USE_INSTALLED -gt 1; then
     echo -E "MUST NOT clean the default Profile folder"
     exit 1
   fi
@@ -163,18 +168,16 @@ else
   FIREFOX_ROOT=${FIREFOX_ROOT:-$default_firefox_root}
   VC_ROOT=${VC_ROOT:-${dir%/*}}
 fi
-if test -z "$VER" -a $USE_INSTALLED -le 0 && test -f "$WORKING_DIR"/core/firefox.exe; then
-  VER=wo
-fi
-if test -z "$VER" -a $USE_INSTALLED -le 0; then
+if test -n "$VER" -o $USE_INSTALLED -gt 0; then :
+elif test -f "$WORKING_DIR"/core/firefox.exe; then VER=wo
+else
   VER_MIN=63
-  for ((i=99;i>=VER_MIN;i--)); do
-    if test -f "$WORKING_DIR/core$i/firefox.exe"; then
-      VER=$i; break
-    elif test -f "$WORKING_DIR/core${i}esr/firefox.exe"; then
-      VER=${i}esr; break
-    fi
-  done
+  VER=$(printf "%s\n" "$WORKING_DIR"/core[1-9]* | sort -r | head -n 1)
+  VER=${VER#"$WORKING_DIR/core"}
+  if test "${VER:-63}" \< 63 ; then
+    echo "Error: require Firefox 63+ but found $VER only"
+    exit 1
+  fi
 fi
 test "$VER" == cur && VER=
 if test "$VER" == wo || test -z "$VER" -a $USE_INSTALLED -le 0; then
@@ -209,8 +212,8 @@ else
   VC_EXT="$VC_ROOT"
   wp vc_ext_w "$VC_EXT"
 fi
-if test $USE_INSTALLED -gt 0 && ! grep '"id": "vimium-c@gdh1995.cn"' "${VC_EXT}/manifest.json" >/dev/null 2>&1; then
-  echo "Error: MUST use a version of Vimium C only built for Firefox when use_installed is true" >&2
+if test $USE_INSTALLED -ge 2 && ! grep '"id": "vimium-c@gdh1995.cn"' "${VC_EXT}/manifest.json" >/dev/null 2>&1; then
+  echo "Error: MUST use a version of Vimium C only built for Firefox when use_installed >= 2" >&2
   exit 1
 fi
 
@@ -250,7 +253,7 @@ if test $AUTO_RELOAD -le 0; then
   FLAGS=$FLAGS" --no-reload"
 fi
 
-if test $USE_INSTALLED -ge 2; then
+if test $USE_INSTALLED -ge 3; then
   echo -E start: "${exe_w}" "(installed)"
   "$EXE" -foreground -no-remote -profile "$FUD"
     --url about:home \

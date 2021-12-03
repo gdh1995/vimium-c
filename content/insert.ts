@@ -6,7 +6,7 @@ import { post_, safePost } from "./port"
 import { getParentVApi, ui_box } from "./dom_ui"
 import { hudHide } from "./hud"
 import { set_currentScrolling, scrollTick, set_cachedScrollable } from "./scroller"
-import { set_isCmdTriggered, resetAnyClickHandler } from "./key_handler"
+import { set_isCmdTriggered, resetAnyClickHandler, onPassKey } from "./key_handler"
 import {
   activeEl_unsafe_, getEditableType_, GetShadowRoot_, getSelection_, frameElement_, deepActiveEl_unsafe_,
   SafeEl_not_ff_, MDW, fullscreenEl_unsafe_, removeEl_s, isNode_, BU, docHasFocus_, getRootNode_mounted
@@ -32,14 +32,13 @@ let is_last_mutable: BOOL = 1
 let lastWndFocusTime = 0
 // the `readyState_ > "c"` is just to grab focus on `chrome://*/*` URLs
 let grabBackFocus: boolean | ((event: Event, target: LockableElement) => void) = readyState_ > (OnChrome ? "i" : "l")
-let exitPassMode: ((this: void) => void) | undefined | null
 let onExitSuppress: ((this: void) => void) | null = null
 let onWndBlur2: ((this: void) => void) | undefined | null
 
 export {
   lock_ as raw_insert_lock, insert_global_,
   insert_last_, is_last_mutable as insert_last_mutable,
-  grabBackFocus, suppressType, inputHint as insert_inputHint, onWndBlur2, exitPassMode,
+  grabBackFocus, suppressType, inputHint as insert_inputHint, onWndBlur2,
 }
 export function set_insert_global_ (_newIGlobal: InsertModeOptions): void { insert_global_ = _newIGlobal }
 export function set_insert_last_ (_newILast: WeakRef<LockableElement> | null): void { insert_last_ = _newILast }
@@ -49,7 +48,6 @@ export function set_isHintingInput (_newIsHintingInput: BOOL): void { isHintingI
 export function set_grabBackFocus (_newGrabBackFocus: typeof grabBackFocus): void { grabBackFocus = _newGrabBackFocus }
 export function set_onWndBlur2 (_newOnBlur: typeof onWndBlur2): void { onWndBlur2 = _newOnBlur }
 // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-export function set_exitPassMode <T extends typeof exitPassMode> (_nEPM: T): T { return exitPassMode = _nEPM as T }
 
 export const insertInit = (doesGrab?: boolean | null, inLoading?: 1): void => {
   let activeEl = deepActiveEl_unsafe_() // https://github.com/gdh1995/vimium-c/issues/381#issuecomment-873529695
@@ -343,14 +341,14 @@ const hookOnShadowRoot = (path: ArrayLike<EventTarget | 0>, target: Node | 0, di
 export const onWndBlur = (): void => {
   scrollTick(0);
   onWndBlur2 && onWndBlur2();
-  exitPassMode && exitPassMode();
+  onPassKey && onPassKey()
   set_keydownEvents_(safeObj<any>(null))
   set_isCmdTriggered(kKeyCode.None)
   if (OnChrome) {
     /*#__NOINLINE__*/ resetAnyClickHandler();
   }
   injector || (<RegExpOne> /a?/).test("");
-  esc!(HandlerResult.ExitPassMode);
+  esc!(HandlerResult.ExitNormalMode);
 }
 
 const getSimpleNodeMap = (): ShadowNodeMap => {

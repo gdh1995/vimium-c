@@ -73,19 +73,13 @@ export const matchSimply_ = (matcher: ValidUrlMatchers, url: string): boolean =>
 
 let listening_ = false
 let listeningHash_ = false
-let _onlyFirstMatch: boolean
+let _onlyFirstMatch = false
 let rules_: ExclusionsNS.Rules = []
 
 export { listening_ as exclusionListening_, listeningHash_ as exclusionListenHash_ }
 
 const setRules_ = (rules: ExclusionsNS.StoredRule[]): void => {
-    if (rules.length === 0) {
-      rules_ = []
-      updateListeners_()
-      return;
-    }
     rules_ = rules.map(rule => createRule_(rule.pattern, rule.passKeys))
-    updateListeners_()
 }
 
 export const parseMatcher_ = (pattern: string | null): BaseUrlMatcher[] => {
@@ -187,19 +181,15 @@ export const RefreshStatus_ = (old_is_empty: boolean): void => {
     }, () => oldRules === rules_)
 }
 
-export const updateListeners_ = (): void => {
-    const listenHistory = rules_.length > 0,
-    l = getOnURLChange_(),
-    listenHash = listenHistory && settings.get_("exclusionListenHash")
+const updateListeners_ = (listenHash: boolean): void => {
+    const listen = rules_.length > 0, l = listen || listening_ ? getOnURLChange_() : null
     if (!l) { return; }
-    if (listening_ !== listenHistory) {
-      listening_ = listenHistory
+    if (listening_ !== listen) {
+      listening_ = listen
       const e = browserWebNav_()!.onHistoryStateUpdated
-      listenHistory ? e.addListener(l) : e.removeListener(l);
-      if (listening_) {
-        _onlyFirstMatch = settings.get_("exclusionOnlyFirstMatch")
-      }
+      listen ? e.addListener(l) : e.removeListener(l)
     }
+    listenHash = listen && listenHash
     if (listeningHash_ !== listenHash) {
       listeningHash_ = listenHash
       const e = browserWebNav_()!.onReferenceFragmentUpdated
@@ -210,6 +200,7 @@ export const updateListeners_ = (): void => {
 settings.updateHooks_.exclusionRules = (rules: ExclusionsNS.StoredRule[]): void => {
   const isEmpty = !rules_.length, curKeyFSM = keyFSM_
   setRules_(rules)
+  settings.postUpdate_("exclusionListenHash")
   setTimeout((): void => {
     setTimeout(RefreshStatus_, 10, isEmpty)
     if (keyFSM_ === curKeyFSM) {
@@ -226,4 +217,5 @@ settings.updateHooks_.exclusionListenHash = updateListeners_
 
 if (settings.storage_.getItem("exclusionRules") !== "[]") {
   setRules_(settings.get_("exclusionRules"))
+  _onlyFirstMatch = settings.get_("exclusionOnlyFirstMatch")
 }

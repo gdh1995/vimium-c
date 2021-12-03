@@ -52,6 +52,7 @@ set_onInit_(As_<typeof onInit_>((): void => {
       settings_.get_("hideHud", true)
       settings_.get_("nextPatterns", true)
       settings_.get_("previousPatterns", true)
+      settings_.postUpdate_("exclusionListenHash")
       settings_.postUpdate_("autoDarkMode")
       settings_.postUpdate_("autoReduceMotion")
       browser_.runtime.onConnect.addListener((port): void => {

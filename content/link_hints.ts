@@ -524,7 +524,7 @@ const activateDirectly = (options: ContentOptions, count: number): void => {
       ? low = mid + 1 : high = mid - 1
     }
     return low < -matchIndex ? end : low + matchIndex
-  }, testD = offset.includes.bind(d + "")
+  }, testD = "".includes.bind(d + "")
   let isSel: boolean | undefined
   let matches: (Hint | Hint0)[] | undefined, oneMatch: Hint | Hint0 | undefined, matchIndex: number
   let el: SafeElement | null | undefined

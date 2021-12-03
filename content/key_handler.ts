@@ -30,21 +30,21 @@ let noopEventHandler: EventListenerObject["handleEvent"] = Object.is as any
 interface MouseEventListener extends EventListenerObject { handleEvent (evt: MouseEventToPrevent): ELRet }
 let anyClickHandler: MouseEventListener = { handleEvent: noopEventHandler }
 
-let onKeyup2: ((this: void, event: KeyboardEvent | 0) => void) | null | undefined
+let onPassKey: ((this: void, event?: KeyboardEvent | 0) => void) | null | undefined
 
-set_esc(function<T extends Exclude<HandlerResult, HandlerResult.ExitPassMode>> (i: T): T {
+set_esc(function<T extends Exclude<HandlerResult, HandlerResult.ExitNormalMode>> (i: T): T {
   currentKeys = ""; nextKeys = null; curKeyTimestamp = 0; return i
 })
 
 export {
   passKeys, keyFSM, mappedKeys, currentKeys,
   isWaitingAccessKey, isCmdTriggered, anyClickHandler,
-  onKeyup2, isPassKeysReversed,
+  onPassKey, isPassKeysReversed,
 }
 export function set_isCmdTriggered (_newTriggerred: kKeyCode): void { isCmdTriggered = _newTriggerred }
 export function set_passKeys (_newPassKeys: typeof passKeys): void { passKeys = _newPassKeys }
 export function set_nextKeys (_newNK: KeyFSM): void { nextKeys = _newNK }
-export function set_onKeyup2 (_newOnKeyUp: typeof onKeyup2): void { onKeyup2 = _newOnKeyUp }
+export function set_onPassKey (_newOnPassKey: typeof onPassKey): void { onPassKey = _newOnPassKey }
 export function set_isPassKeysReversed (_newPKReversed: boolean): void { isPassKeysReversed = _newPKReversed }
 export function set_keyFSM (_newKeyFSM: KeyFSM): KeyFSM { return keyFSM = _newKeyFSM }
 export function set_mapKeyTypes (_newMapKeyTypes: kMapKey): void { mapKeyTypes = _newMapKeyTypes }
@@ -90,7 +90,7 @@ const checkKey = (event: HandlerNS.Event, key: string, keyWithoutModeID: string
   let j: ReadonlyChildKeyFSM | ValidKeyAction | ReturnType<typeof isEscape_> | undefined = isEscape_(keyWithoutModeID)
   if (j) {
     OnChrome && mapKeyTypes & (kMapKey.normal | kMapKey.insertMode | kMapKey.otherMode) && checkAccessKey_cr(event)
-    return nextKeys ? (esc!(HandlerResult.ExitPassMode), HandlerResult.Prevent) : j;
+    return nextKeys ? (esc!(HandlerResult.ExitNormalMode), HandlerResult.Prevent) : j;
   }
   if (!nextKeys || (j = nextKeys[key]) == null) {
     j = key.startsWith("v-") ? KeyAction.cmd : keyFSM[key];
@@ -286,7 +286,7 @@ export const onKeyup = (event: KeyboardEventToPrevent): void => {
   if (keydownEvents_[key]) {
     keydownEvents_[key] = 0;
     prevent_(event);
-  } else if (onKeyup2) {
-    onKeyup2(event);
+  } else if (onPassKey) {
+    onPassKey(event)
   }
 }

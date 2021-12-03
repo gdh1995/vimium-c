@@ -130,7 +130,7 @@ set_requestHandlers([
       return;
     }
     const oldPassKeys = passKeys
-    esc!(HandlerResult.ExitPassMode) // for passNextKey#normal
+    esc!(HandlerResult.ExitNormalMode) // for passNextKey#normal
     set_passKeys(oldPassKeys)
     set_isLocked_((request as BgReq[kBgReq.reset]).f)
     // if true, recover listeners on shadow roots;

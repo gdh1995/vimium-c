@@ -52,7 +52,7 @@ export const convertToUrl_ = function (str: string, keyword?: string | null, vim
   }
   if (str.startsWith("\\\\") && str.length > 3) {
     str = str.slice(2).replace(<RegExpG> /\\/g, "/");
-    str.lastIndexOf("/") <= 0 && (str += "/");
+    str.includes("/") || (str += "/");
     resetRe_();
     return "file://" + convertFromFilePath(str)
   }
@@ -183,7 +183,11 @@ export const convertToUrl_ = function (str: string, keyword?: string | null, vim
       (checkInDomain_(str, arr && arr[4]) === 2 ? "https:" : "http:")
       + (type === Urls.Type.NoScheme ? "//" : "") + oldString
     : oldString;
-} as Urls.Converter
+} as {
+  (string: string, keyword: string | null | undefined, vimiumUrlWork: Urls.WorkAllowEval): Urls.Url
+  (string: string, keyword?: string | null, vimiumUrlWork?: Urls.WorkEnsureString): string
+  (string: string, keyword?: string | null, vimiumUrlWork?: Urls.WorkType): Urls.Url
+}
 
 const checkInDomain_ = (host: string, port?: string | null): 0 | 1 | 2 => {
   const domain = port && historyCache_.domains_.get(host + port) || historyCache_.domains_.get(host)
@@ -288,7 +292,12 @@ export const createSearchUrl_ = function (query: string[], keyword: string, vimi
   }
   lastUrlType_ = Urls.Type.Search;
   return url;
-} as Urls.Searcher
+} as {
+  (query: string[], keyword: "~", vimiumUrlWork?: Urls.WorkType): string;
+  (query: string[], keyword: string | null | undefined, vimiumUrlWork: Urls.WorkAllowEval): Urls.Url
+  (query: string[], keyword?: string | null, vimiumUrlWork?: Urls.WorkEnsureString): string
+  (query: string[], keyword?: string | null, vimiumUrlWork?: Urls.WorkType): Urls.Url
+}
 
 export const createSearch_ = function (query: string[], url: string, blank: string, indexes?: number[]
     ): string | Search.Result {

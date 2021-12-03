@@ -5,7 +5,7 @@ import {
   OnChrome, OnEdge
 } from "../lib/utils"
 import { suppressTail_, getMappedKey } from "../lib/keyboard_utils"
-import { frameElement_, set_OnDocLoaded_ } from "../lib/dom_utils"
+import { frameElement_, runJS_, set_OnDocLoaded_ } from "../lib/dom_utils"
 import { wndSize_ } from "../lib/rect"
 import {
   HookAction, safePost, set_port_, runtime_port, SafeDestoryF, set_safeDestroy,
@@ -65,7 +65,7 @@ set_vApi(VApi = {
       : task < 2 ? set_clickable_(arg as ElementSet)
       : set_VTr(arg as VTransType)
     return arg
-  }, getMappedKey], s: suppressTail_, t: requestHandlers[kBgReq.showHUD], u: locHref, x: flash_,
+  }, getMappedKey], s: suppressTail_, t: requestHandlers[kBgReq.showHUD], u: locHref, v: runJS_, x: flash_,
   y: OnFirefox ? () => ( {
     w: onWndFocus, b: find_box, c: clickable_, k: scroll_keyIsDown, r: ui_root, f: find_input
   } ) : () => ( {  b: find_box, c: clickable_, k: scroll_keyIsDown, r: ui_root, f: find_input } )

@@ -116,7 +116,7 @@ case "$1" in
     if test $DO_CLEAN -eq 1; then DO_CLEAN=2; fi
     shift
     ;;
-  [3-9][0-9]|cur|wo|prev|[1-9a-f][1-9a-f][1-9a-f][1-9a-f][1-9a-f][1-9a-f]*) # ver
+  [3-9][0-9]|[1-3][0-9][0-9]|cur|wo|prev|[1-9a-f][1-9a-f][1-9a-f][1-9a-f][1-9a-f][1-9a-f]*) # ver
     VER=$1
     shift
     ;;
@@ -258,7 +258,7 @@ if ! test -f "$EXE"; then
   exit 1
 fi
 if test -n "$VER"; then
-  rm -f "${EXE%/*}/default_apps/"* "${EXE%/*}/"[0-9]*"/default_apps/"* "${EXE%/*}/"[0-9]*"/Installer/"*
+  rm -f -v "${EXE%/*}/default_apps/"* "${EXE%/*}/"[0-9]*"/default_apps/"* "${EXE%/*}/"[0-9]*"/Installer/"*
 fi
 
 if test -n "$PAGE_FLAGS"; then
