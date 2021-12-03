@@ -686,7 +686,7 @@ export const openUrlReq = (request: FgReq[kFgReq.openUrl], port?: Port | null): 
   const mode1 = hintMode < HintMode.min_disable_queue ? hintMode & ~HintMode.queue : hintMode
   const formatted = request.f != null ? request.f : mode1 === HintMode.OPEN_INCOGNITO_LINK
   opts.group = isWeb ? o2.g : true
-  opts.incognito = normalizeIncognito(o2.i) != null ? o2.i : mode1 === HintMode.OPEN_INCOGNITO_LINK
+  opts.incognito = normalizeIncognito(o2.i) != null ? o2.i : mode1 === HintMode.OPEN_INCOGNITO_LINK || null
   opts.replace = o2.m
   opts.position = o2.p
   opts.reuse = o2.r != null ? o2.r : !hintMode ? request.r

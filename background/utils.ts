@@ -164,7 +164,8 @@ export const decodeEscapedURL_ = (url: string, allowSpace?: boolean): string => 
 
 export const encodeAsciiURI_ = (url: string, encoded?: 1): string =>
     (encoded ? url : encodeURI(url)).replace(<RegExpG & RegExpSearchable<0>> /%(?:[CD].%..|E.%..%..)/g, (s): string => {
-      const t = decodeURIComponent(s)
+      const t = DecodeURLPart_(s)
+      if (t === s) { return s }
       const re = OnEdge
           || OnChrome && Build.MinCVer < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
             && CurCVer_ < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
