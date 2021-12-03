@@ -304,6 +304,7 @@ interface ShowHelpDialogOptions {
   h?: null
   /** forced to show */ f?: false | null
   exitOnClick?: boolean | null
+  commandNames?: boolean | null
 }
 interface TrailingSlashOptions {
   trailingSlash?: boolean | null

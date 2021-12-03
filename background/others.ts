@@ -266,8 +266,7 @@ setTimeout((): void => {
       text = text.slice(text[2] === " " ? 3 : 4);
     }
     if (text.slice(0, 7).toLowerCase() === "file://") {
-      // SVG is not blocked by images CS
-      text = (<RegExpI & RegExpOne> /\.(?:avif|bmp|gif|icon?|jpe?g|a?png|tiff?|webp)$/i).test(text)
+      text = (<RegExpI & RegExpOne> /\.(?:avif|bmp|gif|icon?|jpe?g|a?png|svg|tiff?|webp)$/i).test(text)
         ? formatVimiumUrl_("show image " + text, false, Urls.WorkType.Default)
         : text
     }

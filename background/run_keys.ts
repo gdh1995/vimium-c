@@ -56,7 +56,9 @@ const matchEnvRule = (rule: CommandsNS.EnvItem, info: CurrentEnvCache): EnvMatch
   }
   if (host != null) {
     let url: string | null | undefined | Promise<string> = info.url, slash: number
-    if (url == null && host.t === kMatchUrl.StringPrefix
+    if (url != null ? false : host.t === kMatchUrl.Pattern
+        ? ["/*", "*"].includes!(host.v.pathname) && host.v.search === "*" && host.v.hash === "*"
+        : host.t === kMatchUrl.StringPrefix
         && ((slash = host.v.indexOf("/", host.v.indexOf("://") + 3)) === host.v.length - 1 || slash === -1)) {
       const port = framesForTab_.get(cPort ? cPort.s.tabId_ : curTabId_)?.top_ || cPort
       url = port ? port.s.url_ : null

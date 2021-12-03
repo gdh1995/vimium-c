@@ -55,14 +55,15 @@ export const parseHTML = (template: string): [string, string] => {
       return [head, body]
 }
 
-export const render_ = (isOptionsPage: boolean): NonNullable<CmdOptions[kFgCmd.showHelpDialog]["h"]> => {
+export const render_ = (isOptionsPage: boolean, showNames: boolean | null | undefined
+      ): NonNullable<CmdOptions[kFgCmd.showHelpDialog]["h"]> => {
     i18n_ = helpDialogData_![1] as typeof i18n_
     if (!html_ || helpDialogData_![0]) {
       html_ = parseHTML(helpDialogData_![0]!)
       helpDialogData_![0] = ""
     }
-    const commandToKeys = new Map<string, [string, CommandsNS.Item][]>(),
-    hideUnbound = !isOptionsPage, showNames = isOptionsPage
+    const commandToKeys = new Map<string, [string, CommandsNS.Item][]>(), hideUnbound = !isOptionsPage
+    showNames = isOptionsPage || !!showNames
     keyToCommandMap_.forEach((registry, key): void => {
       if (key.startsWith("<v-") && key.endsWith(">")) { return }
       const command = normalizeCmdName(registry.command_)
@@ -79,7 +80,7 @@ export const render_ = (isOptionsPage: boolean): NonNullable<CmdOptions[kFgCmd.s
       lbPad: showNames ? '\n\t\t<tr><td class="HelpTd TdBottom">&#160;</td></tr>' : ""
     });
     const div = html_[1].replace(<RegExpG & RegExpSearchable<1>> /\{\{(\w+)}}/g
-        , (_, group: string) => result[group] ?? renderGroup(group, commandToKeys, hideUnbound, showNames))
+        , (_, group: string) => result[group] ?? renderGroup(group, commandToKeys, hideUnbound, showNames!))
     return OnFirefox ? { h: html_[0], b: div } : (html_[0] + div) as any as "html"
 }
 

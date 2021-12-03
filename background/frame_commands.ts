@@ -89,7 +89,7 @@ export const initHelp = (request: FgReq[kFgReq.initHelp], port: Port): Promise<v
     temp2 && (newHData[1] = temp2)
     temp3 && (newHData[2] = temp3)
     sendFgCmd(kFgCmd.showHelpDialog, true, {
-      h: helpDialog.render_(isOptionsPage),
+      h: helpDialog.render_(isOptionsPage, options.commandNames),
       o: CONST_.OptionsPage_, f: request.f,
       e: !!options.exitOnClick,
       c: isOptionsPage && !!keyMappingErrors_ || settings_.get_("showAdvancedCommands", true)

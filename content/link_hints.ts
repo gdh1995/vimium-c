@@ -452,6 +452,9 @@ const onKeydown = (event: HandlerNS.Event): HandlerResult => {
     } else if (keybody === kChar.tab && !useFilter_ && !keyStatus_.k) {
       tooHigh_ = null;
       resetMode();
+      if (!OnFirefox && isClickListened_ && coreHints.h && vApi.e && math.abs(getTime() - coreHints.h) < 1000) {
+        vApi.e(kContentCmd.ManuallyFindAllOnClick)
+      }
       timeout_(reinit, 0)
     } else if (keybody === SPC && (!useFilter_ || key !== keybody)) {
       keyStatus_.t = keyStatus_.t.replace("  ", " ");
