@@ -234,6 +234,7 @@ const commandGroups_: {
       , "openCopiedUrlInCurrentTab", "openCopiedUrlInNewTab", "goUp", "goToRoot"
       , "LinkHints.activateDownloadImage", "LinkHints.activateOpenImage"
       , "LinkHints.activateDownloadLink", "LinkHints.activateOpenIncognito"
+      , "LinkHints.activateFocus"
       , "LinkHints.activateHover", "LinkHints.activateLeave", "LinkHints.unhoverLast"
       , "LinkHints.activateSearchLinkText", "LinkHints.activateEdit"
       , "LinkHints.activateSelect", "LinkHints.click", "simulateBackspace", "dispatchEvent"

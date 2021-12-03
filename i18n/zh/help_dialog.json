@@ -43,6 +43,7 @@
   "LinkHints.activateDownloadImage": "下载图片或音视频文件",
   "LinkHints.activateDownloadLink": "下载任意链接",
   "LinkHints.activateEdit": "选择文本框",
+  "LinkHints.activateFocus": "移动焦点到网页内容",
   "LinkHints.activateHover": "模拟鼠标移动到网页内容上",
   "LinkHints.activateLeave": "模拟鼠标从网页内容上移出",
   "LinkHints.activateOpenImage": "展示图片",

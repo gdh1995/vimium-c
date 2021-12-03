@@ -37,6 +37,7 @@
   "LinkHints.activateDownloadImage": "Télécharger image, video et audio",
   "LinkHints.activateDownloadLink": "Télécharger le lien de l'URL",
   "LinkHints.activateEdit": "Sélectionner une zone d'édition",
+  "LinkHints.activateFocus": "Concentrer un élément",
   "LinkHints.activateHover": "Sélectionner un élement et survoler",
   "LinkHints.activateLeave": "Laisser la souris quitter le lien",
   "LinkHints.activateOpenImage": "Montrer l'image dans un nouvel onglet",

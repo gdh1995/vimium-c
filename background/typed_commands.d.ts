@@ -288,6 +288,7 @@ interface CmdNameIds {
   "LinkHints.activateDownloadImage": kFgCmd.linkHints
   "LinkHints.activateDownloadLink": kFgCmd.linkHints
   "LinkHints.activateEdit": kFgCmd.linkHints
+  "LinkHints.activateFocus": kFgCmd.linkHints
   "LinkHints.activateHover": kFgCmd.linkHints
   "LinkHints.activateLeave": kFgCmd.linkHints
   "LinkHints.activateMode": kFgCmd.linkHints
@@ -296,6 +297,7 @@ interface CmdNameIds {
   "LinkHints.activateModeToDownloadImage": kFgCmd.linkHints
   "LinkHints.activateModeToDownloadLink": kFgCmd.linkHints
   "LinkHints.activateModeToEdit": kFgCmd.linkHints
+  "LinkHints.activateModeToFocus": kFgCmd.linkHints
   "LinkHints.activateModeToHover": kFgCmd.linkHints
   "LinkHints.activateModeToLeave": kFgCmd.linkHints
   "LinkHints.activateModeToOpenImage": kFgCmd.linkHints

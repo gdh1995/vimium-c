@@ -36,6 +36,7 @@
   "LinkHints.activateDownloadImage": "Download image, video and audio",
   "LinkHints.activateDownloadLink": "Download link URL",
   "LinkHints.activateEdit": "Select an editable area",
+  "LinkHints.activateFocus": "Focus an element",
   "LinkHints.activateHover": "Select an element and hover",
   "LinkHints.activateLeave": "Let mouse leave link",
   "LinkHints.activateOpenImage": "Show image in a new tab",
