@@ -756,29 +756,32 @@ set_bgC_([
         overrideOption<C.openBookmark, "$cache">("$cache", null)
       }
     }
-    const hasValidCache = !!p
+    const hasValidCache = !!p, count = cRepeat
+    let dynamicResult = false
     if (!p) {
     let title = get_cOptions<C.openBookmark>().path || get_cOptions<C.openBookmark>().title
     if (!title || typeof title !== "string") {
       showHUD("Invalid bookmark " + (get_cOptions<C.openBookmark>().path ? "path" : "title")); resolve(0); return
     }
     const result = fillOptionWithMask<C.openBookmark>(title, get_cOptions<C.openBookmark>().mask, "name"
-        , ["path", "title", "mask", "name"])
+        , ["path", "title", "mask", "name"], count)
     if (!result.ok) {
       showHUD((result.result ? "Too many potential names" : "No name") + " to find bookmarks")
       return
     }
+      dynamicResult = result.useCount
       p = findBookmark(0, result.result)
     }
-    p.then((node): void => {
+    void p.then((node): void => {
       if (!node || (node as CompletersNS.Bookmark).u == null) {
         resolve(0)
         showHUD(node === false ? 'Need valid "title" or "title".' : node === null ? "The bookmark node is not found."
             : "The bookmark is a folder.")
       } else {
-        hasValidCache || typeof WeakRef === "function" && overrideOption<C.openBookmark, "$cache">(
+        hasValidCache || dynamicResult || typeof WeakRef === "function" && overrideOption<C.openBookmark, "$cache">(
             "$cache", new (WeakRef as WeakRefConstructor)(node as CompletersNS.Bookmark))
         overrideCmdOptions({ url: (node as CompletersNS.Bookmark).u }, true)
+        set_cRepeat(dynamicResult ? 1 : count)
         openUrl()
       }
     })

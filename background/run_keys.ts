@@ -206,16 +206,17 @@ export const runKeyWithCond = (info?: CurrentEnvCache): void => {
         || !seq.tree || typeof seq.tree !== "object" || typeof seq.tree.t !== "number")) {
     showHUD(sub_name + "The key is invalid")
   } else {
+    let repeat = keys.length === 1 ? cRepeat : 1
     let options2: CommandsNS.RawOptions | null
     if (typeof seq === "string") {
       let mask = get_cOptions<C.runKey, true>().mask
       if (mask != null) {
-        const filled = fillOptionWithMask<C.runKey>(seq, mask, "", kRunKeyOptionNames)
+        const filled = fillOptionWithMask<C.runKey>(seq, mask, "", kRunKeyOptionNames, repeat)
         if (!filled.ok) {
           showHUD((filled.result ? "Too many potential keys" : "No key") + " to fill masks")
           return
         }
-        mask = filled.ok > 0, seq = filled.result
+        mask = filled.ok > 0; seq = filled.result; repeat = filled.useCount ? 1 : repeat
       }
       const optionsPrefix = seq.startsWith("#") ? seq.split("+", 1)[0] : ""
       options2 = optionsPrefix.length > 1 ? parseEmbeddedOptions(optionsPrefix.slice(1)) : null
@@ -225,7 +226,6 @@ export const runKeyWithCond = (info?: CurrentEnvCache): void => {
     } else {
       key = seq.tree, options2 = seq.options
     }
-    const repeat = keys.length === 1 ? cRepeat : 1
     let options = matched && matched.options || get_cOptions<C.runKey, true>().options
         || (get_cOptions<C.runKey, true>().$masked ? null : collectOptions(get_cOptions<C.runKey, true>()))
     options = !options2 || !options ? options || options2
@@ -300,7 +300,7 @@ export const parseKeySeq = (keys: string): ListNode | ErrorNode => {
         if (!arr) {
           const err = keys.slice(i)
           return { t: kN.error,
-              val: "Invalid key item: " + (err.length > 16 ? err.slice(0, 15) + "\u2026" : err), par: null }
+              val: "Invalid item to run: " + (err.length > 12 ? err.slice(0, 11) + "\u2026" : err), par: null }
         }
         let oneKey = arr[0]
         const hash = oneKey.indexOf("#")

@@ -96,21 +96,10 @@ declare namespace Urls {
   type WorkEnsureString = WorkType.KeepAll | WorkType.ConvertKnown | WorkType.ValidNormal;
   type WorkAllowEval = WorkType.ActIfNoSideEffects | WorkType.ActAnyway;
 
-  interface Converter {
-    (string: string, keyword: string | null | undefined, vimiumUrlWork: WorkAllowEval): Url;
-    (string: string, keyword?: string | null, vimiumUrlWork?: WorkEnsureString): string;
-    (string: string, keyword?: string | null, vimiumUrlWork?: WorkType): Url;
-  }
   interface Executor {
     (path: string, workType?: WorkType.ValidNormal): string | null;
     (path: string, workType: WorkType.KeepAll | WorkType.ConvertKnown): null;
     (path: string, workType: WorkType, onlyOnce?: boolean): Url | null;
-  }
-  interface Searcher {
-    (query: string[], keyword: "~", vimiumUrlWork?: WorkType): string;
-    (query: string[], keyword: string | null | undefined, vimiumUrlWork: WorkAllowEval): Url;
-    (query: string[], keyword?: string | null, vimiumUrlWork?: WorkEnsureString): string;
-    (query: string[], keyword?: string | null, vimiumUrlWork?: WorkType): Url;
   }
 
   const enum NewTabType { browser = 1, cNewNTP = 2 }
