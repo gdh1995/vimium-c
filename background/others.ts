@@ -10,7 +10,7 @@ import * as BgUtils_ from "./utils"
 import * as settings_ from "./settings"
 import { extTrans_, i18nLang_, trans_ } from "./i18n"
 import { convertToUrl_, formatVimiumUrl_ } from "./normalize_urls"
-import { decodeFileURL_ } from "./parse_urls"
+import { decodeFileURL_ } from "./normalize_urls"
 import { openUrlReq } from "./open_urls"
 
 import SugType = CompletersNS.SugType
@@ -127,8 +127,8 @@ setTimeout((): void => {
             && !(autoSelect && i === 0) && (
           type === "tab" ? sugItem.s !== curTabId_ : type === "history" && (OnFirefox || !hasSessionId)
         );
-      url = BgUtils_.encodeAsciiURI_(url, 1).replace(<RegExpG> /%20/g, " ")
-      url = decodeFileURL_(url)
+      url = BgUtils_.encodeAsciiURI_(url, 1)
+      url = url.startsWith("file") ? decodeFileURL_(url) : url.replace(<RegExpG> /%20/g, " ")
       urlDict.has(url) ? (url = `:${i + di} ${url}`) : urlDict.add(url)
       if (canBeDeleted) {
         desc = ` ~${i + di}~`

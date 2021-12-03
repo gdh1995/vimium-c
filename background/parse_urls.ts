@@ -1,6 +1,4 @@
-import {
-  CONST_, contentPayload_, CurCVer_, CurFFVer_, OnChrome, OnEdge, OnFirefox, settingsCache_, substitute_
-} from "./store"
+import { CONST_, CurCVer_, CurFFVer_, OnChrome, OnEdge, OnFirefox, settingsCache_, substitute_ } from "./store"
 import * as BgUtils_ from "./utils"
 import {
   convertToUrl_, formatVimiumUrl_, lastUrlType_, removeComposedScheme_, searchVariableRe_, searchWordRe_
@@ -300,21 +298,6 @@ export const fixCharsInUrl_ = (url: string, alwaysNo3002?: boolean, forceConvers
   return lastUrlType_ < Urls.Type.MaxOfInputIsPlainUrl + 1 ? str
       : type !== 1 || !alwaysNo3002 || (<RegExpOne> /[^.\w\u3002-]/).test(url) ? url
       : url.replace(<RegExpG> /\u3002/g, ".")
-}
-
-export const decodeFileURL_ = (url: string): string => {
-  if (contentPayload_.o === kOS.win && url.startsWith("file://")) {
-    const slash = url.indexOf("/", 7)
-    if (slash < 0 || slash === url.length - 1) { return slash < 0 ? url + "/" : url }
-    const type = slash === 7 ? url.charAt(9) === ":" ? 3 : url.substr(9, 3).toLowerCase() === "%3a" ? 5 : 0 : 0
-    url = type ? url[8].toUpperCase() + ":\\" + url.slice(type + 8) : slash === 7 ? url : "\\\\" + url.slice(7)
-    let sep = (<RegExpOne> /[?#]/).exec(url), index = sep ? sep.index : 0
-    let tail = index ? url.slice(index) : ""
-    url = index ? url.slice(0, index) : url
-    url = url.replace(<RegExpG> /\/+/g, "\\")
-    url = index ? url + tail : url
-  }
-  return url
 }
 
 export const parseSearchEngines_ = (str: string, map: Map<string, Search.Engine>): Search.Rule[] => {

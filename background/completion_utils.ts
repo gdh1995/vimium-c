@@ -5,7 +5,7 @@ import {
 import { getCurShownTabs_, getCurTabs, getCurWnd, Tabs_ } from "./browser"
 import * as BgUtils_ from "./utils"
 import * as settings_ from "./settings"
-import { decodeFileURL_ } from "./parse_urls"
+import { decodeFileURL_ } from "./normalize_urls"
 import { TabRecency_ } from "./tools"
 import { HistoryManager_ } from "./browsing_data_manager"
 import HistoryItem = CompletersNS.HistoryItem

@@ -924,12 +924,22 @@ knownCs = {
 
 Completion_.filter_ = (query: string, options: CompletersNS.FullOptions, callback: CompletersNS.Callback): void => {
     query = query.trim()
-    if (query && contentPayload_.o === kOS.win) {
-      if ((<RegExpI> /^[a-z]:\\|^\\\\[\w$.-]+(\\|$)|^\\\\$/i).test(query)) {
-        query = (query[1] === ":" ? "" : "//")
-            + query.slice(query[1] === ":" ? 0 : 2).replace(<RegExpG> /\\+/g, "/").toLowerCase()
-      } else if (query.slice(0, 5).toLowerCase() === "file:") {
-        query = query.toLowerCase()
+    mayRawQueryChangeNextTime_ = false
+    if (query && contentPayload_.o === kOS.win
+        && ((<RegExpOne> /^[A-Za-z]:[\\/]|^\\\\([\w$%.-]+([\\/]|$))?/).test(query)
+            || query.slice(0, 5).toLowerCase() === "file:")) {
+      if (":/\\".includes(query[1])) {
+        query = (query[1] === ":" ? "" : "//") + query.slice(query[1] === ":" ? 0 : 2).replace(<RegExpG> /\\+/g, "/")
+      }
+      query = query.replace(<RegExpG> /\\/g, "/").toLowerCase()
+      const start = query.indexOf("//") + 2
+      if (start >= 2 && start < query.length && query[start] !== "/") {
+        const decodedHost = query.slice(start).split("/", 1)[0]
+        if (decodedHost.includes("%")) {
+          const host2 = BgUtils_.DecodeURLPart_(decodedHost)
+          mayRawQueryChangeNextTime_ = host2 === decodedHost
+          query = query.slice(0, start) + host2 + query.slice(start + decodedHost.length)
+        }
       }
     }
     rawInput = rawQuery = query && query.replace(BgUtils_.spacesRe_, " ");
@@ -981,7 +991,8 @@ Completion_.filter_ = (query: string, options: CompletersNS.FullOptions, callbac
         allowedEngines = arr[0]
       }
     }
-    if (queryTerms.length > 0 && ((str = queryTerms[0]).includes("\u3002") || str.includes("\uff1a"))) {
+    if (queryTerms.length > 0 && ((str = queryTerms[0]).includes("\u3002") || str.includes("\uff1a"))
+        && !mayRawQueryChangeNextTime_) {
       mayRawQueryChangeNextTime_ = queryTerms.length < 2
       let newStr = fixCharsInUrl_(str, mayRawQueryChangeNextTime_)
       if (newStr !== str) {

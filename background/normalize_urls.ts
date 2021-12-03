@@ -1,4 +1,6 @@
-import { CONST_, CurCVer_, evalVimiumUrl_, historyCache_, IsEdg_, OnChrome, OnFirefox, settingsCache_ } from "./store"
+import {
+  CONST_, contentPayload_, CurCVer_, evalVimiumUrl_, historyCache_, IsEdg_, OnChrome, OnFirefox, settingsCache_
+} from "./store"
 import {
   isJSUrl_, DecodeURLPart_, resetRe_, isIPHost_, encodeAsciiComponent_, spacesRe_, protocolRe_, isTld_
 } from "./utils"
@@ -44,17 +46,9 @@ export const convertToUrl_ = function (str: string, keyword?: string | null, vim
   const isQuoted = oldString[0] === '"' && oldString.endsWith('"'),
   oldStrForSearch = oldString;
   str = oldString = isQuoted ? oldString.slice(1, -1) : oldString;
-  if ((<RegExpOne> /^[A-Za-z]:(?:[\\/][^:*?"<>|]*)?$|^\/(?:Users|home|root)\/[^:*?"<>|]+$/).test(str)) {
-    str[1] === ":" && (str = str[0].toUpperCase() + ":/"
-        + str.slice(3).replace(<RegExpG> /\\/g, "/"));
-    resetRe_();
-    return "file://" + convertFromFilePath(str[0] === "/" ? str : "/" + str)
-  }
-  if (str.startsWith("\\\\") && str.length > 3) {
-    str = str.slice(2).replace(<RegExpG> /\\/g, "/");
-    str.includes("/") || (str += "/");
-    resetRe_();
-    return "file://" + convertFromFilePath(str)
+  if ((<RegExpOne> /^[A-Za-z]:(?:[\\/](?![:*?"<>|/])|$)|^\/(?:Users|home|root)\/[^:*?"<>|/]+/).test(str)
+      || str.startsWith("\\\\") && str.length > 3) {
+    return convertFromFilePath(str)
   }
   str = oldString.toLowerCase();
   if ((index = str.indexOf(" ") + 1 || str.indexOf("\t") + 1) > 1) {
@@ -365,8 +359,24 @@ export const reformatURL_ = (url: string): string => {
   return origin !== o2 ? o2 + url.slice(ind) : url;
 }
 
+const normalizeFileHost = (host: string) => {
+  const host2 = DecodeURLPart_(host)
+  return (<RegExpOne> /[^\w.$+-\x80-\ufffd]|\s/).test(host2) ? host.replace("%24", "$") : host2
+}
+
 const convertFromFilePath = (path: string): string => {
-  if (!(<RegExpOne> /[%?#&\s]/).test(path)) { return path }
+  path = path.replace(<RegExpG> /\\/g, "/");
+  if (path.startsWith("//") && !path.startsWith("//./")) {
+    path = path.slice(2)
+    const host = path.split("/", 1)[0]
+    if (host.includes("%")) { path = normalizeFileHost(host) + path.slice(host.length) }
+    path.includes("/") || (path += "/")
+  } else {
+    if (path.startsWith("//")) { path = path.slice(4) }
+    if (path[1] === ":") { path = path[0].toUpperCase() + ":/" + path.slice(3) }
+    if (path[0] !== "/") { path = "/" + path }
+  }
+  if (!(<RegExpOne> /[%?#&\s]/).test(path)) { resetRe_(); return "file://" + path }
   let hash = ""
   if (path.indexOf("#")) {
     let arr = (<RegExpOne> /\.[A-Za-z\d]{1,4}(\?[^#]*)?#/).exec(path)
@@ -384,6 +394,26 @@ const convertFromFilePath = (path: string): string => {
       path = path.slice(0, -hash.length)
     }
   }
-  return path.replace(<RegExpG & RegExpSearchable<0>> /[?#&\s]/g, encodeURIComponent) // not re-encode "%"
+  path = "file://" + path.replace(<RegExpG & RegExpSearchable<0>> /[?#&\s]/g, encodeURIComponent) // not re-encode "%"
       + hash.replace(<RegExpG & RegExpSearchable<0>> /\s/g, encodeURIComponent)
+  resetRe_()
+  return path
+}
+
+export const decodeFileURL_ = (url: string): string => {
+  if (contentPayload_.o === kOS.win && url.startsWith("file://")) {
+    const slash = url.indexOf("/", 7)
+    if (slash < 0 || slash === url.length - 1) { return slash < 0 ? url + "/" : url }
+    const type = slash === 7 ? url.charAt(9) === ":" ? 3 : url.substr(9, 3).toLowerCase() === "%3a" ? 5 : 0 : 0
+    url = type ? url[8].toUpperCase() + ":\\" + url.slice(type + 8) : url
+    if (!type && slash > 7) {
+      url = "\\\\" + normalizeFileHost(url.slice(7, slash)) + url.slice(slash)
+    }
+    let sep = (<RegExpOne> /[?#]/).exec(url), index = sep ? sep.index : 0
+    let tail = index ? url.slice(index) : ""
+    url = index ? url.slice(0, index) : url
+    url = url.replace(<RegExpG> /\/+/g, "\\")
+    url = index ? url + tail : url
+  }
+  return url
 }
