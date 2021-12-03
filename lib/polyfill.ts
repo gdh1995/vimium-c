@@ -27,7 +27,7 @@
 
   "".startsWith || Object.defineProperty(StrProto, "startsWith", { enumerable: false, value:
   function startsWith(this: ObjectCoercible, searchString: anyNotSymbol): boolean {
-    const err = check(this, searchString), a = this != null && err !== 1 ? StrCls(this) : "";
+    const err = check(this, searchString), a = !isLooselyNull(this) && err !== 1 ? StrCls(this) : "";
     if (err !== 0) {
       if (err === 1 || err === 2) { return !((err < 2 ? this : searchString) + ""); }
       throw new TECls(err.replace("${func}", "startsWith"));
@@ -40,7 +40,7 @@
 
   "".endsWith || Object.defineProperty(StrProto, "endsWith", { enumerable: false, value:
   function endsWith(this: ObjectCoercible, searchString: anyNotSymbol): boolean {
-    const err = check(this, searchString), a = this != null && err !== 1 ? StrCls(this) : "";
+    const err = check(this, searchString), a = !isLooselyNull(this) && err !== 1 ? StrCls(this) : "";
     if (err !== 0) {
       if (err === 1 || err === 2) { return !((err < 2 ? this : searchString) + ""); }
       throw new TECls(err.replace("${func}", "endsWith"));
@@ -54,7 +54,7 @@
 
   "".includes || Object.defineProperty(StrProto, "includes", { enumerable: false, value:
   function includes(this: ObjectCoercible, searchString: anyNotSymbol): boolean {
-    const err = check(this, searchString), a = this != null && err !== 1 ? StrCls(this) : "";
+    const err = check(this, searchString), a = !isLooselyNull(this) && err !== 1 ? StrCls(this) : "";
     if (err !== 0) {
       if (err === 1 || err === 2) { return !((err < 2 ? this : searchString) + ""); }
       throw new TECls(err.replace("${func}", "includes"));
@@ -67,8 +67,8 @@
   } })
 
   function check(a: primitive | object, b: primitive | object): 0 | string | 1 | 2 {
-    /** note: should never call `valueOf` or `toString` on a / b */
-    if (a == null) { return "String.prototype.${func} called on null or undefined"; }
+    /** note: should never call `valueOf` or `toString` on a / b; `document.all` should pass this */
+    if (isLooselyNull(a)) { return "String.prototype.${func} called on null or undefined"; }
     if (!b) { return 0; }
     let t: 0 | 1 | 2 = typeof a === "symbol" ? 1 : typeof b === "symbol" ? 2 : 0;
     if (t) { return t; }
@@ -79,5 +79,8 @@
       , i = symMatch && (f = (b as PossibleTypeOfB)[symMatch]) !== u ? f
           : toStr.call(b) === "[object RegExp]";
     return i ? "First argument to String.prototype.${func} must not be a regular expression" : 0;
+  }
+  function isLooselyNull (object: unknown): object is null | undefined {
+    return object === null || object === undefined
   }
 })();

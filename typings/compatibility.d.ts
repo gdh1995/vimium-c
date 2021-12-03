@@ -39,6 +39,7 @@ declare const enum BrowserVer {
   MinEnsuredUnprefixedShadowDOMV0 = 35, // even if LEGACY
   MinEnsured$Event$$Path = 35, // = MinEnsuredUnprefixedShadowDOMV0
   // there're WeakMap, WeakSet, Map, Set and Symbol on C31, if #enable-javascript-harmony
+  Min$String$document$$all$isCorrect = 36, // even if EXPERIMENTAL or LEGACY; before C36, it returns `"undefined"`
   MinEnsuredES6WeakMapAndWeakSet = 36,
   Min$Set$Has$$forEach = 36, // if #enable-javascript-harmony
   // but shadowRoot.getElementById still exists on C31
