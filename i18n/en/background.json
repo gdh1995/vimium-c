@@ -63,6 +63,9 @@
   "unlikeVal": "value of $1 should be like $2",
   "unmute": "$1 audible tab(s) are unmuted",
   "unmuted": "Unmuted",
+  "useVal": "Now $1 uses $2",
+  "turnOn": "Now $1 is on",
+  "turnOff": "$1 has been turned off",
   "Upgrade": "Upgrade",
   "upgradeMsg": "Vimium C has been upgraded to v$1.\n",
   "upgradeMsg2": ""

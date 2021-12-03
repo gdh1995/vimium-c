@@ -3,7 +3,7 @@ declare const enum kTip {
   /* 4..9 */ didUnHoverLast = 4, globalInsertMode, noPassKeys, normalMode, nTimes, passNext,
   /* 10..15 */ noLinksToGo, noFocused, focusedIsHidden, noInputToFocus, noUrlCopied, noTextCopied,
   /* 17: */ kCommonEvents = 17,
-  /* 20..25 */ copiedIs = 20, forcedColors, tooManyLinks, useVal, turnOn, turnOff,
+  /* 20..25 */ copiedIs = 20, forcedColors, tooManyLinks, wrapWhenFind, atStart, atEnd,
   /* 26..31 */ nMatches, oneMatch, someMatches, noMatches, modalHints, expectKeys,
   /* 39, 41: */ global = 39, local = 41, // neither 39 nor 41 is in HintMode
   /* 44..47 */ selectLineBoundary = 44, frameUnloaded, waitForEnter, logGrabFocus,
@@ -17,8 +17,8 @@ declare const enum kTip {
   /* 95: */ failToDelSug, fewChars, editableSelector, removeCurScript, webkitWithRel,
   /* 100: */ notANestedFrame, cssUrl, imgExt, clickableClasses, clickableRoles,
   /* 105: */ invisibleHintText, notMatchedHintText, metaKeywordsForMobile, css0d01OrDPI, visibleElementsInScopeChildren,
-  /* 110: */ voidJS = 110, nonLocalhostRe, scrollable, buttonOrA, wrapWhenFind,
-  /* 115: */ atStart, atEnd, noTargets, closableClasses, highContrast_WOB,
+  /* 110: */ voidJS = 110, nonLocalhostRe, scrollable, buttonOrA, noTargets,
+  /* 115: */ closableClasses, highContrast_WOB,
   INJECTED_CONTENT_END,
   /* 200: */ XHTML,
   /** used by {@link ../Gulpfile.js} */ extendClick = 999,
@@ -89,7 +89,7 @@ declare const enum kFgReq {
   /** can be used only with `FgCmdAcrossFrames` and when a fg command is just being called */
   gotoMainFrame,
   setOmniStyle, findFromVisual, framesGoBack, i18n, learnCSS, visualMode,
-  respondForRunKey, downloadLink, wait, keyFromOmni, pages,
+  respondForRunKey, downloadLink, wait, optionToggled, keyFromOmni, pages,
   END,
   msg = 90, inject = 99,
   command = "command", id = "id", shortcut = "shortcut",
@@ -666,6 +666,7 @@ interface FgReq {
     /** filename */ f: string | null
     /** referer */ r: string
   } & WithHintModeOptions
+  [kFgReq.optionToggled]: { k: string, v: unknown }
   [kFgReq.keyFromOmni]: { /* keySequence */ k: string; /** lastKey */ l: kKeyCode;
   } & Pick<FgReq[kFgReq.respondForRunKey], "e">
   [kFgReq.pages]: { /** id of query array */ i: number; /** queries */ q: unknown[] }

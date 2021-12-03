@@ -69,6 +69,9 @@
   "unlikeVal": "$1的值应当类似于“$2”",
   "unmute": "已取消$1标签页的静音状态",
   "unmuted": "已取消静音",
+  "useVal": "临时设置 $1 为 $2",
+  "turnOn": "已临时启用 $1",
+  "turnOff": "已临时停用 $1",
   "Upgrade": "已更新",
   "upgradeMsg": "您的 Vimium C 已经更新至 $1 版。\n",
   "upgradeMsg2": ""

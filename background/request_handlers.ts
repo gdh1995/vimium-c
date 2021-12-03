@@ -431,6 +431,10 @@ set_reqH_([
     setTimeout(() => { sendResponse(port, msgId, 0) }, req)
     return port
   },
+  /** kFgReq.optionToggled: */ ({ k: key, v: val }: FgReq[kFgReq.optionToggled]): void => {
+    const notBool = val !== !!val
+    showHUD(trans_(notBool ? "useVal" : val ? "turnOn" : "turnOff", [key, notBool ? JSON.stringify(val) : ""]))
+  },
   /** kFgReq.keyFromOmni: */ (req: FgReq[kFgReq.keyFromOmni], port): void => {
     const tabId = port.s.tabId_, frames = framesForTab_.get(tabId >= 0 ? tabId : curTabId_)
     reqH_[kFgReq.key](req, frames ? frames.cur_ : null)

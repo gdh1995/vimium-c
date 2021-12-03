@@ -64,6 +64,9 @@
   "unlikeVal": "la valeur de $1 devrait être comme $2",
   "unmute": "$1 onglet(s) ont leurs sourdines désactivées",
   "unmuted": "Sourdine désactivée",
+  "useVal": "Désormais $1 utilise $2",
+  "turnOn": "Désormais $1 est activé",
+  "turnOff": "$1 a été désactivée",
   "Upgrade": "Mise à jour",
   "upgradeMsg": "Vimium C a été mise à jour vers la v$1.\n",
   "upgradeMsg2": ""

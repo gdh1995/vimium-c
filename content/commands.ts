@@ -118,9 +118,7 @@ set_contentCommands_([
       cache[backupKey] = u as never;
     }
     (cache as Generalized<typeof cache>)[key] = val as typeof cur;
-    let notBool = val !== !!val;
-    options.n && hudTip(notBool ? kTip.useVal : val ? kTip.turnOn : kTip.turnOff,
-        1000, [options.n, notBool ? JSON.stringify(val) : ""]);
+    options.n && post_({ H: kFgReq.optionToggled, k: options.n, v: val })
   },
   /* kFgCmd.passNextKey: */ (options: CmdOptions[kFgCmd.passNextKey], count0: number): void => {
     const keys = safer<{ [keyCode in kKeyCode]: number | false }>({})
