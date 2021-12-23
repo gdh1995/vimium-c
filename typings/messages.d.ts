@@ -327,6 +327,7 @@ interface CmdOptions {
     keepHover?: true | false | "auto" | "never" | /* or >= 20 */ 20
     acrossFrames?: true | false
     scrollable?: "css-selector"
+    wait?: number | boolean | null
     /** inner flags */ f?: kScFlag & number
   } & Pick<CSSOptions, "evenIf" | "scroll"> & ({
     dir?: 1 | -1 | 0.5 | -0.5;

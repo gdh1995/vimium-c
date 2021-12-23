@@ -62,14 +62,16 @@ export function set_scrolled (_newScrolled: 0): void { scrolled = _newScrolled }
 export function set_currentScrolling (_newCurSc: WeakRef<SafeElement> | null): void { currentScrolling = _newCurSc }
 export function set_cachedScrollable (_newCachedSc: typeof cachedScrollable): void { cachedScrollable = _newCachedSc }
 
-let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: number, nFs?: kScFlag & number): void => {
+let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: number
+    , newOpts?: CmdOptions[kFgCmd.scroll]): void => {
   let amount: number, sign: number, calibration: number, di: ScrollByY, duration: number, element: SafeElement | null,
   beforePos: number, timestamp: number, rawTimestamp: number, totalDelta: number, totalElapsed: number, min_delta = 0,
   running = 0, flags: kScFlag & number, timer: ValidTimeoutID = TimerID.None, calibTime: number, lostFrames: number,
   styleTop: SafeElement | null | undefined, onFinish: ((succeed: number) => void) | 0 | undefined,
+  wait2: number | boolean | null | undefined,
   animate = (newRawTimestamp: number): void => {
     const continuous = keyIsDown > 0, rawElapsed = newRawTimestamp - rawTimestamp
-    let newTimestamp = newRawTimestamp, elapsed: number
+    let newTimestamp = newRawTimestamp, elapsed: number, delay2: number
     // although timestamp is mono, Firefox adds too many limits to its precision
     if (!timestamp) {
       newTimestamp = performance.now()
@@ -148,12 +150,14 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
       totalDelta += math.abs(delta)
     }
     if (delta && (!onFinish || totalDelta < amount)) {
-      if (totalDelta >= amount && continuous && totalElapsed < minDelay - min_delta
-          && (flags & kScFlag.TO || amount < ScrollConsts.AmountLimitToScrollAndWaitRepeatedKeys)) {
+      if (wait2 != 0 && totalDelta >= amount && continuous
+          && totalElapsed < (delay2 = wait2! > 1 ? wait2 as number : minDelay) - min_delta
+          && (wait2! > 1 || flags & kScFlag.TO || amount < ScrollConsts.AmountLimitToScrollAndWaitRepeatedKeys)) {
         running = 0
-        timer = timeout_(/*#__NOINLINE__*/ resumeAnimation, minDelay - totalElapsed)
+        timer = timeout_(/*#__NOINLINE__*/ resumeAnimation, delay2 - totalElapsed)
+        totalElapsed = delay2
         if (!Build.NDEBUG && ScrollConsts.DEBUG) {
-          console.log(">>> [animation] wait for %o - %o ms", minDelay, ((totalElapsed * 1e2) | 0) / 1e2)
+          console.log(">>> [animation] wait for %o - %o ms", delay2, ((totalElapsed * 1e2) | 0) / 1e2)
         }
       } else {
         rAF_(animate)
@@ -178,11 +182,10 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
   resumeAnimation = (): void => {
     if (!keyIsDown) { toggleAnimation!(); return }
     flags & kScFlag.TO && amount > fgCache.t && (amount = min_(amount, dimSize_(element, di + kDim.viewW) / 2) | 0)
-    totalElapsed = minDelay
     running = running || rAF_(animate);
   };
   toggleAnimation = (scrolling?: BOOL | 4): void => {
-    if (scrolling === 4) { running || (clearTimeout_(timer), resumeAnimation()); return }
+    if (scrolling === 4) { wait2 || running || (clearTimeout_(timer), resumeAnimation()); return }
     if (!scrolling) {
       if (!Build.NDEBUG && ScrollConsts.DEBUG) {
         console.log(">>> [animation] stop after %o ms / %o px"
@@ -200,9 +203,10 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
     styleTop = scrolling ? el : null
     el && el.style ? el.style.pointerEvents = scrolling ? NONE : "" : 0;
   };
-  performAnimate = (newEl1, newDi1, newAmount1, newFlags1): void => {
+  performAnimate = (newEl1, newDi1, newAmount1, options): void => {
     amount = max_(1, newAmount1 > 0 ? newAmount1 : -newAmount1), calibration = 1.0, di = newDi1
-    flags = newFlags1! | 0
+    flags = options ? options.f! | 0 : 0
+    wait2 = options && options.wait
     duration = max_(ScrollConsts.minDuration, ScrollConsts.durationScaleForAmount * math.log(amount))
     element = newEl1
     sign = newAmount1 < 0 ? -1 : 1
@@ -224,7 +228,7 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
       doesSucceed_ = new Promise((newResolve): void => { onFinish = newResolve })
     }
   };
-  performAnimate(newEl, newDi, newAmount, nFs)
+  performAnimate(newEl, newDi, newAmount, newOpts)
 }
 
 const performScroll = ((el: SafeElement | null, di: ScrollByY, amount: number, before?: number): number => {
@@ -251,7 +255,7 @@ export const $sc: VApiTy["$"] = (element, di, amount, options): void => {
       checkCurrent(element)
     } else if ((options && options.smooth != null ? options.smooth : fgCache.s)
         && !(OnChrome && Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage && noRAF_old_cr_)) {
-      amount && performAnimate(element, di, amount, options && options.f)
+      amount && performAnimate(element, di, amount, options)
       scrollTick(1)
     } else if (amount) {
       doesSucceed_ = performScroll(element, di, amount)
