@@ -2,7 +2,7 @@ import {
   curIncognito_, curTabId_, curWndId_, framesForTab_, incognitoFindHistoryList_, recencyForTab_, set_curIncognito_,
   set_curTabId_, set_curWndId_, set_incognitoFindHistoryList_, set_lastWndId_, set_recencyForTab_, incognitoMarkCache_,
   set_incognitoMarkCache_, contentPayload_, reqH_, settingsCache_, OnFirefox, OnChrome, CurCVer_,
-  OnEdge, isHighContrast_ff_, omniPayload_, blank_, CONST_, RecencyMap
+  OnEdge, isHighContrast_ff_, omniPayload_, blank_, CONST_, RecencyMap, CurFFVer_
 } from "./store"
 import * as BgUtils_ from "./utils"
 import {
@@ -436,6 +436,7 @@ export const FindModeHistory_ = {
     settings_.set_(FindModeHistory_.key_, "")
   }
 }
+
 const IncognitoWatcher_ = {
   watching_: false,
   timer_: 0,
@@ -481,26 +482,20 @@ const IncognitoWatcher_ = {
     IncognitoWatcher_.watching_ = false;
   }
 }
+
+const hasReliableWatchers = OnFirefox && (Build.MinFFVer >= FirefoxBrowserVer.MinMediaQueryListenersWorkInBg
+    || CurFFVer_ > FirefoxBrowserVer.MinMediaQueryListenersWorkInBg - 1)
+
 export const MediaWatcher_ = {
   watchers_: [
-    !(OnChrome || OnFirefox) ? MediaNS.Watcher.WaitToTest
-    : !(OnChrome && Build.MinCVer < BrowserVer.MinMediaQuery$PrefersReducedMotion)
-      && !(OnFirefox && Build.MinFFVer < FirefoxBrowserVer.MinMediaQuery$PrefersReducedMotion)
-    ? MediaNS.Watcher.NotWatching
-    : OnChrome
-    ? CurCVer_ >= BrowserVer.MinMediaQuery$PrefersReducedMotion ? MediaNS.Watcher.NotWatching
-      : MediaNS.Watcher.InvalidMedia
-    : Build.DetectAPIOnFirefox ? MediaNS.Watcher.WaitToTest : MediaNS.Watcher.NotWatching,
-    !(OnChrome || OnFirefox) ? MediaNS.Watcher.WaitToTest
-    : !(OnChrome && Build.MinCVer < BrowserVer.MinMediaQuery$PrefersColorScheme)
-      && !(OnFirefox && Build.MinFFVer < FirefoxBrowserVer.MinMediaQuery$PrefersColorScheme)
-    ? MediaNS.Watcher.NotWatching
-    : OnChrome
-    ? CurCVer_ >= BrowserVer.MinMediaQuery$PrefersColorScheme ? MediaNS.Watcher.NotWatching
-      : MediaNS.Watcher.InvalidMedia
-    : MediaNS.Watcher.WaitToTest
+    (OnChrome && Build.MinCVer >= BrowserVer.MinMediaQuery$PrefersReducedMotion)
+      || (OnFirefox && Build.MinFFVer >= FirefoxBrowserVer.MinMediaQuery$PrefersReducedMotion)
+    ? MediaNS.Watcher.NotWatching : MediaNS.Watcher.WaitToTest,
+    (OnChrome && Build.MinCVer >= BrowserVer.MinMediaQuery$PrefersColorScheme)
+      && (OnFirefox && Build.MinFFVer >= FirefoxBrowserVer.MinMediaQuery$PrefersColorScheme)
+    ? MediaNS.Watcher.NotWatching : MediaNS.Watcher.WaitToTest
   ] as { [k in MediaNS.kName]: MediaNS.Watcher | MediaQueryList } & Array<MediaNS.Watcher | MediaQueryList>,
-  _timer: 0,
+  _timer: hasReliableWatchers ? -1 : 0,
   get_ (key: MediaNS.kName): boolean | null {
     let watcher = MediaWatcher_.watchers_[key];
     return typeof watcher === "object" ? watcher.matches : null;
@@ -516,12 +511,14 @@ export const MediaWatcher_ = {
       const query = matchMedia(`(${name}: ${!key ? "reduce" : "dark"})`);
       query.onchange = a._onChange;
       watchers[key] = query;
-      a._timer = a._timer || setInterval(MediaWatcher_.RefreshAll_, GlobalConsts.MediaWatchInterval)
+      if (!hasReliableWatchers) {
+        a._timer = a._timer || setInterval(MediaWatcher_.RefreshAll_, GlobalConsts.MediaWatchInterval)
+      }
       a.update_(key, 0);
     } else if (!doListen && typeof cur === "object") {
       cur.onchange = null;
       watchers[key] = MediaNS.Watcher.NotWatching;
-      if (a._timer > 0) {
+      if (!hasReliableWatchers && a._timer > 0) {
         if (watchers.every(i => typeof i !== "object")) {
           clearInterval(a._timer);
           a._timer = 0;
@@ -533,7 +530,7 @@ export const MediaWatcher_ = {
   update_ (this: void, key: MediaNS.kName, embed?: 1 | 0): void {
     type ObjWatcher = Exclude<typeof watcher, number>;
     let watcher = MediaWatcher_.watchers_[key], isObj = typeof watcher === "object";
-    if (OnFirefox && embed == null && isObj) {
+    if (!hasReliableWatchers && OnFirefox && embed == null && isObj) {
       let watcher2 = matchMedia((watcher as ObjWatcher).media);
       watcher2.onchange = (watcher as ObjWatcher).onchange;
       (watcher as ObjWatcher).onchange = null;
@@ -561,10 +558,10 @@ export const MediaWatcher_ = {
     }
   },
   _onChange (this: MediaQueryList): void {
-    if (MediaWatcher_._timer > 0) {
-      clearInterval(MediaWatcher_._timer);
+    if (!hasReliableWatchers) {
+      if (MediaWatcher_._timer > 0) { clearInterval(MediaWatcher_._timer) }
+      MediaWatcher_._timer = -1
     }
-    MediaWatcher_._timer = -1;
     let index = MediaWatcher_.watchers_.indexOf(this);
     if (index >= 0) {
       MediaWatcher_.update_(index);
@@ -575,6 +572,8 @@ export const MediaWatcher_ = {
     }
   }
 }
+
+
 export const TabRecency_ = {
   rCompare_: null as never as (a: {id: number}, b: {id: number}) => number,
   onWndChange_: blank_

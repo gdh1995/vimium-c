@@ -345,7 +345,9 @@ if (OnChrome ? (Build.MinCVer >= BrowserVer.MinMediaQuery$PrefersColorScheme
     : !OnEdge) {
   const media = matchMedia("(prefers-color-scheme: dark)");
   const onChange = (): void => {
-    void post_(kPgReq.updateMediaQueries)
+    if (OnFirefox && (Build.MinFFVer >= FirefoxBrowserVer.MinMediaQueryListenersWorkInBg
+          || CurFFVer_ > FirefoxBrowserVer.MinMediaQueryListenersWorkInBg - 1)) { /* empty */ }
+    else { void post_(kPgReq.updateMediaQueries) }
     darkOpt.previous_ && darkOpt.saved_ && setTimeout(useLocalStyle, 34)
   }
   const darkOpt = Option_.all_.autoDarkMode
