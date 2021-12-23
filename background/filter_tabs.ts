@@ -164,7 +164,7 @@ export const filterTabsByCond_ = <T extends ShownTab = Tab>(activeTab: ShownTab 
   let incognito: boolean | null = null, highlighted: boolean | null = null, discarded: boolean | null = null
   for (let item of (filter + "").split(/[&+]/)) {
     const rawKey = item.split("=", 1)[0], key = rawKey.includes(".") ? "" : rawKey || item
-    const rawVal = item.slice(key ? key.length + 1 : 0);
+    const rawVal = item.slice(key ? key.length + (item.charAt(key.length + 1) === "=" ? 2 : 1) : 0);
     const val = rawVal && BgUtils_.DecodeURLPart_(rawVal);
     known++;
     switch (key) {

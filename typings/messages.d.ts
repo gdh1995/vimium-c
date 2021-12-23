@@ -451,10 +451,12 @@ interface CmdOptions {
     class?: string
     type: string // if count < 0, then replace "down" with "up"
     key: string | `${string},${number}${string}` | [ key: `<${string}>` | string, keyCode: number, code?: string ]
+    match?: string
     return?: boolean
     delay?: number
     esc?: true // if true, then call onEscDown({ repeat: count > 1 })
     click?: true // if true, call `activeElement.click()` directly
+    init?: Dict<any>
   } & Req.FallbackOptions & EventInit
 }
 

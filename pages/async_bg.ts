@@ -373,7 +373,7 @@ Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES2017
 if (OnChrome ? (Build.MinCVer >= BrowserVer.MinMediaQuery$PrefersColorScheme
         || CurCVer_ > BrowserVer.MinMediaQuery$PrefersColorScheme - 1)
     : OnFirefox ? (Build.MinFFVer >= FirefoxBrowserVer.MinMediaQuery$PrefersColorScheme
-        || CurFFVer_ > FirefoxBrowserVer.MinMediaQuery$PrefersColorScheme)
+        || CurFFVer_ > FirefoxBrowserVer.MinMediaQuery$PrefersColorScheme - 1)
     : !OnEdge) {
   type Keys = keyof SettingsNS.PersistentSettings
   const storage = browser_.storage.local as { get <K extends Keys> (k: K, cb: (r: { [k in K]: any }) => void): void }
@@ -384,6 +384,25 @@ if (OnChrome ? (Build.MinCVer >= BrowserVer.MinMediaQuery$PrefersColorScheme
 if (browserLang && curPath !== "popup") {
   const s = bTrans_("v" + curPath)
   s && (document.title = "Vimium C " + s)
+}
+
+export const simulateClick = (target: HTMLElement
+    , event?: { altKey: boolean, ctrlKey: boolean, metaKey: boolean, shiftKey: boolean }): boolean => {
+  let mouseEvent: MouseEvent
+  event = event || { ctrlKey: true, altKey: true, shiftKey: true, metaKey: true }
+  if (!OnChrome || Build.MinCVer >= BrowserVer.MinUsable$MouseEvent$$constructor || document.hidden != null) {
+    mouseEvent = new MouseEvent("click", {
+      bubbles: true, cancelable: true, composed: !0, view: window, detail: 1,
+      screenX: 0, screenY: 0, clientX: 0, clientY: 0,
+      ctrlKey: event.ctrlKey, altKey: event.altKey, shiftKey: event.shiftKey, metaKey: event.metaKey,
+      button: 0, buttons: 1, relatedTarget: null
+    })
+  } else {
+    mouseEvent = document.createEvent("MouseEvents")
+    mouseEvent.initMouseEvent("click", true, true, window, 1, 0, 0, 0, 0
+      , event.ctrlKey, event.altKey, event.shiftKey, event.metaKey, 0, null)
+  }
+  return target.dispatchEvent(mouseEvent)
 }
 
 if (typeof VApi === "undefined") { globalThis.VApi = undefined }

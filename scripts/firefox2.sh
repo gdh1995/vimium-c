@@ -183,7 +183,14 @@ test "$VER" == cur && VER=
 if test "$VER" == wo || test -z "$VER" -a $USE_INSTALLED -le 0; then
   EXE=$WORKING_DIR/core/firefox.exe
 else
-  EXE=$WORKING_DIR/core${VER}/firefox.exe
+  if test $USE_INSTALLED -le 0; then
+    EXE=$WORKING_DIR/core${VER}/firefox.exe
+    if ! test -f "$EXE" && test -n "$VER"; then
+      EXE=$WORKING_DIR/core${VER}esr/firefox.exe
+      test -f "$EXE" || EXE=$FIREFOX_ROOT/core${VER}/firefox.exe
+      test -f "$EXE" || EXE=$FIREFOX_ROOT/core${VER}esr/firefox.exe
+    fi
+  fi
   test -f "$EXE" || EXE=$FIREFOX_ROOT/core${VER}/firefox.exe
   if test $USE_INSTALLED -gt 0 || ! test -f "$EXE"; then
     EXE=$FIREFOX_ROOT/${VER:-core}/firefox.exe

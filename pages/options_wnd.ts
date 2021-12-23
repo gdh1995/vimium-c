@@ -1,6 +1,6 @@
 import { kPgReq } from "../background/page_messages"
 import {
-  CurCVer_, CurFFVer_, OnFirefox, OnChrome, OnEdge, $, $$, post_, disconnect_, isVApiReady_,
+  CurCVer_, CurFFVer_, OnFirefox, OnChrome, OnEdge, $, $$, post_, disconnect_, isVApiReady_, simulateClick as click,
   toggleDark, browser_, enableNextTick_, nextTick_, kReadyInfo, IsEdg_, import2
 } from "./async_bg"
 import {
@@ -341,7 +341,7 @@ optionsInitAll_ = function (): void {
 if (OnChrome ? (Build.MinCVer >= BrowserVer.MinMediaQuery$PrefersColorScheme
         || CurCVer_ > BrowserVer.MinMediaQuery$PrefersColorScheme - 1)
     : OnFirefox ? (Build.MinFFVer >= FirefoxBrowserVer.MinMediaQuery$PrefersColorScheme
-        || CurFFVer_ > FirefoxBrowserVer.MinMediaQuery$PrefersColorScheme)
+        || CurFFVer_ > FirefoxBrowserVer.MinMediaQuery$PrefersColorScheme - 1)
     : !OnEdge) {
   const media = matchMedia("(prefers-color-scheme: dark)");
   const onChange = (): void => {
@@ -553,10 +553,3 @@ document.addEventListener("click", function onClickOnce(): void {
     }
   })
 }, true);
-
-export const click = function (a: Element): boolean {
-  const mouseEvent = document.createEvent("MouseEvents");
-  mouseEvent.initMouseEvent("click", true, true, window, 1, 0, 0, 0, 0
-    , false, false, false, false, 0, null);
-  return a.dispatchEvent(mouseEvent);
-}

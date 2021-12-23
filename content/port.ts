@@ -1,5 +1,5 @@
 import {
-  injector, safer, timeout_, isAlive_, isTop, set_i18n_getMsg, locHref, OnEdge, OnChrome, OnFirefox, isTY
+  injector, safer, timeout_, isAlive_, isTop, set_i18n_getMsg, locHref, OnEdge, OnChrome, OnFirefox, isTY, fgCache
 } from "../lib/utils"
 import { suppressTail_ } from "../lib/keyboard_utils"
 import { docHasFocus_ } from "../lib/dom_utils"
@@ -63,7 +63,7 @@ export const safePost = <k extends keyof FgReq> (request: FgReq[k] & Req.baseFg<
 
 export const runtimeConnect = (function (this: void): void {
   const api = OnChrome ? chrome : browser as typeof chrome,
-  status = requestHandlers[kBgReq.init] ? PortType.initing
+  status = !fgCache ? PortType.initing
       : PortType.reconnect + (PortType.hasCSS * <number> <boolean | number> !!style_ui),
   name = (PortType.isTop === 1 ? <number> <boolean | number> isTop : PortType.isTop * <number> <number | boolean> isTop)
       + PortType.hasFocus * <number> <number | boolean> docHasFocus_() + status,
@@ -79,7 +79,7 @@ export const runtimeConnect = (function (this: void): void {
       } else {
         try { port_ || !isAlive_ || runtimeConnect() } catch { safeDestroy() }
       }
-    }, requestHandlers[kBgReq.init] ? 2000 : 5000);
+    }, fgCache ? 5000 : 2000)
   });
   port_.onMessage.addListener(<T extends keyof BgReq> (response: Req.bg<T>): void => {
     type TypeToCheck = { [k in keyof BgReq]: (this: void, request: BgReq[k]) => unknown };

@@ -482,11 +482,11 @@ const beginToRestore = (items: LocalSettings, kSources: 1 | 2 | 3, resolve: () =
 settings_.updateHooks_.vimSync = (value): void => {
   cachedSync = value
   if (!storage()) { return }
-  const areaOnChanged_cr = OnChrome && Build.MinCVer > BrowserVer.Min$StorageArea$$onChanged
+  const areaOnChanged_cr = OnChrome && Build.MinCVer >= BrowserVer.Min$StorageArea$$onChanged
       ? storage().onChanged! : OnChrome ? storage().onChanged : null
-  const event = OnChrome && Build.MinCVer > BrowserVer.Min$StorageArea$$onChanged
+  const event = OnChrome && Build.MinCVer >= BrowserVer.Min$StorageArea$$onChanged
       ? areaOnChanged_cr! : OnChrome && areaOnChanged_cr || browserStorage_.onChanged
-  const listener = OnChrome && (Build.MinCVer > BrowserVer.Min$StorageArea$$onChanged || areaOnChanged_cr)
+  const listener = OnChrome && (Build.MinCVer >= BrowserVer.Min$StorageArea$$onChanged || areaOnChanged_cr)
       ? HandleSyncAreaUpdate : HandleStorageUpdate
   if (!value) {
     event.removeListener(listener)

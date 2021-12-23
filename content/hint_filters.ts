@@ -5,7 +5,7 @@ import {
 } from "../lib/dom_utils"
 import {
   HintItem, FilteredHintItem, MarkerElement, HintText, isHC_,
-  hintMode_, useFilter_, coreHints, hintKeyStatus, KeyStatus, hintChars, allHints, setMode, resetMode, hintOptions
+  hintMode_, useFilter_, hintKeyStatus, KeyStatus, hintChars, allHints, setMode, resetMode, hintOptions
 } from "./link_hints"
 import { bZoom_, padClientRect_, getBoundingClientRect_, dimSize_ } from "../lib/rect"
 import { BSP, DEL, ENTER, SPC } from "../lib/keyboard_utils"
@@ -262,7 +262,7 @@ export const getMatchingHints = (keyStatus: KeyStatus, text: string, seq: string
       }
       const newLen = hints.length;
       if (newLen) {
-        keyStatus.c = hasSearch ? hints : hints = oldHintArray.slice(0)
+        keyStatus.c = hasSearch ? hints : hints = oldHintArray.slice()
         if (hasSearch && newLen < 2) { // in case of only 1 hint in fullHints
           return hints[0];
         }
@@ -494,7 +494,6 @@ export const matchHintsByKey = (keyStatus: KeyStatus
     }
   }
   keyStatus.n = 0;
-  coreHints.h = 0;
   if (doesDetectMatchSingle > 1) {
     for (const hint of hintArray) { if (hint.a === sequence) { return hint; } }
   }

@@ -114,7 +114,7 @@ export const catchAsyncErrorSilently = <T> (__pFromAsync: Promise<T>): Promise<T
 
 /** sync dispatchers */
 
-export const mouse_ = function (element: SafeElementForMouse
+const mouse_ = function (element: SafeElementForMouse
     , type: kMouseClickEvents | kMouseMoveEvents
     , center: Point2D, modifiers?: MyMouseControlKeys | null, relatedTarget?: NullableSafeElForM
     , button?: AcceptableClickButtons): boolean {
@@ -135,8 +135,8 @@ export const mouse_ = function (element: SafeElementForMouse
       || chromeVer_ >= BrowserVer.MinUsable$MouseEvent$$constructor) {
     // Note: The `composed` here may require Shadow DOM support
     const init: ValidMouseEventInit = {
-      bubbles, cancelable: bubbles, composed: !0, detail, view,
-      screenX: x, screenY: y, clientX: x, clientY: y, ctrlKey, shiftKey, altKey, metaKey,
+      bubbles, cancelable: bubbles, composed: !0, view, detail,
+      screenX: x, screenY: y, clientX: x, clientY: y, ctrlKey, altKey, shiftKey, metaKey,
       button, buttons: tyKey === "d" ? button || 1 : 0,
       relatedTarget
     }

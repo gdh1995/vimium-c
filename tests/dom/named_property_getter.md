@@ -6,7 +6,7 @@
   - ***fixed (some are ignored)*** for Chrome
   - `[name] = Window`
   - test page: http://www.w3school.com.cn/tiy/loadtext.asp?f=html_frame_cols
-  - OverrideBuiltins: removed since C70, commit 6a866d29f4314b990981119285da46540a50742c
+  - removed since C70, commit 6a866d29f4314b990981119285da46540a50742c
     - @see https://bugs.chromium.org/p/chromium/issues/detail?id=695891
     - BrowserVer.MinFramesetHasNoNamedGetter
   - according to tests and source code, its named getter requires `<frame>.contentDocument` is valid

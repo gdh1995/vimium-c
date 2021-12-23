@@ -1,5 +1,5 @@
 import {
-  doc, chromeVer_, Lower, max_, min_, math, OnChrome, OnFirefox, WithDialog, evenHidden_, set_evenHidden_
+  doc, chromeVer_, Lower, max_, min_, math, OnChrome, OnFirefox, WithDialog, evenHidden_, set_evenHidden_, OnEdge
 } from "./utils"
 import {
   docEl_unsafe_, scrollingEl_, notSafe_not_ff_, ElementProto_not_ff, isRawStyleVisible, getComputedStyle_, NONE,
@@ -177,7 +177,9 @@ export const getClientRectsForAreas_ = function (element: HTMLElementUsingMap, o
   if (crHeight < 3 || crWidth < 3) { return null }
   // replace is necessary: chrome allows "&quot;", and also allows no "#"
   if (!areas) {
-    const selector = `map[name="${element.useMap.replace(<RegExpOne> /^#/, "").replace(<RegExpG> /"|\\/g, "\\$&")}"]`
+    const selector = `map[name="${OnEdge || OnChrome && Build.MinCVer < BrowserVer.Min$CSS$$escape
+      ? element.useMap.replace(<RegExpOne> /^#/, "").replace(<RegExpG> /"|\\/g, "\\$&")
+      : CSS.escape!(element.useMap.replace(<RegExpOne> /^#/, ""))}"]`
     // on C73, if a <map> is moved outside from a #shadowRoot, then the relation of the <img> and it is kept
     // while on F65 the relation will get lost.
     const root = getRootNode_mounted(element as SafeHTMLElement)
@@ -365,6 +367,9 @@ export const getViewBox_ = function (needBox?: 1 | /** dialog-found */ 2): ViewB
   }
   iw = iw < mw ? iw : mw, ih = ih < mh ? ih : mh
   iw = (iw / zoom2) | 0, ih = (ih / zoom2) | 0
+  if (OnChrome && Build.MinCVer >= BrowserVer.MinAbsolutePositionNotCauseScrollbar) {
+    return [x, y, iw, yScrollable ? ih - GlobalConsts.MaxHeightOfLinkHintMarker : ih] as unknown as ViewBox
+  }
   return [x, y, iw, yScrollable ? ih - GlobalConsts.MaxHeightOfLinkHintMarker : ih, xScrollable ? iw : 0]
 } as {
   (needBox: 1 | 2): ViewBox

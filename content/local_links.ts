@@ -51,7 +51,7 @@ let clickableRoles_: RegExpI
 let buttonOrATags_: RegExpOne
 
 export { frameNested_, ngEnabled, maxLeft_, maxTop_, maxRight_, closableClasses_ }
-export const localLinkClear = (): void => { maxLeft_ = maxTop_ = maxRight_ = 0 }
+export const localLinkClear = (): 0 => { return maxLeft_ = maxTop_ = maxRight_ = 0 }
 export function set_frameNested_ (_newNestedFrame: NestedFrame): void { frameNested_ = _newNestedFrame }
 
 /**
@@ -642,7 +642,7 @@ export const filterOutNonReachable = (list: Hint[], notForAllClickable?: boolean
   if (OnEdge
       || OnChrome && (Build.MinCVer < BrowserVer.Min$Node$$getRootNode
               || Build.MinCVer < BrowserVer.Min$DocumentOrShadowRoot$$elementsFromPoint)
-          && chromeVer_ < (BrowserVer.Min$Node$$getRootNode > BrowserVer.Min$DocumentOrShadowRoot$$elementsFromPoint
+          && chromeVer_ < (BrowserVer.Min$Node$$getRootNode >= BrowserVer.Min$DocumentOrShadowRoot$$elementsFromPoint
               ? BrowserVer.Min$Node$$getRootNode : BrowserVer.Min$DocumentOrShadowRoot$$elementsFromPoint)
       || OnChrome && isDocZoomStrange_ && docZoom_ - 1) {
     return;
@@ -803,9 +803,8 @@ export const getVisibleElements = (view: ViewBox): readonly Hint[] => {
       && visibleElements.length < GlobalConsts.MinElementCountToStopPointerDetection) {
     filterOutNonReachable(visibleElements, _i > HintMode.max_mouse_events)
   }
-  maxLeft_ = view[2], maxTop_ = view[3], maxRight_ = view[4];
-  if ((!OnChrome || Build.MinCVer < BrowserVer.MinAbsolutePositionNotCauseScrollbar)
-      && maxRight_ > 0) {
+  maxLeft_ = view[2], maxTop_ = view[3]
+  if ((!OnChrome || Build.MinCVer < BrowserVer.MinAbsolutePositionNotCauseScrollbar) && (maxRight_ = view[4]) > 0) {
     maxLeft_ -= 16 * math.ceil(math.log(visibleElements.length) / math.log(hintChars.length)) + 12
   }
   visibleElements.reverse();

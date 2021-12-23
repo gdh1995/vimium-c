@@ -292,7 +292,7 @@ set_contentCommands_([
           : j < 0 ? -ind - sel : -ind
     }
     visibleInputs.sort((a, b) => a[2] < 1 || b[2] < 1 ? b[2] - a[2] : a[2] - b[2])
-    const hints: InputHintItem[] = visibleInputs.map((link): InputHintItem => {
+    let hints: InputHintItem[] = visibleInputs.map((link): InputHintItem => {
       const marker = createElement_("span") as InputHintItem["m"],
       rect = padClientRect_(getBoundingClientRect_(link[0]), 3);
       rect.l--, rect.t--, rect.r--, rect.b--;
@@ -314,12 +314,11 @@ set_contentCommands_([
       sel = (((ind + count) % sel) + sel) % sel
     }
     setClassName_s(hints[sel].m, S)
-    ensureBorder(wdZoom_ / dScale_);
+    exitInputHint() // avoid masking inputs
     selectOrClick(hints[sel].d, visibleInputs[sel][1]).then((): void => {
-      insert_inputHint!.b = addElementList<false>(hints, arr)
-    })
-    exitInputHint();
-    set_inputHint({ b: null, h: hints })
+    ensureBorder(wdZoom_ / dScale_)
+    set_inputHint({ b: addElementList<false>(hints, arr), h: hints })
+    hints = 0 as never
     pushHandler_((event): HandlerResult => {
       const keyCode = event.i, isIME = keyCode === kKeyCode.ime, repeat = event.e.repeat,
       key = isIME || repeat ? "" : getMappedKey(event, kModeId.Insert)
@@ -358,6 +357,7 @@ set_contentCommands_([
         return HandlerResult.Nothing;
       }
     }, kHandler.focusInput)
+    })
   },
   /* kFgCmd.editText: */ (options: CmdOptions[kFgCmd.editText], count: number) => {
     const lock = insert_Lock_()
@@ -433,7 +433,7 @@ set_contentCommands_([
   /* kFgCmd.dispatchEventCmd: */ (options: CmdOptions[kFgCmd.dispatchEventCmd], count: number): void => {
     const type = options.type, rawClass = options.class
     const evClass = (rawClass && (rawClass[0].toUpperCase() + rawClass.slice(1)) || "Keyboard") + "Event"
-    let event: Event | "" | undefined, delay = options.delay
+    let event: Event | "" | undefined, delay = options.delay, init: EventInit = options.init as undefined || options
     let useResult: BOOL | boolean | undefined, result: boolean | undefined
     if (options.esc) {
       keydownEvents_[kKeyCode.None] = 0
@@ -442,18 +442,20 @@ set_contentCommands_([
       keydownEvents_[kKeyCode.None] = 0
       useResult = 1, result = ok
     } else {
-      OnChrome && setupIDC_cr!(options as UIEventInit)
+
+      OnChrome && setupIDC_cr!(init)
       try {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-        event = type && new (window as any)[evClass](type, options)
+        event = type && new (window as any)[evClass](type, init)
       } catch {}
       if (event) {
         if (OnChrome && Build.MinCVer < BrowserVer.Min$Event$$IsTrusted
             && chromeVer_ < BrowserVer.Min$Event$$IsTrusted) {
           (event as Writable<typeof event>).isTrusted = false
         }
-        const activeEl = deref_(currentScrolling)
-            || (OnFirefox ? deepActiveEl_unsafe_(1) as SafeElement | null : SafeEl_not_ff_!(deepActiveEl_unsafe_(1)))
+        const match = options.match
+        const el = match ? safeCall(querySelector_unsafe_, match) : deref_(currentScrolling) || deepActiveEl_unsafe_(1)
+        const activeEl = OnFirefox ? el : SafeEl_not_ff_!(el as Exclude<typeof el, void>)
         const useClick = options.click
         useResult = !useClick && options.return && !!activeEl
         // earlier, in case listeners are too slow

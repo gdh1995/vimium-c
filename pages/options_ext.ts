@@ -1,11 +1,11 @@
 import {
   CurCVer_, CurFFVer_, OnChrome, OnEdge, OnFirefox, $, import2, OnSafari, enableNextTick_, isVApiReady_, kReadyInfo,
-  post_
+  post_, simulateClick as click
 } from "./async_bg"
 import { bgSettings_, AllowedOptions, ExclusionRulesOption_, Option_, oTrans_ } from "./options_base"
 import { exportBtn, saveBtn } from "./options_defs"
 import { manifest } from "./options_permissions";
-import { advancedOptBtn, click, ElementWithDelay, delayed_task, clear_delayed_task } from "./options_wnd"
+import { advancedOptBtn, ElementWithDelay, delayed_task, clear_delayed_task } from "./options_wnd"
 import { kPgReq } from "../background/page_messages"
 
 const showHelp = (event?: EventToPrevent | "force" | void | null): void => {

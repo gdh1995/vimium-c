@@ -228,7 +228,7 @@ interface VApiTy {
       , options: CmdOptions[kFgCmd.goNext], maxLen: number) => number
   /** innerHeight_ff */ i?: (type?: undefined) => number
   /** jumpToNext */ j: (nextLink: Hint0[0]) => void
-  /** scrollTick */ k: (willContinue: BOOL | 2) => void
+  /** scrollTick */ k: (willContinue: 0 | 1 | 2 | 5) => void
   /** learnCSS */ l: (srcStyleUI: HTMLStyleElement | string | null, force?: undefined) => void
   /** findOnLoad */ n: ((event?: Event) => void) | null
   /** post */ p: <K extends keyof FgReq>(this: void, req: FgReq[K] & Req.baseFg<K>) => void | 1;

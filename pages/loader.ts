@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/prefer-string-starts-ends-with, @typescript-eslint/prefer-includes */
 var VApi: VApiTy | undefined, VimiumInjector: VimiumInjectorTy | undefined | null = null; // eslint-disable-line no-var
 
-(function () {
+(Build.NDEBUG || (window.browser || window.chrome || {}).runtime) && (function () {
   const MayChrome = !!(Build.BTypes & BrowserType.Chrome), MayNotChrome = !!(Build.BTypes & ~BrowserType.Chrome)
   const mayBrowser_ = MayChrome && MayNotChrome && typeof browser === "object" ? (browser as typeof chrome) : null
   const useBrowser = !MayNotChrome ? false : !MayChrome ? true : !!(mayBrowser_ && mayBrowser_.runtime)

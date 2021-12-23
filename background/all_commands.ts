@@ -189,13 +189,15 @@ set_bgC_([
         }
       }
       opts2.type = type
+      const rawInit = opts2.init
+      const dict: KeyboardEventInit = (rawInit && (typeof rawInit === "object" ? rawInit : (opts2.init = null)) || opts2)
       for (const i of ["bubbles", "cancelable", "composed"] as const) {
-        opts2[i] = opts2[i] !== false
+        dict[i] = dict[i] !== false || opts2[i] !== false
       }
       if (key && key !== "," && (typeof key === "object" || key.includes(","))) {
         const info = typeof key === "object" ? key : key.split(",") as Extract<typeof key, string[]>
         if (info.length >= 2 && +info[1] > 0) {
-          let dict = opts2 as KeyboardEventInit, evKey = info[0]
+          let evKey = info[0]
           dict.key = evKey === "Space" ? " " : evKey === "Comma" ? ","
               : evKey === "$" && evKey.length > 1 ? (evKey = evKey.slice(1)) :evKey
           ; (dict as Writable<KeyboardEvent>).keyCode = (dict as Writable<KeyboardEvent>).which = +info[1]

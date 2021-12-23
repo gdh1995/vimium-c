@@ -45,7 +45,7 @@ import { setPreviousMarkPosition } from "./marks"
 import { keyNames_, prevent_ } from "../lib/keyboard_utils"
 import { post_, runFallbackKey } from "./port"
 
-let toggleAnimation: ((scrolling?: BOOL | /** resume */ 2) => void) | null = null
+let toggleAnimation: ((scrolling?: BOOL | /** resume */ 4) => void) | null = null
 let maxKeyInterval = 1
 let minDelay: number
 let currentScrolling: WeakRef<SafeElement> | null = null
@@ -181,8 +181,8 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
     totalElapsed = minDelay
     running = running || rAF_(animate);
   };
-  toggleAnimation = (scrolling?: BOOL | 2): void => {
-    if (scrolling === 2) { running || (clearTimeout_(timer), resumeAnimation()); return }
+  toggleAnimation = (scrolling?: BOOL | 4): void => {
+    if (scrolling === 4) { running || (clearTimeout_(timer), resumeAnimation()); return }
     if (!scrolling) {
       if (!Build.NDEBUG && ScrollConsts.DEBUG) {
         console.log(">>> [animation] stop after %o ms / %o px"
@@ -387,19 +387,17 @@ let overrideScrollRestoration = function (kScrollRestoration, kManual): void {
     }
 } as ((key: "scrollRestoration", kManual: "manual") => void) | 0
 
-  /** @argument willContinue 1: continue; 0: skip middle steps; 2: abort further actions */
-export const scrollTick = (willContinue: BOOL | 2): void => {
+  /** @argument willContinue 1: continue; 0: skip middle steps; 2: abort further actions; 5: resume */
+export const scrollTick: VApiTy["k"] = (willContinue: 0 | 1 | 2 | 5): void => {
     if (!Build.NDEBUG && ScrollConsts.DEBUG & 4 && (keyIsDown || willContinue === 1)) {
       console.log("update keyIsDown from", ((keyIsDown * 10) | 0) / 10, "to", willContinue - 1 ? 0 : maxKeyInterval, "@"
           , ((performance.now() % 1e3 * 1e2) | 0) / 1e2)
     }
-    keyIsDown = willContinue - 1 ? 0 : maxKeyInterval
-    willContinue > 1 && toggleAnimation && toggleAnimation()
+    keyIsDown = willContinue & 1 ? maxKeyInterval : 0
+    willContinue > 1 && toggleAnimation && toggleAnimation((willContinue & 4) as 0 | 4)
     if (joined) {
       joined.k(willContinue)
-      if (willContinue - 1) {
-        joined = null
-      }
+      willContinue & 1 || (joined = null)
     }
 }
 
@@ -420,8 +418,7 @@ export const onScrolls = (event: KeyboardEventToPrevent): boolean => {
     const repeat = OnChrome && Build.MinCVer < BrowserVer.Min$KeyboardEvent$$Repeat$ExistsButNotWork
         ? !!event.repeat : event.repeat
     repeat && prevent_(event);
-    scrollTick(<BOOL> +repeat)
-    repeat && toggleAnimation && toggleAnimation(2)
+    scrollTick(repeat ? 5 : 0)
     return repeat;
 }
 

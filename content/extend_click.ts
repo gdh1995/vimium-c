@@ -6,7 +6,7 @@ import {
   createElement_, set_createElement_, OnDocLoaded_, runJS_, rAF_, removeEl_s, attr_s, setOrRemoveAttr_s,
   parentNode_unsafe_s
 } from "../lib/dom_utils"
-import { safeDestroy } from "./port"
+import { safeDestroy, send_ } from "./port"
 import { coreHints, doesWantToReloadLinkHints, hintOptions } from "./link_hints"
 import { grabBackFocus } from "./insert"
 
@@ -618,7 +618,7 @@ FProto[kToS] = myToStr
     const rIC = Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback ? requestIdleCallback : 0 as never as null
     // in case there's `$("#requestIdleCallback")`
     return OnChrome && Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage && !noRAF_old_cr_
-      ? (Promise.resolve().then(cb), 1)
+      ? (send_(kFgReq.wait, timeout, cb), 1)
       : (Build.MinCVer >= BrowserVer.MinEnsured$requestIdleCallback ? timeout > 19 : timeout > 19 && rIC)
       ? (Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback ? rIC : requestIdleCallback)!(cb, { timeout })
       : rAF_(cb)

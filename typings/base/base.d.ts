@@ -190,6 +190,9 @@ interface HTMLElementTagNameMap {
 interface ObjectConstructor {
   values <T extends object> (target: T): Array<T[keyof T]>
   entries? (object: object): [property: string, value: unknown][]
+  getOwnPropertySymbols? (o: object): symbol[]
+  getOwnPropertyDescriptor (o: any, propertyKey: symbol): PropertyDescriptor | undefined
+  getOwnPropertyDescriptors? (o: object): PropertyDescriptorMap
   hasOwn? (object: object, prop: string): boolean
   hasOwn? <T extends object> (object: object, prop: string): prop is (keyof T) & string
 }
@@ -248,3 +251,5 @@ interface Reflect {
 declare var Reflect: Reflect | undefined
 
 declare var InstallTrigger: object | undefined
+
+interface CSS { escape? (value: string): string }

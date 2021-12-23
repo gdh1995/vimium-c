@@ -425,7 +425,14 @@ const onKeydown = (event: HandlerNS.Event): HandlerResult => {
       }
       resetMode(num1 as BOOL | undefined)
       num1 && timeout_(reinit, 0)
-    } else if ((i < kKeyCode.maxAcsKeys + 1 && i > kKeyCode.minAcsKeys - 1
+    } else if (keybody === kChar.tab && !useFilter_ && !keyStatus_.k) {
+      tooHigh_ = null;
+      resetMode();
+      if (!OnFirefox && isClickListened_ && coreHints.h && vApi.e && math.abs(getTime() - coreHints.h) < 1000) {
+        vApi.e(kContentCmd.ManuallyFindAllOnClick)
+      }
+      timeout_(reinit, 0)
+    } else if (coreHints.h = 0, (i < kKeyCode.maxAcsKeys + 1 && i > kKeyCode.minAcsKeys - 1
             || !os_ && (i > kKeyCode.maxNotMetaKey && i < kKeyCode.minNotMetaKeyOrMenu))
         && !key) {
       num1 = mode1 > HintMode.min_copying - 1 && mode1 < HintMode.max_copying + 1
@@ -449,13 +456,6 @@ const onKeydown = (event: HandlerNS.Event): HandlerResult => {
       i > 2 && insert_Lock_ || beginScroll(event, key, keybody);
       resetMode();
       ret = i > 2 && insert_Lock_ ? HandlerResult.Suppress : HandlerResult.Prevent
-    } else if (keybody === kChar.tab && !useFilter_ && !keyStatus_.k) {
-      tooHigh_ = null;
-      resetMode();
-      if (!OnFirefox && isClickListened_ && coreHints.h && vApi.e && math.abs(getTime() - coreHints.h) < 1000) {
-        vApi.e(kContentCmd.ManuallyFindAllOnClick)
-      }
-      timeout_(reinit, 0)
     } else if (keybody === SPC && (!useFilter_ || key !== keybody)) {
       keyStatus_.t = keyStatus_.t.replace("  ", " ");
       if (zIndexes_ !== 0) {
@@ -714,16 +714,11 @@ export const clear = (onlySelfOrEvent?: 0 | 1 | Event, suppressTimeout?: number)
     resetHints();
     removeHandler_(kHandler.linkHints)
     suppressTimeout != null && suppressTail_(suppressTimeout);
-    set_onWndBlur2(null)
     removeFlash && removeFlash();
-    isHC_ = api_ = options_ = null as never
-    set_removeFlash(null)
-    /*#__INLINE__*/ localLinkClear()
-    set_maxPrefixLen_(0)
-    lastMode_ = mode_ = mode1_ = count_ = coreHints.h = 0
-    useFilter_ = noHUD_ = tooHigh_ = false
-    set_grabBackFocus(false)
+    set_onWndBlur2(set_removeFlash(isHC_ = (api_ as unknown) = (options_ as unknown) = null))
+    set_maxPrefixLen_(lastMode_ = mode_ = mode1_ = count_ = coreHints.h = /*#__INLINE__*/ localLinkClear())
     if (WithDialog) { coreHints.d = 0 }
+    set_grabBackFocus(useFilter_ = noHUD_ = tooHigh_ = false)
     chars_ = "";
     removeBox()
     hud_tipTimer || hudHide()

@@ -1,6 +1,6 @@
 import {
   CurCVer_, CurFFVer_, OnChrome, OnFirefox, OnEdge, $, pageTrans_, browser_, nextTick_, enableNextTick_, kReadyInfo,
-  import2, TransTy, isVApiReady_, post_, disconnect_
+  import2, TransTy, isVApiReady_, post_, disconnect_, simulateClick
 } from "./async_bg"
 import { kPgReq } from "../background/page_messages"
 import type * as i18n_popup from "../i18n/zh/popup.json"
@@ -363,13 +363,6 @@ function clickLink(this: void, options: { [key: string]: string }
     }
     return browser_.runtime.lastError
   })
-}
-
-function simulateClick(a: HTMLElement, event: MouseEvent | KeyboardEvent): boolean {
-  const mouseEvent = document.createEvent("MouseEvents");
-  mouseEvent.initMouseEvent("click", true, true, window, 1, 0, 0, 0, 0
-    , event.ctrlKey, event.altKey, event.shiftKey, event.metaKey, 0, null);
-  return a.dispatchEvent(mouseEvent);
 }
 
 function imgOnKeydown(event: KeyboardEventToPrevent): boolean {

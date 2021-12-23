@@ -173,9 +173,9 @@ export const joinTabs = (resolve: OnCmdResolved): void | kBgCmd.joinTabs => {
 }
 
 export const moveTabToNewWindow = (resolve: OnCmdResolved): void | kBgCmd.moveTabToNewWindow => {
-  const kInc = "hasIncog"
+  const kInc = "hasIncog", all = !!get_cOptions<C.moveTabToNewWindow>().all
   const moveTabToNewWindow0 = (wnd: PopWindow): void => {
-    const allTabs = wnd.tabs, total = allTabs.length, all = !!get_cOptions<C.moveTabToNewWindow>().all
+    const allTabs = wnd.tabs, total = allTabs.length
     const focused = get_cOptions<C.moveTabToNewWindow>().focused !== false
     const activeTab = selectFrom(allTabs), curIncognito = activeTab.incognito;
     if (!all && total <= 1 && (!total || activeTab.index === 0 && abs(cRepeat) > 1)) { resolve(0); return }
@@ -323,7 +323,7 @@ export const moveTabToNewWindow = (resolve: OnCmdResolved): void | kBgCmd.moveTa
     showHUD(trans_(kInc))
     resolve(0)
   } else {
-    (abs(cRepeat) === 1 || incognito ? Q_(getCurWnd, false).then<PopWindow | null | undefined>(wnd => {
+    (!all && (abs(cRepeat) === 1 || incognito) ? Q_(getCurWnd, false).then<PopWindow | null | undefined>(wnd => {
       return wnd && Q_(Tabs_.query, { windowId: wnd.id, active: true }).then(tabs => {
         wnd.tabs = tabs
         return tabs && tabs.length ? wnd as PopWindow : undefined

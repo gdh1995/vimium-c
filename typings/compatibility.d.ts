@@ -12,7 +12,7 @@ declare const enum BrowserVer {
   MinShadowDOMV0 = 31, // the real version is <= C31; it's prefixed
   // mouseEvent.buttons is since C43 but a `buttons` property does no harm on Chrome <= 42
   MinUsable$MouseEvent$$constructor = 31, // the real version is <= C31
-  MinMaybe$String$$StartsWithAndEndsWith = 39, // the real version is <= C31; if EXPERIMENTAL
+  MinMaybe$String$$StartsWithAndEndsWith = 31, // the real version is <= C31; if EXPERIMENTAL
   MinEnsured$onwheel = 31, // even if LEGACY
   MinFormatOptionWhenCaptureTab = 31, // even if LEGACY
   MinSupported = 32,
@@ -92,7 +92,7 @@ declare const enum BrowserVer {
   MinEnsured$Element$$Closest = 41, // even if LEGACY
   MinWithFrameId = 41,
   // just means it's enabled by default
-  Min$String$$StartsWithEndsWithAndIncludes$ByDefault = 41, // no "".includes before 41, even if EXPERIMENTAL
+  Min$String$$StartsWithEndsWithAndIncludes$ByDefault = 41, // no "".includes before 41 even if EXPERIMENTAL
   MinGlobal$HTMLDetailsElement = 41,
   MinFixedCSS$All$MightOverwriteFixedPosition = 41,
   // ignore MinFixedCSS$All$MightOverwriteAnchorColor
@@ -118,6 +118,7 @@ declare const enum BrowserVer {
   MinEnsuredES6LetAndConst = 43, // even if LEGACY; only in "use strict" mode
   MinEnsuredES6$String$$StartsWithEndsWithRepeatAndIncludes = 43, // even if LEGACY
   MinSafe$String$$StartsWith = MinEnsuredES6$String$$StartsWithEndsWithRepeatAndIncludes,
+  MinEnsuredES6$String$$fromCodePoint = 43, // even if LEGACY; since C41 if not
   MinRuntimePlatformOs = 44,
   MinCreateWndWithState = 44,
   // the 3 below are correct even if EXPERIMENTAL or LEGACY
@@ -150,6 +151,7 @@ declare const enum BrowserVer {
   MinMaybeES$Array$$Includes = 46, // if EXPERIMENTAL
   Min$windows$APIsFilterOutDevToolsByDefault = 46,
   Min$windows$$GetAll$SupportWindowTypes = 46,
+  Min$CSS$$escape = 46, // even if EXPERIMENTAL or LEGACY
   MinEnsured$requestIdleCallback = 47,
   Min$Tabs$$Query$RejectHash = 47,
   // if .key exists, it's "v" for `v`, but "" (empty) for `<c-v>` - doesn't support all cases
@@ -169,6 +171,7 @@ declare const enum BrowserVer {
   // so Chrome can only debug arrow functions since 49
   MinEnsuredES6ArrowFunction = 48,
   MinEnsuredES6SpreadOperator = 48,
+  MinEnsuredES6NewTarget = 48, // even if LEGACY; since 46 if not
   // even if EXPERIMENTAL or LEGACY
   MinSafeGlobal$frameElement = 48,
   // just means it's enabled even if LEGACY;
@@ -282,6 +285,7 @@ declare const enum BrowserVer {
   // the static selector `>>>` is not supported since MinNoSelector$GtGtGt
   // `>>>` can only match those under "open"-mode shadow roots
   MinMaybeStaticSelector$GtGtGt = 56, // only if EXPERIMENTAL
+  // also .getOwnPropertyDescriptors
   MinEnsuredES$Object$$values$and$$entries = 56, // even if LEGACY; since C54 if not LEGACY; since C51 if EXPERIMENTAL
   // the 2 below are correct even if EXPERIMENTAL or LEGACY
   MinNoKeygenElement = 57,

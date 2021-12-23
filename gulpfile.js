@@ -297,12 +297,15 @@ var Tasks = {
       if (!(browser & BrowserType.Edge)) {
         delete manifest.options_page;
       }
-      var specific = manifest.browser_specific_settings || (manifest.browser_specific_settings = {});
       if (browser === BrowserType.Safari) {
         manifest.options_ui && delete manifest.options_ui.open_in_tab
       }
       if (browser === BrowserType.Firefox) {
         delete manifest.version_name
+      }
+    }
+    if (browser & BrowserType.Firefox) {
+        var specific = manifest.browser_specific_settings || (manifest.browser_specific_settings = {});
         var gecko = specific.gecko || (specific.gecko = {})
         gecko.id = getNonNullBuildItem("FirefoxID")
         var ffVer = getNonNullBuildItem("MinFFVer")
@@ -311,7 +314,6 @@ var Tasks = {
         } else {
           delete gecko.strict_min_version
         }
-      }
     }
     if (browser & BrowserType.Firefox) {
       locally && permissions.push("tabHide")
