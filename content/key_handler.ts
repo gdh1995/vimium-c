@@ -1,11 +1,11 @@
 import {
-  doc, esc, os_, isEnabled_, isTop, keydownEvents_, set_esc, safer, Stop_, isTY, Lower, OnChrome, OnFirefox,
+  doc, esc, os_, isEnabled_, isTop, keydownEvents_, set_esc, safer, Stop_, Lower, OnChrome, OnFirefox,
   chromeVer_, deref_
 } from "../lib/utils"
 import {
   set_getMappedKey, char_, getMappedKey, isEscape_, getKeyStat_, prevent_, handler_stack, keybody_, SPC
 } from "../lib/keyboard_utils"
-import { deepActiveEl_unsafe_, getSelection_, ElementProto_not_ff, getElDesc_ } from "../lib/dom_utils"
+import { deepActiveEl_unsafe_, getSelection_, ElementProto_not_ff, getElDesc_, blur_unsafe } from "../lib/dom_utils"
 import { wndSize_ } from "../lib/rect"
 import { post_ } from "./port"
 import { removeSelection } from "./dom_ui"
@@ -158,6 +158,9 @@ const onAnyClick_cr = OnChrome ? (event: MouseEventToPrevent): void => {
       // if a script has modified [accesskey], then do nothing on - just in case.
       /*#__NOINLINE__*/ resetAnyClickHandler();
       prevent_(event);
+      if (Build.MinCVer >= BrowserVer.MinAccessKeyCausesFocus || chromeVer_ > BrowserVer.MinAccessKeyCausesFocus - 1) {
+        blur_unsafe(t)
+      }
     }
   }
 } : 0 as never
@@ -258,8 +261,7 @@ export const onEscDown = (event: KeyboardEventToPrevent | 0, key: kKeyCode, repe
   if (!repeat && removeSelection()) {
     /* empty */
   } else if (repeat && !keydownEvents_[key] && activeEl) {
-    deref_(lastHovered_) === activeEl ? void catchAsyncErrorSilently(unhover_async()) :
-    (OnFirefox ? activeEl.blur : isTY(activeEl.blur, kTY.func)) && activeEl.blur!()
+    deref_(lastHovered_) === activeEl ? void catchAsyncErrorSilently(unhover_async()) : blur_unsafe(activeEl)
   } else if (!isTop && !activeEl) {
     focusUpper(key, repeat, event);
     action = HandlerResult.PassKey;

@@ -4,7 +4,7 @@ import {
 } from "../lib/utils"
 import {
   IsInDOM_, isInTouchMode_cr_, MDW, hasTag_, CLK, attr_s, contains_s, focus_, fullscreenEl_unsafe_, findAnchor_,
-  deepActiveEl_unsafe_
+  deepActiveEl_unsafe_, blur_unsafe
 } from "../lib/dom_utils"
 import { suppressTail_ } from "../lib/keyboard_utils"
 import { Point2D, center_, getVisibleClientRect_, view_ } from "../lib/rect"
@@ -40,7 +40,7 @@ let evIDC_cr: InputDeviceCapabilities | undefined
 let lastHovered_: WeakRef<SafeElementForMouse> | null | undefined
 
 export { lastHovered_, evIDC_cr }
-export function set_lastHovered_ (_newHovered: null): void { lastHovered_ = _newHovered }
+export function set_lastHovered_ (_newHovered: WeakRef<SafeElementForMouse> | null): void { lastHovered_ = _newHovered }
 export function set_evIDC_cr (_newIDC: InputDeviceCapabilities | undefined): void { evIDC_cr = _newIDC }
 
 /** util functions */
@@ -202,8 +202,8 @@ export const hover_async = (async (newEl?: NullableSafeElForM
     await mouse_(last, "mouseout", [0, 0], N, notSame ? newEl : N)
     if ((!newEl || notSame && !IsInDOM_(newEl, last, 1)) && IsInDOM_(last, doc)) {
       mouse_(last, "mouseleave", [0, 0], N, newEl)
-      if (doesFocus && last.blur && IsInDOM_(await last)) { // always blur even when moved to another document
-        last.blur()
+      if (doesFocus && IsInDOM_(await last)) { // always blur even when moved to another document
+        blur_unsafe(last)
       }
     }
     last = notSame ? last : N
@@ -237,7 +237,7 @@ export const unhover_async = (!OnChrome || Build.MinCVer >= BrowserVer.MinEnsure
   }
   lastHovered_ = OnFirefox ? weakRef_ff(element, kElRef.lastHovered) : weakRef_not_ff!(element)
   await hover_async()
-  if (active && deepActiveEl_unsafe_() === active) { active.blur && active.blur() }
+  blur_unsafe(active)
 }
 : (el?: NullableSafeElForM, step?: 1 | 2, old?: NullableSafeElForM): Promise<void | false> | void | false => {
   if (!step) {
@@ -248,7 +248,7 @@ export const unhover_async = (!OnChrome || Build.MinCVer >= BrowserVer.MinEnsure
     lastHovered_ = OnFirefox ? weakRef_ff(el, kElRef.lastHovered) : weakRef_not_ff!(el)
     return hover_async().then(unhover_async.bind<0, NullableSafeElForM, 2, [], void | false>(0, old, 2))
   } else {
-    return <void | false> <any> (el && deepActiveEl_unsafe_() === el && el.blur && el.blur())
+    return blur_unsafe(el)
   }
 }) as {
   (element?: NullableSafeElForM, step?: undefined, active?: undefined): Promise<void | false>

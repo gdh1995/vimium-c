@@ -492,6 +492,7 @@ declare const enum BrowserVer {
   MinMediaQuery$PrefersReducedMotion = 74,
   // https://chromium.googlesource.com/chromium/src/+/5e84b7a819637ed4dd8f9c4d11288127663c8267
   MinBlockAutoFocusingInCrossOriginFrame = 75,
+  MinAccessKeyCausesFocus = 75,
   FakeUAMajorWhenFreezeUserAgent = 75,
   MinMediaQuery$PrefersColorScheme = 76,
   MinEnsured$Clipboard$$write$and$ClipboardItem = 76, // before 76, exist if EXPERIMENTAL

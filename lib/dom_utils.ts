@@ -607,4 +607,9 @@ export const runJS_ = (code: string, returnEl?: HTMLScriptElement | null | 0
 
 export const focus_ = (el: SafeElement): void => { el.focus && el.focus() }
 
+export const blur_unsafe = (el: Element | null | undefined): void => {
+  // in `Element::blur`, Chromium will check `AdjustedFocusedElementInTreeScope() == this` firstly
+  el && (OnFirefox ? el.blur : isTY(el.blur, kTY.func)) && el.blur!()
+}
+
 //#endregion
