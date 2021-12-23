@@ -441,6 +441,7 @@ declare const enum BrowserVer {
   // test: https://mathiasbynens.be/demo/sort-stability
   MinStableSort = 70, // even if EXPERIMENTAL or LEGACY
   Min$Intl$$DateTimeFormat$$$formatToParts$Use$dayPeriod = 70, // even if EXPERIMENTAL or LEGACY
+  MinContainLayoutOnDocAffectPositions = 70, // even if EXPERIMENTAL or LEGACY
   // means unprefixed properties and event name
   MinEnsured$Document$$fullscreenElement = 71, // even if LEGACY; MinMaybe$Document$$fullscreenElement=61
   Min$Tabs$$Update$DoesNotAcceptJavaScriptURLs = 71,
@@ -538,6 +539,7 @@ declare const enum BrowserVer {
   MinESModulesInServiceWorker = 91,
   MinEnsured$string$$replaceAll = 91,
   MinEnsured$WeakRef = 92, // even if LEGACY
+  MinNotPropagateBodyStyleIfContained = 96, // even if EXPERIMENTAL or LEGACY
   MinNo$TimerType$$Fake = 999,
   assumedVer = 998,
 }
@@ -564,7 +566,7 @@ declare const enum FirefoxBrowserVer {
   Min$window$$focus$alwaysActivateTab = 68,
   MinNoKeygenElement = 69,
   MinUnprefixedUserSelect = 69,
-  MinCSSEnableContain = 69,
+  MinMaybeCSS$contain = 69,
   MinUserScriptsAPI = 69, // https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/userScripts
   Min$queueMicrotask = 69,
   // but doesn't support code changes focus during input events when is composing
@@ -576,12 +578,14 @@ declare const enum FirefoxBrowserVer {
   MinCrossOriginResourcePolicy = 74, // not break Vomnibar
   Min$tabs$$goBack = 77,
   Min$permissions$$onAdded = 77,
+  MinEnsuredCSSEnableContain = 77, // no `layout.css.contain.enabled`
   MinCSS$readOnly$selector = 78, // https://developer.mozilla.org/en-US/docs/Web/CSS/:read-only
   MinEnsuredUnicodePropertyEscapesInRegExp = 78,
   MinLookBehindInRegexp = 78, // even if LEGACY
   MinMaybe$WeakRef = 79, // no `WeakRef` if javascript.options.weakrefs=false
   MinEnsuredCSS$is$selector = 81,
   MinContentEditableInShadowOfBodyRefuseShortcuts = 91,
+  MinBrowserDarkThemeSet$PrefersColorScheme = 95, // https://github.com/gdh1995/vimium-c/discussions/517
   MinMaybe$navigator$$userAgentData = 99,
   // members of a Selection are never updated when an <input> gets focused, so no work-around
   Min$Selection$SupportTextBox = 999,

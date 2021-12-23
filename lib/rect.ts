@@ -315,9 +315,17 @@ export const getViewBox_ = function (needBox?: 1 | /** dialog-found */ 2): ViewB
   box = docEl_unsafe_()!, st = getComputedStyle_(box),
   box2 = doc.body, st2 = box2 ? getComputedStyle_(box2) : st,
   zoom2 = !OnFirefox ? bZoom_ = elZoom_(st2) : 1,
-  containHasPaint = (<RegExpOne> /c|p/).test(st.contain!),
+  docContain = OnChrome && Build.MinCVer < BrowserVer.MinEnsuredCSSEnableContain
+      || OnFirefox && Build.MinFFVer < FirefoxBrowserVer.MinEnsuredCSSEnableContain ? st.contain || "" : st.contain!,
+  // bodyNotPropagateOut = OnChrome && docContain !== "none",
   kM = "matrix(1,",
-  stacking = !(WithDialog && needBox === 2) && (st.position !== "static" || containHasPaint || st.transform !== NONE),
+  paintingLimited = (<RegExpOne> /c|p/).test(docContain),
+  notPropagate = OnChrome && (Build.MinCVer >= BrowserVer.MinNotPropagateBodyStyleIfContained
+      || chromeVer_ > BrowserVer.MinNotPropagateBodyStyleIfContained - 1) && (<RegExpOne> /s|t/).test(docContain),
+  stacking = !(WithDialog && needBox === 2) && (st.position !== "static" || (OnChrome
+      && Build.MinCVer < BrowserVer.MinContainLayoutOnDocAffectPositions
+      && chromeVer_ < BrowserVer.MinContainLayoutOnDocAffectPositions ? paintingLimited
+      : (<RegExpOne> /a|c/).test(docContain)) || st.transform !== NONE),
   // NOTE: if box.zoom > 1, although doc.documentElement.scrollHeight is integer,
   //   its real rect may has a float width, such as 471.333 / 472
   rect = padClientRect_(getBoundingClientRect_(box))
@@ -345,25 +353,23 @@ export const getViewBox_ = function (needBox?: 1 | /** dialog-found */ 2): ViewB
     iw /= zoom, ih /= zoom
   }
   let mw = iw, mh = ih
-  if (containHasPaint) { // ignore the area on the block's left
-    iw = rect.r, ih = rect.b
-  }
-  paintBox_ = containHasPaint ? [iw - float(st.borderRightWidth ) * scale,
-                                     ih - float(st.borderBottomWidth) * scale] : null
+  // ignore the area on the block's left
+  paintBox_ = paintingLimited ? [(iw = rect.r) - float(st.borderRightWidth ) * scale,
+                                 (ih = rect.b) - float(st.borderBottomWidth) * scale] : null
   if (!needBox) { return [x, y]; }
   // here rect.right is not accurate because <html> may be smaller than <body>
   const sEl = scrollingEl_(), nonScrollableRe = <RegExpOne> /hidden|clip/,
-  xScrollable = !nonScrollableRe.test("" + st.overflowX + st2.overflowX),
-  yScrollable = !nonScrollableRe.test("" + st.overflowY + st2.overflowY)
+  xScrollable = !nonScrollableRe.test("" + st.overflowX + (notPropagate ? "" : st2.overflowX)),
+  yScrollable = !nonScrollableRe.test("" + st.overflowY + (notPropagate ? "" : st2.overflowY))
   if (xScrollable) {
     mw += 64 * zoom2
-    iw = containHasPaint ? iw : sEl && (dimSize_(sEl, kDim.scrollW) - scrollX) / zoom
-          || max_((iw - GlobalConsts.MaxScrollbarWidth) / zoom, rect.r)
+    iw = paintingLimited ? iw : sEl && (dimSize_(sEl, kDim.scrollW) - scrollX) / zoom
+        || max_(iw - GlobalConsts.MaxScrollbarWidth / zoom, rect.r)
   }
   if (yScrollable) {
     mh += 20 * zoom2
-    ih = containHasPaint ? ih : sEl && (dimSize_(sEl, kDim.scrollH) - scrollY) / zoom
-          || max_((ih - GlobalConsts.MaxScrollbarWidth) / zoom, rect.b)
+    ih = paintingLimited ? ih : sEl && (dimSize_(sEl, kDim.scrollH) - scrollY) / zoom
+        || max_(ih - GlobalConsts.MaxScrollbarWidth / zoom, rect.b)
   }
   iw = iw < mw ? iw : mw, ih = ih < mh ? ih : mh
   iw = (iw / zoom2) | 0, ih = (ih / zoom2) | 0
