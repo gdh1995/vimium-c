@@ -311,6 +311,7 @@ declare const enum kTY { str = 0, obj = 1, func = 2, num = 3 }
 interface KnownDataset {
   vimium: string // secret of extend click; or prefix and suffix in the Find HUD
   vimiumHints: "ordinal" | string // order of link hints in filter-hint mode
+  jsarwt?: "1" // google search results (2021-12-24)
   s: string // used by help dialog
   h: string // used by help dialog
   vimUrl: string // used in HintMode.{COPY_URL,DOWNLOAD_LINK}

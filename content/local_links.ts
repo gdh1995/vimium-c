@@ -186,7 +186,7 @@ const checkJSAction = (str: string): boolean => {
 export const getPreferredRectOfAnchor = (anchor: HTMLAnchorElement): Rect | null => {
   // for Google search result pages
   let mayBeSearchResult = !!(anchor.rel || attr_s(anchor, "onmousedown")
-        || (OnChrome ? anchor.ping : attr_s(anchor, "ping"))),
+        || (attr_s(anchor, "href") || "").startsWith("/url?") || anchor.dataset.jsarwt),
   el = mayBeSearchResult && querySelector_unsafe_("h3,h4", anchor)
         || (mayBeSearchResult || anchor.childElementCount === 1) && anchor.firstElementChild as Element | null
         || null,
