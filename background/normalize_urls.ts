@@ -8,7 +8,7 @@ import {
 export const hostRe_ = <RegExpOne & RegExpSearchable<4>> /^([^:]+(:[^:]+)?@)?([^:]+|\[[^\]]+])(:\d{2,5})?$/
 export const customProtocolRe_ = <RegExpOne> /^(?:ext|web)\+[a-z]+:/
 export const quotedStringRe_ = <RegExpOne> /^"[^"]*"$|^'[^']*'$|^\u201c[^\u201d]*\u201d$/
-export const searchWordRe_ = <RegExpG & RegExpSearchable<2>> /\$([sS])(?:\{([^}]*)})?/g
+export const searchWordRe_ = <RegExpG & RegExpSearchable<2>> /\$([sS$])?(?:\{([^}]*)})?/g
 export const searchVariableRe_ = <RegExpG & RegExpSearchable<1>> /\$([+-]?\d+)/g
 
 const KnownPages_ = ["blank", "newtab", "options", "show"]
@@ -296,8 +296,14 @@ export const createSearchUrl_ = function (query: string[], keyword: string, vimi
 export const createSearch_ = function (query: string[], url: string, blank: string, indexes?: number[]
     ): string | Search.Result {
   let q2: string[] | undefined, delta = 0;
-  url = query.length === 0 && blank ? blank : url.replace(searchWordRe_, (_s, s1, s2: string | undefined, ind) => {
+  url = query.length === 0 && blank ? blank : url.replace(searchWordRe_
+      , (full, s1: string | undefined, s2: string | undefined, ind): string => {
     let arr: string[];
+    if (full.endsWith("$")) { return "$" }
+    if (!s1) {
+      if ((<RegExpOne> /^s:/i).test(s2!)) { s1 = s2![0]; s2 = s2?.slice(2) }
+      else { s1 = "s" }
+    }
     if (s1 === "S") {
       arr = query;
       s1 = " ";
@@ -324,7 +330,7 @@ export const createSearch_ = function (query: string[], url: string, blank: stri
     if (indexes != null) {
       ind += delta;
       indexes.push(ind, ind + s2.length);
-      delta += s2.length - _s.length;
+      delta += s2.length - full.length
     }
     return s2;
   });

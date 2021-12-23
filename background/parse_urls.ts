@@ -308,7 +308,8 @@ export const parseSearchEngines_ = (str: string, map: Map<string, Search.Engine>
   func = (function (k: string): boolean {
     return (k = k.trim()) && k !== "__proto__" && k.length < Consts.MinInvalidLengthOfSearchKey
       ? (map.set(k, obj), true) : false
-  });
+  }),
+  pair: RegExpExecArray | null
   for (let val of str.replace(<RegExpSearchable<0>> /\\\\?\n/g, t => t.length === 3 ? "\\\n" : "").split("\n")) {
     val = val.trim();
     if (val < kChar.minNotCommentHead) { continue; } // mask: /[!"#]/
@@ -350,22 +351,24 @@ export const parseSearchEngines_ = (str: string, map: Map<string, Search.Engine>
     if (ids.length === 0) { continue; }
     if (ind === -1) {
       re.lastIndex = 0;
-      const pair = (re as RegExp as RegExpOne).exec(val);
+      while ((pair = (re as RegExp as RegExpOne).exec(val)) && pair[0].endsWith("$")) { /* empty */ }
       if (pair && (ind = pair.index + 1)) {
         key = pair[2];
         if (key) {
-          val = val.replace(re, "$$$1");
+          key = (<RegExpI> /^s:/i).test(key) ? key[0] === "s" ? "+" : " " : key
         } else {
           key = pair[1] === "s" ? "+" : " ";
         }
+        val = val.replace(re, (_full: string, s1: string | undefined): string => "$" + (s1 || "s")).toLowerCase()
         val = convertToUrl_(val, null, Urls.WorkType.ConvertKnown);
         if (lastUrlType_ > Urls.Type.MaxOfInputIsPlainUrl) {
-          val = val.replace(<RegExpG & RegExpSearchable<1>> /%24(s)/gi, "$$$1");
-          ind = val.search(re as RegExp as RegExpOne) + 1;
-        } else if (lastUrlType_ !== Urls.Type.Full) {
-          ind += lastUrlType_ === Urls.Type.NoScheme ? 7 : 5;
+          val = val.replace(<RegExpG & RegExpSearchable<0>> /%24(%24|s)/g, decodeURIComponent)
         }
-        if (tmpRule = reParseSearchUrl_(val.toLowerCase(), ind)) {
+        ind = 0
+        val = val.replace(<RegExpG & RegExpSearchable<0>> /\$[$s]/g, (s: string, index: number): string => {
+          return s === "$$" ? (ind > 0 || ind--,  "$") : (ind = ind > 0 ? ind : ind + index + 1, s)
+        })
+        if (tmpRule = reParseSearchUrl_(val, ind)) {
           if (key.includes("$")) {
             key = key.replace(searchVariableRe_, "(.*)");
             tmpKey = new RegExp("^" + key, (<RegExpI> /[a-z]/i).test(key) ? "i" as "" : ""
