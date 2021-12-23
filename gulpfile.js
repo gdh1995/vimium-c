@@ -49,13 +49,13 @@ const LOCALES_EN = "_locales/en/messages.json"
 
 var CompileTasks = {
   background: ["background/*.ts", "background/*.d.ts"],
-  content: [["content/*.ts", "lib/*.ts", "!" + POLYFILL_FILE, "!lib/injector.ts"], "lib/*.d.ts", {module: "distES6"}],
+  content: [["content/*.ts", "lib/*.ts", "!" + POLYFILL_FILE, "!lib/injector.ts", "!lib/simple_eval.ts"]
+      , "lib/*.d.ts", {module: "distES6"}],
   lib: ["lib/*.ts"].concat(has_polyfill ? [] : ["!" + POLYFILL_FILE]),
   front: [["front/*.ts", has_polyfill ? POLYFILL_FILE : "!" + POLYFILL_FILE
-            , "lib/injector.ts"], ["lib/base.omni.d.ts"], { inBatch: false }],
+            , "lib/injector.ts", "lib/simple_eval.ts"], ["lib/base.omni.d.ts"], { inBatch: false }],
   vomnibar: ["front/vomnibar*.ts", ["lib/base.omni.d.ts"]],
   polyfill: [POLYFILL_FILE],
-  injector: ["lib/injector.ts"],
   options: [["pages/options*.ts", "pages/async_bg.ts"], ["background/*.d.ts", "lib/base.d.ts"], {module: "mayES6"}],
   show: [["pages/show.ts", "pages/async_bg.ts"], ["background/index.d.ts", "lib/base.d.ts"], {module: "mayES6"}],
   others: [ ["pages/*.ts"
@@ -406,7 +406,7 @@ var Tasks = {
   debug: ["locally", function(done) {
     ignoreHeaderChanges = disableErrors = willListFiles = false;
     willListEmittedFiles = debugging = true;
-    ["background", "content", "front", "polyfill", "injector", "options", "show", "others"].forEach(makeWatchTask)
+    ["background", "content", "front", "polyfill", "options", "show", "others"].forEach(makeWatchTask)
     done();
   }],
   eslint: function (done) {

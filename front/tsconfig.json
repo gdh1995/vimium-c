@@ -5,9 +5,6 @@
     "rootDir": "..",
     "tsBuildInfoFile": "../scripts/.ts.front.build",
   },
-  "include": [
-    "*.ts",
-    "../lib/injector.ts"
-  ],
+  "include": [ "*.ts", "../lib/injector.ts", "../lib/simple_eval.ts" ],
   "extends": "../tsconfig.json"
 }

@@ -478,7 +478,8 @@ declare const enum InjectorTask {
 interface VApiTy {
   $r?: VimiumInjectorTy["$r"]
   /** destroy */ d: (this: void, silent?: boolean | BOOL | 9) => void
-  /** evalJS */ v: { (code: string): unknown; tryEval? (code: string): unknown }
+  /** evalJS */ v: { (code: string): unknown; vimiumEval? (code: string): unknown; doubleEval? (code: string): unknown
+      tryEval? (code: string): { ok: boolean | number, result: unknown } }
 }
 interface VimiumInjectorTy {
   id: string;

@@ -36,6 +36,18 @@ VApi!.e = function (cmd): void {
       return frameElement as HTMLIFrameElement | HTMLFrameElement
     }
   }
+  let jsEvalPromise: Promise<void> | undefined
+  const tryEval = (code: string): unknown => {
+    const injector1 = VimiumInjector!
+    if (injector1.eval) { return injector1.eval(code) }
+    jsEvalPromise = jsEvalPromise || new Promise((resolve): void => {
+      const script = document.createElement("script")
+      script.src = `${location.protocol}//${injector1.host || injector1.id}/lib/simple_eval.js`
+      script.onload = (): void => { script.remove(); resolve() }
+      (document.head as HTMLHeadElement | null || document.documentElement!).appendChild(script)
+    })
+    return jsEvalPromise.then(() => VApi!.v !== tryEval ? (VApi!.v = VApi!.v.tryEval || VApi!.v)(code) : undefined)
+  }
 
   let i18nMessages: FgRes[kFgReq.i18n] = []
   const ref = thisApi.r
@@ -103,7 +115,7 @@ VApi!.e = function (cmd): void {
       injector1.cache = VApi!.z
       if (i18nMessages) {
         injector1.callback && injector1.callback(2, "complete")
-        VApi!.v = injector1.eval || ((code: string): unknown => injector.eval && injector.eval(code))
+        VApi!.v = injector1.eval || tryEval
       }
       // not listen hash here; a 3rd-party page may add listeners by itself if it indeed wants
       return;

@@ -16,7 +16,8 @@ var VApi: VApiTy | undefined, VimiumInjector: VimiumInjectorTy | undefined | nul
       : Build.BTypes & BrowserType.Edge && (window as {} as {StyleMedia: unknown}).StyleMedia ? BrowserType.Edge
       : Build.BTypes & BrowserType.Firefox ? BrowserType.Firefox
       : /* an invalid state */ BrowserType.Unknown
-  let loader = document.currentScript as HTMLScriptElement;
+  const loader = document.currentScript as HTMLScriptElement;
+  let jsEvalPromise: Promise<void> | undefined
   const head = loader.parentElement as HTMLElement
     , scripts: HTMLScriptElement[] = [loader]
     , prefix = browser_.runtime.getURL("")
@@ -42,6 +43,14 @@ var VApi: VApiTy | undefined, VimiumInjector: VimiumInjectorTy | undefined | nul
     VApi && (VApi.$r = (event: InjectorTask) => {
       event === InjectorTask.extInited &&
       document.dispatchEvent(new CustomEvent(GlobalConsts.kLoadEvent))
+    }, VApi.v = function tryEval(code: string): unknown {
+      jsEvalPromise = jsEvalPromise || new Promise((resolve): void => {
+        const script = document.createElement("script")
+        script.src = `/lib/simple_eval.js`
+        script.onload = (): void => { script.remove(); resolve() }
+        document.head!.appendChild(script)
+      })
+      return jsEvalPromise.then(() => VApi!.v !== tryEval ? (VApi!.v = VApi!.v.tryEval || VApi!.v)(code) : undefined)
     })
     !(Build.BTypes & BrowserType.Edge)
     && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinUsableScript$type$$module$InExtensions)
