@@ -2,7 +2,7 @@ import { CONST_, CurCVer_, helpDialogData_, IsEdg_, keyToCommandMap_, OnChrome, 
 import * as BgUtils_ from "./utils"
 import { browser_ } from "./browser"
 import { convertToUrl_ } from "./normalize_urls"
-import { normalizedOptions_ } from "./key_mappings"
+import { inlineRunKey_ } from "./run_keys"
 
 type NoAliasInCNames<k extends kCName> =
     k extends `${string}activate${string}Mode${string}` | `${string}Unhover` | `${string}CS${string}`
@@ -66,13 +66,13 @@ export const render_ = (isOptionsPage: boolean, showNames: boolean | null | unde
     showNames = isOptionsPage || !!showNames
     keyToCommandMap_.forEach((registry, key): void => {
       if (key.startsWith("<v-") && key.endsWith(">")) { return }
-      const command = normalizeCmdName(registry.command_)
-      let keys = commandToKeys.get(command)
-      keys || commandToKeys.set(command, keys = [])
-      if (typeof registry.options_ === "string" && (<RegExpOne> /\$(?:key|desc)=/).test(registry.options_)) {
-        normalizedOptions_(registry)
+      let rawCommand = registry.command_
+      if (registry.alias_ === kBgCmd.runKey && registry.background_) {
+        rawCommand = inlineRunKey_(registry) || rawCommand
       }
-      keys.push([key, registry])
+      const command = normalizeCmdName(rawCommand)
+      let keys = commandToKeys.get(command)
+      keys ? keys.push([key, registry]) : commandToKeys.set(command, [[key, registry]])
     })
     const result = BgUtils_.safer_<Dict<string>>({
       title: i18n_.get(isOptionsPage ? "cmdList" : "help") || "",

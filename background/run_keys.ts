@@ -12,7 +12,7 @@ import {
 } from "./key_mappings"
 import {
   copyCmdOptions, executeCommand, overrideOption, parseFallbackOptions, replaceCmdOptions, runNextCmdBy,
-  fillOptionWithMask
+  fillOptionWithMask, concatOptions
 } from "./run_commands"
 import C = kBgCmd
 import NormalizedEnvCond = CommandsNS.NormalizedEnvCond
@@ -152,10 +152,18 @@ const normalizeExpects = (options: KnownOptions<C.runKey>): (NormalizedEnvCond |
         i && i.env && i.env !== "__proto__" && i.keys.length ? i : null)
   overrideOption<C.runKey, "expect">("expect", new_rules, options)
   overrideOption<C.runKey, "keys">("keys", normalizeKeys(options.keys), options)
-  overrideOption<C.runKey, "$normalized">("$normalized", true, options)
+  overrideOption<C.runKey, "$normalized">("$normalized", 1, options)
   return new_rules
 }
 
+const normalizeKeySeq = (seq: string): SingleSequence => {
+  const optionsPrefix = seq.startsWith("#") ? seq.split("+", 1)[0] : ""
+  return { tree: parseKeySeq(seq.slice(optionsPrefix ? optionsPrefix.length + 1 : 0)),
+      options: optionsPrefix.length > 1 ? parseEmbeddedOptions(optionsPrefix.slice(1)) : null }
+}
+
+
+interface SingleSequence { tree: ListNode | ErrorNode; options: CommandsNS.RawOptions | null }
 /** not call runNextCmd on invalid env/key info, but just show HUD to alert */
 export const runKeyWithCond = (info?: CurrentEnvCache): void => {
   const absCRepeat = abs(cRepeat)
@@ -194,9 +202,8 @@ export const runKeyWithCond = (info?: CurrentEnvCache): void => {
       break
     }
   }
-  interface SingleSequence { tree: ListNode | ErrorNode; options: CommandsNS.RawOptions | null }
   const keys = (matched ? matched.keys : get_cOptions<C.runKey, true>().keys) as (string | SingleSequence)[]
-  let seq: string | SingleSequence, key: string | ListNode | ErrorNode, keysInd: number
+  let seq: string | SingleSequence, keysInd: number
   const sub_name = matched ? typeof matched.env === "string" ? `[${matched.env}]: `
       : `(${expected_rules.indexOf(matched)})` : ""
   if (keys.length === 0) {
@@ -209,7 +216,6 @@ export const runKeyWithCond = (info?: CurrentEnvCache): void => {
     showHUD(sub_name + "The key is invalid")
   } else {
     let repeat = keys.length === 1 ? cRepeat : 1
-    let options2: CommandsNS.RawOptions | null
     if (typeof seq === "string") {
       let mask = get_cOptions<C.runKey, true>().mask
       if (mask != null) {
@@ -220,20 +226,14 @@ export const runKeyWithCond = (info?: CurrentEnvCache): void => {
         }
         mask = filled.ok > 0; seq = filled.result; repeat = filled.useCount ? 1 : repeat
       }
-      const optionsPrefix = seq.startsWith("#") ? seq.split("+", 1)[0] : ""
-      options2 = optionsPrefix.length > 1 ? parseEmbeddedOptions(optionsPrefix.slice(1)) : null
-      key = parseKeySeq(seq.slice(optionsPrefix ? optionsPrefix.length + 1 : 0))
-      seq = { tree: key, options: options2 }
+      seq = normalizeKeySeq(seq)
       mask || (keys[keysInd] = seq)
-    } else {
-      key = seq.tree, options2 = seq.options
     }
+    const key = seq.tree, options2 = seq.options
+    if (key.t === kN.error || (As_<ListNode>(key)).val.length === 0) { key.t === kN.error && showHUD(key.val); return }
     let options = matched && matched.options || get_cOptions<C.runKey, true>().options
         || (get_cOptions<C.runKey, true>().$masked ? null : collectOptions(get_cOptions<C.runKey, true>()))
-    options = !options2 || !options ? options || options2
-        : copyCmdOptions(copyCmdOptions(BgUtils_.safeObj_(), options2), options as CommandsNS.Options)
-    if (key.t === kN.error) { showHUD(key.val); return }
-    else if ((As_<ListNode>(key)).val.length === 0) { return }
+    options = concatOptions(options, options2)
     const newIntId = loopIdToRunSeq = (loopIdToRunSeq + 1) % 64 || 1
     const seqId = kStr.RunKeyWithId.replace("$1", "" + newIntId as "1")
     if (key.val.length > 1 || key.val[0].t !== kN.key) {
@@ -453,8 +453,7 @@ export const parseEmbeddedOptions = (/** has no prefixed "#" */ str: string): Co
 const runOneKey = (cursor: KeyNode, seq: BgCmdOptions[C.runKey]["$seq"], envInfo: CurrentEnvCache | null): void => {
   const info = parseKeyNode(cursor)
   const isFirst = seq.cursor === seq.keys, hasCount = isFirst || info.prefix.includes("$c")
-  let options = !seq.options || !info.options ? seq.options || info.options
-      : copyCmdOptions(copyCmdOptions(BgUtils_.safeObj_(), info.options), seq.options as CommandsNS.Options)
+  let options = concatOptions(seq.options, info.options)
   seq.cursor = cursor
   runKeyWithOptions(info.key, info.count * (hasCount ? seq.repeat : 1), options, envInfo, null, isFirst)
 }
@@ -538,6 +537,52 @@ const runKeyWithOptions = (key: string, count: number, exOptions: CommandsNS.Env
   }
   set_cEnv(envInfo)
   executeCommand(registryEntry, count, cKey, cPort, 0, fallbackCounter)
+}
+
+/** return whether skip it in help dialog or not */
+export const inlineRunKey_ = (rootRegistry: Writable<CommandsNS.Item>): kCName | void => {
+  let fullOpts: KnownOptions<C.runKey> & SafeObject | null = normalizedOptions_(rootRegistry)
+  if (!fullOpts) { fullOpts = rootRegistry.options_ = BgUtils_.safeObj_() }
+  if (fullOpts.$normalized === 2) { return rootRegistry.command_ }
+  let keyOpts: KnownOptions<C.runKey> & SafeObject = fullOpts, canInline = true
+  normalizeExpects(keyOpts)
+  keyOpts.$normalized = 2
+  while (keyOpts && normalizeExpects(keyOpts).length === 0 && keyOpts.keys!.length >= 1) {
+    let keys = keyOpts.keys as (string | SingleSequence)[], seq = keys[0]
+    canInline = canInline && keyOpts.keys!.length === 1
+    if (typeof seq === "string") {
+      let mask = keyOpts.mask
+      if (mask != null) {
+        keyOpts !== fullOpts && (keyOpts = fullOpts = concatOptions(keyOpts, fullOpts)!)
+        const filled = fillOptionWithMask<C.runKey>(seq, mask, "", kRunKeyOptionNames, 1, fullOpts)
+        if (!filled.ok) { return }
+        mask = filled.ok > 0; seq = filled.result
+        canInline = canInline && (!!filled.value && !filled.useCount)
+      }
+      seq = normalizeKeySeq(seq)
+      mask || (keys[0] = seq)
+    }
+    const first = seq.tree.t === kN.list ? nextKeyInSeq(seq.tree, 1) : null
+    if (!first) { return }
+    canInline = canInline && (seq.tree as ListNode).val.length === 1 && (seq.tree as ListNode).val[0] === first
+    const info = parseKeyNode(first), key = info.key
+    const parentEntry = keyToCommandMap_.get(key) || !key.includes("<") && keyToCommandMap_.get(`<v-${key}>`) || null
+    const newName = parentEntry ? parentEntry.command_ : key in availableCommands_ ? key as kCName : null
+    if (!newName) { return }
+    const doesContinue = parentEntry != null && parentEntry.alias_ === C.runKey && parentEntry.background_
+    if (doesContinue || canInline) {
+      keyOpts !== fullOpts && (keyOpts = fullOpts = concatOptions(keyOpts, fullOpts)!)
+      fullOpts = (fullOpts.options || (fullOpts.$masked ? null : collectOptions(fullOpts))) as typeof fullOpts
+      fullOpts = concatOptions(concatOptions(fullOpts, seq.options), info.options) as typeof fullOpts
+    }
+    if (!doesContinue) {
+      canInline ? Object.assign(rootRegistry, makeCommand_(newName, fullOpts)) : (rootRegistry.command_ = newName)
+      return newName
+    }
+    keyOpts = fullOpts && (fullOpts.keys !== void 0 || fullOpts.expect !== void 0 || fullOpts.mask !== void 0)
+        ? fullOpts = concatOptions(normalizedOptions_(parentEntry), fullOpts)!
+        : normalizedOptions_(parentEntry)!
+  }
 }
 
 //#endregion

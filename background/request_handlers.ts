@@ -21,7 +21,7 @@ import {
   sendFgCmd, replaceCmdOptions, onConfirmResponse, executeCommand, portSendFgCmd,
   waitAndRunKeyReq, runNextCmdBy, parseFallbackOptions
 } from "./run_commands"
-import { parseEmbeddedOptions, runKeyWithCond } from "./run_keys"
+import { inlineRunKey_, parseEmbeddedOptions, runKeyWithCond } from "./run_keys"
 import { focusOrLaunch_, openJSUrl, openUrlReq } from "./open_urls"
 import {
   initHelp, openImgReq, framesGoBack, enterVisualMode, showVomnibar, parentFrame, nextFrame, performFind, focusFrame
@@ -341,6 +341,7 @@ set_reqH_([
     }
     BgUtils_.resetRe_()
     if (registryEntry) {
+      if (registryEntry.alias_ === kBgCmd.runKey && registryEntry.background_) { inlineRunKey_(registryEntry) }
       request.e && set_cEnv({ element: BgUtils_.normalizeElDesc_(request.e) })
       executeCommand(registryEntry, count, request.l, port, 0, null)
     }

@@ -28,17 +28,30 @@ export const replaceCmdOptions = <T extends keyof BgCmdOptions> (known: CmdOptio
 export const copyCmdOptions = (dest: CommandsNS.RawOptions, src: CommandsNS.Options): CommandsNS.RawOptions => {
   for (const i in src) {
     if (i[0] !== "$" || "$then=$else=$retry=$f=".includes(i + "=") && !i.includes("=")) {
-      i in dest || (dest[i] = src[i])
+      dest[i] !== void 0 || (dest[i] = src[i])
     }
   }
   return dest
+}
+
+const copyAnyOptions = <T extends object, T2 extends object> (dest: T & Partial<T2>, a: T2): T & T2 => {
+  for (const i in a) {
+    dest[i] !== void 0 || ((dest as Partial<T2>)[i as keyof T2] = a[i as keyof T2]);
+  }
+  return dest as T & T2;
+}
+
+export const concatOptions = (base?: CommandsNS.Options | CommandsNS.EnvItemOptions | null
+    , updates?: CommandsNS.Options | null): CommandsNS.Options | null => {
+  return !updates || !base ? (base as CommandsNS.Options | null | undefined) || updates || null
+      : copyCmdOptions(copyCmdOptions(BgUtils_.safeObj_(), updates), base as CommandsNS.Options)
 }
 
 /** keep all private and public fields in cOptions */
 export const overrideCmdOptions = <T extends keyof BgCmdOptions> (known: CmdOptionSafeToClone<T>
     , disconnected?: boolean, oriOptions?: Readonly<KnownOptions<T>> & SafeObject): void => {
   const old = oriOptions || get_cOptions<T, true>()
-  BgUtils_.extendIf_(BgUtils_.safer_(known as KnownOptions<T>), old);
+  copyAnyOptions(BgUtils_.safer_(known as KnownOptions<T>), old)
   if (!disconnected) {
     (known as any as CommandsNS.Options).$o = old
   } else {
@@ -68,39 +81,41 @@ export const overrideOption = <T extends BgCmdCanBeOverride, K extends KeyCanBeO
 export const fillOptionWithMask = <Cmd extends keyof BgCmdOptions>(template: string
     , rawMask: MaskOptions["mask"] | UnknownValue, valueKey: (keyof BgCmdOptions[Cmd]) & string | ""
     , stopWords: readonly (Exclude<keyof BgCmdOptions[Cmd], `$${string}` | `o.${string}`>)[]
-    , count: number
-    ): { ok: 1 | -1, result: string, useCount: boolean } | { ok: 0, result: number } => {
+    , count: number, options?: UnknownOptions<Cmd> & SafeObject
+    ): { ok: 1 | -1, value: string, result: string, useCount: boolean } | { ok: 0, result: number } => {
   let ok: 1 | -1 = -1, toDelete: string | undefined, mask = rawMask, useDefaultMask = mask === true || mask === ""
   if (useDefaultMask) { mask = template.includes("$s") ? "$s" : "%s" }
+  let value = "", maskCount: string, useCount = false
+  if (useDefaultMask && (template.includes(maskCount = "$c") || template.includes(maskCount = "%c"))) {
+    template = template.replace(maskCount, (): string => "" + count)
+    ok = 1; useCount = true
+  }
   if (mask && typeof mask === "string" && template.includes(mask)) {
-    let name = valueKey && (get_cOptions<Cmd>())[valueKey] as string | UnknownValue
+    let name = valueKey && (options || get_cOptions<Cmd>())[valueKey] as string | UnknownValue
     if (!name) {
-      const keys = Object.keys(get_cOptions<Cmd>()).filter(i => i[0] !== "$" && !stopWords.includes!(i))
-      if (keys.length !== 1 && rawMask !== "") { return { ok: 0, result: keys.length } }
+      const keys = Object.keys(options || get_cOptions<Cmd>()).filter(i => i[0] !== "$" && !stopWords.includes!(i))
       if (keys.length === 1) {
         name = toDelete = keys[0]
       } else {
+        if (rawMask !== "") { return { ok: 0, result: keys.length } }
         name = ""
       }
     } else {
       toDelete = valueKey
     }
-    template = template.replace(mask, (): string => "" + name)
+    value = name + ""
+    template = template.replace(mask, (): string => value)
     ok = 1
   }
-  let maskCount: string, useCount = false
-  if (useDefaultMask && (template.includes(maskCount = "$c") || template.includes(maskCount = "%c"))) {
-    template = template.replace(maskCount, (): string => "" + count)
-    ok = 1; useCount = true
-  }
-  if (mask) {
-    overrideCmdOptions<C.blank>({})
-    get_cOptions<C.runKey, true>().$masked = true
+  if (mask && typeof mask === "string") {
+    const newOptions: UnknownOptions<Cmd> = options || {}
+    options || overrideCmdOptions<C.blank>(newOptions);
+    (newOptions as KnownOptions<C.runKey>).$masked = true
     if (toDelete) {
-      delete get_cOptions<C.runKey, true>()[toDelete as keyof BgCmdOptions[C.runKey]]
+      delete (newOptions as KnownOptions<C.runKey>)[toDelete as keyof BgCmdOptions[C.runKey]]
     }
   }
-  return { ok, result: template, useCount }
+  return { ok, value, result: template, useCount }
 }
 
 /** execute a command normally */

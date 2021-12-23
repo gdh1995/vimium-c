@@ -115,9 +115,9 @@ interface BgCmdOptions {
   [kBgCmd.runKey]: {
     expect: (CommandsNS.CondItem | null)[] | Dict<CommandsNS.CondItem | CommandsNS.CondKeys>
         | `${string}:${string},${string}:${string},`
-    keys: string[] | /** space-seperated list */ string
+    keys: string[] | /** comma/space-seperated list */ string
     options?: CommandsNS.EnvItem["options"]
-    $normalized?: boolean
+    $normalized?: 0 | 1 | 2
     [key: `o.${string}`]: any
     // [key2: string]: any // this will always be overwritten by its corresponding `o.${key2}` version
     $seq: {
