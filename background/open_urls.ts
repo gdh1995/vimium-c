@@ -124,7 +124,7 @@ const onEvalUrl_ = (workType: Urls.WorkType, options: KnownOptions<C.openUrl>, t
       overrideCmdOptions<C.openUrl>({}, true)
       overrideOption<C.openUrl, "$p">("$p", 1)
     }
-    openUrlWithActions(convertToUrl_((arr as Urls.PasteEvalResult)[0]), workType, tabs)
+    openUrlWithActions(convertToUrl_((arr as Urls.PasteEvalResult)[0]), workType, false, tabs)
     break
   case Urls.kEval.status:
     if (workType >= Urls.WorkType.EvenAffectStatus && arr[0]) {
@@ -214,9 +214,10 @@ export const parseReuse = (reuse: UserReuseType | null | undefined): ReuseType =
       reuse in ReuseValues ? ReuseValues[reuse as keyof typeof ReuseValues] : ReuseType.newFg)
 
 
-const fillUrlMasks = (url: string, tabs: [Tab?] | undefined, url_mark: string | UnknownValue): string => {
+const fillUrlMasks = (url: string, tabs: [Tab?] | undefined, url_mask: string | boolean | UnknownValue): string => {
   const tabUrl = tabs && tabs.length > 0 ? getTabUrl(tabs[0]!) : ""
-  const masks: Array<string | UnknownValue> = [url_mark,
+  const masks: Array<string | UnknownValue> = [url_mask !== true ? url_mask === false ? "" : url_mask
+      : ((<RegExpI> /[%$]s/i).exec(url) || ["${url_mask}"])[0],
     get_cOptions<C.openUrl>().host_mask || get_cOptions<C.openUrl>().host_mark,
     get_cOptions<C.openUrl>().tabid_mask || get_cOptions<C.openUrl>().tabId_mask
       || get_cOptions<C.openUrl>().tabid_mark || get_cOptions<C.openUrl>().tabId_mark,
@@ -515,12 +516,16 @@ const openUrls = (tabs: [Tab] | [] | undefined): void => {
   openUrlInNewTab(urls, reuse, options, tabs)
 }
 
-export const openUrlWithActions = (url: Urls.Url, workType: Urls.WorkType, tabs?: [Tab] | []): void => {
+export const openUrlWithActions = (url: Urls.Url, workType: Urls.WorkType, sed?: boolean, tabs?: [Tab] | []): void => {
   if (typeof url !== "string") { /* empty */ }
   else if (url || workType !== Urls.WorkType.FakeType) {
     let url_mask = get_cOptions<C.openUrl>().url_mask, umark = get_cOptions<C.openUrl>().url_mark
     if (url_mask != null || umark != null) {
       url = /*#__NOINLINE__*/ fillUrlMasks(url, tabs, url_mask != null ? url_mask : umark!)
+    }
+    if (sed) {
+      const postSed = parseSedOptions_(get_cOptions<C.openUrl, true>())
+      url = substitute_(url, SedContext.NONE, postSed)
     }
     if (workType !== Urls.WorkType.FakeType) {
       const keyword = (get_cOptions<C.openUrl>().keyword as AllowToString || "") + ""
@@ -622,7 +627,7 @@ const openCopiedUrl = (tabs: [Tab] | [] | undefined, url: string | null): void =
         ? arr[1].length : 0
     url = type ? url.slice(0, start) + (type > 6 ? "127.0.0.1" : "[::1]") + url.slice(start + type) : url
   }
-  openUrlWithActions(url, Urls.WorkType.ActAnyway, tabs)
+  openUrlWithActions(url, Urls.WorkType.ActAnyway, false, tabs)
 }
 
 export const goToNextUrl = (url: string, count: number, abs: true | "absolute"): [found: boolean, newUrl: string] => {
@@ -655,9 +660,7 @@ export const openUrl = (tabs?: [Tab] | []): void => {
   }
   let rawUrl = get_cOptions<C.openUrl>().url
   if (rawUrl) {
-    let sed = parseSedOptions_(get_cOptions<C.openUrl, true>())
-    rawUrl = sed ? substitute_(rawUrl as AllowToString + "", SedContext.NONE, sed) : rawUrl as AllowToString + ""
-    openUrlWithActions(rawUrl, Urls.WorkType.EvenAffectStatus, tabs)
+    openUrlWithActions(rawUrl as AllowToString + "", Urls.WorkType.EvenAffectStatus, true, tabs)
   } else if (get_cOptions<C.openUrl>().copied) {
     const url = paste_(parseSedOptions_(get_cOptions<C.openUrl, true>()))
     if (url instanceof Promise) {
@@ -667,8 +670,7 @@ export const openUrl = (tabs?: [Tab] | []): void => {
     }
   } else {
     let url_f = get_cOptions<C.openUrl, true>().url_f!
-    // no sed
-    openUrlWithActions(url_f || "", Urls.WorkType.FakeType, tabs)
+    openUrlWithActions(url_f || "", Urls.WorkType.FakeType, false, tabs)
   }
 }
 

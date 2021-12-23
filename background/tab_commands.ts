@@ -694,10 +694,10 @@ export const toggleTabUrl = (tabs: [Tab], resolve: OnCmdResolved): void | kBgCmd
     const query = parseSearchUrl_({ u: url })
     if (query && query.k === keyword) {
       overrideCmdOptions<kBgCmd.openUrl>({ keyword: ""})
-      openUrlWithActions(query.u, Urls.WorkType.Default, tabs)
+      openUrlWithActions(query.u, Urls.WorkType.Default, true, tabs)
     } else {
       url = convertToUrl_(query && get_cOptions<C.toggleTabUrl>().parsed ? query.u : url, keyword)
-      openUrlWithActions(url, Urls.WorkType.FakeType, tabs)
+      openUrlWithActions(url, Urls.WorkType.FakeType, true, tabs)
     }
     return
   }
@@ -712,7 +712,7 @@ export const toggleTabUrl = (tabs: [Tab], resolve: OnCmdResolved): void | kBgCmd
       url = url.startsWith("read:") ? BgUtils_.DecodeURLPart_(url.slice(url.indexOf("?url=") + 5))
           : `read://${new URL(url).origin.replace(<RegExpG> /:\/\/|:/g, "_")}/?url=${
               BgUtils_.encodeAsciiComponent_(url)}`
-      openUrlWithActions(url, Urls.WorkType.FakeType, tabs)
+      openUrlWithActions(url, Urls.WorkType.FakeType, true, tabs)
     } else {
       complainLimits(trans_("noReader"))
       resolve(0)
@@ -720,7 +720,7 @@ export const toggleTabUrl = (tabs: [Tab], resolve: OnCmdResolved): void | kBgCmd
     return
   }
   url = url.startsWith("view-source:") ? url.slice(12) : ("view-source:" + url)
-  openUrlWithActions(url, Urls.WorkType.FakeType, tabs)
+  openUrlWithActions(url, Urls.WorkType.FakeType, true, tabs)
 }
 
 export const reopenTab_ = (tab: Tab, refresh?: /* false */ 0 | /* a temp blank tab */ 1 | /* directly */ 2
