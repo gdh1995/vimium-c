@@ -209,10 +209,8 @@ export const onKeydown = (event: KeyboardEventToPrevent): void => {
         event.repeat && focusUpper(key, true, event);
         action = /* the real is HandlerResult.PassKey; here's for smaller code */ HandlerResult.Nothing;
       } else {
-        action = insert_global_ && insert_global_.p
-            ? (OnChrome && checkAccessKey_cr(eventWrapper), HandlerResult.Nothing)
-            : HandlerResult.Prevent
-        /*#__NOINLINE__*/ exitInsertMode(event.target as Element);
+        OnChrome && checkAccessKey_cr(eventWrapper)
+        action = /*#__NOINLINE__*/ exitInsertMode(event.target as Element, eventWrapper)
       }
     }
   }

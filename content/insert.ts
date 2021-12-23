@@ -1,6 +1,7 @@
 import {
   doc, keydownEvents_, safeObj, isTop, set_keydownEvents_, setupEventListener, Stop_, OnChrome, OnFirefox, weakRef_ff,
-  esc, onWndFocus, isEnabled_, readyState_, injector, recordLog, weakRef_not_ff, OnEdge, getTime, math
+  esc, onWndFocus, isEnabled_, readyState_, injector, recordLog, weakRef_not_ff, OnEdge, getTime, math, fgCache,
+  safeCall, timeout_
 } from "../lib/utils"
 import { post_, runFallbackKey, safePost } from "./port"
 import { getParentVApi, ui_box } from "./dom_ui"
@@ -8,10 +9,10 @@ import { hudHide } from "./hud"
 import { set_currentScrolling, scrollTick, set_cachedScrollable } from "./scroller"
 import { set_isCmdTriggered, resetAnyClickHandler, onPassKey } from "./key_handler"
 import {
-  activeEl_unsafe_, getEditableType_, GetShadowRoot_, getSelection_, frameElement_, deepActiveEl_unsafe_,
-  SafeEl_not_ff_, MDW, fullscreenEl_unsafe_, removeEl_s, isNode_, BU, docHasFocus_, getRootNode_mounted
+  activeEl_unsafe_, getEditableType_, GetShadowRoot_, getSelection_, frameElement_, deepActiveEl_unsafe_, blur_unsafe,
+  SafeEl_not_ff_, MDW, fullscreenEl_unsafe_, removeEl_s, isNode_, BU, docHasFocus_, getRootNode_mounted, testMatch,
 } from "../lib/dom_utils"
-import { pushHandler_, removeHandler_, prevent_ } from "../lib/keyboard_utils"
+import { pushHandler_, removeHandler_, prevent_, isEscape_ } from "../lib/keyboard_utils"
 import { InputHintItem } from "./link_hints"
 
 const enum kNodeInfo { NONE = 0, ShadowBlur = 1, ShadowFull = 2 }
@@ -174,21 +175,29 @@ export const focusUpper = (key: kKeyCode, force: boolean, event: ToPrevent | 0):
   }
 }
 
-export const exitInsertMode = (target: Element): void => {
-  if (GetShadowRoot_(target)) {
-    if (target = lock_ as unknown as Element) {
-      lock_ = null;
-      (target as LockableElement).blur();
-    }
-  } else if (target === lock_ ? (lock_ = null, 1) : getEditableType_(target)) {
-    (target as LockableElement).blur();
+export const exitInsertMode = <(target: Element, event?: HandlerNS.Event) => HandlerResult> ((
+    target: LockableElement | null, event?: HandlerNS.Event): HandlerResult => {
+  if (GetShadowRoot_(target!) || target === lock_) {
+    target = lock_
+    lock_ = null
+  } else {
+    target = getEditableType_(target!) ? target : null
+  }
+  let match: boolean | void = !1
+  const ret = insert_global_ && insert_global_.p || target && event
+      && (fgCache.p && (match = safeCall(testMatch, fgCache.p, [target])))
+      && isEscape_(event.c) ? HandlerResult.Nothing : HandlerResult.Prevent
+  if (target) {
+    ret ? target.blur() : timeout_(blur_unsafe.bind(0, target), 0)
+    match !== !!match && (fgCache.p = "")
   }
   if (insert_global_) {
     insert_global_.t && runFallbackKey(insert_global_.t, 0)
     insert_global_ = null
     hudHide();
   }
-}
+  return ret
+})
 
 export const exitInputHint = (): void => {
   if (inputHint) {

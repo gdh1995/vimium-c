@@ -321,6 +321,7 @@ declare namespace SettingsNS {
     /** filterLinkHints */ f: ["filterLinkHints", boolean];
     /** waitForEnter */ w: ["waitForEnter", boolean];
     /** mouseReachable */ e: ["mouseReachable", boolean];
+    /** passEsc */ p: ["passEsc", string];
     /** regexFindMode */ r: ["regexFindMode", boolean];
     /** scrollStepSize */ t: ["scrollStepSize", number];
     /** smoothScroll */ s: ["smoothScroll", boolean];

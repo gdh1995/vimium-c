@@ -240,7 +240,7 @@ export class TextOption_<T extends TextualizedOptionNames> extends Option_<T> {
     return p
   }
   override populateElement_ (value: AllowedOptions[T] | string, enableUndo?: boolean): void {
-    const value2 = (value as string).replace(<RegExpG> / /g, "\xa0")
+    const value2 = this.formatValue_(value).replace(<RegExpG> / /g, "\xa0")
     if (enableUndo !== true) {
       this.element_.value = value2
     } else {
@@ -248,6 +248,7 @@ export class TextOption_<T extends TextualizedOptionNames> extends Option_<T> {
     }
   }
   readRaw_ (): string { return this.element_.value.trim().replace(<RegExpG> /\xa0/g, " ") }
+  formatValue_ (value: AllowedOptions[T] | string): string { return value as string }
   /** @returns `string` in fact */
   override readValueFromElement_ (): AllowedOptions[T] {
     let value = this.readRaw_()
@@ -259,7 +260,7 @@ export class TextOption_<T extends TextualizedOptionNames> extends Option_<T> {
     }
     return value as AllowedOptions[T]
   }
-  override doesPopulateOnSave_ (val: AllowedOptions[T]): boolean { return val !== this.readRaw_() }
+  override doesPopulateOnSave_ (val: AllowedOptions[T]): boolean { return this.formatValue_(val) !== this.readRaw_() }
   showError_ (msg: string, tag?: OptionErrorType | null): void {
     const hasError = !!msg
     if (!hasError && !this._lastError) { return }
@@ -318,21 +319,16 @@ export class NonEmptyTextOption_<T extends TextOptionNames> extends TextOption_<
 
 export type JSONOptionNames = PossibleOptionNames<object>
 export class JSONOption_<T extends JSONOptionNames> extends TextOption_<T> {
-  formatValue_ (obj: AllowedOptions[T]): string {
+  override formatValue_ (obj: AllowedOptions[T]): string {
     const one = this.element_ instanceof HTMLInputElement, s0 = JSON.stringify(obj, null, one ? 1 : 2)
     return one ? s0.replace(<RegExpG & RegExpSearchable<1>> /(,?)\n\s*/g, (_, s) => s ? ", " : "") : s0
   }
-  override populateElement_ (obj: AllowedOptions[T], enableUndo?: boolean): void {
-    super.populateElement_(this.formatValue_(obj), enableUndo)
-  }
-  override doesPopulateOnSave_ (obj: AllowedOptions[T]): boolean { return this.formatValue_(obj) !== this.readRaw_() }
   override readValueFromElement_ (): AllowedOptions[T] {
     let value = super.readValueFromElement_(), obj: AllowedOptions[T] = null as never
     if (value) {
       try {
         obj = JSON.parse<AllowedOptions[T]>(value as AllowedOptions[T] & string)
-      } catch {
-      }
+      } catch { /* empty */ }
     } else {
       obj = bgSettings_.defaults_[this.field_]
       this.populateElement_(obj, true)
@@ -367,8 +363,8 @@ export class MaskedText_<T extends TextOptionNames> extends TextOption_<T> {
     }
     super.populateElement_(value, enableUndo)
   }
-  override readValueFromElement_ (): AllowedOptions[T] {
-    return this.masked_ ? this.previous_ : super.readValueFromElement_()
+  override readRaw_(): string {
+    return this.masked_ ? this.previous_ : super.readRaw_()
   }
 }
 
@@ -595,3 +591,8 @@ Option_.all_.userDefinedCss.onSave_ = function () {
 Option_.all_.autoReduceMotion.onSave_ = function (): void {
   nextTick_(() => { toggleReduceMotion(this.previous_) })
 }
+
+Option_.all_.passEsc.readValueFromElement_ = function (): string {
+  return NonEmptyTextOption_.prototype.readValueFromElement_.call(this).replace(<RegExpG> /, /g, ",")
+}
+Option_.all_.passEsc.formatValue_ = (value: string): string => value.replace(<RegExpG> /,/g, ", ")

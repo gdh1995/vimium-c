@@ -93,7 +93,7 @@ set_requestHandlers([
         } else if (OnChrome && Build.MinCVer < BrowserVer.MinNewWeakSetWithSetOrArray) {
           set_clickable_(parApi ? parApi.y().c : new WeakSet!<Element>())
           oldSet.forEach(clickable_.add, clickable_)
-        } else if (parApi) {
+        } else if (Build.NDEBUG && parApi) {
           set_clickable_(parApi.y().c)
           oldSet.forEach(clickable_.add, clickable_);
         } else {

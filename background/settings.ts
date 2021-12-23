@@ -247,6 +247,7 @@ shortcut-forwarding-tool@gdh1995.cn`
     nextPatterns: "\u4e0b\u4e00\u5c01,\u4e0b\u9875,\u4e0b\u4e00\u9875,\u4e0b\u4e00\u7ae0,\u540e\u4e00\u9875\
 ,next,more,newer,>,\u203a,\u2192,\xbb,\u226b,>>",
     omniBlockList: "",
+    passEsc: "[aria-controls],[role=combobox],#kw.s_ipt", // MS Bing / Google / Baidu
     previousPatterns: "\u4e0a\u4e00\u5c01,\u4e0a\u9875,\u4e0a\u4e00\u9875,\u4e0a\u4e00\u7ae0,\u524d\u4e00\u9875\
 ,prev,previous,back,older,<,\u2039,\u2190,\xab,\u226a,<<",
     regexFindMode: false,
@@ -386,7 +387,7 @@ export const valuesToLoad_ = <SettingsNS.AutoSyncedNameMap> As_<SettingsNS.AutoS
     ignoreKeyboardLayout: "l",
     mapModifier: "a",
     mouseReachable: "e",
-    keyboard: "k", linkHintCharacters: "c", linkHintNumbers: "n",
+    keyboard: "k", linkHintCharacters: "c", linkHintNumbers: "n", passEsc: "p",
     regexFindMode: "r", smoothScroll: "s", scrollStepSize: "t", waitForEnter: "w"
 })
 
