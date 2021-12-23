@@ -366,8 +366,9 @@ const nextKeyInSeq = (lastCursor: ListNode | KeyNode, dir: number): KeyNode | nu
 export const runKeyInSeq = (seq: BgCmdOptions[C.runKey]["$seq"], dir: number
     , fallback: Req.FallbackOptions["$f"] | null, envInfo: CurrentEnvCache | null): void => {
   const cursor: KeyNode | null = nextKeyInSeq(seq.cursor as ListNode | KeyNode, dir)
-  const isLast = !cursor || !(nextKeyInSeq(cursor, 1) || nextKeyInSeq(cursor, -1))
-  const finalFallback = seq.fallback
+  const ifOk = cursor && nextKeyInSeq(cursor, 1), ifFail = cursor && nextKeyInSeq(cursor, -1)
+  const isLast = !(cursor && (ifOk || ifFail))
+  const finalFallback = seq.fallback, cmdOptions = get_cOptions<C.runKey, true>()
   const seqId = seq.id
   if (isLast) {
     keyToCommandMap_.delete(seqId)
@@ -376,7 +377,7 @@ export const runKeyInSeq = (seq: BgCmdOptions[C.runKey]["$seq"], dir: number
       loopIdToRunSeq = Math.max(--loopIdToRunSeq, 0)
     }
     if (cursor) {
-      delete get_cOptions<C.runKey, true>().$then, delete get_cOptions<C.runKey, true>().$else
+      delete cmdOptions.$then, delete cmdOptions.$else
       if (finalFallback) {
         seq.options = seq.options ? Object.assign(finalFallback, seq.options) : finalFallback
       }
@@ -390,6 +391,12 @@ export const runKeyInSeq = (seq: BgCmdOptions[C.runKey]["$seq"], dir: number
     }
     dir < 0 && fallback && fallback.t && showHUD(extTrans_(`${fallback.t as 99}`))
     return
+  }
+  if (ifOk && cmdOptions.$then && (typeof ifOk.val === "string" ? ifOk.val : ifOk.val.prefix).includes("$l")) {
+    cmdOptions.$then = "$l+" + cmdOptions.$then
+  }
+  if (ifFail && cmdOptions.$else && (typeof ifFail.val === "string" ? ifFail.val : ifFail.val.prefix).includes("$l")) {
+    cmdOptions.$else = "$l+" + cmdOptions.$else
   }
   const timeout = isLast ? 0 : seq.timeout = setTimeout((): void => {
     const old = keyToCommandMap_.get(seqId)
@@ -453,6 +460,7 @@ const runOneKey = (cursor: KeyNode, seq: BgCmdOptions[C.runKey]["$seq"], envInfo
 }
 
 set_runOneMapping_(As_<typeof runOneMapping_>((key, port, fStatus): void => {
+  key = key.replace(<RegExpOne> /^([$%][a-zA-Z]\+?)+(?=[\w-])/, "")
   const arr: null | string[] = (<RegExpOne> /^\d+|^-\d*/).exec(key)
   let count = 1
   if (arr != null) {
@@ -460,6 +468,7 @@ set_runOneMapping_(As_<typeof runOneMapping_>((key, port, fStatus): void => {
     key = key.slice(prefix.length)
     count = prefix !== "-" ? parseInt(prefix, 10) || 1 : -1
   }
+  key = key.replace(<RegExpOne> /^([$%][a-zA-Z]\+?)+(?=\w)/, "")
   let hash = 1
   while (hash = key.indexOf("#", hash) + 1) {
     const slice = key.slice(0, hash - 1)

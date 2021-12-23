@@ -564,25 +564,26 @@ set_bgC_([
       resolve(0)
       return showHUD(trans_("notRestoreIfIncog"))
     }
+    const notActive = get_cOptions<C.restoreTab>().active === false
+    const curTabId = cPort ? cPort.s.tabId_ : curTabId_
+    const runNext = getRunNextCmdBy(kRunOn.otherCb)
+    const cb = !notActive ? runNext : (): void => { runtimeError_() ? resolve(0) : selectTab(curTabId, runNext) }
     if (onlyOne && count > 1) {
       sessions.getRecentlyClosed({ maxResults: count }, (list?: chrome.sessions.Session[]): void => {
-        if (!list || count > list.length) {
-          resolve(0)
-          return showHUD(trans_("indexOOR"))
-        }
+        if (!list || count > list.length) { resolve(0); return showHUD(trans_("indexOOR")) }
         const session = list[count - 1], item = session && (session.tab || session.window)
-        if (!item) {
-          resolve(0)
-        } else {
-          sessions.restore(item.sessionId, getRunNextCmdBy(kRunOn.otherCb))
-        }
+        item ? sessions.restore(item.sessionId, cb) : resolve(0)
       })
-      return
+    } else if (count === 1) {
+      sessions.restore(null, cb)
+    } else {
+      const q: Promise<chrome.sessions.Session | undefined>[] = []
+      while (0 <= --count) { q.push(Q_(sessions.restore, null)) }
+      Promise.all(q).then((res): void => {
+        res[0] === undefined ? resolve(0) : notActive ? selectTab(curTabId, runNext) : resolve(1)
+      })
     }
-    sessions.restore(null, getRunNextCmdBy(kRunOn.otherCb))
-    while (0 < --count) {
-      sessions.restore(null, runtimeError_)
-    }
+    notActive && selectTab(curTabId, runtimeError_)
   },
   /* kBgCmd.runKey: */ (): void | kBgCmd.runKey => {
     get_cOptions<C.runKey>().$seq == null ? runKeyWithCond()

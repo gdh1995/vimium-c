@@ -431,7 +431,7 @@ export const runNextOnTabLoaded = (options: OpenUrlOptions | Req.FallbackOptions
     return
   }
   const onTimer = (tab1?: Tab): void => {
-    const now = Date.now(), isTimedOut = now < start - 500 || now - start >= timeout
+    const now = Date.now(), isTimedOut = now < start - 500 || now - start >= timeout || evenLoading
     // not clear the _gCmdTimer, in case a (new) tab closes itself and opens another tab
     if (!tab1 || !_gCmdTimer) { tabId = GlobalConsts.TabIdNone; return runtimeError_() }
     if (isTimedOut || tab1.status === "complete") {
@@ -447,11 +447,12 @@ export const runNextOnTabLoaded = (options: OpenUrlOptions | Req.FallbackOptions
     }
   }
   const timeout = targetTab !== false ? 1500 : 500
+  const evenLoading = !!nextKey && (<RegExpOne> /[$%]l/).test(nextKey.split("#", 1)[0])
   let tabId = targetTab ? targetTab.id : targetTab !== false ? GlobalConsts.TabIdNone : curTabId_,
   start = Date.now()
   setupSingletonCmdTimer(setInterval((): void => {
     tabsGet(tabId !== GlobalConsts.TabIdNone ? tabId : curTabId_, onTimer)
-  }, 100)) // it's safe to clear an interval using `clearTimeout`
+  }, evenLoading ? 50 : 100)) // it's safe to clear an interval using `clearTimeout`
 }
 
 export const waitAndRunKeyReq = (request: FgReq[kFgReq.nextKey], port: Port | null): void => {

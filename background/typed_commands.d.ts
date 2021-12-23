@@ -83,10 +83,10 @@ interface BgCmdOptions {
   } & TabFilterOptions
   [kBgCmd.mainFrame]: Req.FallbackOptions
   [kBgCmd.moveTab]: { group: "keep" | "ignore" | boolean }
-  [kBgCmd.moveTabToNewWindow]: { all: boolean | BOOL; focused: boolean; active: boolean }
+  [kBgCmd.moveTabToNewWindow]: { all: boolean | BOOL; focused: boolean; active: false }
       & Pick<OpenUrlOptions, "incognito" | "position"> & LimitedRangeOptions & TabFilterOptions
   [kBgCmd.moveTabToNextWindow]: { minimized: false; min: false; end: boolean; right: true | false
-      focused: boolean; active: boolean; last: boolean; tabs: boolean }
+      focused: boolean; active: false; last: boolean; tabs: boolean }
       & Pick<OpenUrlOptions, "position"> & LimitedRangeOptions & TabFilterOptions
   [kBgCmd.openUrl]: OpenUrlOptions & MasksForOpenUrl & {
     urls: string[]; $fmt: 1 | 2
@@ -111,7 +111,7 @@ interface BgCmdOptions {
     other: boolean; mayConfirm: true; noPinned: boolean
   } & TabFilterOptions & Req.FallbackOptions
   [kBgCmd.reopenTab]: Pick<OpenUrlOptions, "group"> & Req.FallbackOptions
-  [kBgCmd.restoreTab]: { incognito: "force" | true; one: boolean }
+  [kBgCmd.restoreTab]: { incognito: "force" | true; one: boolean; active: false }
   [kBgCmd.runKey]: {
     expect: (CommandsNS.CondItem | null)[] | Dict<CommandsNS.CondItem | CommandsNS.CondKeys>
         | `${string}:${string},${string}:${string},`
