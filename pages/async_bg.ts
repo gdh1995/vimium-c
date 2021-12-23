@@ -75,6 +75,7 @@ let _ansCallbacks = null as AnswerCallback[] | null
 const _todoCallbacks = Object.create(null) as { [key: number]: AnswerCallback[] }
 let _queryId = 1
 let _tempPort = null as null | ContentNS.Port
+export let selfTabId_: number = GlobalConsts.TabIdNone
 
 //#region async messages
 
@@ -89,6 +90,13 @@ const onRespond = (res: FgRes[kFgReq.pages]): void => {
     callbacks[i](arr[i])
   }
   VApi && _tempPort && Object.keys(_todoCallbacks).length === 0 && _disconnect()
+}
+
+declare var structuredClone: (<T> (obj: T) => T) | undefined
+const onRespond2_ff = (res: FgRes[kFgReq.pages]): void => {
+  res = Build.MinFFVer >= FirefoxBrowserVer.Min$structuredClone || typeof structuredClone === "function"
+      ? structuredClone!(res) : JSON.parse(JSON.stringify(res))
+  onRespond(res)
 }
 
 const onDisconnect = (): void => {
@@ -122,7 +130,11 @@ const postAll = (knownSize?: number): void => {
   const id = _queryId++
   _todoCallbacks[id] = _ansCallbacks!
   _ansCallbacks = null
-  if (api) {
+  const getBg = browser_.extension.getBackgroundPage
+  const bg = getBg && getBg() as unknown as BgExports | null
+  if (bg && bg.onPagesReq) {
+    void bg.onPagesReq({ i: id, q: _todoMsgs }).then(OnFirefox ? onRespond2_ff : onRespond)
+  } else if (api) {
     api.r[0]<kFgReq.pages>(kFgReq.pages, { i: id, q: _todoMsgs }, onRespond)
   } else {
     if (!_tempPort) {
@@ -143,7 +155,7 @@ type SyncingItems = SettingsNS.FrontendSettingsSyncingItems
 export const post_ = (<T extends keyof PgReq> (action: T, messageBody: PgReq[T][0]): Promise<PgReq[T][1]> => {
   return new Promise((resolve): void => {
     _todoMsgs || prepareToPostAll()
-    _todoMsgs!.push({ n: action, q: messageBody })
+    _todoMsgs!.push({ n: action, q: messageBody !== undefined ? messageBody : null })
     _ansCallbacks!.push(resolve)
   })
 }) as {
@@ -385,6 +397,12 @@ if (browserLang && curPath !== "popup") {
   const s = bTrans_("v" + curPath)
   s && (document.title = "Vimium C " + s)
 }
+
+curPath === "options" && void isVApiReady_.then((): void => {
+  VApi!.r[0]<kFgReq.pages>(kFgReq.pages, { i: 1, q: [ { n: kPgReq.selfTabId, q: null } ] }, (res) => {
+    res !== false && (selfTabId_ = res.a[0] as number)
+  })
+})
 
 export const simulateClick = (target: HTMLElement
     , event?: { altKey: boolean, ctrlKey: boolean, metaKey: boolean, shiftKey: boolean }): boolean => {

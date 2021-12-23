@@ -111,8 +111,6 @@ let settingsCache_ = null as {
 
 const As_ = <T> (i: T): T => i
 
-export let selfTabId_: number = GlobalConsts.TabIdNone
-
 export const setupSettingsCache_ = (cache: Partial<SettingsNS.PersistentSettings>): void => { settingsCache_ = cache }
 
 export const bgSettings_ = {
@@ -126,7 +124,6 @@ export const bgSettings_ = {
       bgSettings_.defaults_ = res[0]
       bgSettings_.os_ = res[1]
       bgSettings_.platform_ = res[2] as typeof bgSettings_.platform_
-      selfTabId_ = res[3]
       enableNextTick_(kReadyInfo.options)
     })
     return settingsCache_ = post_(kPgReq.settingsCache).then((res): void => { settingsCache_ = res })

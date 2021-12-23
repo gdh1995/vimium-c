@@ -1,10 +1,10 @@
 import { kPgReq } from "../background/page_messages"
 import {
   CurCVer_, CurFFVer_, OnFirefox, OnChrome, OnEdge, $, $$, post_, disconnect_, isVApiReady_, simulateClick as click,
-  toggleDark, browser_, enableNextTick_, nextTick_, kReadyInfo, IsEdg_, import2
+  toggleDark, browser_, selfTabId_, enableNextTick_, nextTick_, kReadyInfo, IsEdg_, import2
 } from "./async_bg"
 import {
-  bgSettings_, selfTabId_,
+  bgSettings_,
   KnownOptionsDataset, showI18n, setupBorderWidth_, Option_, PossibleOptionNames, AllowedOptions, debounce_, oTrans_
 } from "./options_base"
 import { saveBtn, exportBtn, savedStatus, BooleanOption_, onKeyMappingsError } from "./options_defs"
@@ -418,7 +418,7 @@ if (OnChrome ? (Build.MinCVer >= BrowserVer.MinMediaQuery$PrefersColorScheme
   const isDebugging = self.element_.classList.contains("debugging")
   if (self.saved_ && !isDebugging || !VApi || !VApi.z) { return }
   const newVal = self.readValueFromElement_(), isSame = newVal === self.previous_,
-  cssPromise = post_(kPgReq.parseCSS, newVal), misc = VApi.y(), root = misc.r
+  cssPromise = post_(kPgReq.parseCSS, [newVal, selfTabId_]), misc = VApi.y(), root = misc.r
   void cssPromise.then(css => {
   self.element_.classList.toggle("debugging", !isSame)
   VApi!.t({
@@ -541,15 +541,16 @@ document.addEventListener("click", function onClickOnce(): void {
     }
   }, true);
 
-  OnChrome && selfTabId_ >= 0 && document.addEventListener("click", (event): void => {
+  OnChrome && document.addEventListener("click", (event): void => {
     const el = event.target as Element
-    if (el.localName !== "a" || !(event.ctrlKey || event.metaKey)) { return }
+    if (el.localName !== "a" || !(event.ctrlKey || event.metaKey) || selfTabId_ < GlobalConsts.TabIdNone) { return }
     const api2 = VApi, hintWorker = api2 && api2.b, stat = hintWorker && hintWorker.$()
     if (stat && stat.b && stat.n === null) { // .b: showing hints; .n === null : is calling executor
       const m1 = stat.m & ~HintMode.queue
       if (m1 < HintMode.min_job && m1 & HintMode.newTab && !(m1 & HintMode.focused)) {
-          setTimeout(() => {
-            browser_.tabs.update(selfTabId_, { active: true })
+          setTimeout((): void => {
+            selfTabId_ >= 0 && (browser_.tabs ? browser_.tabs.update(selfTabId_, { active: true }, (): void => {})
+            : void post_(kPgReq.callApi, { module: "tabs", name: "update", args: [selfTabId_, { active: true }] }))
           }, 0)
       }
     }

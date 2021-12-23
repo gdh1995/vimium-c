@@ -144,6 +144,9 @@ declare namespace chrome.bookmarks {
 declare namespace chrome.clipboard {
   export function setImageData(data: ArrayBuffer, format: "png"): Promise<void>
 }
+declare namespace chrome.extension {
+  export const getBackgroundPage: (() => Window | null) | undefined
+}
 
 declare module chrome.downloads {
   export interface DownloadOptions {

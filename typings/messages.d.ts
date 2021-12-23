@@ -790,3 +790,7 @@ interface ExternalMsgs {
     res: void;
   };
 }
+
+interface BgExports {
+  onPagesReq? (req: FgReqWithRes[kFgReq.pages]): Promise<FgRes[kFgReq.pages]>
+}

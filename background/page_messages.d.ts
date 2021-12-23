@@ -4,7 +4,7 @@ export declare const enum kPgReq {
    /** 10..14 */ convertToUrl, updateMediaQueries, whatsHelp, checkNewTabUrl, checkSearchUrl,
    /** 15..19 */ focusOrLaunch, showUrl, shownHash, substitute, checkHarmfulUrl,
    /** 20..24 */ popupInit, allowExt, toggleStatus, parseMatcher, initHelp,
-   /** 25..25 */ callApi,
+   /** 25..26 */ callApi, selfTabId,
   __mask = ""
 }
 
@@ -12,7 +12,7 @@ interface KVPair<T extends object, K extends keyof T = keyof T> { key: K, val: T
 type Values<T extends object, K extends keyof T = keyof T> = T[K]
 
 export interface PgReq {
-  [kPgReq.settingsDefaults]: [ void, [conf: SettingsNS.SettingsWithDefaults, os: kOS, platform: string, tabId: number] ]
+  [kPgReq.settingsDefaults]: [ void, [conf: SettingsNS.SettingsWithDefaults, os: kOS, platform: string] ]
   [kPgReq.settingsCache]: [ void, SettingsNS.SettingsWithDefaults ]
   [kPgReq.setSetting]: [ KVPair<SettingsNS.PersistentSettings>, Values<SettingsNS.PersistentSettings> | null ]
   [kPgReq.updatePayload]: [
@@ -24,7 +24,7 @@ export interface PgReq {
   [kPgReq.settingItem]: [ { key: keyof SettingsNS.SettingsWithDefaults }, Values<SettingsNS.SettingsWithDefaults> ]
   [kPgReq.runJSOn]: [ number, void ]
   [kPgReq.keyMappingErrors]: [ void, true | string ]
-  [kPgReq.parseCSS]: [ string, SettingsNS.MergedCustomCSS ]
+  [kPgReq.parseCSS]: [ [string, number], SettingsNS.MergedCustomCSS ]
   [kPgReq.reloadCSS]: [ void, void ]
   [kPgReq.convertToUrl]: [ [string, Urls.WorkEnsureString], [string, Urls.Type] ]
   [kPgReq.updateMediaQueries]: [ void, void ]
@@ -51,13 +51,17 @@ export interface PgReq {
   [kPgReq.initHelp]: [ void, void ]
   [kPgReq.callApi]: [ {
     module: "permissions", name: "contains" | "request" | "remove", args: unknown[]
+  } | {
+    module: "tabs", name: "update", args: Parameters<typeof chrome.tabs.update>
   }, ExtApiResult<unknown> ]
+  [kPgReq.selfTabId]: [ void, number ]
 }
 
 export declare namespace Req2 {
+  type OrNull<K> = K extends void | undefined ? null : K
   interface pgReq<K extends keyof PgReq> {
     /** name */ n: K
-    /** query body */ q: PgReq[K][0]
+    /** query body */ q: OrNull<PgReq[K][0]>
   }
   type pgRes = PgReq[keyof PgReq][1]
 }

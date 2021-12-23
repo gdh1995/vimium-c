@@ -29,6 +29,7 @@ import {
 import { FindModeHistory_, Marks_ } from "./tools"
 
 let gTabIdOfExtWithVomnibar: number = GlobalConsts.TabIdNone
+let _pageHandlers: Promise<typeof import("./page_handlers")> | null
 
 const _AsReqH = <K extends (keyof FgReq) & keyof BackendHandlersNS.FgRequestHandlers, RequirePort = true>(
     handler: (req: FgReq[K], port: RequirePort extends true ? Port : Port | null | undefined) => void
@@ -439,13 +440,9 @@ set_reqH_([
     const tabId = port.s.tabId_, frames = framesForTab_.get(tabId >= 0 ? tabId : curTabId_)
     reqH_[kFgReq.key](req, frames ? frames.cur_ : null)
   },
-  /** kFgReq.pages: */ (req: FgReqWithRes[kFgReq.pages], port: Frames.PagePort, msgId: number): false | Port => {
+  /** kFgReq.pages: */ (req: FgReqWithRes[kFgReq.pages], port: Frames.PagePort, msgId?: number): false | Port => {
     if (port.s !== false && !port.s.url_.startsWith(location.origin + "/")) { return false }
-    void (import("/background/page_handlers.js" as any) as Promise<typeof import("./page_handlers")>)
-    .then(module => Promise.all(req.q.map(i => module.onReq(i, port))))
-    .then((answers): void => {
-      const res: FgRes[kFgReq.pages] = { i: req.i, a: answers.map(i => i !== void 0 ? i : null) }
-      req = null as never
+    onPagesReq(req.q, req.i, port).then((res): void => {
       port.postMessage<2>(msgId ? { N: kBgReq.msg, m: msgId, r: res } : res as never)
     })
     return port as Port
@@ -539,3 +536,19 @@ const replaceForwardedOptions = (toForward?: object | string | null): void => {
   toForward && typeof toForward === "object" &&
   Object.assign(get_cOptions<kBgCmd.blank, true>(), BgUtils_.safer_(toForward))
 }
+
+const onPagesReq = (req: FgReqWithRes[kFgReq.pages]["q"], id: number
+    , port: Frames.PagePort | null): Promise<FgRes[kFgReq.pages]> => {
+  return (_pageHandlers || (_pageHandlers = import("/background/page_handlers.js" as any)))
+      .then(module => Promise.all(req.map(i => module.onReq(i, port))))
+      .then(answers => ({ i: id, a: answers.map(i => i !== void 0 ? i : null) }))
+}
+
+declare var structuredClone: (<T> (obj: T) => T) | undefined
+typeof window !== "undefined" && window &&
+((window as BgExports).onPagesReq = (req): Promise<FgRes[kFgReq.pages]> => {
+  const queries = !OnFirefox ? req.q
+      : Build.MinFFVer >= FirefoxBrowserVer.Min$structuredClone || typeof structuredClone === "function"
+      ? structuredClone!(req.q) : JSON.parse(JSON.stringify(req.q))
+  return onPagesReq(queries, req.i, null)
+})

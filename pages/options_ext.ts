@@ -1,6 +1,6 @@
 import {
   CurCVer_, CurFFVer_, OnChrome, OnEdge, OnFirefox, $, import2, OnSafari, enableNextTick_, isVApiReady_, kReadyInfo,
-  post_, simulateClick as click
+  simulateClick as click
 } from "./async_bg"
 import { bgSettings_, AllowedOptions, ExclusionRulesOption_, Option_, oTrans_ } from "./options_base"
 import { exportBtn, saveBtn } from "./options_defs"
@@ -10,7 +10,7 @@ import { kPgReq } from "../background/page_messages"
 
 const showHelp = (event?: EventToPrevent | "force" | void | null): void => {
   if (!VApi || !VApi.z) {
-    void isVApiReady_.then(showHelp)
+    void isVApiReady_.then(showHelp.bind(null, event))
     return;
   }
   let node: HTMLElement | null, root = VApi.y().r;
@@ -19,16 +19,14 @@ const showHelp = (event?: EventToPrevent | "force" | void | null): void => {
   else if (node = root.querySelector("#HCls") as HTMLElement | null) {
     if (event !== "force" && root.querySelector(".HelpCommandName") != null) { click(node); return }
   }
-  const p = post_(kPgReq.initHelp)
-  if (event) { return; }
-  void p.then((): void => {
+  VApi!.r[0]<kFgReq.pages>(kFgReq.pages, { i: 1, q: [ { n: kPgReq.initHelp, q: null } ] }, !event ? (): void => {
     const misc = VApi && VApi.y()
     const node2 = misc && misc.r && misc.r.querySelector("#HDlg") as HTMLElement
     if (!node2) { return; }
     (node2.querySelector("#HCls") as HTMLElement).addEventListener("click", function (): void {
       location.hash = "";
     }, true);
-  })
+  } : (): void => { /* empty */ })
 };
 
 $<ElementWithDelay>("#showCommands").onclick = showHelp

@@ -22,16 +22,15 @@ type OrPromise<T> = T | Promise<T>
 
 const pageRequestHandlers_ = As_<{
   readonly [K in keyof PgReq]:
-      PgReq[K][0] extends null | void ? (_: void | null, port: PagePort) => OrPromise<PgReq[K][1]>
-      : (request: PgReq[K][0], port: PagePort) => OrPromise<PgReq[K][1] extends void | null ? void : PgReq[K][1]>
+      PgReq[K][0] extends null | void ? (_: void | null, port: PagePort | null) => OrPromise<PgReq[K][1]>
+      : (request: PgReq[K][0], port: PagePort | null) => OrPromise<PgReq[K][1] extends void | null ? void : PgReq[K][1]>
 }>([
-  /** kPgReq.settingsDefaults: */ (_, port): PgReq[kPgReq.settingsDefaults][1] =>
-      [settings_.defaults_, contentPayload_.o, CONST_.Platform_,
-        port.s && port.s.tabId_ >= 0 ? port.s.tabId_ : curTabId_],
-  /** kPgReq.settingsCache: */ (req, port): OrPromise<PgReq[kPgReq.settingsCache][1]> => {
+  /** kPgReq.settingsDefaults: */ (_): PgReq[kPgReq.settingsDefaults][1] =>
+      [settings_.defaults_, contentPayload_.o, CONST_.Platform_],
+  /** kPgReq.settingsCache: */ (req): OrPromise<PgReq[kPgReq.settingsCache][1]> => {
     const p = restoreSettings_ && restoreSettings_()
     if (p) {
-      return p.then(pageRequestHandlers_[kPgReq.settingsCache].bind(null, req, port))
+      return p.then(pageRequestHandlers_[kPgReq.settingsCache].bind(null, req, null))
     }
     const cache = {} as SettingsNS.SettingsWithDefaults
     for (const key in settings_.defaults_) {
@@ -83,11 +82,12 @@ const pageRequestHandlers_ = As_<{
     }
     return errors ? formatCmdErrors_(errors) : ""
   },
-  /** kPgReq.parseCSS: */ (req, port): PgReq[kPgReq.parseCSS][1] => {
-    if (port.s) {
+  /** kPgReq.parseCSS: */ (req): PgReq[kPgReq.parseCSS][1] => {
+    const port = indexFrame(req[1], 0) as Frames.Port | null
+    if (port && port.s) {
       port.s.flags_ |= Frames.Flags.hasCSS | Frames.Flags.userActed | Frames.Flags.hasFindCSS
     }
-    return mergeCSS(req, MergeAction.virtual)!
+    return mergeCSS(req[0], MergeAction.virtual)!
   },
   /** kPgReq.reloadCSS: */ (): PgReq[kPgReq.reloadCSS][1] => { reloadCSS_(MergeAction.rebuildAndBroadcast) },
   /** kPgReq.convertToUrl: */ (req): PgReq[kPgReq.convertToUrl][1] => {
@@ -209,12 +209,12 @@ const pageRequestHandlers_ = As_<{
   },
   /** kPgReq.initHelp: */ (_, port): Promise<PgReq[kPgReq.initHelp][1]> => initHelp({ f: true }, port as Port),
   /** kPgReq.callApi: */ (req): OrPromise<PgReq[kPgReq.callApi][1]> => {
-    const mName = req.module, validKeys = validApis[mName]
-    if (!validApis.hasOwnProperty(mName) || !validKeys!.includes!(req.name)) {
+    const mName = req.module as "permissions", fName = req.name as "contains", validFuncs = validApis[mName]
+    if (!validApis.hasOwnProperty(mName) || !validFuncs!.includes!(fName)) {
       return [void 0, { message: "refused" }]
     }
     const module = browser_[mName], arr = req.args
-    const func = module[req.name] as (args: unknown[]) => void | Promise<unknown>
+    const func = module[fName] as (args: unknown[]) => void | Promise<unknown>
     if (!OnChrome) {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       return (func.apply(module, arr as any) as Promise<unknown>).then<ExtApiResult<unknown>, ExtApiResult<unknown>>(
@@ -228,14 +228,16 @@ const pageRequestHandlers_ = As_<{
       })
       void func.apply(module, arr as any) // eslint-disable-line @typescript-eslint/no-unsafe-argument
     })
-  }
+  },
+  /** kPgReq.selfTabId: */ (_, port): number => (port!.s as Extract<NonNullable<typeof port>["s"], object>).tabId_
 ])
 
 type _FuncKeys<K, T> = K extends keyof T ? T[K] extends Function
     ? K extends `${string}_${string}` ? never : K : never : never
 type FuncKeys<T> = _FuncKeys<keyof T, T>
 const validApis: { [T in keyof typeof chrome]?: FuncKeys<typeof chrome[T]>[] } = OnEdge ? {} : {
-  permissions: ["contains", "request", "remove"]
+  permissions: ["contains", "request", "remove"],
+  tabs: ["update"]
 }
 
 const parseErr = (err: any): NonNullable<ExtApiResult<0>[1]> => {
@@ -245,9 +247,9 @@ const parseErr = (err: any): NonNullable<ExtApiResult<0>[1]> => {
 export const onReq = (<K extends keyof PgReq> (req: Req2.pgReq<K>, port: PagePort): OrPromise<Req2.pgRes> => {
   type ReqK = keyof PgReq;
   return (pageRequestHandlers_ as {
-    [T2 in keyof PgReq]: (req: PgReq[T2][0], port: PagePort) => OrPromise<PgReq[T2][1]>
+    [T2 in keyof PgReq]: (req: Req2.OrNull<PgReq[T2][0]>, port: PagePort) => OrPromise<PgReq[T2][1]>
   } as {
-    [T2 in keyof PgReq]: <T3 extends ReqK>(req: PgReq[T3][0], port: PagePort) => OrPromise<PgReq[T3][1]>
+    [T2 in keyof PgReq]: <T3 extends ReqK>(req: Req2.OrNull<PgReq[T3][0]>, port: PagePort) => OrPromise<PgReq[T3][1]>
   })[req.n](req.q, port)
 }) as (req: unknown, port: PagePort) => OrPromise<Req2.pgRes>
 

@@ -586,6 +586,7 @@ declare const enum FirefoxBrowserVer {
   MinMaybe$WeakRef = 79, // no `WeakRef` if javascript.options.weakrefs=false
   MinEnsuredCSS$is$selector = 81,
   MinContentEditableInShadowOfBodyRefuseShortcuts = 91,
+  Min$structuredClone = 94,
   MinBrowserDarkThemeSet$PrefersColorScheme = 95, // https://github.com/gdh1995/vimium-c/discussions/517
   MinMaybe$navigator$$userAgentData = 99,
   // members of a Selection are never updated when an <input> gets focused, so no work-around
