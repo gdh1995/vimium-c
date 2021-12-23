@@ -4,10 +4,31 @@ Release Notes of Vimium C
 ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 说明文档: https://gitee.com/gdh1995/vimium-c#readme , https://github.com/gdh1995/vimium-c/blob/master/README-zh.md .
 
+#### 1.96.0
+* `openUrl`: now can run simple `javascript:` URLs whose code looks like JavaScript, even on web-extension pages
+  * *Warning*: Vimium C **DOES NOT check** whether your code is **safe or not**
+  * a 3rd-party extension may also inject `VimiumInjector.eval` to disable this or do whatever it likes
+* add a new option `Compatibility of Escape` to allow pages to hide their popup dialogs on <kbd>Escape</kbd>
+  ([philc/vimium#3917](https://github.com/philc/vimium/issues/3917))
+* text substitution:
+  * fix broken rules which have lower-case keys
+  * add a built-in key of `u` to substitute URLs from pages
+  * add an action of `latinize` (aka `latin`) ([#495](https://github.com/gdh1995/vimium-c/issues/495))
+  * `openUrl`: now substitute words after filling masks
+* `runKey`: when `mask`, support `$c` to refer command count
+  * for a single "key node", add a new prefix of `$l` to avoid waiting for a new tab loading
+* `enterInsertMode`, now support `$then` to run on exit ([#493](https://github.com/gdh1995/vimium-c/issues/493))
+* `scroll*`: add `wait: number | boolean` to specify a precise and fixed delay and override `Keyboard settings`
+  ([#518](https://github.com/gdh1995/vimium-c/issues/518))
+* VisualMode: fix some bugs about its own key mappings
+  * and `mapkey <...:v> <v123>` will make visual mode run a action of `id=123`
+  * see https://github.com/gdh1995/vimium-c/blob/master/background/key_mappings.ts#:~:text=visualKeys_
+* search engines: now `${s:...}` will work just like `$s{...}`
+* key mappings: remove support for `$key` and `$desc`
 
 #### 1.95.0
 * Firefox: fix the Options page would break in a tab container
-  * it may causes bugs on Firefox and Chromium. For example the process of updating settings may be affected
+  * it may cause bugs on Firefox and Chromium. For example the process of updating settings may be affected
   * if any potential problem is found, please file a new issue on https://github.com/gdh1995/vimium-c/issues
 * fix some key handlers didn't support composed keys, like `LinkHints autoUnhover=<esc>`
   ([325 (comment)](https://github.com/gdh1995/vimium-c/issues/325#issuecomment-954472931))

@@ -19,9 +19,17 @@
   )](https://addons.mozilla.org/firefox/addon/vimium-c/?src=external-readme)
 [![评分](https://img.shields.io/amo/rating/vimium-c@gdh1995.cn?logo=Firefox%20Browser&logoColor=white&label=评分&labelColor=FF7139&color=blue
   )](https://addons.mozilla.org/firefox/addon/vimium-c/reviews/?src=external-readme)
+[![Edge 79+](https://img.shields.io/badge/dynamic/json?logo=Microsoft%20Edge&label=Edge%2079%2B&prefix=v&query=%24.version&url=https%3A%2F%2Fmicrosoftedge.microsoft.com%2Faddons%2Fgetproductdetailsbycrxid%2Faibcglbfblnogfjhbcmmpobjhnomhcdo
+  )](https://microsoftedge.microsoft.com/addons/detail/aibcglbfblnogfjhbcmmpobjhnomhcdo)
+[![用户数](https://img.shields.io/badge/dynamic/json?logo=Microsoft%20Edge&label=用户数&query=%24.activeInstallCount&url=https%3A%2F%2Fmicrosoftedge.microsoft.com%2Faddons%2Fgetproductdetailsbycrxid%2Faibcglbfblnogfjhbcmmpobjhnomhcdo
+  )](https://microsoftedge.microsoft.com/addons/detail/aibcglbfblnogfjhbcmmpobjhnomhcdo)
+[![评分](https://img.shields.io/badge/dynamic/json?logo=Microsoft%20Edge&label=评分&query=%24.averageRating&url=https%3A%2F%2Fmicrosoftedge.microsoft.com%2Faddons%2Fgetproductdetailsbycrxid%2Faibcglbfblnogfjhbcmmpobjhnomhcdo
+  )](https://microsoftedge.microsoft.com/addons/detail/aibcglbfblnogfjhbcmmpobjhnomhcdo)
 [![Chrome 47+](https://img.shields.io/chrome-web-store/v/hfjbmagddngcpeloejdejnfgbamkjaeg?logo=Google%20Chrome&logoColor=white&label=Chrome%2047%2B&labelColor=4285F4&color=critical
   )](https://chrome.google.com/webstore/detail/vimium-c-all-by-keyboard/hfjbmagddngcpeloejdejnfgbamkjaeg)
 [![用户数](https://img.shields.io/chrome-web-store/users/hfjbmagddngcpeloejdejnfgbamkjaeg?logo=Google%20Chrome&logoColor=white&label=用户数&labelColor=4285F4&color=critical
+  )](https://chrome.google.com/webstore/detail/vimium-c-all-by-keyboard/hfjbmagddngcpeloejdejnfgbamkjaeg)
+[![评分](https://img.shields.io/chrome-web-store/rating/hfjbmagddngcpeloejdejnfgbamkjaeg?logo=Google%20Chrome&logoColor=white&label=评分&labelColor=4285F4&color=critical
   )](https://chrome.google.com/webstore/detail/vimium-c-all-by-keyboard/hfjbmagddngcpeloejdejnfgbamkjaeg)
 
 **在 [Firefox 附加组件](https://addons.mozilla.org/firefox/addon/vimium-c/?src=external-readme) /
