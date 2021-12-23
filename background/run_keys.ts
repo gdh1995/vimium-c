@@ -272,7 +272,7 @@ interface ErrorNode extends BaseNode { t: kN.error; val: string; par: null }
 type Node = ListNode | IfElseNode
 export const parseKeySeq = (keys: string): ListNode | ErrorNode => {
   const re = <RegExpOne>
-      /^([$%][a-z]\+?)*([\d-]\d*\+?)?([$%][a-z]\+?)*(<([a-z]-){0,4}\w+(:i)?>|[A-Z_a-z]\w*(\.\w+)?)(#[^()?:+]*)?/
+      /^([$%][a-z]\+?)*([\d-]\d*\+?)?([$%][a-z]\+?)*(<([a-z]-){0,4}.\w*(:i)?>|[^#()?:+$%])+(#[^()?:+]*)?/
   let cur: ListNode = { t: kN.list, val: [], par: null }, root: ListNode = cur, last: Node | null
   for (let i = keys.length > 1 ? 0 : keys.length; i < keys.length; i++) {
     switch (keys[i]) {
