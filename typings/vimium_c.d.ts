@@ -252,6 +252,7 @@ declare const enum ReuseType {
   reuse = 1,
   newWnd = 2,
   /** @deprecated */ newWindow = newWnd,
+  frame = 3,
   newFg = -1,
   newBg = -2,
   OFFSET_LAST_WINDOW = -4,

@@ -11,7 +11,7 @@ import {
 } from "./browser"
 import { convertToUrl_, createSearchUrl_, lastUrlType_, quotedStringRe_, reformatURL_ } from "./normalize_urls"
 import { findUrlEndingWithPunctuation_, findUrlInText_ } from "./parse_urls"
-import { safePost, showHUD, complainLimits, findCPort, isNotVomnibarPage } from "./ports"
+import { safePost, showHUD, complainLimits, findCPort, isNotVomnibarPage, indexFrame } from "./ports"
 import { createSimpleUrlMatcher_, matchSimply_ } from "./exclusions"
 import { trans_ } from "./i18n"
 import { makeCommand_ } from "./key_mappings"
@@ -30,7 +30,7 @@ const ReuseValues: {
         , "newfg" | "new-fg" | "newFg" | "newwindow" | "newWindow" | "new-window"> as NormalizeKeywords<K>]:
       K extends keyof typeof ReuseType ? (typeof ReuseType)[K] : never
 } = {
-  current: ReuseType.current, reuse: ReuseType.reuse, newwnd: ReuseType.newWnd,
+  current: ReuseType.current, reuse: ReuseType.reuse, newwnd: ReuseType.newWnd, frame: ReuseType.frame,
   newbg: ReuseType.newBg, lastwndfg: ReuseType.lastWndFg, lastwnd: ReuseType.lastWndFg,
   lastwndbg: ReuseType.lastWndBg, iflastwnd: ReuseType.ifLastWnd,
   lastwndbgbg: ReuseType.lastWndBgInactive, lastwndbginactive: ReuseType.lastWndBgInactive
@@ -155,15 +155,20 @@ const runNextIf = (succeed: boolean | Tab | Window | undefined, options: OpenUrl
   succeed ? runNextOnTabLoaded(options, result) : runNextCmdBy(0, options as OpenUrlOptions & Req.FallbackOptions)
 }
 
-const safeUpdate = (options: OpenUrlOptions, url: string, secondTimes?: true, tabs1?: [Tab]): void => {
+const safeUpdate = (options: OpenUrlOptions, reuse: ReuseType, url: string
+    , secondTimes?: true, tabs1?: [Tab]): void => {
   const callback = (tab?: Tab): void => { runNextIf(tab, options, tab); return runtimeError_() }
   if (!tabs1) {
     if (isRefusingIncognito_(url) && secondTimes !== true) {
-      getCurTab(safeUpdate.bind(null, options, url, true))
+      getCurTab(safeUpdate.bind(null, options, reuse, url, true))
       return
     }
   } else if (tabs1.length > 0 && tabs1[0].incognito && isRefusingIncognito_(url)) {
     tabsCreate({ url }, callback)
+    return
+  }
+  if (reuse === ReuseType.frame && cPort && cPort.s.frameId_) {
+    sendFgCmd(kFgCmd.framesGoBack, false, { r: 1, u: url })
     return
   }
   tabs1 ? tabsUpdate(tabs1[0].id, { url }, callback) : tabsUpdate({ url }, callback)
@@ -408,11 +413,15 @@ const replaceOrOpenInNewTab = <Reuse extends Exclude<ReuseType, ReuseType.curren
   })
 }
 
-export const openJSUrl = (url: string, options: Req.FallbackOptions, onBrowserFail?: (() => void) | null): void => {
+export const openJSUrl = (url: string, options: Req.FallbackOptions, onBrowserFail?: (() => void) | null
+    , reuse?: ReuseType): void => {
   if ((<RegExpOne> /^(void|\(void\))? ?(0|\(0\))?;?$/).test(url.slice(11).trim())) {
     return
   }
   if (!onBrowserFail && cPort) {
+    if (reuse === ReuseType.current) {
+      set_cPort(indexFrame(cPort ? cPort.s.tabId_ : curTabId_, 0) || cPort)
+    }
     if (safePost(cPort, { N: kBgReq.eval, u: url, f: parseFallbackOptions(options)})) {
       return
     }
@@ -465,7 +474,7 @@ export const openShowPage = (url: string, reuse: ReuseType, options: OpenUrlOpti
     }, 2000)
   }, 1200)
   set_cRepeat(1)
-  if (reuse === ReuseType.current && !incognito) {
+  if ((reuse === ReuseType.current || reuse === ReuseType.frame) && !incognito) {
     let views = !OnEdge && (!OnChrome
               || Build.MinCVer >= BrowserVer.Min$Extension$$GetView$AcceptsTabId
               || CurCVer_ >= BrowserVer.Min$Extension$$GetView$AcceptsTabId)
@@ -478,7 +487,7 @@ export const openShowPage = (url: string, reuse: ReuseType, options: OpenUrlOpti
       tabsUpdate(tab.id, { url: prefix })
     }
     runNextOnTabLoaded(options, null)
-  } else if (incognito && [ReuseType.current, ReuseType.newBg, ReuseType.newFg].indexOf(reuse) >= 0) {
+  } else if (incognito && [ReuseType.current, ReuseType.frame, ReuseType.newBg, ReuseType.newFg].indexOf(reuse) >= 0) {
     /* safe-for-group */ tabsCreate({ url: prefix, active: reuse !== ReuseType.newBg }, newTab => {
       runNextIf(newTab, options, newTab)
     })
@@ -511,7 +520,8 @@ const openUrls = (tabs: [Tab] | [] | undefined): void => {
     }
   }
   const rawReuse = parseReuse(options.reuse)
-  const reuse = rawReuse === ReuseType.reuse || rawReuse === ReuseType.current ? ReuseType.newFg : rawReuse
+  const reuse = rawReuse === ReuseType.reuse || rawReuse === ReuseType.current || rawReuse === ReuseType.frame
+      ? ReuseType.newFg : rawReuse
   set_cOptions(null)
   openUrlInNewTab(urls, reuse, options, tabs)
 }
@@ -557,12 +567,12 @@ export const openUrlWithActions = (url: Urls.Url, workType: Urls.WorkType, sed?:
   typeof url !== "string"
       ? /*#__NOINLINE__*/ onEvalUrl_(workType, options, tabs, url)
       : /*#__NOINLINE__*/ openShowPage(url, reuse, options) ? 0
-      : BgUtils_.isJSUrl_(url) ? /*#__NOINLINE__*/ openJSUrl(url, options)
+      : BgUtils_.isJSUrl_(url) ? /*#__NOINLINE__*/ openJSUrl(url, options, null, reuse)
       : checkHarmfulUrl_(url) ? runNextCmdBy(0, options)
       : reuse === ReuseType.reuse ? replaceOrOpenInNewTab(url, reuse, options.replace
             , null, { u: url, p: options.prefix, q: parseOpenPageUrlOptions(options), f: parseFallbackOptions(options)
             }, tabs)
-      : reuse === ReuseType.current ? /*#__NOINLINE__*/ safeUpdate(options, url)
+      : reuse === ReuseType.current || reuse === ReuseType.frame ? /*#__NOINLINE__*/ safeUpdate(options, reuse, url)
       : options.replace ? replaceOrOpenInNewTab(url, reuse, options.replace, options, null, tabs)
       : tabs ? openUrlInNewTab([url], reuse, options, tabs)
       : getCurTab(openUrlInNewTab.bind(null, [url], reuse, options))
