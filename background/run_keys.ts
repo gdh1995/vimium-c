@@ -557,7 +557,7 @@ export const inlineRunKey_ = (rootRegistry: Writable<CommandsNS.Item>): kCName |
         const filled = fillOptionWithMask<C.runKey>(seq, mask, "", kRunKeyOptionNames, 1, fullOpts)
         if (!filled.ok) { return }
         mask = filled.ok > 0; seq = filled.result
-        canInline = canInline && (!!filled.value && !filled.useCount)
+        canInline = canInline && (!!filled.value && !filled.useCount && !filled.useDict)
       }
       seq = normalizeKeySeq(seq)
       mask || (keys[0] = seq)

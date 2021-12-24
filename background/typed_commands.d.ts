@@ -93,6 +93,7 @@ interface BgCmdOptions {
     url: string; url_f: Urls.Url
     copied: boolean | "urls" | "any-urls"; /** has pasted once */ $p: 1
     goNext: boolean | "absolute"; /** for ReuseType.reuse */ prefix: boolean
+    /** value for .mask */ value: string
   } & Ensure<OpenPageUrlOptions, keyof OpenPageUrlOptions>
     & /** for .replace, ReuseType.reuse and JS URLs */ Req.FallbackOptions
   [kBgCmd.reloadTab]: { hard: true; /** (deprecated) */ bypassCache: true; single: boolean }
@@ -140,7 +141,7 @@ interface BgCmdOptions {
   [kBgCmd.visitPreviousTab]: { acrossWindows: true; onlyActive: true } & TabFilterOptions & Req.FallbackOptions
   [kBgCmd.closeDownloadBar]: { newWindow?: null | true | false; all: 1 }
   [kBgCmd.reset]: {}
-  [kBgCmd.openBookmark]: { title: string; path: string; name: string;
+  [kBgCmd.openBookmark]: { title: string; path: string; name: string; value: string
       $cache: CompletersNS.Bookmark["id_"] | null } & MaskOptions
 }
 
@@ -170,7 +171,7 @@ type UnknownOptions<K extends keyof BgCmdOptions> = {
   readonly [P in keyof BgCmdOptions[K]]?: BgCmdOptions[K][P] | UnknownValue
 }
 
-interface MasksForOpenUrl {
+interface MasksForOpenUrl extends MaskOptions {
   url_mask: string
   /** (deprecated) */ url_mark: string
   host_mask: string; host_mark: string

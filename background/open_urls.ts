@@ -17,7 +17,7 @@ import { trans_ } from "./i18n"
 import { makeCommand_ } from "./key_mappings"
 import {
   copyCmdOptions, runNextCmdBy, parseFallbackOptions, replaceCmdOptions, overrideOption, runNextCmd,
-  overrideCmdOptions, runNextOnTabLoaded, executeCommand
+  overrideCmdOptions, runNextOnTabLoaded, executeCommand, fillOptionWithMask, sendFgCmd
 } from "./run_commands"
 import { parseSedOptions_ } from "./clipboard"
 import { Marks_ } from "./tools"
@@ -231,7 +231,7 @@ const fillUrlMasks = (url: string, tabs: [Tab?] | undefined, url_mask: string | 
       let end = ind + mask.length
       for (const j of matches) { if (ind < j[1] && end >= j[0]) { continue } }
       matches.push([ ind, end, i === 0
-          ? (<RegExpOne> /[%$]s/).test(mask) ? BgUtils_.encodeAsciiComponent_(tabUrl) : tabUrl
+          ? (<RegExpOne> /^[%$]S|^\$\{S:/).test(mask) ? tabUrl : BgUtils_.encodeAsciiComponent_(tabUrl)
           : i === 1 ? new URL(tabUrl).host : i === 2 ? tabUrl && "" + tabs![0]!.id
           : i === 3 ? tabUrl && "" + BgUtils_.encodeAsciiComponent_(tabs![0]!.title) : browser_.runtime.id ])
     }
@@ -519,6 +519,12 @@ const openUrls = (tabs: [Tab] | [] | undefined): void => {
 export const openUrlWithActions = (url: Urls.Url, workType: Urls.WorkType, sed?: boolean, tabs?: [Tab] | []): void => {
   if (typeof url !== "string") { /* empty */ }
   else if (url || workType !== Urls.WorkType.FakeType) {
+    const fill = fillOptionWithMask<C.openUrl>(url, get_cOptions<C.openUrl>().mask
+        , "value", ["url", "url_mask", "value"], cRepeat)
+    if (fill.ok) {
+      url = fill.result
+      if (fill.useCount) { set_cRepeat(1) }
+    }
     let url_mask = get_cOptions<C.openUrl>().url_mask, umark = get_cOptions<C.openUrl>().url_mark
     if (url_mask != null || umark != null) {
       url = /*#__NOINLINE__*/ fillUrlMasks(url, tabs, url_mask != null ? url_mask : umark!)

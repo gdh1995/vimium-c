@@ -82,31 +82,63 @@ export const fillOptionWithMask = <Cmd extends keyof BgCmdOptions>(template: str
     , rawMask: MaskOptions["mask"] | UnknownValue, valueKey: (keyof BgCmdOptions[Cmd]) & string | ""
     , stopWords: readonly (Exclude<keyof BgCmdOptions[Cmd], `$${string}` | `o.${string}`>)[]
     , count: number, options?: UnknownOptions<Cmd> & SafeObject
-    ): { ok: 1 | -1, value: string, result: string, useCount: boolean } | { ok: 0, result: number } => {
+    ): { ok: 1 | -1, value: string, result: string, useCount: boolean, useDict: number
+        } | { ok: 0, result: number } => {
   let ok: 1 | -1 = -1, toDelete: string | undefined, mask = rawMask, useDefaultMask = mask === true || mask === ""
-  if (useDefaultMask) { mask = template.includes("$s") ? "$s" : "%s" }
-  let value = "", maskCount: string, useCount = false
-  if (useDefaultMask && (template.includes(maskCount = "$c") || template.includes(maskCount = "%c"))) {
-    template = template.replace(maskCount, (): string => "" + count)
-    ok = 1; useCount = true
+  if (useDefaultMask) {
+    let re = <RegExpG & RegExpSearchable<0>> /\$\$|[$%][sS]/g, arr: RegExpExecArray | null
+    while ((arr = re.exec(template)) && arr[0] === "$$") { /* empty */ }
+    mask = arr && arr[0] || "$s"
   }
-  if (mask && typeof mask === "string" && template.includes(mask)) {
-    let name = valueKey && (options || get_cOptions<Cmd>())[valueKey] as string | UnknownValue
+  let value: string | null = null, maskCount: string, useCount = false
+  const hasMask0 = !!mask && typeof mask === "string" && template.includes(mask)
+  const usableOptions = options || get_cOptions<Cmd>()
+  const getValue = (): string => {
+    if (value !== null || keysLen !== 1) { return value || "" }
+    let name = valueKey && usableOptions[valueKey] as string | UnknownValue
     if (!name) {
-      const keys = Object.keys(options || get_cOptions<Cmd>()).filter(i => i[0] !== "$" && !stopWords.includes!(i))
+      const keys = Object.keys(usableOptions).filter(i => i[0] !== "$" && !stopWords.includes!(i))
       if (keys.length === 1) {
         name = toDelete = keys[0]
       } else {
-        if (rawMask !== "") { return { ok: 0, result: keys.length } }
+        if (rawMask !== "") { keysLen = keys.length; return "" }
         name = ""
       }
     } else {
       toDelete = valueKey
     }
-    value = name + ""
-    template = template.replace(mask, (): string => value)
     ok = 1
+    value = name + ""
+    value = mask === "$s" || mask === "%s" ? BgUtils_.encodeAsciiComponent_(value) : value
+    return value
   }
+  let keysLen = 1, useDict = 0
+  if (useDefaultMask) {
+    if ((template.includes(maskCount = "$c") || template.includes(maskCount = "%c"))) {
+      ok = 1; useCount = true
+    }
+    template = template.replace(<RegExpG & RegExpSearchable<1>> new RegExp("\\$\\{([^}]*)}|\\$\\$"
+          + (useCount ? "|" + BgUtils_.escapeAllForRe_(maskCount) : "")
+          + (hasMask0 ? "|" + BgUtils_.escapeAllForRe_(mask as string) : ""), "g")
+        , (s: string, body?: string): string => {
+      if (s === mask) { return getValue() }
+      if (s === maskCount) { return count + "" }
+      if (!body) { return "$" }
+      ok = 1
+      useDict++
+      let encode = true
+      if ((<RegExpOne> /^[sS]:/).test(body)) { encode = body[0] === "s"; body = body.slice(2) }
+      let val = body === "__proto__" || body[0] === "$" ? "" : (usableOptions as Dict<any>)[body]
+      val = typeof val === "string" ? val : val && typeof val === "object" ? JSON.stringify(val) : val + ""
+      return encode ? BgUtils_.encodeAsciiComponent_(val) : val
+    })
+  } else if (hasMask0) {
+    getValue()
+    if (value !== null) {
+      template = template.replace(mask as string, (): string => value!)
+    }
+  }
+  if (keysLen !== 1) { return { ok: 0, result: keysLen } }
   if (mask && typeof mask === "string") {
     const newOptions: UnknownOptions<Cmd> = options || {}
     options || overrideCmdOptions<C.blank>(newOptions);
@@ -115,7 +147,7 @@ export const fillOptionWithMask = <Cmd extends keyof BgCmdOptions>(template: str
       delete (newOptions as KnownOptions<C.runKey>)[toDelete as keyof BgCmdOptions[C.runKey]]
     }
   }
-  return { ok, value, result: template, useCount }
+  return { ok, value: value || "", result: template, useCount, useDict }
 }
 
 /** execute a command normally */

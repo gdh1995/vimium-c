@@ -767,7 +767,7 @@ set_bgC_([
       showHUD("Invalid bookmark " + (get_cOptions<C.openBookmark>().path ? "path" : "title")); resolve(0); return
     }
     const result = fillOptionWithMask<C.openBookmark>(title, get_cOptions<C.openBookmark>().mask, "name"
-        , ["path", "title", "mask", "name"], count)
+        , ["path", "title", "mask", "name", "value"], count)
     if (!result.ok) {
       showHUD((result.result ? "Too many potential names" : "No name") + " to find bookmarks")
       return
@@ -782,7 +782,7 @@ set_bgC_([
             : "The bookmark is a folder.")
       } else {
         hasValidCache || dynamicResult || overrideOption<C.openBookmark, "$cache">("$cache", node.id_)
-        overrideCmdOptions({ url: (node as CompletersNS.Bookmark).u }, true)
+        overrideCmdOptions({ url: (node as CompletersNS.Bookmark).jsUrl_ || (node as CompletersNS.Bookmark).u }, true)
         set_cRepeat(dynamicResult ? 1 : count)
         openUrl()
       }

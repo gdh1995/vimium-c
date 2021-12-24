@@ -188,7 +188,7 @@ export const encodeAsciiComponent_ = (url: string): string => url.replace(
           && CurCVer_ < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
         || OnFirefox && Build.MinFFVer < FirefoxBrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
           && CurFFVer_ < FirefoxBrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
-      ? <RegExpG & RegExpSearchable<0>> /[\x00-`{-\u0390\u03ca-\u4dff\u9fa6-\uffff\s]+/g // Greek letters / CJK
+      ? <RegExpG & RegExpSearchable<0>> /[\x00-\u0390\u03ca-\u4dff\u9fa6-\uffff\s]+/g // Greek letters / CJK
       : (Build.MinCVer >= BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp || !(Build.BTypes & BrowserType.Chrome))
         && (Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
             || !(Build.BTypes & BrowserType.Firefox))
