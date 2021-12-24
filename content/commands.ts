@@ -367,7 +367,7 @@ set_contentCommands_([
       let cur: string | 0, offset: number
       let start: number, end: number, start0: number
       while (0 < absCount--) {
-        for (let i = 0; i < commands.length; i += 3) {
+        for (var i = 0; i < commands.length; i += 3) {
           var cmd = commands[i], a1 = commands[i + 1], a2 = commands[i + 2] // eslint-disable-line no-var
           if (cmd === "exec") {
             execCommand(a1, doc, commands[i + 2])
