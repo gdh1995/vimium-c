@@ -635,7 +635,7 @@ const evalTry = (stats: readonly Statement[], i: number): [unknown, number] => {
       locals_.length = oldLocalsPos
       next.c && locals_.push(StackFrame(next.v.v, [[next.c.v, ex]]))
       i++; res = evalBlockBody(next.c ? { c: null, l: null, x: next.v.v.x} : next.v.v)
-      next.c && locals_.length--; g_exc = null; done = 1
+      next.c && (locals_.pop()!.d = true); g_exc = null; done = 1
     }
   } finally { if (indFinal) {
     const oldLocals = locals_, oldExc = done ? null : g_exc || newException()
@@ -662,7 +662,14 @@ const evalFor = (statement: BaseStatement<"for">): unknown => {
   const initOp = statement.c.o === O.comma ? statement.c.v[0] : statement.c
   const varStat = initOp.o === O.stat && initOp.v.a ? initOp.v as SomeStatements<VarActions> : null
   const newScope = !!varStat && varStat.a !== "var"
-  let res: unknown = kFakeValue
+  const forkScope = (): VarDict => {
+    const old = locals_[locals_.length - 1], newVars: VarDict = Object.create(null), oldVars = old.v
+    old.d = true
+    for (let key in oldVars) { newVars[key as VarNames] = oldVars[key as VarNames] }
+    locals_[locals_.length - 1] = { v: newVars, c: old.c, n: old.n, d: false }
+    return newVars
+  }
+  let res: unknown = kFakeValue, ref: Writable<Ref>
   if (newScope) { // should enter its own scope before computing source
     const isConst = varStat.a === "const"
     const names = As_<(RefOp | RefAssignOp)[]>(varStat.v.v).map(ToVarName)
@@ -670,19 +677,21 @@ const evalFor = (statement: BaseStatement<"for">): unknown => {
   }
   if (statement.c.o === O.comma) {
     varStat ? evalLet(varStat, []) : initOp.o === O.stat ? opEvals[initOp.v.v.o](initOp.v.v) : opEvals[initOp.o](initOp)
-    for (; opEvals[statement.c.v[1].o](statement.c.v[1]); opEvals[statement.c.v[2].o](statement.c.v[2])) {
+    for (; opEvals[statement.c.v[1].o](statement.c.v[1])
+          ; newScope && forkScope(), opEvals[statement.c.v[2].o](statement.c.v[2])) {
       statement.v.o <= O.stat ? res = evalBlockBody(SubBlock(statement.v)) : opEvals[statement.v.o](statement.v)
       if ((res = consumeContinue(res as BreakValue, statement)) !== kFakeValue) { break }
     }
   } else {
     const assignment = ((varStat ? varStat.v.v[0] : statement.c) as RefAssignOp).v
     const source = opEvals[assignment.x.o](assignment.x) as number[] | null | undefined
-    const { y, i } = Ref(assignment.y, newScope ? R.eveNotInited : R.plain)
+    ref = Ref(assignment.y, newScope ? R.eveNotInited : R.plain)
     if (assignment.a === "in") {
       for (let item in source as { [k: number]: unknown }) {
-        y[i] = item as string | number as number
+        ref.y[ref.i] = item as string | number as number
         statement.v.o <= O.stat ? res = evalBlockBody(SubBlock(statement.v)) : opEvals[statement.v.o](statement.v)
         if ((res = consumeContinue(res as BreakValue, statement)) !== kFakeValue) { break }
+        newScope && (ref.y = forkScope())
       }
     } else {
       type IterMethod = (this: number[]) => Iterator<number>;
@@ -701,13 +710,14 @@ const evalFor = (statement: BaseStatement<"for">): unknown => {
       while ((res = consumeContinue(res as BreakValue, statement)) === kFakeValue
           && (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol
               && !It ? ind < source!.length : (cur = iterator!.next()) && !cur.done)) {
-        y[i] = cur ? cur.value : source![ind]
+        ref.y[ref.i] = cur ? cur.value : source![ind]
         statement.v.o <= O.stat ? res = evalBlockBody(SubBlock(statement.v)) : opEvals[statement.v.o](statement.v)
+        newScope && (ref.y = forkScope())
         ind++
       }
     }
   }
-  newScope && locals_.length--
+  newScope && (locals_.pop()!.d = true)
   return res
 }
 
@@ -776,7 +786,7 @@ const evalBlockBody = (block: OpValues[O.block]): unknown => {
     res = res === kBreakBlock && (res as BreakValue).v && statement.l
         && statement.l.indexOf((res as BreakValue).v as string) >= 0 ? ((res as BreakValue).v = 0, kFakeValue) : res
   }
-  !block.l && !block.c || locals_.length--
+  !block.l && !block.c || (locals_.pop()!.d = true)
   return res
 }
 
@@ -965,7 +975,7 @@ const FunctionFromOp = (fn: OpValues[O.fn], globals: Isolate, closures: StackFra
         locals_.push(frame = StackFrame({ c: null, l: fn.a.map(ToVarName), x: [] }, args, null, stdName))
         evalLet(Stat("arg", null, Op(O.comma, fn.a)), realArgs)
         args = args.concat(objEntries<VarLiterals>(frame.v))
-        locals_.length--
+        locals_.pop()!.d = true
       }
       locals_.push(frame = StackFrame(fn.b.o === O.block ? fn.b.v : { c: null, l: null, x: [] }, args, fn.v, stdName))
       const result = fn.b.o === O.block ? evalBlockBody({ c: null, l: null, x: fn.b.v.x }) : opEvals[fn.b.o](fn.b)
@@ -1137,7 +1147,7 @@ const parseArgsAndEnv = (arr: IArguments | string[], globals: Isolate | null, cl
 }
 
 const baseFunctionCtor = ({ body, globals, closures, args }: ReturnType<typeof parseArgsAndEnv>
-    , inNewFunc?: true): () => unknown => {
+    , inNewFunc?: boolean): () => unknown => {
   const tokens = splitTokens(body.replace(<RegExpG> /\r\n?/g, "\n"))
   let tree = parseTree(tokens, inNewFunc)
   const statsNum = tree.o === O.block ? tree.v.x.length : 1
@@ -1163,7 +1173,7 @@ const baseFunctionCtor = ({ body, globals, closures, args }: ReturnType<typeof p
     if (!last.a && last.v.o !== O.fn) { (last.a as LineActions) = "return" }
   }
   return FunctionFromOp({ a: args.map(i => Op(O.token, i as VarLiterals)) as RefOp[],
-    t: tree.o === O.block || inNewFunc ? "fn" : "=>", n: "", v: null, b: tree
+    t: inNewFunc !== false && (tree.o === O.block || inNewFunc) ? "fn" : "=>", n: "", v: null, b: tree
   }, globals || isolate_, outerFrames, "anonymous", false)
 }
 
@@ -1172,7 +1182,7 @@ const innerFunction_ = function Function(_functionBody: string): () => unknown {
 }
 
 const innerEval_ = function (_functionBody: string): unknown {
-  const func = baseFunctionCtor(parseArgsAndEnv(arguments, null, null))
+  const func = baseFunctionCtor(parseArgsAndEnv(arguments, null, null), false)
   return func()
 }
 
@@ -1193,9 +1203,9 @@ const doubleEval_ = function (_functionBody: string | object): unknown {
     })()
   }
   if (NativeFunctionCtor && !hasEnv) {
-    const arr2 = info.args as unknown[]
+    const arr2 = info.args.slice() as unknown[]
     arr2.unshift(DefaultIsolate)
-    arr2.push("use strict;\n" + info.body)
+    arr2.push('"use strict";\n' + info.body)
     try { func = new (NativeFunctionCtor.bind.apply<new (...args: string[]) => Function
         , string[], new () => () => unknown>(NativeFunctionCtor, arr2 as string[])) } catch {}
     if (func) { return func() }

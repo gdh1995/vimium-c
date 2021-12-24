@@ -351,6 +351,16 @@ assert(function () {
     arr.push(Object.getOwnPropertyDescriptor(c, "c").get)
     return arr
   })
+  assert(function() {
+    return (function() {
+      let a = this.a
+      return a + eval("{ (()=>{return this.b})() }")
+    }).call({a:1, b: "this"})
+  })
+  assert(function() {
+    let a=[];for(let i = 0; i < 3;i++) {a.push(()=>i)}
+    return [a[0](), a[1](), a[2]()]
+  })
 }
     </script>
   </body>

@@ -39,7 +39,7 @@ VApi!.e = function (cmd): void {
   let jsEvalPromise: Promise<void> | undefined
   const tryEval = (code: string): unknown => {
     const injector1 = VimiumInjector!
-    if (injector1.eval) { return injector1.eval(code) }
+    if (injector1.eval) { const ret = injector1.eval(code); if (ret !== code) { return ret } }
     jsEvalPromise = jsEvalPromise || new Promise((resolve): void => {
       const script = document.createElement("script")
       script.src = `${location.protocol}//${injector1.host || injector1.id}/lib/simple_eval.js`
@@ -114,8 +114,8 @@ VApi!.e = function (cmd): void {
       const injector1 = VimiumInjector!;
       injector1.cache = VApi!.z
       if (i18nMessages) {
+        VApi!.v = tryEval
         injector1.callback && injector1.callback(2, "complete")
-        VApi!.v = injector1.eval || tryEval
       }
       // not listen hash here; a 3rd-party page may add listeners by itself if it indeed wants
       return;
