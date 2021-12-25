@@ -500,7 +500,8 @@ export const MediaWatcher_ = {
     let watcher = MediaWatcher_.watchers_[key];
     return typeof watcher === "object" ? watcher.matches : null;
   },
-  listen_ (key: MediaNS.kName, doListen: boolean): void {
+  listen_ (key: MediaNS.kName, listenType: 0 | 1 | 2): void {
+    const doListen = listenType === 2
     let a = MediaWatcher_, watchers = a.watchers_, cur = watchers[key],
     name = !key ? "prefers-reduced-motion" as const : "prefers-color-scheme" as const;
     if (cur === MediaNS.Watcher.WaitToTest && doListen) {
@@ -514,7 +515,6 @@ export const MediaWatcher_ = {
       if (!hasReliableWatchers) {
         a._timer = a._timer || setInterval(MediaWatcher_.RefreshAll_, GlobalConsts.MediaWatchInterval)
       }
-      a.update_(key, 0);
     } else if (!doListen && typeof cur === "object") {
       cur.onchange = null;
       watchers[key] = MediaNS.Watcher.NotWatching;
@@ -524,10 +524,9 @@ export const MediaWatcher_ = {
           a._timer = 0;
         }
       }
-      a.update_(key, 0);
     }
   },
-  update_ (this: void, key: MediaNS.kName, embed?: 1 | 0): void {
+  update_ (this: void, key: MediaNS.kName, embed?: 1 | 0, rawMatched?: boolean | null): void {
     type ObjWatcher = Exclude<typeof watcher, number>;
     let watcher = MediaWatcher_.watchers_[key], isObj = typeof watcher === "object";
     if (!hasReliableWatchers && OnFirefox && embed == null && isObj) {
@@ -537,7 +536,8 @@ export const MediaWatcher_ = {
       MediaWatcher_.watchers_[key] = watcher = watcher2;
     }
     const omniToggled = key ? "dark" : "less-motion",
-    bMatched: boolean = isObj ? (watcher as ObjWatcher).matches : false;
+    bMatched: boolean = isObj ? (watcher as ObjWatcher).matches : rawMatched != null ? rawMatched
+        : settings_.get_(key === MediaNS.kName.PrefersReduceMotion ? "autoReduceMotion" : "autoDarkMode") === 1
     const payloadKey = key ? "d" : "m", newPayloadVal = settings_.updatePayload_(payloadKey, bMatched)
     if (contentPayload_[payloadKey] !== newPayloadVal) {
       (contentPayload_ as Generalized<Pick<typeof contentPayload_, typeof payloadKey>>)[payloadKey] = newPayloadVal
@@ -677,11 +677,12 @@ setTimeout((): void => {
   }
 }, 120)
 
-settings_.updateHooks_.autoDarkMode = settings_.updateHooks_.autoReduceMotion = (value: boolean
+settings_.updateHooks_.autoDarkMode = settings_.updateHooks_.autoReduceMotion = (value: 0 | 1 | 2 | boolean
       , keyName: "autoReduceMotion" | "autoDarkMode"): void => {
-    const key = keyName.length > 12 ? MediaNS.kName.PrefersReduceMotion
-        : MediaNS.kName.PrefersColorScheme;
+    const key = keyName.length > 12 ? MediaNS.kName.PrefersReduceMotion : MediaNS.kName.PrefersColorScheme;
+    value = typeof value === "boolean" ? value ? 2 : 0 : value
     MediaWatcher_.listen_(key, value);
+    MediaWatcher_.update_(key, 0, value === 2 ? null : value > 0)
 }
 
 settings_.updateHooks_.vomnibarOptions = (options: SettingsNS.BackendSettings["vomnibarOptions"] | null): void => {

@@ -206,8 +206,8 @@ export const updateHooks_ = As_<{ [key in SettingsNS.DeclaredUpdateHooks]: Setti
 export const defaults_ = As_<Readonly<SettingsWithDefaults> & SafeObject>({
     __proto__: null as never,
     allBrowserUrls: false,
-    autoDarkMode: true,
-    autoReduceMotion: false,
+    autoDarkMode: 2,
+    autoReduceMotion: 0,
     clipSub: `p=^git@([^/:]+):=https://$1/=
 p@^https://item\\.m\\.jd\\.com/product/(\\d+)\\.html\\b@https://item.jd.com/$1.html@`,
     exclusionListenHash: true,

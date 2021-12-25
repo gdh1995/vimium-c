@@ -348,11 +348,11 @@ if (OnChrome ? (Build.MinCVer >= BrowserVer.MinMediaQuery$PrefersColorScheme
     if (OnFirefox && (Build.MinFFVer >= FirefoxBrowserVer.MinMediaQueryListenersWorkInBg
           || CurFFVer_ > FirefoxBrowserVer.MinMediaQueryListenersWorkInBg - 1)) { /* empty */ }
     else { void post_(kPgReq.updateMediaQueries) }
-    darkOpt.previous_ && darkOpt.saved_ && setTimeout(useLocalStyle, 34)
+    darkOpt.previous_ === 2 && darkOpt.saved_ && setTimeout(useLocalStyle, 34)
   }
   const darkOpt = Option_.all_.autoDarkMode
   const useLocalStyle = (): void => {
-    if (darkOpt.previous_ && darkOpt.saved_) {
+    if (darkOpt.previous_ === 2 && darkOpt.saved_) {
       const val = media.matches
       if (VApi && VApi.z) {
         const root = VApi.y().r
@@ -377,15 +377,16 @@ if (OnChrome ? (Build.MinCVer >= BrowserVer.MinMediaQuery$PrefersColorScheme
             }
           }
         }
-        void post_(kPgReq.updatePayload, { key: "d", val }).then((val2): void => { VApi!.z!.d = val2 })
+        void (post_(kPgReq.updatePayload, { key: "d", val }) as Promise<SettingsNS.FrontendSettingCache["d"]>)
+        .then((val2): void => { VApi!.z!.d = val2 })
       }
-      toggleDark(val)
+      toggleDark(val ? 2 : 0)
     }
   }
   // As https://bugzilla.mozilla.org/show_bug.cgi?id=1550804 said, to simulate color schemes, enable
   // https://developer.mozilla.org/en-US/docs/Mozilla/Firefox/Experimental_features#Color_scheme_simulation
-  darkOpt.onSave_ = (): void => { (darkOpt.previous_ ? onChange : toggleDark)() }
-  darkOpt.previous_ && void isVApiReady_.then(onChange)
+  darkOpt.onSave_ = (): void => { darkOpt.previous_ === 2 ? onChange() : toggleDark(darkOpt.previous_) }
+  darkOpt.previous_ === 2 && void isVApiReady_.then(onChange)
   media.onchange = onChange
 }
 

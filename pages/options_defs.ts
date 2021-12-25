@@ -3,7 +3,7 @@ import {
 } from "./async_bg"
 import {
   bgSettings_, Option_, AllowedOptions, Checker, PossibleOptionNames, ExclusionRulesOption_, oTrans_,
-  KnownOptionsDataset, OptionErrorType, ExclusionRealNode
+  KnownOptionsDataset, OptionErrorType, ExclusionRealNode, UniversalNumberOptions
 } from "./options_base"
 import type { OptionalPermissionsOption_ } from "./options_permissions"
 import { kPgReq } from "../background/page_messages"
@@ -99,9 +99,7 @@ interface NumberChecker extends Checker<"scrollStepSize"> {
   min: number | null; max: number | null; default: number
   check_ (value: number): number
 }
-export type UniversalNumberSettings =
-    Exclude<PossibleOptionNames<number>, "ignoreCapsLock" | "mapModifier" | "ignoreKeyboardLayout">
-export class NumberOption_<T extends UniversalNumberSettings> extends Option_<T> {
+export class NumberOption_<T extends UniversalNumberOptions> extends Option_<T> {
   override readonly element_: HTMLInputElement
   override previous_: number
   wheelTime_: number
@@ -170,7 +168,7 @@ export class NumberOption_<T extends UniversalNumberSettings> extends Option_<T>
 export class BooleanOption_<T extends keyof AllowedOptions> extends Option_<T> {
   override readonly element_: HTMLInputElement
   override previous_: FullSettings[T]
-  map_: any[]
+  map_: readonly any[]
   true_index_: 2 | 1
   static readonly map_for_2_ = [false, true] as const
   static readonly map_for_3_ = [false, null, true] as const
@@ -202,6 +200,12 @@ export class BooleanOption_<T extends keyof AllowedOptions> extends Option_<T> {
     this.inner_status_ = old === 2 ? 1 : old ? 0 : 2
     this.element_.indeterminate = old === 2
     this.element_.checked = this.inner_status_ === 2
+  }
+  override normalize_(value: FullSettings[T]): FullSettings[T] {
+    if ((this.element_.dataset as KnownOptionsDataset).map && typeof value === "boolean") {
+      value = this.map_[value ? this.true_index_ : 0]
+    }
+    return value
   }
 }
 
@@ -589,7 +593,10 @@ Option_.all_.userDefinedCss.onSave_ = function () {
 }
 
 Option_.all_.autoReduceMotion.onSave_ = function (): void {
-  nextTick_(() => { toggleReduceMotion(this.previous_) })
+  nextTick_(() => {
+    const value = this.previous_
+    toggleReduceMotion(value === 2 ? matchMedia("(prefers-reduced-motion: reduce)").matches : value > 0)
+  })
 }
 
 Option_.all_.passEsc.readValueFromElement_ = function (): string {

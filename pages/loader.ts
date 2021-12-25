@@ -63,9 +63,10 @@ var VApi: VApiTy | undefined, VimiumInjector: VimiumInjectorTy | undefined | nul
     type Keys = keyof SettingsNS.PersistentSettings
     const storage = browser_.storage.local as { get <K extends Keys> (k: K, cb: (r: { [k in K]: any }) => void): void }
     storage.get("autoDarkMode", (res): void => {
-      if (res.autoDarkMode === false) {
+      const value = res && res.autoDarkMode as SettingsNS.PersistentSettings["autoDarkMode"] | boolean
+      if (value === false || value === 1) {
         const el = document.head!.querySelector("meta[name=color-scheme]") as HTMLMetaElement | null
-        el && (el.content = "light")
+        el && (el.content = value === 1 ? "dark" : "light")
       }
       return browser_.runtime.lastError
     })

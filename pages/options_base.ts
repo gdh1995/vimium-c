@@ -6,20 +6,22 @@ import type * as i18n_options from "../i18n/zh/options.json"
 
 export type AllowedOptions = SettingsNS.PersistentSettings
 export type PossibleOptionNames<T> = PossibleKeys<AllowedOptions, T>
+type UniNumberKeys<T, K> = K extends keyof T ? T[K] extends number ? number extends T[K] ? K : never : never : never
+export type UniversalNumberOptions = UniNumberKeys<AllowedOptions, keyof AllowedOptions>
 interface BaseChecker<V extends AllowedOptions[keyof AllowedOptions]> {
   init_? (): any;
   check_ (value: V): V | Promise<V>
 }
 export type Checker<T extends keyof AllowedOptions> = BaseChecker<AllowedOptions[T]>
 import type {
-  UniversalNumberSettings, NumberOption_, JSONOptionNames, JSONOption_, TextualizedOptionNames, TextOption_,
-  BooleanOption_
+  NumberOption_, JSONOptionNames, JSONOption_, TextualizedOptionNames, TextOption_, BooleanOption_
 } from "./options_defs"
 type OptionType<T extends keyof AllowedOptions> = T extends "exclusionRules" ? ExclusionRulesOption_
-    : T extends UniversalNumberSettings ? NumberOption_<T>
+    : AllowedOptions[T] extends 0 | 1 | 2 ? BooleanOption_<T>
+    : T extends UniversalNumberOptions ? NumberOption_<T>
     : T extends JSONOptionNames ? JSONOption_<T>
     : T extends TextualizedOptionNames ? TextOption_<T>
-    : NonNullable<AllowedOptions[T]> extends boolean | number ? BooleanOption_<T>
+    : AllowedOptions[T] extends boolean | null ? BooleanOption_<T>
     : never;
 export interface KnownOptionsDataset extends KnownDataset {
   iT: string // title in i18n

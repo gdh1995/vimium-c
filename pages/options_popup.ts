@@ -307,7 +307,7 @@ void post_(kPgReq.popupInit).then((_resolved): void => {
   nextTick_((versionEl): void => {
     blockedMsg.remove()
     blockedMsg = null as never
-    toggleReduceMotion(!!conf_.reduceMotion)
+    toggleReduceMotion(conf_.reduceMotion)
     versionEl.textContent = conf_.ver
   }, $(".version"))
 

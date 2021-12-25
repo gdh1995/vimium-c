@@ -333,7 +333,7 @@ declare namespace SettingsNS {
   }
   interface ManuallySyncedItems {
     /** darkMode */ d: ["darkMode", " D" | ""];
-    /** reduceMotion */ m: ["reduceMotion", BaseBackendSettings["autoReduceMotion"]];
+    /** reduceMotion */ m: ["reduceMotion", boolean];
   }
   interface OneTimeItems {
     /** grabBackFocus */ g: ["grabBackFocus", BaseBackendSettings["grabBackFocus"]];
@@ -360,7 +360,7 @@ declare namespace SettingsNS {
   }
 
   interface BaseBackendSettings {
-    autoReduceMotion: boolean;
+    /** `2`: auto (following browser); `1`: fixed true */ autoReduceMotion: 0 | 1 | 2
     grabBackFocus: boolean;
     /** if want to rework it, must search it in all files and take care */
     ignoreCapsLock: 0 | 1 | 2;

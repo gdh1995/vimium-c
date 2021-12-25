@@ -17,7 +17,7 @@ export interface PgReq {
   [kPgReq.setSetting]: [ KVPair<SettingsNS.PersistentSettings>, Values<SettingsNS.PersistentSettings> | null ]
   [kPgReq.updatePayload]: [
     { key: keyof SettingsNS.FrontendSettingsSyncingItems,
-      val: Values<SettingsNS.FrontendSettings> | SettingsNS.BackendSettings["autoDarkMode"] },
+      val: Values<SettingsNS.FrontendSettings> | /** autoDarkMode */ boolean },
     SettingsNS.FrontendSettingCache[keyof SettingsNS.FrontendSettingsSyncingItems] | null
   ]
   [kPgReq.notifyUpdate]: [ (keyof SettingsNS.FrontendSettingsSyncingItems)[], void ]

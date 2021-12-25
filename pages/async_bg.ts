@@ -201,12 +201,14 @@ export const $$ = ((selector: string, root?: HTMLElement | ShadowRoot | null): A
 }) as <T extends HTMLElement>(selector: string, root?: HTMLElement | ShadowRoot | null
     ) => T[] & { forEach: never }
 
-export const toggleDark = (dark?: boolean): void => {
+export const toggleDark = (dark: SettingsNS.PersistentSettings["autoDarkMode"]): void => {
   const el = document.head!.querySelector("meta[name=color-scheme]") as HTMLMetaElement
-  const content = dark ? "light dark" : "light"
+  const content = dark === 2 ? "light dark" : dark === 1 ? "dark" : "light"
   if (el.content !== content) {
     el.content = content
-    document.documentElement!.classList.toggle("no-dark", !dark)
+    const cls = document.documentElement!.classList
+    cls.toggle("no-dark", !dark)
+    cls.toggle("dark", dark === 1)
   }
 }
 export const toggleReduceMotion = (reduced: boolean): void => {
@@ -390,7 +392,8 @@ if (OnChrome ? (Build.MinCVer >= BrowserVer.MinMediaQuery$PrefersColorScheme
   type Keys = keyof SettingsNS.PersistentSettings
   const storage = browser_.storage.local as { get <K extends Keys> (k: K, cb: (r: { [k in K]: any }) => void): void }
   storage.get("autoDarkMode", (res): void => {
-    res.autoDarkMode === false && toggleDark(false); return browser_.runtime.lastError
+    const value = res && res.autoDarkMode as SettingsNS.PersistentSettings["autoDarkMode"] | boolean;
+    (value === false || value === 1) && toggleDark(value ? 1 : 0); return browser_.runtime.lastError
   })
 }
 if (browserLang && curPath !== "popup") {
