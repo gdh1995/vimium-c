@@ -430,10 +430,9 @@ const parseTree = (tokens_: readonly Token[], inNewFunc: boolean | undefined): O
       pos_ < tokens_.length; before = type, pos_++) {
     cur = tokens_[pos_], type = cur.t
     if (topIsDict && type & (T.prefix | T.action | T.fn | T.literal)) {
-      (cur.v as VarLiterals) = (cur.t === T.literal ? cur.v.v
+      (cur.v as VarLiterals) = (cur.t === T.literal ? cur.v.v + ""
           : As_<string>((cur as SomeTokens<T.prefix | T.action | T.fn>).v)) as "var1"
-      type = (cur.t as T) = T.ref
-      Build.NDEBUG || ((cur.n as string) = "ref")
+      type = (cur.t as T) = T.ref, Build.NDEBUG || ((cur.n as string) = "ref")
     }
     switch (type) {
     case T.block: case T.dict: /* T.block | T.dict: */
@@ -513,9 +512,13 @@ const parseTree = (tokens_: readonly Token[], inNewFunc: boolean | undefined): O
       ctx_.push(cur as BaseToken<T.comma>)
       break
     case T.colon: /* T.colon: */
-      if (before === T.ref && ctx_[ctx_.length - 1].t & (T.block | T.prefix)) {
-        values_.push(Op(O.block, { c: null, l: null, x: null as never }), values_.pop()!)
-        ctx_.push(Token(T.prefix, "labelled"))
+      if (before === T.ref) {
+        const top = ctx_[ctx_.length - 1]
+        if (top.t === T.block || top.t === T.prefix && (top.v === "labelled"
+            || values_[values_.length - 2].o !== O.block)) {
+          values_.push(Op(O.block, { c: null, l: null, x: null as never }), values_.pop()!)
+          ctx_.push(Token(T.prefix, "labelled"))
+        }
       }
       consumeUntil(topIsDict ? (T.comma << 1) - 1 | T.question : T.comma - 1 | T.question)
       ctx_[ctx_.length - 1].t !== T.prefix ? (ctx_.push(cur as BaseToken<T.colon>), topIsDict = false)
@@ -1012,7 +1015,7 @@ const BinaryStrToT = (tokenStr: TokenValues[BinaryTokens]): keyof TokenValues =>
     "+-".includes(tokenStr) ? T.math1 : kTokenEnums[tokenStr]!
 
 const doesNeedWrap = (val: Op, op: Op): boolean => val.o >= O.call
-    ? val.o === O.composed && val.v.b === "{" && op.o === O.access && val === op.v.y
+    ? val.o === O.composed && val.v.b === "{" && (op.o === O.access ? val === op.v.y : op.o <= O.stat)
     : val.o < op.o ? val.o !== O.block : val.o === op.o && (val.o === O.comma
         || val.o === O.binary && BinaryStrToT(val.v.o)! < BinaryStrToT((op as BaseOp<O.binary>).v.o))
 
@@ -1071,7 +1074,8 @@ const ToString = (op: Op, allowed: number): string => {
     const body = ToWrapped(op, allowed && op.v.b.o === O.block ? (allowed | 1 << O.block) : allowed, op.v.b)
     return (op.v.t === "fn" ? "function " + op.v.n : op.v.n && op.v.n + " ") + "("
         + (argsList.includes("\n") ? argsList + "\n" : argsList)
-        + (op.v.t !== "=>" ? ") " + body : body.includes("\n") ? ") =>\n" + indent(body) : ") =>" + body)
+        + (op.v.t !== "=>" ? ") " + body : op.v.b.o !== O.block && body.includes("\n") ? ") =>\n" + indent(body)
+            : ") => " + body)
   }
   case O.assign: /* O.assign: */ return `${ToString(op.v.y, allowed) || kUnknown} ${op.v.a} ${
       op.v.x.o === O.fn ? ToString(op.v.x, allowed) : ToWrapped(op, allowed, op.v.x)}`
@@ -1239,6 +1243,7 @@ outerEval_.tryEval = function (_functionBody: string): ReturnType<VApiTy["v"]["t
     return { ok: NativeFunctionCtor && !hasEnv ? 1 : 2, result }
   } catch (error) {
     const native = NativeFunctionCtor && !hasEnv
+    Build.NDEBUG || console.log("Vimium C: catch an eval error:", error)
     return { ok: 0, result: error, stack: native ? null : exposeStack(g_exc ? g_exc!.l : []),
       type: native ? "native": "eval", globals: native ? null : g_exc ? g_exc!.g : isolate_
     } as ReturnType<VApiTy["v"]["tryEval"]>

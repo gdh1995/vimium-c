@@ -91,7 +91,9 @@ var normalizeCode = function (code) {
   }
   return code.trim()
 }
-var formatCode = function (code) { return '"' + (code.length > 30
+var formatCode = function (code) {
+  code = code.trim().replace(/  +/g, " ")
+  return '"' + (code.length > 30
     ? code.slice(0, 30).replace(/\n/g, "\\n") + '"\u2026' : code + '"') }
 var formatAnyObject = function (value) { try {
   var keys = Object.getOwnPropertyNames(value).concat(
@@ -357,6 +359,11 @@ assert(function () {
       return a + eval("{ (()=>{return this.b})() }")
     }).call({a:1, b: "this"})
   })
+  test(`
+    const a = 1
+    if a: ab: return 12
+    return { 0: 1, 2: 3 }
+  `)
   assert(function() {
     let a=[];for(let i = 0; i < 3;i++) {a.push(()=>i)}
     return [a[0](), a[1](), a[2]()]

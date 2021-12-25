@@ -821,7 +821,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         : Vomnibar_.navigateToUrl_(item, action, https, incognito, sel);
       (<RegExpOne> /a?/).test("");
     };
-    if (sel === -1 && event && event !== !0 && event & KeyStat.altKey && (<RegExpOne> /^\w+(-\w+)?$/).test(item.u)) {
+    if (sel === -1 && event && event !== !0 && event & KeyStat.altKey && action > ReuseType.newBg
+        && (<RegExpOne> /^\w+(-\w+)?$/).test(item.u)) {
       const domains = a.completions_.filter(i => i.e === "domain");
       (item as UrlInfo).u = domains.length ? domains[0].u : `www.${item.u}.com`;
     }

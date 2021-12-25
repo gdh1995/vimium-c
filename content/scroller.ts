@@ -515,13 +515,13 @@ const hasSpecialScrollSnap = (el: SafeElement | null): boolean | string | null |
 }
 
 const doesScroll = (el: SafeElement, di: ScrollByY, amount: number): boolean => {
-    /** @todo: re-check whether it's scrollable when hasSpecialScrollSnap_ on Firefox */
+    /** @todo: (help wanted) it seems not detectable when hasSpecialScrollSnap_ on Firefox */
     // Currently, Firefox corrects positions before .scrollBy returns,
     // so it always fails if amount < next-box-size
     const before = dimSize_(el, di + kDim.positionX),
     changed = performScroll(el, di, (amount > 0 ? 1 : -1) * scale, before)
     if (changed) {
-      if (!di && hasSpecialScrollSnap(el)) {
+      if (!OnFirefox && !di && hasSpecialScrollSnap(el)) {
         /**
          * Here needs the third scrolling, because in `X Prox. LTR` mode, a second scrolling may jump very far.
          * Tested on https://developer.mozilla.org/en-US/docs/Web/CSS/scroll-snap-type .
