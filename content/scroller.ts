@@ -294,11 +294,16 @@ export const executeScroll: VApiTy["c"] = function (di: ScrollByY, amount0: numb
       , factor?: NonNullable<CmdOptions[kFgCmd.scroll]["view"]> | undefined
       , options?: CmdOptions[kFgCmd.scroll], oriCount?: number, force?: 1): void {
     const toFlags = flags & (kScFlag.TO | kScFlag.INC), toMax = (toFlags - kScFlag.TO) as BOOL
+    let core: ReturnType<typeof getParentVApi> | false
     {
       const childFrame = !force && deref_(currentScrolling)
-      const childApi = childFrame && isIFrameElement(childFrame) && detectUsableChild(childFrame)
-      if (childApi) {
-        childApi.c(di, amount0, flags as 0, factor, options, oriCount)
+      core = childFrame && isIFrameElement(childFrame) && detectUsableChild(childFrame)
+      if (core) {
+        core.c(di, amount0, flags as 0, factor, options, oriCount)
+        if (core.y().k) {
+          scrollTick(1)
+          joined = core
+        }
         return
       }
     }
@@ -334,7 +339,6 @@ export const executeScroll: VApiTy["c"] = function (di: ScrollByY, amount0: numb
       }
     }
     amount = amount * amount > 0.01 ? amount : 0
-    let core: ReturnType<typeof getParentVApi>
     doesSucceed_ = null
     if (mayUpperFrame && (core = getParentVApi())
         && (!amount && !amount0 || Lower(attr_s(frameElement_()!, "scrolling") || "") === "no"
