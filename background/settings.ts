@@ -219,11 +219,16 @@ cglpcedifkgalfdklahhcchnjepcckfn
 clnalilglegcjmlgenoppklmfppddien
 # EdgeTranslate
 bocbaocobfecmglnmeaeppambideimao
-bfdogplmndidlpjfhoijckpakkdjkkil`
+bfdogplmndidlpjfhoijckpakkdjkkil
+# SalaDict
+cdonnmffkdaoajfknoeeecmchibpmkmg
+idghocbbahafpfhjnfhpbfbmpegphmmp`
 : OnFirefox
 ? `# extension id or hostname
 newtab-adapter@gdh1995.cn
-shortcut-forwarding-tool@gdh1995.cn`
+shortcut-forwarding-tool@gdh1995.cn
+nickyfeng@edgetranslate.com
+saladict@crimx.com`
 : "",
     filterLinkHints: false,
     findModeRawQueryList: "",

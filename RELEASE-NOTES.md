@@ -4,7 +4,16 @@ Release Notes of Vimium C
 ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 说明文档: https://gitee.com/gdh1995/vimium-c#readme , https://github.com/gdh1995/vimium-c/blob/master/README-zh.md .
 
-#### 1.96.0
+#### 1.96.2
+* darkMode and reduceMotion: add a new state to be always enabled
+* scroller: fix support of child frames
+* focusInput/switchFocus: also modify a wholly-selected range when .select is not null
+* add [SalaDict](https://github.com/crimx/ext-saladict) and
+  [EdgeTranslate](https://github.com/EdgeTranslate/EdgeTranslate)
+  into the default value of `Allow list of other extension IDs`
+* fix some small bugs
+
+#### 1.96.1
 * `openUrl`: now can run simple `javascript:` URLs whose code looks like JavaScript, even on web-extension pages
   * *Warning*: Vimium C **DOES NOT check** whether your code is **safe or not**
   * a 3rd-party extension may also inject `VimiumInjector.eval` to disable this or do whatever it likes
