@@ -1,6 +1,5 @@
 import {
-  CONST_,
-  CurCVer_, curIncognito_, historyCache_, omniPayload_, OnChrome, OnFirefox, settingsCache_, set_curIncognito_
+  CONST_, CurCVer_, curIncognito_, historyCache_, omniPayload_, OnChrome, OnFirefox, searchEngines_, set_curIncognito_
 } from "./store"
 import { getCurShownTabs_, getCurTabs, getCurWnd, Tabs_ } from "./browser"
 import * as BgUtils_ from "./utils"
@@ -146,15 +145,15 @@ export const SearchKeywords_ = {
   _searchKeywordMaxLength: 0,
   _timer: 0,
   isPrefix_ (): boolean {
-    const key = queryTerms[0], arr = settingsCache_.searchKeywords;
-    if (arr == null) {
+    const key = queryTerms[0], arr = searchEngines_.keywords
+    if (arr === null) {
       SearchKeywords_._timer = SearchKeywords_._timer || setTimeout(SearchKeywords_._buildSearchKeywords, 67)
       return true
     }
     return key.length >= SearchKeywords_._searchKeywordMaxLength ? false : arr.includes("\n" + key)
   },
   _buildSearchKeywords (): void {
-    let arr = BgUtils_.keys_(settingsCache_.searchEngineMap).sort(), max = 0, last = "", dedup: string[] = []
+    let arr = BgUtils_.keys_(searchEngines_.map).sort(), max = 0, last = "", dedup: string[] = []
     for (let ind = arr.length; 0 <= --ind; ) {
       const key = arr[ind]
       if (!last.startsWith(key)) {
@@ -164,7 +163,7 @@ export const SearchKeywords_ = {
         dedup.push(key)
       }
     }
-    settings_.set_("searchKeywords", "\n" + dedup.join("\n"))
+    searchEngines_.keywords = "\n" + dedup.join("\n")
     SearchKeywords_._searchKeywordMaxLength = max;
     SearchKeywords_._timer = 0;
   }
@@ -482,8 +481,6 @@ TabRecency_.onWndChange_ = (): void => {
   }
 }
 
-setTimeout(() => {
-  settings_.postUpdate_("searchEngines", null);
-}, 80);
+void settings_.ready_.then((): void => { settings_.postUpdate_("searchEngines", null) })
 
 if (!Build.NDEBUG) { (globalThis as any).MatchCacheManager = MatchCacheManager_ }

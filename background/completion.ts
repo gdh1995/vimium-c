@@ -1,6 +1,6 @@
 import {
   bookmarkCache_, Completion_, contentPayload_, CurCVer_, curTabId_, curWndId_, historyCache_, OnChrome, OnFirefox,
-  blank_, recencyForTab_, settingsCache_, evalVimiumUrl_
+  blank_, recencyForTab_, searchEngines_, evalVimiumUrl_
 } from "./store"
 import { overrideTabsIndexes_ff_, browser_, getTabUrl, isTabMuted } from "./browser"
 import * as BgUtils_ from "./utils"
@@ -623,7 +623,7 @@ searchEngine = {
       sug = searchEngine.makeUrlSuggestion_(keyword)
       return Completers.next_([sug], SugType.search);
     } else {
-      pattern = settingsCache_.searchEngineMap.get(keyword)
+      pattern = searchEngines_.map.get(keyword)
     }
     if (failIfNull === true) {
       if (!pattern) { return true; }

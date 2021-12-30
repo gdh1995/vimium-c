@@ -1,14 +1,14 @@
 import {
   contentPayload_, extAllowList_, newTabUrls_, omniPayload_, OnChrome, OnEdge, OnFirefox, framesForOmni_, sync_, IsEdg_,
-  settingsCache_, bgIniting_, set_bgIniting_, CurCVer_, CONST_, installation_, hasEmptyLocalStorage_,
-  OnOther_, onInit_
+  settingsCache_, bgIniting_, set_bgIniting_, CurCVer_, CONST_, OnOther_, onInit_, searchEngines_,
+  installation_, hasEmptyLocalStorage_, set_newTabUrl_f, newTabUrl_f, set_vomnibarPage_f, updateHooks_
 } from "./store"
 import { asyncIter_, nextTick_ } from "./utils"
 import { browser_, normalizeExtOrigin_ } from "./browser"
 import { convertToUrl_, reformatURL_ } from "./normalize_urls"
 import { parseSearchEngines_ } from "./parse_urls"
-import SettingsWithDefaults = SettingsNS.SettingsWithDefaults
 import { asyncIterFrames_ } from "./ports"
+import SettingsWithDefaults = SettingsNS.SettingsWithDefaults
 
 export type WritableSettingsCache = SettingsNS.FullCache
 type SettingsUpdateMsg = {
@@ -19,6 +19,8 @@ type SettingsUpdateMsg = {
 
 export const storage_ = localStorage
 let newSettingsToBroadcast_: Extract<SettingsUpdateMsg["d"], string[]> | null = null
+
+export const ready_ = Promise.resolve(1)
 
 export const get_ = <K extends keyof SettingsWithDefaults> (key: K, forCache?: boolean): SettingsWithDefaults[K] => {
     if (key in settingsCache_) {
@@ -59,8 +61,8 @@ export const postUpdate_ = (<K extends keyof SettingsWithDefaults> (key: K, valu
     type AllK = keyof SettingsWithDefaults;
     return (updateHooks_[key] as SettingsNS.SimpleUpdateHook<AllK>)(value !== undefined ? value : get_(key), key)
 }) as {
-    <K extends SettingsNS.NullableUpdateHooks>(key: K, value?: FullSettings[K] | null): void;
-    <K extends SettingsNS.EnsuredUpdateHooks | keyof SettingsWithDefaults>(key: K, value?: FullSettings[K]): void;
+    <K extends SettingsNS.NullableUpdateHooks>(key: K, value?: SettingsWithDefaults[K] | null): void
+    <K extends keyof SettingsWithDefaults>(key: K, value?: SettingsWithDefaults[K]): void
 }
 export const broadcast_ = <K extends kBgReq.settingsUpdate | kBgReq.url | kBgReq.keyFSM> (
       request: K extends kBgReq.settingsUpdate ? SettingsUpdateMsg : Req.bg<K>): void => {
@@ -109,7 +111,7 @@ export const broadcastOmni_ = <K extends ValidBgVomnibarReq> (request: Req.bg<K>
 export const updatePayload_ = function (shortKey: keyof SettingsNS.FrontendSettingsSyncingItems, value: any
       , obj?: Partial<SettingsNS.FrontendSettingCache>
       ): SettingsNS.FrontendSettingsSyncingItems[keyof SettingsNS.FrontendSettingsSyncingItems][1] {
-    type SettingType<T> = T extends keyof SettingsNS.FullSettings ? SettingsNS.FullSettings[T] : never
+    type SettingType<T> = T extends keyof SettingsWithDefaults ? SettingsWithDefaults[T] : never
     type ValType<T extends keyof SettingsNS.AutoSyncedItems> = SettingType<SettingsNS.AutoSyncedItems[T][0]>;
     switch (shortKey) {
     case "c": case "n": value = (value as ValType<"c" | "n">).toLowerCase().toUpperCase(); break
@@ -122,15 +124,14 @@ export const updatePayload_ = function (shortKey: keyof SettingsNS.FrontendSetti
     }
     return obj ? (obj as Generalized<SettingsNS.FrontendSettingCache>)[shortKey] = value : value
 } as <T extends keyof (SettingsNS.FrontendSettingsSyncingItems)> (shortKey: T
-      , value: T extends keyof SettingsNS.AutoSyncedItems ? FullSettings[SettingsNS.AutoSyncedItems[T][0]]
+      , value: T extends keyof SettingsNS.AutoSyncedItems ? SettingsWithDefaults[SettingsNS.AutoSyncedItems[T][0]]
           : T extends keyof SettingsNS.ManuallySyncedItems
-            ? T extends "d" ? FullSettings["autoDarkMode"] : SettingsNS.ManuallySyncedItems[T][1]
+            ? T extends "d" ? SettingsWithDefaults["autoDarkMode"] : SettingsNS.ManuallySyncedItems[T][1]
           : never
       , obj?: Partial<SettingsNS.FrontendSettingCache>
 ) => (SettingsNS.FrontendSettingsSyncingItems)[T][1]
 
-export const updateHooks_ = As_<{ [key in SettingsNS.DeclaredUpdateHooks]: SettingsNS.UpdateHook<key> } & SafeObject>({
-    __proto__: null as never,
+Object.assign(updateHooks_, As_<{ [key in SettingsNS.DeclaredUpdateHooks]: SettingsNS.UpdateHook<key> }>({
     extAllowList (val): void {
       const map = extAllowList_
       map.forEach((v, k): void => { v !== false && map.delete(k) })
@@ -141,35 +142,32 @@ export const updateHooks_ = As_<{ [key in SettingsNS.DeclaredUpdateHooks]: Setti
         }
       }
     },
-    grabBackFocus (value: FullSettings["grabBackFocus"]): void { contentPayload_.g = value },
+    grabBackFocus (value: SettingsWithDefaults["grabBackFocus"]): void { contentPayload_.g = value },
     newTabUrl (url): void {
       url = (<RegExpI> /^\/?pages\/[a-z]+.html\b/i).test(url)
         ? browser_.runtime.getURL(url) : normalizeExtOrigin_(convertToUrl_(url))
-      set_("newTabUrl_f", url)
+      set_newTabUrl_f(url)
     },
     searchEngines (): void {
-      const map = settingsCache_.searchEngineMap
-      map.clear()
-      "searchKeywords" in settingsCache_ && set_("searchKeywords", null)
-      const rules = parseSearchEngines_("~:" + get_("searchUrl") + "\n" + get_("searchEngines"), map)
-      set_("searchEngineRules", rules)
+      searchEngines_.map.clear()
+      searchEngines_.keywords = null
+      searchEngines_.rules =
+          parseSearchEngines_("~:" + get_("searchUrl") + "\n" + get_("searchEngines"), searchEngines_.map)
     },
     searchUrl (str): void {
-      const cache = settingsCache_ as WritableSettingsCache
-      const map = cache.searchEngineMap
+      const map = searchEngines_.map
       if (str) {
         parseSearchEngines_("~:" + str, map)
       } else {
         map.clear()
         map.set("~", { name_: "~", blank_: "", url_: get_("searchUrl").split(" ", 1)[0] })
-        cache.searchEngineRules = [];
-        if (get_("newTabUrl_f", true)) {
-          return
-        }
+        searchEngines_.rules = []
+        set_newTabUrl_f(get_("newTabUrl_f", true) || "")
+        if (newTabUrl_f) { return }
       }
       postUpdate_("newTabUrl")
     },
-    mapModifier (value: FullSettings["mapModifier"]): void {
+    mapModifier (value: SettingsWithDefaults["mapModifier"]): void {
       type DeltaType = BgVomnibarSpecialReq[kBgReq.omni_updateOptions]["d"]
       broadcastOmni_({ N: kBgReq.omni_updateOptions, d:
         As_<Pick<DeltaType, SelectNameToKey<SettingsNS.AllVomnibarItems>["mapModifier"]>>({ a: value })
@@ -178,7 +176,7 @@ export const updateHooks_ = As_<{ [key in SettingsNS.DeclaredUpdateHooks]: Setti
     vomnibarPage (url): void {
       const cur = storage_.getItem("vomnibarPage_f")
       if (cur && !url) {
-        (settingsCache_ as WritableSettingsCache).vomnibarPage_f = cur
+        set_vomnibarPage_f(cur)
         return;
       }
       url = url ? normalizeExtOrigin_(url) : get_("vomnibarPage")
@@ -197,11 +195,10 @@ export const updateHooks_ = As_<{ [key in SettingsNS.DeclaredUpdateHooks]: Setti
           url = url.replace(":version", `${parseFloat(CONST_.VerCode_)}`)
         }
       }
-      set_("vomnibarPage_f", url)
-    },
-}) as { [key in SettingsNS.DeclaredUpdateHooks]: SettingsNS.UpdateHook<key> } as SettingsNS.FullUpdateHookMap
+      set_vomnibarPage_f(url)
+    }
+}))
 
-  // clear localStorage & sync, if value === @defaults[key]
   // the default of all nullable fields must be set to null for compatibility with @Sync.set
 export const defaults_ = As_<Readonly<SettingsWithDefaults> & SafeObject>({
     __proto__: null as never,
@@ -365,11 +362,6 @@ js\\:|Js: javascript:\\ $S; JavaScript`,
     waitForEnter: true
 })
 
-export const legacyNames_ = As_<SettingsNS.LegacyNames & SafeObject>({ __proto__: null as never,
-    extWhiteList: "extAllowList",
-    phraseBlacklist: "omniBlockList"
-})
-
   // not set localStorage, neither sync, if key in @nonPersistent
   // not clean if exists (for simpler logic)
 export const nonPersistent_ = As_<TypedSafeEnum<SettingsNS.NonPersistentSettings>>({ __proto__: null as never,
@@ -437,7 +429,6 @@ browser_.runtime.getPlatformInfo((info): void => {
     const chromeNewTabPage = "chrome://new-tab-page"
     ref3.set(chromeNewTabPage, Urls.NewTabType.cNewNTP); ref3.set(chromeNewTabPage + "/", Urls.NewTabType.cNewNTP)
   }
-  (settingsCache_ as WritableSettingsCache).searchEngineMap = new Map()
   obj.GlobalCommands_ = (<Array<StandardShortcutNames | kShortcutAliases>> Object.keys(ref.commands || {})
       ).map(i => i === kShortcutAliases.nextTab1 ? "nextTab" : i)
   obj.VerCode_ = ref.version;
@@ -468,13 +459,6 @@ browser_.runtime.getPlatformInfo((info): void => {
     updatePayload_(valuesToLoad_[_i as PayloadNames], get_(_i as PayloadNames), contentPayload_)
   }
 
-  for (const oldKey in legacyNames_) {
-    const oldVal = storage_.getItem(oldKey)
-    if (oldVal != null) {
-      set_(legacyNames_[oldKey as keyof typeof legacyNames_], oldVal)
-      storage_.removeItem(oldKey)
-    }
-  }
 })()
 
 if (bgIniting_ < BackendHandlersNS.kInitStat.FINISHED && hasEmptyLocalStorage_) {

@@ -27,6 +27,7 @@ test.*
 todo*
 !gulpfile.js
 !tsc.js
+!/background/worker.js
 !/lib/math_parser.js
 !/lib/viewer.min.js
 !/scripts/*.js

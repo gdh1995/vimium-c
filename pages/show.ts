@@ -1,6 +1,6 @@
 import {
   CurCVer_, CurFFVer_, OnChrome, OnFirefox, OnEdge, $, pageTrans_, browser_, nextTick_, enableNextTick_, kReadyInfo,
-  import2, TransTy, isVApiReady_, post_, disconnect_, simulateClick
+  import2, TransTy, isVApiReady_, post_, disconnect_, simulateClick, fetch
 } from "./async_bg"
 import { kPgReq } from "../background/page_messages"
 import type * as i18n_popup from "../i18n/zh/popup.json"

@@ -1,5 +1,6 @@
 import {
-  CurCVer_, CurFFVer_, OnChrome, OnEdge, OnFirefox, paste_, substitute_, set_copy_, set_paste_, set_substitute_, CONST_
+  CurCVer_, CurFFVer_, OnChrome, OnEdge, OnFirefox, paste_, substitute_, set_copy_, set_paste_, set_substitute_, CONST_,
+  updateHooks_
 } from "./store"
 import * as BgUtils_ from "./utils"
 import * as settings_ from "./settings"
@@ -303,8 +304,8 @@ set_substitute_((text: string, normalContext: SedContext, mixedSed?: MixedSedOpt
   return text
 })
 
-const getTextArea_ = (): HTMLTextAreaElement => {
-  const el = document.createElement("textarea")
+const getTextArea_html = (): HTMLTextAreaElement => {
+  const el = (globalThis as MaybeWithWindow).document!.createElement("textarea")
   el.style.position = "absolute"
   el.style.left = "-99px"
   el.style.width = "0"
@@ -340,12 +341,13 @@ const reformat_ = (copied: string, sed?: MixedSedOpts | null): string => {
 
 set_copy_(OnFirefox && navigator.clipboard ? (data, join, sed): string => {
   data = format_(data, join, sed)
-  data && navigator.clipboard!.writeText!(data)
+  const clip = data && navigator.clipboard
+  clip && clip.writeText!(data)
   return data
 } : (data, join, sed): string => {
   data = format_(data, join, sed)
   if (data) {
-    const doc = document, textArea = getTextArea_()
+    const doc = (globalThis as MaybeWithWindow).document!, textArea = getTextArea_html()
     textArea.value = data
     doc.body!.appendChild(textArea)
     textArea.select()
@@ -362,11 +364,11 @@ set_paste_(!CONST_.AllowClipboardRead_ ? () => null
   return clipboard ? clipboard.readText!().then(s => reformat_(
       s.slice(0, GlobalConsts.MaxBufferLengthForPastingLongURL), sed), () => null) : null
 } : (sed, newLenLimit?: number): string => {
-  const textArea = getTextArea_()
+  const doc = (globalThis as MaybeWithWindow).document!, textArea = getTextArea_html()
   textArea.maxLength = newLenLimit || GlobalConsts.MaxBufferLengthForPastingNormalText
-  document.body!.appendChild(textArea)
+  doc.body!.appendChild(textArea)
   textArea.focus()
-  document.execCommand("paste")
+  doc.execCommand("paste")
   let value = textArea.value.slice(0, newLenLimit || GlobalConsts.MaxBufferLengthForPastingNormalText)
   textArea.value = ""
   textArea.remove()
@@ -378,4 +380,4 @@ set_paste_(!CONST_.AllowClipboardRead_ ? () => null
   return reformat_(value, sed)
 })
 
-settings_.updateHooks_.clipSub = (): void => { staticSeds_ = null }
+updateHooks_.clipSub = (): void => { staticSeds_ = null }

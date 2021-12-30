@@ -117,15 +117,17 @@ set_bgC_([
         : !settingsCache_.hideHud,
     key = _key && typeof _key === "string" ? stripKey_(_key).trim() : ""
     key = key.length > 1 || key.length === 1 && !(<RegExpI> /[0-9a-z]/i).test(key) ? key : ""
+    Promise.resolve(hud ? trans_("globalInsertMode", [key && ": " + (key.length === 1 ? `" ${key} "`
+        : `<${key}>`)]) : null).then((msg): void => {
     sendFgCmd(kFgCmd.insertMode, hud, {
-      h: hud ? extTrans_(`${kTip.globalInsertMode as 5}`, [key && ": " + (key.length === 1 ? `" ${key} "`
-          : `<${key}>`)]) : null,
+      h: msg,
       k: key || null,
       i: !!get_cOptions<C.insertMode>().insert,
       p: !!get_cOptions<C.insertMode>().passExitKey,
       r: <BOOL> +!!get_cOptions<C.insertMode>().reset,
       t: parseFallbackOptions(get_cOptions<C.insertMode, true>()),
       u: !!get_cOptions<C.insertMode>().unhover
+    })
     })
   },
   /* kBgCmd.nextFrame: */ _AsBgC<BgCmdNoTab<kBgCmd.nextFrame>>(nextFrame),
@@ -633,13 +635,13 @@ set_bgC_([
     }
   },
   /* kBgCmd.showHUD: */ (resolve): void | kBgCmd.showHUD => {
-    let text = get_cOptions<C.showHUD>().text
+    let text: string | UnknownValue | Promise<string> = get_cOptions<C.showHUD>().text
     if (!text && get_cOptions<C.showHUD>().$f) {
       const fallbackContext = get_cOptions<C.showHUD, true>().$f
       text = fallbackContext && fallbackContext.t ? extTrans_(`${fallbackContext.t as 99}`) : ""
       if (!text) { resolve(false); return }
     }
-    showHUD(text ? text + "" : trans_("needText"))
+    showHUD(text ? text instanceof Promise ? text : text + "" : trans_("needText"))
     resolve(!!text)
   },
   /* kBgCmd.toggleCS: */ (tabs: [Tab], resolve): void | kBgCmd.toggleCS => {

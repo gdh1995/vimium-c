@@ -1,4 +1,4 @@
-import { CONST_, CurCVer_, CurFFVer_, OnChrome, OnEdge, OnFirefox, settingsCache_, substitute_ } from "./store"
+import { CONST_, CurCVer_, CurFFVer_, OnChrome, OnEdge, OnFirefox, searchEngines_, substitute_ } from "./store"
 import * as BgUtils_ from "./utils"
 import {
   convertToUrl_, formatVimiumUrl_, lastUrlType_, removeComposedScheme_, searchVariableRe_, searchWordRe_
@@ -7,7 +7,7 @@ import {
 
 export const parseSearchUrl_ = (request: FgReqWithRes[kFgReq.parseSearchUrl]): FgRes[kFgReq.parseSearchUrl] => {
   let s0 = request.u, url = s0.toLowerCase(), pattern: Search.Rule | undefined
-    , arr: string[] | null = null, _i: number, selectLast = false;
+    , arr: string[] | null = null, httpType: number, selectLast = false;
   if (!BgUtils_.protocolRe_.test(removeComposedScheme_(url))) {
     BgUtils_.resetRe_();
     return null;
@@ -16,13 +16,11 @@ export const parseSearchUrl_ = (request: FgReqWithRes[kFgReq.parseSearchUrl]): F
     const obj = parseUpperUrl_(request)
     return { k: "", s: 0, u: obj.p != null ? obj.u : s0, e: obj.p != null ? obj.p : obj.u }
   }
-  const decoders = settingsCache_.searchEngineRules;
-  if (_i = BgUtils_.IsURLHttp_(url)) {
-    url = url.slice(_i);
-    s0 = s0.slice(_i);
+  if (httpType = BgUtils_.IsURLHttp_(url)) {
+    url = url.slice(httpType);
+    s0 = s0.slice(httpType);
   }
-  for (_i = decoders.length; 0 <= --_i; ) {
-    pattern = decoders[_i];
+  for (pattern of searchEngines_.rules) {
     if (!url.startsWith(pattern.prefix_)) { continue; }
     arr = s0.slice(pattern.prefix_.length).match(pattern.matcher_ as RegExpG);
     if (arr) { break; }
@@ -56,7 +54,7 @@ export const parseSearchUrl_ = (request: FgReqWithRes[kFgReq.parseSearchUrl]): F
     arr = arr[0].split(re);
   }
   url = "";
-  for (_i = 0; _i < arr.length; _i++) { url += " " + BgUtils_.DecodeURLPart_(arr[_i]); }
+  for (const item of arr) { url += " " + BgUtils_.DecodeURLPart_(item) }
   url = url.trim().replace(BgUtils_.spacesRe_, " ");
   BgUtils_.resetRe_();
   return {

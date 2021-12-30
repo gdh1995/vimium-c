@@ -1,6 +1,6 @@
 import {
   CurCVer_, CurFFVer_, OnChrome, OnEdge, OnFirefox, $, import2, OnSafari, enableNextTick_, isVApiReady_, kReadyInfo,
-  simulateClick as click
+  simulateClick as click, fetch
 } from "./async_bg"
 import { bgSettings_, AllowedOptions, ExclusionRulesOption_, Option_, oTrans_ } from "./options_base"
 import { exportBtn, saveBtn } from "./options_defs"
@@ -191,7 +191,7 @@ function maskStr (key: keyof SettingsNS.PersistentSettings, str: string): string
 
 let omniBlockListRe: RegExpOne | null | false = null
 
-/** @see {@link ../background/browsing_data_manager.ts#settings_.updateHooks_.omniBlockList} */
+/** @see {@link ../background/browsing_data_manager.ts#updateHooks_.omniBlockList} */
 function isExpectingHidden (word: string): boolean {
   if (omniBlockListRe == null) {
     const arr: string[] = []
@@ -311,13 +311,12 @@ async function _importSettings(time: number, new_data: ExportedSettings, is_reco
   if (OnFirefox) {
     delKeys("i18n_f");
   }
-  const As_ = <T> (i: T): T => i
-  const legacyNames_ = As_<SettingsNS.LegacyNames & SafeObject>({ __proto__: null as never,
+  const legacyNames_ = { __proto__: null as never,
     extWhiteList: "extAllowList", phraseBlacklist: "omniBlockList"
-  })
+  }
   for (let key in legacyNames_) {
     if (key in new_data) {
-      new_data[legacyNames_[key as keyof SettingsNS.LegacyNames]] = new_data[key];
+      new_data[legacyNames_[key as keyof typeof legacyNames_]] = new_data[key];
       delete new_data[key];
     }
   }

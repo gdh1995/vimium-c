@@ -9512,7 +9512,6 @@ declare var clientInformation: Navigator;
 declare var defaultStatus: string;
 declare var devicePixelRatio: number;
 declare var doNotTrack: string;
-declare var document: Document;
 // only exist on Firefox: https://developer.mozilla.org/en-US/docs/Web/API/Window/fullScreen
 // declare var fullScreen: boolean | undefined;
 // On Firefox: only 63, 64 and 66+: https://developer.mozilla.org/en-US/docs/Mozilla/Firefox/Releases/66#DOM_events
@@ -9627,7 +9626,6 @@ declare var toolbar: BarProp;
 declare var top: Window;
 declare var scrollX: number;
 declare var scrollY: number;
-declare var window: Window;
 declare function alert(message?: any): void;
 // declare function blur(): void;
 declare function cancelAnimationFrame(handle: number): void;
@@ -9678,7 +9676,6 @@ declare var onpointerout: (this: Window, ev: PointerEvent) => any;
 declare var onpointerover: (this: Window, ev: PointerEvent) => any;
 declare var onpointerup: (this: Window, ev: PointerEvent) => any;
 declare var onwheel: (this: Window, ev: WheelEvent) => any;
-type RequestInfo = string;
 interface Body {
   readonly bodyUsed: boolean;
   arrayBuffer(): Promise<ArrayBuffer>;
@@ -9704,7 +9701,6 @@ declare var Request: {
   new (_invalidArg: "should never call this"): Request
   prototype: Request;
 }
-declare function fetch(input: RequestInfo, init?: Partial<Request>): Promise<Response>;
 declare function queueMicrotask(callback: (this: void) => void): void;
 declare function clearInterval(handle: number): void;
 declare function clearTimeout(handle: number): void;

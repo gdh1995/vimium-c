@@ -1,7 +1,4 @@
-/* eslint-disable no-var */
-interface WindowWithTop extends Window {
-  top: Window;
-}
+/// <reference path="../typings/lib/window.d.ts" />
 declare const enum HandlerResult {
   PassKey = -1,
   Nothing = 0,
@@ -262,7 +259,7 @@ interface VApiTy {
       , options?: CmdOptions[kFgCmd.scroll]) => void | boolean | number | Promise<boolean | number> | null
 }
 
-declare var VApi: VApiTy | undefined, VimiumInjector: VimiumInjectorTy | undefined | null
+declare var VimiumInjector: VimiumInjectorTy | undefined | null // eslint-disable-line no-var
 
 declare const enum kContentCmd {
   _fake = 0,
@@ -284,27 +281,6 @@ type SecondLevelContentCmds = kContentCmd.AutoFindAllOnClick | kContentCmd.Manua
 declare const enum TimerID { None = 0, Valid = 42, Timeout = "43", Interval = "44", __mask = "" }
 type ValidTimeoutID = 0 | 42 | "43"
 type ValidIntervalID = 0 | 42 | "44"
-
-interface Window {
-  readonly VApi?: VApiTy | undefined
-}
-
-/** Warning on Firefox:
- * Even when `frameElement` is valid, `parent.innerWidth` may still throw.
- *
- * Common cases:
- * * on QQMail desktop version, the inbox is an `<iframe src="//mail.qq.com/...">`
- * * if the top frame is using HTTPS, then there's an auto-upgrading from HTTP to HTTPS
- * * its first element is an inline `<script>`, and the first line is `document.domain="mail.qq.com";`
- * * before this line, access to `parent.innerWidth` is blocked
- * * after this line, the access is re-enabled on Chrome and most time of Firefox
- *
- * Bug cases:
- * * But on Firefox, if debugging code and access `webextension.parent.***` before the line,
- * * then the `parent` is generated as an instance of `Restricted` lazily,
- * * when the page is loaded, the `parent` is still restricted and only `.focus` and `.location.href` can be accessed
- */
-declare var parent: unknown;
 
 declare const enum kTY { str = 0, obj = 1, func = 2, num = 3 }
 

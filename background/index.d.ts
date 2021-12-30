@@ -273,9 +273,9 @@ declare namespace IconNS {
     [size in ValidSizes]?: ImageData;
   };
   type ImagePath = {
-    readonly [size in ValidSizes]: string;
+    readonly [size in ValidSizes]: `/${string}.png`;
   };
-  type BinaryPath = string;
+  type BinaryPath = `/${string}.bin`;
 }
 
 declare namespace MediaNS {
@@ -362,11 +362,6 @@ declare namespace SettingsNS {
 
   interface MergedCustomCSS { ui: string; find: FindCSS; omni: string }
 
-  interface LegacyNames {
-    phraseBlacklist: "omniBlockList";
-    extWhiteList: "extAllowList";
-  }
-
   // type NameList = Array<SettingNames>;
 }
 import FullSettings = SettingsNS.FullSettings;
@@ -417,3 +412,6 @@ interface IterableMap<K extends string | number, V> extends Map<K, V> {
 }
 
 type ExtApiResult<T> = [T, undefined] | [undefined, { message?: any }]
+declare function fetch(input: `/${string}` | `data:${string}`, init?: Partial<Request>): Promise<Response>;
+
+interface MaybeWithWindow { window?: Window; document?: HTMLDocument }

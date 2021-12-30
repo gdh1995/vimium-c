@@ -1,10 +1,10 @@
 import {
   findCSS_, innerCSS_, omniPayload_, set_findCSS_, set_innerCSS_, CurCVer_, CurFFVer_, IsEdg_, omniStyleOverridden_,
   OnChrome, OnEdge, OnFirefox, isHighContrast_ff_, set_isHighContrast_ff_, bgIniting_, CONST_, set_helpDialogData_,
-  framesForOmni_, settingsCache_, set_omniStyleOverridden_
+  framesForOmni_, settingsCache_, set_omniStyleOverridden_, updateHooks_
 } from "./store"
 import { asyncIter_, fetchFile_, spacesRe_ } from "./utils"
-import { broadcastOmni_, get_, postUpdate_, storage_, updateHooks_ } from "./settings"
+import { ready_, broadcastOmni_, get_, postUpdate_, storage_ } from "./settings"
 import { asyncIterFrames_ } from "./ports"
 
 export declare const enum MergeAction {
@@ -22,11 +22,12 @@ const StyleCacheId_ = CONST_.VerCode_ + ","
           && (!OnFirefox || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
         ? ""
         : (OnChrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
-            ? globalThis.ShadowRoot || document.body!.webkitCreateShadowRoot : globalThis.ShadowRoot)
+            ? globalThis.ShadowRoot || (globalThis as MaybeWithWindow).document!.body!.webkitCreateShadowRoot
+            : globalThis.ShadowRoot)
         ? "s" : "")
     + (OnChrome && Build.MinCVer >= BrowserVer.MinUsableCSS$All ? ""
       : (!OnChrome || CurCVer_ > BrowserVer.MinUsableCSS$All - 1)
-        && (!OnEdge || "all" in (document.body as HTMLElement).style)
+        && (!OnEdge || "all" in ((globalThis as MaybeWithWindow).document!.body as HTMLElement).style)
       ? "a" : "")
     + ";"
 let findCSS_file_old_cr: FindCSS | null
@@ -50,7 +51,7 @@ export const reloadCSS_ = (action: MergeAction, cssStr?: string): SettingsNS.Mer
     const browserInfo = StyleCacheId_.slice(StyleCacheId_.indexOf(",") + 1),
     hasAll = OnChrome && Build.MinCVer >= BrowserVer.MinUsableCSS$All || browserInfo.includes("a")
     if (!(Build.NDEBUG || css.startsWith(":host{"))) {
-      console.log('Assert error: `css.startsWith(":host{")` in settings.updateHooks_.baseCSS')
+      console.log('Assert error: `css.startsWith(":host{")` in updateHooks_.baseCSS')
     }
     if (!Build.NDEBUG) {
       css = css.replace(<RegExpG> /\r\n?/g, "\n")
@@ -261,6 +262,7 @@ export const getFindCSS_cr_ = OnChrome ? (sender: Frames.Sender): FindCSS => {
 
 updateHooks_.userDefinedCss = mergeCSS
 
+void ready_.then((): void => {
 set_innerCSS_(storage_.getItem("innerCSS") || "")
 if (innerCSS_ && !innerCSS_.startsWith(StyleCacheId_)) {
   storage_.removeItem("vomnibarPage_f")
@@ -268,3 +270,4 @@ if (innerCSS_ && !innerCSS_.startsWith(StyleCacheId_)) {
 } else {
   reloadCSS_(MergeAction.readFromCache, innerCSS_)
 }
+})

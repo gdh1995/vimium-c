@@ -1,6 +1,7 @@
 import {
   bgIniting_, CONST_, contentPayload_, keyFSM_, keyToCommandMap_, mappedKeyRegistry_, mappedKeyTypes_, omniPayload_,
-  OnChrome, OnEdge, OnFirefox, OnOther_, set_keyFSM_, set_keyToCommandMap_, set_mappedKeyRegistry_, set_mappedKeyTypes_
+  OnChrome, OnEdge, OnFirefox, OnOther_, set_keyFSM_, set_keyToCommandMap_, set_mappedKeyRegistry_, set_mappedKeyTypes_,
+  updateHooks_
 } from "./store"
 import * as BgUtils_ from "./utils"
 import * as settings_ from "./settings"
@@ -759,12 +760,12 @@ const upgradeKeyMappings = (value: string): void => {
   let newFlags = "", prefix = `${kMappingsFlag.char0}${kMappingsFlag.char1}`
   if (!errors_ && flagDoesCheck_) { newFlags = `${prefix}${kMappingsFlag.noCheck}\n` }
   if (newFlags) {
-    const hooks = settings_.updateHooks_, old = hooks.keyMappings
-    hooks.keyMappings = undefined
+    const old = updateHooks_.keyMappings
+    updateHooks_.keyMappings = undefined
     try {
       settings_.set_("keyMappings", newFlags + value)
     } catch {}
-    hooks.keyMappings = old
+    updateHooks_.keyMappings = old
   }
 }
 
@@ -775,7 +776,7 @@ if (bgIniting_ & BackendHandlersNS.kInitStat.platformInfo) {
   }
 }
 
-settings_.updateHooks_.keyMappings = (value: string | null): void => {
+updateHooks_.keyMappings = (value: string | null): void => {
   const oldMappedKeys = mappedKeyRegistry_, oldFSM = keyFSM_
   populateKeyMap_(value)
   const f = JSON.stringify, curMapped = mappedKeyRegistry_,

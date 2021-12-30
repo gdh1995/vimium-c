@@ -2,7 +2,7 @@ import {
   contentPayload_, evalVimiumUrl_, keyFSM_, keyToCommandMap_, mappedKeyRegistry_, newTabUrls_, restoreSettings_,
   CONST_, settingsCache_, shownHash_, substitute_, framesForTab_, curTabId_, extAllowList_, OnChrome, reqH_, OnEdge
 } from "./store"
-import { deferPromise_, protocolRe_ } from "./utils"
+import { deferPromise_, protocolRe_, safeObj_ } from "./utils"
 import { browser_, getCurTab, getTabUrl, Q_, runContentScriptsOn_, runtimeError_ } from "./browser"
 import { convertToUrl_, lastUrlType_, reformatURL_ } from "./normalize_urls"
 import { findUrlInText_, parseSearchEngines_ } from "./parse_urls"
@@ -89,7 +89,11 @@ const pageRequestHandlers_ = As_<{
     }
     return mergeCSS(req[0], MergeAction.virtual)!
   },
-  /** kPgReq.reloadCSS: */ (): PgReq[kPgReq.reloadCSS][1] => { reloadCSS_(MergeAction.rebuildAndBroadcast) },
+  /** kPgReq.reloadCSS: */ (req): PgReq[kPgReq.reloadCSS][1] => {
+    req && (req.hc ? localStorage.setItem(GlobalConsts.kIsHighContrast, "1")
+        : localStorage.removeItem(GlobalConsts.kIsHighContrast))
+    reloadCSS_(MergeAction.rebuildAndBroadcast)
+  },
   /** kPgReq.convertToUrl: */ (req): PgReq[kPgReq.convertToUrl][1] => {
     const url = convertToUrl_(req[0], null, req[1])
     return [url, lastUrlType_]
@@ -229,7 +233,15 @@ const pageRequestHandlers_ = As_<{
       void func.apply(module, arr as any) // eslint-disable-line @typescript-eslint/no-unsafe-argument
     })
   },
-  /** kPgReq.selfTabId: */ (_, port): number => (port!.s as Extract<NonNullable<typeof port>["s"], object>).tabId_
+  /** kPgReq.selfTabId: */ (_, port): number => (port!.s as Extract<NonNullable<typeof port>["s"], object>).tabId_,
+  /** kPgReq.getStorage: */ (req): PgReq[kPgReq.getStorage][1] => {
+    let dict: Dict<string | null> = safeObj_()
+    if (req) {
+      const val = localStorage.getItem(req)
+      dict[req] = val != null ? val : null
+    }
+    return dict
+  }
 ])
 
 type _FuncKeys<K, T> = K extends keyof T ? T[K] extends Function
@@ -244,14 +256,14 @@ const parseErr = (err: any): NonNullable<ExtApiResult<0>[1]> => {
   return { message: (err && err.message ? err.message as AllowToString + "" : JSON.stringify(err)) }
 }
 
-export const onReq = (<K extends keyof PgReq> (req: Req2.pgReq<K>, port: PagePort): OrPromise<Req2.pgRes> => {
+export const onReq = (<K extends keyof PgReq> (req: Req2.pgReq<K>, port: PagePort | null): OrPromise<Req2.pgRes> => {
   type ReqK = keyof PgReq;
   return (pageRequestHandlers_ as {
-    [T2 in keyof PgReq]: (req: Req2.OrNull<PgReq[T2][0]>, port: PagePort) => OrPromise<PgReq[T2][1]>
+    [T2 in keyof PgReq]: (req: Req2.OrNull<PgReq[T2][0]>, port: PagePort | null) => OrPromise<PgReq[T2][1]>
   } as {
-    [T2 in keyof PgReq]: <T3 extends ReqK>(req: Req2.OrNull<PgReq[T3][0]>, port: PagePort) => OrPromise<PgReq[T3][1]>
+    [T2 in keyof PgReq]: <T3 extends ReqK>(r: Req2.OrNull<PgReq[T3][0]>, p: PagePort | null) => OrPromise<PgReq[T3][1]>
   })[req.n](req.q, port)
-}) as (req: unknown, port: PagePort) => OrPromise<Req2.pgRes>
+}) as (req: unknown, port: PagePort | null) => OrPromise<Req2.pgRes>
 
 const getUnknownExt = (frames?: Frames.Frames | null): string | null => {
   return !!frames && typeof frames.unknownExt_ === "string" && extAllowList_.get(frames.unknownExt_) !== true

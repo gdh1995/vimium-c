@@ -268,7 +268,6 @@ const Stat = <T extends "" | BlockPrefixes | LineActions | "arg"> (
 
 const prepareBlockBodyToRun = (pureVars: VarNames[], block: OpValues[O.block]): void => {
   const lets: VarNames[] = [], consts: VarNames[] = [], funcs: Statement[] = []
-  // todo: re-order block.x
   for (const statement of block.x) {
     const action = statement.a, lift = action === "var", isLet = action === "let"
     if (lift || isLet || action === "const") {

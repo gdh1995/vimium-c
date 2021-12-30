@@ -1,5 +1,5 @@
 import {
-  CurCVer_, CurFFVer_, curIncognito_, curWndId_, newTabUrls_, OnChrome, OnEdge, OnFirefox, settingsCache_, blank_,
+  CurCVer_, CurFFVer_, curIncognito_, curWndId_, newTabUrls_, OnChrome, OnEdge, OnFirefox, newTabUrl_f, blank_,
   CONST_, IsEdg_, hasGroupPermission_ff_, bgIniting_, set_installation_
 } from "./store"
 import { DecodeURLPart_, deferPromise_ } from "./utils"
@@ -154,7 +154,7 @@ export const tabsCreate = (args: chrome.tabs.CreateProperties, callback?: ((tab:
     , evenIncognito?: boolean | -1 | null): void | 1 => {
   let { url } = args
   if (!url) {
-    url = settingsCache_.newTabUrl_f
+    url = newTabUrl_f
     if (curIncognito_ === IncognitoType.true
         && (evenIncognito === -1 ? url.includes("pages/blank.html") && url.startsWith(location.origin + "/")
             : !evenIncognito && url.startsWith(location.protocol))) { /* empty */ }
@@ -246,7 +246,7 @@ export const makeWindow = (options: chrome.windows.CreateData, state?: chrome.wi
   }
   let url = options.url
   if (!url && options.tabId == null) {
-    url = options.url = settingsCache_.newTabUrl_f
+    url = options.url = newTabUrl_f
   }
   if (typeof url === "string" && doesIgnoreUrlField_(url, options.incognito)) {
     delete options.url
@@ -399,6 +399,9 @@ export const runContentScriptsOn_ = (tabId: number): void => {
     Tabs_.executeScript(tabId, {file: js.slice(offset), allFrames: true}, runtimeError_)
   }
 }
+
+export const import2 = <T> (path: string): Promise<T> =>
+    import(path)
 
 //#endregion
 

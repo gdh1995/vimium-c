@@ -1,5 +1,5 @@
 import {
-  blank_, set_sync_, sync_, restoreSettings_, set_restoreSettings_, contentPayload_, OnChrome, OnEdge,
+  blank_, set_sync_, sync_, restoreSettings_, set_restoreSettings_, contentPayload_, OnChrome, OnEdge, updateHooks_,
   hasEmptyLocalStorage_, set_backupToLocal_, backupToLocal_, OnFirefox
 } from "./store"
 import * as BgUtils_ from "./utils"
@@ -439,24 +439,6 @@ const beginToRestore = (items: LocalSettings, kSources: 1 | 2 | 3, resolve: () =
     storage().set({ vimSync })
   }
   const toReset: string[] = []
-  for (const key in items) { if (key in settings_.legacyNames_) { toReset.push(key) } }
-  const toRemove: string[] = [], toAdd: Dict<string> = {}
-  for (let key of toReset) {
-    const newKey = settings_.legacyNames_[key as keyof SettingsNS.LegacyNames]
-    for (let i = -1, j: string; i < GlobalConsts.MaxSyncedSlices && (j = i < 0 ? key : key + ":" + i) in items; i++) {
-      const newJ = i < 0 ? newKey : newKey + ":" + i
-      toAdd[newJ] = items[newJ] = items[j]
-      delete items[j]
-      toRemove.push(j)
-    }
-  }
-  if (toReset.length > 0) {
-    browserStorage_.onChanged.removeListener(HandleStorageUpdate)
-    set_sync_(blank_)
-    storage().remove(toRemove)
-    storage().set(toAdd, runtimeError_)
-    toReset.length = 0
-  }
   for (let i = 0, end = localStorage.length; i < end; i++) {
     const key = localStorage.key(i)!
     // although storeAndPropagate indeed checks @shouldSyncKey(key)
@@ -479,7 +461,7 @@ const beginToRestore = (items: LocalSettings, kSources: 1 | 2 | 3, resolve: () =
   log("sync.cloud: download settings to localStorage")
 }
 
-settings_.updateHooks_.vimSync = (value): void => {
+updateHooks_.vimSync = (value): void => {
   cachedSync = value
   if (!storage()) { return }
   const areaOnChanged_cr = OnChrome && Build.MinCVer >= BrowserVer.Min$StorageArea$$onChanged
@@ -541,7 +523,7 @@ if (cachedSync === false || !cachedSync && !hasEmptyLocalStorage_) {
   const err = runtimeError_()
   if (err) {
     log("Error: failed to get storage:", err, "\n\tSo disable syncing temporarily.")
-    settings_.updateHooks_.vimSync = undefined
+    updateHooks_.vimSync = blank_
     set_sync_(blank_)
     set_restoreSettings_(null)
     return err

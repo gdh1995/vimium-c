@@ -1,7 +1,7 @@
 import {
   framesForTab_, cPort, cRepeat, get_cOptions, set_cOptions, set_cPort, set_cRepeat, set_lastWndId_, set_cEnv,
   lastWndId_, curIncognito_, curTabId_, curWndId_, recencyForTab_, settingsCache_, OnFirefox, OnChrome, OnEdge,
-  CurCVer_, IsEdg_, paste_, substitute_, newTabUrls_, contentPayload_, CONST_, shownHash_, set_shownHash_,
+  CurCVer_, IsEdg_, paste_, substitute_, newTabUrls_, contentPayload_, CONST_, shownHash_, set_shownHash_, newTabUrl_f
 } from "./store"
 import * as BgUtils_ from "./utils"
 import {
@@ -556,7 +556,7 @@ export const openUrlWithActions = (url: Urls.Url, workType: Urls.WorkType, sed?:
     }
     url = typeof url === "string" ? reformatURL_(url) : url
   } else {
-    url = settingsCache_.newTabUrl_f
+    url = newTabUrl_f
   }
   let options = get_cOptions<C.openUrl, true>(), reuse: ReuseType = parseReuse(options.reuse)
   set_cOptions(null)

@@ -1,3 +1,4 @@
+/// <reference path="../typings/lib/window.d.ts" />
 declare namespace VomnibarNS {
 interface BaseFgOptions extends Pick<CmdOptions[kFgCmd.vomnibar], "s" | "t"> {
   // physical pixel size (if C<52) and devicePixelRatio

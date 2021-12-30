@@ -276,14 +276,14 @@ export const asyncIter_ = <T> (arr: T[], callback: (item: T) => number, doesCont
   }
 }
 
-/** should only fetch files in the `[ROOT]/{front,i18n}` folder */
+/** should only fetch files in the `[ROOT]/{_locales,front,i18n}` folder */
 export const fetchFile_ = ((filePath: string): Promise<string | {}> => {
   if (!Build.NDEBUG && !filePath) { throw Error("unknown file: " + filePath) } // just for debugging
   const json = filePath.endsWith(".json")
   filePath = !filePath.includes("/") ? "/front/" + filePath : filePath
   if (!OnChrome || Build.MinCVer >= BrowserVer.MinFetchExtensionFiles
       || CurCVer_ >= BrowserVer.MinFetchExtensionFiles) {
-    return fetch(filePath).then(r => json ? r.json<Dict<string>>().then((res): Map<string, any> => {
+    return fetch(filePath as `/${string}`).then(r => json ? r.json<Dict<string>>().then((res): Map<string, any> => {
       safer_(res)
       const map = new Map<string, any>()
       for (let key in res) { map.set(key, res[key]) }
@@ -308,7 +308,9 @@ export const fetchFile_ = ((filePath: string): Promise<string | {}> => {
     req.send()
   })
 }) as {
-  <T extends string> (file: T): Promise<T extends `${string}.json` ? Map<string, any> : string>
+  <T extends `/_locales/${string}/messages.json` | `/i18n/${string}.json` | `data:${string}`
+        | "words.txt" | "vimium-c.css" | "help_dialog.html"> (
+      file: T): Promise<T extends `${string}.json` ? Map<string, any> : string>
 }
 
 export const escapeAllForRe_ = (s: string): string =>

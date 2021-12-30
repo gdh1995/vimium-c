@@ -20,7 +20,8 @@ export const parseHTML = (template: string): [string, string] => {
             && (!OnFirefox || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
             && (OnChrome || OnFirefox))
           && !(OnChrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
-                ? globalThis.ShadowRoot || document.body!.webkitCreateShadowRoot : globalThis.ShadowRoot),
+                ? globalThis.ShadowRoot || (globalThis as MaybeWithWindow).document!.body!.webkitCreateShadowRoot
+                : globalThis.ShadowRoot),
       noContain = OnChrome && Build.MinCVer <= BrowserVer.CSS$Contain$BreaksHelpDialogSize
           && CurCVer_ === BrowserVer.CSS$Contain$BreaksHelpDialogSize;
       let pos = template.indexOf("</style>") + 8, head = template.slice(0, pos), body = template.slice(pos).trim();

@@ -1,8 +1,9 @@
 import {
   set_evalVimiumUrl_, copy_, evalVimiumUrl_, substitute_, paste_, cPort, curTabId_, framesForTab_, needIcon_, setIcon_,
-  set_cPort, settingsCache_
+  set_cPort, searchEngines_
 } from "./store"
 import { decodeEscapedURL_, spacesRe_, DecodeURLPart_ } from "./utils"
+import { import2 } from "./browser"
 import { convertToUrl_, lastUrlType_, createSearchUrl_, quotedStringRe_ } from "./normalize_urls"
 import { parseSearchUrl_ } from "./parse_urls"
 import { getPortUrl_, showHUD } from "./ports"
@@ -39,7 +40,7 @@ set_evalVimiumUrl_(function (path: string, workType?: Urls.WorkType, onlyOnce?: 
   } }
   if (workType === Urls.WorkType.ActIfNoSideEffects) { switch (cmd) {
   case "e": case "exec": case "eval": case "expr": case "calc": case "m": case "math":
-    return (import("/lib/math_parser.js" as string) as Promise<typeof import("../lib/math_parser")>
+    return (import2<typeof import("../lib/math_parser")>("/lib/math_parser.js")
         ).then(/*#__NOINLINE__*/ tryEvalMath_.bind(0, path))
   case "error":
     return [path, Urls.kEval.ERROR];
@@ -286,7 +287,7 @@ const callOpenUrls = (path: string): Urls.ErrorEvalResult | Urls.RunEvalResult =
   const ind = path.indexOf(":") + 1 || path.indexOf(" ") + 1
   if (ind <= 0) { return ["No search engines given", Urls.kEval.ERROR] }
   const keys = path.slice(0, ind - 1).split(path.lastIndexOf(" ", ind - 1) >= 0 ? " " : "|")
-      .filter(i => settingsCache_.searchEngineMap.has(i))
+      .filter(i => searchEngines_.map.has(i))
   if (keys.length <= 0) { return ["No valid search engines found", Urls.kEval.ERROR] }
   const query = path.slice(ind).split(" ")
   const urls: Urls.RunEvalResult[0] = ["openUrls"]

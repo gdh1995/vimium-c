@@ -1,6 +1,6 @@
 import {
   cRepeat, get_cOptions, cPort, curIncognito_, curTabId_, curWndId_, recencyForTab_,
-  copy_, settingsCache_, CurCVer_, IsEdg_, OnChrome, OnEdge, OnFirefox, CONST_, reqH_, set_cRepeat, lastWndId_
+  copy_, newTabUrl_f, CurCVer_, IsEdg_, OnChrome, OnEdge, OnFirefox, CONST_, reqH_, set_cRepeat, lastWndId_
 } from "./store"
 import * as BgUtils_ from "./utils"
 import {
@@ -562,7 +562,7 @@ const removeAllTabsInWnd = (resolve: OnCmdResolved, tab: Tab, curTabs: readonly 
     protect = true
     if (!(wnd = wnds[0])) { /* empty */ }
     else if (wnd.id !== tab.windowId) { protect = false } // the tab may be in a popup window
-    else if (wnd.incognito && !isRefusingIncognito_(settingsCache_.newTabUrl_f)) {
+    else if (wnd.incognito && !isRefusingIncognito_(newTabUrl_f)) {
       windowId = wnd.id
     }
     // other urls will be disabled if incognito else auto in current window

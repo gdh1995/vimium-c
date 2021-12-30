@@ -13,6 +13,7 @@
   "fullyDisabled": "disabled",
   "fullyEnabled": "enabled",
   "Global": "Global",
+  "globalInsertMode": "Insert mode$1",
   "halfDisabled": "partially disabled",
   "harmfulURL": "The URL may be harmful to your computer !!!",
   "has": " has",

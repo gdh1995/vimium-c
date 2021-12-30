@@ -44,10 +44,14 @@ export let installation_: Promise<chrome.runtime.InstalledDetails> | null | unde
 export const hasEmptyLocalStorage_ = localStorage.length <= 0
 export let hasGroupPermission_ff_: boolean | 0 = false
 export const settingsCache_ = Object.create(null) as Readonly<SettingsNS.FullCache>
+export let newTabUrl_f = "", vomnibarPage_f = ""
 export const contentPayload_ = <SettingsNS.FrontendSettingCache> As_<SettingsNS.DeclaredFrontendValues>({
   v: OnChrome ? CurCVer_ : OnFirefox ? CurFFVer_ : 0,
   d: "", g: false, m: false, o: kOS.win
 })
+export const searchEngines_ = {
+  map: new Map<string, Search.Engine>(), rules: [] as Search.Rule[], keywords: null as string | null
+}
 export const omniPayload_ = <SettingsNS.VomnibarPayload> As_<SettingsNS.DeclaredVomnibarPayload>({
   v: OnChrome ? CurCVer_ : OnFirefox ? CurFFVer_ : 0,
   a: 0, c: "", l: "", k: null, o: kOS.win, n: 0, s: "", t: 0
@@ -66,6 +70,8 @@ export const newTabUrls_: ReadonlyMap<string, Urls.NewTabType> = new Map()
 export const extAllowList_: Map<string, boolean | string> = !OnEdge ? new Map() : null as never
 export let bgIniting_ = BackendHandlersNS.kInitStat.START
 export let onInit_: (() => void) | null
+export let reqH_: BackendHandlersNS.FgRequestHandlers
+export const updateHooks_ = {} as SettingsNS.FullUpdateHookMap
 //#endregion
 
 //#region info about opened tabs
@@ -117,7 +123,6 @@ export let cPort: Frames.Port = null as never
 /** any change to `cRepeat` should ensure it won't be `0` */
 export let cRepeat = 1
 let cEnv: CurrentEnvCache | null = null
-export let reqH_: BackendHandlersNS.FgRequestHandlers
 export let bgC_: {
   readonly [K in keyof BgCmdOptions]: K extends keyof BgCmdInfoMap
     ? BgCmdInfoMap[K] extends kCmdInfo.ActiveTab ? BgCmdActiveTab<K>
@@ -157,6 +162,8 @@ export const set_cRepeat = (_newRepeat: number): void => { cRepeat = _newRepeat 
 export const get_cEnv = (): typeof cEnv => cEnv
 export const set_cEnv = (_newEnv: typeof cEnv): void => { cEnv = _newEnv }
 
+export const set_newTabUrl_f = (_newNTP: string): void => { newTabUrl_f = _newNTP }
+export const set_vomnibarPage_f = (_newOmniP: string): void => { vomnibarPage_f = _newOmniP }
 export const set_omniStyleOverridden_ = (_newOverridden: boolean): void => { omniStyleOverridden_ = _newOverridden }
 export const set_findCSS_ = (_newFindCSS: FindCSS): void => { findCSS_ = _newFindCSS }
 export const set_innerCSS_ = (_newInnerCSS: string): void => { innerCSS_ = _newInnerCSS }

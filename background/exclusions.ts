@@ -1,4 +1,7 @@
-import { CurCVer_, framesForTab_, iconData_, keyFSM_, OnChrome, OnFirefox, reqH_, setIcon_ } from "./store"
+import {
+  CurCVer_, framesForTab_, iconData_, keyFSM_, needIcon_, OnChrome, OnFirefox, reqH_, setIcon_,
+  updateHooks_
+} from "./store"
 import * as BgUtils_ from "./utils"
 import { browserWebNav_ } from "./browser"
 import { formatVimiumUrl_ } from "./normalize_urls"
@@ -154,7 +157,7 @@ export const RefreshStatus_ = (old_is_empty: boolean): void => {
       });
       return;
     }
-    const needIcon = iconData_ != null || iconData_ !== undefined && settings.get_("showActionIcon")
+    const needIcon = iconData_ != null || iconData_ !== undefined && needIcon_
     const oldRules: unknown = rules_
     asyncIterFrames_((frames): void => {
       const status0 = frames.cur_.s.status_, curFrame = frames.cur_.s
@@ -197,7 +200,7 @@ const updateListeners_ = (listenHash: boolean): void => {
     }
 }
 
-settings.updateHooks_.exclusionRules = (rules: ExclusionsNS.StoredRule[]): void => {
+updateHooks_.exclusionRules = (rules: ExclusionsNS.StoredRule[]): void => {
   const isEmpty = !rules_.length, curKeyFSM = keyFSM_
   setRules_(rules)
   settings.postUpdate_("exclusionListenHash")
@@ -209,11 +212,11 @@ settings.updateHooks_.exclusionRules = (rules: ExclusionsNS.StoredRule[]): void 
   }, 1);
 };
 
-settings.updateHooks_.exclusionOnlyFirstMatch = (value: boolean): void => {
+updateHooks_.exclusionOnlyFirstMatch = (value: boolean): void => {
   _onlyFirstMatch = value
 };
 
-settings.updateHooks_.exclusionListenHash = updateListeners_
+updateHooks_.exclusionListenHash = updateListeners_
 
 if (settings.storage_.getItem("exclusionRules") !== "[]") {
   setRules_(settings.get_("exclusionRules"))

@@ -1,10 +1,10 @@
 import {
   curTabId_, Completion_, omniPayload_, reqH_, OnFirefox, CurCVer_, IsEdg_, OnChrome, restoreSettings_, blank_,
-  set_needIcon_, set_setIcon_, CONST_, installation_, backupToLocal_, set_installation_, set_backupToLocal_,
-  framesForTab_, onInit_
+  set_needIcon_, set_setIcon_, CONST_, installation_, backupToLocal_, set_backupToLocal_,
+  framesForTab_, onInit_, updateHooks_
 } from "./store"
 import {
-  Tabs_, browser_, getCurWnd, runtimeError_, watchPermissions_, browserWebNav_, runContentScriptsOn_
+  Tabs_, browser_, getCurWnd, runtimeError_, watchPermissions_, browserWebNav_, runContentScriptsOn_, import2
 } from "./browser"
 import * as BgUtils_ from "./utils"
 import * as settings_ from "./settings"
@@ -23,15 +23,14 @@ declare const enum OmniboxData {
   PreservedTitle = 16,
 }
 
-const enableShowIcon = settings_.updateHooks_.showActionIcon = (value): void => {
+const enableShowIcon = updateHooks_.showActionIcon = (value): void => {
     const api = (browser_ as any).action as typeof chrome.browserAction || browser_.browserAction
     if (!api) {
-      settings_.updateHooks_.showActionIcon = undefined
+      updateHooks_.showActionIcon = undefined
       return
     }
     set_needIcon_(value)
-    void (import("/background/action_icon.js" as string
-        ) as Promise<typeof import("./action_icon")>).then(m => { m.toggleIconBuffer_() })
+    void import2<typeof import("./action_icon")>("/background/action_icon.js").then(m => { m.toggleIconBuffer_() })
     let title = extTrans_("name")
     value || (title += "\n\n" + extTrans_("noActiveState"))
     api.setTitle({ title })
@@ -346,8 +345,8 @@ OnChrome && ((): void => {
         return runtimeError_()
       }) : refreshTimer = 0
     }, 120)
-    if (status && !settings_.updateHooks_.allBrowserUrls) {
-      settings_.updateHooks_.allBrowserUrls = onChange.bind(null, allowList, false)
+    if (status && !updateHooks_.allBrowserUrls) {
+      updateHooks_.allBrowserUrls = onChange.bind(null, allowList, false)
     }
   })
 })()
@@ -430,12 +429,11 @@ installation_ && void installation_.then((details): void => {
   })
   }, 500)
 })
-set_installation_(null)
 
 setTimeout((): void => {
-  const doc = globalThis.document
+  const doc = (globalThis as MaybeWithWindow).document
   if (OnChrome && Build.MinCVer < BrowserVer.MinSetInnerTextOnHTMLHtmlElement) {
-    (doc.body as HTMLBodyElement).innerHTML = ""
+    (doc!.body as HTMLBodyElement).innerHTML = ""
   } else if (doc && doc.body) {
     (doc.body as HTMLBodyElement).innerText = ""
   }

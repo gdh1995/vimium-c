@@ -4,6 +4,7 @@ if (Build.BTypes & (Build.BTypes & BrowserType.ChromeOrFirefox | BrowserType.Edg
     && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer < BrowserVer.Min$globalThis)
     && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer < FirefoxBrowserVer.Min$globalThis)
     && typeof globalThis === "undefined") {
+  // @ts-ignore
   (window as any as Writable<typeof globalThis>).globalThis = window as any
 }
 
@@ -25,7 +26,8 @@ if (!Build.NDEBUG) {
   const modules: Dict<ModuleTy | LoadingPromise> = {}
   const getName = (name: string): string => name.slice(name.lastIndexOf("/") + 1).replace(".js", "")
   const myDefine: DefineTy = (depNames, factory): void => {
-    const name = getName(__filename || (document.currentScript as HTMLScriptElement).src)
+    // @ts-ignore
+    const name = getName(__filename || ((document as HTMLDocument).currentScript as HTMLScriptElement).src)
     let exports = modules[name]
     if (!(Build.NDEBUG || !exports || !exports.__esModule || exports instanceof Promise)) {
       throw new Error(`module filenames must be unique: duplicated "${name}"`)
@@ -58,7 +60,9 @@ if (!Build.NDEBUG) {
   const doImport: AsyncRequireTy = ([path], callback): void => {
     const name = getName(path)
     const exports = modules[name] || (modules[name] = new Promise((resolve, reject): void => {
-      const script = document.createElement("script")
+      // @ts-ignore
+      const doc = document as HTMLDocument
+      const script = doc.createElement("script")
       script.src = path
       script.onload = (): void => {
         if (!(Build.NDEBUG || modules[name] !== exports)) {
@@ -71,7 +75,7 @@ if (!Build.NDEBUG) {
         reject(ev.message)
         setTimeout((): void => { modules[name] = void 0 }, 1)
       } }
-      (document.body || document.documentElement)!.appendChild(script)
+      (doc.body || doc.documentElement)!.appendChild(script)
     }))
     exports instanceof Promise ? void exports.then(() => { doImport([path], callback) }) : callback(exports)
   }
@@ -79,13 +83,19 @@ if (!Build.NDEBUG) {
   (globalThis as any).__importStar = (obj: {}): {} => obj
 })()
 
-Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES$Array$$Includes &&
-![].includes && (function (): void {
-    const noArrayFind = ![].find
-  Object.defineProperty(Array.prototype, "includes", { enumerable: false,
-    value: function includes(this: any[], value: any, ind?: number): boolean { return this.indexOf(value, ind) >= 0 }
+if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES$Object$$values$and$$entries
+    && !Object.entries) {
+  Object.entries = <T extends string> (object: object): [T, unknown][] => {
+    const entries: ReturnType<ObjectConstructor["entries"]> = []
+    for (const name of Object.keys(object)) { entries.push([name, (object as Dict<unknown>)[name]]) }
+    return entries as [T, unknown][]
+  }
+  Object.values || (Object.values = <T extends object> (object: T): Array<T[keyof T]> => {
+    const entries: unknown[] = []
+    for (const name of Object.keys(object)) { entries.push((object as Dict<unknown>)[name]) }
+    return entries as Array<T[keyof T]>
   })
-    Build.MinCVer >= BrowserVer.MinEnsured$Object$$assign ||
+  if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$Object$$assign) {
     Object.assign || (Object.assign = function (dest: object): object {
       for (let i = 1, len = arguments.length; i < len; i++) {
         const src = arguments[i]
@@ -94,6 +104,15 @@ Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES$Arr
       }
       return dest
     })
+  }
+}
+
+Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES$Array$$Includes &&
+![].includes && (function (): void {
+    const noArrayFind = ![].find
+  Object.defineProperty(Array.prototype, "includes", { enumerable: false,
+    value: function includes(this: any[], value: any, ind?: number): boolean { return this.indexOf(value, ind) >= 0 }
+  })
     if (!(Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$Array$$find$$findIndex)) { return }
   if (noArrayFind) {
     Object.defineProperties(Array.prototype, {

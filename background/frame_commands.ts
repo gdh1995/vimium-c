@@ -1,10 +1,10 @@
 import {
   cPort, cRepeat, get_cOptions, set_cPort, set_cOptions, set_cRepeat, framesForTab_, findCSS_, cKey, reqH_,
   curTabId_, settingsCache_, OnChrome, visualWordsRe_, CurCVer_, OnEdge, OnFirefox, substitute_, CONST_,
-  helpDialogData_, set_helpDialogData_, curWndId_
+  helpDialogData_, set_helpDialogData_, curWndId_, vomnibarPage_f
 } from "./store"
 import * as BgUtils_ from "./utils"
-import { Tabs_, downloadFile, getTabUrl, runtimeError_, selectTab, R_, Q_, browser_ } from "./browser"
+import { Tabs_, downloadFile, getTabUrl, runtimeError_, selectTab, R_, Q_, browser_, import2 } from "./browser"
 import { convertToUrl_, createSearchUrl_ } from "./normalize_urls"
 import * as settings_ from "./settings"
 import { showHUD, complainLimits, ensureInnerCSS, getParentFrame } from "./ports"
@@ -73,7 +73,7 @@ export const performFind = (): void | kBgCmd.performFind => {
 export const initHelp = (request: FgReq[kFgReq.initHelp], port: Port): Promise<void> => {
   const curHData = helpDialogData_ || []
   return Promise.all([
-    import(CONST_.HelpDialogJS) as Promise<typeof import("./help_dialog")>,
+    import2<typeof import("./help_dialog")>(CONST_.HelpDialogJS),
     curHData[0] != null ? null : BgUtils_.fetchFile_("help_dialog.html"),
     curHData[1] != null ? null : getI18nJson("help_dialog"),
     curHData[2] != null ? null : getI18nJson("params.json")
@@ -114,7 +114,7 @@ export const showVomnibar = (forceInner?: boolean): void => {
     // not go to the top frame here, so that a current frame can suppress keys for a while
   }
   if (get_cOptions<C.showVomnibar>().mode === "bookmark") { overrideOption<C.showVomnibar, "mode">("mode", "bookm") }
-  const page = settingsCache_.vomnibarPage_f, { url_: url } = port.s,
+  const page = vomnibarPage_f, { url_: url } = port.s,
   preferWeb = !page.startsWith(CONST_.BrowserProtocol_),
   isCurOnExt = url.startsWith(CONST_.BrowserProtocol_),
   inner = forceInner || !page.startsWith(location.origin + "/") ? CONST_.VomnibarPageInner_ : page
@@ -231,7 +231,7 @@ export const captureTab = (tabs: [Tab] | undefined, resolve: OnCmdResolved): voi
       return
     }
     const clickAnchor_cr = (finalUrl: string): void => {
-      const a = document.createElement("a")
+      const a = (globalThis as MaybeWithWindow).document!.createElement("a")
       a.href = finalUrl
       a.download = title
       a.target = "_blank"
@@ -239,7 +239,7 @@ export const captureTab = (tabs: [Tab] | undefined, resolve: OnCmdResolved): voi
     }
     if (url.startsWith("data:")) {
       if (!OnChrome || Build.MinCVer >= BrowserVer.MinFetchExtensionFiles || CurCVer_ >= BrowserVer.MinFetchDataURL) {
-        const p = fetch(url).then(r => r.blob()).then(cb2)
+        const p = fetch(url as `data:${string}`).then(r => r.blob()).then(cb2)
         if (!Build.NDEBUG) { p.catch(onerror) }
       } else {
         const req = new XMLHttpRequest() as BlobXHR

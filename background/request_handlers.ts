@@ -5,7 +5,7 @@ import {
 } from "./store"
 import * as BgUtils_ from "./utils"
 import {
-  tabsUpdate, runtimeError_, selectTab, selectWnd, browserSessions_, browserWebNav_, downloadFile
+  tabsUpdate, runtimeError_, selectTab, selectWnd, browserSessions_, browserWebNav_, downloadFile, import2
 } from "./browser"
 import { findUrlEndingWithPunctuation_, parseSearchUrl_, parseUpperUrl_ } from "./parse_urls"
 import * as settings_ from "./settings"
@@ -457,7 +457,7 @@ const onCompletions = function (this: Port, favIcon0: 0 | 1 | 2, list: Array<Rea
   let next: IteratorResult<Frames.Frames>
   let top: Frames.Frames["top_"], sender: Frames.Sender | null
   if (OnFirefox) {
-    favIcon = list.some(i => i.e === "tab") ? favIcon && 2 : 0
+    favIcon = list.some(i => i.e === "tab") ? favIcon : 0
   } else if (OnEdge) {
     favIcon = 0
   }
@@ -540,14 +540,18 @@ const replaceForwardedOptions = (toForward?: object | string | null): void => {
 
 const onPagesReq = (req: FgReqWithRes[kFgReq.pages]["q"], id: number
     , port: Frames.PagePort | null): Promise<FgRes[kFgReq.pages]> => {
-  return (_pageHandlers || (_pageHandlers = import("/background/page_handlers.js" as any)))
-      .then(module => Promise.all(req.map(i => module.onReq(i, port))))
+  if (!_pageHandlers) {
+    _pageHandlers = (import("/background/sync.js" as any))
+        .then(() => settings_.ready_)
+        .then(() => import2<typeof import("./page_handlers")>("/background/page_handlers.js"))
+  }
+  return _pageHandlers.then(module => Promise.all(req.map(i => module.onReq(i, port))))
       .then(answers => ({ i: id, a: answers.map(i => i !== void 0 ? i : null) }))
 }
 
 declare var structuredClone: (<T> (obj: T) => T) | undefined
-typeof window !== "undefined" && window &&
-((window as BgExports).onPagesReq = (req): Promise<FgRes[kFgReq.pages]> => {
+(globalThis as MaybeWithWindow).window && (((globalThis as MaybeWithWindow).window as BgExports).onPagesReq =
+    (req): Promise<FgRes[kFgReq.pages]> => {
   const queries = !OnFirefox ? req.q
       : Build.MinFFVer >= FirefoxBrowserVer.Min$structuredClone || typeof structuredClone === "function"
       ? structuredClone!(req.q) : JSON.parse(JSON.stringify(req.q))

@@ -1,5 +1,6 @@
 import {
-  CONST_, contentPayload_, CurCVer_, evalVimiumUrl_, historyCache_, IsEdg_, OnChrome, OnFirefox, settingsCache_
+  CONST_, contentPayload_, CurCVer_, evalVimiumUrl_, historyCache_, IsEdg_, OnChrome, OnFirefox, searchEngines_,
+  newTabUrl_f
 } from "./store"
 import {
   isJSUrl_, DecodeURLPart_, resetRe_, isIPHost_, encodeAsciiComponent_, spacesRe_, protocolRe_, isTld_
@@ -257,7 +258,7 @@ export const formatVimiumUrl_ = (fullPath: string, partly: boolean, vimiumUrlWor
         ? CONST_.HomePage_ + (tempStr.includes(".") ? "/blob/master" + tempStr : tempStr)
         : tempStr;
     } else if (path === "newtab") {
-      return settingsCache_.newTabUrl_f;
+      return newTabUrl_f
     } else if (path[0] === "/" || KnownPages_.indexOf(path) >= 0) {
       path += ".html";
     } else if (vimiumUrlWork === Urls.WorkType.ActIfNoSideEffects  || vimiumUrlWork === Urls.WorkType.ConvertKnown) {
@@ -274,7 +275,7 @@ export const formatVimiumUrl_ = (fullPath: string, partly: boolean, vimiumUrlWor
 }
 
 export const createSearchUrl_ = function (query: string[], keyword: string, vimiumUrlWork: Urls.WorkType): Urls.Url {
-  let url: string, pattern: Search.Engine | undefined = settingsCache_.searchEngineMap.get(keyword || query[0])
+  let url: string, pattern: Search.Engine | undefined = searchEngines_.map.get(keyword || query[0])
   if (pattern) {
     if (!keyword) { keyword = query.shift()!; }
     url = createSearch_(query, pattern.url_, pattern.blank_);

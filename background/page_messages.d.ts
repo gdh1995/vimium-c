@@ -4,7 +4,7 @@ export declare const enum kPgReq {
    /** 10..14 */ convertToUrl, updateMediaQueries, whatsHelp, checkNewTabUrl, checkSearchUrl,
    /** 15..19 */ focusOrLaunch, showUrl, shownHash, substitute, checkHarmfulUrl,
    /** 20..24 */ popupInit, allowExt, toggleStatus, parseMatcher, initHelp,
-   /** 25..26 */ callApi, selfTabId,
+   /** 25..27 */ callApi, selfTabId, getStorage,
   __mask = ""
 }
 
@@ -25,7 +25,7 @@ export interface PgReq {
   [kPgReq.runJSOn]: [ number, void ]
   [kPgReq.keyMappingErrors]: [ void, true | string ]
   [kPgReq.parseCSS]: [ [string, number], SettingsNS.MergedCustomCSS ]
-  [kPgReq.reloadCSS]: [ void, void ]
+  [kPgReq.reloadCSS]: [ { hc: boolean } | null, void ]
   [kPgReq.convertToUrl]: [ [string, Urls.WorkEnsureString], [string, Urls.Type] ]
   [kPgReq.updateMediaQueries]: [ void, void ]
   [kPgReq.whatsHelp]: [ void, string ]
@@ -40,8 +40,8 @@ export interface PgReq {
     topUrl: string | null, frameUrl: string | null, lock: Frames.ValidStatus | null, status: Frames.ValidStatus,
     unknownExt: string | null,
     exclusions: {
-      rules: SettingsNS.FullSettings["exclusionRules"], onlyFirst: boolean, matchers: BaseUrlMatcher[],
-      defaults: SettingsNS.FullSettings["exclusionRules"]
+      rules: SettingsNS.SettingsWithDefaults["exclusionRules"], onlyFirst: boolean, matchers: BaseUrlMatcher[],
+      defaults: SettingsNS.SettingsWithDefaults["exclusionRules"]
     } | null
     os: kOS, reduceMotion: boolean
   } ]
@@ -55,6 +55,7 @@ export interface PgReq {
     module: "tabs", name: "update", args: Parameters<typeof chrome.tabs.update>
   }, ExtApiResult<unknown> ]
   [kPgReq.selfTabId]: [ void, number ]
+  [kPgReq.getStorage]: [ GlobalConsts.kIsHighContrast | null, Dict<unknown> ]
 }
 
 export declare namespace Req2 {

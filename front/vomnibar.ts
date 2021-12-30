@@ -1,5 +1,4 @@
 /// <reference path="../lib/base.omni.d.ts" />
-declare var VApi: VApiTy | undefined, parent: unknown // eslint-disable-line no-var
 
 const enum SimpleKeyResult { Nothing, Suppress, Prevent }
 type SugToExec = Writable<Pick<CompletersNS.Suggestion, "u">>
@@ -1302,7 +1301,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       fav = canShowOnExtOrWeb ? 2 : 0;
     } else if (canShowOnExtOrWeb && (str = docEl.dataset.favicons) != null) {
       fav = !str || str.toLowerCase() === "true" ? 2 : 0;
-    } else if (canShowOnExtOrWeb && (f = chrome.runtime.getManifest) && (manifest = f())) {
+    } else if (canShowOnExtOrWeb && (f = chrome.runtime.getManifest) && (manifest = f())
+        && manifest.manifest_version === 2) {
       const arr = manifest.permissions || [];
       fav = arr.indexOf("<all_urls>") >= 0 || arr.join(" ").includes("://favicon/") ? 1 : 0
     }

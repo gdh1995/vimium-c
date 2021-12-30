@@ -53,6 +53,7 @@ set_onInit_(As_<typeof onInit_>((): void => {
       settings_.get_("nextPatterns", true)
       settings_.get_("previousPatterns", true)
       settings_.postUpdate_("exclusionListenHash")
+      settings_.postUpdate_("vomnibarOptions")
       settings_.postUpdate_("autoDarkMode")
       settings_.postUpdate_("autoReduceMotion")
       browser_.runtime.onConnect.addListener((port): void => {
@@ -81,6 +82,17 @@ set_onInit_(As_<typeof onInit_>((): void => {
           port.disconnect();
         }
       });
+  browser_.extension.isAllowedIncognitoAccess((isAllowedAccess): void => {
+    CONST_.DisallowIncognito_ = isAllowedAccess === false
+    setTimeout((): void => {
+      import("/background/others.js" as any)
+      setTimeout((): void => {
+        import("/background/browsing_data_manager.js" as any)
+        import("/background/completion_utils.js" as any)
+        import("/background/completion.js" as any)
+      }, 200)
+    }, 200)
+  })
 }))
 
 if (!Build.NDEBUG) {
@@ -99,7 +111,9 @@ if (!Build.NDEBUG) {
       (command: StandardShortcutNames | kShortcutAliases & string, exArg: FakeArg) => void
     >).addListener(executeShortcutEntry);
 
-OnEdge || (browser_.runtime.onMessageExternal!.addListener((
+OnEdge || void settings_.ready_.then((): void => {
+  settings_.postUpdate_("extAllowList")
+  browser_.runtime.onMessageExternal!.addListener((
       message: boolean | number | string | null | undefined | ExternalMsgs[keyof ExternalMsgs]["req"]
       , sender, sendResponse): void => {
     if (!isExtIdAllowed(sender)) {
@@ -141,7 +155,10 @@ OnEdge || (browser_.runtime.onMessageExternal!.addListener((
       executeExternalCmd(message, sender)
       break;
     }
-}), settings_.postUpdate_("extAllowList"))
+  })
+  settings_.postUpdate_("vomnibarPage", null)
+  settings_.postUpdate_("searchUrl", null) // will also update newTabUrl
+})
 
 Tabs_.onReplaced.addListener((addedTabId, removedTabId) => {
     const frames = framesForTab_.get(removedTabId)
@@ -153,10 +170,6 @@ Tabs_.onReplaced.addListener((addedTabId, removedTabId) => {
     }
 });
 
-settings_.postUpdate_("vomnibarOptions")
-settings_.postUpdate_("vomnibarPage", null)
-settings_.postUpdate_("searchUrl", null) // will also update newTabUrl
-
 Completion_.filter_ = (a, b, c): void => { setTimeout(() => { Completion_.filter_(a, b, c) }, 210) }
 
 OnFirefox && watchPermissions_([{ permissions: ["cookies"] }], (allowed): void => {
@@ -165,19 +178,6 @@ OnFirefox && watchPermissions_([{ permissions: ["cookies"] }], (allowed): void =
 
 set_bgIniting_(bgIniting_ | BackendHandlersNS.kInitStat.main)
 onInit_!()
-
-setTimeout((): void => {
-  setTimeout((): void => {
-    import("/background/browsing_data_manager.js" as any)
-    import("/background/completion_utils.js" as any)
-    import("/background/completion.js" as any)
-  }, 400)
-  import("/background/others.js" as any)
-
-  browser_.extension.isAllowedIncognitoAccess((isAllowedAccess): void => {
-    CONST_.DisallowIncognito_ = isAllowedAccess === false
-  })
-}, 200)
 
   // will run only on <kbd>F5</kbd>, not on runtime.reload
 globalThis.onunload = (event): void => {
@@ -192,7 +192,7 @@ globalThis.onunload = (event): void => {
       }
     })
 }
-if (!globalThis.window) { (globalThis as any).onclose = onunload }
+if (!(globalThis as MaybeWithWindow).window) { (globalThis as any).onclose = onunload }
 
 if (OnFirefox && !Build.NativeWordMoveOnFirefox
     || OnChrome && Build.MinCVer < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp

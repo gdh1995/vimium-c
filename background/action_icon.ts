@@ -1,14 +1,14 @@
 import {
-  framesForTab_, CurCVer_, OnChrome, set_setIcon_, setIcon_, set_iconData_, iconData_, blank_, set_needIcon_
+  framesForTab_, CurCVer_, OnChrome, set_setIcon_, setIcon_, set_iconData_, iconData_, blank_, set_needIcon_,
+  needIcon_, updateHooks_
 } from "./store"
 import * as BgUtils_ from "./utils"
-import * as settings_ from "./settings"
 import { extTrans_ } from "./i18n"
 import { browser_, runtimeError_ } from "./browser"
 import { asyncIterFrames_ } from "./ports"
 
 const knownIcons_ = OnChrome ? As_<readonly [IconNS.BinaryPath, IconNS.BinaryPath, IconNS.BinaryPath]>([
-  "icons/enabled.bin", "icons/partial.bin", "icons/disabled.bin"
+  "/icons/enabled.bin", "/icons/partial.bin", "/icons/disabled.bin"
 ]) : As_<readonly [IconNS.ImagePath, IconNS.ImagePath, IconNS.ImagePath]>([
   { 19: "/icons/enabled_19.png", 38: "/icons/enabled_38.png" },
   { 19: "/icons/partial_19.png", 38: "/icons/partial_38.png" },
@@ -23,7 +23,7 @@ const onerror = (err: any): void => {
   console.log("Can not access binary icon data:", err);
   set_setIcon_(blank_)
   set_needIcon_(false)
-  settings_.updateHooks_.showActionIcon = undefined
+  updateHooks_.showActionIcon = undefined
   browserAction_.setTitle({ title: extTrans_("name") + "\n\nFailed in showing dynamic icons." })
 }
 
@@ -56,17 +56,18 @@ const loadBinaryImagesAndSetIcon_cr = (type: Frames.ValidStatus): void => {
 }
 
 export const toggleIconBuffer_ = (): void => {
-  const enabled = settings_.get_("showActionIcon")
+  const enabled = needIcon_
   if (enabled === !!iconData_) { return }
+  set_setIcon_(enabled ? doSetIcon_ : blank_)
   const iter = ({ cur_: { s: sender } }: Frames.Frames): void => {
     if (sender.status_ !== Frames.Status.enabled) {
       setIcon_(sender.tabId_, enabled ? sender.status_ : Frames.Status.enabled)
     }
   }
-  const cond = (): boolean => settings_.get_("showActionIcon") === enabled
+  const cond = (): boolean => needIcon_ === enabled
   if (!enabled) {
     setTimeout((): void => {
-      if (settings_.get_("showActionIcon") || iconData_ == null) { return }
+      if (needIcon_ || iconData_ == null) { return }
       set_iconData_(null)
       if (OnChrome) { tabIds_cr_ = null }
       else {
@@ -109,4 +110,4 @@ const doSetIcon_: typeof setIcon_ = !OnChrome ? (tabId, type): void => {
   }
 }
 
-set_setIcon_(doSetIcon_)
+toggleIconBuffer_()

@@ -7,6 +7,7 @@ import {
 } from "./options_base"
 import type { OptionalPermissionsOption_ } from "./options_permissions"
 import { kPgReq } from "../background/page_messages"
+import SettingsWithDefaults = SettingsNS.SettingsWithDefaults
 
 Option_.all_ = Object.create(null)
 Option_.syncToFrontend_ = []
@@ -167,7 +168,7 @@ export class NumberOption_<T extends UniversalNumberOptions> extends Option_<T> 
 
 export class BooleanOption_<T extends keyof AllowedOptions> extends Option_<T> {
   override readonly element_: HTMLInputElement
-  override previous_: FullSettings[T]
+  override previous_: SettingsWithDefaults[T]
   map_: readonly any[]
   true_index_: 2 | 1
   static readonly map_for_2_ = [false, true] as const
@@ -183,14 +184,14 @@ export class BooleanOption_<T extends keyof AllowedOptions> extends Option_<T> {
     }
     el.onchange = this.onUpdated_
   }
-  override populateElement_ (value: FullSettings[T]): void {
+  override populateElement_ (value: SettingsWithDefaults[T]): void {
     // support false/true when .map_ is like [0, 1, 2]
     const is_true = value === true || value === this.map_[this.true_index_]
     this.element_.checked = is_true
     this.element_.indeterminate = this.true_index_ > 1 && value === this.map_[1]
     this.inner_status_ = is_true ? this.true_index_ : Math.max(0, this.map_.indexOf(value)) as 0 | 1 | 2
   }
-  override readValueFromElement_ (): FullSettings[T] {
+  override readValueFromElement_ (): SettingsWithDefaults[T] {
     let value = this.element_.indeterminate ? this.map_[1] : this.map_[this.element_.checked ? this.true_index_ : 0]
     return value
   }
@@ -201,7 +202,7 @@ export class BooleanOption_<T extends keyof AllowedOptions> extends Option_<T> {
     this.element_.indeterminate = old === 2
     this.element_.checked = this.inner_status_ === 2
   }
-  override normalize_(value: FullSettings[T]): FullSettings[T] {
+  override normalize_(value: SettingsWithDefaults[T]): SettingsWithDefaults[T] {
     if ((this.element_.dataset as KnownOptionsDataset).map && typeof value === "boolean") {
       value = this.map_[value ? this.true_index_ : 0]
     }

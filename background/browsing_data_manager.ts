@@ -1,6 +1,6 @@
 import {
   blank_, bookmarkCache_, Completion_, CurCVer_, historyCache_, OnChrome, OnEdge, OnFirefox, urlDecodingDict_,
-  set_findBookmark, findBookmark
+  set_findBookmark, findBookmark, updateHooks_
 } from "./store"
 import { Tabs_, browser_, runtimeError_, browserSessions_ } from "./browser"
 import * as BgUtils_ from "./utils"
@@ -669,7 +669,7 @@ const createXhr_ = (): TextXHR => {
 }
 
 /** @see {@link ../pages/options_ext.ts#isExpectingHidden_} */
-settings_.updateHooks_.omniBlockList = (newList: string): void => {
+updateHooks_.omniBlockList = function (newList: string): void {
   const arr: string[] = []
   for (let line of newList.split("\n")) {
     if (line.trim() && line[0] !== "#") {
@@ -680,11 +680,11 @@ settings_.updateHooks_.omniBlockList = (newList: string): void => {
   omniBlockList = arr.length > 0 ? arr : null;
   (historyCache_.history_ || bookmarkCache_.bookmarks_.length) && setTimeout(BlockListFilter_.UpdateAll_, 100)
 }
-settings_.postUpdate_("omniBlockList")
+void settings_.ready_.then((): void => { settings_.postUpdate_("omniBlockList") })
 
 if (!OnChrome || Build.MinCVer >= BrowserVer.MinRequestDataURLOnBackgroundPage
     || WithTextDecoder || CurCVer_ > BrowserVer.MinRequestDataURLOnBackgroundPage - 1) {
-  settings_.updateHooks_.localeEncoding = (charset: string): void => {
+  updateHooks_.localeEncoding = (charset: string): void => {
     let enabled = charset ? !(charset = charset.toLowerCase()).startsWith("utf") : false
     const oldUrl = dataUrlToDecode_
     if (WithTextDecoder) {

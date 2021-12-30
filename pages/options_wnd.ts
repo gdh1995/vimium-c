@@ -391,26 +391,28 @@ if (OnChrome ? (Build.MinCVer >= BrowserVer.MinMediaQuery$PrefersColorScheme
 }
 
   OnFirefox && setTimeout((): void => {
-    const K = GlobalConsts.kIsHighContrast, storage = localStorage
+    const K = GlobalConsts.kIsHighContrast
     const hasFC = matchMedia("(forced-colors)").matches
+    let valInLocal: string | null | undefined
     const test = hasFC ? null : document.createElement("div")
     if (test) {
       test.style.display = "none"
       test.style.color = "#543";
       (document.body as HTMLBodyElement).append!(test)
-    } else if (storage.getItem(K) == null) {
-      return
     }
+    void post_(kPgReq.getStorage, K).then((res): void => {
+      valInLocal = res[K] as string | undefined
+      if (!test && valInLocal == null) { return }
     requestIdleCallback!((): void => {
       const newColor = test && (getComputedStyle(test).color || "").replace(<RegExpG> / /g, "").toLowerCase()
       const isHC = hasFC ? false : !!newColor && newColor !== "rgb(85,68,51)"
       test && test.remove()
-      const oldIsHC = storage.getItem(K) === "1"
+      const oldIsHC = valInLocal === "1"
       if (isHC !== oldIsHC) {
-        isHC ? storage.setItem(K, "1") : storage.removeItem(K);
-        void post_(kPgReq.reloadCSS)
+        void post_(kPgReq.reloadCSS, { hc: isHC })
       }
     }, { timeout: 1e3 })
+    })
   }, 34)
 };
 

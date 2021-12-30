@@ -1,6 +1,6 @@
 declare const enum kTip {
   /* 1: */ raw = 1,
-  /* 4..9 */ didUnHoverLast = 4, globalInsertMode, noPassKeys, normalMode, nTimes, passNext,
+  /* 4..9 */ didUnHoverLast = 4, noTargets, noPassKeys, normalMode, nTimes, passNext,
   /* 10..15 */ noLinksToGo, noFocused, focusedIsHidden, noInputToFocus, noUrlCopied, noTextCopied,
   /* 17: */ kCommonEvents = 17,
   /* 20..25 */ copiedIs = 20, forcedColors, tooManyLinks, wrapWhenFind, atStart, atEnd,
@@ -17,8 +17,8 @@ declare const enum kTip {
   /* 95: */ failToDelSug, fewChars, editableSelector, removeCurScript, webkitWithRel,
   /* 100: */ notANestedFrame, cssUrl, imgExt, clickableClasses, clickableRoles,
   /* 105: */ invisibleHintText, notMatchedHintText, metaKeywordsForMobile, css0d01OrDPI, visibleElementsInScopeChildren,
-  /* 110: */ voidJS = 110, nonLocalhostRe, scrollable, buttonOrA, noTargets,
-  /* 115: */ closableClasses, highContrast_WOB,
+  /* 110: */ voidJS = 110, nonLocalhostRe, scrollable, buttonOrA, closableClasses,
+  /* 115: */ highContrast_WOB,
   INJECTED_CONTENT_END,
   /* 200: */ XHTML,
   /** used by {@link ../Gulpfile.js} */ extendClick = 999,

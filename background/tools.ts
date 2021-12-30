@@ -1,7 +1,7 @@
 import {
   curIncognito_, curTabId_, curWndId_, framesForTab_, incognitoFindHistoryList_, recencyForTab_, set_curIncognito_,
   set_curTabId_, set_curWndId_, set_incognitoFindHistoryList_, set_lastWndId_, set_recencyForTab_, incognitoMarkCache_,
-  set_incognitoMarkCache_, contentPayload_, reqH_, settingsCache_, OnFirefox, OnChrome, CurCVer_,
+  set_incognitoMarkCache_, contentPayload_, reqH_, settingsCache_, OnFirefox, OnChrome, CurCVer_, updateHooks_,
   OnEdge, isHighContrast_ff_, omniPayload_, blank_, CONST_, RecencyMap, CurFFVer_
 } from "./store"
 import * as BgUtils_ from "./utils"
@@ -21,8 +21,8 @@ import { reopenTab_ } from "./tab_commands"
 type CSTypes = chrome.contentSettings.ValidTypes;
 
 export const ContentSettings_ = OnChrome ? {
-  makeKey_ (this: void, contentType: CSTypes, url?: string): string {
-    return "vimiumContent|" + contentType + (url ? "|" + url : "");
+  makeKey_ (this: void, contentType: CSTypes, url?: string): `${string}|${string}` {
+    return ("vimiumContent|" + contentType + (url ? "|" + url : "")) as `${string}|${string}`
   },
   complain_ (this: void, contentType: CSTypes, url: string): boolean {
     let bcs: typeof chrome.contentSettings | null = browser_.contentSettings
@@ -306,7 +306,7 @@ export const Marks_ = { // NOTE: all public members should be static
         }
       }
       if (scroll) {
-        port.postMessage({ N: kBgReq.goToMark, l: (kTip.local - kTip.global) as 2, n: markName, s: scroll, f: options })
+        Marks_.goToInContent_(port, 2, markName, scroll, options)
         return
       }
     }
@@ -341,14 +341,19 @@ export const Marks_ = { // NOTE: all public members should be static
       reqH_[kFgReq.focusOrLaunch](mark)
     }
   },
-  getLocationKey_ (markName: string, url: string | undefined): string {
-    return url ? "vimiumMark|" + prepareReParsingPrefix_(url.split("#", 1)[0])
+  getLocationKey_ (markName: string, url: string | undefined): `${string}|${string}` {
+    return (url ? "vimiumMark|" + prepareReParsingPrefix_(url.split("#", 1)[0])
         + (url.length > 1 ? "|" + markName : "") : "vimiumGlobalMark|" + markName
+        ) as `${string}|${string}`
+  },
+  goToInContent_ (port: Port
+      , local: 0 | 2, name: string | undefined, scroll: MarksNS.ScrollInfo, f: MarksNS.InfoToGo["f"]): void {
+    port.postMessage({ N: kBgReq.goToMark, l: local, n: name, s: scroll, f })
   },
   scrollTab_ (this: void, markInfo: MarksNS.InfoToGo, tab: Tab): void {
     const tabId = tab.id, port = framesForTab_.get(tabId)?.top_
     if (port) {
-      port.postMessage({ N: kBgReq.goToMark, l: 0, n: markInfo.n, s: markInfo.s, f: markInfo.f })
+      Marks_.goToInContent_(port, 0, markInfo.n, markInfo.s, markInfo.f)
     }
     if (markInfo.t !== tabId && markInfo.n) {
       return Marks_.set_(markInfo as MarksNS.MarkToGo, curIncognito_ === IncognitoType.true, tabId)
@@ -670,14 +675,15 @@ setTimeout((): void => {
   });
   TabRecency_.rCompare_ = (a, b): number => cache.get(b.id)!.i - cache.get(a.id)!.i
 
-  if (!OnChrome) { return }
+  OnChrome && void settings_.ready_.then((): void => {
   for (const i of ["images", "plugins", "javascript", "cookies"] as const) {
     localStorage.getItem(ContentSettings_.makeKey_(i)) != null &&
     browser_.contentSettings && setTimeout(ContentSettings_.Clear_, 100, i)
   }
+  })
 }, 120)
 
-settings_.updateHooks_.autoDarkMode = settings_.updateHooks_.autoReduceMotion = (value: 0 | 1 | 2 | boolean
+  updateHooks_.autoDarkMode = updateHooks_.autoReduceMotion = (value: 0 | 1 | 2 | boolean
       , keyName: "autoReduceMotion" | "autoDarkMode"): void => {
     const key = keyName.length > 12 ? MediaNS.kName.PrefersReduceMotion : MediaNS.kName.PrefersColorScheme;
     value = typeof value === "boolean" ? value ? 2 : 0 : value
@@ -685,7 +691,7 @@ settings_.updateHooks_.autoDarkMode = settings_.updateHooks_.autoReduceMotion = 
     MediaWatcher_.update_(key, 0, value === 2 ? null : value > 0)
 }
 
-settings_.updateHooks_.vomnibarOptions = (options: SettingsNS.BackendSettings["vomnibarOptions"] | null): void => {
+updateHooks_.vomnibarOptions = (options: SettingsNS.BackendSettings["vomnibarOptions"] | null): void => {
   const defaultOptions = settings_.defaults_.vomnibarOptions,
   payload = omniPayload_
   let isSame = true
@@ -716,7 +722,7 @@ settings_.updateHooks_.vomnibarOptions = (options: SettingsNS.BackendSettings["v
   if (OnFirefox && isHighContrast_ff_ && !(<RegExpOne> /(^|\s)high-contrast(\s|$)/).test(styles)) {
     styles += " high-contrast"
   }
-  (settingsCache_ as settings_.WritableSettingsCache).vomnibarOptions = isSame ? defaultOptions : options!
+  (settingsCache_ as SettingsNS.SettingsWithDefaults).vomnibarOptions = isSame ? defaultOptions : options!
   payload.n = maxMatches
   payload.t = queryInterval
   payload.l = sizes
