@@ -353,9 +353,8 @@ export const moveSel_s_throwable = (element: LockableElement, action: SelectActi
     if (type === EditableType.Default) { return; }
     const isBox = type === EditableType.TextBox || type === EditableType.rich_
         && textContent_s(element).includes("\n"),
-    lineAllAndBoxEnd = action === "all-input" || action === "all-line",
     gotoStart = action === "start",
-    gotoEnd = !action || action === "end" || isBox && lineAllAndBoxEnd;
+    gotoEnd = !action || action === "end" || isBox && (action + "")[3] === "-"
     if (isBox && gotoEnd && dimSize_(element, kDim.elClientH) + 12 < dimSize_(element, kDim.scrollH)) {
       return;
     }
@@ -365,8 +364,9 @@ export const moveSel_s_throwable = (element: LockableElement, action: SelectActi
       } else {
         let len = (element as TextElement).value.length
           , start = textOffset_(element as TextElement), end = textOffset_(element as TextElement, 1)
-        if (!len || (gotoEnd ? start === len : gotoStart && !end) || end && end < len || end !== start) {
-          return;
+        if (!len || start && start < len || end && end < len
+            || (gotoEnd ? start : gotoStart ? !end : !start && end) || !action && end) {
+          return
         }
         (element as TextElement).select();
         if (OnFirefox && (gotoEnd || gotoStart)) {
