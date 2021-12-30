@@ -36,7 +36,7 @@ export const CurFFVer_ = !OnFirefox ? FirefoxBrowserVer.assumedVer
     : userAgentData ? (tmpBrand = userAgentData.brands.find(i => i.brand.includes("Firefox")))
       ? tmpBrand.version : FirefoxBrowserVer.MinMaybe$navigator$$userAgentData > Build.MinFFVer
       ? FirefoxBrowserVer.MinMaybe$navigator$$userAgentData : Build.MinFFVer
-    : 0 | <number>(navigator.userAgent!.match(<RegExpOne> /\bFirefox\/(\d+)/) || [0, FirefoxBrowserVer.assumedVer])[1]
+    : parseInt(navigator.userAgent!.split("Firefox/")[1] || "0") || FirefoxBrowserVer.assumedVer
 export let installation_: Promise<chrome.runtime.InstalledDetails> | null | undefined
 //#endregion
 
