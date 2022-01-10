@@ -259,7 +259,10 @@ export const import2 = (url: string): Promise<unknown> => {
   return define([url]) // eslint-disable-line @typescript-eslint/no-unsafe-call
 }
 
-export const fetch: (input: string, init?: Partial<Request>) => Promise<Response> = globalThis.fetch as any
+export const fetch = (input: string, init?: Partial<Request>): Promise<Response> => {
+  const a = globalThis.fetch
+  return a(input as `/${string}`, init)
+}
 
 if (!Build.NDEBUG) { (window as any).updateUI = (): void => { void post_(kPgReq.reloadCSS, null) } }
 //#endregion
