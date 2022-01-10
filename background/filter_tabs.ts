@@ -221,7 +221,7 @@ export const filterTabsByCond_ = <T extends ShownTab = Tab>(activeTab: ShownTab 
       && (!matcher || Exclusions.matchSimply_(matcher, getTabUrl(tab)))
       && (!host || host === BgUtils_.safeParseURL_(getTabUrl(tab))?.host)
       && (hidden === null || hidden !== isNotHidden_(tab))
-      && (discarded === null || discarded !== tab.discarded)
+      && (discarded === null || discarded === tab.discarded)
       && (pinned === null || pinned === tab.pinned)
       && (muted === null || muted === isTabMuted(tab))
       && (audio === null || audio === tab.audible)

@@ -19,7 +19,8 @@ const showHelp = (event?: EventToPrevent | "force" | void | null): void => {
   else if (node = root.querySelector("#HCls") as HTMLElement | null) {
     if (event !== "force" && root.querySelector(".HelpCommandName") != null) { click(node); return }
   }
-  VApi!.r[0]<kFgReq.pages>(kFgReq.pages, { i: 1, q: [ { n: kPgReq.initHelp, q: null } ] }, !event ? (): void => {
+  VApi!.r[0]<kFgReq.pages>(kFgReq.pages, { i: 1, q: [ { n: kPgReq.initHelp, q: null } ] }
+      , !event && location.hash.length > 1 ? (): void => {
     const misc = VApi && VApi.y()
     const node2 = misc && misc.r && misc.r.querySelector("#HDlg") as HTMLElement
     if (!node2) { return; }

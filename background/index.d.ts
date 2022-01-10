@@ -316,7 +316,6 @@ declare namespace SettingsNS {
     userDefinedCss: string;
     vimSync: boolean | null;
     vomnibarPage: string;
-    vomnibarPage_f: string;
     omniBlockList: string;
   }
   interface BaseNonPersistentSettings {
@@ -352,7 +351,7 @@ declare namespace SettingsNS {
   type FullUpdateHookMap = PartialOrEnsured<BaseFullUpdateHookMap, EnsuredUpdateHooks>;
 
   interface FullCache extends SafeObject, PartialOrEnsured<FullSettings
-      , "newTabUrl_f" | "searchEngineMap" | "searchEngineRules" | "vomnibarPage_f"
+      , "newTabUrl_f" | "searchEngineMap" | "searchEngineRules"
         | "vomnibarOptions" | "hideHud" | "previousPatterns" | "nextPatterns"
       > {}
 

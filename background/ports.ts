@@ -1,6 +1,6 @@
 import {
   needIcon_, cPort, set_cPort, reqH_, contentPayload_, omniPayload_, innerCSS_, extAllowList_, framesForTab_,
-  framesForOmni_, getNextFakeTabId, curTabId_, settingsCache_, OnChrome, CurCVer_, OnEdge, setIcon_,
+  framesForOmni_, getNextFakeTabId, curTabId_, vomnibarPage_f, OnChrome, CurCVer_, OnEdge, setIcon_,
   keyFSM_, mappedKeyRegistry_, CONST_, mappedKeyTypes_, recencyForTab_
 } from "./store"
 import { asyncIter_, getOmniSecret_, keys_ } from "./utils"
@@ -44,7 +44,7 @@ export const OnConnect = (port: Frames.Port, type: PortType): void => {
     return
   }
   const sender = /*#__NOINLINE__*/ formatPortSender(port)
-  const url = sender.url_, isOmni = url === settingsCache_.vomnibarPage_f
+  const url = sender.url_, isOmni = url === vomnibarPage_f
   if (type > PortType.reconnect - 1 || isOmni) {
     if (type === PortType.CloseSelf) {
       sender.tabId_ >= 0 && !sender.frameId_ &&
@@ -265,7 +265,7 @@ export const isExtIdAllowed = (sender: chrome.runtime.MessageSender): boolean | 
     }
   }
   if (stat != null) { return stat }
-  if (url === settingsCache_.vomnibarPage_f) { return true }
+  if (url === vomnibarPage_f) { return true }
   if (!OnChrome && stat == null && url) {
     url = new URL(url).host
     if (list.get(url) === true) {

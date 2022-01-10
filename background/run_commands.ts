@@ -215,8 +215,8 @@ export const executeCommand = (registryEntry: CommandsNS.Item, count: number, la
       return
     }
     const context = makeFallbackContext(fallbackCounter.c, 1, fallbackCounter.u)
-    if (options && (registryEntry.alias_ === kBgCmd.runKey || hasFallbackOptions(options as Req.FallbackOptions)
-        || context.t && registryEntry.background_)) {
+    if (options && ((registryEntry.alias_ === kBgCmd.runKey || context.t) && registryEntry.background_
+          || hasFallbackOptions(options as Req.FallbackOptions))) {
       const opt2: Req.FallbackOptions = {}
       options ? overrideCmdOptions<kBgCmd.blank>(opt2 as {}, false, options) : BgUtils_.safer_(opt2)
       opt2.$retry = -maxRetried, opt2.$f = context

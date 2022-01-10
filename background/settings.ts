@@ -363,7 +363,6 @@ js\\:|Js: javascript:\\ $S; JavaScript`,
     userDefinedCss: "",
     vimSync: null,
     vomnibarPage: "front/vomnibar.html",
-    vomnibarPage_f: "",
     waitForEnter: true
 })
 

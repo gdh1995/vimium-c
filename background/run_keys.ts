@@ -12,7 +12,7 @@ import {
 } from "./key_mappings"
 import {
   copyCmdOptions, executeCommand, overrideOption, parseFallbackOptions, replaceCmdOptions, runNextCmdBy,
-  fillOptionWithMask, concatOptions
+  fillOptionWithMask, concatOptions, overrideCmdOptions
 } from "./run_commands"
 import C = kBgCmd
 import NormalizedEnvCond = CommandsNS.NormalizedEnvCond
@@ -368,7 +368,8 @@ export const runKeyInSeq = (seq: BgCmdOptions[C.runKey]["$seq"], dir: number
   const cursor: KeyNode | null = nextKeyInSeq(seq.cursor as ListNode | KeyNode, dir)
   const ifOk = cursor && nextKeyInSeq(cursor, 1), ifFail = cursor && nextKeyInSeq(cursor, -1)
   const isLast = !(cursor && (ifOk || ifFail))
-  const finalFallback = seq.fallback, cmdOptions = get_cOptions<C.runKey, true>()
+  const finalFallback = seq.fallback
+  let cmdOptions = get_cOptions<C.runKey, true>()
   const seqId = seq.id
   if (isLast) {
     keyToCommandMap_.delete(seqId)
@@ -392,11 +393,17 @@ export const runKeyInSeq = (seq: BgCmdOptions[C.runKey]["$seq"], dir: number
     dir < 0 && fallback && fallback.t && showHUD(extTrans_(`${fallback.t as 99}`))
     return
   }
-  if (ifOk && cmdOptions.$then && (typeof ifOk.val === "string" ? ifOk.val : ifOk.val.prefix).includes("$l")) {
-    cmdOptions.$then = "$l+" + cmdOptions.$then
-  }
-  if (ifFail && cmdOptions.$else && (typeof ifFail.val === "string" ? ifFail.val : ifFail.val.prefix).includes("$l")) {
-    cmdOptions.$else = "$l+" + cmdOptions.$else
+  const evenLoading = (ifOk && cmdOptions.$then
+        && (typeof ifOk.val === "string" ? ifOk.val : ifOk.val.prefix).includes("$l") ? 1 : 0)
+      + (ifFail && cmdOptions.$else && (typeof ifFail.val === "string" ? ifFail.val : ifFail.val.prefix).includes("$l")
+          ? 2 : 0)
+  if (evenLoading) {
+    if (seq.cursor === seq.keys) {
+      overrideCmdOptions<C.runKey>({})
+      cmdOptions = get_cOptions<C.runKey, true>()
+    }
+    evenLoading & 1 && (cmdOptions.$then = "$l+" + cmdOptions.$then)
+    evenLoading & 2 && (cmdOptions.$else = "$l+" + cmdOptions.$else)
   }
   const timeout = isLast ? 0 : seq.timeout = setTimeout((): void => {
     const old = keyToCommandMap_.get(seqId)
@@ -455,11 +462,11 @@ const runOneKey = (cursor: KeyNode, seq: BgCmdOptions[C.runKey]["$seq"], envInfo
   const isFirst = seq.cursor === seq.keys, hasCount = isFirst || info.prefix.includes("$c")
   let options = concatOptions(seq.options, info.options)
   seq.cursor = cursor
-  runKeyWithOptions(info.key, info.count * (hasCount ? seq.repeat : 1), options, envInfo, null, isFirst)
+  runOneKeyWithOptions(info.key, info.count * (hasCount ? seq.repeat : 1), options, envInfo, null, isFirst)
 }
 
 set_runOneMapping_(As_<typeof runOneMapping_>((key, port, fStatus): void => {
-  key = key.replace(<RegExpOne> /^([$%][a-zA-Z]\+?)+(?=[\w-])/, "")
+  key = key.replace(<RegExpOne> /^([$%][a-zA-Z]\+?)+(?=\S)/, "")
   const arr: null | string[] = (<RegExpOne> /^\d+|^-\d*/).exec(key)
   let count = 1
   if (arr != null) {
@@ -467,7 +474,7 @@ set_runOneMapping_(As_<typeof runOneMapping_>((key, port, fStatus): void => {
     key = key.slice(prefix.length)
     count = prefix !== "-" ? parseInt(prefix, 10) || 1 : -1
   }
-  key = key.replace(<RegExpOne> /^([$%][a-zA-Z]\+?)+(?=\w)/, "")
+  key = key.replace(<RegExpOne> /^([$%][a-zA-Z]\+?)+(?=\S)/, "")
   let hash = 1
   while (hash = key.indexOf("#", hash) + 1) {
     const slice = key.slice(0, hash - 1)
@@ -476,7 +483,7 @@ set_runOneMapping_(As_<typeof runOneMapping_>((key, port, fStatus): void => {
   set_cPort(port!)
   set_cKey(kKeyCode.None)
   set_cOptions(null)
-  runKeyWithOptions(hash ? key.slice(0, hash - 1) : key, count, hash ? key.slice(hash) : null, null, fStatus)
+  runOneKeyWithOptions(hash ? key.slice(0, hash - 1) : key, count, hash ? key.slice(hash) : null, null, fStatus)
 }))
 
 const doesInheritOptions = (baseOptions: CommandsNS.Options): boolean => {
@@ -485,7 +492,8 @@ const doesInheritOptions = (baseOptions: CommandsNS.Options): boolean => {
   return cur === baseOptions
 }
 
-const runKeyWithOptions = (key: string, count: number, exOptions: CommandsNS.EnvItemOptions | string | null | undefined
+const runOneKeyWithOptions = (key: string, count: number
+    , exOptions: CommandsNS.EnvItemOptions | string | null | undefined
     , envInfo: CurrentEnvCache | null, fallbackCounter?: FgReq[kFgReq.nextKey]["f"] | null
     , avoidStackOverflow?: boolean): void => {
   let finalKey = key, registryEntry = key !== "__proto__" && keyToCommandMap_.get(key)
