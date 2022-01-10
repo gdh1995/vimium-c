@@ -66,8 +66,7 @@ export const copyWindowInfo = (resolve: OnCmdResolved): void | kBgCmd.copyWindow
     }
     const incognito = cPort ? cPort.s.incognito_ : curIncognito_ === IncognitoType.true,
     rawFormat = get_cOptions<C.copyWindowInfo>().format, format = "" + (rawFormat || "${title}: ${url}"),
-    join = get_cOptions<C.copyWindowInfo, true>().join, isPlainJSON = join === "json" && !rawFormat,
-    nameRe = <RegExpG & RegExpSearchable<1>> /\$\{([^}]+)\}/g
+    join = get_cOptions<C.copyWindowInfo, true>().join, isPlainJSON = join === "json" && !rawFormat
     if (wantNTabs) {
       const ind = tabs.length < 2 ? 0 : selectFrom(tabs).index, range = getTabRange(ind, tabs.length)
       tabs = tabs.slice(range[0], range[1])
@@ -86,12 +85,13 @@ export const copyWindowInfo = (resolve: OnCmdResolved): void | kBgCmd.copyWindow
     }
     const data: any[] = tabs.map(i => isPlainJSON ? {
       title: i.title, url: decoded ? BgUtils_.decodeUrlForCopy_(getTabUrl(i)) : getTabUrl(i)
-    } : format.replace(nameRe, (_, s1): string => { // eslint-disable-line arrow-body-style
+    } : format.replace(<RegExpG & RegExpSearchable<1>> /\$\{([^}]+)}/g
+        , (_, names): string => names.split("||").reduce((old, s1) => { // eslint-disable-line arrow-body-style
       let val: any
-      return decoded && s1 === "url" ? BgUtils_.decodeUrlForCopy_(getTabUrl(i))
+      return old ? old : decoded && s1 === "url" ? BgUtils_.decodeUrlForCopy_(getTabUrl(i))
         : s1 !== "__proto__" && (val = (i as Dict<any>)[s1],
           val && typeof val === "object" ? JSON.stringify(val) : val || "")
-    })),
+    }, ""))),
     result = copy_(data, join, sed)
     showHUD(type === "tab" && tabs.length < 2 ? result : trans_("copiedWndInfo"), kTip.noTextCopied)
     resolve(1)

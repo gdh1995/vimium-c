@@ -306,15 +306,17 @@ set_bgC_([
       const filter = get_cOptions<C.discardTab, true>().filter, allTabs = tabs
       tabs = tabs.slice(start, end)
       tabs.length > 1 && (tabs as Tab[]).forEach((i, ind) => i.index = ind)
-      const activeTab = selectFrom(tabs.length <= 1 && curOrTabs || tabs)
+      const activeTab = selectFrom(tabs)
       tabs = filter ? filterTabsByCond_(activeTab, tabs, filter) : tabs
-      const count = tabs.length
+      const _curInd2 = tabs.indexOf(activeTab)
+      const count = _curInd2 >= 0 ? tabs.length - 1 : tabs.length
       if (!count) { resolve(0); return }
       if (count > 20 && needConfirm_()) {
         void confirm_("discardTab", count).then(onTabs.bind(null, allTabs, [start, current, end], resolve))
         return
       }
-      const near = tabs[getNearTabInd(tabs as Tab[], activeTab.index, cRepeat > 0)]
+      const near = tabs[_curInd2 >= 0 ? (_curInd2 + (cRepeat > 0 ? 1 : -1) + tabs.length) % tabs.length
+          : getNearTabInd(tabs as Tab[], activeTab.index, cRepeat > 0)]
       let changed: Promise<null | undefined>[] = [], aliveExist = !near.discarded
       if (aliveExist && (count < 2 || near.autoDiscardable !== false)) {
         changed.push(Q_(Tabs_.discard, near.id))

@@ -1,5 +1,5 @@
 import {
-  chromeVer_, doc, createRegExp, isTY, Lower, OBJECT_TYPES, OnFirefox, OnChrome, OnEdge, evenHidden_
+  chromeVer_, doc, createRegExp, isTY, Lower, OBJECT_TYPES, OnFirefox, OnChrome, OnEdge, evenHidden_, safeCall
 } from "./utils"
 import { dimSize_, selRange_ } from "./rect"
 
@@ -142,12 +142,13 @@ export let notSafe_not_ff_ = !OnFirefox ? (el: Element): el is HTMLFormElement =
 
   /** @safe_even_if_any_overridden_property */
 export const SafeEl_not_ff_ = !OnFirefox ? function (
-      el: Element | null, type?: PNType.DirectElement | undefined): Node | null {
+      el: Element | undefined | null, type?: PNType.DirectElement | undefined): Node | undefined | null {
   return el && notSafe_not_ff_!(el)
     ? SafeEl_not_ff_!(GetParent_unsafe_(el, type || PNType.RevealSlotAndGotoParent), type) : el
 } as {
   (el: SafeElement | null, type?: any): unknown
   (el: Element | null, type?: PNType.DirectElement): SafeElement | null
+  (el: Element | null | void, type?: PNType.DirectElement): SafeElement | null | undefined
 } : 0 as never as null
 
 export const GetShadowRoot_ = (el: Element): ShadowRoot | null => {
@@ -504,6 +505,21 @@ export const singleSelectionElement_unsafe = (sel: Selection): Element | null =>
 
 export const getElDesc_ = (el: Element | null): FgReq[kFgReq.respondForRunKey]["e"] =>
     el && (OnFirefox || !notSafe_not_ff_!(el)) && [(el as SafeElement).localName, el.id, el.className] || null
+
+export const extractField = (el: SafeElement, props: string): string => {
+  type primitiveObject = boolean | number | string | { arguments?: undefined } & Dict<any>
+  let json: Dict<primitiveObject | null> | primitiveObject | null | undefined | Element = el
+  props = props.trim()
+  for (const prop of props ? props.split(".") : []) {
+    if (json && isTY(json)) {
+      json = safeCall<string, any>(JSON.parse, json as unknown as string)
+    }
+    json = json !== el ? json && isTY(json, kTY.obj) && (json as Dict<primitiveObject | null>)[prop]
+        : !el ? 0 : (el as TypeToAssert<Element, HTMLElement | SVGElement, "dataset", "tagName">).dataset
+        && ((el as HTMLElement).dataset as Dict<string>)[prop] || (el as Dict<any>)[prop] || attr_s(el, prop)
+  }
+  return isTY(json) ? json : ""
+}
 
 //#endregion
 

@@ -228,7 +228,9 @@ export const findUrlEndingWithPunctuation_ = (url: string, _formatted?: boolean)
   if (sepMatch) { return url.slice(0, start + sepMatch.index) }
   const percentage = host.indexOf("%", host.indexOf("@") + 1)
   const tldInd = host.lastIndexOf(".xn--", percentage > 0 ? percentage : void 0) + 5
-  if (tldInd > 5 && (<RegExpOne> /^[a-z\d]{2}/).test(host.slice(tldInd))) {
+  if (tldInd > 5 && (<RegExpOne> /^[a-z\d]{2}/).test(host.slice(tldInd))
+      && !(<RegExpOne> /\.[a-z]/).test(host.slice(tldInd))
+      && host.lastIndexOf("xn--", tldInd - 6) < 0 && !(<RegExpOne> /[\x7f-\uffff]/).test(host.slice(0, tldInd - 6))) {
     const tldWithSuffix = host.slice(tldInd), mayTld = ((<RegExpOne> /^[a-z\d]+/).exec(tldWithSuffix) || [""])[0]
     if (mayTld && mayTld.length < tldWithSuffix.length && (BgUtils_.isTld_(mayTld, true)
         || "%-".includes(tldWithSuffix[mayTld.length]))) {

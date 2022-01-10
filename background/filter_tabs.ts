@@ -80,7 +80,9 @@ export const onShownTabsIfRepeat_ = <All extends boolean> (allInRange: All, noSe
     Tabs_.query({ windowId: curOrTabs[0].windowId, index: curOrTabs[0].index + cRepeat }, (theOther): void => {
       theOther && theOther.length
       && (isUsable === true || isNotHidden_(theOther[0]) && (!isUsable || isUsable(theOther[0])))
-      ? callback(theOther, [0, 0, 1], resolve) : getCurShownTabs_(onTabs)
+      && (!filter || filterTabsByCond_(curOrTabs[0], theOther, filter).length > 0)
+      ? cRepeat < 0 ? callback([theOther[0], curOrTabs[0]], [0, 1, 2], resolve)
+      : callback([curOrTabs[0], theOther[0]], [allInRange ? 0 : 1, 0, 2], resolve) : getCurShownTabs_(onTabs)
       return runtimeError_()
     })
   }

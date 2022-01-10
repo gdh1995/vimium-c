@@ -8,7 +8,8 @@ import {
   IsInDOM_, createElement_, htmlTag_, getComputedStyle_, getEditableType_, isIFrameElement, GetParent_unsafe_, focus_,
   kMediaTag, ElementProto_not_ff, querySelector_unsafe_, getInputType, uneditableInputs_, GetShadowRoot_, scrollingEl_,
   findMainSummary_, getSelection_, removeEl_s, appendNode_s, getMediaUrl, getMediaTag, INP, ALA, attr_s, hasTag_,
-  setOrRemoveAttr_s, toggleClass_s, textContent_s, notSafe_not_ff_, modifySel, SafeEl_not_ff_, testMatch, docHasFocus_
+  setOrRemoveAttr_s, toggleClass_s, textContent_s, notSafe_not_ff_, modifySel, SafeEl_not_ff_, testMatch, docHasFocus_,
+  extractField
 } from "../lib/dom_utils"
 import { getPreferredRectOfAnchor } from "./local_links"
 import {
@@ -41,26 +42,23 @@ export const executeHintInOfficer = (hint: ExecutableHintItem
 const unhoverOnEsc_d = Build.NDEBUG ? null : (): void => { catchAsyncErrorSilently(unhover_async()) }
 
 const accessElAttr = (isUrlOrText?: 1 | 2): [string: string, isUserCustomized?: BOOL] => {
-  type primitiveObject = boolean | number | string | { arguments?: undefined } & Dict<any>
   const dataset = (clickEl as SafeHTMLElement).dataset
-  for (let accessor of ((hintOptions.access || "") + "").split(",")) {
-    const arr = accessor.trim().split(":"), selector = arr.length === 2 ? arr[0] : 0
-    const el: SafeElement | null = !selector ? clickEl
-        : OnFirefox ? querySelector_unsafe_(selector, clickEl) as SafeElement | null
-        : SafeEl_not_ff_!(querySelector_unsafe_(selector, clickEl))
-    let json: Dict<primitiveObject | null> | primitiveObject | null | undefined | Element = el
-    for (const prop of arr[+!!selector].split(".")) {
-      if (json && isTY(json)) {
-        json = safeCall<string, any>(JSON.parse, json as unknown as string)
-      }
-      json = json !== el ? json && isTY(json, kTY.obj) && (json as Dict<primitiveObject | null>)[prop]
-          : !el ? 0 : (el as TypeToAssert<Element, HTMLElement | SVGElement, "dataset", "tagName">).dataset
-          && ((el as HTMLElement).dataset as Dict<string>)[prop] || attr_s(el, prop)
-    }
-    if (json && isTY(json)) { return [json, 1] }
+  const format = hintOptions.access
+  let el: SafeElement | null | undefined
+  const cb = (_: string, i: string): string => i.split("||").reduce((v, j) => v || extractField(el!, j), "")
+  for (let accessor of format ? (format + "").split(",") : []) {
+    accessor = accessor.trim()
+    const __arr = accessor.split(":"), selector = __arr.length > 1 ? __arr[0] : 0
+    el = !selector ? clickEl
+        : OnFirefox ? safeCall(querySelector_unsafe_, selector, clickEl) as SafeElement | null
+        : SafeEl_not_ff_!(safeCall(querySelector_unsafe_, selector, clickEl))
+    const props: string = el ? selector !== 0 ? accessor.slice(selector.length + 1) : accessor : ""
+    let json = props.includes("${") ? props.replace(<RegExpG & RegExpSearchable<1>> /\$\{([^}]+)}/g, cb) : el && props
+    json = json !== props ? json : extractField(el!, props)
+    if (json) { return [json, 1] }
   }
-  return [(isUrlOrText ? isUrlOrText < 2 ? dataset.vimUrl : dataset.vimText
-      : dataset.canonicalSrc || dataset.src) || ""]
+  return [(isUrlOrText === 2 ? dataset.vimText
+      : isUrlOrText && dataset.vimUrl || dataset.canonicalSrc || dataset.src) || ""]
 }
 
 const getUrlData = (str?: string): string => {
