@@ -4,6 +4,11 @@ Release Notes of Vimium C
 ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 说明文档: https://gitee.com/gdh1995/vimium-c#readme , https://github.com/gdh1995/vimium-c/blob/master/README-zh.md .
 
+#### 1.96.3
+* fix some bugs
+* `LinkHints.activateCopyLinkText` and `copyWindowInfo`: support `${field1 || field2}`
+* map `yv` to `LinkHints.activateModeToSelect` by default
+
 #### 1.96.2
 * darkMode and reduceMotion: add a new state to be always enabled
 * scroller: fix support of child frames
