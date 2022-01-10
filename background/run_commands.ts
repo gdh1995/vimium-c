@@ -484,7 +484,8 @@ export const runNextOnTabLoaded = (options: OpenUrlOptions | Req.FallbackOptions
     if (isTimedOut || tab1.status === "complete") {
       // not check injection status - let the command of `wait for="ready"` check it
       // so some commands not using cPort can run earlier
-      if (callback && !isTimedOut && !framesForTab_.has(tab1.id)) {
+      if (!isTimedOut && !framesForTab_.has(tab1.id) // on Vivaldi in Win 10 VM, it reports "complete" too early
+          && (callback || tab1.url.startsWith(location.protocol))) {
         return
       }
       setupSingletonCmdTimer(0)

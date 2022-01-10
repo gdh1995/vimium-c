@@ -479,7 +479,8 @@ export const getRecentSessions_ = (expected: number, showBlocked: boolean
     , callback: (list: BrowserUrlItem[]) => void): void => {
   const browserSession = !OnEdge ? browserSessions_() : null
   if (!browserSession) { callback([]); return }
-  let timer = OnFirefox ? setTimeout((): void => { timer = 0; callback([]) }, 100) : 0
+  // the timer is for https://github.com/gdh1995/vimium-c/issues/365#issuecomment-1003652820
+  let timer = OnFirefox ? setTimeout((): void => { timer = 0; callback([]) }, 150) : 0
   browserSession.getRecentlyClosed({
     maxResults: Math.min((expected * 1.2) | 0, browserSession.MAX_SESSION_RESULTS)
   }, (sessions?: chrome.sessions.Session[]): void => {
@@ -488,14 +489,15 @@ export const getRecentSessions_ = (expected: number, showBlocked: boolean
       if (!timer) { return }
       clearTimeout(timer)
     }
-    let arr2: BrowserUrlItem[] = [], t: number
+    let arr2: BrowserUrlItem[] = [], t: number, anyWindow: BOOL = 0
     for (const item of sessions || []) {
       const entry = item.tab
-      if (!entry) { continue }
-      let url = entry.url, title = entry.title
+      if (!entry) { anyWindow = 1; continue }
+      let url = entry.url
       if (url.length > GlobalConsts.MaxHistoryURLLength) {
-        entry.url = url = HistoryManager_.trimURLAndTitleWhenTooLong_(url, entry)
+        url = HistoryManager_.trimURLAndTitleWhenTooLong_(url, entry)
       }
+      const title = entry.title
       if (!showBlocked && !TestNotBlocked_(url, title)) { continue }
       arr2.push({
         u: url, title_: title,
@@ -504,7 +506,7 @@ export const getRecentSessions_ = (expected: number, showBlocked: boolean
         sessionId_: [entry.windowId, entry.sessionId!]
       })
     }
-    if (OnFirefox) { // for GC
+    if (anyWindow) { // for GC
       setTimeout(callback, 0, arr2)
     } else {
       callback(arr2)

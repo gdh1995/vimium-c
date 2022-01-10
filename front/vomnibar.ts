@@ -132,9 +132,9 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     a.mode_.r = max;
     a.preInit_ && a.preInit_(options.t)
     if (Build.BTypes & ~BrowserType.Firefox) {
-      a.bodySt_.zoom = dz > 1 ? dz + "" : "";
+      a.docSt_.zoom = dz > 1 ? dz + "" : "";
     } else {
-      a.bodySt_.fontSize = dz > 1 ? dz + "px" : "";
+      a.docSt_.fontSize = dz > 1 ? dz + "px" : "";
     }
     if (Build.BTypes & BrowserType.Firefox
         && (!(Build.BTypes & ~BrowserType.Firefox) || a.browser_ === BrowserType.Firefox)) {
@@ -214,6 +214,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   height_: 0,
   input_: null as never as HTMLInputElement & Ensure<HTMLInputElement
       , "selectionDirection" | "selectionEnd" | "selectionStart">,
+  docSt_: null as never as CSSStyleDeclaration,
   bodySt_: null as never as CSSStyleDeclaration,
   inputBar_: null as never as HTMLElement,
   barCls_: null as never as DOMTokenList,
@@ -268,16 +269,11 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     el.blur();
     fromContent || VPort_ && VPort_.post_({ H: kFgReq.nextFrame, t: Frames.NextType.current, k: a.lastKey_ })
     if (Build.MinCVer <= BrowserVer.StyleSrc$UnsafeInline$MayNotImply$UnsafeEval && Build.BTypes & BrowserType.Chrome) {
-      a.bodySt_.zoom = "";
-      (Build.BTypes & BrowserType.Firefox && a.browser_ === BrowserType.Firefox
-          ? (document.body as HTMLBodyElement).style : a.bodySt_).display = "none";
-    } else if (Build.BTypes & BrowserType.Firefox
-          && (!(Build.BTypes & ~BrowserType.Firefox) || a.browser_ === BrowserType.Firefox)) {
-      a.bodySt_.cssText = "";
-      (document.body as HTMLBodyElement).style.display = "none";
+      a.docSt_.zoom = ""
     } else {
-      a.bodySt_.cssText = "display: none;";
+      a.docSt_.cssText = ""
     }
+    a.bodySt_.display = "none"
     a.list_.textContent = el.value = "";
     a.list_.style.height = "";
     a.barCls_.remove("empty");
@@ -1004,9 +1000,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       a.toggleAttr_("enterkeyhint", a.isSearchOnTop_ ? "Search" : "Go")
     }
     if (!oldH) {
-      (Build.BTypes & BrowserType.Firefox
-          && (!(Build.BTypes & ~BrowserType.Firefox) || a.browser_ === BrowserType.Firefox)
-        ? (document.body as HTMLBodyElement).style : a.bodySt_).display = "";
+      a.bodySt_.display = ""
     }
     let cl = a.barCls_, cl2 = list.classList, c = "empty";
     notEmpty ? cl.remove(c) : cl.add(c);
@@ -1285,7 +1279,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   getTypeIcon_ (sug: Readonly<SuggestionE>): string { return sug.e; },
   preInit_ (type: VomnibarNS.PageType): void {
     const a = Vomnibar_, docEl = document.documentElement as HTMLHtmlElement;
-    a.bodySt_ = docEl.style;
+    a.docSt_ = docEl.style;
+    a.bodySt_ = (document.body as HTMLBodyElement).style
     a.pageType_ = type;
     let fav: 0 | 1 | 2 = 0, f: () => chrome.runtime.Manifest, manifest: chrome.runtime.Manifest
       , str: string | undefined;

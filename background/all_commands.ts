@@ -316,13 +316,13 @@ set_bgC_([
       }
       const near = tabs[getNearTabInd(tabs as Tab[], activeTab.index, cRepeat > 0)]
       let changed: Promise<null | undefined>[] = [], aliveExist = !near.discarded
-      if (aliveExist && (count < 2 || near.autoDiscardable)) {
+      if (aliveExist && (count < 2 || near.autoDiscardable !== false)) {
         changed.push(Q_(Tabs_.discard, near.id))
       }
       for (const tab of tabs) {
         if (tab !== activeTab && tab !== near && !tab.discarded) {
           aliveExist = true
-          tab.autoDiscardable && changed.push(Q_(Tabs_.discard, tab.id))
+          tab.autoDiscardable !== false && changed.push(Q_(Tabs_.discard, tab.id))
         }
       }
       if (!changed.length) {
@@ -387,7 +387,7 @@ set_bgC_([
       const count = cRepeat
       const cur = selectFrom(tabs)
       const allLen = tabs.length
-      allLen > 1 && (tabs as Tab[]).forEach((i, ind) => i.index = ind)
+      allLen > 1 && (tabs as Tab[]).forEach((i, ind): void => { i.index = ind })
       if (filter) {
         tabs = filterTabsByCond_(cur, tabs, filter)
         if (!tabs.length) { resolve(0); return }
