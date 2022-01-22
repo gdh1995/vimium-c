@@ -316,9 +316,9 @@ const defaultClick = (): void => {
     newWindow = newTabStr === "window" && !otherActions,
     newTab = mask > HintMode.newTab - 1 && !newWindow && !otherActions,
     newTabAndActive = newTab && mask > HintMode.newtab_n_active - 1,
-    cnsForWin = hintOptions.ctrlShiftForWindow,
     autoUnhover = hintOptions.autoUnhover, doesUnhoverOnEsc = (autoUnhover + "")[0] === "<",
     isQueue = hintMode_ & HintMode.queue,
+    cnsForWin = hintOptions.ctrlShiftForWindow,
     noCtrlPlusShiftForActive: boolean | undefined = cnsForWin != null ? cnsForWin : hintOptions.noCtrlPlusShift,
     ctrl = newTab && !(newTabAndActive && noCtrlPlusShiftForActive) || newWindow && !!noCtrlPlusShiftForActive,
     shift = newWindow || newTabAndActive,
@@ -335,7 +335,8 @@ const defaultClick = (): void => {
             : kClickAction.forceToOpenInCurrent
         : newTabStr === "force" ? kClickAction.forceInNewTab | reuseFlag
         : newTabStr === kLW ? kClickAction.forceToOpenInLastWnd | reuseFlag
-        : OnFirefox ? kClickAction.plainMayOpenManually | reuseFlag
+        : OnFirefox && Build.MinFFVer < FirefoxBrowserVer.MinPopupBlockerPassClicksFromExtensions
+          ? kClickAction.plainMayOpenManually | reuseFlag
         : hintOptions.sedIf ? kClickAction.forceToSedIf | reuseFlag
         : kClickAction.none,
     doesUnhoverAtOnce = !doesUnhoverOnEsc && /*#__PURE__*/ checkBoolOrSelector(autoUnhover, !1)

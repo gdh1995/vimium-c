@@ -24,17 +24,14 @@ export const main_ff = (OnFirefox ? (): void => {
       ) as typeof createElement_)
   if (!grabBackFocus) { return }
 (function (): void {
-  const apply = OnDocLoaded_.apply, call = OnDocLoaded_.call
+  const apply = setupEventListener.apply, call = setupEventListener.call
   const doExport = <T extends object, K extends (keyof T) & string> (obj: T, name: K, func: T[K]): void => {
     exportFunction(func, obj, { defineAs: name, allowCrossOriginArguments: true })
   }
-  try {
-    const PEventTarget = (window as PartialOf<typeof globalThis, "EventTarget">).EventTarget,
-    Cls = PEventTarget && PEventTarget.prototype,
-    wrappedCls = Cls && raw_unwrap_ff(Cls),
-    _listen = wrappedCls && wrappedCls.addEventListener,
-    newListen = function (this: EventTarget, type: string
-        , listener: EventListenerOrEventListenerObject): void {
+  const PEventTarget = (window as PartialOf<typeof globalThis, "EventTarget">).EventTarget,
+  ETCls = PEventTarget && PEventTarget.prototype,
+  wrappedET = ETCls && raw_unwrap_ff(ETCls),
+  newListen = function (this: EventTarget, type: string, listener: EventListenerOrEventListenerObject): void {
       const a = this, args = arguments, len = args.length
       len === 2 ? listen(a, type, listener) : len === 3 ? listen(a, type, listener, args[2] as EventListenerOptions)
         : (apply as (this: (this: EventTarget, ...args: any[]) => void
@@ -48,14 +45,8 @@ export const main_ff = (OnFirefox ? (): void => {
         }
         clickable_.add(a)
       }
-    },
-    listen = call.bind<(this: (this: EventTarget,
-            type: string, listener: EventListenerOrEventListenerObject, useCapture?: EventListenerOptions | boolean
-          ) => 42 | void,
-          self: EventTarget, name: string, listener: EventListenerOrEventListenerObject,
-          opts?: EventListenerOptions | boolean
-        ) => 42 | void>(_listen!),
-    resolve = !Build.NDEBUG ? (): void => {
+  }
+  let resolve = !Build.NDEBUG ? (): void => {
       (++counterResolvePath <= 32 || Math.floor(Math.log(counterResolvePath) / Math.log(1.414)) !==
            Math.floor(Math.log(counterResolvePath - 1) / Math.log(1.414))) &&
       console.log("Vimium C: extend click: resolve %o in %o @t=%o .", resolved
@@ -63,10 +54,21 @@ export const main_ff = (OnFirefox ? (): void => {
       timer && clearTimeout_(timer)
       timer = resolved = 0
     } : 0 as never
-
-    let alive = false, timer: ValidTimeoutID = TimerID.None, resolved = 0, counterResolvePath = 0
+  let alive = false, timer: ValidTimeoutID = TimerID.None, resolved = 0, counterResolvePath = 0
+  let _listen: EventTarget["addEventListener"] | undefined
+  let listen: (self: EventTarget, name: string
+      , listener: EventListenerOrEventListenerObject, opts?: EventListenerOptions | boolean) => void
+  let isHandingTheSecondTime: BOOL, notDuringAct: BOOL
+  try {
+    _listen = wrappedET && wrappedET.addEventListener
+    listen = call.bind<(this: (this: EventTarget,
+            type: string, listener: EventListenerOrEventListenerObject, useCapture?: EventListenerOptions | boolean
+          ) => 42 | void,
+          self: EventTarget, name: string, listener: EventListenerOrEventListenerObject,
+          opts?: EventListenerOptions | boolean
+        ) => 42 | void>(_listen!)
     if (alive = isTY(_listen, kTY.func)) {
-        doExport(Cls!, _listen.name as "addEventListener", newListen)
+        doExport(ETCls!, _listen.name as "addEventListener", newListen)
         vApi.e = (cmd: ValidContentCommands): void => { alive = alive && cmd < kContentCmd._minSuppressClickable }
     }
     OnDocLoaded_((): void => {
@@ -77,6 +79,7 @@ export const main_ff = (OnFirefox ? (): void => {
   } catch (e) {
     Build.NDEBUG || (recordLog("Vimium C: extending click crashed in %o @t=%o ."), console.log(e))
   }
+  if (Build.MinFFVer >= FirefoxBrowserVer.MinPopupBlockerPassClicksFromExtensions) { return }
   /**
    * This idea of hooking and appending `preventDefault` is from lydell's `LinkHints`:
    * https://github.com/lydell/LinkHints/blob/efa18fdfbf95016bd706b83a2d51545cb157b440/src/worker/Program.js#L1337-L1631
@@ -132,7 +135,6 @@ export const main_ff = (OnFirefox ? (): void => {
       await setupEventListener(wnd, CLK, tryToPreventClick, 0, 3)
       setupEventListener(wnd, CLK, tryToPreventClick, 1, 3)
     }
-    let isHandingTheSecondTime: BOOL, notDuringAct: BOOL
 
     for (const [stdFunc, idx] of stdMembers.every(i => isTY(i[0], kTY.func)) ? stdMembers : [] as never) {
       doExport(EventCls!, stdFunc.name as "preventDefault" | "stopPropagation" | "stopImmediatePropagation"
@@ -152,13 +154,13 @@ export const main_ff = (OnFirefox ? (): void => {
 })()
 } : 0 as never) as () => void
 
-export const prepareToBlockClick_ff = (doesBeginPrevent: boolean
+export const prepareToBlockClick_old_ff = (doesBeginPrevent: boolean
     , anchor: HTMLAnchorElement & SafeHTMLElement | false): void => {
   clickEventToPrevent_ = !isAsContent || clickEventToPrevent_ != null ? <BOOL> +doesBeginPrevent : clickEventToPrevent_
   clickAnchor_ = anchor
 }
 
-export const dispatchAndBlockClickOnce_ff = (targetElement: SafeElement, clickEvent: MouseEvent): boolean => {
+export const dispatchAndBlockClickOnce_old_ff = (targetElement: SafeElement, clickEvent: MouseEvent): boolean => {
   const view = (targetElement.ownerDocument as Document).defaultView
   const doesBlock = view === window
   if (!(Build.NDEBUG || view !== raw_unwrap_ff(window))) {
@@ -181,7 +183,7 @@ export const dispatchAndBlockClickOnce_ff = (targetElement: SafeElement, clickEv
   return wrappedRetVal
 }
 
-export const preventClickOnSelf_ff = (testClickEvent: MouseEventToPrevent): void => {
+export const preventClickOnSelf_old_ff = (testClickEvent: MouseEventToPrevent): void => {
   if (testClickEvent === clickEventToPrevent_ && isAsContent) {
     isClickEventPreventedByPage = 0
     prevent_(testClickEvent)

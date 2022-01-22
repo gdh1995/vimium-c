@@ -1,6 +1,6 @@
 import {
   OnChrome, OnFirefox, OnEdge, doc, deref_, weakRef_ff, chromeVer_, isJSUrl, getTime, parseOpenPageUrlOptions, safeCall,
-  tryCreateRegExp, weakRef_not_ff
+  tryCreateRegExp, weakRef_not_ff, firefoxVer_
 } from "../lib/utils"
 import {
   IsInDOM_, isInTouchMode_cr_, MDW, hasTag_, CLK, attr_s, contains_s, focus_, fullscreenEl_unsafe_, findAnchor_,
@@ -12,7 +12,7 @@ import { insert_Lock_ } from "./insert"
 import { post_ } from "./port"
 import { flash_, moveSel_s_throwable } from "./dom_ui"
 import { hintApi, hintOptions } from "./link_hints"
-import { prepareToBlockClick_ff, clickEventToPrevent_, dispatchAndBlockClickOnce_ff } from "./extend_click_ff"
+import { prepareToBlockClick_old_ff, clickEventToPrevent_, dispatchAndBlockClickOnce_old_ff } from "./extend_click_ff"
 /* eslint-disable @typescript-eslint/await-thenable */
 
 export declare const enum kClickAction {
@@ -146,8 +146,9 @@ const mouse_ = function (element: SafeElementForMouse
     mouseEvent.initMouseEvent(type, bubbles, bubbles, view, detail, x, y, x, y
       , ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget)
   }
-  if (OnFirefox && type === CLK && clickEventToPrevent_) {
-    return dispatchAndBlockClickOnce_ff(element, mouseEvent)
+  if (OnFirefox && Build.MinFFVer < FirefoxBrowserVer.MinPopupBlockerPassClicksFromExtensions
+      && type === CLK && clickEventToPrevent_) {
+    return dispatchAndBlockClickOnce_old_ff(element, mouseEvent)
   }
   return element.dispatchEvent(mouseEvent)
 } as {
@@ -326,7 +327,10 @@ export const click_async = (async (element: SafeElementForMouse
     // for forceToDblclick, element can be OtherSafeElement; for [1..BaseMayInteract), element must be in <html:a>
     result = specialAction > kClickAction.BaseMayInteract - 1 ? specialAction - kClickAction.BaseMayInteract
         : !(parentAnchor = findAnchor_(element))
-          || (OnFirefox ? specialAction < kClickAction.plainMayOpenManually + 1 && parentAnchor.target !== "_blank" : 0)
+          || (!OnFirefox ? 0 : Build.MinFFVer < FirefoxBrowserVer.MinPopupBlockerPassClicksFromExtensions
+              && firefoxVer_ < FirefoxBrowserVer.MinPopupBlockerPassClicksFromExtensions
+              ? specialAction < kClickAction.plainMayOpenManually + 1 && parentAnchor.target !== "_blank"
+              : actionTarget < kClickAction.MaxPlain + 1)
           || OnFirefox && parentAnchor.href.startsWith("file:")
           || !(url = attr_s(parentAnchor as SafeElement, "href"))
         ? ActionType.OnlyDispatch
@@ -334,11 +338,13 @@ export const click_async = (async (element: SafeElementForMouse
         ? ActionType.OpenTabButNotDispatch
         : sedIfRe && actionTarget > kClickAction.forceToSedIf - 1
           || url[0] === "#" || isJSUrl(url) ? ActionType.OnlyDispatch
-        : OnFirefox && actionTarget < kClickAction.MaxPlain + 1
+        : OnFirefox && Build.MinFFVer < FirefoxBrowserVer.MinPopupBlockerPassClicksFromExtensions
+          && actionTarget < kClickAction.MaxPlain + 1
         ? ActionType.DispatchAndMayOpenTab : ActionType.OpenTabButNotDispatch
   }
   if ((result > ActionType.OpenTabButNotDispatch - 1
-        || (OnFirefox && /*#__INLINE__*/ prepareToBlockClick_ff(result === ActionType.DispatchAndMayOpenTab
+        || (OnFirefox && Build.MinFFVer < FirefoxBrowserVer.MinPopupBlockerPassClicksFromExtensions
+            && /*#__INLINE__*/ prepareToBlockClick_old_ff(result === ActionType.DispatchAndMayOpenTab
                 , result === ActionType.DispatchAndMayOpenTab && specialAction! < kClickAction.plainMayOpenManually + 1
                   && parentAnchor!),
             (await await mouse_(element, CLK, center, modifiers)) && result || result === ActionType.dblClick))

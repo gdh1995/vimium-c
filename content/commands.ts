@@ -41,7 +41,7 @@ import { traverse, getEditable, filterOutNonReachable } from "./local_links"
 import {
   select_, unhover_async, set_lastHovered_, hover_async, lastHovered_, catchAsyncErrorSilently, setupIDC_cr, click_async
 } from "./async_dispatcher"
-import { preventClickOnSelf_ff } from "./extend_click_ff"
+import { preventClickOnSelf_old_ff } from "./extend_click_ff"
 /* eslint-disable @typescript-eslint/no-floating-promises */
 
 export const RSC = "readystatechange"
@@ -497,7 +497,8 @@ set_contentCommands_([
       outerBox.innerHTML = html as string
       box = outerBox.lastChild as SafeHTMLElement
     }
-    box.onclick = OnFirefox ? preventClickOnSelf_ff : Stop_
+    box.onclick = OnFirefox && Build.MinFFVer < FirefoxBrowserVer.MinPopupBlockerPassClicksFromExtensions
+        ? preventClickOnSelf_old_ff : Stop_
     suppressCommonEvents(box, MDW)
     if (!OnChrome || Build.MinCVer >= BrowserVer.MinMayNoDOMActivateInClosedShadowRootPassedToFrameDocument
         || chromeVer_ > BrowserVer.MinMayNoDOMActivateInClosedShadowRootPassedToFrameDocument - 1) {
