@@ -13,6 +13,7 @@ declare function exportFunction(func: unknown, targetScope: object
 
 /** `null`: disabled; `false`: nothing to do; `true`: begin to watch; `Event`: watching; `0`: page prevented */
 let clickEventToPrevent_: BOOL | Event | null = null
+let clickAnchor_: HTMLAnchorElement & SafeHTMLElement | false | 0 = 0
 let isClickEventPreventedByPage: BOOL = 0
 let preventEventOnWindow: ((wnd: Window) => Promise<void>) | undefined
 
@@ -108,7 +109,7 @@ export const main_ff = (OnFirefox ? (): void => {
     },
     callPreviousPreventSafely = (event: Event): void => {
       // avoid re-entry during calling the previous `preventDefault`
-      if (notDuringAct) {
+      if (notDuringAct && (!clickAnchor_ || clickAnchor_.target === "_blank")) {
         isClickEventPreventedByPage = 0
         notDuringAct = 0
         try { call.call(stdMembers[kAct.prevent][0], event) } catch (e) {}
@@ -151,8 +152,10 @@ export const main_ff = (OnFirefox ? (): void => {
 })()
 } : 0 as never) as () => void
 
-export const prepareToBlockClick_ff = (doesBeginPrevent: boolean): void => {
+export const prepareToBlockClick_ff = (doesBeginPrevent: boolean
+    , anchor: HTMLAnchorElement & SafeHTMLElement | false): void => {
   clickEventToPrevent_ = !isAsContent || clickEventToPrevent_ != null ? <BOOL> +doesBeginPrevent : clickEventToPrevent_
+  clickAnchor_ = anchor
 }
 
 export const dispatchAndBlockClickOnce_ff = (targetElement: SafeElement, clickEvent: MouseEvent): boolean => {
@@ -174,7 +177,7 @@ export const dispatchAndBlockClickOnce_ff = (targetElement: SafeElement, clickEv
         , clickEventToPrevent_ && isTY(clickEventToPrevent_, kTY.obj) ? "<Event>" : clickEventToPrevent_
         , wrappedRetVal)
   }
-  clickEventToPrevent_ = 0
+  clickEventToPrevent_ = clickAnchor_ = 0
   return wrappedRetVal
 }
 

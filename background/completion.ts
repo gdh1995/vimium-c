@@ -1,6 +1,6 @@
 import {
   bookmarkCache_, Completion_, contentPayload_, CurCVer_, curTabId_, curWndId_, historyCache_, OnChrome, OnFirefox,
-  blank_, recencyForTab_, searchEngines_, evalVimiumUrl_
+  blank_, recencyForTab_, searchEngines_, evalVimiumUrl_, OnEdge
 } from "./store"
 import { overrideTabsIndexes_ff_, browser_, getTabUrl, isTabMuted } from "./browser"
 import * as BgUtils_ from "./utils"
@@ -268,10 +268,12 @@ historyEngine = {
   },
   filterFill_ (historyArr: BrowserUrlItem[], query: CompletersNS.QueryStatus, urlSet: Set<string>,
       cut: number, neededMore: number): void {
-    browser_.history.search({
+    ((OnEdge || OnFirefox && Build.MayAndroidOnFirefox) && !browser_.history
+        ? As_<typeof browser_.history.search>((_, cb) => { cb([], -1); return 1 })
+        : browser_.history.search)({
       text: "",
       maxResults: offset + maxResults * (showThoseInBlocklist ? 1 : 2) + neededMore
-    }, function (rawArr2: chrome.history.HistoryItem[]): void {
+    }, (rawArr2): void => {
       if (query.o) { return; }
       rawArr2 = rawArr2.filter((i): boolean => {
         let url = i.url;

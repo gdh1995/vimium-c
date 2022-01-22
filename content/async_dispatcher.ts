@@ -20,8 +20,7 @@ export declare const enum kClickAction {
   plainMayOpenManually = 1, plainInNewWindow = 2, forceToOpenInLastWnd = 3, forceInNewTab = 4,
   forceToOpenInCurrent = 5, forceToSedIf = 6, MaxPlain = 2, TargetMask = 7,
   /** inactive by default, unless `.shiftKey` is `true` */ FlagMayInactive = 8,
-  // the 1..MaxOpenForAnchor before this line should always mean HTML <a>
-  MinNotPlainOpenManually = 2, MaxOpenForAnchor = 63,
+  // the [1..BaseMayInteract) before this line should always mean HTML <a>
   BaseMayInteract = 64, FlagDblClick = 1, FlagInteract = 2, MinNeverInteract = 68,
 }
 export declare const enum kClickButton { none = 0, primary = 1, second = 2, primaryAndTwice = 4 }
@@ -324,20 +323,24 @@ export const click_async = (async (element: SafeElementForMouse
   let parentAnchor: HTMLAnchorElement & SafeHTMLElement | null, sedIfRe: RegExpOne | void
   const actionTarget = specialAction! & kClickAction.TargetMask
   if (specialAction) {
-    // for forceToDblclick, element can be OtherSafeElement; for 1..MaxOpenForAnchor, element must be in <html:a>
+    // for forceToDblclick, element can be OtherSafeElement; for [1..BaseMayInteract), element must be in <html:a>
     result = specialAction > kClickAction.BaseMayInteract - 1 ? specialAction - kClickAction.BaseMayInteract
         : !(parentAnchor = findAnchor_(element))
-          || (OnFirefox ? specialAction < kClickAction.MinNotPlainOpenManually && parentAnchor.target !== "_blank" : 0)
-          || !(url = attr_s(parentAnchor as SafeElement, "href")) || url[0] === "#" || isJSUrl(url)
+          || (OnFirefox ? specialAction < kClickAction.plainMayOpenManually + 1 && parentAnchor.target !== "_blank" : 0)
+          || OnFirefox && parentAnchor.href.startsWith("file:")
+          || !(url = attr_s(parentAnchor as SafeElement, "href"))
         ? ActionType.OnlyDispatch
         : hintOptions.sedIf && (sedIfRe = tryCreateRegExp(hintOptions.sedIf)) && sedIfRe.test(parentAnchor.href)
         ? ActionType.OpenTabButNotDispatch
-        : sedIfRe && actionTarget > kClickAction.forceToSedIf - 1 ? ActionType.OnlyDispatch
+        : sedIfRe && actionTarget > kClickAction.forceToSedIf - 1
+          || url[0] === "#" || isJSUrl(url) ? ActionType.OnlyDispatch
         : OnFirefox && actionTarget < kClickAction.MaxPlain + 1
         ? ActionType.DispatchAndMayOpenTab : ActionType.OpenTabButNotDispatch
   }
   if ((result > ActionType.OpenTabButNotDispatch - 1
-        || (OnFirefox && /*#__INLINE__*/ prepareToBlockClick_ff(result === ActionType.DispatchAndMayOpenTab),
+        || (OnFirefox && /*#__INLINE__*/ prepareToBlockClick_ff(result === ActionType.DispatchAndMayOpenTab
+                , result === ActionType.DispatchAndMayOpenTab && specialAction! < kClickAction.plainMayOpenManually + 1
+                  && parentAnchor!),
             (await await mouse_(element, CLK, center, modifiers)) && result || result === ActionType.dblClick))
       && getVisibleClientRect_(element)) {
     // require element is still visible

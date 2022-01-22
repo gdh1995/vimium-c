@@ -152,7 +152,7 @@ Object.assign(updateHooks_, As_<{ [key in SettingsNS.DeclaredUpdateHooks]: Setti
       searchEngines_.map.clear()
       searchEngines_.keywords = null
       searchEngines_.rules =
-          parseSearchEngines_("~:" + get_("searchUrl") + "\n" + get_("searchEngines"), searchEngines_.map)
+          parseSearchEngines_("~:" + get_("searchUrl") + "\n" + get_("searchEngines"), searchEngines_.map).reverse()
     },
     searchUrl (str): void {
       const map = searchEngines_.map

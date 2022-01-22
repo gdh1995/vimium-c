@@ -495,22 +495,24 @@ export const evalIfOK = (req: BgReq[kBgReq.eval] | string): boolean => {
 export const checkHidden = ((cmd?: FgCmdAcrossFrames, options?: OptionsWithForce, count?: number): BOOL => {
   if (isTop) { return 0 }
   // here should not use the cache frameElement, because `getComputedStyle(frameElement).***` might break
-  const curFrameElement = OnFirefox ? frameElement : frameElement_(),
+  const curFrameElement = OnFirefox ? frameElement as SafeElement | null
+      : OnChrome && Build.MinCVer < BrowserVer.MinSafeGlobal$frameElement ? frameElement_() || null
+      : frameElement_() as SafeElement | null,
   el = curFrameElement || docEl_unsafe_();
-  if (!el && wndSize_() > 3 && wndSize_(1) > 3) { return 0; }
-  let box = el && padClientRect_(getBoundingClientRect_(el)),
+  let box: Rect | null,
   parEvents: ReturnType<typeof getParentVApi> | undefined,
-  result: boolean | BOOL = !box || box.b <= box.t && box.r <= box.l || !isStyleVisible_(el!)
+  // use client{Width,Height} in case an <iframe> has border (e.g.: is blocked so its CSS is never added)
+  result: boolean | BOOL = dimSize_(curFrameElement, kDim.elClientH) < 4
+      || dimSize_(curFrameElement, kDim.elClientW) < 4 || !!el && !isStyleVisible_(el)
   if (cmd) {
     // if in a forced cross-origin env (by setting doc.domain),
     // then par.self.innerHeight works, but this behavior is undocumented,
     // so here only use `parApi.innerHeight_()` in case
     if ((OnFirefox ? (parEvents = getParentVApi()) : curFrameElement)
-        && (result || box!.b <= 0
-            || (OnFirefox ? box!.t > parEvents!.i!() : box!.t > (parent as Window).innerHeight))) {
+        && (result || (box = padClientRect_(getBoundingClientRect_(curFrameElement!))).b <= 0
+            || (OnFirefox ? box.t > parEvents!.i!() : box.t > (parent as Window).innerHeight))) {
       OnFirefox || (parEvents = getParentVApi())
-      if (parEvents
-          && !parEvents.a(keydownEvents_)) {
+      if (parEvents && !parEvents.a(keydownEvents_)) {
         parEvents.f(cmd, options!, count!, 1);
         result = 1;
       }

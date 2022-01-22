@@ -811,9 +811,14 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     type UrlInfo = SugToExec & Partial<Pick<CompletersNS.Suggestion, "s">>
     const item: SuggestionE | UrlInfo = sel >= 0 ? a.completions_[sel] : { u: a.input_.value.trim() },
     action = a.actionType_, https = a.isHttps_, incognito = a.doesOpenInIncognito_,
+    noTest = sel >= 0,
+    navReq: Req.fg<kFgReq.openUrl> | null = item.s != null ? null : { H: kFgReq.openUrl,
+      f: false, r: action, h: sel >= 0 ? null : https, u: item.u,
+      o: { i: incognito, s: sel >= 0 ? { r: false, k: "" } : a.sed_, p: a.position_, t: noTest ? false : "whole" }
+    },
     func = function (this: void): void {
       !VPort_ ? 0 : item.s != null ? Vomnibar_.gotoSession_(item as SuggestionE & Ensure<SuggestionE, "s">, action)
-        : Vomnibar_.navigateToUrl_(item, action, https, incognito, sel);
+        : Vomnibar_.navigateToUrl_(navReq!, action);
       (<RegExpOne> /a?/).test("");
     };
     if (sel === -1 && event && event !== !0 && event & KeyStat.altKey && action > ReuseType.newBg
@@ -1437,19 +1442,14 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
               || str.lastIndexOf("-", str.indexOf(":") + 1 || 8) > 0 && url.lastIndexOf("://", 21) > 0
             ? (i = url.indexOf("/", url.indexOf("://") + 3), i > 0 ? url.slice(0, i + 1) : url + "/") : url);
   },
-  navigateToUrl_ (item: SugToExec, reuse: ReuseType, https: boolean | null, incognito: Options["incognito"]
-      , sel: number): void {
-    const { u: url } = item
-    if ((<RegExpI> /^javascript:/i).test(url)) {
-      VPort_.postToOwner_({ N: VomnibarNS.kFReq.evalJS, u: url });
+  navigateToUrl_ (req: Req.fg<kFgReq.openUrl>, reuse: ReuseType): void {
+    if ((<RegExpI> /^javascript:/i).test(req.u!)) {
+      VPort_.postToOwner_({ N: VomnibarNS.kFReq.evalJS, u: req.u! });
       return;
     }
     // not set .formatted, so that convertToUrl is always called with Urls.WorkType.EvenAffectStatus
-    const noTest = sel !== -1
-    VPort_.post_({ H: kFgReq.openUrl, f: false, r: reuse, h: noTest ? null : https, u: url,
-        o: { i: incognito, s: noTest ? { r: false, k: "" } : Vomnibar_.sed_,
-             p: Vomnibar_.position_, t: noTest ? false : "whole" }})
-    if (reuse === ReuseType.newBg
+    VPort_.post_(req)
+    if (reuse === ReuseType.newBg && Vomnibar_.isActive_
         && (!Vomnibar_.lastQuery_ || (<RegExpOne> /^\+\d{0,2}$/).exec(Vomnibar_.lastQuery_))) {
       return Vomnibar_.refresh_();
     }

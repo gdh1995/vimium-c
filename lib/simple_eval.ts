@@ -381,11 +381,16 @@ const parseTree = (tokens_: readonly Token[], inNewFunc: boolean | undefined): O
         throwSyntax(`Unexpected op token #${ctx_[ctx_.length - 1].t} before ":"`)
       }
       if (ctx_[ctx_.length - 1].t & (T.dict | T.comma)) {
-        let keyOp = values_.pop()!
+        let keyOp = values_.pop()! as SomeOps<O.token | O.composed>
         !Build.NDEBUG && (keyOp.o !== O.token && keyOp.o !== O.composed)
             && throwSyntax('Unexpected ":" in an object literal')
-        values_.push(Op(O.pair, { k: keyOp.o === O.token ? keyOp as RefOp
-            : Op(O.comma, (keyOp as BaseOp<O.composed>).v.v), v: val, p: extractMemberPrefix() }))
+        const prefix = extractMemberPrefix();
+        if (val.o === O.fn) {
+          (val.v as Writable<typeof val.v>).n = (prefix ? prefix + " " : "") + (keyOp.o === O.token ? keyOp.v
+              : `[${ ToWrapped(Op(keyOp.v.v.length > 1 ? O.comma : /* fake */ O.stat, []), kOpsForMethodName
+                      , Op(O.comma, keyOp.v.v)) }]`) as VarLiterals
+        }
+        values_.push(Op(O.pair, {k: keyOp.o === O.token ? keyOp as RefOp : Op(O.comma, keyOp.v.v), v: val, p: prefix}))
       } else {
         ctx_.length--
         const thenVal = values_.pop()!
@@ -398,17 +403,9 @@ const parseTree = (tokens_: readonly Token[], inNewFunc: boolean | undefined): O
           i.o === O.token || i.o === O.assign && i.v.y.o === O.token ? i as RefOp | RefAssignOp
           : throwSyntax(`Unsupported destructuring parameters`))
       const type = top.v.startsWith("fn ") ? "fn" : top.v as Exclude<TokenValues[T.fn], `fn ${string}`>
-      const inDict = ctx_[ctx_.length - (ctx_[ctx_.length - 1].t === T.comma ? 2 : 1)].t === T.dict
       const fn = Op(O.fn, { a: args, t: type
           , n: top.v.startsWith("fn ") ? top.v.slice(3) as VarLiterals : "", v: null, b: val })
-      if (!inDict) { values_.push(fn); break }
-      const key = values_.pop() as BaseOp<O.composed> | RefOp
-      const prefix = extractMemberPrefix();
-      (fn.v as Writable<typeof fn.v>).n = (prefix ? prefix + " " : "") + (key.o === O.token ? key.v
-          : `[${ ToWrapped(Op(key.v.v.length > 1 ? O.comma : /* fake */ O.stat, []), kOpsForMethodName
-                  , Op(O.comma, key.v.v)) }]`) as VarLiterals
-      values_.push(Op(O.pair, { k: key.o === O.token ? key
-          : Op(O.comma, (key as BaseOp<O.composed>).v.v), v: fn, p: prefix }))
+      values_.push(fn)
       } break
     case T.assign: /* T.assign: */ {
       const y = values_.pop()!
@@ -452,19 +449,20 @@ const parseTree = (tokens_: readonly Token[], inNewFunc: boolean | undefined): O
       }
       consume()
       topIsDict = ctx_[ctx_.length - (ctx_[ctx_.length - 1].t === T.comma ? 2 : 1)].t === T.dict
-      if (type === T.blockEnd && values_[values_.length - 1].o === O.block) {
-        consumeUntil(~(T.prefix | T.action))
-        if (ctx_[ctx_.length - 1].t === T.fn && (ctx_[ctx_.length - 1] as BaseToken<T.fn>).v === "fn") {
-          consume()
-          ctx_[ctx_.length - 1].t === T.block && values_.push(Op(O.stat, Stat("", null, values_.pop()!)))
-        }
-      }
+      type === T.blockEnd && values_[values_.length - 1].o === O.block && consumeUntil(~(T.prefix | T.action | T.fn))
       break
     case T.semiColon: /* T.semiColon: */ {
       const semiColon = (cur as BaseToken<T.semiColon>).v === ";"
-      consumeUntil(semiColon ? T.group | T.block : T.comma - 1 | T.question)
-      const prev = !semiColon && pos_ + 1 < tokens_.length && (before === T.action || tokens_[pos_ + 1].t
-            & (T.ref | T.literal | T.fn | T.prefix | T.action | T.unary)) ? ctx_[ctx_.length - 1] : null
+      // here doesn't check `T.group | T.array`
+      const mayBreak: boolean = !semiColon && pos_ + 1 < tokens_.length && (before === T.action
+            || !!(tokens_[pos_ + 1].t & (T.ref | T.literal | T.fn | T.prefix | T.action | T.unary | T.block))
+            || values_[values_.length - 1].o === O.fn && ((values_[values_.length - 1] as BaseOp<O.fn>).v.t === "=>"
+                    || !!(ctx_[ctx_.length - 1].t & (T.block | T.prefix)))
+                && (tokens_[pos_ + 1].t === T.math1 && ((tokens_[pos_ + 1].t as T) = T.unary,
+                      Build.NDEBUG || ((tokens_[pos_ + 1].n as string) = "unary")),
+                    true))
+      semiColon ? consumeUntil(T.group | T.block) : mayBreak ? consumeUntil(T.comma - 1 | T.question) : 0
+      const prev = mayBreak ? ctx_[ctx_.length - 1] : null
       if (semiColon || prev && (prev.t === T.block ? true
           : prev.t === T.action ? before !== T.action || !kVarAction.includes(prev.v) // "throw\n" is a syntax error
           : prev.t === T.prefix && ("do,else".includes(prev.v) || values_[values_.length - 2].o !== O.block
@@ -473,8 +471,8 @@ const parseTree = (tokens_: readonly Token[], inNewFunc: boolean | undefined): O
         const val = values_[values_.length - 1]
         if (val.o === O.token && val.v === "debugger") { (val as Writable<typeof val>).v = { v: val.v } }
         1 << val.o & (ctx_[ctx_.length - 1].t === T.group ? 1 << O.stat : 1 << O.block | 1 << O.statGroup | 1 << O.stat)
-        || values_.push(Op(O.stat, Stat("", null,
-              before & (T.block | T.semiColon | T.group | T.blockEnd) ? Op(O.comma, []) : values_.pop()!)))
+        || values_.push(Op(O.stat, Stat("", null, before & (T.block | T.semiColon | T.group)
+            || before === T.blockEnd && (val.o !== O.fn || val.v.t !== "fn") ? Op(O.comma, []) : values_.pop()!)))
       } else { // skip "\n"
         type = before, Build.NDEBUG || ((cur.n as string) = "not-SemiColon")
       }
@@ -492,7 +490,8 @@ const parseTree = (tokens_: readonly Token[], inNewFunc: boolean | undefined): O
     case T.group: case T.array: /* T.group | T.array: */
       if (topIsDict) { type === T.group && ctx_.push(Token(T.fn, "(){")); topIsDict = false }
       else { 
-        ctx_[ctx_.length - 1].t === T.dot && consume()
+        const top = ctx_[ctx_.length - 1]
+        top.t & (T.dot | T.fn) && before !== T.fn && consume()
         if (before & (T.groupEnd | T.ref | T.literal)
             || before === T.blockEnd && (1 << values_[values_.length - 1].o) & (1 << O.composed | 1 << O.fn)) {
           ctx_.push(Token(T.callOrAccess, "__call__"))
@@ -538,7 +537,8 @@ const parseTree = (tokens_: readonly Token[], inNewFunc: boolean | undefined): O
       if (cur.t === T.callOrAccess && cur.v === "new" && tokens_[pos_ + 1].t === T.dot) {
         values_.push(Op(O.token, `new.${(tokens_[pos_ += 2] as BaseToken<T.literal>).v.v as "target"}`))
       } else {
-        if (cur.t === T.math1 && before === T.blockEnd && values_[values_.length - 1].o !== O.composed) {
+        if (cur.t === T.math1 && before === T.blockEnd
+            && !(1 << values_[values_.length - 1].o & (1 << O.composed | 1 << O.fn))) {
           type = (cur.t as T) = T.unary, Build.NDEBUG || ((cur.n as string) = "unary")
         } else if (cur.t === T.compare2 && cur.v === "in") {
           const t1 = ctx_[ctx_.length - (ctx_[ctx_.length - 1].t === T.group ? 2 : 1)]

@@ -368,6 +368,18 @@ assert(function () {
     let a=[];for(let i = 0; i < 3;i++) {a.push(()=>i)}
     return [a[0](), a[1](), a[2]()]
   })
+  assert(function() {
+    function test2(){throw 1}
+    function test(){}
+    (1,2)
+    let a = function(){}
+    (1)
+    let b = () => { }
+    (1,2)
+    let c = (d) => { }
+    { a = 2 }
+    return [a, b, c]
+  })
 }
     </script>
   </body>

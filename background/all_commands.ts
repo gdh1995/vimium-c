@@ -467,7 +467,8 @@ set_bgC_([
       let curGroup = getGroupId(tab), newGroup = getGroupId(tabs[index])
       if (newGroup !== curGroup && (Math.abs(cRepeat) === 1 || curGroup !== getGroupId(tabs[
             cRepeat > 0 ? index < tabs.length - 1 ? index + 1 : index : index && index - 1]))) {
-        if (curGroup !== null) {
+        if (curGroup !== null && (curIndex > 0 && getGroupId(tabs[curIndex - 1]) === curGroup
+              || curIndex + 1 < tabs.length && getGroupId(tabs[curIndex + 1]) === curGroup)) {
           index = curIndex
           newGroup = curGroup
         }
