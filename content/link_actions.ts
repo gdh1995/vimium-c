@@ -113,7 +113,7 @@ const downloadOrOpenMedia = (): void => {
 const openTextOrUrl = (url: string): void => {
   evalIfOK(url) || hintApi.p({
     H: kFgReq.openUrl,
-    u: url, m: hintMode_, t: newtab, o: parseOpenPageUrlOptions(hintOptions)
+    u: url, m: hintMode_, t: rawNewtab, o: parseOpenPageUrlOptions(hintOptions)
   });
 }
 
@@ -245,7 +245,7 @@ const copyText = (): void => {
         H: kFgReq.vomnibar,
         u: str,
         f: then,
-        m: mode1_, t: newtab,
+        m: mode1_, t: rawNewtab,
         o: parseOpenPageUrlOptions(hintOptions)
       });
   } else if (hintOptions.richText) {
@@ -311,17 +311,17 @@ const defaultClick = (): void => {
     const mask = hintMode_ & HintMode.mask_focus_new, isMac = !os_,
     isRight = hintOptions.button === "right",
     dblClick = !!hintOptions.dblclick && !isRight,
-    newTabStr = (newtab + "") as ToString<Exclude<HintsNS.Options["newtab"], boolean>>,
+    newTabStr = (rawNewtab + "") as ToString<Exclude<HintsNS.Options["newtab"], boolean>>,
     otherActions = isRight || dblClick,
     newWindow = newTabStr === "window" && !otherActions,
     newTab = mask > HintMode.newTab - 1 && !newWindow && !otherActions,
-    newTabAndActive = newTab && mask > HintMode.newtab_n_active - 1,
     autoUnhover = hintOptions.autoUnhover, doesUnhoverOnEsc = (autoUnhover + "")[0] === "<",
     isQueue = hintMode_ & HintMode.queue,
     cnsForWin = hintOptions.ctrlShiftForWindow,
     noCtrlPlusShiftForActive: boolean | undefined = cnsForWin != null ? cnsForWin : hintOptions.noCtrlPlusShift,
-    ctrl = newTab && !(newTabAndActive && noCtrlPlusShiftForActive) || newWindow && !!noCtrlPlusShiftForActive,
-    shift = newWindow || newTabAndActive,
+    ctrl = newTab && !(mask > HintMode.newtab_n_active - 1 && noCtrlPlusShiftForActive)
+        || newWindow && !!noCtrlPlusShiftForActive,
+    shift = newWindow || newTab && (mask > HintMode.newtab_n_active - 1) === !hintOptions.activeOnCtrl,
     isSel = tag === "select",
     interactive = isSel || (tag === "video" || tag === "audio") && !isRight && (clickEl as HTMLMediaElement).controls,
     doInteract = interactive && !isSel && hintOptions.interact !== !1,
@@ -364,7 +364,7 @@ const checkBoolOrSelector = (userVal: string | boolean | null | void | undefined
   const clickEl: LinkEl = hint.d
   const tag = htmlTag_(clickEl), elType = getEditableType_<0>(clickEl)
   const kD = "download", kLW = "last-window"
-  const newtab = hintOptions.newtab, then = hintOptions.then
+  const rawNewtab = hintOptions.newtab, then = hintOptions.then
   let rect: Rect | null = null
   let retPromise: Promise<unknown> | undefined
   let showRect: BOOL | undefined

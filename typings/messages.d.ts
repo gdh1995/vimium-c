@@ -284,6 +284,7 @@ declare namespace HintsNS {
     ctrlShiftForWindow?: boolean | null;
     noCtrlPlusShift?: boolean;
     swapCtrlAndShift?: boolean;
+    activeOnCtrl?: boolean
     hideHud?: boolean;
     hideHUD?: boolean;
     autoUnhover?: boolean | "css-selector"
