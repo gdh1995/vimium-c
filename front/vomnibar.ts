@@ -107,6 +107,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       a.sed_ = typeof sed === "object" && sed || { r: sed, k: options.sedKeys || options.sedKey }
     }
     a.clickLike_ = options.clickLike
+    a.activeOnCtrl_ = !!options.activeOnCtrl
     let { url, keyword, p: search } = options, start: number | undefined;
     let scale = Build.MinCVer < BrowserVer.MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent
             && (!(Build.BTypes & ~BrowserType.Chrome)
@@ -207,6 +208,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   notSearchInput_: false,
   noSessionsOnStart_: false,
   clickLike_: null as VomnibarNS.GlobalOptions["clickLike"],
+  activeOnCtrl_: false,
   showFavIcon_: 0 as 0 | 1 | 2,
   showRelevancy_: false,
   docZoom_: 1,
@@ -306,7 +308,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     a.mode_.q = a.lastQuery_ = a.inputText_ = a.resMode_ = "";
     a.mode_.o = "omni";
     a.mode_.t = CompletersNS.SugType.Empty;
-    a.isSearchOnTop_ = false;
+    a.isSearchOnTop_ = a.activeOnCtrl_ = false
     if (!a.doEnter_ || !VPort_) {
       (<RegExpOne> /a?/).test("")
     } else if (Build.BTypes & BrowserType.Firefox
@@ -856,7 +858,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     hasCtrl = event & KeyStat.PrimaryModifier, hasShift = event & KeyStat.shiftKey,
     likeVivaldi = type.endsWith("2") ? type.includes("chro") : type.includes("viva")
     return likeVivaldi ? hasCtrl ? hasShift ? ReuseType.newWnd : ReuseType.newBg : ReuseType.newFg
-        : hasCtrl ? hasShift ? ReuseType.newFg : ReuseType.newBg : ReuseType.newWnd // likeChrome / likeFirefox
+        // likeChrome / likeFirefox
+        : hasCtrl ? !!hasShift !== a.activeOnCtrl_ ? ReuseType.newFg : ReuseType.newBg : ReuseType.newWnd
   },
   removeCur_ (): void {
     if (Vomnibar_.selection_ < 0) { return; }

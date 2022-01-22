@@ -461,6 +461,7 @@ declare namespace VomnibarNS {
     incognito?: OpenUrlOptions["incognito"]
     noSessions?: boolean | "always" | "start"
     clickLike?: null | "chrome" | /** as "chrome" */ true | "vivaldi" | /** as "vivaldi" */ "chrome2"
+    activeOnCtrl?: boolean
     position: OpenPageUrlOptions["position"]
   }
 }
