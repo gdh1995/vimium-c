@@ -199,12 +199,15 @@ export abstract class Option_<T extends keyof AllowedOptions> {
   static suppressPopulate_ = false
 
   constructor (element: HTMLElement, onUpdated: () => void) {
+    const field = element.id as T;
+    this.field_ = field
     this.element_ = element;
-    this.field_ = element.id as T;
     this.previous_ = this.onUpdated_ = null as never;
     this.saved_ = false;
-    if (this.field_ in bgSettings_.valuesToLoad_) {
+    if (field in bgSettings_.valuesToLoad_) {
       onUpdated = this._onCacheUpdated.bind(this, onUpdated);
+    } else if (field === "autoDarkMode" || field === "autoReduceMotion") {
+      onUpdated = this._manuallySyncCache.bind(this, onUpdated);
     }
     this.onUpdated_ = debounce_(onUpdated, 330, this, 1);
     this.init_(element)
@@ -267,6 +270,7 @@ export abstract class Option_<T extends keyof AllowedOptions> {
   abstract populateElement_ (value: AllowedOptions[T], enableUndo?: boolean): void;
   doesPopulateOnSave_ (_val: AllowedOptions[T]): boolean { return false }
   _onCacheUpdated: (this: Option_<T>, onUpdated: (this: Option_<T>) => void) => void;
+  _manuallySyncCache: (this: Option_<T>, onUpdated: (this: Option_<T>) => void) => void;
   areEqual_: (this: Option_<T>, a: AllowedOptions[T], b: AllowedOptions[T]) => boolean;
   atomicUpdate_: (this: Option_<T> & {element_: TextElement}, value: string, undo: boolean, locked: boolean) => void;
 

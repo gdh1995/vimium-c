@@ -32,7 +32,7 @@ export const CurCVer_: BrowserVer = !OnChrome ? BrowserVer.assumedVer
           : 0 | ver[1] as string | number as number
     })()
     : 0 | <number> (navigator.userAgent!.match(<RegExpOne> /\bChrom(?:e|ium)\/(\d+)/) || [0, BrowserVer.assumedVer])[1])
-export const CurFFVer_ = !OnFirefox ? FirefoxBrowserVer.assumedVer
+export let CurFFVer_ = !OnFirefox ? FirefoxBrowserVer.assumedVer
     : userAgentData ? (tmpBrand = userAgentData.brands.find(i => i.brand.includes("Firefox")))
       ? tmpBrand.version : FirefoxBrowserVer.MinMaybe$navigator$$userAgentData > Build.MinFFVer
       ? FirefoxBrowserVer.MinMaybe$navigator$$userAgentData : Build.MinFFVer
@@ -207,6 +207,8 @@ export const set_substitute_ = (_newSed: typeof substitute_): void => { substitu
 export const set_evalVimiumUrl_ = (_newEval: typeof evalVimiumUrl_): void => { evalVimiumUrl_ = _newEval }
 export const set_shownHash_ = (_newHash: typeof shownHash_): void => { shownHash_ = _newHash }
 export const set_backupToLocal_ = (_newBackup: typeof backupToLocal_): void => { backupToLocal_ = _newBackup }
+
+export const set_CurFFVer_ = OnFirefox ? (ver: FirefoxBrowserVer) => { CurFFVer_ = ver } : blank_
 //#endregion
 
 export const CONST_ = {

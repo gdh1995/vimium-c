@@ -3,8 +3,8 @@
 import { kPgReq, PgReq, Req2 } from "../background/page_messages"
 
 export declare const enum kReadyInfo {
-  show = 1, popup = 1, options = 1, i18n = 2,
-  NONE = 0, FINISHED = 3, LOCK = 4,
+  show = 1, popup = 1, options = 1, i18n = 2, browserInfo = 4,
+  NONE = 0, FINISHED = 7, LOCK = 8,
 }
 
 declare var define: any, VApi: VApiTy | undefined // eslint-disable-line no-var
@@ -42,7 +42,7 @@ export const CurCVer_: BrowserVer = !OnChrome ? BrowserVer.assumedVer
           : 0 | ver[1] as string | number as number
     })()
     : 0 | <number> (navigator.userAgent!.match(<RegExpOne> /\bChrom(?:e|ium)\/(\d+)/) || [0, BrowserVer.assumedVer])[1])
-export const CurFFVer_: FirefoxBrowserVer = !OnFirefox ? FirefoxBrowserVer.assumedVer
+export let CurFFVer_: FirefoxBrowserVer = !OnFirefox ? FirefoxBrowserVer.assumedVer
     : userAgentData ? (tmpBrand = userAgentData.brands.find(i => i.brand.includes("Firefox")))
       ? tmpBrand.version : FirefoxBrowserVer.MinMaybe$navigator$$userAgentData > Build.MinFFVer
       ? FirefoxBrowserVer.MinMaybe$navigator$$userAgentData : Build.MinFFVer
@@ -60,7 +60,7 @@ export const isVApiReady_ = new Promise<void>((resolve): void => {
     nextTick_(resolve)
   }, { once: true, capture: true })
 })
-let readyInfo_ = kReadyInfo.NONE
+let readyInfo_ = OnFirefox ? kReadyInfo.NONE : kReadyInfo.browserInfo
 const __oldI18nMap = {} as Dict<string>
 const i18nDict_: Pick<Map<string, string>, "get" | "set"> = !OnChrome
     || Build.MinCVer >= BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol || typeof Map === "function"
@@ -401,6 +401,11 @@ if (OnChrome ? (Build.MinCVer >= BrowserVer.MinMediaQuery$PrefersColorScheme
     (value === false || value === 1) && toggleDark(value ? 1 : 0); return browser_.runtime.lastError
   })
 }
+OnFirefox && browser_.runtime.getBrowserInfo().then((info): void => {
+  CurFFVer_ = parseInt(info && info.version) || CurFFVer_
+  enableNextTick_(kReadyInfo.browserInfo)
+})
+
 if (browserLang && curPath !== "popup") {
   const s = bTrans_("v" + curPath)
   s && (document.title = "Vimium C " + s)

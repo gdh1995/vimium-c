@@ -36,9 +36,10 @@ export const getGroupId: (tab: ShownTab) => chrome.tabs.GroupId | null = OnFiref
     : !OnEdge ? i => { const id = i.groupId; return id !== -1 && id != null ? id : null }
     : () => null
 
-/** Note: not use pendingUrl, since no reports have said it's useful */
-export const getTabUrl = false && OnChrome ? (tab_may_pending: Pick<Tab, "url" | "pendingUrl">): string =>
-    tab_may_pending.url || tab_may_pending.pendingUrl : (tab_with_url: Pick<Tab, "url">): string => tab_with_url.url
+export const getTabUrl = OnChrome ? (tab_may_pending: Pick<Tab, "url" | "pendingUrl">): string =>
+    tab_may_pending.url || tab_may_pending.pendingUrl
+    : OnFirefox && Build.MayAndroidOnFirefox ? (tab_with_url: Pick<Tab, "url">): string => tab_with_url.url || ""
+    : (tab_with_url: Pick<Tab, "url">): string => tab_with_url.url
 
 export const isTabMuted = OnChrome && Build.MinCVer < BrowserVer.MinMutedInfo && CurCVer_ < BrowserVer.MinMutedInfo
     ? (maybe_muted: ShownTab): boolean => maybe_muted.muted!
@@ -149,6 +150,14 @@ export const selectWndIfNeed = (tab: { windowId: number }): void => {
   tab.windowId !== curWndId_ && selectWnd(tab)
 }
 
+let doesSkipOpener_ff = (): boolean => {
+  const uad = navigator.userAgentData
+  const noOpener = uad ? uad.brands.some(i => i.brand.includes("Thunderbird"))
+      : (<RegExpOne & RegExpSearchable<0>> /Thunderbird/).test(navigator.userAgent!)
+  doesSkipOpener_ff = () => noOpener
+  return noOpener
+}
+
 /* if not args.url, then "openerTabId" must not in args */
 export const tabsCreate = (args: chrome.tabs.CreateProperties, callback?: ((tab: Tab, exArg: FakeArg) => void) | null
     , evenIncognito?: boolean | -1 | null): void | 1 => {
@@ -168,7 +177,7 @@ export const tabsCreate = (args: chrome.tabs.CreateProperties, callback?: ((tab:
     // if another extension manages the NTP, this line still works
     delete args.url
   }
-  if (OnEdge) {
+  if (OnEdge || OnFirefox && Build.MayAndroidOnFirefox && doesSkipOpener_ff()) {
     delete args.openerTabId
   }
   return Tabs_.create(args, callback)

@@ -147,6 +147,12 @@ declare namespace chrome.clipboard {
 declare namespace chrome.extension {
   export const getBackgroundPage: (() => Window | null) | undefined
 }
+declare namespace chrome.runtime {
+  interface BrowserInfo {
+    version: string
+  }
+  export function getBrowserInfo(exArg?: FakeArg): Promise<BrowserInfo>
+}
 
 declare module chrome.downloads {
   export interface DownloadOptions {

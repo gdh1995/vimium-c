@@ -23,6 +23,19 @@ Option_.prototype._onCacheUpdated = function<T extends keyof SettingsNS.AutoSync
   }
 }
 
+Option_.prototype._manuallySyncCache = function<T extends "autoDarkMode" | "autoReduceMotion"
+    > (this: Option_<T>, func: (this: Option_<T>) => void): void {
+  func.call(this)
+  const rawVal = this.readValueFromElement_()
+  if (this.field_ === "autoReduceMotion") {
+    const val = rawVal === 1 ? true : rawVal === 0 ? false : matchMedia("(prefers-reduced-motion: reduce)").matches
+    VApi && (VApi.z!.m = val)
+    toggleReduceMotion(val)
+  } else {
+    this.onSave_()
+  }
+}
+
 Option_.saveOptions_ = async function (): Promise<boolean> {
   const arr = Option_.all_, dirty: string[] = []
   bgSettings_.resetCache_()

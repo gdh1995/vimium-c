@@ -16,20 +16,7 @@ interface ParsedSections {
   ui?: string; find?: string; "find:host"?: string; "find:selection"?: string; omni?: string
 }
 
-const StyleCacheId_ = CONST_.VerCode_ + ","
-    + (OnChrome ? CurCVer_ : OnFirefox ? CurFFVer_ : 0)
-    + ( !OnEdge && (!OnChrome || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
-          && (!OnFirefox || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
-        ? ""
-        : (OnChrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
-            ? globalThis.ShadowRoot || (globalThis as MaybeWithWindow).document!.body!.webkitCreateShadowRoot
-            : globalThis.ShadowRoot)
-        ? "s" : "")
-    + (OnChrome && Build.MinCVer >= BrowserVer.MinUsableCSS$All ? ""
-      : (!OnChrome || CurCVer_ > BrowserVer.MinUsableCSS$All - 1)
-        && (!OnEdge || "all" in ((globalThis as MaybeWithWindow).document!.body as HTMLElement).style)
-      ? "a" : "")
-    + ";"
+let StyleCacheId_: string
 let findCSS_file_old_cr: FindCSS | null
 
 export const reloadCSS_ = (action: MergeAction, cssStr?: string): SettingsNS.MergedCustomCSS | void => {
@@ -260,9 +247,21 @@ export const getFindCSS_cr_ = OnChrome ? (sender: Frames.Sender): FindCSS => {
   }) : css
 } : 0 as never as null
 
-updateHooks_.userDefinedCss = mergeCSS
-
 void ready_.then((): void => {
+  StyleCacheId_ = CONST_.VerCode_ + ","
+      + (OnChrome ? CurCVer_ : OnFirefox ? CurFFVer_ : 0)
+      + ( !OnEdge && (!OnChrome || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
+            && (!OnFirefox || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
+          ? ""
+          : (OnChrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
+              ? globalThis.ShadowRoot || (globalThis as MaybeWithWindow).document!.body!.webkitCreateShadowRoot
+              : globalThis.ShadowRoot)
+          ? "s" : "")
+      + (OnChrome && Build.MinCVer >= BrowserVer.MinUsableCSS$All ? ""
+        : (!OnChrome || CurCVer_ > BrowserVer.MinUsableCSS$All - 1)
+          && (!OnEdge || "all" in ((globalThis as MaybeWithWindow).document!.body as HTMLElement).style)
+        ? "a" : "")
+      + ";"
 set_innerCSS_(storage_.getItem("innerCSS") || "")
 if (innerCSS_ && !innerCSS_.startsWith(StyleCacheId_)) {
   storage_.removeItem("vomnibarPage_f")
@@ -270,4 +269,5 @@ if (innerCSS_ && !innerCSS_.startsWith(StyleCacheId_)) {
 } else {
   reloadCSS_(MergeAction.readFromCache, innerCSS_)
 }
+  updateHooks_.userDefinedCss = mergeCSS
 })

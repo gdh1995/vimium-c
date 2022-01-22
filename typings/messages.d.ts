@@ -603,7 +603,7 @@ interface FgReq {
   } & Pick<FgReq[kFgReq.respondForRunKey], "e">
   [kFgReq.nextKey]: {
     /* keySequence */ k: string
-    /** $then/$else info */ f: {
+    /** $then/$else info */ f?: {
       /** context: counter and last tip */ c: Req.FallbackOptions["$f"];
       /** maxRetried */ r: number | null | undefined
       /** kTip | 0 | 2: tip; false: tab will be updated */ u: kTip | false;

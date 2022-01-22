@@ -26,6 +26,8 @@
   "goBack": "reuse=current/newBg/newFg",
   "goNext": "sed=true, patterns:string, rel:string, noRel, isNext",
   "goUp": "trailingSlash=null/true/false",
+  "moveTabLeft": "group=true",
+  "moveTabRight": "group=true",
   "moveTabToNewWindow": "limited=null/true/false",
   "moveTabToNextWindow": "last, position, right=true",
   "openBookmark": "title, path",

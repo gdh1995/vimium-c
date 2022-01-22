@@ -1,7 +1,7 @@
 import {
   contentPayload_, extAllowList_, newTabUrls_, omniPayload_, OnChrome, OnEdge, OnFirefox, framesForOmni_, sync_, IsEdg_,
-  settingsCache_, bgIniting_, set_bgIniting_, CurCVer_, CONST_, OnOther_, onInit_, searchEngines_,
-  installation_, hasEmptyLocalStorage_, set_newTabUrl_f, newTabUrl_f, set_vomnibarPage_f, updateHooks_
+  settingsCache_, bgIniting_, set_bgIniting_, CurCVer_, CONST_, OnOther_, onInit_, searchEngines_, set_CurFFVer_,
+  installation_, hasEmptyLocalStorage_, set_newTabUrl_f, newTabUrl_f, set_vomnibarPage_f, updateHooks_, CurFFVer_
 } from "./store"
 import { asyncIter_, nextTick_ } from "./utils"
 import { browser_, normalizeExtOrigin_ } from "./browser"
@@ -20,7 +20,10 @@ type SettingsUpdateMsg = {
 export const storage_ = localStorage
 let newSettingsToBroadcast_: Extract<SettingsUpdateMsg["d"], string[]> | null = null
 
-export const ready_ = Promise.resolve(1)
+export const ready_: Promise<void> = !OnFirefox ? Promise.resolve()
+    : browser_.runtime.getBrowserInfo().then((info): void => {
+  set_CurFFVer_(parseInt(info && info.version) || CurFFVer_)
+})
 
 export const get_ = <K extends keyof SettingsWithDefaults> (key: K, forCache?: boolean): SettingsWithDefaults[K] => {
     if (key in settingsCache_) {

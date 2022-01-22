@@ -41,14 +41,18 @@ const executeShortcutEntry = (cmd: StandardShortcutNames | kShortcutAliases): vo
 
 set_onInit_(As_<typeof onInit_>((): void => {
       if (bgIniting_ !== BackendHandlersNS.kInitStat.FINISHED) { return }
+      if (onInit_) {
+        BgUtils_.nextTick_(onInit_)
+        set_onInit_(null)
+        return
+        // all code below requires all necessary have inited when calling this
+      }
       if (!keyFSM_) {
         settings_.postUpdate_("keyMappings")
         if (!OnEdge && contentPayload_.o === kOS.mac) {
           visualKeys_["m-s-c"] = VisualAction.YankRichText
         }
       }
-      // the line below requires all necessary have inited when calling this
-      set_onInit_(null)
       settings_.get_("hideHud", true)
       settings_.get_("nextPatterns", true)
       settings_.get_("previousPatterns", true)
@@ -160,6 +164,7 @@ OnEdge || void settings_.ready_.then((): void => {
   settings_.postUpdate_("searchUrl", null) // will also update newTabUrl
 })
 
+OnFirefox && Build.MayAndroidOnFirefox && !Tabs_.onReplaced || // Not exist on Thunderbird
 Tabs_.onReplaced.addListener((addedTabId, removedTabId) => {
     const frames = framesForTab_.get(removedTabId)
     if (!frames) { return; }

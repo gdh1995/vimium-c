@@ -321,6 +321,7 @@ const setupSingletonCmdTimer = (newTimer: number): void => {
 
 export const onConfirmResponse = (request: FgReq[kFgReq.cmd], port: Port): void => {
   const cmd = request.c as StandardShortcutNames, id = request.i
+  // if id < -1, then pass it, so that 3rd-party extensions may use kFgReq.cmd to run commands
   if (id >= -1 && _gCmdTimer !== id) { return } // an old / aborted / test message
   setupSingletonCmdTimer(0)
   if (request.r) {
@@ -505,12 +506,12 @@ export const runNextOnTabLoaded = (options: OpenUrlOptions | Req.FallbackOptions
 
 export const waitAndRunKeyReq = (request: FgReq[kFgReq.nextKey], port: Port | null): void => {
   const fallbackInfo = request.f
-  const options: Req.FallbackOptions = { $then: request.k, $else: null, $retry: fallbackInfo.r,
-        $f: makeFallbackContext(fallbackInfo.c, 0, fallbackInfo.u) }
+  const options: Req.FallbackOptions = { $then: request.k, $else: null, $retry: fallbackInfo && fallbackInfo.r,
+        $f: fallbackInfo && makeFallbackContext(fallbackInfo.c, 0, fallbackInfo.u) }
   set_cPort(port!)
-  if (fallbackInfo.u === false) {
+  if (fallbackInfo && fallbackInfo.u === false) {
     runNextOnTabLoaded(options, null)
   } else {
-    runNextCmdBy(1, options, fallbackInfo.w)
+    runNextCmdBy(1, options, fallbackInfo && fallbackInfo.w)
   }
 }

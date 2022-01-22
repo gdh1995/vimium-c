@@ -244,7 +244,7 @@ const copyText = (): void => {
       hintApi.p({
         H: kFgReq.vomnibar,
         u: str,
-        f: hintOptions.then,
+        f: then,
         m: mode1_, t: newtab,
         o: parseOpenPageUrlOptions(hintOptions)
       });
@@ -363,7 +363,7 @@ const checkBoolOrSelector = (userVal: string | boolean | null | void | undefined
   const clickEl: LinkEl = hint.d
   const tag = htmlTag_(clickEl), elType = getEditableType_<0>(clickEl)
   const kD = "download", kLW = "last-window"
-  const newtab = hintOptions.newtab
+  const newtab = hintOptions.newtab, then = hintOptions.then
   let rect: Rect | null = null
   let retPromise: Promise<unknown> | undefined
   let showRect: BOOL | undefined
@@ -459,7 +459,10 @@ const checkBoolOrSelector = (userVal: string | boolean | null | void | undefined
       const sel = getSelection_()
       collpaseSelection(sel)
       modifySel(sel, 1, 1, "word")
-      hintOptions.visual === !1 || post_({ H: kFgReq.visualMode, c: hintOptions.caret, f: hintOptions.then })
+      hintOptions.visual === !1 || post_({ H: kFgReq.visualMode, c: hintOptions.caret, f: then })
+    }
+    if (then && isTY(then) && (mode1_ < HintMode.min_disable_queue || mode1_ === HintMode.FOCUS_EDITABLE)) {
+      post_({ H: kFgReq.nextKey, k: then })
     }
     if (!removeFlash && showRect !== 0 && (rect || (rect = getVisibleClientRect_(clickEl)))) {
       timeout_(function (): void {

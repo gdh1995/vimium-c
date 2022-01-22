@@ -488,8 +488,11 @@ const IncognitoWatcher_ = {
   }
 }
 
-const hasReliableWatchers = OnFirefox && (Build.MinFFVer >= FirefoxBrowserVer.MinMediaQueryListenersWorkInBg
-    || CurFFVer_ > FirefoxBrowserVer.MinMediaQueryListenersWorkInBg - 1)
+let hasReliableWatchers: boolean = OnFirefox && Build.MinFFVer >= FirefoxBrowserVer.MinMediaQueryListenersWorkInBg
+OnFirefox && Build.MinFFVer < FirefoxBrowserVer.MinMediaQueryListenersWorkInBg && settings_.ready_.then((): void => {
+  hasReliableWatchers = CurFFVer_ > FirefoxBrowserVer.MinMediaQueryListenersWorkInBg - 1
+  MediaWatcher_._timer = hasReliableWatchers ? -1 : 0
+})
 
 export const MediaWatcher_ = {
   watchers_: [
