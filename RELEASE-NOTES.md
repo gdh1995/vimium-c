@@ -4,6 +4,13 @@ Release Notes of Vimium C
 ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 说明文档: https://gitee.com/gdh1995/vimium-c#readme , https://github.com/gdh1995/vimium-c/blob/master/README-zh.md .
 
+#### 1.96.4
+* fix some found bugs, like LinkHints on Google search results
+* LinkHints:
+  * add `activeOnCtrl` for Firefox to switch meaning of `Ctrl` and `Ctrl+Shift`
+  * fix some issues since Firefox 96
+  * use `then: string` as a following command in most modes
+
 #### 1.96.3
 * fix some bugs
 * `LinkHints.activateCopyLinkText` and `copyWindowInfo`: support `${field1 || field2}`

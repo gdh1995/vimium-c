@@ -352,6 +352,7 @@ function testScopedLets(selfVar, context, varNames) {
   let sameNameFound = false
   /** @type { AST_Node } */
   let sameVar
+  let sameNames = ""
   root.walk(new TreeWalker(function (node1) {
     if (!sameNameFound && (node1.TYPE === "Let" || node1.TYPE === "Const" || node1.TYPE === "Var")
         && node1 !== selfVar) {
@@ -361,21 +362,22 @@ function testScopedLets(selfVar, context, varNames) {
       for (const [name, anotherHasValue] of collectVariableAndValues(var1, this)) {
         if (!varNames.has(name.name)) { continue }
         const curHasVal = varNames.get(name.name)
-        if (var1.TYPE === "Var" && (!curHasVal || !anotherHasValue)) { sameVar = var1; return sameNameFound = true }
-        if (curBlocks.includes(this.parent(0))) { sameVar = var1; return sameNameFound = true }
+        const found = () => { sameNames = name.name + ", "; sameVar = var1; return sameNameFound = true }
+        if (var1.TYPE === "Var" && (!curHasVal || !anotherHasValue)) { return found() }
+        if (curBlocks.includes(this.parent(0))) { return found() }
         let inSubBlock = false
         for (let i = 0, node2; node2 = this.parent(i), node2 !== root && node2; i++) {
           inSubBlock = inSubBlock || node2 instanceof AST_Block || node2 instanceof AST_IterationStatement
-          if (node2 === curBlocks[0]) { sameVar = var1; return sameNameFound = true }
+          if (node2 === curBlocks[0]) { return found() }
         }
-        if (!inSubBlock) { sameVar = var1; return sameNameFound = true }
+        if (!inSubBlock) { return found() }
       }
     }
     return sameNameFound
   }))
   if (sameNameFound) {
     if (sameVar) {
-      console.log("Warning: Found conflicted declarations with a same name:"
+      console.log("Warning: Found conflicted declarations with a same name:", sameNames.slice(0, -2) + ";"
           , selfVar.print_to_string(), " ### ", sameVar.print_to_string())
       throw new Error("conflicted declarations!");
     }
