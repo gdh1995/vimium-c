@@ -17,7 +17,7 @@ import { find_box } from "./mode_find"
 import { omni_box } from "./omni"
 import {
   kSafeAllSelector, coreHints, addChildFrame_, mode1_, forHover_, hintOptions, wantDialogMode_,
-  isClickListened_, hintMode_, set_isClickListened_, tooHigh_, useFilter_, hintChars, hintManager
+  isClickListened_, set_isClickListened_, tooHigh_, useFilter_, hintChars, hintManager
 } from "./link_hints"
 import { shouldScroll_s, getPixelScaleToScroll, scrolled, set_scrolled, suppressScroll } from "./scroller"
 import { ui_root, ui_box, helpBox, curModalElement } from "./dom_ui"
@@ -342,7 +342,7 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
       : ClickType.Default
   if (type && (arr = getVisibleClientRect_(element, null))
       && isAriaNotTrue_(element, kAria.hidden)
-      && (hintMode_ > HintMode.min_job - 1 || isAriaNotTrue_(element, kAria.disabled))
+      && (mode1_ > HintMode.min_job - 1 || isAriaNotTrue_(element, kAria.disabled))
       && (0 === clickTypeFilter_ || clickTypeFilter_ & (1 << type))
       ) {
     hints.push([element, arr, type])
@@ -563,7 +563,7 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
   }
   }
   if (excludedSelector) {
-    output = safeCall((output as Hint0[]).filter.bind(output), testMatch.bind(null, excludedSelector)) || output
+    output = safeCall((output as Hint0[]).filter.bind(output), hint => !testMatch(excludedSelector, hint)) || output
   }
   if (textFilter) {
     cur_ind = (textFilter = textFilter + "" as Extract<typeof textFilter, string>).lastIndexOf("/")

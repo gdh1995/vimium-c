@@ -1,6 +1,6 @@
 import {
   CurCVer_, CurFFVer_, OnChrome, OnEdge, OnFirefox, $, import2, OnSafari, enableNextTick_, isVApiReady_, kReadyInfo,
-  simulateClick as click, fetch
+  simulateClick, fetch
 } from "./async_bg"
 import { bgSettings_, AllowedOptions, ExclusionRulesOption_, Option_, oTrans_ } from "./options_base"
 import { exportBtn, saveBtn } from "./options_defs"
@@ -17,7 +17,7 @@ const showHelp = (event?: EventToPrevent | "force" | void | null): void => {
   event && event !== "force" && event.preventDefault()
   if (!root) { /* empty */ }
   else if (node = root.querySelector("#HCls") as HTMLElement | null) {
-    if (event !== "force" && root.querySelector(".HelpCommandName") != null) { click(node); return }
+    if (event !== "force" && root.querySelector(".HelpCommandName") != null) { simulateClick(node); return }
   }
   VApi!.r[0]<kFgReq.pages>(kFgReq.pages, { i: 1, q: [ { n: kPgReq.initHelp, q: null } ] }
       , !event && location.hash.length > 1 ? (): void => {
@@ -173,7 +173,7 @@ exportBtn.onclick = function (event): void {
     const nodeA = document.createElement("a");
     nodeA.download = file_name;
     nodeA.href = URL.createObjectURL(blob);
-    click(nodeA);
+    simulateClick(nodeA)
     // not `URL.revokeObjectURL(nodeA.href);` so that it works almost all the same
     // on old Chrome before BrowserVer.MinCanNotRevokeObjectURLAtOnce
     _lastBlobURL = nodeA.href;
@@ -466,7 +466,7 @@ _el.onclick = null as never;
 _el.onchange = function (this: HTMLSelectElement): void {
   $("#importButton").focus();
   if (this.value === "exported") {
-    click($("#settingsFile"));
+    simulateClick($("#settingsFile"))
     return;
   }
   const recommended = "../settings-template.json";

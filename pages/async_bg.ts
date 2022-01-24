@@ -420,7 +420,7 @@ curPath === "options" && void isVApiReady_.then((): void => {
 export const simulateClick = (target: HTMLElement
     , event?: { altKey: boolean, ctrlKey: boolean, metaKey: boolean, shiftKey: boolean }): boolean => {
   let mouseEvent: MouseEvent
-  event = event || { ctrlKey: true, altKey: true, shiftKey: true, metaKey: true }
+  event = event || { ctrlKey: false, altKey: false, shiftKey: false, metaKey: false }
   if (!OnChrome || Build.MinCVer >= BrowserVer.MinUsable$MouseEvent$$constructor || document.hidden != null) {
     mouseEvent = new MouseEvent("click", {
       bubbles: true, cancelable: true, composed: !0, view: window, detail: 1,

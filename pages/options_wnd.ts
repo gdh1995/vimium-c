@@ -1,6 +1,6 @@
 import { kPgReq } from "../background/page_messages"
 import {
-  CurCVer_, CurFFVer_, OnFirefox, OnChrome, OnEdge, $, $$, post_, disconnect_, isVApiReady_, simulateClick as click,
+  CurCVer_, CurFFVer_, OnFirefox, OnChrome, OnEdge, $, $$, post_, disconnect_, isVApiReady_, simulateClick,
   toggleDark, browser_, selfTabId_, enableNextTick_, nextTick_, kReadyInfo, IsEdg_, import2
 } from "./async_bg"
 import {
@@ -109,13 +109,13 @@ let optionsInit1_ = function (): void {
       if (i !== kKeyCode.space) { return; }
       if (el instanceof HTMLSpanElement && el.parentElement instanceof HTMLLabelElement) {
         event.preventDefault();
-        click(el.parentElement.control as HTMLElement);
+        simulateClick(el.parentElement.control as HTMLElement)
       }
       return;
     }
     if (el instanceof HTMLAnchorElement) {
       el.hasAttribute("href") || setTimeout(function (el1) {
-        click(el1);
+        simulateClick(el1)
         el1.blur();
       }, 0, el);
     } else if (event.ctrlKey || event.metaKey) {
@@ -454,7 +454,7 @@ if (OnChrome && Build.MinCVer < BrowserVer.Min$Option$HasReliableFontSize
 
 $("#importButton").onclick = function (): void {
   const opt = $<HTMLSelectElement>("#importOptions");
-  opt.onchange ? opt.onchange(null as never) : click($("#settingsFile"));
+  opt.onchange ? opt.onchange(null as never) : simulateClick($("#settingsFile"))
 };
 
 nextTick_((el0): void => {

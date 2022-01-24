@@ -457,7 +457,7 @@ const parseTree = (tokens_: readonly Token[], inNewFunc: boolean | undefined): O
       const mayBreak: boolean = !semiColon && pos_ + 1 < tokens_.length && (before === T.action
             || !!(tokens_[pos_ + 1].t & (T.ref | T.literal | T.fn | T.prefix | T.action | T.unary | T.block))
             || values_[values_.length - 1].o === O.fn && ((values_[values_.length - 1] as BaseOp<O.fn>).v.t === "=>"
-                    || !!(ctx_[ctx_.length - 1].t & (T.block | T.prefix)))
+                    ? tokens_[pos_ + 1].t !== T.comma : !!(ctx_[ctx_.length - 1].t & (T.block | T.prefix)))
                 && (tokens_[pos_ + 1].t === T.math1 && ((tokens_[pos_ + 1].t as T) = T.unary,
                       Build.NDEBUG || ((tokens_[pos_ + 1].n as string) = "unary")),
                     true))
@@ -488,7 +488,7 @@ const parseTree = (tokens_: readonly Token[], inNewFunc: boolean | undefined): O
       consumeUntil(T.prefix | T.group | T.block); ctx_.push(cur as BaseToken<T.action>);
       break
     case T.group: case T.array: /* T.group | T.array: */
-      if (topIsDict) { type === T.group && ctx_.push(Token(T.fn, "(){")); topIsDict = false }
+      if (topIsDict) { type === T.group && ctx_.push(Token(T.colon, ":"), Token(T.fn, "(){")); topIsDict = false }
       else { 
         const top = ctx_[ctx_.length - 1]
         top.t & (T.dot | T.fn) && before !== T.fn && consume()
