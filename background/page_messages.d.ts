@@ -4,7 +4,7 @@ export declare const enum kPgReq {
    /** 10..14 */ convertToUrl, updateMediaQueries, whatsHelp, checkNewTabUrl, checkSearchUrl,
    /** 15..19 */ focusOrLaunch, showUrl, shownHash, substitute, checkHarmfulUrl,
    /** 20..24 */ popupInit, allowExt, toggleStatus, parseMatcher, initHelp,
-   /** 25..27 */ callApi, selfTabId, getStorage,
+   /** 25..27 */ callApi, selfTabId, getStorage, setInLocal,
   __mask = ""
 }
 
@@ -56,6 +56,7 @@ export interface PgReq {
   }, ExtApiResult<unknown> ]
   [kPgReq.selfTabId]: [ void, number ]
   [kPgReq.getStorage]: [ GlobalConsts.kIsHighContrast | null, Dict<unknown> ]
+  [kPgReq.setInLocal]: [ { key: string, val: string | null }, void ]
 }
 
 export declare namespace Req2 {

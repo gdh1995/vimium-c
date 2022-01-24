@@ -1,5 +1,5 @@
 import {
-  CurCVer_, framesForTab_, iconData_, keyFSM_, needIcon_, OnChrome, OnFirefox, reqH_, setIcon_,
+  CurCVer_, framesForTab_, iconData_, keyFSM_, needIcon_, OnChrome, OnFirefox, reqH_, setIcon_, settingsCache_,
   updateHooks_
 } from "./store"
 import * as BgUtils_ from "./utils"
@@ -184,7 +184,7 @@ export const RefreshStatus_ = (old_is_empty: boolean): void => {
     }, () => oldRules === rules_)
 }
 
-const updateListeners_ = (listenHash: boolean): void => {
+const updateListeners_ = (): void => {
     const listen = rules_.length > 0, l = listen || listening_ ? getOnURLChange_() : null
     if (!l) { return; }
     if (listening_ !== listen) {
@@ -192,7 +192,7 @@ const updateListeners_ = (listenHash: boolean): void => {
       const e = browserWebNav_()!.onHistoryStateUpdated
       listen ? e.addListener(l) : e.removeListener(l)
     }
-    listenHash = listen && listenHash
+    const listenHash = listen && settingsCache_.exclusionListenHash
     if (listeningHash_ !== listenHash) {
       listeningHash_ = listenHash
       const e = browserWebNav_()!.onReferenceFragmentUpdated
@@ -203,7 +203,8 @@ const updateListeners_ = (listenHash: boolean): void => {
 updateHooks_.exclusionRules = (rules: ExclusionsNS.StoredRule[]): void => {
   const isEmpty = !rules_.length, curKeyFSM = keyFSM_
   setRules_(rules)
-  settings.postUpdate_("exclusionListenHash")
+  _onlyFirstMatch = settingsCache_.exclusionOnlyFirstMatch
+  updateListeners_()
   setTimeout((): void => {
     setTimeout(RefreshStatus_, 10, isEmpty)
     if (keyFSM_ === curKeyFSM) {
@@ -218,7 +219,7 @@ updateHooks_.exclusionOnlyFirstMatch = (value: boolean): void => {
 
 updateHooks_.exclusionListenHash = updateListeners_
 
-if (settings.storage_.getItem("exclusionRules") !== "[]") {
-  setRules_(settings.get_("exclusionRules"))
-  _onlyFirstMatch = settings.get_("exclusionOnlyFirstMatch")
-}
+void settings.ready_.then((): void => {
+  setRules_(settingsCache_.exclusionRules)
+  _onlyFirstMatch = settingsCache_.exclusionOnlyFirstMatch
+})

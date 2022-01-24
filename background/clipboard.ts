@@ -1,9 +1,8 @@
 import {
   CurCVer_, CurFFVer_, OnChrome, OnEdge, OnFirefox, paste_, substitute_, set_copy_, set_paste_, set_substitute_, CONST_,
-  updateHooks_
+  settingsCache_, IsLimited, updateHooks_
 } from "./store"
 import * as BgUtils_ from "./utils"
-import * as settings_ from "./settings"
 import * as Exclusions from "./exclusions"
 
 declare const enum SedAction {
@@ -210,7 +209,7 @@ export const doesNeedToSed = (context: SedContext, sed: ParsedSedOpts | null): b
   // if (!sed || sed.r === false || !sed.k && )
   const contexts: Contexts | null = sed && sed.k && parseSedKeys_(sed.k, sed)
       || (context ? { normal_: context, extras_: null } : null)
-  staticSeds_ || contexts && (staticSeds_ = parseSeds_(settings_.get_("clipSub"), null))
+  staticSeds_ || contexts && (staticSeds_ = parseSeds_(settingsCache_.clipSub, null))
   for (const item of contexts ? staticSeds_! : []) {
     if (intersectContexts(item.contexts_, contexts!)) {
       return true
@@ -235,7 +234,7 @@ const convertJoinedRules = (rules: string): string => {
 set_substitute_((text: string, normalContext: SedContext, mixedSed?: MixedSedOpts | null): string => {
   const rules = !mixedSed || typeof mixedSed !== "object" ? mixedSed : mixedSed.r
   if (rules === false) { return text }
-  let arr = staticSeds_ || (staticSeds_ = parseSeds_(settings_.get_("clipSub"), null))
+  let arr = staticSeds_ || (staticSeds_ = parseSeds_(settingsCache_.clipSub, null))
   let contexts = mixedSed && typeof mixedSed === "object" && mixedSed.k && parseSedKeys_(mixedSed.k, mixedSed)
       || (normalContext ? { normal_: normalContext, extras_: null } : null)
   // note: `sed` may come from options of key mappings, so here always convert it to a string
@@ -345,7 +344,7 @@ const reformat_ = (copied: string, sed?: MixedSedOpts | null): string => {
   return copied
 }
 
-set_copy_(OnFirefox && navigator.clipboard ? (data, join, sed): string => {
+set_copy_(Build.MV3 && IsLimited || OnFirefox && navigator.clipboard ? (data, join, sed): string => {
   data = format_(data, join, sed)
   const clip = data && navigator.clipboard
   clip && clip.writeText!(data)
@@ -365,7 +364,7 @@ set_copy_(OnFirefox && navigator.clipboard ? (data, join, sed): string => {
 })
 
 set_paste_(!CONST_.AllowClipboardRead_ ? () => null
-: OnFirefox ? (sed): Promise<string | null> | null => {
+: Build.MV3 && IsLimited || OnFirefox ? (sed): Promise<string | null> | null => {
   const clipboard = navigator.clipboard
   return clipboard ? clipboard.readText!().then(s => reformat_(
       s.slice(0, GlobalConsts.MaxBufferLengthForPastingLongURL), sed), () => null) : null

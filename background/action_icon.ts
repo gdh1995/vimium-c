@@ -24,7 +24,9 @@ const onerror = (err: any): void => {
   set_setIcon_(blank_)
   set_needIcon_(false)
   updateHooks_.showActionIcon = undefined
-  browserAction_.setTitle({ title: extTrans_("name") + "\n\nFailed in showing dynamic icons." })
+  Promise.resolve(extTrans_("name")).then((name) => {
+    browserAction_.setTitle({ title: name + "\n\nFailed in showing dynamic icons." })
+  })
 }
 
 const loadBinaryImagesAndSetIcon_cr = (type: Frames.ValidStatus): void => {

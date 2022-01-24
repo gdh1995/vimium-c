@@ -1,73 +1,119 @@
 import {
   contentPayload_, extAllowList_, newTabUrls_, omniPayload_, OnChrome, OnEdge, OnFirefox, framesForOmni_, sync_, IsEdg_,
-  settingsCache_, bgIniting_, set_bgIniting_, CurCVer_, CONST_, OnOther_, onInit_, searchEngines_, set_CurFFVer_,
-  installation_, hasEmptyLocalStorage_, set_newTabUrl_f, newTabUrl_f, set_vomnibarPage_f, updateHooks_, CurFFVer_
+  settingsCache_, bgIniting_, set_bgIniting_, CurCVer_, CONST_, OnOther_, onInit_, storageCache_, searchEngines_,
+  set_hasEmptyLocalStorage_, set_newTabUrl_f, newTabUrl_f, set_vomnibarPage_f, IsLimited, updateHooks_,set_CurFFVer_,
+  CurFFVer_
 } from "./store"
-import { asyncIter_, nextTick_ } from "./utils"
-import { browser_, normalizeExtOrigin_ } from "./browser"
+import { asyncIter_, nextTick_, safeObj_ } from "./utils"
+import { browser_, normalizeExtOrigin_, Q_ } from "./browser"
 import { convertToUrl_, reformatURL_ } from "./normalize_urls"
 import { parseSearchEngines_ } from "./parse_urls"
 import { asyncIterFrames_ } from "./ports"
 import SettingsWithDefaults = SettingsNS.SettingsWithDefaults
 
-export type WritableSettingsCache = SettingsNS.FullCache
 type SettingsUpdateMsg = {
   [K in keyof Req.bg<kBgReq.settingsUpdate>]: K extends "d"
       ? Array<keyof SettingsNS.FrontendSettingsSyncingItems> | SettingsNS.FrontendSettingCache
       : Req.bg<kBgReq.settingsUpdate>[K]
 }
+type PersistentKeys = keyof SettingsNS.PersistentSettings
 
-export const storage_ = localStorage
 let newSettingsToBroadcast_: Extract<SettingsUpdateMsg["d"], string[]> | null = null
+let toSaveCache: SafeDict<unknown> | null = null
 
-export const ready_: Promise<void> = !OnFirefox ? Promise.resolve()
-    : browser_.runtime.getBrowserInfo().then((info): void => {
-  const versionStr = info && info.version, ver = parseInt(versionStr || "0") || 0
-  set_CurFFVer_(ver || CurFFVer_)
-  ; (contentPayload_.v as FirefoxBrowserVer) = (omniPayload_.v as FirefoxBrowserVer) = CurFFVer_
-  if (Build.MinFFVer <= FirefoxBrowserVer.ESRPopupBlockerPassClicksFromExtensions) {
-    (contentPayload_.V as number) = ver ? parseInt(versionStr!.split(".")[1]) || 0 : 0
-  }
-})
-
-export const get_ = <K extends keyof SettingsWithDefaults> (key: K, forCache?: boolean): SettingsWithDefaults[K] => {
-    if (key in settingsCache_) {
-      return (settingsCache_ as SettingsWithDefaults)[key]
+export const legacyStorage_ = Build.MV3 && IsLimited ? null : localStorage
+export const local_ = browser_.storage.local
+export const ready_: Promise<number> = Promise.all([
+  OnFirefox ? browser_.runtime.getBrowserInfo().then((info): 0 | void => {
+    const versionStr = info && info.version, ver = parseInt(versionStr || "0") || 0
+    set_CurFFVer_(ver || CurFFVer_)
+    ; (contentPayload_.v as FirefoxBrowserVer) = (omniPayload_.v as FirefoxBrowserVer) = CurFFVer_
+    if (Build.MinFFVer <= FirefoxBrowserVer.ESRPopupBlockerPassClicksFromExtensions) {
+      (contentPayload_.V as number) = ver ? parseInt(versionStr!.split(".")[1]) || 0 : 0
     }
-    const initial = defaults_[key], str = storage_.getItem(key)
-    const value = str == null ? initial : typeof initial === "string" ? str
-        : initial === false || initial === true ? str === "true"
-        : JSON.parse<typeof initial>(str);
-    forCache && ((settingsCache_ as Generalized<SettingsNS.FullCache>)[key] = value as SettingsWithDefaults[K])
-    return value as SettingsWithDefaults[K];
-}
-
-export const set_ = <K extends keyof FullSettings> (key: K, value: FullSettings[K]): void => {
-    type PersistentKeys = keyof SettingsNS.PersistentSettings;
-    (settingsCache_ as Generalized<SettingsNS.FullCache>)[key] = value
-    if (!(key in nonPersistent_)) {
-      const initial = defaults_[key as PersistentKeys]
-      if (value === initial) {
-        storage_.removeItem(key)
-        sync_(key as PersistentKeys, null)
+  }) : 0,
+  Q_(local_.get.bind(local_)).then((items): number => { // Q_(local_.get) is illegal on Edge 98
+    const cache = settingsCache_ as Generalized<SettingsWithDefaults>
+    Object.assign(cache, defaults_)
+    items = items || {}
+    for (let item of Object.entries!(items)) {
+      if (item[0] in defaults_) {
+        cache[item[0] as PersistentKeys] = item[1] as string | number | boolean
       } else {
-        storage_.setItem(key, typeof initial === "string" ? value as string : JSON.stringify(value))
-        sync_(key as PersistentKeys, value as FullSettings[PersistentKeys])
+        storageCache_.set!(item[0] as SettingsNS.LocalSettingNames, item[1] as string)
       }
+    }
+    let n = 0
+    if (legacyStorage_) {
+      n = legacyStorage_.length
+      for (let i = 0; i < n; i++) {
+        const key: string = legacyStorage_.key(i)!, str = legacyStorage_.getItem(key)!
+        if (key in defaults_) {
+          const initial = defaults_[key as PersistentKeys]
+          const value = typeof initial === "string" ? str
+              : initial === false || initial === true ? str === "true" : JSON.parse<typeof initial>(str)
+          cache[key as PersistentKeys] = value
+        } else {
+          storageCache_.set!(key as SettingsNS.LocalSettingNames, str)
+        }
+      }
+    }
+    const done = n + Object.keys(items).length
+    set_hasEmptyLocalStorage_(done === 0)
+    contentPayload_.g = (cache as typeof settingsCache_).grabBackFocus
+    type kPayload = keyof typeof valuesToLoad_;
+    for (let _i in valuesToLoad_) {
+      updatePayload_(valuesToLoad_[_i as kPayload], (cache as typeof settingsCache_)[_i as kPayload], contentPayload_)
+    }
+    set_bgIniting_(bgIniting_ | BackendHandlersNS.kInitStat.settings)
+    onInit_ && onInit_()
+    return done
+  })
+]).then(i => i[1])
+
+export const set_ = <K extends keyof SettingsWithDefaults> (key: K, value: SettingsWithDefaults[K]): void => {
+    (settingsCache_ as Generalized<SettingsWithDefaults>)[key] = value
+    if (!toSaveCache) { toSaveCache = safeObj_(), setTimeout(saveAllLocally, 0) }
+    const initial = defaults_[key as PersistentKeys]
+    Build.MV3 || legacyStorage_!.removeItem(key)
+    toSaveCache[key] = value !== initial ? value : null
+    sync_(key, value)
       if (key in valuesToLoad_) {
         updatePayload_(valuesToLoad_[key as keyof typeof valuesToLoad_]
-            , value as FullSettings[keyof typeof valuesToLoad_], contentPayload_)
+            , value as SettingsWithDefaults[keyof typeof valuesToLoad_], contentPayload_)
       }
-    }
     let ref: SettingsNS.SimpleUpdateHook<K> | undefined;
     if (ref = updateHooks_[key as keyof SettingsWithDefaults] as (SettingsNS.UpdateHook<K> | undefined)) {
       return ref(value, key)
     }
 }
 
-export const postUpdate_ = (<K extends keyof SettingsWithDefaults> (key: K, value?: FullSettings[K]): void => {
+export const setInLocal_ = (key: SettingsNS.LocalSettingNames, value: string | null): void => {
+  const old = storageCache_.get(key)
+  if ((old !== undefined ? old : null) === value) { return }
+  if (!toSaveCache) { toSaveCache = safeObj_(), setTimeout(saveAllLocally, 0) }
+  toSaveCache[key] = value
+  if (value !== null) {
+    storageCache_.set!(key, value)
+  } else {
+    storageCache_.delete!(key)
+  }
+}
+
+const saveAllLocally = (): void => {
+  const toSet = toSaveCache!, toRemove: string[] = []
+  toSaveCache = null
+  for (let [key, value] of Object.entries!(toSet)) {
+    value === null && (toRemove.push(key), delete toSet[key])
+  }
+  local_.remove(toRemove)
+  local_.set(toSet)
+}
+
+export const postUpdate_ = (<K extends keyof SettingsWithDefaults> (key: K, value?: SettingsWithDefaults[K]): void => {
     type AllK = keyof SettingsWithDefaults;
-    return (updateHooks_[key] as SettingsNS.SimpleUpdateHook<AllK>)(value !== undefined ? value : get_(key), key)
+    return (updateHooks_[key] as SettingsNS.SimpleUpdateHook<AllK>)(value !== undefined ? value
+        : settingsCache_[key], key)
 }) as {
     <K extends SettingsNS.NullableUpdateHooks>(key: K, value?: SettingsWithDefaults[K] | null): void
     <K extends keyof SettingsWithDefaults>(key: K, value?: SettingsWithDefaults[K]): void
@@ -159,8 +205,8 @@ Object.assign(updateHooks_, As_<{ [key in SettingsNS.DeclaredUpdateHooks]: Setti
     searchEngines (): void {
       searchEngines_.map.clear()
       searchEngines_.keywords = null
-      searchEngines_.rules =
-          parseSearchEngines_("~:" + get_("searchUrl") + "\n" + get_("searchEngines"), searchEngines_.map).reverse()
+      searchEngines_.rules = parseSearchEngines_("~:" + settingsCache_.searchUrl + "\n" + settingsCache_.searchEngines
+          , searchEngines_.map).reverse()
     },
     searchUrl (str): void {
       const map = searchEngines_.map
@@ -168,9 +214,9 @@ Object.assign(updateHooks_, As_<{ [key in SettingsNS.DeclaredUpdateHooks]: Setti
         parseSearchEngines_("~:" + str, map)
       } else {
         map.clear()
-        map.set("~", { name_: "~", blank_: "", url_: get_("searchUrl").split(" ", 1)[0] })
+        map.set("~", { name_: "~", blank_: "", url_: settingsCache_.searchUrl.split(" ", 1)[0] })
         searchEngines_.rules = []
-        set_newTabUrl_f(get_("newTabUrl_f", true) || "")
+        set_newTabUrl_f(storageCache_.get("newTabUrl_f") || "")
         if (newTabUrl_f) { return }
       }
       postUpdate_("newTabUrl")
@@ -182,12 +228,12 @@ Object.assign(updateHooks_, As_<{ [key in SettingsNS.DeclaredUpdateHooks]: Setti
       })
     },
     vomnibarPage (url): void {
-      const cur = storage_.getItem("vomnibarPage_f")
+      const cur = storageCache_.get("vomnibarPage_f")
       if (cur && !url) {
         set_vomnibarPage_f(cur)
         return;
       }
-      url = url ? normalizeExtOrigin_(url) : get_("vomnibarPage")
+      url = url ? normalizeExtOrigin_(url) : settingsCache_.vomnibarPage
       if (url === defaults_.vomnibarPage) {
         url = CONST_.VomnibarPageInner_
       } else if (url.startsWith("front/")) {
@@ -239,12 +285,10 @@ nickyfeng@edgetranslate.com
 saladict@crimx.com`
 : "",
     filterLinkHints: false,
-    findModeRawQueryList: "",
     grabBackFocus: false,
     hideHud: false,
     ignoreCapsLock: 0,
     ignoreKeyboardLayout: 0,
-    innerCSS: "",
     keyboard: [560, 33],
     keyupTime: 120,
     keyMappings: "",
@@ -254,7 +298,6 @@ saladict@crimx.com`
     mapModifier: 0,
     mouseReachable: true,
     /** mutable */ newTabUrl: "",
-    newTabUrl_f: "",
     nextPatterns: "\u4e0b\u4e00\u5c01,\u4e0b\u9875,\u4e0b\u4e00\u9875,\u4e0b\u4e00\u7ae0,\u540e\u4e00\u9875\
 ,next,more,newer,>,\u203a,\u2192,\xbb,\u226b,>>",
     omniBlockList: "",
@@ -375,12 +418,6 @@ js\\:|Js: javascript:\\ $S; JavaScript`,
     waitForEnter: true
 })
 
-  // not set localStorage, neither sync, if key in @nonPersistent
-  // not clean if exists (for simpler logic)
-export const nonPersistent_ = As_<TypedSafeEnum<SettingsNS.NonPersistentSettings>>({ __proto__: null as never,
-    searchEngineMap: 1, searchEngineRules: 1, searchKeywords: 1
-})
-
 export const frontUpdateAllowed_ = As_<ReadonlyArray<keyof SettingsNS.FrontUpdateAllowedSettings>>([
   "showAdvancedCommands"
 ])
@@ -401,19 +438,19 @@ browser_.runtime.getPlatformInfo((info): void => {
   const os = (OnChrome ? info.os : info.os || "").toLowerCase(),
   types = !OnChrome || Build.MinCVer >= BrowserVer.MinRuntimePlatformOs
     ? browser_.runtime.PlatformOs! : browser_.runtime.PlatformOs || { MAC: "mac", WIN: "win" },
-  osEnum = os === types.WIN ? kOS.win : os === types.MAC ? kOS.mac : kOS.unixLike,
-  ignoreCapsLock = get_("ignoreCapsLock")
+  osEnum = os === types.WIN ? kOS.win : os === types.MAC ? kOS.mac : kOS.unixLike
   CONST_.Platform_ = os;
   (omniPayload_ as Writable<typeof omniPayload_>).o =
   (contentPayload_ as Writable<typeof contentPayload_>).o = osEnum
-  updatePayload_("i", ignoreCapsLock, contentPayload_)
+  if (bgIniting_ & BackendHandlersNS.kInitStat.settings) {
+    updatePayload_("i", settingsCache_.ignoreCapsLock, contentPayload_)
+  }
   if (bgIniting_ > BackendHandlersNS.kInitStat.FINISHED - 1) { return }
   set_bgIniting_(bgIniting_ | BackendHandlersNS.kInitStat.platformInfo)
   onInit_ && onInit_()
 });
 } else {
   CONST_.Platform_ = OnEdge ? "win" : "unknown"
-  updatePayload_("i", get_("ignoreCapsLock"), contentPayload_)
   set_bgIniting_(bgIniting_ | BackendHandlersNS.kInitStat.platformInfo)
 }
 
@@ -463,23 +500,7 @@ browser_.runtime.getPlatformInfo((info): void => {
 
   if (bgIniting_ > BackendHandlersNS.kInitStat.FINISHED - 1) { return }
 
-  contentPayload_.g = get_("grabBackFocus")
   if (!Build.BTypes || Build.BTypes & (Build.BTypes - 1)) {
     (omniPayload_ as Writable<typeof omniPayload_>).b = OnOther_
   }
-  type PayloadNames = keyof typeof valuesToLoad_;
-  for (let _i in valuesToLoad_) {
-    updatePayload_(valuesToLoad_[_i as PayloadNames], get_(_i as PayloadNames), contentPayload_)
-  }
-
 })()
-
-if (bgIniting_ < BackendHandlersNS.kInitStat.FINISHED && hasEmptyLocalStorage_) {
-  void installation_!.then((reason): void => {
-    if (!reason || reason.reason !== "install") { return }
-    const platform = ((navigator.userAgentData || navigator).platform || "").toLowerCase()
-    if (platform.startsWith("mac") || platform.startsWith("ip")) {
-      set_("ignoreKeyboardLayout", 1)
-    }
-  })
-}

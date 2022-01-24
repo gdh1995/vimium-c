@@ -1,4 +1,5 @@
 declare var define: any, __filename: string | null | undefined // eslint-disable-line no-var
+declare var __moduleMap: Dict<unknown> | undefined
 
 if (Build.BTypes & (Build.BTypes & BrowserType.ChromeOrFirefox | BrowserType.Edge)
     && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer < BrowserVer.Min$globalThis)
@@ -79,6 +80,7 @@ if (!Build.NDEBUG) {
     }))
     exports instanceof Promise ? void exports.then(() => { doImport([path], callback) }) : callback(exports)
   }
+  if (Build.MV3) { globalThis.__moduleMap = modules }
   globalThis.define = myDefine;
   (globalThis as any).__importStar = (obj: {}): {} => obj
 })()

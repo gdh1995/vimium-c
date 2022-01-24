@@ -298,9 +298,7 @@ declare namespace SettingsNS {
     exclusionOnlyFirstMatch: boolean;
     exclusionRules: ExclusionsNS.StoredRule[];
     extAllowList: string;
-    findModeRawQueryList: string;
     hideHud: boolean;
-    innerCSS: string;
     keyMappings: string;
     localeEncoding: string;
     newTabUrl: string;
@@ -318,22 +316,15 @@ declare namespace SettingsNS {
     vomnibarPage: string;
     omniBlockList: string;
   }
-  interface BaseNonPersistentSettings {
-    searchEngineMap: Map<string, Search.Engine>
-    searchEngineRules: Search.Rule[];
-    searchKeywords: string | null;
-  }
-  interface NonPersistentSettings extends BaseNonPersistentSettings {}
   interface PersistentSettings extends FrontendSettings, BackendSettings {}
 
   interface SettingsWithDefaults extends PersistentSettings {}
-  interface FullSettings extends PersistentSettings, NonPersistentSettings {}
 
-  interface SimpleUpdateHook<K extends keyof FullSettings> {
-    (this: void, value: FullSettings[K], key: K): void
+  interface SimpleUpdateHook<K extends keyof SettingsWithDefaults> {
+    (this: void, value: SettingsWithDefaults[K], key: K): void
   }
-  interface NullableUpdateHook<K extends keyof FullSettings> {
-    (this: void, value: FullSettings[K] | null, key: K): void
+  interface NullableUpdateHook<K extends keyof SettingsWithDefaults> {
+    (this: void, value: SettingsWithDefaults[K] | null, key: K): void
   }
 
   type NullableUpdateHooks = "searchEngines" | "searchUrl" | "keyMappings" | "vomnibarPage"
@@ -341,7 +332,7 @@ declare namespace SettingsNS {
   type DeclaredUpdateHooks = "newTabUrl" | "searchEngines" | "searchUrl"
         | "vomnibarPage" | "extAllowList" | "grabBackFocus" | "mapModifier"
   type EnsuredUpdateHooks = DeclaredUpdateHooks
-  type UpdateHook<key extends keyof FullSettings> =
+  type UpdateHook<key extends keyof SettingsWithDefaults> =
         key extends NullableUpdateHooks ? NullableUpdateHook<key>
       : key extends EnsuredUpdateHooks | keyof SettingsWithDefaults ? SimpleUpdateHook<key>
       : never;
@@ -350,20 +341,17 @@ declare namespace SettingsNS {
   }
   type FullUpdateHookMap = PartialOrEnsured<BaseFullUpdateHookMap, EnsuredUpdateHooks>;
 
-  interface FullCache extends SafeObject, PartialOrEnsured<FullSettings
-      , "newTabUrl_f" | "searchEngineMap" | "searchEngineRules"
-        | "vomnibarOptions" | "hideHud" | "previousPatterns" | "nextPatterns"
-      > {}
-
   interface Sync {
     set<K extends keyof PersistentSettings> (key: K, value: PersistentSettings[K] | null): void;
   }
 
   interface MergedCustomCSS { ui: string; find: FindCSS; omni: string }
+  type LocalSettingNames = "innerCSS" | "findCSS" | "omniCSS" | "i18n_f" | "vomnibarPage_f" | "newTabUrl_f"
+      | "findModeRawQueryList" | GlobalConsts.kIsHighContrast | `${string}|${string}`
 
   // type NameList = Array<SettingNames>;
 }
-import FullSettings = SettingsNS.FullSettings;
+import SettingsWithDefaults = SettingsNS.SettingsWithDefaults;
 
 declare namespace BackendHandlersNS {
   interface SpecialHandlers {
@@ -386,7 +374,7 @@ declare namespace BackendHandlersNS {
       never;
   }
   const enum kInitStat {
-    none = 0, platformInfo = 1, main = 2, START = none, FINISHED = platformInfo | main
+    none = 0, platformInfo = 1, settings = 2, main = 4, START = none, FINISHED = platformInfo | settings | main
   }
 }
 

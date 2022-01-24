@@ -2,7 +2,7 @@ import {
   curIncognito_, curTabId_, curWndId_, framesForTab_, incognitoFindHistoryList_, recencyForTab_, set_curIncognito_,
   set_curTabId_, set_curWndId_, set_incognitoFindHistoryList_, set_lastWndId_, set_recencyForTab_, incognitoMarkCache_,
   set_incognitoMarkCache_, contentPayload_, reqH_, settingsCache_, OnFirefox, OnChrome, CurCVer_, updateHooks_,
-  OnEdge, isHighContrast_ff_, omniPayload_, blank_, CONST_, RecencyMap, CurFFVer_
+  OnEdge, isHighContrast_ff_, omniPayload_, blank_, CONST_, RecencyMap, CurFFVer_, storageCache_, IsLimited
 } from "./store"
 import * as BgUtils_ from "./utils"
 import {
@@ -98,7 +98,7 @@ export const ContentSettings_ = OnChrome ? {
     }
     cs.clear({ scope: kRegular });
     cs.clear({ scope: kIncognito }, runtimeError_)
-    localStorage.removeItem(ContentSettings_.makeKey_(contentType));
+    settings_.setInLocal_(ContentSettings_.makeKey_(contentType), null)
   },
   clearCS_ (options: KnownOptions<kBgCmd.clearCS>, port: Port | null): boolean {
     const ty = (options.type ? "" + options.type : "images") as NonNullable<typeof options.type>
@@ -131,7 +131,7 @@ export const ContentSettings_ = OnChrome ? {
         if (err) { resolve(0); return }
         if (!tab.incognito) {
           const key = ContentSettings_.makeKey_(contentType);
-          localStorage.getItem(key) !== "1" && localStorage.setItem(key, "1");
+          storageCache_.get(key) !== "1" && settings_.setInLocal_(key, "1")
         }
         let arr: Frames.Frames | undefined,
         couldNotRefresh = OnEdge || !browserSessions_()
@@ -266,7 +266,6 @@ export const ContentSettings_ = OnChrome ? {
   }
 } as never
 export const Marks_ = { // NOTE: all public members should be static
-  cache_: localStorage,
   set_ ({ l: local, n: markName, u: url, s: scroll }: MarksNS.NewMark, incognito: boolean, tabId?: number): void {
     if (local && scroll[0] === 0 && scroll[1] === 0) {
       if (scroll.length === 2) {
@@ -280,7 +279,7 @@ export const Marks_ = { // NOTE: all public members should be static
     const val = JSON.stringify<MarksNS.StoredGlobalMark | MarksNS.ScrollInfo>(local ? scroll
         : { tabId: tabId!, url, scroll })
     incognito ? (incognitoMarkCache_ || (IncognitoWatcher_.watch_(), set_incognitoMarkCache_(new Map()))).set(key, val)
-        : Marks_.cache_.setItem(key, val)
+        : settings_.setInLocal_(key, val)
   },
   createMark_ (this: void, request: MarksNS.NewTopMark | MarksNS.NewMark, port: Port): void {
     let tabId = port.s.tabId_;
@@ -295,7 +294,7 @@ export const Marks_ = { // NOTE: all public members should be static
   },
   gotoMark_ (this: void, request: Extract<FgReq[kFgReq.marks], { a: kMarkAction.goto }>, port: Port): void {
     const { n: markName } = request, key = Marks_.getLocationKey_(markName, request.u)
-    const str = port.s.incognito_ && incognitoMarkCache_?.get(key) || Marks_.cache_.getItem(key)
+    const str = port.s.incognito_ && incognitoMarkCache_?.get(key) || storageCache_.get(key)
     const options = request.c
     if (request.l) {
       let scroll: MarksNS.FgMark | null = str ? JSON.parse(str) as MarksNS.FgMark : null;
@@ -361,15 +360,13 @@ export const Marks_ = { // NOTE: all public members should be static
   },
   clear_ (this: void, url?: string): void {
     const key_start = Marks_.getLocationKey_("", url);
-    let toRemove: string[] = [], storage = Marks_.cache_;
-    for (let i = 0, end = storage.length; i < end; i++) {
-      const key = storage.key(i)!;
+    let num = 0
+    storageCache_.forEach((_: unknown, key: string): void => {
       if (key.startsWith(key_start)) {
-        toRemove.push(key);
+        num++
+        settings_.setInLocal_(key as `${typeof key_start}${string}`, null)
       }
-    }
-    for (const key of toRemove) { storage.removeItem(key); }
-    let num = toRemove.length;
+    })
     const storage2 = incognitoMarkCache_
     storage2 && storage2.forEach((_v, key): void => {
       if (key.startsWith(key_start)) {
@@ -386,11 +383,10 @@ export const Marks_ = { // NOTE: all public members should be static
 }
 
 export const FindModeHistory_ = {
-  key_: "findModeRawQueryList" as const,
   list_: null as string[] | null,
   timer_: 0,
   init_ (): void {
-    const str: string = settings_.get_(FindModeHistory_.key_)
+    const str: string = storageCache_.get("findModeRawQueryList") || ""
     FindModeHistory_.list_ = str ? str.split("\n") : [];
     FindModeHistory_.init_ = null as never;
   },
@@ -409,7 +405,7 @@ export const FindModeHistory_ = {
     }
     query = BgUtils_.unicodeRSubstring_(query, 0, 99)
     const str = a.refreshIn_(query, list);
-    str && settings_.set_(a.key_, str)
+    str && settings_.setInLocal_("findModeRawQueryList", str)
     if (incognitoFindHistoryList_) { a.refreshIn_(query, incognitoFindHistoryList_, true) }
   } as {
     (incognito: boolean, query?: undefined | "", nth?: number): string;
@@ -438,7 +434,7 @@ export const FindModeHistory_ = {
     }
     FindModeHistory_.init_ = null as never;
     FindModeHistory_.list_ = [];
-    settings_.set_(FindModeHistory_.key_, "")
+    settings_.setInLocal_("findModeRawQueryList", "")
   }
 }
 
@@ -494,7 +490,7 @@ OnFirefox && Build.MinFFVer < FirefoxBrowserVer.MinMediaQueryListenersWorkInBg &
   MediaWatcher_._timer = hasReliableWatchers ? -1 : 0
 })
 
-export const MediaWatcher_ = {
+export const MediaWatcher_ = Build.MV3 && IsLimited ? null as never : {
   watchers_: [
     (OnChrome && Build.MinCVer >= BrowserVer.MinMediaQuery$PrefersReducedMotion)
       || (OnFirefox && Build.MinFFVer >= FirefoxBrowserVer.MinMediaQuery$PrefersReducedMotion)
@@ -545,7 +541,8 @@ export const MediaWatcher_ = {
     }
     const omniToggled = key ? "dark" : "less-motion",
     bMatched: boolean = isObj ? (watcher as ObjWatcher).matches : rawMatched != null ? rawMatched
-        : settings_.get_(key === MediaNS.kName.PrefersReduceMotion ? "autoReduceMotion" : "autoDarkMode") === 1
+        : (key === MediaNS.kName.PrefersReduceMotion ? settingsCache_.autoReduceMotion
+            : settingsCache_.autoDarkMode) === 1
     const payloadKey = key ? "d" : "m", newPayloadVal = settings_.updatePayload_(payloadKey, bMatched)
     if (contentPayload_[payloadKey] !== newPayloadVal) {
       (contentPayload_ as Generalized<Pick<typeof contentPayload_, typeof payloadKey>>)[payloadKey] = newPayloadVal
@@ -680,18 +677,20 @@ setTimeout((): void => {
 
   OnChrome && void settings_.ready_.then((): void => {
   for (const i of ["images", "plugins", "javascript", "cookies"] as const) {
-    localStorage.getItem(ContentSettings_.makeKey_(i)) != null &&
+    storageCache_.get(ContentSettings_.makeKey_(i)) != null &&
     browser_.contentSettings && setTimeout(ContentSettings_.Clear_, 100, i)
   }
   })
 }, 120)
 
+if (!(Build.MV3 && IsLimited)) {
   updateHooks_.autoDarkMode = updateHooks_.autoReduceMotion = (value: 0 | 1 | 2 | boolean
       , keyName: "autoReduceMotion" | "autoDarkMode"): void => {
     const key = keyName.length > 12 ? MediaNS.kName.PrefersReduceMotion : MediaNS.kName.PrefersColorScheme;
     value = typeof value === "boolean" ? value ? 2 : 0 : value
     MediaWatcher_.listen_(key, value);
     MediaWatcher_.update_(key, 0, value === 2 ? null : value > 0)
+  }
 }
 
 updateHooks_.vomnibarOptions = (options: SettingsNS.BackendSettings["vomnibarOptions"] | null): void => {
@@ -730,8 +729,10 @@ updateHooks_.vomnibarOptions = (options: SettingsNS.BackendSettings["vomnibarOpt
   payload.t = queryInterval
   payload.l = sizes
   payload.s = styles
-  MediaWatcher_.update_(MediaNS.kName.PrefersReduceMotion, 1)
-  MediaWatcher_.update_(MediaNS.kName.PrefersColorScheme, 1)
+  if (!(Build.MV3 && IsLimited)) {
+    MediaWatcher_.update_(MediaNS.kName.PrefersReduceMotion, 1)
+    MediaWatcher_.update_(MediaNS.kName.PrefersColorScheme, 1)
+  }
   settings_.broadcastOmni_({ N: kBgReq.omni_updateOptions, d: {
     n: maxMatches,
     t: queryInterval,

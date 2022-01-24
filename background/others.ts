@@ -1,6 +1,6 @@
 import {
   curTabId_, Completion_, omniPayload_, reqH_, OnFirefox, CurCVer_, IsEdg_, OnChrome, restoreSettings_, blank_,
-  set_needIcon_, set_setIcon_, CONST_, installation_, backupToLocal_, set_backupToLocal_,
+  set_needIcon_, set_setIcon_, CONST_, installation_, updateToLocal_, set_updateToLocal_,
   framesForTab_, onInit_, updateHooks_, settingsCache_
 } from "./store"
 import {
@@ -24,24 +24,27 @@ declare const enum OmniboxData {
 }
 
 const enableShowIcon = updateHooks_.showActionIcon = (value): void => {
-    const api = (browser_ as any).action as typeof chrome.browserAction || browser_.browserAction
+    const api = Build.MV3 ? (browser_ as any).action as never : browser_.browserAction
     if (!api) {
       updateHooks_.showActionIcon = undefined
       return
     }
     set_needIcon_(value)
     void import2<typeof import("./action_icon")>("/background/action_icon.js").then(m => { m.toggleIconBuffer_() })
-    let title = extTrans_("name")
-    value || (title += "\n\n" + extTrans_("noActiveState"))
-    api.setTitle({ title })
+    Promise.resolve(extTrans_("name")).then((title): void => {
+      value || (title += "\n\n" + extTrans_("noActiveState"))
+      api.setTitle({ title })
+    })
 }
-if (settings_.get_("showActionIcon")) {
-  enableShowIcon(true)
-} else {
-  set_setIcon_(blank_)
-}
+void settings_.ready_.then((): void => {
+  if (settingsCache_.showActionIcon) {
+    enableShowIcon(true)
+  } else {
+    set_setIcon_(blank_)
+  }
+})
 
-setTimeout((): void => {
+Build.MV3 || setTimeout((): void => {
   void (import("/background/sync.js" as string) as Promise<typeof import("./sync")>)
 }, 100);
 
@@ -292,12 +295,12 @@ setTimeout((): void => {
     });
     if (!msg_inited) {
       msg_inited = true
-      if (i18nLang_() !== "en") {
+      Promise.resolve(extTrans_("i18n")).then((): void => { if (i18nLang_() !== "en") {
         void Promise.resolve(trans_("colon")).then((colon): void => {
           colon2 = colon + <string> trans_("NS") || colon2
           openColon = trans_("OpenC") as string || openColon
         })
-      }
+      } })
     }
     if (cleanTimer) {
       return clean();
@@ -335,7 +338,7 @@ OnChrome && ((): void => {
     && !IsEdg_ ? { origins: ["chrome://new-tab-page/*"] } : null
   ], function onChange (allowList): void | false {
     status = ((allowList[0] ? 1 : 0) + (allowList[1] ? 2 : 0)) as 0 | 1 | 2 | 3
-    if (status & 1 && !settings_.get_("allBrowserUrls")) { status ^= 1 }
+    if (status & 1 && !settingsCache_.allBrowserUrls) { status ^= 1 }
     if (listened !== !!status) {
       const webNav = browserWebNav_()
       if (!webNav) { return false }
@@ -384,7 +387,7 @@ installation_ && void installation_.then((details): void => {
   }
 
   if (!reason) {
-    const p = restoreSettings_ && restoreSettings_() || Promise.resolve()
+    const p = restoreSettings_ || Promise.resolve()
     void p.then(() => onInit_ ? new Promise(resolve => setTimeout(resolve, 200)) : 0).then((): void => {
       reqH_[kFgReq.focusOrLaunch]({
         u: CONST_.OptionsPage_ + (Build.NDEBUG ? "#commands" : "#installed")
@@ -395,14 +398,15 @@ installation_ && void installation_.then((details): void => {
   settings_.postUpdate_("vomnibarPage")
   if (parseFloat(CONST_.VerCode_) <= parseFloat(reason)) { return }
 
-  if (backupToLocal_) {
-    (backupToLocal_ as Exclude<typeof backupToLocal_, true | null>)(6000)
+  if (Build.MV3) { /* empty */ }
+  else if (updateToLocal_) {
+    (updateToLocal_ as Exclude<typeof updateToLocal_, true | null>)(6000)
   } else {
-    set_backupToLocal_(true)
+    set_updateToLocal_(true)
   }
   settings_.postUpdate_("newTabUrl")
 
-  if (!settings_.get_("notifyUpdate")) { return }
+  if (!settingsCache_.notifyUpdate) { return }
 
   reason = "vimium_c-upgrade-notification";
   void Promise.all([ trans_("Upgrade"), trans_("upgradeMsg", [CONST_.VerName_]), trans_("upgradeMsg2")

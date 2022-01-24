@@ -114,6 +114,7 @@ let settingsCache_ = null as {
 const As_ = <T> (i: T): T => i
 
 export const setupSettingsCache_ = (cache: Partial<SettingsNS.PersistentSettings>): void => { settingsCache_ = cache }
+export const getSettingsCache_ = () => settingsCache_ as Partial<SettingsNS.PersistentSettings>
 
 export const bgSettings_ = {
   platform_: "" as "win" | "linux" | "mac" | "unknown",

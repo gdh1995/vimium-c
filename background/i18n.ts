@@ -1,20 +1,26 @@
-import { installation_, OnFirefox } from "./store"
+import { IsLimited } from "./store"
 import { fetchFile_ } from "./utils"
-import { browser_ } from "./browser"
+import { browser_, Q_ } from "./browser"
 import type * as i18n_map from "../_locales/en/messages.json"
 import type * as i18n_dyn from "../i18n/zh/background.json"
 
 type StringEndsWith<A extends string, S extends string>
     = string extends S ? string : string extends A ? string : A extends `${string}${S}` ? A : never
 type ValidI18nFiles = "background" | "help_dialog" | "params.json"
+export type ExtNames = keyof typeof i18n_map
 export type I18nNames = keyof typeof i18n_dyn
 
+let extPayload_: Map<string, string>
+export let i18nReadyExt_: Promise<void> | BOOL = Build.MV3 && IsLimited ? 0 : 1
 let i18nPayload_: Map<string, string>
 let ready_: Promise<Map<string, string>> | BOOL = 0
 
 export const contentI18n_: string[] = []
 
-export const extTrans_ = (msg: keyof typeof i18n_map, args?: string[]): string => browser_.i18n.getMessage(msg, args)
+export const extTrans_ = (msg: ExtNames): string | Promise<string> =>
+    !(Build.MV3 && IsLimited) ? browser_.i18n.getMessage(msg)
+    : i18nReadyExt_ === 1 ? extPayload_.get(msg)!
+    : (i18nReadyExt_ || loadExt_()).then(extTrans_.bind(0, msg))
 
 export const trans_ = (name: I18nNames, args?: (string | number)[]): string | Promise<string> => {
   if (ready_ === 1) {
@@ -29,34 +35,55 @@ export const trans_ = (name: I18nNames, args?: (string | number)[]): string | Pr
   }
 }
 
+type RawExtDict = Map<ExtNames, { message: string }>
+const loadExt_ = (): Promise<void> => {
+  return i18nReadyExt_ = Promise.all([
+    (fetchFile_("/_locales/en/messages.json") as Promise<RawExtDict>), Q_(browser_.i18n.getAcceptLanguages)
+  ]).then(([enDict, wanted]): Promise<RawExtDict[]> | RawExtDict[] => {
+    let all = ((enDict.get("i18nAll") || {}).message || "").split(" "), i = ""
+    for (i of wanted || []) {
+      i = all.includes!(i) || all.includes!(i = i.split("-")[0]) ? i : ""
+    }
+    if (!i) { return [enDict] }
+    return Promise.all([enDict, fetchFile_(`/_locales/${i}/messages.json`)])
+  }).then((arr): void => {
+    extPayload_ = new Map<string, string>()
+    i18nReadyExt_ = 1
+    for (let i of arr) {
+      for (let [k, v] of (i as any).entries() as [string, { message: string }][]) {
+        extPayload_.set(k, v.message)
+      }
+    }
+  })
+}
+
 const endsWith = <A extends string, S extends string> (name: A, tail: S): name is A & StringEndsWith<A, S> =>
     name.endsWith(tail)
 
-export const transPart_ = (name: "i18n" | "sugs", child: string): string => {
-  const msg = name === "i18n" ? extTrans_(name) : name
+export const transPart_ = (msg: "t(i18n)" | "t(sugs)", child: string | null): string => {
   return msg && msg.split(" ").reduce((old, i) => old ? old : !i.includes("=") ? i
-      : i.startsWith(child) ? i.slice(child.length + 1) : old, "")
+      : child && i.startsWith(child) ? i.slice(child.length + 1) : old, "")
 }
 
-export let i18nLang_ = (id?: ValidI18nFiles): string =>
-    transPart_("i18n", id || "background") || extTrans_("lang1") || "en"
+export const i18nLang_ = (id?: ValidI18nFiles): string => {
+  let msg2 = extTrans_("i18n") as "t(i18n)"
+  return transPart_(msg2, id || "background") || extTrans_("lang1") as string || "en"
+}
 
 export const getI18nJson = (file_name: ValidI18nFiles): Promise<Map<string, string>> => {
+  if (Build.MV3 && i18nReadyExt_ === 0) {
+    return loadExt_().then(getI18nJson.bind(0, file_name))
+  }
   const url = endsWith(file_name, ".json") ? file_name as `${string}.json`
       : `${i18nLang_(file_name)}/${file_name}.json` as const
   return fetchFile_(`/i18n/${url}`)
 }
 
 export let loadContentI18n_: (() => void) | null = (): void => {
-  const arr: string[] = contentI18n_, args = ["$1", "$2", "$3", "$4"], bTrans = browser_.i18n.getMessage
+  const arr: string[] = contentI18n_, args = ["$1", "$2", "$3", "$4"]
   for (let i = 0; i < kTip.INJECTED_CONTENT_END; i++) {
-    arr.push(bTrans(("" + i) as "0", args))
+    arr.push(Build.MV3 && IsLimited ? extPayload_.get("" + i)!.replace("$$", "$")
+        : (extTrans_ as (msg: ExtNames, args?: string[]) => string)(("" + i) as "0", args))
   }
   loadContentI18n_ = null
-}
-
-if (OnFirefox) {
-  installation_ && void installation_.then((): void => {
-    localStorage.removeItem("i18n_f")
-  })
 }

@@ -1,12 +1,11 @@
 import {
   cPort, cRepeat, get_cOptions, set_cPort, set_cOptions, set_cRepeat, framesForTab_, findCSS_, cKey, reqH_,
   curTabId_, settingsCache_, OnChrome, visualWordsRe_, CurCVer_, OnEdge, OnFirefox, substitute_, CONST_,
-  helpDialogData_, set_helpDialogData_, curWndId_, vomnibarPage_f
+  helpDialogData_, set_helpDialogData_, curWndId_, vomnibarPage_f, IsLimited
 } from "./store"
 import * as BgUtils_ from "./utils"
 import { Tabs_, downloadFile, getTabUrl, runtimeError_, selectTab, R_, Q_, browser_, import2 } from "./browser"
 import { convertToUrl_, createSearchUrl_ } from "./normalize_urls"
-import * as settings_ from "./settings"
 import { showHUD, complainLimits, ensureInnerCSS, getParentFrame } from "./ports"
 import { getFindCSS_cr_ } from "./ui_css"
 import { getI18nJson, trans_ } from "./i18n"
@@ -92,7 +91,7 @@ export const initHelp = (request: FgReq[kFgReq.initHelp], port: Port): Promise<v
       h: helpDialog.render_(isOptionsPage, options.commandNames),
       o: CONST_.OptionsPage_, f: request.f,
       e: !!options.exitOnClick,
-      c: isOptionsPage && !!keyMappingErrors_ || settings_.get_("showAdvancedCommands", true)
+      c: isOptionsPage && !!keyMappingErrors_ || settingsCache_.showAdvancedCommands
     })
   }, Build.NDEBUG ? OnChrome && Build.MinCVer < BrowserVer.Min$Promise$$Then$Accepts$null
       ? undefined : null as never : (args): void => {
@@ -222,7 +221,7 @@ export const captureTab = (tabs: [Tab] | undefined, resolve: OnCmdResolved): voi
       if (noDownload) { return }
       const port = cPort && framesForTab_.get(cPort.s.tabId_)?.top_ || cPort
       downloadFile(finalUrl!, title, port ? port.s.url_ : null, (succeed): void => {
-        succeed ? 0 : OnFirefox ? doShow(finalUrl!) : clickAnchor_cr(finalUrl!)
+        succeed ? 0 : Build.MV3 && IsLimited || OnFirefox ? doShow(finalUrl!) : clickAnchor_cr(finalUrl!)
         resolve(succeed)
       })
     }

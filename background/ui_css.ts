@@ -1,10 +1,10 @@
 import {
   findCSS_, innerCSS_, omniPayload_, set_findCSS_, set_innerCSS_, CurCVer_, CurFFVer_, IsEdg_, omniStyleOverridden_,
   OnChrome, OnEdge, OnFirefox, isHighContrast_ff_, set_isHighContrast_ff_, bgIniting_, CONST_, set_helpDialogData_,
-  framesForOmni_, settingsCache_, set_omniStyleOverridden_, updateHooks_
+  framesForOmni_, settingsCache_, set_omniStyleOverridden_, updateHooks_, storageCache_, set_vomnibarPage_f, IsLimited
 } from "./store"
 import { asyncIter_, fetchFile_, spacesRe_ } from "./utils"
-import { ready_, broadcastOmni_, get_, postUpdate_, storage_ } from "./settings"
+import { ready_, broadcastOmni_, postUpdate_, setInLocal_ } from "./settings"
 import { asyncIterFrames_ } from "./ports"
 
 export declare const enum MergeAction {
@@ -25,12 +25,12 @@ export const reloadCSS_ = (action: MergeAction, cssStr?: string): SettingsNS.Mer
   }
   if (action === MergeAction.rebuildAndBroadcast) { set_helpDialogData_(null) }
   {
-    let findCSSStr: string | null | false
-    if (findCSSStr = action === MergeAction.readFromCache && storage_.getItem("findCSS")) {
+    let findCSSStr: string | undefined | false
+    if (findCSSStr = action === MergeAction.readFromCache && storageCache_.get("findCSS")) {
       OnChrome && (findCSS_file_old_cr = null)
       set_findCSS_(parseFindCSS_(findCSSStr))
       set_innerCSS_(cssStr!.slice(StyleCacheId_.length))
-      omniPayload_.c = storage_.getItem("omniCSS") || ""
+      omniPayload_.c = storageCache_.get("omniCSS") || ""
       return
     }
   }
@@ -61,9 +61,9 @@ export const reloadCSS_ = (action: MergeAction, cssStr?: string): SettingsNS.Mer
     }
     const cssFile = parseSections_(css)
     let isHighContrast_ff = false, hcChanged_ff = false
-    if (OnFirefox) {
+    if (OnFirefox && !(Build.MV3 && IsLimited)) {
       if (!matchMedia("(forced-colors)").matches) {
-        isHighContrast_ff = storage_.getItem(GlobalConsts.kIsHighContrast) === "1"
+        isHighContrast_ff = storageCache_.get(GlobalConsts.kIsHighContrast) === "1"
       }
       hcChanged_ff = isHighContrast_ff_ !== isHighContrast_ff
       set_isHighContrast_ff_(isHighContrast_ff)
@@ -133,13 +133,13 @@ export const reloadCSS_ = (action: MergeAction, cssStr?: string): SettingsNS.Mer
     if (OnFirefox) { /** {@link ../tests/dom/firefox-position_fixed-in-dialog.html} */
       css += ".DLG>.Omnibar{position:absolute}"
     }
-    storage_.setItem("innerCSS", StyleCacheId_ + css)
+    setInLocal_("innerCSS", StyleCacheId_ + css)
     let findCSS = cssFile.find!
-    storage_.setItem("findCSS", findCSS.length + "\n" + findCSS)
+    setInLocal_("findCSS", findCSS.length + "\n" + findCSS)
     if (OnFirefox && hcChanged_ff && bgIniting_ === BackendHandlersNS.kInitStat.FINISHED) {
       postUpdate_("vomnibarOptions")
     }
-    mergeCSS(get_("userDefinedCss"), action)
+    mergeCSS(settingsCache_.userDefinedCss, action)
   })
 }
 
@@ -162,13 +162,14 @@ const parseFindCSS_ = (find2: string): FindCSS => {
 
 export const mergeCSS = (css2Str: string, action: MergeAction | "userDefinedCss"
     ): SettingsNS.MergedCustomCSS | void => {
-  let css = storage_.getItem("innerCSS")!, idx = css.indexOf("\n")
+  let css = storageCache_.get("innerCSS")!, idx = css.indexOf("\n")
   css = idx > 0 ? css.slice(0, idx) : css
   const css2 = parseSections_(css2Str)
   let newInnerCSS = css2.ui ? css + "\n" + css2.ui : css
   let findh = css2["find:host"], findSel = css2["find:selection"]
-  let find2 = css2.find, omni2 = css2.omni, F = "findCSS", O = "omniCSS"
-  css = storage_.getItem(F)!
+  let find2 = css2.find, omni2 = css2.omni
+  const F = "findCSS", O = "omniCSS"
+  css = storageCache_.get(F)!
   idx = css.indexOf("\n")
   css = css.slice(0, idx + 1 + +css.slice(0, idx))
   let endFSel = css.indexOf("\n", idx + 1), offsetFSel = css.slice(0, endFSel).indexOf("  ")
@@ -187,15 +188,15 @@ export const mergeCSS = (css2Str: string, action: MergeAction | "userDefinedCss"
   }
   if (idx < 0) { css = css.length + "\n" + css }
   find2 = find2 ? css + "\n" + find2 : css
-  css = (storage_.getItem(O) || "").split("\n", 1)[0]
+  css = (storageCache_.get(O) || "").split("\n", 1)[0]
   omni2 = omni2 ? css + "\n" + omni2 : css
   if (action === MergeAction.virtual) {
     return { ui: newInnerCSS.slice(StyleCacheId_.length), find: parseFindCSS_(find2), omni: omni2 }
   }
 
-  storage_.setItem("innerCSS", newInnerCSS)
-  storage_.setItem(F, find2)
-  omni2 ? storage_.setItem(O, omni2) : storage_.removeItem(O)
+  setInLocal_("innerCSS", newInnerCSS)
+  setInLocal_(F, find2)
+  setInLocal_(O, omni2 || null)
   reloadCSS_(MergeAction.readFromCache, newInnerCSS)
   if (action !== MergeAction.readFromCache && action !== MergeAction.rebuildWhenInit) {
     asyncIterFrames_((frames: Frames.Frames): void => {
@@ -250,21 +251,21 @@ export const getFindCSS_cr_ = OnChrome ? (sender: Frames.Sender): FindCSS => {
 void ready_.then((): void => {
   StyleCacheId_ = CONST_.VerCode_ + ","
       + (OnChrome ? CurCVer_ : OnFirefox ? CurFFVer_ : 0)
-      + ( !OnEdge && (!OnChrome || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
+      + (Build.MV3 && IsLimited || !OnEdge && (!OnChrome || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
             && (!OnFirefox || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
           ? ""
           : (OnChrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
               ? globalThis.ShadowRoot || (globalThis as MaybeWithWindow).document!.body!.webkitCreateShadowRoot
               : globalThis.ShadowRoot)
           ? "s" : "")
-      + (OnChrome && Build.MinCVer >= BrowserVer.MinUsableCSS$All ? ""
+      + (Build.MV3 && IsLimited || OnChrome && Build.MinCVer >= BrowserVer.MinUsableCSS$All ? ""
         : (!OnChrome || CurCVer_ > BrowserVer.MinUsableCSS$All - 1)
           && (!OnEdge || "all" in ((globalThis as MaybeWithWindow).document!.body as HTMLElement).style)
         ? "a" : "")
       + ";"
-set_innerCSS_(storage_.getItem("innerCSS") || "")
+set_innerCSS_(storageCache_.get("innerCSS") || "")
 if (innerCSS_ && !innerCSS_.startsWith(StyleCacheId_)) {
-  storage_.removeItem("vomnibarPage_f")
+  set_vomnibarPage_f("")
   reloadCSS_(MergeAction.rebuildWhenInit, innerCSS_)
 } else {
   reloadCSS_(MergeAction.readFromCache, innerCSS_)

@@ -73,6 +73,7 @@ var Tasks = {
   "static/minify-js": function() {
     const path = ["lib/math_parser*.js"];
     minify_viewer && path.push(VIEWER_JS)
+    getBuildItem("MV3") && path.push("background/worker.js")
     if (!getBuildItem("Minify")) {
       return copyByPath(path);
     }
@@ -107,6 +108,7 @@ var Tasks = {
   },
   "minify-html": function() {
     const arr = ["front/*.html", "pages/*.html", "!*/vomnibar.html"];
+    getBuildItem("MV3") && arr.push("background/worker.html")
     if (!getBuildItem("Minify")) { return copyByPath(arr) }
     return copyByPath(arr, file => { ToBuffer(file, require("html-minifier").minify(ToString(file), {
       collapseWhitespace: true,
@@ -150,7 +152,7 @@ var Tasks = {
 
   "build/scripts": ["build/background", "build/content", "build/front"],
   "build/_clean_diff": function() {
-    return cleanByPath([".build/**", "manifest.json", "*/vomnibar.html"
+    return cleanByPath([".build/**", "manifest.json", "*/vomnibar.html", "background/*.html"
         , "*/*.html", "*/*.css", "**/*.json", "**/*.js", "!helpers/*/*.js", ".snapshot.sh"
         ], DEST)
   },
@@ -169,6 +171,7 @@ var Tasks = {
       curConfig.push(getBuildItem("EdgeC"));
     }
     curConfig.push(getNonNullBuildItem("NDEBUG"));
+    curConfig.push(getBuildItem("MV3"));
     curConfig = JSON.stringify(curConfig);
     configFile = osPath.join(JSDEST, "." + configFile + ".build");
     var needClean = true;
@@ -253,6 +256,27 @@ var Tasks = {
   _manifest: function(cb) {
     var minVer = getBuildItem("MinCVer"), browser = getBuildItem("BTypes");
     minVer = minVer ? (minVer | 0) : 0;
+    if (getBuildItem("MV3")) {
+      for (const key of Object.keys(manifest)) {
+        if (key.endsWith(".v3")) {
+          const val = manifest[key]
+          delete manifest[key]
+          if (key.endsWith("[].v3") && val instanceof Array) {
+            const old = manifest[key.slice(0, -5)]
+            for (const item of val) {
+              if (item[0] === "-") {
+                let found = old.indexOf(item.slice(1)); found >= 0 && old.splice(found, 1)
+              } else {
+                old.includes(item) || old.push(item)
+              }
+            }
+          } else {
+            val != null ? (manifest[key.slice(0, -3)] = val) : delete manifest[key.slice(0, -3)]
+            delete manifest[key]
+          }
+        }
+      }
+    }
     if (locally ? browser & ~BrowserType.Chrome : !(browser & BrowserType.Chrome)) {
       delete manifest.minimum_chrome_version;
       delete manifest.key;
@@ -302,6 +326,10 @@ var Tasks = {
       }
       if (browser === BrowserType.Firefox) {
         delete manifest.version_name
+      }
+      for (const item of manifest.web_accessible_resources || []) {
+        const matches = typeof item === "object" && item.matches || [], i = matches.indexOf("chrome-extension://*/*")
+        if (i >= 0) { matches.splice(i, 1) }
       }
     }
     if (browser & BrowserType.Firefox) {
@@ -457,6 +485,10 @@ gulp.task("locally", function(done) {
   if (locally) { return done(); }
   locally = true;
   gTypescript = null;
+  if (process.env.BUILD_MV3 && !process.env.LOCAL_DIST) {
+    delete process.env.BUILD_MV3
+    print("MV3 is not enabled locally")
+  }
   compilerOptions = loadValidCompilerOptions("scripts/gulp.tsconfig.json");
   createBuildConfigCache();
   var old_has_polyfill = has_polyfill;

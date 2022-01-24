@@ -404,13 +404,20 @@ export const watchPermissions_ = (queries: (AtomPermission | null)[]
 
 export const runContentScriptsOn_ = (tabId: number): void => {
   const offset = location.origin.length
+  if (Build.MV3) {
+    (browser_ as any).scripting.executeScript({
+      target: { tabId, allFrames: true },
+      files: CONST_.ContentScripts_.slice(0, -1).map(i => i.slice(offset))
+    })
+    return
+  }
   for (let js of CONST_.ContentScripts_.slice(0, -1)) {
     Tabs_.executeScript(tabId, {file: js.slice(offset), allFrames: true}, runtimeError_)
   }
 }
 
 export const import2 = <T> (path: string): Promise<T> =>
-    import(path)
+    Build.MV3 ? Promise.resolve(__moduleMap![path.split("/").slice(-1)[0].replace(".js", "")] as T) : import(path)
 
 //#endregion
 

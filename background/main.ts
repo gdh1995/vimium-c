@@ -1,7 +1,7 @@
 import {
   framesForTab_, framesForOmni_, OnChrome, CurCVer_, OnEdge, OnFirefox, contentPayload_, curTabId_, bgC_,
   set_visualWordsRe_, bgIniting_, Completion_, CONST_, keyFSM_, reqH_, set_bgIniting_, set_hasGroupPermission_ff_,
-  onInit_, set_onInit_
+  onInit_, set_onInit_, IsLimited
 } from "./store"
 import * as BgUtils_ from "./utils"
 import { runtimeError_, tabsGet, Tabs_, browser_, watchPermissions_} from "./browser"
@@ -42,7 +42,7 @@ const executeShortcutEntry = (cmd: StandardShortcutNames | kShortcutAliases): vo
 set_onInit_(As_<typeof onInit_>((): void => {
       if (bgIniting_ !== BackendHandlersNS.kInitStat.FINISHED) { return }
       if (onInit_) {
-        BgUtils_.nextTick_(onInit_)
+        BgUtils_.nextTick_(settings_.ready_.then.bind(settings_.ready_, onInit_))
         set_onInit_(null)
         return
         // all code below requires all necessary have inited when calling this
@@ -53,13 +53,12 @@ set_onInit_(As_<typeof onInit_>((): void => {
           visualKeys_["m-s-c"] = VisualAction.YankRichText
         }
       }
-      settings_.get_("hideHud", true)
-      settings_.get_("nextPatterns", true)
-      settings_.get_("previousPatterns", true)
       settings_.postUpdate_("exclusionListenHash")
       settings_.postUpdate_("vomnibarOptions")
-      settings_.postUpdate_("autoDarkMode")
-      settings_.postUpdate_("autoReduceMotion")
+      if (!(Build.MV3 && IsLimited)) { // media watchers should be setup after vomnibarOptions
+        settings_.postUpdate_("autoDarkMode")
+        settings_.postUpdate_("autoReduceMotion")
+      }
       browser_.runtime.onConnect.addListener((port): void => {
         if (OnEdge) {
           let name = port.name, pos = name.indexOf(PortNameEnum.Delimiter), type = pos > 0 ? name.slice(0, pos) : name;
@@ -88,7 +87,7 @@ set_onInit_(As_<typeof onInit_>((): void => {
       });
   browser_.extension.isAllowedIncognitoAccess((isAllowedAccess): void => {
     CONST_.DisallowIncognito_ = isAllowedAccess === false
-    setTimeout((): void => {
+    Build.MV3 || setTimeout((): void => {
       import("/background/others.js" as any)
       setTimeout((): void => {
         import("/background/browsing_data_manager.js" as any)

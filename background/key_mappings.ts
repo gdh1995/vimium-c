@@ -1,7 +1,7 @@
 import {
   bgIniting_, CONST_, contentPayload_, keyFSM_, keyToCommandMap_, mappedKeyRegistry_, mappedKeyTypes_, omniPayload_,
   OnChrome, OnEdge, OnFirefox, OnOther_, set_keyFSM_, set_keyToCommandMap_, set_mappedKeyRegistry_, set_mappedKeyTypes_,
-  updateHooks_
+  settingsCache_, updateHooks_
 } from "./store"
 import * as BgUtils_ from "./utils"
 import * as settings_ from "./settings"
@@ -770,8 +770,9 @@ const upgradeKeyMappings = (value: string): void => {
   }
 }
 
-if (bgIniting_ & BackendHandlersNS.kInitStat.platformInfo) {
-  populateKeyMap_(settings_.get_("keyMappings"))
+if ((bgIniting_ & (BackendHandlersNS.kInitStat.platformInfo | BackendHandlersNS.kInitStat.settings))
+    === (BackendHandlersNS.kInitStat.platformInfo | BackendHandlersNS.kInitStat.settings)) {
+  populateKeyMap_(settingsCache_.keyMappings)
   if (!OnEdge && contentPayload_.o === kOS.mac) {
     visualKeys_["m-s-c"] = VisualAction.YankRichText
   }

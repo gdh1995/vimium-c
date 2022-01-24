@@ -366,7 +366,6 @@ declare namespace SettingsNS {
     grabBackFocus: boolean;
     /** if want to rework it, must search it in all files and take care */
     ignoreCapsLock: 0 | 1 | 2;
-    newTabUrl_f: string;
     showAdvancedCommands: boolean;
     vomnibarOptions: SelectNVType<VomnibarOptionItems> & VomnibarBackendItems;
   }

@@ -7,6 +7,9 @@ export const OnOther_ = !Build.BTypes || Build.BTypes & (Build.BTypes - 1) ? Bui
     : Build.BTypes & BrowserType.Firefox ? BrowserType.Firefox
     : /* an invalid state */ BrowserType.Unknown
     : Build.BTypes as number as BrowserType
+export const IsLimited: boolean = !!Build.MV3
+    // @ts-ignore
+    && typeof window === "undefined"
 
 export const OnChrome: boolean = !(Build.BTypes & ~BrowserType.Chrome)
     || !!(Build.BTypes & BrowserType.Chrome && OnOther_ & BrowserType.Chrome)
@@ -19,7 +22,8 @@ export const OnSafari: boolean = !(Build.BTypes & ~BrowserType.Safari)
 
 const userAgentData = navigator.userAgentData
 let tmpBrand: NonNullable<Navigator["userAgentData"]>["brands"][0] | undefined
-export const IsEdg_: boolean = OnChrome && (!userAgentData ? matchMedia("(-ms-high-contrast)").matches
+export const IsEdg_: boolean = OnChrome && (!userAgentData
+    ? Build.MV3 && IsLimited ? false : matchMedia("(-ms-high-contrast)").matches
     : !!userAgentData.brands.find(i => i.brand.includes("Edge") || i.brand.includes("Microsoft")))
 export const CurCVer_: BrowserVer = !OnChrome ? BrowserVer.assumedVer
     : userAgentData ? (tmpBrand = userAgentData.brands.find(i => i.brand.includes("Chromium")))
@@ -41,9 +45,10 @@ export let installation_: Promise<chrome.runtime.InstalledDetails> | null | unde
 //#endregion
 
 //#region runtime configuration
-export const hasEmptyLocalStorage_ = localStorage.length <= 0
+export let hasEmptyLocalStorage_ = false
 export let hasGroupPermission_ff_: boolean | 0 = false
-export const settingsCache_ = Object.create(null) as Readonly<SettingsNS.FullCache>
+export const settingsCache_ = {} as Readonly<SettingsNS.SettingsWithDefaults>
+export const storageCache_: PartialOrEnsured<Map<SettingsNS.LocalSettingNames, string>, "get" | "forEach"> = new Map()
 export let newTabUrl_f = "", vomnibarPage_f = ""
 export const contentPayload_ = <SettingsNS.FrontendSettingCache> As_<SettingsNS.DeclaredFrontendValues>({
   v: OnChrome ? CurCVer_ : OnFirefox ? CurFFVer_ : 0,
@@ -162,6 +167,7 @@ export const set_cRepeat = (_newRepeat: number): void => { cRepeat = _newRepeat 
 export const get_cEnv = (): typeof cEnv => cEnv
 export const set_cEnv = (_newEnv: typeof cEnv): void => { cEnv = _newEnv }
 
+export const set_hasEmptyLocalStorage_ = (_newEmpty: boolean): void => { hasEmptyLocalStorage_ = _newEmpty }
 export const set_newTabUrl_f = (_newNTP: string): void => { newTabUrl_f = _newNTP }
 export const set_vomnibarPage_f = (_newOmniP: string): void => { vomnibarPage_f = _newOmniP }
 export const set_omniStyleOverridden_ = (_newOverridden: boolean): void => { omniStyleOverridden_ = _newOverridden }
@@ -189,13 +195,13 @@ let fakeTabId: number = GlobalConsts.MaxImpossibleTabId
 export const getNextFakeTabId = (): number => fakeTabId--
 export let setIcon_: (tabId: number, type: Frames.ValidStatus, isLater?: true) => void = blank_
 export let sync_: SettingsNS.Sync["set"] = blank_
-export let restoreSettings_: (() => Promise<void> | null) | null = null
+export let restoreSettings_: Promise<void> | null = null
 export let copy_: (text: string | any[], join?: FgReq[kFgReq.copy]["j"], sed?: MixedSedOpts | null) => string =
     (() => "")
 export let paste_: (sed?: MixedSedOpts | null, len?: number) => string | Promise<string | null> | null = () => ""
 export let substitute_: (text: string, context: SedContext, sed?: MixedSedOpts | null) => string = s => s
 export let evalVimiumUrl_: Urls.Executor = () => null
-export let backupToLocal_: ((wait: number) => void) | true | null = null
+export let updateToLocal_: ((wait: number) => void) | true | null = null
 export let shownHash_: ((this: void) => string) | null = null
 
 export const set_setIcon_ = (_newSetIcon: typeof setIcon_): void => { setIcon_ = _newSetIcon }
@@ -206,7 +212,7 @@ export const set_paste_ = (_newPaste: typeof paste_): void => { paste_ = _newPas
 export const set_substitute_ = (_newSed: typeof substitute_): void => { substitute_ = _newSed }
 export const set_evalVimiumUrl_ = (_newEval: typeof evalVimiumUrl_): void => { evalVimiumUrl_ = _newEval }
 export const set_shownHash_ = (_newHash: typeof shownHash_): void => { shownHash_ = _newHash }
-export const set_backupToLocal_ = (_newBackup: typeof backupToLocal_): void => { backupToLocal_ = _newBackup }
+export const set_updateToLocal_ = (_newBackup: typeof updateToLocal_): void => { updateToLocal_ = _newBackup }
 
 export const set_CurFFVer_ = OnFirefox ? (ver: FirefoxBrowserVer) => { CurFFVer_ = ver } : blank_
 //#endregion

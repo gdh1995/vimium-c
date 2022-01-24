@@ -1,6 +1,7 @@
 import {
   contentPayload_, evalVimiumUrl_, keyFSM_, keyToCommandMap_, mappedKeyRegistry_, newTabUrls_, restoreSettings_,
-  CONST_, settingsCache_, shownHash_, substitute_, framesForTab_, curTabId_, extAllowList_, OnChrome, reqH_, OnEdge
+  CONST_, settingsCache_, shownHash_, substitute_, framesForTab_, curTabId_, extAllowList_, OnChrome, reqH_, OnEdge,
+  storageCache_
 } from "./store"
 import { deferPromise_, protocolRe_, safeObj_ } from "./utils"
 import { browser_, getCurTab, getTabUrl, Q_, runContentScriptsOn_, runtimeError_ } from "./browser"
@@ -28,13 +29,13 @@ const pageRequestHandlers_ = As_<{
   /** kPgReq.settingsDefaults: */ (_): PgReq[kPgReq.settingsDefaults][1] =>
       [settings_.defaults_, contentPayload_.o, CONST_.Platform_],
   /** kPgReq.settingsCache: */ (req): OrPromise<PgReq[kPgReq.settingsCache][1]> => {
-    const p = restoreSettings_ && restoreSettings_()
+    const p = restoreSettings_
     if (p) {
       return p.then(pageRequestHandlers_[kPgReq.settingsCache].bind(null, req, null))
     }
     const cache = {} as SettingsNS.SettingsWithDefaults
     for (const key in settings_.defaults_) {
-      const val = settings_.get_(key as keyof SettingsNS.SettingsWithDefaults)
+      const val = settingsCache_[key as keyof SettingsNS.SettingsWithDefaults]
       if (val !== settings_.defaults_[key as keyof SettingsNS.SettingsWithDefaults]) {
         cache[key as keyof SettingsNS.SettingsWithDefaults] = val as never
       }
@@ -55,7 +56,7 @@ const pageRequestHandlers_ = As_<{
   /** kPgReq.notifyUpdate: */ (req): void => {
     settings_.broadcast_({ N: kBgReq.settingsUpdate, d: req })
   },
-  /** kPgReq.settingItem: */ (req): PgReq[kPgReq.settingItem][1] => settings_.get_(req.key, true),
+  /** kPgReq.settingItem: */ (req): PgReq[kPgReq.settingItem][1] => settingsCache_[req.key],
   /** kPgReq.runJSOn: */ (id): PgReq[kPgReq.runJSOn][1] => { framesForTab_.has(id) || runContentScriptsOn_(id) },
   /** kPgReq.keyMappingErrors: */ (): PgReq[kPgReq.keyMappingErrors][1] => {
     const formatCmdErrors_ = (errors: string[][]): string => {
@@ -90,15 +91,16 @@ const pageRequestHandlers_ = As_<{
     return mergeCSS(req[0], MergeAction.virtual)!
   },
   /** kPgReq.reloadCSS: */ (req): PgReq[kPgReq.reloadCSS][1] => {
-    req && (req.hc ? localStorage.setItem(GlobalConsts.kIsHighContrast, "1")
-        : localStorage.removeItem(GlobalConsts.kIsHighContrast))
+    req && settings_.setInLocal_(GlobalConsts.kIsHighContrast, req.hc ? "1" : null)
     reloadCSS_(MergeAction.rebuildAndBroadcast)
   },
   /** kPgReq.convertToUrl: */ (req): PgReq[kPgReq.convertToUrl][1] => {
     const url = convertToUrl_(req[0], null, req[1])
     return [url, lastUrlType_]
   },
-  /** kPgReq.updateMediaQueries: */ (): PgReq[kPgReq.updateMediaQueries][1] => { MediaWatcher_.RefreshAll_() },
+  /** kPgReq.updateMediaQueries: */ (): PgReq[kPgReq.updateMediaQueries][1] => {
+    Build.MV3 || MediaWatcher_.RefreshAll_()
+  },
   /** kPgReq.whatsHelp: */ (): PgReq[kPgReq.whatsHelp][1] => {
     const cmdRegistry = keyToCommandMap_.get("?")
     let matched = "?"
@@ -144,8 +146,7 @@ const pageRequestHandlers_ = As_<{
   /** kPgReq.substitute: */ (req): PgReq[kPgReq.substitute][1] => substitute_(req[0], req[1]),
   /** kPgReq.checkHarmfulUrl: */ (url): PgReq[kPgReq.checkHarmfulUrl][1] => checkHarmfulUrl_(url),
   /** kPgReq.popupInit: */ (): Promise<PgReq[kPgReq.popupInit][1]> => {
-    const restoreTask = restoreSettings_ && restoreSettings_()
-    return Promise.all([Q_(getCurTab), restoreTask]).then(([_tabs]): PgReq[kPgReq.popupInit][1] => {
+    return Promise.all([Q_(getCurTab), restoreSettings_]).then(([_tabs]): PgReq[kPgReq.popupInit][1] => {
       const tab = _tabs && _tabs[0] || null, tabId = tab ? tab.id : curTabId_
       const ref = framesForTab_.get(tabId) ?? null
       const url = tab ? getTabUrl(tab) : ref && (ref.top_ || ref.cur_).s.url_ || ""
@@ -172,7 +173,7 @@ const pageRequestHandlers_ = As_<{
         lock: ref && ref.lock_ ? ref.lock_.status_ : null, status: sender ? sender.status_ : Frames.Status.enabled,
         unknownExt: extHost,
         exclusions: runnable ? {
-          rules: settings_.get_("exclusionRules", true), onlyFirst: settings_.get_("exclusionOnlyFirstMatch", true),
+          rules: settingsCache_.exclusionRules, onlyFirst: settingsCache_.exclusionOnlyFirstMatch,
           matchers: Exclusions.parseMatcher_(null), defaults: settings_.defaults_.exclusionRules
         } : null,
         os: contentPayload_.o, reduceMotion: contentPayload_.m
@@ -180,7 +181,7 @@ const pageRequestHandlers_ = As_<{
     })
   },
   /** kPgReq.allowExt: */ ([tabId, extIdToAdd]): Promise<PgReq[kPgReq.allowExt][1]> => {
-    let list = settings_.get_("extAllowList"), old = list.split("\n")
+    let list = settingsCache_.extAllowList, old = list.split("\n")
     if (old.indexOf(extIdToAdd) < 0) {
       const ind = old.indexOf("# " + extIdToAdd) + 1 || old.indexOf("#" + extIdToAdd) + 1
       old.splice(ind ? ind - 1 : old.length, ind ? 1 : 0, extIdToAdd)
@@ -237,10 +238,16 @@ const pageRequestHandlers_ = As_<{
   /** kPgReq.getStorage: */ (req): PgReq[kPgReq.getStorage][1] => {
     let dict: Dict<string | null> = safeObj_()
     if (req) {
-      const val = localStorage.getItem(req)
+      const val = storageCache_.get(req)
       dict[req] = val != null ? val : null
+    } else {
+      storageCache_.forEach((val: string, key: SettingsNS.LocalSettingNames): void => { dict[key] = val })
     }
     return dict
+  },
+  /** kPgReq.setInLocal: */ ({ key, val }): void => {
+    if (!key.includes("|")) { return }
+    settings_.setInLocal_(key as `${string}|${string}`, val)
   }
 ])
 

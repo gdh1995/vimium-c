@@ -1,8 +1,8 @@
 import {
   CurCVer_, CurFFVer_, OnChrome, OnEdge, OnFirefox, $, import2, OnSafari, enableNextTick_, isVApiReady_, kReadyInfo,
-  simulateClick, fetch
+  simulateClick, fetch, post_
 } from "./async_bg"
-import { bgSettings_, AllowedOptions, ExclusionRulesOption_, Option_, oTrans_ } from "./options_base"
+import { bgSettings_, AllowedOptions, ExclusionRulesOption_, Option_, oTrans_, getSettingsCache_ } from "./options_base"
 import { exportBtn, saveBtn } from "./options_defs"
 import { manifest } from "./options_permissions";
 import { advancedOptBtn, ElementWithDelay, delayed_task, clear_delayed_task } from "./options_wnd"
@@ -111,34 +111,19 @@ const buildExportedFile = (now: Date, want_static: boolean): { blob: Blob, optio
   if (OnFirefox) {
     exported_object.environment.firefox = CurFFVer_
   }
-  const storedKeys: Array<keyof SettingsNS.PersistentSettings> = [],
-  storage = localStorage, all = bgSettings_.defaults_;
-  for (let i = 0, len = storage.length; i < len; i++) {
-    const key = storage.key(i) as string;
-    if (!key.includes("|") && !key.endsWith("_f")
-        && key !== "findModeRawQueryList"
-        && !key.endsWith("CSS") // ignore innerCSS, findCSS, omniCSS
-    ) {
-      storedKeys.push(key as keyof SettingsNS.PersistentSettings);
-    }
-  }
-  storedKeys.sort();
+  const storage = getSettingsCache_(), all = bgSettings_.defaults_
+  const storedKeys = Object.keys(storage).sort() as (keyof SettingsNS.PersistentSettings)[]
   omniBlockListRe = null
   for (const key of storedKeys) {
-    const storedVal = storage.getItem(key) as string;
-    if (typeof all[key] !== "string") {
-      exported_object[key] = (key in all) ? <any> bgSettings_.get_(key) : storedVal;
-    } else if (storedVal.includes("\n")) {
-      (exported_object[key] = storedVal.split("\n")).push("");
-    } else {
+    const storedVal = storage[key] as string, defaultVal = all[key]
+    if (storedVal === defaultVal) { continue }
+    if (typeof defaultVal !== "string") {
       exported_object[key] = storedVal;
-    }
-    if (typeof all[key] === "string") {
-      const val2 = exported_object[key] as string | string[]
-      if (typeof val2 === "string") {
-        exported_object[key] = maskStr(key, val2)
+    } else {
+      if (storedVal.includes("\n")) {
+        (exported_object[key] = storedVal.split("\n").map(line => maskStr(key, line))).push("")
       } else {
-        exported_object[key] = val2.map(line => maskStr(key, line))
+        exported_object[key] = maskStr(key, storedVal)
       }
     }
   }
@@ -301,11 +286,10 @@ async function _importSettings(time: number, new_data: ExportedSettings, is_reco
   normalizeExtOrigin_("vomnibarPage")
   normalizeExtOrigin_("newTabUrl")
 
-  const storage = localStorage, all = bgSettings_.defaults_, _ref = Option_.all_
-  for (let i = storage.length; 0 <= --i; ) {
-    const key = storage.key(i) as string;
-    if (key.includes("|")) { continue; }
-    if (!(key in new_data)) {
+  const storage = getSettingsCache_(), all = bgSettings_.defaults_, _ref = Option_.all_
+  for (const key in storage) {
+    if (storage[key as keyof SettingsNS.PersistentSettings] !== all[key as keyof SettingsNS.PersistentSettings]
+        && !(key in new_data)) {
       new_data[key] = null;
     }
   }
@@ -370,12 +354,10 @@ async function _importSettings(time: number, new_data: ExportedSettings, is_reco
           logUpdate("reset", key, new_value);
           return bgSettings_.set_(key as SettingKeys, new_value as never)
         }
-      } else {
-        new_value = storage.getItem(key as SettingKeys);
+      } else if (key.includes("|")) {
+        logUpdate("remove", key, "(from local)");
+        return post_(kPgReq.setInLocal, { key, val: null })
       }
-      if (storage.getItem(key) == null) { return }
-      logUpdate("remove", key, ":=", new_value);
-      return storage.removeItem(key as SettingKeys)
     }
     if (typeof all[key as SettingKeys] === "string") {
       new_value = decodeStrOption(new_value as string | string[])
@@ -385,9 +367,10 @@ async function _importSettings(time: number, new_data: ExportedSettings, is_reco
         logUpdate("update", key, new_value);
         return bgSettings_.set_(key as SettingKeys, new_value as never)
       }
-    } else {
+    } else if (key.includes("|")) {
+      new_value = "" + new_value
       logUpdate("save", key, new_value);
-      return storage.setItem(key, "" + new_value)
+      return post_(kPgReq.setInLocal, { key, val: new_value })
     }
   })).catch((err): void => { logUpdate("[ERROR] saving fields failed", "cause:", err) })
   enableNextTick_(kReadyInfo.NONE, kReadyInfo.LOCK)

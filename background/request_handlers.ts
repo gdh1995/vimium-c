@@ -1,7 +1,7 @@
 import {
   set_cPort, set_cRepeat, set_cOptions, needIcon_, set_cKey, cKey, get_cOptions, set_reqH_, reqH_, restoreSettings_,
   innerCSS_, framesForTab_, cRepeat, curTabId_, Completion_, CurCVer_, OnChrome, OnEdge, OnFirefox, setIcon_, blank_,
-  substitute_, paste_, keyToCommandMap_, CONST_, copy_, set_cEnv
+  substitute_, paste_, keyToCommandMap_, CONST_, copy_, set_cEnv, settingsCache_
 } from "./store"
 import * as BgUtils_ from "./utils"
 import {
@@ -15,7 +15,7 @@ import {
 } from "./ports"
 import { exclusionListening_, getExcluded_ } from "./exclusions"
 import { setOmniStyle_ } from "./ui_css"
-import { contentI18n_, loadContentI18n_, transPart_, trans_ } from "./i18n"
+import { contentI18n_, extTrans_, i18nReadyExt_, loadContentI18n_, transPart_, trans_ } from "./i18n"
 import { keyRe_ } from "./key_mappings"
 import {
   sendFgCmd, replaceCmdOptions, onConfirmResponse, executeCommand, portSendFgCmd,
@@ -47,8 +47,8 @@ set_reqH_([
       set_cPort(port)
       return complainLimits(trans_("notModify", [k]))
     }
-    const key = allowed[k], p = restoreSettings_ && restoreSettings_()
-    if (settings_.get_(key) === request.v) { return }
+    const key = allowed[k], p = restoreSettings_
+    if (settingsCache_[key] === request.v) { return }
     p ? void p.then(() => { settings_.set_(key, request.v) }) : settings_.set_(key, request.v)
     interface BaseCheck { key: 123 }
     type Map1<T> = T extends keyof SettingsNS.DirectlySyncedItems ? T : 123
@@ -363,7 +363,7 @@ set_reqH_([
     const name = type === "tab" ? type : type + " item"
     const cb = (succeed?: boolean | BOOL | void): void => {
       void Promise.resolve(trans_("sugs")).then((sugs): void => {
-        showHUD(trans_(succeed ? "delSug" : "notDelSug", [transPart_(sugs as "sugs", type[0]) || name]))
+        showHUD(trans_(succeed ? "delSug" : "notDelSug", [transPart_(sugs as "t(sugs)", type[0]) || name]))
       })
     }
     set_cPort(findCPort(port)!)
@@ -402,7 +402,14 @@ set_reqH_([
     performFind()
   },
   /** kFgReq.framesGoBack: */ _AsReqH<kFgReq.framesGoBack>(framesGoBack),
-  /** kFgReq.i18n: */ (): FgRes[kFgReq.i18n] => {
+  /** kFgReq.i18n: */ (_, port, msgId): FgRes[kFgReq.i18n] | Port => {
+    if (Build.MV3 && i18nReadyExt_ !== 1) {
+      (extTrans_("name") as Promise<string>).then((): void => {
+        loadContentI18n_ && loadContentI18n_()
+        sendResponse(port, msgId, contentI18n_)
+      })
+      return port
+    }
     loadContentI18n_ && loadContentI18n_()
     return contentI18n_
   },
@@ -456,7 +463,8 @@ const onCompletions = function (this: Port, favIcon0: 0 | 1 | 2, list: Array<Rea
   let { url_: url } = this.s, favIcon: 0 | 1 | 2 = favIcon0 === 2 ? 2 : 0
   let next: IteratorResult<Frames.Frames>
   let top: Frames.Frames["top_"], sender: Frames.Sender | null
-  if (OnFirefox) {
+  if (Build.MV3) { favIcon = 0 }
+  else if (OnFirefox) {
     favIcon = list.some(i => i.e === "tab") ? favIcon : 0
   } else if (OnEdge) {
     favIcon = 0
@@ -541,7 +549,7 @@ const replaceForwardedOptions = (toForward?: object | string | null): void => {
 const onPagesReq = (req: FgReqWithRes[kFgReq.pages]["q"], id: number
     , port: Frames.PagePort | null): Promise<FgRes[kFgReq.pages]> => {
   if (!_pageHandlers) {
-    _pageHandlers = (import("/background/sync.js" as any))
+    _pageHandlers = (Build.MV3 ? Promise.resolve() : import("/background/sync.js" as any))
         .then(() => settings_.ready_)
         .then(() => import2<typeof import("./page_handlers")>("/background/page_handlers.js"))
   }
