@@ -1,6 +1,6 @@
 import {
   clickable_, isJSUrl, doc, isImageUrl, fgCache, readyState_, chromeVer_, VTr, createRegExp, max_, OnChrome,
-  math, includes_, OnFirefox, OnEdge, WithDialog, safeCall, evenHidden_, set_evenHidden_, tryCreateRegExp
+  math, includes_, OnFirefox, OnEdge, WithDialog, safeCall, evenHidden_, set_evenHidden_, tryCreateRegExp, loc_
 } from "../lib/utils"
 import {
   isIFrameElement, getInputType, uneditableInputs_, getComputedStyle_, findMainSummary_, htmlTag_, isAriaNotTrue_,
@@ -186,7 +186,9 @@ const checkJSAction = (str: string): boolean => {
 export const getPreferredRectOfAnchor = (anchor: HTMLAnchorElement): Rect | null => {
   // for Google search result pages
   let mayBeSearchResult = !!(anchor.rel || attr_s(anchor, "onmousedown")
-        || (attr_s(anchor, "href") || "").startsWith("/url?") || anchor.dataset.jsarwt),
+        || (attr_s(anchor, "href") || "").startsWith("/url?")
+        || (OnChrome ? anchor.ping : attr_s(anchor, "ping")) // on Google Chrome 96 [2022-01-22]
+        || anchor.dataset.jsarwt), // on MS Edge 97
   el = mayBeSearchResult && querySelector_unsafe_("h3,h4", anchor)
         || (mayBeSearchResult || anchor.childElementCount === 1) && anchor.firstElementChild as Element | null
         || null,
@@ -440,10 +442,14 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
       extraClickable_.forEach(addExtraVisibleToHints.bind(0, output))
     }
   }
-  extraClickable_ = cur_tree = cur_arr = null as never
+  cur_scope = extraClickable_ = cur_tree = cur_arr = null as never
   set_evenHidden_(kHidden.None)
   while (output.length && (output[0][0] === docEl_unsafe_() || !hintManager && output[0][0] === doc.body)) {
     output.shift()
+  }
+  if (wantClickable && mode1_ < HintMode.min_job && !matchSelector && loc_.pathname.startsWith("/search")) {
+    const exc = loc_.host.includes("google") ? ".g" : loc_.host.includes("bing.com") ? ".b_algo" : 0
+    output = exc ? output.filter(hint => !testMatch(exc, hint)) : output
   }
   if (Build.NDEBUG ? wholeDoc : wholeDoc && !isInAnElement) {
     // this requires not detecting scrollable elements if wholeDoc
