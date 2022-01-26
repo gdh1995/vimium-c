@@ -202,7 +202,7 @@ set_contentCommands_([
     onPassKey!(0)
   },
   /* kFgCmd.goNext: */ (req: CmdOptions[kFgCmd.goNext]): void => {
-    let parApi: VApiTy | null | void, chosen: GoNextBaseCandidate | false | 0 | null
+    let parApi: VApiTy | null | void, chosen: GoNextBaseCandidate | false | 0 | void
     if (!isTop && (parApi = getParentVApi())
         && !parApi.a(keydownEvents_)) {
       parApi.f(kFgCmd.goNext, req as CmdOptions[kFgCmd.goNext] & FgOptions, 1)

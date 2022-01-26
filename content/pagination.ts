@@ -106,7 +106,7 @@ export const filterTextToGoNext: VApiTy["g"] = (candidates, names, options, maxL
 }
 
 export const findNextInText = (names: string[], options: CmdOptions[kFgCmd.goNext]
-    ): GoNextBaseCandidate | null => {
+    ): GoNextBaseCandidate | void => {
   const wordRe = <RegExpOne> /\b/
   let array: GoNextCandidate[] = [], officer: VApiTy | undefined, maxLen = options.m, s: string
   let curLenLimit: number
@@ -129,7 +129,6 @@ export const findNextInText = (names: string[], options: CmdOptions[kFgCmd.goNex
       if (!candidate[3] || re.test(candidate[3])) { return candidate }
     }
   }
-  return null;
 }
 
 export const findNextInRel = (relName: string): GoNextBaseCandidate | null | undefined => {
@@ -165,12 +164,12 @@ export const findNextInRel = (relName: string): GoNextBaseCandidate | null | und
   return matched && [matched as SafeHTMLElement, vApi]
 }
 
-export const jumpToNextLink = (linkElement: GoNextBaseCandidate[0]): void => {
+export const jumpToNextLink: VApiTy["j"] = (linkElement: GoNextBaseCandidate[0]): void => {
   let url = hasTag_("link", linkElement) && (linkElement as HTMLLinkElement).href
   view_(linkElement)
   flash_(linkElement) // here calls getRect -> preparCrop_
   if (url) {
-    contentCommands_[kFgCmd.framesGoBack](safer({ r: 1, url }))
+    contentCommands_[kFgCmd.framesGoBack](safer<CmdOptions[kFgCmd.framesGoBack]>({ r: 1, u: url }))
   } else {
     timeout_((): void => { void catchAsyncErrorSilently(click_async(linkElement)) }, 100)
   }
