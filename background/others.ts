@@ -1,7 +1,7 @@
 import {
   curTabId_, Completion_, omniPayload_, reqH_, OnFirefox, CurCVer_, IsEdg_, OnChrome, restoreSettings_, blank_,
   set_needIcon_, set_setIcon_, CONST_, installation_, backupToLocal_, set_backupToLocal_,
-  framesForTab_, onInit_, updateHooks_
+  framesForTab_, onInit_, updateHooks_, settingsCache_
 } from "./store"
 import {
   Tabs_, browser_, getCurWnd, runtimeError_, watchPermissions_, browserWebNav_, runContentScriptsOn_, import2
@@ -72,6 +72,14 @@ setTimeout((): void => {
   const
   maxResults = OnFirefox || OnChrome && Build.MinCVer < BrowserVer.MinOmniboxUIMaxAutocompleteMatchesMayBe12
       && CurCVer_ < BrowserVer.MinOmniboxUIMaxAutocompleteMatchesMayBe12 ? 6 : 12
+  const normalizeInput = (input: string): string => {
+    input = input.trim().replace(BgUtils_.spacesRe_, " ")
+    if (settingsCache_.vomnibarOptions.actions.includes("icase")) {
+      const prefix = (<RegExpOne> /^:[WBH] /).test(input) ? 3 : 0
+      input = prefix ? input.slice(0, prefix) + input.slice(prefix).toLowerCase() : input.toLowerCase()
+    }
+    return input
+  }
   function clean(): void {
     if (lastSuggest) { lastSuggest.suggest_ = null; }
     subInfoMap = suggestions = lastSuggest = last = null;
@@ -191,7 +199,7 @@ setTimeout((): void => {
     return;
   }
   function onInput(this: void, key: string, suggest: OmniboxCallback): void {
-    key = key.trim().replace(BgUtils_.spacesRe_, " ");
+    key = normalizeInput(key)
     if (lastSuggest) {
       let same = key === lastSuggest.key_;
       lastSuggest.suggest_ = same ? suggest : null;
@@ -241,7 +249,7 @@ setTimeout((): void => {
       timer && clearTimeout(timer);
       return onTimer();
     }
-    text = text.trim().replace(BgUtils_.spacesRe_, " ");
+    text = normalizeInput(text)
     if (last === null && text) {
       // need a re-computation
       // * may has been cleaned, or

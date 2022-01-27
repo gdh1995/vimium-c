@@ -140,6 +140,9 @@ export const showVomnibar = (forceInner?: boolean): void => {
     e: !!(get_cOptions<C.showVomnibar>()).exitOnClick,
     k: BgUtils_.getOmniSecret_(true)
   }), get_cOptions<C.showVomnibar, true>()) as CmdOptions[kFgCmd.vomnibar] & SafeObject
+  if (options.icase == null) {
+    if (settingsCache_.vomnibarOptions.actions.includes("icase")) { options.icase = true }
+  }
   portSendFgCmd(port, kFgCmd.vomnibar, true, options, cRepeat)
   options.k = "omni"
   set_cOptions(options) // safe on renaming

@@ -1397,7 +1397,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       }
       str = str.replace(a.spacesRe_, " ");
       if (a.caseInsensitive_) {
-        str = str.toLowerCase();
+        const prefix = (<RegExpOne> /^:[WBH] /).test(str) ? 3 : 0
+        str = prefix ? str.slice(0, prefix) + str.slice(prefix).toLowerCase() : str.toLowerCase()
       }
       if (str === mode.q) { return a.postUpdate_(); }
       mode.t = a.matchType_ < CompletersNS.MatchType.someMatches || !str.startsWith(mode.q) ? CompletersNS.SugType.Empty
