@@ -7,13 +7,14 @@ import * as BgUtils_ from "./utils"
 import { convertToUrl_, lastUrlType_, createSearch_ } from "./normalize_urls"
 import { fixCharsInUrl_ } from "./parse_urls"
 import {
-  MatchCacheManager_, RankingEnums, RegExpCache_, requireNormalOrIncognitoTabs_, TabEx,
+  MatchCacheManager_, RankingEnums, RegExpCache_, requireNormalOrIncognitoTabs_, TabEx, sync_queryTerms_,
   tabsInNormal, setupQueryTerms, set_tabsInNormal, TimeEnums, WritableTabEx, ComputeRecency, ComputeRelevancy,
   ComputeWordRelevancy, get2ndArg, match2_, prepareHTML_, getWordRelevancy_, cutTitle, highlight, shortenUrl, sortBy0,
   calcBestFaviconSource_only_cr_, SearchKeywords_, set_maxScoreP_, set_timeAgo_, maxScoreP_
 } from "./completion_utils"
 import {
-  BlockListFilter_, BookmarkManager_, UrlDecoder_, HistoryManager_, TestNotBlocked_, getRecentSessions_, BrowserUrlItem
+  BlockListFilter_, BookmarkManager_, UrlDecoder_, HistoryManager_, TestNotBlocked_, getRecentSessions_, BrowserUrlItem,
+  omniBlockList
 } from "./browsing_data_manager"
 
 import MatchType = CompletersNS.MatchType;
@@ -49,7 +50,7 @@ let matchType: MatchType = MatchType.plain,
     wantInCurrentWindow = false,
     historyUrlToSkip = "", bookmarkUrlToSkip = "",
     allExpectedTypes = SugType.Empty,
-    omniBlockList: string[] | null = null, showThoseInBlocklist = true;
+    showThoseInBlocklist = true;
 
 const Suggestion: SuggestionConstructor = function (
     this: CompletersNS.WritableCoreSuggestion,
@@ -364,7 +365,7 @@ domainEngine = {
         }
       }
     } else {
-      for (let domain in (ref as any as SimulatedMap).map_ as any as SafeDict<Domain>) {
+      for (const domain in (ref as any as SimulatedMap).map_ as any as SafeDict<Domain>) {
         if (!domain.includes(word)) { continue; }
         matchedDomain = ref.get(domain)!
         if (showThoseInBlocklist || matchedDomain.count_ > 0) {
@@ -700,10 +701,12 @@ searchEngine = {
           if (queryTerms.length > 1) {
             queryTerms[1] = fixCharsInUrl_(queryTerms[1], queryTerms.length > 2)
           }
+          sync_queryTerms_(queryTerms)
           return searchEngine.preFilter_(query);
     case Urls.kEval.search:
           const newQuery = (ret as Urls.SearchEvalResult)[0];
           queryTerms = newQuery.length > 1 || newQuery.length === 1 && newQuery[0] ? newQuery : queryTerms;
+          sync_queryTerms_(queryTerms)
           const counter = searchEngine._nestedEvalCounter++;
           if (counter > 12) { break; }
           const subVal = searchEngine.preFilter_(query, true);
@@ -814,6 +817,7 @@ Completers = {
     set_maxScoreP_(RankingEnums.maximumScore * queryTerms.length || 0.01)
     if (queryTerms.indexOf("__proto__") >= 0) {
       queryTerms = queryTerms.join(" ").replace(<RegExpG> /(^| )__proto__(?=$| )/g, " __proto_").trimLeft().split(" ");
+      sync_queryTerms_(queryTerms)
     }
     MatchCacheManager_.update_(showThoseInBlocklist)
     queryTerms.sort(Completers.rSortQueryTerms_);

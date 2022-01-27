@@ -31,6 +31,8 @@ let decodingEnabled: boolean | undefined, decodingJobs: ItemToDecode[], decoding
 let charsetDecoder_: TextDecoder | null = null
 let omniBlockList: string[] | null = null, omniBlockListRe: RegExpOne | null = null
 
+export { omniBlockList }
+
 export const parseDomainAndScheme_ = (url: string): UrlDomain | null => {
   let scheme = url.slice(0, 5), d: Urls.SchemeId, i: number
   if (scheme === "https") { d = Urls.SchemeId.HTTPS }

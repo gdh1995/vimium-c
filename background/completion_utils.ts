@@ -67,6 +67,7 @@ export const setupQueryTerms = (_newQueryArr: string[], _newForAddressBar: boole
   usePlainText = OnFirefox && isForAddressBar
   maxChars = _newMaxChars
 }
+export const sync_queryTerms_ = (_newQueryArr: string[]) => { queryTerms = _newQueryArr }
 export const set_timeAgo_ = (_newTimeAgo: number): void => { timeAgo_ = _newTimeAgo }
 export const set_maxScoreP_ = (_newMaxScoreP: number): void => { maxScoreP_ = _newMaxScoreP }
 
