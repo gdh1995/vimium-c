@@ -249,13 +249,13 @@ async function _importSettings(time: number, new_data: ExportedSettings, is_reco
     dict2 && typeof dict2 === "object" && Object.assign(new_data, dict2)
   }
   if (new_data.vimSync == null) {
-    const curSync = <boolean> bgSettings_.get_("vimSync"), keep = curSync && confirm(oTrans_("keepSyncing"));
-    new_data.vimSync = keep || null;
+    const curSync = <boolean | null> bgSettings_.get_("vimSync"), keep = curSync && confirm(oTrans_("keepSyncing"));
+    new_data.vimSync = keep || (curSync != null ? false : null)
     if (curSync) {
       console.log("Before importing: You chose to", keep ? "keep settings synced." : "stop syncing settings.");
     }
     // if `new_data.vimSync` was undefined, then now it's null
-    // this is useful, in case the below "iterating over localStorage and setting-null" was changed
+    // this is useful, in case the below "iterating over local storage and setting-null" was changed
   }
 
   const logUpdate = function (method: string, key: string, a2: string | any, a3?: any): any {
