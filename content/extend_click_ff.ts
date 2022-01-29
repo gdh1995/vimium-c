@@ -1,40 +1,40 @@
 import {
   clickable_, timeout_, loc_, getTime, clearTimeout_, vApi, recordLog, doc, setupEventListener, VTr, raw_unwrap_ff,
-  isTY, OnFirefox, Stop_, isAsContent
+  isTY, OnFirefox, isAsContent
 } from "../lib/utils"
-import { CLK, MDW, OnDocLoaded_, isHTML_, set_createElement_, createElement_ } from "../lib/dom_utils"
+import { CLK, MDW, OnDocLoaded_, isHTML_, set_createElement_, createElement_, docEl_unsafe_ } from "../lib/dom_utils"
 import { grabBackFocus } from "./insert"
 import { coreHints, doesWantToReloadLinkHints } from "./link_hints"
-import { prevent_ } from "../lib/keyboard_utils"
 /* eslint-disable @typescript-eslint/await-thenable */
 
 declare function exportFunction(func: unknown, targetScope: object
     , options?: { defineAs?: string; allowCrossOriginArguments?: boolean }): unknown
 
 /** `null`: disabled; `false`: nothing to do; `true`: begin to watch; `Event`: watching; `0`: page prevented */
-let clickEventToPrevent_: BOOL | Event | null = null
-let clickAnchor_: HTMLAnchorElement & SafeHTMLElement | false | 0 = 0
+let clickEventToPrevent_: BOOL | Event | undefined
+let clickAnchor_: HTMLAnchorElement & SafeHTMLElement | false | 0 | undefined = 0
 let isClickEventPreventedByPage: BOOL = 0
 let preventEventOnWindow: ((wnd: Window) => Promise<void>) | undefined
+let hookMethods: (setter: typeof eportToMainWorld, event: EventToPrevent) => void
 
 export { clickEventToPrevent_ }
+
+const eportToMainWorld = <T extends object, K extends (keyof T) & string> (obj: T, name: K, func: T[K]): void => {
+  exportFunction(func, obj, { defineAs: name, allowCrossOriginArguments: true })
+}
 
 export const main_ff = (OnFirefox ? (): void => {
   isHTML_() || set_createElement_(doc.createElementNS.bind(doc, VTr(kTip.XHTML) as "http://www.w3.org/1999/xhtml"
       ) as typeof createElement_)
   if (!grabBackFocus) { return }
 (function (): void {
-  const apply = setupEventListener.apply, call = setupEventListener.call
-  const doExport = <T extends object, K extends (keyof T) & string> (obj: T, name: K, func: T[K]): void => {
-    exportFunction(func, obj, { defineAs: name, allowCrossOriginArguments: true })
-  }
   const PEventTarget = (window as PartialOf<typeof globalThis, "EventTarget">).EventTarget,
   ETCls = PEventTarget && PEventTarget.prototype,
   wrappedET = ETCls && raw_unwrap_ff(ETCls),
   newListen = function (this: EventTarget, type: string, listener: EventListenerOrEventListenerObject): void {
       const a = this, args = arguments, len = args.length
       len === 2 ? listen(a, type, listener) : len === 3 ? listen(a, type, listener, args[2] as EventListenerOptions)
-        : (apply as (this: (this: EventTarget, ...args: any[]) => void
+        : (setupEventListener.apply as (this: (this: EventTarget, ...args: any[]) => void
               , self: EventTarget, args: IArguments) => void
           ).call(_listen as (this: EventTarget, ...args1: any[]) => void, a, args)
       if ((type === CLK || type === MDW || type === "dblclick") && alive
@@ -58,17 +58,16 @@ export const main_ff = (OnFirefox ? (): void => {
   let _listen: EventTarget["addEventListener"] | undefined
   let listen: (self: EventTarget, name: string
       , listener: EventListenerOrEventListenerObject, opts?: EventListenerOptions | boolean) => void
-  let isHandingTheSecondTime: BOOL, notDuringAct: BOOL
   try {
     _listen = wrappedET && wrappedET.addEventListener
-    listen = call.bind<(this: (this: EventTarget,
+    listen = setupEventListener.call.bind<(this: (this: EventTarget,
             type: string, listener: EventListenerOrEventListenerObject, useCapture?: EventListenerOptions | boolean
           ) => 42 | void,
           self: EventTarget, name: string, listener: EventListenerOrEventListenerObject,
           opts?: EventListenerOptions | boolean
         ) => 42 | void>(_listen!)
     if (alive = isTY(_listen, kTY.func)) {
-        doExport(ETCls!, _listen.name as "addEventListener", newListen)
+        eportToMainWorld(ETCls!, _listen.name as "addEventListener", newListen)
         vApi.e = (cmd: ValidContentCommands): void => { alive = alive && cmd < kContentCmd._minSuppressClickable }
     }
     OnDocLoaded_((): void => {
@@ -79,7 +78,14 @@ export const main_ff = (OnFirefox ? (): void => {
   } catch (e) {
     Build.NDEBUG || (recordLog("Vimium C: extending click crashed in %o @t=%o ."), console.log(e))
   }
-  if (Build.MinFFVer >= FirefoxBrowserVer.MinPopupBlockerPassClicksFromExtensions) { return }
+})
+} : 0 as never) as () => void
+
+export const unblockClick_old_ff = (): void => {
+  let isHandingTheSecondTime: BOOL, notDuringAct: BOOL
+  const el2 = docEl_unsafe_(), st = el2 && (el2 as TypeToPick<Element, HTMLElement | SVGElement, "style">).style
+  // controlled by `layout.css.color-scheme.enabled`, which is enabled by default since FireFox 96
+  if (st && (st as any).colorScheme != null) { return }
   /**
    * This idea of hooking and appending `preventDefault` is from lydell's `LinkHints`:
    * https://github.com/lydell/LinkHints/blob/efa18fdfbf95016bd706b83a2d51545cb157b440/src/worker/Program.js#L1337-L1631
@@ -89,7 +95,7 @@ export const main_ff = (OnFirefox ? (): void => {
     type Pair<Key extends kAct> = readonly [() => void, Key]
     const PEvent = (window as PartialOf<typeof globalThis, "Event">).Event,
     EventCls = PEvent && PEvent.prototype as EventToPrevent,
-    wrappedCls = EventCls && raw_unwrap_ff(EventCls),
+    wrappedCls = isAsContent ? EventCls && raw_unwrap_ff(EventCls) : EventCls,
     stdMembers: readonly [Pair<kAct.prevent>, Pair<kAct.stopImm>, Pair<kAct.stopProp>] & { [i in kAct]: Pair<i> }
         = wrappedCls ? [[wrappedCls.preventDefault, kAct.prevent]
             , [wrappedCls.stopImmediatePropagation, kAct.stopImm]
@@ -115,7 +121,7 @@ export const main_ff = (OnFirefox ? (): void => {
       if (notDuringAct && (!clickAnchor_ || clickAnchor_.target === "_blank")) {
         isClickEventPreventedByPage = 0
         notDuringAct = 0
-        try { call.call(stdMembers[kAct.prevent][0], event) } catch (e) {}
+        try { setupEventListener.call.call(stdMembers[kAct.prevent][0], event) } catch (e) {}
         notDuringAct = 1
       }
     },
@@ -130,34 +136,38 @@ export const main_ff = (OnFirefox ? (): void => {
       await (phase > /** Event.CAPTURING_PHASE */ 1 && localSetupListener(0, 3))
       localSetupListener(1, 1), localSetupListener(1, 3)
     }
+
+    hookMethods = (setter, event): void => {
+      for (const [stdFunc, idx] of stdMembers) {
+        setter(event, stdFunc.name as "preventDefault" | "stopPropagation" | "stopImmediatePropagation"
+            , function (this: EventToPrevent): any {
+          const self = this, ret = setupEventListener.apply.call(stdFunc, self, arguments)
+          self !== clickEventToPrevent_ ? 0
+          : idx < kAct.stopImm || self.defaultPrevented ? isClickEventPreventedByPage = 1 // idx === kAct.prevent
+          : idx > kAct.stopImm ? void listenToPreventClick(self) // idx === kAct.stopProp
+          : callPreviousPreventSafely(self) // idx === kAct.stopImm
+          return ret
+        });
+      }
+    }
+    if (grabBackFocus && isAsContent && stdMembers.every(i => isTY(i[0], kTY.func))) {
+      hookMethods(eportToMainWorld, EventCls!)
+    }
     preventEventOnWindow = async (wnd: Window): Promise<void> => {
       isClickEventPreventedByPage = notDuringAct = isHandingTheSecondTime = 1
       await setupEventListener(wnd, CLK, tryToPreventClick, 0, 3)
       setupEventListener(wnd, CLK, tryToPreventClick, 1, 3)
     }
-
-    for (const [stdFunc, idx] of stdMembers.every(i => isTY(i[0], kTY.func)) ? stdMembers : [] as never) {
-      doExport(EventCls!, stdFunc.name as "preventDefault" | "stopPropagation" | "stopImmediatePropagation"
-          , function (this: EventToPrevent): any {
-        const self = this, ret = apply.call(stdFunc, self, arguments)
-        self !== clickEventToPrevent_ ? 0
-        : idx < kAct.stopImm || self.defaultPrevented ? isClickEventPreventedByPage = 1 // idx === kAct.prevent
-        : idx > kAct.stopImm ? void listenToPreventClick(self) // idx === kAct.stopProp
-        : callPreviousPreventSafely(self) // idx === kAct.stopImm
-        return ret
-      });
-    }
     clickEventToPrevent_ = 0
   } catch (e) {
     Build.NDEBUG || (recordLog("Vimium C: hooking Event::preventDefault crashed in %o @t=%o ."), console.log(e))
   }
-})()
-} : 0 as never) as () => void
+}
 
 export const prepareToBlockClick_old_ff = (doesBeginPrevent: boolean
     , anchor: HTMLAnchorElement & SafeHTMLElement | false): void => {
-  clickEventToPrevent_ = !isAsContent || clickEventToPrevent_ != null ? <BOOL> +doesBeginPrevent : clickEventToPrevent_
-  clickAnchor_ = anchor
+  clickEventToPrevent_ = clickEventToPrevent_ != null ? <BOOL> +doesBeginPrevent : clickEventToPrevent_
+  clickAnchor_ = clickEventToPrevent_ && anchor
 }
 
 export const dispatchAndBlockClickOnce_old_ff = (targetElement: SafeElement, clickEvent: MouseEvent): boolean => {
@@ -166,13 +176,13 @@ export const dispatchAndBlockClickOnce_old_ff = (targetElement: SafeElement, cli
   if (!(Build.NDEBUG || view !== raw_unwrap_ff(window))) {
     console.log("Assert error: a target element is bound to window.wrappedJSObject");
   }
-  if (doesBlock && preventEventOnWindow) {
+  if (doesBlock) {
     clickEventToPrevent_ = clickEvent
-    void preventEventOnWindow(view)
+    void preventEventOnWindow!(view)
+    isAsContent || hookMethods((a, k, v): void => { a[k] = v }, clickEvent as MouseEventToPrevent)
   }
   const rawDispatchRetVal = targetElement.dispatchEvent(clickEvent),
-  wrappedRetVal = isAsContent ? rawDispatchRetVal || doesBlock && !isClickEventPreventedByPage
-      : /** doesBlock ? false : rawDispatchRetVal */ (!doesBlock && rawDispatchRetVal)
+  wrappedRetVal = rawDispatchRetVal || doesBlock && !isClickEventPreventedByPage
   if (!Build.NDEBUG) {
     console.log("Vimium C: try blocking a click event, and the returned is %o when %s %o, so return %o"
         , rawDispatchRetVal, "clickEventToPrevent_ is"
@@ -181,13 +191,4 @@ export const dispatchAndBlockClickOnce_old_ff = (targetElement: SafeElement, cli
   }
   clickEventToPrevent_ = clickAnchor_ = 0
   return wrappedRetVal
-}
-
-export const preventClickOnSelf_old_ff = (testClickEvent: MouseEventToPrevent): void => {
-  if (testClickEvent === clickEventToPrevent_ && isAsContent) {
-    isClickEventPreventedByPage = 0
-    prevent_(testClickEvent)
-  } else {
-    Stop_(testClickEvent)
-  }
 }
