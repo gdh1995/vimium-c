@@ -350,6 +350,7 @@ assert(function () {
         set c(v){console.log('set c.c')}}
     const console = { log (val) { arr.push(val) } }, arr = []
     arr.unshift(d.d[c2.c] += a.a)
+    console.log(void a.a)
     arr.push(Object.getOwnPropertyDescriptor(c, "c").get)
     return arr
   })
@@ -366,7 +367,7 @@ assert(function () {
   `)
   assert(function() {
     let a=[];for(let i = 0; i < 3;i++) {a.push(()=>i)}
-    return [a[0](), a[1](), a[2]()]
+    return [a[0](), a[1](), a[2](), void a.length, void a]
   })
   assert(function() {
     function test2(){throw 1}

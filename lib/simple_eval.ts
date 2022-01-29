@@ -851,10 +851,13 @@ const evalNever = (op: BaseOp<O.block | O.statGroup | O.stat | O.pair>): void =>
   const action = op.v.o.v, target = op.v.x, { y, i } = Ref(target, action === "typeof" ? R.evenNotFound : R.plain)
   switch (action) {
   case      "+": return       +y[i]; case  "-": return -y[i]; case "!": return !y[i]; case "~": return ~y[i]
-  case   "void": return   void y[i]; case "++": return op.v.o.t === T.rightUnary ? y[i]++ : ++y[i]
-  case "typeof": return typeof y[i]; case "--": return op.v.o.t === T.rightUnary ? y[i]-- : --y[i]
-  case "delete": return target.o === O.token || delete y[i]
-  default: if (0) { As_<never>(op.v.o) } return
+  case "++": return op.v.o.t === T.rightUnary ? y[i]++ : ++y[i]
+  case "--": return op.v.o.t === T.rightUnary ? y[i]-- : --y[i]
+  case "typeof": return typeof y[i]; case "delete": return target.o === O.token || delete y[i]
+  case   "void":
+    /*#__NOINLINE__*/ evalAccess(Op(O.access, { y: Op(O.token, { v: y as any }), i: Op(O.token, { v: i }), d: "." }))
+    // no break;
+  default: if (0) { As_<"void">(action) } return
   }
 }, evalCall = (op: BaseOp<O.call>): unknown => {
   const { y, i } = Ref(op.v.f, R.allowOptional), i2 = evalAccessKey(i)
