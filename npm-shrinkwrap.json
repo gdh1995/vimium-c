@@ -5,11 +5,12 @@
   "requires": true,
   "packages": {
     "": {
+      "name": "vimium-c",
       "version": "1.0.0",
       "license": "MIT",
       "dependencies": {
         "pngjs": "^6.0.0",
-        "terser": "^5.9.0",
+        "terser": "^5.10.0",
         "typescript": "~4.5.1-rc"
       },
       "devDependencies": {
@@ -5181,9 +5182,9 @@
       "optional": true
     },
     "node_modules/terser": {
-      "version": "5.9.0",
-      "resolved": "https://registry.nlark.com/terser/download/terser-5.9.0.tgz",
-      "integrity": "sha1-R9bmKaUiljJA8rVfyqPJkIPSw1E=",
+      "version": "5.10.0",
+      "resolved": "https://registry.npmmirror.com/terser/download/terser-5.10.0.tgz",
+      "integrity": "sha512-AMmF99DMfEDiRJfxfY5jj5wNH/bYO09cniSqhfoyxc8sFoYIgkJy86G04UoZU5VjlpnplVu0K6Tx6E9b5+DlHA==",
       "dependencies": {
         "commander": "^2.20.0",
         "source-map": "~0.7.2",
@@ -5194,6 +5195,14 @@
       },
       "engines": {
         "node": ">=10"
+      },
+      "peerDependencies": {
+        "acorn": "^8.5.0"
+      },
+      "peerDependenciesMeta": {
+        "acorn": {
+          "optional": true
+        }
       }
     },
     "node_modules/terser/node_modules/source-map": {

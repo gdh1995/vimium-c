@@ -433,7 +433,7 @@ const findV = (count1: number): void => {
           findUpdateQuery(query);
           findV(count1)
         } else {
-          hudTip(kTip.noOldQuery, 1000)
+          hudTip(kTip.noOldQuery, 1)
         }
       });
       return;
@@ -450,7 +450,7 @@ const findV = (count1: number): void => {
       }
     } else {
       range && !rangeCount_(sel) && resetSelectionToDocStart(sel, range)
-      hudTip(kTip.noMatchFor, 1000, find_query)
+      hudTip(kTip.noMatchFor, 1, find_query)
     }
 }
 
@@ -529,7 +529,7 @@ const runMovements = (direction: ForwardDir, granularity: kG | kVimG.vimWord
     // either `count > 0` or `fixWord && _moveRight***()`
     mode_ !== Mode.Caret && (diType_ &= ~DiType.isUnsafe)
     di_ = direction === oldDi ? direction : kDirTy.unknown
-    granularity - kG.lineBoundary || hudTip(kTip.selectLineBoundary, 2000)
+    granularity - kG.lineBoundary || hudTip(kTip.selectLineBoundary, 2)
     if (OnChrome && mode_ === Mode.Caret && fixDeltaHasOnlySpaces_cr_win !== undefined) {
       (!fixWord || shouldSkipSpaceWhenMovingRight) && collapseToRight(kDirTy.right)
     }
@@ -726,7 +726,7 @@ const ensureLine = (command1: number): void => {
       && !(rangeCount_(curSelection) && getAccessibleSelectedNode(curSelection) )) {
     deactivate()
     suppressTail_(1500)
-    return hudTip(kTip.loseSel, 2e3);
+    return hudTip(kTip.loseSel, 2)
   }
   if (command === VisualAction.HighlightRange) {
     highlightRange(curSelection)
@@ -768,7 +768,7 @@ const ensureLine = (command1: number): void => {
 }
 
   commandHandler(VisualAction.Noop, 1)
-  modeName ? diff ? hudTip(kTip.noUsableSel, 1000) : hudShow(kTip.inVisualMode, modeName, options.r) : 0
+  modeName ? diff ? hudTip(kTip.noUsableSel, 1) : hudShow(kTip.inVisualMode, modeName, options.r) : 0
 }
 
 export const highlightRange = (sel: Selection): void => {

@@ -126,7 +126,7 @@ interface BgReq {
   [kBgReq.showHUD]: {
     /** kTip */ k?: kTip | 0
     /** text */ t?: string;
-    /** duration */ d?: number;
+    /** duration */ d?: 0 | 1 | 2;
     /** findCSS */ f?: FindCSS
   } & Partial<BgCSSReq>;
   [kBgReq.focusFrame]: {

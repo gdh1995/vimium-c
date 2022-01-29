@@ -186,7 +186,7 @@ export const activate = (options: ContentOptions, count: number, force?: 2 | Tim
     s0 = options.c, chars = s0 ? s0 + "" : useFilter ? fgCache.n : fgCache.c;
     frameArray = [topFrameInfo]
     if (chars.length < GlobalConsts.MinHintCharSetSize) {
-      hudTip(kTip.fewChars, 1000)
+      hudTip(kTip.fewChars, 1)
       return clear()
     }
     isHC_ = matchMedia(VTr(

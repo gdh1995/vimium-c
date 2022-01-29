@@ -42,12 +42,12 @@ export const activate = (options: CmdOptions[kFgCmd.marks], count: number): void
   } else if ("`'".includes(keyChar)) {
     if (isCreate) {
       setPreviousMarkPosition(mcount)
-      hudTip(kTip.didCreateLastMark, 1000)
+      hudTip(kTip.didCreateLastMark, 1)
     } else {
       const pos = previous[mcount]
       setPreviousMarkPosition(pos ? 0 : mcount)
       pos && scrollToMark(pos)
-      hudTip(kTip.didLocalMarkTask, 1000,
+      hudTip(kTip.didLocalMarkTask, 1,
           [VTr(pos ? kTip.didJumpTo : kTip.didCreate), mcount ? mcount + 1 : VTr(kTip.lastMark)])
     }
   } else if (isCreate) {
@@ -111,7 +111,7 @@ export const createMark = (req: BgReq[kBgReq.createMark], local?: 0 | 2): void =
       u: locHref(),
       s: dispatchMark()
     })
-    hudTip(kTip.didNormalMarkTask, 1000,
+    hudTip(kTip.didNormalMarkTask, 1,
         [ VTr(kTip.didCreate), VTr(local ? kTip.local : kTip.global), req.n ])
 }
 
@@ -120,7 +120,7 @@ export const gotoMark = ({ n: a, s: scroll, l: local, f }: BgReq[kBgReq.goToMark
     scrollToMark(scroll)
     local || vApi.f()
     if (a) {
-      hudTip(kTip.didNormalMarkTask, local ? 1000 : 2000,
+      hudTip(kTip.didNormalMarkTask, local ? 1 : 2,
           [ VTr(kTip.didJumpTo), VTr(kTip.global + local), a ])
     }
     f && runFallbackKey(f, 0)

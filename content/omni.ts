@@ -251,7 +251,8 @@ const refreshKeyHandler = (): void => {
   oldTimer && clearTimeout_(oldTimer)
   if (checkHidden(kFgCmd.vomnibar, options, count)) { return }
   if (status === Status.KeepBroken) {
-    return hudTip(kTip.omniFrameFail, 2000)
+    hudTip(kTip.omniFrameFail, 2)
+    return
   }
   if (!options || !options.k || !options.v) { return; }
   if (status === Status.NotInited && readyState_ > "l") { // a second `o` should show Vomnibar at once

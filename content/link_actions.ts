@@ -471,7 +471,7 @@ const checkBoolOrSelector = (userVal: string | boolean | null | void | undefined
       }, 17)
     }
   } else {
-    hintApi.t({ k: kTip.linkRemoved, d: 2000 })
+    hintApi.t({ k: kTip.linkRemoved, d: 2 })
   }
   return retPromise ? retPromise.then(() => rect) : Promise.resolve(rect)
 }

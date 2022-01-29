@@ -326,14 +326,14 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
         if (options.e || isNewQuery) { activeRegexIndex -= options.c > 0 ? 1 : -1 }
         isQueryRichText_ = true
         const hud_showing = !isActive && hud_opacity === 1
-        hud_showing && hud_toggleOpacity("0")
+        hud_showing && hud_toggleOpacity(0)
         toggleSelectableStyle()
         executeFind("", options)
         if (hasResults && options.m) {
           getZoom_()
           highlightInViewport()
         }
-        hud_showing && hud_toggleOpacity("")
+        hud_showing && hud_toggleOpacity(1)
         if (!hasResults) {
           toggleStyle(1)
           isActive || toggleSelectableStyle()
@@ -619,7 +619,7 @@ const onHostKeydown = (event: HandlerNS.Event): HandlerResult => {
   if (!innerDoc_) {
     if (isActive) {
       deactivate(FindAction.ExitUnexpectedly)
-      hudTip(kTip.findFrameFail, 2000)
+      hudTip(kTip.findFrameFail, 2)
     }
     return
   }
@@ -840,7 +840,7 @@ export const executeFind = (query: string | null, options: ExecuteOptions): Rect
       let posChange = newAnchor && compareDocumentPosition(oldAnchor as Node, newAnchor)
       view_(par)
       if (posChange && /** go back */ !!(posChange & kNode.DOCUMENT_POSITION_PRECEDING) !== back) {
-        hudTip(kTip.wrapWhenFind, 1000, VTr(back ? kTip.atStart : kTip.atEnd))
+        hudTip(kTip.wrapWhenFind, 1, VTr(back ? kTip.atStart : kTip.atEnd))
       }
     }
     noColor || timeout_(hookSel, 0);

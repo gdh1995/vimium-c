@@ -115,7 +115,7 @@ let keyMappingChecker_ = {
     this.init_ && this.init_();
     str = str.replace(<RegExpG & RegExpSearchable<0>> /\\\\?\n/g, i => i.length === 3 ? i : "\\\r")
     str = str.replace(<RegExpG & RegExpSearchable<3>
-        > /^([ \t]*(?:#\s?)?map\s+(?:<(?!<)(?:.-){0,4}.[\w:]*?>|\S)\s+)(<(?!<)(?:[ACMSVacmsv]-){0,4}.\w*?>)(?=\s|$)/gm
+        > /^([ \t]*(?:#\s?)?map\s+(?:<(?!<)(?:.-){0,4}.[\w:]*?>|\S)\s+)(<(?!<)(?:[ACMSVacmsv]-){0,4}.\w*?>|\S)(?=\s|$)/gm
         , this.correctMapKey_);
     str = str.replace(<RegExpG & RegExpSearchable<4>> /^([ \t]*(?:#\s?)?(map(?:[kK]ey)?|run|unmap!?)\s+)(\S+)([^\n]*)/gm
         , this.normalizeMap_);
