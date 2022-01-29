@@ -1,7 +1,7 @@
 import {
   chromeVer_, clickable_, doc, esc, fgCache, injector, isEnabled_, isLocked_, isAlive_, isTop, math, includes_,
   keydownEvents_, set_chromeVer_, set_clickable_, set_fgCache, set_isLocked_, OnChrome, OnFirefox, weakRef_ff,
-  set_isEnabled_, set_onWndFocus, onWndFocus, timeout_, safer, noTimer_cr_, set_os_, safeObj, set_keydownEvents_,
+  set_isEnabled_, set_onWndFocus, onWndFocus, timeout_, safer, set_os_, safeObj, set_keydownEvents_,
   interval_, getTime, vApi, clearInterval_, locHref, set_firefoxVer_, firefoxVer_, os_, weakRef_not_ff, isAsContent,
 } from "../lib/utils"
 import { set_keyIdCorrectionOffset_old_cr_, handler_stack, suppressTail_ } from "../lib/keyboard_utils"
@@ -31,9 +31,7 @@ import { exitGrab, grabBackFocus, insertInit, set_grabBackFocus, onFocus, onBlur
 import { onActivate, set_currentScrolling } from "./scroller"
 import { Status as VomnibarStatus, omni_status, omni_box } from "./omni"
 
-let framemask_more = false
-let framemask_node: HTMLDivElement | HTMLBodyElement | null = null
-let framemask_fmTimer: ValidIntervalID = TimerID.None
+let frame_mask: BOOL | 2 | undefined
 let needToRetryParentClickable: BOOL = 0
 
 /** require `WeakSet` MUST exist; should ensure `clickable_.forEach` MUST exist */
@@ -248,20 +246,21 @@ export const showFrameMask = (mask: FrameMaskType): void => {
     }
   }
   if (mask < FrameMaskType.minWillMask || !isHTML_()) { return; }
-  if (framemask_node) {
-    framemask_more = true;
-  } else {
+  if (frame_mask && (!OnChrome || timeout_ !== interval_)) {
+    frame_mask = 2
+    return
+  }
+  let framemask_node: HTMLElement, framemask_fmTimer: ValidIntervalID
     framemask_node = createElement_(OnChrome
         && Build.MinCVer < BrowserVer.MinForcedColorsMode ? getBoxTagName_old_cr() : "div")
     setClassName_s(framemask_node, "R Frame" + (mask === FrameMaskType.OnlySelf ? " One" : ""))
     framemask_fmTimer = interval_((): void => { // safe-interval
-      const more_ = framemask_more;
-      framemask_more = false;
-      if (more_ && !(OnChrome && noTimer_cr_)) { return }
-      if (framemask_node) { removeEl_s(framemask_node); framemask_node = null; }
+      if (frame_mask === 2) { frame_mask = 1; return }
+      frame_mask = 0 as never
+      removeEl_s(framemask_node)
       clearInterval_(framemask_fmTimer);
     }, isTop ? 200 : 350);
-  }
+  frame_mask = 1
   addUIElement(framemask_node, AdjustType.DEFAULT);
 }
 

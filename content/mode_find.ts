@@ -1,7 +1,7 @@
 import {
   setupEventListener, VTr, keydownEvents_, isAlive_, suppressCommonEvents, onWndFocus, timeout_, safer, fgCache,
   doc, getTime, chromeVer_, deref_, escapeAllForRe, tryCreateRegExp, vApi, callFunc, clearTimeout_, Stop_, isTY, Lower,
-  math, max_, min_, OnFirefox, OnChrome, OnEdge, firefoxVer_, noTimer_cr_, os_
+  math, max_, min_, OnFirefox, OnChrome, OnEdge, firefoxVer_, os_
 } from "../lib/utils"
 import {
   replaceOrSuppressMost_, removeHandler_, prevent_, getMappedKey, keybody_, isEscape_, keyNames_, DEL, BSP, ENTER,
@@ -280,8 +280,6 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
     if ((i === FindAction.ExitForEsc || !knownHasResults || visual_mode_name) && styleSheet) {
       toggleStyle(1)
       restoreSelection(true)
-    } else if (OnChrome && noTimer_cr_ && styleSheet) {
-      hookSel(0)
     }
     if (visual_mode_name) {
       visualActivate(safer<CmdOptions[kFgCmd.visualMode]>({ r: true }))

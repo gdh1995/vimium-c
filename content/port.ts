@@ -1,5 +1,6 @@
 import {
-  injector, safer, timeout_, isAlive_, isTop, set_i18n_getMsg, locHref, OnEdge, OnChrome, OnFirefox, isTY, fgCache
+  injector, safer, timeout_, isAlive_, isTop, set_i18n_getMsg, locHref, OnEdge, OnChrome, OnFirefox, isTY, fgCache,
+  interval_
 } from "../lib/utils"
 import { suppressTail_ } from "../lib/keyboard_utils"
 import { docHasFocus_ } from "../lib/dom_utils"
@@ -73,7 +74,7 @@ export const runtimeConnect = (function (this: void): void {
   port_ = (injector ? connect(injector.id, data) : connect(data)) as ContentNS.Port
   port_.onDisconnect.addListener((): void => {
     port_ = null
-    timeout_(function (i): void {
+    OnChrome && timeout_ === interval_ ? safeDestroy() : timeout_(function (i): void {
       if (OnChrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake && i) {
         safeDestroy()
       } else {

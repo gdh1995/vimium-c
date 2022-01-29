@@ -490,7 +490,7 @@ interface FgRes {
   [kFgReq.parseSearchUrl]: ParsedSearch | null;
   [kFgReq.execInChild]: boolean;
   [kFgReq.i18n]: /** rawMessages */ string[]
-  [kFgReq.wait]: 0
+  [kFgReq.wait]: TimerType.fake
   [kFgReq.pages]: { /** id of query array */ i: number; /** answers */ a: unknown[] } | false
 }
 interface FgReqWithRes {

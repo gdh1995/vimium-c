@@ -1,6 +1,6 @@
 /// <reference path="../lib/base.omni.d.ts" />
 import {
-  isAlive_, keydownEvents_, readyState_, timeout_, clearTimeout_, recordLog, chromeVer_, math, OnChrome, noTimer_cr_,
+  isAlive_, keydownEvents_, readyState_, timeout_, clearTimeout_, recordLog, chromeVer_, math, OnChrome,
   interval_, clearInterval_, locHref, vApi, createRegExp, isTY, safer, isTop, OnFirefox, OnEdge, safeCall, WithDialog
 } from "../lib/utils"
 import { removeHandler_, replaceOrSuppressMost_, getMappedKey, isEscape_ } from "../lib/keyboard_utils"
@@ -85,7 +85,7 @@ const init = ({k: secret, v: page, t: type, i: inner}: FullOptions): void => {
     setDisplaying_s(el)
     // setOrRemoveAttr_s(el, "allow", "clipboard-read; clipboard-write")
     if (type !== VomnibarNS.PageType.web) { /* empty */ }
-    else if (OnChrome && noTimer_cr_
+    else if (OnChrome && timeout_ !== interval_ // there's no usable interval_
         || createRegExp(kTip.nonLocalhostRe, "i").test(page) && !(<RegExpOne> /^http:/).test(locHref())) {
       // not allowed by Chrome; recheck because of `tryNestedFrame`
       reload();
@@ -112,7 +112,7 @@ const init = ({k: secret, v: page, t: type, i: inner}: FullOptions): void => {
         reload()
         return
       }
-      (noTimer_cr_ ? send_.bind(0, kFgReq.wait, 400) as (cb: () => void) => void : timeout_)((): void => {
+      timeout_((): void => {
         // Note: if JavaScript is disabled on `chrome://settings/content/siteDetails`,
         // then the iframe will always fail if only when DevTools is open
         clearInterval_(initMsgInterval)
@@ -310,7 +310,7 @@ const refreshKeyHandler = (): void => {
     init(options)
   } else if (safeCall(isAboutBlank_throwable)) {
     secondActivateWithNewOptions = activate.bind(0, options, count);
-    (status > Status.ToShow - 1 || noTimer_cr_) && resetWhenBoxExists()
+    status > Status.ToShow - 1 && resetWhenBoxExists()
     return
   } else if (status === Status.Inactive) {
     status = Status.ToShow

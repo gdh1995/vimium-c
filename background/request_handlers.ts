@@ -430,7 +430,7 @@ set_reqH_([
     } : null)
   },
   /** kFgReq.wait: */ (req: FgReqWithRes[kFgReq.wait], port, msgId): Port => {
-    setTimeout(() => { sendResponse(port, msgId, 0) }, req)
+    setTimeout(() => { sendResponse(port, msgId, TimerType.fake) }, req)
     return port
   },
   /** kFgReq.optionToggled: */ ({ k: key, v: val }: FgReq[kFgReq.optionToggled]): void => {

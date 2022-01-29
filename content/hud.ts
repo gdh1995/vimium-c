@@ -91,8 +91,7 @@ export const hudHide = (info?: TimerType.fake | TimerType.noTimer): void => {
     $text.data = "";
     isEnabled_ && isLocked_ < 3 || adjustUI(2)
   }
-  else if (!tweenId && isAlive_
-      && !(OnChrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake && info === TimerType.fake)) {
+  else if (!tweenId && isAlive_) {
     tweenId = interval_(tween, 40);
   }
 }

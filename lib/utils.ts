@@ -51,8 +51,6 @@ export function set_readyState_ (_newReadyState: Document["readyState"]): void {
 export let noRAF_old_cr_: BOOL | undefined
 export function set_noRAF_old_cr_ (_newNoRAF: BOOL): void { noRAF_old_cr_ = _newNoRAF }
 
-export let noTimer_cr_: 1 | undefined
-
 /** ==== Cache ==== */
 
 export let fgCache: OnlyEnsureItemsNonNull<SettingsNS.FrontendSettingCache>
@@ -147,7 +145,6 @@ export const clearInterval_: (timer: ValidIntervalID) => void =
 
 export function replaceBrokenTimerFunc (_newTimerFunc: TimerFunc<number>): void {
   timeout_ = interval_ = _newTimerFunc as TimerFunc<TimerID & number>
-  noTimer_cr_ = 1
 }
 
 /**

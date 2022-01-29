@@ -614,14 +614,8 @@ FProto[kToS] = myToStr
     return
   }
   /*#__INLINE__*/ replaceBrokenTimerFunc((func: (info?: TimerType.fake) => void, timeout: number): number => {
-    const cb = (): void => { func(TimerType.fake); };
-    const rIC = Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback ? requestIdleCallback : 0 as never as null
-    // in case there's `$("#requestIdleCallback")`
-    return OnChrome && Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage && noRAF_old_cr_
-      ? (send_(kFgReq.wait, timeout, cb), 1)
-      : (Build.MinCVer >= BrowserVer.MinEnsured$requestIdleCallback ? timeout > 19 : timeout > 19 && rIC)
-      ? (Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback ? rIC : requestIdleCallback)!(cb, { timeout })
-      : rAF_(cb)
+    return OnChrome && Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage && noRAF_old_cr_ || timeout > 49
+        ? (send_(kFgReq.wait, timeout, func), 1) : rAF_((): void => { func(TimerType.fake) })
   })
 })(grabBackFocus as boolean)
 } : 0 as never) as () => void
