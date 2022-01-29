@@ -51,6 +51,7 @@ const tween = (fake?: TimerType.fake): void => { // safe-interval
   else if (opacity === 0) {
     $text.data = text;
     toggleOpacity(OnChrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake && fake || fgCache.m ? 1 : 0.25)
+    fake && (tweenId = 0)
     return adjustUI();
   } else if (!fgCache.m && docHasFocus_()) {
     opacity += opacity < opacity_ ? 0.25 : -0.25;
@@ -90,7 +91,8 @@ export const hudHide = (info?: TimerType.fake | TimerType.noTimer): void => {
     $text.data = "";
     isEnabled_ && isLocked_ < 3 || adjustUI(2)
   }
-  else if (!tweenId && isAlive_) {
+  else if (!tweenId && isAlive_
+      && !(OnChrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake && info === TimerType.fake)) {
     tweenId = interval_(tween, 40);
   }
 }
