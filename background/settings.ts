@@ -241,6 +241,7 @@ saladict@crimx.com`
     ignoreKeyboardLayout: 0,
     innerCSS: "",
     keyboard: [560, 33],
+    keyupTime: 120,
     keyMappings: "",
     linkHintCharacters: "sadjklewcmpgh",
     linkHintNumbers: "0123456789",
@@ -386,7 +387,7 @@ export const valuesToLoad_ = <SettingsNS.AutoSyncedNameMap> As_<SettingsNS.AutoS
     ignoreKeyboardLayout: "l",
     mapModifier: "a",
     mouseReachable: "e",
-    keyboard: "k", linkHintCharacters: "c", linkHintNumbers: "n", passEsc: "p",
+    keyboard: "k", keyupTime: "u", linkHintCharacters: "c", linkHintNumbers: "n", passEsc: "p",
     regexFindMode: "r", smoothScroll: "s", scrollStepSize: "t", waitForEnter: "w"
 })
 

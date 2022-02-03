@@ -177,7 +177,7 @@ export const bgSettings_ = {
     ignoreKeyboardLayout: "l",
     mapModifier: "a",
     mouseReachable: "e",
-    keyboard: "k", linkHintCharacters: "c", linkHintNumbers: "n", passEsc: "p",
+    keyboard: "k", keyupTime: "u", linkHintCharacters: "c", linkHintNumbers: "n", passEsc: "p",
     regexFindMode: "r", smoothScroll: "s", scrollStepSize: "t", waitForEnter: "w"
   })
 }

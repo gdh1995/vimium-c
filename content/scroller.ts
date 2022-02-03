@@ -1,6 +1,6 @@
 declare const enum ScrollConsts {
     calibrationBoundary = 150, maxCalibration = 1.6, minCalibration = 0.5, SpeedChangeInterval = 47,
-    minDuration = 100, durationScaleForAmount = 20,
+    minDuration = 120, durationScaleForAmount = 20, // 120 ~= 20 * ln(400)
     maxS = 1.05, minS = 0.95, delayToChangeSpeed = 75, tickForUnexpectedTime = 17, firstTick = 17,
     FirefoxMinFakeInterval = 100, // https://developer.mozilla.org/en-US/docs/Web/API/Performance/now
 
@@ -110,9 +110,9 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
     totalElapsed += elapsed
     if (!Build.NDEBUG && ScrollConsts.DEBUG & 1) {
       console.log("rawOld>rawNew: +%o = %o ; old>new: +%o = %o ; elapsed: +%o = %o; min_delta = %o"
-          , (((newRawTimestamp - rawTimestamp) * 1e2) | 0) / 1e2
-          , newRawTimestamp % 1e4 , (((newTimestamp - timestamp) * 1e2) | 0) / 1e2, newTimestamp % 1e4
-          , ((elapsed * 1e2) | 0) / 1e2, ((totalElapsed * 1e2) | 0) / 1e2, ((min_delta * 1e2) | 0) / 1e2)
+          , (((newRawTimestamp - rawTimestamp) * 1e2) | 0) / 1e2, (((newRawTimestamp % 1e4) * 1e3 + 0.5) | 0) / 1e3
+          , (((newTimestamp - timestamp) * 1e2) | 0) / 1e2, (((newTimestamp % 1e4) * 1e3 + 0.5) | 0) / 1e3
+          , ((elapsed * 1e2) | 0) / 1e2, ((totalElapsed * 1e2) | 0) / 1e2, ((min_delta * 1e4) | 0) / 1e4)
     }
     rawTimestamp = newRawTimestamp
     timestamp = newTimestamp
@@ -131,15 +131,15 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
       }
     }
     let delta = amount * (elapsed / duration) * calibration;
-    if (!continuous || flags & kScFlag.TO && totalElapsed < minDelay) {
+    if (!continuous || (totalDelta < amount || flags & kScFlag.TO) && totalElapsed < minDelay) {
       delta = max_(0, min_(delta, amount - totalDelta))
     }
-    // not use `sign * _performScroll()`, so that the code is safer even though there're bounce effects
     if (delta > 0) {
       const oldDelta = delta
-      delta = performScroll(element, di, sign * math.ceil(delta), beforePos)
+      // here should keep safe even if there're bounce effects
+      delta = performScroll(element, di, sign * (delta > 4 ? math.round : math.ceil)(delta), beforePos)
       if (!Build.NDEBUG && ScrollConsts.DEBUG & 2) {
-        console.log("do scroll: %o + ceil(%o); effect=%o ; amount=%o ; keyIsDown=%o"
+        console.log("do scroll: %o + round2(%o); effect=%o ; amount=%o ; keyIsDown=%o"
             , ((totalDelta * 100) | 0) / 100, ((oldDelta * 100) | 0) / 100, ((delta * 100) | 0) / 100, amount
             , ((keyIsDown * 10) | 0) / 10)
       }
@@ -208,6 +208,7 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
     flags = options ? options.f! | 0 : 0
     wait2 = options && options.wait
     duration = max_(ScrollConsts.minDuration, ScrollConsts.durationScaleForAmount * math.log(amount))
+    duration = math.round(duration / ScrollConsts.minDuration * fgCache.u)
     element = newEl1
     sign = newAmount1 < 0 ? -1 : 1
     timer && clearTimeout_(timer)
@@ -221,7 +222,7 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
     (preventPointEvents === 2 || preventPointEvents === 1 && !isSelARange(getSelection_())) && toggleAnimation!(1)
     if (!Build.NDEBUG && ScrollConsts.DEBUG) {
       console.log("%c[animation]%c start with axis = %o, amount = %o, dir = %o, min_delta = %o"
-          , "color: #1155cc", "color: auto", di ? "y" : "x", amount, sign, min_delta)
+          , "color: #1155cc", "color: auto", di ? "y" : "x", amount, sign, ((min_delta * 1e4) | 0) / 1e4)
     }
     running = running || rAF_(animate)
     if (doesSucceed_ != null) {

@@ -327,6 +327,7 @@ declare namespace SettingsNS {
     /** scrollStepSize */ t: ["scrollStepSize", number];
     /** smoothScroll */ s: ["smoothScroll", boolean];
     /** mapModifier */ a: ["mapModifier", 0 | 1 | 2];
+    /** acceptable upper limit of spent time before keyup */ u: ["keyupTime", number];
   }
   interface TransformedAndSyncedItems {
     /** ignoreCapsLock */ i: ["ignoreCapsLock", boolean];
