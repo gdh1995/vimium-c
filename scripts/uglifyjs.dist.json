@@ -90,6 +90,8 @@
     "reserved": [
       // # globals
       "browser", "chrome", "define", "__filename", "__importStar",
+      // # expected built-in global variables in content
+      "WeakMap", "WeakSet", "Set", "InputDeviceCapabilities", "visualViewport", "WeakRef",
       // # content global names:
       "VimiumInjector", "VApi",
       // # front/vomnibar

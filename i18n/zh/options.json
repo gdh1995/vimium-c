@@ -216,7 +216,7 @@
   "NewTabAdapterDesc": "新标签页修改器：\n自定义浏览器新标签页的网址",
   "refusedURLs": "Firefox 不允许扩展程序打开“$1”这个网址。",
   "nonPlainURL": "“$1”不是一个合法的普通网址。",
-  "haveToOpenManually": { "message": "在 Firefox 上您必须手动访问此链接" },
+  "haveToOpenManually": "在 Firefox 上您必须手动访问此链接",
   "changedBeforeSync":
 "        错误：\n您希望启用 同步 Vimium C 配置 这一功能，\n但是其它配置已被修改且尚未保存。\n请在启用同步和保存其它配置之间做出选择！"
  ,

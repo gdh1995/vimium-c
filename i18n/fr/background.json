@@ -13,7 +13,7 @@
   "fullyDisabled": "désactivée",
   "fullyEnabled": "activé(es)",
   "Global": "globale",
-  "globalInsertMode": { "message": "Mode insertion$1" },
+  "globalInsertMode": "Mode insertion$1",
   "halfDisabled": "partiellement désactivé(es)",
   "harmfulURL": "L'URL peut être dangereuse pour votre ordinateur",
   "has": " a",
