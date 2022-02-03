@@ -147,6 +147,7 @@ let manager_: HintManager | null = null
 let api_: VApiTy = null as never
 let addChildFrame_: AddChildDirectly | null | undefined
 let isHC_: boolean | null | undefined
+let doesAllowModifierEvents_ff: BOOL = 0
 
 export {
   isActive as isHintsActive, box_ as hint_box, wantDialogMode_,
@@ -379,7 +380,7 @@ export const tryNestedFrame = (
 
 const onKeydown = (event: HandlerNS.Event): HandlerResult => {
     let matchedHint: ReturnType<typeof matchHintsByKey>, i: number = event.i, key: string, keybody: kChar;
-    let ret = HandlerResult.Prevent, num1: number | undefined, mode = mode_, mode1 = mode1_
+    let ret = HandlerResult.Prevent
     if (manager_) {
       set_keydownEvents_(api_.a())
       ret = manager_.n(event)
@@ -399,6 +400,7 @@ const onKeydown = (event: HandlerNS.Event): HandlerResult => {
     } else if (onTailEnter && keybody !== kChar.f12) {
       onTailEnter(event, key, keybody);
     } else if (keybody > kChar.maxNotF_num && keybody < kChar.minNotF_num && key !== kChar.f1) { // exclude plain <f1>
+      i = 0
       if (keybody > kChar.f1 && keybody !== kChar.f2) { ret = HandlerResult.Nothing }
       else if (keybody < kChar.f2) { // <*-f1> or <*-f0***>
         if (key < "b" && useFilter_) { // <a-*-f1>
@@ -407,24 +409,24 @@ const onKeydown = (event: HandlerNS.Event): HandlerResult => {
           frameArray.forEach((/*#__NOINLINE__*/ toggleClassForKey).bind(0, keybody))
         }
       } // the below mens <*-f2>
-      else if (num1 = 1, key.includes("-s")) { // <a-s-f2>, <c-s-f2>
+      else if (i = 1, key.includes("-s")) { // <a-s-f2>, <c-s-f2>
         fgCache.e = !fgCache.e;
       } else if (key < "b") { // <a-f2> or <a-c-f2>
-        WithDialog ? wantDialogMode_ = !wantDialogMode_ : num1 = 0
+        WithDialog ? wantDialogMode_ = !wantDialogMode_ : i = 0
       } else if (key < "d" && key[0] === "m") { // <c-f2> or <m-f2>
         options_.useFilter = fgCache.f = !useFilter_;
       } else if (key !== keybody) { // <s-f2>
         isClickListened_ = !isClickListened_;
       } else if (OnFirefox && isClickListened_ || !vApi.e) {
-        num1 = 0
+        i = 0
       } else { // plain <f2>
         isClickListened_ = true;
         if (!OnFirefox) {
           vApi.e(kContentCmd.ManuallyFindAllOnClick);
         }
       }
-      resetMode(num1 as BOOL | undefined)
-      num1 && timeout_(reinit, 0)
+      resetMode(i as BOOL | undefined)
+      i && timeout_(reinit, 0)
     } else if (keybody === kChar.tab && !useFilter_ && !keyStatus_.k) {
       tooHigh_ = null;
       resetMode();
@@ -434,24 +436,9 @@ const onKeydown = (event: HandlerNS.Event): HandlerResult => {
       timeout_(reinit, 0)
     } else if (coreHints.h = 0, (i < kKeyCode.maxAcsKeys + 1 && i > kKeyCode.minAcsKeys - 1
             || !os_ && (i > kKeyCode.maxNotMetaKey && i < kKeyCode.minNotMetaKeyOrMenu))
-        && !key) {
-      num1 = mode1 > HintMode.min_copying - 1 && mode1 < HintMode.max_copying + 1
-        ? i === kKeyCode.ctrlKey || i > kKeyCode.maxNotMetaKey ? (mode1 | HintMode.queue) ^ HintMode.list
-          : i === kKeyCode.altKey ? (mode & ~HintMode.list) ^ HintMode.queue
-          : mode
-        : i === kKeyCode.altKey
-        ? mode < HintMode.min_disable_queue
-          ? ((mode1 < HintMode.min_job ? HintMode.newTab : HintMode.empty) | mode) ^ HintMode.queue : mode
-        : mode1 < HintMode.min_job
-        ? (i === kKeyCode.shiftKey) === !options_.swapCtrlAndShift
-          ? (mode | HintMode.focused) ^ HintMode.mask_focus_new
-          : (mode | HintMode.newTab) ^ HintMode.focused
-        : mode;
-      if (num1 !== mode) {
-        setMode(num1);
-        i = getKeyStat_(event.e);
-        (i & (i - 1)) || (lastMode_ = mode);
-      }
+        ) {
+      OnFirefox && (doesAllowModifierEvents_ff = 1)
+      key || toggleModesOnModifierKey(event, i)
     } else if (i = keyNames_.indexOf(keybody), i > 0) {
       i > 2 && insert_Lock_ || beginScroll(event, key, keybody);
       resetMode();
@@ -472,6 +459,27 @@ const onKeydown = (event: HandlerNS.Event): HandlerResult => {
     return ret;
 }
 
+const toggleModesOnModifierKey = (event: HandlerNS.Event, i: kKeyCode, silent?: 1): void => {
+  const mode = mode_, mode1 = mode1_
+  let num1: number = mode1 > HintMode.min_copying - 1 && mode1 < HintMode.max_copying + 1
+      ? i === kKeyCode.ctrlKey || i > kKeyCode.maxNotMetaKey ? (mode1 | HintMode.queue) ^ HintMode.list
+        : i === kKeyCode.altKey ? (mode & ~HintMode.list) ^ HintMode.queue
+        : mode
+      : i === kKeyCode.altKey
+      ? mode < HintMode.min_disable_queue
+        ? ((mode1 < HintMode.min_job ? HintMode.newTab : HintMode.empty) | mode) ^ HintMode.queue : mode
+      : mode1 < HintMode.min_job
+      ? (i === kKeyCode.shiftKey) === !options_.swapCtrlAndShift
+        ? (mode | HintMode.focused) ^ HintMode.mask_focus_new
+        : (mode | HintMode.newTab) ^ HintMode.focused
+      : mode
+  if (num1 !== mode) {
+    setMode(num1, silent)
+    num1 = getKeyStat_(event.e);
+    (num1 & (num1 - 1)) || (lastMode_ = mode)
+  }
+}
+
 const toggleClassForKey = (name: string, frame: FrameHintsInfo): void => { toggleClass_s(frame.s.$().b!, "HM-" + name) }
 
 const rotateHints = (reverse: boolean, list: FrameHintsInfo): void => {
@@ -480,8 +488,14 @@ const rotateHints = (reverse: boolean, list: FrameHintsInfo): void => {
 
 const callExecuteHint = (hint: ExecutableHintItem, event?: HandlerNS.Event): void => {
   const selectedHintWorker = locateHint(hint),
-  clickEl = OnFirefox ? weakRef_ff(hint.d, kElRef.lastClicked) : weakRef_not_ff!(hint.d),
-  p = selectedHintWorker.e(hint, event)
+  clickEl = OnFirefox ? weakRef_ff(hint.d, kElRef.lastClicked) : weakRef_not_ff!(hint.d)
+  let i: number, oldMode_ff = -1
+  if (OnFirefox && event && (i = getKeyStat_(event.e)) && !doesAllowModifierEvents_ff) {
+    oldMode_ff = mode_
+    toggleModesOnModifierKey(event, i & KeyStat.PrimaryModifier ? kKeyCode.ctrlKey
+        : i & kKeyCode.altKey ? kKeyCode.altKey : kKeyCode.shiftKey, 1)
+  }
+  const p = selectedHintWorker.e(hint, event)
   p && p.then(result => timeout_((): void => {
     (<RegExpOne> /a?/).test("")
     removeFlash && removeFlash()
@@ -493,6 +507,7 @@ const callExecuteHint = (hint: ExecutableHintItem, event?: HandlerNS.Event): voi
     } else {
       clearTimeout_(_timer)
       timeout_((): void => {
+        if (OnFirefox && oldMode_ff >= 0) { setMode(oldMode_ff, 1) }
         reinit(0, selectedHintWorker, clickEl, result)
         if (isActive && 1 === (--count_)) {
           setMode(mode1_)
@@ -701,6 +716,7 @@ export const clear = (onlySelfOrEvent?: 0 | 1 | Event, suppressTimeout?: number)
     }
     const manager = coreHints.p as HintManager | null;
     isActive = _timer = 0
+    OnFirefox && (doesAllowModifierEvents_ff = 0)
     manager_ = coreHints.p = null;
     manager && manager.c(onlySelfOrEvent, suppressTimeout);
     frameArray.forEach(safeCall.bind<void, (ori_arg: FrameHintsInfo) => void, [arg1: FrameHintsInfo], void>(0,
