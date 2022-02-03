@@ -817,16 +817,18 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     navReq: Req.fg<kFgReq.openUrl> | null = item.s != null ? null : { H: kFgReq.openUrl,
       f: false, r: action, h: sel >= 0 ? null : https, u: item.u,
       o: { i: incognito, s: sel >= 0 ? { r: false, k: "" } : a.sed_, p: a.position_, t: noTest ? false : "whole" }
+    }, sessionReq: Req.fg<kFgReq.gotoSession> | null = item.s == null ? null : { H: kFgReq.gotoSession,
+      a: action > ReuseType.newBg, s: item.s
     },
     func = function (this: void): void {
-      !VPort_ ? 0 : item.s != null ? Vomnibar_.gotoSession_(item as SuggestionE & Ensure<SuggestionE, "s">, action)
-        : Vomnibar_.navigateToUrl_(navReq!, action);
+      !VPort_ ? 0 : navReq ? Vomnibar_.navigateToUrl_(navReq, action)
+        : Vomnibar_.gotoSession_(sessionReq!, (item as SuggestionE).e === "tab");
       (<RegExpOne> /a?/).test("");
     };
     if (sel === -1 && event && event !== !0 && event & KeyStat.altKey && action > ReuseType.newBg
         && (<RegExpOne> /^\w+(-\w+)?$/).test(item.u)) {
       const domains = a.completions_.filter(i => i.e === "domain");
-      (item as UrlInfo).u = domains.length ? domains[0].u : `www.${item.u}.com`;
+      navReq!.u = domains.length ? domains[0].u : `www.${item.u}.com`
     }
     if (action > ReuseType.newBg || event && event !== !0 && event & KeyStat.altKey) {
       a.doEnter_ = [func, action]
@@ -1458,9 +1460,9 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       return Vomnibar_.refresh_();
     }
   },
-  gotoSession_ (item: SuggestionE & Ensure<SuggestionE, "s">, reuse: ReuseType): void {
-    VPort_.post_({ H: kFgReq.gotoSession, a: reuse > ReuseType.newBg, s: item.s })
-    Vomnibar_ && Vomnibar_.isActive_ && Vomnibar_.refresh_(item.e === "tab")
+  gotoSession_ (req: Req.fg<kFgReq.gotoSession>, isTab: boolean): void {
+    VPort_.post_(req)
+    Vomnibar_ && Vomnibar_.isActive_ && Vomnibar_.refresh_(isTab)
   },
   refresh_ (waitFocus?: boolean): void {
     getSelection().removeAllRanges();
