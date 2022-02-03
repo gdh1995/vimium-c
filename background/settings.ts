@@ -23,6 +23,7 @@ let newSettingsToBroadcast_: Extract<SettingsUpdateMsg["d"], string[]> | null = 
 export const ready_: Promise<void> = !OnFirefox ? Promise.resolve()
     : browser_.runtime.getBrowserInfo().then((info): void => {
   set_CurFFVer_(parseInt(info && info.version) || CurFFVer_)
+  ; (contentPayload_.v as FirefoxBrowserVer) = (omniPayload_.v as FirefoxBrowserVer) = CurFFVer_
 })
 
 export const get_ = <K extends keyof SettingsWithDefaults> (key: K, forCache?: boolean): SettingsWithDefaults[K] => {
