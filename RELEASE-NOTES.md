@@ -4,6 +4,13 @@ Release Notes of Vimium C
 ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 说明文档: https://gitee.com/gdh1995/vimium-c#readme , https://github.com/gdh1995/vimium-c/blob/master/README-zh.md .
 
+#### 1.96.6
+* better support for Firefox 96+ and fix detection of Firefox version
+* LinkHints: better support for `privacy.resistFingerprinting` on Firefox
+* Scroller: change the default duration from 100ms to 120ms, and make it configurable
+  * and then it can scroll by only expected pixels ([#518](https://github.com/gdh1995/vimium-c/issues/518))
+* fix some other bugs
+
 #### 1.96.4
 * fix some found bugs, like LinkHints on Google search results
 * LinkHints:
