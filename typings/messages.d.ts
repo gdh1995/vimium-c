@@ -126,6 +126,7 @@ interface BgReq {
   [kBgReq.showHUD]: {
     /** kTip */ k?: kTip | 0
     /** text */ t?: string;
+    /** long */ l?: BOOL
     /** duration */ d?: 0 | 1 | 2;
     /** findCSS */ f?: FindCSS
   } & Partial<BgCSSReq>;
@@ -284,6 +285,7 @@ declare namespace HintsNS {
     ctrlShiftForWindow?: boolean | null;
     noCtrlPlusShift?: boolean;
     swapCtrlAndShift?: boolean;
+    showUrl?: boolean | BOOL
     activeOnCtrl?: boolean
     hideHud?: boolean;
     hideHUD?: boolean;
@@ -346,7 +348,7 @@ interface CmdOptions {
     n: string; // `"${SettingsNS.FrontendSettingsSyncingItems[keyof SettingsNS.FrontendSettingsSyncingItems][0]}"`
     v: SettingsNS.FrontendSettings[keyof SettingsNS.FrontendSettings] | null;
   };
-  [kFgCmd.passNextKey]: { normal?: false | true; expect: "<any-key>"; ignoreCase?: boolean } & Req.FallbackOptions
+  [kFgCmd.passNextKey]: { normal?: boolean | "force"; expect: "<any-key>"; ignoreCase?: boolean } & Req.FallbackOptions
   [kFgCmd.framesGoBack]: (Pick<OpenUrlOptions, "reuse" | "position"> & { r?: null }
       | { r: 1 } & ({ u: string; hard?: undefined } | { u?: undefined; hard?: boolean })) & Req.FallbackOptions
   [kFgCmd.vomnibar]: {
@@ -414,7 +416,7 @@ interface CmdOptions {
     copy?: boolean;
     /** for autoCopy */
     text?: string
-    url?: boolean;
+    url?: boolean | "raw"
     decoded?: boolean; decode?: boolean;
     /** for searchAs */
     s?: 1;

@@ -1,6 +1,6 @@
 import {
   safer, fgCache, isImageUrl, isJSUrl, set_keydownEvents_, keydownEvents_, timeout_, doc, chromeVer_, weakRef_ff, os_,
-  parseSedOptions, createRegExp, isTY, max_, min_, OnFirefox, OnChrome, safeCall, loc_, parseOpenPageUrlOptions,
+  parseSedOptions, createRegExp, isTY, max_, min_, OnFirefox, OnChrome, safeCall, locHref, parseOpenPageUrlOptions,
   weakRef_not_ff
 } from "../lib/utils"
 import { getVisibleClientRect_, center_, view_, selRange_ } from "../lib/rect"
@@ -14,7 +14,7 @@ import {
 import { getPreferredRectOfAnchor } from "./local_links"
 import {
   hintOptions, mode1_, hintMode_, hintApi, hintManager, coreHints, setMode, detectUsableChild, hintCount_,
-  ExecutableHintItem
+  ExecutableHintItem, forHover_
 } from "./link_hints"
 import { currentScrolling, set_cachedScrollable, set_currentScrolling } from "./scroller"
 import { post_, send_ } from "./port"
@@ -117,6 +117,11 @@ const openTextOrUrl = (url: string): void => {
   });
 }
 
+const showUrlIfNeeded = (): void => {
+  const href = tag === "a" && hintOptions.showUrl && (clickEl as HTMLAnchorElement).href
+  href && hintApi.t({ k: kTip.raw, t: href.slice(0, 256), l: 1 })
+}
+
 const hoverEl = (): void => {
     const toggleMap = hintOptions.toggle
     const doesFocus = !elType && !isIFrameElement(clickEl)
@@ -133,6 +138,7 @@ const hoverEl = (): void => {
     hintMode_ & HintMode.queue || elType > EditableType.MaxNotTextModeElement
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
         || whenNextIsEsc_(kHandler.unhoverOnEsc, kModeId.Link, Build.NDEBUG ? unhover_async : unhoverOnEsc_d!)
+    showUrlIfNeeded()
     if (!toggleMap || !isTY(toggleMap, kTY.obj)) { return }
     safer(toggleMap);
     let ancestors: Element[] = [], top: Element | null = clickEl, re = <RegExpOne> /^-?\d+/;
@@ -278,9 +284,7 @@ const downloadLink = (url?: string, filename?: string): void => {
   url = url || getUrlData()
   filename = filename || attr_s(clickEl, kD) || ""
   if (OnFirefox || OnChrome && hintOptions.download === "force") {
-    hintApi.p({
-        H: kFgReq.downloadLink, u: url, f: filename, r: loc_.href, m: mode1_
-      })
+    hintApi.p({ H: kFgReq.downloadLink, u: url, f: filename, r: locHref(), m: mode1_ })
       return
   }
     if (changed) {
@@ -347,12 +351,13 @@ const defaultClick = (): void => {
         , specialActions, isRight ? kClickButton.second : kClickButton.none
         , !OnChrome || otherActions || newTab ? 0 : hintOptions.touch
         , hintOptions))
-    .then((ret): void | false | number | Promise<unknown> =>
-        doesUnhoverAtOnce && (!interactive || isTY(autoUnhover)) ? void catchAsyncErrorSilently(unhover_async())
-        : isQueue || elType || (ret || doesUnhoverOnEsc) &&
-          // eslint-disable-next-line @typescript-eslint/no-misused-promises
-          whenNextIsEsc_(kHandler.unhoverOnEsc, kModeId.Link, Build.NDEBUG ? unhover_async : unhoverOnEsc_d!)
-    )
+    .then((ret): void => {
+      showUrlIfNeeded()
+      doesUnhoverAtOnce && (!interactive || isTY(autoUnhover)) ? void catchAsyncErrorSilently(unhover_async())
+      : isQueue || elType || (ret || doesUnhoverOnEsc) &&
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
+        whenNextIsEsc_(kHandler.unhoverOnEsc, kModeId.Link, Build.NDEBUG ? unhover_async : unhoverOnEsc_d!)
+    })
 }
 
 const checkBoolOrSelector = (userVal: string | boolean | null | void | undefined, defaultVal: boolean): boolean => {
@@ -436,11 +441,14 @@ const checkBoolOrSelector = (userVal: string | boolean | null | void | undefined
       } else {
         /*#__NOINLINE__*/ defaultClick()
       }
-    } else if (mode1_ < HintMode.max_hovering + 1) {
-      mode1_ < HintMode.HOVER + 1 ? hoverEl() : retPromise = catchAsyncErrorSilently(unhover_async(clickEl))
+    } else if (forHover_) {
+      (HintMode.HOVER + 1 === HintMode.UNHOVER ? HintMode.HOVER & 1 ? mode1_ & 1 : !(mode1_ & 1)
+        : HintMode.HOVER < HintMode.UNHOVER ? mode1_ < HintMode.HOVER + 1 : mode1_ > HintMode.HOVER - 1)
+      ? hoverEl() : retPromise = catchAsyncErrorSilently(unhover_async(clickEl))
     } else if (mode1_ < HintMode.FOCUS + 1) {
       view_(clickEl)
       focus_(clickEl)
+      showUrlIfNeeded()
       set_currentScrolling(OnFirefox ? weakRef_ff(clickEl, kElRef.currentScrolling) : weakRef_not_ff!(clickEl))
       set_cachedScrollable(currentScrolling)
       removeFlash || flash_(clickEl)

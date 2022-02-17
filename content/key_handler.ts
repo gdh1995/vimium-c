@@ -10,7 +10,7 @@ import { wndSize_ } from "../lib/rect"
 import { post_ } from "./port"
 import { removeSelection } from "./dom_ui"
 import {
-  exitInsertMode, focusUpper, insert_global_, insert_Lock_, isInInsert, raw_insert_lock, setupSuppress, suppressType,
+  exitInsertMode, focusUpper, insert_global_, insert_Lock_, findNewEditable, passAsNormal, raw_insert_lock, setupSuppress, suppressType,
 } from "./insert"
 import { keyIsDown as scroll_keyIsDown, onScrolls, scrollTick } from "./scroller"
 import { catchAsyncErrorSilently, evIDC_cr, lastHovered_, set_evIDC_cr, unhover_async } from "./async_dispatcher"
@@ -183,7 +183,8 @@ export const onKeydown = (event: KeyboardEventToPrevent): void => {
     action = (handler_stack[ind -= 2] as HandlerNS.Handler)(eventWrapper);
   }
   if (action) { /* empty */ }
-  else if (/*#__NOINLINE__*/ isInInsert()) {
+  else if (insert_global_
+      || (raw_insert_lock || /*#__NOINLINE__*/ findNewEditable()) && !suppressType && !passAsNormal) {
     let keyStr = key === kKeyCode.ime ? "" : mapKeyTypes & (insert_global_ && insert_global_.k
                 ? kMapKey.normal_long | kMapKey.char | kMapKey.insertMode : kMapKey.insertMode | kMapKey.normal_long)
           || (insert_global_ ? insert_global_.k

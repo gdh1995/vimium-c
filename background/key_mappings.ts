@@ -530,7 +530,7 @@ export const availableCommands_: Dict<CommandsNS.Description> & SafeObject =
   "LinkHints.activateDownloadLink": [ kFgCmd.linkHints, kCxt.fg, 0, { m: HintMode.DOWNLOAD_LINK } ],
   "LinkHints.activateEdit": [ kFgCmd.linkHints, kCxt.fg, 1, { m: HintMode.FOCUS_EDITABLE } ],
   "LinkHints.activateFocus": [ kFgCmd.linkHints, kCxt.fg, 0, { m: HintMode.FOCUS } ],
-  "LinkHints.activateHover": [ kFgCmd.linkHints, kCxt.fg, 0, { m: HintMode.HOVER } ],
+  "LinkHints.activateHover": [ kFgCmd.linkHints, kCxt.fg, 0, { m: HintMode.HOVER, showUrl: 1 } ],
   "LinkHints.activateLeave": [ kFgCmd.linkHints, kCxt.fg, 0, { m: HintMode.UNHOVER } ],
   "LinkHints.activateMode": [ kFgCmd.linkHints, kCxt.fg, 0, { m: HintMode.DEFAULT } ],
   "LinkHints.activateModeToCopyLinkText": [ kFgCmd.linkHints, kCxt.fg, 0, { m: HintMode.COPY_TEXT } ],
@@ -539,7 +539,7 @@ export const availableCommands_: Dict<CommandsNS.Description> & SafeObject =
   "LinkHints.activateModeToDownloadLink": [ kFgCmd.linkHints, kCxt.fg, 0, { m: HintMode.DOWNLOAD_LINK } ],
   "LinkHints.activateModeToEdit": [ kFgCmd.linkHints, kCxt.fg, 1, { m: HintMode.FOCUS_EDITABLE } ],
   "LinkHints.activateModeToFocus": [ kFgCmd.linkHints, kCxt.fg, 1, { m: HintMode.FOCUS } ],
-  "LinkHints.activateModeToHover": [ kFgCmd.linkHints, kCxt.fg, 0, { m: HintMode.HOVER } ],
+  "LinkHints.activateModeToHover": [ kFgCmd.linkHints, kCxt.fg, 0, { m: HintMode.HOVER, showUrl: 1 } ],
   "LinkHints.activateModeToLeave": [ kFgCmd.linkHints, kCxt.fg, 0, { m: HintMode.UNHOVER } ],
   "LinkHints.activateModeToOpenImage": [ kFgCmd.linkHints, kCxt.fg, 0, { m: HintMode.OPEN_IMAGE } ],
   "LinkHints.activateModeToOpenIncognito": [ kFgCmd.linkHints, kCxt.fg, 0, { m: HintMode.OPEN_INCOGNITO_LINK } ],
@@ -699,7 +699,7 @@ export const availableCommands_: Dict<CommandsNS.Description> & SafeObject =
   zoom: [ kBgCmd.toggleZoom, kCxt.bg, 0 ],
   zoomIn: [ kBgCmd.toggleZoom, kCxt.bg, 0 ],
   zoomOut: [ kBgCmd.toggleZoom, kCxt.bg, 0, { $count: -1 } ],
-  zoomReset: [ kBgCmd.toggleZoom, kCxt.bg, 0, { $count: 9e4 } ]
+  zoomReset: [ kBgCmd.toggleZoom, kCxt.bg, 0, { reset: true } ]
 })
 
 const hintModes_: SafeDict<HintMode> = {
@@ -718,7 +718,7 @@ const hintModes_: SafeDict<HintMode> = {
   "edit-url": HintMode.EDIT_LINK_URL, edit: HintMode.EDIT_TEXT, "edit-text": HintMode.EDIT_TEXT,
   input: HintMode.FOCUS_EDITABLE, "focus-input": HintMode.FOCUS_EDITABLE, editable: HintMode.FOCUS_EDITABLE,
   "focus-editable": HintMode.FOCUS_EDITABLE,
-  visual: HintMode.ENTER_VISUAL_MODE
+  visual: HintMode.ENTER_VISUAL_MODE, select: HintMode.ENTER_VISUAL_MODE
 }
 
 export const visualGranularities_: GranularityNames = [

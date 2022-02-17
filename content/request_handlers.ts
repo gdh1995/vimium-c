@@ -217,7 +217,8 @@ set_requestHandlers([
         findExit && toggleSelectableStyle(1)
       }
     }
-    req.k ? hudTip(req.k, req.d, [req.t || ""]) : 0
+    req.k && hudTip(req.k, req.d, req.t)
+    req.l && hud_box && toggleClass_s(hud_box, "HL", 1)
   },
   /* kBgReq.count: */ function (request: BgReq[kBgReq.count]): void {
     let n = parseInt(currentKeys, 10) || 1, count2: 0 | 1 | 2 | 3 = 0;

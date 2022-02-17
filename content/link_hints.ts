@@ -434,11 +434,13 @@ const onKeydown = (event: HandlerNS.Event): HandlerResult => {
         vApi.e(kContentCmd.ManuallyFindAllOnClick)
       }
       timeout_(reinit, 0)
-    } else if (coreHints.h = 0, (i < kKeyCode.maxAcsKeys + 1 && i > kKeyCode.minAcsKeys - 1
-            || !os_ && (i > kKeyCode.maxNotMetaKey && i < kKeyCode.minNotMetaKeyOrMenu))
+    } else if (coreHints.h = 0, i < kKeyCode.maxAcsKeys + 1 && i > kKeyCode.minAcsKeys - 1
+          || !os_ && (i > kKeyCode.maxNotMetaKey && i < kKeyCode.minNotMetaKeyOrMenu)
         ) {
       OnFirefox && (doesAllowModifierEvents_ff = 1)
       key || toggleModesOnModifierKey(event, i)
+    } else if (keybody === "alt") {
+      toggleModesOnModifierKey(event, kKeyCode.altKey)
     } else if (i = keyNames_.indexOf(keybody), i > 0) {
       i > 2 && raw_insert_lock || beginScroll(event, key, keybody);
       resetMode();

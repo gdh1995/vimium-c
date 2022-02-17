@@ -8,9 +8,10 @@ declare const enum HandlerResult {
   MaxNotPrevent = 1,
   Prevent = 2,
   ExitNormalMode = 3,
+  RefreshPassAsNormal = 4,
   // for `<c-[>`, do nothing advanced; but treat any mapped `<esc>` as a plain `<esc>` (apply `AdvancedFlag`)
-  PlainEsc = 4, MaxNotEsc = 3,
-  AdvancedEsc = 5,
+  PlainEsc = 6, MaxNotEsc = 5,
+  AdvancedEsc = 7,
 }
 declare const enum kHandler {
   linkHints, omni, find, visual, marks,

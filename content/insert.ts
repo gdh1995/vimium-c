@@ -35,9 +35,10 @@ let lastWndFocusTime = 0
 let grabBackFocus: boolean | ((event: Event, target: LockableElement) => void) = readyState_ > (OnChrome ? "i" : "l")
 let onExitSuppress: ((this: void) => void) | null = null
 let onWndBlur2: ((this: void) => void) | undefined | null
+let passAsNormal: BOOL = 0
 
 export {
-  lock_ as raw_insert_lock, insert_global_,
+  lock_ as raw_insert_lock, insert_global_, passAsNormal,
   insert_last_, is_last_mutable as insert_last_mutable,
   grabBackFocus, suppressType, inputHint as insert_inputHint, onWndBlur2,
 }
@@ -48,6 +49,7 @@ export function set_inputHint (_newIHint: typeof inputHint): void { inputHint = 
 export function set_isHintingInput (_newIsHintingInput: BOOL): void { isHintingInput = _newIsHintingInput }
 export function set_grabBackFocus (_newGrabBackFocus: typeof grabBackFocus): void { grabBackFocus = _newGrabBackFocus }
 export function set_onWndBlur2 (_newOnBlur: typeof onWndBlur2): void { onWndBlur2 = _newOnBlur }
+export function set_passAsNormal (_newNormal: BOOL): void { passAsNormal = _newNormal }
 // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
 
 export const insertInit = (doesGrab?: boolean | null, inLoading?: 1): void => {
@@ -116,10 +118,7 @@ export const insert_Lock_ = (): LockableElement | null => {
   return lock_;
 }
 
-export const isInInsert = (): boolean => {
-  if (suppressType || lock_ || insert_global_) {
-    return !suppressType;
-  }
+export const findNewEditable = (): LockableElement | null => {
   // ignore those in Shadow DOMs, since no issues have been reported
   const el: Element | null = activeEl_unsafe_();
   /* eslint-disable max-len */
@@ -136,13 +135,11 @@ export const isInInsert = (): boolean => {
 * * in slatejs.org, there's `[contenteditable=true]` and `{-webkit-user-modify:*plaintext*}` for browser compatibility
 */
   /* eslint-enable max-len */
-  if (el && (el as TypeToAssert<Element, HTMLElement, "isContentEditable">).isContentEditable === true) {
+  if (el && (el as TypeToAssert<Element, HTMLElement, "isContentEditable">).isContentEditable) {
     esc!(HandlerResult.Nothing);
     lock_ = el as LockableElement;
-    return true;
-  } else {
-    return false;
   }
+  return lock_
 }
 
 export const setupSuppress = (onExit?: (this: void) => void): void => {
@@ -152,7 +149,7 @@ export const setupSuppress = (onExit?: (this: void) => void): void => {
     suppressType = getSelection_().type;
     onExitSuppress = onExit;
   }
-  if (f) { return f(); }
+  if (f) { f() }
 }
 
 /** should only be called during keydown events */

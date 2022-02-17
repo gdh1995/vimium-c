@@ -1,10 +1,13 @@
 import {
-  fgCache, isEnabled_, VTr, isAlive_, timeout_, clearTimeout_, interval_, clearInterval_, isLocked_, OnChrome
+  fgCache, isEnabled_, VTr, isAlive_, timeout_, clearTimeout_, interval_, clearInterval_, isLocked_, OnChrome,
+  esc
 } from "../lib/utils"
-import { isHTML_, createElement_, setClassName_s, appendNode_s, setVisibility_s, docHasFocus_ } from "../lib/dom_utils"
+import {
+  isHTML_, createElement_, setClassName_s, appendNode_s, setVisibility_s, docHasFocus_, toggleClass_s
+} from "../lib/dom_utils"
 import { ui_box, ensureBorder, addUIElement, adjustUI, getBoxTagName_old_cr } from "./dom_ui"
 import { allHints, isHintsActive, hintManager, setMode as setHintMode, hintMode_ } from "./link_hints"
-import { insert_global_ } from "./insert"
+import { insert_global_, passAsNormal } from "./insert"
 import { visual_mode_name } from "./visual"
 import { find_box } from "./mode_find"
 import { wdZoom_ } from "../lib/rect"
@@ -29,9 +32,10 @@ export const hudShow = (tid: kTip | HintMode, args?: Array<string | number> | st
   text = VTr(tid, args);
   opacity_ = 1;
   if (timer) { clearTimeout_(timer); timer = TimerID.None; }
-  embed || tweenId || (tweenId = interval_(tween, 40));
+  embed || tweenId || (tweenId = interval_(tween, 40), tweenStart = getTime())
   if (box) {
     $text.data = text;
+    toggleClass_s(box, "HL", 0)
     embed && toggleOpacity(1)
     return
   }
@@ -69,26 +73,25 @@ const tween = (fake?: TimerType.fake): void => { // safe-interval
 }
 
 export const hudHide = (info?: TimerType.fake | TimerType.noTimer): void => {
-  if (timer) { clearTimeout_(timer); timer = TimerID.None; }
-  {
-    if (!find_box && isHintsActive && !hintManager) {
-      setHintMode(hintMode_)
-      return
-    }
-    if (!find_box && visual_mode_name) {
-      hudShow(kTip.inVisualMode, visual_mode_name, info)
-      return
-    }
-    if (!find_box && insert_global_ && insert_global_.h) {
-      hudShow(kTip.raw, insert_global_.h)
-      return;
-    }
+  if (timer) {
+    clearTimeout_(timer); timer = TimerID.None
   }
-  opacity_ = 0; text = "";
+  opacity_ = 0; text = ""
   if (!box) { /* empty */ }
-  else if (info === TimerType.noTimer || !isEnabled_) {
+  else if (!find_box && isHintsActive && !hintManager) {
+      setHintMode(hintMode_)
+  } else if (!find_box && visual_mode_name) {
+      hudShow(kTip.inVisualMode, visual_mode_name, info)
+  } else if (!find_box && insert_global_ && insert_global_.h) {
+      hudShow(kTip.raw, insert_global_.h)
+  } else if (passAsNormal) {
+      esc!(HandlerResult.RefreshPassAsNormal)
+  }
+  else if ((OnChrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake ? info === TimerType.noTimer : info)
+      || !isEnabled_) {
     toggleOpacity(0)
     $text.data = "";
+    toggleClass_s(box, "HL", 0)
     isEnabled_ && isLocked_ < 3 || adjustUI(2)
   }
   else if (!tweenId && isAlive_) {

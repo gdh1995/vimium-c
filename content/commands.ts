@@ -29,7 +29,7 @@ import { activate as markActivate } from "./marks"
 import { FindAction, activate as findActivate, deactivate as findDeactivate, execCommand } from "./mode_find"
 import {
   exitInputHint, insert_inputHint, insert_last_, raw_insert_lock, insert_Lock_, resetInsert, set_is_last_mutable,
-  set_inputHint, set_insert_global_, set_isHintingInput, set_insert_last_, onWndBlur, exitInsertMode
+  set_inputHint, set_insert_global_, set_isHintingInput, set_insert_last_, onWndBlur, exitInsertMode, set_passAsNormal,
 } from "./insert"
 import { activate as visualActivate, deactivate as visualDeactivate } from "./visual"
 import {
@@ -128,7 +128,7 @@ set_contentCommands_([
     onPassKey ? onPassKey() : esc!(HandlerResult.ExitNormalMode); // singleton
     if (hasExpected || !!options.normal === (count0 > 0)) {
       const oldEsc = esc!, oldPassKeys = passKeys
-      if (!hasExpected && !oldPassKeys) { return hudTip(kTip.noPassKeys) }
+      if (!hasExpected && !oldPassKeys && !insert_Lock_() && !isTY(options.normal)) { return hudTip(kTip.noPassKeys) }
       set_passKeys(null)
       hasExpected && pushHandler_((event): HandlerResult => {
         const rawKey = getMappedKey(event, raw_insert_lock ? kModeId.Insert : kModeId.Normal)
@@ -144,17 +144,21 @@ set_contentCommands_([
         }
         return HandlerResult.Prevent
       }, kHandler.passNextKey)
+      set_passAsNormal(1)
       set_esc((i: HandlerResult): HandlerResult => {
         if (i === HandlerResult.Prevent && 0 >= --count || i === HandlerResult.ExitNormalMode) {
-          hudHide();
           removeHandler_(kHandler.passNextKey)
           set_passKeys(oldPassKeys)
           set_esc(oldEsc)
+          set_passAsNormal(0)
+          hudHide()
           runFallbackKey(options, count ? 2 : 0)
           return oldEsc(HandlerResult.Prevent);
         }
-        oldEsc(HandlerResult.Nothing)
-        set_nextKeys(keyFSM)
+        if (i - HandlerResult.RefreshPassAsNormal) {
+          oldEsc(HandlerResult.Nothing)
+          set_nextKeys(keyFSM)
+        }
         if (keyCount - count || !hud_text) {
           keyCount = count;
           hudShow(expectedKeys ? kTip.expectKeys : kTip.normalMode
@@ -215,19 +219,20 @@ set_contentCommands_([
   /* kFgCmd.autoOpen: */ (options: CmdOptions[kFgCmd.autoOpen]): void => {
     const selected = options.selected, opts2 = parseOpenPageUrlOptions(options),
     str = options.s && !selected ? "" : getSelectionText(1) || (options.text || "") + "",
+    urlOpt = options.url, getUrl = urlOpt === "raw" ? locHref : vApi.u,
     url = str.trim(), copied = options.copied
     options.copy && (url || !options.o) && post_({
       H: kFgReq.copy,
       s: str as never as undefined,
       e: parseSedOptions(options),
-      u: (str ? "" : options.url ? vApi.u() : doc.title) as "url",
+      u: (str ? "" : urlOpt ? getUrl() : doc.title) as "url",
       d: options.decoded || options.decode
     })
     options.o && (url && evalIfOK(url) || post_({
       H: kFgReq.openUrl, c: copied, u: url, o: opts2, n: options
     }))
     options.s && !options.o && post_({
-      H: kFgReq.searchAs, u: vApi.u(), c: copied, t: selected ? url : "", o: opts2, n: options
+      H: kFgReq.searchAs, u: getUrl(), c: copied, t: selected ? url : "", o: opts2, n: options
     })
   },
   /* kFgCmd.focusInput: */ (options: CmdOptions[kFgCmd.focusInput], count: number): void => {
@@ -441,7 +446,6 @@ set_contentCommands_([
       keydownEvents_[kKeyCode.None] = 0
       useResult = 1, result = ok
     } else {
-
       OnChrome && setupIDC_cr!(init)
       try {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-call
@@ -525,7 +529,6 @@ set_contentCommands_([
       removeHandler_(kHandler.helpDialog)
       removeEl_s(outerBox)
       setupExitOnClick(kExitOnClick.helpDialog | kExitOnClick.REMOVE)
-      closeBtn.click()
     })
     if (! locHref().startsWith(optionUrl)) {
       optLink.href = optionUrl
