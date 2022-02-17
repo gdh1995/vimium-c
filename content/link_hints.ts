@@ -659,12 +659,14 @@ const setupCheck = (officer: BaseHintWorker | null | undefined, el: WeakRef<Link
         doesReinit = !(OnChrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake && i)
             && (OnFirefox ? unwrap_ff(officer) : officer).x(el, r || 0)
       } catch {}
-      doesReinit && reinit(1) // to simplify logic, not wait for unhovering a hidden element in a child iframe
-      coreHints.h = isActive && getTime()
+      if (doesReinit && coreHints.h) {
+        coreHints.h = isActive && getTime()
+        reinit(1) // to simplify logic, not wait for unhovering a hidden element in a child iframe
+      }
     }, frameArray.length > 1 ? 380 : 255) : TimerID.None;
 }
 
-// checkLast: if not el, then reinit if only no key stroke and hints.length < 64
+// if not el, then reinit if only no key stroke and hints.length < 64
 const checkLast = ((el?: WeakRef<LinkEl> | LinkEl | TimerType.fake | 9 | 1 | null, r?: Rect | 0): BOOL | 2 => {
   const hasEl = (!OnChrome || Build.MinCVer >= BrowserVer.MinNo$TimerType$$Fake || el !== TimerType.fake) && el
   let r2: Rect | null | undefined, hidden: boolean
@@ -680,7 +682,7 @@ const checkLast = ((el?: WeakRef<LinkEl> | LinkEl | TimerType.fake | 9 | 1 | nul
     if ((!r2 || r) && (manager_ || coreHints).$().n
         && (hidden || math.abs(r2!.l - (r as Rect).l) > 100 || math.abs(r2!.t - (r as Rect).t) > 60)) {
       return hasEl && !doesWantToReloadLinkHints("cl") ? 0
-          : manager_ || r != null ? 1 : (timeout_(() => reinit(1), 0), 0)
+          : manager_ || r != null || !coreHints.h ? 1 : (timeout_(() => reinit(1), 0), 0)
     } else {
       return 0
     }

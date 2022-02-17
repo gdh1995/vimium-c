@@ -1,5 +1,5 @@
 import {
-  fgCache, isEnabled_, VTr, isAlive_, timeout_, clearTimeout_, interval_, clearInterval_, isLocked_, OnChrome,
+  fgCache, isEnabled_, VTr, isAlive_, timeout_, clearTimeout_, interval_, clearInterval_, isLocked_, OnChrome, getTime,
   esc
 } from "../lib/utils"
 import {
@@ -12,7 +12,7 @@ import { visual_mode_name } from "./visual"
 import { find_box } from "./mode_find"
 import { wdZoom_ } from "../lib/rect"
 
-let tweenId: ValidIntervalID = TimerID.None
+let tweenId: ValidIntervalID = TimerID.None, tweenStart = 0
 let box: HTMLDivElement | HTMLBodyElement | null = null
 let $text: Text = null as never
 let text = ""
@@ -57,7 +57,8 @@ const tween = (fake?: TimerType.fake): void => { // safe-interval
     toggleOpacity(OnChrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake && fake || fgCache.m ? 1 : 0.25)
     fake && (tweenId = 0)
     return adjustUI();
-  } else if (!fgCache.m && docHasFocus_()) {
+  } else if (!fgCache.m && docHasFocus_() && getTime() - tweenStart < 996) {
+    // in "efficiency mode" of MS Edge 98, step of interval or following timeout may be increased into 1 second
     opacity += opacity < opacity_ ? 0.25 : -0.25;
   } else {
     opacity = opacity_;
@@ -96,6 +97,7 @@ export const hudHide = (info?: TimerType.fake | TimerType.noTimer): void => {
   }
   else if (!tweenId && isAlive_) {
     tweenId = interval_(tween, 40);
+    tweenStart = getTime()
   }
 }
 

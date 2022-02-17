@@ -1,4 +1,6 @@
-import { fgCache, clearTimeout_, timeout_, isAlive_, Stop_ as stopEvent, Lower, OnChrome, OnEdge } from "./utils"
+import {
+  fgCache, clearTimeout_, timeout_, isAlive_, Stop_ as stopEvent, Lower, OnChrome, OnEdge, getTime
+} from "./utils"
 
 const DEL = kChar.delete, BSP = kChar.backspace, SP = kChar.space
 const ENT = kChar.enter
@@ -149,21 +151,26 @@ export const whenNextIsEsc_ = (id: kHandler, modeId: kModeId, onEsc: HandlerNS.V
    */
 export const suppressTail_ = ((timeout?: number
     , callback?: HandlerNS.VoidHandler<unknown> | 0): HandlerNS.Handler | HandlerNS.VoidHandler<HandlerResult> => {
-  let timer: ValidTimeoutID = TimerID.None, func = (event?: HandlerNS.Event): HandlerResult => {
+  let timer: ValidTimeoutID = TimerID.None, now: number, func = (event?: HandlerNS.Event): HandlerResult => {
       if (!timeout) {
         if (event!.e.repeat) { return HandlerResult.Prevent }
-        removeHandler_(func as never as kHandler.suppressTail)
+        exit()
         return HandlerResult.Nothing;
+      }
+      if (event && getTime() - now > timeout) { // safe-time
+        exit()
+        return HandlerResult.Nothing
       }
       if (!timer || callback !== 0) {
         clearTimeout_(timer)
-        timer = timeout_((): void => { // safe-interval
-          removeHandler_(func as never as kHandler.suppressTail)
-          callback && isAlive_ && callback()
-        }, timeout)
+        now = getTime()
+        timer = timeout_(exit, timeout) // safe-time
       }
       return HandlerResult.Prevent;
-  };
+  }, exit = (): void => {
+    removeHandler_(func as never as kHandler.suppressTail)
+    callback && isAlive_ && callback()
+  }
   timeout && func()
   if (!callback) {
     pushHandler_(func, func as never as kHandler.suppressTail)
