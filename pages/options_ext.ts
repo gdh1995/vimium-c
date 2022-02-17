@@ -24,9 +24,11 @@ const showHelp = (event?: EventToPrevent | "force" | void | null): void => {
     const misc = VApi && VApi.y()
     const node2 = misc && misc.r && misc.r.querySelector("#HDlg") as HTMLElement
     if (!node2) { return; }
-    (node2.querySelector("#HCls") as HTMLElement).addEventListener("click", function (): void {
+    const outerBox = (node2 as SafeHTMLElement).parentElement || node2
+    outerBox.remove = (): void => {
+      HTMLElement.prototype.remove.call(outerBox)
       location.hash = "";
-    }, true);
+    }
   } : (): void => { /* empty */ })
 };
 

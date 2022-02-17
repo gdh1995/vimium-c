@@ -78,6 +78,11 @@ qwertyuiop[]\
 asdfghjkl;'
 zxcvbnm,./
 
+# Hangul
+ㅂ ㅈ ㄷ ㄱ ㅅ ㅛ ㅕ ㅑ ㅐ ㅔ [ ]
+ㅁ ㄴ ㅇ ㄹ ㅎ ㅗ ㅓ ㅏ ㅣ ; '
+ㅋ ㅌ ㅊ ㅍ ㅠ ㅜ ㅡ , . /
+
 # Turkish
 1234567890*-
 qwertyuıopğü,
