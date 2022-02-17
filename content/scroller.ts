@@ -64,25 +64,27 @@ export function set_cachedScrollable (_newCachedSc: typeof cachedScrollable): vo
 
 let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: number
     , newOpts?: CmdOptions[kFgCmd.scroll]): void => {
+  const knownFPS = [ 30,  45,  60,  75,  90, 100, 120, 144, 155, 165, 170, 175, 180, 200, 240 ]
   let amount: number, sign: number, calibration: number, di: ScrollByY, duration: number, element: SafeElement | null,
   beforePos: number, timestamp: number, rawTimestamp: number, totalDelta: number, totalElapsed: number, min_delta = 0,
   running = 0, flags: kScFlag & number, timer: ValidTimeoutID = TimerID.None, calibTime: number, lostFrames: number,
   styleTop: SafeElement | null | undefined, onFinish: ((succeed: number) => void) | 0 | undefined,
-  wait2: number | boolean | null | undefined,
+  wait2: number | boolean | null | undefined, padding: number,
   animate = (newRawTimestamp: number): void => {
-    const continuous = keyIsDown > 0, rawElapsed = newRawTimestamp - rawTimestamp
-    let newTimestamp = newRawTimestamp, elapsed: number, delay2: number
+    const continuous = keyIsDown > 0
+    let rawElapsed = newRawTimestamp - rawTimestamp
+    let newTimestamp = newRawTimestamp, elapsed: number, delay2: number, fps_d_min = 5, fps_idx = 14
     // although timestamp is mono, Firefox adds too many limits to its precision
     if (!timestamp) {
       newTimestamp = performance.now()
-      elapsed = max_(newRawTimestamp + (min_delta || ScrollConsts.firstTick) - newTimestamp, 0)
+      elapsed = max_(newRawTimestamp + (min_delta || ScrollConsts.firstTick) - newTimestamp, 1)
       newTimestamp = max_(newRawTimestamp, newTimestamp)
       beforePos = dimSize_(element, kDim.positionX + di)
     } else if (rawElapsed < 1e-5) {
       if (OnFirefox && rawElapsed > -1e-5) {
         elapsed = min_delta || ScrollConsts.tickForUnexpectedTime
         newTimestamp = timestamp + elapsed
-      } else /** when (rawElapsed < -1e-5 || rawElapsed ~= 0 && VOther !== BrowserType.Firefox) */ {
+      } else /** when (rawElapsed < -1e-5 || rawElapsed ~= 0 && !OnFirefox) */ {
         elapsed = 0
       }
     } else if (timer) {
@@ -97,22 +99,26 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
         newTimestamp = timestamp + elapsed
       } else {
         if (preventPointEvents > ScrollConsts.MinLatencyToAutoPreventHover - 1 && rawElapsed > preventPointEvents
-            && min_delta && rawElapsed > min_delta * 1.8 && ++lostFrames > 2) {
+            && min_delta > 4 && rawElapsed > min_delta * 1.8 && ++lostFrames > 2) {
           preventPointEvents = 2
           toggleAnimation!(1)
         }
-        if (rawTimestamp) {
-          min_delta = !min_delta ? rawElapsed + 0.1
-              : rawElapsed < min_delta + 2 ? (min_delta + rawElapsed) / 2 : (min_delta * 7 + rawElapsed) / 8
-        }
+        min_delta = !rawTimestamp ? min_delta : !min_delta ? rawElapsed < 3 && rawTimestamp !== timestamp ? 0
+            : min_(max_(rawTimestamp !== timestamp ? 11 : 6, rawElapsed + 0.1), ScrollConsts.firstTick)
+            : rawElapsed < min_delta * 0.7 ? 0.85 * min_delta : rawElapsed < min_delta * 1.3
+            ? (min_delta + rawElapsed) / 2 : (min_delta * 7 + rawElapsed) / 8
       }
     }
     totalElapsed += elapsed
     if (!Build.NDEBUG && ScrollConsts.DEBUG & 1) {
-      console.log("rawOld>rawNew: +%o = %o ; old>new: +%o = %o ; elapsed: +%o = %o; min_delta = %o"
-          , (((newRawTimestamp - rawTimestamp) * 1e2) | 0) / 1e2, (((newRawTimestamp % 1e4) * 1e3 + 0.5) | 0) / 1e3
-          , (((newTimestamp - timestamp) * 1e2) | 0) / 1e2, (((newTimestamp % 1e4) * 1e3 + 0.5) | 0) / 1e3
-          , ((elapsed * 1e2) | 0) / 1e2, ((totalElapsed * 1e2) | 0) / 1e2, ((min_delta * 1e4) | 0) / 1e4)
+      console.log("rawOld>rawNew: +%o = %o ; old>new: +%o = %o ; elapsed: +%o = %o; min_delta = %o (%o fps)"
+          , ((((rawTimestamp ? newRawTimestamp : newRawTimestamp % 1e4) - rawTimestamp) * 1e2) | 0) / 1e2
+          , (((newRawTimestamp % 1e4) * 1e3 + 0.5) | 0) / 1e3
+          , ((((timestamp ? newTimestamp : newTimestamp % 1e4) - timestamp) * 1e2) | 0) / 1e2
+          , (((newTimestamp % 1e4) * 1e3 + 0.5) | 0) / 1e3
+          , ((elapsed * 1e2) | 0) / 1e2, ((totalElapsed * 1e2) | 0) / 1e2, ((min_delta * 1e4) | 0) / 1e4
+          , min_delta ? math.round(1000 / min_delta * 10) / 10 : -1
+      )
     }
     rawTimestamp = newRawTimestamp
     timestamp = newTimestamp
@@ -130,19 +136,34 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
         }
       }
     }
-    let delta = amount * (elapsed / duration) * calibration;
+    let near_elapsed = elapsed
+    if (min_delta && elapsed < 1.2 * min_delta && elapsed > 0.9 * min_delta) {
+      let fps_test = 1e3 / min_delta, fps_d: number
+      do {
+        fps_d = knownFPS[fps_idx--] - fps_test
+        if (fps_d < fps_d_min && fps_d > -fps_d_min) {
+          fps_d_min = math.abs(fps_d)
+          near_elapsed = 1e3 / knownFPS[fps_idx + 1]
+        }
+      } while (fps_d > 0)
+    }
+    let delta = max_(amount * near_elapsed / duration * calibration - padding, 1)
     if (!continuous || (totalDelta < amount || flags & kScFlag.TO) && totalElapsed < minDelay) {
-      delta = max_(0, min_(delta, amount - totalDelta))
+      delta = max_(0, min_(delta + 2 > amount - totalDelta && delta > 4 ? amount : delta, amount - totalDelta))
     }
     if (delta > 0) {
-      const oldDelta = delta
+      const wanted = delta
       // here should keep safe even if there're bounce effects
       delta = performScroll(element, di, sign * (delta > 4 ? math.round : math.ceil)(delta), beforePos)
       if (!Build.NDEBUG && ScrollConsts.DEBUG & 2) {
-        console.log("do scroll: %o + round2(%o); effect=%o ; amount=%o ; keyIsDown=%o"
-            , ((totalDelta * 100) | 0) / 100, ((oldDelta * 100) | 0) / 100, ((delta * 100) | 0) / 100, amount
+        const near_fps = 1e3 / near_elapsed
+        console.log("do scroll: %o + round2(%o fps %s %o px = %o); effect=%o ; amount=%o ; keyIsDown=%o"
+            , ((totalDelta * 100) | 0) / 100, near_fps > 300 ? -1 : ((near_fps * 100) | 0) / 100
+            , padding > 0 ? "-" : "+", ((math.abs(padding) * 100) | 0) / 100, ((wanted * 100) | 0) / 100
+            , ((delta * 100) | 0) / 100, amount
             , ((keyIsDown * 10) | 0) / 10)
       }
+      padding = wanted > 4 && math.abs(delta - wanted) < 2 ? delta - wanted : 0
       // if `scrollPageDown`, then amount is very large, but when it has been at page top/bottom,
       // `performScroll` will only return 0, then `delta || 1` is never enough.
       // In such cases stop directly
@@ -163,6 +184,7 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
         rAF_(animate)
       }
     } else if (elapsed) {
+      if (!Build.NDEBUG) { totalElapsed -= elapsed }
       if ((!OnChrome || chromeVer_ > BrowserVer.MinMaybeScrollEndAndOverScrollEvents - 1)
           && "onscrollend" in (OnFirefox ? doc : Image.prototype)) {
         // according to tests on C75, no "scrollend" events if scrolling behavior is "instant";
@@ -180,6 +202,7 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
   },
   hasDialog = OnChrome && Build.MinCVer >= BrowserVer.MinEnsuredHTMLDialogElement || WithDialog && doesSupportDialog(),
   resumeAnimation = (): void => {
+    padding = 0
     if (!keyIsDown) { toggleAnimation!(); return }
     flags & kScFlag.TO && amount > fgCache.t && (amount = min_(amount, dimSize_(element, di + kDim.viewW) / 2) | 0)
     running = running || rAF_(animate);
@@ -188,7 +211,7 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
     if (scrolling === 4) { wait2 || running || (clearTimeout_(timer), resumeAnimation()); return }
     if (!scrolling) {
       if (!Build.NDEBUG && ScrollConsts.DEBUG) {
-        console.log(">>> [animation] stop after %o ms / %o px"
+        console.log(">>> [animation] end after %o ms / %o px"
             , ((totalElapsed * 1e2) | 0) / 1e2, ((totalDelta * 1e2) | 0) / 1e2)
       }
       running = timestamp = rawTimestamp = beforePos = calibTime = preventPointEvents = lostFrames = 0
@@ -213,7 +236,7 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
     sign = newAmount1 < 0 ? -1 : 1
     timer && clearTimeout_(timer)
     timer = TimerID.None
-    totalDelta = totalElapsed = 0.0
+    totalDelta = totalElapsed = padding = 0.0
     timestamp = rawTimestamp = calibTime = lostFrames = onFinish = 0
     const keyboard = fgCache.k;
     keyboard.length > 2 && (min_delta = min_(min_delta, +keyboard[2]! || min_delta))
@@ -221,8 +244,9 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
     minDelay = keyboard[0] + max_(keyboard[1], ScrollConsts.DelayMinDelta) + ScrollConsts.DelayTolerance;
     (preventPointEvents === 2 || preventPointEvents === 1 && !isSelARange(getSelection_())) && toggleAnimation!(1)
     if (!Build.NDEBUG && ScrollConsts.DEBUG) {
-      console.log("%c[animation]%c start with axis = %o, amount = %o, dir = %o, min_delta = %o"
-          , "color: #1155cc", "color: auto", di ? "y" : "x", amount, sign, ((min_delta * 1e4) | 0) / 1e4)
+      console.log("%c[animation]%c start with axis = %o, amount = %o, dir = %o, duration = %o, min_delta = %o"
+          , "color: #1155cc", "color: auto", di ? "y" : "x", amount, sign, duration
+          , ((min_delta * 1e4) | 0) / 1e4)
     }
     running = running || rAF_(animate)
     if (doesSucceed_ != null) {
