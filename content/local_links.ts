@@ -543,10 +543,8 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
         splice = i--
       }
       /* empty */
-    } else if (isContaining_(list[j][1], list[i][1])) {
-      ++splice
-    } else {
-      notRemoveParents = k < ClickType.MinWeak;
+    } else if (notRemoveParents = k < ClickType.MinWeak) {
+      splice = +isContaining_(list[j][1], list[i][1])
     }
     splice && (list.splice(i, 1), splice = 0)
     if (notRemoveParents) { continue; }

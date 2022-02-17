@@ -86,7 +86,7 @@ export type AddChildDirectly = (officer: BaseHintWorker, el: KnownIFrameElement,
 import {
   VTr, isAlive_, isEnabled_, setupEventListener, keydownEvents_, set_keydownEvents_, timeout_, max_, min_, math, OnEdge,
   clearTimeout_, fgCache, doc, readyState_, chromeVer_, vApi, deref_, getTime, unwrap_ff, OnFirefox, OnChrome,
-  WithDialog, Lower, safeCall, loc_, os_, firefoxVer_, weakRef_not_ff, weakRef_ff
+  WithDialog, Lower, safeCall, locHref, os_, firefoxVer_, weakRef_not_ff, weakRef_ff
 } from "../lib/utils"
 import {
   querySelector_unsafe_, isHTML_, scrollingEl_, docEl_unsafe_, IsInDOM_, GetParent_unsafe_, hasInCSSFilter_,
@@ -107,7 +107,7 @@ import {
 } from "./dom_ui"
 import { scrollTick, beginScroll, currentScrolling } from "./scroller"
 import { hudTip, hudShow, hudHide, hud_tipTimer } from "./hud"
-import { set_onWndBlur2, insert_Lock_, set_grabBackFocus, insertInit } from "./insert"
+import { set_onWndBlur2, insert_Lock_, set_grabBackFocus, insertInit, raw_insert_lock } from "./insert"
 import {
   getVisibleElements, localLinkClear, frameNested_, checkNestedFrame, set_frameNested_, filterOutNonReachable, traverse,
   getIfOnlyVisible, ClickType
@@ -294,7 +294,7 @@ const collectFrameHints = (options: ContentOptions, count: number
 const render: BaseHintWorker["r"] = (hints, arr, raw_apis): void => {
     const managerOrA = manager_ || coreHints;
     let body = doc.body
-    if (manager_ && (body && htmlTag_(body) && body.isContentEditable || loc_.href.startsWith("about"))) {
+    if (manager_ && (body && htmlTag_(body) && body.isContentEditable || locHref().startsWith("about"))) {
       hookOnWnd(HookAction.Install)
     }
     removeBox()
@@ -440,9 +440,9 @@ const onKeydown = (event: HandlerNS.Event): HandlerResult => {
       OnFirefox && (doesAllowModifierEvents_ff = 1)
       key || toggleModesOnModifierKey(event, i)
     } else if (i = keyNames_.indexOf(keybody), i > 0) {
-      i > 2 && insert_Lock_ || beginScroll(event, key, keybody);
+      i > 2 && raw_insert_lock || beginScroll(event, key, keybody);
       resetMode();
-      ret = i > 2 && insert_Lock_ ? HandlerResult.Suppress : HandlerResult.Prevent
+      ret = i > 2 && raw_insert_lock ? HandlerResult.Suppress : HandlerResult.Prevent
     } else if (keybody === SPC && (!useFilter_ || key !== keybody)) {
       keyStatus_.t = keyStatus_.t.replace("  ", " ");
       if (zIndexes_ !== 0) {
@@ -734,7 +734,7 @@ export const clear = (onlySelfOrEvent?: 0 | 1 | Event, suppressTimeout?: number)
     set_onWndBlur2(set_removeFlash(isHC_ = (api_ as unknown) = (options_ as unknown) = null))
     set_maxPrefixLen_(lastMode_ = mode_ = mode1_ = count_ = coreHints.h = /*#__INLINE__*/ localLinkClear())
     if (WithDialog) { coreHints.d = 0 }
-    set_grabBackFocus(useFilter_ = noHUD_ = tooHigh_ = false)
+    set_grabBackFocus(useFilter_ = noHUD_ = tooHigh_ = forHover_ = false)
     chars_ = "";
     removeBox()
     hud_tipTimer || hudHide()

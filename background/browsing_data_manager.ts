@@ -483,8 +483,10 @@ export const getRecentSessions_ = (expected: number, showBlocked: boolean
   if (!browserSession) { callback([]); return }
   // the timer is for https://github.com/gdh1995/vimium-c/issues/365#issuecomment-1003652820
   let timer = OnFirefox ? setTimeout((): void => { timer = 0; callback([]) }, 150) : 0
+  // Some browsers may return more session items when no `maxResults` but still require `maxResults <= 25` if it exists,
+  // as reported in https://github.com/gdh1995/vimium-c/issues/553#issuecomment-1035063582
   browserSession.getRecentlyClosed({
-    maxResults: Math.min((expected * 1.2) | 0, browserSession.MAX_SESSION_RESULTS)
+    maxResults: Math.min(Math.round(expected * 1.2), +browserSession.MAX_SESSION_RESULTS || 25, 25)
   }, (sessions?: chrome.sessions.Session[]): void => {
     // Note: sessions may be undefined, see log in https://github.com/gdh1995/vimium-c/issues/437#issuecomment-921878143
     if (OnFirefox) {

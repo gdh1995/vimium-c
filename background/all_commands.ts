@@ -557,7 +557,7 @@ set_bgC_([
       resolve(0)
       return complainNoSession()
     }
-    const onlyOne = !!get_cOptions<C.restoreTab>().one, limit = sessions.MAX_SESSION_RESULTS
+    const onlyOne = !!get_cOptions<C.restoreTab>().one, limit = Math.min(+sessions.MAX_SESSION_RESULTS || 25, 25)
     let count = Math.abs(cRepeat)
     if (count > limit) {
       if (onlyOne) {

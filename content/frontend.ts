@@ -36,6 +36,7 @@ set_safeDestroy((silent?: Parameters<SafeDestoryF>[0]): void => {
       return;
     }
     set_isEnabled_(!1)
+    set_VTr(locHref)
     hookOnWnd(HookAction.Destroy);
 
     contentCommands_[kFgCmd.insertMode]({r: 2})
