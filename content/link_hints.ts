@@ -86,7 +86,7 @@ export type AddChildDirectly = (officer: BaseHintWorker, el: KnownIFrameElement,
 import {
   VTr, isAlive_, isEnabled_, setupEventListener, keydownEvents_, set_keydownEvents_, timeout_, max_, min_, math, OnEdge,
   clearTimeout_, fgCache, doc, readyState_, chromeVer_, vApi, deref_, getTime, unwrap_ff, OnFirefox, OnChrome,
-  WithDialog, Lower, safeCall, locHref, os_, firefoxVer_, weakRef_not_ff, weakRef_ff
+  WithDialog, Lower, safeCall, locHref, os_, firefoxVer_, weakRef_not_ff, weakRef_ff, isTY
 } from "../lib/utils"
 import {
   querySelector_unsafe_, isHTML_, scrollingEl_, docEl_unsafe_, IsInDOM_, GetParent_unsafe_, hasInCSSFilter_,
@@ -110,7 +110,7 @@ import { hudTip, hudShow, hudHide, hud_tipTimer } from "./hud"
 import { set_onWndBlur2, insert_Lock_, set_grabBackFocus, insertInit, raw_insert_lock } from "./insert"
 import {
   getVisibleElements, localLinkClear, frameNested_, checkNestedFrame, set_frameNested_, filterOutNonReachable, traverse,
-  getIfOnlyVisible, ClickType
+  getIfOnlyVisible, ClickType, initTestRegExps
 } from "./local_links"
 import {
   matchHintsByKey, zIndexes_, rotate1, initFilterEngine, initAlphabetEngine, renderMarkers, generateHintText,
@@ -161,6 +161,9 @@ export function set_isClickListened_ (_newIsClickListened: boolean): void { isCl
 export function set_addChildFrame_<T extends typeof addChildFrame_> (_newACF: T): void { addChildFrame_ = _newACF }
 
 export const activate = (options: ContentOptions, count: number, force?: 2 | TimerType.fake): void => {
+    const oldTimer = _timer
+    _timer = 0
+    oldTimer && clearTimeout_(oldTimer)
     if (isActive && force !== 2 || !isEnabled_) { return; }
     if (checkHidden(kFgCmd.linkHints, options, count)) {
       return clear(1)
@@ -170,7 +173,7 @@ export const activate = (options: ContentOptions, count: number, force?: 2 | Tim
     }
     if (doc.body === null) {
       manager_ || clear()
-      if (!_timer && readyState_ > "l") {
+      if (!oldTimer && readyState_ > "l") {
         _timer = timeout_(contentCommands_[kFgCmd.linkHints].bind(0 as never, options, count, 0), 300)
         return replaceOrSuppressMost_(kHandler.linkHints)
       }
@@ -279,6 +282,7 @@ const collectFrameHints = (options: ContentOptions, count: number
           && dimSize_(scrolling, kDim.scrollH) / wndSize_() > GlobalConsts.LinkHintTooHighThreshold
     }
     removeModal()
+    initTestRegExps() // needed by generateHintText
     addChildFrame_ = newAddChildFrame
     const elements = /*#__NOINLINE__*/ getVisibleElements(view)
     const hintItems = elements.map(createHint);
@@ -572,6 +576,7 @@ const activateDirectly = (options: ContentOptions, count: number): void => {
     api_ = vApi
     options_ = options
     setMode(mode, count_ = isActive = 1)
+    coreHints.v()
     wholeDoc && view_(el)
     next()
   }
@@ -641,6 +646,7 @@ const reinit = (auto?: BOOL | TimerType.fake, officer?: BaseHintWorker | null
     isActive = 0;
     resetHints();
     contentCommands_[kFgCmd.linkHints](options_, 0);
+    if (!isActive) { return }
     setupCheck(officer, lastEl!, rect!)
     onWaitingKey = auto ? suppressTail_(GlobalConsts.TimeOfSuppressingUnexpectedKeydownEvents
         , /*#__NOINLINE__*/ resetOnWaitKey) : onWaitingKey
@@ -804,7 +810,7 @@ export const detectUsableChild = (el: KnownIFrameElement): VApiTy | null => {
 }
 
 export const doesWantToReloadLinkHints = (reason: NonNullable<ContentOptions["autoReload"]>): boolean => {
-  let conf = options_.autoReload, accept = !conf || conf === "all" || Lower(conf).includes(reason)
+  let conf = options_.autoReload, accept = !isTY(conf) || conf === "all" || Lower(conf).includes(reason)
   let scheduling: Navigator["scheduling"] | undefined
   if (OnChrome) {
     accept = Build.MinCVer >= BrowserVer.MinEnsuredNavigator$scheduling$$isInputPending

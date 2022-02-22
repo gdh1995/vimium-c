@@ -11,7 +11,7 @@ import {
   setOrRemoveAttr_s, toggleClass_s, textContent_s, notSafe_not_ff_, modifySel, SafeEl_not_ff_, testMatch, docHasFocus_,
   extractField
 } from "../lib/dom_utils"
-import { getPreferredRectOfAnchor } from "./local_links"
+import { getPreferredRectOfAnchor, initTestRegExps } from "./local_links"
 import {
   hintOptions, mode1_, hintMode_, hintApi, hintManager, coreHints, setMode, detectUsableChild, hintCount_,
   ExecutableHintItem, forHover_
@@ -384,6 +384,7 @@ const checkBoolOrSelector = (userVal: string | boolean | null | void | undefined
   masterOrA.v() // here .keyStatus_ is reset
   set_grabBackFocus(false)
   if (IsInDOM_(clickEl)) {
+    initTestRegExps() // needed by getPreferredRectOfAnchor
     // must get outline first, because clickEl may hide itself when activated
     // must use UI.getRect, so that zooms are updated, and prepareCrop is called
     rect = knownRect || tag === "a" && getPreferredRectOfAnchor(clickEl as HTMLAnchorElement)

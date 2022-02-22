@@ -363,9 +363,9 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
   output: Hint[] | Hint0[] = [],
   cur_arr: HintSources | null = matchSafeElements(selector, traverseRoot, matchSelector, 1) || (matchSelector = " ", [])
   set_evenHidden_(options.evenIf! | (options.scroll === "force" ? kHidden.OverflowHidden : 0))
+  initTestRegExps()
   if (wantClickable) {
     getPixelScaleToScroll();
-    initTestRegExps()
     clickTypeFilter_ = options.typeFilter! | 0
   }
   if (matchSelector) {
@@ -855,7 +855,7 @@ export const getVisibleElements = (view: ViewBox): readonly Hint[] => {
   return visibleElements.reverse();
 }
 
-const initTestRegExps = (): void => {
+export const initTestRegExps = (): void => {
   if (!clickableClasses_) {
     clickableClasses_ = createRegExp(kTip.clickableClasses, "")
     clickableRoles_ = createRegExp(kTip.clickableRoles, "i")

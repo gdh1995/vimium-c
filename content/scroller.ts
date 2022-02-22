@@ -185,6 +185,8 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
       }
     } else if (elapsed) {
       if (!Build.NDEBUG) { totalElapsed -= elapsed }
+      onFinish && onFinish(totalDelta)
+      toggleAnimation!()
       if ((!OnChrome || chromeVer_ > BrowserVer.MinMaybeScrollEndAndOverScrollEvents - 1)
           && "onscrollend" in (OnFirefox ? doc : Image.prototype)) {
         // according to tests on C75, no "scrollend" events if scrolling behavior is "instant";
@@ -193,9 +195,7 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
         (notEl ? doc : element!).dispatchEvent(
             new Event("scrollend", {cancelable: false, bubbles: notEl}));
       }
-      onFinish && onFinish(totalDelta)
       checkCurrent(element)
-      toggleAnimation!();
     } else {
       rAF_(animate)
     }
