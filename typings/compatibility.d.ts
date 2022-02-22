@@ -542,6 +542,7 @@ declare const enum BrowserVer {
   MinEnsured$string$$replaceAll = 91,
   MinEnsured$WeakRef = 92, // even if LEGACY
   MinNotPropagateBodyStyleIfContained = 96, // even if EXPERIMENTAL or LEGACY
+  MinEnsured$input$$showPicker = 99, // even if LEGACY; since 97 if EXPERIMENTAL
   MinNo$TimerType$$Fake = 999,
   assumedVer = 998,
 }

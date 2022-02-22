@@ -118,7 +118,9 @@ interface HTMLEditableELement {
   setRangeText(replacement: string, start: number | null, end: number | null, selectMode?: string): void
 }
 
-interface HTMLInputElement extends HTMLEditableELement {}
+interface HTMLInputElement extends HTMLEditableELement {
+  showPicker? (): void
+}
 interface HTMLTextAreaElement extends HTMLEditableELement {}
 
 declare var Response: { new (blob: Blob): Response }

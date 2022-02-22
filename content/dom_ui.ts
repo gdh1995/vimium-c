@@ -350,31 +350,38 @@ export const moveSel_s_throwable = (element: LockableElement, action: SelectActi
     const elTag = htmlTag_(element), _rawType = editableTypes_[elTag]
     const type = _rawType ? _rawType > EditableType.MaxNotTextModeElement ? _rawType : EditableType.Default
         : element.isContentEditable ? EditableType.rich_ : EditableType.Default
-    if (type === EditableType.Default) { return; }
-    const isBox = type === EditableType.TextBox || type === EditableType.rich_
-        && textContent_s(element).includes("\n"),
+    const isBox = type === EditableType.TextBox || type > EditableType.input_ && textContent_s(element).includes("\n"),
     gotoStart = action === "start",
     gotoEnd = !action || action === "end" || isBox && (action + "")[3] === "-"
+    let str: string, len: number | undefined
+    if (!type) { return }
     if (isBox && gotoEnd && dimSize_(element, kDim.elClientH) + 12 < dimSize_(element, kDim.scrollH)) {
       return;
     }
     // not need `this.getSelection_()`
-      if (type === EditableType.rich_) {
+    if (type > EditableType.input_) {
         selectAllOfNode(element)
-      } else {
-        let len = (element as TextElement).value.length
-          , start = textOffset_(element as TextElement), end = textOffset_(element as TextElement, 1)
-        if (!len || start && start < len || end && end < len
+    } else {
+      len = (element as TextElement).value.length
+      const start = textOffset_(element as TextElement), end = textOffset_(element as TextElement, 1)
+      if (!len || start && start < len || end && end < len
             || (gotoEnd ? start : gotoStart ? !end : !start && end) || !action && end) {
-          return
-        }
+      } else {
         (element as TextElement).select();
         if (OnFirefox && (gotoEnd || gotoStart)) {
           (element as TextElement).setSelectionRange(gotoEnd ? len : 0, gotoEnd ? len : 0);
-          return;
         }
       }
-      (gotoEnd || gotoStart) && collpaseSelection(getSelection_(), <BOOL> +gotoEnd)
+    }
+    (gotoEnd || gotoStart) && collpaseSelection(getSelection_(), <BOOL> +gotoEnd)
+    if (type === EditableType.input_
+        && (OnChrome && Build.MinCVer >= BrowserVer.MinEnsured$input$$showPicker
+            || (element as HTMLInputElement).showPicker)
+        && (!len && (str = (element as HTMLInputElement).autocomplete) && str !== "off"
+            || (element as HTMLInputElement).list)
+        && getEditableType_(element as HTMLInputElement)) {
+      (element as HTMLInputElement).showPicker!()
+    }
 }
 
 export const collpaseSelection = (sel: Selection, toEnd?: VisualModeNS.ForwardDir | boolean): void => {
