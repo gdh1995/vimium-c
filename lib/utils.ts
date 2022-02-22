@@ -138,13 +138,15 @@ export let timeout_: TimerFunc<ValidTimeoutID> =
     (Build.NDEBUG ? setTimeout : (func, timeout) => setTimeout(func, timeout)) as TimerFunc<ValidTimeoutID>
 export let interval_: TimerFunc<ValidIntervalID> =
     (Build.NDEBUG ? setInterval : (func, period) => setInterval(func, period)) as TimerFunc<ValidIntervalID>
-export const clearTimeout_: (timer: ValidTimeoutID) => void =
+export let clearTimeout_: (timer: ValidTimeoutID) => void =
     Build.NDEBUG ? clearTimeout as never : timer => clearTimeout(timer as number)
-export const clearInterval_: (timer: ValidIntervalID) => void =
+export let clearInterval_: (timer: ValidIntervalID) => void = // not reuse clearTimeout - avoid issues on injected pages
     Build.NDEBUG ? clearInterval as never : timer => clearInterval(timer as number)
 
-export function replaceBrokenTimerFunc (_newTimerFunc: TimerFunc<number>): void {
+export const setupTimerFunc_cr = !OnChrome ? 0 as never : (_newTimerFunc: TimerFunc<number>
+    , _newClearTimer: (timer: ValidTimeoutID | ValidIntervalID) => void): void => {
   timeout_ = interval_ = _newTimerFunc as TimerFunc<TimerID & number>
+  clearTimeout_ = clearInterval_ = _newClearTimer
 }
 
 /**

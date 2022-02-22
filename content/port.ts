@@ -1,16 +1,16 @@
 import {
   injector, safer, timeout_, isAlive_, isTop, set_i18n_getMsg, locHref, OnEdge, OnChrome, OnFirefox, isTY, fgCache,
-  interval_
+  interval_, setupTimerFunc_cr, noRAF_old_cr_
 } from "../lib/utils"
 import { suppressTail_ } from "../lib/keyboard_utils"
-import { docHasFocus_ } from "../lib/dom_utils"
+import { docEl_unsafe_, docHasFocus_, rAF_ } from "../lib/dom_utils"
 import { style_ui } from "./dom_ui"
 import { hudTip } from "./hud"
 
 export declare const enum HookAction { Install = 0, SuppressListenersOnDocument = 1, Suppress = 2, Destroy = 3 }
 export type SafeDestoryF = (silent?: boolean | BOOL | 9) => void
 
-let port_callbacks: { [msgId: number]: <k extends keyof FgRes>(this: void, res: FgRes[k]) => void }
+let port_callbacks: { [msgId: number]: <k extends keyof FgRes>(this: void, res: FgRes[k]) => unknown }
 let port_: ContentNS.Port | null = null
 let tick = 1
 let safeDestroy: SafeDestoryF
@@ -109,4 +109,15 @@ export const runFallbackKey = ((options: Req.FallbackOptions
   /** if `anotherTip` is `0` / `false`, then use `.$then`; otherwise use `.$else` */
   (options: Req.FallbackOptions, anotherTip: 0 | 2 | false, tipArgs?: "" | TimerType.fake, wait?: number): void
   (options: Req.FallbackOptions, anotherTip: kTip, tipArgs?: string | Array<string | number>): void
+}
+
+export const setupBackupTimer_cr = !OnChrome ? 0 as never : (): void => {
+  /*#__INLINE__*/ setupTimerFunc_cr((func: (info?: TimerType.fake) => void, timeout: number): number => {
+    return Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage && noRAF_old_cr_
+        || timeout > GlobalConsts.MinCancelableInBackupTimer - 1
+        ? (send_(kFgReq.wait, timeout, func), tick + 0.5) : rAF_((): void => { func(TimerType.fake) })
+  }, (timer: ValidTimeoutID | ValidIntervalID): void => {
+    timer && port_callbacks[timer as number - 0.5] &&
+    (port_callbacks[timer as number - 0.5] = docEl_unsafe_)
+  })
 }

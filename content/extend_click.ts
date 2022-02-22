@@ -1,16 +1,16 @@
 import {
   clickable_, setupEventListener, timeout_, doc, isAlive_, set_noRAF_old_cr_, math, isTop, OnChrome, readyState_,
-  loc_, replaceBrokenTimerFunc, noRAF_old_cr_, getTime, recordLog, VTr, vApi, Stop_, isTY, OnEdge, OnFirefox
+  loc_, getTime, recordLog, VTr, vApi, Stop_, isTY, OnEdge
 } from "../lib/utils"
 import {
   createElement_, set_createElement_, OnDocLoaded_, runJS_, rAF_, removeEl_s, attr_s, setOrRemoveAttr_s,
   parentNode_unsafe_s
 } from "../lib/dom_utils"
-import { safeDestroy, send_ } from "./port"
+import { safeDestroy, setupBackupTimer_cr } from "./port"
 import { coreHints, doesWantToReloadLinkHints, hintOptions } from "./link_hints"
 import { grabBackFocus } from "./insert"
 
-export const main_not_ff = (!OnFirefox ? (): void => {
+export const main_not_ff = (Build.BTypes & ~BrowserType.Firefox ? (): void => {
 (function extendClick(this: void, isFirstTime?: boolean): void {
 /** Note(gdh1995):
  * According to source code of C72,
@@ -608,15 +608,12 @@ FProto[kToS] = myToStr
   }
   // ensured on Chrome
   recordLog(kTip.logNotWorkOnSandboxed)
-  if (OnChrome && Build.MinCVer < BrowserVer.MinEventListenersFromExtensionOnSandboxedPage
+  if (Build.MinCVer < BrowserVer.MinEventListenersFromExtensionOnSandboxedPage
       && tmpChromeVer && tmpChromeVer < BrowserVer.MinEventListenersFromExtensionOnSandboxedPage) {
     safeDestroy(1)
-    return
+  } else {
+    /*#__INLINE__*/ setupBackupTimer_cr()
   }
-  /*#__INLINE__*/ replaceBrokenTimerFunc((func: (info?: TimerType.fake) => void, timeout: number): number => {
-    return OnChrome && Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage && noRAF_old_cr_ || timeout > 49
-        ? (send_(kFgReq.wait, timeout, func), 1) : rAF_((): void => { func(TimerType.fake) })
-  })
 })(grabBackFocus as boolean)
 } : 0 as never) as () => void
 
