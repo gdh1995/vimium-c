@@ -127,19 +127,19 @@ let hints_: readonly HintItem[] | null = null
 let frameArray: FrameHintsInfo[] = []
 let mode_ = HintMode.empty
 let mode1_ = HintMode.empty
-let forHover_ = false
+let forHover_: BOOL = 0
 let count_ = 0
 let lastMode_: HintMode = 0
-let tooHigh_: null | boolean = false
+let noHUD_: BOOL = 0
+let tooHigh_: null | BOOL = 0
 let isClickListened_ = true
 let chars_ = ""
-let useFilter_ = false
-let keyStatus_: KeyStatus = null as never
+let useFilter_: boolean
+let keyStatus_: KeyStatus
   /** must be called from a manager, required by {@link #delayToExecute_ } */
 let onTailEnter: ((this: unknown, event: HandlerNS.Event, key: string, keybody: kChar) => void) | null | undefined
 let onWaitingKey: HandlerNS.VoidHandler<HandlerResult> | null | undefined
 let isActive: BOOL = 0
-let noHUD_ = false
 let options_: ContentOptions = null as never
 let _timer: ValidTimeoutID = TimerID.None
 let kSafeAllSelector = OnFirefox ? "*" as const : ":not(form)" as const
@@ -151,7 +151,7 @@ let doesAllowModifierEvents_ff: BOOL = 0
 
 export {
   isActive as isHintsActive, box_ as hint_box, wantDialogMode_,
-  hints_ as allHints, keyStatus_ as hintKeyStatus, useFilter_, frameArray, chars_ as hintChars,
+  hints_ as allHints, keyStatus_ as hintKeyStatus, useFilter_, chars_ as hintChars,
   mode_ as hintMode_, mode1_, options_ as hintOptions, count_ as hintCount_,
   forHover_, isClickListened_, tooHigh_, kSafeAllSelector, addChildFrame_,
   api_ as hintApi, manager_ as hintManager, isHC_
@@ -247,6 +247,7 @@ export const activate = (options: ContentOptions, count: number, force?: 2 | Tim
       if (!Build.NDEBUG) { coreHints.hints_ = allHints }
     }
     noHUD_ = !(useFilter || topFrameInfo.v[3] > 40 && topFrameInfo.v[2] > 320) || !!(options.hideHUD || options.hideHud)
+        ? 1 : 0
     useFilter ? /*#__NOINLINE__*/ initFilterEngine(allHints as readonly FilteredHintItem[])
         : initAlphabetEngine(allHints)
     renderMarkers(allHints)
@@ -261,7 +262,7 @@ const collectFrameHints = (options: ContentOptions, count: number
       , manager: HintManager | null, frameInfo: FrameHintsInfo
       , newAddChildFrame: AddChildDirectly): void => {
     (coreHints as BaseHintWorker).p = manager_ = OnFirefox ? manager && unwrap_ff(manager) : manager
-    resetHints();
+    coreHints.v()
     scrollTick(2);
     if (options_ !== options) {
       /** ensured by {@link ../background/key_mappings.ts#KeyMappings.makeCommand_} */
@@ -278,8 +279,8 @@ const collectFrameHints = (options: ContentOptions, count: number
     prepareCrop_(1, outerView);
     if (tooHigh_ !== null) {
       const scrolling = scrollingEl_(1)
-      tooHigh_ = !!scrolling
-          && dimSize_(scrolling, kDim.scrollH) / wndSize_() > GlobalConsts.LinkHintTooHighThreshold
+      tooHigh_ = scrolling
+          && dimSize_(scrolling, kDim.scrollH) / wndSize_() > GlobalConsts.LinkHintTooHighThreshold ? 1 : 0
     }
     removeModal()
     initTestRegExps() // needed by generateHintText
@@ -288,7 +289,7 @@ const collectFrameHints = (options: ContentOptions, count: number
     const hintItems = elements.map(createHint);
     addChildFrame_ = null
     bZoom_ !== 1 && /*#__NOINLINE__*/ adjustMarkers(hintItems, elements);
-    for (let i = useFilter_ ? hintItems.length : 0; 0 <= --i; ) {
+    for (let i = useFilter ? hintItems.length : 0; 0 <= --i; ) {
       hintItems[i].h = generateHintText(elements[i], i, hintItems)
     }
     frameInfo.h = hintItems;
@@ -326,7 +327,7 @@ const render: BaseHintWorker["r"] = (hints, arr, raw_apis): void => {
 export const setMode = (mode: HintMode, silent?: BOOL): void => {
     mode_ - mode ? lastMode_ = mode_ = mode : 0
     mode1_ = mode & ~HintMode.queue;
-    forHover_ = mode1_ > HintMode.min_hovering - 1 && mode1_ < HintMode.max_hovering + 1;
+    forHover_ = mode1_ > HintMode.min_hovering - 1 && mode1_ < HintMode.max_hovering + 1 ? 1 : 0
     if (silent || noHUD_ || hud_tipTimer) { return }
     let key: string | undefined
     let msg = onTailEnter && !onWaitingKey ? VTr(kTip.waitForEnter) : VTr(mode_)
@@ -502,7 +503,7 @@ const callExecuteHint = (hint: ExecutableHintItem, event?: HandlerNS.Event): voi
         : i & kKeyCode.altKey ? kKeyCode.altKey : kKeyCode.shiftKey, 1)
   }
   const p = selectedHintWorker.e(hint, event)
-  p && p.then(result => timeout_((): void => {
+  p && p.then((result): void => { timeout_((): void => {
     (<RegExpOne> /a?/).test("")
     removeFlash && removeFlash()
     set_removeFlash(null)
@@ -520,7 +521,7 @@ const callExecuteHint = (hint: ExecutableHintItem, event?: HandlerNS.Event): voi
         }
       }, frameArray.length > 1 ? 50 : 18)
     }
-  }, isActive = 0))
+  }, isActive = 0) })
 }
 
 const activateDirectly = (options: ContentOptions, count: number): void => {
@@ -644,7 +645,7 @@ const reinit = (auto?: BOOL | TimerType.fake, officer?: BaseHintWorker | null
   if (!isEnabled_) { isAlive_ && clear() }
   else {
     isActive = 0;
-    resetHints();
+    coreHints.v()
     contentCommands_[kFgCmd.linkHints](options_, 0);
     if (!isActive) { return }
     setupCheck(officer, lastEl!, rect!)
@@ -695,7 +696,7 @@ const checkLast = ((el?: WeakRef<LinkEl> | LinkEl | TimerType.fake | 9 | 1 | nul
   }
 }) as BaseHintWorker["x"]
 
-const resetHints = (): void => {
+const resetHints: HintManager["v"] = (): void => {
     // here should not consider about .manager_
     onWaitingKey = onTailEnter = hints_ = null as never;
     if (!Build.NDEBUG) { coreHints.hints_ = null }
@@ -725,6 +726,7 @@ export const clear = (onlySelfOrEvent?: 0 | 1 | Event, suppressTimeout?: number)
       }
     }
     const manager = coreHints.p as HintManager | null;
+    clearTimeout_(_timer)
     isActive = _timer = 0
     OnFirefox && (doesAllowModifierEvents_ff = 0)
     manager_ = coreHints.p = null;
@@ -734,17 +736,18 @@ export const clear = (onlySelfOrEvent?: 0 | 1 | Event, suppressTimeout?: number)
       let frame = frameInfo.s, hasManager = frame.p
       frame.p = null
       hasManager && frame.c(0, suppressTimeout)
-    }), suppressTimeout);
+    }))
     coreHints.y = frameArray = [];
     setupEventListener(0, UNL, clear, 1);
-    resetHints();
+    coreHints.v()
     removeHandler_(kHandler.linkHints)
     suppressTimeout != null && suppressTail_(suppressTimeout);
     removeFlash && removeFlash();
     set_onWndBlur2(set_removeFlash(isHC_ = (api_ as unknown) = (options_ as unknown) = null))
-    set_maxPrefixLen_(lastMode_ = mode_ = mode1_ = count_ = coreHints.h = /*#__INLINE__*/ localLinkClear())
+    set_maxPrefixLen_(lastMode_ = mode_ = mode1_ = count_ = coreHints.h =
+        noHUD_ = forHover_ = tooHigh_ = /*#__INLINE__*/ localLinkClear())
     if (WithDialog) { coreHints.d = 0 }
-    set_grabBackFocus(useFilter_ = noHUD_ = tooHigh_ = forHover_ = false)
+    set_grabBackFocus(useFilter_ = false)
     chars_ = "";
     removeBox()
     hud_tipTimer || hudHide()

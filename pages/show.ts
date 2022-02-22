@@ -153,7 +153,7 @@ async function App (this: void): Promise<void> {
   switch (type) {
   case "image":
     if (VData.auto) {
-      let newUrl = await parseSmartImageUrl_(url);
+      let newUrl = await parseClearImageUrl_(url);
       if (newUrl) {
         console.log("Auto predict a better URL:\n %o =>\n %o", url, newUrl);
         url = VData.url = newUrl;
@@ -674,7 +674,7 @@ function clean(): void {
   }
 }
 
-async function parseSmartImageUrl_(originUrl: string): Promise<string | null> {
+async function parseClearImageUrl_(originUrl: string): Promise<string | null> {
   const stdUrl = originUrl;
   originUrl = useBG && await post_(kPgReq.substitute, [originUrl, SedContext.image]) || originUrl
   function safeParseURL(url1: string): URL | null { try { return new URL(url1); } catch {} return null; }
@@ -719,7 +719,7 @@ async function parseSmartImageUrl_(originUrl: string): Promise<string | null> {
     }
   }
   let arr1: RegExpExecArray | null = null;
-  if ((arr1 = (<RegExpOne> /[?&]s=\d{2,4}(&|$)/).exec(search)) && search.split("=").length <= 3) {
+  if ((arr1 = (<RegExpOne> /[?&]s=\d{2,4}(&|$)/).exec(search)) && search.split("=").length <= 4) {
     return origin + path;
   }
   search = path;
@@ -973,7 +973,7 @@ if (!Build.NDEBUG) {
   Object.assign(window as any, {
     showBgLink, clickLink, simulateClick, imgOnKeydown, doImageAction, decodeURLPart_,
     importBody, defaultOnClick, clickShownNode, showText, copyThing, _copyStr, toggleInvert, import2, loadCSS,
-    defaultOnError, loadViewer, showSlide, clean, parseSmartImageUrl_, tryToFixFileExt_, fetchImage_,
+    defaultOnError, loadViewer, showSlide, clean, parseClearImageUrl_, tryToFixFileExt_, fetchImage_,
     destroyObject_, tryDecryptUrl, disableAutoAndReload_, resetOnceProperties_, recoverHash_, encrypt_,
     getOmni_: getContentUrl_,
     VShown: () => ({

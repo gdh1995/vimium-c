@@ -387,7 +387,8 @@ const checkBoolOrSelector = (userVal: string | boolean | null | void | undefined
     initTestRegExps() // needed by getPreferredRectOfAnchor
     // must get outline first, because clickEl may hide itself when activated
     // must use UI.getRect, so that zooms are updated, and prepareCrop is called
-    rect = knownRect || tag === "a" && getPreferredRectOfAnchor(clickEl as HTMLAnchorElement)
+    rect = knownRect || tag === "a" && mode1_ < HintMode.min_job
+        && getPreferredRectOfAnchor(clickEl as HTMLAnchorElement)
         || getRect(clickEl, hint.r !== clickEl ? hint.r as HTMLElementUsingMap | null : null)
     if (hint.m && keyStatus.t && !keyStatus.k && !keyStatus.n) {
       if ((!OnChrome || Build.MinCVer < BrowserVer.MinUserActivationV2 && chromeVer_ < BrowserVer.MinUserActivationV2)

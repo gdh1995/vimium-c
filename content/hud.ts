@@ -16,7 +16,7 @@ let tweenId: ValidIntervalID = TimerID.None, tweenStart = 0
 let box: HTMLDivElement | HTMLBodyElement | null = null
 let $text: Text = null as never
 let text = ""
-let opacity_: 0 | 0.25 | 0.5 | 0.75 | 1 = 0
+let opacity_: 0 | 0.25 | 0.5 | 0.75 | 1 = 0, dom_opacity_: number = 1
 let timer: ValidTimeoutID = TimerID.None
 
 export { box as hud_box, text as hud_text, opacity_ as hud_opacity, timer as hud_tipTimer }
@@ -34,8 +34,8 @@ export const hudShow = (tid: kTip | HintMode, args?: Array<string | number> | st
   if (timer) { clearTimeout_(timer); timer = TimerID.None; }
   embed || tweenId || (tweenId = interval_(tween, 40), tweenStart = getTime())
   if (box) {
-    $text.data = text;
     toggleClass_s(box, "HL", 0)
+    if (embed || dom_opacity_) { $text.data = text }
     embed && toggleOpacity(1)
     return
   }
@@ -50,7 +50,7 @@ export const hudShow = (tid: kTip | HintMode, args?: Array<string | number> | st
 }
 
 const tween = (fake?: TimerType.fake): void => { // safe-interval
-  let opacity = OnChrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake && fake ? 0 : +(box!.style.opacity || 1)
+  let opacity = OnChrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake && fake ? 0 : dom_opacity_
   if (opacity === opacity_) { /* empty */ }
   else if (opacity === 0) {
     $text.data = text;
@@ -102,6 +102,7 @@ export const hudHide = (info?: TimerType.fake | TimerType.noTimer): void => {
 }
 
 export const toggleOpacity = (opacity: number): void => {
+  dom_opacity_ = opacity
   box!.style.opacity = opacity < 1 ? opacity as number | string as string : ""
   setVisibility_s(box!, !!opacity)
 }

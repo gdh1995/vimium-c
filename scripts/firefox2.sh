@@ -19,6 +19,8 @@ debugger_url="about:debugging#/runtime/this-firefox"
 export WSLENV=PATH/l
 unset "${!WEB_EXT@}"
 
+shopt -s extglob
+
 function wp() {
   local dir=${2}
   test "${dir::5}" == "/mnt/" && dir=${dir:4} ||
@@ -93,7 +95,7 @@ case "$1" in
     if test $DO_CLEAN -eq 1; then DO_CLEAN=2; fi
     shift
     ;;
-  [3-9][0-9]|[1-9][0-9][0-9]|[3-9][0-9]esr|[1-9][0-9][0-9]esr|cur|wo|prev) # ver
+  [3-9]+([0-9.])|[1-9][0-9]+([0-9.])|[3-9]+([0-9.])esr|[1-9][0-9]+([0-9.])esr|cur|wo|prev) # ver
     VER=$1
     shift
     ;;
@@ -198,7 +200,7 @@ else
         && find "$FIREFOX_ROOT/core/" -name "${VER}.*" 2>/dev/null | grep . >/dev/null 2>&1; then
       EXE=$FIREFOX_ROOT/core/firefox.exe
     fi
-  elif test "${VER%esr}" -le 68; then
+  elif test "${VER%%@(esr|.)*}" -le 68; then
     debugger_url="about:debugging#addons"
   fi
 fi
