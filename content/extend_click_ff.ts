@@ -4,7 +4,7 @@ import {
 } from "../lib/utils"
 import { CLK, MDW, OnDocLoaded_, isHTML_, set_createElement_, createElement_, docEl_unsafe_ } from "../lib/dom_utils"
 import { grabBackFocus } from "./insert"
-import { coreHints, doesWantToReloadLinkHints } from "./link_hints"
+import { coreHints, doesWantToReloadLinkHints, reinitLinkHintsIn } from "./link_hints"
 /* eslint-disable @typescript-eslint/await-thenable */
 
 declare function exportFunction(func: unknown, targetScope: object
@@ -72,7 +72,8 @@ export const main_ff = (OnFirefox ? (): void => {
     }
     OnDocLoaded_((): void => {
         timeout_(function (): void {
-          coreHints.h - 1 || doesWantToReloadLinkHints("lo") && timeout_(coreHints.x, 34)
+          coreHints.h < 0 && doesWantToReloadLinkHints("lo") &&
+          reinitLinkHintsIn(GlobalConsts.MinCancelableInBackupTimer)
         }, GlobalConsts.ExtendClick_DelayToFindAll)
     }, 1)
   } catch (e) {

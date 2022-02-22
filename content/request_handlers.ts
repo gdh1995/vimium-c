@@ -98,10 +98,7 @@ set_requestHandlers([
           set_clickable_(new WeakSet!<Element>(oldSet))
         }
         const manager = parHints && parHints.p || parHints
-        if (manager && manager.h && manager.h - 1) {
-          const delta = getTime() - manager.h
-          delta < 1200 && delta >= 0 && manager.i(1)
-        }
+        manager && manager.h && math.abs(getTime() - math.abs(manager.h)) < 1200 && manager.i(1)
       }, 330);
     });
     isAsContent || (injector || vApi).$r!(InjectorTask.extInited);

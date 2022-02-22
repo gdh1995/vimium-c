@@ -28,7 +28,7 @@ export interface HintItem extends DrawableHintItem, ExecutableHintItem {
 export interface FilteredHintItem extends HintItem { h: HintText }
 export interface InputHintItem extends DrawableHintItem { d: SafeHTMLElement }
 
-export interface KeyStatus {
+export interface KeyStatus extends HintsNS.BaseKeyStatus {
     /** curHints */ c: readonly HintItem[];
     /** keySequence */ k: string;
     /** textSequence */ t: string;
@@ -44,7 +44,7 @@ interface BaseHintWorker extends HintsNS.BaseHintWorker {
   /** dialogMode */ d: BOOL
   /** executeHint */ e: typeof executeHintInOfficer
   /** getPreciseChildRect */ g: typeof getPreciseChildRect
-  /** has just started */ h: number
+  /** has just started: neg means a fresh command; pos means a reinited one */ h: number
   /** delayToExecute */ j: typeof delayToExecute
   /** highlightHint */ l: typeof highlightHint
   /** collectFrameHints */ o: typeof collectFrameHints
@@ -52,8 +52,8 @@ interface BaseHintWorker extends HintsNS.BaseHintWorker {
   /** render */ r (hints: readonly HintItem[], arr: ViewBox, raw_apis: VApiTy): void
   /** rotate1 */ t: typeof rotate1
   /** checkLast_ */ x: {
-    (el?: WeakRef<LinkEl> | TimerType.fake, r?: Rect | 0): void | BOOL
-    (el: 1, r?: undefined): void | 1 | 2
+    (el?: WeakRef<LinkEl> | undefined, r?: Rect | null | undefined, hasJustReinited?: BOOL | boolean | null): BOOL
+    (el: 1, r?: undefined): 1 | 2
   }
   /** yankedList */ y: string[]
 }
@@ -141,7 +141,7 @@ let onTailEnter: ((this: unknown, event: HandlerNS.Event, key: string, keybody: 
 let onWaitingKey: HandlerNS.VoidHandler<HandlerResult> | null | undefined
 let isActive: BOOL = 0
 let options_: ContentOptions = null as never
-let _timer: ValidTimeoutID = TimerID.None
+let _timer: ValidTimeoutID = TimerID.None, _reinitTime = 0
 let kSafeAllSelector = OnFirefox ? "*" as const : ":not(form)" as const
 let manager_: HintManager | null = null
 let api_: VApiTy = null as never
@@ -162,7 +162,7 @@ export function set_addChildFrame_<T extends typeof addChildFrame_> (_newACF: T)
 
 export const activate = (options: ContentOptions, count: number, force?: 2 | TimerType.fake): void => {
     const oldTimer = _timer
-    _timer = 0
+    _timer = _reinitTime = 0
     oldTimer && clearTimeout_(oldTimer)
     if (isActive && force !== 2 || !isEnabled_) { return; }
     if (checkHidden(kFgCmd.linkHints, options, count)) {
@@ -174,7 +174,7 @@ export const activate = (options: ContentOptions, count: number, force?: 2 | Tim
     if (doc.body === null) {
       manager_ || clear()
       if (!oldTimer && readyState_ > "l") {
-        _timer = timeout_(contentCommands_[kFgCmd.linkHints].bind(0 as never, options, count, 0), 300)
+        reinitLinkHintsIn(300, contentCommands_[kFgCmd.linkHints].bind(0 as never, options, count, 0))
         return replaceOrSuppressMost_(kHandler.linkHints)
       }
     }
@@ -251,7 +251,7 @@ export const activate = (options: ContentOptions, count: number, force?: 2 | Tim
     useFilter ? /*#__NOINLINE__*/ initFilterEngine(allHints as readonly FilteredHintItem[])
         : initAlphabetEngine(allHints)
     renderMarkers(allHints)
-    coreHints.h = 1
+    coreHints.h = -getTime()
     for (const frame of frameArray) {
       frame.s.r(frame.h, frame.v, vApi);
     }
@@ -435,7 +435,8 @@ const onKeydown = (event: HandlerNS.Event): HandlerResult => {
     } else if (keybody === kChar.tab && !useFilter_ && !keyStatus_.k) {
       tooHigh_ = null;
       resetMode();
-      if (!OnFirefox && isClickListened_ && coreHints.h && vApi.e && math.abs(getTime() - coreHints.h) < 1000) {
+      if (!OnFirefox && isClickListened_ && coreHints.h && vApi.e
+          && math.abs(getTime() - math.abs(coreHints.h)) < 1000) {
         vApi.e(kContentCmd.ManuallyFindAllOnClick)
       }
       timeout_(reinit, 0)
@@ -509,17 +510,18 @@ const callExecuteHint = (hint: ExecutableHintItem, event?: HandlerNS.Event): voi
     set_removeFlash(null)
     runFallbackKey(options_, false)
     if (!(mode_ & HintMode.queue)) {
-      setupCheck(selectedHintWorker, clickEl, result)
+      if (!OnChrome || Build.MinCVer < BrowserVer.MinEnsured$WeakRef || chromeVer_ < BrowserVer.MinEnsured$WeakRef) {
+        reinitLinkHintsIn(255, selectedHintWorker, clickEl, result)
+      }
       clear(0, 0)
     } else {
-      clearTimeout_(_timer)
-      timeout_((): void => {
+      reinitLinkHintsIn(frameArray.length > 1 ? 50 : 18, (): void => {
         if (OnFirefox && oldMode_ff >= 0) { setMode(oldMode_ff, 1) }
         reinit(0, selectedHintWorker, clickEl, result)
         if (isActive && 1 === (--count_)) {
           setMode(mode1_)
         }
-      }, frameArray.length > 1 ? 50 : 18)
+      })
     }
   }, isActive = 0) })
 }
@@ -642,13 +644,17 @@ const delayToExecute = (officer: BaseHintWorker, hint: ExecutableHintItem, flash
 /** reinit: should only be called on manager */
 const reinit = (auto?: BOOL | TimerType.fake, officer?: BaseHintWorker | null
     , lastEl?: WeakRef<LinkEl> | null, rect?: Rect | null): void => {
+  const now = getTime()
   if (!isEnabled_) { isAlive_ && clear() }
   else {
     isActive = 0;
     coreHints.v()
     contentCommands_[kFgCmd.linkHints](options_, 0);
     if (!isActive) { return }
-    setupCheck(officer, lastEl!, rect!)
+    coreHints.h = now
+    if (officer && mode1_ < HintMode.min_job) {
+      reinitLinkHintsIn(frameArray.length > 1 ? 380 : 255, officer, lastEl!, rect!, now)
+    }
     onWaitingKey = auto ? suppressTail_(GlobalConsts.TimeOfSuppressingUnexpectedKeydownEvents
         , /*#__NOINLINE__*/ resetOnWaitKey) : onWaitingKey
   }
@@ -657,25 +663,31 @@ const reinit = (auto?: BOOL | TimerType.fake, officer?: BaseHintWorker | null
 const resetOnWaitKey = (): void => { onWaitingKey = null }
 
 /** should only be called on manager */
-const setupCheck = (officer: BaseHintWorker | null | undefined, el: WeakRef<LinkEl>, r: Rect | null): void => {
-    clearTimeout_(_timer)
-    _timer = officer && mode1_ < HintMode.min_job ? timeout_((i): void => {
-      _timer = TimerID.None;
-      let doesReinit: BOOL | boolean | void | undefined
-      try {
-        doesReinit = !(OnChrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake && i)
-            && (OnFirefox ? unwrap_ff(officer) : officer).x(el, r || 0)
-      } catch {}
-      if (doesReinit && coreHints.h) {
-        coreHints.h = isActive && getTime()
-        reinit(1) // to simplify logic, not wait for unhovering a hidden element in a child iframe
-      }
-    }, frameArray.length > 1 ? 380 : 255) : TimerID.None;
+export const reinitLinkHintsIn = ((timeout: number, officer?: BaseHintWorker | null | undefined | (() => void)
+    , el?: WeakRef<LinkEl>, r?: Rect | null, start?: number): void => {
+  const now = getTime()
+  _reinitTime = max_(now + GlobalConsts.MinCancelableInBackupTimer, (start || now) + timeout, _reinitTime)
+  timeout = _reinitTime - now
+  clearTimeout_(_timer)
+  _timer = timeout_(isTY(officer, kTY.func) ? officer : (): void => {
+    _timer = _reinitTime = TimerID.None
+    let doesReinit: BOOL | boolean | void | undefined
+    try { // can not use safeCall, in case `unwrap_ff(officer).x` throws
+      doesReinit = (OnFirefox ? officer ? unwrap_ff(officer) : coreHints : officer || coreHints).x(el!, r,
+          isActive && coreHints.h !== 0 && hints_ && hints_.length < (frameArray.length > 1 ? 200 : 99))
+    } catch {}
+    doesReinit && reinit(1)
+  }, timeout)
+}) as {
+  (timeout: 380 | 255
+    , officer: BaseHintWorker | null | undefined, el: WeakRef<LinkEl>, r: Rect | null, startTimestamp?: number): void
+  (timeout: number, doReinit?: (this: void) => void): void
 }
 
 // if not el, then reinit if only no key stroke and hints.length < 64
-const checkLast = ((el?: WeakRef<LinkEl> | LinkEl | TimerType.fake | 9 | 1 | null, r?: Rect | 0): BOOL | 2 => {
-  const hasEl = (!OnChrome || Build.MinCVer >= BrowserVer.MinNo$TimerType$$Fake || el !== TimerType.fake) && el
+const checkLast = ((el?: WeakRef<LinkEl> | LinkEl | 1 | null, r?: Rect | null
+    , hasJustReinited?: boolean | BOOL | null): BOOL | 2 => {
+  const hasEl = el
   let r2: Rect | null | undefined, hidden: boolean
   if (!isAlive_) { return 0 }
   else if (window.closed) { return 1 }
@@ -686,10 +698,8 @@ const checkLast = ((el?: WeakRef<LinkEl> | LinkEl | TimerType.fake | 9 | 1 | nul
     if (hidden && deref_(lastHovered_) === el) {
       void hover_async()
     }
-    if ((!r2 || r) && (manager_ || coreHints).$().n
-        && (hidden || math.abs(r2!.l - (r as Rect).l) > 100 || math.abs(r2!.t - (r as Rect).t) > 60)) {
-      return hasEl && !doesWantToReloadLinkHints("cl") ? 0
-          : manager_ || r != null || !coreHints.h ? 1 : (timeout_(() => reinit(1), 0), 0)
+    if ((!r2 || r) && hasJustReinited && (hidden || math.abs(r2!.l - r!.l) > 100 || math.abs(r2!.t - r!.t) > 60)) {
+      return !hasEl || doesWantToReloadLinkHints("cl") ? 1 : 0
     } else {
       return 0
     }
@@ -727,7 +737,7 @@ export const clear = (onlySelfOrEvent?: 0 | 1 | Event, suppressTimeout?: number)
     }
     const manager = coreHints.p as HintManager | null;
     clearTimeout_(_timer)
-    isActive = _timer = 0
+    isActive = _timer = _reinitTime = 0
     OnFirefox && (doesAllowModifierEvents_ff = 0)
     manager_ = coreHints.p = null;
     manager && manager.c(onlySelfOrEvent, suppressTimeout);
@@ -827,8 +837,7 @@ export const doesWantToReloadLinkHints = (reason: NonNullable<ContentOptions["au
 
 const coreHints: HintManager = {
   $: (doesResetMode?: 1): HintStatus => {
-    return { a: isActive, b: box_, k: keyStatus_, m: doesResetMode ? mode_ = HintMode.DEFAULT : mode_,
-      n: isActive && hints_ && hints_.length < (frameArray.length > 1 ? 200 : 100) && !keyStatus_.k }
+    return { a: isActive, b: box_, k: keyStatus_, m: doesResetMode ? mode_ = HintMode.DEFAULT : mode_ }
   },
   d: 0, h: 0, y: [],
   x: checkLast, c: clear, o: collectFrameHints, j: delayToExecute, e: executeHintInOfficer, g: getPreciseChildRect,

@@ -551,7 +551,7 @@ document.addEventListener("click", function onClickOnce(): void {
     const el = event.target as Element
     if (el.localName !== "a" || !(event.ctrlKey || event.metaKey) || selfTabId_ < GlobalConsts.TabIdNone) { return }
     const api2 = VApi, hintWorker = api2 && api2.b, stat = hintWorker && hintWorker.$()
-    if (stat && stat.b && stat.n === null) { // .b: showing hints; .n === null : is calling executor
+    if (stat && stat.a && stat.k && stat.k.c === null) { // .a: isActive; .k.c === null : is calling executor
       const m1 = stat.m & ~HintMode.queue
       if (m1 < HintMode.min_job && m1 & HintMode.newTab && !(m1 & HintMode.focused)) {
           setTimeout((): void => {

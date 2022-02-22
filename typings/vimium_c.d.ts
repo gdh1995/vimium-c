@@ -578,6 +578,7 @@ declare const enum GlobalConsts {
   EdgHelp = "https://support.microsoft.com/help/4531783/microsoft-edge-keyboard-shortcuts",
 
   kIsHighContrast = "isHC_f",
+  MinCancelableInBackupTimer = 50,
 
   SelectorPrefixesInPatterns = ".#[",
   DelimiterBetweenKeyCharAndMode = ":",

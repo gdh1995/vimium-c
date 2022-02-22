@@ -140,11 +140,14 @@ declare const enum EditableType {
 }
 
 declare namespace HintsNS {
+  interface BaseKeyStatus {
+    /** curHints */ c: readonly unknown[];
+  }
   interface BaseHintStatus {
     /** isActive */ a: BOOL
     /** box */ b: HTMLDivElement | HTMLDialogElement | null
     /** mode */ m: HintMode
-    /** is newly activated */ n: boolean | BOOL | null
+    /** keyStatus */ k: BaseKeyStatus
   }
   interface BaseHintWorker {
     /** get stat */ $ (): Readonly<BaseHintStatus>

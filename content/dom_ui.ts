@@ -17,7 +17,7 @@ import {
 } from "../lib/rect"
 import { currentScrolling } from "./scroller"
 import { find_box, styleSelectable } from "./mode_find"
-import { DrawableHintItem, isHintsActive, hintManager, coreHints, isHC_ } from "./link_hints"
+import { DrawableHintItem, isHintsActive, hintManager, reinitLinkHintsIn, isHC_ } from "./link_hints"
 import { post_, runFallbackKey } from "./port"
 import { insert_Lock_, raw_insert_lock } from "./insert"
 import { hide as omniHide, omni_box } from "./omni"
@@ -183,7 +183,7 @@ export const adjustUI = (event?: Event | /* enable */ 1 | /* disable */ 2): void
         setupEventListener(0, /*#__NOINLINE__*/ FS, adjustUI, removeEL)
       }
       if (isHintsActive && removeEL) { // not need to check isAlive_
-        hintManager || timeout_(coreHints.x, 17)
+        hintManager || reinitLinkHintsIn(GlobalConsts.MinCancelableInBackupTimer)
       }
     }
 }
