@@ -24,7 +24,7 @@ interface ElementScrollInfo {
 import {
   isAlive_, setupEventListener, timeout_, clearTimeout_, fgCache, doc, noRAF_old_cr_, readyState_, loc_, chromeVer_,
   vApi, deref_, weakRef_not_ff, VTr, max_, math, min_, Lower, OnChrome, OnFirefox, OnEdge, WithDialog, OnSafari,
-  isTop, injector, isTY, safeCall, tryCreateRegExp, weakRef_ff
+  isTop, injector, isTY, safeCall, tryCreateRegExp, weakRef_ff, Stop_
 } from "../lib/utils"
 import {
   rAF_, scrollingEl_, SafeEl_not_ff_, docEl_unsafe_, NONE, frameElement_, OnDocLoaded_, GetParent_unsafe_, UNL,
@@ -44,6 +44,8 @@ import { detectUsableChild, hint_box, tryNestedFrame } from "./link_hints"
 import { setPreviousMarkPosition } from "./marks"
 import { keyNames_, prevent_ } from "../lib/keyboard_utils"
 import { post_, runFallbackKey } from "./port"
+
+const kSE = "scrollend"
 
 let toggleAnimation: ((scrolling?: BOOL | /** resume */ 4) => void) | null = null
 let maxKeyInterval = 1
@@ -65,6 +67,8 @@ export function set_cachedScrollable (_newCachedSc: typeof cachedScrollable): vo
 let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: number
     , newOpts?: CmdOptions[kFgCmd.scroll]): void => {
   const knownFPS = [ 30,  45,  60,  75,  90, 100, 120, 144, 155, 165, 170, 175, 180, 200, 240 ]
+  const hasNewScrollEnd_cr = OnChrome && (Build.MinCVer >= BrowserVer.MinScrollEndForInstantScrolling
+        || chromeVer_ > BrowserVer.MinScrollEndForInstantScrolling - 1) && ("on" + kSE) in Image.prototype
   let amount: number, sign: number, calibration: number, di: ScrollByY, duration: number, element: SafeElement | null,
   beforePos: number, timestamp: number, rawTimestamp: number, totalDelta: number, totalElapsed: number, min_delta = 0,
   running = 0, flags: kScFlag & number, timer: ValidTimeoutID = TimerID.None, calibTime: number, lostFrames: number,
@@ -122,7 +126,7 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
     }
     rawTimestamp = newRawTimestamp
     timestamp = newTimestamp
-    if (!isAlive_ || !running) { toggleAnimation!(); return }
+    if (!running || !isAlive_) { toggleAnimation!(); return }
     if (continuous) {
       if (totalElapsed >= ScrollConsts.delayToChangeSpeed) {
         if (totalElapsed > minDelay) { keyIsDown = keyIsDown > elapsed ? keyIsDown - elapsed : 0 }
@@ -187,13 +191,11 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
       if (!Build.NDEBUG) { totalElapsed -= elapsed }
       onFinish && onFinish(totalDelta)
       toggleAnimation!()
-      if ((!OnChrome || chromeVer_ > BrowserVer.MinMaybeScrollEndAndOverScrollEvents - 1)
-          && "onscrollend" in (OnFirefox ? doc : Image.prototype)) {
+      if (OnChrome && hasNewScrollEnd_cr) { // ignore Chrome 74~77 with EXP enabled, to make code smaller
         // according to tests on C75, no "scrollend" events if scrolling behavior is "instant";
         // the doc on Google Docs requires no "overscroll" events for programmatic scrolling
         const notEl: boolean = !element || element === scrollingEl_();
-        (notEl ? doc : element!).dispatchEvent(
-            new Event("scrollend", {cancelable: false, bubbles: notEl}));
+        (notEl ? doc : element!).dispatchEvent(new Event(kSE, {cancelable: false, bubbles: notEl}))
       }
       checkCurrent(element)
     } else {
@@ -214,7 +216,8 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
         console.log(">>> [animation] end after %o ms / %o px"
             , ((totalElapsed * 1e2) | 0) / 1e2, ((totalDelta * 1e2) | 0) / 1e2)
       }
-      running = timestamp = rawTimestamp = beforePos = calibTime = preventPointEvents = lostFrames = 0
+      OnChrome && hasNewScrollEnd_cr && setupEventListener(0, kSE, Stop_, 1)
+      running = timestamp = rawTimestamp = beforePos = calibTime = preventPointEvents = lostFrames = onFinish = 0
       element = null
     }
     if (WithDialog && (OnChrome && Build.MinCVer >= BrowserVer.MinEnsuredHTMLDialogElement || hasDialog)) {
@@ -243,6 +246,7 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
     maxKeyInterval = max_(min_delta, keyboard[1]) * 2 + ScrollConsts.DelayTolerance
     minDelay = keyboard[0] + max_(keyboard[1], ScrollConsts.DelayMinDelta) + ScrollConsts.DelayTolerance;
     (preventPointEvents === 2 || preventPointEvents === 1 && !isSelARange(getSelection_())) && toggleAnimation!(1)
+    OnChrome && hasNewScrollEnd_cr && setupEventListener(0, kSE)
     if (!Build.NDEBUG && ScrollConsts.DEBUG) {
       console.log("%c[animation]%c start with axis = %o, amount = %o, dir = %o, duration = %o, min_delta = %o"
           , "color: #1155cc", "color: auto", di ? "y" : "x", amount, sign, duration
@@ -610,10 +614,14 @@ export const suppressScroll = (): void => {
       return;
     }
     scrolled = 2
+    const hasNewScrollEnd_cr = OnChrome && (Build.MinCVer >= BrowserVer.MinScrollEndForInstantScrolling
+      || chromeVer_ > BrowserVer.MinScrollEndForInstantScrolling - 1) && ("on" + kSE) in Image.prototype
     setupEventListener(0, "scroll");
+    hasNewScrollEnd_cr && setupEventListener(0, kSE)
     rAF_(function (): void {
       scrolled = 0
       setupEventListener(0, "scroll", null, 1);
+      hasNewScrollEnd_cr && setupEventListener(0, kSE, null, 1)
     });
 }
 
