@@ -4,6 +4,11 @@ Release Notes of Vimium C
 ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 说明文档: https://gitee.com/gdh1995/vimium-c#readme , https://github.com/gdh1995/vimium-c/blob/master/README-zh.md .
 
+#### 1.96.7
+
+* note: this version is only a mark, while not released on any add-on stores
+* since v1.97, Vimium C will switch its setting storage into `browser.storage.local` completely
+
 #### 1.96.6
 * better support for Firefox 96+ and fix detection of Firefox version
 * LinkHints: better support for `privacy.resistFingerprinting` on Firefox
