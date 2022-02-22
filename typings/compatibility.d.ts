@@ -589,6 +589,7 @@ declare const enum FirefoxBrowserVer {
   MinMaybe$WeakRef = 79, // no `WeakRef` if javascript.options.weakrefs=false
   MinEnsuredCSS$is$selector = 81,
   MinContentEditableInShadowOfBodyRefuseShortcuts = 91,
+  ESRPopupBlockerPassClicksFromExtensions = 91, // since 91.6
   Min$structuredClone = 94,
   MinBrowserDarkThemeSet$PrefersColorScheme = 95, // https://github.com/gdh1995/vimium-c/discussions/517
   MinPopupBlockerPassClicksFromExtensions = 96, // https://github.com/philc/vimium/issues/3964

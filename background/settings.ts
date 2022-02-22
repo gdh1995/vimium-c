@@ -22,8 +22,12 @@ let newSettingsToBroadcast_: Extract<SettingsUpdateMsg["d"], string[]> | null = 
 
 export const ready_: Promise<void> = !OnFirefox ? Promise.resolve()
     : browser_.runtime.getBrowserInfo().then((info): void => {
-  set_CurFFVer_(parseInt(info && info.version) || CurFFVer_)
+  const versionStr = info && info.version, ver = parseInt(versionStr || "0") || 0
+  set_CurFFVer_(ver || CurFFVer_)
   ; (contentPayload_.v as FirefoxBrowserVer) = (omniPayload_.v as FirefoxBrowserVer) = CurFFVer_
+  if (Build.MinFFVer <= FirefoxBrowserVer.ESRPopupBlockerPassClicksFromExtensions) {
+    (contentPayload_.V as number) = ver ? parseInt(versionStr!.split(".")[1]) || 0 : 0
+  }
 })
 
 export const get_ = <K extends keyof SettingsWithDefaults> (key: K, forCache?: boolean): SettingsWithDefaults[K] => {

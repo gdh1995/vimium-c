@@ -1,6 +1,6 @@
 import {
   OnChrome, OnFirefox, OnEdge, doc, deref_, weakRef_ff, chromeVer_, isJSUrl, getTime, parseOpenPageUrlOptions, safeCall,
-  tryCreateRegExp, weakRef_not_ff, firefoxVer_
+  tryCreateRegExp, weakRef_not_ff, firefoxVer_, fgCache
 } from "../lib/utils"
 import {
   IsInDOM_, isInTouchMode_cr_, MDW, hasTag_, CLK, attr_s, contains_s, focus_, fullscreenEl_unsafe_, findAnchor_,
@@ -329,6 +329,8 @@ export const click_async = (async (element: SafeElementForMouse
         : !(parentAnchor = findAnchor_(element))
           || (!OnFirefox ? 0 : Build.MinFFVer < FirefoxBrowserVer.MinPopupBlockerPassClicksFromExtensions
               && firefoxVer_ < FirefoxBrowserVer.MinPopupBlockerPassClicksFromExtensions
+              && (Build.MinFFVer > FirefoxBrowserVer.ESRPopupBlockerPassClicksFromExtensions
+                  || firefoxVer_ !== FirefoxBrowserVer.ESRPopupBlockerPassClicksFromExtensions || fgCache.V < 6)
               ? specialAction < kClickAction.plainMayOpenManually + 1 && parentAnchor.target !== "_blank"
               : actionTarget < kClickAction.MaxPlain + 1)
           || OnFirefox && parentAnchor.href.startsWith("file:")

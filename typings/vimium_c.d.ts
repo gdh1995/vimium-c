@@ -342,6 +342,7 @@ declare namespace SettingsNS {
   interface ConstItems {
     /** browser */ b: ["browser", BrowserType | undefined];
     /** browserVer */ v: ["browserVer", BrowserVer | FirefoxBrowserVer | 0 | undefined];
+    /** browserSecondVersionCode */ V: ["browserVer2nd", number];
     /** OS */ o: ["OS", kOS.mac | kOS.unixLike | kOS.win];
   }
   type DeclaredConstValues = Readonly<SelectValueType<Pick<ConstItems, "v" | "o">>>;
