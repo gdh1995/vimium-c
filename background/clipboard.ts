@@ -315,9 +315,15 @@ const getTextArea_html = (): HTMLTextAreaElement => {
 
 const format_ = (data: string | any[], join?: FgReq[kFgReq.copy]["j"], sed?: MixedSedOpts | null): string => {
   if (typeof data !== "string") {
+    data = data.map(i => substitute_(i, SedContext.paste, sed))
     data = typeof join === "string" && join.startsWith("json") ? JSON.stringify(data, null, +join.slice(4) || 2)
       : data.join(join !== !!join && (join as string) || "\n") +
         (data.length > 1 && (!join || join === !!join) ? "\n" : "")
+    const rules = !sed || typeof sed !== "object" ? sed : sed.r
+    if (rules !== false) {
+      data = substitute_(data, SedContext.multiline, sed)
+    }
+    return data
   }
   data = data.replace(<RegExpG> /\xa0/g, " ").replace(<RegExpG & RegExpSearchable<0>> /\r\n?/g, "\n")
   let i = data.charCodeAt(data.length - 1)

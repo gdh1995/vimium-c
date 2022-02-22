@@ -477,6 +477,7 @@ declare const enum SedContext {
   /** `c` */ copy = 1 << 2,
   /** `g` */ gotoUpperUrl = 1 << 6,
   /** `i` */ image = 1 << 8,
+  /** `m` */ multiline = 1 << 12,
   /** `n` */ goNext = 1 << 13,
   /** `o` */ omni = 1 << 14,
   /** `p` */ paste = 1 << 15,
