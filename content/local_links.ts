@@ -298,8 +298,7 @@ const createElementSet = (list: NodeListOf<Element> | Element[]): IterableElemen
 
 const addExtraVisibleToHints = (hints: (Hint | Hint0)[], element: Element): void => {
   for (const hint of hints) { if (hint[0] === element) { return } }
-  let arr = htmlTag_<1>(element) && getVisibleClientRect_(element, null)
-  arr && hints.push([element as SafeHTMLElement, arr, ClickType.Default])
+  !OnFirefox && notSafe_not_ff_!(element) || getIfOnlyVisible(hints, element as SafeElement)
 }
 
 const addChildTrees = (parts: HintSources, allNodes: NodeListOf<SafeElement>): HintSources => {

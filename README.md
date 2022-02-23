@@ -52,7 +52,8 @@ A <span style="color: #a55e18;">C</span>ustomized
   style="color: #a55e18;">中文</span>支持、[分场景映射](https://github.com/gdh1995/vimium-c/wiki/Map-a-key-to-different-commands-on-different-websites
   )、[全局快捷键](https://github.com/gdh1995/vimium-c/wiki/Trigger-commands-in-an-input-box#user-content-shortcut
   )和[命令序列](https://github.com/gdh1995/vimium-c/wiki/Auto-run-a-tree-of-commands
-  )功能，还能运行在某些接受 Vimium C 的扩展程序的私有页面里，并且对CPU和内存资源的<span
+  )功能，还能运行在某些接受 Vimium C
+  的[扩展程序的私有页面](https://github.com/gdh1995/vimium-c/wiki/Inject-into-other-extensions)里，并且对CPU和内存资源的<span
   style="color: #a55e18;">消耗很低</span>。
 
 [阅读中文介绍 (description in Chinese) 。](README-zh.md)
@@ -62,13 +63,13 @@ and licensed under the [MIT license](LICENSE.txt).
 
 本项目主要由 [gdh1995](https://github.com/gdh1995) 开发并维护，且以 [MIT 许可协议](LICENSE.txt) 开源。
 
-It (the released version) supports the new MS Edge, Chrome and other Chromium-based browsers
-  whose core versions are >= 47, and has a prefect support for a recent Firefox (since version 63.0).
-It can even run on MS Edge (EdgeHTML), though there're still some errors.
+It (the released version) supports the new Microsoft Edge, Google Chrome and other Chromium-based browsers
+  whose core versions are >= 47, and has a prefect support for a recent Firefox (since version 63.0, desktop).
+It can even run on Microsoft Edge (EdgeHTML), though there're still some errors.
 If re-compiled from the source code, Vimium C is able to support Chromium 32~46.
 
-它支持内核版本不低于 47 的新版 Microsoft Edge、Chrome 和其它以 Chromium 为内核的浏览器，
-同时也能完美运行在近些年发布的 Firefox 63 和更高版本上，甚至在 Edge (EdgeHTML 内核) 上也能正常执行大部分命令。
+它支持内核版本不低于 47 的新版 Microsoft Edge、Google Chrome 和其它以 Chromium 为内核的浏览器，
+同时也能完美运行在近些年发布的 Firefox 63（桌面版）和更高版本上，甚至在 Edge (EdgeHTML 内核) 上也能正常执行大部分命令。
 如果从源码重新编译，Vimum C 还可以支持 Chromium 32~46。
 
 ![Usage Demo of Vimium C](https://gdh1995.cn/vimium-c/demo.gif)
@@ -83,7 +84,7 @@ An old name of this project is "Vimium++", which has been given up on 2018-08-21
 __<span style="color: #2f508e;">Vim</span>ium <span style="color: #a55e18;">C</span>:__
 
 * [中文介绍 (description in Chinese)](README-zh.md)
-* a web extension for MS Edge, Firefox and Chrome that provides keyboard-based navigation and control
+* a web extension for Firefox, Microsoft Edge and Google Chrome that provides keyboard-based navigation and control
     of the web, in the spirit of the Vim editor.
 * add some powerful functions and provide more configurable details and convenience.
 * here is its [license](LICENSE.txt) and [privacy policy](PRIVACY-POLICY.md)
@@ -138,7 +139,7 @@ Refer to [RELEASE-NOTES.md](RELEASE-NOTES.md).
 
 #### Known Issues
 
-There're some known issues on previous or latest versions of Chrome,
+There're some known issues on previous or latest versions of Chromium-based browsers,
 and please read https://github.com/gdh1995/vimium-c/wiki/Known-issues-on-various-versions-of-Chrome
   for more information.
 
