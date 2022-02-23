@@ -364,10 +364,9 @@ OnChrome && ((): void => {
 
 // According to tests: onInstalled will be executed after 0 ~ 16 ms if needed
 installation_ && void installation_.then((details): void => {
-  let reason = details.reason;
-  if (reason === "install") { reason = ""; }
-  else if (reason === "update") { reason = details.previousVersion!; }
-  else { return; }
+  const reason = details && details.reason;
+  const oldVer = reason === "install" ? "" : reason === "update" && details!.previousVersion! || "none"
+  if (oldVer === "none") { return }
 
   setTimeout((): void => {
   OnFirefox || Tabs_.query({ status: "complete" }, (tabs): void => {
@@ -386,7 +385,7 @@ installation_ && void installation_.then((details): void => {
     console.log("Sorry, but some commands of Vimium C require the permission to run in incognito mode.");
   }
 
-  if (!reason) {
+  if (!oldVer) {
     const p = restoreSettings_ || Promise.resolve()
     void p.then(() => onInit_ ? new Promise(resolve => setTimeout(resolve, 200)) : 0).then((): void => {
       reqH_[kFgReq.focusOrLaunch]({
@@ -396,7 +395,7 @@ installation_ && void installation_.then((details): void => {
     return
   }
   settings_.postUpdate_("vomnibarPage")
-  if (parseFloat(CONST_.VerCode_) <= parseFloat(reason)) { return }
+  if (parseFloat(CONST_.VerCode_) <= parseFloat(oldVer)) { return }
 
   if (Build.MV3) { /* empty */ }
   else if (updateToLocal_) {
@@ -408,7 +407,7 @@ installation_ && void installation_.then((details): void => {
 
   if (!settingsCache_.notifyUpdate) { return }
 
-  reason = "vimium_c-upgrade-notification";
+  let noteId = "vimium_c-upgrade-notification"
   void Promise.all([ trans_("Upgrade"), trans_("upgradeMsg", [CONST_.VerName_]), trans_("upgradeMsg2")
       , trans_("clickForMore") ]).then(([upgrade, msg, msg2, clickForMore]): void => {
   const args: chrome.notifications.NotificationOptions = {
@@ -425,13 +424,13 @@ installation_ && void installation_.then((details): void => {
     args.silent = true;
   }
   const browserNotifications = browser_.notifications
-  browserNotifications && browserNotifications.create(reason, args, function (notificationId): void {
+  browserNotifications && browserNotifications.create(noteId, args, function (notificationId): void {
     let err: any;
     if (err = runtimeError_()) { return err }
-    reason = notificationId || reason;
+    noteId = notificationId || noteId
     browserNotifications.onClicked.addListener(function callback(id): void {
-      if (id !== reason) { return; }
-      browserNotifications.clear(reason)
+      if (id !== id) { return; }
+      browserNotifications.clear(id)
       reqH_[kFgReq.focusOrLaunch]({
         u: convertToUrl_("vimium://release")
       });

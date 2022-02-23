@@ -425,7 +425,7 @@ bgIniting_ < BackendHandlersNS.kInitStat.FINISHED && set_installation_(new Promi
   const ev = browser_.runtime.onInstalled
   let onInstalled: ((details: chrome.runtime.InstalledDetails | null) => void) | null = (details): void => {
       const cb = onInstalled
-      cb && (onInstalled = null, details && resolve(details), ev.removeListener(cb))
+      cb && (onInstalled = null, resolve(details), ev.removeListener(cb))
   }
   ev.addListener(onInstalled)
   setTimeout(onInstalled, 10000, null)

@@ -41,7 +41,7 @@ export let CurFFVer_ = !OnFirefox ? FirefoxBrowserVer.assumedVer
       ? tmpBrand.version : FirefoxBrowserVer.MinMaybe$navigator$$userAgentData > Build.MinFFVer
       ? FirefoxBrowserVer.MinMaybe$navigator$$userAgentData : Build.MinFFVer
     : parseInt(navigator.userAgent!.split("Firefox/")[1] || "0") || FirefoxBrowserVer.assumedVer
-export let installation_: Promise<chrome.runtime.InstalledDetails> | null | undefined
+export let installation_: Promise<chrome.runtime.InstalledDetails | null | undefined> | null | undefined
 //#endregion
 
 //#region runtime configuration

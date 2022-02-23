@@ -1,5 +1,5 @@
 import {
-  blank_, set_sync_, sync_, restoreSettings_, set_restoreSettings_, OnChrome, OnEdge, updateHooks_,
+  blank_, set_sync_, sync_, set_restoreSettings_, OnChrome, OnEdge, updateHooks_,
   hasEmptyLocalStorage_, set_updateToLocal_, updateToLocal_, settingsCache_, installation_, set_installation_
 } from "./store"
 import * as BgUtils_ from "./utils"
@@ -29,6 +29,7 @@ let keyInDownloading: keyof SettingsWithDefaults | "" = ""
 let changes_to_merge: EnsuredDict<StorageChange> | null = null
 let textDecoder: TextDecoder | null = null
 let longDelayedAction = 0
+let innerRestoreSettings: Promise<void> | null | undefined
 
 const storage = (): chrome.storage.StorageArea & {
   onChanged?: chrome.events.Event<(changes: EnsuredDict<StorageChange>, exArg: FakeArg) => void>
@@ -55,8 +56,8 @@ const HandleStorageUpdate = (changes: EnsuredDict<StorageChange>, area: string |
   }
   BgUtils_.safer_(changes)
   changes_to_merge ? Object.assign(changes_to_merge, changes) : (changes_to_merge = changes)
-  if (restoreSettings_) {
-    void restoreSettings_.then(() => HandleStorageUpdate({}, area))
+  if (innerRestoreSettings) {
+    void innerRestoreSettings.then(() => HandleStorageUpdate({}, area))
     return
   }
   changes = changes_to_merge
@@ -96,12 +97,12 @@ const storeAndPropagate = (key: string, value: any, map?: Dict<any>): void | 8 =
   }
   if (value == null) {
     if (settingsCache_[key] != defaultVal) {
-      restoreSettings_ || log("sync.this: reset", key)
+      innerRestoreSettings || log("sync.this: reset", key)
       setAndPost(key, defaultVal)
     }
     return
   }
-  let curVal = restoreSettings_ ? defaultVal : settingsCache_[key]
+  let curVal = innerRestoreSettings ? defaultVal : settingsCache_[key]
     , curJSON: string | boolean | number, jsonVal: string | boolean | number
     , notJSON: boolean
   if (notJSON = typeof defaultVal !== "object") {
@@ -116,7 +117,7 @@ const storeAndPropagate = (key: string, value: any, map?: Dict<any>): void | 8 =
   if (jsonVal === curVal) {
     value = defaultVal
   }
-  restoreSettings_ ||
+  innerRestoreSettings ||
   log("sync.this: update", key,
     typeof value === "string"
     ? (value.length > 32 ? value.slice(0, 30) + "..." : value).replace(<RegExpG> /\n/g, "\\n")
@@ -443,14 +444,15 @@ void settings_.ready_.then((): void => {
     }
     set_installation_(null)
   } else {
-    set_restoreSettings_(!installation_ ? null : installation_.then((reason): void => {
+    innerRestoreSettings = !installation_ ? null : installation_.then((reason): boolean => {
       set_installation_(null)
-      if (!reason || reason.reason !== "install") { return }
+      if (!reason || reason.reason !== "install") { return false }
       const platform = ((navigator.userAgentData || navigator).platform || "").toLowerCase()
       if (platform.startsWith("mac") || platform.startsWith("ip")) {
         settings_.set_("ignoreKeyboardLayout", 1)
       }
-    }).then((): Promise<void> => new Promise<void>(r => {
+      return true
+    }).then((installed): Promise<void> | void => installed ? new Promise<void>(r => {
       storage() ? storage().get((items): void => {
         const err = runtimeError_()
         if (err) {
@@ -461,6 +463,9 @@ void settings_.ready_.then((): void => {
         }
         beginToRestore(items, r)
       }) : r()
-    })).then((): void => { set_restoreSettings_(null) }))
+    }) : void 0).then((): void => { set_restoreSettings_(null); innerRestoreSettings = null })
+    set_restoreSettings_(innerRestoreSettings && Promise.race([innerRestoreSettings, new Promise((resolve): void => {
+      setTimeout(resolve, 800)
+    })]).then((): void => { set_restoreSettings_(null)  }))
   }
 })
