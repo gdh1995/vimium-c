@@ -1,6 +1,6 @@
 import {
   bookmarkCache_, Completion_, contentPayload_, CurCVer_, curTabId_, curWndId_, historyCache_, OnChrome, OnFirefox,
-  blank_, recencyForTab_, searchEngines_, evalVimiumUrl_, OnEdge
+  blank_, recencyForTab_, searchEngines_, evalVimiumUrl_, OnEdge, CONST_
 } from "./store"
 import { overrideTabsIndexes_ff_, browser_, getTabUrl, isTabMuted } from "./browser"
 import * as BgUtils_ from "./utils"
@@ -604,14 +604,15 @@ tabEngine = {
 searchEngine = {
   _nestedEvalCounter: 0,
   filter_: blank_,
-  preFilter_: function (query: CompletersNS.QueryStatus, failIfNull?: true): void | true | Promise<void> {
+  preFilter_: function (query: CompletersNS.QueryStatus, failIfNull?: true | null
+      , oriPattern?: Search.Engine | null | undefined): void | true | Promise<void> {
     if (!(allExpectedTypes & SugType.search)) {
       return Completers.next_([], SugType.search);
     }
     let sug: SearchSuggestion, q = queryTerms, keyword = q.length > 0 ? q[0] : "",
        pattern: Search.Engine | null | undefined;
     if (q.length === 0) { /* empty */ }
-    else if (failIfNull !== true && keyword[0] === "\\" && keyword[1] !== "\\") {
+    else if (!failIfNull && keyword[0] === "\\" && keyword[1] !== "\\") {
       if (keyword.length > 1) {
         q[0] = keyword.slice(1);
       } else {
@@ -623,12 +624,12 @@ searchEngine = {
         offset--
         return Completers.next_([], SugType.search)
       }
-      sug = searchEngine.makeUrlSuggestion_(keyword)
+      sug = searchEngine.makeUrlSuggestion_(keyword, oriPattern)
       return Completers.next_([sug], SugType.search);
     } else {
       pattern = searchEngines_.map.get(keyword)
     }
-    if (failIfNull === true) {
+    if (failIfNull) {
       if (!pattern) { return true; }
     } else if (!pattern && !keyword.startsWith("vimium://")) {
       if (matchType === MatchType.plain && q.length <= 1) {
@@ -665,24 +666,24 @@ searchEngine = {
     if (keyword === "~") { /* empty */ }
     else if (url.startsWith("vimium://")) {
       const ret = evalVimiumUrl_(url.slice(9), Urls.WorkType.ActIfNoSideEffects, true)
-      const getSug = searchEngine.plainResult_.bind(searchEngine, q, url, text, pattern, indexes);
+      const getSug = searchEngine.plainResult_.bind(searchEngine, q, url, text, oriPattern || pattern, indexes);
       if (ret instanceof Promise) {
-        return ret.then<void>(searchEngine.onEvalUrl_.bind(searchEngine, query, getSug));
+        return ret.then<void>(searchEngine.onEvalUrl_.bind(searchEngine, query, oriPattern || pattern, getSug));
       } else if (ret instanceof Array) {
-        return searchEngine.onEvalUrl_(query, getSug, ret);
+        return searchEngine.onEvalUrl_(query, oriPattern || pattern, getSug, ret);
       } else if (ret) {
         url = text = ret; indexes = [];
       }
     } else {
       url = convertToUrl_(url, null, Urls.WorkType.KeepAll)
     }
-    sug = searchEngine.plainResult_(q, url, text, pattern, indexes);
+    sug = searchEngine.plainResult_(q, url, text, oriPattern || pattern, indexes);
     return Completers.next_([sug], SugType.search);
   } as {
-    (query: CompletersNS.QueryStatus, failIfNull: true): void | true | Promise<void>;
-    (query: CompletersNS.QueryStatus): void | Promise<void>;
+    (query: CompletersNS.QueryStatus, failIfNull: true, oriPattern?: Search.Engine | null): void | true | Promise<void>
+    (query: CompletersNS.QueryStatus, _?: null, oriPattern?: Search.Engine | null): void | Promise<void>
   },
-  onEvalUrl_ (query: CompletersNS.QueryStatus
+  onEvalUrl_ (query: CompletersNS.QueryStatus, oriPattern: Search.Engine | null | undefined
       , getSug: (this: void) => SearchSuggestion, ret: Urls.BaseEvalResult): void | Promise<void> {
     let sugs: Suggestion[] | undefined;
     if (query.o) { return; }
@@ -702,14 +703,14 @@ searchEngine = {
             queryTerms[1] = fixCharsInUrl_(queryTerms[1], queryTerms.length > 2)
           }
           sync_queryTerms_(queryTerms)
-          return searchEngine.preFilter_(query);
+          return searchEngine.preFilter_(query, null, oriPattern);
     case Urls.kEval.search:
           const newQuery = (ret as Urls.SearchEvalResult)[0];
           queryTerms = newQuery.length > 1 || newQuery.length === 1 && newQuery[0] ? newQuery : queryTerms;
           sync_queryTerms_(queryTerms)
           const counter = searchEngine._nestedEvalCounter++;
           if (counter > 12) { break; }
-          const subVal = searchEngine.preFilter_(query, true);
+          const subVal = searchEngine.preFilter_(query, true, oriPattern);
           if (counter <= 0) { searchEngine._nestedEvalCounter = 0; }
           if (subVal !== true) { return subVal; }
           break;
@@ -768,14 +769,17 @@ searchEngine = {
     }
     return str;
   },
-  makeUrlSuggestion_ (keyword: string): SearchSuggestion {
+  makeUrlSuggestion_ (keyword: string, oriPattern: Search.Engine | null | undefined): SearchSuggestion {
     const url = convertToUrl_(keyword, null, Urls.WorkType.KeepAll),
     isSearch = lastUrlType_ === Urls.Type.Search,
     sug = new Suggestion("search", url, BgUtils_.DecodeURLPart_(shortenUrl(url))
       , "", get2ndArg, 9) as SearchSuggestion;
-    sug.title = isSearch ? "~: " + cutTitle(keyword, [0, keyword.length]) : cutTitle(keyword, [])
+    sug.title = isSearch ? (oriPattern && oriPattern.name_ || "~") + ": " + cutTitle(keyword, [0, keyword.length])
+        : cutTitle(keyword, [])
     sug.textSplit = OnFirefox && isForAddressBar ? sug.t : BgUtils_.escapeText_(sug.t)
-    sug.v = OnChrome && !isForAddressBar ? calcBestFaviconSource_only_cr_!(url) : ""
+    sug.v = !(OnChrome && !isForAddressBar) ? "" : isSearch && oriPattern
+        && ((oriPattern.blank_ || oriPattern.url_).startsWith("vimium:") ? CONST_.OptionsPage_ : oriPattern.blank_)
+        || calcBestFaviconSource_only_cr_!(url)
     sug.p = isForAddressBar && isSearch ? "~" : ""
     sug.n = 1
     return sug;

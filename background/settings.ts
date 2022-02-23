@@ -347,9 +347,10 @@ t|tb|taobao|ali|\u6dd8\u5b9d: https://s.taobao.com/search?ie=utf8&q=%s \\
   blank=https://www.taobao.com/ \u6dd8\u5b9d
 j|jd|jingdong|\u4eac\u4e1c: https://search.jd.com/Search?enc=utf-8&keyword=%s\\
   blank=https://jd.com/ \u4eac\u4e1c
-az|amazon: https://www.amazon.com/s/?field-keywords=%s \\
+az|amazon: https://www.amazon.com/s?k=%s \\
   blank=https://www.amazon.com/ \u4e9a\u9a6c\u900a
 
+\\:i: vimium://sed/s/^//,lower\\ $S re= Lower case
 v.m|v\\:math: vimium://math\\ $S re= \u8ba1\u7b97\u5668
 gh|github: https://github.com/search?q=$s \\
   blank=https://github.com/ GitHub 仓库
@@ -387,9 +388,10 @@ a|ae|ali|alie|aliexp: https://www.aliexpress.com/wholesale?SearchText=%s \\
   blank=https://www.aliexpress.com/ AliExpress
 j|jd|jb|joy|joybuy: https://www.joybuy.com/search?keywords=%s \\
   blank=https://www.joybuy.com/ Joybuy
-az|amazon: https://www.amazon.com/s/?field-keywords=%s \\
+az|amazon: https://www.amazon.com/s?k=%s \\
   blank=https://www.amazon.com/ Amazon
 
+\\:i: vimium://sed/s/^//,lower\\ $S re= Lower case
 v.m|v\\:math: vimium://math\\ $S re= Calculate
 gh|github: https://github.com/search?q=$s \\
   blank=https://github.com/ GitHub Repo
@@ -454,7 +456,7 @@ browser_.runtime.getPlatformInfo((info): void => {
   set_bgIniting_(bgIniting_ | BackendHandlersNS.kInitStat.platformInfo)
 }
 
-((): void => {
+bgIniting_ < BackendHandlersNS.kInitStat.FINISHED && ((): void => {
   const ref = browser_.runtime.getManifest(), { origin } = location, prefix = origin + "/",
   ref2 = ref.content_scripts[0].js,
   obj = CONST_,
@@ -497,8 +499,6 @@ browser_.runtime.getPlatformInfo((info): void => {
     ref2.unshift("lib/polyfill.js")
   }
   obj.ContentScripts_ = ref2.map(func);
-
-  if (bgIniting_ > BackendHandlersNS.kInitStat.FINISHED - 1) { return }
 
   if (!Build.BTypes || Build.BTypes & (Build.BTypes - 1)) {
     (omniPayload_ as Writable<typeof omniPayload_>).b = OnOther_

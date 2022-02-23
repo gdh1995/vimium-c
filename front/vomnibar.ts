@@ -428,7 +428,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       return a._updateInput(line, line.parsed_);
     }
     (line as Partial<SuggestionEx>).https_ == null && (line.https_ = line.u.startsWith("https://"));
-    if (line.e !== "history" && line.e !== "tab") {
+    if (line.e !== "history" && line.e !== "tab" && !(line.e === "search" && a.mode_.q.startsWith(":"))) {
       if (line.parsed_ == null) {
         VUtils_.ensureText_(line);
         line.parsed_ = "";

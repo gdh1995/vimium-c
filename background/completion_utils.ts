@@ -256,7 +256,7 @@ export const get2ndArg = (_s: CompletersNS.CoreSuggestion, score: number): numbe
 
 export const prepareHTML_ = (sug: Suggestion): void => {
   if (OnChrome) {
-    if (!isForAddressBar && !sug.v) {
+    if (!isForAddressBar && sug.v === undefined) {
       sug.v = calcBestFaviconSource_only_cr_!(sug.u);
     }
   }
