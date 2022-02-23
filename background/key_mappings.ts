@@ -722,7 +722,9 @@ const hintModes_: SafeDict<HintMode> = {
 }
 
 export const visualGranularities_: GranularityNames = [
-    "character", "word", "", "lineboundary", "line", "sentence", "paragraphboundary", "paragraph", "documentboundary"]
+    "character", "word", "", "lineboundary", "line",
+    OnFirefox ? "line" as never : "sentence", OnFirefox ? "lineboundary" as never : "paragraphboundary",
+    OnFirefox ? "line" as never : "paragraph", OnFirefox ? "lineboundary" as never : "documentboundary"]
 
 export const visualKeys_: VisualModeNS.KeyMap = {
     l: VisualAction.char | VisualAction.inc, h: VisualAction.char | VisualAction.dec,

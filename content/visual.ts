@@ -386,7 +386,8 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode]): void => {
   }
   if (!isAlertExtend && isRange) {
       // `sel` is not changed by @establish... , since `isRange`
-    collapseToRight(<BOOL> +(!options.s && (("" + <SelWithToStr> curSelection)).length > 1) && getDirection())
+    collapseToRight((diType_ & DiType.isUnsafe || +!options.s) && getDirection()
+        && <BOOL> +(("" + <SelWithToStr> curSelection).length > 1))
   }
   replaceOrSuppressMost_(kHandler.visual, (event: HandlerNS.Event): HandlerResult => {
     const doPass = event.i === kKeyCode.ime || event.i === kKeyCode.menuKey && os_,
@@ -463,8 +464,8 @@ const getNextRightCharacter = (isMove: BOOL): string => {
     const sel = curSelection
     oldLen_ = 0
     if (diType_ & DiType.TextBox) {
-      const el = raw_insert_lock as TextElement
-      return el.value.charAt(textOffset_(el, di_ === kDirTy.right || el.selectionDirection !== kDir[0]))
+      return (raw_insert_lock as TextElement).value.charAt(textOffset_(raw_insert_lock as TextElement
+          , di_ === kDirTy.right || (raw_insert_lock as TextElement).selectionDirection !== kDir[0]))
     }
     if (!diType_) {
       let focusNode = getAccessibleSelectedNode(sel, 1)
@@ -499,12 +500,19 @@ const getNextRightCharacter = (isMove: BOOL): string => {
     return "";
 }
 
-const runMovements = (direction: ForwardDir, granularity: kG | kVimG.vimWord
-      , count1: number): void => {
+const runMovements = (direction: ForwardDir, granularity: kG | kVimG.vimWord, count1: number): void => {
     const shouldSkipSpaceWhenMovingRight = granularity === kVimG.vimWord
     let fixWord: boolean | undefined
     // https://source.chromium.org/chromium/chromium/src/+/67fe5a41bff92a7bd4f425a24e4858317f8700e5
     let fixDeltaHasOnlySpaces_cr_win: InfoToMoveRightByWord | null | undefined
+    if (OnFirefox && granularity === kG.documentBoundary) {
+      // getDirection(); diType_ & DiType.TextBox || // on Firefox, Selection::modify never works in text boxes
+      curSelection.extend(docEl_unsafe_()!, direction ? docEl_unsafe_()!.childElementCount : 0)
+      if (mode_ === Mode.Caret) {
+        di_ = kDirTy.unknown, collapseToFocus(1)
+        modify(direction, kG.line), di_ = kDirTy.unknown
+      }
+    }
     if (shouldSkipSpaceWhenMovingRight || granularity === kG.word) {
 // https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/editing/editing_behavior.h?type=cs&q=ShouldSkipSpaceWhenMovingRight&g=0&l=99
       if (!direction) { /* empty */ }
@@ -522,8 +530,8 @@ const runMovements = (direction: ForwardDir, granularity: kG | kVimG.vimWord
       granularity = kG.word
     }
     const oldDi = di_
-    while (0 < count1--) {
-      modify(direction, granularity as kG)
+    if (!OnFirefox || granularity !== kG.documentBoundary) {
+      while (0 < count1--) { modify(direction, granularity as kG) }
     }
     // it's safe to remove `isUnsafe` here, because:
     // either `count > 0` or `fixWord && _moveRight***()`
@@ -622,9 +630,9 @@ const moveRightByWordButNotSkipSpaces = OnFirefox && Build.NativeWordMoveOnFiref
           extend(kDirTy.right)
         }
       } else {
-        let el = raw_insert_lock as TextElement, start = textOffset_(el), end = start + newLen
+        let start = textOffset_(raw_insert_lock as TextElement), end = start + newLen
         di_ as ForwardDir ? (end -= toGoLeft) :  (start -= toGoLeft)
-        el.setSelectionRange(start < end ? start : end, start < end ? end : start
+        ; (raw_insert_lock as TextElement).setSelectionRange(start < end ? start : end, start < end ? end : start
             , kDir[start < end ? di_ as ForwardDir : di_ = kDirTy.left])
       }
     }
@@ -641,10 +649,10 @@ const reverseSelection = (): void => {
     }
     const sel = curSelection, direction = getDirection(), newDi = (1 - direction) as ForwardDir
     if (diType_ & DiType.TextBox) {
-      const el = raw_insert_lock as TextElement
       // Note: on C72/60/35, it can trigger document.onselectionchange
       //      and on C72/60, it can trigger <input|textarea>.onselect
-      el.setSelectionRange(textOffset_(el), textOffset_(el, 1), kDir[newDi])
+      (raw_insert_lock as TextElement).setSelectionRange(textOffset_(raw_insert_lock as TextElement)
+          , textOffset_(raw_insert_lock as TextElement, 1), kDir[newDi])
     } else if (diType_ & DiType.Complicated) {
       let length = ("" + <SelWithToStr> sel).length, i = 0;
       collapseToRight(direction)
