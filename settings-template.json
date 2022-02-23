@@ -6,6 +6,7 @@
 	"autoReduceMotion": true,
 	"clipSub": [
 		"p=^git@([^/:]+):=https://$1/=",
+		"s@^https://(?:www\\.)?google\\.com(?:\\.[^/]+)?/url\\?(?:[^&#]+&)*?url=([^&#]+)@$1@,matched,decodecomp",
 		"r@^https://github\\.com/[^\\s\\/?#]+/[^\\s\\/?#]+(?=/)@@,matched",
 		"g@^https://www\\.zhihu\\.com/question/\\d+(?=/answer/?$)@@,matched",
 		"p@^https://item\\.m\\.jd\\.com/product/(\\d+)\\.html\\b@https://item.jd.com/$1.html@",

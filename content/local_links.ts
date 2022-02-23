@@ -253,7 +253,8 @@ export const getEditable = (hints: Hint[], element: SafeHTMLElement): void => {
 }
 
 export const getIfOnlyVisible = (hints: (Hint | Hint0)[], element: SafeElement): void => {
-  let arr = getVisibleClientRect_(element, null)
+  let arr = htmlTag_(element) === "a" ? getPreferredRectOfAnchor(element as HTMLAnchorElement)
+      : getVisibleClientRect_(element, null)
   arr && hints.push([element as SafeElementForMouse, arr, ClickType.Default])
 }
 
@@ -749,7 +750,8 @@ export const getVisibleElements = (view: ViewBox): readonly Hint[] => {
             }
             cr = cropRectToVisible_(l, t, l + w, t + h);
             if (cr && (isStyleVisible_(element) || (evenHidden_ & kHidden.VisibilityHidden))) {
-              cr = getCroppedRect_(element, cr)
+              cr = htmlTag_(element) === "a" && getPreferredRectOfAnchor(element as HTMLAnchorElement)
+                  || getCroppedRect_(element, cr)
               cr && hints.push([element, cr, ClickType.Default])
             }
           }

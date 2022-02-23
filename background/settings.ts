@@ -260,6 +260,7 @@ export const defaults_ = As_<Readonly<SettingsWithDefaults> & SafeObject>({
     autoDarkMode: 2,
     autoReduceMotion: 0,
     clipSub: `p=^git@([^/:]+):=https://$1/=
+s@^https://(?:www\\.)?google\\.com(?:\\.[^/]+)?/url\\?(?:[^&#]+&)*?url=([^&#]+)@$1@,matched,decodecomp
 p@^https://item\\.m\\.jd\\.com/product/(\\d+)\\.html\\b@https://item.jd.com/$1.html@`,
     exclusionListenHash: true,
     exclusionOnlyFirstMatch: false,
