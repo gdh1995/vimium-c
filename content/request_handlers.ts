@@ -1,6 +1,6 @@
 import {
   chromeVer_, clickable_, doc, esc, fgCache, injector, isEnabled_, isLocked_, isAlive_, isTop, abs_, includes_,
-  keydownEvents_, set_chromeVer_, set_clickable_, set_fgCache, set_isLocked_, OnChrome, OnFirefox, weakRef_ff,
+  keydownEvents_, set_chromeVer_, set_clickable_, set_fgCache, set_isLocked_, OnChrome, OnFirefox, weakRef_ff, safeCall,
   set_isEnabled_, set_onWndFocus, onWndFocus, timeout_, safer, set_os_, safeObj, set_keydownEvents_,
   interval_, getTime, vApi, clearInterval_, locHref, set_firefoxVer_, firefoxVer_, os_, weakRef_not_ff, isAsContent,
 } from "../lib/utils"
@@ -222,7 +222,7 @@ set_requestHandlers([
     esc!(HandlerResult.Nothing);
     exitGrab();
     if (request.m) {
-      const now = getTime(), result = confirm(request.m);
+      const now = getTime(), result = safeCall(confirm, request.m)
       count2 = abs_(getTime() - now) > 9 ? result ? 3 : 1 : 2
     }
     post_({ H: kFgReq.cmd, c: request.c, n, i: request.i, r: count2 });
