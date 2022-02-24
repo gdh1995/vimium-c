@@ -312,7 +312,7 @@ const downloadLink = (url?: string, filename?: string): void => {
 }
 
 const defaultClick = (): void => {
-    const mask = hintMode_ & HintMode.mask_focus_new, isMac = !os_,
+    const mask = hintMode_ & HintMode.mask_focus_new, isMac = !!(Build.OS & (1 << kOS.mac)) && !os_,
     isRight = hintOptions.button === "right",
     dblClick = !!hintOptions.dblclick && !isRight,
     newTabStr = (rawNewtab + "") as ToString<Exclude<HintsNS.Options["newtab"], boolean>>,
@@ -347,7 +347,7 @@ const defaultClick = (): void => {
     retPromise = catchAsyncErrorSilently(click_async(clickEl, rect
         , /*#__PURE__*/ checkBoolOrSelector(hintOptions.focus
             , mask > 0 || interactive || (clickEl as ElementToHTMLorOtherFormatted).tabIndex! >= 0)
-        , [!1, ctrl && !isMac, ctrl && isMac, shift]
+        , [!1, isMac ? !1 : ctrl, isMac ? ctrl : !1, shift]
         , specialActions, isRight ? kClickButton.second : kClickButton.none
         , !OnChrome || otherActions || newTab ? 0 : hintOptions.touch
         , hintOptions))

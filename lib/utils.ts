@@ -22,6 +22,7 @@ export let firefoxVer_: FirefoxBrowserVer = 0
 export function set_chromeVer_ (_newRealChromeVer: BrowserVer): void { chromeVer_ = _newRealChromeVer }
 export function set_firefoxVer_ (_newRealVer: FirefoxBrowserVer): void { firefoxVer_ = _newRealVer }
 export let os_: kOS
+if (!(Build.OS & (Build.OS - 1))) { os_ = Build.OS as number }
 export function set_os_ (_newOS: kOS): void { os_ = _newOS }
 
 export const isTop = top === window
@@ -112,7 +113,7 @@ export let weakRef_not_ff = (!OnEdge ? OnFirefox ? null as never : <T extends ob
 
 export let weakRef_ff = !OnFirefox ? null as never : (<T extends object>(val: T | null | undefined, id: kElRef
       ): WeakRef<T> | null | undefined =>
-      val && ((window as any)["_ref" + id] = new (WeakRef as WeakRefConstructor)(val))) as {
+      val && ((window as any)["__ref_" + id] = new (WeakRef as WeakRefConstructor)(val))) as {
   <T extends object>(val: T, id: kElRef): WeakRef<T>
   <T extends object>(val: T | null, id: kElRef): WeakRef<T> | null
   <T extends object>(val: T | null | undefined, id: kElRef): WeakRef<T> | null | undefined
@@ -250,5 +251,6 @@ export const Lower = (str: string): string => str.toLowerCase()
 export const math = Math
 export const max_: (...args: number[]) => number = Build.NDEBUG ? math.max : (...args): number => math.max(...args)
 export const min_: (...args: number[]) => number = Build.NDEBUG ? math.min : (...args): number => math.min(...args)
+export const abs_: (num: number) => number = Build.NDEBUG ? math.abs : (arg): number => math.abs(arg)
 
 export function includes_<T> (this: T[] | readonly T[], el: T): boolean { return this.indexOf(el) >= 0 }

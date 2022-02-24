@@ -130,7 +130,7 @@ const checkAccessKey_cr = OnChrome ? (event: HandlerNS.Event): void => {
     event.c === kChar.INVALID && char_(event);
     if (isWaitingAccessKey !== (event.c.length === 1 || event.c === SPC)
         && (getKeyStat_(event.e) & KeyStat.ExceptShift /* Chrome ignore .shiftKey */) ===
-            (os_ ? KeyStat.altKey : KeyStat.altKey | KeyStat.ctrlKey)
+            (Build.OS & ~(1 << kOS.mac) && os_ ? KeyStat.altKey : KeyStat.altKey | KeyStat.ctrlKey)
         ) {
       isWaitingAccessKey = !isWaitingAccessKey;
       anyClickHandler.handleEvent = isWaitingAccessKey ? /*#__NOINLINE__*/ onAnyClick_cr : noopEventHandler
@@ -233,7 +233,7 @@ export const onKeydown = (event: KeyboardEventToPrevent): void => {
   }
   if (action < HandlerResult.MinStopOrPreventEvents) {
     // https://github.com/gdh1995/vimium-c/issues/390#issuecomment-894687506
-    if (!os_ && keydownEvents_[key] === 1 && !event.repeat) {
+    if (Build.OS & (1 << kOS.mac) && !os_ && keydownEvents_[key] === 1 && !event.repeat) {
       keydownEvents_[key] = 0
     }
     return

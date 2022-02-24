@@ -323,7 +323,7 @@ Build.MV3 || setTimeout((): void => {
   })
 })()
 
-OnChrome && ((): void => {
+OnChrome && Build.OnBrowserNativePages && ((): void => {
   let status: 0 | 1 | 2 | 3 = 0, listened = false, refreshTimer = 0
   const protocol = IsEdg_ ? "edge:" : "chrome:",
   ntp = !IsEdg_ ? protocol + "//newtab/" : "", ntp2 = !IsEdg_ ? protocol + "//new-tab-page/" : ""

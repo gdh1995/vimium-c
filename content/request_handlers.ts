@@ -1,5 +1,5 @@
 import {
-  chromeVer_, clickable_, doc, esc, fgCache, injector, isEnabled_, isLocked_, isAlive_, isTop, math, includes_,
+  chromeVer_, clickable_, doc, esc, fgCache, injector, isEnabled_, isLocked_, isAlive_, isTop, abs_, includes_,
   keydownEvents_, set_chromeVer_, set_clickable_, set_fgCache, set_isLocked_, OnChrome, OnFirefox, weakRef_ff,
   set_isEnabled_, set_onWndFocus, onWndFocus, timeout_, safer, set_os_, safeObj, set_keydownEvents_,
   interval_, getTime, vApi, clearInterval_, locHref, set_firefoxVer_, firefoxVer_, os_, weakRef_not_ff, isAsContent,
@@ -43,9 +43,9 @@ set_requestHandlers([
     OnChrome && set_chromeVer_(load.v as BrowserVer)
     OnFirefox && set_firefoxVer_(load.v as FirefoxBrowserVer)
     set_fgCache(vApi.z = load)
-    set_os_(fgCache.o)
-    if (OnChrome && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key) {
-      os_ || set_keyIdCorrectionOffset_old_cr_(300)
+    Build.OS & (Build.OS - 1) && set_os_(fgCache.o)
+    if (OnChrome && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key && Build.OS & ~(1 << kOS.mac)) {
+      !(Build.OS & (1 << kOS.mac)) || os_ || set_keyIdCorrectionOffset_old_cr_(300)
     }
     if (OnChrome && Build.MinCVer < BrowserVer.MinNoKeygenElement && chromeVer_ < BrowserVer.MinNoKeygenElement
         || OnFirefox && Build.MinFFVer < FirefoxBrowserVer.MinNoKeygenElement
@@ -98,7 +98,7 @@ set_requestHandlers([
           set_clickable_(new WeakSet!<Element>(oldSet))
         }
         const manager = parHints && parHints.p || parHints
-        manager && manager.h && math.abs(getTime() - math.abs(manager.h)) < 1200 && manager.i(1)
+        manager && manager.h && abs_(getTime() - abs_(manager.h)) < 1200 && manager.i(1)
       }, 330);
     });
     isAsContent || (injector || vApi).$r!(InjectorTask.extInited);
@@ -223,7 +223,7 @@ set_requestHandlers([
     exitGrab();
     if (request.m) {
       const now = getTime(), result = confirm(request.m);
-      count2 = math.abs(getTime() - now) > 9 ? result ? 3 : 1 : 2
+      count2 = abs_(getTime() - now) > 9 ? result ? 3 : 1 : 2
     }
     post_({ H: kFgReq.cmd, c: request.c, n, i: request.i, r: count2 });
   },

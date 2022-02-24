@@ -263,7 +263,8 @@ const initOptionsLink = (_url: string): void => {
 }
 
 const initExclusionRulesTable = (): void => {
-  OnChrome && conf_.os || window.addEventListener("keydown", function (event): void {
+  !(Build.OS & (1 << kOS.mac)) || Build.OS & ~(1 << kOS.mac) && OnChrome && conf_.os ||
+  window.addEventListener("keydown", function (event): void {
     if (event.altKey
         && (event.keyCode === kKeyCode.X || conf_.lock !== null && event.keyCode === kKeyCode.Z)
         && !(event.shiftKey || event.ctrlKey || event.metaKey)

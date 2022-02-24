@@ -41,6 +41,7 @@ export let CurFFVer_ = !OnFirefox ? FirefoxBrowserVer.assumedVer
       ? tmpBrand.version : FirefoxBrowserVer.MinMaybe$navigator$$userAgentData > Build.MinFFVer
       ? FirefoxBrowserVer.MinMaybe$navigator$$userAgentData : Build.MinFFVer
     : parseInt(navigator.userAgent!.split("Firefox/")[1] || "0") || FirefoxBrowserVer.assumedVer
+export let os_: kOS = Build.OS & (Build.OS - 1) ? kOS.win : Build.OS as number
 export let installation_: Promise<chrome.runtime.InstalledDetails | null | undefined> | null | undefined
 //#endregion
 
@@ -52,14 +53,14 @@ export const storageCache_: PartialOrEnsured<Map<SettingsNS.LocalSettingNames, s
 export let newTabUrl_f = "", vomnibarPage_f = ""
 export const contentPayload_ = <SettingsNS.FrontendSettingCache> As_<SettingsNS.DeclaredFrontendValues>({
   v: OnChrome ? CurCVer_ : OnFirefox ? CurFFVer_ : 0,
-  d: "", g: false, m: false, o: kOS.win
+  d: "", g: false, m: false
 })
 export const searchEngines_ = {
   map: new Map<string, Search.Engine>(), rules: [] as Search.Rule[], keywords: null as string | null
 }
 export const omniPayload_ = <SettingsNS.VomnibarPayload> As_<SettingsNS.DeclaredVomnibarPayload>({
   v: OnChrome ? CurCVer_ : OnFirefox ? CurFFVer_ : 0,
-  a: 0, c: "", l: "", k: null, o: kOS.win, n: 0, s: "", t: 0
+  a: 0, c: "", l: "", k: null, n: 0, s: "", t: 0
 })
 export let omniStyleOverridden_ = false
 export let findCSS_: FindCSS
@@ -215,6 +216,7 @@ export const set_shownHash_ = (_newHash: typeof shownHash_): void => { shownHash
 export const set_updateToLocal_ = (_newBackup: typeof updateToLocal_): void => { updateToLocal_ = _newBackup }
 
 export const set_CurFFVer_ = OnFirefox ? (ver: FirefoxBrowserVer) => { CurFFVer_ = ver } : blank_
+export const set_os_ = Build.OS & (Build.OS - 1) ? (newOS: kOS) => { os_ = newOS } : 0 as never as null
 //#endregion
 
 export const CONST_ = {

@@ -2,7 +2,7 @@ import {
   contentPayload_, extAllowList_, newTabUrls_, omniPayload_, OnChrome, OnEdge, OnFirefox, framesForOmni_, sync_, IsEdg_,
   settingsCache_, bgIniting_, set_bgIniting_, CurCVer_, CONST_, OnOther_, onInit_, storageCache_, searchEngines_,
   set_hasEmptyLocalStorage_, set_newTabUrl_f, newTabUrl_f, set_vomnibarPage_f, IsLimited, updateHooks_,set_CurFFVer_,
-  CurFFVer_
+  CurFFVer_, set_os_, os_
 } from "./store"
 import { asyncIter_, nextTick_, safeObj_ } from "./utils"
 import { browser_, normalizeExtOrigin_, Q_ } from "./browser"
@@ -172,7 +172,7 @@ export const updatePayload_ = function (shortKey: keyof SettingsNS.FrontendSetti
     case "c": case "n": value = (value as ValType<"c" | "n">).toLowerCase().toUpperCase(); break
     case "i":
       value = value === !!value ? value
-        : (value as ValType<"i">) > 1 || (value as ValType<"i">) > 0 && !contentPayload_.o; break
+        : (value as ValType<"i">) > 1 || (value as ValType<"i">) > 0 && (!!(Build.OS & (1 << kOS.mac)) && !os_); break
     case "l": value = value === !!value ? value ? 2 : 0 : value; break
     case "d": value = value ? " D" : ""; break
     // no default:
@@ -444,8 +444,10 @@ browser_.runtime.getPlatformInfo((info): void => {
     ? browser_.runtime.PlatformOs! : browser_.runtime.PlatformOs || { MAC: "mac", WIN: "win" },
   osEnum = os === types.WIN ? kOS.win : os === types.MAC ? kOS.mac : kOS.unixLike
   CONST_.Platform_ = os;
-  (omniPayload_ as Writable<typeof omniPayload_>).o =
-  (contentPayload_ as Writable<typeof contentPayload_>).o = osEnum
+  if (Build.OS & (Build.OS - 1)) {
+    (omniPayload_ as Writable<typeof omniPayload_>).o = (contentPayload_ as Writable<typeof contentPayload_>).o = osEnum
+    set_os_!(osEnum)
+  }
   if (bgIniting_ & BackendHandlersNS.kInitStat.settings) {
     updatePayload_("i", settingsCache_.ignoreCapsLock, contentPayload_)
   }

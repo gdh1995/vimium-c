@@ -623,7 +623,8 @@ exports.skip_declaring_known_globals = (btypes, minCVer, get_code) =>{
   if (!(btypes & ~BrowserType.Chrome) && minCVer >= /* MinEnsured$visualViewport$ */ 61) {
     toRemovedGlobal += "visualViewport|";
   }
-  if (!(btypes & BrowserType.Chrome || btypes & BrowserType.Firefox)) {
+  if (!(btypes & BrowserType.Chrome && minCVer < /* BrowserVer.MinEnsured$WeakRef */ 82
+        || btypes & BrowserType.Firefox)) {
     toRemovedGlobal += "WeakRef|";
   }
   toRemovedGlobal = toRemovedGlobal.slice(0, -1);

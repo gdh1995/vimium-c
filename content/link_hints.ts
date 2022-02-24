@@ -84,7 +84,7 @@ interface FrameHintsInfo {
 export type AddChildDirectly = (officer: BaseHintWorker, el: KnownIFrameElement, rect: Rect | null) => boolean
 
 import {
-  VTr, isAlive_, isEnabled_, setupEventListener, keydownEvents_, set_keydownEvents_, timeout_, max_, min_, math, OnEdge,
+  VTr, isAlive_, isEnabled_, setupEventListener, keydownEvents_, set_keydownEvents_, timeout_, max_, min_, abs_, OnEdge,
   clearTimeout_, fgCache, doc, readyState_, chromeVer_, vApi, deref_, getTime, unwrap_ff, OnFirefox, OnChrome,
   WithDialog, Lower, safeCall, locHref, os_, firefoxVer_, weakRef_not_ff, weakRef_ff, isTY
 } from "../lib/utils"
@@ -436,12 +436,12 @@ const onKeydown = (event: HandlerNS.Event): HandlerResult => {
       tooHigh_ = null;
       resetMode();
       if (!OnFirefox && isClickListened_ && coreHints.h && vApi.e
-          && math.abs(getTime() - math.abs(coreHints.h)) < 1000) {
+          && abs_(getTime() - abs_(coreHints.h)) < 1000) {
         vApi.e(kContentCmd.ManuallyFindAllOnClick)
       }
       timeout_(reinit, 0)
     } else if (coreHints.h = 0, i < kKeyCode.maxAcsKeys + 1 && i > kKeyCode.minAcsKeys - 1
-          || !os_ && (i > kKeyCode.maxNotMetaKey && i < kKeyCode.minNotMetaKeyOrMenu)
+          || Build.OS & (1 << kOS.mac) && !os_ && (i > kKeyCode.maxNotMetaKey && i < kKeyCode.minNotMetaKeyOrMenu)
         ) {
       OnFirefox && (doesAllowModifierEvents_ff = 1)
       key || toggleModesOnModifierKey(event, i)
@@ -698,7 +698,7 @@ const checkLast = ((el?: WeakRef<LinkEl> | LinkEl | 1 | null, r?: Rect | null
     if (hidden && deref_(lastHovered_) === el) {
       void hover_async()
     }
-    if ((!r2 || r) && hasJustReinited && (hidden || math.abs(r2!.l - r!.l) > 100 || math.abs(r2!.t - r!.t) > 60)) {
+    if ((!r2 || r) && hasJustReinited && (hidden || abs_(r2!.l - r!.l) > 100 || abs_(r2!.t - r!.t) > 60)) {
       return !hasEl || doesWantToReloadLinkHints("cl") ? 1 : 0
     } else {
       return 0

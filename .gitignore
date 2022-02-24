@@ -42,3 +42,6 @@ package-lock.json
 typings/base/
 !typings/base/base.d.ts
 scripts/*.pem.enc
+scripts/build*.sh
+.env*
+/dist-*

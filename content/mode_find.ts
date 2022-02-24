@@ -1,7 +1,7 @@
 import {
   setupEventListener, VTr, keydownEvents_, isAlive_, suppressCommonEvents, onWndFocus, timeout_, safer, fgCache,
   doc, getTime, chromeVer_, deref_, escapeAllForRe, tryCreateRegExp, vApi, callFunc, clearTimeout_, Stop_, isTY, Lower,
-  math, max_, min_, OnFirefox, OnChrome, OnEdge, firefoxVer_, os_
+  abs_, max_, min_, OnFirefox, OnChrome, OnEdge, firefoxVer_, os_
 } from "../lib/utils"
 import {
   replaceOrSuppressMost_, removeHandler_, prevent_, getMappedKey, keybody_, isEscape_, keyNames_, DEL, BSP, ENTER,
@@ -416,7 +416,7 @@ const onLoad2 = (): void => {
             || firefoxVer_ > FirefoxBrowserVer.MinContentEditableInShadowOfBodyRefuseShortcuts - 1
             || Build.MinFFVer < FirefoxBrowserVer.MinContentEditableInShadowSupportIME
             && firefoxVer_ < FirefoxBrowserVer.MinContentEditableInShadowSupportIME
-            || os_ === kOS.unixLike)
+            || Build.OS & (1 << kOS.unixLike) && os_ === kOS.unixLike)
         ? addElement("div") as HTMLDivElement & SafeHTMLElement : body as HTMLBodyElement & SafeHTMLElement,
     root = OnEdge || OnFirefox
         && (Build.MinFFVer < FirefoxBrowserVer.MinContentEditableInShadowSupportIME
@@ -522,9 +522,10 @@ const onIFrameKeydown = (event: KeyboardEventToPrevent): void => {
           : (query_ && post_({ H: kFgReq.findQuery, q: query0_ }), FindAction.ExitForEnter)
       : keybody !== DEL && keybody !== BSP
         ? isEscape_(key) ? FindAction.ExitForEsc : FindAction.DoNothing
-      : OnFirefox && os_ === kOS.unixLike && "cs".includes(key[0])
+      : OnFirefox && Build.OS & (1 << kOS.unixLike) && os_ === kOS.unixLike && "cs".includes(key[0])
         ? FindAction.CtrlDelete
-      : query_ || (n === kKeyCode.deleteKey && os_ || event.repeat) ? FindAction.PassDirectly
+      : query_ || (n === kKeyCode.deleteKey && (Build.OS & ~(1 << kOS.mac) && Build.OS & (1 << kOS.mac) ? os_
+          : os_ ? true : false) || event.repeat) ? FindAction.PassDirectly
       : FindAction.Exit;
     let h = HandlerResult.Prevent, scroll: number;
     if (!i) {
@@ -738,7 +739,7 @@ export const updateQuery = (query: string): void => {
       || null
   if (re) {
     let now = getTime()
-    if (cachedInnerText && cachedInnerText.n === didNorm && (delta = math.abs(now - cachedInnerText.t))
+    if (cachedInnerText && cachedInnerText.n === didNorm && (delta = abs_(now - cachedInnerText.t))
           < (didNorm || cachedInnerText.i.length > 1e5 ? 6e3 : 3e3)) {
       query = cachedInnerText.i
       delta < 500 && (cachedInnerText.t = now)

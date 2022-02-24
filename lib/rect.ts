@@ -1,5 +1,5 @@
 import {
-  doc, chromeVer_, Lower, max_, min_, math, OnChrome, OnFirefox, WithDialog, evenHidden_, set_evenHidden_, OnEdge
+  doc, chromeVer_, Lower, max_, min_, math, OnChrome, OnFirefox, WithDialog, evenHidden_, set_evenHidden_, OnEdge, abs_
 } from "./utils"
 import {
   docEl_unsafe_, scrollingEl_, notSafe_not_ff_, ElementProto_not_ff, isRawStyleVisible, getComputedStyle_, NONE,
@@ -255,8 +255,8 @@ const _fixDocZoom_cr = OnChrome ? (zoom: number, docEl: Element, devRatio: numbe
           && chromeVer_ < BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl
       || (rectWidth = getBoundingClientRect_(docEl).width,
           viewportWidth = visualViewport!.width!,
-          math.abs(rectWidth - viewportWidth) > 1e-3
-          && (math.abs(rectWidth * zoom - viewportWidth) < 0.01
+          abs_(rectWidth - viewportWidth) > 1e-3
+          && (abs_(rectWidth * zoom - viewportWidth) < 0.01
             || (Build.MinCVer >= BrowserVer.MinASameZoomOfDocElAsdevPixRatioWorksAgain
                   || chromeVer_ > BrowserVer.MinASameZoomOfDocElAsdevPixRatioWorksAgain - 1)
                 && !notSafe_not_ff_!(docEl) && (style = (docEl as ElementToHTMLorOtherFormatted).style)

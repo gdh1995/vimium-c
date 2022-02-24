@@ -8,7 +8,7 @@ export { ENT as ENTER }
 const keyNames_: readonly kChar[] = [SP, kChar.pageup, kChar.pagedown, kChar.end, kChar.home,
     kChar.left, kChar.up, kChar.right, kChar.down]
 let keyIdCorrectionOffset_old_cr_ = OnChrome && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key
-    ? 185 as const : 0 as never as 300 | null
+    ? Build.OS & ~(1 << kOS.mac) ? 185 as const : 300 as const : 0 as never as null
 const _codeCorrectionMap = ["Semicolon", "Equal", "Comma", "Minus", "Period", "Slash", "Backquote",
     "BracketLeft", "Backslash", "BracketRight", "Quote", "IntlBackslash"]
 const kCrct = OnChrome && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key
@@ -56,7 +56,7 @@ const _getKeyCharUsingKeyIdentifier_old_cr = !OnChrome
           : String.fromCharCode(keyId < kCharCode.minAlphabet || shiftKey ? keyId : keyId + kCharCode.CASE_DELTA);
     } else {
       // here omits a `(...)` after the first `&&`, since there has been `keyId >= kCharCode.minNotAlphabet`
-      return keyId > keyIdCorrectionOffset_old_cr_!
+      return Build.OS & ~(1 << kOS.mac) && keyId > keyIdCorrectionOffset_old_cr_!
           && (keyId -= 186) < 7 || (keyId -= 26) > 6 && keyId < 11
           ? kCrct![keyId + shiftKey * 12]
           : "";

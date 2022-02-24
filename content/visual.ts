@@ -390,7 +390,8 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode]): void => {
         && <BOOL> +(("" + <SelWithToStr> curSelection).length > 1))
   }
   replaceOrSuppressMost_(kHandler.visual, (event: HandlerNS.Event): HandlerResult => {
-    const doPass = event.i === kKeyCode.ime || event.i === kKeyCode.menuKey && os_,
+    const doPass = event.i === kKeyCode.menuKey && (Build.OS & ~(1 << kOS.mac) && Build.OS & (1 << kOS.mac) ? os_
+        : os_ ? true : false) || event.i === kKeyCode.ime,
     key = doPass ? "" : getMappedKey(event, kModeId.Visual), keybody = keybody_(key);
     if (!key || isEscape_(key)) {
       !key || currentCount || currentSeconds ? resetKeys() : deactivate(1)
@@ -520,12 +521,15 @@ const runMovements = (direction: ForwardDir, granularity: kG | kVimG.vimWord, co
         fixWord = !Build.NativeWordMoveOnFirefox || shouldSkipSpaceWhenMovingRight
         if (!Build.NativeWordMoveOnFirefox) { count1 -= fixWord as boolean | BOOL as BOOL }
       } else {
-        fixWord = (os_ > kOS.MAX_NOT_WIN) !== shouldSkipSpaceWhenMovingRight
-        count1 -= (OnChrome && os_ > kOS.MAX_NOT_WIN
+        fixWord = !(Build.OS & (1 << kOS.win)) ? shouldSkipSpaceWhenMovingRight
+            : !(Build.OS & ~(1 << kOS.win)) ? !shouldSkipSpaceWhenMovingRight
+            : (os_ > kOS.MAX_NOT_WIN) !== shouldSkipSpaceWhenMovingRight
+        count1 -= (Build.OS & (1 << kOS.win) && OnChrome && os_ > kOS.MAX_NOT_WIN
             && (Build.MinCVer >= BrowserVer.MinOnWindows$Selection$$extend$stopWhenWhiteSpaceEnd
                 || chromeVer_ > BrowserVer.MinOnWindows$Selection$$extend$stopWhenWhiteSpaceEnd - 1)
             && !!(fixDeltaHasOnlySpaces_cr_win = moveRightByWordButNotSkipSpaces!(0))
-            || fixWord && !shouldSkipSpaceWhenMovingRight) as boolean | BOOL as BOOL
+            || (!(Build.OS & (1 << kOS.win)) ? 0 : !(Build.OS & ~(1 << kOS.win)) ? fixWord
+                : fixWord && !shouldSkipSpaceWhenMovingRight)) as boolean | BOOL as BOOL
       }
       granularity = kG.word
     }

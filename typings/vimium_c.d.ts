@@ -345,7 +345,7 @@ declare namespace SettingsNS {
     /** browserSecondVersionCode */ V: ["browserVer2nd", number];
     /** OS */ o: ["OS", kOS.mac | kOS.unixLike | kOS.win];
   }
-  type DeclaredConstValues = Readonly<SelectValueType<Pick<ConstItems, "v" | "o">>>;
+  type DeclaredConstValues = Readonly<SelectValueType<Pick<ConstItems, "v">>>;
   interface AllConstValues extends Readonly<SelectValueType<ConstItems>> {}
   interface VomnibarOptionItems {
     /** maxMatchNumber */ n: ["maxMatches", number];

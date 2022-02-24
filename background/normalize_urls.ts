@@ -1,6 +1,5 @@
 import {
-  CONST_, contentPayload_, CurCVer_, evalVimiumUrl_, historyCache_, IsEdg_, OnChrome, OnFirefox, searchEngines_,
-  newTabUrl_f
+  CONST_, os_, CurCVer_, evalVimiumUrl_, historyCache_, IsEdg_, OnChrome, OnFirefox, searchEngines_, newTabUrl_f
 } from "./store"
 import {
   isJSUrl_, DecodeURLPart_, resetRe_, isIPHost_, encodeAsciiComponent_, spacesRe_, protocolRe_, isTld_
@@ -408,7 +407,7 @@ const convertFromFilePath = (path: string): string => {
 }
 
 export const decodeFileURL_ = (url: string): string => {
-  if (contentPayload_.o === kOS.win && url.startsWith("file://")) {
+  if (Build.OS & (1 << kOS.win) && os_ === kOS.win && url.startsWith("file://")) {
     const slash = url.indexOf("/", 7)
     if (slash < 0 || slash === url.length - 1) { return slash < 0 ? url + "/" : url }
     const type = slash === 7 ? url.charAt(9) === ":" ? 3 : url.substr(9, 3).toLowerCase() === "%3a" ? 5 : 0 : 0

@@ -78,9 +78,9 @@ export class OptionalPermissionsOption_ extends Option_<"nextPatterns"> {
       const i = shownItems[_ind]
       const wanted = +wanted_value[_ind] as 0 | 1 | 2
       if (i.previous_ === wanted) { continue }
-      const orig2: kPermissions | "" = i.name_ === kNTP ? "chrome://newtab/*" : ""
+      const orig2: kPermissions | "" = Build.OnBrowserNativePages && i.name_ === kNTP ? "chrome://newtab/*" : ""
       i.previous_ = wanted
-      if (i.name_ === kCrURL) {
+      if (Build.OnBrowserNativePages && i.name_ === kCrURL) {
         if (<boolean> bgSettings_.get_("allBrowserUrls") !== (wanted === 2)) {
           void bgSettings_.set_("allBrowserUrls", wanted === 2)
         }
@@ -146,7 +146,7 @@ OnEdge || registerClass("OptionalPermissions", OptionalPermissionsOption_)
 
 const initOptionalPermissions = (): void => {
   const fragment = document.createDocumentFragment()
-  if (OnFirefox && bgSettings_.os_ === kOS.unixLike) {
+  if (OnFirefox && Build.OS & (1 << kOS.unixLike) && bgSettings_.os_ === kOS.unixLike) {
     template.querySelector("input")!.classList.add("baseline")
   }
   let itemInd = 0
@@ -161,7 +161,7 @@ const initOptionalPermissions = (): void => {
       i18nName = IsEdg_ ? i18nName.replace("chrome:", "edge:") : i18nName
       suffix = oTrans_("optOfChromeUrl").replace(IsEdg_ ? "chrome" : "edge", "edge")
     }
-    if (name === kNTP) {
+    if (Build.OnBrowserNativePages && name === kNTP) {
       if (OnChrome && Build.MinCVer < BrowserVer.MinChromeURL$NewTabPage
           && CurCVer_ < BrowserVer.MinChromeURL$NewTabPage) {
         suffix = oTrans_("requireChromium", [BrowserVer.MinChromeURL$NewTabPage])
@@ -188,10 +188,11 @@ const doPermissionsContain_ = (item: PermissionItem): Promise<void> => {
       : { permissions: name === kShelf ? ["downloads", name] : [name] }).then(([result]): void => {
     if (OnChrome && Build.MinCVer < BrowserVer.MinCorrectExtPermissionsOnChromeURL$NewTabPage
         && CurCVer_ < BrowserVer.MinCorrectExtPermissionsOnChromeURL$NewTabPage
-        && name === "chrome://new-tab-page/*") {
+        && Build.OnBrowserNativePages && name === kNTP) {
       result = false
     }
-    const val = result ? item.name_ !== kCrURL || <boolean> bgSettings_.get_("allBrowserUrls") ? 2 : 1 : 0
+    const val = !result ? 0
+        : !Build.OnBrowserNativePages || item.name_ !== kCrURL || <boolean> bgSettings_.get_("allBrowserUrls") ? 2 : 1
     item.previous_ = val
     resolve()
   })
@@ -203,7 +204,7 @@ const onChange = (e: Event): void => {
   const item = shownItems.find(i => i.element_ === el)
   if (!item) { return }
   const value = el.checked
-  if (OnChrome && (item.name_ === kCrURL || item.name_ === kNTP)) {
+  if (OnChrome && Build.OnBrowserNativePages && (item.name_ === kCrURL || item.name_ === kNTP)) {
     const isCurNTP = item.name_ === kNTP, theOtherName = isCurNTP ? kCrURL : kNTP
     const theOther = shownItems.find(i => i.name_ === theOtherName)
     if (theOther) {
@@ -222,7 +223,7 @@ const onChange = (e: Event): void => {
 if (!OnEdge) {
   const ignored: Array<kPermissions | RegExpOne> = OnFirefox ? [kShelf] : ["downloads"]
   OnChrome || ignored.push(<RegExpOne> /^chrome:/, "contentSettings")
-  OnChrome && !IsEdg_ || ignored.push(kNTP)
+  OnChrome && !IsEdg_ || Build.OnBrowserNativePages && ignored.push(kNTP)
   OnFirefox || ignored.push("cookies")
   optional_permissions = optional_permissions.filter(
       i => !ignored.some(j => typeof j === "string" ? i === j : j.test(i)))

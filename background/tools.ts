@@ -2,7 +2,7 @@ import {
   curIncognito_, curTabId_, curWndId_, framesForTab_, incognitoFindHistoryList_, recencyForTab_, set_curIncognito_,
   set_curTabId_, set_curWndId_, set_incognitoFindHistoryList_, set_lastWndId_, set_recencyForTab_, incognitoMarkCache_,
   set_incognitoMarkCache_, contentPayload_, reqH_, settingsCache_, OnFirefox, OnChrome, CurCVer_, updateHooks_,
-  OnEdge, isHighContrast_ff_, omniPayload_, blank_, CONST_, RecencyMap, CurFFVer_, storageCache_, IsLimited
+  OnEdge, isHighContrast_ff_, omniPayload_, blank_, CONST_, RecencyMap, CurFFVer_, storageCache_, IsLimited, os_
 } from "./store"
 import * as BgUtils_ from "./utils"
 import {
@@ -622,7 +622,7 @@ setTimeout((): void => {
     const now = performance.now();
     if (now - time > GlobalConsts.MinStayTimeToRecordTabRecency) {
       const old = cache.get(curTabId_),
-      monoNow = (OnChrome || OnFirefox) && contentPayload_.o === kOS.unixLike ? Date.now() : now
+      monoNow = (OnChrome || OnFirefox) && Build.OS & (1 << kOS.unixLike) && os_ === kOS.unixLike ? Date.now() : now
       old ? (old.i = ++stamp, old.t = monoNow) : cache.set(curTabId_, { i: ++stamp, t: monoNow })
       if (stamp > GlobalConsts.MaxTabRecency - 10) { // with MinStayTimeToRecordTabRecency, safe enough
         Tabs_.query({}, clean)

@@ -256,12 +256,14 @@ var Tasks = {
   _manifest: function(cb) {
     var minVer = getBuildItem("MinCVer"), browser = getBuildItem("BTypes");
     minVer = minVer ? (minVer | 0) : 0;
-    if (getBuildItem("MV3")) {
+    {
+      const mv3 = !!getBuildItem("MV3")
       for (const key of Object.keys(manifest)) {
         if (key.endsWith(".v3")) {
           const val = manifest[key]
           delete manifest[key]
-          if (key.endsWith("[].v3") && val instanceof Array) {
+          if (!mv3) { /* empty */ }
+          else if (key.endsWith("[].v3") && val instanceof Array) {
             const old = manifest[key.slice(0, -5)]
             for (const item of val) {
               if (item[0] === "-") {
@@ -308,6 +310,9 @@ var Tasks = {
         optional = optional.filter(i => {
           return !i.includes("chrome:") && i !== "downloads.shelf" && i !== "contentSettings"
         })
+    }
+    if (!getBuildItem("OnBrowserNativePages")) {
+      optional = optional.filter(i => { return !i.includes("chrome:") })
     }
     if (!(browser & BrowserType.Chrome) || browser & ~BrowserType.Chrome && !locally || minVer < 35) {
       delete manifest.offline_enabled;

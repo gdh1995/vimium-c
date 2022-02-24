@@ -1,6 +1,6 @@
 import {
   clickable_, setupEventListener, timeout_, doc, isAlive_, set_noRAF_old_cr_, math, isTop, OnChrome, readyState_,
-  loc_, getTime, recordLog, VTr, vApi, Stop_, isTY, OnEdge
+  loc_, getTime, recordLog, VTr, vApi, Stop_, isTY, OnEdge, abs_
 } from "../lib/utils"
 import {
   createElement_, set_createElement_, OnDocLoaded_, runJS_, rAF_, removeEl_s, attr_s, setOrRemoveAttr_s,
@@ -134,7 +134,7 @@ export const main_not_ff = (Build.BTypes & ~BrowserType.Firefox ? (): void => {
       coreHints.h < 0 && doesWantToReloadLinkHints("lo") && (reHint = GlobalConsts.MinCancelableInBackupTimer)
     }
     if (coreHints.h > 0 && !reHint && hintOptions.autoReload && doesWantToReloadLinkHints("de")) {
-      reHint = math.abs(getTime() - coreHints.h) < GlobalConsts.ExtendClick_DelayToStartIteration + 100
+      reHint = abs_(getTime() - coreHints.h) < GlobalConsts.ExtendClick_DelayToStartIteration + 100
           ? InnerConsts.DelayForNext + 17 : 0
     }
     reHint && reinitLinkHintsIn(reHint)
@@ -558,7 +558,7 @@ FProto[kToS] = myToStr
         && tmpChromeVer < BrowserVer.MinEnsuredES6ArrowFunction) {
       injected = injected.replace(<RegExpG> (Build.Minify ? /\(([\w,]*\))=>/g : /\(([\w, ]*\))=>/g), "function($1")
     }
-    injected = injected.replace("" + BuildStr.RandomClick, `$&${secret}`)
+    injected = injected.replace("" + BuildStr.RandomClick, "$&" + secret as `$&${typeof secret}`)
     vApi.e = execute;
     setupEventListener(0, kHookRand, hook);
     setupEventListener(0, kVOnClick1, onClick);

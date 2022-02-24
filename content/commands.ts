@@ -1,7 +1,7 @@
 import {
   chromeVer_, doc, esc, fgCache, isTop, set_esc, VTr, safer, timeout_, loc_, weakRef_not_ff, weakRef_ff, deref_,
   keydownEvents_, parseSedOptions, Stop_, suppressCommonEvents, setupEventListener, vApi, locHref, isTY, min_,
-  OnChrome, OnFirefox, OnEdge, firefoxVer_, safeCall, parseOpenPageUrlOptions, os_, math, Lower
+  OnChrome, OnFirefox, OnEdge, firefoxVer_, safeCall, parseOpenPageUrlOptions, os_, abs_, Lower
 } from "../lib/utils"
 import {
   isHTML_, hasTag_, createElement_, querySelectorAll_unsafe_, SafeEl_not_ff_, docEl_unsafe_, MDW, CLK,
@@ -169,7 +169,7 @@ set_contentCommands_([
       esc!(HandlerResult.Nothing);
       return;
     }
-    const shouldExit_delayed = (event: KeyboardEvent, isDown: BOOL): boolean => {
+    const shouldExit_delayed_mac = Build.OS & (1 << kOS.mac) ? (event: KeyboardEvent, isDown: BOOL): boolean => {
       if (!os_ && keyCount && (isDown || !getKeyStat_(event))) {
         for (const rawKey in keys) {
           const key = +rawKey
@@ -182,15 +182,17 @@ set_contentCommands_([
         keyCount > 0 || (keyCount = 0, --count) || onPassKey!()
       }
       return !count
-    }
+    } : null
     pushHandler_(event => {
-      if (!event.e.repeat && shouldExit_delayed(event.e, 1)) { return HandlerResult.Nothing }
+      if (!event.e.repeat && (Build.OS & (1 << kOS.mac) ? shouldExit_delayed_mac!(event.e, 1) : !count)) {
+        return HandlerResult.Nothing
+      }
       keyCount += !keys[event.i] as boolean | BOOL as BOOL
-      keys[event.i] = os_ ? 1 : event.e.timeStamp
+      keys[event.i] = Build.OS & ~(1 << kOS.mac) && os_ ? 1 : event.e.timeStamp
       return HandlerResult.PassKey;
     }, kHandler.passNextKey)
     set_onPassKey((event): void => {
-      if (event && shouldExit_delayed(event, 0)) { /* empty */ }
+      if (event && (Build.OS & (1 << kOS.mac) ? shouldExit_delayed_mac!(event, 0) : !count)) { /* empty */ }
       else if (event && keys[event.keyCode] ? --keyCount > 0 || (keyCount = 0, --count)
           : event === 0 && keyCount || count) {
         keys[event! && event.keyCode] = 0
@@ -305,7 +307,7 @@ set_contentCommands_([
       return {m: marker, d: link[0]};
     })
     count -= (count > 0) as boolean | BOOL as BOOL
-    if (math.abs(count) > 2 * sel) {
+    if (abs_(count) > 2 * sel) {
       sel = count < 0 ? 0 : sel - 1
     } else {
       ind = !known_last || count ? sel : 0
@@ -367,7 +369,7 @@ set_contentCommands_([
     const lock = insert_Lock_()
     const editable = lock && getEditableType_<0>(lock) === EditableType.TextBox ? lock as TextElement : 0;
     (editable || options.dom) && timeout_((): void => {
-      let commands = options.run.split(<RegExpG> /,\s*/g), sel: Selection | undefined, absCount = math.abs(count)
+      let commands = options.run.split(<RegExpG> /,\s*/g), sel: Selection | undefined, absCount = abs_(count)
       let cur: string | 0, offset: number
       let start: number, end: number, start0: number
       while (0 < absCount--) {

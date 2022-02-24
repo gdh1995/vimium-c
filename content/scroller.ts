@@ -24,7 +24,7 @@ interface ElementScrollInfo {
 import {
   isAlive_, setupEventListener, timeout_, clearTimeout_, fgCache, doc, noRAF_old_cr_, readyState_, loc_, chromeVer_,
   vApi, deref_, weakRef_not_ff, VTr, max_, math, min_, Lower, OnChrome, OnFirefox, OnEdge, WithDialog, OnSafari,
-  isTop, injector, isTY, safeCall, tryCreateRegExp, weakRef_ff, Stop_
+  isTop, injector, isTY, safeCall, tryCreateRegExp, weakRef_ff, Stop_, abs_
 } from "../lib/utils"
 import {
   rAF_, scrollingEl_, SafeEl_not_ff_, docEl_unsafe_, NONE, frameElement_, OnDocLoaded_, GetParent_unsafe_, UNL,
@@ -146,7 +146,7 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
       do {
         fps_d = knownFPS[fps_idx--] - fps_test
         if (fps_d < fps_d_min && fps_d > -fps_d_min) {
-          fps_d_min = math.abs(fps_d)
+          fps_d_min = abs_(fps_d)
           near_elapsed = 1e3 / knownFPS[fps_idx + 1]
         }
       } while (fps_d > 0)
@@ -163,16 +163,16 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
         const near_fps = 1e3 / near_elapsed
         console.log("do scroll: %o + round2(%o fps %s %o px = %o); effect=%o ; amount=%o ; keyIsDown=%o"
             , ((totalDelta * 100) | 0) / 100, near_fps > 300 ? -1 : ((near_fps * 100) | 0) / 100
-            , padding > 0 ? "-" : "+", ((math.abs(padding) * 100) | 0) / 100, ((wanted * 100) | 0) / 100
+            , padding > 0 ? "-" : "+", ((abs_(padding) * 100) | 0) / 100, ((wanted * 100) | 0) / 100
             , ((delta * 100) | 0) / 100, amount
             , ((keyIsDown * 10) | 0) / 10)
       }
-      padding = wanted > 4 && math.abs(delta - wanted) < 2 ? delta - wanted : 0
+      padding = wanted > 4 && abs_(delta - wanted) < 2 ? delta - wanted : 0
       // if `scrollPageDown`, then amount is very large, but when it has been at page top/bottom,
       // `performScroll` will only return 0, then `delta || 1` is never enough.
       // In such cases stop directly
       beforePos += delta
-      totalDelta += math.abs(delta)
+      totalDelta += abs_(delta)
     }
     if (delta && (!onFinish || totalDelta < amount)) {
       if (wait2 != 0 && totalDelta >= amount && continuous

@@ -83,7 +83,7 @@ let optionsInit1_ = function (): void {
       console.log("Warning: some options are not ready to fetch:", fetching.join(", "))
     }
   }
-  OnFirefox && bgSettings_.os_ === kOS.unixLike && nextTick_((): void => {
+  OnFirefox && Build.OS & (1 << kOS.unixLike) && bgSettings_.os_ === kOS.unixLike && nextTick_((): void => {
     for (let key in Option_.all_) {
       const obj = Option_.all_[key as "vimSync"]
       if (obj instanceof BooleanOption_) {
@@ -327,7 +327,7 @@ optionsInitAll_ = function (): void {
   optionsInit1_()
   optionsInit1_ = optionsInitAll_ = null as never
 
-  bgSettings_.os_ ||
+  !(Build.OS & (1 << kOS.mac)) || Build.OS & ~(1 << kOS.mac) && bgSettings_.os_ ||
   nextTick_((el): void => { el.textContent = "Cmd" }, $("#Ctrl"))
   for (let key in Option_.all_) {
     void Option_.all_[key as keyof AllowedOptions].onSave_()

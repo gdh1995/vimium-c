@@ -237,7 +237,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   wheelDelta_: 0,
   browser_: Build.BTypes && !(Build.BTypes & (Build.BTypes - 1)) ? Build.BTypes : BrowserType.Chrome,
   browserVer_: BrowserVer.assumedVer,
-  os_: kOS.win as SettingsNS.ConstItems["o"][1],
+  os_: (Build.OS & (Build.OS - 1) ? kOS.win : Build.OS) as SettingsNS.ConstItems["o"][1],
   caseInsensitive_: false,
   mapModifier_: 0 as SettingsNS.AllVomnibarItems["a"][1],
   mappedKeyRegistry_: null as SettingsNS.AllVomnibarItems["k"][1],
@@ -514,7 +514,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   }) as SafeEnum,
   keyIdCorrectionOffset_old_cr_: Build.BTypes & BrowserType.Chrome
       && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key
-      ? 185 as 185 | 300 : 0 as never as null,
+      ? Build.OS & ~(1 << kOS.mac) ? 185 as const : 300 as const : 0 as never as null,
   char_ (event: Pick<KeyboardEvent, "code" | "key" | "keyCode" | "keyIdentifier" | "location" | "shiftKey">): string {
     const charCorrectionList = kChar.CharCorrectionList, enNumTrans = kChar.EnNumTrans;
     let {key, shiftKey} = event as typeof event & { key: string }
@@ -538,7 +538,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         ? keyId < kCharCode.minNotAlphabet && keyId > kCharCode.minNotSpace - 1
           ? shiftKey && keyId > kCharCode.maxNotNum && keyId < kCharCode.minNotNum ? enNumTrans[keyId - kCharCode.N0]
             : String.fromCharCode(keyId < kCharCode.minAlphabet || shiftKey ? keyId : keyId + kCharCode.CASE_DELTA)
-          : keyId > this.keyIdCorrectionOffset_old_cr_! && ((keyId -= 186) < 7 || (keyId -= 26) > 6 && keyId < 11)
+          : Build.OS & ~(1 << kOS.mac) && keyId > this.keyIdCorrectionOffset_old_cr_!
+            && ((keyId -= 186) < 7 || (keyId -= 26) > 6 && keyId < 11)
           ? charCorrectionList[keyId + 12 * +shiftKey]
           : ""
         : "";
@@ -607,7 +608,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     if (!key) {
       a.inAlt_ && !a._modifierKeys[Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key
             && Build.BTypes & BrowserType.Chrome ? event.key || "" : event.key!] && a.toggleAlt_(0);
-      a.keyResult_ = focused && !(n === kKeyCode.menuKey && a.os_) && n !== kKeyCode.ime
+      a.keyResult_ = focused && !(Build.OS & ~(1 << kOS.mac) && n === kKeyCode.menuKey && a.os_) && n !== kKeyCode.ime
           ? SimpleKeyResult.Suppress : SimpleKeyResult.Nothing;
       return;
     }
@@ -636,7 +637,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         }
         a.inAlt_ && a.toggleAlt_(0);
       }
-      if (char >= "0" && char <= "9" && (a.os_ || (<RegExpOne> /[cm]-/).test(key))) {
+      if (char >= "0" && char <= "9" && (Build.OS & ~(1 << kOS.mac) && a.os_ || (<RegExpOne> /[cm]-/).test(key))) {
           ind = +char || 10;
           if (ind <= a.completions_.length) {
             a.onEnter_(true, ind - 1);
@@ -645,7 +646,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       }
       if (!focused) { /* empty */ }
       else if (char.length === 1 && char > kChar.a && char < kChar.g && char !== kChar.c
-          || char === kChar.backspace && a.os_) {
+          || Build.OS & ~(1 << kOS.mac) && char === kChar.backspace && a.os_) {
         return a.onBashAction_(char.length === 1
             ? char.charCodeAt(0) - (kCharCode.maxNotAlphabet | kCharCode.CASE_DELTA) : -1);
       }
@@ -671,7 +672,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         return;
       } else if (Build.BTypes & ~BrowserType.Firefox
           && (!(Build.BTypes & BrowserType.Firefox) || a.browser_ !== BrowserType.Firefox)
-          && char === kChar.backspace && !a.os_) {
+          && Build.OS & (1 << kOS.mac) && char === kChar.backspace && !a.os_) {
         return a.onBashAction_(-1);
       } else if (char === kChar.delete) {
         a.keyResult_ = SimpleKeyResult.Suppress;
@@ -703,7 +704,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     }
 
     if (focused || char.length !== 1 || isNaN(ind = parseInt(char, 10))) {
-      a.keyResult_ = (focused ? !(n === kKeyCode.menuKey && a.os_) : key.length > 1)
+      a.keyResult_ = (focused ? !(Build.OS & ~(1 << kOS.mac) && n === kKeyCode.menuKey && a.os_) : key.length > 1)
           ? SimpleKeyResult.Suppress : SimpleKeyResult.Nothing;
     } else {
       ind = ind || 10;
@@ -1555,7 +1556,7 @@ VUtils_ = {
     return url;
   },
   decodeFileURL_ (url: string, decoded: boolean): string {
-    if (Vomnibar_.os_ === kOS.win && url.startsWith("file://")) {
+    if (Build.OS & (1 << kOS.win) && Vomnibar_.os_ === kOS.win && url.startsWith("file://")) {
       const slash = url.indexOf("/", 7)
       if (slash < 0 || slash === url.length - 1) { return slash < 0 ? url + "/" : url }
       const type = slash === 7 ? url.charAt(9) === ":" ? 3 : url.substr(9, 3).toLowerCase() === "%3a" ? 5 : 0 : 0
@@ -1858,9 +1859,10 @@ if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType
       Vomnibar_.browserVer_ = payload.v as BrowserVer || BrowserVer.assumedVer
     }
     if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key) {
-      payload.o || (Vomnibar_.keyIdCorrectionOffset_old_cr_ = 300);
+      Build.OS & (1 << kOS.mac) && Build.OS & ~(1 << kOS.mac) &&
+      (payload.o || (Vomnibar_.keyIdCorrectionOffset_old_cr_ = 300))
     }
-    Vomnibar_.os_ = payload.o;
+    if (Build.OS & (Build.OS - 1)) { Vomnibar_.os_ = payload.o }
     Vomnibar_.mappedKeyRegistry_ = payload.k;
     Vomnibar_.styles_ = payload.s;
     Vomnibar_.updateOptions_({ N: kBgReq.omni_updateOptions, d: {

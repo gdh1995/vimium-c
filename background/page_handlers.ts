@@ -1,7 +1,7 @@
 import {
   contentPayload_, evalVimiumUrl_, keyFSM_, keyToCommandMap_, mappedKeyRegistry_, newTabUrls_, restoreSettings_,
   CONST_, settingsCache_, shownHash_, substitute_, framesForTab_, curTabId_, extAllowList_, OnChrome, reqH_, OnEdge,
-  storageCache_
+  storageCache_, os_
 } from "./store"
 import { deferPromise_, protocolRe_, safeObj_ } from "./utils"
 import { browser_, getCurTab, getTabUrl, Q_, runContentScriptsOn_, runtimeError_ } from "./browser"
@@ -27,7 +27,7 @@ const pageRequestHandlers_ = As_<{
       : (request: PgReq[K][0], port: PagePort | null) => OrPromise<PgReq[K][1] extends void | null ? void : PgReq[K][1]>
 }>([
   /** kPgReq.settingsDefaults: */ (_): PgReq[kPgReq.settingsDefaults][1] =>
-      [settings_.defaults_, contentPayload_.o, CONST_.Platform_],
+      [settings_.defaults_, Build.OS & (Build.OS - 1) ? os_ : Build.OS as number, CONST_.Platform_],
   /** kPgReq.settingsCache: */ (req): OrPromise<PgReq[kPgReq.settingsCache][1]> => {
     const p = restoreSettings_
     if (p) {
@@ -176,7 +176,7 @@ const pageRequestHandlers_ = As_<{
           rules: settingsCache_.exclusionRules, onlyFirst: settingsCache_.exclusionOnlyFirstMatch,
           matchers: Exclusions.parseMatcher_(null), defaults: settings_.defaults_.exclusionRules
         } : null,
-        os: contentPayload_.o, reduceMotion: contentPayload_.m
+        os: Build.OS & (Build.OS - 1) ? os_ : Build.OS as number, reduceMotion: contentPayload_.m
       }
     })
   },

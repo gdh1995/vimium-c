@@ -1,5 +1,5 @@
 import {
-  bookmarkCache_, Completion_, contentPayload_, CurCVer_, curTabId_, curWndId_, historyCache_, OnChrome, OnFirefox,
+  bookmarkCache_, Completion_, os_, CurCVer_, curTabId_, curWndId_, historyCache_, OnChrome, OnFirefox,
   blank_, recencyForTab_, searchEngines_, evalVimiumUrl_, OnEdge, CONST_
 } from "./store"
 import { overrideTabsIndexes_ff_, browser_, getTabUrl, isTabMuted } from "./browser"
@@ -528,7 +528,7 @@ tabEngine = {
       }
     }
     const timeOffset = !(otherFlags & CompletersNS.QueryFlags.ShowTime) ? 0
-        : (OnChrome || OnFirefox) && contentPayload_.o === kOS.unixLike ? 0
+        : (OnChrome || OnFirefox) && Build.OS & (1 << kOS.unixLike) && os_ === kOS.unixLike ? 0
         : OnChrome && Build.MinCVer < BrowserVer.Min$performance$$timeOrigin
           && CurCVer_ < BrowserVer.Min$performance$$timeOrigin
         ? Date.now() - performance.now() : (performance as Performance & { timeOrigin?: number }).timeOrigin!
@@ -935,7 +935,7 @@ knownCs = {
 Completion_.filter_ = (query: string, options: CompletersNS.FullOptions, callback: CompletersNS.Callback): void => {
     query = query.trim()
     mayRawQueryChangeNextTime_ = false
-    if (query && contentPayload_.o === kOS.win
+    if (Build.OS & (1 << kOS.win) && query && os_ === kOS.win
         && ((<RegExpOne> /^[A-Za-z]:[\\/]|^\\\\([\w$%.-]+([\\/]|$))?/).test(query)
             || query.slice(0, 5).toLowerCase() === "file:")) {
       if (":/\\".includes(query[1])) {

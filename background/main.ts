@@ -1,5 +1,5 @@
 import {
-  framesForTab_, framesForOmni_, OnChrome, CurCVer_, OnEdge, OnFirefox, contentPayload_, curTabId_, bgC_,
+  framesForTab_, framesForOmni_, OnChrome, CurCVer_, OnEdge, OnFirefox, os_, curTabId_, bgC_,
   set_visualWordsRe_, bgIniting_, Completion_, CONST_, keyFSM_, reqH_, set_bgIniting_, set_hasGroupPermission_ff_,
   onInit_, set_onInit_, IsLimited
 } from "./store"
@@ -49,7 +49,7 @@ set_onInit_(As_<typeof onInit_>((): void => {
       }
       if (!keyFSM_) {
         settings_.postUpdate_("keyMappings")
-        if (!OnEdge && contentPayload_.o === kOS.mac) {
+        if (!OnEdge && Build.OS & (1 << kOS.mac) && os_ === kOS.mac) {
           visualKeys_["m-s-c"] = VisualAction.YankRichText
         }
       }

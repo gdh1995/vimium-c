@@ -1,6 +1,6 @@
 import {
   doc, keydownEvents_, safeObj, isTop, set_keydownEvents_, setupEventListener, Stop_, OnChrome, OnFirefox, weakRef_ff,
-  esc, onWndFocus, isEnabled_, readyState_, injector, recordLog, weakRef_not_ff, OnEdge, getTime, math, fgCache,
+  esc, onWndFocus, isEnabled_, readyState_, injector, recordLog, weakRef_not_ff, OnEdge, getTime, abs_, fgCache,
   safeCall, timeout_
 } from "../lib/utils"
 import { post_, runFallbackKey, safePost } from "./port"
@@ -74,7 +74,7 @@ export const insertInit = (doesGrab?: boolean | null, inLoading?: 1): void => {
         // on Chrome, password saver won't set doc.activeElement when dispatching "focus" events
         if (activeEl1 === target || activeEl1 && GetShadowRoot_(activeEl1)) {
           Stop_(event);
-          counter && math.abs(now - tick) > 512 ? counter = 1 : counter++ || recordLog(kTip.logGrabFocus)
+          counter && abs_(now - tick) > 512 ? counter = 1 : counter++ || recordLog(kTip.logGrabFocus)
           tick = now
           counter > GlobalConsts.MaxCountToGrabBackFocus - 1 ? exitGrab(event) :
           target.blur();
