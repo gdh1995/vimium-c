@@ -386,11 +386,15 @@ installation_ && void installation_.then((details): void => {
   }
 
   if (!oldVer) {
-    const p = restoreSettings_ || Promise.resolve()
-    void p.then(() => onInit_ ? new Promise(resolve => setTimeout(resolve, 200)) : 0).then((): void => {
-      reqH_[kFgReq.focusOrLaunch]({
-        u: CONST_.OptionsPage_ + (Build.NDEBUG ? "#commands" : "#installed")
-      })
+    void settings_.ready_.then((): void => {
+      const delay = (): void => {
+        if (onInit_ || restoreSettings_) { ++tick < 25 && setTimeout(delay, 200); return }
+        reqH_[kFgReq.focusOrLaunch]({
+          u: CONST_.OptionsPage_ + (Build.NDEBUG ? "#commands" : "#installed")
+        })
+      }
+      let tick = 0
+      setTimeout(delay, 200)
     })
     return
   }

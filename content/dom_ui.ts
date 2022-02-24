@@ -353,6 +353,7 @@ export const moveSel_s_throwable = (element: LockableElement, action: SelectActi
     const isBox = type === EditableType.TextBox || type > EditableType.input_ && textContent_s(element).includes("\n"),
     gotoStart = action === "start",
     gotoEnd = !action || action === "end" || isBox && (action + "")[3] === "-"
+    let doesCollpase: boolean | BOOL = gotoEnd || gotoStart
     let str: string, len: number | undefined
     if (!type) { return }
     if (isBox && gotoEnd && dimSize_(element, kDim.elClientH) + 12 < dimSize_(element, kDim.scrollH)) {
@@ -360,20 +361,22 @@ export const moveSel_s_throwable = (element: LockableElement, action: SelectActi
     }
     // not need `this.getSelection_()`
     if (type > EditableType.input_) {
-        selectAllOfNode(element)
+      selectAllOfNode(element);
     } else {
       len = (element as TextElement).value.length
       const start = textOffset_(element as TextElement), end = textOffset_(element as TextElement, 1)
       if (!len || start && start < len || end && end < len
             || (gotoEnd ? start : gotoStart ? !end : !start && end) || !action && end) {
+        doesCollpase = 0
       } else {
         (element as TextElement).select();
-        if (OnFirefox && (gotoEnd || gotoStart)) {
+        if (OnFirefox && doesCollpase) {
           (element as TextElement).setSelectionRange(gotoEnd ? len : 0, gotoEnd ? len : 0);
+          doesCollpase = 0
         }
       }
     }
-    (gotoEnd || gotoStart) && collpaseSelection(getSelection_(), <BOOL> +gotoEnd)
+    doesCollpase && collpaseSelection(getSelection_(), gotoEnd)
     if (type === EditableType.input_
         && (OnChrome && Build.MinCVer >= BrowserVer.MinEnsured$input$$showPicker
             || (element as HTMLInputElement).showPicker)

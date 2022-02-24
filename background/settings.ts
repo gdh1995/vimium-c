@@ -28,8 +28,9 @@ export const ready_: Promise<number> = Promise.all([
     const versionStr = info && info.version, ver = parseInt(versionStr || "0") || 0
     set_CurFFVer_(ver || CurFFVer_)
     ; (contentPayload_.v as FirefoxBrowserVer) = (omniPayload_.v as FirefoxBrowserVer) = CurFFVer_
-    if (Build.MinFFVer <= FirefoxBrowserVer.ESRPopupBlockerPassClicksFromExtensions) {
-      (contentPayload_.V as number) = ver ? parseInt(versionStr!.split(".")[1]) || 0 : 0
+    if (Build.MinFFVer <= FirefoxBrowserVer.ESRPopupBlockerPassClicksFromExtensions
+        && ver === FirefoxBrowserVer.ESRPopupBlockerPassClicksFromExtensions) {
+      (contentPayload_.V as number) = parseInt(versionStr!.split(".")[1]) || 0
     }
   }) : 0,
   Q_(local_.get.bind(local_)).then((items): number => { // Q_(local_.get) is illegal on Edge 98
