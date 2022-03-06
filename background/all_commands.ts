@@ -192,18 +192,20 @@ set_bgC_([
       }
       opts2.type = type
       const rawInit = opts2.init
-      const dict: KeyboardEventInit = (rawInit && (typeof rawInit === "object" ? rawInit : (opts2.init = null)) || opts2)
+      const dict: KeyboardEventInit = (rawInit && (typeof rawInit === "object"
+          ? Object.assign({}, rawInit) : (opts2.init = null)) || opts2)
       for (const i of ["bubbles", "cancelable", "composed"] as const) {
         dict[i] = dict[i] !== false || opts2[i] !== false
       }
       if (key && key !== "," && (typeof key === "object" || key.includes(","))) {
         const info = typeof key === "object" ? key : key.split(",") as Extract<typeof key, string[]>
-        if (info.length >= 2 && +info[1] > 0) {
-          let evKey = info[0]
+        if (info.length >= 2 && (!info[1] || +info[1] >= 0)) {
+          let evKey = info[0], keyCode = info[1] | 0
           dict.key = evKey === "Space" ? " " : evKey === "Comma" ? ","
               : evKey === "$" && evKey.length > 1 ? (evKey = evKey.slice(1)) :evKey
-          ; (dict as Writable<KeyboardEvent>).keyCode = (dict as Writable<KeyboardEvent>).which = +info[1]
-          dict.code = info[2] || info[0]
+          if (keyCode && dict.keyCode == null) { dict.keyCode = +info[1]}
+          if (keyCode && dict.which == null) { dict.which = +info[1]}
+          if (info.length >= 3 && dict.code == null) { dict.code = info[2] || info[0] }
         }
       }
     }

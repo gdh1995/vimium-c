@@ -460,7 +460,7 @@ set_contentCommands_([
         }
         const match = options.match
         const el = match ? safeCall(querySelector_unsafe_, match)
-            : derefInDoc_(currentScrolling) || deepActiveEl_unsafe_(1)
+            : deepActiveEl_unsafe_() || derefInDoc_(currentScrolling) || deepActiveEl_unsafe_(1)
         const activeEl = OnFirefox ? el : SafeEl_not_ff_!(el as Exclude<typeof el, void>)
         const useClick = options.click
         useResult = !useClick && options.return && !!activeEl
