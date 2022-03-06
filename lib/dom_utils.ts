@@ -14,6 +14,7 @@ interface kNodeToType {
 export const DAC = "DOMActivate", MDW = "mousedown", CLK = "click", HDN = "hidden", NONE = "none"
 export const INP = "input", BU = "blur", ALA = "aria-label", UNL = "unload"
 export const kDir = ["backward", "forward"] as const
+const kAria = ["aria-hidden", "aria-disabled", "aria-haspopup"] as const
 
 //#region data and DOM-shortcut section
 
@@ -371,9 +372,9 @@ export const IsInDOM_ = function (element: Element, root?: Element | Document | 
 export const isStyleVisible_ = (element: Element): boolean => isRawStyleVisible(getComputedStyle_(element))
 export const isRawStyleVisible = (style: CSSStyleDeclaration): boolean => style.visibility === "visible"
 
-export const isAriaNotTrue_ = (element: SafeElement, ariaType: kAria): boolean => {
-    let s = element.getAttribute(ariaType ? "aria-disabled" : "aria-hidden");
-    return s === null || (!!s && Lower(s) !== "true") || !!(evenHidden_ & (kHidden.BASE_ARIA << ariaType))
+export const isAriaFalse_ = (element: SafeElement, ariaType: kAria): boolean => {
+    let s = element.getAttribute(kAria[ariaType])
+    return s === null || (!!s && Lower(s) === "false") || !!(evenHidden_ & (kHidden.BASE_ARIA << ariaType))
 }
 
 export const hasInCSSFilter_ = (): boolean => {

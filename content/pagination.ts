@@ -3,7 +3,7 @@ import {
   OnChrome, OnFirefox, OnEdge, evenHidden_
 } from "../lib/utils"
 import {
-  docEl_unsafe_, htmlTag_, isAriaNotTrue_, isStyleVisible_, querySelectorAll_unsafe_, isIFrameElement, ALA, attr_s,
+  docEl_unsafe_, htmlTag_, isAriaFalse_, isStyleVisible_, querySelectorAll_unsafe_, isIFrameElement, ALA, attr_s,
   contains_s, notSafe_not_ff_, hasTag_
 } from "../lib/dom_utils"
 import { getBoundingClientRect_, view_ } from "../lib/rect"
@@ -20,8 +20,7 @@ let iframesToSearchForNext: VApiTy[] | null
 
 export const isInteractiveInPage = (element: SafeElement): boolean => {
   let rect: ClientRect
-  return isAriaNotTrue_(element, kAria.disabled)
-      && (rect = getBoundingClientRect_(element)).width > 2 && rect.height > 2
+  return (rect = getBoundingClientRect_(element)).width > 2 && rect.height > 2
       && (isStyleVisible_(element) || !!(evenHidden_ & kHidden.VisibilityHidden))
 }
 
@@ -43,7 +42,8 @@ export const filterTextToGoNext: VApiTy["g"] = (candidates, names, options, maxL
         || (OnFirefox ? (element as HTMLElement | SVGElement).onclick : attr_s(element, "onclick"))
         || ((s = attr_s(element, "role")) ? (<RegExpI> /^(button|link)$/i).test(s)
           : ngEnabled && attr_s(element, "ng-click"))) {
-      if (isInteractiveInPage(element)) {
+      if ((isAriaFalse_(element, kAria.disabled) && isAriaFalse_(element, kAria.hasPopup) || fromMatchSelector)
+          && isInteractiveInPage(element)) {
         hints.push([element as SafeElementForMouse])
       }
     }

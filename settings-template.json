@@ -178,9 +178,9 @@
 	],
 	"linkHintCharacters": "dsavewrqcxz",
 	"nextPatterns":
-		"下一封,下页,下一页,下一章,后一页,.btn-next,[data-slp-action=nextSlide]:not(div),next,more,newer,>,›,→,»,≫,>>",
+		"下一封,下页,下一页,下一章,后一页,上一张,.btn-next,[data-slp-action=nextSlide]:not(div),next,more,newer,>,›,→,»,≫,>>",
 	"previousPatterns":
-	"上一封,上页,上一页,上一章,前一页,.btn-prev,[data-slp-action=prevSlide]:not(div),prev,previous,back,older,<,‹,←,«,≪,<<",
+"上一封,上页,上一页,上一章,前一页,下一张,.btn-prev,[data-slp-action=prevSlide]:not(div),prev,previous,back,older,<,‹,←,«,≪,<<",
 	"searchEngines": [
 		"b|吧|把|ba|bd|baidu|Baidu|百度: https://www.baidu.com/s?ie=utf-8&wd=$s \\",
 		"  blank=https://www.baidu.com",

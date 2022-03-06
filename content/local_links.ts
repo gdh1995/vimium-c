@@ -3,7 +3,7 @@ import {
   math, includes_, OnFirefox, OnEdge, WithDialog, safeCall, evenHidden_, set_evenHidden_, tryCreateRegExp, loc_
 } from "../lib/utils"
 import {
-  isIFrameElement, getInputType, uneditableInputs_, getComputedStyle_, findMainSummary_, htmlTag_, isAriaNotTrue_,
+  isIFrameElement, getInputType, uneditableInputs_, getComputedStyle_, findMainSummary_, htmlTag_, isAriaFalse_,
   kMediaTag, NONE, querySelector_unsafe_, isStyleVisible_, fullscreenEl_unsafe_, notSafe_not_ff_, docEl_unsafe_,
   GetParent_unsafe_, unsafeFramesetTag_old_cr_, isHTML_, querySelectorAll_unsafe_, isNode_, INP, attr_s,
   getMediaTag, getMediaUrl, contains_s, GetShadowRoot_, parentNode_unsafe_s, testMatch, hasTag_
@@ -159,12 +159,12 @@ const getClickable = (hints: Hint[], element: SafeHTMLElement): void => {
   if (isClickable
       && (arr = tag === "img" ? getZoomedAndCroppedRect_(element as HTMLImageElement, null, true)
               : arr || getVisibleClientRect_(element, null))
-      && (isAriaNotTrue_(element, kAria.hidden) || extraClickable_ && extraClickable_.has(element))
+      && (isAriaFalse_(element, kAria.hidden) || extraClickable_ && extraClickable_.has(element))
       && (type < ClickType.scrollX
         || shouldScroll_s(element
             , (<ScrollByY> (type - ClickType.scrollX) + <0 | 2> (evenHidden_ & kHidden.OverflowHidden)) as BOOL | 2 | 3
             , 0) > 0)
-      && (mode1_ > HintMode.min_job - 1 || isAriaNotTrue_(element, kAria.disabled))
+      && (mode1_ > HintMode.min_job - 1 || isAriaFalse_(element, kAria.disabled))
       && (type < ClickType.codeListener || type > ClickType.classname
           || !(s = element.getAttribute("unselectable")) || s.toLowerCase() !== "on")
       && (0 === clickTypeFilter_ || clickTypeFilter_ & (1 << type))
@@ -343,8 +343,8 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
       : tabIndex != null && tabIndex >= 0 ? element.localName === "a" ? ClickType.attrListener : ClickType.tabindex
       : ClickType.Default
   if (type && (arr = getVisibleClientRect_(element, null))
-      && isAriaNotTrue_(element, kAria.hidden)
-      && (mode1_ > HintMode.min_job - 1 || isAriaNotTrue_(element, kAria.disabled))
+      && isAriaFalse_(element, kAria.hidden)
+      && (mode1_ > HintMode.min_job - 1 || isAriaFalse_(element, kAria.disabled))
       && (0 === clickTypeFilter_ || clickTypeFilter_ & (1 << type))
       ) {
     hints.push([element, arr, type])
@@ -694,7 +694,7 @@ export const filterOutNonReachable = (list: Hint[], notForAllClickable?: boolean
       } else {
         while (temp = stack[index2], index2++ < elPos
             && (OnFirefox || !notSafe_not_ff_!(temp))
-            && (!isAriaNotTrue_(temp as SafeElement, kAria.hidden)
+            && (!isAriaFalse_(temp as SafeElement, kAria.hidden)
                 || contains_s(temp as SafeElement, el))) { /* empty */ }
         temp = temp !== fromPoint && contains_s(el, temp) ? el : temp
       }
