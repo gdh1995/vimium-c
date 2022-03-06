@@ -27,14 +27,14 @@ export function markFramesetTagUnsafe_old_cr (): "frameset" { return unsafeFrame
 export function set_docSelectable_ (_newDocSelectable: boolean): void { docSelectable_ = _newDocSelectable }
 
 export const rAF_: (callback: FrameRequestCallback) => number =
-    Build.NDEBUG ? requestAnimationFrame : f => requestAnimationFrame(f)
+    Build.Inline ? requestAnimationFrame : f => requestAnimationFrame(f)
 
 export const ElementProto_not_ff = !OnFirefox ? Element.prototype as SafeElement : 0 as never as null
 
 export const getComputedStyle_: (element: Element) => CSSStyleDeclaration =
-    Build.NDEBUG ? getComputedStyle : el => getComputedStyle(el)
+    Build.Inline ? getComputedStyle : el => getComputedStyle(el)
 
-export const getSelection_: () => Selection = Build.NDEBUG ? getSelection : () => getSelection()
+export const getSelection_: () => Selection = Build.Inline ? getSelection : () => getSelection()
 
 export const docEl_unsafe_ = (): Element | null => doc.documentElement
 

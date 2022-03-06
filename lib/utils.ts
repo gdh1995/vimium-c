@@ -136,13 +136,13 @@ export const unwrap_ff = (OnFirefox ? <T extends object> (obj: T): T => (obj as 
 
 type TimerFunc<R> = (func: (this: void, fake?: TimerType.fake) => void, time: number) => R
 export let timeout_: TimerFunc<ValidTimeoutID> =
-    (Build.NDEBUG ? setTimeout : (func, timeout) => setTimeout(func, timeout)) as TimerFunc<ValidTimeoutID>
+    (Build.Inline ? setTimeout : (func, timeout) => setTimeout(func, timeout)) as TimerFunc<ValidTimeoutID>
 export let interval_: TimerFunc<ValidIntervalID> =
-    (Build.NDEBUG ? setInterval : (func, period) => setInterval(func, period)) as TimerFunc<ValidIntervalID>
+    (Build.Inline ? setInterval : (func, period) => setInterval(func, period)) as TimerFunc<ValidIntervalID>
 export let clearTimeout_: (timer: ValidTimeoutID) => void =
-    Build.NDEBUG ? clearTimeout as never : timer => clearTimeout(timer as number)
+    Build.Inline ? clearTimeout as never : timer => clearTimeout(timer as number)
 export let clearInterval_: (timer: ValidIntervalID) => void = // not reuse clearTimeout - avoid issues on injected pages
-    Build.NDEBUG ? clearInterval as never : timer => clearInterval(timer as number)
+    Build.Inline ? clearInterval as never : timer => clearInterval(timer as number)
 
 export const setupTimerFunc_cr = !OnChrome ? 0 as never : (_newTimerFunc: TimerFunc<number>
     , _newClearTimer: (timer: ValidTimeoutID | ValidIntervalID) => void): void => {
@@ -249,8 +249,8 @@ export const isTY = ((obj: any, ty?: kTY): boolean => typeof obj == TYPES[ty || 
 export const Lower = (str: string): string => str.toLowerCase()
 
 export const math = Math
-export const max_: (...args: number[]) => number = Build.NDEBUG ? math.max : (...args): number => math.max(...args)
-export const min_: (...args: number[]) => number = Build.NDEBUG ? math.min : (...args): number => math.min(...args)
-export const abs_: (num: number) => number = Build.NDEBUG ? math.abs : (arg): number => math.abs(arg)
+export const max_: (...args: number[]) => number = Build.Inline ? math.max : (...args): number => math.max(...args)
+export const min_: (...args: number[]) => number = Build.Inline ? math.min : (...args): number => math.min(...args)
+export const abs_: (num: number) => number = Build.Inline ? math.abs : (arg): number => math.abs(arg)
 
 export function includes_<T> (this: T[] | readonly T[], el: T): boolean { return this.indexOf(el) >= 0 }

@@ -6,7 +6,7 @@ var logger = require("fancy-log");
 var newer = require("gulp-newer");
 var osPath = require("path");
 var {
-  getGitCommit, readJSON, readFile, patchTSNamespace, logFileSize, addMetaData,
+  getGitCommit, readJSON, writeJSON, readFile, patchTSNamespace, logFileSize, addMetaData,
   patchExtendClick: _patchExtendClick, BrowserType, fill_global_defs, replace_global_defs,
   loadTerserConfig: _loadTerserConfig, skip_declaring_known_globals,
 } = require("./scripts/dependencies");
@@ -19,7 +19,6 @@ var locally = false;
 var debugging = process.env.DEBUG === "1";
 var gTypescript = null;
 var buildConfig = null;
-var cacheNames = process.env.ENABLE_NAME_CACHE !== "0";
 var needCommitInfo = process.env.NEED_COMMIT === "1";
 var doesMinifyLocalFiles = process.env.MINIFY_LOCAL !== "0";
 var minifyDistPasses = +process.env.MINIFY_DIST_PASSES || 0;
@@ -56,11 +55,11 @@ var CompileTasks = {
             , "lib/injector.ts", "lib/simple_eval.ts"], ["lib/base.omni.d.ts"], { inBatch: false }],
   vomnibar: ["front/vomnibar*.ts", ["lib/base.omni.d.ts"]],
   polyfill: [POLYFILL_FILE],
-  options: [["pages/options*.ts", "pages/async_bg.ts"], ["background/*.d.ts", "lib/base.d.ts"], {module: "mayES6"}],
+  options: [["pages/options*.ts", "pages/async_bg.ts"], ["background/index.d.ts", "lib/base.d.ts"], {module: "mayES6"}],
   show: [["pages/show.ts", "pages/async_bg.ts"], ["background/index.d.ts", "lib/base.d.ts"], {module: "mayES6"}],
   others: [ ["pages/*.ts"
               , "!pages/options*.ts", "!pages/show.ts", "!pages/async_bg.ts"]
-            , "background/index.d.ts", { inBatch: false } ],
+            , [], { inBatch: false } ],
 }
 
 var Tasks = {
@@ -74,7 +73,7 @@ var Tasks = {
     const path = ["lib/math_parser*.js"];
     minify_viewer && path.push(VIEWER_JS)
     getBuildItem("MV3") && path.push("background/worker.js")
-    if (!getBuildItem("Minify")) {
+    if (!getBuildItem("NDEBUG")) {
       return copyByPath(path);
     }
     return minifyJSFiles(path, ".", { base: "." });
@@ -84,13 +83,13 @@ var Tasks = {
     if (getBuildItem("BTypes") === BrowserType.Firefox) {
       path.push("!_locales/*_*/**")
     }
-    if (!getBuildItem("Minify")) {
+    if (!getBuildItem("NDEBUG")) {
       return copyByPath(path);
     }
     return minifyJSFiles(path, ".", { base: ".", json: true })
   },
   "locales_en/json": function() {
-    return !getBuildItem("Minify") ? copyByPath(LOCALES_EN) : minifyJSFiles(LOCALES_EN, ".", { base: ".", json: true })
+    return !getBuildItem("NDEBUG") ? copyByPath(LOCALES_EN) : minifyJSFiles(LOCALES_EN, ".", { base: ".", json: true })
   },
   "png2bin": function(cb) {
     const p2b = require("./scripts/icons-to-blob");
@@ -100,7 +99,7 @@ var Tasks = {
   },
   "minify-css": function() {
     const path = ["pages/*.css"];
-    if (!getBuildItem("Minify")) { return copyByPath(path) }
+    if (!getBuildItem("NDEBUG")) { return copyByPath(path) }
     return copyByPath(path, file => {
     const CleanCSS = require("clean-css"), clean_css = new CleanCSS();
       ToBuffer(file, clean_css.minify(file.contents).styles)
@@ -109,7 +108,7 @@ var Tasks = {
   "minify-html": function() {
     const arr = ["front/*.html", "pages/*.html", "!*/vomnibar.html"];
     getBuildItem("MV3") && arr.push("background/worker.html")
-    if (!getBuildItem("Minify")) { return copyByPath(arr) }
+    if (!getBuildItem("NDEBUG")) { return copyByPath(arr) }
     return copyByPath(arr, file => { ToBuffer(file, require("html-minifier").minify(ToString(file), {
       collapseWhitespace: true,
       minifyCSS: true,
@@ -152,7 +151,7 @@ var Tasks = {
 
   "build/scripts": ["build/background", "build/content", "build/front"],
   "build/_clean_diff": function() {
-    return cleanByPath([".build/**", "manifest.json", "*/vomnibar.html", "background/*.html"
+    return cleanByPath([".build/**", "manifest.json", "*/vomnibar.html", "background/*.html", ".*.build"
         , "*/*.html", "*/*.css", "**/*.json", "**/*.js", "!helpers/*/*.js", ".snapshot.sh"
         ], DEST)
   },
@@ -160,7 +159,7 @@ var Tasks = {
   "build/ts": function(cb) {
     var btypes = getBuildItem("BTypes");
     var curConfig = [btypes, getBuildItem("MinCVer"), compilerOptions.target
-          , /** 4 */ needCommitInfo && !onlyTestSize ? getBuildItem("Commit") : 0, getBuildItem("Minify")]
+          , /** 4 */ needCommitInfo && !onlyTestSize ? getBuildItem("Commit") : 0, getBuildItem("NDEBUG")]
     var configFile = btypes === BrowserType.Chrome ? "chrome"
           : btypes === BrowserType.Firefox ? "firefox" : "browser-" + btypes;
     if (btypes === BrowserType.Firefox) {
@@ -170,7 +169,9 @@ var Tasks = {
     } else {
       curConfig.push(getBuildItem("EdgeC"));
     }
-    curConfig.push(getNonNullBuildItem("NDEBUG"));
+    curConfig.push(getNonNullBuildItem("Mangle"))
+    curConfig.push(getNonNullBuildItem("Inline"))
+    curConfig.push(getNonNullBuildItem("OS"))
     curConfig.push(getBuildItem("MV3"));
     curConfig = JSON.stringify(curConfig);
     configFile = osPath.join(JSDEST, "." + configFile + ".build");
@@ -225,19 +226,19 @@ var Tasks = {
       return cb();
     }
     gulpUtils.checkJSAndMinifyAll(1, [ [manifest.background.scripts.concat(["background/*.js"]), "."] ]
-      , "min/bg", { nameCache: {}, format: { max_line_len: MaxLineLen } }, cb, jsmin_status, debugging, cacheNames)
+      , "min/bg", { nameCache: {}, format: { max_line_len: MaxLineLen } }, cb, jsmin_status, debugging)
   },
   "min/pages": function(cb) {
     if (jsmin_status[2]) {
       return cb();
     }
     gulpUtils.checkJSAndMinifyAll(2, [ [["pages/options*.js", "pages/show*", "pages/async_bg*"], "."] ]
-        , "min/pages", { nameCache: {} }, cb, jsmin_status, debugging, cacheNames)
+        , "min/pages", { nameCache: {} }, cb, jsmin_status, debugging)
   },
   "min/omni": function(cb) {
     if (jsmin_status[3]) { return cb(); }
     gulpUtils.checkJSAndMinifyAll(3, [ [["front/vomnibar*.js"], "."] ]
-        , "min/omni", { nameCache: {} }, cb, jsmin_status, debugging, cacheNames)
+        , "min/omni", { nameCache: {} }, cb, jsmin_status, debugging)
   },
   "min/misc": function(cb) {
       if (jsmin_status[4]) { return cb() }
@@ -407,7 +408,7 @@ var Tasks = {
   rebuild: [["clean"], "dist"],
   all: ["build"],
   clean: function() {
-    return cleanByPath([".build/**", "manifest.json", ".snapshot.sh", "**/*.js", "!helpers/*/*.js"
+    return cleanByPath([".build/**", "manifest.json", ".snapshot.sh", "**/*.js", "!helpers/*/*.js", ".*.build"
       , "front/help_dialog.html", "front/vomnibar.html", "front/words.txt"], DEST);
   },
 
@@ -472,6 +473,9 @@ var Tasks = {
       process.env.LOCAL_DIST = "dist";
       print("Set env's default: LOCAL_DIST = dist");
     }
+    let d = 0
+    if (process.env.BUILD_Inline === "1") { delete process.env.BUILD_Inline; print("Ignore env: BUILD_Inline"); d++ }
+    if (d) { _buildConfigTSContent = null; buildOptionCache = Object.create(null); createBuildConfigCache() }
     var arr = ["static", "_manifest"];
     if (fs.existsSync(osPath.join(JSDEST, "lib/dom_utils.js"))) {
       arr.unshift("build/_clean_diff");
@@ -611,13 +615,31 @@ function computeModuleType(needDynamicImport) {
       : "es2020"
 }
 
+var _names = null
 exports.outputJSResult = (stream, withES6Module) => {
   if (locally) {
     stream = stream.pipe(gulpMap(beforeTerser))
     var config
     if (doesMinifyLocalFiles) {
+      let cachePath = osPath.join(JSDEST, ".name-cache.build")
       config = loadTerserConfig()
-      stream = stream.pipe(getGulpTerser()(config));
+      const nameCache = config.mangle ? _names ? _names[0] : fs.existsSync(cachePath) ? readJSON(cachePath) : {} : null
+      _names = nameCache ? _names || (delete nameCache.vars, [nameCache, JSON.stringify(nameCache)]) : _names
+      let piped = 0;
+      if (nameCache) { config.nameCache = nameCache }
+      stream = stream.pipe(getGulpTerser()(config))
+      nameCache && (stream = stream.pipe(gulpMap((f) => { piped++ })))
+      nameCache && stream.on("end", () => {
+        const newCache = piped ? JSON.stringify(nameCache) : _names[1]
+        if (newCache !== _names[1]) {
+          if (!fs.existsSync(JSDEST)) { fs.mkdirSync(JSDEST, {recursive: true}) }
+          writeJSON(cachePath, nameCache)
+          _names[1] = newCache
+          print("NameCache saved");
+        } else if (piped) {
+          print("NameCache is not changed");
+        }
+      })
     }
     stream = stream.pipe(gulpMap(postTerser.bind(null, config)))
   }
@@ -636,24 +658,6 @@ exports.outputJSResult = (stream, withES6Module) => {
     }))
   }
   return destCached(stream, JSDEST, willListEmittedFiles, gulpUtils.compareContentAndTouch)
-}
-
-exports.beforeCompile = (file) => {
-  var allPathStr = file.history.join("|").replace(/\\/g, "/");
-  var contents = null, oldLen = 0;
-  function get() { contents == null && (contents = ToString(file), oldLen = contents.length) }
-  if (!locally && (allPathStr.includes("background/") || allPathStr.includes("front/"))) {
-    get();
-    contents = contents
-        .replace(/\bdeclare\s+var\s+As[a-zA-Z]*_\s?:[^;\n]+[;\n]/g, "")
-        .replace(/\b(?:const|let|var|globalThis\.)?\s?As[a-zA-Z]*_\s?=([^,;\n]+)[,;\n]/g,
-            (s, body) => !body.includes("=>") || body.includes("{")
-                ? "// @ts-ignored\n" + s.replace("_", "_ignored") : "")
-        .replace(/\bAs[a-zA-Z]*_\b/g, "")
-  }
-  if (oldLen > 0 && contents.length !== oldLen) {
-    ToBuffer(file, contents);
-  }
 }
 
 const beforeTerser = exports.beforeTerser = (file) => {
@@ -833,9 +837,6 @@ function getNonNullBuildItem(key) {
 
 function getBuildItem(key, literalVal, notParse) {
   let cached = buildOptionCache[key];
-  if (!cached) {
-    cached && (buildOptionCache[key] = cached);
-  }
   if (cached != null) {
     if (typeof cached[1] === "function") {
       cached[1] = cached[1](key, locally, cached[0])
@@ -870,7 +871,7 @@ function patchExtendClick(source) {
             : bodyPrefix ? `function (${args})${bodyPrefix}` : `(${args})=>`)
   }
   let inCode, inJSON;
-  if (getNonNullBuildItem("NDEBUG") && !+(process.env.EMBED_EXTEND_CLICK || 0)) {
+  if (getNonNullBuildItem("NDEBUG") && getNonNullBuildItem("Inline")) {
     const matched = patched[0].slice(-4).replace(/'/g, '"')
     const n1 = matched.endsWith('||"') ? 3 : matched === '|| "' ? 4 : 0;
     if (!n1 || patched[2][0] !== '"') {
@@ -910,10 +911,9 @@ function patchExtendClick(source) {
 
 var known_defs
 const loadTerserConfig = exports.loadTerserConfig = (reload) => {
-  var a = _loadTerserConfig(locally ? "scripts/uglifyjs.local.json" : "scripts/uglifyjs.dist.json", reload);
+  var a = _loadTerserConfig(getBuildItem("NDEBUG") ? "scripts/uglifyjs.dist.json" : "scripts/uglifyjs.local.json", reload);
   {
-    if (!getBuildItem("Minify")) {
-      a.mangle = false;
+    if (!getBuildItem("NDEBUG")) {
       a.format.beautify = true
       a.format.indent_level = 2
       a.compress.sequences = false
@@ -926,8 +926,10 @@ const loadTerserConfig = exports.loadTerserConfig = (reload) => {
     }
     a.ecma = outputES6 ? 6 : 5
   }
-  if (gNoComments || !locally && getBuildItem("Minify")) {
+  if (gNoComments || getBuildItem("NDEBUG")) {
     a.format.comments = /^!/
   }
+  if (!getBuildItem("Mangle")) { a.mangle = false }
+  if (!a.mangle) { a.format.beautify = true }
   return a;
 }

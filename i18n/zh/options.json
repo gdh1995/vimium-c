@@ -234,7 +234,7 @@
   "commonPlatform": "一般平台",
   "atTime": "是 $1",
   "before": "未知",
-  "keepSyncing": "是否继续 借助浏览器账号云服务 来同步 Vimium C 配置？\n\n点击“取消”则表示停止同步配置。",
+  "keepSyncing": "是否继续 借助浏览器账号云服务 来同步 Vimium C 配置？\n\n点击“取消”则表示不再同步配置。",
   "notJSON": "未找到 JSON 格式的数据！",
   "JSONParseError": "无法解析 JSON 文件：\n  在第 $1 行、第 $2 列发现错误字符！",
   "notVCJSON": "未找到 Vimium C 配置 的相关数据！",

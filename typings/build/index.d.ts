@@ -5,8 +5,9 @@ declare const enum Build {
   OS = 7, // mac = 1 << 0, linux = 1 << 1, win = 1 << 2
   MV3 = 0,
   OnBrowserNativePages = 1,
-  Minify = 0,
   NDEBUG = 0,
+  Mangle = 0,
+  Inline = 0,
   NativeWordMoveOnFirefox = 1,
   MayAndroidOnFirefox = 1,
   DetectAPIOnFirefox = 1,

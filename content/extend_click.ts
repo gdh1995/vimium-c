@@ -207,7 +207,7 @@ export const main_not_ff = (Build.BTypes & ~BrowserType.Firefox ? (): void => {
    * * must look like a real task and contain random string
    */
   interface InnerVerifier { (maybeSecret: string): void }
-  let injected: string = (Build.NDEBUG ? VTr(isFirstTime ? kTip.extendClick : kTip.removeCurScript)
+  let injected: string = (Build.NDEBUG && Build.Inline ? VTr(isFirstTime ? kTip.extendClick : kTip.removeCurScript)
           : !isFirstTime && VTr(kTip.removeCurScript))
         || "'use strict';(" + (function VC(this: void): void {
 
@@ -556,7 +556,7 @@ FProto[kToS] = myToStr
     }
     if (OnChrome && Build.MinCVer < BrowserVer.MinEnsuredES6ArrowFunction
         && tmpChromeVer < BrowserVer.MinEnsuredES6ArrowFunction) {
-      injected = injected.replace(<RegExpG> (Build.Minify ? /\(([\w,]*\))=>/g : /\(([\w, ]*\))=>/g), "function($1")
+      injected = injected.replace(<RegExpG> (Build.NDEBUG ? /\(([\w,]*\))=>/g : /\(([\w, ]*\))=>/g), "function($1")
     }
     injected = injected.replace("" + BuildStr.RandomClick, "$&" + secret as `$&${typeof secret}`)
     vApi.e = execute;

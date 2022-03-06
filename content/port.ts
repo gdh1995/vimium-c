@@ -94,7 +94,7 @@ export const runFallbackKey = ((options: Req.FallbackOptions
     , anotherTip: kTip | 0 | false | 2, tipArgs?: string | Array<string | number>, wait?: number): void => {
   const fallback = !anotherTip ? options.$then : options.$else, context = options.$f
   if (fallback && isTY(fallback)) {
-    if (!(Build.NDEBUG || Build.Minify)) {
+    if (!Build.NDEBUG) {
       console.log("Vimium C: run another command %o for type & tip = %o", fallback, anotherTip)
     }
     suppressTail_(wait || 60, 0)

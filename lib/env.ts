@@ -26,12 +26,11 @@ var VApi: VApiTy | undefined, VimiumInjector: VimiumInjectorTy | undefined | nul
 
 declare var define: any, __filename: string | null | undefined
 
-Build.NDEBUG || (function (): void {
+Build.Inline || (function (): void {
   type ModuleTy = Dict<any> & { __esModule: boolean }
   interface DefineTy {
     (deps: string[], factory: (asyncRequire: () => never, exports: ModuleTy, ...resolved: ModuleTy[]) => any): void
     amd?: boolean
-    modules_?: Dict<ModuleTy>
     noConflict (): void
   }
   const oldDefine: DefineTy = typeof define !== "undefined" ? define : void 0
@@ -51,9 +50,7 @@ Build.NDEBUG || (function (): void {
     }
     __filename = null
     const exports = myRequire(filename)
-    if (!Build.NDEBUG) {
-      (myDefine as any)[getName(filename)] = exports
-    }
+    ; (myDefine as any)[getName(filename)] = exports
     return factory.bind(null, throwOnDynamicImport, exports).apply(null, deps.slice(2).map(myRequire))
   }
   const throwOnDynamicImport = (): never => {
@@ -68,7 +65,7 @@ Build.NDEBUG || (function (): void {
     if ((window as PartialOf<typeof globalThis, "define">).define !== myDefine) { return }
     (window as PartialOf<typeof globalThis, "define">).define = oldDefine
     if (!oldDefine) { return }
-    if (!Build.NDEBUG && VimiumInjector === null) {
+    if (VimiumInjector === null) {
       if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$Object$$assign) {
         for (let key in modules) { (oldDefine as any)[key] = modules[key] }
       } else {

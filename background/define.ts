@@ -22,7 +22,6 @@ if (!Build.NDEBUG) {
   type FactoryTy = (asyncRequire: AsyncRequireTy, exports: ModuleTy, ...deps: ModuleTy[]) => (() => any) | void
   interface DefineTy {
     (deps: string[], factory: FactoryTy): void
-    modules_?: Dict<any>
   }
   const modules: Dict<ModuleTy | LoadingPromise> = {}
   const getName = (name: string): string => name.slice(name.lastIndexOf("/") + 1).replace(".js", "")
@@ -49,7 +48,7 @@ if (!Build.NDEBUG) {
     if (!(Build.NDEBUG || !obj)) {
       throw new Error("Unexpected return-style module")
     }
-    if (!Build.NDEBUG) { (myDefine as any)[name] = exports }
+    if (!(Build.NDEBUG && Build.Inline && Build.Mangle)) { (myDefine as any)[name] = exports }
   }
   const myRequire = (name: string): ModuleTy => {
     name = getName(name)

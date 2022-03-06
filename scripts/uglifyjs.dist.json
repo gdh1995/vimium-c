@@ -18,10 +18,10 @@
     "global_defs": {
       "define.amd": true,
       "@exports": "undefined",
-      // "@As_": "(_unknown)=>_unknown",
-      // "@AsC_": "(_unknown2)=>_unknown2",
-      // "@AsOmni_": "(_unknown3)=>_unknown3",
-      // "@__importStar": "function(_unknown4){return _unknown4}",
+      "@As_": "i=>i",
+      "@AsC_": "i=>i",
+      "@AsOmni_": "i=>i",
+      "@__importStar": "i=>i",
       "@module": "undefined"
     },
     "hoist_funs": true,

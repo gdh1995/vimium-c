@@ -390,7 +390,6 @@ exports.compileTS = function (stream, options, extra, done, debugging, dest, wil
     stream = stream.pipe(allIfNotEmpty.cond);
   }
   if (willListFiles) { stream = stream.pipe(gulpPrint()); }
-  stream = stream.pipe(exports.gulpMap(gulpfile.beforeCompile));
   var es6Module = !!options && !!options.module?.toLowerCase().startsWith("es")
   var merged = es6Module ? _mergedProjectInput6 : _mergedProjectInput5
   var isInitingMerged = merged == null;
@@ -473,6 +472,12 @@ exports.getGulpTerser = function (aggressiveMangle, unique_passes, noComments) {
     return exports.gulpMap(function (file, done) {
       const stream = this;
       const minifier1 = passes ? betterMinifier : aggressiveMangle ? require("./uglifyjs-mangle") : require("terser")
+      const nameCache = terserOptions.nameCache
+      if (nameCache) {
+        nameCache.props || (nameCache.props = { props: {} })
+        terserOptions = { ...terserOptions, nameCache: { vars: { props: {} },
+            get props () { return nameCache.props }, set props (v) { nameCache.props = v } } }
+      }
       minifier1.minify(exports.ToString(file), terserOptions).then(result => {
         // @ts-ignore
         if (!result || result.error) {
@@ -529,30 +534,14 @@ exports.makeTasks = function (Tasks) {
   }
 }
 
-function getNameCacheFilePath(path) {
-  if (path.indexOf(".cache") >= 0 ) {
-    return path;
-  }
-  return osPath.join(JSDEST, ".names-" + path.replace("min/", "") + ".cache");
-}
-
 exports.checkJSAndMinifyAll = function (taskOrder, maps, key, exArgs, cb
-    , jsmin_status, debugging, cacheNames) {
+    , jsmin_status, debugging) {
   Promise.all(maps.map(function(i) {
     if (debugging) { return true; }
     var is_file = i[1] && i[1] !== ".";
     return exports.checkAnyNewer(i[0], JSDEST, is_file ? osPath.join(DEST, i[1]) : DEST, is_file ? "" : ".js");
   })).then(function(all) {
-    var isNewer = false;
-    for (var i = 0; i < all.length; i++) { if (all[i]) { isNewer = true; break; } }
-    if (!isNewer && exArgs.nameCache && cacheNames) {
-      var path = getNameCacheFilePath(key);
-      var stat = fs.existsSync(path) ? fs.statSync(path) : null;
-      if (!stat || +stat.mtime < (exArgs.nameCache.timestamp || 0) - 4) {
-        isNewer = true;
-      }
-    }
-    if (!isNewer) { jsmin_status[taskOrder] = true; return cb(); }
+    if (!all.some(i => i)) { jsmin_status[taskOrder] = true; return cb(); }
     exArgs.passAll = true;
     var tasks = [];
     for (var i = 0; i < maps.length; i++) {
@@ -570,7 +559,6 @@ exports.checkJSAndMinifyAll = function (taskOrder, maps, key, exArgs, cb
     }
     gulp.series(...tasks)(function(err) {
       jsmin_status[taskOrder] = true;
-      saveNameCacheIfNeeded(key, exArgs.nameCache, cacheNames)
       cb(err);
     });
   });
@@ -714,24 +702,6 @@ exports.parseBuildEnv = function (key, literalVal) {
     newVal = (_, locally) => locally ? exports.safeJSONParse(literalVal, null, String) : dependencies.getGitCommit()
   }
   return newVal
-}
-
-function saveNameCacheIfNeeded(key, nameCache, cacheNames) {
-  if (nameCache && cacheNames) {
-    nameCache.timestamp = 0;
-    const path = getNameCacheFilePath(key);
-    if (fs.existsSync(path)) {
-      const oldCache = dependencies.readJSON(path);
-      oldCache.timestamp = 0;
-      if (JSON.stringify(oldCache) === JSON.stringify(nameCache)) {
-        print("NameCache for " + key.replace("min/", "") + " is unchanged");
-        return;
-      }
-    }
-    nameCache.timestamp = Date.now();
-    fs.writeFileSync(path, JSON.stringify(nameCache));
-    print("Saved nameCache for " + key.replace("min/", ""));
-  }
 }
 
 var randMap, _randSeed;

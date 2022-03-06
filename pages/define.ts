@@ -20,7 +20,6 @@ if (Build.BTypes & (Build.BTypes & BrowserType.ChromeOrFirefox | BrowserType.Edg
     (deps: string[], factory: FactoryTy): void
     (factory: FactoryTy): void
     amd?: boolean
-    modules_?: Dict<ModuleTy | LoadingPromise>
     noConflict (): void
   }
 
@@ -76,7 +75,7 @@ if (Build.BTypes & (Build.BTypes & BrowserType.ChromeOrFirefox | BrowserType.Edg
   const _innerDefine = (name: string, depNames: string[], factory: FactoryTy, exports: ModuleTy): void => {
     const obj = factory.bind(null, throwOnDynamicImport, exports).apply(null, depNames.slice(2).map(myRequire))
     obj && (exports.__default = obj)
-    if (!Build.NDEBUG) { (myDefine as any)[name] = obj || exports }
+    if (!(Build.NDEBUG && Build.Inline && Build.Mangle)) { (myDefine as any)[name] = obj || exports }
   }
   const throwOnDynamicImport = (): never => {
     throw new Error("Must avoid dynamic import in content scripts")
@@ -123,9 +122,6 @@ if (Build.BTypes & (Build.BTypes & BrowserType.ChromeOrFirefox | BrowserType.Edg
     return exports
   }
   myDefine.amd = true
-  if (!Build.NDEBUG) {
-    myDefine.modules_ = modules
-  }
   myDefine.noConflict = (): void => { /* empty */ }
   globalThis.define = myDefine
   // limitation: file names must be unique

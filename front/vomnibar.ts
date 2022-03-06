@@ -62,7 +62,8 @@ if (typeof VApi == "object" && VApi && typeof VApi.d == "function") {
 }
 
 // eslint-disable-next-line no-var
-var AsOmni_ = <T> (i: T): T => i;
+declare var AsOmni_: <T> (i: T) => T
+if (!Build.NDEBUG) { (window as unknown as typeof globalThis).AsOmni_ = i => i }
 // eslint-disable-next-line no-var
 var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_ || "", Vomnibar_ = {
   pageType_: VomnibarNS.PageType.Default,

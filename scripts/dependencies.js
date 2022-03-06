@@ -89,22 +89,26 @@ exports.readFile = (fileName, info) => {
 /**
  * @callback ReadJson
  * @param {string} fileName - file path
- * @param {boolean} [throwError]
+ * @param {boolean} [throwError] - throw on error or just log it
  * @returns {any} parsed JSON object
  */
 /** @type {ReadJson} */
 var _readJSON;
+/** @type { (fileName, object) => void } */
+var _writeJSON;
 
 /**
  * Read json file to any object or throw error
  * @type {ReadJson}
- * @param {boolean} [throwError] - throw on error or just log it
  */
 exports.readJSON = (fileName, throwError) => {
-  if (!_readJSON) {
-    _makeJSONReader();
-  }
+  if (!_readJSON) { _makeJSONReader() }
   return _readJSON(fileName, throwError);
+}
+
+exports.writeJSON = (fileName, object) => {
+  if (!_writeJSON) { _makeJSONReader() }
+  return _writeJSON(fileName, object)
 }
 
 function _makeJSONReader() {
@@ -130,8 +134,7 @@ function _makeJSONReader() {
       return str;
     }
   }
-  /** @type {ReadJson} */
-  function readJSON1(fileName, throwError) {
+  _readJSON = function (fileName, throwError) {
     fileName = fileName.replace(/\\/g, "/");
     /** @type string | undefined */
     var text = cached[fileName];
@@ -151,7 +154,12 @@ function _makeJSONReader() {
       return {};
     }
   }
-  _readJSON = readJSON1;
+  _writeJSON = (fileName, object) => {
+    fileName = fileName.replace(/\\/g, "/");
+    var text = JSON.stringify(object)
+    cached[fileName] = text;
+    fs.writeFileSync(fileName, text);
+  }
 }
 
 var _terserConfig = null
@@ -569,31 +577,6 @@ exports.replace_global_defs = (global_defs, code) => {
   }
   buf.push(code.slice(offset))
   return buf.join("")
-}
-
-/**
- * @argument {{ [key: string]: any }} _global_defs
- * @argument {string} code
- * @argument {TerserOptions} config
- * @returns {Promise<string>}
- */
-exports.remove_dead_code = async (_global_defs, code, config) => {
-  const keys = Object.keys(BrowserType).map(i => i.startsWith("With") ? i : "On" + i).join("|")
-  const raw_code = code
-  for (let re1 = new RegExp(`!*[\\w$]+\\.(?:${keys}) (&&|\\|\\|) (false|true)`, "g"), old_len = 0
-      ; code.length !== old_len; ) {
-    old_len = code.length
-    code = code.replace(re1, (s, op, right) =>
-        (op == "&&") === (right === "false") ? right : s.slice(s.startsWith("!!") ? 2 : 0, -(right.length + 4))
-    )
-  }
-  if (code.length === raw_code.length) {
-    return raw_code
-  }
-  exports.patchTerser()
-  return (await require("terser").minify(code, {
-    ...config, mangle: false, compress: { ...config.compress, dead_code: true, conditionals: true }
-  })).code
 }
 
 /**
