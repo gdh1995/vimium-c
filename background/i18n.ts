@@ -83,7 +83,7 @@ export let loadContentI18n_: (() => void) | null = (): void => {
   const arr: string[] = contentI18n_, args = ["$1", "$2", "$3", "$4"]
   for (let i = 0; i < kTip.INJECTED_CONTENT_END; i++) {
     arr.push(Build.MV3 && IsLimited ? extPayload_.get("" + i)!.replace("$$", "$")
-        : (extTrans_ as (msg: ExtNames, args?: string[]) => string)(("" + i) as "0", args))
+        : browser_.i18n.getMessage(("" + i) as "0", args))
   }
   loadContentI18n_ = null
 }

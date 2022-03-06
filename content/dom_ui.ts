@@ -222,17 +222,15 @@ export const createStyle = (text: string, css?: HTMLStyleElement | null): HTMLSt
 export let setUICSS = (innerCSS: string): void => { styleIn_ = innerCSS }
 
 export const learnCSS = (srcStyleIn: typeof styleIn_, force?: 1): void => {
-    if (!OnChrome || Build.MinCVer < BrowserVer.MinBorderWidth$Ensure1$Or$Floor
-        ? !styleIn_ || force : !styleIn_) {
-      const
-      css = srcStyleIn && (isTY(srcStyleIn) ? srcStyleIn : textContent_s(srcStyleIn))
+  if (!styleIn_ || force) {
+    const css = srcStyleIn && (isTY(srcStyleIn) ? srcStyleIn : textContent_s(srcStyleIn))
       if (css) {
         setUICSS(css)
         if (!OnChrome || Build.MinCVer < BrowserVer.MinBorderWidth$Ensure1$Or$Floor) {
           force || post_({H: kFgReq.learnCSS})
         }
       }
-    }
+  }
 }
 
 export const checkDocSelectable = (): void => {

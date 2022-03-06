@@ -320,7 +320,7 @@ const format_ = (data: string | any[], join?: FgReq[kFgReq.copy]["j"], sed?: Mix
         (data.length > 1 && (!join || join === !!join) ? "\n" : "")
     const rules = !sed || typeof sed !== "object" ? sed : sed.r
     if (rules !== false) {
-      data = substitute_(data, SedContext.multiline, sed)
+      data = substitute_(data, SedContext.multiline)
     }
     return data
   }

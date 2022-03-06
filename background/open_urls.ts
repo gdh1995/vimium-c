@@ -600,7 +600,7 @@ const openCopiedUrl = (tabs: [Tab] | [] | undefined, url: string | null): void =
       i = i.trim()
       if (i) {
         i = convertToUrl_(i, keyword, Urls.WorkType.Default)
-        if (searchLines || lastUrlType_ < Urls.Type.MaxOfInputIsPlainUrl) {
+        if (searchLines || lastUrlType_ <= Urls.Type.MaxOfInputIsPlainUrl) {
           urls2.push(i)
         } else {
           urls2.length = 0

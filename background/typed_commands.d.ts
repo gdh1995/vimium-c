@@ -252,7 +252,7 @@ interface StatefulBgCmdOptions {
   [kBgCmd.createTab]: null
   [kBgCmd.openBookmark]: null
   [kBgCmd.goNext]: "patterns" | "reuse"
-  [kBgCmd.openUrl]: "urls" | "group" | "replace"
+  [kBgCmd.openUrl]: "urls" | "group" | "replace" | "keyword"
   [kBgCmd.runKey]: "expect" | "keys"
   [kBgCmd.togglePinTab]: "limited"
 }
