@@ -118,10 +118,10 @@ const onEvalUrl_ = (workType: Urls.WorkType, options: KnownOptions<C.openUrl>, t
   case Urls.kEval.paste:
   case Urls.kEval.plainUrl:
     replaceCmdOptions(options)
+    overrideCmdOptions<C.openUrl>({ urls: null, url: null, url_f: null, copied: null, keyword: null }, true)
     if (arr[1] === Urls.kEval.plainUrl || options.$p) {
       workType = Urls.WorkType.Default
     } else { // `.$p` may be computed from clipboard text and then unstable
-      overrideCmdOptions<C.openUrl>({}, true)
       overrideOption<C.openUrl, "$p">("$p", 1)
     }
     openUrlWithActions(convertToUrl_((arr as Urls.PasteEvalResult)[0]), workType, false, tabs)

@@ -65,7 +65,7 @@ export const createSimpleUrlMatcher_ = (host: string): ValidUrlMatchers | null =
       ind = host.indexOf("://")
       return {
         t: kMatchUrl.StringPrefix,
-        v: ind > 0 && host.indexOf("/", ind + 3) < 0 ? host + "/" : host
+        v: ind > 0 && ind + 3 < host.length && host.indexOf("/", ind + 3) < 0 ? host + "/" : host
       }
     }
 }

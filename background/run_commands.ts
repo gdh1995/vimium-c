@@ -97,7 +97,8 @@ export const fillOptionWithMask = <Cmd extends keyof BgCmdOptions>(template: str
     if (value !== null || keysLen !== 1) { return value || "" }
     let name = valueKey && usableOptions[valueKey] as string | UnknownValue
     if (!name) {
-      const keys = Object.keys(usableOptions).filter(i => i[0] !== "$" && !stopWords.includes!(i))
+      const keys = Object.keys(usableOptions).filter(i => i[0] !== "$" && !stopWords.includes!(i)
+          && (usableOptions as Dict<unknown>)[i] === true)
       if (keys.length === 1) {
         name = toDelete = keys[0]
       } else {

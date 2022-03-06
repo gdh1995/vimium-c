@@ -275,6 +275,7 @@ const detectLinkDeclaration_ = (str: string): string => {
   }
   if (url && endChar.includes(url[0])) { url = url.slice(1).trim() }
   if (todo & 1 && url && leftCharRe.test(url[0])) { url = url.slice(1) }
+  convertToUrl_("javascript:;") // just to reset lastUrlType_
   url = fixCharsInUrl_(url, false, true)
   return lastUrlType_ <= Urls.Type.MaxOfInputIsPlainUrl && !url.startsWith("vimium:") ? url : str;
 }
@@ -295,7 +296,7 @@ export const fixCharsInUrl_ = (url: string, alwaysNo3002?: boolean, forceConvers
   }
   i > 0 && (str += url.slice(i));
   convertToUrl_(str, null, Urls.WorkType.KeepAll);
-  return lastUrlType_ < Urls.Type.MaxOfInputIsPlainUrl + 1 ? str
+  return lastUrlType_ <= Urls.Type.MaxOfInputIsPlainUrl ? str
       : type !== 1 || !alwaysNo3002 || (<RegExpOne> /[^.\w\u3002-]/).test(url) ? url
       : url.replace(<RegExpG> /\u3002/g, ".")
 }

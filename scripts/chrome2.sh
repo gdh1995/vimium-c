@@ -32,7 +32,7 @@ function wp() {
     local win_dir=${dir:1:1}
     dir=${win_dir^}:${dir:2}
   fi
-  declare -g $1=${dir}
+  declare -g $1="${dir}"
 }
 
 while [[ $# -gt 0 ]]; do
@@ -147,6 +147,10 @@ case "$1" in
   localhost)
     HOME_PAGE=$HOME_PAGE" http://$1/"
     shift
+    ;;
+  -v|-x)
+    shift
+    set -x
     ;;
   *)
     if test -d "$1" && test -f "$1/manifest.json"; then
@@ -293,10 +297,10 @@ test -d "$WORKING_DIR" && cd "$WORKING_DIR" 2>/dev/null || cd "${EXE%/*}"
 # Refer: https://peter.sh/experiments/chromium-command-line-switches/
 echo -E Run: "${exe_w}" at ${gud_w} with "${vc_ext_w}"
 $RUN "$EXE" \
-  --user-data-dir=${gud_w} \
+  --user-data-dir="${gud_w}" \
   --no-first-run --disable-default-apps\
    --disable-sync --no-default-browser-check \
-  --load-extension=${vc_ext_w}${OTHER_EXT} \
+  --load-extension="${vc_ext_w}${OTHER_EXT}" \
   --homepage ${HOME_PAGE:-chrome-extension://hfjbmagddngcpeloejdejnfgbamkjaeg/pages/options.html} \
   --disable-office-editing-component-extension \
   --disable-extensions-file-access-check \

@@ -253,8 +253,8 @@ export const getEditable = (hints: Hint[], element: SafeHTMLElement): void => {
 }
 
 export const getIfOnlyVisible = (hints: (Hint | Hint0)[], element: SafeElement): void => {
-  let arr = htmlTag_(element) === "a" ? getPreferredRectOfAnchor(element as HTMLAnchorElement)
-      : getVisibleClientRect_(element, null)
+  let arr = htmlTag_(element) === "a" && getPreferredRectOfAnchor(element as HTMLAnchorElement)
+      || getVisibleClientRect_(element, null)
   arr && hints.push([element as SafeElementForMouse, arr, ClickType.Default])
 }
 
