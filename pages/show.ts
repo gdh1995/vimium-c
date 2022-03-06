@@ -1,6 +1,6 @@
 import {
   CurCVer_, CurFFVer_, OnChrome, OnFirefox, OnEdge, $, pageTrans_, browser_, nextTick_, enableNextTick_, kReadyInfo,
-  import2, TransTy, isVApiReady_, post_, disconnect_, simulateClick, fetch
+  import2, TransTy, isVApiReady_, post_, disconnect_, simulateClick, fetch, hasShift_
 } from "./async_bg"
 import { kPgReq } from "../background/page_messages"
 import type * as i18n_popup from "../i18n/zh/popup.json"
@@ -317,8 +317,7 @@ document.addEventListener("keydown", function (this: void, event): void {
   if (VData.type === "image" && imgOnKeydown(event)) {
     return;
   }
-  if (!(event.ctrlKey || event.metaKey) || event.altKey
-    || event.shiftKey || event.repeat) { return; }
+  if (!(event.ctrlKey || event.metaKey) || event.altKey || event.repeat || hasShift_(event)) { return }
   const str = String.fromCharCode(event.keyCode as kKeyCode | kCharCode as kCharCode);
   if (str === "S") {
     return clickLink({

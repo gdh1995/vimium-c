@@ -264,3 +264,5 @@ declare var Reflect: Reflect | undefined
 declare var InstallTrigger: object | undefined
 
 interface CSS { escape? (value: string): string }
+
+interface KeyboardEventInit { keyCode?: number; which?: number }

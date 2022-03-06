@@ -1,5 +1,5 @@
 import {
-  chromeVer_, doc, createRegExp, isTY, Lower, OBJECT_TYPES, OnFirefox, OnChrome, OnEdge, evenHidden_, safeCall
+  chromeVer_, doc, createRegExp, isTY, Lower, OBJECT_TYPES, OnFirefox, OnChrome, OnEdge, evenHidden_, safeCall, deref_
 } from "./utils"
 import { dimSize_, selRange_ } from "./rect"
 
@@ -310,6 +310,12 @@ export const getAccessibleSelectedNode = (sel: Selection, focused?: 1): Node | n
 //#endregion
 
 //#region computation section
+
+export const derefInDoc_ = ((val: WeakRef<SafeElement> | SafeElement | null | undefined
+    ): SafeElement | null | undefined => {
+  val = deref_(val as WeakRef<SafeElement> | null | undefined)
+  return val && IsInDOM_(val, doc) ? val : null
+}) as <T extends SafeElement> (val: WeakRef<T> | T | null | undefined) => T | null | undefined
 
 export const findMainSummary_ = ((details: HTMLDetailsElement | Element | null): SafeHTMLElement | null => {
     // not query `:scope>summary` for more consistent performance

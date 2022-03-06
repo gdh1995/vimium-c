@@ -1,6 +1,6 @@
 import {
   OnFirefox, OnEdge, OnChrome, $, pageTrans_, enableNextTick_, nextTick_, kReadyInfo, TransTy, IsEdg_, post_,
-  toggleReduceMotion, CurCVer_
+  toggleReduceMotion, CurCVer_, hasShift_
 } from "./async_bg"
 import {
   bgSettings_, ExclusionVisibleVirtualNode, ExclusionRulesOption_, setupBorderWidth_, showI18n,
@@ -267,7 +267,7 @@ const initExclusionRulesTable = (): void => {
   window.addEventListener("keydown", function (event): void {
     if (event.altKey
         && (event.keyCode === kKeyCode.X || conf_.lock !== null && event.keyCode === kKeyCode.Z)
-        && !(event.shiftKey || event.ctrlKey || event.metaKey)
+        && !(event.ctrlKey || event.metaKey || hasShift_(event))
         ) {
       event.preventDefault()
       event.stopImmediatePropagation()

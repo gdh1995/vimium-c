@@ -516,8 +516,9 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key
       ? Build.OS & ~(1 << kOS.mac) ? 185 as const : 300 as const : 0 as never as null,
   char_ (event: Pick<KeyboardEvent, "code" | "key" | "keyCode" | "keyIdentifier" | "location" | "shiftKey">): string {
+    const shiftKey = Build.BTypes & BrowserType.Firefox ? Vomnibar_.hasShift_(event as KeyboardEvent) : event.shiftKey
     const charCorrectionList = kChar.CharCorrectionList, enNumTrans = kChar.EnNumTrans;
-    let {key, shiftKey} = event as typeof event & { key: string }
+    let key = event.key!
     if (!(Build.BTypes & BrowserType.Edge)
         || Build.BTypes & ~BrowserType.Edge && Vomnibar_.browser_ !== BrowserType.Edge
         ? Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key && Build.BTypes & BrowserType.Chrome && !key
@@ -565,13 +566,18 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     }
     return key;
   },
+  hasShift_: Build.BTypes & BrowserType.Firefox ? (event: KeyboardEvent): boolean => {
+    const key = !(Build.BTypes & ~BrowserType.Firefox) || Vomnibar_.browser_ === BrowserType.Firefox ? event.key! : ""
+    return key.length === 1 && event.getModifierState("CapsLock") ? key !== key.toUpperCase() : event.shiftKey
+  } : 0 as never,
   getMappedKey_ (event: KeyboardEvent): { mapped: boolean, key: string } {
     const char = Vomnibar_.char_(event);
     let key: string = char, mapped: string | undefined;
     if (char) {
       let baseMod = `${event.altKey ? "a-" : ""}${event.ctrlKey ? "c-" : ""}${event.metaKey ? "m-" : ""}`,
       chLower = char.toLowerCase(), isLong = char.length > 1,
-      mod = event.shiftKey && (isLong || baseMod && char.toUpperCase() !== chLower) ? baseMod + "s-" : baseMod;
+      mod = (Build.BTypes & BrowserType.Firefox ? Vomnibar_.hasShift_(event as KeyboardEvent) : event.shiftKey)
+          && (isLong || baseMod && char.toUpperCase() !== chLower) ? baseMod + "s-" : baseMod;
       if (!(Build.NDEBUG || char.length === 1 || char.length > 1 && char === chLower)) {
         console.error(`Assert error: Vomnibar_.key_ get an invalid char of "${char}" !`);
       }
@@ -654,7 +660,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     }
     if (char === kChar.enter) {
       if (event.key === "Enter" || n === kKeyCode.enter) {
-        window.onkeyup = a.OnEnterUp_.bind(null, key, mapped)
+        window.onkeyup = a.OnNativeEnterUp_.bind(null, key, mapped)
       } else {
         a.onEnter_(key);
       }
@@ -838,7 +844,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       func()
     }
   },
-  OnEnterUp_ (this: void, key: string, mapped: boolean, event: KeyboardEvent): void {
+  OnNativeEnterUp_ (this: void, key: string, mapped: boolean, event: KeyboardEvent): void {
     const keyCode = event.keyCode;
     if (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome) ? event.isTrusted
         : event.isTrusted !== false

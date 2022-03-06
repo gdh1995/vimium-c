@@ -436,6 +436,13 @@ export const simulateClick = (target: HTMLElement
   return target.dispatchEvent(mouseEvent)
 }
 
+export const hasShift_ = (event: Pick<KeyboardEvent, "shiftKey" | "key" | "getModifierState">): boolean => {
+  if (!OnFirefox) { return event.shiftKey }
+  const key = event.key!
+  // if `privacy.resistFingerprinting` && CapsLock && A-Z, then Shift is reversed
+  return key.length === 1 && event.getModifierState("CapsLock") ? key !== key.toUpperCase() : event.shiftKey
+}
+
 if (typeof VApi === "undefined") { globalThis.VApi = undefined }
 
 type ToTest = StringWithOneEnd<DeepKeys<PgReq>, "_">;

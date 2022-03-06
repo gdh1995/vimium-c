@@ -1,7 +1,7 @@
-import { VTr, safer, loc_, vApi, locHref, isTY, isTop } from "../lib/utils"
+import { VTr, safer, loc_, vApi, locHref, isTY, isTop, OnFirefox } from "../lib/utils"
 import { post_, runFallbackKey } from "./port"
 import { hudHide, hudShow, hudTip } from "./hud"
-import { removeHandler_, getMappedKey, isEscape_, replaceOrSuppressMost_ } from "../lib/keyboard_utils"
+import { removeHandler_, getMappedKey, isEscape_, replaceOrSuppressMost_, hasShift_ff } from "../lib/keyboard_utils"
 import { createElement_, textContent_s } from "../lib/dom_utils"
 
 // [0..8]
@@ -51,7 +51,7 @@ export const activate = (options: CmdOptions[kFgCmd.marks], count: number): void
           [VTr(pos ? kTip.didJumpTo : kTip.didCreate), mcount ? mcount + 1 : VTr(kTip.lastMark)])
     }
   } else if (isCreate) {
-    if (event.e.shiftKey !== swap) {
+    if ((OnFirefox ? hasShift_ff!(event.e) : event.e.shiftKey) !== swap) {
       if (isTop) {
         createMark({n: keyChar})
       } else {
@@ -65,7 +65,7 @@ export const activate = (options: CmdOptions[kFgCmd.marks], count: number): void
     const req: Extract<Req.fg<kFgReq.marks>, { a: kMarkAction.goto } & MarksNS.FgQuery> = {
       H: kFgReq.marks, a: kMarkAction.goto, n: keyChar, c: options
     }
-    if (event.e.shiftKey !== swap) {
+    if ((OnFirefox ? hasShift_ff!(event.e) : event.e.shiftKey) !== swap) {
       hudHide()
     } else {
       try {

@@ -1,5 +1,5 @@
 import {
-  fgCache, clearTimeout_, timeout_, isAlive_, Stop_ as stopEvent, Lower, OnChrome, OnEdge, getTime
+  fgCache, clearTimeout_, timeout_, isAlive_, Stop_ as stopEvent, Lower, OnChrome, OnEdge, getTime, OnFirefox
 } from "./utils"
 
 const DEL = kChar.delete, BSP = kChar.backspace, SP = kChar.space
@@ -70,8 +70,9 @@ const _getKeyCharUsingKeyIdentifier_old_cr = !OnChrome
 export const char_ = (eventWrapper: HandlerNS.Event): kChar => {
   let event: Pick<KeyboardEvent, "code" | "key" | "keyCode" | "keyIdentifier" | "location" | "shiftKey" | "altKey">
         = eventWrapper.e
-  let mapped: number | undefined, key = event.key!, shiftKey = event.shiftKey, isDeadKey = !OnEdge && key === "Dead"
-  if (Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key && OnChrome && !key) {
+  const shiftKey = OnFirefox ? hasShift_ff!(event as KeyboardEvent) : event.shiftKey
+  let mapped: number | undefined, key = event.key!, isDeadKey = !OnEdge && key === "Dead"
+  if (OnChrome && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key && !key) {
     // since Browser.Min$KeyboardEvent$MayHave$$Key and before .MinEnsured$KeyboardEvent$$Key
     // event.key may be an empty string if some modifier keys are held on
     // it seems that KeyIdentifier doesn't follow keyboard layouts
@@ -111,11 +112,18 @@ export const char_ = (eventWrapper: HandlerNS.Event): kChar => {
 
 export const keybody_ = (key: string): kChar => (key.slice(key.lastIndexOf("-") + 1) || key && kChar.minus) as kChar
 
+export const hasShift_ff = OnFirefox ? (event: Pick<KeyboardEvent, "shiftKey" | "key" | "getModifierState">): boolean => {
+  if (!OnFirefox) { return event.shiftKey }
+  const key = event.key!
+  // if `privacy.resistFingerprinting` && CapsLock && A-Z, then Shift is reversed
+  return key.length === 1 && event.getModifierState("CapsLock") ? key !== key.toUpperCase() : event.shiftKey
+} : 0 as never as null
+
 export const getKeyStat_ = (event: Pick<KeyboardEvent, "altKey" | "ctrlKey" | "metaKey" | "shiftKey">): KeyStat =>
     <number> <boolean|number> event.altKey |
             (<number> <boolean|number> event.ctrlKey * 2) |
             (<number> <boolean|number> event.metaKey * 4) |
-            (<number> <boolean|number> event.shiftKey * 8);
+            (<number> <boolean|number> (OnFirefox ? hasShift_ff!(event as KeyboardEvent) : event.shiftKey) * 8)
 
 export const isEscape_ = (key: string): HandlerResult.AdvancedEsc | HandlerResult.PlainEsc | HandlerResult.Nothing => {
     return key === kChar.esc ? HandlerResult.AdvancedEsc

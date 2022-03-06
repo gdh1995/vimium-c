@@ -3,14 +3,15 @@ import {
   chromeVer_, deref_
 } from "../lib/utils"
 import {
-  set_getMappedKey, char_, getMappedKey, isEscape_, getKeyStat_, prevent_, handler_stack, keybody_, SPC
+  set_getMappedKey, char_, getMappedKey, isEscape_, getKeyStat_, prevent_, handler_stack, keybody_, SPC, hasShift_ff
 } from "../lib/keyboard_utils"
 import { deepActiveEl_unsafe_, getSelection_, ElementProto_not_ff, getElDesc_, blur_unsafe } from "../lib/dom_utils"
 import { wndSize_ } from "../lib/rect"
 import { post_ } from "./port"
 import { removeSelection } from "./dom_ui"
 import {
-  exitInsertMode, focusUpper, insert_global_, insert_Lock_, findNewEditable, passAsNormal, raw_insert_lock, setupSuppress, suppressType,
+  exitInsertMode, focusUpper, insert_global_, insert_Lock_, findNewEditable, passAsNormal, raw_insert_lock,
+  setupSuppress, suppressType,
 } from "./insert"
 import { keyIsDown as scroll_keyIsDown, onScrolls, scrollTick } from "./scroller"
 import { catchAsyncErrorSilently, evIDC_cr, lastHovered_, set_evIDC_cr, unhover_async } from "./async_dispatcher"
@@ -57,7 +58,8 @@ set_getMappedKey((eventWrapper: HandlerNS.Event, mode: kModeId): string => {
   if (char) {
     let baseMod = `${event.altKey ? "a-" : ""}${event.ctrlKey ? "c-" : ""}${event.metaKey ? "m-" : ""}`,
     chLower = Lower(char), isLong = char.length > 1,
-    mod = event.shiftKey && (isLong || baseMod && char.toUpperCase() !== chLower) ? baseMod + "s-" : baseMod;
+    mod = (OnFirefox ? hasShift_ff!(event as KeyboardEvent) : event.shiftKey)
+        && (isLong || baseMod && char.toUpperCase() !== chLower) ? baseMod + "s-" : baseMod
     if (!(Build.NDEBUG || char.length === 1 || char.length > 1 && char === chLower)) {
       console.error(`Assert error: mapKey get an invalid char of "${char}" !`);
     }
