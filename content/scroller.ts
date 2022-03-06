@@ -29,7 +29,7 @@ import {
 import {
   rAF_, scrollingEl_, SafeEl_not_ff_, docEl_unsafe_, NONE, frameElement_, OnDocLoaded_, GetParent_unsafe_, UNL,
   querySelector_unsafe_, getComputedStyle_, notSafe_not_ff_, HDN, isRawStyleVisible, fullscreenEl_unsafe_,
-  doesSupportDialog, attr_s, getSelection_, isIFrameElement
+  doesSupportDialog, attr_s, getSelection_, isIFrameElement, IsInDOM_, derefInDoc_
 } from "../lib/dom_utils"
 import {
   scrollWndBy_, wndSize_, getZoom_, wdZoom_, bZoom_, isNotInViewport, prepareCrop_, padClientRect_, instantScOpt,
@@ -326,7 +326,7 @@ export const executeScroll: VApiTy["c"] = function (di: ScrollByY, amount0: numb
     let core: ReturnType<typeof getParentVApi> | false
     {
       const childFrame = !force && deref_(currentScrolling)
-      core = childFrame && isIFrameElement(childFrame) && detectUsableChild(childFrame)
+      core = childFrame && isIFrameElement(childFrame) && IsInDOM_(childFrame, doc) && detectUsableChild(childFrame)
       if (core) {
         core.c(di, amount0, flags as 0, factor, options, oriCount)
         if (core.y().k) {
@@ -489,8 +489,8 @@ const findScrollable = (di: ScrollByY, amount: number
     return children.reduce((cur, info1) => cur || selectFirst(info1, 1), null as ElementScrollInfo | null | undefined)
   }
 
-    const top = scrollingTop, activeEl: SafeElement | null | undefined = deref_(currentScrolling) || null
     const selectFirstType = (evenOverflowHidden != null ? evenOverflowHidden : isTop || !!injector) ? 3 : 1
+    const top = scrollingTop, activeEl: SafeElement | null | undefined = derefInDoc_(currentScrolling) || null
     let element = activeEl
     if (element) {
       while (element !== top

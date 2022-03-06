@@ -1,11 +1,11 @@
 import {
-  setupEventListener, isTop, keydownEvents_, timeout_, fgCache, doc, isAlive_, isJSUrl, chromeVer_, VTr, deref_, OnEdge,
+  setupEventListener, isTop, keydownEvents_, timeout_, fgCache, doc, isAlive_, isJSUrl, chromeVer_, VTr, OnEdge,
   vApi, Stop_, createRegExp, isTY, OBJECT_TYPES, OnChrome, OnFirefox, WithDialog, isAsContent, safeCall, max_
 } from "../lib/utils"
 import { prevent_ } from "../lib/keyboard_utils"
 import {
   createElement_, attachShadow_, NONE, fullscreenEl_unsafe_, docEl_unsafe_, getComputedStyle_, set_docSelectable_,
-  GetParent_unsafe_, getSelection_, GetShadowRoot_, getEditableType_, htmlTag_, textOffset_,
+  GetParent_unsafe_, getSelection_, GetShadowRoot_, getEditableType_, htmlTag_, textOffset_, derefInDoc_,
   notSafe_not_ff_, CLK, frameElement_, runJS_, isStyleVisible_, rangeCount_, getAccessibleSelectedNode, removeEl_s,
   appendNode_s, append_not_ff, setClassName_s, isNode_, contains_s, setOrRemoveAttr_s, textContent_s,
   parentNode_unsafe_s, setDisplaying_s, editableTypes_, getRootNode_mounted, singleSelectionElement_unsafe
@@ -256,7 +256,7 @@ export const getSelectionOf = (node: DocumentOrShadowRootMixin): Selection | nul
 export const getSelected = (notExpectCount?: {r?: ShadowRoot | null}): Selection => {
   let el: Node | SafeElement | null | undefined, sel: Selection | null
   let sr: ShadowRoot | null = null
-  if (el = deref_(currentScrolling)) {
+  if (el = derefInDoc_(currentScrolling)) {
       el = getRootNode_mounted(el as NonNullable<ReturnType<NonNullable<typeof currentScrolling>["deref"]>>)
       if (el !== doc && isNode_(el, kNode.DOCUMENT_FRAGMENT_NODE)
           && isTY((el as ShadowRoot).getSelection, kTY.func)) {

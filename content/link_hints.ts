@@ -89,7 +89,7 @@ import {
   WithDialog, Lower, safeCall, locHref, os_, firefoxVer_, weakRef_not_ff, weakRef_ff, isTY
 } from "../lib/utils"
 import {
-  querySelector_unsafe_, isHTML_, scrollingEl_, docEl_unsafe_, IsInDOM_, GetParent_unsafe_, hasInCSSFilter_,
+  querySelector_unsafe_, isHTML_, scrollingEl_, docEl_unsafe_, IsInDOM_, GetParent_unsafe_, hasInCSSFilter_,derefInDoc_,
   getComputedStyle_, isStyleVisible_, htmlTag_, fullscreenEl_unsafe_, removeEl_s, UNL, toggleClass_s, doesSupportDialog,
   getSelectionFocusEdge_, SafeEl_not_ff_, rangeCount_, compareDocumentPosition, deepActiveEl_unsafe_, frameElement_
 } from "../lib/dom_utils"
@@ -527,10 +527,10 @@ const callExecuteHint = (hint: ExecutableHintItem, event?: HandlerNS.Event): voi
 }
 
 const activateDirectly = (options: ContentOptions, count: number): void => {
-  const d = options.direct! as string, exOpts = options.directOptions || {},
+  const d = options.direct! as string | true, exOpts = options.directOptions || {},
   _ei = exOpts.index, elIndex = _ei != null ? _ei : options.index,
   offset = exOpts.offset || "", wholeDoc = ("" + exOpts.search).startsWith("doc"),
-  allTypes = (d as typeof options.direct) === !0, mode = options.m &= ~HintMode.queue,
+  allTypes = d === !0, mode = options.m &= ~HintMode.queue,
   next = (): void => {
     let rect: ClientRect | 0, sel: Selection
     if (count < 1) { clear(); return }
@@ -542,8 +542,8 @@ const activateDirectly = (options: ContentOptions, count: number): void => {
     timeout_(next, count > 99 ? 1 : count && 17)
   },
   computeOffset = (): number => {
-    const cur = deref_(currentScrolling), end = matches!.length
-    let low = 0, mid: number | undefined, high = cur && IsInDOM_(cur) ? end - 1 : -1
+    const cur = derefInDoc_(currentScrolling), end = matches!.length
+    let low = 0, mid: number | undefined, high = cur ? end - 1 : -1
     while (low <= high) {
       mid = (low + high) >> 1
       const midEl = matches![mid][0]
@@ -568,8 +568,8 @@ const activateDirectly = (options: ContentOptions, count: number): void => {
       || (allTypes || testD("f")) // focused
           && (insert_Lock_()
               || (OnFirefox ? <SafeElement | null> deepActiveEl_unsafe_() : SafeEl_not_ff_!(deepActiveEl_unsafe_())))
-      || (allTypes || testD("h") || testD("cl")) && deref_(lastHovered_) // hover | clicked
-      || (!allTypes && (testD("s") || testD("a")) ? deref_(currentScrolling) // currentScrollable / DOMActivate
+      || (allTypes || testD("h") || testD("cl")) && derefInDoc_(lastHovered_) // hover | clicked
+      || (!allTypes && (testD("s") || testD("a")) ? derefInDoc_(currentScrolling) // currentScrollable / DOMActivate
         : null)
   el = mode < HintMode.min_job || el && htmlTag_(el) ? el : null
   if (!el || !IsInDOM_(el)) {
@@ -693,7 +693,7 @@ const checkLast = ((el?: WeakRef<LinkEl> | LinkEl | 1 | null, r?: Rect | null
   else if (window.closed) { return 1 }
   else if (el === 1) { return 2 }
   else {
-    r2 = hasEl && (el = deref_(el as WeakRef<LinkEl>)) ? padClientRect_(getBoundingClientRect_(el)) : null
+    r2 = hasEl && (el = derefInDoc_(el as WeakRef<LinkEl>)) ? padClientRect_(getBoundingClientRect_(el)) : null
     hidden = !r2 || (r2.r - r2.l) * (r2.b - r2.t) < 4 || !isStyleVisible_(el as LinkEl)
     if (hidden && deref_(lastHovered_) === el) {
       void hover_async()

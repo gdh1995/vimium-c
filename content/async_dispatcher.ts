@@ -4,7 +4,7 @@ import {
 } from "../lib/utils"
 import {
   IsInDOM_, isInTouchMode_cr_, MDW, hasTag_, CLK, attr_s, contains_s, focus_, fullscreenEl_unsafe_, findAnchor_,
-  deepActiveEl_unsafe_, blur_unsafe
+  deepActiveEl_unsafe_, blur_unsafe, derefInDoc_
 } from "../lib/dom_utils"
 import { suppressTail_ } from "../lib/keyboard_utils"
 import { Point2D, center_, getVisibleClientRect_, view_ } from "../lib/rect"
@@ -195,9 +195,9 @@ export const hover_async = (async (newEl?: NullableSafeElForM
   // if center is affected by zoom / transform, then still dispatch mousemove
   let elFromPoint = center && doc.elementFromPoint(center[0], center[1]),
   canDispatchMove: boolean = !newEl || elFromPoint === newEl || !elFromPoint || !contains_s(newEl, elFromPoint),
-  last = deref_(lastHovered_), N = lastHovered_ = null
+  last = derefInDoc_(lastHovered_), N = lastHovered_ = null
   const notSame = newEl !== last
-  if (last && IsInDOM_(last, doc)) {
+  if (last) {
     // MS Edge 90 dispatches mouseout and mouseleave if only a target element is in doc
     await mouse_(last, "mouseout", [0, 0], N, notSame ? newEl : N)
     if ((!newEl || notSame && !IsInDOM_(newEl, last, 1)) && IsInDOM_(last, doc)) {
@@ -231,7 +231,7 @@ export const hover_async = (async (newEl?: NullableSafeElForM
 
 export const unhover_async = (!OnChrome || Build.MinCVer >= BrowserVer.MinEnsuredGeneratorFunction
 ? async (element?: NullableSafeElForM): Promise<void> => {
-  const old = deref_(lastHovered_), active = element || old
+  const old = derefInDoc_(lastHovered_), active = element || old
   if (old !== element) {
     await hover_async()
   }
@@ -241,7 +241,7 @@ export const unhover_async = (!OnChrome || Build.MinCVer >= BrowserVer.MinEnsure
 }
 : (el?: NullableSafeElForM, step?: 1 | 2, old?: NullableSafeElForM): Promise<void | false> | void | false => {
   if (!step) {
-    old = deref_(lastHovered_)
+    old = derefInDoc_(lastHovered_)
     return Promise.resolve<void | false>(old !== el && hover_async()).then(unhover_async
         .bind<void, NullableSafeElForM, 1, NullableSafeElForM, [], Promise<void | false>>(0, el, 1, el || old))
   } else if (step < 2) {

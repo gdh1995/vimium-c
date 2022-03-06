@@ -4,9 +4,9 @@ import {
   OnChrome, OnFirefox, OnEdge, firefoxVer_, safeCall, parseOpenPageUrlOptions, os_, abs_, Lower
 } from "../lib/utils"
 import {
-  isHTML_, hasTag_, createElement_, querySelectorAll_unsafe_, SafeEl_not_ff_, docEl_unsafe_, MDW, CLK,
+  isHTML_, hasTag_, createElement_, querySelectorAll_unsafe_, SafeEl_not_ff_, docEl_unsafe_, MDW, CLK, derefInDoc_,
   querySelector_unsafe_, DAC, removeEl_s, appendNode_s, setClassName_s, INP, contains_s, toggleClass_s, modifySel,
-  focus_, testMatch, docHasFocus_, deepActiveEl_unsafe_, getEditableType_, textOffset_, kDir, IsInDOM_
+  focus_, testMatch, docHasFocus_, deepActiveEl_unsafe_, getEditableType_, textOffset_, kDir
 } from "../lib/dom_utils"
 import {
   pushHandler_, removeHandler_, getMappedKey, prevent_, isEscape_, keybody_, DEL, BSP, ENTER, handler_stack,
@@ -83,7 +83,7 @@ set_contentCommands_([
   /* kFgCmd.vomnibar: */ omniActivate,
   /* kFgCmd.insertMode: */ (opt: CmdOptions[kFgCmd.insertMode]): void => {
     if (opt.u) {
-      const el = deref_(lastHovered_), done = opt.i ? 9 : el && IsInDOM_(el, doc) ? 0 : 2
+      const done = opt.i ? 9 : derefInDoc_(lastHovered_) ? 0 : 2
       catchAsyncErrorSilently(unhover_async()).then((): void => {
         hudTip(kTip.didUnHoverLast)
         done < 9 && runFallbackKey(opt as Extract<typeof opt, { u: true }>, done)
@@ -239,7 +239,7 @@ set_contentCommands_([
   },
   /* kFgCmd.focusInput: */ (options: CmdOptions[kFgCmd.focusInput], count: number): void => {
     const S = "IH IHS"
-    const act = options.act || options.action, known_last = deref_(insert_last_);
+    const act = options.act || options.action, known_last = derefInDoc_(insert_last_)
     const selectOrClick = (el: SafeHTMLElement, rect?: Rect | null, onlyOnce?: true): Promise<void> => {
       return getEditableType_(el) ? select_(el, rect, onlyOnce, action, onlyOnce)
           : click_async(el, rect, true).then((): void => { onlyOnce && flash_(el) })
@@ -255,7 +255,7 @@ set_contentCommands_([
           set_is_last_mutable(0)
           newEl.blur();
         }
-      } else if (!(newEl = known_last)) {
+      } else if (!(newEl = deref_(insert_last_))) {
         ret = kTip.noFocused
       } else if (act !== "last-visible" && view_(newEl) || !isNotInViewport(newEl)) {
         set_insert_last_(null)
@@ -459,7 +459,8 @@ set_contentCommands_([
           (event as Writable<typeof event>).isTrusted = false
         }
         const match = options.match
-        const el = match ? safeCall(querySelector_unsafe_, match) : deref_(currentScrolling) || deepActiveEl_unsafe_(1)
+        const el = match ? safeCall(querySelector_unsafe_, match)
+            : derefInDoc_(currentScrolling) || deepActiveEl_unsafe_(1)
         const activeEl = OnFirefox ? el : SafeEl_not_ff_!(el as Exclude<typeof el, void>)
         const useClick = options.click
         useResult = !useClick && options.return && !!activeEl
