@@ -47,11 +47,12 @@
         if (event.shiftKey) {
           modifiers.push("Shift");
         }
+        modifiers = modifiers.join("-");
         if (event.getModifierState) {
-          event.getModifierState("CapsLock") && modifiers.push("CapsLock=On")
-          event.getModifierState("AltGraph") && modifiers.push("AltGr=On")
+          event.getModifierState("CapsLock") && (modifiers += " CapsLock=On")
+          event.getModifierState("AltGraph") && (modifiers += " AltGr=On")
         }
-        element.querySelector(".modifierColumn").textContent = modifiers.join("-");
+        element.querySelector(".modifierColumn").textContent = modifiers.trim()
         element.querySelector(".keyCodeColumn").textContent = event.keyCode;
         if (n < table.rows.length) {
           table.firstElementChild.remove()
