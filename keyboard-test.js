@@ -15,6 +15,7 @@
   for (var i = 0, len = ref.length; i < len; i++) {
     window.addEventListener(ref[i], onKeyboard, true)
   }
+  /** @param {KeyboardEvent} event */
   function onKeyboard(event) {
         var element = document.importNode(templateContent, true);
         var type, modifiers;
@@ -46,6 +47,10 @@
         if (event.shiftKey) {
           modifiers.push("Shift");
         }
+        if (event.getModifierState) {
+          event.getModifierState("CapsLock") && modifiers.push("CapsLock=On")
+          event.getModifierState("AltGraph") && modifiers.push("AltGr=On")
+        }
         element.querySelector(".modifierColumn").textContent = modifiers.join("-");
         element.querySelector(".keyCodeColumn").textContent = event.keyCode;
         if (n < table.rows.length) {
@@ -61,5 +66,6 @@
   document.querySelector("#reset").onclick = function () {
     table.textContent = "";
     document.querySelector("#input").value = "";
+    count = 0;
   }
 }).call(this);

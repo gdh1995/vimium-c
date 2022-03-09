@@ -9,9 +9,14 @@
     <style type="text/css">
       body { font: normal 15px/18px helvetica,arial; padding: 0 0 0 20px; }
       #input { width: 200px; }
-      #toolbar { display: inline-block; margin-left: 20px; }
+      #toolbar { display: inline-block; margin-left: 8px; }
       .column { width: 120px; }
       .eventNumber { width: 40px; }
+      table { border-collapse:collapse; }
+      td { padding: 2px; }
+      .event-item:nth-child(odd) { border-bottom: 1px solid #ff572240; }
+      .event-item:nth-child(even) { border-bottom: 1px solid #4051b540; }
+      .event-item:last-child { border-bottom: none; }
     </style>
 
     <script src="./keyboard-test.js" defer></script>
@@ -21,15 +26,16 @@
     <p>Firstly, please <b>disable
       <a target="_blank" href="https://github.com/gdh1995/vimium-c" title="Vimium C - All by Keyboard">Vimium C</a> /
       <a target="_blank" href="https://github.com/philc/vimium">Vimium</a> /
+      <a target="_blank" href="https://github.com/lydell/LinkHints" title="lydell/LinkHints">LinkHints</a> /
       <a target="_blank" href="https://github.com/akhodakivskiy/VimFx">VimFx</a></b>
       on this page.</p>
     <p>
       Press keys to see which keyboard events are triggered.
-      <label><input type="checkbox" id="preventAll" />Prevent all keyboard events</label>
+      <span id="toolbar"><button id="reset">Clear outputs</button></span>
     </p>
     <p>
       <label>Test typing on an input box: <input id="input" type="text" spellcheck="false" /></label>
-      <span id="toolbar"><button id="reset">Clear outputs</button></span>
+      <label><input type="checkbox" id="preventAll" />Prevent all keyboard events</label>
     </p>
     <div>
       <table id="keyTable">
@@ -46,7 +52,7 @@
     </div>
 
     <template id="rowTemplate">
-      <tr>
+      <tr class="event-item">
         <td align="left" class="eventNumber"></td>
         <td align="left" class="column eventColumn"></td>
         <td align="left" class="column codeColumn"></td>
