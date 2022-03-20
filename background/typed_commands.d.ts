@@ -78,8 +78,9 @@ interface BgCmdOptions {
     sort: "" | /** time */ true | "time" | "create" | "recency" | "id" | "url" | "host" | "title" | "reverse"
     order: /** split by "," */ ("time" | "rtime" | "recent" | "recency"
           | "host" | "url" | "rhost" | "title" | "create" | "rcreate" | "id" | "window" | "rwindow"
-          | "index" | "rindex" | "reverse")[]
+          | "index" | "rindex" | "reverse" | "-time")[]
     windows: "" | "current" | "all"
+    position: "" | "begin" | "start" | "before" | "after" | "end" | "keep"
   } & TabFilterOptions
   [kBgCmd.mainFrame]: Req.FallbackOptions
   [kBgCmd.moveTab]: { group: "keep" | "ignore" | boolean }

@@ -160,78 +160,104 @@ export interface FilterInfo { known?: boolean }
 export const filterTabsByCond_ = <T extends ShownTab = Tab>(activeTab: ShownTab | null | undefined
     , tabs: readonly T[], filter: NonNullable<BgCmdOptions[kBgCmd.removeTabsR]["filter"]>
     , extraOutputs?: FilterInfo): T[] => {
-  let title: string | undefined, matcher: ValidUrlMatchers | null | undefined, host: string | undefined
-  let group: string | null | undefined, useHash = false, hidden: boolean | null = null, muted: boolean | null = null
-  let audio: boolean | null = null, pinned: boolean | null = null, known = 0, limit = 0;
-  let incognito: boolean | null = null, highlighted: boolean | null = null, discarded: boolean | null = null
+  let limit = 0
+  const conditions: [cond: (tab: ShownTab) => boolean, negative: boolean][] = []
   for (let item of (filter + "").split(/[&+]/)) {
-    const rawKey = item.split("=", 1)[0], key = rawKey.includes(".") ? "" : rawKey || item
-    const rawVal = item.slice(key ? key.length + (item.charAt(key.length + 1) === "=" ? 2 : 1) : 0);
+    const rawKey = item.split("=", 1)[0], directHost = rawKey.includes("."), neg = !directHost && rawKey.endsWith("!")
+    const key = directHost ? "" : (neg ? rawKey.slice(0, -1) : rawKey) || item
+    const rawVal = item.slice(directHost ? 0 : rawKey.length + (item.charAt(rawKey.length + 1) === "=" ? 2 : 1))
     const val = rawVal && BgUtils_.DecodeURLPart_(rawVal);
-    known++;
+    const wantSame = val === "same"
+    let cond: ((tab: ShownTab) => boolean) | null = null
     switch (key) {
     case "title": case "title*":
-      title = val ? val : activeTab && activeTab.title || undefined
+      const title = val ? val : activeTab && activeTab.title
+      cond = title ? tab => (tab.title || "").includes(title) : cond
       break
-    case "url": case "hash":
+    case "url": case "urlhash": case "url+hash": case "url-hash": case "hash":
+      let matcher: ValidUrlMatchers | null = null
       if (key === "url" && val) {
         matcher = Exclusions.createSimpleUrlMatcher_(val)
       } else {
         const url = activeTab ? getTabUrl(activeTab) : null
-        useHash = useHash || key === "hash"
+        const useHash = key.includes("hash")
         matcher = url ? Exclusions.createSimpleUrlMatcher_(":" + (useHash ? url : url.split("#", 1)[0])) : null
       }
+      cond = matcher ? tab => Exclusions.matchSimply_(matcher!, getTabUrl(tab)) : cond
       break
     case "host": case "":
-      host = val ? val : key && activeTab ? BgUtils_.safeParseURL_(getTabUrl(activeTab))?.host : ""
+      const host = val ? val : key && activeTab ? BgUtils_.safeParseURL_(getTabUrl(activeTab))?.host : ""
+      cond = host ? tab => host === BgUtils_.safeParseURL_(getTabUrl(tab))?.host : cond
       break
-    case "discarded": case "discard": discarded = val === "same" ? false : parseBool(val, 1); break
+    case "active":
+      const active = parseBool(val, 1)
+      cond = active != null ? tab => tab.active === active : cond
+      break
+    case "new": case "old": case "visited":
+      const visited = parseBool(val) === (key !== "new")
+      cond = tab => recencyForTab_.has(tab.id) === visited
+    case "discarded": case "discard":
+      const discarded = wantSame ? false : parseBool(val, 1)
+      cond = discarded != null ? tab => tab.discarded === discarded : cond
+      break
     case "group":
-      group = val ? val : activeTab ? getGroupId(activeTab) != null ? getGroupId(activeTab) + "" : null : undefined
+      const group = val ? val : activeTab ? getGroupId(activeTab) != null ? getGroupId(activeTab) + "" : "" : null
+      cond = group != null ? tab => (getGroupId(tab) ?? "") + "" === group : cond
       break
     case "hidden":
-      hidden = !OnFirefox ? null : val === "same" ? false : parseBool(val, 1)
+      const hidden = !OnFirefox ? null : wantSame ? false : parseBool(val, 1)
+      cond = hidden != null ? tab => isNotHidden_(tab) !== hidden : cond
       break
     case "highlight": case "highlighted":
-      highlighted = val === "same" ? activeTab ? activeTab.highlighted : null : parseBool(val); break
+      const highlighted = wantSame ? activeTab ? activeTab.highlighted : null : parseBool(val)
+      cond = highlighted != null ? tab => tab.highlighted === highlighted : cond
+      break
     case "incognito": case "incognito":
-      incognito = val === "same" ? activeTab ? activeTab.incognito : null : parseBool(val); break
-    case "pinned": pinned = val === "same" ? activeTab ? activeTab.pinned : null : parseBool(val, 1); break
+      const incognito = wantSame ? activeTab ? activeTab.incognito : null : parseBool(val)
+      cond = incognito != null ? tab => tab.incognito === incognito : cond
+      break
+    case "pinned":
+      const pinned = wantSame ? activeTab ? activeTab.pinned : null : parseBool(val, 1)
+      cond = pinned != null ? tab => tab.pinned === pinned : cond
+      break
     case "mute": case "muted":
       if (!OnChrome || Build.MinCVer >= BrowserVer.MinMuted || CurCVer_ > BrowserVer.MinMuted - 1) {
-        muted = val === "same" ? activeTab ? isTabMuted(activeTab) : null : parseBool(val);
+        const muted = wantSame ? activeTab ? isTabMuted(activeTab) : null : parseBool(val)
+        cond = muted != null ? tab => isTabMuted(tab) === muted : cond
       }
       break;
     case "audible": case "audio":
       if (!OnChrome || Build.MinCVer >= BrowserVer.MinTabAudible || tabs[0] && tabs[0].audible != null) {
-        audio = val === "same" ? activeTab ? activeTab.audible : null : parseBool(val)
+        const audible = wantSame ? activeTab ? activeTab.audible : null : parseBool(val)
+        cond = audible != null ? tab => tab.audible === audible : cond
       }
       break;
     case "limit": case "limited":
       limit = val === "count" ? get_cOptions<C.togglePinTab, true>().$limit || cRepeat : parseInt(val) || 1
       break
-    default: known--; break
+    default: break
+    }
+    if (cond) {
+      conditions.push([cond, neg])
     }
   }
-  extraOutputs && (extraOutputs.known = known > 0)
-  if (known === 0) {
+  extraOutputs && (extraOutputs.known = conditions.length > 0)
+  if (conditions.length === 0) {
       return tabs.slice(0);
   }
   const oriTabs = tabs as readonly ShownTab[]
-  let newTabs = tabs.filter(tab =>
-      (!title || (tab.title || "").includes(title))
-      && (!matcher || Exclusions.matchSimply_(matcher, getTabUrl(tab)))
-      && (!host || host === BgUtils_.safeParseURL_(getTabUrl(tab))?.host)
-      && (hidden === null || hidden !== isNotHidden_(tab))
-      && (discarded === null || discarded === tab.discarded)
-      && (pinned === null || pinned === tab.pinned)
-      && (muted === null || muted === isTabMuted(tab))
-      && (audio === null || audio === tab.audible)
-      && (highlighted === null || highlighted === tab.highlighted)
-      && (incognito === null || highlighted === tab.incognito)
-      && (group === undefined || group === (getGroupId(tab) ?? "") + "")
-  )
-  if (!newTabs.length) { showHUD("No tabs matched the filter parameter") }
+  let newTabs = tabs.filter((tab): boolean => {
+    for (const item of conditions) {
+      if (item[0](tab) === item[1]) {
+        return false
+      }
+    }
+    return true
+  })
+  if (!newTabs.length) {
+    (get_cOptions<C.joinTabs, true>() && get_cOptions<C.runKey, true>().$else) ||
+    showHUD("No tabs matched the filter parameter")
+  }
   if (limit) {
     let oriCurInd = activeTab ? oriTabs.indexOf(activeTab) : -1
     if (oriCurInd < 0) {
@@ -256,27 +282,27 @@ export const filterTabsByCond_ = <T extends ShownTab = Tab>(activeTab: ShownTab 
 export const sortTabsByCond_ = (allTabs: Readonly<Tab>[]
     , sortOpt: BgCmdOptions[kBgCmd.joinTabs]["order" | "sort"]): Readonly<Tab>[] => {
   interface TabInfo {
-    index: number; group: chrome.tabs.GroupId | null; time: number | null; rhost: string | null; tab: Tab
+    ind: number; group: chrome.tabs.GroupId | null; time: number | null; rhost: string | null; tab: Tab;
+    pinned: boolean
   }
   type ValidKeys = Extract<BgCmdOptions[kBgCmd.joinTabs]["order"], any[]>[0]
-  const refreshInd = (i: TabInfo, ind: number): void => { i.index = ind }
+  const refreshInd = (i: TabInfo, ind: number): void => { i.ind = ind }
   const compareStr = (a: string, b: string): number => a < b ? -1 : a > b ? 1 : 0
   const list: TabInfo[] = allTabs.map((i, ind): TabInfo => ({
-    tab: i, index: ind, time: null, rhost: null, group: getGroupId(i),
+    tab: i, ind, time: null, rhost: null, group: getGroupId(i), pinned: i.pinned
   }))
   let scale: number, work = -1, changed = false
-  for (const key of (sortOpt instanceof Array ? sortOpt.slice(0)
+  for (let key of (sortOpt instanceof Array ? sortOpt.slice(0)
           : (sortOpt === true ? "time" : sortOpt + "").split(<RegExpG> /[, ]+/g)).reverse() as ValidKeys[]) {
-    scale = key[0] === "r" ? -1 : 1
+    scale = key[0] === "r" && key[1] !== "e" || key[0] === "-" ? (key = key.slice(1) as typeof key, -1) : 1
     if (key.includes("time") && !key.includes("creat") || key.includes("recen")) {
       list[0].time == null && list.forEach(i => {
         const id = i.tab.id, recency = recencyForTab_.get(id)
         i.time = id === curTabId_ ? 1 : recency != null ? GlobalConsts.MaxTabRecency - recency.i
           : OnFirefox && (i.tab as Tab & {lastAccessed?: number}).lastAccessed || id + 2
       })
-      scale = key[0] === "r" && key[1] !== "e" ? -1 : 1
       work = 1
-    } else if (key.endsWith("host") || key.endsWith("url")) {
+    } else if (key.startsWith("host") || key === "url") {
       list[0].rhost || list.forEach(i => {
         const url = i.tab.url, start = url.indexOf("://") + 3, end = start > 3 ? url.indexOf("/", start) : 0
         if (end < start) { i.rhost = url; return }
@@ -285,10 +311,10 @@ export const sortTabsByCond_ = (allTabs: Readonly<Tab>[]
         i.rhost = isIPv6 ? host : host.slice(0, colon > 0 ? colon : host.length)
             .split(".").reverse().join(".") + (colon > 0 ? " " + host.slice( + 1) : "")
       })
-      work = key.includes("url") ? 3 : 2
+      work = key === "url" ? 3 : 2
     } else {
-      work = key === "title" ? 4 : key.includes("creat") || key === "id" ? 5 : key.includes("window") ? 6
-          : key.includes("index") || key === "reverse" ? 7 : -1
+      work = key === "title" ? 4 : key.includes("creat") || key === "id" ? 5 : key === "window" ? 6
+          : key === "index" ? 7 : key === "reverse" ? (scale = -1, 7) : -1
     }
     if (work < 0) { continue }
     list.sort((a, b): number => (work === 1 ? a.time! - b.time!
@@ -296,13 +322,17 @@ export const sortTabsByCond_ = (allTabs: Readonly<Tab>[]
         : work === 4 ? compareStr(a.tab.title, b.tab.title)
         : work === 5 ? a.tab.id - b.tab.id
         : work === 6 ? a.tab.windowId - b.tab.windowId
-        : a.index - b.index) * scale || a.index - b.index)
+        : a.ind - b.ind) * scale || a.ind - b.ind)
     list.forEach(refreshInd)
     changed = true
   }
   if (changed && list.some(i => i.group != null)) {
-    list.sort((a, b) => a.group == null ? b.group == null ? a.index - b.index : 1 : b.group == null ? -1
-        : a.group < b.group ? -1 : a.group > b.group ? 1 : a.index - b.index)
+    list.sort((a, b) => a.group == null ? b.group == null ? a.ind - b.ind : 1 : b.group == null ? -1
+        : a.group < b.group ? -1 : a.group > b.group ? 1 : a.ind - b.ind)
+  }
+  if (changed) {
+    list.forEach(refreshInd)
+    list.sort((a, b) => a.pinned !== b.pinned ? a.pinned ? -1 : 1 : a.ind - b.ind)
   }
   return changed ? list.map(i => i.tab) : allTabs
 }

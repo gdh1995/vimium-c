@@ -117,48 +117,60 @@ export const joinTabs = (resolve: OnCmdResolved): void | kBgCmd.joinTabs => {
     const isCurTabIncognito = curIncognito_ === IncognitoType.true
     wnds = onlyCurrent ? wnds : wnds.filter(wnd => wnd.incognito === isCurTabIncognito)
     const _cur0 = onlyCurrent ? wnds : wnds.filter(wnd => wnd.id === curWndId_)
-    const _curWnd = _cur0.length ? _cur0[0] : null
-    if (!onlyCurrent && !_curWnd) { resolve(0); return }
+    if (!onlyCurrent && !_cur0.length) { resolve(0); return }
     const cb = (curWnd?: typeof wnds[0] | null): void => {
       let allTabs: Readonly<Tab>[] = [], push = (j: Tab): void => { allTabs.push(j) }
       wnds.sort((i, j) => i.id - j.id).forEach(i => { i.tabs.forEach(push) })
+      if (!allTabs.length) { resolve(0); return }
       let filter = get_cOptions<C.joinTabs, true>().filter
+      const curWndId = curWnd ? curWnd.id : curWndId_
+      const activeTab = allTabs.find(i => i.id === curTabId_) || (curWnd ? selectFrom(curWnd.tabs) : allTabs[0])
       if (onlyCurrent && abs(cRepeat) > 1 && allTabs.length > 1) {
-        const ind = selectFrom(allTabs).index, range = getTabRange(ind, allTabs.length)
+        const ind = allTabs.findIndex(i => i.id === activeTab.id), range = getTabRange(ind, allTabs.length)
         allTabs = allTabs.slice(range[0], range[1])
       }
       if (filter) {
-        const curId = cPort ? cPort.s.tabId_ : curTabId_
-        const activeTab = allTabs.find(i => i.id === curId), extra: FilterInfo = {}
+        const extra: FilterInfo = {}
         allTabs = filterTabsByCond_(activeTab, allTabs, filter, extra)
         filter = extra.known ? filter : null
       }
       if (!allTabs.length) { resolve(0); return }
-      if (sortOpt) {
-        allTabs = sortTabsByCond_(allTabs, sortOpt)
-      }
-      let start = curWnd ? curWnd.tabs.length : 0
-      const curWndId = curWnd ? curWnd.id : curWndId_
-      if (filter) {
+      allTabs = sortOpt ? sortTabsByCond_(allTabs, sortOpt) : allTabs
+      const pos = get_cOptions<C.joinTabs>().position, goToBefore = pos === "before" || (pos + "").startsWith("prev")
+      let start: number
+      if (!(filter && curWnd)) { start = curWnd ? curWnd.tabs.length : 0 }
+      else if (!pos || typeof pos !== "string" || pos === "keep") {
         start = allTabs.reduce((ind, i) => i.windowId === curWndId ? Math.min(i.index, ind) : ind, allTabs.length)
+      } else if (pos === "begin" || pos === "start") {
+        start = curWnd.tabs.filter(i => i.pinned).length
+      } else if (pos !== "end") {
+        allTabs.includes!(activeTab) && allTabs.splice(allTabs.indexOf(activeTab), 1)
+        goToBefore ? allTabs.push(activeTab) : allTabs.unshift(activeTab)
+        start = Math.max(0, curWnd.tabs.findIndex(i => i.id === curTabId_)
+            - allTabs.filter(i => i.windowId === curWndId && i.index < activeTab.index).length)
+      } else {
+        start = curWnd.tabs.length
       }
       // Note: on Edge 84, the result of `tabs.move(number[], {index: number})` is (stable but) unpredictable
       for (const tab of allTabs) {
-        Tabs_.move(tab.id, { windowId: curWndId, index: start++ })
+        Tabs_.move(tab.id, tab.windowId !== curWndId ? { windowId: curWndId, index: start++ } : { index: start++ })
       }
       for (const tab of allTabs) {
-        tab.pinned && tabsUpdate(tab.id, { pinned: true })
+        tab.pinned && tab.windowId !== curWndId && tabsUpdate(tab.id, { pinned: true })
       }
       resolve(1)
     }
+    {
+    const _curWnd = _cur0.length ? _cur0[0] : null
     if (_curWnd && _curWnd.type === "popup" && _curWnd.tabs.length) {
       // always convert a popup window to a normal one
-      let curTabId = _curWnd.tabs[0].id
+      const curTabId = selectFrom(_curWnd.tabs).id
       _curWnd.tabs = _curWnd.tabs.filter(i => i.id !== curTabId)
       makeWindow({ tabId: curTabId, incognito: _curWnd.incognito }, _curWnd.state, cb)
     } else {
       wnds = onlyCurrent || !_curWnd || windowsOpt === "all" ? wnds : wnds.filter(wnd => wnd.id !== _curWnd.id)
       cb(_curWnd)
+    }
     }
   }
   if (onlyCurrent) {
