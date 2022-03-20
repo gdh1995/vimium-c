@@ -2,7 +2,7 @@ import {
   bookmarkCache_, Completion_, os_, CurCVer_, curTabId_, curWndId_, historyCache_, OnChrome, OnFirefox,
   blank_, recencyForTab_, searchEngines_, evalVimiumUrl_, OnEdge, CONST_
 } from "./store"
-import { overrideTabsIndexes_ff_, browser_, getTabUrl, isTabMuted } from "./browser"
+import { browser_, getTabUrl, isTabMuted } from "./browser"
 import * as BgUtils_ from "./utils"
 import { convertToUrl_, lastUrlType_, createSearch_ } from "./normalize_urls"
 import { fixCharsInUrl_ } from "./parse_urls"
@@ -473,9 +473,8 @@ tabEngine = {
       const treeMap = new Map<number, Tab>()
       for (const tab of tabs0) { treeMap.set(tab.id, tab) }
       {
-        OnFirefox && overrideTabsIndexes_ff_!(tabs0)
         let curTab = treeMap.get(curTabId), pId = curTab ? curTab.openerTabId : 0, pTab = pId ? treeMap.get(pId) : null,
-        start = pTab ? pTab.index : curTab ? curTab.index - 1 : 0, i = pTab ? 0 : (maxTotal / 2) | 0;
+        start = pTab ? tabs0.indexOf(pTab) : curTab ? tabs0.indexOf(curTab) - 1 : 0, i = pTab ? 0 : (maxTotal / 2) | 0;
         for (; 1 < --i && start > 0 && tabs0[start - 1].openerTabId === pId; start--) { /* empty */ }
         tabs0 = start > 0 ? tabs0.slice(start).concat(tabs0.slice(0, start)) : tabs0;
       }

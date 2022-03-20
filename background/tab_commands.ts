@@ -6,7 +6,8 @@ import * as BgUtils_ from "./utils"
 import {
   Tabs_, Windows_, makeTempWindow_r, makeWindow, PopWindow, tabsCreate, Window, getTabUrl, selectFrom, tabsGet, R_,
   runtimeError_, IncNormalWnd, selectWnd, selectTab, getCurWnd, getCurTabs, getCurTab, getGroupId, tabsUpdate,
-  browserSessions_, InfoToCreateMultiTab, openMultiTabs, isTabMuted, isRefusingIncognito_, ShownTab, Q_, isNotHidden_
+  browserSessions_, InfoToCreateMultiTab, openMultiTabs, isTabMuted, isRefusingIncognito_, Q_, isNotHidden_,
+  selectIndexFrom
 } from "./browser"
 import { convertToUrl_ } from "./normalize_urls"
 import { parseSearchUrl_ } from "./parse_urls"
@@ -19,8 +20,8 @@ import { parseSedOptions_ } from "./clipboard"
 import { newTabIndex, preferLastWnd, openUrlWithActions } from "./open_urls"
 import { focusFrame } from "./frame_commands"
 import {
-  FilterInfo, filterTabsByCond_, getNecessaryCurTabInfo, getTabRange, onShownTabsIfRepeat_, Range3, sortTabsByCond_,
-  tryLastActiveTab_
+  FilterInfo, filterTabsByCond_, findNearShownTab_, getNecessaryCurTabInfo, getTabRange, onShownTabsIfRepeat_, Range3,
+  sortTabsByCond_, tryLastActiveTab_
 } from "./filter_tabs"
 import { TabRecency_ } from "./tools"
 
@@ -68,7 +69,7 @@ export const copyWindowInfo = (resolve: OnCmdResolved): void | kBgCmd.copyWindow
     rawFormat = get_cOptions<C.copyWindowInfo>().format, format = "" + (rawFormat || "${title}: ${url}"),
     join = get_cOptions<C.copyWindowInfo, true>().join, isPlainJSON = join === "json" && !rawFormat
     if (wantNTabs) {
-      const ind = tabs.length < 2 ? 0 : selectFrom(tabs).index, range = getTabRange(ind, tabs.length)
+      const ind = tabs.length < 2 ? 0 : selectIndexFrom(tabs), range = getTabRange(ind, tabs.length)
       tabs = tabs.slice(range[0], range[1])
     } else {
       tabs = tabs.filter(i => i.incognito === incognito)
@@ -189,7 +190,7 @@ export const moveTabToNewWindow = (resolve: OnCmdResolved): void | kBgCmd.moveTa
   const moveTabToNewWindow0 = (wnd: PopWindow): void => {
     const allTabs = wnd.tabs, total = allTabs.length
     const focused = get_cOptions<C.moveTabToNewWindow>().focused !== false
-    const activeTab = selectFrom(allTabs), curIncognito = activeTab.incognito;
+    const curInd = selectIndexFrom(allTabs), activeTab = allTabs[curInd], curIncognito = activeTab.incognito;
     if (!all && total <= 1 && (!total || activeTab.index === 0 && abs(cRepeat) > 1)) { resolve(0); return }
     let range: [number, number]
     if (all) {
@@ -203,7 +204,7 @@ export const moveTabToNewWindow = (resolve: OnCmdResolved): void | kBgCmd.moveTa
         }
       range = [0, total]
     } else {
-      range = total === 1 ? [0, 1] : getTabRange(activeTab.index, total)
+      range = total === 1 ? [0, 1] : getTabRange(curInd, total)
     }
     const filter = get_cOptions<C.moveTabToNewWindow, true>().filter
     let tabs = allTabs.slice(range[0], range[1])
@@ -441,7 +442,7 @@ export const moveTabToNextWindow = ([tab]: [Tab], resolve: OnCmdResolved): void 
   })
 }
 
-export const reloadTab = (tabs: ShownTab[], [start, ind, end]: Range3, r: OnCmdResolved, force1?: boolean): void => {
+export const reloadTab = (tabs: Tab[], [start, ind, end]: Range3, r: OnCmdResolved, force1?: boolean): void => {
   const reloadProperties = {
     bypassCache: (get_cOptions<C.reloadTab>().hard || get_cOptions<C.reloadTab>().bypassCache) === true
   },
@@ -483,7 +484,7 @@ export const removeTab = (resolve: OnCmdResolved, phase?: 1 | 2 | 3, tabs?: read
     return
   }
   if (!tabs || !tabs.length) { resolve(0); return runtimeError_() }
-  const total = tabs.length, tab = selectFrom(tabs), curInd = tab.index
+  const total = tabs.length, curInd = selectIndexFrom(tabs), tab = tabs[curInd]
   let count = 1, start = curInd, end = curInd + 1
   if (abs(cRepeat) > 1 && total > 1) {
     const noPinned = tabs[0].pinned !== tab.pinned && !(cRepeat < 0 && tabs[curInd - 1].pinned)
@@ -551,7 +552,7 @@ export const removeTab = (resolve: OnCmdResolved, phase?: 1 | 2 | 3, tabs?: read
     let nextTab: Tab | null | undefined = !previousOnly && end < total && !recencyForTab_.has(tabs[end].id) ? tabs[end]
         : tabs.filter((j, ind) => (ind < start || ind >= end) && recencyForTab_.has(j.id))
             .sort(TabRecency_.rCompare_)[0]
-    goToIndex = nextTab ? nextTab.index : total
+    goToIndex = nextTab ? tabs.indexOf(nextTab) : total
   } else if (gotoLeft || gotoRight) {
     let i2 = goToIndex = gotoLeft ? start > 0 ? start - 1 : end : end < total ? end : start - 1
     while (i2 >= 0 && i2 < total && (i2 < start || i2 >= end) && !isNotHidden_(tabs[i2])) { i2 += i2 < start ? -1 : 1 }
@@ -595,8 +596,9 @@ const removeAllTabsInWnd = (resolve: OnCmdResolved, tab: Tab, curTabs: readonly 
 
 const removeTabsInOrder = (tab: Tab, tabs: readonly Tab[], start: number, end: number
     , resolve: OnCmdResolved | null): void => {
+  const curInd = Math.max(0, tabs.indexOf(tab))
   Tabs_.remove(tab.id, resolve ? R_(resolve) : runtimeError_)
-  let parts1 = tabs.slice(tab.index + 1, end), parts2 = tabs.slice(start, tab.index)
+  let parts1 = tabs.slice(curInd + 1, end), parts2 = tabs.slice(start, curInd)
   if (cRepeat < 0) {
     [parts1, parts2] = [parts2, parts1]
   }
@@ -663,7 +665,7 @@ export const toggleMuteTab = (resolve: OnCmdResolved): void | kBgCmd.toggleMuteT
   }
 }
 
-export const togglePinTab = (tabs: ShownTab[], oriRange: Range3, resolve: OnCmdResolved): void => {
+export const togglePinTab = (tabs: Tab[], oriRange: Range3, resolve: OnCmdResolved): void => {
   const filter = get_cOptions<C.togglePinTab, true>().filter
   const current = oriRange[1]
   const tab = tabs[current]
@@ -676,7 +678,7 @@ export const togglePinTab = (tabs: ShownTab[], oriRange: Range3, resolve: OnCmdR
   }
   const range = getTabRange(current - skipped, tabs.length - skipped, tabs.length)
   let start = skipped + range[offset] - offset, end = skipped + range[1 - offset] - offset
-  let wantedTabs: ShownTab[] = []
+  let wantedTabs: Tab[] = []
   for (; start !== end; start += pin ? 1 : -1) {
     if (pin || tabs[start].pinned) {
       wantedTabs.push(tabs[start])

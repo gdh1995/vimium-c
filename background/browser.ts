@@ -31,7 +31,7 @@ export const runtimeError_ = (): any => browser_.runtime.lastError
 export const tabsGet = Tabs_.get
 export const tabsUpdate = Tabs_.update
 
-export const getGroupId: (tab: ShownTab) => chrome.tabs.GroupId | null = OnFirefox
+export const getGroupId: (tab: Tab) => chrome.tabs.GroupId | null = OnFirefox
     ? tab => { const id = tab.cookieStoreId; return id !== "firefox-default" && id || null }
     : !OnEdge ? i => { const id = i.groupId; return id !== -1 && id != null ? id : null }
     : () => null
@@ -42,8 +42,8 @@ export const getTabUrl = OnChrome ? (tab_may_pending: Pick<Tab, "url" | "pending
     : (tab_with_url: Pick<Tab, "url">): string => tab_with_url.url
 
 export const isTabMuted = OnChrome && Build.MinCVer < BrowserVer.MinMutedInfo && CurCVer_ < BrowserVer.MinMutedInfo
-    ? (maybe_muted: ShownTab): boolean => maybe_muted.muted!
-    : OnEdge ? (_tab: ShownTab) => false : (maybe_muted: ShownTab): boolean => maybe_muted.mutedInfo.muted
+    ? (maybe_muted: Tab): boolean => maybe_muted.muted!
+    : OnEdge ? (_tab: Tab) => false : (maybe_muted: Tab): boolean => maybe_muted.mutedInfo.muted
 
 export const getCurTab = Tabs_.query.bind(null, { active: true, currentWindow: true }
   ) as (callback: (result: [Tab], _ex: FakeArg) => void) => 1
@@ -53,16 +53,7 @@ export const getCurTabs = Tabs_.query.bind(null, {currentWindow: true})
 export const getCurShownTabs_ = OnFirefox
     ? Tabs_.query.bind(null, { currentWindow: true, hidden: false }) : getCurTabs
 
-export const isNotHidden_ = OnFirefox ? (tab: ShownTab): boolean => !tab.hidden : () => true
-
-export const overrideTabsIndexes_ff_ = OnFirefox ? (tabs: readonly Tab[]): void => {
-  const len = tabs.length
-  if (len > 0 && tabs[len - 1].index !== len - 1) {
-    for (let i = 0; i < len; i++) {
-      tabs[i].index = i
-    }
-  }
-} : null
+export const isNotHidden_ = OnFirefox ? (tab: Tab): boolean => !tab.hidden : () => true
 
 export const getCurWnd = ((populate: boolean, callback: (window: Window, exArg: FakeArg) => void): void | 1 => {
   const args = { populate }
@@ -73,17 +64,11 @@ export const getCurWnd = ((populate: boolean, callback: (window: Window, exArg: 
   (populate: boolean, callback: (window?: PopWindow | Window | undefined, exArg?: FakeArg) => void): 1
 }
 
-export interface ShownTab extends Omit<Tab, "index"> {}
+export const selectFrom = (tabs: readonly Tab[]): ActiveTab => tabs[selectIndexFrom(tabs)] as ActiveTab
 
-export const selectFrom = <O extends BOOL = 0>(tabs: O extends 1 ? readonly Tab[] : readonly ShownTab[]
-    , overrideIndexes?: O): ActiveTab => {
-  OnFirefox && overrideIndexes && overrideTabsIndexes_ff_!(tabs as readonly Tab[])
-  for (let i = tabs.length; 0 < --i; ) {
-    if (tabs[i].active) {
-      return tabs[i]! as ActiveTab
-    }
-  }
-  return tabs[0]! as ActiveTab
+export const selectIndexFrom = (tabs: readonly Tab[]): number => {
+  for (let i = tabs.length; 0 < --i; ) { if (tabs[i].active) { return i } }
+  return 0
 }
 
 export const normalizeExtOrigin_ = (url: string): string =>

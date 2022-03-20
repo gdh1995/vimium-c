@@ -3,8 +3,8 @@ import {
 } from "./store"
 import * as BgUtils_ from "./utils"
 import {
-  selectFrom, Tabs_, getCurShownTabs_, getCurWnd, runtimeError_, isNotHidden_, ShownTab, getCurTab, getCurTabs,
-  getTabUrl, getGroupId, isTabMuted, Q_, Windows_
+  Tabs_, getCurShownTabs_, getCurWnd, runtimeError_, isNotHidden_, getCurTab, getCurTabs,
+  getTabUrl, getGroupId, isTabMuted, Q_, Windows_, selectIndexFrom
 } from "./browser"
 import { getPortUrl_, showHUD } from "./ports"
 import * as Exclusions from "./exclusions"
@@ -36,13 +36,12 @@ const innerGetTabRange = (current: number, total: number, countToAutoLimitBefore
 }
 
 export const onShownTabsIfRepeat_ = <All extends boolean> (allInRange: All, noSelf: 0 | 1
-    , callback: (tabs: ShownTab[], range: Range3, resolve: OnCmdResolved) => void
+    , callback: (tabs: Tab[], range: Range3, resolve: OnCmdResolved) => void
     , curOrTabs: [Tab] | Tab[] | undefined, resolve: OnCmdResolved
     , isUsable?: ((theOther: Tab) => boolean) | true | null): void => {
   const onTabs = (shownTabs?: Tab[]): void => {
     if (!shownTabs || !shownTabs.length) { resolve(0); return runtimeError_() }
-    let ind = !OnFirefox ? selectFrom(shownTabs).index : !isUsable ? selectFrom(shownTabs, 1).index
-        : Math.max(shownTabs.findIndex(i => i.active), 0)
+    let ind = selectIndexFrom(shownTabs)
     const [start, end] = limitCount ? [0, shownTabs.length] : getTabRange(ind, shownTabs.length, 0, noSelf)
     if (limitCount) {
       overrideCmdOptions<C.togglePinTab>({ limited: false }, true)
@@ -94,12 +93,9 @@ export const tryLastActiveTab_ = (): number => {
   return tabId
 }
 
-export const getNearTabInd = (tabs: Tab[], activeInd: number, goRight: boolean): number => {
+export const getNearArrIndex = (tabs: readonly Tab[], tabIndex: number, goRight: boolean): number => {
   for (let i = tabs.length > 1 ? 0 : 1; i < tabs.length; i++) {
-    const ind = tabs[i].index
-    if (ind > activeInd || ind === activeInd) {
-      return goRight || ind === activeInd ? i : i > 0 ? i - 1 : 0
-    }
+    if (tabs[i].index >= tabIndex) { return tabs[i].index === tabIndex || goRight ? i : i > 0 ? i - 1 : 0 }
   }
   return tabs.length - 1
 }
@@ -157,18 +153,18 @@ export const testBoolFilter_ = (filter: TabFilterOptions["filter"] | null | unde
 
 export interface FilterInfo { known?: boolean }
 
-export const filterTabsByCond_ = <T extends ShownTab = Tab>(activeTab: ShownTab | null | undefined
-    , tabs: readonly T[], filter: NonNullable<BgCmdOptions[kBgCmd.removeTabsR]["filter"]>
-    , extraOutputs?: FilterInfo): T[] => {
+export const filterTabsByCond_ = (activeTab: Tab | null | undefined
+    , tabs: readonly Tab[], filter: NonNullable<BgCmdOptions[kBgCmd.removeTabsR]["filter"]>
+    , extraOutputs?: FilterInfo): Tab[] => {
   let limit = 0
-  const conditions: [cond: (tab: ShownTab) => boolean, negative: boolean][] = []
+  const conditions: [cond: (tab: Tab) => boolean, negative: boolean][] = []
   for (let item of (filter + "").split(/[&+]/)) {
     const rawKey = item.split("=", 1)[0], directHost = rawKey.includes("."), neg = !directHost && rawKey.endsWith("!")
     const key = directHost ? "" : (neg ? rawKey.slice(0, -1) : rawKey) || item
     const rawVal = item.slice(directHost ? 0 : rawKey.length + (item.charAt(rawKey.length + 1) === "=" ? 2 : 1))
     const val = rawVal && BgUtils_.DecodeURLPart_(rawVal);
     const wantSame = val === "same"
-    let cond: ((tab: ShownTab) => boolean) | null = null
+    let cond: ((tab: Tab) => boolean) | null = null
     switch (key) {
     case "title": case "title*":
       const title = val ? val : activeTab && activeTab.title
@@ -245,7 +241,7 @@ export const filterTabsByCond_ = <T extends ShownTab = Tab>(activeTab: ShownTab 
   if (conditions.length === 0) {
       return tabs.slice(0);
   }
-  const oriTabs = tabs as readonly ShownTab[]
+  const oriTabs: readonly Tab [] = tabs
   let newTabs = tabs.filter((tab): boolean => {
     for (const item of conditions) {
       if (item[0](tab) === item[1]) {

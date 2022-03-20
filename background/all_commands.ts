@@ -7,7 +7,7 @@ import {
 import {
   Tabs_, Windows_, InfoToCreateMultiTab, openMultiTabs, tabsGet, getTabUrl, selectFrom, runtimeError_, R_,
   selectTab, getCurWnd, getCurTab, getCurShownTabs_, browserSessions_, browser_, selectWndIfNeed,
-  getGroupId, isRefusingIncognito_, Q_, isNotHidden_, ShownTab
+  getGroupId, isRefusingIncognito_, Q_, isNotHidden_, selectIndexFrom
 } from "./browser"
 import { createSearchUrl_ } from "./normalize_urls"
 import { parseSearchUrl_ } from "./parse_urls"
@@ -29,7 +29,7 @@ import {
 } from "./frame_commands"
 import {
   onShownTabsIfRepeat_, getTabRange, getTabsIfRepeat_, tryLastActiveTab_, filterTabsByCond_, testBoolFilter_,
-  getNearTabInd, getNecessaryCurTabInfo
+  getNearArrIndex, getNecessaryCurTabInfo
 } from "./filter_tabs"
 import {
   copyWindowInfo, joinTabs, moveTabToNewWindow, moveTabToNextWindow, reloadTab, removeTab, toggleMuteTab,
@@ -228,8 +228,8 @@ set_bgC_([
       }
       (!wantAll && cRepeat * cRepeat < 2 ? getCurTab : getCurShownTabs_)(function doAddBookmarks(tabs?: Tab[]): void {
         if (!tabs || !tabs.length) { resolve(0); return runtimeError_() }
-        const activeTab = (OnFirefox ? selectFrom(tabs, 1) : selectFrom(tabs)), ind = activeTab.index
-        let [start, end] = wantAll ? [0, tabs.length] : getTabRange(ind, tabs.length)
+        const curInd = selectIndexFrom(tabs), activeTab = tabs[curInd]
+        let [start, end] = wantAll ? [0, tabs.length] : getTabRange(curInd, tabs.length)
         const filter = get_cOptions<C.addBookmark, true>().filter, allTabs = tabs
         tabs = tabs.slice(start, end);
         if (filter) {
@@ -307,18 +307,15 @@ set_bgC_([
       if (force1) { [start, end] = getTabRange(current, tabs.length, 0, 1) }
       const filter = get_cOptions<C.discardTab, true>().filter, allTabs = tabs
       tabs = tabs.slice(start, end)
-      tabs.length > 1 && (tabs as Tab[]).forEach((i, ind) => i.index = ind)
       const activeTab = selectFrom(tabs)
       tabs = filter ? filterTabsByCond_(activeTab, tabs, filter) : tabs
-      const _curInd2 = tabs.indexOf(activeTab)
-      const count = _curInd2 >= 0 ? tabs.length - 1 : tabs.length
+      const count = tabs.includes!(activeTab) ? tabs.length - 1 : tabs.length
       if (!count) { resolve(0); return }
       if (count > 20 && needConfirm_()) {
         void confirm_("discardTab", count).then(onTabs.bind(null, allTabs, [start, current, end], resolve))
         return
       }
-      const near = tabs[_curInd2 >= 0 ? (_curInd2 + (cRepeat > 0 ? 1 : -1) + tabs.length) % tabs.length
-          : getNearTabInd(tabs as Tab[], activeTab.index, cRepeat > 0)]
+      const near = tabs[getNearArrIndex(tabs as Tab[], activeTab.index + (cRepeat > 0 ? 1 : -1), cRepeat > 0)]
       let changed: Promise<null | undefined>[] = [], aliveExist = !near.discarded
       if (aliveExist && (count < 2 || near.autoDiscardable !== false)) {
         changed.push(Q_(Tabs_.discard, near.id))
@@ -387,18 +384,16 @@ set_bgC_([
   /* kBgCmd.goToTab: */ (resolve): void | kBgCmd.goToTab => {
     const absolute = !!get_cOptions<C.goToTab>().absolute
     const filter = get_cOptions<C.goToTab, true>().filter
-    const goToTab = (tabs: ShownTab[]): void => {
+    const goToTab = (tabs: Tab[]): void => {
       const count = cRepeat
       const cur = selectFrom(tabs)
       const allLen = tabs.length
-      allLen > 1 && (tabs as Tab[]).forEach((i, ind): void => { i.index = ind })
       if (filter) {
         tabs = filterTabsByCond_(cur, tabs, filter)
         if (!tabs.length) { resolve(0); return }
       }
       let len = tabs.length
-      const _curInd2 = tabs.indexOf(cur)
-      const baseInd = _curInd2 >= 0 ? _curInd2 : getNearTabInd(tabs as Tab[], cur.index, count < 0)
+      const baseInd = getNearArrIndex(tabs as Tab[], cur.index, count < 0)
     let index = absolute ? count > 0 ? Math.min(len, count) - 1 : Math.max(0, len + count)
         : Math.abs(count) > allLen * 2 ? (count > 0 ? len - 1 : 0) : baseInd + count
     index = index >= 0 ? index % len : len + (index % len || -len)
@@ -415,7 +410,7 @@ set_bgC_([
         index += start
       }
     }
-      const toSelect: ShownTab = tabs[index], doesGo = !toSelect.active
+      const toSelect = tabs[index], doesGo = !toSelect.active
       if (doesGo) { selectTab(toSelect.id) }
       resolve(doesGo)
     }
@@ -461,8 +456,7 @@ set_bgC_([
     const _rawGroup = !OnEdge && get_cOptions<kBgCmd.moveTab>().group
     const useGroup = _rawGroup !== "ignore" && _rawGroup !== false
     onShownTabsIfRepeat_(true, 1, (tabs): void => {
-    const tab = selectFrom(tabs), pinned = tab.pinned
-    const curIndex = tabs.indexOf(tab)
+    const curIndex = selectIndexFrom(tabs), tab = tabs[curIndex], pinned = tab.pinned
     let index = Math.max(0, Math.min(tabs.length - 1, curIndex + cRepeat))
     while (pinned !== tabs[index].pinned) { index -= cRepeat > 0 ? 1 : -1 }
     if (!OnEdge && index !== curIndex && useGroup) {
@@ -503,9 +497,9 @@ set_bgC_([
     getTabsIfRepeat_(direction, function onRemoveTabsR(oriTabs: Tab[] | undefined): void {
       let tabs: Readonly<Tab>[] | undefined = oriTabs
       if (!tabs || tabs.length === 0) { return runtimeError_() }
-    const activeTab = selectFrom(tabs)
-    let i = tabs.indexOf(activeTab), noPinned = get_cOptions<C.removeTabsR, true>().noPinned
+    let i = selectIndexFrom(tabs), noPinned = get_cOptions<C.removeTabsR, true>().noPinned
     const filter = get_cOptions<C.removeTabsR, true>().filter
+    const activeTab = tabs[i]
     if (direction > 0) {
       ++i
       tabs = tabs.slice(i, i + direction)
@@ -688,9 +682,9 @@ set_bgC_([
         if (onlyActive) { showHUD("Only found one browser window") }
         resolve(0); return runtimeError_()
       }
-      const curTabId = cPort ? cPort.s.tabId_ : curTabId_, curIdx = tabs.findIndex(i => i.id === curTabId)
-      const activeTab = curIdx >= 0 ? tabs[curIdx] : null
-      if (curIdx >= 0) { tabs.splice(curIdx, 1) }
+      const curTabId = cPort ? cPort.s.tabId_ : curTabId_, curInd = tabs.findIndex(i => i.id === curTabId)
+      const activeTab = curInd >= 0 ? tabs[curInd] : null
+      if (curInd >= 0) { tabs.splice(curInd, 1) }
       if (filter) {
         tabs = filterTabsByCond_(activeTab, tabs, filter)
         if (!tabs.length) { resolve(0); return }
