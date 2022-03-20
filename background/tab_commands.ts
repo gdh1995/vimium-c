@@ -373,18 +373,17 @@ export const moveTabToNextWindow = ([tab]: [Tab], resolve: OnCmdResolved): void 
               ? newTabIndex(tab2, get_cOptions<C.moveTabToNextWindow>().position, false, false)
               : tab2.index + (get_cOptions<C.moveTabToNextWindow>().right !== false ? 1 : 0)
           const toRight = newIndex == null || newIndex > tab2.index
-          let allToMove: ShownTab[] | null = null
+          let allToMove: Tab[] | null = null, nearInOld: Tab | null | false = false
+          let knownTabs: Tab[] | null = null
           const callback = (): void => {
-            if (toActivateInOld === -1) {
-              Tabs_.query({ windowId: tab.windowId, index: tab.index + (toRight ? -1 : 1) }, (toActivate): void => {
-                toActivateInOld = toActivate && toActivate[0] && toActivate[0].id || -9
-                callback()
-                return runtimeError_()
-              })
+            if (nearInOld === false) {
+              void findNearShownTab_(tab, !toRight, knownTabs)
+                  .then((nearTab): void => { nearInOld = nearTab; callback() })
               return
             }
+            focused || nearInOld && selectTab(nearInOld.id)
             Tabs_.move(tab.id, { index: newIndex ?? -1, windowId: tab2.windowId }, (resultCur): void => {
-              if (runtimeError_()) { resolve(0); return runtimeError_() }
+              if (runtimeError_()) { resolve(0); selectWnd(tab); return runtimeError_() }
               if (allToMove) {
                 const curInd = allToMove.findIndex(i => i.id === resultCur.id)
                 for (let i = 0; i < allToMove.length; i++) {
@@ -397,12 +396,12 @@ export const moveTabToNextWindow = ([tab]: [Tab], resolve: OnCmdResolved): void 
             })
             focused && selectWnd(tab2)
             get_cOptions<C.moveTabToNextWindow>().active !== false && selectTab(tab.id, R_(resolve))
-            toActivateInOld > 0 && selectTab(toActivateInOld)
+            focused && nearInOld && selectTab(nearInOld.id)
           }
-          let toActivateInOld = toRight && !tab.index ? -9 : -1
           if (useTabs && (!OnChrome || Build.MinCVer >= BrowserVer.MinNoAbnormalIncognito
                 || index >= 0 || CurCVer_ >= BrowserVer.MinNoAbnormalIncognito) && (filter || abs(cRepeat) !== 1)) {
             onShownTabsIfRepeat_(true, 0, (tabs, range): void => {
+              knownTabs = tabs.slice()
               tab = tabs[range[1]] as Tab
               tabs = tabs.slice(range[0], range[2])
               if (OnChrome && Build.MinCVer && BrowserVer.MinNoAbnormalIncognito
@@ -415,14 +414,14 @@ export const moveTabToNextWindow = ([tab]: [Tab], resolve: OnCmdResolved): void 
                 tab = tabs.includes!(tab) ? tab : tabs[0] as Tab
               }
               allToMove = tabs
-              toActivateInOld = -9
+              nearInOld = allToMove.length === 1 && allToMove[0].active ? false : null
               callback()
             }, [], resolve)
             return
           }
           !OnChrome || Build.MinCVer >= BrowserVer.MinNoAbnormalIncognito ? /*#__INLINE__*/ callback()
           : index >= 0 || CurCVer_ >= BrowserVer.MinNoAbnormalIncognito ? callback()
-          : (toActivateInOld = -9, makeTempWindow_r(tab.id, tab.incognito, callback))
+          : (nearInOld = null, makeTempWindow_r(tab.id, tab.incognito, callback))
         })
         return
       }
@@ -433,11 +432,14 @@ export const moveTabToNextWindow = ([tab]: [Tab], resolve: OnCmdResolved): void 
       moveTabToNewWindow(resolve)
       return
     }
+    void findNearShownTab_(tab, false).then((nearInOld): void => {
+      focused || nearInOld && selectTab(nearInOld.id)
     makeWindow({
       tabId: tab.id, incognito: tab.incognito, focused
     }, wnds.length === 1 && wnds[0].type === "normal" ? wnds[0].state : "", (newWnd): void => {
-      newWnd && notifyCKey()
+      newWnd && (notifyCKey(), focused && nearInOld && selectTab(nearInOld.id))
       resolve(!!newWnd)
+    })
     })
   })
 }

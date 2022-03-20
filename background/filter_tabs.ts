@@ -93,6 +93,23 @@ export const tryLastActiveTab_ = (): number => {
   return tabId
 }
 
+export const findNearShownTab_ = (curTab: Tab | null, rightSide: boolean
+      , known?: Tab[] | null): Promise<Tab | null> => {
+  let nearIndex: number
+  return !curTab || !curTab.index && !rightSide ? Promise.resolve(null)
+      : known && known.length === 2 && curTab.index === 0 && isNotHidden_(known[1]) ? Promise.resolve(known[1])
+      : known && known[nearIndex = Math.max(known.indexOf(curTab), 0) + (rightSide ? 1 : -1)]
+        && isNotHidden_(known[nearIndex]) ? Promise.resolve(known[nearIndex])
+      : Q_(Tabs_.query, { windowId: curTab.windowId, index: curTab.index + (rightSide ? 1 : -1) })
+        .then((nearTabs): Tab | null | Promise<Tab | null> => {
+    if (!(nearTabs && nearTabs[0])) { return null }
+    if (isNotHidden_(nearTabs[0])) { return nearTabs[0] }
+    return (known && known.length > 2 ? Promise.resolve(known) : Q_(getCurShownTabs_)).then((tabs): Tab | null => {
+      return tabs ? tabs[getNearArrIndex(tabs, curTab.index + (rightSide ? 1 : -1), rightSide)] : null
+    })
+  })
+}
+
 export const getNearArrIndex = (tabs: readonly Tab[], tabIndex: number, goRight: boolean): number => {
   for (let i = tabs.length > 1 ? 0 : 1; i < tabs.length; i++) {
     if (tabs[i].index >= tabIndex) { return tabs[i].index === tabIndex || goRight ? i : i > 0 ? i - 1 : 0 }
