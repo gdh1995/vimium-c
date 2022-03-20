@@ -23,8 +23,10 @@ const RedirectedUrls_: SafeDict<string> = { __proto__: null as never,
 }
 
 export let lastUrlType_ = Urls.Type.Default
+export let hasUsedKeyword_ = false
 
-export const convertToUrl_ = function (str: string, keyword?: string | null, vimiumUrlWork?: Urls.WorkType): Urls.Url {
+export const convertToUrl_ = function (str: string, keyword?: string | null, vimiumUrlWork?: Urls.WorkType
+    , _isNested?: number): Urls.Url {
   str = str.trim();
   lastUrlType_ = Urls.Type.Full;
   if (isJSUrl_(str)) {
@@ -85,7 +87,7 @@ export const convertToUrl_ = function (str: string, keyword?: string | null, vim
       oldString = "vimium://" + str;
     }
     else if (vimiumUrlWork === Urls.WorkType.ConvertKnown || isQuoted
-        || !(oldString = evalVimiumUrl_(str, vimiumUrlWork) as string)) {
+        || !(oldString = evalVimiumUrl_(str, vimiumUrlWork, null, (_isNested || 0) + 1) as string)) {
       oldString = formatVimiumUrl_(str, false, vimiumUrlWork);
     } else if (typeof oldString !== "string") {
       type = Urls.Type.Functional;
@@ -166,12 +168,13 @@ export const convertToUrl_ = function (str: string, keyword?: string | null, vim
     type = Urls.Type.NoScheme;
   }
   resetRe_();
+  if (!_isNested) { hasUsedKeyword_ = false }
   lastUrlType_ = type;
   return type === Urls.Type.Full
     ? (<RegExpI> /^extension:\/\//i).test(oldString) ? (OnFirefox ? "moz-" : "chrome-"
       ) + oldString : oldString
-    : type === Urls.Type.Search ?
-      createSearchUrl_(oldStrForSearch.split(spacesRe_), keyword || "~", vimiumUrlWork)
+    : type === Urls.Type.Search ? // not increase _isNested here
+      createSearchUrl_(oldStrForSearch.split(spacesRe_), keyword, vimiumUrlWork, _isNested)
     : type <= Urls.Type.MaxOfInputIsPlainUrl ?
       type === Urls.Type.NoScheme && _guessDomain(oldString, str) ||
       (checkInDomain_(str, arr && arr[4]) === 2 ? "https:" : "http:")
@@ -179,8 +182,8 @@ export const convertToUrl_ = function (str: string, keyword?: string | null, vim
     : oldString;
 } as {
   (string: string, keyword: string | null | undefined, vimiumUrlWork: Urls.WorkAllowEval): Urls.Url
-  (string: string, keyword?: string | null, vimiumUrlWork?: Urls.WorkEnsureString): string
-  (string: string, keyword?: string | null, vimiumUrlWork?: Urls.WorkType): Urls.Url
+  (string: string, keyword?: string | null, vimiumUrlWork?: Urls.WorkEnsureString, _isNested?: number): string
+  (string: string, keyword?: string | null, vimiumUrlWork?: Urls.WorkType, _isNested?: number): Urls.Url
 }
 
 const checkInDomain_ = (host: string, port?: string | null): 0 | 1 | 2 => {
@@ -208,7 +211,7 @@ const checkSpecialSchemes_ = (str: string, i: number, spacePos: number): Urls.Ty
   case "blob": case "view-source":
     str = str.slice(i + 1);
     if (str.startsWith("blob:") || str.startsWith("view-source:")) { return Urls.Type.Search; }
-    convertToUrl_(str, null, Urls.WorkType.KeepAll);
+    convertToUrl_(str, null, Urls.WorkType.KeepAll, 1)
     return lastUrlType_ <= Urls.Type.MaxOfInputIsPlainUrl ? Urls.Type.Full : Urls.Type.Search;
   case "data":
     return isSlash ? Urls.Type.Search : (i = str.indexOf(",", i)) < 0 || (spacePos > 0 && spacePos < i)
@@ -217,7 +220,7 @@ const checkSpecialSchemes_ = (str: string, i: number, spacePos: number): Urls.Ty
   case "filesystem":
     str = str.slice(i + 1);
     if (!protocolRe_.test(str)) { return Urls.Type.Search; }
-    convertToUrl_(str, null, Urls.WorkType.KeepAll);
+    convertToUrl_(str, null, Urls.WorkType.KeepAll, 1)
     return lastUrlType_ === Urls.Type.Full &&
         (<RegExpOne> /[^/]\/(?:persistent|temporary)(?:\/|$)/).test(str)
       ? Urls.Type.Full : Urls.Type.Search;
@@ -273,16 +276,14 @@ export const formatVimiumUrl_ = (fullPath: string, partly: boolean, vimiumUrlWor
   return path + (query && (path.includes("#") ? " " : "#!") + query);
 }
 
-export const createSearchUrl_ = function (query: string[], keyword: string, vimiumUrlWork: Urls.WorkType): Urls.Url {
-  let url: string, pattern: Search.Engine | undefined = searchEngines_.map.get(keyword || query[0])
-  if (pattern) {
-    if (!keyword) { keyword = query.shift()!; }
-    url = createSearch_(query, pattern.url_, pattern.blank_);
-  } else {
-    url = query.join(" ");
-  }
+export const createSearchUrl_ = function (query: string[], keyword: string, vimiumUrlWork: Urls.WorkType
+    , _isNested?: number): Urls.Url {
+  keyword = keyword || "~"
+  const pattern = searchEngines_.map.get(keyword)
+  const url: string = pattern ? createSearch_(query, pattern.url_, pattern.blank_) : query.join(" ")
+  if (!_isNested) { hasUsedKeyword_ = !!pattern && keyword !== "~" }
   if (keyword !== "~") {
-    return convertToUrl_(url, null, vimiumUrlWork);
+    return convertToUrl_(url, null, vimiumUrlWork, (_isNested || 0) + 1)
   }
   lastUrlType_ = Urls.Type.Search;
   return url;
@@ -290,7 +291,7 @@ export const createSearchUrl_ = function (query: string[], keyword: string, vimi
   (query: string[], keyword: "~", vimiumUrlWork?: Urls.WorkType): string;
   (query: string[], keyword: string | null | undefined, vimiumUrlWork: Urls.WorkAllowEval): Urls.Url
   (query: string[], keyword?: string | null, vimiumUrlWork?: Urls.WorkEnsureString): string
-  (query: string[], keyword?: string | null, vimiumUrlWork?: Urls.WorkType): Urls.Url
+  (query: string[], keyword?: string | null, vimiumUrlWork?: Urls.WorkType, _isNested?: number): Urls.Url
 }
 
 export const createSearch_ = function (query: string[], url: string, blank: string, indexes?: number[]

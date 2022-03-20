@@ -99,7 +99,7 @@ declare namespace Urls {
   interface Executor {
     (path: string, workType?: WorkType.ValidNormal): string | null;
     (path: string, workType: WorkType.KeepAll | WorkType.ConvertKnown): null;
-    (path: string, workType: WorkType, onlyOnce?: boolean): Url | null;
+    (path: string, workType: WorkType, onlyOnce?: boolean | null, _isNested?: number): Url | null;
   }
 
   const enum NewTabType { browser = 1, cNewNTP = 2 }

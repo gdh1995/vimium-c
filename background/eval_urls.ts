@@ -10,9 +10,8 @@ import { getPortUrl_, showHUD } from "./ports"
 import * as Exclusions from "./exclusions"
 import { trans_ } from "./i18n"
 
-let _nestedEvalCounter = 0
-
-set_evalVimiumUrl_(function (path: string, workType?: Urls.WorkType, onlyOnce?: boolean): Urls.Url | null {
+set_evalVimiumUrl_(function (path: string, workType?: Urls.WorkType
+    , onlyOnce?: boolean | null, _isNested?: number): Urls.Url | null {
   let ind: number, cmd: string, arr: string[], obj: { u: string } | null
     , res: Urls.Url | string[] | Promise<string | null> | null;
   workType = workType! | 0;
@@ -46,8 +45,6 @@ set_evalVimiumUrl_(function (path: string, workType?: Urls.WorkType, onlyOnce?: 
     return [path, Urls.kEval.ERROR];
   } }
   else if (workType >= Urls.WorkType.ActAnyway) { switch (cmd) {
-  case "urls":
-    return callOpenUrls(path)
   case "run":
     return [["run", path], Urls.kEval.run]
   case "status": case "state":
@@ -56,7 +53,7 @@ set_evalVimiumUrl_(function (path: string, workType?: Urls.WorkType, onlyOnce?: 
     }
     return [path, workType >= Urls.WorkType.EvenAffectStatus ? Urls.kEval.status : Urls.kEval.plainUrl]
   case "url-copy": case "search-copy": case "search.copy": case "copy-url":
-    res = convertToUrl_(path, null, Urls.WorkType.ActIfNoSideEffects);
+    res = convertToUrl_(path, null, Urls.WorkType.ActIfNoSideEffects, _isNested)
     if (res instanceof Promise) {
       return res.then(function (arr1): Urls.CopyEvalResult {
         let path2 = arr1[0] || (arr1[2] || "");
@@ -75,6 +72,9 @@ set_evalVimiumUrl_(function (path: string, workType?: Urls.WorkType, onlyOnce?: 
     return [path, Urls.kEval.copy];
   } }
   switch (cmd) {
+  case "urls":
+    if (workType < Urls.WorkType.ActIfNoSideEffects) { return null }
+    return callOpenUrls(path, workType)
   case "cd": case "up":
     arr = (path + "  ").split(" ");
     if (!arr[2]) {
@@ -85,7 +85,7 @@ set_evalVimiumUrl_(function (path: string, workType?: Urls.WorkType, onlyOnce?: 
       } else {
         return res.then(url => {
           const res1 = url && evalVimiumUrl_("cd " + path + " " + (path.includes(" ") ? url : ". " + url)
-              , workType as Urls.WorkAllowEval, onlyOnce
+              , workType as Urls.WorkAllowEval, onlyOnce, _isNested
               ) as string | Urls.BaseEvalResult | null;
           return !res1 ? [url ? "fail in parsing" : "No current tab found", Urls.kEval.ERROR]
               : typeof res1 === "string" ? [res1, Urls.kEval.plainUrl] : res1;
@@ -109,7 +109,7 @@ set_evalVimiumUrl_(function (path: string, workType?: Urls.WorkType, onlyOnce?: 
     }
     path = decodeEscapedURL_(path);
     arr = [path];
-    path = convertToUrl_(path);
+    path = convertToUrl_(path, null, Urls.WorkType.Default, _isNested)
     if (lastUrlType_ !== Urls.Type.Search && (obj = parseSearchUrl_({ u: path }))) {
       if (obj.u === "") {
         arr = [cmd];
@@ -147,13 +147,9 @@ set_evalVimiumUrl_(function (path: string, workType?: Urls.WorkType, onlyOnce?: 
   if (onlyOnce) {
     return [arr, Urls.kEval.search];
   }
-  ind = _nestedEvalCounter++;
-  if (ind > 12) { return null; }
-  if (ind === 12) { return createSearchUrl_(arr, "", Urls.WorkType.Default); }
-  if (ind > 0) { return createSearchUrl_(arr, "", workType); }
-  res = createSearchUrl_(arr, "", workType);
-  _nestedEvalCounter = 0;
-  return <ReturnType<typeof createSearchUrl_>> res
+  if (_isNested && _isNested > 12) { return null }
+  let keyword = arr[0] && searchEngines_.map.has(arr[0]) ? arr.shift()! : null
+  return createSearchUrl_(arr, keyword, _isNested === 12 ? Urls.WorkType.Default : workType, _isNested)
 } as Urls.Executor)
 
 const tryEvalMath_ = (path: string, math_parser: typeof import("../lib/math_parser")): Urls.MathEvalResult => {
@@ -283,7 +279,8 @@ const forceStatus_ = (act: Frames.ForcedStatusText): void => {
   }
 }
 
-const callOpenUrls = (path: string): Urls.ErrorEvalResult | Urls.RunEvalResult => {
+const callOpenUrls = (path: string, workType: Urls.WorkType): Urls.ErrorEvalResult
+    | Urls.RunEvalResult | Promise<Urls.RunEvalResult> => {
   const ind = path.indexOf(":") + 1 || path.indexOf(" ") + 1
   if (ind <= 0) { return ["No search engines given", Urls.kEval.ERROR] }
   const keys = path.slice(0, ind - 1).split(path.lastIndexOf(" ", ind - 1) >= 0 ? " " : "|")
@@ -291,6 +288,8 @@ const callOpenUrls = (path: string): Urls.ErrorEvalResult | Urls.RunEvalResult =
   if (keys.length <= 0) { return ["No valid search engines found", Urls.kEval.ERROR] }
   const query = path.slice(ind).split(" ")
   const urls: Urls.RunEvalResult[0] = ["openUrls"]
-  for (const keyword of keys) { urls.push(createSearchUrl_(query, keyword, Urls.WorkType.Default)) }
-  return [urls, Urls.kEval.run]
+  // `as string` is safe when only used by {@see open_urls.ts#onEvalUrl_}
+  for (const keyword of keys) { urls.push(createSearchUrl_(query, keyword, workType) as string) }
+  return !urls.some((u): boolean => <unknown> u instanceof Promise) ? [urls, Urls.kEval.run]
+      : Promise.all(urls).then((urls2): Urls.RunEvalResult => [ urls2 as Urls.RunEvalResult[0], Urls.kEval.run ])
 }
