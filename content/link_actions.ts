@@ -7,7 +7,7 @@ import { getVisibleClientRect_, center_, view_, selRange_ } from "../lib/rect"
 import {
   IsInDOM_, createElement_, htmlTag_, getComputedStyle_, getEditableType_, isIFrameElement, GetParent_unsafe_, focus_,
   kMediaTag, ElementProto_not_ff, querySelector_unsafe_, getInputType, uneditableInputs_, GetShadowRoot_, scrollingEl_,
-  findMainSummary_, getSelection_, removeEl_s, appendNode_s, getMediaUrl, getMediaTag, INP, ALA, attr_s, hasTag_,
+  queryChildByTag_, getSelection_, removeEl_s, appendNode_s, getMediaUrl, getMediaTag, INP, ALA, attr_s, hasTag_,
   setOrRemoveAttr_s, toggleClass_s, textContent_s, notSafe_not_ff_, modifySel, SafeEl_not_ff_, testMatch, docHasFocus_,
   extractField, querySelectorAll_unsafe_
 } from "../lib/dom_utils"
@@ -421,7 +421,7 @@ const checkBoolOrSelector = (userVal: string | boolean | null | void | undefined
       }
     } else if (mode1_ < HintMode.min_job || mode1_ === HintMode.FOCUS_EDITABLE) {
       if (tag === "details") {
-        const summary = findMainSummary_(clickEl as HTMLDetailsElement)
+        const summary = queryChildByTag_(clickEl, "summary")
         if (summary) {
           // `HTMLSummaryElement::DefaultEventHandler(event)` in
           // https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/html/html_summary_element.cc?l=109

@@ -317,22 +317,22 @@ export const derefInDoc_ = ((val: WeakRef<SafeElement> | SafeElement | null | un
   return val && IsInDOM_(val, doc) ? val : null
 }) as <T extends SafeElement> (val: WeakRef<T> | T | null | undefined) => T | null | undefined
 
-export const findMainSummary_ = ((details: HTMLDetailsElement | Element | null): SafeHTMLElement | null => {
+export const queryChildByTag_ = (parent: SafeElement, childTag: "summary" | "div" | "ul"): SafeHTMLElement | null => {
     // not query `:scope>summary` for more consistent performance
     // Specification: https://html.spec.whatwg.org/multipage/interactive-elements.html#the-summary-element
     // `HTMLDetailsElement::FindMainSummary()` in
     // https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/html/html_details_element.cc?g=0&l=101
     if (!OnChrome || Build.MinCVer >= BrowserVer.Min$Array$$find$$findIndex) {
       return ([].find as (predicate: (el: Element) => el is SafeHTMLElement) => SafeHTMLElement | undefined
-          ).call(details!.children, hasTag_.bind(0, "summary") as (el: Element) => el is SafeHTMLElement) || null
+          ).call(parent.children, hasTag_.bind(0, childTag) as (el: Element) => el is SafeHTMLElement) || null
     }
     let found: SafeHTMLElement | null = null
-    for (let summaries = details!.children, i = 0; i < summaries.length && !found; i++) {
+    for (let summaries = parent.children, i = 0; i < summaries.length && !found; i++) {
       // there's no window.HTMLSummaryElement on C70
-      found = hasTag_("summary", summaries[i]) ? summaries[i] as SafeHTMLElement : found
+      found = hasTag_(childTag, summaries[i]) ? summaries[i] as SafeHTMLElement : found
     }
     return found
-}) as (details: HTMLDetailsElement) => SafeHTMLElement | null
+}
 
 export const findAnchor_ = ((element: Element | null): SafeHTMLElement | null => {
   if (OnEdge) {

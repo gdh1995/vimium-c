@@ -3,7 +3,7 @@ import {
   math, includes_, OnFirefox, OnEdge, WithDialog, safeCall, evenHidden_, set_evenHidden_, tryCreateRegExp, loc_
 } from "../lib/utils"
 import {
-  isIFrameElement, getInputType, uneditableInputs_, getComputedStyle_, findMainSummary_, htmlTag_, isAriaFalse_,
+  isIFrameElement, getInputType, uneditableInputs_, getComputedStyle_, queryChildByTag_, htmlTag_, isAriaFalse_,
   kMediaTag, NONE, querySelector_unsafe_, isStyleVisible_, fullscreenEl_unsafe_, notSafe_not_ff_, docEl_unsafe_,
   GetParent_unsafe_, unsafeFramesetTag_old_cr_, isHTML_, querySelectorAll_unsafe_, isNode_, INP, attr_s,
   getMediaTag, getMediaUrl, contains_s, GetShadowRoot_, parentNode_unsafe_s, testMatch, hasTag_
@@ -94,7 +94,7 @@ const getClickable = (hints: Hint[], element: SafeHTMLElement): void => {
     type = ClickType.edit
     break;
   case "details":
-    isClickable = isNotReplacedBy(findMainSummary_(element as HTMLDetailsElement), hints);
+    isClickable = isNotReplacedBy(queryChildByTag_(element, "summary"), hints);
     break;
   case "dialog":
     if ((element as HTMLDialogElement).open && WithDialog && element !== curModalElement && !wantDialogMode_) {
@@ -133,7 +133,10 @@ const getClickable = (hints: Hint[], element: SafeHTMLElement): void => {
   if (isClickable === null) {
     type = (s = element.contentEditable) !== "inherit" && s !== "false" ? ClickType.edit
       : (OnFirefox ? element.onclick || element.onmousedown : element.getAttribute("onclick"))
-        || (s = element.getAttribute("role")) && clickableRoles_.test(s)
+        || (s = element.getAttribute("role")) && clickableRoles_.test(s) && (
+          !(s.startsWith("menu") && queryChildByTag_(element, "ul"))
+          || isNotReplacedBy(queryChildByTag_(element, "div"), hints)
+        )
         || extraClickable_ !== null && extraClickable_.has(element)
         || ngEnabled && attr_s(element, "ng-click")
         || forHover_ && attr_s(element, "onmouseover")
