@@ -407,11 +407,30 @@ exports.compileTS = function (stream, options, extra, done, debugging, dest, wil
       return i < 0 || t.indexOf(s, i) !== i;
     })).pipe(exports.gulpMap(exports.correctBuffer))
     merged = merged.pipe(gulpfile.tsProject(options?.module?.toLowerCase()))
+    merged = merged.pipe(exports.gulpMap(inlineGetters.bind(null, es6Module)))
     merged = gulpfile.outputJSResult(merged, es6Module);
     es6Module ? _mergedProject6 = merged : _mergedProject5 = merged;
   }
   merged = es6Module ? _mergedProject6 : _mergedProject5
   merged.on("finish", done);
+}
+
+const inlineGetters = (isES6, file) => {
+  const path = file.relative.replace(/\\/g, "/")
+  if (!path.includes("background/")) { return }
+  let text = exports.ToString(file)
+  if (isES6) {
+    text = text.replace(/export const get_([\w$]+) ?=[^>]+>\s*[\w$]+;?/g, "export { $1 }")
+        .replace(/\bget_([\w$]+)(\(\))?/g, "$1")
+  } else {
+    text = text.replace(/exports\.[gs]et_[\w$]+ ?=\s*(?!exports\.[\w$]+ ?=|void 0)\S(\{[^}]*\}|[^{;]+)+;/g, (s) =>
+          s.startsWith("exports.set") ? "" : s.replace(/get_/g, ""))
+        .replace(/exports\.[gs]et_([\w$]+)/g, "exports.$1")
+    text = text.replace(/\b\w+\.[gs]et_[\w$]+\(\)?/g, (s) =>
+      s.includes(".set_") ? "(" + s.slice(0, -1).replace(/[gs]et_/, "") + " = " : s.slice(0, -2).replace(/[gs]et_/, ""))
+  }
+  text = text.replace(/\bc[A-Z][a-z]\w*/g, "$&_")
+  exports.ToBuffer(file, text)
 }
 
 exports.makeCompileTask = function (src, header_files, options, compile) {
@@ -559,6 +578,18 @@ exports.checkJSAndMinifyAll = function (taskOrder, maps, key, exArgs, cb
     }
     gulp.series(...tasks)(function(err) {
       jsmin_status[taskOrder] = true;
+      if (exArgs.nameCache) {
+        const toSave = { props: {... exArgs.nameCache.props}, vars: {... exArgs.nameCache.vars} }
+        const path = osPath.join(JSDEST, ".names-" + key.replace("min/", "") + ".cache");
+        let json = Object.keys(toSave.props.props || {}).length === 0
+            && Object.keys(toSave.vars.props || {}).length === 0 ? "" : JSON.stringify(toSave)
+        if (fs.existsSync(path) && JSON.stringify(dependencies.readJSON(path)) === json) {
+          print("NameCache for " + key.replace("min/", "") + " is unchanged");
+        } else {
+          dependencies.writeJSON(path, json)
+          print("Saved nameCache for " + key.replace("min/", ""));
+        }
+      }
       cb(err);
     });
   });

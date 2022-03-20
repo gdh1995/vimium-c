@@ -30,6 +30,7 @@
  *    readFileSync (path: string): Buffer;
  *    writeFile (path: string, data: string | Buffer, callback?: (err?: Error) => void): void;
  *    writeFileSync (path: string, data: string | Buffer): void;
+ *    unlinkSync (path: string): void
  *    createReadStream (path: string): any;
  * } } FileSystem
  * 
@@ -156,7 +157,12 @@ function _makeJSONReader() {
   }
   _writeJSON = (fileName, object) => {
     fileName = fileName.replace(/\\/g, "/");
-    var text = JSON.stringify(object)
+    var text = typeof object === "string" ? object : JSON.stringify(object)
+    if (!text) {
+      delete cached[fileName]
+      fs.existsSync(fileName) && fs.unlinkSync(fileName)
+      return
+    }
     cached[fileName] = text;
     fs.writeFileSync(fileName, text);
   }
