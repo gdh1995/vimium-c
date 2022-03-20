@@ -528,7 +528,7 @@ const callExecuteHint = (hint: ExecutableHintItem, event?: HandlerNS.Event): voi
 
 const activateDirectly = (options: ContentOptions, count: number): void => {
   const d = options.direct! as string | true, exOpts = options.directOptions || {},
-  _ei = exOpts.index, elIndex = _ei != null ? _ei : options.index,
+  _ei = exOpts.index, elIndex = _ei != null ? _ei : options.index, notIndexByCount = elIndex !== "count",
   offset = exOpts.offset || "", wholeDoc = ("" + exOpts.search).startsWith("doc"),
   allTypes = d === !0, mode = options.m &= ~HintMode.queue,
   next = (): void => {
@@ -560,7 +560,7 @@ const activateDirectly = (options: ContentOptions, count: number): void => {
       && (matches = traverse(kSafeAllSelector, options, wholeDoc ? (hints: Hint0[], el1: SafeElement): void => {
                 isInteractiveInPage(el1) && hints.push([el1 as SafeElementForMouse])
               } : getIfOnlyVisible, 1, wholeDoc),
-          matchIndex = elIndex === "count" ? count < 0 ? count : count - 1 : +elIndex! || 0,
+          matchIndex = !notIndexByCount ? count < 0 ? count : count - 1 : +elIndex! || 0,
           oneMatch = matches.slice(offset > "e" ? ~matchIndex : offset < "c" ? matchIndex : computeOffset())[0])
       ? oneMatch[0]
       : (allTypes || testD("sel")) // selected
@@ -575,7 +575,7 @@ const activateDirectly = (options: ContentOptions, count: number): void => {
   if (!el || !IsInDOM_(el)) {
     runFallbackKey(options, kTip.noTargets)
   } else {
-    count = mode < HintMode.min_job ? min_(count, 3e3) : 1
+    count = mode < HintMode.min_job && notIndexByCount ? min_(count, 3e3) : 1
     api_ = vApi
     options_ = options
     setMode(mode, count_ = isActive = 1)
