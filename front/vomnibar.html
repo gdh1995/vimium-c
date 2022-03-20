@@ -21,7 +21,8 @@ color:#000;contain:strict;font-size:20px;height:34px;outline:none;padding:4px 9.
 .item{border-bottom:0.5px solid #ddd;box-sizing:border-box;contain:strict;height:44px;padding:4px 20px 0;}
 .b{border-bottom-style:none;border-radius:0 0 4px 4px;height:46px;}
 .item:hover{background-color:#cddbef;border-style:none;}
-.alt .item::after{background:rgba(255,255,255,0.8);border-radius:21px;color:#333;content:attr(data-index);font-size:24px;
+.alt .alt-index::after{background:rgba(255,255,255,0.8);border-radius:21px;color:#333;
+content:attr(data-alt-index);font-size:24px;
 height:39px;line-height:39px;position:absolute;left:calc(50% - 20px);text-align:center;top:2px;width:39px}
 .p{border-color:#bbcee9;}.s{background-color:#bed1ea;border-style:none;}
 .top{height:20px;overflow:hidden;font:16px/20px "Helvetica Neue",Helvetica,Arial,"PingFang SC",
@@ -77,7 +78,7 @@ body::after{content:"";}
 </div>
 <div id="list">
 	<script type="text/x-template" id="template">
-	<div class="item" data-index="{{index}}">
+	<div class="item" data-alt-index="{{altIndex}}">
 		<div class="top">
 			<svg class="icon{{level}}{{favIcon}}" viewBox="0 0 64 64">
 				<path class="{{typeIcon}}"></path>

@@ -555,7 +555,7 @@ export const append_not_ff = !OnFirefox ? (parent: Element, child: HTMLElement):
       ? ElementProto_not_ff!.appendChild : ElementProto_not_ff!.append!).call(parent, child)
 } : 0 as never
 
-export const removeEl_s = (el: SafeHTMLElement | HTMLDialogElement | HTMLScriptElement | HTMLSpanElement): void => {
+export const removeEl_s = (el: SafeElement | HTMLDialogElement | HTMLScriptElement | HTMLSpanElement): void => {
   el.remove()
 }
 

@@ -1,7 +1,7 @@
 import {
   safer, fgCache, isImageUrl, isJSUrl, set_keydownEvents_, keydownEvents_, timeout_, doc, chromeVer_, weakRef_ff, os_,
   parseSedOptions, createRegExp, isTY, max_, min_, OnFirefox, OnChrome, safeCall, locHref, parseOpenPageUrlOptions,
-  weakRef_not_ff
+  weakRef_not_ff, VTr
 } from "../lib/utils"
 import { getVisibleClientRect_, center_, view_, selRange_ } from "../lib/rect"
 import {
@@ -9,7 +9,7 @@ import {
   kMediaTag, ElementProto_not_ff, querySelector_unsafe_, getInputType, uneditableInputs_, GetShadowRoot_, scrollingEl_,
   findMainSummary_, getSelection_, removeEl_s, appendNode_s, getMediaUrl, getMediaTag, INP, ALA, attr_s, hasTag_,
   setOrRemoveAttr_s, toggleClass_s, textContent_s, notSafe_not_ff_, modifySel, SafeEl_not_ff_, testMatch, docHasFocus_,
-  extractField
+  extractField, querySelectorAll_unsafe_
 } from "../lib/dom_utils"
 import { getPreferredRectOfAnchor, initTestRegExps } from "./local_links"
 import {
@@ -194,20 +194,19 @@ const hoverEl = (): void => {
   })
 }
 
-const extractTextInOtherElements = (): string => {
+const extractTextContent = (): string => {
   let str = textContent_s(clickEl).trim()
-  if (str && (clickEl as ElementToSVG).ownerSVGElement) {
-    const clone = clickEl.cloneNode(true) as SVGElement
-    const titles = clone.querySelectorAll("title")
+  if (str) {
+    const clone = clickEl.cloneNode(true) as SafeElement
+    const children = querySelectorAll_unsafe_(VTr(kTip.invisibleElements), clone)!
     if (OnChrome && Build.MinCVer < BrowserVer.MinEnsured$ForOf$ForDOMListTypes) {
-      // eslint-disable-next-line @typescript-eslint/prefer-for-of
-      for (let i = 0; i < titles.length; i++) { titles[i].remove() }
+      [].forEach.call(children, removeEl_s)
     } else {
-      for (let i of titles as ArrayLike<Element> as Element[]) { i.remove() }
+      (children as ArrayLike<Element> as SafeElement[]).forEach(removeEl_s)
     }
     str = textContent_s(clone).trim() || str
   }
-  return str.trim()
+  return str
 }
 
 const copyText = (): void => {
@@ -238,7 +237,7 @@ const copyText = (): void => {
           : tag && ((clickEl as SafeHTMLElement).innerText.trim()
                 || GetShadowRoot_(clickEl) && (childEl = querySelector_unsafe_("div,span", GetShadowRoot_(clickEl)!))
                     && htmlTag_<1>(childEl) && childEl.innerText.trim())
-            || (str = extractTextInOtherElements()) && str.replace(<RegExpG> /\s+/g, " ")
+            || (str = extractTextContent()) && str.replace(<RegExpG> /\s+/g, " ")
       }
       str = str && str.trim();
       if (!str && tag) {

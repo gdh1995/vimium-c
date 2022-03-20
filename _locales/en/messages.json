@@ -107,6 +107,7 @@
   "113": { "message": "(^|-)(button|a$$)" },
   "114": { "message": "\\b(?:[Cc]lose)(?:$$|[-\\sA-Z_])" },
   "115": { "message": "(-ms-high-contrast:active)" },
+  "116": { "message": "script,style,title,textarea" },
   "200": { "message": "http://www.w3.org/1999/xhtml" },
   "0": { "message": "Open link in current tab" },
   "2": { "message": "Open link in new tab" },

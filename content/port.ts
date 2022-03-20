@@ -1,9 +1,9 @@
 import {
   injector, safer, timeout_, isAlive_, isTop, set_i18n_getMsg, locHref, OnEdge, OnChrome, OnFirefox, isTY, fgCache,
-  interval_, setupTimerFunc_cr, noRAF_old_cr_
+  interval_, setupTimerFunc_cr, noRAF_old_cr_, min_
 } from "../lib/utils"
 import { suppressTail_ } from "../lib/keyboard_utils"
-import { docEl_unsafe_, docHasFocus_, rAF_ } from "../lib/dom_utils"
+import { docHasFocus_, rAF_ } from "../lib/dom_utils"
 import { style_ui } from "./dom_ui"
 import { hudTip } from "./hud"
 
@@ -118,6 +118,7 @@ export const setupBackupTimer_cr = !OnChrome ? 0 as never : (): void => {
         ? (send_(kFgReq.wait, timeout, func), tick + 0.5) : rAF_((): void => { func(TimerType.fake) })
   }, (timer: ValidTimeoutID | ValidIntervalID): void => {
     timer && port_callbacks[timer as number - 0.5] &&
-    (port_callbacks[timer as number - 0.5] = docEl_unsafe_)
+    ((port_callbacks as { [msgId: number]: (this: void, res: FgRes[kFgReq.wait]) => unknown }
+      )[timer as number - 0.5] = min_)
   })
 }
