@@ -129,6 +129,14 @@ export const R_ = (resolve: OnCmdResolved): () => void => resolve !== blank_ ? (
   return error
 } : runtimeError_
 
+// another Q_ for "safe" APIs which always succeeds
+export const Qs_ = (OnChrome || OnEdge ? function (func: Function): Promise<unknown> {
+  return new Promise(resolve => { func(resolve) })
+} : function (func: Function): Promise<unknown> {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+  return func()
+}) as <F extends ApiTemplate<[]>> (browserApi: F) => Promise<ApiCb<F>>
+
 const doesIgnoreUrlField_ = (url: string, incognito?: boolean): boolean => {
   const type = newTabUrls_.get(url)
   return type === Urls.NewTabType.browser || type === Urls.NewTabType.cNewNTP && !(OnChrome && !IsEdg_ && !incognito)
@@ -428,5 +436,5 @@ bgIniting_ < BackendHandlersNS.kInitStat.FINISHED && set_installation_(new Promi
       cb && (onInstalled = null, resolve(details), ev.removeListener(cb))
   }
   ev.addListener(onInstalled)
-  setTimeout(onInstalled, 10000, null)
+  setTimeout(onInstalled, 6000, null)
 }));

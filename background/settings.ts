@@ -5,7 +5,7 @@ import {
   CurFFVer_, set_os_, os_
 } from "./store"
 import { asyncIter_, nextTick_, safeObj_ } from "./utils"
-import { browser_, normalizeExtOrigin_, Q_ } from "./browser"
+import { browser_, normalizeExtOrigin_, Qs_ } from "./browser"
 import { convertToUrl_, reformatURL_ } from "./normalize_urls"
 import { parseSearchEngines_ } from "./parse_urls"
 import { asyncIterFrames_ } from "./ports"
@@ -33,7 +33,19 @@ export const ready_: Promise<number> = Promise.all([
       (contentPayload_.V as number) = parseInt(versionStr!.split(".")[1]) || 0
     }
   }) : 0,
-  Q_(local_.get.bind(local_)).then((items): number => { // Q_(local_.get) is illegal on Edge 98
+  !OnEdge || browser_.runtime.getPlatformInfo ? Qs_(browser_.runtime.getPlatformInfo).then((info): void => {
+    const os = (OnChrome ? info.os : info.os || "").toLowerCase(),
+    types = !(Build.OS & (Build.OS - 1)) ? null as never : !OnChrome || Build.MinCVer >= BrowserVer.MinRuntimePlatformOs
+      ? browser_.runtime.PlatformOs! : browser_.runtime.PlatformOs || { MAC: "mac", WIN: "win" },
+    osEnum = !(Build.OS & (Build.OS - 1)) || os === types.WIN ? kOS.win : os === types.MAC ? kOS.mac : kOS.unixLike
+    CONST_.Platform_ = os
+    if (Build.OS & (Build.OS - 1)) {
+      (omniPayload_ as Writable<typeof omniPayload_>).o = (contentPayload_ as Writable<typeof contentPayload_>).o
+          = osEnum
+      set_os_!(osEnum)
+    }
+  }) : void (CONST_.Platform_ = "win"),
+  Qs_(local_.get.bind(local_)).then((items): number => { // Q_(local_.get) is illegal on Edge 98
     const cache = settingsCache_ as Generalized<SettingsWithDefaults>
     Object.assign(cache, defaults_)
     items = items || {}
@@ -66,11 +78,15 @@ export const ready_: Promise<number> = Promise.all([
     for (let _i in valuesToLoad_) {
       updatePayload_(valuesToLoad_[_i as kPayload], (cache as typeof settingsCache_)[_i as kPayload], contentPayload_)
     }
-    set_bgIniting_(bgIniting_ | BackendHandlersNS.kInitStat.settings)
-    onInit_ && onInit_()
     return done
   })
-]).then(i => i[1])
+]).then((i): number => {
+  updatePayload_("i", settingsCache_.ignoreCapsLock, contentPayload_)
+  set_bgIniting_(bgIniting_ | BackendHandlersNS.kInitStat.settings)
+  return i[2]
+})
+
+void ready_.then((): void => { onInit_ && onInit_() })
 
 export const set_ = <K extends keyof SettingsWithDefaults> (key: K, value: SettingsWithDefaults[K]): void => {
     (settingsCache_ as Generalized<SettingsWithDefaults>)[key] = value
@@ -353,7 +369,8 @@ az|amazon: https://www.amazon.com/s?k=%s \\
   blank=https://www.amazon.com/ \u4e9a\u9a6c\u900a
 
 \\:i: vimium://sed/s/^//,lower\\ $S re= Lower case
-v.m|v\\:math: vimium://math\\ $S re= \u8ba1\u7b97\u5668
+v.m|math: vimium://math\\ $S re= \u8ba1\u7b97\u5668
+v.p: vimium://parse\\ $S re= Redo Search
 gh|github: https://github.com/search?q=$s \\
   blank=https://github.com/ GitHub 仓库
 ge|gitee: https://search.gitee.com/?type=repository&q=$s \\
@@ -394,7 +411,8 @@ az|amazon: https://www.amazon.com/s?k=%s \\
   blank=https://www.amazon.com/ Amazon
 
 \\:i: vimium://sed/s/^//,lower\\ $S re= Lower case
-v.m|v\\:math: vimium://math\\ $S re= Calculate
+v.m|math: vimium://math\\ $S re= Calculate
+v.p: vimium://parse\\ $S re= Redo Search
 gh|github: https://github.com/search?q=$s \\
   blank=https://github.com/ GitHub Repo
 ge|gitee: https://search.gitee.com/?type=repository&q=$s \\
@@ -436,29 +454,6 @@ export const valuesToLoad_ = <SettingsNS.AutoSyncedNameMap> As_<SettingsNS.AutoS
     keyboard: "k", keyupTime: "u", linkHintCharacters: "c", linkHintNumbers: "n", passEsc: "p",
     regexFindMode: "r", smoothScroll: "s", scrollStepSize: "t", waitForEnter: "w"
 })
-
-if (!OnEdge || browser_.runtime.getPlatformInfo) {
-browser_.runtime.getPlatformInfo((info): void => {
-  const os = (OnChrome ? info.os : info.os || "").toLowerCase(),
-  types = !OnChrome || Build.MinCVer >= BrowserVer.MinRuntimePlatformOs
-    ? browser_.runtime.PlatformOs! : browser_.runtime.PlatformOs || { MAC: "mac", WIN: "win" },
-  osEnum = os === types.WIN ? kOS.win : os === types.MAC ? kOS.mac : kOS.unixLike
-  CONST_.Platform_ = os;
-  if (Build.OS & (Build.OS - 1)) {
-    (omniPayload_ as Writable<typeof omniPayload_>).o = (contentPayload_ as Writable<typeof contentPayload_>).o = osEnum
-    set_os_!(osEnum)
-  }
-  if (bgIniting_ & BackendHandlersNS.kInitStat.settings) {
-    updatePayload_("i", settingsCache_.ignoreCapsLock, contentPayload_)
-  }
-  if (bgIniting_ > BackendHandlersNS.kInitStat.FINISHED - 1) { return }
-  set_bgIniting_(bgIniting_ | BackendHandlersNS.kInitStat.platformInfo)
-  onInit_ && onInit_()
-});
-} else {
-  CONST_.Platform_ = OnEdge ? "win" : "unknown"
-  set_bgIniting_(bgIniting_ | BackendHandlersNS.kInitStat.platformInfo)
-}
 
 bgIniting_ < BackendHandlersNS.kInitStat.FINISHED && ((): void => {
   const ref = browser_.runtime.getManifest(), { origin } = location, prefix = origin + "/",

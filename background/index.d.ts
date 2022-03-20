@@ -374,7 +374,7 @@ declare namespace BackendHandlersNS {
       never;
   }
   const enum kInitStat {
-    none = 0, platformInfo = 1, settings = 2, main = 4, START = none, FINISHED = platformInfo | settings | main
+    none = 0, settings = 2, main = 4, START = none, FINISHED = settings | main
   }
 }
 
