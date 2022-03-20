@@ -9,7 +9,9 @@ import {
   selectFrom, selectWnd, getCurTab, runtimeError_, getTabUrl, getCurWnd, Window, Tabs_,
   Windows_, tabsCreate, openMultiTabs, selectWndIfNeed, makeWindow, browser_, Q_
 } from "./browser"
-import { convertToUrl_, createSearchUrl_, lastUrlType_, quotedStringRe_, reformatURL_ } from "./normalize_urls"
+import {
+  convertToUrl_, createSearchUrl_, hasUsedKeyword_, lastUrlType_, quotedStringRe_, reformatURL_
+} from "./normalize_urls"
 import { findUrlEndingWithPunctuation_, findUrlInText_ } from "./parse_urls"
 import { safePost, showHUD, complainLimits, findCPort, isNotVomnibarPage, indexFrame } from "./ports"
 import { createSimpleUrlMatcher_, matchSimply_ } from "./exclusions"
@@ -104,10 +106,10 @@ export const checkHarmfulUrl_ = (url: string, port?: Port | null): boolean => {
 }
 
 const onEvalUrl_ = (workType: Urls.WorkType, options: KnownOptions<C.openUrl>, tabs: [Tab] | [] | undefined
-    , arr: Urls.SpecialUrl): void => {
-  if (arr instanceof Promise) {
-    void arr.then(onEvalUrl_.bind(0, workType, options, tabs))
-    return
+    , arr: Urls.BaseEvalResult): void => {
+  const applyOptions = (urls: string[] | null): void => {
+    replaceCmdOptions<C.openUrl>(options)
+    overrideCmdOptions<C.openUrl>({ urls, url: null, url_f: null, copied: null, keyword: null }, true)
   }
   BgUtils_.resetRe_()
   switch (arr[1]) {
@@ -117,8 +119,7 @@ const onEvalUrl_ = (workType: Urls.WorkType, options: KnownOptions<C.openUrl>, t
     break
   case Urls.kEval.paste:
   case Urls.kEval.plainUrl:
-    replaceCmdOptions(options)
-    overrideCmdOptions<C.openUrl>({ urls: null, url: null, url_f: null, copied: null, keyword: null }, true)
+    applyOptions(null)
     if (arr[1] === Urls.kEval.plainUrl || options.$p) {
       workType = Urls.WorkType.Default
     } else { // `.$p` may be computed from clipboard text and then unstable
@@ -135,9 +136,22 @@ const onEvalUrl_ = (workType: Urls.WorkType, options: KnownOptions<C.openUrl>, t
     const cmd = (arr as Urls.RunEvalResult)[0]
     const curTab = curTabId_
     if (cmd[0] === "openUrls") {
-      replaceCmdOptions<C.openUrl>(options)
-      overrideCmdOptions<C.openUrl>({ urls: cmd.slice(1), url: null, url_f: null, copied: null }, true)
-      getCurTab(openUrls)
+      const urls = cmd.slice(1) as (string | Urls.BaseEvalResult)[]
+      const urls2: string[] = []
+      for (let url of urls) {
+        if (typeof url !== "string" && (url[1] === Urls.kEval.paste || url[1] === Urls.kEval.plainUrl)) {
+          url = convertToUrl_((arr as Urls.PasteEvalResult)[0], null, workType) as string | Urls.BaseEvalResult
+        }
+        if (typeof url === "string") { urls2.push(url); continue }
+        void Promise.resolve(url).then((arr2): void => {
+          if (arr2[1] !== Urls.kEval.run || (arr2 as Urls.RunEvalResult)[0][0] !== "openUrls") {
+            onEvalUrl_(workType, options, tabs, arr2)
+          }
+        })
+      }
+      if (urls2.length === 0) { return }
+      applyOptions(urls2)
+      tabs && tabs.length > 0 ? openUrls(tabs) : getCurTab(openUrls)
       return
     }
     setTimeout((): void => {
@@ -547,7 +561,7 @@ export const openUrlWithActions = (url: Urls.Url, workType: Urls.WorkType, sed?:
       const keyword = (get_cOptions<C.openUrl>().keyword as AllowToString || "") + ""
       const testUrl = get_cOptions<C.openUrl>().testUrl ?? !keyword
       url = testUrl ? convertToUrl_(url, keyword, workType)
-          : createSearchUrl_(url.trim().split(BgUtils_.spacesRe_), keyword || "~")
+          : createSearchUrl_(url.trim().split(BgUtils_.spacesRe_), keyword)
     }
     const goNext = get_cOptions<C.openUrl, true>().goNext
     if (goNext && url && typeof url === "string") {
@@ -565,7 +579,8 @@ export const openUrlWithActions = (url: Urls.Url, workType: Urls.WorkType, sed?:
     reuse = reuse !== ReuseType.newBg ? ReuseType.newFg : reuse
   }
   typeof url !== "string"
-      ? /*#__NOINLINE__*/ onEvalUrl_(workType, options, tabs, url)
+      ? url instanceof Promise ? url.then(onEvalUrl_.bind(0, workType, options, tabs))
+        : /*#__NOINLINE__*/ onEvalUrl_(workType, options, tabs, url)
       : /*#__NOINLINE__*/ openShowPage(url, reuse, options) ? 0
       : BgUtils_.isJSUrl_(url) ? /*#__NOINLINE__*/ openJSUrl(url, options, null, reuse)
       : checkHarmfulUrl_(url) ? runNextCmdBy(0, options)
@@ -716,22 +731,31 @@ export const openUrlReq = (request: FgReq[kFgReq.openUrl], port?: Port | null): 
     if (url[0] === ":" && !isWeb && (<RegExpOne> /^:[bhtwWBHdso]\s/).test(url)) {
       url = request.u = url.slice(2).trim()
     }
+    const originalUrl = url
     url = testUrl ? findUrlEndingWithPunctuation_(url, formatted) : url
     url = substitute_(url, !isWeb ? SedContext.omni : formatted ? SedContext.pageURL : SedContext.pageText, sed)
+    let converted: boolean
     if (formatted) {
-      url = url !== request.u ? convertToUrl_(url) : url
-    }
-    else if (testUrl || !isWeb) {
+      url = (converted = url !== originalUrl) ? convertToUrl_(url, null, Urls.WorkType.ConvertKnown) : url
+    } else if (converted = !!testUrl || !isWeb) {
       url = testUrl ? findUrlInText_(url, testUrl) : url
       url = convertToUrl_(url, keyword, isWeb ? Urls.WorkType.ConvertKnown : Urls.WorkType.EvenAffectStatus)
-      const type = lastUrlType_
-      if (request.h != null && (type === Urls.Type.NoScheme || type === Urls.Type.NoProtocolName)) {
-        url = (request.h ? "https" : "http") + (url as string).slice((url as string)[4] === "s" ? 5 : 4)
-      } else if (isWeb && type === Urls.Type.PlainVimium && (url as string).startsWith("vimium:")) {
-        url = convertToUrl_(url as string)
-      }
     } else {
-      url = createSearchUrl_(url.trim().split(BgUtils_.spacesRe_), keyword || "~")
+      url = createSearchUrl_(url.trim().split(BgUtils_.spacesRe_), keyword
+          , keyword && keyword !== "~" ? Urls.WorkType.ConvertKnown : Urls.WorkType.Default)
+      converted = hasUsedKeyword_
+      url = !hasUsedKeyword_ ? url
+          : convertToUrl_(url as string, null, (url as string).startsWith("vimium:")
+                ? Urls.WorkType.EvenAffectStatus : Urls.WorkType.Default)
+    }
+    if (!converted) { /* empty */ }
+    else if ((lastUrlType_ === Urls.Type.NoScheme || lastUrlType_ === Urls.Type.NoProtocolName) && request.h != null) {
+      url = (request.h ? "https" : "http") + (url as string).slice((url as string)[4] === "s" ? 5 : 4)
+    } else if (lastUrlType_ === Urls.Type.PlainVimium && (url as string).startsWith("vimium:")
+        && !originalUrl.startsWith("vimium://")) {
+      url = convertToUrl_(url as string, null
+          , hasUsedKeyword_ || (url as string).startsWith("vimium://run") ? Urls.WorkType.EvenAffectStatus
+            : Urls.WorkType.Default)
     }
     opts.opener = isWeb ? o2.o !== false : settingsCache_.vomnibarOptions.actions.includes("opener")
     opts.url_f = url
