@@ -185,7 +185,10 @@ export const filterTabsByCond_ = (activeTab: Tab | null | undefined
     switch (key) {
     case "title": case "title*":
       const title = val ? val : activeTab && activeTab.title
-      cond = title ? tab => (tab.title || "").includes(title) : cond
+      const lastSlash = val && val[0] === "/" ? val.lastIndexOf("/") : 0
+      const titleRe = lastSlash > 1 ? BgUtils_.makeRegexp_(val.slice(1, lastSlash)
+          , val.slice(lastSlash + 1).replace(<RegExpG> /g/g, ""), 0) as RegExpOne : null
+      cond = titleRe ? tab => titleRe.test(tab.title || "") : title ? tab => (tab.title || "").includes(title) : cond
       break
     case "url": case "urlhash": case "url+hash": case "url-hash": case "hash":
       let matcher: ValidUrlMatchers | null = null
