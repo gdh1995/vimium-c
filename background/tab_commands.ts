@@ -1,5 +1,5 @@
 import {
-  cRepeat, get_cOptions, cPort, curIncognito_, curTabId_, curWndId_, recencyForTab_,
+  cRepeat, get_cOptions, cPort, curIncognito_, curTabId_, curWndId_, recencyForTab_, set_curWndId_, set_curTabId_,
   copy_, newTabUrl_f, CurCVer_, IsEdg_, OnChrome, OnEdge, OnFirefox, CONST_, reqH_, set_cRepeat, lastWndId_
 } from "./store"
 import * as BgUtils_ from "./utils"
@@ -33,8 +33,17 @@ const abs = Math.abs
 
 const notifyCKey = (): void => { cPort && focusFrame(cPort, false, FrameMaskType.NoMaskAndNoFocus) }
 
+const getDestIndex = (tab: Tab): number | null | undefined => {
+  return get_cOptions<C.moveTabToNextWindow>().end ? null
+      : get_cOptions<C.moveTabToNextWindow>().position != null
+      ? newTabIndex(tab, get_cOptions<C.moveTabToNextWindow>().position, false, false)
+      : get_cOptions<C.moveTabToNewWindow>().rightInOld != null
+      ? tab.index + (get_cOptions<C.moveTabToNewWindow>().rightInOld ? 0 : 1)
+      : tab.index + (get_cOptions<C.moveTabToNextWindow>().right !== false ? 1 : 0)
+}
+
 export const copyWindowInfo = (resolve: OnCmdResolved): void | kBgCmd.copyWindowInfo => {
-  let filter = get_cOptions<C.joinTabs, true>().filter
+  const filter = get_cOptions<C.copyWindowInfo, true>().filter
   const decoded = !!(get_cOptions<C.copyWindowInfo>().decoded || get_cOptions<C.copyWindowInfo>().decode),
   type = get_cOptions<C.copyWindowInfo>().type
   const wantNTabs = type === "tab" && (abs(cRepeat) > 1 || !!filter)
@@ -76,9 +85,8 @@ export const copyWindowInfo = (resolve: OnCmdResolved): void | kBgCmd.copyWindow
     }
     if (filter) {
       const curId = cPort ? cPort.s.tabId_ : curTabId_
-      const activeTab = tabs.find(i => i.id === curId), extra: FilterInfo = {}
-      tabs = filterTabsByCond_(activeTab, tabs, filter, extra)
-      filter = extra.known ? filter : null
+      const activeTab = tabs.find(i => i.id === curId)
+      tabs = filterTabsByCond_(activeTab, tabs, filter)
     }
     if (!tabs.length) { resolve(0); return }
     if (type === "browser") {
@@ -167,7 +175,10 @@ export const joinTabs = (resolve: OnCmdResolved): void | kBgCmd.joinTabs => {
       // always convert a popup window to a normal one
       const curTabId = selectFrom(_curWnd.tabs).id
       _curWnd.tabs = _curWnd.tabs.filter(i => i.id !== curTabId)
-      makeWindow({ tabId: curTabId, incognito: _curWnd.incognito }, _curWnd.state, cb)
+      makeWindow({ tabId: curTabId, incognito: _curWnd.incognito }, _curWnd.state, (wnd2): void => {
+        if (wnd2) { set_curWndId_(wnd2.id); wnd2.tabs[0] && set_curTabId_(wnd2.tabs[0].id) }
+        cb(wnd2)
+      })
     } else {
       wnds = onlyCurrent || !_curWnd || windowsOpt === "all" ? wnds : wnds.filter(wnd => wnd.id !== _curWnd.id)
       cb(_curWnd)
@@ -190,11 +201,12 @@ export const moveTabToNewWindow = (resolve: OnCmdResolved): void | kBgCmd.moveTa
   const moveTabToNewWindow0 = (wnd: PopWindow): void => {
     const allTabs = wnd.tabs, total = allTabs.length
     const focused = get_cOptions<C.moveTabToNewWindow>().focused !== false
-    const curInd = selectIndexFrom(allTabs), activeTab = allTabs[curInd], curIncognito = activeTab.incognito;
+    const curInd = selectIndexFrom(allTabs), activeTab = allTabs[curInd]
     if (!all && total <= 1 && (!total || activeTab.index === 0 && abs(cRepeat) > 1)) { resolve(0); return }
     let range: [number, number]
     if (all) {
-        for (const i of !OnEdge ? allTabs : []) {
+      if (!OnEdge && !OnFirefox) {
+        for (const i of allTabs) {
           if (getGroupId(i) != null) {
             /** @todo: fix it with Manifest V3 */
             showHUD("Can not keep groups info during this command")
@@ -202,6 +214,7 @@ export const moveTabToNewWindow = (resolve: OnCmdResolved): void | kBgCmd.moveTa
             return
           }
         }
+      }
       range = [0, total]
     } else {
       range = total === 1 ? [0, 1] : getTabRange(curInd, total)
@@ -226,11 +239,17 @@ export const moveTabToNewWindow = (resolve: OnCmdResolved): void | kBgCmd.moveTa
         return
       }
     }
-    const firstTab = !filter || tabs.includes!(activeTab) ? activeTab : tabs[0]
-    makeWindow({ tabId: firstTab.id, incognito: curIncognito, focused }, wnd.type === "normal" ? wnd.state : ""
-        , tabs.length < 2 ? notifyCKey : (wnd2?: Window): void => {
+    const curIncognito = activeTab.incognito
+    const firstTab = tabs.includes!(activeTab) ? activeTab : tabs[0]
+    const rightInOld = (getDestIndex(activeTab) ?? 3e4) <= activeTab.index
+    const wndInit: Parameters<typeof makeWindow>[0] = { tabId: firstTab.id, incognito: curIncognito, focused }
+    const wndState = wnd.type === "normal" ? wnd.state : ""
+    void findNearShownTab_(tabs[rightInOld ? tabs.length - 1 : 0], rightInOld, allTabs).then((nearInOld): void => {
+      focused || nearInOld && selectTab(nearInOld.id)
+    makeWindow(wndInit, wndState, (wnd2?: Window): void => {
       if (!wnd2) { resolve(0); return }
       notifyCKey()
+      focused && nearInOld && selectTab(nearInOld.id)
       const indexNewActive = tabs.indexOf(firstTab)
       let leftTabs = tabs.slice(0, indexNewActive), rightTabs = tabs.slice(indexNewActive + 1)
       if (OnChrome && Build.MinCVer < BrowserVer.MinNoAbnormalIncognito
@@ -265,6 +284,7 @@ export const moveTabToNewWindow = (resolve: OnCmdResolved): void | kBgCmd.moveTa
         tab.pinned && tabsUpdate(tab.id, { pinned: true })
       }
       resolve(1)
+    })
     })
   }
   const moveTabToIncognito = (wnd: PopWindow): void => {
@@ -368,10 +388,7 @@ export const moveTabToNextWindow = ([tab]: [Tab], resolve: OnCmdResolved): void 
         dest = dest !== index ? dest : dest + (cRepeat > 0 ? 1 : -1)
         dest = ((dest % ids.length) + ids.length) % ids.length
         Tabs_.query({windowId: ids[dest], active: true}, ([tab2]): void => {
-          const newIndex = get_cOptions<C.moveTabToNextWindow>().end ? null
-              : get_cOptions<C.moveTabToNextWindow>().position != null
-              ? newTabIndex(tab2, get_cOptions<C.moveTabToNextWindow>().position, false, false)
-              : tab2.index + (get_cOptions<C.moveTabToNextWindow>().right !== false ? 1 : 0)
+          const newIndex = getDestIndex(tab2)
           const toRight = newIndex == null || newIndex > tab2.index
           let allToMove: Tab[] | null = null, nearInOld: Tab | null | false = false
           let knownTabs: Tab[] | null = null

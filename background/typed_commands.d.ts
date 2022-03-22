@@ -84,7 +84,7 @@ interface BgCmdOptions {
   } & TabFilterOptions
   [kBgCmd.mainFrame]: Req.FallbackOptions
   [kBgCmd.moveTab]: { group: "keep" | "ignore" | boolean }
-  [kBgCmd.moveTabToNewWindow]: { all: boolean | BOOL; focused: boolean; active: false }
+  [kBgCmd.moveTabToNewWindow]: { all: boolean | BOOL; focused: boolean; active: false; rightInOld: boolean }
       & Pick<OpenUrlOptions, "incognito" | "position"> & LimitedRangeOptions & TabFilterOptions
   [kBgCmd.moveTabToNextWindow]: { minimized: false; min: false; end: boolean; right: true | false
       focused: boolean; active: false; last: boolean; tabs: boolean }

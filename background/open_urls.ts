@@ -776,14 +776,13 @@ export const focusOrLaunch_ = (request: FgReq[kFgReq.focusOrLaunch], port?: Port
 
 const onMatchedTabs = (tabs: Tab[]): void => {
   const incongito = normalizeIncognito(opts2.i) ?? (curIncognito_ !== IncognitoType.true ? false : null)
-  if (incongito !== null) {
-    tabs && (tabs = tabs.filter(tab => tab.incognito === incongito))
-  }
+  tabs = tabs || []
+  if (incongito !== null) { tabs = tabs.filter(tab => tab.incognito === incongito) }
   if (opts2.g && curTabs.length > 0) {
     const curGroup = getGroupId(curTabs[0])
-    tabs && (tabs = tabs.filter(tab => getGroupId(tab) === curGroup))
+    tabs = tabs.filter(tab => getGroupId(tab) === curGroup)
   }
-  if (tabs && tabs.length > 0) {
+  if (tabs.length > 0) {
     const tabs2 = tabs.filter(tab2 => tab2.windowId === curWndId_)
     updateMatchedTab(tabs2.length > 0 ? tabs2 : tabs)
     return

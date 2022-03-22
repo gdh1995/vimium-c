@@ -453,6 +453,9 @@ set_bgC_([
   /* kBgCmd.joinTabs: */ _AsBgC<BgCmdNoTab<kBgCmd.joinTabs>>(joinTabs),
   /* kBgCmd.mainFrame: */ _AsBgC<BgCmdNoTab<kBgCmd.mainFrame>>(mainFrame),
   /* kBgCmd.moveTab: */ (curOrTabs: Tab[] | [Tab], resolve): void | kBgCmd.moveTab => {
+    const known = selectIndexFrom(curOrTabs)
+    if (curOrTabs.length > 0 && (cRepeat < 0 ? (cRepeat < -1 ? known : curOrTabs[known].index) === 0
+        : cRepeat > 1 && known === curOrTabs.length - 1)) { resolve(0); return }
     const _rawGroup = !OnEdge && get_cOptions<kBgCmd.moveTab>().group
     const useGroup = _rawGroup !== "ignore" && _rawGroup !== false
     onShownTabsIfRepeat_(true, 1, (tabs): void => {

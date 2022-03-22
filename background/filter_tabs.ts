@@ -80,7 +80,7 @@ export const onShownTabsIfRepeat_ = <All extends boolean> (allInRange: All, noSe
       theOther && theOther.length
       && (isUsable === true || isNotHidden_(theOther[0]) && (!isUsable || isUsable(theOther[0])))
       && (!filter || filterTabsByCond_(curOrTabs[0], theOther, filter).length > 0)
-      ? cRepeat < 0 ? callback([theOther[0], curOrTabs[0]], [0, 1, 2], resolve)
+      ? cRepeat < 0 ? callback([theOther[0], curOrTabs[0]], [0, 1, allInRange ? 2 : 1], resolve)
       : callback([curOrTabs[0], theOther[0]], [allInRange ? 0 : 1, 0, 2], resolve) : getCurShownTabs_(onTabs)
       return runtimeError_()
     })
@@ -97,15 +97,15 @@ export const findNearShownTab_ = (curTab: Tab | null, rightSide: boolean
       , known?: Tab[] | null): Promise<Tab | null> => {
   let nearIndex: number
   return !curTab || !curTab.index && !rightSide ? Promise.resolve(null)
-      : known && known.length === 2 && curTab.index === 0 && isNotHidden_(known[1]) ? Promise.resolve(known[1])
       : known && known[nearIndex = Math.max(known.indexOf(curTab), 0) + (rightSide ? 1 : -1)]
         && isNotHidden_(known[nearIndex]) ? Promise.resolve(known[nearIndex])
       : Q_(Tabs_.query, { windowId: curTab.windowId, index: curTab.index + (rightSide ? 1 : -1) })
         .then((nearTabs): Tab | null | Promise<Tab | null> => {
     if (!(nearTabs && nearTabs[0])) { return null }
     if (isNotHidden_(nearTabs[0])) { return nearTabs[0] }
-    return (known && known.length > 2 ? Promise.resolve(known) : Q_(getCurShownTabs_)).then((tabs): Tab | null => {
-      return tabs ? tabs[getNearArrIndex(tabs, curTab.index + (rightSide ? 1 : -1), rightSide)] : null
+    return (known && known.length > 2 ? Promise.resolve(known.filter(isNotHidden_)) : Q_(getCurShownTabs_))
+        .then((tabs): Tab | null => {
+      return tabs && tabs.length ? tabs[getNearArrIndex(tabs, curTab.index + (rightSide ? 1 : -1), rightSide)] : null
     })
   })
 }
@@ -173,14 +173,14 @@ export interface FilterInfo { known?: boolean }
 export const filterTabsByCond_ = (activeTab: Tab | null | undefined
     , tabs: readonly Tab[], filter: NonNullable<BgCmdOptions[kBgCmd.removeTabsR]["filter"]>
     , extraOutputs?: FilterInfo): Tab[] => {
-  let limit = 0
+  let limit = 0, min = 0, max = 0
   const conditions: [cond: (tab: Tab) => boolean, negative: boolean][] = []
   for (let item of (filter + "").split(/[&+]/)) {
     const rawKey = item.split("=", 1)[0], directHost = rawKey.includes("."), neg = !directHost && rawKey.endsWith("!")
     const key = directHost ? "" : (neg ? rawKey.slice(0, -1) : rawKey) || item
     const rawVal = item.slice(directHost ? 0 : rawKey.length + (item.charAt(rawKey.length + 1) === "=" ? 2 : 1))
     const val = rawVal && BgUtils_.DecodeURLPart_(rawVal);
-    const wantSame = val === "same"
+    const wantSame = val === "same" || val === "cur" || val === "current"
     let cond: ((tab: Tab) => boolean) | null = null
     switch (key) {
     case "title": case "title*":
@@ -245,8 +245,10 @@ export const filterTabsByCond_ = (activeTab: Tab | null | undefined
         cond = audible != null ? tab => tab.audible === audible : cond
       }
       break;
-    case "limit": case "limited":
-      limit = val === "count" ? get_cOptions<C.togglePinTab, true>().$limit || cRepeat : parseInt(val) || 1
+    case "min": case "max": case "limit": case "limited":
+      const intVal = val === "count" ? get_cOptions<C.togglePinTab, true>().$limit || cRepeat : parseInt(val) || 0
+      key === "min" ? min = intVal : key === "max" ? max = intVal : limit = intVal || 1
+      cond = () => true
       break
     default: break
     }
@@ -267,9 +269,12 @@ export const filterTabsByCond_ = (activeTab: Tab | null | undefined
     }
     return true
   })
-  if (!newTabs.length) {
+  const newLen = newTabs.length
+  if (!newLen || min > 0 && newLen < min || max > 0 && newLen > max) {
     (get_cOptions<C.joinTabs, true>() && get_cOptions<C.runKey, true>().$else) ||
-    showHUD("No tabs matched the filter parameter")
+    showHUD(!newLen ? "No tabs matched the filter parameter"
+        : `${newLen} tabs found but expect ${newLen < min ? min : max}`)
+    return []
   }
   if (limit) {
     let oriCurInd = activeTab ? oriTabs.indexOf(activeTab) : -1
@@ -281,7 +286,7 @@ export const filterTabsByCond_ = (activeTab: Tab | null | undefined
       const near = newTabs.findIndex(i => oriTabs.indexOf(i) >= oriCurInd)
       const doesInsert = near >= 0 && oriTabs.indexOf(newTabs[near]) > oriCurInd
       if (doesInsert) { newTabs.splice(near, 0, null as never) }
-      const range = innerGetTabRange(near >= 0 ? near : newTabs.length - 1, newTabs.length, 0
+      const range = innerGetTabRange(near >= 0 ? near : newLen - 1, newLen, 0
           , cRepeat > 0 ? limit : -limit, doesInsert ? 1 : 0, false)
       newTabs = newTabs.slice(range[0], range[1])
       doesInsert && (newTabs = newTabs.filter(i => !!i))
