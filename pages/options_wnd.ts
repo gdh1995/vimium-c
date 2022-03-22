@@ -460,7 +460,9 @@ $("#importButton").onclick = function (): void {
 nextTick_((el0): void => {
   const platform = bgSettings_.platform_
   const data = navigator.userAgentData
-  const brand = (data && data.brands || []).find(i => i.version === CurCVer_ && i.brand !== "Chromium")
+  const brands = (data && data.brands || []).filter(i => (OnChrome ? i.version === CurCVer_ && i.brand !== "Chromium"
+      : OnFirefox ? i.version === CurFFVer_ : true) && !(` ${i.brand} `.includes(" Not ")))
+  const brand = OnChrome && brands.find(i => i.brand.includes("Edge")) || brands[0]
   const nameFallback = OnFirefox ? "Firefox" : IsEdg_ ? "MS Edge" : ""
   const name = brand ? brand.brand : data ? nameFallback || "Chromium"
       : OnChrome && ((<RegExpOne> /\bChromium\b/).exec(navigator.userAgent!) || [""])[0] || nameFallback || "Chrome"

@@ -546,14 +546,17 @@ function toggleInvert(event: EventToPrevent): void {
   }
 }
 
-function loadCSS(src: string): void {
+function loadCSS(src: string): void | Promise<void> {
   if ($('link[href="' + src + '"]')) {
     return;
   }
   const obj = document.createElement("link");
   obj.rel = "stylesheet";
   obj.href = src;
-  (document.head as HTMLHeadElement).insertBefore(obj, $('link[href$="show.css"]'));
+  return new Promise((resolve): void => {
+    obj.onload = (): void => { obj.onload = null as never; resolve() }
+    (document.head as HTMLHeadElement).insertBefore(obj, $('link[href$="show.css"]'))
+  })
 }
 
 function defaultOnError(err: any): void {
@@ -564,10 +567,10 @@ function loadViewer(): Promise<ViewerModule> {
   if (ViewerModule) {
     return Promise.resolve(ViewerModule)
   }
-  loadCSS("../lib/viewer.min.css");
   // eslint-disable-next-line @typescript-eslint/no-unsafe-call
   !Build.NDEBUG && (window as any).define && (window as any).define.noConflict()
-  return import2("../lib/viewer.min.js").then((viewerJS: any): ViewerModule => {
+  return Promise.all([import2("../lib/viewer.min.js"), loadCSS("../lib/viewer.min.css")])
+      .then(([viewerJS]: any): ViewerModule => {
     viewerJS = viewerJS && typeof viewerJS === "function" ? viewerJS
         : (window as unknown as { Viewer: typeof viewerJS }).Viewer
     viewerJS.setDefaults({ // eslint-disable-line @typescript-eslint/no-unsafe-call

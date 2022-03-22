@@ -238,7 +238,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   wheelDelta_: 0,
   browser_: Build.BTypes && !(Build.BTypes & (Build.BTypes - 1)) ? Build.BTypes : BrowserType.Chrome,
   browserVer_: BrowserVer.assumedVer,
-  os_: (Build.OS & (Build.OS - 1) ? kOS.win : Build.OS) as SettingsNS.ConstItems["o"][1],
+  os_: (Build.OS & (Build.OS - 1) ? kOS.win : Build.OS < 8 ? (Build.OS / 2) | 0 : Math.log2(Build.OS)
+      ) as SettingsNS.ConstItems["o"][1],
   caseInsensitive_: false,
   mapModifier_: 0 as SettingsNS.AllVomnibarItems["a"][1],
   mappedKeyRegistry_: null as SettingsNS.AllVomnibarItems["k"][1],

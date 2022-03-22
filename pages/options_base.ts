@@ -118,7 +118,7 @@ export const getSettingsCache_ = () => settingsCache_ as Partial<SettingsNS.Pers
 
 export const bgSettings_ = {
   platform_: "" as "win" | "linux" | "mac" | "unknown",
-  os_: Build.OS & (Build.OS - 1) ? kOS.UNKNOWN : Build.OS as number as kOS,
+  os_: Build.OS & (Build.OS - 1) ? kOS.UNKNOWN : (Build.OS < 8 ? (Build.OS / 2) | 0 : Math.log2(Build.OS)) as kOS,
   defaults_: null as never as SettingsWithDefaults,
   resetCache_ (): void { settingsCache_ = null },
   preloadCache_ (this: void): Promise<void> {

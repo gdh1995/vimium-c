@@ -52,7 +52,7 @@ let keyMappingChecker_ = {
     try {
       const obj = JSON.parse(value.includes("\\\r") ? value.replace(<RegExpG> /\\\r/g, " ") : value)
       if (typeof obj !== "string") {
-        return obj !== true ? s3 ? "=" + s3 + tail : str : "";
+        return obj !== true ? s3 ? "=" + s3 + tail : str : tail
       }
       value = obj;
     } catch {

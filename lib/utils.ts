@@ -22,7 +22,9 @@ export let firefoxVer_: FirefoxBrowserVer = 0
 export function set_chromeVer_ (_newRealChromeVer: BrowserVer): void { chromeVer_ = _newRealChromeVer }
 export function set_firefoxVer_ (_newRealVer: FirefoxBrowserVer): void { firefoxVer_ = _newRealVer }
 export let os_: kOS
-if (!(Build.OS & (Build.OS - 1))) { os_ = Build.OS as number }
+if (!(Build.OS & (Build.OS - 1))) {
+  os_ = Build.OS < 8 ? (Build.OS / 2) | 0 : Build.OS as number === 8 ? 3 : Math.log2(Build.OS)
+}
 export function set_os_ (_newOS: kOS): void { os_ = _newOS }
 
 export const isTop = top === window
