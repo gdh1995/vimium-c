@@ -7,7 +7,7 @@ import type * as i18n_popup from "../i18n/zh/popup.json"
 
 interface VDataTy {
   full: string
-  type: "image" | "url" | "";
+  type: "image" | "url" | "text" | ""
   original: string;
   url: string;
   file?: string;
@@ -105,9 +105,9 @@ async function App (this: void): Promise<void> {
   else if (url.startsWith("#!image")) {
     url = url.slice(7);
     type = "image";
-  } else if (url.startsWith("#!url")) {
-    url = url.slice(5);
-    type = "url";
+  } else if ((<RegExpOne> /^#!(url|text)\b/).test( url)) {
+    type = url[2] === "u" ? "url" : "text"
+    url = url.slice(type === "url" ? 5 : 6)
   }
   url = url.startsWith("%20") ? url.slice(3) : url.trim();
   for (let ind = 0; ind = url.indexOf("&") + 1; url = url.slice(ind)) {
@@ -246,9 +246,9 @@ async function App (this: void): Promise<void> {
       VShown.setAttribute("aria-title", file)
     }
     break;
-  case "url":
+  case "url": case "text":
     VShown = (importBody as ImportBody)("shownText");
-    if (url) {
+    if (url && type !== "text") {
       let str1 = await post_(kPgReq.showUrl, url)
       if (typeof str1 !== "string") {
         showText(str1[1], str1[0] || (str1[2] || ""))

@@ -464,6 +464,7 @@ declare namespace VomnibarNS {
     clickLike?: null | "chrome" | /** as "chrome" */ true | "vivaldi" | /** as "vivaldi" */ "chrome2"
     activeOnCtrl?: boolean
     position: OpenPageUrlOptions["position"]
+    itemSedKeys: Extract<MixedSedOpts, string> | null
   }
 }
 

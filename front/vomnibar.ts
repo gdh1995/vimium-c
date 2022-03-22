@@ -104,8 +104,9 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     a.baseHttps_ = null;
     a.noSessionsOnStart_ = options.noSessions === "start"
     {
-      const sed = options.sed
+      const sed = options.sed, sed2 = options.itemSedKeys || null
       a.sed_ = typeof sed === "object" && sed || { r: sed, k: options.sedKeys || options.sedKey }
+      a.itemSed_ = sed2 ? { r: true, k: sed2 + "" } : null
     }
     a.clickLike_ = options.clickLike
     a.activeOnCtrl_ = !!options.activeOnCtrl
@@ -254,6 +255,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   darkBtn_: null as HTMLElement | null,
   wheelOptions_: { passive: false, capture: true } as const,
   sed_: null as ParsedSedOpts | null,
+  itemSed_: null as ParsedSedOpts | null,
   showTime_: 0 as 0 | /** abs-num */ 1 | /** abs */ 2 | /** relative */ 3,
   show_ (): void {
     const a = Vomnibar_;
@@ -305,7 +307,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     a.timer_ = a.height_ = a.matchType_ = a.sugTypes_ = a.wheelStart_ = a.wheelTime_ = a.actionType_ =
     a.total_ = a.lastKey_ = a.wheelDelta_ = VUtils_.timeCache_ = 0;
     a.docZoom_ = 1;
-    a.clickLike_ =
+    a.clickLike_ = a.itemSed_ =
     a.sed_ = a.doesOpenInIncognito_ = a.completions_ = a.onUpdate_ = a.isHttps_ = a.baseHttps_ = null as never
     a.mode_.q = a.lastQuery_ = a.inputText_ = a.resMode_ = "";
     a.mode_.o = "omni";
@@ -820,21 +822,22 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       return;
     }
     type UrlInfo = SugToExec & Partial<Pick<CompletersNS.Suggestion, "s">>
-    const item: SuggestionE | UrlInfo = sel >= 0 ? a.completions_[sel] : { u: a.input_.value.trim() },
+    const useItem = sel >= 0
+    const item: SuggestionE | UrlInfo = useItem ? a.completions_[sel] : { u: a.input_.value.trim() },
     action = a.actionType_, https = a.isHttps_, incognito = a.doesOpenInIncognito_,
-    noTest = sel >= 0,
-    navReq: Req.fg<kFgReq.openUrl> | null = item.s != null ? null : { H: kFgReq.openUrl,
-      f: false, r: action, h: sel >= 0 ? null : https, u: item.u,
-      o: { i: incognito, s: sel >= 0 ? { r: false, k: "" } : a.sed_, p: a.position_, t: noTest ? false : "whole" }
-    }, sessionReq: Req.fg<kFgReq.gotoSession> | null = item.s == null ? null : { H: kFgReq.gotoSession,
-      a: action > ReuseType.newBg, s: item.s
+    navReq: Req.fg<kFgReq.openUrl> | null = useItem && item.s != null && !a.itemSed_ ? null : { H: kFgReq.openUrl,
+      f: false, r: action, h: useItem ? null : https, u: item.u,
+      o: { i: incognito, s: useItem ? a.itemSed_ || { r: false, k: "" } : a.sed_,
+          p: a.position_, t: useItem ? false : "whole" }
+    }, sessionReq: Req.fg<kFgReq.gotoSession> | null = navReq ? null : { H: kFgReq.gotoSession,
+      a: action > ReuseType.newBg, s: item.s!
     },
     func = function (this: void): void {
       !VPort_ ? 0 : navReq ? Vomnibar_.navigateToUrl_(navReq, action)
         : Vomnibar_.gotoSession_(sessionReq!, (item as SuggestionE).e === "tab");
       (<RegExpOne> /a?/).test("");
     };
-    if (sel === -1 && event && event !== !0 && event & KeyStat.altKey && action > ReuseType.newBg
+    if (!useItem && event && event !== !0 && event & KeyStat.altKey && action > ReuseType.newBg
         && (<RegExpOne> /^\w+(-\w+)?$/).test(item.u)) {
       const domains = a.completions_.filter(i => i.e === "domain");
       navReq!.u = domains.length ? domains[0].u : `www.${item.u}.com`
