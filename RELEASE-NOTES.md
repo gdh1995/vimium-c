@@ -4,10 +4,27 @@ Release Notes of Vimium C
 ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 说明文档: https://gitee.com/gdh1995/vimium-c#readme , https://github.com/gdh1995/vimium-c/blob/master/README-zh.md .
 
-#### 1.96.7
+#### 1.97.0
 
-* note: this version is only a mark, while not released on any add-on stores
-* since v1.97, Vimium C will switch its setting storage into `browser.storage.local` completely
+* Vimium C has switched its setting storage into `browser.storage.local` completely since v1.97
+  * items in `localStorage` will be auto imported and then cleared
+* Firefox: fix opening duplicated tabs on a latest Firefox ESR 91
+* Firefox: work around <kbd>Ctrl</kbd> and <kbd>Shift</kbd> detection if `privacy.resistFingerprinting` is true
+* LinkHints: on Chrome, now a quick `Tab` when it's just activated will make it try to find more clickable items
+  * the quick `Tab` works only if "Use link name" is off
+  * add `showUrl=true` to simulate browsers' URL HUD for `activate` and `activateHover`
+* Vomnibar: add `itemSedKeys` to apply text substitution onto suggestion URLs on Enter
+  * in omni mode, now `:i AbCd` means `abcd` by default
+* VisualMode: fix crashes that Firefox doesn't support some granularities
+* Scroller: now guess the refresh rate of your monitor, so that scroll more smoothly
+* `openUrl`: now trust URLs built using search engines and text substitution rules
+* `joinTabs`: `filter` supports `!=` and more keywords
+* `sortTabs`: `order` supports negative fields like `-time`
+* text substitution: for a string list, now apply rules once a line, but not join them firstly (breaking)
+  * and auto parse `google.com/url?url=<URL>` into target URLs when copy and paste
+* `passNextKey`: now it still works even if triggered it in InsertMode
+  * also add `normal="force"` to work even if no exclusion rules matched
+* many other improvements and bug fixes
 
 #### 1.96.6
 * better support for Firefox 96+ and fix detection of Firefox version
