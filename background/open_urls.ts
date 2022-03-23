@@ -733,11 +733,12 @@ export const openUrlReq = (request: FgReq[kFgReq.openUrl], port?: Port | null): 
     }
     const originalUrl = url
     url = testUrl ? findUrlEndingWithPunctuation_(url, formatted) : url
-    url = substitute_(url, !isWeb ? SedContext.omni : formatted ? SedContext.pageURL : SedContext.pageText, sed)
+    url = substitute_(url, !isWeb ? /** from input bar */ testUrl ? SedContext.omni : SedContext.NONE
+          : formatted ? SedContext.pageURL : SedContext.pageText, sed)
     let converted: boolean
     if (formatted) {
       url = (converted = url !== originalUrl) ? convertToUrl_(url, null, Urls.WorkType.ConvertKnown) : url
-    } else if (converted = !!testUrl || !isWeb) {
+    } else if (converted = !!testUrl || !isWeb && !keyword) {
       url = testUrl ? findUrlInText_(url, testUrl) : url
       url = convertToUrl_(url, keyword, isWeb ? Urls.WorkType.ConvertKnown : Urls.WorkType.EvenAffectStatus)
     } else {

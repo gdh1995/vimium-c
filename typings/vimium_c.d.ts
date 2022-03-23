@@ -465,6 +465,7 @@ declare namespace VomnibarNS {
     activeOnCtrl?: boolean
     position: OpenPageUrlOptions["position"]
     itemSedKeys: Extract<MixedSedOpts, string> | null
+    itemKeyword: string | null
   }
 }
 
