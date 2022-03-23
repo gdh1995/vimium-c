@@ -9,7 +9,7 @@ declare const enum SedAction {
   NONE = 0, decodeForCopy = 1, decode = 1, decodeuri = 1, decodeurl = 1,
   decodeMaybeEscaped = 2, decodecomp = 2, unescape = 3,
   upper = 4, lower = 5, normalize = 6, reverseText = 7, reverse = 7,
-  base64Decode = 8, atob = 8, base64 = 8, base64Encode = 9, btoa = 9,
+  base64Decode = 8, atob = 8, base64 = 9, base64Encode = 9, btoa = 9,
   encode = 10, encodeComp = 11, encodeAll = 12, encodeAllComp = 13,
   camel = 14, camelcase = 14, dash = 15, dashed = 15, hyphen = 15, capitalize = 16, capitalizeAll = 17,
   latin = 18, latinize = 18, latinise = 18, noaccent = 18, nodiacritic = 18, decodeAll = 19,
@@ -26,7 +26,7 @@ const SedActionMap: ReadonlySafeDict<SedAction> = As_<SafeObject & {
   [key in Exclude<keyof typeof SedAction, "NONE"> as NormalizeKeywords<key>]: (typeof SedAction)[key]
 }>({
   __proto__: null as never,
-  atob: SedAction.base64Decode, base64: SedAction.base64Decode, base64decode: SedAction.base64Decode,
+  atob: SedAction.base64Decode, base64: SedAction.base64Encode, base64decode: SedAction.base64Decode,
   btoa: SedAction.base64Encode, base64encode: SedAction.base64Encode, decodeforcopy: SedAction.decodeForCopy,
   decode: SedAction.decodeForCopy, decodeuri: SedAction.decodeForCopy, decodeurl: SedAction.decodeForCopy,
   decodemaybeescaped: SedAction.decodeMaybeEscaped, decodeall: SedAction.decodeAll,
