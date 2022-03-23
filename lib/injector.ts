@@ -66,7 +66,7 @@ function handler(this: void, res: ExternalMsgs[kFgReq.inject]["res"] | undefined
       str = msg ? `:\n\t${msg}` : `: retried but failed (${res}).`;
       noBackend = false;
     } else {
-      setTimeout(call, 200 * tick);
+      setTimeout(safeCall, 200 * tick);
       tick++;
       noBackend = true;
     }
@@ -137,12 +137,19 @@ const call = useBrowser ? (): void => {
     return err as void
   });
 }
+const safeCall = (): void => {
+  try {
+    call()
+  } catch (ex) {
+    console.log("Can not send message to the extension of %o: %s", extID, ex && (ex as Error).message || (ex + ""))
+  }
+}
 function start(): void {
   removeEventListener("DOMContentLoaded", start);
   !(MayChrome && Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback || MayEdge) || onIdle
   ? (onIdle as RequestIdleCallback)((): void => {
-    (onIdle as RequestIdleCallback)!((): void => { setTimeout(call, 0); }, {timeout: 67});
-  }, {timeout: 330}) : setTimeout(call, 67);
+    (onIdle as RequestIdleCallback)!((): void => { setTimeout(safeCall, 0); }, {timeout: 67});
+  }, {timeout: 330}) : setTimeout(safeCall, 67);
 }
 if (document.readyState !== "loading") {
   start();

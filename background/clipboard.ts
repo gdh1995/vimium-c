@@ -13,6 +13,7 @@ declare const enum SedAction {
   encode = 10, encodeComp = 11, encodeAll = 12, encodeAllComp = 13,
   camel = 14, camelcase = 14, dash = 15, dashed = 15, hyphen = 15, capitalize = 16, capitalizeAll = 17,
   latin = 18, latinize = 18, latinise = 18, noaccent = 18, nodiacritic = 18, decodeAll = 19,
+  json = 20, jsonParse = 21,
   break = 99, stop = 99, return = 99,
 }
 interface Contexts { normal_: SedContext, extras_: kCharCode[] | null }
@@ -40,6 +41,7 @@ const SedActionMap: ReadonlySafeDict<SedAction> = As_<SafeObject & {
   break: SedAction.return, stop: SedAction.return, return: SedAction.return,
   latin: SedAction.latin, latinize: SedAction.latin, latinise: SedAction.latin,
   noaccent: SedAction.latin, nodiacritic: SedAction.latin,
+  json: SedAction.json, jsonparse: SedAction.jsonParse,
 })
 
 let staticSeds_: readonly ClipSubItem[] | null = null
@@ -54,7 +56,7 @@ const parseSeds_ = (text: string, fixedContexts: Contexts | null): readonly Clip
     let sep = prefix[2], sepRe = sepReCache.get(sep)
     if (!sepRe) {
       const s = "\\u" + (sep.charCodeAt(0) + 0x10000).toString(16).slice(1)
-      sepRe = new RegExp(`^((?:\\\\${s}|[^${s}])+)${s}(.*)${s}([a-z]{0,9})((?:,[A-Za-z-]+|,host=[\\w.*-]+)*)$`)
+      sepRe = new RegExp(`^((?:\\\\${s}|[^${s}])+)${s}(.*)${s}([a-z]{0,9})((?:,[\\w-]+|,host=[\\w.*-]+)*)$`)
       sepReCache.set(sep, sepRe)
     }
     const body = sepRe.exec(line.slice(prefix[0].length))
@@ -68,7 +70,7 @@ const parseSeds_ = (text: string, fixedContexts: Contexts | null): readonly Clip
       } else if (i.startsWith("match")) {
         retainMatched = 1
       } else {
-        let action = SedActionMap[i.replace(<RegExpG> /-/g, "")] || SedAction.NONE
+        let action = SedActionMap[i.replace(<RegExpG> /[_-]/g, "")] || SedAction.NONE
         action && actions.push(action)
       }
     }
@@ -165,6 +167,24 @@ const latinize = (text: string): string => {
         || !(Build.BTypes & BrowserType.Firefox))
     && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
     ? /\p{Diacritic}/gu : new RegExp("\\p{Diacritic}", "gu" as "g")), "")
+}
+
+const jsonToEmbed = (text: string): string => {
+  text = JSON.stringify(text).slice(1, -1)
+  /** encode OPs in `parseKeySeq` and `parseEmbeddedOptions` from {@see ./run_keys.ts} */
+  text = text.replace(<RegExpG & RegExpSearchable<0>> /[\s"$%&#()?:+]/g, (s): string => {
+    const hex = s.charCodeAt(0) + 0x10000
+    return "\\u" + hex.toString(16).slice(1)
+  })
+  return text
+}
+
+const tryParseJSON = (text: string): string => {
+  text = text[0] === '"' ? text.slice(1, text.endsWith('"') ? -1 : undefined) : text
+  text = text.replace(<RegExpG & RegExpSearchable<0>> /[\r\n\0]/g, s => s < "\n" ? "\\0" : s > "\n" ? "\\r" : "\\n")
+  text = `"${text}"`
+  try { text = JSON.parse(text) } catch { /* empty */ }
+  return text
 }
 
 export const parseSedOptions_ = (sed: UserSedOptions): ParsedSedOpts | null => {
@@ -283,6 +303,8 @@ set_substitute_((text: string, normalContext: SedContext, mixedSed?: MixedSedOpt
             : action === SedAction.encodeAllComp ? encodeURIComponent(text)
             : action === SedAction.base64Decode ? BgUtils_.DecodeURLPart_(text, "atob")
             : action === SedAction.base64Encode ? btoa(text)
+            : action === SedAction.json ? jsonToEmbed(text)
+            : action === SedAction.jsonParse ? tryParseJSON(text)
             : (text = (action === SedAction.normalize || action === SedAction.reverseText || action === SedAction.latin)
                   && (!OnChrome || Build.MinCVer >= BrowserVer.Min$String$$Normalize
                       || text.normalize) ? text.normalize(action === SedAction.latin ? "NFD" : "NFC") : text,

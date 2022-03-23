@@ -615,25 +615,33 @@ set_bgC_([
   },
   /* kBgCmd.sendToExtension: */ (resolve): void | kBgCmd.sendToExtension => {
     let targetID = get_cOptions<C.sendToExtension>().id, data = get_cOptions<C.sendToExtension>().data
-    if (targetID && typeof targetID === "string" && data !== void 0) {
-      const now = Date.now()
+    if (!(targetID && typeof targetID === "string" && data !== void 0)) {
+      showHUD('Require a string "id" and message "data"')
+      resolve(0)
+      return
+    }
+    const now = Date.now()
+    const onErr = (err: any): void => {
+      err = err && err.message || err + ""
+      console.log("Can not send message to the extension %o:", targetID, err)
+      showHUD("Error: " + err)
+      resolve(0)
+    }
+    try {
       browser_.runtime.sendMessage(targetID, get_cOptions<C.sendToExtension>().raw ? data : {
         handler: "message", from: "Vimium C", count: cRepeat, keyCode: cKey, data
       }, (cb): void => {
         let err: any = runtimeError_()
         if (err) {
-          console.log("Can not send message to the extension %o:", targetID, err)
-          showHUD("Error: " + (err.message || err))
-          resolve(0)
+          onErr(err)
         } else if (typeof cb === "string" && Math.abs(Date.now() - now) < 1e3) {
           showHUD(cb)
         }
         err || resolve(cb !== false)
         return err
       })
-    } else {
-      showHUD('Require a string "id" and message "data"')
-      resolve(0)
+    } catch (ex) { // targetID's format is invalid
+      onErr(ex)
     }
   },
   /* kBgCmd.showHUD: */ (resolve): void | kBgCmd.showHUD => {
