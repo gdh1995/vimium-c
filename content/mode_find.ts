@@ -525,7 +525,7 @@ const onIFrameKeydown = (event: KeyboardEventToPrevent): void => {
       : OnFirefox && Build.OS & (1 << kOS.unixLike) && os_ === kOS.unixLike && "cs".includes(key[0])
         ? FindAction.CtrlDelete
       : query_ || (n === kKeyCode.deleteKey && (Build.OS & ~(1 << kOS.mac) && Build.OS & (1 << kOS.mac) ? os_
-          : os_ ? true : false) || event.repeat) ? FindAction.PassDirectly
+          : !!(Build.OS & ~(1 << kOS.mac))) || event.repeat) ? FindAction.PassDirectly
       : FindAction.Exit;
     let h = HandlerResult.Prevent, scroll: number;
     if (!i) {

@@ -45,7 +45,7 @@ set_requestHandlers([
     set_fgCache(vApi.z = load)
     Build.OS & (Build.OS - 1) && set_os_(fgCache.o)
     if (OnChrome && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key && Build.OS & ~(1 << kOS.mac)) {
-      !(Build.OS & (1 << kOS.mac)) || os_ || set_keyIdCorrectionOffset_old_cr_(300)
+      (Build.OS & (1 << kOS.mac)) && !os_ && set_keyIdCorrectionOffset_old_cr_(300)
     }
     if (OnChrome && Build.MinCVer < BrowserVer.MinNoKeygenElement && chromeVer_ < BrowserVer.MinNoKeygenElement
         || OnFirefox && Build.MinFFVer < FirefoxBrowserVer.MinNoKeygenElement

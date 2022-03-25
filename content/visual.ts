@@ -391,7 +391,7 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode]): void => {
   }
   replaceOrSuppressMost_(kHandler.visual, (event: HandlerNS.Event): HandlerResult => {
     const doPass = event.i === kKeyCode.menuKey && (Build.OS & ~(1 << kOS.mac) && Build.OS & (1 << kOS.mac) ? os_
-        : os_ ? true : false) || event.i === kKeyCode.ime,
+        : !!(Build.OS & ~(1 << kOS.mac))) || event.i === kKeyCode.ime,
     key = doPass ? "" : getMappedKey(event, kModeId.Visual), keybody = keybody_(key);
     if (!key || isEscape_(key)) {
       !key || currentCount || currentSeconds ? resetKeys() : deactivate(1)
@@ -524,7 +524,7 @@ const runMovements = (direction: ForwardDir, granularity: kG | kVimG.vimWord, co
         fixWord = !(Build.OS & (1 << kOS.win)) ? shouldSkipSpaceWhenMovingRight
             : !(Build.OS & ~(1 << kOS.win)) ? !shouldSkipSpaceWhenMovingRight
             : (os_ > kOS.MAX_NOT_WIN) !== shouldSkipSpaceWhenMovingRight
-        count1 -= (Build.OS & (1 << kOS.win) && OnChrome && os_ > kOS.MAX_NOT_WIN
+        count1 -= (OnChrome && Build.OS & (1 << kOS.win) && os_ > kOS.MAX_NOT_WIN
             && (Build.MinCVer >= BrowserVer.MinOnWindows$Selection$$extend$stopWhenWhiteSpaceEnd
                 || chromeVer_ > BrowserVer.MinOnWindows$Selection$$extend$stopWhenWhiteSpaceEnd - 1)
             && !!(fixDeltaHasOnlySpaces_cr_win = moveRightByWordButNotSkipSpaces!(0))

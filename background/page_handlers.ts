@@ -68,8 +68,9 @@ const pageRequestHandlers_ = As_<{
           return s === "c" ? "" : s === "s" || s === "d" ? line[i] : JSON.stringify(line[i])
         })
         if (i + 1 < line.length) {
-          output += ` ${line.slice(i + 1).map(x => typeof x === "object" && x ? JSON.stringify(x) : x).join(" ") }.\n`
+          output += " " + (line.slice(i + 1).map(x => typeof x === "object" && x ? JSON.stringify(x) : x).join(" "))
         }
+        output += ".\n"
       }
       return output
     }
