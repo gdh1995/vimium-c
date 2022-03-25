@@ -16,9 +16,10 @@ Option_.prototype._onCacheUpdated = function<T extends keyof SettingsNS.AutoSync
     > (this: Option_<T>, func: (this: Option_<T>) => void): void {
   func.call(this)
   if (VApi) {
-    const shortKey = bgSettings_.valuesToLoad_[this.field_], val = this.readValueFromElement_()
+    const shortKey = bgSettings_.valuesToLoad_[this.field_ as keyof SettingsNS.AutoSyncedNameMap]
+    const val = this.readValueFromElement_()
     void post_(kPgReq.updatePayload, { key: shortKey, val }).then((val2): void => {
-      VApi!.z![shortKey] = val2 != null ? val2 : val as any
+      (VApi!.z! as Generalized<NonNullable<VApiTy["z"]>>)[shortKey] = val2 != null ? val2 : val as never
     })
   }
 }
