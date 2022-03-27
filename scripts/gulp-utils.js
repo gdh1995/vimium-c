@@ -6,6 +6,7 @@ var fs = require("fs");
 var gulp = require("gulp");
 /** @typedef { (stream: NodeJS.ReadWriteStream, sourceFile: any, targetPath: string) => void } ICompareContents */
 /** @type { typeof import("gulp-changed") & { compareContents?: ICompareContents } } */
+// @ts-ignore
 var gulpChanged = require("gulp-changed");
 var gulpPrint = require("gulp-print").default;
 var gulpSome = require("gulp-some");
@@ -423,11 +424,16 @@ const inlineGetters = (isES6, file) => {
     text = text.replace(/export const get_([\w$]+) ?=[^>]+>\s*[\w$]+;?/g, "export { $1 }")
         .replace(/\bget_([\w$]+)(\(\))?/g, "$1")
   } else {
-    text = text.replace(/exports\.[gs]et_[\w$]+ ?=\s*(?!exports\.[\w$]+ ?=|void 0)\S(\{[^}]*\}|[^{;]+)+;/g, (s) =>
+    if (path.includes("/store")) {
+      let prefix = text.split("void 0", 1)[0], suffix = text.slice(prefix.length)
+      prefix = prefix.replace(/exports\.[gs]et_([\w$]+) ?= ?/g, "")
+      suffix = suffix.replace(/exports\.[gs]et_[\w$]+ ?=\s*\S(\{[^}]*\}|[^{;]+)+;/g, (s) =>
           s.startsWith("exports.set") ? "" : s.replace(/get_/g, ""))
-        .replace(/exports\.[gs]et_([\w$]+)/g, "exports.$1")
+      text = prefix + suffix
+      // .replace(/exports\.[gs]et_([\w$]+)/g, "exports.$1")
+    }
     text = text.replace(/\b\w+\.[gs]et_[\w$]+\(\)?/g, (s) =>
-      s.includes(".set_") ? "(" + s.slice(0, -1).replace(/[gs]et_/, "") + " = " : s.slice(0, -2).replace(/[gs]et_/, ""))
+      s.includes(".set_") ? "(" + s.slice(0, -1).replace(/set_/, "") + " = " : s.slice(0, -2).replace(/get_/, ""))
   }
   text = text.replace(/\bc[A-Z][a-z]\w*/g, "$&_")
   exports.ToBuffer(file, text)

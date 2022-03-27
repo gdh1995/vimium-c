@@ -8,9 +8,9 @@ import { convertToUrl_, lastUrlType_, createSearch_ } from "./normalize_urls"
 import { fixCharsInUrl_ } from "./parse_urls"
 import {
   MatchCacheManager_, RankingEnums, RegExpCache_, requireNormalOrIncognitoTabs_, TabEx, sync_queryTerms_,
-  tabsInNormal, setupQueryTerms, set_tabsInNormal, TimeEnums, WritableTabEx, ComputeRecency, ComputeRelevancy,
+  tabsInNormal, setupQueryTerms, clearTabsInNormal_, TimeEnums, WritableTabEx, ComputeRecency, ComputeRelevancy,
   ComputeWordRelevancy, get2ndArg, match2_, prepareHTML_, getWordRelevancy_, cutTitle, highlight, shortenUrl, sortBy0,
-  calcBestFaviconSource_only_cr_, SearchKeywords_, set_maxScoreP_, set_timeAgo_, maxScoreP_
+  calcBestFaviconSource_only_cr_, SearchKeywords_, sync_maxScoreP_, sync_timeAgo_, maxScoreP_
 } from "./completion_utils"
 import {
   BlockListFilter_, BookmarkManager_, UrlDecoder_, HistoryManager_, TestNotBlocked_, getRecentSessions_, BrowserUrlItem,
@@ -338,7 +338,7 @@ domainEngine = {
     word = queryTerms[0].replace("/", "").toLowerCase();
     const extraSlash = word === queryTerms[0]
     let sugs: Suggestion[] = [], result = "", matchedDomain: Domain | undefined, result_score = -1.1
-    set_maxScoreP_(RankingEnums.maximumScore)
+    sync_maxScoreP_(RankingEnums.maximumScore)
     if (Build.MinCVer >= BrowserVer.BuildMinForOf && Build.MinCVer >= BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol
         || !(Build.BTypes & BrowserType.Chrome)) {
       for (const domain of (ref as IterableMap<string, Domain>).keys()) {
@@ -414,7 +414,7 @@ domainEngine = {
         sugs.push(domainEngine.createDomainSug_(i.d, i.m, i.r, extraSlash)[0])
       }
     }
-    set_maxScoreP_(oldMaxScoreP)
+    sync_maxScoreP_(oldMaxScoreP)
     Completers.next_(sugs, SugType.domain);
   },
   createDomainSug_ (key: string, matchedDomain: Domain, scoreInMany: number, extraSlash: boolean): Suggestion[] {
@@ -816,8 +816,8 @@ Completers = {
     Completers._filter2(completers, query, i);
   },
   _filter2 (this: void, completers: readonly Completer[], query: CompletersNS.QueryStatus, i: number): void {
-    set_timeAgo_(Date.now() - TimeEnums.timeCalibrator) // safe for time change
-    set_maxScoreP_(RankingEnums.maximumScore * queryTerms.length || 0.01)
+    sync_timeAgo_(Date.now() - TimeEnums.timeCalibrator) // safe for time change
+    sync_maxScoreP_(RankingEnums.maximumScore * queryTerms.length || 0.01)
     if (queryTerms.indexOf("__proto__") >= 0) {
       queryTerms = queryTerms.join(" ").replace(<RegExpG> /(^| )__proto__(?=$| )/g, " __proto_").trimLeft().split(" ");
       sync_queryTerms_(queryTerms)
@@ -888,11 +888,11 @@ Completers = {
   },
   clearGlobals_ (): void {
     Completers.mostRecentQuery_ = Completers.callback_ = null
-    set_tabsInNormal(null)
+    clearTabsInNormal_()
     setupQueryTerms(queryTerms = [], isForAddressBar = false, 0)
     rawInput = rawMode = rawQuery = rawMore = historyUrlToSkip = bookmarkUrlToSkip = "";
     RegExpCache_.parts_ = null as never
-    set_maxScoreP_(RankingEnums.maximumScore), set_timeAgo_(0)
+    sync_maxScoreP_(RankingEnums.maximumScore), sync_timeAgo_(0)
     matchType = Completers.sugTypes_ = otherFlags = maxResults = maxTotal = matchedTotal = 0
     allExpectedTypes = SugType.Empty;
     rawComponents = CompletersNS.QComponent.NONE

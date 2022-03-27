@@ -60,7 +60,7 @@ let timeAgo_ = 0, maxScoreP_ = RankingEnums.maximumScore
 
 export { tabsInNormal, maxScoreP_ }
 
-export const set_tabsInNormal = (_newInNormal: null): void => { tabsInNormal = _newInNormal }
+export const clearTabsInNormal_ = (): void => { tabsInNormal = null }
 export const setupQueryTerms = (_newQueryArr: string[], _newForAddressBar: boolean, _newMaxChars: number): void => {
   queryTerms = _newQueryArr
   isForAddressBar = _newForAddressBar
@@ -68,8 +68,8 @@ export const setupQueryTerms = (_newQueryArr: string[], _newForAddressBar: boole
   maxChars = _newMaxChars
 }
 export const sync_queryTerms_ = (_newQueryArr: string[]) => { queryTerms = _newQueryArr }
-export const set_timeAgo_ = (_newTimeAgo: number): void => { timeAgo_ = _newTimeAgo }
-export const set_maxScoreP_ = (_newMaxScoreP: number): void => { maxScoreP_ = _newMaxScoreP }
+export const sync_timeAgo_ = (_newTimeAgo: number): void => { timeAgo_ = _newTimeAgo }
+export const sync_maxScoreP_ = (_newMaxScoreP: number): void => { maxScoreP_ = _newMaxScoreP }
 
 export const MatchCacheManager_ = {
   current_: null as Readonly<MatchCacheData> | null,
