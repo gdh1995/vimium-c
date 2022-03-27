@@ -131,7 +131,7 @@ set_contentCommands_([
       if (!hasExpected && !oldPassKeys && !insert_Lock_() && !isTY(options.normal)) { return hudTip(kTip.noPassKeys) }
       set_passKeys(null)
       hasExpected && pushHandler_((event): HandlerResult => {
-        const rawKey = getMappedKey(event, raw_insert_lock ? kModeId.Insert : kModeId.Normal)
+        const rawKey = getMappedKey(event, raw_insert_lock ? kModeId.Insert : kModeId.Plain)
         const key = rawKey.length > 1 ? `<${rawKey}>` : ignoreCase ? Lower(rawKey) : rawKey
         const matched = !!key && (ignoreCase ? Lower(expectedKeys) : expectedKeys).slice(count - 1).startsWith(key)
         matched && (count += key.length)

@@ -3,7 +3,7 @@ import {
   chromeVer_, deref_
 } from "../lib/utils"
 import {
-  set_getMappedKey, char_, getMappedKey, isEscape_, getKeyStat_, prevent_, handler_stack, keybody_, SPC, hasShift_ff
+  set_getMappedKey, char_, getMappedKey, isEscape_, getKeyStat_, prevent_, handler_stack, SPC, hasShift_ff, mayBeCmd_
 } from "../lib/keyboard_utils"
 import { deepActiveEl_unsafe_, getSelection_, ElementProto_not_ff, getElDesc_, blur_unsafe } from "../lib/dom_utils"
 import { wndSize_ } from "../lib/rect"
@@ -65,9 +65,9 @@ set_getMappedKey((eventWrapper: HandlerNS.Event, mode: kModeId): string => {
     }
     key = isLong || mod ? mod + chLower : char;
     if (mappedKeys && mode < kModeId.NO_MAP_KEY) {
-      mapped = mapKeyTypes & (mode ? kMapKey.insertMode | kMapKey.otherMode : kMapKey.normalOnlyMode)
+      mapped = mapKeyTypes & (mode > kMapKey.normalMode ? kMapKey.insertMode | kMapKey.otherMode : mode)
           && mappedKeys[key + GlobalConsts.DelimiterBetweenKeyCharAndMode + GlobalConsts.ModeIds[mode]]
-          || (mapKeyTypes & kMapKey.normal ? mappedKeys[key] : "")
+          || (mapKeyTypes & kMapKey.plain ? mappedKeys[key] : "")
       key = mapped || (mapKeyTypes & kMapKey.char && !isLong && (mapped = mappedKeys[chLower])
             && mapped.length < 2 && (baseMod = mapped.toUpperCase()) !== mapped
           ? mod ? mod + mapped : char === chLower ? mapped : baseMod : key)
@@ -76,12 +76,12 @@ set_getMappedKey((eventWrapper: HandlerNS.Event, mode: kModeId): string => {
   return key;
 })
 
-const checkKey = (event: HandlerNS.Event, key: string, keyWithoutModeID: string
+const checkKey = (event: HandlerNS.Event, key: string, inInsertMode: kModeId
     ): HandlerResult.Nothing | HandlerResult.Prevent | HandlerResult.PlainEsc | HandlerResult.AdvancedEsc => {
   // when checkKey, Vimium C must be enabled, so passKeys won't be `""`
-  const key0 = passKeys && key ? mappedKeys ? getMappedKey(event, kModeId.NO_MAP_KEY) : keyWithoutModeID : "";
-  if (!key || key0 && !currentKeys && passKeys!.has(key0) !== isPassKeysReversed) {
-    return key ? esc!(HandlerResult.Nothing) : HandlerResult.Nothing;
+  if (passKeys && !currentKeys
+      && passKeys.has(mappedKeys ? getMappedKey(event, kModeId.NO_MAP_KEY) : key) !== isPassKeysReversed) {
+    return esc!(HandlerResult.Nothing)
   }
   const timestamp = event.e.timeStamp
   if (curKeyTimestamp && nextKeys && nextKeys !== keyFSM
@@ -89,19 +89,22 @@ const checkKey = (event: HandlerNS.Event, key: string, keyWithoutModeID: string
     currentKeys = ""
     nextKeys = null
   }
-  let j: ReadonlyChildKeyFSM | ValidKeyAction | ReturnType<typeof isEscape_> | undefined = isEscape_(keyWithoutModeID)
+  let j: ReadonlyChildKeyFSM | ValidKeyAction | ReturnType<typeof isEscape_> | undefined = isEscape_(key)
   if (j) {
-    OnChrome && mapKeyTypes & (kMapKey.normal | kMapKey.insertMode | kMapKey.otherMode) && checkAccessKey_cr(event)
     return nextKeys ? (esc!(HandlerResult.ExitNormalMode), HandlerResult.Prevent) : j;
   }
+  let key2 = key
   if (!nextKeys || (j = nextKeys[key]) == null) {
-    j = key.startsWith("v-") ? KeyAction.cmd : keyFSM[key];
-    if (j == null || nextKeys && key0 && passKeys!.has(key0) !== isPassKeysReversed) {
-      return esc!(HandlerResult.Nothing);
+    j = key.startsWith("v-") ? KeyAction.cmd : inInsertMode && mapKeyTypes & kMapKey.directInsert
+      && (j = keyFSM[key2 = key + GlobalConsts.DelimiterBetweenKeyCharAndMode + GlobalConsts.InsertModeId]) != null ? j
+      : !inInsertMode || mayBeCmd_(key) ? keyFSM[key2 = key] : void 0
+    if (j == null || nextKeys && passKeys
+          && passKeys.has(mappedKeys ? getMappedKey(event, kModeId.NO_MAP_KEY) : key) !== isPassKeysReversed) {
+      return esc!(nextKeys && inInsertMode ? HandlerResult.Prevent : HandlerResult.Nothing)
     }
     if (j !== KeyAction.cmd) { currentKeys = ""; }
   }
-  currentKeys += key.length > 1 ? `<${key}>` : key;
+  currentKeys += key2.length > 1 ? `<${key2}>` : key2
   if (j === KeyAction.cmd) {
     post_({ H: kFgReq.key, k: currentKeys, l: event.i, e: getElDesc_(raw_insert_lock) });
     esc!(HandlerResult.Prevent);
@@ -131,7 +134,7 @@ const checkAccessKey_cr = OnChrome ? (event: HandlerNS.Event): void => {
     // during tests, an access key of ' ' (space) can be triggered on macOS (2019-10-20)
     event.c === kChar.INVALID && char_(event);
     if (isWaitingAccessKey !== (event.c.length === 1 || event.c === SPC)
-        && (getKeyStat_(event.e) & KeyStat.ExceptShift /* Chrome ignore .shiftKey */) ===
+        && getKeyStat_(event.e, 1) /* Chrome ignore .shiftKey */ ===
             (Build.OS & ~(1 << kOS.mac) && os_ ? KeyStat.altKey : KeyStat.altKey | KeyStat.ctrlKey)
         ) {
       isWaitingAccessKey = !isWaitingAccessKey;
@@ -180,39 +183,33 @@ export const onKeydown = (event: KeyboardEventToPrevent): void => {
   }
   OnChrome && isWaitingAccessKey && /*#__NOINLINE__*/ resetAnyClickHandler()
   OnFirefox && raw_insert_lock && insert_Lock_()
-  let action = HandlerResult.Nothing, tempStr: string;
+  let action = HandlerResult.Nothing, keyStr: string;
   for (let ind = handler_stack.length; 0 < ind && action === HandlerResult.Nothing; ) {
     action = (handler_stack[ind -= 2] as HandlerNS.Handler)(eventWrapper);
   }
   if (action) { /* empty */ }
   else if (insert_global_
       || (raw_insert_lock || /*#__NOINLINE__*/ findNewEditable()) && !suppressType && !passAsNormal) {
-    let keyStr = key === kKeyCode.ime ? "" : mapKeyTypes & (insert_global_ && insert_global_.k
-                ? kMapKey.normal_long | kMapKey.char | kMapKey.insertMode : kMapKey.insertMode | kMapKey.normal_long)
+    keyStr = key === kKeyCode.ime ? "" : mapKeyTypes & (insert_global_ && insert_global_.k
+                ? kMapKey.insertMode | kMapKey.plain : kMapKey.insertMode | kMapKey.plain_to_esc)
           || (insert_global_ ? insert_global_.k
                 : mapKeyTypes & kMapKey.directInsert || key > kKeyCode.maxNotFn && key < kKeyCode.minNotFn)
               && (key < kKeyCode.N0 || key > kKeyCode.menuKey || key > kKeyCode.N9 && key < kKeyCode.A
-                  || getKeyStat_(event) & KeyStat.ExceptShift)
-          || (OnFirefox && key === kKeyCode.bracketleftOnFF || key > kKeyCode.minNotFn
-              ? event.ctrlKey : key === kKeyCode.esc)
-          ? getMappedKey(eventWrapper, kMapKey.insertMode === 1 && !kModeId.Normal
-                ? mapKeyTypes & kMapKey.insertMode : mapKeyTypes & kMapKey.insertMode ? kModeId.Insert : kModeId.Normal)
+                  || getKeyStat_(event, 1))
+          || (OnFirefox && key === kKeyCode.bracketLeftOnFF || key > kKeyCode.minNotFn
+              ? event.ctrlKey : key === kKeyCode.esc) || nextKeys
+          ? getMappedKey(eventWrapper, mapKeyTypes & kMapKey.insertMode ? kModeId.Insert : kModeId.Plain)
           : (!OnChrome || Build.MinCVer >= BrowserVer.MinEnsured$KeyboardEvent$$Key
               || event.key) && event.key!.length === 1 ? kChar.INVALID : ""
     if (insert_global_ ? insert_global_.k ? keyStr === insert_global_.k : isEscape_(keyStr)
-        : keyStr.length < 2 ? esc!(HandlerResult.Nothing)
-        : (action = checkKey(eventWrapper
-            , (tempStr = keybody_(keyStr)) > kChar.maxNotF_num && tempStr < kChar.minNotF_num
-              || keyStr.startsWith("v-") ? keyStr
-              : getMappedKey(eventWrapper, kModeId.NO_MAP_KEY)
-                + GlobalConsts.DelimiterBetweenKeyCharAndMode + GlobalConsts.InsertModeId
-            , keyStr)) > HandlerResult.MaxNotEsc
+        : keyStr.length < 2 && !nextKeys ? esc!(HandlerResult.Nothing)
+        : (action = checkKey(eventWrapper, keyStr, kModeId.Insert)) > HandlerResult.MaxNotEsc
     ) {
+      OnChrome && checkAccessKey_cr(eventWrapper) // even if nothing will be done or `passEsc` matches
       if (!insert_global_ && (raw_insert_lock && raw_insert_lock === doc.body || !isTop && wndSize_() < 5)) {
         event.repeat && focusUpper(key, true, event);
         action = /* the real is HandlerResult.PassKey; here's for smaller code */ HandlerResult.Nothing;
       } else {
-        OnChrome && checkAccessKey_cr(eventWrapper)
         action = /*#__NOINLINE__*/ exitInsertMode(event.target as Element, eventWrapper)
       }
     }
@@ -221,14 +218,13 @@ export const onKeydown = (event: KeyboardEventToPrevent): void => {
       : ((1 << kKeyCode.backspace | 1 << kKeyCode.tab | 1 << kKeyCode.esc | 1 << kKeyCode.enter
           | 1 << kKeyCode.altKey | 1 << kKeyCode.ctrlKey | 1 << kKeyCode.shiftKey
           ) >> key) & 1) {
-      tempStr = getMappedKey(eventWrapper, currentKeys ? kModeId.Next : kModeId.Normal)
-      action = checkKey(eventWrapper, tempStr, tempStr);
+      keyStr = getMappedKey(eventWrapper, currentKeys ? kModeId.Next : kModeId.Normal)
+      action = keyStr ? checkKey(eventWrapper, keyStr, kModeId.Plain) : HandlerResult.Nothing
       if (action > HandlerResult.MaxNotEsc) {
         action = action > HandlerResult.PlainEsc ? /*#__NOINLINE__*/ onEscDown(event, key, event.repeat)
             : HandlerResult.Nothing;
       }
-      if (action === HandlerResult.Nothing
-          && suppressType && eventWrapper.c.length === 1 && !getKeyStat_(event)) {
+      if (action === HandlerResult.Nothing && suppressType && eventWrapper.c.length === 1 && !getKeyStat_(event)) {
         // not suppress ' ', so that it's easier to exit this mode
         action = HandlerResult.Prevent;
       }
@@ -265,9 +261,8 @@ export const onEscDown = (event: KeyboardEventToPrevent | 0, key: kKeyCode, repe
     deref_(lastHovered_) === activeEl ? void catchAsyncErrorSilently(unhover_async()) : blur_unsafe(activeEl)
   } else if (!isTop && !activeEl) {
     focusUpper(key, repeat, event);
-    action = HandlerResult.PassKey;
   } else {
-    action = HandlerResult.Default;
+    action = HandlerResult.Nothing
   }
   return action;
 }
@@ -292,4 +287,8 @@ export const onKeyup = (event: KeyboardEventToPrevent): void => {
   } else if (onPassKey) {
     onPassKey(event)
   }
+}
+
+if (!(Build.NDEBUG || kMapKey.normalMode == 1 && kModeId.Normal == 1)) {
+  throw "kMapKey_normalMode must: == kModeId_Normal == 1"
 }

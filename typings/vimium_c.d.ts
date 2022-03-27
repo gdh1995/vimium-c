@@ -218,8 +218,8 @@ interface ReadonlyChildKeyFSM {
 type KeyFSM = ReadonlySafeDict<ValidKeyAction | ReadonlyChildKeyFSM>;
 
 declare const enum kMapKey {
-  NONE = 0, insertMode = 1, otherMode = 2, normal = 4, char = 8,
-  normal_long = 16, normalOnlyMode = 32, directInsert = 64,
+  NONE = 0, normalMode = 1, insertMode = 2, otherMode = 4, plain = 8, char = 16,
+  plain_to_esc = 32, directInsert = 64,
 }
 declare const enum kMappingsFlag {
   char0 = "#", char1 = "!",
@@ -584,9 +584,9 @@ declare const enum GlobalConsts {
 
   SelectorPrefixesInPatterns = ".#[",
   DelimiterBetweenKeyCharAndMode = ":",
-  ModeIds = "nilofvmes",
+  ModeIds = ":nilofvmes",
   InsertModeId = "i",
-  NormalOnlyModeId = "n",
+  NormalModeId = "n",
   OmniModeId = "o",
   KeySequenceTimeout = 3e5,
   OptionsPage = "pages/options.html",
@@ -594,9 +594,13 @@ declare const enum GlobalConsts {
 }
 
 declare const enum kModeId {
-  Normal = 0, Insert, Link, Omni, Find, Visual, Marks,
-  Next, Show,
-  NO_MAP_KEY,
+  Plain = 0, Normal, Insert, Link, Omni, Find, Visual, Marks, Next, Show, NO_MAP_KEY,
+}
+declare const enum kHandler {
+  _plain, _normal, _insert, linkHints, omni, find, visual, marks,
+  NOT_MEAN_kModeId,
+  postFind, unhoverOnEsc, grabBackFocus, helpDialog, focusInput,
+  passNextKey, suppressTail, _mask = ""
 }
 
 declare const enum kCharCode {
@@ -625,7 +629,7 @@ declare const enum kKeyCode {
   metaKey = 91, osRightNonMac = 92, osRightMac = 93, menuKey = 93, maxNotFn = 112 - 1, f1, f2, f5 = f1 + 4,
   maxNotMetaKey = metaKey - 1, minNotMetaKeyOrMenu = menuKey + 1,
   f10 = f1 + 9, f12 = f1 + 11, f13, f20 = f1 + 19, minNotFn, ime = 229,
-  questionWin = 191, questionMac = kCharCode.question, bracketleftOnFF = 64,
+  questionWin = 191, questionMac = kCharCode.question, bracketLeftOnFF = 64,
 }
 declare const enum KeyStat {
   Default = 0, plain = Default,

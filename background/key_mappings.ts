@@ -379,19 +379,22 @@ const setupShortcut_ = (cmdMap: NonNullable<typeof shortcutRegistry_>, key: Stan
     return ret < 1 ? 'requires a "command" option' : ret > 1 ? "" : "gets an unknown command";
 }
 
+/** @see ../lib/keyboard_utils.ts#isEscape_ */
+const oneOfTwoEscapeKeys = (key: string) => key === kChar.esc || key === "c-" + kChar.bracketLeft
+
 const collectMapKeyTypes_ = (mapKeys: SafeDict<string>): kMapKey => {
     let types = kMapKey.NONE
     for (const key in mapKeys) {
       const len = key.length
       if (len < 2) {
         const val = mapKeys[key]!
-        types |= val.length > 1 ? kMapKey.normal | kMapKey.normal_long
-            : key.toUpperCase() !== key && val.toUpperCase() !== val ? kMapKey.char : kMapKey.normal
+        types |= val.length > 1 ? oneOfTwoEscapeKeys(val) ? kMapKey.plain | kMapKey.plain_to_esc : kMapKey.plain
+            : key.toUpperCase() !== key && val.toUpperCase() !== val ? kMapKey.char : kMapKey.plain
       } else if (len > 2 && key[len - 2] === GlobalConsts.DelimiterBetweenKeyCharAndMode) {
         types |= key[len - 1] === GlobalConsts.InsertModeId ? kMapKey.insertMode
-            : key[len - 1] === GlobalConsts.NormalOnlyModeId ? kMapKey.normalOnlyMode : kMapKey.otherMode
+            : key[len - 1] === GlobalConsts.NormalModeId ? kMapKey.normalMode : kMapKey.otherMode
       } else {
-        types |= mapKeys[key]!.length > 1 ? kMapKey.normal | kMapKey.normal_long : kMapKey.normal
+        types |= oneOfTwoEscapeKeys(mapKeys[key]!) ? kMapKey.plain | kMapKey.plain_to_esc : kMapKey.plain
       }
     }
     return types
@@ -465,6 +468,8 @@ const populateKeyMap_ = (value: string | null): void => {
         const val = obj[key]!;
         if (val !== KeyAction.cmd) { func(val); }
         else if (maybePassed !== true && ref[key] === KeyAction.cmd && !(maybePassed && key in maybePassed)
+            && (key.length < 2
+                || ref[key + GlobalConsts.DelimiterBetweenKeyCharAndMode + GlobalConsts.InsertModeId] == null)
             || key.startsWith("v-")) {
           delete obj[key];
         }

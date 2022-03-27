@@ -13,11 +13,6 @@ declare const enum HandlerResult {
   PlainEsc = 6, MaxNotEsc = 5,
   AdvancedEsc = 7,
 }
-declare const enum kHandler {
-  linkHints, omni, find, visual, marks,
-  postFind, unhoverOnEsc, grabBackFocus, helpDialog, focusInput,
-  passNextKey, suppressTail, _MASK = "mask",
-}
 declare namespace HandlerNS {
   interface Event {
     /** keyCode */ i: kKeyCode;

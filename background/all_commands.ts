@@ -116,7 +116,8 @@ set_bgC_([
         : (_hud = get_cOptions<C.insertMode>().hideHud) != null ? !_hud
         : !settingsCache_.hideHud,
     key = _key && typeof _key === "string" ? stripKey_(_key).trim() : ""
-    key = key.length > 1 || key.length === 1 && !(<RegExpI> /[0-9a-z]/i).test(key) ? key : ""
+    key = key.length > 1 || key.length === 1 && !(<RegExpI> /[0-9a-z]/i).test(key)
+        && key === key.toUpperCase() && key === key.toLowerCase() ? key : "" // refuse letters in other languages
     Promise.resolve(hud ? trans_("globalInsertMode", [key && ": " + (key.length === 1 ? `" ${key} "`
         : `<${key}>`)]) : null).then((msg): void => {
     sendFgCmd(kFgCmd.insertMode, hud, {

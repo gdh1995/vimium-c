@@ -119,16 +119,21 @@ export const hasShift_ff = OnFirefox ? (event: Pick<KeyboardEvent, "shiftKey" | 
   return key.length === 1 && event.getModifierState("CapsLock") ? key !== key.toUpperCase() : event.shiftKey
 } : 0 as never as null
 
-export const getKeyStat_ = (event: Pick<KeyboardEvent, "altKey" | "ctrlKey" | "metaKey" | "shiftKey">): KeyStat =>
+export const getKeyStat_ = (event: Pick<KeyboardEvent, "altKey" | "ctrlKey" | "metaKey" | "shiftKey">
+      , ignoreShift?: 1): KeyStat =>
     <number> <boolean|number> event.altKey |
             (<number> <boolean|number> event.ctrlKey * 2) |
             (<number> <boolean|number> event.metaKey * 4) |
-            (<number> <boolean|number> (OnFirefox ? hasShift_ff!(event as KeyboardEvent) : event.shiftKey) * 8)
+            (ignoreShift ? 0
+              : <number> <boolean|number> (OnFirefox ? hasShift_ff!(event as KeyboardEvent) : event.shiftKey) * 8)
 
 export const isEscape_ = (key: string): HandlerResult.AdvancedEsc | HandlerResult.PlainEsc | HandlerResult.Nothing => {
     return key === kChar.esc ? HandlerResult.AdvancedEsc
         : key === "c-" + kChar.bracketLeft ? HandlerResult.PlainEsc : HandlerResult.Nothing;
 }
+
+export const mayBeCmd_ = (key: string): 0 | 1 | 2 =>
+    key.startsWith("v-") ? 2 : (key = keybody_(key)) > kChar.maxNotF_num && key < kChar.minNotF_num ? 1 : 0
 
 /** handler section */
 
@@ -136,12 +141,15 @@ export const prevent_ = (event: ToPrevent): void => {
     event.preventDefault(); stopEvent(event);
 }
 
-export const replaceOrSuppressMost_ = (id: kHandler, newHandler?: HandlerNS.Handler): void => {
+export const replaceOrSuppressMost_ = ((id: kHandler, newHandler?: HandlerNS.Handler): void => {
   removeHandler_(id)
   pushHandler_(newHandler || ((event: HandlerNS.Event): HandlerResult => {
-    isEscape_(getMappedKey(event, kModeId.Normal)) && removeHandler_(id)
+    isEscape_(getMappedKey(event, <kModeId> <number> id)) && removeHandler_(id)
     return event.i === kKeyCode.f12 || event.i === kKeyCode.f5 ? HandlerResult.Suppress : HandlerResult.Prevent;
   }), id)
+}) as {
+  (id: kHandler, newHandler: HandlerNS.Handler): void
+  (id: kHandler.linkHints | kHandler.omni | kHandler.find | kHandler.visual | kHandler.marks): void
 }
 
 export const whenNextIsEsc_ = (id: kHandler, modeId: kModeId, onEsc: HandlerNS.VoidHandler<void>): void => {
