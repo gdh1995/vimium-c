@@ -3,7 +3,7 @@ import {
   chromeVer_, deref_
 } from "../lib/utils"
 import {
-  set_getMappedKey, char_, getMappedKey, isEscape_, getKeyStat_, prevent_, handler_stack, SPC, hasShift_ff, mayBeCmd_
+  set_getMappedKey, char_, getMappedKey, isEscape_, getKeyStat_, prevent_, handler_stack, keybody_, SPC, hasShift_ff
 } from "../lib/keyboard_utils"
 import { deepActiveEl_unsafe_, getSelection_, ElementProto_not_ff, getElDesc_, blur_unsafe } from "../lib/dom_utils"
 import { wndSize_ } from "../lib/rect"
@@ -42,7 +42,7 @@ export {
   isWaitingAccessKey, isCmdTriggered, anyClickHandler,
   onPassKey, isPassKeysReversed,
 }
-export function set_isCmdTriggered (_newTriggerred: kKeyCode): void { isCmdTriggered = _newTriggerred }
+export function set_isCmdTriggered (_newTriggerred: kKeyCode): kKeyCode { return isCmdTriggered = _newTriggerred }
 export function set_passKeys (_newPassKeys: typeof passKeys): void { passKeys = _newPassKeys }
 export function set_nextKeys (_newNK: KeyFSM): void { nextKeys = _newNK }
 export function set_onPassKey (_newOnPassKey: typeof onPassKey): void { onPassKey = _newOnPassKey }
@@ -50,7 +50,7 @@ export function set_isPassKeysReversed (_newPKReversed: boolean): void { isPassK
 export function set_keyFSM (_newKeyFSM: KeyFSM): KeyFSM { return keyFSM = _newKeyFSM }
 export function set_mapKeyTypes (_newMapKeyTypes: kMapKey): void { mapKeyTypes = _newMapKeyTypes }
 export function set_mappedKeys (_newMappedKeys: typeof mappedKeys): void { mappedKeys = _newMappedKeys }
-
+export function set_currentKeys (_newCurrentKeys: string): void { currentKeys = _newCurrentKeys }
 
 set_getMappedKey((eventWrapper: HandlerNS.Event, mode: kModeId): string => {
   const char = eventWrapper.c !== kChar.INVALID ? eventWrapper.c : char_(eventWrapper), event = eventWrapper.e;
@@ -76,7 +76,7 @@ set_getMappedKey((eventWrapper: HandlerNS.Event, mode: kModeId): string => {
   return key;
 })
 
-const checkKey = (event: HandlerNS.Event, key: string, inInsertMode: kModeId
+const checkKey = (event: HandlerNS.Event, key: string, inInsertMode: kMapKey.NONE | kMapKey.directInsert
     ): HandlerResult.Nothing | HandlerResult.Prevent | HandlerResult.PlainEsc | HandlerResult.AdvancedEsc => {
   // when checkKey, Vimium C must be enabled, so passKeys won't be `""`
   if (passKeys && !currentKeys
@@ -95,9 +95,10 @@ const checkKey = (event: HandlerNS.Event, key: string, inInsertMode: kModeId
   }
   let key2 = key
   if (!nextKeys || (j = nextKeys[key]) == null) {
-    j = key.startsWith("v-") ? KeyAction.cmd : inInsertMode && mapKeyTypes & kMapKey.directInsert
+    j = isVKey_(key, 0) ? KeyAction.cmd : mapKeyTypes & inInsertMode
       && (j = keyFSM[key2 = key + GlobalConsts.DelimiterBetweenKeyCharAndMode + GlobalConsts.InsertModeId]) != null ? j
-      : !inInsertMode || mayBeCmd_(key) ? keyFSM[key2 = key] : void 0
+      : !inInsertMode || (key2 = keybody_(key)) < kChar.minNotF_num && key2 > kChar.maxNotF_num
+      ? keyFSM[key2 = key] : void 0
     if (j == null || nextKeys && passKeys
           && passKeys.has(mappedKeys ? getMappedKey(event, kModeId.NO_MAP_KEY) : key) !== isPassKeysReversed) {
       return esc!(nextKeys && inInsertMode ? HandlerResult.Prevent : HandlerResult.Nothing)
@@ -115,6 +116,9 @@ const checkKey = (event: HandlerNS.Event, key: string, inInsertMode: kModeId
   }
   return HandlerResult.Prevent;
 }
+
+export const isVKey_ = (key: string, event: HandlerNS.Event | 0): HandlerResult.Prevent | HandlerResult.Nothing =>
+    key.startsWith("v-") ? (event && checkKey(event, key, kMapKey.NONE), HandlerResult.Prevent) : HandlerResult.Nothing
 
 const checkAccessKey_cr = OnChrome ? (event: HandlerNS.Event): void => {
   /** On Firefox, access keys are only handled during keypress events, so it has been "hooked" well:
@@ -203,7 +207,7 @@ export const onKeydown = (event: KeyboardEventToPrevent): void => {
               || event.key) && event.key!.length === 1 ? kChar.INVALID : ""
     if (insert_global_ ? insert_global_.k ? keyStr === insert_global_.k : isEscape_(keyStr)
         : keyStr.length < 2 && !nextKeys ? esc!(HandlerResult.Nothing)
-        : (action = checkKey(eventWrapper, keyStr, kModeId.Insert)) > HandlerResult.MaxNotEsc
+        : (action = checkKey(eventWrapper, keyStr, kMapKey.directInsert)) > HandlerResult.MaxNotEsc
     ) {
       OnChrome && checkAccessKey_cr(eventWrapper) // even if nothing will be done or `passEsc` matches
       if (!insert_global_ && (raw_insert_lock && raw_insert_lock === doc.body || !isTop && wndSize_() < 5)) {
@@ -219,7 +223,7 @@ export const onKeydown = (event: KeyboardEventToPrevent): void => {
           | 1 << kKeyCode.altKey | 1 << kKeyCode.ctrlKey | 1 << kKeyCode.shiftKey
           ) >> key) & 1) {
       keyStr = getMappedKey(eventWrapper, currentKeys ? kModeId.Next : kModeId.Normal)
-      action = keyStr ? checkKey(eventWrapper, keyStr, kModeId.Plain) : HandlerResult.Nothing
+      action = keyStr ? checkKey(eventWrapper, keyStr, kMapKey.NONE) : HandlerResult.Nothing
       if (action > HandlerResult.MaxNotEsc) {
         action = action > HandlerResult.PlainEsc ? /*#__NOINLINE__*/ onEscDown(event, key, event.repeat)
             : HandlerResult.Nothing;

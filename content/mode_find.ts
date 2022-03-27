@@ -30,6 +30,7 @@ import { hudHide, hud_box, hudTip, hud_opacity, toggleOpacity as hud_toggleOpaci
 import { post_, send_, runFallbackKey } from "./port"
 import { insert_Lock_, setupSuppress } from "./insert"
 import { lastHovered_, set_lastHovered_, select_ } from "./async_dispatcher"
+import { isVKey_, set_isCmdTriggered } from "./key_handler"
 
 export declare const enum FindAction {
   PassDirectly = -1,
@@ -513,7 +514,8 @@ const onIFrameKeydown = (event: KeyboardEventToPrevent): void => {
     Stop_(event)
     if (!OnChrome || Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted
         ? !event.isTrusted : event.isTrusted === false) { return; }
-    if (!n || n === kKeyCode.ime || scroll_keyIsDown && onScrolls(event) || event.type === "keyup") { return }
+    if (!n || n === kKeyCode.ime || scroll_keyIsDown && onScrolls(event)
+        || event.type === "keyup" && !set_isCmdTriggered(0)) { return }
     const eventWrapper: HandlerNS.Event = {c: kChar.INVALID, e: event, i: n},
     key = getMappedKey(eventWrapper, kModeId.Find), keybody = keybody_(key);
     const i: FindAction | KeyStat = key.includes("a-") && event.altKey ? FindAction.DoNothing
@@ -528,8 +530,9 @@ const onIFrameKeydown = (event: KeyboardEventToPrevent): void => {
           : !!(Build.OS & ~(1 << kOS.mac))) || event.repeat) ? FindAction.PassDirectly
       : FindAction.Exit;
     let h = HandlerResult.Prevent, scroll: number;
-    if (!i) {
-      if (keybody !== key) {
+    if (i < FindAction.PassDirectly + 1) { h = HandlerResult.Suppress }
+      else if (i || isVKey_(key, eventWrapper)) { /* empty */ }
+      else if (keybody !== key) {
         if (key === `a-${kChar.f1}`) {
           prepareCrop_();
           highlightRange(getSelected())
@@ -543,18 +546,18 @@ const onIFrameKeydown = (event: KeyboardEventToPrevent): void => {
         }
         else { h = HandlerResult.Suppress; }
       }
-      else if (keybody === kChar.f1) { execCommand(DEL) }
-      else if (keybody === kChar.f2) {
+      else if (key === kChar.f1) { execCommand(DEL) }
+      else if (key === kChar.f2) {
         OnFirefox && box_.blur()
         focus(); keydownEvents_[n] = 1;
         const el = hasResults && getSelectionFocusEdge_(getSelected())
         el && focus_(el)
       }
-      else if (keybody === kChar.up || keybody === kChar.down) {
-        scroll = historyIndex + (keybody < "u" ? -1 : 1)
+      else if (key === kChar.up || key === kChar.down) {
+        scroll = historyIndex + (key < "u" ? -1 : 1)
         if (scroll >= 0) {
           historyIndex = scroll
-          if (keybody > "u") {
+          if (key > "u") {
             send_(kFgReq.findQuery, scroll, setQuery)
           } else {
             execCommand("undo")
@@ -563,10 +566,7 @@ const onIFrameKeydown = (event: KeyboardEventToPrevent): void => {
         }
       }
       else { h = HandlerResult.Suppress; }
-    } else if (i === FindAction.PassDirectly) {
-      h = HandlerResult.Suppress;
-    }
-    h < HandlerResult.Prevent || prevent_(event);
+    h > HandlerResult.Prevent - 1 && prevent_(event)
     if (i < FindAction.DoNothing + 1) { return; }
     keydownEvents_[n] = 1;
     if (OnFirefox && i === FindAction.CtrlDelete) {
@@ -601,7 +601,7 @@ const onHostKeydown = (event: HandlerNS.Event): HandlerResult => {
     deactivate(FindAction.ExitNoFocus) // should exit
     return HandlerResult.Prevent
   }
-  return HandlerResult.Nothing
+  return isVKey_(key, event)
 }
 
   if (OnEdge

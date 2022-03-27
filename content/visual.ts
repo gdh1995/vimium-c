@@ -35,9 +35,12 @@ declare const enum SelType { None = 0, Caret = 1, Range = 2 }
 type InfoToMoveRightByWord = [oldSelected: string, oldDi: ForwardDir]
 
 import {
-  VTr, safer, os_, doc, chromeVer_, tryCreateRegExp, isTY, OnFirefox, OnChrome, safeCall, parseOpenPageUrlOptions,
+  VTr, safer, os_, doc, chromeVer_, tryCreateRegExp, esc, OnFirefox, OnChrome, safeCall, parseOpenPageUrlOptions,
   parseSedOptions,
 } from "../lib/utils"
+import {
+  removeHandler_, getMappedKey, keybody_, isEscape_, prevent_, ENTER, suppressTail_, replaceOrSuppressMost_
+} from "../lib/keyboard_utils"
 import {
   getSelection_, getSelectionFocusEdge_, isHTML_, docEl_unsafe_, notSafe_not_ff_, getEditableType_,
   GetChildNodes_not_ff, rangeCount_, getAccessibleSelectedNode, scrollingEl_, isNode_,
@@ -58,9 +61,7 @@ import {
 import { insert_Lock_, raw_insert_lock } from "./insert"
 import { hudTip, hudHide, hudShow } from "./hud"
 import { post_, send_, runFallbackKey } from "./port"
-import {
-  removeHandler_, getMappedKey, keybody_, isEscape_, prevent_, ENTER, suppressTail_, replaceOrSuppressMost_
-} from "../lib/keyboard_utils"
+import { currentKeys, set_currentKeys, isVKey_ } from "./key_handler"
 
 let modeName: string
 /** need real diType */
@@ -105,10 +106,6 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode]): void => {
     curSelection.collapse(node, offset)
     di_ = kDirTy.right
     return rangeCount_(curSelection)
-  }
-
-  const resetKeys = (): void => {
-    currentCount = 0; currentSeconds = void 0
   }
 
   /**
@@ -259,7 +256,6 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode]): void => {
     const initialScope: {r?: ShadowRoot | null} = {}
     let mode_: Mode = options.m || Mode.Visual
     let curSelection: Selection
-    let currentCount = 0
     let currentSeconds: SafeDict<VisualAction> | undefined
     let retainSelection: BOOL | boolean | undefined
     let richText: BOOL | boolean | undefined
@@ -393,35 +389,35 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode]): void => {
     const doPass = event.i === kKeyCode.menuKey && (Build.OS & ~(1 << kOS.mac) && Build.OS & (1 << kOS.mac) ? os_
         : !!(Build.OS & ~(1 << kOS.mac))) || event.i === kKeyCode.ime,
     key = doPass ? "" : getMappedKey(event, kModeId.Visual), keybody = keybody_(key);
+    let count: number
     if (!key || isEscape_(key)) {
-      !key || currentCount || currentSeconds ? resetKeys() : deactivate(1)
+      !key || currentKeys || currentSeconds ? (currentSeconds = void 0) : deactivate(1)
       // if doPass, then use nothing to bubble such an event, so handlers like LinkHints will also exit
-      return key ? HandlerResult.Prevent : doPass ? HandlerResult.Nothing : HandlerResult.Suppress;
+      return esc!(key ? HandlerResult.Prevent : doPass ? HandlerResult.Nothing : HandlerResult.Suppress)
     }
     if (keybody_(key) === ENTER) {
-      resetKeys()
+      currentSeconds = void 0
       if (key > "s" && mode_ !== Mode.Caret) { retainSelection = 1 }
       "cm".includes(key[0]) ? deactivate() : yank(key < "b" ? kYank.NotExit : kYank.Exit)
-      return HandlerResult.Prevent;
+      return esc!(HandlerResult.Prevent)
     }
     const childAction = currentSeconds && currentSeconds[key],
-    count = !currentSeconds || childAction ? currentCount : 0,
-    newActions = childAction != null ? childAction : (<RegExpOne> /^v\d/).test(key) ? +key.slice(1) : keyMap[key]
-    if (!isTY(newActions, kTY.num)) {
+    newActions = childAction ? childAction : (<RegExpOne> /^v\d/).test(key) ? +key.slice(1) : keyMap[key]
+    if (!(newActions as VisualAction >= 0)) {
       // asserts newActions is SafeDict<VisualAction> | undefined
-      currentCount = newActions ? currentCount : key.length < 2 && +key < 10 ? +key + count * 10 : 0
-      currentSeconds = newActions
-      return newActions ? HandlerResult.Prevent
-          : keybody.length > 1 || key !== keybody && key < "s"
-          ? key.startsWith("v-") || keybody > kChar.maxNotF_num && keybody < kChar.minNotF_num
-            ? HandlerResult.Nothing : HandlerResult.Suppress
-          : HandlerResult.Prevent;
+      currentSeconds = newActions as Exclude<typeof newActions, number>
+      return isVKey_(key, event) ? HandlerResult.Prevent
+          : keybody < kChar.minNotF_num && keybody > kChar.maxNotF_num ? HandlerResult.Nothing
+          : newActions ? HandlerResult.Prevent
+          : (set_currentKeys(key.length < 2 && +key < 10 ? currentKeys + key : ""),
+              keybody.length > 1 || key !== keybody && key < "s" ? HandlerResult.Suppress : HandlerResult.Prevent)
     }
-    resetKeys()
     prevent_(event.e);
+    count = !currentSeconds || childAction ? (<number> <number | string> currentKeys) | 0 || 1 : 1
+    currentSeconds = void 0, esc!(HandlerResult.Nothing)
     di_ = kDirTy.unknown // make @di safe even when a user modifies the selection
     diType_ = DiType.UnsafeUnknown
-    commandHandler(newActions, count || 1)
+    commandHandler(newActions as Extract<typeof newActions, number>, count)
     return HandlerResult.Prevent;
   })
 

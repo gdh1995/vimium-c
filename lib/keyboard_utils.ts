@@ -132,9 +132,6 @@ export const isEscape_ = (key: string): HandlerResult.AdvancedEsc | HandlerResul
         : key === "c-" + kChar.bracketLeft ? HandlerResult.PlainEsc : HandlerResult.Nothing;
 }
 
-export const mayBeCmd_ = (key: string): 0 | 1 | 2 =>
-    key.startsWith("v-") ? 2 : (key = keybody_(key)) > kChar.maxNotF_num && key < kChar.minNotF_num ? 1 : 0
-
 /** handler section */
 
 export const prevent_ = (event: ToPrevent): void => {
