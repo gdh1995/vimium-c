@@ -1,5 +1,5 @@
 import {
-  fgCache, clearTimeout_, timeout_, isAlive_, Stop_ as stopEvent, Lower, OnChrome, OnEdge, getTime, OnFirefox
+  fgCache, clearTimeout_, timeout_, isAlive_, Stop_ as stopEvent, Lower, OnChrome, OnEdge, getTime, OnFirefox, abs_
 } from "./utils"
 
 const DEL = kChar.delete, BSP = kChar.backspace, SP = kChar.space
@@ -158,9 +158,9 @@ export const whenNextIsEsc_ = (id: kHandler, modeId: kModeId, onEsc: HandlerNS.V
 }
 
   /**
-   * if not timeout, then only suppress repeated keys
+   * if not timeout, then only suppress repeated keys; otherwise wait until no new keys for a while
    *
-   * @argument callback can be valid only if `timeout`
+   * @argument callback can only be true if `timeout`; 0 means not to reset timer on a new key
    */
 export const suppressTail_ = ((timeout?: number
     , callback?: HandlerNS.VoidHandler<unknown> | 0): HandlerNS.Handler | HandlerNS.VoidHandler<HandlerResult> => {
@@ -170,7 +170,7 @@ export const suppressTail_ = ((timeout?: number
         exit()
         return HandlerResult.Nothing;
       }
-      if (event && getTime() - now > timeout) { // safe-time
+      if (event && (abs_(getTime() - now) > timeout || isEscape_(getMappedKey(event, kModeId.Plain)))) {
         exit()
         return HandlerResult.Nothing
       }
@@ -191,17 +191,14 @@ export const suppressTail_ = ((timeout?: number
   return func
 }) as {
   (timeout?: number, callback?: undefined): unknown
-  /** if `callback` is 0, then never reset timer on keys */
   (timeout: number, callback: HandlerNS.VoidHandler<any> | 0): HandlerNS.VoidHandler<HandlerResult>
 }
 
 export const pushHandler_ = handlers_.push.bind(handlers_) as (func: HandlerNS.Handler, id: kHandler) => number
 
 export const removeHandler_ = (id: kHandler): void => {
-  let i = handlers_.lastIndexOf(id)
-  if (i > 0) {
-    i === handlers_.length - 1 ? handlers_.length -= 2 : handlers_.splice(i - 1, 2)
-  }
+  const i = handlers_.lastIndexOf(id)
+  if (i > 0) { handlers_.splice(i - 1, 2) }
 }
 
   /** misc section */

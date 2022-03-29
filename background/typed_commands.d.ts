@@ -9,7 +9,7 @@ type BgCmdActiveTab<T extends kBgCmd> = (this: void, tabs: [Tab], resolve: OnCmd
 type BgCmdCurWndTabs<T extends kBgCmd> = (this: void, tabs: Tab[], resolve: OnCmdResolved) => void | T
 
 interface BgCmdOptions {
-  [kBgCmd.blank]: { /** ms */ for: CountValueOrRef; wait: CountValueOrRef } & Req.FallbackOptions
+  [kBgCmd.blank]: { /** ms */ for: CountValueOrRef; wait: CountValueOrRef; block: boolean } & Req.FallbackOptions
 //#region need cport
   [kBgCmd.goNext]: {
     isNext: boolean; noRel: boolean; patterns: string | string[]; rel: string; $fmt: 1; absolute: true

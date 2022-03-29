@@ -597,10 +597,10 @@ declare const enum kModeId {
   Plain = 0, Normal, Insert, Link, Omni, Find, Visual, Marks, Next, Show, NO_MAP_KEY,
 }
 declare const enum kHandler {
-  _plain, _normal, _insert, linkHints, omni, find, visual, marks,
+  __none, __normal, __insert, linkHints, omni, find, visual, marks,
   NOT_MEAN_kModeId,
-  postFind, unhoverOnEsc, grabBackFocus, helpDialog, focusInput,
-  passNextKey, suppressTail, _mask = ""
+  postFind = NOT_MEAN_kModeId, unhoverOnEsc, grabBackFocus, helpDialog, focusInput,
+  passNextKey = __normal, suppressTail = __insert, _mask = ""
 }
 
 declare const enum kCharCode {

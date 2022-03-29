@@ -77,7 +77,9 @@ set_bgC_([
         : Math.abs(wait === "count" || wait === "number" ? cRepeat : wait | 0)
     if (wait) {
       wait = Math.max(34, wait)
-      wait > 17 && wait <= 1000 && cPort && cPort.postMessage({ N: kBgReq.suppressForAWhile, t: wait + 50 })
+      let block = get_cOptions<C.blank>().block
+      block = block != null ? !!block : wait > 17 && wait <= 1000
+      block && cPort && cPort.postMessage({ N: kBgReq.suppressForAWhile, t: wait + 50 })
       runNextCmdBy(cRepeat > 0 ? 1 : 0, get_cOptions<C.blank, true>(), wait)
     }
   },
