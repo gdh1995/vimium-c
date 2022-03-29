@@ -14,7 +14,7 @@ import {
 } from "../lib/keyboard_utils"
 import {
   view_, wndSize_, isNotInViewport, getZoom_, prepareCrop_, getViewBox_, padClientRect_, isSelARange,
-  getBoundingClientRect_, setBoundary_, wdZoom_, dScale_
+  getBoundingClientRect_, setBoundary_, wdZoom_, dScale_, getVisibleClientRect_, getVisibleBoundingRect_, VisibilityType
 } from "../lib/rect"
 import { post_, set_contentCommands_, runFallbackKey } from "./port"
 import {
@@ -24,7 +24,7 @@ import {
 } from "./dom_ui"
 import { hudHide, hudShow, hudTip, hud_text } from "./hud"
 import { onPassKey, set_onPassKey, passKeys, set_nextKeys, set_passKeys, keyFSM, onEscDown } from "./key_handler"
-import { InputHintItem, activate as linkActivate, clear as linkClear, kSafeAllSelector } from "./link_hints"
+import { InputHintItem, activate as linkActivate, clear as linkClear, kSafeAllSelector, findAnElement_ } from "./link_hints"
 import { activate as markActivate } from "./marks"
 import { FindAction, activate as findActivate, deactivate as findDeactivate, execCommand } from "./mode_find"
 import {
@@ -249,7 +249,7 @@ set_contentCommands_([
       let newEl: LockableElement | null | undefined = raw_insert_lock, ret: kTip | 0 | -1 = 0;
       if (newEl) {
         if (act === BSP) {
-          if (view_(newEl)) { execCommand(DEL, doc); }
+          if (!view_(newEl)) { execCommand(DEL, doc); }
         } else {
           set_insert_last_(OnFirefox ? weakRef_ff(newEl, kElRef.lastEditable) : weakRef_not_ff!(newEl))
           set_is_last_mutable(0)
@@ -257,7 +257,7 @@ set_contentCommands_([
         }
       } else if (!(newEl = deref_(insert_last_))) {
         ret = kTip.noFocused
-      } else if (act !== "last-visible" && view_(newEl) || !isNotInViewport(newEl)) {
+      } else if (!(act === "last-visible" ? isNotInViewport : view_)(newEl)) {
         set_insert_last_(null)
         set_is_last_mutable(1)
         getZoom_(newEl);
@@ -439,6 +439,9 @@ set_contentCommands_([
   /* kFgCmd.dispatchEventCmd: */ (options: CmdOptions[kFgCmd.dispatchEventCmd], count: number): void => {
     let event: Event | "" | undefined, delay = options.delay, init: EventInit = options.init!
     let useResult: BOOL | boolean | undefined, result: boolean | undefined
+    let activeEl: SafeElement | null | undefined
+    const docBody = OnFirefox ? (doc.body || docEl_unsafe_()) as SafeElement | null
+        : SafeEl_not_ff_!(doc.body || docEl_unsafe_())
     if (options.esc) {
       keydownEvents_[kKeyCode.None] = 0
       const ok = !!insert_Lock_() || count > 0
@@ -446,26 +449,36 @@ set_contentCommands_([
       keydownEvents_[kKeyCode.None] = 0
       useResult = 1, result = ok
     } else {
+      activeEl = findAnElement_(options, count)[0]
+      if (!activeEl || view_(activeEl) > VisibilityType.NoSpace - 1) {
+        return runFallbackKey(options, 2, "", delay)
+      }
+      const useClick = options.click && (activeEl as Partial<HTMLElement>).click
+      const xy = !useClick && options.xy as Extract<typeof options.xy, { x: number }>
+      const rect = xy && (getVisibleBoundingRect_(activeEl) || getVisibleClientRect_(activeEl))
+      if (rect) {
+        type MInit = ValidMouseEventInit;
+        (init as MInit).screenX = (init as MInit).clientX = (xy.x > 1 ? min_(rect.l + xy.x, rect.r)
+            : (rect.r - rect.l) * xy.x + rect.l) | 0;
+        (init as MInit).screenY = (init as MInit).clientY = (xy.y > 1 ? min_(rect.t + xy.y, rect.b)
+            : (rect.b - rect.t) * xy.y + rect.t) | 0
+      }
       OnChrome && setupIDC_cr!(init)
       try {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-call
         event = new (window as any)[options.class!](options.type, init)
-      } catch { hudTip(kTip.raw, 0, options.e) }
+      } catch { /* empty */ }
       if (event) {
         if (OnChrome && Build.MinCVer < BrowserVer.Min$Event$$IsTrusted
             && chromeVer_ < BrowserVer.Min$Event$$IsTrusted) {
           (event as Writable<typeof event>).isTrusted = false
         }
-        const match = options.match
-        const el = match ? safeCall(querySelector_unsafe_, match)
-            : deepActiveEl_unsafe_() || derefInDoc_(currentScrolling) || deepActiveEl_unsafe_(1)
-        const activeEl = OnFirefox ? el : SafeEl_not_ff_!(el as Exclude<typeof el, void>)
-        const useClick = options.click
-        useResult = !useClick && options.return && !!activeEl
+        useResult = !useClick && options.return
         // earlier, in case listeners are too slow
-        useResult || runFallbackKey(options, activeEl && activeEl !== doc.body ? 0 : 2, "", delay)
-        activeEl && (useClick && (activeEl as Partial<HTMLElement>).click
-            ? (activeEl as HTMLElement).click() : result = activeEl.dispatchEvent(event))
+        useResult || runFallbackKey(options, activeEl !== docBody ? 0 : 2, "", delay)
+        useClick ? (activeEl as HTMLElement).click() : (result = activeEl.dispatchEvent(event))
+      } else {
+        hudTip(kTip.raw, 0, options.e)
       }
       useResult && runFallbackKey(options, result ? 0 : 2, "", delay)
     }

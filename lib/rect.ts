@@ -7,7 +7,7 @@ import {
   IsInDOM_, scrollIntoView_, rangeCount_, removeEl_s, append_not_ff, htmlTag_, getRootNode_mounted
 } from "./dom_utils"
 
-declare const enum VisibilityType { Visible = 0, OutOfView = 1, NoSpace = 2 }
+export declare const enum VisibilityType { Visible = 0, OutOfView = 1, NoSpace = 2 }
 export type Point2D = readonly [ left: number, top: number ]
 export type ViewBox = readonly [ left: number, top: number, width: number, height: number, maxLeft: number ]
 export type ViewOffset = readonly [ left: number, top: number ] | ViewBox
@@ -400,7 +400,7 @@ export const selRange_ = ((sel: Selection, ensured?: 1): Range | null =>
   (sel: Selection, ensured?: BOOL | undefined): Range | null
 }
 
-export const view_ = (el: Element, oldY?: number): boolean => {
+export const view_ = (el: Element, oldY?: number): VisibilityType => {
   let rect = boundingRect_(el), secondScroll: number,
   ty = isNotInViewport(null, rect)
   if (ty === VisibilityType.OutOfView) {
@@ -415,7 +415,7 @@ export const view_ = (el: Element, oldY?: number): boolean => {
     }
     (delta || f) && scrollWndBy_(1, f ? secondScroll! * secondScroll! < 4 ? 0 : secondScroll! : delta * ih / 5)
   }
-  return ty === VisibilityType.Visible
+  return ty
 }
 
 export const instantScOpt = (di: number, amount: number): ScrollToOptions =>

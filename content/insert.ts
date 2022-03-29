@@ -257,10 +257,9 @@ export const onFocus = (event: Event | FocusEvent): void => {
   if (!lastWndFocusTime || event.timeStamp - lastWndFocusTime > 30) {
     if (!OnFirefox) {
       let el: SafeElement | null = SafeEl_not_ff_!(target as Element)
-      el && set_currentScrolling(OnFirefox ? weakRef_ff(el, kElRef.currentScrolling) : weakRef_not_ff!(el))
+      el && set_currentScrolling(weakRef_not_ff!(el))
     } else {
-      set_currentScrolling(OnFirefox ? weakRef_ff(target as SafeElement, kElRef.currentScrolling)
-          : weakRef_not_ff!(target as SafeElement))
+      set_currentScrolling(weakRef_ff(target as SafeElement, kElRef.currentScrolling))
     }
     set_cachedScrollable(0)
   }

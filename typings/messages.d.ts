@@ -58,6 +58,15 @@ interface OtherFilterOptions {
   typeFilter?: /** 1 <<< {@link ../content/local_hints.ts#ClickType} */ number | null | undefined
   textFilter?: "regexp"
 }
+interface OptionsToFindElement extends CSSOptions, OtherFilterOptions {
+  direct?: boolean | "element" | "sel" | "focus" | "hover" | "click" | "element,sel,focus,hover"
+      | "scroll" | "DOMActivate"
+  directOptions?: {
+    search?: "view" | "doc" | "document"
+    offset?: 0 | "cur" | "current" | "end" | "last"
+    index?: "count" | number
+  }
+}
 
 interface FindCSS {
   /** change-selection-color */ c: string;
@@ -241,19 +250,11 @@ interface UserSedOptions {
 }
 
 declare namespace HintsNS {
-  interface Options extends CSSOptions, OtherFilterOptions
+  interface Options extends OptionsToFindElement
       , UserSedOptions, OpenPageUrlOptions, Pick<OpenUrlOptions, "opener">
       , Req.FallbackOptions {
     /** mode */ m: HintMode
     /** hint characters */ c?: string
-    /** click directly */ direct?: boolean | "element" | "sel" | "focus" | "hover" | "click" | "element,sel,focus,hover"
-        | "scroll" | "DOMActivate"
-    directOptions?: {
-      search?: "view" | "doc" | "document"
-      offset?: 0 | "cur" | "current" | "end" | "last"
-      index?: "count" | number
-    }
-    /** (deprecated) */ index?: "count" | number
     action?: string;
     caret?: boolean;
     download?: "" | "force"
@@ -463,7 +464,8 @@ interface CmdOptions {
     esc?: true // if true, then call onEscDown({ repeat: count > 1 })
     click?: true // if true, call `activeElement.click()` directly
     init?: Dict<any>
-  } & Req.FallbackOptions & EventInit
+    xy?: { x: number, y: number } | [number, number] | `${number}, ${number}` | number | `${number}`
+  } & OptionsToFindElement & Req.FallbackOptions & EventInit
 }
 
 declare const enum kMarkAction {
