@@ -9,7 +9,7 @@ import {
   getMediaTag, getMediaUrl, contains_s, GetShadowRoot_, parentNode_unsafe_s, testMatch, hasTag_
 } from "../lib/dom_utils"
 import {
-  getVisibleClientRect_, getZoomedAndCroppedRect_, getClientRectsForAreas_, getCroppedRect_, padClientRect_,
+  getVisibleClientRect_, getVisibleBoundingRect_, getClientRectsForAreas_, getCroppedRect_, boundingRect_,
   getBoundingClientRect_, cropRectToVisible_, bZoom_, set_bZoom_, prepareCrop_, wndSize_, isContaining_,
   isDocZoomStrange_, docZoom_, dimSize_, ViewBox, getIFrameRect
 } from "../lib/rect"
@@ -87,7 +87,7 @@ const getClickable = (hints: Hint[], element: SafeHTMLElement): void => {
       const st = getComputedStyle_(element)
       isClickable = <number> <string | number> st.opacity > 0
       if (isClickable || !(element as HTMLInputElement).labels.length) {
-        arr = getZoomedAndCroppedRect_(element as HTMLInputElement, st, !isClickable)
+        arr = getVisibleBoundingRect_(element as HTMLInputElement, <BOOL> +isClickable, st)
         isClickable = !!arr
       }
     }
@@ -160,7 +160,7 @@ const getClickable = (hints: Hint[], element: SafeHTMLElement): void => {
     isClickable = type > ClickType.Default
   }
   if (isClickable
-      && (arr = tag === "img" ? getZoomedAndCroppedRect_(element as HTMLImageElement, null, true)
+      && (arr = tag === "img" ? getVisibleBoundingRect_(element as HTMLImageElement, 1)
               : arr || getVisibleClientRect_(element, null))
       && (isAriaFalse_(element, kAria.hidden) || extraClickable_ && extraClickable_.has(element))
       && (type < ClickType.scrollX
@@ -200,8 +200,7 @@ export const getPreferredRectOfAnchor = (anchor: HTMLAnchorElement): Rect | null
         // use `^...$` to exclude custom tags
       ? (<RegExpOne> /^h\d$/).test(tag!) && isNotReplacedBy(el as HTMLHeadingElement & SafeHTMLElement)
         ? getVisibleClientRect_(el as HTMLHeadingElement & SafeHTMLElement) : null
-      : tag === "img" && !dimSize_(anchor, kDim.elClientH)
-        ? getCroppedRect_(el as HTMLImageElement, getVisibleClientRect_(el as HTMLImageElement))
+      : tag === "img" && !dimSize_(anchor, kDim.elClientH) ? getVisibleBoundingRect_(el, 1)
       : null);
 }
 
@@ -743,7 +742,7 @@ export const getVisibleElements = (view: ViewBox): readonly Hint[] => {
           , cr: Rect | null | undefined
         if (!mediaTag) {
           if (str) {
-            let r = padClientRect_(getBoundingClientRect_(element)), l = r.l, t = r.t, w = r.r - l, h = r.b - t
+            let r = boundingRect_(element), l = r.l, t = r.t, w = r.r - l, h = r.b - t
             if (w < 8 && h < 8) {
               w = h = w === h && (w ? w === 3 : l || t) ? 8 : 0;
             } else {
@@ -890,8 +889,7 @@ export const checkNestedFrame = (output?: Hint[]): void => {
     }
     res = len - 1 ? len > 0 && null
         : isIFrameElement(element = output[0][0])
-          && (rect = padClientRect_(getBoundingClientRect_(element)),
-              rect2 = padClientRect_(getBoundingClientRect_(docEl_unsafe_()!)),
+          && (rect = boundingRect_(element), rect2 = boundingRect_(docEl_unsafe_()!),
               rect.t - rect2.t < 20 && rect.l - rect2.l < 20
               && rect2.r - rect.r < 20 && rect2.b - rect.b < 20)
           && isStyleVisible_(element) ? element as KnownIFrameElement

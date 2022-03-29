@@ -11,7 +11,7 @@ import {
   parentNode_unsafe_s, setDisplaying_s, editableTypes_, getRootNode_mounted, singleSelectionElement_unsafe
 } from "../lib/dom_utils"
 import {
-  bZoom_, dScale_, getZoom_, wdZoom_, getSelectionBoundingBox_, prepareCrop_, getClientRectsForAreas_,
+  bZoom_, dScale_, getZoom_, wdZoom_, boundingRect_, prepareCrop_, getClientRectsForAreas_,
   getVisibleClientRect_, getBoundingClientRect_, padClientRect_, isContaining_, cropRectToVisible_, getCroppedRect_,
   setBoundary_, wndSize_, dimSize_, selRange_, isSelARange
 } from "../lib/rect"
@@ -314,16 +314,22 @@ export const getSelectionParent_unsafe = ((sel: Selection, re?: RegExpG & RegExp
   (sel: Selection, re?: undefined): Element | null
 }
 
+export const getSelectionBoundingBox_ = (sel?: Selection, ensured?: BOOL): Rect | null => {
+  const range = selRange_(sel || getSelected(), ensured), bcr = range && range.getBoundingClientRect(),
+  rect = bcr && padClientRect_(bcr, 3)
+  return rect && (rect.b > rect.t || rect.r > rect.l) ? rect : null
+}
+
 /** `type`: 0 means to trim; always check focused `<input>` on Firefox and blurred inputs on Chrome */
 export const getSelectionText = (type?: 0 | 1, sel?: Selection): string => {
     sel = sel || getSelection_()
-    let s = "" + <SelWithToStr> sel, node: Element | null, rect: ClientRect
+    let s = "" + <SelWithToStr> sel, node: Element | null
     if (OnFirefox && !s) {
       s = !insert_Lock_() || getEditableType_<0>(node = raw_insert_lock!) !== EditableType.TextBox ? s
           : (node as TextElement).value.slice(textOffset_(node as TextElement), textOffset_(node as TextElement, 1))
     } else if (s && !insert_Lock_()
         && (node = singleSelectionElement_unsafe(sel)) && getEditableType_<0>(node) === EditableType.TextBox
-        && (rect = getSelectionBoundingBox_(sel), !rect.width || !rect.height)) {
+        && !getSelectionBoundingBox_(sel, 1)) {
       s = "";
     }
     return type ? s : s.trim()
@@ -396,8 +402,7 @@ export const getRect = (clickEl: SafeElement, refer?: HTMLElementUsingMap | null
       return getClientRectsForAreas_(refer, [], [clickEl as HTMLAreaElement]);
     }
     const rect = OnFirefox || !notSafe_not_ff_!(clickEl) ? getVisibleClientRect_(clickEl) : null,
-    cr = getBoundingClientRect_(clickEl),
-    bcr = padClientRect_(cr, 8),
+    bcr = padClientRect_(getBoundingClientRect_(clickEl), 8),
     rect2 = rect && !isContaining_(bcr, rect) ? rect
       : cropRectToVisible_(bcr.l, bcr.t, bcr.r, bcr.b) ? bcr : null;
     return rect2 && getCroppedRect_(clickEl, rect2);
@@ -517,7 +522,7 @@ export const checkHidden = ((cmd?: FgCmdAcrossFrames, options?: OptionsWithForce
     // then par.self.innerHeight works, but this behavior is undocumented,
     // so here only use `parApi.innerHeight_()` in case
     if ((OnFirefox ? (parEvents = getParentVApi()) : curFrameElement)
-        && (result || (box = padClientRect_(getBoundingClientRect_(curFrameElement!))).b <= 0
+        && (result || (box = boundingRect_(curFrameElement!)).b <= 0
             || (OnFirefox ? box.t > parEvents!.i!() : box.t > (parent as Window).innerHeight))) {
       OnFirefox || (parEvents = getParentVApi())
       if (parEvents && !parEvents.a(keydownEvents_)) {

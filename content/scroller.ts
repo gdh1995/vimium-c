@@ -33,7 +33,7 @@ import {
 } from "../lib/dom_utils"
 import {
   scrollWndBy_, wndSize_, getZoom_, wdZoom_, bZoom_, isNotInViewport, prepareCrop_, padClientRect_, instantScOpt,
-  getBoundingClientRect_, cropRectToVisible_, getVisibleClientRect_, dimSize_, scrollingTop, set_scrollingTop,
+  getBoundingClientRect_, getVisibleBoundingRect_, getVisibleClientRect_, dimSize_, scrollingTop, set_scrollingTop,
   isSelARange
 } from "../lib/rect"
 import {
@@ -477,9 +477,7 @@ const findScrollable = (di: ScrollByY, amount: number
       cur_el = _ref[_len]! as /** fake `as` */ SafeElement
       // here assumes that a <form> won't be a main scrollable area
       if (!OnFirefox && notSafe_not_ff_!(cur_el)) { continue }
-      const rect = padClientRect_(getBoundingClientRect_(cur_el))
-      const visible = rect.b > rect.t ? cropRectToVisible_(rect.l, rect.t, rect.r, rect.b)
-          : getVisibleClientRect_(cur_el)
+      const visible = getVisibleBoundingRect_(cur_el) || getVisibleClientRect_(cur_el)
       if (visible) {
         let height_ = visible.b - visible.t
         children.push({ a: (visible.r - visible.l) * height_, e: cur_el, h: height_})

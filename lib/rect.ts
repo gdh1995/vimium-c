@@ -173,7 +173,7 @@ export const getVisibleClientRect_ = OnChrome && Build.MinCVer < BrowserVer.MinE
 export const getClientRectsForAreas_ = function (element: HTMLElementUsingMap, output: Hint[]
     , areas?: NodeListOf<HTMLAreaElement | Element> | HTMLAreaElement[]): Rect | null {
   let diff: number, x1: number, x2: number, y1: number, y2: number, rect: Rect | null | undefined
-  const cr = padClientRect_(getBoundingClientRect_(element)), crWidth = cr.r - cr.l, crHeight = cr.b - cr.t
+  const cr = boundingRect_(element), crWidth = cr.r - cr.l, crHeight = cr.b - cr.t
   if (crHeight < 3 || crWidth < 3) { return null }
   // replace is necessary: chrome allows "&quot;", and also allows no "#"
   if (!areas) {
@@ -229,12 +229,11 @@ export const getIFrameRect = (element: SafeElement): Rect | null => {
 }
 
 export const getCroppedRect_ = function (el: Element, crect: Rect | null): Rect | null {
-  let parent: Element | null = el, prect: Rect | null | undefined, i: number = crect ? 3 : 0, bcr: Rect
+  let parent: Element | null = el, prect: Rect | null | undefined, i: number = crect ? 3 : 0
   while (0 < i-- && (parent = GetParent_unsafe_(parent, PNType.RevealSlotAndGotoParent))) {
-    const overflow = getComputedStyle_(parent).overflow
+    const st = getComputedStyle_(parent), overflow = st.overflow
     if (overflow === HDN || overflow === "clip") {
-      bcr = padClientRect_(getBoundingClientRect_(parent))
-      prect = cropRectToVisible_(bcr.l, bcr.t, bcr.r, bcr.b)
+      prect = getVisibleBoundingRect_(parent)
       crect = prect && isContaining_(crect!, prect) ? prect : crect
     }
   }
@@ -328,7 +327,7 @@ export const getViewBox_ = function (needBox?: 1 | /** dialog-found */ 2): ViewB
       : (<RegExpOne> /a|c/).test(docContain)) || st.transform !== NONE),
   // NOTE: if box.zoom > 1, although doc.documentElement.scrollHeight is integer,
   //   its real rect may has a float width, such as 471.333 / 472
-  rect = padClientRect_(getBoundingClientRect_(box))
+  rect = boundingRect_(box)
   let zoom = OnChrome ? _fixDocZoom_cr!(+st.zoom || 1, box, ratio) : !OnFirefox && +st.zoom || 1,
   iw = wndSize_(1), ih = wndSize_(),
   // ignore the case that x != y in "transform: scale(x, y)""
@@ -383,9 +382,7 @@ export const getViewBox_ = function (needBox?: 1 | /** dialog-found */ 2): ViewB
 }
 
 export const isNotInViewport = function (this: void, element: Element | null, rect?: Rect): VisibilityType {
-  if (!rect) {
-    rect = padClientRect_(getBoundingClientRect_(element!))
-  }
+  if (!rect) { rect = boundingRect_(element!) }
   return rect.b - rect.t < 1 || rect.r - rect.l < 1 ? VisibilityType.NoSpace
       : rect.b <= 0 || rect.t >= wndSize_() || rect.r <= 0 || rect.l >= wndSize_(1)
       ? VisibilityType.OutOfView : VisibilityType.Visible
@@ -400,13 +397,11 @@ export const selRange_ = ((sel: Selection, ensured?: 1): Range | null =>
   ensured || rangeCount_(sel) ? sel.getRangeAt(0) : null
 ) as {
   (sel: Selection, ensured: 1): Range
-  (sel: Selection): Range | null
+  (sel: Selection, ensured?: BOOL | undefined): Range | null
 }
 
-export const getSelectionBoundingBox_ = (sel: Selection): ClientRect => selRange_(sel, 1).getBoundingClientRect()
-
 export const view_ = (el: Element, oldY?: number): boolean => {
-  let rect = padClientRect_(getBoundingClientRect_(el)), secondScroll: number,
+  let rect = boundingRect_(el), secondScroll: number,
   ty = isNotInViewport(null, rect)
   if (ty === VisibilityType.OutOfView) {
     let ih = wndSize_(), delta = rect.t < 0 ? -1 : rect.t > ih ? 1 : 0, f = oldY != null,
@@ -443,21 +438,22 @@ export const isContaining_ = (a: Rect, b: Rect): boolean => {
 }
 
 export const padClientRect_ = function (rect: ClientRect, padding?: number): WritableRect {
-  const x = rect.left, y = rect.top
-  padding = x || y ? padding || 0 : 0
-  return {l: x | 0, t: y | 0, r: (x + max_(rect.width, padding)) | 0, b: (y + max_(rect.height, padding)) | 0}
+  const x = rect.left, y = rect.top, w = rect.width, h = rect.height
+  padding = w || h ? padding || 0 : 0
+  return {l: x | 0, t: y | 0, r: (x + max_(w, padding)) | 0, b: (y + max_(h, padding)) | 0}
 } as {
   (rect: ClientRect, padding: number): WritableRect
   (rect: ClientRect): Rect
 }
 
-export const getZoomedAndCroppedRect_ = (element: HTMLImageElement | HTMLInputElement
-    , st: CSSStyleDeclaration | null, crop: boolean): Rect | null => {
-  let zoom = !OnFirefox && +(st || getComputedStyle_(element)).zoom || 1,
-  cr_not_ff = !OnFirefox ? padClientRect_(getBoundingClientRect_(element)) : 0 as never as null,
+export const boundingRect_ = (element: Element): Rect => padClientRect_(getBoundingClientRect_(element), 0)
+
+export const getVisibleBoundingRect_ = (element: Element, crop?: BOOL, st?: CSSStyleDeclaration): Rect | null => {
+  let zoom = !OnFirefox && (st || crop) && +(st || getComputedStyle_(element)).zoom || 1,
+  rect = boundingRect_(element),
   arr: Rect | null = !OnFirefox
-      ? cropRectToVisible_(cr_not_ff!.l * zoom, cr_not_ff!.t * zoom, cr_not_ff!.r * zoom, cr_not_ff!.b * zoom)
-      : getVisibleClientRect_(element)
+      ? cropRectToVisible_(rect.l * zoom, rect.t * zoom, rect.r * zoom, rect.b * zoom)
+      : cropRectToVisible_(rect.l, rect.t, rect.r, rect.b)
   if (crop) {
     arr = getCroppedRect_(element, arr)
   }

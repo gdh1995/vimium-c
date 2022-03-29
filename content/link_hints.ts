@@ -91,11 +91,11 @@ import {
 import {
   querySelector_unsafe_, isHTML_, scrollingEl_, docEl_unsafe_, IsInDOM_, GetParent_unsafe_, hasInCSSFilter_,derefInDoc_,
   getComputedStyle_, isStyleVisible_, htmlTag_, fullscreenEl_unsafe_, removeEl_s, UNL, toggleClass_s, doesSupportDialog,
-  getSelectionFocusEdge_, SafeEl_not_ff_, rangeCount_, compareDocumentPosition, deepActiveEl_unsafe_, frameElement_
+  getSelectionFocusEdge_, SafeEl_not_ff_, compareDocumentPosition, deepActiveEl_unsafe_, frameElement_
 } from "../lib/dom_utils"
 import {
-  ViewBox, getViewBox_, prepareCrop_, wndSize_, bZoom_, wdZoom_, dScale_, padClientRect_, getBoundingClientRect_,
-  docZoom_, bScale_, dimSize_, isSelARange, getSelectionBoundingBox_, view_,
+  ViewBox, getViewBox_, prepareCrop_, wndSize_, bZoom_, wdZoom_, dScale_, boundingRect_,
+  docZoom_, bScale_, dimSize_, isSelARange, view_,
 } from "../lib/rect"
 import {
   replaceOrSuppressMost_, removeHandler_, getMappedKey, keybody_, isEscape_, getKeyStat_, keyNames_, suppressTail_,
@@ -103,7 +103,7 @@ import {
 } from "../lib/keyboard_utils"
 import {
   style_ui, addElementList, ensureBorder, adjustUI, flash_, getParentVApi, getWndVApi_ff, checkHidden, removeModal,
-  getSelected
+  getSelected, getSelectionBoundingBox_
 } from "./dom_ui"
 import { scrollTick, beginScroll, currentScrolling } from "./scroller"
 import { hudTip, hudShow, hudHide, hud_tipTimer } from "./hud"
@@ -338,14 +338,14 @@ export const setMode = (mode: HintMode, silent?: BOOL): void => {
 
 const getPreciseChildRect = (frameEl: KnownIFrameElement, view: Rect): Rect | null => {
     const V = "visible",
-    brect = padClientRect_(getBoundingClientRect_(frameEl)),
+    brect = boundingRect_(frameEl),
     docEl = docEl_unsafe_(), body = doc.body, inBody = !!body && IsInDOM_(frameEl as SafeHTMLElement, body, 1),
     zoom = (OnChrome ? docZoom_ * (inBody ? bZoom_ : 1) : 1) / dScale_ / (inBody ? bScale_ : 1);
     let x0 = min_(view.l, brect.l), y0 = min_(view.t, brect.t), l = x0, t = y0, r = view.r, b = view.b
     for (let el: Element | null = frameEl; el = GetParent_unsafe_(el, PNType.RevealSlotAndGotoParent); ) {
       const st = getComputedStyle_(el);
       if (st.overflow !== V) {
-        let outer = padClientRect_(getBoundingClientRect_(el)), hx = st.overflowX !== V, hy = st.overflowY !== V,
+        let outer = boundingRect_(el), hx = st.overflowX !== V, hy = st.overflowY !== V,
         scale = el !== docEl && inBody ? dScale_ * bScale_ : dScale_;
         /** Note: since `el` is not safe, `dimSize_(el, *)` may returns `NaN` */
         hx && (l = max_(l, outer.l), r = l + min_(r - l, outer.r - outer.l
@@ -532,12 +532,9 @@ const activateDirectly = (options: ContentOptions, count: number): void => {
   offset = exOpts.offset || "", wholeDoc = ("" + exOpts.search).startsWith("doc"),
   allTypes = d === !0, mode = options.m &= ~HintMode.queue,
   next = (): void => {
-    let rect: ClientRect | 0, sel: Selection
     if (count < 1) { clear(); return }
     count = IsInDOM_(el!) ? (coreHints.e({d: el as LinkEl, r: null, m: null}, 0
-      , isSel && (sel = getSelected(), rect = rangeCount_(sel) && getSelectionBoundingBox_(sel),
-                  rect && padClientRect_(rect))
-    ), count - 1) : 0
+        , isSel && getSelectionBoundingBox_()), count - 1) : 0
     count || runFallbackKey(options_, false)
     timeout_(next, count > 99 ? 1 : count && 17)
   },
@@ -693,7 +690,7 @@ const checkLast = ((el?: WeakRef<LinkEl> | LinkEl | 1 | null, r?: Rect | null
   else if (window.closed) { return 1 }
   else if (el === 1) { return 2 }
   else {
-    r2 = hasEl && (el = derefInDoc_(el as WeakRef<LinkEl>)) ? padClientRect_(getBoundingClientRect_(el)) : null
+    r2 = hasEl && (el = derefInDoc_(el as WeakRef<LinkEl>)) ? boundingRect_(el) : null
     hidden = !r2 || (r2.r - r2.l) * (r2.b - r2.t) < 4 || !isStyleVisible_(el as LinkEl)
     if (hidden && deref_(lastHovered_) === el) {
       void hover_async()

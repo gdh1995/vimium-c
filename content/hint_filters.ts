@@ -7,7 +7,7 @@ import {
   HintItem, FilteredHintItem, MarkerElement, HintText, isHC_,
   hintMode_, useFilter_, hintKeyStatus, KeyStatus, hintChars, allHints, setMode, resetMode, hintOptions
 } from "./link_hints"
-import { bZoom_, padClientRect_, getBoundingClientRect_, dimSize_ } from "../lib/rect"
+import { bZoom_, boundingRect_, dimSize_,  } from "../lib/rect"
 import { BSP, DEL, ENTER, SPC } from "../lib/keyboard_utils"
 import { ClickType, closableClasses_, maxLeft_, maxRight_, maxTop_ } from "./local_links"
 import { ui_root } from "./dom_ui"
@@ -81,7 +81,7 @@ export const rotate1 = (totalHints: readonly HintItem[], reverse?: boolean, save
     totalHints.forEach((hint: HintItem, i: number): void => {
       if (hint.m.style.visibility) { rects.push(null); return; }
       hint.z = hint.z || i + 1;
-      const m = padClientRect_(getBoundingClientRect_(hint.m))
+      const m = boundingRect_(hint.m)
       let stackForThisMarker: Stack | undefined;
       rects.push(m);
       for (let j = 0, len2 = stacks.length; j < len2; ) {

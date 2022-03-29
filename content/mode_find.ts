@@ -8,20 +8,17 @@ import {
   whenNextIsEsc_
 } from "../lib/keyboard_utils"
 import {
-  attachShadow_, getSelectionFocusEdge_, deepActiveEl_unsafe_, rangeCount_, setClassName_s, compareDocumentPosition,
+  attachShadow_, getSelectionFocusEdge_, deepActiveEl_unsafe_, setClassName_s, compareDocumentPosition,
   getEditableType_, scrollIntoView_, SafeEl_not_ff_, GetParent_unsafe_, focus_, fullscreenEl_unsafe_, docEl_unsafe_,
   getSelection_, isSelected_, docSelectable_, isHTML_, createElement_, CLK, MDW, removeEl_s, appendNode_s,
   setDisplaying_s, findAnchor_,
   getAccessibleSelectedNode,  INP, BU, UNL, contains_s, setOrRemoveAttr_s, textContent_s, modifySel, parentNode_unsafe_s
 } from "../lib/dom_utils"
-import {
-  wdZoom_, prepareCrop_, view_, dimSize_, selRange_, getZoom_, padClientRect_, getSelectionBoundingBox_,
-  cropRectToVisible_,
-} from "../lib/rect"
+import { wdZoom_, prepareCrop_, view_, dimSize_, selRange_, getZoom_ } from "../lib/rect"
 import {
   ui_box, ui_root, getSelectionParent_unsafe, resetSelectionToDocStart, getBoxTagName_old_cr, collpaseSelection,
   createStyle, getSelectionText, checkDocSelectable, adjustUI, ensureBorder, addUIElement, getSelected, flash_,
-  getSelectionOf
+  getSelectionOf, getSelectionBoundingBox_
 } from "./dom_ui"
 import { highlightRange, activate as visualActivate, visual_mode_name } from "./visual"
 import { keyIsDown as scroll_keyIsDown, beginScroll, onScrolls } from "./scroller"
@@ -821,10 +818,8 @@ export const executeFind = (query: string | null, options: ExecuteOptions): Rect
         activeRegexIndex = oldReInd
       } else if (highLight) {
         scrollTo(highLight[0], highLight[1])
-        curSel = getSelected()
-        const br = rangeCount_(curSel) && padClientRect_(getSelectionBoundingBox_(curSel)),
-        cr = br && cropRectToVisible_(br.l, br.t, br.r && br.r + 3, br.b && br.b + 3)
-        cr ? areas.push(cr) : count = 0 // even for a caret caused by `user-select: none`
+        const rect = getSelectionBoundingBox_()
+        rect ? areas.push(rect) : count = 0 // even for a caret caused by `user-select: none`
         timesRegExpNotMatch = 0
       } else {
         count--;

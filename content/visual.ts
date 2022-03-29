@@ -47,10 +47,10 @@ import {
   getDirectionOfNormalSelection, selOffset_, modifySel, kDir, parentNode_unsafe_s, textOffset_
 } from "../lib/dom_utils"
 import {
-  padClientRect_, getSelectionBoundingBox_, getZoom_, prepareCrop_, cropRectToVisible_, getVisibleClientRect_,
-  set_scrollingTop, selRange_,
+  getZoom_, prepareCrop_, cropRectToVisible_, getVisibleClientRect_, set_scrollingTop, selRange_,
 } from "../lib/rect"
 import {
+  getSelectionBoundingBox_,
   checkDocSelectable, getSelected, resetSelectionToDocStart, flash_, collpaseSelection, ui_box, getSelectionText
 } from "./dom_ui"
 import { executeScroll, scrollIntoView_s, getPixelScaleToScroll } from "./scroller"
@@ -355,9 +355,9 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode]): void => {
     if (!modeName || mode_ !== Mode.Caret) {
       if (!modeName) { retainSelection = type === SelType.Range; richText = options.t }
       if (!insert_Lock_() && /* (type === SelType.Caret || type === SelType.Range) */ type) {
-        const r = padClientRect_(getSelectionBoundingBox_(curSelection))
         prepareCrop_();
-        if (!cropRectToVisible_(r.l, r.t, (r.l || r.r) && r.r + 3, (r.t || r.b) && r.b + 3)) {
+        const br = getSelectionBoundingBox_(curSelection, 1)
+        if (!br || !cropRectToVisible_(br.l, br.t, br.r, br.b)) {
           resetSelectionToDocStart(curSelection)
         } else if (type === SelType.Caret) {
           extend(kDirTy.right)
@@ -780,8 +780,8 @@ const ensureLine = (command1: number): void => {
 }
 
 export const highlightRange = (sel: Selection): void => {
-  const br = rangeCount_(sel) ? padClientRect_(getSelectionBoundingBox_(sel)) : null
-  if (br && br.b > br.t && br.r > 0) { // width may be 0 in Caret mode
+  const br = getSelectionBoundingBox_(sel)
+  if (br) { // width may be 0 in Caret mode
     let cr = cropRectToVisible_(br.l - 4, br.t - 5, br.r + 3, br.b + 4)
     cr && flash_(null, cr, 660, " Sel")
   }
