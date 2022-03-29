@@ -437,9 +437,7 @@ set_contentCommands_([
     (el || id) && runFallbackKey(options, 0)
   },
   /* kFgCmd.dispatchEventCmd: */ (options: CmdOptions[kFgCmd.dispatchEventCmd], count: number): void => {
-    const type = options.type, rawClass = options.class
-    const evClass = (rawClass && (rawClass[0].toUpperCase() + rawClass.slice(1)) || "Keyboard") + "Event"
-    let event: Event | "" | undefined, delay = options.delay, init: EventInit = options.init as undefined || options
+    let event: Event | "" | undefined, delay = options.delay, init: EventInit = options.init!
     let useResult: BOOL | boolean | undefined, result: boolean | undefined
     if (options.esc) {
       keydownEvents_[kKeyCode.None] = 0
@@ -451,8 +449,8 @@ set_contentCommands_([
       OnChrome && setupIDC_cr!(init)
       try {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-        event = type && new (window as any)[evClass](type, init)
-      } catch {}
+        event = new (window as any)[options.class!](options.type, init)
+      } catch { hudTip(kTip.raw, 0, options.e) }
       if (event) {
         if (OnChrome && Build.MinCVer < BrowserVer.Min$Event$$IsTrusted
             && chromeVer_ < BrowserVer.Min$Event$$IsTrusted) {
@@ -468,8 +466,6 @@ set_contentCommands_([
         useResult || runFallbackKey(options, activeEl && activeEl !== doc.body ? 0 : 2, "", delay)
         activeEl && (useClick && (activeEl as Partial<HTMLElement>).click
             ? (activeEl as HTMLElement).click() : result = activeEl.dispatchEvent(event))
-      } else {
-        hudTip(kTip.raw, 0, `Can not create ${evClass}#${type}`)
       }
       useResult && runFallbackKey(options, result ? 0 : 2, "", delay)
     }

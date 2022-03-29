@@ -182,7 +182,7 @@ set_bgC_([
         ) as KnownOptions<C.dispatchEventCmd> & SafeObject
     if (!opts2.esc) {
       let key = opts2.key
-      let type = (opts2.type || (key ? "keydown" : "")) + ""
+      let type = (opts2.type || (key ? "keydown" : "")) + "", rawClass = opts2.class, delay = opts2.delay
       if (opts2.click) {
         type = "click"
       } else if (cRepeat < 0) {
@@ -191,24 +191,40 @@ set_bgC_([
           type = type.replace(a, b) as string
         }
       }
-      opts2.type = type
+      if (!type) { showHUD('Require a "type" parameter'); runNextCmd<C.dispatchEventCmd>(0); return }
       const rawInit = opts2.init
-      const dict: KeyboardEventInit = (rawInit && (typeof rawInit === "object"
-          ? Object.assign({}, rawInit) : (opts2.init = null)) || opts2)
+      const dict: KeyboardEventInit = rawInit && typeof rawInit === "object" ? rawInit : opts2
+      const destDict: KeyboardEventInit = {}
+      rawClass = rawClass && (rawClass[0].toUpperCase() + rawClass.slice(1)) || "Keyboard"
+      rawClass = rawClass[0] === "$" ? rawClass.slice(1)
+          : rawClass.replace(<RegExpI & RegExpSearchable<0>> /event$/i, "") + "Event"
+      delay = delay && +delay >= 0 ? Math.max(+delay | 0, 1) : null
       for (const i of ["bubbles", "cancelable", "composed"] as const) {
-        dict[i] = dict[i] !== false || opts2[i] !== false
+        destDict[i] = dict[i] !== false || opts2[i] !== false
+      }
+      const skipped = "class type key match return delay esc click init".split(" ")
+      for (const [key, val] of Object.entries!(dict)) {
+        if (key && key[0] !== "$" && !skipped.includes!(key)) {
+          destDict[key as keyof EventInit] = val as any
+          dict === opts2 && delete (opts2)[key as keyof EventInit]
+        }
       }
       if (key && key !== "," && (typeof key === "object" || key.includes(","))) {
         const info = typeof key === "object" ? key : key.split(",") as Extract<typeof key, string[]>
         if (info.length >= 2 && (!info[1] || +info[1] >= 0)) {
           let evKey = info[0], keyCode = info[1] | 0
-          dict.key = evKey === "Space" ? " " : evKey === "Comma" ? ","
+          destDict.key = evKey === "Space" ? " " : evKey === "Comma" ? ","
               : evKey === "$" && evKey.length > 1 ? (evKey = evKey.slice(1)) :evKey
-          if (keyCode && dict.keyCode == null) { dict.keyCode = +info[1]}
-          if (keyCode && dict.which == null) { dict.which = +info[1]}
-          if (info.length >= 3 && dict.code == null) { dict.code = info[2] || info[0] }
+          if (keyCode && dict.keyCode == null) { destDict.keyCode = +info[1]}
+          if (keyCode && dict.which == null) { destDict.which = +info[1]}
+          if (info.length >= 3 && dict.code == null) { destDict.code = info[2] || info[0] }
         }
       }
+      opts2.type = type
+      opts2.class = rawClass
+      opts2.init = destDict
+      opts2.delay = delay
+      opts2.e = `Can't create "${rawClass}#${type}"`
     }
     portSendFgCmd(cPort, kFgCmd.dispatchEventCmd, false, opts2 as CmdOptions[kFgCmd.dispatchEventCmd], cRepeat)
   },

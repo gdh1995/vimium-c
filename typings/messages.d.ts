@@ -453,6 +453,7 @@ interface CmdOptions {
     css?: undefined
   }) & { disabled?: boolean } & Req.FallbackOptions
   [kFgCmd.dispatchEventCmd]: {
+    e?: string
     class?: string
     type: string // if count < 0, then replace "down" with "up"
     key: string | `${string},${number}${string}` | [ key: `<${string}>` | string, keyCode: number, code?: string ]
