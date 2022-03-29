@@ -138,7 +138,8 @@ Build.MV3 || setTimeout((): void => {
           type === "tab" ? sugItem.s !== curTabId_ : type === "history" && (OnFirefox || !hasSessionId)
         );
       url = BgUtils_.encodeAsciiURI_(url, 1)
-      url = url.startsWith("file") ? decodeFileURL_(url) : url.replace(<RegExpG> /%20/g, " ")
+      url.startsWith("file") && (url = decodeFileURL_(url))
+      url = url.replace(<RegExpG> /%20/g, " ")
       urlDict.has(url) ? (url = `:${i + di} ${url}`) : urlDict.add(url)
       if (canBeDeleted) {
         desc = ` ~${i + di}~`

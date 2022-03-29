@@ -266,7 +266,7 @@ export const prepareHTML_ = (sug: Suggestion): void => {
   }
   sug.title = cutTitle(sug.title);
   const text = sug.t
-  let str = decodeFileURL_(text), range: number[]
+  let str = decodeFileURL_(text, sug.u), range: number[]
   if (str.length !== text.length) {
     range = /*#__NOINLINE__*/ getMatchRangesWithOffset(text, str[0] === "\\" ? 5
         : text.charAt(7) === "/" && text.substr(9, 3).toLowerCase() === "%3a" ? 10 : 8)
