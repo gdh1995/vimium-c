@@ -814,7 +814,7 @@ const doesSetUrlDirectly = (url: string): boolean | Promise<boolean> => {
     return true
   }
   if (VData.incognito) { return false }
-  return post_(kPgReq.settingItem, { key: "showInIncognito" })
+  return post_(kPgReq.settingItem, { key: "showInIncognito" }).then((i): boolean => !i)
 }
 
 function fetchImage_(url: string, element: HTMLImageElement, setUrlDirectly: boolean): void {
