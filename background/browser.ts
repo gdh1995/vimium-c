@@ -144,9 +144,10 @@ export const selectWndIfNeed = (tab: { windowId: number }): void => {
 }
 
 let doesSkipOpener_ff = (): boolean => {
-  const uad = navigator.userAgentData
-  const noOpener = uad ? uad.brands.some(i => i.brand.includes("Thunderbird"))
-      : (<RegExpOne & RegExpSearchable<0>> /Thunderbird/).test(navigator.userAgent!)
+  const name = CONST_.BrowserName_, kToSearch = "Thunderbird"
+  const uad = name ? 0 : navigator.userAgentData
+  const noOpener = name || !uad ? (name || navigator.userAgent! + "").includes(kToSearch)
+      : uad.brands.some(i => i.brand.includes(kToSearch))
   doesSkipOpener_ff = () => noOpener
   return noOpener
 }

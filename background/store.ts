@@ -20,13 +20,15 @@ export const OnEdge: boolean = !(Build.BTypes & ~BrowserType.Edge)
 export const OnSafari: boolean = !(Build.BTypes & ~BrowserType.Safari)
     || !!(Build.BTypes & BrowserType.Safari && OnOther_ & BrowserType.Safari)
 
-const userAgentData = navigator.userAgentData
-let tmpBrand: NonNullable<Navigator["userAgentData"]>["brands"][0] | undefined
-export const IsEdg_: boolean = OnChrome && (!userAgentData
+const uad = navigator.userAgentData
+const brands = uad && (OnChrome && Build.MinCVer <= BrowserVer.Only$navigator$$userAgentData$$$uaList
+  ? uad.brands || uad.uaList : uad.brands)
+let tmpBrand: UABrandInfo | undefined
+export const IsEdg_: boolean = OnChrome && (!brands
     ? Build.MV3 && IsLimited ? false : matchMedia("(-ms-high-contrast)").matches
-    : !!userAgentData.brands.find(i => i.brand.includes("Edge") || i.brand.includes("Microsoft")))
+    : !!brands.find(i => i.brand.includes("Edge") || i.brand.includes("Microsoft")))
 export const CurCVer_: BrowserVer = !OnChrome ? BrowserVer.assumedVer
-    : userAgentData ? (tmpBrand = userAgentData.brands.find(i => i.brand.includes("Chromium")))
+    : brands ? (tmpBrand = brands.find(i => i.brand.includes("Chromium")))
       ? tmpBrand.version : BrowserVer.MinMaybe$navigator$$userAgentData > Build.MinCVer
       ? BrowserVer.MinMaybe$navigator$$userAgentData : Build.MinCVer
     : (Build.MinCVer <= BrowserVer.FlagFreezeUserAgentGiveFakeUAMajor ? ((): BrowserVer => {
@@ -37,7 +39,7 @@ export const CurCVer_: BrowserVer = !OnChrome ? BrowserVer.assumedVer
     })()
     : 0 | <number> (navigator.userAgent!.match(<RegExpOne> /\bChrom(?:e|ium)\/(\d+)/) || [0, BrowserVer.assumedVer])[1])
 export let CurFFVer_ = !OnFirefox ? FirefoxBrowserVer.assumedVer
-    : userAgentData ? (tmpBrand = userAgentData.brands.find(i => i.brand.includes("Firefox")))
+    : brands ? (tmpBrand = brands.find(i => i.brand.includes("Firefox")))
       ? tmpBrand.version : FirefoxBrowserVer.MinMaybe$navigator$$userAgentData > Build.MinFFVer
       ? FirefoxBrowserVer.MinMaybe$navigator$$userAgentData : Build.MinFFVer
     : parseInt(navigator.userAgent!.split("Firefox/")[1] || "0") || FirefoxBrowserVer.assumedVer
@@ -234,7 +236,7 @@ export const CONST_ = {
   GitVer: BuildStr.Commit as string,
   Injector_: "/lib/injector.js",
   HelpDialogJS: "/background/help_dialog.js" as const,
-  OptionsPage_: GlobalConsts.OptionsPage as string, Platform_: "browser",
+  OptionsPage_: GlobalConsts.OptionsPage as string, Platform_: "browser", BrowserName_: "",
   HomePage_: "https://github.com/gdh1995/vimium-c",
   GlobalCommands_: null as never as StandardShortcutNames[],
   ShowPage_: "pages/show.html",

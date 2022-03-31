@@ -516,6 +516,8 @@ declare const enum BrowserVer {
   MinEnsuredCrossOriginEmbedderPolicy = 83, // https://www.chromestatus.com/features/5642721685405696
   // require special CSP; not applied to extension contexts; seems to begin from C73 if EXPERIMENTAL
   MinEnsuredTrustedTypes = 83, // https://www.chromestatus.com/features/5650088592408576
+  MinMaybe$navigator$$userAgentData = 83, // if EXPERIMENTAL
+  Only$navigator$$userAgentData$$$uaList = 83,
   // #strict-origin-isolation; prevent LinkHints from getting child coreHints
   MinOriginIsolation = 84, // https://www.chromestatus.com/features/5683766104162304
   /** This fixes that {@see #Min$CrossOriginIsolation$Flag} would break Vomnibar */
@@ -537,7 +539,6 @@ declare const enum BrowserVer {
   MinCaptureBeforeBubbleOnEventTarget = 89, // even if EXPERIMENTAL or LEGACY
   MinCSS$overflow$clip = 90, // even if EXPERIMENTAL or LEGACY
   MinOnWindows$Selection$$extend$stopWhenWhiteSpaceEnd = 90, // even if EXPERIMENTAL
-  MinMaybe$navigator$$userAgentData = 90,
   MinESModulesInServiceWorker = 91,
   MinEnsured$string$$replaceAll = 91,
   MinEnsured$WeakRef = 92, // even if LEGACY

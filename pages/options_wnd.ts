@@ -1,7 +1,7 @@
 import { kPgReq } from "../background/page_messages"
 import {
   CurCVer_, CurFFVer_, OnFirefox, OnChrome, OnEdge, $, $$, post_, disconnect_, isVApiReady_, simulateClick,
-  toggleDark, browser_, selfTabId_, enableNextTick_, nextTick_, kReadyInfo, IsEdg_, import2
+  toggleDark, browser_, selfTabId_, enableNextTick_, nextTick_, kReadyInfo, IsEdg_, import2, BrowserName_
 } from "./async_bg"
 import {
   bgSettings_,
@@ -193,7 +193,7 @@ let optionsInit1_ = function (): void {
       let key = (el.dataset as KnownOptionsDataset).permission
       let transArgs: ["beforeChromium" | "lackPermission", string[]]
       if (key[0] === "C") {
-        if (OnChrome && CurCVer_ >= parseInt(key.slice(1))) { continue }
+        if (OnChrome ? CurCVer_ >= parseInt(key.slice(1)) : key.includes("nonC")) { continue }
         const secondCond = key.split(",", 2)[1] || ","
         if (secondCond[0] === "." ? (window as Dict<any>)[secondCond.slice(1)] != null
             : secondCond[0] === "(" && matchMedia(secondCond.slice(1, -1))) { continue }
@@ -201,7 +201,8 @@ let optionsInit1_ = function (): void {
           nextTick_((el2): void => { el2.style.display = "none" }, el.parentElement as HTMLElement)
           continue
         }
-        transArgs = ["beforeChromium", [key.slice(1).split(",", 1)[0]]]
+        transArgs = OnChrome || secondCond === "," ? ["beforeChromium", [key.slice(1).split(",", 1)[0]]]
+            : ["lackPermission", [secondCond]]
       } else {
         if (key in manifest || validKeys2.includes!(key)) { continue }
         transArgs = ["lackPermission", [key ? ":\n* " + key : ""]]
@@ -459,13 +460,18 @@ $("#importButton").onclick = function (): void {
 
 nextTick_((el0): void => {
   const platform = bgSettings_.platform_
+  let name = BrowserName_
+  if (!name) {
   const data = navigator.userAgentData
-  const brands = (data && data.brands || []).filter(i => (OnChrome ? i.version === CurCVer_ && i.brand !== "Chromium"
+  const brands = (data && (OnChrome && Build.MinCVer <= BrowserVer.Only$navigator$$userAgentData$$$uaList
+      ? data.brands || data.uaList : data.brands) || []
+    ).filter(i => (OnChrome ? i.version === CurCVer_ && i.brand !== "Chromium"
       : OnFirefox ? i.version === CurFFVer_ : true) && !(` ${i.brand} `.includes(" Not ")))
   const brand = OnChrome && brands.find(i => i.brand.includes("Edge")) || brands[0]
   const nameFallback = OnFirefox ? "Firefox" : IsEdg_ ? "MS Edge" : ""
-  const name = brand ? brand.brand : data ? nameFallback || "Chromium"
+  name = brand ? brand.brand : data ? nameFallback || "Chromium"
       : OnChrome && ((<RegExpOne> /\bChromium\b/).exec(navigator.userAgent!) || [""])[0] || nameFallback || "Chrome"
+  }
 el0.textContent = (OnEdge ? "MS Edge (EdgeHTML)" : name + " " + (OnFirefox ? CurFFVer_ : CurCVer_)
   ) + oTrans_("comma") + oTrans_("NS")
   + (oTrans_(platform as "win" | "mac") || platform[0].toUpperCase() + platform.slice(1))

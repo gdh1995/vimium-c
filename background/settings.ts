@@ -26,6 +26,7 @@ export const local_ = browser_.storage.local
 export const ready_: Promise<number> = Promise.all([
   OnFirefox ? browser_.runtime.getBrowserInfo().then((info): 0 | void => {
     const versionStr = info && info.version, ver = parseInt(versionStr || "0") || 0
+    CONST_.BrowserName_ = info && info.name || ""
     set_CurFFVer_(ver || CurFFVer_)
     ; (contentPayload_.v as FirefoxBrowserVer) = (omniPayload_.v as FirefoxBrowserVer) = CurFFVer_
     if (Build.MinFFVer <= FirefoxBrowserVer.ESRPopupBlockerPassClicksFromExtensions

@@ -359,12 +359,15 @@ const onNotRunnable = (blockedMsg: HTMLElement): void => {
   blockedMsg.style.display = ""
   blockedMsg.querySelector(".version")!.textContent = conf_.ver
   const refreshTip = blockedMsg.querySelector("#refresh-after-install") as HTMLElement
+  let uad: Navigator["userAgentData"] | undefined
+  let uaList: UABrandInfo[] | null | undefined
   if (OnFirefox || conf_.tabId < 0 || !_url || !(<RegExpI> /^(ht|s?f)tp/i).test(_url)) {
     refreshTip.remove()
   } else if (OnEdge) {
     (refreshTip.querySelector(".action") as HTMLElement).textContent = "open a new web page"
-  } else if (OnChrome && !IsEdg_ && (navigator.userAgentData
-        ? navigator.userAgentData.brands.find(i => i.brand.includes("Opera") && i.version === CurCVer_)
+  } else if (OnChrome && !IsEdg_ && ((uad = navigator.userAgentData, uaList = uad && (uad.brands
+        || (Build.MinCVer > BrowserVer.Only$navigator$$userAgentData$$$uaList ? null : uad.uaList)))
+        ? uaList.find(i => i.brand.includes("Opera") && i.version === CurCVer_)
         : (<RegExpOne> /\bOpera\//).test(navigator.userAgent!))
       && (<RegExpOne> /\.(google|bing|baidu)\./).test(_url.split("/", 4).slice(0, 3).join("/"))) {
     (blockedMsg.querySelector("#opera-warning") as HTMLElement).style.display = ""

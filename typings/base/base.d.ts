@@ -151,6 +151,7 @@ declare namespace chrome.extension {
 }
 declare namespace chrome.runtime {
   interface BrowserInfo {
+    name: string
     version: string
   }
   export function getBrowserInfo(exArg?: FakeArg): Promise<BrowserInfo>
@@ -220,13 +221,15 @@ interface NavigatorID {
   readonly vendorSub: string;
 }
 
+interface UABrandInfo { brand: string, version: number }
 interface Navigator {
   scheduling?: {
     isInputPending (options?: { includeContinuous?: boolean }): boolean // options must be an cls intance on C84 if exp
     isFramePending? (options?: {}): boolean
   }
   userAgentData?: {
-    brands: {brand: string, version: number}[]
+    brands: UABrandInfo[]
+    uaList?: UABrandInfo[]
     mobile: boolean
     platform: string
   }

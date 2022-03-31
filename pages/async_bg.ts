@@ -27,12 +27,14 @@ export const OnEdge: boolean = !(Build.BTypes & ~BrowserType.Edge)
     || !!(Build.BTypes & BrowserType.Edge && OnOther & BrowserType.Edge)
 export const OnSafari: boolean = false // eslint-disable-line @typescript-eslint/no-inferrable-types
 
-const userAgentData = navigator.userAgentData
-let tmpBrand: NonNullable<Navigator["userAgentData"]>["brands"][0] | undefined
-export const IsEdg_: boolean = OnChrome && (!userAgentData ? matchMedia("(-ms-high-contrast)").matches
-    : !!userAgentData.brands.find(i => i.brand.includes("Edge") || i.brand.includes("Microsoft")))
+const uad = navigator.userAgentData
+const brands = uad && (OnChrome && Build.MinCVer <= BrowserVer.Only$navigator$$userAgentData$$$uaList
+    ? uad.brands || uad.uaList : uad.brands)
+let tmpBrand: UABrandInfo | undefined
+export const IsEdg_: boolean = OnChrome && (!brands ? matchMedia("(-ms-high-contrast)").matches
+    : !!brands.find(i => i.brand.includes("Edge") || i.brand.includes("Microsoft")))
 export const CurCVer_: BrowserVer = !OnChrome ? BrowserVer.assumedVer
-    : userAgentData ? (tmpBrand = userAgentData.brands.find(i => i.brand.includes("Chromium")))
+    : brands ? (tmpBrand = brands.find(i => i.brand.includes("Chromium")))
       ? tmpBrand.version : BrowserVer.MinMaybe$navigator$$userAgentData > Build.MinCVer
       ? BrowserVer.MinMaybe$navigator$$userAgentData : Build.MinCVer
     : (Build.MinCVer <= BrowserVer.FlagFreezeUserAgentGiveFakeUAMajor ? ((): BrowserVer => {
@@ -43,10 +45,11 @@ export const CurCVer_: BrowserVer = !OnChrome ? BrowserVer.assumedVer
     })()
     : 0 | <number> (navigator.userAgent!.match(<RegExpOne> /\bChrom(?:e|ium)\/(\d+)/) || [0, BrowserVer.assumedVer])[1])
 export let CurFFVer_: FirefoxBrowserVer = !OnFirefox ? FirefoxBrowserVer.assumedVer
-    : userAgentData ? (tmpBrand = userAgentData.brands.find(i => i.brand.includes("Firefox")))
+    : brands ? (tmpBrand = brands.find(i => i.brand.includes("Firefox")))
       ? tmpBrand.version : FirefoxBrowserVer.MinMaybe$navigator$$userAgentData > Build.MinFFVer
       ? FirefoxBrowserVer.MinMaybe$navigator$$userAgentData : Build.MinFFVer
     : 0 | <number>(navigator.userAgent!.match(<RegExpOne> /\bFirefox\/(\d+)/) || [0, FirefoxBrowserVer.assumedVer])[1]
+export let BrowserName_: string | undefined
 
 export const browser_: typeof chrome = OnChrome ? chrome : browser as typeof chrome
 if (!OnChrome && window.chrome) { window.chrome = null as never }
@@ -403,6 +406,7 @@ if (OnChrome ? (Build.MinCVer >= BrowserVer.MinMediaQuery$PrefersColorScheme
 }
 OnFirefox && browser_.runtime.getBrowserInfo().then((info): void => {
   CurFFVer_ = parseInt(info && info.version) || CurFFVer_
+  BrowserName_ = info && info.name || ""
   enableNextTick_(kReadyInfo.browserInfo)
 })
 
