@@ -57,7 +57,7 @@
       "SafeEl_not_ff_", "GetShadowRoot_", "GetParent_unsafe_",
       "scrollingEl_", "fullscreenEl_unsafe_", "frameElement_", "getEditableType_",
       "IsInDOM_", "getSelectionBoundingBox_",
-      "center_", "isContaining_", "padClientRect_", "getZoomedAndCroppedRect_", "SubtractSequence_",
+      "center_", "isContaining_", "padClientRect_", "boundingRect_", "getVisibleBoundingRect_", "SubtractSequence_",
       "BgUtils_.escapeText_", "escapeText_", "highlight", "cutTitle", "BgUtils_.unicodeSubstring_", "unicodeSubstring_",
       "safeObj_", "BgUtils_.safeObj_",
       "isEscape", "getKeyStat_", "VKey.getKeyStat_", "keybody_", "VKey.keybody_",

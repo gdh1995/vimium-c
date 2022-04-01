@@ -226,11 +226,11 @@ const openUrlInIncognito = (urls: string[], reuse: ReuseType
 }
 
 export const parseReuse = (reuse: UserReuseType | null | undefined): ReuseType =>
-    reuse == null ? ReuseType.newFg
+    reuse == null ? ReuseType.Default
     : typeof reuse !== "string" ? typeof reuse === "boolean" ? reuse ? ReuseType.reuse : ReuseType.newFg
-       : isNaN(+reuse) ? ReuseType.newFg : reuse | 0
+       : isNaN(+reuse) ? ReuseType.Default : reuse | 0
     : (reuse = reuse.toLowerCase().replace("window", "wnd").replace(<RegExpG & { source: "-" }> /-/g, ""),
-      reuse in ReuseValues ? ReuseValues[reuse as keyof typeof ReuseValues] : ReuseType.newFg)
+      reuse in ReuseValues ? ReuseValues[reuse as keyof typeof ReuseValues] : ReuseType.Default)
 
 
 const fillUrlMasks = (url: string, tabs: [Tab?] | undefined, url_mask: string | boolean | UnknownValue): string => {
@@ -429,16 +429,11 @@ const replaceOrOpenInNewTab = <Reuse extends Exclude<ReuseType, ReuseType.curren
 
 export const openJSUrl = (url: string, options: Req.FallbackOptions, onBrowserFail?: (() => void) | null
     , reuse?: ReuseType): void => {
-  if ((<RegExpOne> /^(void|\(void\))? ?(0|\(0\))?;?$/).test(url.slice(11).trim())) {
-    return
-  }
+  if ((<RegExpOne> /^(void|\(void\))? ?(0|\(0\))?;?$/).test(url.slice(11).trim())) { runNextCmdBy(1, options); return }
   if (!onBrowserFail && cPort) {
-    if (reuse === ReuseType.current) {
-      set_cPort(indexFrame(cPort ? cPort.s.tabId_ : curTabId_, 0) || cPort)
-    }
-    if (safePost(cPort, { N: kBgReq.eval, u: url, f: parseFallbackOptions(options)})) {
-      return
-    }
+    reuse === ReuseType.current && set_cPort(indexFrame(cPort ? cPort.s.tabId_ : curTabId_, 0) || cPort)
+    if (safePost(cPort, { N: kBgReq.eval, u: url, f: parseFallbackOptions(options)})) { return }
+    if (reuse !== ReuseType.Default) { runNextCmdBy(0, options); return }
     set_cPort(null as never)
   }
   const callback1 = (opt?: object | -1): void => {
@@ -446,7 +441,7 @@ export const openJSUrl = (url: string, options: Req.FallbackOptions, onBrowserFa
     const code = BgUtils_.DecodeURLPart_(url.slice(11))
     void Q_(Tabs_.executeScript, { code }).then((result): void => {
       result === undefined && onBrowserFail && onBrowserFail()
-      runNextIf(result !== undefined, options, null)
+      runNextIf(!!result, options, null)
     })
     return runtimeError_()
   }
