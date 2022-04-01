@@ -1,7 +1,7 @@
 import {
   findCSS_, innerCSS_, omniPayload_, set_findCSS_, set_innerCSS_, CurCVer_, CurFFVer_, IsEdg_, omniStyleOverridden_,
   OnChrome, OnEdge, OnFirefox, isHighContrast_ff_, set_isHighContrast_ff_, bgIniting_, CONST_, set_helpDialogData_,
-  framesForOmni_, settingsCache_, set_omniStyleOverridden_, updateHooks_, storageCache_, set_vomnibarPage_f, IsLimited
+  framesForOmni_, settingsCache_, set_omniStyleOverridden_, updateHooks_, storageCache_, IsLimited
 } from "./store"
 import { asyncIter_, fetchFile_, spacesRe_ } from "./utils"
 import { ready_, broadcastOmni_, postUpdate_, setInLocal_ } from "./settings"
@@ -265,7 +265,7 @@ void ready_.then((): void => {
       + ";"
 set_innerCSS_(storageCache_.get("innerCSS") || "")
 if (innerCSS_ && !innerCSS_.startsWith(StyleCacheId_)) {
-  set_vomnibarPage_f("")
+  storageCache_.set!("vomnibarPage_f", "")
   reloadCSS_(MergeAction.rebuildWhenInit, innerCSS_)
 } else {
   reloadCSS_(MergeAction.readFromCache, innerCSS_)

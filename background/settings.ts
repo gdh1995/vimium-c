@@ -219,6 +219,7 @@ Object.assign(updateHooks_, As_<{ [key in SettingsNS.DeclaredUpdateHooks]: Setti
       url = (<RegExpI> /^\/?pages\/[a-z]+.html\b/i).test(url)
         ? browser_.runtime.getURL(url) : normalizeExtOrigin_(convertToUrl_(url))
       set_newTabUrl_f(url)
+      setInLocal_("newTabUrl_f", url)
     },
     searchEngines (): void {
       searchEngines_.map.clear()
@@ -268,6 +269,7 @@ Object.assign(updateHooks_, As_<{ [key in SettingsNS.DeclaredUpdateHooks]: Setti
         }
       }
       set_vomnibarPage_f(url)
+      setInLocal_("vomnibarPage_f", url)
     }
 }))
 
