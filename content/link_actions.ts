@@ -20,6 +20,7 @@ import { currentScrolling, set_cachedScrollable, set_currentScrolling } from "./
 import { post_, send_ } from "./port"
 import {
   collpaseSelection, evalIfOK, flash_, getRect, getSelected, lastFlashEl, resetSelectionToDocStart, selectAllOfNode,
+  ui_box
 } from "./dom_ui"
 import { prevent_, suppressTail_, whenNextIsEsc_ } from "../lib/keyboard_utils"
 import { set_grabBackFocus } from "./insert"
@@ -277,36 +278,31 @@ const copyText = (): void => {
 }
 
 const downloadLink = (url?: string, filename?: string): void => {
-  let notAnchor = mode1_ < HintMode.DOWNLOAD_LINK || tag !== "a", H = "href",
-    link = notAnchor ? createElement_("a") : clickEl as HTMLAnchorElement,
-    oldUrl: string | null = notAnchor ? null : attr_s(link, H),
-    changed = notAnchor || url !== link.href
-  url = url || getUrlData()
+  const newLink = mode1_ < HintMode.DOWNLOAD_LINK || tag !== "a",
+  link = newLink ? createElement_("a") : clickEl as HTMLAnchorElement,
+  oldUrl: string | true | null = newLink || attr_s(link, "href"),
+  changed = (url = url || getUrlData()) !== link.href
   filename = filename || attr_s(clickEl, kD) || ""
   if (OnFirefox || OnChrome && hintOptions.download === "force") {
     hintApi.p({ H: kFgReq.downloadLink, u: url, f: filename, r: locHref(), m: mode1_ })
       return
   }
-    if (changed) {
-      link.href = url;
-      if (notAnchor) {
-        let top = scrollingEl_(1);
-        top && appendNode_s(top, link)
-      }
-    }
-    const hadNoDownload = !link.hasAttribute(kD);
-    if (hadNoDownload) {
-      link[kD] = filename
-    }
-  catchAsyncErrorSilently(click_async(link, rect, 0, [!0, !1, !1, !1])).then((): void => {
-    if (hadNoDownload) {
+  if (changed) {
+    link.href = url
+    newLink && appendNode_s(scrollingEl_(1) || ui_box!, link)
+  }
+  const hadDownload = link.hasAttribute(kD)
+  if (!hadDownload) {
+    link[kD] = filename
+  }
+  retPromise = catchAsyncErrorSilently(click_async(link, rect, 0, [!0, !1, !1, !1])).then((): void => {
+    if (!hadDownload) {
       setOrRemoveAttr_s(link, kD)
     }
-    if (!changed) { /* empty */ }
-    else if (notAnchor) {
+    if (newLink) {
       removeEl_s(link)
-    } else {
-      setOrRemoveAttr_s(link, H, oldUrl)
+    } else if (changed) {
+      setOrRemoveAttr_s(link, "href", oldUrl as Exclude<typeof oldUrl, true>)
     }
   })
 }
@@ -427,7 +423,7 @@ const checkBoolOrSelector = (userVal: string | boolean | null | void | undefined
           // `HTMLSummaryElement::DefaultEventHandler(event)` in
           // https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/html/html_summary_element.cc?l=109
           const rect2 = (clickEl as HTMLDetailsElement).open || !rect ? getVisibleClientRect_(summary) : rect
-          catchAsyncErrorSilently(click_async(summary, rect2, 1)).then((): void => {
+          retPromise = catchAsyncErrorSilently(click_async(summary, rect2, 1)).then((): void => {
             removeFlash || rect2 && flash_(null, rect2)
           })
           showRect = 0
