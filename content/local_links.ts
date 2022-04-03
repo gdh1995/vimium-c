@@ -1,6 +1,6 @@
 import {
   clickable_, isJSUrl, doc, isImageUrl, fgCache, readyState_, chromeVer_, VTr, createRegExp, max_, OnChrome,
-  math, includes_, OnFirefox, OnEdge, WithDialog, safeCall, evenHidden_, set_evenHidden_, tryCreateRegExp, loc_
+  math, includes_, OnFirefox, OnEdge, WithDialog, safeCall, evenHidden_, set_evenHidden_, tryCreateRegExp, loc_, getTime
 } from "../lib/utils"
 import {
   isIFrameElement, getInputType, uneditableInputs_, getComputedStyle_, queryChildByTag_, htmlTag_, isAriaFalse_,
@@ -631,11 +631,8 @@ const isDescendant = function (c: Element | null, p: Element, shouldBeSingleChil
   return i > 2;
 } as (c: Element, p: Element, shouldBeSingleChild: BOOL | boolean) => boolean
 
-export const filterOutNonReachable = (list: Hint[], notForAllClickable?: boolean | BOOL, _a3?: void): void => {
-  let i = list.length, el: SafeElement, root: Document | ShadowRoot, tag: "" | keyof HTMLElementTagNameMap,
-  fromPoint: Element | null | undefined, temp: Element | null, index2 = 0;
-  const zoom = OnChrome ? docZoom_ * bZoom_ : 1,
-  zoomD2 = OnChrome ? zoom / 2 : 0.5,
+export const filterOutNonReachable = (list: Hint[], notForAllClickable?: boolean | BOOL): void | boolean => {
+  const zoom = OnChrome ? docZoom_ * bZoom_ : 1, zoomD2 = OnChrome ? zoom / 2 : 0.5, start = getTime(),
   body = doc.body, docEl = docEl_unsafe_(),
   // note: exclude the case of `fromPoint.contains(el)`, to exclude invisible items in lists
   does_hit: (x: number, y: number) => boolean = OnFirefox ? (x, y): boolean => {
@@ -645,22 +642,24 @@ export const filterOutNonReachable = (list: Hint[], notForAllClickable?: boolean
     fromPoint = root.elementFromPoint(x, y);
     return !fromPoint || el === fromPoint || contains_s(el, fromPoint)
   };
+  let i = list.length, el: SafeElement, root: Document | ShadowRoot, tag: "" | keyof HTMLElementTagNameMap,
+  fromPoint: Element | null | undefined, temp: Element | null, now = start
   if (OnEdge
       || OnChrome && (Build.MinCVer < BrowserVer.Min$Node$$getRootNode
               || Build.MinCVer < BrowserVer.Min$DocumentOrShadowRoot$$elementsFromPoint)
           && chromeVer_ < (BrowserVer.Min$Node$$getRootNode >= BrowserVer.Min$DocumentOrShadowRoot$$elementsFromPoint
               ? BrowserVer.Min$Node$$getRootNode : BrowserVer.Min$DocumentOrShadowRoot$$elementsFromPoint)
       || OnChrome && isDocZoomStrange_ && docZoom_ - 1) {
-    return;
+    return
   }
   initTestRegExps() // in case of `isDescendant(..., ..., 1)`
-  while (0 <= --i) {
+  while (0 <= --i && now - start < GlobalConsts.ElementsFromPointTakesTooSlow) {
+    i & 63 || (now = getTime())
     el = list[i][0];
     root = el.getRootNode!() as Document | ShadowRoot;
     const nodeType = root.nodeType, area = list[i][1],
     cx = (area.l + area.r) * zoomD2, cy = (area.t + area.b) * zoomD2;
-    if (nodeType !== kNode.DOCUMENT_NODE && nodeType !== kNode.DOCUMENT_FRAGMENT_NODE
-        || does_hit(cx, cy)) {
+    if (nodeType !== kNode.DOCUMENT_NODE && nodeType !== kNode.DOCUMENT_FRAGMENT_NODE || does_hit(cx, cy)) {
       continue;
     }
     if (OnFirefox && !fromPoint) {
@@ -673,8 +672,7 @@ export const filterOutNonReachable = (list: Hint[], notForAllClickable?: boolean
       continue;
     }
     type MayBeLabel = TypeToAssert<Element, HTMLLabelElement, "control">;
-    if ((tag = el.localName as keyof HTMLElementTagNameMap) === "img"
-        ? isDescendant(el, fromPoint!, 0)
+    if ((tag = el.localName as keyof HTMLElementTagNameMap) === "img" ? isDescendant(el, fromPoint!, 0)
         : tag === "area" ? fromPoint === list[i][4]
         : tag === INP && ((OnFirefox ? !hasTag_("label", fromPoint!)
                 : !hasTag_("label", fromPoint!) && !notSafe_not_ff_!(fromPoint!)
@@ -683,19 +681,16 @@ export const filterOutNonReachable = (list: Hint[], notForAllClickable?: boolean
               || (i < 1 || list[i - 1][0] !== el) && (i + 2 > list.length || list[i + 1][0] !== el))) {
       continue;
     }
-    const stack = root.elementsFromPoint(cx, cy),
-    elPos = stack.indexOf(el);
-    if (elPos > 0 ? (index2 = stack.lastIndexOf(fromPoint!, elPos - 1)) >= 0
-        : elPos < 0) {
+    now = i & 3 ? now : getTime()
+    let index2 = 0
+    const stack = root.elementsFromPoint(cx, cy), elPos = stack.indexOf(el)
+    if (elPos > 0 ? (index2 = stack.lastIndexOf(fromPoint!, elPos - 1)) >= 0 : elPos < 0) {
       if (!OnFirefox && elPos < 0) {
-        for (temp = el
-            ; (temp = GetParent_unsafe_(temp, PNType.RevealSlot)) && temp !== body && temp !== docEl
-            ; ) {
+        for (temp = el; (temp = GetParent_unsafe_(temp, PNType.RevealSlot)) && temp !== body && temp !== docEl; ) {
           if (getComputedStyle_(temp).zoom !== "1") { temp = el; break; }
         }
       } else {
-        while (temp = stack[index2], index2++ < elPos
-            && (OnFirefox || !notSafe_not_ff_!(temp))
+        while (temp = stack[index2], index2++ < elPos && (OnFirefox || !notSafe_not_ff_!(temp))
             && (!isAriaFalse_(temp as SafeElement, kAria.hidden)
                 || contains_s(temp as SafeElement, el))) { /* empty */ }
         temp = temp !== fromPoint && contains_s(el, temp) ? el : temp
@@ -708,6 +703,7 @@ export const filterOutNonReachable = (list: Hint[], notForAllClickable?: boolean
       || list.splice(i, 1);
     }
   }
+  return i < 0
 }
 
 export const getVisibleElements = (view: ViewBox): readonly Hint[] => {
