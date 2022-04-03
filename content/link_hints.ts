@@ -444,7 +444,7 @@ const onKeydown = (event: HandlerNS.Event): HandlerResult => {
           || Build.OS & (1 << kOS.mac) && !os_ && (i > kKeyCode.maxNotMetaKey && i < kKeyCode.minNotMetaKeyOrMenu)
         ) {
       OnFirefox && (doesAllowModifierEvents_ff = 1)
-      key || toggleModesOnModifierKey(event, i)
+      key && keybody !== kChar.Modifier || toggleModesOnModifierKey(event, i)
     } else if (keybody === "alt") {
       toggleModesOnModifierKey(event, kKeyCode.altKey)
     } else if (i = keyNames_.indexOf(keybody), i > 0) {

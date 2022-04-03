@@ -336,25 +336,15 @@ set_contentCommands_([
         sel = (oldSel + (key < "t" ? len - 1 : 1)) % len;
         set_isHintingInput(1)
         prevent_(event.e); // in case that selecting is too slow
-        selectOrClick(hints2[sel].d).then((): void => {
+        void selectOrClick(hints2[sel].d).then((): void => {
           set_isHintingInput(0)
           setClassName_s(hints2[oldSel].m, "IH")
           setClassName_s(hints2[sel].m, S)
         })
         return HandlerResult.Prevent;
       }
-      // check `!key` for mapModifier
-      else if (keyCode === kKeyCode.shiftKey || (keep && !key && (keyCode === kKeyCode.altKey
-                        || keyCode === kKeyCode.ctrlKey
-                        || keyCode > kKeyCode.maxNotMetaKey && keyCode < kKeyCode.minNotMetaKeyOrMenu))
-              || repeat) {
-        return HandlerResult.Nothing;
-      }
-      else if (keep ? isEscape_(key) || (
-          keybody_(key) === ENTER
-          && (/* a?c?m?-enter */ key < "s" && (key[0] !== "e" || hasTag_(INP, insert_inputHint!.h[sel].d)))
-        ) : !isIME && keyCode !== kKeyCode.f12
-      ) {
+      else if (!repeat && (!keep ? !isIME && keyCode !== kKeyCode.f12 && keyCode !== kKeyCode.shiftKey : isEscape_(key)
+          || keybody_(key) === ENTER && key < "s" && (key[0] !== "e" || hasTag_(INP, insert_inputHint!.h[sel].d)))) {
         exitInputHint();
         return !isEscape_(key) ? HandlerResult.Nothing : keep || !raw_insert_lock ? HandlerResult.Prevent
           : pass ? HandlerResult.PassKey : HandlerResult.Nothing;
