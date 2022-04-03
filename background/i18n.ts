@@ -82,7 +82,7 @@ export const getI18nJson = (file_name: ValidI18nFiles): Promise<Map<string, stri
 export let loadContentI18n_: (() => void) | null = (): void => {
   const arr: string[] = contentI18n_, args = ["$1", "$2", "$3", "$4"]
   for (let i = 0; i < kTip.INJECTED_CONTENT_END; i++) {
-    arr.push(Build.MV3 && IsLimited ? extPayload_.get("" + i)!.replace("$$", "$")
+    arr.push(Build.MV3 && IsLimited ? extPayload_.get("" + i)!.replace(<RegExpG> /\$\$/g, "$")
         : browser_.i18n.getMessage(("" + i) as "0", args))
   }
   loadContentI18n_ = null

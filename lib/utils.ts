@@ -215,7 +215,7 @@ export const escapeAllForRe = (str: string): string => str.replace(<RegExpG> /[$
 
 export const createRegExp = <S extends kTip, T extends "g" | "i" | ""> (pattern: S, flags: T
     ): T extends "" ? RegExpOne : T extends "i" ? RegExpI : RegExpG =>
-    <any> new RegExp(VTr(<kTip> pattern), flags as "g")
+    <any> new RegExp(Build.NDEBUG ? VTr(pattern) : VTr(pattern) || "^(?!)", flags as "g")
 
 export const tryCreateRegExp = function (pattern: string, flags: string ): RegExp | void {
   return safeCall(RegExp as any, pattern, flags) // eslint-disable-line @typescript-eslint/no-unsafe-argument

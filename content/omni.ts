@@ -1,7 +1,7 @@
 /// <reference path="../lib/base.omni.d.ts" />
 import {
   isAlive_, keydownEvents_, readyState_, timeout_, clearTimeout_, recordLog, chromeVer_, math, OnChrome,
-  interval_, clearInterval_, locHref, vApi, createRegExp, isTY, safer, isTop, OnFirefox, OnEdge, safeCall, WithDialog
+  interval_, clearInterval_, locHref, vApi, createRegExp, isTY, safer, isTop, OnFirefox, OnEdge, safeCall, WithDialog, VTr
 } from "../lib/utils"
 import { removeHandler_, replaceOrSuppressMost_, getMappedKey, isEscape_ } from "../lib/keyboard_utils"
 import {
@@ -86,7 +86,8 @@ const init = ({k: secret, v: page, t: type, i: inner}: FullOptions): void => {
     // setOrRemoveAttr_s(el, "allow", "clipboard-read; clipboard-write")
     if (type !== VomnibarNS.PageType.web) { /* empty */ }
     else if (OnChrome && timeout_ !== interval_ // there's no usable interval_
-        || createRegExp(kTip.nonLocalhostRe, "i").test(page) && !(<RegExpOne> /^http:/).test(locHref())) {
+        || (!Build.NDEBUG && !VTr(kTip.nonLocalhostRe) || createRegExp(kTip.nonLocalhostRe, "i").test(page))
+            && !(<RegExpOne> /^http:/).test(locHref())) {
       // not allowed by Chrome; recheck because of `tryNestedFrame`
       reload();
     } else {

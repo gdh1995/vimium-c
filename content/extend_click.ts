@@ -573,10 +573,6 @@ FProto[kToS] = myToStr
    */
   runJS_(injected, script)
   script.dataset.vimium = "";
-  if (!(Build.NDEBUG
-        || BrowserVer.MinEnsuredNewScriptsFromExtensionOnSandboxedPage <= BrowserVer.NoRAFOrRICOnSandboxedPage)) {
-    console.log("Assert error: Warning: may no timer function on sandbox page!");
-  }
   if (OnChrome && Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage
       && tmpChromeVer === BrowserVer.NoRAFOrRICOnSandboxedPage) {
     set_noRAF_old_cr_(1)
@@ -601,7 +597,7 @@ FProto[kToS] = myToStr
   // else: CSP script-src before C68, CSP sandbox before C68 or JS-disabled-in-CS on C/E
   removeEl_s(script)
   execute(kContentCmd.Destroy);
-  if (!OnChrome) {
+  if (!OnChrome || !Build.NDEBUG && !injected) {
     // on Edge (EdgeHTML), `setTimeout` and `requestAnimationFrame` work well
     return;
   }
@@ -621,4 +617,8 @@ if (!(Build.NDEBUG || BrowserVer.Min$queueMicrotask >= BrowserVer.NoRAFOrRICOnSa
     && BrowserVer.Min$queueMicrotask >= BrowserVer.MinEnsuredES6MethodFunction
     && BrowserVer.Min$queueMicrotask >= BrowserVer.MinEventListenersFromExtensionOnSandboxedPage)) {
   alert(`Assert error: missing chrome version detection before ${BrowserVer.Min$queueMicrotask}`)
+}
+if (!(Build.NDEBUG
+      || BrowserVer.MinEnsuredNewScriptsFromExtensionOnSandboxedPage <= BrowserVer.NoRAFOrRICOnSandboxedPage)) {
+  console.log("Assert error: Warning: may no timer function on sandbox page!");
 }

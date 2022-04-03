@@ -574,7 +574,7 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
   if (textFilter) {
     cur_ind = (textFilter = textFilter + "" as Extract<typeof textFilter, string>).lastIndexOf("/")
     textFilter = cur_ind > 1 && textFilter[0] === "/" && tryCreateRegExp(
-        textFilter.slice(1, cur_ind), textFilter.slice(cur_ind + 1).replace(<RegExpG> /g/g, "") as "" | "i")
+        textFilter.slice(1, cur_ind), textFilter.slice(cur_ind + 1).replace("g", "") as "" | "i")
     if (textFilter) {
       output = (output as (Hint | [Hint0[0]])[]).filter((hint): boolean => {
         let text: string | undefined
