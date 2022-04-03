@@ -241,7 +241,7 @@ set_contentCommands_([
     const act = options.act || options.action, known_last = derefInDoc_(insert_last_)
     const selectOrClick = (el: SafeHTMLElement, rect?: Rect | null, onlyOnce?: true): Promise<void> => {
       return getEditableType_(el) ? select_(el, rect, onlyOnce, action, onlyOnce)
-          : click_async(el, rect, true).then((): void => { onlyOnce && flash_(el) })
+          : click_async(el, rect, 1).then((): void => { onlyOnce && flash_(el) })
     }
     OnFirefox && insert_Lock_()
     if (act && (act[0] !== "l" || known_last && !raw_insert_lock)) {

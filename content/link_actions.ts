@@ -8,7 +8,7 @@ import {
   kMediaTag, ElementProto_not_ff, querySelector_unsafe_, getInputType, uneditableInputs_, GetShadowRoot_, scrollingEl_,
   queryChildByTag_, getSelection_, removeEl_s, appendNode_s, getMediaUrl, getMediaTag, INP, ALA, attr_s, hasTag_,
   setOrRemoveAttr_s, toggleClass_s, textContent_s, notSafe_not_ff_, modifySel, SafeEl_not_ff_, testMatch, docHasFocus_,
-  extractField, querySelectorAll_unsafe_
+  extractField, querySelectorAll_unsafe_, editableTypes_
 } from "../lib/dom_utils"
 import { getPreferredRectOfAnchor, initTestRegExps } from "./local_links"
 import {
@@ -316,9 +316,14 @@ const defaultClick = (): void => {
     isQueue = hintMode_ & HintMode.queue,
     cnsForWin = hintOptions.ctrlShiftForWindow,
     noCtrlPlusShiftForActive: boolean | undefined = cnsForWin != null ? cnsForWin : hintOptions.noCtrlPlusShift,
-    ctrl = newTab && !(mask > HintMode.newtab_n_active - 1 && noCtrlPlusShiftForActive)
-        || newWindow && !!noCtrlPlusShiftForActive,
-    shift = newWindow || newTab && (mask > HintMode.newtab_n_active - 1) === !hintOptions.activeOnCtrl,
+    maybeLabel = OnFirefox && !editableTypes_[tag] && clickEl.closest!("label,input,textarea,a,button"
+        ) as SafeElement | null,
+    notLabelInFormOnFF = !OnFirefox || !maybeLabel || htmlTag_(maybeLabel) !== "label"
+        || !(maybeLabel as HTMLLabelElement).control,
+    ctrl = notLabelInFormOnFF && (newTab && !(mask > HintMode.newtab_n_active - 1 && noCtrlPlusShiftForActive)
+        || newWindow && !!noCtrlPlusShiftForActive),
+    shift = notLabelInFormOnFF && (newWindow
+        || newTab && (mask > HintMode.newtab_n_active - 1) === !hintOptions.activeOnCtrl),
     isSel = tag === "select",
     interactive = isSel || (tag === "video" || tag === "audio") && !isRight && (clickEl as HTMLMediaElement).controls,
     doInteract = interactive && !isSel && hintOptions.interact !== !1,
@@ -342,7 +347,7 @@ const defaultClick = (): void => {
             , mask > 0 || interactive || (clickEl as ElementToHTMLorOtherFormatted).tabIndex! >= 0)
         , [!1, isMac ? !1 : ctrl, isMac ? ctrl : !1, shift]
         , specialActions, isRight ? kClickButton.second : kClickButton.none
-        , !OnChrome || otherActions || newTab ? 0 : hintOptions.touch
+        , !OnChrome || otherActions || newTab || newWindow ? 0 : hintOptions.touch
         , hintOptions))
     .then((ret): void => {
       showUrlIfNeeded()
