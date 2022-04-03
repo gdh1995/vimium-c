@@ -21,6 +21,8 @@ var DEST, JSDEST;
 
 function print() { logger.apply(null, arguments) }
 
+exports.NeedCommitInfo = process.env.BUILD_NeedCommit === "1";
+
 exports.set_dest = function (_newDest, _newJSDest) { [DEST, JSDEST] = arguments }
 
 exports.formatPath = function (path, base) {
@@ -736,7 +738,8 @@ exports.parseBuildEnv = function (key, literalVal) {
                   parseInt(+fs.statSync("manifest.json").mtimeMs)}`)
   } else if (key === "Commit") {
     // @ts-ignore
-    newVal = (_, locally) => locally ? exports.safeJSONParse(literalVal, null, String) : dependencies.getGitCommit()
+    newVal = (_, locally) => locally || !exports.NeedCommitInfo ? exports.safeJSONParse(literalVal, null, String)
+        : dependencies.getGitCommit()
   }
   return newVal
 }

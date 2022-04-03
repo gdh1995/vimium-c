@@ -14,7 +14,6 @@
     "BTypes": [ 3, 1 ], // [ Chrome | Firefox, Chrome ]
     "OS": [ 7, 7 ],
     "DetectAPIOnFirefox": [1, 0],
-    "CreateFakeIncognito": [0, 0],
     "NDEBUG": [ 0, 1 ],
     "Mangle": [ 0, 1 ],
     "Inline": [ 0, 1 ]

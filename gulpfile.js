@@ -19,7 +19,6 @@ var locally = false;
 var debugging = process.env.DEBUG === "1";
 var gTypescript = null;
 var buildConfig = null;
-var needCommitInfo = process.env.NEED_COMMIT === "1";
 var doesMinifyLocalFiles = process.env.MINIFY_LOCAL !== "0";
 var minifyDistPasses = +process.env.MINIFY_DIST_PASSES || 0;
 var maxDistSequences = +process.env.MAX_DIST_SEQUENCES || 0;
@@ -138,7 +137,7 @@ var Tasks = {
     var has_wordsRe = btypes & ~BrowserType.Firefox
             && getBuildItem("MinCVer") <
                 59 /* min(MinSelExtendForwardOnlySkipWhitespaces, MinEnsuredUnicodePropertyEscapesInRegExp) */
-        || btypes & BrowserType.Firefox && !getNonNullBuildItem("NativeWordMoveOnFirefox");
+        || btypes & BrowserType.Firefox && !getBuildItem("NativeWordMoveOnFirefox");
     if (!has_wordsRe) {
       arr.push("!front/words.txt");
       cleanByPath("front/words.txt", DEST)
@@ -159,19 +158,19 @@ var Tasks = {
   "build/ts": function(cb) {
     var btypes = getBuildItem("BTypes");
     var curConfig = [btypes, getBuildItem("MinCVer"), compilerOptions.target
-          , /** 4 */ needCommitInfo && !onlyTestSize ? getBuildItem("Commit") : 0, getBuildItem("NDEBUG")]
+          , /** 4: */ gulpUtils.NeedCommitInfo && !onlyTestSize ? getBuildItem("Commit") : 0, getBuildItem("NDEBUG")]
     var configFile = btypes === BrowserType.Chrome ? "chrome"
           : btypes === BrowserType.Firefox ? "firefox" : "browser-" + btypes;
     if (btypes === BrowserType.Firefox) {
-      curConfig[1] = getNonNullBuildItem("MinFFVer");
-      curConfig.push(getNonNullBuildItem("FirefoxID"));
-      curConfig.push(getNonNullBuildItem("NativeWordMoveOnFirefox"));
+      curConfig[1] = getBuildItem("MinFFVer");
+      curConfig.push(getBuildItem("FirefoxID"));
+      curConfig.push(getBuildItem("NativeWordMoveOnFirefox"));
     } else {
       curConfig.push(getBuildItem("EdgeC"));
     }
-    curConfig.push(getNonNullBuildItem("Mangle"))
-    curConfig.push(getNonNullBuildItem("Inline"))
-    curConfig.push(getNonNullBuildItem("OS"))
+    curConfig.push(getBuildItem("Mangle"))
+    curConfig.push(getBuildItem("Inline"))
+    curConfig.push(getBuildItem("OS"))
     curConfig.push(getBuildItem("MV3"));
     curConfig = JSON.stringify(curConfig);
     configFile = osPath.join(JSDEST, "." + configFile + ".build");
@@ -341,8 +340,8 @@ var Tasks = {
     if (browser & BrowserType.Firefox) {
         var specific = manifest.browser_specific_settings || (manifest.browser_specific_settings = {});
         var gecko = specific.gecko || (specific.gecko = {})
-        gecko.id = getNonNullBuildItem("FirefoxID")
-        var ffVer = getNonNullBuildItem("MinFFVer")
+        gecko.id = getBuildItem("FirefoxID")
+        var ffVer = getBuildItem("MinFFVer")
         if (ffVer < 199 && ffVer >= 54) {
           gecko.strict_min_version = ffVer + ".0"
         } else {
@@ -385,8 +384,8 @@ var Tasks = {
         .filter(i => /^random|^commit/i.test(i.slice(6)))
         .forEach(key => { cmd += `${key}=${process.env[key]} ` })
     for (const key of names) { cmd += `BUILD_${key}=${rands[key]} ` }
-    let shortCommit = getBuildItem("Commit")
-    if (!cmd.toLowerCase().includes(" BUILD_Commit=")) { cmd += `BUILD_Commit=${shortCommit} ` }
+    let shortCommit = gulpUtils.NeedCommitInfo ? getBuildItem("Commit") : ""
+    if (shortCommit && !cmd.toLowerCase().includes(" BUILD_Commit=")) { cmd += `BUILD_Commit=${shortCommit} ` }
     cmd += "TEST_WORKING=0 "
     cmd += `npm run ${isEdge ? "edge-c" : getBuildItem("BTypes") === BrowserType.Firefox ? "firefox" : "chrome"}`
     let checkout = shortCommit && `git checkout ${getGitCommit(-1) || shortCommit}`
@@ -798,9 +797,10 @@ exports.getBuildConfigStream = () => {
 
 var _buildConfigTSContent
 var _getBuildConfigTSContent = () => {
-  _buildConfigTSContent = _buildConfigTSContent.replace(/\b([A-Z]\w+)\s?=\s?([^,}]+)/g, function(_, key, literalVal) {
-    var newVal = getBuildItem(key, literalVal);
-    return key + " = " + (newVal != null ? JSON.stringify(newVal) : buildOptionCache[key][0]);
+  _buildConfigTSContent = _buildConfigTSContent.replace(/\b([A-Z]\w+)\s?=\s?[^,}]+/g, function(_, key) {
+    var newVal = getBuildItem(key);
+    if (newVal == null) { throw new Error("Lack value for " + key) }
+    return key + " = " + JSON.stringify(newVal);
   });
   _getBuildConfigTSContent = () => _buildConfigTSContent
   return _buildConfigTSContent
@@ -823,15 +823,11 @@ function createBuildConfigCache() {
       : !(btypes & BrowserType.Chrome && cver < /* MinEnsuredAsyncFunctions */ 57) ? "es2017" : "es6"
 }
 
-function getNonNullBuildItem(key) {
-  const cache = buildOptionCache[key];
-  let value = parseBuildItem(key, cache[1]);
-  if (value == null) {
-    value = safeJSONParse(cache[0]);
+function tryJSONParse(value) {
+    value = safeJSONParse(value)
     if (value == null) {
-      throw new Error("Failed in loading build item: " + key, cache);
+      throw new Error("Failed in loading build item: " + key)
     }
-  }
   return value;
 }
 
@@ -841,7 +837,7 @@ function getBuildItem(key, literalVal, notParse) {
     if (typeof cached[1] === "function") {
       cached[1] = cached[1](key, locally, cached[0])
     }
-    return notParse || parseBuildItem(key, cached[1])
+    return notParse || parseBuildItem(key, cached[1] ?? (cached[0] && tryJSONParse(cached[0])))
   }
   var newVal = gulpUtils.parseBuildEnv(key, literalVal, locally)
   if (newVal != null) {
@@ -871,7 +867,7 @@ function patchExtendClick(source) {
             : bodyPrefix ? `function (${args})${bodyPrefix}` : `(${args})=>`)
   }
   let inCode, inJSON;
-  if (getNonNullBuildItem("NDEBUG") && getNonNullBuildItem("Inline")) {
+  if (getBuildItem("NDEBUG") && getBuildItem("Inline")) {
     const matched = patched[0].slice(-4).replace(/'/g, '"')
     const n1 = matched.endsWith('||"') ? 3 : matched === '|| "' ? 4 : 0;
     if (!n1 || patched[2][0] !== '"') {
