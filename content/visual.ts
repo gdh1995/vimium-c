@@ -36,7 +36,6 @@ type InfoToMoveRightByWord = [oldSelected: string, oldDi: ForwardDir]
 
 import {
   VTr, safer, os_, doc, chromeVer_, tryCreateRegExp, esc, OnFirefox, OnChrome, safeCall, parseOpenPageUrlOptions,
-  parseSedOptions,
 } from "../lib/utils"
 import {
   removeHandler_, getMappedKey, keybody_, isEscape_, prevent_, ENTER, suppressTail_, replaceOrSuppressMost_
@@ -122,7 +121,7 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode]): void => {
       execCommand("copy", doc)
       hudTip(kTip.copiedIs, 0, "# " + str)
     } else {
-      post_({ H: kFgReq.copy, s: str, e: parseSedOptions(options) })
+      post_({ H: kFgReq.copy, s: str, o: parseOpenPageUrlOptions(options) })
     }
   }
 

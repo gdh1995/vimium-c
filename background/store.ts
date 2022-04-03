@@ -199,8 +199,8 @@ export const getNextFakeTabId = (): number => fakeTabId--
 export let setIcon_: (tabId: number, type: Frames.ValidStatus, isLater?: true) => void = blank_
 export let sync_: SettingsNS.Sync["set"] = blank_
 export let restoreSettings_: Promise<void> | null = null
-export let copy_: (text: string | any[], join?: FgReq[kFgReq.copy]["j"], sed?: MixedSedOpts | null) => string =
-    (() => "")
+export let copy_: (text: string | any[], join?: FgReq[kFgReq.copy]["j"]
+    , sed?: MixedSedOpts | null, keyword?: string | null) => string = (() => "")
 export let paste_: (sed?: MixedSedOpts | null, len?: number) => string | Promise<string | null> | null = () => ""
 export let substitute_: (text: string, context: SedContext, sed?: MixedSedOpts | null) => string = s => s
 export let evalVimiumUrl_: Urls.Executor = () => null

@@ -27,6 +27,7 @@ import {
   initHelp, openImgReq, framesGoBack, enterVisualMode, showVomnibar, parentFrame, nextFrame, performFind, focusFrame
 } from "./frame_commands"
 import { FindModeHistory_, Marks_ } from "./tools"
+import { convertToUrl_ } from "./normalize_urls"
 
 let gTabIdOfExtWithVomnibar: number = GlobalConsts.TabIdNone
 let _pageHandlers: Promise<typeof import("./page_handlers")> | null
@@ -293,11 +294,14 @@ set_reqH_([
   },
   /** kFgReq.copy: */ (request: FgReq[kFgReq.copy], port: Port): void => {
     let str: string | string[] | object[] | undefined
-    str = request.u || request.s
-    const mode1 = request.s != null && request.m || HintMode.DEFAULT, sed = request.e
+    str = request.u || request.s || ""
+    const opts2 = request.o || {}
+    const mode1 = request.s != null && request.m || HintMode.DEFAULT
+    const sed = opts2.s, keyword = opts2.k
     const correctUrl = mode1 >= HintMode.min_link_job && mode1 <= HintMode.max_link_job
-        && (!sed || sed.r !== false)
-    if (request.d) {
+    && (!sed || sed.r !== false)
+    const decode = request.d ? opts2.d !== false : !!opts2.d
+    if (decode) {
       if (typeof str !== "string") {
         for (let i = str.length; 0 <= --i; ) {
           correctUrl && (str[i] = findUrlEndingWithPunctuation_(str[i] as AllowToString + ""))
@@ -312,10 +316,10 @@ set_reqH_([
         str = ""
       }
     }
-    str = str && copy_(str, request.j, sed)
+    str = str && copy_(str, request.j, sed, keyword)
     set_cPort(port)
     str = request.s && typeof request.s === "object" ? `[${request.s.length}] ` + request.s.slice(-1)[0] : str
-    showHUD(request.d ? str.replace(<RegExpG & RegExpSearchable<0>> /%[0-7][\dA-Fa-f]/g, decodeURIComponent)
+    showHUD(decode ? str.replace(<RegExpG & RegExpSearchable<0>> /%[0-7][\dA-Fa-f]/g, decodeURIComponent)
         : str, request.u ? kTip.noUrlCopied : kTip.noTextCopied)
   },
   /** kFgReq.key: */ (request: FgReq[kFgReq.key], port: Port | null): void => {
@@ -431,9 +435,13 @@ set_reqH_([
     }
   },
   /** kFgReq.downloadLink: */ (req: FgReq[kFgReq.downloadLink], port): void => {
-    req.u = substitute_(findUrlEndingWithPunctuation_(req.u, true), SedContext.pageURL)
-    downloadFile(req.u, req.f, req.r, req.m < HintMode.DOWNLOAD_LINK ? (succeed): void => {
-      succeed || reqH_[kFgReq.openImage]({ m: HintMode.OPEN_IMAGE, f: req.f, u: req.u }, port)
+    const o2 = req.o || {}
+    let url = substitute_(findUrlEndingWithPunctuation_(req.u, true), SedContext.pageURL, o2.s)
+    url = (url !== req.u || o2.k) ? convertToUrl_(url, o2.k, Urls.WorkType.Default) : url
+    set_cPort(port)
+    showHUD(url, kTip.downloaded)
+    downloadFile(url, req.f, req.r || "", req.m < HintMode.DOWNLOAD_LINK ? (succeed): void => {
+      succeed || reqH_[kFgReq.openImage]({ m: HintMode.OPEN_IMAGE, f: req.f, u: url }, port)
     } : null)
   },
   /** kFgReq.wait: */ (req: FgReqWithRes[kFgReq.wait], port, msgId): Port => {
@@ -454,6 +462,13 @@ set_reqH_([
       port.postMessage<2>(msgId ? { N: kBgReq.msg, m: msgId, r: res } : res as never)
     })
     return port as Port
+  },
+  /** kFgReq.showUrl: */ (req: FgReq[kFgReq.showUrl], port: Frames.Port): void => {
+    let text = req.u, n = text.indexOf("://")
+    text = n > 0 ? text.slice(text.indexOf("/", n + 4) + 1) : text
+    text = text.length > 40 ? text.slice(0, 39) + "\u2026" : text
+    set_cPort(port)
+    showHUD(text, kTip.downloaded)
   }
 ])
 

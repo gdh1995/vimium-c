@@ -98,7 +98,7 @@ declare const enum kFgReq {
   /** can be used only with `FgCmdAcrossFrames` and when a fg command is just being called */
   gotoMainFrame,
   setOmniStyle, findFromVisual, framesGoBack, i18n, learnCSS, visualMode,
-  respondForRunKey, downloadLink, wait, optionToggled, keyFromOmni, pages,
+  respondForRunKey, downloadLink, wait, optionToggled, keyFromOmni, pages, showUrl,
   END,
   msg = 90, inject = 99,
   command = "command", id = "id", shortcut = "shortcut",
@@ -421,7 +421,7 @@ interface CmdOptions {
     /** for autoCopy */
     text?: string
     url?: boolean | "raw"
-    decoded?: boolean; decode?: boolean;
+    decoded?: boolean
     /** for searchAs */
     s?: 1;
     /** default to true */ selected?: boolean;
@@ -595,18 +595,17 @@ interface FgReq {
     /** query */ q: string;
     /** favIcon */ i?: 0 | 1 | 2;
   } & CompletersNS.Options;
-  [kFgReq.copy]: {
+  [kFgReq.copy]: ({
     /** data */ s: string | any[];
     /** [].join($j) */ j?: string | boolean | null
-    /** sed */ e?: ParsedSedOpts | null;
     u?: undefined | "";
-    /** decode */ d?: boolean;
   } & Partial<WithHintModeOptions> | {
     /** url */ u: "url";
     /** data */ s?: undefined
     j?: undefined | null
-    /** sed */ e?: ParsedSedOpts | null;
-    /** decode */ d?: boolean;
+  }) & {
+    /** sed and keyword */ o?: ParsedOpenPageUrlOptions;
+    /** decode by default */ d?: boolean;
   };
   [kFgReq.key]: {
     /* keySequence */ k: string;
@@ -641,8 +640,8 @@ interface FgReq {
   [kFgReq.openImage]: {
     /** file */ f: string | null;
     /** url */ u: string;
-    /** other options */ o?: string;
-    /** options for openUrl */ q?: ParsedOpenPageUrlOptions
+    /** other options */ t?: string;
+    /** options for openUrl */ o?: ParsedOpenPageUrlOptions
     /** auto: default to true */ a?: boolean;
   } & WithHintModeOptions
   [kFgReq.evalJSFallback]: {
@@ -678,12 +677,14 @@ interface FgReq {
   [kFgReq.downloadLink]: {
     /** url */ u: string
     /** filename */ f: string | null
-    /** referer */ r: string
+    /** referer */ r: string | 0
+    /** other options */ o: ParsedOpenPageUrlOptions | null
   } & WithHintModeOptions
   [kFgReq.optionToggled]: { k: string, v: unknown }
   [kFgReq.keyFromOmni]: { /* keySequence */ k: string; /** lastKey */ l: kKeyCode;
   } & Pick<FgReq[kFgReq.respondForRunKey], "e">
   [kFgReq.pages]: { /** id of query array */ i: number; /** queries */ q: unknown[] }
+  [kFgReq.showUrl]: { u: string }
 }
 
 interface CurrentEnvCache {} // eslint-disable-line @typescript-eslint/no-empty-interface
@@ -704,6 +705,7 @@ interface OpenUrlOptions extends UserSedOptions {
 interface OpenPageUrlOptions extends OpenUrlOptions {
   keyword?: string | null; replace?: string | ValidUrlMatchers | null
   testUrl?: /** use `! .keyword` */ null | boolean | "whole" | "whole-string"
+  decoded?: boolean | null; /** alias of "decoded" */ decode?: boolean | null
 }
 interface _ParsedOpenPageUrlOptionNames {
   g: "group"; i: "incognito"; k: "keyword"; m: "replace"
@@ -716,6 +718,7 @@ type BaseParsedOpenPageUrlOptions = {
 type SimpleParsedOpenUrlOptions = Pick<BaseParsedOpenPageUrlOptions, "g" | "i" | "m" | "o" | "p" | "r" | "w">
 interface ParsedOpenPageUrlOptions extends BaseParsedOpenPageUrlOptions {
   /** sed */ s?: ParsedSedOpts | null
+  /** decoded */ d?: boolean | null
 }
 
 declare namespace Req {

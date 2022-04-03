@@ -1,7 +1,6 @@
 import {
   safer, fgCache, isImageUrl, isJSUrl, set_keydownEvents_, keydownEvents_, timeout_, doc, chromeVer_, weakRef_ff, os_,
-  parseSedOptions, createRegExp, isTY, max_, min_, OnFirefox, OnChrome, safeCall, locHref, parseOpenPageUrlOptions,
-  weakRef_not_ff, VTr
+  createRegExp, isTY, max_, min_, OnFirefox, OnChrome, safeCall, locHref, parseOpenPageUrlOptions, weakRef_not_ff, VTr,
 } from "../lib/utils"
 import { getVisibleClientRect_, center_, view_, selRange_ } from "../lib/rect"
 import {
@@ -99,15 +98,11 @@ const downloadOrOpenMedia = (): void => {
   if (!text) { hintApi.t({ k: kTip.notImg }) }
   else if (OnFirefox && hintOptions.keyword != null || mode1_ === HintMode.OPEN_IMAGE || /** <svg> */ !tag) {
     hintApi.p({
-      H: kFgReq.openImage, m: hintMode_, q: parseOpenPageUrlOptions(hintOptions), a: hintOptions.auto,
+      H: kFgReq.openImage, m: hintMode_, o: parseOpenPageUrlOptions(hintOptions), a: hintOptions.auto,
       f: filename, u: tag ? text && getUrlData(text) : text
     })
   } else {
     downloadLink(text, filename)
-    n = text.indexOf("://")
-    text = n > 0 ? text.slice(text.indexOf("/", n + 4) + 1) : text
-    text = text.length > 40 ? text.slice(0, 39) + "\u2026" : text
-    timeout_((): void => { hintApi.t({ k: kTip.downloaded, t: text! }) }, 0)
   }
 }
 
@@ -271,8 +266,8 @@ const copyText = (): void => {
       hintApi.t({ k: kTip.noNewToCopy })
     } else {
       lastYanked && lastYanked.push(str)
-      hintApi.p({ H: kFgReq.copy, j: hintOptions.join, e: parseSedOptions(hintOptions), m: mode1_,
-          d: isUrl && hintOptions.decoded !== !1, s: lastYanked || str })
+      hintApi.p({ H: kFgReq.copy, j: hintOptions.join, o: parseOpenPageUrlOptions(hintOptions), m: mode1_,
+          d: isUrl, s: lastYanked || str })
     }
   }
 }
@@ -284,8 +279,9 @@ const downloadLink = (url?: string, filename?: string): void => {
   changed = (url = url || getUrlData()) !== link.href
   filename = filename || attr_s(clickEl, kD) || ""
   if (OnFirefox || OnChrome && hintOptions.download === "force") {
-    hintApi.p({ H: kFgReq.downloadLink, u: url, f: filename, r: locHref(), m: mode1_ })
-      return
+    hintApi.p({ H: kFgReq.downloadLink, u: url, f: filename, r: OnFirefox ? locHref() : 0
+        , m: mode1_, o: parseOpenPageUrlOptions(hintOptions) })
+    return
   }
   if (changed) {
     link.href = url
@@ -295,6 +291,7 @@ const downloadLink = (url?: string, filename?: string): void => {
   if (!hadDownload) {
     link[kD] = filename
   }
+  hintApi.p({ H: kFgReq.showUrl, u: url })
   retPromise = catchAsyncErrorSilently(click_async(link, rect, 0, [!0, !1, !1, !1])).then((): void => {
     if (!hadDownload) {
       setOrRemoveAttr_s(link, kD)

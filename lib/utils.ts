@@ -206,7 +206,8 @@ export const parseSedOptions = (opts: UserSedOptions): ParsedSedOpts => {
 
 type EnsureExisting<T> = { [P in keyof T]-?: T[P] }
 type AllowUndefined<T> = { [P in keyof T]: T[P] | undefined }
-export const parseOpenPageUrlOptions = ((opts): AllowUndefined<EnsureExisting<ParsedOpenPageUrlOptions>> => ({
+export const parseOpenPageUrlOptions = ((opts, decoded?: boolean | null): AllowUndefined<EnsureExisting<ParsedOpenPageUrlOptions>> => ({
+  d: (decoded = opts.decoded, decoded != null ? decoded : opts.decode),
   g: opts.group, i: opts.incognito, k: opts.keyword, m: opts.replace, o: opts.opener,p: opts.position,
   r: opts.reuse, s: parseSedOptions(opts), t: opts.testUrl, w: opts.window
 })) as (opts: OpenPageUrlOptions & UserSedOptions) => ParsedOpenPageUrlOptions

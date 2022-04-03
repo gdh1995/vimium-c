@@ -1,6 +1,6 @@
 import {
   chromeVer_, doc, esc, fgCache, isTop, set_esc, VTr, safer, timeout_, loc_, weakRef_not_ff, weakRef_ff, deref_,
-  keydownEvents_, parseSedOptions, Stop_, suppressCommonEvents, setupEventListener, vApi, locHref, isTY, min_,
+  keydownEvents_, Stop_, suppressCommonEvents, setupEventListener, vApi, locHref, isTY, min_,
   OnChrome, OnFirefox, OnEdge, firefoxVer_, safeCall, parseOpenPageUrlOptions, os_, abs_, Lower
 } from "../lib/utils"
 import {
@@ -226,9 +226,8 @@ set_contentCommands_([
     options.copy && (url || !options.o) && post_({
       H: kFgReq.copy,
       s: str as never as undefined,
-      e: parseSedOptions(options),
       u: (str ? "" : urlOpt ? getUrl() : doc.title) as "url",
-      d: options.decoded || options.decode
+      o: opts2
     })
     options.o && (url && evalIfOK(url) || post_({
       H: kFgReq.openUrl, c: copied, u: url, o: opts2, n: options

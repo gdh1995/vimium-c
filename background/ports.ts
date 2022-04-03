@@ -322,18 +322,19 @@ export const safePost = <K extends keyof FullBgReq>(port: Port, req: Req.bg<K>):
   } catch { return 0 }
 }
 
-const show2 = (isCopy: kTip | undefined, text: string): void => { showHUD(text, isCopy) }
+const show2 = (tipId: kTip | undefined, text: string): void => { showHUD(text, tipId) }
 
-export const showHUD = (text: string | Promise<string>, isCopy?: kTip): void => {
-  if (typeof text !== "string") { void text.then(/*#__NOINLINE__*/ show2.bind(null, isCopy)); return }
+export const showHUD = (text: string | Promise<string>, tipId?: kTip): void => {
+  if (typeof text !== "string") { void text.then(/*#__NOINLINE__*/ show2.bind(null, tipId)); return }
+  const isCopy = tipId === kTip.noUrlCopied || tipId === kTip.noTextCopied
   if (isCopy) {
     if (text.startsWith(CONST_.BrowserProtocol_ + "-") && text.includes("://")) {
       text = text.slice(text.indexOf("/", text.indexOf("/") + 2) + 1) || text
     }
-    text = (text.length > 41 ? text.slice(0, 41) + "\u2026" : text + ".")
+    text = text.length > 41 ? text.slice(0, 41) + "\u2026" : text && text + "."
   }
   if (cPort && !safePost(cPort, {
-      N: kBgReq.showHUD, H: ensureInnerCSS(cPort.s), k: isCopy ? text ? kTip.copiedIs : isCopy : kTip.raw, t: text
+      N: kBgReq.showHUD, H: ensureInnerCSS(cPort.s), k: isCopy && text ? kTip.copiedIs : tipId || kTip.raw, t: text
   })) {
     set_cPort(null as never)
   }

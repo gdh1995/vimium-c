@@ -62,8 +62,8 @@ interface BgCmdOptions {
   [kBgCmd.clearFindHistory]: {}
   [kBgCmd.clearMarks]: { local: boolean; all: boolean }
   [kBgCmd.copyWindowInfo]: UserSedOptions & LimitedRangeOptions & TabFilterOptions & {
-    /** (deprecated) */ decoded: boolean
-    decode: boolean
+    decoded: boolean
+    keyword: string
     type: "" | "frame" | "browser" | "window" | "tab" | "title" | "url"
     /** default to "${title}: ${url}" */ format: string
     join: "json" | string | boolean

@@ -44,19 +44,21 @@ const getDestIndex = (tab: Tab): number | null | undefined => {
 
 export const copyWindowInfo = (resolve: OnCmdResolved): void | kBgCmd.copyWindowInfo => {
   const filter = get_cOptions<C.copyWindowInfo, true>().filter
-  const decoded = !!(get_cOptions<C.copyWindowInfo>().decoded || get_cOptions<C.copyWindowInfo>().decode),
+  const keyword = get_cOptions<C.copyWindowInfo, true>().keyword
+  const decoded = !!(get_cOptions<C.copyWindowInfo>().decoded),
   type = get_cOptions<C.copyWindowInfo>().type
   const wantNTabs = type === "tab" && (abs(cRepeat) > 1 || !!filter)
   const sed = parseSedOptions_(get_cOptions<C.copyWindowInfo, true>())
+  const opts2: ParsedOpenPageUrlOptions = { d: decoded, s: sed, k: keyword }
   if (type === "frame" && cPort) {
     let p: Promise<"tab" | void> | "tab" | void | 1
     if (cPort.s.flags_ & Frames.Flags.OtherExtension) {
       cPort.postMessage({
-        N: kBgReq.url, H: kFgReq.copy, d: decoded, e: sed
+        N: kBgReq.url, H: kFgReq.copy, o: opts2
       } as Req.bg<kBgReq.url> & FgReq[kFgReq.copy])
       p = 1
     } else {
-      p = requireURL_({ H: kFgReq.copy, u: "" as "url", d: decoded, e: sed }) as Promise<"tab" | void> | "tab" | void
+      p = requireURL_({ H: kFgReq.copy, u: "" as "url", o: opts2 }) as Promise<"tab" | void> | "tab" | void
     }
     if (p !== 1) {
       p && p instanceof Promise ? p.then((): void => { resolve(1) }) : resolve(1)
@@ -67,10 +69,7 @@ export const copyWindowInfo = (resolve: OnCmdResolved): void | kBgCmd.copyWindow
   Tabs_.query(type === "browser" ? {windowType: "normal"} : { active: type !== "window" && !wantNTabs || void 0,
           currentWindow: true }, (tabs): void => {
     if (!type || type === "title" || type === "frame" || type === "url") {
-      reqH_[kFgReq.copy]({
-        u: (type === "title" ? tabs[0].title : getTabUrl(tabs[0])) as "url",
-        d: decoded, e: sed
-      }, cPort)
+      reqH_[kFgReq.copy]({ u: (type === "title" ? tabs[0].title : getTabUrl(tabs[0])) as "url", o: opts2 }, cPort)
       resolve(1)
       return
     }
@@ -101,7 +100,7 @@ export const copyWindowInfo = (resolve: OnCmdResolved): void | kBgCmd.copyWindow
         : s1 !== "__proto__" && (val = (i as Dict<any>)[s1],
           val && typeof val === "object" ? JSON.stringify(val) : val || "")
     }, ""))),
-    result = copy_(data, join, sed)
+    result = copy_(data, join, sed, keyword)
     showHUD(type === "tab" && tabs.length < 2 ? result : trans_("copiedWndInfo"), kTip.noTextCopied)
     resolve(1)
   })

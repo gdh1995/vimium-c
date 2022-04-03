@@ -1,9 +1,10 @@
 import {
   CurCVer_, CurFFVer_, OnChrome, OnEdge, OnFirefox, paste_, substitute_, set_copy_, set_paste_, set_substitute_, CONST_,
-  settingsCache_, IsLimited, updateHooks_
+  settingsCache_, IsLimited, updateHooks_, searchEngines_
 } from "./store"
 import * as BgUtils_ from "./utils"
 import * as Exclusions from "./exclusions"
+import { createSearch_ } from "./normalize_urls"
 
 declare const enum SedAction {
   NONE = 0, decodeForCopy = 1, decode = 1, decodeuri = 1, decodeurl = 1,
@@ -334,9 +335,18 @@ const getTextArea_html = (): HTMLTextAreaElement => {
   return el
 }
 
-const format_ = (data: string | any[], join?: FgReq[kFgReq.copy]["j"], sed?: MixedSedOpts | null): string => {
+
+const format_ = (data: string | any[], join: FgReq[kFgReq.copy]["j"] | undefined, sed: MixedSedOpts | null | undefined
+    , keyword: string | null | undefined): string => {
+  let pattern: Search.Engine | null | undefined
+  const createSearchToCopy = (data: string): string => {
+    if (pattern === void 0) { pattern = searchEngines_.map.get(keyword!) || null }
+    return pattern ? createSearch_(data.trim().split(BgUtils_.spacesRe_), pattern.url_, pattern.blank_) : data
+  }
   if (typeof data !== "string") {
     data = data.map(i => substitute_(i, SedContext.paste, sed))
+    if (keyword)
+    keyword && (data = data.map(createSearchToCopy))
     data = typeof join === "string" && join.startsWith("json") ? JSON.stringify(data, null, +join.slice(4) || 2)
       : data.join(join !== !!join && (join as string) || "\n") +
         (data.length > 1 && (!join || join === !!join) ? "\n" : "")
@@ -355,6 +365,7 @@ const format_ = (data: string | any[], join?: FgReq[kFgReq.copy]["j"], sed?: Mix
     data = data.trimRight()
   }
   data = substitute_(data, SedContext.copy, sed)
+  data = keyword ? createSearchToCopy(data) : data
   return data
 }
 
@@ -366,13 +377,13 @@ const reformat_ = (copied: string, sed?: MixedSedOpts | null): string => {
   return copied
 }
 
-set_copy_(Build.MV3 && IsLimited || OnFirefox && navigator.clipboard ? (data, join, sed): string => {
-  data = format_(data, join, sed)
+set_copy_(Build.MV3 && IsLimited || OnFirefox && navigator.clipboard ? (data, join, sed, keyword): string => {
+  data = format_(data, join, sed, keyword)
   const clip = data && navigator.clipboard
   clip && clip.writeText!(data)
   return data
-} : (data, join, sed): string => {
-  data = format_(data, join, sed)
+} : (data, join, sed, keyword): string => {
+  data = format_(data, join, sed, keyword)
   if (data) {
     const doc = (globalThis as MaybeWithWindow).document!, textArea = getTextArea_html()
     textArea.value = data

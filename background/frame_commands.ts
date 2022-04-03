@@ -226,7 +226,7 @@ export const captureTab = (tabs: [Tab] | undefined, resolve: OnCmdResolved): voi
       })
     }
     const doShow = (finalUrl: string): void => {
-      reqH_[kFgReq.openImage]({ o: "pixel=1&", u: finalUrl, f: title, a: false, m: HintMode.OPEN_IMAGE, q: {
+      reqH_[kFgReq.openImage]({ t: "pixel=1&", u: finalUrl, f: title, a: false, m: HintMode.OPEN_IMAGE, o: {
         r: get_cOptions<C.captureTab, true>().reuse, m: get_cOptions<C.captureTab, true>().replace,
         p: get_cOptions<C.captureTab, true>().position, w: get_cOptions<C.captureTab, true>().window
       } }, cPort)
@@ -300,8 +300,8 @@ export const openImgReq = (req: FgReq[kFgReq.openImage], port?: Port): void => {
   if (req.a !== false) {
     prefix += "auto=once&"
   }
-  req.o && (prefix += req.o)
-  const opts2 = req.q || As_<ParsedOpenPageUrlOptions>(BgUtils_.safeObj_() as {})
+  req.t && (prefix += req.t)
+  const opts2 = req.o || As_<ParsedOpenPageUrlOptions>(BgUtils_.safeObj_() as {})
   const keyword = OnFirefox && req.m === HintMode.DOWNLOAD_MEDIA ? "" : opts2.k
   const testUrl = opts2.t ?? !keyword
   const urlAfterSed = opts2.s ? substitute_(url, SedContext.paste, opts2.s) : url
