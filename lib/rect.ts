@@ -426,10 +426,15 @@ export const scrollWndBy_ = (di: ScrollByY, amount: number): void => {
   ElementProto_not_ff!.scrollBy ? scrollBy(instantScOpt(di, amount)) : scrollBy(di ? 0 : amount, di && amount)
 }
 
-export const center_ = (rect: Rect | null): Point2D => {
-  let zoom = !OnFirefox ? docZoom_ * bZoom_ / 2 : 0.5
+export const center_ = (rect: Rect | null, xy: HintsNS.StdXY | undefined): Point2D => {
+  let zoom = !OnFirefox ? docZoom_ * bZoom_ / (xy ? 1 : 2) : xy ? 1 : 0.5
+  let x = xy ? xy.x : 0, y = xy ? xy.y : 0
   rect = rect && cropRectToVisible_(rect.l, rect.t, rect.r, rect.b) || rect
-  return rect ? [((rect.l + rect.r) * zoom) | 0, ((rect.t + rect.b) * zoom) | 0] : [0, 0]
+  x = !rect ? 0 : !xy ? rect.l + rect.r
+      : min_(rect.l, max_((x < 0 ? rect.r : rect.l) + (x * x < 1 ? (rect.r - rect.l) * x : x), rect.r - 1))
+  y = !rect ? 0 : !xy ? rect.t + rect.b
+      : min_(rect.t, max_((y < 0 ? rect.b : rect.t) + (y * y < 1 ? (rect.b - rect.t) * y : y), rect.b - 1))
+  return [(x * zoom) | 0, (y * zoom) | 0]
 }
 
 /** still return `true` if `paddings <= 4px` */

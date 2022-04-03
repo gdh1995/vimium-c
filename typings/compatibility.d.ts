@@ -500,6 +500,7 @@ declare const enum BrowserVer {
   MinRuntimeFlag$UpdateHoverAtBeginFrame = 77, // #update-hover-at-begin-frame is enabled by default
   MinChromeFavicon2 = 77, // tested on 77.0.3865.90, chrome://favicon2/ is forbidden to use on extension pages
   MinScrollEndForInstantScrolling = 78, // if EXPERIMENTAL
+  MinMaybePointerEventForTouchPadClick = 79, // if EXPERIMENTAL
   // https://groups.google.com/a/chromium.org/forum/#!msg/blink-dev/h-JwMiPUnuU/sl79aLoLBQAJ
   // https://www.chromestatus.com/features/4507242028072960
   MinNoShadowDOMv0 = 80,
@@ -542,6 +543,7 @@ declare const enum BrowserVer {
   MinESModulesInServiceWorker = 91,
   MinEnsured$string$$replaceAll = 91,
   MinEnsured$WeakRef = 92, // even if LEGACY
+  MinEnsuredPointerEventForTouchPadClick = 92, // if not EXPERIMENTAL; even if LEGACY
   BuildMinManifestV3 = 93,
   MinNotPropagateBodyStyleIfContained = 96, // even if EXPERIMENTAL or LEGACY
   MinEnsured$input$$showPicker = 99, // even if LEGACY; since 97 if EXPERIMENTAL

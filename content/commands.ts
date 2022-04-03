@@ -13,7 +13,7 @@ import {
   getKeyStat_, suppressTail_
 } from "../lib/keyboard_utils"
 import {
-  view_, wndSize_, isNotInViewport, getZoom_, prepareCrop_, getViewBox_, padClientRect_, isSelARange,
+  view_, wndSize_, isNotInViewport, getZoom_, prepareCrop_, getViewBox_, padClientRect_, isSelARange, center_,
   getBoundingClientRect_, setBoundary_, wdZoom_, dScale_, getVisibleClientRect_, getVisibleBoundingRect_, VisibilityType
 } from "../lib/rect"
 import { post_, set_contentCommands_, runFallbackKey } from "./port"
@@ -454,14 +454,12 @@ set_contentCommands_([
         return runFallbackKey(options, 2, "", delay)
       }
       const useClick = options.click && (activeEl as Partial<HTMLElement>).click
-      const xy = !useClick && options.xy as Extract<typeof options.xy, { x: number }>
-      const rect = xy && (getVisibleBoundingRect_(activeEl) || getVisibleClientRect_(activeEl))
-      if (rect) {
+      const xy = !useClick && options.xy as HintsNS.StdXY | undefined
+      const point = xy && center_(getVisibleBoundingRect_(activeEl) || getVisibleClientRect_(activeEl), xy)
+      if (point) {
         type MInit = ValidMouseEventInit;
-        (init as MInit).screenX = (init as MInit).clientX = (xy.x > 1 ? min_(rect.l + xy.x, rect.r)
-            : (rect.r - rect.l) * xy.x + rect.l) | 0;
-        (init as MInit).screenY = (init as MInit).clientY = (xy.y > 1 ? min_(rect.t + xy.y, rect.b)
-            : (rect.b - rect.t) * xy.y + rect.t) | 0
+        (init as MInit).screenX = (init as MInit).clientX = point[0];
+        (init as MInit).screenY = (init as MInit).clientY = point[1]
       }
       OnChrome && setupIDC_cr!(init)
       try {

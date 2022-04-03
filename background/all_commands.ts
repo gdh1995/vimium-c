@@ -228,19 +228,12 @@ set_bgC_([
           if (info.length >= 3 && dict.code == null) { destDict.code = info[2] || info[0] }
         }
       }
-      if ((<RegExpOne> /^(Mouse|Pointer|Wheel)/).test(rawClass) && xy == null) { xy = [0.5, 0.5] }
-      else if (xy != null) {
-        xy = typeof xy !== "string" ? typeof xy === "number" ? [xy, 0.5]
-              : xy instanceof Array ? xy : [+xy.x || 0, +xy.y || 0]
-            : xy.split(<RegExpOne> /[\s,]+/).map(i => +i) as [number, number]
-        xy = xy.filter(i => i >= 0) as [number, number]
-        while (xy.length < 2) { xy.push(0.5) }
-      }
+      xy = (<RegExpOne> /^(Mouse|Pointer|Wheel)/).test(rawClass) && xy == null ? [0.5, 0.5] : xy
       opts2.type = type
       opts2.class = rawClass
       opts2.init = destDict
       opts2.delay = delay
-      opts2.xy = xy ? { x: xy[0], y: xy[1] } : null
+      opts2.xy = BgUtils_.normalizeXY_(xy)
       opts2.direct = !direct || typeof direct !== "string" ? "element,hover,scroll,focus" as "element" : direct
       if (directOptions && !directOptions.search) { directOptions.search = "doc" }
       opts2.directOptions = directOptions || { search: "doc" }

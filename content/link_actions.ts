@@ -129,7 +129,8 @@ const hoverEl = (): void => {
     // here not check lastHovered on purpose
     // so that "HOVER" -> any mouse events from users -> "HOVER" can still work
     set_currentScrolling(OnFirefox ? weakRef_ff(clickEl, kElRef.currentScrolling) : weakRef_not_ff!(clickEl))
-  retPromise = catchAsyncErrorSilently(hover_async(clickEl, center_(rect), doesFocus)).then((): void => {
+  retPromise = catchAsyncErrorSilently(hover_async(clickEl
+        , center_(rect, hintOptions.xy as HintsNS.StdXY | undefined), doesFocus)).then((): void => {
     set_cachedScrollable(currentScrolling)
     if (mode1_ < HintMode.min_job) { // called from Modes[-1]
       hintApi.t({ k: kTip.hoverScrollable })

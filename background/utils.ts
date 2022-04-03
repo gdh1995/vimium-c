@@ -329,3 +329,14 @@ export const getOmniSecret_ = (mayRefresh: boolean): string => {
   _secretTimestamp = now
   return _secret
 }
+
+export const normalizeXY_ = (xy: HintsNS.Options["xy"] | null | undefined): HintsNS.StdXY | undefined => {
+  if (xy != null) {
+    xy = typeof xy !== "string" ? typeof xy === "number" ? [xy, 0.5]
+          : xy instanceof Array ? xy : [+xy.x || 0, +xy.y || 0]
+        : xy.split(<RegExpOne> /[\s,]+/).map(i => +i) as [number, number]
+    xy = xy.filter(i => i >= 0) as [number, number]
+    while (xy.length < 2) { xy.push(0.5) }
+  }
+  return  xy ? { x: xy[0], y: xy[1] } : void 0
+}

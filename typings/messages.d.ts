@@ -273,6 +273,7 @@ declare namespace HintsNS {
         | "last-window" | "window" | /** Firefox-only */ "no-prevent"
     reuse?: UserReuseType
     button?: "right";
+    contextmenu?: boolean
     touch?: null | boolean | "auto";
     join?: FgReq[kFgReq.copy]["j"];
     decoded?: boolean;
@@ -295,7 +296,9 @@ declare namespace HintsNS {
     richText?: boolean;
     visual?: false;
     suppressInput?: boolean
+    xy?: StdXY | [number, number] | `${number}, ${number}` | number | `${number}`
   }
+  interface StdXY { x: number, y: number }
 }
 
 interface InsertModeOptions {
@@ -464,7 +467,7 @@ interface CmdOptions {
     esc?: true // if true, then call onEscDown({ repeat: count > 1 })
     click?: true // if true, call `activeElement.click()` directly
     init?: Dict<any>
-    xy?: { x: number, y: number } | [number, number] | `${number}, ${number}` | number | `${number}`
+    xy?: null | HintsNS.Options["xy"]
   } & OptionsToFindElement & Req.FallbackOptions & EventInit
 }
 

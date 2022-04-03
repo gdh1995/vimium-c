@@ -28,7 +28,7 @@ type AcceptableClickButtons = kClickButton.none | kClickButton.second | kClickBu
 type MyMouseControlKeys = [ altKey: boolean, ctrlKey: boolean, metaKey: boolean, shiftKey: boolean ]
 
 type kMouseMoveEvents = "mouseover" | "mouseenter" | "mousemove" | "mouseout" | "mouseleave"
-type kMouseClickEvents = "mousedown" | "mouseup" | "click" | "auxclick" | "dblclick"
+type kMouseClickEvents = "mousedown" | "mouseup" | "click" | "auxclick" | "dblclick" | "contextmenu"
 type NullableSafeElForM = SafeElementForMouse | null | undefined
 
 interface YieldedValue { 42: true }
@@ -271,7 +271,10 @@ export const click_async = (async (element: SafeElementForMouse
       return
     }
   }
-  const center = center_(rect || (rect = getVisibleClientRect_(element)))
+  const kMenu = "contextmenu"
+  const xy = button === kClickButton.second && userOptions![kMenu] !== !1
+      || userOptions && userOptions.xy as HintsNS.StdXY | undefined
+  const center = center_(rect || (rect = getVisibleClientRect_(element)), xy && userOptions!.xy as HintsNS.StdXY)
   if (OnChrome
       && (Build.MinCVer >= BrowserVer.MinEnsuredTouchEventConstructor
           || chromeVer_ >= BrowserVer.MinEnsuredTouchEventConstructor)
@@ -309,6 +312,7 @@ export const click_async = (async (element: SafeElementForMouse
   if (button === kClickButton.second) {
     // if button is the right, then auxclick can be triggered even if element.disabled
     mouse_(element, "auxclick", center, modifiers, null, button)
+    mouse_(element, kMenu, center, modifiers, null, button)
     return
   }
   if (OnChrome && (element as Partial<HTMLInputElement /* |HTMLSelectElement|HTMLButtonElement */>).disabled) {
