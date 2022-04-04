@@ -545,7 +545,10 @@ declare const enum BrowserVer {
   MinEnsured$WeakRef = 92, // even if LEGACY
   MinEnsuredPointerEventForTouchPadClick = 92, // if not EXPERIMENTAL; even if LEGACY
   BuildMinManifestV3 = 93,
+  /** @todo: trace https://bugs.chromium.org/p/chromium/issues/detail?id=649162 */
+  MinMaybeAutoFillInShadowDOM = 93, // if --enable-blink-features=AutofillShadowDOM
   MinNotPropagateBodyStyleIfContained = 96, // even if EXPERIMENTAL or LEGACY
+  Min$structuredClone = 98, // even if EXPERIMENTAL or LEGACY
   MinEnsured$input$$showPicker = 99, // even if LEGACY; since 97 if EXPERIMENTAL
   MinNo$TimerType$$Fake = 999,
   assumedVer = 998,

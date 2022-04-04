@@ -222,18 +222,8 @@ export const onFocus = (event: Event | FocusEvent): void => {
   }
   if (!isEnabled_) { return }
   if (OnFirefox && target === doc) { return }
-  /**
-   * Notes:
-   * according to test, Chrome Password Saver won't fill fields inside a shadow DOM
-   * it's safe to compare .lock and doc.activeEl here without checking target.shadowRoot,
-   *   and .shadowRoot should not block this check
-   * DO NOT stop propagation
-   * check `lock !== null` first, so that it needs less cost for common (plain) cases
-   * use `lock === doc.active`, because:
-   *   `lock !== target` ignores the case a blur event is missing or not captured;
-   *   `target !== doc.active` lets it mistakenly passes the case of `target === lock === doc.active`
-   */
-  if (lock_ && lock_ === activeEl_unsafe_()) { return; }
+  // since BrowserVer.MinMaybeAutoFillInShadowDOM , Chrome will auto fill a password in a shadow tree
+  if (lock_ && lock_ === (OnChrome ? deepActiveEl_unsafe_() : activeEl_unsafe_())) { return; }
   if (target === ui_box) { Stop_(event); return }
   const sr = GetShadowRoot_(target as Element);
   if (sr) {
