@@ -2,7 +2,7 @@ import * as BgUtils_ from "./utils"
 import {
   cPort, cRepeat, cKey, get_cOptions, set_cPort, set_cRepeat, contentPayload_, framesForTab_,
   framesForOmni_, bgC_, set_bgC_, set_cmdInfo_, curIncognito_, curTabId_, recencyForTab_, settingsCache_, CurCVer_,
-  OnChrome, OnFirefox, OnEdge, substitute_, CONST_, curWndId_, findBookmark, bookmarkCache_
+  OnChrome, OnFirefox, OnEdge, substitute_, CONST_, curWndId_, findBookmark, bookmarkCache_, extAllowList_
 } from "./store"
 import {
   Tabs_, Windows_, InfoToCreateMultiTab, openMultiTabs, tabsGet, getTabUrl, selectFrom, runtimeError_, R_,
@@ -601,9 +601,25 @@ set_bgC_([
       return showHUD(trans_("notRestoreIfIncog"))
     }
     const notActive = get_cOptions<C.restoreTab>().active === false
-    const curTabId = cPort ? cPort.s.tabId_ : curTabId_
+    const curTabId = cPort ? cPort.s.tabId_ : curTabId_, curWndId = curWndId_
     const runNext = getRunNextCmdBy(kRunOn.otherCb)
-    const cb = !notActive ? runNext : (): void => { runtimeError_() ? resolve(0) : selectTab(curTabId, runNext) }
+    const cb = (restored: chrome.sessions.Session): void => {
+      if (OnChrome && restored && (restored.window || restored.tab && restored.tab.windowId !== curWndId
+            && restored.tab.index === 0)) {
+        const tab = restored.window ? selectFrom(restored.window.tabs!) : restored.tab!, url = tab.url
+        let runnable = (<RegExpOne> /^(file|ftps?|https?)/).test(url) || url.startsWith(location.origin + "/")
+        if (!runnable && url.startsWith(location.protocol) && !url.startsWith(location.origin + "/")) {
+          const extHost = new URL(url).host
+          runnable = !!extHost && extAllowList_.get(extHost) === true
+        }
+        runnable && Promise.all([Q_(Tabs_.create, { url: "about:blank", windowId: tab.windowId }),
+            Q_(Tabs_.remove, tab.id)]).then(([blankTab]): void => {
+          sessions.restore()
+          blankTab && Tabs_.remove(blankTab.id)
+        })
+      }
+      runtimeError_() ? resolve(0) : notActive ? selectTab(curTabId, runNext) : resolve(1)
+    }
     if (onlyOne && count > 1) {
       sessions.getRecentlyClosed({ maxResults: count }, (list?: chrome.sessions.Session[]): void => {
         if (!list || count > list.length) { resolve(0); return showHUD(trans_("indexOOR")) }
