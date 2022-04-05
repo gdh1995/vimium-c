@@ -658,8 +658,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       }
       if (!focused) { /* empty */ }
       else if (char.length === 1 && char > kChar.a && char < kChar.g && char !== kChar.c
-          || Build.OS & ~(1 << kOS.mac) && char === kChar.backspace && a.os_) {
-        return a.onBashAction_(char.length === 1
+          || Build.OS & ~(1 << kOS.mac) && char === kChar.backspace && (!(Build.OS & (1 << kOS.mac)) || a.os_)) {
+        return a.onBashAction_(Build.OS & ~(1 << kOS.mac) && (!(Build.OS & (1 << kOS.mac)) || char.length === 1)
             ? char.charCodeAt(0) - (kCharCode.maxNotAlphabet | kCharCode.CASE_DELTA) : -1);
       }
       if (mainModifier === "a-" && char !== kChar.enter) { a.keyResult_ = SimpleKeyResult.Nothing; return; }
@@ -764,8 +764,20 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       Vomnibar_.onInput_();
       return;
     }
-    const sel = getSelection(), isExtend = code === 4 || code < 0;
-    sel.type === "Caret" && sel.modify(isExtend ? "extend" : "move", code < 4 ? "backward" : "forward", "word");
+    const isExtend = code === 4 || code < 0;
+    if (Build.BTypes & BrowserType.Firefox
+        && (!(Build.BTypes & ~BrowserType.Firefox) || Vomnibar_.browser_ === BrowserType.Firefox)) {
+      let { value: str, selectionStart: start, selectionEnd: end } = Vomnibar_.input_
+      if (start === end) {
+        let arr = code < 4 ? (<RegExpOne> /^.*\s/).exec(str.slice(0, start).trimRight())
+            : (<RegExpOne> /\s+/).exec(str.slice(start))
+        start = code < 4 ? arr ? arr.index + 1 : 0 : arr ? start + arr.index + arr[0].length : str.length
+        Vomnibar_.input_.setSelectionRange(start, start)
+      }
+    } else {
+      const sel = getSelection()
+      sel.type === "Caret" && sel.modify(isExtend ? "extend" : "move", code < 4 ? "backward" : "forward", "word")
+    }
     if (isExtend && Vomnibar_.input_.selectionStart < Vomnibar_.input_.selectionEnd) {
       document.execCommand("delete");
     }
