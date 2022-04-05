@@ -64,7 +64,7 @@ interface BgCmdOptions {
   [kBgCmd.copyWindowInfo]: UserSedOptions & LimitedRangeOptions & TabFilterOptions & {
     decoded: boolean
     keyword: string
-    type: "" | "frame" | "browser" | "window" | "tab" | "title" | "url"
+    type: "" | "frame" | "browser" | "window" | "tab" | "title" | "url" | "host"
     /** default to "${title}: ${url}" */ format: string
     join: "json" | string | boolean
   } & Req.FallbackOptions

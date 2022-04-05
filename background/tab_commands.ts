@@ -46,11 +46,11 @@ export const copyWindowInfo = (resolve: OnCmdResolved): void | kBgCmd.copyWindow
   const filter = get_cOptions<C.copyWindowInfo, true>().filter
   const keyword = get_cOptions<C.copyWindowInfo, true>().keyword
   const decoded = !!(get_cOptions<C.copyWindowInfo>().decoded),
-  type = get_cOptions<C.copyWindowInfo>().type
+  rawFormat = get_cOptions<C.copyWindowInfo>().format, type = get_cOptions<C.copyWindowInfo>().type
   const wantNTabs = type === "tab" && (abs(cRepeat) > 1 || !!filter)
   const sed = parseSedOptions_(get_cOptions<C.copyWindowInfo, true>())
   const opts2: ParsedOpenPageUrlOptions = { d: decoded, s: sed, k: keyword }
-  if (type === "frame" && cPort) {
+  if (type === "frame" && cPort && !rawFormat) {
     let p: Promise<"tab" | void> | "tab" | void | 1
     if (cPort.s.flags_ & Frames.Flags.OtherExtension) {
       cPort.postMessage({
@@ -68,13 +68,15 @@ export const copyWindowInfo = (resolve: OnCmdResolved): void | kBgCmd.copyWindow
   // include those hidden on Firefox
   Tabs_.query(type === "browser" ? {windowType: "normal"} : { active: type !== "window" && !wantNTabs || void 0,
           currentWindow: true }, (tabs): void => {
-    if (!type || type === "title" || type === "frame" || type === "url") {
-      reqH_[kFgReq.copy]({ u: (type === "title" ? tabs[0].title : getTabUrl(tabs[0])) as "url", o: opts2 }, cPort)
+    if ((!type || type === "title" || type === "frame" || type === "url" || type === "host") && !rawFormat) {
+      const s = type === "title" ? tabs[0].title : type !== "host" ? getTabUrl(tabs[0])
+          : BgUtils_.safeParseURL_(getTabUrl(tabs[0]))?.host || ""
+      reqH_[kFgReq.copy](type === "title" ? { s, o: opts2 } : { u: s as "url", o: opts2 }, cPort)
       resolve(1)
       return
     }
     const incognito = cPort ? cPort.s.incognito_ : curIncognito_ === IncognitoType.true,
-    rawFormat = get_cOptions<C.copyWindowInfo>().format, format = "" + (rawFormat || "${title}: ${url}"),
+    format = "" + (rawFormat || "${title}: ${url}"),
     join = get_cOptions<C.copyWindowInfo, true>().join, isPlainJSON = join === "json" && !rawFormat
     if (wantNTabs) {
       const ind = tabs.length < 2 ? 0 : selectIndexFrom(tabs), range = getTabRange(ind, tabs.length)
@@ -97,6 +99,7 @@ export const copyWindowInfo = (resolve: OnCmdResolved): void | kBgCmd.copyWindow
         , (_, names): string => names.split("||").reduce((old, s1) => { // eslint-disable-line arrow-body-style
       let val: any
       return old ? old : decoded && s1 === "url" ? BgUtils_.decodeUrlForCopy_(getTabUrl(i))
+        : s1 === "host" ? (val = BgUtils_.safeParseURL_(getTabUrl(i))) && (val as URL).host || ""
         : s1 !== "__proto__" && (val = (i as Dict<any>)[s1],
           val && typeof val === "object" ? JSON.stringify(val) : val || "")
     }, ""))),

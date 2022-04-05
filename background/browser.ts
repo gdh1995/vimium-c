@@ -37,7 +37,7 @@ export const getGroupId: (tab: Tab) => chrome.tabs.GroupId | null = OnFirefox
     : () => null
 
 export const getTabUrl = OnChrome ? (tab_may_pending: Pick<Tab, "url" | "pendingUrl">): string =>
-    tab_may_pending.url || tab_may_pending.pendingUrl
+    tab_may_pending.url || tab_may_pending.pendingUrl || ""
     : OnFirefox && Build.MayAndroidOnFirefox ? (tab_with_url: Pick<Tab, "url">): string => tab_with_url.url || ""
     : (tab_with_url: Pick<Tab, "url">): string => tab_with_url.url
 
