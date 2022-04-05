@@ -223,7 +223,7 @@ export const generateHintText = (hint: Hint, hintInd: number, allItems: readonly
 }
 
 export const getMatchingHints = (keyStatus: KeyStatus, text: string, seq: string
-    , inited: 0 | 1 | 2): HintItem | 2 | 0 => {
+    , inited: 0 | 1 | 2 | 3): HintItem | 2 | 0 => {
   const oldTextSeq = inited > 1 ? keyStatus.t : "a"
   let hints = keyStatus.c as FilteredHintItem[];
   if (oldTextSeq !== text) {
@@ -262,10 +262,11 @@ export const getMatchingHints = (keyStatus: KeyStatus, text: string, seq: string
       }
       const newLen = hints.length;
       if (newLen) {
-        keyStatus.c = hasSearch ? hints : hints = oldHintArray.slice()
         if (hasSearch && newLen < 2) { // in case of only 1 hint in fullHints
+          if (inited > 2) { keyStatus.t = "" } else { keyStatus.c = hints }
           return hints[0];
         }
+        keyStatus.c = hasSearch ? hints : hints = oldHintArray.slice()
         if (!hasSearch
             && (hintOptions.ordinal != null ? hintOptions.ordinal :
                 ((OnFirefox || htmlTag_<1>(docEl_unsafe_()!)) && (docEl_unsafe_()! as HTMLElement).dataset.vimiumHints

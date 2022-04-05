@@ -503,6 +503,7 @@ const callExecuteHint = (hint: ExecutableHintItem, event?: HandlerNS.Event): voi
     toggleModesOnModifierKey(event, i & KeyStat.PrimaryModifier ? kKeyCode.ctrlKey
         : i & kKeyCode.altKey ? kKeyCode.altKey : kKeyCode.shiftKey, 1)
   }
+  const retainedInput = (mode_ & HintMode.queue) && options_.retainInput && keyStatus_ && keyStatus_.t
   const p = selectedHintWorker.e(hint, event)
   p && p.then((result): void => { timeout_((): void => {
     (<RegExpOne> /a?/).test("")
@@ -517,7 +518,7 @@ const callExecuteHint = (hint: ExecutableHintItem, event?: HandlerNS.Event): voi
     } else {
       reinitLinkHintsIn(frameArray.length > 1 ? 50 : 18, (): void => {
         if (OnFirefox && oldMode_ff >= 0) { setMode(oldMode_ff, 1) }
-        reinit(0, selectedHintWorker, clickEl, result)
+        reinit(0, selectedHintWorker, clickEl, result, retainedInput)
         if (isActive && 1 === (--count_)) {
           setMode(mode1_)
         }
@@ -652,7 +653,7 @@ const delayToExecute = (officer: BaseHintWorker, hint: ExecutableHintItem, flash
 
 /** reinit: should only be called on manager */
 const reinit = (auto?: BOOL | TimerType.fake, officer?: BaseHintWorker | null
-    , lastEl?: WeakRef<LinkEl> | null, rect?: Rect | null): void => {
+    , lastEl?: WeakRef<LinkEl> | null, rect?: Rect | null, retainedInput?: string | false | 0 | null): void => {
   const now = getTime()
   if (!isEnabled_) { isAlive_ && clear() }
   else {
@@ -661,6 +662,7 @@ const reinit = (auto?: BOOL | TimerType.fake, officer?: BaseHintWorker | null
     contentCommands_[kFgCmd.linkHints](options_, 0);
     if (!isActive) { return }
     coreHints.h = now
+    retainedInput && useFilter_ && getMatchingHints(keyStatus_, retainedInput, "", 3)
     if (officer && mode1_ < HintMode.min_job) {
       reinitLinkHintsIn(frameArray.length > 1 ? 380 : 255, officer, lastEl!, rect!, now)
     }

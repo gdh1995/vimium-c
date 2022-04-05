@@ -131,7 +131,7 @@ mapKey &lt;c-s-e&gt; &lt;esc&gt;
           <br><i data-i="o21">Global shortcuts</i><span data-i="o22"> are
             on </span><a id="openExtensionsPage" href="chrome://extensions/shortcuts"
             >chrome://extensions/&#8230;</a><span data-i="o23">; </span><a id="shortcutHelper"
-              target="_blank" rel="noopener noreferrer"
+              target="_blank" rel="noopener noreferrer" aria-haspopup="popup"
               href="https://chrome.google.com/webstore/detail/shortcut-forwarding-tool/clnalilglegcjmlgenoppklmfppddien"
               data-i="sft-t" title="Shortcut Forwarding Tool:&#10;Provide 32 configurable shortcuts"
               ><span data-i="o24">More?</span></a>
@@ -215,13 +215,13 @@ key: https://c.com/$s/space=\s\ space_end
         <tr>
           <td class="caption" data-i="o40">Scroll step size</td>
           <td>
-            <input id="scrollStepSize" type="number" min="30" max="300" step="10" lang="en"
+            <label><input id="scrollStepSize" type="number" min="30" max="300" step="10" lang="en"
               data-model="Number" autocomplete="off" />
-            <label for="scrollStepSize" data-i="o41">pixels</label>
+            <span data-i="o41">pixels</span></label>
             <span data-i="o41_2">in</span>
-            <input id="keyupTime" type="number" min="50" max="1200" step="10" lang="en"
+            <label><input id="keyupTime" type="number" min="50" max="1200" step="10" lang="en"
               data-model="Number" autocomplete="off" />
-            <label for="keyupTime" data-i="o41_3">milliseconds</label>
+            <span data-i="o41_3">milliseconds</span></label>
           </td>
           <td class="help"><div class="help-inner line-input" data-i="o42">
             The size for basic long movements (short = * 0.6).
