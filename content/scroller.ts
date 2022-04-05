@@ -29,7 +29,7 @@ import {
 import {
   rAF_, scrollingEl_, SafeEl_not_ff_, docEl_unsafe_, NONE, frameElement_, OnDocLoaded_, GetParent_unsafe_, UNL,
   querySelector_unsafe_, getComputedStyle_, notSafe_not_ff_, HDN, isRawStyleVisible, fullscreenEl_unsafe_,
-  doesSupportDialog, attr_s, getSelection_, isIFrameElement, IsInDOM_, derefInDoc_
+  doesSupportDialog, attr_s, getSelection_, isIFrameElement, IsInDOM_, derefInDoc_, isHTML_, supportInert_
 } from "../lib/dom_utils"
 import {
   scrollWndBy_, wndSize_, getZoom_, wdZoom_, bZoom_, isNotInViewport, prepareCrop_, padClientRect_, instantScOpt,
@@ -72,7 +72,7 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
   let amount: number, sign: number, calibration: number, di: ScrollByY, duration: number, element: SafeElement | null,
   beforePos: number, timestamp: number, rawTimestamp: number, totalDelta: number, totalElapsed: number, min_delta = 0,
   running = 0, flags: kScFlag & number, timer: ValidTimeoutID = TimerID.None, calibTime: number, lostFrames: number,
-  styleTop: SafeElement | null | undefined, onFinish: ((succeed: number) => void) | 0 | undefined,
+  styleTop: SafeElement | HTMLElement | null | undefined, onFinish: ((succeed: number) => void) | 0 | undefined,
   wait2: number | boolean | null | undefined, padding: number,
   animate = (newRawTimestamp: number): void => {
     const continuous = keyIsDown > 0
@@ -202,7 +202,7 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
       rAF_(animate)
     }
   },
-  hasDialog = OnChrome && Build.MinCVer >= BrowserVer.MinEnsuredHTMLDialogElement || WithDialog && doesSupportDialog(),
+  domFeatures: 0 | 1 | 2 | 3 = 0,
   resumeAnimation = (): void => {
     padding = 0
     if (!keyIsDown) { toggleAnimation!(); return }
@@ -220,14 +220,31 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
       running = timestamp = rawTimestamp = beforePos = calibTime = preventPointEvents = lostFrames = onFinish = 0
       element = null
     }
-    if (WithDialog && (OnChrome && Build.MinCVer >= BrowserVer.MinEnsuredHTMLDialogElement || hasDialog)) {
-      scrolling ? curModalElement || addElementList([], [0, 0], 1) : curModalElement !== hint_box && removeModal()
-      return
+    const P = "pointerEvents"
+    let el: SafeElement & ElementToHTMLorOtherFormatted | HTMLElement | null
+    let style: CSSStyleDeclaration | null | undefined
+    if (!(OnChrome && Build.MinCVer >= BrowserVer.MinEnsured$HTMLElement$$inert) && !domFeatures && isHTML_()) {
+      domFeatures = supportInert_!() ? 3
+          : OnChrome && Build.MinCVer >= BrowserVer.MinEnsuredHTMLDialogElement || WithDialog && doesSupportDialog() ? 2
+          : 1
     }
-    const el = (scrolling ? OnFirefox ? docEl_unsafe_() : SafeEl_not_ff_!(docEl_unsafe_())
+    if (!isHTML_()) { /* empty */ }
+    else if (OnChrome && Build.MinCVer >= BrowserVer.MinEnsured$HTMLElement$$inert || !OnEdge && domFeatures > 2) {
+      el = (element || docEl_unsafe_()) as HTMLElement
+      if (scrolling) {
+        el.inert === !1 && ((styleTop = el).inert = !0)
+      } else {
+        styleTop && ((styleTop as HTMLElement).inert = !1, styleTop = null)
+      }
+    } else if (OnChrome && Build.MinCVer >= BrowserVer.MinEnsuredHTMLDialogElement || domFeatures > 1) {
+      scrolling ? curModalElement || addElementList([], [0, 0], 1) : curModalElement !== hint_box && removeModal()
+    } else {
+      el = (scrolling ? OnFirefox ? docEl_unsafe_() : SafeEl_not_ff_!(docEl_unsafe_())
                 : styleTop) as SafeElement & ElementToHTMLorOtherFormatted | null
-    styleTop = scrolling ? el : null
-    el && el.style ? el.style.pointerEvents = scrolling ? NONE : "" : 0;
+      style = el && el.style
+      styleTop = scrolling && style && !style[P] ? el : null
+      style && (style[P] = scrolling ? NONE : "")
+    }
   };
   performAnimate = (newEl1, newDi1, newAmount1, options): void => {
     amount = max_(1, newAmount1 > 0 ? newAmount1 : -newAmount1), calibration = 1.0, di = newDi1

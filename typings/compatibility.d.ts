@@ -342,6 +342,7 @@ declare const enum BrowserVer {
   MinNoSelectionColorOnTextBoxWhenFindModeHUDIsFocused = 60,
   MinEnsuredInputEventIsNotOnlyInShadowDOMV1 = 60, // even if LEGACY; in ShadowDOMV0, "input" will also work on window
   MinEnsured$Intl$$DateTimeFormat$$$formatToParts = 60, // even if LEGACY; since C57 in neither EXPERIMENTAL nor LEGACY
+  MinMaybe$HTMLElement$$inert = 60, // if EXPERIMENTAL
   MinTabsCreateRefuseOpenerTabIdIfNotOnCurrentWindow = 61,
   MinRoundedBorderWidthIsNotEnsured = 61, // a border is only showing if `(real_width = width * ratio * zoom) >= 0.5`
   // a bug that special style.zoom may not work is fixed since MinASameZoomOfDocElAsdevPixRatioWorksAgain
@@ -550,6 +551,7 @@ declare const enum BrowserVer {
   MinNotPropagateBodyStyleIfContained = 96, // even if EXPERIMENTAL or LEGACY
   Min$structuredClone = 98, // even if EXPERIMENTAL or LEGACY
   MinEnsured$input$$showPicker = 99, // even if LEGACY; since 97 if EXPERIMENTAL
+  MinEnsured$HTMLElement$$inert = 101, // even if EXPERIMENTAL
   MinNo$TimerType$$Fake = 999,
   assumedVer = 998,
 }
@@ -595,6 +597,7 @@ declare const enum FirefoxBrowserVer {
   MinLookBehindInRegexp = 78, // even if LEGACY
   MinMaybe$WeakRef = 79, // no `WeakRef` if javascript.options.weakrefs=false
   MinEnsuredCSS$is$selector = 81,
+  MinMaybe$HTMLElement$$inert = 81, // if `html5.inert.enabled`
   MinContentEditableInShadowOfBodyRefuseShortcuts = 91,
   ESRPopupBlockerPassClicksFromExtensions = 91, // since 91.6
   Min$structuredClone = 94,

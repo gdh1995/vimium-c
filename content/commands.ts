@@ -20,7 +20,7 @@ import { post_, set_contentCommands_, runFallbackKey } from "./port"
 import {
   addElementList, ensureBorder, evalIfOK, getSelected, getSelectionText, getParentVApi, curModalElement, createStyle,
   getBoxTagName_old_cr, setupExitOnClick, addUIElement, removeSelection, ui_root, kExitOnClick, collpaseSelection,
-  hideHelp, set_hideHelp, set_helpBox, checkHidden, flash_,
+  hideHelp, set_hideHelp, set_helpBox, checkHidden, flash_, filterOutInert
 } from "./dom_ui"
 import { hudHide, hudShow, hudTip, hud_text } from "./hud"
 import { onPassKey, set_onPassKey, passKeys, set_nextKeys, set_passKeys, keyFSM, onEscDown } from "./key_handler"
@@ -278,8 +278,9 @@ set_contentCommands_([
           ? VTr(kTip.editableSelector) + kSafeAllSelector : VTr(kTip.editableSelector), options, getEditable
         ) as (Hint & { [0]: SafeHTMLElement })[],
     action = options.select, keep = options.keep, pass = options.passExitKey, reachable = options.reachable;
-    if (reachable != null ? reachable : fgCache.e) {
-      curModalElement || filterOutNonReachable(visibleInputs as Hint[], 1)
+    if (!(reachable != null ? reachable : fgCache.e) || curModalElement
+        || !filterOutNonReachable(visibleInputs, 1)) {
+      OnEdge || filterOutInert(visibleInputs)
     }
     let sel = visibleInputs.length, firstInput = visibleInputs[0]
     if (sel < 2) {

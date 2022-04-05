@@ -5,10 +5,10 @@ import {
 import { prevent_ } from "../lib/keyboard_utils"
 import {
   createElement_, attachShadow_, NONE, fullscreenEl_unsafe_, docEl_unsafe_, getComputedStyle_, set_docSelectable_,
-  GetParent_unsafe_, getSelection_, GetShadowRoot_, getEditableType_, htmlTag_, textOffset_, derefInDoc_,
+  GetParent_unsafe_, getSelection_, GetShadowRoot_, getEditableType_, htmlTag_, textOffset_, derefInDoc_, supportInert_,
   notSafe_not_ff_, CLK, frameElement_, runJS_, isStyleVisible_, rangeCount_, getAccessibleSelectedNode, removeEl_s,
   appendNode_s, append_not_ff, setClassName_s, isNode_, contains_s, setOrRemoveAttr_s, textContent_s,
-  parentNode_unsafe_s, setDisplaying_s, editableTypes_, getRootNode_mounted, singleSelectionElement_unsafe
+  parentNode_unsafe_s, setDisplaying_s, editableTypes_, getRootNode_mounted, singleSelectionElement_unsafe, isHTML_
 } from "../lib/dom_utils"
 import {
   bZoom_, dScale_, getZoom_, wdZoom_, boundingRect_, prepareCrop_, getClientRectsForAreas_,
@@ -545,6 +545,14 @@ export const checkHidden = ((cmd?: FgCmdAcrossFrames, options?: OptionsWithForce
 }) as {
   (cmd: FgCmdAcrossFrames, options: OptionsWithForce, count: number): BOOL
   (cmd?: undefined): BOOL
+}
+
+export const filterOutInert = (hints: Hint[]): void => {
+  let i = (OnChrome && Build.MinCVer >= BrowserVer.MinEnsured$HTMLElement$$inert ? isHTML_() : supportInert_!())
+      ? hints.length : 0
+  while (0 <= --i) {
+    hints[i][0].closest!("[inert]") && hints.splice(i, 1)
+  }
 }
 
 if (!(Build.NDEBUG || kTip.INJECTED_CONTENT_END < kTip.extendClick)) {

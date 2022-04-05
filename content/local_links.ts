@@ -5,8 +5,8 @@ import {
 import {
   isIFrameElement, getInputType, uneditableInputs_, getComputedStyle_, queryChildByTag_, htmlTag_, isAriaFalse_,
   kMediaTag, NONE, querySelector_unsafe_, isStyleVisible_, fullscreenEl_unsafe_, notSafe_not_ff_, docEl_unsafe_,
-  GetParent_unsafe_, unsafeFramesetTag_old_cr_, isHTML_, querySelectorAll_unsafe_, isNode_, INP, attr_s,
-  getMediaTag, getMediaUrl, contains_s, GetShadowRoot_, parentNode_unsafe_s, testMatch, hasTag_
+  GetParent_unsafe_, unsafeFramesetTag_old_cr_, isHTML_, querySelectorAll_unsafe_, isNode_, INP, attr_s, supportInert_,
+  getMediaTag, getMediaUrl, contains_s, GetShadowRoot_, parentNode_unsafe_s, testMatch, hasTag_, editableTypes_
 } from "../lib/dom_utils"
 import {
   getVisibleClientRect_, getVisibleBoundingRect_, getClientRectsForAreas_, getCroppedRect_, boundingRect_,
@@ -20,7 +20,7 @@ import {
   isClickListened_, set_isClickListened_, tooHigh_, useFilter_, hintChars, hintManager
 } from "./link_hints"
 import { shouldScroll_s, getPixelScaleToScroll, scrolled, set_scrolled, suppressScroll } from "./scroller"
-import { ui_root, ui_box, helpBox, curModalElement } from "./dom_ui"
+import { ui_root, ui_box, helpBox, curModalElement, filterOutInert } from "./dom_ui"
 
 export declare const enum ClickType {
   Default = 0, edit = 1,
@@ -97,10 +97,10 @@ const getClickable = (hints: Hint[], element: SafeHTMLElement): void => {
     isClickable = isNotReplacedBy(queryChildByTag_(element, "summary"), hints);
     break;
   case "dialog":
-    if ((element as HTMLDialogElement).open && WithDialog && element !== curModalElement && !wantDialogMode_) {
-      coreHints.d = 1
-    }
-    return
+    WithDialog && (element as HTMLDialogElement).open && element !== curModalElement && !wantDialogMode_
+        && (coreHints.d = 1)
+    isClickable = !1
+    break
   case "label":
     isClickable = isNotReplacedBy((element as HTMLLabelElement).control as SafeHTMLElement | null);
     break;
@@ -653,6 +653,7 @@ export const filterOutNonReachable = (list: Hint[], notForAllClickable?: boolean
     return
   }
   initTestRegExps() // in case of `isDescendant(..., ..., 1)`
+  const hasInert = OnChrome && Build.MinCVer >= BrowserVer.MinEnsured$HTMLElement$$inert ? isHTML_() : supportInert_!()
   while (0 <= --i && now - start < GlobalConsts.ElementsFromPointTakesTooSlow) {
     i & 63 || (now = getTime())
     el = list[i][0];
@@ -681,6 +682,7 @@ export const filterOutNonReachable = (list: Hint[], notForAllClickable?: boolean
               || (i < 1 || list[i - 1][0] !== el) && (i + 2 > list.length || list[i + 1][0] !== el))) {
       continue;
     }
+    if (hasInert && !editableTypes_[tag] && el.closest!("[inert]")) { continue }
     now = i & 3 ? now : getTime()
     let index2 = 0
     const stack = root.elementsFromPoint(cx, cy), elPos = stack.indexOf(el)
@@ -803,8 +805,10 @@ export const getVisibleElements = (view: ViewBox): readonly Hint[] => {
     : traverse(kSafeAllSelector, hintOptions, getClickable)
   if ((reachable != null ? reachable
         : (_i < HintMode.max_mouse_events + 1 || _i === HintMode.FOCUS_EDITABLE) && fgCache.e)
-      && visibleElements.length < GlobalConsts.MinElementCountToStopPointerDetection) {
-    filterOutNonReachable(visibleElements, _i > HintMode.max_mouse_events)
+      && visibleElements.length < GlobalConsts.MinElementCountToStopPointerDetection
+      && filterOutNonReachable(visibleElements, _i > HintMode.max_mouse_events)) { /* empty */ }
+  else {
+    OnEdge || _i === HintMode.FOCUS_EDITABLE && filterOutInert(visibleElements)
   }
   maxLeft_ = view[2], maxTop_ = view[3]
   if ((!OnChrome || Build.MinCVer < BrowserVer.MinAbsolutePositionNotCauseScrollbar) && (maxRight_ = view[4]) > 0) {

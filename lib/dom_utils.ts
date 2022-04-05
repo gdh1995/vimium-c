@@ -117,6 +117,10 @@ export const htmlTag_ = (!OnFirefox ? (element: Element | HTMLElement): string =
 export const hasTag_ = <Tag extends keyof HTMLElementTagNameMap> (htmlTag: Tag
     , el: Element | HTMLElement): el is HTMLElementTagNameMap[Tag] => el.localName === htmlTag && "lang" in el
 
+export const supportInert_ = !OnChrome || Build.MinCVer < BrowserVer.MinEnsured$HTMLElement$$inert ? (): boolean => {
+  return OnEdge ? false : isHTML_() && "inert" in HTMLElement.prototype
+} : 0 as never as null
+
 export const isInTouchMode_cr_ = OnChrome ? (): boolean => {
     const viewport_meta = querySelector_unsafe_("meta[name=viewport]")
     return !!viewport_meta && createRegExp(kTip.metaKeywordsForMobile, "i").test(
