@@ -842,20 +842,28 @@ const callback = (tab?: Tab | null): void => {
     replaceOrOpenInNewTab(request.u, opts2.r != null && parseReuse(opts2.r) || ReuseType.reuse, opts2.m, null, request)
     return
   }
-  getCurTab((curTabs1): void => {
-  curTabs = curTabs1
-  let preTest: string | undefined, windowType = normalizeWndType(opts2.w) || "normal"
+  void Q_(getCurTab).then(async (curTabs1): Promise<void> => {
+    curTabs = curTabs1!
+    const allTests = []
+    let toTest2 = toTest, windowType = normalizeWndType(opts2.w) || "normal"
+    if (BgUtils_.protocolRe_.test(toTest)) {
+      let i = toTest.indexOf("/") + 2, j = toTest.indexOf("/", i + 1), host = toTest.slice(i, j > 0 ? j : void 0)
+      if (host && host.includes("@")) { toTest2 = toTest = toTest.slice(0, i) + host.split("@")[1] + toTest.slice(j) }
+      if (OnFirefox && host.includes(":")) { toTest2 = toTest.slice(0, i) + host.split(":")[0] + toTest.slice(j) }
+    }
   if ((toTest.startsWith("file:") || toTest.startsWith("ftp")) && !toTest.includes(".", toTest.lastIndexOf("/") + 1)) {
-    preTest = toTest + (request.p ? "/*" : "/")
+      allTests.push(toTest2 + (request.p ? "/*" : "/"))
+      OnFirefox && toTest2 !== toTest && allTests.push(toTest + (request.p ? "/*" : "/"))
   }
-  request.p && (toTest += "*")
+    allTests.push(request.p ? toTest2 + "*" : toTest2)
+    OnFirefox && toTest2 !== toTest && allTests.push(request.p ? toTest + "*" : toTest)
   // if no .replace, then only search in normal windows by intent
-    Tabs_.query({ url: preTest || toTest, windowType }, (matched): void => {
-      matched && matched.length > 0 || !preTest ? onMatchedTabs(matched)
-      : Tabs_.query({ url: toTest, windowType }, onMatchedTabs)
-      return runtimeError_()
-    })
-    return runtimeError_()
+    for (let cond of allTests) {
+      let matched = await Q_(Tabs_.query, { url: cond, windowType })
+      if (OnFirefox && matched && matched.length) { matched = matched.filter(i => i.url.startsWith(toTest)) }
+      if (matched && matched.length > 0) { return onMatchedTabs(matched) }
+    }
+    onMatchedTabs([])
   })
 }
 
