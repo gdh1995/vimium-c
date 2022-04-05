@@ -1,9 +1,9 @@
 import {
   clickable_, vApi, isAlive_, safer, timeout_, escapeAllForRe, tryCreateRegExp, VTr, isTY, Lower, chromeVer_,
-  OnChrome, OnFirefox, OnEdge, evenHidden_
+  OnChrome, OnFirefox, OnEdge, evenHidden_, doc
 } from "../lib/utils"
 import {
-  docEl_unsafe_, htmlTag_, isAriaFalse_, isStyleVisible_, querySelectorAll_unsafe_, isIFrameElement, ALA, attr_s,
+  htmlTag_, isAriaFalse_, isStyleVisible_, querySelectorAll_unsafe_, isIFrameElement, ALA, attr_s,
   contains_s, notSafe_not_ff_, hasTag_
 } from "../lib/dom_utils"
 import { getBoundingClientRect_, view_ } from "../lib/rect"
@@ -56,7 +56,7 @@ export const filterTextToGoNext: VApiTy["g"] = (candidates, names, options, maxL
   refusedStr = isNext ? "<" : ">";
   let i = isAlive_ ? 0 : GlobalConsts.MaxNumberOfNextPatterns + 1
   let candInd = 0, index = links.length
-  links.push(docEl_unsafe_() as never);
+  links.push([doc as never])
   for (; i < names.length; i++) {
     if (GlobalConsts.SelectorPrefixesInPatterns.includes(names[i][0])) {
       const arr = querySelectorAll_unsafe_(names[i]);
@@ -69,8 +69,8 @@ export const filterTextToGoNext: VApiTy["g"] = (candidates, names, options, maxL
   let ch: string, s: string, len: number
   for (; 0 <= --index; ) {
     const link = links[index][0]
-    if (contains_s(link, links[index + 1][0]) || (s = "lang" in link
-            ? link.innerText : link.textContent.trim()).length > totalMax) { continue }
+    if ((s = "lang" in link ? link.innerText : link.textContent.trim()).length > totalMax
+        || contains_s(link, links[index + 1][0]) && s.length > 2) { continue }
     if (s = s.length > 2 ? s : !s && (ch = (link as HTMLInputElement).value) && isTY(ch) && ch
             || attr_s(link, ALA) || (link as TypeToPick<Element, HTMLElement, "title">).title || s) {
       if (s.length > totalMax) { continue; }
