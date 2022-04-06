@@ -511,7 +511,7 @@ const callExecuteHint = (hint: ExecutableHintItem, event?: HandlerNS.Event): voi
     set_removeFlash(null)
     runFallbackKey(options_, false)
     if (!(mode_ & HintMode.queue)) {
-      if (!OnChrome || Build.MinCVer < BrowserVer.MinEnsured$WeakRef || chromeVer_ < BrowserVer.MinEnsured$WeakRef) {
+      if (!OnChrome || Build.MinCVer < BrowserVer.MinEnsured$WeakRef && chromeVer_ < BrowserVer.MinEnsured$WeakRef) {
         reinitLinkHintsIn(255, selectedHintWorker, clickEl, result)
       }
       clear(0, 0)
@@ -706,7 +706,7 @@ const checkLast = ((el?: WeakRef<LinkEl> | LinkEl | 1 | null, r?: Rect | null
   else {
     r2 = hasEl && (el = derefInDoc_(el as WeakRef<LinkEl>)) ? boundingRect_(el) : null
     hidden = !r2 || (r2.r - r2.l) * (r2.b - r2.t) < 4 || !isStyleVisible_(el as LinkEl)
-    if (hidden && deref_(lastHovered_) === el) {
+    if (hidden && el === deref_(lastHovered_)) {
       void hover_async()
     }
     if ((!r2 || r) && hasJustReinited && (hidden || abs_(r2!.l - r!.l) > 100 || abs_(r2!.t - r!.t) > 60)) {

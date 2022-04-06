@@ -612,10 +612,14 @@ set_bgC_([
           const extHost = new URL(url).host
           runnable = !!extHost && extAllowList_.get(extHost) === true
         }
-        runnable && Promise.all([Q_(Tabs_.create, { url: "about:blank", windowId: tab.windowId }),
-            Q_(Tabs_.remove, tab.id)]).then(([blankTab]): void => {
-          sessions.restore()
-          blankTab && Tabs_.remove(blankTab.id)
+        runnable && (restored.window ? Promise.resolve(restored.window) : Q_(Tabs_.query, { windowId: tab.windowId
+              , index: 1 }) .then(tabs => tabs && tabs.length ? null : Q_(Windows_.get, tab.windowId))
+        ).then((wnd2): void => {
+          wnd2 && wnd2.type !== "popup" && Promise.all([Q_(Tabs_.create, { url: "about:blank", windowId: wnd2.id }),
+              Q_(Tabs_.remove, tab.id)]).then(([blankTab]): void => {
+            sessions.restore()
+            blankTab && Tabs_.remove(blankTab.id)
+          })
         })
       }
       runtimeError_() ? resolve(0) : notActive ? selectTab(curTabId, runNext) : resolve(1)
