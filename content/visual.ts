@@ -59,7 +59,7 @@ import {
 } from "./mode_find"
 import { insert_Lock_, raw_insert_lock } from "./insert"
 import { hudTip, hudHide, hudShow } from "./hud"
-import { post_, send_, runFallbackKey } from "./port"
+import { post_, send_, runFallbackKey, contentCommands_ } from "./port"
 import { currentKeys, set_currentKeys, isVKey_ } from "./key_handler"
 
 let modeName: string
@@ -440,7 +440,7 @@ const findV = (count1: number): void => {
     if (find_hasResults) {
       diType_ = DiType.UnsafeUnknown
       if (mode_ === Mode.Caret && selType() === SelType.Range) {
-        activate(safer<CmdOptions[kFgCmd.visualMode]>({}));
+        (contentCommands_[kFgCmd.visualMode] as typeof activate)(safer<CmdOptions[kFgCmd.visualMode]>({}));
       } else {
         di_ = kDirTy.unknown
         commandHandler(VisualAction.Noop, 1)
@@ -721,7 +721,7 @@ const ensureLine = (command1: number): void => {
       hudHide() // it should auto keep HUD showing the mode text
       post_({ H: kFgReq.findFromVisual });
     } else {
-      activate(safer<CmdOptions[kFgCmd.visualMode]>({ m: command - VisualAction.MaxNotNewMode }))
+      (contentCommands_[kFgCmd.visualMode] as typeof activate)({ m: command - VisualAction.MaxNotNewMode })
     }
     return
   }

@@ -426,7 +426,7 @@ export const scrollWndBy_ = (di: ScrollByY, amount: number): void => {
   ElementProto_not_ff!.scrollBy ? scrollBy(instantScOpt(di, amount)) : scrollBy(di ? 0 : amount, di && amount)
 }
 
-export const center_ = (rect: Rect | null, xy: HintsNS.StdXY | undefined): Point2D => {
+export const center_ = (rect: Rect | null, xy: HintsNS.StdXY | null): Point2D => {
   let zoom = !OnFirefox ? docZoom_ * bZoom_ / (xy ? 1 : 2) : xy ? 1 : 0.5
   let x = xy ? xy.x : 0, y = xy ? xy.y : 0
   rect = rect && cropRectToVisible_(rect.l, rect.t, rect.r, rect.b) || rect

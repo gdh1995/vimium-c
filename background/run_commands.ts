@@ -34,13 +34,6 @@ export const copyCmdOptions = (dest: CommandsNS.RawOptions, src: CommandsNS.Opti
   return dest
 }
 
-const copyAnyOptions = <T extends object, T2 extends object> (dest: T & Partial<T2>, a: T2): T & T2 => {
-  for (const i in a) {
-    dest[i] !== void 0 || ((dest as Partial<T2>)[i as keyof T2] = a[i as keyof T2]);
-  }
-  return dest as T & T2;
-}
-
 export const concatOptions = (base?: CommandsNS.Options | CommandsNS.EnvItemOptions | null
     , updates?: CommandsNS.Options | null): CommandsNS.Options | null => {
   return !updates || !base ? (base as CommandsNS.Options | null | undefined) || updates || null
@@ -51,7 +44,7 @@ export const concatOptions = (base?: CommandsNS.Options | CommandsNS.EnvItemOpti
 export const overrideCmdOptions = <T extends keyof BgCmdOptions> (known: CmdOptionSafeToClone<T>
     , disconnected?: boolean, oriOptions?: Readonly<KnownOptions<T>> & SafeObject): void => {
   const old = oriOptions || get_cOptions<T, true>()
-  copyAnyOptions(BgUtils_.safer_(known as KnownOptions<T>), old)
+  BgUtils_.extendIf_(BgUtils_.safer_(known as KnownOptions<T>), old)
   if (!disconnected) {
     (known as any as CommandsNS.Options).$o = old
   } else {

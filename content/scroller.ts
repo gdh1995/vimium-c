@@ -23,13 +23,13 @@ interface ElementScrollInfo {
 
 import {
   isAlive_, setupEventListener, timeout_, clearTimeout_, fgCache, doc, noRAF_old_cr_, readyState_, loc_, chromeVer_,
-  vApi, deref_, weakRef_not_ff, VTr, max_, math, min_, Lower, OnChrome, OnFirefox, OnEdge, WithDialog, OnSafari,
+  vApi, weakRef_not_ff, VTr, max_, math, min_, Lower, OnChrome, OnFirefox, OnEdge, WithDialog, OnSafari,
   isTop, injector, isTY, safeCall, tryCreateRegExp, weakRef_ff, Stop_, abs_
 } from "../lib/utils"
 import {
   rAF_, scrollingEl_, SafeEl_not_ff_, docEl_unsafe_, NONE, frameElement_, OnDocLoaded_, GetParent_unsafe_, UNL,
   querySelector_unsafe_, getComputedStyle_, notSafe_not_ff_, HDN, isRawStyleVisible, fullscreenEl_unsafe_,
-  doesSupportDialog, attr_s, getSelection_, isIFrameElement, IsInDOM_, derefInDoc_, isHTML_, supportInert_
+  doesSupportDialog, attr_s, getSelection_, isIFrameElement, derefInDoc_, isHTML_, supportInert_
 } from "../lib/dom_utils"
 import {
   scrollWndBy_, wndSize_, getZoom_, wdZoom_, bZoom_, isNotInViewport, prepareCrop_, padClientRect_, instantScOpt,
@@ -342,8 +342,8 @@ export const executeScroll: VApiTy["c"] = function (di: ScrollByY, amount0: numb
     const toFlags = flags & (kScFlag.TO | kScFlag.INC), toMax = (toFlags - kScFlag.TO) as BOOL
     let core: ReturnType<typeof getParentVApi> | false
     {
-      const childFrame = !force && deref_(currentScrolling)
-      core = childFrame && isIFrameElement(childFrame) && IsInDOM_(childFrame, doc) && detectUsableChild(childFrame)
+      const childFrame = !force && derefInDoc_(currentScrolling)
+      core = childFrame && isIFrameElement(childFrame) && detectUsableChild(childFrame)
       if (core) {
         core.c(di, amount0, flags as 0, factor, options, oriCount)
         if (core.y().k) {
@@ -551,7 +551,7 @@ export const getPixelScaleToScroll = (): void => {
 }
 
 const checkCurrent = (el: SafeElement | null): void => {
-  let cur = deref_(currentScrolling)
+  let cur = derefInDoc_(currentScrolling)
   if (cur ? cur !== el && isNotInViewport(cur) : currentScrolling) {
     currentScrolling = OnFirefox ? weakRef_ff(el, kElRef.currentScrolling) : weakRef_not_ff!(el), cachedScrollable = 0
   }

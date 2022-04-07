@@ -8,7 +8,7 @@ export const protocolRe_ = <RegExpOne> /^[a-z][\+\-\.\da-z]+:\/\//
    */
 export const extendIf_ = <T extends object, T2 extends object> (dest: T & Partial<T2>, a: T2): T & T2 => {
     for (const i in a) {
-      (i in dest) || ((dest as Partial<T2>)[i as keyof T2] = a[i as keyof T2]);
+      dest[i] !== void 0 || ((dest as Partial<T2>)[i as keyof T2] = a[i as keyof T2]);
     }
     return dest as T & T2;
 }

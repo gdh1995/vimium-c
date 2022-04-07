@@ -254,7 +254,7 @@ set_contentCommands_([
           set_is_last_mutable(0)
           newEl.blur();
         }
-      } else if (!(newEl = deref_(insert_last_))) {
+      } else if (!(newEl = known_last)) {
         ret = kTip.noFocused
       } else if (!(act === "last-visible" ? isNotInViewport : view_)(newEl)) {
         set_insert_last_(null)

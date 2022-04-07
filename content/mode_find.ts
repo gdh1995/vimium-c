@@ -24,7 +24,7 @@ import { highlightRange, activate as visualActivate, visual_mode_name } from "./
 import { keyIsDown as scroll_keyIsDown, beginScroll, onScrolls } from "./scroller"
 import { scrollToMark, setPreviousMarkPosition } from "./marks"
 import { hudHide, hud_box, hudTip, hud_opacity, toggleOpacity as hud_toggleOpacity } from "./hud"
-import { post_, send_, runFallbackKey } from "./port"
+import { post_, send_, runFallbackKey, contentCommands_ } from "./port"
 import { insert_Lock_, setupSuppress } from "./insert"
 import { lastHovered_, set_lastHovered_, select_ } from "./async_dispatcher"
 import { isVKey_, set_isCmdTriggered } from "./key_handler"
@@ -280,7 +280,7 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
       restoreSelection(true)
     }
     if (visual_mode_name) {
-      visualActivate(safer<CmdOptions[kFgCmd.visualMode]>({ r: true }))
+      (contentCommands_[kFgCmd.visualMode] as typeof visualActivate)(safer<CmdOptions[kFgCmd.visualMode]>({ r: true }))
       return;
     }
     if (i > FindAction.MaxExitButNoWork && knownHasResults && (!el || el !== insert_Lock_())) {
