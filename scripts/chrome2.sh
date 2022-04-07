@@ -7,7 +7,7 @@ OTHER_EXT=
 OTHER_ARGS=
 NO_EXT=
 USE_INSTALLED=0
-GUD=${TEST_USER_DATA}
+UD=${TEST_USER_DATA}
 DO_CLEAN=0
 IS_EDGE=0
 EDGE_VER=
@@ -21,6 +21,7 @@ UBO=0
 HOME_PAGE=
 default_vc_root=/e/Git/weidu+vim/vimium-c
 default_chrome_root="/d/Program Files/Google"
+export WSLENV=PATH/l
 
 function wp() {
   local dir=${2}
@@ -32,7 +33,7 @@ function wp() {
     local win_dir=${dir:1:1}
     dir=${win_dir^}:${dir:2}
   fi
-  declare -g $1="${dir}"
+  declare -g $1=${dir}
 }
 
 while [[ $# -gt 0 ]]; do
@@ -100,6 +101,16 @@ case "$1" in
     VER=
     shift
     ;;
+  installeddebug|installed-debug|--installed-debug)
+    USE_INSTALLED=2
+    VER=
+    shift
+    ;;
+  installedonly|installed-only|--installed-only)
+    USE_INSTALLED=3
+    VER=
+    shift
+    ;;
   vc|--vc)
     ALSO_VC=1
     shift
@@ -144,8 +155,8 @@ case "$1" in
     HOME_PAGE=$HOME_PAGE" $1"
     shift
     ;;
-  localhost)
-    HOME_PAGE=$HOME_PAGE" http://$1/"
+  localhost*|*.localhost*)
+    HOME_PAGE=$HOME_PAGE" http://$1"
     shift
     ;;
   -v|-x)
@@ -164,6 +175,14 @@ case "$1" in
 esac
 done
 
+if test -f "/usr/bin/env.exe"; then
+  RUN=$(which start2.exe)
+  REALPATH=/usr/bin/cygpath.exe
+else
+  RUN="$(which env.exe) start2.exe"
+  REALPATH=/bin/wslpath
+fi
+
 if test $IS_EDGE -gt 0; then
   case "$IS_EDGE" in
   3) EDGE_VER=" Dev" ;;
@@ -172,17 +191,17 @@ if test $IS_EDGE -gt 0; then
   CHROME_ROOT="/c/Program Files (x86)/Microsoft/Edge${EDGE_VER}/Application"
   test -e "$CHROME_ROOT" || CHROME_ROOT="/c/Program Files (x86)/Microsoft/Edge Dev/Application"
   EXE=$CHROME_ROOT/msedge.exe
-  GUD=${GUD:-/r/TEMP/EUD}
+  UD=${UD:-/tmp/EUD}
 fi
-GUD=${GUD:-/r/TEMP/GUD}
-if test $DO_CLEAN -gt 0 -a -e "$GUD"; then
-  if test $USE_INSTALLED -gt 0; then
+UD=${UD:-/tmp/GUD}
+wp ud_w "$UD"
+if test $DO_CLEAN -gt 0 -a -e "$UD"; then
+  if test $USE_INSTALLED -ge 2; then
     echo -E "MUST NOT clean the default UserData folder"
     exit 1
   fi
-  rm -rf "$GUD" || exit $?
-  wp gud_w "$GUD"
-  echo -E "Clean ${gud_w} : done."
+  rm -rf "$UD" || exit $?
+  echo -E "Clean ${ud_w} : done."
 fi
 if test $DO_CLEAN -eq 2; then exit 0; fi
 
@@ -197,16 +216,8 @@ if test $ALSO_VC -gt 0; then
   test -z "$VC_ROOT" && VC_ROOT=.
 elif test -n "$VC_ROOT"; then
   DIST=0
-elif test $DIST -gt 0 && test -f "./dist/manifest.json"; then
+elif test ${DIST:-0} -gt 0 && test -f "./dist/manifest.json"; then
   VC_ROOT=.
-fi
-
-if test -f "/usr/bin/env.exe"; then
-  RUN=$(which start2.exe)
-  REALPATH=/usr/bin/cygpath.exe
-else
-  RUN="$(which env.exe) start2.exe"
-  REALPATH=/bin/wslpath
 fi
 
 dir=$(/usr/bin/realpath "${BASH_SOURCE[0]}")
@@ -227,19 +238,22 @@ elif test "$VER" == wo; then
   EXE=$WORKING_DIR/Chrome-bin/chrome.exe
 else
   EXE=$WORKING_DIR/${VER:-cur}/chrome.exe
-  if test $USE_INSTALLED -gt 0 || ! test -f "$EXE"; then
+  if test $USE_INSTALLED -ge 1 || ! test -f "$EXE"; then
     EXE=$CHROME_ROOT/${VER:-Chrome}/chrome.exe
     if test ! -f "$EXE" -a -n "$VER" && find "$CHROME_ROOT/Chrome/" -name "${VER}.*" | grep . >/dev/null 2>&1; then
       EXE=$CHROME_ROOT/Chrome/chrome.exe
     fi
   fi
 fi
-VC_ROOT="$(/usr/bin/realpath ${VC_ROOT})"
-if test $DIST -gt 0; then
-  VC_EXT=${VC_ROOT}/dist
-  dir=$(/usr/bin/realpath "${VC_EXT}")
-  wp vc_ext_w "$dir"
-  if ! test -f ${dir}/manifest.json; then
+VC_ROOT=$(/usr/bin/realpath "${VC_ROOT}")
+VC_EXT=${VC_ROOT}/dist
+if test -z "$DIST" && test -f "${VC_EXT}"/manifest.json && test -f "${VC_EXT}"/_locales/zh_CN/messages.json; then
+  DIST=1
+fi
+if test ${DIST:-0} -gt 0; then
+  VC_EXT=$(/usr/bin/realpath "${VC_EXT}")
+  wp vc_ext_w "$VC_EXT"
+  if ! test -f ${VC_EXT}/manifest.json; then
     echo -e "No dist extension: "$vc_ext_w >&2
     exit 1
   fi
@@ -274,12 +288,9 @@ if test -n "$NO_EXT"; then
   OTHER_EXT=
 fi
 
-if test $USE_INSTALLED -gt 0; then
-  GUD=
-  gud_w=
-  UD_DESC="(installed)"
-  UD_ARG=
-  test -d "$WORKING_DIR" && cd "$WORKING_DIR" 2>/dev/null || cd "${EXE%/*}"
+test -d "$WORKING_DIR" && cd "$WORKING_DIR" 2>/dev/null || cd "${EXE%/*}"
+
+if test $USE_INSTALLED -ge 3; then
   echo -E Run: installed "${exe_w}" with "${vc_ext_w}"
   exec $RUN "$EXE" \
     --load-extension=${vc_ext_w}${OTHER_EXT} \
@@ -288,16 +299,13 @@ if test $USE_INSTALLED -gt 0; then
     --start-maximized $FLAGS "$@"
   exit 0
 fi
-dir=${GUD}; dir=${dir#/}; gud_w=${dir%%/*}; dir=${dir#[a-z]}
-gud_w=${gud_w^}:${dir}
 
-test -d "$GUD" || mkdir -p "$GUD" || exit $?
-test -d "$WORKING_DIR" && cd "$WORKING_DIR" 2>/dev/null || cd "${EXE%/*}"
+test -d "$UD" || mkdir -p "$UD" || exit $?
 
 # Refer: https://peter.sh/experiments/chromium-command-line-switches/
-echo -E Run: "${exe_w}" at ${gud_w} with "${vc_ext_w}"
+echo -E Run: "${exe_w}" at ${ud_w} with "${vc_ext_w}"
 $RUN "$EXE" \
-  --user-data-dir="${gud_w}" \
+  --user-data-dir="${ud_w}" \
   --no-first-run --disable-default-apps\
    --disable-sync --no-default-browser-check \
   --load-extension="${vc_ext_w}${OTHER_EXT}" \

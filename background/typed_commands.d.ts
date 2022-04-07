@@ -45,7 +45,7 @@ interface BgCmdOptions {
     mode: "visual" | "Visual" | "caret" | "Caret" | "line" | "Line" | ""
     richText: boolean
     start: boolean
-  } & Req.FallbackOptions
+  } & OpenPageUrlOptions & Req.FallbackOptions
 //#endregion
   [kBgCmd.addBookmark]: {
     folder: string; /** (deprecated) */ path: string

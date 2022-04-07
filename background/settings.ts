@@ -332,8 +332,8 @@ saladict@crimx.com`
     searchEngines: (navigator.language as string).startsWith("zh")
 ? `b|ba|baidu|Baidu|\u767e\u5ea6: https://www.baidu.com/s?ie=utf-8&wd=%s \\
   blank=https://www.baidu.com/ \u767e\u5ea6
-bi: https://cn.bing.com/search?q=$s
-bi|bing|Bing|\u5fc5\u5e94: https://www.bing.com/search?q=%s \\
+bi: https://www.bing.com/search?q=$s
+bi|bing|Bing|\u5fc5\u5e94: https://cn.bing.com/search?q=%s \\
   blank=https://cn.bing.com/ \u5fc5\u5e94
 g|go|gg|google|Google|\u8c37\u6b4c: https://www.google.com/search?q=%s\\
   www.google.com re=/^(?:\\.[a-z]{2,4})?\\/search\\b.*?[#&?]q=([^#&]*)/i\\

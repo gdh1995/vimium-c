@@ -5,7 +5,7 @@ FLAGS=
 OTHER_EXT=
 OTHER_ARGS=
 USE_INSTALLED=0
-FUD=
+UD=${TEST_USER_DATA}
 DO_CLEAN=0
 WORKING_DIR=${WORKING_DIR:-/r/working}
 VC_ROOT=
@@ -107,9 +107,13 @@ case "$1" in
     HOME_PAGE=$HOME_PAGE" --start-url $1"
     shift
     ;;
-  localhost)
-    HOME_PAGE=$HOME_PAGE" --start-url http://$1/"
+  localhost*|*.localhost*)
+    HOME_PAGE=$HOME_PAGE" --start-url http://$1"
     shift
+    ;;
+  -v|-x)
+    shift
+    set -x
     ;;
   *)
     if test -d "$1" && test -f "$1/manifest.json"; then
@@ -123,15 +127,26 @@ case "$1" in
 esac
 done
 
-test $USE_INSTALLED -le 1 && FUD=${FUD:-/r/TEMP/FUD} || FUD=${FUD:-${default_firefox_root}/FUD}
-if test $DO_CLEAN -gt 0 -a -e "$FUD"; then
-  if test $USE_INSTALLED -gt 1; then
+if test -f "/usr/bin/env.exe"; then
+  RUN=$(which start2.exe)
+  REALPATH=/usr/bin/cygpath.exe
+  NODE=
+else
+  ENV=$(which env.exe)
+  RUN=$ENV' start2.exe'
+  REALPATH=/bin/wslpath
+  NODE=${ENV%/*}/bash.exe' -i node'
+fi
+
+test $USE_INSTALLED -le 1 && UD=${UD:-/tmp/FUD} || UD=${UD:-${default_firefox_root}/FUD}
+wp ud_w "$UD"
+if test $DO_CLEAN -gt 0 -a -e "$UD"; then
+  if test $USE_INSTALLED -ge 2; then
     echo -E "MUST NOT clean the default Profile folder"
     exit 1
   fi
-  rm -rf "$FUD" || exit $?
-  wp fud_w "$FUD"
-  echo -E "Clean ${fud_w} : done."
+  rm -rf "$UD" || exit $?
+  echo -E "Clean ${ud_w} : done."
 fi
 if test $DO_CLEAN -eq 2; then exit 0; fi
 
@@ -150,17 +165,6 @@ elif test ${DIST:-0} -gt 0 && test -f "./dist/manifest.json"; then
   VC_ROOT=.
 fi
 
-if test -f "/usr/bin/env.exe"; then
-  RUN=$(which start2.exe)
-  REALPATH=/usr/bin/cygpath.exe
-  NODE=
-else
-  ENV=$(which env.exe)
-  RUN=$ENV' start2.exe'
-  REALPATH=/bin/wslpath
-  NODE=${ENV%/*}/bash.exe' -i node'
-fi
-
 dir=$(/usr/bin/realpath "${BASH_SOURCE[0]}")
 dir=${dir%/*}
 if test -f "$dir"/core/firefox.exe; then
@@ -170,11 +174,11 @@ else
   FIREFOX_ROOT=${FIREFOX_ROOT:-$default_firefox_root}
   VC_ROOT=${VC_ROOT:-${dir%/*}}
 fi
-if test -n "$VER" -o $USE_INSTALLED -gt 0; then :
+if test -n "$VER" -o $USE_INSTALLED -ge 1; then :
 elif test -f "$WORKING_DIR"/core/firefox.exe; then VER=wo
 else
   VER_MIN=63
-  VER=$(printf "%s\n" "$WORKING_DIR"/core[1-9]* | sort -r | head -n 1)
+  VER=$(ls -dvr "$WORKING_DIR"/core[1-9]* 2>/dev/null | head -n 1)
   VER=${VER#"$WORKING_DIR/core"}
   if test "${VER:-63}" \< 63 ; then
     echo "Error: require Firefox 63+ but found $VER only"
@@ -182,7 +186,7 @@ else
   fi
 fi
 test "$VER" == cur && VER=
-if test "$VER" == wo || test -z "$VER" -a $USE_INSTALLED -le 0; then
+if test "$VER" == wo || test -z "$VER" -a $USE_INSTALLED -le 0 && test -f "$WORKING_DIR/core/firefox.exe"; then
   EXE=$WORKING_DIR/core/firefox.exe
 else
   if test $USE_INSTALLED -le 0; then
@@ -194,13 +198,13 @@ else
     fi
   fi
   test -f "$EXE" || EXE=$FIREFOX_ROOT/core${VER}/firefox.exe
-  if test $USE_INSTALLED -gt 0 || ! test -f "$EXE"; then
+  if test $USE_INSTALLED -ge 1 || ! test -f "$EXE"; then
     EXE=$FIREFOX_ROOT/${VER:-core}/firefox.exe
     if test ! -f "$EXE" -a -n "$VER" \
         && find "$FIREFOX_ROOT/core/" -name "${VER}.*" 2>/dev/null | grep . >/dev/null 2>&1; then
       EXE=$FIREFOX_ROOT/core/firefox.exe
     fi
-  elif test "${VER%%@(esr|.)*}" -le 68; then
+  elif test -n "$VER" && test "${VER%%@(esr|.)*}" -le 68; then
     debugger_url="about:debugging#addons"
   fi
 fi
@@ -221,8 +225,8 @@ else
   VC_EXT="$VC_ROOT"
   wp vc_ext_w "$VC_EXT"
 fi
-if test $USE_INSTALLED -ge 2 && ! grep '"id": "vimium-c@gdh1995.cn"' "${VC_EXT}/manifest.json" >/dev/null 2>&1; then
-  echo "Error: MUST use a version of Vimium C only built for Firefox when use_installed >= 2" >&2
+if test $USE_INSTALLED -ge 2 && ! grep '"id": "vimium-c' "${VC_EXT}/manifest.json" >/dev/null 2>&1; then
+  echo "Error: MUST use a version of Vimium C built for Firefox when use_installed >= 2" >&2
   exit 1
 fi
 
@@ -236,12 +240,16 @@ if test -n "$VER" -o "$FIREFOX_ROOT" == '/r/working'; then
   rm -r "${EXE%/*}"/uninstall 2>/dev/null
 fi
 
-
-dir=${FUD}; dir=${dir#/}; fud_w=${dir%%/*}; dir=${dir#[a-z]}
-fud_w=${fud_w^}:${dir}
-
-test -d "$FUD" || mkdir -p "$FUD" || exit $?
 test -d "$WORKING_DIR" && cd "$WORKING_DIR" 2>/dev/null || cd "${EXE%/*}"
+
+if test $USE_INSTALLED -ge 3; then
+  echo -E start: "${exe_w}" "(installed)"
+  exec "$EXE" -foreground -no-remote -profile "$UD" \
+    --url about:home \
+    ${HOME_PAGE//start-/} "$@"
+fi
+
+test -d "$UD" || mkdir -p "$UD" || exit $?
 
 WEB_EXT=node_modules/web-ext/bin/web-ext
 if test -f "$VC_ROOT/$WEB_EXT"; then
@@ -262,19 +270,11 @@ if test $AUTO_RELOAD -le 0; then
   FLAGS=$FLAGS" --no-reload"
 fi
 
-if test $USE_INSTALLED -ge 3; then
-  echo -E start: "${exe_w}" "(installed)"
-  "$EXE" -foreground -no-remote -profile "$FUD"
-    --url about:home \
-    ${HOME_PAGE//start-/} "$@"
-  exit
-fi
-
 # Refer: https://extensionworkshop.com/documentation/develop/getting-started-with-web-ext/
-echo -E web-ext run: "${exe_w}" at ${fud_w} with "${vc_ext_w}"
+echo -E web-ext run: "${exe_w}" at ${ud_w} with "${vc_ext_w}"
 "$NODE" $WEB_EXT run \
   --firefox "$EXE" \
-  --firefox-profile "$FUD" \
+  --firefox-profile "$UD" \
   --source-dir "$VC_EXT" \
   --keep-profile-changes \
   $OTHER_ARGS \

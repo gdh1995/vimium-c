@@ -394,7 +394,7 @@ interface CmdOptions {
     /** words */ w?: string;
     /** collapse to start */ s?: boolean
     /** richText */ t?: boolean
-  } & OpenPageUrlOptions & UserSedOptions & Req.FallbackOptions
+  } & OpenPageUrlOptions & Req.FallbackOptions
   [kFgCmd.showHelpDialog]: {
     /** html */ h: "html" | /** for Firefox */ { /** head->style */ h: string; /** body */ b: string };
     /** forced to show */ f?: boolean

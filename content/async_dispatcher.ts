@@ -272,9 +272,9 @@ export const click_async = (async (element: SafeElementForMouse
     }
   }
   const kMenu = "contextmenu"
-  const xy = button === kClickButton.second && userOptions![kMenu] !== !1
-      || userOptions && userOptions.xy as HintsNS.StdXY | undefined
-  const center = center_(rect || (rect = getVisibleClientRect_(element)), xy && userOptions!.xy as HintsNS.StdXY)
+  const xy = userOptions && userOptions.xy as HintsNS.StdXY | undefined
+      || button === kClickButton.second && userOptions![kMenu] !== !1 && { x: 20, y: -4 }
+  const center = center_(rect || (rect = getVisibleClientRect_(element)), xy || null)
   if (OnChrome
       && (Build.MinCVer >= BrowserVer.MinEnsuredTouchEventConstructor
           || chromeVer_ >= BrowserVer.MinEnsuredTouchEventConstructor)

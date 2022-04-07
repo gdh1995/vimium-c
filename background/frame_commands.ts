@@ -172,11 +172,15 @@ export const enterVisualMode = (): void | kBgCmd.visualMode => {
     granularities = visualGranularities_
     sender.flags_ |= Frames.Flags.hadVisualMode
   }
-  sendFgCmd(kFgCmd.visualMode, true, wrapFallbackOptions<kFgCmd.visualMode, C.visualMode>({
+  const opts2 = BgUtils_.extendIf_<CmdOptions[kFgCmd.visualMode], KnownOptions<kBgCmd.visualMode>>({
     m: str === "caret" ? VisualModeNS.Mode.Caret : str === "line" ? VisualModeNS.Mode.Line : VisualModeNS.Mode.Visual,
     f: sentFindCSS, g: granularities, k: keyMap,
     t: !!get_cOptions<C.visualMode>().richText, s: !!get_cOptions<C.visualMode>().start, w: words
-  }))
+  }, get_cOptions<C.visualMode, true>())
+  delete opts2.mode
+  delete opts2.start
+  delete opts2.richText
+  sendFgCmd(kFgCmd.visualMode, true, opts2)
 }
 
 let _tempBlob: [number, string] | null | undefined
