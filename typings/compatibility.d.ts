@@ -402,7 +402,7 @@ declare const enum BrowserVer {
   /** @todo: trace https://bugs.chromium.org/p/chromium/issues/detail?id=1038569 */
   Min$compositionend$$isComposing$IsMistakenlyFalse = 65,
   MinCanNotRevokeObjectURLAtOnce = 65,
-  MinExtraScrollbarWidthIfScrollStyleIsOverlay = 65,
+  MinExtraScrollbarWidthIfScrollStyleIsOverlay = 65, // fixed in C87
   MinEnsuredDisplayContents = 65,
   MinInputMode = 66, // even if LEGACY; still works on C35 if EXPERIMENTAL
   // @see MinEscapeHashInBodyOfDataURL
@@ -489,7 +489,7 @@ declare const enum BrowserVer {
   // https://docs.google.com/document/d/1CJgCg7Y31v5MbO14RDHyBAa5Sf0ZnPVtZMiOFCNbgWc/edit
   MinMaybeScrollEndAndOverScrollEvents = 74, // if EXPERIMENTAL
   MinEnsured$Intl$$RelativeTimeFormat = 74, // even if LEGACY
-  // the below 4 are even if EXPERIMENTAL or LEGACY
+  // the 4 below are even if EXPERIMENTAL or LEGACY
   MinMediaQuery$PrefersReducedMotion = 74,
   // https://chromium.googlesource.com/chromium/src/+/5e84b7a819637ed4dd8f9c4d11288127663c8267
   MinBlockAutoFocusingInCrossOriginFrame = 75,
@@ -535,6 +535,10 @@ declare const enum BrowserVer {
   MinFileNameIsSelectableOnFilesPage = 86, // even if EXPERIMENTAL or LEGACY
   // if EXPERIMENTAL, since 79 there's also `navigator.scheduling.isFramePending()`
   MinEnsuredNavigator$scheduling$$isInputPending = 87, // even if LEGACY; since 74 if EXPERIMENTAL
+  // the 2 below are even if EXPERIMENTAL or LEGACY
+  MinNoExtraScrollbarWidthIfScrollStyleIsOverlay = 87, // replace MinExtraScrollbarWidthIfScrollStyleIsOverlay
+  MinCSS$quotes$$auto = 87,
+  MinMaybeScrollbarGutter = 88, // since 94 if not EXPERIMENTAL but even LEGACY
   Min$TargetIsBlank$Implies$Noopener = 88, // https://chromestatus.com/features/6140064063029248
   MinEnsuredES$TopLevelAwait = 89, // even if LEGACY; since 84 if EXPERIMENTAL
   MinForcedColorsMode = 89, // even if EXPERIMENTAL or LEGACY; enable `(forced-colors: active|none)` and color schemes
@@ -551,6 +555,7 @@ declare const enum BrowserVer {
   MinNotPropagateBodyStyleIfContained = 96, // even if EXPERIMENTAL or LEGACY
   Min$structuredClone = 98, // even if EXPERIMENTAL or LEGACY
   MinEnsured$input$$showPicker = 99, // even if LEGACY; since 97 if EXPERIMENTAL
+  MinScrollbarIncreasePadding = 99, // even if LEGACY; since 97 if EXPERIMENTAL
   MinEnsured$HTMLElement$$inert = 101, // even if EXPERIMENTAL
   MinNo$TimerType$$Fake = 999,
   assumedVer = 998,

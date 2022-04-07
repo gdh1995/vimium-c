@@ -17,7 +17,7 @@
 	line-height: 130%;
 	max-height: calc(100% - 118px);
 	min-height: 25px;
-	overflow-y: auto;
+	overflow: auto;
 	overscroll-behavior: contain;
 	padding: 8px 18px 0 18px;
 	top: 50px;
@@ -203,7 +203,6 @@
 		left: 4px;
 		right: 4px;
 		width: auto;
-		overflow-x: scroll;
 	}
 	#HelpContent {
 		padding-right: 12px;
@@ -276,6 +275,7 @@
 #HDlg.Scroll::-webkit-scrollbar-thumb:active {
 	background: #666;
 }
+@supports (quotes: auto) { #HDlg.Scroll { overflow-y: overlay; } }
 @media (forced-colors: active), (-ms-high-contrast: active) {
 	.Scroll::-webkit-scrollbar-thumb:vertical {
 		border: 2px solid #ddd;
