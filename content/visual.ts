@@ -69,7 +69,7 @@ let keyMap: VisualModeNS.SafeKeyMap
 let WordsRe_ff_old_cr: RegExpOne | RegExpU | null
 let rightWhiteSpaceRe: RegExpOne | null
 /** @safe_di */
-let deactivate: (isEsc?: 1) => void
+let deactivate: (isEscOrReinit?: 1 | 2) => void
 
 export { modeName as visual_mode_name, deactivate }
 
@@ -326,14 +326,15 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode]): void => {
       kGranularity = options.g!
   }
   /** @safe_di */
-  deactivate = (isEsc?: 1): void => {
+  deactivate = (isEscOrReinit?: 1 | 2): void => {
+      if (isEscOrReinit === 2) { (contentCommands_[kFgCmd.visualMode] as typeof activate)(options); return }
       di_ = kDirTy.unknown
       diType_ = DiType.UnsafeUnknown
       getDirection("")
       const oldDiType: DiType = diType_
       removeHandler_(kHandler.visual)
       if (!retainSelection) {
-        collapseToFocus(isEsc && mode_ !== Mode.Caret ? 1 : 0)
+        collapseToFocus(isEscOrReinit && mode_ !== Mode.Caret ? 1 : 0)
       }
       modeName = ""
       const el = insert_Lock_()
@@ -440,7 +441,8 @@ const findV = (count1: number): void => {
     if (find_hasResults) {
       diType_ = DiType.UnsafeUnknown
       if (mode_ === Mode.Caret && selType() === SelType.Range) {
-        (contentCommands_[kFgCmd.visualMode] as typeof activate)(safer<CmdOptions[kFgCmd.visualMode]>({}));
+        options.m = Mode.Visual;
+        (contentCommands_[kFgCmd.visualMode] as typeof activate)(options)
       } else {
         di_ = kDirTy.unknown
         commandHandler(VisualAction.Noop, 1)
@@ -721,7 +723,8 @@ const ensureLine = (command1: number): void => {
       hudHide() // it should auto keep HUD showing the mode text
       post_({ H: kFgReq.findFromVisual });
     } else {
-      (contentCommands_[kFgCmd.visualMode] as typeof activate)({ m: command - VisualAction.MaxNotNewMode })
+      options.m = command - VisualAction.MaxNotNewMode;
+      (contentCommands_[kFgCmd.visualMode] as typeof activate)(options)
     }
     return
   }

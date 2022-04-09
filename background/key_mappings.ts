@@ -137,6 +137,7 @@ export const normalizeCommand_ = (cmd: Writable<CommandsNS.BaseItem>, details?: 
             : mode > HintMode.min_disable_queue + HintMode.queue - 1 ? mode - HintMode.queue : mode;
         }
         if (lhOpt.xy !== void 0) { lhOpt.xy = BgUtils_.normalizeXY_(lhOpt.xy) }
+        lhOpt.direct && (mode &= ~HintMode.queue)
         if (mode !== stdMode) {
           lhOpt.m = mode
         }

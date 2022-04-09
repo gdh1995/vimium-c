@@ -186,6 +186,9 @@ set_bgC_([
       let key = opts2.key
       let type = (opts2.type || (key ? "keydown" : "")) + "", rawClass = opts2.class, delay = opts2.delay
       let { xy, direct, directOptions } = opts2
+      rawClass = rawClass && rawClass[0] === "$" ? rawClass.slice(1)
+          : (rawClass && (rawClass[0].toUpperCase() + rawClass.slice(1)) || "Keyboard"
+            ).replace(<RegExpI & RegExpSearchable<0>> /event$/i, "") + "Event"
       if (opts2.click) {
         type = "click"
       } else if (cRepeat < 0) {
@@ -198,9 +201,6 @@ set_bgC_([
       const rawInit = opts2.init
       const dict: KeyboardEventInit = rawInit && typeof rawInit === "object" ? rawInit : opts2
       const destDict: KeyboardEventInit = {}
-      rawClass = rawClass && (rawClass[0].toUpperCase() + rawClass.slice(1)) || "Keyboard"
-      rawClass = rawClass[0] === "$" ? rawClass.slice(1)
-          : rawClass.replace(<RegExpI & RegExpSearchable<0>> /event$/i, "") + "Event"
       delay = delay && +delay >= 0 ? Math.max(+delay | 0, 1) : null
       for (const i of ["bubbles", "cancelable", "composed"] as const) {
         destDict[i] = dict[i] !== false || opts2[i] !== false

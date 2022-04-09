@@ -20,7 +20,7 @@ import {
   createStyle, getSelectionText, checkDocSelectable, adjustUI, ensureBorder, addUIElement, getSelected, flash_,
   getSelectionOf, getSelectionBoundingBox_
 } from "./dom_ui"
-import { highlightRange, activate as visualActivate, visual_mode_name } from "./visual"
+import { highlightRange, activate as visualActivate, deactivate as visualDeactivate, visual_mode_name } from "./visual"
 import { keyIsDown as scroll_keyIsDown, beginScroll, onScrolls } from "./scroller"
 import { scrollToMark, setPreviousMarkPosition } from "./marks"
 import { hudHide, hud_box, hudTip, hud_opacity, toggleOpacity as hud_toggleOpacity } from "./hud"
@@ -280,6 +280,7 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
       restoreSelection(true)
     }
     if (visual_mode_name) {
+      visualDeactivate ? visualDeactivate(2) :
       (contentCommands_[kFgCmd.visualMode] as typeof visualActivate)(safer<CmdOptions[kFgCmd.visualMode]>({ r: true }))
       return;
     }

@@ -95,7 +95,7 @@ import {
 } from "../lib/dom_utils"
 import {
   ViewBox, getViewBox_, prepareCrop_, wndSize_, bZoom_, wdZoom_, dScale_, boundingRect_,
-  docZoom_, bScale_, dimSize_, isSelARange, view_,
+  docZoom_, bScale_, dimSize_, isSelARange, view_, isNotInViewport, VisibilityType,
 } from "../lib/rect"
 import {
   replaceOrSuppressMost_, removeHandler_, getMappedKey, keybody_, isEscape_, getKeyStat_, keyNames_, suppressTail_,
@@ -168,9 +168,6 @@ export const activate = (options: ContentOptions, count: number, force?: 2 | Tim
     if (checkHidden(kFgCmd.linkHints, options, count)) {
       return clear(1)
     }
-    if (options.direct && !isActive) {
-      return activateDirectly(options, count)
-    }
     if (doc.body === null) {
       manager_ || clear()
       if (!oldTimer && readyState_ > "l") {
@@ -178,6 +175,7 @@ export const activate = (options: ContentOptions, count: number, force?: 2 | Tim
         return replaceOrSuppressMost_(kHandler.linkHints)
       }
     }
+    if (options.direct) { return activateDirectly(options, count) }
     const parApi = !fullscreenEl_unsafe_() && getParentVApi()
     if (parApi) {
       parApi.l(style_ui)
@@ -519,7 +517,7 @@ const callExecuteHint = (hint: ExecutableHintItem, event?: HandlerNS.Event): voi
       reinitLinkHintsIn(frameArray.length > 1 ? 50 : 18, (): void => {
         if (OnFirefox && oldMode_ff >= 0) { setMode(oldMode_ff, 1) }
         reinit(0, selectedHintWorker, clickEl, result, retainedInput)
-        if (isActive && 1 === (--count_)) {
+        if (isActive && (--count_) < 2) {
           setMode(mode1_)
         }
       })
@@ -532,7 +530,6 @@ export const findAnElement_ = (options: OptionsToFindElement, count: number
   const d = options.direct! as string | true, exOpts = options.directOptions || {},
   elIndex = exOpts.index, indByCount = elIndex === "count",
   offset = exOpts.offset || "", wholeDoc = ("" + exOpts.search).startsWith("doc"),
-  allTypes = d === !0,
   matchEl = wholeDoc ? (hints: Hint0[], el1: SafeElement): void => {
     isInteractiveInPage(el1) && hints.push([el1 as SafeElementForMouse])
   } : getIfOnlyVisible,
@@ -550,29 +547,29 @@ export const findAnElement_ = (options: OptionsToFindElement, count: number
   }
   let isSel: boolean | undefined
   let matches: (Hint | Hint0)[] | undefined, oneMatch: Hint | Hint0 | undefined, matchIndex: number
-  let el: SafeElement | null | undefined
+  let el: SafeElement | null | false | undefined
   prepareCrop_()
-  for (let i of (d + "").split(",")) {
+  for (let i of (isTY(d) ? d : "em,sel,f,h").split(",")) {
     const testD = "".includes.bind(i)
-  el = el ? el : (allTypes || testD("elem")) && options.match // element
+    el = testD("em") ? options.match // element
       && (matches = traverse(kSafeAllSelector, options, matchEl, 1, wholeDoc),
           matchIndex = indByCount ? count < 0 ? count : count - 1 : +elIndex! || 0,
           oneMatch = matches.slice(offset > "e" ? ~matchIndex : offset < "c" ? matchIndex : computeOffset())[0])
-      ? oneMatch[0]
-      : (allTypes || testD("sel")) // selected
-          && isSelARange(getSelection()) && (el = getSelectionFocusEdge_(getSelected()), isSel = !!el, el)
-      || (allTypes || testD("f")) // focused
-          && (insert_Lock_()
+      && oneMatch[0]
+      : testD("sel") // selected
+        ? isSelARange(getSelection()) && (el = getSelectionFocusEdge_(getSelected()), isSel = !!el, el)
+      : testD("f") ? (insert_Lock_() // focused
               || (OnFirefox ? <SafeElement | null> deepActiveEl_unsafe_() : SafeEl_not_ff_!(deepActiveEl_unsafe_())))
-      || (allTypes || testD("h") || testD("cl")) && derefInDoc_(lastHovered_) // hover | clicked
-      || (!allTypes && (testD("s") || testD("a")) ? derefInDoc_(currentScrolling) // currentScrollable / DOMActivate
-        : null)
+      : (testD("h") || testD("cl")) ? derefInDoc_(lastHovered_) // hover | clicked
+      : /* d !== !0 &&*/ testD("s") || testD("a") ? derefInDoc_(currentScrolling) // currentScrollable / DOMActivate
+      : null
+    if (el = el && isNotInViewport(el) !== VisibilityType.NoSpace ? el : null) { break }
   }
-  return [el, wholeDoc, indByCount, isSel]
+  return [el as SafeElement | null | undefined, wholeDoc, indByCount, isSel]
 }
 
 const activateDirectly = (options: ContentOptions, count: number): void => {
-  const mode = options.m &= ~HintMode.queue,
+  const mode = options.m,
   next = (): void => {
     if (count < 1) { clear(); return }
     count = IsInDOM_(el!) ? (coreHints.e({d: el as LinkEl, r: null, m: null}, 0
@@ -585,11 +582,11 @@ const activateDirectly = (options: ContentOptions, count: number): void => {
   if (!el || !IsInDOM_(el)) {
     runFallbackKey(options, kTip.noTargets)
   } else {
-    count = mode < HintMode.min_job && !res[2] ? min_(count, 3e3) : 1
+    clear()
+    count = mode < HintMode.min_job && !res[2] ? count : 1
     api_ = vApi
     options_ = options
     setMode(mode, count_ = isActive = 1)
-    coreHints.v()
     res[1] && view_(el)
     next()
   }
