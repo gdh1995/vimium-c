@@ -161,7 +161,7 @@ export function set_isClickListened_ (_newIsClickListened: boolean): void { isCl
 export function set_addChildFrame_<T extends typeof addChildFrame_> (_newACF: T): void { addChildFrame_ = _newACF }
 
 export const activate = (options: ContentOptions, count: number, force?: 2 | TimerType.fake): void => {
-    const oldTimer = _timer
+    const oldTimer = _timer, xy = options.xy as HintsNS.StdXY | undefined
     _timer = _reinitTime = 0
     oldTimer && clearTimeout_(oldTimer)
     if (isActive && force !== 2 || !isEnabled_) { return; }
@@ -175,6 +175,7 @@ export const activate = (options: ContentOptions, count: number, force?: 2 | Tim
         return replaceOrSuppressMost_(kHandler.linkHints)
       }
     }
+    if (xy && !xy.n) { xy.n = count, count = 1 }
     if (options.direct) { return activateDirectly(options, count) }
     const parApi = !fullscreenEl_unsafe_() && getParentVApi()
     if (parApi) {

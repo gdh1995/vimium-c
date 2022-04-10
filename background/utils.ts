@@ -330,13 +330,15 @@ export const getOmniSecret_ = (mayRefresh: boolean): string => {
   return _secret
 }
 
-export const normalizeXY_ = (xy: HintsNS.Options["xy"] | null | undefined): HintsNS.StdXY | undefined => {
-  if (xy != null) {
-    xy = typeof xy !== "string" ? typeof xy === "number" ? [xy, 0.5]
-          : xy instanceof Array ? xy : [+xy.x || 0, +xy.y || 0]
-        : xy.split(<RegExpOne> /[\s,]+/).map(i => +i) as [number, number]
-    xy = xy.filter(i => i >= 0) as [number, number]
+export const normalizeXY_ = (xy: HintsNS.Options["xy"] | null): HintsNS.StdXY | void => {
+  if (xy != null && xy !== false) {
+    xy = typeof xy !== "string" ? typeof xy === "number" ? [xy, 0.5] : xy === true ? [0.5, 0.5]
+          : xy instanceof Array ? xy : [+xy.x || 0, +xy.y || 0, +xy.s! || 0]
+        : xy.trim().split(<RegExpOne> /[\s,]+/).map((i, ind) => i === "count" && ind < 2 ? i
+            : !isNaN(+i) ? +i : ind < 2 ? 0.5 : 0) as [number | "count", number, number?]
     while (xy.length < 2) { xy.push(0.5) }
+    while (xy.length < 3) { xy.push(0) }
+    const useCount = xy[0] === "count" || xy[1] === "count"
+    return { x: xy[0], y: xy[1], n: useCount ? 0 : 1, s: useCount ? +xy[2]! || 0.01 : 0 }
   }
-  return  xy ? { x: xy[0], y: xy[1] } : void 0
 }

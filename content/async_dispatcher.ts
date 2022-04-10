@@ -11,7 +11,7 @@ import { Point2D, center_, getVisibleClientRect_, view_ } from "../lib/rect"
 import { insert_Lock_ } from "./insert"
 import { post_ } from "./port"
 import { flash_, moveSel_s_throwable } from "./dom_ui"
-import { hintApi, hintOptions } from "./link_hints"
+import { coreHints, hintApi, hintManager, hintOptions, isHintsActive } from "./link_hints"
 import { prepareToBlockClick_old_ff, clickEventToPrevent_, dispatchAndBlockClickOnce_old_ff } from "./extend_click_ff"
 /* eslint-disable @typescript-eslint/await-thenable */
 
@@ -260,8 +260,7 @@ export const unhover_async = (!OnChrome || Build.MinCVer >= BrowserVer.MinEnsure
 export const click_async = (async (element: SafeElementForMouse
     , rect?: Rect | null, addFocus?: boolean | BOOL, modifiers?: MyMouseControlKeys
     , specialAction?: kClickAction, button?: AcceptableClickButtons
-    , /** default: false */ touchMode?: null | false | /** false */ 0 | true | "auto"
-    , /** .opener: default to true */ userOptions?: HintsNS.Options): Promise<void | 1> => {
+    , /** default: false */ touchMode?: null | false | /** false */ 0 | true | "auto"): Promise<void | 1> => {
   /**
    * for important events including `mousedown`, `mouseup`, `click` and `dblclick`, wait for two micro tasks;
    * for other events, just wait for one micro task
@@ -272,9 +271,10 @@ export const click_async = (async (element: SafeElementForMouse
     }
   }
   const kMenu = "contextmenu"
+  const userOptions = isHintsActive && !((hintManager || coreHints).$().k.c as any[] | undefined) ? hintOptions : null
   const xy = userOptions && userOptions.xy as HintsNS.StdXY | undefined
-      || button === kClickButton.second && userOptions![kMenu] !== !1 && { x: 20, y: -4 }
-  const center = center_(rect || (rect = getVisibleClientRect_(element)), xy || null)
+      || button === kClickButton.second && userOptions![kMenu] !== !1 && { x: 20, y: -4 } as HintsNS.StdXY || null
+  const center = center_(rect || (rect = getVisibleClientRect_(element)), xy)
   if (OnChrome
       && (Build.MinCVer >= BrowserVer.MinEnsuredTouchEventConstructor
           || chromeVer_ >= BrowserVer.MinEnsuredTouchEventConstructor)
@@ -405,8 +405,7 @@ export const click_async = (async (element: SafeElementForMouse
   (element: SafeElementForMouse
     , rect: Rect | null | undefined, addFocus: boolean | BOOL, modifiers: MyMouseControlKeys
     , specialAction: kClickAction, button: AcceptableClickButtons
-    , /** default: false */ touchMode: null | undefined | false | /** false */ 0 | true | "auto"
-    , /** .opener: default to true */ userOptions: HintsNS.Options): Promise<void | 1>
+    , /** default: false */ touchMode: null | undefined | false | /** false */ 0 | true | "auto"): Promise<void | 1>
   (element: SafeElementForMouse
     , rect: Rect | null, addFocus: boolean | BOOL, modifiers: MyMouseControlKeys | undefined
     , specialAction: kClickAction.none, button: kClickButton.primaryAndTwice): Promise<void | 1>

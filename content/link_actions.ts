@@ -347,8 +347,7 @@ const defaultClick = (): void => {
             , mask > 0 || interactive || (clickEl as ElementToHTMLorOtherFormatted).tabIndex! >= 0)
         , [!1, isMac ? !1 : ctrl, isMac ? ctrl : !1, shift]
         , specialActions, isRight ? kClickButton.second : kClickButton.none
-        , !OnChrome || otherActions || newTab || newWindow ? 0 : hintOptions.touch
-        , hintOptions))
+        , !OnChrome || otherActions || newTab || newWindow ? 0 : hintOptions.touch))
     .then((ret): void => {
       showUrlIfNeeded()
       doesUnhoverAtOnce && (!interactive || isTY(autoUnhover)) ? void catchAsyncErrorSilently(unhover_async())

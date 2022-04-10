@@ -1,4 +1,5 @@
 import {
+  isTY,
   doc, chromeVer_, Lower, max_, min_, math, OnChrome, OnFirefox, WithDialog, evenHidden_, set_evenHidden_, OnEdge, abs_
 } from "./utils"
 import {
@@ -428,12 +429,13 @@ export const scrollWndBy_ = (di: ScrollByY, amount: number): void => {
 
 export const center_ = (rect: Rect | null, xy: HintsNS.StdXY | null | undefined): Point2D => {
   let zoom = !OnFirefox ? docZoom_ * bZoom_ / (xy ? 1 : 2) : xy ? 1 : 0.5
-  let x = xy ? xy.x : 0, y = xy ? xy.y : 0
+  let n = xy ? xy.n - 1 ? xy.n * xy.s : 0.5 : 0
+  let x = xy ? isTY(xy.x) ? n : xy.x : 0, y = xy ? isTY(xy.y) ? n : xy.y : 0
   rect = rect && cropRectToVisible_(rect.l, rect.t, rect.r, rect.b) || rect
   x = !rect ? 0 : !xy ? rect.l + rect.r
-      : max_(rect.l, min_((x < 0 ? rect.r : rect.l) + (x * x < 1 ? (rect.r - rect.l) * x : x), rect.r - 1))
+      : max_(rect.l, min_((x < 0 ? rect.r : rect.l) + (x * x > 1 ? x : (rect.r - rect.l) * x), rect.r - 1))
   y = !rect ? 0 : !xy ? rect.t + rect.b
-      : max_(rect.t, min_((y < 0 ? rect.b : rect.t) + (y * y < 1 ? (rect.b - rect.t) * y : y), rect.b - 1))
+      : max_(rect.t, min_((y < 0 ? rect.b : rect.t) + (y * y > 1 ? y : (rect.b - rect.t) * y), rect.b - 1))
   return [(x * zoom) | 0, (y * zoom) | 0]
 }
 

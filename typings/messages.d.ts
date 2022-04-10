@@ -297,9 +297,10 @@ declare namespace HintsNS {
     richText?: boolean;
     visual?: false;
     suppressInput?: boolean
-    xy?: StdXY | [number, number] | `${number}, ${number}` | number | `${number}`
+    xy?: StdXY | [x: number | "count", y: number | "count", scale?: number]
+        | `${number}, ${number}` | number | string | boolean | void
   }
-  interface StdXY { x: number, y: number }
+  interface StdXY { x: number | "count", y: number | "count", n: number, s: number }
 }
 
 interface InsertModeOptions {
@@ -549,7 +550,7 @@ interface FgReq {
   [kFgReq.openUrl]: {
     // note: need to sync members to ReqH::openUrl in main.ts
     /** url */ u?: string;
-    /** options */ o?: ParsedOpenPageUrlOptions
+    /** options */ o?: ParsedOpenPageUrlOptions | null
     /** command options with "$" */ n?: CmdOptions[kFgCmd.autoOpen]
     /** formatted-by-<a>.href */ f?: boolean;
     /** copied */ c?: boolean | "urls" | "any-urls";
