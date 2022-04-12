@@ -1,5 +1,5 @@
 import {
-  fgCache, clearTimeout_, timeout_, isAlive_, Stop_ as stopEvent, Lower, OnChrome, OnEdge, getTime, OnFirefox, abs_
+  fgCache, clearTimeout_, timeout_, isAlive_, Stop_ as stopEvent, Lower, OnChrome, OnEdge, getTime, OnFirefox, abs_, os_
 } from "./utils"
 
 const DEL = kChar.delete, BSP = kChar.backspace, SP = kChar.space
@@ -31,13 +31,17 @@ const _getKeyName = (event: Pick<KeyboardEvent, "key" | "keyCode" | "location">)
   let i = event.keyCode, s: string | undefined
   return i > kKeyCode.space - 1 && i < kKeyCode.minNotDelete
       ? i < kKeyCode.insert ? keyNames_[i - kKeyCode.space] : i > kKeyCode.insert ? DEL : kChar.insert
-      : i < kKeyCode.minNotDelete || i === kKeyCode.osRightMac ? (i === kKeyCode.backspace ? BSP
-          : i === kKeyCode.esc ? kChar.esc
+      : i < kKeyCode.minNotDelete || i === kKeyCode.metaKey
+        || Build.OS & (1 << kOS.mac) && i === (OnFirefox ? kKeyCode.os_ff_mac : kKeyCode.osRight_mac)
+            && (!(Build.OS & ~(1 << kOS.mac)) || os_ === kOS.mac)
+      ? (i === kKeyCode.backspace ? BSP : i === kKeyCode.esc ? kChar.esc
           : i === kKeyCode.tab ? kChar.tab : i === kKeyCode.enter ? ENT
-          : (i === kKeyCode.osRightMac || i > kKeyCode.minAcsKeys - 1 && i < kKeyCode.maxAcsKeys + 1)
+          : (i < kKeyCode.maxAcsKeys + 1 ? i > kKeyCode.minAcsKeys - 1 : i > kKeyCode.maxNotMetaKey)
             && fgCache.a && fgCache.a === event.location ? kChar.Modifier
           : kChar.None
         )
+      : i === kKeyCode.menuKey && Build.BTypes & ~BrowserType.Safari
+        && (Build.BTypes & ~BrowserType.Chrome || Build.OS & ~kOS.mac) ? kChar.Menu
       : ((s = event.key) ? (<RegExpOne> /^F\d/).test(s) : i > kKeyCode.maxNotFn && i < kKeyCode.minNotFn)
       ? ("f" + (s ? s.slice(1) : i - kKeyCode.maxNotFn)) as kChar.F_num
       : kChar.None

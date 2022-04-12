@@ -627,9 +627,10 @@ declare const enum kKeyCode {
   maxNotNum = 48 - 1, N0, N9 = N0 + 9, minNotNum,
   maxNotAlphabet = 65 - 1, A, B, C, D, E, F, G, H, I, J, K, L, M, N,
   O, P, Q, R, S, T, U, V, W, X, Y, Z, MinNotAlphabet,
-  metaKey = 91, osRightNonMac = 92, osRightMac = 93, menuKey = 93, maxNotFn = 112 - 1, f1, f2, f5 = f1 + 4,
+  metaKey = 91, osLeft = metaKey, osRight_not_mac = 92, osRight_mac = 93, menuKey = 93,
   maxNotMetaKey = metaKey - 1, minNotMetaKeyOrMenu = menuKey + 1,
-  f10 = f1 + 9, f12 = f1 + 11, f13, f20 = f1 + 19, minNotFn, ime = 229,
+  maxNotFn = 112 - 1, f1, f2, f5 = f1 + 4,
+  f10 = f1 + 9, f12 = f1 + 11, f13, f20 = f1 + 19, minNotFn, os_ff_mac = 224, ime = 229,
   questionWin = 191, questionMac = kCharCode.question, bracketLeftOnFF = 64,
 }
 declare const enum KeyStat {
@@ -653,7 +654,7 @@ declare const enum kChar {
   maxNotNum = "/", minNotNum = ":",
   maxNotF_num = "f0", minNotF_num = "f:", maxF_num = "f9",
   CharCorrectionList = ";=,-./`[\\]'\\:+<_>?~{|}\"|", EnNumTrans = ")!@#$%^&*(",
-  Modifier = "modifier", Alt = "alt",
+  Modifier = "modifier", Alt = "alt", Menu = "contextmenu",
 }
 
 declare const enum BrowserType {

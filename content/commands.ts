@@ -174,8 +174,9 @@ set_contentCommands_([
         for (const rawKey in keys) {
           const key = +rawKey
           if (keys[key] && event.timeStamp - <number> keys[key] > (
-                (key > kKeyCode.altKey ? key < kKeyCode.maxNotMetaKey + 1 || key > kKeyCode.minNotMetaKeyOrMenu - 1
-                  : key < kKeyCode.shiftKey) ? fgCache.k[0] + 800 : 5e3)) {
+                (key > kKeyCode.maxAcsKeys ? key < kKeyCode.maxNotMetaKey + 1 || key > kKeyCode.minNotMetaKeyOrMenu - 1
+                  && (!OnFirefox || key !== kKeyCode.os_ff_mac)
+                  : key < kKeyCode.minAcsKeys) ? fgCache.k[0] + 800 : 5e3)) {
             keys[key] = false, --keyCount
           }
         }

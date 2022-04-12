@@ -531,14 +531,19 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         : true) {
       let {keyCode: i} = event, keyId: kCharCode;
       key = i > kKeyCode.space - 1 && i < kKeyCode.minNotDelete ? this._keyNames_old_cr_ee![i - kKeyCode.space]
-        : i < kKeyCode.minNotDelete || i === kKeyCode.osRightMac
-        ? i === kKeyCode.backspace ? kChar.backspace
-            : i === kKeyCode.esc ? kChar.esc
+        : i < kKeyCode.minNotDelete || i === kKeyCode.metaKey
+          || Build.OS & (1 << kOS.mac) && i === (!(Build.BTypes & ~BrowserType.Firefox)
+                || Build.BTypes & BrowserType.Firefox && Vomnibar_.browser_ === BrowserType.Firefox
+                ? kKeyCode.os_ff_mac : kKeyCode.osRight_mac)
+              && (!(Build.OS & ~(1 << kOS.mac)) || Vomnibar_.os_ === kOS.mac)
+        ? i === kKeyCode.backspace ? kChar.backspace : i === kKeyCode.esc ? kChar.esc
             : i === kKeyCode.tab ? kChar.tab : i === kKeyCode.enter ? kChar.enter
-            : (i === kKeyCode.osRightMac || i > kKeyCode.minAcsKeys - 1 && i < kKeyCode.maxAcsKeys + 1)
+            : (i < kKeyCode.maxAcsKeys + 1 ? i > kKeyCode.minAcsKeys - 1 : i > kKeyCode.maxNotMetaKey)
               && Vomnibar_.mapModifier_ && Vomnibar_.mapModifier_ === event.location ? kChar.Modifier
             : i === kKeyCode.altKey ? kChar.Alt
             : kChar.None
+        : i === kKeyCode.menuKey && Build.BTypes & ~BrowserType.Safari
+          && (Build.BTypes & ~BrowserType.Chrome || Build.OS & ~kOS.mac) ? kChar.Menu
         : i > kKeyCode.maxNotFn && i < kKeyCode.minNotFn ? "f" + (i - kKeyCode.maxNotFn)
         : i && (key = Build.BTypes & ~BrowserType.Chrome ? <string | undefined> event.keyIdentifier || ""
               : event.keyIdentifier as string).startsWith("U+") && (keyId = parseInt(key.slice(2), 16))
@@ -873,6 +878,9 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
           : (event.altKey || keyCode === kKeyCode.altKey ? KeyStat.altKey : 0)
           + (event.ctrlKey || keyCode === kKeyCode.ctrlKey ? KeyStat.ctrlKey : 0)
           + (event.metaKey || keyCode > kKeyCode.maxNotMetaKey && keyCode < kKeyCode.minNotMetaKeyOrMenu
+              || Build.BTypes & BrowserType.Firefox && Build.OS & (1 << kOS.mac)
+                  && (!(Build.BTypes & ~BrowserType.Firefox) || a.browser_ === BrowserType.Firefox)
+                  && keyCode === kKeyCode.os_ff_mac
               ? KeyStat.metaKey : 0)
           + (event.shiftKey || keyCode === kKeyCode.shiftKey ? KeyStat.shiftKey : 0)
       if (!a.isActive_) { return }
