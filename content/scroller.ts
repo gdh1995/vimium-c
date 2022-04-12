@@ -29,7 +29,7 @@ import {
 import {
   rAF_, scrollingEl_, SafeEl_not_ff_, docEl_unsafe_, NONE, frameElement_, OnDocLoaded_, GetParent_unsafe_, UNL,
   querySelector_unsafe_, getComputedStyle_, notSafe_not_ff_, HDN, isRawStyleVisible, fullscreenEl_unsafe_,
-  doesSupportDialog, attr_s, getSelection_, isIFrameElement, derefInDoc_, isHTML_, supportInert_
+  doesSupportDialog, attr_s, getSelection_, isIFrameElement, derefInDoc_, isHTML_
 } from "../lib/dom_utils"
 import {
   scrollWndBy_, wndSize_, getZoom_, wdZoom_, bZoom_, isNotInViewport, prepareCrop_, padClientRect_, instantScOpt,
@@ -224,19 +224,12 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
     let el: SafeElement & ElementToHTMLorOtherFormatted | HTMLElement | null
     let style: CSSStyleDeclaration | null | undefined
     if (!(OnChrome && Build.MinCVer >= BrowserVer.MinEnsured$HTMLElement$$inert) && !domFeatures && isHTML_()) {
-      domFeatures = supportInert_!() ? 3
-          : OnChrome && Build.MinCVer >= BrowserVer.MinEnsuredHTMLDialogElement || WithDialog && doesSupportDialog() ? 2
+      domFeatures = // here should not use inert - it affects too many DOM APIs
+          OnChrome && Build.MinCVer >= BrowserVer.MinEnsuredHTMLDialogElement || WithDialog && doesSupportDialog() ? 2
           : 1
     }
     if (!isHTML_()) { /* empty */ }
-    else if (OnChrome && Build.MinCVer >= BrowserVer.MinEnsured$HTMLElement$$inert || !OnEdge && domFeatures > 2) {
-      el = (element || docEl_unsafe_()) as HTMLElement
-      if (scrolling) {
-        el.inert === !1 && ((styleTop = el).inert = !0)
-      } else {
-        styleTop && ((styleTop as HTMLElement).inert = !1, styleTop = null)
-      }
-    } else if (OnChrome && Build.MinCVer >= BrowserVer.MinEnsuredHTMLDialogElement || domFeatures > 1) {
+    else if (OnChrome && Build.MinCVer >= BrowserVer.MinEnsuredHTMLDialogElement || domFeatures > 1) {
       scrolling ? curModalElement || addElementList([], [0, 0], 1) : curModalElement !== hint_box && removeModal()
     } else {
       el = (scrolling ? OnFirefox ? docEl_unsafe_() : SafeEl_not_ff_!(docEl_unsafe_())
