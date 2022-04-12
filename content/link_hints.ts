@@ -519,9 +519,7 @@ const callExecuteHint = (hint: ExecutableHintItem, event?: HandlerNS.Event): voi
       reinitLinkHintsIn(frameArray.length > 1 ? 50 : 18, (): void => {
         if (OnFirefox && oldMode_ff >= 0) { setMode(oldMode_ff, 1) }
         reinit(0, selectedHintWorker, clickEl, result, retainedInput)
-        if (isActive && (--count_) < 2) {
-          setMode(mode1_)
-        }
+        isActive && 1 === (--count_) && setMode(mode1_)
       })
     }
   }, isActive = 0) })
