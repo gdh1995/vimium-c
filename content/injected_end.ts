@@ -17,7 +17,8 @@ VApi!.e = function (cmd): void {
   const _OnOther: BrowserType = Build.BTypes && !(Build.BTypes & (Build.BTypes - 1))
       ? Build.BTypes as number
       : Build.BTypes & BrowserType.Edge && !!(window as {} as {StyleMedia: unknown}).StyleMedia ? BrowserType.Edge
-      : Build.BTypes & BrowserType.Firefox && typeof InstallTrigger !== "undefined"
+      : Build.BTypes & BrowserType.Safari && typeof safari !== "undefined" && safari ? BrowserType.Safari
+      : Build.BTypes & BrowserType.Firefox && typeof MathMLElement === "function" || typeof InstallTrigger === "object"
       ? BrowserType.Firefox : BrowserType.Chrome
   const OnChrome = !(Build.BTypes & ~BrowserType.Chrome) || !!(_OnOther & BrowserType.Chrome)
   const OnFirefox = !(Build.BTypes & ~BrowserType.Firefox) || !!(_OnOther & BrowserType.Firefox)

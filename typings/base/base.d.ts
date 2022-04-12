@@ -266,7 +266,7 @@ interface Reflect {
 }
 declare var Reflect: Reflect | undefined
 
-declare var InstallTrigger: object | undefined
+declare var InstallTrigger: object | undefined, MathMLElement: object | undefined, safari: object | null | undefined
 
 interface CSS { escape? (value: string): string }
 
