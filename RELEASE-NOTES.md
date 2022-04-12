@@ -4,6 +4,24 @@ Release Notes of Vimium C
 ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 说明文档: https://gitee.com/gdh1995/vimium-c#readme , https://github.com/gdh1995/vimium-c/blob/master/README-zh.md .
 
+#### v1.98.0
+* FindMode,VisualMode: support `mapKey <xxx:f> <v-xxx>` (and `:v`) to trigger commands
+* LinkHints,`dispatchEvent`: support `xy="x[,y[,scale]]"` and x/y can be `"count"`
+  * `"count"` will be replaced by `count * scale (0.01)`; an empty value of x / y means 0.5
+  * if `abs(x) <= 1`, x will be `rect edge size * x`
+  * so `xy="count"` means `[count * 0.01, 0.5]`
+  * also fix selection of target element, and now run rules in order
+* fix a bug affecting suggestion order in Vomnibar
+* fix logic conflicts in per-mode `mapKey`
+* fix broken `prevent browser from caching images`, `NewTab Url` and `Vomnibar page`
+* LinkHints: add `.retainInput` to reuse old text query when in filter and queue mode
+* LinkHints: now simulates `contextmenu` on `button="right"`
+* support the `<contextmenu>` key (when a browser supports)
+* text substitution: support `base64` (as `base64-encode`), `base64-decode`, `json` and `json-parse`
+* Vomnibar: add an option of `itemKeyword` which works after `itemSedKeys`
+* copyWindowInfo: add `type="host"`
+* fix some found bugs and compatibility issues
+
 #### 1.97.0
 
 * Vimium C has switched its setting storage into `browser.storage.local` completely since v1.97
@@ -526,7 +544,7 @@ bug fixes:
 * add an option to stop to show notifications on updates ([#116](https://github.com/gdh1995/vimium-c/issues/116))
 
 #### 1.80.1
-* support pre-mode "`mapKey`" directive: ```mapKey <`:o> <f2>```
+* support per-mode "`mapKey`" directive: ```mapKey <`:o> <f2>```
 * Vomnibar: always parse `vimium://` URLs, including `vimium://paste [...sed-rules]`
 * add `vimium://cd <level> [URL]`, and "level" can be `....` or `/...`
 * add `sed="s/_/_/g\nRule2..."` option to those commands which uses Clipboard

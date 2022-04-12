@@ -18,6 +18,7 @@
   "closeTabsOnRight": "$count=0",
   "copyCurrentUrl": "type=url/title/frame, decoded",
   "copyWindowInfo": "format=\"${title}: ${url}\", join:true/string, decoded",
+  "dispatchEvent": "key=\"key,keyCode,code\",init:{}",
   "editText": "run:string, dom=false",
   "enableContentSettingTemp": "type=images",
   "enterFindMode": "last, selected=true",
