@@ -4,7 +4,7 @@ const OnOther_: BrowserType = Build.BTypes && !(Build.BTypes & (Build.BTypes - 1
     ? Build.BTypes as number
     : Build.BTypes & BrowserType.Edge && !!(window as {} as {StyleMedia: unknown}).StyleMedia ? BrowserType.Edge
     : Build.BTypes & BrowserType.Safari && typeof safari !== "undefined" && safari ? BrowserType.Safari
-    : Build.BTypes & BrowserType.Firefox && typeof MathMLElement === "function" || typeof InstallTrigger === "object"
+    : Build.BTypes & BrowserType.Firefox && typeof InstallTrigger === "object"
     ? BrowserType.Firefox : BrowserType.Chrome
 export const OnChrome: boolean = !(Build.BTypes & ~BrowserType.Chrome)
     || !!(Build.BTypes & BrowserType.Chrome && OnOther_ & BrowserType.Chrome)

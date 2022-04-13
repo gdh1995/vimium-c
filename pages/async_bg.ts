@@ -16,6 +16,7 @@ const OnOther: BrowserType = Build.BTypes && !(Build.BTypes & (Build.BTypes - 1)
           || location.protocol.startsWith("chrome")) // in case Chrome also supports `browser` in the future
     ? BrowserType.Chrome
     : Build.BTypes & BrowserType.Edge && globalThis.StyleMedia ? BrowserType.Edge
+    : Build.BTypes & BrowserType.Safari && typeof safari !== "undefined" && safari ? BrowserType.Safari
     : Build.BTypes & BrowserType.Firefox ? BrowserType.Firefox
     : /* an invalid state */ BrowserType.Unknown
 
@@ -25,7 +26,8 @@ export const OnFirefox: boolean = !(Build.BTypes & ~BrowserType.Firefox)
     || !!(Build.BTypes & BrowserType.Firefox && OnOther & BrowserType.Firefox)
 export const OnEdge: boolean = !(Build.BTypes & ~BrowserType.Edge)
     || !!(Build.BTypes & BrowserType.Edge && OnOther & BrowserType.Edge)
-export const OnSafari: boolean = false // eslint-disable-line @typescript-eslint/no-inferrable-types
+export const OnSafari: boolean = !(Build.BTypes & ~BrowserType.Safari)
+    || !!(Build.BTypes & BrowserType.Safari && OnOther & BrowserType.Safari)
 
 const uad = navigator.userAgentData
 const brands = uad && (OnChrome && Build.MinCVer <= BrowserVer.Only$navigator$$userAgentData$$$uaList
