@@ -400,24 +400,10 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     }
     a.timer_ = setTimeout(a.OnTimer_, updateDelay);
   },
-  doRefresh_ (wait: number): void {
-    let oldSel = Vomnibar_.selection_, origin = Vomnibar_.isSelOriginal_;
-    Vomnibar_.useInput_ = false;
-    Vomnibar_.onInnerWidth_();
-    Vomnibar_.update_(wait, function (): void {
-      const len = Vomnibar_.completions_.length;
-      if (!origin && oldSel >= 0 && len > 0) {
-        oldSel = Math.min(oldSel, len - 1);
-        Vomnibar_.selection_ = 0; Vomnibar_.isSelOriginal_ = false;
-        Vomnibar_.updateSelection_(oldSel);
-      }
-      Vomnibar_.focused_ || Vomnibar_.blurWanted_ || Vomnibar_.focus_();
-    });
-  },
-  updateInput_ (sel: number): void {
-    const a = Vomnibar_, focused = a.focused_, blurred = a.blurWanted_;
+  updateInput_ (): void {
+    const a = Vomnibar_, focused = a.focused_, blurred = a.blurWanted_
     a.isSelOriginal_ = false;
-    if (sel === -1) {
+    if (a.selection_ === -1) {
       a.isHttps_ = a.baseHttps_; a.isEditing_ = false;
       a.input_.value = a.inputText_;
       let arr = a._pageNumRe.exec(a.inputText_)
@@ -429,7 +415,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       return;
     }
     blurred && focused && a.input_.blur();
-    const line = a.completions_[sel] as SuggestionEx;
+    const line = a.completions_[a.selection_] as SuggestionEx
     if (line.parsed_) {
       return a._updateInput(line, line.parsed_);
     }
@@ -440,9 +426,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         line.parsed_ = "";
       }
       a._updateInput(line, line.t);
-      if (line.e === "math") {
-        a.input_.select();
-      }
+      line.e === "math" && !blurred && a.input_.select();
       return;
     }
     const onlyUrl = !line.t, url = line.u;
@@ -453,19 +437,11 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       // has error during decoding
       str = line.t;
       if (ind) {
-        if (str.lastIndexOf("://", 5) < 0) {
-          str = (ind === ProtocolType.http ? "http://" : "https://") + str;
-        }
-        if (url.endsWith("/") && !str.endsWith("/")) {
-          str += "/";
-        }
+        str = str.lastIndexOf("://", 5) < 0 ? (ind === ProtocolType.http ? "http://" : "https://") + str : str
+        str = url.endsWith("/") && !str.endsWith("/") ? str + "/" : str
       }
     }
-    VPort_.post_({
-      H: kFgReq.parseSearchUrl,
-      i: sel,
-      u: str
-    });
+    VPort_.post_({ H: kFgReq.parseSearchUrl, i: a.selection_, u: str })
   },
   parsed_ ({ i: id, s: search }: BgVomnibarSpecialReq[kBgReq.omni_parsed]): void {
     const line = Vomnibar_.completions_[id] as SuggestionEx;
@@ -480,7 +456,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     if (a.selection_ < 0) { return; }
     if (a.isSelOriginal_) {
       a.inputText_ = a.input_.value;
-      return a.updateInput_(a.selection_);
+      return a.updateInput_()
     }
     let line = a.completions_[a.selection_] as SuggestionEx, str = a.input_.value.trim();
     a.resMode_ && (str = str.slice(a.resMode_.length))
@@ -490,18 +466,17 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   },
   _updateInput (line: SuggestionEx, str: string): void {
     const maxW = str.length * 10, tooLong = maxW > innerWidth - PixelData.AllHNotInput;
-    Vomnibar_.input_.value = str;
+    if (Vomnibar_.input_.value !== str) { Vomnibar_.input_.value = str }
     tooLong && (Vomnibar_.input_.scrollLeft = maxW);
     Vomnibar_.isHttps_ = line.https_ && str === line.t;
     Vomnibar_.isEditing_ = str !== line.parsed_ || line.parsed_ === line.t;
   },
   updateSelection_ (sel: number): void {
     const a = Vomnibar_;
-    if (a.timer_) { return; }
     const _ref = a.list_.children, old = a.selection_;
-    (a.isSelOriginal_ || old < 0) && (a.inputText_ = a.input_.value);
-    a.updateInput_(sel);
-    a.selection_ = sel;
+    (a.isSelOriginal_ || old === -1) && (a.inputText_ = a.input_.value)
+    a.selection_ = sel
+    a.updateInput_()
     old >= 1 && _ref[old - 1].classList.remove("p");
     old >= 0 && _ref[old].classList.remove("s");
     sel >= 1 && _ref[sel - 1].classList.add("p");
@@ -530,7 +505,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         ? Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key && Build.BTypes & BrowserType.Chrome && !key
         : true) {
       let {keyCode: i} = event, keyId: kCharCode;
-      key = i > kKeyCode.space - 1 && i < kKeyCode.minNotDelete ? this._keyNames_old_cr_ee![i - kKeyCode.space]
+      key = i > kKeyCode.space - 1 && i < kKeyCode.minNotDelete ? Vomnibar_._keyNames_old_cr_ee![i - kKeyCode.space]
         : i < kKeyCode.minNotDelete || i === kKeyCode.metaKey
           || Build.OS & (1 << kOS.mac) && i === (!(Build.BTypes & ~BrowserType.Firefox)
                 || Build.BTypes & BrowserType.Firefox && Vomnibar_.browser_ === BrowserType.Firefox
@@ -550,7 +525,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         ? keyId < kCharCode.minNotAlphabet && keyId > kCharCode.minNotSpace - 1
           ? shiftKey && keyId > kCharCode.maxNotNum && keyId < kCharCode.minNotNum ? enNumTrans[keyId - kCharCode.N0]
             : String.fromCharCode(keyId < kCharCode.minAlphabet || shiftKey ? keyId : keyId + kCharCode.CASE_DELTA)
-          : Build.OS & ~(1 << kOS.mac) && keyId > this.keyIdCorrectionOffset_old_cr_!
+          : Build.OS & ~(1 << kOS.mac) && keyId > Vomnibar_.keyIdCorrectionOffset_old_cr_!
             && ((keyId -= 186) < 7 || (keyId -= 26) > 6 && keyId < 11)
           ? charCorrectionList[keyId + 12 * +shiftKey]
           : ""
@@ -563,13 +538,13 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         }
         key = code.length === 1 && key.length < 2
               ? !shiftKey || code < "0" || code > "9" ? code : enNumTrans[+code]
-              : this._modifierKeys[key]
+              : Vomnibar_._modifierKeys[key]
                 ? Vomnibar_.mapModifier_ && event.location === Vomnibar_.mapModifier_ ? kChar.Modifier
                 : key === "Alt" ? key : ""
               : key === "Escape" ? kChar.esc
               /** {@link ../lib/keyboard_utils#char_} */
               : code.length < 2 || key.length > 1 && key !== "Dead" ? key.startsWith("Arrow") ? key.slice(5) : key
-              : (mapped = this._codeCorrectionMap.indexOf(code)) < 0 ? code
+              : (mapped = Vomnibar_._codeCorrectionMap.indexOf(code)) < 0 ? code
               : charCorrectionList[mapped + 12 * +shiftKey]
             ;
       }
@@ -639,9 +614,6 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     const char = (key.slice(key.lastIndexOf("-") + 1) || key && kChar.minus) as kChar,
     mainModifier = key.length > 1 ? key.slice(0, key.indexOf("-") + 1) as "a-" | "c-" | "m-" | "s-" | "" : "";
     if (mainModifier === "a-" || mainModifier === "m-") {
-      if (char === kChar.f2) {
-        return a.onAction_(focused ? AllowedActions.blurInput : AllowedActions.focus);
-      }
       if (mainModifier === "a-") {
         if (key === "a-" + kChar.Alt || key === "a-" + kChar.Modifier) {
           // not set keyup listener on purpose:
@@ -654,6 +626,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         }
         a.inAlt_ && a.toggleAlt_(0);
       }
+      if (char === kChar.f2) { return a.onAction_(focused ? AllowedActions.blurInput : AllowedActions.focus) }
       if (char >= "0" && char <= "9" && (Build.OS & ~(1 << kOS.mac) && a.os_ || (<RegExpOne> /[cm]-/).test(key))) {
           ind = +char || 10;
           if (ind <= a.completions_.length) {
@@ -748,11 +721,14 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     case AllowedActions.focus: a.focus_(); break;
     case AllowedActions.blurInput: a.blurWanted_ = true; a.input_.blur(); break;
     case AllowedActions.backspace: case AllowedActions.blur:
-      !a.focused_ ? a.focus_()
-      : action === AllowedActions.blur ? a.focus_(false)
-      : document.execCommand("delete");
+      !a.focused_ ? a.focus_() : action === AllowedActions.blur ? a.focus_(false) : document.execCommand("delete")
       break;
     case AllowedActions.up: case AllowedActions.down:
+      if (a.timer_) {
+        a.onUpdate_ = (): void => { a.selection_ = -1, a.isSelOriginal_ = false; a.onAction_(action) }
+        a.timer_ > 0 && a.update_(0, a.onUpdate_)
+        return
+      }
       sel = a.completions_.length + 1;
       sel = (sel + a.selection_ + (action - AllowedActions.up)) % sel - 1;
       return a.updateSelection_(sel);
@@ -898,7 +874,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         : hasCtrl ? !!hasShift !== a.activeOnCtrl_ ? ReuseType.newFg : ReuseType.newBg : ReuseType.newWnd
   },
   removeCur_ (): void {
-    if (Vomnibar_.selection_ < 0) { return; }
+    if (Vomnibar_.selection_ < 0 || Vomnibar_.timer_) { return }
     const completion = Vomnibar_.completions_[Vomnibar_.selection_], type = completion.e;
     if (type !== "tab" && (type !== "history" || (Build.BTypes & ~BrowserType.Firefox
           && (!(Build.BTypes & BrowserType.Firefox) || Vomnibar_.browser_ !== BrowserType.Firefox)
@@ -1077,7 +1053,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     a.isEditing_ = false;
     if (func = a.onUpdate_) {
       a.onUpdate_ = null;
-      return func.call(a);
+      return func()
     }
   },
   toggleInputMode_ (): void {
@@ -1502,16 +1478,27 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     Vomnibar_ && Vomnibar_.isActive_ && Vomnibar_.refresh_(isTab)
   },
   refresh_ (waitFocus?: boolean): void {
-    getSelection().removeAllRanges();
-    if (!waitFocus) {
-      return Vomnibar_.doRefresh_(150);
+    const doRefresh_ = (wait: number): void => {
+      let oldSel = Vomnibar_.selection_, origin = Vomnibar_.isSelOriginal_
+      Vomnibar_.useInput_ = false
+      Vomnibar_.onInnerWidth_()
+      Vomnibar_.update_(wait, (): void => {
+        const len = Vomnibar_.completions_.length
+        if (!origin && oldSel >= 0) {
+          const newSel = Math.min(oldSel, len - 1)
+          Vomnibar_.isSelOriginal_ = false
+          Vomnibar_.selection_ < 0 && Vomnibar_.selection_--
+          Vomnibar_.updateSelection_(newSel)
+        }
+        Vomnibar_.focused_ || Vomnibar_.blurWanted_ || Vomnibar_.focus_()
+      });
     }
+    Vomnibar_.focused_ || getSelection().removeAllRanges()
+    if (!waitFocus) { doRefresh_(150); return }
     window.onfocus = function (e: Event): void {
       window.onfocus = null as never;
-      if ((Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
-            ? e.isTrusted : e.isTrusted !== false) && VPort_._port) {
-        Vomnibar_.doRefresh_(17);
-      }
+      (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
+          ? e.isTrusted : e.isTrusted !== false) && VPort_._port && doRefresh_(17)
     };
   },
   OnUnload_ (e: Event): void {
@@ -1666,13 +1653,13 @@ VUtils_ = {
     const kUnits = ["second", "minute", "hour", "day", /** week */ "", "month", "year"] as const
     VUtils_.timeStr_ = (t: number | undefined): string => {
       if (!t) { return "" }
-      if (!this.timeCache_) {
+      if (!VUtils_.timeCache_) {
         const now = new Date()
-        this.timeCache_ = +now
+        VUtils_.timeCache_ = +now
         tzOffset = now.getTimezoneOffset() * 1000 * 60
       }
       // Chrome (including Edge C) 37 and 83 has a bug that the unit of Session.lastVisitTime is second
-      const negPos = parseInt(((this.timeCache_ - t) / 1000) as any as string)
+      const negPos = parseInt(((VUtils_.timeCache_ - t) / 1000) as any as string)
       let d = negPos < 0 ? -negPos : negPos
 // the range below is copied from `threshold` in momentjs:
 // https://github.com/moment/moment/blob/9d560507e54612cf2fdd84cbaa117337568a384c/src/lib/duration/humanize.js#L4-L12
@@ -1768,7 +1755,7 @@ VPort_ = {
       , msg: VomnibarNS.FReq[K] & VomnibarNS.Msg<K>) => void | 1,
   post_<K extends keyof FgReq> (request: FgReq[K] & Req.baseFg<K>): void {
     try {
-      (this._port || this.connect_(PortType.omnibar | PortType.reconnect)).postMessage<K>(request);
+      (VPort_._port || VPort_.connect_(PortType.omnibar | PortType.reconnect)).postMessage<K>(request);
     } catch {
       VPort_ = null as never;
       this.postToOwner_({ N: VomnibarNS.kFReq.broken });
