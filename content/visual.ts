@@ -45,11 +45,9 @@ import {
   GetChildNodes_not_ff, rangeCount_, getAccessibleSelectedNode, scrollingEl_, isNode_,
   getDirectionOfNormalSelection, selOffset_, modifySel, kDir, parentNode_unsafe_s, textOffset_
 } from "../lib/dom_utils"
+import { prepareCrop_, cropRectToVisible_, getVisibleClientRect_, set_scrollingTop, selRange_ } from "../lib/rect"
 import {
-  getZoom_, prepareCrop_, cropRectToVisible_, getVisibleClientRect_, set_scrollingTop, selRange_,
-} from "../lib/rect"
-import {
-  getSelectionBoundingBox_,
+  getSelectionBoundingBox_, doesSelectRightInEditableLock,
   checkDocSelectable, getSelected, resetSelectionToDocStart, flash_, collpaseSelection, ui_box, getSelectionText
 } from "./dom_ui"
 import { executeScroll, scrollIntoView_s, getPixelScaleToScroll } from "./scroller"
@@ -146,7 +144,7 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode], count: number):
       // common HTML nodes
       if (anchorNode !== focusNode) {
         diType_ = DiType.Normal
-        return di_ = getDirectionOfNormalSelection(sel, anchorNode!, focusNode!)
+        return di_ = getDirectionOfNormalSelection(sel, anchorNode, focusNode)
       }
       num1 = selOffset_(sel)
       // here rechecks `!anchorNode` is just for safety.
@@ -171,7 +169,7 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode], count: number):
         }
       }
       if (diType_ & DiType.TextBox) {
-        return di_ = (lock as TextElement).selectionDirection !== kDir[0] ? kDirTy.right : kDirTy.left
+        return di_ = doesSelectRightInEditableLock() ? kDirTy.right : kDirTy.left
       }
     }
     // nodes under shadow DOM or in other unknown edge cases
@@ -351,7 +349,6 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode], count: number):
 
     checkDocSelectable();
     set_scrollingTop(scrollingEl_(1))
-    getZoom_(1)
     getPixelScaleToScroll()
     diType_ = DiType.UnsafeUnknown
     curSelection = getSelected(initialScope)
@@ -467,7 +464,7 @@ const getNextRightCharacter = (isMove: BOOL): string => {
     oldLen_ = 0
     if (diType_ & DiType.TextBox) {
       return (raw_insert_lock as TextElement).value.charAt(textOffset_(raw_insert_lock as TextElement
-          , di_ === kDirTy.right || (raw_insert_lock as TextElement).selectionDirection !== kDir[0]))
+          , di_ === kDirTy.right || doesSelectRightInEditableLock()))
     }
     if (!diType_) {
       let focusNode = getAccessibleSelectedNode(sel, 1)

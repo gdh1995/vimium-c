@@ -223,7 +223,7 @@ export const GetParent_unsafe_ = function (el: Node | Element
       || type === PNType.DirectNode ? pn as Node | null // may return a Node instance
       : type >= PNType.ResolveShadowHost
         && isNode_(pn as Node, kNode.DOCUMENT_FRAGMENT_NODE)
-      ? (pn as DocumentFragment as ShadowRoot).host || null // shadow root or other type of doc fragment
+      ? (pn as DocumentFragment as Partial<ShadowRoot>).host || null // shadow root or other type of doc fragment
       : (pn as Node as NodeToElement).tagName ? pn as Element /* in doc and .pN+.pE are overridden */
       : null /* pn is null, or some unknown type ... */;
 } as {
@@ -233,7 +233,7 @@ export const GetParent_unsafe_ = function (el: Node | Element
   (el_in_dom: Node, type: PNType.DirectNode): ShadowRoot | DocumentFragment | Document | Element | null
 }
 
-/** acccept non-mounted elements if on Firefox */
+/** acccept non-mounted elements if on Firefox and latest Chrome */
 export const getRootNode_mounted = ((el: Node): Node => {
   let pn: Node | null
   if (!OnEdge && (!OnChrome
@@ -246,6 +246,7 @@ export const getRootNode_mounted = ((el: Node): Node => {
 }) as ((element: SafeElement) => Node) as {
   /** OnFirefox */ (element: LockableElement): Node | null
   (element: SafeElement): Document | ShadowRoot
+  (element: Node): Document | ShadowRoot | Element | DocumentFragment
 }
 
 export const scrollingEl_ = (fallback?: 1): SafeElement | null => {
@@ -469,21 +470,22 @@ export const isSelected_ = (): boolean => {
 }
 
 /** return `right` in case of unknown cases */
-export const getDirectionOfNormalSelection = (sel: Selection, anc: Node, focus: Node): VisualModeNS.ForwardDir => {
-  const num1 = compareDocumentPosition(anc, focus)
+export const getDirectionOfNormalSelection = (sel: Selection, anc: Node | null, focus: Node | null
+    ): VisualModeNS.ForwardDir => {
+  const num1 = !anc || !focus ? 0 : anc !== focus ? compareDocumentPosition(anc, focus)
+      : selOffset_(sel, 1) < selOffset_(sel) ? kNode.DOCUMENT_POSITION_PRECEDING : 0
   return (
       num1 & (kNode.DOCUMENT_POSITION_CONTAINS | kNode.DOCUMENT_POSITION_CONTAINED_BY)
       ? selRange_(sel, 1).endContainer === anc : (num1 & kNode.DOCUMENT_POSITION_PRECEDING)
     ) ? VisualModeNS.kDir.left : VisualModeNS.kDir.right
 }
 
-export const getSelectionFocusEdge_ = (sel: Selection, knownDi?: VisualModeNS.ForwardDir): SafeElement | null => {
+export const getSelectionFocusEdge_ = (sel: Selection
+      , knownDi?: VisualModeNS.ForwardDir | VisualModeNS.kDir.unknown): SafeElement | null => {
     let el = rangeCount_(sel) && getAccessibleSelectedNode(sel, 1), nt: Node["nodeType"], o: Node | null | 0 = el
     if (!el) { return null; }
     const anc = getAccessibleSelectedNode(sel)
-    knownDi = knownDi != null ? knownDi
-        : anc === el ? (selOffset_(sel, 1) < selOffset_(sel) ? VisualModeNS.kDir.left : VisualModeNS.kDir.right)
-        : anc ? getDirectionOfNormalSelection(sel, anc, el) : 1
+    knownDi = knownDi != null ? knownDi : getDirectionOfNormalSelection(sel, anc, el)
     if ((el as NodeToElement).tagName) {
       o = (OnFirefox ? el.childNodes as NodeList : GetChildNodes_not_ff!(el as Element))[selOffset_(sel, 1)]
     } else {

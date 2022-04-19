@@ -336,9 +336,8 @@ export const setMode = (mode: HintMode, silent?: BOOL): void => {
 }
 
 const getPreciseChildRect = (frameEl: KnownIFrameElement, view: Rect): Rect | null => {
-    const V = "visible",
-    brect = boundingRect_(frameEl),
-    docEl = docEl_unsafe_(), body = doc.body, inBody = !!body && IsInDOM_(frameEl as SafeHTMLElement, body, 1),
+    const V = "visible", brect = boundingRect_(frameEl), // not check <iframe>s referred by <slot>s
+    docEl = docEl_unsafe_(), body = doc.body, inBody = !!body && IsInDOM_(frameEl as SafeHTMLElement, body),
     zoom = (OnChrome ? docZoom_ * (inBody ? bZoom_ : 1) : 1) / dScale_ / (inBody ? bScale_ : 1);
     let x0 = min_(view.l, brect.l), y0 = min_(view.t, brect.t), l = x0, t = y0, r = view.r, b = view.b
     for (let el: Element | null = frameEl; el = GetParent_unsafe_(el, PNType.RevealSlotAndGotoParent); ) {
@@ -563,7 +562,7 @@ export const findAnElement_ = (options: OptionsToFindElement, count: number
       : (testD("h") || testD("cl")) ? derefInDoc_(lastHovered_) // hover | clicked
       : /* d !== !0 &&*/ testD("s") || testD("a") ? derefInDoc_(currentScrolling) // currentScrollable / DOMActivate
       : null
-    if (el = el && isNotInViewport(el) !== VisibilityType.NoSpace ? el : null) { break }
+    if (el = testD("em") || el && isNotInViewport(el) < VisibilityType.NotInFullscreen ? el : null) { break }
   }
   return [el as SafeElement | null | undefined, wholeDoc, indByCount, isSel]
 }

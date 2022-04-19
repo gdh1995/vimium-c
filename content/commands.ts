@@ -441,9 +441,10 @@ set_contentCommands_([
       useResult = 1, result = ok
     } else {
       activeEl = findAnElement_(options, count)[0]
-      if (!activeEl || view_(activeEl) > VisibilityType.NoSpace - 1) {
+      if (!activeEl) {
         return runFallbackKey(options, 2, "", delay)
       }
+      view_(activeEl)
       const useClick = options.click && (activeEl as Partial<HTMLElement>).click
       const xy = !useClick && options.xy as HintsNS.StdXY | undefined
       const point = xy && center_(getVisibleBoundingRect_(activeEl) || getVisibleClientRect_(activeEl), xy)

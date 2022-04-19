@@ -6,7 +6,8 @@ import {
   isIFrameElement, getInputType, uneditableInputs_, getComputedStyle_, queryChildByTag_, htmlTag_, isAriaFalse_,
   kMediaTag, NONE, querySelector_unsafe_, isStyleVisible_, fullscreenEl_unsafe_, notSafe_not_ff_, docEl_unsafe_,
   GetParent_unsafe_, unsafeFramesetTag_old_cr_, isHTML_, querySelectorAll_unsafe_, isNode_, INP, attr_s, supportInert_,
-  getMediaTag, getMediaUrl, contains_s, GetShadowRoot_, parentNode_unsafe_s, testMatch, hasTag_, editableTypes_
+  getMediaTag, getMediaUrl, contains_s, GetShadowRoot_, parentNode_unsafe_s, testMatch, hasTag_, editableTypes_,
+  getRootNode_mounted
 } from "../lib/dom_utils"
 import {
   getVisibleClientRect_, getVisibleBoundingRect_, getClientRectsForAreas_, getCroppedRect_, boundingRect_,
@@ -367,7 +368,7 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
   set_evenHidden_(options.evenIf! | (options.scroll === "force" ? kHidden.OverflowHidden : 0))
   initTestRegExps()
   if (wantClickable) {
-    getPixelScaleToScroll();
+    getPixelScaleToScroll(1)
     clickTypeFilter_ = options.typeFilter! | 0
   }
   if (matchSelector) {
@@ -657,10 +658,10 @@ export const filterOutNonReachable = (list: Hint[], notForAllClickable?: boolean
   while (0 <= --i && now - start < GlobalConsts.ElementsFromPointTakesTooSlow) {
     i & 63 || (now = getTime())
     el = list[i][0];
-    root = el.getRootNode!() as Document | ShadowRoot;
+    root = getRootNode_mounted(el)
     const nodeType = root.nodeType, area = list[i][1],
     cx = (area.l + area.r) * zoomD2, cy = (area.t + area.b) * zoomD2;
-    if (nodeType !== kNode.DOCUMENT_NODE && nodeType !== kNode.DOCUMENT_FRAGMENT_NODE || does_hit(cx, cy)) {
+    if (does_hit(cx, cy) || nodeType !== kNode.DOCUMENT_NODE && nodeType !== kNode.DOCUMENT_FRAGMENT_NODE) {
       continue;
     }
     if (OnFirefox && !fromPoint) {

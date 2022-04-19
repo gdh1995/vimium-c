@@ -11,7 +11,7 @@ import {
   attachShadow_, getSelectionFocusEdge_, deepActiveEl_unsafe_, setClassName_s, compareDocumentPosition,
   getEditableType_, scrollIntoView_, SafeEl_not_ff_, GetParent_unsafe_, focus_, fullscreenEl_unsafe_, docEl_unsafe_,
   getSelection_, isSelected_, docSelectable_, isHTML_, createElement_, CLK, MDW, removeEl_s, appendNode_s,
-  setDisplaying_s, findAnchor_,
+  setDisplaying_s, findAnchor_, notSafe_not_ff_,
   getAccessibleSelectedNode,  INP, BU, UNL, contains_s, setOrRemoveAttr_s, textContent_s, modifySel, parentNode_unsafe_s
 } from "../lib/dom_utils"
 import { wdZoom_, prepareCrop_, view_, dimSize_, selRange_, getZoom_ } from "../lib/rect"
@@ -833,7 +833,7 @@ export const executeFind = (query: string | null, options: ExecuteOptions): Rect
     if (found! && !highLight && (par = par || getSelectionParent_unsafe(curSel = getSelected()))) {
       let newAnchor = oldAnchor && getAccessibleSelectedNode(curSel!)
       let posChange = newAnchor && compareDocumentPosition(oldAnchor as Node, newAnchor)
-      view_(par)
+      !OnFirefox && notSafe_not_ff_!(par) || view_(par as SafeElement)
       if (posChange && /** go back */ !!(posChange & kNode.DOCUMENT_POSITION_PRECEDING) !== back) {
         hudTip(kTip.wrapWhenFind, 1, VTr(back ? kTip.atStart : kTip.atEnd))
       }

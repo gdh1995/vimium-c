@@ -8,7 +8,7 @@ import {
   IsInDOM_, scrollIntoView_, rangeCount_, removeEl_s, append_not_ff, htmlTag_, getRootNode_mounted
 } from "./dom_utils"
 
-export declare const enum VisibilityType { Visible = 0, OutOfView = 1, NoSpace = 2 }
+export declare const enum VisibilityType { Visible = 0, OutOfView = 1, NotInFullscreen = 2, NoSpace = 3 }
 export type Point2D = readonly [ left: number, top: number ]
 export type ViewBox = readonly [ left: number, top: number, width: number, height: number, maxLeft: number ]
 export type ViewOffset = readonly [ left: number, top: number ] | ViewBox
@@ -34,7 +34,7 @@ export const wndSize_ = (id?: 0 | 1 | 2): number => id ? id < 2 ? innerWidth : d
 /** if `el` is null, then return viewSize for `kDim.scrollSize` */
 export const dimSize_ = (el: SafeElement | null, index: kDim | ScrollByY): number => {
   let visual, byY = (index & kDim.byY) as BOOL;
-  return el && (el !== scrollingTop || index > kDim.elClientW - 1)
+  return el && (index > kDim.elClientW - 1 || el !== scrollingTop)
       ? index < kDim.scrollW ? byY ? el.clientHeight : el.clientWidth
         : index < kDim.positionX ? byY ? el.scrollHeight : el.scrollWidth
         : byY ? el.scrollTop : el.scrollLeft
@@ -382,14 +382,13 @@ export const getViewBox_ = function (needBox?: 1 | /** dialog-found */ 2): ViewB
   (): ViewOffset
 }
 
-export const isNotInViewport = function (this: void, element: Element | null, rect?: Rect): VisibilityType {
-  if (!rect) { rect = boundingRect_(element!) }
+export const isNotInViewport = (element: SafeElement, rect?: Rect): VisibilityType => {
+  let fs: Element | null
+  rect = rect || boundingRect_(element!)
   return rect.b - rect.t < 1 || rect.r - rect.l < 1 ? VisibilityType.NoSpace
+      : (fs = fullscreenEl_unsafe_()) && !IsInDOM_(element, fs) ? VisibilityType.NotInFullscreen
       : rect.b <= 0 || rect.t >= wndSize_() || rect.r <= 0 || rect.l >= wndSize_(1)
       ? VisibilityType.OutOfView : VisibilityType.Visible
-} as {
-  (element: Element): VisibilityType
-  (element: null, rect: Rect): VisibilityType
 }
 
 export const isSelARange = (sel: Selection): boolean => sel.type === "Range"
@@ -401,9 +400,9 @@ export const selRange_ = ((sel: Selection, ensured?: 1): Range | null =>
   (sel: Selection, ensured?: BOOL | undefined): Range | null
 }
 
-export const view_ = (el: Element, oldY?: number): VisibilityType => {
+export const view_ = (el: SafeElement, oldY?: number): VisibilityType => {
   let rect = boundingRect_(el), secondScroll: number,
-  ty = isNotInViewport(null, rect)
+  ty = isNotInViewport(el, rect)
   if (ty === VisibilityType.OutOfView) {
     let ih = wndSize_(), delta = rect.t < 0 ? -1 : rect.t > ih ? 1 : 0, f = oldY != null,
     elHeight = rect.b - rect.t

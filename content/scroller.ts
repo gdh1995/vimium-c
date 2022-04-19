@@ -29,7 +29,7 @@ import {
 import {
   rAF_, scrollingEl_, SafeEl_not_ff_, docEl_unsafe_, NONE, frameElement_, OnDocLoaded_, GetParent_unsafe_, UNL,
   querySelector_unsafe_, getComputedStyle_, notSafe_not_ff_, HDN, isRawStyleVisible, fullscreenEl_unsafe_,
-  doesSupportDialog, attr_s, getSelection_, isIFrameElement, derefInDoc_, isHTML_
+  doesSupportDialog, attr_s, getSelection_, isIFrameElement, derefInDoc_, isHTML_, IsInDOM_
 } from "../lib/dom_utils"
 import {
   scrollWndBy_, wndSize_, getZoom_, wdZoom_, bZoom_, isNotInViewport, prepareCrop_, padClientRect_, instantScOpt,
@@ -348,7 +348,6 @@ export const executeScroll: VApiTy["c"] = function (di: ScrollByY, amount0: numb
     }
     set_scrollingTop(scrollingEl_(1))
     if (scrollingTop) {
-      getZoom_(1)
       getPixelScaleToScroll()
     }
     const element = findScrollable(di, toFlags ? toMax || -1 : amount0
@@ -497,19 +496,24 @@ const findScrollable = (di: ScrollByY, amount: number
     return children.reduce((cur, info1) => cur || selectFirst(info1, 1), null as ElementScrollInfo | null | undefined)
   }
 
-    const selectFirstType = (evenOverflowHidden != null ? evenOverflowHidden : isTop || !!injector) ? 3 : 1
-    const top = scrollingTop, activeEl: SafeElement | null | undefined = derefInDoc_(currentScrolling) || null
-    let element = activeEl
+    const selectFirstType = (evenOverflowHidden != null ? evenOverflowHidden : isTop || injector) ? 3 : 1
+    const activeEl: SafeElement | null | undefined = derefInDoc_(currentScrolling) || null
+    const fullscreen = fullscreenEl_unsafe_(), top: Element | null = fullscreen || scrollingTop
+    let element: Element | null = activeEl
     if (element) {
-      while (element !== top
-          && shouldScroll_s(element!, element === cachedScrollable ? (di + 2) as 2 | 3 : di, amount) < 1) {
+      while (element !== top && (!fullscreen || IsInDOM_(element as SafeElement, fullscreen))
+          ? shouldScroll_s(<SafeElement> element, element === cachedScrollable ? (di + 2) as 2 | 3 : di, amount) < 1
+          : (element = top, 0)) {
         element = (!OnFirefox
             ? SafeEl_not_ff_!(GetParent_unsafe_(element!, PNType.RevealSlotAndGotoParent))
             : GetParent_unsafe_(element!, PNType.RevealSlotAndGotoParent) as SafeElement | null
           ) || top;
       }
       element = element !== top ? element : null
-      cachedScrollable = OnFirefox ? weakRef_ff(element, kElRef.cachedScrollable) : weakRef_not_ff!(element)
+      if (!fullscreen) {
+        cachedScrollable = OnFirefox ? weakRef_ff(element as SafeElement | null, kElRef.cachedScrollable)
+            : weakRef_not_ff!(element as SafeElement | null)
+      }
     }
     if (!element) {
       // note: twitter auto focuses its dialog panel, so it's not needed to detect it here
@@ -518,28 +522,29 @@ const findScrollable = (di: ScrollByY, amount: number
         if (re && re.test(loc_.host)) {
           element = OnFirefox ? (safeCall(querySelector_unsafe_, items[1]) || null) as SafeElement | null
                   : SafeEl_not_ff_!(safeCall(querySelector_unsafe_, items[1]) || null)
-          if (element) { break }
+          if (element && (!fullscreen || IsInDOM_(element as SafeElement, fullscreen))) { break }
         }
       }
     }
     if (!element && top) {
-      const candidate = selectFirst({ a: 0, e: top, h: 0 })
-      element = candidate && candidate.e !== top
-          && (!activeEl || candidate.h > wndSize_() / 2)
-          ? candidate.e : top;
+      const candidate = (OnFirefox || !fullscreen || !notSafe_not_ff_!(top))
+          && selectFirst({ a: 0, e: top as SafeElement, h: 0 })
+      element = candidate && candidate.e !== top && (!activeEl || candidate.h > wndSize_() / 2) ? candidate.e : top
       // if current_, then delay update to current_, until scrolling ends and ._checkCurrent is called;
       // otherwise, cache selected element for less further cost
-      activeEl || (currentScrolling = OnFirefox ? weakRef_ff(element, kElRef.currentScrolling)
-          : weakRef_not_ff!(element), cachedScrollable = 0)
+      activeEl || fullscreen ||
+      (currentScrolling = OnFirefox ? weakRef_ff(element as SafeElement | null, kElRef.currentScrolling)
+          : weakRef_not_ff!(element as SafeElement | null), cachedScrollable = 0)
     }
-    return element;
+    return !OnFirefox && element && notSafe_not_ff_!(element) ? null : element as SafeElement | null
 }
 
-export const getPixelScaleToScroll = (): void => {
+export const getPixelScaleToScroll = (skipGetZoom?: 1): void => {
     /** https://drafts.csswg.org/cssom-view/#dom-element-scrolltop
      * Imported on 2013-05-15 by https://github.com/w3c/csswg-drafts/commit/ad01664359641f791d99f0b3fce545b55579acdc
      * Firefox is still using `int`: https://bugzilla.mozilla.org/show_bug.cgi?id=1217330 (filed on 2015-10-22)
      */
+  skipGetZoom || getZoom_(1)
   scale = (OnFirefox ? 2 : 1) / min_(1, wdZoom_) / min_(1, bZoom_)
 }
 

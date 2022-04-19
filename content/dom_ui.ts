@@ -4,7 +4,7 @@ import {
 } from "../lib/utils"
 import { prevent_ } from "../lib/keyboard_utils"
 import {
-  createElement_, attachShadow_, NONE, fullscreenEl_unsafe_, docEl_unsafe_, getComputedStyle_, set_docSelectable_,
+  createElement_, attachShadow_, NONE, fullscreenEl_unsafe_, docEl_unsafe_, getComputedStyle_, set_docSelectable_, kDir,
   GetParent_unsafe_, getSelection_, GetShadowRoot_, getEditableType_, htmlTag_, textOffset_, derefInDoc_, supportInert_,
   notSafe_not_ff_, CLK, frameElement_, runJS_, isStyleVisible_, rangeCount_, getAccessibleSelectedNode, removeEl_s,
   appendNode_s, append_not_ff, setClassName_s, isNode_, contains_s, setOrRemoveAttr_s, textContent_s,
@@ -334,6 +334,9 @@ export const getSelectionText = (type?: 0 | 1, sel?: Selection): string => {
     }
     return type ? s : s.trim()
 }
+
+export const doesSelectRightInEditableLock = (): boolean =>
+    (raw_insert_lock as TextElement).selectionDirection !== kDir[0]
 
 export const removeSelection = function (root?: VUIRoot & Pick<DocumentOrShadowRoot, "getSelection">): boolean {
     const sel = (OnChrome && Build.MinCVer >= BrowserVer.MinShadowDOMV0
