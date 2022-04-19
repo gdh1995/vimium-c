@@ -12,9 +12,11 @@ const dispatchMark = ((mark?: Readonly<MarksNS.FgMark> | null | undefined
   let a = createElement_("a"), oldStr: string | undefined, newStr: string, match: string[],
   newMark: Readonly<MarksNS.FgMark> | null | undefined
   mark && textContent_s(a, oldStr = mark + "")
-  newMark = !dispatchEvent(new FocusEvent("vimiumMark", { relatedTarget: a })) ? null
+  newMark = !dispatchEvent(new FocusEvent("vimiumMark", { relatedTarget: a, cancelable: true })) ? null
       : (newStr = textContent_s(a)) === oldStr ? mark
-      : (match = newStr.split(",")).length > 1 ? [~~match[0], ~~match[1], match[2]] : mark
+      : (match = newStr.split(",")).length > 1 ? ([~~match[0], ~~match[1]] as const
+          ).concat(match.slice(2) as never) as [number, number, string]
+      : mark
   return mark ? newMark as Readonly<MarksNS.FgMark> | MarksNS.FgMark | null : newMark || [scrollX | 0, scrollY | 0]
 }) as {
   (mark: Readonly<MarksNS.FgMark>): Readonly<MarksNS.FgMark> | null | MarksNS.FgMark
@@ -22,7 +24,9 @@ const dispatchMark = ((mark?: Readonly<MarksNS.FgMark> | null | undefined
 }
 
 export const setPreviousMarkPosition = (idx?: number): void => {
-  (previous[idx! | 0] = dispatchMark()).push(loc_.hash)
+  const arr = dispatchMark()
+  arr.length === 2 && arr.push(loc_.hash)
+  previous[idx! | 0] = arr
 }
 
 export const activate = (options: CmdOptions[kFgCmd.marks], count: number): void => {

@@ -229,7 +229,8 @@ export const GetParent_unsafe_ = function (el: Node | Element
 } as {
   (el: Element, type: PNType.DirectElement
         | PNType.ResolveShadowHost | PNType.RevealSlot | PNType.RevealSlotAndGotoParent): Element | null;
-  (el: Node, type: PNType.DirectNode): ShadowRoot | DocumentFragment | Document | Element | null
+  (el_in_dom: Element | Text, type: PNType.ResolveShadowHost): Element | null
+  (el_in_dom: Node, type: PNType.DirectNode): ShadowRoot | DocumentFragment | Document | Element | null
 }
 
 /** acccept non-mounted elements if on Firefox */
@@ -486,7 +487,7 @@ export const getSelectionFocusEdge_ = (sel: Selection, knownDi?: VisualModeNS.Fo
     if ((el as NodeToElement).tagName) {
       o = (OnFirefox ? el.childNodes as NodeList : GetChildNodes_not_ff!(el as Element))[selOffset_(sel, 1)]
     } else {
-      el = GetParent_unsafe_(el, PNType.DirectNode)
+      el = GetParent_unsafe_(el as Element | Text, PNType.ResolveShadowHost)
     }
     for (; o && (!OnChrome || Build.MinCVer >= BrowserVer.MinFramesetHasNoNamedGetter
           ? <number> <Element | RadioNodeList | kNode> o.nodeType - kNode.ELEMENT_NODE

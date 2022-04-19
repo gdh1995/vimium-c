@@ -35,7 +35,7 @@ declare const enum SelType { None = 0, Caret = 1, Range = 2 }
 type InfoToMoveRightByWord = [oldSelected: string, oldDi: ForwardDir]
 
 import {
-  VTr, safer, os_, doc, chromeVer_, tryCreateRegExp, esc, OnFirefox, OnChrome, safeCall, parseOpenPageUrlOptions,
+  VTr, safer, os_, doc, chromeVer_, tryCreateRegExp, esc, OnFirefox, OnChrome, safeCall, parseOpenPageUrlOptions, isTY,
 } from "../lib/utils"
 import {
   removeHandler_, getMappedKey, keybody_, isEscape_, prevent_, ENTER, suppressTail_, replaceOrSuppressMost_
@@ -73,8 +73,9 @@ let deactivate: (isEscOrReinit?: 1 | 2) => void
 
 export { modeName as visual_mode_name, deactivate }
 
+  /** count = 0 means fromFind */
   /** @safe_di */
-export const activate = (options: CmdOptions[kFgCmd.visualMode]): void => {
+export const activate = (options: CmdOptions[kFgCmd.visualMode], count: number): void => {
   /** @safe_di requires selection is None on called, and may change `selection_` */
   const establishInitialSelectionAnchor = (): number => {
     if (!(Build.NDEBUG || curSelection && curSelection.type === "None")) {
@@ -145,7 +146,7 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode]): void => {
       // common HTML nodes
       if (anchorNode !== focusNode) {
         diType_ = DiType.Normal
-        return di_ = magic !== "" ? getDirectionOfNormalSelection(sel, anchorNode!, focusNode!) : kDirTy.unknown
+        return di_ = getDirectionOfNormalSelection(sel, anchorNode!, focusNode!)
       }
       num1 = selOffset_(sel)
       // here rechecks `!anchorNode` is just for safety.
@@ -327,7 +328,10 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode]): void => {
   }
   /** @safe_di */
   deactivate = (isEscOrReinit?: 1 | 2): void => {
-      if (isEscOrReinit === 2) { (contentCommands_[kFgCmd.visualMode] as typeof activate)(options); return }
+      if (isEscOrReinit === 2) {
+        (contentCommands_[kFgCmd.visualMode] as typeof activate)(options, 0)
+        return
+      }
       di_ = kDirTy.unknown
       diType_ = DiType.UnsafeUnknown
       getDirection("")
@@ -402,8 +406,8 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode]): void => {
       return esc!(HandlerResult.Prevent)
     }
     const childAction = currentSeconds && currentSeconds[key],
-    newActions = childAction ? childAction : (<RegExpOne> /^v\d/).test(key) ? +key.slice(1) : keyMap[key]
-    if (!(newActions as VisualAction >= 0)) {
+    newActions = childAction || ((<RegExpOne> /^v\d/).test(key) ? +key.slice(1) : keyMap[key])
+    if (isTY(newActions, kTY.obj) || !(newActions as VisualAction >= 0)) {
       // asserts newActions is SafeDict<VisualAction> | undefined
       currentSeconds = newActions as Exclude<typeof newActions, number>
       return isVKey_(key, event) ? HandlerResult.Prevent
@@ -442,7 +446,7 @@ const findV = (count1: number): void => {
       diType_ = DiType.UnsafeUnknown
       if (mode_ === Mode.Caret && selType() === SelType.Range) {
         options.m = Mode.Visual;
-        (contentCommands_[kFgCmd.visualMode] as typeof activate)(options)
+        contentCommands_[kFgCmd.visualMode](options as typeof options & SafeObject, 1)
       } else {
         di_ = kDirTy.unknown
         commandHandler(VisualAction.Noop, 1)
@@ -724,7 +728,7 @@ const ensureLine = (command1: number): void => {
       post_({ H: kFgReq.findFromVisual });
     } else {
       options.m = command - VisualAction.MaxNotNewMode;
-      (contentCommands_[kFgCmd.visualMode] as typeof activate)(options)
+      contentCommands_[kFgCmd.visualMode](options as typeof options & SafeObject, 1)
     }
     return
   }
@@ -774,11 +778,11 @@ const ensureLine = (command1: number): void => {
     ensureLine(command)
   }
   getDirection("")
-  diType_ & DiType.Complicated || scrollIntoView_s(getSelectionFocusEdge_(curSelection, di_ as ForwardDir))
+  diType_ & DiType.Complicated || scrollIntoView_s(getSelectionFocusEdge_(curSelection, di_))
 }
 
   commandHandler(VisualAction.Noop, 1)
-  modeName ? diff ? hudTip(kTip.noUsableSel, 1) : hudShow(kTip.inVisualMode, modeName, options.r) : 0
+  modeName ? diff ? hudTip(kTip.noUsableSel, 1) : hudHide(count ? void 0 : TimerType.noTimer) : 0
 }
 
 export const highlightRange = (sel: Selection): void => {

@@ -281,7 +281,7 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
     }
     if (visual_mode_name) {
       visualDeactivate ? visualDeactivate(2) :
-      (contentCommands_[kFgCmd.visualMode] as typeof visualActivate)(safer<CmdOptions[kFgCmd.visualMode]>({ r: true }))
+      (contentCommands_[kFgCmd.visualMode] as typeof visualActivate)(safer({} as CmdOptions[kFgCmd.visualMode]), 0)
       return;
     }
     if (i > FindAction.MaxExitButNoWork && knownHasResults && (!el || el !== insert_Lock_())) {

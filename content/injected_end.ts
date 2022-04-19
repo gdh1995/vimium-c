@@ -50,7 +50,7 @@ VApi!.e = function (cmd): void {
     return jsEvalPromise.then(() => VApi!.v !== tryEval ? (VApi!.v = VApi!.v.tryEval || VApi!.v)(code) : undefined)
   }
 
-  let i18nMessages: FgRes[kFgReq.i18n] = []
+  let i18nMessages: FgRes[kFgReq.i18n] | null = null
   const ref = thisApi.r
   ref[0](kFgReq.i18n, 0, (res): void => {
     i18nMessages = res;
@@ -59,7 +59,8 @@ VApi!.e = function (cmd): void {
     }
   })
   ref[2]!(2, (tid, args): string => {
-    return args ? i18nMessages[tid].replace(trArgsRe, s => typeof args === "string" ? args : <string> args[+s[1] - 1])
+    return !i18nMessages ? "$Msg-" + tid
+        : args ? i18nMessages[tid].replace(trArgsRe, s => typeof args === "string" ? args : <string> args[+s[1] - 1])
         : i18nMessages[tid];
   })
 
