@@ -21,7 +21,7 @@ interface Contexts { normal_: SedContext, extras_: kCharCode[] | null }
 interface ClipSubItem {
   readonly contexts_: Contexts; readonly match_: RegExp
   host_: string | ValidUrlMatchers | /** regexp is broken */ -1 | null
-  readonly retainMatched_: BOOL; readonly actions_: SedAction[]; readonly replaced_: string
+  readonly retainMatched_: number; readonly actions_: SedAction[]; readonly replaced_: string
 }
 
 const SedActionMap: ReadonlySafeDict<SedAction> = As_<SafeObject & {
@@ -63,19 +63,19 @@ const parseSeds_ = (text: string, fixedContexts: Contexts | null): readonly Clip
     const body = sepRe.exec(line.slice(prefix[0].length))
     if (!body) { continue }
     const head = prefix[1], flags = body[3], actions: SedAction[] = []
-    let host: string | null = null, retainMatched: BOOL = 0
+    let host: string | null = null, retainMatched: number = 0
     for (const rawI of body[4].split(",")) {
       const i = rawI.toLowerCase()
       if (i.startsWith("host=")) {
         host = rawI.slice(5)
       } else if (i.startsWith("match")) {
-        retainMatched = 1
+        retainMatched = Math.max(i.includes("=") && parseInt(i.split("=")[1]) || 1, 1)
       } else {
         let action = SedActionMap[i.replace(<RegExpG> /[_-]/g, "")] || SedAction.NONE
         action && actions.push(action)
       }
     }
-    const matchRe = BgUtils_.makeRegexp_(body[1], retainMatched ? flags.replace("g", "") : flags)
+    const matchRe = BgUtils_.makeRegexp_(body[1], retainMatched ? flags.replace(<RegExpG> /g/g, "") : flags)
     matchRe && result.push({
       contexts_: fixedContexts || parseSedKeys_(head)!,
       host_: host,
@@ -271,11 +271,11 @@ set_substitute_((text: string, normalContext: SedContext, mixedSed?: MixedSedOpt
         )) {
       let end = -1
       if (item.retainMatched_) {
-        let start = 0, first_group: string | undefined
+        let start = 0, first_group: string | undefined, retain = item.retainMatched_
         text.replace(item.match_ as RegExpOne & RegExpSearchable<0>, function (matched_text): string {
           const args = arguments
           start = args[args.length - 2], end = start + matched_text.length
-          first_group = args.length > 3 ? args[1] : ""
+          first_group = args.length > 2 + retain ? args[retain] || "" : ""
           return ""
         })
         if (end >= 0) {
@@ -419,3 +419,5 @@ set_paste_(!CONST_.AllowClipboardRead_ ? () => null
 })
 
 updateHooks_.clipSub = (): void => { staticSeds_ = null }
+
+if (!Build.NDEBUG) { Object.assign(globalThis as any, { parseSeds_ }) }

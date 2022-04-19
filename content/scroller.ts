@@ -591,26 +591,21 @@ export const scrollIntoView_s = (el?: SafeElement | null): void => {
     ihm = min_(96, ih / 2), iwm = min_(64, iw / 2),
     hasY = r.b < ihm ? max_(r.b - ih + ihm, r.t - ihm) : ih < r.t + ihm ? min_(r.b - ih + ihm, r.t - ihm) : 0,
     hasX = r.r < 0 ? max_(r.l - iwm, r.r - iw + iwm) : iw < r.l ? min_(r.r - iw + iwm, r.l - iwm) : 0
-    currentScrolling = OnFirefox ? weakRef_ff(el, kElRef.currentScrolling) : weakRef_not_ff!(el)
+    currentScrolling = OnFirefox ? weakRef_ff(el!, kElRef.currentScrolling) : weakRef_not_ff!(el!)
     cachedScrollable = 0
-    if (hasX || hasY) {
-      for (let el2: Element | null = el; el2; el2 = GetParent_unsafe_(el2, PNType.RevealSlotAndGotoParent)) {
-        const pos = getComputedStyle_(el2).position;
+    for (; el && (hasX || hasY); el = GetParent_unsafe_(el, PNType.RevealSlotAndGotoParent) as SafeElement | null) {
+        const pos = getComputedStyle_(el).position;
         if (pos === "fixed" || pos === "sticky") {
           hasX = hasY = 0;
-          break;
         }
-      }
-      if (hasX) {
-        doesSucceed_ = null;
-        void (hasY ? performScroll : vApi.$)(findScrollable(0, hasX), 0, hasX);
-      }
-      if (hasY) {
-        doesSucceed_ = null
-        void vApi.$(findScrollable(1, hasY), 1, hasY)
-      }
     }
-    scrolled = doesSucceed_ = 0
+    makeElementScrollBy_(0, hasX, hasY)
+}
+
+export const makeElementScrollBy_ = (el: SafeElement | null | 0, hasX: number, hasY: number): void => {
+  void hasX && (hasY ? performScroll : vApi.$)(el !== 0 ? el : findScrollable(0, hasX), 0, hasX)
+  void hasY && vApi.$(el !== 0 ? el : findScrollable(1, hasY), 1, hasY)
+  scrolled = 0
     scrollTick(0); // it's safe to only clean keyIsDown here
 }
 

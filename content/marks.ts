@@ -1,8 +1,9 @@
 import { VTr, safer, loc_, vApi, locHref, isTY, isTop, OnFirefox } from "../lib/utils"
+import { createElement_, scrollingEl_, textContent_s } from "../lib/dom_utils"
 import { post_, runFallbackKey } from "./port"
 import { hudHide, hudShow, hudTip } from "./hud"
 import { removeHandler_, getMappedKey, isEscape_, replaceOrSuppressMost_, hasShift_ff } from "../lib/keyboard_utils"
-import { createElement_, textContent_s } from "../lib/dom_utils"
+import { makeElementScrollBy_ } from "./scroller"
 
 // [0..8]
 let previous: Readonly<MarksNS.FgMark>[] = []
@@ -101,7 +102,7 @@ export const scrollToMark = ((scroll: Readonly<MarksNS.FgMark> | null | undefine
     if (scroll[1] === 0 && scroll[2] && scroll[0] === 0) {
       loc_.hash = scroll[2];
     } else {
-      scrollTo(scroll[0], scroll[1]);
+      makeElementScrollBy_(scrollingEl_(1), scroll[0] - scrollX, scroll[1] - scrollY)
     }
   }
 }) as (scroll: Readonly<MarksNS.FgMark>) => void

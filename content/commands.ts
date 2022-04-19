@@ -6,7 +6,8 @@ import {
 import {
   isHTML_, hasTag_, createElement_, querySelectorAll_unsafe_, SafeEl_not_ff_, docEl_unsafe_, MDW, CLK, derefInDoc_,
   querySelector_unsafe_, DAC, removeEl_s, appendNode_s, setClassName_s, INP, contains_s, toggleClass_s, modifySel,
-  focus_, testMatch, docHasFocus_, deepActiveEl_unsafe_, getEditableType_, textOffset_, kDir
+  focus_, testMatch, docHasFocus_, deepActiveEl_unsafe_, getEditableType_, textOffset_, kDir, getAccessibleSelectedNode,
+  getDirectionOfNormalSelection
 } from "../lib/dom_utils"
 import {
   pushHandler_, removeHandler_, getMappedKey, prevent_, isEscape_, keybody_, DEL, BSP, ENTER, handler_stack,
@@ -14,13 +15,13 @@ import {
 } from "../lib/keyboard_utils"
 import {
   view_, wndSize_, isNotInViewport, getZoom_, prepareCrop_, getViewBox_, padClientRect_, isSelARange, center_,
-  getBoundingClientRect_, setBoundary_, wdZoom_, dScale_, getVisibleClientRect_, getVisibleBoundingRect_, VisibilityType
+  getBoundingClientRect_, setBoundary_, wdZoom_, dScale_, getVisibleClientRect_, getVisibleBoundingRect_
 } from "../lib/rect"
 import { post_, set_contentCommands_, runFallbackKey } from "./port"
 import {
   addElementList, ensureBorder, evalIfOK, getSelected, getSelectionText, getParentVApi, curModalElement, createStyle,
   getBoxTagName_old_cr, setupExitOnClick, addUIElement, removeSelection, ui_root, kExitOnClick, collpaseSelection,
-  hideHelp, set_hideHelp, set_helpBox, checkHidden, flash_, filterOutInert
+  hideHelp, set_hideHelp, set_helpBox, checkHidden, flash_, filterOutInert, doesSelectRightInEditableLock
 } from "./dom_ui"
 import { hudHide, hudShow, hudTip, hud_text } from "./hud"
 import { onPassKey, set_onPassKey, passKeys, set_nextKeys, set_passKeys, keyFSM, onEscDown } from "./key_handler"
@@ -361,11 +362,11 @@ set_contentCommands_([
     const editable = lock && getEditableType_<0>(lock) === EditableType.TextBox ? lock as TextElement : 0;
     (editable || options.dom) && timeout_((): void => {
       let commands = options.run.split(<RegExpG> /,\s*/g), sel: Selection | undefined, absCount = abs_(count)
-      let cur: string | 0, offset: number
+      let cur: string | 0, offset: number, dir: boolean
       let start: number, end: number, start0: number
       while (0 < absCount--) {
         for (var i = 0; i < commands.length; i += 3) {
-          var cmd = commands[i], a1 = commands[i + 1], a2 = commands[i + 2] // eslint-disable-line no-var
+          var cmd = commands[i], a1 = commands[i + 1] || "", a2 = commands[i + 2] // eslint-disable-line no-var
           if (cmd === "exec") {
             execCommand(a1, doc, commands[i + 2])
           } else if (cmd === "replace") {
@@ -386,12 +387,20 @@ set_contentCommands_([
               }
             }))
             editable === insert_Lock_() && editable.setSelectionRange(start, end, kDir[1])
-          } else if (sel = sel || getSelected(), cmd === "collapse") {
-            collpaseSelection(sel, a1 === "end")
           } else {
-            modifySel(sel, cmd === "auto" ? isSelARange(sel) : cmd < kChar.f
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-                , a1 === "count" ? count > 0 : a1 > kChar.f, a2 as any)
+            sel = sel || getSelected()
+            // a1: string := count | focus(ed) | forward(s) | backward(s) | begin | start | end
+            dir = count > 0 === (a1[4] !== "s" ? a1 > kChar.c && a1 < "s" : (
+              insert_Lock_() && getEditableType_<0>(raw_insert_lock!) === EditableType.TextBox
+              ? doesSelectRightInEditableLock()
+              : !!getDirectionOfNormalSelection(sel, getAccessibleSelectedNode(sel), getAccessibleSelectedNode(sel, 1))
+            ))
+            if (cmd === "collapse") {
+              collpaseSelection(sel, dir)
+            } else {
+              // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+              modifySel(sel, cmd === "auto" ? isSelARange(sel) : cmd < kChar.f, dir, a2 as any)
+            }
           }
         }
       }
