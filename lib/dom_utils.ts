@@ -204,12 +204,14 @@ export const GetParent_unsafe_ = function (el: Node | Element
   }
   type ParentNodeProp = Node["parentNode"]; type ParentElement = Node["parentElement"]
   let pe = el.parentElement as Exclude<ParentElement, Window>, pn = el.parentNode as Exclude<ParentNodeProp, Window>
+  let nodeTy: Node["nodeType"] | undefined
   if (pe === pn /* normal pe or no parent */ || !pn /* indeed no par */) { return pn as Element | null }
-  // may be `frameset,form` with pn or pe overridden; <frameset>.parentNode may be an connected shadowRoot
+  // may be `frameset,form` with pn or pe overridden; <frameset>.parentNode may be a connected shadowRoot
   if (!OnFirefox) {
     pn = (!OnChrome || Build.MinCVer >= BrowserVer.MinFramesetHasNoNamedGetter
           || !unsafeFramesetTag_old_cr_ || (pn as ParentNodeProp as WindowWithTop).top !== top)
-        && pn.nodeType && doc.contains.call(pn, el) ? pn
+        && (nodeTy = pn.nodeType) && (nodeTy === kNode.DOCUMENT_FRAGMENT_NODE || nodeTy === kNode.DOCUMENT_NODE
+            || nodeTy && doc.contains.call(pn, el)) ? pn
         : !OnChrome || Build.MinCVer >= BrowserVer.MinParentNodeGetterInNodePrototype
           || chromeVer_ > BrowserVer.MinParentNodeGetterInNodePrototype - 1
         ? _getter_unsafeOnly_not_ff_!(Node, el, "parentNode")
@@ -351,35 +353,41 @@ export const findAnchor_ = ((element: Element | null): SafeHTMLElement | null =>
   return element as SafeHTMLElement
 }) as (element: SafeElement) => SafeHTMLElement & HTMLAnchorElement | null
 
-export const IsInDOM_ = function (element: Element, root?: Element | Document | Window | RadioNodeList
+export const IsInDOM_ = function (element: Element, root?: Element | Document | null
       , checkMouseEnter?: 1): boolean {
     if (!root || isNode_(root as Element | Document, kNode.DOCUMENT_NODE)) {
       const isConnected = element.isConnected; /** {@link #BrowserVer.Min$Node$$isConnected} */
-      if (!(OnChrome && Build.MinCVer < BrowserVer.Min$Node$$isConnected || OnEdge) || isConnected != null) {
-        return isConnected! && (!root || element.ownerDocument === root); // is boolean : exists and is not overridden
+      if (!(OnChrome && Build.MinCVer < BrowserVer.Min$Node$$isConnected || OnEdge) || isConnected != null
+          || !(root = root || element.ownerDocument as Document | null)) {
+        return (OnChrome && Build.MinCVer < BrowserVer.Min$Node$$isConnected || OnEdge ? !!isConnected
+            : isConnected as boolean) && (!root || element.ownerDocument === root)
       }
     }
-    let f: Node["getRootNode"], pe: Element | null;
-    if (OnChrome && Build.MinCVer < BrowserVer.Min$Node$$isConnected || OnEdge) {
-      root = <Element | Document> root || (element.ownerDocument as Document | null) || doc
-      if (BrowserVer.Min$Node$$getRootNode < BrowserVer.Min$Node$$isConnected
-          && isNode_(root, kNode.DOCUMENT_NODE) && (f = element.getRootNode)) {
-        return f.call(element, {composed: true}) === root
-      }
+    let pe: Node | null | undefined = element
+    while (pe && !(OnFirefox ? contains_s(root as SafeElement | Document, pe)
+        : element.contains.call((root as Element | Document), pe))) {
+      pe = !OnEdge && (!OnChrome || Build.MinCVer >= BrowserVer.Min$Node$$getRootNode
+        || chromeVer_ > BrowserVer.Min$Node$$getRootNode - 1) ? getRootNode_mounted(element) : null
+      pe = pe && isNode_(pe, kNode.DOCUMENT_FRAGMENT_NODE) ? (pe as Partial<ShadowRoot>).host : null
     }
-    if (!OnFirefox ? element.contains.call((root as Element | Document), element)
-        : contains_s(root as SafeElement | Document, element)) {
-      return true;
-    }
+    if (pe || !OnEdge && (!OnChrome || Build.MinCVer >= BrowserVer.Min$Node$$getRootNode
+          || chromeVer_ > BrowserVer.Min$Node$$getRootNode - 1) && !checkMouseEnter) { return !!pe }
     while ((pe = GetParent_unsafe_(element
                   , checkMouseEnter ? PNType.RevealSlotAndGotoParent : PNType.ResolveShadowHost))
             && pe !== root) {
-      element = pe;
+      element = pe as Element
     }
     // if not pe, then PNType.DirectNode won't return an Element
     // because .GetParent_ will only return a real parent, but not a fake <form>.parentNode
     return (pe || GetParent_unsafe_(element, PNType.DirectNode)) === root;
-} as (element: SafeElement, root?: Element | Document, checkMouseEnter?: 1) => boolean
+} as {
+  (element: SafeElement, maybeRoot: Element, checkMouseEnter: 1): boolean
+  (element: SafeElement, maybeRoot?: Element | Document): boolean
+}
+
+if (!(Build.NDEBUG || BrowserVer.Min$Node$$getRootNode >= BrowserVer.Min$Node$$isConnected)) {
+  console.log("Assert error: expect BrowserVer.Min$Node$$getRootNode >= BrowserVer.Min$Node$$isConnected")
+}
 
 export const isStyleVisible_ = (element: Element): boolean => isRawStyleVisible(getComputedStyle_(element))
 export const isRawStyleVisible = (style: CSSStyleDeclaration): boolean => style.visibility === "visible"
