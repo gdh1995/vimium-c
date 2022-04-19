@@ -54,7 +54,6 @@ let currentScrolling: WeakRef<SafeElement> | null = null
 let cachedScrollable: WeakRef<SafeElement> | 0 | null = 0
 let keyIsDown = 0
 let preventPointEvents: BOOL | 2 | ScrollConsts.MinLatencyToAutoPreventHover
-let doesSucceed_: ReturnType<VApiTy["$"]>
 let scale = 1
 let joined: VApiTy | null | undefined
 let scrolled: 0 | 1 | 2 = 0
@@ -65,7 +64,7 @@ export function set_currentScrolling (_newCurSc: WeakRef<SafeElement> | null): v
 export function set_cachedScrollable (_newCachedSc: typeof cachedScrollable): void { cachedScrollable = _newCachedSc }
 
 let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: number
-    , newOpts?: CmdOptions[kFgCmd.scroll]): void => {
+    , newOpts?: CmdOptions[kFgCmd.scroll]): ReturnType<VApiTy["$"]> => {
   const knownFPS = [ 30,  45,  60,  75,  90, 100, 120, 144, 155, 165, 170, 175, 180, 200, 240 ]
   const hasNewScrollEnd_cr = OnChrome && (Build.MinCVer >= BrowserVer.MinScrollEndForInstantScrolling
         || chromeVer_ > BrowserVer.MinScrollEndForInstantScrolling - 1) && ("on" + kSE) in Image.prototype
@@ -239,7 +238,7 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
       style && (style[P] = scrolling ? NONE : "")
     }
   };
-  performAnimate = (newEl1, newDi1, newAmount1, options): void => {
+  performAnimate = (newEl1, newDi1, newAmount1, options): ReturnType<VApiTy["$"]> => {
     amount = max_(1, newAmount1 > 0 ? newAmount1 : -newAmount1), calibration = 1.0, di = newDi1
     flags = options ? options.f! | 0 : 0
     wait2 = options && options.wait
@@ -263,11 +262,10 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
           , ((min_delta * 1e4) | 0) / 1e4)
     }
     running = running || rAF_(animate)
-    if (doesSucceed_ != null) {
-      doesSucceed_ = new Promise((newResolve): void => { onFinish = newResolve })
-    }
+    return options && (options.$then || options.$else)
+        && new Promise((newResolve): void => { onFinish = newResolve }) || 0
   };
-  performAnimate(newEl, newDi, newAmount, newOpts)
+  return performAnimate(newEl, newDi, newAmount, newOpts)
 }
 
 const performScroll = ((el: SafeElement | null, di: ScrollByY, amount: number, before?: number): number => {
@@ -286,9 +284,10 @@ const performScroll = ((el: SafeElement | null, di: ScrollByY, amount: number, b
 }
 
 /** should not use `scrollingTop` (including `dimSize_(scrollingTop, clientH/W)`) */
-export const $sc: VApiTy["$"] = (element, di, amount, options): void => {
+export const $sc: VApiTy["$"] = (element, di, amount, options): ReturnType<VApiTy["$"]> => {
+    let ret: ReturnType<VApiTy["$"]>;
     if (hasSpecialScrollSnap(element)) {
-      while (amount * amount >= 1 && !(doesSucceed_ = performScroll(element, di, amount))) {
+      while (amount * amount >= 1 && !(ret = performScroll(element, di, amount))) {
         amount /= 2;
       }
       checkCurrent(element)
@@ -297,9 +296,10 @@ export const $sc: VApiTy["$"] = (element, di, amount, options): void => {
       amount && performAnimate(element, di, amount, options)
       scrollTick(1)
     } else if (amount) {
-      doesSucceed_ = performScroll(element, di, amount)
+      ret = performScroll(element, di, amount)
       checkCurrent(element)
     }
+    return ret
 }
 
 export const activate = (options: CmdOptions[kFgCmd.scroll] & SafeObject, count: number): void => {
@@ -377,7 +377,6 @@ export const executeScroll: VApiTy["c"] = function (di: ScrollByY, amount0: numb
       }
     }
     amount = amount * amount > 0.01 ? amount : 0
-    doesSucceed_ = null
     if (mayUpperFrame && (core = getParentVApi())
         && (!amount && !amount0 || Lower(attr_s(frameElement_()!, "scrolling") || "") === "no"
             || !doesScroll(element, di, amount || toMax))) {
@@ -392,8 +391,6 @@ export const executeScroll: VApiTy["c"] = function (di: ScrollByY, amount0: numb
         && (!amount && !amount0 || !core && !doesScroll(element, di, amount || toMax))) {
       post_({ H: kFgReq.gotoMainFrame, f: 1, c: kFgCmd.scroll, n: oriCount!, a: options as OptionsWithForce })
       amount = 0
-    } else if (options && (options.$then || options.$else)) {
-      doesSucceed_ = 0
     }
     if (toFlags && isTopElement && amount) {
       di && setPreviousMarkPosition()
@@ -411,10 +408,9 @@ export const executeScroll: VApiTy["c"] = function (di: ScrollByY, amount0: numb
     if (amount && readyState_ > "i" && overrideScrollRestoration) {
       overrideScrollRestoration("scrollRestoration", "manual")
     }
-    const rawRet = vApi.$(element, di, amount, options),
-    ret = amount ? rawRet != null ? rawRet : doesSucceed_ : doesSucceed_
+    const ret = vApi.$(element, di, amount, options)
     preventPointEvents = keyIsDown ? preventPointEvents : 0
-    scrolled = doesSucceed_ = 0
+    scrolled = 0
     if (ret && isTY(ret, kTY.obj)) {
       void ret.then((succeed): void => { runFallbackKey(options!, succeed ? 0 : 2) })
     } else if (ret != null) {

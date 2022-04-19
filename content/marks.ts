@@ -5,7 +5,7 @@ import { hudHide, hudShow, hudTip } from "./hud"
 import { removeHandler_, getMappedKey, isEscape_, replaceOrSuppressMost_, hasShift_ff } from "../lib/keyboard_utils"
 import { makeElementScrollBy_ } from "./scroller"
 
-// [0..8]
+// [0, 2..9]
 let previous: Readonly<MarksNS.FgMark>[] = []
 
 const dispatchMark = ((mark?: Readonly<MarksNS.FgMark> | null | undefined
@@ -30,10 +30,10 @@ export const setPreviousMarkPosition = (idx?: number): void => {
   previous[idx! | 0] = arr
 }
 
-export const activate = (options: CmdOptions[kFgCmd.marks], count: number): void => {
+export const activate = (options: CmdOptions[kFgCmd.marks], mcount: number): void => {
   const isCreate = options.mode === "create"
-  const mcount = count < 2 || count > 9 ? 0 : count - 1
   const swap = !!options.swap
+  mcount = mcount < 2 || mcount > 9 ? 0 : mcount
   hudShow(<number> <number | boolean> isCreate + kTip.nowGotoMark)
   replaceOrSuppressMost_(kHandler.marks, (event): HandlerResult => {
   if (event.i === kKeyCode.ime) { return HandlerResult.Nothing }
@@ -53,7 +53,7 @@ export const activate = (options: CmdOptions[kFgCmd.marks], count: number): void
       setPreviousMarkPosition(pos ? 0 : mcount)
       pos && scrollToMark(pos)
       hudTip(kTip.didLocalMarkTask, 1,
-          [VTr(pos ? kTip.didJumpTo : kTip.didCreate), mcount ? mcount + 1 : VTr(kTip.lastMark)])
+          [VTr(pos ? kTip.didJumpTo : kTip.didCreate), mcount ? mcount : VTr(kTip.lastMark)])
     }
   } else if (isCreate) {
     if ((OnFirefox ? hasShift_ff!(event.e) : event.e.shiftKey) !== swap) {
