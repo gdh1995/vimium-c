@@ -233,7 +233,7 @@ export const setOmniStyle_ = (req: FgReq[kFgReq.setOmniStyle], port?: Port): voi
   omniPayload_.s = styles
   const request2: Req.bg<kBgReq.omni_updateOptions> = { N: kBgReq.omni_updateOptions, d: { s: styles } }
   asyncIter_(framesForOmni_.slice(0), (frame): number => {
-    frame !== port && framesForOmni_.includes!(frame) && frame.postMessage(request2)
+    frame !== port && framesForOmni_.includes(frame) && frame.postMessage(request2)
     return 1
   })
 }

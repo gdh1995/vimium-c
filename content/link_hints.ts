@@ -596,7 +596,7 @@ const locateHint = (matchedHint: ExecutableHintItem): BaseHintWorker => {
   let i = frameArray.length
   while (0 < --i) {
     if (OnChrome && Build.MinCVer < BrowserVer.MinEnsuredES$Array$$Includes
-        ? frameArray[i].h.indexOf(matchedHint as HintItem) >= 0 : frameArray[i].h.includes!(matchedHint as HintItem)) {
+        ? frameArray[i].h.indexOf(matchedHint as HintItem) >= 0 : frameArray[i].h.includes(matchedHint as HintItem)) {
       break
     }
   }

@@ -374,7 +374,7 @@ interface ObjectConstructor {
 }
 
 interface ReadonlyArray<T> {
-    includes? (searchObject: any): boolean;
+    includes (searchObject: any): boolean;
     /**
      * Returns the value of the first element in the array where predicate is true, and undefined
      * otherwise.

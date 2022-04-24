@@ -174,7 +174,7 @@ const _BroadcastSettingsUpdates = <K extends keyof BgReq> (
 
 export const broadcastOmni_ = <K extends ValidBgVomnibarReq> (request: Req.bg<K>): void => {
   asyncIter_(framesForOmni_.slice(0), (frame): number => {
-    framesForOmni_.includes!(frame) && frame.postMessage(request)
+    framesForOmni_.includes(frame) && frame.postMessage(request)
     return 1
   })
 }
@@ -428,14 +428,14 @@ js\\:|Js: javascript:\\ $S; JavaScript`,
     notifyUpdate: true,
     smoothScroll: true,
     vomnibarOptions: {
+      actions: "" as never,
       maxMatches: 10,
       queryInterval: 333,
       sizes: VomnibarNS.PixelData.OthersIfEmpty + ","
           + (VomnibarNS.PixelData.OthersIfNotEmpty - VomnibarNS.PixelData.OthersIfEmpty) + ","
           + VomnibarNS.PixelData.Item + "," + VomnibarNS.PixelData.WindowSizeX
           ,
-      styles: "mono-url",
-      actions: ""
+      styles: "mono-url"
     },
     userDefinedCss: "",
     vimSync: null,

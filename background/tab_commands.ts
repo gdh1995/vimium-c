@@ -155,7 +155,7 @@ export const joinTabs = (resolve: OnCmdResolved): void | kBgCmd.joinTabs => {
       } else if (pos === "begin" || pos === "start") {
         start = curWnd.tabs.filter(i => i.pinned).length
       } else if (pos !== "end") {
-        allTabs.includes!(activeTab) && allTabs.splice(allTabs.indexOf(activeTab), 1)
+        allTabs.includes(activeTab) && allTabs.splice(allTabs.indexOf(activeTab), 1)
         goToBefore ? allTabs.push(activeTab) : allTabs.unshift(activeTab)
         start = Math.max(0, curWnd.tabs.findIndex(i => i.id === curTabId_)
             - allTabs.filter(i => i.windowId === curWndId && i.index < activeTab.index).length)
@@ -242,7 +242,7 @@ export const moveTabToNewWindow = (resolve: OnCmdResolved): void | kBgCmd.moveTa
       }
     }
     const curIncognito = activeTab.incognito
-    const firstTab = tabs.includes!(activeTab) ? activeTab : tabs[0]
+    const firstTab = tabs.includes(activeTab) ? activeTab : tabs[0]
     const rightInOld = (getDestIndex(activeTab) ?? 3e4) <= activeTab.index
     const wndInit: Parameters<typeof makeWindow>[0] = { tabId: firstTab.id, incognito: curIncognito, focused }
     const wndState = wnd.type === "normal" ? wnd.state : ""
@@ -430,7 +430,7 @@ export const moveTabToNextWindow = ([tab]: [Tab], resolve: OnCmdResolved): void 
               if (filter) {
                 tabs = filterTabsByCond_(tab, tabs, filter)
                 if (!tabs.length) { resolve(0); return }
-                tab = tabs.includes!(tab) ? tab : tabs[0] as Tab
+                tab = tabs.includes(tab) ? tab : tabs[0] as Tab
               }
               allToMove = tabs
               nearInOld = allToMove.length === 1 && allToMove[0].active ? false : null
@@ -477,7 +477,7 @@ export const reloadTab = (tabs: Tab[], [start, ind, end]: Range3, r: OnCmdResolv
   if (filter) {
     tabs = filterTabsByCond_(activeTab, tabs, filter)
     if (!tabs.length) { r(0); return }
-    activeTab = tabs.includes!(activeTab) ? activeTab : tabs[0]
+    activeTab = tabs.includes(activeTab) ? activeTab : tabs[0]
   }
   if (tabs.length > 20 && needConfirm_()) {
     void confirm_("reloadTab", tabs.length).then(reloadTab.bind(null, allTabs, [start, ind, end], r))
@@ -691,7 +691,7 @@ export const togglePinTab = (tabs: Tab[], oriRange: Range3, resolve: OnCmdResolv
   const current = oriRange[1]
   const tab = tabs[current]
   tabs = filter ? filterTabsByCond_(tab, tabs, filter) : tabs
-  const pin = !filter || tabs.includes!(tab) ? !tab.pinned : !!tabs.find(i => !i.pinned)
+  const pin = !filter || tabs.includes(tab) ? !tab.pinned : !!tabs.find(i => !i.pinned)
   const action = {pinned: pin}, offset = pin ? 0 : 1
   let skipped = 0
   if (abs(cRepeat) > 1 && pin) {
@@ -710,7 +710,7 @@ export const togglePinTab = (tabs: Tab[], oriRange: Range3, resolve: OnCmdResolv
   (end <= 30 || !needConfirm_() ? Promise.resolve(false) : confirm_("togglePinTab", end))
   .then((force1): void => { force1 && (wantedTabs.length = 1) })
   .then((): void => {
-  const firstTabId = wantedTabs.includes!(tab) ? tab.id : wantedTabs[0].id
+  const firstTabId = wantedTabs.includes(tab) ? tab.id : wantedTabs[0].id
   for (const i of wantedTabs) {
     tabsUpdate(i.id, action, i.id === firstTabId ? R_(resolve) : runtimeError_)
   }

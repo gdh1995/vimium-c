@@ -216,7 +216,7 @@ const pageRequestHandlers_ = As_<{
   /** kPgReq.initHelp: */ (_, port): Promise<PgReq[kPgReq.initHelp][1]> => initHelp({ f: true }, port as Port),
   /** kPgReq.callApi: */ (req): OrPromise<PgReq[kPgReq.callApi][1]> => {
     const mName = req.module as "permissions", fName = req.name as "contains", validFuncs = validApis[mName]
-    if (!validApis.hasOwnProperty(mName) || !validFuncs!.includes!(fName)) {
+    if (!validApis.hasOwnProperty(mName) || !validFuncs!.includes(fName)) {
       return [void 0, { message: "refused" }]
     }
     const module = browser_[mName], arr = req.args

@@ -380,15 +380,15 @@ export const watchPermissions_ = (queries: (AtomPermission | null)[]
       if (onChange(allowList, true) === false) {
         listenAdd = listenRemove = false
       }
-      if (listenAdd !== allowList.includes!(false)) {
+      if (listenAdd !== allowList.includes(false)) {
         browserPermissions_.onAdded[(listenAdd = !listenAdd) ? "addListener" : "removeListener"](onAdded)
       }
-      if (listenRemove !== allowList.includes!(true)) {
+      if (listenRemove !== allowList.includes(true)) {
         browserPermissions_.onRemoved[(listenRemove = !listenRemove) ? "addListener" : "removeListener"](onRemoved)
       }
     }
     const onAdded = didChange.bind(null, true), onRemoved = didChange.bind(null, false)
-    if (allowList.includes!(false) || allowList.includes!(true)) {
+    if (allowList.includes(false) || allowList.includes(true)) {
       didChange(true)
     } else {
       onChange(allowList, false)

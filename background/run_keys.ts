@@ -29,7 +29,7 @@ const collectOptions = (opts: { [key: `o.${string}`]: any }): CommandsNS.Options
   for (const key in opts) {
     if (key.includes("$")) { /* empty */ }
     else if (!key.startsWith("o.")) {
-      kRunKeyOptionNames.includes!(key) || todo.push(key)
+      kRunKeyOptionNames.includes(key) || todo.push(key)
     } else if (key.length > 2) {
       o2[found = key.slice(2)] = opts[key as `o.${string}`]
     }
@@ -57,7 +57,7 @@ const matchEnvRule = (rule: CommandsNS.EnvItem, info: CurrentEnvCache): EnvMatch
   if (host != null) {
     let url: string | null | undefined | Promise<string> = info.url, slash: number
     if (url != null ? false : host.t === kMatchUrl.Pattern
-        ? ["/*", "*"].includes!(host.v.pathname) && host.v.search === "*" && host.v.hash === "*"
+        ? ["/*", "*"].includes(host.v.pathname) && host.v.search === "*" && host.v.hash === "*"
         : host.t === kMatchUrl.StringPrefix
         && ((slash = host.v.indexOf("/", host.v.indexOf("://") + 3)) === host.v.length - 1 || slash === -1)) {
       const port = framesForTab_.get(cPort ? cPort.s.tabId_ : curTabId_)?.top_ || cPort
@@ -114,7 +114,7 @@ const matchEnvRule = (rule: CommandsNS.EnvItem, info: CurrentEnvCache): EnvMatch
       return cPort ? EnvMatchResult.abort : EnvMatchResult.nextEnv
     } else if (! selectorArr.some((s): any => cur === 0 ? s.tag === "body" && !s.id && !s.classList :
         (!s.tag || cur[0] === s.tag) && (!s.id || cur[1] === s.id)
-        && (!s.classList.length || cur[2].length > 0 && s.classList.every(i => cur[2].includes!(i)))
+        && (!s.classList.length || cur[2].length > 0 && s.classList.every(i => cur[2].includes(i)))
     )) {
       return EnvMatchResult.nextEnv
     }

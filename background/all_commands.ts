@@ -340,7 +340,7 @@ set_bgC_([
       tabs = tabs.slice(start, end)
       const activeTab = selectFrom(tabs)
       tabs = filter ? filterTabsByCond_(activeTab, tabs, filter) : tabs
-      const count = tabs.includes!(activeTab) ? tabs.length - 1 : tabs.length
+      const count = tabs.includes(activeTab) ? tabs.length - 1 : tabs.length
       if (!count) { resolve(0); return }
       if (count > 20 && needConfirm_()) {
         void confirm_("discardTab", count).then(onTabs.bind(null, allTabs, [start, current, end], resolve))

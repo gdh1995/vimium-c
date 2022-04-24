@@ -31,7 +31,7 @@ const onMessage = <K extends keyof FgReq, T extends keyof FgRes> (request: Req.f
 
 export const sendResponse = <T extends keyof FgRes> (port: Port, msgId: number, response: FgRes[T]): void => {
   const frames = framesForTab_.get(port.s.tabId_)
-  if (frames && frames.ports_.includes!(port)) { // for less exceptions
+  if (frames && frames.ports_.includes(port)) { // for less exceptions
     try {
       port.postMessage<2>({ N: kBgReq.msg, m: msgId, r: response })
     } catch {}

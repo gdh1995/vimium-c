@@ -204,7 +204,7 @@ const parseSedKeys_ = (keys: string | object, parsed?: ParsedSedOpts): Contexts 
     const code = keys.charCodeAt(i), ch = code & ~kCharCode.CASE_DELTA
     if (!(ch > kCharCode.maxNotAlphabet && ch < kCharCode.minNotAlphabet)) {
       extras_ || (extras_ = [])
-      if (parsed || !extras_.includes!(code)) {
+      if (parsed || !extras_.includes(code)) {
         extras_.push(code)
       }
       continue
@@ -220,7 +220,7 @@ const intersectContexts = (a: Contexts, b: Contexts): boolean => {
   const e2 = b.extras_
   if (!a.extras_ || !e2) { return false }
   for (const i of a.extras_) {
-    if (e2.includes!(i)) { return true }
+    if (e2.includes(i)) { return true }
   }
   return false
 }
