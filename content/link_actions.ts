@@ -448,10 +448,10 @@ const checkBoolOrSelector = (userVal: string | boolean | null | void | undefined
       ? hoverEl() : retPromise = catchAsyncErrorSilently(unhover_async(clickEl))
     } else if (mode1_ < HintMode.FOCUS + 1) {
       view_(clickEl)
-      focus_(clickEl)
-      showUrlIfNeeded()
       setNewScrolling(clickEl)
+      focus_(clickEl)
       set_cachedScrollable(currentScrolling)
+      showUrlIfNeeded()
       removeFlash || flash_(clickEl)
       showRect = 0
     } else if (mode1_ < HintMode.max_media + 1) {

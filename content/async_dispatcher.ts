@@ -13,6 +13,7 @@ import { post_ } from "./port"
 import { flash_, moveSel_s_throwable } from "./dom_ui"
 import { coreHints, hintApi, hintManager, hintOptions, isHintsActive } from "./link_hints"
 import { prepareToBlockClick_old_ff, clickEventToPrevent_, dispatchAndBlockClickOnce_old_ff } from "./extend_click_ff"
+import { currentScrolling, setNewScrolling, set_cachedScrollable } from "./scroller"
 /* eslint-disable @typescript-eslint/await-thenable */
 
 export declare const enum kClickAction {
@@ -348,6 +349,8 @@ export const click_async = (async (element: SafeElementForMouse
           && actionTarget < kClickAction.MaxPlain + 1
         ? ActionType.DispatchAndMayOpenTab : ActionType.OpenTabButNotDispatch
   }
+  const isCommonClick = button !== kClickButton.primaryAndTwice && !(modifiers && modifiers[0])
+  isCommonClick && setNewScrolling(element) // DOMActivate is not triggered if a click event is cancelled (prevented)
   if ((result > ActionType.OpenTabButNotDispatch - 1
         || (OnFirefox && Build.MinFFVer < FirefoxBrowserVer.MinPopupBlockerPassClicksFromExtensions
             && /*#__INLINE__*/ prepareToBlockClick_old_ff(result === ActionType.DispatchAndMayOpenTab
@@ -356,6 +359,7 @@ export const click_async = (async (element: SafeElementForMouse
             (await await mouse_(element, CLK, center, modifiers)) && result || result === ActionType.dblClick))
       && getVisibleClientRect_(element)) {
     // require element is still visible
+    isCommonClick && set_cachedScrollable(currentScrolling)
     if (result < ActionType.MinOpenUrl) {
       if (result & ActionType.dblClick
           && !(element as Partial<HTMLInputElement /* |HTMLSelectElement|HTMLButtonElement */>).disabled
