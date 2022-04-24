@@ -527,7 +527,7 @@ const callExecuteHint = (hint: ExecutableHintItem, event?: HandlerNS.Event): voi
 export const findAnElement_ = (options: OptionsToFindElement, count: number
     ): [element: SafeElement | null | undefined, wholeDoc: boolean, indByCount: boolean, sel: boolean | undefined ] => {
   const d = options.direct! as string | true, exOpts = options.directOptions || {},
-  elIndex = exOpts.index, indByCount = elIndex === "count",
+  elIndex = exOpts.index, indByCount = elIndex === "count" || count < 0,
   offset = exOpts.offset || "", wholeDoc = ("" + exOpts.search).startsWith("doc"),
   matchEl = wholeDoc ? (hints: Hint0[], el1: SafeElement): void => {
     isInteractiveInPage(el1) && hints.push([el1 as SafeElementForMouse])
