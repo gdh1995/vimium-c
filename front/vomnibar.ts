@@ -531,24 +531,26 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
           : ""
         : "";
     } else {
-      let code = event.code!, prefix = code.slice(0, 3), mapped: number | undefined
+      let code = event.code!, prefix = code.slice(0, 3)
+      let isKeyShort = key.length < 2 || (key === "Dead" || key === "Unidentified")
+      let mapped: number | undefined
       if (prefix !== "Num") { // not (Numpad* or NumLock)
         if (prefix === "Key" || prefix === "Dig" || prefix === "Arr") {
           code = code.slice(code < "K" ? 5 : 3);
         }
-        key = code.length === 1 && key.length < 2
+        key = code.length === 1 && isKeyShort
               ? !shiftKey || code < "0" || code > "9" ? code : enNumTrans[+code]
               : Vomnibar_._modifierKeys[key]
                 ? Vomnibar_.mapModifier_ && event.location === Vomnibar_.mapModifier_ ? kChar.Modifier
                 : key === "Alt" ? key : ""
               : key === "Escape" ? kChar.esc
               /** {@link ../lib/keyboard_utils#char_} */
-              : code.length < 2 || key.length > 1 && key !== "Dead" ? key.startsWith("Arrow") ? key.slice(5) : key
+              : code.length < 2 || !isKeyShort ? key.startsWith("Arrow") ? key.slice(5) : key
               : (mapped = Vomnibar_._codeCorrectionMap.indexOf(code)) < 0 ? code
               : charCorrectionList[mapped + 12 * +shiftKey]
             ;
       }
-      key = shiftKey && key.length < 2 ? key : key === "Unidentified" ? "" : key.toLowerCase()
+      key = shiftKey && key.length < 2 ? key : key.toLowerCase()
     }
     return key;
   },

@@ -69,13 +69,13 @@ const _getKeyCharUsingKeyIdentifier_old_cr = !OnChrome
 
 /**
  * * return `"space"` for the <Space> key - in most code it needs to be treated as a long key
- * * does not skip "Unidentified", because it can not solve any issue if skipping it
  */
 export const char_ = (eventWrapper: HandlerNS.Event): kChar => {
   let event: Pick<KeyboardEvent, "code" | "key" | "keyCode" | "keyIdentifier" | "location" | "shiftKey" | "altKey">
         = eventWrapper.e
   const shiftKey = OnFirefox ? hasShift_ff!(event as KeyboardEvent) : event.shiftKey
-  let mapped: number | undefined, key = event.key!, isDeadKey = !OnEdge && key === "Dead"
+  // on macOS, Alt+T can cause `.key === "Unidentified"` - https://github.com/gdh1995/vimium-c/issues/615
+  let mapped: number | undefined, key = event.key!, isDeadKey = !OnEdge && (key === "Dead" || key === "Unidentified")
   if (OnChrome && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key && !key) {
     // since Browser.Min$KeyboardEvent$MayHave$$Key and before .MinEnsured$KeyboardEvent$$Key
     // event.key may be an empty string if some modifier keys are held on
