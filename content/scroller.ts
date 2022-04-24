@@ -60,7 +60,11 @@ let scrolled: 0 | 1 | 2 = 0
 
 export { currentScrolling, cachedScrollable, keyIsDown, scrolled }
 export function set_scrolled (_newScrolled: 0): void { scrolled = _newScrolled }
-export function set_currentScrolling (_newCurSc: WeakRef<SafeElement> | null): void { currentScrolling = _newCurSc }
+export const setNewScrolling = (el: Element | null): void => {
+  currentScrolling = OnFirefox ? weakRef_ff(el as SafeElement | null, kElRef.currentScrolling)
+      : weakRef_not_ff!(SafeEl_not_ff_!(el))
+  cachedScrollable = 0
+}
 export function set_cachedScrollable (_newCachedSc: typeof cachedScrollable): void { cachedScrollable = _newCachedSc }
 
 let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: number
@@ -532,9 +536,7 @@ const findScrollable = (di: ScrollByY, amount: number
       element = candidate && candidate.e !== top && (!activeEl || candidate.h > wndSize_() / 2) ? candidate.e : top
       // if current_, then delay update to current_, until scrolling ends and ._checkCurrent is called;
       // otherwise, cache selected element for less further cost
-      activeEl || fullscreen ||
-      (currentScrolling = OnFirefox ? weakRef_ff(element as SafeElement | null, kElRef.currentScrolling)
-          : weakRef_not_ff!(element as SafeElement | null), cachedScrollable = 0)
+      activeEl || fullscreen || setNewScrolling(element)
     }
     return !OnFirefox && element && notSafe_not_ff_!(element) ? null : element as SafeElement | null
 }
@@ -551,7 +553,7 @@ export const getPixelScaleToScroll = (skipGetZoom?: 1): void => {
 const checkCurrent = (el: SafeElement | null): void => {
   let cur = derefInDoc_(currentScrolling)
   if (cur ? cur !== el && isNotInViewport(cur) : currentScrolling) {
-    currentScrolling = OnFirefox ? weakRef_ff(el, kElRef.currentScrolling) : weakRef_not_ff!(el), cachedScrollable = 0
+    setNewScrolling(el)
   }
 }
 
@@ -591,8 +593,7 @@ export const scrollIntoView_s = (el?: SafeElement | null): void => {
     ihm = min_(96, ih / 2), iwm = min_(64, iw / 2),
     hasY = r.b < ihm ? max_(r.b - ih + ihm, r.t - ihm) : ih < r.t + ihm ? min_(r.b - ih + ihm, r.t - ihm) : 0,
     hasX = r.r < 0 ? max_(r.l - iwm, r.r - iw + iwm) : iw < r.l ? min_(r.r - iw + iwm, r.l - iwm) : 0
-    currentScrolling = OnFirefox ? weakRef_ff(el!, kElRef.currentScrolling) : weakRef_not_ff!(el!)
-    cachedScrollable = 0
+    setNewScrolling(el!)
     for (; el && (hasX || hasY); el = GetParent_unsafe_(el, PNType.RevealSlotAndGotoParent) as SafeElement | null) {
         const pos = getComputedStyle_(el).position;
         if (pos === "fixed" || pos === "sticky") {
@@ -606,7 +607,7 @@ export const makeElementScrollBy_ = (el: SafeElement | null | 0, hasX: number, h
   void hasX && (hasY ? performScroll : vApi.$)(el !== 0 ? el : findScrollable(0, hasX), 0, hasX)
   void hasY && vApi.$(el !== 0 ? el : findScrollable(1, hasY), 1, hasY)
   scrolled = 0
-    scrollTick(0); // it's safe to only clean keyIsDown here
+  scrollTick(0) // it's safe to only clean keyIsDown here
 }
 
 export const shouldScroll_s = (element: SafeElement, di: BOOL | 2 | 3, amount: number): -1 | 0 | 1 => {
@@ -636,8 +637,6 @@ export const onActivate = (event: Event): void => {
               || Build.MinCVer >= BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow)
         || (OnEdge || Build.MinCVer >= BrowserVer.MinEnsured$Event$$Path || path) && path!.length > 1
         ? path![0] as Element : event.target as Element;
-    currentScrolling = OnFirefox ? weakRef_ff(el as SafeElement | null, kElRef.currentScrolling)
-        : weakRef_not_ff!(SafeEl_not_ff_!(el))
-    cachedScrollable = 0
+    setNewScrolling(el)
   }
 }

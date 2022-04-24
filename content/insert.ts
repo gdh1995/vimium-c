@@ -6,7 +6,7 @@ import {
 import { post_, runFallbackKey, safePost } from "./port"
 import { getParentVApi, ui_box } from "./dom_ui"
 import { hudHide } from "./hud"
-import { set_currentScrolling, scrollTick, set_cachedScrollable } from "./scroller"
+import { setNewScrolling, scrollTick } from "./scroller"
 import { set_isCmdTriggered, resetAnyClickHandler, onPassKey } from "./key_handler"
 import {
   activeEl_unsafe_, getEditableType_, GetShadowRoot_, getSelection_, frameElement_, deepActiveEl_unsafe_, blur_unsafe,
@@ -247,11 +247,10 @@ export const onFocus = (event: Event | FocusEvent): void => {
   if (!lastWndFocusTime || event.timeStamp - lastWndFocusTime > 30) {
     if (!OnFirefox) {
       let el: SafeElement | null = SafeEl_not_ff_!(target as Element)
-      el && set_currentScrolling(weakRef_not_ff!(el))
+      el && setNewScrolling(el)
     } else {
-      set_currentScrolling(weakRef_ff(target as SafeElement, kElRef.currentScrolling))
+      setNewScrolling(target as SafeElement)
     }
-    set_cachedScrollable(0)
   }
   lastWndFocusTime = 0;
   if (getEditableType_<EventTarget>(target)) {

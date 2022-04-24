@@ -1,6 +1,6 @@
 import {
-  safer, fgCache, isImageUrl, isJSUrl, set_keydownEvents_, keydownEvents_, timeout_, doc, chromeVer_, weakRef_ff, os_,
-  createRegExp, isTY, max_, min_, OnFirefox, OnChrome, safeCall, locHref, parseOpenPageUrlOptions, weakRef_not_ff, VTr,
+  safer, fgCache, isImageUrl, isJSUrl, set_keydownEvents_, keydownEvents_, timeout_, doc, chromeVer_, os_,
+  createRegExp, isTY, max_, min_, OnFirefox, OnChrome, safeCall, locHref, parseOpenPageUrlOptions, VTr,
 } from "../lib/utils"
 import { getVisibleClientRect_, center_, view_, selRange_ } from "../lib/rect"
 import {
@@ -15,7 +15,7 @@ import {
   hintOptions, mode1_, hintMode_, hintApi, hintManager, coreHints, setMode, detectUsableChild, hintCount_,
   ExecutableHintItem, forHover_
 } from "./link_hints"
-import { currentScrolling, set_cachedScrollable, set_currentScrolling } from "./scroller"
+import { currentScrolling, set_cachedScrollable, setNewScrolling } from "./scroller"
 import { post_, send_ } from "./port"
 import {
   collpaseSelection, evalIfOK, flash_, getRect, getSelected, lastFlashEl, resetSelectionToDocStart, selectAllOfNode,
@@ -124,7 +124,7 @@ const hoverEl = (): void => {
         && checkBoolOrSelector(hintOptions.focus, (clickEl as ElementToHTMLorOtherFormatted).tabIndex! >= 0)
     // here not check lastHovered on purpose
     // so that "HOVER" -> any mouse events from users -> "HOVER" can still work
-    set_currentScrolling(OnFirefox ? weakRef_ff(clickEl, kElRef.currentScrolling) : weakRef_not_ff!(clickEl))
+    setNewScrolling(clickEl)
   retPromise = catchAsyncErrorSilently(hover_async(clickEl
         , center_(rect, hintOptions.xy as HintsNS.StdXY | undefined), doesFocus)).then((): void => {
     set_cachedScrollable(currentScrolling)
@@ -450,7 +450,7 @@ const checkBoolOrSelector = (userVal: string | boolean | null | void | undefined
       view_(clickEl)
       focus_(clickEl)
       showUrlIfNeeded()
-      set_currentScrolling(OnFirefox ? weakRef_ff(clickEl, kElRef.currentScrolling) : weakRef_not_ff!(clickEl))
+      setNewScrolling(clickEl)
       set_cachedScrollable(currentScrolling)
       removeFlash || flash_(clickEl)
       showRect = 0

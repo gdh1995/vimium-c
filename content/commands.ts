@@ -35,9 +35,7 @@ import {
   set_inputHint, set_insert_global_, set_isHintingInput, set_insert_last_, exitInsertMode, set_passAsNormal,
 } from "./insert"
 import { activate as visualActivate, deactivate as visualDeactivate } from "./visual"
-import {
-  activate as scActivate, set_cachedScrollable, onActivate, currentScrolling, set_currentScrolling, scrollTick
-} from "./scroller"
+import { activate as scActivate, onActivate, currentScrolling, setNewScrolling, scrollTick } from "./scroller"
 import { activate as omniActivate, hide as omniHide } from "./omni"
 import { findNextInText, findNextInRel } from "./pagination"
 import { traverse, getEditable, filterOutNonReachable } from "./local_links"
@@ -93,7 +91,7 @@ set_contentCommands_([
       })
     }
     if (opt.r) {
-      set_cachedScrollable(0), set_currentScrolling(null)
+      setNewScrolling(null)
       hover_async()
       resetInsert(), linkClear((2 - opt.r) as BOOL), visualDeactivate && visualDeactivate()
       findDeactivate && findDeactivate(FindAction.ExitNoAnyFocus)
@@ -543,8 +541,7 @@ set_contentCommands_([
       let i: Element | null | undefined = deref_(lastHovered_)
       i && contains_s(outerBox, i) && set_lastHovered_(null)
       if ((i = deref_(currentScrolling)) && contains_s(box, i)) {
-        set_currentScrolling(null)
-        set_cachedScrollable(0)
+        setNewScrolling(null)
       }
       removeHandler_(kHandler.helpDialog)
       removeEl_s(outerBox)
@@ -570,7 +567,7 @@ set_contentCommands_([
     addUIElement(outerBox, AdjustType.Normal, true)
     options.e && setupExitOnClick(kExitOnClick.helpDialog)
     docHasFocus_() || vApi.f()
-    set_currentScrolling(OnFirefox ? weakRef_ff(box, kElRef.currentScrolling) : weakRef_not_ff!(box))
+    setNewScrolling(box)
     set_helpBox(box)
     handler_stack.splice((handler_stack.indexOf(kHandler.omni) + 1 || handler_stack.length + 2) - 2, 0, event => {
       if (!insert_Lock_() && isEscape_(getMappedKey(event, kModeId.Normal))) {
