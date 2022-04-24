@@ -64,6 +64,7 @@ export const omniPayload_ = <SettingsNS.VomnibarPayload> As_<SettingsNS.Declared
   v: OnChrome ? CurCVer_ : OnFirefox ? CurFFVer_ : 0,
   a: 0, c: "", l: "", k: null, n: 0, s: "", t: 0
 })
+export const vomnibarBgOptions_ = { actions: [] as string[] }
 export let omniStyleOverridden_ = false
 export let findCSS_: FindCSS
 export let innerCSS_: string

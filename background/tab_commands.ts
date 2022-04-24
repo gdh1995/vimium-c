@@ -45,11 +45,12 @@ const getDestIndex = (tab: Tab): number | null | undefined => {
 export const copyWindowInfo = (resolve: OnCmdResolved): void | kBgCmd.copyWindowInfo => {
   const filter = get_cOptions<C.copyWindowInfo, true>().filter
   const keyword = get_cOptions<C.copyWindowInfo, true>().keyword
-  const decoded = !!(get_cOptions<C.copyWindowInfo>().decoded),
+  const rawDecoded = get_cOptions<C.copyWindowInfo>().decoded,
+  decoded = rawDecoded != null ? rawDecoded : get_cOptions<C.copyWindowInfo>().decode,
   rawFormat = get_cOptions<C.copyWindowInfo>().format, type = get_cOptions<C.copyWindowInfo>().type
   const wantNTabs = type === "tab" && (abs(cRepeat) > 1 || !!filter)
   const sed = parseSedOptions_(get_cOptions<C.copyWindowInfo, true>())
-  const opts2: ParsedOpenPageUrlOptions = { d: decoded, s: sed, k: keyword }
+  const opts2: ParsedOpenPageUrlOptions = { d: decoded !== false, s: sed, k: keyword }
   if (type === "frame" && cPort && !rawFormat) {
     let p: Promise<"tab" | void> | "tab" | void | 1
     if (cPort.s.flags_ & Frames.Flags.OtherExtension) {

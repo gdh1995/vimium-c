@@ -1,7 +1,7 @@
 import {
   set_cPort, set_cRepeat, set_cOptions, needIcon_, set_cKey, cKey, get_cOptions, set_reqH_, reqH_, restoreSettings_,
   innerCSS_, framesForTab_, cRepeat, curTabId_, Completion_, CurCVer_, OnChrome, OnEdge, OnFirefox, setIcon_, blank_,
-  substitute_, paste_, keyToCommandMap_, CONST_, copy_, set_cEnv, settingsCache_
+  substitute_, paste_, keyToCommandMap_, CONST_, copy_, set_cEnv, settingsCache_, vomnibarBgOptions_
 } from "./store"
 import * as BgUtils_ from "./utils"
 import {
@@ -16,7 +16,7 @@ import {
 import { exclusionListening_, getExcluded_ } from "./exclusions"
 import { setOmniStyle_ } from "./ui_css"
 import { contentI18n_, extTrans_, i18nReadyExt_, loadContentI18n_, transPart_, trans_ } from "./i18n"
-import { keyRe_ } from "./key_mappings"
+import { keyRe_, parseVal_ } from "./key_mappings"
 import {
   sendFgCmd, replaceCmdOptions, onConfirmResponse, executeCommand, portSendFgCmd,
   waitAndRunKeyReq, runNextCmdBy, parseFallbackOptions
@@ -469,6 +469,13 @@ set_reqH_([
     text = text.length > 40 ? text.slice(0, 39) + "\u2026" : text
     set_cPort(port)
     showHUD(text, kTip.downloaded)
+  },
+  /** kFgReq.omniCopy: */ (req: FgReq[kFgReq.omniCopy], port: Frames.Port): void => {
+    const title = req.t, url = BgUtils_.decodeUrlForCopy_(req.u)
+    let join = (vomnibarBgOptions_.actions.find(i => i.startsWith("itemJoin=")) || "").slice(9)
+    join = join ? join.includes("\\") ? parseVal_(join[0] === '"' ? join : `"${join}"`)
+        : BgUtils_.DecodeURLPart_(join) : ": "
+    reqH_[kFgReq.copy]({ s: title ? title + join + url : url, d: false, m: HintMode.DEFAULT }, findCPort(port)!);
   }
 ])
 

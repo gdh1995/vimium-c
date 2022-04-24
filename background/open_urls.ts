@@ -1,6 +1,6 @@
 import {
   framesForTab_, cPort, cRepeat, get_cOptions, set_cOptions, set_cPort, set_cRepeat, set_lastWndId_, set_cEnv,
-  lastWndId_, curIncognito_, curTabId_, curWndId_, recencyForTab_, settingsCache_, OnFirefox, OnChrome, OnEdge,
+  lastWndId_, curIncognito_, curTabId_, curWndId_, recencyForTab_, vomnibarBgOptions_, OnFirefox, OnChrome, OnEdge,
   CurCVer_, IsEdg_, paste_, substitute_, newTabUrls_, os_, CONST_, shownHash_, set_shownHash_, newTabUrl_f
 } from "./store"
 import * as BgUtils_ from "./utils"
@@ -753,7 +753,7 @@ export const openUrlReq = (request: FgReq[kFgReq.openUrl], port?: Port | null): 
           , hasUsedKeyword_ || (url as string).startsWith("vimium://run") ? Urls.WorkType.EvenAffectStatus
             : Urls.WorkType.Default)
     }
-    opts.opener = isWeb ? o2.o !== false : settingsCache_.vomnibarOptions.actions.includes("opener")
+    opts.opener = isWeb ? o2.o !== false : vomnibarBgOptions_.actions.includes("opener")
     opts.url_f = url
   } else {
     if (request.c === false) { return }

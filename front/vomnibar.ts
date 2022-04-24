@@ -24,7 +24,7 @@ type Options = VomnibarNS.FgOptions;
 declare const enum AllowedActions {
   Default = 0,
   nothing = Default,
-  dismiss, focus, blurInput, backspace, blur, up, down = up + 2, toggle, pageup, pagedown, remove
+  dismiss, focus, blurInput, backspace, blur, up, down = up + 2, toggle, pageup, pagedown, remove, copy
 }
 interface SetTimeout {
   <T1, T2, T3>(this: void, handler: (this: void, a1: T1, a2: T2, a3: T3) => void,
@@ -664,13 +664,14 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         return;
       } else if (Build.BTypes & ~BrowserType.Firefox
           && (!(Build.BTypes & BrowserType.Firefox) || a.browser_ !== BrowserType.Firefox)
-          && Build.OS & (1 << kOS.mac) && char === kChar.backspace && !a.os_) {
+          && Build.OS & (1 << kOS.mac) && char === kChar.backspace && !a.os_ && focused) {
         return a.onBashAction_(-1);
       } else if (char === kChar.delete) {
         a.keyResult_ = SimpleKeyResult.Suppress;
       } else {
         action = char === kChar.bracketLeft ? AllowedActions.dismiss
           : char === kChar.bracketRight ? AllowedActions.toggle
+          : char === kChar.c && a.selection_ >= 0 && getSelection().type !== "Range" ? AllowedActions.copy
           : a.ctrlCharOrShiftKeyMap_[char] || AllowedActions.nothing;
       }
     }
@@ -737,6 +738,11 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     case AllowedActions.toggle: return a.toggleInput_();
     case AllowedActions.pageup: case AllowedActions.pagedown: return a.goPage_(action !== AllowedActions.pageup);
     case AllowedActions.remove: return a.removeCur_();
+    case AllowedActions.copy:
+      const item = a.completions_[a.selection_] as SuggestionEx
+      VUtils_.ensureText_(item)
+      const title = item.title !== item.u && item.title !== item.t ? item.title : ""
+      return VPort_.post_({ H: kFgReq.omniCopy, t: title, u: item.u })
     }
   },
   onBashAction_ (code: number): void {
@@ -910,9 +916,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     if (!(el instanceof Anchor)) { el = el.parentElement as HTMLElement; }
     if (!(el instanceof Anchor) || el.href) { return; }
     for (item = el; item && item.parentElement !== Vomnibar_.list_;
-          item = item.parentElement as HTMLElement | null) {
-      /* empty */
-    }
+          item = item.parentElement as HTMLElement | null) { /* empty */ }
     const _i = ([] as Array<Node | null>).indexOf.call(Vomnibar_.list_.children, item);
     _i >= 0 && (el.href = Vomnibar_.completions_[_i].u);
   },

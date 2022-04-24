@@ -62,12 +62,11 @@ interface BgCmdOptions {
   [kBgCmd.clearFindHistory]: {}
   [kBgCmd.clearMarks]: { local: boolean; all: boolean }
   [kBgCmd.copyWindowInfo]: UserSedOptions & LimitedRangeOptions & TabFilterOptions & {
-    decoded: boolean
     keyword: string
     type: "" | "frame" | "browser" | "window" | "tab" | "title" | "url" | "host"
     /** default to "${title}: ${url}" */ format: string
     join: "json" | string | boolean
-  } & Req.FallbackOptions
+  } & Req.FallbackOptions & Pick<OpenPageUrlOptions, "decoded" | "decode">
   [kBgCmd.createTab]: OpenUrlOptions & { url: string; urls: string[]; evenIncognito: boolean | -1, $pure: boolean }
   [kBgCmd.discardTab]: TabFilterOptions
   [kBgCmd.duplicateTab]: { active: false }
@@ -102,7 +101,8 @@ interface BgCmdOptions {
   [kBgCmd.removeRightTab]: LimitedRangeOptions & TabFilterOptions & Req.FallbackOptions
   [kBgCmd.removeTab]: LimitedRangeOptions & {
     highlighted: boolean | "no-current"
-    goto: "left" | "right" | "previous" | "near" | "reverse" | "backward" | "forward"
+    goto: "left" | "right" | "previous" | "previous-only" | "previous,left"
+        | "near" | "reverse" | "backward" | "forward"
     /** (deprecated) */ left: boolean
     mayClose: boolean
     /** (deprecated) */ allow_close: boolean

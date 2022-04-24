@@ -79,7 +79,7 @@ export const parseOptions_ = ((options_line: string, fakeVal?: 0 | 1 | 2): Comma
   (options_line: string, lessException?: 2): CommandsNS.RawOptions | null
 }
 
-const parseVal_ = (val: string): any => {
+export const parseVal_ = (val: string): any => {
     try {
       return JSON.parse(val);
     } catch {}

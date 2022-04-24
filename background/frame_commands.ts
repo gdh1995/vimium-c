@@ -1,7 +1,7 @@
 import {
   cPort, cRepeat, get_cOptions, set_cPort, set_cOptions, set_cRepeat, framesForTab_, findCSS_, cKey, reqH_,
   curTabId_, settingsCache_, OnChrome, visualWordsRe_, CurCVer_, OnEdge, OnFirefox, substitute_, CONST_,
-  helpDialogData_, set_helpDialogData_, curWndId_, vomnibarPage_f, IsLimited
+  helpDialogData_, set_helpDialogData_, curWndId_, vomnibarPage_f, IsLimited, vomnibarBgOptions_
 } from "./store"
 import * as BgUtils_ from "./utils"
 import { Tabs_, downloadFile, getTabUrl, runtimeError_, selectTab, R_, Q_, browser_, import2 } from "./browser"
@@ -140,7 +140,7 @@ export const showVomnibar = (forceInner?: boolean): void => {
     k: BgUtils_.getOmniSecret_(true)
   }), get_cOptions<C.showVomnibar, true>()) as CmdOptions[kFgCmd.vomnibar] & SafeObject
   if (options.icase == null) {
-    if (settingsCache_.vomnibarOptions.actions.includes("icase")) { options.icase = true }
+    if (vomnibarBgOptions_.actions.includes("icase")) { options.icase = true }
   }
   portSendFgCmd(port, kFgCmd.vomnibar, true, options, cRepeat)
   options.k = "omni"

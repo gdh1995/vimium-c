@@ -1,6 +1,6 @@
 import {
   curTabId_, Completion_, omniPayload_, reqH_, OnFirefox, CurCVer_, IsEdg_, OnChrome, restoreSettings_, blank_,
-  set_needIcon_, set_setIcon_, CONST_, installation_, updateToLocal_, set_updateToLocal_,
+  set_needIcon_, set_setIcon_, CONST_, installation_, updateToLocal_, set_updateToLocal_, vomnibarBgOptions_,
   framesForTab_, onInit_, updateHooks_, settingsCache_
 } from "./store"
 import {
@@ -77,7 +77,7 @@ Build.MV3 || setTimeout((): void => {
       && CurCVer_ < BrowserVer.MinOmniboxUIMaxAutocompleteMatchesMayBe12 ? 6 : 12
   const normalizeInput = (input: string): string => {
     input = input.trim().replace(BgUtils_.spacesRe_, " ")
-    if (settingsCache_.vomnibarOptions.actions.includes("icase")) {
+    if (vomnibarBgOptions_.actions.includes("icase")) {
       const prefix = (<RegExpOne> /^:[WBH] /).test(input) ? 3 : 0
       input = prefix ? input.slice(0, prefix) + input.slice(prefix).toLowerCase() : input.toLowerCase()
     }

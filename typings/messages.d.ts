@@ -98,7 +98,7 @@ declare const enum kFgReq {
   /** can be used only with `FgCmdAcrossFrames` and when a fg command is just being called */
   gotoMainFrame,
   setOmniStyle, findFromVisual, framesGoBack, i18n, learnCSS, visualMode,
-  respondForRunKey, downloadLink, wait, optionToggled, keyFromOmni, pages, showUrl,
+  respondForRunKey, downloadLink, wait, optionToggled, keyFromOmni, pages, showUrl, omniCopy,
   END,
   msg = 90, inject = 99,
   command = "command", id = "id", shortcut = "shortcut",
@@ -422,7 +422,6 @@ interface CmdOptions {
     /** for autoCopy */
     text?: string
     url?: boolean | "raw"
-    decoded?: boolean
     /** for searchAs */
     s?: 1;
     /** default to true */ selected?: boolean;
@@ -686,6 +685,7 @@ interface FgReq {
   } & Pick<FgReq[kFgReq.respondForRunKey], "e">
   [kFgReq.pages]: { /** id of query array */ i: number; /** queries */ q: unknown[] }
   [kFgReq.showUrl]: { u: string }
+  [kFgReq.omniCopy]: { /** title */ t: string, /** url */ u: string }
 }
 
 interface CurrentEnvCache {} // eslint-disable-line @typescript-eslint/no-empty-interface

@@ -153,7 +153,7 @@ export const parseUpperUrl_ = (request: FgReq[kFgReq.parseUpperUrl]): ParsedUppe
   } else {
     endSlash = request.t != null ? !!request.t : request.r != null ? !!request.r
         : path.length > 1 && path.endsWith("/")
-          || (<RegExpI> /\.([a-z]{2,3}|apng|jpeg|tiff)$/i).test(path) // just a try: not include .html
+          || (<RegExpI> /\.([a-z]{2,3}|apng|avif|icon|jpeg|tiff|webp)$/i).test(path) // just a try: not include .html
   }
   const arr3 = path.slice(+startWithSlash, path.length - +path.endsWith("/")).split("/")
   const len3 = arr3.length, level = i < 0 ? i + len3 : i
@@ -167,6 +167,10 @@ export const parseUpperUrl_ = (request: FgReq[kFgReq.parseUpperUrl]): ParsedUppe
   path = path ? (path[0] === "/" ? "" : "/") + path + (!endSlash || path.endsWith("/") ? "" : "/") : "/"
   if (!end && url.lastIndexOf("git", start - 3) > 0) {
     path = /*#__NOINLINE__*/ upperGitUrls(url, path) || path
+  }
+  if (!end && (<RegExpOne> /[/.](?:askubuntu|serverfault|stack(?:overflow|exchange)|superuser)\.com$/
+      ).test(url.slice(0, start))) {
+    if ((<RegExpI> /^\/questions\/\d+$/i).test(path)) { path = "/questions" }
   }
   if (removeSlash && (!path || path === "/")) {
     url = url.split("#", 1)[0]

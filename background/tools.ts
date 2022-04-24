@@ -2,7 +2,8 @@ import {
   curIncognito_, curTabId_, curWndId_, framesForTab_, incognitoFindHistoryList_, recencyForTab_, set_curIncognito_,
   set_curTabId_, set_curWndId_, set_incognitoFindHistoryList_, set_lastWndId_, set_recencyForTab_, incognitoMarkCache_,
   set_incognitoMarkCache_, contentPayload_, reqH_, settingsCache_, OnFirefox, OnChrome, CurCVer_, updateHooks_,
-  OnEdge, isHighContrast_ff_, omniPayload_, blank_, CONST_, RecencyMap, CurFFVer_, storageCache_, IsLimited, os_
+  OnEdge, isHighContrast_ff_, omniPayload_, blank_, CONST_, RecencyMap, CurFFVer_, storageCache_, IsLimited, os_,
+  vomnibarBgOptions_
 } from "./store"
 import * as BgUtils_ from "./utils"
 import {
@@ -701,13 +702,14 @@ updateHooks_.vomnibarOptions = (options: SettingsNS.BackendSettings["vomnibarOpt
   if (options !== defaultOptions && options && typeof options === "object") {
     const newMaxMatches = Math.max(3, Math.min((options.maxMatches | 0) || maxMatches
         , GlobalConsts.MaxLimitOfVomnibarMatches)),
-    newActions = ((options.actions || "") + "").trim(),
+    rawNewActions = options.actions,
+    newActions = rawNewActions ? rawNewActions.replace(<RegExpG> /[,\s]+/g, " ").trim() : "",
     newInterval = +options.queryInterval,
     newSizes = ((options.sizes || "") + "").trim(),
     newStyles = ((options.styles || "") + "").trim(),
     newQueryInterval = Math.max(0, Math.min(newInterval >= 0 ? newInterval : queryInterval, 1200))
     isSame = maxMatches === newMaxMatches && queryInterval === newQueryInterval
-              && newSizes === sizes && actions === newActions
+              && newSizes === sizes && actions as never as string === newActions
               && styles === newStyles
     if (!isSame) {
       maxMatches = newMaxMatches
@@ -715,6 +717,7 @@ updateHooks_.vomnibarOptions = (options: SettingsNS.BackendSettings["vomnibarOpt
       sizes = newSizes
       styles = newStyles
     }
+    vomnibarBgOptions_.actions = newActions ? newActions.split(" ") : []
     options.actions = newActions
     options.maxMatches = newMaxMatches
     options.queryInterval = newQueryInterval

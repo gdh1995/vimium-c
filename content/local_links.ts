@@ -127,7 +127,8 @@ const getClickable = (hints: Hint[], element: SafeHTMLElement): void => {
       isClickable = true;
     }
     break;
-  case "code": case "div": case "nav": case "ol": case "pre": case "table": case "tbody": case "ul":
+  case "code": mode1_ > HintMode.max_mouse_events && (isClickable = true); clientSize = 1; break
+  case "div": case "nav": case "ol": case "pre": case "table": case "tbody": case "ul":
     clientSize = 1;
     break;
   }
