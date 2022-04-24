@@ -8,12 +8,11 @@ import { style_ui } from "./dom_ui"
 import { hudTip } from "./hud"
 
 export declare const enum HookAction { Install = 0, SuppressListenersOnDocument = 1, Suppress = 2, Destroy = 3 }
-export type SafeDestoryF = (silent?: boolean | BOOL | 9) => void
 
 let port_callbacks: { [msgId: number]: <k extends keyof FgRes>(this: void, res: FgRes[k]) => unknown }
 let port_: ContentNS.Port | null = null
 let tick = 1
-let safeDestroy: SafeDestoryF
+let safeDestroy: (silent?: boolean | BOOL | 9) => void
 let requestHandlers: { [k in keyof BgReq]: (this: void, request: BgReq[k]) => unknown }
 let contentCommands_: {
   [k in keyof CmdOptions]:
@@ -25,7 +24,7 @@ let hookOnWnd: (action: HookAction) => void
 export { port_ as runtime_port, safeDestroy, requestHandlers, contentCommands_, hookOnWnd }
 
 export function set_port_ (_newRuntimePort: null): void { port_ = _newRuntimePort }
-export function set_safeDestroy (_newSafeDestroy: SafeDestoryF): void { safeDestroy = _newSafeDestroy }
+export function set_safeDestroy (_newSafeDestroy: typeof safeDestroy): void { safeDestroy = _newSafeDestroy }
 export function set_requestHandlers (_newHandlers: typeof requestHandlers): void { requestHandlers = _newHandlers }
 export function set_contentCommands_ (_newCmds: typeof contentCommands_): void { contentCommands_ = _newCmds }
 export function set_hookOnWnd (_newHookOnWnd: typeof hookOnWnd): void { hookOnWnd = _newHookOnWnd }

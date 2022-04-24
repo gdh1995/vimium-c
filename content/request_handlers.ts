@@ -7,7 +7,7 @@ import {
 import { set_keyIdCorrectionOffset_old_cr_, handler_stack, suppressTail_ } from "../lib/keyboard_utils"
 import {
   editableTypes_, markFramesetTagUnsafe_old_cr, OnDocLoaded_, BU, docHasFocus_, deepActiveEl_unsafe_,
-  htmlTag_, querySelector_unsafe_, isHTML_, createElement_, setClassName_s,
+  htmlTag_, querySelector_unsafe_, isHTML_, createElement_, setClassName_s, onReadyState_,
   docEl_unsafe_, scrollIntoView_, CLK, ElementProto_not_ff, isIFrameElement, DAC, removeEl_s, toggleClass_s, getElDesc_
 } from "../lib/dom_utils"
 import {
@@ -134,6 +134,7 @@ set_requestHandlers([
       set_keydownEvents_(keydownEvents_ || safeObj(null))
       old || insertInit();
       (old && !isLocked_) || hookOnWnd(HookAction.Install);
+      onReadyState_()
       // here should not return even if old - a url change may mean the fullscreen mode is changed
     } else {
       contentCommands_[kFgCmd.insertMode]({r: 1})

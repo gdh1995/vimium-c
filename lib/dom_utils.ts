@@ -547,11 +547,13 @@ export const extractField = (el: SafeElement, props: string): string => {
 
 //#region action section
 
-  /** Note: won't call functions if Vimium C is destroyed */
+/** Note: still call functions even if Vimium C has been destroyed */
 let OnDocLoaded_: (callback: (this: void) => any, onloaded?: 1) => void
+let onReadyState_: (event?: Event) => void
 
-export { OnDocLoaded_ }
+export { OnDocLoaded_, onReadyState_ }
 export function set_OnDocLoaded_ (_newOnDocLoaded: typeof OnDocLoaded_): void { OnDocLoaded_ = _newOnDocLoaded }
+export function set_onReadyState_ (_newOnReady: typeof onReadyState_): void { onReadyState_ = _newOnReady }
 
 export let createElement_ = doc.createElement.bind(doc) as {
   <K extends "div" | "span" | "style" | "iframe" | "a" | "script" | "dialog" | "body"> (

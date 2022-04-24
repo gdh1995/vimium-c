@@ -189,7 +189,7 @@ export const main_not_ff = (Build.BTypes & ~BrowserType.Firefox ? (): void => {
  * * https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/dom/document.cc?g=0&q=Document::CreateRawElement&l=946
  * Vimium issue: https://github.com/philc/vimium/pull/1797#issuecomment-135761835
  */
-  if ((script as Element as ElementToHTML).lang == null) {
+  if ((script as Element as ElementToHTML).lang == null || !isAlive_) {
     set_createElement_(doc.createElementNS.bind(doc, VTr(kTip.XHTML) as "http://www.w3.org/1999/xhtml"
         ) as typeof createElement_)
     isFirstTime != null && OnDocLoaded_(extendClick); // retry after a while, using a real <script>
@@ -586,7 +586,7 @@ FProto[kToS] = myToStr
       // only for new versions of Chrome (and Edge);
       // CSP would block a <script> before MinEnsuredNewScriptsFromExtensionOnSandboxedPage
       // if !box, avoid checking isFirstTime, so that auto clean VApi.execute_
-      !box ? execute(kContentCmd.DestroyForCSP) : isFirstTime && isAlive_ &&
+      !box ? execute(kContentCmd.DestroyForCSP) : isFirstTime && /** avoid checking isAlive_ for smaller code */
       OnDocLoaded_(timeout_.bind(null, (): void => {
         isFirstResolve && dispatchCmd(kContentCmd.AutoFindAllOnClick);
         isFirstResolve = 0;

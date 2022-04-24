@@ -27,7 +27,7 @@ import {
   isTop, injector, isTY, safeCall, tryCreateRegExp, weakRef_ff, Stop_, abs_
 } from "../lib/utils"
 import {
-  rAF_, scrollingEl_, SafeEl_not_ff_, docEl_unsafe_, NONE, frameElement_, OnDocLoaded_, GetParent_unsafe_, UNL,
+  rAF_, scrollingEl_, SafeEl_not_ff_, docEl_unsafe_, NONE, frameElement_, OnDocLoaded_, GetParent_unsafe_,
   querySelector_unsafe_, getComputedStyle_, notSafe_not_ff_, HDN, isRawStyleVisible, fullscreenEl_unsafe_,
   doesSupportDialog, attr_s, getSelection_, isIFrameElement, derefInDoc_, isHTML_, IsInDOM_
 } from "../lib/dom_utils"
@@ -419,14 +419,12 @@ export const executeScroll: VApiTy["c"] = function (di: ScrollByY, amount0: numb
 }
 
 let overrideScrollRestoration = function (kScrollRestoration, kManual): void {
-    const h = history, old = h[kScrollRestoration], listen = setupEventListener,
-    reset = (): void => { h[kScrollRestoration] = old; listen(0, UNL, reset, 1); };
-    if (old && old !== kManual) {
+  const h = history, old = h[kScrollRestoration]
+  if (old && old !== kManual) {
       h[kScrollRestoration] = kManual;
       overrideScrollRestoration = 0 as never
-      OnDocLoaded_(() => { timeout_(reset, 1); }, 1);
-      listen(0, UNL, reset);
-    }
+    OnDocLoaded_(() => { timeout_((): void => { h[kScrollRestoration] = old }, 1); }, 1)
+  }
 } as ((key: "scrollRestoration", kManual: "manual") => void) | 0
 
   /** @argument willContinue 1: continue; 0: skip middle steps; 2: abort further actions; 5: resume */

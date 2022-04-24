@@ -5,10 +5,12 @@ import {
   OnChrome, OnEdge
 } from "../lib/utils"
 import { suppressTail_, getMappedKey } from "../lib/keyboard_utils"
-import { frameElement_, runJS_, set_OnDocLoaded_ } from "../lib/dom_utils"
+import {
+  frameElement_, runJS_, OnDocLoaded_, set_OnDocLoaded_, onReadyState_, set_onReadyState_
+} from "../lib/dom_utils"
 import { wndSize_ } from "../lib/rect"
 import {
-  HookAction, safePost, set_port_, runtime_port, SafeDestoryF, set_safeDestroy,
+  HookAction, safePost, set_port_, runtime_port, set_safeDestroy,
   runtimeConnect, safeDestroy, post_, send_, hookOnWnd, requestHandlers, contentCommands_,
 } from "./port"
 import {
@@ -29,7 +31,25 @@ declare var XPCNativeWrapper: <T extends object> (wrapped: T) => XrayedObject<T>
 
 const docReadyListeners: Array<(this: void) => void> = [], completeListeners: Array<(this: void) => void> = []
 
-set_safeDestroy((silent?: Parameters<SafeDestoryF>[0]): void => {
+set_OnDocLoaded_((callback, onloaded): ReturnType<typeof OnDocLoaded_> => {
+  readyState_ > "l" || readyState_ > "i" && onloaded
+  ? (onloaded ? completeListeners : docReadyListeners).push(callback) : callback()
+})
+
+set_onReadyState_((event): ReturnType<typeof onReadyState_> => {
+  set_readyState_(event ? doc.readyState : "c")
+  if (readyState_ < "l") {
+    docReadyListeners.forEach(callFunc)
+    docReadyListeners.length = 0
+    if (readyState_ < "i") {
+      completeListeners.forEach(callFunc)
+      completeListeners.length = 0
+      setupEventListener(0, RSC, onReadyState_, 1, 1)
+    }
+  }
+})
+
+set_safeDestroy((silent): ReturnType<typeof safeDestroy> => {
     if (!isAlive_) { return; }
     if (OnFirefox && silent === 9) {
       set_port_(null)
@@ -150,7 +170,7 @@ if (!(isTop || injector)) {
           // a temp collection on a very old Chrome, so it's okay just to ignore its elements
           clickable_.has =
               !OnChrome || Build.MinCVer >= BrowserVer.MinEnsuredES$Array$$Includes
-              ? (clickable_ as ElementArraySet).includes! : includes_
+              ? (clickable_ as ElementArraySet).includes : includes_
         }
       }
   } else if (OnFirefox) {
@@ -194,14 +214,6 @@ if (isAlive_) {
     }))
     // here we call it before vPort.connect, so that the code works well even if runtime.connect is sync
     hookOnWnd(HookAction.Install);
-    if (readyState_ < "i") {
-      set_OnDocLoaded_(callFunc)
-    } else {
-      set_OnDocLoaded_((callback, onloaded) => {
-        readyState_ < "l" && !onloaded ? callback() : (onloaded ? completeListeners : docReadyListeners).push(callback)
-      })
-    }
-
     runtimeConnect();
 
   if (isAsContent) {
@@ -213,16 +225,7 @@ if (isAlive_) {
   }
   OnFirefox && Build.MinFFVer < FirefoxBrowserVer.MinPopupBlockerPassClicksFromExtensions && unblockClick_old_ff()
 
-  readyState_ < "i" || setupEventListener(0, RSC, function _onReadyStateChange(): void {
-    set_readyState_(doc.readyState)
-    const loaded = readyState_ < "i", arr = loaded ? completeListeners : docReadyListeners
-    if (loaded) {
-      set_OnDocLoaded_(callFunc)
-      setupEventListener(0, RSC, _onReadyStateChange, 1, 1)
-    }
-    arr.forEach(callFunc)
-    arr.length = 0
-  }, 0, 1)
+  readyState_ < "i" || setupEventListener(0, RSC, onReadyState_, 0, 1)
 }
 
 if (OnChrome && Build.MinCVer < BrowserVer.MinSafe$String$$StartsWith && !"".includes) {

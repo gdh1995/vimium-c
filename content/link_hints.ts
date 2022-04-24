@@ -653,7 +653,7 @@ const delayToExecute = (officer: BaseHintWorker, hint: ExecutableHintItem, flash
 const reinit = (auto?: BOOL | TimerType.fake, officer?: BaseHintWorker | null
     , lastEl?: WeakRef<LinkEl> | null, rect?: Rect | null, retainedInput?: string | false | 0 | null): void => {
   const now = getTime()
-  if (!isEnabled_) { isAlive_ && clear() }
+  if (!isEnabled_) { clear() }
   else {
     isActive = 0;
     coreHints.v()

@@ -51,8 +51,8 @@ export function set_isEnabled_ (_newIsEnabled: boolean): void { isEnabled_ = _ne
 export let isLocked_: Frames.Flags.blank | Frames.Flags.locked | Frames.Flags.lockedAndDisabled = 0
 export function set_isLocked_ (_newIsLocked: typeof isLocked_): void { isLocked_ = _newIsLocked }
 
-export let readyState_: Document["readyState"] = doc.readyState
-export function set_readyState_ (_newReadyState: Document["readyState"]): void { readyState_ = _newReadyState }
+export let readyState_: Document["readyState"] | /** from vimium://status */ "c" = doc.readyState
+export function set_readyState_ (_newReadyState: typeof readyState_): void { readyState_ = _newReadyState }
 
 export let noRAF_old_cr_: BOOL | undefined
 export function set_noRAF_old_cr_ (_newNoRAF: BOOL): void { noRAF_old_cr_ = _newNoRAF }
