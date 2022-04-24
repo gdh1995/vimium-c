@@ -222,6 +222,7 @@ interface VApiTy {
   }
   /** filterTextToGoNext */ g: (candidates: GoNextCandidate[], names: string[]
       , options: CmdOptions[kFgCmd.goNext], maxLen: number) => number
+  /** hudTip */ h (k: kTip, d?: number, t?: string): void
   /** innerHeight_ff */ i?: (type?: undefined) => number
   /** jumpToNext */ j: (nextLink: Hint0[0]) => void
   /** scrollTick */ k: (willContinue: 0 | 1 | 2 | 5) => void

@@ -26,6 +26,7 @@ import { set_needToRetryParentClickable, focusAndRun } from "./request_handlers"
 import { RSC } from "./commands"
 import { main_not_ff as extend_click_not_ff } from  "./extend_click"
 import { main_ff as extend_click_ff, unblockClick_old_ff } from  "./extend_click_ff"
+import { hudTip } from "./hud"
 
 declare var XPCNativeWrapper: <T extends object> (wrapped: T) => XrayedObject<T>; // eslint-disable-line no-var
 
@@ -77,7 +78,7 @@ set_safeDestroy((silent): ReturnType<typeof safeDestroy> => {
 
 set_vApi(VApi = {
   b: coreHints, e: null, z: null,
-  p: post_, a: setupKeydownEvents, f: focusAndRun, d: safeDestroy, g: filterTextToGoNext, j: jumpToNextLink,
+  p: post_, a: setupKeydownEvents, f: focusAndRun, d: safeDestroy, g: filterTextToGoNext, h: hudTip, j: jumpToNextLink,
   n: 0 as never as null, c: executeScroll,
   k: scrollTick, $: $sc, l: learnCSS,
   i: OnFirefox ? wndSize_ : 0 as never,

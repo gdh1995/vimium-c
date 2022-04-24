@@ -272,7 +272,7 @@ let optionsInit1_ = function (): void {
   (_element as HTMLAnchorElement).onclick = function (event): void {
     event.preventDefault();
     if (OnFirefox) {
-      VApi ? VApi.t({ k: kTip.raw, t: oTrans_("haveToOpenManually") })
+      VApi ? VApi.h(kTip.raw, 0, oTrans_("haveToOpenManually"))
       : alert(oTrans_("haveToOpenManually"))
     } else {
       void post_(kPgReq.focusOrLaunch, { u: this.href, p: true })

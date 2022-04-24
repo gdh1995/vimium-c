@@ -70,9 +70,9 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
         || chromeVer_ > BrowserVer.MinScrollEndForInstantScrolling - 1) && ("on" + kSE) in Image.prototype
   let amount: number, sign: number, calibration: number, di: ScrollByY, duration: number, element: SafeElement | null,
   beforePos: number, timestamp: number, rawTimestamp: number, totalDelta: number, totalElapsed: number, min_delta = 0,
-  running = 0, flags: kScFlag & number, timer: ValidTimeoutID = TimerID.None, calibTime: number, lostFrames: number,
+  running = 0, flags: kScFlag & number, calibTime: number, lostFrames: number,
   styleTop: SafeElement | HTMLElement | null | undefined, onFinish: ((succeed: number) => void) | 0 | undefined,
-  wait2: number | boolean | null | undefined, padding: number,
+  wait2: number | boolean | null | undefined, timer: ValidTimeoutID = TimerID.None, padding: number,
   animate = (newRawTimestamp: number): void => {
     const continuous = keyIsDown > 0
     let rawElapsed = newRawTimestamp - rawTimestamp
@@ -175,7 +175,7 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
     }
     if (delta && (!onFinish || totalDelta < amount)) {
       if (wait2 != 0 && totalDelta >= amount && continuous
-          && totalElapsed < (delay2 = wait2! > 1 ? wait2 as number : minDelay) - min_delta
+          && totalElapsed < (delay2 = wait2! > 1 ? +wait2! : minDelay) - min_delta
           && (wait2! > 1 || flags & kScFlag.TO || amount < ScrollConsts.AmountLimitToScrollAndWaitRepeatedKeys)) {
         running = 0
         timer = timeout_(/*#__NOINLINE__*/ resumeAnimation, delay2 - totalElapsed)
@@ -209,7 +209,7 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
     running = running || rAF_(animate);
   };
   toggleAnimation = (scrolling?: BOOL | 4): void => {
-    if (scrolling === 4) { wait2 || running || (clearTimeout_(timer), resumeAnimation()); return }
+    if (scrolling === 4) { wait2 || timer && (clearTimeout_(timer), resumeAnimation()); return }
     if (!scrolling) {
       if (!Build.NDEBUG && ScrollConsts.DEBUG) {
         console.log(">>> [animation] end after %o ms / %o px"

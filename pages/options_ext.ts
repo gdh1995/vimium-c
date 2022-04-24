@@ -225,7 +225,7 @@ async function _importSettings(time: number, new_data: ExportedSettings, is_reco
         plat ? oTrans_("filePlatform", [oTrans_(plat as "win" | "mac") || plat[0].toUpperCase() + plat.slice(1)])
           : oTrans_("commonPlatform"),
         time ? oTrans_("atTime", [formatDate_(time)]) : oTrans_("before")]))) {
-    VApi && VApi.t({ k: kTip.raw, t: oTrans_("cancelImport") })
+    VApi && VApi.h(kTip.raw, 0, oTrans_("cancelImport"))
     return;
   }
   const now = new Date()
@@ -393,7 +393,7 @@ async function _importSettings(time: number, new_data: ExportedSettings, is_reco
   if (node) { // reload help dialog
     showHelp("force")
   }
-  if (VApi) { VApi.t({ k: kTip.raw, t: oTrans_("importOK") }) }
+  if (VApi) { VApi.h(kTip.raw, 0, oTrans_("importOK")) }
 }
 
 function importSettings_(time: number | string | Date, data: string, is_recommended?: boolean): void {

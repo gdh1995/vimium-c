@@ -388,7 +388,7 @@ const onLoad2 = (): void => {
     addElement(0, "h");
     if (OnFirefox && !Build.DetectAPIOnFirefox) {
       el.contentEditable = "true";
-      setupEventListener(wnd, "paste", null, 1, 1);
+      setupEventListener(wnd, "paste", Stop_, 1, 1);
     } else if (!OnChrome) {
       let plain = true;
       try {
@@ -397,7 +397,7 @@ const onLoad2 = (): void => {
         plain = false;
         el.contentEditable = "true";
       }
-      setupEventListener(wnd, "paste", plain ? onPaste_not_cr! : null, 1, 1)
+      setupEventListener(wnd, "paste", plain ? onPaste_not_cr! : Stop_, 1, 1)
     } else {
       el.contentEditable = "plaintext-only";
     }

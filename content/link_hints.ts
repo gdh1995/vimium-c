@@ -91,7 +91,7 @@ import {
 import {
   querySelector_unsafe_, isHTML_, scrollingEl_, docEl_unsafe_, IsInDOM_, GetParent_unsafe_, hasInCSSFilter_,derefInDoc_,
   getComputedStyle_, isStyleVisible_, htmlTag_, fullscreenEl_unsafe_, removeEl_s, UNL, toggleClass_s, doesSupportDialog,
-  getSelectionFocusEdge_, SafeEl_not_ff_, compareDocumentPosition, deepActiveEl_unsafe_, frameElement_
+  getSelectionFocusEdge_, SafeEl_not_ff_, compareDocumentPosition, deepActiveEl_unsafe_, frameElement_, getSelection_
 } from "../lib/dom_utils"
 import {
   ViewBox, getViewBox_, prepareCrop_, wndSize_, bZoom_, wdZoom_, dScale_, boundingRect_,
@@ -556,7 +556,7 @@ export const findAnElement_ = (options: OptionsToFindElement, count: number
           oneMatch = matches.slice(offset > "e" ? ~matchIndex : offset < "c" ? matchIndex : computeOffset())[0])
       && oneMatch[0]
       : testD("sel") // selected
-        ? isSelARange(getSelection()) && (el = getSelectionFocusEdge_(getSelected()), isSel = !!el, el)
+        ? isSelARange(getSelection_()) && (el = getSelectionFocusEdge_(getSelected()), isSel = !!el, el)
       : testD("f") ? (insert_Lock_() // focused
               || (OnFirefox ? <SafeElement | null> deepActiveEl_unsafe_() : SafeEl_not_ff_!(deepActiveEl_unsafe_())))
       : (testD("h") || testD("cl")) ? derefInDoc_(lastHovered_) // hover | clicked

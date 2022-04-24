@@ -111,8 +111,8 @@ export const exitGrab = function (this: void, event?: Req.fg<kFgReq.exitGrab> | 
 
 export const insert_Lock_ = (): LockableElement | null => {
   if (OnFirefox && lock_) {
-    const root = getRootNode_mounted(lock_)
-    lock_ = root && (root as TypeToPick<Node, DocumentOrShadowRoot, "activeElement">
+    const root = getRootNode_mounted(lock_) as ReturnType<typeof getRootNode_mounted> | null
+    lock_ = root && (root as TypeToPick<Node, DocumentOrShadowRoot, "activeElement"> // check `root &&`: safer
         ).activeElement === lock_ ? lock_ : null;
   }
   return lock_;
@@ -275,7 +275,7 @@ export const onBlur = (event: Event | FocusEvent): void => {
       || (!OnChrome || Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted
           ? !event.isTrusted : event.isTrusted === false)) { return; }
   let target: EventTarget | Element | Window | Document = event.target, topOfPath: EventTarget | undefined
-  if (target === window) { return onWndBlur(); }
+  if (target === window) { onWndBlur(); return }
   if (OnFirefox && target === doc) { return; }
   const sr = GetShadowRoot_(target as Element)
   if (sr && target !== ui_box) {

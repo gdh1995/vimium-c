@@ -183,7 +183,7 @@ export const getClientRectsForAreas_ = function (element: HTMLElementUsingMap, o
       : CSS.escape!(element.useMap.replace(<RegExpOne> /^#/, ""))}"]`
     // on C73, if a <map> is moved outside from a #shadowRoot, then the relation of the <img> and it is kept
     // while on F65 the relation will get lost.
-    const root = getRootNode_mounted(element as SafeHTMLElement)
+    const root = getRootNode_mounted(element as SafeHTMLElement as SafeElement as EnsuredMountedElement & SafeElement)
     const map = querySelector_unsafe_(selector, root)
     if (!map || !htmlTag_<1>(map)) { return null }
     areas = querySelectorAll_unsafe_("area", map)!

@@ -252,10 +252,12 @@ export const checkDocSelectable = (): void => {
 export const getSelectionOf = (node: DocumentOrShadowRootMixin): Selection | null => node.getSelection!()
 
 export const getSelected = (notExpectCount?: {r?: ShadowRoot | null}): Selection => {
-  let el: Node | SafeElement | null | undefined, sel: Selection | null
+  type Item<Ref> = Ref extends WeakRef<infer U> ? U : never
+  let el: Document | DocumentFragment | Element | null | undefined, sel: Selection | null
   let sr: ShadowRoot | null = null
   if (el = derefInDoc_(currentScrolling)) {
-      el = getRootNode_mounted(el as NonNullable<ReturnType<NonNullable<typeof currentScrolling>["deref"]>>)
+      type ReferredInDoc = EnsuredMountedElement & Item<typeof currentScrolling>;
+      el = getRootNode_mounted(el as ReferredInDoc)
       if (el !== doc && isNode_(el, kNode.DOCUMENT_FRAGMENT_NODE)
           && isTY((el as ShadowRoot).getSelection, kTY.func)) {
         sel = getSelectionOf(el as ShadowRoot);

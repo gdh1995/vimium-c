@@ -235,7 +235,6 @@ export const GetParent_unsafe_ = function (el: Node | Element
   (el_in_dom: Node, type: PNType.DirectNode): ShadowRoot | DocumentFragment | Document | Element | null
 }
 
-/** acccept non-mounted elements if on Firefox and latest Chrome */
 export const getRootNode_mounted = ((el: Node): Node => {
   let pn: Node | null
   if (!OnEdge && (!OnChrome
@@ -246,8 +245,7 @@ export const getRootNode_mounted = ((el: Node): Node => {
     return el
   }
 }) as ((element: SafeElement) => Node) as {
-  /** OnFirefox */ (element: LockableElement): Node | null
-  (element: SafeElement): Document | ShadowRoot
+  (element: EnsuredMountedElement & SafeElement): Document | ShadowRoot
   (element: Node): Document | ShadowRoot | Element | DocumentFragment
 }
 

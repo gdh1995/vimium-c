@@ -659,7 +659,7 @@ export const filterOutNonReachable = (list: Hint[], notForAllClickable?: boolean
   while (0 <= --i && now - start < GlobalConsts.ElementsFromPointTakesTooSlow) {
     i & 63 || (now = getTime())
     el = list[i][0];
-    root = getRootNode_mounted(el)
+    root = getRootNode_mounted(el as EnsuredMountedElement & typeof el)
     const nodeType = root.nodeType, area = list[i][1],
     cx = (area.l + area.r) * zoomD2, cy = (area.t + area.b) * zoomD2;
     if (does_hit(cx, cy) || nodeType !== kNode.DOCUMENT_NODE && nodeType !== kNode.DOCUMENT_FRAGMENT_NODE) {

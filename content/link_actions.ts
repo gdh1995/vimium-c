@@ -95,7 +95,7 @@ const downloadOrOpenMedia = (): void => {
       || src.length > text.length + 7 && (text === (clickEl as SafeElement & {href?: string}).href)) {
     text = src;
   }
-  if (!text) { hintApi.t({ k: kTip.notImg }) }
+  if (!text) { hintApi.h(kTip.notImg) }
   else if (OnFirefox && hintOptions.keyword != null || mode1_ === HintMode.OPEN_IMAGE || /** <svg> */ !tag) {
     hintApi.p({
       H: kFgReq.openImage, m: hintMode_, o: parseOpenPageUrlOptions(hintOptions), a: hintOptions.auto,
@@ -129,7 +129,7 @@ const hoverEl = (): void => {
         , center_(rect, hintOptions.xy as HintsNS.StdXY | undefined), doesFocus)).then((): void => {
     set_cachedScrollable(currentScrolling)
     if (mode1_ < HintMode.min_job) { // called from Modes[-1]
-      hintApi.t({ k: kTip.hoverScrollable })
+      hintApi.h(kTip.hoverScrollable)
       return
     }
     hintMode_ & HintMode.queue || elType > EditableType.MaxNotTextModeElement
@@ -218,7 +218,7 @@ const copyText = (): void => {
       if (tag === INP) {
         let type = getInputType(clickEl as HTMLInputElement)
         if (type === "pa") {
-          return hintApi.t({ k: kTip.ignorePassword })
+          return hintApi.h(kTip.ignorePassword)
         }
         if (!uneditableInputs_[type]) {
           str = (clickEl as HTMLInputElement).value || (clickEl as HTMLInputElement).placeholder;
@@ -255,15 +255,16 @@ const copyText = (): void => {
       selectAllOfNode(clickEl)
       execCommand("copy", doc)
       resetSelectionToDocStart(sel, range)
+      hintApi.h(kTip.copiedIs, 0, sel + "")
   } else if (!str) {
-      hintApi.t({ k: isUrl ? kTip.noUrlCopied : kTip.noTextCopied })
+    hintApi.h(isUrl ? kTip.noUrlCopied : kTip.noTextCopied)
   } else if (mode1_ === HintMode.SEARCH_TEXT) {
     openTextOrUrl(str)
   } else {
     // then mode1 can only be HintMode.COPY_*
     let lastYanked = mode1_ & HintMode.list ? (hintManager || coreHints).y : 0 as const;
     if (lastYanked && lastYanked.indexOf(str) >= 0) {
-      hintApi.t({ k: kTip.noNewToCopy })
+      hintApi.h(kTip.noNewToCopy)
     } else {
       lastYanked && lastYanked.push(str)
       hintApi.p({ H: kFgReq.copy, j: hintOptions.join, o: parseOpenPageUrlOptions(hintOptions), m: mode1_,
@@ -477,7 +478,7 @@ const checkBoolOrSelector = (userVal: string | boolean | null | void | undefined
       }, 17)
     }
   } else {
-    hintApi.t({ k: kTip.linkRemoved, d: 2 })
+    hintApi.h(kTip.linkRemoved, 2)
   }
   return retPromise ? retPromise.then(() => rect) : Promise.resolve(rect)
 }
