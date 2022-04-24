@@ -29,7 +29,7 @@ import {
 import {
   rAF_, scrollingEl_, SafeEl_not_ff_, docEl_unsafe_, NONE, frameElement_, OnDocLoaded_, GetParent_unsafe_,
   querySelector_unsafe_, getComputedStyle_, notSafe_not_ff_, HDN, isRawStyleVisible, fullscreenEl_unsafe_,
-  doesSupportDialog, attr_s, getSelection_, isIFrameElement, derefInDoc_, isHTML_, IsInDOM_
+  doesSupportDialog, attr_s, getSelection_, isIFrameElement, derefInDoc_, isHTML_, IsInDOM_, getRootNode_mounted
 } from "../lib/dom_utils"
 import {
   scrollWndBy_, wndSize_, getZoom_, wdZoom_, bZoom_, isNotInViewport, prepareCrop_, padClientRect_, instantScOpt,
@@ -69,6 +69,7 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
   const hasNewScrollEnd_cr = OnChrome && (Build.MinCVer >= BrowserVer.MinScrollEndForInstantScrolling
         || chromeVer_ > BrowserVer.MinScrollEndForInstantScrolling - 1) && ("on" + kSE) in Image.prototype
   let amount: number, sign: number, calibration: number, di: ScrollByY, duration: number, element: SafeElement | null,
+  elementRoot: DocumentFragment | Document | 0,
   beforePos: number, timestamp: number, rawTimestamp: number, totalDelta: number, totalElapsed: number, min_delta = 0,
   running = 0, flags: kScFlag & number, calibTime: number, lostFrames: number,
   styleTop: SafeElement | HTMLElement | null | undefined, onFinish: ((succeed: number) => void) | 0 | undefined,
@@ -215,7 +216,8 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
         console.log(">>> [animation] end after %o ms / %o px"
             , ((totalElapsed * 1e2) | 0) / 1e2, ((totalDelta * 1e2) | 0) / 1e2)
       }
-      OnChrome && hasNewScrollEnd_cr && setupEventListener(0, kSE, Stop_, 1)
+      OnChrome && hasNewScrollEnd_cr && setupEventListener(elementRoot, kSE, Stop_, 1)
+      elementRoot =
       running = timestamp = rawTimestamp = beforePos = calibTime = preventPointEvents = lostFrames = onFinish = 0
       element = null
     }
@@ -255,7 +257,11 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
     maxKeyInterval = max_(min_delta, keyboard[1]) * 2 + ScrollConsts.DelayTolerance
     minDelay = keyboard[0] + max_(keyboard[1], ScrollConsts.DelayMinDelta) + ScrollConsts.DelayTolerance;
     (preventPointEvents === 2 || preventPointEvents === 1 && !isSelARange(getSelection_())) && toggleAnimation!(1)
-    OnChrome && hasNewScrollEnd_cr && setupEventListener(0, kSE)
+    if (OnChrome && hasNewScrollEnd_cr) {
+      elementRoot = element ? getRootNode_mounted(element as EnsuredMountedElement & typeof element) : doc
+      elementRoot = elementRoot !== doc ? elementRoot : 0
+      setupEventListener(elementRoot, kSE)
+    }
     if (!Build.NDEBUG && ScrollConsts.DEBUG) {
       console.log("%c[animation]%c start with axis = %o, amount = %o, dir = %o, duration = %o, min_delta = %o"
           , "color: #1155cc", "color: auto", di ? "y" : "x", amount, sign, duration
@@ -610,21 +616,14 @@ export const shouldScroll_s = (element: SafeElement, di: BOOL | 2 | 3, amount: n
       : <BOOL> +doesScroll(element, (di & 1) as BOOL, amount || +!dimSize_(element, kDim.positionX + di))
 }
 
-export const suppressScroll = (): void => {
-    if (OnChrome && Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage && noRAF_old_cr_) {
-      scrolled = 0
-      return;
-    }
-    scrolled = 2
-    const hasNewScrollEnd_cr = OnChrome && (Build.MinCVer >= BrowserVer.MinScrollEndForInstantScrolling
-      || chromeVer_ > BrowserVer.MinScrollEndForInstantScrolling - 1) && ("on" + kSE) in Image.prototype
-    setupEventListener(0, "scroll");
-    hasNewScrollEnd_cr && setupEventListener(0, kSE)
-    rAF_(function (): void {
-      scrolled = 0
-      setupEventListener(0, "scroll", null, 1);
-      hasNewScrollEnd_cr && setupEventListener(0, kSE, null, 1)
-    });
+export const suppressScroll = (timedOut?: number): void => {
+    timedOut = timedOut || OnChrome && Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage && noRAF_old_cr_ ? 1 : 0
+    scrolled = timedOut ? 0 : 2
+    setupEventListener(0, "scroll", Stop_, timedOut as BOOL);
+    (OnChrome && (Build.MinCVer >= BrowserVer.MinScrollEndForInstantScrolling
+        || chromeVer_ > BrowserVer.MinScrollEndForInstantScrolling - 1) && ("on" + kSE) in Image.prototype) &&
+    setupEventListener(0, kSE, Stop_, timedOut as BOOL)
+    timedOut || rAF_(suppressScroll)
 }
 
 export const onActivate = (event: Event): void => {

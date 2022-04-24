@@ -373,11 +373,11 @@ interface CmdOptions {
     /** length limit list */ l: number[];
     /** max of length limit list */ m: number;
   } & CSSOptions & Req.FallbackOptions;
-  [kFgCmd.insertMode]: {
+  [kFgCmd.insertMode]: ({
     /** unhover last */ u: true;
     /** reset all: 2=destroying */ r?: 0;
     /** insert mode */ i?: false;
-  } & Req.FallbackOptions | {
+  } | {
     /** unhover last */ u?: false;
     /** reset all: 2=destroying */ r: 0 | 1 | 2;
     /** insert mode */ i?: false;
@@ -385,7 +385,7 @@ interface CmdOptions {
     /** unhover last */ u?: boolean;
     /** reset all: 2=destroying */ r: 0 | 1 | 2;
     /** insert mode */ i: boolean;
-  } & InsertModeOptions;
+  } & InsertModeOptions) & Req.FallbackOptions
   [kFgCmd.visualMode]: {
     /** mode */ m?: VisualModeNS.Mode.Visual | VisualModeNS.Mode.Line | VisualModeNS.Mode.Caret;
     /** find CSS */ f?: FindCSS | null

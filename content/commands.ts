@@ -25,16 +25,18 @@ import {
 } from "./dom_ui"
 import { hudHide, hudShow, hudTip, hud_text } from "./hud"
 import { onPassKey, set_onPassKey, passKeys, set_nextKeys, set_passKeys, keyFSM, onEscDown } from "./key_handler"
-import { InputHintItem, activate as linkActivate, clear as linkClear, kSafeAllSelector, findAnElement_ } from "./link_hints"
+import {
+  InputHintItem, activate as linkActivate, clear as linkClear, kSafeAllSelector, findAnElement_
+} from "./link_hints"
 import { activate as markActivate } from "./marks"
 import { FindAction, activate as findActivate, deactivate as findDeactivate, execCommand } from "./mode_find"
 import {
   exitInputHint, insert_inputHint, insert_last_, raw_insert_lock, insert_Lock_, resetInsert, set_is_last_mutable,
-  set_inputHint, set_insert_global_, set_isHintingInput, set_insert_last_, onWndBlur, exitInsertMode, set_passAsNormal,
+  set_inputHint, set_insert_global_, set_isHintingInput, set_insert_last_, exitInsertMode, set_passAsNormal,
 } from "./insert"
 import { activate as visualActivate, deactivate as visualDeactivate } from "./visual"
 import {
-  activate as scActivate, set_cachedScrollable, onActivate, currentScrolling, set_currentScrolling
+  activate as scActivate, set_cachedScrollable, onActivate, currentScrolling, set_currentScrolling, scrollTick
 } from "./scroller"
 import { activate as omniActivate, hide as omniHide } from "./omni"
 import { findNextInText, findNextInRel } from "./pagination"
@@ -87,7 +89,7 @@ set_contentCommands_([
       const done = opt.i ? 9 : derefInDoc_(lastHovered_) ? 0 : 2
       catchAsyncErrorSilently(unhover_async()).then((): void => {
         hudTip(kTip.didUnHoverLast)
-        done < 9 && runFallbackKey(opt as Extract<typeof opt, { u: true }>, done)
+        done < 9 && runFallbackKey(opt, done)
       })
     }
     if (opt.r) {
@@ -96,12 +98,15 @@ set_contentCommands_([
       resetInsert(), linkClear((2 - opt.r) as BOOL), visualDeactivate && visualDeactivate()
       findDeactivate && findDeactivate(FindAction.ExitNoAnyFocus)
       omniHide(), hideHelp && hideHelp()
-      onWndBlur()
+      /** only need a part of actions in {@link ./insert.ts#onWndBlur} */
+      scrollTick(0)
+      onPassKey ? onPassKey() : esc!(HandlerResult.ExitNormalMode);
     }
     if (opt.i) {
       set_insert_global_(opt)
       opt.h && hudShow(kTip.raw, opt.h)
     }
+    opt.u || runFallbackKey(opt, 0)
   },
 
   /* kFgCmd.toggle: */ (options: CmdOptions[kFgCmd.toggle]): void => {

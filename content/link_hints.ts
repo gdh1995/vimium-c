@@ -562,7 +562,8 @@ export const findAnElement_ = (options: OptionsToFindElement, count: number
       : (testD("h") || testD("cl")) ? derefInDoc_(lastHovered_) // hover | clicked
       : /* d !== !0 &&*/ testD("s") || testD("a") ? derefInDoc_(currentScrolling) // currentScrollable / DOMActivate
       : null
-    if (el = testD("em") || el && isNotInViewport(el) < VisibilityType.NotInFullscreen ? el : null) { break }
+    if (el = testD("em") || el && isNotInViewport(el) < (wholeDoc
+          ? VisibilityType.NotInFullscreen : VisibilityType.OutOfView) ? el : null) { break }
   }
   return [el as SafeElement | null | undefined, wholeDoc, indByCount, isSel]
 }
