@@ -355,6 +355,16 @@ export const resetSelectionToDocStart = (sel?: Selection, range?: Range | null):
 
 export const selectAllOfNode = (node: Node): void => { getSelection_().selectAllChildren(node) }
 
+export const selectNode_ = (element: SafeElement): void => {
+  if (getEditableType_<0>(element) > EditableType.MaxNotTextModeElement) {
+    (element as TextElement).select()
+  } else {
+    const range = doc.createRange()
+    range.selectNode(element)
+    resetSelectionToDocStart(getSelection_(), range)
+  }
+}
+
 export const moveSel_s_throwable = (element: LockableElement, action: SelectActions | undefined): void => {
     const elTag = htmlTag_(element), _rawType = editableTypes_[elTag]
     const type = _rawType ? _rawType > EditableType.MaxNotTextModeElement ? _rawType : EditableType.Default

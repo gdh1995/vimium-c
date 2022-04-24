@@ -12,7 +12,7 @@ interface BgCmdOptions {
   [kBgCmd.blank]: { /** ms */ for: CountValueOrRef; wait: CountValueOrRef; block: boolean } & Req.FallbackOptions
 //#region need cport
   [kBgCmd.goNext]: {
-    isNext: boolean; noRel: boolean; patterns: string | string[]; rel: string; $fmt: 1; absolute: true
+    isNext: boolean; noRel: boolean; patterns: string | string[]; rel: string; $fmt: 1; absolute: true; view?: false
   } & UserSedOptions & CSSOptions & Req.FallbackOptions & OpenUrlOptions
   [kBgCmd.insertMode]: {
     key: string
@@ -113,7 +113,7 @@ interface BgCmdOptions {
     other: boolean; mayConfirm: true; noPinned: boolean
   } & TabFilterOptions & Req.FallbackOptions
   [kBgCmd.reopenTab]: Pick<OpenUrlOptions, "group"> & Req.FallbackOptions
-  [kBgCmd.restoreTab]: { incognito: "force" | true; one: boolean; active: false }
+  [kBgCmd.restoreTab]: { incognito: "force" | true; one: boolean; active: false; currentWindow?: boolean }
   [kBgCmd.runKey]: {
     expect: (CommandsNS.CondItem | null)[] | Dict<CommandsNS.CondItem | CommandsNS.CondKeys>
         | `${string}:${string},${string}:${string},`
@@ -256,6 +256,7 @@ interface StatefulBgCmdOptions {
   [kBgCmd.openUrl]: "urls" | "group" | "replace" | "keyword"
   [kBgCmd.runKey]: "expect" | "keys"
   [kBgCmd.togglePinTab]: "limited"
+  [kBgCmd.restoreTab]: "currentWindow"
 }
 interface SafeStatefulBgCmdOptions {
   [kBgCmd.showVomnibar]: "mode"

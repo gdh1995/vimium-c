@@ -19,7 +19,7 @@ import { currentScrolling, set_cachedScrollable, set_currentScrolling } from "./
 import { post_, send_ } from "./port"
 import {
   collpaseSelection, evalIfOK, flash_, getRect, getSelected, lastFlashEl, resetSelectionToDocStart, selectAllOfNode,
-  ui_box
+  selectNode_, ui_box
 } from "./dom_ui"
 import { prevent_, suppressTail_, whenNextIsEsc_ } from "../lib/keyboard_utils"
 import { set_grabBackFocus } from "./insert"
@@ -231,6 +231,7 @@ const copyText = (): void => {
         str = tag === "textarea" ? (clickEl as HTMLTextAreaElement).value
           : tag === "select" ? ((clickEl as HTMLSelectElement).selectedIndex < 0
               ? "" : (clickEl as HTMLSelectElement).options[(clickEl as HTMLSelectElement).selectedIndex].text)
+          : tag === "img" ? (clickEl as HTMLImageElement).alt
           : tag && ((clickEl as SafeHTMLElement).innerText.trim()
                 || GetShadowRoot_(clickEl) && (childEl = querySelector_unsafe_("div,span", GetShadowRoot_(clickEl)!))
                     && htmlTag_<1>(childEl) && childEl.innerText.trim())
@@ -251,11 +252,12 @@ const copyText = (): void => {
         o: parseOpenPageUrlOptions(hintOptions)
       });
   } else if (hintOptions.richText) {
-      const sel = getSelected({}), range = selRange_(getSelection_())
-      selectAllOfNode(clickEl)
+    const oldRange = selRange_(getSelected({}))
+    selectNode_(clickEl)
+    str = getSelection_() + "" || str || tag
       execCommand("copy", doc)
-      resetSelectionToDocStart(sel, range)
-      hintApi.h(kTip.copiedIs, 0, sel + "")
+    resetSelectionToDocStart(getSelection_(), oldRange)
+    hintApi.h(kTip.copiedIs, 0, str)
   } else if (!str) {
     hintApi.h(isUrl ? kTip.noUrlCopied : kTip.noTextCopied)
   } else if (mode1_ === HintMode.SEARCH_TEXT) {

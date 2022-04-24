@@ -115,7 +115,12 @@ export const R_ = (resolve: OnCmdResolved): () => void => resolve !== blank_ ? (
 } : runtimeError_
 
 // another Q_ for "safe" APIs which always succeeds
-export const Qs_ = (OnChrome || OnEdge ? function (func: Function): Promise<unknown> {
+export const Qs_: {
+  <F extends ApiTemplate<[]>              > (browserApi: F): Promise<ApiCb<F>>
+  <F extends ApiTemplate<[any]>           > (browserApi: F, ...args: ApiParams<F>): Promise<ApiCb<F>>
+  <F extends ApiTemplate<[any, any]>      > (browserApi: F, ...args: ApiParams<F>): Promise<ApiCb<F>>
+  <F extends ApiTemplate<[any, any, any]> > (browserApi: F, ...args: ApiParams<F>): Promise<ApiCb<F>>
+} = (OnChrome || OnEdge ? function (func: Function): Promise<unknown> {
   return new Promise(resolve => { func(resolve) })
 } : function (func: Function): Promise<unknown> {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-call

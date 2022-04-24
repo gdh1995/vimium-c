@@ -113,8 +113,8 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode], count: number):
   const yank = (action: kYank | ReuseType.current | ReuseType.newFg): void => {
     const str = getSelectionText(1, curSelection), rich = richText
     action < kYank.NotExit && deactivate()
-    if (!str) { hudTip(kTip.noTextCopied) }
-    else if (action < kYank.MIN) {
+    if (!str && !rich) { hudTip(kTip.noTextCopied) }
+    else if (str && action < kYank.MIN) {
       post_({ H: kFgReq.openUrl, u: str, r: action as ReuseType, o: parseOpenPageUrlOptions(options) })
     } else if (rich || action > kYank.RichTextButNotExit - 1) {
       execCommand("copy", doc)

@@ -7,7 +7,7 @@ import {
 import {
   Tabs_, Windows_, InfoToCreateMultiTab, openMultiTabs, tabsGet, getTabUrl, selectFrom, runtimeError_, R_,
   selectTab, getCurWnd, getCurTab, getCurShownTabs_, browserSessions_, browser_, selectWndIfNeed,
-  getGroupId, isRefusingIncognito_, Q_, isNotHidden_, selectIndexFrom
+  getGroupId, isRefusingIncognito_, Q_, Qs_, isNotHidden_, selectIndexFrom
 } from "./browser"
 import { createSearchUrl_ } from "./normalize_urls"
 import { parseSearchUrl_ } from "./parse_urls"
@@ -587,7 +587,7 @@ set_bgC_([
       resolve(0)
       return complainNoSession()
     }
-    const onlyOne = !!get_cOptions<C.restoreTab>().one, limit = Math.min(+sessions.MAX_SESSION_RESULTS || 25, 25)
+    const onlyOne = !!get_cOptions<C.restoreTab>().one, limit = +sessions.MAX_SESSION_RESULTS || 25
     let count = Math.abs(cRepeat)
     if (count > limit) {
       if (onlyOne) {
@@ -602,9 +602,10 @@ set_bgC_([
       return showHUD(trans_("notRestoreIfIncog"))
     }
     const notActive = get_cOptions<C.restoreTab>().active === false
+    let onlyCurrentWnd = get_cOptions<C.restoreTab>().currentWindow === true
     const curTabId = cPort ? cPort.s.tabId_ : curTabId_, curWndId = curWndId_
     const runNext = getRunNextCmdBy(kRunOn.otherCb)
-    const cb = (restored: chrome.sessions.Session): void => {
+    const cb = (restored: chrome.sessions.Session | null | undefined): void => {
       if (OnChrome && restored && (restored.window || restored.tab && restored.tab.windowId !== curWndId
             && restored.tab.index === 0)) {
         const tab = restored.window ? selectFrom(restored.window.tabs!) : restored.tab!, url = tab.url
@@ -623,24 +624,42 @@ set_bgC_([
           })
         })
       }
-      runtimeError_() ? resolve(0) : notActive ? selectTab(curTabId, runNext) : resolve(1)
+      cb === undefined ? resolve(0) : notActive ? selectTab(curTabId, runNext) : resolve(1)
     }
-    if (onlyOne && count > 1) {
-      sessions.getRecentlyClosed({ maxResults: count }, (list?: chrome.sessions.Session[]): void => {
-        if (!list || count > list.length) { resolve(0); return showHUD(trans_("indexOOR")) }
-        const session = list[count - 1], item = session && (session.tab || session.window)
-        item ? sessions.restore(item.sessionId, cb) : resolve(0)
-      })
-    } else if (count === 1) {
-      sessions.restore(null, cb)
-    } else {
-      const q: Promise<chrome.sessions.Session | undefined>[] = []
-      while (0 <= --count) { q.push(Q_(sessions.restore, null)) }
-      Promise.all(q).then((res): void => {
-        res[0] === undefined ? resolve(0) : notActive ? selectTab(curTabId, runNext) : resolve(1)
-      })
-    }
-    notActive && selectTab(curTabId, runtimeError_)
+    void (async (): Promise<void> => {
+      const expected = Math.max((count * 1.2) | 0, 2)
+      let list: chrome.sessions.Session[] | undefined, hasExtra = false
+      const filter = !onlyCurrentWnd ? null : (i: chrome.sessions.Session): boolean =>
+          !!i.tab && i.tab.windowId > 0 && i.tab.windowId === curWndId
+      if (onlyCurrentWnd && count <= Math.min(limit, 25)) {
+        list = await Qs_(sessions.getRecentlyClosed, { maxResults: count })
+        if (!Build.NDEBUG || !OnFirefox || Build.DetectAPIOnFirefox) {
+          if (list.some(item => !!item.tab && !(item.tab.windowId > 0))) {
+            overrideOption<C.restoreTab>("currentWindow", false)
+            onlyCurrentWnd = false
+          }
+        }
+        hasExtra = list.length > count // e.g. on Chrome
+        list = filter ? list.filter(filter) : list
+        if (!hasExtra && list.length < count && expected <= Math.min(limit, 25)) {
+          list = await Qs_(sessions.getRecentlyClosed, { maxResults: expected })
+          list = filter ? list.filter(filter) : list
+        }
+      }
+      if (!list || !hasExtra && list.length < count) {
+        list = await Qs_(sessions.getRecentlyClosed, count <= 25 && !onlyCurrentWnd ? { maxResults: count } : {})
+        list = filter ? list.filter(filter) : list
+      }
+      if (list.length < (onlyOne ? count : 1)) { resolve(0); return showHUD(trans_("indexOOR")) }
+      if (count === 1) {
+        Q_(sessions.restore, onlyCurrentWnd ? list[0].tab!.sessionId : null).then(cb)
+      } else {
+        Promise.all(list.slice(onlyOne ? count - 1 : 0, count)
+            .map(item => Q_(sessions.restore, (item.tab || item.window)!.sessionId)))
+        .then((res): void => { cb(onlyOne ? res[0] : null) })
+      }
+      notActive && selectTab(curTabId, runtimeError_)
+    })()
   },
   /* kBgCmd.runKey: */ (): void | kBgCmd.runKey => {
     get_cOptions<C.runKey>().$seq == null ? runKeyWithCond()

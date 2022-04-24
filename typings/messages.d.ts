@@ -372,6 +372,7 @@ interface CmdOptions {
     /** patterns */ p: string[];
     /** length limit list */ l: number[];
     /** max of length limit list */ m: number;
+    /** scroll into view */ v: boolean;
   } & CSSOptions & Req.FallbackOptions;
   [kFgCmd.insertMode]: ({
     /** unhover last */ u: true;
@@ -442,7 +443,7 @@ interface CmdOptions {
   [kFgCmd.editText]: {
     dom?: boolean;
     run: string;
-  } & Req.FallbackOptions;
+  } & OptionsToFindElement & Req.FallbackOptions
   [kFgCmd.scrollSelect]: {
     position?: "begin" | "home" | "start" | "end" | "last"
     dir?: "down" | "next" | "prev" | "up" | 1 | -1

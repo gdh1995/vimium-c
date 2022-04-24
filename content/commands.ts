@@ -21,7 +21,7 @@ import { post_, set_contentCommands_, runFallbackKey } from "./port"
 import {
   addElementList, ensureBorder, evalIfOK, getSelected, getSelectionText, getParentVApi, curModalElement, createStyle,
   getBoxTagName_old_cr, setupExitOnClick, addUIElement, removeSelection, ui_root, kExitOnClick, collpaseSelection,
-  hideHelp, set_hideHelp, set_helpBox, checkHidden, flash_, filterOutInert, doesSelectRightInEditableLock
+  hideHelp, set_hideHelp, set_helpBox, checkHidden, flash_, filterOutInert, doesSelectRightInEditableLock, selectNode_
 } from "./dom_ui"
 import { hudHide, hudShow, hudTip, hud_text } from "./hud"
 import { onPassKey, set_onPassKey, passKeys, set_nextKeys, set_passKeys, keyFSM, onEscDown } from "./key_handler"
@@ -220,7 +220,7 @@ set_contentCommands_([
       parApi.f(kFgCmd.goNext, req as CmdOptions[kFgCmd.goNext] & FgOptions, 1)
     } else if (chosen = isHTML_()
         && (req.r && findNextInRel(req.r) || req.p.length && findNextInText(req.p, req))) {
-      chosen[1].j(chosen[0])
+      chosen[1].j(chosen[0], req)
     } else {
       runFallbackKey(req, kTip.noLinksToGo, VTr(kTip.prev + <number> <boolean | number> req.n))
     }
@@ -392,6 +392,9 @@ set_contentCommands_([
               }
             }))
             editable === insert_Lock_() && editable.setSelectionRange(start, end, kDir[1])
+          } else if (cmd === "select") {
+            const activeEl = findAnElement_(options, count)[0]
+            activeEl && selectNode_(activeEl)
           } else {
             sel = sel || getSelected()
             // a1: string := count | focus(ed) | forward(s) | backward(s) | begin | start | end
@@ -454,11 +457,12 @@ set_contentCommands_([
       keydownEvents_[kKeyCode.None] = 0
       useResult = 1, result = ok
     } else {
-      activeEl = findAnElement_(options, count)[0]
+      const found = findAnElement_(options, count)
+      activeEl = found[0]
       if (!activeEl) {
         return runFallbackKey(options, 2, "", delay)
       }
-      view_(activeEl)
+      found[1] && view_(activeEl)
       const useClick = options.click && (activeEl as Partial<HTMLElement>).click
       const xy = !useClick && options.xy as HintsNS.StdXY | undefined
       const point = xy && center_(getVisibleBoundingRect_(activeEl) || getVisibleClientRect_(activeEl), xy)

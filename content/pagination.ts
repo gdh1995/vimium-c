@@ -13,7 +13,7 @@ import { find_box } from "./mode_find"
 import { omni_box } from "./omni"
 import { flash_ } from "./dom_ui"
 import { catchAsyncErrorSilently, click_async } from "./async_dispatcher"
-import { contentCommands_ } from "./port"
+import { contentCommands_, runFallbackKey } from "./port"
 import { hudTip } from "./hud"
 
 let iframesToSearchForNext: VApiTy[] | null
@@ -165,14 +165,15 @@ export const findNextInRel = (relName: string): GoNextBaseCandidate | null | und
   return matched && [matched as SafeHTMLElement, vApi]
 }
 
-export const jumpToNextLink: VApiTy["j"] = (linkElement: GoNextBaseCandidate[0]): void => {
+export const jumpToNextLink: VApiTy["j"] = (linkElement: GoNextBaseCandidate[0], options): void => {
   let url = hasTag_("link", linkElement) && (linkElement as HTMLLinkElement).href
   if (url) {
     hudTip(kTip.raw, 2, url, 1)
     contentCommands_[kFgCmd.framesGoBack](safer<CmdOptions[kFgCmd.framesGoBack]>({ r: 1, u: url }))
   } else {
-    view_(linkElement)
+    options.v && view_(linkElement)
     flash_(linkElement) // here calls getRect -> preparCrop_
     timeout_((): void => { void catchAsyncErrorSilently(click_async(linkElement)) }, 100)
   }
+  runFallbackKey(options, 0)
 }
