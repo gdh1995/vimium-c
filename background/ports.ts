@@ -6,7 +6,7 @@ import {
 import { asyncIter_, getOmniSecret_, keys_ } from "./utils"
 import { removeTempTab, tabsGet, runtimeError_, getCurTab, getTabUrl, Tabs_, browserWebNav_, Q_ } from "./browser"
 import { exclusionListening_, getExcluded_, exclusionListenHash_ } from "./exclusions"
-import { trans_ } from "./i18n"
+import { I18nNames, transEx_ } from "./i18n"
 
 const onMessage = <K extends keyof FgReq, T extends keyof FgRes> (request: Req.fg<K> | Req.fgWithRes<T>
     , port: Frames.Port): void => {
@@ -340,6 +340,20 @@ export const showHUD = (text: string | Promise<string>, tipId?: kTip): void => {
   }
 }
 
+export const showHUDEx = (port: Port | null | undefined, name: I18nNames
+    , duration: BgReq[kBgReq.showHUD]["d"], args: (string | number | Promise<string | number> | [I18nNames])[]
+    , _name2?: string): void => {
+  if (!port) { return }
+  let text = _name2 || transEx_(name, args)
+  if (typeof text !== "string") {
+    void text.then(showHUDEx.bind(null, port, "NS", duration, []))
+    return
+  }
+  safePost(port, {
+    N: kBgReq.showHUD, H: ensureInnerCSS(port.s), k: kTip.raw, d: duration, t: text
+  })
+}
+
 export const ensuredExitAllGrab = (ref: Frames.Frames): void => {
   const msg: Req.bg<kBgReq.exitGrab> = { N: kBgReq.exitGrab }
   for (const p of ref.ports_) {
@@ -377,7 +391,7 @@ export const asyncIterFrames_ = (callback: (frames: Frames.Frames) => void, does
 }
 
 export const complainLimits = (action: string | Promise<string>): void => {
-  void Promise.resolve(action).then((msg): void => { showHUD(trans_("notAllowA", [msg])) })
+  showHUDEx(cPort, "notAllowA", 0, [action])
 }
 
 export const complainNoSession = (): void => {

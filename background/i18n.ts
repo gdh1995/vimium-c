@@ -13,7 +13,7 @@ export type I18nNames = keyof typeof i18n_dyn
 let extPayload_: Map<string, string>
 export let i18nReadyExt_: Promise<void> | BOOL = Build.MV3 && IsLimited ? 0 : 1
 let i18nPayload_: Map<string, string>
-let ready_: Promise<Map<string, string>> | BOOL = 0
+let ready_: Promise<void> | BOOL = 0
 
 export const contentI18n_: string[] = []
 
@@ -29,9 +29,23 @@ export const trans_ = (name: I18nNames, args?: (string | number)[]): string | Pr
         ? val.replace(<RegExpG & RegExpSearchable<0>> /\$\d/g, (i): string => args[+i[1] - 1] as string)
         : val || ""
   } else {
-    ready_ || (ready_ = getI18nJson("background"))
-    return ready_.then((obj): void => { i18nPayload_ = obj, ready_ = 1 })
-      .then(trans_.bind(null, name, args))
+    ready_ || (ready_ = getI18nJson("background").then((obj): void => { i18nPayload_ = obj, ready_ = 1 }))
+    return ready_.then(trans_.bind(null, name, args))
+  }
+}
+
+export const transEx_ = (name: I18nNames, args: (string | [I18nNames] | number | Promise<string | number>)[]
+    ): string | Promise<string> => {
+  args.forEach((i, ind, arr) => { if (i instanceof Array) {
+    const name = i[0]
+    arr[ind] = ready_ === 1 ? i18nPayload_.get(name) || name : (trans_(name) as Promise<string>).then(j => j || name)
+  } })
+  if (!args.some(i => i instanceof Promise)) {
+    return trans_(name, args as (string | number)[])
+  } else {
+    const p = Promise.all(args as (string | number | Promise<string | number>)[])
+    const p2 = ready_ === 1 ? p : (ready_ || trans_("NS") as Promise<string>).then(() => p)
+    return p2.then((newArgs) => trans_(name, newArgs) as string)
   }
 }
 

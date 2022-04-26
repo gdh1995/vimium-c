@@ -1,5 +1,5 @@
 import {
-  CurCVer_, OnChrome, OnFirefox, $, $$, nextTick_, bTrans_, post_, enableNextTick_, kReadyInfo, toggleReduceMotion
+  CurCVer_, OnChrome, OnFirefox, $, $$, nextTick_, post_, enableNextTick_, kReadyInfo, toggleReduceMotion
 } from "./async_bg"
 import {
   bgSettings_, Option_, AllowedOptions, Checker, PossibleOptionNames, ExclusionRulesOption_, oTrans_,
@@ -550,7 +550,7 @@ const linkHintNumbersOption_ = Option_.all_.linkHintNumbers
 const filterLinkHintsOption_ = Option_.all_.filterLinkHints
 linkHintCharactersOption_.onSave_ = linkHintNumbersOption_.onSave_ = function (): void {
   this.showError_(!this.element_.style.display && this.previous_.length < GlobalConsts.MinHintCharSetSize
-      ? bTrans_("" + kTip.fewChars) : "")
+      ? "Too few characters for LinkHints" : "")
 }
 filterLinkHintsOption_.onSave_ = function (): void {
   nextTick_((el): void => {

@@ -12,7 +12,7 @@ import {
 import { createSearchUrl_ } from "./normalize_urls"
 import { parseSearchUrl_ } from "./parse_urls"
 import * as settings_ from "./settings"
-import { requireURL_, complainNoSession, showHUD, complainLimits, getPortUrl_ } from "./ports"
+import { requireURL_, complainNoSession, showHUD, complainLimits, getPortUrl_, showHUDEx } from "./ports"
 import { setOmniStyle_ } from "./ui_css"
 import { trans_, I18nNames, extTrans_ } from "./i18n"
 import { stripKey_ } from "./key_mappings"
@@ -294,10 +294,8 @@ set_bgC_([
   /* kBgCmd.clearFindHistory: */ (resolve): void | kBgCmd.clearFindHistory => {
     const incognito = cPort ? cPort.s.incognito_ : curIncognito_ === IncognitoType.true
     FindModeHistory_.removeAll_(incognito)
-    Promise.resolve(incognito ? trans_("incog") : "").then((incogStr): void => {
-      showHUD(trans_("fhCleared", [incogStr]))
-      resolve(1)
-    })
+    showHUDEx(cPort, "fhCleared", 0, [incognito ? ["incog"] : ""])
+    resolve(1)
   },
   /* kBgCmd.clearMarks: */ (resolve): void | kBgCmd.clearMarks => {
     const p = get_cOptions<C.clearMarks>().local ? get_cOptions<C.clearMarks>().all ? Marks_.clear_("#")

@@ -887,11 +887,11 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     if (type !== "tab" && (type !== "history" || (Build.BTypes & ~BrowserType.Firefox
           && (!(Build.BTypes & BrowserType.Firefox) || Vomnibar_.browser_ !== BrowserType.Firefox)
           && completion.s != null))) {
-      VPort_.postToOwner_({ N: VomnibarNS.kFReq.hud, k: kTip.failToDelSug });
+      VPort_.post_({ H: kFgReq.removeSug, t: "e" })
       return;
     }
     VPort_.post_({ H: kFgReq.removeSug, t: type, s: completion.s, u: completion.u })
-    return Vomnibar_.refresh_();
+    Vomnibar_.refresh_()
   },
   onClick_ (this: void, event: MouseEventToPrevent): void {
     const a = Vomnibar_;

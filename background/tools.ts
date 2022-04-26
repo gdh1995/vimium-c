@@ -3,7 +3,7 @@ import {
   set_curTabId_, set_curWndId_, set_incognitoFindHistoryList_, set_lastWndId_, set_recencyForTab_, incognitoMarkCache_,
   set_incognitoMarkCache_, contentPayload_, reqH_, settingsCache_, OnFirefox, OnChrome, CurCVer_, updateHooks_,
   OnEdge, isHighContrast_ff_, omniPayload_, blank_, CONST_, RecencyMap, CurFFVer_, storageCache_, IsLimited, os_,
-  vomnibarBgOptions_
+  vomnibarBgOptions_, cPort
 } from "./store"
 import * as BgUtils_ from "./utils"
 import {
@@ -12,10 +12,10 @@ import {
 import { hostRe_, removeComposedScheme_ } from "./normalize_urls"
 import { prepareReParsingPrefix_ } from "./parse_urls"
 import * as settings_ from "./settings"
-import { complainLimits, showHUD } from "./ports"
+import { complainLimits, showHUD, showHUDEx } from "./ports"
 import { setOmniStyle_ } from "./ui_css"
-import { extTrans_, trans_ } from "./i18n"
-import { parseFallbackOptions, runNextCmd, getRunNextCmdBy, kRunOn } from "./run_commands"
+import { trans_ } from "./i18n"
+import { parseFallbackOptions, runNextCmd, getRunNextCmdBy, kRunOn, runNextCmdBy } from "./run_commands"
 import { parseOpenPageUrlOptions, preferLastWnd } from "./open_urls"
 import { reopenTab_ } from "./tab_commands"
 
@@ -105,9 +105,7 @@ export const ContentSettings_ = OnChrome ? {
     const ty = (options.type ? "" + options.type : "images") as NonNullable<typeof options.type>
     if (!ContentSettings_.complain_(ty, "http://a.cc/")) {
       ContentSettings_.Clear_(ty, port ? port.s.incognito_ : curIncognito_ === IncognitoType.true)
-      void Promise.resolve(ty === "images" && trans_(ty)).then((tyI18n): void => {
-        showHUD(trans_("csCleared", [tyI18n || ty[0].toUpperCase() + ty.slice(1)]))
-      })
+      showHUDEx(port, "csCleared", 0, [(ty[0].toUpperCase() + ty.slice(1)) as "Images"])
       return true
     }
     return false
@@ -159,7 +157,7 @@ export const ContentSettings_ = OnChrome ? {
   },
   ensureIncognito_ (this: void, count: number, contentType: CSTypes, tab: Tab, resolve: OnCmdResolved): void {
     if (CONST_.DisallowIncognito_) {
-      complainLimits("setIncogCS")
+      complainLimits(trans_("setIncogCS"))
       resolve(0)
       return
     }
@@ -267,7 +265,8 @@ export const ContentSettings_ = OnChrome ? {
   }
 } as never
 export const Marks_ = { // NOTE: all public members should be static
-  set_ ({ l: local, n: markName, u: url, s: scroll }: MarksNS.NewMark, incognito: boolean, tabId?: number): void {
+  set_ ({ l: local, n: markName, u: url, s: scroll }: MarksNS.NewMark, incognito: boolean, tabId?: number
+      , logPort?: Port): void {
     if (local && scroll[0] === 0 && scroll[1] === 0) {
       if (scroll.length === 2) {
         const i = url.indexOf("#");
@@ -281,11 +280,12 @@ export const Marks_ = { // NOTE: all public members should be static
         : { tabId: tabId!, url, scroll })
     incognito ? (incognitoMarkCache_ || (IncognitoWatcher_.watch_(), set_incognitoMarkCache_(new Map()))).set(key, val)
         : settings_.setInLocal_(key, val)
+    logPort && showHUDEx(logPort, "mNormalMarkTask", 1, [ ["mCreate"], [local ? "Local" : "Global"], markName ])
   },
   createMark_ (this: void, request: MarksNS.NewTopMark | MarksNS.NewMark, port: Port): void {
     let tabId = port.s.tabId_;
     if (request.s) {
-      Marks_.set_(request, port.s.incognito_, tabId)
+      Marks_.set_(request, port.s.incognito_, tabId, port)
       return
     }
     (port = framesForTab_.get(tabId)?.top_ || port) && port.postMessage({
@@ -311,10 +311,7 @@ export const Marks_ = { // NOTE: all public members should be static
       }
     }
     if (!str) {
-      const type = request.l ? "Local" : "Global"
-      void Promise.resolve(trans_(type)).then((typeI18n): void => {
-        showHUD(trans_("noMark", [typeI18n || type, markName]))
-      })
+      showHUDEx(port, "noMark", 0, [[request.l ? "Local" : "Global"], markName])
       return
     }
     const stored = JSON.parse(str) as MarksNS.StoredGlobalMark;
@@ -348,7 +345,9 @@ export const Marks_ = { // NOTE: all public members should be static
   },
   goToInContent_ (port: Port
       , local: 0 | 2, name: string | undefined, scroll: MarksNS.ScrollInfo, f: MarksNS.InfoToGo["f"]): void {
-    port.postMessage({ N: kBgReq.goToMark, l: local, n: name, s: scroll, f })
+    port.postMessage({ N: kBgReq.goToMark, l: local, n: name, s: scroll })
+    name && showHUDEx(port, "mNormalMarkTask", local ? 1 : 2, [ ["mJumpTo"], [local ? "Local" : "Global"], name ])
+    f && runNextCmdBy(1, f)
   },
   scrollTab_ (this: void, markInfo: MarksNS.InfoToGo, tab: Tab): void {
     const tabId = tab.id, port = framesForTab_.get(tabId)?.top_
@@ -375,11 +374,8 @@ export const Marks_ = { // NOTE: all public members should be static
         storage2.delete(key)
       }
     })
-    void Promise.all([url === "#" ? trans_("allLocal")
-        : extTrans_((url ? kTip.local + "" : kTip.global + "") as "41" | "39")
-        , trans_(num !== 1 ? "have" : "has")]).then(([arg2, arg3]): void => {
-      showHUD(trans_("markRemoved", [ num, arg2, arg3 ]))
-    })
+    showHUDEx(cPort, "markRemoved", 0
+        , [num, [url === "#" ? "allLocal" : url ? "Local" : "Global"], [num !== 1 ? "have" : "has"]])
   }
 }
 

@@ -11,7 +11,7 @@ import { findUrlEndingWithPunctuation_, parseSearchUrl_, parseUpperUrl_ } from "
 import * as settings_ from "./settings"
 import {
   findCPort, isNotVomnibarPage, indexFrame, safePost, complainNoSession, showHUD, complainLimits, ensureInnerCSS,
-  getParentFrame, sendResponse
+  getParentFrame, sendResponse, showHUDEx
 } from "./ports"
 import { exclusionListening_, getExcluded_ } from "./exclusions"
 import { setOmniStyle_ } from "./ui_css"
@@ -362,7 +362,12 @@ set_reqH_([
   },
   /** kFgReq.focusOrLaunch: */ _AsReqH<kFgReq.focusOrLaunch, false>(focusOrLaunch_),
   /** kFgReq.cmd: */ _AsReqH<kFgReq.cmd>(onConfirmResponse),
-  /** kFgReq.removeSug: */ ({ t: rawType, s: sId, u: url }: FgReq[kFgReq.removeSug], port?: Port | null): void => {
+  /** kFgReq.removeSug: */ (req: FgReq[kFgReq.removeSug], port?: Port | null): void => {
+    if (req.t === "e") {
+      showHUD(trans_("cannotDelSug"))
+      return
+    }
+    const { t: rawType, s: sId, u: url } = req
     const type = rawType === "history" && sId != null ? "session" : rawType
     const name = type === "tab" ? type : type + " item"
     const cb = (succeed?: boolean | BOOL | void): void => {
@@ -463,19 +468,26 @@ set_reqH_([
     })
     return port as Port
   },
-  /** kFgReq.showUrl: */ (req: FgReq[kFgReq.showUrl], port: Frames.Port): void => {
+  /** kFgReq.showUrl: */ (req: FgReq[kFgReq.showUrl], port): void => {
     let text = req.u, n = text.indexOf("://")
     text = n > 0 ? text.slice(text.indexOf("/", n + 4) + 1) : text
     text = text.length > 40 ? text.slice(0, 39) + "\u2026" : text
     set_cPort(port)
     showHUD(text, kTip.downloaded)
   },
-  /** kFgReq.omniCopy: */ (req: FgReq[kFgReq.omniCopy], port: Frames.Port): void => {
+  /** kFgReq.omniCopy: */ (req: FgReq[kFgReq.omniCopy], port): void => {
     const title = req.t, url = BgUtils_.decodeUrlForCopy_(req.u)
     let join = (vomnibarBgOptions_.actions.find(i => i.startsWith("itemJoin=")) || "").slice(9)
     join = join ? join.includes("\\") ? parseVal_(join[0] === '"' ? join : `"${join}"`)
         : BgUtils_.DecodeURLPart_(join) : ": "
     reqH_[kFgReq.copy]({ s: title ? title + join + url : url, d: false, m: HintMode.DEFAULT }, findCPort(port)!);
+  },
+  /** kFgReq.didLocalMarkTask: */ (req: FgReq[kFgReq.didLocalMarkTask], port): void => {
+    if (req.i != null) {
+      showHUDEx(port, "mLocalMarkTask", 1, [ [req.m ? "mJumpTo" : "mCreate"], req.i || ["mLastMark"] ])
+    } else {
+      showHUDEx(port, "mCreateLastMark", 1, [])
+    }
   }
 ])
 

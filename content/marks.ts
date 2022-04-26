@@ -1,7 +1,7 @@
-import { VTr, safer, loc_, vApi, locHref, isTY, isTop, OnFirefox, injector } from "../lib/utils"
+import { safer, loc_, vApi, locHref, isTY, isTop, OnFirefox, injector } from "../lib/utils"
 import { createElement_, scrollingEl_, textContent_s } from "../lib/dom_utils"
-import { post_, runFallbackKey } from "./port"
-import { hudHide, hudShow, hudTip } from "./hud"
+import { post_ } from "./port"
+import { hudHide, hudShow } from "./hud"
 import { removeHandler_, getMappedKey, isEscape_, replaceOrSuppressMost_, hasShift_ff } from "../lib/keyboard_utils"
 import { makeElementScrollBy_ } from "./scroller"
 
@@ -39,6 +39,7 @@ export const activate = (options: CmdOptions[kFgCmd.marks], mcount: number): voi
   replaceOrSuppressMost_(kHandler.marks, (event): HandlerResult => {
   if (event.i === kKeyCode.ime) { return HandlerResult.Nothing }
   const keyChar = getMappedKey(event, kModeId.Marks)
+  let tempPos: MarksNS.FgMark | undefined
   if (keyChar.length !== 1 && !isEscape_(keyChar)) {
     return HandlerResult.Suppress
   }
@@ -48,14 +49,12 @@ export const activate = (options: CmdOptions[kFgCmd.marks], mcount: number): voi
   } else if ("`'".includes(keyChar)) {
     if (isCreate) {
       setPreviousMarkPosition(mcount)
-      hudTip(kTip.didCreateLastMark, 1)
     } else {
-      const pos = previous[mcount]
-      setPreviousMarkPosition(pos ? 0 : mcount)
-      pos && scrollToMark(pos)
-      hudTip(kTip.didLocalMarkTask, 1,
-          [VTr(pos ? kTip.didJumpTo : kTip.didCreate), mcount ? mcount : VTr(kTip.lastMark)])
+      tempPos = previous[mcount]
+      setPreviousMarkPosition(tempPos ? 0 : mcount)
+      tempPos && scrollToMark(tempPos)
     }
+    post_({ H: kFgReq.didLocalMarkTask, m: tempPos, i: mcount })
   } else if (isCreate) {
     if ((OnFirefox ? hasShift_ff!(event.e) : event.e.shiftKey) !== swap) {
       if (isTop || injector) {
@@ -117,19 +116,12 @@ export const createMark = (req: BgReq[kBgReq.createMark], local?: 0 | 2): void =
       u: locHref(),
       s: dispatchMark(null, local)
     })
-    hudTip(kTip.didNormalMarkTask, 1,
-        [ VTr(kTip.didCreate), VTr(local ? kTip.local : kTip.global), req.n ])
 }
 
-export const gotoMark = ({ n: a, s: scroll, l: local, f }: BgReq[kBgReq.goToMark]): void => {
+export const gotoMark = ({ n: a, s: scroll, l: local }: BgReq[kBgReq.goToMark]): void => {
     a && setPreviousMarkPosition()
     scrollToMark(scroll)
     local || vApi.f()
-    if (a) {
-      hudTip(kTip.didNormalMarkTask, local ? 1 : 2,
-          [ VTr(kTip.didJumpTo), VTr(kTip.global + local), a ])
-    }
-    f && runFallbackKey(f, 0)
 }
 
 if (!(Build.NDEBUG || kTip.nowGotoMark + 1 === kTip.nowCreateMark)) {

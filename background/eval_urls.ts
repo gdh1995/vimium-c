@@ -6,9 +6,8 @@ import { decodeEscapedURL_, spacesRe_, DecodeURLPart_ } from "./utils"
 import { import2 } from "./browser"
 import { convertToUrl_, lastUrlType_, createSearchUrl_, quotedStringRe_ } from "./normalize_urls"
 import { parseSearchUrl_ } from "./parse_urls"
-import { getPortUrl_, showHUD } from "./ports"
+import { getPortUrl_, showHUD, showHUDEx } from "./ports"
 import * as Exclusions from "./exclusions"
-import { trans_ } from "./i18n"
 
 set_evalVimiumUrl_(function (path: string, workType?: Urls.WorkType
     , onlyOnce?: boolean | null, _isNested?: number): Urls.Url | null {
@@ -271,9 +270,9 @@ const forceStatus_ = (act: Frames.ForcedStatusText): void => {
     port.postMessage(msg);
   }
   newStatus = ref.cur_.s.status_
-  silent || shown || Promise.resolve(trans_(newStatus === Frames.Status.enabled && !enableWithPassedKeys
-        ? "fullyEnabled" : newStatus === Frames.Status.disabled ? "fullyDisabled" : "halfDisabled"))
-      .then((statStr): void => { showHUD(trans_("newStat", [statStr])) })
+  silent || shown || showHUDEx(cPort, "newStat", 0, [
+      newStatus === Frames.Status.enabled && !enableWithPassedKeys
+      ? "fullyEnabled" : newStatus === Frames.Status.disabled ? "fullyDisabled" : "halfDisabled"])
   if (needIcon_ && newStatus !== oldStatus) {
     setIcon_(tabId, newStatus);
   }

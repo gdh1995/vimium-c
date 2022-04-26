@@ -186,12 +186,8 @@ export const activate = (options: ContentOptions, count: number, force?: 2 | Tim
     const useFilter0 = options.useFilter, useFilter = useFilter0 != null ? !!useFilter0 : fgCache.f,
     topFrameInfo: FrameHintsInfo = {h: [], v: null as never, s: coreHints},
     toCleanArray: HintOfficer[] = [],
-    s0 = options.c, chars = s0 ? s0 + "" : useFilter ? fgCache.n : fgCache.c;
+    s0 = options.c, chars: string = s0 ? s0 : useFilter ? fgCache.n : fgCache.c
     frameArray = [topFrameInfo]
-    if (chars.length < GlobalConsts.MinHintCharSetSize) {
-      hudTip(kTip.fewChars, 1)
-      return clear()
-    }
     isHC_ = matchMedia(VTr(
         OnChrome && Build.MinCVer < BrowserVer.MinForcedColorsMode && chromeVer_ < BrowserVer.MinForcedColorsMode
         ? kTip.highContrast_WOB : kTip.forcedColors)).matches

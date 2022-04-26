@@ -11,7 +11,7 @@ import {
 } from "./browser"
 import { convertToUrl_ } from "./normalize_urls"
 import { parseSearchUrl_ } from "./parse_urls"
-import { complainLimits, requireURL_, showHUD } from "./ports"
+import { complainLimits, requireURL_, showHUD, showHUDEx } from "./ports"
 import { trans_ } from "./i18n"
 import {
   confirm_, overrideCmdOptions, runNextOnTabLoaded, runNextCmd, getRunNextCmdBy, kRunOn, needConfirm_
@@ -669,11 +669,8 @@ export const toggleMuteTab = (resolve: OnCmdResolved): void | kBgCmd.toggleMuteT
         tabsUpdate(tab.id, action)
       }
     }
-    const prefix = curId === GlobalConsts.TabIdNone ? "All" : "Other"
-    Promise.resolve(trans_(prefix)).then((prefixStr): void => {
-      showHUD(trans_(mute ? "mute" : "unmute", [prefixStr || prefix]))
-      resolve(1)
-    })
+    showHUDEx(cPort, mute ? "mute" : "unmute", 0, [[curId === GlobalConsts.TabIdNone ? "All" : "Other"]])
+    resolve(1)
   }
   const wantedCurTabInfo = getNecessaryCurTabInfo(filter)
   if (wantedCurTabInfo) {

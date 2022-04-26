@@ -5,20 +5,18 @@ declare const enum kTip {
   /* 17: */ kCommonEvents = 17,
   /* 20..25 */ copiedIs = 20, forcedColors, tooManyLinks, wrapWhenFind, atStart, atEnd,
   /* 26..31 */ nMatches, oneMatch, someMatches, noMatches, modalHints, expectKeys,
-  /* 39, 41: */ global = 39, local = 41, // neither 39 nor 41 is in HintMode
+  /* 39, 41: */ findFrameFail = 39, noOldQuery = 41, // neither 39 nor 41 is in HintMode
   /* 44..47 */ selectLineBoundary = 44, frameUnloaded, waitForEnter, logGrabFocus,
   /* 60..63 */ logOmniFallback = 60, logNotWorkOnSandboxed, prev, next,
   /* 68..70 */ START_FOR_OTHERS = 68, OFFSET_VISUAL_MODE = 67, visual, line, caret,
   /* 71: */ noLinks, exitForIME, linkRemoved, notImg,
   /* 75: */ hoverScrollable, ignorePassword, noNewToCopy, downloaded, nowGotoMark,
-  /* 80: */ nowCreateMark, didCreateLastMark, didLocalMarkTask, didJumpTo, didCreate,
-  /* 85: */ lastMark, didNormalMarkTask, findFrameFail, noOldQuery, noMatchFor,
-  /* 90: */ inVisualMode, noUsableSel, loseSel, needSel, omniFrameFail,
-  /* 95: */ failToDelSug, fewChars, editableSelector, removeCurScript, webkitWithRel,
-  /* 100: */ notANestedFrame, cssUrl, imgExt, clickableClasses, clickableRoles,
-  /* 105: */ invisibleHintText, notMatchedHintText, metaKeywordsForMobile, css0d01OrDPI, visibleElementsInScopeChildren,
-  /* 110: */ voidJS = 110, nonLocalhostRe, scrollable, buttonOrA, closableClasses,
-  /* 115: */ highContrast_WOB, invisibleElements,
+  /* 80: */ nowCreateMark, noMatchFor, inVisualMode, noUsableSel, loseSel,
+  /* 85: */ needSel, omniFrameFail, editableSelector, removeCurScript, webkitWithRel,
+  /* 90: */ notANestedFrame, cssUrl, imgExt, clickableClasses, clickableRoles,
+  /* 95: */ invisibleHintText, notMatchedHintText, metaKeywordsForMobile, css0d01OrDPI, visibleElementsInScopeChildren,
+  /* 100: */ voidJS, nonLocalhostRe, scrollable, buttonOrA, closableClasses,
+  /* 105: */ highContrast_WOB, invisibleElements,
   INJECTED_CONTENT_END,
   /* 200: */ XHTML,
   /** used by {@link ../Gulpfile.js} */ extendClick = 999,
@@ -98,7 +96,7 @@ declare const enum kFgReq {
   /** can be used only with `FgCmdAcrossFrames` and when a fg command is just being called */
   gotoMainFrame,
   setOmniStyle, findFromVisual, framesGoBack, i18n, learnCSS, visualMode,
-  respondForRunKey, downloadLink, wait, optionToggled, keyFromOmni, pages, showUrl, omniCopy,
+  respondForRunKey, downloadLink, wait, optionToggled, keyFromOmni, pages, showUrl, omniCopy, didLocalMarkTask,
   END,
   msg = 90, inject = 99,
   command = "command", id = "id", shortcut = "shortcut",
@@ -168,7 +166,6 @@ interface BgReq {
     /** local */ l: 0 | /** kTip.local - kTip.global */ 2
     /** markName */ n?: string | undefined
     /** scroll */ s: MarksNS.FgMark
-    /** fallback options */ f?: Req.FallbackOptions | null
   }
   [kBgReq.suppressForAWhile]: { /** timeout */ t: number }
 }
@@ -625,6 +622,7 @@ interface FgReq {
     /** action */ a: kMarkAction.clear;
     /** url */ u: string;
   } | ({ /** action */ a: kMarkAction.goto; c: CmdOptions[kFgCmd.marks] } & MarksNS.FgQuery)
+  [kFgReq.didLocalMarkTask]: { /** remembered mark */ m?: MarksNS.FgMark | undefined, /** index */ i?: number }
   /**
    * .url is guaranteed to be well formatted by frontend
    */
@@ -637,7 +635,7 @@ interface FgReq {
     /** type */ t: "tab" | "history";
     /** sessionId / tabId */ s?: CompletersNS.SessionId | null
     /** url */ u: string
-  };
+  } | { t: "e" }
   [kFgReq.openImage]: {
     /** file */ f: string | null;
     /** url */ u: string;
