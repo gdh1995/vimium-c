@@ -9,7 +9,9 @@ type BgCmdActiveTab<T extends kBgCmd> = (this: void, tabs: [Tab], resolve: OnCmd
 type BgCmdCurWndTabs<T extends kBgCmd> = (this: void, tabs: Tab[], resolve: OnCmdResolved) => void | T
 
 interface BgCmdOptions {
+  [kBgCmd.blank]: {
   [kBgCmd.blank]: { /** ms */ for: CountValueOrRef; wait: CountValueOrRef; block: boolean } & Req.FallbackOptions
+  } & Req.FallbackOptions
 //#region need cport
   [kBgCmd.goNext]: {
     isNext: boolean; noRel: boolean; patterns: string | string[]; rel: string; $fmt: 1; absolute: true; view?: false
@@ -131,7 +133,11 @@ interface BgCmdOptions {
   [kBgCmd.searchInAnother]: { keyword: string; reuse: UserReuseType } & Req.FallbackOptions
       & OpenUrlOptions & MasksForOpenUrl & OpenPageUrlOptions
   [kBgCmd.sendToExtension]: { id: string; data: any; raw: true } & Req.FallbackOptions
-  [kBgCmd.showHUD]: { text: string } & Req.FallbackOptions
+  [kBgCmd.showHUD]: {
+    text: string
+    isError: true
+    /** only return cmd result, but not show */ silent: boolean
+  } & Req.FallbackOptions
   [kBgCmd.toggleCS]: { action: "" | "reopen"; incognito: boolean; type: chrome.contentSettings.ValidTypes }
   [kBgCmd.toggleMuteTab]: { all: boolean; other: boolean; others: boolean; mute: boolean }
       & TabFilterOptions & Req.FallbackOptions

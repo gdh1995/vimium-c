@@ -122,7 +122,17 @@ export const normalizeCommand_ = (cmd: Writable<CommandsNS.BaseItem>, details?: 
         let mode = lhOpt.mode, stdMode = lhOpt.m!
         const rawChars = lhOpt.characters
         const action = lhOpt.action
-        const chars = rawChars && settings_.updatePayload_<"c" | "n">("c", rawChars)
+        const chars = !rawChars || typeof rawChars !== "string" ? null
+            : BgUtils_.dedupChars_(settings_.updatePayload_<"c" | "n">("c", rawChars))
+        if (chars && chars.length < GlobalConsts.MinHintCharSetSize) {
+          cmd.alias_ = kBgCmd.showHUD
+          cmd.background_ = 1
+          cmd.options_ = BgUtils_.safer_<KnownOptions<kBgCmd.showHUD>>({
+            text: "Too few characters for LinkHints", isError: true
+          })
+          cmd.repeat_ = 1
+          return true
+        }
         chars ? lhOpt.c = chars : "c" in lhOpt && delete lhOpt.c
         rawChars != null && delete lhOpt.characters
         "action" in lhOpt && delete lhOpt.action

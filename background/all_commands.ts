@@ -68,9 +68,10 @@ const _AsBgC = <T extends Function>(command: T): T => {
 set_bgC_([
   /* kBgCmd.blank: */ (): void | kBgCmd.blank => {
     let wait = get_cOptions<C.blank, true>().for || get_cOptions<C.blank, true>().wait
+    const useThen = get_cOptions<C.blank>().isError ? 0 : 1
     if (wait === "ready") {
       // run in callback, to avoid extra 67ms
-      runNextOnTabLoaded({}, null, (): void => { runNextCmdBy(1, get_cOptions<C.blank, true>(), 1) })
+      runNextOnTabLoaded({}, null, (): void => { runNextCmdBy(useThen, get_cOptions<C.blank, true>(), 1) })
       return
     }
     wait = !wait ? hasFallbackOptions(get_cOptions<C.blank, true>()) ? Math.abs(cRepeat) : 0
@@ -80,8 +81,8 @@ set_bgC_([
       let block = get_cOptions<C.blank>().block
       block = block != null ? !!block : wait > 17 && wait <= 1000
       block && cPort && cPort.postMessage({ N: kBgReq.suppressForAWhile, t: wait + 50 })
-      runNextCmdBy(cRepeat > 0 ? 1 : 0, get_cOptions<C.blank, true>(), wait)
     }
+    runNextCmdBy(cRepeat > 0 ? useThen : (1 - useThen) as BOOL, get_cOptions<C.blank, true>(), wait)
   },
 
 //#region need cport
@@ -716,13 +717,15 @@ set_bgC_([
   },
   /* kBgCmd.showHUD: */ (resolve): void | kBgCmd.showHUD => {
     let text: string | UnknownValue | Promise<string> = get_cOptions<C.showHUD>().text
-    if (!text && get_cOptions<C.showHUD>().$f) {
+    const silent = !!get_cOptions<C.showHUD>().silent
+    const isError = get_cOptions<C.showHUD>().isError
+    if (!text && !silent && isError == null && get_cOptions<C.showHUD>().$f) {
       const fallbackContext = get_cOptions<C.showHUD, true>().$f
       text = fallbackContext && fallbackContext.t ? extTrans_(`${fallbackContext.t as 99}`) : ""
       if (!text) { resolve(false); return }
     }
-    showHUD(text ? text instanceof Promise ? text : text + "" : trans_("needText"))
-    resolve(!!text)
+    silent || showHUD(text ? text instanceof Promise ? text : text + "" : trans_("needText"))
+    resolve(isError != null ? !!isError : !!text)
   },
   /* kBgCmd.toggleCS: */ (tabs: [Tab], resolve): void | kBgCmd.toggleCS => {
     OnChrome ? ContentSettings_.toggleCS_(get_cOptions<C.toggleCS, true>(), cRepeat, tabs, resolve)

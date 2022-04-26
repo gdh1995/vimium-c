@@ -349,7 +349,8 @@ export const click_async = (async (element: SafeElementForMouse
           && actionTarget < kClickAction.MaxPlain + 1
         ? ActionType.DispatchAndMayOpenTab : ActionType.OpenTabButNotDispatch
   }
-  const isCommonClick = button !== kClickButton.primaryAndTwice && !(modifiers && modifiers[0])
+  const isCommonClick = result < ActionType.OpenTabButNotDispatch && button !== kClickButton.primaryAndTwice
+      && !(modifiers && modifiers[0])
   isCommonClick && setNewScrolling(element) // DOMActivate is not triggered if a click event is cancelled (prevented)
   if ((result > ActionType.OpenTabButNotDispatch - 1
         || (OnFirefox && Build.MinFFVer < FirefoxBrowserVer.MinPopupBlockerPassClicksFromExtensions

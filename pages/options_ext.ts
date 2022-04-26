@@ -78,7 +78,8 @@ interface ExportedSettings extends Dict<any> {
   description?: string;
   time?: number;
   environment?: {
-    chrome?: number;
+    chromium?: number;
+    /** @deprecated */ chrome?: number
     firefox?: number
     extension?: string;
     platform?: string;
@@ -106,7 +107,7 @@ const buildExportedFile = (now: Date, want_static: boolean): { blob: Blob, optio
     platform: bgSettings_.platform_
   };
   if (OnChrome) {
-    exported_object.environment.chrome = CurCVer_;
+    exported_object.environment.chromium = CurCVer_
   }
   if (OnFirefox) {
     exported_object.environment.firefox = CurFFVer_
@@ -232,7 +233,8 @@ async function _importSettings(time: number, new_data: ExportedSettings, is_reco
   const old_settings_file = buildExportedFile(now, false)
   Object.setPrototypeOf(new_data, null)
   {
-    const dict2 = new_data[OnFirefox ? "firefox" : OnEdge ? "edge" : OnSafari ? "safari" : "chrome"]
+    const dict2 = new_data[OnFirefox ? "firefox" : OnEdge ? "edge" : OnSafari ? "safari"
+        : "chromium" in new_data ? "chromium" : "chrome"]
     dict2 && typeof dict2 === "object" && Object.assign(new_data, dict2)
   }
   if (new_data.vimSync == null) {
@@ -266,7 +268,7 @@ async function _importSettings(time: number, new_data: ExportedSettings, is_reco
   }
 
   const delKeys = (keys: string): void => keys.split(/\s+/g).forEach(k => k && delete new_data[k])
-  delKeys("name time environment author description chrome firefox edge safari")
+  delKeys("name time environment author description chrome chromium firefox edge safari")
   for (let key in new_data) {
     if (key[0] === "@") {
       delete new_data[key];

@@ -1,4 +1,4 @@
-import { VTr, safer, loc_, vApi, locHref, isTY, isTop, OnFirefox } from "../lib/utils"
+import { VTr, safer, loc_, vApi, locHref, isTY, isTop, OnFirefox, injector } from "../lib/utils"
 import { createElement_, scrollingEl_, textContent_s } from "../lib/dom_utils"
 import { post_, runFallbackKey } from "./port"
 import { hudHide, hudShow, hudTip } from "./hud"
@@ -8,11 +8,12 @@ import { makeElementScrollBy_ } from "./scroller"
 // [0, 2..9]
 let previous: Readonly<MarksNS.FgMark>[] = []
 
-const dispatchMark = ((mark?: Readonly<MarksNS.FgMark> | null | undefined
+const dispatchMark = ((mark?: Readonly<MarksNS.FgMark> | null | undefined, local?: 0 | 2
     ): Readonly<MarksNS.FgMark> | MarksNS.FgMark | null => {
   let a = createElement_("a"), oldStr: string | undefined, newStr: string, match: string[],
   newMark: Readonly<MarksNS.FgMark> | null | undefined
   mark && textContent_s(a, oldStr = mark + "")
+  local && (a.dataset.local = "")
   newMark = !dispatchEvent(new FocusEvent("vimiumMark", { relatedTarget: a, cancelable: true })) ? null
       : (newStr = textContent_s(a)) === oldStr ? mark
       : (match = newStr.split(",")).length > 1 ? ([~~match[0], ~~match[1]] as const
@@ -21,7 +22,7 @@ const dispatchMark = ((mark?: Readonly<MarksNS.FgMark> | null | undefined
   return mark ? newMark as Readonly<MarksNS.FgMark> | MarksNS.FgMark | null : newMark || [scrollX | 0, scrollY | 0]
 }) as {
   (mark: Readonly<MarksNS.FgMark>): Readonly<MarksNS.FgMark> | null | MarksNS.FgMark
-  (mark?: undefined): MarksNS.FgMark
+  (mark?: undefined | null, local?: 0 | 2): MarksNS.FgMark // to create
 }
 
 export const setPreviousMarkPosition = (idx?: number): void => {
@@ -57,7 +58,7 @@ export const activate = (options: CmdOptions[kFgCmd.marks], mcount: number): voi
     }
   } else if (isCreate) {
     if ((OnFirefox ? hasShift_ff!(event.e) : event.e.shiftKey) !== swap) {
-      if (isTop) {
+      if (isTop || injector) {
         createMark({n: keyChar})
       } else {
         post_({H: kFgReq.marks, a: kMarkAction.create, n: keyChar})
@@ -114,7 +115,7 @@ export const createMark = (req: BgReq[kBgReq.createMark], local?: 0 | 2): void =
       l: local,
       n: req.n,
       u: locHref(),
-      s: dispatchMark()
+      s: dispatchMark(null, local)
     })
     hudTip(kTip.didNormalMarkTask, 1,
         [ VTr(kTip.didCreate), VTr(local ? kTip.local : kTip.global), req.n ])

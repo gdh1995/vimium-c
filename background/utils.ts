@@ -342,3 +342,14 @@ export const normalizeXY_ = (xy: HintsNS.Options["xy"] | null): HintsNS.StdXY | 
     return { x: xy[0], y: xy[1], n: useCount ? 0 : 1, s: useCount ? +xy[2]! || 0.01 : 0 }
   }
 }
+
+export const dedupChars_ = (chars: string) => {
+  let out = ""
+  for (let i = 0, end = chars.length - 1; i < end; i++) {
+    const ch = chars[i];
+    if (ch.trimRight() && chars.indexOf(ch, i + 1) < 0) {
+      out += ch
+    }
+  }
+  return out
+}

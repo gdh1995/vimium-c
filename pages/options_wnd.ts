@@ -460,19 +460,20 @@ $("#importButton").onclick = function (): void {
 
 nextTick_((el0): void => {
   const platform = bgSettings_.platform_
-  let name = BrowserName_
+  let name = BrowserName_, version: number = OnFirefox ? CurFFVer_ : CurCVer_
   if (!name) {
   const data = navigator.userAgentData
   const brands = (data && (OnChrome && Build.MinCVer <= BrowserVer.Only$navigator$$userAgentData$$$uaList
       ? data.brands || data.uaList : data.brands) || []
-    ).filter(i => (OnChrome ? i.version === CurCVer_ && i.brand !== "Chromium"
+    ).filter(i => (OnChrome ? i.version === CurCVer_ && i.brand !== "Chromium" || i.brand.includes("Opera")
       : OnFirefox ? i.version === CurFFVer_ : true) && !(` ${i.brand} `.includes(" Not ")))
-  const brand = OnChrome && brands.find(i => i.brand.includes("Edge")) || brands[0]
+  const brand = OnChrome && brands.find(i => (<RegExpOne> /\b(Edge|Opera)\b/).test(i.brand)) || brands[0]
   const nameFallback = OnFirefox ? "Firefox" : IsEdg_ ? "MS Edge" : ""
   name = brand ? brand.brand : data ? nameFallback || "Chromium"
       : OnChrome && ((<RegExpOne> /\bChromium\b/).exec(navigator.userAgent!) || [""])[0] || nameFallback || "Chrome"
+    if (brand) { version = brand.version }
   }
-el0.textContent = (OnEdge ? "MS Edge (EdgeHTML)" : name + " " + (OnFirefox ? CurFFVer_ : CurCVer_)
+el0.textContent = (OnEdge ? "MS Edge (EdgeHTML)" : name + " " + version
   ) + oTrans_("comma") + oTrans_("NS")
   + (oTrans_(platform as "win" | "mac") || platform[0].toUpperCase() + platform.slice(1))
 if (OnChrome && IsEdg_) {

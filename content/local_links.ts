@@ -451,8 +451,11 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
   while (output.length && (output[0][0] === docEl_unsafe_() || !hintManager && output[0][0] === doc.body)) {
     output.shift()
   }
-  if (wantClickable && mode1_ < HintMode.min_job && !matchSelector && loc_.pathname.startsWith("/search")) {
-    const exc = loc_.host.includes("google") ? ".g" : loc_.host.includes("bing.com") ? ".b_algo" : 0
+  if (wantClickable && mode1_ < HintMode.min_job && !matchSelector) {
+    const pathname = loc_.pathname, host = loc_.host,
+    exc = pathname === "/s" ? host.includes("baidu.") ? ".c-container" : 0
+        : pathname.startsWith("/search") ? host.includes("google") ? ".g" : host.includes("bing.com") ? ".b_algo" : 0
+        : 0
     output = exc ? output.filter(hint => !testMatch(exc, hint)) : output
   }
   if (Build.NDEBUG ? wholeDoc : wholeDoc && !isInAnElement) {

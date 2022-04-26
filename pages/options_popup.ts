@@ -1,6 +1,6 @@
 import {
   OnFirefox, OnEdge, OnChrome, $, pageTrans_, enableNextTick_, nextTick_, kReadyInfo, TransTy, IsEdg_, post_,
-  toggleReduceMotion, CurCVer_, hasShift_
+  toggleReduceMotion, hasShift_
 } from "./async_bg"
 import {
   bgSettings_, ExclusionVisibleVirtualNode, ExclusionRulesOption_, setupBorderWidth_, showI18n,
@@ -367,8 +367,8 @@ const onNotRunnable = (blockedMsg: HTMLElement): void => {
     (refreshTip.querySelector(".action") as HTMLElement).textContent = "open a new web page"
   } else if (OnChrome && !IsEdg_ && ((uad = navigator.userAgentData, uaList = uad && (uad.brands
         || (Build.MinCVer > BrowserVer.Only$navigator$$userAgentData$$$uaList ? null : uad.uaList)))
-        ? uaList.find(i => i.brand.includes("Opera") && i.version === CurCVer_)
-        : (<RegExpOne> /\bOpera\//).test(navigator.userAgent!))
+        ? uaList.find(i => i.brand.includes("Opera"))
+        : (<RegExpOne> /\b(Opera|OPR)\//).test(navigator.userAgent!))
       && (<RegExpOne> /\.(google|bing|baidu)\./).test(_url.split("/", 4).slice(0, 3).join("/"))) {
     (blockedMsg.querySelector("#opera-warning") as HTMLElement).style.display = ""
   }
