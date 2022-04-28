@@ -2,7 +2,7 @@ import {
   clickable_, timeout_, loc_, getTime, clearTimeout_, vApi, recordLog, doc, setupEventListener, VTr, raw_unwrap_ff,
   isTY, OnFirefox, isAsContent
 } from "../lib/utils"
-import { CLK, MDW, OnDocLoaded_, isHTML_, set_createElement_, createElement_, docEl_unsafe_ } from "../lib/dom_utils"
+import { CLK, MDW, OnDocLoaded_, isHTML_, set_createElement_, createElement_ } from "../lib/dom_utils"
 import { grabBackFocus } from "./insert"
 import { coreHints, doesWantToReloadLinkHints, reinitLinkHintsIn } from "./link_hints"
 /* eslint-disable @typescript-eslint/await-thenable */
