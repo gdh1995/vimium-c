@@ -194,7 +194,8 @@ set_reqH_([
     if (type !== Frames.NextType.current) {
       type === Frames.NextType.parent ? parentFrame() : nextFrame()
     } else if (ref = framesForTab_.get(port.s.tabId_)) {
-      focusFrame(ref.cur_, ref.ports_.length <= 2, FrameMaskType.NoMask, get_cOptions<kBgCmd.nextFrame, true>())
+      focusFrame(ref.cur_, ref.ports_.length <= 2, request.o ? FrameMaskType.onOmniHide : FrameMaskType.NoMask
+          , get_cOptions<kBgCmd.nextFrame, true>())
     } else {
       safePost(port, { N: kBgReq.omni_returnFocus, l: cKey })
     }

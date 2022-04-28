@@ -260,9 +260,23 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   itemKeyword_: null as string | null,
   showTime_: 0 as 0 | /** abs-num */ 1 | /** abs */ 2 | /** relative */ 3,
   show_ (): void {
-    const a = Vomnibar_;
+    const a = Vomnibar_, callback = (event?: Event | TimerType.fake): void => {
+      if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinDocument$visibilityState
+          && (!(Build.BTypes & ~BrowserType.Chrome) || Vomnibar_.browser_ & BrowserType.Chrome)
+          && Vomnibar_.browserVer_ < BrowserVer.MinDocument$visibilityState) {
+        Vomnibar_.focus_()
+      } else if (document.visibilityState === "visible" || !event) {
+        Vomnibar_.focus_()
+        clearTimeout(timer)
+      } else if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$addEventListener$support$once) {
+        return
+      }
+      (!event || Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$addEventListener$support$once) &&
+      removeEventListener(kVisCh, callback, listenOptions)
+    }, kVisCh = "visibilitychange", listenOptions = { capture: true, once: true } as const,
+    timer = setTimeout(callback, 34);
     a.showing_ = true;
-    setTimeout(a.focus_, 34);
+    addEventListener(kVisCh, callback, listenOptions);
     ((document.body as Element).addEventListener as typeof addEventListener)("wheel", a.onWheel_, a.wheelOptions_)
   },
   hide_ (fromContent?: BOOL): void {
@@ -275,7 +289,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     a.timer_ > 0 && clearTimeout(a.timer_);
     window.onkeyup = null as never;
     el.blur();
-    fromContent || VPort_ && VPort_.post_({ H: kFgReq.nextFrame, t: Frames.NextType.current, k: a.lastKey_ })
+    fromContent ||
+    VPort_ && VPort_.post_({ H: kFgReq.nextFrame, t: Frames.NextType.current, o: !a.doEnter_, k: a.lastKey_ })
     if (Build.MinCVer <= BrowserVer.StyleSrc$UnsafeInline$MayNotImply$UnsafeEval && Build.BTypes & BrowserType.Chrome) {
       a.docSt_.zoom = ""
     } else {
@@ -287,12 +302,10 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     a.barCls_.remove("empty");
     a.list_.classList.remove("no-favicon");
     a.toggleAlt_(0);
-    a.afterHideTimer_ = Build.BTypes & BrowserType.Firefox
-        && (!(Build.BTypes & ~BrowserType.Firefox) || a.browser_ === BrowserType.Firefox)
-        ? requestAnimationFrame(a.AfterHide_) : requestAnimationFrame((): void => {
-      a.afterHideTimer_ = requestAnimationFrame(a.AfterHide_)
-    })
-    a.timer_ = setTimeout(a.AfterHide_, 35);
+    a.afterHideTimer_ = requestAnimationFrame(Build.BTypes & BrowserType.Firefox
+        && (!(Build.BTypes & ~BrowserType.Firefox) || a.browser_ === BrowserType.Firefox) || !a.doEnter_
+        ? a.AfterHide_ : (): void => { a.afterHideTimer_ = requestAnimationFrame(a.AfterHide_) })
+    a.timer_ = setTimeout(a.AfterHide_, a.doEnter_ ? 35 : 17)
   },
   AfterHide_ (this: void): void {
     const a = Vomnibar_;
@@ -342,6 +355,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     a.isHttps_ = a.baseHttps_;
     a.mode_.q = a.lastQuery_ = input && input.trim().replace(a.spacesRe_, " ");
     a.height_ = 0;
+    a.AfterHide_() // clear afterHideTimer_
     a.isActive_ = true;
     // also clear @timer
     a.update_(0, start! <= end! ? function (): void {
@@ -1006,6 +1020,14 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   omni_ (response: BgVomnibarSpecialReq[kBgReq.omni_omni]): void {
     const a = Vomnibar_;
     const completions = response.l, len = completions.length, notEmpty = len > 0, oldH = a.height_, list = a.list_;
+    const height = a.height_ = Math.ceil(notEmpty ? len * a.itemHeight_ + a.baseHeightIfNotEmpty_ : a.heightIfEmpty_),
+    wdZoom = Build.MinCVer < BrowserVer.MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent
+          && (!(Build.BTypes & ~BrowserType.Chrome)
+              || Build.BTypes & BrowserType.Chrome && a.browser_ === BrowserType.Chrome)
+        ? a.docZoom_ * devicePixelRatio : a.docZoom_,
+    msg: VomnibarNS.FReq[VomnibarNS.kFReq.style] & VomnibarNS.Msg<VomnibarNS.kFReq.style> = {
+      N: VomnibarNS.kFReq.style, h: height * wdZoom
+    };
     if (!a.isActive_) { return; }
     a.total_ = response.t;
     a.showFavIcon_ = response.i;
@@ -1016,18 +1038,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     a.isSearchOnTop_ = len > 0 && completions[0].e === "search" && !(completions[0] as CompletersNS.SearchSuggestion).n
     a.selection_ = a.isSearchOnTop_ || (a.selectFirst_ == null ? response.a : a.selectFirst_ && notEmpty) ? 0 : -1;
     a.isSelOriginal_ = true;
-    const height = a.height_
-      = Math.ceil(notEmpty ? len * a.itemHeight_ + a.baseHeightIfNotEmpty_ : a.heightIfEmpty_),
-    needMsg = height !== oldH, earlyPost = height > oldH,
-    wdZoom = Build.MinCVer < BrowserVer.MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent
-          && (!(Build.BTypes & ~BrowserType.Chrome)
-              || Build.BTypes & BrowserType.Chrome && a.browser_ === BrowserType.Chrome)
-        ? a.docZoom_ * devicePixelRatio : a.docZoom_,
-    msg: VomnibarNS.FReq[VomnibarNS.kFReq.style] & VomnibarNS.Msg<VomnibarNS.kFReq.style> = {
-      N: VomnibarNS.kFReq.style, h: height * wdZoom
-    };
     oldH || (msg.m = Math.ceil(a.mode_.r * a.itemHeight_ + a.baseHeightIfNotEmpty_) * wdZoom);
-    if (needMsg && earlyPost) { VPort_.postToOwner_(msg); }
+    if (height > oldH) { VPort_.postToOwner_(msg); }
     a.completions_.forEach(a.Parse_);
     a.renderItems_(a.completions_, list);
     a.toggleInputMode_()
@@ -1056,11 +1068,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       a.toggleAlt_(0)
       a.onUpdate_ = null
     }
-    if (earlyPost) {
-      return a.postUpdate_();
-    } else {
-      requestAnimationFrame(() => { needMsg && VPort_.postToOwner_(msg); return Vomnibar_.postUpdate_(); });
-    }
+    height > oldH ? a.postUpdate_()
+        : requestAnimationFrame((): void => { height !== oldH && VPort_.postToOwner_(msg); Vomnibar_.postUpdate_() })
   },
   postUpdate_ (): void {
     let func: typeof Vomnibar_.onUpdate_;
@@ -1379,11 +1388,6 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       }
       Vomnibar_.inAlt_ = enable;
     }
-  },
-  returnFocus_ (this: void, request: BgVomnibarSpecialReq[kBgReq.omni_returnFocus]): void {
-    type VoidPost = <K extends keyof VomnibarNS.FReq> (this: void, msg: VomnibarNS.FReq[K] & VomnibarNS.Msg<K>) => void;
-    setTimeout<VomnibarNS.FReq[VomnibarNS.kFReq.focus] & VomnibarNS.Msg<VomnibarNS.kFReq.focus>>(VPort_.postToOwner_ as
-      VoidPost, 0, { N: VomnibarNS.kFReq.focus, l: request.l });
   },
   _realDevRatio: 0,
   onInnerWidth_ (w?: number): void {
@@ -1781,12 +1785,12 @@ VPort_ = {
   },
   _Listener<T extends ValidBgVomnibarReq> (this: void, response: Req.bg<T>): void {
     const name = response.N;
-    name === kBgReq.omni_omni ? Vomnibar_.omni_(response as Req.bg<kBgReq.omni_omni>) :
-    name === kBgReq.omni_parsed ? Vomnibar_.parsed_(response as Req.bg<kBgReq.omni_parsed>) :
-    name === kBgReq.omni_init ? Vomnibar_.secret_ && Vomnibar_.secret_(response as Req.bg<kBgReq.omni_init>) :
-    name === kBgReq.omni_returnFocus ? Vomnibar_.returnFocus_(response as Req.bg<kBgReq.omni_returnFocus>) :
-    name === kBgReq.omni_toggleStyle ? Vomnibar_.toggleStyle_(response as Req.bg<kBgReq.omni_toggleStyle>) :
-    name === kBgReq.omni_updateOptions ? Vomnibar_.updateOptions_(response as Req.bg<kBgReq.omni_updateOptions>) :
+    name === kBgReq.omni_omni ? Vomnibar_.omni_(response) :
+    name === kBgReq.omni_parsed ? Vomnibar_.parsed_(response) :
+    name === kBgReq.omni_init ? Vomnibar_.secret_ && Vomnibar_.secret_(response) :
+    name === kBgReq.omni_returnFocus ? VPort_.postToOwner_({ N: VomnibarNS.kFReq.focus, l: response.l }) :
+    name === kBgReq.omni_toggleStyle ? Vomnibar_.toggleStyle_(response) :
+    name === kBgReq.omni_updateOptions ? Vomnibar_.updateOptions_(response) :
     name === kBgReq.injectorRun ? 0 :
     0;
   },

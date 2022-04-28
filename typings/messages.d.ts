@@ -569,6 +569,7 @@ interface FgReq {
     /** type */ t?: Frames.NextType;
     /** key */ k: kKeyCode;
     /** fallback options */ f?: Req.FallbackOptions;
+    /** focus at once, because on-omni-exit */ o?: boolean
   };
   [kFgReq.exitGrab]: {};
   [kFgReq.initHelp]: {

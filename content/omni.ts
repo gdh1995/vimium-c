@@ -47,18 +47,16 @@ let screenHeight_: number
 
 export { box as omni_box, status as omni_status }
 
-type InnerHide = (fromInner?: 1 | null) => void
-export const hide = ((fromInner?: 1 | null): void => {
+type InnerHide = (fromInner?: BOOL | null) => void
+export const hide: (fromInner?: 0 | null | undefined) => void = <InnerHide> ((fromInner): void => {
     const oldIsActive = status > Status.Inactive
-    status = screenHeight_ = Status.Inactive
+    status < Status.Inactive || (status = screenHeight_ = Status.Inactive)
     setupExitOnClick(kExitOnClick.vomnibar | kExitOnClick.REMOVE)
-    if (fromInner == null) {
-      oldIsActive && postToOmni(VomnibarNS.kCReq.hide)
+    removeHandler_(kHandler.omni)
+    if (!fromInner) {
+      oldIsActive && fromInner !== 0 && postToOmni(VomnibarNS.kCReq.hide)
       return
     }
-    // needed, in case the iframe is focused and then a `<esc>` is pressed before removing suppressing
-    removeHandler_(kHandler.omni)
-    oldIsActive || focus()
     if (OnChrome && Build.MinCVer <= BrowserVer.StyleSrc$UnsafeInline$MayNotImply$UnsafeEval) {
       let style_old_cr = box!.style
       style_old_cr.height = style_old_cr.top = ""
@@ -67,7 +65,7 @@ export const hide = ((fromInner?: 1 | null): void => {
       box!.style.cssText = "display:none"
     }
     WithDialog && dialogWrapper_ && (dialogWrapper_.close(), setDisplaying_s(dialogWrapper_))
-}) as InnerHide as (_arg?: null) => void
+})
 
 export const activate = function (options: FullOptions, count: number): void {
 
@@ -211,10 +209,11 @@ const onOmniMessage = function (this: OmniPort, msg: { data: any, target?: Messa
         if (WithDialog && dialogWrapper_) {
           setDisplaying_s(dialogWrapper_, 1), dialogWrapper_.open || dialogWrapper_.showModal()
         }
-        timeout_(refreshKeyHandler, 160)
+        clearTimeout_(timer1)
+        timeout_(refreshKeyHandler, GlobalConsts.TimeOfSuppressingTailKeydownEvents - 40)
       }
       break;
-    case VomnibarNS.kFReq.focus: focus(); keydownEvents_[data.l] = 1; break
+    case VomnibarNS.kFReq.focus: vApi.f(); keydownEvents_[data.l] = 1; break
     case VomnibarNS.kFReq.hide: (hide as InnerHide)(1); break
     case VomnibarNS.kFReq.scroll: beginScroll(0, data.k, data.b); break
     case VomnibarNS.kFReq.scrollGoing: // no break;

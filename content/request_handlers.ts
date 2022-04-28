@@ -29,7 +29,7 @@ import {
 } from "./mode_find"
 import { exitGrab, grabBackFocus, insertInit, set_grabBackFocus, onFocus, onBlur, insert_Lock_ } from "./insert"
 import { onActivate, setNewScrolling } from "./scroller"
-import { Status as VomnibarStatus, omni_status, omni_box } from "./omni"
+import { Status as VomnibarStatus, omni_status, omni_box, hide as omniHide } from "./omni"
 
 let frame_mask: BOOL | 2 | undefined
 let needToRetryParentClickable: BOOL = 0
@@ -172,10 +172,10 @@ set_requestHandlers([
       post_({ H: kFgReq.nextFrame, k: req.k, f: req.f })
       return;
     }
-    (mask || req.c) && timeout_((): void => {
+    mask === FrameMaskType.onOmniHide ? (omniHide(0), vApi.f()) : (mask || req.c) && timeout_((): void => {
       vApi.f(req.c, req.a!, req.n!)
       isAlive_ && runFallbackKey(req.f, mask === FrameMaskType.OnlySelf ? 2 : 0)
-    }, 1); // require FrameMaskType.NoMaskAndNoFocus is 0
+    }, 1)
     keydownEvents_[req.k] = 1;
     (mask === FrameMaskType.OnlySelf && req.f.$else) || showFrameMask(mask)
   },
@@ -308,4 +308,8 @@ export const focusAndRun = (cmd?: FgCmdAcrossFrames, options?: FgOptions, count?
     }
     showBorder! & 1 && showFrameMask(FrameMaskType.ForcedSelf);
   }
+}
+
+if (!(Build.NDEBUG || FrameMaskType.NoMaskAndNoFocus === 0)) {
+  alert("Assert error: require FrameMaskType.NoMaskAndNoFocus === 0")
 }

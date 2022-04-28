@@ -272,12 +272,9 @@ declare type UserReuseType = ReuseType | boolean | ValidReuseNames
     | "last-wnd-bgbg" | "lastwndbgbg" | "last-wnd-bg-inactive" | "lastwndbginactive"
 
 declare const enum FrameMaskType {
-  NoMaskAndNoFocus = 0,
-  NoMask = 1,
-  OnlySelf = 2,
-  NormalNext = 3,
-  ForcedSelf = 4,
-  minWillMask = OnlySelf,
+  NoMaskAndNoFocus = 0, onOmniHide = 1, NoMask = 2,
+  OnlySelf = 3, NormalNext = 4, ForcedSelf = 5,
+  minWillMask = OnlySelf
 }
 
 declare const enum ProtocolType {

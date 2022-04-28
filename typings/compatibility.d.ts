@@ -27,6 +27,7 @@ declare const enum BrowserVer {
   Maybe$Promise$onlyHas$$resolved = 33, // only if EXPERIMENTAL
   // before 33, `a=activeElement; a.blur(); a.focus()` can not make its iframe grab focus
   MinFocusIframeDirectlyWithout$wnd$$focus = 33, // even if EXPERIMENTAL or LEGACY; need .contentWindow.focus() before
+  MinDocument$visibilityState = 33,
   MinCSSWidthUnit$vw$InCalc = 34, // even if EXPERIMENTAL or LEGACY
   Min$Object$$setPrototypeOf = 34,
   // before C34, 2 images share a size part (the first one's), and different height/width would work as the smaller one
