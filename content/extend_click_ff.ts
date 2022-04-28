@@ -79,7 +79,7 @@ export const main_ff = (OnFirefox ? (): void => {
   } catch (e) {
     Build.NDEBUG || (recordLog("Vimium C: extending click crashed in %o @t=%o ."), console.log(e))
   }
-})
+})()
 } : 0 as never) as () => void
 
 export const unblockClick_old_ff = (): void => {
