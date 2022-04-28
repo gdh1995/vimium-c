@@ -288,8 +288,8 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode], count: number):
               && OnChrome) {
             WordsRe_ff_old_cr = tryCreateRegExp(options.w!)!
           } else {
-            // note: here thinks the `/[^]*[~~~]/` has acceptable performance
-            WordsRe_ff_old_cr = tryCreateRegExp(options.w! || "[^]*[\\p{L}\\p{Nd}_]", options.w! ? "" : "u" as never)!
+            // note: here thinks the `/^[^]*[~~~]/` has acceptable performance
+            WordsRe_ff_old_cr = tryCreateRegExp(options.w! || "^[^]*[\\p{L}\\p{Nd}_]", options.w! ? "" : "u" as never)!
           }
       }
 /** C72

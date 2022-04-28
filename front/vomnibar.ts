@@ -758,10 +758,22 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         && (!(Build.BTypes & ~BrowserType.Firefox) || Vomnibar_.browser_ === BrowserType.Firefox)) {
       let { value: str, selectionStart: start, selectionEnd: end } = Vomnibar_.input_
       if (start === end) {
-        let arr = code < 4 ? (<RegExpOne> /^.*\s/).exec(str.slice(0, start).trimRight())
-            : (<RegExpOne> /\s+/).exec(str.slice(start))
-        start = code < 4 ? arr ? arr.index + 1 : 0 : arr ? start + arr.index + arr[0].length : str.length
-        Vomnibar_.input_.setSelectionRange(start, start)
+        const re = Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
+            && !(Build.BTypes & BrowserType.Edge || Build.BTypes & BrowserType.Chrome
+                  && Build.MinCVer < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp)
+            ? /[^\p{L}\p{Nd}_]+/u
+            : Vomnibar_.browserVer_ > FirefoxBrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp - 1
+            ? new RegExp("[^\\p{L}\\p{Nd}_]+", "u") : /[^\w\u0386-\u03fb\u4E00–\u9FFF]+/
+        if (code < 4) {
+          str = str.slice(0, start).trimRight(); start = str.length
+          for (start = str.length - 1; 0 <= start && (<RegExpOne> re).test(str[start]); start--) { /* empty */ }
+          for (; 0 <= start && !(<RegExpOne> re).test(str[start]); start--) { /* empty */ }
+          start++
+        } else {
+          const arr = (<RegExpOne> re).exec(str.slice(start))
+          start = arr ? start + arr.index + arr[0].length : str.length
+        }
+        Vomnibar_.input_.setSelectionRange(isExtend && code >= 4 ? end : start, isExtend && code < 4 ? end : start)
       }
     } else {
       const sel = getSelection()
