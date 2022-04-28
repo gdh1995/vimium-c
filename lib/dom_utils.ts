@@ -365,7 +365,7 @@ export const IsInDOM_ = function (element: Element, root?: Element | Document | 
     while (pe && !(OnFirefox ? contains_s(root as SafeElement | Document, pe)
         : element.contains.call((root as Element | Document), pe))) {
       pe = !OnEdge && (!OnChrome || Build.MinCVer >= BrowserVer.Min$Node$$getRootNode
-        || chromeVer_ > BrowserVer.Min$Node$$getRootNode - 1) ? getRootNode_mounted(element) : null
+        || chromeVer_ > BrowserVer.Min$Node$$getRootNode - 1) ? getRootNode_mounted(pe) : null
       pe = pe && isNode_(pe, kNode.DOCUMENT_FRAGMENT_NODE) ? (pe as Partial<ShadowRoot>).host : null
     }
     if (pe || !OnEdge && (!OnChrome || Build.MinCVer >= BrowserVer.Min$Node$$getRootNode
