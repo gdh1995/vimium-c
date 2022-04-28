@@ -330,25 +330,21 @@ const defaultClick = (): void => {
     isSel = tag === "select",
     interactive = isSel || (tag === "video" || tag === "audio") && !isRight && (clickEl as HTMLMediaElement).controls,
     doInteract = interactive && !isSel && hintOptions.interact !== !1,
-    reuseFlag = newTab ? kClickAction.FlagMayInactive : kClickAction.none,
-    specialActions = otherActions || doInteract
+    specialActions = dblClick || doInteract
         ? kClickAction.BaseMayInteract + +dblClick + kClickAction.FlagInteract * <number> <number | boolean> doInteract
-        : newTabStr.startsWith("no-") ? kClickAction.none
+        : isRight || newTabStr.startsWith("no-") ? kClickAction.none
         : newWindow ? kClickAction.plainInNewWindow
         : newTabStr === "force-current" ? kClickAction.forceToOpenInCurrent
-        : newTabStr === "force-mode" ? newTab ? kClickAction.forceInNewTab | kClickAction.FlagMayInactive
-            : kClickAction.forceToOpenInCurrent
-        : newTabStr === "force" ? kClickAction.forceInNewTab | reuseFlag
-        : newTabStr === kLW ? kClickAction.forceToOpenInLastWnd | reuseFlag
-        : OnFirefox && Build.MinFFVer < FirefoxBrowserVer.MinPopupBlockerPassClicksFromExtensions
-          ? kClickAction.plainMayOpenManually | reuseFlag
-        : hintOptions.sedIf ? kClickAction.forceToSedIf | reuseFlag
+        : newTabStr === "force-mode" ? newTab ? kClickAction.forceInNewTab : kClickAction.forceToOpenInCurrent
+        : newTabStr === "force" ? kClickAction.forceInNewTab
+        : newTabStr === kLW ? kClickAction.forceToOpenInLastWnd
+        : OnFirefox ? newTab ? kClickAction.plainInNewTab : kClickAction.plainMayOpenManually
         : kClickAction.none,
     doesUnhoverAtOnce = !doesUnhoverOnEsc && /*#__PURE__*/ checkBoolOrSelector(autoUnhover, !1)
     retPromise = catchAsyncErrorSilently(click_async(clickEl, rect
         , /*#__PURE__*/ checkBoolOrSelector(hintOptions.focus
             , mask > 0 || interactive || (clickEl as ElementToHTMLorOtherFormatted).tabIndex! >= 0)
-        , [!1, isMac ? !1 : ctrl, isMac ? ctrl : !1, shift]
+        , [!1, !isMac && ctrl, isMac && ctrl, shift]
         , specialActions, isRight ? kClickButton.second : kClickButton.none
         , !OnChrome || otherActions || newTab || newWindow ? 0 : hintOptions.touch))
     .then((ret): void => {

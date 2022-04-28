@@ -608,7 +608,8 @@ declare const enum FirefoxBrowserVer {
   ESRPopupBlockerPassClicksFromExtensions = 91, // since 91.6
   Min$structuredClone = 94,
   MinBrowserDarkThemeSet$PrefersColorScheme = 95, // https://github.com/gdh1995/vimium-c/discussions/517
-  MinPopupBlockerPassClicksFromExtensions = 96, // https://github.com/philc/vimium/issues/3964
+  // but refuse a `click#ctrl=false&shift=false` on `<a target=_blank>`: https://github.com/gdh1995/vimium-c/issues/616
+  MinPopupBlockerPassComposedClicksFromExtensions = 96, // https://github.com/philc/vimium/issues/3964
   MinMaybe$navigator$$userAgentData = 99,
   // members of a Selection are never updated when an <input> gets focused, so no work-around
   Min$Selection$SupportTextBox = 999,

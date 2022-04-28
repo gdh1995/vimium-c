@@ -1,6 +1,6 @@
 import {
   OnChrome, OnFirefox, OnEdge, doc, deref_, weakRef_ff, chromeVer_, isJSUrl, getTime, parseOpenPageUrlOptions, safeCall,
-  tryCreateRegExp, weakRef_not_ff, firefoxVer_, fgCache
+  tryCreateRegExp, weakRef_not_ff, firefoxVer_, fgCache, max_
 } from "../lib/utils"
 import {
   IsInDOM_, isInTouchMode_cr_, MDW, hasTag_, CLK, attr_s, contains_s, focus_, fullscreenEl_unsafe_, findAnchor_,
@@ -11,18 +11,23 @@ import { Point2D, center_, getVisibleClientRect_, view_ } from "../lib/rect"
 import { insert_Lock_ } from "./insert"
 import { post_ } from "./port"
 import { flash_, moveSel_s_throwable } from "./dom_ui"
-import { coreHints, hintApi, hintManager, hintOptions, isHintsActive } from "./link_hints"
-import { prepareToBlockClick_old_ff, clickEventToPrevent_, dispatchAndBlockClickOnce_old_ff } from "./extend_click_ff"
+import { coreHints, hintApi, hintManager, mode1_ as hintMode1_, hintOptions, isHintsActive } from "./link_hints"
+import { prepareToBlockClick, clickEventToPrevent_, dispatchAndBlockClickOnce } from "./extend_click_ff"
 import { currentScrolling, setNewScrolling, set_cachedScrollable } from "./scroller"
 /* eslint-disable @typescript-eslint/await-thenable */
 
 export declare const enum kClickAction {
   none = 0,
-  plainMayOpenManually = 1, plainInNewWindow = 2, forceToOpenInLastWnd = 3, forceInNewTab = 4,
-  forceToOpenInCurrent = 5, forceToSedIf = 6, MaxPlain = 2, TargetMask = 7,
-  /** inactive by default, unless `.shiftKey` is `true` */ FlagMayInactive = 8,
+  plainMayOpenManually = 1, plainInNewTab = 2, plainInNewWindow = 3, MaxPlain = 3,
+  forceToOpenInLastWnd = 4, forceInNewTab = 5, forceToOpenInCurrent = 6,
   // the [1..BaseMayInteract) before this line should always mean HTML <a>
-  BaseMayInteract = 64, FlagDblClick = 1, FlagInteract = 2, MinNeverInteract = 68,
+  BaseMayInteract = 8, FlagDblClick = 1, FlagInteract = 2, MinNeverInteract = 12,
+}
+const enum ActionType {
+  OnlyDispatch = 0,
+  dblClick = kClickAction.FlagDblClick, interact = kClickAction.FlagInteract,
+  MinOpenUrl = kClickAction.MinNeverInteract - kClickAction.BaseMayInteract,
+  DispatchAndMayOpenTab = MinOpenUrl, OpenTabButNotDispatch,
 }
 export declare const enum kClickButton { none = 0, primary = 1, second = 2, primaryAndTwice = 4 }
 type AcceptableClickButtons = kClickButton.none | kClickButton.second | kClickButton.primaryAndTwice
@@ -147,9 +152,8 @@ const mouse_ = function (element: SafeElementForMouse
     mouseEvent.initMouseEvent(type, bubbles, bubbles, view, detail, x, y, x, y
       , ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget)
   }
-  if (OnFirefox && Build.MinFFVer < FirefoxBrowserVer.MinPopupBlockerPassClicksFromExtensions
-      && type === CLK && clickEventToPrevent_) {
-    return dispatchAndBlockClickOnce_old_ff(element, mouseEvent)
+  if (OnFirefox && clickEventToPrevent_) { // must be a click event
+    return dispatchAndBlockClickOnce(element, mouseEvent)
   }
   return element.dispatchEvent(mouseEvent)
 } as {
@@ -260,7 +264,7 @@ export const unhover_async = (!OnChrome || Build.MinCVer >= BrowserVer.MinEnsure
 
 export const click_async = (async (element: SafeElementForMouse
     , rect?: Rect | null, addFocus?: boolean | BOOL, modifiers?: MyMouseControlKeys
-    , specialAction?: kClickAction, button?: AcceptableClickButtons
+    , action?: kClickAction, button?: AcceptableClickButtons
     , /** default: false */ touchMode?: null | false | /** false */ 0 | true | "auto"): Promise<void | 1> => {
   /**
    * for important events including `mousedown`, `mouseup`, `click` and `dblclick`, wait for two micro tasks;
@@ -276,6 +280,8 @@ export const click_async = (async (element: SafeElementForMouse
   const xy = userOptions && userOptions.xy as HintsNS.StdXY | undefined
       || button === kClickButton.second && userOptions![kMenu] !== !1 && { x: 20, y: -4 } as HintsNS.StdXY || null
   const center = center_(rect || (rect = getVisibleClientRect_(element)), xy)
+  const sedIf = userOptions && userOptions.sedIf
+  let result: ActionType = max_((action = action! | 0) - kClickAction.BaseMayInteract, 0)
   if (OnChrome
       && (Build.MinCVer >= BrowserVer.MinEnsuredTouchEventConstructor
           || chromeVer_ >= BrowserVer.MinEnsuredTouchEventConstructor)
@@ -319,44 +325,30 @@ export const click_async = (async (element: SafeElementForMouse
   if (OnChrome && (element as Partial<HTMLInputElement /* |HTMLSelectElement|HTMLButtonElement */>).disabled) {
     return
   }
-  const enum ActionType {
-    OnlyDispatch = 0,
-    dblClick = kClickAction.FlagDblClick, interact = kClickAction.FlagInteract,
-    MinOpenUrl = kClickAction.MinNeverInteract - kClickAction.BaseMayInteract,
-    DispatchAndMayOpenTab = MinOpenUrl, OpenTabButNotDispatch,
-  }
-  let result: ActionType = ActionType.OnlyDispatch, url: string | null
+  let url: string | null
   let parentAnchor: HTMLAnchorElement & SafeHTMLElement | null, sedIfRe: RegExpOne | void
-  const actionTarget = specialAction! & kClickAction.TargetMask
-  if (specialAction) {
+  if (!result && (action || sedIf) && (parentAnchor = findAnchor_(element))
+      && (url = attr_s(parentAnchor as SafeElement, "href"))
+      && !(OnFirefox && parentAnchor.href.startsWith("file:") || url[0] === "#")) {
     // for forceToDblclick, element can be OtherSafeElement; for [1..BaseMayInteract), element must be in <html:a>
-    result = specialAction > kClickAction.BaseMayInteract - 1 ? specialAction - kClickAction.BaseMayInteract
-        : !(parentAnchor = findAnchor_(element))
-          || (!OnFirefox ? 0 : Build.MinFFVer < FirefoxBrowserVer.MinPopupBlockerPassClicksFromExtensions
-              && firefoxVer_ < FirefoxBrowserVer.MinPopupBlockerPassClicksFromExtensions
+    result = sedIf && (sedIfRe = tryCreateRegExp(sedIf)) && sedIfRe.test(parentAnchor.href)
+          ? ActionType.OpenTabButNotDispatch
+        : isJSUrl(url) || (OnFirefox ? !action : action < kClickAction.MaxPlain + 1) ? ActionType.OnlyDispatch
+        : !OnFirefox || action > kClickAction.MaxPlain ? ActionType.OpenTabButNotDispatch
+        : (Build.MinFFVer < FirefoxBrowserVer.MinPopupBlockerPassComposedClicksFromExtensions
+              && firefoxVer_ < FirefoxBrowserVer.MinPopupBlockerPassComposedClicksFromExtensions
               && (Build.MinFFVer > FirefoxBrowserVer.ESRPopupBlockerPassClicksFromExtensions
-                  || firefoxVer_ !== FirefoxBrowserVer.ESRPopupBlockerPassClicksFromExtensions || fgCache.V < 6)
-              ? specialAction < kClickAction.plainMayOpenManually + 1 && parentAnchor.target !== "_blank"
-              : actionTarget < kClickAction.MaxPlain + 1)
-          || OnFirefox && parentAnchor.href.startsWith("file:")
-          || !(url = attr_s(parentAnchor as SafeElement, "href"))
-        ? ActionType.OnlyDispatch
-        : hintOptions.sedIf && (sedIfRe = tryCreateRegExp(hintOptions.sedIf)) && sedIfRe.test(parentAnchor.href)
-        ? ActionType.OpenTabButNotDispatch
-        : sedIfRe && actionTarget > kClickAction.forceToSedIf - 1
-          || url[0] === "#" || isJSUrl(url) ? ActionType.OnlyDispatch
-        : OnFirefox && Build.MinFFVer < FirefoxBrowserVer.MinPopupBlockerPassClicksFromExtensions
-          && actionTarget < kClickAction.MaxPlain + 1
-        ? ActionType.DispatchAndMayOpenTab : ActionType.OpenTabButNotDispatch
+                  || firefoxVer_ - FirefoxBrowserVer.ESRPopupBlockerPassClicksFromExtensions || fgCache.V < 6)
+              || action <= kClickAction.plainMayOpenManually)
+          && (action > kClickAction.plainMayOpenManually || parentAnchor.target === "_blank")
+        ? ActionType.DispatchAndMayOpenTab : ActionType.OnlyDispatch
   }
   const isCommonClick = result < ActionType.OpenTabButNotDispatch && button !== kClickButton.primaryAndTwice
       && !(modifiers && modifiers[0])
   isCommonClick && setNewScrolling(element) // DOMActivate is not triggered if a click event is cancelled (prevented)
   if ((result > ActionType.OpenTabButNotDispatch - 1
-        || (OnFirefox && Build.MinFFVer < FirefoxBrowserVer.MinPopupBlockerPassClicksFromExtensions
-            && /*#__INLINE__*/ prepareToBlockClick_old_ff(result === ActionType.DispatchAndMayOpenTab
-                , result === ActionType.DispatchAndMayOpenTab && specialAction! < kClickAction.plainMayOpenManually + 1
-                  && parentAnchor!),
+        || (OnFirefox && /*#__INLINE__*/ prepareToBlockClick(result === ActionType.DispatchAndMayOpenTab
+                , action < kClickAction.plainMayOpenManually + 1 && parentAnchor!),
             (await await mouse_(element, CLK, center, modifiers)) && result || result === ActionType.dblClick))
       && getVisibleClientRect_(element)) {
     // require element is still visible
@@ -391,15 +383,12 @@ export const click_async = (async (element: SafeElementForMouse
       }
       return
     }
-    // use latest attributes
+    // use latest attributes ; now result > 0, so hintOptions and specialAction exists
     /** ignore {@link #BrowserVer.Min$TargetIsBlank$Implies$Noopener}, since C91 and FF88 always set openerTabId */
-    const reuse = actionTarget === kClickAction.plainInNewWindow ? ReuseType.newWnd
-        : actionTarget > kClickAction.forceToOpenInCurrent - 1
-          && specialAction! < kClickAction.TargetMask + 1 ? ReuseType.current
-        : actionTarget === kClickAction.forceToOpenInLastWnd
-          ? specialAction! < kClickAction.TargetMask + 1 ? ReuseType.lastWndFg : ReuseType.lastWndBg
-        : /** result > 0, so specialAction exists */ modifiers![3] || specialAction! < kClickAction.TargetMask + 1
-          ? ReuseType.newFg : ReuseType.newBg;
+    const reuse = action === kClickAction.plainInNewWindow ? ReuseType.newWnd
+        : action > kClickAction.forceToOpenInCurrent - 1 || !action ? ReuseType.current
+        : (action === kClickAction.forceToOpenInLastWnd ? ReuseType.OFFSET_LAST_WINDOW : 0)
+          + ((hintMode1_ & HintMode.newtab_n_active) - HintMode.newTab ? ReuseType.newFg : ReuseType.newBg);
     (hintApi ? hintApi.p : post_)({
       H: kFgReq.openUrl, u: parentAnchor!.href, f: !0,
       r: reuse, o: userOptions && parseOpenPageUrlOptions(userOptions)

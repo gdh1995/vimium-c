@@ -25,7 +25,7 @@ import { filterTextToGoNext, jumpToNextLink } from "./pagination"
 import { set_needToRetryParentClickable, focusAndRun } from "./request_handlers"
 import { RSC } from "./commands"
 import { main_not_ff as extend_click_not_ff } from  "./extend_click"
-import { main_ff as extend_click_ff, unblockClick_old_ff } from  "./extend_click_ff"
+import { main_ff as extend_click_ff, unblockClick } from  "./extend_click_ff"
 import { hudTip } from "./hud"
 
 declare var XPCNativeWrapper: <T extends object> (wrapped: T) => XrayedObject<T>; // eslint-disable-line no-var
@@ -224,7 +224,7 @@ if (isAlive_) {
       /*#__INLINE__*/ extend_click_not_ff()
     }
   }
-  OnFirefox && Build.MinFFVer < FirefoxBrowserVer.MinPopupBlockerPassClicksFromExtensions && unblockClick_old_ff()
+  OnFirefox && unblockClick()
 
   readyState_ < "i" || setupEventListener(0, RSC, onReadyState_, 0, 1)
 }

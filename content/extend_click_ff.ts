@@ -11,7 +11,7 @@ declare function exportFunction(func: unknown, targetScope: object
     , options?: { defineAs?: string; allowCrossOriginArguments?: boolean }): unknown
 
 /** `null`: disabled; `false`: nothing to do; `true`: begin to watch; `Event`: watching; `0`: page prevented */
-let clickEventToPrevent_: BOOL | Event | undefined
+let clickEventToPrevent_: boolean | 0 | Event | undefined
 let clickAnchor_: HTMLAnchorElement & SafeHTMLElement | false | 0 | undefined = 0
 let isClickEventPreventedByPage: BOOL = 0
 let preventEventOnWindow: ((wnd: Window) => Promise<void>) | undefined
@@ -82,11 +82,8 @@ export const main_ff = (OnFirefox ? (): void => {
 })()
 } : 0 as never) as () => void
 
-export const unblockClick_old_ff = (): void => {
+export const unblockClick = (): void => {
   let isHandingTheSecondTime: BOOL, notDuringAct: BOOL
-  const el2 = docEl_unsafe_(), st = el2 && (el2 as TypeToPick<Element, HTMLElement | SVGElement, "style">).style
-  // controlled by `layout.css.color-scheme.enabled`, which is enabled by default since FireFox 96
-  if (st && (st as any).colorScheme != null) { return }
   /**
    * This idea of hooking and appending `preventDefault` is from lydell's `LinkHints`:
    * https://github.com/lydell/LinkHints/blob/efa18fdfbf95016bd706b83a2d51545cb157b440/src/worker/Program.js#L1337-L1631
@@ -165,13 +162,13 @@ export const unblockClick_old_ff = (): void => {
   }
 }
 
-export const prepareToBlockClick_old_ff = (doesBeginPrevent: boolean
+export const prepareToBlockClick = (doesBeginPrevent: boolean
     , anchor: HTMLAnchorElement & SafeHTMLElement | false): void => {
-  clickEventToPrevent_ = clickEventToPrevent_ != null ? <BOOL> +doesBeginPrevent : clickEventToPrevent_
+  clickEventToPrevent_ = clickEventToPrevent_ != null ? doesBeginPrevent : clickEventToPrevent_
   clickAnchor_ = clickEventToPrevent_ && anchor
 }
 
-export const dispatchAndBlockClickOnce_old_ff = (targetElement: SafeElement, clickEvent: MouseEvent): boolean => {
+export const dispatchAndBlockClickOnce = (targetElement: SafeElement, clickEvent: MouseEvent): boolean => {
   const view = (targetElement.ownerDocument as Document).defaultView
   const doesBlock = view === window
   if (!(Build.NDEBUG || view !== raw_unwrap_ff(window))) {
