@@ -592,8 +592,9 @@ const onPagesReq = (req: FgReqWithRes[kFgReq.pages]["q"], id: number
       .then(answers => ({ i: id, a: answers.map(i => i !== void 0 ? i : null) }))
 }
 
+declare var window: unknown
 declare var structuredClone: (<T> (obj: T) => T) | undefined
-(globalThis as MaybeWithWindow).window && (((globalThis as MaybeWithWindow).window as BgExports).onPagesReq =
+(globalThis as MaybeWithWindow).window && ((window as BgExports).onPagesReq =
     (req): Promise<FgRes[kFgReq.pages]> => {
   const queries = !OnFirefox ? req.q
       : Build.MinFFVer >= FirefoxBrowserVer.Min$structuredClone || typeof structuredClone === "function"

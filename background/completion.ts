@@ -575,7 +575,7 @@ tabEngine = {
         suggestions[i].r *= 8 / (i / 4 + 1);
       }
     } else if (offset > 0) {
-      const exceededArr = suggestions.slice(0, exceed);
+      const exceededArr = suggestions.slice(0, exceed).map(i => Object.assign({}, i))
       for (let sug of exceededArr) {
         sug.label += "[r]"
       }

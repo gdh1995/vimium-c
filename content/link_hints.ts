@@ -672,7 +672,7 @@ const resetOnWaitKey = (): void => { onWaitingKey = null }
 export const reinitLinkHintsIn = ((timeout: number, officer?: BaseHintWorker | null | undefined | (() => void)
     , el?: WeakRef<LinkEl>, r?: Rect | null, start?: number): void => {
   const now = getTime()
-  _reinitTime = max_(now + GlobalConsts.MinCancelableInBackupTimer, (start || now) + timeout, _reinitTime)
+  _reinitTime = max_(now, (start || now) + timeout, _reinitTime)
   timeout = _reinitTime - now
   clearTimeout_(_timer)
   _timer = timeout_(isTY(officer, kTY.func) ? officer : (): void => {

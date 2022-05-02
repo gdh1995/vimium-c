@@ -27,7 +27,7 @@ const enum ActionType {
   OnlyDispatch = 0,
   dblClick = kClickAction.FlagDblClick, interact = kClickAction.FlagInteract,
   MinOpenUrl = kClickAction.MinNeverInteract - kClickAction.BaseMayInteract,
-  DispatchAndMayOpenTab = MinOpenUrl, OpenTabButNotDispatch,
+  DispatchAndMayOpenTab = MinOpenUrl, OpenTabButNotDispatch = DispatchAndMayOpenTab * 2,
 }
 export declare const enum kClickButton { none = 0, primary = 1, second = 2, primaryAndTwice = 4 }
 type AcceptableClickButtons = kClickButton.none | kClickButton.second | kClickButton.primaryAndTwice
@@ -349,7 +349,7 @@ export const click_async = (async (element: SafeElementForMouse
   if ((result > ActionType.OpenTabButNotDispatch - 1
         || (OnFirefox && /*#__INLINE__*/ prepareToBlockClick(result === ActionType.DispatchAndMayOpenTab
                 , action < kClickAction.plainMayOpenManually + 1 && parentAnchor!),
-            (await await mouse_(element, CLK, center, modifiers)) && result || result === ActionType.dblClick))
+            (await await mouse_(element, CLK, center, modifiers)) && result || result & ActionType.dblClick))
       && getVisibleClientRect_(element)) {
     // require element is still visible
     isCommonClick && set_cachedScrollable(currentScrolling)
@@ -385,13 +385,12 @@ export const click_async = (async (element: SafeElementForMouse
     }
     // use latest attributes ; now result > 0, so hintOptions and specialAction exists
     /** ignore {@link #BrowserVer.Min$TargetIsBlank$Implies$Noopener}, since C91 and FF88 always set openerTabId */
-    const reuse = action === kClickAction.plainInNewWindow ? ReuseType.newWnd
+    (hintApi ? hintApi.p : post_)({
+      H: kFgReq.openUrl, u: parentAnchor!.href, f: !0, o: userOptions && parseOpenPageUrlOptions(userOptions),
+      r: action === kClickAction.plainInNewWindow ? ReuseType.newWnd
         : action > kClickAction.forceToOpenInCurrent - 1 || !action ? ReuseType.current
         : (action === kClickAction.forceToOpenInLastWnd ? ReuseType.OFFSET_LAST_WINDOW : 0)
-          + ((hintMode1_ & HintMode.newtab_n_active) - HintMode.newTab ? ReuseType.newFg : ReuseType.newBg);
-    (hintApi ? hintApi.p : post_)({
-      H: kFgReq.openUrl, u: parentAnchor!.href, f: !0,
-      r: reuse, o: userOptions && parseOpenPageUrlOptions(userOptions)
+          + ((hintMode1_ & HintMode.newtab_n_active) - HintMode.newTab ? ReuseType.newFg : ReuseType.newBg)
     })
     return 1
   }

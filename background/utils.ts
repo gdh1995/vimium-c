@@ -124,7 +124,6 @@ export const splitByPublicSuffix_ = (host: string): [string[], /* partsNum */ 1 
 }
 
 /** type: 0=all */
-
 export const isIPHost_ = (hostname: string, type: 0 | 4 | 6): boolean => {
     if (type !== 6 && (<RegExpOne> /^\d{1,3}(?:\.\d{1,3}){3}$/).test(hostname)
         || type !== 4
@@ -145,11 +144,11 @@ export const DecodeURLPart_ = (url: string | undefined, wholeURL?: 1 | "atob"): 
     return url;
 }
 
-export const decodeUrlForCopy_ = (url: string, allowSpace?: boolean): string => {
-    const ori = url.replace(<RegExpG> /%25/g, "%2525").replace(<RegExpG> /%(?![\da-zA-Z]{2})/g, "%25")
+export const decodeUrlForCopy_ = (url: string, __allowSpace?: boolean): string => {
+    const ori = url.replace(<RegExpG> /%25/g, "%2525").replace(<RegExpG> /%(?![\da-fA-F]{2})/g, "%25")
     let str = DecodeURLPart_(ori, 1)
     str = str.length !== ori.length ? str : url
-    if (!allowSpace
+    if (!__allowSpace
         && (protocolRe_.test(str) || str.startsWith("data:") || str.startsWith("about:") || isJSUrl_(str))) {
       str = str.trim().replace(spacesRe_, encodeURIComponent)
     }

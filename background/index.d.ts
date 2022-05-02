@@ -292,7 +292,6 @@ declare namespace MediaNS {
 
 declare namespace SettingsNS {
   interface BackendSettings extends BaseBackendSettings {
-    /** `2`: auto (following browser); `1`: fixed true */ autoDarkMode: 0 | 1 | 2
     clipSub: string;
     exclusionListenHash: boolean;
     exclusionOnlyFirstMatch: boolean;

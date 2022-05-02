@@ -110,15 +110,20 @@ function handler(this: void, res: ExternalMsgs[kFgReq.inject]["res"] | undefined
   const insertAfter = document.contains(curEl) ? curEl : (document.head || docEl).lastChild!
     , insertBefore = insertAfter.nextSibling
     , parentElement = insertAfter.parentElement as Element;
+  const fragment = Build.Inline ? null : document.createDocumentFragment()
+  const hasFrag = !(Build.BTypes & BrowserType.Chrome)
+      || Build.MinCVer >= BrowserVer.MinEnsured$ParentNode$$appendAndPrepend || !Build.Inline && fragment!.append
   let scripts: HTMLScriptElement[] = [];
   for (const i of res.s!) {
     const script = document.createElement("script");
     script.type = "text/javascript";
     script.async = false;
     script.src = i;
-    parentElement.insertBefore(script, insertBefore);
+    Build.Inline ? parentElement.insertBefore(script, insertBefore)
+    : hasFrag || fragment!.appendChild(script)
     scripts.push(script);
   }
+  Build.Inline || (hasFrag && fragment!.append!(...scripts), parentElement.insertBefore(fragment!, insertBefore))
   scripts.length > 0 && (scripts[scripts.length - 1].onload = function (): void {
     this.onload = null as never;
     for (let i = scripts.length; 0 <= --i; ) { scripts[i].remove(); }
@@ -146,7 +151,10 @@ const safeCall = (): void => {
   }
 }
 function start(): void {
-  removeEventListener("DOMContentLoaded", start);
+  if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$addEventListener$support$once) {
+    removeEventListener("DOMContentLoaded", start, true)
+  }
+  // requestAnimationFrame((): void => {})
   !(MayChrome && Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback || MayEdge) || onIdle
   ? (onIdle as RequestIdleCallback)((): void => {
     (onIdle as RequestIdleCallback)!((): void => { setTimeout(safeCall, 0); }, {timeout: 67});
@@ -155,7 +163,7 @@ function start(): void {
 if (document.readyState !== "loading") {
   start();
 } else {
-  addEventListener("DOMContentLoaded", start, true);
+  addEventListener("DOMContentLoaded", start, { capture: true, once: true })
 }
 })(1, function (scriptSrc): VimiumInjectorTy["reload"] {
   return function (isAsync): void {

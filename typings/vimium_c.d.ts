@@ -359,6 +359,7 @@ declare namespace SettingsNS {
   }
 
   interface BaseBackendSettings {
+    /** `2`: auto (following browser); `1`: fixed true */ autoDarkMode: 0 | 1 | 2
     /** `2`: auto (following browser); `1`: fixed true */ autoReduceMotion: 0 | 1 | 2
     grabBackFocus: boolean;
     /** if want to rework it, must search it in all files and take care */

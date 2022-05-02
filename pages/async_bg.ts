@@ -56,12 +56,16 @@ export let BrowserName_: string | undefined
 export const browser_: typeof chrome = OnChrome ? chrome : browser as typeof chrome
 if (!OnChrome && window.chrome) { window.chrome = null as never }
 
+let rawIsVApiReady_: Promise<void>
 export const isVApiReady_ = new Promise<void>((resolve): void => {
+  let resolve2: () => void
+  rawIsVApiReady_ = new Promise((r): void => { resolve2 = r })
   addEventListener(GlobalConsts.kLoadEvent, function onContentLoaded(): void {
     if (OnChrome && Build.MinCVer < BrowserVer.Min$addEventListener$support$once
         && CurCVer_ < BrowserVer.Min$addEventListener$support$once) {
-      removeEventListener(GlobalConsts.kLoadEvent, onContentLoaded, { capture: true })
+      removeEventListener(GlobalConsts.kLoadEvent, onContentLoaded, true)
     }
+    queueTask_(resolve2)
     nextTick_(resolve)
   }, { once: true, capture: true })
 })
@@ -76,15 +80,17 @@ const i18nDict_: Pick<Map<string, string>, "get" | "set"> = !OnChrome
 
 type AnswerCallback = (answer: Req2.pgRes) => void
 let _todoMsgs = null as Req2.pgReq<keyof PgReq>[] | null
+let _sentMsgs: { [key: number]: Req2.pgReq<keyof PgReq>[] } | null | 0 = null
 let _ansCallbacks = null as AnswerCallback[] | null
 const _todoCallbacks = Object.create(null) as { [key: number]: AnswerCallback[] }
 let _queryId = 1
-let _tempPort = null as null | ContentNS.Port
+let _tempPort = null as null | ContentNS.Port | 0
 export let selfTabId_: number = GlobalConsts.TabIdNone
 
 //#region async messages
 
 const onRespond = (res: FgRes[kFgReq.pages]): void => {
+  if (_tempPort) { _sentMsgs = 0 }
   if (res === false) {
     alert("Can not send info to the background: not trusted")
     return
@@ -105,21 +111,19 @@ const onRespond2_ff = (res: FgRes[kFgReq.pages]): void => {
 }
 
 const onDisconnect = (): void => {
-  _tempPort = null
-  if (!Build.NDEBUG && _todoMsgs) {
-    console.log(`Error: unexpected disconnection when ${_todoMsgs.length} message(s) are waiting`)
-  }
-  _todoMsgs = [], _ansCallbacks = []
-  for (let id in _todoCallbacks) {
-    const callbacks = _todoCallbacks[id]
-    delete _todoCallbacks[id]
-    for (const callback of callbacks) {
-      try {
-        callback(null)
-      } catch { /* empty */ }
+  _tempPort = 0
+  console.log("[WARNING] the temp port is disconnected unexpectedly; need to replay messages using VApi")
+  _sentMsgs && rawIsVApiReady_.then((): void => {
+    const oldMsgs = _sentMsgs, oldIds = oldMsgs ? Object.keys(_todoCallbacks) : []
+    _sentMsgs = 0
+    for (const id of oldIds as never[] as number[]) {
+      const cb = _todoCallbacks[id], msg = (oldMsgs as Exclude<typeof oldMsgs, null | 0>)[id]
+      if (msg && cb) {
+        _todoMsgs = msg, _ansCallbacks = cb
+        postAll(msg.length)
+      }
     }
-  }
-  _todoMsgs = _ansCallbacks = null
+  })
 }
 
 const postAll = (knownSize?: number): void => {
@@ -142,12 +146,13 @@ const postAll = (knownSize?: number): void => {
   } else if (api) {
     api.r[0]<kFgReq.pages>(kFgReq.pages, { i: id, q: _todoMsgs }, onRespond)
   } else {
-    if (!_tempPort) {
+    if (_tempPort == null) {
       _tempPort = browser_.runtime.connect({ name: "" + PortType.selfPages }) as ContentNS.Port
       _tempPort.onMessage.addListener(onRespond)
       _tempPort.onDisconnect.addListener(onDisconnect)
     }
-    _tempPort.postMessage({ H: kFgReq.pages, i: id, q: _todoMsgs })
+    _tempPort && _tempPort.postMessage({ H: kFgReq.pages, i: id, q: _todoMsgs })
+    _sentMsgs !== 0 && ((_sentMsgs || (_sentMsgs = Object.create(null)))[id] = _todoMsgs)
   }
   _todoMsgs = null
 }
@@ -192,9 +197,9 @@ const _disconnect = (): void => {
 
 //#region utils
 
-const queueTask_ = (OnChrome ? Build.MinCVer >= BrowserVer.Min$queueMicrotask
-  : OnFirefox ? Build.MinFFVer >= FirefoxBrowserVer.Min$queueMicrotask : !OnEdge) ? queueMicrotask
-  : (task: () => void) => { void Promise.resolve().then(task) }
+const queueTask_ = !OnEdge && ((OnChrome ? Build.MinCVer >= BrowserVer.Min$queueMicrotask
+  : OnFirefox ? Build.MinFFVer >= FirefoxBrowserVer.Min$queueMicrotask : true) || globalThis.queueMicrotask)
+  ? queueMicrotask : (task: () => void) => { void Promise.resolve().then(task) }
 
 export const $ = <T extends HTMLElement>(selector: string): T => document.querySelector(selector) as T
 

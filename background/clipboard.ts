@@ -173,7 +173,7 @@ const latinize = (text: string): string => {
 const jsonToEmbed = (text: string): string => {
   text = JSON.stringify(text).slice(1, -1)
   /** encode OPs in `parseKeySeq` and `parseEmbeddedOptions` from {@see ./run_keys.ts} */
-  text = text.replace(<RegExpG & RegExpSearchable<0>> /[\s"$%&#()?:+]/g, (s): string => {
+  text = text.replace(<RegExpG & RegExpSearchable<0>> /[<\s"$%&#()?:+]/g, (s): string => {
     const hex = s.charCodeAt(0) + 0x10000
     return "\\u" + hex.toString(16).slice(1)
   })

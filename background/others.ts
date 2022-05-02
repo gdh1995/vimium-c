@@ -373,7 +373,7 @@ installation_ && void installation_.then((details): void => {
   OnFirefox || Tabs_.query({ status: "complete" }, (tabs): void => {
     const allowedRe = <RegExpOne> /^(file|ftps?|https?):/
     for (const tab of tabs) {
-      allowedRe.test(tab.url) && runContentScriptsOn_(tab.id)
+      allowedRe.test(tab.url) && !framesForTab_.has(tab.id) && runContentScriptsOn_(tab.id)
     }
   });
   function now(): string {

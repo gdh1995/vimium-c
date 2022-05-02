@@ -303,7 +303,7 @@ export const $sc: VApiTy["$"] = (element, di, amount, options): ReturnType<VApiT
       checkCurrent(element)
     } else if ((options && options.smooth != null ? options.smooth : fgCache.s)
         && !(OnChrome && Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage && noRAF_old_cr_)) {
-      amount && performAnimate(element, di, amount, options)
+      amount && (ret = performAnimate(element, di, amount, options))
       scrollTick(1)
     } else if (amount) {
       ret = performScroll(element, di, amount)

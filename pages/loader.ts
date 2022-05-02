@@ -1,3 +1,4 @@
+/// <reference path="../typings/lib/window.d.ts" />
 /* eslint-disable @typescript-eslint/prefer-string-starts-ends-with, @typescript-eslint/prefer-includes */
 var VApi: VApiTy | undefined, VimiumInjector: VimiumInjectorTy | undefined | null = null; // eslint-disable-line no-var
 
@@ -19,7 +20,7 @@ var VApi: VApiTy | undefined, VimiumInjector: VimiumInjectorTy | undefined | nul
   const loader = document.currentScript as HTMLScriptElement;
   let jsEvalPromise: Promise<void> | undefined
   const head = loader.parentElement as HTMLElement
-    , scripts: HTMLScriptElement[] = [loader]
+    , scripts: HTMLScriptElement[] = []
     , prefix = browser_.runtime.getURL("")
     , curPath = location.pathname.replace("/pages/", "").split(".")[0]
     , arr = browser_.runtime.getManifest().content_scripts[0].js;
@@ -33,6 +34,11 @@ var VApi: VApiTy | undefined, VimiumInjector: VimiumInjectorTy | undefined | nul
     scripts[scripts.length - 1].onload = onLastLoad;
     // wait a while so that the page gets ready earlier
     setTimeout(function (): void {
+      if (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsured$ParentNode$$appendAndPrepend
+          || !Build.Inline && head.append) {
+        head.append!(...scripts)
+        return
+      }
       for (const scriptEl of scripts) {
         head.appendChild(scriptEl);
       }
@@ -60,10 +66,10 @@ var VApi: VApiTy | undefined, VimiumInjector: VimiumInjectorTy | undefined | nul
     || !Build.NDEBUG && (window as any).define && (window as any).define.noConflict()
   }
   if (curPath === "blank") {
-    type Keys = keyof SettingsNS.PersistentSettings
+    type Keys = keyof SettingsNS.BaseBackendSettings
     const storage = browser_.storage.local as { get <K extends Keys> (k: K, cb: (r: { [k in K]: any }) => void): void }
     storage.get("autoDarkMode", (res): void => {
-      const value = res && res.autoDarkMode as SettingsNS.PersistentSettings["autoDarkMode"] | boolean
+      const value = res && res.autoDarkMode as SettingsNS.BaseBackendSettings["autoDarkMode"] | boolean
       if (value === false || value === 1) {
         const el = document.head!.querySelector("meta[name=color-scheme]") as HTMLMetaElement | null
         el && (el.content = value === 1 ? "dark" : "light")

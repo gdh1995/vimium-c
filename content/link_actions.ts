@@ -8,7 +8,7 @@ import {
   kMediaTag, ElementProto_not_ff, querySelector_unsafe_, getInputType, uneditableInputs_, GetShadowRoot_, scrollingEl_,
   queryChildByTag_, getSelection_, removeEl_s, appendNode_s, getMediaUrl, getMediaTag, INP, ALA, attr_s, hasTag_,
   setOrRemoveAttr_s, toggleClass_s, textContent_s, notSafe_not_ff_, modifySel, SafeEl_not_ff_, testMatch, docHasFocus_,
-  extractField, querySelectorAll_unsafe_, editableTypes_
+  extractField, querySelectorAll_unsafe_, editableTypes_, findAnchor_
 } from "../lib/dom_utils"
 import { getPreferredRectOfAnchor, initTestRegExps } from "./local_links"
 import {
@@ -114,7 +114,8 @@ const openTextOrUrl = (url: string): void => {
 }
 
 const showUrlIfNeeded = (): void => {
-  const href = tag === "a" && hintOptions.showUrl && (clickEl as HTMLAnchorElement).href
+  const anchor = findAnchor_(clickEl)
+  const href = anchor && hintOptions.showUrl && anchor.href
   href && hintApi.t({ k: kTip.raw, t: href.slice(0, 256), l: 1 })
 }
 
@@ -254,7 +255,7 @@ const copyText = (): void => {
   } else if (hintOptions.richText) {
     const oldRange = selRange_(getSelected({}))
     selectNode_(clickEl)
-    str = getSelection_() + "" || str || tag
+    str = getSelection_() + "" || str || `<${tag}>`
       execCommand("copy", doc)
     resetSelectionToDocStart(getSelection_(), oldRange)
     hintApi.h(kTip.copiedIs, 0, str)
@@ -455,11 +456,11 @@ const checkBoolOrSelector = (userVal: string | boolean | null | void | undefined
       removeFlash || flash_(clickEl)
       showRect = 0
     } else if (mode1_ < HintMode.max_media + 1) {
-      /*#__NOINLINE__*/ downloadOrOpenMedia()
+      downloadOrOpenMedia()
     } else if (mode1_ < HintMode.max_copying + 1) {
       copyText()
     } else if (mode1_ < HintMode.DOWNLOAD_LINK + 1) {
-      /*#__NOINLINE__*/ downloadLink()
+      downloadLink()
     } else if (mode1_ < HintMode.OPEN_INCOGNITO_LINK + 1) {
       openTextOrUrl(getUrlData())
     } else if (mode1_ < HintMode.max_edit + 1) {

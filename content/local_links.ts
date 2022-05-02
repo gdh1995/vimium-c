@@ -202,7 +202,7 @@ export const getPreferredRectOfAnchor = (anchor: HTMLAnchorElement): Rect | null
         // use `^...$` to exclude custom tags
       ? (<RegExpOne> /^h\d$/).test(tag!) && isNotReplacedBy(el as HTMLHeadingElement & SafeHTMLElement)
         ? getVisibleClientRect_(el as HTMLHeadingElement & SafeHTMLElement) : null
-      : tag === "img" && !dimSize_(anchor, kDim.elClientH) ? getVisibleBoundingRect_(el, 1)
+      : tag === "img" && !dimSize_(anchor, kDim.elClientH) ? getCroppedRect_(el, getVisibleBoundingRect_(el))
       : null);
 }
 
@@ -347,7 +347,7 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
       : tabIndex != null && tabIndex >= 0 ? element.localName === "a" ? ClickType.attrListener : ClickType.tabindex
       : ClickType.Default
   if (type && (arr = getVisibleClientRect_(element, null))
-      && isAriaFalse_(element, kAria.hidden)
+      && (isAriaFalse_(element, kAria.hidden) || extraClickable_ && extraClickable_.has(element))
       && (mode1_ > HintMode.min_job - 1 || isAriaFalse_(element, kAria.disabled))
       && (0 === clickTypeFilter_ || clickTypeFilter_ & (1 << type))
       ) {
