@@ -260,23 +260,9 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   itemKeyword_: null as string | null,
   showTime_: 0 as 0 | /** abs-num */ 1 | /** abs */ 2 | /** relative */ 3,
   show_ (): void {
-    const a = Vomnibar_, callback = (event?: Event | TimerType.fake): void => {
-      if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinDocument$visibilityState
-          && (!(Build.BTypes & ~BrowserType.Chrome) || Vomnibar_.browser_ & BrowserType.Chrome)
-          && Vomnibar_.browserVer_ < BrowserVer.MinDocument$visibilityState) {
-        Vomnibar_.focus_()
-      } else if (document.visibilityState === "visible" || !event) {
-        Vomnibar_.focus_()
-        clearTimeout(timer)
-      } else if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$addEventListener$support$once) {
-        return
-      }
-      (!event || Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$addEventListener$support$once) &&
-      removeEventListener(kVisCh, callback, listenOptions)
-    }, kVisCh = "visibilitychange", listenOptions = { capture: true, once: true } as const,
-    timer = setTimeout(callback, 34);
+    const a = Vomnibar_
+    setTimeout(a.focus_, 0)
     a.showing_ = true;
-    addEventListener(kVisCh, callback, listenOptions);
     ((document.body as Element).addEventListener as typeof addEventListener)("wheel", a.onWheel_, a.wheelOptions_)
   },
   hide_ (fromContent?: BOOL): void {
