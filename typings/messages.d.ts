@@ -572,6 +572,7 @@ interface FgReq {
     /** focus at once, because on-omni-exit */ o?: boolean
   };
   [kFgReq.exitGrab]: {};
+  [kFgReq.execInChild]: FgReqWithRes[kFgReq.execInChild]
   [kFgReq.initHelp]: {
     /** forced to show */ f?: boolean
     /** wantTop */ w?: boolean;

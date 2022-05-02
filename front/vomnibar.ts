@@ -274,7 +274,6 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     ((document.body as Element).removeEventListener as typeof removeEventListener)("wheel", a.onWheel_, a.wheelOptions_)
     a.timer_ > 0 && clearTimeout(a.timer_);
     window.onkeyup = null as never;
-    el.blur();
     fromContent ||
     VPort_ && VPort_.post_({ H: kFgReq.nextFrame, t: Frames.NextType.current, o: !a.doEnter_, k: a.lastKey_ })
     if (Build.MinCVer <= BrowserVer.StyleSrc$UnsafeInline$MayNotImply$UnsafeEval && Build.BTypes & BrowserType.Chrome) {
@@ -361,8 +360,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     a.codeFocusTime_ = performance.now();
     a.codeFocusReceived_ = false;
     if (focus !== false) {
-      if (Build.BTypes & ~BrowserType.Chrome
-          || Build.MinCVer < BrowserVer.MinFocusIframeDirectlyBy$activeElement$$focus) {
+      if (Build.BTypes & ~BrowserType.ChromeOrFirefox || Build.BTypes & BrowserType.Chrome
+          && Build.MinCVer < BrowserVer.MinFocusIframeDirectlyBy$activeElement$$focus) {
         window.focus() // if call contentWindow.focus(), then there's a huge delay and then the below logs failures
       }
       a.input_.focus();
@@ -466,7 +465,10 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   },
   _updateInput (line: SuggestionEx, str: string): void {
     const maxW = str.length * 10, tooLong = maxW > innerWidth - PixelData.AllHNotInput;
-    if (Vomnibar_.input_.value !== str) { Vomnibar_.input_.value = str }
+    if (Vomnibar_.input_.value !== str) {
+      Vomnibar_.input_.value = str
+      if (line.e === "domain") { Vomnibar_.input_.select() }
+    }
     tooLong && (Vomnibar_.input_.scrollLeft = maxW);
     Vomnibar_.isHttps_ = line.https_ && str === line.t;
     Vomnibar_.isEditing_ = str !== line.parsed_ || line.parsed_ === line.t;
@@ -1169,7 +1171,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
           ? !event.isTrusted : event.isTrusted === false) || !VPort_) { return; }
     a.codeFocusReceived_ = true;
     blurred && a.onWndBlur2_ && isWnd && a.onWndBlur2_()
-    if (!a.isActive_ || !isWnd) {
+    if (!isWnd || !a.isActive_) {
       target === a.input_ &&
       (Vomnibar_.focused_ = !blurred) && (Vomnibar_.blurWanted_ = false);
       return;

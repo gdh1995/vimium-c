@@ -408,6 +408,10 @@ const checkBoolOrSelector = (userVal: string | boolean | null | void | undefined
         const childApi = detectUsableChild(clickEl)
         if (childApi) {
           childApi.f(kFgCmd.linkHints, hintOptions, hintCount_, 1)
+        } else if (OnChrome) {
+          post_({ H: kFgReq.execInChild,
+            u: clickEl.src, c: kFgCmd.linkHints, n: hintCount_, k: event ? event.i : kKeyCode.None, a: hintOptions
+          })
         } else {
           send_(kFgReq.execInChild, {
             u: clickEl.src, c: kFgCmd.linkHints, n: hintCount_, k: event ? event.i : kKeyCode.None, a: hintOptions
@@ -467,7 +471,7 @@ const checkBoolOrSelector = (userVal: string | boolean | null | void | undefined
       modifySel(sel, 1, 1, "word")
       hintOptions.visual === !1 || post_({ H: kFgReq.visualMode, c: hintOptions.caret, f: then })
     }
-    if (then && isTY(then) && (mode1_ < HintMode.min_disable_queue || mode1_ === HintMode.FOCUS_EDITABLE)) {
+    if (then && isTY(then) && (mode1_ < HintMode.min_then_as_arg || mode1_ > HintMode.max_then_as_arg)) {
       post_({ H: kFgReq.nextKey, k: then })
     }
     if (!removeFlash && showRect !== 0 && (rect || (rect = getVisibleClientRect_(clickEl)))) {

@@ -216,7 +216,7 @@ set_reqH_([
     }
   },
   /** kFgReq.execInChild: */ (request: FgReqWithRes[kFgReq.execInChild], port: Port
-      , msgId: number): FgRes[kFgReq.execInChild] | Port => {
+      , msgId?: number): FgRes[kFgReq.execInChild] | Port | void => {
     const tabId = port.s.tabId_, ref = framesForTab_.get(tabId), url = request.u
     if (!ref || ref.ports_.length < 2) { return false }
     let iport: Port | null | undefined
@@ -246,11 +246,11 @@ set_reqH_([
           set_cKey(request.k)
           focusAndExecute(request, port, port2, 1)
         }
-        sendResponse(port, msgId, !!port2)
+        OnChrome || msgId && sendResponse(port, msgId, !!port2)
         // here seems useless if to retry to inject content scripts,
         // see https://github.com/philc/vimium/issues/3353#issuecomment-505564921
       })
-      return port
+      return msgId ? port : false
     }
   },
   /** kFgReq.initHelp: */ (req: FgReq[kFgReq.initHelp], port): void => { void initHelp(req, port) },

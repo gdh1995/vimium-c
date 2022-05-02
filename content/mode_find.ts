@@ -672,7 +672,8 @@ const doFocus = (): void => {
   if (OnChrome && (Build.MinCVer >= BrowserVer.MinShadowDOMV0 ? root_! : root_ || innerDoc_).activeElement === input_) {
     input_.blur()
   }
-  OnChrome && Build.MinCVer >= BrowserVer.MinFocusIframeDirectlyBy$activeElement$$focus || box_.contentWindow.focus()
+  !OnFirefox && (!OnChrome || Build.MinCVer >= BrowserVer.MinFocusIframeDirectlyWithout$wnd$$focus
+      || chromeVer_ < BrowserVer.MinFocusIframeDirectlyWithout$wnd$$focus) && box_.contentWindow.focus()
   focus_(input_)
   doesCheckAlive = 1
 }

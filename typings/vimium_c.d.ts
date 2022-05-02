@@ -417,8 +417,8 @@ declare const enum HintMode {
   OPEN_INCOGNITO_LINK,
   EDIT_LINK_URL = min_disable_queue, max_link_job = EDIT_LINK_URL, min_edit = EDIT_LINK_URL,
   EDIT_TEXT, max_edit = EDIT_TEXT,
+  ENTER_VISUAL_MODE, min_then_as_arg = EDIT_LINK_URL, max_then_as_arg = ENTER_VISUAL_MODE,
   FOCUS_EDITABLE,
-  ENTER_VISUAL_MODE,
     min_not_hint,
 }
 

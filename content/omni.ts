@@ -6,7 +6,7 @@ import {
 import { removeHandler_, replaceOrSuppressMost_, getMappedKey, isEscape_ } from "../lib/keyboard_utils"
 import {
   isHTML_, fullscreenEl_unsafe_, setDisplaying_s, createElement_, removeEl_s, setClassName_s, setOrRemoveAttr_s,
-  toggleClass_s, doesSupportDialog, hasInCSSFilter_, appendNode_s, frameElement_
+  toggleClass_s, doesSupportDialog, hasInCSSFilter_, appendNode_s, frameElement_, focus_
 } from "../lib/dom_utils"
 import { getViewBox_, docZoom_, dScale_, prepareCrop_, bZoom_, wndSize_, viewportRight } from "../lib/rect"
 import { beginScroll, scrollTick } from "./scroller"
@@ -206,6 +206,7 @@ const onOmniMessage = function (this: OmniPort, msg: { data: any, target?: Messa
             ) + (canUseVW ? "vh" : "%") : ""
         style.top = top
         setDisplaying_s(box!, 1)
+        focus_(box!)
         if (WithDialog && dialogWrapper_) {
           setDisplaying_s(dialogWrapper_, 1), dialogWrapper_.open || dialogWrapper_.showModal()
         }
