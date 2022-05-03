@@ -226,7 +226,7 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
       element = null
     }
     const P = "pointerEvents"
-    let el: SafeElement & ElementToHTMLorOtherFormatted | HTMLElement | null
+    let el: SafeElement & ElementToHTMLOrForeign | HTMLElement | null
     let style: CSSStyleDeclaration | null | undefined
     if (!(OnChrome && Build.MinCVer >= BrowserVer.MinEnsured$HTMLElement$$inert) && !domFeatures && isHTML_()) {
       domFeatures = // here should not use inert - it affects too many DOM APIs
@@ -238,7 +238,7 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
       scrolling ? curModalElement || addElementList([], [0, 0], 1) : curModalElement !== hint_box && removeModal()
     } else {
       el = (scrolling ? OnFirefox ? docEl_unsafe_() : SafeEl_not_ff_!(docEl_unsafe_())
-                : styleTop) as SafeElement & ElementToHTMLorOtherFormatted | null
+                : styleTop) as SafeElement & ElementToHTMLOrForeign | null
       style = el && el.style
       styleTop = scrolling && style && !style[P] ? el : null
       style && (style[P] = scrolling ? NONE : "")

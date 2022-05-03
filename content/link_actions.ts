@@ -121,7 +121,7 @@ const showUrlIfNeeded = (): void => {
 const hoverEl = (): void => {
     const toggleMap = hintOptions.toggle
     const doesFocus = !elType && !isIFrameElement(clickEl)
-        && checkBoolOrSelector(hintOptions.focus, (clickEl as ElementToHTMLorOtherFormatted).tabIndex! >= 0)
+        && checkBoolOrSelector(hintOptions.focus, (clickEl as ElementToHTMLOrForeign).tabIndex! >= 0)
     // here not check lastHovered on purpose
     // so that "HOVER" -> any mouse events from users -> "HOVER" can still work
     setNewScrolling(clickEl)
@@ -343,7 +343,7 @@ const defaultClick = (): void => {
     doesUnhoverAtOnce = !doesUnhoverOnEsc && /*#__PURE__*/ checkBoolOrSelector(autoUnhover, !1)
     retPromise = catchAsyncErrorSilently(click_async(clickEl, rect
         , /*#__PURE__*/ checkBoolOrSelector(hintOptions.focus
-            , mask > 0 || interactive || (clickEl as ElementToHTMLorOtherFormatted).tabIndex! >= 0)
+            , mask > 0 || interactive || (clickEl as ElementToHTMLOrForeign).tabIndex! >= 0)
         , [!1, !isMac && ctrl, isMac && ctrl, shift]
         , specialActions, isRight ? kClickButton.second : kClickButton.none
         , !OnChrome || otherActions || newTab || newWindow ? 0 : hintOptions.touch))

@@ -259,7 +259,7 @@ const _fixDocZoom_cr = OnChrome ? (zoom: number, docEl: Element, devRatio: numbe
           && (abs_(rectWidth * zoom - viewportWidth) < 0.01
             || (Build.MinCVer >= BrowserVer.MinASameZoomOfDocElAsdevPixRatioWorksAgain
                   || chromeVer_ > BrowserVer.MinASameZoomOfDocElAsdevPixRatioWorksAgain - 1)
-                && !notSafe_not_ff_!(docEl) && (style = (docEl as ElementToHTMLorOtherFormatted).style)
+                && !notSafe_not_ff_!(docEl) && (style = (docEl as ElementToHTMLOrForeign).style)
                 && style.zoom && style.zoom
             || (isDocZoomStrange_ = 1, zoom !== _getPageZoom_cr!(zoom, devRatio, docEl))))
       ? zoom : 1

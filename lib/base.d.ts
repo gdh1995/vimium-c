@@ -45,12 +45,13 @@ type NodeToElement = TypeToAssert<Node, Element, "tagName", "nodeType">;
  * Tested on C74, comparing (HTML | SVG | MathML)Element | Element, there're only 5 properties which can be used:
  * * attributeStyleMap: StylePropertyMap | null (not on MathML on FF78),
  * * dataset: DOMStringMap | undefined, style: CSSStyleDeclaration | undefined,
- * * nonce: string | undefined (not on MathML on FF78), tabIndex: number | undefined
+ * * nonce: string | undefined (not on MathML on FF78, but on C98 if EXP), tabIndex: number | undefined
+ * * see https://source.chromium.org/chromium/chromium/src/+/main:third_party/blink/renderer/core/html/html_or_foreign_element.idl
  *
  * While C++ wrappers should be avoided, so select "nonce" / "tabIndex". "focus" / "blur" may also be used.
  * But, "nonce" occurred very late (about C61 / FF75).
  */
-type ElementToHTMLorOtherFormatted = TypeToAssert<Element, HTMLElement | NonHTMLButFormattedElement
+type ElementToHTMLOrForeign = TypeToAssert<Element, HTMLElement | NonHTMLButFormattedElement
     , "tabIndex" | "style", "tagName">;
 type ElementToSVG = TypeToAssert<Element, SVGElement, "ownerSVGElement", "tagName">
 /**
@@ -73,7 +74,7 @@ interface NonHTMLButFormattedElement extends SafeElement {
 }
 interface SVGElement extends NonHTMLButFormattedElement { __other: 1 }
 // like MathMLElement since Firefox 71
-interface OtherFormattedElement extends NonHTMLButFormattedElement { __other: 2 }
+interface ForeignElement extends NonHTMLButFormattedElement { __other: 2 }
 interface SafeElementWithoutFormat extends SafeElement { __other: 3 }
 type BaseSafeHTMLElement = HTMLElement & SafeElement;
 interface SafeHTMLElement extends BaseSafeHTMLElement {

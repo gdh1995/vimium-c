@@ -333,7 +333,7 @@ const addChildTrees = (parts: HintSources, allNodes: NodeListOf<SafeElement>): H
 }
 
 const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | SafeElementWithoutFormat): void => {
-  const tabIndex = (element as ElementToHTMLorOtherFormatted).tabIndex
+  const tabIndex = (element as ElementToHTMLOrForeign).tabIndex
   let arr: Rect | null | undefined, s: string | null
   let type: ClickType.Default | AllowedClickTypeForNonHTML = clickable_.has(element)
         || extraClickable_ && extraClickable_.has(element)

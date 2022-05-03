@@ -205,7 +205,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   showing_: false,
   codeFocusTime_: 0,
   codeFocusReceived_: false,
-  blurWanted_: false,
+  blurWanted_: 0 as BOOL,
   forceNewTab_: false,
   selectFirst_: false as VomnibarNS.GlobalOptions["autoSelect"],
   notSearchInput_: false,
@@ -267,10 +267,10 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   },
   hide_ (fromContent?: BOOL): void {
     const a = Vomnibar_, el = a.input_;
-    a.isActive_ = a.showing_ = a.isEditing_ = a.blurWanted_ = a.codeFocusReceived_ = false;
+    a.isActive_ = a.showing_ = a.isEditing_ = a.codeFocusReceived_ = false
     a.noSessionsOnStart_ = false
     a.isInputComposing_ = null
-    a.codeFocusTime_ = 0;
+    a.codeFocusTime_ = a.blurWanted_ = 0;
     ((document.body as Element).removeEventListener as typeof removeEventListener)("wheel", a.onWheel_, a.wheelOptions_)
     a.timer_ > 0 && clearTimeout(a.timer_);
     window.onkeyup = null as never;
@@ -724,7 +724,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       }
       break;
     case AllowedActions.focus: a.focus_(); break;
-    case AllowedActions.blurInput: a.blurWanted_ = true; a.input_.blur(); break;
+    case AllowedActions.blurInput: a.blurWanted_ = 1; a.input_.blur(); break
     case AllowedActions.backspace: case AllowedActions.blur:
       !a.focused_ ? a.focus_() : action === AllowedActions.blur ? a.focus_(false) : document.execCommand("delete")
       break;
@@ -978,7 +978,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   },
   onInput_ (this: void, event?: InputEvent): void {
     const a = Vomnibar_, s0 = a.lastQuery_, s1 = a.input_.value, str = s1.trim();
-    a.blurWanted_ = false;
+    a.blurWanted_ = 0
     if (str === (a.selection_ === -1 || a.isSelOriginal_ ? s0 : a.completions_[a.selection_].t)) {
       return;
     }
@@ -1173,7 +1173,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     blurred && a.onWndBlur2_ && isWnd && a.onWndBlur2_()
     if (!isWnd || !a.isActive_) {
       target === a.input_ &&
-      (Vomnibar_.focused_ = !blurred) && (Vomnibar_.blurWanted_ = false);
+      (Vomnibar_.focused_ = !blurred) && (Vomnibar_.blurWanted_ = 0)
       return;
     }
     a.codeFocusTime_ = 0;
@@ -1237,12 +1237,11 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       }
     }
     if (Build.BTypes & BrowserType.Chrome && (Build.MinCVer >= BrowserVer.MinBorderWidth$Ensure1$Or$Floor
+          || ver > BrowserVer.MinBorderWidth$Ensure1$Or$Floor - 1
           || Build.MinCVer < BrowserVer.MinRoundedBorderWidthIsNotEnsured
-              && ver < BrowserVer.MinRoundedBorderWidthIsNotEnsured
-          || ver > BrowserVer.MinBorderWidth$Ensure1$Or$Floor - 1)
+              && ver < BrowserVer.MinRoundedBorderWidthIsNotEnsured)
         || Build.BTypes & BrowserType.Edge
-            && (!(Build.BTypes & ~BrowserType.Edge) || a.browser_ === BrowserType.Edge)) {
-      // is old Chrome or Edge
+            && (!(Build.BTypes & ~BrowserType.Edge) || a.browser_ === BrowserType.Edge)) { // is old Chrome or Edge
       const css = document.createElement("style");
       css.type = "text/css";
       css.textContent = !(Build.BTypes & ~BrowserType.Chrome)
