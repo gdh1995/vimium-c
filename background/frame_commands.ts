@@ -5,7 +5,7 @@ import {
 } from "./store"
 import * as BgUtils_ from "./utils"
 import { Tabs_, downloadFile, getTabUrl, runtimeError_, selectTab, R_, Q_, browser_, import2 } from "./browser"
-import { convertToUrl_, createSearchUrl_ } from "./normalize_urls"
+import { convertToUrl_, createSearchUrl_, normalizeSVG_ } from "./normalize_urls"
 import { showHUD, complainLimits, ensureInnerCSS, getParentFrame } from "./ports"
 import { getFindCSS_cr_ } from "./ui_css"
 import { getI18nJson, trans_ } from "./i18n"
@@ -277,19 +277,12 @@ export const captureTab = (tabs: [Tab] | undefined, resolve: OnCmdResolved): voi
 export const openImgReq = (req: FgReq[kFgReq.openImage], port?: Port): void => {
   let url = req.u
   if ((<RegExpI> /^<svg[\s>]/i).test(url)) {
-    let svg = new DOMParser().parseFromString(url, "image/svg+xml").firstElementChild as SVGSVGElement | null
-    if (svg) {
-      svg.removeAttribute("id")
-      svg.removeAttribute("class")
-      for (const el of ([] as Element[]).slice.call(svg.querySelectorAll("script,use"))) { el.remove() }
-    }
-    if (!svg || !svg.lastElementChild) {
+    url = normalizeSVG_(url)
+    if (!url) {
       set_cPort(port!)
       showHUD(trans_("invalidImg"))
       return
     }
-    svg.setAttribute("xmlns", "http://www.w3.org/2000/svg")
-    url = "data:image/svg+xml," + encodeURIComponent(svg.outerHTML)
     req.f = req.f || "SVG Image"
   }
   if (!BgUtils_.safeParseURL_(url)) {

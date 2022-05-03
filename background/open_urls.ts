@@ -411,6 +411,9 @@ const replaceOrOpenInNewTab = <Reuse extends Exclude<ReuseType, ReuseType.curren
       : runNextCmdBy(0, options!) ? 0
       : curTabs ? openUrlInNewTab([url], reuse, options!, curTabs)
       : getCurTab(openUrlInNewTab.bind(null, [url], reuse, options!))
+    } else if (shownHash_ && matchedTab.url.startsWith(CONST_.ShowPage_)) {
+      updateShownPage(reuseOptions!.f || {}, matchedTab)
+      selectTab(matchedTab.id)
     } else {
       const active = reuse !== ReuseType.newBg && reuse !== ReuseType.lastWndBgInactive
       const activeWnd = matchedTab.windowId !== curWndId_ && reuse > ReuseType.lastWndBg
@@ -454,18 +457,20 @@ export const openJSUrl = (url: string, options: Req.FallbackOptions, onBrowserFa
   }
 }
 
-export const openShowPage = (url: string, reuse: ReuseType, options: OpenUrlOptions, tab?: Tab): boolean => {
+export const openShowPage = (url: string, reuse: ReuseType, options: KnownOptions<C.openUrl>
+    , _tab?: Tab | null): boolean => {
   const prefix = CONST_.ShowPage_
   if (url.length < prefix.length + 3 || !url.startsWith(prefix)) { return false; }
-  if (!tab) {
+  if (_tab === void 0) {
     getCurTab(function (tabs: [Tab]): void {
-      if (!tabs || tabs.length <= 0) { return runtimeError_(); }
-      openShowPage(url, reuse, options, tabs[0])
+      const reuse2 = tabs && tabs.length > 0 || reuse === ReuseType.newBg ? reuse : ReuseType.newFg
+      openShowPage(url, reuse2, options, tabs && tabs[0] || null)
+      return runtimeError_()
     })
     return true
   }
   url = url.slice(prefix.length)
-  const { incognito } = tab
+  const incognito = _tab ? _tab.incognito : curIncognito_ === IncognitoType.true
   if (url.startsWith("#!image ") && incognito) {
     url = "#!image incognito=1&" + url.slice(8).trim()
   }
@@ -484,6 +489,25 @@ export const openShowPage = (url: string, reuse: ReuseType, options: OpenUrlOpti
   }, 1200)
   set_cRepeat(1)
   if ((reuse === ReuseType.current || reuse === ReuseType.frame) && !incognito) {
+    updateShownPage(options, _tab!)
+  } else if (incognito && [ReuseType.current, ReuseType.frame, ReuseType.newBg, ReuseType.newFg].indexOf(reuse) >= 0) {
+    /* safe-for-group */ tabsCreate({ url: prefix, active: reuse !== ReuseType.newBg }, newTab => {
+      runNextIf(newTab, options, newTab)
+    })
+  } else {
+    OnFirefox && (options.group = false)
+    options.incognito = false
+    reuse === ReuseType.reuse ? replaceOrOpenInNewTab(url, reuse, options.replace
+        , null, { u: prefix, p: options.prefix, q: parseOpenPageUrlOptions(options), f: parseFallbackOptions(options)
+        }, _tab ? [_tab] : void 0)
+    : openUrlInNewTab([prefix], reuse as Exclude<ReuseType, ReuseType.current | ReuseType.reuse>, options
+        , _tab ? [_tab] : void 0)
+  }
+  return true
+}
+
+const updateShownPage = (options: Req.FallbackOptions, tab: Tab): void => {
+    const prefix = CONST_.ShowPage_
     let views = !OnEdge && (!OnChrome
               || Build.MinCVer >= BrowserVer.Min$Extension$$GetView$AcceptsTabId
               || CurCVer_ >= BrowserVer.Min$Extension$$GetView$AcceptsTabId)
@@ -495,18 +519,7 @@ export const openShowPage = (url: string, reuse: ReuseType, options: OpenUrlOpti
     } else {
       tabsUpdate(tab.id, { url: prefix })
     }
-    runNextOnTabLoaded(options, null)
-  } else if (incognito && [ReuseType.current, ReuseType.frame, ReuseType.newBg, ReuseType.newFg].indexOf(reuse) >= 0) {
-    /* safe-for-group */ tabsCreate({ url: prefix, active: reuse !== ReuseType.newBg }, newTab => {
-      runNextIf(newTab, options, newTab)
-    })
-  } else {
-    OnFirefox && (options.group = false)
-    options.incognito = false
-    // reuse may be ReuseType.reuse, but just treat it as .newFg
-    openUrlInNewTab([prefix], reuse as Exclude<ReuseType, ReuseType.current | ReuseType.reuse>, options, [tab])
-  }
-  return true
+    BgUtils_.nextTick_((): void => { runNextOnTabLoaded(options, null) })
 }
 
 // use Urls.WorkType.Default
@@ -811,6 +824,9 @@ const updateMatchedTab = (tabs2: Tab[]): void => {
       && url.startsWith(CONST_.OptionsPage_) && !framesForTab_.get(tab.id) && !request.s) {
     /* safe-for-group */ tabsCreate({ url }, callback)
     Tabs_.remove(tab.id)
+  } else if (shownHash_ && tab.url.startsWith(CONST_.ShowPage_)) {
+    updateShownPage(request.f || {}, tab)
+    selectTab(tab.id)
   } else {
     const cur = OnChrome && IsEdg_ ? tab.url.replace(<RegExpOne> /^edge:/, "chrome:") : tab.url
     const wanted = OnChrome && IsEdg_ ? url.replace(<RegExpOne> /^edge:/, "chrome:") : url

@@ -202,8 +202,10 @@ const _guessDomain = (url: string, host: string): string => {
   return ""
 }
 
-const checkSpecialSchemes_ = (str: string, i: number, spacePos: number): Urls.Type | Urls.TempType.Unspecified => {
+export const checkSpecialSchemes_ = (str: string, i: number, spacePos: number
+    ): Urls.Type | Urls.TempType.Unspecified => {
   const isSlash = str.substr(i + 1, 1) === "/";
+  if (str.substr(i + 1, 1) === "%") { return Urls.Type.Search }
   switch (str.slice(0, i)) {
   case "about":
     return isSlash ? Urls.Type.Search : spacePos > 0 || str.includes("@", i)
@@ -428,4 +430,34 @@ export const decodeFileURL_ = (url: string, rawUrl?: string): string => {
     url = prefix + path + tail
   }
   return url
+}
+
+export const normalizeSVG_ = (svg_outer_html: string): string => {
+  let svg = new DOMParser().parseFromString(svg_outer_html, "image/svg+xml").firstElementChild as SVGSVGElement | null
+  for (const el of svg ? ([] as Element[]).slice.call(svg.querySelectorAll("script,use")) : []) { el.remove() }
+  if (!svg || !svg.lastElementChild) { return "" }
+  for (const attr of "id class aria-hidden".split(" ")) { svg.removeAttribute(attr) }
+  const attributes = svg.attributes
+  for (let i = attributes.length; 0 <= --i; ) {
+    const name = attributes.item(i).name
+    name.startsWith("data-") && svg.removeAttribute(name)
+  }
+  if (!svg.getAttribute("xmlns")) {
+    const attrs = ([] as Attr[]).slice.call(attributes as ArrayLike<Attr>)
+    for (const i of attrs) { svg.removeAttributeNode(i) }
+    svg.setAttribute("xmlns", "http://www.w3.org/2000/svg")
+    for (const i of attrs) { svg.setAttributeNode(i) }
+  }
+  let node: Text | null
+  for (const nodes = (svg.ownerDocument as Document).createTreeWalker(svg, NodeFilter.SHOW_TEXT);
+      node = nodes.nextNode() as Text | null; ) {
+    const s = node.data, s2 = s.trim()
+    s2.length < s.length &&
+    (node.data = !s2 ? " " : (spacesRe_.test(s[0]) ? " " : "") + s2 + (spacesRe_.test(s.slice(-1)) ? " " : ""))
+  }
+  let out = svg.outerHTML.replace(<RegExpG> /\xa0/g, " ")
+  // out = '<?xml version="1.0" standalone="no"?>' + out
+  out = out.replace(<RegExpG & RegExpSearchable<0>> /<\/?[A-Z:]+(?=\s|>)/g, s => s.toLowerCase())
+  out = out.replace(<RegExpG & RegExpSearchable<0>> /(?:[%?#]|[^\S ])+/g, encodeURIComponent)
+  return "data:image/svg+xml," + out
 }

@@ -1,6 +1,7 @@
 import { CONST_, CurCVer_, CurFFVer_, OnChrome, OnEdge, OnFirefox, searchEngines_, substitute_ } from "./store"
 import * as BgUtils_ from "./utils"
 import {
+  checkSpecialSchemes_,
   convertToUrl_, formatVimiumUrl_, lastUrlType_, removeComposedScheme_, searchVariableRe_, searchWordRe_
 } from "./normalize_urls"
 
@@ -40,6 +41,7 @@ export const parseSearchUrl_ = (request: FgReqWithRes[kFgReq.parseSearchUrl]): F
   }
   if (arr.length > 1 && !pattern.matcher_.global) { arr.shift(); }
   const re = pattern.delimiter_;
+  let isResultUrl: 0 | 1 | 2 = 0
   if (arr.length > 1) {
     selectLast = true;
   } else if (re instanceof RegExp) {
@@ -50,12 +52,22 @@ export const parseSearchUrl_ = (request: FgReqWithRes[kFgReq.parseSearchUrl]): F
     } else {
       arr = [url];
     }
+  } else if (re == " " || re === "+") {
+    url = arr[0].toLowerCase()
+    let colon = url.indexOf(":")
+    colon = colon > 0 && colon < url.length ? colon : 0
+    if (colon && !BgUtils_.protocolRe_.test(url) && !url.startsWith("file:")) {
+      const schemeType = checkSpecialSchemes_(url, colon, url.indexOf(" "))
+      colon = schemeType !== Urls.TempType.Unspecified && schemeType <= Urls.Type.PlainVimium ? colon : 0
+    }
+    isResultUrl = colon > 0 ? url.startsWith("data:") ? 2 : 1 : 0
+    arr = isResultUrl ? [arr[0]] : arr[0].split(re)
   } else {
     arr = arr[0].split(re);
   }
   url = "";
-  for (const item of arr) { url += " " + BgUtils_.DecodeURLPart_(item) }
-  url = url.trim().replace(BgUtils_.spacesRe_, " ");
+  for (const item of arr) { url += " " + (isResultUrl ? item : BgUtils_.DecodeURLPart_(item)) }
+  url = url.trim().replace(isResultUrl > 1 ? <RegExpG> /\xa0/g : BgUtils_.spacesRe_, " ")
   BgUtils_.resetRe_();
   return {
     k: pattern.name_,

@@ -131,7 +131,8 @@ async function App (this: void): Promise<void> {
       }
     }
   }
-  url = decodeURLPart_(url, !url.includes(":") && !url.includes("/") ? null : decodeURI).trim();
+  { const url2 = decodeURLPart_(url, url.includes(":") || url.includes("/") ? decodeURI : null)
+  url = (url2 != url && !(<RegExpOne> /[%\n]/).test(url2) ? url2 : url).trim() }
   if (!url) {
     type === "image" && (type = "");
   } else if (url.toLowerCase().startsWith("javascript:")) {
@@ -147,7 +148,7 @@ async function App (this: void): Promise<void> {
     url = "http://" + url;
   }
   VData.type = type;
-  (<RegExpI> /^data:/i).test(url) && (url = "data:" + url.slice(5));
+  (<RegExpI> /^data:/i).test(url) && (url = "data:" + url.slice(5).replace(<RegExpG> /#/g, "%23"))
   VData.url = VData.original = url;
 
   switch (type) {
