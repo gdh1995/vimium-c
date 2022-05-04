@@ -122,7 +122,7 @@ export const catchAsyncErrorSilently = <T> (__pFromAsync: Promise<T>): Promise<T
 const mouse_ = function (element: SafeElementForMouse
     , type: kMouseClickEvents | kMouseMoveEvents
     , center: Point2D, modifiers?: MyMouseControlKeys | null, relatedTarget?: NullableSafeElForM
-    , button?: AcceptableClickButtons): boolean {
+    , button?: AcceptableClickButtons, isTouch?: BOOL): boolean {
   const doc1 = element.ownerDocument as Document, view = doc1.defaultView || window,
   tyKey = type.slice(5, 6),
   // is: down | up | (click) | dblclick | auxclick
@@ -135,18 +135,24 @@ const mouse_ = function (element: SafeElementForMouse
   relatedTarget = relatedTarget && relatedTarget.ownerDocument === doc1 ? relatedTarget : null
   let mouseEvent: MouseEvent
   // note: there seems no way to get correct screenX/Y of an element
-  if (!OnChrome
-      || Build.MinCVer >= BrowserVer.MinUsable$MouseEvent$$constructor
-      || chromeVer_ >= BrowserVer.MinUsable$MouseEvent$$constructor) {
+  if (!OnChrome || Build.MinCVer >= BrowserVer.MinUsable$MouseEvent$$constructor
+      || chromeVer_ > BrowserVer.MinUsable$MouseEvent$$constructor - 1) {
     // Note: The `composed` here may require Shadow DOM support
-    const init: ValidMouseEventInit = {
+    const init: ValidMouseEventInit & Partial<Omit<PointerEventInit, keyof MouseEventInit>> = {
       bubbles, cancelable: bubbles, composed: !0, view, detail,
       screenX: x, screenY: y, clientX: x, clientY: y, ctrlKey, altKey, shiftKey, metaKey,
       button, buttons: tyKey === "d" ? button || 1 : 0,
       relatedTarget
     }
     OnChrome && setupIDC_cr!(init)
-    mouseEvent = new MouseEvent(type, init)
+    if (OnChrome && (Build.MinCVer >= BrowserVer.MinEnsuredPointerEventForRealClick
+          || chromeVer_ > BrowserVer.MinEnsuredPointerEventForRealClick - 1)
+        && "ac".includes(type[0])) {
+      init.pointerId = 1, init.pointerType = isTouch ? "touch" : "mouse"
+      mouseEvent = new PointerEvent(type, init)
+    } else {
+      mouseEvent = new MouseEvent(type, init)
+    }
   } else {
     mouseEvent = doc1.createEvent("MouseEvents")
     mouseEvent.initMouseEvent(type, bubbles, bubbles, view, detail, x, y, x, y
@@ -157,10 +163,9 @@ const mouse_ = function (element: SafeElementForMouse
   }
   return element.dispatchEvent(mouseEvent)
 } as {
-  (element: SafeElementForMouse, type: kMouseClickEvents
-    , center: Point2D
-    , modifiers?: MyMouseControlKeys | null, related?: NullableSafeElForM
-    , button?: AcceptableClickButtons): boolean
+  (element: SafeElementForMouse, type: kMouseClickEvents, center: Point2D
+    , modifiers?: MyMouseControlKeys | null, related?: NullableSafeElForM | 0, button?: AcceptableClickButtons
+    , isTouch?: BOOL): boolean
   (element: SafeElementForMouse, type: kMouseMoveEvents, center: Point2D
     , modifiers?: null, related?: NullableSafeElForM): boolean
 }
@@ -282,14 +287,15 @@ export const click_async = (async (element: SafeElementForMouse
   const center = center_(rect || (rect = getVisibleClientRect_(element)), xy)
   const sedIf = userOptions && userOptions.sedIf
   let result: ActionType = max_((action = action! | 0) - kClickAction.BaseMayInteract, 0)
-  if (OnChrome
-      && (Build.MinCVer >= BrowserVer.MinEnsuredTouchEventConstructor
-          || chromeVer_ >= BrowserVer.MinEnsuredTouchEventConstructor)
+  let isTouch: BOOL = 0
+  if (OnChrome && (Build.MinCVer >= BrowserVer.MinEnsuredTouchEventConstructor
+          || chromeVer_ > BrowserVer.MinEnsuredTouchEventConstructor - 1)
       && (touchMode === !0 || touchMode && isInTouchMode_cr_!())) {
     let id = await touch_cr_!(element, center)
     if (IsInDOM_(element)) {
       await touch_cr_!(element, center, id)
     }
+    isTouch = 1
     if (!IsInDOM_(element)) { return }
   }
   if (element !== deref_(lastHovered_)) {
@@ -303,7 +309,7 @@ export const click_async = (async (element: SafeElementForMouse
       return
     }
   }
-  const mousedownNotPrevented = await mouse_(element, MDW, center, modifiers, null, button)
+  const mousedownNotPrevented = await mouse_(element, MDW, center, modifiers, 0, button)
   await 0
   if (!IsInDOM_(element)) { return }
   // Note: here we can check doc.activeEl only when @click is used on the current focused document
@@ -313,13 +319,13 @@ export const click_async = (async (element: SafeElementForMouse
     if (!IsInDOM_(element)) { return }
     await 0
   }
-  await mouse_(element, "mouseup", center, modifiers, null, button)
+  await mouse_(element, "mouseup", center, modifiers, 0, button)
   await 0
   if (!IsInDOM_(element)) { return }
   if (button === kClickButton.second) {
     // if button is the right, then auxclick can be triggered even if element.disabled
-    mouse_(element, "auxclick", center, modifiers, null, button)
-    mouse_(element, kMenu, center, modifiers, null, button)
+    mouse_(element, "auxclick", center, modifiers, 0, button, isTouch)
+    mouse_(element, kMenu, center, modifiers, 0, button, isTouch)
     return
   }
   if (OnChrome && (element as Partial<HTMLInputElement /* |HTMLSelectElement|HTMLButtonElement */>).disabled) {
@@ -349,7 +355,8 @@ export const click_async = (async (element: SafeElementForMouse
   if ((result > ActionType.OpenTabButNotDispatch - 1
         || (OnFirefox && /*#__INLINE__*/ prepareToBlockClick(result === ActionType.DispatchAndMayOpenTab
                 , action < kClickAction.plainMayOpenManually + 1 && parentAnchor!),
-            (await await mouse_(element, CLK, center, modifiers)) && result || result & ActionType.dblClick))
+            (await await mouse_(element, CLK, center, modifiers, 0, 0, isTouch)) && result
+              || result & ActionType.dblClick))
       && getVisibleClientRect_(element)) {
     // require element is still visible
     isCommonClick && set_cachedScrollable(currentScrolling)
@@ -359,7 +366,7 @@ export const click_async = (async (element: SafeElementForMouse
           && (// use old rect
             await click_async(element, rect, 0, modifiers, kClickAction.none, kClickButton.primaryAndTwice),
             !getVisibleClientRect_(element)
-            || !await await mouse_(element, "dblclick", center, modifiers, null, kClickButton.primaryAndTwice)
+            || !await await mouse_(element, "dblclick", center, modifiers, 0, kClickButton.primaryAndTwice)
             || !getVisibleClientRect_(element)
           )) {
         /* empty */

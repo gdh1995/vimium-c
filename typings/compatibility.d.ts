@@ -502,7 +502,7 @@ declare const enum BrowserVer {
   MinRuntimeFlag$UpdateHoverAtBeginFrame = 77, // #update-hover-at-begin-frame is enabled by default
   MinChromeFavicon2 = 77, // tested on 77.0.3865.90, chrome://favicon2/ is forbidden to use on extension pages
   MinScrollEndForInstantScrolling = 78, // if EXPERIMENTAL
-  MinMaybePointerEventForTouchPadClick = 79, // if EXPERIMENTAL
+  MinMaybePointerEventForRealClick = 79, // if EXPERIMENTAL
   // https://groups.google.com/a/chromium.org/forum/#!msg/blink-dev/h-JwMiPUnuU/sl79aLoLBQAJ
   // https://www.chromestatus.com/features/4507242028072960
   MinNoShadowDOMv0 = 80,
@@ -549,7 +549,7 @@ declare const enum BrowserVer {
   MinESModulesInServiceWorker = 91,
   MinEnsured$string$$replaceAll = 91,
   MinEnsured$WeakRef = 92, // even if LEGACY
-  MinEnsuredPointerEventForTouchPadClick = 92, // if not EXPERIMENTAL; even if LEGACY
+  MinEnsuredPointerEventForRealClick = 92, // if not EXPERIMENTAL else MinMaybePointerEventForRealClick; even if LEGACY
   BuildMinManifestV3 = 93,
   /** @todo: trace https://bugs.chromium.org/p/chromium/issues/detail?id=649162 */
   MinMaybeAutoFillInShadowDOM = 93, // if --enable-blink-features=AutofillShadowDOM
