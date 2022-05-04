@@ -215,6 +215,10 @@ Object.assign(updateHooks_, As_<{ [key in SettingsNS.DeclaredUpdateHooks]: Setti
       }
     },
     grabBackFocus (value: SettingsWithDefaults["grabBackFocus"]): void { contentPayload_.g = value },
+    ignoreKeyboardLayout (): void {
+      omniPayload_.l = contentPayload_.l
+      broadcastOmni_({ N: kBgReq.omni_updateOptions, d: { l: contentPayload_.l } })
+    },
     newTabUrl (url): void {
       url = (<RegExpI> /^\/?pages\/[a-z]+.html\b/i).test(url)
         ? browser_.runtime.getURL(url) : normalizeExtOrigin_(convertToUrl_(url))

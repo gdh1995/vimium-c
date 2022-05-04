@@ -346,16 +346,16 @@ declare namespace SettingsNS {
   interface AllConstValues extends Readonly<SelectValueType<ConstItems>> {}
   interface VomnibarOptionItems {
     /** maxMatchNumber */ n: ["maxMatches", number];
-    /** queryInterval */ t: ["queryInterval", number];
-    /** comma-joined size numbers */ l: ["sizes", string];
-    /** styles */ s: ["styles", string];
+    /** queryInterval */ i: ["queryInterval", number];
+    /** comma-joined size numbers */ s: ["sizes", string];
+    /** styles */ t: ["styles", string];
   }
   interface VomnibarBackendItems {
     actions: string;
   }
   interface OtherVomnibarItems {
     /** css */ c: ["omniCSS", string];
-    /** mappedKeys */ k: ["mappedKeys", SafeDict<string> | null];
+    /** mappedKeys */ m: ["mappedKeys", SafeDict<string> | null];
   }
 
   interface BaseBackendSettings {
@@ -384,13 +384,10 @@ declare namespace SettingsNS {
   }
 
   /** Note: should have NO names which may be uglified */
-  interface AllVomnibarItems extends VomnibarOptionItems, OtherVomnibarItems
-      , Pick<DirectlySyncedItems, "a"> {
-  }
-  interface VomnibarPayload extends AllConstValues, SelectValueType<AllVomnibarItems> {
-  }
-  interface DeclaredVomnibarPayload extends SelectValueType<AllVomnibarItems>, DeclaredConstValues {
-  }
+  interface DirectVomnibarItems extends Pick<DirectlySyncedItems, "a" | "l"> {}
+  interface AllVomnibarItems extends VomnibarOptionItems, OtherVomnibarItems, DirectVomnibarItems {}
+  interface DeclaredVomnibarPayload extends SelectValueType<AllVomnibarItems>, DeclaredConstValues {}
+  interface VomnibarPayload extends DeclaredVomnibarPayload, AllConstValues {}
 }
 declare const enum kOS {
   mac = 0, unixLike = 1, win = 2,

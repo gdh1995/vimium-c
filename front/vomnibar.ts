@@ -245,7 +245,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       ) as SettingsNS.ConstItems["o"][1],
   caseInsensitive_: false,
   mapModifier_: 0 as SettingsNS.AllVomnibarItems["a"][1],
-  mappedKeyRegistry_: null as SettingsNS.AllVomnibarItems["k"][1],
+  mappedKeyRegistry_: null as SettingsNS.AllVomnibarItems["m"][1],
+  ignoreKeyboardLayout_: 1 as SettingsNS.AllVomnibarItems["l"][1],
   maxMatches_: 0,
   queryInterval_: 0,
   heightIfEmpty_: VomnibarNS.PixelData.OthersIfEmpty,
@@ -485,12 +486,9 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     sel >= 1 && _ref[sel - 1].classList.add("p");
     sel >= 0 && _ref[sel].classList.add("s");
   },
-  _keyNames_old_cr_ee: Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key && Build.BTypes & BrowserType.Chrome
-      || Build.BTypes & BrowserType.Edge
-      ? AsOmni_<readonly kChar[]>([kChar.space, kChar.pageup, kChar.pagedown, kChar.end, kChar.home,
+  _keyNames: AsOmni_<readonly kChar[]>([kChar.space, kChar.pageup, kChar.pagedown, kChar.end, kChar.home,
         kChar.left, kChar.up, kChar.right, kChar.down,
-        /* 41 */ kChar.None, kChar.None, kChar.None, kChar.None, kChar.insert, kChar.delete])
-      : 0 as never as null,
+        /* 41 */ kChar.None, kChar.None, kChar.None, kChar.None, kChar.insert, kChar.delete]),
   _codeCorrectionMap: ["Semicolon", "Equal", "Comma", "Minus", "Period", "Slash", "Backquote",
     "BracketLeft", "Backslash", "BracketRight", "Quote", "IntlBackslash"],
   _modifierKeys: AsOmni_<Dict<1>>({
@@ -499,16 +497,9 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   keyIdCorrectionOffset_old_cr_: Build.BTypes & BrowserType.Chrome
       && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key
       ? Build.OS & ~(1 << kOS.mac) ? 185 as const : 300 as const : 0 as never as null,
-  char_ (event: Pick<KeyboardEvent, "code" | "key" | "keyCode" | "keyIdentifier" | "location" | "shiftKey">): string {
-    const shiftKey = Build.BTypes & BrowserType.Firefox ? Vomnibar_.hasShift_(event as KeyboardEvent) : event.shiftKey
-    const charCorrectionList = kChar.CharCorrectionList, enNumTrans = kChar.EnNumTrans;
-    let key = event.key!
-    if (!(Build.BTypes & BrowserType.Edge)
-        || Build.BTypes & ~BrowserType.Edge && Vomnibar_.browser_ !== BrowserType.Edge
-        ? Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key && Build.BTypes & BrowserType.Chrome && !key
-        : true) {
-      let {keyCode: i} = event, keyId: kCharCode;
-      key = i > kKeyCode.space - 1 && i < kKeyCode.minNotDelete ? Vomnibar_._keyNames_old_cr_ee![i - kKeyCode.space]
+  _getKeyName (event: Pick<KeyboardEvent, "key" | "keyCode" | "location">): kChar {
+    let i = event.keyCode, s: string | undefined
+    return i > kKeyCode.space - 1 && i < kKeyCode.minNotDelete ? Vomnibar_._keyNames![i - kKeyCode.space]
         : i < kKeyCode.minNotDelete || i === kKeyCode.metaKey
           || Build.OS & (1 << kOS.mac) && i === (!(Build.BTypes & ~BrowserType.Firefox)
                 || Build.BTypes & BrowserType.Firefox && Vomnibar_.browser_ === BrowserType.Firefox
@@ -522,19 +513,39 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
             : kChar.None
         : i === kKeyCode.menuKey && Build.BTypes & ~BrowserType.Safari
           && (Build.BTypes & ~BrowserType.Chrome || Build.OS & ~kOS.mac) ? kChar.Menu
-        : i > kKeyCode.maxNotFn && i < kKeyCode.minNotFn ? "f" + (i - kKeyCode.maxNotFn)
-        : i && (key = Build.BTypes & ~BrowserType.Chrome ? <string | undefined> event.keyIdentifier || ""
-              : event.keyIdentifier as string).startsWith("U+") && (keyId = parseInt(key.slice(2), 16))
-        ? keyId < kCharCode.minNotAlphabet && keyId > kCharCode.minNotSpace - 1
-          ? shiftKey && keyId > kCharCode.maxNotNum && keyId < kCharCode.minNotNum ? enNumTrans[keyId - kCharCode.N0]
+        : ((s = event.key) ? (<RegExpOne> /^F\d/).test(s) : i > kKeyCode.maxNotFn && i < kKeyCode.minNotFn)
+        ? ("f" + (s ? s.slice(1) : i - kKeyCode.maxNotFn)) as kChar.F_num : kChar.None
+  },
+  _getKeyCharUsingKeyIdentifier_old_cr: Build.BTypes & BrowserType.Chrome
+      && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key
+      ? (event: Pick<OldKeyboardEvent, "keyIdentifier">, shiftKey: BOOL): string => {
+    let s: string | undefined = event.keyIdentifier,
+    keyId: kCharCode = s.startsWith("U+") ? parseInt(s.slice(2), 16) : 0;
+    if (keyId < kCharCode.minNotAlphabet) {
+      return keyId < kCharCode.minNotSpace ? ""
+          : shiftKey && keyId > kCharCode.maxNotNum && keyId < kCharCode.minNotNum
+          ? kChar.EnNumTrans[keyId - kCharCode.N0]
             : String.fromCharCode(keyId < kCharCode.minAlphabet || shiftKey ? keyId : keyId + kCharCode.CASE_DELTA)
-          : Build.OS & ~(1 << kOS.mac) && keyId > Vomnibar_.keyIdCorrectionOffset_old_cr_!
-            && ((keyId -= 186) < 7 || (keyId -= 26) > 6 && keyId < 11)
-          ? charCorrectionList[keyId + 12 * +shiftKey]
-          : ""
-        : "";
     } else {
-      let code = event.code!, prefix = code.slice(0, 3)
+      // here omits a `(...)` after the first `&&`, since there has been `keyId >= kCharCode.minNotAlphabet`
+      return Build.OS & ~(1 << kOS.mac) && keyId > Vomnibar_.keyIdCorrectionOffset_old_cr_!
+          && (keyId -= 186) < 7 || (keyId -= 26) > 6 && keyId < 11
+        ? kChar.CharCorrectionList[keyId + 12 * +shiftKey] : ""
+    }
+  } : 0 as never,
+  char_ (event: Pick<KeyboardEvent, "code" | "key" | "keyCode" | "keyIdentifier" | "location" | "shiftKey" | "altKey">
+      ): string {
+    const shiftKey = Build.BTypes & BrowserType.Firefox ? Vomnibar_.hasShift_(event as KeyboardEvent) : event.shiftKey
+    let key = event.key!, isDeadKey = Build.BTypes & ~BrowserType.Edge && (key === "Dead" || key === "Unidentified")
+    let code = event.code!
+    if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key && !key) {
+      return Vomnibar_._getKeyName(event) || Vomnibar_._getKeyCharUsingKeyIdentifier_old_cr(
+            event as Pick<OldKeyboardEvent, "keyIdentifier">, +shiftKey as BOOL)
+    } else if ((!(Build.BTypes & BrowserType.Edge)
+        || Build.BTypes & ~BrowserType.Edge && Vomnibar_.browser_ !== BrowserType.Edge)
+        && (Vomnibar_.ignoreKeyboardLayout_ > 1 || Vomnibar_.ignoreKeyboardLayout_ === 1 && event.altKey || isDeadKey
+            || key.length === 1 && key > "~" && code.startsWith("Key"))) {
+      let prefix = code.slice(0, 3)
       let isKeyShort = key.length < 2 || (key === "Dead" || key === "Unidentified")
       let mapped: number | undefined
       if (prefix !== "Num") { // not (Numpad* or NumLock)
@@ -542,18 +553,20 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
           code = code.slice(code < "K" ? 5 : 3);
         }
         key = code.length === 1 && isKeyShort
-              ? !shiftKey || code < "0" || code > "9" ? code : enNumTrans[+code]
+              ? !shiftKey || code < "0" || code > "9" ? code : kChar.EnNumTrans[+code]
               : Vomnibar_._modifierKeys[key]
                 ? Vomnibar_.mapModifier_ && event.location === Vomnibar_.mapModifier_ ? kChar.Modifier
                 : key === "Alt" ? key : ""
               : key === "Escape" ? kChar.esc
-              /** {@link ../lib/keyboard_utils#char_} */
               : code.length < 2 || !isKeyShort ? key.startsWith("Arrow") ? key.slice(5) : key
               : (mapped = Vomnibar_._codeCorrectionMap.indexOf(code)) < 0 ? code
-              : charCorrectionList[mapped + 12 * +shiftKey]
+              : kChar.CharCorrectionList[mapped + 12 * +shiftKey]
             ;
       }
       key = shiftKey && key.length < 2 ? key : key.toLowerCase()
+    } else {
+      key = key.length > 1 || key === " " ? Vomnibar_._getKeyName(event)
+          : shiftKey ? key.toUpperCase() : key.toLowerCase()
     }
     return key;
   },
@@ -1146,7 +1159,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     }
   },
   updateOptions_ (response: Req.bg<kBgReq.omni_updateOptions>): void {
-    const delta = VUtils_.safer_(response.d), styles = delta.s;
+    const delta = VUtils_.safer_(response.d), styles = delta.t;
     if (styles != null && Vomnibar_.styles_ !== styles) {
       Vomnibar_.styles_ = styles;
       Vomnibar_.onStyleUpdate_(styles);
@@ -1154,10 +1167,11 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     delta.c != null && Vomnibar_.css_(delta.c);
     delta.a != null && (Vomnibar_.mapModifier_ = delta.a);
     delta.n != null && (Vomnibar_.maxMatches_ = delta.n);
-    delta.t != null && (Vomnibar_.queryInterval_ = delta.t);
-    delta.k !== undefined && (Vomnibar_.mappedKeyRegistry_ = delta.k);
-    if (delta.l != null) {
-      let sizes = delta.l.split(","), n = +sizes[0], m = Math.min, M = Math.max;
+    delta.i != null && (Vomnibar_.queryInterval_ = delta.i)
+    delta.m !== undefined && (Vomnibar_.mappedKeyRegistry_ = delta.m)
+    delta.l != null && (Vomnibar_.ignoreKeyboardLayout_ = delta.l)
+    if (delta.s != null) {
+      let sizes = delta.s.split(","), n = +sizes[0], m = Math.min, M = Math.max;
       Vomnibar_.heightIfEmpty_ = M(24, m(n || VomnibarNS.PixelData.OthersIfEmpty, 320));
       n = +sizes[1];
       Vomnibar_.baseHeightIfNotEmpty_ = M(24, m(Vomnibar_.heightIfEmpty_
@@ -1900,10 +1914,10 @@ if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType
       (payload.o || (Vomnibar_.keyIdCorrectionOffset_old_cr_ = 300))
     }
     if (Build.OS & (Build.OS - 1)) { Vomnibar_.os_ = payload.o }
-    Vomnibar_.mappedKeyRegistry_ = payload.k;
-    Vomnibar_.styles_ = payload.s;
+    Vomnibar_.mappedKeyRegistry_ = payload.m;
+    Vomnibar_.styles_ = payload.t;
     Vomnibar_.updateOptions_({ N: kBgReq.omni_updateOptions, d: {
-      c: payload.c, n: payload.n, t: payload.t, l: payload.l
+      c: payload.c, n: payload.n, i: payload.i, s: payload.s
     } });
     _sec = secret;
     for (const i of unsafeMsg) {

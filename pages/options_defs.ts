@@ -20,6 +20,10 @@ Option_.prototype._onCacheUpdated = function<T extends keyof SettingsNS.AutoSync
     const val = this.readValueFromElement_()
     void post_(kPgReq.updatePayload, { key: shortKey, val }).then((val2): void => {
       (VApi!.z! as Generalized<NonNullable<VApiTy["z"]>>)[shortKey] = val2 != null ? val2 : val as never
+      if (shortKey === "a" || shortKey === "l") {
+        void post_(kPgReq.updateOmniPayload, { key: shortKey,
+            val: (val2 != null ? val2 : val as never) as SettingsNS.DirectlySyncedItems[typeof shortKey][1] })
+      }
     })
   }
 }

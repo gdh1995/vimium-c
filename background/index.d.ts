@@ -329,7 +329,7 @@ declare namespace SettingsNS {
   type NullableUpdateHooks = "searchEngines" | "searchUrl" | "keyMappings" | "vomnibarPage"
 
   type DeclaredUpdateHooks = "newTabUrl" | "searchEngines" | "searchUrl"
-        | "vomnibarPage" | "extAllowList" | "grabBackFocus" | "mapModifier"
+        | "vomnibarPage" | "extAllowList" | "grabBackFocus" | "mapModifier" | "ignoreKeyboardLayout"
   type EnsuredUpdateHooks = DeclaredUpdateHooks
   type UpdateHook<key extends keyof SettingsWithDefaults> =
         key extends NullableUpdateHooks ? NullableUpdateHook<key>

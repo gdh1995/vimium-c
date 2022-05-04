@@ -371,7 +371,7 @@ const parseKeyMappings_ = (wholeMappings: string): void => {
     set_keyToCommandMap_(registry)
     shortcutRegistry_ = cmdMap
     envRegistry_ = envMap
-    set_mappedKeyRegistry_(omniPayload_.k = mk > 0 ? mkReg : null)
+    set_mappedKeyRegistry_(omniPayload_.m = mk > 0 ? mkReg : null)
 }
 
 const setupShortcut_ = (cmdMap: NonNullable<typeof shortcutRegistry_>, key: StandardShortcutNames
@@ -803,15 +803,7 @@ updateHooks_.keyMappings = (value: string | null): void => {
   updatesInKeyFSM = !!oldFSM && f(keyFSM_) !== f(oldFSM),
   updatesInMappedKeys = oldMappedKeys ? !curMapped || f(oldMappedKeys) !== f(curMapped) : !!oldFSM && !!curMapped;
   (updatesInMappedKeys || updatesInKeyFSM) && settings_.broadcast_({
-    N: kBgReq.keyFSM,
-    m: mappedKeyRegistry_,
-    t: mappedKeyTypes_,
-    k: updatesInKeyFSM ? keyFSM_ : null
+    N: kBgReq.keyFSM, m: mappedKeyRegistry_, t: mappedKeyTypes_, k: updatesInKeyFSM ? keyFSM_ : null
   });
-  updatesInMappedKeys && settings_.broadcastOmni_({
-    N: kBgReq.omni_updateOptions,
-    d: {
-      k: mappedKeyRegistry_
-    }
-  });
+  updatesInMappedKeys && settings_.broadcastOmni_({ N: kBgReq.omni_updateOptions, d: { m: mappedKeyRegistry_ } })
 };

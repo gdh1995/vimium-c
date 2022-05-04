@@ -128,7 +128,7 @@ Build.MV3 || setTimeout((): void => {
     matchedSugTypes = newMatchedSugTypes;
     suggestions = [];
     const urlDict: Set<string> = new Set!()
-    const showTypeLetter = ` ${omniPayload_.s} `.includes(" type-letter ")
+    const showTypeLetter = ` ${omniPayload_.t} `.includes(" type-letter ")
     for (let i = 0, di = autoSelect ? 0 : 1, len = response.length; i < len; i++) {
       const sugItem = response[i], { title, u: rawUrl, e: type } = sugItem
       let url = rawUrl, desc = "", hasSessionId = sugItem.s != null
@@ -229,7 +229,7 @@ Build.MV3 || setTimeout((): void => {
     lastSuggest = { suggest_: suggest, key_: key, sent_: false };
     if (timer) { return; }
     const now = Date.now(),
-    delta = omniPayload_.t + inputTime - now; /** it's made safe by {@see #onTimer} */
+    delta = omniPayload_.i + inputTime - now; /** it's made safe by {@see #onTimer} */
     if (delta > 30 && delta < 3000) { // in case of system time jumping
       timer = setTimeout(onTimer, delta);
       return;

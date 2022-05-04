@@ -1,7 +1,7 @@
 import {
   contentPayload_, evalVimiumUrl_, keyFSM_, keyToCommandMap_, mappedKeyRegistry_, newTabUrls_, restoreSettings_,
   CONST_, settingsCache_, shownHash_, substitute_, framesForTab_, curTabId_, extAllowList_, OnChrome, reqH_, OnEdge,
-  storageCache_, os_
+  storageCache_, os_, framesForOmni_
 } from "./store"
 import { deferPromise_, protocolRe_, safeObj_ } from "./utils"
 import { browser_, getCurTab, getTabUrl, Q_, runContentScriptsOn_, runtimeError_ } from "./browser"
@@ -249,6 +249,11 @@ const pageRequestHandlers_ = As_<{
   /** kPgReq.setInLocal: */ ({ key, val }): void => {
     if (!key.includes("|")) { return }
     settings_.setInLocal_(key as `${string}|${string}`, val)
+  },
+  /** kPgReq.updateOmniPayload: */ ({ key, val }, port): void => {
+    const tabId = port && port.s && port.s.tabId_ || curTabId_
+    const omniPort = framesForOmni_.find(i => i.s.tabId_ === tabId)
+    omniPort && omniPort.postMessage({ N: kBgReq.omni_updateOptions, d: { [key]: val } })
   }
 ])
 

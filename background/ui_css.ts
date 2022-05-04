@@ -215,7 +215,7 @@ export const mergeCSS = (css2Str: string, action: MergeAction | "userDefinedCss"
 }
 
 export const setOmniStyle_ = (req: FgReq[kFgReq.setOmniStyle], port?: Port): void => {
-  let styles: string, curStyles = omniPayload_.s
+  let styles: string, curStyles = omniPayload_.t
   if (!req.o && omniStyleOverridden_) {
     return
   }
@@ -224,14 +224,14 @@ export const setOmniStyle_ = (req: FgReq[kFgReq.setOmniStyle], port?: Port): voi
     newExist = req.e != null ? req.e : exists
     styles = newExist ? exists ? curStyles : curStyles + toggled : extSt.replace(toggled, " ")
     styles = styles.trim().replace(spacesRe_, " ")
-    if (req.b === false) { omniPayload_.s = styles; return }
+    if (req.b === false) { omniPayload_.t = styles; return }
     if (req.o) {
       set_omniStyleOverridden_(newExist !== (` ${settingsCache_.vomnibarOptions.styles} `.includes(toggled)))
     }
   }
   if (styles === curStyles) { return }
-  omniPayload_.s = styles
-  const request2: Req.bg<kBgReq.omni_updateOptions> = { N: kBgReq.omni_updateOptions, d: { s: styles } }
+  omniPayload_.t = styles
+  const request2: Req.bg<kBgReq.omni_updateOptions> = { N: kBgReq.omni_updateOptions, d: { t: styles } }
   asyncIter_(framesForOmni_.slice(0), (frame): number => {
     frame !== port && framesForOmni_.includes(frame) && frame.postMessage(request2)
     return 1

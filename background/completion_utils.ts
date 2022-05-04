@@ -90,8 +90,8 @@ export const MatchCacheManager_ = {
       }
     }
     MatchCacheManager_.current_ = found;
-    if (found && (omniPayload_.t < 200 || !found.history_ || found.history_.length > 1000)
-        && (now = performance.now()) - found.time_ < Math.max(300, omniPayload_.t * 1.3)) {
+    if (found && (omniPayload_.i < 200 || !found.history_ || found.history_.length > 1000)
+        && (now = performance.now()) - found.time_ < Math.max(300, omniPayload_.i * 1.3)) {
       MatchCacheManager_.newMatch_ = found;
       found.query_ = queryTerms.slice(0);
     }

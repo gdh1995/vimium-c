@@ -43,8 +43,7 @@ const _getKeyName = (event: Pick<KeyboardEvent, "key" | "keyCode" | "location">)
       : i === kKeyCode.menuKey && Build.BTypes & ~BrowserType.Safari
         && (Build.BTypes & ~BrowserType.Chrome || Build.OS & ~kOS.mac) ? kChar.Menu
       : ((s = event.key) ? (<RegExpOne> /^F\d/).test(s) : i > kKeyCode.maxNotFn && i < kKeyCode.minNotFn)
-      ? ("f" + (s ? s.slice(1) : i - kKeyCode.maxNotFn)) as kChar.F_num
-      : kChar.None
+      ? ("f" + (s ? s.slice(1) : i - kKeyCode.maxNotFn)) as kChar.F_num : kChar.None
 }
 
   /** return single characters which only depend on `shiftKey` (CapsLock is ignored) */
@@ -83,7 +82,7 @@ export const char_ = (eventWrapper: HandlerNS.Event): kChar => {
     key = _getKeyName(event) // it's safe to skip the check of `event.keyCode`
         || /*#__NOINLINE__*/ _getKeyCharUsingKeyIdentifier_old_cr(event as Pick<OldKeyboardEvent, "keyIdentifier">
             , +shiftKey as BOOL)
-  } else if (!OnEdge && (fgCache.l > 0 && (fgCache.l > 1 || event.altKey) || isDeadKey)) {
+  } else if (!OnEdge && (fgCache.l > 1 || fgCache.l === 1 && event.altKey || isDeadKey)) {
       /** return strings of 1-N characters and CapsLock is ignored */
     let code = event.code!, prefix = code.slice(0, 3), isKeyShort = key.length < 2 || isDeadKey
     if (prefix !== "Num") { // not (Numpad* or NumLock)

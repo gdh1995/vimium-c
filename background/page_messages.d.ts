@@ -4,7 +4,7 @@ export declare const enum kPgReq {
    /** 10..14 */ convertToUrl, updateMediaQueries, whatsHelp, checkNewTabUrl, checkSearchUrl,
    /** 15..19 */ focusOrLaunch, showUrl, shownHash, substitute, checkHarmfulUrl,
    /** 20..24 */ popupInit, allowExt, toggleStatus, parseMatcher, initHelp,
-   /** 25..27 */ callApi, selfTabId, getStorage, setInLocal,
+   /** 25..29 */ callApi, selfTabId, getStorage, setInLocal, updateOmniPayload,
   __mask = ""
 }
 
@@ -57,6 +57,8 @@ export interface PgReq {
   [kPgReq.selfTabId]: [ void, number ]
   [kPgReq.getStorage]: [ GlobalConsts.kIsHighContrast | null, Dict<unknown> ]
   [kPgReq.setInLocal]: [ { key: string, val: string | null }, void ]
+  [kPgReq.updateOmniPayload]: [ { key: keyof SettingsNS.DirectVomnibarItems,
+      val: Values<SettingsNS.DirectVomnibarItems>[1] | /** autoDarkMode */ boolean }, void ]
 }
 
 export declare namespace Req2 {
