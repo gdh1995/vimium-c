@@ -188,6 +188,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   inputText_: "",
   lastQuery_: "",
   useInput_: true,
+  inputType_: 0,
   completions_: null as never as SuggestionE[],
   total_: 0,
   maxPageNum_: Math.min(Math.max(3, (window.VomnibarMaxPageNum! | 0) || 10), 100),
@@ -270,7 +271,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     a.isActive_ = a.showing_ = a.isEditing_ = a.codeFocusReceived_ = false
     a.noSessionsOnStart_ = false
     a.isInputComposing_ = null
-    a.codeFocusTime_ = a.blurWanted_ = 0;
+    a.codeFocusTime_ = a.blurWanted_ = a.inputType_ = 0;
     ((document.body as Element).removeEventListener as typeof removeEventListener)("wheel", a.onWheel_, a.wheelOptions_)
     a.timer_ > 0 && clearTimeout(a.timer_);
     window.onkeyup = null as never;
@@ -304,7 +305,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   onHidden_ (): void {
     VPort_ && VPort_.postToOwner_({ N: VomnibarNS.kFReq.hide })
     const a = Vomnibar_;
-    a.timer_ = a.height_ = a.matchType_ = a.sugTypes_ = a.wheelStart_ = a.wheelTime_ = a.actionType_ =
+    a.timer_ = a.height_ = a.matchType_ = a.sugTypes_ = a.wheelStart_ = a.wheelTime_ = a.actionType_ = a.inputType_ =
     a.total_ = a.lastKey_ = a.wheelDelta_ = VUtils_.timeCache_ = 0;
     a.docZoom_ = 1;
     a.clickLike_ = a.itemSed_ = a.itemKeyword_ =
@@ -977,8 +978,9 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     a.goPage_(deltaY > 0);
   },
   onInput_ (this: void, event?: InputEvent): void {
-    const a = Vomnibar_, s0 = a.lastQuery_, s1 = a.input_.value, str = s1.trim();
-    a.blurWanted_ = 0
+    const a = Vomnibar_, s0 = a.lastQuery_, s1 = a.input_.value, str = s1.trim()
+    let inputType = a.inputType_
+    a.blurWanted_ = a.inputType_ = 0
     if (str === (a.selection_ === -1 || a.isSelOriginal_ ? s0 : a.completions_[a.selection_].t)) {
       return;
     }
@@ -990,6 +992,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     }
     if (!str) { a.isHttps_ = a.baseHttps_ = null; }
     let i = a.input_.selectionStart, arr: RegExpExecArray | null;
+    if (i && s1[i - 1] === " " && str.length > 5 && str.includes(" ") && str.startsWith(s0)
+        && s1[i - 2] !== " ") { inputType = 2 }
     if (a.isSearchOnTop_) { /* empty */ }
     else if (i > s1.length - 2) {
       if (s1.endsWith(" +") && !a.timer_ && str.slice(0, -2).trimRight() === s0) {
@@ -1003,7 +1007,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       }
     }
     a.isInputComposing_ && (!event || event.isComposing === false) && (a.isInputComposing_ = null)
-    a.update_(-1, a.inAlt_ ? a.toggleAlt_ : null)
+    a.update_(inputType ? 0 : -1, a.inAlt_ ? a.toggleAlt_ : null)
   },
   omni_ (response: BgVomnibarSpecialReq[kBgReq.omni_omni]): void {
     const a = Vomnibar_;
@@ -1225,6 +1229,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     listen("blur", a.OnWndFocus_, true);
     input.oninput = a.onInput_ as (e: InputEvent) => void as (e: Event) => void
     input.onselect = a.OnSelect_;
+    input.onpaste = (): void => { Vomnibar_.inputType_ = 1 }
 
     a.renderItems_ = VUtils_.makeListRenderer_((document.getElementById("template") as HTMLElement).innerHTML);
     if (Build.MinCVer < BrowserVer.MinSpecCompliantShadowBlurRadius
