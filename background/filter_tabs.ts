@@ -228,7 +228,7 @@ export const filterTabsByCond_ = (activeTab: Tab | null | undefined
       const highlighted = wantSame ? activeTab ? activeTab.highlighted : null : parseBool(val)
       cond = highlighted != null ? tab => tab.highlighted === highlighted : cond
       break
-    case "incognito": case "incognito":
+    case "incognito":
       const incognito = wantSame ? activeTab ? activeTab.incognito : null : parseBool(val)
       cond = incognito != null ? tab => tab.incognito === incognito : cond
       break

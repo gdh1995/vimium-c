@@ -454,8 +454,9 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
   if (wantClickable && mode1_ < HintMode.min_job && !matchSelector) {
     const pathname = loc_.pathname, host = loc_.host,
     exc = pathname === "/s" ? host.includes("baidu.") ? ".c-container" : 0
-        : pathname.startsWith("/search") ? host.includes("google") ? ".g" : host.includes("bing.com") ? ".b_algo" : 0
-        : 0
+        : pathname.startsWith("/search") ? host.includes("google") ? ".g"
+          : host.includes("bing.com") ? ".b_algo" // lgtm [js/incomplete-url-substring-sanitization]
+        : 0 : 0
     output = exc ? output.filter(hint => !testMatch(exc, hint)) : output
   }
   if (Build.NDEBUG ? wholeDoc : wholeDoc && !isInAnElement) {

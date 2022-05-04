@@ -781,8 +781,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
             : Vomnibar_.browserVer_ > FirefoxBrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp - 1
             ? new RegExp("[^\\p{L}\\p{Nd}_]+", "u") : /[^\w\u0386-\u03fb\u4E00–\u9FFF]+/
         if (code < 4) {
-          str = str.slice(0, start).trimRight(); start = str.length
-          for (start = str.length - 1; 0 <= start && (<RegExpOne> re).test(str[start]); start--) { /* empty */ }
+          str = str.slice(0, start).trimRight()
+          for (start = str.length; 0 <= --start && (<RegExpOne> re).test(str[start]); ) { /* empty */ }
           for (; 0 <= start && !(<RegExpOne> re).test(str[start]); start--) { /* empty */ }
           start++
         } else {

@@ -180,7 +180,8 @@ else
   VER_MIN=63
   VER=$(ls -dvr "$WORKING_DIR"/core[1-9]* 2>/dev/null | head -n 1)
   VER=${VER#"$WORKING_DIR/core"}
-  if test "${VER:-63}" \< 63 ; then
+  VER_NUM=${VER%%[!0-9]*}
+  if test "${VER_NUM:-63}" -lt 63 ; then
     echo "Error: require Firefox 63+ but found $VER only"
     exit 1
   fi

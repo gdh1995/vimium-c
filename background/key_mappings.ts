@@ -267,8 +267,8 @@ const parseKeyMappings_ = (wholeMappings: string): void => {
         }
         if (doesPass) {
           regItem = !isRun ? makeCommand_(val, getOptions_(line, knownLen), details)
-              : makeCommand_(AsC_("runKey")
-                  , getOptions_(` keys="${val.replace(<RegExpG> /"/g, '\\"')}"` + line.slice(knownLen), 0), undefined)
+              : makeCommand_(AsC_("runKey"), getOptions_(` keys="${
+                    val.replace(<RegExpG> /"|\\/g, "\\$&")}"` + line.slice(knownLen), 0), details)
           if (regItem) {
             registry.set(key, regItem)
             builtinKeys_ && builtinKeys_.delete(key)

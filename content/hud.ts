@@ -41,7 +41,7 @@ export const hudShow = (tid: kTip | HintMode, args?: Array<string | number> | st
   }
   box = createElement_(OnChrome && Build.MinCVer < BrowserVer.MinForcedColorsMode ? getBoxTagName_old_cr() : "div")
   setClassName_s(box, "R HUD" + fgCache.d)
-  appendNode_s(box, $text = new Text(text))
+  appendNode_s(box, $text = new Text(text)) // lgtm [js/superfluous-trailing-arguments]
   if (!embed) {
     toggleOpacity(0)
     ui_box || ensureBorder(wdZoom_) // safe to skip `getZoom_`

@@ -315,7 +315,6 @@ set_contentCommands_([
     if (abs_(count) > 2 * sel) {
       sel = count < 0 ? 0 : sel - 1
     } else {
-      ind = !known_last || count ? sel : 0
       for (ind = 0; ind < sel && hints[ind].d !== known_last; ind++) { /* empty */ }
       if (ind >= sel) {
         let preferredSelector = (options.prefer || "") + ""
@@ -450,10 +449,10 @@ set_contentCommands_([
         : SafeEl_not_ff_!(doc.body || docEl_unsafe_())
     if (options.esc) {
       keydownEvents_[kKeyCode.None] = 0
-      const ok = !!insert_Lock_() || count > 0
-      raw_insert_lock ? exitInsertMode(raw_insert_lock) : ok && onEscDown(0, kKeyCode.None, count > 1)
+      result = !!insert_Lock_() || count > 0
+      raw_insert_lock ? exitInsertMode(raw_insert_lock) : result && onEscDown(0, kKeyCode.None, count > 1)
       keydownEvents_[kKeyCode.None] = 0
-      useResult = 1, result = ok
+      useResult = 1
     } else {
       const found = findAnElement_(options, count)
       activeEl = found[0]
@@ -486,8 +485,8 @@ set_contentCommands_([
       } else {
         hudTip(kTip.raw, 0, options.e)
       }
-      useResult && runFallbackKey(options, result ? 0 : 2, "", delay)
     }
+    useResult && runFallbackKey(options, result ? 0 : 2, "", delay)
   },
   /* kFgCmd.showHelpDialog: */ ((options: CmdOptions[kFgCmd.showHelpDialog]): any => {
     // Note: not suppress key on the top, because help dialog may need a while to render,

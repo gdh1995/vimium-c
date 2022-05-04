@@ -628,7 +628,7 @@ const evalTry = (stats: readonly Statement[], i: number): [unknown, number] => {
   const statement = stats[i] as BaseStatement<"try">, next = stats[i + 1] as BaseStatement<"catch" | "finally">
   const indFinal = next.a === "finally" ? i + 1 : i + 2 < stats.length && stats[i + 2].a === "finally" ? i + 2 : 0
   const oldLocalsPos = locals_.length
-  let done: BOOL = 0, res: unknown = kFakeValue, res2: unknown = kFakeValue
+  let done: BOOL = 0, res: unknown = kFakeValue, res2: unknown
   try { 
     if (next.a !== "catch") { res = evalBlockBody(statement.v.v); done = 1 }
     else try { res = evalBlockBody(statement.v.v); done = 1 }
@@ -776,7 +776,8 @@ const evalBlockBody = (block: OpValues[O.block]): unknown => {
       res = res !== kFakeValue ? res : void 0
       if (statement.a !== "throw") { return res } else { throw res }
     default:
-      if (0) { As_<"catch" | "finally" | "" | "else" | "if" | "else if" | "labelled">(statement.a); }
+      if (0) { // lgtm [js/unreachable-statement]
+        As_<"catch" | "finally" | "" | "else" | "if" | "else if" | "labelled">(statement.a) }
       if (!Build.NDEBUG && (statement.a === "catch" || statement.a === "finally")) { throwType("Error in try/catch") }
       if (statement.a !== "if" && statement.a !== "else if" || opEvals[statement.c.o](statement.c)) {
         statement.v.o <= O.stat ? (res = evalBlockBody(SubBlock(statement.v)))
@@ -826,7 +827,8 @@ const evalNever = (op: BaseOp<O.block | O.statGroup | O.stat | O.pair>): void =>
   case  "/=": x  /= source; break; case  "%=": x  %= source; break; case  "**=": x  **= source; break
   case "<<=": x <<= source; break; case ">>=": x >>= source; break; case ">>>=": x >>>= source; break
   case  "&=": x  &= source; break; case  "^=": x  ^= source; break; case   "|=": x   |= source; break
-  default   : x   = source; if (0) { As_<"=" | "??=" | "&&=" | "||=" | "of" | "in">(action) } break
+  default   : x   = source;
+    if (0) { As_<"=" | "??=" | "&&=" | "||=" | "of" | "in">(action) } break // lgtm [js/unreachable-statement]
   }
   if (direct && target.o === O.token) { Ref(target, R.noConst) }
   return y[i] = x
@@ -845,7 +847,7 @@ const evalNever = (op: BaseOp<O.block | O.statGroup | O.stat | O.pair>): void =>
   case "%":  return x  % y; case "**": return x ** y;
   case "in": return x in (y as unknown as Dict<unknown>)
   case "instanceof": return (x as unknown) instanceof (y as unknown as { (): unknown })
-  default: if (0) { As_<"&&" | "||" | "??">(action) } return y
+  default: if (0) { As_<"&&" | "||" | "??">(action) } return y // lgtm [js/unreachable-statement]
   }
 }, evalUnary = (op: BaseOp<O.unary>): unknown => {
   const action = op.v.o.v, target = op.v.x, { y, i } = Ref(target, action === "typeof" ? R.evenNotFound : R.plain)
@@ -857,7 +859,7 @@ const evalNever = (op: BaseOp<O.block | O.statGroup | O.stat | O.pair>): void =>
   case   "void":
     /*#__NOINLINE__*/ evalAccess(Op(O.access, { y: Op(O.token, { v: y as any }), i: Op(O.token, { v: i }), d: "." }))
     // no break;
-  default: if (0) { As_<"void">(action) } return
+  default: if (0) { As_<"void">(action) } return // lgtm [js/unreachable-statement]
   }
 }, evalCall = (op: BaseOp<O.call>): unknown => {
   const { y, i } = Ref(op.v.f, R.allowOptional), i2 = evalAccessKey(i)
@@ -1107,7 +1109,7 @@ const ToString = (op: Op, allowed: number): string => {
         : typeof val === "string" ? JSON.stringify(val) : val === kFakeValue ? " "
         : typeof val === "bigint" ? val + "n" : val + ""
   }
-  default: if (0) { As_<never>(op) } return "(unknown)"
+  default: if (0) { As_<never>(op) } return "(unknown)" // lgtm [js/unreachable-statement]
   }
 }
 

@@ -226,7 +226,7 @@ set_bgC_([
         if (info.length >= 2 && (!info[1] || +info[1] >= 0)) {
           let evKey = info[0], keyCode = info[1] | 0
           destDict.key = evKey === "Space" ? " " : evKey === "Comma" ? ","
-              : evKey === "$" && evKey.length > 1 ? (evKey = evKey.slice(1)) :evKey
+              : evKey === "$" && evKey.length > 1 ? evKey.slice(1) : evKey
           if (keyCode && dict.keyCode == null) { destDict.keyCode = +info[1]}
           if (keyCode && dict.which == null) { destDict.which = +info[1]}
           if (info.length >= 3 && dict.code == null) { destDict.code = info[2] || info[0] }
@@ -631,7 +631,7 @@ set_bgC_([
       const filter = !onlyCurrentWnd ? null : (i: chrome.sessions.Session): boolean =>
           !!i.tab && i.tab.windowId > 0 && i.tab.windowId === curWndId
       if (onlyCurrentWnd && count <= Math.min(limit, 25)) {
-        list = await Qs_(sessions.getRecentlyClosed, { maxResults: count })
+        list = await Qs_(sessions.getRecentlyClosed, { maxResults: count }) // lgtm [js/superfluous-trailing-arguments]
         if (!Build.NDEBUG || !OnFirefox || Build.DetectAPIOnFirefox) {
           if (list.some(item => !!item.tab && !(item.tab.windowId > 0))) {
             overrideOption<C.restoreTab>("currentWindow", false)
@@ -641,12 +641,14 @@ set_bgC_([
         hasExtra = list.length > count // e.g. on Chrome
         list = filter ? list.filter(filter) : list
         if (!hasExtra && list.length < count && expected <= Math.min(limit, 25)) {
-          list = await Qs_(sessions.getRecentlyClosed, { maxResults: expected })
+          list = await Qs_(sessions.getRecentlyClosed
+              , { maxResults: expected }) // lgtm [js/superfluous-trailing-arguments]
           list = filter ? list.filter(filter) : list
         }
       }
       if (!list || !hasExtra && list.length < count) {
-        list = await Qs_(sessions.getRecentlyClosed, count <= 25 && !onlyCurrentWnd ? { maxResults: count } : {})
+        list = await Qs_(sessions.getRecentlyClosed, count <= 25 && !onlyCurrentWnd ? { maxResults: count }
+            : {}) // lgtm [js/superfluous-trailing-arguments]
         list = filter ? list.filter(filter) : list
       }
       if (list.length < (onlyOne ? count : 1)) { resolve(0); return showHUD(trans_("indexOOR")) }

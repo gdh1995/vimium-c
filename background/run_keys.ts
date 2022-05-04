@@ -579,7 +579,7 @@ export const inlineRunKey_ = (rootRegistry: Writable<CommandsNS.Item>): kCName |
     if (!newName) { return }
     const doesContinue = parentEntry != null && parentEntry.alias_ === C.runKey && parentEntry.background_
     if (doesContinue || canInline) {
-      keyOpts !== fullOpts && (keyOpts = fullOpts = concatOptions(keyOpts, fullOpts)!)
+      keyOpts !== fullOpts && (fullOpts = concatOptions(keyOpts, fullOpts)!)
       fullOpts = (fullOpts.options || (fullOpts.$masked ? null : collectOptions(fullOpts))) as typeof fullOpts
       fullOpts = concatOptions(concatOptions(fullOpts, seq.options), info.options) as typeof fullOpts
     }

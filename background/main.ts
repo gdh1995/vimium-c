@@ -164,13 +164,16 @@ OnEdge || void settings_.ready_.then((): void => {
 })
 
 OnFirefox && Build.MayAndroidOnFirefox && !Tabs_.onReplaced || // Not exist on Thunderbird
-Tabs_.onReplaced.addListener((addedTabId, removedTabId) => {
+Tabs_.onReplaced.addListener((addedTabId, removedTabId): void => {
     const frames = framesForTab_.get(removedTabId)
     if (!frames) { return; }
     framesForTab_.delete(removedTabId)
     framesForTab_.set(addedTabId, frames)
     for (const port of frames.ports_) {
       (port.s as Writable<Frames.Sender>).tabId_ = addedTabId;
+    }
+    for (const port of framesForOmni_) {
+      port.s.tabId_ === removedTabId && ((port.s as Writable<Frames.Sender>).tabId_ = addedTabId)
     }
 });
 

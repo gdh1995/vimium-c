@@ -348,7 +348,7 @@ function clickLink(this: void, options: { [key: string]: string }
   for (const i in options) {
     a.setAttribute(i, options[i]);
   }
-  a.href = VData.url; // lgtm [js/client-side-unvalidated-url-redirection]
+  a.href = VData.url; // lgtm [js/client-side-unvalidated-url-redirection] lgtm [js/xss]
   if (!OnFirefox) {
     simulateClick(a, event)
     return
@@ -508,7 +508,7 @@ function copyThing(event: EventToPrevent): void {
           return doWrite()
         }
         const img = document.createElement("img")
-        img.src = VData.url // lgtm [js/client-side-unvalidated-url-redirection]
+        img.src = VData.url // lgtm [js/client-side-unvalidated-url-redirection] lgtm [js/xss]
         VData.file && (img.setAttribute("aria-title", img.alt = VData.file))
         item["text/html"] = new Blob([img.outerHTML], {type: "text/html"})
         return doWrite().catch(() => (delete item["text/html"], doWrite()))
@@ -835,7 +835,7 @@ function fetchImage_(url: string, element: HTMLImageElement, setUrlDirectly: boo
     element.classList.add("svg")
   }
   if (setUrlDirectly) {
-    element.src = url; // lgtm [js/client-side-unvalidated-url-redirection]
+    element.src = url; // lgtm [js/client-side-unvalidated-url-redirection] lgtm [js/xss]
   } else {
     destroyObject_();
     body.replaceChild(text, element);
@@ -854,7 +854,7 @@ function fetchImage_(url: string, element: HTMLImageElement, setUrlDirectly: boo
       blobCache[url] = blob
       return _shownBlobURL = URL.createObjectURL(_shownBlob = blob)
     }, () => url).then(newUrl => {
-      element.src = newUrl; // lgtm [js/client-side-unvalidated-url-redirection]
+      element.src = newUrl; // lgtm [js/client-side-unvalidated-url-redirection] lgtm [js/xss]
       text.parentNode ? body.replaceChild(element, text) : body.appendChild(element)
     });
   }

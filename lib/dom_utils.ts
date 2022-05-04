@@ -562,7 +562,7 @@ export function set_createElement_ (_newCreateEl: typeof createElement_): void {
 export const appendNode_s = (parent: SafeElement | Document | HTMLDivElement | HTMLDialogElement | DocumentFragment
     , child: Element | DocumentFragment | Text): void => {
   OnChrome && Build.MinCVer < BrowserVer.MinEnsured$ParentNode$$appendAndPrepend
-      ? parent.appendChild(child) : parent.append!(child)
+      ? parent.appendChild(child) : parent.append!(child) // lgtm [js/xss-through-dom]
 }
 
 export const append_not_ff = !OnFirefox ? (parent: Element, child: HTMLElement): void => {

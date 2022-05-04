@@ -412,7 +412,7 @@ export const renderMarkers = (hintItemArray: readonly HintItem[]): void => {
       }
     }
     if (OnChrome && Build.MinCVer < BrowserVer.MinEnsured$ParentNode$$appendAndPrepend && noAppend) {
-      appendNode_s(marker, new Text(right))
+      appendNode_s(marker, new Text(right)) // lgtm [js/superfluous-trailing-arguments]
     } else {
       marker.append!(right);
     }

@@ -370,7 +370,7 @@ export const reformatURL_ = (url: string): string => {
 
 const normalizeFileHost = (host: string) => {
   const host2 = DecodeURLPart_(host)
-  return (<RegExpOne> /[^\w.$+-\x80-\ufffd]|\s/).test(host2) ? host.replace("%24", "$") : host2
+  return (<RegExpOne> /[^\w.$+-\x80-\ufffd]|\s/).test(host2) ? host.replace(<RegExpG> /%24/g, "$") : host2
 }
 
 const convertFromFilePath = (path: string): string => {
@@ -416,7 +416,6 @@ export const decodeFileURL_ = (url: string, rawUrl?: string): string => {
     const type = slash === 7 ? url.charAt(9) === ":" ? 3 : url.substr(9, 3).toLowerCase() === "%3a" ? 5 : 0 : 0
     const prefix = type ? url[8].toUpperCase() + ":" : slash > 7 ? "\\\\" + normalizeFileHost(url.slice(7, slash)) : ""
     let path = url.slice(type ? type + 7 : slash > 7 ? slash : 0)
-    url = prefix + path
     const rawHash = rawUrl ? (<RegExpOne> /[?#]/).exec(rawUrl) : null
     const _sep = (!rawUrl || rawHash) ? (<RegExpOne> /[?#]/).exec(path) : null
     let index = _sep ? _sep.index : 0
