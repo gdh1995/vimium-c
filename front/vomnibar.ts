@@ -634,9 +634,9 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     if (mainModifier === "a-" || mainModifier === "m-") {
       if (mainModifier === "a-") {
         if (key === "a-" + kChar.Alt || key === "a-" + kChar.Modifier) {
-          // not set keyup listener on purpose:
-          // so that a short Alt will only toggle inAlt, and a long Alt can show on keydown and hide on keyup
-          Vomnibar_.inAlt_ = Vomnibar_.inAlt_ || setTimeout(Vomnibar_.toggleAlt_, 260, -1);
+          a.inAlt_ || addEventListener("keyup", a.toggleAlt_, true)
+          a.inAlt_ = a.inAlt_ || setTimeout(a.toggleAlt_, 260, -1)
+          a.inAlt_ < 0 && !event.repeat && a.toggleAlt_(0)
           return;
         }
         if (char === kChar.down || char === kChar.up || (<RegExpOne> /^[jknp]$/).test(char)) {
@@ -1377,21 +1377,23 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     VUtils_.Stop_(event, Vomnibar_.keyResult_ === SimpleKeyResult.Prevent);
   },
   toggleAlt_ (enable?: /** disable */ 0 | /** enable */ -1 | KeyboardEvent): void {
-    const inAlt = Vomnibar_.inAlt_;
-    if (enable !== -1 && enable !== 0 && enable !== undefined) {
-      if (enable.keyCode !== kKeyCode.altKey) { return; }
-      enable = 0;
+    const inAlt = Vomnibar_.inAlt_
+    let isKeyup: boolean
+    if (isKeyup = enable !== -1 && enable !== 0 && enable !== undefined) {
+      const key = Vomnibar_.getMappedKey_(enable).key
+      if (!(key === kChar.Alt || key === "a-" + kChar.Alt)) { return }
+      enable = Vomnibar_.inAlt_ > 0 ? -1 : 0
     }
     enable = enable || 0
     if (inAlt !== enable) {
-      if (inAlt > 0 && !enable) { clearTimeout(inAlt); }
       if ((inAlt === -1) !== !!enable) {
         (document.body as HTMLBodyElement).classList.toggle("alt", !!enable);
-        (enable ? addEventListener : removeEventListener)("keyup", Vomnibar_.toggleAlt_, true);
+        (enable && !isKeyup ? addEventListener : removeEventListener)("keyup", Vomnibar_.toggleAlt_, true);
         for (let i = 0, end = enable ? Math.min(Vomnibar_.list_.childElementCount, 10) : 0; i < end; i++) {
           ((Vomnibar_.list_.children as NodeList)[i] as Element).classList.add("alt-index")
         }
       }
+      if (inAlt > 0) { clearTimeout(inAlt); }
       Vomnibar_.inAlt_ = enable;
     }
   },
