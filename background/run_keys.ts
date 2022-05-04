@@ -146,7 +146,7 @@ const normalizeExpects = (options: KnownOptions<C.runKey>): (NormalizedEnvCond |
     new_rules = expected_rules.split(expected_rules.includes(";") ? <RegExpG> /[;\s]+/g : <RegExpG> /[,\s]+/g)
         .map(i => i.split(delimiterRe))
         .map((rule): NormalizedEnvCond | null => rule.length !== 2 ? null
-              : ({ env: rule[0], keys: normalizeKeys(rule[1]), options: null }))
+              : ({ env: rule[0].trim(), keys: normalizeKeys(rule[1]), options: null }))
   }
   new_rules = new_rules.map((i): NormalizedEnvCond | null =>
         i && i.env && i.env !== "__proto__" && i.keys.length ? i : null)

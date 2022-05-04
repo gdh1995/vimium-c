@@ -49,17 +49,20 @@ let keyMappingChecker_ = {
       value = value.replace(<RegExpG> /([{,] ?)(\w+):/g, '$1"$2":');
       s3 = value;
     }
+    value = value.replace(<RegExpG> /\ufffe/g, "")
+    const multiLines = value.includes("\\\r")
     try {
-      const obj = JSON.parse(value.includes("\\\r") ? value.replace(<RegExpG> /\\\r/g, " ") : value)
+      const obj = JSON.parse(multiLines ? value.replace(<RegExpG> /\\\r/g, "") : value)
       if (typeof obj !== "string") {
         return obj !== true ? s3 ? "=" + s3 + tail : str : tail
       }
-      value = obj;
+      value = multiLines ? JSON.parse(value.replace(<RegExpG> /\\\r/g, "\ufffe")) : obj
     } catch {
-      s2 && (value = s2);
+      value = multiLines ? (s2 || value).replace(<RegExpG> /\\\r/g, "\ufffe") : s2 || value
     }
-    value = value && value.replace(<RegExpG & RegExpSearchable<1>> /\\(\\|s)/g, (_, i) => i === "s" ? " " : _);
+    value = value && value.replace(<RegExpG & RegExpSearchable<1>> /\\(\\|s)/g, (a, i) => i === "s" ? " " : a)
     value = value && JSON.stringify(value).replace(<RegExpG & RegExpSearchable<0>> /\s/g, this.onToHex_);
+    value = multiLines ? value.replace(<RegExpG> /\ufffe/g, "\\\r") : value
     return "=" + value + tail;
   },
   onToHex_ (this: void, s: string): string {
@@ -94,8 +97,7 @@ let keyMappingChecker_ = {
     return mapA.replace("map", "mapKey") + (B.length === 3 ? B[1] : B)
   },
   normalizeCmd_ (_0: string, prefix: string, name: string, options: string) {
-    if ((options.includes("createTab") || options.includes("openUrl"))
-        && (<RegExpOne> /^\s+(createTab|openUrl)\s/).test(options)
+    if ((<RegExpOne> /^\s+(createTab|openUrl)\s/).test(options)
         && !(<RegExpI> /\surls?=/i).test(options)) {
       options = this.convertFromLegacyUrlList_(options);
     }
