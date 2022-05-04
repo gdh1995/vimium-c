@@ -86,7 +86,7 @@ export type AddChildDirectly = (officer: BaseHintWorker, el: KnownIFrameElement,
 import {
   VTr, isAlive_, isEnabled_, setupEventListener, keydownEvents_, set_keydownEvents_, timeout_, max_, min_, abs_, OnEdge,
   clearTimeout_, fgCache, doc, readyState_, chromeVer_, vApi, deref_, getTime, unwrap_ff, OnFirefox, OnChrome,
-  WithDialog, Lower, safeCall, locHref, os_, firefoxVer_, weakRef_not_ff, weakRef_ff, isTY
+  WithDialog, Lower, safeCall, locHref, os_, firefoxVer_, weakRef_not_ff, weakRef_ff, isTY, OnSafari
 } from "../lib/utils"
 import {
   querySelector_unsafe_, isHTML_, scrollingEl_, docEl_unsafe_, IsInDOM_, GetParent_unsafe_, hasInCSSFilter_,derefInDoc_,
@@ -386,6 +386,7 @@ const onKeydown = (event: HandlerNS.Event): HandlerResult => {
     } else if (onWaitingKey && !isEscape_(getMappedKey(event, kModeId.Link))) {
       onWaitingKey()
     } else if (event.e.repeat || !isActive) {
+      isActive || isEscape_(getMappedKey(event, kModeId.Link)) && clear()
       // NOTE: should always prevent repeated keys.
     } else if (i === kKeyCode.ime) {
       hudTip(kTip.exitForIME)
@@ -500,24 +501,27 @@ const callExecuteHint = (hint: ExecutableHintItem, event?: HandlerNS.Event): voi
   }
   const retainedInput = (mode_ & HintMode.queue) && options_.retainInput && keyStatus_ && keyStatus_.t
   const p = selectedHintWorker.e(hint, event)
-  p && p.then((result): void => { timeout_((): void => {
+  p && p.then((result): void => {
     (<RegExpOne> /a?/).test("")
+    isActive = 0
+    timeout_((): void => {
     removeFlash && removeFlash()
     set_removeFlash(null)
-    runFallbackKey(options_, false)
-    if (!(mode_ & HintMode.queue)) {
-      if (!OnChrome || Build.MinCVer < BrowserVer.MinEnsured$WeakRef && chromeVer_ < BrowserVer.MinEnsured$WeakRef) {
+      if (!(mode_ & HintMode.queue)) {
+        clear(0, 0);
+        (OnChrome && Build.MinCVer >= BrowserVer.MinEnsured$WeakRef || OnSafari || deref_ !== weakRef_not_ff) ||
         reinitLinkHintsIn(255, selectedHintWorker, clickEl, result)
       }
-      clear(0, 0)
-    } else {
+    }, 0)
+    runFallbackKey(options_, false)
+    if (mode_ & HintMode.queue) {
       reinitLinkHintsIn(frameArray.length > 1 ? 50 : 18, (): void => {
         if (OnFirefox && oldMode_ff >= 0) { setMode(oldMode_ff, 1) }
         reinit(0, selectedHintWorker, clickEl, result, retainedInput)
         isActive && 1 === (--count_) && setMode(mode1_)
       })
     }
-  }, isActive = 0) })
+  })
 }
 
 export const findAnElement_ = (options: OptionsToFindElement, count: number
