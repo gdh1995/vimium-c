@@ -344,6 +344,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     a.height_ = 0;
     a.AfterHide_() // clear afterHideTimer_
     a.isActive_ = true;
+    (<RegExpOne> /^\+\d\d?(\s|$)/).test(Vomnibar_.inputText_.trim()) && (start = end = 0)
     // also clear @timer
     a.update_(0, start! <= end! ? function (): void {
       if (Vomnibar_.input_.value === Vomnibar_.inputText_) {

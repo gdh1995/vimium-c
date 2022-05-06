@@ -466,7 +466,7 @@ tabEngine = {
     if (query.o) { return; }
     const curTabId = curTabId_, noFilter = queryTerms.length <= 0,
     hasOtherSuggestions = allExpectedTypes & (SugType.MultipleCandidates ^ SugType.tab),
-    treeMode = !!(otherFlags & CompletersNS.QueryFlags.TabTree) && wantInCurrentWindow && noFilter && !isForAddressBar;
+    treeMode = !!(otherFlags & CompletersNS.QueryFlags.TabTree) && wantInCurrentWindow && noFilter;
     let suggestions: CompletersNS.TabSuggestion[] = [];
     if (treeMode && !(otherFlags & CompletersNS.QueryFlags.TabTreeFromStart)
         && tabs0.length > offset && tabs0.length > maxTotal) {
@@ -539,7 +539,7 @@ tabEngine = {
       suggestion = new Suggestion("tab", url, tab.text, tab.title,
           c, treeMode ? ind : tabId) as CompletersNS.TabSuggestion;
       let id = curWndId && tab.windowId !== curWndId ? `${wndIds.indexOf(tab.windowId) + 1}:` : "", label = ""
-      id += <string> <string | number> ind
+      id += <string> <string | number> (wantInCurrentWindow ? tab.index + 1 : ind)
       if (curTabId === tabId) {
         treeMode || (suggestion.r = noFilter ? 1<<31 : 0);
         id = `(${id})`

@@ -1,6 +1,6 @@
 import {
   clickable_, isJSUrl, doc, isImageUrl, fgCache, readyState_, chromeVer_, VTr, createRegExp, max_, OnChrome,
-  math, includes_, OnFirefox, OnEdge, WithDialog, safeCall, evenHidden_, set_evenHidden_, tryCreateRegExp, loc_, getTime
+  math, includes_, OnFirefox, OnEdge, WithDialog, safeCall, evenHidden_, set_evenHidden_, tryCreateRegExp, loc_, getTime, firefoxVer_
 } from "../lib/utils"
 import {
   isIFrameElement, getInputType, uneditableInputs_, getComputedStyle_, queryChildByTag_, htmlTag_, isAriaFalse_,
@@ -866,7 +866,10 @@ export const getVisibleElements = (view: ViewBox): readonly Hint[] => {
 
 export const initTestRegExps = (): void => {
   if (!clickableClasses_) {
-    clickableClasses_ = createRegExp(kTip.clickableClasses, "")
+    clickableClasses_ = createRegExp((OnChrome && Build.MinCVer < BrowserVer.MinEnsuredLookBehindInRegexp
+      ? chromeVer_ < BrowserVer.MinEnsuredLookBehindInRegexp : Build.MinFFVer < FirefoxBrowserVer.MinLookBehindInRegexp
+      && OnFirefox && firefoxVer_ < FirefoxBrowserVer.MinLookBehindInRegexp)
+      ? kTip.oldClickableClasses : kTip.newClickableClasses, "")
     clickableRoles_ = createRegExp(kTip.clickableRoles, "i")
     buttonOrATags_ = createRegExp(kTip.buttonOrA, "")
     closableClasses_ = createRegExp(kTip.closableClasses, "")
