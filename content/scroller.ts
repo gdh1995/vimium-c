@@ -69,7 +69,6 @@ export function set_cachedScrollable (_newCachedSc: typeof cachedScrollable): vo
 
 let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: number
     , newOpts?: CmdOptions[kFgCmd.scroll]): ReturnType<VApiTy["$"]> => {
-  const knownFPS = [ 30,  45,  60,  75,  90, 100, 120, 144, 155, 165, 170, 175, 180, 200, 240 ]
   const hasNewScrollEnd_cr = OnChrome && (Build.MinCVer >= BrowserVer.MinScrollEndForInstantScrolling
         || chromeVer_ > BrowserVer.MinScrollEndForInstantScrolling - 1) && ("on" + kSE) in Image.prototype
   let amount: number, sign: number, calibration: number, di: ScrollByY, duration: number, element: SafeElement | null,
@@ -81,7 +80,7 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
   animate = (newRawTimestamp: number): void => {
     const continuous = keyIsDown > 0
     let rawElapsed = newRawTimestamp - rawTimestamp
-    let newTimestamp = newRawTimestamp, elapsed: number, delay2: number, fps_d_min = 5, fps_idx = 14
+    let newTimestamp = newRawTimestamp, elapsed: number, delay2: number
     // although timestamp is mono, Firefox adds too many limits to its precision
     if (!timestamp) {
       newTimestamp = performance.now()
@@ -146,14 +145,8 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
     }
     let near_elapsed = elapsed
     if (min_delta && elapsed < 1.2 * min_delta && elapsed > 0.9 * min_delta) {
-      let fps_test = 1e3 / min_delta, fps_d: number
-      do {
-        fps_d = knownFPS[fps_idx--] - fps_test
-        if (fps_d < fps_d_min && fps_d > -fps_d_min) {
-          fps_d_min = abs_(fps_d)
-          near_elapsed = 1e3 / knownFPS[fps_idx + 1]
-        }
-      } while (fps_d > 0)
+      const fps_test = 1e3 / min_delta, step = fps_test < 95 ? 15 : fps_test > 149 ? fps_test < 195 ? 5 : 10 : 0
+      near_elapsed = step ? 1e3 / step / math.round(fps_test / step) : fps_test < 110 ? 100 : fps_test < 132 ? 120 : 144
     }
     let delta = max_(amount * near_elapsed / duration * calibration - padding, 1)
     if (!continuous || (totalDelta < amount || flags & kScFlag.TO) && totalElapsed < minDelay) {
