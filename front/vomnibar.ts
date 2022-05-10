@@ -24,7 +24,8 @@ type Options = VomnibarNS.FgOptions;
 declare const enum AllowedActions {
   Default = 0,
   nothing = Default,
-  dismiss, focus, blurInput, backspace, blur, up, down = up + 2, toggle, pageup, pagedown, remove, copy
+  dismiss, focus, blurInput, backspace, blur, up, down = up + 2, toggle, pageup, pagedown, remove, copy,
+  home, end,
 }
 interface SetTimeout {
   <T1, T2, T3>(this: void, handler: (this: void, a1: T1, a2: T2, a3: T3) => void,
@@ -218,6 +219,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   docZoom_: 1,
   lastScrolling_: 0,
   height_: 0,
+  _canvas: null as HTMLCanvasElement | null,
   input_: null as never as HTMLInputElement & Ensure<HTMLInputElement
       , "selectionDirection" | "selectionEnd" | "selectionStart">,
   docSt_: null as never as CSSStyleDeclaration,
@@ -239,7 +241,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   wheelStart_: 0,
   wheelTime_: 0,
   wheelDelta_: 0,
-  browser_: Build.BTypes && !(Build.BTypes & (Build.BTypes - 1)) ? Build.BTypes : BrowserType.Chrome,
+  browser_: Build.BTypes && !(Build.BTypes & (Build.BTypes - 1)) ? Build.BTypes as never : BrowserType.Chrome,
   browserVer_: BrowserVer.assumedVer,
   os_: (Build.OS & (Build.OS - 1) ? kOS.win : Build.OS < 8 ? (Build.OS / 2) | 0 : Math.log2(Build.OS)
       ) as SettingsNS.ConstItems["o"][1],
@@ -271,7 +273,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     const a = Vomnibar_, el = a.input_;
     a.isActive_ = a.showing_ = a.isEditing_ = a.codeFocusReceived_ = false
     a.noSessionsOnStart_ = false
-    a.isInputComposing_ = null
+    a.isInputComposing_ = a._canvas = null
     a.codeFocusTime_ = a.blurWanted_ = a.inputType_ = 0;
     ((document.body as Element).removeEventListener as typeof removeEventListener)("wheel", a.onWheel_, a.wheelOptions_)
     a.timer_ > 0 && clearTimeout(a.timer_);
@@ -631,9 +633,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     }
     let action: AllowedActions = AllowedActions.nothing, ind: number;
     const char = (key.slice(key.lastIndexOf("-") + 1) || key && kChar.minus) as kChar,
-    mainModifier = key.length > 1 ? key.slice(0, key.indexOf("-") + 1) as "a-" | "c-" | "m-" | "s-" | "" : "";
-    if (mainModifier === "a-" || mainModifier === "m-") {
-      if (mainModifier === "a-") {
+    mainModifier = key.includes("-", 1) ? key[0] as "a" | "c" | "m" | "s" | "" : ""
+    if (mainModifier === "a") {
         if (key === "a-" + kChar.Alt || key === "a-" + kChar.Modifier) {
           a.inAlt_ || addEventListener("keyup", a.toggleAlt_, true)
           a.inAlt_ = a.inAlt_ || setTimeout(a.toggleAlt_, 260, -1)
@@ -644,7 +645,38 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
           return a.onAction_(char < "o" && char !== "k" ? AllowedActions.down : AllowedActions.up);
         }
         a.inAlt_ && a.toggleAlt_(0);
+    }
+    if (mainModifier && mainModifier < "s" && focused) {
+      if ((char === kChar.left || char === kChar.right) // always modify selection by words
+          && (!(Build.OS & ~(1 << kOS.mac)) || Build.OS & (1 << kOS.mac) && !a.os_ || !key.includes("m-"))) {
+        action = (key.includes("s-") ? char > kChar.r ? kCharCode.G : kCharCode.H
+            : char > kChar.r ? kCharCode.F : kKeyCode.B) - kCharCode.maxNotAlphabet
+        if (Build.BTypes & BrowserType.Chrome && (!(Build.BTypes & ~BrowserType.Chrome)
+              || a.browser_ & BrowserType.Chrome) && !mapped
+            && mainModifier === (!(Build.OS & (1 << kOS.mac)) || Build.OS & ~(1 << kOS.mac) && a.os_ ? "c" : "a")) {
+          VUtils_.nextTask_(a.onWordAction_.bind(0, action, true)) // `setTimeout` may be too late on Chrome in WSLg
+          a.keyResult_ = SimpleKeyResult.Suppress;
+        } else {
+          a.onWordAction_(action)
+        }
+        return
+      } else if (char === kChar.backspace) {
+        if (mainModifier > "a" || Build.OS & (1 << kOS.mac) && (!(Build.OS & ~(1 << kOS.mac)) || !a.os_)
+              && !key.includes("a-c-")) { // treat <a-c-***> on macOS as <a-***> on Windows
+          // -2 is for https://www.reddit.com/r/firefox/comments/767bha/how_to_make_cmdbackspace_better_on_macos/
+          a.onWordAction_(mainModifier < "m" ? -1 : key.includes("s-") ? -3 : -2)
+        } else if (!(Build.OS & (1 << kOS.win)) || a.os_ < kOS.win || key.includes("a-c-")
+            || Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinAltBackspaceWithShiftToUndoOrRedo
+                && a.browser_ === BrowserType.Chrome && a.browserVer_ < BrowserVer.MinAltBackspaceWithShiftToUndoOrRedo
+            || Build.BTypes & ~BrowserType.ChromeOrFirefox && !(a.browser_ & BrowserType.ChromeOrFirefox)) {
+          document.execCommand(key.includes("s-") ? "redo" : "undo")
+        } else {
+          a.keyResult_ = SimpleKeyResult.Suppress
+        }
+        return
       }
+    }
+    if (mainModifier === "a" || mainModifier === "m") {
       if (char === kChar.f2) { return a.onAction_(focused ? AllowedActions.blurInput : AllowedActions.focus) }
       if (char >= "0" && char <= "9" && (Build.OS & ~(1 << kOS.mac) && a.os_ || (<RegExpOne> /[cm]-/).test(key))) {
           ind = +char || 10;
@@ -653,13 +685,10 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
           }
           return;
       }
-      if (!focused) { /* empty */ }
-      else if (char.length === 1 && char > kChar.a && char < kChar.g && char !== kChar.c
-          || Build.OS & ~(1 << kOS.mac) && char === kChar.backspace && (!(Build.OS & (1 << kOS.mac)) || a.os_)) {
-        return a.onBashAction_(Build.OS & ~(1 << kOS.mac) && (!(Build.OS & (1 << kOS.mac)) || char.length === 1)
-            ? char.charCodeAt(0) - (kCharCode.maxNotAlphabet | kCharCode.CASE_DELTA) : -1);
+      if (focused && char.length === 1 && char > kChar.a && char < kChar.g && char !== kChar.c) {
+        return a.onWordAction_(char.charCodeAt(0) - (kCharCode.maxNotAlphabet | kCharCode.CASE_DELTA))
       }
-      if (mainModifier === "a-" && char !== kChar.enter) { a.keyResult_ = SimpleKeyResult.Nothing; return; }
+      if (mainModifier === "a" && char !== kChar.enter) { a.keyResult_ = SimpleKeyResult.Nothing; return; }
     }
     if (char === kChar.enter) {
       if (event.key === "Enter" || n === kKeyCode.enter) {
@@ -669,7 +698,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       }
       return;
     }
-    if (mainModifier === "c-" || mainModifier === "m-") {
+    if (mainModifier === "c" || mainModifier === "m") {
       if (key.includes("s-")) {
         action = char === kChar.f ? AllowedActions.pagedown : char === kChar.b ? AllowedActions.pageup
           : AllowedActions.nothing;
@@ -679,11 +708,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         window.onkeyup = Vomnibar_.HandleKeydown_;
         VPort_.postToOwner_({ N: VomnibarNS.kFReq.scroll, k: key, b: char });
         return;
-      } else if (Build.BTypes & ~BrowserType.Firefox
-          && (!(Build.BTypes & BrowserType.Firefox) || a.browser_ !== BrowserType.Firefox)
-          && Build.OS & (1 << kOS.mac) && char === kChar.backspace && !a.os_ && focused) {
-        return a.onBashAction_(-1);
-      } else if (char === kChar.delete) {
+      } else if (char === kChar.delete || char === kChar.tab) {
         a.keyResult_ = SimpleKeyResult.Suppress;
       } else {
         action = char === kChar.bracketLeft ? AllowedActions.dismiss
@@ -692,18 +717,17 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
           : a.ctrlCharOrShiftKeyMap_[char] || AllowedActions.nothing;
       }
     }
-    else if (mainModifier === "s-") {
+    else if (mainModifier === "s") {
       action = a.ctrlCharOrShiftKeyMap_[char] || AllowedActions.nothing;
     }
     else if (action = a.normalMap_[char] || AllowedActions.nothing) { /* empty */ }
     else if (char > kChar.maxNotF_num && char < kChar.minNotF_num) { // "f" + N
       a.keyResult_ = SimpleKeyResult.Nothing;
       return;
+    } else if (focused && (char === kChar.home || char === kChar.end)) { // home/end on macOS scrolls a page if possible
+      action = char > kChar.h ? AllowedActions.home : AllowedActions.end
     }
-    else if (n === kKeyCode.backspace) {
-      if (focused) { a.keyResult_ = SimpleKeyResult.Suppress; }
-      return;
-    }
+    else if (n === kKeyCode.backspace) { focused && (a.keyResult_ = SimpleKeyResult.Suppress); return }
     else if (char !== kChar.space) { /* empty */ }
     else if (!focused) { action = AllowedActions.focus; }
     else if (!mapped && (a.selection_ >= 0 || a.completions_.length <= 1) && a.input_.value.endsWith("  ")) {
@@ -760,44 +784,81 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       VUtils_.ensureText_(item)
       const title = item.title !== item.u && item.title !== item.t ? item.title : ""
       return VPort_.post_({ H: kFgReq.omniCopy, t: title, u: item.u })
+    case AllowedActions.home: case AllowedActions.end:
+      sel = action === AllowedActions.home ? 0 : a.input_.value.length
+      a.input_.setSelectionRange(sel, sel)
+      a.input_.scrollLeft = sel ? a.input_.scrollWidth : 0
     }
   },
-  onBashAction_ (code: number): void {
-    if (Build.BTypes & BrowserType.Firefox
-        && (!(Build.BTypes & ~BrowserType.Firefox) || Vomnibar_.browser_ === BrowserType.Firefox)
-        && code < 0) { // alt/ctrl/meta + backspace
-      Vomnibar_.input_.value = "";
-      Vomnibar_.onInput_();
-      return;
+  // b(2): left; d(4): right-extend-delete; e(5) / f(6): right; (7): right-extend; (8): left-extend
+  onWordAction_ (code: number, delayed?: boolean): void { // -1: delete a left word; -2: delete from current to start
+    const BTy = !Build.BTypes || Build.BTypes & (Build.BTypes - 1) ? Vomnibar_.browser_ : Build.BTypes as never
+    const re = <RegExpOne> (!(Build.BTypes & BrowserType.Edge || Build.BTypes & BrowserType.Firefox
+            && Build.MinFFVer < FirefoxBrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
+        || Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp)
+        ? /[^\p{L}\p{Nd}_]+/u
+        : ((!(Build.BTypes & ~BrowserType.Chrome) || Build.BTypes & BrowserType.Chrome && BTy & BrowserType.Chrome)
+            ? Build.MinCVer < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
+              && Vomnibar_.browserVer_ > BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp - 1
+            : !(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && BTy & BrowserType.Firefox
+            ? Build.MinFFVer < FirefoxBrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
+              && Vomnibar_.browserVer_ > FirefoxBrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp - 1
+            : ! (!(Build.BTypes & ~BrowserType.Edge) || Build.BTypes & BrowserType.Edge && BTy & BrowserType.Edge))
+        ? new RegExp("[^\\p{L}\\p{Nd}_]+", "u") : /[^\w\u0386-\u03fb\u4e00–\u9fff]+/)
+    const isDel = code === 4 || code < 0, isExtend = isDel || code > 6, isRight = code > 3 && code < 8
+    const input = Vomnibar_.input_, spacesRe = <RegExpOne> /\s+/
+    if (Build.BTypes & ~BrowserType.Firefox && (!(Build.BTypes & BrowserType.Firefox) || BTy !== BrowserType.Firefox)
+        && !(Build.BTypes & BrowserType.Chrome && delayed)
+        && !(code < -1 || isDel && input.selectionStart !== input.selectionEnd)) {
+      getSelection().modify(isExtend ? "extend" : "move", isRight ? "forward" : "backward", "word")
     }
-    const isExtend = code === 4 || code < 0;
-    if (Build.BTypes & BrowserType.Firefox
-        && (!(Build.BTypes & ~BrowserType.Firefox) || Vomnibar_.browser_ === BrowserType.Firefox)) {
-      let { value: str, selectionStart: start, selectionEnd: end } = Vomnibar_.input_
-      if (start === end) {
-        const re = Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
-            && !(Build.BTypes & BrowserType.Edge || Build.BTypes & BrowserType.Chrome
-                  && Build.MinCVer < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp)
-            ? /[^\p{L}\p{Nd}_]+/u
-            : Vomnibar_.browserVer_ > FirefoxBrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp - 1
-            ? new RegExp("[^\\p{L}\\p{Nd}_]+", "u") : /[^\w\u0386-\u03fb\u4E00–\u9FFF]+/
-        if (code < 4) {
-          str = str.slice(0, start).trimRight()
-          for (start = str.length; 0 <= --start && (<RegExpOne> re).test(str[start]); ) { /* empty */ }
-          for (; 0 <= start && !(<RegExpOne> re).test(str[start]); start--) { /* empty */ }
-          start++
-        } else {
-          const arr = (<RegExpOne> re).exec(str.slice(start))
-          start = arr ? start + arr.index + arr[0].length : str.length
-        }
-        Vomnibar_.input_.setSelectionRange(isExtend && code >= 4 ? end : start, isExtend && code < 4 ? end : start)
+    const { value: str, selectionStart: start, selectionEnd: end } = input
+    let _toR = input.selectionDirection !== "backward", anchor0 = _toR ? start : end, focus1 = _toR ? end : start
+    let a2 = anchor0, focus = focus1, s1: string
+    // test string: " a+ bc +dw+ef  + daf + ++  +++  sdf fas sdd  "
+    if (code < -1) { // Cmd (+ Shift)? + backspace
+      a2 = 0, focus = code < -2 ? str.length : end
+    } else if (isDel && anchor0 !== focus1) { // Ctrl + backspace / Alt+D
+    } else if (Build.BTypes & ~BrowserType.Firefox
+        && (!(Build.BTypes & BrowserType.Firefox) || BTy !== BrowserType.Firefox)) {
+      const notNewCr = !(Build.BTypes & BrowserType.Chrome && BTy & BrowserType.Chrome)
+          || Build.MinCVer < BrowserVer.MinOnWindows$Selection$$extend$stopWhenWhiteSpaceEnd
+              && Vomnibar_.browserVer_ < BrowserVer.MinOnWindows$Selection$$extend$stopWhenWhiteSpaceEnd
+      while (focus > 0 && re.test(s1 = str[focus] || "")
+          && (!isExtend || spacesRe.test(s1) || (s1 = str[focus - 1] || "") && !spacesRe.test(s1) && re.test(s1))) {
+        if (notNewCr) { isRight ? focus++ : focus--; continue }
+        getSelection().modify(isExtend ? "extend" : "move", isRight ? "forward" : "backward"
+            , spacesRe.test(s1) ? "character" : "word")
+        focus = input.selectionDirection !== "backward" ? input.selectionEnd : input.selectionStart
       }
+      notNewCr || (focus1 = focus)
+    } else if (isRight) {
+      let arr = re.exec(str.slice(focus)), i1 = arr ? arr.index : 0
+      s1 = arr ? arr[0] : ""
+      focus = !arr ? str.length : focus + i1 + (!isExtend || !(arr = (<RegExpOne> /\S/).exec(s1)) ? s1.length
+          : arr.index || (i1 ? 0 : (arr = spacesRe.exec(s1)) ? arr.index + arr[0].length : s1.length))
     } else {
-      const sel = getSelection()
-      sel.type === "Caret" && sel.modify(isExtend ? "extend" : "move", code < 4 ? "backward" : "forward", "word")
+      a2 = focus = str.slice(0, focus).trimRight().length
+      while (0 <= --focus && re.test(str[focus]) && (!isExtend || !spacesRe.test(str[focus]))) { /**/ }
+      if (!isExtend || focus === a2 - 1) { while (0 <= focus && !re.test(str[focus])) { focus-- } }
+      a2 = anchor0, focus++
     }
-    if (isExtend && Vomnibar_.input_.selectionStart < Vomnibar_.input_.selectionEnd) {
-      document.execCommand("delete");
+    if (a2 !== anchor0 || focus !== focus1) {
+      isExtend || (a2 = focus)
+      input.setSelectionRange(focus < a2 ? focus : a2, focus < a2 ? a2 : focus, focus < a2 ? "backward" : "forward")
+    }
+    isDel && a2 !== focus && document.execCommand("delete")
+    const { scrollWidth: sw, clientWidth: cw } = input
+    if (sw < cw + 1) { return }
+    const curPos = input.scrollLeft, st = getComputedStyle(input), font = st.font!
+    const canvas = Vomnibar_._canvas || (Vomnibar_._canvas = document.createElement("canvas"))
+    const context = canvas.getContext("2d")!
+    if (context.font !== font) { context.font = font }
+    const nearLeft = focus + focus < str.length
+    const textWidth = context.measureText(nearLeft ? str.slice(0, focus) : str.slice(focus)).width
+    const focusPos = (nearLeft ? textWidth + (0 | +st.paddingLeft!) + (0 | +st.paddingRight!) : sw - textWidth) - cw
+    if (curPos < focusPos + 4 ? curPos < sw - cw : curPos > focusPos + cw - 4 && curPos > 0) {
+      input.scrollLeft = Math.min(Math.max(0, curPos < focusPos + 4 ? focusPos + 40 : focusPos + cw - 40), sw - cw)
     }
   },
   _pageNumRe: <RegExpOne> /(?:^|\s)(\+\d{0,2})$/,
@@ -1216,12 +1277,9 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     if (!Vomnibar_) { return; }
     const doc = document, a = (doc.body as HTMLBodyElement).classList, kTransparent = "transparent";
     // Document.hidden is since C33, according to MDN
-    !Vomnibar_.isActive_ ||
-      (blurred != null ? !blurred
-        : (Build.MinCVer < BrowserVer.Min$document$$hidden
+    !Vomnibar_.isActive_ || (blurred != null ? !blurred : (Build.MinCVer < BrowserVer.Min$document$$hidden
             && Build.BTypes & BrowserType.Chrome && Vomnibar_.browserVer_ < BrowserVer.Min$document$$hidden
-            ? doc.webkitHidden : doc.hidden
-          ) || doc.hasFocus())
+            ? doc.webkitHidden : doc.hidden) || doc.hasFocus())
       ? a.remove(kTransparent) : a.add(kTransparent);
   },
   init_ (): void {
@@ -1772,6 +1830,13 @@ VUtils_ = {
     }
     return VUtils_.timeStr_(timestamp)
   },
+  _macroTasks: [] as Array<() => void>,
+  nextTask_ (callback: (this: void) => void): void {
+    VUtils_._macroTasks.length || (postMessage(0, "*"), VUtils_._onMacroTasks
+        && (addEventListener("message", VUtils_._onMacroTasks, true), VUtils_._onMacroTasks = null as never))
+    VUtils_._macroTasks.push(callback)
+  },
+  _onMacroTasks (): void { for (const cb of VUtils_._macroTasks.splice(0, VUtils_._macroTasks.length)) { cb() } },
   Stop_: function (event: Event & Partial<ToPrevent>, prevent: boolean | BOOL): void {
     prevent && event.preventDefault!();
     event.stopImmediatePropagation();
