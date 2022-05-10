@@ -1,7 +1,7 @@
 import {
   bgIniting_, CONST_, os_, keyFSM_, keyToCommandMap_, mappedKeyRegistry_, mappedKeyTypes_, omniPayload_,
   OnChrome, OnEdge, OnFirefox, OnOther_, set_keyFSM_, set_keyToCommandMap_, set_mappedKeyRegistry_, set_mappedKeyTypes_,
-  settingsCache_, updateHooks_
+  settingsCache_, updateHooks_, CurFFVer_
 } from "./store"
 import * as BgUtils_ from "./utils"
 import * as settings_ from "./settings"
@@ -619,7 +619,9 @@ export const availableCommands_: Dict<CommandsNS.Description> & SafeObject =
     {
       reuse: ReuseType.reuse,
       url: OnChrome ? "chrome://extensions/?id=$id"
-          : OnFirefox ? "about:debugging#addons" : CONST_.OptionsPage_,
+          : OnFirefox ? Build.MinFFVer < FirefoxBrowserVer.MinAboutDebuggingRuntimeThisFirefox
+            && CurFFVer_ < FirefoxBrowserVer.MinAboutDebuggingRuntimeThisFirefox ? "about:debugging#addons"
+            : "about:debugging#/runtime/this-firefox" : CONST_.OptionsPage_,
       id_mask: "$id", url_mask: ""
     }],
   discardTab: [ kBgCmd.discardTab, kCxt.bg, /* 20 in all_commands.ts */ 0 ],

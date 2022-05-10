@@ -605,8 +605,8 @@ declare const enum kCharCode {
   /** '-' */ dash = 45,
   dot = 46, slash = 47,
   maxNotNum = 48 - 1, N0, N1, N9 = N0 + 9, minNotNum, colon = 58, lt = 60, gt = 62, question = 63,
-  A = 65, maxNotAlphabet = A - 1, minAlphabet = A,
-  B, C, I = A + 8, K = I + 2, R = A + 17, S = A + 18, W = A + 22, Z = A + 25, maxAlphabet = A + 25, minNotAlphabet,
+  A = 65, maxNotAlphabet = A - 1, minAlphabet = A, B, C, D, E, F, G,
+  H, I = A + 8, K = I + 2, R = A + 17, S = A + 18, W = A + 22, Z = A + 25, maxAlphabet = A + 25, minNotAlphabet,
   a = 97, CASE_DELTA = a - A,
   backslash = 92, s = 115,
 }

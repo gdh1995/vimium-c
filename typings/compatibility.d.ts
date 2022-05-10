@@ -511,6 +511,7 @@ declare const enum BrowserVer {
   // blank on C80, too simple on C81, usable since C83 and work as default since C85;
   // with a fresh user data on C85, the newtab is chrome-search://... , and chrome://new-tab-page/ since a second start
   MinChromeURL$NewTabPage = 80, // chrome://new-tab-page/ ; even if EXPERIMENTAL or LEGACY
+  MinAltBackspaceWithShiftToUndoOrRedo = 81, // a-backspace: undo; a-s-~: redo; even if EXPERIMENTAL or LEGACY
   // https://github.com/philc/vimium/issues/3449#issuecomment-568248237
   FlagOutOfBlinkCorsMayCauseBug = 81,
   // #freeze-user-agent: https://www.chromestatus.com/features/5704553745874944
@@ -591,6 +592,7 @@ declare const enum FirefoxBrowserVer {
   // tested on Win 10 + MS PinYin and Ubuntu 18 + an inner PinYin IME
   MinContentEditableInShadowSupportIME = 69,
   Min$Blob$$arrayBuffer = 69,
+  MinAboutDebuggingRuntimeThisFirefox = 69,
   Min$downloads$$download$acceptReferer = 70,
   Min$MathMLElement$Prototype = 71,
   MinCrossOriginResourcePolicy = 74, // not break Vomnibar
@@ -610,7 +612,7 @@ declare const enum FirefoxBrowserVer {
   MinBrowserDarkThemeSet$PrefersColorScheme = 95, // https://github.com/gdh1995/vimium-c/discussions/517
   // but refuse a `click#ctrl=false&shift=false` on `<a target=_blank>`: https://github.com/gdh1995/vimium-c/issues/616
   MinPopupBlockerPassComposedClicksFromExtensions = 96, // https://github.com/philc/vimium/issues/3964
-  MinMaybe$navigator$$userAgentData = 99,
+  MinMaybe$navigator$$userAgentData = 101,
   // members of a Selection are never updated when an <input> gets focused, so no work-around
   Min$Selection$SupportTextBox = 999,
   None = 0,
