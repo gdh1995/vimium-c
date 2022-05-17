@@ -268,7 +268,7 @@ set_reqH_([
       const {m, t} = request, isLinkJob = m >= HintMode.min_link_job && m <= HintMode.max_link_job
       let url = request.u
       url = isLinkJob ? findUrlEndingWithPunctuation_(url, true) : url
-      url = substitute_(url, isLinkJob ? SedContext.pageURL : SedContext.pageText)
+      url = substitute_(url, isLinkJob ? SedContext.pageURL : SedContext.pageText, request.o && request.o.s)
       replaceCmdOptions<kBgCmd.showVomnibar>({ url, newtab: t != null ? !!t : !isLinkJob, keyword: request.o.k })
       replaceForwardedOptions(request.f)
       set_cRepeat(1)

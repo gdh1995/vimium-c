@@ -443,6 +443,7 @@ declare namespace VomnibarNS {
     newtab: boolean | BOOL;
     keyword: string;
     url?: true | string | null;
+    urlSedKeys: "sedKeys" | null
     exitOnClick?: boolean;
     autoSelect?: boolean | null | BOOL;
     preferTabs?: "new" | "new-opened" | "newOpened";
@@ -459,7 +460,7 @@ declare namespace VomnibarNS {
     clickLike?: null | "chrome" | /** as "chrome" */ true | "vivaldi" | /** as "vivaldi" */ "chrome2"
     activeOnCtrl?: boolean
     position: OpenPageUrlOptions["position"]
-    itemSedKeys: Extract<MixedSedOpts, string> | null
+    itemSedKeys: "sedKeys" | null
     itemKeyword: string | null
   }
 }

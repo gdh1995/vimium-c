@@ -6,13 +6,13 @@ import {
 import * as BgUtils_ from "./utils"
 import { Tabs_, downloadFile, getTabUrl, runtimeError_, selectTab, R_, Q_, browser_, import2 } from "./browser"
 import { convertToUrl_, createSearchUrl_, normalizeSVG_ } from "./normalize_urls"
-import { showHUD, complainLimits, ensureInnerCSS, getParentFrame } from "./ports"
+import { showHUD, complainLimits, ensureInnerCSS, getParentFrame, getPortUrl_ } from "./ports"
 import { getFindCSS_cr_ } from "./ui_css"
 import { getI18nJson, trans_ } from "./i18n"
 import { keyMappingErrors_, visualGranularities_, visualKeys_ } from "./key_mappings"
 import {
   wrapFallbackOptions, copyCmdOptions, parseFallbackOptions, portSendFgCmd, sendFgCmd, replaceCmdOptions,
-  overrideOption, runNextCmd, hasFallbackOptions, getRunNextCmdBy, kRunOn
+  overrideOption, runNextCmd, hasFallbackOptions, getRunNextCmdBy, kRunOn, overrideCmdOptions
 } from "./run_commands"
 import { parseReuse, newTabIndex, openUrlWithActions } from "./open_urls"
 import { FindModeHistory_ } from "./tools"
@@ -111,6 +111,18 @@ export const showVomnibar = (forceInner?: boolean): void => {
     if (!port) { return }
     set_cPort(port)
     // not go to the top frame here, so that a current frame can suppress keys for a while
+  }
+  if (optUrl != null && get_cOptions<C.showVomnibar>().urlSedKeys) {
+    const res = typeof optUrl === "string" ? optUrl : getPortUrl_()
+    if (res && res instanceof Promise) {
+      void res.then((url): void => {
+        overrideCmdOptions<C.showVomnibar>({ url: url || "" }, true)
+        showVomnibar(forceInner)
+      })
+      return
+    }
+    optUrl = substitute_(res, SedContext.NONE, { r: null, k: get_cOptions<C.showVomnibar, true>().urlSedKeys! })
+    overrideCmdOptions<C.showVomnibar>({ url: optUrl }, true)
   }
   if (get_cOptions<C.showVomnibar>().mode === "bookmark") { overrideOption<C.showVomnibar, "mode">("mode", "bookm") }
   const page = vomnibarPage_f, { url_: url } = port.s,

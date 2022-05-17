@@ -174,7 +174,9 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         url = url.slice(a.baseHttps_ ? 0 : 7, url.indexOf("/", 8) === url.length - 1 ? -1 : void 0)
       }
     } else {
-      url = VUtils_.decodeURL_(url, decodeURIComponent).trim().replace(a.spacesRe_, " ");
+      const endsWithSpace = url.trimRight().length !== url.length
+      url = VUtils_.decodeURL_(url, decodeURIComponent)
+      url = (endsWithSpace ? url : url.trim()).replace(a.spacesRe_, " ");
     }
     if (keyword) {
       start = (start || 0) + keyword.length + 1;

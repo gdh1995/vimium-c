@@ -68,7 +68,7 @@
 		"run Gg lh OpenInNewTab",
 		"run Fg Gg newtab=\"force\"",
 		"run FT lh OpenVomnibar",
-		"run FE FT url",
+		"run FE f action=\"edit-url\"",
 		"run Fv lh Select",
 		"map o Vomnibar.activate",
 		"map <a-g> Vomnibar.activateInNewTab",

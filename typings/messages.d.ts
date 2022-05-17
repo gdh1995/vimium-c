@@ -585,7 +585,7 @@ interface FgReq {
     /** url */ u: string
     /** newtab */ t?: HintsNS.Options["newtab"]
     /** forwarded options */ f: object | string | null | undefined
-    /** only use .keyword */ o: Pick<ParsedOpenPageUrlOptions, "k">
+    /** only use .keyword and sed */ o: Pick<ParsedOpenPageUrlOptions, "k" | "s">
     /** redo */ r?: undefined;
   } & WithHintModeOptions | {
     /** url */ u?: undefined
