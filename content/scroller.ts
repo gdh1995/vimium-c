@@ -317,9 +317,9 @@ export const activate = (options: CmdOptions[kFgCmd.scroll] & SafeObject, count:
     if (dest) {
       if (count < 0) { fromMax = !fromMax; count = -count; }
       count--;
-    } else {
-      count *= +(options.dir!) || 1;
+      count += options.offset! | 0
     }
+    count *= +(options.dir!) || 1
     executeScroll(di, count, dest ? fromMax ? kScFlag.toMax : kScFlag.toMin : kScFlag.scBy as never
         , options.view as undefined, options, oriCount)
     if (keyIsDown && !options.$c) {
@@ -359,20 +359,23 @@ export const executeScroll: VApiTy["c"] = function (di: ScrollByY, amount0: numb
         , options && options.scrollable)
     const isTopElement = element === scrollingTop
     const mayUpperFrame = !isTop && isTopElement && element && !fullscreenEl_unsafe_()
-    let amount = !factor ?
+    let viewSize: number | undefined,
+    amount = !factor ?
         (!di && amount0 && element && dimSize_(element, kDim.scrollW)
             <= dimSize_(element, kDim.scrollH) * (dimSize_(element, kDim.scrollW) < 720 ? 2 : 1)
           ? amount0 * 0.6 : amount0) * fgCache.t
       : factor === 1 ? amount0
-      : amount0 * dimSize_(element, di + (factor === "max" ? kDim.scrollW : kDim.viewW))
+      : amount0 && amount0 * (viewSize = dimSize_(element, di + kDim.viewW),
+            factor !== "max" ? viewSize : dimSize_(element, di + kDim.scrollW) - viewSize)
     if (toFlags) {
+      viewSize = viewSize || dimSize_(element, di + kDim.viewW)
       const curPos = dimSize_(element, di + kDim.positionX),
-      viewSize = dimSize_(element, di + kDim.viewW),
       rawMax = (toMax || amount) && dimSize_(element, di + kDim.scrollW),
       boundingMax = isTopElement && element ? getBoundingClientRect_(element).height : 0,
       max = (boundingMax > rawMax && boundingMax < rawMax + 1 ? boundingMax : rawMax) - viewSize
       const oldAmount = amount
       amount = max_(0, min_(toMax ? max - amount : amount, max)) - curPos
+      amount = oldAmount > 0 && amount * amount < 1 ? 0 : amount
       amount = amount0 ? amount : toMax ? max_(amount, 0) : min_(amount, 0)
       if (!Build.NDEBUG && ScrollConsts.DEBUG & 8) {
         console.log("[scrollTo] cur=%o top_max=%o view=%o amount=%o, so final amount=%o", curPos, viewSize, max

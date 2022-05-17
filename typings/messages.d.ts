@@ -337,16 +337,16 @@ interface CmdOptions {
     scrollable?: "host-re##css-selector;..."
     wait?: number | boolean | null
     minDuration?: number // default to 100 for 100 pixels
+    dir?: 1 | -1 | 0.5 | -0.5;
+    offset?: 1
     /** inner flags */ f?: kScFlag & number
   } & Pick<CSSOptions, "evenIf" | "scroll"> & ({
-    dir?: 1 | -1 | 0.5 | -0.5;
     view?: 0 | /** means 0 */ undefined | 1 | "max" | /* all others are treated as "view" */ 2 | "view";
     dest?: undefined;
   } | {
     dest: "min" | "max";
     view?: undefined;
     sel?: "clear";
-    dir?: undefined;
   }) & Req.FallbackOptions
   [kFgCmd.toggle]: {
     k: keyof SettingsNS.FrontendSettingsSyncingItems;
