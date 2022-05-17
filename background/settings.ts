@@ -348,6 +348,7 @@ ec|ecosia: https://www.ecosia.org/search?q=%s Ecosia
 qw|qwant: https://www.qwant.com/?q=%s Qwant
 ya|yd|yandex: https://yandex.com/search/?text=%s Yandex
 yh|yahoo: https://search.yahoo.com/search?p=%s Yahoo
+maru|mailru|mail.ru: https://go.mail.ru/search?q=%s Mail.ru
 
 b.m|bm|map|b.map|bmap|\u5730\u56fe|\u767e\u5ea6\u5730\u56fe: \\
   https://api.map.baidu.com/geocoder?output=html&address=%s&src=vimium-c\\
@@ -398,6 +399,7 @@ ec|ecosia: https://www.ecosia.org/search?q=%s Ecosia
 qw|qwant: https://www.qwant.com/?q=%s Qwant
 ya|yd|yandex: https://yandex.com/search/?text=%s Yandex
 yh|yahoo: https://search.yahoo.com/search?p=%s Yahoo
+maru|mailru|mail.ru: https://go.mail.ru/search?q=%s Mail.ru
 
 g.m|gm|g.map|gmap: https://www.google.com/maps?q=%s \\
   blank=https://www.google.com/maps Google Maps

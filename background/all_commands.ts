@@ -214,6 +214,7 @@ set_bgC_([
       }>({
         e: 1, class: 1, type: 1, key: 1, return: 1, delay: 1, esc: 1, click: 1, init: 1, xy: 1, match: 1,
         direct: 1, directOptions: 1, clickable: 1, exclude: 1, evenIf: 1, scroll: 1, typeFilter: 1, textFilter: 1,
+        clickableOnHost: 1, excludeOnHost: 1,
       })
       for (const [key, val] of Object.entries!(dict)) {
         if (key && key[0] !== "$" && !(skipped as Object).hasOwnProperty(key)) {

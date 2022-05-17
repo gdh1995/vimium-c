@@ -1,6 +1,6 @@
 import {
   clickable_, isJSUrl, doc, isImageUrl, fgCache, readyState_, chromeVer_, VTr, createRegExp, max_, OnChrome,
-  math, includes_, OnFirefox, OnEdge, WithDialog, safeCall, evenHidden_, set_evenHidden_, tryCreateRegExp, loc_, getTime, firefoxVer_
+  math, includes_, OnFirefox, OnEdge, WithDialog, safeCall, evenHidden_, set_evenHidden_, tryCreateRegExp, loc_, getTime, firefoxVer_, queryByHost
 } from "../lib/utils"
 import {
   isIFrameElement, getInputType, uneditableInputs_, getComputedStyle_, queryChildByTag_, htmlTag_, isAriaFalse_,
@@ -362,12 +362,16 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
   let matchSelector = options.match || null,
   textFilter: OtherFilterOptions["textFilter"] | void | RegExpI | RegExpOne | false = options.textFilter,
   clickableSelector = options.clickable || null,
+  clickableOnHost: string | null | undefined | void = options.clickableOnHost,
   matchAll = (!Build.NDEBUG && selector === "*" // for easier debugging
       ? selector = kSafeAllSelector : selector) === kSafeAllSelector && !matchSelector,
   output: Hint[] | Hint0[] = [],
   cur_arr: HintSources | null = matchSafeElements(selector, traverseRoot, matchSelector, 1) || (matchSelector = " ", [])
   set_evenHidden_(options.evenIf! | (options.scroll === "force" ? kHidden.OverflowHidden : 0))
   initTestRegExps()
+  if (clickableOnHost && (clickableOnHost = queryByHost(clickableOnHost, kTip.raw))) {
+    clickableSelector = (clickableOnHost + (clickableSelector ? "," + clickableSelector : "")) as "css-selector"
+  }
   if (wantClickable) {
     getPixelScaleToScroll(1)
     clickTypeFilter_ = options.typeFilter! | 0
@@ -452,11 +456,8 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
     output.shift()
   }
   if (wantClickable && mode1_ < HintMode.min_job && !matchSelector) {
-    const pathname = loc_.pathname, host = loc_.host,
-    exc = pathname === "/s" ? host.includes("baidu.") ? ".c-container" : 0
-        : pathname.startsWith("/search") ? host.includes("google") ? ".g"
-          : host.includes("bing.com") ? ".b_algo" // lgtm [js/incomplete-url-substring-sanitization]
-        : 0 : 0
+    const path = loc_.pathname,
+    exc = path === "/s" || path.startsWith("/search") ? queryByHost(options.excludeOnHost, kTip.searchResults) : 0
     output = exc ? output.filter(hint => !testMatch(exc, hint)) : output
   }
   if (Build.NDEBUG ? wholeDoc : wholeDoc && !isInAnElement) {

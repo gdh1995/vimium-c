@@ -229,6 +229,14 @@ export const tryCreateRegExp = function (pattern: string, flags: string ): RegEx
   (pattern: string): RegExpOne | void
 }
 
+export const queryByHost = (customized_rules: string | null | undefined, builtin_rules: kTip): string | void => {
+  const host = loc_.host
+  for (const arr of ((customized_rules || "") + ";" + VTr(builtin_rules)).split(";")) {
+    const items = arr.split("##"), re = items[0] && tryCreateRegExp(items[0])
+    if (re && re.test(host)) { return items[1]! }
+  }
+}
+
 export const safeCall = (<T1, T2, Ret>(func: (arg1: T1, arg2: T2) => Ret, arg1: T1, arg2: T2): Ret | void => {
   try { return func(arg1, arg2) } catch {}
 }) as {

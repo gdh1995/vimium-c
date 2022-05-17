@@ -16,7 +16,7 @@ declare const enum kTip {
   /* 90: */ notANestedFrame, cssUrl, newClickableClasses, oldClickableClasses, clickableRoles,
   /* 95: */ invisibleHintText, notMatchedHintText, metaKeywordsForMobile, css0d01OrDPI, visibleElementsInScopeChildren,
   /* 100: */ voidJS, nonLocalhostRe, scrollable, buttonOrA, closableClasses,
-  /* 105: */ highContrast_WOB, invisibleElements, imgExt,
+  /* 105: */ highContrast_WOB, invisibleElements, imgExt, searchResults,
   INJECTED_CONTENT_END,
   /* 200: */ XHTML = 200,
   /** used by {@link ../Gulpfile.js} */ extendClick = 999,
@@ -48,7 +48,9 @@ declare const enum kHidden {
 interface CSSOptions {
   match?: "css-selector" | " " | null | undefined
   clickable?: "css-selector" | null | undefined
+  clickableOnHost?: "css-selector" | null | undefined
   exclude?: "css-selector" | null | undefined
+  excludeOnHost?: "host-re##css-selector;..." | null | undefined
   evenIf?: kHidden | null | undefined
   /* same as `.evenIf |= kHidden.OverflowHidden` */ scroll?: "force"
 }
@@ -332,7 +334,7 @@ interface CmdOptions {
     smooth?: boolean
     keepHover?: true | false | "auto" | "never" | /* or >= 20 */ 20
     acrossFrames?: true | false
-    scrollable?: "css-selector"
+    scrollable?: "host-re##css-selector;..."
     wait?: number | boolean | null
     minDuration?: number // default to 100 for 100 pixels
     /** inner flags */ f?: kScFlag & number

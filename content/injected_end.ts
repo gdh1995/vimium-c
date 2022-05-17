@@ -63,7 +63,7 @@ VApi!.e = function (cmd): void {
   ref[2]!(2, (tid, args): string => {
     return !i18nMessages ? "$Msg-" + tid
         : args ? i18nMessages[tid].replace(trArgsRe, s => typeof args === "string" ? args : <string> args[+s[1] - 1])
-        : i18nMessages[tid];
+        : i18nMessages[tid].replace(trArgsRe, "")
   })
 
   const parentInjector = top !== window

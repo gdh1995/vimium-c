@@ -99,6 +99,9 @@
   "105": { "message": "(-ms-high-contrast:active)" },
   "106": { "message": "script,style,title,textarea" },
   "107": { "message": "\\.(?:avif|bmp|gif|icon?|jpe?g|a?png|svg|tiff?|webp)\\b" },
+  "108": { "message":
+"\\bgoogle##.g;\\bbing\\.com##.b_algo;\\bbaidu\\.##.c-container;\\bmail.ru\\b##.SnippetResultInfo-favicon"
+  },
   "200": { "message": "http://www.w3.org/1999/xhtml" },
   "0": { "message": "Open link in current tab" },
   "2": { "message": "Open link in new tab" },

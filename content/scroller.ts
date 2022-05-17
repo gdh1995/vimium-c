@@ -22,9 +22,9 @@ interface ElementScrollInfo {
 }
 
 import {
-  isAlive_, setupEventListener, timeout_, clearTimeout_, fgCache, doc, noRAF_old_cr_, readyState_, loc_, chromeVer_,
-  vApi, weakRef_not_ff, VTr, max_, math, min_, Lower, OnChrome, OnFirefox, OnEdge, WithDialog, OnSafari,
-  isTop, injector, isTY, safeCall, tryCreateRegExp, weakRef_ff, Stop_, abs_
+  isAlive_, setupEventListener, timeout_, clearTimeout_, fgCache, doc, noRAF_old_cr_, readyState_, chromeVer_,
+  vApi, weakRef_not_ff, queryByHost, max_, math, min_, Lower, OnChrome, OnFirefox, OnEdge, WithDialog, OnSafari,
+  isTop, injector, isTY, safeCall, weakRef_ff, Stop_, abs_
 } from "../lib/utils"
 import {
   rAF_, scrollingEl_, SafeEl_not_ff_, docEl_unsafe_, NONE, frameElement_, OnDocLoaded_, GetParent_unsafe_,
@@ -514,13 +514,11 @@ const findScrollable = (di: ScrollByY, amount: number
     }
     if (!element) {
       // note: twitter auto focuses its dialog panel, so it's not needed to detect it here
-      for (const arr of ((scrollable || "") + ";" + VTr(kTip.scrollable)).split(";")) {
-        const items = arr.split("##"), re = items[0] && tryCreateRegExp(items[0])
-        if (re && re.test(loc_.host)) {
-          element = OnFirefox ? (safeCall(querySelector_unsafe_, items[1]) || null) as SafeElement | null
-                  : SafeEl_not_ff_!(safeCall(querySelector_unsafe_, items[1]) || null)
-          if (element && (!fullscreen || IsInDOM_(element as SafeElement, fullscreen))) { break }
-        }
+      const selector = queryByHost(scrollable, kTip.scrollable)
+      if (selector) {
+          element = OnFirefox ? (safeCall(querySelector_unsafe_, selector) || null) as SafeElement | null
+                  : SafeEl_not_ff_!(safeCall(querySelector_unsafe_, selector) || null)
+          element = element && (!fullscreen || IsInDOM_(element as SafeElement, fullscreen)) ? element : null
       }
     }
     if (!element && top) {
