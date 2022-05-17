@@ -606,6 +606,7 @@ declare const enum FirefoxBrowserVer {
   MinMaybe$WeakRef = 79, // no `WeakRef` if javascript.options.weakrefs=false
   MinEnsuredCSS$is$selector = 81,
   MinMaybe$HTMLElement$$inert = 81, // if `html5.inert.enabled`
+  MinInputSupportExecCommand = 89,
   MinContentEditableInShadowOfBodyRefuseShortcuts = 91,
   ESRPopupBlockerPassClicksFromExtensions = 91, // since 91.6
   Min$structuredClone = 94,

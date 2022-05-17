@@ -1,5 +1,5 @@
 import {
-  CurCVer_, OnChrome, OnFirefox, $, $$, nextTick_, post_, enableNextTick_, kReadyInfo, toggleReduceMotion
+  CurCVer_, OnChrome, OnFirefox, $, $$, nextTick_, post_, enableNextTick_, kReadyInfo, toggleReduceMotion, OnEdge, CurFFVer_
 } from "./async_bg"
 import {
   bgSettings_, Option_, AllowedOptions, Checker, PossibleOptionNames, ExclusionRulesOption_, oTrans_,
@@ -263,7 +263,8 @@ export class TextOption_<T extends TextualizedOptionNames> extends Option_<T> {
     return p
   }
   override populateElement_ (value: AllowedOptions[T] | string, enableUndo?: boolean): void {
-    const value2 = this.formatValue_(value).replace(<RegExpG> / /g, "\xa0")
+    // not replace spaces with \xa0 - the old issue is not reproducible even on Chrome 35/48 + Win 10
+    const value2 = OnEdge ? this.formatValue_(value).replace(<RegExpG> / /g, "\xa0") : this.formatValue_(value)
     if (enableUndo !== true) {
       this.element_.value = value2
     } else {
@@ -393,22 +394,54 @@ export class MaskedText_<T extends TextOptionNames> extends TextOption_<T> {
 
 TextOption_.prototype.atomicUpdate_ = NumberOption_.prototype.atomicUpdate_ = function(
     value: string, undo: boolean, locked: boolean): void {
+  const input = this.element_, initialValue = input.value
+  let selection = input.selectionDirection !== "backward" ? input.selectionEnd! : input.selectionStart!
   let newFocused = false
   if (undo) {
     this.locked_ = true
-    newFocused = document.activeElement !== this.element_
-    newFocused && this.element_.focus()
+    newFocused = document.activeElement !== input
+    newFocused && input.focus()
     document.execCommand("undo")
   }
   this.locked_ = locked
-  this.element_.select()
-  document.execCommand("insertText", false, value)
-  if (OnFirefox) {
-    if (this.element_.value !== value) {
-      this.element_.value = value
-    }
+  const oldValue = undo ? input.value : initialValue
+  let left = input.scrollLeft, top = input.scrollTop
+  let diffStart = 0, diffLast = oldValue.length - 1, newLast = value.length - 1
+  let limit = Math.min(diffLast, newLast)
+  while (diffStart <= limit && oldValue[diffStart] === value[diffStart]) { diffStart++ }
+  limit = Math.max(diffStart, diffLast - (newLast - diffStart))
+  while (limit <= diffLast && oldValue[diffLast] === value[newLast]) { diffLast--, newLast-- }
+  input.setSelectionRange(diffStart, diffLast + 1)
+  const diffValue = value.slice(diffStart, newLast + 1)
+  document.execCommand("insertText", false, diffValue)
+  if (OnFirefox && Build.MinFFVer < FirefoxBrowserVer.MinInputSupportExecCommand
+      && CurFFVer_ < FirefoxBrowserVer.MinInputSupportExecCommand) {
+    if (this.element_.value !== value) { this.element_.value = value }
   }
   newFocused && this.element_.blur()
+  if (initialValue !== oldValue) {
+    diffStart = 0, diffLast = initialValue.length - 1, newLast = value.length - 1
+    limit = Math.min(diffLast, newLast)
+    while (diffStart <= limit && initialValue[diffStart] === value[diffStart]) { diffStart++ }
+    limit = Math.max(diffStart, diffLast - (newLast - diffStart))
+    while (limit <= diffLast && initialValue[diffLast] === value[newLast]) { diffLast--, newLast-- }
+  }
+  if (!selection) {
+    left = top = 0
+  } else if (selection === initialValue.length) {
+    left = input.scrollWidth, top = input.scrollHeight
+    selection = value.length
+  } else if (selection < diffStart) { /* empty */ }
+  else if (selection > diffLast) {
+    selection += newLast - diffLast
+  } else {
+    const oldOffset = initialValue.slice(0, selection).split("\n"), rows = oldOffset.length
+    const newOffset = value.split("\n").slice(0, rows)
+    newOffset.length === rows && (newOffset[rows - 1] = newOffset[rows - 1].slice(0, oldOffset[rows - 1].length))
+    selection = newOffset.reduce((i, j): number => i + j.length, 0) + newOffset.length - 1
+  }
+  input.scrollTo(left, top)
+  input.setSelectionRange(selection, selection)
   this.locked_ = false
 }
 

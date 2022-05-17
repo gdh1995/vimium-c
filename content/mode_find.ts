@@ -142,7 +142,7 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
     else if (!query && historyIndex > 0) { --historyIndex }
     else {
       execCommand("selectAll")
-      execCommand("insertText", 0, query.replace(<RegExpOne> /^ /, "\xa0"))
+      execCommand("insertText", 0, query) // "\xa0" is not needed, because of `white-space: pre;`
       onInput()
     }
   }
