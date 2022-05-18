@@ -114,17 +114,16 @@ set_bgC_([
     })
   },
   /* kBgCmd.insertMode: */ (): void | kBgCmd.insertMode => {
-    let _key = get_cOptions<C.insertMode>().key, _hud: boolean | UnknownValue,
-    hud = (_hud = get_cOptions<C.insertMode>().hideHUD) != null ? !_hud
-        : (_hud = get_cOptions<C.insertMode>().hideHud) != null ? !_hud
-        : !settingsCache_.hideHud,
+    let _key = get_cOptions<C.insertMode>().key,
     key = _key && typeof _key === "string" ? stripKey_(_key).trim() : ""
     key = key.length > 1 || key.length === 1 && !(<RegExpI> /[0-9a-z]/i).test(key)
         && key === key.toUpperCase() && key === key.toLowerCase() ? key : "" // refuse letters in other languages
-    Promise.resolve(hud ? trans_("globalInsertMode", [key && ": " + (key.length === 1 ? `" ${key} "`
-        : `<${key}>`)]) : null).then((msg): void => {
-    sendFgCmd(kFgCmd.insertMode, hud, {
-      h: msg,
+    const hideHUD = get_cOptions<C.insertMode>().hideHUD ?? get_cOptions<C.insertMode>().hideHud
+        ?? (!key && settingsCache_.hideHud)
+    void Promise.resolve(trans_("globalInsertMode", [key && ": " + (key.length === 1 ? `" ${key} "` : `<${key}>`)]))
+        .then((msg): void => {
+    sendFgCmd(kFgCmd.insertMode, !hideHUD, {
+      h: hideHUD ? null : msg,
       k: key || null,
       i: !!get_cOptions<C.insertMode>().insert,
       p: !!get_cOptions<C.insertMode>().passExitKey,
@@ -132,6 +131,7 @@ set_bgC_([
       t: parseFallbackOptions(get_cOptions<C.insertMode, true>()),
       u: !!get_cOptions<C.insertMode>().unhover
     })
+      hideHUD && hideHUD !== "force" && hideHUD !== "always" && showHUD(msg, kTip.raw)
     })
   },
   /* kBgCmd.nextFrame: */ _AsBgC<BgCmdNoTab<kBgCmd.nextFrame>>(nextFrame),

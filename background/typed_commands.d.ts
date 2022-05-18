@@ -18,7 +18,7 @@ interface BgCmdOptions {
   } & UserSedOptions & CSSOptions & Req.FallbackOptions & OpenUrlOptions
   [kBgCmd.insertMode]: {
     key: string
-    hideHUD: boolean
+    hideHUD: boolean | "force" | "always"
     /** (deprecated) */ hideHud: boolean
     insert: boolean
     passExitKey: boolean
@@ -65,7 +65,7 @@ interface BgCmdOptions {
   [kBgCmd.clearMarks]: { local: boolean; all: boolean }
   [kBgCmd.copyWindowInfo]: UserSedOptions & LimitedRangeOptions & TabFilterOptions & {
     keyword: string
-    type: "" | "frame" | "browser" | "window" | "tab" | "title" | "url" | "host"
+    type: "" | "frame" | "browser" | "window" | "tab" | "title" | "url" | "host" | "hostname" | "origin"
     /** default to "${title}: ${url}" */ format: string
     join: "json" | string | boolean
   } & Req.FallbackOptions & Pick<OpenPageUrlOptions, "decoded" | "decode">
