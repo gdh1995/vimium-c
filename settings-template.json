@@ -3,11 +3,11 @@
 	"environment": {
 		"platform": "win"
 	},
-	"autoReduceMotion": true,
 	"clipSub": [
 		"p=^git@([^/:]+):=https://$1/=",
 		"s@^https://(?:www\\.)?google\\.com(?:\\.[^/]+)?/url\\?(?:[^&#]+&)*?url=([^&#]+)@$1@,matched,decodecomp",
 		"r@^https://github\\.com/[^\\s\\/?#]+/[^\\s\\/?#]+(?=/)@@,matched",
+		"si@^https?://link\\.zhihu\\.com/\\?target=@@,decodecomp",
 		"g@^https://www\\.zhihu\\.com/question/\\d+(?=/answer/?$)@@,matched",
 		"p@^https://item\\.m\\.jd\\.com/product/(\\d+)\\.html\\b@https://item.jd.com/$1.html@",
 		""
@@ -21,7 +21,7 @@
 		"map <a-/> enterInsertMode",
 		"# map <a-/> openUrl \\",
 		"  url=\"vimium://status/toggle-disabled/^%20<a-/>\"",
-		"run <a-?> <a-/> key=\"<s-esc>\"",
+		"map <a-?> enterInsertMode key=\"<a-?>\"",
 		"# map <c-b:i> editText run=\"replace,_$s%20%s_\"",
 		"map <a-t> createTab",
 		"run <a-c> c",
@@ -105,7 +105,7 @@
 		"map V openCopiedUrlInCurrentTab",
 		"run Ce V \\",
 		"  keyword=\"v.math-copy\"",
-		"map <c-v> openCopiedUrlInNewTab",
+		"map <c-v> openCopiedUrlInNewTab copied=\"urls\"",
 		"",
 		"map u goUp",
 		"run i focusInput:(<c-m>:W+150wait)%cfocusInput \\",
@@ -178,9 +178,9 @@
 	],
 	"linkHintCharacters": "dsavewrqcxz",
 	"nextPatterns":
-		"下一封,下页,下一页,下一章,后一页,上一张,.btn-next,[data-slp-action=nextSlide]:not(div),next,more,newer,>,›,→,»,≫,>>",
+"下一封,下页,下一页,下一章,后一页,下一张,.btn-next,[data-slp-action=nextSlide]:not(div),next,more,newer,>,›,→,»,≫,>>",
 	"previousPatterns":
-"上一封,上页,上一页,上一章,前一页,下一张,.btn-prev,[data-slp-action=prevSlide]:not(div),prev,previous,back,older,<,‹,←,«,≪,<<",
+"上一封,上页,上一页,上一章,前一页,上一张,.btn-prev,[data-slp-action=prevSlide]:not(div),prev,previous,back,older,<,‹,←,«,≪,<<",
 	"searchEngines": [
 		"b|吧|把|ba|bd|baidu|Baidu|百度: https://www.baidu.com/s?ie=utf-8&wd=$s \\",
 		"  blank=https://www.baidu.com",
@@ -266,6 +266,7 @@
 		"v.c|copy\\:|v\\://copy|vimium\\://copy: vimium://copy\\ $S re= Copy to Clipboard",
 		"v.mc|v.math-copy: vimium://search-copy\\ vimium://math\\ $S re= Calculate and Copy",
 		"v.p|v.parse: vimium://parse\\ $S re= Redo Search",
+		"v.bi: vimium://parse/bi\\ $S re= Search in Bing",
 		"cd: vimium://cd\\ $S re=",
 		"\\:i: vimium://sed/s/^//,lower\\ $S re= Lower case",
 		"",

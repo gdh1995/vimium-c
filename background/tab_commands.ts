@@ -69,9 +69,10 @@ export const copyWindowInfo = (resolve: OnCmdResolved): void | kBgCmd.copyWindow
   // include those hidden on Firefox
   Tabs_.query(type === "browser" ? {windowType: "normal"} : { active: type !== "window" && !wantNTabs || void 0,
           currentWindow: true }, (tabs): void => {
-    if ((!type || type === "title" || type === "frame" || type === "url" || type === "host") && !rawFormat) {
-      const s = type === "title" ? tabs[0].title : type !== "host" ? getTabUrl(tabs[0])
-          : BgUtils_.safeParseURL_(getTabUrl(tabs[0]))?.host || ""
+    if ((!type || type !== "browser" && type !== "window" && type !== "tab" && typeof type === "string")
+        && !rawFormat) {
+      const s = type === "title" ? tabs[0].title : !type || type === "frame" || type === "url" ? getTabUrl(tabs[0])
+          : BgUtils_.safeParseURL_(getTabUrl(tabs[0]))?.[type as Exclude<typeof type, "42">] || ""
       reqH_[kFgReq.copy](type === "title" ? { s, o: opts2 } : { u: s as "url", o: opts2 }, cPort)
       resolve(1)
       return
@@ -115,7 +116,7 @@ export const joinTabs = (resolve: OnCmdResolved): void | kBgCmd.joinTabs => {
   const sortOpt = get_cOptions<C.joinTabs, true>().order != null ? get_cOptions<C.joinTabs, true>().order
       : get_cOptions<C.joinTabs, true>().sort
   const windowsOpt: string | undefined | null = get_cOptions<C.joinTabs, true>().windows
-  const onlyCurrent = windowsOpt === "current"
+  const onlyCurrent = windowsOpt === "current", allWindows = windowsOpt === "all"
   if (OnEdge && !onlyCurrent) {
     showHUD("Can not collect tab info of all windows")
     resolve(0)
@@ -183,7 +184,8 @@ export const joinTabs = (resolve: OnCmdResolved): void | kBgCmd.joinTabs => {
         cb(wnd2)
       })
     } else {
-      wnds = onlyCurrent || !_curWnd || windowsOpt === "all" ? wnds : wnds.filter(wnd => wnd.id !== _curWnd.id)
+      wnds = onlyCurrent || !_curWnd || allWindows || sortOpt && !windowsOpt ? wnds
+          : wnds.filter(wnd => wnd.id !== _curWnd.id)
       cb(_curWnd)
     }
     }

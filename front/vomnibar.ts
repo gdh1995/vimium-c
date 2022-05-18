@@ -806,7 +806,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
             ? Build.MinFFVer < FirefoxBrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
               && Vomnibar_.browserVer_ > FirefoxBrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp - 1
             : ! (!(Build.BTypes & ~BrowserType.Edge) || Build.BTypes & BrowserType.Edge && BTy & BrowserType.Edge))
-        ? new RegExp("[^\\p{L}\\p{Nd}_]+", "u") : /[^\w\u0386-\u03fb\u4e00–\u9fff]+/)
+        ? new RegExp("[^\\p{L}\\p{Nd}_]+", "u") : /[^\w\u0386-\u03fb\u4e00-\u9fff]+/)
     const isDel = code === 4 || code < 0, isExtend = isDel || code > 6, isRight = code > 3 && code < 8
     const input = Vomnibar_.input_, spacesRe = <RegExpOne> /\s+/
     if (Build.BTypes & ~BrowserType.Firefox && (!(Build.BTypes & BrowserType.Firefox) || BTy !== BrowserType.Firefox)
