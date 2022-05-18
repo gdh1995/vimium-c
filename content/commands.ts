@@ -217,7 +217,7 @@ set_contentCommands_([
         && !parApi.a(keydownEvents_)) {
       parApi.f(kFgCmd.goNext, req as CmdOptions[kFgCmd.goNext] & FgOptions, 1)
     } else if (chosen = isHTML_()
-        && (req.r && findNextInRel(req.r) || req.p.length && findNextInText(req.p, req))) {
+        && (req.r && findNextInRel(req.r, req.n) || req.p.length && findNextInText(req.p, req))) {
       chosen[1].j(chosen[0], req)
     } else {
       runFallbackKey(req, kTip.noLinksToGo, VTr(kTip.prev + <number> <boolean | number> req.n))

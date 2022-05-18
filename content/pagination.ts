@@ -1,12 +1,12 @@
 import {
   clickable_, vApi, isAlive_, safer, timeout_, escapeAllForRe, tryCreateRegExp, VTr, isTY, Lower, chromeVer_,
-  OnChrome, OnFirefox, OnEdge, evenHidden_, doc
+  OnChrome, OnFirefox, OnEdge, evenHidden_, doc, firefoxVer_
 } from "../lib/utils"
 import {
   htmlTag_, isAriaFalse_, isStyleVisible_, querySelectorAll_unsafe_, isIFrameElement, ALA, attr_s,
   contains_s, notSafe_not_ff_, hasTag_
 } from "../lib/dom_utils"
-import { getBoundingClientRect_, view_ } from "../lib/rect"
+import { getBoundingClientRect_, isNotInViewport, view_, VisibilityType } from "../lib/rect"
 import { kSafeAllSelector, detectUsableChild } from "./link_hints"
 import { traverse, ngEnabled } from "./local_links"
 import { find_box } from "./mode_find"
@@ -109,7 +109,7 @@ export const filterTextToGoNext: VApiTy["g"] = (candidates, names, options, maxL
 export const findNextInText = (names: string[], options: CmdOptions[kFgCmd.goNext]
     ): GoNextBaseCandidate | void => {
   const wordRe = <RegExpOne> /\b/
-  let array: GoNextCandidate[] = [], officer: VApiTy | undefined, maxLen = options.m, s: string
+  let array: GoNextCandidate[] = [], officer: VApiTy | undefined, maxLen = options.m, candidate: GoNextCandidate
   let curLenLimit: number
   iframesToSearchForNext = [vApi]
   while (officer = iframesToSearchForNext.pop()) {
@@ -121,25 +121,36 @@ export const findNextInText = (names: string[], options: CmdOptions[kFgCmd.goNex
   }
   iframesToSearchForNext = null
   array = array.sort((a, b) => a[2] - b[2])
+  let arr2: GoNextCandidate[] = []
   for (let i = array.length ? array[0][2] >> 23 : GlobalConsts.MaxNumberOfNextPatterns; i < names.length; ) {
-    s = names[i++];
+    const s = names[i++]
     const re = tryCreateRegExp(wordRe.test(s[0]) || wordRe.test(s.slice(-1))
         ? `\\b${escapeAllForRe(s)}\\b` : escapeAllForRe(s))!, j = i << 23
-    for (const candidate of array) {
-      if (candidate[2] > j) { break }
-      if (!candidate[3] || re.test(candidate[3])) { return candidate }
+    for (candidate of array) {
+      if (candidate[2] > j) { i = GlobalConsts.MaxNumberOfNextPatterns; break }
+      if (!candidate[3] || re.test(candidate[3])) {
+        candidate[1] === vApi && !isNotInViewport(candidate[0]) && (arr2 = [])
+        arr2.push(candidate)
+      }
     }
   }
+  return arr2[0]
 }
 
-export const findNextInRel = (relName: string): GoNextBaseCandidate | null | undefined => {
-  let elements: ArrayLike<Element> = querySelectorAll_unsafe_(OnEdge ? "a[rel],area[rel],link[rel]"
-      : OnFirefox && Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredCSS$is$selector
-      ? VTr(kTip.webkitWithRel).replace("-webkit-any", "is")
-      : OnFirefox ? VTr(kTip.webkitWithRel).replace("webkit", "moz") : VTr(kTip.webkitWithRel))!
+export const findNextInRel = (relName: string, isNext: boolean): GoNextBaseCandidate | null | undefined => {
+  const notFiltered = OnEdge || OnChrome && Build.MinCVer < BrowserVer.MinEnsuredCaseInSensitiveAttrSelector
+      && chromeVer_ < BrowserVer.MinEnsuredCaseInSensitiveAttrSelector
+  let query = OnEdge ? "a[rel],area[rel],link[rel]" : VTr(kTip.isWithRel, notFiltered ? "" : relName)
+  let elements: ArrayLike<Element> = querySelectorAll_unsafe_(OnEdge ? query
+      : OnFirefox ? Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredCSS$is$selector
+        || firefoxVer_ > FirefoxBrowserVer.MinEnsuredCSS$is$selector - 1 ? query : query.replace("is", "-moz-any")
+      : !OnChrome || Build.MinCVer >= BrowserVer.MinEnsuredCSS$is$selector
+        || chromeVer_ > BrowserVer.MinEnsuredCSS$is$selector - 1 ? query
+      : OnChrome && Build.MinCVer >= BrowserVer.MinEnsuredCaseInSensitiveAttrSelector ? ":-webkit-any" + query.slice(3)
+      : ":-webkit-any" + query.slice(3).replace("~= i", ""))!
   let s: string | null | undefined;
   type HTMLElementWithRel = HTMLAnchorElement | HTMLAreaElement | HTMLLinkElement;
-  let matched: HTMLElementWithRel | undefined, tag: "a" | "area" | "link" | ""
+  let matched: HTMLElementWithRel | undefined, invisible: VisibilityType | 9 = 9, tag: "a" | "area" | "link" | ""
   const re1 = <RegExpOne> /\s/
   if (OnChrome && Build.MinCVer < BrowserVer.MinEnsured$ForOf$ForDOMListTypes
       && Build.MinCVer >= BrowserVer.BuildMinForOf
@@ -148,10 +159,10 @@ export const findNextInRel = (relName: string): GoNextBaseCandidate | null | und
   }
   for (const element of elements as SafeHTMLElement[]) {
     if ((tag = htmlTag_(element) as typeof tag)
-        && (s = OnChrome && Build.MinCVer < BrowserVer.Min$HTMLAreaElement$rel
+        && (!notFiltered || (s = OnChrome && Build.MinCVer < BrowserVer.Min$HTMLAreaElement$rel
                 ? attr_s(element, "rel")
                 : (element as TypeToPick<HTMLElement, HTMLElementWithRel, "rel">).rel)
-        && Lower(s).split(re1).indexOf(relName) >= 0
+            && Lower(s).split(re1).indexOf(relName) >= 0)
         && ((s = (element as HTMLElementWithRel).href) || tag < "aa")
         && (tag > "b" || isInteractiveInPage(element))) {
       if (matched) {
@@ -159,7 +170,11 @@ export const findNextInRel = (relName: string): GoNextBaseCandidate | null | und
           return null;
         }
       }
-      matched = element as HTMLElementWithRel;
+      if (!matched || (invisible < 9 ? invisible : (invisible = isNotInViewport(matched as typeof element)))
+          || !isNext && !isNotInViewport(element)) {
+        invisible = !matched || invisible ? 9 : VisibilityType.Visible
+        matched = element as HTMLElementWithRel
+      }
     }
   }
   return matched && [matched as SafeHTMLElement, vApi]

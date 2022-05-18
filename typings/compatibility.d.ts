@@ -202,6 +202,7 @@ declare const enum BrowserVer {
   MinEnsuredCSSVariables = 49, // even if LEGACY; works on C48 if EXPERIMENTAL
   MinTestedES6Environment = 49, // must be <= MinEnsuredFullES6Environment
   MinCSS$whiteSpace$$pre$Means$overflowWrap$$normal = 49, // even if EXPERIMENTAL
+  MinEnsuredCaseInSensitiveAttrSelector = 49, // even if LEGACY; since C38 if EXPERIMENTAL
   // Object.observe is from C36 to C49 even if EXPERIMENTAL or LEGACY
   MinES6No$Object$$Observe = 50,
   // The real support for arg frameId of chrome.tabs.executeScript is since C50,
@@ -542,6 +543,7 @@ declare const enum BrowserVer {
   MinCSS$quotes$$auto = 87,
   MinMaybeScrollbarGutter = 88, // since 94 if not EXPERIMENTAL but even LEGACY
   Min$TargetIsBlank$Implies$Noopener = 88, // https://chromestatus.com/features/6140064063029248
+  MinEnsuredCSS$is$selector = 88, // even if LEGACY; since C68 if EXPERIMENTAL
   MinEnsuredES$TopLevelAwait = 89, // even if LEGACY; since 84 if EXPERIMENTAL
   MinForcedColorsMode = 89, // even if EXPERIMENTAL or LEGACY; enable `(forced-colors: active|none)` and color schemes
   MinCaptureBeforeBubbleOnEventTarget = 89, // even if EXPERIMENTAL or LEGACY

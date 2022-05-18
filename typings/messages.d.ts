@@ -12,7 +12,7 @@ declare const enum kTip {
   /* 71: */ noLinks, exitForIME, linkRemoved, notImg,
   /* 75: */ hoverScrollable, ignorePassword, noNewToCopy, downloaded, nowGotoMark,
   /* 80: */ nowCreateMark, noMatchFor, inVisualMode, noUsableSel, loseSel,
-  /* 85: */ needSel, omniFrameFail, editableSelector, removeCurScript, webkitWithRel,
+  /* 85: */ needSel, omniFrameFail, editableSelector, removeCurScript, isWithRel,
   /* 90: */ notANestedFrame, cssUrl, newClickableClasses, oldClickableClasses, clickableRoles,
   /* 95: */ invisibleHintText, notMatchedHintText, metaKeywordsForMobile, css0d01OrDPI, visibleElementsInScopeChildren,
   /* 100: */ voidJS, nonLocalhostRe, scrollable, buttonOrA, closableClasses,

@@ -78,7 +78,7 @@
   "86": { "message": "Sorry, Vomnibar page seems to fail to load" },
   "87": { "message": "input,textarea,[contenteditable]" },
   "88": { "message": "document.currentScript.remove()" },
-  "89": { "message": ":-webkit-any(a,area,link)[rel]" },
+  "89": { "message": ":is(a,area,link)[rel~=$1 i]" },
   "90": { "message": "a,button,input,frame,iframe" },
   "91": { "message": "^url\\(\\s?['\"]?((?:\\\\['\"]|[^'\"])+?)['\"]?\\s?\\)" },
   "92": { "message": "(?:(?<=\\b|_)(?:b(?:utto|t)n|close|hate|like)|B(?:utto|t)n|Close)(?=$$|[-\\sA-Z_])" },
