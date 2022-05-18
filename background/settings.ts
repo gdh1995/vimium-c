@@ -282,7 +282,7 @@ export const defaults_ = As_<Readonly<SettingsWithDefaults> & SafeObject>({
     __proto__: null as never,
     allBrowserUrls: false,
     autoDarkMode: 2,
-    autoReduceMotion: 0,
+    autoReduceMotion: 2,
     clipSub: `p=^git@([^/:]+):=https://$1/=
 s@^https://(?:www\\.)?google\\.com(?:\\.[^/]+)?/url\\?(?:[^&#]+&)*?url=([^&#]+)@$1@,matched,decodecomp
 p@^https://item\\.m\\.jd\\.com/product/(\\d+)\\.html\\b@https://item.jd.com/$1.html@`,

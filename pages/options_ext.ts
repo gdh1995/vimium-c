@@ -130,6 +130,16 @@ const buildExportedFile = (now: Date, want_static: boolean): { blob: Blob, optio
   }
   omniBlockListRe = null
   let exported_data = JSON.stringify(exported_object, null, "\t") + "\n"
+  const arr = exported_data.split("\n")
+  for (let i = 0; i < arr.length; i++) {
+    if (arr[i].replace(<RegExpG> /[\u4e00-\u9fff]/g, "  ").length + 1 > 120
+        && (<RegExpOne> /^\s+"\w+":/).test(arr[i])) {
+      let left = arr[i].split(":", 1)[0] + ":", right = arr[i].slice(left.length).trimLeft()
+      right = right.replace(<RegExpG> /[\u4e00-\u9fff]/g, "  ").length + 4 > 120 ? right : "\t\t" + right
+      arr[i] = left + "\n" + right
+    }
+  }
+  exported_data = arr.join("\n")
   if (exported_object.environment.platform === "win") {
     // in case "endings" didn't work
     exported_data = exported_data.replace(<RegExpG> /\n/g, "\r\n");
@@ -385,7 +395,7 @@ async function _importSettings(time: number, new_data: ExportedSettings, is_reco
     console.info("no differences found.")
   } else if (old_settings_file.options > 0) {
     console.info(`[message] you may recover old configuration of ${old_settings_file.options
-        } options, by open the blob: URL below IN THIS TAB:\n%c${URL.createObjectURL(old_settings_file.blob)}`
+        } option(s), by open the blob: URL below ON THIS TAB:\n%c${URL.createObjectURL(old_settings_file.blob)}`
         , "color: #15c;")
   }
   console.info("import settings: finished.")
