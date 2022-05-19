@@ -487,7 +487,7 @@ export const loadChecker = (): void => { void import2("./options_checker.js") }
 document.addEventListener("keydown", (event): void => {
   if (event.keyCode !== kKeyCode.space) {
     if (!VApi || !VApi.z || "input textarea".includes(document.activeElement!.localName as string)) { return; }
-    const key = VApi.r[3]({c: kChar.INVALID, e: event, i: event.keyCode}, kModeId.NO_MAP_KEY)
+    const key = VApi.r[3]({c: kChar.INVALID, e: event, i: event.keyCode, v: ""}, kModeId.NO_MAP_KEY)
     if (key === "a-" + kChar.f12) {
       let el2 = $<HTMLSelectElement>("#importOptions");
       const oldSelected = el2.selectedIndex, callback = (): void => {

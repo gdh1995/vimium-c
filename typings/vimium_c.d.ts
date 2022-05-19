@@ -581,7 +581,7 @@ declare const enum GlobalConsts {
 
   SelectorPrefixesInPatterns = ".#[",
   DelimiterBetweenKeyCharAndMode = ":",
-  ModeIds = ":nilofvmes",
+  ModeIds = "nneilofvms",
   InsertModeId = "i",
   NormalModeId = "n",
   OmniModeId = "o",
@@ -591,13 +591,14 @@ declare const enum GlobalConsts {
 }
 
 declare const enum kModeId {
-  Plain = 0, Normal, Insert, Link, Omni, Find, Visual, Marks, Next, Show, NO_MAP_KEY,
+  Plain = 0, Normal, Next, Insert, max_not_command = Insert, Link, Omni, Find, Visual, Marks,
+  Show, NO_MAP_KEY,
 }
 declare const enum kHandler {
-  __none, __normal, __insert, linkHints, omni, find, visual, marks,
+  __none, __normal, __next, __insert, linkHints, omni, find, visual, marks,
   NOT_MEAN_kModeId,
   postFind = NOT_MEAN_kModeId, unhoverOnEsc, grabBackFocus, helpDialog, focusInput,
-  passNextKey = __normal, suppressTail = __insert, _mask = ""
+  passNextKey = __normal, suppressTail = __next, _mask = ""
 }
 
 declare const enum kCharCode {

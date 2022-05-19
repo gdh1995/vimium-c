@@ -368,7 +368,7 @@ function clickLink(this: void, options: { [key: string]: string }
 function imgOnKeydown(event: KeyboardEventToPrevent): boolean {
   if (VData.error) { return false; }
   const {keyCode} = event,
-  key = VApi && VApi.z ? VApi.r[3]({c: kChar.INVALID, e: event, i: keyCode}, kModeId.Show)
+  key = VApi && VApi.z ? VApi.r[3]({c: kChar.INVALID, e: event, i: keyCode, v: ""}, kModeId.Show)
       : keyCode === kKeyCode.space ? kChar.space : keyCode === kKeyCode.enter ? kChar.enter : "",
   keybody = (key.slice(key.lastIndexOf("-") + 1) || key && kChar.minus) as kChar;
   if (keybody === kChar.space || keybody === kChar.enter) {

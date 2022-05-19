@@ -27,7 +27,7 @@ import { hudHide, hud_box, hudTip, hud_opacity, toggleOpacity as hud_toggleOpaci
 import { post_, send_, runFallbackKey, contentCommands_ } from "./port"
 import { insert_Lock_, setupSuppress } from "./insert"
 import { lastHovered_, set_lastHovered_, select_ } from "./async_dispatcher"
-import { isVKey_, set_isCmdTriggered } from "./key_handler"
+import { checkKey, set_isCmdTriggered } from "./key_handler"
 
 export declare const enum FindAction {
   PassDirectly = -1,
@@ -514,7 +514,7 @@ const onIFrameKeydown = (event: KeyboardEventToPrevent): void => {
         ? !event.isTrusted : event.isTrusted === false) { return; }
     if (!n || n === kKeyCode.ime || scroll_keyIsDown && onScrolls(event)
         || event.type === "keyup" && !set_isCmdTriggered(0)) { return }
-    const eventWrapper: HandlerNS.Event = {c: kChar.INVALID, e: event, i: n},
+    const eventWrapper: HandlerNS.Event = {c: kChar.INVALID, e: event, i: n, v: ""},
     key = getMappedKey(eventWrapper, kModeId.Find), keybody = keybody_(key);
     const i: FindAction | KeyStat = key.includes("a-") && event.altKey ? FindAction.DoNothing
       : keybody === ENTER
@@ -528,7 +528,7 @@ const onIFrameKeydown = (event: KeyboardEventToPrevent): void => {
       : FindAction.Exit;
     let h = HandlerResult.Prevent, scroll: number;
     if (i < FindAction.PassDirectly + 1) { h = HandlerResult.Suppress }
-      else if (i || isVKey_(key, eventWrapper)) { /* empty */ }
+      else if (i || eventWrapper.v && (checkKey(eventWrapper, eventWrapper.v), 1)) { /* empty */ }
       else if (keybody !== key) {
         if (key === `a-${kChar.f1}`) {
           prepareCrop_();
@@ -598,7 +598,7 @@ const onHostKeydown = (event: HandlerNS.Event): HandlerResult => {
     deactivate(FindAction.ExitNoFocus) // should exit
     return HandlerResult.Prevent
   }
-  return isVKey_(key, event)
+  return event.v ? HandlerResult.Prevent : HandlerResult.Nothing
 }
 
   if (OnEdge

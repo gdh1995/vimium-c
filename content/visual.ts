@@ -58,7 +58,7 @@ import {
 import { insert_Lock_, raw_insert_lock } from "./insert"
 import { hudTip, hudHide, hudShow } from "./hud"
 import { post_, send_, runFallbackKey, contentCommands_ } from "./port"
-import { currentKeys, set_currentKeys, isVKey_ } from "./key_handler"
+import { currentKeys, set_currentKeys } from "./key_handler"
 
 let modeName: string
 /** need real diType */
@@ -394,7 +394,8 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode], count: number):
     if (!key || isEscape_(key)) {
       !key || currentKeys || currentSeconds ? (currentSeconds = void 0) : deactivate(1)
       // if doPass, then use nothing to bubble such an event, so handlers like LinkHints will also exit
-      return esc!(key ? HandlerResult.Prevent : doPass ? HandlerResult.Nothing : HandlerResult.Suppress)
+      return event.v ? HandlerResult.Prevent
+          : esc!(key ? HandlerResult.Prevent : doPass ? HandlerResult.Nothing : HandlerResult.Suppress)
     }
     if (keybody_(key) === ENTER) {
       currentSeconds = void 0
@@ -407,8 +408,7 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode], count: number):
     if (isTY(newActions, kTY.obj) || !(newActions as VisualAction >= 0)) {
       // asserts newActions is SafeDict<VisualAction> | undefined
       currentSeconds = newActions as Exclude<typeof newActions, number>
-      return isVKey_(key, event) ? HandlerResult.Prevent
-          : keybody < kChar.minNotF_num && keybody > kChar.maxNotF_num ? HandlerResult.Nothing
+      return keybody < kChar.minNotF_num && keybody > kChar.maxNotF_num ? HandlerResult.Nothing
           : newActions ? HandlerResult.Prevent
           : (set_currentKeys(key.length < 2 && +key < 10 ? currentKeys + key : ""),
               keybody.length > 1 || key !== keybody && key < "s" ? HandlerResult.Suppress : HandlerResult.Prevent)

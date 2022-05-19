@@ -395,7 +395,7 @@ const onKeydown = (event: HandlerNS.Event): HandlerResult => {
     } else if (key = getMappedKey(event, kModeId.Link), keybody = keybody_(key),
         isEscape_(key) || onTailEnter && keybody === BSP) {
       clear();
-    } else if (i === kKeyCode.esc) {
+    } else if (i === kKeyCode.esc || event.v) {
       ret = HandlerResult.Suppress
     } else if (onTailEnter && keybody !== kChar.f12) {
       onTailEnter(event, key, keybody);
