@@ -355,7 +355,7 @@ export const executeScroll: VApiTy["c"] = function (di: ScrollByY, amount0: numb
     }
     const element = findScrollable(di, toFlags ? toMax || -1 : amount0
         , options && (options.scroll ? options.scroll === "force"
-            : options.evenIf != null ? !!(options.evenIf & kHidden.OverflowHidden) : null)
+            : options.evenIf != null ? (options.evenIf & kHidden.OverflowHidden) as 0 | 2 : null)
         , options && options.scrollable)
     const isTopElement = element === scrollingTop
     const mayUpperFrame = !isTop && isTopElement && element && !fullscreenEl_unsafe_()
@@ -472,11 +472,11 @@ export const onScrolls = (event: KeyboardEventToPrevent): boolean => {
    * @param amount should not be 0
    */
 const findScrollable = (di: ScrollByY, amount: number
-    , evenOverflowHidden?: boolean | 2 | null | undefined, scrollable?: string): SafeElement | null => {
+    , evenOverflowHidden?: boolean | 0 | 2 | null | undefined, scrollable?: string): SafeElement | null => {
   const selectFirst = (info: ElementScrollInfo, skipPrepare?: 1): ElementScrollInfo | null | undefined => {
     let cur_el = info.e, type: 0 | 1 | -1
     if (dimSize_(cur_el, kDim.elClientH) + 3 < dimSize_(cur_el, kDim.scrollH) &&
-        (type = shouldScroll_s(cur_el, cur_el !== scrollingTop ? selectFirstType : 1, 1),
+        (type = shouldScroll_s(cur_el, cur_el !== top && cur_el !== body ? selectFirstType : 1, 1),
           type > 0 || !type && dimSize_(cur_el, kDim.positionY) > 0 && doesScroll(cur_el, kDim.byY, 0))) {
       return info
     }
@@ -498,7 +498,7 @@ const findScrollable = (di: ScrollByY, amount: number
 
     const selectFirstType = (evenOverflowHidden != null ? evenOverflowHidden : isTop || injector) ? 3 : 1
     const activeEl: SafeElement | null | undefined = derefInDoc_(currentScrolling) || null
-    const fullscreen = fullscreenEl_unsafe_(), top: Element | null = fullscreen || scrollingTop
+    const fullscreen = fullscreenEl_unsafe_(), top: Element | null = fullscreen || scrollingTop, body = doc.body
     let element: Element | null = activeEl
     if (element) {
       while (element !== top && (!fullscreen || IsInDOM_(element as SafeElement, fullscreen))

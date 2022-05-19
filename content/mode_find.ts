@@ -522,8 +522,7 @@ const onIFrameKeydown = (event: KeyboardEventToPrevent): void => {
           : (query_ && post_({ H: kFgReq.findQuery, q: query0_ }), FindAction.ExitForEnter)
       : keybody !== DEL && keybody !== BSP
         ? isEscape_(key) ? FindAction.ExitForEsc : FindAction.DoNothing
-      : OnFirefox && Build.OS & (1 << kOS.unixLike) && os_ === kOS.unixLike && "cs".includes(key[0])
-        ? FindAction.CtrlDelete
+      : OnFirefox && key[0] === "c" ? FindAction.CtrlDelete
       : query_ || (n === kKeyCode.deleteKey && (Build.OS & ~(1 << kOS.mac) && Build.OS & (1 << kOS.mac) ? os_
           : !!(Build.OS & ~(1 << kOS.mac))) || event.repeat) ? FindAction.PassDirectly
       : FindAction.Exit;
@@ -570,7 +569,7 @@ const onIFrameKeydown = (event: KeyboardEventToPrevent): void => {
     if (OnFirefox && i === FindAction.CtrlDelete) {
       const sel = getSelectionOf(innerDoc_)!
       // on Chrome 79 + Win 10 / Firefox 69 + Ubuntu 18, delete a range itself
-      // while on Firefox 70 + Win 10 it collapses first
+      // while on Firefox 70 + Win 10 / FF 100 + W11 it collapses first, which is not expected
       sel.type === "Caret" && modifySel(sel, 1, keybody > kChar.d, "word")
       execCommand(DEL)
       return;

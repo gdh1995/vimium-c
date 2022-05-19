@@ -206,7 +206,7 @@ export const onKeydown = (event: KeyboardEventToPrevent): void => {
           : (!OnChrome || Build.MinCVer >= BrowserVer.MinEnsured$KeyboardEvent$$Key
               || event.key) && event.key!.length === 1 ? kChar.INVALID : ""
     if (insert_global_ ? insert_global_.k ? keyStr === insert_global_.k : isEscape_(keyStr)
-        : keyStr.length < 2 && !nextKeys ? esc!(HandlerResult.Nothing)
+        : !keyStr ? HandlerResult.Nothing : keyStr.length < 2 && !nextKeys ? esc!(HandlerResult.Nothing)
         : (action = checkKey(eventWrapper, keyStr, kMapKey.directInsert)) > HandlerResult.MaxNotEsc
     ) {
       OnChrome && checkAccessKey_cr(eventWrapper) // even if nothing will be done or `passEsc` matches

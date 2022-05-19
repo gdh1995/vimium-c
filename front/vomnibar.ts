@@ -341,6 +341,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   },
   reset_ (input: string, start?: number, end?: number): void {
     const a = Vomnibar_;
+    (<RegExpOne> /^\+\d\d?$/).test(input.trim()) && (start = end = 0, input = " " + input.trim())
     a.inputText_ = input;
     a.useInput_ = a.showing_ = false;
     a.isHttps_ = a.baseHttps_;
@@ -348,15 +349,11 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     a.height_ = 0;
     a.AfterHide_() // clear afterHideTimer_
     a.isActive_ = true;
-    (<RegExpOne> /^\+\d\d?(\s|$)/).test(Vomnibar_.inputText_.trim()) && (start = end = 0)
     // also clear @timer
-    a.update_(0, start! <= end! ? function (): void {
-      if (Vomnibar_.input_.value === Vomnibar_.inputText_) {
-        Vomnibar_.input_.setSelectionRange(start!, end!);
-      }
-    } : null);
+    a.update_(0)
     if (a.init_) { a.init_(); }
     a.input_.value = a.inputText_;
+    start! <= end! && a.input_.setSelectionRange(start!, end!)
   },
   focus_ (this: void, focus?: false | TimerType.fake | "focus" | 1 | 2 | 3 | 4 | 5): void {
     const a = Vomnibar_;
