@@ -524,9 +524,9 @@ const callExecuteHint = (hint: ExecutableHintItem, event?: HandlerNS.Event): voi
   })
 }
 
-export const findAnElement_ = (options: OptionsToFindElement, count: number
+export const findAnElement_ = (options: OptionsToFindElement, count: number, alsoBody?: 1
     ): [element: SafeElement | null | undefined, wholeDoc: boolean, indByCount: boolean, sel: boolean | undefined ] => {
-  const d = options.direct! as string | true, exOpts = options.directOptions || {},
+  const exOpts = options.directOptions || {},
   elIndex = exOpts.index, indByCount = elIndex === "count" || count < 0,
   offset = exOpts.offset || "", wholeDoc = ("" + exOpts.search).startsWith("doc"),
   matchEl = wholeDoc ? (hints: Hint0[], el1: SafeElement): void => {
@@ -547,20 +547,24 @@ export const findAnElement_ = (options: OptionsToFindElement, count: number
   let isSel: boolean | undefined
   let matches: (Hint | Hint0)[] | undefined, oneMatch: Hint | Hint0 | undefined, matchIndex: number
   let el: SafeElement | null | false | undefined
+  let d = options.direct! as string | true, defaultMatch = options.match
+  d = isTY(d) ? d : "em,sel,f,h"
   prepareCrop_()
-  for (let i of (isTY(d) ? d : "em,sel,f,h").split(",")) {
-    const testD = "".includes.bind(i)
-    el = testD("em") ? options.match // element
+  for (let i of d.split(d.includes(";") ? ";" : ",")) {
+    const testD = "".includes.bind(Lower(i.split("=")[0])), j = i.slice(i.indexOf("=") + 1 || i.length).trim()
+    el = testD("em") ? (options.match = <"css-selector" | ""> j || defaultMatch) // element
       && (matches = traverse(kSafeAllSelector, options, matchEl, 1, wholeDoc),
           matchIndex = indByCount ? count < 0 ? count : count - 1 : +elIndex! || 0,
           oneMatch = matches.slice(offset > "e" ? ~matchIndex : offset < "c" ? matchIndex : computeOffset())[0])
       && oneMatch[0]
       : testD("sel") // selected
         ? isSelARange(getSelection_()) && (el = getSelectionFocusEdge_(getSelected()), isSel = !!el, el)
-      : testD("f") ? (insert_Lock_() // focused
-              || (OnFirefox ? <SafeElement | null> deepActiveEl_unsafe_() : SafeEl_not_ff_!(deepActiveEl_unsafe_())))
+      : testD("f") ? /* focused */ insert_Lock_() || (OnFirefox ? <SafeElement | null> deepActiveEl_unsafe_(alsoBody)
+            : SafeEl_not_ff_!(deepActiveEl_unsafe_(alsoBody)))
       : (testD("h") || testD("cl")) ? derefInDoc_(lastHovered_) // hover | clicked
-      : /* d !== !0 &&*/ testD("s") || testD("a") ? derefInDoc_(currentScrolling) // currentScrollable / DOMActivate
+      : testD("sc") || testD("a") ? derefInDoc_(currentScrolling) // currentScrollable / DOMActivate
+      : testD("b") ? /* body */ OnFirefox ? <SafeElement | null> (doc.body || docEl_unsafe_())
+          : SafeEl_not_ff_!(doc.body || docEl_unsafe_())
       : null
     if (el = testD("em") || el && isNotInViewport(el) < (wholeDoc
           ? VisibilityType.NotInFullscreen : VisibilityType.OutOfView) ? el : null) { break }

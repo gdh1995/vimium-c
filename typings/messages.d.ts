@@ -353,7 +353,9 @@ interface CmdOptions {
     n: string; // `"${SettingsNS.FrontendSettingsSyncingItems[keyof SettingsNS.FrontendSettingsSyncingItems][0]}"`
     v: SettingsNS.FrontendSettings[keyof SettingsNS.FrontendSettings] | null;
   };
-  [kFgCmd.passNextKey]: { normal?: boolean | "force"; expect: "<any-key>"; ignoreCase?: boolean } & Req.FallbackOptions
+  [kFgCmd.passNextKey]: {
+    normal?: boolean | "force"; expect: "<any-key>"; consume?: boolean; ignoreCase?: boolean
+  } & Req.FallbackOptions
   [kFgCmd.framesGoBack]: (Pick<OpenUrlOptions, "reuse" | "position"> & { r?: null }
       | { r: 1 } & ({ u: string; hard?: undefined } | { u?: undefined; hard?: boolean })) & Req.FallbackOptions
   [kFgCmd.vomnibar]: {
@@ -374,12 +376,8 @@ interface CmdOptions {
     /** scroll into view */ v: boolean;
   } & CSSOptions & Req.FallbackOptions;
   [kFgCmd.insertMode]: ({
-    /** unhover last */ u: true;
-    /** reset all: 2=destroying */ r?: 0;
-    /** insert mode */ i?: false;
-  } | {
-    /** unhover last */ u?: false;
-    /** reset all: 2=destroying */ r: 0 | 1 | 2;
+    /** unhover last */ u?: boolean;
+    /** reset all: 2=destroying */ r?: 0 | 1 | 2;
     /** insert mode */ i?: false;
   } | {
     /** unhover last */ u?: boolean;

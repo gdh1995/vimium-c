@@ -147,7 +147,7 @@ interface BgCmdOptions {
   [kBgCmd.toggleZoom]: { level: number; in?: true; out?: true; reset?: true; min: number; max: number }
   [kBgCmd.visitPreviousTab]: { acrossWindows: true; onlyActive: true } & TabFilterOptions & Req.FallbackOptions
   [kBgCmd.closeDownloadBar]: { newWindow?: null | true | false; all: 1 }
-  [kBgCmd.reset]: {}
+  [kBgCmd.reset]: { suppress: boolean } & Pick<BgCmdOptions[kBgCmd.insertMode], "unhover"> & Req.FallbackOptions
   [kBgCmd.openBookmark]: { title: string; path: string; name: string; value: string
       $cache: CompletersNS.Bookmark["id_"] | null } & MaskOptions
 }

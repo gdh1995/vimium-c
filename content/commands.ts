@@ -40,7 +40,7 @@ import { activate as omniActivate, hide as omniHide } from "./omni"
 import { findNextInText, findNextInRel } from "./pagination"
 import { traverse, getEditable, filterOutNonReachable } from "./local_links"
 import {
-  select_, unhover_async, set_lastHovered_, hover_async, lastHovered_, catchAsyncErrorSilently, setupIDC_cr, click_async
+  select_, unhover_async, set_lastHovered_, lastHovered_, catchAsyncErrorSilently, setupIDC_cr, click_async
 } from "./async_dispatcher"
 /* eslint-disable @typescript-eslint/no-floating-promises */
 
@@ -92,7 +92,6 @@ set_contentCommands_([
     }
     if (opt.r) {
       setNewScrolling(null)
-      hover_async()
       resetInsert(), linkClear((2 - opt.r) as BOOL), visualDeactivate && visualDeactivate()
       findDeactivate && findDeactivate(FindAction.ExitNoAnyFocus)
       omniHide(), hideHelp && hideHelp()
@@ -146,7 +145,7 @@ set_contentCommands_([
         } else {
           esc!(HandlerResult.Nothing)
         }
-        return HandlerResult.Prevent
+        return matched || options.consume !== !1 ? HandlerResult.Prevent : HandlerResult.Nothing
       }, kHandler.passNextKey)
       set_passAsNormal(1)
       set_esc((i: HandlerResult): HandlerResult => {
@@ -454,7 +453,7 @@ set_contentCommands_([
       keydownEvents_[kKeyCode.None] = 0
       useResult = 1
     } else {
-      const found = findAnElement_(options, count)
+      const found = findAnElement_(options, count, 1)
       activeEl = found[0]
       if (!activeEl) {
         return runFallbackKey(options, 2, "", delay)

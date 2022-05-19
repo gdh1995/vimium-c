@@ -826,13 +826,14 @@ set_bgC_([
       }
     })
   },
-  /* kBgCmd.reset */ (resolve): void | kBgCmd.reset => {
+  /* kBgCmd.reset: */ (): void | kBgCmd.reset => {
     const ref = framesForTab_.get(cPort ? cPort.s.tabId_ : curTabId_)
+    const unhover = !!get_cOptions<C.reset>().unhover, suppressKey = get_cOptions<C.reset>().suppress
     for (const frame of ref ? ref.ports_ : []) {
-      portSendFgCmd(frame, kFgCmd.insertMode, false, { r: 1 }, 1)
+      portSendFgCmd(frame, kFgCmd.insertMode, false, { r: 1, u: unhover }, 1)
     }
+    (runNextCmdBy(1, get_cOptions<C.reset, true>()) ? suppressKey === true : suppressKey !== false) &&
     ref && ref.cur_.postMessage({ N: kBgReq.suppressForAWhile, t: 150 })
-    resolve(1)
   },
   /* kBgCmd.openBookmark: */ (resolve): void | kBgCmd.openBookmark => {
     const rawCache = get_cOptions<C.openBookmark, true>().$cache
