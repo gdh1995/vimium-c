@@ -648,8 +648,8 @@ set_bgC_([
         }
       }
       if (!list || !hasExtra && list.length < count) {
-        list = await Qs_(sessions.getRecentlyClosed, count <= 25 && !onlyCurrentWnd ? { maxResults: count }
-            : {}) // lgtm [js/superfluous-trailing-arguments]
+        list = await Qs_(sessions.getRecentlyClosed, count <= 25 // lgtm [js/superfluous-trailing-arguments]
+              && !onlyCurrentWnd ? { maxResults: count } : {}) // lgtm [js/superfluous-trailing-arguments]
         list = filter ? list.filter(filter) : list
       }
       if (list.length < (onlyOne ? count : 1)) { resolve(0); return showHUD(trans_("indexOOR")) }

@@ -429,7 +429,7 @@ const inlineGetters = (isES6, file) => {
     if (path.includes("/store")) {
       let prefix = text.split("void 0", 1)[0], suffix = text.slice(prefix.length)
       prefix = prefix.replace(/exports\.[gs]et_([\w$]+) ?= ?/g, "")
-      suffix = suffix.replace(/exports\.[gs]et_[\w$]+ ?=\s*\S(\{[^}]*\}|[^{;]+)+;/g, (s) =>
+      suffix = suffix.replace(/exports\.[gs]et_[\w$]+ ?=\s*\S(\{[^}]*\}|[^{;])+;/g, (s) =>
           s.startsWith("exports.set") ? "" : s.replace(/get_/g, ""))
       text = prefix + suffix
       // .replace(/exports\.[gs]et_([\w$]+)/g, "exports.$1")

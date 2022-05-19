@@ -161,9 +161,9 @@ const renderGroup = (group: string, commandToKeys: Map<string, [string, Commands
       let keyLen = -2, bindings = "", description = descriptions_.get(command)
       if (!description) {
         const params = i18nParams.get(command)
-        description = [i18n_.get(command as NormalizedNames)!
+        description = [i18n_.get(command as NormalizedNames)! // lgtm [js/incomplete-sanitization]
               .replace("<", "&lt;").replace(">", "&gt;"), // lgtm [js/incomplete-sanitization]
-            (params ? cmdParams.replace("*", () => params) : " ")]
+            (params ? cmdParams.replace("*", () => params) : " ")] // lgtm [js/incomplete-sanitization]
         descriptions_.set(command, description)
         if (!(Build.NDEBUG || description)) {
           console.log("Assert error: lack a description for %c%s", "color:red", command);

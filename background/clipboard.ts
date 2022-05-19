@@ -57,14 +57,14 @@ const parseSeds_ = (text: string, fixedContexts: Contexts | null): readonly Clip
     let sep = prefix[2], sepRe = sepReCache.get(sep)
     if (!sepRe) {
       const s = "\\u" + (sep.charCodeAt(0) + 0x10000).toString(16).slice(1)
-      sepRe = new RegExp(`^((?:\\\\${s}|[^${s}])+)${s}(.*)${s}([a-z]{0,9})((?:,[\\w-]+|,host=[\\w.*-]+)*)$`)
+      sepRe = new RegExp(`^((?:\\\\[^]|[^${s}\\\\])+)${s}(.*)${s}([a-z]{0,9})(?:,|$)`)
       sepReCache.set(sep, sepRe)
     }
-    const body = sepRe.exec(line.slice(prefix[0].length))
+    const body = sepRe.exec(line = line.slice(prefix[0].length))
     if (!body) { continue }
-    const head = prefix[1], flags = body[3], actions: SedAction[] = []
+    const head = prefix[1], flags = body[3], tail = line.slice(body[0].length), actions: SedAction[] = []
     let host: string | null = null, retainMatched: number = 0
-    for (const rawI of body[4].split(",")) {
+    for (const rawI of tail ? tail.split(",") : []) {
       const i = rawI.toLowerCase()
       if (i.startsWith("host=")) {
         host = rawI.slice(5)
@@ -420,4 +420,4 @@ set_paste_(!CONST_.AllowClipboardRead_ ? () => null
 
 updateHooks_.clipSub = (): void => { staticSeds_ = null }
 
-if (!Build.NDEBUG) { Object.assign(globalThis as any, { parseSeds_ }) }
+if (!Build.NDEBUG) { Object.assign(globalThis as any, { parseSeds_, staticSeds_: () => staticSeds_ }) }
