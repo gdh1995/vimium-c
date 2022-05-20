@@ -46,7 +46,7 @@ declare const enum kHidden {
 }
 // Note: `clickable` is not used in `focusInput`
 interface CSSOptions {
-  match?: "css-selector" | " " | null | undefined
+  match?: "css-selector" | " " | 0 | null | undefined
   clickable?: "css-selector" | null | undefined
   clickableOnHost?: "css-selector" | null | undefined
   exclude?: "css-selector" | null | undefined

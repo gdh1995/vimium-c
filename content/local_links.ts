@@ -615,9 +615,9 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
   }
   return output
 }) as {
-  (key: string, options: CSSOptions & OtherFilterOptions, filter: Filter<Hint0>, notWantVUI: 1
+  (selector: string, options: CSSOptions & OtherFilterOptions, filter: Filter<Hint0>, notWantVUI: 1
       , wholeDoc: 1 | boolean, acceptNonHTML?: 1): Hint0[]
-  (key: string, options: CSSOptions& OtherFilterOptions, filter: Filter<Hint>, notWantVUI?: 1
+  (selector: string, options: CSSOptions& OtherFilterOptions, filter: Filter<Hint>, notWantVUI?: 1
       , wholeDoc?: 0, acceptNonHTML?: 1): Hint[]
 }
 

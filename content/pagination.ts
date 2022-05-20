@@ -4,7 +4,7 @@ import {
 } from "../lib/utils"
 import {
   htmlTag_, isAriaFalse_, isStyleVisible_, querySelectorAll_unsafe_, isIFrameElement, ALA, attr_s,
-  contains_s, notSafe_not_ff_, hasTag_
+  contains_s, notSafe_not_ff_
 } from "../lib/dom_utils"
 import { getBoundingClientRect_, isNotInViewport, view_, VisibilityType } from "../lib/rect"
 import { kSafeAllSelector, detectUsableChild } from "./link_hints"
@@ -137,10 +137,11 @@ export const findNextInText = (names: string[], options: CmdOptions[kFgCmd.goNex
   return arr2[0]
 }
 
-export const findNextInRel = (relName: string, isNext: boolean): GoNextBaseCandidate | null | undefined => {
+export const findNextInRel = (options: CmdOptions[kFgCmd.goNext]
+    ): GoNextBaseCandidate | null | undefined => {
   const notFiltered = OnEdge || OnChrome && Build.MinCVer < BrowserVer.MinEnsuredCaseInSensitiveAttrSelector
       && chromeVer_ < BrowserVer.MinEnsuredCaseInSensitiveAttrSelector
-  let query = OnEdge ? "a[rel],area[rel],link[rel]" : VTr(kTip.isWithRel, notFiltered ? "" : relName)
+  let query = OnEdge ? "a[rel],area[rel],link[rel]" : VTr(kTip.isWithRel, notFiltered ? "" : options.r)
   let elements: ArrayLike<Element> = querySelectorAll_unsafe_(OnEdge ? query
       : OnFirefox ? Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredCSS$is$selector
         || firefoxVer_ > FirefoxBrowserVer.MinEnsuredCSS$is$selector - 1 ? query : query.replace("is", "-moz-any")
@@ -162,7 +163,7 @@ export const findNextInRel = (relName: string, isNext: boolean): GoNextBaseCandi
         && (!notFiltered || (s = OnChrome && Build.MinCVer < BrowserVer.Min$HTMLAreaElement$rel
                 ? attr_s(element, "rel")
                 : (element as TypeToPick<HTMLElement, HTMLElementWithRel, "rel">).rel)
-            && Lower(s).split(re1).indexOf(relName) >= 0)
+            && Lower(s).split(re1).indexOf(options.r) >= 0)
         && ((s = (element as HTMLElementWithRel).href) || tag < "aa")
         && (tag > "b" || isInteractiveInPage(element))) {
       if (matched) {
@@ -171,17 +172,30 @@ export const findNextInRel = (relName: string, isNext: boolean): GoNextBaseCandi
         }
       }
       if (!matched || (invisible < 9 ? invisible : (invisible = isNotInViewport(matched as typeof element)))
-          || !isNext && !isNotInViewport(element)) {
+          || !options.n && !isNotInViewport(element)) {
         invisible = !matched || invisible ? 9 : VisibilityType.Visible
         matched = element as HTMLElementWithRel
       }
     }
   }
+  if (matched && (invisible < 9 ? invisible : isNotInViewport(matched as SafeHTMLElement)) > VisibilityType.OutOfView) {
+    s = matched.href
+    options.match = `a[href*="${OnEdge || OnChrome && Build.MinCVer < BrowserVer.Min$CSS$$escape
+          ? s.slice(new URL(s).origin.length).replace(<RegExpG> /"|\\/g, "\\$&")
+          : CSS.escape!(s.slice(new URL(s).origin.length)) }"]` as "css-selector"
+    const res = traverse("a", options, (hints: Hint0[], element: SafeElement): void => {
+      if ((element as HTMLAnchorElement).href === s && isInteractiveInPage(element)) {
+        isNotInViewport(element) && (hints.length = 0)
+        hints.push([element as SafeHTMLElement])
+      }
+    }, 1, 1)[0]
+    matched = res ? res[0] as HTMLAnchorElement : matched
+  }
   return matched && [matched as SafeHTMLElement, vApi]
 }
 
 export const jumpToNextLink: VApiTy["j"] = (linkElement: GoNextBaseCandidate[0], options): void => {
-  let url = hasTag_("link", linkElement) && (linkElement as HTMLLinkElement).href
+  let url = isNotInViewport(linkElement) > VisibilityType.OutOfView && (linkElement as HTMLLinkElement).href
   if (url) {
     hudTip(kTip.raw, 2, url, 1)
     contentCommands_[kFgCmd.framesGoBack](safer<CmdOptions[kFgCmd.framesGoBack]>({ r: 1, u: url }))

@@ -548,6 +548,7 @@ export const findAnElement_ = (options: OptionsToFindElement, count: number, als
   let matches: (Hint | Hint0)[] | undefined, oneMatch: Hint | Hint0 | undefined, matchIndex: number
   let el: SafeElement | null | false | undefined
   let d = options.direct! as string | true, defaultMatch = options.match
+  defaultMatch = isTY(defaultMatch) && defaultMatch || null
   d = isTY(d) ? d : "em,sel,f,h"
   prepareCrop_()
   for (let i of d.split(d.includes(";") ? ";" : ",")) {
@@ -567,7 +568,7 @@ export const findAnElement_ = (options: OptionsToFindElement, count: number, als
           : SafeEl_not_ff_!(doc.body || docEl_unsafe_())
       : null
     if (el = testD("em") || el && isNotInViewport(el) < (wholeDoc
-          ? VisibilityType.NotInFullscreen : VisibilityType.OutOfView) ? el : null) { break }
+          ? VisibilityType.OutOfView + 1 : VisibilityType.Visible + 1) ? el : null) { break }
   }
   return [el as SafeElement | null | undefined, wholeDoc, indByCount, isSel]
 }
