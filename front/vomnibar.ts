@@ -1270,6 +1270,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       }
     } else {
       Vomnibar_.toggleAlt_(0);
+      Vomnibar_._canvas = null
     }
   },
   blurred_ (this: void, blurred?: boolean | null): void {

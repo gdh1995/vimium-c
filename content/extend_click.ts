@@ -217,7 +217,9 @@ const V = /** verifier */ (maybeSecret: string): void | boolean => {
 },
 MayChrome = !!(Build.BTypes & BrowserType.Chrome),
 MayEdge = !!(Build.BTypes & BrowserType.Edge), MayNotEdge = !!(Build.BTypes & ~BrowserType.Edge),
-MayES5 = MayChrome && Build.MinCVer < BrowserVer.MinTestedES6Environment,
+MayES5 = !!(Build.BTypes & BrowserType.Chrome) && Build.MinCVer < BrowserVer.MinTestedES6Environment,
+EnsuredGetRootNode = !(Build.BTypes & BrowserType.Edge)
+    && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.Min$Node$$getRootNode),
 doc0 = document, curScript = doc0.currentScript as HTMLScriptElement,
 sec = curScript.dataset.vimium!,
 kAEL = "addEventListener", kToS = "toString", kProto = "prototype", kByTag = "getElementsByTagName",
@@ -231,10 +233,8 @@ dispatch = _call.bind<(this: (this: EventTarget, ev: Event) => boolean
 ElCls = Element, ElProto = ElCls[kProto],
 Append = !MayChrome || Build.MinCVer >= BrowserVer.MinEnsured$ParentNode$$appendAndPrepend
     ? ElProto.append! : ElProto.appendChild,
-GetRootNode = ElProto.getRootNode,
 Attr = ElProto.setAttribute, HasAttr = ElProto.hasAttribute, Remove = ElProto.remove,
 StopProp = Event[kProto].stopImmediatePropagation as (this: Event) => void,
-contains = ElProto.contains.bind(doc0), // in fact, it is Node::contains
 nodeIndexListInDocument: number[] = [], nodeIndexListForDetached: number[] = [],
 getElementsByTagNameInDoc = doc0[kByTag], getElementsByTagNameInEP = ElProto[kByTag],
 IndexOf = _call.bind(toRegister.indexOf) as never as (list: HTMLCollectionOf<Element>, item: Element) => number,
@@ -269,8 +269,8 @@ checkIsNotVerifier = (func?: InnerVerifier | unknown): void | 42 => {
               : MayES5 ? 16 : 7
           , GlobalConsts.LengthOfMarkAcrossJSWorlds + InnerConsts.kRandStrLenInBuild + GlobalConsts.SecretStringLength)
   )
-}
-const hooks = {
+},
+hooks = {
   toString: function toString(this: FUNC): string {
     const a = this, args = arguments;
     const str = call(_apply as (this: (this: FUNC, ...args: any[]) => string, self: FUNC, args: IArguments) => string,
@@ -348,6 +348,9 @@ detectDisabled: string | 0 = kMk + "=>" + sec,
 myAELStr: string | undefined, myToStrStr: string | undefined,
 verifierStrPrefix: string | undefined, verifierPrefixLen: number | undefined, verifierLen: number | undefined,
 /** verifierIsLastMatched */ I: BOOL | boolean | undefined,
+getRootNode = (EnsuredGetRootNode ? _call.bind(ElProto.getRootNode!) : ElProto.getRootNode) as never as {
+  (self: Node, options?: { composed?: boolean }): Node },
+contains = EnsuredGetRootNode || getRootNode ? null : ElProto.contains.bind(doc0), // in fact, it is Node::contains
 // here `setTimeout` is normal and will not use TimerType.fake
 setTimeout_ = setTimeout as SafeSetTimeout,
 docChildren: Document["children"] | ((index: number) => Element | null) = doc0.children,
@@ -380,7 +383,7 @@ const next = (): void => {
   allNodesInDocument = allNodesForDetached = null;
 }
 const prepareRegister = (element: Element): void => {
-  if (contains(element)) {
+  if (EnsuredGetRootNode || getRootNode ? getRootNode!(element) === doc0 : contains!(element)) {
     pushInDocument(
       IndexOf(allNodesInDocument = allNodesInDocument || call(getElementsByTagNameInDoc, doc0, "*")
         , element));
@@ -390,8 +393,6 @@ const prepareRegister = (element: Element): void => {
   const doc1 = element.ownerDocument;
   // in case element is <form> / <frameset> / adopted into another document, or aEL is from another frame
   if (doc1 !== doc0) {
-    // although on Firefox element.__proto__ is auto-updated when it is adopted
-    // but aEl may be called before real insertion
     if ((!MayChrome || Build.MinCVer >= BrowserVer.MinFramesetHasNoNamedGetter || (doc1 as WindowWithTop).top !== top)
         && (doc1 as Exclude<typeof doc1, Window>).nodeType === kNode.DOCUMENT_NODE
         && (doc1 as Document).defaultView) {
@@ -404,8 +405,8 @@ const prepareRegister = (element: Element): void => {
     return;
   }
   let parent: Node | RadioNodeList | null | undefined, tempParent: Node | RadioNodeList | null | undefined;
-  if (!MayEdge && (!MayChrome || Build.MinCVer >= BrowserVer.Min$Node$$getRootNode) || GetRootNode) {
-    parent = call(GetRootNode!, element);
+  if (EnsuredGetRootNode || getRootNode) {
+    parent = getRootNode!(element)
   } else {
     // according to tests and source code, the named getter for <frameset> requires <frame>.contentDocument is valid
     // so here pe and pn will not be Window if only ignoring the case of `<div> -> #shadow-root -> <frameset>`
@@ -436,9 +437,9 @@ const prepareRegister = (element: Element): void => {
   else if (type !== kNode.DOCUMENT_FRAGMENT_NODE) { /* empty */ }
   else if (unsafeDispatchCounter < InnerConsts.MaxUnsafeEventsInOneTick - 2) {
     if (MayNotEdge && (tempParent = (parent as TypeToAssert<DocumentFragment, ShadowRoot, "host">).host)) {
-      parent = (!MayEdge && (!MayChrome || Build.MinCVer >= BrowserVer.Min$Node$$getRootNode) || GetRootNode)
+      parent = (EnsuredGetRootNode || getRootNode)
           && (tempParent as NonNullable<ShadowRoot["host"]>).shadowRoot // an open shadow tree
-          && call(GetRootNode!, element, {composed: !0});
+          && getRootNode!(element, {composed: !0})
       if (parent && (parent === doc0 || (<NodeToElement> parent).nodeType === kNode.ELEMENT_NODE)
           && typeof (s = element.tagName) === "string") {
         parent !== doc0 && parent !== root && call(Append, root, parent);
@@ -527,6 +528,7 @@ if (!MayNotEdge
   }
   queueMicroTask_ = (queueMicroTask_ as any as Promise<void>).then.bind(queueMicroTask_ as any as Promise<void>);
 }
+if (!EnsuredGetRootNode && getRootNode) { getRootNode = _call.bind(getRootNode! as never) as never }
 if (MayEdge) {
   docChildren = docChildren.item.bind(docChildren)
 }

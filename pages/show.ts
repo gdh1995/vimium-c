@@ -1,6 +1,6 @@
 import {
   CurCVer_, CurFFVer_, OnChrome, OnFirefox, OnEdge, $, pageTrans_, browser_, nextTick_, enableNextTick_, kReadyInfo,
-  import2, TransTy, isVApiReady_, post_, disconnect_, simulateClick, fetch, hasShift_
+  import2, TransTy, isVApiReady_, post_, disconnect_, simulateClick, ValidFetch, hasShift_
 } from "./async_bg"
 import { kPgReq } from "../background/page_messages"
 import type * as i18n_popup from "../i18n/zh/popup.json"
@@ -489,7 +489,7 @@ function copyThing(event: EventToPrevent): void {
     if (OnFirefox || OnChrome
           && Build.MinCVer >= BrowserVer.MinEnsured$Clipboard$$write$and$ClipboardItem
         || clipboard && clipboard.write) {
-      const blobPromise = _shownBlob != null ? Promise.resolve(_shownBlob) : fetch(VData.url, {
+      const blobPromise = _shownBlob != null ? Promise.resolve(_shownBlob) : (fetch as ValidFetch)(VData.url, {
         cache: "force-cache",
         referrer: "no-referrer"
       }).then(res => res.blob()).catch(() => (_copyStr(VData.url), 0 as const)
@@ -847,7 +847,7 @@ function fetchImage_(url: string, element: HTMLImageElement, setUrlDirectly: boo
       req.onerror = function (e): void { reject("Error: " + e.message) }
       req.open("GET", url, true)
       req.send()
-    }) : fetch(url, is_blob || is_data ? {} : {
+    }) : (fetch as ValidFetch)(url, is_blob || is_data ? {} : {
       cache: "no-store",
       referrer: "no-referrer"
     }).then(res => res.blob()))).then(blob => {

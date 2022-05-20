@@ -6,6 +6,7 @@ export declare const enum kReadyInfo {
   show = 1, popup = 1, options = 1, i18n = 2, browserInfo = 4,
   NONE = 0, FINISHED = 7, LOCK = 8,
 }
+export type ValidFetch = (input: string, init?: Partial<Request>) => Promise<Response>
 
 declare var define: any, VApi: VApiTy | undefined // eslint-disable-line no-var
 
@@ -269,11 +270,6 @@ export const import2 = (url: string): Promise<unknown> => {
   return define([url]) // eslint-disable-line @typescript-eslint/no-unsafe-call
 }
 
-export const fetch = (input: string, init?: Partial<Request>): Promise<Response> => {
-  const a = globalThis.fetch
-  return a(input as `/${string}`, init)
-}
-
 if (!Build.NDEBUG) { (window as any).updateUI = (): void => { void post_(kPgReq.reloadCSS, null) } }
 //#endregion
 
@@ -304,7 +300,7 @@ export const pageLangs_ = transPart_(bTrans_("i18n"), curPath) || browserLang ||
 void Promise.all(pageLangs_.split(",").map((lang): Promise<Dict<string> | null> => {
   const langFile = `/i18n/${lang}/${curPath === "show" ? "popup" : curPath}.json`
   const p = (!OnChrome || Build.MinCVer >= BrowserVer.MinFetchExtensionFiles
-      || CurCVer_ >= BrowserVer.MinFetchExtensionFiles ? fetch(langFile).then(r => r.json() as {})
+      || CurCVer_ >= BrowserVer.MinFetchExtensionFiles ? (fetch as ValidFetch)(langFile).then(r => r.json() as {})
       : new Promise<{}>((resolve): void => {
     const req = new XMLHttpRequest() as JSONXHR
     req.responseType = "json"

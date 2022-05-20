@@ -1,6 +1,6 @@
 import {
   CurCVer_, CurFFVer_, OnChrome, OnEdge, OnFirefox, $, import2, OnSafari, enableNextTick_, isVApiReady_, kReadyInfo,
-  simulateClick, fetch, post_
+  simulateClick, ValidFetch, post_
 } from "./async_bg"
 import { bgSettings_, AllowedOptions, ExclusionRulesOption_, Option_, oTrans_, getSettingsCache_ } from "./options_base"
 import { exportBtn, saveBtn } from "./options_defs"
@@ -469,7 +469,7 @@ _el.onchange = function (this: HTMLSelectElement): void {
   const recommended = "../settings-template.json";
   if (!OnChrome || Build.MinCVer >= BrowserVer.MinFetchExtensionFiles
       || CurCVer_ >= BrowserVer.MinFetchExtensionFiles) {
-    void fetch(recommended).then(r => r.text()).then(t => importSettings_(0, t, true))
+    void (fetch as ValidFetch)(recommended).then(r => r.text()).then(t => importSettings_(0, t, true))
     return;
   }
   const req = new XMLHttpRequest();
