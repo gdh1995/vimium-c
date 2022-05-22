@@ -31,13 +31,16 @@ export const OnSafari: boolean = !(Build.BTypes & ~BrowserType.Safari)
     || !!(Build.BTypes & BrowserType.Safari && OnOther & BrowserType.Safari)
 
 const uad = navigator.userAgentData
-const brands = uad && (OnChrome && Build.MinCVer <= BrowserVer.Only$navigator$$userAgentData$$$uaList
+const brands = OnChrome && Build.MinCVer >= BrowserVer.MinEnsuredNavigator$userAgentData ? uad!.brands
+    : uad && (OnChrome && Build.MinCVer <= BrowserVer.Only$navigator$$userAgentData$$$uaList
     ? uad.brands || uad.uaList : uad.brands)
 let tmpBrand: UABrandInfo | undefined
-export const IsEdg_: boolean = OnChrome && (!brands ? matchMedia("(-ms-high-contrast)").matches
-    : !!brands.find(i => i.brand.includes("Edge") || i.brand.includes("Microsoft")))
+export const IsEdg_: boolean = OnChrome && (Build.MinCVer < BrowserVer.MinEnsuredNavigator$userAgentData && !brands
+    ? Build.MV3 ? false : matchMedia("(-ms-high-contrast)").matches
+    : !!brands!.find(i => i.brand.includes("Edge") || i.brand.includes("Microsoft")))
 export const CurCVer_: BrowserVer = !OnChrome ? BrowserVer.assumedVer
-    : brands ? (tmpBrand = brands.find(i => i.brand.includes("Chromium")))
+    : Build.MinCVer >= BrowserVer.MinEnsuredNavigator$userAgentData || brands
+    ? (tmpBrand = brands!.find(i => i.brand.includes("Chromium")))
       ? tmpBrand.version : BrowserVer.MinMaybe$navigator$$userAgentData > Build.MinCVer
       ? BrowserVer.MinMaybe$navigator$$userAgentData : Build.MinCVer
     : (Build.MinCVer <= BrowserVer.FlagFreezeUserAgentGiveFakeUAMajor ? ((): BrowserVer => {

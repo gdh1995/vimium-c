@@ -365,8 +365,9 @@ const onNotRunnable = (blockedMsg: HTMLElement): void => {
     refreshTip.remove()
   } else if (OnEdge) {
     (refreshTip.querySelector(".action") as HTMLElement).textContent = "open a new web page"
-  } else if (OnChrome && !IsEdg_ && ((uad = navigator.userAgentData, uaList = uad && (uad.brands
-        || (Build.MinCVer > BrowserVer.Only$navigator$$userAgentData$$$uaList ? null : uad.uaList)))
+  } else if (OnChrome && !IsEdg_ && ((uad = navigator.userAgentData, uaList =
+          Build.MinCVer >= BrowserVer.MinEnsuredNavigator$userAgentData ? uad!.brands : uad && (uad.brands
+          || (Build.MinCVer > BrowserVer.Only$navigator$$userAgentData$$$uaList ? null : uad.uaList)))
         ? uaList.find(i => i.brand.includes("Opera"))
         : (<RegExpOne> /\b(Opera|OPR)\//).test(navigator.userAgent!))
       && (<RegExpOne> /\.(google|bing|baidu)\./).test(_url.split("/", 4).slice(0, 3).join("/"))) {

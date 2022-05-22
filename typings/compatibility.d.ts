@@ -549,6 +549,7 @@ declare const enum BrowserVer {
   MinCaptureBeforeBubbleOnEventTarget = 89, // even if EXPERIMENTAL or LEGACY
   MinCSS$overflow$clip = 90, // even if EXPERIMENTAL or LEGACY
   MinOnWindows$Selection$$extend$stopWhenWhiteSpaceEnd = 90, // even if EXPERIMENTAL
+  MinEnsuredNavigator$userAgentData = 90, // even if LEGACY; replace MinMaybe$navigator$$userAgentData
   MinESModulesInServiceWorker = 91,
   MinEnsured$string$$replaceAll = 91,
   MinEnsured$WeakRef = 92, // even if LEGACY
