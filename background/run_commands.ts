@@ -278,7 +278,7 @@ export const confirm_ = <T extends kCName> (command: CmdNameIds[T] extends kBgCm
   }
   if (!helpDialogData_ || !helpDialogData_[1]) {
     return getI18nJson("help_dialog").then(dict => {
-      helpDialogData_ ? helpDialogData_[1] = dict : set_helpDialogData_([null, dict, null])
+      helpDialogData_ ? helpDialogData_[1] = dict : set_helpDialogData_([null, dict])
       return confirm_(command, askedCount)
     })
   }

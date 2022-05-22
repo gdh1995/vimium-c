@@ -152,15 +152,20 @@ const normalizeCmdName = (command: kCName): NormalizedNames => {
 
 const renderGroup = (group: string, commandToKeys: Map<string, [string, CommandsNS.Item][]>
       , hideUnbound: boolean, showNames: boolean): string => {
-    const cmdParams = i18n_.get("cmdParams") || " (use *)", i18nParams = helpDialogData_![2]!
+    const cmdParams = i18n_.get("cmdParams") || " (use *)"
     let html = "";
-    for (const command of commandGroups_[group as keyof typeof commandGroups_]) {
+    const cmdList = commandGroups_[group as keyof typeof commandGroups_]
+    for (let i = 0; i < cmdList.length; i++) {
+      const command = cmdList[i] as Exclude<typeof cmdList[0], BOOL | `$${string}`>
       let keys = commandToKeys.get(command)
       if (hideUnbound && !keys) { continue; }
-      const isAdvanced = advancedCommands_[command] === 1;
+      const isAdvanced = i < cmdList.length - 1 && cmdList[i + 1] === 1;
+      isAdvanced && i++
+      const _next = i < cmdList.length - 1 ? cmdList[i + 1] as Exclude<typeof cmdList[2], BOOL> : "a"
+      const params = _next[0] === "$" ? _next.slice(1) : ""
+      params && i++
       let keyLen = -2, bindings = "", description = descriptions_.get(command)
       if (!description) {
-        const params = i18nParams.get(command)
         description = [i18n_.get(command as NormalizedNames)! // lgtm [js/incomplete-sanitization]
               .replace("<", "&lt;").replace(">", "&gt;"), // lgtm [js/incomplete-sanitization]
             (params ? cmdParams.replace("*", () => params) : " ")] // lgtm [js/incomplete-sanitization]
@@ -220,73 +225,155 @@ const commandHTML_ = (isAdvanced: boolean, bindings: string, description: string
 const commandGroups_: {
     readonly [key in
         "pageNavigation" | "vomnibarCommands" | "historyNavigation" | "findCommands" | "tabManipulation" | "misc"
-        ]: readonly NoAliasInCNames<kCName>[]
+        ]: readonly (NoAliasInCNames<kCName> | 1 | `$${string}`)[]
 } & SafeObject = {
-    __proto__: null as never,
-    pageNavigation: [
-      "LinkHints.activate", "LinkHints.activateOpenInNewTab"
-      , "LinkHints.activateOpenInNewForegroundTab", "LinkHints.activateWithQueue"
-      , "scrollDown", "scrollUp", "scrollLeft", "scrollRight", "scrollToTop"
-      , "scrollToBottom", "scrollToLeft", "scrollToRight", "scrollPageDown", "scrollPageUp"
-      , "scrollPxDown", "scrollPxUp", "scrollPxLeft", "scrollPxRight"
-      , "scrollFullPageDown", "scrollFullPageUp", "scrollSelect"
-      , "reload", "reloadTab", "reloadGivenTab"
-      , "zoom", "zoomIn", "zoomOut", "zoomReset", "toggleViewSource"
-      , "copyCurrentUrl", "copyCurrentTitle", "switchFocus", "focusInput"
-      , "LinkHints.activateCopyLinkUrl", "LinkHints.activateCopyLinkText"
-      , "openCopiedUrlInCurrentTab", "openCopiedUrlInNewTab", "goUp", "goToRoot"
-      , "LinkHints.activateDownloadImage", "LinkHints.activateOpenImage"
-      , "LinkHints.activateDownloadLink", "LinkHints.activateOpenIncognito"
-      , "LinkHints.activateFocus"
-      , "LinkHints.activateHover", "LinkHints.activateLeave", "LinkHints.unhoverLast"
-      , "LinkHints.activateSearchLinkText", "LinkHints.activateEdit"
-      , "LinkHints.activateSelect", "LinkHints.click", "simulateBackspace", "dispatchEvent"
-      , "goPrevious", "goNext", "nextFrame", "mainFrame", "parentFrame"
-      , "enterInsertMode", "enterVisualMode", "enterVisualLineMode"
-      , "Marks.activateCreate", "Marks.activate"
-      , "Marks.clearLocal", "Marks.clearGlobal", "openUrl", "focusOrLaunch"
-      ],
-    vomnibarCommands: ["Vomnibar.activate", "Vomnibar.activateInNewTab"
-      , "Vomnibar.activateBookmarks", "Vomnibar.activateBookmarksInNewTab", "Vomnibar.activateHistory"
-      , "Vomnibar.activateHistoryInNewTab", "Vomnibar.activateTabs"
-      , "Vomnibar.activateEditUrl", "Vomnibar.activateEditUrlInNewTab"
-      , "LinkHints.activateOpenVomnibar", "toggleVomnibarStyle"],
-    historyNavigation: ["goBack", "goForward", "reopenTab"],
-    findCommands: ["enterFindMode", "performFind", "performBackwardsFind", "performAnotherFind"
-      , "clearFindHistory"],
-    tabManipulation: ["nextTab", "previousTab", "firstTab", "lastTab", "createTab"
-      , "duplicateTab", "removeTab", "removeRightTab", "restoreTab", "restoreGivenTab"
-      , "discardTab", "moveTabToNextWindow", "moveTabToNewWindow", "moveTabToIncognito"
-      , "joinTabs", "sortTabs"
-      , "togglePinTab", "toggleMuteTab", "visitPreviousTab", "closeTabsOnLeft"
-      , "closeTabsOnRight", "closeOtherTabs", "moveTabLeft", "moveTabRight"
-      , "enableContentSettingTemp", "toggleContentSetting", "clearContentSettings", "copyWindowInfo", "captureTab"],
-    misc: ["showHelp", "autoCopy", "autoOpen", "searchAs", "searchInAnother", "showTip"
-      , "openBookmark", "addBookmark"
-      , "toggleStyle", "toggleLinkHintCharacters"
-      , "toggleSwitchTemp", "passNextKey", "debugBackground"
-      , "reset", "runKey", "sendToExtension", "blank"]
-}
-
-const advancedCommands_: { readonly [k in NoAliasInCNames<kCName>]?: 1 | 0; } & SafeObject = { __proto__: null as never,
-    toggleViewSource: 1, clearFindHistory: 1, dispatchEvent: 1
-    , scrollToLeft: 1, scrollToRight: 1, moveTabToNextWindow: 1
-    , moveTabToNewWindow: 1, moveTabToIncognito: 1, reloadGivenTab: 1
-    , focusOrLaunch: 1
-    , enableContentSettingTemp: 1, toggleContentSetting: 1, toggleStyle: 1, clearContentSettings: 1
-    , "LinkHints.activateDownloadImage": 1, reopenTab: 1
-    , "LinkHints.activateOpenImage": 1, removeRightTab: 1
-    , "LinkHints.activateDownloadLink": 1, restoreGivenTab: 1, runKey: 1, sendToExtension: 1
-    , discardTab: 1, copyWindowInfo: 1
-    , "LinkHints.activateOpenIncognito": 1, passNextKey: 1
-    , goNext: 1, goPrevious: 1, "Marks.clearLocal": 1, "Marks.clearGlobal": 1
-    , moveTabLeft: 1, moveTabRight: 1, closeTabsOnLeft: 1, closeTabsOnRight: 1
-    , closeOtherTabs: 1, scrollPxDown: 1, scrollPxUp: 1, scrollPxLeft: 1
-    , scrollPxRight: 1, debugBackground: 1, blank: 1, reset: 1, scrollSelect: 1
-    , "LinkHints.activateHover": 1, "LinkHints.unhoverLast": 1
-    , toggleLinkHintCharacters: 1, toggleSwitchTemp: 1, "LinkHints.activateLeave": 1
-    , "Vomnibar.activateEditUrl": 1, "Vomnibar.activateEditUrlInNewTab": 1
-    , closeDownloadBar: OnChrome ? 0 : 1, zoomIn: 1, zoomOut: 1, zoomReset: 1, addBookmark: 1
+  __proto__: null as never,
+  pageNavigation: [
+    "LinkHints.activate"
+    , "$button=\"\"/right, touch=false/true/\"auto\""
+    , "LinkHints.activateOpenInNewTab"
+    , "LinkHints.activateOpenInNewForegroundTab"
+    , "LinkHints.activateWithQueue"
+    , "scrollDown", "$keepHover=true|false|auto|never"
+    , "scrollUp", "$keepHover=true|false|auto|never"
+    , "scrollLeft"
+    , "scrollRight"
+    , "scrollToTop"
+    , "scrollToBottom"
+    , "scrollToLeft", 1
+    , "scrollToRight", 1
+    , "scrollPageDown"
+    , "scrollPageUp"
+    , "scrollPxDown", 1
+    , "scrollPxUp", 1
+    , "scrollPxLeft", 1
+    , "scrollPxRight", 1
+    , "scrollFullPageDown"
+    , "scrollFullPageUp"
+    , "scrollSelect", 1, "$dir=down|up, position=\"\"|begin|end"
+    , "reload", "$hard"
+    , "reloadTab"
+    , "reloadGivenTab", 1, "$hard, bypassCache"
+    , "zoom", "$in, out, reset"
+    , "zoomIn", 1
+    , "zoomOut", 1
+    , "zoomReset", 1
+    , "toggleViewSource", 1
+    , "copyCurrentUrl", "$type=url/title/frame, decoded"
+    , "copyCurrentTitle"
+    , "switchFocus", "$flash, select=\"\"/all/all-line/start/end"
+    , "focusInput", "$keep, select=\"\"/all/all-line/start/end"
+    , "LinkHints.activateCopyLinkUrl"
+    , "LinkHints.activateCopyLinkText", "$join:boolean/string"
+    , "openCopiedUrlInCurrentTab"
+    , "openCopiedUrlInNewTab"
+    , "goUp", "$trailingSlash=null/true/false"
+    , "goToRoot"
+    , "LinkHints.activateDownloadImage", 1
+    , "LinkHints.activateOpenImage", 1, "$auto=true"
+    , "LinkHints.activateDownloadLink", 1
+    , "LinkHints.activateOpenIncognito", 1
+    , "LinkHints.activateFocus"
+    , "LinkHints.activateHover", 1, "$showUrl=true"
+    , "LinkHints.activateLeave", 1
+    , "LinkHints.unhoverLast", 1
+    , "LinkHints.activateSearchLinkText"
+    , "LinkHints.activateEdit"
+    , "LinkHints.activateSelect", "$visual=true, caret, then:{}"
+    , "LinkHints.click", "$direct=true|element|sel|focus|click|sel,focus,click"
+    , "simulateBackspace"
+    , "dispatchEvent", 1, "$key=\"key,keyCode,code\",init:{}"
+    , "goNext", "$sed=true, patterns:string, rel:string, noRel, isNext"
+    , "goPrevious"
+    , "nextFrame"
+    , "mainFrame"
+    , "parentFrame"
+    , "enterInsertMode", "$key:string, unhover, reset"
+    , "enterVisualMode"
+    , "enterVisualLineMode"
+    , "Marks.activateCreate", "$swap"
+    , "Marks.activate", "$prefix=true, swap, mapKey"
+    , "Marks.clearLocal", 1
+    , "Marks.clearGlobal", 1
+    , "openUrl", "$url:string, urls:string[], reuse=newFg/current/newBg/reuse, incognito, window, position"
+    , "focusOrLaunch", 1, "$url:string, prefix"
+  ],
+  vomnibarCommands: [
+    "Vomnibar.activate", "$keyword=\"\", url:boolean/string"
+    , "Vomnibar.activateInNewTab", "$keyword, url"
+    , "Vomnibar.activateBookmarks"
+    , "Vomnibar.activateBookmarksInNewTab"
+    , "Vomnibar.activateHistory"
+    , "Vomnibar.activateHistoryInNewTab"
+    , "Vomnibar.activateTabs"
+    , "Vomnibar.activateEditUrl", 1
+    , "Vomnibar.activateEditUrlInNewTab", 1
+    , "LinkHints.activateOpenVomnibar", "$url, newtab, then:{}"
+    , "toggleVomnibarStyle", 1, "$style=dark, current"
+  ],
+  historyNavigation: [
+    "goBack", "$reuse=current/newBg/newFg"
+    , "goForward"
+    , "reopenTab", 1
+  ],
+  findCommands: [
+    "enterFindMode", "$last, selected=true"
+    , "performFind"
+    , "performBackwardsFind"
+    , "performAnotherFind"
+    , "clearFindHistory", 1
+  ],
+  tabManipulation: [
+    "nextTab"
+    , "previousTab"
+    , "firstTab"
+    , "lastTab"
+    , "createTab"
+    , "duplicateTab"
+    , "removeTab", "$keepWindow=\"\"/always, mayClose, goto=\"\"/left/right/previous"
+    , "removeRightTab", 1
+    , "restoreTab"
+    , "restoreGivenTab", 1
+    , "discardTab", 1
+    , "moveTabToNextWindow", 1, "$last, position, right=true, tabs"
+    , "moveTabToNewWindow", 1, "$limited=null/true/false"
+    , "moveTabToIncognito", 1
+    , "joinTabs"
+    , "sortTabs", "$sort=recency|createTime"
+    , "togglePinTab"
+    , "toggleMuteTab", "$all, other"
+    , "visitPreviousTab", "$acrossWindows, onlyActive"
+    , "closeTabsOnLeft", 1, "$$count=0"
+    , "closeTabsOnRight", 1, "$$count=0"
+    , "closeOtherTabs", 1, "$filter=\"\"/url/url+hash/url+title"
+    , "moveTabLeft", 1, "$group=true"
+    , "moveTabRight", 1, "$group=true"
+    , "toggleContentSetting", 1, "$type=images"
+    , "enableContentSettingTemp", 1
+    , "clearContentSettings", 1
+    , "copyWindowInfo", 1, "$format=\"${title}: ${url}\", join:true/string, decoded"
+    , "captureTab"
+  ],
+  misc: [
+    "showHelp"
+    , "autoCopy", "$text: string, url, decoded"
+    , "autoOpen"
+    , "searchAs", "$copied=true, selected=true"
+    , "searchInAnother", "$keyword, reuse=current/newFg/newBg/reuse"
+    , "showTip", "$text:string"
+    , "openBookmark", "$title, path"
+    , "addBookmark", 1, "$folder:string"
+    , "toggleStyle", 1, "$id/selector:string, css: string"
+    , "toggleLinkHintCharacters", 1, "$value:string"
+    , "editText", 1, "$run:string, dom=false"
+    , "toggleSwitchTemp", 1, "$key:string, [value:any]"
+    , "passNextKey", 1, "$expect:string, normal"
+    , "debugBackground", 1
+    , "reset", 1
+    , "runKey", 1, "$expect:Envs, keys:KeySequence[]|string"
+    , "sendToExtension", 1, "$id:string, data:any, raw"
+    , "blank", 1
+  ]
 }
 
 if (OnChrome) {
@@ -294,5 +381,5 @@ if (OnChrome) {
 }
 
 if (OnFirefox || OnChrome && IsEdg_) {
-  (commandGroups_.tabManipulation as Writable<typeof commandGroups_.tabManipulation>).push("toggleReaderMode")
+  (commandGroups_.tabManipulation as Writable<typeof commandGroups_.tabManipulation>).push("toggleReaderMode", 1)
 }

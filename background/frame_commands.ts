@@ -74,19 +74,17 @@ export const initHelp = (request: FgReq[kFgReq.initHelp], port: Port): Promise<v
   return Promise.all([
     import2<typeof import("./help_dialog")>(CONST_.HelpDialogJS),
     curHData[0] != null ? null : BgUtils_.fetchFile_("help_dialog.html"),
-    curHData[1] != null ? null : getI18nJson("help_dialog"),
-    curHData[2] != null ? null : getI18nJson("params.json")
-  ]).then(([helpDialog, temp1, temp2, temp3]): void => {
+    curHData[1] != null ? null : getI18nJson("help_dialog")
+  ]).then(([helpDialog, temp1, temp2]): void => {
     const port2 = request.w && framesForTab_.get(port.s.tabId_)?.top_ || port,
     isOptionsPage = port2.s.url_.startsWith(CONST_.OptionsPage_),
     options = request.a || {};
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
     (port2.s as Frames.Sender).flags_ |= Frames.Flags.hadHelpDialog
     set_cPort(port2)
-    const newHData = helpDialogData_ || set_helpDialogData_([null, null, null])
+    const newHData = helpDialogData_ || set_helpDialogData_([null, null])
     temp1 && (newHData[0] = temp1)
     temp2 && (newHData[1] = temp2)
-    temp3 && (newHData[2] = temp3)
     sendFgCmd(kFgCmd.showHelpDialog, true, {
       h: helpDialog.render_(isOptionsPage, options.commandNames),
       o: CONST_.OptionsPage_, f: request.f,

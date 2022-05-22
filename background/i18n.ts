@@ -4,9 +4,7 @@ import { browser_, Q_ } from "./browser"
 import type * as i18n_map from "../_locales/en/messages.json"
 import type * as i18n_dyn from "../i18n/zh/background.json"
 
-type StringEndsWith<A extends string, S extends string>
-    = string extends S ? string : string extends A ? string : A extends `${string}${S}` ? A : never
-type ValidI18nFiles = "background" | "help_dialog" | "params.json"
+type ValidI18nFiles = "background" | "help_dialog"
 export type ExtNames = keyof typeof i18n_map
 export type I18nNames = keyof typeof i18n_dyn
 
@@ -71,9 +69,6 @@ const loadExt_ = (): Promise<void> => {
   })
 }
 
-const endsWith = <A extends string, S extends string> (name: A, tail: S): name is A & StringEndsWith<A, S> =>
-    name.endsWith(tail)
-
 export const transPart_ = (msg: "t(i18n)" | "t(sugs)", child: string | null): string => {
   return msg && msg.split(" ").reduce((old, i) => old ? old : !i.includes("=") ? i
       : child && i.startsWith(child) ? i.slice(child.length + 1) : old, "")
@@ -88,9 +83,7 @@ export const getI18nJson = (file_name: ValidI18nFiles): Promise<Map<string, stri
   if (Build.MV3 && i18nReadyExt_ === 0) {
     return loadExt_().then(getI18nJson.bind(0, file_name))
   }
-  const url = endsWith(file_name, ".json") ? file_name as `${string}.json`
-      : `${i18nLang_(file_name)}/${file_name}.json` as const
-  return fetchFile_(`/i18n/${url}`)
+  return fetchFile_(`/i18n/${i18nLang_(file_name)}/${file_name}.json`)
 }
 
 export let loadContentI18n_: (() => void) | null = (): void => {

@@ -74,8 +74,7 @@ export let isHighContrast_ff_: boolean
 export let needIcon_ = false
 export let visualWordsRe_: string
 export let iconData_: IconNS.StatusMap<IconNS.IconBuffer> | null | /* no actionIcon in manifest */ undefined
-export let helpDialogData_: [
-    html: string | null, i18n: Map<string, string> | null, params: Map<string, string> | null] | null
+export let helpDialogData_: [html: string | null, i18n: Map<string, string> | null] | null
 
 export const newTabUrls_: ReadonlyMap<string, Urls.NewTabType> = new Map()
 export const extAllowList_: Map<string, boolean | string> = !OnEdge ? new Map() : null as never
