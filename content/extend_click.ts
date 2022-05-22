@@ -227,8 +227,13 @@ doc0 = document, curScript = doc0.currentScript as HTMLScriptElement,
 sec = curScript.dataset.vimium!,
 kAEL = "addEventListener", kToS = "toString", kProto = "prototype", kByTag = "getElementsByTagName",
 ETP = EventTarget[kProto], _listen = ETP[kAEL],
-toRegister: Element[] & { p (el: Element): void | 1; s: Element[]["splice"] } = [] as any,
-_apply = _listen.apply, _call = _listen.call,
+toRegister: Element[] & { p (el: Element): void | 1 } = [] as any,
+_call = _listen.call,
+apply = !(Build.BTypes & BrowserType.Chrome)
+    || Build.MinCVer >= BrowserVer.MinEnsured$Reflect$$apply$And$$construct || typeof Reflect === "object"
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    ? Reflect!.apply as <T, A extends any[], R> (func: (this: T, ...a: A) => R, thisArg: T, args: A) => R
+    : _call.bind(_call.apply as any) as never,
 // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 call = _call.bind(_call as any) as <T, A extends any[], R>(func: (this: T, ...a: A) => R, thisArg: T, ...args: A) => R,
 dispatch = _call.bind<(this: (this: EventTarget, ev: Event) => boolean
@@ -240,7 +245,9 @@ Attr = ElProto.setAttribute, HasAttr = ElProto.hasAttribute, Remove = ElProto.re
 StopProp = Event[kProto].stopImmediatePropagation as (this: Event) => void,
 nodeIndexListInDocument: number[] = [], nodeIndexListForDetached: number[] = [],
 getElementsByTagNameInDoc = doc0[kByTag], getElementsByTagNameInEP = ElProto[kByTag],
-IndexOf = _call.bind(toRegister.indexOf) as never as (list: HTMLCollectionOf<Element>, item: Element) => number,
+IndexOf = _call.bind(nodeIndexListInDocument.indexOf) as (list: HTMLCollectionOf<Element>, item: Element) => number,
+forEach = nodeIndexListInDocument.forEach as <T> (this: T[], callback: (item: T, index: number) => unknown) => void,
+splice = nodeIndexListInDocument.splice as <T> (this: T[], start: number, deleteCount?: number) => T[],
 push = (toRegister as { p (el: Element | number): void | number}).p = nodeIndexListInDocument.push,
 pushInDocument = push.bind(nodeIndexListInDocument), pushForDetached = push.bind(nodeIndexListForDetached),
 CECls = CustomEvent as CustomEventCls,
@@ -276,8 +283,7 @@ checkIsNotVerifier = (func?: InnerVerifier | unknown): void | 42 => {
 hooks = {
   toString: function toString(this: FUNC): string {
     const a = this, args = arguments;
-    const str = call(_apply as (this: (this: FUNC, ...args: any[]) => string, self: FUNC, args: IArguments) => string,
-        _toString, a, args)
+    const str = apply(_toString, a, args as unknown as [])
     const mayStrBeToStr: boolean
         = str !== (myAELStr
                   || (myToStrStr = call(_toString, myToStr),
@@ -302,11 +308,9 @@ hooks = {
   },
   addEventListener: function addEventListener(this: EventTarget, type: string
       , listener: EventListenerOrEventListenerObject): void {
-    const a = this, args = arguments, len = args.length;
+    const a = this, args = arguments
     const ret = type === GlobalConsts.MarkAcrossJSWorlds + BuildStr.RandomClick ? checkIsNotVerifier(args[3])
-        : len === 2 ? listen(a, type, listener) : len === 3 ? listen(a, type, listener, args[2] as EventListenerOptions)
-        : call(_apply as (this: (this: EventTarget, ...args: any[]) => void, o: EventTarget, args: IArguments) => void,
-             _listen as (this: EventTarget, ...args1: any[]) => void, a, args);
+        : apply(_listen, a, args as any)
     if (type === "click" || type === "mousedown" || type === "dblclick"
         ? listener && a instanceof ElCls && a.localName !== "a"
         : type === kEventName2 && !isReRegistering
@@ -377,10 +381,8 @@ const next = (_unused?: unknown): void => {
   if (!len) { return; }
   call(Remove, root); // just safer
   // skip some nodes if only crashing, so that there would be less crash logs in console
-  const slice = toRegister.s(start, len - start);
-  for (let i = unsafeDispatchCounter = 0; i < slice.length; i++) {
-    prepareRegister(slice[i]); // avoid for-of, in case Array::[[Symbol.iterator]] was modified
-  }
+  unsafeDispatchCounter = 0
+  apply(forEach, apply(splice, toRegister, [start, len - start]), [prepareRegister])
   doRegister(0);
 }
 const prepareRegister = (element: Element): void => {
@@ -505,12 +507,12 @@ const executeCmd = (eventOrDestroy?: Event): void => {
 }
 const collectOnclickElements = (cmd: SecondLevelContentCmds): void => {
   let len = (call(Remove, root), allNodesInDocument = call(getElementsByTagNameInDoc, doc0, "*")).length
-  let i = unsafeDispatchCounter = 0, tag: Element["localName"]
+  let i = unsafeDispatchCounter = 0, tag: Element["localName"], el: Element
   len = len < GlobalConsts.MinElementCountToStopScanOnClick || cmd > kContentCmd.ManuallyFindAllOnClick - 1
       ? len : 0; // stop it
   for (; i < len; i++) {
-    const el: Element | HTMLElement = allNodesInDocument[i];
-    if (((el as HTMLElement).onclick || (el as HTMLElement).onmousedown) && !call(HasAttr, el, "onclick")
+    el = allNodesInDocument[i]
+    if (((el as HTMLElement).onclick || (el as HTMLElement).onmousedown) && !apply(HasAttr, el, ["onclick"])
         && (tag = el.localName) !== "a" && tag !== "button") { // ignore <button>s to iter faster
       pushInDocument(i);
     }
@@ -533,7 +535,6 @@ if (!EnsuredGetRootNode && getRootNode) { getRootNode = _call.bind(getRootNode! 
 if (MayEdge) {
   docChildren = docChildren.item.bind(docChildren)
 }
-toRegister.s = toRegister.splice;
 // only the below can affect outsides
 curScript.remove();
 ETP[kAEL] = myAEL;
