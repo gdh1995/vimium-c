@@ -99,9 +99,9 @@ export const main_not_ff = (Build.BTypes & ~BrowserType.Firefox ? (): void => {
     isSafe = this === box,
     detail = rawDetail && isTY(rawDetail, kTY.obj) && isSafe ? rawDetail : "",
     fromAttrs: 0 | 1 | 2 = detail ? (detail[2] + 1) as 1 | 2 : 0;
-    let path: typeof event.path, reHint: number | undefined,
-    target = detail ? null : (event as DelegateEventCls["prototype"]).relatedTarget as Element | null
-        || (!OnEdge
+    let path: typeof event.path, reHint: number | undefined, mismatch: 1 | undefined,
+    target = detail ? null : isSafe ? (event as DelegateEventCls["prototype"]).relatedTarget as Element | null
+        : (!OnEdge
             && (!OnChrome || Build.MinCVer >= BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow)
             ? event.path![0] as Element
             : (path = event.path) && path.length > 1 ? path[0] as Element : null)
@@ -110,12 +110,15 @@ export const main_not_ff = (Build.BTypes & ~BrowserType.Firefox ? (): void => {
     } else if (/* safer */ target
         && (isSafe && !rawDetail || +secret % InnerConsts.kModToExposeSecret + <string> target.tagName === rawDetail)) {
       clickable_.add(target);
-    } else {
-      if (!Build.NDEBUG && !isSafe && target
-          && +secret % InnerConsts.kModToExposeSecret + <string> target.tagName !== rawDetail) {
+    } else (
+      mismatch = 1
+    )
+    box.textContent = ""
+    if (mismatch) {
+      if (!Build.NDEBUG && target && !isSafe) {
         console.error("extend click: unexpected: detail =", rawDetail, target);
-        return;
       }
+      return;
     }
     if (!Build.NDEBUG && (++counterResolvePath <= 32
         || Math.floor(Math.log(counterResolvePath) / Math.log(1.414)) !==
@@ -366,7 +369,7 @@ isReRegistering: BOOL | boolean = 0
 // To avoid a host script detect Vimum C by code like:
 // ` a1 = setTimeout(()=>{}); $0.addEventListener('click', ()=>{}); a2=setTimeout(()=>{}); [a1, a2] `
 const delayToStartIteration = (): void => { setTimeout_(next, GlobalConsts.ExtendClick_DelayToStartIteration) }
-const next = (): void => {
+const next = (_unused?: unknown): void => {
   const len = toRegister.length,
   start = len > (Build.NDEBUG ? InnerConsts.MaxElementsInOneTickRelease : InnerConsts.MaxElementsInOneTickDebug)
     ? len - (Build.NDEBUG ? InnerConsts.MaxElementsInOneTickRelease : InnerConsts.MaxElementsInOneTickDebug) : 0
@@ -379,7 +382,6 @@ const next = (): void => {
     prepareRegister(slice[i]); // avoid for-of, in case Array::[[Symbol.iterator]] was modified
   }
   doRegister(0);
-  allNodesInDocument = allNodesForDetached = null;
 }
 const prepareRegister = (element: Element): void => {
   if (EnsuredGetRootNode || getRootNode ? getRootNode!(element) === doc0 : contains!(element)) {
@@ -462,11 +464,9 @@ const doRegister = (fromAttrs: BOOL): void => {
   if (nodeIndexListInDocument.length + nodeIndexListForDetached.length) {
     unsafeDispatchCounter++
     dispatch(root, new CECls(kVOnClick, { detail: [nodeIndexListInDocument, nodeIndexListForDetached, fromAttrs] }))
+    nodeIndexListInDocument.length = nodeIndexListForDetached.length = 0
   }
-  nodeIndexListInDocument.length = nodeIndexListForDetached.length = 0
-// check lastChild, so avoid a mutation scope created in
-// https://source.chromium.org/chromium/chromium/src/+/master:third_party/blink/renderer/core/dom/node.cc;l=2117;drc=06e052d21baaa5afc7c851ed43c6a90e53dc6156
-  root.textContent = "";
+  allNodesInDocument = allNodesForDetached = null
 }
 const safeReRegister = (element: Element, doc1: Document): void => {
   const localAEL = doc1[kAEL], localREL = doc1.removeEventListener;
@@ -516,7 +516,6 @@ const collectOnclickElements = (cmd: SecondLevelContentCmds): void => {
     }
   }
   doRegister(1);
-  allNodesInDocument = null;
 }
 const noop = (): 1 => { return 1 }
 
