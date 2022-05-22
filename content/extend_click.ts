@@ -369,13 +369,12 @@ const delayToStartIteration = (): void => { setTimeout_(next, GlobalConsts.Exten
 const next = (): void => {
   const len = toRegister.length,
   start = len > (Build.NDEBUG ? InnerConsts.MaxElementsInOneTickRelease : InnerConsts.MaxElementsInOneTickDebug)
-    ? len - (Build.NDEBUG ? InnerConsts.MaxElementsInOneTickRelease : InnerConsts.MaxElementsInOneTickDebug) : 0,
-  delta = len - start;
-  timer = start > 0 ? setTimeout_(next, InnerConsts.DelayForNext) : 0;
+    ? len - (Build.NDEBUG ? InnerConsts.MaxElementsInOneTickRelease : InnerConsts.MaxElementsInOneTickDebug) : 0
+  timer = start && setTimeout_(next, InnerConsts.DelayForNext)
   if (!len) { return; }
   call(Remove, root); // just safer
   // skip some nodes if only crashing, so that there would be less crash logs in console
-  const slice = toRegister.s(start, delta);
+  const slice = toRegister.s(start, len - start);
   for (let i = unsafeDispatchCounter = 0; i < slice.length; i++) {
     prepareRegister(slice[i]); // avoid for-of, in case Array::[[Symbol.iterator]] was modified
   }
@@ -491,23 +490,11 @@ const executeCmd = (eventOrDestroy?: Event): void => {
       : eventOrDestroy ? kContentCmd._fake : kContentCmd.Destroy;
   // always stopProp even if the secret does not match, so that an attacker can not detect secret by enumerating numbers
   detail && call(StopProp, eventOrDestroy!);
-  let len: number, i: number, tag: Element["localName"]
   if (cmd < kContentCmd._minSuppressClickable) {
-    if (!cmd || !root) { return; }
-    call(Remove, root);
-    allNodesInDocument = call(getElementsByTagNameInDoc, doc0, "*");
-    len = allNodesInDocument.length, i = unsafeDispatchCounter = 0
-    len = len < GlobalConsts.MinElementCountToStopScanOnClick || cmd === kContentCmd.ManuallyFindAllOnClick
-        ? len : 0; // stop it
-    for (; i < len; i++) {
-      const el: Element | HTMLElement = allNodesInDocument[i];
-      if (((el as HTMLElement).onclick || (el as HTMLElement).onmousedown) && !call(HasAttr, el, "onclick")
-          && (tag = el.localName) !== "a" && tag !== "button") { // ignore <button>s to iter faster
-        pushInDocument(i);
-      }
+    if (cmd && root) {
+      cmd > kContentCmd.ReportKnownAtOnce_not_ff - 1 ? next(clearTimeout1(timer))
+          : /*#__NOINLINE__*/ collectOnclickElements(cmd)
     }
-    doRegister(1);
-    allNodesInDocument = null;
     return;
   }
   toRegister.length = detectDisabled = 0;
@@ -515,6 +502,21 @@ const executeCmd = (eventOrDestroy?: Event): void => {
   root = null as never;
   clearTimeout1(timer);
   timer = 1;
+}
+const collectOnclickElements = (cmd: SecondLevelContentCmds): void => {
+  let len = (call(Remove, root), allNodesInDocument = call(getElementsByTagNameInDoc, doc0, "*")).length
+  let i = unsafeDispatchCounter = 0, tag: Element["localName"]
+  len = len < GlobalConsts.MinElementCountToStopScanOnClick || cmd > kContentCmd.ManuallyFindAllOnClick - 1
+      ? len : 0; // stop it
+  for (; i < len; i++) {
+    const el: Element | HTMLElement = allNodesInDocument[i];
+    if (((el as HTMLElement).onclick || (el as HTMLElement).onmousedown) && !call(HasAttr, el, "onclick")
+        && (tag = el.localName) !== "a" && tag !== "button") { // ignore <button>s to iter faster
+      pushInDocument(i);
+    }
+  }
+  doRegister(1);
+  allNodesInDocument = null;
 }
 const noop = (): 1 => { return 1 }
 

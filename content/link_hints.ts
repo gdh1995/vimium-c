@@ -162,7 +162,7 @@ export function set_addChildFrame_<T extends typeof addChildFrame_> (_newACF: T)
 
 export const activate = (options: ContentOptions, count: number, force?: 2 | TimerType.fake): void => {
     const oldTimer = _timer, xy = options.xy as HintsNS.StdXY | undefined
-    _timer = _reinitTime = 0
+    _timer = _reinitTime = coreHints.h = 0
     oldTimer && clearTimeout_(oldTimer)
     if (isActive && force !== 2 || !isEnabled_) { return; }
     if (checkHidden(kFgCmd.linkHints, options, count)) {
@@ -175,6 +175,7 @@ export const activate = (options: ContentOptions, count: number, force?: 2 | Tim
         return replaceOrSuppressMost_(kHandler.linkHints)
       }
     }
+    OnFirefox || oldTimer && isClickListened_ && vApi.e && vApi.e(kContentCmd.ReportKnownAtOnce_not_ff)
     if (xy && !xy.n) { xy.n = count, count = 1 }
     if (options.direct) { return activateDirectly(options, count) }
     const parApi = !fullscreenEl_unsafe_() && getParentVApi()
@@ -421,9 +422,7 @@ const onKeydown = (event: HandlerNS.Event): HandlerResult => {
         i = 0
       } else { // plain <f2>
         isClickListened_ = true;
-        if (!OnFirefox) {
-          vApi.e(kContentCmd.ManuallyFindAllOnClick);
-        }
+        OnFirefox || vApi.e(kContentCmd.ManuallyFindAllOnClick)
       }
       resetMode(i as BOOL | undefined)
       i && timeout_(reinit, 0)
@@ -689,7 +688,7 @@ export const reinitLinkHintsIn = ((timeout: number, officer?: BaseHintWorker | n
     let doesReinit: BOOL | boolean | void | undefined
     try { // can not use safeCall, in case `unwrap_ff(officer).x` throws
       doesReinit = (OnFirefox ? officer ? unwrap_ff(officer) : coreHints : officer || coreHints).x(el!, r,
-          isActive && coreHints.h !== 0 && hints_ && hints_.length < (frameArray.length > 1 ? 200 : 99))
+          isActive && coreHints.h && hints_ && hints_.length < (frameArray.length > 1 ? 200 : 99))
     } catch {}
     doesReinit && reinit(1)
   }, timeout)
@@ -750,7 +749,7 @@ export const clear = (onlySelfOrEvent?: 0 | 1 | Event, suppressTimeout?: number)
         return;
       }
     }
-    const manager = coreHints.p as HintManager | null;
+    const manager = coreHints.p as HintManager | null, oldMode = isActive ? mode1_ : HintMode.max_mouse_events + 1
     clearTimeout_(_timer)
     isActive = _timer = _reinitTime = 0
     OnFirefox && (doesAllowModifierEvents_ff = 0)
@@ -776,6 +775,8 @@ export const clear = (onlySelfOrEvent?: 0 | 1 | Event, suppressTimeout?: number)
     chars_ = "";
     removeBox()
     hud_tipTimer || hudHide()
+    OnFirefox || oldMode < HintMode.max_mouse_events + 1 && !manager
+        && reinitLinkHintsIn(1000) // just a flag to test on re-activate
 }
 
 const removeBox = (): void => {
