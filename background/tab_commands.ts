@@ -377,20 +377,23 @@ export const moveTabToNextWindow = ([tab]: [Tab], resolve: OnCmdResolved): void 
     const noMin = get_cOptions<C.moveTabToNextWindow>().minimized === false
         || get_cOptions<C.moveTabToNextWindow>().min === false
     const focused = get_cOptions<C.moveTabToNextWindow>().focused !== false
+    const filter = get_cOptions<C.moveTabToNextWindow, true>().filter
+    const useTabs = !!(get_cOptions<C.moveTabToNextWindow>().tabs || filter)
     wnds = wnds0.filter(wnd => wnd.incognito === tab.incognito && wnd.type === "normal"
         && (!noMin || wnd.state !== "minimized"))
     if (wnds.length > 0) {
       ids = wnds.map(wnd => wnd.id)
       const index = ids.indexOf(tab.windowId)
       if (ids.length >= 2 || index < 0) {
-        const filter = get_cOptions<C.moveTabToNextWindow, true>().filter
-        const useTabs = !!(get_cOptions<C.moveTabToNextWindow>().tabs || filter)
         const lastWndIdx = ids.indexOf(lastWndId_)
         const firstWndIdx = get_cOptions<C.moveTabToNextWindow>().last && lastWndIdx >= 0 ? lastWndIdx
             : index >= 0 ? index + 1 : 0
-        let dest = useTabs ? firstWndIdx : cRepeat > 0 ? firstWndIdx + cRepeat - 1 : firstWndIdx + cRepeat
+        const rawNext = get_cOptions<C.moveTabToNextWindow>().nextWindow
+        const nextWindow = (rawNext == null ? 1 : typeof rawNext === "boolean" ? rawNext ? 1 : -1 : (+rawNext | 0) || 1
+            ) * (useTabs ? 1 : cRepeat)
+        let dest = nextWindow > 0 ? firstWndIdx + nextWindow - 1 : firstWndIdx + nextWindow
         dest = ((dest % ids.length) + ids.length) % ids.length
-        dest = dest !== index ? dest : dest + (cRepeat > 0 ? 1 : -1)
+        dest = dest !== index ? dest : dest + (nextWindow > 0 ? 1 : -1)
         dest = ((dest % ids.length) + ids.length) % ids.length
         Tabs_.query({windowId: ids[dest], active: true}, ([tab2]): void => {
           const newIndex = getDestIndex(tab2)
@@ -450,7 +453,7 @@ export const moveTabToNextWindow = ([tab]: [Tab], resolve: OnCmdResolved): void 
     } else {
       wnds = wnds0.filter(wnd => wnd.id === tab.windowId)
     }
-    if (abs(cRepeat) > 1) {
+    if (useTabs && abs(cRepeat) > 1) {
       moveTabToNewWindow(resolve)
       return
     }

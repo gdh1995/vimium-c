@@ -88,7 +88,7 @@ interface BgCmdOptions {
   [kBgCmd.moveTabToNewWindow]: { all: boolean | BOOL; focused: boolean; active: false; rightInOld: boolean }
       & Pick<OpenUrlOptions, "incognito" | "position"> & LimitedRangeOptions & TabFilterOptions
   [kBgCmd.moveTabToNextWindow]: { minimized: false; min: false; end: boolean; right: true | false
-      focused: boolean; active: false; last: boolean; tabs: boolean }
+      focused: boolean; active: false; last: boolean; tabs: boolean; nextWindow: boolean | number }
       & Pick<OpenUrlOptions, "position"> & LimitedRangeOptions & TabFilterOptions
   [kBgCmd.openUrl]: OpenUrlOptions & MasksForOpenUrl & {
     urls: string[]; $fmt: 1 | 2
