@@ -249,6 +249,8 @@ export const checkDocSelectable = (): void => {
             ? st.userSelect || st.webkitUserSelect : st.userSelect) !== NONE)
 }
 
+export const hasGetSelection = (node: Node): node is ShadowRoot => isTY((node as ShadowRoot).getSelection, kTY.func)
+
 export const getSelectionOf = (node: DocumentOrShadowRootMixin): Selection | null => node.getSelection!()
 
 export const getSelected = (notExpectCount?: {r?: ShadowRoot | null}): Selection => {
@@ -258,11 +260,10 @@ export const getSelected = (notExpectCount?: {r?: ShadowRoot | null}): Selection
   if (el = derefInDoc_(currentScrolling)) {
       type ReferredInDoc = EnsuredMountedElement & Item<typeof currentScrolling>;
       el = getRootNode_mounted(el as ReferredInDoc)
-      if (el !== doc && isNode_(el, kNode.DOCUMENT_FRAGMENT_NODE)
-          && isTY((el as ShadowRoot).getSelection, kTY.func)) {
-        sel = getSelectionOf(el as ShadowRoot);
+      if (el !== doc && isNode_(el, kNode.DOCUMENT_FRAGMENT_NODE) && hasGetSelection(el)) {
+        sel = getSelectionOf(el)
         if (sel && (notExpectCount || rangeCount_(sel))) {
-          sr = el as ShadowRoot
+          sr = el
         }
       }
   }
@@ -274,7 +275,7 @@ export const getSelected = (notExpectCount?: {r?: ShadowRoot | null}): Selection
       sel2 = null;
           el = singleSelectionElement_unsafe(sel)
           if (el && (sr = GetShadowRoot_(el as Element))) {
-            if (OnChrome ? sel2 = getSelectionOf(sr) : sr.getSelection && (sel2 = getSelectionOf(sr))) {
+            if (OnChrome ? sel2 = getSelectionOf(sr) : hasGetSelection(sr) && (sel2 = getSelectionOf(sr))) {
               sel = sel2!;
             } else {
               sr = null;
@@ -342,7 +343,7 @@ export const doesSelectRightInEditableLock = (): boolean =>
 
 export const removeSelection = function (root?: VUIRoot & Pick<DocumentOrShadowRoot, "getSelection">): boolean {
     const sel = (OnChrome && Build.MinCVer >= BrowserVer.MinShadowDOMV0
-        ? root : root && root.getSelection) ? getSelectionOf(root as ShadowRoot) : getSelection_()
+        ? root : root && hasGetSelection(root)) ? getSelectionOf(root as ShadowRoot) : getSelection_()
     const ret = sel && isSelARange(sel) && getAccessibleSelectedNode(sel)
     ret && collpaseSelection(sel)
     return !!ret

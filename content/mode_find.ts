@@ -10,7 +10,7 @@ import {
 import {
   attachShadow_, getSelectionFocusEdge_, deepActiveEl_unsafe_, setClassName_s, compareDocumentPosition,
   getEditableType_, scrollIntoView_, SafeEl_not_ff_, GetParent_unsafe_, focus_, fullscreenEl_unsafe_, docEl_unsafe_,
-  getSelection_, isSelected_, docSelectable_, isHTML_, createElement_, CLK, MDW, removeEl_s, appendNode_s,
+  getSelection_, isSelected_, docSelectable_, isHTML_, createElement_, CLK, MDW, removeEl_s, appendNode_s, isNode_,
   setDisplaying_s, findAnchor_, notSafe_not_ff_,
   getAccessibleSelectedNode,  INP, BU, UNL, contains_s, setOrRemoveAttr_s, textContent_s, modifySel, parentNode_unsafe_s
 } from "../lib/dom_utils"
@@ -18,7 +18,7 @@ import { wdZoom_, prepareCrop_, view_, dimSize_, selRange_, getZoom_ } from "../
 import {
   ui_box, ui_root, getSelectionParent_unsafe, resetSelectionToDocStart, getBoxTagName_old_cr, collpaseSelection,
   createStyle, getSelectionText, checkDocSelectable, adjustUI, ensureBorder, addUIElement, getSelected, flash_,
-  getSelectionOf, getSelectionBoundingBox_
+  getSelectionOf, getSelectionBoundingBox_, hasGetSelection
 } from "./dom_ui"
 import { highlightRange, activate as visualActivate, deactivate as visualDeactivate, visual_mode_name } from "./visual"
 import { keyIsDown as scroll_keyIsDown, beginScroll, onScrolls } from "./scroller"
@@ -69,6 +69,7 @@ let box_: HTMLIFrameElement = null as never
 let outerBox_: HTMLDivElement | HTMLBodyElement = null as never
 let innerDoc_: HTMLDocument = null as never
 let input_: SafeHTMLElement = null as never
+let suppressOnInput_: BOOL | undefined
 let countEl: SafeHTMLElement = null as never
 let findCSS: FindCSS = null as never
 let styleSelColorIn: HTMLStyleElement | null | undefined
@@ -137,13 +138,20 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
     scrollIntoView_(el)
     oldPos && scrollToMark(oldPos)
   } : 0 as never
-  const setQuery = (query: string): void => {
-    if (query === query_ || !innerDoc_) { /* empty */ }
+  const setQuery = (query: string | 1): void => {
+    if (query === query0_ || !innerDoc_) { /* empty */ }
     else if (!query && historyIndex > 0) { --historyIndex }
     else {
-      execCommand("selectAll")
-      execCommand("insertText", 0, query) // "\xa0" is not needed, because of `white-space: pre;`
+      suppressOnInput_ = 1
+      if (query !== 1) {
+        execCommand("selectAll")
+        execCommand("insertText", 0, query) // "\xa0" is not needed, because of `white-space: pre;`
+      } else {
+        execCommand("undo")
+      }
+      suppressOnInput_ = 0
       onInput()
+      scrollTo_(query === 1 ? 3 : 0)
     }
   }
   const postActivate = (): void => {
@@ -181,7 +189,7 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
         if (!OnChrome || Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted
             ? !e.isTrusted : e.isTrusted === false) { return }
       }
-      if ((e as TypeToPick<Event, InputEvent, "isComposing">).isComposing) { return }
+      if (suppressOnInput_ || (e as TypeToPick<Event, InputEvent, "isComposing">).isComposing) { return }
     }
     const query = input_.innerText.replace(<RegExpG> /\xa0/g, " ").replace(<RegExpOne> /\n$/, "")
     let s = query_
@@ -198,7 +206,7 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
       lastInputTime_ = getTime()
     }
   }
-  const showCount = (changed: BOOL): void => {
+  const showCount = (changed?: BOOL): void => {
     let count = matchCount
     if (changed) {
         countEl.dataset.vimium = !parsedQuery_ ? "" : VTr(count > 1 ? kTip.nMatches : count ? kTip.oneMatch
@@ -207,6 +215,23 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
     count = (dimSize_(input_, kDim.scrollW) + countEl.offsetWidth + 35) & ~31
     if (!isSmall || count > 151) {
       outerBox_.style.width = ((isSmall = count < 152) ? 0 as number | string as string : count + "px")
+    }
+  }
+  const scrollTo_ = (action: 0 | 1 | 2 | 3 | 9): void => { // up, left, right, down
+    const sel = getSelectionOf(OnChrome ? Build.MinCVer >= BrowserVer.MinShadowDOMV0 ? root_! : root_ || innerDoc_
+        : root_ && hasGetSelection(root_) ? root_ : innerDoc_)!
+    if (action > 2) {
+      if (sel + "" === input_.innerText) { collpaseSelection(sel, VisualModeNS.kDir.right) }
+      else { historyIndex++ }
+    } else if (action) {
+      const node = getAccessibleSelectedNode(sel, 1)
+      if (node && isNode_(node, kNode.TEXT_NODE)) { sel.collapse(node, action > 1 ? node.length : 0) }
+      else { action = 9 }
+    }
+    const bbox = action < 9 && getSelectionBoundingBox_(sel)
+    if (bbox) {
+      const newLeft = max_(0, dimSize_(input_, kDim.positionX) + bbox.l - dimSize_(input_, kDim.elClientW))
+      input_.scrollTop += bbox.t; input_.scrollLeft = newLeft
     }
   }
   const restoreSelection = (isCur?: boolean): void => {
@@ -316,7 +341,7 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
         if (isNewQuery) {
           updateQuery(initial_query)
           if (isActive) {
-            textContent_s(input_, initial_query.replace(<RegExpOne> /^ /, "\xa0"))
+            textContent_s(input_, initial_query)
             showCount(1)
           }
         }
@@ -360,7 +385,7 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
     parsedQuery_ = query_ = ""
     parsedRegexp_ = regexMatches = null
     activeRegexIndex = 0
-    query_ || (query0_ = initial_query)
+    query0_ = initial_query
 
     const outerBox = outerBox_ = createElement_(OnChrome
         && Build.MinCVer < BrowserVer.MinForcedColorsMode ? getBoxTagName_old_cr() : "div"),
@@ -496,8 +521,7 @@ const onMousedown = function (this: Window | HTMLDivElement | HTMLBodyElement, e
             ? event.isTrusted : event.isTrusted !== false)) {
     prevent_(event)
     doFocus()
-    const text = input_.firstChild as Text
-    text && getSelectionOf(innerDoc_)!.collapse(text, target !== input_.previousSibling ? text.data.length : 0)
+    scrollTo_(compareDocumentPosition(target, input_) & kNode.DOCUMENT_POSITION_PRECEDING ? 2 : 1)
   }
 }
 
@@ -519,7 +543,7 @@ const onIFrameKeydown = (event: KeyboardEventToPrevent): void => {
     const i: FindAction | KeyStat = key.includes("a-") && event.altKey ? FindAction.DoNothing
       : keybody === ENTER
         ? key > "s" ? FindAction.PassDirectly
-          : (query_ && post_({ H: kFgReq.findQuery, q: query0_ }), FindAction.ExitForEnter)
+          : (query0_ && post_({ H: kFgReq.findQuery, q: query0_ }), FindAction.ExitForEnter)
       : keybody !== DEL && keybody !== BSP
         ? isEscape_(key) ? FindAction.ExitForEsc : FindAction.DoNothing
       : OnFirefox && key[0] === "c" ? FindAction.CtrlDelete
@@ -557,8 +581,7 @@ const onIFrameKeydown = (event: KeyboardEventToPrevent): void => {
           if (key > "u") {
             send_(kFgReq.findQuery, scroll, setQuery)
           } else {
-            execCommand("undo")
-            collpaseSelection(getSelectionOf(innerDoc_)!, VisualModeNS.kDir.right)
+            setQuery(1)
           }
         }
       }
@@ -752,7 +775,7 @@ export const updateQuery = (query: string): void => {
       query = didNorm ? normLetters(query) : query
       cachedInnerText = { i: query, t: now, n: didNorm }
     }
-    matches = query.match(re) || query.replace(<RegExpG> /\xa0/g, " ").match(re);
+    matches = query.match(re)
   }
   regexMatches = isRe ? matches : null
   parsedRegexp_ = isRe ? re : null

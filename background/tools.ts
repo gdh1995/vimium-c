@@ -393,9 +393,9 @@ export const FindModeHistory_ = {
     const list = incognito ? incognitoFindHistoryList_
         || (IncognitoWatcher_.watch_(), set_incognitoFindHistoryList_(a.list_!.slice(0))) : a.list_!
     if (!query) {
-      return list[list.length - (nth || 1)] || "";
+      return (list[list.length - (nth || 1)] || "").replace(<RegExpG> /\r/g, "\n")
     }
-    query = query.replace(/\n/g as RegExpG, " ");
+    query = query.replace(/\n/g as RegExpG, "\r")
     if (incognito) {
       a.refreshIn_(query, list, true)
       return
