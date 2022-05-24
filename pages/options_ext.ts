@@ -61,7 +61,7 @@ ExclusionRulesOption_.prototype.sortRules_ = function (this: ExclusionRulesOptio
   this.timer_ = setTimeout(function (el, text) {
     (el.firstChild as Text).data = text, self.timer_ = 0;
   }, 1000, element, (element.firstChild as Text).data);
-  (element.firstChild as Text).data = oTrans_("o3_2");
+  (element.firstChild as Text).data = oTrans_("3_2");
 };
 
 $("#exclusionSortButton").onclick = function (): void {

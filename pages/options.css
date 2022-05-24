@@ -354,12 +354,21 @@ label:active {
   color: var(--c-char-color, #a55e18);
 }
 .caption {
+  box-sizing: border-box;
   color: #333;
   color: var(--item-caption-color, #333);
   margin-right: 10px;
-  min-width: 130px;
-  padding-top: 3px;
-  width: 1px;
+  padding: 3px 12px 0 0;
+  width: 128px;
+}
+.caption-2x:lang(zh) {
+  padding-top: 0;
+  line-height: 20px;
+  padding-right: 24px;
+}
+.caption-t:lang(zh) {
+  display: inline-block;
+  margin-top: -3px;
 }
 .hidden {
   display: none;
@@ -600,14 +609,6 @@ label:active {
 #settingFileManager {
   position: absolute;
   margin-left: 20px;
-}
-#o37:lang(zh) {
-  padding-top: 0;
-  transform: translateY(-3px);
-  line-height: 20px;
-}
-#o38 {
-  padding-top: 1px;
 }
 @media (min-width: 1067px) {
   #wrapper, #footerWrapper {

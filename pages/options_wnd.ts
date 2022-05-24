@@ -43,7 +43,7 @@ saveBtn.onclick = (virtually): void => {
       saveBtn.blur()
     }
     saveBtn.disabled = true;
-    (saveBtn.firstChild as Text).data = oTrans_("o115_3")
+    (saveBtn.firstChild as Text).data = oTrans_("115_3")
     exportBtn.disabled = false;
     savedStatus(false)
     window.onbeforeunload = null as never;
@@ -315,7 +315,7 @@ let optionsInit1_ = function (): void {
     const oldOnSave = opt.onSave_
     opt.onSave_ = (): void | Promise<void> => {
       nextTick_((ref2): void => {
-        ref2.textContent = oTrans_(opt.readValueFromElement_() > 1 ? "o145_2" : "o144")
+        ref2.textContent = oTrans_(opt.readValueFromElement_() > 1 ? "145_2" : "144")
       }, $(`#${opt.element_.id}Status`))
       return oldOnSave.call(opt)
     }

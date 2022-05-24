@@ -476,7 +476,7 @@ export const createNewOption = ((): <T extends keyof AllowedOptions> (_element: 
           saveBtn.blur()
         }
         saveBtn.disabled = true;
-        (saveBtn.firstChild as Text).data = oTrans_("o115")
+        (saveBtn.firstChild as Text).data = oTrans_("115")
         exportBtn.disabled = false
         savedStatus(false)
         window.onbeforeunload = null as never
@@ -488,7 +488,7 @@ export const createNewOption = ((): <T extends keyof AllowedOptions> (_element: 
     window.onbeforeunload = (): string => oTrans_("beforeUnload")
     savedStatus(true)
     saveBtn.disabled = false;
-    (saveBtn.firstChild as Text).data = oTrans_("o115_2")
+    (saveBtn.firstChild as Text).data = oTrans_("115_2")
     if (OnFirefox) {
       exportBtn.blur()
     }

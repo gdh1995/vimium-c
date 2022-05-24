@@ -118,19 +118,19 @@ const _doUpdateState = (oldInited: typeof inited
   const same = pass === oldPass
   const isReversed = !!pass && pass.length > 2 && pass[0] === "^"
   stateAction.textContent =
-    (isSaving ? pass ? pTrans_("o137") + pTrans_(isReversed ? "o138" : "o139") : pTrans_("o140")
-      : pTrans_(same ? "o141" : "o142") + pTrans_(pass ? isReversed ? "o138" : "o139" : same ? "o143" : "o143_2")
+    (isSaving ? pass ? pTrans_("137") + pTrans_(isReversed ? "138" : "139") : pTrans_("140")
+      : pTrans_(same ? "141" : "142") + pTrans_(pass ? isReversed ? "138" : "139" : same ? "143" : "143_2")
       ).replace(" to be", "")
     + pTrans_("colon") + pTrans_("NS")
   /* note: on C91, Win10, text may have a negative margin-left (zh/fr) when inline-block and its left is inline */
   stateValue.className = pass ? "code" : ""
   stateValue.textContent = pass ? isReversed ? pass.slice(2) : pass
-    : pTrans_("o143_3") + pTrans_(pass !== null ? "o144" : "o145")
+    : pTrans_("143_3") + pTrans_(pass !== null ? "144" : "145")
   stateTail.textContent = conf_.lock !== null && !isSaving && same
-    ? pTrans_("o147", [pTrans_(conf_.lock !== Frames.Status.enabled ? "o144" : "o145")])
-    : conf_.lock !== null ? pTrans_("o148") : ""
+    ? pTrans_("147", [pTrans_(conf_.lock !== Frames.Status.enabled ? "144" : "145")])
+    : conf_.lock !== null ? pTrans_("148") : ""
   saveBtn2.disabled = same
-  saveBtn2.firstChild.data = pTrans_(isSaving ? "o115_3" : same ? "o115" : "o115_2")
+  saveBtn2.firstChild.data = pTrans_(isSaving ? "115_3" : same ? "115" : "115_2")
 }
 
 const saveOptions = (): void | Promise<void> => {
@@ -143,7 +143,7 @@ const saveOptions = (): void | Promise<void> => {
   inited = 3
   updateBottomLeft()
   updateState(true)
-  saveBtn2.firstChild.data = pTrans_("o115_3")
+  saveBtn2.firstChild.data = pTrans_("115_3")
   if (OnFirefox) {
     saveBtn2.blur()
   }
@@ -283,7 +283,7 @@ const initExclusionRulesTable = (): void => {
         el.remove()
       }
       saveBtn2.removeAttribute("disabled")
-      saveBtn2.firstChild.data = pTrans_("o115_2")
+      saveBtn2.firstChild.data = pTrans_("115_2")
     }
     updateState(inited < 2)
   })

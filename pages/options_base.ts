@@ -52,7 +52,7 @@ export const showI18n = (): void => {
     for (el of $$("[data-i]")) {
       const i = (el.dataset as KnownOptionsDataset).i, isTitle = i.endsWith("-t")
       t = pageTrans_(isTitle ? i.slice(0, -2) : i)
-      t != null && (isTitle ? el.title = t : el.innerText = t)
+      t != null && (isTitle ? el.title = t : el.textContent = t)
     }
     (document.documentElement as HTMLHtmlElement).lang = lang1 === "zh" ? "zh-CN" as "" : lang1 as ""
 }
