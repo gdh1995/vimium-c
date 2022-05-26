@@ -22,6 +22,7 @@ const doNotSync: PartialTypedSafeEnum<SettingsToSync> = BgUtils_.safer_({
   , vomnibarPage_f: 1
 } as const)
 const browserStorage_ = browser_.storage
+const kCloud = "sync.cloud:"
 
 let __sync: chrome.storage.StorageArea | undefined
 let to_update: SettingsToUpdate | null = null
@@ -29,7 +30,7 @@ let keyInDownloading: keyof SettingsWithDefaults | "" = ""
 let changes_to_merge: EnsuredDict<StorageChange> | null = null
 let textDecoder: TextDecoder | null = null
 let longDelayedAction = 0
-let innerRestoreSettings: Promise<void> | null | undefined
+let innerRestoreSettings: Promise<void> | null = null
 
 const storage = (): chrome.storage.StorageArea & {
   onChanged?: chrome.events.Event<(changes: EnsuredDict<StorageChange>, exArg: FakeArg) => void>
@@ -85,7 +86,7 @@ const log: (... _: any[]) => void = function (): void {
 /** return `8` only when expect a valid `map` */
 const storeAndPropagate = (key: string, value: any, map?: Dict<any>): void | 8 => {
   if (!(key in settings_.defaults_) || !shouldSyncKey(key)) { return }
-  const defaultVal = settings_.defaults_[key]
+  const defaultVal = settings_.defaults_[key], kThis = "sync.this:"
   const serialized = value && typeof value === "object"
       && (value as Partial<SerializationMetaData | SingleSerialized>).$_serialize || ""
   if (serialized) {
@@ -97,7 +98,7 @@ const storeAndPropagate = (key: string, value: any, map?: Dict<any>): void | 8 =
   }
   if (value == null) {
     if (settingsCache_[key] != defaultVal) {
-      innerRestoreSettings || log("sync.this: reset", key)
+      innerRestoreSettings || log(kThis, "reset", key)
       setAndPost(key, defaultVal)
     }
     return
@@ -118,8 +119,7 @@ const storeAndPropagate = (key: string, value: any, map?: Dict<any>): void | 8 =
     value = defaultVal
   }
   innerRestoreSettings ||
-  log("sync.this: update", key,
-    typeof value === "string"
+  log(kThis, "update", key, typeof value === "string"
     ? (value.length > 32 ? value.slice(0, 30) + "..." : value).replace(<RegExpG> /\n/g, "\\n")
     : value)
   setAndPost(key, value)
@@ -320,13 +320,13 @@ const DoUpdate = (): void => {
   }
   textDecoder = encoder = null as never
   if (removed.length > 0) {
-    log("sync.cloud: reset", removed.join(", "))
+    log(kCloud, "reset", removed.join(", "))
   }
   if (reset.length > 0) {
     storage().remove(reset)
   }
   if (updated.length > 0) {
-    log("sync.cloud: update", updated.join(", "))
+    log(kCloud, "update", updated.join(", "))
     storage().set(serializedDict)
   }
   for (let key in delayedSerializedItems) {
@@ -335,7 +335,7 @@ const DoUpdate = (): void => {
       if (err) {
         log("Failed to update", key, ":", err.message || err)
       } else {
-        log("sync.cloud: update (serialized) " + key)
+        log(kCloud, "update (serialized) " + key)
       }
       return err
     })
@@ -378,13 +378,13 @@ interface LocalSettings extends Dict<any> { vimSync?: SettingsNS.BackendSettings
 const beginToRestore = (items: LocalSettings, resolve: () => void): void => {
   BgUtils_.safer_(items)
   const vimSync = items.vimSync || settingsCache_.vimSync == null && hasEmptyLocalStorage_
+  updateHooks_.vimSync!(false, "vimSync") // turn off sync_ for a
   if (!vimSync) {
-    set_sync_(blank_)
     resolve()
     return // no settings have been modified
   } else if (!items.vimSync) {
     // cloud may be empty, but the local computer wants to sync, so enable it
-    log("sync.cloud: enable vimSync")
+    log(kCloud, "enable vimSync")
     items.vimSync = true
     storage().set({ vimSync: true })
   }
@@ -412,7 +412,7 @@ const beginToRestore = (items: LocalSettings, resolve: () => void): void => {
   Build.MV3 || updateLegacyToLocal!(60)
   settings_.postUpdate_("vimSync")
   setTimeout((): void => { resolve() }, 4)
-  log("sync.cloud: download settings")
+  log(kCloud, "download settings")
 }
 
 updateHooks_.vimSync = (value): void => {
@@ -431,6 +431,9 @@ updateHooks_.vimSync = (value): void => {
     event.addListener(listener)
     set_sync_(TrySet)
     Build.MV3 || updateLegacyToLocal!(60)
+  } else if (to_update) {
+    log(kCloud, "save immediately")
+    DoUpdate()
   }
 }
 
@@ -443,8 +446,8 @@ void settings_.ready_.then((): void => {
       doUpdate && updateLegacyToLocal!(6000)
     }
     set_installation_(null)
-  } else {
-    innerRestoreSettings = !installation_ ? null : installation_.then((reason): boolean => {
+  } else if (installation_) { // on startup
+    innerRestoreSettings = installation_.then((reason): boolean => {
       set_installation_(null)
       return !!reason && reason.reason === "install"
     }).then((installed): Promise<void> | void => installed ? new Promise<void>(r => {
@@ -462,9 +465,16 @@ void settings_.ready_.then((): void => {
         }
         return err
       }) : r()
-    }) : void 0).then((): void => { set_restoreSettings_(null); innerRestoreSettings = null })
-    set_restoreSettings_(innerRestoreSettings && Promise.race([innerRestoreSettings, new Promise((resolve): void => {
+    }) : void 0).then((): void => {
+      set_restoreSettings_(null), innerRestoreSettings = null
+    })
+    set_restoreSettings_(Promise.race([innerRestoreSettings, new Promise((resolve): void => {
       setTimeout(resolve, 800)
-    })]).then((): void => { set_restoreSettings_(null)  }))
+    })]).then((): void => {
+      set_restoreSettings_(null)
+      settingsCache_.vimSync && sync_ !== TrySet && settings_.postUpdate_("vimSync")
+    }))
+  } else { // on reload ./sync
+    settings_.postUpdate_("vimSync")
   }
 })
