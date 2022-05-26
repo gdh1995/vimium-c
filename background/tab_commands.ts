@@ -406,21 +406,23 @@ export const moveTabToNextWindow = ([tab]: [Tab], resolve: OnCmdResolved): void 
                   .then((nearTab): void => { nearInOld = nearTab; callback() })
               return
             }
+            let q: Promise<unknown> | boolean
             focused || nearInOld && selectTab(nearInOld.id)
             Tabs_.move(tab.id, { index: newIndex ?? -1, windowId: tab2.windowId }, (resultCur): void => {
               if (runtimeError_()) { resolve(0); selectWnd(tab); return runtimeError_() }
-              if (allToMove) {
-                const curInd = allToMove.findIndex(i => i.id === resultCur.id)
+              Promise.resolve(q).then((): void => resolve(1))
+              allToMove = allToMove || [tab]
                 for (let i = 0; i < allToMove.length; i++) {
-                  i !== curInd && Tabs_.move(allToMove[i].id, {
+                  allToMove[i].id !== resultCur.id && Tabs_.move(allToMove[i].id, {
                     index: resultCur.index + i, windowId: resultCur.windowId
                   }, runtimeError_)
+                  if (allToMove[i].pinned) { Tabs_.update(allToMove[i].id, { pinned: true }) }
                 }
-              }
               cPort && cPort.s.tabId_ === resultCur.id && notifyCKey()
             })
             focused && selectWnd(tab2)
-            get_cOptions<C.moveTabToNextWindow>().active !== false && selectTab(tab.id, R_(resolve))
+            q = get_cOptions<C.moveTabToNextWindow>().active !== false
+                && new Promise((resolve): void => { selectTab(tab.id, resolve) })
             focused && nearInOld && selectTab(nearInOld.id)
           }
           if (useTabs && (!OnChrome || Build.MinCVer >= BrowserVer.MinNoAbnormalIncognito
@@ -463,6 +465,7 @@ export const moveTabToNextWindow = ([tab]: [Tab], resolve: OnCmdResolved): void 
       tabId: tab.id, incognito: tab.incognito, focused
     }, wnds.length === 1 && wnds[0].type === "normal" ? wnds[0].state : "", (newWnd): void => {
       newWnd && (notifyCKey(), focused && nearInOld && selectTab(nearInOld.id))
+      tab.pinned && newWnd && newWnd.tabs && newWnd.tabs[0] && tabsUpdate(newWnd.tabs[0].id, { pinned: true })
       resolve(!!newWnd)
     })
     })
