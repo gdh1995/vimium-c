@@ -5,6 +5,7 @@ export declare const enum kPgReq {
    /** 15..19 */ focusOrLaunch, showUrl, shownHash, substitute, checkHarmfulUrl,
    /** 20..24 */ popupInit, allowExt, toggleStatus, parseMatcher, initHelp,
    /** 25..29 */ callApi, selfTabId, getStorage, setInLocal, updateOmniPayload,
+   /** 30 */ saveToSyncAtOnce,
   __mask = ""
 }
 
@@ -59,6 +60,7 @@ export interface PgReq {
   [kPgReq.setInLocal]: [ { key: string, val: string | null }, void ]
   [kPgReq.updateOmniPayload]: [ { key: keyof SettingsNS.DirectVomnibarItems,
       val: Values<SettingsNS.DirectVomnibarItems>[1] | /** autoDarkMode */ boolean }, void ]
+  [kPgReq.saveToSyncAtOnce]: [ void, void ]
 }
 
 export declare namespace Req2 {

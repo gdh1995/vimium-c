@@ -1,7 +1,7 @@
 import {
   contentPayload_, evalVimiumUrl_, keyFSM_, keyToCommandMap_, mappedKeyRegistry_, newTabUrls_, restoreSettings_,
   CONST_, settingsCache_, shownHash_, substitute_, framesForTab_, curTabId_, extAllowList_, OnChrome, reqH_, OnEdge,
-  storageCache_, os_, framesForOmni_
+  storageCache_, os_, framesForOmni_, updateHooks_
 } from "./store"
 import { deferPromise_, protocolRe_, safeObj_ } from "./utils"
 import { browser_, getCurTab, getTabUrl, Q_, runContentScriptsOn_, runtimeError_ } from "./browser"
@@ -29,9 +29,8 @@ const pageRequestHandlers_ = As_<{
   /** kPgReq.settingsDefaults: */ (_): PgReq[kPgReq.settingsDefaults][1] =>
       [settings_.defaults_, Build.OS & (Build.OS - 1) || Build.OS > 7 ? os_ : (Build.OS / 2) | 0, CONST_.Platform_],
   /** kPgReq.settingsCache: */ (req): OrPromise<PgReq[kPgReq.settingsCache][1]> => {
-    const p = restoreSettings_
-    if (p) {
-      return p.then(pageRequestHandlers_[kPgReq.settingsCache].bind(null, req, null))
+    if (restoreSettings_) {
+      return restoreSettings_.then(pageRequestHandlers_[kPgReq.settingsCache].bind(null, req, null))
     }
     const cache = {} as SettingsNS.SettingsWithDefaults
     for (const key in settings_.defaults_) {
@@ -42,9 +41,12 @@ const pageRequestHandlers_ = As_<{
     }
     return cache
   },
-  /** kPgReq.setSetting: */ ({ key, val }): PgReq[kPgReq.setSetting][1] => {
+  /** kPgReq.setSetting: */ (req): OrPromise<PgReq[kPgReq.setSetting][1]> => {
+    if (restoreSettings_) {
+      return restoreSettings_.then(pageRequestHandlers_[kPgReq.setSetting].bind(null, req, null))
+    }
     // in fact, allow unknown key
-    val = val ?? settings_.defaults_[key] ?? null
+    const key = req.key, val = req.val ?? settings_.defaults_[key] ?? null
     settings_.set_(key, val)
     const val2 = settingsCache_[key]!
     return val2 !== val ? val2 : null
@@ -254,6 +256,9 @@ const pageRequestHandlers_ = As_<{
     const tabId = port && port.s && port.s.tabId_ || curTabId_
     const omniPort = framesForOmni_.find(i => i.s.tabId_ === tabId)
     omniPort && omniPort.postMessage({ N: kBgReq.omni_updateOptions, d: { [key]: val } })
+  },
+  /** kPgReq.saveToSyncAtOnce: */ (): void => {
+    settingsCache_.vimSync && updateHooks_.vimSync!(true, "vimSync")
   }
 ])
 

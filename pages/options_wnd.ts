@@ -47,11 +47,14 @@ saveBtn.onclick = (virtually): void => {
     exportBtn.disabled = false;
     savedStatus(false)
     window.onbeforeunload = null as never;
+    window.addEventListener("beforeunload", refreshSync, true)
     if (toSync.length === 0) { return; }
     setTimeout((toSync1: typeof Option_.syncToFrontend_): void => {
       void post_(kPgReq.notifyUpdate, toSync1.map(key => bgSettings_.valuesToLoad_[key]))
     }, 100, toSync)
 }
+
+const refreshSync = (): void => { post_(kPgReq.saveToSyncAtOnce) }
 
 let optionsInit1_ = function (): void {
   advancedOptBtn.onclick = function (ev, init): void {

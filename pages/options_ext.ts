@@ -90,10 +90,6 @@ interface ExportedSettings extends Dict<any> {
 
 let _lastBlobURL = "";
 
-window.addEventListener("unload", function (): void {
-  _lastBlobURL && URL.revokeObjectURL(_lastBlobURL);
-});
-
 const buildExportedFile = (now: Date, want_static: boolean): { blob: Blob, options: number } => {
   let exported_object: ExportedSettings | null;
   exported_object = Object.create(null) as ExportedSettings & SafeObject;
