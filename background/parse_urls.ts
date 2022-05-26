@@ -268,8 +268,12 @@ const detectLinkDeclaration_ = (str: string): string => {
     let s = str.slice(0, i - 1).trim().toLowerCase();
     if (s !== "link" && s !== "\u94fe\u63a5") { return str; }
     url = str.slice(i).trim()
-    i = url.indexOf("\uff1a") + 1 || url.indexOf(":") + 1
-    if (!i || !(<RegExpOne> /^[\w+-]+((?:\.[\w+-])*\.[a-z]{2,6})?\//).test(url)) { return str }
+    let j = url.indexOf("\uff1a") + 1
+    i = url.indexOf(":") + 1
+    i = i && j ? Math.min(i, j) : i || j
+    if (!i || !BgUtils_.protocolRe_.test(url.slice(0, i - 1) + "://")) { return str }
+    convertToUrl_(url.slice(i), null, Urls.WorkType.KeepAll)
+    if (lastUrlType_ !== Urls.Type.NoProtocolName) { return str }
   }
   const sepArr = (<RegExpOne> /\s|[^=][\u3002\uff0c\uff1b]([^a-z?&#-]|$)/).exec(url)
   const endChar = ",.;\u3002\uff0c\uff1b"
