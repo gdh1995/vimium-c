@@ -107,7 +107,7 @@ function handler(this: void, res: ExternalMsgs[kFgReq.inject]["res"] | undefined
   if (!res || !(docEl instanceof HTMLHtmlElement)) {
     return err as void;
   }
-  const insertAfter = document.contains(curEl) ? curEl : (document.head || docEl).lastChild!
+  const insertAfter = document.contains(curEl) ? curEl : (document.head || docEl).lastChild! || document.head
     , insertBefore = insertAfter.nextSibling
     , parentElement = insertAfter.parentElement as Element;
   const fragment = Build.Inline ? null : document.createDocumentFragment()

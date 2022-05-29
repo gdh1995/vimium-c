@@ -186,6 +186,14 @@ declare module chrome.permissions {
   export const onRemoved: chrome.events.Event<(changes: Request, _fake: FakeArg) => void>
 }
 
+interface Element {
+  after? (...nodes: (Element | Text | string)[]): void
+  before? (...nodes: (Element | Text | string)[]): void
+}
+interface HTMLElement {
+  focus (options?: { preventScroll?: boolean }): void
+}
+
 interface HTMLMediaElement {
   controls: boolean
   paused: boolean

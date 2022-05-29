@@ -222,7 +222,7 @@ export const GetParent_unsafe_ = function (el: Node | Element
   }
     // pn is real (if BrowserVer.MinParentNodeGetterInNodePrototype else) real or null
   return OnChrome && Build.MinCVer < BrowserVer.MinParentNodeGetterInNodePrototype && !pn
-      || type === PNType.DirectNode ? pn as Node | null // may return a Node instance
+      || !type ? pn as Node | null // may return a Node instance
       : type >= PNType.ResolveShadowHost
         && isNode_(pn as Node, kNode.DOCUMENT_FRAGMENT_NODE)
       ? (pn as DocumentFragment as Partial<ShadowRoot>).host || null // shadow root or other type of doc fragment
@@ -643,7 +643,8 @@ export const runJS_ = (code: string, returnEl?: HTMLScriptElement | null | 0
     return returnEl != null ? script as SafeHTMLElement & HTMLScriptElement : removeEl_s(script)
 }
 
-export const focus_ = (el: SafeElement | KnownIFrameElement): void => { el.focus && el.focus() }
+// preventScroll seems not to work on MS Edge (Chromium), but here keeps it, to match the spec better
+export const focus_ = (el: SafeElement | KnownIFrameElement): void => { el.focus && el.focus({preventScroll: false}) }
 
 export const blur_unsafe = (el: Element | null | undefined): void => {
   // in `Element::blur`, Chromium will check `AdjustedFocusedElementInTreeScope() == this` firstly

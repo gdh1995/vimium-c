@@ -557,7 +557,7 @@ export const inlineRunKey_ = (rootRegistry: Writable<CommandsNS.Item>): kCName |
   keyOpts.$normalized = 2
   while (keyOpts && normalizeExpects(keyOpts).length === 0 && keyOpts.keys!.length >= 1) {
     let keys = keyOpts.keys as (string | SingleSequence)[], seq = keys[0]
-    canInline = canInline && keyOpts.keys!.length === 1
+    canInline = canInline && keys.length === 1
     if (typeof seq === "string") {
       let mask = keyOpts.mask
       if (mask != null) {
@@ -580,7 +580,7 @@ export const inlineRunKey_ = (rootRegistry: Writable<CommandsNS.Item>): kCName |
     const doesContinue = parentEntry != null && parentEntry.alias_ === C.runKey && parentEntry.background_
     if (doesContinue || canInline) {
       keyOpts !== fullOpts && (fullOpts = concatOptions(keyOpts, fullOpts)!)
-      fullOpts = (fullOpts.options || (fullOpts.$masked ? null : collectOptions(fullOpts))) as typeof fullOpts
+      fullOpts = (fullOpts.options || (fullOpts.$masked ? null : collectOptions(fullOpts))) as typeof fullOpts | null
       fullOpts = concatOptions(concatOptions(fullOpts, seq.options), info.options) as typeof fullOpts
     }
     if (!doesContinue) {

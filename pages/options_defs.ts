@@ -302,7 +302,8 @@ export class TextOption_<T extends TextualizedOptionNames> extends Option_<T> {
         if (errEl == null) {
           errEl = document.createElement("div")
           errEl.className = "tip"
-          par.insertBefore(errEl, el.nextElementSibling as Element | null)
+          OnChrome && Build.MinCVer < BrowserVer.MinEnsured$ParentNode$$appendAndPrepend
+              ? par.insertBefore(errEl, el.nextElementSibling as Element | null) : el.after!(errEl)
         }
         errEl.textContent = msg
         tag !== null && cls.add(tag || "has-error")
@@ -539,7 +540,8 @@ export const createNewOption = ((): <T extends keyof AllowedOptions> (_element: 
       target = target.closest!(".exclusionRule")
     }
     if (!dragged || !target || dragged === target) { return }
-    exclusionRules.$list_.insertBefore(dragged, target)
+    OnChrome && Build.MinCVer < BrowserVer.MinEnsured$ParentNode$$appendAndPrepend
+        ? exclusionRules.$list_.insertBefore(dragged, target) : target.before!(dragged)
     const list = exclusionRules.list_, srcNode = (dragged.querySelector(".pattern") as ExclusionRealNode).vnode,
     targetNode = (target.querySelector(".pattern") as ExclusionRealNode).vnode
     list.splice(list.indexOf(srcNode), 1)

@@ -226,7 +226,8 @@ async function App (this: void): Promise<void> {
               const t = pageTrans_(isTitle ? s.slice(0, -2) : s)
               t && (isTitle ? arr[i].title = t : arr[i]!.textContent = t)
             }
-            body.insertBefore(el, body.firstChild)
+            OnChrome && Build.MinCVer < BrowserVer.MinEnsured$ParentNode$$appendAndPrepend
+                ? body.insertBefore(el, body.firstChild) : body.prepend!(el)
           }
         }
         if (width >= innerWidth * 0.9) {
@@ -430,7 +431,8 @@ function importBody(id: string, notInsert?: boolean): HTMLElement {
   const templates = $<HTMLTemplateElement>("#bodyTemplate"),
   // note: content has no getElementById on Chrome before BrowserVer.Min$DocumentFragment$$getElementById
   node = document.importNode(templates.content.querySelector("#" + id) as HTMLElement, true);
-  notInsert || (document.body as HTMLBodyElement).insertBefore(node, templates)
+  notInsert || (OnChrome && Build.MinCVer < BrowserVer.MinEnsured$ParentNode$$appendAndPrepend
+      ? (document.body as HTMLBodyElement).insertBefore(node, templates) : templates.before!(node))
   return node;
 }
 
@@ -556,7 +558,9 @@ function loadCSS(src: string): void | Promise<void> {
   obj.href = src;
   return new Promise((resolve): void => {
     obj.onload = (): void => { obj.onload = null as never; resolve() }
-    (document.head as HTMLHeadElement).insertBefore(obj, $('link[href$="show.css"]'))
+    const link = $('link[href$="show.css"]')
+    OnChrome && Build.MinCVer < BrowserVer.MinEnsured$ParentNode$$appendAndPrepend
+        ? (document.head as HTMLHeadElement).insertBefore(obj, link) : link.before!(obj)
   })
 }
 
@@ -862,7 +866,8 @@ function fetchImage_(url: string, element: HTMLImageElement, setUrlDirectly: boo
     if (!element.parentNode || element.scrollHeight >= 24 || element.scrollWidth >= 80) { // some pixels drawn
       clearTimer();
     } else if (!text.parentNode) {
-      body.insertBefore(text, element);
+      OnChrome && Build.MinCVer < BrowserVer.MinEnsured$ParentNode$$appendAndPrepend
+          ? body.insertBefore(text, element) : element.before!(text)
       text.data = sTrans_("loading")
     }
   }, 400);
