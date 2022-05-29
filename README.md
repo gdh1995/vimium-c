@@ -42,7 +42,7 @@ A <span style="color: #a55e18;">C</span>ustomized
   (to click web page content and manipulate browser windows using only keyboard)
   having [**c**ontextual mapping](https://github.com/gdh1995/vimium-c/wiki/Map-a-key-to-different-commands-on-different-websites),
   [global short**c**uts](https://github.com/gdh1995/vimium-c/wiki/Trigger-commands-in-an-input-box#user-content-shortcut),
-  [command sequences](https://github.com/gdh1995/vimium-c/wiki/Auto-run-a-tree-of-commands),
+  [**c**ommand sequences](https://github.com/gdh1995/vimium-c/wiki/Auto-run-a-tree-of-commands),
   **C**hinese support
   and [inje**c**tion](https://github.com/gdh1995/vimium-c/wiki/Inject-into-other-extensions) functionality,
   in <span style="color: #a55e18;">**C**</span>-style code for qui**c**ker action and less resource **c**ost.
