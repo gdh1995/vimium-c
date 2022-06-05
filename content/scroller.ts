@@ -27,7 +27,7 @@ import {
   isTop, injector, isTY, safeCall, weakRef_ff, Stop_, abs_
 } from "../lib/utils"
 import {
-  rAF_, scrollingEl_, SafeEl_not_ff_, docEl_unsafe_, NONE, frameElement_, OnDocLoaded_, GetParent_unsafe_,
+  rAF_, scrollingEl_, SafeEl_not_ff_, docEl_unsafe_, NONE, frameElement_, OnDocLoaded_, GetParent_unsafe_, isNode_,
   querySelector_unsafe_, getComputedStyle_, notSafe_not_ff_, HDN, isRawStyleVisible, fullscreenEl_unsafe_,
   doesSupportDialog, attr_s, getSelection_, isIFrameElement, derefInDoc_, isHTML_, IsInDOM_, getRootNode_mounted
 } from "../lib/dom_utils"
@@ -499,8 +499,7 @@ const findScrollable = (di: ScrollByY, amount: number
     const selectFirstType = (evenOverflowHidden != null ? evenOverflowHidden : isTop || injector) ? 3 : 1
     const activeEl: SafeElement | null | undefined = derefInDoc_(currentScrolling) || null
     const fullscreen = fullscreenEl_unsafe_(), top: Element | null = fullscreen || scrollingTop, body = doc.body
-    let element: Element | null = activeEl
-    if (element) {
+    const selectAncestor = (): void => {
       while (element !== top && (!fullscreen || IsInDOM_(element as SafeElement, fullscreen))
           ? shouldScroll_s(<SafeElement> element, element === cachedScrollable ? (di + 2) as 2 | 3 : di, amount) < 1
           : (element = top, 0)) {
@@ -515,6 +514,8 @@ const findScrollable = (di: ScrollByY, amount: number
             : weakRef_not_ff!(element as SafeElement | null)
       }
     }
+    let element: Element | null = activeEl
+    element && selectAncestor()
     if (!element) {
       // note: twitter auto focuses its dialog panel, so it's not needed to detect it here
       const selector = queryByHost(scrollable, kTip.scrollable)
@@ -523,6 +524,12 @@ const findScrollable = (di: ScrollByY, amount: number
                   : SafeEl_not_ff_!(safeCall(querySelector_unsafe_, selector) || null)
           element = element && (!fullscreen || IsInDOM_(element as SafeElement, fullscreen)) ? element : null
       }
+    }
+    if (!element) {
+      const topRoot = top && getRootNode_mounted(top)
+      element = (topRoot && isNode_(topRoot, kNode.DOCUMENT_FRAGMENT_NODE) ? topRoot as ShadowRoot : doc
+          ).elementFromPoint(wndSize_(1) / 2, wndSize_() / 2)
+      element && selectAncestor()
     }
     if (!element && top) {
       const candidate = (OnFirefox || !fullscreen || !notSafe_not_ff_!(top))

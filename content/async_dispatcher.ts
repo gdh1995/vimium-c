@@ -3,7 +3,7 @@ import {
   tryCreateRegExp, weakRef_not_ff, firefoxVer_, fgCache, max_
 } from "../lib/utils"
 import {
-  IsInDOM_, isInTouchMode_cr_, MDW, hasTag_, CLK, attr_s, contains_s, focus_, fullscreenEl_unsafe_, findAnchor_,
+  IsInDOM_, isInTouchMode_cr_, MDW, hasTag_, CLK, attr_s, focus_, fullscreenEl_unsafe_, findAnchor_,
   deepActiveEl_unsafe_, blur_unsafe, derefInDoc_
 } from "../lib/dom_utils"
 import { suppressTail_ } from "../lib/keyboard_utils"
@@ -204,7 +204,7 @@ export const hover_async = (async (newEl?: NullableSafeElForM
     , center?: Point2D, doesFocus?: boolean): Promise<void> => {
   // if center is affected by zoom / transform, then still dispatch mousemove
   let elFromPoint = center && doc.elementFromPoint(center[0], center[1]),
-  canDispatchMove: boolean = !newEl || elFromPoint === newEl || !elFromPoint || !contains_s(newEl, elFromPoint),
+  canDispatchMove: boolean = !newEl || elFromPoint === newEl || !elFromPoint || !IsInDOM_(newEl, elFromPoint),
   last = derefInDoc_(lastHovered_), N = lastHovered_ = null
   const notSame = newEl !== last
   if (last) {
