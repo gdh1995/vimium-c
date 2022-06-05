@@ -390,7 +390,7 @@ interface CmdOptions {
     /** kGranularity[] */ g?: GranularityNames | null;
     /** keyMaps */ k?: VisualModeNS.KeyMap | null;
     /** words */ w?: string;
-    /** collapse to start */ s?: boolean
+    /** collapse to start */ s?: boolean | null
     /** richText */ t?: boolean
   } & OpenPageUrlOptions & Req.FallbackOptions
   [kFgCmd.showHelpDialog]: {

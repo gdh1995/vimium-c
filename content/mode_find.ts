@@ -8,7 +8,7 @@ import {
   whenNextIsEsc_
 } from "../lib/keyboard_utils"
 import {
-  attachShadow_, getSelectionFocusEdge_, deepActiveEl_unsafe_, setClassName_s, compareDocumentPosition,
+  attachShadow_, getSelectionFocusEdge_, deepActiveEl_unsafe_, setClassName_s, compareDocumentPosition, kGCh,
   getEditableType_, scrollIntoView_, SafeEl_not_ff_, GetParent_unsafe_, focus_, fullscreenEl_unsafe_, docEl_unsafe_,
   getSelection_, isSelected_, docSelectable_, isHTML_, createElement_, CLK, MDW, removeEl_s, appendNode_s, isNode_,
   setDisplaying_s, findAnchor_, notSafe_not_ff_,
@@ -850,7 +850,7 @@ export const executeFind = (query: string | null, options: ExecuteOptions): Rect
       }
       if (selNone) {
         dedupID = highLight ? 2 : ++count
-        modifySel(wndSel, 0, !back, "character")
+        modifySel(wndSel, 0, !back, kGCh)
       }
     }
     if (found! && !highLight && (par = par || getSelectionParent_unsafe(curSel = getSelected()))) {

@@ -234,7 +234,7 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode], count: number):
 
   /** @unknown_di_result */
   const modify = (d: ForwardDir, g: kG): void => {
-    modifySel(curSelection, isAlertExtend, d, kGranularity[g])
+    modifySel(curSelection, (Mode.Caret - mode_) as 2 | 1 | 0, d, kGranularity[g])
   }
 
   const selType = (): SelType => {
@@ -257,7 +257,6 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode], count: number):
     let currentSeconds: SafeDict<VisualAction> | undefined
     let retainSelection: BOOL | boolean | undefined
     let richText: BOOL | boolean | undefined
-    let isAlertExtend: BOOL | boolean
     let di_: ForwardDir | kDirTy.unknown = kDirTy.unknown
     let diType_: ValidDiTypes | DiType.UnsafeUnknown | DiType.SafeUnknown
     /** 0 means it's invalid; >=2 means real_length + 2; 1 means uninited */
@@ -371,7 +370,6 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode], count: number):
     mode_ = diff ? Mode.Caret : mode_
     modeName = VTr(kTip.OFFSET_VISUAL_MODE + mode_)
     di_ = isRange ? kDirTy.unknown : kDirTy.right
-    isAlertExtend = mode_ !== Mode.Caret
     ui_box || hudShow(kTip.raw)
     toggleSelectableStyle(1)
 
@@ -381,9 +379,9 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode], count: number):
       runFallbackKey(options, kTip.needSel)
       return
   }
-  if (!isAlertExtend && isRange) {
+  if (mode_ === Mode.Caret && isRange) {
       // `sel` is not changed by @establish... , since `isRange`
-    collapseToRight((diType_ & DiType.isUnsafe || +!options.s) && getDirection()
+    collapseToRight(options.s != null ? <BOOL> +!options.s : getDirection()
         && <BOOL> +(("" + <SelWithToStr> curSelection).length > 1))
   }
   replaceOrSuppressMost_(kHandler.visual, (event: HandlerNS.Event): HandlerResult => {
@@ -674,7 +672,6 @@ const reverseSelection = (): void => {
 const selectLine = (count1: number): void => {
   const oldDi = getDirection()
   mode_ = Mode.Visual // safer
-  isAlertExtend = 1
   {
     oldDi && reverseSelection()
     modify(kDirTy.left, kG.lineBoundary)

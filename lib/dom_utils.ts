@@ -13,7 +13,7 @@ interface kNodeToType {
 
 export const DAC = "DOMActivate", MDW = "mousedown", CLK = "click", HDN = "hidden", NONE = "none"
 export const INP = "input", BU = "blur", ALA = "aria-label", UNL = "unload"
-export const kDir = ["backward", "forward"] as const
+export const kDir = ["backward", "forward"] as const, kGCh = "character"
 const kAria = ["aria-hidden", "aria-disabled", "aria-haspopup"] as const
 
 //#region data and DOM-shortcut section
@@ -622,7 +622,7 @@ export const scrollIntoView_ = (el: Element, dir?: boolean): void => {
           OnChrome && Build.MinCVer < BrowserVer.MinScrollIntoViewOptions && dir != null ? dir : { block: "nearest" })
 }
 
-export const modifySel = (sel: Selection, extend: BOOL | boolean, di: BOOL | boolean
+export const modifySel = (sel: Selection, extend: BOOL | boolean | 2, di: BOOL | boolean
     , g: GranularityNames[VisualModeNS.kG]): void => {
   sel.modify(extend ? "extend" : "move", kDir[+di], g)
 }

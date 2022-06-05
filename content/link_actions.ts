@@ -465,10 +465,10 @@ const autoShowRect = (): Rect | null => (removeFlash || showRect && rect && flas
       copyText()
     } else { // HintMode.ENTER_VISUAL_MODE
       selectAllOfNode(clickEl)
-      const sel = getSelection_()
+      const sel = getSelection_(), caret = hintOptions.caret
       collpaseSelection(sel)
-      modifySel(sel, 1, 1, "word")
-      hintOptions.visual === !1 || post_({ H: kFgReq.visualMode, c: hintOptions.caret, f: then })
+      modifySel(sel, 1, 1, caret ? kGCh : "word")
+      hintOptions.visual === !1 || post_({ H: kFgReq.visualMode, c: caret, f: then })
     }
     if (then && isTY(then) && (mode1_ < HintMode.min_then_as_arg || mode1_ > HintMode.max_then_as_arg)) {
       post_({ H: kFgReq.nextKey, k: then })

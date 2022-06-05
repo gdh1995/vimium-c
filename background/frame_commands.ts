@@ -163,6 +163,7 @@ export const enterVisualMode = (): void | kBgCmd.visualMode => {
     return
   }
   const _rawMode = get_cOptions<C.visualMode>().mode
+  const start = get_cOptions<C.visualMode>().start
   const str = typeof _rawMode === "string" ? _rawMode.toLowerCase() : ""
   const sender = cPort.s
   let sentFindCSS: CmdOptions[kFgCmd.visualMode]["f"] = null
@@ -185,7 +186,7 @@ export const enterVisualMode = (): void | kBgCmd.visualMode => {
   const opts2 = BgUtils_.extendIf_<CmdOptions[kFgCmd.visualMode], KnownOptions<kBgCmd.visualMode>>({
     m: str === "caret" ? VisualModeNS.Mode.Caret : str === "line" ? VisualModeNS.Mode.Line : VisualModeNS.Mode.Visual,
     f: sentFindCSS, g: granularities, k: keyMap,
-    t: !!get_cOptions<C.visualMode>().richText, s: !!get_cOptions<C.visualMode>().start, w: words
+    t: !!get_cOptions<C.visualMode>().richText, s: start != null ? !!start : null, w: words
   }, get_cOptions<C.visualMode, true>())
   delete opts2.mode
   delete opts2.start
