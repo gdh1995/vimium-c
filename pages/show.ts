@@ -299,7 +299,7 @@ body.ondrop = (e): void => {
     const file = files.item(0), name = file.name
     if (file.type.startsWith("image/") || ImageExtRe.test(name)) {
       (e as Event as EventToPrevent).preventDefault()
-      _nextUrl = "#!image download=" + name + "&" + URL.createObjectURL(file);
+      _nextUrl = "#!image download=" + encodeAsciiComponent_(name) + "&" + URL.createObjectURL(file);
       void App()
     }
   }
@@ -322,14 +322,28 @@ document.addEventListener("keydown", function (this: void, event): void {
   if (!(event.ctrlKey || event.metaKey) || event.altKey || event.repeat || hasShift_(event)) { return }
   const str = String.fromCharCode(event.keyCode as kKeyCode | kCharCode as kCharCode);
   if (str === "S") {
-    return clickLink({
+    clickLink({
       download: VData.file || ""
     }, event);
   } else if (str === "C") {
     copyThing(event);
-    return;
   } else if (str === "A") {
-    return toggleInvert(event);
+    toggleInvert(event);
+  } else if (str === "O") {
+    event.preventDefault()
+    const input = document.createElement("input")
+    input.type = "file"
+    input.accept = "image/*"
+    input.onchange = (): void => {
+      const file = input.files && input.files[0]
+      if (file) {
+        _nextUrl = "#!image download=" + encodeAsciiComponent_(file.name) + "&" + URL.createObjectURL(file);
+        void App()
+      }
+    }
+    document.body!.appendChild(input)
+    setTimeout((): void => { input.remove() }, 0)
+    input.click()
   }
 });
 
