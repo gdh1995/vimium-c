@@ -562,6 +562,7 @@ declare const enum BrowserVer {
   MinEnsured$input$$showPicker = 99, // even if LEGACY; since 97 if EXPERIMENTAL
   MinScrollbarIncreasePadding = 99, // even if LEGACY; since 97 if EXPERIMENTAL
   MinEnsured$HTMLElement$$inert = 101, // even if EXPERIMENTAL
+  MinColorSchemeNormalMeansSystemDark = 102, // even if EXPERIMENTAL
   MinNo$TimerType$$Fake = 999,
   assumedVer = 998,
 }

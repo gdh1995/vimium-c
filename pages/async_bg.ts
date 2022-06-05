@@ -407,7 +407,7 @@ if (OnChrome ? (Build.MinCVer >= BrowserVer.MinMediaQuery$PrefersColorScheme
   const storage = browser_.storage.local as { get <K extends Keys> (k: K, cb: (r: { [k in K]: any }) => void): void }
   storage.get("autoDarkMode", (res): void => {
     const value = res && res.autoDarkMode as SettingsNS.PersistentSettings["autoDarkMode"] | boolean;
-    (value === false || value === 1) && toggleDark(value ? 1 : 0); return browser_.runtime.lastError
+    (value === false || value === 1 || value === 0) && toggleDark(value ? 1 : 0); return browser_.runtime.lastError
   })
 }
 OnFirefox && browser_.runtime.getBrowserInfo().then((info): void => {
