@@ -503,16 +503,14 @@ const callExecuteHint = (hint: ExecutableHintItem, event?: HandlerNS.Event): voi
   p && p.then((result): void => {
     (<RegExpOne> /a?/).test("")
     isActive = 0
-    timeout_((): void => {
-    removeFlash && removeFlash()
-    set_removeFlash(null)
+    runFallbackKey(options_, false)
+      removeFlash && removeFlash()
+      set_removeFlash(null)
       if (!(mode_ & HintMode.queue)) {
         clear(0, 0);
         (OnChrome && Build.MinCVer >= BrowserVer.MinEnsured$WeakRef || OnSafari || deref_ !== weakRef_not_ff) ||
         reinitLinkHintsIn(255, selectedHintWorker, clickEl, result)
       }
-    }, 0)
-    runFallbackKey(options_, false)
     if (mode_ & HintMode.queue) {
       reinitLinkHintsIn(frameArray.length > 1 ? 50 : 18, (): void => {
         if (OnFirefox && oldMode_ff >= 0) { setMode(oldMode_ff, 1) }
@@ -750,7 +748,7 @@ export const clear = (onlySelfOrEvent?: 0 | 1 | Event, suppressTimeout?: number)
       }
     }
     const manager = coreHints.p as HintManager | null, oldMode = isActive ? mode1_ : HintMode.max_mouse_events + 1
-    clearTimeout_(_timer)
+    _timer && clearTimeout_(_timer)
     isActive = _timer = _reinitTime = 0
     OnFirefox && (doesAllowModifierEvents_ff = 0)
     manager_ = coreHints.p = null;

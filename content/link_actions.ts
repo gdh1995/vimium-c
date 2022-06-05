@@ -1,13 +1,13 @@
 import {
-  safer, fgCache, isImageUrl, isJSUrl, set_keydownEvents_, keydownEvents_, timeout_, doc, chromeVer_, os_,
+  safer, fgCache, isImageUrl, isJSUrl, set_keydownEvents_, keydownEvents_, doc, chromeVer_, os_,
   createRegExp, isTY, max_, min_, OnFirefox, OnChrome, safeCall, locHref, parseOpenPageUrlOptions, VTr,
 } from "../lib/utils"
 import { getVisibleClientRect_, center_, view_, selRange_ } from "../lib/rect"
 import {
   IsInDOM_, createElement_, htmlTag_, getComputedStyle_, getEditableType_, isIFrameElement, GetParent_unsafe_, focus_,
   kMediaTag, ElementProto_not_ff, querySelector_unsafe_, getInputType, uneditableInputs_, GetShadowRoot_, scrollingEl_,
-  queryChildByTag_, getSelection_, removeEl_s, appendNode_s, getMediaUrl, getMediaTag, INP, ALA, attr_s, hasTag_,
-  setOrRemoveAttr_s, toggleClass_s, textContent_s, notSafe_not_ff_, modifySel, SafeEl_not_ff_, testMatch, docHasFocus_,
+  queryChildByTag_, getSelection_, removeEl_s, appendNode_s, getMediaUrl, getMediaTag, INP, ALA, attr_s, hasTag_, kGCh,
+  setOrRemoveAttr_s, toggleClass_s, textContent_s, notSafe_not_ff_, modifySel, SafeEl_not_ff_, testMatch,
   extractField, querySelectorAll_unsafe_, editableTypes_, findAnchor_
 } from "../lib/dom_utils"
 import { getPreferredRectOfAnchor, initTestRegExps } from "./local_links"
@@ -361,6 +361,7 @@ const checkBoolOrSelector = (userVal: string | boolean | null | void | undefined
   return userVal == null ? defaultVal : !!userVal && (!isTY(userVal)
       || (userVal = safeCall(testMatch, userVal, [clickEl])), userVal != null ? userVal : defaultVal)
 }
+const autoShowRect = (): Rect | null => (removeFlash || showRect && rect && flash_(null, rect), rect)
 
   const masterOrA = hintManager || coreHints, keyStatus = masterOrA.$().k
   const clickEl: LinkEl = hint.d
@@ -369,7 +370,7 @@ const checkBoolOrSelector = (userVal: string | boolean | null | void | undefined
   const rawNewtab = hintOptions.newtab, then = hintOptions.then
   let rect: Rect | null = null
   let retPromise: Promise<unknown> | undefined
-  let showRect: BOOL | undefined
+  let showRect: BOOL | 2 = 1
   if (hintManager) {
     set_keydownEvents_(hintApi.a())
     setMode(masterOrA.$().m, 1)
@@ -402,20 +403,20 @@ const checkBoolOrSelector = (userVal: string | boolean | null | void | undefined
     if (hint.m && isIFrameElement(clickEl)) {
       hintOptions.m = hintMode_;
       (hintManager || coreHints).$(1)
-      showRect = <BOOL> +(clickEl !== omni_box)
-      if (showRect) {
+      showRect = 0
+      if (clickEl !== omni_box) {
         focus_(clickEl)
         // focus first, so that childApi is up-to-date (in case <iframe> was removed on focus)
         const childApi = detectUsableChild(clickEl)
         if (childApi) {
           childApi.f(kFgCmd.linkHints, hintOptions, hintCount_, 1)
         } else if (OnChrome) {
-          post_({ H: kFgReq.execInChild,
-            u: clickEl.src, c: kFgCmd.linkHints, n: hintCount_, k: event ? event.i : kKeyCode.None, a: hintOptions
+          post_({ H: kFgReq.execInChild, c: showRect = kFgCmd.linkHints,
+            u: clickEl.src, n: hintCount_, k: event ? event.i : kKeyCode.None, a: hintOptions
           })
         } else {
-          send_(kFgReq.execInChild, {
-            u: clickEl.src, c: kFgCmd.linkHints, n: hintCount_, k: event ? event.i : kKeyCode.None, a: hintOptions
+          send_(kFgReq.execInChild, { c: showRect = kFgCmd.linkHints,
+            u: clickEl.src, n: hintCount_, k: event ? event.i : kKeyCode.None, a: hintOptions
           }, (res): void => { res || clickEl.contentWindow.focus() })
         }
       } else {
@@ -427,11 +428,8 @@ const checkBoolOrSelector = (userVal: string | boolean | null | void | undefined
         if (summary) {
           // `HTMLSummaryElement::DefaultEventHandler(event)` in
           // https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/html/html_summary_element.cc?l=109
-          const rect2 = (clickEl as HTMLDetailsElement).open || !rect ? getVisibleClientRect_(summary) : rect
-          retPromise = catchAsyncErrorSilently(click_async(summary, rect2, 1)).then((): void => {
-            removeFlash || rect2 && flash_(null, rect2)
-          })
-          showRect = 0
+          rect = (clickEl as HTMLDetailsElement).open || !rect ? getVisibleClientRect_(summary) : rect
+          retPromise = catchAsyncErrorSilently(click_async(summary, rect, 1))
         } else {
           (clickEl as HTMLDetailsElement).open = !(clickEl as HTMLDetailsElement).open
         }
@@ -475,13 +473,9 @@ const checkBoolOrSelector = (userVal: string | boolean | null | void | undefined
     if (then && isTY(then) && (mode1_ < HintMode.min_then_as_arg || mode1_ > HintMode.max_then_as_arg)) {
       post_({ H: kFgReq.nextKey, k: then })
     }
-    if (!removeFlash && showRect !== 0 && (rect || (rect = getVisibleClientRect_(clickEl)))) {
-      timeout_(function (): void {
-        (showRect || docHasFocus_()) && flash_(null, rect!)
-      }, 17)
-    }
+    showRect && (rect || (rect = getVisibleClientRect_(clickEl)))
   } else {
     hintApi.h(kTip.linkRemoved, 2)
   }
-  return retPromise ? retPromise.then(() => rect) : Promise.resolve(rect)
+  return retPromise ? retPromise.then(autoShowRect) : Promise.resolve(autoShowRect())
 }
