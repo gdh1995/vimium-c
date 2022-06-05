@@ -4,6 +4,26 @@ Release Notes of Vimium C
 ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 说明文档: https://gitee.com/gdh1995/vimium-c#readme , https://github.com/gdh1995/vimium-c/blob/master/README-zh.md .
 
+#### v1.98.1
+* fix configurations were hardly ever synchronized
+* Firefox 96+: fix LinkHints may open a link twice
+* Firefox: fix it could not find some clickable elements
+* Chrome 102+: fix Vomnibar has a wrong white background in system-level dark mode
+* enable `Auto reduce UI motions following your system settings` by default
+* `<v-***>` mapped by `mapKey` now works in almost all command modes and will trigger its mapped command
+* key mappings: improve support for the `\` character
+* LinkHints: show hints for "newly listened" elements if in queue mode
+* LinkHints/Scroller/focusInput/goNext: now support `clickableOnHost` and `excludeOnHost`
+  * e.g.: `excludeOnHost="\\bgoogle##.g;\\bbing\\.com##.b_algo"`
+* Vomnibar: refresh suggestions immediately on a new `space` character
+* Vomnibar: now can substitute a suggestion URL before opening it, following `sedKeys` and `itemSedKeys`
+* Vomnibar: rewrite actions of some shortcuts with <kbd>Ctrl</kbd> / <kbd>Alt</kbd>
+* FindMode: now support multiline queries in its history
+* Scroller: now auto select page center if nothing has been scrolled
+* `enterInsertMode`: show a tip if `hideHUD` is enabled, instead of running silently
+* add more parameters and usages to some commands
+* better support for many edge cases like fullscreen mode
+
 #### v1.98.0
 * FindMode,VisualMode: support `mapKey <xxx:f> <v-xxx>` (and `:v`) to trigger commands
 * LinkHints,`dispatchEvent`: support `xy="x[,y[,scale]]"` and x/y can be `"count"`
