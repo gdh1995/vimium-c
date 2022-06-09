@@ -35,7 +35,7 @@ declare const enum SelType { None = 0, Caret = 1, Range = 2 }
 type InfoToMoveRightByWord = [oldSelected: string, oldDi: ForwardDir]
 
 import {
-  VTr, safer, os_, doc, chromeVer_, tryCreateRegExp, esc, OnFirefox, OnChrome, safeCall, parseOpenPageUrlOptions, isTY,
+  safer, os_, doc, chromeVer_, tryCreateRegExp, esc, OnFirefox, OnChrome, safeCall, parseOpenPageUrlOptions,
 } from "../lib/utils"
 import {
   removeHandler_, getMappedKey, keybody_, isEscape_, prevent_, ENTER, suppressTail_, replaceOrSuppressMost_
@@ -60,7 +60,7 @@ import { hudTip, hudHide, hudShow } from "./hud"
 import { post_, send_, runFallbackKey, contentCommands_ } from "./port"
 import { currentKeys, set_currentKeys } from "./key_handler"
 
-let modeName: string
+let modeName: Mode
 /** need real diType */
 let kGranularity: GranularityNames
 let keyMap: VisualModeNS.SafeKeyMap
@@ -249,176 +249,6 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode], count: number):
     selType() === SelType.Range && collapseToRight((getDirection() ^ toFocus ^ 1) as BOOL)
     di_ = kDirTy.right
   }
-
-    const typeIdx = { None: SelType.None, Caret: SelType.Caret, Range: SelType.Range }
-    const initialScope: {r?: ShadowRoot | null} = {}
-    let mode_: Mode = options.m || Mode.Visual
-    let curSelection: Selection
-    let currentSeconds: SafeDict<VisualAction> | undefined
-    let retainSelection: BOOL | boolean | undefined
-    let richText: BOOL | boolean | undefined
-    let di_: ForwardDir | kDirTy.unknown = kDirTy.unknown
-    let diType_: ValidDiTypes | DiType.UnsafeUnknown | DiType.SafeUnknown
-    /** 0 means it's invalid; >=2 means real_length + 2; 1 means uninited */
-    let oldLen_ = 0
-
-    set_findCSS(options.f || findCSS)
-  if (!keyMap) {
-/**
- * Call stack (Chromium > icu):
- * * https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/editing/visible_units_word.cc?type=cs&q=NextWordPositionInternal&g=0&l=86
- * * https://cs.chromium.org/chromium/src/third_party/blink/renderer/platform/wtf/text/unicode.h?type=cs&q=IsAlphanumeric&g=0&l=177
- * * https://cs.chromium.org/chromium/src/third_party/icu/source/common/uchar.cpp?q=u_isalnum&g=0&l=151
- * Result: \p{L | Nd} || '_' (\u005F)
- * Definitions:
- * * General Category (Unicode): https://unicode.org/reports/tr44/#GC_Values_Table
- * * valid GC in RegExp: https://tc39.github.io/proposal-regexp-unicode-property-escapes/#sec-runtime-semantics-unicodematchpropertyvalue-p-v
- * * \w in RegExp: https://unicode.org/reports/tr18/#word
- *   * \w = \p{Alpha | gc=Mark | Digit | gc=Connector_Punctuation | Join_Control}
- *   * Alphabetic: https://unicode.org/reports/tr44/#Alphabetic
- * But \p{L} = \p{Lu | Ll | Lt | Lm | Lo}, so it's much more accurate to use \p{L}
- * if no unicode RegExp, The list of words will be loaded into {@link background/store.ts#visualWordsRe_}
- */
-  // icu@u_isalnum: http://icu-project.org/apiref/icu4c/uchar_8h.html#a5dff81615fcb62295bf8b1c63dd33a14
-      if (OnFirefox && !Build.NativeWordMoveOnFirefox
-          || OnChrome && Build.MinCVer < BrowserVer.MinSelExtendForwardOnlySkipWhitespaces
-              && chromeVer_ < BrowserVer.MinSelExtendForwardOnlySkipWhitespaces) {
-          if (BrowserVer.MinSelExtendForwardOnlySkipWhitespaces <= BrowserVer.MinMaybeUnicodePropertyEscapesInRegExp
-              && OnChrome) {
-            WordsRe_ff_old_cr = tryCreateRegExp(options.w!)!
-          } else {
-            // note: here thinks the `/^[^]*[~~~]/` has acceptable performance
-            WordsRe_ff_old_cr = tryCreateRegExp(options.w! || "^[^]*[\\p{L}\\p{Nd}_]", options.w! ? "" : "u" as never)!
-          }
-      }
-/** C72
- * The real is ` (!IsSpaceOrNewline(c) && c != kNoBreakSpaceCharacter) || c == '\n' `
- * in https://cs.chromium.org/chromium/src/third_party/blink/renderer/platform/wtf/text/string_impl.h?type=cs&q=IsSpaceOrNewline&sq=package:chromium&g=0&l=800
- * `IsSpaceOrNewline` says "Bidi=WS" doesn't include '\n'", it's because:
- * * the upstream is (2002/11/07) https://chromium.googlesource.com/chromium/src/+/68f88bec7f005b2abc9018b086396a88f1ffc18e%5E%21/#F3 ,
- * * and then the specification it used in `< 128 ? isspace : DirWS` was https://unicode.org/Public/2.1-Update4/PropList-2.1.9.txt
- * * it thinks the "White space" and "Bidi: Whitespace" properties are different, and Bidi:WS only includes 0020,2000..200B,2028,3000
- * While the current https://unicode.org/reports/tr44/#BC_Values_Table does not:
- * * in https://unicode.org/Public/UCD/latest/ucd/PropList.txt , WS covers `WebTemplateFramework::IsASCIISpace` totally (0009..000D,0020)
- * /\s/
- * * Run ` for(var a="",i=0,ch=''; i<=0xffff; i++) /\s/.test(String.fromCharCode(i)) && (a+='\\u' + (0x10000 + i).toString(16).slice(1)); a; ` gets
- * * \u0009\u000a\u000b\u000c\u000d\u0020\u00a0\u1680\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u2028\u2029\u202f\u205f\u3000\ufeff (C72)
- * * when <= C58 (Min$Space$NotMatch$U180e$InRegExp), there's \u180e (it's added by Unicode standard v4.0.0 and then removed since v6.3.0)
- * * compared to "\p{WS}", it ("\s") lacks \u0085 (it's added in v3.0.0), but adds an extra \ufeff
- * * "\s" in regexp is not affected by the "unicode" flag https://mathiasbynens.be/notes/es6-unicode-regex
- * During tests: not skip \u0085\u180e\u2029\u202f\ufeff since C59; otherwise all including \u0085\ufeff are skipped
- */
-      /** Changes
-       * MinSelExtendForwardOnlySkipWhitespaces=59
-       *  : https://chromium.googlesource.com/chromium/src/+/117a5ba5073a1c78d08d3be3210afc09af96158c%5E%21/#F2
-       * Min$Space$NotMatch$U180e$InRegExp=59
-       */
-      (!OnChrome
-        || Build.MinCVer >= BrowserVer.MinSelExtendForwardOnlySkipWhitespaces
-        || chromeVer_ > BrowserVer.MinSelExtendForwardOnlySkipWhitespaces - 1) &&
-      // on Firefox 65 stable, Win 10 x64, there're '\r\n' parts in Selection.toString()
-      // ignore "\ufeff" for shorter code since it's too rare
-      (rightWhiteSpaceRe = <RegExpOne> (OnFirefox ? /[^\S\n\r\u2029\u202f]+$/ : /[^\S\n\u2029\u202f]+$/))
-      safer(keyMap = options.k! as VisualModeNS.SafeKeyMap)
-      safer(keyMap.a as Dict<VisualAction>); safer(keyMap.g as Dict<VisualAction>)
-      kGranularity = options.g!
-  }
-  /** @safe_di */
-  deactivate = (isEscOrReinit?: 1 | 2): void => {
-      if (isEscOrReinit === 2) {
-        (contentCommands_[kFgCmd.visualMode] as typeof activate)(options, 0)
-        return
-      }
-      di_ = kDirTy.unknown
-      diType_ = DiType.UnsafeUnknown
-      getDirection("")
-      const oldDiType: DiType = diType_
-      removeHandler_(kHandler.visual)
-      if (!retainSelection) {
-        collapseToFocus(isEscOrReinit && mode_ !== Mode.Caret ? 1 : 0)
-      }
-      modeName = ""
-      const el = insert_Lock_()
-      oldDiType & (DiType.TextBox | DiType.Complicated) || el && el.blur()
-      toggleSelectableStyle()
-      set_scrollingTop(null)
-      deactivate = null as never
-      hudHide()
-  }
-
-    checkDocSelectable();
-    set_scrollingTop(scrollingEl_(1))
-    getPixelScaleToScroll()
-    diType_ = DiType.UnsafeUnknown
-    curSelection = getSelected(initialScope)
-    let type: SelType = selType(), scope = initialScope.r as Exclude<typeof initialScope.r, undefined>
-    if (!modeName || mode_ !== Mode.Caret) {
-      if (!modeName) { retainSelection = type === SelType.Range; richText = options.t }
-      if (!insert_Lock_() && /* (type === SelType.Caret || type === SelType.Range) */ type) {
-        prepareCrop_();
-        const br = getSelectionBoundingBox_(curSelection, 1)
-        if (!br || !cropRectToVisible_(br.l, br.t, br.r, br.b)) {
-          resetSelectionToDocStart(curSelection)
-        } else if (type === SelType.Caret) {
-          extend(kDirTy.right)
-          selType() === SelType.Range || extend(kDirTy.left)
-        }
-        type = selType()
-      }
-    }
-    const isRange = type === SelType.Range, diff = !isRange && (mode_ !== Mode.Caret)
-    mode_ = diff ? Mode.Caret : mode_
-    modeName = VTr(kTip.OFFSET_VISUAL_MODE + mode_)
-    di_ = isRange ? kDirTy.unknown : kDirTy.right
-    ui_box || hudShow(kTip.raw)
-    toggleSelectableStyle(1)
-
-  if (OnFirefox && raw_insert_lock
-      || /* type === SelType.None */ !type && (options.$else || !establishInitialSelectionAnchor())) {
-      deactivate()
-      runFallbackKey(options, kTip.needSel)
-      return
-  }
-  if (mode_ === Mode.Caret && isRange) {
-      // `sel` is not changed by @establish... , since `isRange`
-    collapseToRight(options.s != null ? <BOOL> +!options.s : getDirection()
-        && <BOOL> +(("" + <SelWithToStr> curSelection).length > 1))
-  }
-  replaceOrSuppressMost_(kHandler.visual, (event: HandlerNS.Event): HandlerResult => {
-    const doPass = event.i === kKeyCode.menuKey && (Build.OS & ~(1 << kOS.mac) && Build.OS & (1 << kOS.mac) ? os_
-        : !!(Build.OS & ~(1 << kOS.mac))) || event.i === kKeyCode.ime,
-    key = doPass ? "" : getMappedKey(event, kModeId.Visual), keybody = keybody_(key);
-    let count: number
-    if (!key || isEscape_(key)) {
-      !key || currentKeys || currentSeconds ? (currentSeconds = void 0) : deactivate(1)
-      // if doPass, then use nothing to bubble such an event, so handlers like LinkHints will also exit
-      return event.v ? HandlerResult.Prevent
-          : esc!(key ? HandlerResult.Prevent : doPass ? HandlerResult.Nothing : HandlerResult.Suppress)
-    }
-    if (keybody_(key) === ENTER) {
-      currentSeconds = void 0
-      if (key > "s" && mode_ !== Mode.Caret) { retainSelection = 1 }
-      "cm".includes(key[0]) ? deactivate() : yank(key < "b" ? kYank.NotExit : kYank.Exit)
-      return esc!(HandlerResult.Prevent)
-    }
-    const childAction = currentSeconds && currentSeconds[key],
-    newActions = childAction || ((<RegExpOne> /^v\d/).test(key) ? +key.slice(1) : keyMap[key])
-    if (isTY(newActions, kTY.obj) || !(newActions as VisualAction >= 0)) {
-      // asserts newActions is SafeDict<VisualAction> | undefined
-      currentSeconds = newActions as Exclude<typeof newActions, number>
-      return keybody < kChar.minNotF_num && keybody > kChar.maxNotF_num ? HandlerResult.Nothing
-          : newActions ? HandlerResult.Prevent
-          : (set_currentKeys(key.length < 2 && +key < 10 ? currentKeys + key : ""),
-              keybody.length > 1 || key !== keybody && key < "s" ? HandlerResult.Suppress : HandlerResult.Prevent)
-    }
-    prevent_(event.e);
-    count = !currentSeconds || childAction ? (<number> <number | string> currentKeys) | 0 || 1 : 1
-    currentSeconds = void 0, esc!(HandlerResult.Nothing)
-    di_ = kDirTy.unknown // make @di safe even when a user modifies the selection
-    diType_ = DiType.UnsafeUnknown
-    commandHandler(newActions as Extract<typeof newActions, number>, count)
-    return HandlerResult.Prevent;
-  })
 
   /** @unknown_di_result */
 const commandHandler = (command: VisualAction, count: number): void => {
@@ -774,6 +604,174 @@ const ensureLine = (command1: number): void => {
   getDirection("")
   diType_ & DiType.Complicated || scrollIntoView_s(getSelectionFocusEdge_(curSelection, di_))
 }
+
+    const typeIdx = { None: SelType.None, Caret: SelType.Caret, Range: SelType.Range }
+    const initialScope: {r?: ShadowRoot | null} = {}
+    let mode_: Mode = options.m || Mode.Visual
+    let curSelection: Selection
+    let currentPrefix: string = ""
+    let retainSelection: BOOL | boolean | undefined
+    let richText: BOOL | boolean | undefined
+    let di_: ForwardDir | kDirTy.unknown = kDirTy.unknown
+    let diType_: ValidDiTypes | DiType.UnsafeUnknown | DiType.SafeUnknown
+    /** 0 means it's invalid; >=2 means real_length + 2; 1 means uninited */
+    let oldLen_ = 0
+
+    set_findCSS(options.f || findCSS)
+  if (!keyMap) {
+/**
+ * Call stack (Chromium > icu):
+ * * https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/editing/visible_units_word.cc?type=cs&q=NextWordPositionInternal&g=0&l=86
+ * * https://cs.chromium.org/chromium/src/third_party/blink/renderer/platform/wtf/text/unicode.h?type=cs&q=IsAlphanumeric&g=0&l=177
+ * * https://cs.chromium.org/chromium/src/third_party/icu/source/common/uchar.cpp?q=u_isalnum&g=0&l=151
+ * Result: \p{L | Nd} || '_' (\u005F)
+ * Definitions:
+ * * General Category (Unicode): https://unicode.org/reports/tr44/#GC_Values_Table
+ * * valid GC in RegExp: https://tc39.github.io/proposal-regexp-unicode-property-escapes/#sec-runtime-semantics-unicodematchpropertyvalue-p-v
+ * * \w in RegExp: https://unicode.org/reports/tr18/#word
+ *   * \w = \p{Alpha | gc=Mark | Digit | gc=Connector_Punctuation | Join_Control}
+ *   * Alphabetic: https://unicode.org/reports/tr44/#Alphabetic
+ * But \p{L} = \p{Lu | Ll | Lt | Lm | Lo}, so it's much more accurate to use \p{L}
+ * if no unicode RegExp, The list of words will be loaded into {@link background/store.ts#visualWordsRe_}
+ */
+  // icu@u_isalnum: http://icu-project.org/apiref/icu4c/uchar_8h.html#a5dff81615fcb62295bf8b1c63dd33a14
+      if (OnFirefox && !Build.NativeWordMoveOnFirefox
+          || OnChrome && Build.MinCVer < BrowserVer.MinSelExtendForwardOnlySkipWhitespaces
+              && chromeVer_ < BrowserVer.MinSelExtendForwardOnlySkipWhitespaces) {
+          if (BrowserVer.MinSelExtendForwardOnlySkipWhitespaces <= BrowserVer.MinMaybeUnicodePropertyEscapesInRegExp
+              && OnChrome) {
+            WordsRe_ff_old_cr = tryCreateRegExp(options.w!)!
+          } else {
+            // note: here thinks the `/^[^]*[~~~]/` has acceptable performance
+            WordsRe_ff_old_cr = tryCreateRegExp(options.w! || "^[^]*[\\p{L}\\p{Nd}_]", options.w! ? "" : "u" as never)!
+          }
+      }
+/** C72
+ * The real is ` (!IsSpaceOrNewline(c) && c != kNoBreakSpaceCharacter) || c == '\n' `
+ * in https://cs.chromium.org/chromium/src/third_party/blink/renderer/platform/wtf/text/string_impl.h?type=cs&q=IsSpaceOrNewline&sq=package:chromium&g=0&l=800
+ * `IsSpaceOrNewline` says "Bidi=WS" doesn't include '\n'", it's because:
+ * * the upstream is (2002/11/07) https://chromium.googlesource.com/chromium/src/+/68f88bec7f005b2abc9018b086396a88f1ffc18e%5E%21/#F3 ,
+ * * and then the specification it used in `< 128 ? isspace : DirWS` was https://unicode.org/Public/2.1-Update4/PropList-2.1.9.txt
+ * * it thinks the "White space" and "Bidi: Whitespace" properties are different, and Bidi:WS only includes 0020,2000..200B,2028,3000
+ * While the current https://unicode.org/reports/tr44/#BC_Values_Table does not:
+ * * in https://unicode.org/Public/UCD/latest/ucd/PropList.txt , WS covers `WebTemplateFramework::IsASCIISpace` totally (0009..000D,0020)
+ * /\s/
+ * * Run ` for(var a="",i=0,ch=''; i<=0xffff; i++) /\s/.test(String.fromCharCode(i)) && (a+='\\u' + (0x10000 + i).toString(16).slice(1)); a; ` gets
+ * * \u0009\u000a\u000b\u000c\u000d\u0020\u00a0\u1680\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u2028\u2029\u202f\u205f\u3000\ufeff (C72)
+ * * when <= C58 (Min$Space$NotMatch$U180e$InRegExp), there's \u180e (it's added by Unicode standard v4.0.0 and then removed since v6.3.0)
+ * * compared to "\p{WS}", it ("\s") lacks \u0085 (it's added in v3.0.0), but adds an extra \ufeff
+ * * "\s" in regexp is not affected by the "unicode" flag https://mathiasbynens.be/notes/es6-unicode-regex
+ * During tests: not skip \u0085\u180e\u2029\u202f\ufeff since C59; otherwise all including \u0085\ufeff are skipped
+ */
+      /** Changes
+       * MinSelExtendForwardOnlySkipWhitespaces=59
+       *  : https://chromium.googlesource.com/chromium/src/+/117a5ba5073a1c78d08d3be3210afc09af96158c%5E%21/#F2
+       * Min$Space$NotMatch$U180e$InRegExp=59
+       */
+      (!OnChrome
+        || Build.MinCVer >= BrowserVer.MinSelExtendForwardOnlySkipWhitespaces
+        || chromeVer_ > BrowserVer.MinSelExtendForwardOnlySkipWhitespaces - 1) &&
+      // on Firefox 65 stable, Win 10 x64, there're '\r\n' parts in Selection.toString()
+      // ignore "\ufeff" for shorter code since it's too rare
+      (rightWhiteSpaceRe = <RegExpOne> (OnFirefox ? /[^\S\n\r\u2029\u202f]+$/ : /[^\S\n\u2029\u202f]+$/))
+      safer(keyMap = options.k! as VisualModeNS.SafeKeyMap)
+      kGranularity = options.g!
+  }
+  /** @safe_di */
+  deactivate = (isEscOrReinit?: 1 | 2): void => {
+      if (isEscOrReinit === 2) {
+        (contentCommands_[kFgCmd.visualMode] as typeof activate)(options, 0)
+        return
+      }
+      di_ = kDirTy.unknown
+      diType_ = DiType.UnsafeUnknown
+      getDirection("")
+      const oldDiType: DiType = diType_
+      removeHandler_(kHandler.visual)
+      if (!retainSelection) {
+        collapseToFocus(isEscOrReinit && mode_ !== Mode.Caret ? 1 : 0)
+      }
+      modeName = Mode.NotActive
+      deactivate = null as never
+      const el = insert_Lock_()
+      oldDiType & (DiType.TextBox | DiType.Complicated) || el && el.blur()
+      toggleSelectableStyle()
+      set_scrollingTop(null)
+      hudHide()
+  }
+
+    checkDocSelectable();
+    set_scrollingTop(scrollingEl_(1))
+    getPixelScaleToScroll()
+    diType_ = DiType.UnsafeUnknown
+    curSelection = getSelected(initialScope)
+    let type: SelType = selType(), scope = initialScope.r as Exclude<typeof initialScope.r, undefined>
+    if (!modeName || mode_ !== Mode.Caret) {
+      if (!modeName) { retainSelection = type === SelType.Range; richText = options.t }
+      if (!insert_Lock_() && /* (type === SelType.Caret || type === SelType.Range) */ type) {
+        prepareCrop_();
+        const br = getSelectionBoundingBox_(curSelection, 1)
+        if (!br || !cropRectToVisible_(br.l, br.t, br.r, br.b)) {
+          resetSelectionToDocStart(curSelection)
+        } else if (type === SelType.Caret) {
+          extend(kDirTy.right)
+          selType() === SelType.Range || extend(kDirTy.left)
+        }
+        type = selType()
+      }
+    }
+    const isRange = type === SelType.Range, diff = !isRange && (mode_ !== Mode.Caret)
+    modeName = mode_ = diff ? Mode.Caret : mode_
+    di_ = isRange ? kDirTy.unknown : kDirTy.right
+    ui_box || hudShow(kTip.raw)
+    toggleSelectableStyle(1)
+
+  if (OnFirefox && raw_insert_lock
+      || /* type === SelType.None */ !type && (options.$else || !establishInitialSelectionAnchor())) {
+      deactivate()
+      runFallbackKey(options, kTip.needSel)
+      return
+  }
+  if (mode_ === Mode.Caret && isRange) {
+      // `sel` is not changed by @establish... , since `isRange`
+    collapseToRight(options.s != null ? <BOOL> +!options.s : getDirection()
+        && <BOOL> +(("" + <SelWithToStr> curSelection).length > 1))
+  }
+  replaceOrSuppressMost_(kHandler.visual, (event: HandlerNS.Event): HandlerResult => {
+    const doPass = event.i === kKeyCode.menuKey && (Build.OS & ~(1 << kOS.mac) && Build.OS & (1 << kOS.mac) ? os_
+        : !!(Build.OS & ~(1 << kOS.mac))) || event.i === kKeyCode.ime,
+    key = doPass ? "" : getMappedKey(event, kModeId.Visual), keybody = keybody_(key);
+    let count: number
+    if (!key || isEscape_(key)) {
+      !key || currentKeys || currentPrefix ? event.v && (currentPrefix = "") : deactivate(1)
+      // if doPass, then use nothing to bubble such an event, so handlers like LinkHints will also exit
+      return event.v ? HandlerResult.Prevent
+          : esc!(key ? HandlerResult.Prevent : doPass ? HandlerResult.Nothing : HandlerResult.Suppress)
+    }
+    if (keybody_(key) === ENTER) {
+      currentPrefix = ""
+      if (key > "s" && mode_ !== Mode.Caret) { retainSelection = 1 }
+      "cm".includes(key[0]) ? deactivate() : yank(key < "b" ? kYank.NotExit : kYank.Exit)
+      return esc!(HandlerResult.Prevent)
+    }
+    const childAction = keyMap[currentPrefix + key],
+    newActions = (<RegExpOne> /^v\d/).test(key) ? +key.slice(1) : childAction || keyMap[key]
+    if (!(newActions as VisualAction >= 0)) {
+      // asserts newActions is VisualAction.NextKey | NaN undefined
+      currentPrefix = newActions! < 0 ? key : ""
+      return keybody < kChar.minNotF_num && keybody > kChar.maxNotF_num ? HandlerResult.Nothing
+          : newActions ? HandlerResult.Prevent
+          : (set_currentKeys(key.length < 2 && +key < 10 ? currentKeys + key : ""),
+              keybody.length > 1 || key !== keybody && key < "s" ? HandlerResult.Suppress : HandlerResult.Prevent)
+    }
+    prevent_(event.e);
+    count = !currentPrefix || childAction ? (<number> <number | string> currentKeys) | 0 || 1 : 1
+    currentPrefix = "", esc!(HandlerResult.Nothing)
+    di_ = kDirTy.unknown // make @di safe even when a user modifies the selection
+    diType_ = DiType.UnsafeUnknown
+    commandHandler(newActions as Extract<typeof newActions, number>, count)
+    return HandlerResult.Prevent;
+  })
 
   commandHandler(VisualAction.Noop, 1)
   modeName ? diff ? hudTip(kTip.noUsableSel, 1) : hudHide(count ? void 0 : TimerType.noTimer) : 0

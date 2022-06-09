@@ -754,10 +754,11 @@ export const visualKeys_: VisualModeNS.KeyMap = {
     w: VisualAction.vimWord | VisualAction.inc, /* same as w */ W: VisualAction.vimWord | VisualAction.inc,
     e: VisualAction.word | VisualAction.inc, b: VisualAction.word | VisualAction.dec,
     /* same as b */ B: VisualAction.word | VisualAction.dec,
-    G: VisualAction.documentBoundary | VisualAction.inc, g: { g: VisualAction.documentBoundary | VisualAction.dec },
+    G: VisualAction.documentBoundary | VisualAction.inc, gg: VisualAction.documentBoundary | VisualAction.dec,
 
-    o: VisualAction.Reverse, a: { w: VisualAction.LexicalWord, s: VisualAction.LexicalSentence,
-        p: VisualAction.LexicalParagraph, "}": VisualAction.LexicalParagraph },
+    o: VisualAction.Reverse, a: VisualAction.NextKey, g: VisualAction.NextKey,
+    aw: VisualAction.LexicalWord, as: VisualAction.LexicalSentence,
+        ap: VisualAction.LexicalParagraph, "a}": VisualAction.LexicalParagraph,
 
     y: VisualAction.Yank, Y: VisualAction.YankLine, C: VisualAction.YankWithoutExit, "c-s-c": VisualAction.YankRichText,
     p: VisualAction.YankAndOpen, P: VisualAction.YankAndNewTab,

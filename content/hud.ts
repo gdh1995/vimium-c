@@ -82,7 +82,7 @@ export const hudHide = (info?: TimerType.fake | TimerType.noTimer): void => {
   else if (!find_box && isHintsActive && !hintManager) {
       setHintMode(hintMode_)
   } else if (!find_box && visual_mode_name) {
-      hudShow(kTip.inVisualMode, visual_mode_name, info)
+      hudShow(kTip.inVisualMode, VTr(kTip.OFFSET_VISUAL_MODE + visual_mode_name), info)
   } else if (!find_box && insert_global_ && insert_global_.h) {
       hudShow(kTip.raw, insert_global_.h)
   } else if (passAsNormal) {

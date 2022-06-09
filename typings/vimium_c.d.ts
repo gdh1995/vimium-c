@@ -159,22 +159,16 @@ declare namespace VisualModeNS {
     __mask = -1,
   }
   type ForwardDir = kDir.left | kDir.right;
-  interface KeyMap extends Dict<VisualAction | Dict<VisualAction>> {
-    a: Dict<VisualAction>
-    g: Dict<VisualAction>
+  interface KeyMap extends Dict<VisualAction> {
   }
-  interface SafeKeyMap extends KeyMap, SafeObject {
-    a: SafeDict<VisualAction>
-    g: SafeDict<VisualAction>
-    [key: string]: VisualAction | SafeDict<VisualAction> | undefined;
-  }
+  interface SafeKeyMap extends KeyMap, SafeObject {}
   const enum kVimG {
       vimWord = 2,
       _mask = -1,
   }
 }
 declare const enum VisualAction {
-  MinNotNoop = 0, Noop = MinNotNoop - 1,
+  MinNotNoop = 0, Noop = MinNotNoop - 1, NextKey = -2,
 
   MinWrapSelectionModify = MinNotNoop,
   char = VisualModeNS.kG.character << 1,

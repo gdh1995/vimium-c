@@ -20,11 +20,11 @@ import {
   createStyle, getSelectionText, checkDocSelectable, adjustUI, ensureBorder, addUIElement, getSelected, flash_,
   getSelectionOf, getSelectionBoundingBox_, hasGetSelection
 } from "./dom_ui"
-import { highlightRange, activate as visualActivate, deactivate as visualDeactivate, visual_mode_name } from "./visual"
+import { highlightRange, deactivate as visualDeactivate } from "./visual"
 import { keyIsDown as scroll_keyIsDown, beginScroll, onScrolls } from "./scroller"
 import { scrollToMark, setPreviousMarkPosition } from "./marks"
 import { hudHide, hud_box, hudTip, hud_opacity, toggleOpacity as hud_toggleOpacity } from "./hud"
-import { post_, send_, runFallbackKey, contentCommands_ } from "./port"
+import { post_, send_, runFallbackKey } from "./port"
 import { insert_Lock_, setupSuppress } from "./insert"
 import { lastHovered_, set_lastHovered_, select_ } from "./async_dispatcher"
 import { checkKey, set_isCmdTriggered } from "./key_handler"
@@ -300,13 +300,12 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
       el = getSelectionFocusEdge_(getSelected())
       el && (i > FindAction.ExitForEnter - 1 && knownHasResults || !getEditableType_(el)) && focus_(el)
     }
-    if ((i === FindAction.ExitForEsc || !knownHasResults || visual_mode_name) && styleSheet) {
+    if ((i === FindAction.ExitForEsc || !knownHasResults || visualDeactivate) && styleSheet) {
       toggleStyle(1)
       restoreSelection(true)
     }
-    if (visual_mode_name) {
-      visualDeactivate ? visualDeactivate(2) :
-      (contentCommands_[kFgCmd.visualMode] as typeof visualActivate)(safer({} as CmdOptions[kFgCmd.visualMode]), 0)
+    if (visualDeactivate) {
+      visualDeactivate!(2)
       return;
     }
     if (i > FindAction.MaxExitButNoWork && knownHasResults && (!el || el !== insert_Lock_())) {
