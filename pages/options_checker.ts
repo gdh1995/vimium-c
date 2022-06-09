@@ -187,11 +187,13 @@ Option_.all_.vimSync.allowToSave_ = function (): boolean {
 
 Option_.all_.keyboard.checker_ = {
   status_: 0,
-  check_ (data) {
-    if (data == null || data.length !== 2 || !(data[0] > 0 && data[0] < 4000) || !(data[1] > 0 && data[1] < 1000)) {
+  check_ (data): SettingsNS.FrontendSettings["keyboard"] {
+    if (data == null || data.length < 2
+        || !(data[0] > 0 && data[0] < 4000) || !(data[1] > 0 && data[1] < 1000)) {
       return bgSettings_.defaults_.keyboard;
     }
-    return [+data[0], data[1]];
+    return ([+data[0], +data[1]] as SettingsNS.FrontendSettings["keyboard"]).concat(data.slice(2)
+        ) as SettingsNS.FrontendSettings["keyboard"]
   }
 };
 

@@ -146,8 +146,10 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
     }
     let near_elapsed = elapsed
     if (min_delta && elapsed < 1.2 * min_delta && elapsed > 0.9 * min_delta) {
-      const fps_test = 1e3 / min_delta, step = fps_test < 95 ? 15 : fps_test > 149 ? fps_test < 195 ? 5 : 10 : 0
-      near_elapsed = step ? 1e3 / step / math.round(fps_test / step) : fps_test < 110 ? 100 : fps_test < 132 ? 120 : 144
+      const fps_test = 1e3 / min_delta
+      const step = fps_test < 95 ? fps_test < 30 ? 1 : 15 : fps_test > 149 ? fps_test < 195 ? 5 : 10 : 0
+      near_elapsed = 1e3 / (step ? (math.round(fps_test / step) || 1) * step
+          : fps_test < 110 ? 100 : fps_test < 132 ? 120 : 144)
     }
     let delta = max_(amount * near_elapsed / duration * calibration - padding, 1)
     if (!continuous || (totalDelta < amount || flags & kScFlag.TO) && totalElapsed < minDelay) {
@@ -242,8 +244,8 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
     amount = max_(1, newAmount1 > 0 ? newAmount1 : -newAmount1), calibration = 1.0, di = newDi1
     flags = options ? options.f! | 0 : 0
     wait2 = options && options.wait
-    duration = max_(ScrollConsts.minDuration, ScrollConsts.durationScaleForAmount * math.log(amount))
-    duration = math.round(duration / ScrollConsts.minDuration * fgCache.u)
+    duration = math.round(max_(1, ScrollConsts.durationScaleForAmount * math.log(amount) / ScrollConsts.minDuration
+        ) * fgCache.u)
     element = newEl1
     sign = newAmount1 < 0 ? -1 : 1
     timer && clearTimeout_(timer)
