@@ -29,7 +29,8 @@ import {
 import {
   rAF_, scrollingEl_, SafeEl_not_ff_, docEl_unsafe_, NONE, frameElement_, OnDocLoaded_, GetParent_unsafe_, isNode_,
   querySelector_unsafe_, getComputedStyle_, notSafe_not_ff_, HDN, isRawStyleVisible, fullscreenEl_unsafe_,
-  doesSupportDialog, attr_s, getSelection_, isIFrameElement, derefInDoc_, isHTML_, IsInDOM_, getRootNode_mounted
+  doesSupportDialog, attr_s, getSelection_, isIFrameElement, derefInDoc_, isHTML_, IsInDOM_, getRootNode_mounted,
+  getEditableType_
 } from "../lib/dom_utils"
 import {
   scrollWndBy_, wndSize_, getZoom_, wdZoom_, bZoom_, isNotInViewport, prepareCrop_, padClientRect_, instantScOpt,
@@ -476,13 +477,13 @@ const findScrollable = (di: ScrollByY, amount: number
   const selectFirst = (info: ElementScrollInfo, skipPrepare?: 1): ElementScrollInfo | null | undefined => {
     let cur_el = info.e, type: 0 | 1 | -1
     if (dimSize_(cur_el, kDim.elClientH) + 3 < dimSize_(cur_el, kDim.scrollH) &&
-        (type = shouldScroll_s(cur_el, cur_el !== top && cur_el !== body ? selectFirstType : 1, 1),
+        (type = shouldScroll_s(cur_el, cur_el !== top && cur_el !== body ? selectFirstType : di, 1),
           type > 0 || !type && dimSize_(cur_el, kDim.positionY) > 0 && doesScroll(cur_el, kDim.byY, 0))) {
       return info
     }
     skipPrepare || prepareCrop_()
     let children: ElementScrollInfo[] = []
-    for (let _ref = cur_el.children, _len = _ref.length; 0 < _len--; ) {
+    for (let _ref = cur_el.children, _len = _ref.length > 50 ? 0 : _ref.length; 0 < _len--; ) {
       cur_el = _ref[_len]! as /** fake `as` */ SafeElement
       // here assumes that a <form> won't be a main scrollable area
       if (!OnFirefox && notSafe_not_ff_!(cur_el)) { continue }
@@ -496,7 +497,8 @@ const findScrollable = (di: ScrollByY, amount: number
     return children.reduce((cur, info1) => cur || selectFirst(info1, 1), null as ElementScrollInfo | null | undefined)
   }
 
-    const selectFirstType = (evenOverflowHidden != null ? evenOverflowHidden : isTop || injector) ? 3 : 1
+    const selectFirstType = (evenOverflowHidden != null ? evenOverflowHidden : isTop || injector)
+        ? (di + 2) as 2 | 3 : di
     const activeEl: SafeElement | null | undefined = derefInDoc_(currentScrolling) || null
     const fullscreen = fullscreenEl_unsafe_(), top: Element | null = fullscreen || scrollingTop, body = doc.body
     const selectAncestor = (): void => {
@@ -514,8 +516,10 @@ const findScrollable = (di: ScrollByY, amount: number
             : weakRef_not_ff!(element as SafeElement | null)
       }
     }
+    let candidate: false | ElementScrollInfo | null | undefined
+    let topRoot: Document | ShadowRoot
     let element: Element | null = activeEl
-    element && selectAncestor()
+    activeEl && selectAncestor()
     if (!element) {
       // note: twitter auto focuses its dialog panel, so it's not needed to detect it here
       const selector = queryByHost(scrollable, kTip.scrollable)
@@ -525,16 +529,19 @@ const findScrollable = (di: ScrollByY, amount: number
           element = element && (!fullscreen || IsInDOM_(element as SafeElement, fullscreen)) ? element : null
       }
     }
-    if (!element) {
-      const topRoot = top && getRootNode_mounted(top)
-      element = (topRoot && isNode_(topRoot, kNode.DOCUMENT_FRAGMENT_NODE) ? topRoot as ShadowRoot : doc
-          ).elementFromPoint(wndSize_(1) / 2, wndSize_() / 2)
-      element && selectAncestor()
-    }
-    if (!element && top) {
-      const candidate = (OnFirefox || !fullscreen || !notSafe_not_ff_!(top))
-          && selectFirst({ a: 0, e: top as SafeElement, h: 0 })
-      element = candidate && candidate.e !== top && (!activeEl || candidate.h > wndSize_() / 2) ? candidate.e : top
+    if (!element && top && (OnFirefox || !notSafe_not_ff_!(top))) {
+      if (activeEl !== top || shouldScroll_s(top as SafeElement, di, 1) < 1) {
+        topRoot = top && getRootNode_mounted(top as SafeElement & EnsuredMountedElement)
+        element = (topRoot && isNode_(topRoot, kNode.DOCUMENT_FRAGMENT_NODE) ? topRoot : doc
+            ).elementFromPoint(wndSize_(1) / 2, wndSize_() / 2)
+        OnFirefox || (element = SafeEl_not_ff_!(element))
+        element = element && (!getEditableType_(element) || dimSize_(element, kDim.elClientH) > wndSize_() / 2)
+            ? element : null
+        element && selectAncestor()
+        candidate = !element && selectFirst({ a: 0, e: top as SafeElement, h: 0 })
+      }
+      element = candidate && candidate.e !== top && (!activeEl || candidate.h > wndSize_() / 2) ? candidate.e
+          : element || top
       // if current_, then delay update to current_, until scrolling ends and ._checkCurrent is called;
       // otherwise, cache selected element for less further cost
       activeEl || fullscreen || setNewScrolling(element)
