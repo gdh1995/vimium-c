@@ -111,7 +111,7 @@ export const exitGrab = function (this: void, event?: Req.fg<kFgReq.exitGrab> | 
 
 export const insert_Lock_ = (): LockableElement | null => {
   if (OnFirefox && lock_) {
-    const root = getRootNode_mounted(lock_) as ReturnType<typeof getRootNode_mounted> | null
+    const root = getRootNode_mounted(lock_)
     lock_ = root && (root as TypeToPick<Node, DocumentOrShadowRoot, "activeElement"> // check `root &&`: safer
         ).activeElement === lock_ ? lock_ : null;
   }

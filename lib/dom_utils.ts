@@ -246,7 +246,7 @@ export const getRootNode_mounted = ((el: Node): Node => {
   }
 }) as ((element: SafeElement) => Node) as {
   (element: EnsuredMountedElement & SafeElement): Document | ShadowRoot
-  (element: Node): Document | ShadowRoot | Element | DocumentFragment
+  (element: SafeElement): Node
 }
 
 export const scrollingEl_ = (fallback?: 1): SafeElement | null => {
@@ -365,7 +365,7 @@ export const IsInDOM_ = function (element: Element, root?: Element | Document | 
     while (pe && !(OnFirefox ? contains_s(root as SafeElement | Document, pe)
         : element.contains.call((root as Element | Document), pe))) {
       pe = !OnEdge && (!OnChrome || Build.MinCVer >= BrowserVer.Min$Node$$getRootNode
-        || chromeVer_ > BrowserVer.Min$Node$$getRootNode - 1) ? getRootNode_mounted(pe) : null
+        || chromeVer_ > BrowserVer.Min$Node$$getRootNode - 1) ? getRootNode_mounted(pe as SafeElement) : null
       pe = pe && isNode_(pe, kNode.DOCUMENT_FRAGMENT_NODE) ? (pe as Partial<ShadowRoot>).host : null
     }
     if (pe || !OnEdge && (!OnChrome || Build.MinCVer >= BrowserVer.Min$Node$$getRootNode
