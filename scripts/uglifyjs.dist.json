@@ -47,7 +47,7 @@
       "Math.max", "Math.min", "Math.floor", "Math.round", "Math.abs", "Math.random",
       "safeObj", "safeObj_", "weakRef_", "deref_",
       "docEl_unsafe_",
-      "__importStar", "__awaiter", "__generator", "sent", "_a.sent", "_b.sent", "_c.sent",
+      "__importStar", "sent", "_a.sent", "_b.sent", "_c.sent",
       "trans_", "pTrans_", "VTr", "contains_s", "attr_s", "getMediaTag",
       "readyState", "binarySearch_",
       "getMatchRanges",

@@ -626,7 +626,7 @@ set_bgC_([
       }
       cb === undefined ? resolve(0) : notActive ? selectTab(curTabId, runNext) : resolve(1)
     }
-    void (async (): Promise<void> => {
+    ; (async (): Promise<void> => {
       const expected = Math.max((count * 1.2) | 0, 2)
       let list: chrome.sessions.Session[] | undefined, hasExtra = false
       const filter = !onlyCurrentWnd ? null : (i: chrome.sessions.Session): boolean =>
