@@ -10,7 +10,7 @@
       "license": "MIT",
       "dependencies": {
         "pngjs": "^6.0.0",
-        "terser": "^5.10.0",
+        "terser": "^5.14.0",
         "typescript": "~4.6.3"
       },
       "devDependencies": {
@@ -148,6 +148,58 @@
       },
       "engines": {
         "node": "^10.12.0 || >=12.0.0"
+      }
+    },
+    "node_modules/@jridgewell/gen-mapping": {
+      "version": "0.3.1",
+      "resolved": "https://registry.npmmirror.com/@jridgewell/gen-mapping/-/gen-mapping-0.3.1.tgz",
+      "integrity": "sha512-GcHwniMlA2z+WFPWuY8lp3fsza0I8xPFMWL5+n8LYyP6PSvPrXf4+n8stDHZY2DM0zy9sVkRDy1jDI4XGzYVqg==",
+      "dependencies": {
+        "@jridgewell/set-array": "^1.0.0",
+        "@jridgewell/sourcemap-codec": "^1.4.10",
+        "@jridgewell/trace-mapping": "^0.3.9"
+      },
+      "engines": {
+        "node": ">=6.0.0"
+      }
+    },
+    "node_modules/@jridgewell/resolve-uri": {
+      "version": "3.0.7",
+      "resolved": "https://registry.npmmirror.com/@jridgewell/resolve-uri/-/resolve-uri-3.0.7.tgz",
+      "integrity": "sha512-8cXDaBBHOr2pQ7j77Y6Vp5VDT2sIqWyWQ56TjEq4ih/a4iST3dItRe8Q9fp0rrIl9DoKhWQtUQz/YpOxLkXbNA==",
+      "engines": {
+        "node": ">=6.0.0"
+      }
+    },
+    "node_modules/@jridgewell/set-array": {
+      "version": "1.1.1",
+      "resolved": "https://registry.npmmirror.com/@jridgewell/set-array/-/set-array-1.1.1.tgz",
+      "integrity": "sha512-Ct5MqZkLGEXTVmQYbGtx9SVqD2fqwvdubdps5D3djjAkgkKwT918VNOz65pEHFaYTeWcukmJmH5SwsA9Tn2ObQ==",
+      "engines": {
+        "node": ">=6.0.0"
+      }
+    },
+    "node_modules/@jridgewell/source-map": {
+      "version": "0.3.2",
+      "resolved": "https://registry.npmmirror.com/@jridgewell/source-map/-/source-map-0.3.2.tgz",
+      "integrity": "sha512-m7O9o2uR8k2ObDysZYzdfhb08VuEml5oWGiosa1VdaPZ/A6QyPkAJuwN0Q1lhULOf6B7MtQmHENS743hWtCrgw==",
+      "dependencies": {
+        "@jridgewell/gen-mapping": "^0.3.0",
+        "@jridgewell/trace-mapping": "^0.3.9"
+      }
+    },
+    "node_modules/@jridgewell/sourcemap-codec": {
+      "version": "1.4.13",
+      "resolved": "https://registry.npmmirror.com/@jridgewell/sourcemap-codec/-/sourcemap-codec-1.4.13.tgz",
+      "integrity": "sha512-GryiOJmNcWbovBxTfZSF71V/mXbgcV3MewDe3kIMCLyIh5e7SKAeUZs+rMnJ8jkMolZ/4/VsdBmMrw3l+VdZ3w=="
+    },
+    "node_modules/@jridgewell/trace-mapping": {
+      "version": "0.3.13",
+      "resolved": "https://registry.npmmirror.com/@jridgewell/trace-mapping/-/trace-mapping-0.3.13.tgz",
+      "integrity": "sha512-o1xbKhp9qnIAoHJSWd6KlCZfqslL4valSF81H8ImioOAxluWYWOpWkpyktY2vnt4tbrX9XYaxovq6cgowaJp2w==",
+      "dependencies": {
+        "@jridgewell/resolve-uri": "^3.0.3",
+        "@jridgewell/sourcemap-codec": "^1.4.10"
       }
     },
     "node_modules/@nodelib/fs.scandir": {
@@ -5182,12 +5234,13 @@
       "optional": true
     },
     "node_modules/terser": {
-      "version": "5.10.0",
-      "resolved": "https://registry.npmmirror.com/terser/download/terser-5.10.0.tgz",
-      "integrity": "sha512-AMmF99DMfEDiRJfxfY5jj5wNH/bYO09cniSqhfoyxc8sFoYIgkJy86G04UoZU5VjlpnplVu0K6Tx6E9b5+DlHA==",
+      "version": "5.14.0",
+      "resolved": "https://registry.npmmirror.com/terser/-/terser-5.14.0.tgz",
+      "integrity": "sha512-JC6qfIEkPBd9j1SMO3Pfn+A6w2kQV54tv+ABQLgZr7dA3k/DL/OBoYSWxzVpZev3J+bUHXfr55L8Mox7AaNo6g==",
       "dependencies": {
+        "@jridgewell/source-map": "^0.3.2",
+        "acorn": "^8.5.0",
         "commander": "^2.20.0",
-        "source-map": "~0.7.2",
         "source-map-support": "~0.5.20"
       },
       "bin": {
@@ -5195,21 +5248,17 @@
       },
       "engines": {
         "node": ">=10"
-      },
-      "peerDependencies": {
-        "acorn": "^8.5.0"
-      },
-      "peerDependenciesMeta": {
-        "acorn": {
-          "optional": true
-        }
       }
     },
-    "node_modules/terser/node_modules/source-map": {
-      "version": "0.7.3",
-      "integrity": "sha512-CkCj6giN3S+n9qrYiBTX5gystlENnRW5jZeNLHpe6aue+SrHcG5VYwujhW9s4dY31mEGsxBDrHR6oI69fTXsaQ==",
+    "node_modules/terser/node_modules/acorn": {
+      "version": "8.7.1",
+      "resolved": "https://registry.npmmirror.com/acorn/-/acorn-8.7.1.tgz",
+      "integrity": "sha512-Xx54uLJQZ19lKygFXOWsscKUbsBZW0CPykPhVQdhIeIwrbPmJzqeASDInc8nKBnp/JT6igTs82qPXz069H8I/A==",
+      "bin": {
+        "acorn": "bin/acorn"
+      },
       "engines": {
-        "node": ">= 8"
+        "node": ">=0.4.0"
       }
     },
     "node_modules/text-table": {

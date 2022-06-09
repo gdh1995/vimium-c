@@ -4,6 +4,11 @@ Release Notes of Vimium C
 ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 说明文档: https://gitee.com/gdh1995/vimium-c#readme , https://github.com/gdh1995/vimium-c/blob/master/README-zh.md .
 
+#### v1.98.2
+* fix `X (restoreTab)` doesn't work in v1.98.1
+* fix v1.98.1 scrolls much longer on a screen of 95-149 FPS
+* fix `Marks.activate` fails to scroll pages in v1.98.1
+
 #### v1.98.1
 * fix configurations were hardly ever synchronized
 * Firefox 96+: fix LinkHints may open a link twice
