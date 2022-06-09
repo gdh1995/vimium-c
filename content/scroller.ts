@@ -612,8 +612,8 @@ export const scrollIntoView_s = (el?: SafeElement | null): void => {
 }
 
 export const makeElementScrollBy_ = (el: SafeElement | null | 0, hasX: number, hasY: number): void => {
-  void hasX && (hasY ? performScroll : vApi.$)(el !== 0 ? el : findScrollable(0, hasX), 0, hasX)
-  void hasY && vApi.$(el !== 0 ? el : findScrollable(1, hasY), 1, hasY)
+  void (hasX && (hasY ? performScroll : vApi.$)(el !== 0 ? el : findScrollable(0, hasX), 0, hasX))
+  void (hasY && vApi.$(el !== 0 ? el : findScrollable(1, hasY), 1, hasY))
   scrolled = 0
   scrollTick(0) // it's safe to only clean keyIsDown here
 }
