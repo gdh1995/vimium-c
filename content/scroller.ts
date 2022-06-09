@@ -118,7 +118,7 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
       }
     }
     totalElapsed += elapsed
-    if (!Build.NDEBUG && ScrollConsts.DEBUG & 1) {
+    if (ScrollConsts.DEBUG & 1) {
       console.log("rawOld>rawNew: +%o = %o ; old>new: +%o = %o ; elapsed: +%o = %o; min_delta = %o (%o fps)"
           , ((((rawTimestamp ? newRawTimestamp : newRawTimestamp % 1e4) - rawTimestamp) * 1e2) | 0) / 1e2
           , (((newRawTimestamp % 1e4) * 1e3 + 0.5) | 0) / 1e3
@@ -157,7 +157,7 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
       const wanted = delta
       // here should keep safe even if there're bounce effects
       delta = performScroll(element, di, sign * (delta > 4 ? math.round : math.ceil)(delta), beforePos)
-      if (!Build.NDEBUG && ScrollConsts.DEBUG & 2) {
+      if (ScrollConsts.DEBUG & 2) {
         const near_fps = 1e3 / near_elapsed
         console.log("do scroll: %o + round2(%o fps %s %o px = %o); effect=%o ; amount=%o ; keyIsDown=%o"
             , ((totalDelta * 100) | 0) / 100, near_fps > 300 ? -1 : ((near_fps * 100) | 0) / 100
@@ -179,7 +179,7 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
         running = 0
         timer = timeout_(/*#__NOINLINE__*/ resumeAnimation, delay2 - totalElapsed)
         totalElapsed = delay2
-        if (!Build.NDEBUG && ScrollConsts.DEBUG) {
+        if (ScrollConsts.DEBUG) {
           console.log(">>> [animation] wait for %o - %o ms", delay2, ((totalElapsed * 1e2) | 0) / 1e2)
         }
       } else {
@@ -210,7 +210,7 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
   toggleAnimation = (scrolling?: BOOL | 4): void => {
     if (scrolling === 4) { wait2 || timer && (clearTimeout_(timer), resumeAnimation()); return }
     if (!scrolling) {
-      if (!Build.NDEBUG && ScrollConsts.DEBUG) {
+      if (ScrollConsts.DEBUG) {
         console.log(">>> [animation] end after %o ms / %o px"
             , ((totalElapsed * 1e2) | 0) / 1e2, ((totalDelta * 1e2) | 0) / 1e2)
       }
@@ -260,10 +260,11 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
       elementRoot = elementRoot !== doc ? elementRoot : 0
       setupEventListener(elementRoot, kSE)
     }
-    if (!Build.NDEBUG && ScrollConsts.DEBUG) {
+    if (ScrollConsts.DEBUG) {
       console.log("%c[animation]%c start with axis = %o, amount = %o, dir = %o, duration = %o, min_delta = %o"
           , "color: #1155cc", "color: auto", di ? "y" : "x", amount, sign, duration
-          , ((min_delta * 1e4) | 0) / 1e4)
+          , ((min_delta * 1e4) | 0) / 1e4), `\n  keyInterval = ${maxKeyInterval}, minDelay = ${minDelay}`
+          , `flags = ${flags}, wait2 = ${wait2}`
     }
     running = running || rAF_(animate)
     return options && (options.$then || options.$else)
@@ -378,7 +379,7 @@ export const executeScroll: VApiTy["c"] = function (di: ScrollByY, amount0: numb
       amount = max_(0, min_(toMax ? max - amount : amount, max)) - curPos
       amount = oldAmount > 0 && amount * amount < 1 ? 0 : amount
       amount = amount0 ? amount : toMax ? max_(amount, 0) : min_(amount, 0)
-      if (!Build.NDEBUG && ScrollConsts.DEBUG & 8) {
+      if (ScrollConsts.DEBUG & 8) {
         console.log("[scrollTo] cur=%o top_max=%o view=%o amount=%o, so final amount=%o", curPos, viewSize, max
             , oldAmount, amount)
       }
@@ -436,7 +437,7 @@ let overrideScrollRestoration = function (kScrollRestoration, kManual): void {
 
   /** @argument willContinue 1: continue; 0: skip middle steps; 2: abort further actions; 5: resume */
 export const scrollTick: VApiTy["k"] = (willContinue: 0 | 1 | 2 | 5): void => {
-    if (!Build.NDEBUG && ScrollConsts.DEBUG & 4 && (keyIsDown || willContinue === 1)) {
+    if (ScrollConsts.DEBUG & 4 && (keyIsDown || willContinue === 1)) {
       console.log("update keyIsDown from", ((keyIsDown * 10) | 0) / 10, "to", willContinue - 1 ? 0 : maxKeyInterval, "@"
           , ((performance.now() % 1e3 * 1e2) | 0) / 1e2)
     }
