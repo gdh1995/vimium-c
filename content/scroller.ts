@@ -147,7 +147,7 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
     let near_elapsed = elapsed
     if (min_delta && elapsed < 1.2 * min_delta && elapsed > 0.9 * min_delta) {
       const fps_test = 1e3 / min_delta
-      const step = fps_test < 95 ? fps_test < 30 ? 1 : 15 : fps_test > 149 ? fps_test < 195 ? 5 : 10 : 0
+      const step = fps_test < 95 ? fps_test < 55 ? 1 : 15 : fps_test > 149 ? fps_test < 195 ? 5 : 10 : 0
       near_elapsed = 1e3 / (step ? (math.round(fps_test / step) || 1) * step
           : fps_test < 110 ? 100 : fps_test < 132 ? 120 : 144)
     }

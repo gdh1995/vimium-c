@@ -752,7 +752,7 @@ const ensureLine = (command1: number): void => {
   } else if (command > VisualAction.MaxNotLexical) {
     const entity = (command - VisualAction.MaxNotLexical) as kG.sentence | kG.word
     collapseToFocus(0)
-    entity - kG.word || modify(kDirTy.right, kG.character)
+    modify(kDirTy.right, kG.character)
     modify(kDirTy.left, entity)
     di_ = kDirTy.left // safe
     collapseToFocus(1)
