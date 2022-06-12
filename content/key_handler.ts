@@ -1,5 +1,5 @@
 import {
-  doc, esc, os_, isEnabled_, isTop, keydownEvents_, set_esc, safer, Stop_, Lower, OnChrome, OnFirefox,
+  doc, esc, os_, isEnabled_, isTop, keydownEvents_, set_esc, safer, Stop_, Lower, OnChrome, OnFirefox, timeStamp_,
   chromeVer_, deref_
 } from "../lib/utils"
 import {
@@ -44,7 +44,7 @@ export {
 }
 export function set_isCmdTriggered (_newTriggerred: kKeyCode): kKeyCode { return isCmdTriggered = _newTriggerred }
 export function set_passKeys (_newPassKeys: typeof passKeys): void { passKeys = _newPassKeys }
-export function set_nextKeys (_newNK: KeyFSM): void { nextKeys = _newNK }
+export function set_nextKeys (_newNK: KeyFSM | null): void { nextKeys = _newNK }
 export function set_onPassKey (_newOnPassKey: typeof onPassKey): void { onPassKey = _newOnPassKey }
 export function set_isPassKeysReversed (_newPKReversed: boolean): void { isPassKeysReversed = _newPKReversed }
 export function set_keyFSM (_newKeyFSM: KeyFSM): KeyFSM { return keyFSM = _newKeyFSM }
@@ -87,9 +87,8 @@ export const checkKey = (event: HandlerNS.Event, key: string, inInsertMode?: kMa
       && !event.v) {
     return esc!(HandlerResult.Nothing)
   }
-  const timestamp = event.e.timeStamp
   if (curKeyTimestamp && nextKeys && nextKeys !== keyFSM
-      && timestamp - curKeyTimestamp > GlobalConsts.KeySequenceTimeout) {
+      && timeStamp_(event.e) - curKeyTimestamp > GlobalConsts.KeySequenceTimeout) {
     currentKeys = ""
     nextKeys = null
   }
@@ -117,7 +116,7 @@ export const checkKey = (event: HandlerNS.Event, key: string, inInsertMode?: kMa
     isCmdTriggered = event.i || kKeyCode.True
   } else {
     nextKeys = j !== KeyAction.count ? safer(j) : keyFSM;
-    curKeyTimestamp = timestamp
+    curKeyTimestamp = timeStamp_(event.e)
   }
   return HandlerResult.Prevent;
 }

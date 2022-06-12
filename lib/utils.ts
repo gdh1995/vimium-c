@@ -95,6 +95,8 @@ export const callFunc = (callback: (this: void) => any): void => { callback(); }
 
 export const locHref = (): string => loc_.href
 
+export const timeStamp_ = (event: Event): number => event.timeStamp
+
 export const getTime = Date.now
 
 export let onWndFocus = function (this: void): void { /* empty */ }

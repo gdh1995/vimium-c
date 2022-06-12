@@ -1,7 +1,7 @@
 import {
   chromeVer_, doc, esc, fgCache, isTop, set_esc, VTr, safer, timeout_, loc_, weakRef_not_ff, weakRef_ff, deref_,
   keydownEvents_, Stop_, suppressCommonEvents, setupEventListener, vApi, locHref, isTY, min_,
-  OnChrome, OnFirefox, OnEdge, firefoxVer_, safeCall, parseOpenPageUrlOptions, os_, abs_, Lower
+  OnChrome, OnFirefox, OnEdge, firefoxVer_, safeCall, parseOpenPageUrlOptions, os_, abs_, Lower, timeStamp_
 } from "../lib/utils"
 import {
   isHTML_, hasTag_, createElement_, querySelectorAll_unsafe_, SafeEl_not_ff_, docEl_unsafe_, MDW, CLK, derefInDoc_,
@@ -173,10 +173,10 @@ set_contentCommands_([
       return;
     }
     const shouldExit_delayed_mac = Build.OS & (1 << kOS.mac) ? (event: KeyboardEvent, isDown: BOOL): boolean => {
-      if (!os_ && keyCount && (isDown || !getKeyStat_(event))) {
+      if ((!(Build.OS & ~(1 << kOS.mac)) || !os_) && keyCount && (isDown || !getKeyStat_(event))) {
         for (const rawKey in keys) {
           const key = +rawKey
-          if (keys[key] && event.timeStamp - <number> keys[key] > (
+          if (keys[key] && timeStamp_(event) - <number> keys[key] > (
                 (key > kKeyCode.maxAcsKeys ? key < kKeyCode.maxNotMetaKey + 1 || key > kKeyCode.minNotMetaKeyOrMenu - 1
                   && (!OnFirefox || key !== kKeyCode.os_ff_mac)
                   : key < kKeyCode.minAcsKeys) ? fgCache.k[0] + 800 : 5e3)) {
@@ -192,7 +192,7 @@ set_contentCommands_([
         return HandlerResult.Nothing
       }
       keyCount += !keys[event.i] as boolean | BOOL as BOOL
-      keys[event.i] = Build.OS & ~(1 << kOS.mac) && os_ ? 1 : event.e.timeStamp
+      keys[event.i] = !(Build.OS & (1 << kOS.mac)) || Build.OS & ~(1 << kOS.mac) && os_ ? 1 : timeStamp_(event.e)
       return HandlerResult.PassKey;
     }, kHandler.passNextKey)
     set_onPassKey((event): void => {

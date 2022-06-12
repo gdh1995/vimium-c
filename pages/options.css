@@ -357,6 +357,7 @@ label:active {
   box-sizing: border-box;
   color: #333;
   color: var(--item-caption-color, #333);
+  cursor: text;
   margin-right: 10px;
   padding: 3px 12px 0 0;
   width: 128px;
@@ -434,6 +435,7 @@ label:active {
   color: var(--help-hover-color, black);
 }
 .help-inner {
+  cursor: text;
   font-size: 12px;
   height: 0;
   line-height: 16px;

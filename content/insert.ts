@@ -1,7 +1,7 @@
 import {
   doc, keydownEvents_, safeObj, isTop, set_keydownEvents_, setupEventListener, Stop_, OnChrome, OnFirefox, weakRef_ff,
   esc, onWndFocus, isEnabled_, readyState_, injector, recordLog, weakRef_not_ff, OnEdge, getTime, abs_, fgCache,
-  safeCall, timeout_
+  safeCall, timeout_, timeStamp_
 } from "../lib/utils"
 import { post_, runFallbackKey, safePost } from "./port"
 import { getParentVApi, ui_box } from "./dom_ui"
@@ -27,13 +27,13 @@ let lock_ = null as LockableElement | null
 let insert_global_: InsertModeOptions | null = null
 let isHintingInput: BOOL = 0
 let inputHint: { /** box */ b: HTMLDivElement | null; /** hints */ h: InputHintItem[] } | null = null
-let suppressType: string | null = null
+let suppressType: string | 0 = 0
 let insert_last_: WeakRef<LockableElement> | null | undefined
 let is_last_mutable: BOOL = 1
 let lastWndFocusTime = 0
 // the `readyState_ > "c"` is just to grab focus on `chrome://*/*` URLs
 let grabBackFocus: boolean | ((event: Event, target: LockableElement) => void) = readyState_ > (OnChrome ? "i" : "l")
-let onExitSuppress: ((this: void) => void) | null = null
+let onExitSuppress: ((this: void) => void) | 0 | undefined
 let onWndBlur2: ((this: void) => void) | undefined | null
 let passAsNormal: BOOL = 0
 
@@ -144,7 +144,7 @@ export const findNewEditable = (): LockableElement | null => {
 
 export const setupSuppress = (onExit?: (this: void) => void): void => {
   const f = onExitSuppress;
-  onExitSuppress = suppressType = null;
+  onExitSuppress = suppressType = 0
   if (onExit) {
     suppressType = getSelection_().type;
     onExitSuppress = onExit;
@@ -216,7 +216,7 @@ export const onFocus = (event: Event | FocusEvent): void => {
   // on Firefox, target may also be `document`
   let target: EventTarget | Element | Window | Document = event.target;
   if (target === window) {
-    lastWndFocusTime = event.timeStamp
+    lastWndFocusTime = timeStamp_(event)
     onWndFocus()
     return
   }
@@ -244,7 +244,7 @@ export const onFocus = (event: Event | FocusEvent): void => {
     hookOnShadowRoot(isNormalHost ? path! : [sr, target], target as Element);
     target = isNormalHost ? topOfPath as Element : target
   }
-  if (!lastWndFocusTime || event.timeStamp - lastWndFocusTime > 30) {
+  if (!lastWndFocusTime || timeStamp_(event) - lastWndFocusTime > 30) {
     if (!OnFirefox) {
       let el: SafeElement | null = SafeEl_not_ff_!(target as Element)
       el && setNewScrolling(el)
