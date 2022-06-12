@@ -14,7 +14,7 @@ import {
   setDisplaying_s, findAnchor_, notSafe_not_ff_,
   getAccessibleSelectedNode,  INP, BU, UNL, contains_s, setOrRemoveAttr_s, textContent_s, modifySel, parentNode_unsafe_s
 } from "../lib/dom_utils"
-import { wdZoom_, prepareCrop_, view_, dimSize_, selRange_, getZoom_ } from "../lib/rect"
+import { wdZoom_, prepareCrop_, view_, dimSize_, selRange_, getZoom_, isSelARange } from "../lib/rect"
 import {
   ui_box, ui_root, getSelectionParent_unsafe, resetSelectionToDocStart, getBoxTagName_old_cr, collpaseSelection,
   createStyle, getSelectionText, checkDocSelectable, adjustUI, ensureBorder, addUIElement, getSelected, flash_,
@@ -592,7 +592,7 @@ const onIFrameKeydown = (event: KeyboardEventToPrevent): void => {
       const sel = getSelectionOf(innerDoc_)!
       // on Chrome 79 + Win 10 / Firefox 69 + Ubuntu 18, delete a range itself
       // while on Firefox 70 + Win 10 / FF 100 + W11 it collapses first, which is not expected
-      sel.type === "Caret" && modifySel(sel, 1, keybody > kChar.d, "word")
+      isSelARange(sel) || modifySel(sel, 1, keybody > kChar.d, "word")
       execCommand(DEL)
       return;
     }
