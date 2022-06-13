@@ -19,7 +19,7 @@ import {
 } from "./dom_ui"
 import { hudTip, hud_box } from "./hud"
 import {
-  currentKeys, mappedKeys, set_keyFSM, anyClickHandler, onKeydown, onKeyup, passKeys,
+  currentKeys, mappedKeys, set_keyFSM, anyClickHandler, onKeydown, onKeyup,
   set_isPassKeysReversed, isPassKeysReversed, set_passKeys, set_mappedKeys, set_mapKeyTypes, keyFSM,
 } from "./key_handler"
 import { HintManager, kSafeAllSelector, set_kSafeAllSelector } from "./link_hints"
@@ -124,9 +124,7 @@ set_requestHandlers([
     if (initing) {
       return;
     }
-    const oldPassKeys = passKeys
     esc!(HandlerResult.ExitNormalMode) // for passNextKey#normal
-    set_passKeys(oldPassKeys)
     set_isLocked_((request as BgReq[kBgReq.reset]).f)
     // if true, recover listeners on shadow roots;
     // otherwise listeners on shadow roots will be removed on next blur events

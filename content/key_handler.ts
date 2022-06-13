@@ -67,7 +67,7 @@ set_getMappedKey((eventWrapper: HandlerNS.Event, mode: kModeId): string => {
     key = isLong || mod ? mod + chLower : char;
     if (mappedKeys && mode < kModeId.NO_MAP_KEY) {
       mapped = mapKeyTypes & (mode > kMapKey.normalMode ? kMapKey.insertMode | kMapKey.otherMode : mode)
-          && mappedKeys[key + GlobalConsts.DelimiterBetweenKeyCharAndMode + GlobalConsts.ModeIds[mode]]
+          && mappedKeys[key + ":" + GlobalConsts.ModeIds[mode]]
           || (mapKeyTypes & kMapKey.plain ? mappedKeys[key] : "")
       key = mapped ? mode > kModeId.max_not_command && mapped.startsWith("v-") ? (eventWrapper.v = mapped, "") : mapped
           : mapKeyTypes & kMapKey.char && !isLong && (mapped = mappedKeys[chLower])
@@ -81,16 +81,14 @@ set_getMappedKey((eventWrapper: HandlerNS.Event, mode: kModeId): string => {
 
 export const checkKey = (event: HandlerNS.Event, key: string, inInsertMode?: kMapKey.NONE | kMapKey.directInsert
     ): HandlerResult.Nothing | HandlerResult.Prevent | HandlerResult.PlainEsc | HandlerResult.AdvancedEsc => {
+  if (curKeyTimestamp && timeStamp_(event.e) - curKeyTimestamp > GlobalConsts.KeySequenceTimeout) {
+    esc!(HandlerResult.Nothing)
+  }
   // when checkKey, Vimium C must be enabled, so passKeys won't be `""`
   if (passKeys && !currentKeys
       && passKeys.has(mappedKeys ? getMappedKey(event, kModeId.NO_MAP_KEY) : key) !== isPassKeysReversed
-      && !event.v) {
+      && !event.v && !passAsNormal) {
     return esc!(HandlerResult.Nothing)
-  }
-  if (curKeyTimestamp && nextKeys && nextKeys !== keyFSM
-      && timeStamp_(event.e) - curKeyTimestamp > GlobalConsts.KeySequenceTimeout) {
-    currentKeys = ""
-    nextKeys = null
   }
   let j: ReadonlyChildKeyFSM | ValidKeyAction | ReturnType<typeof isEscape_> | undefined = isEscape_(key)
   if (j) {
@@ -98,13 +96,13 @@ export const checkKey = (event: HandlerNS.Event, key: string, inInsertMode?: kMa
   }
   let key2 = key
   if (!nextKeys || (j = nextKeys[key]) == null) {
-    j = event.v ? KeyAction.cmd : mapKeyTypes & inInsertMode!
-      && (j = keyFSM[key2 = key + GlobalConsts.DelimiterBetweenKeyCharAndMode + GlobalConsts.InsertModeId]) != null ? j
+    j = key.startsWith("v-") ? KeyAction.cmd : mapKeyTypes & inInsertMode!
+      && (j = keyFSM[key2 = key + ":" + GlobalConsts.InsertModeId]) != null ? j
       : !inInsertMode || (key2 = keybody_(key)) < kChar.minNotF_num && key2 > kChar.maxNotF_num
       ? keyFSM[key2 = key] : void 0
-    if (j == null || nextKeys && passKeys
+    if (j == null || currentKeys && passKeys
           && passKeys.has(mappedKeys ? getMappedKey(event, kModeId.NO_MAP_KEY) : key) !== isPassKeysReversed
-          && !event.v) {
+          && !event.v && !passAsNormal) {
       return esc!(nextKeys && inInsertMode ? HandlerResult.Prevent : HandlerResult.Nothing)
     }
     if (j !== KeyAction.cmd) { currentKeys = ""; }

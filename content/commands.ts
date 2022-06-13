@@ -24,7 +24,7 @@ import {
   hideHelp, set_hideHelp, set_helpBox, checkHidden, flash_, filterOutInert, doesSelectRightInEditableLock, selectNode_
 } from "./dom_ui"
 import { hudHide, hudShow, hudTip, hud_text } from "./hud"
-import { onPassKey, set_onPassKey, passKeys, set_nextKeys, set_passKeys, keyFSM, onEscDown } from "./key_handler"
+import { onPassKey, set_onPassKey, passKeys, set_nextKeys, keyFSM, onEscDown } from "./key_handler"
 import {
   InputHintItem, activate as linkActivate, clear as linkClear, kSafeAllSelector, findAnElement_
 } from "./link_hints"
@@ -130,9 +130,8 @@ set_contentCommands_([
     removeHandler_(kHandler.passNextKey)
     onPassKey ? onPassKey() : esc!(HandlerResult.ExitNormalMode); // singleton
     if (hasExpected || !!options.normal === (count0 > 0)) {
-      const oldEsc = esc!, oldPassKeys = passKeys
-      if (!hasExpected && !oldPassKeys && !insert_Lock_() && !isTY(options.normal)) { return hudTip(kTip.noPassKeys) }
-      set_passKeys(null)
+      const oldEsc = esc!
+      if (!hasExpected && !passKeys && !insert_Lock_() && !isTY(options.normal)) { return hudTip(kTip.noPassKeys) }
       hasExpected && pushHandler_((event): HandlerResult => {
         const rawKey = getMappedKey(event, raw_insert_lock ? kModeId.Insert : kModeId.Plain)
         const key = rawKey.length > 1 ? `<${rawKey}>` : ignoreCase ? Lower(rawKey) : rawKey
@@ -151,7 +150,6 @@ set_contentCommands_([
       set_esc((i: HandlerResult): HandlerResult => {
         if (i === HandlerResult.Prevent && 0 >= --count || i === HandlerResult.ExitNormalMode) {
           removeHandler_(kHandler.passNextKey)
-          set_passKeys(oldPassKeys)
           set_esc(oldEsc)
           set_passAsNormal(0)
           hudHide()
