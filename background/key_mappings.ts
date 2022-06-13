@@ -256,7 +256,7 @@ const parseKeyMappings_ = (wholeMappings: string): void => {
         } else if (registry.has(key) && !(builtinKeys_ && builtinKeys_.has(key)) && !hasIfOption(line, knownLen)) {
           logError_('Key %c"%s"', colorRed, key, "has been mapped to", registry.get(key)!.command_)
         } else if (!val) {
-          logError_((isRun ? "Lacking target when running" : "Lacking command when mapping") + ' %c"%s"', colorRed, key)
+          logError_((isRun ? "Lack target when running" : "Lack command when mapping") + ' %c"%s"', colorRed, key)
         } else if (!isRun && !(details = availableCommands_[val])) {
           logError_('Command %c"%s"', colorRed, val, "doesn't exist!")
         } else if ((ch = key.charCodeAt(0)) > kCharCode.maxNotNum && ch < kCharCode.minNotNum
@@ -311,7 +311,7 @@ const parseKeyMappings_ = (wholeMappings: string): void => {
       case "shortcut": case "command":
         if (noCheck) { /* empty */ }
         else if (!val) {
-          logError_("Lacking command name and options in shortcut:", line)
+          logError_("Lack command name and options in shortcut:", line)
         } else if (!(key.startsWith(CNameLiterals.userCustomized) && key.length > 14)
             && (CONST_.GlobalCommands_ as Array<StandardShortcutNames | string>).indexOf(key) < 0) {
           logError_(shortcutLogPrefix, colorRed, key, "is not a valid name")
@@ -331,7 +331,7 @@ const parseKeyMappings_ = (wholeMappings: string): void => {
       case "env":
         if (noCheck) { /* empty */ }
         else if (!val) {
-          logError_("Lacking conditions in env declaration:", line)
+          logError_("Lack conditions in env declaration:", line)
         } else if (key === "__proto__") {
           logError_('Unsupported env name %c"%s"', colorRed, key)
         } else if (envMap && envMap.has(key) && !hasIfOption(line, knownLen - 1 - val.length)) {
@@ -352,8 +352,17 @@ const parseKeyMappings_ = (wholeMappings: string): void => {
         } else if (registry.has(key)) {
           builtinKeys_ && builtinKeys_.delete(key)
           registry.delete(key)
+        } else if (((ch = key.charCodeAt(0)) > kCharCode.maxNotNum && ch < kCharCode.minNotNum
+            || ch === kCharCode.dash)) {
+          if ((key in mkReg || (key + ":" + GlobalConsts.NormalModeId) in mkReg) && cmd !== "unmap!") {
+            logError_('Ignore number prefix: %c"%s"', colorRed, key, "has been `mapKey`-ed to"
+                , mkReg[key + ":" + GlobalConsts.NormalModeId] || mkReg[key])
+          } else {
+            mkReg[key + ":" + GlobalConsts.NormalModeId] = "__no_" + (ch === kCharCode.dash ? "minus" : key)
+            mk++
+          }
         } else if (cmd !== "unmap!") {
-          logError_('Unmapping: %c"%s"', colorRed, key, "has not been mapped")
+          logError_('Unmap: %c"%s"', colorRed, key, "has not been mapped")
         }
         break
       default:
@@ -402,7 +411,7 @@ const collectMapKeyTypes_ = (mapKeys: SafeDict<string>): kMapKey => {
         const val = mapKeys[key]!
         types |= val.length > 1 ? oneOfTwoEscapeKeys(val) ? kMapKey.plain | kMapKey.plain_to_esc : kMapKey.plain
             : key.toUpperCase() !== key && val.toUpperCase() !== val ? kMapKey.char : kMapKey.plain
-      } else if (len > 2 && key[len - 2] === GlobalConsts.DelimiterBetweenKeyCharAndMode) {
+      } else if (len > 2 && key[len - 2] === ":") {
         types |= key[len - 1] === GlobalConsts.InsertModeId ? kMapKey.insertMode
             : key[len - 1] === GlobalConsts.NormalModeId ? kMapKey.normalMode : kMapKey.otherMode
       } else {
@@ -481,7 +490,7 @@ const populateKeyMap_ = (value: string | null): void => {
         if (val !== KeyAction.cmd) { func(val); }
         else if (maybePassed !== true && ref[key] === KeyAction.cmd && !(maybePassed && key in maybePassed)
             && (key.length < 2
-                || ref[key + GlobalConsts.DelimiterBetweenKeyCharAndMode + GlobalConsts.InsertModeId] == null)
+                || ref[key + ":" + GlobalConsts.InsertModeId] == null)
             || key.startsWith("v-")) {
           delete obj[key];
         }

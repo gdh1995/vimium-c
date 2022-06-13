@@ -574,7 +574,6 @@ declare const enum GlobalConsts {
   MinCancelableInBackupTimer = 50,
 
   SelectorPrefixesInPatterns = ".#[",
-  DelimiterBetweenKeyCharAndMode = ":",
   ModeIds = "nneilofvms",
   InsertModeId = "i",
   NormalModeId = "n",
