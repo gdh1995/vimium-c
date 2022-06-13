@@ -145,13 +145,14 @@ export const DecodeURLPart_ = (url: string | undefined, wholeURL?: 1 | "atob"): 
 }
 
 export const decodeUrlForCopy_ = (url: string, __allowSpace?: boolean): string => {
-    const ori = url.replace(<RegExpG> /%25/g, "%2525").replace(<RegExpG> /%(?![\da-fA-F]{2})/g, "%25")
+    if (!url.includes("%")) { return url }
+    const ori = url.replace(<RegExpG> /%(2[356f]|3[adf]|40)/gi, "%25$1"
+        ).replace(<RegExpG> /%(?![\da-fA-F]{2})/g, "%25")
     let str = DecodeURLPart_(ori, 1)
-    str = str.length !== ori.length ? str : url
-    if (!__allowSpace
-        && (protocolRe_.test(str) || str.startsWith("data:") || str.startsWith("about:") || isJSUrl_(str))) {
-      str = str.trim().replace(spacesRe_, encodeURIComponent)
-    }
+    str = str.length !== ori.length ? str : encodeAsciiURI_(url, 1)
+    const noSpace = !__allowSpace && (protocolRe_.test(str) ? !str.startsWith("vimium:")
+        : str.startsWith("data:") || str.startsWith("about:"))
+    str = str.replace(noSpace ? spacesRe_ : <RegExpG & RegExpSearchable<0>> /[\r\n]+|\s$/g, encodeURIComponent)
     return str
 }
 
@@ -162,23 +163,9 @@ export const decodeEscapedURL_ = (url: string, allowSpace?: boolean): string => 
 }
 
 export const encodeAsciiURI_ = (url: string, encoded?: 1): string =>
-    (encoded ? url : encodeURI(url)).replace(<RegExpG & RegExpSearchable<0>> /%(?:[CD].%..|E.%..%..)/g, (s): string => {
+    (encoded ? url : encodeURI(url)).replace(<RegExpG & RegExpSearchable<0>>/(?:%[\da-f]{2})+/gi, (s): string => {
       const t = DecodeURLPart_(s)
-      if (t === s) { return s }
-      const re = OnEdge
-          || OnChrome && Build.MinCVer < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
-            && CurCVer_ < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
-          || OnFirefox && Build.MinFFVer < FirefoxBrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
-            && CurFFVer_ < FirefoxBrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
-          ? <RegExpOne> /[\u0391-\u03c9\u4e00-\u9fa5]/ // Greek letters / CJK
-          : (Build.MinCVer >= BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
-              || !(Build.BTypes & BrowserType.Chrome))
-            && (Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
-                || !(Build.BTypes & BrowserType.Firefox))
-            && !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
-          ? <RegExpOne> /[\p{L}\p{N}]/u
-          : <RegExpOne> new RegExp("[\\p{L}\\p{N}]", "u")
-      return re.test(t) ? t : s
+      return t.length < s.length ? encodeAsciiComponent_(t) : s
     })
 
 export const encodeAsciiComponent_ = (url: string): string => url.replace(

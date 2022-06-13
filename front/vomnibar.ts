@@ -589,8 +589,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       }
       key = isLong || mod ? mod + chLower : char;
       if (Vomnibar_.mappedKeyRegistry_) {
-        mapped = Vomnibar_.mappedKeyRegistry_[key + GlobalConsts.DelimiterBetweenKeyCharAndMode
-            + GlobalConsts.OmniModeId] || Vomnibar_.mappedKeyRegistry_[key];
+        mapped = Vomnibar_.mappedKeyRegistry_[key + ":" + GlobalConsts.OmniModeId] || Vomnibar_.mappedKeyRegistry_[key]
         mapped = mapped ? mapped : !isLong && (mapped = Vomnibar_.mappedKeyRegistry_[chLower]) && mapped.length < 2
             && (baseMod = mapped.toUpperCase()) !== mapped
             ? mod ? mod + mapped : char === chLower ? mapped : baseMod : ""
@@ -712,7 +711,11 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       } else {
         action = char === kChar.bracketLeft ? AllowedActions.dismiss
           : char === kChar.bracketRight ? AllowedActions.toggle
-          : char === kChar.c && a.selection_ >= 0 && getSelection().type !== "Range" ? AllowedActions.copy
+          : char === kChar.c && a.selection_ >= 0 && getSelection().type !== "Range"
+            && (!(Build.BTypes & BrowserType.Firefox) && !(Build.BTypes & BrowserType.Chrome)
+                  || Build.MinCVer > BrowserVer.$Selection$NotShowStatusInTextBox
+               || a.input_.selectionStart === a.input_.selectionEnd)
+            ? AllowedActions.copy
           : a.ctrlCharOrShiftKeyMap_[char] || AllowedActions.nothing;
       }
     }
@@ -779,10 +782,11 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     case AllowedActions.pageup: case AllowedActions.pagedown: return a.goPage_(action !== AllowedActions.pageup);
     case AllowedActions.remove: return a.removeCur_();
     case AllowedActions.copy:
-      const item = a.completions_[a.selection_] as SuggestionEx
+      let item = a.completions_[a.selection_] as SuggestionEx, title = item.title, type = item.e, math = type === "math"
       VUtils_.ensureText_(item)
-      const title = item.title !== item.u && item.title !== item.t ? item.title : ""
-      return VPort_.post_({ H: kFgReq.omniCopy, t: title, u: item.u })
+      title = type !== "search" && !math && title !== item.u && title !== item.t ? title : ""
+      return VPort_.post_({ H: kFgReq.omniCopy, t: math ? item.textSplit + " = " + item.t : title
+          , u: math ? "" : item.u })
     case AllowedActions.home: case AllowedActions.end:
       sel = action === AllowedActions.home ? 0 : a.input_.value.length
       a.input_.setSelectionRange(sel, sel)
