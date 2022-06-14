@@ -364,7 +364,7 @@ OnChrome && Build.OnBrowserNativePages && ((): void => {
 })()
 
 // According to tests: onInstalled will be executed after 0 ~ 16 ms if needed
-installation_ && void installation_.then((details): void => {
+installation_ && void Promise.all([installation_, settings_.ready_]).then(([details]): void => {
   const reason = details && details.reason;
   const oldVer = reason === "install" ? "" : reason === "update" && details!.previousVersion! || "none"
   if (oldVer === "none") { return }
@@ -387,7 +387,6 @@ installation_ && void installation_.then((details): void => {
   }
 
   if (!oldVer) {
-    void settings_.ready_.then((): void => {
       const delay = (): void => {
         if (onInit_ || restoreSettings_) { ++tick < 25 && setTimeout(delay, 200); return }
         reqH_[kFgReq.focusOrLaunch]({
@@ -395,8 +394,7 @@ installation_ && void installation_.then((details): void => {
         })
       }
       let tick = 0
-      setTimeout(delay, 200)
-    })
+      delay()
     return
   }
   settings_.postUpdate_("vomnibarPage")
