@@ -7,7 +7,7 @@ import {
   createElement_, attachShadow_, NONE, fullscreenEl_unsafe_, docEl_unsafe_, getComputedStyle_, set_docSelectable_, kDir,
   GetParent_unsafe_, getSelection_, GetShadowRoot_, getEditableType_, htmlTag_, textOffset_, derefInDoc_, supportInert_,
   notSafe_not_ff_, CLK, frameElement_, runJS_, isStyleVisible_, rangeCount_, getAccessibleSelectedNode, removeEl_s,
-  appendNode_s, append_not_ff, setClassName_s, isNode_, contains_s, setOrRemoveAttr_s, textContent_s,
+  appendNode_s, append_not_ff, setClassName_s, isNode_, contains_s, setOrRemoveAttr_s, textContent_s, inputSelRange,
   parentNode_unsafe_s, setDisplaying_s, editableTypes_, getRootNode_mounted, singleSelectionElement_unsafe, isHTML_
 } from "../lib/dom_utils"
 import {
@@ -391,7 +391,7 @@ export const moveSel_s_throwable = (element: LockableElement, action: SelectActi
       } else {
         (element as TextElement).select();
         if (OnFirefox && doesCollpase) {
-          (element as TextElement).setSelectionRange(gotoEnd ? len : 0, gotoEnd ? len : 0);
+          inputSelRange((element as TextElement), gotoEnd ? len : 0, gotoEnd ? len : 0)
           doesCollpase = 0
         }
       }

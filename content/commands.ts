@@ -6,8 +6,8 @@ import {
 import {
   isHTML_, hasTag_, createElement_, querySelectorAll_unsafe_, SafeEl_not_ff_, docEl_unsafe_, MDW, CLK, derefInDoc_,
   querySelector_unsafe_, DAC, removeEl_s, appendNode_s, setClassName_s, INP, contains_s, toggleClass_s, modifySel,
-  focus_, testMatch, docHasFocus_, deepActiveEl_unsafe_, getEditableType_, textOffset_, kDir, getAccessibleSelectedNode,
-  getDirectionOfNormalSelection
+  focus_, testMatch, docHasFocus_, deepActiveEl_unsafe_, getEditableType_, textOffset_, getAccessibleSelectedNode,
+  getDirectionOfNormalSelection, inputSelRange
 } from "../lib/dom_utils"
 import {
   pushHandler_, removeHandler_, getMappedKey, prevent_, isEscape_, keybody_, DEL, BSP, ENTER, handler_stack,
@@ -385,7 +385,7 @@ set_contentCommands_([
                 return cur
               }
             }))
-            editable === insert_Lock_() && editable.setSelectionRange(start, end, kDir[1])
+            editable === insert_Lock_() && inputSelRange(editable, start, end)
           } else if (cmd === "select") {
             const activeEl = findAnElement_(options, count)[0]
             activeEl && selectNode_(activeEl)

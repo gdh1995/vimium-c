@@ -26,9 +26,6 @@ export { unsafeFramesetTag_old_cr_, docSelectable_ }
 export function markFramesetTagUnsafe_old_cr (): "frameset" { return unsafeFramesetTag_old_cr_ = "frameset" }
 export function set_docSelectable_ (_newDocSelectable: boolean): void { docSelectable_ = _newDocSelectable }
 
-export const rAF_: (callback: FrameRequestCallback) => number =
-    Build.Inline ? requestAnimationFrame : f => requestAnimationFrame(f)
-
 export const ElementProto_not_ff = !OnFirefox ? Element.prototype as SafeElement : 0 as never as null
 
 export const getComputedStyle_: (element: Element) => CSSStyleDeclaration =
@@ -626,6 +623,13 @@ export const modifySel = (sel: Selection, extend: BOOL | boolean | 2, di: BOOL |
     , g: GranularityNames[VisualModeNS.kG]): void => {
   sel.modify(extend ? "extend" : "move", kDir[+di], g)
 }
+
+export const inputSelRange = (input: TextElement, start: number, end: number, di?: VisualModeNS.ForwardDir): void => {
+  input.setSelectionRange(start, end, kDir[di! | 0])
+}
+
+export const rAF_: (callback: FrameRequestCallback) => number =
+    Build.Inline ? requestAnimationFrame : f => requestAnimationFrame(f)
 
 export const runJS_ = (code: string, returnEl?: HTMLScriptElement | null | 0
       ): void | HTMLScriptElement & SafeHTMLElement => {
