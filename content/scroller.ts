@@ -263,7 +263,7 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
       setupEventListener(elementRoot, kSE)
     }
     if (ScrollConsts.DEBUG) {
-      console.log("%c[animation]%c start with axis = %o, amount = %o, dir = %o, duration = %o, min_delta = %o"
+      console.log("%c[animation]%c start with axis = %o, amount = %o, dir = %o, duration = %o, min_delta = %o%s %s"
           , "color: #1155cc", "color: auto", di ? "y" : "x", amount, sign, duration
           , ((min_delta * 1e4) | 0) / 1e4), `\n  keyInterval = ${maxKeyInterval}, minDelay = ${minDelay}`
           , `flags = ${flags}, wait2 = ${wait2}`
