@@ -533,7 +533,7 @@ const findScrollable = (di: ScrollByY, amount: number
       }
     }
     if (!element && top && (OnFirefox || !notSafe_not_ff_!(top))) {
-      if (activeEl !== top || shouldScroll_s(top as SafeElement, di, 1) < 1) {
+      if (shouldScroll_s(top as SafeElement, di, 1) < 1) {
         topRoot = top && getRootNode_mounted(top as SafeElement & EnsuredMountedElement)
         element = (topRoot && isNode_(topRoot, kNode.DOCUMENT_FRAGMENT_NODE) ? topRoot : doc
             ).elementFromPoint(wndSize_(1) / 2, wndSize_() / 2)

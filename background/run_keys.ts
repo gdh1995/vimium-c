@@ -584,7 +584,9 @@ export const inlineRunKey_ = (rootRegistry: Writable<CommandsNS.Item>): kCName |
       fullOpts = concatOptions(concatOptions(fullOpts, seq.options), info.options) as typeof fullOpts
     }
     if (!doesContinue) {
-      canInline ? Object.assign(rootRegistry, makeCommand_(newName, fullOpts)) : (rootRegistry.command_ = newName)
+      canInline ? Object.assign(rootRegistry, makeCommand_(newName
+          , concatOptions(parentEntry && normalizedOptions_(parentEntry), fullOpts)
+      )) : (rootRegistry.command_ = newName)
       return newName
     }
     keyOpts = fullOpts && (fullOpts.keys !== void 0 || fullOpts.expect !== void 0 || fullOpts.mask !== void 0)

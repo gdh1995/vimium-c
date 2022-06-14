@@ -111,12 +111,12 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode], count: number):
    * @not_related_to_di otherwise
    */
   const yank = (action: kYank | ReuseType.current | ReuseType.newFg): void => {
-    const str = getSelectionText(1, curSelection), rich = richText
+    const str = getSelectionText(1, curSelection)
     action < kYank.NotExit && deactivate()
-    if (!str && !rich) { hudTip(kTip.noTextCopied) }
+    if (!str && !options.t) { hudTip(kTip.noTextCopied) }
     else if (str && action < kYank.MIN) {
       post_({ H: kFgReq.openUrl, u: str, r: action as ReuseType, o: parseOpenPageUrlOptions(options) })
-    } else if (rich || action > kYank.RichTextButNotExit - 1) {
+    } else if (options.t || action > kYank.RichTextButNotExit - 1) {
       execCommand("copy", doc)
       hudTip(kTip.copiedIs, 0, "# " + str)
     } else {
@@ -706,6 +706,7 @@ const ensureLine = (command1: number): void => {
     diType_ = DiType.UnsafeUnknown
     curSelection = getSelected(initialScope)
     let type: SelType = selType(), scope = initialScope.r as Exclude<typeof initialScope.r, undefined>
+    retainSelection = type === SelType.Range
     if (!modeName || mode_ !== Mode.Caret) {
       if (!modeName) { retainSelection = type === SelType.Range; richText = options.t }
       if (!insert_Lock_() && /* (type === SelType.Caret || type === SelType.Range) */ type) {
@@ -734,7 +735,8 @@ const ensureLine = (command1: number): void => {
   }
   if (mode_ === Mode.Caret && isRange) {
       // `sel` is not changed by @establish... , since `isRange`
-    collapseToRight(options.s != null ? <BOOL> +!options.s : getDirection()
+    getDirection()
+    collapseToRight(options.s != null ? <BOOL> +!options.s : di_
         && <BOOL> +(("" + <SelWithToStr> curSelection).length > 1))
   }
   replaceOrSuppressMost_(kHandler.visual, (event: HandlerNS.Event): HandlerResult => {
