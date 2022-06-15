@@ -422,8 +422,9 @@ export const instantScOpt = (di: number, amount: number): ScrollToOptions =>
     ({behavior: "instant", [di ? "top" : "left"]: amount})
 
 export const scrollWndBy_ = (di: ScrollByY, amount: number): void => {
-  OnFirefox || OnChrome && Build.MinCVer >= BrowserVer.MinEnsuredCSS$ScrollBehavior ||
-  ElementProto_not_ff!.scrollBy ? scrollBy(instantScOpt(di, amount)) : scrollBy(di ? 0 : amount, di && amount)
+  !OnEdge && (!OnChrome || Build.MinCVer >= BrowserVer.MinEnsuredCSS$ScrollBehavior
+      || ElementProto_not_ff!.scrollBy as unknown
+  ) ? scrollBy(instantScOpt(di, amount)) : scrollBy(di ? 0 : amount, di && amount)
 }
 
 export const center_ = (rect: Rect | null, xy: HintsNS.StdXY | null | undefined): Point2D => {

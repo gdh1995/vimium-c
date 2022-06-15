@@ -231,7 +231,7 @@ export const openMultiTabs = (options: InfoToCreateMultiTab, count: number
   } else if (!OnEdge) {
     groupId = curTab != null ? getGroupId(curTab) as number | null : null
     if (!doesGroup && groupId != null) { delete options.index }
-    groupId = doesGroup && groupId != null && Tabs_.group ? groupId : undefined
+    groupId = doesGroup && groupId != null && Tabs_.group as unknown ? groupId : undefined
   }
   tabsCreate(options, cb1, evenIncognito)
 }

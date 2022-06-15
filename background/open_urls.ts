@@ -514,7 +514,7 @@ const updateShownPage = (options: Req.FallbackOptions, tab: Tab): void => {
           && !tab.url.split("#", 2)[1]
       ? browser_.extension.getViews({ tabId: tab.id }) : []
     if (!OnEdge && views.length > 0
-        && views[0].location.href.startsWith(prefix) && views[0].onhashchange) {
+        && views[0].location.href.startsWith(prefix) && views[0].onhashchange as unknown) {
       (views[0].onhashchange as () => void)()
     } else {
       tabsUpdate(tab.id, { url: prefix })

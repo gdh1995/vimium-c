@@ -356,7 +356,7 @@ myAELStr: string | undefined, myToStrStr: string | undefined,
 verifierStrPrefix: string | undefined, verifierPrefixLen: number | undefined, verifierLen: number | undefined,
 /** verifierIsLastMatched */ I: BOOL | boolean | undefined,
 getRootNode = (EnsuredGetRootNode ? _call.bind(ElProto.getRootNode!) : ElProto.getRootNode) as never as {
-  (self: Node, options?: { composed?: boolean }): Node },
+  (self: Node, options?: { composed?: boolean }): Node } | undefined,
 contains = EnsuredGetRootNode || getRootNode ? null : ElProto.contains.bind(doc0), // in fact, it is Node::contains
 // here `setTimeout` is normal and will not use TimerType.fake
 setTimeout_ = setTimeout as SafeSetTimeout,
@@ -531,7 +531,7 @@ if (!MayNotEdge
   }
   queueMicroTask_ = (queueMicroTask_ as any as Promise<void>).then.bind(queueMicroTask_ as any as Promise<void>);
 }
-if (!EnsuredGetRootNode && getRootNode) { getRootNode = _call.bind(getRootNode! as never) as never }
+if (!EnsuredGetRootNode && getRootNode) { getRootNode = _call.bind(getRootNode as any) as any }
 if (MayEdge) {
   docChildren = docChildren.item.bind(docChildren)
 }

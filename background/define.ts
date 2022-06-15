@@ -129,7 +129,7 @@ Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES$Arr
       } }
     })
   }
-    if (Build.MinCVer >= BrowserVer.MinSafe$String$$StartsWith || "".includes) { return }
+    if (Build.MinCVer >= BrowserVer.MinSafe$String$$StartsWith || "".includes as unknown) { return }
     const StringCls = String.prototype
     /** startsWith may exist - {@see #BrowserVer.Min$String$$StartsWithEndsWithAndIncludes$ByDefault} */
   if (!"".startsWith) {

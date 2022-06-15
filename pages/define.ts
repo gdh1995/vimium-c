@@ -147,7 +147,7 @@ if (Build.BTypes & (Build.BTypes & BrowserType.ChromeOrFirefox | BrowserType.Edg
 Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES$Object$$values$and$$entries &&
 !Object.values && (function (): void {
   Object.values = (item): any[] => Object.keys(item).map(i => (item as Dict<any>)[i])
-  if (Build.MinCVer >= BrowserVer.MinEnsuredES$Array$$Includes || [].includes) { return }
+  if (Build.MinCVer >= BrowserVer.MinEnsuredES$Array$$Includes || [].includes as unknown) { return }
   const noArrayFind = ![].find
   Object.defineProperty(Array.prototype, "includes", { enumerable: false,
     value: function includes(this: any[], value: any, ind?: number): boolean { return this.indexOf(value, ind) >= 0 }
@@ -176,7 +176,7 @@ Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES$Obj
       } }
     })
   }
-  if (Build.MinCVer >= BrowserVer.MinSafe$String$$StartsWith || "".includes) { return }
+  if (Build.MinCVer >= BrowserVer.MinSafe$String$$StartsWith || "".includes as unknown) { return }
   const StringCls = String.prototype
   /** startsWith may exist - {@see #BrowserVer.Min$String$$StartsWithEndsWithAndIncludes$ByDefault} */
   if (!"".startsWith) {
