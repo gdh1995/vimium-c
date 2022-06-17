@@ -361,6 +361,7 @@ label:active {
   margin-right: 10px;
   padding: 3px 12px 0 0;
   width: 128px;
+  min-width: 128px;
 }
 .caption-2x:lang(zh) {
   padding-top: 0;

@@ -36,6 +36,7 @@ let shortcutRegistry_: Map<StandardShortcutNames, CommandsNS.Item | null> | null
 let envRegistry_: Map<string, CommandsNS.EnvItem | "__not_parsed__" | null> | null | undefined
 let flagDoesCheck_ = true
 let errors_: null | string[][] = null
+let noNumMaps_: Set<string> | null | undefined
 
 export { keyRe_, envRegistry_, shortcutRegistry_, errors_ as keyMappingErrors_ }
 
@@ -216,7 +217,7 @@ const parseKeyMappings_ = (wholeMappings: string): void => {
       , noCheck = false
       , mkReg = BgUtils_.safeObj_<string>();
     const colorRed = "color:red", shortcutLogPrefix = 'Shortcut %c"%s"';
-    builtinKeys_ = null
+    builtinKeys_ = noNumMaps_ = null
     lines = wholeMappings.replace(<RegExpSearchable<0>> /\\\\?\n/g, t => t.length === 3 ? "\\\n" : ""
                ).replace(<RegExpG> /[\t ]+/g, " ").split("\n");
     for (; _i < lines.length && (!lines[_i] || (key2 = lines[_i])[0] === kMappingsFlag.char0); _i++) {
@@ -279,7 +280,7 @@ const parseKeyMappings_ = (wholeMappings: string): void => {
         registry = new Map()
         cmdMap = new Map()
         envMap = null
-        builtinKeys_ = null;
+        builtinKeys_ = noNumMaps_ = null;
         mkReg = BgUtils_.safeObj_<string>(), mk = 0;
         if (errors_) {
           logError_("All key mappings is unmapped, but there %s been %c%d error%s%c before this instruction"
@@ -354,12 +355,10 @@ const parseKeyMappings_ = (wholeMappings: string): void => {
           registry.delete(key)
         } else if (((ch = key.charCodeAt(0)) > kCharCode.maxNotNum && ch < kCharCode.minNotNum
             || ch === kCharCode.dash)) {
-          if ((key in mkReg || (key + ":" + GlobalConsts.NormalModeId) in mkReg) && cmd !== "unmap!") {
-            logError_('Ignore number prefix: %c"%s"', colorRed, key, "has been `mapKey`-ed to"
-                , mkReg[key + ":" + GlobalConsts.NormalModeId] || mkReg[key])
+          if (noNumMaps_ && noNumMaps_.has(key) && cmd !== "unmap!") {
+            logError_('Number prefix: %c"%s"', colorRed, key, "has been unmapped")
           } else {
-            mkReg[key + ":" + GlobalConsts.NormalModeId] = "__no_" + (ch === kCharCode.dash ? "minus" : key)
-            mk++
+            (noNumMaps_ || (noNumMaps_ = new Set!())).add(key)
           }
         } else if (cmd !== "unmap!") {
           logError_('Unmap: %c"%s"', colorRed, key, "has not been mapped")
@@ -437,12 +436,14 @@ const populateKeyMap_ = (value: string | null): void => {
     customKeys = builtinKeys_ ? allKeys.filter(i => !builtinKeys_!.has(i)) : allKeys,
     countOfCustomKeys = customKeys.length,
     sortedKeys = builtinKeys_ ? customKeys.concat(BgUtils_.keys_(builtinKeys_)) : allKeys
+    builtinKeys_ = null
     if (hasFoundChanges) {
       const mayHaveInsert = allKeys.join().includes(":i>") ? kMapKey.directInsert : kMapKey.NONE
       set_mappedKeyTypes_(mappedKeyReg ? collectMapKeyTypes_(mappedKeyReg) | mayHaveInsert : mayHaveInsert)
     }
-    for (let ch = 10; 0 <= --ch; ) { ref[ch] = KeyAction.count; }
-    ref["-"] = KeyAction.count;
+    for (let ch = 10; 0 <= --ch; ) { noNumMaps_ && noNumMaps_.has("" + ch) || (ref[ch] = KeyAction.count); }
+    noNumMaps_ && noNumMaps_.has("-") || (ref["-"] = KeyAction.count)
+    noNumMaps_ = null
     for (let index = 0; index < sortedKeys.length; index++) {
       const key = sortedKeys[index];
       const arr = key.match(keyRe_)!, last = arr.length - 1
@@ -482,7 +483,6 @@ const populateKeyMap_ = (value: string | null): void => {
       console.log("The new key mappings have no errors");
     }
     set_keyFSM_(ref)
-    builtinKeys_ = null
     const maybePassed = Exclusions.getAllPassed_();
     const func = (obj: ChildKeyFSM): void => {
       for (const key in obj) {
