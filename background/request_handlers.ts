@@ -18,7 +18,7 @@ import { setOmniStyle_ } from "./ui_css"
 import { contentI18n_, extTrans_, i18nReadyExt_, loadContentI18n_, transPart_, trans_ } from "./i18n"
 import { keyRe_, parseVal_ } from "./key_mappings"
 import {
-  sendFgCmd, replaceCmdOptions, onConfirmResponse, executeCommand, portSendFgCmd,
+  sendFgCmd, replaceCmdOptions, onConfirmResponse, executeCommand, portSendFgCmd, executeExternalCmd,
   waitAndRunKeyReq, runNextCmdBy, parseFallbackOptions
 } from "./run_commands"
 import { inlineRunKey_, parseEmbeddedOptions, runKeyWithCond } from "./run_keys"
@@ -42,6 +42,22 @@ const _AsReqH = <K extends (keyof FgReq) & keyof BackendHandlersNS.FgRequestHand
 }
 
 set_reqH_([
+  /** kFgReq.fromInjectedPages: */ (request: FgReq[kFgReq.fromInjectedPages], port: Port): void => {
+    const name = request.handler
+    if (!name || typeof name !== "string") { return }
+    if (name === kFgReq.focus) {
+      if (!(port.s.flags_ | Frames.Flags.userActed)) {
+        (port.s as Frames.Sender).flags_ |= Frames.Flags.userActed
+        port.postMessage({ N: kBgReq.exitGrab })
+      }
+      reqH_[kFgReq.exitGrab]({}, port)
+    } else if (name === kFgReq.command) {
+      executeExternalCmd(request as ExternalMsgs[kFgReq.command]["req"], null, port)
+    } else if (name === kFgReq.tip) {
+      set_cPort(indexFrame(port.s.tabId_, 0) || port)
+      showHUD(request.tip || "Error: Lack .tip")
+    }
+  },
   /** kFgReq.setSetting: */ (request: FgReq[kFgReq.setSetting], port: Port): void => {
     const k = request.k, allowed = settings_.frontUpdateAllowed_
     if (!(k >= 0 && k < allowed.length)) {

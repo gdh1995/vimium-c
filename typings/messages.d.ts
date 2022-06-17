@@ -90,18 +90,19 @@ declare const enum kBgReq {
 }
 
 declare const enum kFgReq {
-  setSetting, findQuery, parseSearchUrl, parseUpperUrl,
+  fromInjectedPages, setSetting, findQuery, parseSearchUrl, parseUpperUrl,
   searchAs, gotoSession, openUrl, onFrameFocused, checkIfEnabled,
   nextFrame, exitGrab, execInChild, initHelp, css,
-  vomnibar, omni, copy, key, nextKey, marks,
-  focusOrLaunch, cmd, removeSug, openImage, evalJSFallback,
+  vomnibar, omni, copy, key, nextKey,
+  marks, focusOrLaunch, cmd, removeSug, openImage,
+  evalJSFallback,
   /** can be used only with `FgCmdAcrossFrames` and when a fg command is just being called */
-  gotoMainFrame,
-  setOmniStyle, findFromVisual, framesGoBack, i18n, learnCSS, visualMode,
-  respondForRunKey, downloadLink, wait, optionToggled, keyFromOmni, pages, showUrl, omniCopy, didLocalMarkTask,
-  END,
+  gotoMainFrame, setOmniStyle, findFromVisual, framesGoBack,
+  i18n, learnCSS, visualMode, respondForRunKey, downloadLink, wait,
+  optionToggled, keyFromOmni, pages, showUrl,
+  omniCopy, didLocalMarkTask, END,
   msg = 90, inject = 99,
-  command = "command", id = "id", shortcut = "shortcut",
+  command = "command", id = "id", shortcut = "shortcut", focus = "focus", tip = "tip",
 }
 
 interface BgReq {
@@ -519,6 +520,10 @@ interface FgReqWithRes {
 }
 
 interface FgReq {
+  [kFgReq.fromInjectedPages]: {
+    handler: kFgReq & string | 42
+    /* for kFgReq.tip */ tip?: string
+  };
   [kFgReq.setSetting]: SetSettingReq<keyof SettingsNS.FrontUpdateAllowedSettings>;
   [kFgReq.parseSearchUrl]: {
     /** suggestionId */ i: number

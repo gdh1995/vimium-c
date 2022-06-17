@@ -377,14 +377,15 @@ export const executeShortcut = (shortcutName: StandardShortcutNames, ref: Frames
 
 /** this functions needs to accept any types of arguments and normalize them */
 export const executeExternalCmd = (
-    message: Partial<ExternalMsgs[kFgReq.command]["req"]>, sender: chrome.runtime.MessageSender): void => {
+    message: Partial<ExternalMsgs[kFgReq.command]["req"]>, sender: chrome.runtime.MessageSender | null,
+    port?: Port | null): void => {
   let command = message.command;
   command = command ? command + "" : "";
   const description = command ? availableCommands_[command] : null
   if (!description) { return; }
   let ref: Frames.Frames | undefined
-  const port: Port | null = sender.tab ? indexFrame(sender.tab.id, sender.frameId || 0)
-      || (ref = framesForTab_.get(sender.tab.id), ref ? ref.cur_ : null) : null
+  port = port || (sender!.tab ? indexFrame(sender!.tab.id, sender!.frameId || 0)
+      || (ref = framesForTab_.get(sender!.tab.id), ref ? ref.cur_ : null) : null)
   if (!port && !description[1]) { /** {@link index.d.ts#CommandsNS.FgDescription} */
     return;
   }
