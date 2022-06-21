@@ -69,7 +69,8 @@ set_getMappedKey((eventWrapper: HandlerNS.Event, mode: kModeId): string => {
       mapped = mapKeyTypes & (mode > kMapKey.normalMode ? kMapKey.insertMode | kMapKey.otherMode : mode)
           && mappedKeys[key + ":" + GlobalConsts.ModeIds[mode]]
           || (mapKeyTypes & kMapKey.plain ? mappedKeys[key] : "")
-      key = mapped ? mode > kModeId.max_not_command && mapped.startsWith("v-") ? (eventWrapper.v = mapped, "") : mapped
+      key = mapped ? mode > kModeId.max_not_command
+              && mapped.startsWith("v-") ? (eventWrapper.v = mapped as `v-${string}`, "") : mapped
           : mapKeyTypes & kMapKey.char && !isLong && (mapped = mappedKeys[chLower])
             && mapped.length < 2 && (baseMod = mapped.toUpperCase()) !== mapped
           ? mod ? mod + mapped : char === chLower ? mapped : baseMod
@@ -79,28 +80,30 @@ set_getMappedKey((eventWrapper: HandlerNS.Event, mode: kModeId): string => {
   return key;
 })
 
-export const checkKey = (event: HandlerNS.Event, key: string, inInsertMode?: kMapKey.NONE | kMapKey.directInsert
+export const checkKey = ((event: HandlerNS.Event, key: string, inInsertMode?: BOOL
     ): HandlerResult.Nothing | HandlerResult.Prevent | HandlerResult.PlainEsc | HandlerResult.AdvancedEsc => {
-  if (curKeyTimestamp && timeStamp_(event.e) - curKeyTimestamp > GlobalConsts.KeySequenceTimeout) {
-    esc!(HandlerResult.Nothing)
-  }
   // when checkKey, Vimium C must be enabled, so passKeys won't be `""`
   if (passKeys && !currentKeys
       && passKeys.has(mappedKeys ? getMappedKey(event, kModeId.NO_MAP_KEY) : key) !== isPassKeysReversed
       && !event.v && !passAsNormal) {
     return esc!(HandlerResult.Nothing)
   }
-  let j: ReadonlyChildKeyFSM | ValidKeyAction | ReturnType<typeof isEscape_> | undefined = isEscape_(key)
+  let j: ReadonlyChildKeyFSM | ValidKeyAction | KeyAction.INVALID | ReturnType<typeof isEscape_> | undefined
+      = isEscape_(key)
   if (j) {
     return nextKeys ? (esc!(HandlerResult.ExitNormalMode), HandlerResult.Prevent) : j;
   }
   let key2 = key
-  if (!nextKeys || (j = nextKeys[key]) == null) {
-    j = key.startsWith("v-") ? KeyAction.cmd : mapKeyTypes & inInsertMode!
-      && (j = keyFSM[key2 = key + ":" + GlobalConsts.InsertModeId]) != null ? j
-      : !inInsertMode || (key2 = keybody_(key)) < kChar.minNotF_num && key2 > kChar.maxNotF_num
-      ? keyFSM[key2 = key] : void 0
-    if (j == null || currentKeys && passKeys
+  if (!nextKeys || !(j = nextKeys[key])) {
+    j = key.startsWith("v-") ? KeyAction.cmd
+        : !inInsertMode
+          ? keyFSM[currentKeys && mapKeyTypes & kMapKey.normalMode ? key2 = getMappedKey(event, kModeId.Normal) : key]
+        // insert mode: not accept a sequence of multiple keys,
+        // because the simplified keyFSM can not be used when nextKeys && !nextKeys[key]
+        : (keyFSM[key2 = key + ":" + GlobalConsts.InsertModeId] || (key2 = keybody_(key)
+            ) < kChar.minNotF_num && key2 > kChar.maxNotF_num && keyFSM[key2 = key]) === KeyAction.cmd
+        ? KeyAction.cmd : KeyAction.INVALID
+    if (!j || currentKeys && passKeys
           && passKeys.has(mappedKeys ? getMappedKey(event, kModeId.NO_MAP_KEY) : key) !== isPassKeysReversed
           && !event.v && !passAsNormal) {
       return esc!(nextKeys && inInsertMode ? HandlerResult.Prevent : HandlerResult.Nothing)
@@ -117,6 +120,10 @@ export const checkKey = (event: HandlerNS.Event, key: string, inInsertMode?: kMa
     curKeyTimestamp = timeStamp_(event.e)
   }
   return HandlerResult.Prevent;
+}) as {
+  (event: HandlerNS.Event, key: `v-${string}`): HandlerResult.Nothing | HandlerResult.Prevent
+  (event: HandlerNS.Event, key: string, inInsertMode: BOOL
+    ): HandlerResult.Nothing | HandlerResult.Prevent | HandlerResult.PlainEsc | HandlerResult.AdvancedEsc
 }
 
 const checkAccessKey_cr = OnChrome ? (event: HandlerNS.Event): void => {
@@ -201,13 +208,13 @@ export const onKeydown = (event: KeyboardEventToPrevent): void => {
               && (key < kKeyCode.N0 || key > kKeyCode.menuKey || key > kKeyCode.N9 && key < kKeyCode.A
                   || getKeyStat_(event, 1))
           || (OnFirefox && key === kKeyCode.bracketLeftOnFF || key > kKeyCode.minNotFn
-              ? event.ctrlKey : key === kKeyCode.esc) || nextKeys
+              ? event.ctrlKey : key === kKeyCode.esc)
           ? getMappedKey(eventWrapper, mapKeyTypes & kMapKey.insertMode ? kModeId.Insert : kModeId.Plain)
           : (!OnChrome || Build.MinCVer >= BrowserVer.MinEnsured$KeyboardEvent$$Key
               || event.key) && event.key!.length === 1 ? kChar.INVALID : ""
     if (insert_global_ ? insert_global_.k ? keyStr === insert_global_.k : isEscape_(keyStr)
-        : !keyStr ? HandlerResult.Nothing : keyStr.length < 2 && !nextKeys ? esc!(HandlerResult.Nothing)
-        : (action = checkKey(eventWrapper, keyStr, kMapKey.directInsert)) > HandlerResult.MaxNotEsc
+        : !keyStr ? HandlerResult.Nothing : keyStr.length < 2 ? esc!(HandlerResult.Nothing)
+        : (action = checkKey(eventWrapper, keyStr, 1)) > HandlerResult.MaxNotEsc
     ) {
       OnChrome && checkAccessKey_cr(eventWrapper) // even if nothing will be done or `passEsc` matches
       if (!insert_global_ && (raw_insert_lock && raw_insert_lock === doc.body || !isTop && wndSize_() < 5)) {
@@ -222,8 +229,11 @@ export const onKeydown = (event: KeyboardEventToPrevent): void => {
       : ((1 << kKeyCode.backspace | 1 << kKeyCode.tab | 1 << kKeyCode.esc | 1 << kKeyCode.enter
           | 1 << kKeyCode.altKey | 1 << kKeyCode.ctrlKey | 1 << kKeyCode.shiftKey
           ) >> key) & 1) {
+      if (curKeyTimestamp && timeStamp_(event) - curKeyTimestamp > GlobalConsts.KeySequenceTimeout) {
+        esc!(HandlerResult.Nothing)
+      }
       keyStr = getMappedKey(eventWrapper, currentKeys ? kModeId.Next : kModeId.Normal)
-      action = keyStr ? checkKey(eventWrapper, keyStr, kMapKey.NONE) : HandlerResult.Nothing
+      action = keyStr ? checkKey(eventWrapper, keyStr, 0) : HandlerResult.Nothing
       if (action > HandlerResult.MaxNotEsc) {
         action = action > HandlerResult.PlainEsc ? /*#__NOINLINE__*/ onEscDown(event, key, event.repeat)
             : HandlerResult.Nothing;

@@ -18,7 +18,7 @@ declare namespace HandlerNS {
     /** keyCode */ i: kKeyCode;
     /** raw char */ c: kChar;
     /** event */ e: KeyboardEventToPrevent;
-    /** is <v-***> */ v: string
+    /** is <v-***> */ v: `v-${string}` | ""
   }
 
   interface Handler {

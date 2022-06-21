@@ -198,7 +198,7 @@ declare const enum VisualAction {
 }
 
 declare const enum KeyAction {
-  cmd = 0, count = 1,
+  INVALID = 0, cmd = 1, count = 2,
   __mask = -1,
 }
 type ValidChildKeyAction = KeyAction.cmd;
@@ -578,6 +578,7 @@ declare const enum GlobalConsts {
   InsertModeId = "i",
   NormalModeId = "n",
   OmniModeId = "o",
+  ForcedMapNum = "c-v-",
   KeySequenceTimeout = 3e5,
   OptionsPage = "pages/options.html",
   kLoadEvent = "VimiumC"

@@ -260,9 +260,10 @@ const parseKeyMappings_ = (wholeMappings: string): void => {
           logError_((isRun ? "Lack target when running" : "Lack command when mapping") + ' %c"%s"', colorRed, key)
         } else if (!isRun && !(details = availableCommands_[val])) {
           logError_('Command %c"%s"', colorRed, val, "doesn't exist!")
-        } else if ((ch = key.charCodeAt(0)) > kCharCode.maxNotNum && ch < kCharCode.minNotNum
-            || ch === kCharCode.dash) {
-          logError_('Invalid key: %c"%s"', colorRed, key, "(the first char can not be '-' or number)")
+        } else if (((ch = key.charCodeAt(0)) > kCharCode.maxNotNum && ch < kCharCode.minNotNum || ch === kCharCode.dash)
+            && !(noNumMaps_ && noNumMaps_.has(key[0]))) {
+          logError_('Invalid key: %c"%s"', colorRed, key
+              , "- a first char can not be '-' or numbers, unless before is `unmap " + key[0] + "`")
         } else {
           doesPass = true
         }
@@ -297,16 +298,23 @@ const parseKeyMappings_ = (wholeMappings: string): void => {
           logError_("mapKey: a source key should be a single key with an optional mode id:", line)
         } else if (val.length > 1 && !(<RegExpOne> /^<(?!<|__proto__>)([a-z]-){0,4}.\w*>$/).test(val)) {
           logError_("mapKey: a target key should be a single key:", line)
-        } else if (key2 = stripKey_(key), key2 in mkReg && mkReg[key2] !== stripKey_(val)
-            && !hasIfOption(line, knownLen)) {
-          logError_('The key %c"%s"', colorRed, key, "has been mapped to another key:"
-              , mkReg[key2]!.length > 1 ? `<${mkReg[key2]!}>` : mkReg[key2]!)
+        } else if (key2 = stripKey_(key), key2 in mkReg && mkReg[key2] !== stripKey_(val)) {
+          if (noNumMaps_ && key2.length === 3 && key2[2] === GlobalConsts.NormalModeId && noNumMaps_.has(key2[0])) {
+            if (doesMatchEnv_(getOptions_(line, knownLen)) !== false) {
+              logError_("`mapKey %s` and `unmap %s...` can not be used at the same time", key, key2.split(":")[0])
+            }
+          } else if (!hasIfOption(line, knownLen)) {
+            logError_('The key %c"%s"', colorRed, key, "has been mapped to another key:"
+                , mkReg[key2]!.length > 1 ? `<${mkReg[key2]!}>` : mkReg[key2]!)
+          } else {
+            doesPass = true
+          }
         } else {
           doesPass = true
         }
         if (doesPass && doesMatchEnv_(getOptions_(line, knownLen)) !== false) {
           mkReg[key2!] = stripKey_(val)
-          mk++;
+          mk = 1;
         }
         break
       case "shortcut": case "command":
@@ -355,10 +363,15 @@ const parseKeyMappings_ = (wholeMappings: string): void => {
           registry.delete(key)
         } else if (((ch = key.charCodeAt(0)) > kCharCode.maxNotNum && ch < kCharCode.minNotNum
             || ch === kCharCode.dash)) {
-          if (noNumMaps_ && noNumMaps_.has(key) && cmd !== "unmap!") {
-            logError_('Number prefix: %c"%s"', colorRed, key, "has been unmapped")
+          if (key2 = key + ":" + GlobalConsts.NormalModeId,
+              key2 in mkReg && mkReg[key2] !== GlobalConsts.ForcedMapNum + key) {
+            logError_("`unmap %s...` and `mapKey <%s>` can not be used at the same time", key, key2)
+          } else if (noNumMaps_ && noNumMaps_.has(key)) {
+            cmd !== "unmap!" && logError_('Number prefix: %c"%s"', colorRed, key, "has been unmapped")
           } else {
             (noNumMaps_ || (noNumMaps_ = new Set!())).add(key)
+            mkReg[key2] = GlobalConsts.ForcedMapNum + key
+            mk = 1
           }
         } else if (cmd !== "unmap!") {
           logError_('Unmap: %c"%s"', colorRed, key, "has not been mapped")
@@ -379,7 +392,7 @@ const parseKeyMappings_ = (wholeMappings: string): void => {
     set_keyToCommandMap_(registry)
     shortcutRegistry_ = cmdMap
     envRegistry_ = envMap
-    set_mappedKeyRegistry_(omniPayload_.m = mk > 0 ? mkReg : null)
+    set_mappedKeyRegistry_(omniPayload_.m = mk ? mkReg : null)
 }
 
 const setupShortcut_ = (cmdMap: NonNullable<typeof shortcutRegistry_>, key: StandardShortcutNames
@@ -441,9 +454,6 @@ const populateKeyMap_ = (value: string | null): void => {
       const mayHaveInsert = allKeys.join().includes(":i>") ? kMapKey.directInsert : kMapKey.NONE
       set_mappedKeyTypes_(mappedKeyReg ? collectMapKeyTypes_(mappedKeyReg) | mayHaveInsert : mayHaveInsert)
     }
-    for (let ch = 10; 0 <= --ch; ) { noNumMaps_ && noNumMaps_.has("" + ch) || (ref[ch] = KeyAction.count); }
-    noNumMaps_ && noNumMaps_.has("-") || (ref["-"] = KeyAction.count)
-    noNumMaps_ = null
     for (let index = 0; index < sortedKeys.length; index++) {
       const key = sortedKeys[index];
       const arr = key.match(keyRe_)!, last = arr.length - 1
@@ -460,16 +470,25 @@ const populateKeyMap_ = (value: string | null): void => {
         continue;
       }
       let ref2 = ref as ChildKeyFSM, tmp: ChildKeyFSM | ValidChildKeyAction | undefined, j = 0;
-      while ((tmp = ref2[strip(arr[j])]) && j < last) { j++; ref2 = tmp; }
-      if (tmp != null && (index >= countOfCustomKeys || tmp === KeyAction.cmd)) {
+      while ((tmp = ref2[strip(arr[j])]) && tmp !== KeyAction.cmd && j < last) { j++; ref2 = tmp; }
+      if (tmp && (index >= countOfCustomKeys || tmp === KeyAction.cmd)) {
         index >= countOfCustomKeys ? keyToCommandMap_.delete(key) :
         doesLog && logError_(kWarn, key, arr.slice(0, j + 1).join(""))
         continue;
       }
-      tmp != null && doesLog && logError_(kWarn, tmp, key)
+      tmp && doesLog && logError_(kWarn, tmp, key)
       while (j < last) { ref2 = ref2[strip(arr[j++])] = BgUtils_.safeObj_() as ChildKeyFSM; }
       ref2[strip(arr[last])] = KeyAction.cmd;
     }
+    if (!noNumMaps_) { /* empty */ }
+    else if (!(Build.BTypes & BrowserType.Chrome) ||Build.MinCVer >= BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol) {
+      for (var i of noNumMaps_ as unknown as string[]) { if (i in ref) { ref[GlobalConsts.ForcedMapNum + i] = ref[i] } }
+    } else {
+       noNumMaps_.forEach((i): void => { if (i in ref) { ref[GlobalConsts.ForcedMapNum + i] = ref[i] } })
+    }
+    ref["-"] = KeyAction.count
+    for (let ch = 10; 0 <= --ch; ) { ref[ch] = KeyAction.count }
+    noNumMaps_ = null
     if (!hasFoundChanges) { /* empty */ }
     else if (errors_) {
       if (errors_.length > 1) {
@@ -488,9 +507,8 @@ const populateKeyMap_ = (value: string | null): void => {
       for (const key in obj) {
         const val = obj[key]!;
         if (val !== KeyAction.cmd) { func(val); }
-        else if (maybePassed !== true && ref[key] === KeyAction.cmd && !(maybePassed && key in maybePassed)
-            && (key.length < 2
-                || ref[key + ":" + GlobalConsts.InsertModeId] == null)
+        else if (maybePassed !== true && ref[key] === KeyAction.cmd && !(maybePassed && maybePassed.has(key))
+              && (key.length < 2 || ref[key + ":" + GlobalConsts.InsertModeId] == null)
             || key.startsWith("v-")) {
           delete obj[key];
         }

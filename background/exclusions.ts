@@ -135,15 +135,16 @@ let getOnURLChange_ = (): null | ExclusionsNS.Listener => {
   return onURLChange
 }
 
-export const getAllPassed_ = (): SafeEnum | true | null => {
-    let all = BgUtils_.safeObj_() as SafeDict<1>, tick = 0;
+export const getAllPassed_ = (): Set<string> | true | null => {
+    let all = new Set!<string>(), tick = 0;
     for (const { k: passKeys } of rules_) {
       if (passKeys) {
         if (passKeys[0] === "^" && passKeys.length > 2) { return true; }
-        for (const ch of passKeys.split(" ")) { all[ch] = 1; tick++; }
+        for (const key of passKeys.split(" ")) { all.add(key); tick++ }
       }
     }
-    return tick ? all : null;
+    return (!OnChrome || Build.MinCVer >= BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol
+        ? (all as NativeSet<string>).size : tick) ? all : null
 }
 
 export const RefreshStatus_ = (old_is_empty: boolean): void => {

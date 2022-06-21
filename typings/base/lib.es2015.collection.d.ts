@@ -62,7 +62,9 @@ interface Set<T> {
     delete(value: T): boolean;
     forEach(callbackfn: (value: T) => void, thisArg?: any): void;
     has(value: T): boolean;
-    // readonly size: number;
+}
+interface NativeSet<T> extends Set<T> {
+    readonly size: number;
 }
 
 interface SetConstructor {

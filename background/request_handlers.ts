@@ -352,6 +352,8 @@ set_reqH_([
       let prefix = arr[0]
       key = key.slice(prefix.length)
       count = prefix !== "-" ? parseInt(prefix, 10) || 1 : -1
+    } else if (key.length > 6 && key.startsWith(`<${GlobalConsts.ForcedMapNum}${key[5]}>`)) {
+      key = key[5] + key.slice(7)
     }
     let registryEntry = keyToCommandMap_.get(key)
     if (!registryEntry) {
