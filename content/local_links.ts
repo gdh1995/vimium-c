@@ -381,8 +381,6 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
   } else if (matchAll) {
     if (ngEnabled == null) {
       ngEnabled = !!querySelector_unsafe_(".ng-scope");
-    }
-    if (jsaEnabled_ == null) {
       jsaEnabled_ = !!querySelector_unsafe_("[jsaction]");
     }
   }
@@ -654,7 +652,7 @@ export const filterOutNonReachable = (list: Hint[], notForAllClickable?: boolean
   if (OnEdge
       || OnChrome && (Build.MinCVer < BrowserVer.Min$Node$$getRootNode
               || Build.MinCVer < BrowserVer.Min$DocumentOrShadowRoot$$elementsFromPoint)
-          && chromeVer_ < +(BrowserVer.Min$Node$$getRootNode >= BrowserVer.Min$DocumentOrShadowRoot$$elementsFromPoint
+          && chromeVer_ < (BrowserVer.Min$Node$$getRootNode >= BrowserVer.Min$DocumentOrShadowRoot$$elementsFromPoint
               ? BrowserVer.Min$Node$$getRootNode : BrowserVer.Min$DocumentOrShadowRoot$$elementsFromPoint)
       || OnChrome && isDocZoomStrange_ && docZoom_ - 1) {
     return

@@ -4,6 +4,17 @@ Release Notes of Vimium C
 ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 说明文档: https://gitee.com/gdh1995/vimium-c#readme , https://github.com/gdh1995/vimium-c/blob/master/README-zh.md .
 
+#### v1.98.3
+* fix some bugs in v1.98.1 and v1.98.2
+  * fix a scrolling target might change unexpectedly on a second `scroll*`
+  * Vomnibar: fix broken `Ctrl+C` on Firefox when the input box is focused
+  * fix `VisualMode` may fail to init
+  * fix broken `mapKey xxx <v-xxx>`
+* VisualMode: fix `as` and `ap` didn't work
+* fix a bug of losing nested parameters in `run key xxx`
+* now `unmap` + `0~9/-` will make such keys passed by default
+  * and `unmap 0` will make a following `map 0 xxx` valid
+
 #### v1.98.2
 * fix `X (restoreTab)` doesn't work in v1.98.1
 * fix v1.98.1 scrolls much longer on a screen of 95-149 FPS

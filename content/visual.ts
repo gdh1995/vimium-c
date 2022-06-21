@@ -345,7 +345,8 @@ const runMovements = (direction: ForwardDir, granularity: kG | kVimG.vimWord, co
             && (fixDeltaHasOnlySpaces_cr_win = moveRightByWordButNotSkipSpaces!(0))
             && (fixDeltaHasOnlySpaces_cr_win = --count1 ? null : fixDeltaHasOnlySpaces_cr_win)
         if (Build.OS & (1 << kOS.win)) {
-          count1 -= (Build.OS & ~(1 << kOS.win) ? fixWord > shouldSkipSpaceWhenMovingRight : fixWord) as unknown as BOOL
+          count1 -= (Build.OS & ~(1 << kOS.win) ? fixWord >
+              shouldSkipSpaceWhenMovingRight : fixWord) as unknown as BOOL // lgtm [js/implicit-operand-conversion]
         }
       }
       granularity = kG.word
