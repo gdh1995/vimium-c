@@ -249,6 +249,7 @@ declare const enum ReuseType {
   frame = 3,
   newFg = -1,
   newBg = -2,
+  reuseInCurWnd = -3,
   OFFSET_LAST_WINDOW = -4,
   lastWndFg = -5,
   /** @deprecated */ lastWnd = lastWndFg,
@@ -257,13 +258,14 @@ declare const enum ReuseType {
   lastWndBgInactive = -8,
   /** @deprecated */ lastWndBgBg = lastWndBgInactive,
   Default = newFg,
-  MAX = 2,
+  MAX = 3,
 }
 type ValidReuseNames = Exclude<keyof typeof ReuseType, "MAX" | "OFFSET_LAST_WINDOW" | "Default">
 declare type UserReuseType = ReuseType | boolean | ValidReuseNames
     | "newwindow" | "new-window" | "newwnd" | "new-wnd" | "newfg" | "new-fg" | "newbg" | "new-bg"
     | "lastwndfg" | "lastwnd" | "last-wnd-fg" | "last-wnd" | "lastwndbg" | "last-wnd-bg" | "if-last-wnd" | "iflastwnd"
     | "last-wnd-bgbg" | "lastwndbgbg" | "last-wnd-bg-inactive" | "lastwndbginactive"
+    | "reuse-in-cur-wnd" | "reuseincurwnd"
 
 declare const enum FrameMaskType {
   NoMaskAndNoFocus = 0, onOmniHide = 1, NoMask = 2,
