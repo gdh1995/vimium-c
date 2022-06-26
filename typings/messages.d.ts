@@ -375,6 +375,7 @@ interface CmdOptions {
     /** length limit list */ l: number[];
     /** max of length limit list */ m: number;
     /** scroll into view */ v: boolean;
+    /** avoid click */ a: boolean;
   } & CSSOptions & Req.FallbackOptions;
   [kFgCmd.insertMode]: ({
     /** unhover last */ u?: boolean;

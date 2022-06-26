@@ -3,7 +3,7 @@ import {
   OnChrome, OnFirefox, OnEdge, evenHidden_, doc, firefoxVer_
 } from "../lib/utils"
 import {
-  htmlTag_, isAriaFalse_, isStyleVisible_, querySelectorAll_unsafe_, isIFrameElement, ALA, attr_s,
+  htmlTag_, isAriaFalse_, isStyleVisible_, querySelectorAll_unsafe_, isIFrameElement, ALA, attr_s, findAnchor_,
   contains_s, notSafe_not_ff_
 } from "../lib/dom_utils"
 import { getBoundingClientRect_, isNotInViewport, view_, VisibilityType } from "../lib/rect"
@@ -14,7 +14,6 @@ import { omni_box } from "./omni"
 import { flash_ } from "./dom_ui"
 import { catchAsyncErrorSilently, click_async } from "./async_dispatcher"
 import { contentCommands_, runFallbackKey } from "./port"
-import { hudTip } from "./hud"
 
 let iframesToSearchForNext: VApiTy[] | null
 
@@ -195,9 +194,11 @@ export const findNextInRel = (options: CmdOptions[kFgCmd.goNext]
 }
 
 export const jumpToNextLink: VApiTy["j"] = (linkElement: GoNextBaseCandidate[0], options): void => {
-  let url = isNotInViewport(linkElement) > VisibilityType.OutOfView && (linkElement as HTMLLinkElement).href
+  const anchor = (options.a || isNotInViewport(linkElement) > VisibilityType.OutOfView)
+      && !(linkElement as TypeToPick<Element, HTMLLinkElement, "href">).href && findAnchor_(linkElement) || linkElement
+  const url = (anchor as TypeToPick<Element, HTMLLinkElement, "href">).href
   if (url) {
-    hudTip(kTip.raw, 2, url, 1)
+    vApi.t({ k: kTip.raw, t: url.slice(0, 256), d: 2, l: 1 })
     contentCommands_[kFgCmd.framesGoBack](safer<CmdOptions[kFgCmd.framesGoBack]>({ r: 1, u: url }))
   } else {
     options.v && view_(linkElement)

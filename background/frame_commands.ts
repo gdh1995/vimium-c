@@ -473,6 +473,7 @@ export const framesGoNext = (isNext: boolean, rel: string): void => {
     evenIf: get_cOptions<C.goNext, true>().evenIf,
     p: patterns, l: maxLens, m: totalMaxLen > 0 && totalMaxLen < 99 ? totalMaxLen : 32,
     v: get_cOptions<C.goNext, true>().view !== false,
+    a: !!get_cOptions<C.goNext, true>().avoidClick,
   }))
 }
 
