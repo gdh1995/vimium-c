@@ -2,7 +2,7 @@ import {
   bookmarkCache_, Completion_, os_, CurCVer_, curTabId_, curWndId_, historyCache_, OnChrome, OnFirefox,
   blank_, recencyForTab_, searchEngines_, evalVimiumUrl_, OnEdge, CONST_
 } from "./store"
-import { browser_, getTabUrl, isTabMuted } from "./browser"
+import { browser_, getGroupId, getTabUrl, isTabMuted } from "./browser"
 import * as BgUtils_ from "./utils"
 import { convertToUrl_, lastUrlType_, createSearch_ } from "./normalize_urls"
 import { fixCharsInUrl_ } from "./parse_urls"
@@ -468,19 +468,23 @@ tabEngine = {
     hasOtherSuggestions = allExpectedTypes & (SugType.MultipleCandidates ^ SugType.tab),
     treeMode = !!(otherFlags & CompletersNS.QueryFlags.TabTree) && wantInCurrentWindow && noFilter;
     let suggestions: CompletersNS.TabSuggestion[] = [];
+    let curTab: Tab | undefined
     if (treeMode && !(otherFlags & CompletersNS.QueryFlags.TabTreeFromStart)
         && tabs0.length > offset && tabs0.length > maxTotal) {
       const treeMap = new Map<number, Tab>()
       for (const tab of tabs0) { treeMap.set(tab.id, tab) }
       {
-        let curTab = treeMap.get(curTabId), pId = curTab ? curTab.openerTabId : 0, pTab = pId ? treeMap.get(pId) : null,
+        curTab = treeMap.get(curTabId)
+        let pId = curTab ? curTab.openerTabId : 0, pTab = pId ? treeMap.get(pId) : null,
         start = pTab ? tabs0.indexOf(pTab) : curTab ? tabs0.indexOf(curTab) - 1 : 0, i = pTab ? 0 : (maxTotal / 2) | 0;
         for (; 1 < --i && start > 0 && tabs0[start - 1].openerTabId === pId; start--) { /* empty */ }
         tabs0 = start > 0 ? tabs0.slice(start).concat(tabs0.slice(0, start)) : tabs0;
       }
     }
     const tabs: TabEx[] = [], wndIds: number[] = [];
-    const hasMarks = !noFilter && (<RegExpG & RegExpSearchable<0>> /^:[a-z]+/gm).test(queryTerms.join("\n"))
+    const hasMarks = (<RegExpG & RegExpSearchable<0>> /^:[a-z]+/gm).test(queryTerms.join("\n"))
+    curTab = !curTab && hasMarks ? tabs0.filter(i => i.id === curTabId)[0] : curTab
+    const groupId = hasMarks && curTab ? getGroupId(curTab) : null
     for (const tab of tabs0) {
       if (!wantInCurrentWindow && tabsInNormal && tab.incognito) { continue }
       const url = getTabUrl(tab)
@@ -493,8 +497,9 @@ tabEngine = {
           title += isTabMuted(tab) ? " :muted" : " :unmuted"
         }
         tab.discarded && (title += " :discarded")
-        tab.incognito && (title += " :incognito")
+         title += tab.incognito ? " :incognito" : " :normal"
         tab.pinned && (title += " :pinned")
+        groupId && getGroupId(tab) === groupId && (title += " :group")
       }
       if (noFilter || match2_(text, title)) {
         const wndId = tab.windowId;
@@ -541,7 +546,8 @@ tabEngine = {
       let id = curWndId && tab.windowId !== curWndId ? `${wndIds.indexOf(tab.windowId) + 1}:` : "", label = ""
       id += <string> <string | number> (wantInCurrentWindow ? tab.index + 1 : ind)
       if (curTabId === tabId) {
-        treeMode || (suggestion.r = noFilter ? 1<<31 : 0);
+        treeMode || (suggestion.r = noFilter
+            || !(<RegExpG & RegExpSearchable<0>> /^(?!:[a-z]+)/m).test(queryTerms.join("\n")) ? 1<<31 : 0);
         id = `(${id})`
       } else if (!visit) {
         id = `**${id}**`
