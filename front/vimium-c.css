@@ -14,7 +14,7 @@ pointer-events:none;position:fixed;user-select:none;z-index:2147483647}
 .HUD{bottom:-1px;font-size:14px;height:20px;line-height:16px;max-width:336px;min-width:152px;overflow:hidden;
 padding:4px 4px 1px;right:152px;text-overflow:ellipsis;white-space:nowrap}
 .HUD:after{background:#eee;border-radius:4px 4px 0 0;border:0.01px solid #bbb;content:"";position:absolute;z-index:-1}
-.HL{max-width:none;right:-4px;padding-right:8px}
+.HL{max-width:60vw;right:-4px;padding-right:8px}
 .HUD.UI{cursor:text;height:24px}.Find{cursor:text;position:static;width:100%}
 .Flash{box-shadow:0 0 4px 2px #4183c4;padding:1px}.AbsF{padding:0;position:absolute}.Sel{box-shadow:0 0 4px 2px #fa0}
 .Frame{border:5px solid #ff0}.Frame,.DLG,.HUD:after{box-sizing:border-box;height:100%;left:0;top:0;width:100%}

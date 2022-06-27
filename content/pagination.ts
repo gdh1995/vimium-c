@@ -194,14 +194,16 @@ export const findNextInRel = (options: CmdOptions[kFgCmd.goNext]
 }
 
 export const jumpToNextLink: VApiTy["j"] = (linkElement: GoNextBaseCandidate[0], options): void => {
-  const anchor = (options.a || isNotInViewport(linkElement) > VisibilityType.OutOfView)
-      && !(linkElement as TypeToPick<Element, HTMLLinkElement, "href">).href && findAnchor_(linkElement) || linkElement
-  const url = (anchor as TypeToPick<Element, HTMLLinkElement, "href">).href
-  if (url) {
-    vApi.t({ k: kTip.raw, t: url.slice(0, 256), d: 2, l: 1 })
+  const invisible = options.a ? VisibilityType.NoSpace : isNotInViewport(linkElement)
+  const avoidClick = invisible > VisibilityType.OutOfView
+  const url = (avoidClick || invisible && !options.v)
+      && ((linkElement as TypeToPick<Element, HTMLLinkElement, "href">).href ||
+          (findAnchor_(linkElement) || linkElement as TypeToPick<Element, HTMLLinkElement, "href">).href)
+  url && vApi.t({ k: kTip.raw, t: url.slice(0, 256), d: 2, l: 1 })
+  if (avoidClick && url) {
     contentCommands_[kFgCmd.framesGoBack](safer<CmdOptions[kFgCmd.framesGoBack]>({ r: 1, u: url }))
   } else {
-    options.v && view_(linkElement)
+    options.v && invisible === VisibilityType.OutOfView && view_(linkElement)
     flash_(linkElement) // here calls getRect -> preparCrop_
     timeout_((): void => { void catchAsyncErrorSilently(click_async(linkElement)) }, 100)
   }
