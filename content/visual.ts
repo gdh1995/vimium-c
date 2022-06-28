@@ -587,7 +587,7 @@ const ensureLine = (command1: number): void => {
     const entity = (command - VisualAction.MaxNotLexical) as kG.sentence | kG.word
     collapseToFocus(0)
     modify(kDirTy.right, kG.character)
-    modify(kDirTy.left, entity)
+    modify(kDirTy.left, OnFirefox && !(entity - kG.sentence) ? kG.lineBoundary : entity)
     di_ = kDirTy.left // safe
     collapseToFocus(1)
     runMovements(kDirTy.right, !(entity - kG.paragraphboundary) ? kG.paragraph
