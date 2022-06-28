@@ -544,7 +544,7 @@ export const extractField = (el: SafeElement, props: string): string => {
 
 /** Note: still call functions even if Vimium C has been destroyed */
 let OnDocLoaded_: (callback: (this: void) => any, onloaded?: 1) => void
-let onReadyState_: (event?: Event) => void
+let onReadyState_: (event?: Event | TimerType.fake) => void
 
 export { OnDocLoaded_, onReadyState_ }
 export function set_OnDocLoaded_ (_newOnDocLoaded: typeof OnDocLoaded_): void { OnDocLoaded_ = _newOnDocLoaded }

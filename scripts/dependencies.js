@@ -219,7 +219,7 @@ exports.loadTerserConfig = (path, reload) => {
  * @returns {boolean | null} whether it's needed to touch or not
  */
 exports.touchFileIfNeeded = (targetPath, fileToCompareTime, virtual) => {
-  if (fileToCompareTime === targetPath) { fileToCompareTime = null; }
+  if (fileToCompareTime === targetPath) { fileToCompareTime = void 0; }
   if (!fs.existsSync(targetPath) || fileToCompareTime && !fs.existsSync(fileToCompareTime)) {
     return null;
   }
@@ -264,6 +264,7 @@ exports.compareFileTime = (src, dest) => {
 exports.extendIf = (b, a) => {
   Object.setPrototypeOf(a, null);
   for (var i in a) {
+    // @ts-ignore
     (i in b) || (b[i] = a[i]);
   }
   return b;
@@ -285,6 +286,7 @@ exports.getGitCommit = (maxLen) => {
     } else if (branch.startsWith("ref:") && branch.length > 4) {
       commit = exports.readFile(".git/" + branch.slice(4).trim());
     }
+    maxLen = maxLen || 0
     return commit ? commit.trim().slice(0, maxLen > 0 ? maxLen : maxLen < 0 ? commit.length : 7) : null;
   } catch (e) {}
   return null;
@@ -299,14 +301,14 @@ exports.getGitCommit = (maxLen) => {
  */
 exports.patchExtendClick = (source, locally, logger) => {
   logger && logger('Patch the extend_click module');
-  source = source.replace(/\b(addEventListener|toString) ?: ?function ?\w*/g, "$1");
+  source = source.replace(/\b(addEventListener|toString|open|write) ?: ?function ?\w*/g, "$1");
   var match = /\/: \?function \\w\+\/g, ?(""|'')/.exec(source);
   if (match) {
     var start = Math.max(0, match.index - 128), end = match.index;
     var prefix = source.slice(0, start), suffix = source.slice(end);
     /** {@see #BrowserVer.MinEnsuredES6MethodFunction} */
     source = source.slice(start, end).replace(/>= ?45/, "< 45").replace(/45 ?<=/, "45 >");
-    suffix = '/\\b(addEventListener|toString)\\(/g, "$1:function $1("' + suffix.slice(match[0].length);
+    suffix = '/\\b(addEventListener|toString|open|write)\\(/g, "$1:function $1("' + suffix.slice(match[0].length);
     source = prefix + source + suffix;
   }
   match = /['"] ?\+ ?\(?function VC ?\(/.exec(source);
@@ -375,7 +377,7 @@ exports.addMetaData = (path, data) => {
  * @returns { string }
  */
 exports.inlineAllSetters = (code) => {
-  const allNames = code.match(/\bset_[a-zA-Z]\w*\b/g);
+  const allNames = code.match(/\bset_[a-zA-Z]\w*\b/g) || []
   for (let i = 0; i < allNames.length; i++) {
     const name = allNames[i].slice(4);
     if (!new RegExp("\\b" + name + " ?=").test(code)) {

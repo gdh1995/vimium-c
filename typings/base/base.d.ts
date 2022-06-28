@@ -269,6 +269,8 @@ declare module crypto {
 declare const enum Instruction { next = 0, return = 2, /** aka. "goto" */ break = 3, yield = 4 }
 
 interface Reflect {
+  apply<F extends Function>(target: F
+      , thisArgument: ThisParameterType<F>, argumentList: Parameters<F> | IArguments): ReturnType<F>
   apply (target: Function, thisArgument: unknown, argumentList: unknown[]): unknown
   construct (target: new (...args: unknown[]) => object, argumentList: unknown[], newTarget?: object): object
 }

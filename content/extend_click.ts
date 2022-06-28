@@ -1,14 +1,15 @@
 import {
   clickable_, setupEventListener, timeout_, doc, isAlive_, set_noRAF_old_cr_, math, isTop, OnChrome, readyState_,
-  loc_, getTime, recordLog, VTr, vApi, Stop_, isTY, OnEdge, abs_
+  loc_, getTime, recordLog, VTr, vApi, Stop_, isTY, OnEdge, abs_, isEnabled_
 } from "../lib/utils"
 import {
   createElement_, set_createElement_, OnDocLoaded_, runJS_, rAF_, removeEl_s, attr_s, setOrRemoveAttr_s,
-  parentNode_unsafe_s
+  parentNode_unsafe_s,
+  onReadyState_
 } from "../lib/dom_utils"
-import { safeDestroy, setupBackupTimer_cr } from "./port"
+import { HookAction, hookOnWnd, safeDestroy, setupBackupTimer_cr } from "./port"
 import { coreHints, doesWantToReloadLinkHints, hintOptions, reinitLinkHintsIn } from "./link_hints"
-import { grabBackFocus } from "./insert"
+import { grabBackFocus, insertInit } from "./insert"
 
 export const main_not_ff = (Build.BTypes & ~BrowserType.Firefox ? (): void => {
 (function extendClick(this: void, isFirstTime?: boolean): void {
@@ -26,6 +27,9 @@ export const main_not_ff = (Build.BTypes & ~BrowserType.Firefox ? (): void => {
     DelayForNext = 36,
     DelayForNextComplicatedCase = 1,
     TimeoutOf3rdPartyFunctionsCache = 1e4, // 10 seconds
+    SignalDocOpen = -3,
+    SignalDocWrite = -4,
+    OffsetForBoxChildren = -8,
     kSecretAttr = "data-vimium",
 
     kVOnClick = "VimiumCClickable",
@@ -34,12 +38,12 @@ export const main_not_ff = (Build.BTypes & ~BrowserType.Firefox ? (): void => {
     kModToExposeSecret = 1e4,
     kRandStrLenInBuild = 7,
   }
-  type ClickableEventDetail = [ inDocument: number[], forDetached: number[], fromAttrs: BOOL ] | string
+  type ClickableEventDetail = [ inDocument: number[], fromAttrs: BOOL, originalDocHref?: string ] | string
 /** Note: on Firefox, a `[sec, cmd]` can not be visited by the main world:
  * https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Sharing_objects_with_page_scripts#Constructors_from_the_page_context.
  */
   // `high bits` mean secret, `lower bits >> kContentCmd.MaskedBitNumber` mean content cmd
-  type CommandEventDetail = number;
+  type CommandEventDetail = 42 | -42
   interface CustomEventCls {
     prototype: CustomEvent;
     new <Type extends InnerConsts & string>(typeArg: Type, eventInitDict?: { detail?:
@@ -73,7 +77,7 @@ export const main_not_ff = (Build.BTypes & ~BrowserType.Firefox ? (): void => {
         ? appInfo && <BrowserVer> +appInfo[1] || 0
         : OnChrome ? 1 : 0
     , secret: string = ((math.random() * GlobalConsts.SecretRange + GlobalConsts.SecretBase) | 0) + ""
-    , script = createElement_("script");
+  let script = createElement_("script");
   let hook = function (event: Event): void {
     const t = (event as TypeToAssert<Event, DelegateEventCls["prototype"], "relatedTarget">).relatedTarget,
     S = InnerConsts.kSecretAttr;
@@ -82,51 +86,73 @@ export const main_not_ff = (Build.BTypes & ~BrowserType.Firefox ? (): void => {
         || !(t instanceof Element)) { return; }
     Stop_(event);
     if (t.localName !== "div" || attr_s(t as SafeElement, S) !== secret) { return }
-    setupEventListener(0, kHookRand, hook, 1);
-    hook = null as never;
-    if (box == null) {
+      hookRetryTimes = GlobalConsts.MaxRetryTimesForSecret
       setOrRemoveAttr_s(t as SafeElement, S)
       setupEventListener(t, kVOnClick1, onClick);
       box = t;
-    }
   };
   function onClick(this: Element | Window, event: Event): void {
-    Stop_(event)
-    if (!box) { return; }
     const rawDetail = (
-        event as TypeToAssert<Event, (CustomEventCls | DelegateEventCls)["prototype"], "detail">
-        ).detail as ClickableEventDetail | null | undefined,
+        event as NonNullable<ConstructorParameters<CustomEventCls>[1]>
+        ).detail as NonNullable<ConstructorParameters<CustomEventCls>[1]>["detail"] | undefined,
     isSafe = this === box,
     detail = rawDetail && isTY(rawDetail, kTY.obj) && isSafe ? rawDetail : "",
-    fromAttrs: 0 | 1 | 2 = detail ? (detail[2] + 1) as 1 | 2 : 0;
+    fromAttrs: 0 | 1 | 2 = detail ? (detail[1] + 1) as 1 | 2 : 0;
     let path: typeof event.path, reHint: number | undefined, mismatch: 1 | undefined,
+    docChildren: HTMLCollectionOf<Element> | undefined, boxChildren: HTMLCollectionOf<Element> | undefined,
     target = detail ? null : isSafe ? (event as DelegateEventCls["prototype"]).relatedTarget as Element | null
         : (!OnEdge
             && (!OnChrome || Build.MinCVer >= BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow)
             ? event.path![0] as Element
             : (path = event.path) && path.length > 1 ? path[0] as Element : null)
+    Stop_(event)
+    if (!box) { return }
+    let tickDoc = 0, tickBox = 0
     if (detail) {
-      resolve(0, detail[0]); resolve(1, detail[1]);
+      for (const index of detail[0]) {
+        if (!Build.NDEBUG && index === InnerConsts.SignalDocWrite || index === InnerConsts.SignalDocOpen) {
+          if (isEnabled_) {
+            hookOnWnd(HookAction.Install)
+            setupEventListener(0, kVOnClick1, onClick)
+            insertInit()
+            timeout_(onReadyState_, 18)
+            Build.NDEBUG || reHookTimes++ ||
+            console.log("Vimium C: auto re-init after `document.%s()` on %o at %o."
+                , index === InnerConsts.SignalDocOpen ? "open" : "write"
+                , detail[2]!.replace(<RegExpOne> /^.*(\/[^\/]+\/?)$/, "$1"), getTime())
+          }
+        } else {
+          let isBox = index < InnerConsts.SignalDocOpen
+          let list = isBox ? boxChildren : docChildren
+          if (!list) {
+            list = (isBox ? box : doc).getElementsByTagName("*")
+            isBox ? boxChildren = list : docChildren = list
+          }
+          const el = list[isBox ? InnerConsts.OffsetForBoxChildren - index : index]
+          el && clickable_.add(el);
+          if (!Build.NDEBUG) { isBox ? tickBox++ : tickDoc++ }
+        }
+      }
     } else if (/* safer */ target
         && (isSafe && !rawDetail || +secret % InnerConsts.kModToExposeSecret + <string> target.tagName === rawDetail)) {
       clickable_.add(target);
-    } else (
+    } else {
       mismatch = 1
-    )
-    box.textContent = ""
+    }
+    ; (box as HTMLElement).textContent = ""
     if (mismatch) {
       if (!Build.NDEBUG && target && !isSafe) {
         console.error("extend click: unexpected: detail =", rawDetail, target);
       }
       return;
     }
-    if (!Build.NDEBUG && (++counterResolvePath <= 32
+    if (!Build.NDEBUG && (!detail || tickDoc || tickBox) && (++counterResolvePath <= 32
         || Math.floor(Math.log(counterResolvePath) / Math.log(1.414)) !==
            Math.floor(Math.log(counterResolvePath - 1) / Math.log(1.414)))) {
-      console.log(`Vimium C: extend click: resolve ${detail ? "[%o + %o]" : "<%o>%s"} in %o @t=%o .`
-        , detail ? detail[0].length
-          : target && (isTY(target.localName) ? target.localName : (target as ElementWithToStr) + "")
-        , detail ? detail[2] ? -0 : detail[1].length
+      console.log(`Vimium C: extend click: resolve ${detail ? "[%o + %o]" : "%o%s"} in %o @t=%o .`
+        , detail ? tickDoc
+          : target && (isTY(target.localName) ? `<${target.localName}>` : (target as ElementWithToStr) + "")
+        , detail ? detail[1] ? -0 : tickBox
           : (event as FocusEvent).relatedTarget ? " (detached)"
           : this === window ? " (path on window)" : " (path on box)"
         , loc_.pathname.replace(<RegExpOne> /^.*(\/[^\/;]+\/?)(;[^\/]+)?$/, "$1")
@@ -142,18 +168,10 @@ export const main_not_ff = (Build.BTypes & ~BrowserType.Firefox ? (): void => {
     }
     reHint && reinitLinkHintsIn(reHint)
   }
-  const resolve = (isBox: BOOL, nodeIndexArray: number[]): void => {
-    if (!nodeIndexArray.length) { return; }
-    const list = (isBox ? box as Element : doc).getElementsByTagName("*");
-    for (const index of nodeIndexArray) {
-      let el = list[index];
-      el && clickable_.add(el);
-    }
-  }
   const dispatchCmd = (cmd: SecondLevelContentCmds): void => {
     box && box.dispatchEvent(new (CustomEvent as CustomEventCls)(
         InnerConsts.kCmd, {
-      detail: (+secret << kContentCmd.MaskedBitNumber) | cmd
+      detail: ((+secret << kContentCmd.MaskedBitNumber) | cmd) as CommandEventDetail
     }));
   }
   const execute = (cmd: ValidContentCommands): void => {
@@ -163,13 +181,13 @@ export const main_not_ff = (Build.BTypes & ~BrowserType.Firefox ? (): void => {
       return;
     }
     /** this function should keep idempotent */
+    hookRetryTimes = GlobalConsts.MaxRetryTimesForSecret
     if (box) {
       setupEventListener(box, kVOnClick1, onClick, 1);
       setupEventListener(0, kVOnClick1, onClick, 1);
       dispatchCmd(kContentCmd.Destroy);
     }
     if (box == null && isFirstTime) {
-      setupEventListener(0, kHookRand, hook, 1);
       if (cmd === kContentCmd.DestroyForCSP) {
         // normally, if here, must have: limited by CSP; not C or C >= MinEnsuredNewScriptsFromExtensionOnSandboxedPage
         // ignore the rare (unexpected) case that injected code breaks even when not limited by CSP,
@@ -200,7 +218,7 @@ export const main_not_ff = (Build.BTypes & ~BrowserType.Firefox ? (): void => {
   }
   script.dataset.vimium = secret
 
-  let box: Element | undefined | 0, hookRetryTimes = 0, counterResolvePath = 0,
+  let box: Element | undefined | 0, hookRetryTimes = 0, counterResolvePath = 0, reHookTimes = 0,
   isFirstResolve: 0 | 1 | 2 | 3 | 4 = isTop ? 3 : 4
 
 // #region injected code
@@ -223,16 +241,15 @@ MayEdge = !!(Build.BTypes & BrowserType.Edge), MayNotEdge = !!(Build.BTypes & ~B
 MayES5 = !!(Build.BTypes & BrowserType.Chrome) && Build.MinCVer < BrowserVer.MinTestedES6Environment,
 EnsuredGetRootNode = !(Build.BTypes & BrowserType.Edge)
     && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.Min$Node$$getRootNode),
-doc0 = document, curScript = doc0.currentScript as HTMLScriptElement,
-sec = curScript.dataset.vimium!,
+doc0 = document,
 kAEL = "addEventListener", kToS = "toString", kProto = "prototype", kByTag = "getElementsByTagName",
 ETP = EventTarget[kProto], _listen = ETP[kAEL],
-toRegister: Element[] & { p (el: Element): void | 1 } = [] as any,
+toRegister: Element[] = [],
 _call = _listen.call,
 apply = !(Build.BTypes & BrowserType.Chrome)
     || Build.MinCVer >= BrowserVer.MinEnsured$Reflect$$apply$And$$construct || typeof Reflect === "object"
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-    ? Reflect!.apply as <T, A extends any[], R> (func: (this: T, ...a: A) => R, thisArg: T, args: A) => R
+    ? Reflect!.apply as <T, A extends any[], R> (func: (this: T, ...a: A) => R, thisArg: T, args: A | IArguments) => R
     : _call.bind(_call.apply as any) as never,
 // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 call = _call.bind(_call as any) as <T, A extends any[], R>(func: (this: T, ...a: A) => R, thisArg: T, ...args: A) => R,
@@ -243,13 +260,12 @@ Append = !MayChrome || Build.MinCVer >= BrowserVer.MinEnsured$ParentNode$$append
     ? ElProto.append! : ElProto.appendChild,
 Attr = ElProto.setAttribute, HasAttr = ElProto.hasAttribute, Remove = ElProto.remove,
 StopProp = Event[kProto].stopImmediatePropagation as (this: Event) => void,
-nodeIndexListInDocument: number[] = [], nodeIndexListForDetached: number[] = [],
-getElementsByTagNameInDoc = doc0[kByTag], getElementsByTagNameInEP = ElProto[kByTag],
-IndexOf = _call.bind(nodeIndexListInDocument.indexOf) as (list: HTMLCollectionOf<Element>, item: Element) => number,
-forEach = nodeIndexListInDocument.forEach as <T> (this: T[], callback: (item: T, index: number) => unknown) => void,
-splice = nodeIndexListInDocument.splice as <T> (this: T[], start: number, deleteCount?: number) => T[],
-push = (toRegister as { p (el: Element | number): void | number}).p = nodeIndexListInDocument.push,
-pushInDocument = push.bind(nodeIndexListInDocument), pushForDetached = push.bind(nodeIndexListForDetached),
+getElementsByTagNameInEP = ElProto[kByTag],
+nodeIndexList: number[] = [],
+IndexOf = _call.bind(nodeIndexList.indexOf) as <T>(list: ArrayLike<T>, item: T) => number,
+forEach = nodeIndexList.forEach as <T> (this: T[], callback: (item: T, index: number) => unknown) => void,
+splice = nodeIndexList.splice as <T> (this: T[], start: number, deleteCount?: number) => T[],
+_push = nodeIndexList.push, pushInDocument = _push.bind(nodeIndexList),
 CECls = CustomEvent as CustomEventCls,
 DECls = FocusEvent as DelegateEventCls,
 FProto = Function[kProto], _toString = FProto[kToS],
@@ -261,10 +277,13 @@ listen = _call.bind<(this: (this: EventTarget,
     ) => 42 | void>(_listen),
 rEL = MayChrome && Build.MinCVer < BrowserVer.Min$addEventListener$support$once
     ? removeEventListener : 0 as never as null, clearTimeout1 = clearTimeout,
+DocCls = Document[kProto] as Partial<Document> as Pick<Document, "createElement" | typeof kByTag> & {
+      open (): void, write (markup: string): void },
+getElementsByTagNameInDoc = DocCls[kByTag], docCreateElement = DocCls.createElement,
+_docOpen = DocCls.open, _docWrite = DocCls.write,
 kVOnClick = InnerConsts.kVOnClick,
 kRand = BuildStr.RandomClick, kEventName2 = kVOnClick + kRand,
 kReady = "readystatechange", kFunc = "function",
-docCreateElement = doc0.createElement,
 StringSplit = !Build.NDEBUG ? kReady.split : 0 as never, StringSubstr = kReady.substr,
 checkIsNotVerifier = (func?: InnerVerifier | unknown): void | 42 => {
   if (!Build.NDEBUG && !verifierPrefixLen) {
@@ -283,7 +302,7 @@ checkIsNotVerifier = (func?: InnerVerifier | unknown): void | 42 => {
 hooks = {
   toString: function toString(this: FUNC): string {
     const a = this, args = arguments;
-    const str = apply(_toString, a, args as unknown as [])
+    const str = apply(_toString, a === myDocWrite ? _docWrite : a === myDocOpen ? _docOpen : a, args)
     const mayStrBeToStr: boolean
         = str !== (myAELStr
                   || (myToStrStr = call(_toString, myToStr),
@@ -310,19 +329,22 @@ hooks = {
       , listener: EventListenerOrEventListenerObject): void {
     const a = this, args = arguments
     const ret = type === GlobalConsts.MarkAcrossJSWorlds + BuildStr.RandomClick ? checkIsNotVerifier(args[3])
-        : apply(_listen, a, args as any)
+        : apply(_listen, a, args)
     if (type === "click" || type === "mousedown" || type === "dblclick"
         ? listener && a instanceof ElCls && a.localName !== "a"
         : type === kEventName2 && !isReRegistering
           // note: window.history is mutable on C35, so only these can be used: top,window,location,document
           && a && !(a as Window).window && (a as Node).nodeType === kNode.ELEMENT_NODE) {
-      toRegister.p(a as Element);
+      pushToRegister(a as Element)
       timer = timer || (queueMicroTask_(delayToStartIteration), 1);
     }
     return ret as void
-  }
+  },
+  open: function open(this: Document): void { return docOpenHook(0, this, arguments) },
+  write: function write(this: Document): void { return docOpenHook(1, this, arguments) }
 },
-myAEL = (/*#__NOINLINE__*/ hooks)[kAEL], myToStr = (/*#__NOINLINE__*/ hooks)[kToS]
+myAEL = (/*#__NOINLINE__*/ hooks)[kAEL], myToStr = (/*#__NOINLINE__*/ hooks)[kToS],
+myDocOpen = (/*#__NOINLINE__*/ hooks).open, myDocWrite = (/*#__NOINLINE__*/ hooks).write
 
 let doInit = (): void => {
   if (MayChrome && Build.MinCVer < BrowserVer.Min$addEventListener$support$once) {
@@ -338,11 +360,11 @@ let doInit = (): void => {
   if (MayChrome && Build.MinCVer < BrowserVer.Min$addEventListener$support$once) {
     doInit = null as never
   }
-  docChildren = null as never;
   if (!docEl2) { return executeCmd(); }
   call(Attr, el, S, sec);
   listen(el, InnerConsts.kCmd, executeCmd, !0);
-  dispatch(window, new DECls((kMk + kRand) as typeof kMk, {relatedTarget: el}));
+  dispatch(curScript, new DECls((kMk + kRand) as typeof kMk, {relatedTarget: el}));
+  docChildren = curScript = null as never
   if (call(HasAttr, el, S)) {
     executeCmd();
   } else {
@@ -350,6 +372,8 @@ let doInit = (): void => {
     timer = toRegister.length > 0 ? setTimeout_(next, InnerConsts.DelayForNext) : 0;
   }
 },
+curScript = doc0.currentScript as HTMLScriptElement,
+sec = curScript.dataset.vimium!,
 /** kMarkToVerify */ kMk = GlobalConsts.MarkAcrossJSWorlds as const,
 detectDisabled: string | 0 = kMk + "=>" + sec,
 myAELStr: string | undefined, myToStrStr: string | undefined,
@@ -364,6 +388,7 @@ docChildren: Document["children"] | ((index: number) => Element | null) = doc0.c
 unsafeDispatchCounter = 0,
 allNodesInDocument = null as HTMLCollectionOf<Element> | null,
 allNodesForDetached = null as HTMLCollectionOf<Element> | null,
+pushToRegister = (_push as unknown as typeof toRegister.push).bind(toRegister),
 root: HTMLDivElement, timer = setTimeout_(doInit, InnerConsts.DelayToWaitDomReady),
 queueMicroTask_: (callback: () => void) => void =
     MayEdge || MayChrome && Build.MinCVer < BrowserVer.Min$queueMicrotask
@@ -372,8 +397,8 @@ queueMicroTask_: (callback: () => void) => void =
 isReRegistering: BOOL | boolean = 0
 // To avoid a host script detect Vimum C by code like:
 // ` a1 = setTimeout(()=>{}); $0.addEventListener('click', ()=>{}); a2=setTimeout(()=>{}); [a1, a2] `
-const delayToStartIteration = (): void => { setTimeout_(next, GlobalConsts.ExtendClick_DelayToStartIteration) }
-const next = (_unused?: unknown): void => {
+const delayToStartIteration = (): void => { timer = setTimeout_(next, GlobalConsts.ExtendClick_DelayToStartIteration) }
+const next: (_unused?: unknown) => void = (): void => {
   const len = toRegister.length,
   start = len > (Build.NDEBUG ? InnerConsts.MaxElementsInOneTickRelease : InnerConsts.MaxElementsInOneTickDebug)
     ? len - (Build.NDEBUG ? InnerConsts.MaxElementsInOneTickRelease : InnerConsts.MaxElementsInOneTickDebug) : 0
@@ -432,7 +457,7 @@ const prepareRegister = (element: Element): void => {
   // so `dispatch` MUST NEVER throw. Otherwise a page might break
   if (type === kNode.ELEMENT_NODE) {
     parent !== root && call(Append, root, parent as Element);
-    pushForDetached(
+    pushInDocument(InnerConsts.OffsetForBoxChildren -
       IndexOf(allNodesForDetached = allNodesForDetached || call(getElementsByTagNameInEP, root, "*")
         , element));
   // Note: ignore the case that a plain #document-fragment has a fake .host
@@ -447,14 +472,14 @@ const prepareRegister = (element: Element): void => {
           && typeof (s = element.tagName) === "string") {
         parent !== doc0 && parent !== root && call(Append, root, parent);
         unsafeDispatchCounter++;
-        dispatch(element, new CECls(kVOnClick, {detail: +sec % InnerConsts.kModToExposeSecret + s, composed: !0}))
+        dispatch(element, new CECls(kVOnClick, { detail: +sec % InnerConsts.kModToExposeSecret + s, composed: !0 }))
       }
     } else {
       unsafeDispatchCounter++;
       dispatch(root, new DECls(kVOnClick, {relatedTarget: element}));
     }
   } else {
-      toRegister.p(element);
+      pushToRegister(element)
       if (unsafeDispatchCounter < InnerConsts.MaxUnsafeEventsInOneTick + 1) {
         unsafeDispatchCounter = InnerConsts.MaxUnsafeEventsInOneTick + 1; // a fake value to run it only once a tick
         clearTimeout1(timer);
@@ -462,11 +487,11 @@ const prepareRegister = (element: Element): void => {
       }
   }
 }
-const doRegister = (fromAttrs: BOOL): void => {
-  if (nodeIndexListInDocument.length + nodeIndexListForDetached.length) {
+const doRegister: (fromAttrs: BOOL, _unused?: number) => void = (fromAttrs: BOOL): void => {
+  if (nodeIndexList.length) {
     unsafeDispatchCounter++
-    dispatch(root, new CECls(kVOnClick, { detail: [nodeIndexListInDocument, nodeIndexListForDetached, fromAttrs] }))
-    nodeIndexListInDocument.length = nodeIndexListForDetached.length = 0
+    dispatch(root, new CECls(kVOnClick, { detail: [nodeIndexList, fromAttrs] }))
+    nodeIndexList.length = 0
   }
   allNodesInDocument = allNodesForDetached = null
 }
@@ -500,10 +525,9 @@ const executeCmd = (eventOrDestroy?: Event): void => {
     return;
   }
   toRegister.length = detectDisabled = 0;
-  toRegister.p = setTimeout_ = noop;
-  root = null as never;
-  clearTimeout1(timer);
-  timer = 1;
+  pushToRegister = setTimeout_ = noop
+  root = curScript = null as never
+  timer = 1
 }
 const collectOnclickElements = (cmd: SecondLevelContentCmds): void => {
   let len = (call(Remove, root), allNodesInDocument = call(getElementsByTagNameInDoc, doc0, "*")).length
@@ -518,6 +542,22 @@ const collectOnclickElements = (cmd: SecondLevelContentCmds): void => {
     }
   }
   doRegister(1);
+}
+const docOpenHook = (isWrite: BOOL, self: unknown, args: IArguments): void => {
+  const first = doc0.readyState < "l" && (isWrite || args.length < 3) && self === doc0
+  const oriHref = Build.NDEBUG || !first ? "" : location.host && location.pathname || location.href
+  const ret = apply(isWrite ? _docWrite : _docOpen, self, args)
+  if (first) {
+    detectDisabled && doInit()
+    if (Build.NDEBUG) {
+      root && doRegister(0, pushInDocument(InnerConsts.SignalDocOpen))
+    } else if (root) {
+      dispatch(root, new CECls(kVOnClick, { detail: [
+        [isWrite ? InnerConsts.SignalDocWrite : InnerConsts.SignalDocOpen as number]
+      , 0, oriHref] }))
+    }
+  }
+  return ret
 }
 const noop = (): 1 => { return 1 }
 
@@ -544,6 +584,8 @@ if (MayChrome && Build.MinCVer < BrowserVer.Min$addEventListener$support$once) {
   _listen(kReady, doInit, {capture: !0, once: !0});
 }
 FProto[kToS] = myToStr
+DocCls.open = myDocOpen
+DocCls.write = myDocWrite
 
       }).toString() + ")();" /** need "toString()": {@link ../scripts/dependencies.js#patchExtendClick} */
 
@@ -564,7 +606,7 @@ FProto[kToS] = myToStr
     }
     injected = injected.replace("" + BuildStr.RandomClick, "$&" + secret as `$&${typeof secret}`)
     vApi.e = execute;
-    setupEventListener(0, kHookRand, hook);
+    setupEventListener(script, kHookRand, hook);
     setupEventListener(0, kVOnClick1, onClick);
   }
   /**

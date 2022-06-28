@@ -30,7 +30,8 @@ import { hudTip } from "./hud"
 
 declare var XPCNativeWrapper: <T extends object> (wrapped: T) => XrayedObject<T>; // eslint-disable-line no-var
 
-const docReadyListeners: Array<(this: void) => void> = [], completeListeners: Array<(this: void) => void> = []
+const docReadyListeners: Array<(this: void) => void> = []
+let completeListeners: Array<(this: void) => void> = []
 
 set_OnDocLoaded_((callback, onloaded): ReturnType<typeof OnDocLoaded_> => {
   readyState_ > "l" || readyState_ > "i" && onloaded
@@ -38,13 +39,13 @@ set_OnDocLoaded_((callback, onloaded): ReturnType<typeof OnDocLoaded_> => {
 })
 
 set_onReadyState_((event): ReturnType<typeof onReadyState_> => {
-  set_readyState_(event ? doc.readyState : "c")
+  set_readyState_(event && (!OnChrome || event !== TimerType.fake) ? doc.readyState : "c")
   if (readyState_ < "l") {
     docReadyListeners.forEach(callFunc)
     docReadyListeners.length = 0
     if (readyState_ < "i") {
       completeListeners.forEach(callFunc)
-      completeListeners.length = 0
+      completeListeners = docReadyListeners
       setupEventListener(0, RSC, onReadyState_, 1, 1)
     }
   }
