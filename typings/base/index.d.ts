@@ -47,6 +47,38 @@ interface WeakRefConstructor {
 /** WeakRefConstructor | undefined */
 declare var WeakRef: unknown
 
+interface FinalizationRegistry<T> {
+    /**
+     * Registers an object with the registry.
+     * @param target The target object to register.
+     * @param heldValue The value to pass to the finalizer for this object. This cannot be the
+     * target object.
+     * @param unregisterToken The token to pass to the unregister method to unregister the target
+     * object. If provided (and not undefined), this must be an object. If not provided, the target
+     * cannot be unregistered.
+     */
+    register(target: object, heldValue: T, unregisterToken?: object): void;
+
+    /**
+     * Unregisters an object from the registry.
+     * @param unregisterToken The token that was used as the unregisterToken argument when calling
+     * register to register the target object.
+     */
+    unregister(unregisterToken: object): void;
+}
+
+interface FinalizationRegistryConstructor {
+    readonly prototype: FinalizationRegistry<any>;
+
+    /**
+     * Creates a finalization registry with an associated cleanup callback
+     * @param cleanupCallback The callback to call after an object in the registry has been reclaimed.
+     */
+    new<T>(cleanupCallback: (heldValue: T) => void): FinalizationRegistry<T>;
+}
+
+declare var FinalizationRegistry: FinalizationRegistryConstructor;
+
 type ReplaceStrOnce <A extends string, S extends string, T extends string>
     = string extends S ? string : string extends A ? string : A extends `${infer x}${S}${infer y}` ? `${x}${T}${y}` : A
 type ReplaceStrAll <A extends string, S extends string, T extends string>

@@ -39,10 +39,9 @@ export function set_needToRetryParentClickable (_newNeeded: 1): void { needToRet
 
 set_requestHandlers([
   /* kBgReq.init: */ function (request: BgReq[kBgReq.init]): void {
-    const load = request.c, flags = request.f
-    OnChrome && set_chromeVer_(load.v as BrowserVer)
-    OnFirefox && set_firefoxVer_(load.v as FirefoxBrowserVer)
-    set_fgCache(vApi.z = load)
+    set_fgCache(vApi.z = request.c)
+    OnChrome && set_chromeVer_(fgCache.v as BrowserVer)
+    OnFirefox && set_firefoxVer_(fgCache.v as FirefoxBrowserVer)
     Build.OS & (Build.OS - 1) && set_os_(fgCache.o)
     if (OnChrome && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key && Build.OS & ~(1 << kOS.mac)) {
       (Build.OS & (1 << kOS.mac)) && !os_ && set_keyIdCorrectionOffset_old_cr_(300)
@@ -56,9 +55,9 @@ set_requestHandlers([
         && chromeVer_ < BrowserVer.MinFramesetHasNoNamedGetter) {
       set_kSafeAllSelector(kSafeAllSelector + ":not(" + (/*#__INLINE__*/ markFramesetTagUnsafe_old_cr()) + ")");
     }
-    if (flags) {
-      set_grabBackFocus(grabBackFocus && !(flags & Frames.Flags.userActed))
-      set_isLocked_(flags & Frames.Flags.MASK_LOCK_STATUS)
+    if (request.f) {
+      set_grabBackFocus(grabBackFocus && !(request.f & Frames.Flags.userActed))
+      set_isLocked_(request.f & Frames.Flags.MASK_LOCK_STATUS)
     }
     requestHandlers[kBgReq.keyFSM](request);
     (requestHandlers[kBgReq.reset] as (request: BgReq[kBgReq.reset | kBgReq.init], initing?: 1) => void)(request, 1)

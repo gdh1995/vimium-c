@@ -587,14 +587,14 @@ declare const enum GlobalConsts {
 }
 
 declare const enum kModeId {
-  Plain = 0, Normal, Next, Insert, max_not_command = Insert, Link, Omni, Find, Visual, Marks,
+  Plain = 0, Normal, Insert, Next, max_not_command = Next, Link, Omni, Find, Visual, Marks,
   Show, NO_MAP_KEY,
 }
 declare const enum kHandler {
-  __none, __normal, __next, __insert, linkHints, omni, find, visual, marks,
+  __none, __normal, __insert, __next, linkHints, omni, find, visual, marks,
   NOT_MEAN_kModeId,
   postFind = NOT_MEAN_kModeId, unhoverOnEsc, grabBackFocus, helpDialog, focusInput,
-  passNextKey = __normal, suppressTail = __next, _mask = ""
+  passNextKey = __normal, suppressTail = __insert, _mask = ""
 }
 
 declare const enum kCharCode {

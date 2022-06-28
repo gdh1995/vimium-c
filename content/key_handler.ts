@@ -52,7 +52,7 @@ export function set_mapKeyTypes (_newMapKeyTypes: kMapKey): void { mapKeyTypes =
 export function set_mappedKeys (_newMappedKeys: typeof mappedKeys): void { mappedKeys = _newMappedKeys }
 export function set_currentKeys (_newCurrentKeys: string): void { currentKeys = _newCurrentKeys }
 
-set_getMappedKey((eventWrapper: HandlerNS.Event, mode: kModeId): string => {
+set_getMappedKey((eventWrapper: HandlerNS.Event, mode: kModeId): ReturnType<typeof getMappedKey> => {
   const char = eventWrapper.c !== kChar.INVALID ? eventWrapper.v ? "" : eventWrapper.c : char_(eventWrapper)
   let key: string = char, mapped: string | undefined;
   if (char) {
@@ -66,7 +66,7 @@ set_getMappedKey((eventWrapper: HandlerNS.Event, mode: kModeId): string => {
     }
     key = isLong || mod ? mod + chLower : char;
     if (mappedKeys && mode < kModeId.NO_MAP_KEY) {
-      mapped = mapKeyTypes & (mode > kMapKey.normalMode ? kMapKey.insertMode | kMapKey.otherMode : mode)
+      mapped = mapKeyTypes & (mode > kModeId.Insert ? kMapKey.otherMode : mode)
           && mappedKeys[key + ":" + GlobalConsts.ModeIds[mode]]
           || (mapKeyTypes & kMapKey.plain ? mappedKeys[key] : "")
       key = mapped ? mode > kModeId.max_not_command
@@ -142,19 +142,19 @@ const checkAccessKey_cr = OnChrome ? (event: HandlerNS.Event): void => {
      * so, here ignores the 2nd path.
      */
     // during tests, an access key of ' ' (space) can be triggered on macOS (2019-10-20)
-    event.c === kChar.INVALID && char_(event);
+    getMappedKey(event, kModeId.Plain)
     if (isWaitingAccessKey !== (event.c.length === 1 || event.c === SPC)
         && getKeyStat_(event.e, 1) /* Chrome ignore .shiftKey */ ===
             (Build.OS & ~(1 << kOS.mac) && os_ ? KeyStat.altKey : KeyStat.altKey | KeyStat.ctrlKey)
         ) {
-      isWaitingAccessKey = !isWaitingAccessKey;
-      anyClickHandler.handleEvent = isWaitingAccessKey ? /*#__NOINLINE__*/ onAnyClick_cr : noopEventHandler
+      resetAnyClickHandler(!isWaitingAccessKey)
     }
   }
 } : 0 as never
 
-export const resetAnyClickHandler = (): void => {
-  isWaitingAccessKey = false; anyClickHandler.handleEvent = noopEventHandler;
+export const resetAnyClickHandler = (enable?: boolean): void => {
+  isWaitingAccessKey = !!enable
+  anyClickHandler.handleEvent = enable ? /*#__NOINLINE__*/ onAnyClick_cr : noopEventHandler
 }
 
 const onAnyClick_cr = OnChrome ? (event: MouseEventToPrevent): void => {
