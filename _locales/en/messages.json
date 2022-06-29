@@ -102,6 +102,7 @@
   "108": { "message":
 "\\bgoogle##.g;\\bbing\\.com##.b_algo;\\bbaidu\\.##.c-container;\\bmail.ru\\b##.SnippetResultInfo-favicon"
   },
+  "109": { "message": "\\btwitter\\.com##[href$$=\\/trends],[data-testid=app-bar-back]" },
   "200": { "message": "http://www.w3.org/1999/xhtml" },
   "0": { "message": "Open link in current tab" },
   "2": { "message": "Open link in new tab" },

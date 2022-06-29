@@ -1,10 +1,10 @@
 import {
   clickable_, vApi, isAlive_, safer, timeout_, escapeAllForRe, tryCreateRegExp, VTr, isTY, Lower, chromeVer_,
-  OnChrome, OnFirefox, OnEdge, evenHidden_, doc, firefoxVer_
+  OnChrome, OnFirefox, OnEdge, evenHidden_, doc, firefoxVer_, queryByHost
 } from "../lib/utils"
 import {
   htmlTag_, isAriaFalse_, isStyleVisible_, querySelectorAll_unsafe_, isIFrameElement, ALA, attr_s, findAnchor_,
-  contains_s, notSafe_not_ff_
+  contains_s, notSafe_not_ff_, hasTag_, AriaArray, testMatch
 } from "../lib/dom_utils"
 import { getBoundingClientRect_, isNotInViewport, view_, VisibilityType } from "../lib/rect"
 import { kSafeAllSelector, detectUsableChild } from "./link_hints"
@@ -26,6 +26,7 @@ export const isInteractiveInPage = (element: SafeElement): boolean => {
 export const filterTextToGoNext: VApiTy["g"] = (candidates, names, options, maxLen): number => {
   // Note: this traverser should not need a prepareCrop
   const fromMatchSelector = !!options.match
+  const excOnHost = queryByHost("", kTip.excludeWhenGoNext)
   const links = isAlive_ ? traverse(kSafeAllSelector, options, (hints: Hint0[], element: SafeElement): void => {
     let s: string | null
     if (isIFrameElement(element)) {
@@ -76,7 +77,13 @@ export const filterTextToGoNext: VApiTy["g"] = (candidates, names, options, maxL
       s = Lower(s)
       for (i = 0; i < names.length; i++) {
         if (s.length < lenLimits[i] && s.includes(names[i])) {
-          if (!s.includes(refusedStr) && (len = (s = s.trim()).split(wsRe).length) <= maxLen) {
+          if (!s.includes(refusedStr) && (len = (s = s.trim()).split(wsRe).length) <= maxLen
+              && (!excOnHost || !testMatch(excOnHost, [link]))
+              && (s !== "back" ? s !== "more" || !attr_s(link, AriaArray[kAria.hasPopup])
+                  : OnChrome && Build.MinCVer < BrowserVer.MinEnsured$Element$$Closest
+                    && chromeVer_ < BrowserVer.MinEnsured$Element$$Closest ? hasTag_("a", link)
+                  : link.closest!("a"))
+              ) {
             maxLen > len && (maxLen = len + 1);
             let i2 = names.indexOf(s, i);
             if (i2 >= 0) { i = i2; len = 0; }
