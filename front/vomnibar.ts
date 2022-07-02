@@ -280,6 +280,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     ((document.body as Element).removeEventListener as typeof removeEventListener)("wheel", a.onWheel_, a.wheelOptions_)
     a.timer_ > 0 && clearTimeout(a.timer_);
     window.onkeyup = null as never;
+    removeEventListener("keyup", a.toggleAlt_, true)
     fromContent ||
     VPort_ && VPort_.post_({ H: kFgReq.nextFrame, t: Frames.NextType.current, o: !a.doEnter_, k: a.lastKey_ })
     if (Build.MinCVer <= BrowserVer.StyleSrc$UnsafeInline$MayNotImply$UnsafeEval && Build.BTypes & BrowserType.Chrome) {
@@ -300,9 +301,9 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   },
   AfterHide_ (this: void): void {
     const a = Vomnibar_;
-    cancelAnimationFrame(a.afterHideTimer_);
-    a.afterHideTimer_ = 0
-    clearTimeout(a.timer_);
+    a.afterHideTimer_ && cancelAnimationFrame(a.afterHideTimer_);
+    a.timer_ && clearTimeout(a.timer_);
+    a.afterHideTimer_ = a.timer_ = 0
     if (a.height_) {
       a.onHidden_();
     }
@@ -548,7 +549,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         && (Vomnibar_.ignoreKeyboardLayout_ > 1 || Vomnibar_.ignoreKeyboardLayout_ === 1 && event.altKey || isDeadKey
             || key.length === 1 && key > "~" && code.startsWith("Key"))) {
       let prefix = code.slice(0, 3)
-      let isKeyShort = key.length < 2 || (key === "Dead" || key === "Unidentified")
+      let isKeyShort = key.length < 2 || isDeadKey
       let mapped: number | undefined
       if (prefix !== "Num") { // not (Numpad* or NumLock)
         if (prefix === "Key" || prefix === "Dig" || prefix === "Arr") {
@@ -560,7 +561,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
                 ? Vomnibar_.mapModifier_ && event.location === Vomnibar_.mapModifier_ ? kChar.Modifier
                 : key === "Alt" ? key : ""
               : key === "Escape" ? kChar.esc
-              : code.length < 2 || !isKeyShort ? key.startsWith("Arrow") ? key.slice(5) : key
+              : code.length < 2 || !isKeyShort ? key.startsWith("Arrow") && key.slice(5) || key
               : (mapped = Vomnibar_._codeCorrectionMap.indexOf(code)) < 0 ? code
               : kChar.CharCorrectionList[mapped + 12 * +shiftKey]
             ;
@@ -1986,11 +1987,8 @@ if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType
       (payload.o || (Vomnibar_.keyIdCorrectionOffset_old_cr_ = 300))
     }
     if (Build.OS & (Build.OS - 1)) { Vomnibar_.os_ = payload.o }
-    Vomnibar_.mappedKeyRegistry_ = payload.m;
     Vomnibar_.styles_ = payload.t;
-    Vomnibar_.updateOptions_({ N: kBgReq.omni_updateOptions, d: {
-      c: payload.c, n: payload.n, i: payload.i, s: payload.s
-    } });
+    Vomnibar_.updateOptions_({ N: kBgReq.omni_updateOptions, d: payload })
     _sec = secret;
     for (const i of unsafeMsg) {
       if (i[0] === secret) {

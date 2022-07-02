@@ -86,7 +86,7 @@ export type AddChildDirectly = (officer: BaseHintWorker, el: KnownIFrameElement,
 import {
   VTr, isAlive_, isEnabled_, setupEventListener, keydownEvents_, set_keydownEvents_, timeout_, max_, min_, abs_, OnEdge,
   clearTimeout_, fgCache, doc, readyState_, chromeVer_, vApi, deref_, getTime, unwrap_ff, OnFirefox, OnChrome,
-  WithDialog, Lower, safeCall, locHref, os_, firefoxVer_, weakRef_not_ff, weakRef_ff, isTY, OnSafari
+  WithDialog, Lower, safeCall, locHref, os_, firefoxVer_, weakRef_not_ff, weakRef_ff, isTY
 } from "../lib/utils"
 import {
   querySelector_unsafe_, isHTML_, scrollingEl_, docEl_unsafe_, IsInDOM_, GetParent_unsafe_, hasInCSSFilter_,derefInDoc_,
@@ -508,7 +508,7 @@ const callExecuteHint = (hint: ExecutableHintItem, event?: HandlerNS.Event): voi
       set_removeFlash(null)
       if (!(mode_ & HintMode.queue)) {
         clear(0, 0);
-        (OnChrome && Build.MinCVer >= BrowserVer.MinEnsured$WeakRef || OnSafari || deref_ !== weakRef_not_ff) ||
+        // always set a timer, so that a next `F` will know there was a recent click (github #638)
         reinitLinkHintsIn(255, selectedHintWorker, clickEl, result)
       }
     if (mode_ & HintMode.queue) {

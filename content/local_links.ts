@@ -519,7 +519,7 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
         }
       } else if (k === ClickType.tabindex
           && (element = list[i][0]).childElementCount === 1 && i + 1 < list.length) {
-        element = element.lastElementChild as Element;
+        element = element.firstElementChild as Element
         prect = list[i][1];
         crect = OnFirefox || !notSafe_not_ff_!(element) ? getVisibleClientRect_(element as SafeElement) : null
         if (crect && isContaining_(crect, prect) && htmlTag_<1>(element)) {
@@ -632,7 +632,7 @@ const isDescendant = function (c: Element | null, p: Element, shouldBeSingleChil
     return c === p;
   }
   for (; c.childElementCount === 1 && !(isNode_(f = c.firstChild!, kNode.TEXT_NODE) && f.data.trim()) && ++i < 3
-      ; c = c.lastElementChild as Element | null as Element) { /* empty */ }
+      ; c = c.firstElementChild as Element | null as Element) { /* empty */ }
   return i > 2;
 } as (c: Element, p: Element, shouldBeSingleChild: BOOL | boolean) => boolean
 

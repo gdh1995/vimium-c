@@ -79,6 +79,8 @@ export const ready_: Promise<number> = Promise.all([
     for (let _i in valuesToLoad_) {
       updatePayload_(valuesToLoad_[_i as kPayload], (cache as typeof settingsCache_)[_i as kPayload], contentPayload_)
     }
+    omniPayload_.a = contentPayload_.a
+    omniPayload_.l = contentPayload_.l
     return done
   })
 ]).then((i): number => {

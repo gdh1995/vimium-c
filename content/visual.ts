@@ -48,7 +48,7 @@ import {
 import { prepareCrop_, cropRectToVisible_, getVisibleClientRect_, set_scrollingTop, selRange_ } from "../lib/rect"
 import {
   getSelectionBoundingBox_, doesSelectRightInEditableLock,
-  checkDocSelectable, getSelected, resetSelectionToDocStart, flash_, collpaseSelection, ui_box, getSelectionText
+  checkDocSelectable, getSelected, resetSelectionToDocStart, flash_, collpaseSelection, getSelectionText
 } from "./dom_ui"
 import { executeScroll, scrollIntoView_s, getPixelScaleToScroll } from "./scroller"
 import {
@@ -56,7 +56,7 @@ import {
   execCommand,
 } from "./mode_find"
 import { insert_Lock_, raw_insert_lock } from "./insert"
-import { hudTip, hudHide, hudShow } from "./hud"
+import { hudTip, hudHide, hudShow, hud_box } from "./hud"
 import { post_, send_, runFallbackKey, contentCommands_ } from "./port"
 import { currentKeys, set_currentKeys } from "./key_handler"
 
@@ -708,7 +708,7 @@ const ensureLine = (command1: number): void => {
     getPixelScaleToScroll()
     curSelection = getSelected(initialScope)
   let scope = initialScope.r as Exclude<typeof initialScope.r, undefined>, diff: number
-  ui_box || hudShow(kTip.raw)
+  hud_box || hudShow(kTip.raw)
   toggleSelectableStyle(1)
   {
     let type: SelType = selType()

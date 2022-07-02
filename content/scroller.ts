@@ -322,7 +322,7 @@ export const activate = (options: CmdOptions[kFgCmd.scroll] & SafeObject, count:
     if (dest) {
       if (count < 0) { fromMax = !fromMax; count = -count; }
       count--;
-      count += options.offset! | 0
+      count = max_(0, count + (+options.offset! || 0))
     }
     count *= +(options.dir!) || 1
     executeScroll(di, count, dest ? fromMax ? kScFlag.toMax : kScFlag.toMin : kScFlag.scBy as never
@@ -334,7 +334,7 @@ export const activate = (options: CmdOptions[kFgCmd.scroll] & SafeObject, count:
 
   /**
    * @param amount0 can not be 0, if `isTo` is 0; can not be negative, if `isTo` is 1
-   * @param factor `!!factor` can be true only if `isTo` is 0
+   * @param factor the scale factor of `amount0`
    * @param fromMax can not be true, if `isTo` is 0
    */
 export const executeScroll: VApiTy["c"] = function (di: ScrollByY, amount0: number, flags: kScFlag & number

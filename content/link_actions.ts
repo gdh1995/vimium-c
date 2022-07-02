@@ -255,7 +255,7 @@ const copyText = (): void => {
   } else if (hintOptions.richText) {
     const oldRange = selRange_(getSelected({}))
     selectNode_(clickEl)
-    str = getSelection_() + "" || str || `<${tag}>`
+    str = getSelection_() + "" || str || `<${clickEl.localName}>`
       execCommand("copy", doc)
     resetSelectionToDocStart(getSelection_(), oldRange)
     hintApi.h(kTip.copiedIs, 0, str)

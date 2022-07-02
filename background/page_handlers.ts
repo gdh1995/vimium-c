@@ -77,11 +77,15 @@ const pageRequestHandlers_ = As_<{
       return output
     }
     const errors = keyMappingErrors_
-    if (contentPayload_.l && !errors) {
-      let str = Object.keys(keyFSM_).join("")
-      str += mappedKeyRegistry_ ? Object.keys(mappedKeyRegistry_).join("") : ""
-      if ((<RegExpOne> /[^ -\xff]/).test(str)) {
-        return true
+    if (contentPayload_.l & kKeyLayout.alwaysIgnore && !errors) {
+      const nonASCII = (arr: string[]): boolean => (<RegExpOne> /[^ -\xff]/).test(arr.join(""))
+      let res = nonASCII(Object.keys(keyFSM_)) ? 1 : 0
+      res |= mappedKeyRegistry_ && nonASCII(Object.keys(mappedKeyRegistry_)) ? 2 : 0
+      if (res) {
+        res |= !(res & 2) && mappedKeyRegistry_ && nonASCII(Object.values(mappedKeyRegistry_) as string[]) ? 4 : 0
+        if ((res & 2) || !(res & 4)) {
+          return true
+        }
       }
     }
     return errors ? formatCmdErrors_(errors) : ""

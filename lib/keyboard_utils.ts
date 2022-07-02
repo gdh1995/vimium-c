@@ -100,7 +100,7 @@ export const char_ = (eventWrapper: HandlerNS.Event): kChar => {
             // 1. an example of code is empty is https://github.com/philc/vimium/issues/3451#issuecomment-569124026
             // 2. if both `key` is long, then prefer `key` to support outside mappings (like composed-key-as-an-action).
             //    see https://github.com/gdh1995/vimium-c/issues/435
-            : code.length < 2 || !isKeyShort ? key.startsWith("Arrow") ? key.slice(5) : key
+            : code.length < 2 || !isKeyShort ? key.startsWith("Arrow") && key.slice(5) || key
             : (mapped = _codeCorrectionMap.indexOf(code)) < 0 ? code
             : (OnChrome && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key
                 ? kCrct! : kChar.CharCorrectionList)[mapped + 12 * +shiftKey]

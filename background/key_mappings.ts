@@ -43,6 +43,8 @@ export { keyRe_, envRegistry_, shortcutRegistry_, errors_ as keyMappingErrors_ }
 export const stripKey_ = (key: string): string =>
     key.length > 1 ? key === "<escape>" ? kChar.esc : key.slice(1, -1) : key
 
+const wrapKey_ = (key: string): string => key.length > 1 ? `<${key}>` : key
+
 /** should never export it, to avoid `logError_` crashes */
 const getOptions_ = (line: string, start: number): CommandsNS.RawOptions | "__not_parsed__" | null => {
   return line.length <= start ? null
@@ -299,9 +301,9 @@ const parseKeyMappings_ = (wholeMappings: string): void => {
         } else if (val.length > 1 && !(<RegExpOne> /^<(?!<|__proto__>)([a-z]-){0,4}.\w*>$/).test(val)) {
           logError_("mapKey: a target key should be a single key:", line)
         } else if (key2 = stripKey_(key), key2 in mkReg && mkReg[key2] !== stripKey_(val)) {
-          if (noNumMaps_ && key2.length === 3 && key2[2] === GlobalConsts.NormalModeId && noNumMaps_.has(key2[0])) {
+          if (noNumMaps_ && noNumMaps_.has(key2[0]) && key2.slice(1) === ":" + GlobalConsts.NormalModeId) {
             if (doesMatchEnv_(getOptions_(line, knownLen)) !== false) {
-              logError_("`mapKey %s` and `unmap %s...` can not be used at the same time", key, key2.split(":")[0])
+              logError_("`mapKey %s` and `unmap %s...` can not be used at the same time", key, key2[0])
             }
           } else if (!hasIfOption(line, knownLen)) {
             logError_('The key %c"%s"', colorRed, key, "has been mapped to another key:"
@@ -436,9 +438,7 @@ const collectMapKeyTypes_ = (mapKeys: SafeDict<string>): kMapKey => {
 /** @argument detectNewError hasFoundChanges */
 const populateKeyMap_ = (value: string | null): void => {
     const ref = BgUtils_.safeObj_<ValidKeyAction | ChildKeyFSM>(),
-    hasFoundChanges = value !== null,
-    strip = stripKey_,
-    kWarn = 'Inactive key: %o with "%s"', isOldWrong = errors_ !== null
+    hasFoundChanges = value !== null, isOldWrong = errors_ !== null
     if (hasFoundChanges) {
       set_keyFSM_(errors_ = null)
       /*#__NOINLINE__*/ parseKeyMappings_(value)
@@ -458,27 +458,26 @@ const populateKeyMap_ = (value: string | null): void => {
       const key = sortedKeys[index];
       const arr = key.match(keyRe_)!, last = arr.length - 1
       if (last === 0) {
-        let key2 = strip(key);
+        let key2 = stripKey_(key);
         if (key2 in ref) {
           if (index >= countOfCustomKeys) {
             keyToCommandMap_.delete(key)
             continue;
           }
-          doesLog && logError_(kWarn, ref[key2] as ReadonlyChildKeyFSM, key)
+          doesLog && logInactive_(key, ref[key2] as ReadonlyChildKeyFSM)
         }
         ref[key2] = KeyAction.cmd;
         continue;
       }
       let ref2 = ref as ChildKeyFSM, tmp: ChildKeyFSM | ValidChildKeyAction | undefined, j = 0;
-      while ((tmp = ref2[strip(arr[j])]) && tmp !== KeyAction.cmd && j < last) { j++; ref2 = tmp; }
+      while ((tmp = ref2[stripKey_(arr[j])]) && tmp !== KeyAction.cmd && j < last) { j++; ref2 = tmp; }
       if (tmp && (index >= countOfCustomKeys || tmp === KeyAction.cmd)) {
-        index >= countOfCustomKeys ? keyToCommandMap_.delete(key) :
-        doesLog && logError_(kWarn, key, arr.slice(0, j + 1).join(""))
+        index >= countOfCustomKeys ? keyToCommandMap_.delete(key) : doesLog && logInactive_(arr.slice(0, j + 1), key)
         continue;
       }
-      tmp && doesLog && logError_(kWarn, tmp, key)
-      while (j < last) { ref2 = ref2[strip(arr[j++])] = BgUtils_.safeObj_() as ChildKeyFSM; }
-      ref2[strip(arr[last])] = KeyAction.cmd;
+      tmp && doesLog && logInactive_(key, tmp)
+      while (j < last) { ref2 = ref2[stripKey_(arr[j++])] = BgUtils_.safeObj_() as ChildKeyFSM }
+      ref2[stripKey_(arr[last])] = KeyAction.cmd
     }
     if (!noNumMaps_) { /* empty */ }
     else if (!(Build.BTypes & BrowserType.Chrome) ||Build.MinCVer >= BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol) {
@@ -527,6 +526,18 @@ const populateKeyMap_ = (value: string | null): void => {
     if (value) {
       /*#__NOINLINE__*/ upgradeKeyMappings(value)
     }
+}
+
+const logInactive_ = (prefix: string | string[], suffix: string | ReadonlyChildKeyFSM): void => {
+  const arr: string[] = [], toStr = (prefix: string, dict: ReadonlyChildKeyFSM): void => {
+    for (let [k, v] of Object.entries!(dict)) {
+      k = prefix + wrapKey_(k)
+      v === KeyAction.cmd ? arr.push(k) : toStr(k, v as ReadonlyChildKeyFSM)
+    }
+  }
+  prefix = typeof prefix !== "string" ? prefix.map(wrapKey_).join("") : prefix
+  suffix = typeof suffix !== "string" ? (toStr("", suffix), arr.join(", ")) : suffix.slice(prefix.length)
+  logError_('Inactive suffixes: %o under "%s"', suffix, prefix)
 }
 
 const logError_ = function (): void {
@@ -726,10 +737,10 @@ export const availableCommands_: Dict<CommandsNS.Description> & SafeObject =
   showHelp: [ kBgCmd.showHelp, kCxt.bg, 1 ],
   showHUD: [ kBgCmd.showHUD, kCxt.bg, 1 ],
   showTip: [ kBgCmd.showHUD, kCxt.bg, 1 ],
-  simBackspace: [ kFgCmd.focusInput, kCxt.fg, 1, { act: "backspace" } ],
-  simulateBackspace: [ kFgCmd.focusInput, kCxt.fg, 1, { act: "backspace" } ],
+  simBackspace: [ kFgCmd.focusInput, kCxt.fg, 1, { action: "backspace" } ],
+  simulateBackspace: [ kFgCmd.focusInput, kCxt.fg, 1, { action: "backspace" } ],
   sortTabs: [ kBgCmd.joinTabs, kCxt.bg, 0, { sort: "recency", windows: "current" } ],
-  switchFocus: [ kFgCmd.focusInput, kCxt.fg, 1, { act: "switch" } ],
+  switchFocus: [ kFgCmd.focusInput, kCxt.fg, 1, { action: "switch" } ],
   toggleCS: [ kBgCmd.toggleCS, kCxt.bg, 0 ],
   toggleContentSetting: [ kBgCmd.toggleCS, kCxt.bg, 0 ],
   toggleLinkHintCharacters: [ kBgCmd.toggle, kCxt.bg, 1, { key: "linkHintCharacters" } ],
