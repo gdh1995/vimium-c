@@ -110,17 +110,18 @@ export const showVomnibar = (forceInner?: boolean): void => {
     set_cPort(port)
     // not go to the top frame here, so that a current frame can suppress keys for a while
   }
+  let defaultUrl: string | null = null
   if (optUrl != null && get_cOptions<C.showVomnibar>().urlSedKeys) {
-    const res = typeof optUrl === "string" ? optUrl : getPortUrl_()
+    const res = typeof optUrl === "string" ? optUrl : typeof get_cOptions<C.showVomnibar>().u === "string"
+        ? get_cOptions<C.showVomnibar>().u as string : getPortUrl_()
     if (res && res instanceof Promise) {
       void res.then((url): void => {
-        overrideCmdOptions<C.showVomnibar>({ url: url || "" }, true)
+        overrideCmdOptions<C.showVomnibar>({ u: url || "" }, true)
         showVomnibar(forceInner)
       })
       return
     }
-    optUrl = substitute_(res, SedContext.NONE, { r: null, k: get_cOptions<C.showVomnibar, true>().urlSedKeys! })
-    overrideCmdOptions<C.showVomnibar>({ url: optUrl }, true)
+    defaultUrl = substitute_(res, SedContext.NONE, { r: null, k: get_cOptions<C.showVomnibar, true>().urlSedKeys! })
   }
   if (get_cOptions<C.showVomnibar>().mode === "bookmark") { overrideOption<C.showVomnibar, "mode">("mode", "bookm") }
   const page = vomnibarPage_f, { url_: url } = port.s,
@@ -147,6 +148,8 @@ export const showVomnibar = (forceInner?: boolean): void => {
     s: trailingSlash,
     j: useInner ? "" : CONST_.VomnibarScript_f_,
     e: !!(get_cOptions<C.showVomnibar>()).exitOnClick,
+    u: defaultUrl,
+    url: typeof optUrl === "string" ? defaultUrl || optUrl : optUrl,
     k: BgUtils_.getOmniSecret_(true)
   }), get_cOptions<C.showVomnibar, true>()) as CmdOptions[kFgCmd.vomnibar] & SafeObject
   if (options.icase == null) {

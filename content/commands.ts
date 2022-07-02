@@ -266,6 +266,7 @@ set_contentCommands_([
         select_(newEl, null, !!options.flash, options.select, true);
       } else {
         ret = act[0] === "l" ? -1 : kTip.focusedIsHidden
+        flash_(newEl)
       }
       if (ret >= 0) {
         runFallbackKey(options, ret)

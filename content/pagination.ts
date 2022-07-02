@@ -66,12 +66,17 @@ export const filterTextToGoNext: VApiTy["g"] = (candidates, names, options, maxL
       }
     }
   }
-  let ch: string, s: string, len: number
+  let ch: string | null | undefined, s: string, len: number
   for (; 0 <= --index; ) {
     const link = links[index][0]
-    if ((s = "lang" in link ? link.innerText : link.textContent.trim()).length > totalMax
+    if ((s = "lang" in link ? (s = link.innerText, s.length > 2 && hasTag_("a", link) && link.childElementCount === 1
+              && (ch = attr_s(link, ALA))
+              && (link.firstElementChild as Element as TypeToPick<Element, HTMLElement, "innerText">).innerText === s
+              ? ch : s)
+            : link.textContent.trim()).length > totalMax
         || contains_s(link, links[index + 1][0]) && s.length > 2) { continue }
-    if (s = s.length > 2 ? s : !s && (ch = (link as HTMLInputElement).value) && isTY(ch) && ch
+    if (s = s.length > 2 ? s
+          : !s && (ch = (link as TypeToPick<Element, HTMLInputElement, "value">).value) && isTY(ch) && ch
             || attr_s(link, ALA) || (link as TypeToPick<Element, HTMLElement, "title">).title || s) {
       if (s.length > totalMax) { continue; }
       s = Lower(s)

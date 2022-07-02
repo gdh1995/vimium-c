@@ -59,8 +59,8 @@ interface OtherFilterOptions {
   textFilter?: "regexp"
 }
 interface OptionsToFindElement extends CSSOptions, OtherFilterOptions {
-  direct?: boolean | "element" | "sel" | "focus" | "hover" | "click" | "element,sel,focus,hover"
-      | "scroll" | "DOMActivate"
+  direct?: boolean | "element,sel,focus,hover" | "element" | "selected" | "currentScrollable" | "DOMActivate"
+      | "last-focused" | "recently-focused" | "focus" | "hovered" | "clicked" | "body"
   directOptions?: {
     search?: "view" | "doc" | "document"
     offset?: 0 | "cur" | "current" | "end" | "last"
@@ -339,7 +339,7 @@ interface CmdOptions {
     wait?: number | boolean | null
     minDuration?: number // default to 100 for 100 pixels
     dir?: 1 | -1 | 0.5 | -0.5;
-    offset?: 1
+    offset?: number
     /** inner flags */ f?: kScFlag & number
   } & Pick<CSSOptions, "evenIf" | "scroll"> & ({
     view?: 0 | /** means 0 */ undefined | 1 | "max" | /* all others are treated as "view" */ 2 | "view";
@@ -367,7 +367,7 @@ interface CmdOptions {
     /** <script> */ j: string;
     /** secret */ k: string
     /** exitOnClick */ e: boolean;
-  };
+  } & Pick<VomnibarNS.GlobalOptions, "u" | "url">
   [kFgCmd.goNext]: {
     /** rel */ r: string;
     /** isNext */ n: boolean;

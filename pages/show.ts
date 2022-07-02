@@ -776,6 +776,9 @@ async function parseClearImageUrl_(originUrl: string): Promise<string | null> {
     } else if (arr1 = (<RegExpOne> /\b([\da-f]{8,48})([_-](?:[a-z]{1,2}|\d{3,4}[whp]?))\.[a-z]{2,4}$/).exec(search)) {
       offset += arr1.index + arr1[1].length;
       search = search.slice(arr1.index + arr1[1].length + arr1[2].length);
+    } else if (arr1 = (<RegExpOne> /\b((?:[1-9]\d{1,3}[whxyp][_\-x]?){1,2})\.[a-z]{2,4}$/).exec(search)) {
+      offset += arr1.index;
+      search = search.slice(arr1.index + arr1[1].length);
     } else {
       found = false;
     }

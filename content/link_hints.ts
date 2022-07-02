@@ -107,7 +107,7 @@ import {
 } from "./dom_ui"
 import { scrollTick, beginScroll, currentScrolling } from "./scroller"
 import { hudTip, hudShow, hudHide, hud_tipTimer } from "./hud"
-import { set_onWndBlur2, insert_Lock_, set_grabBackFocus, insertInit, raw_insert_lock } from "./insert"
+import { set_onWndBlur2, insert_Lock_, set_grabBackFocus, insertInit, raw_insert_lock, insert_last_ } from "./insert"
 import {
   getVisibleElements, localLinkClear, frameNested_, checkNestedFrame, set_frameNested_, filterOutNonReachable, traverse,
   getIfOnlyVisible, ClickType, initTestRegExps
@@ -549,18 +549,19 @@ export const findAnElement_ = (options: OptionsToFindElement, count: number, als
   d = isTY(d) ? d : "em,sel,f,h"
   prepareCrop_()
   for (let i of d.split(d.includes(";") ? ";" : ",")) {
-    const testD = "".includes.bind(Lower(i.split("=")[0])), j = i.slice(i.indexOf("=") + 1 || i.length).trim()
+    const _key = i.split("=")[0], testD = "".includes.bind(Lower(_key)), j = i.slice(_key.length + 1).trim()
     el = testD("em") ? (options.match = <"css-selector" | ""> j || defaultMatch) // element
       && (matches = traverse(kSafeAllSelector, options, matchEl, 1, wholeDoc),
           matchIndex = indByCount ? count < 0 ? count : count - 1 : +elIndex! || 0,
           oneMatch = matches.slice(offset > "e" ? ~matchIndex : offset < "c" ? matchIndex : computeOffset())[0])
       && oneMatch[0]
-      : testD("sel") // selected
+      : testD("el") // selected
         ? isSelARange(getSelection_()) && (el = getSelectionFocusEdge_(getSelected()), isSel = !!el, el)
+      : testD("sc") || testD("ac") ? derefInDoc_(currentScrolling) // currentScrollable / DOMActivate
+      : testD("la") || testD("ec") ? /* last-focused / recently-focused */ derefInDoc_(insert_last_)
       : testD("f") ? /* focused */ insert_Lock_() || (OnFirefox ? <SafeElement | null> deepActiveEl_unsafe_(alsoBody)
             : SafeEl_not_ff_!(deepActiveEl_unsafe_(alsoBody)))
-      : (testD("h") || testD("cl")) ? derefInDoc_(lastHovered_) // hover | clicked
-      : testD("sc") || testD("a") ? derefInDoc_(currentScrolling) // currentScrollable / DOMActivate
+      : (testD("h") || testD("cl")) ? derefInDoc_(lastHovered_) // hovered | clicked
       : testD("b") ? /* body */ OnFirefox ? <SafeElement | null> (doc.body || docEl_unsafe_())
           : SafeEl_not_ff_!(doc.body || docEl_unsafe_())
       : null

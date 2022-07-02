@@ -253,9 +253,13 @@ const convertJoinedRules = (rules: string): string => {
 }
 
 set_substitute_((text: string, normalContext: SedContext, mixedSed?: MixedSedOpts | null): string => {
-  const rules = !mixedSed || typeof mixedSed !== "object" ? mixedSed : mixedSed.r
+  let rules = !mixedSed || typeof mixedSed !== "object" ? mixedSed : mixedSed.r
   if (rules === false) { return text }
   let arr = staticSeds_ || (staticSeds_ = parseSeds_(settingsCache_.clipSub, null))
+  if (rules && typeof rules === "string" && rules.length <= 6 && !(<RegExpOne> /[^\w\x80-\ufffd]/).test(rules)) {
+    mixedSed = { r: null, k: rules }
+    rules = null
+  }
   let contexts = mixedSed && typeof mixedSed === "object" && mixedSed.k && parseSedKeys_(mixedSed.k, mixedSed)
       || (normalContext ? { normal_: normalContext, extras_: null } : null)
   // note: `sed` may come from options of key mappings, so here always convert it to a string

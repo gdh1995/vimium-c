@@ -63,7 +63,7 @@ export const testMatch = (selector: string, hint: Hint0): boolean => {
 
 export const isIFrameElement = (el: Element): el is KnownIFrameElement => {
   const tag = el.localName
-  return (tag === "iframe" || tag === "frame") && "lang" in el
+  return (tag === "iframe" || tag === "frame") && hasTag_(tag, el)
 }
 
 export const isNode_ = <T extends keyof kNodeToType> (node: Node, typeId: T): node is kNodeToType[T] => {

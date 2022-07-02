@@ -334,7 +334,7 @@ declare namespace SettingsNS {
   }
   interface ConstItems {
     /** browser */ b: ["browser", BrowserType | undefined];
-    /** browserVer */ v: ["browserVer", BrowserVer | FirefoxBrowserVer | 0 | undefined];
+    /** browserVer */ v: ["browserVer", BrowserVer | FirefoxBrowserVer | 0]
     /** browserSecondVersionCode */ V: ["browserVer2nd", number];
     /** OS */ o: ["OS", kOS.mac | kOS.unixLike | kOS.win];
   }
@@ -439,6 +439,7 @@ declare namespace VomnibarNS {
     newtab: boolean | BOOL;
     keyword: string;
     url?: true | string | null;
+    /** known url */ u?: string | null | undefined
     urlSedKeys: "sedKeys" | null
     exitOnClick?: boolean;
     autoSelect?: boolean | null | BOOL;

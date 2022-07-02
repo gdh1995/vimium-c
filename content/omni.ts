@@ -1,7 +1,7 @@
 /// <reference path="../lib/base.omni.d.ts" />
 import {
   isAlive_, keydownEvents_, readyState_, timeout_, clearTimeout_, recordLog, chromeVer_, math, OnChrome,
-  interval_, clearInterval_, locHref, vApi, createRegExp, isTY, safer, isTop, OnFirefox, OnEdge, safeCall, WithDialog, VTr
+  interval_, clearInterval_, locHref, vApi, createRegExp, safer, isTop, OnFirefox, OnEdge, safeCall, WithDialog, VTr
 } from "../lib/utils"
 import { removeHandler_, replaceOrSuppressMost_, getMappedKey, isEscape_ } from "../lib/keyboard_utils"
 import {
@@ -31,7 +31,6 @@ interface IFrameWindow extends Window {
 type BaseFullOptions = CmdOptions[kFgCmd.vomnibar] & VomnibarNS.BaseFgOptions & Partial<VomnibarNS.ContentOptions>
       & SafeObject & OptionsWithForce
 interface FullOptions extends BaseFullOptions {
-  /** top URL */ u?: string
   /** request Name */ N?: VomnibarNS.kCReq.activate
 }
 
@@ -263,9 +262,6 @@ const refreshKeyHandler = (): void => {
       return
     }
   }
-  if (isTop || !options.u || !isTY(options.u)) {
-    options.u = vApi.u()
-  }
   if (url === true || count !== 1 && url == null) {
     // update options.url to string, so that this block can only run once per command
     if (options.url = url = url ? getSelectionText() : "") {
@@ -301,6 +297,7 @@ const refreshKeyHandler = (): void => {
   if (!(Build.NDEBUG || Status.Inactive - Status.NotInited === 1)) {
     console.log("Assert error: Status.Inactive - Status.NotInited === 1")
   }
+  options.u = options.u || vApi.u()
   box && adjustUI()
   if (status === Status.NotInited) {
     if (!options.$forced) { // re-check it for safety
