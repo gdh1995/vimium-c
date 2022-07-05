@@ -450,11 +450,11 @@ void settings_.ready_.then((): void => {
     innerRestoreSettings = installation_.then((reason): boolean => {
       set_installation_(null)
       return !!reason && reason.reason === "install"
-    }).then((installed): Promise<void> | void => installed ? new Promise<void>(r => {
+    }).then((installed): Promise<void> => new Promise((r): void => {
       storage() ? storage().get((items): void => {
         const err = runtimeError_()
         const firstOnMacOS = (!(Build.OS & ~(1 << kOS.mac)) || !!(Build.OS & (1 << kOS.mac)) && os_ === kOS.mac)
-            && hasEmptyLocalStorage_ && (err || Object.keys(items).length === 0)
+            && installed && hasEmptyLocalStorage_ && (err || Object.keys(items).length === 0)
         const callback = firstOnMacOS ? (): void => { settings_.set_("ignoreKeyboardLayout", 1); r() } : r
         if (err) {
           updateHooks_.vimSync = blank_
@@ -465,7 +465,7 @@ void settings_.ready_.then((): void => {
         }
         return err
       }) : r()
-    }) : void 0).then((): void => {
+    })).then((): void => {
       set_restoreSettings_(null), innerRestoreSettings = null
     })
     set_restoreSettings_(Promise.race([innerRestoreSettings, new Promise((resolve): void => {
