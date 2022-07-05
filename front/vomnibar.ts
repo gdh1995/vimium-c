@@ -250,7 +250,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   caseInsensitive_: false,
   mapModifier_: 0 as SettingsNS.AllVomnibarItems["a"][1],
   mappedKeyRegistry_: null as SettingsNS.AllVomnibarItems["m"][1],
-  ignoreKeyboardLayout_: 1 as SettingsNS.AllVomnibarItems["l"][1],
+  keyLayout_: 0,
   maxMatches_: 0,
   queryInterval_: 0,
   heightIfEmpty_: VomnibarNS.PixelData.OthersIfEmpty,
@@ -546,8 +546,9 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
             event as Pick<OldKeyboardEvent, "keyIdentifier">, +shiftKey as BOOL)
     } else if ((!(Build.BTypes & BrowserType.Edge)
         || Build.BTypes & ~BrowserType.Edge && Vomnibar_.browser_ !== BrowserType.Edge)
-        && (Vomnibar_.ignoreKeyboardLayout_ > 1 || Vomnibar_.ignoreKeyboardLayout_ === 1 && event.altKey || isDeadKey
-            || key.length === 1 && key > "~" && code.startsWith("Key"))) {
+        && (Vomnibar_.keyLayout_ & kKeyLayout.alwaysIgnore
+            || Vomnibar_.keyLayout_ & kKeyLayout.ignoreIfAlt && event.altKey || isDeadKey
+            || Vomnibar_.keyLayout_ & kKeyLayout.inCmdIgnoreIfNotASCII && key > kChar.maxASCII && key.length === 1)) {
       let prefix = code.slice(0, 3)
       let isKeyShort = key.length < 2 || isDeadKey
       let mapped: number | undefined
@@ -1235,7 +1236,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     delta.n != null && (Vomnibar_.maxMatches_ = delta.n);
     delta.i != null && (Vomnibar_.queryInterval_ = delta.i)
     delta.m !== undefined && (Vomnibar_.mappedKeyRegistry_ = delta.m)
-    delta.l != null && (Vomnibar_.ignoreKeyboardLayout_ = delta.l)
+    delta.l != null && (Vomnibar_.keyLayout_ = delta.l)
     if (delta.s != null) {
       let sizes = delta.s.split(","), n = +sizes[0], m = Math.min, M = Math.max;
       Vomnibar_.heightIfEmpty_ = M(24, m(n || VomnibarNS.PixelData.OthersIfEmpty, 320));

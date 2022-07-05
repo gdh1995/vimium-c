@@ -69,7 +69,7 @@ const _getKeyCharUsingKeyIdentifier_old_cr = !OnChrome
 /**
  * * return `"space"` for the <Space> key - in most code it needs to be treated as a long key
  */
-export const char_ = (eventWrapper: HandlerNS.Event): kChar => {
+export const char_ = (eventWrapper: HandlerNS.Event, forceASCII: BOOL): kChar => {
   let event: Pick<KeyboardEvent, "code" | "key" | "keyCode" | "keyIdentifier" | "location" | "shiftKey" | "altKey">
         = eventWrapper.e
   const shiftKey = OnFirefox ? hasShift_ff!(event as KeyboardEvent) : event.shiftKey
@@ -82,7 +82,9 @@ export const char_ = (eventWrapper: HandlerNS.Event): kChar => {
     key = _getKeyName(event) // it's safe to skip the check of `event.keyCode`
         || /*#__NOINLINE__*/ _getKeyCharUsingKeyIdentifier_old_cr(event as Pick<OldKeyboardEvent, "keyIdentifier">
             , +shiftKey as BOOL)
-  } else if (!OnEdge && (fgCache.l > 1 || fgCache.l === 1 && event.altKey || isDeadKey)) {
+  } else if (!OnEdge && (fgCache.l & kKeyLayout.alwaysIgnore
+      || fgCache.l & kKeyLayout.ignoreIfAlt && event.altKey || isDeadKey
+      || forceASCII && key > kChar.maxASCII && key.length === 1)) {
       /** return strings of 1-N characters and CapsLock is ignored */
     let code = event.code!, prefix = code.slice(0, 3), isKeyShort = key.length < 2 || isDeadKey
     if (prefix !== "Num") { // not (Numpad* or NumLock)
@@ -110,7 +112,7 @@ export const char_ = (eventWrapper: HandlerNS.Event): kChar => {
     key = key.length > 1 || key === " " ? /*#__NOINLINE__*/ _getKeyName(event)
         : fgCache.i ? shiftKey ? key.toUpperCase() : Lower(key) : key
   }
-  return eventWrapper.c = key as kChar
+  return forceASCII ? key as kChar : eventWrapper.c = key as kChar
 }
 
 export const keybody_ = (key: string): kChar => (key.slice(key.lastIndexOf("-") + 1) || key && kChar.minus) as kChar

@@ -306,6 +306,9 @@ declare const enum PortType {
   /** for external extensions like NewTab Adapter */ CloseSelf = 999,
 }
 
+declare const enum kKeyLayout {
+  NONE = 0, alwaysIgnore = 1, ignoreIfAlt = 2, inCmdIgnoreIfNotASCII = 4,
+}
 declare namespace SettingsNS {
   interface DirectlySyncedItems {
     /** ignoreKeyboardLayout */ l: ["ignoreKeyboardLayout", 0 | 1 | 2];
@@ -577,7 +580,7 @@ declare const enum GlobalConsts {
   MinCancelableInBackupTimer = 50,
 
   SelectorPrefixesInPatterns = ".#[",
-  ModeIds = "nneilofvms",
+  ModeIds = "nneilmfvos",
   InsertModeId = "i",
   NormalModeId = "n",
   OmniModeId = "o",
@@ -588,11 +591,11 @@ declare const enum GlobalConsts {
 }
 
 declare const enum kModeId {
-  Plain = 0, Normal, Insert, Next, max_not_command = Next, Link, Omni, Find, Visual, Marks,
-  Show, NO_MAP_KEY,
+  Plain = 0, Normal, Insert, Next, max_not_command = Next, Link, Marks, Find, Visual, Omni,
+  Show, NO_MAP_KEY_EVEN_MAY_IGNORE_LAYOUT, NO_MAP_KEY,
 }
 declare const enum kHandler {
-  __none, __normal, __insert, __next, linkHints, omni, find, visual, marks,
+  __none, __normal, __insert, __next, linkHints, marks, find, visual, omni, 
   NOT_MEAN_kModeId,
   postFind = NOT_MEAN_kModeId, unhoverOnEsc, grabBackFocus, helpDialog, focusInput,
   passNextKey = __normal, suppressTail = __insert, _mask = ""
@@ -645,7 +648,7 @@ declare const enum kChar {
   h = "h", i = "i", j = "j", k = "k", l = "l", m = "m", n = "n",
   o = "o", p = "p", q = "q", r = "r", s = "s", t = "t", u = "u", v = "v", w = "w", x = "x", y = "y", z = "z",
   None = "", F_num = "f", f1 = "f1", f2 = "f2", f12 = "f12",
-  maxNotNum = "/", minNotNum = ":",
+  maxNotNum = "/", minNotNum = ":", maxASCII = "~",
   maxNotF_num = "f0", minNotF_num = "f:", maxF_num = "f9",
   CharCorrectionList = ";=,-./`[\\]'\\:+<_>?~{|}\"|", EnNumTrans = ")!@#$%^&*(",
   Modifier = "modifier", Alt = "alt", Menu = "contextmenu",

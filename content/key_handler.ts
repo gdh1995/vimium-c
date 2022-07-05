@@ -1,6 +1,6 @@
 import {
   doc, esc, os_, isEnabled_, isTop, keydownEvents_, set_esc, safer, Stop_, Lower, OnChrome, OnFirefox, timeStamp_,
-  chromeVer_, deref_
+  chromeVer_, deref_, fgCache, OnEdge
 } from "../lib/utils"
 import {
   set_getMappedKey, char_, getMappedKey, isEscape_, getKeyStat_, prevent_, handler_stack, keybody_, SPC, hasShift_ff
@@ -53,7 +53,9 @@ export function set_mappedKeys (_newMappedKeys: typeof mappedKeys): void { mappe
 export function set_currentKeys (_newCurrentKeys: string): void { currentKeys = _newCurrentKeys }
 
 set_getMappedKey((eventWrapper: HandlerNS.Event, mode: kModeId): ReturnType<typeof getMappedKey> => {
-  const char = eventWrapper.c !== kChar.INVALID ? eventWrapper.v ? "" : eventWrapper.c : char_(eventWrapper)
+  const char: kChar | "" = eventWrapper.v ? ""
+      : !OnEdge && mode === kModeId.NO_MAP_KEY_EVEN_MAY_IGNORE_LAYOUT ? char_(eventWrapper, 1)
+      : eventWrapper.c !== kChar.INVALID ? eventWrapper.c : char_(eventWrapper, 0)
   let key: string = char, mapped: string | undefined;
   if (char) {
     const event = eventWrapper.e
@@ -65,16 +67,20 @@ set_getMappedKey((eventWrapper: HandlerNS.Event, mode: kModeId): ReturnType<type
       console.error(`Assert error: mapKey get an invalid char of "${char}" !`);
     }
     key = isLong || mod ? mod + chLower : char;
-    if (mappedKeys && mode < kModeId.NO_MAP_KEY) {
+    if (mappedKeys && mode < kModeId.NO_MAP_KEY_EVEN_MAY_IGNORE_LAYOUT) {
       mapped = mapKeyTypes & (mode > kModeId.Insert ? kMapKey.otherMode : mode)
           && mappedKeys[key + ":" + GlobalConsts.ModeIds[mode]]
           || (mapKeyTypes & kMapKey.plain ? mappedKeys[key] : "")
       key = mapped ? mode > kModeId.max_not_command
               && mapped.startsWith("v-") ? (eventWrapper.v = mapped as `v-${string}`, "") : mapped
           : mapKeyTypes & kMapKey.char && !isLong && (mapped = mappedKeys[chLower])
-            && mapped.length < 2 && (baseMod = mapped.toUpperCase()) !== mapped
+            && (mapped = mapped.length < 2 && (baseMod = mapped.toUpperCase()) !== mapped ? mapped : "")
           ? mod ? mod + mapped : char === chLower ? mapped : baseMod
           : key
+    }
+    if (!OnEdge && mode === kModeId.Visual && char > kChar.maxASCII && !mapped && char.length === 1
+        && fgCache.l & kKeyLayout.inCmdIgnoreIfNotASCII) {
+      key = getMappedKey(eventWrapper, kModeId.NO_MAP_KEY_EVEN_MAY_IGNORE_LAYOUT)
     }
   }
   return key;

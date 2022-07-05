@@ -192,7 +192,11 @@ export const updatePayload_ = function (shortKey: keyof SettingsNS.FrontendSetti
     case "i":
       value = value === !!value ? value
         : (value as ValType<"i">) > 1 || (value as ValType<"i">) > 0 && (!!(Build.OS & (1 << kOS.mac)) && !os_); break
-    case "l": value = value === !!value ? value ? 2 : 0 : value; break
+    case "l":
+      value = value === !!value ? value ? kKeyLayout.alwaysIgnore : kKeyLayout.NONE | 0xfc
+          : (value & 2 ? kKeyLayout.alwaysIgnore : value & 1 ? kKeyLayout.ignoreIfAlt : kKeyLayout.NONE
+              ) | (value & 0xfc || 0xfc)
+      break
     case "d": value = value ? " D" : ""; break
     // no default:
     }
