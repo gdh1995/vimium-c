@@ -96,8 +96,9 @@ export const set_ = <K extends keyof SettingsWithDefaults> (key: K, value: Setti
     if (!toSaveCache) { toSaveCache = safeObj_(), setTimeout(saveAllLocally, 0) }
     const initial = defaults_[key as PersistentKeys]
     Build.MV3 || legacyStorage_!.removeItem(key)
-    toSaveCache[key] = value !== initial ? value : null
-    sync_(key, value)
+    const val2 = value !== initial ? value : null
+    toSaveCache[key] = val2
+    sync_(key, val2)
       if (key in valuesToLoad_) {
         updatePayload_(valuesToLoad_[key as keyof typeof valuesToLoad_]
             , value as SettingsWithDefaults[keyof typeof valuesToLoad_], contentPayload_)
