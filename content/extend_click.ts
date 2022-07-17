@@ -3,9 +3,8 @@ import {
   loc_, getTime, recordLog, VTr, vApi, Stop_, isTY, OnEdge, abs_, isEnabled_
 } from "../lib/utils"
 import {
-  createElement_, set_createElement_, OnDocLoaded_, runJS_, rAF_, removeEl_s, attr_s, setOrRemoveAttr_s,
-  parentNode_unsafe_s,
-  onReadyState_
+  createElement_, set_createElement_, OnDocLoaded_, runJS_, rAF_, removeEl_s, attr_s, setOrRemoveAttr_s, dispatchEvent_,
+  parentNode_unsafe_s, onReadyState_
 } from "../lib/dom_utils"
 import { HookAction, hookOnWnd, safeDestroy, setupBackupTimer_cr } from "./port"
 import { coreHints, doesWantToReloadLinkHints, hintOptions, reinitLinkHintsIn } from "./link_hints"
@@ -169,7 +168,7 @@ export const main_not_ff = (Build.BTypes & ~BrowserType.Firefox ? (): void => {
     reHint && reinitLinkHintsIn(reHint)
   }
   const dispatchCmd = (cmd: SecondLevelContentCmds): void => {
-    box && box.dispatchEvent(new (CustomEvent as CustomEventCls)(
+    box && dispatchEvent_(box, new (CustomEvent as CustomEventCls)(
         InnerConsts.kCmd, {
       detail: ((+secret << kContentCmd.MaskedBitNumber) | cmd) as CommandEventDetail
     }));

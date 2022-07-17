@@ -30,7 +30,7 @@ import {
   rAF_, scrollingEl_, SafeEl_not_ff_, docEl_unsafe_, NONE, frameElement_, OnDocLoaded_, GetParent_unsafe_, isNode_,
   querySelector_unsafe_, getComputedStyle_, notSafe_not_ff_, HDN, isRawStyleVisible, fullscreenEl_unsafe_,
   doesSupportDialog, attr_s, getSelection_, isIFrameElement, derefInDoc_, isHTML_, IsInDOM_, getRootNode_mounted,
-  getEditableType_
+  getEditableType_, dispatchEvent_, wrapEventInit_
 } from "../lib/dom_utils"
 import {
   scrollWndBy_, wndSize_, getZoom_, wdZoom_, bZoom_, isNotInViewport, prepareCrop_, padClientRect_, instantScOpt,
@@ -195,7 +195,7 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
         // according to tests on C75, no "scrollend" events if scrolling behavior is "instant";
         // the doc on Google Docs requires no "overscroll" events for programmatic scrolling
         const notEl: boolean = !element || element === scrollingEl_();
-        (notEl ? doc : element!).dispatchEvent(new Event(kSE, {cancelable: false, bubbles: notEl}))
+        dispatchEvent_(notEl ? doc : element!, new Event(kSE, wrapEventInit_({}, 1, !notEl, 1)))
       }
       checkCurrent(element)
     } else {

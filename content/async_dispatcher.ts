@@ -3,8 +3,8 @@ import {
   tryCreateRegExp, weakRef_not_ff, firefoxVer_, fgCache, max_
 } from "../lib/utils"
 import {
-  IsInDOM_, isInTouchMode_cr_, MDW, hasTag_, CLK, attr_s, focus_, fullscreenEl_unsafe_, findAnchor_,
-  deepActiveEl_unsafe_, blur_unsafe, derefInDoc_
+  IsInDOM_, isInTouchMode_cr_, MDW, hasTag_, CLK, attr_s, focus_, fullscreenEl_unsafe_, findAnchor_, dispatchEvent_,
+  deepActiveEl_unsafe_, blur_unsafe, derefInDoc_, wrapEventInit_
 } from "../lib/dom_utils"
 import { suppressTail_ } from "../lib/keyboard_utils"
 import { Point2D, center_, getVisibleClientRect_, view_ } from "../lib/rect"
@@ -138,12 +138,12 @@ const mouse_ = function (element: SafeElementForMouse
   if (!OnChrome || Build.MinCVer >= BrowserVer.MinUsable$MouseEvent$$constructor
       || chromeVer_ > BrowserVer.MinUsable$MouseEvent$$constructor - 1) {
     // Note: The `composed` here may require Shadow DOM support
-    const init: ValidMouseEventInit & Partial<Omit<PointerEventInit, keyof MouseEventInit>> = {
-      bubbles, cancelable: bubbles, composed: !0, view, detail,
+    const init = wrapEventInit_<ValidMouseEventInit & Partial<Omit<PointerEventInit, keyof MouseEventInit>>>({
+      view, detail,
       screenX: x, screenY: y, clientX: x, clientY: y, ctrlKey, altKey, shiftKey, metaKey,
       button, buttons: tyKey === "d" ? button || 1 : 0,
       relatedTarget
-    }
+    }, !bubbles, !bubbles)
     OnChrome && setupIDC_cr!(init)
     if (OnChrome && (Build.MinCVer >= BrowserVer.MinEnsuredPointerEventForRealClick
           || chromeVer_ > BrowserVer.MinEnsuredPointerEventForRealClick - 1)
@@ -161,7 +161,7 @@ const mouse_ = function (element: SafeElementForMouse
   if (OnFirefox && clickEventToPrevent_) { // must be a click event
     return dispatchAndBlockClickOnce(element, mouseEvent)
   }
-  return element.dispatchEvent(mouseEvent)
+  return dispatchEvent_(element, mouseEvent)
 } as {
   (element: SafeElementForMouse, type: kMouseClickEvents, center: Point2D
     , modifiers?: MyMouseControlKeys | null, related?: NullableSafeElForM | 0, button?: AcceptableClickButtons
@@ -188,12 +188,12 @@ export const touch_cr_ = OnChrome ? (element: SafeElementForMouse
     pageX: x + scrollX, pageY: y + scrollY,
     radiusX: 8, radiusY: 8, force: 1
   }), touches = id ? [] : [touchObj],
-  touchEvent = new TouchEvent(id ? "touchend" : "touchstart", {
-    cancelable: !0, bubbles: !0,
+  touchEvent = new TouchEvent(id ? "touchend" : "touchstart", wrapEventInit_<TouchEventInit>({
     touches, targetTouches: touches,
     changedTouches: [touchObj]
-  })
-  element.dispatchEvent(touchEvent)
+  }, Build.MinCVer >= BrowserVer.MinEnsuredTouchEventIsNotCancelable ? 1
+      : chromeVer_ > BrowserVer.MinEnsuredTouchEventIsNotCancelable - 1))
+  dispatchEvent_(element, touchEvent)
   return newId
 } : 0 as never as null
 

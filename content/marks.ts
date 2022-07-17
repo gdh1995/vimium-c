@@ -1,5 +1,5 @@
 import { safer, loc_, vApi, locHref, isTY, isTop, OnFirefox, injector } from "../lib/utils"
-import { createElement_, scrollingEl_, textContent_s } from "../lib/dom_utils"
+import { createElement_, dispatchEvent_, wrapEventInit_, scrollingEl_, textContent_s } from "../lib/dom_utils"
 import { post_ } from "./port"
 import { hudHide, hudShow } from "./hud"
 import { removeHandler_, getMappedKey, isEscape_, replaceOrSuppressMost_, hasShift_ff } from "../lib/keyboard_utils"
@@ -14,7 +14,8 @@ const dispatchMark = ((mark?: Readonly<MarksNS.FgMark> | null | undefined, local
   newMark: Readonly<MarksNS.FgMark> | null | undefined
   mark && textContent_s(a, oldStr = mark + "")
   local && (a.dataset.local = "")
-  newMark = !dispatchEvent(new FocusEvent("vimiumMark", { relatedTarget: a, cancelable: true })) ? null
+  newMark = !dispatchEvent_(window, new FocusEvent("vimiumMark"
+        , wrapEventInit_<FocusEventInit>({ relatedTarget: a }))) ? null
       : (newStr = textContent_s(a)) === oldStr ? mark
       : (match = newStr.split(",")).length > 1 ? ([~~match[0], ~~match[1]] as const
           ).concat(match.slice(2) as never) as [number, number, string]

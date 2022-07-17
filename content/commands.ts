@@ -7,7 +7,7 @@ import {
   isHTML_, hasTag_, createElement_, querySelectorAll_unsafe_, SafeEl_not_ff_, docEl_unsafe_, MDW, CLK, derefInDoc_,
   querySelector_unsafe_, DAC, removeEl_s, appendNode_s, setClassName_s, INP, contains_s, toggleClass_s, modifySel,
   focus_, testMatch, docHasFocus_, deepActiveEl_unsafe_, getEditableType_, textOffset_, getAccessibleSelectedNode,
-  getDirectionOfNormalSelection, inputSelRange
+  getDirectionOfNormalSelection, inputSelRange, dispatchEvent_
 } from "../lib/dom_utils"
 import {
   pushHandler_, removeHandler_, getMappedKey, prevent_, isEscape_, keybody_, DEL, BSP, ENTER, handler_stack,
@@ -480,7 +480,7 @@ set_contentCommands_([
         useResult = !useClick && options.return
         // earlier, in case listeners are too slow
         useResult || runFallbackKey(options, activeEl !== docBody ? 0 : 2, "", delay)
-        useClick ? (activeEl as HTMLElement).click() : (result = activeEl.dispatchEvent(event))
+        useClick ? (activeEl as HTMLElement).click() : (result = dispatchEvent_(activeEl, event))
       } else {
         hudTip(kTip.raw, 0, options.e)
       }

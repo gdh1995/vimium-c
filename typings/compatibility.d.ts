@@ -284,6 +284,7 @@ declare const enum BrowserVer {
   MinFailToToggleImageOnFileURL = 56,
   // note: an "input" event is not KeyboardEvent: {@see Min$InputEvent$$isComposing}
   Min$KeyboardEvent$$isComposing = 56,
+  MinEnsuredTouchEventIsNotCancelable = 56, // even if LEGACY; since C54 if EXPERIMENTAL
   // the static selector `>>>` is not supported since MinNoSelector$GtGtGt
   // `>>>` can only match those under "open"-mode shadow roots
   MinMaybeStaticSelector$GtGtGt = 56, // only if EXPERIMENTAL

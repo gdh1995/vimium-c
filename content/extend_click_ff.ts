@@ -2,7 +2,9 @@ import {
   clickable_, timeout_, loc_, getTime, clearTimeout_, vApi, recordLog, doc, setupEventListener, VTr, raw_unwrap_ff,
   isTY, OnFirefox, isAsContent, isEnabled_, reflectApply_not_cr
 } from "../lib/utils"
-import { CLK, MDW, OnDocLoaded_, isHTML_, set_createElement_, createElement_, onReadyState_ } from "../lib/dom_utils"
+import {
+  CLK, MDW, OnDocLoaded_, isHTML_, set_createElement_, createElement_, onReadyState_, dispatchEvent_
+} from "../lib/dom_utils"
 import { grabBackFocus, insertInit } from "./insert"
 import { coreHints, doesWantToReloadLinkHints, reinitLinkHintsIn } from "./link_hints"
 import { HookAction, hookOnWnd } from "./port"
@@ -204,7 +206,7 @@ export const dispatchAndBlockClickOnce = (targetElement: SafeElement, clickEvent
     void preventEventOnWindow!(view)
     isAsContent || hookMethods((a, k, v): void => { a[k] = v }, clickEvent as MouseEventToPrevent)
   }
-  const rawDispatchRetVal = targetElement.dispatchEvent(clickEvent),
+  const rawDispatchRetVal = dispatchEvent_(targetElement, clickEvent),
   wrappedRetVal = rawDispatchRetVal || doesBlock && !isClickEventPreventedByPage
   if (!Build.NDEBUG) {
     console.log("Vimium C: try blocking a click event, and the returned is %o when %s %o, so return %o"

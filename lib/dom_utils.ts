@@ -540,6 +540,12 @@ export const extractField = (el: SafeElement, props: string): string => {
   return isTY(json) ? json : ""
 }
 
+export const wrapEventInit_ = <T extends EventInit> (event: T
+    , notCancelable?: boolean | BOOL, notBubbles?: boolean | BOOL, notComposed?: 1): T => {
+  event.bubbles = !notBubbles, event.cancelable = !notCancelable, OnEdge || (event.composed = !notComposed)
+  return event
+}
+
 //#endregion
 
 //#region action section
@@ -656,5 +662,8 @@ export const blur_unsafe = (el: Element | null | undefined): void => {
   // in `Element::blur`, Chromium will check `AdjustedFocusedElementInTreeScope() == this` firstly
   el && (OnFirefox ? el.blur : isTY(el.blur, kTY.func)) && el.blur!()
 }
+
+export const dispatchEvent_ = (target: Window | Document | SafeElement
+    , event: Event): boolean => target.dispatchEvent(event)
 
 //#endregion
