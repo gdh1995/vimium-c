@@ -8,7 +8,7 @@ import {
   kMediaTag, ElementProto_not_ff, querySelector_unsafe_, getInputType, uneditableInputs_, GetShadowRoot_, scrollingEl_,
   queryChildByTag_, getSelection_, removeEl_s, appendNode_s, getMediaUrl, getMediaTag, INP, ALA, attr_s, hasTag_, kGCh,
   setOrRemoveAttr_s, toggleClass_s, textContent_s, notSafe_not_ff_, modifySel, SafeEl_not_ff_, testMatch,
-  extractField, querySelectorAll_unsafe_, editableTypes_, findAnchor_
+  extractField, querySelectorAll_unsafe_, editableTypes_, findAnchor_, dispatchEvent_, wrapEventInit_
 } from "../lib/dom_utils"
 import { getPreferredRectOfAnchor, initTestRegExps } from "./local_links"
 // @ts-ignore
@@ -60,6 +60,10 @@ const accessElAttr = (isUrlOrText: 0 | 1 | 2): [string: string, isUserCustomized
     if (json) { return [json, 1] }
   }
   let vimAttr = dataset && (isUrlOrText > 1 ? dataset.vimText : isUrlOrText && dataset.vimUrl)
+  if (vimAttr === "") {
+    dispatchEvent_(clickEl, new Event("vimiumData", wrapEventInit_({})))
+    vimAttr = isUrlOrText > 1 ? dataset!.vimText : isUrlOrText && dataset!.vimUrl
+  }
   return [vimAttr || isUrlOrText < 2 && dataset && (dataset.canonicalSrc || dataset.src) || ""]
 }
 
@@ -242,7 +246,7 @@ const copyText = (): void => {
       }
       str = str && str.trim() || tag && (clickEl as SafeHTMLElement).title.trim() || (attr_s(clickEl, ALA) || "").trim()
     }
-  str && (<RegExpI> /^mailto:./).test(str) && (str = str.slice(7).trim())
+  mode1_ - HintMode.SEARCH_TEXT && str && (<RegExpI> /^mailto:./).test(str) && (str = str.slice(7).trim())
   if (mode1_ > HintMode.min_edit - 1 && mode1_ < HintMode.max_edit + 1) {
       hintApi.p({
         H: kFgReq.vomnibar,
@@ -255,7 +259,7 @@ const copyText = (): void => {
     const oldRange = selRange_(getSelected({}))
     selectNode_(clickEl)
     str = getSelection_() + "" || str || `<${clickEl.localName}>`
-      execCommand("copy", doc)
+    execCommand("copy", doc)
     resetSelectionToDocStart(getSelection_(), oldRange)
     hintApi.h(kTip.copiedIs, 0, str)
   } else if (!str) {

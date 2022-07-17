@@ -1,6 +1,7 @@
 import {
   clickable_, isJSUrl, doc, isImageUrl, fgCache, readyState_, chromeVer_, VTr, createRegExp, max_, OnChrome,
-  math, includes_, OnFirefox, OnEdge, WithDialog, safeCall, evenHidden_, set_evenHidden_, tryCreateRegExp, loc_, getTime, firefoxVer_, queryByHost
+  math, includes_, OnFirefox, OnEdge, WithDialog, safeCall, evenHidden_, set_evenHidden_, tryCreateRegExp, loc_,
+  getTime, firefoxVer_, queryByHost
 } from "../lib/utils"
 import {
   isIFrameElement, getInputType, uneditableInputs_, getComputedStyle_, queryChildByTag_, htmlTag_, isAriaFalse_,
@@ -32,7 +33,7 @@ export declare const enum ClickType {
 type BaseFilter<T> = (hints: T[], element: SafeElement) => void
 type HTMLFilter<T> = (hints: T[], element: SafeHTMLElement) => void
 type Filter<T> = BaseFilter<T> | HTMLFilter<T>
-type AllowedClickTypeForNonHTML = ClickType.attrListener | ClickType.tabindex
+type AllowedClickTypeForNonHTML = ClickType.attrListener | ClickType.classname | ClickType.tabindex
 type HintSources = readonly SafeElement[] | NodeListOf<SafeElement>
 type NestedFrame = false | 0 | null | KnownIFrameElement
 type IterableElementSet = Pick<ElementSet, "has"> & { forEach (callback: (value: Element) => void): void }
@@ -345,6 +346,9 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
         || jsaEnabled_ && (s = attr_s(element, "jsaction")) && checkJSAction(s)
       ? ClickType.attrListener
       : hasTabIdx && tabIndex! >= 0 ? element.localName === "a" ? ClickType.attrListener : ClickType.tabindex
+      : (s = attr_s(element, "class")) && clickableClasses_.test(s)
+          && (par = GetParent_unsafe_(element, PNType.DirectElement)) && htmlTag_<1>(par)
+          && !(hints.length && contains_s(hints[hints.length - 1][0], element)) ? ClickType.classname
       : ClickType.Default
   if (type && (arr = getVisibleClientRect_(element, null))
       && (isAriaFalse_(element, kAria.hidden) || extraClickable_ && extraClickable_.has(element))
@@ -751,7 +755,7 @@ export const getVisibleElements = (view: ViewBox): readonly Hint[] => {
         const mediaTag = getMediaTag(element)
         let str: string | null | undefined = getMediaUrl(element, mediaTag < kMediaTag.MIN_NOT_MEDIA_EL)
           , cr: Rect | null | undefined
-        if (!mediaTag) {
+        if (!mediaTag) { /* aka. mediaTag == kMediaTag.img */
           if (str) {
             let r = boundingRect_(element), l = r.l, t = r.t, w = r.r - l, h = r.b - t
             if (w < 8 && h < 8) {

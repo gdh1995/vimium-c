@@ -551,7 +551,7 @@ export const findAnElement_ = (options: OptionsToFindElement, count: number, als
   for (let i of d.split(d.includes(";") ? ";" : ",")) {
     const _key = i.split("=")[0], testD = "".includes.bind(Lower(_key)), j = i.slice(_key.length + 1).trim()
     el = testD("em") ? (options.match = <"css-selector" | ""> j || defaultMatch) // element
-      && (matches = traverse(kSafeAllSelector, options, matchEl, 1, wholeDoc),
+      && (matches = traverse(kSafeAllSelector, options, matchEl, 1, wholeDoc, 1),
           matchIndex = indByCount ? count < 0 ? count : count - 1 : +elIndex! || 0,
           oneMatch = matches.slice(offset > "e" ? ~matchIndex : offset < "c" ? matchIndex : computeOffset())[0])
       && oneMatch[0]
