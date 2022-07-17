@@ -62,13 +62,8 @@ type ElementToSVG = TypeToAssert<Element, SVGElement, "ownerSVGElement", "tagNam
  */
 type ElementToHTML = TypeToAssert<Element, HTMLElement, "lang", "tagName">;
 
-interface SafeElement extends Element {
-  readonly tagName: string;
-  readonly nodeName: string;
-  readonly localName: string;
-}
 interface Element { __other: 0 | 1 | 2 | 3 }
-interface HTMLElement { __other: 0; lang: "" }
+interface HTMLElement { __other: 0 }
 interface NonHTMLButFormattedElement extends SafeElement {
   __other: 1 | 2; tabIndex: number; style: CSSStyleDeclaration
   onclick (event: Event): any; onmousedown (event: Event): any;
@@ -77,13 +72,6 @@ interface SVGElement extends NonHTMLButFormattedElement { __other: 1 }
 // like MathMLElement since Firefox 71
 interface ForeignElement extends NonHTMLButFormattedElement { __other: 2 }
 interface SafeElementWithoutFormat extends SafeElement { __other: 3 }
-type BaseSafeHTMLElement = HTMLElement & SafeElement;
-interface SafeHTMLElement extends BaseSafeHTMLElement {
-  innerText: string;
-  readonly parentElement: Element | null;
-  readonly parentNode: Node | null;
-  readonly localName: Exclude<keyof HTMLElementTagNameMap, "form" | "frameset">
-}
 interface OtherLockableElement extends HTMLElement {
   /** fake; just for type systems */ localName: `${string}-${string}` | `${string}_${string}`
   isContentEditable: true

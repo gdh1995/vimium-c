@@ -160,7 +160,7 @@ export const adjustUI = (event?: Event | /* enable */ 1 | /* disable */ 2): void
     // so here should only use `fullscreenEl_unsafe_`
     const el: Element | null = fullscreenEl_unsafe_(),
     disableUI = event === 2,
-    el2 = el && !contains_s(root_, el) && !contains_s(box_!, el) ? el : docEl_unsafe_()!
+    el2 = el && !root_.contains(el) && !contains_s(box_!, el) ? el : docEl_unsafe_()!
     // Chrome also always remove node from its parent since 58 (just like Firefox), which meets the specification
     // doc: https://dom.spec.whatwg.org/#dom-node-appendchild
     //  -> #concept-node-append -> #concept-node-pre-insert -> #concept-node-adopt -> step 2
@@ -466,7 +466,7 @@ const doExitOnClick = (event?: MouseEventToPrevent): void => {
           || (OnChrome && Build.MinCVer >= BrowserVer.MinShadowDOMV0
                 || OnFirefox && Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1
               ? event.target === box_
-              : !(event.target instanceof Element) || contains_s(root_, event.target))
+              : !(event.target instanceof Element) || root_.contains(event.target))
           ) {
         return;
       }

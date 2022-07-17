@@ -334,17 +334,17 @@ const addChildTrees = (parts: HintSources, allNodes: NodeListOf<SafeElement>): H
 
 const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | SafeElementWithoutFormat): void => {
   const tabIndex = (element as ElementToHTMLOrForeign).tabIndex
-  let arr: Rect | null | undefined, s: string | null
+  let arr: Rect | null | undefined, s: string | null, par: Element | null, hasTabIdx: boolean
   let type: ClickType.Default | AllowedClickTypeForNonHTML = clickable_.has(element)
         || extraClickable_ && extraClickable_.has(element)
-        || tabIndex != null && (OnFirefox
+        || (hasTabIdx = tabIndex !== void 0) && (OnFirefox
             ? (element as NonHTMLButFormattedElement).onclick ||(element as NonHTMLButFormattedElement).onmousedown
             : attr_s(element, "onclick") || attr_s(element, "onmousedown"))
         || (s = attr_s(element, "role")) && clickableRoles_.test(s)
         || ngEnabled && attr_s(element, "ng-click")
         || jsaEnabled_ && (s = attr_s(element, "jsaction")) && checkJSAction(s)
       ? ClickType.attrListener
-      : tabIndex != null && tabIndex >= 0 ? element.localName === "a" ? ClickType.attrListener : ClickType.tabindex
+      : hasTabIdx && tabIndex! >= 0 ? element.localName === "a" ? ClickType.attrListener : ClickType.tabindex
       : ClickType.Default
   if (type && (arr = getVisibleClientRect_(element, null))
       && (isAriaFalse_(element, kAria.hidden) || extraClickable_ && extraClickable_.has(element))
@@ -426,7 +426,7 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
   for (; cur_scope = tree_scopes.pop(); ) {
     for ([cur_tree, cur_ind, extraClickable_] = cur_scope; cur_ind < cur_tree.length; ) {
       const el: SafeElement = cur_tree[cur_ind++]
-      if ((el as ElementToHTML).lang != null) {
+      if ("lang" in (el as ElementToHTML)) {
         filter(output, el as SafeHTMLElement)
         const shadow = (OnChrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0 && prefixedShadow
             ? el.webkitShadowRoot : el.shadowRoot) as ShadowRoot | null | undefined;
@@ -485,7 +485,7 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
         && (querySelectorAll_unsafe_(VTr(kTip.visibleElementsInScopeChildren), shadowRoot)!).length === 1) {
       notRemoveParents = 0 < ++splice
     }
-    /** {@see #AllowedClickTypeForNonHTML} */
+    /** @link AllowedClickTypeForNonHTML */
     else if (!notRemoveParents) {
       if (k === ClickType.codeListener) {
         if (s = ((element = list[i][0]) as SafeHTMLElement).localName, s === "i" || s === D) {
@@ -589,7 +589,7 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
         let text: string | undefined
         return hint.length > 2 && (hint[2] === ClickType.edit || hint[2]! > ClickType.MaxNotBox)
             || (textFilter as RegExpOne).test((text = (hint[0] as TypeToPick<SafeElement, SafeHTMLElement, "innerText">
-                  ).innerText) != null ? text : hint[0].textContent)
+                  ).innerText) !== void 0 ? text : hint[0].textContent)
       })
     }
   }
@@ -717,6 +717,10 @@ export const filterOutNonReachable = (list: Hint[], notForAllClickable?: boolean
   return i < 0
 }
 
+export type ModesWithOnlyHTMLElements = HintMode.min_link_job | HintMode.max_link_job
+    | HintMode.COPY_URL | HintMode.DOWNLOAD_LINK | HintMode.OPEN_INCOGNITO_LINK | HintMode.EDIT_LINK_URL
+    | HintMode.FOCUS_EDITABLE
+
 export const getVisibleElements = (view: ViewBox): readonly Hint[] => {
   let r2 = null as Rect[] | null, subtractor: Rect, subtracted: Rect[]
   const subtractSequence = (rect1: Rect): void => { // rect1 - rect2
@@ -737,8 +741,8 @@ export const getVisibleElements = (view: ViewBox): readonly Hint[] => {
     // not check `img[src]` in case of `<img srcset=... >`
     ? traverse(`a[href],img,svg,div${B},span${B},[data-src]` + (OnFirefox ? "" : kSafeAllSelector)
             + (_i - HintMode.DOWNLOAD_MEDIA ? "" : ",video,audio")
-          , hintOptions, (hints: Hint[], element: SafeHTMLElement | Element & { lang?: undefined }): void => {
-        if (element.lang == null) {
+          , hintOptions, (hints: Hint[], element: Element): void => {
+        if (!htmlTag_<1>(element)) {
           if (element.localName === "svg" && "ownerSVGElement" in <ElementToSVG> element) {
             getIfOnlyVisible(hints, element as SVGSVGElement)
           }
@@ -777,7 +781,7 @@ export const getVisibleElements = (view: ViewBox): readonly Hint[] => {
     ? traverse("a,[role=link]" + (OnFirefox ? "" : kSafeAllSelector)
           , hintOptions, (hints: Hint[], element: SafeHTMLElement): void => {
         let a = element.localName === "a" && attr_s(element, "href") || element.dataset.vimUrl
-        if (a && a !== "#" && !isJSUrl(a)) {
+        if (a !== void 0 && a !== "#" && !isJSUrl(a)) {
           getIfOnlyVisible(hints, element)
         }
       })

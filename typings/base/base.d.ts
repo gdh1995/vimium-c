@@ -25,6 +25,8 @@ type PartialOrEnsured<T, EnsuredKeys extends keyof T> = {
   [P in EnsuredKeys]: T[P];
 } & PartialOf<T, Exclude<keyof T, EnsuredKeys>>
 type WithEnsured<T, EnsuredKeys extends keyof T> = { [P in EnsuredKeys]-?: NonNullable<T[P]>; } & Omit<T, EnsuredKeys>
+type WithoutUndef<T, EnsuredKeys extends keyof T> = {
+    [P in EnsuredKeys]-?: Exclude<T[P], undefined> } & Omit<T, EnsuredKeys>
 
 // this is to fix a bug of TypeScript ~3.5
 type Generalized<T, K extends keyof T = keyof T> = { [k in K]: __GeneralizedValues<T, K>; };
@@ -115,12 +117,14 @@ interface EnsuredMountedHTMLElement extends HTMLElement {
 
 interface HTMLElement { inert: boolean }
 
+interface HTMLAnchorElement { className: string }
+interface HTMLAreaElement { className: string }
 interface HTMLEditableELement {
   setRangeText(replacement: string): void
   setRangeText(replacement: string, start: number | null, end: number | null, selectMode?: string): void
 }
-
 interface HTMLInputElement extends HTMLEditableELement {
+  className: string
   showPicker? (): void
 }
 interface HTMLTextAreaElement extends HTMLEditableELement {}

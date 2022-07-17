@@ -89,7 +89,7 @@ export const main_not_ff = (Build.BTypes & ~BrowserType.Firefox ? (): void => {
       hookRetryTimes = GlobalConsts.MaxRetryTimesForSecret
       setOrRemoveAttr_s(t as SafeElement, S)
       setupEventListener(t, kVOnClick1, onClick);
-      box = t;
+      box = t as HTMLDivElement
   };
   function onClick(this: Element | Window, event: Event): void {
     const rawDetail = (
@@ -218,7 +218,7 @@ export const main_not_ff = (Build.BTypes & ~BrowserType.Firefox ? (): void => {
   }
   script.dataset.vimium = secret
 
-  let box: Element | undefined | 0, hookRetryTimes = 0, counterResolvePath = 0, reHookTimes = 0,
+  let box: HTMLDivElement | undefined | 0, hookRetryTimes = 0, counterResolvePath = 0, reHookTimes = 0,
   isFirstResolve: 0 | 1 | 2 | 3 | 4 = isTop ? 3 : 4
 
 // #region injected code

@@ -142,7 +142,7 @@ const init = ({k: secret, v: page, t: type, i: inner}: FullOptions): void => {
       dialogWrapper_ = (OnChrome && Build.MinCVer >= BrowserVer.MinEnsuredHTMLDialogElement || doesSupportDialog())
           && hasInCSSFilter_() && createElement_("dialog")
       if (dialogWrapper_) {
-        (dialogWrapper_.className = "R DLG")
+        setClassName_s(dialogWrapper_, "R DLG")
         appendNode_s(dialogWrapper_, el)
       }
     }
@@ -232,7 +232,7 @@ const refreshKeyHandler = (): void => {
     event = getMappedKey(event as HandlerNS.Event, kModeId.Omni)
     if (isEscape_(event)) { hide(); return HandlerResult.Prevent }
     if (event === kChar.f1 || event === kChar.f2) {
-      focusOmni()
+      postToOmni(VomnibarNS.kCReq.focus)
       return HandlerResult.Prevent;
     }
     return HandlerResult.Nothing;
@@ -313,7 +313,7 @@ const refreshKeyHandler = (): void => {
   } else if (status === Status.Inactive) {
     status = Status.ToShow
   } else if (status > Status.ToShow) {
-    focusOmni()
+    postToOmni(VomnibarNS.kCReq.focus)
     status = Status.ToShow
   }
   toggleClass_s(box!, "O2", !canUseVW)
@@ -339,10 +339,6 @@ const refreshKeyHandler = (): void => {
   }).bind(0, options))
 } as (options: CmdOptions[kFgCmd.vomnibar], count: number) => void
 
-export const focusOmni = (): void => {
-  status < Status.Showing || postToOmni(VomnibarNS.kCReq.focus)
-}
-
-const postToOmni = <K extends keyof VomnibarNS.CReq> (msg: VomnibarNS.CReq[K]): void => {
+export const postToOmni = <K extends keyof VomnibarNS.CReq> (msg: VomnibarNS.CReq[K]): void => {
   portToOmni.postMessage(msg)
 }

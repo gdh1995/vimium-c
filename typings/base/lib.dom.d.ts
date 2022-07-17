@@ -2088,7 +2088,7 @@ interface Element extends Node, GlobalEventHandlers, ElementTraversal, NodeSelec
     readonly parentNode: Node | RadioNodeList | Window | null;
 
     readonly classList: DOMTokenList;
-    className: string;
+    className: string | SVGAnimatedString
     readonly clientHeight: number;
     readonly clientLeft: number;
     readonly clientTop: number;
@@ -2171,6 +2171,20 @@ interface ElementConstructor {
     new(): Element;
 }
 declare var Element: ElementConstructor;
+
+interface SafeElement extends Element {
+  readonly tagName: string;
+  readonly nodeName: string;
+  readonly localName: string;
+}
+type BaseSafeHTMLElement = HTMLElement & SafeElement;
+interface SafeHTMLElement extends BaseSafeHTMLElement {
+  className: string
+  innerText: string;
+  readonly parentElement: Element | null;
+  readonly parentNode: Node | null;
+  readonly localName: Exclude<keyof HTMLElementTagNameMap, "form" | "frameset">
+}
 
 interface ErrorEvent extends Event {
     readonly type: "error";
@@ -2326,7 +2340,7 @@ declare var HTMLAllCollection: {
     new(): HTMLAllCollection;
 }
 
-interface HTMLAnchorElement extends HTMLElement {
+interface HTMLAnchorElement extends SafeHTMLElement {
     readonly tagName: "A";
     readonly nodeName: "A";
     readonly localName: "a";
@@ -2423,7 +2437,7 @@ declare var HTMLAnchorElement: {
     new(): HTMLAnchorElement;
 }
 
-interface HTMLAppletElement extends HTMLElement {
+interface HTMLAppletElement extends SafeHTMLElement {
     /**
       * Retrieves a string of the URL where the object tag can be found. This is often the href of the document that the object is in, or the value set by a base element.
       */
@@ -2497,7 +2511,7 @@ declare var HTMLAppletElement: {
     new(): HTMLAppletElement;
 }
 
-interface HTMLAreaElement extends HTMLElement {
+interface HTMLAreaElement extends SafeHTMLElement {
     readonly tagName: "AREA";
     readonly nodeName: "AREA";
     readonly localName: "area";
@@ -2589,7 +2603,7 @@ declare var HTMLAudioElement: {
     new(): HTMLAudioElement;
 }
 
-interface HTMLBRElement extends HTMLElement {
+interface HTMLBRElement extends SafeHTMLElement {
     /**
       * Sets or retrieves the side on which floating objects are not to be positioned when any IHTMLBlockElement is inserted into the document.
       */
@@ -2603,7 +2617,7 @@ declare var HTMLBRElement: {
     new(): HTMLBRElement;
 }
 
-interface HTMLBaseElement extends HTMLElement {
+interface HTMLBaseElement extends SafeHTMLElement {
     /**
       * Gets or sets the baseline URL on which relative links are based.
       */
@@ -2621,7 +2635,7 @@ declare var HTMLBaseElement: {
     new(): HTMLBaseElement;
 }
 
-interface HTMLBaseFontElement extends HTMLElement, DOML2DeprecatedColorProperty {
+interface HTMLBaseFontElement extends SafeHTMLElement, DOML2DeprecatedColorProperty {
     /**
       * Sets or retrieves the current typeface family.
       */
@@ -2661,7 +2675,7 @@ interface HTMLBodyElementEventMap extends HTMLElementEventMap {
     "unload": Event;
 }
 
-interface HTMLBodyElement extends HTMLElement {
+interface HTMLBodyElement extends SafeHTMLElement {
     readonly tagName: "BODY";
     readonly nodeName: "BODY";
     readonly localName: "body";
@@ -2702,7 +2716,7 @@ declare var HTMLBodyElement: {
     new(): HTMLBodyElement;
 }
 
-interface HTMLButtonElement extends HTMLElement {
+interface HTMLButtonElement extends SafeHTMLElement {
     /**
       * Provides a way to direct a user to a specific field when a document loads. This can provide both direction and convenience for a user,
       * reducing the need to click or tab to a field when a page opens. This attribute is true when present on an element, and false when missing.
@@ -2778,7 +2792,7 @@ declare var HTMLButtonElement: {
     new(): HTMLButtonElement;
 }
 
-interface HTMLCanvasElement extends HTMLElement {
+interface HTMLCanvasElement extends SafeHTMLElement {
     /**
       * Gets or sets the height of a canvas element on a document.
       */
@@ -2836,7 +2850,7 @@ declare var HTMLCollection: {
     new(): HTMLCollection;
 }
 
-interface HTMLDListElement extends HTMLElement {
+interface HTMLDListElement extends SafeHTMLElement {
     compact: boolean;
     addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLDListElement, ev: HTMLElementEventMap[K]) => any, useCapture?: boolean): void;
     addEventListener(type: string, listener: EventListenerOrEventListenerObject, useCapture?: boolean): void;
@@ -2847,7 +2861,7 @@ declare var HTMLDListElement: {
     new(): HTMLDListElement;
 }
 
-interface HTMLDataListElement extends HTMLElement {
+interface HTMLDataListElement extends SafeHTMLElement {
     options: HTMLCollectionOf<HTMLOptionElement>;
     addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLDataListElement, ev: HTMLElementEventMap[K]) => any, useCapture?: boolean): void;
     addEventListener(type: string, listener: EventListenerOrEventListenerObject, useCapture?: boolean): void;
@@ -2858,7 +2872,7 @@ declare var HTMLDataListElement: {
     new(): HTMLDataListElement;
 }
 
-interface HTMLDetailsElement extends HTMLElement {
+interface HTMLDetailsElement extends SafeHTMLElement {
     open: boolean;
 }
 
@@ -2871,7 +2885,7 @@ interface Window {
     HTMLDetailsElement?: typeof HTMLDetailsElement | Element | RadioNodeList | Window;
 }
 
-interface HTMLDialogElement extends HTMLElement {
+interface HTMLDialogElement extends SafeHTMLElement {
     open: boolean;
     returnValue: string;
     close(returnValue?: string): void;
@@ -2884,7 +2898,7 @@ declare var HTMLDialogElement: {
     new(): HTMLDialogElement;
 };
 
-interface HTMLDirectoryElement extends HTMLElement {
+interface HTMLDirectoryElement extends SafeHTMLElement {
     compact: boolean;
     addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLDirectoryElement, ev: HTMLElementEventMap[K]) => any, useCapture?: boolean): void;
     addEventListener(type: string, listener: EventListenerOrEventListenerObject, useCapture?: boolean): void;
@@ -2895,7 +2909,7 @@ declare var HTMLDirectoryElement: {
     new(): HTMLDirectoryElement;
 }
 
-interface HTMLDivElement extends HTMLElement {
+interface HTMLDivElement extends SafeHTMLElement {
     /**
       * Sets or retrieves how the object is aligned with adjacent text. 
       */
@@ -3101,7 +3115,7 @@ declare var HTMLElement: {
     new(): HTMLElement;
 }
 
-interface HTMLEmbedElement extends HTMLElement, GetSVGDocument {
+interface HTMLEmbedElement extends SafeHTMLElement, GetSVGDocument {
     /**
       * Sets or retrieves the height of the object.
       */
@@ -3142,7 +3156,7 @@ declare var HTMLEmbedElement: {
     new(): HTMLEmbedElement;
 }
 
-interface HTMLFieldSetElement extends HTMLElement {
+interface HTMLFieldSetElement extends SafeHTMLElement {
     /**
       * Sets or retrieves how the object is aligned with adjacent text.
       */
@@ -3184,7 +3198,7 @@ declare var HTMLFieldSetElement: {
     new(): HTMLFieldSetElement;
 }
 
-interface HTMLFontElement extends HTMLElement, DOML2DeprecatedColorProperty, DOML2DeprecatedSizeProperty {
+interface HTMLFontElement extends SafeHTMLElement, DOML2DeprecatedColorProperty, DOML2DeprecatedSizeProperty {
     /**
       * Sets or retrieves the current typeface family.
       */
@@ -3281,7 +3295,8 @@ interface HTMLFrameElementEventMap extends HTMLElementEventMap {
     "load": Event;
 }
 
-interface HTMLFrameElement extends HTMLElement, GetSVGDocument {
+
+interface HTMLFrameElement extends SafeHTMLElement, GetSVGDocument {
     /**
       * Specifies the properties of a border drawn around an object.
       */
@@ -3433,7 +3448,7 @@ declare var HTMLFrameSetElement: {
     new(): HTMLFrameSetElement;
 }
 
-interface HTMLHRElement extends HTMLElement, DOML2DeprecatedColorProperty, DOML2DeprecatedSizeProperty {
+interface HTMLHRElement extends SafeHTMLElement, DOML2DeprecatedColorProperty, DOML2DeprecatedSizeProperty {
     /**
       * Sets or retrieves how the object is aligned with adjacent text.
       */
@@ -3455,7 +3470,7 @@ declare var HTMLHRElement: {
     new(): HTMLHRElement;
 }
 
-interface HTMLHeadElement extends HTMLElement {
+interface HTMLHeadElement extends SafeHTMLElement {
     profile: string;
     addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLHeadElement, ev: HTMLElementEventMap[K]) => any, useCapture?: boolean): void;
     addEventListener(type: string, listener: EventListenerOrEventListenerObject, useCapture?: boolean): void;
@@ -3466,7 +3481,7 @@ declare var HTMLHeadElement: {
     new(): HTMLHeadElement;
 }
 
-interface HTMLHeadingElement extends HTMLElement {
+interface HTMLHeadingElement extends SafeHTMLElement {
     /**
       * Sets or retrieves a value that indicates the table alignment.
       */
@@ -3480,7 +3495,7 @@ declare var HTMLHeadingElement: {
     new(): HTMLHeadingElement;
 }
 
-interface HTMLHtmlElement extends HTMLElement {
+interface HTMLHtmlElement extends SafeHTMLElement {
     readonly tagName: "HTML";
     readonly nodeName: "HTML";
     readonly localName: "html";
@@ -3501,7 +3516,7 @@ interface HTMLIFrameElementEventMap extends HTMLElementEventMap {
     "load": Event;
 }
 
-interface HTMLIFrameElement extends HTMLElement, GetSVGDocument {
+interface HTMLIFrameElement extends SafeHTMLElement, GetSVGDocument {
     /**
       * Sets or retrieves how the object is aligned with adjacent text.
       */
@@ -3586,7 +3601,7 @@ declare var HTMLIFrameElement: {
     new(): HTMLIFrameElement;
 }
 
-interface HTMLImageElement extends HTMLElement {
+interface HTMLImageElement extends SafeHTMLElement {
     readonly tagName: "IMG";
     readonly nodeName: "IMG";
     readonly localName: "img";
@@ -3669,7 +3684,7 @@ declare var HTMLImageElement: {
     new(): HTMLImageElement;
 }
 
-interface HTMLInputElement extends HTMLElement {
+interface HTMLInputElement extends SafeHTMLElement {
     readonly tagName: "INPUT";
     readonly nodeName: "INPUT";
     readonly localName: "input";
@@ -3904,7 +3919,7 @@ declare var HTMLInputElement: {
     new(): HTMLInputElement;
 }
 
-interface HTMLLIElement extends HTMLElement {
+interface HTMLLIElement extends SafeHTMLElement {
     type: string;
     /**
       * Sets or retrieves the value of a list item.
@@ -3919,7 +3934,7 @@ declare var HTMLLIElement: {
     new(): HTMLLIElement;
 }
 
-interface HTMLLabelElement extends HTMLElement {
+interface HTMLLabelElement extends SafeHTMLElement {
     /**
       * Retrieves a reference to the form that the object is embedded in.
       */
@@ -3938,7 +3953,7 @@ declare var HTMLLabelElement: {
     new(): HTMLLabelElement;
 }
 
-interface HTMLLegendElement extends HTMLElement {
+interface HTMLLegendElement extends SafeHTMLElement {
     /**
       * Retrieves a reference to the form that the object is embedded in.
       */
@@ -3956,7 +3971,7 @@ declare var HTMLLegendElement: {
     new(): HTMLLegendElement;
 }
 
-interface HTMLLinkElement extends HTMLElement, LinkStyle {
+interface HTMLLinkElement extends SafeHTMLElement, LinkStyle {
     /**
       * Sets or retrieves the character set used to encode the object.
       */
@@ -4001,7 +4016,7 @@ declare var HTMLLinkElement: {
     new(): HTMLLinkElement;
 }
 
-interface HTMLMapElement extends HTMLElement {
+interface HTMLMapElement extends SafeHTMLElement {
     /**
       * Retrieves a collection of the area objects defined for the given map object.
       */
@@ -4025,7 +4040,7 @@ interface HTMLMarqueeElementEventMap extends HTMLElementEventMap {
     "start": Event;
 }
 
-interface HTMLMarqueeElement extends HTMLElement {
+interface HTMLMarqueeElement extends SafeHTMLElement {
     behavior: string;
     bgColor: any;
     direction: string;
@@ -4055,7 +4070,7 @@ declare var HTMLMarqueeElement: {
 interface HTMLMediaElementEventMap extends HTMLElementEventMap {
 }
 
-interface HTMLMediaElement extends HTMLElement {
+interface HTMLMediaElement extends SafeHTMLElement {
 }
 
 declare var HTMLMediaElement: {
@@ -4072,7 +4087,7 @@ declare var HTMLMediaElement: {
     readonly NETWORK_NO_SOURCE: number;
 }
 
-interface HTMLMenuElement extends HTMLElement {
+interface HTMLMenuElement extends SafeHTMLElement {
     compact: boolean;
     type: string;
     addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLMenuElement, ev: HTMLElementEventMap[K]) => any, useCapture?: boolean): void;
@@ -4084,7 +4099,7 @@ declare var HTMLMenuElement: {
     new(): HTMLMenuElement;
 }
 
-interface HTMLMetaElement extends HTMLElement {
+interface HTMLMetaElement extends SafeHTMLElement {
     /**
       * Sets or retrieves the character set used to encode the object.
       */
@@ -4118,7 +4133,7 @@ declare var HTMLMetaElement: {
     new(): HTMLMetaElement;
 }
 
-interface HTMLMeterElement extends HTMLElement {
+interface HTMLMeterElement extends SafeHTMLElement {
     high: number;
     low: number;
     max: number;
@@ -4134,7 +4149,7 @@ declare var HTMLMeterElement: {
     new(): HTMLMeterElement;
 }
 
-interface HTMLModElement extends HTMLElement {
+interface HTMLModElement extends SafeHTMLElement {
     /**
       * Sets or retrieves reference information about the object.
       */
@@ -4152,7 +4167,7 @@ declare var HTMLModElement: {
     new(): HTMLModElement;
 }
 
-interface HTMLOListElement extends HTMLElement {
+interface HTMLOListElement extends SafeHTMLElement {
     compact: boolean;
     /**
       * The starting number.
@@ -4168,7 +4183,7 @@ declare var HTMLOListElement: {
     new(): HTMLOListElement;
 }
 
-interface HTMLObjectElement extends HTMLElement, GetSVGDocument {
+interface HTMLObjectElement extends SafeHTMLElement, GetSVGDocument {
     /**
       * Retrieves a string of the URL where the object tag can be found. This is often the href of the document that the object is in, or the value set by a base element.
       */
@@ -4270,7 +4285,7 @@ declare var HTMLObjectElement: {
     new(): HTMLObjectElement;
 }
 
-interface HTMLOptGroupElement extends HTMLElement {
+interface HTMLOptGroupElement extends SafeHTMLElement {
     /**
       * Sets or retrieves the status of an option.
       */
@@ -4309,7 +4324,7 @@ declare var HTMLOptGroupElement: {
     new(): HTMLOptGroupElement;
 }
 
-interface HTMLOptionElement extends HTMLElement {
+interface HTMLOptionElement extends SafeHTMLElement {
     /**
       * Sets or retrieves the status of an option.
       */
@@ -4360,7 +4375,7 @@ declare var HTMLOptionsCollection: {
     new(): HTMLOptionsCollection;
 }
 
-interface HTMLOutputElement extends HTMLElement {
+interface HTMLOutputElement extends SafeHTMLElement {
     defaultValue: string;
     readonly form: HTMLFormElement;
     readonly htmlFor: DOMSettableTokenList;
@@ -4382,7 +4397,7 @@ declare var HTMLOutputElement: {
     new(): HTMLOutputElement;
 }
 
-interface HTMLParagraphElement extends HTMLElement {
+interface HTMLParagraphElement extends SafeHTMLElement {
     /**
       * Sets or retrieves how the object is aligned with adjacent text. 
       */
@@ -4397,7 +4412,7 @@ declare var HTMLParagraphElement: {
     new(): HTMLParagraphElement;
 }
 
-interface HTMLParamElement extends HTMLElement {
+interface HTMLParamElement extends SafeHTMLElement {
     /**
       * Sets or retrieves the name of an input parameter for an element.
       */
@@ -4423,7 +4438,7 @@ declare var HTMLParamElement: {
     new(): HTMLParamElement;
 }
 
-interface HTMLPictureElement extends HTMLElement {
+interface HTMLPictureElement extends SafeHTMLElement {
     addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLPictureElement, ev: HTMLElementEventMap[K]) => any, useCapture?: boolean): void;
     addEventListener(type: string, listener: EventListenerOrEventListenerObject, useCapture?: boolean): void;
 }
@@ -4433,7 +4448,7 @@ declare var HTMLPictureElement: {
     new(): HTMLPictureElement;
 }
 
-interface HTMLPreElement extends HTMLElement {
+interface HTMLPreElement extends SafeHTMLElement {
     /**
       * Sets or gets a value that you can use to implement your own width functionality for the object.
       */
@@ -4447,7 +4462,7 @@ declare var HTMLPreElement: {
     new(): HTMLPreElement;
 }
 
-interface HTMLProgressElement extends HTMLElement {
+interface HTMLProgressElement extends SafeHTMLElement {
     /**
       * Retrieves a reference to the form that the object is embedded in.
       */
@@ -4473,7 +4488,7 @@ declare var HTMLProgressElement: {
     new(): HTMLProgressElement;
 }
 
-interface HTMLQuoteElement extends HTMLElement {
+interface HTMLQuoteElement extends SafeHTMLElement {
     /**
       * Sets or retrieves reference information about the object.
       */
@@ -4487,7 +4502,7 @@ declare var HTMLQuoteElement: {
     new(): HTMLQuoteElement;
 }
 
-interface HTMLScriptElement extends HTMLElement {
+interface HTMLScriptElement extends SafeHTMLElement {
     async: boolean;
     /**
       * Sets or retrieves the character set used to encode the object.
@@ -4528,7 +4543,7 @@ declare var HTMLScriptElement: {
     new(): HTMLScriptElement;
 }
 
-interface HTMLSelectElement extends HTMLElement {
+interface HTMLSelectElement extends SafeHTMLElement {
     readonly labels: NodeListOf<HTMLLabelElement>;
     /**
       * Provides a way to direct a user to a specific field when a document loads.
@@ -4632,7 +4647,7 @@ declare var HTMLSelectElement: {
     new(): HTMLSelectElement;
 }
 
-interface HTMLSourceElement extends HTMLElement {
+interface HTMLSourceElement extends SafeHTMLElement {
     /**
       * Gets or sets the intended media type of the media source.
      */
@@ -4656,7 +4671,7 @@ declare var HTMLSourceElement: {
     new(): HTMLSourceElement;
 }
 
-interface HTMLSpanElement extends HTMLElement {
+interface HTMLSpanElement extends SafeHTMLElement {
     addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLSpanElement, ev: HTMLElementEventMap[K]) => any, useCapture?: boolean): void;
     addEventListener(type: string, listener: EventListenerOrEventListenerObject, useCapture?: boolean): void;
 }
@@ -4666,7 +4681,7 @@ declare var HTMLSpanElement: {
     new(): HTMLSpanElement;
 }
 
-interface HTMLStyleElement extends HTMLElement, LinkStyle {
+interface HTMLStyleElement extends SafeHTMLElement, LinkStyle {
     /**
      * not exist in https://html.spec.whatwg.org/multipage/semantics.html#the-style-element
      * https://www.w3.org/Bugs/Public/show_bug.cgi?id=14703
@@ -4690,7 +4705,7 @@ declare var HTMLStyleElement: {
     new(): HTMLStyleElement;
 }
 
-interface HTMLTableCaptionElement extends HTMLElement {
+interface HTMLTableCaptionElement extends SafeHTMLElement {
     /**
       * Sets or retrieves the alignment of the caption or legend.
       */
@@ -4708,7 +4723,7 @@ declare var HTMLTableCaptionElement: {
     new(): HTMLTableCaptionElement;
 }
 
-interface HTMLTableCellElement extends HTMLElement, HTMLTableAlignment {
+interface HTMLTableCellElement extends SafeHTMLElement, HTMLTableAlignment {
     /**
       * Sets or retrieves abbreviated text for the object.
       */
@@ -4763,7 +4778,7 @@ declare var HTMLTableCellElement: {
     new(): HTMLTableCellElement;
 }
 
-interface HTMLTableColElement extends HTMLElement, HTMLTableAlignment {
+interface HTMLTableColElement extends SafeHTMLElement, HTMLTableAlignment {
     /**
       * Sets or retrieves the alignment of the object relative to the display or table.
       */
@@ -4793,7 +4808,7 @@ declare var HTMLTableDataCellElement: {
     new(): HTMLTableDataCellElement;
 }
 
-interface HTMLTableElement extends HTMLElement {
+interface HTMLTableElement extends SafeHTMLElement {
     /**
       * Sets or retrieves a value that indicates the table alignment.
       */
@@ -4918,7 +4933,7 @@ declare var HTMLTableHeaderCellElement: {
     new(): HTMLTableHeaderCellElement;
 }
 
-interface HTMLTableRowElement extends HTMLElement, HTMLTableAlignment {
+interface HTMLTableRowElement extends SafeHTMLElement, HTMLTableAlignment {
     /**
       * Sets or retrieves how the object is aligned with adjacent text.
       */
@@ -4960,7 +4975,7 @@ declare var HTMLTableRowElement: {
     new(): HTMLTableRowElement;
 }
 
-interface HTMLTableSectionElement extends HTMLElement, HTMLTableAlignment {
+interface HTMLTableSectionElement extends SafeHTMLElement, HTMLTableAlignment {
     innerText: never;
     /**
       * Sets or retrieves a value that indicates the table alignment.
@@ -4989,7 +5004,7 @@ declare var HTMLTableSectionElement: {
     new(): HTMLTableSectionElement;
 }
 
-interface HTMLTemplateElement extends HTMLElement {
+interface HTMLTemplateElement extends SafeHTMLElement {
     readonly content: DocumentFragment;
     addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLTemplateElement, ev: HTMLElementEventMap[K]) => any, useCapture?: boolean): void;
     addEventListener(type: string, listener: EventListenerOrEventListenerObject, useCapture?: boolean): void;
@@ -5000,7 +5015,7 @@ declare var HTMLTemplateElement: {
     new(): HTMLTemplateElement;
 }
 
-interface HTMLTextAreaElement extends HTMLElement {
+interface HTMLTextAreaElement extends SafeHTMLElement {
     readonly tagName: "TEXTAREA";
     readonly nodeName: "TEXTAREA";
     readonly localName: "textarea";
@@ -5120,7 +5135,7 @@ declare var HTMLTextAreaElement: {
     new(): HTMLTextAreaElement;
 }
 
-interface HTMLTimeElement extends HTMLElement {
+interface HTMLTimeElement extends SafeHTMLElement {
     dateTime: string;
     addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLTimeElement, ev: HTMLElementEventMap[K]) => any, useCapture?: boolean): void;
     addEventListener(type: string, listener: EventListenerOrEventListenerObject, useCapture?: boolean): void;
@@ -5131,7 +5146,7 @@ declare var HTMLTimeElement: {
     new(): HTMLTimeElement;
 }
 
-interface HTMLTitleElement extends HTMLElement {
+interface HTMLTitleElement extends SafeHTMLElement {
     /**
       * Retrieves or sets the text of the object as a string. 
       */
@@ -5145,7 +5160,7 @@ declare var HTMLTitleElement: {
     new(): HTMLTitleElement;
 }
 
-interface HTMLTrackElement extends HTMLElement {
+interface HTMLTrackElement extends SafeHTMLElement {
     default: boolean;
     kind: string;
     label: string;
@@ -5170,7 +5185,7 @@ declare var HTMLTrackElement: {
     readonly NONE: number;
 }
 
-interface HTMLUListElement extends HTMLElement {
+interface HTMLUListElement extends SafeHTMLElement {
     compact: boolean;
     type: string;
     addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLUListElement, ev: HTMLElementEventMap[K]) => any, useCapture?: boolean): void;
@@ -5182,7 +5197,7 @@ declare var HTMLUListElement: {
     new(): HTMLUListElement;
 }
 
-interface HTMLUnknownElement extends HTMLElement {
+interface HTMLUnknownElement extends SafeHTMLElement {
     addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLUnknownElement, ev: HTMLElementEventMap[K]) => any, useCapture?: boolean): void;
     addEventListener(type: string, listener: EventListenerOrEventListenerObject, useCapture?: boolean): void;
 }
@@ -5489,12 +5504,8 @@ interface MouseEvent extends UIEvent {
         , buttonArg: NonNullable<MouseEventInit["button"]>, relatedTargetArg: EventTarget | null): void;
 }
 
-type OptionalMouseEventInitKeys = "sourceCapabilities";
-type ValidMouseEventInit = {
-    [P in Exclude<keyof MouseEventInit, OptionalMouseEventInitKeys>]-?: Exclude<MouseEventInit[P], undefined>;
-} & {
-    [P in OptionalMouseEventInitKeys]?: MouseEventInit[P];
-};
+type OptionalMouseEventInitKeys = "sourceCapabilities" | keyof EventInit
+type ValidMouseEventInit = WithoutUndef<MouseEventInit, Exclude<keyof MouseEventInit, OptionalMouseEventInitKeys>>
 declare var MouseEvent: {
     prototype: MouseEvent;
     new(typeArg: string, eventInitDict?: ValidMouseEventInit): MouseEvent;
@@ -8079,15 +8090,14 @@ interface TouchEvent extends UIEvent {
     readonly targetTouches: TouchList;
     readonly touches: TouchList;
 }
-
+interface TouchEventInit extends EventInit {
+  touches?: Touch[];
+  targetTouches?: Touch[];
+  changedTouches?: Touch[];
+}
 declare var TouchEvent: {
     prototype: TouchEvent;
-    new (type: "touchstart" | "touchend", touchEventInit: {
-      cancelable: boolean, bubbles: boolean;
-      touches?: Touch[];
-      targetTouches?: Touch[];
-      changedTouches?: Touch[];
-    }): TouchEvent;
+    new (type: "touchstart" | "touchend", touchEventInit: TouchEventInit): TouchEvent;
 }
 
 interface TouchList {
@@ -9010,7 +9020,7 @@ interface ShadowRootInit {
     delegatesFocus?: boolean;
 }
 
-interface HTMLSlotElement extends HTMLElement {
+interface HTMLSlotElement extends SafeHTMLElement {
     name: string;
     assignedNodes(options?: AssignedNodesOptions): Node[];
 }

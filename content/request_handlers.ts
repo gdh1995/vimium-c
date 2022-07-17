@@ -246,7 +246,7 @@ export const showFrameMask = (mask: FrameMaskType): void => {
     frame_mask = 2
     return
   }
-  let framemask_node: HTMLElement, framemask_fmTimer: ValidIntervalID
+  let framemask_node: HTMLBodyElement | HTMLDivElement, framemask_fmTimer: ValidIntervalID
     framemask_node = createElement_(OnChrome
         && Build.MinCVer < BrowserVer.MinForcedColorsMode ? getBoxTagName_old_cr() : "div")
     setClassName_s(framemask_node, "R Frame" + (mask === FrameMaskType.OnlySelf ? " One" : ""))

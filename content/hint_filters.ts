@@ -63,7 +63,7 @@ export const adjustMarkers = (arr: readonly HintItem[], elements: readonly Hint[
       ? maxRight_ * zi : 0,
   mt = !OnChrome || Build.MinCVer < BrowserVer.MinAbsolutePositionNotCauseScrollbar
       ? maxTop_ * zi : 0;
-  while (0 <= i && contains_s(ui_root, arr[i].d)) {
+  while (0 <= i && ui_root.contains(arr[i].d)) {
     let st = arr[i--].m.style;
     OnFirefox || (st.zoom = z)
     if (OnChrome && Build.MinCVer >= BrowserVer.MinAbsolutePositionNotCauseScrollbar) {
@@ -517,7 +517,7 @@ export const matchHintsByKey = (keyStatus: KeyStatus
 // https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/dom/dom_token_list.cc?q=DOMTokenList::setValue&g=0&l=258
 // shows that `.classList.add()` costs more
       for (let j = limit > hintN ? hintN : limit, end = limit > hintN ? limit : hintN; j < end; j++) {
-        ((ref[j] as MarkerElementChild).className = j < limit ? "MC" : "");
+        setClassName_s(ref[j] as MarkerElementChild, j < limit ? "MC" : "")
       }
       hint.i = limit
     }

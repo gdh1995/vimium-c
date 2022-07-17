@@ -38,7 +38,7 @@ export const docEl_unsafe_ = (): Element | null => doc.documentElement
 export const activeEl_unsafe_ = (): Element | null => doc.activeElement
 
 export const querySelector_unsafe_ = (selector: string
-    , scope?: SafeElement | ShadowRoot | Document | HTMLDivElement | HTMLDetailsElement
+    , scope?: SafeElement | ShadowRoot | Document | HTMLDetailsElement
     ): Element | null => (scope || doc).querySelector(selector)
 
 export const querySelectorAll_unsafe_ = ((selector: string, scope?: Element | ShadowRoot | null
@@ -72,7 +72,7 @@ export const isNode_ = <T extends keyof kNodeToType> (node: Node, typeId: T): no
 
 export const rangeCount_ = (sel: Selection): number => sel.rangeCount
 
-export const contains_s = (par: SafeElement | Document | ShadowRoot | HTMLDivElement, child: Node): boolean =>
+export const contains_s = (par: SafeElement, child: Node): boolean =>
     par.contains(child)
 
 export const attr_s = (el: SafeElement, attr: string): string | null => el.getAttribute(attr)
@@ -352,14 +352,14 @@ export const IsInDOM_ = function (element: Element, root?: Element | Document | 
       , checkMouseEnter?: 1): boolean {
     if (!root || isNode_(root as Element | Document, kNode.DOCUMENT_NODE)) {
       const isConnected = element.isConnected; /** {@link #BrowserVer.Min$Node$$isConnected} */
-      if (!(OnChrome && Build.MinCVer < BrowserVer.Min$Node$$isConnected || OnEdge) || isConnected != null
+      if (!(OnChrome && Build.MinCVer < BrowserVer.Min$Node$$isConnected || OnEdge) || isConnected !== void 0
           || !(root = root || element.ownerDocument as Document | null)) {
         return (OnChrome && Build.MinCVer < BrowserVer.Min$Node$$isConnected || OnEdge ? !!isConnected
             : isConnected as boolean) && (!root || element.ownerDocument === root)
       }
     }
     let pe: Node | null | undefined = element
-    while (pe && !(OnFirefox ? contains_s(root as SafeElement | Document, pe)
+    while (pe && !(OnFirefox ? root.contains(pe)
         : element.contains.call((root as Element | Document), pe))) {
       pe = !OnEdge && (!OnChrome || Build.MinCVer >= BrowserVer.Min$Node$$getRootNode
         || chromeVer_ > BrowserVer.Min$Node$$getRootNode - 1) ? getRootNode_mounted(pe as SafeElement) : null
@@ -558,7 +558,7 @@ export let createElement_ = doc.createElement.bind(doc) as {
 }
 export function set_createElement_ (_newCreateEl: typeof createElement_): void { createElement_ = _newCreateEl }
 
-export const appendNode_s = (parent: SafeElement | Document | HTMLDivElement | HTMLDialogElement | DocumentFragment
+export const appendNode_s = (parent: SafeElement | Document | HTMLDialogElement | DocumentFragment
     , child: Element | DocumentFragment | Text): void => {
   OnChrome && Build.MinCVer < BrowserVer.MinEnsured$ParentNode$$appendAndPrepend
       ? parent.appendChild(child) : parent.append!(child) // lgtm [js/xss] lgtm [js/xss-through-dom]
@@ -569,19 +569,19 @@ export const append_not_ff = !OnFirefox ? (parent: Element, child: HTMLElement):
       ? ElementProto_not_ff!.appendChild : ElementProto_not_ff!.append!).call(parent, child)
 } : 0 as never
 
-export const removeEl_s = (el: SafeElement | HTMLDialogElement | HTMLScriptElement | HTMLSpanElement): void => {
+export const removeEl_s = (el: SafeElement | HTMLDialogElement | HTMLScriptElement): void => {
   el.remove()
 }
 
-export const setClassName_s = (el: SafeHTMLElement | HTMLDivElement | HTMLSpanElement, className: string): void => {
+export const setClassName_s = (el: SafeHTMLElement, className: string): void => {
   el.className = className
 }
 
-export const setVisibility_s = (el: SafeHTMLElement | HTMLDivElement | HTMLSpanElement, visible: boolean): void => {
+export const setVisibility_s = (el: SafeHTMLElement, visible: boolean): void => {
   el.style.visibility = visible ? "" : HDN
 }
 
-export const setDisplaying_s = (el: SafeHTMLElement | HTMLDivElement | HTMLSpanElement, display?: BOOL): void => {
+export const setDisplaying_s = (el: SafeHTMLElement, display?: BOOL): void => {
   el.style.display = display ? "" : NONE
 }
 
@@ -589,7 +589,7 @@ export const setOrRemoveAttr_s = (el: SafeElement, attr: string, newVal?: string
   newVal != null ? el.setAttribute(attr, newVal) : el.removeAttribute(attr)
 }
 
-export const toggleClass_s = (el: SafeElement | HTMLDivElement | HTMLDialogElement
+export const toggleClass_s = (el: SafeElement | HTMLDialogElement
     , className: string, force?: boolean | BOOL | null): void => {
   const list = el.classList
   force != null ? list.toggle(className, !!force) : list.toggle(className)

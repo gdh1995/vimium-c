@@ -11,6 +11,8 @@ import {
   extractField, querySelectorAll_unsafe_, editableTypes_, findAnchor_
 } from "../lib/dom_utils"
 import { getPreferredRectOfAnchor, initTestRegExps } from "./local_links"
+// @ts-ignore
+import type { ModesWithOnlyHTMLElements } from "./local_links"
 import {
   hintOptions, mode1_, hintMode_, hintApi, hintManager, coreHints, setMode, detectUsableChild, hintCount_,
   ExecutableHintItem, forHover_
@@ -26,7 +28,7 @@ import { set_grabBackFocus } from "./insert"
 import {
   kClickAction, kClickButton, unhover_async, hover_async, click_async, select_, catchAsyncErrorSilently
 } from "./async_dispatcher"
-import { omni_box, focusOmni } from "./omni"
+import { omni_box, Status as VomnibarStatus, omni_status, postToOmni } from "./omni"
 import { execCommand } from "./mode_find"
 type LinkEl = Hint[0];
 /* eslint-disable @typescript-eslint/no-floating-promises */
@@ -211,6 +213,7 @@ const copyText = (): void => {
         childEl: Element | null, files: HTMLInputElement["files"],
         str: string | null | undefined;
     if (isUrl) {
+      /** satisfy {@link ModesWithOnlyHTMLElements} */
       str = getUrlData()
     }
     else if (str = accessElAttr(2)[0].trim()) { /* empty */ }
@@ -237,10 +240,7 @@ const copyText = (): void => {
                     && htmlTag_<1>(childEl) && childEl.innerText.trim())
             || (str = extractTextContent()) && str.replace(<RegExpG> /\s+/g, " ")
       }
-      str = str && str.trim();
-      if (!str && tag) {
-        str = (clickEl as SafeHTMLElement).title.trim() || (attr_s(clickEl, ALA) || "").trim();
-      }
+      str = str && str.trim() || tag && (clickEl as SafeHTMLElement).title.trim() || (attr_s(clickEl, ALA) || "").trim()
     }
   str && (<RegExpI> /^mailto:./).test(str) && (str = str.slice(7).trim())
   if (mode1_ > HintMode.min_edit - 1 && mode1_ < HintMode.max_edit + 1) {
@@ -419,7 +419,7 @@ const autoShowRect = (): Rect | null => (removeFlash || showRect && rect && flas
           }, (res): void => { res || clickEl.contentWindow.focus() })
         }
       } else {
-        focusOmni()
+        omni_status < VomnibarStatus.Showing || postToOmni(VomnibarNS.kCReq.focus)
       }
     } else if (mode1_ < HintMode.min_job || mode1_ === HintMode.FOCUS_EDITABLE) {
       if (tag === "details") {
@@ -457,8 +457,10 @@ const autoShowRect = (): Rect | null => (removeFlash || showRect && rect && flas
     } else if (mode1_ < HintMode.max_copying + 1) {
       copyText()
     } else if (mode1_ < HintMode.DOWNLOAD_LINK + 1) {
+      /** satisfy {@link ModesWithOnlyHTMLElements} */
       downloadLink()
     } else if (mode1_ < HintMode.OPEN_INCOGNITO_LINK + 1) {
+      /** satisfy {@link ModesWithOnlyHTMLElements} */
       openTextOrUrl(getUrlData())
     } else if (mode1_ < HintMode.max_edit + 1) {
       copyText()
