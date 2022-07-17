@@ -247,6 +247,8 @@ export const safeCall = (<T1, T2, Ret>(func: (arg1: T1, arg2: T2) => Ret, arg1: 
   <T1, T2, Ret>(func: (arg1: T1, arg2: T2) => Ret, arg1: T1, arg2: T2): Ret | void
 }
 
+export const reflectApply_not_cr = OnChrome ? 0 as never as null : Reflect!.apply
+
 /** ==== shortcuts of constant code ==== */
 
 type PlainObject = { arguments?: undefined } & Dict<any>

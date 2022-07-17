@@ -679,7 +679,7 @@ interface FgReq {
   };
   [kFgReq.respondForRunKey]: {
     r: BgReq[kBgReq.queryForRunKey]
-    /** active element */ e: [tag: string, id: string, className: string] | null
+    /** active element */ e: [tag: string, id: string, className: string | null] | null
   }
   [kFgReq.downloadLink]: {
     /** url */ u: string

@@ -7,7 +7,7 @@ import {
 import { set_keyIdCorrectionOffset_old_cr_, handler_stack, suppressTail_ } from "../lib/keyboard_utils"
 import {
   editableTypes_, markFramesetTagUnsafe_old_cr, OnDocLoaded_, BU, docHasFocus_, deepActiveEl_unsafe_,
-  htmlTag_, querySelector_unsafe_, isHTML_, createElement_, setClassName_s, onReadyState_,
+  hasTag_, querySelector_unsafe_, isHTML_, createElement_, setClassName_s, onReadyState_,
   docEl_unsafe_, scrollIntoView_, CLK, ElementProto_not_ff, isIFrameElement, DAC, removeEl_s, toggleClass_s, getElDesc_
 } from "../lib/dom_utils"
 import {
@@ -163,7 +163,7 @@ set_requestHandlers([
     if (mask === FrameMaskType.NormalNext
       && (checkHidden()
           // check <div> to detect whether no other visible elements except <frame>s in this frame
-          || (doc.body && htmlTag_(doc.body) === "frameset")
+          || (doc.body && hasTag_("frameset", doc.body))
               && (div = querySelector_unsafe_("div"), !div || div === ui_box && !handler_stack.length))
     ) {
       post_({ H: kFgReq.nextFrame, k: req.k, f: req.f })

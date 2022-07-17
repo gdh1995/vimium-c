@@ -193,7 +193,7 @@ export const normalizeClassesToMatch_ = (s: string): string[] =>
     s.trim() ? s.trim().split(<RegExpG> /[.\s]+/g).sort().filter(i => !!i) : []
 
 export const normalizeElDesc_ = (e: FgReq[kFgReq.respondForRunKey]["e"]): CurrentEnvCache["element"] =>
-    e && [e[0], e[1], normalizeClassesToMatch_(e[2])] || 0
+    e && [e[0], e[1], normalizeClassesToMatch_(e[2] || "")] || 0
 
 export const makeRegexp_ = (pattern: string, suffix: string, logError?: 0): RegExp | null => {
     try {

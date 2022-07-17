@@ -521,7 +521,9 @@ export const singleSelectionElement_unsafe = (sel: Selection): Element | null =>
 }
 
 export const getElDesc_ = (el: Element | null): FgReq[kFgReq.respondForRunKey]["e"] =>
-    el && (OnFirefox || !notSafe_not_ff_!(el)) && [(el as SafeElement).localName, el.id, el.className] || null
+    // if el is SVGElement, then el.className is SVGAnimatedString
+    el && (OnFirefox || !notSafe_not_ff_!(el)) && [(el as SafeElement).localName, el.id
+        , attr_s(el as SafeElement, "class")] || null
 
 export const extractField = (el: SafeElement, props: string): string => {
   type primitiveObject = boolean | number | string | { arguments?: undefined } & Dict<any>

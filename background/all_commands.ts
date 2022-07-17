@@ -230,7 +230,7 @@ set_bgC_([
               : evKey === "$" && evKey.length > 1 ? evKey.slice(1) : evKey
           if (keyCode && dict.keyCode == null) { destDict.keyCode = +info[1]}
           if (keyCode && dict.which == null) { destDict.which = +info[1]}
-          if (info.length >= 3 && dict.code == null) { destDict.code = info[2] || info[0] }
+          if (info.length >= 3 && info[2] || dict.code == null) { destDict.code = info[2] || info[0] }
         }
       }
       opts2.type = type
@@ -624,7 +624,7 @@ set_bgC_([
           })
         })
       }
-      cb === undefined ? resolve(0) : notActive ? selectTab(curTabId, runNext) : resolve(1)
+      restored === undefined ? resolve(0) : notActive ? selectTab(curTabId, runNext) : resolve(1)
     }
     ; (async (): Promise<void> => {
       const expected = Math.max((count * 1.2) | 0, 2)

@@ -434,7 +434,8 @@ set_contentCommands_([
     } else if (id) {
       el = createStyle(options.css!)
       el.id = id
-      par = OnFirefox ? (doc.head || docEl_unsafe_()) as SafeElement | null : SafeEl_not_ff_!(doc.head)
+      par = OnFirefox ? (doc.head || docEl_unsafe_()) as SafeElement | null
+          : SafeEl_not_ff_!(doc.head || docEl_unsafe_())
       par && appendNode_s(par, el)
     }
     (el || id) && runFallbackKey(options, 0)

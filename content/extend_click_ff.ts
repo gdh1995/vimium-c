@@ -1,6 +1,6 @@
 import {
   clickable_, timeout_, loc_, getTime, clearTimeout_, vApi, recordLog, doc, setupEventListener, VTr, raw_unwrap_ff,
-  isTY, OnFirefox, isAsContent, isEnabled_
+  isTY, OnFirefox, isAsContent, isEnabled_, reflectApply_not_cr
 } from "../lib/utils"
 import { CLK, MDW, OnDocLoaded_, isHTML_, set_createElement_, createElement_, onReadyState_ } from "../lib/dom_utils"
 import { grabBackFocus, insertInit } from "./insert"
@@ -23,7 +23,6 @@ export { clickEventToPrevent_ }
 const eportToMainWorld = <T extends object, K extends (keyof T) & string> (obj: T, name: K, func: T[K]): void => {
   exportFunction(func, obj, { defineAs: name, allowCrossOriginArguments: true })
 }
-const apply = Reflect!.apply
 
 export const main_ff = (OnFirefox ? (): void => {
   isHTML_() || set_createElement_(doc.createElementNS.bind(doc, VTr(kTip.XHTML) as "http://www.w3.org/1999/xhtml"
@@ -36,7 +35,7 @@ export const main_ff = (OnFirefox ? (): void => {
   newListen = function (this: EventTarget, type: string, listener: EventListenerOrEventListenerObject): void {
       const a = this, args = arguments, len = args.length
       len === 2 ? listen(a, type, listener) : len === 3 ? listen(a, type, listener, args[2] as EventListenerOptions)
-        : apply(_listen!, a, args)
+        : reflectApply_not_cr!(_listen!, a, args)
       if ((type === CLK || type === MDW || type === "dblclick") && alive
           && listener && !(a instanceof HTMLAnchorElement) && a instanceof Element) {
         if (!Build.NDEBUG) {
@@ -51,7 +50,7 @@ export const main_ff = (OnFirefox ? (): void => {
   docOpenHook = (isWrite: BOOL, self: unknown, args: IArguments): void => {
     const first = doc.readyState < "l" && (isWrite || args.length < 3) && self === doc
     const oriHref = Build.NDEBUG || !first ? "" : location.host && location.pathname || location.href
-    const ret = apply(isWrite ? _docWrite : _docOpen, self, args)
+    const ret = reflectApply_not_cr!(isWrite ? _docWrite : _docOpen, self, args)
     if (first && isEnabled_) {
       hookOnWnd(HookAction.Install)
       insertInit()
@@ -165,7 +164,7 @@ export const unblockClick = (): void => {
       for (const [stdFunc, idx] of stdMembers) {
         setter(event, stdFunc.name as "preventDefault" | "stopPropagation" | "stopImmediatePropagation"
             , function (this: EventToPrevent): any {
-          const self = this, ret = apply(stdFunc, self, arguments)
+          const self = this, ret = reflectApply_not_cr!(stdFunc, self, arguments)
           self !== clickEventToPrevent_ ? 0
           : idx < kAct.stopImm || self.defaultPrevented ? isClickEventPreventedByPage = 1 // idx === kAct.prevent
           : idx > kAct.stopImm ? void listenToPreventClick(self) // idx === kAct.stopProp

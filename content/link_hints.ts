@@ -110,7 +110,7 @@ import { hudTip, hudShow, hudHide, hud_tipTimer } from "./hud"
 import { set_onWndBlur2, insert_Lock_, set_grabBackFocus, insertInit, raw_insert_lock, insert_last_ } from "./insert"
 import {
   getVisibleElements, localLinkClear, frameNested_, checkNestedFrame, set_frameNested_, filterOutNonReachable, traverse,
-  getIfOnlyVisible, ClickType, initTestRegExps
+  ClickType, initTestRegExps
 } from "./local_links"
 import {
   matchHintsByKey, zIndexes_, rotate1, initFilterEngine, initAlphabetEngine, renderMarkers, generateHintText,
@@ -526,9 +526,9 @@ export const findAnElement_ = (options: OptionsToFindElement, count: number, als
   const exOpts = options.directOptions || {},
   elIndex = exOpts.index, indByCount = elIndex === "count" || count < 0,
   offset = exOpts.offset || "", wholeDoc = ("" + exOpts.search).startsWith("doc"),
-  matchEl = wholeDoc ? (hints: Hint0[], el1: SafeElement): void => {
+  matchEl = (hints: Hint0[], el1: SafeElement): void => {
     isInteractiveInPage(el1) && hints.push([el1 as SafeElementForMouse])
-  } : getIfOnlyVisible,
+  },
   computeOffset = (): number => {
     const cur = derefInDoc_(currentScrolling), end = matches!.length
     let low = 0, mid: number | undefined, high = cur ? end - 1 : -1

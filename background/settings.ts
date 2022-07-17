@@ -54,7 +54,7 @@ export const ready_: Promise<number> = Promise.all([
       if (item[0] in defaults_) {
         cache[item[0] as PersistentKeys] = item[1] as string | number | boolean
       } else {
-        storageCache_.set!(item[0] as SettingsNS.LocalSettingNames, item[1] as string)
+        storageCache_.set!(item[0] as SettingsNS.LocalSettingNames, item[1] + "")
       }
     }
     let n = 0

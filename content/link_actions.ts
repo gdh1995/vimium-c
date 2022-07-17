@@ -41,9 +41,9 @@ export const executeHintInOfficer = (hint: ExecutableHintItem
 
 const unhoverOnEsc_d = Build.NDEBUG ? null : (): void => { catchAsyncErrorSilently(unhover_async()) }
 
-const accessElAttr = (isUrlOrText?: 1 | 2): [string: string, isUserCustomized?: BOOL] => {
-  const dataset = (clickEl as SafeHTMLElement).dataset
-  const format = hintOptions.access
+const accessElAttr = (isUrlOrText: 0 | 1 | 2): [string: string, isUserCustomized?: BOOL] => {
+  const dataset = (clickEl as Partial<SafeHTMLElement>).dataset
+  const format = dataset && hintOptions.access
   let el: SafeElement | null | undefined
   const cb = (_: string, i: string): string => i.split("||").reduce((v, j) => v || extractField(el!, j), "")
   for (let accessor of format ? (format + "").split(",") : []) {
@@ -57,12 +57,12 @@ const accessElAttr = (isUrlOrText?: 1 | 2): [string: string, isUserCustomized?: 
     json = json !== props ? json : extractField(el!, props)
     if (json) { return [json, 1] }
   }
-  return [(isUrlOrText === 2 ? dataset.vimText
-      : isUrlOrText && dataset.vimUrl || dataset.canonicalSrc || dataset.src) || ""]
+  let vimAttr = dataset && (isUrlOrText > 1 ? dataset.vimText : isUrlOrText && dataset.vimUrl)
+  return [vimAttr || isUrlOrText < 2 && dataset && (dataset.canonicalSrc || dataset.src) || ""]
 }
 
 const getUrlData = (str?: string): string => {
-  let link = clickEl as SafeHTMLElement
+  let link = clickEl
   if (str = str || accessElAttr(1)[0]) {
     (link = createElement_("a")).href = str.trim();
   }
@@ -70,11 +70,10 @@ const getUrlData = (str?: string): string => {
   return hasTag_("a", link) ? link.href : ""
 }
 
-/** return: img is HTMLImageElement | HTMLAnchorElement | HTMLElement[style={backgroundImage}] */
 const downloadOrOpenMedia = (): void => {
-  const filename = attr_s(clickEl, kD) || attr_s(clickEl, "alt") || (clickEl as SafeHTMLElement).title
+  const filename = attr_s(clickEl, kD) || attr_s(clickEl, "alt") || (clickEl as Partial<SafeHTMLElement>).title || ""
   let mediaTag = tag ? getMediaTag(clickEl as SafeHTMLElement) : kMediaTag.others
-  let srcObj = accessElAttr(), src = srcObj[0]
+  let srcObj = accessElAttr(0), src = srcObj[0]
   let text: string | null, n: number
   if (!mediaTag) {
     if ((n = (clickEl as HTMLImageElement).naturalWidth) && n < 3
@@ -322,7 +321,7 @@ const defaultClick = (): void => {
     noCtrlPlusShiftForActive: boolean | undefined = cnsForWin != null ? cnsForWin : hintOptions.noCtrlPlusShift,
     maybeLabel = OnFirefox && !editableTypes_[tag] && clickEl.closest!("label,input,textarea,a,button"
         ) as SafeElement | null,
-    notLabelInFormOnFF = !OnFirefox || !maybeLabel || htmlTag_(maybeLabel) !== "label"
+    notLabelInFormOnFF = !OnFirefox || !maybeLabel || !hasTag_("label", maybeLabel)
         || !(maybeLabel as HTMLLabelElement).control,
     ctrl = notLabelInFormOnFF && (newTab && !(mask > HintMode.newtab_n_active - 1 && noCtrlPlusShiftForActive)
         || newWindow && !!noCtrlPlusShiftForActive),

@@ -256,8 +256,8 @@ export const getEditable = (hints: Hint[], element: SafeHTMLElement): void => {
   getIfOnlyVisible(hints, element)
 }
 
-export const getIfOnlyVisible = (hints: (Hint | Hint0)[], element: SafeElement): void => {
-  let arr = htmlTag_(element) === "a" && getPreferredRectOfAnchor(element as HTMLAnchorElement)
+const getIfOnlyVisible = (hints: (Hint | Hint0)[], element: SafeElement): void => {
+  let arr = hasTag_("a", element) && getPreferredRectOfAnchor(element as HTMLAnchorElement)
       || getVisibleClientRect_(element, null)
   arr && hints.push([element as SafeElementForMouse, arr, ClickType.Default])
 }
@@ -431,6 +431,10 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
         const shadow = (OnChrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0 && prefixedShadow
             ? el.webkitShadowRoot : el.shadowRoot) as ShadowRoot | null | undefined;
         if (shadow) {
+          if (filter === getIfOnlyVisible) {
+            const last = output.pop()
+            last && last[0] === el && testMatch(matchSelector!, last) && (output as Hint0[]).push(last)
+          }
           tree_scopes.push([cur_tree, cur_ind, extraClickable_])
           cur_tree = matchSafeElements(selector, shadow, matchSelector)
           cur_tree = matchAll ? cur_tree : addChildTrees(cur_tree
@@ -754,7 +758,7 @@ export const getVisibleElements = (view: ViewBox): readonly Hint[] => {
             }
             cr = cropRectToVisible_(l, t, l + w, t + h);
             if (cr && (isStyleVisible_(element) || (evenHidden_ & kHidden.VisibilityHidden))) {
-              cr = htmlTag_(element) === "a" && getPreferredRectOfAnchor(element as HTMLAnchorElement)
+              cr = hasTag_("a", element) && getPreferredRectOfAnchor(element as HTMLAnchorElement)
                   || getCroppedRect_(element, cr)
               cr && hints.push([element, cr, ClickType.Default])
             }
