@@ -372,6 +372,7 @@ declare namespace SettingsNS {
 
   interface AutoSyncedItems extends DirectlySyncedItems, TransformedAndSyncedItems {}
   interface FrontendSettingsSyncingItems extends AutoSyncedItems, ManuallySyncedItems {}
+  type FrontendComplexSyncingItems = Pick<FrontendSettingsSyncingItems, "c" | "n" | "i" | "l" | "d">
   interface DeclaredFrontendValues extends SelectValueType<ManuallySyncedItems & OneTimeItems>, DeclaredConstValues {
   }
   type AutoSyncedNameMap = SelectNameToKey<AutoSyncedItems>

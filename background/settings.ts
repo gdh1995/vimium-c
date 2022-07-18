@@ -183,7 +183,7 @@ export const broadcastOmni_ = <K extends ValidBgVomnibarReq> (request: Req.bg<K>
 }
 
   /** @argument value may come from `LinkHints.*::characters` and `kBgCmd.toggle::value` */
-export const updatePayload_ = function (shortKey: keyof SettingsNS.FrontendSettingsSyncingItems, value: any
+export const updatePayload_ = function (shortKey: keyof SettingsNS.FrontendComplexSyncingItems, value: any
       , obj?: Partial<SettingsNS.FrontendSettingCache>
       ): SettingsNS.FrontendSettingsSyncingItems[keyof SettingsNS.FrontendSettingsSyncingItems][1] {
     type SettingType<T> = T extends keyof SettingsWithDefaults ? SettingsWithDefaults[T] : never
@@ -199,7 +199,7 @@ export const updatePayload_ = function (shortKey: keyof SettingsNS.FrontendSetti
               ) | (value & 0xfc || 0xfc)
       break
     case "d": value = value ? " D" : ""; break
-    // no default:
+    default: if (0) { As_<never>(shortKey) } break // lgtm [js/unreachable-statement]
     }
     return obj ? (obj as Generalized<SettingsNS.FrontendSettingCache>)[shortKey] = value : value
 } as <T extends keyof (SettingsNS.FrontendSettingsSyncingItems)> (shortKey: T

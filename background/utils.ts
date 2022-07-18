@@ -293,7 +293,7 @@ export const fetchFile_ = ((filePath: string): Promise<string | {}> => {
     req.send()
   })
 }) as {
-  <T extends `/_locales/${string}/messages.json` | `/i18n/${string}.json` | `data:${string}`
+  <T extends `/_locales/${string}/messages.json` | `/i18n/${string}.json`
         | "words.txt" | "vimium-c.css" | "help_dialog.html"> (
       file: T): Promise<T extends `${string}.json` ? Map<string, any> : string>
 }

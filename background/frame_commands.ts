@@ -228,7 +228,7 @@ export const captureTab = (tabs: [Tab] | undefined, resolve: OnCmdResolved): voi
           })
         } else {
           showHUD("Can not copy image to clipboard")
-          if (noDownload && show) { resolve(0) }
+          if (noDownload && !show) { resolve(0) }
         }
       }
       if (show) {

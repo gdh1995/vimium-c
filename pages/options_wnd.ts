@@ -58,7 +58,7 @@ const refreshSync = (): void => { post_(kPgReq.saveToSyncAtOnce) }
 
 let optionsInit1_ = function (): void {
   advancedOptBtn.onclick = function (ev, init): void {
-    const el = $("#advancedOptions")
+    let el = $("#advancedOptions")
     let oldVal: boolean | null = null
     const loadOld = (): boolean => oldVal = <boolean> bgSettings_.get_("showAdvancedOptions")
     if (ev != null || (init === "hash" && loadOld() === false)) {
@@ -68,7 +68,7 @@ let optionsInit1_ = function (): void {
       advancedMode = oldVal != null ? oldVal : loadOld()
     }
     nextTick_((): void => {
-    (el.previousElementSibling as HTMLElement).style.display = el.style.display = advancedMode ? "" : "none";
+      do { el.style.display = advancedMode ? "" : "none" } while (el = el.nextElementSibling as HTMLElement)
     const s = advancedMode ? "Hide" : "Show";
     (this.firstChild as Text).data = oTrans_(s) || s
     this.setAttribute("aria-checked", "" + advancedMode);
@@ -260,6 +260,9 @@ let optionsInit1_ = function (): void {
   if (OnChrome && Build.MinCVer < BrowserVer.MinEnsuredChromeURL$ExtensionShortcuts
       && CurCVer_ < BrowserVer.MinEnsuredChromeURL$ExtensionShortcuts) {
     nextTick_((el): void => { el.href = "chrome://extensions/configureCommands" }, _element as HTMLAnchorElement)
+  } else if (OnChrome && IsEdg_) {
+    nextTick_((el): void => { const s = "edge://extensions/";
+        el.href = s + "shortcuts", el.textContent = s + "\u2026" }, _element as HTMLAnchorElement)
   } else if (OnFirefox) {
     nextTick_(([el, el2, el3]): void => {
       el.textContent = el.href = "about:addons";
@@ -482,10 +485,6 @@ nextTick_((el0): void => {
 el0.textContent = (OnEdge ? "MS Edge (EdgeHTML)" : name + " " + version
   ) + oTrans_("comma") + oTrans_("NS")
   + (oTrans_(platform as "win" | "mac") || platform[0].toUpperCase() + platform.slice(1))
-if (OnChrome && IsEdg_) {
-  const a = $<HTMLAnchorElement>("#openExtensionsPage");
-  a.textContent = a.href = "edge://extensions/shortcuts";
-}
 }, $("#browserName"));
 
 export const loadChecker = (): void => { void import2("./options_checker.js") }

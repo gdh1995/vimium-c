@@ -4,12 +4,12 @@
     <meta charset="utf-8">
     <title>Vimium C Options</title>
     <meta name="color-scheme" content="light dark">
-    <script defer src="define.js"></script>
-    <script type="module" src="async_bg.js"></script>
-    <script type="module" src="options_base.js"></script>
-    <script type="module" src="options_defs.js"></script>
-    <script type="module" src="options_permissions.js"></script>
-    <script type="module" src="options_wnd.js"></script>
+    <script defer src="define.js" blocking="render"></script>
+    <script type="module" src="async_bg.js" blocking="render"></script>
+    <script type="module" src="options_base.js" blocking="render"></script>
+    <script type="module" src="options_defs.js" blocking="render"></script>
+    <script type="module" src="options_permissions.js" blocking="render"></script>
+    <script type="module" src="options_wnd.js" blocking="render"></script>
     <link rel="stylesheet" href="options.css">
     <script defer src="loader.js"></script>
   </head>
@@ -194,10 +194,8 @@ key: https://c.com/$s/space=\s\ space_end
         </div></td>
       </tr>
       </tbody>
-      <tbody><tr><td colspan="2">
-        <header id="advanced" data-i="39">Advanced Options</header>
-      </td><td></td></tr></tbody>
       <tbody id="advancedOptions">
+        <tr><td colspan="2"><header id="advanced" data-i="39">Advanced Options</header></td><td></td></tr>
         <tr id="optionalPermissionsBox">
           <td class="caption" data-i="103_2">Optional permissions</td>
           <td id="optionalPermissions" data-check="change">
@@ -213,6 +211,8 @@ key: https://c.com/$s/space=\s\ space_end
             <span data-i="103_4">Note: these may not be synchronized by your browser.</span>
           </div></td>
         </tr>
+      </tbody>
+      <tbody>
         <tr>
           <td class="caption" data-i="40">Scroll step size</td>
           <td>
@@ -230,7 +230,7 @@ key: https://c.com/$s/space=\s\ space_end
         </tr>
         <tr>
           <td class="caption" rowspan="2" data-i="43">Miscellaneous options</td>
-          <td colspan="2">
+          <td>
             <label class="booleanOption" tabindex="-1" aria-hidden="true">
               <input id="smoothScroll" type="checkbox" tabindex="-1" aria-hidden="true" data-model="Boolean" />
               <span data-i="44" class="checkboxHint" role="checkbox" tabindex="0" aria-hidden="false"
@@ -275,7 +275,6 @@ key: https://c.com/$s/space=\s\ space_end
                 >Detect whether links are completely covered or not</span>
             </label>
           </td>
-          <td colspan="2"></td>
         </tr>
         <tr>
           <td class="caption"></td>
@@ -407,7 +406,7 @@ key: https://c.com/$s/space=\s\ space_end
         </tr>
         <tr>
           <td class="caption"></td>
-          <td colspan="2">
+          <td>
             <label class="booleanOption" tabindex="-1" aria-hidden="true">
               <input id="showInIncognito" type="checkbox" tabindex="-1" aria-hidden="true"
                   data-model="Boolean" data-permission="C64,nonC" />
@@ -425,7 +424,6 @@ key: https://c.com/$s/space=\s\ space_end
                 >Show a notification on a new release</span>
             </label>
           </td>
-          <td colspan="2"></td>
         </tr>
         <tr>
           <td class="caption"></td>

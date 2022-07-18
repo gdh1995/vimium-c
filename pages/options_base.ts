@@ -180,6 +180,9 @@ export const bgSettings_ = {
     mouseReachable: "e",
     keyboard: "k", keyupTime: "u", linkHintCharacters: "c", linkHintNumbers: "n", passEsc: "p",
     regexFindMode: "r", smoothScroll: "s", scrollStepSize: "t", waitForEnter: "w"
+  }),
+  complexValuesToLoad_: As_<TypedSafeEnum<SettingsNS.FrontendComplexSyncingItems>>({
+    __proto__: null as never, c: 1, n: 1, i: 1, l: 1, d: 1
   })
 }
 

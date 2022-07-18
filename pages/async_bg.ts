@@ -207,13 +207,10 @@ const queueTask_ = !OnEdge && ((OnChrome ? Build.MinCVer >= BrowserVer.Min$queue
 
 export const $ = <T extends HTMLElement>(selector: string): T => document.querySelector(selector) as T
 
-export const $$ = ((selector: string, root?: HTMLElement | ShadowRoot | null): ArrayLike<Element> => {
+export const $$ = ((selector: string, root?: HTMLElement | ShadowRoot | null): Element[] => {
   const list = (root || document).querySelectorAll(selector)
-  return OnChrome && Build.MinCVer < BrowserVer.MinEnsured$ForOf$ForDOMListTypes
-      && Build.MinCVer >= BrowserVer.BuildMinForOf && CurCVer_ < BrowserVer.MinEnsured$ForOf$ForDOMListTypes
-      ? [].slice.call(list) : list
-}) as <T extends HTMLElement>(selector: string, root?: HTMLElement | ShadowRoot | null
-    ) => T[] & { forEach: never }
+  return ([] as Element[]).slice.call(list)
+}) as <T extends HTMLElement>(selector: string, root?: HTMLElement | ShadowRoot | null) => T[]
 
 export const toggleDark = (dark: SettingsNS.PersistentSettings["autoDarkMode"]): void => {
   const el = document.head!.querySelector("meta[name=color-scheme]") as HTMLMetaElement
