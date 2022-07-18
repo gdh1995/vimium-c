@@ -1,7 +1,7 @@
 import {
   setupEventListener, VTr, keydownEvents_, isAlive_, suppressCommonEvents, onWndFocus, timeout_, safer, fgCache,
   doc, getTime, chromeVer_, deref_, escapeAllForRe, tryCreateRegExp, vApi, callFunc, clearTimeout_, Stop_, isTY, Lower,
-  abs_, max_, min_, OnFirefox, OnChrome, OnEdge, firefoxVer_, os_
+  abs_, max_, min_, OnFirefox, OnChrome, OnEdge, firefoxVer_, os_, reflectApply_not_cr
 } from "../lib/utils"
 import {
   replaceOrSuppressMost_, removeHandler_, prevent_, getMappedKey, keybody_, isEscape_, keyNames_, DEL, BSP, ENTER,
@@ -792,7 +792,7 @@ export const executeFind = (query: string | null, options: ExecuteOptions): Rect
     const _do_find_not_cr = !OnChrome ? function (): boolean {
       // (string, caseSensitive, backwards, wrapAround, wholeWord, searchInFrames, showDialog);
       try {
-        return window.find.apply(window, arguments);
+        return reflectApply_not_cr!(window.find, window, arguments)
       } catch { return false; }
     } as Window["find"] : 0 as never as null
     let el: LockableElement | null

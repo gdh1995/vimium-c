@@ -79,7 +79,7 @@ export const attr_s = (el: SafeElement, attr: string): string | null => el.getAt
 
 export const selOffset_ = (sel: Selection, focus?: 1): number => focus ? sel.focusOffset : sel.anchorOffset
 
-export const textOffset_ = (el: TextElement, dir?: VisualModeNS.ForwardDir | boolean): number =>
+export const textOffset_ = (el: TextElement, dir?: VisualModeNS.ForwardDir | boolean): number | null =>
     dir ? el.selectionEnd! : el.selectionStart!
 
 export const doesSupportDialog = (): boolean => typeof HTMLDialogElement == OBJECT_TYPES[kTY.func]

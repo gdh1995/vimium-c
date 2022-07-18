@@ -358,19 +358,21 @@ set_contentCommands_([
     })
   },
   /* kFgCmd.editText: */ (options: CmdOptions[kFgCmd.editText], count: number) => {
-    const lock = insert_Lock_()
-    const editable = lock && getEditableType_<0>(lock) === EditableType.TextBox ? lock as TextElement : 0;
+    const editable = insert_Lock_() && getEditableType_<0>(raw_insert_lock!) === EditableType.TextBox
+        ? raw_insert_lock as TextElement : 0;
     (editable || options.dom) && timeout_((): void => {
       let commands = options.run.split(<RegExpG> /,\s*/g), sel: Selection | undefined, absCount = abs_(count)
       let cur: string | 0, offset: number, dir: boolean
-      let start: number, end: number, start0: number
+      let start: number, end: number | null, start0: number, rawOffset: number | null
       while (0 < absCount--) {
         for (var i = 0; i < commands.length; i += 3) {
           var cmd = commands[i], a1 = commands[i + 1] || "", a2 = commands[i + 2] // eslint-disable-line no-var
           if (cmd === "exec") {
             execCommand(a1, doc, commands[i + 2])
           } else if (cmd === "replace") {
-            start = editable && textOffset_(editable), end = editable && textOffset_(editable, 1)
+            rawOffset = editable && textOffset_(editable)
+            start = rawOffset || 0, end = editable && textOffset_(editable, 1)
+            end = end != null ? end : (editable as TextElement).value.length
             cur = 0, offset = 0, start0 = start
             execCommand("insertText", doc
                 , a1.replace(<RegExpG & RegExpSearchable<0>> /[$%]s|(?:%[a-f\d]{2})+/gi, (s, ind): string => {
@@ -386,10 +388,11 @@ set_contentCommands_([
                 return cur
               }
             }))
-            editable === insert_Lock_() && inputSelRange(editable, start, end)
+            editable === insert_Lock_() && rawOffset != null && inputSelRange(editable, start, end)
           } else if (cmd === "select") {
             const activeEl = findAnElement_(options, count)[0]
-            activeEl && selectNode_(activeEl)
+            activeEl && ((activeEl as Partial<TextElement>).select ? (activeEl as TextElement).select()
+                : selectNode_(activeEl))
           } else {
             sel = sel || getSelected()
             // a1: string := count | focus(ed) | forward(s) | backward(s) | begin | start | end

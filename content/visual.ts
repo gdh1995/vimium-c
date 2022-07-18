@@ -155,6 +155,7 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode], count: number):
             )[num1 >= 0 ? num1 : selOffset_(sel)] as Node | undefined
         if (lock === child || /** tend to trust that the selected is a textbox */ !child) {
           if (!OnChrome || Build.MinCVer >= BrowserVer.Min$selectionStart$MayBeNull
+              || chromeVer_ > BrowserVer.Min$selectionStart$MayBeNull - 1
               ? textOffset_(lock as TextElement) != null
               : safeCall(textOffset_, lock as TextElement) != null) {
             diType_ = DiType.TextBox | (oldDiType & DiType.isUnsafe)
@@ -280,7 +281,7 @@ const getNextRightCharacter = (isMove: BOOL): string => {
     oldLen_ = 0
     if (!OnFirefox && diType_ & DiType.TextBox) {
       return (raw_insert_lock as TextElement).value.charAt(textOffset_(raw_insert_lock as TextElement
-          , di_ === kDirTy.right || doesSelectRightInEditableLock()))
+          , di_ === kDirTy.right || doesSelectRightInEditableLock())!)
     }
     if (!diType_) {
       let focusNode = getAccessibleSelectedNode(sel, 1)
@@ -462,7 +463,7 @@ const moveRightByWordButNotSkipSpaces = OnFirefox && Build.NativeWordMoveOnFiref
           extend(kDirTy.right)
         }
       } else {
-        let start = textOffset_(raw_insert_lock as TextElement), end = start + newLen
+        let start = textOffset_(raw_insert_lock as TextElement)!, end = start + newLen
         di_ as ForwardDir ? (end -= toGoLeft) :  (start -= toGoLeft)
         inputSelRange(raw_insert_lock as TextElement, start < end ? start : end, start < end ? end : start
             , di_ = start > end ? kDirTy.left : kDirTy.right)
@@ -485,8 +486,8 @@ const reverseSelection = (): void => {
     if (!OnFirefox && diType_ & DiType.TextBox) {
       // Note: on C72/60/35, it can trigger document.onselectionchange
       //      and on C72/60, it can trigger <input|textarea>.onselect
-      inputSelRange(raw_insert_lock as TextElement, textOffset_(raw_insert_lock as TextElement)
-          , textOffset_(raw_insert_lock as TextElement, 1), newDi)
+      inputSelRange(raw_insert_lock as TextElement, textOffset_(raw_insert_lock as TextElement)!
+          , textOffset_(raw_insert_lock as TextElement, 1)!, newDi)
     } else if (diType_ & DiType.Complicated) {
       let length = ("" + <SelWithToStr> sel).length, i = 0;
       /* range-and-know-di */ collapseToRight(direction)

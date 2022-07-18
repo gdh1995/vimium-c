@@ -326,10 +326,11 @@ export const getSelectionBoundingBox_ = (sel?: Selection, ensured?: BOOL): Rect 
 /** `type`: 0 means to trim; always check focused `<input>` on Firefox and blurred inputs on Chrome */
 export const getSelectionText = (type?: 0 | 1, sel?: Selection): string => {
     sel = sel || getSelection_()
-    let s = "" + <SelWithToStr> sel, node: Element | null
+    let s = "" + <SelWithToStr> sel, node: Element | null, start: number | null
     if (OnFirefox && !s) {
-      s = !insert_Lock_() || getEditableType_<0>(node = raw_insert_lock!) !== EditableType.TextBox ? s
-          : (node as TextElement).value.slice(textOffset_(node as TextElement), textOffset_(node as TextElement, 1))
+      s = !insert_Lock_() || getEditableType_<0>(node = raw_insert_lock!) !== EditableType.TextBox
+          || (start = textOffset_(node as TextElement)) == null ? s
+          : (node as TextElement).value.slice(start, textOffset_(node as TextElement, 1)!)
     } else if (s && !insert_Lock_()
         && (node = singleSelectionElement_unsafe(sel)) && getEditableType_<0>(node) === EditableType.TextBox
         && !getSelectionBoundingBox_(sel, 1)) {
@@ -385,7 +386,7 @@ export const moveSel_s_throwable = (element: LockableElement, action: SelectActi
     } else {
       len = (element as TextElement).value.length
       const start = textOffset_(element as TextElement), end = textOffset_(element as TextElement, 1)
-      if (!len || start && start < len || end && end < len
+      if (!len || start == null || start && start < len || end && end < len
             || (gotoEnd ? start : gotoStart ? !end : !start && end) || !action && end) {
         doesCollpase = 0
       } else {

@@ -118,6 +118,7 @@ interface NumberChecker extends Checker<"scrollStepSize"> {
   min: number | null; max: number | null; default: number
   check_ (value: number): number
 }
+// in fact, it's IntegerOption
 export class NumberOption_<T extends UniversalNumberOptions> extends Option_<T> {
   override readonly element_: HTMLInputElement
   override previous_: number
@@ -133,7 +134,7 @@ export class NumberOption_<T extends UniversalNumberOptions> extends Option_<T> 
     }
     this.element_.oninput = this.onUpdated_
     this.element_.onfocus = this.addWheelListener_.bind(this)
-    void bgSettings_.preloadCache_().then((): void => {
+    nextTick_((): void => {
       this.checker_.default = bgSettings_.defaults_[this.field_]
     })
   }
@@ -141,7 +142,7 @@ export class NumberOption_<T extends UniversalNumberOptions> extends Option_<T> 
     this.element_.value = "" + value
   }
   override readValueFromElement_ (): number {
-    return parseFloat(this.element_.value)
+    return Math.round(parseFloat(this.element_.value))
   }
   addWheelListener_ (): void {
     const el = this.element_, func = (e: WheelEvent): void => this.onWheel_(e as WheelEvent & ToPrevent),
@@ -214,11 +215,15 @@ export class BooleanOption_<T extends keyof AllowedOptions> extends Option_<T> {
     return value
   }
   onTripleStatusesClicked (event: Event): void {
+    this.inner_status_ = BooleanOption_.ToggleTripleStatuses(this.inner_status_, event)
+  }
+  static ToggleTripleStatuses (old: 0 | 1 | 2, event: Event): 0 | 1 | 2 {
+    const elemenc = event.target as HTMLInputElement
     (event as EventToPrevent).preventDefault()
-    const old = this.inner_status_
-    this.inner_status_ = old === 2 ? 1 : old ? 0 : 2
-    this.element_.indeterminate = old === 2
-    this.element_.checked = this.inner_status_ === 2
+    const newVal = old === 2 ? 1 : old ? 0 : 2
+    elemenc.indeterminate = old === 2
+    elemenc.checked = newVal === 2
+    return newVal
   }
   override normalize_(value: SettingsWithDefaults[T]): SettingsWithDefaults[T] {
     if ((this.element_.dataset as KnownOptionsDataset).map && typeof value === "boolean") {
@@ -396,7 +401,7 @@ export class MaskedText_<T extends TextOptionNames> extends TextOption_<T> {
 TextOption_.prototype.atomicUpdate_ = NumberOption_.prototype.atomicUpdate_ = function(
     value: string, undo: boolean, locked: boolean): void {
   const input = this.element_, initialValue = input.value
-  let selection = input.selectionDirection !== "backward" ? input.selectionEnd! : input.selectionStart!
+  let selection = input.selectionDirection !== "backward" ? input.selectionEnd : input.selectionStart
   let newFocused = false
   if (undo) {
     this.locked_ = true
@@ -405,6 +410,15 @@ TextOption_.prototype.atomicUpdate_ = NumberOption_.prototype.atomicUpdate_ = fu
     document.execCommand("undo")
   }
   this.locked_ = locked
+  if (selection == null) {
+    input.select()
+    document.execCommand("insertText", false, value)
+    if (OnFirefox && Build.MinFFVer < FirefoxBrowserVer.MinInputSupportExecCommand
+        && CurFFVer_ < FirefoxBrowserVer.MinInputSupportExecCommand) {
+      if (input.value !== value) { input.value = value }
+    }
+    newFocused && this.element_.blur()
+  } else {
   const oldValue = undo ? input.value : initialValue
   let left = input.scrollLeft, top = input.scrollTop
   let diffStart = 0, diffLast = oldValue.length - 1, newLast = value.length - 1
@@ -417,9 +431,9 @@ TextOption_.prototype.atomicUpdate_ = NumberOption_.prototype.atomicUpdate_ = fu
   document.execCommand("insertText", false, diffValue)
   if (OnFirefox && Build.MinFFVer < FirefoxBrowserVer.MinInputSupportExecCommand
       && CurFFVer_ < FirefoxBrowserVer.MinInputSupportExecCommand) {
-    if (this.element_.value !== value) { this.element_.value = value }
+    if (input.value !== value) { input.value = value }
   }
-  newFocused && this.element_.blur()
+  newFocused && input.blur()
   if (initialValue !== oldValue) {
     diffStart = 0, diffLast = initialValue.length - 1, newLast = value.length - 1
     limit = Math.min(diffLast, newLast)
@@ -443,6 +457,7 @@ TextOption_.prototype.atomicUpdate_ = NumberOption_.prototype.atomicUpdate_ = fu
   }
   input.scrollTo(left, top)
   input.setSelectionRange(selection, selection)
+  }
   this.locked_ = false
 }
 
