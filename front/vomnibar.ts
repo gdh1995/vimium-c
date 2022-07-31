@@ -267,8 +267,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   showTime_: 0 as 0 | /** abs-num */ 1 | /** abs */ 2 | /** relative */ 3,
   show_ (): void {
     const a = Vomnibar_
-    setTimeout(a.focus_, 0)
     a.showing_ = true;
+    Build.BTypes & BrowserType.Chrome && a.isEdg_ ? a.focus_() : setTimeout(a.focus_, 0);
     ((document.body as Element).addEventListener as typeof addEventListener)("wheel", a.onWheel_, a.wheelOptions_)
   },
   hide_ (fromContent?: BOOL): void {
@@ -1123,9 +1123,6 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     } else {
       a.toggleAttr_("enterkeyhint", a.isSearchOnTop_ ? "Search" : "Go")
     }
-    if (!oldH) {
-      a.bodySt_.display = ""
-    }
     let cl = a.barCls_, cl2 = list.classList, c = "empty";
     notEmpty ? cl.remove(c) : cl.add(c);
     c = "no-query"
@@ -1138,6 +1135,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       }
       list.lastElementChild.classList.add("b");
     }
+    if (!oldH) { a.bodySt_.display = "" }
     if (a.onUpdate_ === a.toggleAlt_) {
       a.toggleAlt_(0)
       a.onUpdate_ = null
