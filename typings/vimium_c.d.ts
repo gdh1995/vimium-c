@@ -584,7 +584,7 @@ declare const enum GlobalConsts {
   kIsHighContrast = "isHC_f",
   MinCancelableInBackupTimer = 50,
 
-  SelectorPrefixesInPatterns = ".#[",
+  SelectorPrefixesInPatterns = ".#[:",
   ModeIds = "nneilmfvos",
   InsertModeId = "i",
   NormalModeId = "n",

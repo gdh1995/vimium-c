@@ -52,7 +52,7 @@ interface CSSOptions {
   exclude?: "css-selector" | null | undefined
   excludeOnHost?: "host-re##css-selector;..." | null | undefined
   evenIf?: kHidden | null | undefined
-  /* same as `.evenIf |= kHidden.OverflowHidden` */ scroll?: "force"
+  /* same as `.evenIf |= kHidden.OverflowHidden` */ scroll?: "force" | null | undefined
 }
 interface OtherFilterOptions {
   typeFilter?: /** 1 <<< {@link ../content/local_hints.ts#ClickType} */ number | null | undefined
@@ -267,7 +267,7 @@ declare namespace HintsNS {
     // format: [<css selector>":"]<dataset-key or attr-name>[...("."<json key>)], like img:viewer.url
     access?: string
     dblclick?: boolean;
-    interact?: true | false
+    interact?: true | "native" | false
     newtab?: null | /** only in editing mode */ boolean
         | "force" | "force-current" | "force-mode"
         | "last-window" | "window" | /** Firefox-only */ "no-prevent"
@@ -376,7 +376,7 @@ interface CmdOptions {
     /** max of length limit list */ m: number;
     /** scroll into view */ v: boolean;
     /** avoid click */ a: boolean;
-  } & CSSOptions & Req.FallbackOptions;
+  } & EnsureExisting<CSSOptions> & Req.FallbackOptions;
   [kFgCmd.insertMode]: ({
     /** unhover last */ u?: boolean;
     /** reset all: 2=destroying */ r?: 0 | 1 | 2;

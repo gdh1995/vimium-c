@@ -1,14 +1,14 @@
 import {
   clickable_, isJSUrl, doc, isImageUrl, fgCache, readyState_, chromeVer_, VTr, createRegExp, max_, OnChrome,
   math, includes_, OnFirefox, OnEdge, WithDialog, safeCall, evenHidden_, set_evenHidden_, tryCreateRegExp, loc_,
-  getTime, firefoxVer_, queryByHost
+  getTime, firefoxVer_
 } from "../lib/utils"
 import {
   isIFrameElement, getInputType, uneditableInputs_, getComputedStyle_, queryChildByTag_, htmlTag_, isAriaFalse_,
   kMediaTag, NONE, querySelector_unsafe_, isStyleVisible_, fullscreenEl_unsafe_, notSafe_not_ff_, docEl_unsafe_,
   GetParent_unsafe_, unsafeFramesetTag_old_cr_, isHTML_, querySelectorAll_unsafe_, isNode_, INP, attr_s, supportInert_,
   getMediaTag, getMediaUrl, contains_s, GetShadowRoot_, parentNode_unsafe_s, testMatch, hasTag_, editableTypes_,
-  getRootNode_mounted
+  getRootNode_mounted, findSelectorByHost
 } from "../lib/dom_utils"
 import {
   getVisibleClientRect_, getVisibleBoundingRect_, getClientRectsForAreas_, getCroppedRect_, boundingRect_,
@@ -52,7 +52,7 @@ let closableClasses_: RegExpOne
 let clickableRoles_: RegExpI
 let buttonOrATags_: RegExpOne
 
-export { frameNested_, ngEnabled, maxLeft_, maxTop_, maxRight_, closableClasses_ }
+export { frameNested_, ngEnabled, maxLeft_, maxTop_, maxRight_, closableClasses_, extraClickable_ }
 export const localLinkClear = (): 0 => { return maxLeft_ = maxTop_ = maxRight_ = 0 }
 export function set_frameNested_ (_newNestedFrame: NestedFrame): void { frameNested_ = _newNestedFrame }
 
@@ -359,22 +359,23 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
   }
 }
 
-  const excludedSelector = options.exclude,
-  wantClickable = filter === getClickable,
+  const wantClickable = filter === getClickable,
   isInAnElement = !Build.NDEBUG && !!wholeDoc && wholeDoc !== 1 && wholeDoc.tagName != null,
   traverseRoot = !wholeDoc ? fullscreenEl_unsafe_() : !Build.NDEBUG && isInAnElement && wholeDoc || null
   let matchSelector = options.match || null,
   textFilter: OtherFilterOptions["textFilter"] | void | RegExpI | RegExpOne | false = options.textFilter,
-  clickableSelector = options.clickable || null,
-  clickableOnHost: string | null | undefined | void = options.clickableOnHost,
   matchAll = (!Build.NDEBUG && selector === "*" // for easier debugging
       ? selector = kSafeAllSelector : selector) === kSafeAllSelector && !matchSelector,
+  clickableSelector = matchAll && options.clickable || null,
+  clickableOnHost: string | null | undefined | void | false = matchAll && options.clickableOnHost,
   output: Hint[] | Hint0[] = [],
   cur_arr: HintSources | null = matchSafeElements(selector, traverseRoot, matchSelector, 1) || (matchSelector = " ", [])
   set_evenHidden_(options.evenIf! | (options.scroll === "force" ? kHidden.OverflowHidden : 0))
   initTestRegExps()
-  if (clickableOnHost && (clickableOnHost = queryByHost(clickableOnHost, kTip.raw))) {
-    clickableSelector = (clickableOnHost + (clickableSelector ? "," + clickableSelector : "")) as "css-selector"
+  if (clickableOnHost && (clickableOnHost = findSelectorByHost(clickableOnHost))) {
+    clickableSelector = (clickableOnHost
+        + (clickableSelector && safeCall(querySelector_unsafe_, clickableSelector) !== void 0
+            ? "," + clickableSelector : "")) as "css-selector"
   }
   if (wantClickable) {
     getPixelScaleToScroll(1)
@@ -460,11 +461,6 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
   set_evenHidden_(kHidden.None)
   while (output.length && (output[0][0] === docEl_unsafe_() || !hintManager && output[0][0] === doc.body)) {
     output.shift()
-  }
-  if (wantClickable && mode1_ < HintMode.min_job && !matchSelector) {
-    const path = loc_.pathname,
-    exc = path === "/s" || path.startsWith("/search") ? queryByHost(options.excludeOnHost, kTip.searchResults) : 0
-    output = exc ? output.filter(hint => !testMatch(exc, hint)) : output
   }
   if (Build.NDEBUG ? wholeDoc : wholeDoc && !isInAnElement) {
     // this requires not detecting scrollable elements if wholeDoc
@@ -581,8 +577,14 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
     frameNested_ = null
   }
   }
+  let excludedSelector: HintsNS.Options["exclude"] | "" | false = options.exclude
+  const excl2 = findSelectorByHost(options.excludeOnHost)
+      || (wantClickable && mode1_ < HintMode.min_job && !matchSelector
+          && (<RegExpOne> /^\/s($|earch)/).test(loc_.pathname) && findSelectorByHost(kTip.searchResults)) || ""
+  excludedSelector = excludedSelector && safeCall(querySelector_unsafe_, excludedSelector) !== void 0
+      ? (excludedSelector + (excl2 && "," + excl2)) as "css-selector" : excl2
   if (excludedSelector) {
-    output = safeCall((output as Hint0[]).filter.bind(output), hint => !testMatch(excludedSelector, hint)) || output
+    output = (output as Hint0[]).filter(hint => !testMatch(excludedSelector as "css-selector", hint)) || output
   }
   if (textFilter) {
     cur_ind = (textFilter = textFilter + "" as Extract<typeof textFilter, string>).lastIndexOf("/")
@@ -655,7 +657,7 @@ export const filterOutNonReachable = (list: Hint[], notForAllClickable?: boolean
     fromPoint = root.elementFromPoint(x, y);
     return !fromPoint || el === fromPoint || contains_s(el, fromPoint)
   };
-  let i = list.length, el: SafeElement, root: Document | ShadowRoot, tag: "" | keyof HTMLElementTagNameMap,
+  let i = list.length, el: SafeElement, root: Document | ShadowRoot,
   fromPoint: Element | null | undefined, temp: Element | null, now = start
   if (OnEdge
       || OnChrome && (Build.MinCVer < BrowserVer.Min$Node$$getRootNode
@@ -686,13 +688,15 @@ export const filterOutNonReachable = (list: Hint[], notForAllClickable?: boolean
       continue;
     }
     type MayBeLabel = TypeToAssert<Element, HTMLLabelElement, "control">;
-    if ((tag = el.localName as keyof HTMLElementTagNameMap) === "img" ? isDescendant(el, fromPoint!, 0)
+    const tag = htmlTag_(el), mediaTag = getMediaTag(tag)
+    if (mediaTag === kMediaTag.img ? isDescendant(el, fromPoint!, 0)
         : tag === "area" ? fromPoint === list[i][4]
-        : tag === INP && ((OnFirefox ? !hasTag_("label", fromPoint!)
+        : tag === INP ? ((OnFirefox ? !hasTag_("label", fromPoint!)
                 : !hasTag_("label", fromPoint!) && !notSafe_not_ff_!(fromPoint!)
               && fromPoint!.parentElement || fromPoint!) as MayBeLabel).control === el
           && (notForAllClickable
-              || (i < 1 || list[i - 1][0] !== el) && (i + 2 > list.length || list[i + 1][0] !== el))) {
+              || (i < 1 || list[i - 1][0] !== el) && (i + 2 > list.length || list[i + 1][0] !== el))
+        : mediaTag === kMediaTag.otherMedias) {
       continue;
     }
     if (hasInert && !editableTypes_[tag] && el.closest!("[inert]")) { continue }
@@ -746,13 +750,14 @@ export const getVisibleElements = (view: ViewBox): readonly Hint[] => {
     ? traverse(`a[href],img,svg,div${B},span${B},[data-src]` + (OnFirefox ? "" : kSafeAllSelector)
             + (_i - HintMode.DOWNLOAD_MEDIA ? "" : ",video,audio")
           , hintOptions, (hints: Hint[], element: Element): void => {
-        if (!htmlTag_<1>(element)) {
+        const tag = htmlTag_<1>(element)
+        if (!tag) {
           if (element.localName === "svg" && "ownerSVGElement" in <ElementToSVG> element) {
             getIfOnlyVisible(hints, element as SVGSVGElement)
           }
           return
         }
-        const mediaTag = getMediaTag(element)
+        const mediaTag = getMediaTag(tag as typeof tag | ReturnType<typeof htmlTag_> as ReturnType<typeof htmlTag_>)
         let str: string | null | undefined = getMediaUrl(element, mediaTag < kMediaTag.MIN_NOT_MEDIA_EL)
           , cr: Rect | null | undefined
         if (!mediaTag) { /* aka. mediaTag == kMediaTag.img */

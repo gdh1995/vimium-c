@@ -1,6 +1,6 @@
 import {
   OnChrome, OnFirefox, OnEdge, doc, deref_, weakRef_ff, chromeVer_, isJSUrl, getTime, parseOpenPageUrlOptions, safeCall,
-  tryCreateRegExp, weakRef_not_ff, firefoxVer_, fgCache, max_
+  tryCreateRegExp, weakRef_not_ff, firefoxVer_, fgCache, max_, promiseDefer_
 } from "../lib/utils"
 import {
   IsInDOM_, isInTouchMode_cr_, MDW, hasTag_, CLK, attr_s, focus_, fullscreenEl_unsafe_, findAnchor_, dispatchEvent_,
@@ -54,11 +54,13 @@ const __generator = Build.BTypes & BrowserType.Chrome && Build.MinCVer < Browser
     ? (_0: void | undefined, branchedFunc: YieldableFunction): YieldableFunction => branchedFunc : 0 as never
 
 const __myAwaiter = Build.BTypes & BrowserType.Chrome ? Build.MinCVer < BrowserVer.MinEnsuredGeneratorFunction
-? (branchedFunc: () => YieldableFunction): Promise<any> => new Promise<any> ((resolve): void => {
-  const resolveVoid = resolve.bind(0, void 0)
+? (branchedFunc: () => YieldableFunction): Promise<any> => {
+  const promise = promiseDefer_<any>()
+  const resolveVoid = promise.r.bind(0, void 0)
   const generator = branchedFunc()
   let value_: YieldedValue | undefined, async_pos_: YieldedPos = { label_: 0, sent_: () => value_ }
   resume_()
+  return promise.p
   function resume_(newValue?: YieldedValue): void {
     value_ = newValue
     let nextInst = Instruction.next
@@ -73,36 +75,38 @@ const __myAwaiter = Build.BTypes & BrowserType.Chrome ? Build.MinCVer < BrowserV
         throw Error("Assert error: unsupported async status: " + nextInst)
       }
     }
-    Promise.resolve(value_).then(nextInst < Instruction.return + 1 ? resolve : resume_
+    Promise.resolve(value_).then(nextInst < Instruction.return + 1 ? promise.r : resume_
         , Build.NDEBUG ? resolveVoid : logDebugAndResolve)
   }
   function logDebugAndResolve(err: any): void {
     console.log("Vimium C: an async function fails:", err)
     resolveVoid()
   }
-})
+}
 : Build.MinCVer < BrowserVer.MinEnsuredES2017AsyncFunctions
 ? <TNext, TReturn> (generatorFunction: () => Generator<TNext | TReturn | Promise<TNext | TReturn>, TReturn, TNext>
-    ): Promise<TReturn | void> => new Promise<TReturn | void> ((resolve): void => {
-  const resolveVoid = Build.MinCVer < BrowserVer.MinTestedES6Environment ? resolve.bind(0, void 0) : () => resolve()
+    ): Promise<TReturn | void> => {
+  const promise = promiseDefer_<TReturn | void>()
+  const resolveVoid = Build.MinCVer < BrowserVer.MinTestedES6Environment ? promise.r.bind(0, void 0) : () => promise.r()
   const generator = generatorFunction()
   const resume_ = (lastVal?: TNext): void => {
     const yielded = generator.next(lastVal), value = yielded.value
     if (Build.MinCVer < BrowserVer.Min$resolve$Promise$MeansThen) {
-      Promise.resolve(value).then((yielded.done ? resolve : resume_) as (value: TReturn | TNext) => void
+      Promise.resolve(value).then((yielded.done ? promise.r : resume_) as (value: TReturn | TNext) => void
           , Build.NDEBUG ? resolveVoid : logDebugAndResolve)
     } else if (yielded.done) {
-      resolve(value as TReturn | Promise<TReturn> as /** just to satisfy type checks */ TReturn)
+      promise.r(value as TReturn | Promise<TReturn> as /** just to satisfy type checks */ TReturn)
     } else {
       Promise.resolve(value as TNext | Promise<TNext>).then(resume_, Build.NDEBUG ? resolveVoid : logDebugAndResolve)
     }
   }
   resume_()
+  return promise.p
   function logDebugAndResolve(err: any): void {
     if (!Build.NDEBUG) { console.log("Vimium C: an async function fails:", err) }
     resolveVoid()
   }
-})
+}
 : 0 as never : 0 as never
 
 const __awaiter = Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES2017AsyncFunctions

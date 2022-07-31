@@ -1,5 +1,6 @@
 import {
-  chromeVer_, doc, createRegExp, isTY, Lower, OBJECT_TYPES, OnFirefox, OnChrome, OnEdge, evenHidden_, safeCall, deref_
+  chromeVer_, doc, createRegExp, isTY, Lower, OBJECT_TYPES, OnFirefox, OnChrome, OnEdge, evenHidden_, safeCall, deref_,
+  loc_, VTr, tryCreateRegExp
 } from "./utils"
 import { dimSize_, selRange_ } from "./rect"
 
@@ -398,8 +399,7 @@ export const hasInCSSFilter_ = (): boolean => {
       && chromeVer_ < BrowserVer.MinCSS$filter ? st.webkitFilter : st.filter) !== "none"
 }
 
-export const getMediaTag = (element: SafeHTMLElement): kMediaTag => {
-  const tag = element.localName
+export const getMediaTag = (tag: keyof HTMLElementTagNameMap | ""): kMediaTag => {
   return tag === "img" ? kMediaTag.img : tag === "video" || tag === "audio" ? kMediaTag.otherMedias
       : tag === "a" ? kMediaTag.a : kMediaTag.others
 }
@@ -426,8 +426,8 @@ export const deepActiveEl_unsafe_ = (alsoBody?: 1): Element | null => {
   return active || null
 }
 
-export const uneditableInputs_: SafeEnum = { __proto__: null as never,
-    bu: 1, ch: 1, co: 1, fi: 1, hi: 1, im: 1, ra: 1, re: 1, su: 1
+export const uneditableInputs_: ReadonlySafeDict<1 | 2> = { __proto__: null as never,
+    bu: 2, ch: 1, co: 1, fi: 1, hi: 1, im: 2, ra: 1, re: 1, su: 1
 }
 
 export const editableTypes_: SafeObject & { readonly [localName in ""]?: undefined } & {
@@ -544,6 +544,17 @@ export const wrapEventInit_ = <T extends EventInit> (event: T
     , notCancelable?: boolean | BOOL, notBubbles?: boolean | BOOL, notComposed?: 1): T => {
   event.bubbles = !notBubbles, event.cancelable = !notCancelable, OnEdge || (event.composed = !notComposed)
   return event
+}
+
+export const findSelectorByHost = (rules: string | kTip | null | undefined
+    ): "css-selector" | "" | null | void => {
+  const host = loc_.host, isKTip = isTY(rules, kTY.num)
+  for (const arr of (isKTip ? VTr(rules) : rules ? rules + "" : "").split(";")) {
+    const items = arr.split("##"), re = items[0] && tryCreateRegExp(items[0])
+    if (re && re.test(host) && (isKTip || safeCall(querySelector_unsafe_, items[1]!) !== void 0)) {
+      return items[1]! as "css-selector" | undefined
+    }
+  }
 }
 
 //#endregion

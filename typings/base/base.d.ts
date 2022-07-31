@@ -18,6 +18,8 @@ type EnsureItemsNonNull<T> = { [P in keyof T]-?: NonNullable<T[P]> };
 type OnlyEnsureItemsNonNull<T> = { [P in keyof T]: NonNullable<T[P]> }; // for lang server to show comments
 type EnsureNonNull<T> = EnsureItemsNonNull<NonNullable<T>>;
 type Ensure<T, K extends keyof T> = { -readonly [P in K]-?: NonNullable<T[P]> };
+type MayHasUndefined<T> = { [P in keyof T]: T[P] | undefined }
+type EnsureExisting<T> = MayHasUndefined<{ [P in keyof T]-?: T[P] }>
 type PickIn<T, K extends string> = Pick<T, K & keyof T>
 
 type PartialOf<T, Keys extends keyof T> = { [P in Keys]?: T[P]; };

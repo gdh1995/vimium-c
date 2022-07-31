@@ -50,7 +50,8 @@ export let addUIElement = function (element: HTMLElement, adjust_type?: AdjustTy
     // it doesn't matter to check `.mode == "closed"`, but not `.attachShadow`
     OnChrome && Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1
         || OnFirefox && Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1
-        || !OnEdge && root_.mode === "closed"
+        || !OnEdge && (Build.NDEBUG ? !OnChrome || chromeVer_ > BrowserVer.MinEnsuredShadowDOMV1 - 1
+              : root_.mode === "closed")
         || setupEventListener(OnChrome && Build.MinCVer >= BrowserVer.MinShadowDOMV0 || !OnEdge && root_ !== box_
               ? root_ as ShadowRoot : 0, "load", function Onload(this: ShadowRoot | Window, e: Event): void {
       if (!isAlive_) { setupEventListener(0, "load", Onload, 1); return; } // safe enough even if reloaded

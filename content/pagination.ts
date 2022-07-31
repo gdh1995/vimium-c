@@ -1,14 +1,14 @@
 import {
   clickable_, vApi, isAlive_, safer, timeout_, escapeAllForRe, tryCreateRegExp, VTr, isTY, Lower, chromeVer_,
-  OnChrome, OnFirefox, OnEdge, evenHidden_, doc, firefoxVer_, queryByHost
+  OnChrome, OnFirefox, OnEdge, evenHidden_, doc, firefoxVer_
 } from "../lib/utils"
 import {
   htmlTag_, isAriaFalse_, isStyleVisible_, querySelectorAll_unsafe_, isIFrameElement, ALA, attr_s, findAnchor_,
-  contains_s, notSafe_not_ff_, hasTag_, AriaArray, testMatch
+  contains_s, notSafe_not_ff_, hasTag_, AriaArray, testMatch, uneditableInputs_, getInputType, findSelectorByHost
 } from "../lib/dom_utils"
 import { getBoundingClientRect_, isNotInViewport, view_, VisibilityType } from "../lib/rect"
 import { kSafeAllSelector, detectUsableChild } from "./link_hints"
-import { traverse, ngEnabled } from "./local_links"
+import { traverse, ngEnabled, extraClickable_ } from "./local_links"
 import { find_box } from "./mode_find"
 import { omni_box } from "./omni"
 import { flash_ } from "./dom_ui"
@@ -26,7 +26,7 @@ export const isInteractiveInPage = (element: SafeElement): boolean => {
 export const filterTextToGoNext: VApiTy["g"] = (candidates, names, options, maxLen): number => {
   // Note: this traverser should not need a prepareCrop
   const fromMatchSelector = !!options.match
-  const excOnHost = queryByHost("", kTip.excludeWhenGoNext)
+  const excOnHost = findSelectorByHost(kTip.excludeWhenGoNext)
   const links = isAlive_ ? traverse(kSafeAllSelector, options, (hints: Hint0[], element: SafeElement): void => {
     let s: string | null
     if (isIFrameElement(element)) {
@@ -37,8 +37,10 @@ export const filterTextToGoNext: VApiTy["g"] = (candidates, names, options, maxL
         childApi = rect.width > 99 && rect.height > 15 && isStyleVisible_(element) && detectUsableChild(element)
         childApi && iframesToSearchForNext!.push(childApi)
       }
-    } else if (fromMatchSelector || (s = htmlTag_(element)) === "a"
-        || (s === "button" ? !(element as HTMLButtonElement).disabled : s && clickable_.has(element))
+    } else if (fromMatchSelector || (s = htmlTag_(element))
+        && (s === "a" || s === "img" || (s === "button" ? !(element as HTMLButtonElement).disabled
+            : s === "input" && uneditableInputs_[getInputType(element as HTMLInputElement)] === 2))
+        || clickable_.has(element) || extraClickable_ && extraClickable_.has(element)
         || (OnFirefox ? (element as HTMLElement | SVGElement).onclick : attr_s(element, "onclick"))
         || ((s = attr_s(element, "role")) ? (<RegExpI> /^(button|link)$/i).test(s)
           : ngEnabled && attr_s(element, "ng-click"))) {
@@ -60,7 +62,7 @@ export const filterTextToGoNext: VApiTy["g"] = (candidates, names, options, maxL
   for (; i < names.length; i++) {
     if (GlobalConsts.SelectorPrefixesInPatterns.includes(names[i][0])) {
       const arr = querySelectorAll_unsafe_(names[i]);
-      if (arr && arr.length === 1 && (OnFirefox || !notSafe_not_ff_!(arr[0]))) {
+      if (arr && arr[0] && (OnFirefox || !notSafe_not_ff_!(arr[0]))) {
         candidates.push([arr[0] as SafeElement as SafeElementForMouse, vApi, i << 23, ""])
         names.length = i + 1
       }

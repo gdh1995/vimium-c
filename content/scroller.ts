@@ -23,14 +23,14 @@ interface ElementScrollInfo {
 
 import {
   isAlive_, setupEventListener, timeout_, clearTimeout_, fgCache, doc, noRAF_old_cr_, readyState_, chromeVer_,
-  vApi, weakRef_not_ff, queryByHost, max_, math, min_, Lower, OnChrome, OnFirefox, OnEdge, WithDialog, OnSafari,
-  isTop, injector, isTY, safeCall, weakRef_ff, Stop_, abs_
+  vApi, weakRef_not_ff, max_, math, min_, Lower, OnChrome, OnFirefox, OnEdge, WithDialog, OnSafari,
+  isTop, injector, isTY, promiseDefer_, weakRef_ff, Stop_, abs_
 } from "../lib/utils"
 import {
   rAF_, scrollingEl_, SafeEl_not_ff_, docEl_unsafe_, NONE, frameElement_, OnDocLoaded_, GetParent_unsafe_, isNode_,
   querySelector_unsafe_, getComputedStyle_, notSafe_not_ff_, HDN, isRawStyleVisible, fullscreenEl_unsafe_,
   doesSupportDialog, attr_s, getSelection_, isIFrameElement, derefInDoc_, isHTML_, IsInDOM_, getRootNode_mounted,
-  getEditableType_, dispatchEvent_, wrapEventInit_
+  getEditableType_, dispatchEvent_, wrapEventInit_, findSelectorByHost
 } from "../lib/dom_utils"
 import {
   scrollWndBy_, wndSize_, getZoom_, wdZoom_, bZoom_, isNotInViewport, prepareCrop_, padClientRect_, instantScOpt,
@@ -270,8 +270,8 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
           , `flags = ${flags}, wait2 = ${wait2}` // lgtm [js/useless-expression]
     }
     running = running || rAF_(animate)
-    return options && (options.$then || options.$else)
-        && new Promise((newResolve): void => { onFinish = newResolve }) || 0
+    let defer: ReturnType<(typeof promiseDefer_<number>)>
+    return options && (options.$then || options.$else) && (defer = promiseDefer_(), onFinish = defer.r, defer.p) || 0
   };
   return performAnimate(newEl, newDi, newAmount, newOpts)
 }
@@ -526,10 +526,10 @@ const findScrollable = (di: ScrollByY, amount: number
     activeEl && selectAncestor()
     if (!element) {
       // note: twitter auto focuses its dialog panel, so it's not needed to detect it here
-      const selector = queryByHost(scrollable, kTip.scrollable)
+      const selector = findSelectorByHost(scrollable) || findSelectorByHost(kTip.scrollable)
       if (selector) {
-          element = OnFirefox ? (safeCall(querySelector_unsafe_, selector) || null) as SafeElement | null
-                  : SafeEl_not_ff_!(safeCall(querySelector_unsafe_, selector) || null)
+          element = OnFirefox ? querySelector_unsafe_(selector) as SafeElement | null
+                  : SafeEl_not_ff_!(querySelector_unsafe_(selector))
           element = element && (!fullscreen || IsInDOM_(element as SafeElement, fullscreen)) ? element : null
       }
     }

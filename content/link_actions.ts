@@ -78,7 +78,7 @@ const getUrlData = (str?: string): string => {
 
 const downloadOrOpenMedia = (): void => {
   const filename = attr_s(clickEl, kD) || attr_s(clickEl, "alt") || (clickEl as Partial<SafeHTMLElement>).title || ""
-  let mediaTag = tag ? getMediaTag(clickEl as SafeHTMLElement) : kMediaTag.others
+  let mediaTag = getMediaTag(tag)
   let srcObj = accessElAttr(0), src = srcObj[0]
   let text: string | null, n: number
   if (!mediaTag) {
@@ -332,8 +332,10 @@ const defaultClick = (): void => {
     shift = notLabelInFormOnFF && (newWindow
         || newTab && (mask > HintMode.newtab_n_active - 1) === !hintOptions.activeOnCtrl),
     isSel = tag === "select",
-    interactive = isSel || (tag === "video" || tag === "audio") && !isRight && (clickEl as HTMLMediaElement).controls,
-    doInteract = interactive && !isSel && hintOptions.interact !== !1,
+    rawInteractive = hintOptions.interact,
+    interactive = isSel || getMediaTag(tag) === kMediaTag.otherMedias && !isRight
+        && (rawInteractive !== "native" || (clickEl as HTMLMediaElement).controls),
+    doInteract = interactive && !isSel && rawInteractive !== !1,
     specialActions = dblClick || doInteract
         ? kClickAction.BaseMayInteract + +dblClick + kClickAction.FlagInteract * <number> <number | boolean> doInteract
         : isRight || newTabStr.startsWith("no-") ? kClickAction.none

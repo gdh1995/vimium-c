@@ -231,14 +231,6 @@ export const tryCreateRegExp = function (pattern: string, flags: string ): RegEx
   (pattern: string): RegExpOne | void
 }
 
-export const queryByHost = (customized_rules: string | null | undefined, builtin_rules: kTip): string | void => {
-  const host = loc_.host
-  for (const arr of ((customized_rules || "") + ";" + VTr(builtin_rules)).split(";")) {
-    const items = arr.split("##"), re = items[0] && tryCreateRegExp(items[0])
-    if (re && re.test(host)) { return items[1]! }
-  }
-}
-
 export const safeCall = (<T1, T2, Ret>(func: (arg1: T1, arg2: T2) => Ret, arg1: T1, arg2: T2): Ret | void => {
   try { return func(arg1, arg2) } catch {}
 }) as {
@@ -249,6 +241,11 @@ export const safeCall = (<T1, T2, Ret>(func: (arg1: T1, arg2: T2) => Ret, arg1: 
 
 export const reflectApply_not_cr = OnChrome ? 0 as never as null : Reflect!.apply
 
+export const promiseDefer_ = <T> (): { p: Promise<T>, r: (value: T) => void } => {
+  let r: ((value: T) => void) | undefined, p = new Promise<T>((resolve): void => { r = resolve })
+  return { p, r: r! }
+}
+
 /** ==== shortcuts of constant code ==== */
 
 type PlainObject = { arguments?: undefined } & Dict<any>
@@ -258,9 +255,9 @@ interface TyMap { [kTY.obj]: null | object; [kTY.func]: Function; [kTY.num]: num
 const TYPES = ["string", "object", "function", "number"]
 export { TYPES as OBJECT_TYPES }
 export const isTY = ((obj: any, ty?: kTY): boolean => typeof obj == TYPES[ty || kTY.str]) as {
-  <V extends undefined | null | boolean | number | string | Function | PlainObject, T extends kTyOf<V>> (
+  <V extends void | undefined | null | boolean | number | string | Function | PlainObject, T extends kTyOf<V>> (
     obj: V, ty: T): obj is TyMap[T] & V
-  (obj: undefined | null | boolean | number| PlainObject): unknown
+  (obj: void | undefined | null | boolean | number| PlainObject): unknown
   (obj: undefined | null | boolean | number| string | PlainObject): obj is string
 }
 

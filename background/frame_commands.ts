@@ -471,9 +471,13 @@ export const framesGoNext = (isNext: boolean, rel: string): void => {
   totalMaxLen: number = Math.max.apply(Math, maxLens)
   sendFgCmd(kFgCmd.goNext, true, wrapFallbackOptions<kFgCmd.goNext, C.goNext>({
     r: get_cOptions<C.goNext>().noRel ? "" : rel, n: isNext,
-    exclude: (get_cOptions<C.goNext, true>() as CSSOptions).exclude,
     match: get_cOptions<C.goNext, true>().match,
+    clickable: (get_cOptions<C.goNext, true>() as CSSOptions).clickable,
+    clickableOnHost: (get_cOptions<C.goNext, true>() as CSSOptions).clickableOnHost,
+    exclude: (get_cOptions<C.goNext, true>() as CSSOptions).exclude,
+    excludeOnHost: (get_cOptions<C.goNext, true>() as CSSOptions).excludeOnHost,
     evenIf: get_cOptions<C.goNext, true>().evenIf,
+    scroll: get_cOptions<C.goNext, true>().scroll,
     p: patterns, l: maxLens, m: totalMaxLen > 0 && totalMaxLen < 99 ? totalMaxLen : 32,
     v: get_cOptions<C.goNext, true>().view !== false,
     a: !!get_cOptions<C.goNext, true>().avoidClick,
