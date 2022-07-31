@@ -527,6 +527,7 @@ bgIniting_ < BackendHandlersNS.kInitStat.FINISHED && ((): void => {
   obj.VomnibarScript_f_ = func(obj.VomnibarScript_);
   obj.HomePage_ = ref.homepage_url || obj.HomePage_;
   obj.Injector_ = func(obj.Injector_);
+  obj.TeeFrame_ = func(obj.TeeFrame_)
   ref2.push("content/injected_end.js")
   if (OnChrome && Build.MinCVer < BrowserVer.MinSafe$String$$StartsWith
       && CurCVer_ < BrowserVer.MinSafe$String$$StartsWith

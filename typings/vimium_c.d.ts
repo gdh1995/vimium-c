@@ -302,7 +302,7 @@ declare const enum PortNameEnum {
 
 declare const enum PortType {
   initing = 0, isTop = 1, hasFocus = 2, reconnect = 4, hasCSS = 8,
-  omnibar = 16, otherExtension = 32, selfPages = 64,
+  omnibar = 16, otherExtension = 32, selfPages = 64, Tee = 128,
   /** for external extensions like NewTab Adapter */ CloseSelf = 999,
 }
 
@@ -509,6 +509,7 @@ interface Document extends DocumentAttrsToBeDetected {}
 
 declare const enum GlobalConsts {
   TabIdNone = -1,
+  TeeReqId = -3,
   VomnibarFakeTabId = -3,
   MaxImpossibleTabId = -4,
   WndIdNone = -1,

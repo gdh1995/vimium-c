@@ -1,7 +1,7 @@
 import {
   needIcon_, cPort, set_cPort, reqH_, contentPayload_, omniPayload_, innerCSS_, extAllowList_, framesForTab_,
   framesForOmni_, getNextFakeTabId, curTabId_, vomnibarPage_f, OnChrome, CurCVer_, OnEdge, setIcon_,
-  keyFSM_, mappedKeyRegistry_, CONST_, mappedKeyTypes_, recencyForTab_
+  keyFSM_, mappedKeyRegistry_, CONST_, mappedKeyTypes_, recencyForTab_, setTeeTask_
 } from "./store"
 import { asyncIter_, getOmniSecret_, keys_ } from "./utils"
 import { removeTempTab, tabsGet, runtimeError_, getCurTab, getTabUrl, Tabs_, browserWebNav_, Q_ } from "./browser"
@@ -183,6 +183,23 @@ const _onPageConnect = (port: Port, type: PortType): void => {
     return
   }
   (port as Frames.Port).s = false as never
+  if (type & PortType.Tee) {
+    let taskOnce = setTeeTask_(null, null)
+    if (taskOnce) {
+      port.postMessage({ N: kBgReq.omni_runTeeTask, t: taskOnce.t, s: taskOnce.s })
+      port.onMessage.addListener((res: any): void => {
+        taskOnce && taskOnce.r && taskOnce.r(res)
+        taskOnce = null
+      })
+      port.onDisconnect.addListener((): void => {
+        taskOnce && taskOnce.r && taskOnce.r(false)
+        taskOnce = null
+      })
+    } else {
+      port.disconnect()
+    }
+    return
+  }
   port.onMessage.addListener(onMessage)
 }
 

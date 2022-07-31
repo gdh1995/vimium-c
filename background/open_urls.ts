@@ -1,7 +1,7 @@
 import {
   framesForTab_, cPort, cRepeat, get_cOptions, set_cOptions, set_cPort, set_cRepeat, set_lastWndId_, set_cEnv,
   lastWndId_, curIncognito_, curTabId_, curWndId_, recencyForTab_, vomnibarBgOptions_, OnFirefox, OnChrome, OnEdge,
-  CurCVer_, IsEdg_, paste_, substitute_, newTabUrls_, os_, CONST_, shownHash_, set_shownHash_, newTabUrl_f
+  CurCVer_, IsEdg_, paste_, substitute_, newTabUrls_, os_, CONST_, shownHash_, set_shownHash_, newTabUrl_f, IsLimited
 } from "./store"
 import * as BgUtils_ from "./utils"
 import {
@@ -510,7 +510,7 @@ export const openShowPage = (url: string, reuse: ReuseType, options: KnownOption
 
 const updateShownPage = (options: Req.FallbackOptions, tab: Tab): void => {
     const prefix = CONST_.ShowPage_
-    let views = !OnEdge && (!OnChrome
+    let views = !(Build.MV3 && IsLimited) && !OnEdge && (!OnChrome
               || Build.MinCVer >= BrowserVer.Min$Extension$$GetView$AcceptsTabId
               || CurCVer_ >= BrowserVer.Min$Extension$$GetView$AcceptsTabId)
           && !tab.url.split("#", 2)[1]

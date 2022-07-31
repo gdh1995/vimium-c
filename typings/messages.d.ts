@@ -85,7 +85,7 @@ declare const enum kBgReq {
   createMark, showHUD, count, queryForRunKey, goToMark, suppressForAWhile,
   OMNI_MIN = 42,
   omni_init = OMNI_MIN, omni_omni, omni_parsed, omni_returnFocus,
-  omni_toggleStyle, omni_updateOptions,
+  omni_toggleStyle, omni_updateOptions, omni_runTeeTask,
   END = "END", // without it, TypeScript will report errors for number indexes
 }
 
@@ -100,7 +100,7 @@ declare const enum kFgReq {
   gotoMainFrame, setOmniStyle, findFromVisual, framesGoBack,
   i18n, learnCSS, visualMode, respondForRunKey, downloadLink, wait,
   optionToggled, keyFromOmni, pages, showUrl,
-  omniCopy, didLocalMarkTask, END,
+  omniCopy, didLocalMarkTask, teeFail, END,
   msg = 90, inject = 99,
   command = "command", id = "id", shortcut = "shortcut", focus = "focus", tip = "tip",
 }
@@ -202,10 +202,24 @@ interface BgVomnibarSpecialReq {
   [kBgReq.omni_updateOptions]: {
     /** delta */ d: Partial<SelectValueType<SettingsNS.AllVomnibarItems>>;
   };
+  [kBgReq.omni_runTeeTask]: Pick<BaseTeeTask, "t" | "s">
 }
 type ValidBgVomnibarReq = keyof BgVomnibarSpecialReq | kBgReq.injectorRun;
 interface FullBgReq extends BgReq, BgVomnibarSpecialReq {}
 
+declare const enum kTeeTask { Copy = 1, ShowImage = 2, Paste = 3, Download = 4, CopyImage = 5 }
+interface BaseTeeTask {
+  /** task id */ t: kTeeTask
+  /** serializable data */ s: any
+  /** complicated data */ d?: object | null | undefined
+  /** resolve */ r?: (succeed: boolean | string) => void
+}
+interface TeeTasks {
+  [kTeeTask.Copy]: { s: string, d: null }
+  [kTeeTask.Paste]: { s: null, d: null }
+  [kTeeTask.Download]: { s: chrome.downloads.DownloadOptions, d: null }
+  [kTeeTask.CopyImage]: { s: [ /* blob url */ string, /* source url */ string ], d: Blob }
+}
 
 declare const enum kBgCmd {
   blank,
@@ -228,6 +242,7 @@ declare const enum kBgCmd {
 declare const enum kFgCmd {
   framesGoBack, findMode, linkHints, marks, scroll, visualMode, vomnibar, insertMode, toggle,
   passNextKey, goNext, autoOpen, focusInput, editText, scrollSelect, toggleStyle, dispatchEventCmd, showHelpDialog,
+  callTee,
   END, ENDS = "END",
 }
 
@@ -469,6 +484,12 @@ interface CmdOptions {
     init?: Dict<any>
     xy?: null | HintsNS.Options["xy"]
   } & OptionsToFindElement & Req.FallbackOptions & EventInit
+  [kFgCmd.callTee]: {
+    /** url */ u: string
+    /** className */ c: string
+    /** allow */ a: string
+    /** timeout */ t: number
+  }
 }
 
 declare const enum kMarkAction {
@@ -693,6 +714,7 @@ interface FgReq {
   [kFgReq.pages]: { /** id of query array */ i: number; /** queries */ q: unknown[] }
   [kFgReq.showUrl]: { u: string }
   [kFgReq.omniCopy]: { /** title */ t: string, /** url */ u: string }
+  [kFgReq.teeFail]: {}
 }
 
 interface CurrentEnvCache {} // eslint-disable-line @typescript-eslint/no-empty-interface
@@ -737,6 +759,8 @@ declare namespace Req {
     K extends keyof BgReq ? BgReq[K] & baseBg<K> :
     K extends keyof BgVomnibarSpecialReq ? BgVomnibarSpecialReq[K] & baseBg<K> :
     never;
+  interface baseTee<K extends kTeeTask> extends Omit<BaseTeeTask, "t" | "s" | "d"> { t: K }
+  type tee<K extends keyof TeeTasks> = Pick<TeeTasks[K], "s"> & PartialOf<TeeTasks[K], "d"> & baseTee<K>
   interface baseFg<K extends kFgReq> {
     /** handler */ H: K;
   }

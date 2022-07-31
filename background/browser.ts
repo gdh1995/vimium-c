@@ -1,6 +1,6 @@
 import {
   CurCVer_, CurFFVer_, curIncognito_, curWndId_, newTabUrls_, OnChrome, OnEdge, OnFirefox, newTabUrl_f, blank_,
-  CONST_, IsEdg_, hasGroupPermission_ff_, bgIniting_, set_installation_
+  CONST_, IsEdg_, hasGroupPermission_ff_, bgIniting_, set_installation_, IsLimited, runOnTee_
 } from "./store"
 import { DecodeURLPart_, deferPromise_ } from "./utils"
 
@@ -310,8 +310,15 @@ export const downloadFile = (url: string, filename?: string | null, refer?: stri
               || CurFFVer_ > FirefoxBrowserVer.Min$downloads$$download$acceptReferer - 1) && refer) {
         opts.headers = [ { name: "Referer", value: refer } ]
       }
-      const q = Q_(browser_.downloads.download!, opts)
-      onFinish && q.then(res => onFinish(res !== void 0))
+      void (Build.MV3 && IsLimited && url.startsWith("data:") ? runOnTee_(kTeeTask.Download, opts, null)
+          : Promise.resolve(false)).then((res): void => {
+        if (res) {
+          onFinish && onFinish(true)
+          return
+        }
+        const q = Q_(browser_.downloads.download!, opts)
+        onFinish && q.then((): void => { onFinish(true) })
+      })
     } else if (onFinish) {
       onFinish(false)
     }

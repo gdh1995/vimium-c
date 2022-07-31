@@ -1,6 +1,6 @@
 import {
-  CurCVer_, CurFFVer_, OnChrome, OnEdge, OnFirefox, paste_, substitute_, set_copy_, set_paste_, set_substitute_, CONST_,
-  settingsCache_, IsLimited, updateHooks_, searchEngines_
+  CurCVer_, CurFFVer_, OnChrome, OnEdge, OnFirefox, copy_, paste_, substitute_, set_copy_, set_paste_, set_substitute_,
+  settingsCache_, IsLimited, updateHooks_, searchEngines_, blank_, runOnTee_
 } from "./store"
 import * as BgUtils_ from "./utils"
 import * as Exclusions from "./exclusions"
@@ -381,14 +381,16 @@ const reformat_ = (copied: string, sed?: MixedSedOpts | null): string => {
   return copied
 }
 
-set_copy_(Build.MV3 && IsLimited || OnFirefox && navigator.clipboard ? (data, join, sed, keyword): string => {
+let navClipboard: (typeof navigator.clipboard) | undefined
+
+set_copy_(As_<typeof copy_>((data, join, sed, keyword): string | Promise<string> => {
   data = format_(data, join, sed, keyword)
-  const clip = data && navigator.clipboard
-  clip && clip.writeText!(data)
-  return data
-} : (data, join, sed, keyword): string => {
-  data = format_(data, join, sed, keyword)
-  if (data) {
+  if (!data) { return "" }
+  if (Build.MV3 && IsLimited
+      || OnFirefox && (navClipboard || (navClipboard = navigator.clipboard))) {
+    return (Build.MV3 && IsLimited ? runOnTee_(kTeeTask.Copy, data, null)
+        : navClipboard!.writeText!(data).catch(blank_)).then(() => data as string)
+  } else {
     const doc = (globalThis as MaybeWithWindow).document!, textArea = getTextArea_html()
     textArea.value = data
     doc.body!.appendChild(textArea)
@@ -396,16 +398,17 @@ set_copy_(Build.MV3 && IsLimited || OnFirefox && navigator.clipboard ? (data, jo
     doc.execCommand("copy")
     textArea.remove()
     textArea.value = ""
+    return data
   }
-  return data
-})
+}))
 
-set_paste_(!CONST_.AllowClipboardRead_ ? () => null
-: Build.MV3 && IsLimited || OnFirefox ? (sed): Promise<string | null> | null => {
-  const clipboard = navigator.clipboard
-  return clipboard ? clipboard.readText!().then(s => reformat_(
-      s.slice(0, GlobalConsts.MaxBufferLengthForPastingLongURL), sed), () => null) : null
-} : (sed, newLenLimit?: number): string => {
+set_paste_(As_<typeof paste_>((sed, newLenLimit?: number): string | Promise<string | null> => {
+  if (Build.MV3 && IsLimited
+      || OnFirefox && (navClipboard || (navClipboard = navigator.clipboard))) {
+    return (Build.MV3 && IsLimited ? runOnTee_(kTeeTask.Paste, null, null)
+        : navClipboard!.readText!().catch(() => null)).then(s => s && typeof s === "string"
+              ? reformat_(s.slice(0, GlobalConsts.MaxBufferLengthForPastingLongURL), sed) : null)
+  }
   const doc = (globalThis as MaybeWithWindow).document!, textArea = getTextArea_html()
   textArea.maxLength = newLenLimit || GlobalConsts.MaxBufferLengthForPastingNormalText
   doc.body!.appendChild(textArea)
@@ -420,7 +423,7 @@ set_paste_(!CONST_.AllowClipboardRead_ ? () => null
     return paste_(sed, GlobalConsts.MaxBufferLengthForPastingLongURL) as string
   }
   return reformat_(value, sed)
-})
+}))
 
 updateHooks_.clipSub = (): void => { staticSeds_ = null }
 

@@ -143,6 +143,7 @@ export let bgC_: {
 }
 export let cmdInfo_: { readonly [k in number]: kCmdInfo }
 export let runOneMapping_: (key: string, port: Port | null, fStatus: NonNullable<FgReq[kFgReq.nextKey]["f"]>) => void
+let _teeTask: BaseTeeTask | null = null
 //#endregion
 
 //#region variable setter
@@ -191,6 +192,11 @@ export const set_bgC_ = (_newBgC: typeof bgC_): void => { bgC_ = _newBgC }
 export const set_cmdInfo_ = (_newCmdInfo: typeof cmdInfo_): void => { cmdInfo_ = _newCmdInfo }
 export const set_installation_ = (_newInstallation: typeof installation_): void => { installation_ = _newInstallation }
 export const set_runOneMapping_ = (_newF: typeof runOneMapping_): void => { runOneMapping_ = _newF }
+export const setTeeTask_ = (expected: typeof _teeTask, newTask: typeof _teeTask): typeof _teeTask => {
+  const old = _teeTask, matches = !expected || old === expected
+  _teeTask = matches ? newTask : old
+  return matches ? old : null
+}
 //#endregion
 
 //#region some shared util functions
@@ -202,12 +208,14 @@ export let setIcon_: (tabId: number, type: Frames.ValidStatus, isLater?: true) =
 export let sync_: SettingsNS.Sync["set"] = blank_
 export let restoreSettings_: Promise<void> | null = null
 export let copy_: (text: string | any[], join?: FgReq[kFgReq.copy]["j"]
-    , sed?: MixedSedOpts | null, keyword?: string | null) => string = (() => "")
+    , sed?: MixedSedOpts | null, keyword?: string | null) => string | Promise<string> = (() => "")
 export let paste_: (sed?: MixedSedOpts | null, len?: number) => string | Promise<string | null> | null = () => ""
 export let substitute_: (text: string, context: SedContext, sed?: MixedSedOpts | null) => string = s => s
 export let evalVimiumUrl_: Urls.Executor = () => null
 export let updateToLocal_: ((wait: number) => void) | true | null = null
 export let shownHash_: ((this: void) => string) | null = null
+export let runOnTee_: <K extends keyof TeeTasks>(task: K, serializable: TeeTasks[K]["s"]
+    , data: TeeTasks[K]["d"]) => Promise<boolean | string>
 
 export const set_setIcon_ = (_newSetIcon: typeof setIcon_): void => { setIcon_ = _newSetIcon }
 export const set_sync_ = (_newSync: typeof sync_): void => { sync_ = _newSync }
@@ -218,6 +226,7 @@ export const set_substitute_ = (_newSed: typeof substitute_): void => { substitu
 export const set_evalVimiumUrl_ = (_newEval: typeof evalVimiumUrl_): void => { evalVimiumUrl_ = _newEval }
 export const set_shownHash_ = (_newHash: typeof shownHash_): void => { shownHash_ = _newHash }
 export const set_updateToLocal_ = (_newBackup: typeof updateToLocal_): void => { updateToLocal_ = _newBackup }
+export const set_runOnTee_ = (_newRunOnTee_: typeof runOnTee_): void => { runOnTee_ = _newRunOnTee_ }
 
 export const set_CurFFVer_ = OnFirefox ? (ver: FirefoxBrowserVer) => { CurFFVer_ = ver } : blank_
 export const set_os_ = Build.OS & (Build.OS - 1) ? (newOS: kOS) => { os_ = newOS } : 0 as never as null
@@ -225,7 +234,6 @@ export const set_os_ = Build.OS & (Build.OS - 1) ? (newOS: kOS) => { os_ = newOS
 
 export const CONST_ = {
   BrowserProtocol_: OnChrome ? "chrome" : OnFirefox ? "moz" : OnEdge ? "ms-browser" : "about",
-  AllowClipboardRead_: true,
   BaseCSSLength_: 0,
   // should keep lower case
   NtpNewTab_: OnEdge ? <RegExpOne> /^https:\/\/www\.msn\.\w+\/spartan\/ntp\b/
@@ -237,6 +245,7 @@ export const CONST_ = {
   VerCode_: "", VerName_: "",
   GitVer: BuildStr.Commit as string,
   Injector_: "/lib/injector.js",
+  TeeFrame_: "/front/vomnibar-tee.html",
   HelpDialogJS: "/background/help_dialog.js" as const,
   OptionsPage_: GlobalConsts.OptionsPage as string, Platform_: "browser", BrowserName_: "",
   HomePage_: "https://github.com/gdh1995/vimium-c",

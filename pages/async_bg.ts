@@ -6,7 +6,7 @@ export declare const enum kReadyInfo {
   show = 1, popup = 1, options = 1, i18n = 2, browserInfo = 4,
   NONE = 0, FINISHED = 7, LOCK = 8,
 }
-export type ValidFetch = (input: string, init?: Partial<Request>) => Promise<Response>
+export type ValidFetch = GlobalFetch
 
 declare var define: any, VApi: VApiTy | undefined // eslint-disable-line no-var
 
@@ -143,7 +143,7 @@ const postAll = (knownSize?: number): void => {
   const id = _queryId++
   _todoCallbacks[id] = _ansCallbacks!
   _ansCallbacks = null
-  const getBg = browser_.extension.getBackgroundPage
+  const getBg = Build.MV3 ? null : browser_.extension.getBackgroundPage
   const bg = getBg && getBg() as unknown as BgExports | null
   if (bg && bg.onPagesReq) {
     void bg.onPagesReq({ i: id, q: _todoMsgs }).then(OnFirefox ? onRespond2_ff : onRespond)

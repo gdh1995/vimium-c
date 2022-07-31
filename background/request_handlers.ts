@@ -1,7 +1,7 @@
 import {
   set_cPort, set_cRepeat, set_cOptions, needIcon_, set_cKey, cKey, get_cOptions, set_reqH_, reqH_, restoreSettings_,
   innerCSS_, framesForTab_, cRepeat, curTabId_, Completion_, CurCVer_, OnChrome, OnEdge, OnFirefox, setIcon_, blank_,
-  substitute_, paste_, keyToCommandMap_, CONST_, copy_, set_cEnv, settingsCache_, vomnibarBgOptions_
+  substitute_, paste_, keyToCommandMap_, CONST_, copy_, set_cEnv, settingsCache_, vomnibarBgOptions_, setTeeTask_
 } from "./store"
 import * as BgUtils_ from "./utils"
 import {
@@ -333,11 +333,13 @@ set_reqH_([
         str = ""
       }
     }
-    str = str && copy_(str, request.j, sed, keyword)
-    set_cPort(port)
-    str = request.s && typeof request.s === "object" ? `[${request.s.length}] ` + request.s.slice(-1)[0] : str
-    showHUD(decode ? str.replace(<RegExpG & RegExpSearchable<0>> /%[0-7][\dA-Fa-f]/g, decodeURIComponent)
-        : str, request.u ? kTip.noUrlCopied : kTip.noTextCopied)
+    let str2 = str && copy_(str, request.j, sed, keyword)
+    str2 = request.s && typeof request.s === "object" ? `[${request.s.length}] ` + request.s.slice(-1)[0] : str2
+    Promise.resolve(str2).then((str3) => {
+      set_cPort(port)
+      showHUD(decode ? str3.replace(<RegExpG & RegExpSearchable<0>> /%[0-7][\dA-Fa-f]/g, decodeURIComponent)
+          : str3, request.u ? kTip.noUrlCopied : kTip.noTextCopied)
+    })
   },
   /** kFgReq.key: */ (request: FgReq[kFgReq.key], port: Port | null): void => {
     const sender = port != null ? (port as Frames.Port).s : null
@@ -508,6 +510,10 @@ set_reqH_([
     } else {
       showHUDEx(port, "mCreateLastMark", 1, [])
     }
+  },
+  /** kFgReq.teeFail: */ (_req: FgReq[kFgReq.teeFail]): void => {
+    const taskOnce = setTeeTask_(null, null)
+    taskOnce && taskOnce.r && taskOnce.r(false)
   }
 ])
 
@@ -615,6 +621,9 @@ declare var window: unknown
 declare var structuredClone: (<T> (obj: T) => T) | undefined
 (globalThis as MaybeWithWindow).window && ((window as BgExports).onPagesReq =
     (req): Promise<FgRes[kFgReq.pages]> => {
+  if (req.i === GlobalConsts.TeeReqId) {
+    return setTeeTask_(null, null) as never
+  }
   const queries = !OnFirefox ? req.q
       : Build.MinFFVer >= FirefoxBrowserVer.Min$structuredClone || typeof structuredClone === "function"
       ? structuredClone!(req.q) : JSON.parse(JSON.stringify(req.q))

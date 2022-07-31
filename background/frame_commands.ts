@@ -1,7 +1,7 @@
 import {
-  cPort, cRepeat, get_cOptions, set_cPort, set_cOptions, set_cRepeat, framesForTab_, findCSS_, cKey, reqH_,
-  curTabId_, settingsCache_, OnChrome, visualWordsRe_, CurCVer_, OnEdge, OnFirefox, substitute_, CONST_,
-  helpDialogData_, set_helpDialogData_, curWndId_, vomnibarPage_f, IsLimited, vomnibarBgOptions_
+  cPort, cRepeat, get_cOptions, set_cPort, set_cOptions, set_cRepeat, framesForTab_, findCSS_, cKey, reqH_, runOnTee_,
+  curTabId_, settingsCache_, OnChrome, visualWordsRe_, CurCVer_, OnEdge, OnFirefox, substitute_, CONST_, set_runOnTee_,
+  helpDialogData_, set_helpDialogData_, curWndId_, vomnibarPage_f, IsLimited, vomnibarBgOptions_, setTeeTask_
 } from "./store"
 import * as BgUtils_ from "./utils"
 import { Tabs_, downloadFile, getTabUrl, runtimeError_, selectTab, R_, Q_, browser_, import2 } from "./browser"
@@ -17,6 +17,26 @@ import {
 import { parseReuse, newTabIndex, openUrlWithActions } from "./open_urls"
 import { FindModeHistory_ } from "./tools"
 import C = kBgCmd
+
+let isSecondPasting: BOOL = 0
+
+set_runOnTee_(As_<typeof runOnTee_>((task, serializable, data): Promise<boolean | string> => {
+  const frames = framesForTab_.get(curTabId_) || cPort && framesForTab_.get(cPort.s.tabId_)
+  const port = frames ? frames.cur_ : cPort
+  return new Promise((resolve) => {
+    if (!port) { resolve(false); return }
+    const curTeeTask: Parameters<typeof setTeeTask_>[1] = { t: task, s: serializable, d: data, r: resolve }
+    setTeeTask_(null, curTeeTask)
+    setTimeout((): void => {
+      const latest = setTeeTask_(curTeeTask, null)
+      latest && latest.r!(false)
+    }, 3000)
+    const allow = task === kTeeTask.CopyImage || task === kTeeTask.Copy ? "clipboard-write"
+        : task === kTeeTask.Paste ? "clipboard-read" : ""
+    const timeout = task === kTeeTask.Paste && !isSecondPasting ? (isSecondPasting = 1, 10_000) : 3000
+    portSendFgCmd(port, kFgCmd.callTee, 1, { u: CONST_.TeeFrame_, c: "R TEE UI", a: allow, t: timeout }, 1)
+  })
+}))
 
 export const nextFrame = (): void | kBgCmd.nextFrame => {
   let port = cPort, ind = -1

@@ -54,11 +54,10 @@ set_evalVimiumUrl_(function (path: string, workType?: Urls.WorkType
   case "url-copy": case "search-copy": case "search.copy": case "copy-url":
     res = convertToUrl_(path, null, Urls.WorkType.ActIfNoSideEffects, _isNested)
     if (res instanceof Promise) {
-      return res.then(function (arr1): Urls.CopyEvalResult {
+      return res.then((arr1): Promise<Urls.CopyEvalResult> => {
         let path2 = arr1[0] || (arr1[2] || "");
         path2 = path2 instanceof Array ? path2.join(" ") : path2;
-        path2 = copy_(path2);
-        return [path2, Urls.kEval.copy];
+        return Promise.resolve(copy_(path2)).then(path22 => [path22, Urls.kEval.copy])
       });
     } else {
       res = lastUrlType_ === Urls.Type.Functional &&
@@ -67,8 +66,9 @@ set_evalVimiumUrl_(function (path: string, workType?: Urls.WorkType
     }
     // no break;
   case "cp": case "copy": case "clip": // here `typeof path` must be `string`
-    path = copy_(path);
-    return [path, Urls.kEval.copy];
+    const path3 = copy_(path);
+    return typeof path3 === "string" ? [path, Urls.kEval.copy]
+        : path3.then<Urls.CopyEvalResult>(path32 => [path32, Urls.kEval.copy])
   } }
   switch (cmd) {
   case "urls":

@@ -104,10 +104,11 @@ export const copyWindowInfo = (resolve: OnCmdResolved): void | kBgCmd.copyWindow
         : s1 === "host" ? (val = BgUtils_.safeParseURL_(getTabUrl(i))) && (val as URL).host || ""
         : s1 !== "__proto__" && (val = (i as Dict<any>)[s1],
           val && typeof val === "object" ? JSON.stringify(val) : val || "")
-    }, ""))),
-    result = copy_(data, join, sed, keyword)
-    showHUD(type === "tab" && tabs.length < 2 ? result : trans_("copiedWndInfo"), kTip.noTextCopied)
-    resolve(1)
+    }, "")))
+    void Promise.resolve(copy_(data, join, sed, keyword)).then((result): void => {
+      resolve(1)
+      showHUD(type === "tab" && tabs.length < 2 ? result : trans_("copiedWndInfo"), kTip.noTextCopied)
+    })
   })
 }
 

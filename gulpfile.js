@@ -52,7 +52,7 @@ var CompileTasks = {
   lib: ["lib/*.ts"].concat(has_polyfill ? [] : ["!" + POLYFILL_FILE]),
   front: [["front/*.ts", has_polyfill ? POLYFILL_FILE : "!" + POLYFILL_FILE
             , "lib/injector.ts", "lib/simple_eval.ts"], ["lib/base.omni.d.ts"], { inBatch: false }],
-  vomnibar: ["front/vomnibar*.ts", ["lib/base.omni.d.ts"]],
+  vomnibar: [["front/vomnibar*.ts", "front/tee.ts"], ["lib/base.omni.d.ts"]],
   polyfill: [POLYFILL_FILE],
   options: [["pages/options*.ts", "pages/async_bg.ts"], ["background/index.d.ts", "lib/base.d.ts"], {module: "mayES6"}],
   show: [["pages/show.ts", "pages/async_bg.ts"], ["background/index.d.ts", "lib/base.d.ts"], {module: "mayES6"}],

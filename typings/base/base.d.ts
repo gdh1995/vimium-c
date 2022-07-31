@@ -152,7 +152,7 @@ declare namespace chrome.bookmarks {
 }
 
 declare namespace chrome.clipboard {
-  export function setImageData(data: ArrayBuffer, format: "png"): Promise<void>
+  export function setImageData(data: ArrayBuffer, format: "jpeg" | "png"): Promise<void>
 }
 declare namespace chrome.extension {
   export const getBackgroundPage: (() => Window | null) | undefined
@@ -287,3 +287,5 @@ declare var InstallTrigger: object | undefined, MathMLElement: object | undefine
 interface CSS { escape? (value: string): string }
 
 interface KeyboardEventInit { keyCode?: number; which?: number }
+
+type GlobalFetch = (input: string, init?: Partial<Request & {signal: object}>) => Promise<Response>

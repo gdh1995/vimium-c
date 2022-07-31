@@ -1,13 +1,14 @@
 import {
   chromeVer_, doc, esc, fgCache, isTop, set_esc, VTr, safer, timeout_, loc_, weakRef_not_ff, weakRef_ff, deref_,
-  keydownEvents_, Stop_, suppressCommonEvents, setupEventListener, vApi, locHref, isTY, min_,
-  OnChrome, OnFirefox, OnEdge, firefoxVer_, safeCall, parseOpenPageUrlOptions, os_, abs_, Lower, timeStamp_
+  keydownEvents_, Stop_, suppressCommonEvents, setupEventListener, vApi, locHref, isTY, min_, onWndFocus, clearTimeout_,
+  OnChrome, OnFirefox, OnEdge, firefoxVer_, safeCall, parseOpenPageUrlOptions, os_, abs_, Lower, timeStamp_, isEnabled_,
+  set_onWndFocus
 } from "../lib/utils"
 import {
   isHTML_, hasTag_, createElement_, querySelectorAll_unsafe_, SafeEl_not_ff_, docEl_unsafe_, MDW, CLK, derefInDoc_,
   querySelector_unsafe_, DAC, removeEl_s, appendNode_s, setClassName_s, INP, contains_s, toggleClass_s, modifySel,
   focus_, testMatch, docHasFocus_, deepActiveEl_unsafe_, getEditableType_, textOffset_, getAccessibleSelectedNode,
-  getDirectionOfNormalSelection, inputSelRange, dispatchEvent_
+  getDirectionOfNormalSelection, inputSelRange, dispatchEvent_, notSafe_not_ff_
 } from "../lib/dom_utils"
 import {
   pushHandler_, removeHandler_, getMappedKey, prevent_, isEscape_, keybody_, DEL, BSP, ENTER, handler_stack,
@@ -21,7 +22,8 @@ import { post_, set_contentCommands_, runFallbackKey } from "./port"
 import {
   addElementList, ensureBorder, evalIfOK, getSelected, getSelectionText, getParentVApi, curModalElement, createStyle,
   getBoxTagName_old_cr, setupExitOnClick, addUIElement, removeSelection, ui_root, kExitOnClick, collpaseSelection,
-  hideHelp, set_hideHelp, set_helpBox, checkHidden, flash_, filterOutInert, doesSelectRightInEditableLock, selectNode_
+  hideHelp, set_hideHelp, set_helpBox, checkHidden, flash_, filterOutInert, doesSelectRightInEditableLock, selectNode_,
+  adjustUI
 } from "./dom_ui"
 import { hudHide, hudShow, hudTip, hud_text } from "./hud"
 import { onPassKey, set_onPassKey, passKeys, set_nextKeys, keyFSM, onEscDown } from "./key_handler"
@@ -579,5 +581,22 @@ set_contentCommands_([
     }, kHandler.helpDialog)
     // if no [tabindex=0], `.focus()` works if :exp and since MinElement$Focus$MayMakeArrowKeySelectIt or on Firefox
     timeout_((): void => { focus_(box) }, 17)
-  }) as (options: CmdOptions[kFgCmd.showHelpDialog]) => void
+  }) as (options: CmdOptions[kFgCmd.showHelpDialog]) => void,
+  /* kFgCmd.callTee: */ (options: CmdOptions[kFgCmd.callTee]): any => {
+    const oldWndFocus = onWndFocus, focused = deepActiveEl_unsafe_()
+    const frame = createElement_("iframe")
+    frame.src = options.u
+    ; (frame as HTMLIFrameElement & { allow: string }).allow = options.a
+    setClassName_s(frame, options.c)
+    addUIElement(frame, AdjustType.Normal, true)
+    set_onWndFocus(frame.onerror = (event?: Event | 1): void => {
+      set_onWndFocus(oldWndFocus), frame.onerror = null as never
+      clearTimeout_(timer)
+      event || focused && (OnFirefox || !notSafe_not_ff_!(focused)) && focus_(focused as SafeElement)
+      event ? post_({ H: kFgReq.teeFail }) : oldWndFocus()
+      removeEl_s(frame)
+      isEnabled_ || adjustUI(2)
+    })
+    const timer = timeout_(onWndFocus.bind(0, 1), options.t)
+  }
 ])
