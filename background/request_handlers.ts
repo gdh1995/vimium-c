@@ -24,7 +24,8 @@ import {
 import { inlineRunKey_, parseEmbeddedOptions, runKeyWithCond } from "./run_keys"
 import { focusOrLaunch_, openJSUrl, openUrlReq } from "./open_urls"
 import {
-  initHelp, openImgReq, framesGoBack, enterVisualMode, showVomnibar, parentFrame, nextFrame, performFind, focusFrame
+  initHelp, openImgReq, framesGoBack, enterVisualMode, showVomnibar, parentFrame, nextFrame, performFind, focusFrame,
+  handleImageUrl
 } from "./frame_commands"
 import { FindModeHistory_, Marks_ } from "./tools"
 import { convertToUrl_ } from "./normalize_urls"
@@ -311,6 +312,25 @@ set_reqH_([
   },
   /** kFgReq.copy: */ (request: FgReq[kFgReq.copy], port: Port): void => {
     let str: string | string[] | object[] | undefined
+    if (request.i) {
+      set_cPort(port)
+      if (request.i.startsWith("data:text/")) {
+        showHUD("", kTip.notImg)
+        return
+      }
+      const title = request.u
+      let prefixLen = request.i.indexOf(",") + 1, contentType = request.i.slice(5, Math.max(5, prefixLen)).toLowerCase()
+      const mime = contentType.split(";")[0]
+      let head = request.i.slice(prefixLen, prefixLen + 8)
+      head = contentType.includes("base64") ? BgUtils_.DecodeURLPart_(head, "atob") : head.slice(0, 6)
+      const tag = head.startsWith("\x89PNG") ? "PNG" : head.startsWith("\xff\xd8\xff") ? "JPEG"
+          : (mime.split("/")[1] || "").toUpperCase() || mime
+      const text = title && (<RegExpI> /^(http|ftp|file)/i).test(title) ? title : ""
+      handleImageUrl(request.i, null, kTeeTask.Copy, (ok): void => {
+        showHUD(trans_(ok ? "imgCopied" : "failCopyingImg", [ok === 1 ? "HTML" : tag]))
+      }, title, text)
+      return
+    }
     str = request.u || request.s || ""
     const opts2 = request.o || {}
     const mode1 = request.s != null && request.m || HintMode.DEFAULT

@@ -269,6 +269,7 @@ const commandGroups_: {
     , "openCopiedUrlInNewTab"
     , "goUp", "$trailingSlash=null/true/false"
     , "goToRoot"
+    , "LinkHints.activateCopyImage", 1, "$richText=safe"
     , "LinkHints.activateDownloadImage", 1
     , "LinkHints.activateOpenImage", 1, "$auto=true"
     , "LinkHints.activateDownloadLink", 1

@@ -219,88 +219,122 @@ export const enterVisualMode = (): void | kBgCmd.visualMode => {
 
 let _tempBlob: [number, string] | null | undefined
 
+export const handleImageUrl = (url: string, buffer: Blob | ArrayBuffer | null
+    , actions: kTeeTask, resolve: (ok: BOOL | boolean) => void
+    , title: string, text: string, doShow?: (url: string) => void): void => {
+  if (!actions) { resolve(1); return }
+  const onlyArrBuf_ff = OnFirefox && actions === kTeeTask.Copy
+  const finalUrl = !buffer || onlyArrBuf_ff || Build.MV3 && IsLimited ? url : URL.createObjectURL(buffer as Blob)
+  if (!(Build.MV3 && IsLimited) && finalUrl.startsWith("data:") && !buffer) {
+    const p = BgUtils_.fetchFile_(finalUrl as `data:${string}`, onlyArrBuf_ff ? "arraybuffer" : "blob")
+    Build.NDEBUG || p.catch((err: any | Event): void => { console.log("handleImageUrl can't request `data:` :", err) })
+    void p.then((buffer2): void => {
+      handleImageUrl(OnFirefox ? "" : finalUrl, buffer2, actions, resolve, title, text, doShow)
+    })
+    return
+  }
+  if (_tempBlob) {
+    clearTimeout(_tempBlob[0]), BgUtils_.revokeBlobUrl_(_tempBlob[1])
+    _tempBlob = null
+  }
+  if (finalUrl.startsWith("blob:")) {
+    _tempBlob = [setTimeout((): void => {
+      _tempBlob && BgUtils_.revokeBlobUrl_(_tempBlob[1]); _tempBlob = null
+    }, actions & kTeeTask.Download ? 30000 : 5000), finalUrl]
+    const outResolve = resolve
+    resolve = (ok: BOOL | boolean) => {
+      outResolve(ok)
+      if (!(actions & (actions - 1))) {
+        _tempBlob && BgUtils_.revokeBlobUrl_(finalUrl)
+        _tempBlob && _tempBlob[1] === finalUrl && (clearTimeout(_tempBlob[0]), _tempBlob = null)
+      }
+    }
+  }
+  if (actions & kTeeTask.Copy) {
+    if (OnFirefox) {
+      const bufType = url.startsWith("data:image/jpeg") ? "jpeg" : "png"
+      void (Build.MV3 && IsLimited ? BgUtils_.fetchFile_(finalUrl as `data:${string}`, "arraybuffer")
+            : onlyArrBuf_ff ? Promise.resolve(buffer as ArrayBuffer) : (buffer as Blob).arrayBuffer())
+          .then((buf): void => {
+        browser_.clipboard.setImageData(buf, bufType).then((): void => {
+          resolve(true)
+        }, (err): void => { console.log("Error when copying image: " + err); resolve(0) })
+      })
+    } else {
+      let p: Promise<BOOL | boolean | string> | null = OnEdge || OnChrome
+          && Build.MinCVer < BrowserVer.MinEnsured$Clipboard$$write$and$ClipboardItem
+          && CurCVer_ < BrowserVer.MinEnsured$Clipboard$$write$and$ClipboardItem ? Promise.resolve(false)
+          : runOnTee_(kTeeTask.CopyImage, [finalUrl, text], buffer as Blob)
+      void (Build.MV3 && IsLimited ? (p as Promise<boolean>).then(resolve) : p.then((ok): void => {
+        if (ok) { resolve(true); return }
+        const doc = (globalThis as MaybeWithWindow).document!
+        const img = doc.createElement("img")
+        img.alt = title.replace(BgUtils_.getImageExtRe_(), "")
+        img.src = url
+        doc.documentElement!.appendChild(img)
+        const sel = doc.getSelection(), range = doc.createRange()
+        range.selectNode(img)
+        sel.removeAllRanges()
+        sel.addRange(range)
+        doc.execCommand("copy")
+        img.remove()
+        resolve(1)
+      }))
+    }
+  }
+  if (actions & kTeeTask.ShowImage) {
+    doShow!(finalUrl)
+    actions & kTeeTask.Copy || resolve(1)
+    return
+  }
+  if (actions & kTeeTask.Download) {
+    if (Build.MV3 && IsLimited && actions & kTeeTask.Copy) { return }
+    const port = framesForTab_.get(cPort ? cPort.s.tabId_ : curTabId_)?.top_ || cPort
+    downloadFile(finalUrl, title, port ? port.s.url_ : null, (succeed): void => {
+      const clickAnchor_cr = (): void => {
+        const a = (globalThis as MaybeWithWindow).document!.createElement("a")
+        a.href = finalUrl
+        a.download = title
+        a.target = "_blank"
+        a.click()
+      }
+      succeed ? 0 : Build.MV3 && IsLimited || OnFirefox ? doShow!(finalUrl) : clickAnchor_cr()
+      actions === kTeeTask.Download && resolve(true)
+    })
+  }
+}
+
 export const captureTab = (tabs: [Tab] | undefined, resolve: OnCmdResolved): void | kBgCmd.captureTab => {
-  const show = get_cOptions<C.captureTab>().show, copy = OnFirefox && !!get_cOptions<C.captureTab>().copy,
-  rawDownload = get_cOptions<C.captureTab>().download, noDownload = copy ? rawDownload !== true : rawDownload === false,
-  png = !!get_cOptions<C.captureTab>().png,
-  jpeg = png || copy ? 0 : Math.min(Math.max(get_cOptions<C.captureTab, true>().jpeg! | 0, 0), 100)
+  const show = get_cOptions<C.captureTab>().show, copy = !!get_cOptions<C.captureTab>().copy,
+  rawDownload = get_cOptions<C.captureTab>().download, download = copy ? rawDownload === true : rawDownload !== false,
+  png = !!get_cOptions<C.captureTab>().png, richText = !!get_cOptions<C.captureTab>().richText
+  let jpeg = png ? 0 : Math.min(Math.max(get_cOptions<C.captureTab, true>().jpeg! | 0, 0), 100)
   const cb = (url?: string): void => {
     if (!url) { resolve(0); return runtimeError_() }
-    const onerror = (err: any | Event): void => {
-      console.log("captureTab: can not request a data: URL:", err)
-    }
-    const cb2 = (msg: Blob | string): void => {
-      const finalUrl = noDownload && !show ? null : typeof msg !== "string" ? URL.createObjectURL(msg) : msg
-      if (finalUrl && finalUrl.startsWith("blob:")) {
-        if (_tempBlob) {
-          clearTimeout(_tempBlob[0]), URL.revokeObjectURL(_tempBlob[1])
-        }
-        _tempBlob = [setTimeout((): void => {
-          _tempBlob && URL.revokeObjectURL(_tempBlob[1]); _tempBlob = null
-        }, show ? 5000 : 30000), finalUrl]
-      }
-      if (copy) {
-        if (typeof msg !== "string") {
-          void msg.arrayBuffer().then((buf): void => {
-            browser_.clipboard.setImageData(buf, "png").then((): void => {
-                showHUD(trans_("imgCopied") || "Image copied"); resolve(1)
-            }, (err): void => { showHUD("Error: " + err); resolve(0) })
-          })
-        } else {
-          showHUD("Can not copy image to clipboard")
-          if (noDownload && !show) { resolve(0) }
-        }
-      }
-      if (show) {
-        doShow(finalUrl!)
-        resolve(1)
-        return
-      }
-      if (noDownload) { return }
-      const port = cPort && framesForTab_.get(cPort.s.tabId_)?.top_ || cPort
-      downloadFile(finalUrl!, title, port ? port.s.url_ : null, (succeed): void => {
-        succeed ? 0 : Build.MV3 && IsLimited || OnFirefox ? doShow(finalUrl!) : clickAnchor_cr(finalUrl!)
-        resolve(succeed)
-      })
-    }
-    const doShow = (finalUrl: string): void => {
-      reqH_[kFgReq.openImage]({ t: "pixel=1&", u: finalUrl, f: title, a: false, m: HintMode.OPEN_IMAGE, o: {
+    const actions = (show ? kTeeTask.ShowImage : 0) | (download ? kTeeTask.Download : 0)
+        | (copy ? kTeeTask.Copy : 0)
+    const doShow = (url: string): void => {
+      reqH_[kFgReq.openImage]({ t: "pixel=1&", u: url, f: title, a: false, m: HintMode.OPEN_IMAGE, o: {
         r: get_cOptions<C.captureTab, true>().reuse, m: get_cOptions<C.captureTab, true>().replace,
         p: get_cOptions<C.captureTab, true>().position, w: get_cOptions<C.captureTab, true>().window
       } }, cPort)
       return
     }
-    const clickAnchor_cr = (finalUrl: string): void => {
-      const a = (globalThis as MaybeWithWindow).document!.createElement("a")
-      a.href = finalUrl
-      a.download = title
-      a.target = "_blank"
-      a.click()
-    }
-    if (url.startsWith("data:")) {
-      if (!OnChrome || Build.MinCVer >= BrowserVer.MinFetchExtensionFiles || CurCVer_ >= BrowserVer.MinFetchDataURL) {
-        const p = fetch(url as `data:${string}`).then(r => r.blob()).then(cb2)
-        if (!Build.NDEBUG) { p.catch(onerror) }
-      } else {
-        const req = new XMLHttpRequest() as BlobXHR
-        req.responseType = "blob"
-        if (!Build.NDEBUG) { req.onerror = onerror }
-        req.onload = function (this: typeof req) { cb2(this.response) }
-        req.open("GET", url, true)
-        req.send()
-      }
-    } else {
-      cb2(url)
-    }
+    handleImageUrl(url, null, actions, copy ? (ok): void => {
+      copy && showHUD(trans_(ok ? "imgCopied" : "failCopyingImg", [jpeg ? "JPEG" : "PNG"]))
+      resolve(ok)
+    } : resolve, title, ((richText || "") + "").includes("name") ? title : "", doShow)
   }
   const tab = tabs && tabs[0]
   const tabId = tab ? tab.id : curTabId_, wndId = tab ? tab.windowId : curWndId_
-  let title = tab ? tab.title : ""
-  title = get_cOptions<C.captureTab>().name === "title" || !title || tabId < 0
-      ? title || "" + tabId : tabId + "-" + title
+  let title = tab ? tab.title : "Tab" + tabId
+  title = get_cOptions<C.captureTab>().name === "title" ? title
+      : BgUtils_.now().replace(<RegExpG & RegExpSearchable<0>> /[-: ]/g, s => s === " " ? "_" : "") + "-" + title
+  title = title.replace(BgUtils_.getImageExtRe_(), "")
   if (OnChrome && Build.MinCVer < BrowserVer.MinFormatOptionWhenCaptureTab
       && CurCVer_ < BrowserVer.MinFormatOptionWhenCaptureTab) {
     title += ".jpg"
+    jpeg = 100
     Tabs_.captureVisibleTab(wndId, cb)
   } else {
     title += jpeg > 0 ? ".jpg" : ".png"

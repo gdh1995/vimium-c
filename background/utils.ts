@@ -262,40 +262,52 @@ export const asyncIter_ = <T> (arr: T[], callback: (item: T) => number, doesCont
 }
 
 /** should only fetch files in the `[ROOT]/{_locales,front,i18n}` folder */
-export const fetchFile_ = ((filePath: string): Promise<string | {}> => {
+export const fetchFile_ = ((filePath: string, format?: "blob" | "arraybuffer"): Promise<string | {}> => {
   if (!Build.NDEBUG && !filePath) { throw Error("unknown file: " + filePath) } // just for debugging
-  const json = filePath.endsWith(".json")
-  filePath = !filePath.includes("/") ? "/front/" + filePath : filePath
-  if (!OnChrome || Build.MinCVer >= BrowserVer.MinFetchExtensionFiles
-      || CurCVer_ >= BrowserVer.MinFetchExtensionFiles) {
+  const json = !format && filePath.endsWith(".json")
+  filePath = !format && !filePath.includes("/") ? "/front/" + filePath : filePath
+  if (!OnChrome || (format ? Build.MinCVer >= BrowserVer.MinFetchDataURL || CurCVer_ >= BrowserVer.MinFetchDataURL
+      : Build.MinCVer >= BrowserVer.MinFetchExtensionFiles || CurCVer_ >= BrowserVer.MinFetchExtensionFiles)) {
     return fetch(filePath as `/${string}`).then(r => json ? r.json<Dict<string>>().then((res): Map<string, any> => {
       safer_(res)
+      if (!OnChrome || Build.MinCVer >= BrowserVer.MinEnsuredES$Object$$values$and$$entries
+          || CurCVer_ >= BrowserVer.MinEnsuredES$Object$$values$and$$entries) {
+        return new Map<string, any>(Object.entries!(res))
+      }
       const map = new Map<string, any>()
       for (let key in res) { map.set(key, res[key]) }
       return map
-    }) : r.text())
+    }) : format ? format === "blob" ? r.blob() : r.arrayBuffer() : r.text())
   }
-  const req = new XMLHttpRequest() as TextXHR | JSONXHR
+  const req = new XMLHttpRequest() as TextXHR | JSONXHR | BlobXHR | ArrayXHR
   req.open("GET", filePath, true)
-  req.responseType = json ? "json" : "text"
-  return new Promise<string | {}>((resolve): void => {
+  req.responseType = json ? "json" : format || "text"
+  return new Promise<string | {}>((resolve, reject): void => {
     req.onload = function (): void {
-      const res = this.response as string | Dict<any>
-      if (typeof res === "string") {
+      const res = this.response as string | Dict<any> | ArrayBuffer
+      if (typeof res === "string" || format) {
         resolve(res)
       } else {
         safer_(res)
         const map = new Map<string, any>()
-        for (let key in res) { map.set(key, res[key]) }
+        for (let key in res) { map.set(key, (res as Exclude<typeof res, ArrayBuffer>)[key]) }
         resolve(map)
       }
     }
+    if (!Build.NDEBUG) { req.onerror = reject }
     req.send()
   })
 }) as {
   <T extends `/_locales/${string}/messages.json` | `/i18n/${string}.json`
-        | "words.txt" | "vimium-c.css" | "help_dialog.html"> (
-      file: T): Promise<T extends `${string}.json` ? Map<string, any> : string>
+        | "words.txt" | "vimium-c.css" | "help_dialog.html"> (file: T, format?: undefined
+  ): Promise<T extends `${string}.json` ? Map<string, any> : string>
+  <F extends "blob" | "arraybuffer"> (file: `data:${string}`, format: F): Promise<F extends "blob" ? Blob : ArrayBuffer>
+}
+
+export const revokeBlobUrl_ = (url: string): void => {
+  try {
+    URL.revokeObjectURL(url)
+  } catch {}
 }
 
 export const escapeAllForRe_ = (s: string): string =>
@@ -339,3 +351,10 @@ export const dedupChars_ = (chars: string) => {
   }
   return out
 }
+
+export const now = (): string => {
+  return new Date(Date.now() - new Date().getTimezoneOffset() * 1000 * 60).toJSON().slice(0, -5).replace("T", " ")
+}
+
+export const getImageExtRe_ = (): RegExpI & RegExpOne & RegExpSearchable<0> =>
+    (<RegExpI & RegExpOne & RegExpSearchable<0>> /\.(?:avif|bmp|gif|icon?|jpe?g|a?png|svg|tiff?|webp)$/i)

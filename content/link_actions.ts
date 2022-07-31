@@ -1,6 +1,6 @@
 import {
   safer, fgCache, isImageUrl, isJSUrl, set_keydownEvents_, keydownEvents_, doc, chromeVer_, os_,
-  createRegExp, isTY, max_, min_, OnFirefox, OnChrome, safeCall, locHref, parseOpenPageUrlOptions, VTr,
+  createRegExp, isTY, max_, min_, OnFirefox, OnChrome, safeCall, locHref, parseOpenPageUrlOptions, VTr, loc_, getTime, timeout_, clearTimeout_, promiseDefer_, OnEdge,
 } from "../lib/utils"
 import { getVisibleClientRect_, center_, view_, selRange_ } from "../lib/rect"
 import {
@@ -33,6 +33,8 @@ import { execCommand } from "./mode_find"
 type LinkEl = Hint[0];
 /* eslint-disable @typescript-eslint/no-floating-promises */
 
+declare var fetch: unknown, AbortController: new () => { signal: object, abort(): void }
+declare var AbortSignal: { timeout? (timeout: number): object }
 let removeFlash: (() => void) | null | undefined
 
 export { removeFlash }
@@ -76,6 +78,96 @@ const getUrlData = (str?: string): string => {
   return hasTag_("a", link) ? link.href : ""
 }
 
+const tryDrawOnCanvas = ((hudMsg: string | 0, req?: Req.fg<kFgReq.openImage | kFgReq.copy>): void => {
+  type ImageLoadingResult = Event | 1 | undefined | TimerType.fake
+  type FileReaderLoadEvent = Event & { target: FileReader }
+  const kAn = "anonymous"
+  let s2: string, r1: ((value: ImageLoadingResult) => void) | null, timer1: ValidTimeoutID = 0
+  let img = clickEl as HTMLImageElement
+  const url = req ? (req as FgReq[kFgReq.openImage]).u : isHtmlImage && (s2 = getMediaUrl(img, 1)) && getUrlData(s2)
+  const defer0 = promiseDefer_<string | FileReaderLoadEvent | void>(), resolveData = defer0.r
+  if (url) {
+    const parsed = new URL(url)
+    const origin = parsed.origin || "", isHttp = origin[0] === "h", sameOrigin = isHttp && origin === loc_.origin
+    const defer1 = promiseDefer_<ImageLoadingResult>()
+    r1 = defer1.r
+    richText = (richText || "") + "" as Extract<typeof richText, string>
+    if (!richText.includes("safe") && (<RegExpI> /^(http|data|\/\/)/).test(url) || OnFirefox && hasKeyword_ff
+        || parsed.pathname.endsWith(".gif")) {
+      r1(0)
+    } else if (isHtmlImage && getMediaUrl(img, 2) === url && (sameOrigin || img.crossOrigin === kAn)) {
+      r1(1)
+    } else {
+      timer1 = timeout_(r1, 5000)
+      img = createElement_("img")
+      img.onload = img.onerror = r1
+      img.crossOrigin = kAn
+      s2 = url.split("#")[0]
+      img.src = sameOrigin || !isHttp ? s2 : s2 + (s2.includes("?") ? "&__=" : "?__=") + getTime()
+      hintApi.h(kTip.reDownloading, 9)
+    }
+    void defer1.p.then((ok: ImageLoadingResult | boolean): void => {
+      const blobToData = (blob: Blob | "" | null): void => {
+        !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
+            && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.Min$AbortSignal$$timeout)
+            && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.Min$AbortSignal$$timeout)
+            || clearTimeout_(timer1)
+        if (!blob) { resolveData(); return }
+        const reader = new FileReader()
+        reader.onload = resolveData
+        reader.readAsDataURL(blob)
+      }
+      ok = isTY(ok, kTY.obj) ? ok.type > "l" : ok === 1
+      clearTimeout_(timer1), ok || img !== clickEl && setOrRemoveAttr_s(img, "src")
+      if (ok) {
+        const canvas = (ok as true) && createElement_("canvas")
+        const w = canvas.width = img.naturalWidth, h = canvas.height = img.naturalHeight
+        const ctx = ok && canvas.getContext("2d")
+        if (!ctx) { resolveData(); return } // ctx may be null if OOM
+        ctx.drawImage(img, 0, 0, w, h)
+        OnEdge || OnChrome && Build.MinCVer < BrowserVer.MinEnsured$canvas$$toBlob
+            && chromeVer_ < BrowserVer.MinEnsured$canvas$$toBlob // in case of unknown crashes when EXP
+        ? resolveData(canvas.toDataURL()) : canvas.toBlob(blobToData)
+      } else if (!OnChrome || Build.MinCVer >= BrowserVer.MinAbortController
+          || chromeVer_ > BrowserVer.MinAbortController - 1) {
+        if (!(Build.BTypes & ~BrowserType.ChromeOrFirefox)
+            && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.Min$AbortSignal$$timeout)
+            && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.Min$AbortSignal$$timeout)) {
+          void (fetch as GlobalFetch)(url, { cache: "force-cache", signal: AbortSignal.timeout!(5000) })
+              .then<Blob>(res => res.blob()).then(blobToData, blobToData.bind(0, ""))
+        } else {
+          const abortCtrl = new AbortController()
+          void (fetch as GlobalFetch)(url, { cache: "force-cache", signal: abortCtrl.signal })
+              .then<Blob>(res => res.blob()).then(blobToData, blobToData.bind(0, ""))
+          timer1 = timeout_(abortCtrl.abort.bind(abortCtrl), 5000)
+        }
+      } else {
+        resolveData()
+      }
+    })
+  } else {
+    resolveData()
+  }
+  retPromise = defer0.p.then((dataUrl): void => {
+    dataUrl = isTY(dataUrl, kTY.obj) ? dataUrl.target.result as string : dataUrl
+    if (dataUrl || req) {
+      !dataUrl ? 0 : req && mode1_ - HintMode.COPY_IMAGE ? (req as FgReq[kFgReq.openImage]).u = dataUrl
+      : req = { H: kFgReq.copy, i: dataUrl as "data:", u: (richText as string).includes("name") ? url as string : "" }
+      hintApi.p(req!)
+    } else {
+      const oldRange = selRange_(getSelected({}))
+      selectNode_(clickEl)
+      hudMsg = getSelection_() + "" || hudMsg || `<${clickEl.localName}>`
+      execCommand("copy", doc)
+      resetSelectionToDocStart(getSelection_(), oldRange)
+      hintApi.h(kTip.copiedIs, 0, hudMsg)
+    }
+  })
+}) as {
+  (hudMsg: 0, req: Req.fg<kFgReq.openImage>): void
+  (hudMsg: string): void
+}
+
 const downloadOrOpenMedia = (): void => {
   const filename = attr_s(clickEl, kD) || attr_s(clickEl, "alt") || (clickEl as Partial<SafeHTMLElement>).title || ""
   let mediaTag = getMediaTag(tag)
@@ -101,8 +193,8 @@ const downloadOrOpenMedia = (): void => {
     text = src;
   }
   if (!text) { hintApi.h(kTip.notImg) }
-  else if (OnFirefox && hintOptions.keyword != null || mode1_ === HintMode.OPEN_IMAGE || /** <svg> */ !tag) {
-    hintApi.p({
+  else if (OnFirefox && hasKeyword_ff || mode1_ - HintMode.DOWNLOAD_MEDIA || /** <svg> */ !tag) {
+    tryDrawOnCanvas(0, {
       H: kFgReq.openImage, m: hintMode_, o: parseOpenPageUrlOptions(hintOptions), a: hintOptions.auto,
       f: filename, u: tag ? text && getUrlData(text) : text
     })
@@ -238,7 +330,7 @@ const copyText = (): void => {
         str = tag === "textarea" ? (clickEl as HTMLTextAreaElement).value
           : tag === "select" ? ((clickEl as HTMLSelectElement).selectedIndex < 0
               ? "" : (clickEl as HTMLSelectElement).options[(clickEl as HTMLSelectElement).selectedIndex].text)
-          : tag === "img" ? (clickEl as HTMLImageElement).alt
+          : isHtmlImage ? (clickEl as HTMLImageElement).alt
           : tag && ((clickEl as SafeHTMLElement).innerText.trim()
                 || GetShadowRoot_(clickEl) && (childEl = querySelector_unsafe_("div,span", GetShadowRoot_(clickEl)!))
                     && htmlTag_<1>(childEl) && childEl.innerText.trim())
@@ -255,13 +347,8 @@ const copyText = (): void => {
         m: mode1_, t: rawNewtab,
         o: parseOpenPageUrlOptions(hintOptions)
       });
-  } else if (hintOptions.richText) {
-    const oldRange = selRange_(getSelected({}))
-    selectNode_(clickEl)
-    str = getSelection_() + "" || str || `<${clickEl.localName}>`
-    execCommand("copy", doc)
-    resetSelectionToDocStart(getSelection_(), oldRange)
-    hintApi.h(kTip.copiedIs, 0, str)
+  } else if (richText) {
+    tryDrawOnCanvas(str)
   } else if (!str) {
     hintApi.h(isUrl ? kTip.noUrlCopied : kTip.noTextCopied)
   } else if (mode1_ === HintMode.SEARCH_TEXT) {
@@ -372,7 +459,9 @@ const autoShowRect = (): Rect | null => (removeFlash || showRect && rect && flas
   const clickEl: LinkEl = hint.d
   const tag = htmlTag_(clickEl), elType = getEditableType_<0>(clickEl)
   const kD = "download", kLW = "last-window"
-  const rawNewtab = hintOptions.newtab, then = hintOptions.then
+  let richText = hintOptions.richText, rawNewtab = hintOptions.newtab, then = hintOptions.then
+  const hasKeyword_ff = OnFirefox && hintOptions.keyword != null
+  const isHtmlImage = tag === "img"
   let rect: Rect | null = null
   let retPromise: Promise<unknown> | undefined
   let showRect: BOOL | 2 = 1

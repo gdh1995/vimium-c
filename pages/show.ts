@@ -512,11 +512,13 @@ function copyThing(event: EventToPrevent): void {
       ).then(blob => _shownBlob = blob),
       navClipPromise = blobPromise.then<0 | void>(blob => {
         if (!blob) { return }
-        const item: { [mime: string]: Blob } = {
+        if (OnFirefox && !globalThis.ClipboardItem) { throw new Error("") } // dom.events.asyncClipboard.clipboardItem
+        const kPngType = "image/png", item: { [mime: string]: Blob } = {
           // Chrome 79 refuses image/jpeg
-          "image/png": new Blob([blob], {type: "image/png"}),
-          "text/html": new Blob,
-          "text/plain": new Blob([VData.url], {type: "text/plain"})
+          [kPngType]: blob.type !== kPngType ? new Blob([blob], {type: kPngType}) : blob,
+        }
+        if ((<RegExpI> /^(http|ftp|file)/i).test(VData.url)) {
+          item["text/plain"] = new Blob([VData.url], {type: "text/plain"})
         }
         const doWrite = (): Promise<void> => clipboard!.write!([new ClipboardItem(item) as object])
         if (!OnChrome

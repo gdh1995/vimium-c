@@ -212,6 +212,7 @@ declare const enum BrowserVer {
   Min$tabs$$executeScript$hasFrameIdArg = 50,
   MinSVG$Path$Has$Use$Attribute = 50, // <path use="..." />
   MinMaybe$window$$InputEvent = 50, // only if EXPERIMENTAL
+  MinEnsured$canvas$$toBlob = 50, // even if LEGACY; since C47 if EXPERIMENTAL
   // MinShowBlockForBrokenImage = 51, // not reproduced
   MinEnsuredIFrameReferrerpolicy = 51,
   MinEnsured$KeyboardEvent$$Key = 51,
@@ -412,6 +413,7 @@ declare const enum BrowserVer {
   // https://github.com/chromium/chromium/commit/511efa694bdf9fbed3dc83e3fa4cda12909ce2b6
   MinWarningOfEscapingHashInBodyOfDataURL = 66,
   BorderRadiusCauseBorderDisappearOnIFrame = 66,
+  MinAbortController = 66, // even if EXPERIMENTAL or LEGACY
   // @see https://bugs.chromium.org/p/chromium/issues/detail?id=582245
   Min$ContentDocument$NotThrow = 67, // even if EXPERIMENTAL or LEGACY
   MinSlotIsNotDisplayContents = 67,
@@ -499,7 +501,7 @@ declare const enum BrowserVer {
   MinAccessKeyCausesFocus = 75,
   FakeUAMajorWhenFreezeUserAgent = 75,
   MinMediaQuery$PrefersColorScheme = 76,
-  MinEnsured$Clipboard$$write$and$ClipboardItem = 76, // before 76, exist if EXPERIMENTAL
+  MinEnsured$Clipboard$$write$and$ClipboardItem = 76, // before 76, exist if EXPERIMENTAL (C75 often fails or crashes)
   // https://bugs.chromium.org/p/chromium/issues/detail?id=877132
   MinRuntimeFlag$UpdateHoverAtBeginFrame = 77, // #update-hover-at-begin-frame is enabled by default
   MinChromeFavicon2 = 77, // tested on 77.0.3865.90, chrome://favicon2/ is forbidden to use on extension pages
@@ -554,7 +556,7 @@ declare const enum BrowserVer {
   MinESModulesInServiceWorker = 91,
   MinEnsured$string$$replaceAll = 91,
   MinEnsured$WeakRef = 92, // even if LEGACY
-  MinEnsuredPointerEventForRealClick = 92, // if not EXPERIMENTAL else MinMaybePointerEventForRealClick; even if LEGACY
+  MinEnsuredPointerEventForRealClick = 92, // even if LEGACY; since MinMaybePointerEventForRealClick if EXPERIMENTAL
   BuildMinManifestV3 = 93,
   /** @todo: trace https://bugs.chromium.org/p/chromium/issues/detail?id=649162 */
   MinMaybeAutoFillInShadowDOM = 93, // if --enable-blink-features=AutofillShadowDOM
@@ -564,6 +566,7 @@ declare const enum BrowserVer {
   MinScrollbarIncreasePadding = 99, // even if LEGACY; since 97 if EXPERIMENTAL
   MinEnsured$HTMLElement$$inert = 101, // even if EXPERIMENTAL
   MinColorSchemeNormalMeansSystemDark = 102, // even if EXPERIMENTAL
+  Min$AbortSignal$$timeout = 103, // even if LEGACY; since 100 if EXPERIMENTAL
   MinNo$TimerType$$Fake = 999,
   assumedVer = 998,
 }
@@ -619,6 +622,7 @@ declare const enum FirefoxBrowserVer {
   // but refuse a `click#ctrl=false&shift=false` on `<a target=_blank>`: https://github.com/gdh1995/vimium-c/issues/616
   MinPopupBlockerPassComposedClicksFromExtensions = 96, // https://github.com/philc/vimium/issues/3964
   Min$sessions$$getRecentlyClosed$follow$maxResults = 96, // even if EXPERIMENTAL or LEGACY
+  Min$AbortSignal$$timeout = 100,
   MinMaybe$navigator$$userAgentData = 101,
   // members of a Selection are never updated when an <input> gets focused, so no work-around
   Min$Selection$SupportTextBox = 999,

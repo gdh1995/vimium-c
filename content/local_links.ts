@@ -726,8 +726,8 @@ export const filterOutNonReachable = (list: Hint[], notForAllClickable?: boolean
 }
 
 export type ModesWithOnlyHTMLElements = HintMode.min_link_job | HintMode.max_link_job
-    | HintMode.COPY_URL | HintMode.DOWNLOAD_LINK | HintMode.OPEN_INCOGNITO_LINK | HintMode.EDIT_LINK_URL
-    | HintMode.FOCUS_EDITABLE
+    | HintMode.COPY_URL | HintMode.DOWNLOAD_LINK | HintMode.OPEN_INCOGNITO_LINK | HintMode.COPY_IMAGE
+    | HintMode.EDIT_LINK_URL | HintMode.FOCUS_EDITABLE
 
 export const getVisibleElements = (view: ViewBox): readonly Hint[] => {
   let r2 = null as Rect[] | null, subtractor: Rect, subtracted: Rect[]

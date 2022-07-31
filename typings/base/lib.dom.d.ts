@@ -2297,7 +2297,7 @@ declare var FileList: {
 interface FileReader extends EventTarget {
     readonly error: DOMError;
     readonly result: any;
-    onload (): void;
+    onload: ((ev: Event & { target: FileReader }) => void) | null
     readAsArrayBuffer(blob: Blob): void;
     readAsBinaryString(blob: Blob): void;
     readAsDataURL(blob: Blob): void;
@@ -9701,6 +9701,7 @@ interface Response extends Body {
   readonly statusText: string;
   readonly type: ResponseType;
   readonly url: string;
+  readonly headers: Map<string, string>
   clone(): Response;
 }
 interface Request {

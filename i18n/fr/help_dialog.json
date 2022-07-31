@@ -32,6 +32,7 @@
   "HAnd": " et ",
   "HEnd": ".",
   "LinkHints.activate": "Ouvrir un lien dans l'onglet courant",
+  "LinkHints.activateCopyImage": "Copier l'image dans le presse-papiers",
   "LinkHints.activateCopyLinkText": "Copier un lien dans le presse-papiers",
   "LinkHints.activateCopyLinkUrl": "Copier un lien dans le presse-papiers",
   "LinkHints.activateDownloadImage": "Télécharger image, video et audio",

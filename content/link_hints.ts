@@ -500,7 +500,8 @@ const callExecuteHint = (hint: ExecutableHintItem, event?: HandlerNS.Event): voi
   }
   const retainedInput = (mode_ & HintMode.queue) && options_.retainInput && keyStatus_ && keyStatus_.t
   const p = selectedHintWorker.e(hint, event)
-  p && p.then((result): void => {
+  p && (onWaitingKey = getTime /** after {@link resetHints} */,
+      void p.then((result): void => {
     (<RegExpOne> /a?/).test("")
     isActive = 0
     runFallbackKey(options_, false)
@@ -518,7 +519,7 @@ const callExecuteHint = (hint: ExecutableHintItem, event?: HandlerNS.Event): voi
         isActive && 1 === (--count_) && setMode(mode1_)
       })
     }
-  })
+  }))
 }
 
 export const findAnElement_ = (options: OptionsToFindElement, count: number, alsoBody?: 1
@@ -647,7 +648,7 @@ const delayToExecute = (officer: BaseHintWorker, hint: ExecutableHintItem, flash
     removeBox()
     OnFirefox && (officer = unwrap_ff(officer));
     if (OnChrome && !waitEnter) {
-      onWaitingKey = suppressTail_(GlobalConsts.TimeOfSuppressingTailKeydownEvents, callback)
+      onWaitingKey = suppressTail_(GlobalConsts.TimeOfSuppressingTailKeydownEvents, onTailEnter as typeof callback)
     } else {
       setMode(mode_)
     }

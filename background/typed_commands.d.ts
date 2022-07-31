@@ -58,6 +58,7 @@ interface BgCmdOptions {
   [kBgCmd.captureTab]: {
     /** 0..100; 0 means .png */ jpeg: number
     /** if true, then ignore .jpeg */ png: boolean
+    richText?: "" | "with-name"
     name: "" | "title"
     show: boolean; download: boolean; /** only on Firefox */ copy: boolean
   } & Pick<OpenPageUrlOptions, "reuse" | "replace" | "position" | "window">
@@ -293,6 +294,7 @@ declare const enum CNameLiterals {
 
 interface CmdNameIds {
   "LinkHints.activate": kFgCmd.linkHints
+  "LinkHints.activateCopyImage": kFgCmd.linkHints
   "LinkHints.activateCopyLinkText": kFgCmd.linkHints
   "LinkHints.activateCopyLinkUrl": kFgCmd.linkHints
   "LinkHints.activateDownloadImage": kFgCmd.linkHints
@@ -302,6 +304,7 @@ interface CmdNameIds {
   "LinkHints.activateHover": kFgCmd.linkHints
   "LinkHints.activateLeave": kFgCmd.linkHints
   "LinkHints.activateMode": kFgCmd.linkHints
+  "LinkHints.activateModeToCopyImage": kFgCmd.linkHints
   "LinkHints.activateModeToCopyLinkText": kFgCmd.linkHints
   "LinkHints.activateModeToCopyLinkUrl": kFgCmd.linkHints
   "LinkHints.activateModeToDownloadImage": kFgCmd.linkHints

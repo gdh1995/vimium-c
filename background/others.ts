@@ -277,7 +277,7 @@ Build.MV3 || setTimeout((): void => {
       text = text.slice(text[2] === " " ? 3 : 4);
     }
     if (text.slice(0, 7).toLowerCase() === "file://") {
-      text = (<RegExpI & RegExpOne> /\.(?:avif|bmp|gif|icon?|jpe?g|a?png|svg|tiff?|webp)$/i).test(text)
+      text = BgUtils_.getImageExtRe_().test(text)
         ? formatVimiumUrl_("show image " + text, false, Urls.WorkType.Default)
         : text
     }
@@ -376,11 +376,8 @@ installation_ && void Promise.all([installation_, settings_.ready_]).then(([deta
       allowedRe.test(tab.url) && !framesForTab_.has(tab.id) && runContentScriptsOn_(tab.id)
     }
   });
-  function now(): string {
-    return new Date(Date.now() - new Date().getTimezoneOffset() * 1000 * 60).toJSON().slice(0, -5).replace("T", " ")
-  }
   console.log("%cVimium C%c has been %cinstalled%c with %o at %c%s%c.", "color:red", "color:auto"
-    , "color:#0c85e9", "color:auto", details, "color:#0c85e9", now(), "color:auto");
+      , "color:#0c85e9", "color:auto", details, "color:#0c85e9", BgUtils_.now(), "color:auto")
 
   if (CONST_.DisallowIncognito_) {
     console.log("Sorry, but some commands of Vimium C require the permission to run in incognito mode.");

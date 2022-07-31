@@ -2,21 +2,22 @@ declare const enum kTip {
   /* 1: */ raw = 1,
   /* 4..9 */ didUnHoverLast = 4, noTargets, noPassKeys, normalMode, nTimes, passNext,
   /* 10..15 */ noLinksToGo, noFocused, focusedIsHidden, noInputToFocus, noUrlCopied, noTextCopied,
-  /* 17: */ kCommonEvents = 17,
-  /* 20..25 */ copiedIs = 20, forcedColors, tooManyLinks, wrapWhenFind, atStart, atEnd,
+  /* 17: */ frameUnloaded = 17,
+  /* 20..25 */ copiedIs = 20, omniFrameFail, tooManyLinks, wrapWhenFind, atStart, atEnd,
   /* 26..31 */ nMatches, oneMatch, someMatches, noMatches, modalHints, expectKeys,
-  /* 39, 41: */ findFrameFail = 39, noOldQuery = 41, // neither 39 nor 41 is in HintMode
-  /* 44..47 */ selectLineBoundary = 44, frameUnloaded, waitForEnter, logGrabFocus,
-  /* 60..63 */ logOmniFallback = 60, logNotWorkOnSandboxed, prev, next,
+  /* 38, 41, 43: */ findFrameFail = 39, noOldQuery = 41, selectLineBoundary = 43, // neither 41 nor 43 is in HintMode
+  /* 46..47 */ waitForEnter = 46, reDownloading,
+  /* 62..63 */ prev = 62, next,
   /* 68..70 */ START_FOR_OTHERS = 68, OFFSET_VISUAL_MODE = 67, visual, line, caret,
   /* 71: */ noLinks, exitForIME, linkRemoved, notImg,
   /* 75: */ hoverScrollable, ignorePassword, noNewToCopy, downloaded, nowGotoMark,
   /* 80: */ nowCreateMark, noMatchFor, inVisualMode, noUsableSel, loseSel,
-  /* 85: */ needSel, omniFrameFail, editableSelector, removeCurScript, isWithRel,
+  /* 85: */ needSel, forcedColors, editableSelector, removeCurScript, isWithRel,
   /* 90: */ notANestedFrame, cssUrl, newClickableClasses, oldClickableClasses, clickableRoles,
   /* 95: */ invisibleHintText, notMatchedHintText, metaKeywordsForMobile, css0d01OrDPI, visibleElementsInScopeChildren,
   /* 100: */ voidJS, nonLocalhostRe, scrollable, buttonOrA, closableClasses,
   /* 105: */ highContrast_WOB, invisibleElements, imgExt, searchResults, excludeWhenGoNext,
+  /* 110..113: */ kCommonEvents, logOmniFallback, logNotWorkOnSandboxed, logGrabFocus,
   INJECTED_CONTENT_END,
   /* 200: */ XHTML = 200,
   /** used by {@link ../Gulpfile.js} */ extendClick = 999,
@@ -309,7 +310,7 @@ declare namespace HintsNS {
     hideHUD?: boolean;
     autoUnhover?: boolean | "css-selector"
     reachable?: null | boolean // null means "in modes for mouse events and settings.mouseReachable"
-    richText?: boolean;
+    richText?: boolean | "safe" | "with-name" | "safe-with-name" | ""
     visual?: false;
     suppressInput?: boolean
     xy?: StdXY | [x: number | "count", y: number | "count", scale?: number]
@@ -625,11 +626,17 @@ interface FgReq {
   [kFgReq.copy]: ({
     /** data */ s: string | any[];
     /** [].join($j) */ j?: string | boolean | null
-    u?: undefined | "";
+    u?: undefined | ""
+    i?: undefined
   } & Partial<WithHintModeOptions> | {
     /** url */ u: "url";
     /** data */ s?: undefined
     j?: undefined | null
+    i?: undefined
+  } | {
+    /** data: image URL */ i: "data:"
+    /** source URL */ u: string
+    j?: undefined
   }) & {
     /** sed and keyword */ o?: ParsedOpenPageUrlOptions;
     /** decode by default */ d?: boolean;

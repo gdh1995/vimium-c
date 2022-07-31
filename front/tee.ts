@@ -24,7 +24,7 @@
       }
       destroy()
     }
-    const { t: taskId, s: serialized, r: resolve } = _response as TaskTypes<keyof TeeTasks>
+    const { t: taskId, s: serialized, d: data, r: resolve } = _response as TaskTypes<keyof TeeTasks>
     const runTask = (): void | Promise<unknown> => {
       if (Build.MV3) {
         switch (taskId) {
@@ -45,6 +45,17 @@
             return chrome.downloads.download!(serialized).catch((): void => {})
           })
         }
+      }
+      switch (taskId) {
+      case kTeeTask.CopyImage:
+        return (data ? Promise.resolve(data)
+                : ((window as any).fetch(serialized[0] as string) as Promise<Response>).then(res => res.blob()))
+            .then((image): Promise<unknown> => {
+          const png = "image/png", plain = "text/plain"
+          const item: EnsuredDict<Blob> = { [png]: image.type === png ? image : new Blob([image], { type: png }) }
+          serialized[1] && (item[plain] = new Blob([serialized[1]], { type: plain }))
+          return navigator.clipboard!.write!([new ClipboardItem(item)])
+        })
       }
       Build.NDEBUG || console.log("Vimium C: error: unknown tee task id =", taskId)
     }

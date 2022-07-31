@@ -38,6 +38,7 @@
   "HAnd": "）和 ",
   "HEnd": "）。",
   "LinkHints.activate": "点击网页中的链接和按钮",
+  "LinkHints.activateCopyImage": "复制图片到剪贴板",
   "LinkHints.activateCopyLinkText": "复制链接的文字内容",
   "LinkHints.activateCopyLinkUrl": "复制链接的网址",
   "LinkHints.activateDownloadImage": "下载图片或音视频文件",

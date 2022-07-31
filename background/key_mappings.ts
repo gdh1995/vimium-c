@@ -572,13 +572,14 @@ const defaultKeyMappings_: string =
   " B "    +AsC_("Vomnibar.activateBookmarksInNewTab")     + " F "     + AsC_("LinkHints.activateOpenInNewTab")       +
   " O "    +AsC_("Vomnibar.activateInNewTab")              + " P "     + AsC_("openCopiedUrlInNewTab")                +
   " T "    +AsC_("Vomnibar.activateTabs")                  + " <a-f> " + AsC_("LinkHints.activateWithQueue")          +
-  " yv "   +AsC_("LinkHints.activateModeToSelect")         +
+  " yv "   +AsC_("LinkHints.activateSelect")               + " yi "    + AsC_("LinkHints.activateCopyImage")          +
   (Build.NDEBUG ? "" : ` <a-s-f12> ${AsC_("debugBackground")} <s-f12> ${CNameLiterals.focusOptions}`)
 
 export const availableCommands_: Dict<CommandsNS.Description> & SafeObject =
     As_<NameMetaMap & SafeObject>({
   __proto__: null as never,
   "LinkHints.activate": [ kFgCmd.linkHints, kCxt.fg, 0, { m: HintMode.DEFAULT } ],
+  "LinkHints.activateCopyImage": [ kFgCmd.linkHints, kCxt.fg, 0, { m: HintMode.COPY_IMAGE } ],
   "LinkHints.activateCopyLinkText": [ kFgCmd.linkHints, kCxt.fg, 0, { m: HintMode.COPY_TEXT } ],
   "LinkHints.activateCopyLinkUrl": [ kFgCmd.linkHints, kCxt.fg, 0, { m: HintMode.COPY_URL } ],
   "LinkHints.activateDownloadImage": [ kFgCmd.linkHints, kCxt.fg, 0, { m: HintMode.DOWNLOAD_MEDIA } ],
@@ -588,6 +589,7 @@ export const availableCommands_: Dict<CommandsNS.Description> & SafeObject =
   "LinkHints.activateHover": [ kFgCmd.linkHints, kCxt.fg, 0, { m: HintMode.HOVER, showUrl: 1 } ],
   "LinkHints.activateLeave": [ kFgCmd.linkHints, kCxt.fg, 0, { m: HintMode.UNHOVER } ],
   "LinkHints.activateMode": [ kFgCmd.linkHints, kCxt.fg, 0, { m: HintMode.DEFAULT } ],
+  "LinkHints.activateModeToCopyImage": [ kFgCmd.linkHints, kCxt.fg, 0, { m: HintMode.COPY_IMAGE } ],
   "LinkHints.activateModeToCopyLinkText": [ kFgCmd.linkHints, kCxt.fg, 0, { m: HintMode.COPY_TEXT } ],
   "LinkHints.activateModeToCopyLinkUrl": [ kFgCmd.linkHints, kCxt.fg, 0, { m: HintMode.COPY_URL } ],
   "LinkHints.activateModeToDownloadImage": [ kFgCmd.linkHints, kCxt.fg, 0, { m: HintMode.DOWNLOAD_MEDIA } ],
@@ -772,6 +774,7 @@ const hintModes_: SafeDict<HintMode> = {
   "copy-list": HintMode.COPY_TEXT | HintMode.list | HintMode.queue,
   "copy-url": HintMode.COPY_URL, "copy-url-list": HintMode.COPY_URL | HintMode.list | HintMode.queue,
   download: HintMode.DOWNLOAD_LINK, incognito: HintMode.OPEN_INCOGNITO_LINK,
+  "copy-image": HintMode.COPY_IMAGE,
   "edit-url": HintMode.EDIT_LINK_URL, edit: HintMode.EDIT_TEXT, "edit-text": HintMode.EDIT_TEXT,
   input: HintMode.FOCUS_EDITABLE, "focus-input": HintMode.FOCUS_EDITABLE, editable: HintMode.FOCUS_EDITABLE,
   "focus-editable": HintMode.FOCUS_EDITABLE,

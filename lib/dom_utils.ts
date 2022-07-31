@@ -404,9 +404,9 @@ export const getMediaTag = (tag: keyof HTMLElementTagNameMap | ""): kMediaTag =>
       : tag === "a" ? kMediaTag.a : kMediaTag.others
 }
 
-export const getMediaUrl = (element: HTMLImageElement | SafeHTMLElement, isMedia: boolean): string => {
+export const getMediaUrl = (element: HTMLImageElement | SafeHTMLElement, isMedia: boolean | BOOL | 2): string => {
   let kSrcAttr: "src", srcValue: string | null
-  return element.dataset.src
+  return isMedia !== 2 && element.dataset.src
       // according to https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement#Browser_compatibility,
       // <img>.currentSrc is since C45
       || isMedia && (element as HTMLImageElement).currentSrc
@@ -570,8 +570,8 @@ export function set_OnDocLoaded_ (_newOnDocLoaded: typeof OnDocLoaded_): void { 
 export function set_onReadyState_ (_newOnReady: typeof onReadyState_): void { onReadyState_ = _newOnReady }
 
 export let createElement_ = doc.createElement.bind(doc) as {
-  <K extends "div" | "span" | "style" | "iframe" | "a" | "script" | "dialog" | "body"> (
-      htmlTagName: K): HTMLElementTagNameMap[K] & SafeHTMLElement
+  <K extends "div" | "span" | "style" | "iframe" | "a" | "script" | "dialog" | "body" | "img" | "canvas"> (
+      htmlTagName: K): HTMLElementTagNameMap[K]
 }
 export function set_createElement_ (_newCreateEl: typeof createElement_): void { createElement_ = _newCreateEl }
 

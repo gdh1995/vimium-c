@@ -31,6 +31,7 @@
   "HAnd": " and ",
   "HEnd": ".",
   "LinkHints.activate": "Open a link in the current tab",
+  "LinkHints.activateCopyImage": "Copy image to the clipboard",
   "LinkHints.activateCopyLinkText": "Copy a link text to the clipboard",
   "LinkHints.activateCopyLinkUrl": "Copy a link URL to the clipboard",
   "LinkHints.activateDownloadImage": "Download image, video and audio",
