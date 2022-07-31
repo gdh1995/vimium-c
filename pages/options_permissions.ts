@@ -1,5 +1,5 @@
 import { kPgReq } from "../background/page_messages"
-import { $, OnEdge, browser_, OnFirefox, OnChrome, nextTick_, CurCVer_, IsEdg_, post_ } from "./async_bg"
+import { $, OnEdge, browser_, OnFirefox, OnChrome, nextTick_, CurCVer_, IsEdg_, post_, pageLangs_ } from "./async_bg"
 import { Option_, KnownOptionsDataset, oTrans_, bgSettings_ } from "./options_base"
 import { registerClass, createNewOption, TextOption_ } from "./options_defs"
 import kPermissions = chrome.permissions.kPermissions
@@ -171,7 +171,7 @@ const initOptionalPermissions = (): void => {
       }
     }
     node.lastElementChild.textContent = i18nName + suffix
-    if (optional_permissions.length === 1) {
+    if (optional_permissions.length === 1 || optional_permissions.length === 2 && pageLangs_ === "en") {
       node.classList.add("single")
     }
     fragment.appendChild(node)

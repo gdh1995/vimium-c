@@ -314,6 +314,7 @@ declare namespace SettingsNS {
     vimSync: boolean | null;
     vomnibarPage: string;
     omniBlockList: string;
+    keyLayout: kKeyLayout
   }
   interface PersistentSettings extends FrontendSettings, BackendSettings {}
 
@@ -329,7 +330,7 @@ declare namespace SettingsNS {
   type NullableUpdateHooks = "searchEngines" | "searchUrl" | "keyMappings" | "vomnibarPage"
 
   type DeclaredUpdateHooks = "newTabUrl" | "searchEngines" | "searchUrl"
-        | "vomnibarPage" | "extAllowList" | "grabBackFocus" | "mapModifier" | "ignoreKeyboardLayout"
+        | "vomnibarPage" | "extAllowList" | "grabBackFocus" | "keyLayout"
   type EnsuredUpdateHooks = DeclaredUpdateHooks
   type UpdateHook<key extends keyof SettingsWithDefaults> =
         key extends NullableUpdateHooks ? NullableUpdateHook<key>
@@ -342,10 +343,12 @@ declare namespace SettingsNS {
 
   interface Sync {
     set<K extends keyof PersistentSettings> (key: K, value: PersistentSettings[K] | null): void;
+    set<K extends LocalSettingNames> (key: K, value: null): void
   }
 
   interface MergedCustomCSS { ui: string; find: FindCSS; omni: string }
   type LocalSettingNames = "innerCSS" | "findCSS" | "omniCSS" | "i18n_f" | "vomnibarPage_f" | "newTabUrl_f"
+      | "ignoreKeyboardLayout" | "mapModifier" | "ignoreCapsLock"
       | "findModeRawQueryList" | GlobalConsts.kIsHighContrast | `${string}|${string}`
 
   // type NameList = Array<SettingNames>;

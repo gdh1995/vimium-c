@@ -8,6 +8,10 @@ import { manifest } from "./options_permissions";
 import { advancedOptBtn, ElementWithDelay, delayed_task, clear_delayed_task } from "./options_wnd"
 import { kPgReq } from "../background/page_messages"
 
+const kSettingsToUpgrade_: readonly SettingsNS.LocalSettingNames[] = [
+  "ignoreKeyboardLayout", "ignoreCapsLock", "mapModifier"
+]
+
 const showHelp = (event?: EventToPrevent | "force" | void | null): void => {
   if (!VApi || !VApi.z) {
     void isVApiReady_.then(showHelp.bind(null, event))
@@ -125,6 +129,15 @@ const buildExportedFile = (now: Date, want_static: boolean): { blob: Blob, optio
     }
   }
   omniBlockListRe = null
+  if ((exported_object as Dict<any> as SettingsNS.SettingsWithDefaults).keyLayout != null) {
+    const keyLayout = (exported_object as Dict<any> as SettingsNS.SettingsWithDefaults).keyLayout
+    if (keyLayout & (kKeyLayout.alwaysIgnore | kKeyLayout.ignoreIfAlt))
+      exported_object[kSettingsToUpgrade_[0]] = keyLayout & kKeyLayout.ignoreIfAlt ? 1 : 2
+    if (keyLayout & (kKeyLayout.ignoreCaps | kKeyLayout.ignoreCapsOnMac))
+      exported_object[kSettingsToUpgrade_[1]] = keyLayout & kKeyLayout.ignoreCapsOnMac ? 1 : 2
+    if (keyLayout & kKeyLayout.MapModifierMask)
+      exported_object[kSettingsToUpgrade_[2]] = keyLayout & kKeyLayout.mapLeftModifiers ? 1 : 2
+  }
   let exported_data = JSON.stringify(exported_object, null, "\t") + "\n"
   const arr = exported_data.split("\n")
   for (let i = 0; i < arr.length; i++) {
@@ -315,6 +328,24 @@ async function _importSettings(time: number, new_data: ExportedSettings, is_reco
       delete new_data[key];
     }
   }
+  if ((new_data as Dict<any> as SettingsNS.SettingsWithDefaults).keyLayout == null) {
+    let ikl = new_data[kSettingsToUpgrade_[0]], icl = new_data[kSettingsToUpgrade_[1]],
+    mm = new_data[kSettingsToUpgrade_[2]]
+    if (ikl !== void 0 || icl !== void 0 || mm !== void 0) {
+      ikl = ikl !== null ? ikl + "" : ikl
+      icl = icl !== null ? icl + "" : icl
+      mm = mm !== null ? mm + "" : mm
+      let kl: kKeyLayout
+      kl = ikl == null ? kKeyLayout.inCmdIgnoreIfNotASCII : ikl === "2" || ikl === "true" ? kKeyLayout.alwaysIgnore
+          : ikl === "1" ? kKeyLayout.ignoreIfAlt | kKeyLayout.inCmdIgnoreIfNotASCII : kKeyLayout.inCmdIgnoreIfNotASCII
+      kl |= icl == null || kl === kKeyLayout.alwaysIgnore ? 0 : icl === "2" || icl === "true" ? kKeyLayout.ignoreCaps
+          : icl === "1" ? kKeyLayout.ignoreCapsOnMac : 0
+      kl |= mm == null ? 0 : mm === "2" ? kKeyLayout.mapRightModifiers : mm === "1" ? kKeyLayout.mapLeftModifiers : 0
+      kl |= kKeyLayout.fromOld
+      ; (new_data as Dict<any> as SettingsNS.SettingsWithDefaults).keyLayout = kl
+    }
+  }
+  for (const key2 of kSettingsToUpgrade_) { delete new_data[key2] }
   if (new_data.vimSync !== <boolean> bgSettings_.get_("vimSync")) {
     logUpdate("import", "vimSync", new_data.vimSync);
     await bgSettings_.set_("vimSync", new_data.vimSync)

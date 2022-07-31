@@ -22,7 +22,7 @@ Option_.prototype._onCacheUpdated = function<T extends keyof SettingsNS.AutoSync
         : Promise.resolve(val)
     void p.then((val2): void => {
       (VApi!.z! as Generalized<NonNullable<VApiTy["z"]>>)[shortKey] = val2 != null ? val2 : val as never
-      if (shortKey === "a" || shortKey === "l") {
+      if (shortKey === "l") {
         void post_(kPgReq.updateOmniPayload, { key: shortKey,
             val: (val2 != null ? val2 : val as never) as SettingsNS.DirectlySyncedItems[typeof shortKey][1] })
       }
@@ -618,8 +618,74 @@ filterLinkHintsOption_.onSave_ = function (): void {
   }, $("#waitForEnterBox"))
 }
 
-Option_.all_.ignoreKeyboardLayout.onSave_ = function (): void {
-  nextTick_(el => { el.style.display = this.readValueFromElement_() > 1 ? "none" : "" }, $("#ignoreCapsLockBox"))
+const keyLayout = Option_.all_.keyLayout
+const [elAlwaysIgnore, elIgnoreIfAlt, elIgnoreIfNotASCII, elIgnoreCaps, elMapModifier] =
+    $$<HTMLInputElement>("input", keyLayout.element_)
+keyLayout.readValueFromElement_ = (): number => {
+  let flags: kKeyLayout = 0
+  if (elAlwaysIgnore.checked) {
+    flags = kKeyLayout.alwaysIgnore
+  } else {
+    flags |= elIgnoreIfAlt.checked ? kKeyLayout.ignoreIfAlt : 0
+    flags |= !elIgnoreIfNotASCII.checked ? 0
+        : elIgnoreIfNotASCII.indeterminate ? kKeyLayout.inCmdIgnoreIfNotASCII : kKeyLayout.ignoreIfNotASCII
+    flags |= !elIgnoreCaps.checked ? 0 : elIgnoreCaps.indeterminate ? kKeyLayout.ignoreCapsOnMac : kKeyLayout.ignoreCaps
+  }
+  flags |= !elMapModifier.checked ? 0
+      : elMapModifier.indeterminate ? kKeyLayout.mapLeftModifiers : kKeyLayout.mapRightModifiers
+  const old = keyLayout.previous_
+  if (old & kKeyLayout.fromOld && (old & ~kKeyLayout.fromOld) === flags) { flags |= kKeyLayout.fromOld }
+  return flags
+}
+let _lastKeyLayoutValue: kKeyLayout
+keyLayout.populateElement_ = (value: number): void => {
+  const always = !!(value & kKeyLayout.alwaysIgnore)
+  elAlwaysIgnore.checked = always
+  elIgnoreIfAlt.checked = always || !!(value & kKeyLayout.ignoreIfAlt)
+  elIgnoreIfNotASCII.checked = always || !!(value & (kKeyLayout.ignoreIfNotASCII | kKeyLayout.inCmdIgnoreIfNotASCII))
+  elIgnoreIfNotASCII.indeterminate = !!(value & kKeyLayout.inCmdIgnoreIfNotASCII)
+  elIgnoreCaps.checked = always || !!(value & (kKeyLayout.ignoreCaps | kKeyLayout.ignoreCapsOnMac))
+  elIgnoreCaps.indeterminate = !!(value & kKeyLayout.ignoreCapsOnMac)
+  elMapModifier.checked = !!(value & (kKeyLayout.MapModifierMask))
+  elMapModifier.indeterminate = !!(value & (kKeyLayout.mapLeftModifiers))
+  _lastKeyLayoutValue = value
+  onAlwaysIgnoreChange()
+}
+const onAlwaysIgnoreChange = (ev?: Event): void => {
+  elIgnoreIfAlt.disabled = elIgnoreIfNotASCII.disabled = elIgnoreCaps.disabled = elAlwaysIgnore.checked
+  if (!ev) { /* empty */ }
+  else if (elAlwaysIgnore.checked) {
+    elIgnoreIfAlt.checked = elIgnoreIfNotASCII.checked = elIgnoreCaps.checked = true
+    elIgnoreIfNotASCII.indeterminate = elIgnoreCaps.indeterminate = false
+  } else {
+    const old = keyLayout.innerFetch_()
+    if (typeof old === "number" && !(_lastKeyLayoutValue & kKeyLayout.alwaysIgnore)) {
+      _lastKeyLayoutValue === old ? keyLayout.fetch_() : keyLayout.populateElement_(_lastKeyLayoutValue)
+      nextTick_(keyLayout.onUpdated_)
+    }
+  }
+}
+
+keyLayout.element_.addEventListener("input", (event): void => {
+  const el = event.target as HTMLInputElement
+  if (el === elAlwaysIgnore) {
+    onAlwaysIgnoreChange(event)
+  } else {
+    const kMid = el === elIgnoreIfNotASCII ? kKeyLayout.inCmdIgnoreIfNotASCII
+        : el === elIgnoreCaps ? kKeyLayout.ignoreCapsOnMac : el === elMapModifier ? kKeyLayout.mapLeftModifiers : 0
+    const kTrue = el === elIgnoreIfNotASCII ? kKeyLayout.ignoreIfNotASCII : el === elIgnoreCaps ? kKeyLayout.ignoreCaps
+        : el === elMapModifier ? kKeyLayout.mapRightModifiers : kKeyLayout.ignoreIfAlt
+    if (kMid) {
+      const newVal = BooleanOption_.ToggleTripleStatuses(_lastKeyLayoutValue & kTrue ? 2
+          : _lastKeyLayoutValue & kMid ? 1 : 0, event)
+      _lastKeyLayoutValue = (_lastKeyLayoutValue & ~(kMid | kTrue)) | (newVal > 1 ? kTrue : newVal ? kMid : 0)
+    } else {
+      _lastKeyLayoutValue = (_lastKeyLayoutValue & ~kTrue) | (el.checked ? kTrue : 0)
+    }
+  }
+}, true)
+keyLayout.onSave_ = function (): void {
+  // nextTick_(el => { el.readOnly = this.readValueFromElement_() > 1 }, $("#ignoreCapsLock") as HTMLInputElement)
 }
 
 Option_.all_.vomnibarPage.onSave_ = function (): void {

@@ -15,6 +15,7 @@
 	"exclusionListenHash": false,
 	"exclusionRules": [],
 	"grabBackFocus": true,
+	"keyLayout": 2,
 	"keyMappings": [
 		"unmapAll",
 		"map ? showHelp",

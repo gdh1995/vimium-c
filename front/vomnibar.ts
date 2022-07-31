@@ -245,10 +245,10 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   wheelDelta_: 0,
   browser_: Build.BTypes && !(Build.BTypes & (Build.BTypes - 1)) ? Build.BTypes as never : BrowserType.Chrome,
   browserVer_: BrowserVer.assumedVer,
+  isEdg_: false,
   os_: (Build.OS & (Build.OS - 1) ? kOS.win : Build.OS < 8 ? (Build.OS / 2) | 0 : Math.log2(Build.OS)
       ) as SettingsNS.ConstItems["o"][1],
   caseInsensitive_: false,
-  mapModifier_: 0 as SettingsNS.AllVomnibarItems["a"][1],
   mappedKeyRegistry_: null as SettingsNS.AllVomnibarItems["m"][1],
   keyLayout_: 0,
   maxMatches_: 0,
@@ -511,7 +511,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         ? i === kKeyCode.backspace ? kChar.backspace : i === kKeyCode.esc ? kChar.esc
             : i === kKeyCode.tab ? kChar.tab : i === kKeyCode.enter ? kChar.enter
             : (i < kKeyCode.maxAcsKeys + 1 ? i > kKeyCode.minAcsKeys - 1 : i > kKeyCode.maxNotMetaKey)
-              && Vomnibar_.mapModifier_ && Vomnibar_.mapModifier_ === event.location ? kChar.Modifier
+              && Vomnibar_.keyLayout_ > kKeyLayout.MapModifierStart - 1
+              && (Vomnibar_.keyLayout_ >> kKeyLayout.MapModifierOffset) === event.location ? kChar.Modifier
             : i === kKeyCode.altKey ? kChar.Alt
             : kChar.None
         : i === kKeyCode.menuKey && Build.BTypes & ~BrowserType.Safari
@@ -548,7 +549,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         || Build.BTypes & ~BrowserType.Edge && Vomnibar_.browser_ !== BrowserType.Edge)
         && (Vomnibar_.keyLayout_ & kKeyLayout.alwaysIgnore
             || Vomnibar_.keyLayout_ & kKeyLayout.ignoreIfAlt && event.altKey || isDeadKey
-            || Vomnibar_.keyLayout_ & kKeyLayout.inCmdIgnoreIfNotASCII && key > kChar.maxASCII && key.length === 1)) {
+            || key > kChar.maxASCII && key.length === 1)) {
       let prefix = code.slice(0, 3)
       let isKeyShort = key.length < 2 || isDeadKey
       let mapped: number | undefined
@@ -559,7 +560,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         key = code.length === 1 && isKeyShort
               ? !shiftKey || code < "0" || code > "9" ? code : kChar.EnNumTrans[+code]
               : Vomnibar_._modifierKeys[key]
-                ? Vomnibar_.mapModifier_ && event.location === Vomnibar_.mapModifier_ ? kChar.Modifier
+                ? Vomnibar_.keyLayout_ > kKeyLayout.MapModifierStart - 1
+                  && (Vomnibar_.keyLayout_ >> kKeyLayout.MapModifierOffset) === event.location ? kChar.Modifier
                 : key === "Alt" ? key : ""
               : key === "Escape" ? kChar.esc
               : code.length < 2 || !isKeyShort ? key.startsWith("Arrow") && key.slice(5) || key
@@ -1232,7 +1234,6 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       Vomnibar_.onStyleUpdate_(styles);
     }
     delta.c != null && Vomnibar_.css_(delta.c);
-    delta.a != null && (Vomnibar_.mapModifier_ = delta.a);
     delta.n != null && (Vomnibar_.maxMatches_ = delta.n);
     delta.i != null && (Vomnibar_.queryInterval_ = delta.i)
     delta.m !== undefined && (Vomnibar_.mappedKeyRegistry_ = delta.m)
@@ -1981,7 +1982,8 @@ if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType
       Vomnibar_.browser_ = payload.b!;
     }
     if ((!(Build.BTypes & (Build.BTypes - 1)) ? Build.BTypes : payload.b!) & BrowserType.Chrome) {
-      Vomnibar_.browserVer_ = payload.v as BrowserVer || BrowserVer.assumedVer
+      Vomnibar_.browserVer_ = Math.abs(payload.v as BrowserVer || BrowserVer.assumedVer)
+      Vomnibar_.isEdg_ = payload.v! < 0
     }
     if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key) {
       Build.OS & (1 << kOS.mac) && Build.OS & ~(1 << kOS.mac) &&

@@ -1,5 +1,5 @@
 import {
-  blank_, set_sync_, sync_, set_restoreSettings_, OnChrome, OnEdge, updateHooks_, os_,
+  blank_, set_sync_, sync_, set_restoreSettings_, OnChrome, OnEdge, updateHooks_, storageCache_,
   hasEmptyLocalStorage_, set_updateToLocal_, updateToLocal_, settingsCache_, installation_, set_installation_
 } from "./store"
 import * as BgUtils_ from "./utils"
@@ -25,8 +25,8 @@ const browserStorage_ = browser_.storage
 const kCloud = "sync.cloud:"
 
 let __sync: chrome.storage.StorageArea | undefined
-let to_update: SettingsToUpdate | null = null
-let keyInDownloading: keyof SettingsWithDefaults | "" = ""
+let to_update: SettingsToUpdate | null = null, toCleanDuringUpgrade: SettingsNS.LocalSettingNames[] | null = null
+let keyInDownloading: keyof SettingsWithDefaults | SettingsNS.LocalSettingNames | "" = ""
 let changes_to_merge: EnsuredDict<StorageChange> | null = null
 let textDecoder: TextDecoder | null = null
 let longDelayedAction = 0
@@ -85,10 +85,19 @@ const log: (... _: any[]) => void = function (): void {
 
 /** return `8` only when expect a valid `map` */
 const storeAndPropagate = (key: string, value: any, map?: Dict<any>): void | 8 => {
-  if (!(key in settings_.defaults_) || !shouldSyncKey(key)) { return }
-  const defaultVal = settings_.defaults_[key], kThis = "sync.this:"
   const serialized = value && typeof value === "object"
       && (value as Partial<SerializationMetaData | SingleSerialized>).$_serialize || ""
+  if (!(key in settings_.defaults_) || !shouldSyncKey(key)) {
+    const toUpgrade = serialized || !settings_.needToUpgradeSettings_ ? -1
+        : (settings_.kSettingsToUpgrade_ as string[]).indexOf(key)
+    if (toUpgrade >= 0
+        && storageCache_.get(key as (typeof settings_.kSettingsToUpgrade_)[0]) !== (value !== null ? value : void 0)) {
+      settings_.setInLocal_(key as (typeof settings_.kSettingsToUpgrade_)[0], value !== void 0 ? value : null)
+      settings_.reloadFromLegacy_(toUpgrade)
+    }
+    return
+  }
+  const defaultVal = settings_.defaults_[key], kThis = "sync.this:"
   if (serialized) {
     if (serialized === "split" && !map) { return 8 }
     value = deserialize(key, value as SingleSerialized | SerializationMetaData, map)
@@ -136,13 +145,19 @@ const setAndPost = (key: keyof SettingsToSync, value: any): void => {
   }
 }
 
-const TrySet = <K extends keyof SettingsToSync>(key: K, value: SettingsToSync[K] | null): void => {
-  if (!shouldSyncKey(key) || key === keyInDownloading) { return }
+const TrySet = <K extends SettingsNS.LocalSettingNames | keyof SettingsToSync> (key: K
+    , value: K extends keyof SettingsToSync ? SettingsToSync[K] | null : null): void => {
+  const type = shouldSyncKey(key) ? 1 : settings_.kSettingsToUpgrade_.includes(key) ? 2 : 0
+  if (!type || key === keyInDownloading) { return }
   if (!to_update) {
     setTimeout(DoUpdate, 800)
     to_update = BgUtils_.safeObj_() as SettingsToUpdate
   }
-  to_update[key] = value
+  if (type === 1) {
+    (to_update as Generalized<SettingsToUpdate>)[key as keyof SettingsToSync] = value
+  } else {
+    (toCleanDuringUpgrade || (toCleanDuringUpgrade = [])).push(key as SettingsNS.LocalSettingNames)
+  }
 }
 
 if (!Build.NDEBUG) {
@@ -286,13 +301,14 @@ const serialize = (key: keyof SettingsToUpdate, value: boolean | string | number
 }
 
 const DoUpdate = (): void => {
-  const items = to_update, removed: string[] = [], updated: string[] = [], reset: string[] = [],
+  const items = to_update, upgradedItems = toCleanDuringUpgrade
+  const removed: string[] = [], updated: string[] = [], reset: string[] = [],
   delayedSerializedItems: EnsuredSafeDict<MultiLineSerialized> = BgUtils_.safeObj_(),
   serializedDict: Dict<boolean | string | number | object> = {}
-  to_update = null
+  to_update = toCleanDuringUpgrade = null
   if (!items || sync_ !== TrySet) { return }
-  let encoder = (!OnChrome || Build.MinCVer >= BrowserVer.MinEnsuredTextEncoderAndDecoder) && !OnEdge
-      || (globalThis as any).TextEncoder ? new TextEncoder() : null
+  let encoder = ((!OnChrome || Build.MinCVer >= BrowserVer.MinEnsuredTextEncoderAndDecoder) && !OnEdge
+      || (globalThis as any).TextEncoder) && Object.keys(items).length > 0 ? new TextEncoder() : null
   for (const _key in items) {
     const key = _key as keyof SettingsToUpdate
     let value = items[key],
@@ -311,7 +327,6 @@ const DoUpdate = (): void => {
         updated.push(key)
       }
     } else {
-      reset.push(key)
       removed.push(key)
     }
     for (; startToResetList < GlobalConsts.MaxSyncedSlices; startToResetList++) {
@@ -319,6 +334,9 @@ const DoUpdate = (): void => {
     }
   }
   textDecoder = encoder = null as never
+  upgradedItems && removed.push(...upgradedItems)
+  reset.push(...removed)
+
   if (removed.length > 0) {
     log(kCloud, "reset", removed.join(", "))
   }
@@ -453,9 +471,8 @@ void settings_.ready_.then((): void => {
     }).then((installed): Promise<void> => new Promise((r): void => {
       storage() ? storage().get((items): void => {
         const err = runtimeError_()
-        const firstOnMacOS = (!(Build.OS & ~(1 << kOS.mac)) || !!(Build.OS & (1 << kOS.mac)) && os_ === kOS.mac)
-            && installed && hasEmptyLocalStorage_ && (err || Object.keys(items).length === 0)
-        const callback = firstOnMacOS ? (): void => { settings_.set_("ignoreKeyboardLayout", 1); r() } : r
+        const first = installed && hasEmptyLocalStorage_ && (err || Object.keys(items).length === 0)
+        const callback = first ? (): void => { settings_.set_("keyLayout", kKeyLayout.IfFirstlyInstalled); r() } : r
         if (err) {
           updateHooks_.vimSync = blank_
           callback()

@@ -1,11 +1,10 @@
 import { kPgReq } from "../background/page_messages"
 import {
   CurCVer_, CurFFVer_, OnFirefox, OnChrome, OnEdge, $, $$, post_, disconnect_, isVApiReady_, simulateClick,
-  toggleDark, browser_, selfTabId_, enableNextTick_, nextTick_, kReadyInfo, IsEdg_, import2, BrowserName_
+  toggleDark, browser_, selfTabId_, enableNextTick_, nextTick_, kReadyInfo, IsEdg_, import2, BrowserName_, pageTrans_
 } from "./async_bg"
 import {
-  bgSettings_,
-  KnownOptionsDataset, showI18n, setupBorderWidth_, Option_, PossibleOptionNames, AllowedOptions, debounce_, oTrans_
+  bgSettings_, KnownOptionsDataset, showI18n, setupBorderWidth_, Option_, AllowedOptions, debounce_, oTrans_
 } from "./options_base"
 import { saveBtn, exportBtn, savedStatus, BooleanOption_, onKeyMappingsError } from "./options_defs"
 import { manifest } from "./options_permissions"
@@ -300,13 +299,14 @@ let optionsInit1_ = function (): void {
   }
 
   _ref = $$(".ref-text");
-  const onRefStatClick = function (this: HTMLElement, event: MouseEventToPrevent): void {
+  const onRefStatClick = (event: MouseEventToPrevent): void => {
     if (!advancedMode) {
       $<AdvancedOptBtn>("#advancedOptionsButton").onclick(null);
     }
     event.preventDefault();
-    const node2 = Option_.all_[this.getAttribute("for") as "ignoreKeyboardLayout"
-        ].element_.nextElementSibling as SafeHTMLElement;
+    const sel2 = (event.currentTarget as HTMLElement).getAttribute("for")!.split(":").slice(-1)[0]
+    const maybeNode2 = $$<EnsuredMountedHTMLElement & HTMLInputElement>(sel2)
+    const node2 = (maybeNode2.find(i => i.checked) || maybeNode2[0]).nextElementSibling
     {
       OnChrome && Build.MinCVer < BrowserVer.MinScrollIntoViewOptions
         && CurCVer_ < BrowserVer.MinScrollIntoViewOptions
@@ -314,22 +314,27 @@ let optionsInit1_ = function (): void {
       : node2.scrollIntoView({ block: "center" });
       node2.focus();
     }
-    if (VApi) {
-      VApi.x((node2 as EnsuredMountedHTMLElement).parentElement.parentElement as SafeHTMLElement)
-    }
+    VApi && VApi.x(node2.parentElement.parentElement as SafeHTMLElement)
   };
   for (let _i = _ref.length; 0 <= --_i; ) {
-    const opt = Option_.all_[ _ref[_i].getAttribute("for") as PossibleOptionNames<boolean> as "ignoreKeyboardLayout"]
-    const oldOnSave = opt.onSave_
-    opt.onSave_ = (): void | Promise<void> => {
-      nextTick_((ref2): void => {
-        ref2.textContent = oTrans_(opt.readValueFromElement_() > 1 ? "145_2" : "144")
-      }, $(`#${opt.element_.id}Status`))
-      return oldOnSave.call(opt)
+    const name =  _ref[_i].getAttribute("for")!, fields = name.slice(name.indexOf(":") + 1)
+    const opt = Option_.all_[name.split(":")[0].replace("#", "") as "keyLayout"]
+    const oldOnSave = opt.onSave_, box = _ref[_i].parentElement as EnsuredMountedHTMLElement
+    const syncForLabel = (): void => {
+      nextTick_(([statEl, nameEl, checkboxes]): void => {
+        const related = ([] as HTMLInputElement[]).slice.call(checkboxes).find(i => i.checked) || checkboxes[0]
+        statEl.textContent = oTrans_(related.checked ? "145_2" : "144")
+        if (nameEl) {
+          const el2 = related.nextElementSibling as SafeHTMLElement, i2 = el2.getAttribute("data-i2")
+          nameEl.textContent = i2 ? pageTrans_(i2)! : el2.textContent
+        }
+      }, [box.querySelector(".status-of-related")!, box.querySelector(".name-of-related")!,
+          (fields !== name ? $$<HTMLInputElement>(fields) : [opt.element_]) ] as const)
     }
+    opt.onSave_ = (): void | Promise<void> => { syncForLabel(); return oldOnSave.call(opt) }
     _ref[_i].onclick = onRefStatClick;
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    opt.element_.addEventListener("change", opt.onSave_, true)
+    opt.element_.addEventListener("change", syncForLabel, true)
   }
 },
 optionsInitAll_ = function (): void {

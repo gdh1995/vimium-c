@@ -98,9 +98,10 @@
           <textarea id="keyMappings" class="code" inputmode="text" data-model="Text" data-check=""
             placeholder="# Insert your preferred key mappings here."></textarea>
           <div class="info">
-            <span data-i="16_2">The related option "</span><label for="ignoreKeyboardLayout"
-                class="ref-text" role="link" data-i="50">Ignore keyboard layout</label><span data-i="16_3"
-              >" is </span><span id="ignoreKeyboardLayoutStatus">enabled</span><span data-i="16_4"></span>
+            <span data-i="16_2">The related option "</span><label for="#keyLayout:#alwaysIgnore,#ignoreIfNotASCII"
+                class="ref-text name-of-related" role="link">Always ignore keyboard layout</label><span
+                data-i="16_3"
+              >" is </span><span class="status-of-related">enabled</span><span data-i="16_4"></span>
           </div>
         </td>
         <td id="mappingsHelp" class="help"><div class="help-inner">
@@ -146,9 +147,9 @@ mapKey &lt;c-s-e&gt; &lt;esc&gt;
             /><input id="linkHintNumbers" type="text" data-model="NonEmptyText"
             data-converter="lower chars" class="code" style="display: none;" autocomplete="off" />
           <div class="info">
-            <span data-i="16_2">The related option "</span><label for="filterLinkHints"
+            <span data-i="16_2">The related option "</span><label for="#filterLinkHints"
                 class="ref-text" role="link" data-i="37_2">Use link name</label><span data-i="16_3"
-              >" is </span><span id="filterLinkHintsStatus">enabled</span><span
+              >" is </span><span class="status-of-related">enabled</span><span
                 data-i="16_4"></span><span data-i="semicolon">;</span><span data-i="NS">
             </span><span data-i="nonEmpty">Delete all to reset this option.</span>
           </div>
@@ -209,6 +210,72 @@ key: https://c.com/$s/space=\s\ space_end
           <td class="help"><div class="help-inner">
             <div data-i="103_3">Check to enable some features on this computer.</div>
             <span data-i="103_4">Note: these may not be synchronized by your browser.</span>
+          </div></td>
+        </tr>
+      </tbody>
+      <tbody id="keyLayout" data-model="Number">
+        <tr>
+          <td class="caption" rowspan="4" data-i="47">Keyboard layout rules</td>
+          <td>
+            <label class="booleanOption" tabindex="-1" aria-hidden="true">
+              <input id="alwaysIgnore" type="checkbox" tabindex="-1" aria-hidden="true" />
+              <span data-i="47_2" class="checkboxHint" role="checkbox" tabindex="0" aria-hidden="false"
+                >Always ignore keyboard layout</span>
+            </label>
+          </td>
+          <td class="help" rowspan="2"><div class="help-inner line-help">
+            <div data-i="47_3">Please note that this group of settings can only take effect inside Vimium C.</div>
+            <div data-i="47_4">
+              "Ignoring" means to use the en-US QWERTY layout and ignore CapsLock status during recognizing keys.</div>
+          </div></td>
+        </tr>
+        <tr>
+          <td>
+            <label class="booleanOption" tabindex="-1" aria-hidden="true">
+              <input id="ignoreIfAlt" type="checkbox" tabindex="-1" aria-hidden="true" />
+              <span data-i="48" class="checkboxHint" role="checkbox" tabindex="0" aria-hidden="false"
+                >Ignore layout when holding down Alt (Option) key</span>
+            </label>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <label class="booleanOption" tabindex="-1" aria-hidden="true">
+              <input id="ignoreIfNotASCII" type="checkbox" tabindex="-1" aria-hidden="true" />
+              <span data-i="49" data-i2="49_2" class="checkboxHint" role="checkbox" tabindex="0" aria-hidden="false"
+                >Ignore keyboard layout if a key is not located in 7-bit ASCII</span>
+            </label>
+          </td>
+          <td class="help"><div class="help-inner line-help" data-i="49_3">
+            If partially selected, only ignore layout for in-command shortcuts,
+            but not in default normal or insert modes.
+          </div></td>
+        </tr>
+        <tr>
+          <td>
+            <label class="booleanOption" tabindex="-1" aria-hidden="true">
+              <input id="ignoreCaps" type="checkbox" tabindex="-1" aria-hidden="true" />
+              <span class="checkboxHint" role="checkbox" tabindex="0" aria-hidden="false"
+                  data-i="50">Ignore CapsLock status</span>
+            </label>
+          </td>
+          <td class="help"><div class="help-inner line-help" data-i="50_2">
+            If partially selected, only ignore CapsLock on macOS.
+          </div></td>
+        </tr>
+        <tr>
+          <td class="caption"></td>
+          <td>
+            <label class="booleanOption" tabindex="-1" aria-hidden="true">
+              <input id="mapModifier" type="checkbox" tabindex="-1" aria-hidden="true" />
+              <span data-i="53" class="checkboxHint" role="checkbox" tabindex="0" aria-hidden="false"
+                >Allow mapping right-hand (or left-hand) modifier keys</span>
+            </label>
+          </td>
+          <td class="help"><div class="help-inner line-help">
+            <span data-i="53_2">Give one-hand modifier keys a name
+                of "</span><kbd class="sel-all">modifier</kbd><span data-i="53_3">".
+              Right-Shift (left if partially selected) is "</span>&lt;s-modifier&gt;<span data-i="53_4">".</span>
           </div></td>
         </tr>
       </tbody>
@@ -287,51 +354,6 @@ key: https://c.com/$s/space=\s\ space_end
           </td>
           <td class="help"><div class="help-inner line-help" data-i="46">
             Prevent pages from focusing an input in loading (e.g. Google, Bing, etc.).
-          </div></td>
-        </tr>
-        <tr>
-          <td class="caption"></td>
-          <td>
-            <label class="booleanOption" tabindex="-1" aria-hidden="true">
-              <input id="ignoreKeyboardLayout" type="checkbox" tabindex="-1" aria-hidden="true"
-                  data-model="Boolean" data-map="[0,1,2]" />
-              <span data-i="50" class="checkboxHint" role="checkbox" tabindex="0" aria-hidden="false"
-                >Ignore keyboard layout</span>
-            </label>
-          </td>
-          <td class="help"><div class="help-inner line-help">
-            <span data-i="51">Recognize keys in en-US</span><span data-i="52">
-              QWERTY layout and ignore CapsLock. If partially selected, require Alt (Option).</span>
-          </div></td>
-        </tr>
-        <tr id="ignoreCapsLockBox">
-          <td class="caption"></td>
-          <td>
-            <label class="booleanOption" tabindex="-1" aria-hidden="true">
-              <input id="ignoreCapsLock" type="checkbox" tabindex="-1" aria-hidden="true"
-                  data-model="Boolean" data-map="[0,1,2]" />
-              <span data-i="48" class="checkboxHint" role="checkbox" tabindex="0" aria-hidden="false"
-                >Ignore CapsLock status</span>
-            </label>
-          </td>
-          <td class="help"><div class="help-inner line-help" data-i="49">
-            If partially selected, Vimium C will only ignore CapsLock on macOS.
-          </div></td>
-        </tr>
-        <tr>
-          <td class="caption"></td>
-          <td>
-            <label class="booleanOption" tabindex="-1" aria-hidden="true">
-              <input id="mapModifier" type="checkbox" tabindex="-1" aria-hidden="true"
-                  data-model="Boolean" data-map="[0,1,2]" />
-              <span data-i="53" class="checkboxHint" role="checkbox" tabindex="0" aria-hidden="false"
-                >Allow mapping right-hand (or left-hand) modifier keys</span>
-            </label>
-          </td>
-          <td class="help"><div class="help-inner line-help">
-            <span data-i="53_2">Give one-hand modifier keys a name
-                of "</span><kbd class="sel-all">modifier</kbd><span data-i="53_3">".
-              Right-Shift (left if partially selected) is "</span>&lt;s-modifier&gt;<span data-i="53_4">".</span>
           </div></td>
         </tr>
         <tr>

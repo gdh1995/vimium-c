@@ -307,11 +307,15 @@ declare const enum PortType {
 }
 
 declare const enum kKeyLayout {
-  NONE = 0, alwaysIgnore = 1, ignoreIfAlt = 2, inCmdIgnoreIfNotASCII = 4,
+  NONE = 0, alwaysIgnore = 1, ignoreIfNotASCII = 2, inCmdIgnoreIfNotASCII = 4, ignoreIfAlt = 8,
+  ignoreCaps = 16, mapLeftModifiers = 64, mapRightModifiers = 128,
+  FgMask = 255, fromOld = 256, ignoreCapsOnMac = 512,
+  MapModifierStart = mapLeftModifiers, MapModifierOffset = 6, MapModifierMask = mapLeftModifiers | mapRightModifiers,
+  DefaultFromOld = inCmdIgnoreIfNotASCII | fromOld, Default = DefaultFromOld, IfFirstlyInstalled = ignoreIfNotASCII,
 }
 declare namespace SettingsNS {
   interface DirectlySyncedItems {
-    /** ignoreKeyboardLayout */ l: ["ignoreKeyboardLayout", 0 | 1 | 2];
+    /** keyLayout */ l: ["keyLayout", kKeyLayout]
     /** keyboard */ k: ["keyboard", [delay: number, interval: number, /** on Firefox */ screenRefreshRate?: number]]
     /** linkHintCharacters */ c: ["linkHintCharacters", string];
     /** linkHintNumbers */ n: ["linkHintNumbers", string];
@@ -322,11 +326,7 @@ declare namespace SettingsNS {
     /** regexFindMode */ r: ["regexFindMode", boolean];
     /** scrollStepSize */ t: ["scrollStepSize", number];
     /** smoothScroll */ s: ["smoothScroll", boolean];
-    /** mapModifier */ a: ["mapModifier", 0 | 1 | 2];
     /** acceptable upper limit of spent time before keyup */ u: ["keyupTime", number];
-  }
-  interface TransformedAndSyncedItems {
-    /** ignoreCapsLock */ i: ["ignoreCapsLock", boolean];
   }
   interface ManuallySyncedItems {
     /** darkMode */ d: ["darkMode", " D" | ""];
@@ -361,8 +361,6 @@ declare namespace SettingsNS {
     /** `2`: auto (following browser); `1`: fixed true */ autoDarkMode: 0 | 1 | 2
     /** `2`: auto (following browser); `1`: fixed true */ autoReduceMotion: 0 | 1 | 2
     grabBackFocus: boolean;
-    /** if want to rework it, must search it in all files and take care */
-    ignoreCapsLock: 0 | 1 | 2;
     showAdvancedCommands: boolean;
     vomnibarOptions: SelectNVType<VomnibarOptionItems> & VomnibarBackendItems;
   }
@@ -370,9 +368,9 @@ declare namespace SettingsNS {
     showAdvancedCommands: 0;
   }
 
-  interface AutoSyncedItems extends DirectlySyncedItems, TransformedAndSyncedItems {}
+  interface AutoSyncedItems extends DirectlySyncedItems {}
   interface FrontendSettingsSyncingItems extends AutoSyncedItems, ManuallySyncedItems {}
-  type FrontendComplexSyncingItems = Pick<FrontendSettingsSyncingItems, "c" | "n" | "i" | "l" | "d">
+  type FrontendComplexSyncingItems = Pick<FrontendSettingsSyncingItems, "c" | "n" | "l" | "d">
   interface DeclaredFrontendValues extends SelectValueType<ManuallySyncedItems & OneTimeItems>, DeclaredConstValues {
   }
   type AutoSyncedNameMap = SelectNameToKey<AutoSyncedItems>
@@ -384,7 +382,7 @@ declare namespace SettingsNS {
   }
 
   /** Note: should have NO names which may be uglified */
-  interface DirectVomnibarItems extends Pick<DirectlySyncedItems, "a" | "l"> {}
+  interface DirectVomnibarItems extends Pick<DirectlySyncedItems, "l"> {}
   interface AllVomnibarItems extends VomnibarOptionItems, OtherVomnibarItems, DirectVomnibarItems {}
   interface DeclaredVomnibarPayload extends SelectValueType<AllVomnibarItems>, DeclaredConstValues {}
   interface VomnibarPayload extends DeclaredVomnibarPayload, AllConstValues {}
@@ -598,6 +596,7 @@ declare const enum GlobalConsts {
 declare const enum kModeId {
   Plain = 0, Normal, Insert, Next, max_not_command = Next, Link, Marks, Find, Visual, Omni,
   Show, NO_MAP_KEY_EVEN_MAY_IGNORE_LAYOUT, NO_MAP_KEY,
+  MIN_ALWAYS_ASCII = Find, MIN_NOT_ALWAYS_ASCII = NO_MAP_KEY,
 }
 declare const enum kHandler {
   __none, __normal, __insert, __next, linkHints, marks, find, visual, omni, 

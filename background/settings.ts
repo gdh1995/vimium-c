@@ -20,6 +20,7 @@ type PersistentKeys = keyof SettingsNS.PersistentSettings
 
 let newSettingsToBroadcast_: Extract<SettingsUpdateMsg["d"], string[]> | null = null
 let toSaveCache: SafeDict<unknown> | null = null
+export let needToUpgradeSettings_ = 0
 
 export const legacyStorage_ = Build.MV3 && IsLimited ? null : localStorage
 export const local_ = browser_.storage.local
@@ -74,17 +75,16 @@ export const ready_: Promise<number> = Promise.all([
     }
     const done = n + Object.keys(items).length
     set_hasEmptyLocalStorage_(done === 0)
-    contentPayload_.g = (cache as typeof settingsCache_).grabBackFocus
-    type kPayload = keyof typeof valuesToLoad_;
-    for (let _i in valuesToLoad_) {
-      updatePayload_(valuesToLoad_[_i as kPayload], (cache as typeof settingsCache_)[_i as kPayload], contentPayload_)
-    }
-    omniPayload_.a = contentPayload_.a
-    omniPayload_.l = contentPayload_.l
     return done
   })
 ]).then((i): number => {
-  updatePayload_("i", settingsCache_.ignoreCapsLock, contentPayload_)
+  settingsCache_.keyLayout === kKeyLayout.Default && (needToUpgradeSettings_ |= 1, loadLegacyKeyLayout_())
+  type kPayload = keyof typeof valuesToLoad_;
+  for (let _i in valuesToLoad_) {
+    updatePayload_(valuesToLoad_[_i as kPayload], settingsCache_[_i as kPayload], contentPayload_)
+  }
+  contentPayload_.g = settingsCache_.grabBackFocus
+  omniPayload_.l = contentPayload_.l
   set_bgIniting_(bgIniting_ | BackendHandlersNS.kInitStat.settings)
   return i[2]
 })
@@ -182,6 +182,31 @@ export const broadcastOmni_ = <K extends ValidBgVomnibarReq> (request: Req.bg<K>
   })
 }
 
+const loadLegacyKeyLayout_ = (): kKeyLayout => {
+  const ikl = storageCache_.get(kSettingsToUpgrade_[0]), icl = storageCache_.get(kSettingsToUpgrade_[1]),
+  mm = storageCache_.get(kSettingsToUpgrade_[2])
+  let kl = kKeyLayout.DefaultFromOld
+  if (ikl !== void 0 || icl !== void 0 || mm !== void 0) {
+    kl = ikl == null ? kKeyLayout.inCmdIgnoreIfNotASCII : ikl === "2" || ikl === "true" ? kKeyLayout.alwaysIgnore
+        : ikl === "1" ? kKeyLayout.ignoreIfAlt | kKeyLayout.inCmdIgnoreIfNotASCII : kKeyLayout.inCmdIgnoreIfNotASCII
+    kl |= icl == null || kl === kKeyLayout.alwaysIgnore ? 0 : icl === "2" || icl === "true" ? kKeyLayout.ignoreCaps
+        : icl === "1" ? kKeyLayout.ignoreCapsOnMac : 0
+    kl |= mm == null ? 0 : mm === "2" ? kKeyLayout.mapRightModifiers : mm === "1" ? kKeyLayout.mapLeftModifiers : 0
+    needToUpgradeSettings_ |= 2
+  } else {
+    needToUpgradeSettings_ &= ~2
+  }
+  return (settingsCache_ as Generalized<SettingsWithDefaults>).keyLayout = kl
+}
+
+export const reloadFromLegacy_ = (changed: number): void => {
+  if (changed < 3 && needToUpgradeSettings_ & 1) {
+    const curPayload = contentPayload_.l, legacyVal = loadLegacyKeyLayout_()
+    const newPayload = updatePayload_("l", legacyVal, contentPayload_)
+    newPayload !== curPayload && postUpdate_("keyLayout", legacyVal)
+  }
+}
+
   /** @argument value may come from `LinkHints.*::characters` and `kBgCmd.toggle::value` */
 export const updatePayload_ = function (shortKey: keyof SettingsNS.FrontendComplexSyncingItems, value: any
       , obj?: Partial<SettingsNS.FrontendSettingCache>
@@ -190,13 +215,9 @@ export const updatePayload_ = function (shortKey: keyof SettingsNS.FrontendCompl
     type ValType<T extends keyof SettingsNS.AutoSyncedItems> = SettingType<SettingsNS.AutoSyncedItems[T][0]>;
     switch (shortKey) {
     case "c": case "n": value = (value as ValType<"c" | "n">).toLowerCase().toUpperCase(); break
-    case "i":
-      value = value === !!value ? value
-        : (value as ValType<"i">) > 1 || (value as ValType<"i">) > 0 && (!!(Build.OS & (1 << kOS.mac)) && !os_); break
     case "l":
-      value = value === !!value ? value ? kKeyLayout.alwaysIgnore : kKeyLayout.NONE | 0xfc
-          : (value & 2 ? kKeyLayout.alwaysIgnore : value & 1 ? kKeyLayout.ignoreIfAlt : kKeyLayout.NONE
-              ) | (value & 0xfc || 0xfc)
+      value = (value & kKeyLayout.FgMask) | (value & kKeyLayout.ignoreCapsOnMac
+          && (!(Build.OS & ~(1 << kOS.mac)) || !!(Build.OS & (1 << kOS.mac)) && !os_) ? kKeyLayout.ignoreCaps : 0)
       break
     case "d": value = value ? " D" : ""; break
     default: if (0) { As_<never>(shortKey) } break // lgtm [js/unreachable-statement]
@@ -222,9 +243,17 @@ Object.assign(updateHooks_, As_<{ [key in SettingsNS.DeclaredUpdateHooks]: Setti
       }
     },
     grabBackFocus (value: SettingsWithDefaults["grabBackFocus"]): void { contentPayload_.g = value },
-    ignoreKeyboardLayout (): void {
+    keyLayout (value): void {
       omniPayload_.l = contentPayload_.l
       broadcastOmni_({ N: kBgReq.omni_updateOptions, d: { l: contentPayload_.l } })
+      if (needToUpgradeSettings_ & 1 && !(value & kKeyLayout.fromOld)) {
+        const hasInLocal = needToUpgradeSettings_ & 2
+        needToUpgradeSettings_ &= ~(1 | 2)
+        for (let i = 0, end = hasInLocal ? 3 : 0; i < end; i++) {
+          setInLocal_(kSettingsToUpgrade_[i], null)
+          sync_(kSettingsToUpgrade_[i], null)
+        }
+      }
     },
     newTabUrl (url): void {
       url = (<RegExpI> /^\/?pages\/[a-z]+.html\b/i).test(url)
@@ -250,12 +279,6 @@ Object.assign(updateHooks_, As_<{ [key in SettingsNS.DeclaredUpdateHooks]: Setti
         if (newTabUrl_f) { return }
       }
       postUpdate_("newTabUrl")
-    },
-    mapModifier (value: SettingsWithDefaults["mapModifier"]): void {
-      type DeltaType = BgVomnibarSpecialReq[kBgReq.omni_updateOptions]["d"]
-      broadcastOmni_({ N: kBgReq.omni_updateOptions, d:
-        As_<Pick<DeltaType, SelectNameToKey<SettingsNS.AllVomnibarItems>["mapModifier"]>>({ a: value })
-      })
     },
     vomnibarPage (url): void {
       const cur = storageCache_.get("vomnibarPage_f")
@@ -319,15 +342,13 @@ saladict@crimx.com`
     filterLinkHints: false,
     grabBackFocus: false,
     hideHud: false,
-    ignoreCapsLock: 0,
-    ignoreKeyboardLayout: 0,
+    keyLayout: kKeyLayout.Default,
     keyboard: [560, 33],
     keyupTime: 120,
     keyMappings: "",
     linkHintCharacters: "sadjklewcmpgh",
     linkHintNumbers: "0123456789",
     localeEncoding: "gbk",
-    mapModifier: 0,
     mouseReachable: true,
     /** mutable */ newTabUrl: "",
     nextPatterns: "\u4e0b\u4e00\u5c01,\u4e0b\u9875,\u4e0b\u4e00\u9875,\u4e0b\u4e00\u7ae0,\u540e\u4e00\u9875\
@@ -462,14 +483,14 @@ export const frontUpdateAllowed_ = As_<ReadonlyArray<keyof SettingsNS.FrontUpdat
 
 export const valuesToLoad_ = <SettingsNS.AutoSyncedNameMap> As_<SettingsNS.AutoSyncedNameMap & SafeObject>({
     __proto__: null as never,
-    filterLinkHints: "f",
-    ignoreCapsLock: "i",
-    ignoreKeyboardLayout: "l",
-    mapModifier: "a",
-    mouseReachable: "e",
-    keyboard: "k", keyupTime: "u", linkHintCharacters: "c", linkHintNumbers: "n", passEsc: "p",
+    filterLinkHints: "f", keyLayout: "l", keyboard: "k", keyupTime: "u",
+    linkHintCharacters: "c", linkHintNumbers: "n", mouseReachable: "e", passEsc: "p",
     regexFindMode: "r", smoothScroll: "s", scrollStepSize: "t", waitForEnter: "w"
 })
+
+export const kSettingsToUpgrade_: readonly SettingsNS.LocalSettingNames[] = [
+  "ignoreKeyboardLayout", "ignoreCapsLock", "mapModifier"
+]
 
 bgIniting_ < BackendHandlersNS.kInitStat.FINISHED && ((): void => {
   const ref = browser_.runtime.getManifest(), { origin } = location, prefix = origin + "/",
@@ -501,7 +522,6 @@ bgIniting_ < BackendHandlersNS.kInitStat.FINISHED && ((): void => {
   obj.VerCode_ = ref.version;
   obj.VerName_ = ref.version_name || ref.version;
   obj.OptionsPage_ = func(ref.options_page || obj.OptionsPage_);
-  obj.AllowClipboardRead_ = ref.permissions != null && ref.permissions.indexOf("clipboardRead") >= 0;
   obj.ShowPage_ = func(obj.ShowPage_);
   obj.VomnibarPageInner_ = func(defaults_.vomnibarPage)
   obj.VomnibarScript_f_ = func(obj.VomnibarScript_);

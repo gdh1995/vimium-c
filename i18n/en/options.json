@@ -9,6 +9,7 @@
   "115_3": "Saved",
   "144": "disabled",
   "145_2": "enabled",
+  "49_2": "Ignore if not in ASCII",
   "optOfChromeUrl": " (need #extensions-on-chrome-urls)",
   "optNeedChromeUrlFirst": "Please enable the \"#extensions-on-chrome-urls\" browser flag first.",
   "opt_closeShelf": "Close the download bar and allow an alternative API to download files",

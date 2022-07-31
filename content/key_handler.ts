@@ -54,8 +54,9 @@ export function set_currentKeys (_newCurrentKeys: string): void { currentKeys = 
 
 set_getMappedKey((eventWrapper: HandlerNS.Event, mode: kModeId): ReturnType<typeof getMappedKey> => {
   const char: kChar | "" = eventWrapper.v ? ""
-      : !OnEdge && mode === kModeId.NO_MAP_KEY_EVEN_MAY_IGNORE_LAYOUT ? char_(eventWrapper, 1)
-      : eventWrapper.c !== kChar.INVALID ? eventWrapper.c : char_(eventWrapper, 0)
+      : !OnEdge && mode > kModeId.MIN_ALWAYS_ASCII - 1 && mode < kModeId.MIN_NOT_ALWAYS_ASCII
+        && fgCache.l & kKeyLayout.inCmdIgnoreIfNotASCII ? char_(eventWrapper, kKeyLayout.inCmdIgnoreIfNotASCII)
+      : eventWrapper.c !== kChar.INVALID ? eventWrapper.c : char_(eventWrapper, fgCache.l & kKeyLayout.ignoreIfNotASCII)
   let key: string = char, mapped: string | undefined;
   if (char) {
     const event = eventWrapper.e
@@ -74,13 +75,9 @@ set_getMappedKey((eventWrapper: HandlerNS.Event, mode: kModeId): ReturnType<type
       key = mapped ? mode > kModeId.max_not_command
               && mapped.startsWith("v-") ? (eventWrapper.v = mapped as `v-${string}`, "") : mapped
           : mapKeyTypes & kMapKey.char && !isLong && (mapped = mappedKeys[chLower])
-            && (mapped = mapped.length < 2 && (baseMod = mapped.toUpperCase()) !== mapped ? mapped : "")
+            && mapped.length < 2 && (baseMod = mapped.toUpperCase()) !== mapped
           ? mod ? mod + mapped : char === chLower ? mapped : baseMod
           : key
-    }
-    if (!OnEdge && mode === kModeId.Visual && char > kChar.maxASCII && !mapped && char.length === 1
-        && fgCache.l & kKeyLayout.inCmdIgnoreIfNotASCII) {
-      key = getMappedKey(eventWrapper, kModeId.NO_MAP_KEY_EVEN_MAY_IGNORE_LAYOUT)
     }
   }
   return key;

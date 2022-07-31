@@ -59,7 +59,7 @@ export interface PgReq {
   [kPgReq.getStorage]: [ GlobalConsts.kIsHighContrast | null, Dict<unknown> ]
   [kPgReq.setInLocal]: [ { key: string, val: string | null }, void ]
   [kPgReq.updateOmniPayload]: [ { key: keyof SettingsNS.DirectVomnibarItems,
-      val: Values<SettingsNS.DirectVomnibarItems>[1] | /** autoDarkMode */ boolean }, void ]
+      val: Values<SettingsNS.DirectVomnibarItems>[1] }, void ]
   [kPgReq.saveToSyncAtOnce]: [ void, void ]
 }
 
