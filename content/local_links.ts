@@ -662,9 +662,11 @@ export const filterOutNonReachable = (list: Hint[], notForAllClickable?: boolean
   if (OnEdge
       || OnChrome && (Build.MinCVer < BrowserVer.Min$Node$$getRootNode
               || Build.MinCVer < BrowserVer.Min$DocumentOrShadowRoot$$elementsFromPoint)
-          && chromeVer_ < (BrowserVer.Min$Node$$getRootNode >= BrowserVer.Min$DocumentOrShadowRoot$$elementsFromPoint
-              ? BrowserVer.Min$Node$$getRootNode : BrowserVer.Min$DocumentOrShadowRoot$$elementsFromPoint)
-      || OnChrome && isDocZoomStrange_ && docZoom_ - 1) {
+          && chromeVer_ < (BrowserVer.Min$Node$$getRootNode >= // lgtm [js/syntax-error]
+                BrowserVer.Min$DocumentOrShadowRoot$$elementsFromPoint // lgtm [js/syntax-error]
+              ? BrowserVer.Min$Node$$getRootNode // lgtm [js/syntax-error]
+              : BrowserVer.Min$DocumentOrShadowRoot$$elementsFromPoint) // lgtm [js/syntax-error]
+      || OnChrome && isDocZoomStrange_ && docZoom_ - 1) { // lgtm [js/syntax-error]
     return
   }
   initTestRegExps() // in case of `isDescendant(..., ..., 1)`

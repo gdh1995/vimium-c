@@ -549,7 +549,7 @@ const docOpenHook = (isWrite: BOOL, self: unknown, args: IArguments): void => {
   if (first) {
     detectDisabled && doInit()
     if (Build.NDEBUG) {
-      root && doRegister(0, pushInDocument(InnerConsts.SignalDocOpen))
+      root && doRegister(0, pushInDocument(InnerConsts.SignalDocOpen)) // lgtm [js/superfluous-trailing-arguments]
     } else if (root) {
       dispatch(root, new CECls(kVOnClick, { detail: [
         [isWrite ? InnerConsts.SignalDocWrite : InnerConsts.SignalDocOpen as number]

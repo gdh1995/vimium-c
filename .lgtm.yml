@@ -11,3 +11,4 @@ queries:
   - exclude: js/insecure-randomness
   - exclude: js/regex/always-matches
   - exclude: js/trivial-conditional
+  - exclude: js/useless-expression
