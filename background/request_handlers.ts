@@ -531,9 +531,13 @@ set_reqH_([
       showHUDEx(port, "mCreateLastMark", 1, [])
     }
   },
-  /** kFgReq.teeFail: */ (_req: FgReq[kFgReq.teeFail]): void => {
+  /** kFgReq.recheckTee: */ (req: (FgReqWithRes | FgReq)[kFgReq.recheckTee]): boolean | void => {
     const taskOnce = setTeeTask_(null, null)
-    taskOnce && taskOnce.r && taskOnce.r(false)
+    if (taskOnce) {
+      clearTimeout(taskOnce.i)
+      taskOnce.r && taskOnce.r(false)
+    }
+    if (req === 0) { return !taskOnce }
   }
 ])
 
@@ -642,7 +646,9 @@ declare var structuredClone: (<T> (obj: T) => T) | undefined
 (globalThis as MaybeWithWindow).window && ((window as BgExports).onPagesReq =
     (req): Promise<FgRes[kFgReq.pages]> => {
   if (req.i === GlobalConsts.TeeReqId) {
-    return setTeeTask_(null, null) as never
+    const teeTask = setTeeTask_(null, null)
+    teeTask && clearTimeout(teeTask.i)
+    return teeTask as never
   }
   const queries = !OnFirefox ? req.q
       : Build.MinFFVer >= FirefoxBrowserVer.Min$structuredClone || typeof structuredClone === "function"

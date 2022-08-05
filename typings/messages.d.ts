@@ -101,7 +101,7 @@ declare const enum kFgReq {
   gotoMainFrame, setOmniStyle, findFromVisual, framesGoBack,
   i18n, cssLearnt, visualMode, respondForRunKey, downloadLink, wait,
   optionToggled, keyFromOmni, pages, showUrl,
-  omniCopy, didLocalMarkTask, teeFail, END,
+  omniCopy, didLocalMarkTask, recheckTee, END,
   msg = 90, inject = 99,
   command = "command", id = "id", shortcut = "shortcut", focus = "focus", tip = "tip",
 }
@@ -203,14 +203,13 @@ interface BgVomnibarSpecialReq {
   [kBgReq.omni_updateOptions]: {
     /** delta */ d: Partial<SelectValueType<SettingsNS.AllVomnibarItems>>;
   };
-  [kBgReq.omni_runTeeTask]: Pick<BaseTeeTask, "i" | "t" | "s">
+  [kBgReq.omni_runTeeTask]: Pick<BaseTeeTask, "t" | "s">
 }
 type ValidBgVomnibarReq = keyof BgVomnibarSpecialReq | kBgReq.injectorRun;
 interface FullBgReq extends BgReq, BgVomnibarSpecialReq {}
 
 declare const enum kTeeTask { Copy = 1, ShowImage = 2, Paste = 3, Download = 4, CopyImage = 5 }
 interface BaseTeeTask {
-  /** unique id */ i: number
   /** task enum */ t: kTeeTask
   /** serializable data */ s: any
   /** complicated data */ d?: object | null | undefined
@@ -525,6 +524,7 @@ interface FgRes {
   [kFgReq.i18n]: /** rawMessages */ string[]
   [kFgReq.wait]: TimerType.fake
   [kFgReq.pages]: { /** id of query array */ i: number; /** answers */ a: unknown[] } | false
+  [kFgReq.recheckTee]: /** has the TEE task been used */ boolean
 }
 interface FgReqWithRes {
   [kFgReq.findQuery]: /** index */ number
@@ -541,6 +541,7 @@ interface FgReqWithRes {
   [kFgReq.i18n]: 0
   [kFgReq.wait]: number
   [kFgReq.pages]: FgReq[kFgReq.pages]
+  [kFgReq.recheckTee]: 0
 }
 
 interface FgReq {
@@ -722,7 +723,7 @@ interface FgReq {
   [kFgReq.pages]: { /** id of query array */ i: number; /** queries */ q: unknown[] }
   [kFgReq.showUrl]: { u: string }
   [kFgReq.omniCopy]: { /** title */ t: string, /** url */ u: string }
-  [kFgReq.teeFail]: {}
+  [kFgReq.recheckTee]: {}
 }
 
 interface CurrentEnvCache {} // eslint-disable-line @typescript-eslint/no-empty-interface

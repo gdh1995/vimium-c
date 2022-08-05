@@ -185,16 +185,17 @@ const _onPageConnect = (port: Port, type: PortType): void => {
   (port as Frames.Port).s = false as never
   if (type & PortType.Tee) {
     let taskOnce = setTeeTask_(null, null)
-    if (taskOnce) {
-      port.postMessage({ N: kBgReq.omni_runTeeTask, i: taskOnce.i, t: taskOnce.t, s: taskOnce.s })
-      port.onMessage.addListener((res: any): void => {
-        taskOnce && taskOnce.r && taskOnce.r(res)
+    if (taskOnce && taskOnce.t) {
+      port.postMessage({ N: kBgReq.omni_runTeeTask, t: taskOnce.t, s: taskOnce.s })
+      const callback = (res: any): void => {
+        if (taskOnce) {
+          clearTimeout(taskOnce.i)
+          taskOnce.r && taskOnce.r(res)
+        }
         taskOnce = null
-      })
-      port.onDisconnect.addListener((): void => {
-        taskOnce && taskOnce.r && taskOnce.r(false)
-        taskOnce = null
-      })
+      }
+      port.onMessage.addListener(callback)
+      port.onDisconnect.addListener((): void => { callback(false) })
     } else {
       port.disconnect()
     }

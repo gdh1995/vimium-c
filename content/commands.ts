@@ -18,7 +18,7 @@ import {
   view_, wndSize_, isNotInViewport, getZoom_, prepareCrop_, getViewBox_, padClientRect_, isSelARange, center_,
   getBoundingClientRect_, setBoundary_, wdZoom_, dScale_, getVisibleClientRect_, getVisibleBoundingRect_
 } from "../lib/rect"
-import { post_, set_contentCommands_, runFallbackKey } from "./port"
+import { post_, set_contentCommands_, runFallbackKey, send_ } from "./port"
 import {
   addElementList, ensureBorder, evalIfOK, getSelected, getSelectionText, getParentVApi, curModalElement, createStyle,
   getBoxTagName_old_cr, setupExitOnClick, addUIElement, removeSelection, ui_root, kExitOnClick, collpaseSelection,
@@ -584,20 +584,22 @@ set_contentCommands_([
     timeout_((): void => { focus_(box) }, 17)
   }) as (options: CmdOptions[kFgCmd.showHelpDialog]) => void,
   /* kFgCmd.callTee: */ (options: CmdOptions[kFgCmd.callTee]): any => {
+    const timer = timeout_((send_ as (typeof send_<kFgReq.recheckTee>)).bind(0, kFgReq.recheckTee, 0, (used): void => {
+      used || onWndFocus === oldWndFocus || (onWndFocus as (e: Event | BOOL) => void)(0)
+    }), options.t)
     const oldWndFocus = onWndFocus, focused = deepActiveEl_unsafe_()
     const frame = createElement_("iframe")
     frame.src = options.u
     ; (frame as HTMLIFrameElement & { allow: string }).allow = options.a
     setClassName_s(frame, options.c)
-    addUIElement(frame, AdjustType.Normal, true)
-    set_onWndFocus(frame.onerror = (event?: Event | 1): void => {
+    set_onWndFocus(frame.onerror = (event?: Event | BOOL): void => {
       set_onWndFocus(oldWndFocus), frame.onerror = null as never
       clearTimeout_(timer)
       event || focused && (OnFirefox || !notSafe_not_ff_!(focused)) && focus_(focused as SafeElement)
-      event ? post_({ H: kFgReq.teeFail }) : oldWndFocus()
+      event ? post_({ H: kFgReq.recheckTee }) : oldWndFocus()
       removeEl_s(frame)
       isEnabled_ || adjustUI(2)
     })
-    const timer = timeout_(onWndFocus.bind(0, 1), options.t)
+    addUIElement(frame, AdjustType.Normal, true)
   }
 ])

@@ -4,7 +4,9 @@ import {
   helpDialogData_, set_helpDialogData_, curWndId_, vomnibarPage_f, IsLimited, vomnibarBgOptions_, setTeeTask_, blank_
 } from "./store"
 import * as BgUtils_ from "./utils"
-import { Tabs_, downloadFile, getTabUrl, runtimeError_, selectTab, R_, Q_, browser_, import2 } from "./browser"
+import {
+  Tabs_, downloadFile, getTabUrl, runtimeError_, selectTab, R_, Q_, browser_, import2, getCurWnd, makeWindow, Windows_
+} from "./browser"
 import { convertToUrl_, createSearchUrl_, normalizeSVG_ } from "./normalize_urls"
 import { showHUD, complainLimits, ensureInnerCSS, getParentFrame, getPortUrl_ } from "./ports"
 import { getFindCSS_cr_ } from "./ui_css"
@@ -18,27 +20,43 @@ import { parseReuse, newTabIndex, openUrlWithActions } from "./open_urls"
 import { FindModeHistory_ } from "./tools"
 import C = kBgCmd
 
-let isSecondPasting: BOOL = 0
-
 set_runOnTee_(As_<typeof runOnTee_>((task, serializable, data): Promise<boolean | string> => {
   const frames = framesForTab_.get(curTabId_) || cPort && framesForTab_.get(cPort.s.tabId_)
-  const port = frames ? frames.cur_ : cPort
-  const deferred = BgUtils_.deferPromise_<boolean | string>()
-  if (!port) { deferred.resolve_(false); return deferred.promise_ }
+  const port = frames ? frames.cur_ : cPort as typeof cPort | null
   if (Build.MV3 && task === kTeeTask.Paste && OnChrome && !serializable) {
     return navigator.permissions!.query({ name: "clipboard-read" }).catch(blank_)
         .then((res) => !!res && res.state !== "denied" && runOnTee_(kTeeTask.Paste, true, null))
   }
-  {
-    const id = setTimeout((): void => {
+  const id = setTimeout((): void => {
       const latest = setTeeTask_(id, null)
-      latest && latest.r!(false)
-    }, 3000)
+    latest && latest.r && latest.r(false)
+  }, 40_000)
+  const deferred = BgUtils_.deferPromise_<boolean | string>()
     setTeeTask_(null, { i: id, t: task, s: serializable, d: data, r: deferred.resolve_ })
     const allow = task === kTeeTask.CopyImage || task === kTeeTask.Copy ? "clipboard-write"
         : Build.MV3 && task === kTeeTask.Paste ? "clipboard-read" : ""
-    const timeout = Build.MV3 && task === kTeeTask.Paste && !isSecondPasting ? (isSecondPasting = 1, 10_000) : 3000
-    portSendFgCmd(port, kFgCmd.callTee, 1, { u: CONST_.TeeFrame_, c: "R TEE UI", a: allow, t: timeout }, 1)
+  if (port) {
+    portSendFgCmd(port, kFgCmd.callTee, 1, { u: CONST_.TeeFrame_, c: "R TEE UI", a: allow, t: 3000 }, 1)
+  } else {
+    let promise = deferred.promise_
+    getCurWnd(false, (curWnd): void => {
+      const lastWndId = curWnd ? curWnd.id : curWndId_
+      makeWindow({ type: "popup", url: CONST_.TeeFrame_, focused: true, incognito: false
+          , left: 0, top: 0, width: 100, height: 32  }, "", (wnd): void => {
+        const teeTask = wnd ? null : setTeeTask_(null, null)
+        if (wnd) {
+          const newWndId = wnd.id
+          void promise.then((): void => {
+            lastWndId !== curWndId_ && Windows_.update(lastWndId, { focused: true }, runtimeError_)
+            Windows_.remove(newWndId, runtimeError_)
+          })
+          promise = null as never
+        } else if (teeTask && teeTask.i === id) {
+          clearTimeout(teeTask.i)
+          teeTask.r && teeTask.r(false)
+        }
+      })
+    })
   }
   return deferred.promise_
 }))
@@ -315,7 +333,10 @@ export const captureTab = (tabs: [Tab] | undefined, resolve: OnCmdResolved): voi
   png = !!get_cOptions<C.captureTab>().png, richText = !!get_cOptions<C.captureTab>().richText
   let jpeg = png ? 0 : Math.min(Math.max(get_cOptions<C.captureTab, true>().jpeg! | 0, 0), 100)
   const cb = (url?: string): void => {
-    if (!url) { resolve(0); return runtimeError_() }
+    if (!url) {
+      cPort && showHUD("Can not capture " + (isExt ? "injected extensions" : "this tab"))
+      resolve(0); return runtimeError_()
+    }
     const actions = (show ? kTeeTask.ShowImage : 0) | (download ? kTeeTask.Download : 0)
         | (copy ? kTeeTask.Copy : 0)
     const doShow = (url: string): void => {
@@ -326,11 +347,11 @@ export const captureTab = (tabs: [Tab] | undefined, resolve: OnCmdResolved): voi
       return
     }
     handleImageUrl(url, null, actions, copy ? (ok): void => {
-      copy && showHUD(trans_(ok ? "imgCopied" : "failCopyingImg", [jpeg ? "JPEG" : "PNG"]))
+      showHUD(trans_(ok ? "imgCopied" : "failCopyingImg", [ok === 1 ? "HTML" : jpeg ? "JPEG" : "PNG"]))
       resolve(ok)
     } : resolve, title, ((richText || "") + "").includes("name") ? title : "", doShow)
   }
-  const tab = tabs && tabs[0]
+  const tab = tabs && tabs[0], isExt = !!tab && tab.url.startsWith(location.protocol)
   const tabId = tab ? tab.id : curTabId_, wndId = tab ? tab.windowId : curWndId_
   let title = tab ? tab.title : "Tab" + tabId
   title = get_cOptions<C.captureTab>().name === "title" ? title

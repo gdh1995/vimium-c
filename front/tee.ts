@@ -10,7 +10,7 @@
   const browser_ = useBrowser ? (browser as typeof chrome) : chrome
   const runtime = browser_.runtime
   const destroy = (): void => {
-    ; (parent as Window).focus()
+    window !== top && (parent as Window).focus()
     window.closed || window.close()
     port = null
   }

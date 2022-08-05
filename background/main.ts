@@ -1,14 +1,14 @@
 import {
   framesForTab_, framesForOmni_, OnChrome, CurCVer_, OnEdge, OnFirefox, os_, curTabId_, bgC_,
   set_visualWordsRe_, bgIniting_, Completion_, CONST_, keyFSM_, reqH_, set_bgIniting_, set_hasGroupPermission_ff_,
-  onInit_, set_onInit_, IsLimited
+  onInit_, set_onInit_, IsLimited, set_cPort
 } from "./store"
 import * as BgUtils_ from "./utils"
 import { runtimeError_, tabsGet, Tabs_, browser_, watchPermissions_} from "./browser"
 import "./normalize_urls"
 import "./parse_urls"
 import * as settings_ from "./settings"
-import { OnConnect, isExtIdAllowed } from "./ports"
+import { OnConnect, isExtIdAllowed, showHUD } from "./ports"
 import "./exclusions"
 import "./ui_css"
 import { shortcutRegistry_, visualKeys_ } from "./key_mappings"
@@ -29,6 +29,8 @@ const executeShortcutEntry = (cmd: StandardShortcutNames | kShortcutAliases): vo
       map.set(cmd, null)
       console.log("Shortcut %o has not been configured.", cmd)
     }
+    ref && set_cPort(ref.cur_)
+    showHUD(`Shortcut "${cmd}" has not been configured.`)
   } else if (ref == null || (ref.flags_ & Frames.Flags.userActed) || curTabId_ < 0) {
     executeShortcut(cmd, ref)
   } else {
