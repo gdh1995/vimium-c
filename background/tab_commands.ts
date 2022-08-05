@@ -53,7 +53,7 @@ export const copyWindowInfo = (resolve: OnCmdResolved): void | kBgCmd.copyWindow
   const opts2: ParsedOpenPageUrlOptions = { d: decoded !== false, s: sed, k: keyword }
   if (type === "frame" && cPort && !rawFormat) {
     let p: Promise<"tab" | void> | "tab" | void | 1
-    if (cPort.s.flags_ & Frames.Flags.OtherExtension) {
+    if (cPort.s.flags_ & Frames.Flags.otherExtension) {
       cPort.postMessage({
         N: kBgReq.url, H: kFgReq.copy, o: opts2
       } as Req.bg<kBgReq.url> & FgReq[kFgReq.copy])

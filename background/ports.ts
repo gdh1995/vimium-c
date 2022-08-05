@@ -59,12 +59,12 @@ export const OnConnect = (port: Frames.Port, type: PortType): void => {
   let tabId = sender.tabId_
   const ref = tabId >= 0 ? framesForTab_.get(tabId)
       : ((tabId = (sender as Writable<Frames.Sender>).tabId_ = getNextFakeTabId()), undefined)
-  const lock = ref !== undefined ? ref.lock_ : null
+  const isNewFrameInSameTab = (type & (PortType.isTop | PortType.reconnect)) !== PortType.isTop
   let status: Frames.ValidStatus
   let passKeys: null | string, flags: BgReq[kBgReq.reset]["f"]
-  if (lock !== null) {
-    passKeys = lock.passKeys_
-    status = lock.status_
+  if (ref !== undefined && ref.lock_ !== null && isNewFrameInSameTab) {
+    passKeys = ref.lock_.passKeys_
+    status = ref.lock_.status_
     flags = status === Frames.Status.disabled ? Frames.Flags.lockedAndDisabled : Frames.Flags.locked
   } else {
     passKeys = exclusionListening_ ? getExcluded_(url, sender) : null
@@ -72,11 +72,11 @@ export const OnConnect = (port: Frames.Port, type: PortType): void => {
     flags = Frames.Flags.blank
   }
   sender.status_ = status
-  if (ref !== undefined) {
+  if (ref !== undefined && isNewFrameInSameTab) {
     flags |= ref.flags_ & Frames.Flags.userActed
     if (type & PortType.otherExtension) {
-      flags |= Frames.Flags.OtherExtension
-      ref.flags_ |= Frames.Flags.OtherExtension
+      flags |= Frames.Flags.otherExtension
+      ref.flags_ |= Frames.Flags.otherExtension
     }
     sender.flags_ = flags
   }
@@ -95,7 +95,10 @@ export const OnConnect = (port: Frames.Port, type: PortType): void => {
   if (!OnChrome) { (port as Frames.BrowserPort).sender.tab = null as never }
   port.onDisconnect.addListener(/*#__NOINLINE__*/ onDisconnect)
   port.onMessage.addListener(/*#__NOINLINE__*/ onMessage)
-  if (ref !== undefined) {
+  if (OnChrome && Build.MinCVer < BrowserVer.MinWithFrameId && CurCVer_ < BrowserVer.MinWithFrameId) {
+    (sender as Writable<Frames.Sender>).frameId_ = (type & PortType.isTop) ? 0 : ((Math.random() * 9999997) | 0) + 2
+  }
+  if (ref !== undefined && isNewFrameInSameTab) {
     if (type & PortType.hasFocus) {
       if (needIcon_ && ref.cur_.s.status_ !== status) {
         setIcon_(tabId, status)
@@ -112,9 +115,9 @@ export const OnConnect = (port: Frames.Port, type: PortType): void => {
       lock_: null, flags_: Frames.Flags.Default
     })
     status !== Frames.Status.enabled && needIcon_ && setIcon_(tabId, status)
-  }
-  if (OnChrome && Build.MinCVer < BrowserVer.MinWithFrameId && CurCVer_ < BrowserVer.MinWithFrameId) {
-    (sender as Writable<Frames.Sender>).frameId_ = (type & PortType.isTop) ? 0 : ((Math.random() * 9999997) | 0) + 2
+    if (ref !== undefined) {
+      /*#__NOINLINE__*/ revokeOldPorts(ref.ports_) // those in a new page will auto re-connect
+    }
   }
 }
 
@@ -214,6 +217,16 @@ const formatPortSender = (port: Port): Frames.Sender => {
     incognito_: tab != null ? tab.incognito : false,
     tabId_: tab != null ? tab.id : -3,
     url_: OnEdge ? sender.url || tab != null && tab.url || "" : sender.url!
+  }
+}
+
+const revokeOldPorts = (ports_: Frames.Port[]) => {
+  for (const port of ports_) {
+    if (port.s.frameId_) {
+      try {
+        port.disconnect()
+      } catch {}
+    }
   }
 }
 

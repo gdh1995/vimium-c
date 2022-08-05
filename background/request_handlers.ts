@@ -162,7 +162,7 @@ set_reqH_([
   /** kFgReq.openUrl: */ _AsReqH<kFgReq.openUrl>(openUrlReq),
   /** kFgReq.onFrameFocused: */ (_0: FgReq[kFgReq.onFrameFocused], port: Port): void => {
     if (OnFirefox) {
-      if (port.s.flags_ & Frames.Flags.OtherExtension) {
+      if (port.s.flags_ & Frames.Flags.otherExtension) {
         port.postMessage({ N: kBgReq.injectorRun, t: InjectorTask.reportLiving })
       }
     }

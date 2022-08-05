@@ -162,6 +162,11 @@ set_bgC_([
       showHUD(trans_(msg, [keyReprStr, msgArg2]))
     } else {
       value = settings_.updatePayload_(key2, value) // eslint-disable-line @typescript-eslint/no-unsafe-argument
+      if (key2 === "c" || key2 === "n") {
+        let str2 = ""
+        for (const ch of (value as string).replace(<RegExpG> /\s/g, "")) { str2.includes(ch) || (str2 += ch) }
+        value = str2
+      }
       const frames = framesForTab_.get(cPort.s.tabId_)!, cur = frames.cur_
       for (const port of frames.ports_) {
         let isCur = port === cur
