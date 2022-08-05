@@ -4,7 +4,7 @@ import {
 } from "../lib/utils"
 import {
   createElement_, set_createElement_, OnDocLoaded_, runJS_, rAF_, removeEl_s, attr_s, setOrRemoveAttr_s, dispatchEvent_,
-  parentNode_unsafe_s, onReadyState_
+  parentNode_unsafe_s, onReadyState_, getEventPath
 } from "../lib/dom_utils"
 import { HookAction, hookOnWnd, safeDestroy, setupBackupTimer_cr } from "./port"
 import { coreHints, doesWantToReloadLinkHints, hintOptions, reinitLinkHintsIn } from "./link_hints"
@@ -102,8 +102,8 @@ export const main_not_ff = (Build.BTypes & ~BrowserType.Firefox ? (): void => {
     target = detail ? null : isSafe ? (event as DelegateEventCls["prototype"]).relatedTarget as Element | null
         : (!OnEdge
             && (!OnChrome || Build.MinCVer >= BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow)
-            ? event.path![0] as Element
-            : (path = event.path) && path.length > 1 ? path[0] as Element : null)
+            ? getEventPath(event)![0] as Element
+            : (path = getEventPath(event)) && path.length > 1 ? path[0] as Element : null)
     Stop_(event)
     if (!box) { return }
     let tickDoc = 0, tickBox = 0
@@ -518,7 +518,8 @@ const executeCmd = (eventOrDestroy?: Event): void => {
   detail && call(StopProp, eventOrDestroy!);
   if (cmd < kContentCmd._minSuppressClickable) {
     if (cmd && root) {
-      cmd > kContentCmd.ReportKnownAtOnce_not_ff - 1 ? next(clearTimeout1(timer))
+      cmd > kContentCmd.ReportKnownAtOnce_not_ff - 1
+          ? next(clearTimeout1(timer)) // lgtm [js/superfluous-trailing-arguments]
           : /*#__NOINLINE__*/ collectOnclickElements(cmd)
     }
     return;

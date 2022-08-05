@@ -28,7 +28,7 @@ import {
 } from "../lib/utils"
 import {
   rAF_, scrollingEl_, SafeEl_not_ff_, docEl_unsafe_, NONE, frameElement_, OnDocLoaded_, GetParent_unsafe_, isNode_,
-  querySelector_unsafe_, getComputedStyle_, notSafe_not_ff_, HDN, isRawStyleVisible, fullscreenEl_unsafe_,
+  querySelector_unsafe_, getComputedStyle_, notSafe_not_ff_, HDN, isRawStyleVisible, fullscreenEl_unsafe_, getEventPath,
   doesSupportDialog, attr_s, getSelection_, isIFrameElement, derefInDoc_, isHTML_, IsInDOM_, getRootNode_mounted,
   getEditableType_, dispatchEvent_, wrapEventInit_, findSelectorByHost
 } from "../lib/dom_utils"
@@ -646,9 +646,7 @@ export const suppressScroll = (timedOut?: number): void => {
 
 export const onActivate = (event: Event): void => {
   if (!OnChrome || Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted ? event.isTrusted : event.isTrusted !== false) {
-    const path = !OnEdge && (!OnChrome
-          || Build.MinCVer >= BrowserVer.Min$Event$$composedPath$ExistAndIncludeWindowAndElementsIfListenedOnWindow)
-        ? event.composedPath!() : event.path,
+    const path = getEventPath(event),
     el = !OnEdge && (!OnChrome
               || Build.MinCVer >= BrowserVer.MinOnFocus$Event$$Path$IncludeOuterElementsIfTargetInClosedShadowDOM
               || Build.MinCVer >= BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow)

@@ -195,6 +195,13 @@ declare module chrome.permissions {
 interface Element {
   after? (...nodes: (Element | Text | string)[]): void
   before? (...nodes: (Element | Text | string)[]): void
+  role?: string | null
+  ariaLabel?: string | null
+  ariaSelected?: boolean | null
+  ariaMultiLine?: boolean | null
+  ariaDisabled?: boolean | string | null
+  ariaHasPopup?: string | null
+  ariaHidden?: string | null
 }
 interface HTMLElement {
   focus (options?: { preventScroll?: boolean }): void

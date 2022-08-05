@@ -311,6 +311,13 @@ export const getAccessibleSelectedNode = (sel: Selection, focused?: 1): Node | n
   return node
 }
 
+export const getEventPath = (event: Event) => {
+  return !OnEdge && (!OnChrome
+        || Build.MinCVer >= BrowserVer.Min$Event$$composedPath$ExistAndIncludeWindowAndElementsIfListenedOnWindow
+        || chromeVer_ > BrowserVer.Min$Event$$composedPath$ExistAndIncludeWindowAndElementsIfListenedOnWindow - 1
+      ) ? event.composedPath!() : event.path
+}
+
 //#endregion
 
 //#region computation section
@@ -389,7 +396,10 @@ export const isStyleVisible_ = (element: Element): boolean => isRawStyleVisible(
 export const isRawStyleVisible = (style: CSSStyleDeclaration): boolean => style.visibility === "visible"
 
 export const isAriaFalse_ = (element: SafeElement, ariaType: kAria): boolean => {
-    let s = element.getAttribute(AriaArray[ariaType])
+    let s = !(Build.BTypes & ~BrowserType.Safari) || !(Build.BTypes & ~(BrowserType.Chrome | BrowserType.Safari))
+        && Build.MinCVer >= BrowserVer.MinCorrectAriaSelected ? ariaType > kAria.disabled ? element.ariaHasPopup
+        : ariaType < kAria.disabled ? element.ariaHidden : element.ariaDisabled as string | null
+        : element.getAttribute(AriaArray[ariaType])
     return s === null || (!!s && Lower(s) === "false") || !!(evenHidden_ & (kHidden.BASE_ARIA << ariaType))
 }
 

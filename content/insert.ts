@@ -11,6 +11,7 @@ import { set_isCmdTriggered, resetAnyClickHandler, onPassKey } from "./key_handl
 import {
   activeEl_unsafe_, getEditableType_, GetShadowRoot_, getSelection_, frameElement_, deepActiveEl_unsafe_, blur_unsafe,
   SafeEl_not_ff_, MDW, fullscreenEl_unsafe_, removeEl_s, isNode_, BU, docHasFocus_, getRootNode_mounted, testMatch,
+  getEventPath
 } from "../lib/dom_utils"
 import { pushHandler_, removeHandler_, prevent_, isEscape_ } from "../lib/keyboard_utils"
 import { InputHintItem } from "./link_hints"
@@ -227,9 +228,7 @@ export const onFocus = (event: Event | FocusEvent): void => {
   if (target === ui_box) { Stop_(event); return }
   const sr = GetShadowRoot_(target as Element);
   if (sr) {
-    const path = !OnEdge && (!OnChrome
-          || Build.MinCVer >= BrowserVer.Min$Event$$composedPath$ExistAndIncludeWindowAndElementsIfListenedOnWindow)
-        ? event.composedPath!() : event.path
+    const path = getEventPath(event)
     let topOfPath: EventTarget | undefined
     /**
      * isNormalHost is true if one of:
@@ -278,9 +277,7 @@ export const onBlur = (event: Event | FocusEvent): void => {
   if (OnFirefox && target === doc) { return; }
   const sr = GetShadowRoot_(target as Element)
   if (sr && target !== ui_box) {
-  const path = !OnEdge && (!OnChrome
-          || Build.MinCVer >= BrowserVer.Min$Event$$composedPath$ExistAndIncludeWindowAndElementsIfListenedOnWindow)
-      ? event.composedPath!() : event.path
+  const path = getEventPath(event)
   const same = !OnEdge && (!OnChrome
           || Build.MinCVer >= BrowserVer.Min$Event$$composedPath$ExistAndIncludeWindowAndElementsIfListenedOnWindow
           || Build.MinCVer >= BrowserVer.MinOnFocus$Event$$Path$IncludeOuterElementsIfTargetInClosedShadowDOM)

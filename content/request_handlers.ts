@@ -264,8 +264,8 @@ set_hookOnWnd(((action: HookAction): void => {
   let f = action ? removeEventListener : addEventListener, t = true
   if (OnChrome && Build.MinCVer < BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow
         && (action || chromeVer_ < BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow)) {
-      f.call(doc, DAC, onActivate, t)
-      f.call(doc, CLK, anyClickHandler, t)
+    f.call(doc, CLK, anyClickHandler, t)
+    f.call(doc, DAC, onActivate, t)
     if (action === HookAction.SuppressListenersOnDocument) { return; }
   }
   f("keydown", onKeydown, t)

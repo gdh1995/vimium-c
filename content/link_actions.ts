@@ -1,6 +1,7 @@
 import {
-  safer, fgCache, isImageUrl, isJSUrl, set_keydownEvents_, keydownEvents_, doc, chromeVer_, os_,
-  createRegExp, isTY, max_, min_, OnFirefox, OnChrome, safeCall, locHref, parseOpenPageUrlOptions, VTr, loc_, getTime, timeout_, clearTimeout_, promiseDefer_, OnEdge,
+  safer, fgCache, isImageUrl, isJSUrl, set_keydownEvents_, keydownEvents_, doc, chromeVer_, os_, getTime, timeout_,
+  createRegExp, isTY, max_, min_, OnFirefox, OnChrome, safeCall, locHref, parseOpenPageUrlOptions, VTr, loc_, OnSafari,
+  clearTimeout_, promiseDefer_, OnEdge
 } from "../lib/utils"
 import { getVisibleClientRect_, center_, view_, selRange_ } from "../lib/rect"
 import {
@@ -336,7 +337,9 @@ const copyText = (): void => {
                     && htmlTag_<1>(childEl) && childEl.innerText.trim())
             || (str = extractTextContent()) && str.replace(<RegExpG> /\s+/g, " ")
       }
-      str = str && str.trim() || tag && (clickEl as SafeHTMLElement).title.trim() || (attr_s(clickEl, ALA) || "").trim()
+      str = str && str.trim() || tag && (clickEl as SafeHTMLElement).title.trim()
+          || ((OnSafari || OnChrome && Build.MinCVer >= BrowserVer.MinEnsuredAriaProperties
+                ? clickEl.ariaLabel : attr_s(clickEl, ALA)) || "").trim()
     }
   mode1_ - HintMode.SEARCH_TEXT && str && (<RegExpI> /^mailto:./).test(str) && (str = str.slice(7).trim())
   if (mode1_ > HintMode.min_edit - 1 && mode1_ < HintMode.max_edit + 1) {

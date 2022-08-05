@@ -1,5 +1,6 @@
 import {
-  CurCVer_, OnChrome, OnFirefox, $, $$, nextTick_, post_, enableNextTick_, kReadyInfo, toggleReduceMotion, OnEdge, CurFFVer_
+  CurCVer_, OnChrome, OnFirefox, $, $$, nextTick_, post_, enableNextTick_, kReadyInfo, toggleReduceMotion, OnEdge,
+  CurFFVer_, OnSafari
 } from "./async_bg"
 import {
   bgSettings_, Option_, AllowedOptions, Checker, PossibleOptionNames, ExclusionRulesOption_, oTrans_,
@@ -239,6 +240,7 @@ export class BooleanOption_<T extends keyof AllowedOptions> extends Option_<T> {
     el.disabled = disabled
     const text = el.nextElementSibling as HTMLElement
     text.tabIndex = disabled ? -1 : 0
+    OnSafari || OnChrome && Build.MinCVer >= BrowserVer.MinEnsuredAriaProperties ? text.ariaDisabled = disabled || null :
     disabled ? text.setAttribute("aria-disabled", "true") : text.removeAttribute("aria-disabled")
   }
 }

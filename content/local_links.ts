@@ -136,7 +136,9 @@ const getClickable = (hints: Hint[], element: SafeHTMLElement): void => {
   if (isClickable === null) {
     type = (s = element.contentEditable) !== "inherit" && s !== "false" ? ClickType.edit
       : (OnFirefox ? element.onclick || element.onmousedown : element.getAttribute("onclick"))
-        || (s = element.getAttribute("role")) && clickableRoles_.test(s) && (
+        || (s = !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinEnsured$Element$$role
+              ? element.role as Exclude<Element["role"], undefined> : element.getAttribute("role"))
+            && clickableRoles_.test(s) && (
           !(s.startsWith("menu") && queryChildByTag_(element, "ul"))
           || isNotReplacedBy(queryChildByTag_(element, "div"), hints)
         )
@@ -158,7 +160,9 @@ const getClickable = (hints: Hint[], element: SafeHTMLElement): void => {
             && (!(anotherEl = element.parentElement)
                 || (type ? (s = htmlTag_(anotherEl), !s.includes("button") && s !== "a")
                     : clickable_.has(anotherEl) && hasTag_("ul", anotherEl) && !s.includes("active")))
-            || element.hasAttribute("aria-selected")
+            || (!(Build.BTypes & ~BrowserType.Safari) || !(Build.BTypes & ~(BrowserType.Chrome | BrowserType.Safari))
+                && Build.MinCVer >= BrowserVer.MinCorrectAriaSelected ? element.ariaSelected !== null
+                : element.hasAttribute("aria-selected"))
             || element.getAttribute("data-tab") ? ClickType.classname : ClickType.Default);
     isClickable = type > ClickType.Default
   }
@@ -335,13 +339,14 @@ const addChildTrees = (parts: HintSources, allNodes: NodeListOf<SafeElement>): H
 
 const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | SafeElementWithoutFormat): void => {
   const tabIndex = (element as ElementToHTMLOrForeign).tabIndex
-  let arr: Rect | null | undefined, s: string | null, par: Element | null, hasTabIdx: boolean
+  let arr: Rect | null | undefined, s: string | null | undefined, par: Element | null, hasTabIdx: boolean
   let type: ClickType.Default | AllowedClickTypeForNonHTML = clickable_.has(element)
         || extraClickable_ && extraClickable_.has(element)
         || (hasTabIdx = tabIndex !== void 0) && (OnFirefox
             ? (element as NonHTMLButFormattedElement).onclick ||(element as NonHTMLButFormattedElement).onmousedown
             : attr_s(element, "onclick") || attr_s(element, "onmousedown"))
-        || (s = attr_s(element, "role")) && clickableRoles_.test(s)
+        || (s = OnChrome && Build.MinCVer >= BrowserVer.MinEnsured$Element$$role
+              ? element.role : attr_s(element, "role")) && clickableRoles_.test(s)
         || ngEnabled && attr_s(element, "ng-click")
         || jsaEnabled_ && (s = attr_s(element, "jsaction")) && checkJSAction(s)
       ? ClickType.attrListener

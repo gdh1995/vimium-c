@@ -520,6 +520,7 @@ declare const enum BrowserVer {
   FlagOutOfBlinkCorsMayCauseBug = 81,
   // #freeze-user-agent: https://www.chromestatus.com/features/5704553745874944
   FlagFreezeUserAgentGiveFakeUAMajor = 81, // FakeUAMajorWhenFreezeUserAgent
+  MinEnsuredAriaProperties = 81, // even if LEGACY; since 68 if EXPERIMENTAL; .ariaSelected is wrong before C84
   /** @see #Min$CrossOriginIsolation$Flag */
   MinEnsuredCrossOriginEmbedderPolicy = 83, // https://www.chromestatus.com/features/5642721685405696
   // require special CSP; not applied to extension contexts; seems to begin from C73 if EXPERIMENTAL
@@ -537,6 +538,7 @@ declare const enum BrowserVer {
   // on C84 options must be `new IsInputPendingOptions()`
   // before C84 it logs a warning of "requires site-per-process" on Vimium C Options page
   MinMaybeUsableNavigator$scheduling$$isInputPending = 85, // if EXPERIMENTAL
+  MinCorrectAriaSelected = 84, // even if EXPERIMENTAL or LEGACY; aria-expanded is fixed in C73 if EXPERIMENTAL
   MinClipboardWriteHTML = 86,
   MinFileNameIsSelectableOnFilesPage = 86, // even if EXPERIMENTAL or LEGACY
   // if EXPERIMENTAL, since 79 there's also `navigator.scheduling.isFramePending()`
@@ -564,9 +566,11 @@ declare const enum BrowserVer {
   Min$structuredClone = 98, // even if EXPERIMENTAL or LEGACY
   MinEnsured$input$$showPicker = 99, // even if LEGACY; since 97 if EXPERIMENTAL
   MinScrollbarIncreasePadding = 99, // even if LEGACY; since 97 if EXPERIMENTAL
+  Min$Event$$path$Deprecated = 101, // even if EXPERIMENTAL or LEGACY
   MinEnsured$HTMLElement$$inert = 101, // even if EXPERIMENTAL
   MinColorSchemeNormalMeansSystemDark = 102, // even if EXPERIMENTAL
   Min$AbortSignal$$timeout = 103, // even if LEGACY; since 100 if EXPERIMENTAL
+  MinEnsured$Element$$role = 103, // even if LEGACY; since 68 if EXPERIMENTAL
   MinNo$TimerType$$Fake = 999,
   assumedVer = 998,
 }

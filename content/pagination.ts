@@ -1,5 +1,5 @@
 import {
-  clickable_, vApi, isAlive_, safer, timeout_, escapeAllForRe, tryCreateRegExp, VTr, isTY, Lower, chromeVer_,
+  clickable_, vApi, isAlive_, safer, timeout_, escapeAllForRe, tryCreateRegExp, VTr, isTY, Lower, chromeVer_, OnSafari,
   OnChrome, OnFirefox, OnEdge, evenHidden_, doc, firefoxVer_
 } from "../lib/utils"
 import {
@@ -28,7 +28,7 @@ export const filterTextToGoNext: VApiTy["g"] = (candidates, names, options, maxL
   const fromMatchSelector = !!options.match
   const excOnHost = findSelectorByHost(kTip.excludeWhenGoNext)
   const links = isAlive_ ? traverse(kSafeAllSelector, options, (hints: Hint0[], element: SafeElement): void => {
-    let s: string | null
+    let s: string | null | undefined
     if (isIFrameElement(element)) {
       if (OnFirefox && Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1
           || OnChrome && Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1
@@ -42,7 +42,8 @@ export const filterTextToGoNext: VApiTy["g"] = (candidates, names, options, maxL
             : s === "input" && uneditableInputs_[getInputType(element as HTMLInputElement)] === 2))
         || clickable_.has(element) || extraClickable_ && extraClickable_.has(element)
         || (OnFirefox ? (element as HTMLElement | SVGElement).onclick : attr_s(element, "onclick"))
-        || ((s = attr_s(element, "role")) ? (<RegExpI> /^(button|link)$/i).test(s)
+        || ((s = OnChrome && Build.MinCVer >= BrowserVer.MinEnsured$Element$$role
+                ? element.role : attr_s(element, "role")) ? (<RegExpI> /^(button|link)$/i).test(s)
           : ngEnabled && attr_s(element, "ng-click"))) {
       if ((isAriaFalse_(element, kAria.disabled) && isAriaFalse_(element, kAria.hasPopup) || fromMatchSelector)
           && isInteractiveInPage(element)) {
@@ -72,21 +73,27 @@ export const filterTextToGoNext: VApiTy["g"] = (candidates, names, options, maxL
   for (; 0 <= --index; ) {
     const link = links[index][0]
     if ((s = "lang" in link ? (s = link.innerText, s.length > 2 && hasTag_("a", link) && link.childElementCount === 1
-              && (ch = attr_s(link, ALA))
+              && (ch = !(Build.BTypes & ~BrowserType.Safari)
+                    || !(Build.BTypes & ~(BrowserType.Chrome | BrowserType.Safari))
+                        && Build.MinCVer >= BrowserVer.MinEnsuredAriaProperties ? link.ariaLabel : attr_s(link, ALA))
               && (link.firstElementChild as Element as TypeToPick<Element, HTMLElement, "innerText">).innerText === s
               ? ch : s)
             : link.textContent.trim()).length > totalMax
         || contains_s(link, links[index + 1][0]) && s.length > 2) { continue }
     if (s = s.length > 2 ? s
           : !s && (ch = (link as TypeToPick<Element, HTMLInputElement, "value">).value) && isTY(ch) && ch
-            || attr_s(link, ALA) || (link as TypeToPick<Element, HTMLElement, "title">).title || s) {
+            || (OnSafari || OnChrome && Build.MinCVer >= BrowserVer.MinEnsuredAriaProperties ? link.ariaLabel
+                : attr_s(link, ALA))
+            || (link as TypeToPick<Element, HTMLElement, "title">).title || s) {
       if (s.length > totalMax) { continue; }
       s = Lower(s)
       for (i = 0; i < names.length; i++) {
         if (s.length < lenLimits[i] && s.includes(names[i])) {
           if (!s.includes(refusedStr) && (len = (s = s.trim()).split(wsRe).length) <= maxLen
               && (!excOnHost || !testMatch(excOnHost, [link]))
-              && (s !== "back" ? s !== "more" || !attr_s(link, AriaArray[kAria.hasPopup])
+              && (s !== "back" ? s !== "more"
+                    || !(OnSafari || OnChrome && Build.MinCVer >= BrowserVer.MinEnsuredAriaProperties
+                          ? link.ariaHasPopup : attr_s(link, AriaArray[kAria.hasPopup]))
                   : OnChrome && Build.MinCVer < BrowserVer.MinEnsured$Element$$Closest
                     && chromeVer_ < BrowserVer.MinEnsured$Element$$Closest ? hasTag_("a", link)
                   : link.closest!("a"))

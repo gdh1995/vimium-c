@@ -1,7 +1,7 @@
 import {
   setupEventListener, VTr, keydownEvents_, isAlive_, suppressCommonEvents, onWndFocus, timeout_, safer, fgCache,
   doc, getTime, chromeVer_, deref_, escapeAllForRe, tryCreateRegExp, vApi, callFunc, clearTimeout_, Stop_, isTY, Lower,
-  abs_, max_, min_, OnFirefox, OnChrome, OnEdge, firefoxVer_, os_, reflectApply_not_cr
+  abs_, max_, min_, OnFirefox, OnChrome, OnEdge, firefoxVer_, os_, reflectApply_not_cr, OnSafari
 } from "../lib/utils"
 import {
   replaceOrSuppressMost_, removeHandler_, prevent_, getMappedKey, keybody_, isEscape_, keyNames_, DEL, BSP, ENTER,
@@ -465,7 +465,9 @@ const onLoad2 = (): void => {
     } else {
       appendNode_s(docEl, styleInHUD)
     }
+    OnChrome && Build.MinCVer >= BrowserVer.MinEnsured$Element$$role ? body.role = "textbox" :
     setOrRemoveAttr_s(body, "role", "textbox")
+    OnSafari || OnChrome && Build.MinCVer >= BrowserVer.MinEnsuredAriaProperties ? body.ariaMultiLine = true :
     setOrRemoveAttr_s(body, "aria-multiline", "true")
     if (AlwaysInShadow
         || OnFirefox && Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1
