@@ -209,7 +209,11 @@ key: https://c.com/$s/space=\s\ space_end
           </td>
           <td class="help"><div class="help-inner">
             <div data-i="103_3">Check to enable some features on this computer.</div>
-            <span data-i="103_4">Note: these may not be synchronized by your browser.</span>
+            <div id="navPermissionTip" style="display: none;"><span data-i="103_4">Some permissions
+              can only be granted or revoked on</span>
+              <a href="chrome://settings/content">chrome://settings/content</a><span
+                data-i="103_5"> manually.</span></div>
+            <div data-i="103_6">Note: these may not be synchronized by your browser.</div>
           </div></td>
         </tr>
       </tbody>
@@ -278,6 +282,21 @@ key: https://c.com/$s/space=\s\ space_end
               Right-Shift (left if partially selected) is "</span>&lt;s-modifier&gt;<span data-i="53_4">".</span>
           </div></td>
         </tr>
+        <tr id="testKeyInputBox">
+          <td class="caption"></td>
+          <td>
+            <label class="booleanOption" tabindex="-1" aria-hidden="true">
+              <input id="testKeyInInput" type="checkbox" tabindex="-1" aria-hidden="true" />
+              <span data-i="53_5" class="checkboxHint" role="checkbox" tabindex="0" aria-hidden="false"
+                >Test a key</span>
+            </label>
+            <span id="testKeyInput" tabindex="0" autocomplete="off" /></span>
+          </td>
+          <td class="help"><div class="help-inner line-help" data-i="53_6">
+            Here are key names directly received from this browser,
+            so not affected by exclusion rules or "mapKey"s.
+          </div></td>
+        </tr>
       </tbody>
       <tbody>
         <tr>
@@ -317,10 +336,10 @@ key: https://c.com/$s/space=\s\ space_end
             <span data-i="44_3">
             In link-hint mode, this option lets you select a link by typing its text.
             </span><a href="" target="_blank" rel="noopener noreferrer" data-i="help"
-                data-href="vimium://home/wiki/Using-Link-Hints">Wiki</a><span data-i="period">.</span>
+                data-href="vimium://home/wiki/Using-Link-Hints">Online help</a><span data-i="period">.</span>
           </div></td>
         </tr>
-        <tr id="waitForEnterBox" style="display: none;">
+        <tr id="waitForEnterBox">
           <td class="caption"></td>
           <td>
             <label class="booleanOption" tabindex="-1" aria-hidden="true">
@@ -670,7 +689,7 @@ so only the default inner version will be used on them"
             </div>
             <span data-i="106">Format: </span><kbd>[&lt;<span
                 data-i="107">delay</span>&gt;, &lt;<span data-i="108">repeat period</span>&gt;]</kbd><span
-                data-i="81"> (unit: ms).</span><br>
+                data-i="108_2"> (unit: ms).</span><br>
             <span data-i="109">Note: this option will never be synchronized.</span>
           </div></td>
         </tr>

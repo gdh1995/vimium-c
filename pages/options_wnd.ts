@@ -277,15 +277,6 @@ let optionsInit1_ = function (): void {
     }, [_element as HTMLAnchorElement,
         $<HTMLAnchorElement>("#shortcutHelper"), $<HTMLAnchorElement>("#newTabAdapter")] as const);
   }
-  (_element as HTMLAnchorElement).onclick = function (event): void {
-    event.preventDefault();
-    if (OnFirefox) {
-      VApi ? VApi.h(kTip.raw, 0, oTrans_("haveToOpenManually"))
-      : alert(oTrans_("haveToOpenManually"))
-    } else {
-      void post_(kPgReq.focusOrLaunch, { u: this.href, p: true })
-    }
-  };
 
   if (OnFirefox || OnChrome) {
     nextTick_((el): void => {
@@ -554,6 +545,17 @@ window.onhashchange = (): void => {
 
 void bgSettings_.preloadCache_().then(optionsInitAll_)
 
+document.addEventListener("click", (event: EventToPrevent): void => {
+  if ((event.target as Element).localName === "a") {
+    event.preventDefault();
+    if (OnFirefox) {
+      VApi ? VApi.h(kTip.raw, 0, oTrans_("haveToOpenManually"))
+      : alert(oTrans_("haveToOpenManually"))
+    } else {
+      void post_(kPgReq.focusOrLaunch, { u: (event.target as HTMLAnchorElement).href, p: true })
+    }
+  }
+})
 document.addEventListener("click", function onClickOnce(): void {
   const api1 = VApi, misc = api1 && api1.y()
   if (!misc || !misc.r) { return; }
@@ -584,3 +586,79 @@ document.addEventListener("click", function onClickOnce(): void {
     }
   })
 }, true);
+
+$("#testKeyInputBox").addEventListener("focus", function KeyTester(_focusEvent: Event): void {
+  const box = _focusEvent.currentTarget as HTMLElement
+  const testKeyInput = $<HTMLElement>("#testKeyInput")
+  const text_ = (newText?: string, moveSel?: 0): string => {
+    const result = newText !== void 0 ? testKeyInput.textContent = newText : testKeyInput.textContent
+    if (newText && moveSel !== 0 && document.activeElement === testKeyInput) {
+      const sel = getSelection(), node = testKeyInput.firstChild as Text
+      sel.setBaseAndExtent(node, newText.length, node, newText.length)
+    }
+    return result
+  }
+  const blockEvent = ((event: EventToPrevent) => { event.preventDefault() }) as (ev: Event) => void
+  let lastKey: KeyboardEvent | undefined, lastPrevented = kKeyCode.None, hasOutline = false
+  let lastKeyLayout: kKeyLayout
+  testKeyInput.onkeydown = (event): void => {
+    hasOutline && (hasOutline = false, testKeyInput.classList.remove("outline"))
+    if (event.keyCode === kKeyCode.ime || event.key === "Process") {
+      text_("")
+      return
+    }
+    if (VApi && !event.repeat) {
+      const eventWrapper: HandlerNS.Event = {c: kChar.INVALID, e: event as KeyboardEventToPrevent,
+          i: event.keyCode, v: ""}
+      const key = VApi.r[3](eventWrapper, kModeId.NO_MAP_KEY), isEsc = key === "esc" || key === "c-["
+      const key2 = VApi.z!.l & kKeyLayout.inCmdIgnoreIfNotASCII
+          ? VApi.r[3](eventWrapper, kModeId.NO_MAP_KEY_EVEN_MAY_IGNORE_LAYOUT) : key
+      const s1 = key.length > 1 ? `<${key}>` : key || "(empty)"
+      const s2 = key2 === key ? "" : key2.length > 1 ? `<${key2}>` : key2 || "(empty)"
+      lastKey = event, lastKeyLayout = VApi.z!.l
+      text_(s2 ? `${s1} / ${s2}` : s1)
+      if (key === "enter" || key === "tab" || key === "s-tab" || isEsc || key === "f12") {
+        (key === "enter" || isEsc) && testKeyInput.blur()
+        return
+      }
+    }
+    lastPrevented = event.keyCode
+    blockEvent(event)
+  }
+  testKeyInput.onkeyup = (event): void => {
+    if ((event as KeyboardEventToPrevent).keyCode === lastPrevented) { blockEvent(event) }
+  }
+  testKeyInput.onfocus = (): void => {
+    if (VApi) {
+      testKeyInput.classList.add("outline")
+      hasOutline = true
+      const text = (testKeyInput.previousElementSibling as HTMLElement).textContent
+      VApi.f(kFgCmd.insertMode, Object.setPrototypeOf<CmdOptions[kFgCmd.insertMode]>(
+          { i: true, r: 0, k: "v-esc", p: true, h: text }, null), 1, 0)
+    }
+  }
+  testKeyInput.onblur = (): void => {
+    if (VApi) {
+      VApi.f(kFgCmd.dispatchEventCmd, Object.setPrototypeOf<CmdOptions[kFgCmd.dispatchEventCmd]>(
+          { type: "keydown", key: "Esc", esc: true }, null), 1, 0)
+    }
+  }
+  testKeyInput.addEventListener("compositionend", (): void => { text_("") })
+  testKeyInput.onpaste = blockEvent
+  testKeyInput.onclick = (): void => { testKeyInput.focus() }
+  const checkboxTestKeyInInput = $<HTMLInputElement>("#testKeyInInput")
+  checkboxTestKeyInInput.onchange = (): void => {
+    checkboxTestKeyInInput.checked ? testKeyInput.contentEditable = "true"
+        : testKeyInput.removeAttribute("contenteditable")
+    testKeyInput.focus()
+  }
+  box.removeEventListener("focus", KeyTester, true)
+  box.addEventListener("blur", (event): void => {
+    const active = hasOutline ? event.relatedTarget as HTMLElement : null
+    if (active ? !box.contains(active) : hasOutline) {
+      hasOutline = false
+      testKeyInput.classList.remove("outline")
+    }
+  }, true)
+  Option_.onFgCacheUpdated_ = () => { if (lastKey && lastKeyLayout !== VApi!.z!.l) { testKeyInput.onkeydown(lastKey) } }
+}, true)

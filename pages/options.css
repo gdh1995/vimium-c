@@ -574,6 +574,33 @@ label:active {
   padding: 0 7px;
   width: 76px;
 }
+#testKeyInput {
+  border-bottom: 0.5px solid gray;
+  border-width: var(--tiny);
+  box-sizing: border-box;
+  display: inline-block;
+  height: 18px;
+  letter-spacing: 0.5px;
+  letter-spacing: var(--tiny);
+  margin-left: 1em;
+  min-width: 104px;
+  outline: none;
+  position: absolute;
+  padding-top: 0.5px;
+  padding-top: var(--tiny);
+  text-align: center;
+}
+#testKeyInput:focus {
+  border-color: var(--input-focus-border-color);
+}
+#testKeyInput:lang(zh) {
+  margin-top: 2px;
+}
+#testKeyInput.outline {
+  border-radius: 2px;
+  padding-top: 0;
+  border-style: solid;
+}
 #footer {
   background: #f3f3f3;
   background: var(--panel-background-color);

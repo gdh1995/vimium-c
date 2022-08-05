@@ -617,13 +617,14 @@ linkHintCharactersOption_.onSave_ = linkHintNumbersOption_.onSave_ = function ()
       ? "Too few characters for LinkHints" : "")
 }
 filterLinkHintsOption_.onSave_ = function (): void {
-  nextTick_((el): void => {
+  nextTick_((): void => {
     const enableFilterLinkHints = filterLinkHintsOption_.readValueFromElement_() // also used during change events
-    el.style.display = linkHintNumbersOption_.element_.style.display = enableFilterLinkHints ? "" : "none"
+    linkHintNumbersOption_.element_.style.display = enableFilterLinkHints ? "" : "none"
     linkHintCharactersOption_.element_.style.display = enableFilterLinkHints ? "none" : ""
+    BooleanOption_.ToggleDisabled_(Option_.all_.waitForEnter.element_, !enableFilterLinkHints)
     void linkHintCharactersOption_.onSave_()
     void linkHintNumbersOption_.onSave_()
-  }, $("#waitForEnterBox"))
+  })
 }
 filterLinkHintsOption_.element_.addEventListener("change", filterLinkHintsOption_.onSave_, true)
 
@@ -659,6 +660,12 @@ keyLayout.populateElement_ = (value: number): void => {
   elMapModifier.indeterminate = !!(value & (kKeyLayout.mapLeftModifiers))
   _lastKeyLayoutValue = value
   onAlwaysIgnoreChange()
+  if (Option_.onFgCacheUpdated_) {
+    void post_(kPgReq.updatePayload, { key: "l", val: value }).then((val2): void => {
+      (VApi!.z! as Generalized<NonNullable<VApiTy["z"]>>).l = val2 != null ? val2 : value
+      Option_.onFgCacheUpdated_ && Option_.onFgCacheUpdated_()
+    })
+  }
 }
 const onAlwaysIgnoreChange = (ev?: Event): void => {
   const always = elAlwaysIgnore.checked
@@ -751,6 +758,17 @@ Option_.all_.passEsc.readValueFromElement_ = function (): string {
 Option_.all_.passEsc.formatValue_ = (value: string): string => value.replace(<RegExpG> /,/g, ", ")
 
 const onBeforeUnload = (): string => {
+  setTimeout((): void => { // wait until the confirmation dialog returning
+    setTimeout((): void => { // ensure the result is neither closing nor reloading
+      for (const i of Object.values(Option_.all_)) {
+        if (i instanceof TextOption_ && i._lastError) { continue }
+        let node = i.element_
+        node = node.localName === "input" && (node as HTMLInputElement).type === "checked"
+            ? node.parentElement as HTMLElement : node
+        node.classList.toggle("highlight", !i.saved_)
+      }
+    }, 300)
+  }, 17)
   return !(Build.BTypes & BrowserType.Chrome && Build.MinCVer
     < BrowserVer.MinNoCustomMessageOnBeforeUnload) ? oTrans_("beforeUnload") : "Not saved yet"
 }
