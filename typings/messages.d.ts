@@ -203,21 +203,22 @@ interface BgVomnibarSpecialReq {
   [kBgReq.omni_updateOptions]: {
     /** delta */ d: Partial<SelectValueType<SettingsNS.AllVomnibarItems>>;
   };
-  [kBgReq.omni_runTeeTask]: Pick<BaseTeeTask, "t" | "s">
+  [kBgReq.omni_runTeeTask]: Pick<BaseTeeTask, "i" | "t" | "s">
 }
 type ValidBgVomnibarReq = keyof BgVomnibarSpecialReq | kBgReq.injectorRun;
 interface FullBgReq extends BgReq, BgVomnibarSpecialReq {}
 
 declare const enum kTeeTask { Copy = 1, ShowImage = 2, Paste = 3, Download = 4, CopyImage = 5 }
 interface BaseTeeTask {
-  /** task id */ t: kTeeTask
+  /** unique id */ i: number
+  /** task enum */ t: kTeeTask
   /** serializable data */ s: any
   /** complicated data */ d?: object | null | undefined
   /** resolve */ r?: (succeed: boolean | string) => void
 }
 interface TeeTasks {
   [kTeeTask.Copy]: { s: string, d: null }
-  [kTeeTask.Paste]: { s: null, d: null }
+  [kTeeTask.Paste]: { s: null | /** permitted */ true, d: null }
   [kTeeTask.Download]: { s: chrome.downloads.DownloadOptions, d: null }
   [kTeeTask.CopyImage]: { s: [ /* blob url */ string, /* source url */ string ], d: Blob }
 }

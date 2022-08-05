@@ -1,7 +1,7 @@
 import {
   cPort, cRepeat, get_cOptions, set_cPort, set_cOptions, set_cRepeat, framesForTab_, findCSS_, cKey, reqH_, runOnTee_,
   curTabId_, settingsCache_, OnChrome, visualWordsRe_, CurCVer_, OnEdge, OnFirefox, substitute_, CONST_, set_runOnTee_,
-  helpDialogData_, set_helpDialogData_, curWndId_, vomnibarPage_f, IsLimited, vomnibarBgOptions_, setTeeTask_
+  helpDialogData_, set_helpDialogData_, curWndId_, vomnibarPage_f, IsLimited, vomnibarBgOptions_, setTeeTask_, blank_
 } from "./store"
 import * as BgUtils_ from "./utils"
 import { Tabs_, downloadFile, getTabUrl, runtimeError_, selectTab, R_, Q_, browser_, import2 } from "./browser"
@@ -23,19 +23,24 @@ let isSecondPasting: BOOL = 0
 set_runOnTee_(As_<typeof runOnTee_>((task, serializable, data): Promise<boolean | string> => {
   const frames = framesForTab_.get(curTabId_) || cPort && framesForTab_.get(cPort.s.tabId_)
   const port = frames ? frames.cur_ : cPort
-  return new Promise((resolve) => {
-    if (!port) { resolve(false); return }
-    const curTeeTask: Parameters<typeof setTeeTask_>[1] = { t: task, s: serializable, d: data, r: resolve }
-    setTeeTask_(null, curTeeTask)
-    setTimeout((): void => {
-      const latest = setTeeTask_(curTeeTask, null)
+  const deferred = BgUtils_.deferPromise_<boolean | string>()
+  if (!port) { deferred.resolve_(false); return deferred.promise_ }
+  if (Build.MV3 && task === kTeeTask.Paste && OnChrome && !serializable) {
+    return navigator.permissions!.query({ name: "clipboard-read" }).catch(blank_)
+        .then((res) => !!res && res.state !== "denied" && runOnTee_(kTeeTask.Paste, true, null))
+  }
+  {
+    const id = setTimeout((): void => {
+      const latest = setTeeTask_(id, null)
       latest && latest.r!(false)
     }, 3000)
+    setTeeTask_(null, { i: id, t: task, s: serializable, d: data, r: deferred.resolve_ })
     const allow = task === kTeeTask.CopyImage || task === kTeeTask.Copy ? "clipboard-write"
-        : task === kTeeTask.Paste ? "clipboard-read" : ""
-    const timeout = task === kTeeTask.Paste && !isSecondPasting ? (isSecondPasting = 1, 10_000) : 3000
+        : Build.MV3 && task === kTeeTask.Paste ? "clipboard-read" : ""
+    const timeout = Build.MV3 && task === kTeeTask.Paste && !isSecondPasting ? (isSecondPasting = 1, 10_000) : 3000
     portSendFgCmd(port, kFgCmd.callTee, 1, { u: CONST_.TeeFrame_, c: "R TEE UI", a: allow, t: timeout }, 1)
-  })
+  }
+  return deferred.promise_
 }))
 
 export const nextFrame = (): void | kBgCmd.nextFrame => {

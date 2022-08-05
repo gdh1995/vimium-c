@@ -23,9 +23,11 @@ Option_.prototype._onCacheUpdated = function<T extends keyof SettingsNS.AutoSync
     void p.then((val2): void => {
       (VApi!.z! as Generalized<NonNullable<VApiTy["z"]>>)[shortKey] = val2 != null ? val2 : val as never
       if (shortKey === "l") {
-        void post_(kPgReq.updateOmniPayload, { key: shortKey,
+        const misc = VApi!.y(), root = misc.r, frame = root && root.querySelector("iframe.Omnibar")
+        frame && void post_(kPgReq.updateOmniPayload, { key: shortKey,
             val: (val2 != null ? val2 : val as never) as SettingsNS.DirectlySyncedItems[typeof shortKey][1] })
       }
+      Option_.onFgCacheUpdated_ && Option_.onFgCacheUpdated_()
     })
   }
 }
@@ -232,6 +234,12 @@ export class BooleanOption_<T extends keyof AllowedOptions> extends Option_<T> {
       value = this.map_[value ? this.true_index_ : 0]
     }
     return value
+  }
+  static ToggleDisabled_ (el: HTMLInputElement, disabled: boolean): void {
+    el.disabled = disabled
+    const text = el.nextElementSibling as HTMLElement
+    text.tabIndex = disabled ? -1 : 0
+    disabled ? text.setAttribute("aria-disabled", "true") : text.removeAttribute("aria-disabled")
   }
 }
 
@@ -503,7 +511,7 @@ export const createNewOption = ((): <T extends keyof AllowedOptions> (_element: 
     } else if (status) {
       return
     }
-    window.onbeforeunload = (): string => oTrans_("beforeUnload")
+    window.onbeforeunload = onBeforeUnload
     savedStatus(true)
     saveBtn.disabled = false;
     (saveBtn.firstChild as Text).data = oTrans_("115_2")
@@ -617,6 +625,7 @@ filterLinkHintsOption_.onSave_ = function (): void {
     void linkHintNumbersOption_.onSave_()
   }, $("#waitForEnterBox"))
 }
+filterLinkHintsOption_.element_.addEventListener("change", filterLinkHintsOption_.onSave_, true)
 
 const keyLayout = Option_.all_.keyLayout
 const [elAlwaysIgnore, elIgnoreIfAlt, elIgnoreIfNotASCII, elIgnoreCaps, elMapModifier] =
@@ -627,12 +636,12 @@ keyLayout.readValueFromElement_ = (): number => {
     flags = kKeyLayout.alwaysIgnore
   } else {
     flags |= elIgnoreIfAlt.checked ? kKeyLayout.ignoreIfAlt : 0
-    flags |= !elIgnoreIfNotASCII.checked ? 0
-        : elIgnoreIfNotASCII.indeterminate ? kKeyLayout.inCmdIgnoreIfNotASCII : kKeyLayout.ignoreIfNotASCII
-    flags |= !elIgnoreCaps.checked ? 0 : elIgnoreCaps.indeterminate ? kKeyLayout.ignoreCapsOnMac : kKeyLayout.ignoreCaps
+    flags |= elIgnoreIfNotASCII.checked ? kKeyLayout.ignoreIfNotASCII
+        : elIgnoreIfNotASCII.indeterminate ? kKeyLayout.inCmdIgnoreIfNotASCII : 0
+    flags |= elIgnoreCaps.checked ? kKeyLayout.ignoreCaps : elIgnoreCaps.indeterminate ? kKeyLayout.ignoreCapsOnMac : 0
   }
-  flags |= !elMapModifier.checked ? 0
-      : elMapModifier.indeterminate ? kKeyLayout.mapLeftModifiers : kKeyLayout.mapRightModifiers
+  flags |= elMapModifier.checked ? kKeyLayout.mapRightModifiers
+      : elMapModifier.indeterminate ? kKeyLayout.mapLeftModifiers : 0
   const old = keyLayout.previous_
   if (old & kKeyLayout.fromOld && (old & ~kKeyLayout.fromOld) === flags) { flags |= kKeyLayout.fromOld }
   return flags
@@ -642,19 +651,22 @@ keyLayout.populateElement_ = (value: number): void => {
   const always = !!(value & kKeyLayout.alwaysIgnore)
   elAlwaysIgnore.checked = always
   elIgnoreIfAlt.checked = always || !!(value & kKeyLayout.ignoreIfAlt)
-  elIgnoreIfNotASCII.checked = always || !!(value & (kKeyLayout.ignoreIfNotASCII | kKeyLayout.inCmdIgnoreIfNotASCII))
+  elIgnoreIfNotASCII.checked = always || !!(value & kKeyLayout.ignoreIfNotASCII)
   elIgnoreIfNotASCII.indeterminate = !!(value & kKeyLayout.inCmdIgnoreIfNotASCII)
-  elIgnoreCaps.checked = always || !!(value & (kKeyLayout.ignoreCaps | kKeyLayout.ignoreCapsOnMac))
+  elIgnoreCaps.checked = always || !!(value & kKeyLayout.ignoreCaps)
   elIgnoreCaps.indeterminate = !!(value & kKeyLayout.ignoreCapsOnMac)
-  elMapModifier.checked = !!(value & (kKeyLayout.MapModifierMask))
+  elMapModifier.checked = !!(value & kKeyLayout.mapRightModifiers)
   elMapModifier.indeterminate = !!(value & (kKeyLayout.mapLeftModifiers))
   _lastKeyLayoutValue = value
   onAlwaysIgnoreChange()
 }
 const onAlwaysIgnoreChange = (ev?: Event): void => {
-  elIgnoreIfAlt.disabled = elIgnoreIfNotASCII.disabled = elIgnoreCaps.disabled = elAlwaysIgnore.checked
+  const always = elAlwaysIgnore.checked
+  BooleanOption_.ToggleDisabled_(elIgnoreIfAlt, always)
+  BooleanOption_.ToggleDisabled_(elIgnoreIfNotASCII, always)
+  BooleanOption_.ToggleDisabled_(elIgnoreCaps, always)
   if (!ev) { /* empty */ }
-  else if (elAlwaysIgnore.checked) {
+  else if (always) {
     elIgnoreIfAlt.checked = elIgnoreIfNotASCII.checked = elIgnoreCaps.checked = true
     elIgnoreIfNotASCII.indeterminate = elIgnoreCaps.indeterminate = false
   } else {
@@ -684,9 +696,6 @@ keyLayout.element_.addEventListener("input", (event): void => {
     }
   }
 }, true)
-keyLayout.onSave_ = function (): void {
-  // nextTick_(el => { el.readOnly = this.readValueFromElement_() > 1 }, $("#ignoreCapsLock") as HTMLInputElement)
-}
 
 Option_.all_.vomnibarPage.onSave_ = function (): void {
   const {element_: element2} = this, url: string = this.previous_
@@ -740,3 +749,8 @@ Option_.all_.passEsc.readValueFromElement_ = function (): string {
   return NonEmptyTextOption_.prototype.readValueFromElement_.call(this).replace(<RegExpG> /, /g, ",")
 }
 Option_.all_.passEsc.formatValue_ = (value: string): string => value.replace(<RegExpG> /,/g, ", ")
+
+const onBeforeUnload = (): string => {
+  return !(Build.BTypes & BrowserType.Chrome && Build.MinCVer
+    < BrowserVer.MinNoCustomMessageOnBeforeUnload) ? oTrans_("beforeUnload") : "Not saved yet"
+}

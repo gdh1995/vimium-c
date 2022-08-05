@@ -111,7 +111,8 @@ let optionsInit1_ = function (): void {
       if (i !== kKeyCode.space) { return; }
       if (el instanceof HTMLSpanElement && el.parentElement instanceof HTMLLabelElement) {
         event.preventDefault();
-        simulateClick(el.parentElement.control as HTMLElement)
+        const ctrl = el.parentElement.control as HTMLInputElement
+        ctrl.disabled || ctrl.readOnly || simulateClick(ctrl)
       }
       return;
     }
@@ -322,7 +323,7 @@ let optionsInit1_ = function (): void {
     const oldOnSave = opt.onSave_, box = _ref[_i].parentElement as EnsuredMountedHTMLElement
     const syncForLabel = (): void => {
       nextTick_(([statEl, nameEl, checkboxes]): void => {
-        const related = ([] as HTMLInputElement[]).slice.call(checkboxes).find(i => i.checked) || checkboxes[0]
+        const related = checkboxes.find(i => i.checked) || checkboxes[0]
         statEl.textContent = oTrans_(related.checked ? "145_2" : "144")
         if (nameEl) {
           const el2 = related.nextElementSibling as SafeHTMLElement, i2 = el2.getAttribute("data-i2")
@@ -532,6 +533,8 @@ window.onhashchange = (): void => {
     }
   } else if (node = $("#" + hash)) {
     if ((node.dataset as KnownOptionsDataset).model) {
+      node = node.localName === "input" && (node as HTMLInputElement).type === "checked"
+          ? node.parentElement as HTMLElement : node
       node.classList.add("highlight")
     }
     const callback = function (event?: Event): void {

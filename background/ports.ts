@@ -186,7 +186,7 @@ const _onPageConnect = (port: Port, type: PortType): void => {
   if (type & PortType.Tee) {
     let taskOnce = setTeeTask_(null, null)
     if (taskOnce) {
-      port.postMessage({ N: kBgReq.omni_runTeeTask, t: taskOnce.t, s: taskOnce.s })
+      port.postMessage({ N: kBgReq.omni_runTeeTask, i: taskOnce.i, t: taskOnce.t, s: taskOnce.s })
       port.onMessage.addListener((res: any): void => {
         taskOnce && taskOnce.r && taskOnce.r(res)
         taskOnce = null

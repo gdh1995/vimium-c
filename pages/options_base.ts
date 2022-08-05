@@ -196,6 +196,7 @@ export abstract class Option_<T extends keyof AllowedOptions> {
 
   static all_: { [N in keyof AllowedOptions]: OptionType<N> } & SafeObject
   static syncToFrontend_: Array<keyof SettingsNS.AutoSyncedNameMap>;
+  static onFgCacheUpdated_: (() => void) | null = null
   static suppressPopulate_ = false
 
   constructor (element: HTMLElement, onUpdated: () => void) {

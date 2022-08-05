@@ -373,7 +373,7 @@ label:active {
   margin-top: -3px;
 }
 .hidden {
-  display: none;
+  display: none !important;
 }
 .float-right {
   float: right;
