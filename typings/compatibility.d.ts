@@ -566,11 +566,13 @@ declare const enum BrowserVer {
   Min$structuredClone = 98, // even if EXPERIMENTAL or LEGACY
   MinEnsured$input$$showPicker = 99, // even if LEGACY; since 97 if EXPERIMENTAL
   MinScrollbarIncreasePadding = 99, // even if LEGACY; since 97 if EXPERIMENTAL
+  MinBg$i18n$$getMessage$InMV3 = 100, // even if EXPERIMENTAL or LEGACY
   Min$Event$$path$Deprecated = 101, // even if EXPERIMENTAL or LEGACY
   MinEnsured$HTMLElement$$inert = 101, // even if EXPERIMENTAL
   MinColorSchemeNormalMeansSystemDark = 102, // even if EXPERIMENTAL
   Min$AbortSignal$$timeout = 103, // even if LEGACY; since 100 if EXPERIMENTAL
   MinEnsured$Element$$role = 103, // even if LEGACY; since 68 if EXPERIMENTAL
+  MinMV3FaviconAPI = 104,
   MinNo$TimerType$$Fake = 999,
   assumedVer = 998,
 }

@@ -268,11 +268,10 @@ export const makeWindow = (options: chrome.windows.CreateData, state?: chrome.wi
   } : runtimeError_)
 }
 
-export const makeTempWindow_r = (tabIdUrl: number | "about:blank", incognito: boolean
+export const makeTempWindow_r = (tabId: number, incognito: boolean
     , callback: (wnd: Window, exArg: FakeArg) => void): void => {
-  const isId = typeof tabIdUrl === "number", options: chrome.windows.CreateDataEx = {
-    type: "normal", focused: false, incognito, state: "minimized",
-    tabId: isId ? tabIdUrl : undefined, url: isId ? undefined : tabIdUrl
+  const options: chrome.windows.CreateDataEx = {
+    type: "normal", focused: false, incognito, state: "minimized", tabId
   }
   if (OnFirefox) {
     delete options.focused

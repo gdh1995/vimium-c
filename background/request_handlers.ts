@@ -453,7 +453,7 @@ set_reqH_([
   },
   /** kFgReq.framesGoBack: */ _AsReqH<kFgReq.framesGoBack>(framesGoBack),
   /** kFgReq.i18n: */ (_, port, msgId): FgRes[kFgReq.i18n] | Port => {
-    if (Build.MV3 && i18nReadyExt_ !== 1) {
+    if (Build.MV3 && Build.MinCVer < BrowserVer.MinBg$i18n$$getMessage$InMV3 && i18nReadyExt_ !== 1) {
       (extTrans_("name") as Promise<string>).then((): void => {
         loadContentI18n_ && loadContentI18n_()
         sendResponse(port, msgId, contentI18n_)
@@ -547,13 +547,15 @@ const onCompletions = function (this: Port, favIcon0: 0 | 1 | 2, list: Array<Rea
   let { url_: url } = this.s, favIcon: 0 | 1 | 2 = favIcon0 === 2 ? 2 : 0
   let next: IteratorResult<Frames.Frames>
   let top: Frames.Frames["top_"], sender: Frames.Sender | null
-  if (Build.MV3) { favIcon = 0 }
-  else if (OnFirefox) {
+  if (OnFirefox) {
     favIcon = list.some(i => i.e === "tab") ? favIcon : 0
   } else if (OnEdge) {
     favIcon = 0
-  }
-  else if (OnChrome && favIcon0 === 1
+  } else if (Build.MV3) {
+    if (OnChrome && Build.MinCVer < BrowserVer.MinMV3FaviconAPI && CurCVer_ < BrowserVer.MinMV3FaviconAPI) {
+      favIcon = 0
+    }
+  } else if (OnChrome && favIcon0 === 1
       && (Build.MinCVer >= BrowserVer.MinExtensionContentPageAlwaysCanShowFavIcon
         || CurCVer_ >= BrowserVer.MinExtensionContentPageAlwaysCanShowFavIcon)) {
     url = url.slice(0, url.indexOf("/", url.indexOf("://") + 3) + 1)

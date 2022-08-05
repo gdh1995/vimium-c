@@ -152,10 +152,9 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
  * * parser: https://cs.chromium.org/chromium/src/components/favicon_base/favicon_url_parser.cc?type=cs&q=ParseFaviconPath&g=0&l=33
  */
       const prefix = '" style="background-image: url(&quot;';
-      // if (Build.BTypes >= BrowserVer.MinChromeFavicon2 || a.browserVer_ >= BrowserVer.MinChromeFavicon2) {
-      //   a._favPrefix = prefix + "chrome://favicon2/?size=16&scale_factor=" + scale + "x&url_type=page_url&url=";
-      // } else
-      {
+      if (Build.MV3) {
+        a._favPrefix = prefix + location.origin + "/_favicon/?size=" + (16 * scale) + "&pageUrl="
+      } else {
         a._favPrefix = prefix + "chrome://favicon/size/16@" + scale + "x/";
       }
     }
@@ -1413,10 +1412,10 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       fav = canShowOnExtOrWeb ? 2 : 0;
     } else if (canShowOnExtOrWeb && (str = docEl.dataset.favicons) != null) {
       fav = !str || str.toLowerCase() === "true" ? 2 : 0;
-    } else if (canShowOnExtOrWeb && (f = chrome.runtime.getManifest) && (manifest = f())
-        && manifest.manifest_version === 2) {
+    } else if (canShowOnExtOrWeb && (f = chrome.runtime.getManifest) && (manifest = f())) {
       const arr = manifest.permissions || [];
-      fav = arr.indexOf("<all_urls>") >= 0 || arr.join(" ").includes("://favicon/") ? 1 : 0
+      fav = Build.MV3 ? arr.includes("favicon") ? 2 : 0
+          : arr.indexOf("<all_urls>") >= 0 || arr.join().includes("://favicon/") ? 1 : 0
     }
     a.mode_.i = fav;
   },
@@ -1539,8 +1538,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       return;
     }
     item.favIcon = (str = Vomnibar_.showFavIcon_ ? item.u : "") && Vomnibar_._favPrefix +
-        VUtils_.escapeCSSUrlInAttr_not_ff_(Vomnibar_._parseFavIcon(item, str) || "about:blank") +
-        "&quot;);";
+        (Build.MV3 ? encodeURIComponent : VUtils_.escapeCSSUrlInAttr_mv2_not_ff_
+            )(Vomnibar_._parseFavIcon(item, str) || "about:blank") + "&quot;);"
   },
   _parseFavIcon (item: SuggestionE, url: string): string {
     let str = url.slice(0, 11).toLowerCase(), optionsPage = "/" + GlobalConsts.OptionsPage
@@ -1723,17 +1722,17 @@ VUtils_ = {
     return str === "amp" ? "&" : str === "apos" ? "'" : str === "quot" ? '"'
       : str === "gt" ? ">" : str === "lt" ? "<" : "";
   },
-  escapeCSSUrlInAttr_not_ff_: Build.BTypes & ~BrowserType.Firefox ? (s0: string): string => {
+  escapeCSSUrlInAttr_mv2_not_ff_: !Build.MV3 && Build.BTypes & ~BrowserType.Firefox ? (s0: string): string => {
     const escapeRe = <RegExpG & RegExpSearchable<0>> /["&'<>]/g;
     function escapeCallback(c: string): string {
       const i = c.charCodeAt(0);
       return i === kCharCode.and ? "&amp;" : i === kCharCode.quote1 ? "&apos;"
         : i < kCharCode.quote1 ? "%22" : i === kCharCode.lt ? "%3C" : "%3E";
     }
-    VUtils_.escapeCSSUrlInAttr_not_ff_ = function (s): string {
+    VUtils_.escapeCSSUrlInAttr_mv2_not_ff_ = function (s): string {
       return s.replace(escapeRe, escapeCallback);
     };
-    return VUtils_.escapeCSSUrlInAttr_not_ff_(s0);
+    return VUtils_.escapeCSSUrlInAttr_mv2_not_ff_(s0);
   } : 0 as never,
   timeCache_: 0,
   timeStr_ (timestamp: number | undefined): string {

@@ -180,6 +180,7 @@
   ],
   "permissions[].v3": [
     "-<all_urls>",
+    "favicon",
     "scripting",
     "tabGroups"
   ],
