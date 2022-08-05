@@ -12,7 +12,7 @@ import {
   getEditableType_, scrollIntoView_, SafeEl_not_ff_, GetParent_unsafe_, focus_, fullscreenEl_unsafe_, docEl_unsafe_,
   getSelection_, isSelected_, docSelectable_, isHTML_, createElement_, CLK, MDW, removeEl_s, appendNode_s, isNode_,
   setDisplaying_s, findAnchor_, notSafe_not_ff_,
-  getAccessibleSelectedNode,  INP, BU, UNL, contains_s, setOrRemoveAttr_s, textContent_s, modifySel, parentNode_unsafe_s
+  getAccessibleSelectedNode,  INP, BU, UNL, contains_s, setOrRemoveAttr_s, textContent_s, modifySel, parentNode_unsafe_s, selOffset_
 } from "../lib/dom_utils"
 import { wdZoom_, prepareCrop_, view_, dimSize_, selRange_, getZoom_, isSelARange } from "../lib/rect"
 import {
@@ -797,8 +797,9 @@ export const executeFind = (query: string | null, options: ExecuteOptions): Rect
         return reflectApply_not_cr!(window.find, window, arguments)
       } catch { return false; }
     } as Window["find"] : 0 as never as null
-    let el: LockableElement | null
-      , highLight = safer(options).h, areas: Rect[] = [], noColor = highLight || options.noColor
+    let el: LockableElement | null, highLight = safer(options).h, noColor = highLight || options.noColor
+      , areas: Rect[] = [], newAreas = 0, newRange: Range | null
+      , newAnchor: false | Node | null, posChange: false | kNode | null
       , found: boolean, count = (options.c! | 0) || 1, back = count < 0
       , par: Element | 0 | null | undefined, timesRegExpNotMatch = 0
       , q: string, notSens = ignoreCase && !options.caseSensitive
@@ -843,8 +844,18 @@ export const executeFind = (query: string | null, options: ExecuteOptions): Rect
         activeRegexIndex = oldReInd
       } else if (highLight) {
         scrollTo(highLight[0], highLight[1])
-        const rect = getSelectionBoundingBox_()
-        rect ? areas.push(rect) : count = 0 // even for a caret caused by `user-select: none`
+        curSel = getSelected()
+        const rect = getSelectionBoundingBox_(curSel)
+        if (rect) { areas.push(rect) }
+        else if (!OnFirefox && (newAnchor = getAccessibleSelectedNode(curSel, 1))
+            && isNode_(newAnchor, kNode.ELEMENT_NODE) && !notSafe_not_ff_!(newAnchor)) {
+          newAnchor = ((newAnchor as SafeElement).childNodes as NodeList)[selOffset_(curSel, 1)]
+          newRange = selRange_(curSel, 1).cloneRange()
+          back ? newRange.setEndBefore(newAnchor) : newRange.setStartAfter(newAnchor)
+          newRange.collapse(!back)
+          resetSelectionToDocStart(curSel, newRange)
+        }
+        ++newAreas > 99 && (count = 0)
         timesRegExpNotMatch = 0
       } else {
         count--;
@@ -855,8 +866,8 @@ export const executeFind = (query: string | null, options: ExecuteOptions): Rect
       }
     }
     if (found! && !highLight && (par = par || getSelectionParent_unsafe(curSel = getSelected()))) {
-      let newAnchor = oldAnchor && getAccessibleSelectedNode(curSel!)
-      let posChange = newAnchor && compareDocumentPosition(oldAnchor as Node, newAnchor)
+      newAnchor = oldAnchor && getAccessibleSelectedNode(curSel!)
+      posChange = newAnchor && compareDocumentPosition(oldAnchor as Node, newAnchor)
       !OnFirefox && notSafe_not_ff_!(par) || view_(par as SafeElement)
       if (posChange && /** go back */ !!(posChange & kNode.DOCUMENT_POSITION_PRECEDING) !== back) {
         hudTip(kTip.wrapWhenFind, 1, VTr(back ? kTip.atStart : kTip.atEnd))
