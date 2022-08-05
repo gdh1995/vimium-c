@@ -122,15 +122,14 @@ set_bgC_([
         ?? (!key && settingsCache_.hideHud)
     void Promise.resolve(trans_("globalInsertMode", [key && ": " + (key.length === 1 ? `" ${key} "` : `<${key}>`)]))
         .then((msg): void => {
-    sendFgCmd(kFgCmd.insertMode, !hideHUD, {
+    sendFgCmd(kFgCmd.insertMode, !hideHUD, Object.assign<CmdOptions[kFgCmd.insertMode], Req.FallbackOptions>({
       h: hideHUD ? null : msg,
       k: key || null,
       i: !!get_cOptions<C.insertMode>().insert,
       p: !!get_cOptions<C.insertMode>().passExitKey,
       r: <BOOL> +!!get_cOptions<C.insertMode>().reset,
-      t: parseFallbackOptions(get_cOptions<C.insertMode, true>()),
       u: !!get_cOptions<C.insertMode>().unhover
-    })
+    }, parseFallbackOptions(get_cOptions<C.insertMode, true>()) || {}))
       hideHUD && hideHUD !== "force" && hideHUD !== "always" && showHUD(msg, kTip.raw)
     })
   },
@@ -830,9 +829,14 @@ set_bgC_([
     const ref = framesForTab_.get(cPort ? cPort.s.tabId_ : curTabId_)
     const unhover = !!get_cOptions<C.reset>().unhover, suppressKey = get_cOptions<C.reset>().suppress
     for (const frame of ref ? ref.ports_ : []) {
-      portSendFgCmd(frame, kFgCmd.insertMode, false, { r: 1, u: unhover }, 1)
+      let obj: CmdOptions[kFgCmd.insertMode] = { r: 1, u: unhover }
+      if (frame === ref!.cur_) {
+        const fallback = parseFallbackOptions(get_cOptions<C.reset, true>())
+        fallback && Object.assign(obj, fallback)
+      }
+      portSendFgCmd(frame, kFgCmd.insertMode, false, obj, 1)
     }
-    (runNextCmdBy(1, get_cOptions<C.reset, true>()) ? suppressKey === true : suppressKey !== false) &&
+    (hasFallbackOptions(get_cOptions<C.reset, true>()) ? suppressKey === true : suppressKey !== false) &&
     ref && ref.cur_.postMessage({ N: kBgReq.suppressForAWhile, t: 150 })
   },
   /* kBgCmd.openBookmark: */ (resolve): void | kBgCmd.openBookmark => {

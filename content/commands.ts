@@ -8,7 +8,7 @@ import {
   isHTML_, hasTag_, createElement_, querySelectorAll_unsafe_, SafeEl_not_ff_, docEl_unsafe_, MDW, CLK, derefInDoc_,
   querySelector_unsafe_, DAC, removeEl_s, appendNode_s, setClassName_s, INP, contains_s, toggleClass_s, modifySel,
   focus_, testMatch, docHasFocus_, deepActiveEl_unsafe_, getEditableType_, textOffset_, getAccessibleSelectedNode,
-  getDirectionOfNormalSelection, inputSelRange, dispatchEvent_, notSafe_not_ff_
+  getDirectionOfNormalSelection, inputSelRange, dispatchEvent_, notSafe_not_ff_, activeEl_unsafe_
 } from "../lib/dom_utils"
 import {
   pushHandler_, removeHandler_, getMappedKey, prevent_, isEscape_, keybody_, DEL, BSP, ENTER, handler_stack,
@@ -34,7 +34,7 @@ import { activate as markActivate } from "./marks"
 import { FindAction, activate as findActivate, deactivate as findDeactivate, execCommand } from "./mode_find"
 import {
   exitInputHint, insert_inputHint, insert_last_, raw_insert_lock, insert_Lock_, resetInsert, set_is_last_mutable,
-  set_inputHint, set_insert_global_, set_isHintingInput, set_insert_last_, exitInsertMode, set_passAsNormal,
+  set_inputHint, set_insert_global_, set_isHintingInput, set_insert_last_, exitInsertMode, set_passAsNormal, insert_global_,
 } from "./insert"
 import { activate as visualActivate, deactivate as visualDeactivate } from "./visual"
 import { activate as scActivate, onActivate, currentScrolling, setNewScrolling, scrollTick } from "./scroller"
@@ -86,10 +86,10 @@ set_contentCommands_([
   /* kFgCmd.vomnibar: */ omniActivate,
   /* kFgCmd.insertMode: */ (opt: CmdOptions[kFgCmd.insertMode]): void => {
     if (opt.u) {
-      const done = opt.i ? 9 : derefInDoc_(lastHovered_) ? 0 : 2
+      const done = derefInDoc_(lastHovered_) ? 0 : 2
       catchAsyncErrorSilently(unhover_async()).then((): void => {
         hudTip(kTip.didUnHoverLast)
-        done < 9 && runFallbackKey(opt, done)
+        opt.i || runFallbackKey(opt, done)
       })
     }
     if (opt.r) {
@@ -105,7 +105,7 @@ set_contentCommands_([
       set_insert_global_(opt)
       opt.h && hudShow(kTip.raw, opt.h)
     }
-    opt.u || runFallbackKey(opt, 0)
+    opt.u || opt.i || runFallbackKey(opt, 0)
   },
 
   /* kFgCmd.toggle: */ (options: CmdOptions[kFgCmd.toggle]): void => {
@@ -454,7 +454,8 @@ set_contentCommands_([
     if (options.esc) {
       keydownEvents_[kKeyCode.None] = 0
       result = !!insert_Lock_() || count > 0
-      raw_insert_lock ? exitInsertMode(raw_insert_lock) : result && onEscDown(0, kKeyCode.None, count > 1)
+      raw_insert_lock || insert_global_ ? exitInsertMode(raw_insert_lock || activeEl_unsafe_()!)
+        : result && onEscDown(0, kKeyCode.None, count > 1)
       keydownEvents_[kKeyCode.None] = 0
       useResult = 1
     } else {

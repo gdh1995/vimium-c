@@ -24,7 +24,7 @@ interface ShadowNodeMap {
 
 let shadowNodeMap: ShadowNodeMap | undefined
 let lock_ = null as LockableElement | null
-let insert_global_: InsertModeOptions | null = null
+let insert_global_: InsertModeOptions & Req.FallbackOptions | null = null
 let isHintingInput: BOOL = 0
 let inputHint: { /** box */ b: HTMLDivElement | null; /** hints */ h: InputHintItem[] } | null = null
 let suppressType: string | 0 = 0
@@ -42,7 +42,7 @@ export {
   insert_last_, is_last_mutable as insert_last_mutable,
   grabBackFocus, suppressType, inputHint as insert_inputHint, onWndBlur2,
 }
-export function set_insert_global_ (_newIGlobal: InsertModeOptions): void { insert_global_ = _newIGlobal }
+export function set_insert_global_ (_newIGlobal: typeof insert_global_): void { insert_global_ = _newIGlobal }
 export function set_insert_last_ (_newILast: WeakRef<LockableElement> | null): void { insert_last_ = _newILast }
 export function set_is_last_mutable (_newIsLastMutable: BOOL): void { is_last_mutable = _newIsLastMutable }
 export function set_inputHint (_newIHint: typeof inputHint): void { inputHint = _newIHint }
@@ -189,7 +189,7 @@ export const exitInsertMode = <(target: Element, event?: HandlerNS.Event) => Han
     match !== !!match && (fgCache.p = "")
   }
   if (insert_global_) {
-    insert_global_.t && runFallbackKey(insert_global_.t, 0)
+    runFallbackKey(insert_global_, 0)
     insert_global_ = null
     hudHide();
   }
