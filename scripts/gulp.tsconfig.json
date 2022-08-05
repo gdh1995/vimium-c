@@ -18,5 +18,5 @@
     "Mangle": [ 0, 1 ],
     "Inline": [ 0, 1 ]
   },
-  "extends": "../tsconfig"
+  "extends": "../tsconfig.base.json"
 }

@@ -7,5 +7,5 @@
   },
   "include": [ "*.ts", "../lib/*.ts" ],
   "exclude": [ "../lib/injector.ts", "../lib/simple_eval.ts" ],
-  "extends": "../tsconfig.json"
+  "extends": "../tsconfig.base.json"
 }

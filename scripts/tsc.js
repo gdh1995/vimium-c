@@ -18,8 +18,8 @@ if (/\btsc(\.\b|$)/i.test(argv[argi])) {
 }
 if (argv.indexOf("-p") < 0 && argv.indexOf("--project") < 0 && !fs.existsSync("tsconfig.json")) {
   // @ts-ignore
-  var parent = __dirname.replace(/[\\\/][^\\\/]+[\\\/]?$/, "");
-  if (fs.existsSync(parent + "/tsconfig.json")) {
+  const parent = __dirname.replace(/[\\\/][^\\\/]+[\\\/]?$/, "");
+  if (fs.existsSync(parent + "/tsconfig.base.json")) {
     process.chdir(parent);
   }
 }
@@ -28,6 +28,7 @@ var logPrefix = "";
 if (!fs.existsSync("package.json")) {
   if (fs.existsSync("../package.json")) {
     root = "../";
+    // @ts-ignore
     logPrefix = require("path").basename(process.cwd());
   }
 }
@@ -172,7 +173,7 @@ var getTerser = function() {
 function getDefaultTerserConfig() {
   if (!defaultTerserConfig) {
     defaultTerserConfig = lib.loadTerserConfig(root + "scripts/uglifyjs.local.json");
-    var tsconfig = lib.readJSON(root + "tsconfig.json");
+    var tsconfig = lib.readJSON(root + "tsconfig.base.json");
     var target = tsconfig.compilerOptions.target;
     defaultTerserConfig.ecma = ({
       es5: 5, es6: 6, es2015: 6, es2017: 2017, es2018: 2018
@@ -257,6 +258,7 @@ function main(args) {
   if (destDirs.length === 0) {
     destDirs.push(".");
   }
+  // @ts-ignore
   var child_process = require("child_process");
   var env = process.env;
   env[_WORKER_ENV_KEY] = "1";
@@ -289,6 +291,7 @@ function main(args) {
       });
     }));
   }
+  // @ts-ignore
   root = require("path").resolve(root).replace(/\\/g, "/") + "/";
   var firstTS = destDirs[0];
   if (firstTS !== ".") {
@@ -319,7 +322,7 @@ function main(args) {
 function executeTS(args) {
   return new Promise(function (resolve) {
     process.exit = function (exit_code) {
-      resolve(exit_code);
+      resolve(exit_code || 0);
     };
     try {
       _executeTS(args);
@@ -340,7 +343,7 @@ function _executeTS(args) {
 
   real_write = ts.sys.writeFile;
   ts.sys.writeFile = writeFile;
-  lib.patchTSNamespace(ts, null, true); // when MinCVer >= 39 or not Chrome
+  lib.patchTSNamespace(ts, void 0, true); // when MinCVer >= 39 or not Chrome
 
   if (ts.version < '3.7') {
     ts.executeCommandLine(args);

@@ -13,5 +13,5 @@
     "options*.ts",
     "show.ts"
   ],
-  "extends": "../tsconfig.json"
+  "extends": "../tsconfig.base.json"
 }
