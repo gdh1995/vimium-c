@@ -463,7 +463,7 @@ set_reqH_([
     loadContentI18n_ && loadContentI18n_()
     return contentI18n_
   },
-  /** kFgReq.learnCSS: */ (_req: FgReq[kFgReq.learnCSS], port: Port): void => {
+  /** kFgReq.cssLearnt: */ (_req: FgReq[kFgReq.cssLearnt], port: Port): void => {
     (port as Frames.Port).s.flags_ |= Frames.Flags.hasCSS
   },
   /** kFgReq.visualMode: */ (request: FgReq[kFgReq.visualMode], port: Port): void => {

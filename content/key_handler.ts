@@ -54,7 +54,7 @@ export function set_currentKeys (_newCurrentKeys: string): void { currentKeys = 
 
 set_getMappedKey((eventWrapper: HandlerNS.Event, mode: kModeId): ReturnType<typeof getMappedKey> => {
   const char: kChar | "" = eventWrapper.v ? ""
-      : !OnEdge && mode > kModeId.MIN_ALWAYS_ASCII - 1 && mode < kModeId.MIN_NOT_ALWAYS_ASCII
+      : !OnEdge && mode > kModeId.MIN_EXPECT_ASCII - 1 && mode < kModeId.MIN_NOT_EXPECT_ASCII
         && fgCache.l & kKeyLayout.inCmdIgnoreIfNotASCII ? char_(eventWrapper, kKeyLayout.inCmdIgnoreIfNotASCII)
       : eventWrapper.c !== kChar.INVALID ? eventWrapper.c : char_(eventWrapper, fgCache.l & kKeyLayout.ignoreIfNotASCII)
   let key: string = char, mapped: string | undefined;

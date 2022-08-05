@@ -2,7 +2,7 @@ import { kPgReq } from "../background/page_messages"
 import { $, OnEdge, browser_, OnFirefox, OnChrome, nextTick_, CurCVer_, IsEdg_, post_, pageLangs_ } from "./async_bg"
 import { Option_, KnownOptionsDataset, oTrans_, bgSettings_ } from "./options_base"
 import { registerClass, createNewOption, TextOption_ } from "./options_defs"
-import kPermissions = chrome.permissions.kPermissions
+import kBrowserPermission = chrome.permissions.kPermission
 
 type AllowedApi = "contains" | "request" | "remove"
 
@@ -44,7 +44,14 @@ const browserPermissions_ = OnEdge ? null as never : {
 }
 //#endregion
 
-interface PermissionItem { name_: kPermissions; previous_: 0 | 1 | 2; element_: HTMLInputElement }
+type  BasePermissionItem<T extends string> = T extends kBrowserPermission ? {
+  readonly name_: T
+  readonly type_: T extends kBrowserPermission ? 0 | 1 : 2
+} : never
+type PermissionItem = BasePermissionItem<kBrowserPermission> & {
+  previous_: 0 | 1 | 2
+  element_: HTMLInputElement
+}
 
 const kShelf = "downloads.shelf", kNTP = "chrome://new-tab-page/*", kCrURL = "chrome://*/*"
 const i18nItems = {
@@ -57,42 +64,44 @@ const template = <true> !OnEdge && placeholder.content.firstElementChild as HTML
 const container = <true> !OnEdge && placeholder.parentElement
 const shownItems: PermissionItem[] = []
 export const manifest = browser_.runtime.getManifest() as Readonly<chrome.runtime.Manifest>
-let optional_permissions = (!OnEdge && manifest.optional_permissions || []) as readonly kPermissions[]
+let optional_permissions = (!OnEdge && manifest.optional_permissions || []) as readonly kBrowserPermission[]
 
 export class OptionalPermissionsOption_ extends Option_<"nextPatterns"> {
   override init_ (): void { this.element_.onchange = this.onUpdated_ }
   override readValueFromElement_ = (): string => shownItems.map(
-      i => i.element_.checked ? i.element_.indeterminate ? "1" : "2" : "0").join("")
+      i => i.element_.indeterminate ? "1" : i.element_.checked ? "2" : "0").join("")
   override innerFetch_ = (): string => shownItems.map(i => i.previous_).join("")
   override populateElement_ (value: string): void {
     for (let i = 0; i < shownItems.length; i++) {
-      shownItems[i].element_.checked = value[i] !== "0"
-      shownItems[i].element_.indeterminate = value[i] === "1"
+      const shown = shownItems[i]
+      shown.element_.checked = value[i] === "2"
+      shown.element_.indeterminate = value[i] === "1"
     }
   }
   override executeSave_ (wanted_value: string): Promise<string> {
-    const new_permissions: kPermissions[] = [], new_origins: kPermissions[] = []
-    const changed: { [key in kPermissions]?: PermissionItem } = {}
+    const new_browser_permissions: kBrowserPermission[] = [], new_origins: kBrowserPermission[] = []
+    const changed: { [key in kBrowserPermission]?: PermissionItem } = {}
     let waiting = 1
     for (let _ind = 0; _ind < shownItems.length; _ind++) {
-      const i = shownItems[_ind]
+      const i = shownItems[_ind], previous = i.previous_
       const wanted = +wanted_value[_ind] as 0 | 1 | 2
-      if (i.previous_ === wanted) { continue }
-      const orig2: kPermissions | "" = Build.OnBrowserNativePages && i.name_ === kNTP ? "chrome://newtab/*" : ""
+      if (previous === wanted) { continue }
+      const orig2: kBrowserPermission | "" = OnChrome && Build.OnBrowserNativePages && i.name_ === kNTP
+          ? "chrome://newtab/*" : ""
       i.previous_ = wanted
-      if (Build.OnBrowserNativePages && i.name_ === kCrURL) {
+      if (OnChrome && Build.OnBrowserNativePages && i.name_ === kCrURL) {
         if (<boolean> bgSettings_.get_("allBrowserUrls") !== (wanted === 2)) {
           void bgSettings_.set_("allBrowserUrls", wanted === 2)
         }
       }
       if (wanted) {
-        i.name_ === kShelf && new_permissions.push("downloads");
-        (i.name_.includes(":") ? new_origins : new_permissions).push(i.name_)
+        i.name_ === kShelf && new_browser_permissions.push("downloads");
+        (i.type_ === 1 ? new_origins : new_browser_permissions).push(i.name_)
         orig2 && new_origins.push(orig2)
         changed[i.name_] = i
       } else {
         waiting++
-        void browserPermissions_.remove(i.name_.includes(":") ? { origins: orig2 ? [i.name_, orig2] : [i.name_] } : {
+        void browserPermissions_.remove(i.type_ === 1 ? { origins: orig2 ? [i.name_, orig2] : [i.name_] } : {
           permissions: i.name_ === kShelf ? ["downloads", i.name_] : [i.name_]
         }).then(([ok, err]): void => {
           const msg1 = "Can not remove the permission %o :", msg2 = err && err.message || err;
@@ -103,7 +112,7 @@ export class OptionalPermissionsOption_ extends Option_<"nextPatterns"> {
         })
       }
     }
-    const cb = (arr: kPermissions[], [ok, err]: ExtApiResult<boolean>): void => {
+    const cb = (arr: kBrowserPermission[], [ok, err]: ExtApiResult<boolean>): void => {
       (err || !ok) && console.log("Can not request permissions of %o :", arr, err && err.message || err)
       if (!ok) {
         for (const name of arr) {
@@ -130,13 +139,13 @@ export class OptionalPermissionsOption_ extends Option_<"nextPatterns"> {
     const tryRefreshing = (): void => {
       waiting--
       if (waiting > 0) { return }
-      void Promise.all(shownItems.map(doPermissionsContain_)).then(() => {
+      void Promise.all(shownItems.map(doPermissionsContain_)).then((): void => {
         void this.fetch_()
       })
     }
-    waiting += (new_permissions.length && 1) + (new_origins.length && 1)
-    new_permissions.length &&
-        browserPermissions_.request({ permissions: new_permissions }).then(cb.bind(0, new_permissions))
+    waiting += (new_browser_permissions.length && 1) + (new_origins.length && 1)
+    new_browser_permissions.length &&
+        browserPermissions_.request({ permissions: new_browser_permissions }).then(cb.bind(0, new_browser_permissions))
     new_origins.length && browserPermissions_.request({ origins: new_origins }).then(cb.bind(0, new_origins))
     tryRefreshing()
     return Promise.resolve(wanted_value)
@@ -149,19 +158,19 @@ const initOptionalPermissions = (): void => {
   if (OnFirefox && Build.OS & (1 << kOS.unixLike) && bgSettings_.os_ === kOS.unixLike) {
     template.querySelector("input")!.classList.add("baseline")
   }
-  let itemInd = 0
-  for (const name of optional_permissions) {
+  for (const shownItem of shownItems) {
+    const name = shownItem.name_
     const node = document.importNode(template, true) as EnsuredMountedHTMLElement
     const checkbox = node.querySelector("input")!
     const i18nKey = i18nItems[name as keyof typeof i18nItems]
-    checkbox.value = name
     let i18nName = oTrans_(i18nKey || `opt_${name}`) || name
     let suffix = ""
-    if (name.startsWith("chrome:")) {
+    if (OnChrome && name.startsWith("chrome:")) {
       i18nName = IsEdg_ ? i18nName.replace("chrome:", "edge:") : i18nName
       suffix = oTrans_("optOfChromeUrl").replace(IsEdg_ ? "chrome" : "edge", "edge")
     }
-    if (Build.OnBrowserNativePages && name === kNTP) {
+    checkbox.value = name
+    if (OnChrome && Build.OnBrowserNativePages && name === kNTP) {
       if (OnChrome && Build.MinCVer < BrowserVer.MinChromeURL$NewTabPage
           && CurCVer_ < BrowserVer.MinChromeURL$NewTabPage) {
         suffix = oTrans_("requireChromium", [BrowserVer.MinChromeURL$NewTabPage])
@@ -175,28 +184,26 @@ const initOptionalPermissions = (): void => {
       node.classList.add("single")
     }
     fragment.appendChild(node)
-    shownItems[itemInd++].element_ = checkbox
+    shownItem.element_ = checkbox
   }
   container.appendChild(fragment)
   container.addEventListener("change", onChange, true)
 }
 
 const doPermissionsContain_ = (item: PermissionItem): Promise<void> => {
-  const name = item.name_
-  let resolve: () => void, p = new Promise<void>(curResolve => { resolve = curResolve })
-  void browserPermissions_.contains(name.includes(":") ? { origins: [name] }
-      : { permissions: name === kShelf ? ["downloads", name] : [name] }).then(([result]): void => {
+  const {type_: type, name_: name} = item
+  return browserPermissions_.contains(type === 1 ? { origins: [name] }
+          : { permissions: name === kShelf ? ["downloads", name] : [name] }).then(([result]): void => {
     if (OnChrome && Build.MinCVer < BrowserVer.MinCorrectExtPermissionsOnChromeURL$NewTabPage
         && CurCVer_ < BrowserVer.MinCorrectExtPermissionsOnChromeURL$NewTabPage
         && Build.OnBrowserNativePages && name === kNTP) {
       result = false
     }
     const val = !result ? 0
-        : !Build.OnBrowserNativePages || item.name_ !== kCrURL || <boolean> bgSettings_.get_("allBrowserUrls") ? 2 : 1
+        : !OnChrome || !Build.OnBrowserNativePages || name !== kCrURL
+          || <boolean> bgSettings_.get_("allBrowserUrls") ? 2 : 1
     item.previous_ = val
-    resolve()
   })
-  return p
 }
 
 const onChange = (e: Event): void => {
@@ -209,7 +216,8 @@ const onChange = (e: Event): void => {
     const theOther = shownItems.find(i => i.name_ === theOtherName)
     if (theOther) {
       if (isCurNTP && value && !theOther.element_.checked) {
-        theOther.element_.checked = theOther.element_.indeterminate = true
+        theOther.element_.checked = false
+        theOther.element_.indeterminate = true
       } else if (!isCurNTP && value && el.indeterminate) {
         el.indeterminate = false
       } else {
@@ -221,9 +229,9 @@ const onChange = (e: Event): void => {
 }
 
 if (!OnEdge) {
-  const ignored: Array<kPermissions | RegExpOne> = OnFirefox ? [kShelf] : ["downloads"]
+  const ignored: Array<kBrowserPermission | RegExpOne> = OnFirefox ? [kShelf] : ["downloads"]
   OnChrome || ignored.push(<RegExpOne> /^chrome:/, "contentSettings")
-  OnChrome && !IsEdg_ || Build.OnBrowserNativePages && ignored.push(kNTP)
+  OnChrome && IsEdg_ && Build.OnBrowserNativePages && ignored.push(kNTP)
   OnFirefox || ignored.push("cookies")
   optional_permissions = optional_permissions.filter(
       i => !ignored.some(j => typeof j === "string" ? i === j : j.test(i)))
@@ -232,7 +240,7 @@ if (OnEdge || !optional_permissions.length) {
   nextTick_((): void => { $("#optionalPermissionsBox").style.display = "none" })
 } else {
   for (const name of optional_permissions) {
-    shownItems.push({ name_: name, previous_: 0, element_: null as never })
+    shownItems.push({ name_: name, type_: name.includes(":") ? 1 : 0, previous_: 0, element_: null as never })
   }
   nextTick_(initOptionalPermissions)
   void Promise.all(shownItems.map(doPermissionsContain_)).then((): void => {

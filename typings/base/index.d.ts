@@ -92,8 +92,8 @@ interface String {
   replace <Self extends string, S extends string, T extends string> (
      this: Self, searchValue: S, replaceValue: T
      ): T extends `${"" | "$&"}${number}` ? string : string extends T ? string | symbol : ReplaceStrOnce<Self, S , T>
-  toLowerCase <Self extends string> (this: Self): `${Lowercase<Self>}`
-  toUpperCase <Self extends string> (this: Self): `${Uppercase<Self>}`
+  toLowerCase <Self extends string> (this: Self): string extends Self ? string : `${Lowercase<Self>}`
+  toUpperCase <Self extends string> (this: Self): string extends Self ? string : `${Uppercase<Self>}`
 }
 
 type NormalizeKeywords<K extends string> = K extends `${infer x}-${infer y}`

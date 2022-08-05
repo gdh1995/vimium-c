@@ -99,7 +99,7 @@ declare const enum kFgReq {
   evalJSFallback,
   /** can be used only with `FgCmdAcrossFrames` and when a fg command is just being called */
   gotoMainFrame, setOmniStyle, findFromVisual, framesGoBack,
-  i18n, learnCSS, visualMode, respondForRunKey, downloadLink, wait,
+  i18n, cssLearnt, visualMode, respondForRunKey, downloadLink, wait,
   optionToggled, keyFromOmni, pages, showUrl,
   omniCopy, didLocalMarkTask, teeFail, END,
   msg = 90, inject = 99,
@@ -248,6 +248,7 @@ declare const enum kFgCmd {
 }
 
 type FgCmdAcrossFrames = kFgCmd.linkHints | kFgCmd.scroll | kFgCmd.vomnibar | kFgCmd.goNext | kFgCmd.framesGoBack
+    | kFgCmd.insertMode | kFgCmd.dispatchEventCmd
 
 interface FgOptions extends SafeDict<any> {}
 type SelectActions = "" | "all" | "all-input" | "all-line" | "start" | "end";
@@ -699,7 +700,7 @@ interface FgReq {
     /** only use o.position */ o: PickIn<Extract<CmdOptions[kFgCmd.framesGoBack], {r?: null}>
         , keyof OpenUrlOptions | keyof Req.FallbackOptions>
   }
-  [kFgReq.learnCSS]: {};
+  [kFgReq.cssLearnt]: {};
   [kFgReq.visualMode]: {
     /** caret mode */ c?: boolean
     /** forwarded options */ f: object | string | null | undefined

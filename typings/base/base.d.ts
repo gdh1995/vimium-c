@@ -180,10 +180,10 @@ declare module chrome.downloads {
 }
 
 declare module chrome.permissions {
-  export type kPermissions = "downloads" | "downloads.shelf"
+  export type kPermission = "downloads" | "downloads.shelf"
       | "chrome://new-tab-page/*" | "chrome://newtab/*" | "chrome://*/*"
       | "clipboardRead" | "contentSettings" | "notifications" | "cookies"
-  export interface Request { origins?: kPermissions[]; permissions?: kPermissions[] }
+  export interface Request { origins?: kPermission[]; permissions?: kPermission[] }
   export function contains(query: Request, callback: (result: boolean) => void): void
   export function contains(query: Request): Promise<boolean>
   export function remove(query: Request, callback: (result: boolean) => void): void
@@ -249,7 +249,12 @@ interface Navigator {
     mobile: boolean
     platform: string
   }
+  permissions?: { // now is only useful on Chrome; query::state is since C44
+    query (permissionDescriptor: { name: kNavPermissionName }): Promise<{ state: kNavPermissionState }>
+  }
 }
+type kNavPermissionName = "clipboard-read" | "clipboard-write"
+type kNavPermissionState = "granted" | "denied" | "prompt"
 
 interface URLPatternDict {
   hash: string

@@ -598,7 +598,7 @@ declare const enum GlobalConsts {
 declare const enum kModeId {
   Plain = 0, Normal, Insert, Next, max_not_command = Next, Link, Marks, Find, Visual, Omni,
   Show, NO_MAP_KEY_EVEN_MAY_IGNORE_LAYOUT, NO_MAP_KEY,
-  MIN_ALWAYS_ASCII = Find, MIN_NOT_ALWAYS_ASCII = NO_MAP_KEY,
+  MIN_EXPECT_ASCII = Find, MIN_NOT_EXPECT_ASCII = NO_MAP_KEY,
 }
 declare const enum kHandler {
   __none, __normal, __insert, __next, linkHints, marks, find, visual, omni, 

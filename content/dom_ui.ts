@@ -228,7 +228,7 @@ export const learnCSS = (srcStyleIn: typeof styleIn_, force?: 1): void => {
       if (css) {
         setUICSS(css)
         if (!OnChrome || Build.MinCVer < BrowserVer.MinBorderWidth$Ensure1$Or$Floor) {
-          force || post_({H: kFgReq.learnCSS})
+          force || post_({H: kFgReq.cssLearnt})
         }
       }
   }

@@ -4,8 +4,8 @@ import {
 } from "./store"
 import { DecodeURLPart_, deferPromise_ } from "./utils"
 
-type AtomPermission = { origins: [chrome.permissions.kPermissions]; permissions?: undefined }
-    | { origins?: undefined; permissions: [chrome.permissions.kPermissions] }
+type AtomPermission = { origins: [chrome.permissions.kPermission]; permissions?: undefined }
+    | { origins?: undefined; permissions: [chrome.permissions.kPermission] }
 export type Window = chrome.windows.Window
 
 export interface IncNormalWnd extends Window { incognito: true; type: "normal" }
