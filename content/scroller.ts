@@ -58,6 +58,7 @@ let preventPointEvents: BOOL | 2 | ScrollConsts.MinLatencyToAutoPreventHover
 let scale = 1
 let joined: VApiTy | null | undefined
 let scrolled: 0 | 1 | 2 = 0
+let isTopScrollable: -1 | 0 | 1 = 1
 
 export { currentScrolling, cachedScrollable, keyIsDown, scrolled }
 export function set_scrolled (_newScrolled: 0): void { scrolled = _newScrolled }
@@ -333,9 +334,9 @@ export const activate = (options: CmdOptions[kFgCmd.scroll] & SafeObject, count:
 }
 
   /**
-   * @param amount0 can not be 0, if `isTo` is 0; can not be negative, if `isTo` is 1
+   * @param amount0 can not be 0 if without `kScFlag.TO` else can not be negative
    * @param factor the scale factor of `amount0`
-   * @param fromMax can not be true, if `isTo` is 0
+   * @param fromMax can not be true, if without `kScFlag.TO`
    */
 export const executeScroll: VApiTy["c"] = function (di: ScrollByY, amount0: number, flags: kScFlag & number
       , factor?: NonNullable<CmdOptions[kFgCmd.scroll]["view"]> | undefined
@@ -362,10 +363,10 @@ export const executeScroll: VApiTy["c"] = function (di: ScrollByY, amount0: numb
         , options && (options.scroll ? options.scroll === "force"
             : options.evenIf != null ? (options.evenIf & kHidden.OverflowHidden) as 0 | 2 : null)
         , options && options.scrollable)
-    const isTopElement = element === scrollingTop
-    const mayUpperFrame = !isTop && isTopElement && element && !fullscreenEl_unsafe_()
+    const elementIsTop = element === scrollingTop
+    const mayUpperFrame = !isTop && elementIsTop && element && !fullscreenEl_unsafe_()
     let viewSize: number | undefined,
-    amount = !factor ?
+    amount = elementIsTop && isTopScrollable < 1 ? 0 : !factor ?
         (!di && amount0 && element && dimSize_(element, kDim.scrollW)
             <= dimSize_(element, kDim.scrollH) * (dimSize_(element, kDim.scrollW) < 720 ? 2 : 1)
           ? amount0 * 0.6 : amount0) * fgCache.t
@@ -376,7 +377,7 @@ export const executeScroll: VApiTy["c"] = function (di: ScrollByY, amount0: numb
       viewSize = viewSize || dimSize_(element, di + kDim.viewW)
       const curPos = dimSize_(element, di + kDim.positionX),
       rawMax = (toMax || amount) && dimSize_(element, di + kDim.scrollW),
-      boundingMax = isTopElement && element ? getBoundingClientRect_(element).height : 0,
+      boundingMax = elementIsTop && element ? getBoundingClientRect_(element).height : 0,
       max = (boundingMax > rawMax && boundingMax < rawMax + 1 ? boundingMax : rawMax) - viewSize
       const oldAmount = amount
       amount = max_(0, min_(toMax ? max - amount : amount, max)) - curPos
@@ -403,13 +404,14 @@ export const executeScroll: VApiTy["c"] = function (di: ScrollByY, amount0: numb
       post_({ H: kFgReq.gotoMainFrame, f: 1, c: kFgCmd.scroll, n: oriCount!, a: options as OptionsWithForce })
       amount = 0
     }
-    if (toFlags && isTopElement && amount) {
+    if (toFlags && elementIsTop && amount) {
       di && setPreviousMarkPosition()
       if (!joined && options && (options as Extract<typeof options, {dest: string}>).sel === "clear") {
         resetSelectionToDocStart()
       }
     }
     set_scrollingTop(null)
+    isTopScrollable = 1
     const keepHover = options && options.keepHover
     preventPointEvents = keepHover === !1 ? 1 : keepHover === "never" ? 2
         : keepHover === "auto" ? ScrollConsts.MinLatencyToAutoPreventHover
@@ -493,8 +495,8 @@ const findScrollable = (di: ScrollByY, amount: number
       if (!OnFirefox && notSafe_not_ff_!(cur_el)) { continue }
       const visible = getVisibleBoundingRect_(cur_el) || getVisibleClientRect_(cur_el)
       if (visible) {
-        let height_ = visible.b - visible.t
-        children.push({ a: (visible.r - visible.l) * height_, e: cur_el, h: height_})
+        const height = visible.b - visible.t, width = visible.r - visible.l
+        height > 199 && width > 199 && children.push({ a: width * height, e: cur_el, h: height})
       }
     }
     children.sort((a, b) => b.a - a.a)
@@ -504,10 +506,11 @@ const findScrollable = (di: ScrollByY, amount: number
     const selectFirstType = (evenOverflowHidden != null ? evenOverflowHidden : isTop || injector)
         ? (di + 2) as 2 | 3 : di
     const activeEl: SafeElement | null | undefined = derefInDoc_(currentScrolling) || null
+    const lastCachedScrolled = cachedScrollable && derefInDoc_(cachedScrollable) || null
     const fullscreen = fullscreenEl_unsafe_(), top: Element | null = fullscreen || scrollingTop, body = doc.body
     const selectAncestor = (): void => {
       while (element !== top && (!fullscreen || IsInDOM_(element as SafeElement, fullscreen))
-          ? shouldScroll_s(<SafeElement> element, element === cachedScrollable ? (di + 2) as 2 | 3 : di, amount) < 1
+          ? shouldScroll_s(<SafeElement> element, element === lastCachedScrolled ? (di + 2) as 2 | 3 : di, amount) < 1
           : (element = top, 0)) {
         element = (!OnFirefox
             ? SafeEl_not_ff_!(GetParent_unsafe_(element!, PNType.RevealSlotAndGotoParent))
@@ -534,7 +537,8 @@ const findScrollable = (di: ScrollByY, amount: number
       }
     }
     if (!element && top && (OnFirefox || !notSafe_not_ff_!(top))) {
-      if (shouldScroll_s(top as SafeElement, di, 1) < 1) {
+      isTopScrollable = shouldScroll_s(top as SafeElement, di, 0)
+      if (isTopScrollable < 1) {
         topRoot = top && getRootNode_mounted(top as SafeElement & EnsuredMountedElement)
         element = (topRoot && isNode_(topRoot, kNode.DOCUMENT_FRAGMENT_NODE) ? topRoot : doc
             ).elementFromPoint(wndSize_(1) / 2, wndSize_() / 2)
@@ -546,7 +550,7 @@ const findScrollable = (di: ScrollByY, amount: number
       }
       element = candidate && candidate.e !== top && (!activeEl || candidate.h > wndSize_() / 2) ? candidate.e
           : element || top
-      // if current_, then delay update to current_, until scrolling ends and ._checkCurrent is called;
+      // if current_, then delay update to currentScrolling, until scrolling ends and .checkCurrent is called;
       // otherwise, cache selected element for less further cost
       activeEl || fullscreen || setNewScrolling(element)
     }
@@ -579,7 +583,7 @@ const doesScroll = (el: SafeElement, di: ScrollByY, amount: number): boolean => 
     // Currently, Firefox corrects positions before .scrollBy returns,
     // so it always fails if amount < next-box-size
     const before = dimSize_(el, di + kDim.positionX),
-    changed = performScroll(el, di, (amount > 0 ? 1 : -1) * scale, before)
+    changed = performScroll(el, di, amount > 0 ? scale : -scale, before)
     if (changed) {
       if (!OnFirefox && !di && hasSpecialScrollSnap(el)) {
         /**
@@ -618,6 +622,7 @@ export const scrollIntoView_s = (el?: SafeElement | null): void => {
 export const makeElementScrollBy_ = (el: SafeElement | null | 0, hasX: number, hasY: number): void => {
   void (hasX && (hasY ? performScroll : vApi.$)(el !== 0 ? el : findScrollable(0, hasX), 0, hasX))
   void (hasY && vApi.$(el !== 0 ? el : findScrollable(1, hasY), 1, hasY))
+  isTopScrollable = 1
   scrolled = 0
   scrollTick(0) // it's safe to only clean keyIsDown here
 }
