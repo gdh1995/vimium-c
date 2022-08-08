@@ -99,8 +99,8 @@ const parseVal_limited = (val: string): any => {
 
 export const normalizeCommand_ = (cmd: Writable<CommandsNS.BaseItem>, details?: CommandsNS.Description
       ): cmd is CommandsNS.NormalizedItem => {
-    let options: CommandsNS.RawOptions | string | null = cmd.options_, command = cmd.command_
-    if (details === undefined) { details = availableCommands_[command]! }
+    let options: CommandsNS.RawOptions | string | null = cmd.options_
+    if (details === undefined) { details = availableCommands_[cmd.command_]! }
     let opt: CommandsNS.Options | null
     opt = details.length < 4 ? null : BgUtils_.safer_(details[3]!);
     if (typeof options === "string") {

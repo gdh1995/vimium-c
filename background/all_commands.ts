@@ -188,7 +188,7 @@ set_bgC_([
     const opts2 = copyCmdOptions(BgUtils_.safeObj_(), get_cOptions<C.dispatchEventCmd>()
         ) as KnownOptions<C.dispatchEventCmd> & SafeObject
     if (!opts2.esc) {
-      let key = opts2.key
+      const key = opts2.key
       let type = (opts2.type || (key ? "keydown" : "")) + "", rawClass = opts2.class, delay = opts2.delay
       let { xy, direct, directOptions } = opts2
       rawClass = rawClass && rawClass[0] === "$" ? rawClass.slice(1)
@@ -226,15 +226,26 @@ set_bgC_([
           dict === opts2 && delete (opts2)[key as keyof EventInit]
         }
       }
-      if (key && key !== "," && (typeof key === "object" || key.includes(","))) {
-        const info = typeof key === "object" ? key : key.split(",") as Extract<typeof key, string[]>
+      let nonWordArr: RegExpExecArray | null = null
+      if (key && (typeof key === "object"
+          || typeof key === "string" && (nonWordArr = (<RegExpOne> /[^\w$]/).exec(key.slice(1))))) {
+        const info = typeof key === "object" ? key : key.split(nonWordArr![0]) as Extract<typeof key, string[]>
         if (info.length >= 2 && (!info[1] || +info[1] >= 0)) {
-          let evKey = info[0], keyCode = info[1] | 0
-          destDict.key = evKey === "Space" ? " " : evKey === "Comma" ? ","
+          nonWordArr && !info[0] && (info[0] = key[0], info[1] || info.splice(1, 1))
+          const evKey = info[0], isAlpha = (<RegExpI> /^[a-z]$/i).test(evKey),
+          isNum = !isAlpha && evKey >= "0" && evKey <= "9" && evKey.length === 1
+          let keyCode = info[1] && (+info[1] | 0)
+              || (isAlpha ? kKeyCode.A + (evKey.toLowerCase().charCodeAt(0) - kCharCode.a)
+                  : isNum ? kKeyCode.N0 + (evKey.charCodeAt(0) - kCharCode.N0) : 0)
+          destDict.key = evKey === "Space" ? (keyCode = keyCode || kKeyCode.space, " ")
+              : evKey === "Comma" ? "," : evKey === "Slash" ? "/" : evKey === "Minus" ? "-"
               : evKey === "$" && evKey.length > 1 ? evKey.slice(1) : evKey
+          keyCode = type !== "keypress" ? keyCode : 0
           if (keyCode && dict.keyCode == null) { destDict.keyCode = +info[1]}
           if (keyCode && dict.which == null) { destDict.which = +info[1]}
-          if (info.length >= 3 && info[2] || dict.code == null) { destDict.code = info[2] || info[0] }
+          if (info.length >= 3 && info[2] || dict.code == null) {
+            destDict.code = info[2] || (isAlpha ? "Key" + evKey.toUpperCase() : isNum ? "Digit" + evKey : evKey)
+          }
         }
       }
       opts2.type = type

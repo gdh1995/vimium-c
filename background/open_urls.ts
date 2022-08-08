@@ -416,7 +416,6 @@ const replaceOrOpenInNewTab = <Reuse extends Exclude<ReuseType, ReuseType.curren
       : getCurTab(openUrlInNewTab.bind(null, [url], reuse, options!))
     } else if (shownHash_ && matchedTab.url.startsWith(CONST_.ShowPage_)) {
       updateShownPage(mayReuse ? reuseOptions!.f || {} : options!, matchedTab)
-      selectTab(matchedTab.id)
     } else {
       const active = reuse !== ReuseType.newBg && reuse !== ReuseType.lastWndBgInactive
       const activeWnd = matchedTab.windowId !== curWndId_ && reuse > ReuseType.lastWndBg
@@ -518,8 +517,9 @@ const updateShownPage = (options: Req.FallbackOptions, tab: Tab): void => {
     if (!OnEdge && views.length > 0
         && views[0].location.href.startsWith(prefix) && views[0].onhashchange as unknown) {
       (views[0].onhashchange as () => void)()
+      selectTab(tab.id)
     } else {
-      tabsUpdate(tab.id, { url: prefix })
+      tabsUpdate(tab.id, { url: prefix, active: true })
     }
     BgUtils_.nextTick_((): void => { runNextOnTabLoaded(options, null) })
 }
@@ -554,7 +554,7 @@ export const openUrlWithActions = (url: Urls.Url, workType: Urls.WorkType, sed?:
   if (typeof url !== "string") { /* empty */ }
   else if (url || workType !== Urls.WorkType.FakeType) {
     const fill = fillOptionWithMask<C.openUrl>(url, get_cOptions<C.openUrl>().mask
-        , "value", ["url", "url_mask", "value"], cRepeat)
+        , "value", ["url", "url_mask", "url_mark", "value"], cRepeat)
     if (fill.ok) {
       url = fill.result
       if (fill.useCount) { set_cRepeat(1) }
@@ -798,15 +798,18 @@ const onMatchedTabs = (tabs: Tab[]): void => {
     updateMatchedTab(tabs2.length > 0 ? tabs2 : tabs)
     return
   }
+  const notInCurWnd = curIncognito_ === IncognitoType.true && isRefusingIncognito_(request.u)
   // if `request.s`, then `typeof request` is `MarksNS.MarkToGo`
   if (request.f && runNextCmdBy(0, request.f)) { /* empty */ }
   else if (curTabs.length <= 0 || opts2.w
       || curIncognito_ === IncognitoType.true && !curTabs[0].incognito) {
     makeWindow({ url: request.u, type: normalizeWndType(opts2.w),
-      incognito: curIncognito_ === IncognitoType.true && !isRefusingIncognito_(request.u)
+      incognito: notInCurWnd ? false : curIncognito_ === IncognitoType.true
     }, "", (wnd): void => {
       callback(wnd && wnd.tabs && wnd.tabs.length > 0 ? wnd.tabs[0] : null)
     })
+  } else if (notInCurWnd) {
+    openMultiTabs({ url: request.u, active: true }, 1, null, [null], opts2.g, null, callback)
   } else {
     openMultiTabs({
       url: request.u, index: newTabIndex(curTabs[0], opts2.p, false, true),
@@ -828,7 +831,7 @@ const updateMatchedTab = (tabs2: Tab[]): void => {
     Tabs_.remove(tab.id)
   } else if (shownHash_ && tab.url.startsWith(CONST_.ShowPage_)) {
     updateShownPage(request.f || {}, tab)
-    selectTab(tab.id)
+    selectWndIfNeed(tab)
   } else {
     const cur = OnChrome && IsEdg_ ? tab.url.replace(<RegExpOne> /^edge:/, "chrome:") : tab.url
     const wanted = OnChrome && IsEdg_ ? url.replace(<RegExpOne> /^edge:/, "chrome:") : url

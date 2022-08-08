@@ -267,7 +267,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   show_ (): void {
     const a = Vomnibar_
     a.showing_ = true;
-    Build.BTypes & BrowserType.Chrome && a.isEdg_ ? a.focus_() : setTimeout(a.focus_, 0);
+    setTimeout(a.focus_, 0);
     ((document.body as Element).addEventListener as typeof addEventListener)("wheel", a.onWheel_, a.wheelOptions_)
   },
   hide_ (fromContent?: BOOL): void {
@@ -1115,6 +1115,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     if (height > oldH) { VPort_.postToOwner_(msg); }
     a.completions_.forEach(a.Parse_);
     a.renderItems_(a.completions_, list);
+    if (!oldH) { a.bodySt_.display = "" }
     a.toggleInputMode_()
     if (!(Build.BTypes & ~BrowserType.Firefox)
         || Build.BTypes & BrowserType.Firefox && a.browser_ & BrowserType.Firefox) {
@@ -1134,7 +1135,6 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       }
       list.lastElementChild.classList.add("b");
     }
-    if (!oldH) { a.bodySt_.display = "" }
     if (a.onUpdate_ === a.toggleAlt_) {
       a.toggleAlt_(0)
       a.onUpdate_ = null

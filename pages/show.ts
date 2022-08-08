@@ -735,7 +735,8 @@ async function parseClearImageUrl_(originUrl: string): Promise<string | null> {
           && search.toLowerCase().includes("format=")) {
         return origin + path + search.replace(val, "large")
       }
-      if (key === "x-bce-process" && val0.includes("image/resize")) {
+      if ((<RegExpI> /^(x-)?(\w+)-?process\b/i).test(key) && val0.toLowerCase().includes("image/")
+          && (<RegExpI> /resize|quality/i).test(val0)) {
         search = search.replace(key + "=" + val0, "")
         return origin + path + (search.length > 1 ? search : "")
       }

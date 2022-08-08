@@ -291,6 +291,9 @@ export const click_async = (async (element: SafeElementForMouse
   const center = center_(rect || (rect = getVisibleClientRect_(element)), xy)
   const sedIf = userOptions && userOptions.sedIf
   let result: ActionType = max_((action = action! | 0) - kClickAction.BaseMayInteract, 0)
+  const initialStat = result & ActionType.interact && result < ActionType.MinOpenUrl
+      ? result & ActionType.dblClick ? hasTag_("video", element) && fullscreenEl_unsafe_()
+        : (element as HTMLMediaElement).paused : 0
   let isTouch: BOOL = 0
   if (OnChrome && (Build.MinCVer >= BrowserVer.MinEnsuredTouchEventConstructor
           || chromeVer_ > BrowserVer.MinEnsuredTouchEventConstructor - 1)
@@ -376,20 +379,19 @@ export const click_async = (async (element: SafeElementForMouse
         /* empty */
       } else if (result & ActionType.interact) {
         if (result & ActionType.dblClick) {
-          if (hasTag_("video", element)) {
+          if (initialStat !== !1 && initialStat === fullscreenEl_unsafe_()) {
             if ((!OnChrome ? !OnFirefox || element.requestFullscreen
                   : Build.MinCVer >= BrowserVer.MinEnsured$Document$$fullscreenElement
                     || chromeVer_ > BrowserVer.MinEnsured$Document$$fullscreenElement - 1)) {
-              fullscreenEl_unsafe_() ? doc.exitFullscreen() : element.requestFullscreen()
+              initialStat ? doc.exitFullscreen() : element.requestFullscreen()
             } else {
-              fullscreenEl_unsafe_()
-              ? OnFirefox ? doc.mozCancelFullScreen() : doc.webkitExitFullscreen()
+              initialStat ? OnFirefox ? doc.mozCancelFullScreen() : doc.webkitExitFullscreen()
               : OnFirefox ? element.mozRequestFullScreen() : element.webkitRequestFullscreen()
             }
           }
         } else {
-          (element as HTMLMediaElement).paused ? (element as HTMLMediaElement).play()
-          : (element as HTMLMediaElement).pause()
+          (element as HTMLMediaElement).paused !== initialStat ? 0
+              : initialStat ? (element as HTMLMediaElement).play() : (element as HTMLMediaElement).pause()
         }
       }
       return

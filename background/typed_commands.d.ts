@@ -240,7 +240,6 @@ declare namespace CommandsNS {
   }
   interface UnnormalizedItem extends BaseItem {
     readonly options_: "__not_parsed__"
-    help_: null
   }
   type ValidItem = NormalizedItem | UnnormalizedItem
   type Item = ValidItem & ({ readonly alias_: keyof BgCmdOptions; readonly background_: 1

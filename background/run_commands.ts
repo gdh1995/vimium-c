@@ -218,7 +218,8 @@ export const executeCommand = (registryEntry: CommandsNS.Item, count: number, la
       options = opt2 as typeof opt2 & SafeObject
     }
   }
-  if (!registryEntry.background_) {
+  if (registryEntry.background_) { /* empty */ }
+  else if (port != null) {
     const { alias_: fgAlias } = registryEntry,
     wantCSS = (kFgCmd.END <= 32 || fgAlias < 32) && <BOOL> (((
       (1 << kFgCmd.linkHints) | (1 << kFgCmd.marks) | (1 << kFgCmd.passNextKey) | (1 << kFgCmd.focusInput)
@@ -226,8 +227,16 @@ export const executeCommand = (registryEntry: CommandsNS.Item, count: number, la
         || fgAlias === kFgCmd.scroll && (!!options && (options as CmdOptions[kFgCmd.scroll]).keepHover === false)
     set_cPort(port!)
     set_cEnv(null)
-    port == null || portSendFgCmd(port, fgAlias, wantCSS, options as Dict<any>, count)
+    portSendFgCmd(port, fgAlias, wantCSS, options as Dict<any>, count)
     return
+  } else {
+    let fgAlias = registryEntry.alias_, newAlias: keyof BgCmdOptions = 0
+    if (fgAlias === kFgCmd.framesGoBack) {
+      if (!OnEdge && Tabs_.goBack) { newAlias = kBgCmd.goBackFallback }
+    } else if (fgAlias === kFgCmd.autoOpen) { newAlias = kBgCmd.autoOpenFallback }
+    if (!newAlias) { return }
+    registryEntry = makeCommand_(registryEntry.command_, options, [newAlias, 1, registryEntry.repeat_]
+        ) as CommandsNS.NormalizedItem & { readonly alias_: keyof BgCmdOptions; readonly background_: 1 }
   }
   const { alias_: alias } = registryEntry, func = bgC_[alias]
   _gCmdHasNext = registryEntry.hasNext_
@@ -337,6 +346,8 @@ export const portSendFgCmd = <K extends keyof CmdOptions> (
 }
 
 export const executeShortcut = (shortcutName: StandardShortcutNames, ref: Frames.Frames | null | undefined): void => {
+  const registry = shortcutRegistry_!.get(shortcutName)!
+  const isRunKey = registry.alias_ === kBgCmd.runKey && registry.background_
   setupSingletonCmdTimer(0)
   if (ref) {
     let port = ref.cur_
@@ -345,22 +356,16 @@ export const executeShortcut = (shortcutName: StandardShortcutNames, ref: Frames
     ensuredExitAllGrab(ref)
     return
   }
-  const registry = shortcutRegistry_!.get(shortcutName)!, cmdName = registry.command_
-  let realAlias: keyof BgCmdOptions = 0, realRegistry = registry
-  if (cmdName === "goBack" || cmdName === "goForward") {
-    if (!OnEdge && Tabs_.goBack) {
-      realAlias = kBgCmd.goBackFallback
-    }
-  } else if (cmdName === "autoOpen") {
-    realAlias = kBgCmd.autoOpenFallback
-  }
   const opts = normalizedOptions_(registry)
+  const cmdName: kCName = !isRunKey ? registry.command_ : "runKey"
+  const fgAlias = registry.alias_
+  let realAlias: keyof BgCmdOptions = 0, realRegistry = registry
+  if (registry.background_) { /* empty */ }
+  else if (fgAlias === kFgCmd.framesGoBack) {
+    if (!OnEdge && Tabs_.goBack) { realAlias = kBgCmd.goBackFallback }
+  } else if (fgAlias === kFgCmd.autoOpen) { realAlias = kBgCmd.autoOpenFallback }
   if (realAlias) {
-    /** this object shape should keep the same as the one in {@link key_mappings.ts#makeCommand_} */
-    realRegistry = As_<CommandsNS.Item & CommandsNS.NormalizedItem>({
-      alias_: realAlias, background_: 1, command_: cmdName, help_: null,
-      options_: opts, hasNext_: null, repeat_: registry.repeat_
-    })
+    realRegistry = makeCommand_(cmdName, opts, [realAlias, 1, registry.repeat_])
   } else if (!registry.background_) {
     return
   } else {

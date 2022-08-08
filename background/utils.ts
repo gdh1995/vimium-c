@@ -338,7 +338,10 @@ export const fetchOnlineResources_ = (url: string, timeout?: number): Promise<[B
   }
   timer1 && p.then((): void => { clearTimeout(timer1) })
   return p.then(blob => {
-    if (!blob) { return blob }
+    if (!blob) {
+      console.clear()
+      return blob
+    }
     return convertToDataURL_(blob.slice(0, Math.min(16, blob.size), blob.type)).then(dataUrl => [blob, dataUrl])
   })
 }

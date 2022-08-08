@@ -530,10 +530,8 @@ const runOneKeyWithOptions = (key: string, count: number
       exOptions && "count" in exOptions || (newOptions.$count = originalOptions.$count)
     }
     (registryEntry as Writable<typeof registryEntry>).options_ = newOptions
-    if (registryEntry.alias_ === kFgCmd.linkHints && !registryEntry.background_) {
-      (registryEntry as Writable<typeof registryEntry>).repeat_ = 0
-    }
-    normalizeCommand_(registryEntry)
+    normalizeCommand_(registryEntry, availableCommands_[registryEntry.alias_ === kBgCmd.runKey
+        && registryEntry.background_ ? "runKey" : registryEntry.command_])
   }
   BgUtils_.resetRe_()
   if (avoidStackOverflow && registryEntry.alias_ === kBgCmd.runKey && registryEntry.background_) {
