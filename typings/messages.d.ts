@@ -138,7 +138,7 @@ interface BgReq {
     /** kTip */ k?: kTip | 0
     /** text */ t?: string;
     /** long */ l?: BOOL
-    /** duration */ d?: 0 | 1 | 2;
+    /** duration */ d?: 0 | 1 | 2 | 0.0001
     /** findCSS */ f?: FindCSS
   } & Partial<BgCSSReq>;
   [kBgReq.focusFrame]: {
@@ -208,18 +208,19 @@ interface BgVomnibarSpecialReq {
 type ValidBgVomnibarReq = keyof BgVomnibarSpecialReq | kBgReq.injectorRun;
 interface FullBgReq extends BgReq, BgVomnibarSpecialReq {}
 
-declare const enum kTeeTask { Copy = 1, ShowImage = 2, Paste = 3, Download = 4, CopyImage = 5 }
+declare const enum kTeeTask { CopyImage = 1, ShowImage = 2, Paste = 3, Download = 4, Copy = 5, DrawAndCopy = 9 }
 interface BaseTeeTask {
   /** task enum */ t: kTeeTask
   /** serializable data */ s: any
   /** complicated data */ d?: object | null | undefined
   /** resolve */ r?: (succeed: boolean | string) => void
 }
+interface ImageToCopy { /** url for binary data */ u: string, /** text */ t: string, /** browser */ b?: BrowserType }
 interface TeeTasks {
   [kTeeTask.Copy]: { s: string, d: null }
   [kTeeTask.Paste]: { s: null | /** permitted */ true, d: null }
-  [kTeeTask.Download]: { s: chrome.downloads.DownloadOptions, d: null }
-  [kTeeTask.CopyImage]: { s: [ /* blob url */ string, /* source url */ string ], d: Blob }
+  [kTeeTask.CopyImage]: { s: ImageToCopy, d: Blob }
+  [kTeeTask.DrawAndCopy]: { s: ImageToCopy, d: Blob }
 }
 
 declare const enum kBgCmd {
@@ -636,9 +637,10 @@ interface FgReq {
     j?: undefined | null
     i?: undefined
   } | {
-    /** data: image URL */ i: "data:"
+    /** data: image URL */ i: "data:" | ""
     /** source URL */ u: string
     j?: undefined
+    /** richText */ r: HintsNS.Options["richText"]
   }) & {
     /** sed and keyword */ o?: ParsedOpenPageUrlOptions;
     /** decode by default */ d?: boolean;

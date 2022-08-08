@@ -759,7 +759,7 @@ export const getVisibleElements = (view: ViewBox): readonly Hint[] => {
           , hintOptions, (hints: Hint[], element: Element): void => {
         const tag = htmlTag_<1>(element)
         if (!tag) {
-          if (element.localName === "svg" && "ownerSVGElement" in <ElementToSVG> element) {
+          if (element.localName === "svg" && "ownerSVGElement" in element && mode1_ - HintMode.COPY_IMAGE) {
             getIfOnlyVisible(hints, element as SVGSVGElement)
           }
           return

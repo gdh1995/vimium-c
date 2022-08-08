@@ -304,6 +304,52 @@ export const fetchFile_ = ((filePath: string, format?: "blob" | "arraybuffer"): 
   <F extends "blob" | "arraybuffer"> (file: `data:${string}`, format: F): Promise<F extends "blob" ? Blob : ArrayBuffer>
 }
 
+declare var AbortController: new () => { signal: object, abort(): void }
+declare var AbortSignal: { timeout? (timeout: number): object }
+
+export const fetchOnlineResources_ = (url: string, timeout?: number): Promise<[Blob, string] | null | 0> => {
+  let timer1 = 0, p: Promise<Response> | Promise<Blob | null | 0>
+  timeout = timeout || 10_000
+  if (!OnChrome || Build.MinCVer >= BrowserVer.MinAbortController
+      || CurCVer_ > BrowserVer.MinAbortController - 1) {
+    if (!(Build.BTypes & ~BrowserType.ChromeOrFirefox)
+        && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.Min$AbortSignal$$timeout)
+        && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.Min$AbortSignal$$timeout)) {
+      p = (fetch as GlobalFetch)(url, { cache: "force-cache", signal: AbortSignal.timeout!(timeout) })
+    } else {
+      const abortCtrl = new AbortController()
+      timer1 = setTimeout(abortCtrl.abort.bind(abortCtrl), timeout)
+      p = (fetch as GlobalFetch)(url, { cache: "force-cache", signal: abortCtrl.signal })
+    }
+    p = p.then<Blob | 0, null>(res => res.blob().catch(() => 0 as const), () => null)
+  } else {
+    const req = new XMLHttpRequest() as BlobXHR, defer = deferPromise_<Blob | null | 0>()
+    req.open("GET", url, true)
+    req.responseType = "blob"
+    req.onload = (): void => { defer.resolve_(req.response) }
+    req.onerror = (): void => { defer.resolve_(null) }
+    timer1 = setTimeout((): void => {
+      req.onload = req.onerror = null as never
+      defer.resolve_(0)
+      req.abort()
+    }, timeout)
+    req.send()
+    p = defer.promise_
+  }
+  timer1 && p.then((): void => { clearTimeout(timer1) })
+  return p.then(blob => {
+    if (!blob) { return blob }
+    return convertToDataURL_(blob.slice(0, Math.min(16, blob.size), blob.type)).then(dataUrl => [blob, dataUrl])
+  })
+}
+
+export const convertToDataURL_ = (blob: Blob): Promise<"data:"> => {
+  const reader = new FileReader(), defer = deferPromise_<"data:">()
+  reader.onload = (ev): void => { defer.resolve_(ev.target.result) }
+  reader.readAsDataURL(blob)
+  return defer.promise_
+}
+
 export const revokeBlobUrl_ = (url: string): void => {
   try {
     URL.revokeObjectURL(url)

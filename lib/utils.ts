@@ -258,7 +258,7 @@ export const isTY = ((obj: any, ty?: kTY): boolean => typeof obj == TYPES[ty || 
   <V extends void | undefined | null | boolean | number | string | Function | PlainObject, T extends kTyOf<V>> (
     obj: V, ty: T): obj is TyMap[T] & V
   (obj: void | undefined | null | boolean | number| PlainObject): unknown
-  (obj: undefined | null | boolean | number| string | PlainObject): obj is string
+  (obj: void | undefined | null | boolean | number| string | PlainObject): obj is string
 }
 
 export const Lower = (str: string): string => str.toLowerCase()
@@ -269,3 +269,5 @@ export const min_: (...args: number[]) => number = Build.Inline ? math.min : (..
 export const abs_: (num: number) => number = Build.Inline ? math.abs : (arg): number => math.abs(arg)
 
 export function includes_<T> (this: T[] | readonly T[], el: T): boolean { return this.indexOf(el) >= 0 }
+
+export const urlSameIgnorehash = (s1: string, s2: string): boolean | "" => s2 && s1.split("#")[0] !== s2.split("#")[0]

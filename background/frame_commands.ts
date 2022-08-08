@@ -1,14 +1,15 @@
 import {
   cPort, cRepeat, get_cOptions, set_cPort, set_cOptions, set_cRepeat, framesForTab_, findCSS_, cKey, reqH_, runOnTee_,
   curTabId_, settingsCache_, OnChrome, visualWordsRe_, CurCVer_, OnEdge, OnFirefox, substitute_, CONST_, set_runOnTee_,
-  helpDialogData_, set_helpDialogData_, curWndId_, vomnibarPage_f, IsLimited, vomnibarBgOptions_, setTeeTask_, blank_
+  helpDialogData_, set_helpDialogData_, curWndId_, vomnibarPage_f, IsLimited, vomnibarBgOptions_, setTeeTask_, blank_,
+  curIncognito_, OnOther_
 } from "./store"
 import * as BgUtils_ from "./utils"
 import {
   Tabs_, downloadFile, getTabUrl, runtimeError_, selectTab, R_, Q_, browser_, import2, getCurWnd, makeWindow, Windows_
 } from "./browser"
 import { convertToUrl_, createSearchUrl_, normalizeSVG_ } from "./normalize_urls"
-import { showHUD, complainLimits, ensureInnerCSS, getParentFrame, getPortUrl_ } from "./ports"
+import { showHUD, complainLimits, ensureInnerCSS, getParentFrame, getPortUrl_, safePost } from "./ports"
 import { getFindCSS_cr_ } from "./ui_css"
 import { getI18nJson, trans_ } from "./i18n"
 import { keyMappingErrors_, visualGranularities_, visualKeys_ } from "./key_mappings"
@@ -32,9 +33,10 @@ set_runOnTee_(As_<typeof runOnTee_>((task, serializable, data): Promise<boolean 
     latest && latest.r && latest.r(false)
   }, 40_000)
   const deferred = BgUtils_.deferPromise_<boolean | string>()
-    setTeeTask_(null, { i: id, t: task, s: serializable, d: data, r: deferred.resolve_ })
-    const allow = task === kTeeTask.CopyImage || task === kTeeTask.Copy ? "clipboard-write"
-        : Build.MV3 && task === kTeeTask.Paste ? "clipboard-read" : ""
+    setTeeTask_(null, { i: id, t: task, s: serializable, d: Build.MV3 ? null : data, r: deferred.resolve_ })
+    const allow = !OnChrome ? ""
+        : task === kTeeTask.CopyImage || task === kTeeTask.Copy || task === kTeeTask.DrawAndCopy
+        ? "clipboard-write" : Build.MV3 && task === kTeeTask.Paste ? "clipboard-read" : ""
   if (port) {
     portSendFgCmd(port, kFgCmd.callTee, 1, { u: CONST_.TeeFrame_, c: "R TEE UI", a: allow, t: 3000 }, 1)
   } else {
@@ -136,7 +138,7 @@ export const initHelp = (request: FgReq[kFgReq.initHelp], port: Port): Promise<v
     })
   }, Build.NDEBUG ? OnChrome && Build.MinCVer < BrowserVer.Min$Promise$$Then$Accepts$null
       ? undefined : null as never : (args): void => {
-    console.error("Promises for initHelp failed:", args[0], ";", args[1])
+    console.error("Promises for initHelp failed: %o ; %o", args[0], args[1])
   })
 }
 
@@ -242,17 +244,20 @@ export const enterVisualMode = (): void | kBgCmd.visualMode => {
 
 let _tempBlob: [number, string] | null | undefined
 
-export const handleImageUrl = (url: string, buffer: Blob | ArrayBuffer | null
-    , actions: kTeeTask, resolve: (ok: BOOL | boolean) => void
-    , title: string, text: string, doShow?: (url: string) => void): void => {
+export const handleImageUrl = (url: `data:${string}` | "", buffer: Blob | null
+    , actions: kTeeTask.CopyImage | kTeeTask.ShowImage | kTeeTask.Download | kTeeTask.DrawAndCopy
+    , resolve: (ok: BOOL | boolean) => void
+    , title: string, text: string, doShow?: ((url: string) => void) | null, inGroup?: boolean): void => {
   if (!actions) { resolve(1); return }
-  const onlyArrBuf_ff = OnFirefox && actions === kTeeTask.Copy
-  const finalUrl = !buffer || onlyArrBuf_ff || Build.MV3 && IsLimited ? url : URL.createObjectURL(buffer as Blob)
-  if (!(Build.MV3 && IsLimited) && finalUrl.startsWith("data:") && !buffer) {
-    const p = BgUtils_.fetchFile_(finalUrl as `data:${string}`, onlyArrBuf_ff ? "arraybuffer" : "blob")
+  const copyFromBlobUrl = !!(actions & kTeeTask.CopyImage)
+      && curIncognito_ !== IncognitoType.true && (!cPort || !cPort.s.incognito_)
+      && (!OnFirefox || actions === kTeeTask.DrawAndCopy && !inGroup)
+  const needBlob = actions & kTeeTask.Download || copyFromBlobUrl
+  if (needBlob && !buffer) {
+    const p = BgUtils_.fetchFile_(url as "data:", "blob")
     Build.NDEBUG || p.catch((err: any | Event): void => { console.log("handleImageUrl can't request `data:` :", err) })
     void p.then((buffer2): void => {
-      handleImageUrl(OnFirefox ? "" : finalUrl, buffer2, actions, resolve, title, text, doShow)
+      handleImageUrl(url, buffer2, actions, resolve, title, text, doShow, inGroup)
     })
     return
   }
@@ -260,36 +265,48 @@ export const handleImageUrl = (url: string, buffer: Blob | ArrayBuffer | null
     clearTimeout(_tempBlob[0]), BgUtils_.revokeBlobUrl_(_tempBlob[1])
     _tempBlob = null
   }
-  if (finalUrl.startsWith("blob:")) {
+  const blobRef = needBlob ? URL.createObjectURL(buffer) : ""
+  if (blobRef) {
     _tempBlob = [setTimeout((): void => {
       _tempBlob && BgUtils_.revokeBlobUrl_(_tempBlob[1]); _tempBlob = null
-    }, actions & kTeeTask.Download ? 30000 : 5000), finalUrl]
+    }, actions & kTeeTask.Download ? 30000 : 5000), blobRef]
     const outResolve = resolve
-    resolve = (ok: BOOL | boolean) => {
+    resolve = ! [kTeeTask.CopyImage, kTeeTask.Download, kTeeTask.DrawAndCopy].includes(actions) ? outResolve
+        : (ok: BOOL | boolean) => {
       outResolve(ok)
-      if (!(actions & (actions - 1))) {
-        _tempBlob && BgUtils_.revokeBlobUrl_(finalUrl)
-        _tempBlob && _tempBlob[1] === finalUrl && (clearTimeout(_tempBlob[0]), _tempBlob = null)
-      }
+      _tempBlob && BgUtils_.revokeBlobUrl_(blobRef)
+      _tempBlob && _tempBlob[1] === blobRef && (clearTimeout(_tempBlob[0]), _tempBlob = null)
     }
   }
-  if (actions & kTeeTask.Copy) {
-    if (OnFirefox) {
-      const bufType = url.startsWith("data:image/jpeg") ? "jpeg" : "png"
-      void (Build.MV3 && IsLimited ? BgUtils_.fetchFile_(finalUrl as `data:${string}`, "arraybuffer")
-            : onlyArrBuf_ff ? Promise.resolve(buffer as ArrayBuffer) : (buffer as Blob).arrayBuffer())
+  if (actions & kTeeTask.CopyImage) {
+    if (OnFirefox && actions !== kTeeTask.DrawAndCopy) {
+      const bufType = (url ? url.slice(5, 15) : buffer!.type).toLowerCase() === "image/jpeg" ? "jpeg" : "png"
+      void (buffer ? buffer.arrayBuffer() : BgUtils_.fetchFile_(url as "data:", "arraybuffer"))
           .then((buf): void => {
         browser_.clipboard.setImageData(buf, bufType).then((): void => {
           resolve(true)
         }, (err): void => { console.log("Error when copying image: " + err); resolve(0) })
       })
     } else {
-      let p: Promise<BOOL | boolean | string> | null = OnEdge || OnChrome
+      // on Chrome 103, a tee.html in a incognito tab can not access `blob:` URLs
+      type Result = BOOL | boolean | string;
+      void (OnEdge || OnChrome
           && Build.MinCVer < BrowserVer.MinEnsured$Clipboard$$write$and$ClipboardItem
           && CurCVer_ < BrowserVer.MinEnsured$Clipboard$$write$and$ClipboardItem ? Promise.resolve(false)
-          : runOnTee_(kTeeTask.CopyImage, [finalUrl, text], buffer as Blob)
-      void (Build.MV3 && IsLimited ? (p as Promise<boolean>).then(resolve) : p.then((ok): void => {
-        if (ok) { resolve(true); return }
+      : (url || copyFromBlobUrl ? Promise.resolve()
+          : BgUtils_.convertToDataURL_(buffer!).then((u2): void => { url = u2 }))
+      .then(((buffer2: Blob): Promise<Result> => {
+        return runOnTee_(actions === kTeeTask.DrawAndCopy ? actions : kTeeTask.CopyImage, {
+          u: copyFromBlobUrl ? blobRef : url, t: text,
+          b: Build.BTypes && !(Build.BTypes & (Build.BTypes - 1)) ? Build.BTypes as number : OnOther_
+        }, buffer2)
+      }).bind(0, buffer!)))
+      .then((ok): void => {
+        if (OnFirefox && typeof ok === "string") {
+          handleImageUrl(ok as "data:", null, kTeeTask.CopyImage, resolve, title, text)
+          return
+        }
+        if (Build.MV3 && IsLimited || ok) { resolve(!!ok); return }
         const doc = (globalThis as MaybeWithWindow).document!
         const img = doc.createElement("img")
         img.alt = title.replace(BgUtils_.getImageExtRe_(), "")
@@ -302,27 +319,34 @@ export const handleImageUrl = (url: string, buffer: Blob | ArrayBuffer | null
         doc.execCommand("copy")
         img.remove()
         resolve(1)
-      }))
+      })
     }
   }
   if (actions & kTeeTask.ShowImage) {
-    doShow!(finalUrl)
-    actions & kTeeTask.Copy || resolve(1)
+    doShow!(url || blobRef)
+    actions & kTeeTask.CopyImage || resolve(1)
     return
   }
   if (actions & kTeeTask.Download) {
-    if (Build.MV3 && IsLimited && actions & kTeeTask.Copy) { return }
     const port = framesForTab_.get(cPort ? cPort.s.tabId_ : curTabId_)?.top_ || cPort
-    downloadFile(finalUrl, title, port ? port.s.url_ : null, (succeed): void => {
+    const p2 = BgUtils_.deferPromise_<unknown>()
+    if (actions & kTeeTask.CopyImage && !(OnFirefox && actions !== kTeeTask.DrawAndCopy)) {
+      setTimeout(p2.resolve_, 300)
+    } else {
+      p2.resolve_(0)
+    }
+    p2.promise_.then((): void => {
+    downloadFile(blobRef, title, port ? port.s.url_ : null, (succeed): void => {
       const clickAnchor_cr = (): void => {
         const a = (globalThis as MaybeWithWindow).document!.createElement("a")
-        a.href = finalUrl
+        a.href = blobRef
         a.download = title
         a.target = "_blank"
         a.click()
       }
-      succeed ? 0 : Build.MV3 && IsLimited || OnFirefox ? doShow!(finalUrl) : clickAnchor_cr()
+      succeed ? 0 : Build.MV3 && IsLimited || OnFirefox ? doShow!(url || blobRef) : clickAnchor_cr()
       actions === kTeeTask.Download && resolve(true)
+    })
     })
   }
 }
@@ -338,7 +362,7 @@ export const captureTab = (tabs: [Tab] | undefined, resolve: OnCmdResolved): voi
       resolve(0); return runtimeError_()
     }
     const actions = (show ? kTeeTask.ShowImage : 0) | (download ? kTeeTask.Download : 0)
-        | (copy ? kTeeTask.Copy : 0)
+        | (copy ? kTeeTask.CopyImage : 0)
     const doShow = (url: string): void => {
       reqH_[kFgReq.openImage]({ t: "pixel=1&", u: url, f: title, a: false, m: HintMode.OPEN_IMAGE, o: {
         r: get_cOptions<C.captureTab, true>().reuse, m: get_cOptions<C.captureTab, true>().replace,
@@ -346,7 +370,7 @@ export const captureTab = (tabs: [Tab] | undefined, resolve: OnCmdResolved): voi
       } }, cPort)
       return
     }
-    handleImageUrl(url, null, actions, copy ? (ok): void => {
+    handleImageUrl(url as "data:", null, actions, copy ? (ok): void => {
       showHUD(trans_(ok ? "imgCopied" : "failCopyingImg", [ok === 1 ? "HTML" : jpeg ? "JPEG" : "PNG"]))
       resolve(ok)
     } : resolve, title, ((richText || "") + "").includes("name") ? title : "", doShow)
@@ -406,6 +430,9 @@ export const openImgReq = (req: FgReq[kFgReq.openImage], port?: Port): void => {
   set_cRepeat(1)
   const urlToOpen = !keyword && !hasSed ? url : testUrl ? convertToUrl_(url, keyword, Urls.WorkType.ActAnyway)
         : createSearchUrl_(url.trim().split(BgUtils_.spacesRe_), keyword, Urls.WorkType.ActAnyway)
+  port && safePost(port, {
+    N: kBgReq.showHUD, H: ensureInnerCSS(cPort.s), k: kTip.raw, t: " ", d: 0.0001
+  })
   // not use v:show for those from other extensions
   openUrlWithActions(typeof urlToOpen === "string" && testUrl
       && (!urlToOpen.startsWith(location.protocol) || urlToOpen.startsWith(location.origin + "/")) ? prefix + urlToOpen

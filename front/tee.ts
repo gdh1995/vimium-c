@@ -22,7 +22,7 @@
       } else {
         resolve!(ok)
       }
-      destroy()
+      setTimeout(destroy, 0) // try to avoid a strange crashes on Chrome 103
     }
     const { t: taskId, s: serialized, d: data, r: resolve } = _response as TaskTypes<keyof TeeTasks>
     const runTask = (): void | Promise<unknown> => {
@@ -30,32 +30,55 @@
         switch (taskId) {
         case kTeeTask.Copy:
         case kTeeTask.Paste:
-            const navClip = navigator.clipboard!, realOnFinish = onFinish
-            onFinish = (): void => {}
-            return (taskId === kTeeTask.Copy ? navClip.writeText!(serialized) : navClip.readText!())
-                .catch(() => false as const).then((result): void => {
-              setTimeout((): void => { // try to avoid a strange crashes on Chrome 103
-                realOnFinish(taskId === kTeeTask.Copy ? result !== false : result as string | false)
-              }, 0)
-            })
-        case kTeeTask.Download:
-          return (((window as any).fetch as GlobalFetch)(serialized.url).then(res => res.blob())
-              .then(blob => URL.createObjectURL(blob), () => {})).then(url2 => {
-            url2 && (serialized.url = url2)
-            return chrome.downloads.download!(serialized).catch((): void => {})
-          })
+            const navClip = navigator.clipboard!
+            return taskId === kTeeTask.Copy ? navClip.writeText!(serialized)
+                : navClip.readText!().then((result): void => { okResult = result })
         }
       }
       switch (taskId) {
       case kTeeTask.CopyImage:
-        return (data ? Promise.resolve(data)
-                : ((window as any).fetch(serialized[0] as string) as Promise<Response>).then(res => res.blob()))
-            .then((image): Promise<unknown> => {
+      case kTeeTask.DrawAndCopy:
+        const copying = (taskId === kTeeTask.DrawAndCopy ? new Promise<Blob>((resolve, reject): void => {
+          const img = document.createElement("img")
+          img.onload = (): void => {
+            const canvas = document.createElement("canvas")
+            const w = canvas.width = img.naturalWidth, h = canvas.height = img.naturalHeight
+            const ctx = canvas.getContext("2d") // ctx may be null if OOM
+            if (!ctx) { reject("Can not create canvas"); return }
+            try {
+              ctx.drawImage(img, 0, 0, w, h)
+              canvas.toBlob(blob => blob ? resolve(blob) : reject("Can not export from canvas"))
+            } catch {
+              reject("Can not export tainted canvas")
+            }
+          }
+          img.onerror = () => { reject(0) }
+          img.src = serialized.u
+        }).catch<Response | Blob>((err: string | 0) => !Build.MV3 && data
+            || (err !== 0 ? ((window as any).fetch as GlobalFetch)(serialized.u)
+                : Promise.reject("Can not load image")))
+        : !Build.MV3 && data ? Promise.resolve(data) : ((window as any).fetch as GlobalFetch)(serialized.u))
+            .then<Blob>((res) => {
+          serialized.u = ""
+          return res instanceof Response ? res.blob() : res
+        })
+        .then((image): Promise<unknown> => {
+          if (!(Build.BTypes & ~BrowserType.Firefox)
+                || !!(Build.BTypes & BrowserType.Firefox) && serialized.b! & BrowserType.Firefox) {
+            return new Promise<void>((resolve): void => {
+              const reader = new FileReader()
+              reader.onload = (): void => { okResult = reader.result as string; resolve() }
+              reader.readAsDataURL(image)
+            })
+          }
+          serialized.u = ""
           const png = "image/png", plain = "text/plain"
           const item: EnsuredDict<Blob> = { [png]: image.type === png ? image : new Blob([image], { type: png }) }
-          serialized[1] && (item[plain] = new Blob([serialized[1]], { type: plain }))
+          serialized.t && (item[plain] = new Blob([serialized.t], { type: plain }))
           return navigator.clipboard!.write!([new ClipboardItem(item)])
         })
+        taskId !== kTeeTask.DrawAndCopy && (serialized.u = "")
+        return copying
       }
       Build.NDEBUG || console.log("Vimium C: error: unknown tee task id =", taskId)
     }
@@ -66,11 +89,12 @@
       } catch (e) {
         Build.NDEBUG || console.log("Vimium C: error: failed in running task id = %o:\n%o", taskId, e)
       }
-      p ? p.then((): void => { onFinish(true) }, (err): void => {
-        Build.NDEBUG || console.log("Vimium C: can not run task=%o:", taskId, err)
+      p ? p.then((): void => { onFinish(okResult) }, (err): void => {
+        console.log("Vimium C: can not run task=%o:", taskId, err)
         onFinish(false)
       }) : onFinish(false)
     }
+    let okResult: true | string = true
     document.hasFocus() ? onFocus() : (window.onfocus = onFocus, window.focus())
   }
   let port: chrome.runtime.Port | null, once = false

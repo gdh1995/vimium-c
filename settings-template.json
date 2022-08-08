@@ -58,6 +58,7 @@
 		"run Fs lh SearchLinkText",
 		"run Fb Fs keyword=\"bing\"",
 		"run Fc Ft",
+		"run FC lh CopyImage",
 		"map Ff LinkHints.activateHover \\",
 		"  toggle={\".bilibili-player-area\":\"video-control-show\"}",
 		"run Fz lh Leave",

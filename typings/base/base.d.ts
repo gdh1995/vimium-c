@@ -301,3 +301,5 @@ interface CSS { escape? (value: string): string }
 interface KeyboardEventInit { keyCode?: number; which?: number }
 
 type GlobalFetch = (input: string, init?: Partial<Request & {signal: object}>) => Promise<Response>
+
+interface HTMLImageElement { referrerpolicy?: string }

@@ -1,11 +1,13 @@
 import {
   set_cPort, set_cRepeat, set_cOptions, needIcon_, set_cKey, cKey, get_cOptions, set_reqH_, reqH_, restoreSettings_,
   innerCSS_, framesForTab_, cRepeat, curTabId_, Completion_, CurCVer_, OnChrome, OnEdge, OnFirefox, setIcon_, blank_,
-  substitute_, paste_, keyToCommandMap_, CONST_, copy_, set_cEnv, settingsCache_, vomnibarBgOptions_, setTeeTask_
+  substitute_, paste_, keyToCommandMap_, CONST_, copy_, set_cEnv, settingsCache_, vomnibarBgOptions_, setTeeTask_,
+  curIncognito_
 } from "./store"
 import * as BgUtils_ from "./utils"
 import {
-  tabsUpdate, runtimeError_, selectTab, selectWnd, browserSessions_, browserWebNav_, downloadFile, import2
+  tabsUpdate, runtimeError_, selectTab, selectWnd, browserSessions_, browserWebNav_, downloadFile, import2, Q_,
+  getCurTab, getGroupId
 } from "./browser"
 import { findUrlEndingWithPunctuation_, parseSearchUrl_, parseUpperUrl_ } from "./parse_urls"
 import * as settings_ from "./settings"
@@ -312,23 +314,34 @@ set_reqH_([
   },
   /** kFgReq.copy: */ (request: FgReq[kFgReq.copy], port: Port): void => {
     let str: string | string[] | object[] | undefined
-    if (request.i) {
-      set_cPort(port)
-      if (request.i.startsWith("data:text/")) {
-        showHUD("", kTip.notImg)
-        return
-      }
-      const title = request.u
-      let prefixLen = request.i.indexOf(",") + 1, contentType = request.i.slice(5, Math.max(5, prefixLen)).toLowerCase()
-      const mime = contentType.split(";")[0]
-      let head = request.i.slice(prefixLen, prefixLen + 8)
-      head = contentType.includes("base64") ? BgUtils_.DecodeURLPart_(head, "atob") : head.slice(0, 6)
-      const tag = head.startsWith("\x89PNG") ? "PNG" : head.startsWith("\xff\xd8\xff") ? "JPEG"
-          : (mime.split("/")[1] || "").toUpperCase() || mime
-      const text = title && (<RegExpI> /^(http|ftp|file)/i).test(title) ? title : ""
-      handleImageUrl(request.i, null, kTeeTask.Copy, (ok): void => {
-        showHUD(trans_(ok ? "imgCopied" : "failCopyingImg", [ok === 1 ? "HTML" : tag]))
-      }, title, text)
+    if (request.i != null) {
+      const richText = (request.r || "") + "" as Extract<typeof request.r, string>
+      const i0 = request.i, title = richText.includes("name") ? request.u : ""
+      void Promise.all<"data:" | "" | [Blob, string] | null | 0, [Tab] | never[] | null | undefined>([
+        (<RegExpI> /^data:/i).test(i0) ? Promise.resolve(i0) : BgUtils_.fetchOnlineResources_(i0 || request.u),
+        OnFirefox && !curIncognito_ ? Q_(getCurTab) : null
+      ]).then(([res, curTab]) => {
+        const isStr = typeof res === "string", dataUrl = isStr ? res : res ? res[1] : ""
+        set_cPort(port)
+        let prefixLen = dataUrl.indexOf(",") + 1, contentType = dataUrl.slice(5, Math.max(5, prefixLen)).toLowerCase()
+        const mime = contentType.split(";")[0]
+        if (!res || mime.startsWith("text/")) {
+          res ? showHUD("", kTip.notImg) : showHUD(trans_(res === 0 ? "downloadTimeout" : "downloadFail"))
+          return
+        }
+        let head = dataUrl.slice(prefixLen, prefixLen + 8)
+        head = contentType.includes("base64") ? BgUtils_.DecodeURLPart_(head, "atob") : head.slice(0, 6)
+        const tag = head.startsWith("\x89PNG") ? "PNG" : head.startsWith("\xff\xd8\xff") ? "JPEG"
+            : (<RegExpOne> /^GIF8[79]a/).test(head) ? "GIF"
+            : (mime.split("/")[1] || "").toUpperCase() || mime
+        const text = title && (<RegExpI> /^(http|ftp|file)/i).test(title) ? title : ""
+        const wantSafe = richText.includes("safe") && tag !== "GIF"
+        handleImageUrl(isStr ? res : "", isStr ? null : res[0]
+            , wantSafe && tag !== "PNG" ? kTeeTask.DrawAndCopy : kTeeTask.CopyImage, (ok): void => {
+          showHUD(trans_(ok ? "imgCopied" : "failCopyingImg", [ok === 1 ? "HTML" : wantSafe ? "PNG" : tag]))
+        }, title, text, null, OnFirefox ? !curTab || !curTab[0] || getGroupId(curTab[0]) !== null : false)
+        BgUtils_.resetRe_()
+      })
       return
     }
     str = request.u || request.s || ""

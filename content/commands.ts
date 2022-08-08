@@ -590,7 +590,7 @@ set_contentCommands_([
     const oldWndFocus = onWndFocus, focused = deepActiveEl_unsafe_()
     const frame = createElement_("iframe")
     frame.src = options.u
-    ; (frame as HTMLIFrameElement & { allow: string }).allow = options.a
+    OnChrome && ((frame as HTMLIFrameElement & { allow: string }).allow = options.a)
     setClassName_s(frame, options.c)
     set_onWndFocus(frame.onerror = (event?: Event | BOOL): void => {
       set_onWndFocus(oldWndFocus), frame.onerror = null as never

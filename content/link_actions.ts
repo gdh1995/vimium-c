@@ -1,7 +1,7 @@
 import {
-  safer, fgCache, isImageUrl, isJSUrl, set_keydownEvents_, keydownEvents_, doc, chromeVer_, os_, getTime, timeout_,
+  safer, fgCache, isImageUrl, isJSUrl, set_keydownEvents_, keydownEvents_, doc, chromeVer_, os_, timeout_,
   createRegExp, isTY, max_, min_, OnFirefox, OnChrome, safeCall, locHref, parseOpenPageUrlOptions, VTr, loc_, OnSafari,
-  clearTimeout_, promiseDefer_, OnEdge
+  clearTimeout_, promiseDefer_, OnEdge, urlSameIgnorehash as urlSameIgnoringHash
 } from "../lib/utils"
 import { getVisibleClientRect_, center_, view_, selRange_ } from "../lib/rect"
 import {
@@ -82,33 +82,35 @@ const getUrlData = (str?: string): string => {
 const tryDrawOnCanvas = ((hudMsg: string | 0, req?: Req.fg<kFgReq.openImage | kFgReq.copy>): void => {
   type ImageLoadingResult = Event | 1 | undefined | TimerType.fake
   type FileReaderLoadEvent = Event & { target: FileReader }
-  const kAn = "anonymous"
   let s2: string, r1: ((value: ImageLoadingResult) => void) | null, timer1: ValidTimeoutID = 0
   let img = clickEl as HTMLImageElement
-  const url = req ? (req as FgReq[kFgReq.openImage]).u : isHtmlImage && (s2 = getMediaUrl(img, 1)) && getUrlData(s2)
-  const defer0 = promiseDefer_<string | FileReaderLoadEvent | void>(), resolveData = defer0.r
+  const defer0 = promiseDefer_<string | FileReaderLoadEvent | 0 | void>(), resolveData = defer0.r
+  const url = isHtmlImage && (req ? (req as FgReq[kFgReq.openImage]).u : (s2 = getMediaUrl(img, 1)) && getUrlData(s2))
   if (url) {
-    const parsed = new URL(url)
-    const origin = parsed.origin || "", isHttp = origin[0] === "h", sameOrigin = isHttp && origin === loc_.origin
+    const parsed = new URL(url), isGlobal = (<RegExpI> /^(https?|data):/i).test(url)
+    const origin = parsed.origin || "", sameOrigin = origin[0] === "h" && origin === loc_.origin
     const defer1 = promiseDefer_<ImageLoadingResult>()
+    const inIncognito = (OnChrome ? chrome : browser as never).extension.inIncognitoContext
     r1 = defer1.r
     richText = (richText || "") + "" as Extract<typeof richText, string>
-    if (!richText.includes("safe") && (<RegExpI> /^(http|data|\/\/)/).test(url) || OnFirefox && hasKeyword_ff
+    if (!richText.includes("safe") && isGlobal && !inIncognito || OnFirefox && req && hasKeyword_ff
         || parsed.pathname.endsWith(".gif")) {
       r1(0)
-    } else if (isHtmlImage && getMediaUrl(img, 2) === url && (sameOrigin || img.crossOrigin === kAn)) {
+    } else if (isHtmlImage && urlSameIgnoringHash(url, getMediaUrl(img, 2)) && (sameOrigin || img.crossOrigin)) {
       r1(1)
-    } else {
-      timer1 = timeout_(r1, 5000)
+    } else if(sameOrigin || inIncognito) {
+      timer1 = timeout_(r1, 9000)
       img = createElement_("img")
       img.onload = img.onerror = r1
-      img.crossOrigin = kAn
-      s2 = url.split("#")[0]
-      img.src = sameOrigin || !isHttp ? s2 : s2 + (s2.includes("?") ? "&__=" : "?__=") + getTime()
+      inIncognito && (img.crossOrigin = "anonymous")
+      OnFirefox && (img.referrerpolicy = "strict-origin-when-cross-origin") // avoid a warning on FF 102.0.1esr
+      img.src = url
       hintApi.h(kTip.reDownloading, 9)
+    } else {
+      r1(0)
     }
     void defer1.p.then((ok: ImageLoadingResult | boolean): void => {
-      const blobToData = (blob: Blob | "" | null): void => {
+      const blobToData = (blob: Blob | null | 0): void => {
         !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
             && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.Min$AbortSignal$$timeout)
             && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.Min$AbortSignal$$timeout)
@@ -118,31 +120,43 @@ const tryDrawOnCanvas = ((hudMsg: string | 0, req?: Req.fg<kFgReq.openImage | kF
         reader.onload = resolveData
         reader.readAsDataURL(blob)
       }
-      ok = isTY(ok, kTY.obj) ? ok.type > "l" : ok === 1
-      clearTimeout_(timer1), ok || img !== clickEl && setOrRemoveAttr_s(img, "src")
+      const h = img.naturalHeight
+      clearTimeout_(timer1)
+      ok = (isTY(ok, kTY.obj) ? ok.type > "l" : ok === 1) && h
       if (ok) {
-        const canvas = (ok as true) && createElement_("canvas")
-        const w = canvas.width = img.naturalWidth, h = canvas.height = img.naturalHeight
-        const ctx = ok && canvas.getContext("2d")
-        if (!ctx) { resolveData(); return } // ctx may be null if OOM
-        ctx.drawImage(img, 0, 0, w, h)
-        OnEdge || OnChrome && Build.MinCVer < BrowserVer.MinEnsured$canvas$$toBlob
-            && chromeVer_ < BrowserVer.MinEnsured$canvas$$toBlob // in case of unknown crashes when EXP
-        ? resolveData(canvas.toDataURL()) : canvas.toBlob(blobToData)
-      } else if (!OnChrome || Build.MinCVer >= BrowserVer.MinAbortController
-          || chromeVer_ > BrowserVer.MinAbortController - 1) {
+        const canvas = createElement_("canvas")
+        const w = canvas.width = img.naturalWidth
+        canvas.height = h
+        const ctx = canvas.getContext("2d") // ctx may be null if OOM
+        ok = 0
+        if (ctx) {
+          try {
+            ctx.drawImage(img, 0, 0, w, h)
+            OnEdge || OnChrome && Build.MinCVer < BrowserVer.MinEnsured$canvas$$toBlob
+                && chromeVer_ < BrowserVer.MinEnsured$canvas$$toBlob // in case of unknown crashes when EXP
+            ? resolveData(canvas.toDataURL()) : canvas.toBlob(blobToData)
+            ok = 1
+          } catch { /* empty */ }
+        }
+      }
+      if (ok) { return }
+      img !== clickEl && setOrRemoveAttr_s(img, "src")
+      if ((inIncognito || !isGlobal) && (!OnChrome || Build.MinCVer >= BrowserVer.MinAbortController
+          || chromeVer_ > BrowserVer.MinAbortController - 1)) {
+        hintApi.h(kTip.reDownloading, 9)
         if (!(Build.BTypes & ~BrowserType.ChromeOrFirefox)
             && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.Min$AbortSignal$$timeout)
             && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.Min$AbortSignal$$timeout)) {
-          void (fetch as GlobalFetch)(url, { cache: "force-cache", signal: AbortSignal.timeout!(5000) })
-              .then<Blob>(res => res.blob()).then(blobToData, blobToData.bind(0, ""))
+          void (fetch as GlobalFetch)(url, { cache: "force-cache", signal: AbortSignal.timeout!(9000) })
+              .then<Blob>(res => res.blob()).then(blobToData, resolveData.bind(0, 0))
         } else {
           const abortCtrl = new AbortController()
           void (fetch as GlobalFetch)(url, { cache: "force-cache", signal: abortCtrl.signal })
-              .then<Blob>(res => res.blob()).then(blobToData, blobToData.bind(0, ""))
-          timer1 = timeout_(abortCtrl.abort.bind(abortCtrl), 5000)
+              .then<Blob>(res => res.blob()).then(blobToData, blobToData.bind(0, 0))
+          timer1 = timeout_(abortCtrl.abort.bind(abortCtrl), 9000)
         }
       } else {
+        req && mode1_ - HintMode.COPY_IMAGE || hintApi.h(kTip.reDownloading, 9)
         resolveData()
       }
     })
@@ -151,9 +165,9 @@ const tryDrawOnCanvas = ((hudMsg: string | 0, req?: Req.fg<kFgReq.openImage | kF
   }
   retPromise = defer0.p.then((dataUrl): void => {
     dataUrl = isTY(dataUrl, kTY.obj) ? dataUrl.target.result as string : dataUrl
-    if (dataUrl || req) {
-      !dataUrl ? 0 : req && mode1_ - HintMode.COPY_IMAGE ? (req as FgReq[kFgReq.openImage]).u = dataUrl
-      : req = { H: kFgReq.copy, i: dataUrl as "data:", u: (richText as string).includes("name") ? url as string : "" }
+    if (url || req) {
+      req && mode1_ - HintMode.COPY_IMAGE ? dataUrl && ((req as FgReq[kFgReq.openImage]).u = dataUrl)
+      : req = { H: kFgReq.copy, i: (dataUrl || "") as "data:" | "", u: url as string, r: richText }
       hintApi.p(req!)
     } else {
       const oldRange = selRange_(getSelected({}))

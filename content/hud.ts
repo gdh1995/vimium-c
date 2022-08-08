@@ -21,10 +21,10 @@ let timer: ValidTimeoutID = TimerID.None
 
 export { box as hud_box, text as hud_text, opacity_ as hud_opacity, timer as hud_tipTimer }
 
-export const hudTip = (tid: kTip | HintMode, duration?: 0 | 1 | 2, args?: Array<string | number> | string
+export const hudTip = (tid: kTip | HintMode, duration?: 0 | 0.0001 | 1 | 2, args?: Array<string | number> | string
     , embed?: 1): void => {
   hudShow(tid, args, embed)
-  text && (timer = timeout_(hudHide, (duration || 1.5) * 1000))
+  text && (timer = timeout_(hudHide, ((duration || 1.5) * 1000) | 0))
 }
 export const hudShow = (tid: kTip | HintMode, args?: Array<string | number> | string
     , embed?: boolean | BOOL | TimerType.fake): void => {
