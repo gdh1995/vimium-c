@@ -1,8 +1,9 @@
-import { CONST_, CurCVer_, helpDialogData_, IsEdg_, IsLimited, keyToCommandMap_, OnChrome, OnFirefox } from "./store"
+import {
+  CONST_, CurCVer_, helpDialogData_, IsEdg_, IsLimited, keyToCommandMap_, OnChrome, OnFirefox, inlineRunKey_
+} from "./store"
 import * as BgUtils_ from "./utils"
 import { browser_ } from "./browser"
 import { convertToUrl_ } from "./normalize_urls"
-import { inlineRunKey_ } from "./run_keys"
 
 type NoAliasInCNames<k extends kCName> =
     k extends `${string}activate${string}Mode${string}` | `${string}Unhover` | `${string}CS${string}`

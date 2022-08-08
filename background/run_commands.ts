@@ -1,5 +1,5 @@
 import {
-  framesForTab_, get_cOptions, cPort, cRepeat, bgC_, cmdInfo_, set_helpDialogData_, helpDialogData_,
+  framesForTab_, get_cOptions, cPort, cRepeat, bgC_, cmdInfo_, set_helpDialogData_, helpDialogData_, inlineRunKey_,
   set_cOptions, set_cPort, cKey, set_cKey, set_cRepeat, curTabId_, OnEdge, runOneMapping_, blank_, set_cEnv
 } from "./store"
 import * as BgUtils_ from "./utils"
@@ -348,6 +348,7 @@ export const portSendFgCmd = <K extends keyof CmdOptions> (
 export const executeShortcut = (shortcutName: StandardShortcutNames, ref: Frames.Frames | null | undefined): void => {
   const registry = shortcutRegistry_!.get(shortcutName)!
   const isRunKey = registry.alias_ === kBgCmd.runKey && registry.background_
+  if (isRunKey) { inlineRunKey_(registry) }
   setupSingletonCmdTimer(0)
   if (ref) {
     let port = ref.cur_

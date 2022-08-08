@@ -2,7 +2,7 @@ import {
   set_cPort, set_cRepeat, set_cOptions, needIcon_, set_cKey, cKey, get_cOptions, set_reqH_, reqH_, restoreSettings_,
   innerCSS_, framesForTab_, cRepeat, curTabId_, Completion_, CurCVer_, OnChrome, OnEdge, OnFirefox, setIcon_, blank_,
   substitute_, paste_, keyToCommandMap_, CONST_, copy_, set_cEnv, settingsCache_, vomnibarBgOptions_, setTeeTask_,
-  curIncognito_
+  curIncognito_, inlineRunKey_
 } from "./store"
 import * as BgUtils_ from "./utils"
 import {
@@ -23,7 +23,7 @@ import {
   sendFgCmd, replaceCmdOptions, onConfirmResponse, executeCommand, portSendFgCmd, executeExternalCmd,
   waitAndRunKeyReq, runNextCmdBy, parseFallbackOptions
 } from "./run_commands"
-import { inlineRunKey_, parseEmbeddedOptions, runKeyWithCond } from "./run_keys"
+import { parseEmbeddedOptions, runKeyWithCond } from "./run_keys"
 import { focusOrLaunch_, openJSUrl, openUrlReq } from "./open_urls"
 import {
   initHelp, openImgReq, framesGoBack, enterVisualMode, showVomnibar, parentFrame, nextFrame, performFind, focusFrame,

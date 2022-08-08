@@ -1,6 +1,6 @@
 import {
   framesForTab_, get_cOptions, cPort, cRepeat, set_cPort, cKey, curTabId_, keyToCommandMap_, get_cEnv, set_cEnv,
-  set_cKey, set_cOptions, set_runOneMapping_, runOneMapping_
+  set_cKey, set_cOptions, set_runOneMapping_, runOneMapping_, inlineRunKey_, set_inlineRunKey_
 } from "./store"
 import * as BgUtils_ from "./utils"
 import { runtimeError_, getCurWnd } from "./browser"
@@ -264,7 +264,7 @@ export const runKeyWithCond = (info?: CurrentEnvCache): void => {
  */
 declare const enum kN { key = 0, list = 1, ifElse = 2, error = 3 }
 interface BaseNode { t: kN; val: unknown; par: Node | null }
-interface OneKeyInstance { prefix: string, count: number, key: string, options: CommandsNS.RawOptions | null }
+interface OneKeyInstance { prefix: string, count: number, key: string, options: CommandsNS.Options | null }
 interface KeyNode extends BaseNode { t: kN.key; val: string | OneKeyInstance; par: ListNode }
 interface ListNode extends BaseNode { t: kN.list; val: (Node | KeyNode)[] }
 interface IfElseNode extends BaseNode { t: kN.ifElse; val: { cond: Node, t: Node | null, f: Node | null}; par: Node }
@@ -546,20 +546,26 @@ const runOneKeyWithOptions = (key: string, count: number
 }
 
 /** return whether skip it in help dialog or not */
-export const inlineRunKey_ = (rootRegistry: Writable<CommandsNS.Item>): kCName | void => {
+set_inlineRunKey_(As_<typeof inlineRunKey_>((rootRegistry: Writable<CommandsNS.Item>): kCName | void => {
+  /** @note should keep `fullOpts` writable */
   let fullOpts: KnownOptions<C.runKey> & SafeObject | null = normalizedOptions_(rootRegistry)
   if (!fullOpts) { fullOpts = rootRegistry.options_ = BgUtils_.safeObj_() }
   if (fullOpts.$normalized === 2) { return rootRegistry.command_ }
   let keyOpts: KnownOptions<C.runKey> & SafeObject = fullOpts, canInline = true
   normalizeExpects(keyOpts)
   keyOpts.$normalized = 2
+  let count = 1
+  if ((keyOpts as CommandsNS.Options).$count) {
+    count = (keyOpts as CommandsNS.Options).$count!
+    keyOpts = fullOpts = copyCmdOptions(BgUtils_.safeObj_(), keyOpts) // auto filter out "$count"
+  }
   while (keyOpts && normalizeExpects(keyOpts).length === 0 && keyOpts.keys!.length >= 1) {
     let keys = keyOpts.keys as (string | SingleSequence)[], seq = keys[0]
     canInline = canInline && keys.length === 1
     if (typeof seq === "string") {
       let mask = keyOpts.mask
       if (mask != null) {
-        keyOpts !== fullOpts && (keyOpts = fullOpts = concatOptions(keyOpts, fullOpts)!)
+        keyOpts !== fullOpts && (keyOpts = fullOpts = concatOptions(keyOpts, fullOpts || BgUtils_.safeObj_())!)
         const filled = fillOptionWithMask<C.runKey>(seq, mask, "", kRunKeyOptionNames, 1, fullOpts)
         if (!filled.ok) { return }
         mask = filled.ok > 0; seq = filled.result
@@ -576,21 +582,34 @@ export const inlineRunKey_ = (rootRegistry: Writable<CommandsNS.Item>): kCName |
     const newName = parentEntry ? parentEntry.command_ : key in availableCommands_ ? key as kCName : null
     if (!newName) { return }
     const doesContinue = parentEntry != null && parentEntry.alias_ === C.runKey && parentEntry.background_
-    if (doesContinue || canInline) {
-      keyOpts !== fullOpts && (fullOpts = concatOptions(keyOpts, fullOpts)!)
-      fullOpts = (fullOpts.options || (fullOpts.$masked ? null : collectOptions(fullOpts))) as typeof fullOpts | null
-      fullOpts = concatOptions(concatOptions(fullOpts, seq.options), info.options) as typeof fullOpts
+    if (!doesContinue && !canInline) {
+      return rootRegistry.command_ = newName
     }
+    keyOpts !== fullOpts && (fullOpts = concatOptions(keyOpts, fullOpts)!)
+    fullOpts = (fullOpts.options ? copyCmdOptions(BgUtils_.safeObj_(), fullOpts.options as typeof fullOpts)
+        : (fullOpts.$masked ? null : collectOptions(fullOpts))) as typeof fullOpts | null // writable again
+    let $count = info.options?.$count ?? seq.options?.$count ?? (fullOpts as CommandsNS.Options | null)?.$count
+    fullOpts = concatOptions(concatOptions(fullOpts, seq.options), info.options)
+    fullOpts = fullOpts && (fullOpts === seq.options || fullOpts === info.options)
+        ? copyCmdOptions(BgUtils_.safeObj_(), fullOpts) : fullOpts // writable again
+    if (fullOpts && ("count" in fullOpts || $count != null)) {
+      $count = $count != null ? parseFloat($count) || 1
+          : (parseFloat((fullOpts as CommandsNS.RawOptions).count || 1) || 1)
+      delete (fullOpts as CommandsNS.RawOptions).count
+    }
+    count *= ($count ?? 1) * info.count
+    const parentOptions = parentEntry && normalizedOptions_(parentEntry)
     if (!doesContinue) {
-      canInline ? Object.assign(rootRegistry, makeCommand_(newName
-          , concatOptions(parentEntry && normalizedOptions_(parentEntry), fullOpts)
-      )) : (rootRegistry.command_ = newName)
+      fullOpts = concatOptions(parentOptions, fullOpts)
+      fullOpts && fullOpts === parentOptions && (fullOpts = copyCmdOptions(BgUtils_.safeObj_(), fullOpts))
+      count !== 1 && (((fullOpts || (fullOpts = BgUtils_.safeObj_())) as CommandsNS.Options).$count = count)
+      Object.assign(rootRegistry, makeCommand_(newName, fullOpts))
       return newName
     }
     keyOpts = fullOpts && (fullOpts.keys !== void 0 || fullOpts.expect !== void 0 || fullOpts.mask !== void 0)
-        ? fullOpts = concatOptions(normalizedOptions_(parentEntry), fullOpts)!
-        : normalizedOptions_(parentEntry)!
+        ? fullOpts = concatOptions(parentOptions, fullOpts)!
+        : parentOptions || BgUtils_.safeObj_()
   }
-}
+}))
 
 //#endregion

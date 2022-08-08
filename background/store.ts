@@ -143,6 +143,7 @@ export let bgC_: {
 }
 export let cmdInfo_: { readonly [k in number]: kCmdInfo }
 export let runOneMapping_: (key: string, port: Port | null, fStatus: NonNullable<FgReq[kFgReq.nextKey]["f"]>) => void
+export let inlineRunKey_: (rootRegistry: Writable<CommandsNS.Item>) => kCName | void
 let _teeTask: BaseTeeTask & { /** unique id */ i: number } | null = null
 //#endregion
 
@@ -192,6 +193,7 @@ export const set_bgC_ = (_newBgC: typeof bgC_): void => { bgC_ = _newBgC }
 export const set_cmdInfo_ = (_newCmdInfo: typeof cmdInfo_): void => { cmdInfo_ = _newCmdInfo }
 export const set_installation_ = (_newInstallation: typeof installation_): void => { installation_ = _newInstallation }
 export const set_runOneMapping_ = (_newF: typeof runOneMapping_): void => { runOneMapping_ = _newF }
+export const set_inlineRunKey_ = (_newInlineRunKey: typeof inlineRunKey_): void => { inlineRunKey_ = _newInlineRunKey }
 export const setTeeTask_ = (expected: number | null, newTask: typeof _teeTask): typeof _teeTask => {
   const old = _teeTask, matches = !expected || old && old.i === expected
   _teeTask = matches ? newTask : old
