@@ -163,8 +163,7 @@ const renderGroup = (group: string, commandToKeys: Map<string, [string, Commands
       const isAdvanced = i < cmdList.length - 1 && cmdList[i + 1] === 1;
       isAdvanced && i++
       const _next = i < cmdList.length - 1 ? cmdList[i + 1] as Exclude<typeof cmdList[2], BOOL> : "a"
-      const params = _next[0] === "$" ? _next.slice(1) : ""
-      params && i++
+      const params = _next[0] === "$" ? (i++, _next.slice(1)) : ""
       let keyLen = -2, bindings = "", description = descriptions_.get(command)
       if (!description) {
         description = [i18n_.get(command as NormalizedNames)! // lgtm [js/incomplete-sanitization]
@@ -276,7 +275,7 @@ const commandGroups_: {
     , "LinkHints.activateDownloadLink", 1
     , "LinkHints.activateOpenIncognito", 1
     , "LinkHints.activateFocus"
-    , "LinkHints.activateHover", 1, "$showUrl=true"
+    , "LinkHints.activateHover", 1, OnFirefox ? "$" : "$showUrl=true"
     , "LinkHints.activateLeave", 1
     , "LinkHints.unhoverLast", 1
     , "LinkHints.activateSearchLinkText"

@@ -226,6 +226,7 @@ const openTextOrUrl = (url: string): void => {
 }
 
 const showUrlIfNeeded = (): void => {
+  if (OnFirefox) { return }
   const anchor = findAnchor_(clickEl)
   const href = anchor && hintOptions.showUrl && anchor.href
   href && hintApi.t({ k: kTip.raw, t: href.slice(0, 256), l: 1 })

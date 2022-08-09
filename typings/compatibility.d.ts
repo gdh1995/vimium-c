@@ -625,6 +625,7 @@ declare const enum FirefoxBrowserVer {
   ESRPopupBlockerPassClicksFromExtensions = 91, // since 91.6
   Min$structuredClone = 94,
   MinBrowserDarkThemeSet$PrefersColorScheme = 95, // https://github.com/gdh1995/vimium-c/discussions/517
+  // this logic change is imported by https://bugzilla.mozilla.org/show_bug.cgi?id=1739929
   // but refuse a `click#ctrl=false&shift=false` on `<a target=_blank>`: https://github.com/gdh1995/vimium-c/issues/616
   MinPopupBlockerPassComposedClicksFromExtensions = 96, // https://github.com/philc/vimium/issues/3964
   Min$sessions$$getRecentlyClosed$follow$maxResults = 96, // even if EXPERIMENTAL or LEGACY
