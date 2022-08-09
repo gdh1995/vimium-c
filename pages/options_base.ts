@@ -26,6 +26,7 @@ type OptionType<T extends keyof AllowedOptions> = T extends "exclusionRules" ? E
 export interface KnownOptionsDataset extends KnownDataset {
   iT: string // title in i18n
   i: string // text in i18n
+  for: "css-selector[:css-selectors]" // label's targets
   check: "check" // event name used in BooleanOption_
   map: string // json array of `[0|1|2, 0|1|2, (0|1|2)?]`, used in BooleanOption_
   allowNull: "true" | "1" // does allow null value, used in BooleanOption
@@ -37,6 +38,10 @@ export interface KnownOptionsDataset extends KnownDataset {
   href: `vimium://${string}`
 }
 declare const enum kExclusionChange { NONE = 0, pattern = 1, passKeys = 2, ALL = 3 }
+
+const _globalDelegates: {
+  [type: string]: { selector_: string | Node, handler_ (ev: Event): void, capture_: boolean | "on" }[] | null
+} = {}
 
 export const showI18n = (): void => {
     if (pageLangs_ === "en") { return }
@@ -100,6 +105,30 @@ export const debounce_ = function<T> (func: (this: T) => void
     }
   };
 } as <T> (func: (this: T) => void, wait: number, bound_context: T, also_immediate: BOOL) => (this: void) => void
+
+export const didBindEvent = (ev: Event | string): void => {
+  const type = typeof ev !== "string" ? ev.type : ev
+  for (const delegate of _globalDelegates[type] || []) {
+    for (const el of typeof delegate.selector_ === "string" ? $$(delegate.selector_) : [delegate.selector_]) {
+      if (delegate.capture_ !== "on") {
+        el.addEventListener(type, delegate.handler_, delegate.capture_)
+      } else {
+        (el as HTMLElement | Document)[("on" + type) as "onclick"] = delegate.handler_
+      }
+    }
+  }
+  _globalDelegates[type] = null
+  removeEventListener(type, didBindEvent, true)
+}
+export const delayBinding = (selector_: string | HTMLElement | Document
+    , type: string, handler_: (ev: EventToPrevent) => void, capture_?: boolean | "on") => {
+  let handlers = _globalDelegates[type]
+  if (!handlers) {
+    addEventListener(type, didBindEvent, true)
+    handlers = _globalDelegates[type] = []
+  }
+  handlers.push({ selector_, handler_, capture_: capture_ || false })
+}
 
 //#region async settings
 
@@ -317,11 +346,11 @@ export class ExclusionRulesOption_ extends Option_<"exclusionRules"> {
         ).content.querySelector(".exclusionRule") as HTMLTableRowElement;
     this.$list_ = element.querySelector("tbody") as HTMLTableSectionElement;
     this.list_ = [];
-    this.$list_.addEventListener("input", ExclusionRulesOption_.MarkChanged_);
-    this.$list_.addEventListener("input", this.onUpdated_);
-    this.$list_.addEventListener("click", e => this.onRemoveRow_(e));
+    delayBinding(this.$list_, "input", ExclusionRulesOption_.MarkChanged_)
+    delayBinding(this.$list_, "input", this.onUpdated_)
+    delayBinding(this.$list_, "click", e => this.onRemoveRow_(e))
     this._rendered = false
-    $("#exclusionAddButton").onclick = () => this.addRule_("");
+    delayBinding("#exclusionAddButton", "click", () => this.addRule_(""), "on")
   }
 onRowChange_ (_isInc: number): void { /* empty */ }
 static MarkChanged_ (this: void, event: Event): void {

@@ -1,6 +1,5 @@
-import { $$, browser_, OnFirefox, post_ } from "./async_bg"
-import { bgSettings_, Option_, AllowedOptions, KnownOptionsDataset, oTrans_ } from "./options_base"
-import { loadChecker } from "./options_wnd"
+import { browser_, OnFirefox, post_ } from "./async_bg"
+import { bgSettings_, Option_, AllowedOptions, oTrans_ } from "./options_base"
 import { kPgReq } from "../background/page_messages"
 
 let keyMappingChecker_ = {
@@ -196,7 +195,3 @@ Option_.all_.keyboard.checker_ = {
         ) as SettingsNS.FrontendSettings["keyboard"]
   }
 };
-
-for (const element of $$("[data-check]")) {
-    element.removeEventListener((element.dataset as KnownOptionsDataset).check || "input", loadChecker)
-}

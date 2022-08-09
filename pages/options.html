@@ -98,7 +98,7 @@
           <textarea id="keyMappings" class="code" inputmode="text" data-model="Text" data-check=""
             placeholder="# Insert your preferred key mappings here."></textarea>
           <div class="info">
-            <span data-i="16_2">The related option "</span><label for="#keyLayout:#alwaysIgnore,#ignoreIfNotASCII"
+            <span data-i="16_2">The related option "</span><label data-for="#keyLayout:#alwaysIgnore,#ignoreIfNotASCII"
                 class="ref-text name-of-related" role="link">Always ignore keyboard layout</label><span
                 data-i="16_3"
               >" is </span><span class="status-of-related">enabled</span><span data-i="16_4"></span>
@@ -108,7 +108,7 @@
           <div data-i="17">Remap keys and commands. Some examples:</div>
           <code>
           <pre>
-map f <a href="" target="_blank" rel="noopener noreferrer" title="Help" data-i="help-t"
+map f <a href="#" target="_blank" rel="noopener noreferrer" title="Help" data-i="help-t"
     data-href="vimium://home/wiki/Add-or-remove-hints">LinkHints.activate</a>
 unmap &lt;a-f1&gt;
 mapKey &lt;c-s-e&gt; &lt;esc&gt;
@@ -121,13 +121,13 @@ mapKey &lt;c-s-e&gt; &lt;esc&gt;
           </span><a
               class="wrap-left-space" data-auto-resize="keyMappings" role="button" tabindex="0" data-i="autoResize">
             Auto resize</a><span data-i="period">.</span>
-          <br><a href="" target="_blank" rel="noopener noreferrer"
+          <br><a href="#" target="_blank" rel="noopener noreferrer"
               data-href="vimium://home/wiki/Use-in-another-keyboard-layout" data-i="20">
             How to map keys in another keyboard layout?
           </a>
-          <br><a href="" target="_blank" rel="noopener noreferrer"
+          <br><a href="#" target="_blank" rel="noopener noreferrer"
               data-href="vimium://home/wiki/Map-a-key-to-different-commands-on-different-websites" data-i="20_2">
-            How to map differently on websites?</a> <a href="" target="_blank" rel="noopener noreferrer"
+            How to map differently on websites?</a> <a href="#" target="_blank" rel="noopener noreferrer"
               data-href="vimium://home/wiki" data-i="20_3">How to &#8230;?
           </a>
           <br><i data-i="21">Global shortcuts</i><span data-i="22"> are
@@ -147,7 +147,7 @@ mapKey &lt;c-s-e&gt; &lt;esc&gt;
             /><input id="linkHintNumbers" type="text" data-model="NonEmptyText"
             data-converter="lower chars" class="code" style="display: none;" autocomplete="off" />
           <div class="info">
-            <span data-i="16_2">The related option "</span><label for="#filterLinkHints"
+            <span data-i="16_2">The related option "</span><label data-for="#filterLinkHints"
                 class="ref-text" role="link" data-i="37_2">Use link name</label><span data-i="16_3"
               >" is </span><span class="status-of-related">enabled</span><span
                 data-i="16_4"></span><span data-i="semicolon">;</span><span data-i="NS">
@@ -188,7 +188,7 @@ key: https://c.com/$s/space=\s\ space_end
               data-i="NS"></span><a
               data-auto-resize="searchEngines" role="button" tabindex="0" data-i="autoResize">Auto resize
             </a><span data-i="period">.</span><br>
-          <a href="" target="_blank" rel="noopener noreferrer" data-i="36"
+          <a href="#" target="_blank" rel="noopener noreferrer" data-i="36"
               data-href="vimium://home/wiki/Search-engine-rules">
             How to write advanced search engine rules?
           </a>
@@ -199,7 +199,7 @@ key: https://c.com/$s/space=\s\ space_end
         <tr><td colspan="2"><header id="advanced" data-i="39">Advanced Options</header></td><td></td></tr>
         <tr id="optionalPermissionsBox">
           <td class="caption" data-i="103_2">Optional permissions</td>
-          <td id="optionalPermissions" data-check="change">
+          <td id="optionalPermissions">
             <template id="optionalPermissionsTemplate">
               <label class="optional-permission" tabindex="-1" aria-hidden="true">
                 <input type="checkbox" tabindex="-1" aria-hidden="true"/>
@@ -335,7 +335,7 @@ key: https://c.com/$s/space=\s\ space_end
           <td class="help"><div class="help-inner line-help">
             <span data-i="44_3">
             In link-hint mode, this option lets you select a link by typing its text.
-            </span><a href="" target="_blank" rel="noopener noreferrer" data-i="help"
+            </span><a href="#" target="_blank" rel="noopener noreferrer" data-i="help"
                 data-href="vimium://home/wiki/Using-Link-Hints">Online help</a><span data-i="period">.</span>
           </div></td>
         </tr>
@@ -471,7 +471,7 @@ key: https://c.com/$s/space=\s\ space_end
           <td>
             <label class="booleanOption" tabindex="-1" aria-hidden="true">
               <input id="vimSync" type="checkbox" tabindex="-1" aria-hidden="true"
-                  data-model="Boolean" data-allow-null="true" data-permission="storage" data-check="change" />
+                  data-model="Boolean" data-allow-null="true" data-permission="storage" data-check="" />
               <span data-i="65" class="checkboxHint" role="checkbox" tabindex="0" aria-hidden="false"
                 >Synchronize settings with your current account for this browser</span>
             </label>
@@ -494,7 +494,7 @@ key: https://c.com/$s/space=\s\ space_end
                 href="https://chrome.google.com/webstore/detail/newtab-adapter/cglpcedifkgalfdklahhcchnjepcckfn"
             ><span data-i="27">Like to focus web page on </span><span id="Ctrl">Ctrl</span>+T<span
                 data-i="27_2">?</span></a> <a
-                href="" target="_blank" rel="noopener noreferrer" data-i="28"
+                href="#" target="_blank" rel="noopener noreferrer" data-i="28"
                 data-href="vimium://home/wiki/Use-another-extension-as-the-New-Tab"
             >How to open another newtab?
             </a>
@@ -538,7 +538,7 @@ key: https://c.com/$s/space=\s\ space_end
               default styles.
             </span><a class="wrap-left-space" data-auto-resize="userDefinedCss" role="button" tabindex="0"
                 data-i="autoResize">Auto resize</a><span data-i="period">.</span><br>
-            <a href="" target="_blank" rel="noopener noreferrer" data-i="76_2"
+            <a href="#" target="_blank" rel="noopener noreferrer" data-i="76_2"
                 data-href="vimium://home/wiki/Style-the-UI-of-Vimium-C-using-Custom-CSS">
               How to style UI components in different DOM scopes?</a>
           </div></td>
@@ -590,7 +590,7 @@ p:regexp-to-replace:target-string:i"
             "c" means copying, "p" for pasting and "s" for both</span><span data-i="period">.</span><span data-i="NS">
             </span><a class="wrap-left-space" data-auto-resize="clipSub" role="button" tabindex="0"
                 data-i="autoResize">Auto resize</a><span data-i="period">.</span></div>
-            <div><a href="" target="_blank" rel="noopener noreferrer" data-i="86_5"
+            <div><a href="#" target="_blank" rel="noopener noreferrer" data-i="86_5"
                 data-href="vimium://home/wiki/Substitute-URLs-and-text-during-commands"
                 >How to substitute text during other commands?</a></div>
           </div></td>
@@ -625,7 +625,7 @@ p:regexp-to-replace:target-string:i"
                 data-i="period">.</span><span data-i="NS">
             </span><a class="wrap-left-space" data-auto-resize="extAllowList" role="button" tabindex="0"
                 data-i="autoResize">Auto resize</a><span data-i="period">.</span><br>
-            <a href="" target="_blank" rel="noopener noreferrer" data-i="95"
+            <a href="#" target="_blank" rel="noopener noreferrer" data-i="95"
                 data-href="vimium://home/wiki/Inject-into-other-extensions">
               How to inject Vimium C into other extensions?</a>
           </div></td>
@@ -701,8 +701,8 @@ so only the default inner version will be used on them"
         <span id="helpText">
           <a id="openInTab" href="" target="_blank" style="display: none;">Open this options page in a new tab.</a>
           <span><span class="Vim">Vim</span>ium <span class="C">C</span>
-          <a href="" data-href="vimium://release"
-              target="_blank" rel="noopener noreferrer"><span class="version"></span></a><span
+          <a href="#" data-href="vimium://release"
+              target="_blank" rel="noopener noreferrer"><span id="version"></span></a><span
               data-i="comma">,</span><span data-i="NS">
             </span><span id="browserName"></span><span data-i="period">.</span></span><br>
           <strong><kbd>&lt;c-enter&gt;</kbd></strong> <span data-i="112">to save <i>all</i> options,

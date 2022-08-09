@@ -3,7 +3,7 @@ import {
   CurFFVer_, OnSafari
 } from "./async_bg"
 import {
-  bgSettings_, Option_, AllowedOptions, Checker, PossibleOptionNames, ExclusionRulesOption_, oTrans_,
+  bgSettings_, Option_, AllowedOptions, Checker, PossibleOptionNames, ExclusionRulesOption_, oTrans_, delayBinding,
   KnownOptionsDataset, OptionErrorType, ExclusionRealNode, UniversalNumberOptions
 } from "./options_base"
 import type { OptionalPermissionsOption_ } from "./options_permissions"
@@ -137,8 +137,8 @@ export class NumberOption_<T extends UniversalNumberOptions> extends Option_<T> 
       default: 0,
       check_: NumberOption_.Check_
     }
-    this.element_.oninput = this.onUpdated_
-    this.element_.onfocus = this.addWheelListener_.bind(this)
+    delayBinding(this.element_, "input", this.onUpdated_)
+    delayBinding(this.element_, "focus", this.addWheelListener_.bind(this))
     nextTick_((): void => {
       this.checker_.default = bgSettings_.defaults_[this.field_]
     })
@@ -204,9 +204,9 @@ export class BooleanOption_<T extends keyof AllowedOptions> extends Option_<T> {
     this.map_ = map ? JSON.parse(map) : el.dataset.allowNull ? BooleanOption_.map_for_3_ : BooleanOption_.map_for_2_
     this.true_index_ = (this.map_.length - 1) as 2 | 1
     if (this.true_index_ > 1 && this.field_ !== "vimSync") {
-      el.addEventListener("change", this.onTripleStatusesClicked.bind(this), true)
+      delayBinding(el, "input", this.onTripleStatusesClicked.bind(this), true)
     }
-    el.onchange = this.onUpdated_
+    delayBinding(el, "change", this.onUpdated_)
   }
   override populateElement_ (value: SettingsWithDefaults[T]): void {
     // support false/true when .map_ is like [0, 1, 2]
@@ -254,7 +254,7 @@ export class TextOption_<T extends TextualizedOptionNames> extends Option_<T> {
   override init_ (): void {
     const converter = (this.element_.dataset as KnownOptionsDataset).converter || ""
     const ops = converter ? converter.split(" ") : []
-    this.element_.oninput = this.onUpdated_
+    delayBinding(this.element_, "input", this.onUpdated_)
     if (ops.length > 0) {
       (this as any as TextOption_<TextOptionNames>).checker_ = {
         ops_: ops,
@@ -387,7 +387,7 @@ export class MaskedText_<T extends TextOptionNames> extends TextOption_<T> {
     super.init_()
     this.masked_ = true
     this._myCancelMask = this.cancelMask_.bind(this);
-    this.element_.addEventListener("focus", this._myCancelMask)
+    delayBinding(this.element_, "focus", this._myCancelMask)
   }
   cancelMask_ (): void {
     if (!this._myCancelMask) { return }
@@ -609,7 +609,6 @@ export const onKeyMappingsError = (err: string | true): void => {
   err === true ? keyMappingsOption_.showError_(oTrans_("ignoredNonEN"), null)
   : keyMappingsOption_.showError_(err)
 }
-void post_(kPgReq.keyMappingErrors).then(onKeyMappingsError)
 
 const linkHintCharactersOption_ = Option_.all_.linkHintCharacters
 const linkHintNumbersOption_ = Option_.all_.linkHintNumbers
@@ -628,7 +627,7 @@ filterLinkHintsOption_.onSave_ = function (): void {
     void linkHintNumbersOption_.onSave_()
   })
 }
-filterLinkHintsOption_.element_.addEventListener("change", filterLinkHintsOption_.onSave_, true)
+delayBinding(filterLinkHintsOption_.element_, "change", filterLinkHintsOption_.onSave_, true)
 
 const keyLayout = Option_.all_.keyLayout
 const [elAlwaysIgnore, elIgnoreIfAlt, elIgnoreIfNotASCII, elIgnoreCaps, elMapModifier] =
@@ -687,7 +686,7 @@ const onAlwaysIgnoreChange = (ev?: Event): void => {
   }
 }
 
-keyLayout.element_.addEventListener("input", (event): void => {
+delayBinding(keyLayout.element_, "input", (event): void => {
   const el = event.target as HTMLInputElement
   if (el === elAlwaysIgnore) {
     onAlwaysIgnoreChange(event)

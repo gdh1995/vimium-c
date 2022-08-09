@@ -4,9 +4,10 @@ import {
   toggleDark, browser_, selfTabId_, enableNextTick_, nextTick_, kReadyInfo, IsEdg_, import2, BrowserName_, pageTrans_
 } from "./async_bg"
 import {
-  bgSettings_, KnownOptionsDataset, showI18n, setupBorderWidth_, Option_, AllowedOptions, debounce_, oTrans_
+  bgSettings_, KnownOptionsDataset, showI18n, setupBorderWidth_, Option_, AllowedOptions, debounce_, oTrans_,
+  delayBinding, didBindEvent
 } from "./options_base"
-import { saveBtn, exportBtn, savedStatus, BooleanOption_, onKeyMappingsError } from "./options_defs"
+import { saveBtn, exportBtn, savedStatus, BooleanOption_, onKeyMappingsError, SaveBtn } from "./options_defs"
 import { manifest } from "./options_permissions"
 
 interface ElementWithHash extends HTMLElement {
@@ -29,9 +30,9 @@ nextTick_(showI18n)
 setupBorderWidth_ && nextTick_(setupBorderWidth_);
 nextTick_((versionEl): void => {
   versionEl.textContent = manifest.version_name || manifest.version
-}, $(".version"))
+}, $("#version"))
 
-saveBtn.onclick = (virtually): void => {
+delayBinding(saveBtn, "click", ((virtually): void => {
     if (virtually !== false) {
       void Option_.saveOptions_().then((changed): void => { changed && saveBtn.onclick(false) })
       return
@@ -51,13 +52,12 @@ saveBtn.onclick = (virtually): void => {
     setTimeout((toSync1: typeof Option_.syncToFrontend_): void => {
       void post_(kPgReq.notifyUpdate, toSync1.map(key => bgSettings_.valuesToLoad_[key]))
     }, 100, toSync)
-}
+}) as SaveBtn["onclick"] as (ev: Event) => void, "on")
 
 const refreshSync = (): void => { post_(kPgReq.saveToSyncAtOnce) }
 
 let optionsInit1_ = function (): void {
   advancedOptBtn.onclick = function (ev, init): void {
-    let el = $("#advancedOptions")
     let oldVal: boolean | null = null
     const loadOld = (): boolean => oldVal = <boolean> bgSettings_.get_("showAdvancedOptions")
     if (ev != null || (init === "hash" && loadOld() === false)) {
@@ -66,16 +66,15 @@ let optionsInit1_ = function (): void {
     } else {
       advancedMode = oldVal != null ? oldVal : loadOld()
     }
+    let el = init === true && advancedMode ? null : $("#advancedOptions")
     nextTick_((): void => {
-      do { el.style.display = advancedMode ? "" : "none" } while (el = el.nextElementSibling as HTMLElement)
+      while (el) { el.style.display = advancedMode ? "" : "none"; el = el.nextElementSibling as HTMLElement | null }
     const s = advancedMode ? "Hide" : "Show";
     (this.firstChild as Text).data = oTrans_(s) || s
     this.setAttribute("aria-checked", "" + advancedMode);
     }, 9);
   };
   advancedOptBtn.onclick(null, true)
-  let _element: HTMLElement
-  let _ref: { length: number; [index: number]: HTMLElement }
   Option_.suppressPopulate_ = false
   if (Build.NDEBUG) {
     for (let key in Option_.all_) { void Option_.all_[key as "vimSync"].fetch_() }
@@ -99,12 +98,6 @@ let optionsInit1_ = function (): void {
     }, $("#exclusionToolbar"));
   }
 
-  _ref = $$("[data-check]");
-  for (let _i = _ref.length; 0 <= --_i; ) {
-    _element = _ref[_i];
-    _element.addEventListener((_element.dataset as KnownOptionsDataset).check || "input", loadChecker);
-  }
-
   document.addEventListener("keyup", function (this: void, event): void {
     const el = event.target as Element, i = event.keyCode;
     if (i !== kKeyCode.enter) {
@@ -124,15 +117,20 @@ let optionsInit1_ = function (): void {
     } else if (event.ctrlKey || event.metaKey) {
       el.blur && el.blur();
       if (savedStatus()) {
+        didBindEvent("click")
         return saveBtn.onclick();
       }
     }
   });
 
-  let func: {
-    (this: HTMLElement, event: MouseEventToPrevent): void;
-  } | ElementWithDelay["onclick"] = function (this: HTMLElement): void {
-    const target = $("#" + (this.dataset as KnownOptionsDataset).autoResize)
+  delayBinding("[data-check]", "input", function onCheck(): void {
+    for (const el of $$("[data-check]")) {
+      el.removeEventListener("input", onCheck)
+    }
+    void import2("./options_checker.js")
+  })
+  delayBinding("[data-auto-resize]", "click", (event): void => {
+    const target = $("#" + ((event.target as HTMLElement).dataset as KnownOptionsDataset).autoResize)
     let height = target.scrollHeight, width = target.scrollWidth, dw = width - target.clientWidth;
     if (height <= target.clientHeight && dw <= 0) { return; }
     const maxWidth = Math.max(Math.min(innerWidth, 1024) - 120, 550);
@@ -146,18 +144,13 @@ let optionsInit1_ = function (): void {
       target.style.width = target.offsetWidth + dw + 4 + "px";
     }
     target.style.height = height + "px";
-  };
-  _ref = $$("[data-auto-resize]");
-  for (let _i = _ref.length; 0 <= --_i; ) {
-    _ref[_i].onclick = func;
-  }
-
-  func = function (event): void {
+  })
+  delayBinding("[data-delay]", "click", function (this: HTMLElement, event): void {
     let str = (this.dataset as KnownOptionsDataset).delay, e = null as MouseEventToPrevent | null
+    if (str === "event") { e = event as MouseEventToPrevent || null }
     if (str !== "continue") {
       event && event.preventDefault();
     }
-    if (str === "event") { e = event || null; }
     delayed_task = ["#" + this.id, e]
     if (document.readyState === "complete") {
       void import2("./options_ext.js")
@@ -169,27 +162,17 @@ let optionsInit1_ = function (): void {
         void import2("./options_ext.js")
       }
     });
-  } as ElementWithDelay["onclick"];
-  _ref = $$("[data-delay]");
-  for (let _i = _ref.length; 0 <= --_i; ) {
-    _ref[_i].onclick = func;
-  }
-
-  if (OnChrome && Build.MinCVer < BrowserVer.MinEnsuredWebkitUserSelectAll
-      && CurCVer_ < BrowserVer.MinEnsuredWebkitUserSelectAll) {
-  _ref = $$(".sel-all");
-  func = function (this: HTMLElement, event): void {
+  }, "on")
+  OnChrome && Build.MinCVer < BrowserVer.MinEnsuredWebkitUserSelectAll
+      && CurCVer_ < BrowserVer.MinEnsuredWebkitUserSelectAll &&
+  delayBinding(".sel-all", "mousedown", function (this: HTMLElement, event): void {
     if (event.target !== this) { return; }
     event.preventDefault();
     getSelection().selectAllChildren(this);
-  } as ElementWithDelay["onmousedown"];
-  for (let _i = _ref.length; 0 <= --_i; ) {
-    _ref[_i].onmousedown = func;
-  }
-  }
+  })
 
-  _ref = $$("[data-permission]");
-  _ref.length > 0 && ((els: typeof _ref): void => {
+  const permissionEls = $$("[data-permission]");
+  permissionEls.length > 0 && ((els: HTMLElement[]): void => {
     const validKeys2 = manifest.permissions || []
     for (let i = els.length; 0 <= --i; ) {
       let el: HTMLElement = els[i];
@@ -220,7 +203,7 @@ let optionsInit1_ = function (): void {
         } else {
           (el1 as TextElement).value = "";
           el1.title = str;
-          (el1.parentElement as HTMLElement).onclick = onclick;
+          delayBinding(el1.parentElement as HTMLElement, "click", onclick, "on")
           if (el1 instanceof HTMLSpanElement) {
             el1.style.textDecoration = "line-through"
           }
@@ -234,35 +217,30 @@ let optionsInit1_ = function (): void {
       const key = (el.dataset as KnownOptionsDataset).permission
       el.placeholder = oTrans_("lackPermission", [key ? `: "${key}"` : ""]);
     }
-  })(_ref);
+  })(permissionEls);
   if (OnEdge) {
     nextTick_((tipForNoShadow): void => {
       tipForNoShadow.innerHTML = '(On Edge, may need "<kbd>#VimiumUI</kbd>" as prefix if no Shadow DOM)';
     }, $("#tipForNoShadow"));
   }
 
-  nextTick_((): void => { setTimeout((): void => {
-    const ref2 = $$("[data-href]")
-    for (let _i = ref2.length; 0 <= --_i; ) {
-      const element = ref2[_i] as HTMLAnchorElement & { dataset: KnownOptionsDataset }
+  delayBinding("[data-href]", "mousedown", (): void => {
+    for (const element of $$<HTMLAnchorElement & { dataset: KnownOptionsDataset }>("[data-href]")) {
+      element.onmousedown = null as never
       void post_(kPgReq.convertToUrl, [element.dataset.href, Urls.WorkType.ConvertKnown]).then(([str]): void => {
         element.removeAttribute("data-href")
         element.href = str
       })
     }
-    void post_(kPgReq.whatsHelp).then((matched): void => {
-      matched !== "?" && nextTick_(([el, text]) => el.textContent = text, [$("#questionShortcut"), matched] as const)
-    })
-  }, 100) })
+  }, "on")
 
-
-  _element = $<HTMLAnchorElement>("#openExtensionsPage");
+  const openExt = $<HTMLAnchorElement>("#openExtensionsPage");
   if (OnChrome && Build.MinCVer < BrowserVer.MinEnsuredChromeURL$ExtensionShortcuts
       && CurCVer_ < BrowserVer.MinEnsuredChromeURL$ExtensionShortcuts) {
-    nextTick_((el): void => { el.href = "chrome://extensions/configureCommands" }, _element as HTMLAnchorElement)
+    nextTick_((el): void => { el.href = "chrome://extensions/configureCommands" }, openExt)
   } else if (OnChrome && IsEdg_) {
     nextTick_((el): void => { const s = "edge://extensions/";
-        el.href = s + "shortcuts", el.textContent = s + "\u2026" }, _element as HTMLAnchorElement)
+        el.href = s + "shortcuts", el.textContent = s + "\u2026" }, openExt)
   } else if (OnFirefox) {
     nextTick_(([el, el2, el3]): void => {
       el.textContent = el.href = "about:addons";
@@ -274,8 +252,7 @@ let optionsInit1_ = function (): void {
           : el1.insertBefore(new Text(oTrans_(MS2)), el.nextSibling) // lgtm [js/superfluous-trailing-arguments]
       el2.href = prefix + "shortcut-forwarding-tool/?src=external-vc-options";
       el3.href = prefix + "newtab-adapter/?src=external-vc-options";
-    }, [_element as HTMLAnchorElement,
-        $<HTMLAnchorElement>("#shortcutHelper"), $<HTMLAnchorElement>("#newTabAdapter")] as const);
+    }, [openExt, $<HTMLAnchorElement>("#shortcutHelper"), $<HTMLAnchorElement>("#newTabAdapter")] as const);
   }
 
   if (OnFirefox || OnChrome) {
@@ -290,13 +267,12 @@ let optionsInit1_ = function (): void {
     }, $("#chromeExtVomnibar"));
   }
 
-  _ref = $$(".ref-text");
   const onRefStatClick = (event: MouseEventToPrevent): void => {
     if (!advancedMode) {
-      $<AdvancedOptBtn>("#advancedOptionsButton").onclick(null);
+      advancedOptBtn.onclick(null)
     }
     event.preventDefault();
-    const sel2 = (event.currentTarget as HTMLElement).getAttribute("for")!.split(":").slice(-1)[0]
+    const sel2 = ((event.currentTarget as HTMLElement).dataset as KnownOptionsDataset).for.split(":").slice(-1)[0]
     const maybeNode2 = $$<EnsuredMountedHTMLElement & HTMLInputElement>(sel2)
     const node2 = (maybeNode2.find(i => i.checked) || maybeNode2[0]).nextElementSibling
     {
@@ -308,10 +284,11 @@ let optionsInit1_ = function (): void {
     }
     VApi && VApi.x(node2.parentElement.parentElement as SafeHTMLElement)
   };
-  for (let _i = _ref.length; 0 <= --_i; ) {
-    const name =  _ref[_i].getAttribute("for")!, fields = name.slice(name.indexOf(":") + 1)
-    const opt = Option_.all_[name.split(":")[0].replace("#", "") as "keyLayout"]
-    const oldOnSave = opt.onSave_, box = _ref[_i].parentElement as EnsuredMountedHTMLElement
+  for (const element of $$<HTMLLabelElement>(".ref-text")) {
+    const name = (element.dataset as KnownOptionsDataset).for, fields = name.slice(name.indexOf(":") + 1)
+    const targetOptName = name.split(":")[0]
+    const opt = Option_.all_[targetOptName.replace("#", "") as "keyLayout"]
+    const oldOnSave = opt.onSave_, box = element.parentElement as EnsuredMountedHTMLElement
     const syncForLabel = (): void => {
       nextTick_(([statEl, nameEl, checkboxes]): void => {
         const related = checkboxes.find(i => i.checked) || checkboxes[0]
@@ -324,9 +301,11 @@ let optionsInit1_ = function (): void {
           (fields !== name ? $$<HTMLInputElement>(fields) : [opt.element_]) ] as const)
     }
     opt.onSave_ = (): void | Promise<void> => { syncForLabel(); return oldOnSave.call(opt) }
-    _ref[_i].onclick = onRefStatClick;
+    delayBinding(element, "click", onRefStatClick as (ev: EventToPrevent) => void, "on")
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    opt.element_.addEventListener("change", syncForLabel, true)
+    delayBinding(opt.element_, "change", syncForLabel, true)
+    nextTick_(([el, s]): void => { el.htmlFor = s }, [element, targetOptName] as const)
+    
   }
 },
 optionsInitAll_ = function (): void {
@@ -425,7 +404,7 @@ optionsInitAll_ = function (): void {
   }, 34)
 };
 
-(Option_.all_.userDefinedCss.element_ as HTMLTextAreaElement).addEventListener("input", debounce_((): void => {
+delayBinding(Option_.all_.userDefinedCss.element_, "input", debounce_((): void => {
   const self = Option_.all_.userDefinedCss
   const isDebugging = self.element_.classList.contains("debugging")
   if (self.saved_ && !isDebugging || !VApi || !VApi.z) { return }
@@ -458,10 +437,10 @@ if (OnChrome && Build.MinCVer < BrowserVer.Min$Option$HasReliableFontSize
   nextTick_(el => { el.classList.add("font-fix") }, $("select"))
 }
 
-$("#importButton").onclick = function (): void {
+delayBinding("#importButton", "click", (): void => {
   const opt = $<HTMLSelectElement>("#importOptions");
   opt.onchange ? opt.onchange(null as never) : simulateClick($("#settingsFile"))
-};
+}, "on")
 
 nextTick_((el0): void => {
   const platform = bgSettings_.platform_
@@ -483,8 +462,6 @@ el0.textContent = (OnEdge ? "MS Edge (EdgeHTML)" : name + " " + version
   ) + oTrans_("comma") + oTrans_("NS")
   + (oTrans_(platform as "win" | "mac") || platform[0].toUpperCase() + platform.slice(1))
 }, $("#browserName"));
-
-export const loadChecker = (): void => { void import2("./options_checker.js") }
 
 document.addEventListener("keydown", (event): void => {
   if (event.keyCode !== kKeyCode.space) {
@@ -519,6 +496,7 @@ window.onhashchange = (): void => {
   hash = hash.slice(hash[1] === "!" ? 2 : 1);
   if (!hash || !(<RegExpI> /^[a-z][a-z\d_-]*$/i).test(hash)) { return; }
   if (node = $(`[data-hash="${hash}"]`) as HTMLElement | null) {
+    didBindEvent("click")
     if (node.onclick) {
         (node as ElementWithHash).onclick(null, "hash");
     }
@@ -544,9 +522,12 @@ window.onhashchange = (): void => {
 };
 
 void bgSettings_.preloadCache_().then(optionsInitAll_)
+void post_(kPgReq.keyMappingErrors).then((err): void => { nextTick_(onKeyMappingsError, err) })
+void post_(kPgReq.whatsHelp).then((matched): void => {
+  matched !== "?" && nextTick_(([el, s]): void => { el.textContent = s }, [$("#questionShortcut"), matched] as const)
+})
 
-document.addEventListener("click", (event: EventToPrevent): void => {
-  if ((event.target as Element).localName === "a") {
+delayBinding("#openExtensionsPage", "click", (event: EventToPrevent): void => {
     event.preventDefault();
     if (OnFirefox) {
       VApi ? VApi.h(kTip.raw, 0, oTrans_("haveToOpenManually"))
@@ -554,9 +535,8 @@ document.addEventListener("click", (event: EventToPrevent): void => {
     } else {
       void post_(kPgReq.focusOrLaunch, { u: (event.target as HTMLAnchorElement).href, p: true })
     }
-  }
 })
-document.addEventListener("click", function onClickOnce(): void {
+delayBinding(document, "click", function onClickOnce(): void {
   const api1 = VApi, misc = api1 && api1.y()
   if (!misc || !misc.r) { return; }
   document.removeEventListener("click", onClickOnce, true);
@@ -587,7 +567,7 @@ document.addEventListener("click", function onClickOnce(): void {
   })
 }, true);
 
-$("#testKeyInputBox").addEventListener("focus", function KeyTester(_focusEvent: Event): void {
+delayBinding("#testKeyInputBox", "focus", function KeyTester(_focusEvent: Event): void {
   const box = _focusEvent.currentTarget as HTMLElement
   const testKeyInput = $<HTMLElement>("#testKeyInput")
   const text_ = (newText?: string, moveSel?: 0): string => {

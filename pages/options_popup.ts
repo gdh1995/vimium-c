@@ -310,7 +310,7 @@ void post_(kPgReq.popupInit).then((_resolved): void => {
     blockedMsg = null as never
     toggleReduceMotion(conf_.reduceMotion)
     versionEl.textContent = conf_.ver
-  }, $(".version"))
+  }, $("#version"))
 
   topUrl = conf_.topUrl || _url
   url = conf_.frameUrl || topUrl
@@ -357,7 +357,7 @@ const onNotRunnable = (blockedMsg: HTMLElement): void => {
   const body = document.body as HTMLBodyElement
   body.innerText = ""
   blockedMsg.style.display = ""
-  blockedMsg.querySelector(".version")!.textContent = conf_.ver
+  blockedMsg.querySelector("#version")!.textContent = conf_.ver
   const refreshTip = blockedMsg.querySelector("#refresh-after-install") as HTMLElement
   let uad: Navigator["userAgentData"] | undefined
   let uaList: UABrandInfo[] | null | undefined
