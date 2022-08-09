@@ -36,7 +36,7 @@ if (!fs.existsSync("package.json")) {
 var _WORKER_ENV_KEY = "__VIMIUM_C_TSC_WORKER__";
 var IN_WORKER = +(process.env[_WORKER_ENV_KEY] || 0) > 0;
 var fakeArg = "--vimium-c-fake-arg";
-var _tscPatched = IN_WORKER;
+var _tscPatched = IN_WORKER, _tsNSPatched = false;
 
 function patchTSC() {
   if (_tscPatched) { return; }
@@ -115,8 +115,9 @@ var writeFile = function(path, data, writeBom) {
     same = same && lib.readFile(path, {}) === data;
   }
   var prefix = logPrefix && "[" + logPrefix + "]";
-  prefix += " ".repeat(12 - prefix.length);
-  console.log("%s %s: %s", prefix, skip ? " SKIP" : same ? "TOUCH" : "WRITE", path.replace(root, ""));
+  prefix += logPrefix && " ".repeat(12 - prefix.length)
+  prefix += logPrefix && " "
+  console.log("%s%s: %s", prefix, skip ? " SKIP" : same ? "TOUCH" : "WRITE", path.replace(root, ""));
   if (same) {
     lib.touchFileIfNeeded(path, srcPath);
   } else {
@@ -230,6 +231,7 @@ if (typeof require === "function" && require.main === module) {
 /** @param {string[]} args */
 function main(args) {
   var useDefaultConfigFile = args.indexOf("-p") < 0 && args.indexOf("--project") < 0;
+  var useWatch = args.includes("--watch");
   var destDirs = [];
   lib.patchTerser();
   for (var i = !IN_WORKER && useDefaultConfigFile ? 0 : args.length; i < args.length; ) {
@@ -279,6 +281,13 @@ function main(args) {
       child.on("close", function (code) { resolve(code); });
     }));
   }
+  // @ts-ignore
+  root = require("path").resolve(root).replace(/\\/g, "/") + "/";
+  if (useWatch && (destDirs.length > 1 || destDirs[0] === ".")) {
+    args.unshift("--build")
+    args.push(...destDirs);
+    destDirs = ["."]
+  }
   for (var i = 1; i < destDirs.length; i++) {
     PROMISES.push(new Promise(function (resolve) {
       var child = child_process.spawn(cmd, argv.slice(1).concat(args), {
@@ -291,12 +300,10 @@ function main(args) {
       });
     }));
   }
-  // @ts-ignore
-  root = require("path").resolve(root).replace(/\\/g, "/") + "/";
-  var firstTS = destDirs[0];
-  if (firstTS !== ".") {
-    logPrefix = firstTS;
-    process.chdir(firstTS);
+  var watchedDest = destDirs[0];
+  if (watchedDest !== ".") {
+    logPrefix = watchedDest;
+    process.chdir(watchedDest);
   }
   PROMISES.push(executeTS(args));
   const q = Promise.all(PROMISES);
@@ -343,6 +350,7 @@ function _executeTS(args) {
 
   real_write = ts.sys.writeFile;
   ts.sys.writeFile = writeFile;
+  _tsNSPatched || (_tsNSPatched = true) &&
   lib.patchTSNamespace(ts, void 0, true); // when MinCVer >= 39 or not Chrome
 
   if (ts.version < '3.7') {
