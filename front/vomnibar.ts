@@ -25,7 +25,7 @@ declare const enum AllowedActions {
   Default = 0,
   nothing = Default,
   dismiss, focus, blurInput, backspace, blur, up, down = up + 2, toggle, pageup, pagedown, remove, copy,
-  home, end,
+  home, end, copyWithTitle
 }
 interface SetTimeout {
   <T1, T2, T3>(this: void, handler: (this: void, a1: T1, a2: T2, a3: T3) => void,
@@ -700,7 +700,13 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       return;
     }
     if (mainModifier === "c" || mainModifier === "m") {
-      if (key.includes("s-")) {
+      if (char === kChar.c) {
+        action = a.selection_ >= 0 && getSelection().type !== "Range"
+            && (!(Build.BTypes & BrowserType.Firefox) && !(Build.BTypes & BrowserType.Chrome)
+                  || Build.MinCVer > BrowserVer.$Selection$NotShowStatusInTextBox
+              || a.input_.selectionStart === a.input_.selectionEnd)
+            ? key.includes("s") ? AllowedActions.copyWithTitle : AllowedActions.copy : AllowedActions.nothing
+      } else if (key.includes("s-")) {
         action = char === kChar.f ? AllowedActions.pagedown : char === kChar.b ? AllowedActions.pageup
           : AllowedActions.nothing;
       } else if (char === kChar.up || char === kChar.down || char === kChar.end || char === kChar.home) {
@@ -714,11 +720,6 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       } else {
         action = char === kChar.bracketLeft ? AllowedActions.dismiss
           : char === kChar.bracketRight ? AllowedActions.toggle
-          : char === kChar.c && a.selection_ >= 0 && getSelection().type !== "Range"
-            && (!(Build.BTypes & BrowserType.Firefox) && !(Build.BTypes & BrowserType.Chrome)
-                  || Build.MinCVer > BrowserVer.$Selection$NotShowStatusInTextBox
-               || a.input_.selectionStart === a.input_.selectionEnd)
-            ? AllowedActions.copy
           : a.ctrlCharOrShiftKeyMap_[char] || AllowedActions.nothing;
       }
     }
@@ -785,9 +786,11 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     case AllowedActions.pageup: case AllowedActions.pagedown: return a.goPage_(action !== AllowedActions.pageup);
     case AllowedActions.remove: return a.removeCur_();
     case AllowedActions.copy:
+    case AllowedActions.copyWithTitle:
       let item = a.completions_[a.selection_] as SuggestionEx, title = item.title, type = item.e, math = type === "math"
       VUtils_.ensureText_(item)
-      title = type !== "search" && !math && title !== item.u && title !== item.t ? title : ""
+      title = action === AllowedActions.copyWithTitle
+          && type !== "search" && !math && title !== item.u && title !== item.t ? title : ""
       return VPort_.post_({ H: kFgReq.omniCopy, t: math ? item.textSplit + " = " + item.t : title
           , u: math ? "" : item.u })
     case AllowedActions.home: case AllowedActions.end:
@@ -1058,10 +1061,13 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     a.wheelStart_ = now;
     a.goPage_(deltaY > 0);
   },
-  onInput_ (this: void, event?: InputEvent): void {
-    const a = Vomnibar_, s0 = a.lastQuery_, s1 = a.input_.value, str = s1.trim()
-    let inputType = a.inputType_
+  OnInput_ (this: void, event: InputEvent): void {
+    const a = Vomnibar_, s0 = a.lastQuery_
+    let s1 = a.input_.value, str = s1.trim(), inputType = a.inputType_
     a.blurWanted_ = a.inputType_ = 0
+    if (Build.BTypes & BrowserType.Chrome && s1 === "/" && a.isEdg_ && !event.isComposing) {
+      s1 = a.input_.value = " /" // disable the popup menu for auto-completion from edge://settings/personalinfo
+    }
     if (str === (a.selection_ === -1 || a.isSelOriginal_ ? s0 : a.completions_[a.selection_].t)) {
       return;
     }
@@ -1304,7 +1310,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     listen("keydown", a.HandleKeydown_, true);
     listen("focus", a.OnWndFocus_, true);
     listen("blur", a.OnWndFocus_, true);
-    input.oninput = a.onInput_ as (e: InputEvent) => void as (e: Event) => void
+    input.oninput = a.OnInput_ as (e: Event) => void
     input.onselect = a.OnSelect_;
     input.onpaste = (): void => { Vomnibar_.inputType_ = 1 }
 
