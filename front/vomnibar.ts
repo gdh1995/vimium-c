@@ -1065,7 +1065,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     const a = Vomnibar_, s0 = a.lastQuery_
     let s1 = a.input_.value, str = s1.trim(), inputType = a.inputType_
     a.blurWanted_ = a.inputType_ = 0
-    if (Build.BTypes & BrowserType.Chrome && s1 === "/" && a.isEdg_ && !event.isComposing) {
+    if (Build.BTypes & BrowserType.Chrome && s1 === "/" && a.isEdg_ && a.input_.selectionEnd && !event.isComposing) {
       s1 = a.input_.value = " /" // disable the popup menu for auto-completion from edge://settings/personalinfo
     }
     if (str === (a.selection_ === -1 || a.isSelOriginal_ ? s0 : a.completions_[a.selection_].t)) {

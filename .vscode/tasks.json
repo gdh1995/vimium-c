@@ -2,11 +2,12 @@
 	"version": "2.0.0",
 	"tasks": [
 		{
-			"type": "npm",
-			"script": "watch",
+			"type": "shell",
 			"group": "build",
 			"problemMatcher": [],
-			"label": "npm: watch",
+			"label": "tsc: watch",
+			"command": "node",
+			"args": ["scripts/tsc.js", "--watch"],
 			"detail": "node scripts/tsc.js --watch"
 		}
 	]

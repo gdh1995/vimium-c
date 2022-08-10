@@ -39,7 +39,7 @@ export const docEl_unsafe_ = (): Element | null => doc.documentElement
 export const activeEl_unsafe_ = (): Element | null => doc.activeElement
 
 export const querySelector_unsafe_ = (selector: string
-    , scope?: SafeElement | ShadowRoot | Document | HTMLDetailsElement
+    , scope?: SafeElement | ShadowRoot | Document
     ): Element | null => (scope || doc).querySelector(selector)
 
 export const querySelectorAll_unsafe_ = ((selector: string, scope?: Element | ShadowRoot | null
@@ -85,7 +85,7 @@ export const textOffset_ = (el: TextElement, dir?: VisualModeNS.ForwardDir | boo
 
 export const doesSupportDialog = (): boolean => typeof HTMLDialogElement == OBJECT_TYPES[kTY.func]
 
-export const parentNode_unsafe_s = (el: SafeElement | HTMLStyleElement | Text
+export const parentNode_unsafe_s = (el: SafeElement | Text
     ): Element | Document | DocumentFragment | null => el.parentNode as any
 
 export const docHasFocus_ = (): boolean => doc.hasFocus()
@@ -585,7 +585,7 @@ export let createElement_ = doc.createElement.bind(doc) as {
 }
 export function set_createElement_ (_newCreateEl: typeof createElement_): void { createElement_ = _newCreateEl }
 
-export const appendNode_s = (parent: SafeElement | Document | HTMLDialogElement | DocumentFragment
+export const appendNode_s = (parent: SafeElement | Document | DocumentFragment
     , child: Element | DocumentFragment | Text): void => {
   OnChrome && Build.MinCVer < BrowserVer.MinEnsured$ParentNode$$appendAndPrepend
       ? parent.appendChild(child) : parent.append!(child) // lgtm [js/xss] lgtm [js/xss-through-dom]
@@ -596,7 +596,7 @@ export const append_not_ff = !OnFirefox ? (parent: Element, child: HTMLElement):
       ? ElementProto_not_ff!.appendChild : ElementProto_not_ff!.append!).call(parent, child)
 } : 0 as never
 
-export const removeEl_s = (el: SafeElement | HTMLDialogElement | HTMLScriptElement): void => {
+export const removeEl_s = (el: SafeElement): void => {
   el.remove()
 }
 
@@ -616,16 +616,15 @@ export const setOrRemoveAttr_s = (el: SafeElement, attr: string, newVal?: string
   newVal != null ? el.setAttribute(attr, newVal) : el.removeAttribute(attr)
 }
 
-export const toggleClass_s = (el: SafeElement | HTMLDialogElement
-    , className: string, force?: boolean | BOOL | null): void => {
+export const toggleClass_s = (el: SafeElement, className: string, force?: boolean | BOOL | null): void => {
   const list = el.classList
   force != null ? list.toggle(className, !!force) : list.toggle(className)
 }
 
 export const textContent_s = ((el: SafeElement, text?: string): string => text ? el.textContent = text : el.textContent
 ) as {
-  (el: SafeHTMLElement | HTMLStyleElement | HTMLScriptElement, text: string): string
-  (el: SafeElement | HTMLStyleElement): string
+  (el: SafeHTMLElement, text: string): string
+  (el: SafeElement): string
 }
 
 export const attachShadow_ = <T extends HTMLDivElement | HTMLBodyElement> (box: T): ShadowRoot | T => {
