@@ -13,7 +13,7 @@ import {
 import {
   bZoom_, dScale_, getZoom_, wdZoom_, boundingRect_, prepareCrop_, getClientRectsForAreas_,
   getVisibleClientRect_, getBoundingClientRect_, padClientRect_, isContaining_, cropRectToVisible_, getCroppedRect_,
-  setBoundary_, wndSize_, dimSize_, selRange_, isSelARange
+  setBoundary_, wndSize_, dimSize_, selRange_, isSelARange, ViewOffset
 } from "../lib/rect"
 import { currentScrolling } from "./scroller"
 import { find_box, styleSelectable } from "./mode_find"
@@ -426,14 +426,15 @@ export const getRect = (clickEl: SafeElement, refer?: HTMLElementUsingMap | null
     return rect2 && getCroppedRect_(clickEl, rect2);
 }
 
-export const flash_ = function (el: SafeElement | null, rect?: Rect | null, lifeTime?: number, classNames?: string
-      ): (() => void) | void {
+export const flash_ = function (el: SafeElement | null, rect?: Rect | null, lifeTime?: number
+      , classNames?: string, knownViewOffset?: ViewOffset): (() => void) | void {
     rect || (rect = getRect(el!))
     if (!rect) { return; }
     const flashEl = createElement_(OnChrome
         && Build.MinCVer < BrowserVer.MinForcedColorsMode ? getBoxTagName_old_cr() : "div"),
-    nfs = !fullscreenEl_unsafe_()
-    setClassName_s(flashEl, "R Flash" + (classNames || "") + (setBoundary_(flashEl.style, rect, nfs) ? " AbsF" : ""))
+    nfs = knownViewOffset ? 2 : <BOOL> <BOOL | boolean> +!fullscreenEl_unsafe_()
+    setClassName_s(flashEl, "R Flash" + (classNames || "")
+        + (setBoundary_(flashEl.style, rect, knownViewOffset, nfs) ? " AbsF" : ""))
     OnChrome &&
     bZoom_ !== 1 && nfs && (flashEl.style.zoom = "" + bZoom_);
     addUIElement(flashEl, AdjustType.DEFAULT)
@@ -443,10 +444,10 @@ export const flash_ = function (el: SafeElement | null, rect?: Rect | null, life
       lastFlashEl === flashEl && (lastFlashEl = null)
       removeEl_s(flashEl)
     };
-    lifeTime === -1 || timeout_(remove, (lifeTime || GlobalConsts.DefaultRectFlashTime) * (1 + +fgCache.m))
+    lifeTime! < 0 || timeout_(remove, (lifeTime || GlobalConsts.DefaultRectFlashTime) * (1 + +fgCache.m))
     return remove;
 } as {
-    (el: null, rect: Rect, lifeTime?: number, classNames?: string): () => void;
+    (el: null, rect: Rect, lifeTime?: number, classNames?: string, knownViewOffset?: ViewOffset): () => void;
     (el: SafeElement, rect?: null, lifeTime?: number, classNames?: string): (() => void) | void;
 }
 

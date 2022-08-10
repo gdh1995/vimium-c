@@ -17,7 +17,7 @@ declare const enum kTip {
   /* 95: */ invisibleHintText, notMatchedHintText, metaKeywordsForMobile, css0d01OrDPI, visibleElementsInScopeChildren,
   /* 100: */ voidJS, nonLocalhostRe, scrollable, buttonOrA, closableClasses,
   /* 105: */ highContrast_WOB, invisibleElements, imgExt, searchResults, excludeWhenGoNext,
-  /* 110..113: */ kCommonEvents, logOmniFallback, logNotWorkOnSandboxed, logGrabFocus,
+  /* 110..113: */ kCommonEvents, logOmniFallback, logNotWorkOnSandboxed, logGrabFocus, paused,
   INJECTED_CONTENT_END,
   /* 200: */ XHTML = 200,
   /** used by {@link ../Gulpfile.js} */ extendClick = 999,
@@ -421,8 +421,8 @@ interface CmdOptions {
   } & Partial<BgCSSReq> | ShowHelpDialogOptions
   [kFgCmd.findMode]: {
     /** count */ c: number;
-    /** highlight multiple in viewport */ m?: boolean | BOOL;
-    /** leave find mode */ l: boolean;
+    /** highlight multiple times in a single direction */ m: number
+    /** leave find mode */ l: BOOL
     /** query */ q: string;
     /* return to view port */ r: boolean;
     /* auto use selected text */ s: boolean;

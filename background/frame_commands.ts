@@ -95,6 +95,7 @@ export const performFind = (): void | kBgCmd.performFind => {
   const sender = cPort.s, absRepeat = cRepeat < 0 ? -cRepeat : cRepeat, rawIndex = get_cOptions<C.performFind>().index,
   nth = rawIndex ? rawIndex === "other" ? absRepeat + 1 : rawIndex === "count" ? absRepeat
             : rawIndex >= 0 ? -1 - (0 | <number> <number | string> rawIndex) : 0 : 0,
+  highlight = get_cOptions<C.performFind>().highlight,
   leave = !!nth || !get_cOptions<C.performFind>().active
   let sentFindCSS: CmdOptions[kFgCmd.findMode]["f"] = null
   if (!(sender.flags_ & Frames.Flags.hasFindCSS)) {
@@ -102,8 +103,10 @@ export const performFind = (): void | kBgCmd.performFind => {
     sentFindCSS = OnChrome ? getFindCSS_cr_!(sender) : findCSS_
   }
   sendFgCmd(kFgCmd.findMode, true, wrapFallbackOptions<kFgCmd.findMode, C.performFind>({
-    c: nth > 0 ? cRepeat / absRepeat : cRepeat, l: leave, f: sentFindCSS,
-    m: !!get_cOptions<C.performFind>().highlight, n: !!get_cOptions<C.performFind>().normalize,
+    c: nth > 0 ? cRepeat / absRepeat : cRepeat, l: leave ? 1 : 0, f: sentFindCSS,
+    m: typeof highlight === "number" ? highlight >= 1 ? Math.min(highlight | 0, 200) : 0
+        : highlight ? leave ? 100 : 20 : 0,
+    n: !!get_cOptions<C.performFind>().normalize,
     r: get_cOptions<C.performFind>().returnToViewport === true,
     s: !nth && absRepeat < 2 && !!get_cOptions<C.performFind>().selected,
     p: !!get_cOptions<C.performFind>().postOnEsc,

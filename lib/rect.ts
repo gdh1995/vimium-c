@@ -467,10 +467,11 @@ export const getVisibleBoundingRect_ = (element: Element, crop?: BOOL, st?: CSSS
   return arr
 }
 
-export const setBoundary_ = (style: CSSStyleDeclaration, r: WritableRect, allow_abs?: boolean): boolean | undefined => {
-  const need_abs = allow_abs && (r.t < 0 || r.l < 0 || r.b > wndSize_() || r.r > wndSize_(1)),
-  P = "px", arr: ViewOffset | false | undefined = need_abs && getViewBox_()
-  if (arr) {
+export const setBoundary_ = (style: CSSStyleDeclaration, r: WritableRect
+    , arr?: ViewOffset, allowAbs?: BOOL | 2): boolean => {
+  const need_abs = allowAbs === 2 || !!allowAbs && (r.t < 0 || r.l < 0 || r.b > wndSize_() || r.r > wndSize_(1)),
+  P = "px"
+  if (need_abs && (arr || (arr = getViewBox_()))) {
     r.l += arr[0], r.r += arr[0], r.t += arr[1], r.b += arr[1]
   }
   style.left = r.l + P, style.top = r.t + P

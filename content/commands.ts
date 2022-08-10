@@ -308,7 +308,7 @@ set_contentCommands_([
       rect = padClientRect_(getBoundingClientRect_(link[0]), 3);
       rect.l--, rect.t--, rect.r--, rect.b--;
       setClassName_s(marker, "IH")
-      setBoundary_(marker.style, rect);
+      setBoundary_(marker.style, rect, arr)
       return {m: marker, d: link[0]};
     })
     count -= (count > 0) as boolean | BOOL as BOOL
