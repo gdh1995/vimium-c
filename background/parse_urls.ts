@@ -68,12 +68,11 @@ export const parseSearchUrl_ = (request: FgReqWithRes[kFgReq.parseSearchUrl]): F
   url = "";
   for (const item of arr) { url += " " + (isResultUrl ? item : BgUtils_.DecodeURLPart_(item)) }
   url = url.trim().replace(isResultUrl > 1 ? <RegExpG> /\xa0/g : BgUtils_.spacesRe_, " ")
+  const theDefault = searchEngines_.map.get("~")!
+  const canSkip = !!url && theDefault.url_ === searchEngines_.map.get(pattern.name_)!.url_
+      && !searchEngines_.map.has(url.split(" ", 1)[0])
   BgUtils_.resetRe_();
-  return {
-    k: pattern.name_,
-    u: url,
-    s: selectLast ? url.lastIndexOf(" ") + 1 : 0
-  };
+  return { k: pattern.name_, c: canSkip, u: url, s: selectLast ? url.lastIndexOf(" ") + 1 : 0 }
 }
 
 export const parseUpperUrl_ = (request: FgReq[kFgReq.parseUpperUrl]): ParsedUpperUrl => {

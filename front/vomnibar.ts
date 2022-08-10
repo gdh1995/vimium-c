@@ -177,7 +177,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       url = VUtils_.decodeURL_(url, decodeURIComponent)
       url = (endsWithSpace ? url : url.trim()).replace(a.spacesRe_, " ");
     }
-    if (keyword) {
+    if (keyword && (!search || !search.c)) {
       start = (start || 0) + keyword.length + 1;
       return a.reset_(keyword + " " + url, start, start + url.length);
     } else {

@@ -35,6 +35,7 @@ interface BaseExecute<T, C extends keyof CmdOptions = keyof CmdOptions> extends 
 
 interface ParsedSearch {
   /** keyword */ k: string;
+  /** canSkip */ c?: boolean
   /** start */ s: number;
   /** url */ u: string;
   /** error */ e?: string | null;
