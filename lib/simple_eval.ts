@@ -7,6 +7,8 @@
 //#region types
 
 interface FakeValue { c: 42, v: undefined }
+type ComplexLiteral = /* regexp */ { c: 4, v: [source: string, flags: string] }
+    | /* runtime value */ { c: 5, v: unknown }
 interface BreakValue { c: BOOL, v: string | 0 }
 type VarLiterals = "var1" | "bar" | "..." | "__proto__" | "new.target" | "debugger"
 type VarNames = "Var1" | "globalThis" | "this" | "arguments" | "undefined"
@@ -27,7 +29,7 @@ interface TokenValues {
   [T.bitMove]: "<<" | ">>" | ">>>", [T.math1]: "+" | "-", [T.math2]: "*" | "/" | "%", [T.math3]: "**"
   [T.unary]: "+" | "-" | "!" | "~" | "typeof" | "void" | "delete" | "++" | "--", [T.rightUnary]: "++" | "--"
   [T.callOrAccess]: "new" | "?." | "__call__", [T.dot]: "." | "?."
-  [T.ref]: VarLiterals, [T.literal]: { v: string | number | boolean | null | undefined | RegExp | FakeValue }
+  [T.ref]: VarLiterals, [T.literal]: { v: string | number | boolean | null | undefined | ComplexLiteral | FakeValue }
 }
 const enum T { block = 1, blockEnd = 2, semiColon = 4, prefix = 8, action = 16, group = 32, dict = 64, array = 128,
   groupEnd = 256, comma = 512, question = 1024, colon = 2048, fn = 4096, assign = 8192, or = 16384, and = 32768,
@@ -178,11 +180,13 @@ const Token = <T extends keyof TokenValues> (token: T, value: TokenValues[T]): S
 
 const splitTokens = (expression_: string): Token[] => {
   const onHex = (_: string, hex: string, codePoint: number): string =>
-      hex.length < 2 ? hex === "\n" ? "" : "\\\\" : hex[1] === "x" ? "\\u00" + hex.slice(1)
-      : (codePoint = parseInt(hex.slice(2, -1), 16), hex.length < 6 ? "\\u" + (codePoint + 0x10000).toString(16)
+        hex.length < 2 ? (codePoint = "\n0bfnrtv".indexOf(hex),
+          codePoint < 0 ? hex : !codePoint ? "" : ' \0\b\f\n\r\t\v'[codePoint])
+        : (codePoint = parseInt(hex[1] === "{" ? hex.slice(2, -1) : hex.slice(1), 16), codePoint < 0x10000)
+        ? String.fromCharCode(codePoint)
         : Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES6$String$$fromCodePoint
         ? String.fromCharCode(0xD800 + ((codePoint >> 10) - 64 & 0x3FF), 0xDC00 + (codePoint & 0x3FF))
-        : String.fromCodePoint!(codePoint))
+        : String.fromCodePoint!(codePoint)
   const decode = (_: string, hex: string): string =>
       String.fromCharCode(parseInt(hex[0] === "{" ? hex.slice(1, -1) : hex, 16))
   const peek = (s: string): boolean => expression_.substr(pos_, s.length) === s
@@ -201,7 +205,7 @@ const splitTokens = (expression_: string): Token[] => {
     if (expect(/^\/\/[^\n]*|^\/\*[^]*?\*\//)) { continue }
     if (allowRegexp && expect(/^\/(?:[^\\\/[\n]|\[(?:[^\\\]\n]|\\[^\n])*\]|\\[^\n])*\/[a-z]{0,16}(?![\w$])/)) {
       const ind = last_.lastIndexOf("/")
-      tokens_.push(Token(T.literal!, { v: new RegExp(last_.slice(1, ind), last_.slice(ind + 1) as "") }))
+      tokens_.push(Token(T.literal!, { v: { c: 4, v: [last_.slice(1, ind), last_.slice(ind + 1)] } }))
     } else if (peek("...")) {
       tokens_.push(Token(T.ref, "..."), Token(T.comma, ",")); pos_ += 3
     } else if (
@@ -224,9 +228,8 @@ const splitTokens = (expression_: string): Token[] => {
       tokens_.push(Token(T.literal, { v: parseFloat(last_.replace(<RegExpG> /_/g, "")) }))
     } else if (expect(peek("'") ? /^'([^'\\\n]|\\[^])*'/ : /^"([^"\\\n]|\\[^])*"/)) {
       last_ = last_[0] === '"' ? last_ : `"${last_.slice(1, -1)}"`
-      tokens_.push(Token(T.literal, {
-        v: JSON.parse(last_.replace(<RegExpG & RegExpSearchable<1>> /\\(x..|u\{.*?\}|[\\\n])/g, onHex)) as string
-      }))
+      tokens_.push(Token(T.literal, { v:
+          last_.slice(1, -1).replace(<RegExpG & RegExpSearchable<1>> /\\(x..|u\{.*?\}|u.{4}|[^])/g, onHex) }))
     } else if (expect(/^(?:[$A-Z_a-z\x80-\uffff]|\\u(?:\{.*?\}|.{4}))(?:[\w$\x80-\uffff]|\\u(?:\{.*?\}|.{4}))*/)) {
       if (spaceExec = (<RegExpOne> /\s/).exec(last_)) {
         pos_ -= last_.length - spaceExec.index; last_ = last_.slice(0, spaceExec.index)
@@ -239,7 +242,9 @@ const splitTokens = (expression_: string): Token[] => {
       ? (tokens_[tokens_.length - 1].v as TokenValues[T.prefix]) = "else if"
       : tokens_.push(last_ === "function" ? Token(T.fn, "fn") : Token(kTokenEnums[last_]! || T.ref, last_ as never))
     } else {
-      throwSyntax(`Unexpected identifier in :${pos_} {{ ${ expression_.slice(Math.max(0, pos_ - 6), pos_).trimLeft()
+      const arr = expression_.slice(0, pos_).split("\n")
+      throwSyntax(`Unexpected identifier in ${arr.length}:${arr[arr.length - 1].length + 1
+          } {{ ${ expression_.slice(Math.max(0, pos_ - 6), pos_).trimLeft()
           }\u2503${expression_.substr(pos_, 6).trimRight()} }}`)
     }
     const token = tokens_[tokens_.length - 1]
@@ -605,7 +610,8 @@ const _resolveVarRef = (name: VarLiterals, getter: R): Ref => {
 
 const Ref = (op: Op, type: R): Ref => {
   if (op.o === O.token) {
-    return typeof op.v === "string" ? (/*#__NOINLINE__*/ _resolveVarRef)(op.v, type) : { y: [op.v.v as number], i: 0 }
+    return typeof op.v === "string" ? (/*#__NOINLINE__*/ _resolveVarRef)(op.v, type)
+        : { y: [(op.v.v && typeof op.v.v === "object" ? evalComplexLiteral(op.v.v) : op.v.v) as number], i: 0 }
   }
   if (op.o === O.access || op.o === O.call) {
     const y = op.o === O.call ? evalCall(op) : opEvals[op.v.y.o](op.v.y)
@@ -857,7 +863,7 @@ const evalNever = (op: BaseOp<O.block | O.statGroup | O.stat | O.pair>): void =>
   case "--": return op.v.o.t === T.rightUnary ? y[i]-- : --y[i]
   case "typeof": return typeof y[i]; case "delete": return target.o === O.token || delete y[i]
   case   "void":
-    /*#__NOINLINE__*/ evalAccess(Op(O.access, { y: Op(O.token, { v: y as any }), i: Op(O.token, { v: i }), d: "." }))
+    /*#__NOINLINE__*/ evalAccess(Op(O.access, { y: Op(O.token, {v: {c: 5, v: y}}), i: Op(O.token, { v: i }), d: "." }))
     // no break;
   default: if (0) { As_<"void">(action) } return // lgtm [js/unreachable-statement]
   }
@@ -944,6 +950,10 @@ const evalNever = (op: BaseOp<O.block | O.statGroup | O.stat | O.pair>): void =>
 }, evalTokenValue = (op: BaseOp<O.token>): unknown => {
   const { y, i } = Ref(op, R.plain)
   return y[i]
+}, evalComplexLiteral = (literal: ComplexLiteral | FakeValue): string | RegExp | FakeValue | number | void => {
+  if (literal === kFakeValue) { return kFakeValue }
+  else if (literal.c === 4) { return new RegExp(literal.v[0], literal.v[1] as "") }
+  else { return (literal as Exclude<typeof literal, FakeValue | { c: 4 }>).v as number }
 }, evalAccessKey = (key: unknown): number | string | symbol => {
   if (typeof key === "object" && key !== null) {
     const ref = {[key as never]: 1}, names = Object.getOwnPropertyNames(ref)
@@ -1105,9 +1115,9 @@ const ToString = (op: Op, allowed: number): string => {
           + (op.v.b === "{" ? " }" : " ]")
   case O.token: /* O.token: */ {
     const isRef = typeof op.v === "string", val = isRef ? op.v : op.v.v
-    return isRef ? val as RefOp["v"] : val instanceof RegExp ? `/${val.source}/${val.flags}`
-        : typeof val === "string" ? JSON.stringify(val) : val === kFakeValue ? " "
-        : typeof val === "bigint" ? val + "n" : val + ""
+    return isRef ? val as RefOp["v"] : typeof val === "string" ? JSON.stringify(val) : val === kFakeValue ? " "
+        : typeof val === "bigint" ? val + "n" : !val || typeof val !== "object" ? val + ""
+        : val.c === 4 ? `/${val.v[0]}/${val.v[1]}` : val.v + ""
   }
   default: if (0) { As_<never>(op) } return "(unknown)" // lgtm [js/unreachable-statement]
   }

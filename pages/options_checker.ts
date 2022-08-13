@@ -2,7 +2,7 @@ import { browser_, OnFirefox, post_ } from "./async_bg"
 import { bgSettings_, Option_, AllowedOptions, oTrans_ } from "./options_base"
 import { kPgReq } from "../background/page_messages"
 
-let keyMappingChecker_ = {
+const keyMappingChecker_ = {
   status_: 0 as const,
   normalizeKeys_: null as never as (this: void, s: string) => string,
   init_ (): void {
@@ -31,17 +31,14 @@ let keyMappingChecker_ = {
       return modifiers || isLong || suffix ? `<${modifiers}${bodyLower}${suffix}>` : body
     }
     this.normalizeKeys_ = k => k.replace(<RegExpG&RegExpSearchable<2>> /<(?!<)((?:[ACMSVacmsv]-){0,4})(.[^>]*)>/g, func)
-    this.normalizeMap_ = this.normalizeMap_.bind(this);
-    this.normalizeCmd_ = this.normalizeCmd_.bind(this);
-    this.normalizeOptions_ = this.normalizeOptions_.bind(this);
     this.init_ = null as never;
   },
   onHex_ (this: void, _s: string, hex: string): string {
     return hex ? "\\u00" + hex : "\\\\";
   },
-  normalizeOptions_ (str: string, value: string, s2: string | undefined, tail: string): string {
+  normalizeOptions_ (this: void, str: string, value: string, s2: string | undefined, tail: string): string {
     if (s2) {
-      s2 = s2.replace(<RegExpGI & RegExpSearchable<1>> /\\(?:x([\da-z]{2})|\\)/gi, this.onHex_);
+      s2 = s2.replace(<RegExpGI & RegExpSearchable<1>> /\\(?:x([\da-z]{2})|\\)/gi, keyMappingChecker_.onHex_)
       value = `"${s2}"`;
     } else if (!tail && value === "\\\\") {
       value = "\\";
@@ -63,7 +60,7 @@ let keyMappingChecker_ = {
       value = multiLines ? (s2 || value).replace(<RegExpG> /\\\r/g, "\ufffe") : s2 || value
     }
     value = value && value.replace(<RegExpG & RegExpSearchable<1>> /\\(\\|s)/g, (a, i) => i === "s" ? " " : a)
-    value = value && JSON.stringify(value).replace(<RegExpG & RegExpSearchable<0>> /\s/g, this.onToHex_);
+    value = value && JSON.stringify(value).replace(<RegExpG & RegExpSearchable<0>> /\s/g, keyMappingChecker_.onToHex_)
     value = multiLines ? value.replace(<RegExpG> /\ufffe/g, "\\\r") : value
     return "=" + value + tail;
   },
@@ -71,8 +68,8 @@ let keyMappingChecker_ = {
     const hex = s.charCodeAt(0) + 0x100000;
     return "\\u" + hex.toString(16).slice(2);
   },
-  normalizeMap_ (_0: string, prefix: string, cmd: string, keys: string, options: string): string {
-    const keys2 = this.normalizeKeys_(keys);
+  normalizeMap_ (this: void, _0: string, prefix: string, cmd: string, keys: string, options: string): string {
+    const keys2 = keyMappingChecker_.normalizeKeys_(keys)
     if (keys2 !== keys) {
       console.log("KeyMappings Checker:", keys, "is corrected into", keys2);
       keys = keys2;
@@ -80,7 +77,7 @@ let keyMappingChecker_ = {
     if (cmd.toLowerCase() === "mapkey") {
       const destKeyArr = (<RegExpOne> /^\S+/).exec(options.trimLeft())
       const destKey = destKeyArr && destKeyArr[0]
-      const destKey2 = destKey && this.normalizeKeys_(destKey)
+      const destKey2 = destKey && keyMappingChecker_.normalizeKeys_(destKey)
       if (destKey2 !== destKey) {
         console.log("KeyMappings Checker:", destKey, "is corrected into", destKey2)
         options = options.replace(destKey!, destKey2!) as string
@@ -93,23 +90,22 @@ let keyMappingChecker_ = {
         options = options.slice(offset)
       }
     }
-    return this.normalizeCmd_("", prefix, keys, options);
+    return keyMappingChecker_.normalizeCmd_("", prefix, keys, options)
   },
-  correctMapKey_ (_0: string, mapA: string, B: string): string {
+  correctMapKey_ (this: void, _0: string, mapA: string, B: string): string {
     return mapA.replace("map", "mapKey") + (B.length === 3 ? B[1] : B)
   },
-  normalizeCmd_ (_0: string, prefix: string, name: string, options: string) {
-    if ((<RegExpOne> /^\s+(createTab|openUrl)\s/).test(options)
-        && !(<RegExpI> /\surls?=/i).test(options)) {
-      options = this.convertFromLegacyUrlList_(options);
+  normalizeCmd_ (this: void, _0: string, prefix: string, name: string, options: string) {
+    if ((<RegExpOne> /\s(createTab|openUrl)/).test(name) && !(<RegExpI> /\surls?=/i).test(options)) {
+      options = keyMappingChecker_.convertFromLegacyUrlList_(options)
     }
     options = options ? options.replace(<RegExpG & RegExpSearchable<3>> /=("(\S*(?:\s[^=]*)?)"|[\S\r]+)(\s|$)/g,
-        this.normalizeOptions_) : "";
+        keyMappingChecker_.normalizeOptions_) : "";
     return prefix + name + options;
   },
   convertFromLegacyUrlList_ (this: void, options: string): string {
     const urls: string[] = [];
-    options = (options + " ").replace(<RegExpG & RegExpSearchable<1>> /\s(\w+:[^=\s]+|[^\s=]+:\/\/\S+)(?=\s|$)/g,
+    options = (options + " ").replace(<RegExpG & RegExpSearchable<1>> /\s+(\w+:[^=\s]+|[^\s=]+:\/\/\S+)(?=\s|$)/g,
         (_, url) => (urls.push(url), "")).trimRight();
     const len = urls.length;
     return options + (len > 1 ? " urls=" : len ? " url=" : "") + (len ? JSON.stringify(len > 1 ? urls : urls[0]) : "");
@@ -119,7 +115,7 @@ let keyMappingChecker_ = {
     this.init_ && this.init_();
     str = str.replace(<RegExpG & RegExpSearchable<0>> /\\\\?\n/g, i => i.length === 3 ? i : "\\\r")
     str = str.replace(<RegExpG & RegExpSearchable<3>
-        > /^([ \t]*(?:#\s?)?map\s+(?:<(?!<)(?:.-){0,4}.[\w:]*?>|\S)\s+)(<(?!<)(?:[ACMSVacmsv]-){0,4}.\w*?>|\S)(?=\s|$)/gm
+        >/^([ \t]*(?:#\s?)?map\s+(?:<(?!<)(?:.-){0,4}.[\w:]*?>|\S)\s+)(<(?!<)(?:[ACMSVacmsv]-){0,4}.\w*?>|\S)(?=\s|$)/gm
         , this.correctMapKey_);
     str = str.replace(<RegExpG & RegExpSearchable<4>> /^([ \t]*(?:#\s?)?(map(?:[kK]ey)?|run|unmap!?)\s+)(\S+)([^\n]*)/gm
         , this.normalizeMap_);
@@ -130,7 +126,6 @@ let keyMappingChecker_ = {
   }
 };
 Option_.all_.keyMappings.checker_ = keyMappingChecker_;
-keyMappingChecker_ = null as never;
 
 Option_.all_.searchUrl.checker_ = {
   status_: 0,

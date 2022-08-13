@@ -335,7 +335,7 @@ set_reqH_([
             : (<RegExpOne> /^GIF8[79]a/).test(head) ? "GIF"
             : (mime.split("/")[1] || "").toUpperCase() || mime
         const text = title && (<RegExpI> /^(http|ftp|file)/i).test(title) ? title : ""
-        const wantSafe = richText.includes("safe") && tag !== "GIF"
+        const wantSafe = richText.includes("safe") && tag !== "GIF" || richText.includes("force")
         handleImageUrl(isStr ? res : "", isStr ? null : res[0]
             , wantSafe && tag !== "PNG" ? kTeeTask.DrawAndCopy : kTeeTask.CopyImage, (ok): void => {
           showHUD(trans_(ok ? "imgCopied" : "failCopyingImg", [ok === 1 ? "HTML" : wantSafe ? "PNG" : tag]))

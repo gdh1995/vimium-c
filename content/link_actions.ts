@@ -94,7 +94,7 @@ const tryDrawOnCanvas = ((hudMsg: string | 0, req?: Req.fg<kFgReq.openImage | kF
     r1 = defer1.r
     richText = (richText || "") + "" as Extract<typeof richText, string>
     if (!richText.includes("safe") && isGlobal && !inIncognito || OnFirefox && req && hasKeyword_ff
-        || parsed.pathname.endsWith(".gif")) {
+        || parsed.pathname.endsWith(".gif") && !richText.includes("force")) {
       r1(0)
     } else if (isHtmlImage && urlSameIgnoringHash(url, getMediaUrl(img, 2)) && (sameOrigin || img.crossOrigin)) {
       r1(1)

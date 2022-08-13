@@ -50,7 +50,7 @@ let staticSeds_: readonly ClipSubItem[] | null = null
 const parseSeds_ = (text: string, fixedContexts: Contexts | null): readonly ClipSubItem[] => {
   const result: ClipSubItem[] = []
   const sepReCache: Map<string, RegExpOne> = new Map()
-  for (let line of text.split("\n")) {
+  for (let line of text.replace(<RegExpSearchable<0>> /\\\\?\n/g, t => t.length === 3 ? "\\\n" : "").split("\n")) {
     line = line.trim()
     const prefix = (<RegExpOne> /^([\w\x80-\ufffd]{1,6})([^\x00- \w\\\x7f-\uffff])/).exec(line)
     if (!prefix) { continue }
