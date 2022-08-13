@@ -189,16 +189,17 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
         rAF_(animate)
       }
     } else if (elapsed) {
+      const el2 = element
       if (!Build.NDEBUG) { totalElapsed -= elapsed }
       onFinish && onFinish(totalDelta)
       toggleAnimation!()
       if (OnChrome && hasNewScrollEnd_cr) { // ignore Chrome 74~77 with EXP enabled, to make code smaller
         // according to tests on C75, no "scrollend" events if scrolling behavior is "instant";
         // the doc on Google Docs requires no "overscroll" events for programmatic scrolling
-        const notEl: boolean = !element || element === scrollingEl_();
-        dispatchEvent_(notEl ? doc : element!, new Event(kSE, wrapEventInit_({}, 1, !notEl, 1)))
+        const notEl: boolean = !el2 || el2 === scrollingEl_();
+        dispatchEvent_(notEl ? doc : el2!, new Event(kSE, wrapEventInit_({}, 1, !notEl, 1)))
       }
-      checkCurrent(element)
+      checkCurrent(el2)
     } else {
       rAF_(animate)
     }
