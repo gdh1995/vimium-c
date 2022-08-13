@@ -13,7 +13,7 @@ import {
   SafeEl_not_ff_, MDW, fullscreenEl_unsafe_, removeEl_s, isNode_, BU, docHasFocus_, getRootNode_mounted, testMatch,
   getEventPath
 } from "../lib/dom_utils"
-import { pushHandler_, removeHandler_, prevent_, isEscape_ } from "../lib/keyboard_utils"
+import { handler_stack, removeHandler_, prevent_, isEscape_ } from "../lib/keyboard_utils"
 import { InputHintItem } from "./link_hints"
 
 const enum kNodeInfo { NONE = 0, ShadowBlur = 1, ShadowFull = 2 }
@@ -82,7 +82,7 @@ export const insertInit = (doesGrab?: boolean | null, inLoading?: 1): void => {
         }
       };
       if (!inLoading) { return }
-      pushHandler_(exitGrab, kHandler.grabBackFocus)
+      handler_stack.push(exitGrab, kHandler.grabBackFocus)
       setupEventListener(0, MDW, exitGrab);
       return;
     }

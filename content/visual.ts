@@ -56,7 +56,7 @@ import {
   execCommand,
 } from "./mode_find"
 import { insert_Lock_, raw_insert_lock } from "./insert"
-import { hudTip, hudHide, hudShow, hud_box } from "./hud"
+import { hudTip, hudHide } from "./hud"
 import { post_, send_, runFallbackKey, contentCommands_ } from "./port"
 import { currentKeys, set_currentKeys } from "./key_handler"
 
@@ -709,7 +709,6 @@ const ensureLine = (command1: number): void => {
     getPixelScaleToScroll()
     curSelection = getSelected(initialScope)
   let scope = initialScope.r as Exclude<typeof initialScope.r, undefined>, diff: number
-  hud_box || hudShow(kTip.raw)
   toggleSelectableStyle(1)
   {
     let type: SelType = selType()

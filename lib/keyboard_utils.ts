@@ -17,10 +17,10 @@ const _modifierKeys: SafeEnum = {
     __proto__: null as never,
     Alt: 1, AltGraph: 1, Control: 1, Meta: 1, OS: 1, Shift: 1
 }
-const handlers_: Array<HandlerNS.Handler | kHandler> = []
+const handler_stack: Array<HandlerNS.Handler | kHandler> = []
 let getMappedKey: (this: void, event: HandlerNS.Event, mode: kModeId) => string
 
-export { keyNames_, getMappedKey, handlers_ as handler_stack, DEL, BSP, SP as SPC }
+export { keyNames_, getMappedKey, handler_stack, DEL, BSP, SP as SPC }
 export function set_getMappedKey (_newGetMappedKey: typeof getMappedKey): void { getMappedKey = _newGetMappedKey }
 export function set_keyIdCorrectionOffset_old_cr_ (_newKeyIdCorrectionOffset: 185 | 300 | null): void {
   keyIdCorrectionOffset_old_cr_ = _newKeyIdCorrectionOffset
@@ -149,7 +149,7 @@ export const prevent_ = (event: ToPrevent): void => {
 
 export const replaceOrSuppressMost_ = ((id: kHandler, newHandler?: HandlerNS.Handler): void => {
   removeHandler_(id)
-  pushHandler_(newHandler || ((event: HandlerNS.Event): HandlerResult => {
+  handler_stack.push(newHandler || ((event: HandlerNS.Event): HandlerResult => {
     isEscape_(getMappedKey(event, <kModeId> <number> id)) && removeHandler_(id)
     return event.i === kKeyCode.f12 || event.i === kKeyCode.f5 ? HandlerResult.Suppress : HandlerResult.Prevent;
   }), id)
@@ -195,7 +195,7 @@ export const suppressTail_ = ((timeout?: number
   }
   timeout && func()
   if (!callback) {
-    pushHandler_(func, func as never as kHandler.suppressTail)
+    handler_stack.push(func, func as never as kHandler.suppressTail)
   }
   return func
 }) as {
@@ -203,11 +203,9 @@ export const suppressTail_ = ((timeout?: number
   (timeout: number, callback: HandlerNS.VoidHandler<any> | 0): HandlerNS.VoidHandler<HandlerResult>
 }
 
-export const pushHandler_ = handlers_.push.bind(handlers_) as (func: HandlerNS.Handler, id: kHandler) => number
-
 export const removeHandler_ = (id: kHandler): void => {
-  const i = handlers_.lastIndexOf(id)
-  if (i > 0) { handlers_.splice(i - 1, 2) }
+  const i = handler_stack.lastIndexOf(id)
+  i > 0 &&  handler_stack.splice(i - 1, 2)
 }
 
   /** misc section */

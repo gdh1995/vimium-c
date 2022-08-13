@@ -11,7 +11,7 @@ import {
   getDirectionOfNormalSelection, inputSelRange, dispatchEvent_, notSafe_not_ff_, activeEl_unsafe_
 } from "../lib/dom_utils"
 import {
-  pushHandler_, removeHandler_, getMappedKey, prevent_, isEscape_, keybody_, DEL, BSP, ENTER, handler_stack,
+  replaceOrSuppressMost_, removeHandler_, getMappedKey, prevent_, isEscape_, keybody_, DEL, BSP, ENTER, handler_stack,
   getKeyStat_, suppressTail_
 } from "../lib/keyboard_utils"
 import {
@@ -134,7 +134,7 @@ set_contentCommands_([
     if (hasExpected || !!options.normal === (count0 > 0)) {
       const oldEsc = esc!
       if (!hasExpected && !passKeys && !insert_Lock_() && !isTY(options.normal)) { return hudTip(kTip.noPassKeys) }
-      hasExpected && pushHandler_((event): HandlerResult => {
+      hasExpected && replaceOrSuppressMost_(kHandler.passNextKey, (event): HandlerResult => {
         const rawKey = getMappedKey(event, kModeId.Plain)
         const key = rawKey.length > 1 ? `<${rawKey}>` : ignoreCase ? Lower(rawKey) : rawKey
         const matched = !!key && (ignoreCase ? Lower(expectedKeys) : expectedKeys).slice(count - 1).startsWith(key)
@@ -147,7 +147,7 @@ set_contentCommands_([
           esc!(HandlerResult.Nothing)
         }
         return matched || options.consume !== !1 ? HandlerResult.Prevent : HandlerResult.Nothing
-      }, kHandler.passNextKey)
+      })
       set_passAsNormal(1)
       set_esc((i: HandlerResult): HandlerResult => {
         if (i === HandlerResult.Prevent && 0 >= --count || i === HandlerResult.ExitNormalMode) {
@@ -187,14 +187,14 @@ set_contentCommands_([
       }
       return !count
     } : null
-    pushHandler_(event => {
+    replaceOrSuppressMost_(kHandler.passNextKey, event => {
       if (!event.e.repeat && (Build.OS & (1 << kOS.mac) ? shouldExit_delayed_mac!(event.e, 1) : !count)) {
         return HandlerResult.Nothing
       }
       keyCount += !keys[event.i] as boolean | BOOL as BOOL
       keys[event.i] = !(Build.OS & (1 << kOS.mac)) || Build.OS & ~(1 << kOS.mac) && os_ ? 1 : timeStamp_(event.e)
       return HandlerResult.PassKey;
-    }, kHandler.passNextKey)
+    })
     set_onPassKey((event): void => {
       if (event && (Build.OS & (1 << kOS.mac) ? shouldExit_delayed_mac!(event, 0) : !count)) { /* empty */ }
       else if (event && keys[event.keyCode] ? --keyCount > 0 || (keyCount = 0, --count)
@@ -329,7 +329,7 @@ set_contentCommands_([
     ensureBorder(wdZoom_ / dScale_)
     set_inputHint({ b: addElementList<false>(hints, arr), h: hints })
     hints = 0 as never
-    pushHandler_((event): HandlerResult => {
+    replaceOrSuppressMost_(kHandler.focusInput, (event): HandlerResult => {
       const keyCode = event.i, isIME = keyCode === kKeyCode.ime, repeat = event.e.repeat,
       key = isIME || repeat ? "" : getMappedKey(event, kModeId.Insert)
       if (OnFirefox && !insert_Lock_()) {
@@ -356,7 +356,7 @@ set_contentCommands_([
       } else {
         return HandlerResult.Nothing;
       }
-    }, kHandler.focusInput)
+    })
     })
   },
   /* kFgCmd.editText: */ (options: CmdOptions[kFgCmd.editText], count: number) => {

@@ -604,7 +604,7 @@ declare const enum kHandler {
   __none, __normal, __insert, __next, linkHints, marks, find, visual, omni, 
   NOT_MEAN_kModeId,
   postFind = NOT_MEAN_kModeId, unhoverOnEsc, grabBackFocus, helpDialog, focusInput,
-  passNextKey = __normal, suppressTail = __insert, _mask = ""
+  passNextKey = __normal, suppressTail = __insert,  onTopNormal = __next, _mask = ""
 }
 
 declare const enum kCharCode {

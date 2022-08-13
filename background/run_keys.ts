@@ -17,7 +17,7 @@ import {
 import C = kBgCmd
 import NormalizedEnvCond = CommandsNS.NormalizedEnvCond
 
-declare const enum kStr { RunKeyWithId = "<v-runkey:$1>" }
+declare const enum kStr { RunKeyWithId = "<v-runKey:$1>" }
 const abs = Math.abs
 const kRunKeyOptionNames: readonly (Exclude<keyof BgCmdOptions[C.runKey], `$${string}` | `o.${string}`>)[] =
     [ "expect", "keys", "options", "mask" ]
@@ -497,7 +497,7 @@ const runOneKeyWithOptions = (key: string, count: number
     , envInfo: CurrentEnvCache | null, fallbackCounter?: FgReq[kFgReq.nextKey]["f"] | null
     , avoidStackOverflow?: boolean): void => {
   let finalKey = key, registryEntry = key !== "__proto__" && keyToCommandMap_.get(key)
-      || !key.includes("<") && keyToCommandMap_.get(finalKey = `<v-${key}>`) || null
+      || !key.includes("<") && !key.includes(":", 1) && keyToCommandMap_.get(finalKey = `<v-${key}>`) || null
   let entryReadonly = true
   if (registryEntry == null && key in availableCommands_) {
     entryReadonly = false
@@ -578,7 +578,8 @@ set_inlineRunKey_(As_<typeof inlineRunKey_>((rootRegistry: Writable<CommandsNS.I
     if (!first) { return }
     canInline = canInline && (seq.tree as ListNode).val.length === 1 && (seq.tree as ListNode).val[0] === first
     const info = parseKeyNode(first), key = info.key
-    const parentEntry = keyToCommandMap_.get(key) || !key.includes("<") && keyToCommandMap_.get(`<v-${key}>`) || null
+    const parentEntry = keyToCommandMap_.get(key)
+        || !key.includes("<") && !key.includes(":", 1) && keyToCommandMap_.get(`<v-${key}>`) || null
     const newName = parentEntry ? parentEntry.command_ : key in availableCommands_ ? key as kCName : null
     if (!newName) { return }
     const doesContinue = parentEntry != null && parentEntry.alias_ === C.runKey && parentEntry.background_

@@ -614,7 +614,7 @@ delayBinding("#testKeyInputBox", "focus", function KeyTester(_focusEvent: Event)
       hasOutline = true
       const text = (testKeyInput.previousElementSibling as HTMLElement).textContent
       VApi.f(kFgCmd.insertMode, Object.setPrototypeOf<CmdOptions[kFgCmd.insertMode]>(
-          { i: true, r: 0, k: "v-esc", p: true, h: text }, null), 1, 0)
+          { i: true, r: 0, k: "v-esc:test", p: true, h: text }, null), 1, 0)
     }
   }
   testKeyInput.onblur = (): void => {

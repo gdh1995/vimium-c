@@ -505,21 +505,21 @@ const populateKeyMap_ = (value: string | null): void => {
     const func = (obj: ChildKeyFSM): void => {
       for (const key in obj) {
         const val = obj[key]!;
-        if (val !== KeyAction.cmd) { func(val); }
+        if (val !== KeyAction.cmd) {
+          key.startsWith("v-") || func(val)
+        }
         else if (maybePassed !== true && ref[key] === KeyAction.cmd && !(maybePassed && maybePassed.has(key))
               && (key.length < 2 || ref[key + ":" + GlobalConsts.InsertModeId] == null)
-            || key.startsWith("v-")) {
+            || key.startsWith("v-") && typeof ref[key] !== "object") {
           delete obj[key];
         }
       }
     };
     for (const key in ref) {
       const val = ref[key]!;
-      if (val === KeyAction.cmd) {
-        if (key.startsWith("v-")) {
-          delete ref[key]
-        }
-      } else if (val !== KeyAction.count) {
+      if (key.startsWith("v-")) {
+        if (val === KeyAction.cmd) { delete ref[key] }
+      } else if (typeof val === "object") {
         func(val)
       }
     }

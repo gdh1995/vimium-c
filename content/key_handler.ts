@@ -3,7 +3,8 @@ import {
   chromeVer_, deref_, fgCache, OnEdge
 } from "../lib/utils"
 import {
-  set_getMappedKey, char_, getMappedKey, isEscape_, getKeyStat_, prevent_, handler_stack, keybody_, SPC, hasShift_ff
+  set_getMappedKey, char_, getMappedKey, isEscape_, getKeyStat_, prevent_, handler_stack, keybody_, SPC, hasShift_ff,
+  replaceOrSuppressMost_, removeHandler_
 } from "../lib/keyboard_utils"
 import {
   deepActiveEl_unsafe_, getSelection_, ElementProto_not_ff, getElDesc_, blur_unsafe, getEventPath
@@ -17,6 +18,7 @@ import {
 } from "./insert"
 import { keyIsDown as scroll_keyIsDown, onScrolls, scrollTick } from "./scroller"
 import { catchAsyncErrorSilently, evIDC_cr, lastHovered_, set_evIDC_cr, unhover_async } from "./async_dispatcher"
+import { hudHide } from "./hud"
 
 let passKeys: Set<string> | null = null
 let isPassKeysReversed = false
@@ -85,7 +87,8 @@ set_getMappedKey((eventWrapper: HandlerNS.Event, mode: kModeId): ReturnType<type
   return key;
 })
 
-export const checkKey = ((event: HandlerNS.Event, key: string, inInsertMode?: BOOL
+export const checkKey = ((event: HandlerNS.Event, key: string
+    , /** 0 means normal; 1 means (plain) insert; 2 means on-top normal */ modeType?: BOOL
     ): HandlerResult.Nothing | HandlerResult.Prevent | HandlerResult.PlainEsc | HandlerResult.AdvancedEsc => {
   // when checkKey, Vimium C must be enabled, so passKeys won't be `""`
   if (passKeys && !currentKeys
@@ -100,18 +103,19 @@ export const checkKey = ((event: HandlerNS.Event, key: string, inInsertMode?: BO
   }
   let key2 = key
   if (!nextKeys || !(j = nextKeys[key])) {
-    j = key.startsWith("v-") ? KeyAction.cmd
-        : !inInsertMode
+    j = event.v ? keyFSM[key] || KeyAction.cmd
+        : !modeType
           ? keyFSM[currentKeys && mapKeyTypes & kMapKey.normalMode ? key2 = getMappedKey(event, kModeId.Normal) : key]
+        : modeType < 2 &&
         // insert mode: not accept a sequence of multiple keys,
         // because the simplified keyFSM can not be used when nextKeys && !nextKeys[key]
-        : (keyFSM[key2 = key + ":" + GlobalConsts.InsertModeId] || (key2 = keybody_(key)
+          (keyFSM[key2 = key + ":" + GlobalConsts.InsertModeId] || (key2 = keybody_(key)
             ) < kChar.minNotF_num && key2 > kChar.maxNotF_num && keyFSM[key2 = key]) === KeyAction.cmd
         ? KeyAction.cmd : KeyAction.INVALID
     if (!j || currentKeys && passKeys
           && passKeys.has(mappedKeys ? getMappedKey(event, kModeId.NO_MAP_KEY) : key) !== isPassKeysReversed
           && !event.v && !passAsNormal) {
-      return esc!(nextKeys && inInsertMode ? HandlerResult.Prevent : HandlerResult.Nothing)
+      return esc!(nextKeys && modeType ? HandlerResult.Prevent : HandlerResult.Nothing)
     }
     if (j !== KeyAction.cmd) { currentKeys = ""; }
   }
@@ -121,14 +125,30 @@ export const checkKey = ((event: HandlerNS.Event, key: string, inInsertMode?: BO
     esc!(HandlerResult.Prevent);
     isCmdTriggered = event.i || kKeyCode.True
   } else {
-    nextKeys = j !== KeyAction.count ? safer(j) : keyFSM;
+    if (j !== KeyAction.count) {
+      if (event.v) {
+        replaceOrSuppressMost_(kHandler.onTopNormal, /*#__NOINLINE__*/ checkKeyOnTop)
+        hudHide()
+      }
+      nextKeys = safer(j)
+    } else {
+      nextKeys = keyFSM
+    }
     curKeyTimestamp = timeStamp_(event.e)
   }
   return HandlerResult.Prevent;
 }) as {
   (event: HandlerNS.Event, key: `v-${string}`): HandlerResult.Nothing | HandlerResult.Prevent
-  (event: HandlerNS.Event, key: string, inInsertMode: BOOL
+  (event: HandlerNS.Event, key: string, modeType: BOOL | 2
     ): HandlerResult.Nothing | HandlerResult.Prevent | HandlerResult.PlainEsc | HandlerResult.AdvancedEsc
+}
+
+const checkKeyOnTop = (event: HandlerNS.Event): HandlerResult => {
+  const consumed = currentKeys && event.i !== kKeyCode.ime,
+  key = consumed && (getMappedKey(event, kModeId.Next) || event.v)
+  key && checkKey(event, key, 2)
+  consumed && currentKeys || hudHide(removeHandler_(kHandler.onTopNormal))
+  return consumed ? (event.v = "", HandlerResult.Prevent) : HandlerResult.Nothing
 }
 
 const checkAccessKey_cr = OnChrome ? (event: HandlerNS.Event): void => {

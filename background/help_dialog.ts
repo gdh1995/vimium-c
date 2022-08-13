@@ -67,7 +67,7 @@ export const render_ = (isOptionsPage: boolean, showNames: boolean | null | unde
     const commandToKeys = new Map<string, [string, CommandsNS.Item][]>(), hideUnbound = !isOptionsPage
     showNames = isOptionsPage || !!showNames
     keyToCommandMap_.forEach((registry, key): void => {
-      if (key.startsWith("<v-") && key.endsWith(">")) { return }
+      if ((<RegExpOne> /^<v-.\w*>/).test(key)) { return }
       let rawCommand = registry.command_
       if (registry.alias_ === kBgCmd.runKey && registry.background_) {
         rawCommand = inlineRunKey_(registry) || rawCommand

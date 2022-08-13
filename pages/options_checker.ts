@@ -9,20 +9,23 @@ let keyMappingChecker_ = {
     function sortModifiers(option: string): string {
       return option.length < 4 ? option : option.slice(0, -1).split("-").sort().join("-") + "-";
     }
-    function func(_0: string, oldModifiers: string, body: string): string {
+    function func(_0: string, modifiers: string, body: string): string {
       let suffix = ""
       if (body.length > 2 && body[body.length - 2] === ":") {
         suffix = body.slice(-2)
         body = body.slice(0, -2)
       }
-      let modifiers = oldModifiers.toLowerCase();
+      modifiers = modifiers.toLowerCase()
       const isLong = body.length > 1, hasShift = modifiers.includes("s-"), bodyUpper = body.toUpperCase()
       if (!isLong) {
         if (!modifiers) { return _0; }
         if (hasShift && modifiers.length < 3) { return suffix ? `<${bodyUpper}${suffix}>` : bodyUpper }
       }
+      // not force a virtual key body lower, since it's only used to search in key mappings;
+      // abort any suffix, so that other checks don't need to worry about its mode
+      if (modifiers.includes("v-")) { return `<v-${body}>` }
       const bodyLower = body.toLowerCase()
-      modifiers = modifiers.includes("v-") ? "v-" : sortModifiers(modifiers)
+      modifiers = sortModifiers(modifiers)
       body !== bodyLower && !hasShift && (modifiers += "s-")
       // not convert "-" in body to "_", in case of new modifiers in the future
       return modifiers || isLong || suffix ? `<${modifiers}${bodyLower}${suffix}>` : body

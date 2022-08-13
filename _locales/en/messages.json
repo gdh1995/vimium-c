@@ -107,6 +107,7 @@
   "112": { "message": "Some functions of Vimium C may not work because %o is sandboxed at %o." },
   "113": { "message": "Vimium C blocks auto-focusing on %s at %o." },
   "114": { "message": "(Paused)" },
+  "115": { "message": "To trigger key: $1" },
   "200": { "message": "http://www.w3.org/1999/xhtml" },
   "0": { "message": "Open link in current tab" },
   "2": { "message": "Open link in new tab" },
