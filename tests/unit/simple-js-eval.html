@@ -206,6 +206,13 @@ function onLoad() {
 
   // =============================== assert ===============================
   assert(function () {
+    return navigator.userAgent.match(/\bChrom(?:e|ium)\/(\d+)/)
+  })
+  assert(function () {
+    return `; hello ${"world, " + JSON.stringify({secret: [42]})} nihao{2}$${ ` 123` }`
+  })
+  if (1) return
+  assert(function () {
     var a = 0, i = 3
     for (let i = 0; i < 13; i += 4) { a += i / 2 }
     for (var i = 0; i < 13; i += 4) { a += i }

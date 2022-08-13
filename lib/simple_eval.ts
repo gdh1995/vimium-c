@@ -8,7 +8,7 @@
 
 interface FakeValue { c: 42, v: undefined }
 type ComplexLiteral = /* regexp */ { c: 4, v: [source: string, flags: string] }
-    | /* runtime value */ { c: 5, v: unknown }
+    | /* template */ { c: 0 | 1 | 2 | 3, v: string } | /* runtime value */ { c: 5, v: unknown }
 interface BreakValue { c: BOOL, v: string | 0 }
 type VarLiterals = "var1" | "bar" | "..." | "__proto__" | "new.target" | "debugger"
 type VarNames = "Var1" | "globalThis" | "this" | "arguments" | "undefined"
@@ -27,7 +27,7 @@ interface TokenValues {
   [T.colon]: ":", [T.or]: "||" | "??", [T.and]: "&&", [T.bitOr]: "|", [T.bitXor]: "^", [T.bitAnd]: "&"
   [T.compare1]: "==" | "!=" | "===" | "!==", [T.compare2]: "<" | "<=" | ">" | ">=" | "in" | "instanceof"
   [T.bitMove]: "<<" | ">>" | ">>>", [T.math1]: "+" | "-", [T.math2]: "*" | "/" | "%", [T.math3]: "**"
-  [T.unary]: "+" | "-" | "!" | "~" | "typeof" | "void" | "delete" | "++" | "--", [T.rightUnary]: "++" | "--"
+  [T.unary]: "+" | "-" | "!" | "~" | "typeof" | "void" | "delete" | "++" | "--" | "`", [T.rightUnary]: "++" | "--"
   [T.callOrAccess]: "new" | "?." | "__call__", [T.dot]: "." | "?."
   [T.ref]: VarLiterals, [T.literal]: { v: string | number | boolean | null | undefined | ComplexLiteral | FakeValue }
 }
@@ -85,6 +85,7 @@ type Op = SomeOps<keyof OpValues>
 interface RefOp extends BaseOp<O.token> { readonly v: Extract<OpValues[O.token], string> }
 interface LiteralOp extends BaseOp<O.token> { readonly v: Exclude<OpValues[O.token], string> }
 interface RefAssignOp extends BaseOp<O.assign> { v: OpValues[O.assign] & { y: RefOp } }
+interface TemplateOp extends BaseOp<O.unary> { readonly v: { x: BaseOp<O.composed>, o: BaseToken<T.unary> } }
 
 //#endregion
 
@@ -194,7 +195,7 @@ const splitTokens = (expression_: string): Token[] => {
     const reMatch = (<RegExpOne> re).exec(expression_.slice(pos_))
     return reMatch ? (last_ = reMatch[0], pos_ += last_.length, true) : false
   }
-  const tokens_: Token[] = []
+  const tokens_: Token[] = [], curlyBraces: BOOL[] = [0]
   let pos_ = 0, last_ = "", before = T.semiColon, allowRegexp = true, spaceExec: RegExpExecArray | null
   while (pos_ < expression_.length) {
     if (expect(/^\s+/)) { // not update `before` here
@@ -208,8 +209,20 @@ const splitTokens = (expression_: string): Token[] => {
       tokens_.push(Token(T.literal!, { v: { c: 4, v: [last_.slice(1, ind), last_.slice(ind + 1)] } }))
     } else if (peek("...")) {
       tokens_.push(Token(T.ref, "..."), Token(T.comma, ",")); pos_ += 3
+    } else if (expect(curlyBraces[curlyBraces.length - 1] ? /^[\}`]/ : /^`/)) {
+      if (!expect(/^(?:[^`\\$]|\\[^]|\$(?!\{))*(?:`|\$\{)/) && !Build.NDEBUG) {
+        throwSyntax("Unexpected template string")
+      }
+      const isBegin = expression_[pos_ - last_.length - 1] === "`", isEnd = last_.endsWith("`")
+      isBegin ? tokens_.push(Token(T.unary, "`"), Token(T.array, "["))
+          : (tokens_.push(Token(T.groupEnd, ")"), Token(T.comma, ",")), curlyBraces.pop())
+      tokens_.push(Token(T.literal, { v: { c: ((isBegin ? 1 : 0) + (isEnd ? 2 : 0)) as 0 | 1 | 2 | 3,
+        v: last_.slice(0, isEnd ? -1 : -2).replace(<RegExpG & RegExpSearchable<1>> /\\(x..|u\{.*?\}|u.{4}|[^])/g,onHex),
+      } }), Token(T.comma, ","))
+      !isEnd ? (tokens_.push(Token(T.group, "(")), curlyBraces.push(1)) : tokens_.push(Token(T.groupEnd, "]"))
     } else if (
         expect(/^(=>|[!=]=?=?|[+\-*\/%^]=|&&?=?|\|\|?=?|>>?>?=?|<<?=?|\*\*=?|\?\?=?|\?\.|[,?:*\/%^~.\{\}\[\]()])/)) {
+      last_ === "{" ? curlyBraces.push(0) : last_ === "}" ? curlyBraces.pop() : 0
       tokens_.push(Token(kTokenEnums[last_] as T.or, last_ as "||"))
     } else if (expect(/^\+\+?|^--?/)) {
       tokens_.push(Token(last_.length === 2 ? before & (T.groupEnd | T.ref)
@@ -435,7 +448,8 @@ const parseTree = (tokens_: readonly Token[], inNewFunc: boolean | undefined): O
           : As_<string>((cur as SomeTokens<T.prefix | T.action | T.fn>).v)) as "var1"
       type = (cur.t as T) = T.ref, Build.NDEBUG || ((cur.n as string) = "ref")
     }
-    switch (type) {
+    const typeCur = cur.t
+    switch (typeCur) {
     case T.block: case T.dict: /* T.block | T.dict: */
       topIsDict = !(before & (T.block | T.blockEnd | T.semiColon | T.prefix | T.groupEnd | T.fn | T.ref | T.literal))
       values_.push(topIsDict ? Op(O.composed, { b: "{", v: null as never })
@@ -447,8 +461,7 @@ const parseTree = (tokens_: readonly Token[], inNewFunc: boolean | undefined): O
     case T.blockEnd: case T.groupEnd: /* T.blockEnd | T.groupEnd: */
       before & (T.group | T.array | T.dict | (type === T.groupEnd ? T.semiColon : 0))
           ? values_.push(Op(O.comma, [])) : before === T.comma ? ctx_.length-- : 0
-      consumeUntil((cur as SomeTokens<T.blockEnd | T.groupEnd>).v === ")" ? T.group
-          : (cur as SomeTokens<T.blockEnd | T.groupEnd>).v === "]" ? T.array : T.block | T.dict)
+      consumeUntil(cur.v === ")" ? T.group : cur.v === "]" ? T.array : T.block | T.dict)
       if (type === T.blockEnd && ctx_[ctx_.length - 1].t === T.dict) {
         type = (cur.t as T) = T.groupEnd, Build.NDEBUG || ((cur.n as string) = "groupEnd")
       }
@@ -457,7 +470,7 @@ const parseTree = (tokens_: readonly Token[], inNewFunc: boolean | undefined): O
       type === T.blockEnd && values_[values_.length - 1].o === O.block && consumeUntil(~(T.prefix | T.action | T.fn))
       break
     case T.semiColon: /* T.semiColon: */ {
-      const semiColon = (cur as BaseToken<T.semiColon>).v === ";"
+      const semiColon = cur.v === ";"
       // here doesn't check `T.group | T.array`
       const mayBreak: boolean = !semiColon && pos_ + 1 < tokens_.length && (before === T.action
             || !!(tokens_[pos_ + 1].t & (T.ref | T.literal | T.fn | T.prefix | T.action | T.unary | T.block))
@@ -485,12 +498,12 @@ const parseTree = (tokens_: readonly Token[], inNewFunc: boolean | undefined): O
     case T.prefix: /* T.prefix: */
       consumeUntil(T.prefix | T.group | T.block)
       values_.push(Op(O.block, { c: null, l: null, x: null as never })) // to recognize soft-semi easier
-      ctx_.push(cur as BaseToken<T.prefix>)
+      ctx_.push(cur)
       break
     case T.action: /* T.action: */
       (pos_ > tokens_.length - 2 || tokens_[pos_ + 1].t & (T.blockEnd | T.semiColon))
-          && "return,break,continue".includes((cur as BaseToken<T.action>).v) && values_.push(Op(O.comma, []))
-      consumeUntil(T.prefix | T.group | T.block); ctx_.push(cur as BaseToken<T.action>);
+          && "return,break,continue".includes(cur.v) && values_.push(Op(O.comma, []))
+      consumeUntil(T.prefix | T.group | T.block); ctx_.push(cur)
       break
     case T.group: case T.array: /* T.group | T.array: */
       if (topIsDict) { type === T.group && ctx_.push(Token(T.colon, ":"), Token(T.fn, "(){")); topIsDict = false }
@@ -502,7 +515,7 @@ const parseTree = (tokens_: readonly Token[], inNewFunc: boolean | undefined): O
           ctx_.push(Token(T.callOrAccess, "__call__"))
         }
       }
-      ctx_.push(cur as SomeTokens<T.group | T.array>)
+      ctx_.push(cur)
       break
     case T.comma: /* T.comma: */
       if (before & (T.comma | T.array)) { values_.push(Op(O.token, { v: kFakeValue })) }
@@ -512,7 +525,7 @@ const parseTree = (tokens_: readonly Token[], inNewFunc: boolean | undefined): O
       }
       while (ctx_[ctx_.length - 1].t >= T.comma) { consume() }
       ctx_[ctx_.length - 1].t === T.dict && (topIsDict = true)
-      ctx_.push(cur as BaseToken<T.comma>)
+      ctx_.push(cur)
       break
     case T.colon: /* T.colon: */
       if (before === T.ref) {
@@ -524,19 +537,19 @@ const parseTree = (tokens_: readonly Token[], inNewFunc: boolean | undefined): O
         }
       }
       consumeUntil(topIsDict ? (T.comma << 1) - 1 | T.question : T.comma - 1 | T.question)
-      ctx_[ctx_.length - 1].t !== T.prefix ? (ctx_.push(cur as BaseToken<T.colon>), topIsDict = false)
+      ctx_[ctx_.length - 1].t !== T.prefix ? (ctx_.push(cur), topIsDict = false)
       : (type = T.groupEnd, Build.NDEBUG || ((cur.n as string) = "groupEnd")) // `if a > 1:`
       break
     case T.fn: /* T.fn: */
-      if ((cur as BaseToken<T.fn>).v === "fn" && tokens_[pos_ + 1].t === T.ref) {
+      if (cur.v === "fn" && tokens_[pos_ + 1].t === T.ref) {
         ctx_.push(Token(T.fn, `fn ${(tokens_[++pos_] as BaseToken<T.ref>).v}`))
       } else {
         if (tokens_[pos_ + 1].v === "*") { throwSyntax("Unsupported generator") }
-        ctx_.push(cur as BaseToken<T.fn>)
+        ctx_.push(cur)
       }
       break
     case T.ref: case T.literal: /* T.ref: T.literal: */
-      values_.push(Op(O.token, (cur as SomeTokens<T.ref | T.literal>).v))
+      values_.push(Op(O.token, cur.v))
       break
     default:
       if (cur.t === T.callOrAccess && cur.v === "new" && tokens_[pos_ + 1].t === T.dot) {
@@ -558,7 +571,7 @@ const parseTree = (tokens_: readonly Token[], inNewFunc: boolean | undefined): O
             | T.math1 | T.math2 | T.math3 | T.dot
         consumeUntil((type & (T.question | T.fn | T.assign | T.colon) ? T.colon << 1
             : type & kOpL2R ? type : type << 1) - 1)
-        ctx_.push(cur as SomeTokens<CtxTokens>)
+        ctx_.push(cur)
       }
       break
     }
@@ -862,6 +875,11 @@ const evalNever = (op: BaseOp<O.block | O.statGroup | O.stat | O.pair>): void =>
   case "++": return op.v.o.t === T.rightUnary ? y[i]++ : ++y[i]
   case "--": return op.v.o.t === T.rightUnary ? y[i]-- : --y[i]
   case "typeof": return typeof y[i]; case "delete": return target.o === O.token || delete y[i]
+  case "`": {
+    const arr: ReturnType<typeof evalAccessKey>[] = []
+    for (const i of (target as TemplateOp["v"]["x"]).v.v) { arr.push(evalAccessKey(opEvals[i.o](i))) } // easy to debug
+    return arr.join("")
+  }
   case   "void":
     /*#__NOINLINE__*/ evalAccess(Op(O.access, { y: Op(O.token, {v: {c: 5, v: y}}), i: Op(O.token, { v: i }), d: "." }))
     // no break;
@@ -1099,6 +1117,15 @@ const ToString = (op: Op, allowed: number): string => {
   case O.binary: /* O.binary: */ return `${ToWrapped(op, allowed, op.v.l)} ${op.v.o} ${ToWrapped(op, allowed, op.v.r)}`
   case O.unary: /* O.unary: */
     return op.v.o.t === T.rightUnary ? (ToString(op.v.x, allowed) || kUnknown) + op.v.o.v
+        : op.v.o.v === "`" ? (op as TemplateOp).v.x.v.v.map(i => {
+          const literal = i.o === O.token && typeof i.v === "object"
+              && typeof i.v.v === "object" && i.v.v && i.v.v !== kFakeValue && i.v.v.c < 4
+              ? i.v.v as Extract<ComplexLiteral, { c: 0 | 1 | 2 | 3 }> : null
+          return literal ? (literal.c & 1 ? "`" : "}") + JSON.stringify(literal.v).slice(1, -1)
+                .replace(<RegExpG & RegExpSearchable<0>> /`|\\["tn]/g, s => s === "`" ? "\\`" : s[1] === '"' ? '"'
+                  : s[1] === "t" ? "\t" : "\n") + (literal.c & 2 ? "`" : "${")
+              : ToString(i, allowed && (allowed | (1 << O.binary) | (1 << O.unary) | (1 << O.access) | (1 << O.token)))
+        }).join("")
         : op.v.o.v + (op.v.o.v >= "a" && op.v.o.v < "zz" ? " " : "") + (ToString(op.v.x, allowed) || kUnknown)
   case O.call: /* O.call: */ {
     const args = op.v.a.length > 0 ? ToString(Op(O.comma, op.v.a), allowed) || kUnknown : ""
