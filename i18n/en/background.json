@@ -77,5 +77,5 @@
   "turnOff": "$1 has been turned off",
   "Upgrade": "Upgrade",
   "upgradeMsg": "Vimium C has been upgraded to v$1.\n",
-  "upgradeMsg2": ""
+  "upgradeMsg2": "Apply new rules to deal with keyboard layouts; now can copy images to clipboard"
 }

@@ -4,6 +4,12 @@ Release Notes of Vimium C
 ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 说明文档: https://gitee.com/gdh1995/vimium-c#readme , https://github.com/gdh1995/vimium-c/blob/master/README-zh.md .
 
+#### v1.99.1
+* `<v-***>`: fix issues and now support key sequences starting with `<v-***>`, even in command modes
+  * for example, with `mapKey <Y:v> <v-copy>` and `map <v-copy>" autoCopy sed="s@\"(.*?)\"@$1@,matched"`,
+  * `Y"` in VisualMode will extract a string between quotes from selected text and then copy it
+* fix some other bugs
+
 #### v1.99.0
 * VisualMode: fix `as` (selecting a sentence) on Firefox
 * sync settings: fix it would almost never sync from the cloud
