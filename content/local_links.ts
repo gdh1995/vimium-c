@@ -582,15 +582,7 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
     frameNested_ = null
   }
   }
-  let excludedSelector: HintsNS.Options["exclude"] | "" | false = options.exclude
-  const excl2 = findSelectorByHost(options.excludeOnHost)
-      || (wantClickable && mode1_ < HintMode.min_job && !matchSelector
-          && (<RegExpOne> /^\/s($|earch)/).test(loc_.pathname) && findSelectorByHost(kTip.searchResults)) || ""
-  excludedSelector = excludedSelector && safeCall(querySelector_unsafe_, excludedSelector) !== void 0
-      ? (excludedSelector + (excl2 && "," + excl2)) as "css-selector" : excl2
-  if (excludedSelector) {
-    output = (output as Hint0[]).filter(hint => !testMatch(excludedSelector as "css-selector", hint)) || output
-  }
+  output = excludeHints(output as Hint0[], options, wantClickable)
   if (textFilter) {
     cur_ind = (textFilter = textFilter + "" as Extract<typeof textFilter, string>).lastIndexOf("/")
     textFilter = cur_ind > 1 && textFilter[0] === "/" && tryCreateRegExp(
@@ -632,6 +624,16 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
       , wholeDoc: 1 | boolean, acceptNonHTML?: 1): Hint0[]
   (selector: string, options: CSSOptions& OtherFilterOptions, filter: Filter<Hint>, notWantVUI?: 1
       , wholeDoc?: 0, acceptNonHTML?: 1): Hint[]
+}
+
+export const excludeHints = (output: Hint0[], options: CSSOptions, wantClickable: boolean| BOOL): Hint0[] => {
+  let excludedSelector: HintsNS.Options["exclude"] | "" | false = options.exclude
+  const excl2 = findSelectorByHost(options.excludeOnHost)
+      || (wantClickable && mode1_ < HintMode.min_job && !options.match
+          && (<RegExpOne> /^\/s($|earch)/).test(loc_.pathname) && findSelectorByHost(kTip.searchResults)) || ""
+  excludedSelector = excludedSelector && safeCall(querySelector_unsafe_, excludedSelector) !== void 0
+      ? (excludedSelector + (excl2 && "," + excl2)) as "css-selector" : excl2
+  return excludedSelector && output.filter(hint => !testMatch(excludedSelector as "css-selector", hint)) || output
 }
 
 const isDescendant = function (c: Element | null, p: Element, shouldBeSingleChild: BOOL | boolean): boolean {

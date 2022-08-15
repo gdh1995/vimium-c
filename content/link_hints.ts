@@ -110,7 +110,7 @@ import { hudTip, hudShow, hudHide, hud_tipTimer } from "./hud"
 import { set_onWndBlur2, insert_Lock_, set_grabBackFocus, insertInit, raw_insert_lock, insert_last_ } from "./insert"
 import {
   getVisibleElements, localLinkClear, frameNested_, checkNestedFrame, set_frameNested_, filterOutNonReachable, traverse,
-  ClickType, initTestRegExps
+  ClickType, initTestRegExps, excludeHints
 } from "./local_links"
 import {
   matchHintsByKey, zIndexes_, rotate1, initFilterEngine, initAlphabetEngine, renderMarkers, generateHintText,
@@ -567,7 +567,8 @@ export const findAnElement_ = (options: OptionsToFindElement, count: number, als
           : SafeEl_not_ff_!(doc.body || docEl_unsafe_())
       : null
     if (el = testD("em") || el && isNotInViewport(el) < (wholeDoc
-          ? VisibilityType.OutOfView + 1 : VisibilityType.Visible + 1) ? el : null) { break }
+          ? VisibilityType.OutOfView + 1 : VisibilityType.Visible + 1)
+        && excludeHints([[el as SafeElementForMouse]], options, 1).length > 0 ? el : null) { break }
   }
   return [el as SafeElement | null | undefined, wholeDoc, indByCount, isSel]
 }

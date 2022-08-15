@@ -234,8 +234,8 @@ const showUrlIfNeeded = (): void => {
 
 const hoverEl = (): void => {
     const toggleMap = hintOptions.toggle
-    const doesFocus = !elType && !isIFrameElement(clickEl)
-        && checkBoolOrSelector(hintOptions.focus, (clickEl as ElementToHTMLOrForeign).tabIndex! >= 0)
+    const manualFocus = !elType && !isIFrameElement(clickEl), doesFocus = manualFocus
+        && checkBoolOrSelector(rawFocus, (clickEl as ElementToHTMLOrForeign).tabIndex! >= 0)
     // here not check lastHovered on purpose
     // so that "HOVER" -> any mouse events from users -> "HOVER" can still work
     setNewScrolling(clickEl)
@@ -299,6 +299,9 @@ const hoverEl = (): void => {
         }
       } catch {}
       if (selected) {
+        selected === clickEl && manualFocus && !doesFocus
+            && checkBoolOrSelector(rawFocus, (selected as HTMLElement).tabIndex >= 0)
+            && focus_(selected as typeof clickEl)
         break;
       }
     }
@@ -453,7 +456,7 @@ const defaultClick = (): void => {
         : kClickAction.none,
     doesUnhoverAtOnce = !doesUnhoverOnEsc && /*#__PURE__*/ checkBoolOrSelector(autoUnhover, !1)
     retPromise = catchAsyncErrorSilently(click_async(clickEl, rect
-        , /*#__PURE__*/ checkBoolOrSelector(hintOptions.focus
+        , /*#__PURE__*/ checkBoolOrSelector(rawFocus
             , mask > 0 || interactive || (clickEl as ElementToHTMLOrForeign).tabIndex! >= 0)
         , [!1, !isMac && ctrl, isMac && ctrl, shift]
         , specialActions, isRight ? kClickButton.second : kClickButton.none
@@ -477,7 +480,8 @@ const autoShowRect = (): Rect | null => (removeFlash || showRect && rect && flas
   const clickEl: LinkEl = hint.d
   const tag = htmlTag_(clickEl), elType = getEditableType_<0>(clickEl)
   const kD = "download", kLW = "last-window"
-  let richText = hintOptions.richText, rawNewtab = hintOptions.newtab, then = hintOptions.then
+  let richText = hintOptions.richText, rawNewtab = hintOptions.newtab, rawFocus = hintOptions.focus
+  const then = hintOptions.then
   const hasKeyword_ff = OnFirefox && hintOptions.keyword != null
   const isHtmlImage = tag === "img"
   let rect: Rect | null = null

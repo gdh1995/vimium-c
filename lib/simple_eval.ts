@@ -42,7 +42,7 @@ interface BaseToken<K extends keyof TokenValues> { readonly t: K; readonly v: To
     /** @deprecated */ readonly n?: unknown }
 type SomeTokens<K extends keyof TokenValues> = K extends keyof TokenValues ? BaseToken<K> : never
 type Token = SomeTokens<keyof TokenValues>
-type ControlTokens = T.prefix | T.action | T.comma | T.question | T.fn | T.assign | T.colon | T.callOrAccess | T.dot
+type ControlTokens = T.prefix | T.action | T.comma | T.question | T.colon | T.fn | T.assign | T.callOrAccess | T.dot
 type BinaryTokens = T.or | T.and | T.bitOr | T.bitXor | T.bitAnd | T.compare1 | T.compare2 | T.bitMove
     | T.math1 | T.math2 | T.math3
 type UnaryTokens = T.unary | T.rightUnary
@@ -569,7 +569,7 @@ const parseTree = (tokens_: readonly Token[], inNewFunc: boolean | undefined): O
         }
         const kOpL2R = T.comma | T.or | T.and | T.bitOr | T.bitXor | T.bitAnd | T.compare1 | T.compare2 | T.bitMove
             | T.math1 | T.math2 | T.math3 | T.dot
-        consumeUntil((type & (T.question | T.fn | T.assign | T.colon) ? T.colon << 1
+        consumeUntil((type & (T.question | T.colon | T.fn | T.assign) ? T.assign << 1
             : type & kOpL2R ? type : type << 1) - 1)
         ctx_.push(cur)
       }

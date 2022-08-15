@@ -360,12 +360,14 @@ static MarkChanged_ (this: void, event: Event): void {
       ? kExclusionChange.pattern : kExclusionChange.passKeys)
 }
 addRule_ (pattern: string, autoFocus?: false | undefined): void {
+  const isInited = autoFocus !== false, old = isInited && this.$list_.childElementCount
   this.appendRuleTo_(this.$list_, {
     pattern,
     passKeys: ""
   });
   const item = this.list_[this.list_.length - 1] as ExclusionVisibleVirtualNode;
-  if (autoFocus !== false) {
+  if (isInited) {
+    old >= 4 && this.element_.scrollBy(0, 40)
     nextTick_(() => item.$pattern_.focus());
   }
   if (pattern) {
