@@ -27,14 +27,14 @@ import { hudHide, hud_box, hudTip, hud_opacity, toggleOpacity as hud_toggleOpaci
 import { post_, send_, runFallbackKey } from "./port"
 import { insert_Lock_, raw_insert_lock, setupSuppress } from "./insert"
 import { lastHovered_, set_lastHovered_, select_ } from "./async_dispatcher"
-import { checkKey, set_isCmdTriggered } from "./key_handler"
+import { checkKey, checkKeyOnTop, currentKeys, set_isCmdTriggered } from "./key_handler"
 
 export declare const enum FindAction {
   PassDirectly = -1,
   DoNothing = 0, Exit, ExitNoAnyFocus, ExitNoFocus, ExitUnexpectedly,
   MaxExitButNoWork = ExitUnexpectedly, MinExitAndWork,
   ExitForEsc = MinExitAndWork, ExitForEnter,
-  MinNotExit, CtrlDelete = MinNotExit, ResumeFind,
+  MinNotExit, CtrlDelete = MinNotExit, ResumeFind, ConsumedByHost,
 }
 interface ExecuteOptions extends Partial<Pick<CmdOptions[kFgCmd.findMode], "c">> {
   /** highlight */ h?: [number, number, Rect[]] | false;
@@ -551,15 +551,19 @@ const onPaste_not_cr = !OnChrome ? (event: ClipboardEvent & ToPrevent): void => 
 } : 0 as never as null
 
 const onIFrameKeydown = (event: KeyboardEventToPrevent): void => {
-    const n = event.keyCode
+    const n = event.keyCode, isUp = event.type === "keyup" && !set_isCmdTriggered(0)
     Stop_(event)
     if (!OnChrome || Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted
         ? !event.isTrusted : event.isTrusted === false) { return; }
-    if (!n || n === kKeyCode.ime || scroll_keyIsDown && onScrolls(event)
-        || event.type === "keyup" && !set_isCmdTriggered(0)) { return }
+    if (!n || n === kKeyCode.ime || scroll_keyIsDown && onScrolls(event) || isUp) {
+      if (isUp && keydownEvents_[n]) { keydownEvents_[n] = 0; prevent_(event) }
+      return
+    }
     const eventWrapper: HandlerNS.Event = {c: kChar.INVALID, e: event, i: n, v: ""},
+    consumedByHost = currentKeys && checkKeyOnTop(eventWrapper),
     key = getMappedKey(eventWrapper, kModeId.Find), keybody = keybody_(key);
-    const i: FindAction | KeyStat = key.includes("a-") && event.altKey ? FindAction.DoNothing
+    const i: FindAction | KeyStat = consumedByHost ? FindAction.ConsumedByHost
+      : key.includes("a-") && event.altKey ? FindAction.DoNothing
       : keybody === ENTER
         ? key > "s" ? FindAction.PassDirectly
           : suppressOnInput_ && key === ENTER ? FindAction.ResumeFind
@@ -590,7 +594,7 @@ const onIFrameKeydown = (event: KeyboardEventToPrevent): void => {
       else if (key === kChar.f1) { execCommand(DEL) }
       else if (key === kChar.f2) {
         OnFirefox && blur_unsafe(box_)
-        focus(); keydownEvents_[n] = 1;
+        focus()
         const el = hasResults && getSelectionFocusEdge_(getSelected())
         el && focus_(el)
       }
@@ -598,17 +602,13 @@ const onIFrameKeydown = (event: KeyboardEventToPrevent): void => {
         scroll = historyIndex + (key < "u" ? -1 : 1)
         if (scroll >= 0) {
           historyIndex = scroll
-          if (key > "u") {
-            send_(kFgReq.findQuery, scroll, setQuery)
-          } else {
-            setQuery(1)
-          }
+          key > "u" ? send_(kFgReq.findQuery, scroll, setQuery) : setQuery(1)
         }
       }
       else { h = HandlerResult.Suppress; }
-    h > HandlerResult.Prevent - 1 && prevent_(event)
+    h > HandlerResult.Prevent - 1 && (prevent_(event), keydownEvents_[n] = 1)
     if (i < FindAction.DoNothing + 1) { /* empty */ }
-    else if (keydownEvents_[n] = 1, i === FindAction.ResumeFind) {
+    else if (i === FindAction.ResumeFind) {
       setQuery(input_.innerText.replace("\\0", ""))
     } else if (OnFirefox && i === FindAction.CtrlDelete) {
       const sel = getSelectionOf(innerDoc_)!
@@ -617,7 +617,7 @@ const onIFrameKeydown = (event: KeyboardEventToPrevent): void => {
       isSelARange(sel) || modifySel(sel, 1, keybody > kChar.d, "word")
       execCommand(DEL)
     } else {
-      deactivate(i)
+      i < FindAction.MinNotExit && deactivate(i)
     }
 }
 

@@ -143,7 +143,7 @@ export const checkKey = ((event: HandlerNS.Event, key: string
     ): HandlerResult.Nothing | HandlerResult.Prevent | HandlerResult.PlainEsc | HandlerResult.AdvancedEsc
 }
 
-const checkKeyOnTop = (event: HandlerNS.Event): HandlerResult => {
+export const checkKeyOnTop = (event: HandlerNS.Event): HandlerResult => {
   const consumed = currentKeys && event.i !== kKeyCode.ime,
   key = consumed && (getMappedKey(event, kModeId.Next) || event.v)
   key && checkKey(event, key, 2)

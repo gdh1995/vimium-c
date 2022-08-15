@@ -4,7 +4,7 @@ import {
   safeCall, timeout_, timeStamp_
 } from "../lib/utils"
 import { post_, runFallbackKey, safePost } from "./port"
-import { getParentVApi, ui_box } from "./dom_ui"
+import { getParentVApi, ui_box, ui_root } from "./dom_ui"
 import { hudHide } from "./hud"
 import { setNewScrolling, scrollTick } from "./scroller"
 import { set_isCmdTriggered, resetAnyClickHandler, onPassKey } from "./key_handler"
@@ -15,6 +15,7 @@ import {
 } from "../lib/dom_utils"
 import { handler_stack, removeHandler_, prevent_, isEscape_ } from "../lib/keyboard_utils"
 import { InputHintItem } from "./link_hints"
+import { find_box } from "./mode_find"
 
 const enum kNodeInfo { NONE = 0, ShadowBlur = 1, ShadowFull = 2 }
 interface ShadowNodeMap {
@@ -331,11 +332,15 @@ const hookOnShadowRoot = (path: ArrayLike<EventTarget | 0>, target: Node | 0, di
   }
 }
 
-export const onWndBlur = (): void => {
+const onWndBlur = (): void => {
   scrollTick(0);
   onWndBlur2 && onWndBlur2();
   onPassKey && onPassKey()
-  set_keydownEvents_(safeObj<any>(null))
+  if (!find_box || find_box !== (OnChrome && Build.MinCVer >= BrowserVer.MinShadowDOMV0
+      || OnFirefox && Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1
+      || !OnEdge && ui_box !== ui_root ? (ui_root as ShadowRoot).activeElement : activeEl_unsafe_())) {
+    set_keydownEvents_(safeObj<any>(null))
+  }
   set_isCmdTriggered(kKeyCode.None)
   if (OnChrome) {
     /*#__NOINLINE__*/ resetAnyClickHandler();
