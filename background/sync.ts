@@ -90,9 +90,9 @@ const storeAndPropagate = (key: string, value: any, map?: Dict<any>): void | 8 =
   if (!(key in settings_.defaults_) || !shouldSyncKey(key)) {
     const toUpgrade = serialized || !settings_.needToUpgradeSettings_ ? -1
         : (settings_.kSettingsToUpgrade_ as string[]).indexOf(key)
-    if (toUpgrade >= 0
-        && storageCache_.get(key as (typeof settings_.kSettingsToUpgrade_)[0]) !== (value !== null ? value : void 0)) {
-      settings_.setInLocal_(key as (typeof settings_.kSettingsToUpgrade_)[0], value !== void 0 ? value : null)
+    if (toUpgrade >= 0 && storageCache_.get(key as (typeof settings_.kSettingsToUpgrade_)[0])
+          !== (value !== null ? value + "" : void 0)) {
+      settings_.setInLocal_(key as (typeof settings_.kSettingsToUpgrade_)[0], value !== void 0 ? value + "" : null)
       settings_.reloadFromLegacy_(toUpgrade)
     }
     return
@@ -414,9 +414,10 @@ const beginToRestore = (items: LocalSettings, resolve: () => void): void => {
     if (settingsCache_[key as keyof SettingsNS.SettingsWithDefaults] !==
           settings_.defaults_[key as keyof SettingsNS.SettingsWithDefaults]) {
       if (!(key in items) && shouldSyncKey(key)) {
-        toReset.push(key)
+        if (key !== "keyLayout" || !(settings_.needToUpgradeSettings_ & 2))
+          toReset.push(key)
       }
-      legacy && legacy.removeItem(key)
+      legacy && legacy.length && legacy.removeItem(key)
     }
   }
   for (let key of toReset) {
