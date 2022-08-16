@@ -4,6 +4,11 @@ Release Notes of Vimium C
 ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 说明文档: https://gitee.com/gdh1995/vimium-c#readme , https://github.com/gdh1995/vimium-c/blob/master/README-zh.md .
 
+#### v1.99.2
+* fix a bug of not recognizing old configuration about `Ignore keyboard layout`
+* `<v-***>` sequences: now work even in Find HUD
+* `LinkHints.click`: now apply `.exclude` on all candidates
+
 #### v1.99.1
 * `<v-***>`: fix issues and now support key sequences starting with `<v-***>`, even in command modes
   * for example, with `mapKey <Y:v> <v-copy>` and `map <v-copy>" autoCopy sed="s@\"(.*?)\"@$1@,matched"`,
