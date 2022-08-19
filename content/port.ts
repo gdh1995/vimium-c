@@ -1,6 +1,6 @@
 import {
   injector, safer, timeout_, isAlive_, isTop, set_i18n_getMsg, locHref, OnEdge, OnChrome, OnFirefox, isTY, fgCache,
-  interval_, setupTimerFunc_cr, noRAF_old_cr_
+  interval_, setupTimerFunc_cr, noRAF_old_cr_, runtime_ff
 } from "../lib/utils"
 import { suppressTail_ } from "../lib/keyboard_utils"
 import { docHasFocus_, rAF_ } from "../lib/dom_utils"
@@ -62,14 +62,14 @@ export const safePost = <k extends keyof FgReq> (request: FgReq[k] & Req.baseFg<
 }
 
 export const runtimeConnect = (function (this: void): void {
-  const api = OnChrome ? chrome : browser as typeof chrome,
+  const api = OnChrome ? chrome : OnFirefox ? null as never : browser as typeof chrome,
   status = !fgCache ? PortType.initing
       : PortType.reconnect + (PortType.hasCSS * <number> <boolean | number> !!style_ui),
   name = (PortType.isTop === 1 ? <number> <boolean | number> isTop : PortType.isTop * <number> <number | boolean> isTop)
       + PortType.hasFocus * <number> <number | boolean> docHasFocus_() + status,
   data = { name: injector ? PortNameEnum.Prefix + name + injector.$h
                   : OnEdge ? name + PortNameEnum.Delimiter + locHref() : "" + name },
-  connect = api.runtime.connect
+  connect = (OnFirefox ? runtime_ff! : api.runtime).connect
   port_ = (injector ? connect(injector.id, data) : connect(data)) as ContentNS.Port
   port_.onDisconnect.addListener((): void => {
     port_ = null
@@ -86,7 +86,7 @@ export const runtimeConnect = (function (this: void): void {
     type TypeChecked = { [k in keyof BgReq]: <T2 extends keyof BgReq>(this: void, request: BgReq[T2]) => unknown };
     (requestHandlers as TypeToCheck as TypeChecked)[response.N](response);
   })
-  set_i18n_getMsg(api.i18n.getMessage)
+  set_i18n_getMsg((OnFirefox ? browser as typeof chrome : api).i18n.getMessage)
 })
 
 export const runFallbackKey = ((options: Req.FallbackOptions

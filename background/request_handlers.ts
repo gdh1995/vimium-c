@@ -2,7 +2,7 @@ import {
   set_cPort, set_cRepeat, set_cOptions, needIcon_, set_cKey, cKey, get_cOptions, set_reqH_, reqH_, restoreSettings_,
   innerCSS_, framesForTab_, cRepeat, curTabId_, Completion_, CurCVer_, OnChrome, OnEdge, OnFirefox, setIcon_, blank_,
   substitute_, paste_, keyToCommandMap_, CONST_, copy_, set_cEnv, settingsCache_, vomnibarBgOptions_, setTeeTask_,
-  curIncognito_, inlineRunKey_
+  curIncognito_, inlineRunKey_, CurFFVer_
 } from "./store"
 import * as BgUtils_ from "./utils"
 import {
@@ -236,10 +236,14 @@ set_reqH_([
   },
   /** kFgReq.execInChild: */ (request: FgReqWithRes[kFgReq.execInChild], port: Port
       , msgId?: number): FgRes[kFgReq.execInChild] | Port | void => {
-    const tabId = port.s.tabId_, ref = framesForTab_.get(tabId), url = request.u
+    const tabId = port.s.tabId_, ref = framesForTab_.get(tabId), url = request.u, frameId = request.f
     if (!ref || ref.ports_.length < 2) { return false }
     let iport: Port | null | undefined
-    for (const i of ref.ports_) {
+    if (OnFirefox && (Build.MinFFVer >= FirefoxBrowserVer.Min$runtime$$getFrameId
+        || CurFFVer_ > FirefoxBrowserVer.Min$runtime$$getFrameId - 1)) {
+      iport = ref.ports_.find(i => i.s.frameId_ === frameId)
+    }
+    else for (const i of ref.ports_) {
       if (i.s.url_ === url) {
         if (iport) { iport = null; break }
         iport = i
@@ -551,7 +555,8 @@ set_reqH_([
       taskOnce.r && taskOnce.r(false)
     }
     if (req === 0) { return !taskOnce }
-  }
+  },
+  /** kFgReq.blank: */ (): FgRes[kFgReq.blank] => 0
 ])
 
 const onCompletions = function (this: Port, favIcon0: 0 | 1 | 2, list: Array<Readonly<Suggestion>>

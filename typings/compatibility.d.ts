@@ -622,12 +622,14 @@ declare const enum FirefoxBrowserVer {
   MinMaybe$HTMLElement$$inert = 81, // if `html5.inert.enabled`
   MinInputSupportExecCommand = 89,
   MinContentEditableInShadowOfBodyRefuseShortcuts = 91,
-  ESRPopupBlockerPassClicksFromExtensions = 91, // since 91.6
+  ESRPopupBlockerPassClicksFromExtensions = 91, // 91.6 ~ 91.12
   Min$structuredClone = 94,
   MinBrowserDarkThemeSet$PrefersColorScheme = 95, // https://github.com/gdh1995/vimium-c/discussions/517
   // this logic change is imported by https://bugzilla.mozilla.org/show_bug.cgi?id=1739929
   // but refuse a `click#ctrl=false&shift=false` on `<a target=_blank>`: https://github.com/gdh1995/vimium-c/issues/616
-  MinPopupBlockerPassComposedClicksFromExtensions = 96, // https://github.com/philc/vimium/issues/3964
+  MinPopupBlockerPassUntrustedComposedClicks = 96, // https://github.com/philc/vimium/pull/3985#issue-1101757110
+  MinPopupBlockerPassOrdinaryClicksDuringExtMessages = 96,
+  Min$runtime$$getFrameId = 96,
   Min$sessions$$getRecentlyClosed$follow$maxResults = 96, // even if EXPERIMENTAL or LEGACY
   Min$AbortSignal$$timeout = 100,
   MinMaybe$navigator$$userAgentData = 101,

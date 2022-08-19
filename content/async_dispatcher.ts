@@ -9,10 +9,10 @@ import {
 import { suppressTail_ } from "../lib/keyboard_utils"
 import { Point2D, center_, getVisibleClientRect_, view_ } from "../lib/rect"
 import { insert_Lock_ } from "./insert"
-import { post_ } from "./port"
+import { post_, send_ } from "./port"
 import { flash_, moveSel_s_throwable } from "./dom_ui"
 import { coreHints, hintApi, hintManager, mode1_ as hintMode1_, hintOptions, isHintsActive } from "./link_hints"
-import { prepareToBlockClick, clickEventToPrevent_, dispatchAndBlockClickOnce } from "./extend_click_ff"
+import { prepareToBlockClick_old_ff, clickEventToPrevent_, dispatchAndBlockClickOnce_old_ff } from "./extend_click_ff"
 import { currentScrolling, setNewScrolling, set_cachedScrollable } from "./scroller"
 /* eslint-disable @typescript-eslint/await-thenable */
 
@@ -162,8 +162,9 @@ const mouse_ = function (element: SafeElementForMouse
     mouseEvent.initMouseEvent(type, bubbles, bubbles, view, detail, x, y, x, y
       , ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget)
   }
-  if (OnFirefox && clickEventToPrevent_) { // must be a click event
-    return dispatchAndBlockClickOnce(element, mouseEvent)
+  if (OnFirefox && Build.MinFFVer < FirefoxBrowserVer.MinPopupBlockerPassOrdinaryClicksDuringExtMessages
+      && clickEventToPrevent_) { // must be a click event
+    return dispatchAndBlockClickOnce_old_ff(element, mouseEvent)
   }
   return dispatchEvent_(element, mouseEvent)
 } as {
@@ -295,6 +296,12 @@ export const click_async = (async (element: SafeElementForMouse
       ? result & ActionType.dblClick ? hasTag_("video", element) && fullscreenEl_unsafe_()
         : (element as HTMLMediaElement).paused : 0
   let isTouch: BOOL = 0
+  if (OnFirefox && (Build.MinFFVer >= FirefoxBrowserVer.MinPopupBlockerPassOrdinaryClicksDuringExtMessages
+      || firefoxVer_ > FirefoxBrowserVer.MinPopupBlockerPassOrdinaryClicksDuringExtMessages - 1)) {
+    const promise = promiseDefer_<unknown>()
+    send_(kFgReq.blank, 0, promise.r)
+    await promise.p
+  }
   if (OnChrome && (Build.MinCVer >= BrowserVer.MinEnsuredTouchEventConstructor
           || chromeVer_ > BrowserVer.MinEnsuredTouchEventConstructor - 1)
       && (touchMode === !0 || touchMode && isInTouchMode_cr_!())) {
@@ -348,19 +355,20 @@ export const click_async = (async (element: SafeElementForMouse
           ? ActionType.OpenTabButNotDispatch
         : isJSUrl(url) || (OnFirefox ? !action : action < kClickAction.MaxPlain + 1) ? ActionType.OnlyDispatch
         : !OnFirefox || action > kClickAction.MaxPlain ? ActionType.OpenTabButNotDispatch
-        : (Build.MinFFVer < FirefoxBrowserVer.MinPopupBlockerPassComposedClicksFromExtensions
-              && firefoxVer_ < FirefoxBrowserVer.MinPopupBlockerPassComposedClicksFromExtensions
-              && (Build.MinFFVer > FirefoxBrowserVer.ESRPopupBlockerPassClicksFromExtensions
-                  || firefoxVer_ - FirefoxBrowserVer.ESRPopupBlockerPassClicksFromExtensions || fgCache.V < 6)
-              || action <= kClickAction.plainMayOpenManually)
-          && (action > kClickAction.plainMayOpenManually || parentAnchor.target === "_blank")
+        : // requires MinPopupBlockerPassOrdinaryClicksDuringExtMessages == MinPopupBlockerPassUntrustedComposedClicks
+          Build.MinFFVer < FirefoxBrowserVer.MinPopupBlockerPassOrdinaryClicksDuringExtMessages
+          && firefoxVer_ < FirefoxBrowserVer.MinPopupBlockerPassOrdinaryClicksDuringExtMessages
+          && (action < kClickAction.plainMayOpenManually + 1 ? parentAnchor.target === "_blank"
+              : Build.MinFFVer > FirefoxBrowserVer.ESRPopupBlockerPassClicksFromExtensions
+                || firefoxVer_ - FirefoxBrowserVer.ESRPopupBlockerPassClicksFromExtensions || fgCache.V < 6)
         ? ActionType.DispatchAndMayOpenTab : ActionType.OnlyDispatch
   }
   const isCommonClick = result < ActionType.OpenTabButNotDispatch && button !== kClickButton.primaryAndTwice
       && !(modifiers && modifiers[0])
   isCommonClick && setNewScrolling(element) // DOMActivate is not triggered if a click event is cancelled (prevented)
   if ((result > ActionType.OpenTabButNotDispatch - 1
-        || (OnFirefox && /*#__INLINE__*/ prepareToBlockClick(result === ActionType.DispatchAndMayOpenTab
+        || (OnFirefox && Build.MinFFVer < FirefoxBrowserVer.MinPopupBlockerPassOrdinaryClicksDuringExtMessages
+            && /*#__INLINE__*/ prepareToBlockClick_old_ff(result === ActionType.DispatchAndMayOpenTab
                 , action < kClickAction.plainMayOpenManually + 1 && parentAnchor!),
             (await await mouse_(element, CLK, center, modifiers, 0, 0, isTouch)) && result
               || result & ActionType.dblClick))

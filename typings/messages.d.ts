@@ -103,7 +103,7 @@ declare const enum kFgReq {
   gotoMainFrame, setOmniStyle, findFromVisual, framesGoBack,
   i18n, cssLearnt, visualMode, respondForRunKey, downloadLink, wait,
   optionToggled, keyFromOmni, pages, showUrl,
-  omniCopy, didLocalMarkTask, recheckTee, END,
+  omniCopy, didLocalMarkTask, recheckTee, blank, END,
   msg = 90, inject = 99,
   command = "command", id = "id", shortcut = "shortcut", focus = "focus", tip = "tip",
 }
@@ -528,6 +528,7 @@ interface FgRes {
   [kFgReq.wait]: TimerType.fake
   [kFgReq.pages]: { /** id of query array */ i: number; /** answers */ a: unknown[] } | false
   [kFgReq.recheckTee]: /** has the TEE task been used */ boolean
+  [kFgReq.blank]: 0
 }
 interface FgReqWithRes {
   [kFgReq.findQuery]: /** index */ number
@@ -537,6 +538,7 @@ interface FgReqWithRes {
     /** suggestionId */ i?: undefined
   } | Omit<FgReq[kFgReq.parseUpperUrl], "e">
   [kFgReq.execInChild]: {
+    /** target frameId */ f?: number;
     /** url */ u: string;
     /** lastKey */ k: kKeyCode;
     /** ensured args */ a: FgOptions;
@@ -545,6 +547,7 @@ interface FgReqWithRes {
   [kFgReq.wait]: number
   [kFgReq.pages]: FgReq[kFgReq.pages]
   [kFgReq.recheckTee]: 0
+  [kFgReq.blank]: 0
 }
 
 interface FgReq {

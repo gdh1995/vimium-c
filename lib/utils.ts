@@ -35,6 +35,7 @@ export const injector = VimiumInjector
 export const isAsContent = injector === void 0
 export const doc = document
 export const loc_ = location
+export const runtime_ff = OnFirefox ? (browser as typeof chrome).runtime : null
 
 let esc: {
   <T extends Exclude<HandlerResult, HandlerResult.ExitNormalMode>> (this: void, i: T): T;

@@ -1,5 +1,5 @@
 import {
-  doc, isTop, injector, isAsContent, set_esc, esc, setupEventListener, set_isEnabled_, XrayedObject,
+  doc, isTop, injector, isAsContent, set_esc, esc, setupEventListener, set_isEnabled_, XrayedObject, runtime_ff,
   set_clickable_, clickable_, isAlive_, set_VTr, setupKeydownEvents, onWndFocus, includes_,
   set_readyState_, readyState_, callFunc, recordLog, set_vApi, vApi, locHref, unwrap_ff, raw_unwrap_ff, math, OnFirefox,
   OnChrome, OnEdge
@@ -25,7 +25,7 @@ import { filterTextToGoNext, jumpToNextLink } from "./pagination"
 import { set_needToRetryParentClickable, focusAndRun } from "./request_handlers"
 import { RSC } from "./commands"
 import { main_not_ff as extend_click_not_ff } from  "./extend_click"
-import { main_ff as extend_click_ff, unblockClick } from  "./extend_click_ff"
+import { main_ff as extend_click_ff, unblockClick_old_ff } from  "./extend_click_ff"
 import { hudTip } from "./hud"
 
 declare var XPCNativeWrapper: <T extends object> (wrapped: T) => XrayedObject<T>; // eslint-disable-line no-var
@@ -105,7 +105,7 @@ if (OnFirefox && isAsContent) {
     const encrypt = (trustedRand: number, unsafeRand: number): string => {
         trustedRand += (unsafeRand >= 0 && unsafeRand < 1 ? unsafeRand : trustedRand);
         let a = (0x8000 * trustedRand) | 0,
-        host = new URL((browser as typeof chrome).runtime.getURL("")).host.replace(<RegExpG> /-/g, "");
+        host = new URL(runtime_ff!.getURL("")).host.replace(<RegExpG> /-/g, "");
         return ((host + (
               typeof BuildStr.RandomReq === "number" ? (BuildStr.RandomReq as number | string as number).toString(16)
               : BuildStr.RandomReq)
@@ -225,7 +225,8 @@ if (isAlive_) {
       /*#__INLINE__*/ extend_click_not_ff()
     }
   }
-  OnFirefox && unblockClick()
+  OnFirefox && Build.MinFFVer < FirefoxBrowserVer.MinPopupBlockerPassOrdinaryClicksDuringExtMessages
+      && !runtime_ff!.getFrameId && unblockClick_old_ff()
 
   readyState_ < "i" || setupEventListener(0, RSC, onReadyState_, 0, 1)
 }

@@ -109,7 +109,7 @@ export const main_ff = (OnFirefox ? (): void => {
 })()
 } : 0 as never) as () => void
 
-export const unblockClick = (): void => {
+export const unblockClick_old_ff = (): void => {
   let isHandingTheSecondTime: BOOL, notDuringAct: BOOL
   /**
    * This idea of hooking and appending `preventDefault` is from lydell's `LinkHints`:
@@ -189,13 +189,13 @@ export const unblockClick = (): void => {
   }
 }
 
-export const prepareToBlockClick = (doesBeginPrevent: boolean
+export const prepareToBlockClick_old_ff = (doesBeginPrevent: boolean
     , anchor: HTMLAnchorElement & SafeHTMLElement | false): void => {
   clickEventToPrevent_ = clickEventToPrevent_ != null ? doesBeginPrevent : clickEventToPrevent_
   clickAnchor_ = clickEventToPrevent_ && anchor
 }
 
-export const dispatchAndBlockClickOnce = (targetElement: SafeElement, clickEvent: MouseEvent): boolean => {
+export const dispatchAndBlockClickOnce_old_ff = (targetElement: SafeElement, clickEvent: MouseEvent): boolean => {
   const view = (targetElement.ownerDocument as Document).defaultView
   const doesBlock = view === window
   if (!(Build.NDEBUG || view !== raw_unwrap_ff(window))) {

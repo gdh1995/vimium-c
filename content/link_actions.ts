@@ -1,7 +1,7 @@
 import {
   safer, fgCache, isImageUrl, isJSUrl, set_keydownEvents_, keydownEvents_, doc, chromeVer_, os_, timeout_,
   createRegExp, isTY, max_, min_, OnFirefox, OnChrome, safeCall, locHref, parseOpenPageUrlOptions, VTr, loc_, OnSafari,
-  clearTimeout_, promiseDefer_, OnEdge, urlSameIgnorehash as urlSameIgnoringHash
+  clearTimeout_, promiseDefer_, OnEdge, urlSameIgnorehash as urlSameIgnoringHash, firefoxVer_, runtime_ff
 } from "../lib/utils"
 import { getVisibleClientRect_, center_, view_, selRange_ } from "../lib/rect"
 import {
@@ -532,6 +532,9 @@ const autoShowRect = (): Rect | null => (removeFlash || showRect && rect && flas
           })
         } else {
           send_(kFgReq.execInChild, { c: showRect = kFgCmd.linkHints,
+            f: OnFirefox ? (Build.MinFFVer >= FirefoxBrowserVer.Min$runtime$$getFrameId
+                  || firefoxVer_ > FirefoxBrowserVer.Min$runtime$$getFrameId - 1)
+                ? runtime_ff!.getFrameId!(clickEl) : -1 : 0,
             u: clickEl.src, n: hintCount_, k: event ? event.i : kKeyCode.None, a: hintOptions
           }, (res): void => { res || clickEl.contentWindow.focus() })
         }
