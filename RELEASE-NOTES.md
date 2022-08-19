@@ -4,6 +4,11 @@ Release Notes of Vimium C
 ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 说明文档: https://gitee.com/gdh1995/vimium-c#readme , https://github.com/gdh1995/vimium-c/blob/master/README-zh.md .
 
+#### v1.99.3
+* fix broken `mapKey <*-*> <f1_xxx>` in Insert mode (since v1.98.0)
+* fix broken `mapKey <*-*> <v-***>` in Normal and Insert mode on v1.99.1/2
+* Firefox 96+: use a new way to bypass Firefox's popup blocker
+
 #### v1.99.2
 * fix a bug of not recognizing old configuration about `Ignore keyboard layout`
 * `<v-***>` sequences: now work even in Find HUD
