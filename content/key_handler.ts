@@ -93,7 +93,8 @@ export const checkKey = ((event: HandlerNS.Event, key: string
   // when checkKey, Vimium C must be enabled, so passKeys won't be `""`
   if (passKeys && !currentKeys
       && passKeys.has(mappedKeys ? getMappedKey(event, kModeId.NO_MAP_KEY) : key) !== isPassKeysReversed
-      && !event.v && !passAsNormal) {
+      && !passAsNormal) {
+    // a normal exclusion passKeys should not include `<v-***>`, so here just ignore the case to make code shorter
     return esc!(HandlerResult.Nothing)
   }
   let j: ReadonlyChildKeyFSM | ValidKeyAction | KeyAction.INVALID | ReturnType<typeof isEscape_> | undefined
@@ -101,9 +102,9 @@ export const checkKey = ((event: HandlerNS.Event, key: string
   if (j) {
     return nextKeys ? (esc!(HandlerResult.ExitNormalMode), HandlerResult.Prevent) : j;
   }
-  let key2 = key
+  let key2 = key, isVirtual = key.startsWith("v-") // key may come from `a mode < kModeId.max_not_command`
   if (!nextKeys || !(j = nextKeys[key])) {
-    j = event.v ? keyFSM[key] || KeyAction.cmd
+    j = isVirtual ? keyFSM[key] || KeyAction.cmd
         : !modeType
           ? keyFSM[currentKeys && mapKeyTypes & kMapKey.normalMode ? key2 = getMappedKey(event, kModeId.Normal) : key]
         : modeType < 2 &&
@@ -114,7 +115,7 @@ export const checkKey = ((event: HandlerNS.Event, key: string
         ? KeyAction.cmd : KeyAction.INVALID
     if (!j || currentKeys && passKeys
           && passKeys.has(mappedKeys ? getMappedKey(event, kModeId.NO_MAP_KEY) : key) !== isPassKeysReversed
-          && !event.v && !passAsNormal) {
+          && !passAsNormal) {
       return esc!(nextKeys && modeType ? HandlerResult.Prevent : HandlerResult.Nothing)
     }
     if (j !== KeyAction.cmd) { currentKeys = ""; }
@@ -126,7 +127,7 @@ export const checkKey = ((event: HandlerNS.Event, key: string
     isCmdTriggered = event.i || kKeyCode.True
   } else {
     if (j !== KeyAction.count) {
-      if (event.v) {
+      if (isVirtual) {
         replaceOrSuppressMost_(kHandler.onTopNormal, /*#__NOINLINE__*/ checkKeyOnTop)
         hudHide()
       }
@@ -145,10 +146,10 @@ export const checkKey = ((event: HandlerNS.Event, key: string
 
 export const checkKeyOnTop = (event: HandlerNS.Event): HandlerResult => {
   const consumed = currentKeys && event.i !== kKeyCode.ime,
-  key = consumed && (getMappedKey(event, kModeId.Next) || event.v)
+  key = consumed && getMappedKey(event, kModeId.Next) // never set event.v - see kModeId.max_not_command
   key && checkKey(event, key, 2)
   consumed && currentKeys || hudHide(removeHandler_(kHandler.onTopNormal))
-  return consumed ? (event.v = "", HandlerResult.Prevent) : HandlerResult.Nothing
+  return consumed ? HandlerResult.Prevent : HandlerResult.Nothing
 }
 
 const checkAccessKey_cr = OnChrome ? (event: HandlerNS.Event): void => {
@@ -227,7 +228,7 @@ export const onKeydown = (event: KeyboardEventToPrevent): void => {
   else if (insert_global_
       || (raw_insert_lock || /*#__NOINLINE__*/ findNewEditable()) && !suppressType && !passAsNormal) {
     keyStr = key === kKeyCode.ime ? "" : mapKeyTypes & (insert_global_ && insert_global_.k
-                ? kMapKey.insertMode | kMapKey.plain : kMapKey.insertMode | kMapKey.plain_to_esc)
+                ? kMapKey.insertMode | kMapKey.plain : kMapKey.insertMode | kMapKey.plain_in_insert)
           || (insert_global_ ? insert_global_.k
                 : mapKeyTypes & kMapKey.directInsert || key > kKeyCode.maxNotFn && key < kKeyCode.minNotFn)
               && (key < kKeyCode.N0 || key > kKeyCode.menuKey || key > kKeyCode.N9 && key < kKeyCode.A

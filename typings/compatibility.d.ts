@@ -64,7 +64,7 @@ declare const enum BrowserVer {
    * but the HUD is also affected when pressing <Shift> to switch LinkHint mode,
    * so must remove the all: before MinFixedCSS$All$MayMistakenlyResetFixedPosition
    */
-  MinCSS$All$MayMistakenlyResetFixedPosition = 37,
+  MinCSS$All$MightOverwriteFixedPosition = 37,
   MinEnsuredHTMLDialogElement = 37, // not on Edge; under a flag since FF53; still exists on C31 if EXPERIMENTAL
   // since C37, if EXPERIMENTAL `Symbol.iterator` is valid and `for-of` can be used on Set and Map
   MinMaybe$Symbol$$Iterator$existsAndWorksFor$Set$and$Map = 37,

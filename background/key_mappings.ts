@@ -261,7 +261,7 @@ const parseKeyMappings_ = (wholeMappings: string): void => {
         } else if (!val) {
           logError_((isRun ? "Lack target when running" : "Lack command when mapping") + ' %c"%s"', colorRed, key)
         } else if (!isRun && !(details = availableCommands_[val])) {
-          logError_('Command %c"%s"', colorRed, val, "doesn't exist!")
+          logError_('Command %c"%s"', colorRed, val, "doesn't exist")
         } else if (((ch = key.charCodeAt(0)) > kCharCode.maxNotNum && ch < kCharCode.minNotNum || ch === kCharCode.dash)
             && !(noNumMaps_ && noNumMaps_.has(key[0]))) {
           logError_('Invalid key: %c"%s"', colorRed, key
@@ -414,22 +414,19 @@ const setupShortcut_ = (cmdMap: NonNullable<typeof shortcutRegistry_>, key: Stan
     return ret < 1 ? 'requires a "command" option' : ret > 1 ? "" : "gets an unknown command";
 }
 
-/** @see ../lib/keyboard_utils.ts#isEscape_ */
-const oneOfTwoEscapeKeys = (key: string) => key === kChar.esc || key === "c-" + kChar.bracketLeft
-
 const collectMapKeyTypes_ = (mapKeys: SafeDict<string>): kMapKey => {
     let types = kMapKey.NONE
     for (const key in mapKeys) {
       const len = key.length
-      if (len < 2) {
-        const val = mapKeys[key]!
-        types |= val.length > 1 ? oneOfTwoEscapeKeys(val) ? kMapKey.plain | kMapKey.plain_to_esc : kMapKey.plain
-            : key.toUpperCase() !== key && val.toUpperCase() !== val ? kMapKey.char : kMapKey.plain
-      } else if (len > 2 && key[len - 2] === ":") {
+      if (len > 2 && key[len - 2] === ":") {
         types |= key[len - 1] === GlobalConsts.InsertModeId ? kMapKey.insertMode
             : key[len - 1] === GlobalConsts.NormalModeId ? kMapKey.normalMode : kMapKey.otherMode
       } else {
-        types |= oneOfTwoEscapeKeys(mapKeys[key]!) ? kMapKey.plain | kMapKey.plain_to_esc : kMapKey.plain
+        let val = mapKeys[key]!, longVal = val.length > 1
+        const plainAndWorkInInsert = longVal && (val === kChar.esc || val === "c-" + kChar.bracketLeft
+            || (val = val.slice(val.lastIndexOf("-") + 1)) < kChar.minNotF_num && val > kChar.maxNotF_num)
+        types |= len > 1 || longVal ? plainAndWorkInInsert ? kMapKey.plain | kMapKey.plain_in_insert : kMapKey.plain
+            : key.toUpperCase() !== key && val.toUpperCase() !== val ? kMapKey.char : kMapKey.plain
       }
     }
     return types
