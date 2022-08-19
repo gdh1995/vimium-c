@@ -542,7 +542,10 @@ export const createNewOption = ((): <T extends keyof AllowedOptions> (_element: 
 {
   const exclusionRules = Option_.all_.exclusionRules, table = exclusionRules.$list_
   table.ondragstart = (event): void => {
-    let dragged = exclusionRules.dragged_ = event.target as HTMLTableRowElement
+    const dragged = event.target as HTMLTableRowElement | HTMLInputElement
+    const cur = document.activeElement!
+    if (cur.localName === "input") { cur !== dragged && (event as Event as EventToPrevent).preventDefault(); return }
+    exclusionRules.dragged_ = dragged as HTMLTableRowElement
     dragged.style.opacity = "0.5"
     if (OnFirefox) {
       event.dataTransfer.setData("text/plain", "")
@@ -553,10 +556,11 @@ export const createNewOption = ((): <T extends keyof AllowedOptions> (_element: 
     exclusionRules.dragged_ = null
     dragged && (dragged.style.opacity = "")
   }
-  table.ondragover = (event): void => { event.preventDefault() }
+  table.ondragover = (event): void => { exclusionRules.dragged_ && event.preventDefault() }
   table.ondrop = (event): void => {
     event.preventDefault()
     const dragged = exclusionRules.dragged_
+    if (!dragged) { return }
     let target: Element | null = event.target as Element
     if (OnChrome && Build.MinCVer < BrowserVer.MinEnsured$Element$$Closest
         && CurCVer_ < BrowserVer.MinEnsured$Element$$Closest) {
@@ -566,7 +570,7 @@ export const createNewOption = ((): <T extends keyof AllowedOptions> (_element: 
     } else {
       target = target.closest!(".exclusionRule")
     }
-    if (!dragged || !target || dragged === target) { return }
+    if (!target || dragged === target) { return }
     OnChrome && Build.MinCVer < BrowserVer.MinEnsured$ParentNode$$appendAndPrepend
         ? exclusionRules.$list_.insertBefore(dragged, target) : target.before!(dragged)
     const list = exclusionRules.list_, srcNode = (dragged.querySelector(".pattern") as ExclusionRealNode).vnode,
