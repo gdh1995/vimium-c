@@ -45,7 +45,7 @@ const _getKeyName = (event: Pick<KeyboardEvent, "key" | "keyCode" | "location">)
         && (Build.BTypes & ~BrowserType.Chrome || Build.OS & ~kOS.mac) ? kChar.Menu
       : ((s = event.key) ? (<RegExpOne> /^F\d/).test(s) : i > kKeyCode.maxNotFn && i < kKeyCode.minNotFn)
       ? (s ? Lower(s) : "f" + (i - kKeyCode.maxNotFn)) as kChar.F_num
-      : s && s.length > 1 ? Lower(s) as kChar : kChar.None
+      : s && s.length > 1 && !_modifierKeys[s] ? Lower(s) as kChar : kChar.None
 }
 
   /** return single characters which only depend on `shiftKey` (CapsLock is ignored) */

@@ -518,7 +518,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
           && (Build.BTypes & ~BrowserType.Chrome || Build.OS & ~kOS.mac) ? kChar.Menu
         : ((s = event.key) ? (<RegExpOne> /^F\d/).test(s) : i > kKeyCode.maxNotFn && i < kKeyCode.minNotFn)
         ? ("f" + (s ? s.slice(1) : i - kKeyCode.maxNotFn)) as kChar.F_num
-        : s && s.length > 1 ? s.toLowerCase() as kChar : kChar.None
+        : s && s.length > 1 && !Vomnibar_._modifierKeys[s] ? s.toLowerCase() as kChar : kChar.None
   },
   _getKeyCharUsingKeyIdentifier_old_cr: Build.BTypes & BrowserType.Chrome
       && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key
