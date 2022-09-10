@@ -245,12 +245,12 @@ set_reqH_([
       iport = ref.ports_.find(i => i.s.frameId_ === frameId)
     }
     else for (const i of ref.ports_) {
-      if (i.s.url_ === url) {
+      if (i.s.url_ === url && i !== ref.top_) {
         if (iport) { iport = null; break }
         iport = i
       }
     }
-    if (iport) {
+    if (iport && iport !== port) {
       set_cKey(request.k)
       focusAndExecute(request, port, iport, 1)
       return true
@@ -277,7 +277,7 @@ set_reqH_([
       return msgId ? port : false
     }
   },
-  /** kFgReq.initHelp: */ (req: FgReq[kFgReq.initHelp], port): void => { void initHelp(req, port) },
+  /** kFgReq.initHelp: */ _AsReqH<kFgReq.initHelp>(initHelp),
   /** kFgReq.css: */ (_0: FgReq[kFgReq.css], port: Port): void => {
     const ref = framesForTab_.get(port.s.tabId_)!
     ref.flags_ |= Frames.Flags.userActed;
