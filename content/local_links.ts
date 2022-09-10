@@ -398,23 +398,28 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
   }
   cur_arr = !wholeDoc && tooHigh_ && !traverseRoot
       && cur_arr.length >= GlobalConsts.LinkHintPageHeightLimitToCheckViewportFirst
-      && !matchSelector ? ((ori_list: HintSources): HintSources => {
-        const result: SafeElement[] = [], height = wndSize_()
-        for (let i = 1, len = ori_list.length; i < len; i++) { // skip docEl
-          const el = ori_list[i]
+      && matchAll ? ((ori_list: SafeElement[]): HintSources => {
+        const centerPath = OnEdge || OnChrome && Build.MinCVer < BrowserVer.Min$DocumentOrShadowRoot$$elementsFromPoint
+            && chromeVer_ < BrowserVer.Min$DocumentOrShadowRoot$$elementsFromPoint ? []
+            : doc.elementsFromPoint(wndSize_(1) / 2, wndSize_() / 2)
+        const result: SafeElement[] = [], height = wndSize_(), len = ori_list.length
+        const noIncludes = OnChrome && Build.MinCVer < BrowserVer.MinEnsuredES$Array$$Includes
+            && chromeVer_ < BrowserVer.MinEnsuredES$Array$$Includes
+        let i = 1, lastChild: Element | null, j2: number
+        while (i < len) { // skip docEl
+          const el = ori_list[i++]
           const cr = getBoundingClientRect_(el)
           if (cr.bottom > 0 && cr.top < height) {
             result.push(el)
-          } else {
-            const last = el.lastElementChild
-            if (last) {
-              const j2 = ([] as readonly Element[]).indexOf.call(ori_list as readonly Element[], last as Element, i)
-              i = j2 > 0 ? j2 - 1 : i // keep the last element, to iter deeply into boxes
-            }
+          } else if (lastChild = el.lastElementChild as Element | null) {
+            j2 = (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES$Array$$Includes
+                && noIncludes ? centerPath.indexOf(el) > 0 : centerPath.includes(el)
+                ) ? 0 : ori_list.indexOf(lastChild as SafeElement, i)
+            i = j2 > 0 ? j2 : i // keep the last element, to iter deeply into boxes
           }
         }
         return result.length > 12 ? result : ori_list
-      })(cur_arr) : cur_arr
+      })(([] as SafeElement[]).slice.call(cur_arr)) : cur_arr
   cur_arr = matchAll ? cur_arr : addChildTrees(cur_arr
       , querySelectorAll_unsafe_(kSafeAllSelector, traverseRoot, 1) as NodeListOf<SafeElement>)
   if (!Build.NDEBUG && isInAnElement && !matchSelector) {
