@@ -87,20 +87,19 @@ set_bgC_([
 
 //#region need cport
   /* kBgCmd.goNext: */ (): void | kBgCmd.goNext => {
-    const rawRel = get_cOptions<C.goNext>().rel
+    const rawRel = get_cOptions<C.goNext>().rel, absolute = !!get_cOptions<C.goNext>().absolute
     const rel = rawRel ? (rawRel + "").toLowerCase() : "next"
     const isNext = get_cOptions<C.goNext>().isNext != null ? !!get_cOptions<C.goNext>().isNext
         : !rel.includes("prev") && !rel.includes("before")
     const sed = parseSedOptions_(get_cOptions<C.goNext, true>())
-    if (!doesNeedToSed(SedContext.goNext, sed)) {
+    if (!doesNeedToSed(SedContext.goNext, sed) && !absolute) {
       framesGoNext(isNext, rel)
       return
     }
     void Promise.resolve(getPortUrl_(framesForTab_.get(cPort.s.tabId_)!.top_)).then((tabUrl): void => {
       const count = isNext ? cRepeat : -cRepeat
       const template = tabUrl && substitute_(tabUrl, SedContext.goNext, sed)
-      const [hasPlaceholder, next] = template ? goToNextUrl(template, count
-          , get_cOptions<C.goNext>().absolute ? "absolute" : true) : [false, tabUrl]
+      const [hasPlaceholder, next] = template ? goToNextUrl(template, count, absolute) : [false, tabUrl]
       if (hasPlaceholder && next) {
         set_cRepeat(count)
         if (get_cOptions<C.goNext>().reuse == null) {
@@ -108,6 +107,8 @@ set_bgC_([
         }
         overrideCmdOptions<C.openUrl>({ url_f: next, goNext: false })
         openUrl()
+      } else if (absolute) {
+        runNextCmd<C.goNext>(0)
       } else {
         framesGoNext(isNext, rel)
       }

@@ -576,7 +576,7 @@ export const openUrlWithActions = (url: Urls.Url, workType: Urls.WorkType, sed?:
     const goNext = get_cOptions<C.openUrl, true>().goNext
     if (goNext && url && typeof url === "string") {
       url = substitute_(url, SedContext.goNext)
-      url = goToNextUrl(url, cRepeat, goNext)[1]
+      url = goToNextUrl(url, cRepeat, goNext === "absolute")[1]
     }
     url = typeof url === "string" ? reformatURL_(url) : url
   } else {
@@ -671,7 +671,7 @@ const openCopiedUrl = (tabs: [Tab] | [] | undefined, url: string | null): void =
   openUrlWithActions(url, Urls.WorkType.ActAnyway, false, tabs)
 }
 
-export const goToNextUrl = (url: string, count: number, abs: true | "absolute"): [found: boolean, newUrl: string] => {
+export const goToNextUrl = (url: string, count: number, abs?: boolean): [found: boolean, newUrl: string] => {
   let matched = false
   let re = <RegExpSearchable<4>> /\$(?:\{(\d+)[,\/#@](\d*):(\d*)(:-?\d*)?\}|\$)/g
   url = url.replace(<RegExpG & RegExpSearchable<4>> re, (s, n, min, end, t): string => {
@@ -683,7 +683,7 @@ export const goToNextUrl = (url: string, count: number, abs: true | "absolute"):
     let stepi = t && parseInt(t.slice(1)) || 1
     stepi < 0 && ([mini, endi] = [endi, mini])
     count *= stepi
-    cur = abs !== "absolute" ? cur + count : count > 0 ? mini + count - 1 : count < 0 ? endi + count : cur
+    cur = !abs ? cur + count : count > 0 ? mini + count - 1 : count < 0 ? endi + count : cur
     return "" + Math.max(mini || 1, Math.min(cur, endi ? endi - 1 : cur))
   })
   return [matched, url]

@@ -121,7 +121,7 @@ var Tasks = {
     var arr = ["front/*", "pages/*", "icons/*", "lib/*"
       , "*.txt", "*.md", "![a-hj-z]*/**/*.json", "!**/*.bin"
       , "!**/*.min.*"
-      , "!pages/*.css", "!front/[a-u]*.html", "!front/[w-z]*.html", "!pages/*.html", "!REL*.md", "!README*.md"
+      , "!pages/*.css", "!front/*.html", "front/vomnibar.html", "!pages/*.html", "!REL*.md", "!README*.md"
       , "!PRIVACY*"
       , "!**/*.log", "!**/*.psd", "!**/*.zip", "!**/*.tar", "!**/*.tgz", "!**/*.gz"
       , '!**/*.ts', "!**/*.js", "!**/tsconfig*.json"

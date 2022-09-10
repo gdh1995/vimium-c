@@ -62,12 +62,11 @@ const accessElAttr = (isUrlOrText: 0 | 1 | 2): [string: string, isUserCustomized
     json = json !== props ? json : extractField(el!, props)
     if (json) { return [json, 1] }
   }
-  let vimAttr = dataset && (isUrlOrText > 1 ? dataset.vimText : isUrlOrText && dataset.vimUrl)
-  if (vimAttr === "") {
+  if (dataset && isUrlOrText && (dataset.vimText === "" || dataset.vimUrl === "")) {
     dispatchEvent_(clickEl, new Event("vimiumData", wrapEventInit_({})))
-    vimAttr = isUrlOrText > 1 ? dataset!.vimText : isUrlOrText && dataset!.vimUrl
   }
-  return [vimAttr || isUrlOrText < 2 && dataset && (dataset.canonicalSrc || dataset.src) || ""]
+  return [dataset && ((isUrlOrText > 1 ? dataset.vimText : isUrlOrText && dataset.vimUrl)
+      || isUrlOrText < 2 && (dataset.canonicalSrc || dataset.src || tag === "a" && dataset.href)) || ""]
 }
 
 const getUrlData = (str?: string): string => {

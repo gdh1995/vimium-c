@@ -301,6 +301,7 @@ export const click_async = (async (element: SafeElementForMouse
     const promise = promiseDefer_<unknown>()
     send_(kFgReq.blank, 0, promise.r)
     await promise.p
+    if (!IsInDOM_(element)) { return }
   }
   if (OnChrome && (Build.MinCVer >= BrowserVer.MinEnsuredTouchEventConstructor
           || chromeVer_ > BrowserVer.MinEnsuredTouchEventConstructor - 1)

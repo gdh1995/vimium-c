@@ -140,7 +140,7 @@ export const normalizeCommand_ = (cmd: Writable<CommandsNS.BaseItem>, details?: 
         rawChars != null && delete lhOpt.characters
         "action" in lhOpt && delete lhOpt.action
         "mode" in lhOpt && delete lhOpt.mode
-        mode = action ? hintModes_[action] : mode && typeof mode !== "number" ? hintModes_[mode] : null
+        mode = action ? hintModes_[action] : typeof mode === "number" ? mode : mode ? hintModes_[mode] : null
         mode = mode != null ? mode : Math.max(0, stdMode | 0)
         if (mode > HintMode.max_mouse_events) {
           mode = mode === HintMode.EDIT_TEXT ? lhOpt.url ? HintMode.EDIT_LINK_URL : mode

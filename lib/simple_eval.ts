@@ -818,7 +818,8 @@ const evalNever = (op: BaseOp<O.block | O.statGroup | O.stat | O.pair>): void =>
   for (let i = 0; i < opList.length; i++) {
     const item = opList[i]
     if (item.o === O.token && item.v === "...") {
-      const subArray = opEvals[opList[++i].o](opList[++i])
+      ++i
+      const subArray = opEvals[opList[i].o](opList[i])
       arr = arr.concat(subArray instanceof Array ? subArray : [].slice.call(subArray))
     } else if (item.o === O.token && typeof item.v === "object" && item.v.v === kFakeValue) {
       arr.length += 1

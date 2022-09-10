@@ -105,7 +105,7 @@ export const ContentSettings_ = OnChrome ? {
     const ty = (options.type ? "" + options.type : "images") as NonNullable<typeof options.type>
     if (!ContentSettings_.complain_(ty, "http://a.cc/")) {
       ContentSettings_.Clear_(ty, port ? port.s.incognito_ : curIncognito_ === IncognitoType.true)
-      showHUDEx(port, "csCleared", 0, [(ty[0].toUpperCase() + ty.slice(1)) as "Images"])
+      showHUDEx(port, "csCleared", 0, [[(ty[0].toUpperCase() + ty.slice(1)) as "Images"]])
       return true
     }
     return false

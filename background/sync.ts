@@ -79,9 +79,7 @@ function _now(): string {
   return new Date(Date.now() - new Date().getTimezoneOffset() * 1000 * 60).toJSON().slice(0, -5).replace("T", " ")
 }
 
-const log: (... _: any[]) => void = function (): void {
-  console.log.apply(console, [`[${_now()}]`].concat([].slice.call(arguments as any)))
-}
+const log: (... _: any[]) => void = console.log.bind(console, "[%s]", { toString: _now })
 
 /** return `8` only when expect a valid `map` */
 const storeAndPropagate = (key: string, value: any, map?: Dict<any>): void | 8 => {
@@ -112,10 +110,9 @@ const storeAndPropagate = (key: string, value: any, map?: Dict<any>): void | 8 =
     }
     return
   }
-  let curVal = innerRestoreSettings ? defaultVal : settingsCache_[key]
-    , curJSON: string | boolean | number, jsonVal: string | boolean | number
-    , notJSON: boolean
-  if (notJSON = typeof defaultVal !== "object") {
+  let curVal = settingsCache_[key], curJSON: string | boolean | number
+  let jsonVal: string | boolean | number, notJSON: boolean
+  if (notJSON = typeof defaultVal !== "object" || !value || typeof value !== "object") {
     jsonVal = value as string | boolean | number
     curJSON = curVal as string | boolean | number
   } else {
@@ -123,8 +120,7 @@ const storeAndPropagate = (key: string, value: any, map?: Dict<any>): void | 8 =
     curJSON = JSON.stringify(curVal)
   }
   if (jsonVal === curJSON) { return }
-  curVal = notJSON ? defaultVal : JSON.stringify(defaultVal)
-  if (jsonVal === curVal) {
+  if (jsonVal === (notJSON ? defaultVal : JSON.stringify(defaultVal))) {
     value = defaultVal
   }
   innerRestoreSettings ||

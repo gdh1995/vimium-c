@@ -216,7 +216,7 @@ set_requestHandlers([
     req.l && hud_box && toggleClass_s(hud_box, "HL", 1)
   },
   /* kBgReq.count: */ function (request: BgReq[kBgReq.count]): void {
-    let n = parseInt(currentKeys, 10) || 1, count2: 0 | 1 | 2 | 3 = 0;
+    let n = currentKeys === "-" ? -1 : parseInt(currentKeys, 10) || 1, count2: 0 | 1 | 2 | 3 = 0
     esc!(HandlerResult.Nothing);
     exitGrab();
     if (request.m) {

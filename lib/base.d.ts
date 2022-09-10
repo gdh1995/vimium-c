@@ -285,6 +285,7 @@ interface KnownDataset {
   vimUrl: string // used in HintMode.{COPY_URL,DOWNLOAD_LINK}
   vimText: string
   src: string // used in getMediaUrl
+  href: string // used in HintMode.{COPY_URL,DOWNLOAD_LINK}
   canonicalSrc: string // used in HintMode.{OPEN_IMAGE,COPY_IMAGE,DOWNLOAD_MEDIA}
 }
 

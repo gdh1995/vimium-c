@@ -129,7 +129,7 @@ const getClickable = (hints: Hint[], element: SafeHTMLElement): void => {
     }
     break;
   case "code": mode1_ > HintMode.max_mouse_events && (isClickable = true); clientSize = 1; break
-  case "div": case "nav": case "ol": case "pre": case "table": case "tbody": case "ul":
+  case "aside": case "div": case "nav": case "ol": case "pre": case "table": case "tbody": case "ul":
     clientSize = 1;
     break;
   }
@@ -800,7 +800,7 @@ export const getVisibleElements = (view: ViewBox): readonly Hint[] => {
     : _i > HintMode.min_link_job - 1 && _i < HintMode.max_link_job + 1
     ? traverse("a,[role=link]" + (OnFirefox ? "" : kSafeAllSelector)
           , hintOptions, (hints: Hint[], element: SafeHTMLElement): void => {
-        let a = element.localName === "a" && attr_s(element, "href") || element.dataset.vimUrl
+        const h = element.localName === "a" && attr_s(element, "href"), a = h !== "#" && h || element.dataset.vimUrl
         if (a !== void 0 && a !== "#" && !isJSUrl(a)) {
           getIfOnlyVisible(hints, element)
         }
