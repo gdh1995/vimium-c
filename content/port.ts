@@ -73,12 +73,8 @@ export const runtimeConnect = (function (this: void): void {
   port_ = (injector ? connect(injector.id, data) : connect(data)) as ContentNS.Port
   port_.onDisconnect.addListener((): void => {
     port_ = null
-    OnChrome && timeout_ === interval_ ? safeDestroy() : timeout_(function (i): void {
-      if (OnChrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake && i) {
-        safeDestroy()
-      } else {
-        try { port_ || !isAlive_ || runtimeConnect() } catch { safeDestroy() }
-      }
+    OnChrome && timeout_ === interval_ ? safeDestroy() : timeout_((): void => {
+      try { port_ || !isAlive_ || runtimeConnect() } catch { safeDestroy() }
     }, fgCache ? 5000 : 2000)
   });
   port_.onMessage.addListener(<T extends keyof BgReq> (response: Req.bg<T>): void => {

@@ -25,7 +25,7 @@ declare const enum AllowedActions {
   Default = 0,
   nothing = Default,
   dismiss, focus, blurInput, backspace, blur, up, down = up + 2, toggle, pageup, pagedown, remove, copy,
-  home, end, copyWithTitle
+  home, end, copyWithTitle, copyPlain, pastePlain
 }
 interface SetTimeout {
   <T1, T2, T3>(this: void, handler: (this: void, a1: T1, a2: T2, a3: T3) => void,
@@ -570,7 +570,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       }
       key = shiftKey && key.length < 2 ? key : key.toLowerCase()
     } else {
-      key = key.length > 1 || key === " " ? Vomnibar_._getKeyName(event)
+      key = key.length > 1 ? Vomnibar_._getKeyName(event) || key : key === " " ? Vomnibar_._getKeyName(event)
           : shiftKey ? key.toUpperCase() : key.toLowerCase()
     }
     return key;
@@ -701,14 +701,14 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     }
     if (mainModifier === "c" || mainModifier === "m") {
       if (char === kChar.c) {
-        action = a.selection_ >= 0 && getSelection().type !== "Range"
+        action = key.includes("s-") ? AllowedActions.copyPlain : a.selection_ >= 0 && getSelection().type !== "Range"
             && (!(Build.BTypes & BrowserType.Firefox) && !(Build.BTypes & BrowserType.Chrome)
                   || Build.MinCVer > BrowserVer.$Selection$NotShowStatusInTextBox
               || a.input_.selectionStart === a.input_.selectionEnd)
             ? key.includes("s") ? AllowedActions.copyWithTitle : AllowedActions.copy : AllowedActions.nothing
       } else if (key.includes("s-")) {
         action = char === kChar.f ? AllowedActions.pagedown : char === kChar.b ? AllowedActions.pageup
-          : AllowedActions.nothing;
+          : char === kChar.v ? AllowedActions.pastePlain : AllowedActions.nothing;
       } else if (char === kChar.up || char === kChar.down || char === kChar.end || char === kChar.home) {
         event.preventDefault();
         a.lastScrolling_ = event.timeStamp
@@ -785,14 +785,18 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     case AllowedActions.toggle: return a.toggleInput_();
     case AllowedActions.pageup: case AllowedActions.pagedown: return a.goPage_(action !== AllowedActions.pageup);
     case AllowedActions.remove: return a.removeCur_();
-    case AllowedActions.copy:
-    case AllowedActions.copyWithTitle:
+    case AllowedActions.copy: case AllowedActions.copyWithTitle:
       let item = a.completions_[a.selection_] as SuggestionEx, title = item.title, type = item.e, math = type === "math"
       VUtils_.ensureText_(item)
       title = action === AllowedActions.copyWithTitle
           && type !== "search" && !math && title !== item.u && title !== item.t ? title : ""
       return VPort_.post_({ H: kFgReq.omniCopy, t: math ? item.textSplit + " = " + item.t : title
           , u: math ? "" : item.u })
+    case AllowedActions.copyPlain: case AllowedActions.pastePlain:
+      const navClip = navigator.clipboard
+      const plain = navClip && action === AllowedActions.copyPlain ? getSelection() + "" : ""
+      action === AllowedActions.copyPlain ? plain && void navClip!.writeText!(plain) : document.execCommand("paste")
+      break
     case AllowedActions.home: case AllowedActions.end:
       sel = action === AllowedActions.home ? 0 : a.input_.value.length
       a.input_.setSelectionRange(sel, sel)

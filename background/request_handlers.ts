@@ -61,6 +61,7 @@ set_reqH_([
       showHUD(request.tip || "Error: Lack .tip")
     }
   },
+  /** kFgReq.blank: */ (): FgRes[kFgReq.blank] => 0,
   /** kFgReq.setSetting: */ (request: FgReq[kFgReq.setSetting], port: Port): void => {
     const k = request.k, allowed = settings_.frontUpdateAllowed_
     if (!(k >= 0 && k < allowed.length)) {
@@ -555,8 +556,7 @@ set_reqH_([
       taskOnce.r && taskOnce.r(false)
     }
     if (req === 0) { return !taskOnce }
-  },
-  /** kFgReq.blank: */ (): FgRes[kFgReq.blank] => 0
+  }
 ])
 
 const onCompletions = function (this: Port, favIcon0: 0 | 1 | 2, list: Array<Readonly<Suggestion>>

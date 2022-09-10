@@ -96,7 +96,7 @@ set_bgC_([
       framesGoNext(isNext, rel)
       return
     }
-    void Promise.resolve(getPortUrl_(framesForTab_.get(cPort.s.tabId_)!.top_)).then((tabUrl): void => {
+    void Promise.resolve(getPortUrl_(cPort && framesForTab_.get(cPort.s.tabId_)!.top_)).then((tabUrl): void => {
       const count = isNext ? cRepeat : -cRepeat
       const template = tabUrl && substitute_(tabUrl, SedContext.goNext, sed)
       const [hasPlaceholder, next] = template ? goToNextUrl(template, count, absolute) : [false, tabUrl]

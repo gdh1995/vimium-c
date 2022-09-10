@@ -93,7 +93,7 @@ declare const enum kBgReq {
 }
 
 declare const enum kFgReq {
-  fromInjectedPages, setSetting, findQuery, parseSearchUrl, parseUpperUrl,
+  fromInjectedPages, blank, setSetting, findQuery, parseSearchUrl, parseUpperUrl,
   searchAs, gotoSession, openUrl, onFrameFocused, checkIfEnabled,
   nextFrame, exitGrab, execInChild, initHelp, css,
   vomnibar, omni, copy, key, nextKey,
@@ -103,7 +103,7 @@ declare const enum kFgReq {
   gotoMainFrame, setOmniStyle, findFromVisual, framesGoBack,
   i18n, cssLearnt, visualMode, respondForRunKey, downloadLink, wait,
   optionToggled, keyFromOmni, pages, showUrl,
-  omniCopy, didLocalMarkTask, recheckTee, blank, END,
+  omniCopy, didLocalMarkTask, recheckTee, END,
   msg = 90, inject = 99,
   command = "command", id = "id", shortcut = "shortcut", focus = "focus", tip = "tip",
 }
@@ -226,11 +226,11 @@ interface TeeTasks {
 }
 
 declare const enum kBgCmd {
-  blank,
+  blank, goNext,
   // region: need cport
-  goNext, insertMode, nextFrame, parentFrame,
+  insertMode, nextFrame, parentFrame,
   performFind, toggle, showHelp, dispatchEventCmd, showVomnibar, visualMode,
-  MIN_NEED_CPORT = goNext, MAX_NEED_CPORT = visualMode,
+  MIN_NEED_CPORT = insertMode, MAX_NEED_CPORT = visualMode,
   // endregion: need cport
   addBookmark, autoOpenFallback,
   captureTab, clearCS, clearFindHistory, clearMarks, copyWindowInfo, createTab,
@@ -288,6 +288,7 @@ declare namespace HintsNS {
     access?: string
     dblclick?: boolean;
     interact?: true | "native" | false
+    longPage?: boolean
     newtab?: null | /** only in editing mode */ boolean
         | "force" | "force-current" | "force-mode"
         | "last-window" | "window" | /** Firefox-only */ "no-prevent"

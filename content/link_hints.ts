@@ -274,7 +274,7 @@ const collectFrameHints = (options: ContentOptions, count: number
     const view: ViewBox = getViewBox_(OnEdge ? 1 : ((manager || coreHints).d + 1) as 1 | 2)
     prepareCrop_(1, outerView);
     if (tooHigh_ !== null) {
-      const scrolling = scrollingEl_(1)
+      const scrolling = !options.longPage && scrollingEl_(1)
       tooHigh_ = scrolling
           && dimSize_(scrolling, kDim.scrollH) / wndSize_() > GlobalConsts.LinkHintTooHighThreshold ? 1 : 0
     }
