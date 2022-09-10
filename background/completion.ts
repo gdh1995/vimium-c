@@ -496,6 +496,7 @@ tabEngine = {
           title += " :audible :audio"
           title += isTabMuted(tab) ? " :muted" : " :unmuted"
         }
+        tab.active && !wantInCurrentWindow && (title += ":active")
         tab.discarded && (title += " :discarded")
          title += tab.incognito ? " :incognito" : " :normal"
         tab.pinned && (title += " :pinned")
@@ -523,7 +524,7 @@ tabEngine = {
     wndIds.sort(tabEngine.SortNumbers_);
     const c = noFilter ? treeMode ? tabEngine.computeIndex_ : tabEngine.computeRecency_ : ComputeWordRelevancy,
     treeLevels: SafeDict<number> = treeMode ? BgUtils_.safeObj_() : null as never,
-    curWndId = wndIds.length > 1 ? curWndId_ : 0
+    curWndId = curWndId_
     if (treeMode) {
       for (const tab of tabs) { // only from start to end, and should not execute nested queries
         const pid = tab.openerTabId, pLevel = pid && treeLevels[pid];
@@ -543,10 +544,10 @@ tabEngine = {
       visit = recencyForTab_.get(tabId),
       suggestion = new Suggestion("tab", url, tab.text, tab.title,
           c, treeMode ? ind : tabId) as CompletersNS.TabSuggestion;
-      let id = curWndId && tab.windowId !== curWndId ? `${wndIds.indexOf(tab.windowId) + 1}:` : "", label = ""
-      id += <string> <string | number> (wantInCurrentWindow ? tab.index + 1 : ind)
-      if (curTabId === tabId) {
-        treeMode || (suggestion.r = noFilter
+      let wndId = tab.windowId !== curWndId ? (wndIds.indexOf(tab.windowId) + 1) + ":" : ""
+      let id = (tab.index + 1) + "", label = ""
+      if (tab.active) {
+        treeMode || !(curTabId === tabId || tab.windowId === curWndId) || (suggestion.r = noFilter
             || !(<RegExpG & RegExpSearchable<0>> /^(?!:[a-z]+)/m).test(queryTerms.join("\n")) ? 1<<31 : 0);
         id = `(${id})`
       } else if (!visit) {
@@ -558,7 +559,7 @@ tabEngine = {
       suggestion.visit = visit ? visit.t + timeOffset
           : OnFirefox && (tab as Tab & {lastAccessed?: number}).lastAccessed || 0
       suggestion.s = tabId;
-      suggestion.label = `#${id}${label && " " + label}`
+      suggestion.label = `#${wndId}${id}${label && " " + label}`
       if (OnFirefox) {
         suggestion.favIcon = tab.favIconUrl;
       }
