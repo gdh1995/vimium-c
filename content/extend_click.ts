@@ -1,10 +1,10 @@
 import {
   clickable_, setupEventListener, timeout_, doc, isAlive_, set_noRAF_old_cr_, math, isTop, OnChrome, readyState_,
-  loc_, getTime, recordLog, VTr, vApi, Stop_, isTY, OnEdge, abs_, isEnabled_
+  loc_, getTime, recordLog, VTr, vApi, Stop_, isTY, OnEdge, abs_, isEnabled_, clearTimeout_
 } from "../lib/utils"
 import {
-  createElement_, set_createElement_, OnDocLoaded_, runJS_, rAF_, removeEl_s, attr_s, setOrRemoveAttr_s, dispatchEvent_,
-  parentNode_unsafe_s, onReadyState_, getEventPath
+  createElement_, set_createElement_, OnDocLoaded_, runJS_, rAF_, removeEl_s, dispatchEvent_,
+  parentNode_unsafe_s, onReadyState_, getEventPath, appendNode_s
 } from "../lib/dom_utils"
 import { HookAction, hookOnWnd, safeDestroy, setupBackupTimer_cr } from "./port"
 import { coreHints, doesWantToReloadLinkHints, hintOptions, reinitLinkHintsIn } from "./link_hints"
@@ -41,7 +41,7 @@ export const main_not_ff = (Build.BTypes & ~BrowserType.Firefox ? (): void => {
 /** Note: on Firefox, a `[sec, cmd]` can not be visited by the main world:
  * https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Sharing_objects_with_page_scripts#Constructors_from_the_page_context.
  */
-  // `high bits` mean secret, `lower bits >> kContentCmd.MaskedBitNumber` mean content cmd
+  // `high bits >> kContentCmd.MaskedBitNumber` mean secret, `lower bits` mean content cmd
   type CommandEventDetail = 42 | -42
   interface CustomEventCls {
     prototype: CustomEvent;
@@ -59,7 +59,6 @@ export const main_not_ff = (Build.BTypes & ~BrowserType.Firefox ? (): void => {
 
   const kVOnClick1 = InnerConsts.kVOnClick
     , outKMK = GlobalConsts.MarkAcrossJSWorlds
-    , kHookRand = (outKMK + BuildStr.RandomClick) as InnerConsts.kHook
     , appInfo = OnChrome
         && (Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage
             || Build.MinCVer < BrowserVer.MinEnsuredNewScriptsFromExtensionOnSandboxedPage
@@ -77,19 +76,6 @@ export const main_not_ff = (Build.BTypes & ~BrowserType.Firefox ? (): void => {
         : OnChrome ? 1 : 0
     , secret: string = ((math.random() * GlobalConsts.SecretRange + GlobalConsts.SecretBase) | 0) + ""
   let script = createElement_("script");
-  let hook = function (event: Event): void {
-    const t = (event as TypeToAssert<Event, DelegateEventCls["prototype"], "relatedTarget">).relatedTarget,
-    S = InnerConsts.kSecretAttr;
-    // use `instanceof` to require the `t` element is a new instance which has never entered this extension world
-    if (++hookRetryTimes > GlobalConsts.MaxRetryTimesForSecret
-        || !(t instanceof Element)) { return; }
-    Stop_(event);
-    if (t.localName !== "div" || attr_s(t as SafeElement, S) !== secret) { return }
-      hookRetryTimes = GlobalConsts.MaxRetryTimesForSecret
-      setOrRemoveAttr_s(t as SafeElement, S)
-      setupEventListener(t, kVOnClick1, onClick);
-      box = t as HTMLDivElement
-  };
   function onClick(this: Element | Window, event: Event): void {
     const rawDetail = (
         event as NonNullable<ConstructorParameters<CustomEventCls>[1]>
@@ -180,22 +166,38 @@ export const main_not_ff = (Build.BTypes & ~BrowserType.Firefox ? (): void => {
       return;
     }
     /** this function should keep idempotent */
-    hookRetryTimes = GlobalConsts.MaxRetryTimesForSecret
     if (box) {
       setupEventListener(box, kVOnClick1, onClick, 1);
       setupEventListener(0, kVOnClick1, onClick, 1);
       dispatchCmd(kContentCmd.Destroy);
     }
-    if (box == null && isFirstTime) {
-      if (cmd === kContentCmd.DestroyForCSP) {
-        // normally, if here, must have: limited by CSP; not C or C >= MinEnsuredNewScriptsFromExtensionOnSandboxedPage
-        // ignore the rare (unexpected) case that injected code breaks even when not limited by CSP,
-        //     which might mean curCVer has no ES6...
-        runJS_("`${" + outKMK + "=>" + secret + "}`")
-      }
-    }
     box = 0;
-    vApi.e = null;
+    vApi.e = script = null as never
+  }
+  const initOnDocReady = (): void => {
+    if (!script) { return }
+    box = createElement_("div")
+    readyState_ > "l" || clearTimeout_(readyTimeout)
+    appendNode_s(script, box)
+    dispatchEvent_(script, new Event(outKMK + BuildStr.RandomClick))
+    if (parentNode_unsafe_s(box)) {
+      // normally, if here, must have: limited by CSP; not C or C >= MinEnsuredNewScriptsFromExtensionOnSandboxedPage
+      // ignore the rare (unexpected) case that injected code breaks even when not limited by CSP,
+      //     which might mean curCVer has no ES6...
+      execute(kContentCmd.SuppressClickable)
+      runJS_("`${" + outKMK + "=>" + secret + "}`")
+      return
+    }
+    script = null as never
+    setupEventListener(box, kVOnClick1, onClick);
+    removeEl_s(box)
+    // only for new versions of Chrome (and Edge);
+    // CSP would block a <script> before MinEnsuredNewScriptsFromExtensionOnSandboxedPage
+    // if !box, avoid checking isFirstTime, so that auto clean VApi.execute_
+    OnDocLoaded_(timeout_.bind(null, (): void => {
+      isFirstResolve && dispatchCmd(kContentCmd.AutoFindAllOnClick);
+      isFirstResolve = 0;
+    }, GlobalConsts.ExtendClick_DelayToFindAll), 1);
   }
 
 /**
@@ -215,10 +217,9 @@ export const main_not_ff = (Build.BTypes & ~BrowserType.Firefox ? (): void => {
     isFirstTime != null && OnDocLoaded_(extendClick); // retry after a while, using a real <script>
     return
   }
-  script.dataset.vimium = secret
 
-  let box: HTMLDivElement | undefined | 0, hookRetryTimes = 0, counterResolvePath = 0, reHookTimes = 0,
-  isFirstResolve: 0 | 1 | 2 | 3 | 4 = isTop ? 3 : 4
+  let box: HTMLDivElement | undefined | 0, counterResolvePath = 0, reHookTimes = 0,
+  isFirstResolve: 0 | 1 | 2 | 3 | 4 = isTop ? 3 : 4, readyTimeout: ValidTimeoutID
 
 // #region injected code
   /** the `InnerVerifier` needs to satisfy
@@ -257,7 +258,7 @@ dispatch = _call.bind<(this: (this: EventTarget, ev: Event) => boolean
 ElCls = Element, ElProto = ElCls[kProto],
 Append = !MayChrome || Build.MinCVer >= BrowserVer.MinEnsured$ParentNode$$appendAndPrepend
     ? ElProto.append! : ElProto.appendChild,
-Attr = ElProto.setAttribute, HasAttr = ElProto.hasAttribute, Remove = ElProto.remove,
+HasAttr = ElProto.hasAttribute, Remove = ElProto.remove,
 StopProp = Event[kProto].stopImmediatePropagation as (this: Event) => void,
 getElementsByTagNameInEP = ElProto[kByTag],
 nodeIndexList: number[] = [],
@@ -274,16 +275,13 @@ listen = _call.bind<(this: (this: EventTarget,
         self: EventTarget, name: string, listener: EventListenerOrEventListenerObject,
         opts?: EventListenerOptions | boolean
     ) => 42 | void>(_listen),
-rEL = MayChrome && Build.MinCVer < BrowserVer.Min$addEventListener$support$once
-    ? removeEventListener : 0 as never as null, clearTimeout1 = clearTimeout,
+clearTimeout1 = clearTimeout,
 DocCls = Document[kProto] as Partial<Document> as Pick<Document, "createElement" | typeof kByTag> & {
       open (): void, write (markup: string): void },
-getElementsByTagNameInDoc = DocCls[kByTag], docCreateElement = DocCls.createElement,
+getElementsByTagNameInDoc = DocCls[kByTag],
 _docOpen = DocCls.open, _docWrite = DocCls.write,
-kVOnClick = InnerConsts.kVOnClick,
-kRand = BuildStr.RandomClick, kEventName2 = kVOnClick + kRand,
-kReady = "readystatechange", kFunc = "function",
-StringSplit = !Build.NDEBUG ? kReady.split : 0 as never, StringSubstr = kReady.substr,
+kVOnClick = InnerConsts.kVOnClick, kRand = BuildStr.RandomClick, kEventName2 = kVOnClick + kRand, kFunc = "function",
+StringSplit = !Build.NDEBUG ? kFunc.split : 0 as never, StringSubstr = kFunc.substr,
 checkIsNotVerifier = (func?: InnerVerifier | unknown): void | 42 => {
   if (!Build.NDEBUG && !verifierPrefixLen) {
     verifierLen = (verifierStrPrefix = call(_toString, V)).length,
@@ -345,34 +343,8 @@ hooks = {
 myAEL = (/*#__NOINLINE__*/ hooks)[kAEL], myToStr = (/*#__NOINLINE__*/ hooks)[kToS],
 myDocOpen = (/*#__NOINLINE__*/ hooks).open, myDocWrite = (/*#__NOINLINE__*/ hooks).write
 
-let doInit = (): void => {
-  if (MayChrome && Build.MinCVer < BrowserVer.Min$addEventListener$support$once) {
-    doInit && rEL!(kReady, doInit, !0)
-  }
-  if (!detectDisabled) { return }
-  detectDisabled = 0;
-  // note: `HTMLCollection::operator []` can not be overridden by `Object.defineProperty` on C32/83
-  const docEl2 = MayEdge ? (docChildren as Extract<typeof docChildren, Function>)(0)
-      : (docChildren as Exclude<typeof docChildren, Function>)[0] as Element | null,
-  el = call(docCreateElement, doc0, "div") as HTMLDivElement,
-  S = InnerConsts.kSecretAttr;
-  if (MayChrome && Build.MinCVer < BrowserVer.Min$addEventListener$support$once) {
-    doInit = null as never
-  }
-  if (!docEl2) { return executeCmd(); }
-  call(Attr, el, S, sec);
-  listen(el, InnerConsts.kCmd, executeCmd, !0);
-  dispatch(curScript, new DECls((kMk + kRand) as typeof kMk, {relatedTarget: el}));
-  docChildren = curScript = null as never
-  if (call(HasAttr, el, S)) {
-    executeCmd();
-  } else {
-    root = el;
-    timer = toRegister.length > 0 ? setTimeout_(next, InnerConsts.DelayForNext) : 0;
-  }
-},
-curScript = doc0.currentScript as HTMLScriptElement,
-sec = curScript.dataset.vimium!,
+let root = doc0.currentScript as HTMLScriptElement | HTMLDivElement, timer = 1,
+sec = root.dataset.vimium!,
 /** kMarkToVerify */ kMk = GlobalConsts.MarkAcrossJSWorlds as const,
 detectDisabled: string | 0 = kMk + "=>" + sec,
 myAELStr: string | undefined, myToStrStr: string | undefined,
@@ -383,12 +355,11 @@ getRootNode = (EnsuredGetRootNode ? _call.bind(ElProto.getRootNode!) : ElProto.g
 contains = EnsuredGetRootNode || getRootNode ? null : ElProto.contains.bind(doc0), // in fact, it is Node::contains
 // here `setTimeout` is normal and will not use TimerType.fake
 setTimeout_ = setTimeout as SafeSetTimeout,
-docChildren: Document["children"] | ((index: number) => Element | null) = doc0.children,
+scriptChildren: HTMLElement["children"] | ((index: number) => Element | null) = root.children,
 unsafeDispatchCounter = 0,
 allNodesInDocument = null as HTMLCollectionOf<Element> | null,
 allNodesForDetached = null as HTMLCollectionOf<Element> | null,
 pushToRegister = (_push as unknown as typeof toRegister.push).bind(toRegister),
-root: HTMLDivElement, timer = setTimeout_(doInit, InnerConsts.DelayToWaitDomReady),
 queueMicroTask_: (callback: () => void) => void =
     MayEdge || MayChrome && Build.MinCVer < BrowserVer.Min$queueMicrotask
     ? MayNotEdge ? (window as PartialOf<typeof globalThis, "queueMicrotask">).queueMicrotask! : 0 as never
@@ -524,9 +495,8 @@ const executeCmd = (eventOrDestroy?: Event): void => {
     }
     return;
   }
-  toRegister.length = detectDisabled = 0;
+  root = (toRegister.length = detectDisabled = 0) as never
   pushToRegister = setTimeout_ = noop
-  root = curScript = null as never
   timer = 1
 }
 const collectOnclickElements = (cmd: SecondLevelContentCmds): void => {
@@ -548,7 +518,6 @@ const docOpenHook = (isWrite: BOOL, self: unknown, args: IArguments): void => {
   const oriHref = Build.NDEBUG || !first ? "" : location.host && location.pathname || location.href
   const ret = apply(isWrite ? _docWrite : _docOpen, self, args)
   if (first) {
-    detectDisabled && doInit()
     if (Build.NDEBUG) {
       root && doRegister(0, pushInDocument(InnerConsts.SignalDocOpen)) // lgtm [js/superfluous-trailing-arguments]
     } else if (root) {
@@ -573,16 +542,22 @@ if (!MayNotEdge
 }
 if (!EnsuredGetRootNode && getRootNode) { getRootNode = _call.bind(getRootNode as any) as any }
 if (MayEdge) {
-  docChildren = docChildren.item.bind(docChildren)
+  scriptChildren = scriptChildren.item.bind(scriptChildren)
 }
 // only the below can affect outsides
-curScript.remove();
+call(Remove, root)
+call(_listen, root, kMk + kRand, (): void => {
+  // note: `HTMLCollection::operator []` can not be overridden by `Object.defineProperty` on C32/83
+  root = (MayEdge ? (scriptChildren as Extract<typeof scriptChildren, Function>)(0)
+      : (scriptChildren as Exclude<typeof scriptChildren, Function>)[0]) as HTMLDivElement
+  call(Remove, root)
+  listen(root, InnerConsts.kCmd, executeCmd, !0)
+  timer = toRegister.length > 0 ? setTimeout_(next, InnerConsts.DelayForNext) : 0
+  detectDisabled = 0
+  scriptChildren = null as never
+})
+root = 0 as never
 ETP[kAEL] = myAEL;
-if (MayChrome && Build.MinCVer < BrowserVer.Min$addEventListener$support$once) {
-  _listen(kReady, doInit, !0);
-} else {
-  _listen(kReady, doInit, {capture: !0, once: !0});
-}
 FProto[kToS] = myToStr
 DocCls.open = myDocOpen
 DocCls.write = myDocWrite
@@ -606,7 +581,7 @@ DocCls.write = myDocWrite
     }
     injected = injected.replace("" + BuildStr.RandomClick, "$&" + secret as `$&${typeof secret}`)
     vApi.e = execute;
-    setupEventListener(script, kHookRand, hook);
+    script.dataset.vimium = secret
     setupEventListener(0, kVOnClick1, onClick);
   }
   /**
@@ -618,7 +593,6 @@ DocCls.write = myDocWrite
    * But here it still uses the same script, just for my personal preference.
    */
   runJS_(injected, script)
-  script.dataset.vimium = "";
   if (OnChrome && Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage
       && tmpChromeVer === BrowserVer.NoRAFOrRICOnSandboxedPage) {
     set_noRAF_old_cr_(1)
@@ -628,16 +602,10 @@ DocCls.write = myDocWrite
   // for the case JavaScript is disabled in CS: https://github.com/philc/vimium/issues/3187
   if (!parentNode_unsafe_s(script)) { // It succeeded in hooking.
     // wait the inner listener of `start` to finish its work
-    OnDocLoaded_((): void => {
-      // only for new versions of Chrome (and Edge);
-      // CSP would block a <script> before MinEnsuredNewScriptsFromExtensionOnSandboxedPage
-      // if !box, avoid checking isFirstTime, so that auto clean VApi.execute_
-      !box ? execute(kContentCmd.DestroyForCSP) : isFirstTime && /** avoid checking isAlive_ for smaller code */
-      OnDocLoaded_(timeout_.bind(null, (): void => {
-        isFirstResolve && dispatchCmd(kContentCmd.AutoFindAllOnClick);
-        isFirstResolve = 0;
-      }, GlobalConsts.ExtendClick_DelayToFindAll), 1);
-    });
+    if (isFirstTime) {
+      readyTimeout = timeout_(initOnDocReady, InnerConsts.DelayToWaitDomReady)
+      OnDocLoaded_(initOnDocReady)
+    }
     return
   }
   // else: CSP script-src before C68, CSP sandbox before C68 or JS-disabled-in-CS on C/E

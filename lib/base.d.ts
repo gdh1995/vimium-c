@@ -260,7 +260,6 @@ declare const enum kContentCmd {
   // see injected_end.ts for difference between Destroy and SuppressClickable
   SuppressClickable = 5,
   Destroy = 6,
-  DestroyForCSP = 7,
   MaskedBitNumber = 3,
 }
 type ValidContentCommands = Exclude<kContentCmd, kContentCmd._fake | kContentCmd._minSuppressClickable
