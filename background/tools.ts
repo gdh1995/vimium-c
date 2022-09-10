@@ -264,6 +264,7 @@ export const ContentSettings_ = OnChrome ? {
     showHUD("Vimium C has no permissions to set CSs")
   }
 } as never
+
 export const Marks_ = { // NOTE: all public members should be static
   set_ ({ l: local, n: markName, u: url, s: scroll }: MarksNS.NewMark, incognito: boolean, tabId?: number
       , logPort?: Port): void {
@@ -482,9 +483,10 @@ const IncognitoWatcher_ = {
 }
 
 let hasReliableWatchers: boolean = OnFirefox && Build.MinFFVer >= FirefoxBrowserVer.MinMediaQueryListenersWorkInBg
+let _mediaTimer = hasReliableWatchers ? -1 : 0
 OnFirefox && Build.MinFFVer < FirefoxBrowserVer.MinMediaQueryListenersWorkInBg && settings_.ready_.then((): void => {
   hasReliableWatchers = CurFFVer_ > FirefoxBrowserVer.MinMediaQueryListenersWorkInBg - 1
-  MediaWatcher_._timer = hasReliableWatchers ? -1 : 0
+  _mediaTimer = hasReliableWatchers ? -1 : 0
 })
 
 export const MediaWatcher_ = Build.MV3 && IsLimited ? null as never : {
@@ -496,7 +498,6 @@ export const MediaWatcher_ = Build.MV3 && IsLimited ? null as never : {
       && (OnFirefox && Build.MinFFVer >= FirefoxBrowserVer.MinMediaQuery$PrefersColorScheme)
     ? MediaNS.Watcher.NotWatching : MediaNS.Watcher.WaitToTest
   ] as { [k in MediaNS.kName]: MediaNS.Watcher | MediaQueryList } & Array<MediaNS.Watcher | MediaQueryList>,
-  _timer: hasReliableWatchers ? -1 : 0,
   get_ (key: MediaNS.kName): boolean | null {
     let watcher = MediaWatcher_.watchers_[key];
     return typeof watcher === "object" ? watcher.matches : null;
@@ -513,17 +514,15 @@ export const MediaWatcher_ = Build.MV3 && IsLimited ? null as never : {
       const query = matchMedia(`(${name}: ${!key ? "reduce" : "dark"})`);
       query.onchange = a._onChange;
       watchers[key] = query;
-      if (!hasReliableWatchers) {
-        a._timer = a._timer || setInterval(MediaWatcher_.RefreshAll_, GlobalConsts.MediaWatchInterval)
+      if (_mediaTimer === 0 || _mediaTimer === -2) {
+        _mediaTimer = setInterval(MediaWatcher_.RefreshAll_, GlobalConsts.MediaWatchInterval)
       }
     } else if (!doListen && typeof cur === "object") {
       cur.onchange = null;
       watchers[key] = MediaNS.Watcher.NotWatching;
-      if (!hasReliableWatchers && a._timer > 0) {
-        if (watchers.every(i => typeof i !== "object")) {
-          clearInterval(a._timer);
-          a._timer = 0;
-        }
+      if ((_mediaTimer > 0 || _mediaTimer === -2) && watchers.every(i => typeof i !== "object")) {
+        _mediaTimer > 0 && clearInterval(_mediaTimer)
+        _mediaTimer = 0
       }
     }
   },
@@ -552,6 +551,12 @@ export const MediaWatcher_ = Build.MV3 && IsLimited ? null as never : {
     });
   },
   RefreshAll_ (this: void): void {
+    if (_mediaTimer > 0) {
+      if (performance.now() - lastVisitTabTime > 1000 * 60 * 4.5) {
+        clearInterval(_mediaTimer)
+        _mediaTimer = -2
+      }
+    }
     for (let arr = MediaWatcher_.watchers_, i = arr.length; 0 <= --i; ) {
       let watcher = arr[i];
       if (typeof watcher === "object") {
@@ -559,10 +564,15 @@ export const MediaWatcher_ = Build.MV3 && IsLimited ? null as never : {
       }
     }
   },
+  resume_ (): void {
+    MediaWatcher_.RefreshAll_()
+    _mediaTimer = setInterval(MediaWatcher_.RefreshAll_, GlobalConsts.MediaWatchInterval)
+  },
   _onChange (this: MediaQueryList): void {
     if (!hasReliableWatchers) {
-      if (MediaWatcher_._timer > 0) { clearInterval(MediaWatcher_._timer) }
-      MediaWatcher_._timer = -1
+      _mediaTimer > 0 && clearInterval(_mediaTimer)
+      _mediaTimer = -1
+      hasReliableWatchers = true
     }
     let index = MediaWatcher_.watchers_.indexOf(this);
     if (index >= 0) {
@@ -580,10 +590,11 @@ export const TabRecency_ = {
   rCompare_: null as never as (a: {id: number}, b: {id: number}) => number,
   onWndChange_: blank_
 };
+let lastVisitTabTime = 0
 
 setTimeout((): void => {
   const noneWnd = curWndId_
-  let cache = recencyForTab_, stamp = 1, time = 0
+  let cache = recencyForTab_, stamp = 1
   const clean = (tabs: Tab[] | undefined): void => {
     const existing = tabs ? tabs.map(i => [i.id, cache.get(i.id)] as const)
         .filter((i): i is readonly [number, NonNullable<ReturnType<RecencyMap["get"]>>] => <boolean> <any> i[1])
@@ -617,7 +628,7 @@ setTimeout((): void => {
       return
     }
     const now = performance.now();
-    if (now - time > GlobalConsts.MinStayTimeToRecordTabRecency) {
+    if (now - lastVisitTabTime > GlobalConsts.MinStayTimeToRecordTabRecency) {
       const old = cache.get(curTabId_),
       monoNow = (OnChrome || OnFirefox) && Build.OS & (1 << kOS.unixLike) && os_ === kOS.unixLike ? Date.now() : now
       old ? (old.i = ++stamp, old.t = monoNow) : cache.set(curTabId_, { i: ++stamp, t: monoNow })
@@ -625,7 +636,8 @@ setTimeout((): void => {
         Tabs_.query({}, clean)
       }
     }
-    set_curTabId_(info.tabId); time = now
+    set_curTabId_(info.tabId); lastVisitTabTime = now
+    _mediaTimer === -2 && (_mediaTimer = -3, setTimeout(MediaWatcher_.resume_, 0)) // not block onActivated listener
   }
   function maybeOnBgWndActiveTabChange(wnd: chrome.windows.Window): void {
     if (!wnd.focused) { return }
@@ -661,7 +673,7 @@ setTimeout((): void => {
     Tabs_.query({windowId, active: true}, onFocusChanged)
   });
   getCurTab((tabs: [Tab]): void => {
-    time = performance.now();
+    lastVisitTabTime = performance.now()
     const a = tabs && tabs[0];
     if (!a) { return runtimeError_() }
     set_curTabId_(a.id)
