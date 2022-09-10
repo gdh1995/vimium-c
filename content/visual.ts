@@ -357,7 +357,7 @@ const runMovements = (direction: ForwardDir, granularity: kG | kVimG.vimWord, co
       modify(direction, granularity as kG)
     // it's safe to remove `isUnsafe` here, because:
     // either `count > 0` or `fixWord && _moveRight***()`
-      diType_ &= mode_ - Mode.Caret ? diType_ : ~DiType.isUnsafe
+      diType_ &= isMove ? ~DiType.isUnsafe : diType_
       di_ = direction - oldDi ? kDirTy.unknown : oldDi
     }
     granularity - kG.lineBoundary || hudTip(kTip.selectLineBoundary, 2)
@@ -546,7 +546,7 @@ const ensureLine = (command1: number): void => {
   }
 }
 
-  const mode = mode_
+  let mode = mode_
   if (command > VisualAction.MaxNotScroll) {
     executeScroll(1, command - VisualAction.ScrollDown ? -count : count, kScFlag.scBy)
     return;
@@ -579,20 +579,24 @@ const ensureLine = (command1: number): void => {
   if (command > VisualAction.MaxNotFind) {
     findV(command - VisualAction.PerformFind ? count : -count)
     return;
-  } else if (command > VisualAction.MaxNotYank) {
+  }
+  if (command > VisualAction.MaxNotYank) {
     command === VisualAction.YankLine && selectLine(count)
     yank(([kYank.Exit, kYank.Exit, kYank.NotExit, ReuseType.current, ReuseType.newFg, kYank.RichTextButNotExit
           ] as const)[command - VisualAction.Yank])
     if (command !== VisualAction.YankWithoutExit && command !== VisualAction.YankRichText) { return; }
   } else if (command > VisualAction.MaxNotLexical) {
     const entity = (command - VisualAction.MaxNotLexical) as kG.sentence | kG.word
+    mode_ = VisualModeNS.Mode.Visual
     collapseToFocus(0)
-    modify(kDirTy.right, kG.character)
-    modify(kDirTy.left, OnFirefox && !(entity - kG.sentence) ? kG.lineBoundary : entity)
+    extend(kDirTy.right)
+    extend(kDirTy.left, OnFirefox && !(entity - kG.sentence) ? kG.lineBoundary : entity)
     di_ = kDirTy.left // safe
     collapseToFocus(1)
     runMovements(kDirTy.right, !(entity - kG.paragraphboundary) ? kG.paragraph
         : !(entity - kG.lineBoundary) ? kG.line : entity, count)
+    mode_  = mode
+    mode = VisualModeNS.Mode.Visual
   } else if (command === VisualAction.Reverse) {
     reverseSelection()
   } else if (command >= VisualAction.MinWrapSelectionModify) {
