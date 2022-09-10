@@ -477,7 +477,7 @@ interface CmdOptions {
     css?: undefined
   }) & { disabled?: boolean } & Req.FallbackOptions
   [kFgCmd.dispatchEventCmd]: {
-    e?: string
+    /* error msg */ e?: string; /* .click */ c?: 1; /** as-trusted-keyboard-event */ t?: boolean
     class?: string
     type: string // if count < 0, then replace "down" with "up"
     key: string | `${string},${number}${string}` | [ key: `<${string}>` | string, keyCode: number, code?: string ]
@@ -488,6 +488,7 @@ interface CmdOptions {
     click?: true // if true, call `activeElement.click()` directly
     init?: Dict<any>
     xy?: null | HintsNS.Options["xy"]
+    trust?: boolean; trusted?: boolean; isTrusted?: boolean | "force"
   } & OptionsToFindElement & Req.FallbackOptions & EventInit
   [kFgCmd.callTee]: {
     /** url */ u: string

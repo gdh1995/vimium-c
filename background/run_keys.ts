@@ -272,7 +272,7 @@ interface ErrorNode extends BaseNode { t: kN.error; val: string; par: null }
 type Node = ListNode | IfElseNode
 export const parseKeySeq = (keys: string): ListNode | ErrorNode => {
   const re = <RegExpOne>
-      /^([$%][a-z]\+?)*([\d-]\d*\+?)?([$%][a-z]\+?)*((<([acmsv]-){0,4}.\w*(:i)?>|[^#()?:+$%-])+|-)(#[^()?:+]*)?/
+      /^([$%][a-zA-Z]\+?)*([\d-]\d*\+?)?([$%][a-zA-Z]\+?)*((<([acmsv]-){0,4}.\w*(:i)?>|[^#()?:+$%-])+|-)(#[^()?:+]*)?/
   let cur: ListNode = { t: kN.list, val: [], par: null }, root: ListNode = cur, last: Node | null
   for (let i = keys.length > 1 ? 0 : keys.length; i < keys.length; i++) {
     switch (keys[i]) {
@@ -393,17 +393,17 @@ export const runKeyInSeq = (seq: BgCmdOptions[C.runKey]["$seq"], dir: number
     dir < 0 && fallback && fallback.t && showHUD(extTrans_(`${fallback.t as 99}`))
     return
   }
-  const evenLoading = (ifOk && cmdOptions.$then
-        && (typeof ifOk.val === "string" ? ifOk.val : ifOk.val.prefix).includes("$l") ? 1 : 0)
-      + (ifFail && cmdOptions.$else && (typeof ifFail.val === "string" ? ifFail.val : ifFail.val.prefix).includes("$l")
-          ? 2 : 0)
-  if (evenLoading) {
+  const thenPrefix = ifOk && cmdOptions.$then ? typeof ifOk.val === "string" ? ifOk.val : ifOk.val.prefix : ""
+  const elsePrefix = ifFail && cmdOptions.$else ? typeof ifFail.val === "string" ? ifFail.val : ifFail.val.prefix : ""
+  const evenLoading = (thenPrefix.includes("$l") ? 1 : 0) + (elsePrefix.includes("$l") ? 2 : 0)
+  const noDelay = (thenPrefix.includes("$D") ? 1 : 0) + (elsePrefix.includes("$D") ? 2 : 0)
+  if (evenLoading || noDelay) {
     if (seq.cursor === seq.keys) {
       overrideCmdOptions<C.runKey>({})
       cmdOptions = get_cOptions<C.runKey, true>()
     }
-    evenLoading & 1 && (cmdOptions.$then = "$l+" + cmdOptions.$then)
-    evenLoading & 2 && (cmdOptions.$else = "$l+" + cmdOptions.$else)
+    cmdOptions.$then = (evenLoading & 1 ? "$l+" : "") + (noDelay & 1 ? "$D+" : "") + cmdOptions.$then
+    cmdOptions.$else = (evenLoading & 2 ? "$l+" : "") + (noDelay & 2 ? "$D+" : "") + cmdOptions.$else
   }
   const timeout = isLast ? 0 : seq.timeout = setTimeout((): void => {
     const old = keyToCommandMap_.get(seqId)

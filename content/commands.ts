@@ -31,7 +31,7 @@ import {
   InputHintItem, activate as linkActivate, clear as linkClear, kSafeAllSelector, findAnElement_
 } from "./link_hints"
 import { activate as markActivate } from "./marks"
-import { FindAction, activate as findActivate, deactivate as findDeactivate, execCommand } from "./mode_find"
+import { FindAction, activate as findActivate, deactivate as findDeactivate, execCommand, find_box, find_input } from "./mode_find"
 import {
   exitInputHint, insert_inputHint, insert_last_, raw_insert_lock, insert_Lock_, resetInsert, set_is_last_mutable,
   set_inputHint, set_insert_global_, set_isHintingInput, set_insert_last_, exitInsertMode, set_passAsNormal, insert_global_,
@@ -465,7 +465,7 @@ set_contentCommands_([
         return runFallbackKey(options, 2, "", delay)
       }
       found[1] && view_(activeEl)
-      const useClick = options.click && (activeEl as Partial<HTMLElement>).click
+      const useClick = options.c && (activeEl as Partial<HTMLElement>).click
       const xy = !useClick && options.xy as HintsNS.StdXY | undefined
       const point = xy && center_(getVisibleBoundingRect_(activeEl) || getVisibleClientRect_(activeEl), xy)
       if (point) {
@@ -482,6 +482,10 @@ set_contentCommands_([
         if (OnChrome && Build.MinCVer < BrowserVer.Min$Event$$IsTrusted
             && chromeVer_ < BrowserVer.Min$Event$$IsTrusted) {
           (event as Writable<typeof event>).isTrusted = false
+        }
+        if (options.t) {
+          (event as UserTrustedKeyboardEvent).z = fgCache
+          activeEl = deepActiveEl_unsafe_(1) === find_box ? find_input : activeEl
         }
         useResult = !useClick && options.return
         // earlier, in case listeners are too slow

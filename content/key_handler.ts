@@ -211,6 +211,7 @@ export const onKeydown = (event: KeyboardEventToPrevent): void => {
   if (!isEnabled_
       || (!OnChrome || Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted ? !event.isTrusted
           : event.isTrusted === false) // skip checks of `instanceof KeyboardEvent` if checking `!.keyCode`
+          && (event as UserTrustedKeyboardEvent).z !== fgCache
       || !key) { return; }
   const eventWrapper: HandlerNS.Event = {c: kChar.INVALID, e: event, i: key, v: ""}
   if (scroll_keyIsDown && onScrolls(event)) {
@@ -312,6 +313,7 @@ export const onKeyup = (event: KeyboardEventToPrevent): void => {
   if (!isEnabled_
       || (!OnChrome || Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted ? !event.isTrusted
           : event.isTrusted === false) // skip checks of `instanceof KeyboardEvent` if checking `!.keyCode`
+          && (event as UserTrustedKeyboardEvent).z !== fgCache
       || !key) { return; }
   if (scroll_keyIsDown && (key === isCmdTriggered || isCmdTriggered < kKeyCode.True + 1)) {
     scrollTick(0);

@@ -460,6 +460,7 @@ export const runNextCmdBy = (useThen: BOOL, options: Req.FallbackOptions, timeou
   const hasFallback = !!nextKey && typeof nextKey === "string"
   if (hasFallback) {
     const fStatus: NonNullable<FgReq[kFgReq.nextKey]["f"]> = { c: options.$f, r: options.$retry, u: 0, w: 0 }
+    const noDelay = nextKey && (<RegExpOne> /\$D/).test(nextKey.split("#", 1)[0])
     setupSingletonCmdTimer(setTimeout((): void => {
       const frames = framesForTab_.get(curTabId_),
       port = cPort && cPort.s.tabId_ === curTabId_ && frames && frames.ports_.indexOf(cPort) > 0 ? cPort
@@ -468,7 +469,7 @@ export const runNextCmdBy = (useThen: BOOL, options: Req.FallbackOptions, timeou
               .sort((a, b) => a.s.frameId_ - b.s.frameId_)[0] || frames.cur_
       frames && ensuredExitAllGrab(frames)
       runOneMapping_(nextKey, port, fStatus)
-    }, timeout || 50))
+    }, noDelay ? 0 : timeout || 50))
   }
   return hasFallback
 }

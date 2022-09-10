@@ -200,6 +200,7 @@ set_bgC_([
       if (xy && !xy.n) { xy.n = cRepeat; set_cRepeat(1) }
       if (opts2.click) {
         type = "click"
+        opts2.c = 1
       } else if (cRepeat < 0) {
         for (const replace of "down up;enter leave;start end;over out".split(";")) {
           const [a, b] = replace.split(" ")
@@ -217,9 +218,9 @@ set_bgC_([
       const skipped = As_<{
         readonly [key in Exclude<keyof BgCmdOptions[C.dispatchEventCmd], keyof EventInit | `$${string}`>]: 1;
       }>({
-        e: 1, class: 1, type: 1, key: 1, return: 1, delay: 1, esc: 1, click: 1, init: 1, xy: 1, match: 1,
+        e: 1, c: 1, t: 1, class: 1, type: 1, key: 1, return: 1, delay: 1, esc: 1, click: 1, init: 1, xy: 1, match: 1,
         direct: 1, directOptions: 1, clickable: 1, exclude: 1, evenIf: 1, scroll: 1, typeFilter: 1, textFilter: 1,
-        clickableOnHost: 1, excludeOnHost: 1, closedShadow: 1
+        clickableOnHost: 1, excludeOnHost: 1, closedShadow: 1, trust: 1, trusted: 1, isTrusted: 1
       })
       for (const [key, val] of Object.entries!(dict)) {
         if (key && key[0] !== "$" && !(skipped as Object).hasOwnProperty(key)) {
@@ -257,6 +258,8 @@ set_bgC_([
       if (directOptions && !directOptions.search) { directOptions.search = "doc" }
       opts2.directOptions = directOptions || { search: "doc" }
       opts2.e = `Can't create "${rawClass}#${type}"`
+      opts2.t = type.startsWith("key") && !!(opts2.trust || opts2.trusted
+          || (opts2.isTrusted || (dict as Event).isTrusted) === "force")
     }
     portSendFgCmd(cPort, kFgCmd.dispatchEventCmd, false, opts2 as CmdOptions[kFgCmd.dispatchEventCmd], cRepeat)
   },

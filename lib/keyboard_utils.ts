@@ -113,7 +113,7 @@ export const char_ = (eventWrapper: HandlerNS.Event, forceASCII: number): kChar 
     }
     key = shiftKey && key.length < 2 ? key : Lower(key)
   } else {
-    key = key.length > 1 || key === " " ? /*#__NOINLINE__*/ _getKeyName(event)
+    key = key.length > 1 ? /*#__NOINLINE__*/ _getKeyName(event) || Lower(key) : key === " " ? _getKeyName(event)
         : fgCache.l & kKeyLayout.ignoreCaps ? shiftKey ? key.toUpperCase() : Lower(key) : key
   }
   return forceASCII === (kKeyLayout.inCmdIgnoreIfNotASCII | 1) ? key as kChar : eventWrapper.c = key as kChar
@@ -179,7 +179,8 @@ export const suppressTail_ = ((timeout?: number
         exit()
         return HandlerResult.Nothing;
       }
-      if (event && (abs_(getTime() - now) > timeout || isEscape_(getMappedKey(event, kModeId.Plain)))) {
+      if (event && (abs_(getTime() - now) > timeout || isEscape_(getMappedKey(event, kModeId.Plain))
+            || (event.e as UserTrustedKeyboardEvent).z === fgCache)) {
         exit()
         return HandlerResult.Nothing
       }

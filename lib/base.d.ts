@@ -29,6 +29,7 @@ declare namespace HandlerNS {
     (this: void, _arg?: undefined): T
   }
 }
+interface UserTrustedKeyboardEvent extends KeyboardEvent { z?: VApiTy["z"] }
 
 interface KeydownCacheArray extends SafeObject {
   [keyCode: number]: BOOL | 2 | undefined;

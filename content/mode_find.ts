@@ -553,8 +553,8 @@ const onPaste_not_cr = !OnChrome ? (event: ClipboardEvent & ToPrevent): void => 
 const onIFrameKeydown = (event: KeyboardEventToPrevent): void => {
     const n = event.keyCode, isUp = event.type === "keyup" && !set_isCmdTriggered(0)
     Stop_(event)
-    if (!OnChrome || Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted
-        ? !event.isTrusted : event.isTrusted === false) { return; }
+    if ((!OnChrome || Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted
+        ? !event.isTrusted : event.isTrusted === false) && (event as UserTrustedKeyboardEvent).z !== fgCache) { return }
     if (!n || n === kKeyCode.ime || scroll_keyIsDown && onScrolls(event) || isUp) {
       if (isUp && keydownEvents_[n]) { keydownEvents_[n] = 0; prevent_(event) }
       return
