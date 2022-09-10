@@ -6,7 +6,7 @@ import {
 import { getVisibleClientRect_, center_, view_, selRange_ } from "../lib/rect"
 import {
   IsInDOM_, createElement_, htmlTag_, getComputedStyle_, getEditableType_, isIFrameElement, GetParent_unsafe_, focus_,
-  kMediaTag, ElementProto_not_ff, querySelector_unsafe_, getInputType, uneditableInputs_, GetShadowRoot_, scrollingEl_,
+  kMediaTag, ElementProto_not_ff, querySelector_unsafe_, uneditableInputs_, GetShadowRoot_, scrollingEl_,
   queryChildByTag_, getSelection_, removeEl_s, appendNode_s, getMediaUrl, getMediaTag, INP, ALA, attr_s, hasTag_, kGCh,
   setOrRemoveAttr_s, toggleClass_s, textContent_s, notSafe_not_ff_, modifySel, SafeEl_not_ff_, testMatch,
   extractField, querySelectorAll_unsafe_, editableTypes_, findAnchor_, dispatchEvent_, wrapEventInit_
@@ -334,15 +334,15 @@ const copyText = (): void => {
     else if (str = accessElAttr(2)[0].trim()) { /* empty */ }
     else {
       if (tag === INP) {
-        let type = getInputType(clickEl as HTMLInputElement)
-        if (type === "pa") {
+        const type = (clickEl as HTMLInputElement).type
+        if (type === "password") {
           return hintApi.h(kTip.ignorePassword)
         }
         if (!uneditableInputs_[type]) {
           str = (clickEl as HTMLInputElement).value || (clickEl as HTMLInputElement).placeholder;
-        } else if (type === "fi") {
+        } else if (type === "file") {
           str = (files = (clickEl as HTMLInputElement).files) && files.length > 0 ? files[0].name : ""
-        } else if ("bu im su re".includes(type)) {
+        } else if (" button image submit reset ".includes(" " + type + " ")) {
           str = (clickEl as HTMLInputElement).value;
         }
       } else {

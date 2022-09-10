@@ -437,7 +437,8 @@ export const deepActiveEl_unsafe_ = (alsoBody?: 1): Element | null => {
 }
 
 export const uneditableInputs_: ReadonlySafeDict<1 | 2> = { __proto__: null as never,
-    bu: 2, ch: 1, co: 1, fi: 1, hi: 1, im: 2, ra: 1, re: 1, su: 1
+    button: 2, checkbox: 1, color: 1, file: 1, hidden: 1, //
+    image: 2, radio: 1, range: 1, reset: 1, submit: 1
 }
 
 export const editableTypes_: SafeObject & { readonly [localName in ""]?: undefined } & {
@@ -450,8 +451,6 @@ export const editableTypes_: SafeObject & { readonly [localName in ""]?: undefin
     embed: EditableType.Embed, object: EditableType.Embed
 }
 
-export const getInputType = (el: HTMLInputElement): string => el.type.slice(0, 2)
-
   /**
    * if true, then `element` is `LockableElement`,
    * so MUST always filter out HTMLFormElement, to keep LockableElement safe
@@ -462,7 +461,7 @@ export const getEditableType_ = function (element: Element): EditableType {
         ((element as HTMLElement).isContentEditable !== true
         ? EditableType.NotEditable : EditableType.TextBox)
       )
-      : uneditableInputs_[getInputType(element as HTMLInputElement)] ? EditableType.NotEditable : EditableType.TextBox
+      : uneditableInputs_[(element as HTMLInputElement).type] ? EditableType.NotEditable : EditableType.TextBox
 } as {
     (element: Element): element is LockableElement;
     // eslint-disable-next-line @typescript-eslint/no-unused-vars

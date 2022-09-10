@@ -1,6 +1,6 @@
 import { chromeVer_, createRegExp, Lower, math, max_, OnChrome, OnEdge, OnFirefox } from "../lib/utils"
 import {
-  createElement_, querySelector_unsafe_, getInputType, htmlTag_, docEl_unsafe_, removeEl_s, ALA, attr_s,
+  createElement_, querySelector_unsafe_, htmlTag_, docEl_unsafe_, removeEl_s, ALA, attr_s,
   contains_s, setClassName_s, setVisibility_s, toggleClass_s, textContent_s, appendNode_s, hasTag_
 } from "../lib/dom_utils"
 import {
@@ -175,9 +175,9 @@ export const generateHintText = (hint: Hint, hintInd: number, allItems: readonly
       text = selected ? selected.label : "";
     } else {
       if (localName < "s") {
-        if (getInputType(el as HTMLInputElement) === "fi") {
+        if ((el as HTMLInputElement).type === "file") {
           text = "Choose File";
-        } else if (getInputType(el as HTMLInputElement) === "pa") {
+        } else if ((el as HTMLInputElement).type === "password") {
           break;
         }
       }

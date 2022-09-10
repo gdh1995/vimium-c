@@ -4,7 +4,7 @@ import {
 } from "../lib/utils"
 import {
   htmlTag_, isAriaFalse_, isStyleVisible_, querySelectorAll_unsafe_, isIFrameElement, ALA, attr_s, findAnchor_,
-  contains_s, notSafe_not_ff_, hasTag_, AriaArray, testMatch, uneditableInputs_, getInputType, findSelectorByHost
+  contains_s, notSafe_not_ff_, hasTag_, AriaArray, testMatch, uneditableInputs_, findSelectorByHost
 } from "../lib/dom_utils"
 import { getBoundingClientRect_, isNotInViewport, view_, VisibilityType } from "../lib/rect"
 import { kSafeAllSelector, detectUsableChild } from "./link_hints"
@@ -39,7 +39,7 @@ export const filterTextToGoNext: VApiTy["g"] = (candidates, names, options, maxL
       }
     } else if (fromMatchSelector || (s = htmlTag_(element))
         && (s === "a" || s === "img" || (s === "button" ? !(element as HTMLButtonElement).disabled
-            : s === "input" && uneditableInputs_[getInputType(element as HTMLInputElement)] === 2))
+            : s === "input" && uneditableInputs_[(element as HTMLInputElement).type] === 2))
         || clickable_.has(element) || extraClickable_ && extraClickable_.has(element)
         || (OnFirefox ? (element as HTMLElement | SVGElement).onclick : attr_s(element, "onclick"))
         || ((s = OnChrome && Build.MinCVer >= BrowserVer.MinEnsured$Element$$role

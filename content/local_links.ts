@@ -4,7 +4,7 @@ import {
   getTime, firefoxVer_
 } from "../lib/utils"
 import {
-  isIFrameElement, getInputType, uneditableInputs_, getComputedStyle_, queryChildByTag_, htmlTag_, isAriaFalse_,
+  isIFrameElement, uneditableInputs_, getComputedStyle_, queryChildByTag_, htmlTag_, isAriaFalse_,
   kMediaTag, NONE, querySelector_unsafe_, isStyleVisible_, fullscreenEl_unsafe_, notSafe_not_ff_, docEl_unsafe_,
   GetParent_unsafe_, unsafeFramesetTag_old_cr_, isHTML_, querySelectorAll_unsafe_, isNode_, INP, attr_s, supportInert_,
   getMediaTag, getMediaUrl, contains_s, GetShadowRoot_, parentNode_unsafe_s, testMatch, hasTag_, editableTypes_,
@@ -83,9 +83,9 @@ const getClickable = (hints: Hint[], element: SafeHTMLElement): void => {
   case "input": case "textarea":
     // on C75, a <textarea disabled> is still focusable
     if ((element as TextElement).disabled && mode1_ < HintMode.max_mouse_events + 1) { /* empty */ }
-    else if (tag > "t" || !uneditableInputs_[s = getInputType(element as HTMLInputElement)]) {
+    else if (tag > "t" || !uneditableInputs_[s = (element as HTMLInputElement).type]) {
       isClickable = !(element as TextElement).readOnly || mode1_ > HintMode.min_job - 1
-    } else if (s !== "hi") {
+    } else if (s !== "hidden") {
       const st = getComputedStyle_(element)
       isClickable = <number> <string | number> st.opacity > 0
       if (isClickable || !(element as HTMLInputElement).labels.length) {
@@ -253,7 +253,7 @@ const inferTypeOfListener = ((el: SafeHTMLElement, tag: "" | keyof HTMLElementTa
 export const getEditable = (hints: Hint[], element: SafeHTMLElement): void => {
   let s: string = element.localName;
   if ((s === INP || s === "textarea")
-      ? s < "t" && uneditableInputs_[getInputType(element as HTMLInputElement)]
+      ? s < "t" && uneditableInputs_[(element as HTMLInputElement).type]
         || (element as TextElement).disabled || (element as TextElement).readOnly
       : (s = element.contentEditable) === "inherit" || s === "false") {
     return
