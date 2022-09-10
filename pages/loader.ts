@@ -56,7 +56,15 @@ var VApi: VApiTy | undefined, VimiumInjector: VimiumInjectorTy | undefined | nul
         script.onload = (): void => { script.remove(); resolve() }
         document.head!.appendChild(script)
       })
-      return jsEvalPromise.then(() => VApi!.v !== tryEval ? (VApi!.v = VApi!.v.tryEval || VApi!.v)(code) : undefined)
+      const r = jsEvalPromise.then(() => VApi!.v !== tryEval ? (VApi!.v = VApi!.v.tryEval || VApi!.v)(code) : undefined)
+      if (!Build.NDEBUG) {
+        type TryResult = ReturnType<VApiTy["v"]["tryEval"]>
+        const composedRet = r as unknown as TryResult
+        composedRet.result = (r as Promise<TryResult>).then(i => i && "ok" in i && "result" in i ? i.result : i)
+        composedRet.ok = (r as Promise<TryResult>).then(i => i && "ok" in i && "result" in i ? i.ok : i) as never
+      }
+      return r
+
     })
     !(Build.BTypes & BrowserType.Edge)
     && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinUsableScript$type$$module$InExtensions)

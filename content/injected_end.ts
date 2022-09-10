@@ -49,7 +49,12 @@ VApi!.e = function (cmd): void {
       script.onload = (): void => { script.remove(); resolve() }
       (document.head as HTMLHeadElement | null || document.documentElement!).appendChild(script)
     })
-    return jsEvalPromise.then(() => VApi!.v !== tryEval ? (VApi!.v = VApi!.v.tryEval || VApi!.v)(code) : undefined)
+    const ret = jsEvalPromise.then(() => VApi!.v !== tryEval ? (VApi!.v = VApi!.v.tryEval || VApi!.v)(code) : undefined)
+    type TryResult = ReturnType<VApiTy["v"]["tryEval"]>
+    const composedRet = ret as unknown as TryResult
+    composedRet.result = (ret as Promise<TryResult>).then(i => i && "ok" in i && "result" in i ? i.result : i)
+    composedRet.ok = (ret as Promise<TryResult>).then(i => i && "ok" in i && "result" in i ? i.ok : i) as never
+    return ret
   }
 
   let i18nMessages: FgRes[kFgReq.i18n] | null = null

@@ -69,7 +69,7 @@ interface OpValues {
   [O.statGroup]: Statement[]; [O.stat]: Statement; [O.comma]: Op[]
   [O.pair]: { k: RefOp | BaseOp<O.comma>, v: Op, p: string }
   [O.fn]: { t: Exclude<TokenValues[T.fn], `fn ${string}`>, a: (RefOp | RefAssignOp)[], b: Op, v: VarNames[] | null,
-      n: VarLiterals | "" },
+      n: VarLiterals | "", p: BaseOp<O.pair> | null },
   [O.composed]: { b: "[" | "{", v: Op[] },
   [O.assign]: { y: Op, x: Op, a: TokenValues[T.assign] }; [O.ifElse]: { c: Op, l: Op, r: Op }
   [O.binary]: { l: Op, r: Op, o: TokenValues[BinaryTokens] }; [O.unary]: { x: Op, o: SomeTokens<T.unary | T.rightUnary>}
@@ -99,7 +99,9 @@ const HasReflect: boolean = !(Build.BTypes & BrowserType.Chrome)
     || typeof Reflect !== "undefined" && !!Reflect && !!Reflect.apply && !!Reflect.construct
 const DefaultIsolate = (typeof globalThis !== "undefined" ? globalThis : window) as unknown as Isolate
 const DefaultFunction = (DefaultIsolate as Dict<unknown>)["Function"] as FunctionConstructor
-let NativeFunctionCtor: FunctionConstructor | false | null = null
+let NativeFunctionCtor: FunctionConstructor | false | null = !Build.NDEBUG && typeof VimiumInjector === "undefined"
+    ? null : JSON.stringify((typeof browser === "object" && browser as never || chrome
+      ).runtime.getManifest().content_security_policy).includes("'unsafe-eval'") ? null : false
 let isolate_: Isolate = DefaultIsolate, locals_: StackFrame[] = [], stackDepth_ = 0
 let g_exc: { g: Isolate, l: StackFrame[], d: number } | null = null
 
@@ -130,9 +132,7 @@ const kTokenEnums: SafeDict<keyof TokenValues> = ((): SafeDict<keyof TokenValues
 })()
 const kLiterals: ReadonlySafeDict<boolean | null> = { __proto__: null as never, true: true, false: false, null: null }
 const kUnsupportedTokens: SafeEnum = { __proto__: null as never, switch: 1, yield: 1, await: 1, async: 1 }
-const kOpsForMethodName: O.comma | O.composed | O.binary | O.unary | O.access | O.token = (1 << O.comma)
-    | (1 << O.composed) | (1 << O.binary) | (1 << O.unary) | (1 << O.access) | (1 << O.token)
-const kVarAction = "var,let,const"
+const kVarAction = "var,let,const", kProto = "__proto__"
 
 //#endregion
 
@@ -145,6 +145,7 @@ const kUnknown = "(...)"
 const isLooselyNull = (obj: unknown): obj is null | undefined => obj === null || obj === undefined
 const safer_ = <T> (a: T): T => (typeof a === "object" && a && !(a instanceof Array)
     ? ((a as any).__proto__ && ((a as any).__proto__ = null), a) : a) as T
+const resetRe_ = (): true => (<RegExpOne> /a?/).test("") as true
 const As_ = <T> (i: T): T => i
 const objEntries = !(Build.BTypes & BrowserType.Chrome)
     || Build.MinCVer >= BrowserVer.MinEnsuredES$Object$$values$and$$entries ? Object.entries! as never
@@ -161,14 +162,14 @@ const globalVarAccessor = {
   set globalThis (value: unknown) {
     Object.defineProperty(isolate_, "globalThis", ValueProperty(value, true, false, true)) },
   get __proto__ (): unknown {
-    return VarName("__proto__") in isolate_ ? isolate_[VarName("__proto__")] as Isolate
-        : isolate_["__proto__" as unknown as VarNames] },
+    return VarName(kProto) in isolate_ ? isolate_[VarName(kProto)] as Isolate
+        : isolate_[kProto as unknown as VarNames] },
   set __proto__ (value: unknown) {
-    Object.defineProperty(isolate_, "__proto__", ValueProperty(value, true, true, false)) },
+    Object.defineProperty(isolate_, kProto, ValueProperty(value, true, true, false)) },
   get eval (): unknown { return innerEval_ },
   set eval (_value: unknown) { /* empty */ }
 } as unknown as Ref["y"]
-const VarName = (name: VarLiterals): VarNames => (name !== "__proto__" ? name : name + ".") as VarNames
+const VarName = (name: VarLiterals): VarNames => (name !== kProto ? name : name + ".") as VarNames
 
 //#endregion
 
@@ -403,12 +404,9 @@ const parseTree = (tokens_: readonly Token[], inNewFunc: boolean | undefined): O
         !Build.NDEBUG && (keyOp.o !== O.token && keyOp.o !== O.composed)
             && throwSyntax('Unexpected ":" in an object literal')
         const prefix = extractMemberPrefix();
-        if (val.o === O.fn) {
-          (val.v as Writable<typeof val.v>).n = (prefix ? prefix + " " : "") + (keyOp.o === O.token ? keyOp.v
-              : `[${ ToWrapped(Op(keyOp.v.v.length > 1 ? O.comma : /* fake */ O.stat, []), kOpsForMethodName
-                      , Op(O.comma, keyOp.v.v)) }]`) as VarLiterals
-        }
         values_.push(Op(O.pair, {k: keyOp.o === O.token ? keyOp as RefOp : Op(O.comma, keyOp.v.v), v: val, p: prefix}))
+        val.o === O.fn && val.v.t === "(){"
+            && ((val.v as Writable<typeof val.v>).p = values_[values_.length - 1] as BaseOp<O.pair>)
       } else {
         ctx_.length--
         const thenVal = values_.pop()!
@@ -420,9 +418,9 @@ const parseTree = (tokens_: readonly Token[], inNewFunc: boolean | undefined): O
       const args = (rawArgs.o === O.comma ? rawArgs.v : [rawArgs]).map((i): RefOp | RefAssignOp =>
           i.o === O.token || i.o === O.assign && i.v.y.o === O.token ? i as RefOp | RefAssignOp
           : throwSyntax(`Unsupported destructuring parameters`))
-      const type = top.v.startsWith("fn ") ? "fn" : top.v as Exclude<TokenValues[T.fn], `fn ${string}`>
-      const fn = Op(O.fn, { a: args, t: type
-          , n: top.v.startsWith("fn ") ? top.v.slice(3) as VarLiterals : "", v: null, b: val })
+      const isFn = top.v.startsWith("fn "), type = isFn ? "fn" : top.v as Exclude<TokenValues[T.fn], `fn ${string}`>
+      const name = isFn ? top.v.slice(3) as VarLiterals : ""
+      const fn = Op(O.fn, { a: args, t: type, n: name, v: null, b: val, d: name, p: null })
       values_.push(fn)
       } break
     case T.assign: /* T.assign: */ {
@@ -612,7 +610,7 @@ const _resolveVarRef = (name: VarLiterals, getter: R): Ref => {
     if (getter & R.noConst && locals_[i].c.indexOf(varName) >= 0) { throwType(`invalid assignment to const '${name}'`) }
     return { y: vars, i: varName as unknown as number }
   } }
-  if ((varName === "globalThis" || name === "__proto__" || name as unknown === "eval") && isolate_ === DefaultIsolate) {
+  if ((varName === "globalThis" || name === kProto || name as unknown === "eval") && isolate_ === DefaultIsolate) {
     return { y: globalVarAccessor, i: name as string | number as number }
   }
   return varName === "this" ? { y: [isolate_ as unknown as number], i: 0 }
@@ -916,7 +914,8 @@ const evalNever = (op: BaseOp<O.block | O.statGroup | O.stat | O.pair>): void =>
   const Cls = isolate_ !== DefaultIsolate && (isolate_ as unknown as Window).Object || Object
   let arr = op.v.v as SomeOps<O.token | O.pair>[]
   if (arr.every(item => item.o === O.pair ? !item.v.p && item.v.k.o === O.token
-          : item.v !== "..." && item.v !== "__proto__")) {
+            && !(item.v.v.o === O.fn && item.v.v.v.t === "(){" && item.v.k.v === kProto)
+          : item.v !== "..." && item.v !== kProto)) {
     const obj = new Cls() as Dict<unknown>
     for (const item of arr) {
       const key = ((item.o === O.token ? item : item.v.k) as RefOp).v
@@ -926,7 +925,7 @@ const evalNever = (op: BaseOp<O.block | O.statGroup | O.stat | O.pair>): void =>
     }
     return obj
   }
-  const props: { [s: string | number | symbol]: PropertyDescriptor } = Object.create(null)
+  const props: { [s: string | number | symbol]: PropertyDescriptor & Partial<SafeObject> } = Object.create(null)
   let newProto: object | null = Cls.prototype
   for (let i = 0; i < arr.length; i++) {
     const item = arr[i], isToken = item.o === O.token
@@ -956,10 +955,10 @@ const evalNever = (op: BaseOp<O.block | O.statGroup | O.stat | O.pair>): void =>
     const prefix = isToken ? "" : item.v.p as "get" | "set"
     const desc: PropertyDescriptor = props[key]
     if (prefix) {
-      desc && !desc.value ? desc[prefix] = value as () => unknown
-      : (props[key] = { configurable: true, enumerable: true, [prefix]: value as () => unknown })
-    } else if (key !== "__proto__" || isToken || item.v.k.o !== O.token) {
-      desc && desc.value ? desc.value = value : (props[key] = ValueProperty(value, true, true, true))
+      desc && !("value" in desc) ? desc[prefix] = value as () => unknown
+      : (props[key] = safer_({ configurable: true, enumerable: true, [prefix]: value as () => unknown }))
+    } else if (key !== kProto || isToken || item.v.k.o !== O.token || item.v.v.o === O.fn && item.v.v.v.t === "(){") {
+      desc && !("value" in desc) ? desc.value = value : (props[key] = ValueProperty(value, true, true, true))
     } else {
       newProto = value as object | null // a second key of the "__proto__" literal is a syntax error on Chrome 96
     }
@@ -1026,7 +1025,7 @@ const FunctionFromOp = (fn: OpValues[O.fn], globals: Isolate, closures: StackFra
     }
   }
   callable = fn.t === "=>" ? callable.bind(kFakeValue) : callable
-  const exScope = namedScope && fn.t === "fn" && fn.n || null, stdName = fn.n || name
+  const exScope = namedScope && fn.t === "fn" && fn.n || null, stdName = fn.n || name // todo:
   Object.defineProperties(callable, {
     __fn: ValueProperty(fn, false, false, false),
     toString: ValueProperty(FuncToString, true, false, true),
@@ -1096,15 +1095,19 @@ const ToString = (op: Op, allowed: number): string => {
     }
     return arr.join("")
   case O.pair: /* O.pair: */
-    return op.v.v.o === O.fn && op.v.v.v.t === "(){" ? ToString(op.v.v, allowed && (allowed | 1 << O.fn))
-        : (op.v.p && op.v.p + " ") + (op.v.k.o === O.token ? op.v.k.v
+    return (op.v.p && op.v.p + " ") + (op.v.k.o === O.token
+            ? (<RegExpOne> /^([$a-zA-Z_][\w$]*|\d+(\.\d+)?(e[-+]\d+))$/).test(op.v.k.v)
+              ? op.v.k.v : JSON.stringify(op.v.k.v)
             : `[${ToWrapped(Op(op.v.k.v.length > 1 ? O.comma : /* fake */ O.stat, []), allowed, op.v.k)}]`)
-          + ": " + (ToString(op.v.v, allowed) || kUnknown)
+          + (op.v.v.o !== O.fn || op.v.v.v.t !== "(){" ? ": " + (ToString(op.v.v, allowed) || kUnknown)
+              : " " + ToString(Op(O.fn, { t: "(){", a: op.v.v.v.a, b: op.v.v.v.b, v: null, n: "", p: null})
+                  , allowed && (allowed | (1 << O.fn))))
   case O.fn: /* O.fn: */ {
     const argsList = !op.v.a.length ? ""
         : ToString(Op(O.comma, op.v.a), allowed && (allowed | (1 << O.comma | 1 << O.token | 1 << O.assign)))
     const body = ToWrapped(op, allowed && op.v.b.o === O.block ? (allowed | 1 << O.block) : allowed, op.v.b)
-    return (op.v.t === "fn" ? "function " + op.v.n : op.v.n && op.v.n + " ") + "("
+    return op.v.p ? ToString(op.v.p, allowed && (allowed | (1 << O.pair) | (1 << O.token)))
+      : (op.v.t === "fn" ? "function " + op.v.n + "(" : "(")
         + (argsList.includes("\n") ? argsList + "\n" : argsList)
         + (op.v.t !== "=>" ? ") " + body : op.v.b.o !== O.block && body.includes("\n") ? ") =>\n" + indent(body)
             : ") => " + body)
@@ -1158,9 +1161,9 @@ const AccessToString = (access: string | number | boolean | null | undefined | o
 }
 
 const FuncToString = function (this: (...args: unknown[]) => unknown): string {
-  const func: Function2 = this
-  return typeof func === "function" && func.__fn
-      ? ToString(Op(O.fn, func.__fn), 0) : DefaultFunction.prototype.toString.apply(func, arguments)
+  let func: Function2 = this, s: string
+  return typeof func !== "function" || !func.__fn ? DefaultFunction.prototype.toString.apply(func, arguments)
+      : (s = ToString(Op(O.fn, func.__fn), 0), /*#__NOINLINE__*/ resetRe_(), s)
 }
 
 const DebugCallee = (funcOp: Op, funcInst: ((...args: unknown[]) => unknown) | string | null | undefined
@@ -1202,6 +1205,7 @@ const baseFunctionCtor = ({ body, globals, closures, args }: ReturnType<typeof p
         , statsNum > 1 ? serialized.slice(1, -1).trimRight()
           : multipleLines ? "\n" + indent(serialized) : serialized)
   }
+  /*#__NOINLINE__*/ resetRe_()
   if (statsNum === 0 && !inNewFunc) { return (): void => {} }
   let outerFrames: StackFrame[]
   if (!closures) {
@@ -1218,7 +1222,7 @@ const baseFunctionCtor = ({ body, globals, closures, args }: ReturnType<typeof p
     if (!last.a && last.v.o !== O.fn) { (last.a as LineActions) = "return" }
   }
   return FunctionFromOp({ a: args.map(i => Op(O.token, i as VarLiterals)) as RefOp[],
-    t: inNewFunc !== false && (tree.o === O.block || inNewFunc) ? "fn" : "=>", n: "", v: null, b: tree
+    t: inNewFunc !== false && (tree.o === O.block || inNewFunc) ? "fn" : "=>", n: "", v: null, b: tree, p: null
   }, globals || isolate_, outerFrames, "anonymous", false)
 }
 
@@ -1240,14 +1244,14 @@ const doubleEval_ = function (_functionBody: string | object): unknown {
   const info = typeof _functionBody === "object" && _functionBody ? _functionBody as ReturnType<typeof parseArgsAndEnv>
       : parseArgsAndEnv(arguments, null, null), hasEnv = !!(info.globals || info.closures)
   let func: (() => unknown) | null | undefined
-  if (NativeFunctionCtor === null && !hasEnv) {
+  if ((!Build.MV3 || !Build.NDEBUG) && NativeFunctionCtor === null && !hasEnv) {
     NativeFunctionCtor = ((): false | FunctionConstructor => {
       const ctor = baseFunctionCtor(parseArgsAndEnv(["Function"], DefaultIsolate, []))() as FunctionConstructor
       try { ctor("1"); return ctor } catch {}
       return false
     })()
   }
-  if (NativeFunctionCtor && !hasEnv) {
+  if ((!Build.MV3 || !Build.NDEBUG) && NativeFunctionCtor && !hasEnv) {
     const arr2 = info.args.slice() as unknown[]
     arr2.unshift(DefaultIsolate)
     arr2.push('"use strict";\n' + info.body)
@@ -1272,7 +1276,7 @@ typeof VApi === "object" && VApi ? VApi!.v = outerEval_
     : (DefaultIsolate as Partial<VApiTy["v"]>).vimiumEval = outerEval_
 outerEval_.vimiumEval = outerEval_
 outerEval_.doubleEval = doubleEval_
-outerEval_["noNative"] = (): void => { NativeFunctionCtor = false }
+outerEval_["noNative"] = (): void => { (!Build.MV3 || !Build.NDEBUG) && (NativeFunctionCtor = false) }
 outerEval_["getStack"] = (exc?: boolean): unknown => (exc && !g_exc ? null : {
   stack: exposeStack(exc ? g_exc!.l : locals_),
   depth: exc ? g_exc!.d : stackDepth_, globals: exc ? g_exc!.g : isolate_,
@@ -1281,15 +1285,16 @@ outerEval_.tryEval = function (_functionBody: string): ReturnType<VApiTy["v"]["t
   const info = parseArgsAndEnv(arguments, null, null), hasEnv = !!(info.globals || info.closures)
   try {
     const result = doubleEval_(info)
-    return { ok: NativeFunctionCtor && !hasEnv ? 1 : 2, result }
+    return { ok: (!Build.MV3 || !Build.NDEBUG) && NativeFunctionCtor && !hasEnv ? 1 : 2, result }
   } catch (error) {
-    const native = NativeFunctionCtor && !hasEnv
+    const native = (!Build.MV3 || !Build.NDEBUG) && NativeFunctionCtor && !hasEnv
     Build.NDEBUG || console.log("Vimium C: catch an eval error:", error)
     return { ok: 0, result: error, stack: native ? null : exposeStack(g_exc ? g_exc!.l : []),
       type: native ? "native": "eval", globals: native ? null : g_exc ? g_exc!.g : isolate_
     } as ReturnType<VApiTy["v"]["tryEval"]>
   }
 }
+; (outerEval_.tryEval as any).outerEval = outerEval_
 
 if (!(Build.NDEBUG || T.END < 0x80000000 && T.END > 0 )) { alert(`Assert error: wrong kTokenNames`) }
 if (!(Build.NDEBUG || kOpNames.length === O.token + 1)) { alert(`Assert error: wrong fields in kOpNames`) }
