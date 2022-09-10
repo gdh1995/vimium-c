@@ -44,7 +44,8 @@ const _getKeyName = (event: Pick<KeyboardEvent, "key" | "keyCode" | "location">)
       : i === kKeyCode.menuKey && Build.BTypes & ~BrowserType.Safari
         && (Build.BTypes & ~BrowserType.Chrome || Build.OS & ~kOS.mac) ? kChar.Menu
       : ((s = event.key) ? (<RegExpOne> /^F\d/).test(s) : i > kKeyCode.maxNotFn && i < kKeyCode.minNotFn)
-      ? ("f" + (s ? s.slice(1) : i - kKeyCode.maxNotFn)) as kChar.F_num : kChar.None
+      ? (s ? Lower(s) : "f" + (i - kKeyCode.maxNotFn)) as kChar.F_num
+      : s && s.length > 1 ? Lower(s) as kChar : kChar.None
 }
 
   /** return single characters which only depend on `shiftKey` (CapsLock is ignored) */
@@ -113,7 +114,7 @@ export const char_ = (eventWrapper: HandlerNS.Event, forceASCII: number): kChar 
     }
     key = shiftKey && key.length < 2 ? key : Lower(key)
   } else {
-    key = key.length > 1 ? /*#__NOINLINE__*/ _getKeyName(event) || Lower(key) : key === " " ? _getKeyName(event)
+    key = key.length > 1 || key === " " ? /*#__NOINLINE__*/ _getKeyName(event)
         : fgCache.l & kKeyLayout.ignoreCaps ? shiftKey ? key.toUpperCase() : Lower(key) : key
   }
   return forceASCII === (kKeyLayout.inCmdIgnoreIfNotASCII | 1) ? key as kChar : eventWrapper.c = key as kChar
