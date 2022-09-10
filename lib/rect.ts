@@ -172,7 +172,7 @@ export const getVisibleClientRect_ = OnChrome && Build.MinCVer < BrowserVer.MinE
 }
 
 export const getClientRectsForAreas_ = function (element: HTMLElementUsingMap, output: Hint[]
-    , areas?: NodeListOf<HTMLAreaElement | Element> | HTMLAreaElement[]): Rect | null {
+    , areas?: NodeListOf<HTMLAreaElement | NonHTMLButFormattedElement> | HTMLAreaElement[]): Rect | null {
   let diff: number, x1: number, x2: number, y1: number, y2: number, rect: Rect | null | undefined
   const cr = boundingRect_(element), crWidth = cr.r - cr.l, crHeight = cr.b - cr.t
   if (crHeight < 3 || crWidth < 3) { return null }
@@ -186,7 +186,7 @@ export const getClientRectsForAreas_ = function (element: HTMLElementUsingMap, o
     const root = getRootNode_mounted(element as SafeHTMLElement as SafeElement as EnsuredMountedElement & SafeElement)
     const map = querySelector_unsafe_(selector, root)
     if (!map || !htmlTag_<1>(map)) { return null }
-    areas = querySelectorAll_unsafe_("area", map)!
+    areas = querySelectorAll_unsafe_("area", map) as NodeListOf<HTMLAreaElement | NonHTMLButFormattedElement>
   }
   const toInt = (a: string): number => (a as string | number as number) | 0
   for (let _i = 0, _len = areas.length; _i < _len; _i++) {

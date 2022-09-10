@@ -6,8 +6,8 @@
   "private": true,
   "dependencies": {
     "pngjs": "^6.0.0",
-    "terser": "^5.14.2",
-    "typescript": "^4.8.0-beta"
+    "terser": "^5.15.0",
+    "typescript": "^4.8.3"
   },
   "devDependencies": {
     "clean-css": "^5.1.3",

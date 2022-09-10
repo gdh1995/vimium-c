@@ -257,7 +257,7 @@ const TYPES = ["string", "object", "function", "number"]
 export { TYPES as OBJECT_TYPES }
 export const isTY = ((obj: any, ty?: kTY): boolean => typeof obj == TYPES[ty || kTY.str]) as {
   <V extends void | undefined | null | boolean | number | string | Function | PlainObject, T extends kTyOf<V>> (
-    obj: V, ty: T): obj is TyMap[T] & V
+    obj: V, ty: T): obj is Extract<V, TyMap[T]>
   (obj: void | undefined | null | boolean | number| PlainObject): unknown
   (obj: void | undefined | null | boolean | number| string | PlainObject): obj is string
 }

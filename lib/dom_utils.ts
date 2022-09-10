@@ -136,7 +136,7 @@ const _getter_unsafeOnly_not_ff_ = !OnFirefox ? function <Ty extends Node, Key e
     return desc && desc.get ? desc.get.call(instance) : null;
 } : 0 as never as null
 
-export let notSafe_not_ff_ = !OnFirefox ? (el: Element): el is HTMLFormElement => {
+export const notSafe_not_ff_ = !OnFirefox ? (el: Element): el is HTMLFormElement => {
   let s: Element["localName"]
   return typeof (s = el.localName) !== "string" ||
       (!OnChrome || Build.MinCVer >= BrowserVer.MinFramesetHasNoNamedGetter
