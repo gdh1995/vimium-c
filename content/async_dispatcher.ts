@@ -4,7 +4,7 @@ import {
 } from "../lib/utils"
 import {
   IsInDOM_, isInTouchMode_cr_, MDW, hasTag_, CLK, attr_s, focus_, fullscreenEl_unsafe_, findAnchor_, dispatchEvent_,
-  deepActiveEl_unsafe_, blur_unsafe, derefInDoc_, wrapEventInit_
+  blur_unsafe, derefInDoc_, wrapEventInit_, getRootNode_mounted
 } from "../lib/dom_utils"
 import { suppressTail_ } from "../lib/keyboard_utils"
 import { Point2D, center_, getVisibleClientRect_, view_ } from "../lib/rect"
@@ -327,8 +327,8 @@ export const click_async = (async (element: SafeElementForMouse
   await 0
   if (!IsInDOM_(element)) { return }
   // Note: here we can check doc.activeEl only when @click is used on the current focused document
-  if (addFocus && mousedownNotPrevented && element !== insert_Lock_() && element !== deepActiveEl_unsafe_() &&
-      !(element as Partial<HTMLInputElement>).disabled) {
+  if (addFocus && mousedownNotPrevented && element !== (getRootNode_mounted(element) as Document).activeElement
+      && !(element as Partial<HTMLInputElement>).disabled) {
     focus_(element)
     if (!IsInDOM_(element)) { return }
     await 0

@@ -549,6 +549,7 @@ declare const enum BrowserVer {
   MinMaybeScrollbarGutter = 88, // since 94 if not EXPERIMENTAL but even LEGACY
   Min$TargetIsBlank$Implies$Noopener = 88, // https://chromestatus.com/features/6140064063029248
   MinEnsuredCSS$is$selector = 88, // even if LEGACY; since C68 if EXPERIMENTAL
+  Min$dom$$openOrClosedShadowRoot = 88, // even if EXPERIMENTAL or LEGACY
   MinEnsuredES$TopLevelAwait = 89, // even if LEGACY; since 84 if EXPERIMENTAL
   MinForcedColorsMode = 89, // even if EXPERIMENTAL or LEGACY; enable `(forced-colors: active|none)` and color schemes
   MinCaptureBeforeBubbleOnEventTarget = 89, // even if EXPERIMENTAL or LEGACY

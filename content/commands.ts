@@ -8,7 +8,7 @@ import {
   isHTML_, hasTag_, createElement_, querySelectorAll_unsafe_, SafeEl_not_ff_, docEl_unsafe_, MDW, CLK, derefInDoc_,
   querySelector_unsafe_, DAC, removeEl_s, appendNode_s, setClassName_s, INP, contains_s, toggleClass_s, modifySel,
   focus_, testMatch, docHasFocus_, deepActiveEl_unsafe_, getEditableType_, textOffset_, getAccessibleSelectedNode,
-  getDirectionOfNormalSelection, inputSelRange, dispatchEvent_, notSafe_not_ff_, activeEl_unsafe_
+  getDirectionOfNormalSelection, inputSelRange, dispatchEvent_, notSafe_not_ff_, activeEl_unsafe_, IsInDOM_
 } from "../lib/dom_utils"
 import {
   replaceOrSuppressMost_, removeHandler_, getMappedKey, prevent_, isEscape_, keybody_, DEL, BSP, ENTER, handler_stack,
@@ -595,7 +595,8 @@ set_contentCommands_([
     set_onWndFocus(frame.onerror = (event?: Event | BOOL): void => {
       set_onWndFocus(oldWndFocus), frame.onerror = null as never
       clearTimeout_(timer)
-      event || focused && (OnFirefox || !notSafe_not_ff_!(focused)) && focus_(focused as SafeElement)
+      event || focused && (OnFirefox || !notSafe_not_ff_!(focused))
+          && IsInDOM_(focused as SafeElement, doc) && focus_(focused as SafeElement)
       event ? post_({ H: kFgReq.recheckTee }) : oldWndFocus()
       removeEl_s(frame)
       isEnabled_ || adjustUI(2)

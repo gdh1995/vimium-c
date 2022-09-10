@@ -59,7 +59,7 @@ interface CSSOptions {
 }
 interface OtherFilterOptions {
   typeFilter?: /** 1 <<< {@link ../content/local_hints.ts#ClickType} */ number | null | undefined
-  textFilter?: "regexp"
+  textFilter?: "regexp"; closedShadow?: boolean
 }
 interface OptionsToFindElement extends CSSOptions, OtherFilterOptions {
   direct?: boolean | "element,sel,focus,hover" | "element" | "selected" | "currentScrollable" | "DOMActivate"

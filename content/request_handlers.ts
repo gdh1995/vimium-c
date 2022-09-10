@@ -29,7 +29,7 @@ import {
 } from "./mode_find"
 import { exitGrab, grabBackFocus, insertInit, set_grabBackFocus, onFocus, onBlur, insert_Lock_ } from "./insert"
 import { onActivate, setNewScrolling } from "./scroller"
-import { Status as VomnibarStatus, omni_status, omni_box, hide as omniHide } from "./omni"
+import { hide as omniHide } from "./omni"
 
 let frame_mask: BOOL | 2 | undefined
 let needToRetryParentClickable: BOOL = 0
@@ -282,7 +282,6 @@ export const focusAndRun = (cmd?: FgCmdAcrossFrames, options?: FgOptions, count?
   let oldOnWndFocus = onWndFocus, failed = true;
   set_onWndFocus((): void => { failed = false })
   if (OnFirefox) {
-    omni_status === VomnibarStatus.Showing && omni_box!.blur()
     const cur = deepActiveEl_unsafe_()
     cur && isIFrameElement(cur) && cur.blur()
   }

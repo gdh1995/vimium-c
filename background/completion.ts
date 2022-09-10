@@ -482,7 +482,7 @@ tabEngine = {
       }
     }
     const tabs: TabEx[] = [], wndIds: number[] = [];
-    const hasMarks = (<RegExpG & RegExpSearchable<0>> /^:[a-z]+/gm).test(queryTerms.join("\n"))
+    const hasMarks = (<RegExpG & RegExpSearchable<0>> /^:[a-z]/gm).test(queryTerms.join("\n"))
     curTab = !curTab && hasMarks ? tabs0.filter(i => i.id === curTabId)[0] : curTab
     const groupId = hasMarks && curTab ? getGroupId(curTab) : null
     for (const tab of tabs0) {

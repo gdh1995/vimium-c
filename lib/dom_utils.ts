@@ -154,11 +154,16 @@ export const SafeEl_not_ff_ = !OnFirefox ? function (
   (el: Element | null | void, type?: PNType.DirectElement): SafeElement | null | undefined
 } : 0 as never as null
 
-export const GetShadowRoot_ = (el: Element): ShadowRoot | null => {
-    // check type of el to avoid exceptions
+export const GetShadowRoot_ = (el: Element, noClosed_cr?: 1): ShadowRoot | null => {
     if (OnFirefox) {
-      return Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1 ? el.shadowRoot as ShadowRoot | null
-        : <ShadowRoot | null | undefined> el.shadowRoot || null;
+      return Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1
+          ? (el as any).openOrClosedShadowRoot : (el as any).openOrClosedShadowRoot || null
+    }
+    if (OnChrome && !noClosed_cr) {
+      if ((Build.MinCVer >= BrowserVer.Min$dom$$openOrClosedShadowRoot
+          || chromeVer_ > BrowserVer.Min$dom$$openOrClosedShadowRoot - 1)) {
+        return (chrome as any).dom.openOrClosedShadowRoot(el)
+      }
     }
     // Note: .webkitShadowRoot and .shadowRoot share a same object
     const sr = OnChrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
@@ -166,7 +171,6 @@ export const GetShadowRoot_ = (el: Element): ShadowRoot | null => {
     // according to https://developer.mozilla.org/en-US/docs/Web/API/Element/attachShadow,
     // <form> and <frameset> can not have shadowRoot
     return OnChrome && Build.MinCVer >= BrowserVer.MinShadowDOMV0
-        || OnFirefox && Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1
       ? sr && notSafe_not_ff_!(el) ? null : sr as Exclude<typeof sr, undefined | Element | RadioNodeList | Window>
       : sr && !notSafe_not_ff_!(el) && <Exclude<typeof sr, Element | RadioNodeList | Window>> sr || null;
 }

@@ -30,8 +30,7 @@ export const filterTextToGoNext: VApiTy["g"] = (candidates, names, options, maxL
   const links = isAlive_ ? traverse(kSafeAllSelector, options, (hints: Hint0[], element: SafeElement): void => {
     let s: string | null | undefined
     if (isIFrameElement(element)) {
-      if (OnFirefox && Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1
-          || OnChrome && Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1
+      if (OnChrome && Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1
           || element !== find_box && element !== omni_box) {
         const rect = getBoundingClientRect_(element),
         childApi = rect.width > 99 && rect.height > 15 && isStyleVisible_(element) && detectUsableChild(element)
