@@ -104,7 +104,7 @@ export const main_ff = (OnFirefox ? (): void => {
         }, GlobalConsts.ExtendClick_DelayToFindAll)
     }, 1)
   } catch (e) {
-    Build.NDEBUG || (recordLog("Vimium C: extending click crashed in %o @t=%o ."), console.log(e))
+    Build.NDEBUG || (recordLog("Vimium C: extending click crashed in %o @t=%o .")(), console.log(e))
   }
 })()
 } : 0 as never) as () => void
@@ -185,7 +185,7 @@ export const unblockClick_old_ff = (): void => {
     }
     clickEventToPrevent_ = 0
   } catch (e) {
-    Build.NDEBUG || (recordLog("Vimium C: hooking Event::preventDefault crashed in %o @t=%o ."), console.log(e))
+    Build.NDEBUG || (recordLog("Vimium C: hooking Event::preventDefault crashed in %o @t=%o .")(), console.log(e))
   }
 }
 

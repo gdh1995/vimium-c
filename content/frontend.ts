@@ -73,7 +73,7 @@ set_safeDestroy((silent): ReturnType<typeof safeDestroy> => {
     }
 
     if (runtime_port) { try { runtime_port.disconnect(); } catch {} }
-    silent || recordLog("Vimium C on %o has been destroyed at %o.")
+    silent || recordLog("Vimium C on %o has been destroyed at %o.")()
     injector || (<RegExpOne> /a?/).test("");
 })
 

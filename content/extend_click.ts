@@ -616,7 +616,7 @@ DocCls.write = myDocWrite
     return;
   }
   // ensured on Chrome
-  recordLog(kTip.logNotWorkOnSandboxed)
+  recordLog(kTip.logNotWorkOnSandboxed)()
   if (Build.MinCVer < BrowserVer.MinEventListenersFromExtensionOnSandboxedPage
       && tmpChromeVer && tmpChromeVer < BrowserVer.MinEventListenersFromExtensionOnSandboxedPage) {
     safeDestroy(1)

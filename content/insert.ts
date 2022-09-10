@@ -62,7 +62,7 @@ export const insertInit = (doesGrab?: boolean | null, inLoading?: 1): void => {
       if (inLoading) {
         insert_last_ = null;
         counter = 1
-        recordLog(kTip.logGrabFocus);
+        recordLog(kTip.logGrabFocus)()
       }
       activeEl.blur()
       // here ignore the rare case of an XMLDocument with an editable node on Firefox, for smaller code
@@ -76,7 +76,7 @@ export const insertInit = (doesGrab?: boolean | null, inLoading?: 1): void => {
         // on Chrome, password saver won't set doc.activeElement when dispatching "focus" events
         if (activeEl1 === target || activeEl1 && GetShadowRoot_(activeEl1)) {
           Stop_(event);
-          counter && abs_(now - tick) > 512 ? counter = 1 : counter++ || recordLog(kTip.logGrabFocus)
+          counter && abs_(now - tick) > 512 ? counter = 1 : counter++ || recordLog(kTip.logGrabFocus)()
           tick = now
           counter > GlobalConsts.MaxCountToGrabBackFocus - 1 ? exitGrab(event) :
           target.blur();

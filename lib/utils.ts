@@ -201,9 +201,9 @@ export const isImageUrl = (str: string | null): boolean => {
   return (imgExtRe_ || (imgExtRe_ = createRegExp(kTip.imgExt, "i"))).test(str)
 }
 
-export const recordLog = (tip: kTip | string): void => {
-  console.log(tip > 0 ? VTr(<kTip> tip) : tip, loc_.pathname.replace(<RegExpOne> /^.*(\/[^\/]+\/?)$/, "$1"), getTime())
-}
+export const recordLog = (tip: kTip | string): (() => void) =>
+    console.log.bind(console, tip > 0 ? VTr(<kTip> tip) : tip
+        , loc_.pathname.replace(<RegExpOne> /^.*(\/[^\/]+\/?)$/, "$1"), getTime())
 
 export const parseSedOptions = (opts: UserSedOptions): ParsedSedOpts => {
   const sed = opts.sed

@@ -106,7 +106,7 @@ const init = ({k: secret, v: page, t: type, i: inner}: FullOptions): void => {
       clearTimeout_(slowLoadTimer!) // safe even if undefined
       if (!isAlive_) { return }
       if (type !== VomnibarNS.PageType.inner && safeCall(isAboutBlank_throwable)) {
-        recordLog(kTip.logOmniFallback)
+        recordLog(kTip.logOmniFallback)()
         reload()
         return
       }
