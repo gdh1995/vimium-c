@@ -70,7 +70,8 @@ export const render_ = (isOptionsPage: boolean, showNames: boolean | null | unde
       if ((<RegExpOne> /^<v-.\w*>/).test(key)) { return }
       let rawCommand = registry.command_
       if (registry.alias_ === kBgCmd.runKey && registry.background_) {
-        rawCommand = inlineRunKey_(registry) || rawCommand
+        inlineRunKey_(registry)
+        rawCommand = registry.command_
       }
       const command = normalizeCmdName(rawCommand)
       let keys = commandToKeys.get(command)

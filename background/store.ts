@@ -143,7 +143,7 @@ export let bgC_: {
 }
 export let cmdInfo_: { readonly [k in number]: kCmdInfo }
 export let runOneMapping_: (key: string, port: Port | null, fStatus: NonNullable<FgReq[kFgReq.nextKey]["f"]>) => void
-export let inlineRunKey_: (rootRegistry: Writable<CommandsNS.Item>) => kCName | void
+export let inlineRunKey_: (rootRegistry: Writable<CommandsNS.Item>, path?: CommandsNS.Item[]) => void
 let _teeTask: BaseTeeTask & { /** unique id */ i: number } | null = null
 //#endregion
 

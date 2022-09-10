@@ -506,11 +506,13 @@ const runOneKeyWithOptions = (key: string, count: number
   if (registryEntry == null) {
     showHUD(`"${(<RegExpOne> /^\w+$/).test(key) ? finalKey : key}" has not been mapped`)
     return
-  } else if (registryEntry.alias_ === kBgCmd.runKey && registryEntry.background_
-      && registryEntry.options_ && typeof registryEntry.options_ === "object"
-      && doesInheritOptions(registryEntry.options_)) {
-    showHUD('"runKey" should not call itself')
-    return
+  }
+  if (registryEntry.alias_ === kBgCmd.runKey && registryEntry.background_) {
+    inlineRunKey_(registryEntry)
+    if (doesInheritOptions((registryEntry as CommandsNS.NormalizedItem).options_!)) {
+      showHUD('"runKey" should not call itself')
+      return
+    }
   }
   typeof exOptions === "string" && (exOptions = exOptions ? parseEmbeddedOptions(exOptions) : null)
   const cmdOptions = get_cOptions<C.runKey, true>() as KnownOptions<C.runKey> | null
@@ -546,11 +548,12 @@ const runOneKeyWithOptions = (key: string, count: number
 }
 
 /** return whether skip it in help dialog or not */
-set_inlineRunKey_(As_<typeof inlineRunKey_>((rootRegistry: Writable<CommandsNS.Item>): kCName | void => {
+set_inlineRunKey_(As_<typeof inlineRunKey_>((rootRegistry: Writable<CommandsNS.Item>
+    , path?: CommandsNS.Item[]): void => {
   /** @note should keep `fullOpts` writable */
   let fullOpts: KnownOptions<C.runKey> & SafeObject | null = normalizedOptions_(rootRegistry)
   if (!fullOpts) { fullOpts = rootRegistry.options_ = BgUtils_.safeObj_() }
-  if (fullOpts.$normalized === 2) { return rootRegistry.command_ }
+  if (fullOpts.$normalized === 2) { return }
   let keyOpts: KnownOptions<C.runKey> & SafeObject = fullOpts, canInline = true
   normalizeExpects(keyOpts)
   keyOpts.$normalized = 2
@@ -580,11 +583,23 @@ set_inlineRunKey_(As_<typeof inlineRunKey_>((rootRegistry: Writable<CommandsNS.I
     const info = parseKeyNode(first), key = info.key
     const parentEntry = keyToCommandMap_.get(key)
         || !key.includes("<") && !key.includes(":", 1) && keyToCommandMap_.get(`<v-${key}>`) || null
+    if (parentEntry != null && parentEntry.alias_ === C.runKey && parentEntry.background_) {
+      path || (path = [rootRegistry])
+      if (path.includes(parentEntry)) {
+        rootRegistry.alias_ = C.showHUD
+        rootRegistry.command_ = "showHUD"
+        rootRegistry.options_ = BgUtils_.safer_<KnownOptions<C.showHUD>>({ text: '"runKey" should not call itself' })
+        return
+      }
+      path.push(parentEntry)
+      inlineRunKey_(parentEntry, path)
+    }
     const newName = parentEntry ? parentEntry.command_ : key in availableCommands_ ? key as kCName : null
     if (!newName) { return }
     const doesContinue = parentEntry != null && parentEntry.alias_ === C.runKey && parentEntry.background_
     if (!doesContinue && !canInline) {
-      return rootRegistry.command_ = newName
+      rootRegistry.command_ = newName
+      return
     }
     keyOpts !== fullOpts && (fullOpts = concatOptions(keyOpts, fullOpts)!)
     fullOpts = (fullOpts.options ? copyCmdOptions(BgUtils_.safeObj_(), fullOpts.options as typeof fullOpts)
@@ -605,7 +620,7 @@ set_inlineRunKey_(As_<typeof inlineRunKey_>((rootRegistry: Writable<CommandsNS.I
       fullOpts && fullOpts === parentOptions && (fullOpts = copyCmdOptions(BgUtils_.safeObj_(), fullOpts))
       count !== 1 && (((fullOpts || (fullOpts = BgUtils_.safeObj_())) as CommandsNS.Options).$count = count)
       Object.assign(rootRegistry, makeCommand_(newName, fullOpts))
-      return newName
+      return
     }
     keyOpts = fullOpts && (fullOpts.keys !== void 0 || fullOpts.expect !== void 0 || fullOpts.mask !== void 0)
         ? fullOpts = concatOptions(parentOptions, fullOpts)!
