@@ -413,6 +413,7 @@ declare const enum BrowserVer {
   // https://github.com/chromium/chromium/commit/511efa694bdf9fbed3dc83e3fa4cda12909ce2b6
   MinWarningOfEscapingHashInBodyOfDataURL = 66,
   BorderRadiusCauseBorderDisappearOnIFrame = 66,
+  MinEnsured$Clipboard$and$$writeText = 66, // exist if EXPERIMENTAL on C65
   MinAbortController = 66, // even if EXPERIMENTAL or LEGACY
   // @see https://bugs.chromium.org/p/chromium/issues/detail?id=582245
   Min$ContentDocument$NotThrow = 67, // even if EXPERIMENTAL or LEGACY
@@ -633,6 +634,7 @@ declare const enum FirefoxBrowserVer {
   Min$runtime$$getFrameId = 96,
   Min$sessions$$getRecentlyClosed$follow$maxResults = 96, // even if EXPERIMENTAL or LEGACY
   Min$AbortSignal$$timeout = 100,
+  MinEnsured$dom$events$asyncclipboard = 100, // include .readText and .writeText, but not .read
   MinMaybe$navigator$$userAgentData = 101,
   // members of a Selection are never updated when an <input> gets focused, so no work-around
   Min$Selection$SupportTextBox = 999,

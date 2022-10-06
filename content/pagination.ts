@@ -71,19 +71,21 @@ export const filterTextToGoNext: VApiTy["g"] = (candidates, names, options, maxL
   let ch: string | null | undefined, s: string, len: number
   for (; 0 <= --index; ) {
     const link = links[index][0]
-    if ((s = "lang" in link ? (s = link.innerText, s.length > 2 && hasTag_("a", link) && link.childElementCount === 1
+    s = "lang" in link ? (s = link.innerText, s.length > 2 && hasTag_("a", link) && link.childElementCount === 1
               && (ch = !(Build.BTypes & ~BrowserType.Safari)
                     || !(Build.BTypes & ~(BrowserType.Chrome | BrowserType.Safari))
                         && Build.MinCVer >= BrowserVer.MinEnsuredAriaProperties ? link.ariaLabel : attr_s(link, ALA))
               && (link.firstElementChild as Element as TypeToPick<Element, HTMLElement, "innerText">).innerText === s
               ? ch : s)
-            : link.textContent.trim()).length > totalMax
-        || contains_s(link, links[index + 1][0]) && s.length > 2) { continue }
+            : link.textContent.trim()
+    if (s.length > totalMax || contains_s(link, links[index + 1][0]) && s.length > 2) { continue }
     if (s = s.length > 2 ? s
           : !s && (ch = (link as TypeToPick<Element, HTMLInputElement, "value">).value) && isTY(ch) && ch
             || (OnSafari || OnChrome && Build.MinCVer >= BrowserVer.MinEnsuredAriaProperties ? link.ariaLabel
                 : attr_s(link, ALA))
-            || (link as TypeToPick<Element, HTMLElement, "title">).title || s) {
+            || (link as TypeToPick<Element, HTMLElement, "title">).title
+            || hasTag_("img", link) && (link as HTMLImageElement).alt // https://github.com/philc/vimium/issues/4090
+            || s) {
       if (s.length > totalMax) { continue; }
       s = Lower(s)
       for (i = 0; i < names.length; i++) {

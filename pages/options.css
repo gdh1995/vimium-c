@@ -1,107 +1,107 @@
 html {
-  --panel-background-color: #f3f3f3;
-  --input-focus-border-color: #4d90fe;
-  --button-background-color: #efefef;
-  --button-hover-color: black;
-  --button-hover-border-color: #a0a0a0;
-  --select-shape: url(
+  --vc-panel-background-color: #f3f3f3;
+  --vc-input-focus-border-color: #4d90fe;
+  --vc-button-background-color: #efefef;
+  --vc-button-hover-color: black;
+  --vc-button-hover-border-color: #a0a0a0;
+  --vc-select-shape: url(
       'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="7px" height="7px"><polygon points="0,1 6,1 3,7"/></svg>'
       );
-  --icon-button-hover-color: #444;
-  --icon-button-active-color: #4d90fe;
-  --link-color: #15c;
-  --link-hover-color: #15c;
-  --link-active-color: #052577;
-  --tiny: 0.5px;
+  --vc-icon-button-hover-color: #444;
+  --vc-icon-button-active-color: #4d90fe;
+  --vc-link-color: #15c;
+  --vc-link-hover-color: #15c;
+  --vc-link-active-color: #052577;
+  --vc-tiny: 0.5px;
 }
 .less-motion {
-  --transition-duration: 0;
+  --vc-transition-duration: 0;
 }
 /* content-visibility will cause size to be 0x0, affecting scrollbar position */
 html.loading, html.loading #exclusionAddButton, html.loading #exclusionToolbar { visibility: hidden; }
 @media (prefers-color-scheme: dark) {
   html:not(.no-dark) {
-    --plain-color: #abb0b5;
-    --background-color: #000;
-    --panel-background-color: #18191b;
-    --heading-color: #c6cbd2;
-    --heading-border-color: #555;
-    --item-caption-color: #aab0b6;
-    --deprecated-color: #888;
-    --tip-color: pink;
-    --help-hover-color: #abb0b5;
-    --vim-color: #9bf;
-    --c-char-color: #e6ccb3;
-    --code-block-border-color: #666;
-    --darker-filter: brightness(0.8);
-    --link-color: #5b96f5;
-    --link-hover-color: #8ab4f8;
-    --link-active-color: #8ab4f8;
-    --input-color: #d4d4d4;
-    --read-only-color: #bbb;
-    --read-only-background-color: #30343c;
-    --placeholder-color: #888;
-    --input-border-color: #777;
-    --highlight-background-color: #59594c;
-    --error-background-color: #50140c;
-    --input-focus-border-color: #6697cc;
-    --button-color: #bdc2c7;
-    --button-disabled-color: #abb0b5;
-    --button-background-color: #18191b;
-    --button-border-color: #5f6368;
-    --button-hover-color: #bdc2c7;
-    --button-hover-background-color: #30343c;
-    --button-active-background-color: #0c0c0e;
-    --button-hover-border-color: #84878b;
-    --icon-button-hover-color: #8ab4f8;
-    --icon-button-active-color: #5b96f5;
-    --select-shape: url(
+    --vc-plain-color: #abb0b5;
+    --vc-background-color: #000;
+    --vc-panel-background-color: #18191b;
+    --vc-heading-color: #c6cbd2;
+    --vc-heading-border-color: #555;
+    --vc-item-caption-color: #aab0b6;
+    --vc-deprecated-color: #888;
+    --vc-tip-color: pink;
+    --vc-help-hover-color: #abb0b5;
+    --vc-vim-color: #9bf;
+    --vc-c-char-color: #e6ccb3;
+    --vc-code-block-border-color: #666;
+    --vc-darker-filter: brightness(0.8);
+    --vc-link-color: #5b96f5;
+    --vc-link-hover-color: #8ab4f8;
+    --vc-link-active-color: #8ab4f8;
+    --vc-input-color: #d4d4d4;
+    --vc-read-only-color: #bbb;
+    --vc-read-only-background-color: #30343c;
+    --vc-placeholder-color: #888;
+    --vc-input-border-color: #777;
+    --vc-highlight-background-color: #59594c;
+    --vc-error-background-color: #50140c;
+    --vc-input-focus-border-color: #6697cc;
+    --vc-button-color: #bdc2c7;
+    --vc-button-disabled-color: #abb0b5;
+    --vc-button-background-color: #18191b;
+    --vc-button-border-color: #5f6368;
+    --vc-button-hover-color: #bdc2c7;
+    --vc-button-hover-background-color: #30343c;
+    --vc-button-active-background-color: #0c0c0e;
+    --vc-button-hover-border-color: #84878b;
+    --vc-icon-button-hover-color: #8ab4f8;
+    --vc-icon-button-active-color: #5b96f5;
+    --vc-select-shape: url(
         'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="7px" height="7px"><polygon points="0,1 6,1 3,7" fill="%23bbb"/></svg>'
         );
-    --select-option-background-color: #333;
-    --state-color: #8ab4f8;
+    --vc-select-option-background-color: #333;
+    --vc-state-color: #8ab4f8;
   }
 }
 html.dark {
-  --plain-color: #abb0b5;
-  --background-color: #000;
-  --panel-background-color: #18191b;
-  --heading-color: #c6cbd2;
-  --heading-border-color: #555;
-  --item-caption-color: #aab0b6;
-  --deprecated-color: #888;
-  --tip-color: pink;
-  --help-hover-color: #abb0b5;
-  --vim-color: #9bf;
-  --c-char-color: #e6ccb3;
-  --code-block-border-color: #666;
-  --darker-filter: brightness(0.8);
-  --link-color: #5b96f5;
-  --link-hover-color: #8ab4f8;
-  --link-active-color: #8ab4f8;
-  --input-color: #d4d4d4;
-  --read-only-color: #bbb;
-  --read-only-background-color: #30343c;
-  --placeholder-color: #888;
-  --input-border-color: #777;
-  --highlight-background-color: #59594c;
-  --error-background-color: #50140c;
-  --input-focus-border-color: #6697cc;
-  --button-color: #bdc2c7;
-  --button-disabled-color: #abb0b5;
-  --button-background-color: #18191b;
-  --button-border-color: #5f6368;
-  --button-hover-color: #bdc2c7;
-  --button-hover-background-color: #30343c;
-  --button-active-background-color: #0c0c0e;
-  --button-hover-border-color: #84878b;
-  --icon-button-hover-color: #8ab4f8;
-  --icon-button-active-color: #5b96f5;
-  --select-shape: url(
+  --vc-plain-color: #abb0b5;
+  --vc-background-color: #000;
+  --vc-panel-background-color: #18191b;
+  --vc-heading-color: #c6cbd2;
+  --vc-heading-border-color: #555;
+  --vc-item-caption-color: #aab0b6;
+  --vc-deprecated-color: #888;
+  --vc-tip-color: pink;
+  --vc-help-hover-color: #abb0b5;
+  --vc-vim-color: #9bf;
+  --vc-c-char-color: #e6ccb3;
+  --vc-code-block-border-color: #666;
+  --vc-darker-filter: brightness(0.8);
+  --vc-link-color: #5b96f5;
+  --vc-link-hover-color: #8ab4f8;
+  --vc-link-active-color: #8ab4f8;
+  --vc-input-color: #d4d4d4;
+  --vc-read-only-color: #bbb;
+  --vc-read-only-background-color: #30343c;
+  --vc-placeholder-color: #888;
+  --vc-input-border-color: #777;
+  --vc-highlight-background-color: #59594c;
+  --vc-error-background-color: #50140c;
+  --vc-input-focus-border-color: #6697cc;
+  --vc-button-color: #bdc2c7;
+  --vc-button-disabled-color: #abb0b5;
+  --vc-button-background-color: #18191b;
+  --vc-button-border-color: #5f6368;
+  --vc-button-hover-color: #bdc2c7;
+  --vc-button-hover-background-color: #30343c;
+  --vc-button-active-background-color: #0c0c0e;
+  --vc-button-hover-border-color: #84878b;
+  --vc-icon-button-hover-color: #8ab4f8;
+  --vc-icon-button-active-color: #5b96f5;
+  --vc-select-shape: url(
       'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="7px" height="7px"><polygon points="0,1 6,1 3,7" fill="%23bbb"/></svg>'
       );
-  --select-option-background-color: #333;
-  --state-color: #8ab4f8;
+  --vc-select-option-background-color: #333;
+  --vc-state-color: #8ab4f8;
 }
 
 body {
@@ -113,11 +113,11 @@ body.dialog-ui {
   margin-right: 25px;
 }
 :focus {
-  outline-color: var(--input-focus-border-color);
+  outline-color: var(--vc-input-focus-border-color);
 }
 a, a:visited {
   color: #15c;
-  color: var(--link-color);
+  color: var(--vc-link-color);
   cursor: pointer;
   text-decoration: none;
 }
@@ -126,19 +126,19 @@ a[href], a:hover {
 }
 a:hover {
   color: #15c;
-  color: var(--link-hover-color);
+  color: var(--vc-link-hover-color);
 }
 a:active {
   color: #052577;
-  color: var(--link-active-color);
+  color: var(--vc-link-active-color);
   outline: none;
 }
 header {
   /* keep 1px so it can be more conspicuous than 0.5px */
   border-bottom: 1px solid #ddd;
-  border-color: var(--heading-border-color, #ddd);
+  border-color: var(--vc-heading-border-color, #ddd);
   border-width: 1px !important;
-  color: var(--heading-color);
+  color: var(--vc-heading-color);
   font-size: 18px;
   font-weight: normal;
   height: 24px;
@@ -150,12 +150,12 @@ header {
 }
 button, select {
   border: 0.5px solid #b3b3b3;
-  border-width: var(--tiny);
-  border-color: var(--button-border-color, #b3b3b3);
+  border-width: var(--vc-tiny);
+  border-color: var(--vc-button-border-color, #b3b3b3);
   border-radius: 2px;
   box-sizing: border-box;
   color: #444;
-  color: var(--button-color, #444);
+  color: var(--vc-button-color, #444);
   font: 12px/1 "Helvetica Neue",Helvetica,Arial,"PingFang SC","Hiragino Sans GB"
     ,"Microsoft YaHei","Heiti SC","WenQuanYi Micro Hei",sans-serif !important;
   height: 24px;
@@ -177,7 +177,7 @@ button:lang(zh), select:lang(zh) {
 }
 button:disabled {
   color: #888;
-  color: var(--button-disabled-color, #888);
+  color: var(--vc-button-disabled-color, #888);
 }
 button.left {
   border-bottom-right-radius: 0;
@@ -194,7 +194,7 @@ select.right {
 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="7px" height="7px"><polygon points="0,1 6,1 3,7"/></svg>'
     ) 8px 8px / 7px 7px no-repeat border-box,
     #efefef 0 / auto border-box;
-  background-image: var(--select-shape);
+  background-image: var(--vc-select-shape);
   border-bottom-left-radius: 0;
   border-top-left-radius: 0;
   font-size: 0 !important;
@@ -203,31 +203,31 @@ select.right {
 }
 button, select, select.right {
   background-color: #efefef;
-  background-color: var(--button-background-color);
+  background-color: var(--vc-button-background-color);
 }
 button:hover:not(:disabled), select:hover {
   background-color: #e5e5e5;
-  background-color: var(--button-hover-background-color, #e5e5e5);
+  background-color: var(--vc-button-hover-background-color, #e5e5e5);
   border-color: #a0a0a0;
-  border-color: var(--button-hover-border-color);
+  border-color: var(--vc-button-hover-border-color);
   color: black;
-  color: var(--button-hover-color);
+  color: var(--vc-button-hover-color);
 }
 button:active:hover, select:active {
   background-color: #f5f5f5;
-  background-color: var(--button-active-background-color, #f5f5f5);
+  background-color: var(--vc-button-active-background-color, #f5f5f5);
 }
 button.left:hover+select.right {
   border-left-color: #a0a0a0;
-  border-left-color: var(--button-hover-border-color);
+  border-left-color: var(--vc-button-hover-border-color);
 }
 button.left:focus+select.right {
   border-left-color: #4d90fe;
-  border-left-color: var(--input-focus-border-color);
+  border-left-color: var(--vc-input-focus-border-color);
 }
 select.right > option {
   background-color: #f3f3f3;
-  background-color: var(--select-option-background-color, #f3f3f3);
+  background-color: var(--vc-select-option-background-color, #f3f3f3);
   font-size: 13px;
   text-align: left;
 }
@@ -247,8 +247,8 @@ pre, .help-block {
   margin: 5px;
   /* keep 1px so it can be more conspicuous than 0.5px */
   border-left: 0.5px solid #ccc;
-  border-width: var(--tiny);
-  border-color: var(--code-block-border-color, #ccc);
+  border-width: var(--vc-tiny);
+  border-color: var(--vc-code-block-border-color, #ccc);
   padding-left: 5px;
 }
 td {
@@ -258,13 +258,13 @@ td {
 
 input, textarea {
   background-color: white;
-  background-color: var(--background-color, white);
+  background-color: var(--vc-background-color, white);
   border: 0.5px solid #b3b3b3;
-  border-width: var(--tiny);
-  border-color: var(--input-border-color, #b3b3b3);
+  border-width: var(--vc-tiny);
+  border-color: var(--vc-input-border-color, #b3b3b3);
   border-radius: 2px;
   box-sizing: border-box;
-  color: var(--input-color);
+  color: var(--vc-input-color);
   font: inherit;
   height: 28px;
   overflow-wrap: normal; /* before C49 (MinCSS$whiteSpace$$pre$Means$overflowWrap$$normal) */
@@ -297,27 +297,27 @@ input[type=text]:read-only,
 input[type=number]:read-only,
 textarea:read-only {
   background-color: #ebebe4;
-  background-color: var(--read-only-background-color, #ebebe4);
+  background-color: var(--vc-read-only-background-color, #ebebe4);
   color: #444;
-  color: var(--read-only-color, #444);
+  color: var(--vc-read-only-color, #444);
 }
 input:disabled, textarea:disabled {
   color: #444;
-  color: var(--read-only-color, #444);
+  color: var(--vc-read-only-color, #444);
 }
 input::-webkit-input-placeholder, input::placeholder {
   color: #bfbfbf;
-  color: var(--placeholder-color, #bfbfbf);
+  color: var(--vc-placeholder-color, #bfbfbf);
 }
 input::-ms-input-placeholder {
   color: #bfbfbf;
-  color: var(--placeholder-color, #bfbfbf);
+  color: var(--vc-placeholder-color, #bfbfbf);
 }
 button:focus, input:focus, select:focus, textarea:focus {
   transition: border-color 200ms;
-  transition-duration: var(--transition-duration, 200ms);
+  transition-duration: var(--vc-transition-duration, 200ms);
   border-color: #4d90fe;
-  border-color: var(--input-focus-border-color);
+  border-color: var(--vc-input-focus-border-color);
 }
 label:active {
   outline: none;
@@ -347,16 +347,16 @@ label:active {
 }
 .Vim {
   color: #2f508e;
-  color: var(--vim-color, #2f508e);
+  color: var(--vc-vim-color, #2f508e);
 }
 .C {
   color: #a55e18;
-  color: var(--c-char-color, #a55e18);
+  color: var(--vc-c-char-color, #a55e18);
 }
 .caption {
   box-sizing: border-box;
   color: #333;
-  color: var(--item-caption-color, #333);
+  color: var(--vc-item-caption-color, #333);
   cursor: text;
   margin-right: 10px;
   padding: 3px 12px 0 0;
@@ -420,7 +420,7 @@ label:active {
 }
 .tip {
   color: darkred;
-  color: var(--tip-color, darkred);
+  color: var(--vc-tip-color, darkred);
   height: unset;
   white-space: pre-line;
   word-break: break-all;
@@ -429,11 +429,11 @@ label:active {
   padding-left: 20px;
   width: 300px;
   color: #777;
-  color: var(--help-color, #777);
+  color: var(--vc-help-color, #777);
 }
 #wrapper:hover .help {
   color: black;
-  color: var(--help-hover-color, black);
+  color: var(--vc-help-hover-color, black);
 }
 .help-inner {
   cursor: text;
@@ -474,16 +474,16 @@ label:active {
 }
 .deprecated {
   color: darkgray;
-  color: var(--deprecated-color, darkgray);
+  color: var(--vc-deprecated-color, darkgray);
   text-decoration: line-through;
 }
 .highlight, .debugging {
   background: lightyellow;
-  background-color: var(--highlight-background-color, lightyellow);
+  background-color: var(--vc-highlight-background-color, lightyellow);
 }
 .has-error {
   background: #fbebe9;
-  background-color: var(--error-background-color, #fbebe9);
+  background-color: var(--vc-error-background-color, #fbebe9);
 }
 .indent {
   text-indent: -2em;
@@ -543,11 +543,11 @@ label:active {
 }
 .remove:hover {
   color: #444;
-  color: var(--icon-button-hover-color);
+  color: var(--vc-icon-button-hover-color);
 }
 .remove:active {
   color: #4d90fe;
-  color: var(--icon-button-active-color);
+  color: var(--vc-icon-button-active-color);
   outline: none;
 }
 .btn_svg {
@@ -576,22 +576,22 @@ label:active {
 }
 #testKeyInput {
   border-bottom: 0.5px solid gray;
-  border-width: var(--tiny);
+  border-width: var(--vc-tiny);
   box-sizing: border-box;
   display: inline-block;
   height: 18px;
   letter-spacing: 0.5px;
-  letter-spacing: var(--tiny);
+  letter-spacing: var(--vc-tiny);
   margin-left: 1em;
   min-width: 104px;
   outline: none;
   position: absolute;
   padding-top: 0.5px;
-  padding-top: var(--tiny);
+  padding-top: var(--vc-tiny);
   text-align: center;
 }
 #testKeyInput:focus {
-  border-color: var(--input-focus-border-color);
+  border-color: var(--vc-input-focus-border-color);
 }
 #testKeyInput:lang(zh) {
   margin-top: 2px;
@@ -603,9 +603,9 @@ label:active {
 }
 #footer {
   background: #f3f3f3;
-  background: var(--panel-background-color);
+  background: var(--vc-panel-background-color);
   border-top: 0.5px solid #979ca0;
-  border-width: var(--tiny);
+  border-width: var(--vc-tiny);
   bottom: 0;
   left: 0;
   padding: 6px 0 0;
@@ -724,7 +724,7 @@ button::-moz-focus-inner {
 }
 select:-moz-focusring {
   color: transparent;
-  text-shadow: 0 0 0 var(--button-hover-color);
+  text-shadow: 0 0 0 var(--vc-button-hover-color);
 }
 
 @supports (-moz-appearance: none) {
@@ -737,26 +737,26 @@ select:-moz-focusring {
 }
 @supports (display: -ms-grid) {
   option:hover {
-    color: var(--icon-button-active-color);
+    color: var(--vc-icon-button-active-color);
   }
   option:checked {
-    color: var(--link-color);
+    color: var(--vc-link-color);
   }
 }
 body {
-  background: var(--background-color, white);
-  color: var(--plain-color, black);
+  background: var(--vc-background-color, white);
+  color: var(--vc-plain-color, black);
 }
 .icon, input[type=checkbox] {
-  filter: var(--darker-filter, none);
+  filter: var(--vc-darker-filter, none);
 }
 @media (prefers-color-scheme: dark) {
   button:disabled {
-    background: linear-gradient(var(--button-background-color),var(--button-background-color)) !important;
+    background: linear-gradient(var(--vc-button-background-color),var(--vc-button-background-color)) !important;
   }
 }
 .exclusionHeader {
-  color: var(--item-caption-color);
+  color: var(--vc-item-caption-color);
 }
 
 @media (forced-colors: active), (-ms-high-contrast:active) {

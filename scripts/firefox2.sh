@@ -15,6 +15,7 @@ ALSO_VC=0
 HOME_PAGE=
 default_vc_root=/e/Git/weidu+vim/vimium-c
 default_firefox_root="/d/Program Files/Firefox"
+version_archives=/f/Application/Browser/firefox
 debugger_url="about:debugging#/runtime/this-firefox"
 export WSLENV=PATH/l
 unset "${!WEB_EXT@}"
@@ -196,6 +197,16 @@ else
       EXE=$WORKING_DIR/core${VER}esr/firefox.exe
       test -f "$EXE" || EXE=$FIREFOX_ROOT/core${VER}/firefox.exe
       test -f "$EXE" || EXE=$FIREFOX_ROOT/core${VER}esr/firefox.exe
+      if ! test -f "$EXE" -o -e "$WORKING_DIR/core${VER}"; then
+        ARCHIVE="$version_archives/Firefox-${VER}esr.7z"
+        test -f "$ARCHIVE" || ARCHIVE="$version_archives/Firefox-${VER}.7z"
+        if test -f "$ARCHIVE"; then
+          EXE=$WORKING_DIR/core${VER}esr/firefox.exe
+          test "${ARCHIVE%esr.7z}" != "$ARCHIVE" || EXE=$WORKING_DIR/core${VER}/firefox.exe
+          wp wo_w "$WORKING_DIR"
+          7z x -bd -o"$wo_w" -- "$ARCHIVE"
+        fi
+      fi
     fi
   fi
   test -f "$EXE" || EXE=$FIREFOX_ROOT/core${VER}/firefox.exe

@@ -437,7 +437,7 @@ const inlineGetters = (isES6, file) => {
     text = text.replace(/\b\w+\.[gs]et_[\w$]+\(\)?/g, (s) =>
       s.includes(".set_") ? "(" + s.slice(0, -1).replace(/set_/, "") + " = " : s.slice(0, -2).replace(/get_/, ""))
   }
-  text = text.replace(/\bc[A-Z][a-z]\w*/g, "$&_")
+  text = text.replace(/(?<!"%)\bc[A-Z][a-z]\w*/g, "$&_")
   exports.ToBuffer(file, text)
 }
 

@@ -510,9 +510,9 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         ? i === kKeyCode.backspace ? kChar.backspace : i === kKeyCode.esc ? kChar.esc
             : i === kKeyCode.tab ? kChar.tab : i === kKeyCode.enter ? kChar.enter
             : (i < kKeyCode.maxAcsKeys + 1 ? i > kKeyCode.minAcsKeys - 1 : i > kKeyCode.maxNotMetaKey)
-              && Vomnibar_.keyLayout_ > kKeyLayout.MapModifierStart - 1
+            ? Vomnibar_.keyLayout_ > kKeyLayout.MapModifierStart - 1
               && (Vomnibar_.keyLayout_ >> kKeyLayout.MapModifierOffset) === event.location ? kChar.Modifier
-            : i === kKeyCode.altKey ? kChar.Alt
+              : i === kKeyCode.altKey ? kChar.Alt : kChar.INVALID
             : kChar.None
         : i === kKeyCode.menuKey && Build.BTypes & ~BrowserType.Safari
           && (Build.BTypes & ~BrowserType.Chrome || Build.OS & ~kOS.mac) ? kChar.Menu
@@ -571,7 +571,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       }
       key = shiftKey && key.length < 2 ? key : key.toLowerCase()
     } else {
-      key = key.length > 1 ? Vomnibar_._getKeyName(event) || key : key === " " ? Vomnibar_._getKeyName(event)
+      key = key.length > 1 || key === " " ? (Vomnibar_._getKeyName(event) || key.toLowerCase()).trim()
           : shiftKey ? key.toUpperCase() : key.toLowerCase()
     }
     return key;
@@ -795,7 +795,10 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
           , u: math ? "" : item.u })
     case AllowedActions.copyPlain: case AllowedActions.pastePlain:
       const navClip = navigator.clipboard
-      const plain = navClip && action === AllowedActions.copyPlain ? getSelection() + "" : ""
+      const plain = (!(Build.BTypes & BrowserType.Edge || Build.BTypes & BrowserType.Chrome
+            && Build.MinCVer < BrowserVer.MinEnsured$Clipboard$and$$writeText || Build.BTypes & BrowserType.Firefox
+            && Build.MinFFVer < FirefoxBrowserVer.MinEnsured$dom$events$asyncclipboard
+          ) || navClip) && action === AllowedActions.copyPlain ? getSelection() + "" : ""
       action === AllowedActions.copyPlain ? plain && void navClip!.writeText!(plain) : document.execCommand("paste")
       break
     case AllowedActions.home: case AllowedActions.end:

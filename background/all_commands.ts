@@ -193,8 +193,8 @@ set_bgC_([
       let type = (opts2.type || (key ? "keydown" : "")) + "", rawClass = opts2.class, delay = opts2.delay
       let { xy, direct, directOptions } = opts2
       rawClass = rawClass && rawClass[0] === "$" ? rawClass.slice(1)
-          : (rawClass && (rawClass[0].toUpperCase() + rawClass.slice(1)) || "Keyboard"
-            ).replace(<RegExpI & RegExpSearchable<0>> /event$/i, "") + "Event"
+          : (rawClass && (rawClass[0].toUpperCase() + rawClass.slice(1).replace(<RegExpSearchable<0>> /event$/i, ""))
+              || (type.startsWith("mouse") || type.includes("click") ? "Mouse" : "Keyboard") ) + "Event"
       xy = (<RegExpOne> /^(Mouse|Pointer|Wheel)/).test(rawClass) && xy == null ? [0.5, 0.5] : xy
       xy = opts2.xy = BgUtils_.normalizeXY_(xy)
       if (xy && !xy.n) { xy.n = cRepeat; set_cRepeat(1) }
@@ -213,7 +213,8 @@ set_bgC_([
       const destDict: KeyboardEventInit = {}
       delay = delay && +delay >= 0 ? Math.max(+delay | 0, 1) : null
       for (const i of ["bubbles", "cancelable", "composed"] as const) {
-        destDict[i] = dict[i] !== false || opts2[i] !== false
+        const v = dict !== opts2 && i in dict ? dict[i] : opts2[i]
+        destDict[i] = v !== false && (v != null || type !== "mouseenter" && type !== "mouseleave")
       }
       const skipped = As_<{
         readonly [key in Exclude<keyof BgCmdOptions[C.dispatchEventCmd], keyof EventInit | `$${string}`>]: 1;
@@ -224,7 +225,7 @@ set_bgC_([
       })
       for (const [key, val] of Object.entries!(dict)) {
         if (key && key[0] !== "$" && !(skipped as Object).hasOwnProperty(key)) {
-          destDict[key as keyof EventInit] = val as any
+          destDict[(dict === opts2 && key.startsWith("o.") ? key.slice(2) : key) as keyof EventInit] = val as any
           dict === opts2 && delete (opts2)[key as keyof EventInit]
         }
       }

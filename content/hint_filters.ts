@@ -167,10 +167,11 @@ export const generateHintText = (hint: Hint, hintInd: number, allItems: readonly
   } else switch (localName) { // eslint-disable-line curly
   case "input": case "select": case "textarea":
     let labels = (el as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement).labels;
-    if (labels && labels.length
-        && (text = (labels[0] as SafeHTMLElement).innerText).trim()) {
+    let labelText = labels && labels.length ? (labels[0] as SafeHTMLElement).innerText.trim() : ""
+    if (labelText) {
       show = <BOOL> +!contains_s(labels[0] as SafeHTMLElement, el)
-    } else if (localName[0] === "s") {
+    }
+    if (localName[0] === "s") {
       const selected = (el as HTMLSelectElement).selectedOptions[0];
       text = selected ? selected.label : "";
     } else {
@@ -188,6 +189,7 @@ export const generateHintText = (hint: Hint, hintInd: number, allItems: readonly
         ind && (ind = text.indexOf("\n", ind)) > 0 ? text = text.slice(0, ind) : 0;
       }
     }
+    text = labelText ? labelText + " " + text : text
     break;
   case "details": text = "Open"; show = 1; break
   case "img":

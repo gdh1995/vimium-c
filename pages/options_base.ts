@@ -589,7 +589,7 @@ export let setupBorderWidth_ = (OnChrome && Build.MinCVer < BrowserVer.MinEnsure
     || onlyInputs || CurCVer_ >= BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo ? 1 / ratio : 1;
   scale = scale + 0.00000999;
   scale = ("" + scale).slice(0, 7).replace(<RegExpOne> /\.?0+$/, "");
-  css.textContent = onlyInputs ? `html { --tiny: ${scale}px; }` : `* { border-width: ${scale}px !important; }`;
+  css.textContent = onlyInputs ? `html { --vc-tiny: ${scale}px; }` : `* { border-width: ${scale}px !important; }`;
   (document.head as HTMLHeadElement).appendChild(css);
 } : null;
 

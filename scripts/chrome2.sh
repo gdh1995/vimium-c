@@ -21,6 +21,7 @@ UBO=0
 HOME_PAGE=
 default_vc_root=/e/Git/weidu+vim/vimium-c
 default_chrome_root="/d/Program Files/Google"
+version_archives=/f/Application/Browser/chrome
 export WSLENV=PATH/l
 
 function wp() {
@@ -242,6 +243,14 @@ else
     EXE=$CHROME_ROOT/${VER:-Chrome}/chrome.exe
     if test ! -f "$EXE" -a -n "$VER" && find "$CHROME_ROOT/Chrome/" -name "${VER}.*" | grep . >/dev/null 2>&1; then
       EXE=$CHROME_ROOT/Chrome/chrome.exe
+    fi
+    if test -n "$VER" && ! test -e "$WORKING_DIR/${VER}"; then
+      ARCHIVE="$version_archives/Chrome-${VER}.7z"
+      if test -f "$ARCHIVE"; then
+        EXE=$WORKING_DIR/${VER}/chrome.exe
+        wp wo_w "$WORKING_DIR"
+        7z x -bd -o"$wo_w" -- "$ARCHIVE"
+      fi
     fi
   fi
 fi

@@ -544,13 +544,14 @@ export const extractField = (el: SafeElement, props: string): string => {
   props = props.trim()
   for (const prop of props ? props.split(".") : []) {
     if (json && isTY(json)) {
-      json = safeCall<string, any>(JSON.parse, json as unknown as string)
+      json = safeCall<string, any>(JSON.parse, json as unknown as string) || json
     }
-    json = json !== el ? json && isTY(json, kTY.obj) && (json as Dict<primitiveObject | null>)[prop]
+    json = json && isTY((json as string)[prop as "trim"], kTY.func) ? (json as string)[prop as "trim"]()
+        : json !== el ? json != null ? (json as Dict<primitiveObject | null>)[prop] : json
         : !el ? 0 : (el as TypeToAssert<Element, HTMLElement | SVGElement, "dataset", "tagName">).dataset
         && ((el as HTMLElement).dataset as Dict<string>)[prop] || (el as Dict<any>)[prop] || attr_s(el, prop)
   }
-  return isTY(json) ? json : ""
+  return isTY(json) || isTY(json, kTY.num) ? json + "" : ""
 }
 
 export const wrapEventInit_ = <T extends EventInit> (event: T
