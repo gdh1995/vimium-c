@@ -47,8 +47,10 @@ export const parseDomainAndScheme_ = (url: string): UrlDomain | null => {
 export const BookmarkManager_ = {
   currentSearch_: null as CompletersNS.QueryStatus | null,
   iterPath_: "",
+  iterPid_: "",
   iterDepth_: 0,
   _timer: 0,
+  expiredUrls_: 0 as BOOL,
   onLoad_: null as (() => void) | null,
   Listen_: function (): void {
     const bBm = browser_.bookmarks
@@ -88,7 +90,7 @@ export const BookmarkManager_ = {
     bookmarkCache_.dirs_ = []
     bookmarkCache_.status_ = BookmarkStatus.inited
     MatchCacheManager_.clear_(MatchCacheType.bookmarks)
-    tree.forEach(BookmarkManager_.traverseBookmark_, BookmarkManager_)
+    tree.forEach(BookmarkManager_.traverseBookmark_)
     setTimeout(() => UrlDecoder_.decodeList_(bookmarkCache_.bookmarks_), 50)
     if (BookmarkManager_.Listen_) {
       setTimeout(BookmarkManager_.Listen_, 0)
@@ -98,55 +100,52 @@ export const BookmarkManager_ = {
     BookmarkManager_.onLoad_ = null
     callback && callback()
   },
-  traverseBookmark_ (bookmark: chrome.bookmarks.BookmarkTreeNode): void {
+  traverseBookmark_ (this: void, bookmark: chrome.bookmarks.BookmarkTreeNode, index: number): void {
     const rawTitle = bookmark.title, id = bookmark.id
     const title = rawTitle || id, path = BookmarkManager_.iterPath_ + "/" + title
     if (bookmark.children) {
       bookmarkCache_.dirs_.push({ id_: id, path_: path, title_: title })
-      const oldPath = BookmarkManager_.iterPath_
-      if (2 < ++BookmarkManager_.iterDepth_) {
-        BookmarkManager_.iterPath_ = path
-      }
-      bookmark.children.forEach(BookmarkManager_.traverseBookmark_, BookmarkManager_)
+      const oldPath = BookmarkManager_.iterPath_, oldPid = BookmarkManager_.iterPid_
+      if (2 < ++BookmarkManager_.iterDepth_) { BookmarkManager_.iterPath_ = path }
+      BookmarkManager_.iterPid_ = id
+      bookmark.children.forEach(BookmarkManager_.traverseBookmark_)
       --BookmarkManager_.iterDepth_
       BookmarkManager_.iterPath_ = oldPath
+      BookmarkManager_.iterPid_ = oldPid
     } else {
       const url = bookmark.url!, jsScheme = "javascript:", isJS = url.startsWith(jsScheme)
       bookmarkCache_.bookmarks_.push({
         id_: id, path_: path, title_: title,
         t: isJS ? jsScheme : url,
         visible_: omniBlockList ? TestNotBlocked_(url, rawTitle) : kVisibility.visible,
-        u: isJS ? jsScheme : url,
+        u: isJS ? jsScheme : url, pid_: BookmarkManager_.iterPid_, ind_: index,
         jsUrl_: isJS ? url : null, jsText_: isJS ? BgUtils_.DecodeURLPart_(url) : null
       })
     }
   },
-  Later_ (): void {
+  Delay_ (): void {
+  const Later_ = (): void => {
     const last = performance.now() - bookmarkCache_.stamp_
     if (bookmarkCache_.status_ !== BookmarkStatus.notInited) { return }
-    if (last >= InnerConsts.bookmarkBasicDelay || last < -GlobalConsts.ToleranceOfNegativeTimeDelta) {
-      BookmarkManager_._timer = bookmarkCache_.stamp_ = 0
-      bookmarkCache_.expiredUrls_ = false
+    if (last >= InnerConsts.bookmarkBasicDelay - 100 || last < -GlobalConsts.ToleranceOfNegativeTimeDelta) {
+      BookmarkManager_._timer = BookmarkManager_.expiredUrls_ = 0
+      // not remove bookmark URLs from urlDecodingDict_ but load new ones, so that there need less decoding actions
       BookmarkManager_.refresh_()
     } else {
-      bookmarkCache_.bookmarks_ = []
-      bookmarkCache_.dirs_ = []
-      BookmarkManager_._timer = setTimeout(BookmarkManager_.Later_, InnerConsts.bookmarkFurtherDelay)
-      MatchCacheManager_.clear_(MatchCacheType.bookmarks)
+      BookmarkManager_._timer = setTimeout(Later_, InnerConsts.bookmarkFurtherDelay)
     }
-  },
-  Delay_ (): void {
+  }
     bookmarkCache_.stamp_ = performance.now()
     if (bookmarkCache_.status_ < BookmarkStatus.inited) { return }
-    BookmarkManager_._timer = setTimeout(BookmarkManager_.Later_, InnerConsts.bookmarkBasicDelay)
+    BookmarkManager_._timer = setTimeout(Later_, InnerConsts.bookmarkBasicDelay)
     bookmarkCache_.status_ = BookmarkStatus.notInited
   },
   Expire_ (
       id: string, info?: chrome.bookmarks.BookmarkRemoveInfo | chrome.bookmarks.BookmarkChangeInfo): void {
-    const arr = bookmarkCache_.bookmarks_, len = arr.length,
+    const arr = bookmarkCache_.bookmarks_,
     title = info && (info as chrome.bookmarks.BookmarkChangeInfo).title
-    let i = 0; for (; i < len && arr[i].id_ !== id; i++) { /* empty */ }
-    if (i < len) {
+    let i = arr.findIndex(j => j.id_ === id)
+    if (i >= 0) {
       type WBookmark = Writable<Bookmark>
       const cur = arr[i] as WBookmark, url = cur.u,
       url2 = info && (info as chrome.bookmarks.BookmarkChangeInfo).url
@@ -165,52 +164,55 @@ export const BookmarkManager_ = {
         if (omniBlockList) {
           cur.visible_ = TestNotBlocked_(cur.u, cur.title_)
         }
+        bookmarkCache_.stamp_ = performance.now()
       } else {
         arr.splice(i, 1)
+        for (let j = info ? i : arr.length; j < arr.length; j++) {
+          if (arr[j].pid_ === cur.pid_)
+            (arr[j] as Writable<typeof arr[42]>).ind_--
+        }
         info || BookmarkManager_.Delay_(); // may need to re-add it in case of lacking info
       }
       return
     }
     if (!bookmarkCache_.dirs_.find(dir => dir.id_ === id)) { return } // "new" items which haven't been read are changed
-    if (title != null) { /* a folder is renamed */ return BookmarkManager_.Delay_() }
-    // a folder is removed
-    if (!bookmarkCache_.expiredUrls_ && decodingEnabled) {
+    if (/* a folder is removed */ title == null && !BookmarkManager_.expiredUrls_ && decodingEnabled) {
       const dict = urlDecodingDict_, bs = HistoryManager_.binarySearch_
       for (const { u: url } of (HistoryManager_.sorted_ ? arr : [])) {
         if (dict.has(url) && bs(url) < 0) {
           dict.delete(url)
         }
       }
-      bookmarkCache_.expiredUrls_ = true
+      BookmarkManager_.expiredUrls_ = 1
     }
-    return BookmarkManager_.Delay_()
+    BookmarkManager_.Delay_()
   }
 }
 
-set_findBookmark((wantFolder, titleOrPath: string) => {
+set_findBookmark((titleOrPath: string) => {
   if (bookmarkCache_.status_ !== CompletersNS.BookmarkStatus.inited) {
     const defer = BgUtils_.deferPromise_<void>()
     BookmarkManager_.onLoad_ = defer.resolve_
     BookmarkManager_.refresh_()
-    return defer.promise_.then(findBookmark.bind(0, wantFolder, titleOrPath))
+    return defer.promise_.then(findBookmark.bind(0, titleOrPath))
   }
   const maybePath = titleOrPath.includes("/")
   const nodes = maybePath ? (titleOrPath + "").replace(<RegExpG & RegExpSearchable<0>> /\\\/?|\//g
       , s => s.length > 1 ? "/" : "\n").split("\n").filter(i => i) : []
   if (!titleOrPath || maybePath && !nodes.length) { return Promise.resolve(false) }
   const path2 = maybePath ? "/" + nodes.slice(1).join("/") : "", path1 = maybePath ? "/" + nodes[0] + path2 : ""
-  for (const item of wantFolder ? [] : bookmarkCache_.bookmarks_) {
+  for (const item of bookmarkCache_.bookmarks_) {
     if (maybePath && (item.path_ === path1 || item.path_ === path2) || item.title_ === titleOrPath) {
       return Promise.resolve(item)
     }
   }
-  for (const item of wantFolder ? bookmarkCache_.dirs_ : []) {
+  for (const item of bookmarkCache_.dirs_) {
     if (maybePath && (item.path_ === path1 || item.path_ === path2) || item.title_ === titleOrPath) {
       return Promise.resolve(item)
     }
   }
-  let lastFound: CompletersNS.BaseBookmark | null = null
-  for (const item of wantFolder ? [] : bookmarkCache_.bookmarks_) {
+  let lastFound: CompletersNS.Bookmark | null = null
+  for (const item of bookmarkCache_.bookmarks_) {
     if (item.title_.includes(titleOrPath)) {
       if (lastFound) { lastFound = null; break }
       lastFound = item

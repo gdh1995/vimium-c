@@ -269,15 +269,19 @@ set_bgC_([
 
   /* kBgCmd.addBookmark: */ (resolve): void | kBgCmd.addBookmark => {
     const path: string | UnknownValue = get_cOptions<C.addBookmark>().folder || get_cOptions<C.addBookmark>().path
+    const position = ((get_cOptions<C.addBookmark>().position || "") + "").toLowerCase(
+        ) as Extract<BgCmdOptions[C.addBookmark]["position"], string> | ""
     const wantAll = !!get_cOptions<C.addBookmark>().all
     if (!path || typeof path !== "string") { showHUD('Need "folder" to refer a bookmark folder.'); resolve(0); return }
-    findBookmark(1, path).then((folder): void => {
-      if (!folder || (folder as CompletersNS.Bookmark).u != null) {
+    void findBookmark(path).then((folder): void => {
+      if (!folder) {
         resolve(0)
-        showHUD(folder === false ? 'Need valid "folder".' : folder === null ? "The bookmark folder is not found."
-            : "The bookmark is not a folder.")
+        showHUD(folder === false ? 'Need valid "folder".' : "The bookmark folder is not found.")
         return
       }
+      const isLeaf = folder.u != null, pid = isLeaf ? folder.pid_ : folder.id_
+      let pos = position === "begin" ? 0 : position === "end" ? -1 : position === "before" ? isLeaf ? folder.ind_ : 0
+          : isLeaf && position === "after" ? folder.ind_ + 1 : -1;
       (!wantAll && cRepeat * cRepeat < 2 ? getCurTab : getCurShownTabs_)(function doAddBookmarks(tabs?: Tab[]): void {
         if (!tabs || !tabs.length) { resolve(0); return runtimeError_() }
         const curInd = selectIndexFrom(tabs), activeTab = tabs[curInd]
@@ -293,8 +297,10 @@ set_bgC_([
           void confirm_("addBookmark", count).then(doAddBookmarks.bind(0, allTabs))
           return
         }
+        pos = pos >= 0 ? pos : bookmarkCache_.bookmarks_.length
         for (const tab of tabs) {
-          browser_.bookmarks.create({ parentId: folder.id_, title: tab.title, url: getTabUrl(tab) }, runtimeError_)
+          browser_.bookmarks.create({ parentId: pid, title: tab.title, url: getTabUrl(tab), index: pos++ }
+              , runtimeError_)
         }
         showHUD(`Added ${count} bookmark${count > 1 ? "s" : ""}.`)
         resolve(1)
@@ -861,9 +867,10 @@ set_bgC_([
   },
   /* kBgCmd.openBookmark: */ (resolve): void | kBgCmd.openBookmark => {
     const rawCache = get_cOptions<C.openBookmark, true>().$cache
-    let p: Promise<false | CompletersNS.BaseBookmark | null> | undefined
+    let p: ReturnType<typeof findBookmark> | undefined
     if (rawCache != null) {
-      const cached = bookmarkCache_.bookmarks_.find(i => i.id_ === rawCache)
+      const find = bookmarkCache_.stamp_ === rawCache[1] && ((i: CompletersNS.BaseBookmark) => i.id_ === rawCache[0])
+      const cached = find && (bookmarkCache_.bookmarks_.find(find) || bookmarkCache_.dirs_.find(find))
       if (cached) {
         p = Promise.resolve(cached)
       } else {
@@ -884,17 +891,19 @@ set_bgC_([
       return
     }
       dynamicResult = result.useCount
-      p = findBookmark(0, result.result)
+      p = findBookmark(result.result)
     }
     void p.then((node): void => {
-      if (!node || (node as CompletersNS.Bookmark).u == null) {
+      if (!node) {
         resolve(0)
-        showHUD(node === false ? 'Need valid "title" or "title".' : node === null ? "The bookmark node is not found."
-            : "The bookmark is a folder.")
+        showHUD(node === false ? 'Need valid "title" or "title".' : "The bookmark node is not found.")
       } else {
-        hasValidCache || dynamicResult || overrideOption<C.openBookmark, "$cache">("$cache", node.id_)
-        overrideCmdOptions({ url: (node as CompletersNS.Bookmark).jsUrl_ || (node as CompletersNS.Bookmark).u }, true)
-        set_cRepeat(dynamicResult ? 1 : count)
+        hasValidCache || dynamicResult || overrideOption<C.openBookmark, "$cache">("$cache"
+            , [node.id_, bookmarkCache_.stamp_])
+        const isLeaf = node.u != null
+        overrideCmdOptions(isLeaf ? { url: node.jsUrl_ || node.u }
+            : { urls: bookmarkCache_.bookmarks_.filter(i => i.pid_ === node.id_).map(i => i.jsUrl_ || i.u) }, true)
+        set_cRepeat(dynamicResult || !isLeaf ? 1 : count)
         openUrl()
       }
     })

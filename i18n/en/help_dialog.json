@@ -108,7 +108,7 @@
   "moveTabToNextWindow": "Move tab to next window",
   "nextFrame": "Cycle forward to the next frame on the page",
   "nextTab": "Go one tab right",
-  "openBookmark": "Open a bookmark",
+  "openBookmark": "Open a bookmark (folder)",
   "openCopiedUrlInCurrentTab": "Open the clipboard's URL in the current tab",
   "openCopiedUrlInNewTab": "Open the clipboard's URL in N new tabs",
   "openUrl": "Open URL",

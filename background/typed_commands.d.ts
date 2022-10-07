@@ -51,7 +51,7 @@ interface BgCmdOptions {
   } & OpenPageUrlOptions & Req.FallbackOptions
 //#endregion
   [kBgCmd.addBookmark]: {
-    folder: string; /** (deprecated) */ path: string
+    folder: string; /** (deprecated) */ path: string; position: null | "before" | "after" | "begin" | "end"
     all: true | "window"
   } & LimitedRangeOptions & TabFilterOptions
   [kBgCmd.autoOpenFallback]: Extract<CmdOptions[kFgCmd.autoOpen], { o?: 1 }>
@@ -151,7 +151,7 @@ interface BgCmdOptions {
   [kBgCmd.closeDownloadBar]: { newWindow?: null | true | false; all: 1 }
   [kBgCmd.reset]: { suppress: boolean } & Pick<BgCmdOptions[kBgCmd.insertMode], "unhover"> & Req.FallbackOptions
   [kBgCmd.openBookmark]: { title: string; path: string; name: string; value: string
-      $cache: CompletersNS.Bookmark["id_"] | null } & MaskOptions
+      $cache: [CompletersNS.Bookmark["id_"], number] | null } & MaskOptions
 }
 
 interface BgCmdInfoMap {

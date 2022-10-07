@@ -105,10 +105,9 @@ export let incognitoFindHistoryList_: string[] | null = null
 export let incognitoMarkCache_: Map<string, string> | null = null
 export const bookmarkCache_ = {
   bookmarks_: [] as CompletersNS.Bookmark[],
-  dirs_: [] as CompletersNS.BaseBookmark[],
+  dirs_: [] as CompletersNS.BookmarkFolder[],
   status_: CompletersNS.BookmarkStatus.notInited,
   stamp_: 0,
-  expiredUrls_: false
 }
 export const historyCache_ = {
   history_: null as CompletersNS.HistoryItem[] | null,
@@ -118,7 +117,8 @@ export const historyCache_ = {
   toRefreshCount_: 0
 }
 export const urlDecodingDict_ = new Map<string, string>()
-export let findBookmark: (folder: BOOL, titleOrPath: string) => Promise<CompletersNS.BaseBookmark | false | null>
+export let findBookmark: (titleOrPath: string) =>
+    Promise<CompletersNS.Bookmark | CompletersNS.BookmarkFolder | false | null>
 //#endregion
 
 //#region command context

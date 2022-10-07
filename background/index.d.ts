@@ -247,9 +247,16 @@ declare namespace CompletersNS {
     readonly id_: string
     readonly path_: string
     readonly title_: string
+    readonly u?: string | undefined
+  }
+  interface BookmarkFolder extends BaseBookmark {
+    readonly u?: undefined
   }
   interface Bookmark extends BaseBookmark, DecodedItem {
+    readonly u: string
     readonly visible_: Visibility
+    readonly pid_: string
+    readonly ind_: number
     readonly jsUrl_: string | null
     readonly jsText_: string | null
   }
