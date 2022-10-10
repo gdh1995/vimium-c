@@ -4,6 +4,7 @@ import {
 import * as BgUtils_ from "./utils"
 import { browser_ } from "./browser"
 import { convertToUrl_ } from "./normalize_urls"
+import { extTrans_ } from "./i18n"
 
 type NoAliasInCNames<k extends kCName> =
     k extends `${string}activate${string}Mode${string}` | `${string}Unhover` | `${string}CS${string}`
@@ -78,7 +79,8 @@ export const render_ = (isOptionsPage: boolean, showNames: boolean | null | unde
       keys ? keys.push([key, registry]) : commandToKeys.set(command, [[key, registry]])
     })
     const result = BgUtils_.safer_<Dict<string>>({
-      title: i18n_.get(isOptionsPage ? "cmdList" : "help") || "",
+      title2: isOptionsPage ? " " + i18n_.get("cmdList") : "",
+      name2: " - " + (extTrans_("name") as string).split(" - ")[1],
       tip: showNames && i18n_.get("tipClickToCopy") || "",
       lbPad: showNames ? '\n\t\t<tr><td class="HelpTd TdBottom">&#160;</td></tr>' : ""
     });

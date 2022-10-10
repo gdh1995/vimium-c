@@ -7,7 +7,6 @@
   "webstore": "Chrome Web Store",
   "edgestore": "Extensions MS Edge",
   "cmdList": "Liste des Commandes",
-  "help": "Aide",
   "tipClickToCopy": "Astuce : Cliquez un nom de commande pour le copier dans le presse-papiers.",
   "cmdParams": " (utilisez *)",
   "browserHelp": "Raccourcis du navigateur",
