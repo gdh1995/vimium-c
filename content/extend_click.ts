@@ -357,8 +357,8 @@ contains = EnsuredGetRootNode || getRootNode ? null : ElProto.contains.bind(doc0
 setTimeout_ = setTimeout as SafeSetTimeout,
 scriptChildren: HTMLElement["children"] | ((index: number) => Element | null) = root.children,
 unsafeDispatchCounter = 0,
-allNodesInDocument = null as HTMLCollectionOf<Element> | null,
-allNodesForDetached = null as HTMLCollectionOf<Element> | null,
+allNodesInDocument = null as Element[] | null,
+allNodesForDetached = null as Element[] | null,
 pushToRegister = (_push as unknown as typeof toRegister.push).bind(toRegister),
 queueMicroTask_: (callback: () => void) => void =
     MayEdge || MayChrome && Build.MinCVer < BrowserVer.Min$queueMicrotask
@@ -383,7 +383,7 @@ const next: (_unused?: unknown) => void = (): void => {
 const prepareRegister = (element: Element): void => {
   if (EnsuredGetRootNode || getRootNode ? getRootNode!(element) === doc0 : contains!(element)) {
     pushInDocument(
-      IndexOf(allNodesInDocument = allNodesInDocument || call(getElementsByTagNameInDoc, doc0, "*")
+      IndexOf(allNodesInDocument = allNodesInDocument || [].slice.call(call(getElementsByTagNameInDoc, doc0, "*"))
         , element));
     return;
   }
@@ -428,7 +428,7 @@ const prepareRegister = (element: Element): void => {
   if (type === kNode.ELEMENT_NODE) {
     parent !== root && call(Append, root, parent as Element);
     pushInDocument(InnerConsts.OffsetForBoxChildren -
-      IndexOf(allNodesForDetached = allNodesForDetached || call(getElementsByTagNameInEP, root, "*")
+      IndexOf(allNodesForDetached = allNodesForDetached || [].slice.call(call(getElementsByTagNameInEP, root, "*"))
         , element));
   // Note: ignore the case that a plain #document-fragment has a fake .host
   }
@@ -500,7 +500,7 @@ const executeCmd = (eventOrDestroy?: Event): void => {
   timer = 1
 }
 const collectOnclickElements = (cmd: SecondLevelContentCmds): void => {
-  let len = (call(Remove, root), allNodesInDocument = call(getElementsByTagNameInDoc, doc0, "*")).length
+  let len = (call(Remove, root), allNodesInDocument = [].slice.call(call(getElementsByTagNameInDoc, doc0, "*"))).length
   let i = unsafeDispatchCounter = 0, tag: Element["localName"], el: Element
   len = len < GlobalConsts.MinElementCountToStopScanOnClick || cmd > kContentCmd.ManuallyFindAllOnClick - 1
       ? len : 0; // stop it
