@@ -47,10 +47,10 @@ export const newTabIndex = (tab: Readonly<Tab>
     : doesGroup !== false && getGroupId(tab) != null
     // next to the current if no opener - in case of failing in setting group
     ? pos === "start" || pos === "begin" ? tab.index
-      : As_<"end" | UnknownValue>(pos) === "end" ? undefined
+      : (pos satisfies "end" | UnknownValue) === "end" ? undefined
       : OnFirefox && opener ? undefined : tab.index + 1
     : pos === "start" || pos === "begin" ? 0
-    : As_<"end" | UnknownValue>(pos) === "end" ? opener ? 3e4 : undefined
+    : (pos satisfies "end" | UnknownValue) === "end" ? opener ? 3e4 : undefined
     /** pos is undefined, or "default" */
     : OnFirefox && opener ? undefined : tab.index + 1
 
@@ -68,7 +68,7 @@ const normalizeIncognito = (incognito: OpenUrlOptions["incognito"]): boolean | n
       : !incognito ? null
       : incognito === "force" ? true
       : incognito === "reverse" ? curIncognito_ !== IncognitoType.true
-      : incognito === "same" || As_<"keep">(incognito) === "keep" ? curIncognito_ === IncognitoType.true
+      : incognito === "same" || (incognito satisfies "keep") === "keep" ? curIncognito_ === IncognitoType.true
       : null
 }
 
@@ -158,7 +158,7 @@ const onEvalUrl_ = (workType: Urls.WorkType, options: KnownOptions<C.openUrl>, t
       const frames = framesForTab_.get(curTab)
       const opts: KnownOptions<C.runKey> & SafeObject = BgUtils_.safer_({ keys: [cmd[1]] })
       set_cEnv(null)
-      executeCommand(makeCommand_(AsC_("runKey"), opts)!, 1, kKeyCode.None, frames ? frames.cur_ : null, 0, null)
+      executeCommand(makeCommand_("runKey", opts)!, 1, kKeyCode.None, frames ? frames.cur_ : null, 0, null)
     }, 0)
     break
   }

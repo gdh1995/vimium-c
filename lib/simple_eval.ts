@@ -58,7 +58,7 @@ interface BaseStatement<T extends "" | BlockPrefixes | LineActions | "arg"> {
   v: T extends "try" | "catch" | "finally" ? BaseOp<O.block>
       : T extends "var" | "let" | "arg" ? BaseOp<O.comma> & { v: (RefAssignOp | RefOp)[] }
       : T extends "const" ? BaseOp<O.comma> & { v: RefAssignOp[] } : Op
-  l: string[] | null, __proto__?: null
+  /** local variables */ l: string[] | null, __proto__?: null
 }
 type SomeStatements<T extends "" | BlockPrefixes | LineActions | "arg"> = T extends string ? BaseStatement<T> : never
 type Statement = SomeStatements<"" | BlockPrefixes | LineActions>
@@ -146,7 +146,6 @@ const isLooselyNull = (obj: unknown): obj is null | undefined => obj === null ||
 const safer_ = <T> (a: T): T => (typeof a === "object" && a && !(a instanceof Array)
     ? ((a as any).__proto__ && ((a as any).__proto__ = null), a) : a) as T
 const resetRe_ = (): true => (<RegExpOne> /a?/).test("") as true
-const As_ = <T> (i: T): T => i
 const objEntries = !(Build.BTypes & BrowserType.Chrome)
     || Build.MinCVer >= BrowserVer.MinEnsuredES$Object$$values$and$$entries ? Object.entries! as never
     : Object.entries as unknown as undefined || (<T extends string> (object: object): [T, unknown][] => {
@@ -281,8 +280,8 @@ const Op = <T extends keyof OpValues, V extends OpValues[T]> (op: T, value: V): 
 
 const Stat = <T extends "" | BlockPrefixes | LineActions | "arg"> (
     stat: T, clause: SomeStatements<T>["c"], value: SomeStatements<T>["v"]): SomeStatements<T> => {
-  return As_<SomeStatements<"if">>(NDEBUG ? { a: stat as "if", c: clause!, v: value, l: null } : {
-      a: stat as "if", c: clause!, v: value, l: null, __proto__: null }) as SomeStatements<T>
+  return (NDEBUG ? { a: stat as "if", c: clause!, v: value, l: null } : { a: stat as "if", c: clause!,
+      v: value, l: null, __proto__: null }) satisfies SomeStatements<"if"> as SomeStatements<T>
 }
 
 const prepareBlockBodyToRun = (pureVars: VarNames[], block: OpValues[O.block]): void => {
@@ -435,7 +434,9 @@ const parseTree = (tokens_: readonly Token[], inNewFunc: boolean | undefined): O
       : Op(O.call, { n: true, o: false, f: val, a: [] }))
       break
     case T.dot: /* T.dot: */ values_.push(Op(O.access, { y: values_.pop()!, i: val, d: top.v })); break
-    default: values_.push(Op(O.binary, { o: As_<SomeTokens<BinaryTokens>>(top).v, l: values_.pop()!, r: val })); break
+    default:
+      values_.push(Op(O.binary, { o: (top satisfies SomeTokens<BinaryTokens>).v, l: values_.pop()!, r: val }))
+      break
     }
   }
   for (let pos_ = 0, before = T.block, cur: Token, type: T, topIsDict = false;
@@ -443,7 +444,7 @@ const parseTree = (tokens_: readonly Token[], inNewFunc: boolean | undefined): O
     cur = tokens_[pos_], type = cur.t
     if (topIsDict && type & (T.prefix | T.action | T.fn | T.literal)) {
       (cur.v as VarLiterals) = (cur.t === T.literal ? cur.v.v + ""
-          : As_<string>((cur as SomeTokens<T.prefix | T.action | T.fn>).v)) as "var1"
+          : (cur as SomeTokens<T.prefix | T.action | T.fn>).v satisfies string) as "var1"
       type = (cur.t as T) = T.ref, Build.NDEBUG || ((cur.n as string) = "ref")
     }
     const typeCur = cur.t
@@ -629,7 +630,7 @@ const Ref = (op: Op, type: R): Ref => {
     if (isLooselyNull(y)) {
       for (let par: Op | null = op; par; par = par.o === O.access ? par.v.y : par.o === O.call ? par.v.f : null) {
         if (par.o === O.access ? par.v.d[0] === "?" : par.o === O.call && par.v.o) {
-          return type === R.allowOptional ? { y: kFakeValue as never, i: As_<keyof FakeValue>("v") as never }
+          return type === R.allowOptional ? { y: kFakeValue as never, i: "v" satisfies keyof FakeValue as never }
               : { y: [undefined as unknown as number], i: 0 }
         }
       }
@@ -691,7 +692,7 @@ const evalFor = (statement: BaseStatement<"for">): unknown => {
   let res: unknown = kFakeValue, ref: Writable<Ref>
   if (newScope) { // should enter its own scope before computing source
     const isConst = varStat.a === "const"
-    const names = As_<(RefOp | RefAssignOp)[]>(varStat.v.v).map(ToVarName)
+    const names = (varStat.v.v satisfies (RefOp | RefAssignOp)[] as (RefOp | RefAssignOp)[]).map(ToVarName)
     locals_.push(StackFrame({ c: isConst ? names : null, l: isConst ? null : names, x: [] }))
   }
   if (statement.c.o === O.comma) {
@@ -794,7 +795,7 @@ const evalBlockBody = (block: OpValues[O.block]): unknown => {
       if (statement.a !== "throw") { return res } else { throw res }
     default:
       if (0) { // lgtm [js/unreachable-statement]
-        As_<"catch" | "finally" | "" | "else" | "if" | "else if" | "labelled">(statement.a) }
+        statement.a satisfies "catch" | "finally" | "" | "else" | "if" | "else if" | "labelled" }
       if (!Build.NDEBUG && (statement.a === "catch" || statement.a === "finally")) { throwType("Error in try/catch") }
       if (statement.a !== "if" && statement.a !== "else if" || opEvals[statement.c.o](statement.c)) {
         statement.v.o <= O.stat ? (res = evalBlockBody(SubBlock(statement.v)))
@@ -846,7 +847,7 @@ const evalNever = (op: BaseOp<O.block | O.statGroup | O.stat | O.pair>): void =>
   case "<<=": x <<= source; break; case ">>=": x >>= source; break; case ">>>=": x >>>= source; break
   case  "&=": x  &= source; break; case  "^=": x  ^= source; break; case   "|=": x   |= source; break
   default   : x   = source;
-    if (0) { As_<"=" | "??=" | "&&=" | "||=" | "of" | "in">(action) } break // lgtm [js/unreachable-statement]
+    if (0) { action satisfies "=" | "??=" | "&&=" | "||=" | "of" | "in" } break // lgtm [js/unreachable-statement]
   }
   if (direct && target.o === O.token) { Ref(target, R.noConst) }
   return y[i] = x
@@ -865,7 +866,7 @@ const evalNever = (op: BaseOp<O.block | O.statGroup | O.stat | O.pair>): void =>
   case "%":  return x  % y; case "**": return x ** y;
   case "in": return x in (y as unknown as Dict<unknown>)
   case "instanceof": return (x as unknown) instanceof (y as unknown as { (): unknown })
-  default: if (0) { As_<"&&" | "||" | "??">(action) } return y // lgtm [js/unreachable-statement]
+  default: if (0) { action satisfies "&&" | "||" | "??" } return y // lgtm [js/unreachable-statement]
   }
 }, evalUnary = (op: BaseOp<O.unary>): unknown => {
   const action = op.v.o.v, target = op.v.x, { y, i } = Ref(target, action === "typeof" ? R.evenNotFound : R.plain)
@@ -882,7 +883,7 @@ const evalNever = (op: BaseOp<O.block | O.statGroup | O.stat | O.pair>): void =>
   case   "void":
     /*#__NOINLINE__*/ evalAccess(Op(O.access, { y: Op(O.token, {v: {c: 5, v: y}}), i: Op(O.token, { v: i }), d: "." }))
     // no break;
-  default: if (0) { As_<"void">(action) } return // lgtm [js/unreachable-statement]
+  default: if (0) { action satisfies "void" } return // lgtm [js/unreachable-statement]
   }
 }, evalCall = (op: BaseOp<O.call>): unknown => {
   const { y, i } = Ref(op.v.f, R.allowOptional), i2 = evalAccessKey(i)
@@ -901,8 +902,8 @@ const evalNever = (op: BaseOp<O.block | O.statGroup | O.stat | O.pair>): void =>
       && Build.MinCVer >= BrowserVer.MinEnsuredES6SpreadOperator) && noThis
       ? !op.v.n ? func(...args) : new func(...args)
       : !op.v.n ? HasReflect ? Reflect!.apply(func, noThis ? void 0 : y, args)
-        : As_<3>(evalCall.apply.bind<(this: (this: 1, arg: 2) => 3, thisArg: 1, x: [2]) => 3>(
-              func as (this: 1, arg: 2) => 3)((noThis ? void 0 : y) as unknown as 1, args as [2]))
+        : evalCall.apply.bind<(this: (this: 1, arg: 2) => 3, thisArg: 1, x: [2]) => 3>(
+              func as (this: 1, arg: 2) => 3)((noThis ? void 0 : y) as unknown as 1, args as [2]) satisfies 3
       : HasReflect ? Reflect!.construct(func, args)
       : args.length === 0 ? new func : args.length === 1 ? new func(args[0])
       : (args.unshift(void 0),
@@ -983,10 +984,10 @@ const evalNever = (op: BaseOp<O.block | O.statGroup | O.stat | O.pair>): void =>
   return typeof key === "number" || typeof key === "symbol" ? key : key + ""
 }
 
-const opEvals = As_<{ [op in keyof OpValues]: (op: BaseOp<op>) => unknown }>([
+const opEvals = [
   evalNever, evalNever, evalNever, evalComma, evalNever, evalFn, evalAssign, evalIfElse, evalBinary, evalUnary,
   evalCall, evalAccess, evalComposed, evalTokenValue
-]) as { [op in keyof OpValues]: (op: Op) => unknown }
+] satisfies { [op in keyof OpValues]: (op: BaseOp<op>) => unknown } as { [op in keyof OpValues]: (op: Op) => unknown }
 
 const FunctionFromOp = (fn: OpValues[O.fn], globals: Isolate, closures: StackFrame[]
     , name: string, namedScope: boolean): () => unknown => {
@@ -1150,7 +1151,7 @@ const ToString = (op: Op, allowed: number): string => {
         : typeof val === "bigint" ? val + "n" : !val || typeof val !== "object" ? val + ""
         : val.c === 4 ? `/${val.v[0]}/${val.v[1]}` : val.v + ""
   }
-  default: if (0) { As_<never>(op) } return "(unknown)" // lgtm [js/unreachable-statement]
+  default: if (0) { op satisfies never } return "(unknown)" // lgtm [js/unreachable-statement]
   }
 }
 

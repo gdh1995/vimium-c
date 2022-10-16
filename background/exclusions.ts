@@ -88,14 +88,14 @@ const setRules_ = (rules: ExclusionsNS.StoredRule[]): void => {
 export const parseMatcher_ = (pattern: string | null): BaseUrlMatcher[] => {
   const res = pattern ? [createRule_(pattern, "")] : rules_
   return res.map<BaseUrlMatcher>(i => ({ t: i.t, v: i.t === kMatchUrl.RegExp ? i.v.source
-      : i.t === kMatchUrl.StringPrefix ? i.v : As_<URLPatternDict>({
+      : i.t === kMatchUrl.StringPrefix ? i.v : {
     hash: i.v.hash,
     hostname: i.v.hostname,
     pathname: i.v.pathname,
     port: i.v.port,
     protocol: i.v.protocol,
     search: i.v.search,
-  })}))
+  } satisfies URLPatternDict}))
 }
 
 export const getExcluded_ = (url: string, sender: Frames.Sender): string | null => {

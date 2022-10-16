@@ -100,7 +100,7 @@ const parseVal_limited = (val: string): any => {
 export const normalizeCommand_ = (cmd: Writable<CommandsNS.BaseItem>, details?: CommandsNS.Description
       ): cmd is CommandsNS.NormalizedItem => {
     let options: CommandsNS.RawOptions | string | null = cmd.options_
-    if (details === undefined) { details = availableCommands_[cmd.command_]! }
+    if (details === undefined) { details = availableCommands_[cmd.command_] }
     let opt: CommandsNS.Options | null
     opt = details.length < 4 ? null : BgUtils_.safer_(details[3]!);
     if (typeof options === "string") {
@@ -166,13 +166,13 @@ export const normalizeCommand_ = (cmd: Writable<CommandsNS.BaseItem>, details?: 
 }
 
 export const makeCommand_ = <T extends CommandsNS.RawOptions | "__not_parsed__" | null> (
-    command: string, options: T, details?: CommandsNS.Description
+    command: kCName, options: T, details?: CommandsNS.Description
     ): CommandsNS.Item | (CommandsNS.RawOptions | "__not_parsed__" extends T ? null : never) => {
-  if (details === undefined) { details = availableCommands_[command]! }
+  if (details === undefined) { details = availableCommands_[command] }
   const cmd: Writable<CommandsNS.BaseItem> = {
       alias_: details[0] as Exclude<typeof details[0], kFgCmd>,
       background_: details[1] as Exclude<typeof details[1], 0>,
-      command_: command as kCName,
+      command_: command,
       options_: options || (details.length < 4 ? null : BgUtils_.safer_(details[3]!)),
       hasNext_: null,
       repeat_: details[2]
@@ -235,7 +235,7 @@ const parseKeyMappings_ = (wholeMappings: string): void => {
       for (_len = defaultMap.length; 0 < _len; ) {
         _len -= 2;
         builtinKeys_.add(defaultMap[_len])
-        registry.set(defaultMap[_len], makeCommand_(defaultMap[_len + 1], null))
+        registry.set(defaultMap[_len], makeCommand_(defaultMap[_len + 1] as kCName, null))
       }
     } else {
       _i++
@@ -260,7 +260,7 @@ const parseKeyMappings_ = (wholeMappings: string): void => {
           logError_('Key %c"%s"', colorRed, key, "has been mapped to", registry.get(key)!.command_)
         } else if (!val) {
           logError_((isRun ? "Lack target when running" : "Lack command when mapping") + ' %c"%s"', colorRed, key)
-        } else if (!isRun && !(details = availableCommands_[val])) {
+        } else if (!isRun && !(details = availableCommands_[val as kCName])) {
           logError_('Command %c"%s"', colorRed, val, "doesn't exist")
         } else if (((ch = key.charCodeAt(0)) > kCharCode.maxNotNum && ch < kCharCode.minNotNum || ch === kCharCode.dash)
             && !(noNumMaps_ && noNumMaps_.has(key[0]))) {
@@ -270,8 +270,8 @@ const parseKeyMappings_ = (wholeMappings: string): void => {
           doesPass = true
         }
         if (doesPass) {
-          regItem = !isRun ? makeCommand_(val, getOptions_(line, knownLen), details)
-              : makeCommand_(AsC_("runKey"), getOptions_(` keys="${
+          regItem = !isRun ? makeCommand_(val as Exclude<keyof typeof availableCommands_, "__proto__">
+                , getOptions_(line, knownLen), details) : makeCommand_("runKey", getOptions_(` keys="${
                     val.replace(<RegExpG> /"|\\/g, "\\$&")}"` + line.slice(knownLen), 0), details)
           if (regItem) {
             registry.set(key, regItem)
@@ -380,13 +380,13 @@ const parseKeyMappings_ = (wholeMappings: string): void => {
         }
         break
       default:
-        logError_('Unknown mapping command: %c"%s"', colorRed, As_<"__unknown__">(cmd), "in", line)
+        logError_('Unknown mapping command: %c"%s"', colorRed, cmd satisfies "__unknown__", "in", line)
         break
       }
     }
     for (const shortcut of CONST_.GlobalCommands_) {
       if (!shortcut.startsWith("user") && !cmdMap.has(shortcut)) {
-        if (regItem = makeCommand_(shortcut, null)) {
+        if (regItem = makeCommand_(shortcut as Exclude<typeof shortcut, `user${string}`>, null)) {
           cmdMap.set(shortcut, regItem)
         }
       }
@@ -406,7 +406,7 @@ const setupShortcut_ = (cmdMap: NonNullable<typeof shortcutRegistry_>, key: Stan
       , ret: 0 | 1 | 2 = command ? 1 : 0;
     if (ret && (command in availableCommands_)) {
       has_cmd && delete options!.command
-      if (regItem = makeCommand_(command, options)) {
+      if (regItem = makeCommand_(command as Exclude<keyof typeof availableCommands_, "__proto__">, options)) {
         cmdMap.set(key, regItem)
       }
       ret = 2;
@@ -541,6 +541,7 @@ const logError_ = function (): void {
   (errors_ || (errors_ = [])).push([].slice.call(arguments, 0))
 } as (firstMsg: string, ...args: any[]) => void
 
+const AsC_ = (i: kCName): kCName => i
 const defaultKeyMappings_: string =
   "? "     +AsC_("showHelp")            +" <a-c> "  +AsC_("previousTab")     +" <a-s-c> "+AsC_("nextTab")             +
   " d "    +AsC_("scrollPageDown")      +" <c-e> "  +AsC_("scrollDown")      +" f "      +AsC_("LinkHints.activate")  +
@@ -572,8 +573,7 @@ const defaultKeyMappings_: string =
   " yv "   +AsC_("LinkHints.activateSelect")               + " yi "    + AsC_("LinkHints.activateCopyImage")          +
   (Build.NDEBUG ? "" : ` <a-s-f12> ${AsC_("debugBackground")} <s-f12> ${CNameLiterals.focusOptions}`)
 
-export const availableCommands_: Dict<CommandsNS.Description> & SafeObject =
-    As_<NameMetaMap & SafeObject>({
+export const availableCommands_: { readonly [key in kCName]: CommandsNS.Description } & SafeObject = {
   __proto__: null as never,
   "LinkHints.activate": [ kFgCmd.linkHints, kCxt.fg, 0, { m: HintMode.DEFAULT } ],
   "LinkHints.activateCopyImage": [ kFgCmd.linkHints, kCxt.fg, 0, { m: HintMode.COPY_IMAGE } ],
@@ -758,7 +758,7 @@ export const availableCommands_: Dict<CommandsNS.Description> & SafeObject =
   zoomIn: [ kBgCmd.toggleZoom, kCxt.bg, 0 ],
   zoomOut: [ kBgCmd.toggleZoom, kCxt.bg, 0, { $count: -1 } ],
   zoomReset: [ kBgCmd.toggleZoom, kCxt.bg, 0, { reset: true } ]
-})
+} satisfies NameMetaMap & SafeObject
 
 const hintModes_: SafeDict<HintMode> = {
     __proto__: null as never,

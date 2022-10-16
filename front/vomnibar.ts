@@ -63,9 +63,6 @@ if (typeof VApi == "object" && VApi && typeof VApi.d == "function") {
 }
 
 // eslint-disable-next-line no-var
-declare var AsOmni_: <T> (i: T) => T
-if (!Build.NDEBUG) { (window as unknown as typeof globalThis).AsOmni_ = i => i }
-// eslint-disable-next-line no-var
 var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_ || "", Vomnibar_ = {
   pageType_: VomnibarNS.PageType.Default,
   activate_ (options: Options): void {
@@ -488,14 +485,15 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     sel >= 1 && _ref[sel - 1].classList.add("p");
     sel >= 0 && _ref[sel].classList.add("s");
   },
-  _keyNames: AsOmni_<readonly kChar[]>([kChar.space, kChar.pageup, kChar.pagedown, kChar.end, kChar.home,
+  _keyNames: [kChar.space, kChar.pageup, kChar.pagedown, kChar.end, kChar.home,
         kChar.left, kChar.up, kChar.right, kChar.down,
-        /* 41 */ kChar.None, kChar.None, kChar.None, kChar.None, kChar.insert, kChar.delete]),
+        /* 41 */ kChar.None, kChar.None, kChar.None, kChar.None, kChar.insert, kChar.delete
+        ] satisfies kChar[] as readonly kChar[],
   _codeCorrectionMap: ["Semicolon", "Equal", "Comma", "Minus", "Period", "Slash", "Backquote",
     "BracketLeft", "Backslash", "BracketRight", "Quote", "IntlBackslash"],
-  _modifierKeys: AsOmni_<Dict<1>>({
+  _modifierKeys: {
     Alt: 1, AltGraph: 1, Control: 1, Meta: 1, OS: 1, Shift: 1
-  }) as SafeEnum,
+  } satisfies Dict<1> as Dict<1> as SafeEnum,
   keyIdCorrectionOffset_old_cr_: Build.BTypes & BrowserType.Chrome
       && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key
       ? Build.OS & ~(1 << kOS.mac) ? 185 as const : 300 as const : 0 as never as null,
@@ -601,21 +599,20 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     }
     return mapped ? { mapped: true, key: mapped } : { mapped: false, key }
   },
-  ctrlCharOrShiftKeyMap_: AsOmni_<{ readonly [char in kChar]?: AllowedActions }>({
+  ctrlCharOrShiftKeyMap_: {
     // for Ctrl / Meta
     space: AllowedActions.toggle, b: AllowedActions.pageup
     , j: AllowedActions.down, k: AllowedActions.up, n: AllowedActions.down, p: AllowedActions.up
     , "[": AllowedActions.dismiss, "]": AllowedActions.toggle
     // for Shift
-    , up: AllowedActions.pageup, down: AllowedActions.pagedown
-    , tab: AllowedActions.up, delete: AllowedActions.remove
-  }),
-  normalMap_: AsOmni_<{ readonly [char in kChar]?: AllowedActions }>({
+    , up: AllowedActions.pageup, down: AllowedActions.pagedown, tab: AllowedActions.up, delete: AllowedActions.remove
+  } satisfies { [char in kChar]?: AllowedActions } as { readonly [char in kChar]?: AllowedActions },
+  normalMap_: {
     tab: AllowedActions.down, esc: AllowedActions.dismiss
     , pageup: AllowedActions.pageup, pagedown: AllowedActions.pagedown
     , up: AllowedActions.up, down: AllowedActions.down
     , f1: AllowedActions.backspace, f2: AllowedActions.blur
-  }),
+  } satisfies { [char in kChar]?: AllowedActions } as { readonly [char in kChar]?: AllowedActions },
   onKeydown_ (event: KeyboardEventToPrevent): void {
     const a = Vomnibar_, n = event.keyCode, focused = a.focused_,
     { mapped, key } = n !== kKeyCode.ime ? a.getMappedKey_(event) : { mapped: false, key: "" }
@@ -1494,7 +1491,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   },
   secret_: null as ((request: BgVomnibarSpecialReq[kBgReq.omni_init]) => void) | null,
 
-  mode_: AsOmni_<EnsureItemsNonNull<Req.fg<kFgReq.omni>>>({
+  mode_: {
     H: kFgReq.omni as kFgReq.omni,
     o: "omni" as CompletersNS.ValidTypes,
     t: CompletersNS.SugType.Empty,
@@ -1504,7 +1501,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     f: CompletersNS.QueryFlags.None,
     i: 0 as 0 | 1 | 2,
     q: ""
-  }),
+  } satisfies EnsureItemsNonNull<Req.fg<kFgReq.omni>> as EnsureItemsNonNull<Req.fg<kFgReq.omni>>,
   spacesRe_: <RegExpG> /\s+/g,
   fetch_ (): void {
     const a = Vomnibar_;

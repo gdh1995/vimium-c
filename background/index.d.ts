@@ -392,10 +392,6 @@ declare const enum Consts {
   MaxLengthOfSearchKey = 50, MinInvalidLengthOfSearchKey = MaxLengthOfSearchKey + 1,
 }
 
-/* eslint-disable no-var */
-declare var As_: <T> (i: T) => T
-/* eslint-enable no-var */
-
 interface SetTimeout {
   <T1, T2, T3>(this: void, handler: (this: void, a1: T1, a2: T2, a3: T3) => void,
     timeout: number, a1: T1, a2: T2, a3: T3): number;

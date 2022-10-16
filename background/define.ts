@@ -10,12 +10,7 @@ if (Build.BTypes & (Build.BTypes & BrowserType.ChromeOrFirefox | BrowserType.Edg
 }
 
 globalThis.__filename = null
-if (!Build.NDEBUG) {
-  globalThis.As_ = <T> (i: T): T => i
-  globalThis.AsC_ = <T extends kCName> (i: T): T => i
-}
-
-(function (): void {
+; (function (): void {
   type ModuleTy = Dict<any> & { __esModule?: boolean }
   type LoadingPromise = Promise<void> & { __esModule?: ModuleTy }
   type AsyncRequireTy = (target: [string], resolve: (exports: ModuleTy) => void, reject?: (msg: any) => void) => void

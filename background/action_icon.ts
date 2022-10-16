@@ -7,13 +7,14 @@ import { extTrans_ } from "./i18n"
 import { browser_, runtimeError_ } from "./browser"
 import { asyncIterFrames_ } from "./ports"
 
-const knownIcons_ = OnChrome ? As_<readonly [IconNS.BinaryPath, IconNS.BinaryPath, IconNS.BinaryPath]>([
+const knownIcons_: readonly [IconNS.BinaryPath, IconNS.BinaryPath, IconNS.BinaryPath
+    ] | readonly [IconNS.ImagePath, IconNS.ImagePath, IconNS.ImagePath] = OnChrome ? [
   "/icons/enabled.bin", "/icons/partial.bin", "/icons/disabled.bin"
-]) : As_<readonly [IconNS.ImagePath, IconNS.ImagePath, IconNS.ImagePath]>([
+] : [
   { 19: "/icons/enabled_19.png", 38: "/icons/enabled_38.png" },
   { 19: "/icons/partial_19.png", 38: "/icons/partial_38.png" },
   { 19: "/icons/disabled_19.png", 38: "/icons/disabled_38.png" }
-])
+]
 
 export const browserAction_ = (browser_ as any).action as undefined || browser_.browserAction
 let tabIds_cr_: Map<Frames.ValidStatus, number[] | null> | null

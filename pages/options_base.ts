@@ -140,8 +140,6 @@ let settingsCache_ = null as {
   [key in keyof SettingsWithDefaults]?: SettingsWithDefaults[key] | UpdateLock
 } | Promise<void> | null
 
-const As_ = <T> (i: T): T => i
-
 export const setupSettingsCache_ = (cache: Partial<SettingsNS.PersistentSettings>): void => { settingsCache_ = cache }
 export const getSettingsCache_ = () => settingsCache_ as Partial<SettingsNS.PersistentSettings>
 
@@ -200,15 +198,15 @@ export const bgSettings_ = {
       (settingsCache_ as Dict<any>)[key] = val3 !== null ? val3 : val
     })
   },
-  valuesToLoad_: <SettingsNS.AutoSyncedNameMap> As_<SettingsNS.AutoSyncedNameMap & SafeObject>({
+  valuesToLoad_: {
     __proto__: null as never,
     filterLinkHints: "f", keyLayout: "l", mouseReachable: "e",
     keyboard: "k", keyupTime: "u", linkHintCharacters: "c", linkHintNumbers: "n", passEsc: "p",
     regexFindMode: "r", smoothScroll: "s", scrollStepSize: "t", waitForEnter: "w"
-  }),
-  complexValuesToLoad_: As_<TypedSafeEnum<SettingsNS.FrontendComplexSyncingItems>>({
+  } satisfies SettingsNS.AutoSyncedNameMap & SafeObject as SettingsNS.AutoSyncedNameMap,
+  complexValuesToLoad_: {
     __proto__: null as never, c: 1, n: 1, l: 1, d: 1
-  })
+  } satisfies TypedSafeEnum<SettingsNS.FrontendComplexSyncingItems>
 }
 
 //#endregion

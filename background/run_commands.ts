@@ -387,7 +387,7 @@ export const executeExternalCmd = (
     port?: Port | null): void => {
   let command = message.command;
   command = command ? command + "" : "";
-  const description = command ? availableCommands_[command] : null
+  const description = command ? availableCommands_[command as kCName] : null
   if (!description) { return; }
   let ref: Frames.Frames | undefined
   port = port || (sender!.tab ? indexFrame(sender!.tab.id, sender!.frameId || 0)
@@ -397,7 +397,7 @@ export const executeExternalCmd = (
   }
   let options = (message.options || null) as CommandsNS.RawOptions | null
     , lastKey: kKeyCode | undefined = message.key
-    , regItem = makeCommand_(command, options)
+    , regItem = makeCommand_(command as Exclude<keyof typeof availableCommands_, "__proto__">, options)
     , count = message.count as number | string | undefined;
   if (!regItem) { return; }
   count = count !== "-" ? parseInt(count as string, 10) || 1 : -1;
@@ -451,7 +451,7 @@ export const getRunNextCmdBy = <T extends kRunOn> (isResultTab: T
 const runNextCmdByResult = (result: CmdResult): void => {
   typeof result === "object" ? runNextOnTabLoaded(get_cOptions<C.blank, true>(), result)
   : typeof result === "boolean" ? runNextCmdBy(result ? 1 : 0, get_cOptions<C.blank, true>(), null)
-  : As_<0 | 1 | -1 | 50>(result) < 0 ? void 0
+  : (result satisfies 0 | 1 | -1 | 50) < 0 ? void 0
   : runNextCmdBy(result ? 1 : 0, get_cOptions<C.blank, true>(), result > 1 ? result : null)
 }
 

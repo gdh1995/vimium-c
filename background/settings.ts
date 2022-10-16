@@ -220,7 +220,7 @@ export const updatePayload_ = function (shortKey: keyof SettingsNS.FrontendCompl
           && (!(Build.OS & ~(1 << kOS.mac)) || !!(Build.OS & (1 << kOS.mac)) && !os_) ? kKeyLayout.ignoreCaps : 0)
       break
     case "d": value = value ? " D" : ""; break
-    default: if (0) { As_<never>(shortKey) } break // lgtm [js/unreachable-statement]
+    default: if (0) { shortKey satisfies never } break // lgtm [js/unreachable-statement]
     }
     return obj ? (obj as Generalized<SettingsNS.FrontendSettingCache>)[shortKey] = value : value
 } as <T extends keyof (SettingsNS.FrontendSettingsSyncingItems)> (shortKey: T
@@ -231,7 +231,8 @@ export const updatePayload_ = function (shortKey: keyof SettingsNS.FrontendCompl
       , obj?: Partial<SettingsNS.FrontendSettingCache>
 ) => (SettingsNS.FrontendSettingsSyncingItems)[T][1]
 
-Object.assign(updateHooks_, As_<{ [key in SettingsNS.DeclaredUpdateHooks]: SettingsNS.UpdateHook<key> }>({
+Object.assign<typeof updateHooks_, { [key in SettingsNS.DeclaredUpdateHooks]: SettingsNS.UpdateHook<key> }>(
+      updateHooks_, {
     extAllowList (val): void {
       const map = extAllowList_
       map.forEach((v, k): void => { v !== false && map.delete(k) })
@@ -305,10 +306,10 @@ Object.assign(updateHooks_, As_<{ [key in SettingsNS.DeclaredUpdateHooks]: Setti
       set_vomnibarPage_f(url)
       setInLocal_("vomnibarPage_f", url)
     }
-}))
+})
 
   // the default of all nullable fields must be set to null for compatibility with @Sync.set
-export const defaults_ = As_<Readonly<SettingsWithDefaults> & SafeObject>({
+export const defaults_: Readonly<SettingsWithDefaults> & SafeObject = {
     __proto__: null as never,
     allBrowserUrls: false,
     autoDarkMode: 2,
@@ -475,18 +476,18 @@ js\\:|Js: javascript:\\ $S; JavaScript`,
     vimSync: null,
     vomnibarPage: "front/vomnibar.html",
     waitForEnter: true
-})
+}
 
-export const frontUpdateAllowed_ = As_<ReadonlyArray<keyof SettingsNS.FrontUpdateAllowedSettings>>([
+export const frontUpdateAllowed_: ReadonlyArray<keyof SettingsNS.FrontUpdateAllowedSettings> = [
   "showAdvancedCommands"
-])
+]
 
-export const valuesToLoad_ = <SettingsNS.AutoSyncedNameMap> As_<SettingsNS.AutoSyncedNameMap & SafeObject>({
+export const valuesToLoad_ = {
     __proto__: null as never,
     filterLinkHints: "f", keyLayout: "l", keyboard: "k", keyupTime: "u",
     linkHintCharacters: "c", linkHintNumbers: "n", mouseReachable: "e", passEsc: "p",
     regexFindMode: "r", smoothScroll: "s", scrollStepSize: "t", waitForEnter: "w"
-})
+} satisfies SettingsNS.AutoSyncedNameMap & SafeObject as SettingsNS.AutoSyncedNameMap
 
 export const kSettingsToUpgrade_: readonly SettingsNS.LocalSettingNames[] = [
   "ignoreKeyboardLayout", "ignoreCapsLock", "mapModifier"

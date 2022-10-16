@@ -55,17 +55,17 @@ export let hasGroupPermission_ff_: boolean | 0 = false
 export const settingsCache_ = {} as Readonly<SettingsNS.SettingsWithDefaults>
 export const storageCache_: PartialOrEnsured<Map<SettingsNS.LocalSettingNames, string>, "get" | "forEach"> = new Map()
 export let newTabUrl_f = "", vomnibarPage_f = ""
-export const contentPayload_ = <SettingsNS.FrontendSettingCache> As_<SettingsNS.DeclaredFrontendValues>({
+export const contentPayload_ = {
   v: OnChrome ? CurCVer_ : OnFirefox ? CurFFVer_ : 0,
   d: "", g: false, m: false
-})
+} satisfies SettingsNS.DeclaredFrontendValues as SettingsNS.FrontendSettingCache
 export const searchEngines_ = {
   map: new Map<string, Search.Engine>(), rules: [] as Search.Rule[], keywords: null as string | null
 }
-export const omniPayload_ = <SettingsNS.VomnibarPayload> As_<SettingsNS.DeclaredVomnibarPayload>({
+export const omniPayload_ = {
   v: OnChrome ? IsEdg_ ? -CurCVer_ : CurCVer_ : OnFirefox ? CurFFVer_ : 0,
   c: "", i: 0, l: 0, m: null, n: 0, s: "", t: ""
-})
+} satisfies SettingsNS.DeclaredVomnibarPayload as SettingsNS.VomnibarPayload
 export const vomnibarBgOptions_ = { actions: [] as string[] }
 export let omniStyleOverridden_ = false
 export let findCSS_: FindCSS

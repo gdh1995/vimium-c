@@ -246,7 +246,7 @@ export const getPortUrl_ = (port?: Port | null, ignoreHash?: boolean, request?: 
         && port && port.s.frameId_ ? browserWebNav_() : null
     port ? (webNav ? webNav.getFrame : tabsGet as never as typeof chrome.webNavigation.getFrame)(
         webNav ? {tabId: port.s.tabId_, frameId: port.s.frameId_}
-          : As_<Parameters<typeof chrome.tabs.get>[0]>(port.s.tabId_) as never,
+          : port.s.tabId_ satisfies Parameters<typeof chrome.tabs.get>[0] as never,
         (tab?: chrome.webNavigation.GetFrameResultDetails | Tab | null): void => {
       const url = tab ? tab.url : ""
       if (!url && webNav) {

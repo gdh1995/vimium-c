@@ -139,17 +139,17 @@ const normalizeCmdName = (command: kCName): NormalizedNames => {
       } else if (endsWith(command, "TabSelection")) {
         command = command.replace("TabSelection", "Tabs")
       } else if (command === kShortcutAliases.nextTab1) {
-        command = AsC_("nextTab");
-      } else if (command === AsC_("newTab")) {
-        command = AsC_("createTab")
-      } else if (command === AsC_("closeSomeOtherTabs")) {
-        command = AsC_("closeOtherTabs")
-      } else if (command === AsC_("simBackspace")) {
-        command = AsC_("simulateBackspace")
-      } else if (command === AsC_("showHUD")) {
-        command = AsC_("showTip")
-      } else if (command === AsC_("wait")) {
-        command = AsC_("blank")
+        command = "nextTab";
+      } else if (command === "newTab") {
+        command = "createTab"
+      } else if (command === "closeSomeOtherTabs") {
+        command = "closeOtherTabs"
+      } else if (command === "simBackspace") {
+        command = "simulateBackspace"
+      } else if (command === "showHUD") {
+        command = "showTip"
+      } else if (command === "wait") {
+        command = "blank"
       }
       return command
 }

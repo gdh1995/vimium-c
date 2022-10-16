@@ -322,8 +322,7 @@ export const HistoryManager_ = {
       t: "",
       title_: title,
       time_: time,
-      visible_: omniBlockList ? As_<0 | kVisibility.visible>(TestNotBlocked_(url, title))
-          : kVisibility.visible,
+      visible_: omniBlockList ? TestNotBlocked_(url, title) : kVisibility.visible,
       u: url
     }
     let slot: Domain | undefined

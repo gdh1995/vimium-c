@@ -18,9 +18,6 @@
     "global_defs": {
       "define.amd": true,
       "@exports": "undefined",
-      "@As_": "i=>i",
-      "@AsC_": "i=>i",
-      "@AsOmni_": "i=>i",
       "@__importStar": "i=>i",
       "@module": "undefined"
     },

@@ -41,7 +41,7 @@ const executeShortcutEntry = (cmd: StandardShortcutNames | kShortcutAliases): vo
   }
 }
 
-set_onInit_(As_<typeof onInit_>((): void => {
+set_onInit_(((): void => {
       if (bgIniting_ !== BackendHandlersNS.kInitStat.FINISHED) { return }
       if (onInit_) {
         BgUtils_.nextTick_(settings_.ready_.then.bind(settings_.ready_, onInit_))
@@ -98,7 +98,7 @@ set_onInit_(As_<typeof onInit_>((): void => {
       }, 200)
     }, 200)
   })
-}))
+}) satisfies typeof onInit_)
 
 if (!Build.NDEBUG) {
   let lacking: any[] = (bgC_ as { [K: number]: any } as any[]).map((i, ind) => !!i ? -1 : ind).filter(i => i >= 0)

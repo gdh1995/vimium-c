@@ -230,7 +230,10 @@ export const runKeyWithCond = (info?: CurrentEnvCache): void => {
       mask || (keys[keysInd] = seq)
     }
     const key = seq.tree, options2 = seq.options
-    if (key.t === kN.error || (As_<ListNode>(key)).val.length === 0) { key.t === kN.error && showHUD(key.val); return }
+    if (key.t === kN.error || ((key satisfies ListNode)).val.length === 0) {
+      key.t === kN.error && showHUD(key.val)
+      return
+    }
     let options = matched && matched.options || get_cOptions<C.runKey, true>().options
         || (get_cOptions<C.runKey, true>().$masked ? null : collectOptions(get_cOptions<C.runKey, true>()))
     options = concatOptions(options, options2)
@@ -328,7 +331,7 @@ const exprKeySeq = function (this: ListNode): object | string | null {
     return !node ? null
         : node.t === kN.list ? node.val.length === 1 ? iter(node.val[0])
             : node.val.length === 0 ? null : ifNotEmpty(node.val.map(iter))
-        : node.t !== kN.ifElse ? As_<string | OneKeyInstance>(node.val)
+        : node.t !== kN.ifElse ? node.val satisfies string | OneKeyInstance
         : { if: iter(node.val.cond), then: iter(node.val.t), else: iter(node.val.f) }
   }
   return iter(this)
@@ -465,7 +468,7 @@ const runOneKey = (cursor: KeyNode, seq: BgCmdOptions[C.runKey]["$seq"], envInfo
   runOneKeyWithOptions(info.key, info.count * (hasCount ? seq.repeat : 1), options, envInfo, null, isFirst)
 }
 
-set_runOneMapping_(As_<typeof runOneMapping_>((key, port, fStatus): void => {
+set_runOneMapping_(((key, port, fStatus): void => {
   key = key.replace(<RegExpOne> /^([$%][a-zA-Z]\+?)+(?=\S)/, "")
   const arr: null | string[] = (<RegExpOne> /^\d+|^-\d*/).exec(key)
   let count = 1
@@ -484,7 +487,7 @@ set_runOneMapping_(As_<typeof runOneMapping_>((key, port, fStatus): void => {
   set_cKey(kKeyCode.None)
   set_cOptions(null)
   runOneKeyWithOptions(hash ? key.slice(0, hash - 1) : key, count, hash ? key.slice(hash) : null, null, fStatus)
-}))
+}) satisfies typeof runOneMapping_)
 
 const doesInheritOptions = (baseOptions: CommandsNS.Options): boolean => {
   let cur = get_cOptions<C.blank>() as CommandsNS.Options | undefined
@@ -501,7 +504,7 @@ const runOneKeyWithOptions = (key: string, count: number
   let entryReadonly = true
   if (registryEntry == null && key in availableCommands_) {
     entryReadonly = false
-    registryEntry = makeCommand_(key, null)
+    registryEntry = makeCommand_(key as Exclude<keyof typeof availableCommands_, "__proto__">, null)
   }
   if (registryEntry == null) {
     showHUD(`"${(<RegExpOne> /^\w+$/).test(key) ? finalKey : key}" has not been mapped`)
@@ -548,7 +551,7 @@ const runOneKeyWithOptions = (key: string, count: number
 }
 
 /** return whether skip it in help dialog or not */
-set_inlineRunKey_(As_<typeof inlineRunKey_>((rootRegistry: Writable<CommandsNS.Item>
+set_inlineRunKey_(((rootRegistry: Writable<CommandsNS.Item>
     , path?: CommandsNS.Item[]): void => {
   /** @note should keep `fullOpts` writable */
   let fullOpts: KnownOptions<C.runKey> & SafeObject | null = normalizedOptions_(rootRegistry)
@@ -626,6 +629,6 @@ set_inlineRunKey_(As_<typeof inlineRunKey_>((rootRegistry: Writable<CommandsNS.I
         ? fullOpts = concatOptions(parentOptions, fullOpts)!
         : parentOptions || BgUtils_.safeObj_()
   }
-}))
+}) satisfies typeof inlineRunKey_)
 
 //#endregion

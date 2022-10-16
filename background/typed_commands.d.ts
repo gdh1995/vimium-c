@@ -467,7 +467,6 @@ interface CmdNameIds {
   zoomReset: kBgCmd.toggleZoom
 }
 type kCName = keyof CmdNameIds
-declare var AsC_: <T extends kCName> (i: T) => T // eslint-disable-line no-var
 
 declare const enum kShortcutAliases { nextTab1 = "quickNext" }
 type StandardShortcutNames = "createTab" | "goBack" | "goForward" | "previousTab"

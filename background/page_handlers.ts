@@ -21,11 +21,11 @@ import { kPgReq, PgReq, Req2 } from "./page_messages"
 import PagePort = Frames.PagePort
 type OrPromise<T> = T | Promise<T>
 
-const pageRequestHandlers_ = As_<{
+const pageRequestHandlers_: {
   readonly [K in keyof PgReq]:
       PgReq[K][0] extends null | void ? (_: void | null, port: PagePort | null) => OrPromise<PgReq[K][1]>
       : (request: PgReq[K][0], port: PagePort | null) => OrPromise<PgReq[K][1] extends void | null ? void : PgReq[K][1]>
-}>([
+} = [
   /** kPgReq.settingsDefaults: */ (_): PgReq[kPgReq.settingsDefaults][1] =>
       [settings_.defaults_, Build.OS & (Build.OS - 1) || Build.OS > 7 ? os_ : (Build.OS / 2) | 0, CONST_.Platform_],
   /** kPgReq.settingsCache: */ (req): OrPromise<PgReq[kPgReq.settingsCache][1]> => {
@@ -264,7 +264,7 @@ const pageRequestHandlers_ = As_<{
   /** kPgReq.saveToSyncAtOnce: */ (): void => {
     settingsCache_.vimSync && updateHooks_.vimSync!(true, "vimSync")
   }
-])
+]
 
 type _FuncKeys<K, T> = K extends keyof T ? T[K] extends Function
     ? K extends `${string}_${string}` ? never : K : never : never

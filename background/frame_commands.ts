@@ -21,7 +21,7 @@ import { parseReuse, newTabIndex, openUrlWithActions } from "./open_urls"
 import { FindModeHistory_ } from "./tools"
 import C = kBgCmd
 
-set_runOnTee_(As_<typeof runOnTee_>((task, serializable, data): Promise<boolean | string> => {
+set_runOnTee_(((task, serializable, data): Promise<boolean | string> => {
   const frames = framesForTab_.get(curTabId_) || cPort && framesForTab_.get(cPort.s.tabId_)
   const port = frames ? frames.cur_ : cPort as typeof cPort | null
   if (Build.MV3 && task === kTeeTask.Paste && OnChrome && !serializable) {
@@ -61,7 +61,7 @@ set_runOnTee_(As_<typeof runOnTee_>((task, serializable, data): Promise<boolean 
     })
   }
   return deferred.promise_
-}))
+}) satisfies typeof runOnTee_)
 
 export const nextFrame = (): void | kBgCmd.nextFrame => {
   let port = cPort, ind = -1
@@ -419,7 +419,7 @@ export const openImgReq = (req: FgReq[kFgReq.openImage], port?: Port): void => {
     prefix += "auto=once&"
   }
   req.t && (prefix += req.t)
-  const opts2 = req.o || As_<ParsedOpenPageUrlOptions>(BgUtils_.safeObj_() as {})
+  const opts2: ParsedOpenPageUrlOptions = req.o || BgUtils_.safeObj_() as {}
   const keyword = OnFirefox && req.m === HintMode.DOWNLOAD_MEDIA ? "" : opts2.k
   const testUrl = opts2.t ?? !keyword
   const urlAfterSed = opts2.s ? substitute_(url, SedContext.paste, opts2.s) : url

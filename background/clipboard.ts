@@ -24,9 +24,7 @@ interface ClipSubItem {
   readonly retainMatched_: number; readonly actions_: SedAction[]; readonly replaced_: string
 }
 
-const SedActionMap: ReadonlySafeDict<SedAction> = As_<SafeObject & {
-  [key in Exclude<keyof typeof SedAction, "NONE"> as NormalizeKeywords<key>]: (typeof SedAction)[key]
-}>({
+const SedActionMap: ReadonlySafeDict<SedAction> = {
   __proto__: null as never,
   atob: SedAction.base64Decode, base64: SedAction.base64Encode, base64decode: SedAction.base64Decode,
   btoa: SedAction.base64Encode, base64encode: SedAction.base64Encode, decodeforcopy: SedAction.decodeForCopy,
@@ -43,7 +41,9 @@ const SedActionMap: ReadonlySafeDict<SedAction> = As_<SafeObject & {
   latin: SedAction.latin, latinize: SedAction.latin, latinise: SedAction.latin,
   noaccent: SedAction.latin, nodiacritic: SedAction.latin,
   json: SedAction.json, jsonparse: SedAction.jsonParse,
-})
+} satisfies SafeObject & {
+  [key in Exclude<keyof typeof SedAction, "NONE"> as NormalizeKeywords<key>]: (typeof SedAction)[key]
+}
 
 let staticSeds_: readonly ClipSubItem[] | null = null
 
@@ -383,7 +383,7 @@ const reformat_ = (copied: string, sed?: MixedSedOpts | null): string => {
 
 let navClipboard: (typeof navigator.clipboard) | undefined
 
-set_copy_(As_<typeof copy_>((data, join, sed, keyword): string | Promise<string> => {
+set_copy_(((data, join, sed, keyword): string | Promise<string> => {
   data = format_(data, join, sed, keyword)
   if (!data) { return "" }
   if (Build.MV3 && IsLimited
@@ -400,9 +400,9 @@ set_copy_(As_<typeof copy_>((data, join, sed, keyword): string | Promise<string>
     textArea.value = ""
     return data
   }
-}))
+}) satisfies typeof copy_)
 
-set_paste_(As_<typeof paste_>((sed, newLenLimit?: number): string | Promise<string | null> => {
+set_paste_(((sed, newLenLimit?: number): string | Promise<string | null> => {
   if (Build.MV3 && IsLimited
       || OnFirefox && (navClipboard || (navClipboard = navigator.clipboard))) {
     return (Build.MV3 && IsLimited ? runOnTee_(kTeeTask.Paste, null, null)
@@ -423,7 +423,7 @@ set_paste_(As_<typeof paste_>((sed, newLenLimit?: number): string | Promise<stri
     return paste_(sed, GlobalConsts.MaxBufferLengthForPastingLongURL) as string
   }
   return reformat_(value, sed)
-}))
+}) satisfies typeof paste_)
 
 updateHooks_.clipSub = (): void => { staticSeds_ = null }
 

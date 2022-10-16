@@ -270,7 +270,7 @@ historyEngine = {
   filterFill_ (historyArr: BrowserUrlItem[], query: CompletersNS.QueryStatus, urlSet: Set<string>,
       cut: number, neededMore: number): void {
     ((OnEdge || OnFirefox && Build.MayAndroidOnFirefox) && !browser_.history
-        ? As_<typeof browser_.history.search>((_, cb) => { cb([], -1); return 1 })
+        ? ((_, cb) => (cb([], -1), 1)) satisfies typeof browser_.history.search
         : browser_.history.search)({
       text: "",
       maxResults: offset + maxResults * (showThoseInBlocklist ? 1 : 2) + neededMore

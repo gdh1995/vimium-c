@@ -39,9 +39,7 @@ import { ContentSettings_, FindModeHistory_, Marks_, TabRecency_ } from "./tools
 import C = kBgCmd
 import Info = kCmdInfo
 
-set_cmdInfo_(As_<{
-  [K in keyof BgCmdOptions]: K extends keyof BgCmdInfoMap ? BgCmdInfoMap[K] : Info.NoTab
-}>([
+set_cmdInfo_([
   /* kBgCmd.blank           */ Info.NoTab, Info.NoTab, Info.NoTab, Info.NoTab, Info.NoTab,
   /* kBgCmd.performFind     */ Info.NoTab, Info.NoTab, Info.NoTab, Info.NoTab, Info.NoTab,
   /* kBgCmd.addBookmark     */ Info.NoTab, Info.NoTab, Info.NoTab, Info.ActiveTab, Info.NoTab, Info.NoTab,
@@ -54,7 +52,9 @@ set_cmdInfo_(As_<{
   /* kBgCmd.togglePinTab    */ Info.NoTab, Info.CurShownTabsIfRepeat, Info.ActiveTab, Info.ActiveTab, Info.NoTab,
       Info.NoTab,
   /* kBgCmd.closeDownloadBar*/ Info.NoTab, Info.NoTab, Info.NoTab
-]))
+] satisfies {
+  [K in keyof BgCmdOptions]: K extends keyof BgCmdInfoMap ? BgCmdInfoMap[K] : Info.NoTab
+})
 
 const _AsBgC = <T extends Function>(command: T): T => {
   if (!(Build.NDEBUG || command != null)) {
@@ -216,13 +216,13 @@ set_bgC_([
         const v = dict !== opts2 && i in dict ? dict[i] : opts2[i]
         destDict[i] = v !== false && (v != null || type !== "mouseenter" && type !== "mouseleave")
       }
-      const skipped = As_<{
-        readonly [key in Exclude<keyof BgCmdOptions[C.dispatchEventCmd], keyof EventInit | `$${string}`>]: 1;
-      }>({
+      const skipped = {
         e: 1, c: 1, t: 1, class: 1, type: 1, key: 1, return: 1, delay: 1, esc: 1, click: 1, init: 1, xy: 1, match: 1,
         direct: 1, directOptions: 1, clickable: 1, exclude: 1, evenIf: 1, scroll: 1, typeFilter: 1, textFilter: 1,
         clickableOnHost: 1, excludeOnHost: 1, closedShadow: 1, trust: 1, trusted: 1, isTrusted: 1
-      })
+      } satisfies {
+        [key in Exclude<keyof BgCmdOptions[C.dispatchEventCmd], keyof EventInit | `$${string}`>]: 1
+      }
       for (const [key, val] of Object.entries!(dict)) {
         if (key && key[0] !== "$" && !(skipped as Object).hasOwnProperty(key)) {
           destDict[(dict === opts2 && key.startsWith("o.") ? key.slice(2) : key) as keyof EventInit] = val as any
@@ -344,11 +344,12 @@ set_bgC_([
       Q_(tabsGet, curTabId_).then((newTab): void => { createTab(newTab && [newTab], 0, "dedup") })
     } else {
       const opener = get_cOptions<C.createTab>().opener === true
-      openMultiTabs(<InfoToCreateMultiTab> As_<Omit<InfoToCreateMultiTab, "url">>(tab ? {
+      openMultiTabs((!tab ? { active: true } : {
         active: true, windowId: tab.windowId,
         openerTabId: opener ? tab.id : void 0,
         index: newTabIndex(tab, get_cOptions<C.createTab>().position, opener, true)
-      } : {active: true}), cRepeat, get_cOptions<C.createTab, true>().evenIncognito, [null], true, tab, tab2 => {
+      } satisfies Omit<InfoToCreateMultiTab, "url">) as InfoToCreateMultiTab
+          , cRepeat, get_cOptions<C.createTab, true>().evenIncognito, [null], true, tab, tab2 => {
         tab2 && selectWndIfNeed(tab2)
         getRunNextCmdBy(kRunOn.tabPromise)(tab2)
       })
