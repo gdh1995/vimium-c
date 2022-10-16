@@ -261,11 +261,11 @@ Append = !MayChrome || Build.MinCVer >= BrowserVer.MinEnsured$ParentNode$$append
 HasAttr = ElProto.hasAttribute, Remove = ElProto.remove,
 StopProp = Event[kProto].stopImmediatePropagation as (this: Event) => void,
 getElementsByTagNameInEP = ElProto[kByTag],
-nodeIndexList: number[] = [],
+nodeIndexList: number[] = [], Slice = (nodeIndexList as unknown[] as Element[]).slice,
 IndexOf = _call.bind(nodeIndexList.indexOf) as <T>(list: ArrayLike<T>, item: T) => number,
 forEach = nodeIndexList.forEach as <T> (this: T[], callback: (item: T, index: number) => unknown) => void,
 splice = nodeIndexList.splice as <T> (this: T[], start: number, deleteCount?: number) => T[],
-_push = nodeIndexList.push, pushInDocument = _push.bind(nodeIndexList),
+pushInDocument = nodeIndexList.push.bind(nodeIndexList),
 CECls = CustomEvent as CustomEventCls,
 DECls = FocusEvent as DelegateEventCls,
 FProto = Function[kProto], _toString = FProto[kToS],
@@ -328,7 +328,7 @@ hooks = {
     const ret = type === GlobalConsts.MarkAcrossJSWorlds + BuildStr.RandomClick ? checkIsNotVerifier(args[3])
         : apply(_listen, a, args)
     if (type === "click" || type === "mousedown" || type === "dblclick"
-        ? listener && a instanceof ElCls && a.localName !== "a"
+        ? listener && a instanceof ElCls && a.localName !== "a" && a !== toRegister[toRegister.length - 1]
         : type === kEventName2 && !isReRegistering
           // note: window.history is mutable on C35, so only these can be used: top,window,location,document
           && a && !(a as Window).window && (a as Node).nodeType === kNode.ELEMENT_NODE) {
@@ -357,9 +357,8 @@ contains = EnsuredGetRootNode || getRootNode ? null : ElProto.contains.bind(doc0
 setTimeout_ = setTimeout as SafeSetTimeout,
 scriptChildren: HTMLElement["children"] | ((index: number) => Element | null) = root.children,
 unsafeDispatchCounter = 0,
-allNodesInDocument = null as Element[] | null,
-allNodesForDetached = null as Element[] | null,
-pushToRegister = (_push as unknown as typeof toRegister.push).bind(toRegister),
+allNodesInDocument = null as Element[] | null, allNodesForDetached = null as Element[] | null,
+pushToRegister = (nodeIndexList as unknown[] as Element[]).push.bind(toRegister),
 queueMicroTask_: (callback: () => void) => void =
     MayEdge || MayChrome && Build.MinCVer < BrowserVer.Min$queueMicrotask
     ? MayNotEdge ? (window as PartialOf<typeof globalThis, "queueMicrotask">).queueMicrotask! : 0 as never
@@ -383,7 +382,7 @@ const next: (_unused?: unknown) => void = (): void => {
 const prepareRegister = (element: Element): void => {
   if (EnsuredGetRootNode || getRootNode ? getRootNode!(element) === doc0 : contains!(element)) {
     pushInDocument(
-      IndexOf(allNodesInDocument = allNodesInDocument || [].slice.call(call(getElementsByTagNameInDoc, doc0, "*"))
+      IndexOf(allNodesInDocument = allNodesInDocument || call(Slice, call(getElementsByTagNameInDoc, doc0, "*"))
         , element));
     return;
   }
@@ -428,7 +427,7 @@ const prepareRegister = (element: Element): void => {
   if (type === kNode.ELEMENT_NODE) {
     parent !== root && call(Append, root, parent as Element);
     pushInDocument(InnerConsts.OffsetForBoxChildren -
-      IndexOf(allNodesForDetached = allNodesForDetached || [].slice.call(call(getElementsByTagNameInEP, root, "*"))
+      IndexOf(allNodesForDetached = allNodesForDetached || call(Slice, call(getElementsByTagNameInEP, root, "*"))
         , element));
   // Note: ignore the case that a plain #document-fragment has a fake .host
   }
@@ -500,7 +499,7 @@ const executeCmd = (eventOrDestroy?: Event): void => {
   timer = 1
 }
 const collectOnclickElements = (cmd: SecondLevelContentCmds): void => {
-  let len = (call(Remove, root), allNodesInDocument = [].slice.call(call(getElementsByTagNameInDoc, doc0, "*"))).length
+  let len = (call(Remove, root), allNodesInDocument = call(Slice, call(getElementsByTagNameInDoc, doc0, "*"))).length
   let i = unsafeDispatchCounter = 0, tag: Element["localName"], el: Element
   len = len < GlobalConsts.MinElementCountToStopScanOnClick || cmd > kContentCmd.ManuallyFindAllOnClick - 1
       ? len : 0; // stop it
