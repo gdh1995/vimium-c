@@ -29,7 +29,7 @@ todo*
 !tsc.js
 !/background/worker.js
 !/lib/math_parser.js
-!/lib/viewer.min.js
+!/lib/viewer.*
 !/scripts/*.js
 weidu/
 helpers/

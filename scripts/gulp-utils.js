@@ -612,9 +612,6 @@ exports.minifyJSFiles = function (path, output, exArgs) {
   exArgs || (exArgs = {});
   const base = exArgs.base || JSDEST;
   path = exports.formatPath(path, base);
-  if (path.join("\n").indexOf("viewer.min.js") < 0) {
-    path.push("!**/*.min.js");
-  }
   output = output || ".";
 
   var stream = gulp.src(path, { base: base });

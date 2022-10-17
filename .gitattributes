@@ -17,8 +17,8 @@
 *.yml linguist-detectable=false linguist-vendored=YAML
 .github/**/*.md linguist-detectable=false linguist-language=Markdown
 lib/math_parser.js linguist-vendored
-lib/viewer.min.css linguist-generated=true linguist-vendored=true linguist-language=CSS
-lib/viewer.min.js  linguist-generated=true linguist-vendored=true linguist-language=JavaScript
+lib/viewer.css linguist-generated=true linguist-vendored=true linguist-language=CSS
+lib/viewer.js  linguist-generated=true linguist-vendored=true linguist-language=JavaScript
 package-lock.json linguist-generated=true linguist-vendored=true linguist-language=JSON
 npm-shrinkwrap.json linguist-generated=true linguist-vendored=true linguist-language=JSON
 tests/*.html linguist-detectable=false linguist-language=HTML

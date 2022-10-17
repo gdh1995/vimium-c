@@ -39,10 +39,7 @@ set_minifier_env(willListEmittedFiles, /[\\\/](env|define)\./, 1, gNoComments, f
 createBuildConfigCache();
 var has_polyfill = !!(getBuildItem("BTypes") & BrowserType.Chrome)
     && getBuildItem("MinCVer") < 43 /* MinSafe$String$$StartsWith */;
-var minify_viewer = !(getBuildItem("BTypes") & BrowserType.Chrome)
-    || getBuildItem("MinCVer") >= /* MinTestedES6Environment */ 49;
 const POLYFILL_FILE = "lib/polyfill.ts"
-const VIEWER_JS = "lib/viewer.min.js";
 const LOCALES_EN = "_locales/en/messages.json"
 
 var CompileTasks = {
@@ -63,14 +60,8 @@ var CompileTasks = {
 
 var Tasks = {
   "build/pages": ["build/options", "build/show", "build/others"],
-  "static/special": function() {
-    const path = ["lib/*.min.js", "lib/*.min.css"];
-    minify_viewer && path.push("!" + VIEWER_JS)
-    return copyByPath(path);
-  },
   "static/minify-js": function() {
-    const path = ["lib/math_parser*.js"];
-    minify_viewer && path.push(VIEWER_JS)
+    const path = ["lib/math_parser*.js", "lib/viewer*.js"];
     getBuildItem("MV3") && path.push("background/worker.js")
     if (!getBuildItem("NDEBUG")) {
       return copyByPath(path);
@@ -97,7 +88,7 @@ var Tasks = {
     p2b.main(() => cb(), { print });
   },
   "minify-css": function() {
-    const path = ["pages/*.css"];
+    const path = ["pages/*.css", "lib/*.css"];
     if (!getBuildItem("NDEBUG")) { return copyByPath(path) }
     return copyByPath(path, file => {
     const CleanCSS = require("clean-css"), clean_css = new CleanCSS();
@@ -117,12 +108,12 @@ var Tasks = {
   "static/minify": function(cb) {
     gulp.parallel("static/minify-js", "static/json", "locales_en/json", "minify-css", "minify-html")(cb)
   },
-  static: ["static/special", "static/minify", function() {
+  static: ["static/minify", function() {
     var arr = ["front/*", "pages/*", "icons/*", "lib/*"
       , "*.txt", "*.md", "![a-hj-z]*/**/*.json", "!**/*.bin"
       , "!**/*.min.*"
       , "!pages/*.css", "!front/*.html", "front/vomnibar.html", "!pages/*.html", "!REL*.md", "!README*.md"
-      , "!PRIVACY*"
+      , "!PRIVACY*", "!lib/math_parser*.js", "!lib/viewer*"
       , "!**/*.log", "!**/*.psd", "!**/*.zip", "!**/*.tar", "!**/*.tgz", "!**/*.gz"
       , '!**/*.ts', "!**/*.js", "!**/tsconfig*.json"
       , "!test*", "!todo*"
@@ -133,9 +124,7 @@ var Tasks = {
       arr.push("manifest.json");
     }
     var btypes = getBuildItem("BTypes");
-    minify_viewer && arr.push("!" + VIEWER_JS)
-    var has_wordsRe = btypes & ~BrowserType.Firefox
-            && getBuildItem("MinCVer") <
+    var has_wordsRe = btypes & ~BrowserType.Firefox && getBuildItem("MinCVer") <
                 59 /* min(MinSelExtendForwardOnlySkipWhitespaces, MinEnsuredUnicodePropertyEscapesInRegExp) */
         || btypes & BrowserType.Firefox && !getBuildItem("NativeWordMoveOnFirefox");
     if (!has_wordsRe) {
@@ -506,8 +495,6 @@ gulp.task("locally", function(done) {
     CompileTasks.lib.length = 1;
     has_polyfill || CompileTasks.lib.push("!" + POLYFILL_FILE);
   }
-  minify_viewer = !(getBuildItem("BTypes") & BrowserType.Chrome)
-      || getBuildItem("MinCVer") >= /* MinTestedES6Environment */ 49;
   JSDEST = process.env.LOCAL_DIST || ".";
   /[\/\\]$/.test(JSDEST) && (JSDEST = JSDEST.slice(0, -1));
   gulpUtils.set_dest(DEST, JSDEST)

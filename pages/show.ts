@@ -590,7 +590,7 @@ function loadViewer(): Promise<ViewerModule> {
   }
   // eslint-disable-next-line @typescript-eslint/no-unsafe-call
   !Build.NDEBUG && (window as any).define && (window as any).define.noConflict()
-  return Promise.all([import2("../lib/viewer.min.js"), loadCSS("../lib/viewer.min.css")])
+  return Promise.all([import2("../lib/viewer.js"), loadCSS("../lib/viewer.css")])
       .then(([viewerJS]: any): ViewerModule => {
     viewerJS = viewerJS && typeof viewerJS === "function" ? viewerJS
         : (window as unknown as { Viewer: typeof viewerJS }).Viewer
