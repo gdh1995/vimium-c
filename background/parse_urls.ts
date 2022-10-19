@@ -280,20 +280,20 @@ const detectLinkDeclaration_ = (str: string): string => {
   const first = sepArr ? url.slice(0, sepArr.index + (isSepSpace ? 0 : 1)) : null
   const leftCharRe = <RegExpOne> /["(\u2018\u201c\u300a\uff08\uff1c]/
   const rightChar = '")\u2019\u201d\u300b\uff09\uff1e'
-  let todo = (first || url).includes("#~:text=") ? 0 : 7 // 1: left, 2: right, 4: end
-  if (todo && first) {
-    if (!isSepSpace) { url = first, todo = 3 }
-    else if (endChar.lastIndexOf(first.slice(-1), 2) >= 0) { url = first.slice(0, -1), todo = 3 }
+  let nextTasks = (first || url).includes("#~:text=") ? 0 : 7 // 1: left, 2: right, 4: end
+  if (nextTasks && first) {
+    if (!isSepSpace) { url = first, nextTasks = 3 }
+    else if (endChar.lastIndexOf(first.slice(-1), 2) >= 0) { url = first.slice(0, -1), nextTasks = 3 }
     else if (rightChar.includes(first.slice(-1))) {
-      todo = !leftCharRe.test(first.slice(i)) ? (url = first.slice(0, -1), 1) : 0
+      nextTasks = !leftCharRe.test(first.slice(i)) ? (url = first.slice(0, -1), 1) : 0
     }
   }
-  if (todo & 4 && endChar.includes(url.slice(-1))) { url = url.slice(0, -1) }
-  if (todo & 2 && rightChar.includes(url.slice(-1))) {
-    !leftCharRe.test(url.slice(i)) ? url = url.slice(0, -1) : todo = 0
+  if (nextTasks & 4 && endChar.includes(url.slice(-1))) { url = url.slice(0, -1) }
+  if (nextTasks & 2 && rightChar.includes(url.slice(-1))) {
+    !leftCharRe.test(url.slice(i)) ? url = url.slice(0, -1) : nextTasks = 0
   }
   if (url && endChar.includes(url[0])) { url = url.slice(1).trim() }
-  if (todo & 1 && url && leftCharRe.test(url[0])) { url = url.slice(1) }
+  if (nextTasks & 1 && url && leftCharRe.test(url[0])) { url = url.slice(1) }
   convertToUrl_("javascript:;") // just to reset lastUrlType_
   url = fixCharsInUrl_(url, false, true)
   return lastUrlType_ <= Urls.Type.MaxOfInputIsPlainUrl && !url.startsWith("vimium:") ? url : str;

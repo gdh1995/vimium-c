@@ -190,7 +190,7 @@ interface MasksForOpenUrl extends MaskOptions {
 }
 
 interface LimitedRangeOptions {
-  limited: boolean
+  limited: boolean | "auto"
   $limit: number // for "limit=count" in .filter
 }
 interface MaskOptions { mask: boolean | string | ""; $masked: boolean }

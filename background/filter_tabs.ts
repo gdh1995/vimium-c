@@ -17,19 +17,20 @@ export type Range3 = readonly [start: number, ind: number, end: number]
 export const getTabRange = (current: number, total: number, countToAutoLimitBeforeScale?: number
     , /** must be positive */ extraCount?: 1 | 0): [number, number] => {
   return innerGetTabRange(current, total, countToAutoLimitBeforeScale, cRepeat, extraCount
-      , get_cOptions<C.removeTab | C.reloadTab | C.copyWindowInfo, true>().limited)
+      , get_cOptions<C.removeTab | C.reloadTab | C.copyWindowInfo, true>().limited
+      , get_cOptions<C.removeTab | C.reloadTab | C.copyWindowInfo, true>().filter)
 }
 
 const innerGetTabRange = (current: number, total: number, countToAutoLimitBeforeScale: number | undefined
     , count: number, extraCount: 1 | 0 | undefined
-    , limited: LimitedRangeOptions["limited"] | null | undefined): [number, number] => {
+    , limited: LimitedRangeOptions["limited"] | null | undefined, hasFilter?: unknown): [number, number] => {
   const dir = count > 0
   if (extraCount) { count += dir ? extraCount : -extraCount }
   const end = current + count
   return end <= total && end > -2 ? dir ? [current, end] : [end + 1, current + 1] // normal range
-      : limited === false || limited == null
+      : limited === false || (limited == null || limited === "auto")
       && (Math.abs(count) < (countToAutoLimitBeforeScale || total) * GlobalConsts.ThresholdToAutoLimitTabOperation
-          || count < 10)
+          || count < 10 || hasFilter && limited == null)
       ? Math.abs(count) < total ? dir ? [total - count, total] : [0, -count] // go forward and backward
         : [0, total] // all
       : dir ? [current, total] : [0, current + 1] // limited

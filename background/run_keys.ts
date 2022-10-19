@@ -24,17 +24,17 @@ const kRunKeyOptionNames: readonly (Exclude<keyof BgCmdOptions[C.runKey], `$${st
 let loopIdToRunSeq = 0
 
 const collectOptions = (opts: { [key: `o.${string}`]: any }): CommandsNS.Options | null => {
-  const o2 = BgUtils_.safeObj_<any>(), todo = [] as string[]
+  const o2 = BgUtils_.safeObj_<any>(), others = [] as string[]
   let found = ""
   for (const key in opts) {
     if (key.includes("$")) { /* empty */ }
     else if (!key.startsWith("o.")) {
-      kRunKeyOptionNames.includes(key) || todo.push(key)
+      kRunKeyOptionNames.includes(key) || others.push(key)
     } else if (key.length > 2) {
       o2[found = key.slice(2)] = opts[key as `o.${string}`]
     }
   }
-  for (const key2 of todo) {
+  for (const key2 of others) {
     o2[found = key2] = opts[key2 as `o.${string}`]
   }
   return found ? o2 : null
