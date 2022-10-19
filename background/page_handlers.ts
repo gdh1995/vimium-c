@@ -110,14 +110,12 @@ const pageRequestHandlers_: {
   },
   /** kPgReq.whatsHelp: */ (): PgReq[kPgReq.whatsHelp][1] => {
     const cmdRegistry = keyToCommandMap_.get("?")
-    let matched = "?"
-    if (!cmdRegistry || cmdRegistry.alias_ !== kBgCmd.showHelp || !cmdRegistry.background_) {
-      keyToCommandMap_.forEach((item, key): void => {
+    let matched = cmdRegistry && cmdRegistry.alias_ === kBgCmd.showHelp && cmdRegistry.background_ ? "?" : ""
+    matched || keyToCommandMap_.forEach((item, key): void => {
         if (item.alias_ === kBgCmd.showHelp && item.background_) {
           matched = matched && matched.length < key.length ? matched : key;
         }
-      })
-    }
+    })
     return matched
   },
   /** kPgReq.checkNewTabUrl: */ (url): PgReq[kPgReq.checkNewTabUrl][1] => {

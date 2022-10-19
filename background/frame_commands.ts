@@ -2,7 +2,7 @@ import {
   cPort, cRepeat, get_cOptions, set_cPort, set_cOptions, set_cRepeat, framesForTab_, findCSS_, cKey, reqH_, runOnTee_,
   curTabId_, settingsCache_, OnChrome, visualWordsRe_, CurCVer_, OnEdge, OnFirefox, substitute_, CONST_, set_runOnTee_,
   helpDialogData_, set_helpDialogData_, curWndId_, vomnibarPage_f, IsLimited, vomnibarBgOptions_, setTeeTask_, blank_,
-  curIncognito_, OnOther_
+  curIncognito_, OnOther_, keyToCommandMap_
 } from "./store"
 import * as BgUtils_ from "./utils"
 import {
@@ -12,7 +12,7 @@ import { convertToUrl_, createSearchUrl_, normalizeSVG_ } from "./normalize_urls
 import { showHUD, complainLimits, ensureInnerCSS, getParentFrame, getPortUrl_, safePost } from "./ports"
 import { getFindCSS_cr_ } from "./ui_css"
 import { getI18nJson, trans_ } from "./i18n"
-import { keyMappingErrors_, visualGranularities_, visualKeys_ } from "./key_mappings"
+import { keyMappingErrors_, normalizedOptions_, visualGranularities_, visualKeys_ } from "./key_mappings"
 import {
   wrapFallbackOptions, copyCmdOptions, parseFallbackOptions, portSendFgCmd, sendFgCmd, replaceCmdOptions,
   overrideOption, runNextCmd, hasFallbackOptions, getRunNextCmdBy, kRunOn, overrideCmdOptions
@@ -125,14 +125,24 @@ export const initHelp = (request: FgReq[kFgReq.initHelp], port: Port): Promise<v
     curHData[1] != null ? null : getI18nJson("help_dialog")
   ]).then(([helpDialog, temp1, temp2]): void => {
     const port2 = request.w && framesForTab_.get(port.s.tabId_)?.top_ || port,
-    isOptionsPage = port2.s.url_.startsWith(CONST_.OptionsPage_),
-    options = request.a || {};
+    isOptionsPage = port2.s.url_.startsWith(CONST_.OptionsPage_)
+    let options = request.a || {};
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
     (port2.s as Frames.Sender).flags_ |= Frames.Flags.hadHelpDialog
     set_cPort(port2)
     const newHData = helpDialogData_ || set_helpDialogData_([null, null])
     temp1 && (newHData[0] = temp1)
     temp2 && (newHData[1] = temp2)
+    if (request.f) {
+      let cmdRegistry = keyToCommandMap_.get("?")
+      let matched = cmdRegistry && cmdRegistry.alias_ === kBgCmd.showHelp && cmdRegistry.background_ ? "?" : ""
+      matched || keyToCommandMap_.forEach((item, key): void => {
+        if (item.alias_ === kBgCmd.showHelp && item.background_) {
+          matched = matched && matched.length < key.length ? matched : (cmdRegistry = item, key)
+        }
+      })
+      options = matched && normalizedOptions_(cmdRegistry!) as KnownOptions<C.showHelp> | null || options
+    }
     sendFgCmd(kFgCmd.showHelpDialog, true, {
       h: helpDialog.render_(isOptionsPage, options.commandNames),
       o: CONST_.OptionsPage_, f: request.f,
