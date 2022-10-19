@@ -520,8 +520,11 @@ label:active {
   width: 100%;
 }
 #exclusionTable {
-  border-spacing: 2px;
+  border-spacing: 4px;
   width: 100%;
+}
+#exclusionListenHash {
+  margin-left: 0;
 }
 .exclusionPassKeysTd {
   width: 33%;
@@ -561,7 +564,7 @@ label:active {
   font: 14px/16px "Helvetica Neue",Helvetica,Arial,"PingFang SC","Hiragino Sans GB"
     ,"Microsoft YaHei","Heiti SC","WenQuanYi Micro Hei",sans-serif;
   height: 16px;
-  padding-left: 3px;
+  padding-left: 4px;
 }
 #exclusionAddButton {
   overflow: hidden;

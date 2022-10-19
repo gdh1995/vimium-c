@@ -434,8 +434,8 @@ export const complainNoSession = (): void => {
 
 if (OnChrome && Build.MinCVer < BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol
     && CurCVer_ < BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol) {
-  framesForTab_.forEach = recencyForTab_.forEach = (callback: (value: any, key: number) => void): void => {
-    const map = (framesForTab_ as any as SimulatedMap).map_ as Dict<any> as Dict<Frames.Frames>
+  framesForTab_.forEach = recencyForTab_.forEach = function (callback: (value: any, key: number) => void): void {
+    const map = (this as any as SimulatedMap).map_ as Dict<any> as Dict<Frames.Frames>
     for (const key in map) {
       callback(map[key]!, +key)
     }

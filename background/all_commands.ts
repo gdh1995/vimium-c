@@ -230,22 +230,22 @@ set_bgC_([
         }
       }
       let nonWordArr: RegExpExecArray | null = null
-      if (key && (typeof key === "object"
-          || typeof key === "string" && (nonWordArr = (<RegExpOne> /[^\w$]/).exec(key.slice(1))))) {
-        const info = typeof key === "object" ? key : key.split(nonWordArr![0]) as Extract<typeof key, string[]>
-        if (info.length >= 2 && (!info[1] || +info[1] >= 0)) {
+      if (key && (typeof key === "object" || typeof key === "string")) {
+        typeof key === "string" && (nonWordArr = (<RegExpOne> /[^\w]/).exec(key.slice(1)))
+        const info = typeof key === "object" ? key as string[] : nonWordArr ? key.split(nonWordArr[0]) : [key]
+        if (info[0] && (info.length == 1 || !info[1] || +info[1] >= 0)) {
           nonWordArr && !info[0] && (info[0] = key[0], info[1] || info.splice(1, 1))
           const evKey = info[0], isAlpha = (<RegExpI> /^[a-z]$/i).test(evKey),
-          isNum = !isAlpha && evKey >= "0" && evKey <= "9" && evKey.length === 1
-          let keyCode = info[1] && (+info[1] | 0)
-              || (isAlpha ? kKeyCode.A + (evKey.toLowerCase().charCodeAt(0) - kCharCode.a)
-                  : isNum ? kKeyCode.N0 + (evKey.charCodeAt(0) - kCharCode.N0) : 0)
-          destDict.key = evKey === "Space" ? (keyCode = keyCode || kKeyCode.space, " ")
+          isNum = !isAlpha && evKey >= "0" && evKey <= "9" && evKey.length === 1, lower = evKey.toLowerCase(),
+          keyCode = info[1] && (+info[1] | 0) ? +info[1] | 0
+              : isAlpha ? lower.charCodeAt(0) - (type !== "keypress" || evKey !== lower ? kCharCode.a - kKeyCode.A : 0)
+              : isNum ? evKey.charCodeAt(0) - (kCharCode.N0 - kKeyCode.N0)
+              : evKey === "Space" ? kKeyCode.space : 0
+          destDict.key = evKey === "Space" ? " "
               : evKey === "Comma" ? "," : evKey === "Slash" ? "/" : evKey === "Minus" ? "-"
-              : evKey === "$" && evKey.length > 1 ? evKey.slice(1) : evKey
-          keyCode = type !== "keypress" ? keyCode : 0
-          if (keyCode && dict.keyCode == null) { destDict.keyCode = +info[1]}
-          if (keyCode && dict.which == null) { destDict.which = +info[1]}
+              : evKey[0] === "$" && evKey.length > 1 ? evKey.slice(1) : evKey
+          if (keyCode && dict.keyCode == null) { destDict.keyCode = keyCode}
+          if (keyCode && dict.which == null) { destDict.which = keyCode}
           if (info.length >= 3 && info[2] || dict.code == null) {
             destDict.code = info[2] || (isAlpha ? "Key" + evKey.toUpperCase() : isNum ? "Digit" + evKey : evKey)
           }

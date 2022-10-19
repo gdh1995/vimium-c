@@ -319,7 +319,7 @@ export const sortTabsByCond_ = (allTabs: Readonly<Tab>[]
     if (key.includes("time") && !key.includes("creat") || key.includes("recen")) {
       list[0].time == null && list.forEach(i => {
         const id = i.tab.id, recency = recencyForTab_.get(id)
-        i.time = id === curTabId_ ? 1 : recency != null ? GlobalConsts.MaxTabRecency - recency.i
+        i.time = id === curTabId_ ? 1 : recency != null ? recency.i
           : OnFirefox && (i.tab as Tab & {lastAccessed?: number}).lastAccessed || id + 2
       })
       work = 1
