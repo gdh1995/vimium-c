@@ -87,12 +87,11 @@ export const updateHooks_ = {} as SettingsNS.FullUpdateHookMap
 //#region info about opened tabs
 export const framesForTab_ = new Map() as Frames.FramesMap
 export const framesForOmni_: Port[] = []
-interface RecencyItem { /* index */ i: number; /* mono clock */ t: number }
-export interface RecencyMap extends Map<number, RecencyItem> {
+export interface RecencyMap extends Map<number, /** mono time */ number> {
   keys: never; entries: never; values: never
-  forEach (callback: (frames: RecencyItem, tabId: number) => void): void
+  forEach (callback: (frames: number, tabId: number) => void): void
 }
-export let recencyForTab_ = new Map() as RecencyMap
+export const recencyForTab_ = new Map() as RecencyMap
 export let curTabId_: number = GlobalConsts.TabIdNone
 export let curWndId_: number = GlobalConsts.WndIdNone
 export let lastWndId_: number = GlobalConsts.WndIdNone
@@ -152,7 +151,6 @@ export const set_curTabId_ = (_newCurTabId: number): void => { curTabId_ = _newC
 export const set_curWndId_ = (_newCurWndId: number): void => { curWndId_ = _newCurWndId }
 export const set_lastWndId_ = (_newLastWndId: number): void => { lastWndId_ = _newLastWndId }
 export const set_curIncognito_ = (_newIncog: IncognitoType): IncognitoType => curIncognito_ = _newIncog
-export const set_recencyForTab_ = (_newRecencyMap: typeof recencyForTab_): void => { recencyForTab_ = _newRecencyMap }
 
 /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
 export const set_incognitoFindHistoryList_ = <T extends string[] | null>(l: T): T => incognitoFindHistoryList_ = l as T

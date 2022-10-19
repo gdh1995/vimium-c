@@ -149,9 +149,9 @@ Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES$Arr
     const ver = navigator.userAgent!.match(<RegExpOne> /\bChrom(?:e|ium)\/(\d+)/)
     if (ver && +ver[1] < BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol) {
       const proto = {
-        add (k: string): any { this.map_[k] = 1 },
-        clear (): void { this.map_ = Object.create(null) },
-        delete (k: string): boolean { const old = k in this.map_; delete this.map_[k]; return old },
+        add (k: string): any { const old = k in this.map_; this.map_[k] = 1; old || this.size++ },
+        clear (): void { this.map_ = Object.create(null); this.size = 0 },
+        delete (k: string): boolean { const old = k in this.map_; delete this.map_[k]; old && this.size--; return old },
         forEach (cb): any {
           const isSet = this.isSet_, map = this.map_
           for (let key in map) {
@@ -160,8 +160,8 @@ Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES$Arr
         },
         get (k: string): any { return this.map_[k] },
         has (k: string): boolean { return k in this.map_ },
-        set (k: string, v: any): any { this.map_[k] = v }
-      } as SimulatedMap
+        set (k: string, v: any): any { const old = k in this.map_; this.map_[k] = v; old || this.size++ }
+      } as Writable<SimulatedMap>
       const setProto = Build.MinCVer < BrowserVer.Min$Object$$setPrototypeOf && Build.BTypes & BrowserType.Chrome
           && !Object.setPrototypeOf ? (obj: SimulatedMap): void => { (obj as any).__proto__ = proto }
           : (opt: SimulatedMap): void => { Object.setPrototypeOf(opt, proto as any as null) };

@@ -133,6 +133,8 @@ interface HTMLTextAreaElement extends HTMLEditableELement {}
 
 declare var Response: { new (blob: Blob): Response }
 
+interface Performance { timeOrigin?: number }
+
 declare namespace chrome.tabs {
   type GroupId = "firefox-default" | "unknown1" | "unknown2" | number
   interface Tab {

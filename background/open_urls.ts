@@ -399,7 +399,7 @@ const replaceOrOpenInNewTab = <Reuse extends Exclude<ReuseType, ReuseType.curren
       }
       matched.sort((a, b) => {
         const cachedB = recencyForTab_.get(b.id), cachedA = recencyForTab_.get(a.id)
-        return cachedA ? cachedB ? cachedB.i - cachedA.i : 1 : cachedB ? -1 : b.id - a.id
+        return cachedA ? cachedB ? cachedB - cachedA : 1 : cachedB ? -1 : b.id - a.id
       })
       if (reuse === ReuseType.reuse) {
         const inCurWnd = matched.filter(tab => tab.windowId === curWndId_)

@@ -26,7 +26,7 @@ interface Map<K extends string | number | object, V> {
     get(key: K): V | undefined;
     has(key: K): boolean;
     set(key: K, value: V): unknown;
-    // readonly size: number;
+    readonly size: number;
 }
 
 interface MapConstructor {

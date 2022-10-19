@@ -468,7 +468,7 @@ tabEngine = {
     hasOtherSuggestions = allExpectedTypes & (SugType.MultipleCandidates ^ SugType.tab),
     treeMode = !!(otherFlags & CompletersNS.QueryFlags.TabTree) && wantInCurrentWindow && noFilter;
     let suggestions: CompletersNS.TabSuggestion[] = [];
-    let curTab: Tab | undefined
+    let curTab: Tab | undefined, monoNow = 0
     if (treeMode && !(otherFlags & CompletersNS.QueryFlags.TabTreeFromStart)
         && tabs0.length > offset && tabs0.length > maxTotal) {
       const treeMap = new Map<number, Tab>()
@@ -521,10 +521,8 @@ tabEngine = {
       return Completers.next_(suggestions, SugType.tab);
     }
 
-    wndIds.sort(tabEngine.SortNumbers_);
-    const c = noFilter ? treeMode ? tabEngine.computeIndex_ : tabEngine.computeRecency_ : ComputeWordRelevancy,
-    treeLevels: SafeDict<number> = treeMode ? BgUtils_.safeObj_() : null as never,
-    curWndId = curWndId_
+    wndIds.sort((a, b) => a - b)
+    const treeLevels: SafeDict<number> = treeMode ? BgUtils_.safeObj_() : null as never, curWndId = curWndId_
     if (treeMode) {
       for (const tab of tabs) { // only from start to end, and should not execute nested queries
         const pid = tab.openerTabId, pLevel = pid && treeLevels[pid];
@@ -536,7 +534,10 @@ tabEngine = {
         : (OnChrome || OnFirefox) && Build.OS & (1 << kOS.unixLike) && os_ === kOS.unixLike ? 0
         : OnChrome && Build.MinCVer < BrowserVer.Min$performance$$timeOrigin
           && CurCVer_ < BrowserVer.Min$performance$$timeOrigin
-        ? Date.now() - performance.now() : (performance as Performance & { timeOrigin?: number }).timeOrigin!
+        ? Date.now() - (monoNow = performance.now()) : performance.timeOrigin!
+    const c = !noFilter ? ComputeWordRelevancy : treeMode ? (_0: unknown, index: number): number => 1 / index
+        : (monoNow = monoNow || performance.now(), (_0: unknown, tabId: number): number => recencyForTab_.get(tabId)
+            || (otherFlags & CompletersNS.QueryFlags.PreferNewOpened ? monoNow + tabId : -tabId))
     for (let ind = 0; ind < tabs.length; ) {
       const tab = tabs[ind++]
       const tabId = tab.id, level = treeMode ? treeLevels[tabId]! : 1,
@@ -556,7 +557,7 @@ tabEngine = {
       if (!tabsInNormal && tab.incognito) { label += "*" }
       if (tab.discarded || OnFirefox && tab.hidden) { label += "~" }
       if (tab.audible) { label += isTabMuted(tab) ? "\u266a" : "\u266c" }
-      suggestion.visit = visit ? visit.t + timeOffset
+      suggestion.visit = visit ? visit + timeOffset
           : OnFirefox && (tab as Tab & {lastAccessed?: number}).lastAccessed || 0
       suggestion.s = tabId;
       suggestion.label = `#${wndId}${id}${label && " " + label}`
@@ -595,15 +596,6 @@ tabEngine = {
     }
     UrlDecoder_.continueToWork_()
     Completers.next_(suggestions, SugType.tab);
-  },
-  SortNumbers_ (this: void, a: number, b: number): number { return a - b; },
-  computeRecency_ (_0: CompletersNS.CoreSuggestion, tabId: number): number {
-    const n = recencyForTab_.get(tabId)
-    return n ? n.i :
-        (otherFlags & CompletersNS.QueryFlags.PreferNewOpened ? GlobalConsts.MaxTabRecency + tabId : -tabId);
-  },
-  computeIndex_ (_0: CompletersNS.CoreSuggestion, index: number): number {
-    return 1 / index;
   }
 },
 

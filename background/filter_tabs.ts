@@ -89,7 +89,7 @@ export const onShownTabsIfRepeat_ = <All extends boolean> (allInRange: All, noSe
 
 export const tryLastActiveTab_ = (): number => {
   let indMax = 0, tabId = -1
-  recencyForTab_.forEach((v, i): void => { if (v.i > indMax && i !== curTabId_) { indMax = v.i, tabId = i } })
+  recencyForTab_.forEach((v, i): void => { if (v > indMax && i !== curTabId_) { indMax = v, tabId = i } })
   return tabId
 }
 
@@ -312,15 +312,16 @@ export const sortTabsByCond_ = (allTabs: Readonly<Tab>[]
   const list: TabInfo[] = allTabs.map((i, ind): TabInfo => ({
     tab: i, ind, time: null, rhost: null, group: getGroupId(i), pinned: i.pinned
   }))
-  let scale: number, work = -1, changed = false
+  let scale: number, work = -1, changed = false, monoBase = 0
   for (let key of (sortOpt instanceof Array ? sortOpt.slice(0)
           : (sortOpt === true ? "time" : sortOpt + "").split(<RegExpG> /[, ]+/g)).reverse() as ValidKeys[]) {
     scale = key[0] === "r" && key[1] !== "e" || key[0] === "-" ? (key = key.slice(1) as typeof key, -1) : 1
     if (key.includes("time") && !key.includes("creat") || key.includes("recen")) {
       list[0].time == null && list.forEach(i => {
         const id = i.tab.id, recency = recencyForTab_.get(id)
-        i.time = id === curTabId_ ? 1 : recency != null ? recency.i
-          : OnFirefox && (i.tab as Tab & {lastAccessed?: number}).lastAccessed || id + 2
+        i.time = id === curTabId_ ? 1 : recency != null ? recency
+          : OnFirefox && (monoBase || (monoBase = performance.timeOrigin!),
+            ((i.tab as Tab & {lastAccessed?: number}).lastAccessed || monoBase) - monoBase) || id + 2
       })
       work = 1
     } else if (key.startsWith("host") || key === "url") {

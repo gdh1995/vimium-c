@@ -1,8 +1,8 @@
 import {
   curIncognito_, curTabId_, curWndId_, framesForTab_, incognitoFindHistoryList_, recencyForTab_, set_curIncognito_,
-  set_curTabId_, set_curWndId_, set_incognitoFindHistoryList_, set_lastWndId_, set_recencyForTab_, incognitoMarkCache_,
+  set_curTabId_, set_curWndId_, set_incognitoFindHistoryList_, set_lastWndId_, incognitoMarkCache_,
   set_incognitoMarkCache_, contentPayload_, reqH_, settingsCache_, OnFirefox, OnChrome, CurCVer_, updateHooks_,
-  OnEdge, isHighContrast_ff_, omniPayload_, blank_, CONST_, RecencyMap, CurFFVer_, storageCache_, IsLimited, os_,
+  OnEdge, isHighContrast_ff_, omniPayload_, blank_, CONST_, CurFFVer_, storageCache_, IsLimited, os_,
   vomnibarBgOptions_, cPort
 } from "./store"
 import * as BgUtils_ from "./utils"
@@ -593,34 +593,17 @@ export const TabRecency_ = {
 let lastVisitTabTime = 0
 
 setTimeout((): void => {
-  const noneWnd = curWndId_
-  let cache = recencyForTab_, stamp = 1
+  const noneWnd = curWndId_, cache = recencyForTab_
   const clean = (tabs: Tab[] | undefined): void => {
-    const existing = tabs ? tabs.map(i => [i.id, cache.get(i.id)] as const)
-        .filter((i): i is readonly [number, NonNullable<ReturnType<RecencyMap["get"]>>] => <boolean> <any> i[1])
-        .sort((i, j): number => i[1].i - j[1].i) : []
+    const existing = tabs ? tabs.map(i => cache.get(i.id)).filter((i): i is number => i !== undefined) : []
+    let minStamp: number
     if (existing.length > GlobalConsts.MaxTabsKeepingRecency) {
-      existing.splice(0, existing.length - GlobalConsts.MaxTabsKeepingRecency)
+      existing.sort((i, j) => i - j)
+      minStamp = existing[existing.length - GlobalConsts.MaxTabsKeepingRecency + 1]
+    } else {
+      minStamp = existing.reduce((i, j) => i < j ? i : j, Infinity)
     }
-    existing.forEach((i, ind) => i[1].i = ind + 2)
-    stamp = existing.length > 0 ? existing[existing.length - 1][1].i : 1
-    if (stamp > 1) {
-      if (OnChrome && Build.MinCVer < BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol
-          && CurCVer_ < BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol) {
-        cache.clear()
-        for (const item of existing) {
-          cache.set(item[0], item[1])
-        }
-      } else {
-        set_recencyForTab_(cache = new Map(existing) as RecencyMap)
-      }
-      return
-    }
-    cache.forEach((val, i): void => {
-      if (val.i < GlobalConsts.MaxTabRecency - GlobalConsts.MaxTabsKeepingRecency + 2) { cache.delete(i) }
-      else { val.i -= GlobalConsts.MaxTabRecency - GlobalConsts.MaxTabsKeepingRecency }
-    })
-    stamp = GlobalConsts.MaxTabsKeepingRecency + 1;
+    cache.forEach((val, i): void => { val < minStamp && cache.delete(i) })
   }
   function listener(info: chrome.tabs.TabActiveInfo): void {
     if (info.windowId !== curWndId_) {
@@ -629,12 +612,10 @@ setTimeout((): void => {
     }
     const now = performance.now();
     if (now - lastVisitTabTime > GlobalConsts.MinStayTimeToRecordTabRecency) {
-      const old = cache.get(curTabId_),
+      const
       monoNow = (OnChrome || OnFirefox) && Build.OS & (1 << kOS.unixLike) && os_ === kOS.unixLike ? Date.now() : now
-      old ? (old.i = ++stamp, old.t = monoNow) : cache.set(curTabId_, { i: ++stamp, t: monoNow })
-      if (stamp > GlobalConsts.MaxTabRecency - 10) { // with MinStayTimeToRecordTabRecency, safe enough
-        Tabs_.query({}, clean)
-      }
+      cache.set(curTabId_, monoNow)
+      cache.size > GlobalConsts.MaxTabRecency && Tabs_.query({}, clean)
     }
     set_curTabId_(info.tabId); lastVisitTabTime = now
     _mediaTimer === -2 && (_mediaTimer = -3, setTimeout(MediaWatcher_.resume_, 0)) // not block onActivated listener
@@ -682,7 +663,7 @@ setTimeout((): void => {
       : !OnChrome || Build.MinCVer >= BrowserVer.MinNoAbnormalIncognito
       ? IncognitoType.ensuredFalse : IncognitoType.mayFalse)
   });
-  TabRecency_.rCompare_ = (a, b): number => cache.get(b.id)!.i - cache.get(a.id)!.i
+  TabRecency_.rCompare_ = (a, b): number => cache.get(b.id)! - cache.get(a.id)!
 
   OnChrome && void settings_.ready_.then((): void => {
   for (const i of ["images", "plugins", "javascript", "cookies"] as const) {
