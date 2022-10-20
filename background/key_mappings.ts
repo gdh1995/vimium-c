@@ -424,6 +424,7 @@ const collectMapKeyTypes_ = (mapKeys: SafeDict<string>): kMapKey => {
       } else {
         let val = mapKeys[key]!, longVal = val.length > 1
         const plainAndWorkInInsert = longVal && (val === kChar.esc || val === "c-" + kChar.bracketLeft
+            || val.startsWith("v-")
             || (val = val.slice(val.lastIndexOf("-") + 1)) < kChar.minNotF_num && val > kChar.maxNotF_num)
         types |= len > 1 || longVal ? plainAndWorkInInsert ? kMapKey.plain | kMapKey.plain_in_insert : kMapKey.plain
             : key.toUpperCase() !== key && val.toUpperCase() !== val ? kMapKey.char : kMapKey.plain
