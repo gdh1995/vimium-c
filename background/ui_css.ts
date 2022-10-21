@@ -101,6 +101,7 @@ export const reloadCSS_ = (action: MergeAction, cssStr?: string): SettingsNS.Mer
       let items = css.slice(ind1, ind2).replace("2.5px 3px 2px", "3px").replace("0.5px", "1px")
       css = css.slice(0, ind1) + items + css.slice(ind2)
     }
+    if (OnFirefox) { css = css.replace("light", "normal") }
     if (OnFirefox && isHighContrast_ff) {
       css = css.replace(<RegExpOne> /\n\.D[^@]+/, "").replace("@media(forced-colors:active){", "").slice(0, -1)
     } else if (OnChrome && Build.MinCVer < BrowserVer.MinForcedColorsMode
