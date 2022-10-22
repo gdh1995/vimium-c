@@ -98,8 +98,9 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
           || OnFirefox && Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1
           || !OnEdge && ui_box !== ui_root ? createStyle(css) : sin
   }
-  const initStartPoint = (): void => {
+  const initStartPoint = (keep?: BOOL): void => {
     if (initialRange = selRange_(getSelected())) {
+      keep ? initialRange = initialRange.cloneRange() :
       collpaseSelection(getSelection_()) // `range.collapse` doesn't work when inside a ShadowRoot (C72)
     } else {
       (initialRange = doc.createRange()).setStart(doc.body || docEl_unsafe_()!, 0)
@@ -240,7 +241,7 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
       input_.scrollTop += bbox.t; input_.scrollLeft = newLeft
     }
   }
-  const restoreSelection = (isCur?: boolean): void => {
+  const restoreSelection = (isCur?: 1): void => {
       const sel = getSelection_(),
       range = !isCur ? initialRange : sel.isCollapsed ? null : selRange_(sel)
       if (!range) { return }
@@ -320,7 +321,7 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
     }
     if ((i === FindAction.ExitForEsc || !knownHasResults || visualDeactivate) && styleSheet) {
       toggleStyle(1)
-      restoreSelection(true)
+      restoreSelection(1)
     }
     if (visualDeactivate) {
       visualDeactivate!(2)
@@ -353,7 +354,7 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
       if (initial_query = initial_query || query_) {
         styleSelColorOut || initSelColors(AdjustType.MustAdjust)
         const isNewQuery = initial_query !== query_
-        initialRange || query_ || initStartPoint()
+        initialRange || query_ || initStartPoint(1)
         if (options.e) { activeRegexIndex = 0; restoreSelection() }
         if (isNewQuery) {
           updateQuery(initial_query)
