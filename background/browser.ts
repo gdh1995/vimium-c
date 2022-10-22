@@ -400,17 +400,37 @@ export const watchPermissions_ = (queries: (AtomPermission | null)[]
   })
 }
 
+export const executeScript_ = <Args extends (number | boolean | null)[]>(tabId: number, frameId: number
+    , files?: string[] | null, func?: (...args: Args) => void, args?: Args, callback?: () => void) => {
+  if (Build.MV3) {
+    const toRun: chrome.scripting.ScriptInjection<Args, void> = { files: func ? void 0 : files!, func, args,
+        target: frameId >= 0 ? { tabId, frameIds: [frameId] } : { tabId, allFrames: true }, injectImmediately: true }
+    OnChrome && Build.MinCVer < 102 && CurCVer_ < 102 && delete toRun.injectImmediately
+    browser_.scripting.executeScript(toRun, callback || runtimeError_)
+    return
+  } else {
+    const toRun: chrome.tabs.InjectDetails = frameId >= 0 ? { frameId } : { allFrames: true, matchAboutBlank: true }
+    toRun.runAt = "document_start"
+    if (func) {
+      toRun.code = `${(func + "").split("{")[1].split("(")[0]}(${args ? args.join(",") : ""})`
+    } else { toRun.file = files![0] }
+    if (OnChrome && Build.MinCVer < BrowserVer.Min$tabs$$executeScript$hasFrameIdArg
+        && CurCVer_ < BrowserVer.Min$tabs$$executeScript$hasFrameIdArg) {
+      delete toRun.frameId
+      delete toRun.matchAboutBlank
+    }
+    Tabs_.executeScript(tabId, toRun, callback || runtimeError_)
+  }
+}
+
 export const runContentScriptsOn_ = (tabId: number): void => {
   const offset = location.origin.length
   if (Build.MV3) {
-    (browser_ as any).scripting.executeScript({
-      target: { tabId, allFrames: true },
-      files: CONST_.ContentScripts_.slice(0, -1).map(i => i.slice(offset))
-    })
+    executeScript_(tabId, -1, CONST_.ContentScripts_.slice(0, -1).map(i => i.slice(offset)))
     return
   }
   for (let js of CONST_.ContentScripts_.slice(0, -1)) {
-    Tabs_.executeScript(tabId, {file: js.slice(offset), allFrames: true}, runtimeError_)
+    executeScript_(tabId, -1, [js.slice(offset)])
   }
 }
 

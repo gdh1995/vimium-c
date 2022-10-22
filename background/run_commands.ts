@@ -4,7 +4,7 @@ import {
 } from "./store"
 import * as BgUtils_ from "./utils"
 import { Tabs_, runtimeError_, getCurTab, getCurShownTabs_, tabsGet } from "./browser"
-import { ensureInnerCSS, ensuredExitAllGrab, indexFrame, showHUD } from "./ports"
+import { ensureInnerCSS, ensuredExitAllGrab, indexFrame, showHUD, getCurFrames_ } from "./ports"
 import { getI18nJson, trans_ } from "./i18n"
 import {
   shortcutRegistry_, normalizedOptions_, availableCommands_,
@@ -305,8 +305,7 @@ export const confirm_ = <T extends kCName> (command: CmdNameIds[T] extends kBgCm
   }
   void Promise.resolve(trans_("cmdConfirm", [askedCount, helpDialogData_[1].get(command) || `### ${command} ###`]))
   .then((msg): void => {
-    (framesForTab_.get(cPort.s.tabId_)?.top_ || cPort).postMessage({
-        N: kBgReq.count, c: "", i: _gCmdTimer, m: msg })
+    (getCurFrames_()?.top_ || cPort).postMessage({ N: kBgReq.count, c: "", i: _gCmdTimer, m: msg })
   })
   return promise_
 }

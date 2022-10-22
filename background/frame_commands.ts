@@ -6,10 +6,13 @@ import {
 } from "./store"
 import * as BgUtils_ from "./utils"
 import {
-  Tabs_, downloadFile, getTabUrl, runtimeError_, selectTab, R_, Q_, browser_, import2, getCurWnd, makeWindow, Windows_
+  Tabs_, downloadFile, getTabUrl, runtimeError_, selectTab, R_, Q_, browser_, import2, getCurWnd, makeWindow, Windows_,
+  executeScript_
 } from "./browser"
 import { convertToUrl_, createSearchUrl_, normalizeSVG_ } from "./normalize_urls"
-import { showHUD, complainLimits, ensureInnerCSS, getParentFrame, getPortUrl_, safePost } from "./ports"
+import {
+  showHUD, complainLimits, ensureInnerCSS, getParentFrame, getPortUrl_, safePost, getCurFrames_, getFrames_
+} from "./ports"
 import { getFindCSS_cr_ } from "./ui_css"
 import { getI18nJson, trans_ } from "./i18n"
 import { keyMappingErrors_, normalizedOptions_, visualGranularities_, visualKeys_ } from "./key_mappings"
@@ -22,7 +25,7 @@ import { FindModeHistory_ } from "./tools"
 import C = kBgCmd
 
 set_runOnTee_(((task, serializable, data): Promise<boolean | string> => {
-  const frames = framesForTab_.get(curTabId_) || cPort && framesForTab_.get(cPort.s.tabId_)
+  const frames = framesForTab_.get(curTabId_) || cPort && getCurFrames_()
   const port = frames ? frames.cur_ : cPort as typeof cPort | null
   if (Build.MV3 && task === kTeeTask.Paste && OnChrome && !serializable) {
     return navigator.permissions!.query({ name: "clipboard-read" }).catch(blank_)
@@ -65,7 +68,7 @@ set_runOnTee_(((task, serializable, data): Promise<boolean | string> => {
 
 export const nextFrame = (): void | kBgCmd.nextFrame => {
   let port = cPort, ind = -1
-  const ref = framesForTab_.get(port.s.tabId_), ports = ref && ref.ports_
+  const ref = getCurFrames_(), ports = ref && ref.ports_
   if (ports && ports.length > 1) {
     ind = ports.indexOf(port)
     for (let count = Math.abs(cRepeat); count > 0; count--) {
@@ -76,18 +79,17 @@ export const nextFrame = (): void | kBgCmd.nextFrame => {
     port = ports[ind]
   }
   focusFrame(port, port.s.frameId_ === 0
-    , port !== cPort && ref && port !== ref.cur_ ? FrameMaskType.NormalNext : FrameMaskType.OnlySelf
-    , get_cOptions<C.nextFrame, true>())
+      , port !== cPort && ref && port !== ref.cur_ ? FrameMaskType.NormalNext : FrameMaskType.OnlySelf)
 }
 
 export const parentFrame = (): void | kBgCmd.parentFrame => {
   const sender = cPort.s,
   msg = OnChrome && Build.MinCVer < BrowserVer.MinWithFrameId && CurCVer_ < BrowserVer.MinWithFrameId
     ? `Vimium C can not know parent frame before Chrome ${BrowserVer.MinWithFrameId}`
-    : !(sender.tabId_ >= 0 && framesForTab_.get(sender.tabId_)) ? "Vimium C can not access frames in current tab" : null
+    : !(sender.tabId_ >= 0 && getFrames_(cPort)) ? "Vimium C can not access frames in current tab" : null
   msg && showHUD(msg)
   void getParentFrame(sender.tabId_, sender.frameId_, cRepeat).then(port => {
-    port ? focusFrame(port, true, FrameMaskType.ForcedSelf, get_cOptions<C.parentFrame, true>()) : mainFrame()
+    port ? focusFrame(port, true, FrameMaskType.ForcedSelf) : mainFrame()
   })
 }
 
@@ -124,7 +126,7 @@ export const initHelp = (request: FgReq[kFgReq.initHelp], port: Port): Promise<v
     curHData[0] != null ? null : BgUtils_.fetchFile_("help_dialog.html"),
     curHData[1] != null ? null : getI18nJson("help_dialog")
   ]).then(([helpDialog, temp1, temp2]): void => {
-    const port2 = request.w && framesForTab_.get(port.s.tabId_)?.top_ || port,
+    const port2 = request.w && getFrames_(port)?.top_ || port,
     isOptionsPage = port2.s.url_.startsWith(CONST_.OptionsPage_)
     let options = request.a || {};
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
@@ -163,7 +165,7 @@ export const showVomnibar = (forceInner?: boolean): void => {
     delete get_cOptions<C.showVomnibar, true>().url
   }
   if (!port) {
-    port = framesForTab_.get(curTabId_)?.top_ || null
+    port = getCurFrames_()?.top_ || null
     if (!port) { return }
     set_cPort(port)
     // not go to the top frame here, so that a current frame can suppress keys for a while
@@ -341,7 +343,7 @@ export const handleImageUrl = (url: `data:${string}` | "", buffer: Blob | null
     return
   }
   if (actions & kTeeTask.Download) {
-    const port = framesForTab_.get(cPort ? cPort.s.tabId_ : curTabId_)?.top_ || cPort
+    const port = getCurFrames_()?.top_ || cPort
     const p2 = BgUtils_.deferPromise_<unknown>()
     if (actions & kTeeTask.CopyImage && !(OnFirefox && actions !== kTeeTask.DrawAndCopy)) {
       setTimeout(p2.resolve_, 300)
@@ -457,8 +459,7 @@ export const framesGoBack = (req: FgReq[kFgReq.framesGoBack], port: Port | null,
       || OnFirefox && Build.MinFFVer >= FirefoxBrowserVer.Min$tabs$$goBack
       || !OnEdge && !!Tabs_.goBack
   if (!hasTabsGoBack) {
-    const url = curTab ? getTabUrl(curTab)
-        : (port!.s.frameId_ ? framesForTab_.get(port!.s.tabId_)!.top_! : port!).s.url_
+    const url = curTab ? getTabUrl(curTab) : (port!.s.frameId_ ? getFrames_(port!)!.top_! : port!).s.url_
     if (!url.startsWith(CONST_.BrowserProtocol_) || OnFirefox && url.startsWith(location.origin + "/")) {
       /* empty */
     } else {
@@ -471,10 +472,7 @@ export const framesGoBack = (req: FgReq[kFgReq.framesGoBack], port: Port | null,
   const onApiCallback = !hasFallbackOptions(req.o) ? runtimeError_
       : (replaceCmdOptions(req.o) , getRunNextCmdBy(kRunOn.otherCb))
   const execGoBack = (tab: Pick<Tab, "id">, goStep: number): void => {
-    Tabs_.executeScript(tab.id, {
-      code: `history.go(${goStep})`,
-      runAt: "document_start"
-    }, onApiCallback)
+    executeScript_<[step: number]>(tab.id, 0, null, (step): void => { history.go(step) }, [goStep])
   }
   const tabID = curTab ? curTab.id : port!.s.tabId_
   const count = req.s, reuse = parseReuse(req.o.reuse || ReuseType.current)
@@ -511,14 +509,12 @@ export const framesGoBack = (req: FgReq[kFgReq.framesGoBack], port: Port | null,
 }
 
 export const mainFrame = (): void | kBgCmd.mainFrame => {
-  const tabId = cPort ? cPort.s.tabId_ : curTabId_, ref = framesForTab_.get(tabId),
-  port = ref && ref.top_
-  if (port && port === ref.cur_ && get_cOptions<C.mainFrame>().$else
+  const ref = getCurFrames_(), port = ref && ref.top_
+  if (!port || port === ref.cur_ && get_cOptions<C.mainFrame>().$else
       && typeof get_cOptions<C.mainFrame>().$else === "string") {
     runNextCmd<C.mainFrame>(0)
   } else {
-    port && focusFrame(port, true, port === ref.cur_ ? FrameMaskType.OnlySelf : FrameMaskType.ForcedSelf
-      , get_cOptions<C.mainFrame, true>())
+    focusFrame(port, true, port === ref.cur_ ? FrameMaskType.OnlySelf : FrameMaskType.ForcedSelf)
   }
 }
 
@@ -604,8 +600,8 @@ export const framesGoNext = (isNext: boolean, rel: string): void => {
   }))
 }
 
-export const focusFrame = (port: Port, css: boolean, mask: FrameMaskType, fallback?: Req.FallbackOptions): void => {
+export const focusFrame = (port: Port, css: boolean, mask: FrameMaskType, noFallback?: 1): void => {
   port.postMessage({ N: kBgReq.focusFrame, H: css ? ensureInnerCSS(port.s) : null, m: mask, k: cKey, c: 0,
-    f: fallback && parseFallbackOptions(fallback) || {}
+    f: !noFallback && get_cOptions<C.nextFrame>() && parseFallbackOptions(get_cOptions<C.nextFrame, true>()) || {}
   })
 }

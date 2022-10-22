@@ -16,7 +16,7 @@ const knownIcons_: readonly [IconNS.BinaryPath, IconNS.BinaryPath, IconNS.Binary
   { 19: "/icons/disabled_19.png", 38: "/icons/disabled_38.png" }
 ]
 
-export const browserAction_ = (browser_ as any).action as undefined || browser_.browserAction
+export const browserAction_ = Build.MV3 ? (browser_ as any).action as never : browser_.browserAction
 let tabIds_cr_: Map<Frames.ValidStatus, number[] | null> | null
 
 const onerror = (err: any): void => {

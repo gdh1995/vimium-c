@@ -149,6 +149,23 @@ declare namespace chrome.tabs {
   export function group (options: { tabIds: number | number[], groupId?: number }): Promise<object>
 }
 
+declare namespace chrome.scripting {
+  interface ScriptInjection<Args extends (string | number | boolean | null)[], Res> {
+    args?: Args // C92+
+    files?: string[]
+    injectImmediately?: boolean // C102+
+    target?: {
+      allFrames?: boolean
+      frameIds?: number[]
+      tabId: number
+    }
+    world?: "ISOLATED" | "MAIN" // "ISOLATED" is since C95+
+    func?: (...args: Args) => Res // C92+
+  }
+  export function executeScript<Args extends (string | number | boolean | null)[], Res>(
+      injection: ScriptInjection<Args, Res>, callback?: (results: {frameId: number, result: Res}[]) => void): 1
+}
+
 declare namespace chrome.bookmarks {
   export function create(bookmark: BookmarkCreateArg, callback?: (result: BookmarkTreeNode) => void): 1;
 }

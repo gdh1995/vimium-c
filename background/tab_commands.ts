@@ -31,7 +31,7 @@ declare const enum RefreshTabStep { start = 0, s1, s2, s3, s4, end }
 
 const abs = Math.abs
 
-const notifyCKey = (): void => { cPort && focusFrame(cPort, false, FrameMaskType.NoMaskAndNoFocus) }
+const notifyCKey = (): void => { cPort && focusFrame(cPort, false, FrameMaskType.NoMaskAndNoFocus, 1) }
 
 const getDestIndex = (tab: Tab): number | null | undefined => {
   return get_cOptions<C.moveTabToNextWindow>().end ? null

@@ -12,7 +12,7 @@ import {
 import { hostRe_, removeComposedScheme_ } from "./normalize_urls"
 import { prepareReParsingPrefix_ } from "./parse_urls"
 import * as settings_ from "./settings"
-import { complainLimits, showHUD, showHUDEx } from "./ports"
+import { complainLimits, getFrames_, showHUD, showHUDEx } from "./ports"
 import { setOmniStyle_ } from "./ui_css"
 import { trans_ } from "./i18n"
 import { parseFallbackOptions, runNextCmd, getRunNextCmdBy, kRunOn, runNextCmdBy } from "./run_commands"
@@ -289,7 +289,7 @@ export const Marks_ = { // NOTE: all public members should be static
       Marks_.set_(request, port.s.incognito_, tabId, port)
       return
     }
-    (port = framesForTab_.get(tabId)?.top_ || port) && port.postMessage({
+    (port = getFrames_(port)?.top_ || port) && port.postMessage({
       N: kBgReq.createMark,
       n: request.n
     });

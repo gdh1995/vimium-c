@@ -1,18 +1,18 @@
 import * as BgUtils_ from "./utils"
 import {
-  cPort, cRepeat, cKey, get_cOptions, set_cPort, set_cRepeat, contentPayload_, framesForTab_,
+  cPort, cRepeat, cKey, get_cOptions, set_cPort, set_cRepeat, contentPayload_,
   framesForOmni_, bgC_, set_bgC_, set_cmdInfo_, curIncognito_, curTabId_, recencyForTab_, settingsCache_, CurCVer_,
   OnChrome, OnFirefox, OnEdge, substitute_, CONST_, curWndId_, findBookmark, bookmarkCache_, extAllowList_
 } from "./store"
 import {
   Tabs_, Windows_, InfoToCreateMultiTab, openMultiTabs, tabsGet, getTabUrl, selectFrom, runtimeError_, R_,
   selectTab, getCurWnd, getCurTab, getCurShownTabs_, browserSessions_, browser_, selectWndIfNeed,
-  getGroupId, isRefusingIncognito_, Q_, Qs_, isNotHidden_, selectIndexFrom
+  getGroupId, isRefusingIncognito_, Q_, Qs_, isNotHidden_, selectIndexFrom,
 } from "./browser"
 import { createSearchUrl_ } from "./normalize_urls"
 import { parseSearchUrl_ } from "./parse_urls"
 import * as settings_ from "./settings"
-import { requireURL_, complainNoSession, showHUD, complainLimits, getPortUrl_, showHUDEx } from "./ports"
+import { requireURL_, complainNoSession, showHUD, complainLimits, getPortUrl_, showHUDEx, getCurFrames_ } from "./ports"
 import { setOmniStyle_ } from "./ui_css"
 import { trans_, I18nNames, extTrans_ } from "./i18n"
 import { stripKey_ } from "./key_mappings"
@@ -96,7 +96,7 @@ set_bgC_([
       framesGoNext(isNext, rel)
       return
     }
-    void Promise.resolve(getPortUrl_(cPort && framesForTab_.get(cPort.s.tabId_)!.top_)).then((tabUrl): void => {
+    void Promise.resolve(getPortUrl_(cPort && getCurFrames_()!.top_)).then((tabUrl): void => {
       const count = isNext ? cRepeat : -cRepeat
       const template = tabUrl && substitute_(tabUrl, SedContext.goNext, sed)
       const [hasPlaceholder, next] = template ? goToNextUrl(template, count, absolute) : [false, tabUrl]
@@ -168,7 +168,7 @@ set_bgC_([
         for (const ch of (value as string).replace(<RegExpG> /\s/g, "")) { str2.includes(ch) || (str2 += ch) }
         value = str2
       }
-      const frames = framesForTab_.get(cPort.s.tabId_)!, cur = frames.cur_
+      const frames = getCurFrames_()!, cur = frames.cur_
       for (const port of frames.ports_) {
         let isCur = port === cur
         portSendFgCmd(port, kFgCmd.toggle, isCur, { k: key2, n: isCur ? keyReprStr : "", v: value }, 1)
@@ -493,7 +493,7 @@ set_bgC_([
   },
   /* kBgCmd.goUp: */ (): void | kBgCmd.goUp => {
     if (get_cOptions<C.goUp>().type !== "frame" && cPort && cPort.s.frameId_) {
-      set_cPort(framesForTab_.get(cPort.s.tabId_)?.top_ || cPort)
+      set_cPort(getCurFrames_()?.top_ || cPort)
     }
     const arg: Req.fg<kFgReq.parseUpperUrl> & {u: "url"} = { H: kFgReq.parseUpperUrl, u: "" as "url",
       p: cRepeat,
@@ -854,7 +854,7 @@ set_bgC_([
     })
   },
   /* kBgCmd.reset: */ (): void | kBgCmd.reset => {
-    const ref = framesForTab_.get(cPort ? cPort.s.tabId_ : curTabId_)
+    const ref = getCurFrames_()
     const unhover = !!get_cOptions<C.reset>().unhover, suppressKey = get_cOptions<C.reset>().suppress
     for (const frame of ref ? ref.ports_ : []) {
       let obj: CmdOptions[kFgCmd.insertMode] = { r: 1, u: unhover }

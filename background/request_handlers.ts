@@ -13,7 +13,7 @@ import { findUrlEndingWithPunctuation_, parseSearchUrl_, parseUpperUrl_ } from "
 import * as settings_ from "./settings"
 import {
   findCPort, isNotVomnibarPage, indexFrame, safePost, complainNoSession, showHUD, complainLimits, ensureInnerCSS,
-  getParentFrame, sendResponse, showHUDEx
+  getParentFrame, sendResponse, showHUDEx, getFrames_
 } from "./ports"
 import { exclusionListening_, getExcluded_ } from "./exclusions"
 import { setOmniStyle_ } from "./ui_css"
@@ -188,8 +188,7 @@ set_reqH_([
       port = indexFrame((request as ExclusionsNS.Details).tabId, (request as ExclusionsNS.Details).frameId)
       if (!port) { return }
     }
-    const { s: sender } = port, { url_: oldUrl } = sender,
-    ref = framesForTab_.get(sender.tabId_)
+    const { s: sender } = port, oldUrl = sender.url_, ref = framesForTab_.get(sender.tabId_)
     if (ref && ref.lock_) { return }
     const pattern = !exclusionListening_ ? null
         : getExcluded_(sender.url_ = from_content ? request.u! : (request as ExclusionsNS.Details).url, sender),
@@ -213,15 +212,14 @@ set_reqH_([
     let ref: Frames.Frames | undefined
     if (type !== Frames.NextType.current) {
       type === Frames.NextType.parent ? parentFrame() : nextFrame()
-    } else if (ref = framesForTab_.get(port.s.tabId_)) {
-      focusFrame(ref.cur_, ref.ports_.length <= 2, request.o ? FrameMaskType.onOmniHide : FrameMaskType.NoMask
-          , get_cOptions<kBgCmd.nextFrame, true>())
+    } else if (ref = getFrames_(port)) {
+      focusFrame(ref.cur_, ref.ports_.length <= 2, request.o ? FrameMaskType.onOmniHide : FrameMaskType.NoMask)
     } else {
       safePost(port, { N: kBgReq.omni_returnFocus, l: cKey })
     }
   },
   /** kFgReq.exitGrab: */ (_: FgReq[kFgReq.exitGrab], port: Port): void => {
-    const ref = framesForTab_.get(port.s.tabId_)
+    const ref = getFrames_(port)
     if (!ref) { return }
     (port.s as Frames.Sender).flags_ |= Frames.Flags.userActed
     ref.flags_ |= Frames.Flags.userActed
@@ -237,7 +235,7 @@ set_reqH_([
   },
   /** kFgReq.execInChild: */ (request: FgReqWithRes[kFgReq.execInChild], port: Port
       , msgId?: number): FgRes[kFgReq.execInChild] | Port | void => {
-    const tabId = port.s.tabId_, ref = framesForTab_.get(tabId), url = request.u, frameId = request.f
+    const tabId = port.s.tabId_, ref = getFrames_(port), url = request.u, frameId = request.f
     if (!ref || ref.ports_.length < 2) { return false }
     let iport: Port | null | undefined
     if (OnFirefox && (Build.MinFFVer >= FirefoxBrowserVer.Min$runtime$$getFrameId
@@ -279,7 +277,7 @@ set_reqH_([
   },
   /** kFgReq.initHelp: */ _AsReqH<kFgReq.initHelp>(initHelp),
   /** kFgReq.css: */ (_0: FgReq[kFgReq.css], port: Port): void => {
-    const ref = framesForTab_.get(port.s.tabId_)!
+    const ref = getFrames_(port)!
     ref.flags_ |= Frames.Flags.userActed;
     (port as Frames.Port).s.flags_ |= Frames.Flags.hasCSS | Frames.Flags.userActed
     port.postMessage({ N: kBgReq.showHUD, H: innerCSS_ })
@@ -383,7 +381,7 @@ set_reqH_([
     const sender = port != null ? (port as Frames.Port).s : null
     if (sender !== null && !(sender.flags_ & Frames.Flags.userActed)) {
       sender.flags_ |= Frames.Flags.userActed
-      const ref = framesForTab_.get(sender.tabId_)
+      const ref = getFrames_(port!)
       ref && (ref.flags_ |= Frames.Flags.userActed)
     }
     let key: string = request.k, count = 1
@@ -456,12 +454,12 @@ set_reqH_([
   /** kFgReq.gotoMainFrame: */ (req: FgReq[kFgReq.gotoMainFrame], port: Port): void => {
     if (req.c === kFgCmd.linkHints || req.c === kFgCmd.scroll) {
       void getParentFrame(port.s.tabId_, port.s.frameId_, 1).then((port2): void => {
-        focusAndExecute(req, port, port2 || framesForTab_.get(port.s.tabId_)?.top_ || null, req.f)
+        focusAndExecute(req, port, port2 || getFrames_(port)?.top_ || null, req.f)
       })
       return
     }
     // Now that content scripts always auto-reconnect, it's not needed to find a parent frame.
-    focusAndExecute(req, port, framesForTab_.get(port.s.tabId_)?.top_ || null, req.f)
+    focusAndExecute(req, port, getFrames_(port)?.top_ || null, req.f)
   },
   /** kFgReq.setOmniStyle: */ _AsReqH<kFgReq.setOmniStyle>(setOmniStyle_),
   /** kFgReq.findFromVisual: */ (_: FgReq[kFgReq.findFromVisual], port: Port): void => {

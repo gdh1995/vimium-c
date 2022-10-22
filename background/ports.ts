@@ -4,7 +4,9 @@ import {
   keyFSM_, mappedKeyRegistry_, CONST_, mappedKeyTypes_, recencyForTab_, setTeeTask_
 } from "./store"
 import { asyncIter_, getOmniSecret_, keys_ } from "./utils"
-import { removeTempTab, tabsGet, runtimeError_, getCurTab, getTabUrl, Tabs_, browserWebNav_, Q_ } from "./browser"
+import {
+  removeTempTab, tabsGet, runtimeError_, getCurTab, getTabUrl, browserWebNav_, Q_, executeScript_
+} from "./browser"
 import { exclusionListening_, getExcluded_, exclusionListenHash_ } from "./exclusions"
 import { I18nNames, transEx_ } from "./i18n"
 
@@ -30,7 +32,7 @@ const onMessage = <K extends keyof FgReq, T extends keyof FgRes> (request: Req.f
 }
 
 export const sendResponse = <T extends keyof FgRes> (port: Port, msgId: number, response: FgRes[T]): void => {
-  const frames = framesForTab_.get(port.s.tabId_)
+  const frames = getFrames_(port)
   if (frames && frames.ports_.includes(port)) { // for less exceptions
     try {
       port.postMessage<2>({ N: kBgReq.msg, m: msgId, r: response })
@@ -93,16 +95,14 @@ export const OnConnect = (port: Frames.Port, type: PortType): void => {
     })
   }
   if (!OnChrome) { (port as Frames.BrowserPort).sender.tab = null as never }
-  port.onDisconnect.addListener(/*#__NOINLINE__*/ onDisconnect)
+  port.onDisconnect.addListener(onDisconnect)
   port.onMessage.addListener(/*#__NOINLINE__*/ onMessage)
   if (OnChrome && Build.MinCVer < BrowserVer.MinWithFrameId && CurCVer_ < BrowserVer.MinWithFrameId) {
     (sender as Writable<Frames.Sender>).frameId_ = (type & PortType.isTop) ? 0 : ((Math.random() * 9999997) | 0) + 2
   }
   if (ref !== undefined && isNewFrameInSameTab) {
     if (type & PortType.hasFocus) {
-      if (needIcon_ && ref.cur_.s.status_ !== status) {
-        setIcon_(tabId, status)
-      }
+      needIcon_ && ref.cur_.s.status_ !== status && setIcon_(tabId, status)
       ref.cur_ = port
     }
     if (type & PortType.isTop && !ref.top_) {
@@ -164,9 +164,7 @@ const _onOmniConnect = (port: Frames.Port, type: PortType, isOmniUrl: boolean): 
       || port.s.frameId_ === 0
       ) { /* empty */ }
   else {
-    Tabs_.executeScript(port.s.tabId_, {
-      file: CONST_.VomnibarScript_, frameId: port.s.frameId_, runAt: "document_start"
-    }, runtimeError_)
+    executeScript_(port.s.tabId_, port.s.frameId_, [CONST_.VomnibarScript_])
   }
   port.disconnect()
 }
@@ -314,6 +312,10 @@ export const isExtIdAllowed = (sender: chrome.runtime.MessageSender): boolean | 
   list.set(extId, false)
   return false
 }
+
+export const getCurFrames_ = (): Frames.Frames | undefined => framesForTab_.get(cPort ? cPort.s.tabId_ : curTabId_)
+
+export const getFrames_ = (port: Port): Frames.Frames | undefined => framesForTab_.get(port.s.tabId_)
 
 export const indexFrame = (tabId: number, frameId: number): Port | null => {
   const ref = framesForTab_.get(tabId)

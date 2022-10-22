@@ -13,7 +13,7 @@ import {
   convertToUrl_, createSearchUrl_, hasUsedKeyword_, lastUrlType_, quotedStringRe_, reformatURL_
 } from "./normalize_urls"
 import { findUrlEndingWithPunctuation_, findUrlInText_ } from "./parse_urls"
-import { safePost, showHUD, complainLimits, findCPort, isNotVomnibarPage, indexFrame } from "./ports"
+import { safePost, showHUD, complainLimits, findCPort, isNotVomnibarPage, getCurFrames_ } from "./ports"
 import { createSimpleUrlMatcher_, matchSimply_ } from "./exclusions"
 import { trans_ } from "./i18n"
 import { makeCommand_ } from "./key_mappings"
@@ -436,7 +436,7 @@ export const openJSUrl = (url: string, options: Req.FallbackOptions, onBrowserFa
     , reuse?: ReuseType): void => {
   if ((<RegExpOne> /^(void|\(void\))? ?(0|\(0\))?;?$/).test(url.slice(11).trim())) { runNextCmdBy(1, options); return }
   if (!onBrowserFail && cPort) {
-    reuse === ReuseType.current && set_cPort(indexFrame(cPort ? cPort.s.tabId_ : curTabId_, 0) || cPort)
+    reuse === ReuseType.current && set_cPort(getCurFrames_()?.top_ || cPort)
     if (safePost(cPort, { N: kBgReq.eval, u: url, f: parseFallbackOptions(options)})) { return }
     if (reuse !== ReuseType.Default) { runNextCmdBy(0, options); return }
     set_cPort(null as never)
@@ -444,7 +444,7 @@ export const openJSUrl = (url: string, options: Req.FallbackOptions, onBrowserFa
   const callback1 = (opt?: object | -1): void => {
     if (opt !== -1 && !runtimeError_()) { runNextOnTabLoaded(options, null); return; }
     const code = BgUtils_.DecodeURLPart_(url.slice(11))
-    void Q_(Tabs_.executeScript, { code }).then((result): void => {
+    void (Build.MV3 ? Promise.resolve(/* todo: */) : Q_(Tabs_.executeScript, { code })).then((result): void => {
       result === undefined && onBrowserFail && onBrowserFail()
       runNextIf(!!result, options, null)
     })

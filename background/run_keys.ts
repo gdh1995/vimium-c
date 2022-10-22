@@ -1,10 +1,10 @@
 import {
-  framesForTab_, get_cOptions, cPort, cRepeat, set_cPort, cKey, curTabId_, keyToCommandMap_, get_cEnv, set_cEnv,
+  get_cOptions, cPort, cRepeat, set_cPort, cKey, keyToCommandMap_, get_cEnv, set_cEnv,
   set_cKey, set_cOptions, set_runOneMapping_, runOneMapping_, inlineRunKey_, set_inlineRunKey_
 } from "./store"
 import * as BgUtils_ from "./utils"
 import { runtimeError_, getCurWnd } from "./browser"
-import { getPortUrl_, safePost, showHUD } from "./ports"
+import { getPortUrl_, safePost, showHUD, getCurFrames_ } from "./ports"
 import { createSimpleUrlMatcher_, matchSimply_ } from "./exclusions"
 import { extTrans_ } from "./i18n"
 import {
@@ -60,12 +60,12 @@ const matchEnvRule = (rule: CommandsNS.EnvItem, info: CurrentEnvCache): EnvMatch
         ? ["/*", "*"].includes(host.v.pathname) && host.v.search === "*" && host.v.hash === "*"
         : host.t === kMatchUrl.StringPrefix
         && ((slash = host.v.indexOf("/", host.v.indexOf("://") + 3)) === host.v.length - 1 || slash === -1)) {
-      const port = framesForTab_.get(cPort ? cPort.s.tabId_ : curTabId_)?.top_ || cPort
+      const frames = getCurFrames_(), port = frames && frames.top_ || cPort
       url = port ? port.s.url_ : null
     }
     if (url == null && (url = getPortUrl_(null, true)) instanceof Promise) {
       void url.then((s): void => {
-        info.url = s || (cPort ? (framesForTab_.get(cPort.s.tabId_)?.top_ || cPort).s.url_
+        info.url = s || (cPort ? (getCurFrames_()?.top_ || cPort).s.url_
             : /** should not reach here */ "")
         runKeyWithCond(info)
       })
@@ -168,7 +168,7 @@ interface SingleSequence { tree: ListNode | ErrorNode; options: CommandsNS.RawOp
 export const runKeyWithCond = (info?: CurrentEnvCache): void => {
   const absCRepeat = abs(cRepeat)
   let matched: NormalizedEnvCond | undefined
-  const frames = framesForTab_.get(cPort ? cPort.s.tabId_ : curTabId_)
+  const frames = getCurFrames_()
   if (!cPort) {
     set_cPort(frames ? frames.cur_ : null as never)
   }
