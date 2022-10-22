@@ -140,7 +140,7 @@ var Tasks = {
   "build/scripts": ["build/background", "build/content", "build/front"],
   "build/_clean_diff": function() {
     return cleanByPath([".build/**", "manifest.json", "*/vomnibar.html", "background/*.html", ".*.build"
-        , "*/*.html", "*/*.css", "**/*.json", "**/*.js", "!helpers/*/*.js", ".snapshot.sh"
+        , "*/*.html", "*/*.css", "**/*.json", "**/*.js", "!helpers/*/*.js", ".snapshot.sh", LOCALES_EN
         ], DEST)
   },
   "build/_all": ["build/scripts", "build/pages"],
@@ -886,6 +886,7 @@ function patchExtendClick(source) {
   } else {
     delete json[999];
   }
+  json[getBuildItem("MV3") ? /** kTip.removeCurScript */ 88 : /** kTip.removeEventScript */ 89] = ""
   fs.writeFileSync(jsonPath, JSON.stringify(json));
   }
   logger("%o: %o %s", ":extend_click", inJSON.length, inJSON ? "bytes" : "(embeded)");

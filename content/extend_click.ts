@@ -10,6 +10,8 @@ import { HookAction, hookOnWnd, safeDestroy, setupBackupTimer_cr } from "./port"
 import { coreHints, doesWantToReloadLinkHints, hintOptions, reinitLinkHintsIn } from "./link_hints"
 import { grabBackFocus, insertInit } from "./insert"
 
+declare var event: unknown
+
 export const main_not_ff = (Build.BTypes & ~BrowserType.Firefox ? (): void => {
 (function extendClick(this: void, isFirstTime?: boolean): void {
 /** Note(gdh1995):
@@ -76,21 +78,21 @@ export const main_not_ff = (Build.BTypes & ~BrowserType.Firefox ? (): void => {
         : OnChrome ? 1 : 0
     , secret: string = ((math.random() * GlobalConsts.SecretRange + GlobalConsts.SecretBase) | 0) + ""
   let script = createElement_("script");
-  function onClick(this: Element | Window, event: Event): void {
+  function onClick(this: Element | Window, event2: Event): void {
     const rawDetail = (
-        event as NonNullable<ConstructorParameters<CustomEventCls>[1]>
+        event2 as NonNullable<ConstructorParameters<CustomEventCls>[1]>
         ).detail as NonNullable<ConstructorParameters<CustomEventCls>[1]>["detail"] | undefined,
     isSafe = this === box,
     detail = rawDetail && isTY(rawDetail, kTY.obj) && isSafe ? rawDetail : "",
     fromAttrs: 0 | 1 | 2 = detail ? (detail[1] + 1) as 1 | 2 : 0;
-    let path: typeof event.path, reHint: number | undefined, mismatch: 1 | undefined,
+    let path: typeof event2.path, reHint: number | undefined, mismatch: 1 | undefined,
     docChildren: HTMLCollectionOf<Element> | undefined, boxChildren: HTMLCollectionOf<Element> | undefined,
-    target = detail ? null : isSafe ? (event as DelegateEventCls["prototype"]).relatedTarget as Element | null
+    target = detail ? null : isSafe ? (event2 as DelegateEventCls["prototype"]).relatedTarget as Element | null
         : (!OnEdge
             && (!OnChrome || Build.MinCVer >= BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow)
-            ? getEventPath(event)![0] as Element
-            : (path = getEventPath(event)) && path.length > 1 ? path[0] as Element : null)
-    Stop_(event)
+            ? getEventPath(event2)![0] as Element
+            : (path = getEventPath(event2)) && path.length > 1 ? path[0] as Element : null)
+    Stop_(event2)
     if (!box) { return }
     let tickDoc = 0, tickBox = 0
     if (detail) {
@@ -138,7 +140,7 @@ export const main_not_ff = (Build.BTypes & ~BrowserType.Firefox ? (): void => {
         , detail ? tickDoc
           : target && (isTY(target.localName) ? `<${target.localName}>` : (target as ElementWithToStr) + "")
         , detail ? detail[1] ? -0 : tickBox
-          : (event as FocusEvent).relatedTarget ? " (detached)"
+          : (event2 as FocusEvent).relatedTarget ? " (detached)"
           : this === window ? " (path on window)" : " (path on box)"
         , loc_.pathname.replace(<RegExpOne> /^.*(\/[^\/;]+\/?)(;[^\/]+)?$/, "$1")
         , getTime() % 3600000);
@@ -228,8 +230,9 @@ export const main_not_ff = (Build.BTypes & ~BrowserType.Firefox ? (): void => {
    * * must look like a real task and contain random string
    */
   interface InnerVerifier { (maybeSecret: string): void }
-  let injected: string = (Build.NDEBUG && Build.Inline ? VTr(isFirstTime ? kTip.extendClick : kTip.removeCurScript)
-          : !isFirstTime && VTr(kTip.removeCurScript))
+  let injected: string = (Build.NDEBUG && Build.Inline ? VTr(isFirstTime ? kTip.extendClick
+            : Build.MV3 ? kTip.removeEventScript : kTip.removeCurScript)
+          : !isFirstTime && VTr(Build.MV3 ? kTip.removeEventScript : kTip.removeCurScript))
         || "'use strict';(" + (function VC(this: void): void {
 
 type FUNC = (this: unknown, ...args: never[]) => unknown;
@@ -343,7 +346,7 @@ hooks = {
 myAEL = (/*#__NOINLINE__*/ hooks)[kAEL], myToStr = (/*#__NOINLINE__*/ hooks)[kToS],
 myDocOpen = (/*#__NOINLINE__*/ hooks).open, myDocWrite = (/*#__NOINLINE__*/ hooks).write
 
-let root = doc0.currentScript as HTMLScriptElement | HTMLDivElement, timer = 1,
+let root = (Build.MV3 ? (event as Event).target : doc0.currentScript) as HTMLScriptElement | HTMLDivElement, timer = 1,
 sec = root.dataset.vimium!,
 /** kMarkToVerify */ kMk = GlobalConsts.MarkAcrossJSWorlds as const,
 detectDisabled: string | 0 = kMk + "=>" + sec,

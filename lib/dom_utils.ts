@@ -667,14 +667,20 @@ export const runJS_ = (code: string, returnEl?: HTMLScriptElement | null | 0
       ): void | HTMLScriptElement & SafeHTMLElement => {
     const docEl = !OnFirefox ? docEl_unsafe_() : null
     const script = returnEl || createElement_("script");
-    script.type = "text/javascript";
-    // keep it fast, rather than small
-    !OnChrome || Build.MinCVer >= BrowserVer.MinEnsured$ParentNode$$appendAndPrepend
-        ? script.append!(code) : textContent_s(script, code)
+    if (!Build.MV3) {
+      script.type = "text/javascript";
+      // keep it fast, rather than small
+      !OnChrome || Build.MinCVer >= BrowserVer.MinEnsured$ParentNode$$appendAndPrepend
+          ? script.append!(code) : textContent_s(script, code)
+    }
     if (!OnFirefox) {
       docEl ? append_not_ff(docEl, script) : appendNode_s(doc, script)
     } else {
       appendNode_s(docEl_unsafe_() as SafeElement | null || doc, script)
+    }
+    if (Build.MV3) { // https://bugs.chromium.org/p/chromium/issues/detail?id=1207006#c4
+      setOrRemoveAttr_s(script, "oninput", code)
+      dispatchEvent_(script, new Event(INP, wrapEventInit_({}, 1, 1, 1)))
     }
     return returnEl != null ? script as SafeHTMLElement & HTMLScriptElement : removeEl_s(script)
 }
