@@ -364,7 +364,7 @@ const updateLegacyToLocal = Build.MV3 ? null : (timeout: number): void => {
   longDelayedAction = setTimeout((): void => {
     longDelayedAction = 0
     settings_.local_.get((items): void => {
-      const legacy = settings_.legacyStorage_!
+      const legacy = settings_.legacyStorage_mv2_!
       if (!legacy.length) { return }
       log("storage.local: update settings from localStorage")
       BgUtils_.safer_(items)
@@ -403,7 +403,7 @@ const beginToRestore = (items: LocalSettings, resolve: () => void): void => {
     storage().set({ vimSync: true })
   }
   const toReset: string[] = []
-  const legacy = Build.MV3 ? null : settings_.legacyStorage_
+  const legacy = Build.MV3 ? null : settings_.legacyStorage_mv2_
   for (let key in settingsCache_) {
     // although storeAndPropagate indeed checks @shouldSyncKey(key)
     // here check it for easier debugging

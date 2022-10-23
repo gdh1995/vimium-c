@@ -1,7 +1,7 @@
 import {
   contentPayload_, extAllowList_, newTabUrls_, omniPayload_, OnChrome, OnEdge, OnFirefox, framesForOmni_, sync_, IsEdg_,
   settingsCache_, bgIniting_, set_bgIniting_, CurCVer_, CONST_, OnOther_, onInit_, storageCache_, searchEngines_,
-  set_hasEmptyLocalStorage_, set_newTabUrl_f, newTabUrl_f, set_vomnibarPage_f, IsLimited, updateHooks_,set_CurFFVer_,
+  set_hasEmptyLocalStorage_, set_newTabUrl_f, newTabUrl_f, set_vomnibarPage_f, updateHooks_,set_CurFFVer_,
   CurFFVer_, set_os_, os_
 } from "./store"
 import { asyncIter_, nextTick_, safeObj_ } from "./utils"
@@ -22,7 +22,7 @@ let newSettingsToBroadcast_: Extract<SettingsUpdateMsg["d"], string[]> | null = 
 let toSaveCache: SafeDict<unknown> | null = null
 export let needToUpgradeSettings_ = 0
 
-export const legacyStorage_ = Build.MV3 && IsLimited ? null : localStorage
+export const legacyStorage_mv2_ = Build.MV3 ? null : localStorage
 export const local_ = browser_.storage.local
 export const ready_: Promise<number> = Promise.all([
   OnFirefox ? browser_.runtime.getBrowserInfo().then((info): 0 | void => {
@@ -59,10 +59,10 @@ export const ready_: Promise<number> = Promise.all([
       }
     }
     let n = 0
-    if (legacyStorage_) {
-      n = legacyStorage_.length
+    if (!Build.MV3) {
+      n = legacyStorage_mv2_!.length
       for (let i = 0; i < n; i++) {
-        const key: string = legacyStorage_.key(i)!, str = legacyStorage_.getItem(key)!
+        const key: string = legacyStorage_mv2_!.key(i)!, str = legacyStorage_mv2_!.getItem(key)!
         if (key in defaults_) {
           const initial = defaults_[key as PersistentKeys]
           const value = typeof initial === "string" ? str
@@ -95,7 +95,7 @@ export const set_ = <K extends keyof SettingsWithDefaults> (key: K, value: Setti
     (settingsCache_ as Generalized<SettingsWithDefaults>)[key] = value
     if (!toSaveCache) { toSaveCache = safeObj_(), setTimeout(saveAllLocally, 0) }
     const initial = defaults_[key as PersistentKeys]
-    Build.MV3 || legacyStorage_!.removeItem(key)
+    Build.MV3 || legacyStorage_mv2_!.removeItem(key)
     const val2 = value !== initial ? value : null
     toSaveCache[key] = val2
     sync_(key, val2)

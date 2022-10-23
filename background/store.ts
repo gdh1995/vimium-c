@@ -7,10 +7,6 @@ export const OnOther_ = !Build.BTypes || Build.BTypes & (Build.BTypes - 1) ? Bui
     : Build.BTypes & BrowserType.Firefox ? BrowserType.Firefox
     : /* an invalid state */ BrowserType.Unknown
     : Build.BTypes as number as BrowserType
-export const IsLimited: boolean = !!Build.MV3
-    // @ts-ignore
-    && typeof window === "undefined"
-
 export const OnChrome: boolean = !(Build.BTypes & ~BrowserType.Chrome)
     || !!(Build.BTypes & BrowserType.Chrome && OnOther_ & BrowserType.Chrome)
 export const OnFirefox: boolean = !(Build.BTypes & ~BrowserType.Firefox)
@@ -26,7 +22,7 @@ const brands = OnChrome && Build.MinCVer >= BrowserVer.MinEnsuredNavigator$userA
   ? uad.brands || uad.uaList : uad.brands)
 let tmpBrand: UABrandInfo | undefined
 export const IsEdg_: boolean = OnChrome && (Build.MinCVer < BrowserVer.MinEnsuredNavigator$userAgentData && !brands
-    ? Build.MV3 && IsLimited ? false : matchMedia("(-ms-high-contrast)").matches
+    ? Build.MV3 ? false : matchMedia("(-ms-high-contrast)").matches
     : !!brands!.find(i => i.brand.includes("Edge") || i.brand.includes("Microsoft")))
 export const CurCVer_: BrowserVer = !OnChrome ? BrowserVer.assumedVer
     : Build.MinCVer >= BrowserVer.MinEnsuredNavigator$userAgentData || brands

@@ -2,7 +2,7 @@ import {
   curIncognito_, curTabId_, curWndId_, framesForTab_, incognitoFindHistoryList_, recencyForTab_, set_curIncognito_,
   set_curTabId_, set_curWndId_, set_incognitoFindHistoryList_, set_lastWndId_, incognitoMarkCache_,
   set_incognitoMarkCache_, contentPayload_, reqH_, settingsCache_, OnFirefox, OnChrome, CurCVer_, updateHooks_,
-  OnEdge, isHighContrast_ff_, omniPayload_, blank_, CONST_, CurFFVer_, storageCache_, IsLimited, os_,
+  OnEdge, isHighContrast_ff_, omniPayload_, blank_, CONST_, CurFFVer_, storageCache_, os_,
   vomnibarBgOptions_, cPort
 } from "./store"
 import * as BgUtils_ from "./utils"
@@ -489,7 +489,7 @@ OnFirefox && Build.MinFFVer < FirefoxBrowserVer.MinMediaQueryListenersWorkInBg &
   _mediaTimer = hasReliableWatchers ? -1 : 0
 })
 
-export const MediaWatcher_ = Build.MV3 && IsLimited ? null as never : {
+export const MediaWatcher_ = Build.MV3 ? null as never : {
   watchers_: [
     (OnChrome && Build.MinCVer >= BrowserVer.MinMediaQuery$PrefersReducedMotion)
       || (OnFirefox && Build.MinFFVer >= FirefoxBrowserVer.MinMediaQuery$PrefersReducedMotion)
@@ -673,7 +673,7 @@ setTimeout((): void => {
   })
 }, 120)
 
-if (!(Build.MV3 && IsLimited)) {
+if (!Build.MV3) {
   updateHooks_.autoDarkMode = updateHooks_.autoReduceMotion = (value: 0 | 1 | 2 | boolean
       , keyName: "autoReduceMotion" | "autoDarkMode"): void => {
     const key = keyName.length > 12 ? MediaNS.kName.PrefersReduceMotion : MediaNS.kName.PrefersColorScheme;
@@ -721,7 +721,7 @@ updateHooks_.vomnibarOptions = (options: SettingsNS.BackendSettings["vomnibarOpt
   payload.i = queryInterval
   payload.s = sizes
   payload.t = styles
-  if (!(Build.MV3 && IsLimited)) {
+  if (!Build.MV3) {
     MediaWatcher_.update_(MediaNS.kName.PrefersReduceMotion, 1)
     MediaWatcher_.update_(MediaNS.kName.PrefersColorScheme, 1)
   }

@@ -1,4 +1,4 @@
-import { CurCVer_, IsLimited } from "./store"
+import { CurCVer_ } from "./store"
 import { fetchFile_ } from "./utils"
 import { browser_, Q_ } from "./browser"
 import type * as i18n_map from "../_locales/en/messages.json"
@@ -10,7 +10,7 @@ export type I18nNames = keyof typeof i18n_dyn
 
 let extPayload_: Map<string, string>
 export let i18nReadyExt_: Promise<void> | BOOL = Build.MV3 && Build.MinCVer < BrowserVer.MinBg$i18n$$getMessage$InMV3
-    && CurCVer_ < BrowserVer.MinBg$i18n$$getMessage$InMV3 && IsLimited ? 0 : 1
+    && CurCVer_ < BrowserVer.MinBg$i18n$$getMessage$InMV3 ? 0 : 1
 let i18nPayload_: Map<string, string>
 let ready_: Promise<void> | BOOL = 0
 
@@ -18,7 +18,7 @@ export const contentI18n_: string[] = []
 
 export const extTrans_: (msg: ExtNames) => string | Promise<string>
   = !(Build.MV3 && Build.MinCVer < BrowserVer.MinBg$i18n$$getMessage$InMV3
-    && CurCVer_ < BrowserVer.MinBg$i18n$$getMessage$InMV3 && IsLimited)
+    && CurCVer_ < BrowserVer.MinBg$i18n$$getMessage$InMV3)
   ? (msg: string): string => browser_.i18n.getMessage(msg)
   : (msg: string): string | Promise<string> => i18nReadyExt_ === 1 ? extPayload_.get(msg)!
     : (i18nReadyExt_ || loadExt_()).then(extTrans_.bind(0, msg as ExtNames))
@@ -93,7 +93,7 @@ export let loadContentI18n_: (() => void) | null = (): void => {
   const arr: string[] = contentI18n_, args = ["$1", "$2", "$3", "$4"]
   for (let i = 0; i < kTip.INJECTED_CONTENT_END; i++) {
     arr.push(Build.MV3 && Build.MinCVer < BrowserVer.MinBg$i18n$$getMessage$InMV3
-        && CurCVer_ < BrowserVer.MinBg$i18n$$getMessage$InMV3 && IsLimited
+        && CurCVer_ < BrowserVer.MinBg$i18n$$getMessage$InMV3
         ? extPayload_.get("" + i)!.replace(<RegExpG> /\$\$/g, "$")
         : browser_.i18n.getMessage(("" + i) as "0", args))
   }

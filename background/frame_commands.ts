@@ -1,7 +1,7 @@
 import {
   cPort, cRepeat, get_cOptions, set_cPort, set_cOptions, set_cRepeat, framesForTab_, findCSS_, cKey, reqH_, runOnTee_,
   curTabId_, settingsCache_, OnChrome, visualWordsRe_, CurCVer_, OnEdge, OnFirefox, substitute_, CONST_, set_runOnTee_,
-  helpDialogData_, set_helpDialogData_, curWndId_, vomnibarPage_f, IsLimited, vomnibarBgOptions_, setTeeTask_, blank_,
+  helpDialogData_, set_helpDialogData_, curWndId_, vomnibarPage_f, vomnibarBgOptions_, setTeeTask_, blank_,
   curIncognito_, OnOther_, keyToCommandMap_
 } from "./store"
 import * as BgUtils_ from "./utils"
@@ -321,7 +321,7 @@ export const handleImageUrl = (url: `data:${string}` | "", buffer: Blob | null
           handleImageUrl(ok as "data:", null, kTeeTask.CopyImage, resolve, title, text)
           return
         }
-        if (Build.MV3 && IsLimited || ok) { resolve(!!ok); return }
+        if (Build.MV3 || ok) { resolve(!!ok); return }
         const doc = (globalThis as MaybeWithWindow).document!
         const img = doc.createElement("img")
         img.alt = title.replace(BgUtils_.getImageExtRe_(), "")
@@ -359,7 +359,7 @@ export const handleImageUrl = (url: `data:${string}` | "", buffer: Blob | null
         a.target = "_blank"
         a.click()
       }
-      succeed ? 0 : Build.MV3 && IsLimited || OnFirefox ? doShow!(url || blobRef) : clickAnchor_cr()
+      succeed ? 0 : Build.MV3 || OnFirefox ? doShow!(url || blobRef) : clickAnchor_cr()
       actions === kTeeTask.Download && resolve(true)
     })
     })

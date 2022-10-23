@@ -1,6 +1,6 @@
 import {
   CurCVer_, CurFFVer_, OnChrome, OnEdge, OnFirefox, copy_, paste_, substitute_, set_copy_, set_paste_, set_substitute_,
-  settingsCache_, IsLimited, updateHooks_, searchEngines_, blank_, runOnTee_
+  settingsCache_, updateHooks_, searchEngines_, blank_, runOnTee_
 } from "./store"
 import * as BgUtils_ from "./utils"
 import * as Exclusions from "./exclusions"
@@ -386,9 +386,8 @@ let navClipboard: (typeof navigator.clipboard) | undefined
 set_copy_(((data, join, sed, keyword): string | Promise<string> => {
   data = format_(data, join, sed, keyword)
   if (!data) { return "" }
-  if (Build.MV3 && IsLimited
-      || OnFirefox && (navClipboard || (navClipboard = navigator.clipboard))) {
-    return (Build.MV3 && IsLimited ? runOnTee_(kTeeTask.Copy, data, null)
+  if (Build.MV3 || OnFirefox && (navClipboard || (navClipboard = navigator.clipboard))) {
+    return (Build.MV3 ? runOnTee_(kTeeTask.Copy, data, null)
         : navClipboard!.writeText!(data).catch(blank_)).then(() => data as string)
   } else {
     const doc = (globalThis as MaybeWithWindow).document!, textArea = getTextArea_html()
@@ -403,9 +402,8 @@ set_copy_(((data, join, sed, keyword): string | Promise<string> => {
 }) satisfies typeof copy_)
 
 set_paste_(((sed, newLenLimit?: number): string | Promise<string | null> => {
-  if (Build.MV3 && IsLimited
-      || OnFirefox && (navClipboard || (navClipboard = navigator.clipboard))) {
-    return (Build.MV3 && IsLimited ? runOnTee_(kTeeTask.Paste, null, null)
+  if (Build.MV3 || OnFirefox && (navClipboard || (navClipboard = navigator.clipboard))) {
+    return (Build.MV3 ? runOnTee_(kTeeTask.Paste, null, null)
         : navClipboard!.readText!().catch(() => null)).then(s => s && typeof s === "string"
               ? reformat_(s.slice(0, GlobalConsts.MaxBufferLengthForPastingLongURL), sed) : null)
   }

@@ -1,7 +1,7 @@
 import {
   framesForTab_, framesForOmni_, OnChrome, CurCVer_, OnEdge, OnFirefox, os_, curTabId_, bgC_,
   set_visualWordsRe_, bgIniting_, Completion_, CONST_, keyFSM_, reqH_, set_bgIniting_, set_hasGroupPermission_ff_,
-  onInit_, set_onInit_, IsLimited, set_cPort
+  onInit_, set_onInit_, set_cPort
 } from "./store"
 import * as BgUtils_ from "./utils"
 import { runtimeError_, tabsGet, Tabs_, browser_, watchPermissions_} from "./browser"
@@ -57,7 +57,7 @@ set_onInit_(((): void => {
       }
       settings_.postUpdate_("exclusionListenHash")
       settings_.postUpdate_("vomnibarOptions")
-      if (!(Build.MV3 && IsLimited)) { // media watchers should be setup after vomnibarOptions
+      if (!Build.MV3) { // media watchers should be setup after vomnibarOptions
         settings_.postUpdate_("autoDarkMode")
         settings_.postUpdate_("autoReduceMotion")
       }

@@ -1,7 +1,7 @@
 import {
   findCSS_, innerCSS_, omniPayload_, set_findCSS_, set_innerCSS_, CurCVer_, CurFFVer_, IsEdg_, omniStyleOverridden_,
   OnChrome, OnEdge, OnFirefox, isHighContrast_ff_, set_isHighContrast_ff_, bgIniting_, CONST_, set_helpDialogData_,
-  framesForOmni_, settingsCache_, set_omniStyleOverridden_, updateHooks_, storageCache_, IsLimited
+  framesForOmni_, settingsCache_, set_omniStyleOverridden_, updateHooks_, storageCache_
 } from "./store"
 import { asyncIter_, fetchFile_, spacesRe_ } from "./utils"
 import { ready_, broadcastOmni_, postUpdate_, setInLocal_ } from "./settings"
@@ -61,7 +61,7 @@ export const reloadCSS_ = (action: MergeAction, cssStr?: string): SettingsNS.Mer
     }
     const cssFile = parseSections_(css)
     let isHighContrast_ff = false, hcChanged_ff = false
-    if (OnFirefox && !(Build.MV3 && IsLimited)) {
+    if (OnFirefox && !Build.MV3) {
       if (!matchMedia("(forced-colors)").matches) {
         isHighContrast_ff = storageCache_.get(GlobalConsts.kIsHighContrast) === "1"
       }
@@ -252,14 +252,14 @@ export const getFindCSS_cr_ = OnChrome ? (sender: Frames.Sender): FindCSS => {
 void ready_.then((): void => {
   StyleCacheId_ = CONST_.VerCode_ + ","
       + (OnChrome ? CurCVer_ : OnFirefox ? CurFFVer_ : 0)
-      + (Build.MV3 && IsLimited || !OnEdge && (!OnChrome || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
+      + (Build.MV3 || !OnEdge && (!OnChrome || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
             && (!OnFirefox || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
           ? ""
           : (OnChrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
               ? globalThis.ShadowRoot || (globalThis as MaybeWithWindow).document!.body!.webkitCreateShadowRoot
               : globalThis.ShadowRoot)
           ? "s" : "")
-      + (Build.MV3 && IsLimited || OnChrome && Build.MinCVer >= BrowserVer.MinUsableCSS$All ? ""
+      + (Build.MV3 || OnChrome && Build.MinCVer >= BrowserVer.MinUsableCSS$All ? ""
         : (!OnChrome || CurCVer_ > BrowserVer.MinUsableCSS$All - 1)
           && (!OnEdge || "all" in ((globalThis as MaybeWithWindow).document!.body as HTMLElement).style)
         ? "a" : "")

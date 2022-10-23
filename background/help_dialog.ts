@@ -1,5 +1,5 @@
 import {
-  CONST_, CurCVer_, helpDialogData_, IsEdg_, IsLimited, keyToCommandMap_, OnChrome, OnFirefox, inlineRunKey_
+  CONST_, CurCVer_, helpDialogData_, IsEdg_, keyToCommandMap_, OnChrome, OnFirefox, inlineRunKey_
 } from "./store"
 import * as BgUtils_ from "./utils"
 import { browser_ } from "./browser"
@@ -18,7 +18,7 @@ let i18n_: Map<keyof typeof import("../i18n/zh/help_dialog.json"), string>
 const descriptions_ = new Map<kCName, [/** description */ string, /** parameters */ string]>()
 
 export const parseHTML = (template: string): [string, string] => {
-      const noShadow = !(Build.MV3 && IsLimited || (!OnChrome || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
+      const noShadow = !(Build.MV3 || (!OnChrome || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
             && (!OnFirefox || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
             && (OnChrome || OnFirefox))
           && !(OnChrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
