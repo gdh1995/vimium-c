@@ -49,7 +49,7 @@ set_reqH_([
     const name = request.handler
     if (!name || typeof name !== "string") { return }
     if (name === kFgReq.focus) {
-      if (!(port.s.flags_ | Frames.Flags.userActed)) {
+      if (!(port.s.flags_ & Frames.Flags.userActed)) {
         (port.s as Frames.Sender).flags_ |= Frames.Flags.userActed
         port.postMessage({ N: kBgReq.exitGrab })
       }
@@ -515,8 +515,7 @@ set_reqH_([
     showHUD(trans_(notBool ? "useVal" : val ? "turnOn" : "turnOff", [key, notBool ? JSON.stringify(val) : ""]))
   },
   /** kFgReq.keyFromOmni: */ (req: FgReq[kFgReq.keyFromOmni], port): void => {
-    const tabId = port.s.tabId_, frames = framesForTab_.get(tabId >= 0 ? tabId : curTabId_)
-    reqH_[kFgReq.key](req, frames ? frames.cur_ : null)
+    reqH_[kFgReq.key](req, findCPort(port))
   },
   /** kFgReq.pages: */ (req: FgReqWithRes[kFgReq.pages], port: Frames.PagePort, msgId?: number): false | Port => {
     if (port.s !== false && !port.s.url_.startsWith(location.origin + "/")) { return false }

@@ -105,9 +105,7 @@ export const OnConnect = (port: Frames.Port, type: PortType): void => {
       needIcon_ && ref.cur_.s.status_ !== status && setIcon_(tabId, status)
       ref.cur_ = port
     }
-    if (type & PortType.isTop && !ref.top_) {
-      (ref as Writable<Frames.Frames>).top_ = port
-    }
+    type & PortType.isTop && ((ref as Writable<typeof ref>).top_ = port)
     ref.ports_.push(port)
   } else {
     framesForTab_.set(tabId, {
@@ -212,7 +210,7 @@ const formatPortSender = (port: Port): Frames.Sender => {
   if (OnChrome) { sender.tab = null as never }
   return (port as Frames.Port).s = {
     frameId_: sender.frameId || 0, // frameId may not exist if no sender.tab
-    status_: Frames.Status.enabled, flags_: Frames.Flags.blank,
+    flags_: Frames.Flags.blank, status_: Frames.Status.enabled,
     incognito_: tab != null ? tab.incognito : false,
     tabId_: tab != null ? tab.id : -3,
     url_: OnEdge ? sender.url || tab != null && tab.url || "" : sender.url!
@@ -222,10 +220,18 @@ const formatPortSender = (port: Port): Frames.Sender => {
 const revokeOldPorts = (ports_: Frames.Port[]) => {
   for (const port of ports_) {
     if (port.s.frameId_) {
-      try {
-        port.disconnect()
-      } catch {}
+      _safeRefreshPort(port)
     }
+  }
+}
+
+const _safeRefreshPort = (port: Port): void | /** failed */ 1 => {
+  try {
+    port.onDisconnect.removeListener(onDisconnect)
+    port.postMessage({ N: kBgReq.refreshPort })
+  } catch {
+    port.disconnect()
+    return 1
   }
 }
 
@@ -280,8 +286,8 @@ export const requireURL_ = <k extends keyof FgReq>(request: Req.fg<k> & {u: "url
 }
 
 export const findCPort = (port: Port | null | undefined): Port | null => {
-  const frames = framesForTab_.get(port ? port.s.tabId_ : curTabId_)
-  return frames ? frames.cur_ : null as never as Port
+  const frames = framesForTab_.get(port && port.s.tabId_ >= 0 ? port.s.tabId_ : curTabId_)
+  return frames ? frames.cur_ : null
 }
 
 export const isExtIdAllowed = (sender: chrome.runtime.MessageSender): boolean | string => {
@@ -412,7 +418,7 @@ export const asyncIterFrames_ = (callback: (frames: Frames.Frames) => void, does
     }
     return weight
   }
-  if (knownKeys.length < MIN_ASYNC_ITER) {
+  if (knownKeys.length >= MIN_ASYNC_ITER) {
     const ind1 = knownKeys.indexOf(knownCurTabId)
     if (ind1 >= 0) {
       knownKeys.splice(ind1, 1)
@@ -449,7 +455,7 @@ export const getParentFrame = (tabId: number, curFrameId: number, level: number)
       || !browserWebNav_()) {
     return Promise.resolve(null)
   }
-  if (!OnEdge && level === 1 && (!OnChrome || Build.MinCVer < BrowserVer.Min$webNavigation$$getFrame$IgnoreProcessId
+  if (!OnEdge && level === 1 && (!OnChrome || Build.MinCVer >= BrowserVer.Min$webNavigation$$getFrame$IgnoreProcessId
       || CurCVer_ > BrowserVer.Min$webNavigation$$getFrame$IgnoreProcessId - 1)) {
     return Q_(browserWebNav_()!.getFrame, { tabId, frameId: curFrameId }).then(frame => {
       const frameId = frame ? frame.parentFrameId : 0

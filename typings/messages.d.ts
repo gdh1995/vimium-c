@@ -85,10 +85,10 @@ declare const enum kBgReq {
   START = 0,
   init = START, reset, injectorRun, url, msg, eval,
   settingsUpdate, focusFrame, exitGrab, keyFSM, execute,
-  createMark, showHUD, count, queryForRunKey, goToMark, suppressForAWhile,
+  createMark, showHUD, count, queryForRunKey, goToMark, suppressForAWhile, refreshPort,
   OMNI_MIN = 42,
   omni_init = OMNI_MIN, omni_omni, omni_parsed, omni_returnFocus,
-  omni_toggleStyle, omni_updateOptions, omni_runTeeTask,
+  omni_toggleStyle, omni_updateOptions, omni_refresh, omni_runTeeTask,
   END = "END", // without it, TypeScript will report errors for number indexes
 }
 
@@ -174,6 +174,7 @@ interface BgReq {
     /** scroll */ s: MarksNS.FgMark
   }
   [kBgReq.suppressForAWhile]: { /** timeout */ t: number }
+  [kBgReq.refreshPort]: {}
 }
 
 interface BgVomnibarSpecialReq {
@@ -206,6 +207,7 @@ interface BgVomnibarSpecialReq {
     /** delta */ d: Partial<SelectValueType<SettingsNS.AllVomnibarItems>>;
   };
   [kBgReq.omni_runTeeTask]: Pick<BaseTeeTask, "t" | "s">
+  [kBgReq.omni_refresh]: { /** destroy */ d: boolean }
 }
 type ValidBgVomnibarReq = keyof BgVomnibarSpecialReq | kBgReq.injectorRun;
 interface FullBgReq extends BgReq, BgVomnibarSpecialReq {}

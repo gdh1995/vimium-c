@@ -1605,9 +1605,9 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
           ? e.isTrusted : e.isTrusted !== false) && VPort_._port && doRefresh_(17)
     };
   },
-  OnUnload_ (e: Event): void {
+  OnUnload_ (e?: Event): void {
     if (!VPort_
-        || (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
+        || e && (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
             ? !e.isTrusted : e.isTrusted === false)) { return; }
     Vomnibar_.isActive_ = false;
     Vomnibar_.timer_ > 0 && clearTimeout(Vomnibar_.timer_);
@@ -1880,6 +1880,8 @@ VPort_ = {
     name === kBgReq.omni_returnFocus ? VPort_.postToOwner_({ N: VomnibarNS.kFReq.focus, l: response.l }) :
     name === kBgReq.omni_toggleStyle ? Vomnibar_.toggleStyle_(response) :
     name === kBgReq.omni_updateOptions ? Vomnibar_.updateOptions_(response) :
+    name === kBgReq.omni_refresh ? !Vomnibar_.isActive_ && response.d ? Vomnibar_.OnUnload_()
+        : (VPort_._port!.disconnect(), VPort_.connect_(PortType.omnibar | PortType.reconnect)) :
     name === kBgReq.injectorRun ? 0 :
     0;
   },

@@ -14,7 +14,7 @@ import {
   runtimeConnect, safeDestroy, post_, send_, hookOnWnd, requestHandlers, contentCommands_,
 } from "./port"
 import {
-  ui_box, adjustUI, getParentVApi, set_getParentVApi, set_getWndVApi_ff, learnCSS, ui_root, flash_,
+  ui_box, adjustUI, getParentVApi, set_getParentVApi, set_getWndVApi_ff, learnCSS, ui_root, flash_
 } from "./dom_ui"
 import { grabBackFocus } from "./insert"
 import { currentKeys } from "./key_handler"
@@ -78,20 +78,19 @@ set_safeDestroy((silent): ReturnType<typeof safeDestroy> => {
 })
 
 set_vApi(VApi = {
-  b: coreHints, e: null, z: null,
-  p: post_, a: setupKeydownEvents, f: focusAndRun, d: safeDestroy, g: filterTextToGoNext, h: hudTip, j: jumpToNextLink,
-  n: 0 as never as null, c: executeScroll,
-  k: scrollTick, $: $sc, l: learnCSS,
-  i: OnFirefox ? wndSize_ : 0 as never,
+  a: setupKeydownEvents, b: coreHints, c: executeScroll, d: safeDestroy, e: null, f: focusAndRun, g: filterTextToGoNext,
+  h: hudTip, i: OnFirefox ? wndSize_ : 0 as never, j: jumpToNextLink, k: scrollTick, l: learnCSS, n: 0 as never as null,
+  p: post_, q: requestHandlers[kBgReq.refreshPort],
   r: isAsContent as false || [send_, safePost, (task: 0 | 1 | 2, arg?: string | ElementSet | VTransType): any => {
     task < 1 ? (arg = currentKeys, /*#__NOINLINE__*/ esc!(HandlerResult.Nothing))
       : task < 2 ? set_clickable_(arg as ElementSet)
       : set_VTr(arg as VTransType)
     return arg
-  }, getMappedKey], s: suppressTail_, t: requestHandlers[kBgReq.showHUD], u: locHref, v: runJS_, x: flash_,
-  y: OnFirefox ? () => ( {
+  }, getMappedKey], s: suppressTail_, t: requestHandlers[kBgReq.showHUD],
+  u: locHref, v: runJS_, x: flash_, y: OnFirefox ? () => ( {
     w: onWndFocus, b: find_box, c: clickable_, k: scroll_keyIsDown, r: ui_root, f: find_input
-  } ) : () => ( {  b: find_box, c: clickable_, k: scroll_keyIsDown, r: ui_root, f: find_input } )
+  } ) : () => ( {  b: find_box, c: clickable_, k: scroll_keyIsDown, r: ui_root, f: find_input } ), z: null,
+  $: $sc
 })
 
 if (OnFirefox && isAsContent) {

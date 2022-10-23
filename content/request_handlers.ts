@@ -12,7 +12,7 @@ import {
 } from "../lib/dom_utils"
 import {
   onPortRes_, post_, safePost, set_requestHandlers, requestHandlers, hookOnWnd, set_hookOnWnd,
-  HookAction, contentCommands_, runFallbackKey,
+  HookAction, contentCommands_, runFallbackKey, runtime_port, runtimeConnect,
 } from "./port"
 import {
   addUIElement, adjustUI, createStyle, getParentVApi, getBoxTagName_old_cr, setUICSS, ui_box, evalIfOK, checkHidden,
@@ -230,7 +230,11 @@ set_requestHandlers([
     post_({ H: kFgReq.respondForRunKey, r: request, e: getElDesc_(lock) })
   },
   /* kBgReq.goToMark: */ gotoMark,
-  /* kBgReq.suppressForAWhile: */ (request: BgReq[kBgReq.suppressForAWhile]): void => { suppressTail_(request.t) }
+  /* kBgReq.suppressForAWhile: */ (request: BgReq[kBgReq.suppressForAWhile]): void => { suppressTail_(request.t) },
+  /* kBgReq.refreshPort: */ (forced?: BgReq[kBgReq.refreshPort] | BOOL): void => {
+    forced && runtime_port && runtime_port.disconnect()
+    !forced && runtime_port || runtimeConnect()
+  }
 ])
 
 export const showFrameMask = (mask: FrameMaskType): void => {

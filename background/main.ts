@@ -121,18 +121,17 @@ OnEdge || void settings_.ready_.then((): void => {
   browser_.runtime.onMessageExternal!.addListener((
       message: boolean | number | string | null | undefined | ExternalMsgs[keyof ExternalMsgs]["req"]
       , sender, sendResponse): void => {
+    // https://stackoverflow.com/questions/66618136#:~:text=If%20you%20also%20use%20sendMessage
+    const requireResp = Build.MV3 && OnChrome && Build.MinCVer <= 101 && CurCVer_ < 101 + 1 && CurCVer_ >= 99
     if (!isExtIdAllowed(sender)) {
       sendResponse(false);
       return;
     }
     if (typeof message === "string") {
       executeExternalCmd({command: message}, sender)
-      return;
     }
-    else if (typeof message !== "object" || !message) {
-      return;
-    }
-    switch (message.handler) {
+    else if (typeof message !== "object" || !message) { /* empty */ }
+    else switch (message.handler) {
     case kFgReq.shortcut:
       let shortcut = message.shortcut;
       if (shortcut) {
@@ -147,7 +146,7 @@ OnEdge || void settings_.ready_.then((): void => {
         injector: CONST_.Injector_,
         version: CONST_.VerCode_
       });
-      break;
+      return;
     case kFgReq.inject:
       (sendResponse as (res: ExternalMsgs[kFgReq.inject]["res"]) => void | 1)({
         s: message.scripts ? CONST_.ContentScripts_ : null,
@@ -155,11 +154,12 @@ OnEdge || void settings_.ready_.then((): void => {
         host: OnChrome ? "" : location.host,
         h: PortNameEnum.Delimiter + CONST_.GitVer
       });
-      break;
+      return;
     case kFgReq.command:
       executeExternalCmd(message, sender)
       break;
     }
+    requireResp && sendResponse(true)
   })
   settings_.postUpdate_("vomnibarPage", null)
   settings_.postUpdate_("searchUrl", null) // will also update newTabUrl
@@ -189,19 +189,16 @@ set_bgIniting_(bgIniting_ | BackendHandlersNS.kInitStat.main)
 onInit_!()
 
   // will run only on <kbd>F5</kbd>, not on runtime.reload
-globalThis.onunload = (event): void => {
-    if (event && (!OnChrome || Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted
-            ? !event.isTrusted : event.isTrusted === false)) { return; }
+Build.MV3 || (onunload = (): void => {
     for (let port of framesForOmni_) {
       port.disconnect()
     }
     framesForTab_.forEach((frames): void => {
-      for (let port of frames.ports_.slice(0)) {
+      for (let port of frames.ports_.slice()) {
         port.disconnect();
       }
     })
-}
-if (!(globalThis as MaybeWithWindow).window) { (globalThis as any).onclose = onunload }
+})
 
 if (OnFirefox && !Build.NativeWordMoveOnFirefox
     || OnChrome && Build.MinCVer < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp

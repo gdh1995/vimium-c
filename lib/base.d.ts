@@ -220,6 +220,7 @@ interface VApiTy {
   /** learnCSS */ l: (srcStyleUI: HTMLStyleElement | string | null, force?: undefined) => void
   /** findOnLoad */ n: ((event?: Event) => void) | null
   /** post */ p: <K extends keyof FgReq>(this: void, req: FgReq[K] & Req.baseFg<K>) => void | 1;
+  /** refreshPort */ q: (forced: BgReq[kBgReq.refreshPort]) => void
   /** for injector */ r: [ send:
     <k extends keyof FgRes> (cmd: k, args: Req.fgWithRes<k>["a"], callback: (this: void, res: FgRes[k]) => void) => void
     , _safePost: (<K extends keyof FgReq> (this: void, request: FgReq[K] & Req.baseFg<K>) => void) | undefined
