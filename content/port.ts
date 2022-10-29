@@ -75,7 +75,7 @@ export const runtimeConnect = (function (this: void): void {
     port_ = null
     OnChrome && timeout_ === interval_ ? safeDestroy() : timeout_((): void => {
       try { port_ || !isAlive_ || runtimeConnect() } catch { safeDestroy() }
-    }, fgCache ? 5000 : 2000)
+    }, (fgCache ? 5000 : 2000) + (isTop as number | boolean as number) * 50)
   });
   port_.onMessage.addListener(<T extends keyof BgReq> (response: Req.bg<T>): void => {
     type TypeToCheck = { [k in keyof BgReq]: (this: void, request: BgReq[k]) => unknown };

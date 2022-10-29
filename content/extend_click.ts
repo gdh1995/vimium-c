@@ -10,8 +10,6 @@ import { HookAction, hookOnWnd, safeDestroy, setupBackupTimer_cr } from "./port"
 import { coreHints, doesWantToReloadLinkHints, hintOptions, reinitLinkHintsIn } from "./link_hints"
 import { grabBackFocus, insertInit } from "./insert"
 
-declare var event: unknown
-
 export const main_not_ff = (Build.BTypes & ~BrowserType.Firefox ? (): void => {
 (function extendClick(this: void, isFirstTime?: boolean): void {
 /** Note(gdh1995):
@@ -346,7 +344,9 @@ hooks = {
 myAEL = (/*#__NOINLINE__*/ hooks)[kAEL], myToStr = (/*#__NOINLINE__*/ hooks)[kToS],
 myDocOpen = (/*#__NOINLINE__*/ hooks).open, myDocWrite = (/*#__NOINLINE__*/ hooks).write
 
-let root = (Build.MV3 ? (event as Event).target : doc0.currentScript) as HTMLScriptElement | HTMLDivElement, timer = 1,
+let root = (Build.MV3 ? ( // @ts-ignore
+    event as Event
+    ).target : doc0.currentScript) as HTMLScriptElement | HTMLDivElement, timer = 1,
 sec = root.dataset.vimium!,
 /** kMarkToVerify */ kMk = GlobalConsts.MarkAcrossJSWorlds as const,
 detectDisabled: string | 0 = kMk + "=>" + sec,

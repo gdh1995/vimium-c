@@ -2,7 +2,7 @@ import * as BgUtils_ from "./utils"
 import {
   cPort, cRepeat, cKey, get_cOptions, set_cPort, set_cRepeat, contentPayload_,
   framesForOmni_, bgC_, set_bgC_, set_cmdInfo_, curIncognito_, curTabId_, recencyForTab_, settingsCache_, CurCVer_,
-  OnChrome, OnFirefox, OnEdge, substitute_, CONST_, curWndId_, findBookmark, bookmarkCache_, extAllowList_
+  OnChrome, OnFirefox, OnEdge, substitute_, CONST_, curWndId_, findBookmark, bookmarkCache_, extAllowList_, Origin2_
 } from "./store"
 import {
   Tabs_, Windows_, InfoToCreateMultiTab, openMultiTabs, tabsGet, getTabUrl, selectFrom, runtimeError_, R_,
@@ -636,8 +636,8 @@ set_bgC_([
       if (OnChrome && restored && (restored.window || restored.tab && restored.tab.windowId !== curWndId
             && restored.tab.index === 0)) {
         const tab = restored.window ? selectFrom(restored.window.tabs!) : restored.tab!, url = tab.url
-        let runnable = (<RegExpOne> /^(file|ftps?|https?)/).test(url) || url.startsWith(location.origin + "/")
-        if (!runnable && url.startsWith(location.protocol) && !url.startsWith(location.origin + "/")) {
+        let runnable = (<RegExpOne> /^(file|ftps?|https?)/).test(url) || url.startsWith(Origin2_)
+        if (!runnable && url.startsWith(location.protocol) && !url.startsWith(Origin2_)) {
           const extHost = new URL(url).host
           runnable = !!extHost && extAllowList_.get(extHost) === true
         }

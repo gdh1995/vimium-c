@@ -4,6 +4,7 @@ import {
   framesForOmni_, settingsCache_, set_omniStyleOverridden_, updateHooks_, storageCache_
 } from "./store"
 import { asyncIter_, fetchFile_, spacesRe_ } from "./utils"
+import { getFindCSS_cr_, set_getFindCSS_cr_ } from "./browser"
 import { ready_, broadcastOmni_, postUpdate_, setInLocal_ } from "./settings"
 import { asyncIterFrames_ } from "./ports"
 
@@ -199,7 +200,7 @@ export const mergeCSS = (css2Str: string, action: MergeAction | "userDefinedCss"
   setInLocal_(O, omni2 || null)
   reloadCSS_(MergeAction.readFromCache, newInnerCSS)
   if (action !== MergeAction.readFromCache && action !== MergeAction.rebuildWhenInit) {
-    asyncIterFrames_((frames: Frames.Frames): void => {
+    asyncIterFrames_(Frames.Flags.CssUpdated, (frames: Frames.Frames): void => {
         for (const port of frames.ports_) {
           const flags = port.s.flags_
           if (port.s.flags_ & Frames.Flags.hasCSS) {
@@ -238,7 +239,7 @@ export const setOmniStyle_ = (req: FgReq[kFgReq.setOmniStyle], port?: Port): voi
   })
 }
 
-export const getFindCSS_cr_ = OnChrome ? (sender: Frames.Sender): FindCSS => {
+OnChrome && set_getFindCSS_cr_(((sender: Frames.Sender): FindCSS => {
   const css = findCSS_
   return Build.MinCVer < BrowserVer.MinFileNameIsSelectableOnFilesPage
       && CurCVer_ < BrowserVer.MinFileNameIsSelectableOnFilesPage
@@ -246,7 +247,7 @@ export const getFindCSS_cr_ = OnChrome ? (sender: Frames.Sender): FindCSS => {
     c: css.c + "\n" + ".icon.file { -webkit-user-select: auto !important; user-select: auto !important; }",
     s: css.s, i: css.i
   }) : css
-} : 0 as never as null
+}) satisfies typeof getFindCSS_cr_)
 
 void ready_.then((): void => {
   StyleCacheId_ = CONST_.VerCode_ + ","

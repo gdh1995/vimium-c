@@ -74,7 +74,7 @@ export const toggleIconBuffer_ = (): void => {
       set_iconData_(null)
       if (OnChrome) { tabIds_cr_ = null }
       else {
-        asyncIterFrames_(iter, cond)
+        asyncIterFrames_(Frames.Flags.blank, iter, cond)
       }
     }, 200);
     return;
@@ -86,7 +86,7 @@ export const toggleIconBuffer_ = (): void => {
     tabIds_cr_ = new Map()
   }
   // only do partly updates: ignore "rare" cases like `sender.s` is enabled but the real icon isn't
-  asyncIterFrames_(iter, cond)
+  asyncIterFrames_(Frames.Flags.blank, iter, cond)
 }
 
 /** Firefox does not use ImageData as inner data format

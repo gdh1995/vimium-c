@@ -1881,7 +1881,7 @@ VPort_ = {
     name === kBgReq.omni_toggleStyle ? Vomnibar_.toggleStyle_(response) :
     name === kBgReq.omni_updateOptions ? Vomnibar_.updateOptions_(response) :
     name === kBgReq.omni_refresh ? !Vomnibar_.isActive_ && response.d ? Vomnibar_.OnUnload_()
-        : (VPort_._port!.disconnect(), VPort_.connect_(PortType.omnibar | PortType.reconnect)) :
+        : Build.MV3 ? (VPort_._port!.disconnect(), VPort_.connect_(PortType.omnibar | PortType.reconnect)) : 0 :
     name === kBgReq.injectorRun ? 0 :
     0;
   },

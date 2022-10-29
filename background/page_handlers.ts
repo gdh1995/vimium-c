@@ -1,7 +1,7 @@
 import {
   contentPayload_, evalVimiumUrl_, keyFSM_, keyToCommandMap_, mappedKeyRegistry_, newTabUrls_, restoreSettings_,
   CONST_, settingsCache_, shownHash_, substitute_, framesForTab_, curTabId_, extAllowList_, OnChrome, reqH_, OnEdge,
-  storageCache_, os_, framesForOmni_, updateHooks_
+  storageCache_, os_, framesForOmni_, updateHooks_, Origin2_
 } from "./store"
 import { deferPromise_, protocolRe_, safeObj_ } from "./utils"
 import { browser_, getCurTab, getTabUrl, Q_, runContentScriptsOn_, runtimeError_ } from "./browser"
@@ -59,7 +59,7 @@ const pageRequestHandlers_: {
     settings_.broadcast_({ N: kBgReq.settingsUpdate, d: req })
   },
   /** kPgReq.settingItem: */ (req): PgReq[kPgReq.settingItem][1] => settingsCache_[req.key],
-  /** kPgReq.runJSOn: */ (id): PgReq[kPgReq.runJSOn][1] => { framesForTab_.has(id) || runContentScriptsOn_(id) },
+  /** kPgReq.runFgOn: */ (id): PgReq[kPgReq.runFgOn][1] => { framesForTab_.has(id) || runContentScriptsOn_(id) },
   /** kPgReq.keyMappingErrors: */ (): PgReq[kPgReq.keyMappingErrors][1] => {
     const formatCmdErrors_ = (errors: string[][]): string => {
       let i: number, line: string[], output = errors.length > 1 ? errors.length + " Errors:\n" : "Error: "
@@ -160,7 +160,7 @@ const pageRequestHandlers_: {
       const unknownExt = getUnknownExt(ref)
       const runnable = !notRunnable && !unknownExt
       let extHost = runnable ? null : unknownExt || !url ? unknownExt
-          : (url.startsWith(location.protocol) && !url.startsWith(location.origin + "/") ? new URL(url).host : null)
+          : (url.startsWith(location.protocol) && !url.startsWith(Origin2_) ? new URL(url).host : null)
       const extStat = extHost ? extAllowList_.get(extHost) : null
       const mayAllow = !runnable && (extStat != null && extStat !== true)
       if (mayAllow) {

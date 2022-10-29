@@ -240,7 +240,7 @@ export const nextTick_ = !OnEdge
     : (callback: () => void): void => { void Promise.resolve().then(callback) }
 
 export const asyncIter_ = <T> (arr: T[], callback: (item: T) => number, doesContinue?: () => boolean | void): void => {
-  const MAX_ITER_STEPS = 128, MIN_ASYNC_ITER = 50, ASYNC_INTERVAL = 150
+  const MAX_ITER_STEPS = 32, MIN_ASYNC_ITER = 10, ASYNC_INTERVAL = 150
   const iter = (): void => {
     if (doesContinue && doesContinue() === false) { end = 0 }
     for (let i = 0, j = 0; i < MAX_ITER_STEPS && j < MAX_ITER_STEPS * 4 && end > 0; ) {

@@ -53,8 +53,7 @@ export const OnConnect = (port: Frames.Port, type: PortType): void => {
       removeTempTab(sender.tabId_, (port as Frames.BrowserPort).sender.tab!.windowId, sender.url_)
       return
     } else if (type & PortType.omnibar || isOmni) {
-      /*#__NOINLINE__*/ _onOmniConnect(port, type
-          , isOmni || url === CONST_.VomnibarPageInner_)
+      /*#__NOINLINE__*/ _onOmniConnect(port, type, isOmni || url === CONST_.VomnibarPageInner_)
       return
     }
   }
@@ -406,13 +405,13 @@ export const ensuredExitAllGrab = (ref: Frames.Frames): void => {
   return
 }
 
-export const asyncIterFrames_ = (callback: (frames: Frames.Frames) => void, doesContinue?: () => boolean | void
-    ): void => {
-  const MIN_ASYNC_ITER = 50
+export const asyncIterFrames_ = (itemUpdatedFlag: Frames.Flags
+    , callback: (frames: Frames.Frames) => void, doesContinue?: () => boolean | void): void => {
+  const MIN_ASYNC_ITER = 10
   const knownKeys = keys_(framesForTab_), knownCurTabId = curTabId_
   const iter = (tab: number): number => {
     let frames = framesForTab_.get(tab), weight = 0
-    if (frames != null) {
+    if (frames !== undefined) {
       weight = Math.min(frames.ports_.length, 8)
       callback(frames)
     }
@@ -422,7 +421,7 @@ export const asyncIterFrames_ = (callback: (frames: Frames.Frames) => void, does
     const ind1 = knownKeys.indexOf(knownCurTabId)
     if (ind1 >= 0) {
       knownKeys.splice(ind1, 1)
-      callback(framesForTab_.get(knownCurTabId)!)
+      iter(knownCurTabId)
     }
     asyncIter_(knownKeys, iter, doesContinue)
   } else {

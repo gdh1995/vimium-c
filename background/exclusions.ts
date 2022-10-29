@@ -152,15 +152,12 @@ export const RefreshStatus_ = (old_is_empty: boolean): void => {
       N: kBgReq.reset, p: null, f: 0
     };
     if (old_is_empty) {
-      always_enabled || settings.broadcast_<kBgReq.url>({
-        N: kBgReq.url,
-        H: kFgReq.checkIfEnabled
-      });
+      always_enabled || settings.broadcast_({ N: kBgReq.url, H: kFgReq.checkIfEnabled })
       return;
     }
     const needIcon = iconData_ != null || iconData_ !== undefined && needIcon_
     const oldRules: unknown = rules_
-    asyncIterFrames_((frames): void => {
+    asyncIterFrames_(Frames.Flags.UrlUpdated, (frames): void => {
       const status0 = frames.cur_.s.status_, curFrame = frames.cur_.s
       for (const port of frames.ports_) {
         let pass: string | null = null, status: Frames.ValidStatus = Frames.Status.enabled

@@ -1,6 +1,6 @@
 export declare const enum kPgReq {
    /** 0..4 */ settingsDefaults, settingsCache, setSetting, updatePayload, notifyUpdate,
-   /** 5..9 */ settingItem, runJSOn, keyMappingErrors, parseCSS, reloadCSS,
+   /** 5..9 */ settingItem, runFgOn, keyMappingErrors, parseCSS, reloadCSS,
    /** 10..14 */ convertToUrl, updateMediaQueries, whatsHelp, checkNewTabUrl, checkSearchUrl,
    /** 15..19 */ focusOrLaunch, showUrl, shownHash, substitute, checkHarmfulUrl,
    /** 20..24 */ popupInit, allowExt, toggleStatus, parseMatcher, initHelp,
@@ -23,7 +23,7 @@ export interface PgReq {
   ]
   [kPgReq.notifyUpdate]: [ (keyof SettingsNS.FrontendSettingsSyncingItems)[], void ]
   [kPgReq.settingItem]: [ { key: keyof SettingsNS.SettingsWithDefaults }, Values<SettingsNS.SettingsWithDefaults> ]
-  [kPgReq.runJSOn]: [ number, void ]
+  [kPgReq.runFgOn]: [ number, void ]
   [kPgReq.keyMappingErrors]: [ void, true | string ]
   [kPgReq.parseCSS]: [ [string, number], SettingsNS.MergedCustomCSS ]
   [kPgReq.reloadCSS]: [ { hc: boolean } | null, void ]

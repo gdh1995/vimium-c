@@ -12,7 +12,6 @@ import {
   extractField, querySelectorAll_unsafe_, editableTypes_, findAnchor_, dispatchEvent_, wrapEventInit_
 } from "../lib/dom_utils"
 import { getPreferredRectOfAnchor, initTestRegExps } from "./local_links"
-// @ts-ignore
 import type { ModesWithOnlyHTMLElements } from "./local_links"
 import {
   hintOptions, mode1_, hintMode_, hintApi, hintManager, coreHints, setMode, detectUsableChild, hintCount_,

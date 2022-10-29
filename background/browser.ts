@@ -1,6 +1,6 @@
 import {
   CurCVer_, CurFFVer_, curIncognito_, curWndId_, newTabUrls_, OnChrome, OnEdge, OnFirefox, newTabUrl_f, blank_,
-  CONST_, IsEdg_, hasGroupPermission_ff_, bgIniting_, set_installation_
+  CONST_, IsEdg_, hasGroupPermission_ff_, bgIniting_, set_installation_, Origin2_
 } from "./store"
 import { DecodeURLPart_, deferPromise_ } from "./utils"
 
@@ -132,6 +132,9 @@ const doesIgnoreUrlField_ = (url: string, incognito?: boolean): boolean => {
   return type === Urls.NewTabType.browser || type === Urls.NewTabType.cNewNTP && !(OnChrome && !IsEdg_ && !incognito)
 }
 
+export let getFindCSS_cr_: ((sender: Frames.Sender) => FindCSS) | undefined
+export const set_getFindCSS_cr_ = (newGet: typeof getFindCSS_cr_): void => { getFindCSS_cr_ = newGet }
+
 //#region actions
 
 /** if `alsoWnd`, then it's safe when tab does not exist */
@@ -144,8 +147,9 @@ export const selectWnd = (tab?: { windowId: number }): void => {
   return runtimeError_()
 }
 
-export const selectWndIfNeed = (tab: { windowId: number }): void => {
-  tab.windowId !== curWndId_ && selectWnd(tab)
+export const selectWndIfNeed = (tab?: { windowId: number }): void => {
+  tab && tab.windowId !== curWndId_ && selectWnd(tab)
+  return runtimeError_()
 }
 
 let doesSkipOpener_ff = (): boolean => {
@@ -164,7 +168,7 @@ export const tabsCreate = (args: chrome.tabs.CreateProperties, callback?: ((tab:
   if (!url) {
     url = newTabUrl_f
     if (curIncognito_ === IncognitoType.true
-        && (evenIncognito === -1 ? url.includes("pages/blank.html") && url.startsWith(location.origin + "/")
+        && (evenIncognito === -1 ? url.includes("pages/blank.html") && url.startsWith(Origin2_)
             : !evenIncognito && url.startsWith(location.protocol))) { /* empty */ }
     else if (!doesIgnoreUrlField_(url, curIncognito_ === IncognitoType.true)) {
       args.url = url
@@ -401,7 +405,7 @@ export const watchPermissions_ = (queries: (AtomPermission | null)[]
 }
 
 export const executeScript_ = <Args extends (number | boolean | null)[]>(tabId: number, frameId: number
-    , files?: string[] | null, func?: (...args: Args) => void, args?: Args, callback?: () => void) => {
+    , files?: string[] | null, func?: (...args: Args) => void, args?: Args, callback?: (() => void) | null) => {
   if (Build.MV3) {
     const toRun: chrome.scripting.ScriptInjection<Args, void> = { files: func ? void 0 : files!, func, args,
         target: frameId >= 0 ? { tabId, frameIds: [frameId] } : { tabId, allFrames: true }, injectImmediately: true }
@@ -424,7 +428,7 @@ export const executeScript_ = <Args extends (number | boolean | null)[]>(tabId: 
 }
 
 export const runContentScriptsOn_ = (tabId: number): void => {
-  const offset = location.origin.length
+  const offset = Origin2_.length - 1
   if (Build.MV3) {
     executeScript_(tabId, -1, CONST_.ContentScripts_.slice(0, -1).map(i => i.slice(offset)))
     return

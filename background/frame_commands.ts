@@ -2,18 +2,17 @@ import {
   cPort, cRepeat, get_cOptions, set_cPort, set_cOptions, set_cRepeat, framesForTab_, findCSS_, cKey, reqH_, runOnTee_,
   curTabId_, settingsCache_, OnChrome, visualWordsRe_, CurCVer_, OnEdge, OnFirefox, substitute_, CONST_, set_runOnTee_,
   helpDialogData_, set_helpDialogData_, curWndId_, vomnibarPage_f, vomnibarBgOptions_, setTeeTask_, blank_,
-  curIncognito_, OnOther_, keyToCommandMap_
+  curIncognito_, OnOther_, keyToCommandMap_, Origin2_
 } from "./store"
 import * as BgUtils_ from "./utils"
 import {
   Tabs_, downloadFile, getTabUrl, runtimeError_, selectTab, R_, Q_, browser_, import2, getCurWnd, makeWindow, Windows_,
-  executeScript_
+  executeScript_, getFindCSS_cr_
 } from "./browser"
 import { convertToUrl_, createSearchUrl_, normalizeSVG_ } from "./normalize_urls"
 import {
   showHUD, complainLimits, ensureInnerCSS, getParentFrame, getPortUrl_, safePost, getCurFrames_, getFrames_
 } from "./ports"
-import { getFindCSS_cr_ } from "./ui_css"
 import { getI18nJson, trans_ } from "./i18n"
 import { keyMappingErrors_, normalizedOptions_, visualGranularities_, visualKeys_ } from "./key_mappings"
 import {
@@ -187,7 +186,7 @@ export const showVomnibar = (forceInner?: boolean): void => {
   const page = vomnibarPage_f, { url_: url } = port.s,
   preferWeb = !page.startsWith(CONST_.BrowserProtocol_),
   isCurOnExt = url.startsWith(CONST_.BrowserProtocol_),
-  inner = forceInner || !page.startsWith(location.origin + "/") ? CONST_.VomnibarPageInner_ : page
+  inner = forceInner || !page.startsWith(Origin2_) ? CONST_.VomnibarPageInner_ : page
   forceInner = forceInner ? forceInner
     : preferWeb ? isCurOnExt || page.startsWith("file:") && !url.startsWith("file:///")
       // it has occurred since Chrome 50 (BrowserVer.Min$tabs$$executeScript$hasFrameIdArg)
@@ -450,7 +449,7 @@ export const openImgReq = (req: FgReq[kFgReq.openImage], port?: Port): void => {
   })
   // not use v:show for those from other extensions
   openUrlWithActions(typeof urlToOpen === "string" && testUrl
-      && (!urlToOpen.startsWith(location.protocol) || urlToOpen.startsWith(location.origin + "/")) ? prefix + urlToOpen
+      && (!urlToOpen.startsWith(location.protocol) || urlToOpen.startsWith(Origin2_)) ? prefix + urlToOpen
       : urlToOpen, Urls.WorkType.FakeType)
 }
 
@@ -460,7 +459,7 @@ export const framesGoBack = (req: FgReq[kFgReq.framesGoBack], port: Port | null,
       || !OnEdge && !!Tabs_.goBack
   if (!hasTabsGoBack) {
     const url = curTab ? getTabUrl(curTab) : (port!.s.frameId_ ? getFrames_(port!)!.top_! : port!).s.url_
-    if (!url.startsWith(CONST_.BrowserProtocol_) || OnFirefox && url.startsWith(location.origin + "/")) {
+    if (!url.startsWith(CONST_.BrowserProtocol_) || OnFirefox && url.startsWith(Origin2_)) {
       /* empty */
     } else {
       set_cPort(port!) /* Port | null -> Port */

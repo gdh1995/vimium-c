@@ -2,7 +2,7 @@ import {
   set_cPort, set_cRepeat, set_cOptions, needIcon_, set_cKey, cKey, get_cOptions, set_reqH_, reqH_, restoreSettings_,
   innerCSS_, framesForTab_, cRepeat, curTabId_, Completion_, CurCVer_, OnChrome, OnEdge, OnFirefox, setIcon_, blank_,
   substitute_, paste_, keyToCommandMap_, CONST_, copy_, set_cEnv, settingsCache_, vomnibarBgOptions_, setTeeTask_,
-  curIncognito_, inlineRunKey_, CurFFVer_
+  curIncognito_, inlineRunKey_, CurFFVer_, Origin2_
 } from "./store"
 import * as BgUtils_ from "./utils"
 import {
@@ -157,9 +157,7 @@ set_reqH_([
       err && showHUD(trans_("noSessionItem"))
       return err
     })
-    if (active) { return }
-    let tabId = port!.s.tabId_
-    tabId >= 0 || (tabId = curTabId_)
+    const tabId = active ? -1 : port!.s.tabId_ >= 0 ? port!.s.tabId_ : curTabId_
     if (tabId >= 0) { selectTab(tabId) }
   },
   /** kFgReq.openUrl: */ _AsReqH<kFgReq.openUrl>(openUrlReq),
@@ -518,7 +516,7 @@ set_reqH_([
     reqH_[kFgReq.key](req, findCPort(port))
   },
   /** kFgReq.pages: */ (req: FgReqWithRes[kFgReq.pages], port: Frames.PagePort, msgId?: number): false | Port => {
-    if (port.s !== false && !port.s.url_.startsWith(location.origin + "/")) { return false }
+    if (port.s !== false && !port.s.url_.startsWith(Origin2_)) { return false }
     onPagesReq(req.q, req.i, port).then((res): void => {
       port.postMessage<2>(msgId ? { N: kBgReq.msg, m: msgId, r: res } : res as never)
     })
@@ -658,10 +656,10 @@ const onPagesReq = (req: FgReqWithRes[kFgReq.pages]["q"], id: number
       .then(answers => ({ i: id, a: answers.map(i => i !== void 0 ? i : null) }))
 }
 
-declare var window: unknown
 declare var structuredClone: (<T> (obj: T) => T) | undefined
-(globalThis as MaybeWithWindow).window && ((window as BgExports).onPagesReq =
-    (req): Promise<FgRes[kFgReq.pages]> => {
+Build.MV3 || (( // @ts-ignore
+  window as BgExports
+).onPagesReq = (req): Promise<FgRes[kFgReq.pages]> => {
   if (req.i === GlobalConsts.TeeReqId) {
     const teeTask = setTeeTask_(null, null)
     teeTask && clearTimeout(teeTask.i)

@@ -168,7 +168,10 @@ const _BroadcastSettingsUpdates = <K extends keyof BgReq> (
       }
       newSettingsToBroadcast_ = null
     }
-    asyncIterFrames_((frames: Frames.Frames): void => {
+    asyncIterFrames_(request.N === kBgReq.url ? Frames.Flags.UrlUpdated
+          : request.N === kBgReq.keyFSM ? Frames.Flags.KeyMappingsUpdated | (request.k ? Frames.Flags.KeyFSMUpdated : 0)
+          : Frames.Flags.SettingsUpdated
+        , (frames: Frames.Frames): void => {
       for (const port of frames.ports_) {
         port.postMessage(request as Req.baseBg<K> as Req.bg<K>)
       }

@@ -1,6 +1,6 @@
 import {
   curTabId_, Completion_, omniPayload_, reqH_, OnFirefox, CurCVer_, IsEdg_, OnChrome, restoreSettings_, blank_,
-  set_needIcon_, set_setIcon_, CONST_, installation_, updateToLocal_, set_updateToLocal_, vomnibarBgOptions_,
+  set_needIcon_, set_setIcon_, CONST_, installation_, updateToLocal_, set_updateToLocal_, vomnibarBgOptions_, Origin2_,
   framesForTab_, onInit_, updateHooks_, settingsCache_
 } from "./store"
 import {
@@ -11,7 +11,7 @@ import * as settings_ from "./settings"
 import { extTrans_, i18nLang_, trans_ } from "./i18n"
 import { convertToUrl_, formatVimiumUrl_ } from "./normalize_urls"
 import { decodeFileURL_ } from "./normalize_urls"
-import { openUrlReq } from "./open_urls"
+import { focusOrLaunch_, openUrlReq } from "./open_urls"
 
 import SugType = CompletersNS.SugType
 import MatchType = CompletersNS.MatchType
@@ -386,9 +386,7 @@ installation_ && void Promise.all([installation_, settings_.ready_]).then(([deta
   if (!oldVer) {
       const delay = (): void => {
         if (onInit_ || restoreSettings_) { ++tick < 25 && setTimeout(delay, 200); return }
-        reqH_[kFgReq.focusOrLaunch]({
-          u: CONST_.OptionsPage_ + (Build.NDEBUG ? "#commands" : "#installed")
-        })
+        focusOrLaunch_({ u: CONST_.OptionsPage_ + (Build.NDEBUG ? "#commands" : "#installed") })
       }
       let tick = 0
       delay()
@@ -412,7 +410,7 @@ installation_ && void Promise.all([installation_, settings_.ready_]).then(([deta
       , trans_("clickForMore") ]).then(([upgrade, msg, msg2, clickForMore]): void => {
   const args: chrome.notifications.NotificationOptions = {
     type: "basic",
-    iconUrl: location.origin + "/icons/icon128.png",
+    iconUrl: Origin2_ + "icons/icon128.png",
     title: "Vimium C " + upgrade,
     message: msg + msg2 + "\n\n" + clickForMore
   };
@@ -431,9 +429,7 @@ installation_ && void Promise.all([installation_, settings_.ready_]).then(([deta
     browserNotifications.onClicked.addListener(function callback(id): void {
       if (id !== id) { return; }
       browserNotifications.clear(id)
-      reqH_[kFgReq.focusOrLaunch]({
-        u: convertToUrl_("vimium://release")
-      });
+      focusOrLaunch_({ u: convertToUrl_("vimium://release") })
       browserNotifications.onClicked.removeListener(callback)
     });
   });

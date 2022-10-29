@@ -43,6 +43,7 @@ export let CurFFVer_: FirefoxBrowserVer = !OnFirefox ? FirefoxBrowserVer.assumed
     : parseInt(navigator.userAgent!.split("Firefox/")[1] || "0") || FirefoxBrowserVer.assumedVer
 export let os_: kOS = Build.OS & (Build.OS - 1) ? kOS.win : Build.OS < 8 ? (Build.OS / 2) | 0 : Math.log2(Build.OS)
 export let installation_: Promise<chrome.runtime.InstalledDetails | null | undefined> | null | undefined
+export const Origin2_ = location.origin + "/"
 //#endregion
 
 //#region runtime configuration

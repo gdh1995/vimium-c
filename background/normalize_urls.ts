@@ -1,5 +1,6 @@
 import {
-  CONST_, os_, CurCVer_, evalVimiumUrl_, historyCache_, IsEdg_, OnChrome, OnFirefox, searchEngines_, newTabUrl_f
+  CONST_, os_, CurCVer_, evalVimiumUrl_, historyCache_, IsEdg_, OnChrome, OnFirefox, searchEngines_, newTabUrl_f,
+  Origin2_
 } from "./store"
 import {
   isJSUrl_, DecodeURLPart_, resetRe_, isIPHost_, encodeAsciiComponent_, spacesRe_, protocolRe_, isTld_
@@ -244,7 +245,7 @@ export const removeComposedScheme_ = (url: string): string => {
 
 export const formatVimiumUrl_ = (fullPath: string, partly: boolean, vimiumUrlWork: Urls.WorkType): string => {
   let ind: number, subPath = "", query = "", tempStr: string | undefined, path = fullPath.trim();
-  if (!path) { return partly ? "" : location.origin + "/pages/"; }
+  if (!path) { return partly ? "" : Origin2_ + "pages/" }
   if (ind = path.indexOf(" ") + 1) {
     query = path.slice(ind).trim();
     path = path.slice(0, ind - 1);
@@ -272,7 +273,7 @@ export const formatVimiumUrl_ = (fullPath: string, partly: boolean, vimiumUrlWor
     }
   }
   if (!partly && (!tempStr || !tempStr.includes("://"))) {
-    path = location.origin + (path[0] === "/" ? "" : "/pages/") + path;
+    path = Origin2_ + (path[0] === "/" ? path.slice(1) : "pages/" + path)
   }
   subPath && (path += subPath);
   return path + (query && (path.includes("#") ? " " : "#!") + query);

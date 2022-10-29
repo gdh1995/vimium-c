@@ -391,7 +391,7 @@ const onNotRunnable = (blockedMsg: HTMLElement): void => {
   if (!OnFirefox && (<RegExpOne> /^(file|ftps?|https?):/).test(_url) && conf_.tabId >= 0) {
     retryInjectElement.onclick = (event): void => {
       event.preventDefault()
-      void post_(kPgReq.runJSOn, conf_.tabId).then((): void => {
+      void post_(kPgReq.runFgOn, conf_.tabId).then((): void => {
         window.close()
       })
     }

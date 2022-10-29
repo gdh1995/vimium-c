@@ -28,8 +28,6 @@ import { main_not_ff as extend_click_not_ff } from  "./extend_click"
 import { main_ff as extend_click_ff, unblockClick_old_ff } from  "./extend_click_ff"
 import { hudTip } from "./hud"
 
-declare var XPCNativeWrapper: <T extends object> (wrapped: T) => XrayedObject<T>; // eslint-disable-line no-var
-
 const docReadyListeners: Array<(this: void) => void> = []
 let completeListeners: Array<(this: void) => void> = []
 
@@ -178,7 +176,9 @@ if (!(isTop || injector)) {
     /*#__NOINLINE__*/ (function (): void {
       try { // `vApi` is still unsafe
           const state = scoped_parApi.y()
-          if ((state.b && XPCNativeWrapper(state.b)) === frameElement_()) {
+          if ((state.b && ( // @ts-ignore
+                XPCNativeWrapper as <T extends object> (wrapped: T) => XrayedObject<T>
+              )(state.b)) === frameElement_()) {
             safeDestroy(1);
             scoped_parApi.n!()
           } else {
