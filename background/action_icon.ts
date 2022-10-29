@@ -62,8 +62,12 @@ export const toggleIconBuffer_ = (): void => {
   const enabled = needIcon_
   if (enabled === !!iconData_) { return }
   set_setIcon_(enabled ? doSetIcon_ : blank_)
-  const iter = ({ cur_: { s: sender } }: Frames.Frames): void => {
+  const iter = ({ cur_: { s: sender }, flags_ }: Frames.Frames): void => {
     if (sender.status_ !== Frames.Status.enabled) {
+      if ((Build.MV3 || Build.LessPorts) && flags_ & Frames.Flags.ResReleased && enabled) {
+        sender.status_ = Frames.Status.enabled
+        return
+      }
       setIcon_(sender.tabId_, enabled ? sender.status_ : Frames.Status.enabled)
     }
   }

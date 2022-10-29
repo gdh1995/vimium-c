@@ -174,6 +174,7 @@ Tabs_.onReplaced.addListener((addedTabId, removedTabId): void => {
     for (const port of frames.ports_) {
       (port.s as Writable<Frames.Sender>).tabId_ = addedTabId;
     }
+    if (Build.MV3 || Build.LessPorts) { (frames.cur_.s as Writable<Frames.Sender>).tabId_ = addedTabId }
     for (const port of framesForOmni_) {
       port.s.tabId_ === removedTabId && ((port.s as Writable<Frames.Sender>).tabId_ = addedTabId)
     }
@@ -194,7 +195,7 @@ Build.MV3 || (onunload = (): void => {
       port.disconnect()
     }
     framesForTab_.forEach((frames): void => {
-      for (let port of frames.ports_.slice()) {
+      for (let port of frames.ports_) {
         port.disconnect();
       }
     })

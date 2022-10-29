@@ -61,10 +61,10 @@ export const safePost = <k extends keyof FgReq> (request: FgReq[k] & Req.baseFg<
   }
 }
 
-export const runtimeConnect = (function (this: void): void {
+export const runtimeConnect = (function (this: void, extraFlags?: number): void {
   const api = OnChrome ? chrome : OnFirefox ? null as never : browser as typeof chrome,
   status = !fgCache ? PortType.initing
-      : PortType.reconnect + (PortType.hasCSS * <number> <boolean | number> !!style_ui),
+      : (PortType.reconnect | extraFlags!) + (PortType.hasCSS * <number> <boolean | number> !!style_ui),
   name = (PortType.isTop === 1 ? <number> <boolean | number> isTop : PortType.isTop * <number> <number | boolean> isTop)
       + PortType.hasFocus * <number> <number | boolean> docHasFocus_() + status,
   data = { name: injector ? PortNameEnum.Prefix + name + injector.$h
@@ -73,6 +73,7 @@ export const runtimeConnect = (function (this: void): void {
   port_ = (injector ? connect(injector.id, data) : connect(data)) as ContentNS.Port
   port_.onDisconnect.addListener((): void => {
     port_ = null
+    if (Build.MV3 || Build.LessPorts) { return }
     OnChrome && timeout_ === interval_ ? safeDestroy() : timeout_((): void => {
       try { port_ || !isAlive_ || runtimeConnect() } catch { safeDestroy() }
     }, (fgCache ? 5000 : 2000) + (isTop as number | boolean as number) * 50)
@@ -108,8 +109,8 @@ export const runFallbackKey = ((options: Req.FallbackOptions
 
 export const setupBackupTimer_cr = !OnChrome ? 0 as never : (): void => {
   /*#__INLINE__*/ setupTimerFunc_cr((func: (info?: TimerType.fake) => void, timeout: number): number => {
-    return Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage && noRAF_old_cr_
-        || timeout > GlobalConsts.MinCancelableInBackupTimer - 1
+    return (Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage && noRAF_old_cr_
+        || timeout > GlobalConsts.MinCancelableInBackupTimer - 1) && (!(Build.MV3 || Build.LessPorts) || port_)
         ? (send_(kFgReq.wait, timeout, func), tick + 0.5) : rAF_((): void => { func(TimerType.fake) })
   }, (timer: ValidTimeoutID | ValidIntervalID): void => {
     timer && port_callbacks[timer as number - 0.5] &&

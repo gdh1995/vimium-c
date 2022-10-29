@@ -205,6 +205,10 @@ const forceStatus_ = (act: Frames.ForcedStatusText): void => {
   }
   const ref = framesForTab_.get(tabId || (tabId = curTabId_))
   if (!ref) { return; }
+  if (ref.flags_ & Frames.Flags.ResReleased) {
+    console.log(`Unexpected inactive Tab ${tabId}`)
+    return
+  }
   set_cPort(ref.top_ || ref.cur_)
   let spaceInd = act.search(<RegExpOne> /[/ ]/), newPassedKeys = spaceInd > 0 ? act.slice(spaceInd + 1) : ""
   act = act.toLowerCase() as Frames.ForcedStatusText;

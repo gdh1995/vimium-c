@@ -184,7 +184,11 @@ set_reqH_([
     let port: Frames.Port | null | undefined = from_content
     if (!port) {
       port = indexFrame((request as ExclusionsNS.Details).tabId, (request as ExclusionsNS.Details).frameId)
-      if (!port) { return }
+      if (!port) {
+        const ref = Build.MV3 || Build.LessPorts ? framesForTab_.get((request as ExclusionsNS.Details).tabId) : null
+        ref && ref.flags_ & Frames.Flags.ResReleased && (ref.flags_ |= Frames.Flags.UrlUpdated)
+        return
+      }
     }
     const { s: sender } = port, oldUrl = sender.url_, ref = framesForTab_.get(sender.tabId_)
     if (ref && ref.lock_) { return }

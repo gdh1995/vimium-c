@@ -8,12 +8,12 @@ import {
 import * as BgUtils_ from "./utils"
 import {
   Tabs_, Windows_, browser_, tabsGet, getCurWnd, getTabUrl, runtimeError_, browserSessions_, getCurTab, selectTab,
-  selectWndIfNeed
+  selectWndIfNeed, executeScript_
 } from "./browser"
 import { hostRe_, removeComposedScheme_ } from "./normalize_urls"
 import { prepareReParsingPrefix_ } from "./parse_urls"
 import * as settings_ from "./settings"
-import { complainLimits, getFrames_, showHUD, showHUDEx } from "./ports"
+import { complainLimits, getFrames_, refreshPorts_, showHUD, showHUDEx, waitForPorts_ } from "./ports"
 import { setOmniStyle_ } from "./ui_css"
 import { trans_ } from "./i18n"
 import { parseFallbackOptions, runNextCmd, getRunNextCmdBy, kRunOn, runNextCmdBy } from "./run_commands"
@@ -348,16 +348,22 @@ export const Marks_ = { // NOTE: all public members should be static
   },
   goToInContent_ (tabId: number, frames: Frames.Frames | undefined
       , local: 0 | 2, name: string | undefined, scroll: MarksNS.ScrollInfo, f: MarksNS.InfoToGo["f"]): void {
-    const port = frames ? frames.top_ : null
+    const port = frames && frames.top_ && !(frames.top_.s.flags_ & Frames.Flags.ResReleased) ? frames.top_ : null
     if (port) {
       port.postMessage({ N: kBgReq.goToMark, l: local, n: name, s: scroll })
+    } else {
+      executeScript_(tabId, 0, null, (x: number, y: number) => // @ts-ignore
+          (window as unknown as typeof globalThis)
+          .scrollTo(x, y), [scroll[0], scroll[1]], f ? () => { runNextCmdBy(1, f); return runtimeError_() } : null)
     }
     name && showHUDEx(port, "mNormalMarkTask", local ? 1 : 2, [ ["mJumpTo"], [local ? "Local" : "Global"], name ])
     f && runNextCmdBy(1, f)
   },
   scrollTab_ (this: void, markInfo: MarksNS.InfoToGo, tab: Tab): void {
     const tabId = tab.id, frames = framesForTab_.get(tabId)
+    void waitForPorts_(frames).then(() => {
       Marks_.goToInContent_(tabId, frames, 0, markInfo.n, markInfo.s, markInfo.f)
+    })
     if (markInfo.t !== tabId && markInfo.n) {
       Marks_.set_(markInfo as typeof markInfo & MarksNS.BaseMark, curIncognito_ === IncognitoType.true, tabId)
     }
@@ -620,7 +626,14 @@ setTimeout((): void => {
       cache.set(curTabId_, monoNow)
       cache.size > GlobalConsts.MaxTabRecency && Tabs_.query({}, clean)
     }
-    set_curTabId_(info.tabId); lastVisitTabTime = now
+    const tabId = info.tabId
+    set_curTabId_(tabId), lastVisitTabTime = now
+    if (Build.MV3 || Build.LessPorts) {
+      const frames = framesForTab_.get(tabId), flags = frames !== undefined ? frames.flags_ : 0
+      if (flags & (Frames.Flags.ResReleased | Frames.Flags.WaitToRelease)) {
+        flags & Frames.Flags.ResReleased ? refreshPorts_(frames!, 0) : (frames!.flags_ &= ~Frames.Flags.WaitToRelease)
+      }
+    }
     _mediaTimer === -2 && (_mediaTimer = -3, setTimeout(MediaWatcher_.resume_, 0)) // not block onActivated listener
   }
   function maybeOnBgWndActiveTabChange(wnd: chrome.windows.Window): void {
@@ -656,6 +669,9 @@ setTimeout((): void => {
     // here windowId may pointer to a devTools window on C45 - see BrowserVer.Min$windows$APIsFilterOutDevToolsByDefault
     Tabs_.query({windowId, active: true}, onFocusChanged)
   });
+  ; (Build.MV3 || Build.LessPorts) && Tabs_.onRemoved.addListener((tabId): void => {
+    framesForTab_.delete(tabId)
+  })
   getCurTab((tabs: [Tab]): void => {
     lastVisitTabTime = performance.now()
     const a = tabs && tabs[0];

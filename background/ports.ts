@@ -1,11 +1,12 @@
 import {
-  needIcon_, cPort, set_cPort, reqH_, contentPayload_, omniPayload_, innerCSS_, extAllowList_, framesForTab_,
+  needIcon_, cPort, set_cPort, reqH_, contentPayload_, omniPayload_, innerCSS_, extAllowList_, framesForTab_, findCSS_,
   framesForOmni_, getNextFakeTabId, curTabId_, vomnibarPage_f, OnChrome, CurCVer_, OnEdge, setIcon_,
   keyFSM_, mappedKeyRegistry_, CONST_, mappedKeyTypes_, recencyForTab_, setTeeTask_
 } from "./store"
-import { asyncIter_, getOmniSecret_, keys_ } from "./utils"
+import { asyncIter_, deferPromise_, getOmniSecret_, keys_ } from "./utils"
 import {
-  removeTempTab, tabsGet, runtimeError_, getCurTab, getTabUrl, browserWebNav_, Q_, executeScript_
+  removeTempTab, tabsGet, runtimeError_, getCurTab, getTabUrl, browserWebNav_, Q_, executeScript_, getFindCSS_cr_,
+  selectTab, selectWndIfNeed
 } from "./browser"
 import { exclusionListening_, getExcluded_, exclusionListenHash_ } from "./exclusions"
 import { I18nNames, transEx_ } from "./i18n"
@@ -82,11 +83,10 @@ export const OnConnect = (port: Frames.Port, type: PortType): void => {
     sender.flags_ = flags
   }
   if (type & PortType.reconnect) {
-    sender.flags_ |= PortType.hasCSS === <number> Frames.Flags.hasCSS ? type & PortType.hasCSS
-        : (type & PortType.hasCSS) && Frames.Flags.hasCSS
-    port.postMessage({ N: kBgReq.reset, p: passKeys, f: flags & Frames.Flags.MASK_LOCK_STATUS })
-    // not refresh settings cache in content scripts - no do "unpredictable" work
-    port.postMessage({ N: kBgReq.settingsUpdate, d: contentPayload_ })
+    if ((Build.MV3 || Build.LessPorts) && type & Frames.Flags.UrlUpdated || !Build.MV3 && ref === undefined) {
+      port.postMessage({ N: kBgReq.reset, p: passKeys, f: flags & Frames.Flags.MASK_LOCK_STATUS })
+    }
+    /*#__NOINLINE__*/ _recoverStates(ref, port, type as number as Frames.Flags)
   } else {
     port.postMessage({
       N: kBgReq.init, f: flags, c: contentPayload_, p: passKeys,
@@ -356,8 +356,9 @@ export const isNotVomnibarPage = (port: Frames.Port, noLog: boolean): boolean =>
 
 export const safePost = <K extends keyof FullBgReq>(port: Port, req: Req.bg<K>): BOOL => {
   try {
-    port.postMessage(req)
-    return 1
+    const released = port.s.flags_ & Frames.Flags.ResReleased
+    released || port.postMessage(req)
+    return released ? 0 : 1
   } catch { return 0 }
 }
 
@@ -412,6 +413,9 @@ export const asyncIterFrames_ = (itemUpdatedFlag: Frames.Flags
   const iter = (tab: number): number => {
     let frames = framesForTab_.get(tab), weight = 0
     if (frames !== undefined) {
+      if ((Build.MV3 || Build.LessPorts) && frames.flags_ & Frames.Flags.ResReleased && itemUpdatedFlag) {
+        frames.flags_ |= itemUpdatedFlag
+      }
       weight = Math.min(frames.ports_.length, 8)
       callback(frames)
     }
@@ -476,4 +480,126 @@ export const getParentFrame = (tabId: number, curFrameId: number, level: number)
     } while (found && 0 < --level)
     return frameId > 0 && frameId !== curFrameId ? indexFrame(tabId, frameId) : null
   })
+}
+
+const RELEASE_TIMEOUT = Build.NDEBUG ? 1000 * (60 * 4 + 45) : 1000 * 90
+const MAX_KEEP_ALIVE = Build.NDEBUG ? 4 : 2
+
+; (Build.MV3 || Build.LessPorts) && setInterval((): void => {
+  const now = performance.now()
+  for (let port of framesForOmni_) {
+    const tabId = port.s.tabId_
+    const doesRelease = tabId !== curTabId_ && tabId >= 0
+        && now - (recencyForTab_.get(tabId) || 0) > RELEASE_TIMEOUT - 1000
+    ; (Build.MV3 || doesRelease) && port.postMessage({ N: kBgReq.omni_refresh, d: doesRelease })
+  }
+  let oldestToKeepAlive = 0
+  {
+    const visited: number[] = []
+    framesForTab_.forEach((frames, tabId): void => {
+      const visit = !(frames.flags_ & Frames.Flags.ResReleased) && tabId >= 0 && recencyForTab_.get(tabId) || 0
+      visit > 0 && visited.push(visit)
+    })
+    visited.sort((i, j) => j - i)
+    oldestToKeepAlive = Math.max(now - RELEASE_TIMEOUT, visited.length
+        ? visited[Math.min(MAX_KEEP_ALIVE, visited.length)] : 0) - 1000
+  }
+  let lastMaxVisit = -1, lastMaxFrames: Frames.Frames | null = null
+  const listToRelease: Frames.Frames[] = [], protocol = OnChrome ? "chrome" : location.protocol
+  framesForTab_.forEach((frames, tabId): void => {
+    if (!(Build.MV3 && lastMaxVisit >= 0) && !frames.ports_.length) { return }
+    const rawVisit = tabId >= 0 && recencyForTab_.get(tabId) || 0
+    let visit = rawVisit
+    if (rawVisit == 0 && !(frames.flags_ & (Frames.Flags.ResReleased | Frames.Flags.WaitToRelease))) {
+      frames.flags_ |= Frames.Flags.WaitToRelease
+      visit = now + tabId
+    }
+    if (Build.MV3 && visit > lastMaxVisit && (!lastMaxFrames || frames.ports_.length || !lastMaxFrames.ports_.length)) {
+      lastMaxVisit = visit, lastMaxFrames = frames
+    }
+    const doesRelease = now - visit > oldestToKeepAlive && tabId !== curTabId_
+        && (frames.ports_.length === 1 && !(frames.flags_ & Frames.Flags.HadIFrames) && frames.ports_[0] === frames.top_
+             || frames.ports_.some(i => !i.s.url_.startsWith(protocol)))
+    if (Build.MV3 ? frames.ports_.length : doesRelease) {
+      if (!Build.MV3 || doesRelease) {
+        frames.flags_ = (frames.flags_ & ~Frames.Flags.WaitToRelease) | Frames.Flags.ResReleased
+      }
+      listToRelease.push(frames)
+    }
+  })
+  for (const frames of listToRelease) {
+    const doesRelease = !!(!Build.MV3 || frames.flags_ & Frames.Flags.ResReleased) && frames !== lastMaxFrames
+    let hadIFrames = !!(frames.flags_ & Frames.Flags.HadIFrames) || frames.ports_.length > 1, failed: BOOL = 0
+    const stillAlive: Port[] = Build.MV3 ? null as never : []
+    for (const port of frames.ports_) {
+      port.s.flags_ |= Frames.Flags.ResReleased
+      if (doesRelease && !(hadIFrames && port.s.url_.startsWith(protocol))) {
+        port.disconnect()
+        port.s.frameId_ && (frames.flags_ |= Frames.Flags.HadIFrames)
+      } else if (Build.MV3) {
+        lastMaxVisit = -2
+        failed = /*#__NOINLINE__*/ _safeRefreshPort(port) || failed
+      } else {
+        stillAlive.push(port)
+      }
+    }
+    frames.ports_.length = 0
+    Build.MV3 ? failed && /** never */ refreshPorts_(frames, 1) : stillAlive.length && frames.ports_.push(...stillAlive)
+  }
+  if (Build.MV3 && lastMaxVisit >= 0) {
+    refreshPorts_(lastMaxFrames!, 0)
+  }
+}, RELEASE_TIMEOUT)
+
+export const refreshPorts_ = Build.MV3 || Build.LessPorts ? (frames: Frames.Frames, forced: BOOL): void => {
+  executeScript_(frames.cur_.s.tabId_, -1, null, (_: 0, updates: number): void => { // @ts-ignore
+    typeof VApi === "object" && VApi && (VApi as Frames.BaseVApi)
+      .q(0, updates) // Frames.RefreshPort
+  }, [0, PortType.refreshInBatch | (forced ? PortType.reconnect : 0) | (frames.flags_ & Frames.Flags.MASK_UPDATES)])
+  frames.flags_ &= ~(Frames.Flags.WaitToRelease | Frames.Flags.ResReleased | Frames.Flags.MASK_UPDATES
+      | Frames.Flags.HadIFrames)
+} : 0 as never
+
+const _recoverStates = (frames: Frames.Frames | undefined, port: Port, type: PortType | Frames.Flags): void => {
+  (port.s.flags_ satisfies Frames.Flags) |= PortType.hasCSS === <number> Frames.Flags.hasCSS ? type & PortType.hasCSS
+      : (type & PortType.hasCSS) && Frames.Flags.hasCSS
+  if (!(Build.MV3 || Build.LessPorts)) { return }
+  if (!(type & PortType.refreshInBatch)) {
+    if (!(type & PortType.hasFocus) // frame is not focused - on refreshing ports of inactive tabs
+        || !frames || !(frames.flags_ & Frames.Flags.ResReleased)) { // no old data to sync
+      return
+    }
+    type = frames.flags_ & (Frames.Flags.MASK_UPDATES | Frames.Flags.HadIFrames)
+    if (type & Frames.Flags.HadIFrames || port.s.frameId_) { refreshPorts_(frames, 0) }
+  }
+  if (type & Frames.Flags.SettingsUpdated) {
+    port.postMessage({ N: kBgReq.settingsUpdate, d: contentPayload_ })
+  }
+  if (type & Frames.Flags.KeyMappingsUpdated) {
+    port.postMessage({ N: kBgReq.keyFSM, m: mappedKeyRegistry_, t: mappedKeyTypes_
+        , k: type & Frames.Flags.KeyFSMUpdated ? keyFSM_ : null })
+  }
+  if (type & Frames.Flags.CssUpdated && port.s.flags_ & Frames.Flags.hasCSS) {
+    (port.s.flags_ satisfies Frames.Flags) |= Frames.Flags.hasFindCSS
+    port.postMessage({ N: kBgReq.showHUD, H: innerCSS_, f: OnChrome ? getFindCSS_cr_!(port.s) : findCSS_ })
+  }
+}
+
+export const waitForPorts_ = (frames: Frames.Frames | undefined): Promise<void> => {
+  if (!(Build.MV3 || Build.LessPorts)) { return Promise.resolve() }
+  const defer = deferPromise_<void>()
+  if (!frames || !(frames.flags_ & Frames.Flags.ResReleased)) {
+    defer.resolve_()
+  } else {
+    refreshPorts_(frames, 0)
+    ; (<RegExpOne> /^(?:http|file|ftp)/i).test(frames.cur_.s.url_) || selectTab(frames.cur_.s.tabId_, selectWndIfNeed)
+    let tick = 0, interval = setInterval(() => {
+      tick++
+      if (tick === 5 || frames.top_ && !(frames.top_.s.flags_ & Frames.Flags.ResReleased)) {
+        clearInterval(interval)
+        defer.resolve_()
+      }
+    }, 33)
+  }
+  return defer.promise_
 }

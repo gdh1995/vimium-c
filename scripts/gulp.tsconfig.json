@@ -16,6 +16,7 @@
     "DetectAPIOnFirefox": [1, 0],
     "NDEBUG": [ 0, 1 ],
     "Mangle": [ 0, 1 ],
+    "LessPorts": [ 1, 0 ],
     "Inline": [ 0, 1 ]
   },
   "extends": "../tsconfig.base.json"
