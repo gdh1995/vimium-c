@@ -312,7 +312,7 @@ export const createSearch_ = function (query: string[], url: string, blank: stri
       s1 = " ";
     } else {
       arr = (q2 || (q2 = query.map(encodeAsciiComponent_)));
-      s1 = isJSUrl_(url) ? "%20" : "+";
+      s1 = isJSUrl_(url) || url.startsWith("vimium://run") ? "%20" : "+"
     }
     if (arr.length === 0) { return ""; }
     if (s2 && s2.includes("$")) {

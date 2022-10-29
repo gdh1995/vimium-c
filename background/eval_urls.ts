@@ -16,7 +16,7 @@ set_evalVimiumUrl_(function (path: string, workType?: Urls.WorkType
   workType = workType! | 0;
   if (path === "paste") {
     path += " .";
-  } else if (path.includes("%20") && !path.includes(" ")) {
+  } else if (path.includes("%20") && !path.includes(" ") && !path.startsWith("run")) {
     path = path.replace(<RegExpG> /%20/g, " ")
   }
   if (workType < Urls.WorkType.ValidNormal || !(path = path.trim()) || (ind = path.search(<RegExpOne> /[/ ]/)) <= 0

@@ -570,8 +570,12 @@ export const openUrlWithActions = (url: Urls.Url, workType: Urls.WorkType, sed?:
     if (workType !== Urls.WorkType.FakeType) {
       const keyword = (get_cOptions<C.openUrl>().keyword as AllowToString || "") + ""
       const testUrl = get_cOptions<C.openUrl>().testUrl ?? !keyword
+      const isSpecialKW = !!keyword && keyword !== "~"
       url = testUrl ? convertToUrl_(url, keyword, workType)
-          : createSearchUrl_(url.trim().split(BgUtils_.spacesRe_), keyword)
+          : createSearchUrl_(url.trim().split(BgUtils_.spacesRe_), keyword
+              , isSpecialKW ? Urls.WorkType.KeepAll : workType)
+      url = testUrl || !isSpecialKW ? url : convertToUrl_(url as string, null
+          , hasUsedKeyword_ && (url as string).startsWith("vimium:") ? Urls.WorkType.EvenAffectStatus : workType)
     }
     const goNext = get_cOptions<C.openUrl, true>().goNext
     if (goNext && url && typeof url === "string") {
@@ -755,8 +759,7 @@ export const openUrlReq = (request: FgReq[kFgReq.openUrl], port?: Port | null): 
       url = createSearchUrl_(url.trim().split(BgUtils_.spacesRe_), keyword
           , keyword && keyword !== "~" ? Urls.WorkType.ConvertKnown : Urls.WorkType.Default)
       converted = hasUsedKeyword_
-      url = !hasUsedKeyword_ ? url
-          : convertToUrl_(url as string, null, (url as string).startsWith("vimium:")
+      url = !converted ? url : convertToUrl_(url as string, null, (url as string).startsWith("vimium:")
                 ? Urls.WorkType.EvenAffectStatus : Urls.WorkType.Default)
     }
     if (!converted) { /* empty */ }
@@ -764,9 +767,8 @@ export const openUrlReq = (request: FgReq[kFgReq.openUrl], port?: Port | null): 
       url = (request.h ? "https" : "http") + (url as string).slice((url as string)[4] === "s" ? 5 : 4)
     } else if (lastUrlType_ === Urls.Type.PlainVimium && (url as string).startsWith("vimium:")
         && !originalUrl.startsWith("vimium://")) {
-      url = convertToUrl_(url as string, null
-          , hasUsedKeyword_ || (url as string).startsWith("vimium://run") ? Urls.WorkType.EvenAffectStatus
-            : Urls.WorkType.Default)
+      url = convertToUrl_(url as string, null, hasUsedKeyword_ || (url as string).startsWith("vimium://run")
+          ? Urls.WorkType.EvenAffectStatus : Urls.WorkType.Default)
     }
     opts.opener = isWeb ? o2.o !== false : vomnibarBgOptions_.actions.includes("opener")
     opts.url_f = url
