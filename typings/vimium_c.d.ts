@@ -209,7 +209,7 @@ interface ChildKeyFSM {
 interface ReadonlyChildKeyFSM {
   readonly [index: string]: ValidChildKeyAction | ReadonlyChildKeyFSM | undefined;
 }
-type KeyFSM = ReadonlySafeDict<ValidKeyAction | ReadonlyChildKeyFSM>;
+type KeyFSM = { readonly [key: string]: ValidKeyAction | ReadonlyChildKeyFSM }
 
 declare const enum kMapKey {
   NONE = 0, normalMode = 1, insertMode = 2, otherMode = 4, plain = 8, char = 16,
