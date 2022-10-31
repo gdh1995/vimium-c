@@ -37,7 +37,7 @@ export interface KnownOptionsDataset extends KnownDataset {
   permission: "webNavigation" | "C76" | string // required permissions
   href: `vimium://${string}`
 }
-declare const enum kExclusionChange { NONE = 0, pattern = 1, passKeys = 2, ALL = 3 }
+export declare const enum kExclusionChange { NONE = 0, pattern = 1, passKeys = 2, mismatches = 4, deleted = 8 }
 
 const _globalDelegates: {
   [type: string]: { selector_: string | Node, handler_ (ev: Event): void, capture_: boolean | "on" }[] | null
@@ -303,7 +303,7 @@ export abstract class Option_<T extends keyof AllowedOptions> {
   atomicUpdate_: (this: Option_<T> & {element_: TextElement}, value: string, undo: boolean, locked: boolean) => void;
 
   static areJSONEqual_ (this: void, a: object, b: object): boolean {
-    return JSON.stringify(a) === JSON.stringify(b);
+    return JSON.stringify(a, Object.keys(a).sort()) === JSON.stringify(b, Object.keys(b).sort())
   }
   static saveOptions_: (this: void) => Promise<boolean>
   static needSaveOptions_: (this: void) => boolean;
@@ -312,10 +312,11 @@ export abstract class Option_<T extends keyof AllowedOptions> {
 export type OptionErrorType = "has-error" | "highlight"
 
 export interface ExclusionBaseVirtualNode {
-  rule_: ExclusionsNS.StoredRule;
+  rule_: ExclusionsNS.StoredRule
   matcher_: Promise<ValidUrlMatchers | false> | ValidUrlMatchers | false | null
   changed_: kExclusionChange
   visible_: boolean;
+  $pattern_: Element | null; $keys_: Element | null; savedRule_: ExclusionsNS.StoredRule
 }
 interface ExclusionInvisibleVirtualNode extends ExclusionBaseVirtualNode {
   changed_: kExclusionChange.NONE
@@ -324,7 +325,6 @@ interface ExclusionInvisibleVirtualNode extends ExclusionBaseVirtualNode {
   $keys_: null;
 }
 export interface ExclusionVisibleVirtualNode extends ExclusionBaseVirtualNode {
-  rule_: Readonly<ExclusionsNS.StoredRule>
   visible_: true;
   $pattern_: HTMLInputElement & ExclusionRealNode;
   $keys_: HTMLInputElement & ExclusionRealNode;
@@ -359,10 +359,8 @@ static MarkChanged_ (this: void, event: Event): void {
 }
 addRule_ (pattern: string, autoFocus?: false | undefined): void {
   const isInited = autoFocus !== false, old = isInited && this.$list_.childElementCount
-  this.appendRuleTo_(this.$list_, {
-    pattern,
-    passKeys: ""
-  });
+  const vnode = this.appendRuleTo_(this.$list_, { passKeys: "", pattern })
+  pattern && (vnode.savedRule_ = { passKeys: "", pattern: "" })
   const item = this.list_[this.list_.length - 1] as ExclusionVisibleVirtualNode;
   if (isInited) {
     old >= 4 && this.element_.scrollBy(0, 40)
@@ -400,20 +398,16 @@ override populateElement_ (rules: ExclusionsNS.StoredRule[]): void {
 }
 checkNodeVisible_ (_vnode: ExclusionBaseVirtualNode): boolean { return true }
 appendRuleTo_ (this: ExclusionRulesOption_
-    , list: HTMLTableSectionElement | DocumentFragment, { pattern, passKeys }: ExclusionsNS.StoredRule): void {
-  const vnode: ExclusionVisibleVirtualNode | ExclusionInvisibleVirtualNode = {
+    , list: HTMLTableSectionElement | DocumentFragment, rule_: ExclusionsNS.StoredRule): ExclusionBaseVirtualNode {
+  const { passKeys, pattern } = rule_, vnode = {
     // rebuild a rule, to ensure a consistent memory layout
-    rule_: { pattern, passKeys },
-    matcher_: null,
-    changed_: kExclusionChange.NONE,
-    visible_: false,
-    $pattern_: null,
-    $keys_: null
-  };
-  (vnode as ExclusionBaseVirtualNode).visible_ = this.checkNodeVisible_(vnode)
+    rule_, matcher_: null, changed_: kExclusionChange.NONE, visible_: false,
+    $pattern_: null, $keys_: null, savedRule_: rule_
+  } satisfies ExclusionInvisibleVirtualNode as ExclusionVisibleVirtualNode | ExclusionInvisibleVirtualNode
+  vnode.visible_ = this.checkNodeVisible_(vnode)
   if (!vnode.visible_) {
     this.list_.push(vnode);
-    return;
+    return vnode
   }
   const row = document.importNode(this.template_, true),
   patternEl = row.querySelector(".pattern") as HTMLInputElement & ExclusionRealNode,
@@ -427,12 +421,12 @@ appendRuleTo_ (this: ExclusionRulesOption_
   if (trimmedKeys) {
     passKeysEl.placeholder = "";
   }
-  const vnode2 = vnode as ExclusionVisibleVirtualNode
-  vnode2.$pattern_ = patternEl; vnode2.$keys_ = passKeysEl;
-  patternEl.vnode = vnode2;
-  passKeysEl.vnode = vnode2;
-  this.list_.push(vnode2);
+  vnode.$pattern_ = patternEl; vnode.$keys_ = passKeysEl;
+  patternEl.vnode = vnode;
+  passKeysEl.vnode = vnode;
+  this.list_.push(vnode);
   list.appendChild(row);
+  return vnode
 }
 static OnNewKeys_ (vnode: ExclusionVisibleVirtualNode): void {
   if (vnode.rule_.pattern && vnode.$keys_.placeholder) {
@@ -448,7 +442,13 @@ onRemoveRow_ (event: Event): void {
   if (element.classList.contains("exclusionRule")) {
     const vnode = (element.querySelector(".pattern") as ExclusionRealNode).vnode;
     element.remove();
-    this.list_.splice(this.list_.indexOf(vnode), 1);
+    if (vnode.changed_ & kExclusionChange.mismatches && vnode.savedRule_.pattern) {
+      Object.assign<ExclusionBaseVirtualNode, Partial<ExclusionBaseVirtualNode>>(vnode, {
+          rule_: { passKeys: "", pattern: ""}, matcher_: false,
+          changed_: kExclusionChange.mismatches | kExclusionChange.deleted, $pattern_: null, $keys_: null })
+    } else {
+      this.list_.splice(this.list_.indexOf(vnode), 1);
+    }
     this.onUpdated_();
     return this.onRowChange_(0);
   }
@@ -470,7 +470,7 @@ override readValueFromElement_ (part?: boolean): AllowedOptions["exclusionRules"
       continue;
     }
     const changed = vnode.changed_
-    if (!changed) {
+    if (!changed || !(changed & (kExclusionChange.pattern | kExclusionChange.passKeys))) {
       if (vnode.rule_.pattern) {
         rules.push(vnode.rule_);
       }
@@ -485,12 +485,13 @@ override readValueFromElement_ (part?: boolean): AllowedOptions["exclusionRules"
       continue;
     }
     if (changed & kExclusionChange.pattern) {
+    const isOtherProtocol = (<RegExpI> /^(about|vimium):/i).test(pattern)
     let schemeLen = pattern.startsWith(":") ? 0 : pattern.indexOf("://");
     if (!schemeLen) { /* empty */ }
     else if (!(<RegExpOne> /^[\^*]|[^\\][$()*+?\[\]{|}]/).test(pattern)) {
-      fixTail = !pattern.includes("/", schemeLen + 3) && !pattern.startsWith("vimium:");
+      fixTail = !pattern.includes("/", schemeLen + 3) && !isOtherProtocol;
       pattern = pattern.replace(<RegExpG> /\\(.)/g, "$1");
-      pattern = (schemeLen < 0 ? ":http://" : ":") + pattern;
+      pattern = (schemeLen < 0 && !isOtherProtocol ? ":http://" : ":") + pattern;
     } else if (pattern.startsWith("`")) {
       /* empty */
     } else if (!pattern.startsWith("^")) {
@@ -501,14 +502,14 @@ override readValueFromElement_ (part?: boolean): AllowedOptions["exclusionRules"
       }
       pattern = pattern.startsWith(".*") && !(<RegExpOne> /[(\\[]/).test(pattern) ? "*." + pattern.slice(2) : pattern
       let host2 = pattern
-      host2 = (schemeLen < 0 ? "^https?://" : "^") +
+      host2 = (schemeLen < 0 && !isOtherProtocol ? "^https?://" : "^") +
           (!host2.startsWith("*") || host2[1] === "."
             ? ((host2 = host2.replace(<RegExpG> /\./g, "\\.")), // lgtm [js/incomplete-sanitization]
               !host2.startsWith("*") ? host2.replace("://*\\.", "://(?:[^./]+\\.)*?")
                 : host2.replace("*\\.", "(?:[^./]+\\.)*?"))
             : "[^/]" + host2);
       pattern = _testRe(host2, "") ? host2
-          : pattern.includes("*") || pattern.includes("/") ? ":" + pattern
+          : pattern.includes("*") || pattern.includes("/") || isOtherProtocol ? ":" + pattern
           : ":https://" + (pattern.startsWith(".") ? pattern.slice(1) : pattern)
     } else {
       const ind = ".*$".includes(pattern.slice(-2)) ? pattern.endsWith(".*$") ? 3 : pattern.endsWith(".*") ? 2 : 0 : 0
@@ -542,16 +543,19 @@ override readValueFromElement_ (part?: boolean): AllowedOptions["exclusionRules"
 }
 updateVNode_ (vnode: ExclusionVisibleVirtualNode, pattern: string, keys: string): void {
   const hasNewKeys = !vnode.rule_.passKeys && !!keys;
-  vnode.rule_ = { pattern, passKeys: keys };
+  vnode.rule_ = { passKeys: keys, pattern }
   vnode.matcher_ = null
-  vnode.changed_ = kExclusionChange.NONE;
+  vnode.changed_ &= ~(kExclusionChange.pattern | kExclusionChange.passKeys)
   if (hasNewKeys) {
     ExclusionRulesOption_.OnNewKeys_(vnode);
   }
 }
 override onSave_ (): void {
-  for (let rule of this.list_) {
+  for (let i = 0, rules = this.list_; i < rules.length; i++) {
+    const rule = rules[i]
     if (!rule.visible_) { continue; }
+    if (rule.changed_ & kExclusionChange.deleted) { rules.splice(i--, 1); continue }
+    rule.savedRule_ = rule.rule_
     if (rule.$pattern_.value !== rule.rule_.pattern) {
       rule.$pattern_.value = rule.rule_.pattern;
     }

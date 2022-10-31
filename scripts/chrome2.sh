@@ -34,7 +34,7 @@ function wp() {
     local win_dir=${dir:1:1}
     dir=${win_dir^}:${dir:2}
   fi
-  declare -g $1=${dir}
+  declare -g $1="${dir}"
 }
 
 while [[ $# -gt 0 ]]; do

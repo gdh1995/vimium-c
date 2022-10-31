@@ -184,8 +184,8 @@ declare namespace MarksNS {
 
 declare namespace ExclusionsNS {
   interface StoredRule {
-    pattern: string;
-    passKeys: string;
+    readonly pattern: string;
+    readonly passKeys: string;
   }
   type Tester = ValidUrlMatchers & { /** passed keys */ readonly k: string }
   type Rules = Tester[];

@@ -32,7 +32,7 @@ function wp() {
     local win_dir=${dir:1:1}
     dir=${win_dir^}:${dir:2}
   fi
-  declare -g $1=${dir}
+  declare -g $1="${dir}"
 }
 
 while [[ $# -gt 0 ]]; do
@@ -179,8 +179,8 @@ if test -n "$VER" -o $USE_INSTALLED -ge 1; then :
 elif test -f "$WORKING_DIR"/core/firefox.exe; then VER=wo
 else
   VER_MIN=63
-  VER=$(ls -dvr "$WORKING_DIR"/core[1-9]* 2>/dev/null | head -n 1)
-  VER=${VER#"$WORKING_DIR/core"}
+  VER=$(ls -dvr "$WORKING_DIR"/core[1-9]*/ 2>/dev/null | head -n 1)
+  VER=${VER#"$WORKING_DIR/core"}; VER=${VER%/}
   VER_NUM=${VER%%[!0-9]*}
   if test "${VER_NUM:-63}" -lt 63 ; then
     echo "Error: require Firefox 63+ but found $VER only"
@@ -237,7 +237,8 @@ else
   VC_EXT="$VC_ROOT"
   wp vc_ext_w "$VC_EXT"
 fi
-if test $USE_INSTALLED -ge 2 && ! grep '"id": "vimium-c' "${VC_EXT}/manifest.json" >/dev/null 2>&1; then
+if test $USE_INSTALLED -ge 2 && ! grep '"id": "vimium-c' "${VC_EXT}/manifest.json" >/dev/null 2>&1 \
+    && grep 'Vimium C' "${VC_EXT}/manifest.json" >/dev/null 2>&1; then
   echo "Error: MUST use a version of Vimium C built for Firefox when use_installed >= 2" >&2
   exit 1
 fi

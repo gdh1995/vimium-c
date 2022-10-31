@@ -3,7 +3,7 @@ import {
   toggleReduceMotion, hasShift_
 } from "./async_bg"
 import {
-  bgSettings_, ExclusionVisibleVirtualNode, ExclusionRulesOption_, setupBorderWidth_, showI18n,
+  bgSettings_, ExclusionVisibleVirtualNode, ExclusionRulesOption_, setupBorderWidth_, showI18n, kExclusionChange,
   ExclusionBaseVirtualNode, setupSettingsCache_
 } from "./options_base"
 import { kPgReq, PgReq } from "../background/page_messages"
@@ -16,6 +16,7 @@ let inited: 0 | 1 /* no initial matches */ | 2 /* some matched */ | 3 /* is savi
 let saved = true, oldPass: string | null = null
 let exclusions: PopExclusionRulesOption = null as never
 let toggleAction: "Disable" | "Enable"
+let noHelpSpan: BOOL = 0
 
 const protocolRe = <RegExpOne> /^[a-z][\+\-\.\da-z]+:\/\//
 const stateAction = $<EnsuredMountedHTMLElement>("#state-action")
@@ -67,6 +68,7 @@ class PopExclusionRulesOption extends ExclusionRulesOption_ {
   updateLineStyle_ (vnode: ExclusionVisibleVirtualNode, pattern: string): void {
     const patternElement = vnode.$pattern_
     let matcher: ReturnType<typeof parseMatcher>
+    vnode.changed_ &= ~kExclusionChange.mismatches
     if (!pattern || pattern === PopExclusionRulesOption.generateDefaultPattern_()) {
       patternElement.title = patternElement.style.color = ""
     } else if ((matcher = parseMatcher(vnode)) instanceof Promise) {
@@ -74,23 +76,22 @@ class PopExclusionRulesOption extends ExclusionRulesOption_ {
     } else if (doesMatchCur_(matcher)) {
       patternElement.title = patternElement.style.color = ""
     } else {
+      vnode.changed_ |= kExclusionChange.mismatches
       patternElement.style.color = "red"
       patternElement.title = "Red text means that the pattern does not\nmatch the current URL."
     }
   }
   static generateDefaultPattern_ (this: void): string {
-    const url2 = url.startsWith("http:")
-      ? "^https?://"
-        + url.split("/", 3)[2].replace(<RegExpG> /[$()*+.?\[\\\]\^{|}]/g, "\\$&") + "/"
-      : url.startsWith(location.origin + "/")
-      ? ":vimium:/" + new URL(url).pathname.replace("/pages", "")
-      : (<RegExpOne> /^[^:]+:\/\/./).test(url) && !url.startsWith("file:")
-      ? ":" + (url.split("/", 3).join("/") + "/")
-      : ":" + url
+    const main = url.split(<RegExpOne> /[?#]/)[0]
+    const url2 = main.startsWith("http:")
+      ? "^https?://" + main.split("/", 3)[2].replace(<RegExpG> /[$()*+.?\[\\\]\^{|}]/g, "\\$&") + "/"
+      : main.startsWith(location.origin + "/")
+      ? ":vimium:/" + new URL(main).pathname.replace("/pages", "")
+      : (<RegExpOne> /^[^:]+:\/\/./).test(main) && !main.startsWith("file:")
+      ? ":" + (main.split("/", 3).join("/") + "/") : ":" + main
     if (!testers_[url2]) {
       testers_[url2] = deserializeMatcher(url2[0] === "^" ? { t: kMatchUrl.RegExp, v: url2 }
-          : { t: kMatchUrl.StringPrefix,
-              v: url2.startsWith(":vimium:") ? url.split(<RegExpOne> /[?#]/)[0] : url2.slice(1)})
+          : { t: kMatchUrl.StringPrefix, v: url2.startsWith(":vimium:") ? main : url2.slice(1)})
     }
     PopExclusionRulesOption.generateDefaultPattern_ = () => url2
     return url2
@@ -99,7 +100,8 @@ class PopExclusionRulesOption extends ExclusionRulesOption_ {
 
 const updateState = (updateOldPass: boolean): void => {
   exclusions.readValueFromElement_(true)
-  const toCheck = exclusions.list_.filter((i): i is ExclusionVisibleVirtualNode => i.visible_ && !!i.rule_.pattern)
+  const toCheck = exclusions.list_.filter((i): i is ExclusionVisibleVirtualNode =>
+      i.visible_ && (!!i.rule_.pattern || !!(i.changed_ & kExclusionChange.mismatches)))
   const oldInited = inited
   inited = 2
   void Promise.all(toCheck.map(
@@ -129,8 +131,10 @@ const _doUpdateState = (oldInited: typeof inited
   stateTail.textContent = conf_.lock !== null && !isSaving && same
     ? pTrans_("147", [pTrans_(conf_.lock !== Frames.Status.enabled ? "144" : "145")])
     : conf_.lock !== null ? pTrans_("148") : ""
-  saveBtn2.disabled = same
-  saveBtn2.firstChild.data = pTrans_(isSaving ? "115_3" : same ? "115" : "115_2")
+  const mismatches = toCheck.some(vnode => !!(vnode.changed_ & kExclusionChange.mismatches)
+      && (vnode.rule_.pattern !== vnode.savedRule_.pattern || vnode.rule_.passKeys !== vnode.savedRule_.passKeys))
+  saveBtn2.disabled = same && !mismatches
+  saveBtn2.firstChild.data = pTrans_(isSaving ? "115_3" : same && !mismatches ? "115" : "115_2")
 }
 
 const saveOptions = (): void | Promise<void> => {
@@ -277,19 +281,18 @@ const initExclusionRulesTable = (): void => {
   exclusions = new PopExclusionRulesOption($("#exclusionRules"), (): void => {
     if (saved) {
       saved = false
-      let el = $("#helpSpan")
+      let el = !noHelpSpan && $("#helpSpan")
       if (el) {
         (el.nextElementSibling as HTMLElement).style.display = ""
         el.remove()
+        noHelpSpan = 1
       }
-      saveBtn2.removeAttribute("disabled")
-      saveBtn2.firstChild.data = pTrans_("115_2")
     }
     updateState(inited < 2)
   })
   void exclusions.fetch_()
   if (!Build.NDEBUG) {
-    Object.assign(globalThis, { exclusions })
+    Object.assign(globalThis, { exclusions, updateState, updateBottomLeft })
   }
 }
 

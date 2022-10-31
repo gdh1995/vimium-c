@@ -322,7 +322,7 @@ s@^https://(?:www\\.)?google\\.com(?:\\.[^/]+)?/url\\?(?:[^&#]+&)*?url=([^&#]+)@
 p@^https://item\\.m\\.jd\\.com/product/(\\d+)\\.html\\b@https://item.jd.com/$1.html@`,
     exclusionListenHash: true,
     exclusionOnlyFirstMatch: false,
-    exclusionRules: [{pattern: ":https://mail.google.com/", passKeys: ""}] as ExclusionsNS.StoredRule[],
+    exclusionRules: [{ passKeys: "", pattern: ":https://mail.google.com/" }],
     extAllowList: OnChrome
 ? `# modified versions of X New Tab and PDF Viewer,
 # NewTab Adapter, and Shortcuts Forwarding Tool

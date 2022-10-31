@@ -72,9 +72,10 @@ const navNames: kNavPermissionName[] = (Build.MV3 as BOOL) && OnChrome ? [ "clip
 
 export class OptionalPermissionsOption_ extends Option_<"nextPatterns"> {
   override init_ (): void { delayBinding(this.element_, "change", this.onUpdated_) }
-  override readValueFromElement_ = (): string => shownItems.map(
-      i => i.element_.indeterminate ? "1" : i.element_.checked ? "2" : "0").join("")
-  override innerFetch_ = (): string => shownItems.map(i => i.previous_).join("")
+  override readValueFromElement_ (): string {
+    return shownItems.map(i => i.element_.indeterminate ? "1" : i.element_.checked ? "2" : "0").join("")
+  }
+  override innerFetch_ (): string { return shownItems.map(i => i.previous_).join("") }
   override populateElement_ (value: string): void {
     for (let i = 0; i < shownItems.length; i++) {
       const shown = shownItems[i]

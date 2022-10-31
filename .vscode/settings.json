@@ -27,5 +27,7 @@
     "css.lint.zeroUnits": "warning",
     "css.lint.validProperties": [
         "d"
-    ]
+    ],
+    "task.autoDetect": "off",
+    "task.quickOpen.skip": true
 }

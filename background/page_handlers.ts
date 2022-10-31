@@ -1,10 +1,10 @@
 import {
   contentPayload_, evalVimiumUrl_, keyFSM_, keyToCommandMap_, mappedKeyRegistry_, newTabUrls_, restoreSettings_,
   CONST_, settingsCache_, shownHash_, substitute_, framesForTab_, curTabId_, extAllowList_, OnChrome, reqH_, OnEdge,
-  storageCache_, os_, framesForOmni_, updateHooks_, Origin2_
+  storageCache_, os_, framesForOmni_, updateHooks_, Origin2_, CurCVer_
 } from "./store"
 import { deferPromise_, protocolRe_, safeObj_ } from "./utils"
-import { browser_, getCurTab, getTabUrl, Q_, runContentScriptsOn_, runtimeError_ } from "./browser"
+import { browserWebNav_, browser_, getCurTab, getTabUrl, Q_, runContentScriptsOn_, runtimeError_, tabsGet } from "./browser"
 import { convertToUrl_, lastUrlType_, reformatURL_ } from "./normalize_urls"
 import { findUrlInText_, parseSearchEngines_ } from "./parse_urls"
 import * as settings_ from "./settings"
@@ -151,10 +151,22 @@ const pageRequestHandlers_: {
   /** kPgReq.substitute: */ (req): PgReq[kPgReq.substitute][1] => substitute_(req[0], req[1]),
   /** kPgReq.checkHarmfulUrl: */ (url): PgReq[kPgReq.checkHarmfulUrl][1] => checkHarmfulUrl_(url),
   /** kPgReq.popupInit: */ (): Promise<PgReq[kPgReq.popupInit][1]> => {
-    return Promise.all([Q_(getCurTab), restoreSettings_]).then(([_tabs]): PgReq[kPgReq.popupInit][1] => {
+    const oldRef = !(OnChrome && Build.MinCVer < BrowserVer.MinWithFrameId && CurCVer_ < BrowserVer.MinWithFrameId)
+        && curTabId_ >= 0 && framesForTab_.get(curTabId_) || null
+    const oldTabId = oldRef ? curTabId_ : -1, oldFrameId = oldRef ? oldRef.cur_.s.frameId_ : 0
+    const webNav = oldFrameId && browserWebNav_() || null
+    return Promise.all([
+        Q_(getCurTab).then(tabs => tabs && tabs.length ? tabs : Q_(tabsGet, oldTabId).then(i => i && [i])),
+        webNav && Q_(webNav.getFrame, { tabId: curTabId_, frameId: oldFrameId }),
+        restoreSettings_
+    ]).then(([_tabs, frameInfo]): PgReq[kPgReq.popupInit][1] => {
       const tab = _tabs && _tabs[0] || null, tabId = tab ? tab.id : curTabId_
       const ref = framesForTab_.get(tabId) ?? null
+      if (frameInfo && frameInfo.url && oldTabId === tabId && ref!.cur_.s.frameId_ === oldFrameId) {
+        ref!.cur_.s.url_ = frameInfo.url
+      }
       const url = tab ? getTabUrl(tab) : ref && (ref.top_ || ref.cur_).s.url_ || ""
+      if (tab && ref && ref.top_) { ref.top_.s.url_ = url }
       const sender = ref && (!ref.cur_.s.frameId_ || protocolRe_.test(ref.cur_.s.url_)) ? ref.cur_.s : null
       const notRunnable = !(ref || tab && url && tab.status === "loading" && (<RegExpOne> /^(ht|s?f)tp/).test(url))
       const unknownExt = getUnknownExt(ref)
