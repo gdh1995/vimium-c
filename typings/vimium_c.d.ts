@@ -578,7 +578,7 @@ declare const enum GlobalConsts {
   MaxTabTreeIndent = 5,
   MinStayTimeToRecordTabRecency = 666,
   MaxTabRecency = 500,
-  MaxTabsKeepingRecency = 200,
+  MaxTabsKeepingRecency = 400,
   FirefoxAddonPrefix = "https://addons.mozilla.org/firefox/addon/",
   FirefoxHelp = "https://support.mozilla.org/kb/keyboard-shortcuts-perform-firefox-tasks-quickly",
   ChromeWebStorePage = "https://chrome.google.com/webstore/detail/vimium-c-all-by-keyboard/$id/reviews",

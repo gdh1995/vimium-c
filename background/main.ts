@@ -23,7 +23,8 @@ const executeShortcutEntry = (cmd: StandardShortcutNames | kShortcutAliases): vo
   const ref = framesForTab_.get(curTabId_)
   if (cmd === kShortcutAliases.nextTab1) { cmd = "nextTab" }
   const map = shortcutRegistry_
-  if (!map || !map.get(cmd)) {
+  if (bgIniting_ !== BackendHandlersNS.kInitStat.FINISHED) { /* empty */
+  } else if (!map || !map.get(cmd)) {
     // usually, only userCustomized* and those from 3rd-party extensions will enter this branch
     if (map && map.get(cmd) !== null) {
       map.set(cmd, null)
@@ -61,7 +62,7 @@ set_onInit_(((): void => {
         settings_.postUpdate_("autoDarkMode")
         settings_.postUpdate_("autoReduceMotion")
       }
-      browser_.runtime.onConnect.addListener((port): void => {
+      Build.MV3 || browser_.runtime.onConnect.addListener((port): void => {
         if (OnEdge) {
           let name = port.name, pos = name.indexOf(PortNameEnum.Delimiter), type = pos > 0 ? name.slice(0, pos) : name;
           port.sender.url = name.slice(type.length + 1);
@@ -110,6 +111,11 @@ if (!Build.NDEBUG) {
     throw new Error("Some functions in reqH_ are not inited: " + lacking.join(", "))
   }
 }
+
+Build.MV3 && browser_.runtime.onConnect.addListener((port): void => {
+  if (bgIniting_ !== BackendHandlersNS.kInitStat.FINISHED) { port.disconnect(); return }
+  return OnConnect(port as Frames.Port, (port.name as string | number as number) | 0)
+});
 
 (OnEdge || OnFirefox && Build.MayAndroidOnFirefox) && !browser_.commands ||
 (browser_.commands.onCommand as chrome.events.Event<

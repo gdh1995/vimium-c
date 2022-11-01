@@ -49,7 +49,7 @@ set_onReadyState_((event): ReturnType<typeof onReadyState_> => {
   }
 })
 
-set_safeDestroy((silent): ReturnType<typeof safeDestroy> => {
+set_safeDestroy(((silent): void => {
     if (!isAlive_) { return; }
     if (OnFirefox && silent === 9) {
       set_port_(null)
@@ -73,7 +73,7 @@ set_safeDestroy((silent): ReturnType<typeof safeDestroy> => {
     if (runtime_port) { try { runtime_port.disconnect(); } catch {} }
     silent || recordLog("Vimium C on %o has been destroyed at %o.")()
     injector || (<RegExpOne> /a?/).test("");
-})
+}) satisfies typeof safeDestroy)
 
 set_vApi(VApi = {
   a: setupKeydownEvents, b: coreHints, c: executeScroll, d: safeDestroy, e: null, f: focusAndRun, g: filterTextToGoNext,

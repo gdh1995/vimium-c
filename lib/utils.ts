@@ -158,6 +158,11 @@ export const setupTimerFunc_cr = !OnChrome ? 0 as never : (_newTimerFunc: TimerF
   clearTimeout_ = clearInterval_ = _newClearTimer
 }
 
+export const setupTimerFunc_cr_mv3 = !OnChrome || !Build.MV3 ? 0 as never: (
+    newTout: typeof timeout_, newInt: typeof interval_, newCT: typeof clearTimeout_, newCI: typeof clearInterval_) => {
+  timeout_ = newTout, interval_ = newInt, clearTimeout_ = newCT, clearInterval_ = newCI
+}
+
 /**
  * @param target Default to `window`
  * @param eventType string

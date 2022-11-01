@@ -671,6 +671,7 @@ setTimeout((): void => {
   });
   ; (Build.MV3 || Build.LessPorts) && Tabs_.onRemoved.addListener((tabId): void => {
     framesForTab_.delete(tabId)
+    cache.delete(tabId)
   })
   getCurTab((tabs: [Tab]): void => {
     lastVisitTabTime = performance.now()

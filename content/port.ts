@@ -73,10 +73,10 @@ export const runtimeConnect = (function (this: void, extraFlags?: number): void 
   port_ = (injector ? connect(injector.id, data) : connect(data)) as ContentNS.Port
   port_.onDisconnect.addListener((): void => {
     port_ = null
-    if (Build.MV3 || Build.LessPorts) { return }
+    ; (Build.MV3 || Build.LessPorts) && fgCache ? 0 :
     OnChrome && timeout_ === interval_ ? safeDestroy() : timeout_((): void => {
       try { port_ || !isAlive_ || runtimeConnect() } catch { safeDestroy() }
-    }, (fgCache ? 5000 : 2000) + (isTop as number | boolean as number) * 50)
+    }, (!(Build.MV3 || Build.LessPorts) && fgCache ? 5000 : 2000) + (isTop as number | boolean as number) * 50)
   });
   port_.onMessage.addListener(<T extends keyof BgReq> (response: Req.bg<T>): void => {
     type TypeToCheck = { [k in keyof BgReq]: (this: void, request: BgReq[k]) => unknown };

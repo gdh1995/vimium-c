@@ -1,6 +1,7 @@
 import {
   clickable_, setupEventListener, timeout_, doc, isAlive_, set_noRAF_old_cr_, math, isTop, OnChrome, readyState_,
-  loc_, getTime, recordLog, VTr, vApi, Stop_, isTY, OnEdge, abs_, isEnabled_, clearTimeout_
+  loc_, getTime, recordLog, VTr, vApi, Stop_, isTY, OnEdge, abs_, isEnabled_, interval_, clearTimeout_, clearInterval_,
+  setupTimerFunc_cr_mv3
 } from "../lib/utils"
 import {
   createElement_, set_createElement_, OnDocLoaded_, runJS_, rAF_, removeEl_s, dispatchEvent_,
@@ -623,6 +624,10 @@ DocCls.write = myDocWrite
       && tmpChromeVer && tmpChromeVer < BrowserVer.MinEventListenersFromExtensionOnSandboxedPage) {
     safeDestroy(1)
   } else {
+    if (Build.MV3) {
+      const t = timeout_, i = interval_, ct = clearTimeout_, ci = clearInterval_
+      timeout_((): void => { /*#__INLINE__*/ setupTimerFunc_cr_mv3(t, i, ct, ci) }, 0)
+    }
     /*#__INLINE__*/ setupBackupTimer_cr()
   }
 })(grabBackFocus as boolean)
