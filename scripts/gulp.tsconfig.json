@@ -10,7 +10,7 @@
   },
   "build": { // for [ local, dist ]
     "MinCVer": [ 89, 47 ], // keep dist to be 47 : the release version
-    "MinFFVer": [ 78, 63 ],
+    "MinFFVer": [ 89, 63 ],
     "BTypes": [ 3, 1 ], // [ Chrome | Firefox, Chrome ]
     "OS": [ 7, 7 ],
     "DetectAPIOnFirefox": [1, 0],

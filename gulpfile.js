@@ -41,6 +41,7 @@ var has_polyfill = !!(getBuildItem("BTypes") & BrowserType.Chrome)
     && getBuildItem("MinCVer") < 43 /* MinSafe$String$$StartsWith */;
 const POLYFILL_FILE = "lib/polyfill.ts"
 const LOCALES_EN = "_locales/en/messages.json"
+const JSON_TO_JS = ["i18n/*/options.json", "i18n/*/popup.json"]
 
 var CompileTasks = {
   background: ["background/*.ts", "background/*.d.ts"],
@@ -76,7 +77,10 @@ var Tasks = {
     if (!getBuildItem("NDEBUG")) {
       return copyByPath(path);
     }
-    return minifyJSFiles(path, ".", { base: ".", json: true })
+    return minifyJSFiles([...path, ...JSON_TO_JS.map(i => "!" + i)], ".", { base: ".", json: true })
+  },
+  "static/json2js": function(done) {
+    return getBuildItem("NDEBUG") ? minifyJSFiles(JSON_TO_JS, ".", { base: ".", json: true, toJs: true }) : done()
   },
   "locales_en/json": function() {
     return !getBuildItem("NDEBUG") ? copyByPath(LOCALES_EN) : minifyJSFiles(LOCALES_EN, ".", { base: ".", json: true })
@@ -106,7 +110,7 @@ var Tasks = {
     })) })
   },
   "static/minify": function(cb) {
-    gulp.parallel("static/minify-js", "static/json", "locales_en/json", "minify-css", "minify-html")(cb)
+    gulp.parallel("static/minify-js", "static/json", "static/json2js", "locales_en/json", "minify-css", "minify-html")(cb)
   },
   static: ["static/minify", function() {
     var arr = ["front/*", "pages/*", "icons/*", "lib/*"
@@ -140,7 +144,7 @@ var Tasks = {
   "build/scripts": ["build/background", "build/content", "build/front"],
   "build/_clean_diff": function() {
     return cleanByPath([".build/**", "manifest.json", "*/vomnibar.html", "background/*.html", ".*.build"
-        , "*/*.html", "*/*.css", "**/*.json", "**/*.js", "!helpers/*/*.js", ".snapshot.sh", LOCALES_EN
+        , ...JSON_TO_JS, "*/*.html", "*/*.css", "**/*.json", "**/*.js", "!helpers/*/*.js", ".snapshot.sh", LOCALES_EN
         ], DEST)
   },
   "build/_all": ["build/scripts", "build/pages"],
@@ -397,7 +401,7 @@ var Tasks = {
   all: ["build"],
   clean: function() {
     return cleanByPath([".build/**", "manifest.json", ".snapshot.sh", "**/*.js", "!helpers/*/*.js", ".*.build"
-      , "front/help_dialog.html", "front/vomnibar.html", "front/words.txt"], DEST);
+      , "front/help_dialog.html", "front/vomnibar.html", "front/words.txt", ...JSON_TO_JS], DEST);
   },
 
   scripts: ["background", "content", "front"],
@@ -701,9 +705,10 @@ const postTerser = exports.postTerser = async (terserConfig, file, allPaths) => 
     get()
     contents = contents.replace(/![01]\b/g, s => s === "!0")
   }
-  if (!locally && (allPathStr.includes("content/") || allPathStr.includes("lib/"))) {
+  if ((!locally && (allPathStr.includes("content/") || allPathStr.includes("lib/"))
+      || allPathStr.includes("pages/"))) {
     get()
-    contents = contents.replace(/\n?\/\*!? ?@OUTPUT ?\{([^]+)\} ?\*\/\n?/g, '$1')
+    contents = contents.replace(/\n?\/\*!? ?@OUTPUT ?\{([^}]+)\} ?\*\/\n?/g, '$1')
   }
   if (allPathStr.indexOf("extend_click.") >= 0) {
     get();

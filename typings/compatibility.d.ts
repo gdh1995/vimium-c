@@ -623,6 +623,7 @@ declare const enum FirefoxBrowserVer {
   MinEnsuredCSS$is$selector = 81,
   MinMaybe$HTMLElement$$inert = 81, // if `html5.inert.enabled`
   MinInputSupportExecCommand = 89,
+  MinDefaultToEnableES$TopLevelAwait = 89, // javascript.options.experimental.top_level_await
   MinContentEditableInShadowOfBodyRefuseShortcuts = 91,
   ESRPopupBlockerPassClicksFromExtensions = 91, // 91.6 ~ 91.12
   Min$structuredClone = 94,

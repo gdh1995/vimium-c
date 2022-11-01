@@ -160,6 +160,9 @@ var getTerser = function() {
         if ((path.includes("front/") || path.includes("pages/")) && config.ecma && config.ecma >= 2017) {
           data = data.replace(/\bappendChild\b(?!`|\.call\([\w.]*doc)/g, "append");
         }
+        if (path.includes("pages/")) {
+          data = data.replace(/\n?\/\*!? ?@OUTPUT ?\{([^}]+)\} ?\*\/\n?/g, '$1')
+        }
         if (path.includes("/env")) {
           data = lib.skip_declaring_known_globals(other_consts.BTypes, other_consts.MinCVer, () => data) || data
         }

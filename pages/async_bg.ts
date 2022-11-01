@@ -8,7 +8,7 @@ export declare const enum kReadyInfo {
 }
 export type ValidFetch = GlobalFetch
 
-declare var define: any, VApi: VApiTy | undefined // eslint-disable-line no-var
+declare var VApi: VApiTy | undefined // eslint-disable-line no-var
 
 const OnOther: BrowserType = Build.BTypes && !(Build.BTypes & (Build.BTypes - 1))
     ? Build.BTypes as number
@@ -257,18 +257,14 @@ export const nextTick_ = ((): { <T>(task: (self: T) => void, self: T): void; (ta
   }
 })()
 
-export const import2 = (url: string): Promise<unknown> => {
-  if (!(Build.BTypes & BrowserType.Edge)
+export const import2 = (url: string): Promise<unknown> =>
+    !(Build.BTypes & BrowserType.Edge)
       && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinUsableScript$type$$module$InExtensions)
       && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinES$DynamicImport)
       && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredES$DynamicImport)
-      ) {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
-    return import(url)
-  }
-  return define([url]) // eslint-disable-line @typescript-eslint/no-unsafe-call
-}
+    ? import(url) : define([url]) // eslint-disable-line @typescript-eslint/no-unsafe-call
 
 if (!Build.NDEBUG) { (window as any).updateUI = (): void => { void post_(kPgReq.reloadCSS, null) } }
 //#endregion
@@ -297,30 +293,46 @@ export const bTrans_ = browser_.i18n.getMessage
 const curPath = location.pathname.replace("/pages/", "").split(".")[0], browserLang = bTrans_("lang1")
 export const pageLangs_ = transPart_(bTrans_("i18n"), curPath) || browserLang || "en"
 
-void Promise.all(pageLangs_.split(",").map((lang): Promise<Dict<string> | null> => {
-  const langFile = `/i18n/${lang}/${curPath === "show" ? "popup" : curPath}.json`
+const useTopLevelAwait: boolean = !!Build.NDEBUG && !(Build.BTypes & BrowserType.Edge)
+    && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsuredES$TopLevelAwait)
+    && !(Build.BTypes & BrowserType.Firefox)
+const onDicts = (dicts: ({ default: Dict<string> } | string | null)[]): void => {
+  const dest = i18nDict_
+  for (const src of dicts.reverse()) {
+    if (!src) { continue }
+    const part = useTopLevelAwait ? (src as Extract<typeof src, Dict<any>>).default
+      : JSON.parse(Build.NDEBUG ? (src as Extract<typeof src, string>).slice("export default".length) : src as string)
+    for (const key in part) { dest.set(key, part[key]!) }
+  }
+  enableNextTick_(kReadyInfo.i18n)
+}
+export const onDicts_ = useTopLevelAwait ? onDicts : 0 as never
+export const curPagePath_ = useTopLevelAwait ? curPath : 0 as never
+
+; !!Build.NDEBUG && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsuredES$TopLevelAwait)
+    && !(Build.BTypes & BrowserType.Edge) && !(Build.BTypes & BrowserType.Firefox)
+? curPath !== "options" && curPath !== "popup" && onDicts_( // eslint-disable-next-line spaced-comment
+  /*! @OUTPUT {await } */ // @ts-ignore
+  Promise.all(
+    pageLangs_.split(",").map(lang => // @ts-ignore
+    import(
+      `/i18n/${lang}/${curPath === "show" ? "popup" : curPath}.js`)))
+) :
+void Promise.all(pageLangs_.split(",").map((lang): Promise<string | null> => {
+  const langFile = `/i18n/${lang}/${curPath === "show" ? "popup" : curPath}.${Build.NDEBUG ? "js" : "json"}`
   const p = (!OnChrome || Build.MinCVer >= BrowserVer.MinFetchExtensionFiles
-      || CurCVer_ >= BrowserVer.MinFetchExtensionFiles ? (fetch as ValidFetch)(langFile).then(r => r.json() as {})
-      : new Promise<{}>((resolve): void => {
-    const req = new XMLHttpRequest() as JSONXHR
-    req.responseType = "json"
-    req.onload = function (): void { resolve(this.response as {}) }
+      || CurCVer_ >= BrowserVer.MinFetchExtensionFiles ? (fetch as ValidFetch)(langFile).then(r => r.text())
+      : new Promise<string>((resolve): void => {
+    const req = new XMLHttpRequest() as TextXHR
+    req.responseType = "text"
+    req.onload = function (): void { resolve(this.response) }
     req.open("GET", langFile, true), req.send()
   }))
   return !Build.NDEBUG ? p : p.catch((err): null => {
     console.log("Can not load the language file:", langFile, ":", err)
     return null
   })
-})).then((dicts): void => {
-  const dest = i18nDict_
-  for (const src of dicts.reverse()) {
-    if (!src) { continue }
-    for (const key in src) {
-      dest.set(key, src[key]!)
-    }
-  }
-  enableNextTick_(kReadyInfo.i18n)
-})
+})).then(onDicts)
 
 //#endregion
 

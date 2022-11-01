@@ -42,7 +42,7 @@ var VApi: VApiTy | undefined, VimiumInjector: VimiumInjectorTy | undefined | nul
       for (const scriptEl of scripts) {
         head.appendChild(scriptEl);
       }
-    }, 100);
+    }, curPath === "options" ? 32 : 100)
   }
   function onLastLoad(): void {
     for (let i = scripts.length; 0 <= --i; ) { scripts[i].remove(); }

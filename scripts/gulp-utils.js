@@ -50,12 +50,17 @@ exports.cleanByPath = function (path, dest) {
   }));
 }
 
-exports.minifyJson = function (file) {
-  var contents = exports.ToString(file), oldLen = contents.length;
-  var data = JSON.parse(contents);
-  contents = JSON.stringify(data);
-  if (contents.length !== oldLen) {
+exports.minifyJson = function (toJs, file) {
+  var contents = exports.ToString(file)
+  contents = contents.replace(/\r\n?/g, "\n").trim()
+  var oldLen = contents.length
+  contents = JSON.stringify(JSON.parse(contents));
+  if (contents.length < oldLen) {
+    contents = toJs ? "export default" + (contents[0] === "{" ? "" : " ") + contents : contents
     exports.ToBuffer(file, contents)
+  }
+  if (toJs) {
+    file.path = file.path.replace(/\.json$/i, ".js")
   }
 }
 
@@ -616,7 +621,7 @@ exports.minifyJSFiles = function (path, output, exArgs) {
 
   var stream = gulp.src(path, { base: base });
   var isJson = !!exArgs.json;
-  var ext = isJson ? ".json" : ".js";
+  var ext = isJson && !exArgs.toJs ? ".json" : ".js";
   var is_file = output.endsWith(ext);
 
   if (!exArgs.passAll) {
@@ -656,7 +661,7 @@ exports.minifyJSFiles = function (path, output, exArgs) {
   }
   let config = stdConfig
   if (isJson) {
-    stream = stream.pipe(exports.gulpMap(exports.minifyJson))
+    stream = stream.pipe(exports.gulpMap(exports.minifyJson.bind(null, exArgs.toJs)))
   } else if (minifyDistPasses > 0) {
     if (exArgs.format) { config = { ...config, format: { ...(config.format || {}), ...exArgs.format} } }
     stream = stream.pipe(exports.getGulpTerser(!!(exArgs.aggressiveMangle && config.mangle)

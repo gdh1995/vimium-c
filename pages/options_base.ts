@@ -1,5 +1,6 @@
 import {
-  CurCVer_, OnChrome, $, $$, nextTick_, pageLangs_, TransTy, pageTrans_, post_, enableNextTick_, kReadyInfo
+  CurCVer_, OnChrome, $, $$, nextTick_, pageLangs_, TransTy, pageTrans_, post_, enableNextTick_, kReadyInfo, onDicts_,
+  curPagePath_
 } from "./async_bg"
 import { kPgReq } from "../background/page_messages"
 import type * as i18n_options from "../i18n/zh/options.json"
@@ -208,6 +209,18 @@ export const bgSettings_ = {
     __proto__: null as never, c: 1, n: 1, l: 1, d: 1
   } satisfies TypedSafeEnum<SettingsNS.FrontendComplexSyncingItems>
 }
+
+bgSettings_.preloadCache_()
+
+; !!Build.NDEBUG && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsuredES$TopLevelAwait)
+    && !(Build.BTypes & BrowserType.Edge) && !(Build.BTypes & BrowserType.Firefox) &&
+onDicts_( // eslint-disable-next-line spaced-comment
+  /*! @OUTPUT {await } */ // @ts-ignore
+  Promise.all(
+    pageLangs_.split(",").map(lang => // @ts-ignore
+        import(
+          `/i18n/${lang}/${curPagePath_}.js`)))
+)
 
 //#endregion
 

@@ -45,7 +45,7 @@ void settings_.ready_.then((): void => {
 })
 
 Build.MV3 || setTimeout((): void => {
-  void (import("/background/sync.js" as string) as Promise<typeof import("./sync")>)
+  void import("/background/sync.js" as string)
 }, 100);
 
 (OnChrome || OnFirefox) && ((): void => {

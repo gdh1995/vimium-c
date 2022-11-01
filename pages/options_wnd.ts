@@ -402,6 +402,15 @@ optionsInitAll_ = function (): void {
     }, { timeout: 1e3 })
     })
   }, 34)
+
+  nextTick_(() => {
+    setTimeout(() => {
+      const loaderScript = document.createElement("script")
+      loaderScript.src = "loader.js"
+      loaderScript.async = true
+      document.head!.appendChild(loaderScript)
+    }, 120)
+  })
 };
 
 delayBinding(Option_.all_.userDefinedCss.element_, "input", debounce_((): void => {

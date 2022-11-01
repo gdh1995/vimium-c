@@ -492,9 +492,29 @@ exports.patchTSNamespace = (ts, logger, noGenerator, wrapGeneratorToken, allowFo
     ts[bak + key] = wrapGeneratorToken ? originalAccessProp : null
     ts[key] = wrapGeneratorToken ? wrappedAccessProp : originalAccessProp
   }
-  if (allowForOf) {
-    ts.allowForOf = true;
+  key = "createDiagnosticCollection"
+  if (!ts[bak + key]) {
+    var originalCDC = ts[key]
+    const wrappedCDC = function () {
+      const dc = originalCDC.apply(this, arguments)
+      const oldAdd = dc.add
+      if (typeof oldAdd !== "function") {
+        throw new Error("unexpected ts.createDiagnosticCollection : no .add")
+      }
+      dc.add = function(diag) {
+        if (diag.code === 5055 && (diag.file ? diag.file.fileName.endsWith(".js")
+            : diag.messageText.includes(".js'"))) {
+          console.log("Ignore a warning:", diag.file ? diag.file.fileName : diag.messageText.split("'")[1])
+          return
+        }
+        return oldAdd.apply(this, arguments)
+      }
+      return dc
+    }
+    ts[bak + key] = originalCDC
+    ts[key] = wrappedCDC
   }
+  ts.allowForOf = allowForOf;
 }
 
 let __terserPatched = false
