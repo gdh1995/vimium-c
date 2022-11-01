@@ -56,9 +56,14 @@ class PopExclusionRulesOption extends ExclusionRulesOption_ {
     const p2 = _forceState(`${conf_.tabId}/reset/silent`)
     return Promise.all([p, p2]).then(([a]) => a)
   }
-  override updateVNode_ (vnode: ExclusionVisibleVirtualNode, pattern: string, keys: string): void {
+  override updateVNode_ (vnode: ExclusionVisibleVirtualNode, pattern: string, passKeys: string): void {
     const patternIsSame = vnode.rule_.pattern === pattern, oldMatcher = vnode.matcher_
-    super.updateVNode_(vnode, pattern, keys)
+    super.updateVNode_(vnode, pattern, passKeys)
+    const tip = !pattern ? "" : !passKeys ? pTrans_("completelyDisabled") || "completely disabled"
+        : passKeys.length > 1 && passKeys[0] === "^"
+        ? pTrans_("onlyHook") || "only hook such keys" : pTrans_("passThrough") || "pass through such keys"
+    vnode.$pattern_.title !== pattern && (vnode.$pattern_.title = pattern)
+    vnode.$keys_.title !== tip && (vnode.$keys_.title = tip)
     if (patternIsSame) {
       vnode.matcher_ = oldMatcher
       return

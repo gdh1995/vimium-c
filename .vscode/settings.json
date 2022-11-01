@@ -29,5 +29,12 @@
         "d"
     ],
     "task.autoDetect": "off",
-    "task.quickOpen.skip": true
+    "task.quickOpen.skip": true,
+    "javascript.preferences.autoImportFileExcludePatterns": [
+        "**/node_modules"
+    ],
+    "typescript.preferences.includePackageJsonAutoImports": "off",
+    "typescript.preferences.autoImportFileExcludePatterns": [
+        "**/node_modules"
+    ]
 }

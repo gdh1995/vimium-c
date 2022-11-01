@@ -230,7 +230,7 @@ else
   CHROME_ROOT=${CHROME_ROOT:-$default_chrome_root}
   VC_ROOT=${VC_ROOT:-${dir%/*}}
 fi
-if test -z "$VER" -a $USE_INSTALLED -le 0 && test -f "$WORKING_DIR"/Chrome-bin/chrome.exe; then
+if test -z "$VER" -a $USE_INSTALLED -le 0 -a $IS_EDGE -eq 0 && test -f "$WORKING_DIR"/Chrome-bin/chrome.exe; then
   VER=wo
 fi
 test "$VER" == cur && VER=

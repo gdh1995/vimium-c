@@ -713,6 +713,10 @@ const postTerser = exports.postTerser = async (terserConfig, file, allPaths) => 
     get();
     contents = addMetaData(file.relative, contents)
   }
+  if ((contents || file.contents).length < 24) {
+    get()
+    contents = contents.trim() === '"use strict";' ? "" : contents
+  }
   if (terserConfig.format && terserConfig.format.max_line_len) {
     get()
     const tooLong = contents.split("\n").filter(i => i.length > MaxLineLen2)
@@ -886,7 +890,7 @@ function patchExtendClick(source) {
   } else {
     delete json[999];
   }
-  json[getBuildItem("MV3") ? /** kTip.removeCurScript */ 88 : /** kTip.removeEventScript */ 89] = ""
+  json[getBuildItem("MV3") ? /** kTip.removeCurScript */ 88 : /** kTip.removeEventScript */ 89] = { message: "" }
   fs.writeFileSync(jsonPath, JSON.stringify(json));
   }
   logger("%o: %o %s", ":extend_click", inJSON.length, inJSON ? "bytes" : "(embeded)");

@@ -4,7 +4,7 @@ import {
   onInit_, set_onInit_, set_cPort
 } from "./store"
 import * as BgUtils_ from "./utils"
-import { runtimeError_, tabsGet, Tabs_, browser_, watchPermissions_} from "./browser"
+import { runtimeError_, tabsGet, Tabs_, browser_, watchPermissions_ } from "./browser"
 import "./normalize_urls"
 import "./parse_urls"
 import * as settings_ from "./settings"
@@ -196,7 +196,9 @@ set_bgIniting_(bgIniting_ | BackendHandlersNS.kInitStat.main)
 onInit_!()
 
   // will run only on <kbd>F5</kbd>, not on runtime.reload
-Build.MV3 || (onunload = (): void => {
+// @ts-ignore
+Build.MV3 || ((window as Window) // `window.` is necessary on Chrome 32
+.onunload = (): void => {
     for (let port of framesForOmni_) {
       port.disconnect()
     }

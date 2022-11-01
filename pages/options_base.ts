@@ -424,6 +424,7 @@ appendRuleTo_ (this: ExclusionRulesOption_
   vnode.$pattern_ = patternEl; vnode.$keys_ = passKeysEl;
   patternEl.vnode = vnode;
   passKeysEl.vnode = vnode;
+  this.updateVNode_(vnode, pattern, passKeys)
   this.list_.push(vnode);
   list.appendChild(row);
   return vnode
@@ -479,8 +480,6 @@ override readValueFromElement_ (part?: boolean): AllowedOptions["exclusionRules"
     let pattern = changed & kExclusionChange.pattern ? vnode.$pattern_.value.trim() : vnode.rule_.pattern;
     let fixTail = false, passKeys = changed & kExclusionChange.passKeys ? vnode.$keys_.value : vnode.rule_.passKeys
     if (!pattern) {
-      vnode.$pattern_.title && (vnode.$pattern_.title = "")
-      vnode.$keys_.title && (vnode.$keys_.title = "")
       this.updateVNode_(vnode, "", passKeys);
       continue;
     }
@@ -531,11 +530,6 @@ override readValueFromElement_ (part?: boolean): AllowedOptions["exclusionRules"
       passKeys = passArr ? (passArr.join(" ") + " ") : "";
       passKeys = passKeys.replace(<RegExpG> /<escape>/gi, "<esc>");
     }
-    const tip = !passKeys ? oTrans_("completelyDisabled") || "completely disabled"
-        : passKeys.length > 1 && passKeys[0] === "^"
-        ? oTrans_("onlyHook") || "only hook such keys" : oTrans_("passThrough") || "pass through such keys"
-    vnode.$pattern_.title !== pattern && (vnode.$pattern_.title = pattern)
-    vnode.$keys_.title !== tip && (vnode.$keys_.title = tip);
     this.updateVNode_(vnode, pattern, passKeys);
     rules.push(vnode.rule_);
   }
