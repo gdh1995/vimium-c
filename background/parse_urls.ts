@@ -217,6 +217,10 @@ const upperGitUrls = (url: string, path: string): string | void | null => {
     } else if (lastIndex > 3) {
       return arr[3] === "blob" ? (arr[3] = "tree", arr.join("/")) : null
     }
+  } else if (host.startsWith("gitee.")) {
+    if (lastIndex === 4 && arr[3] === "releases" && arr[4] === "tag") {
+      return arr.slice(0, 4).join("/")
+    }
   }
 }
 

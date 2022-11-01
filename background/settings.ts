@@ -55,7 +55,7 @@ export const ready_: Promise<number> = Promise.all([
       if (item[0] in defaults_) {
         cache[item[0] as PersistentKeys] = item[1] as string | number | boolean
       } else {
-        storageCache_.set!(item[0] as SettingsNS.LocalSettingNames, item[1] + "")
+        storageCache_.set(item[0] as SettingsNS.LocalSettingNames, item[1] + "")
       }
     }
     let n = 0
@@ -69,7 +69,7 @@ export const ready_: Promise<number> = Promise.all([
               : initial === false || initial === true ? str === "true" : JSON.parse<typeof initial>(str)
           cache[key as PersistentKeys] = value
         } else {
-          storageCache_.set!(key as SettingsNS.LocalSettingNames, str)
+          storageCache_.set(key as SettingsNS.LocalSettingNames, str)
         }
       }
     }
@@ -115,9 +115,9 @@ export const setInLocal_ = (key: SettingsNS.LocalSettingNames, value: string | n
   if (!toSaveCache) { toSaveCache = safeObj_(), setTimeout(saveAllLocally, 0) }
   toSaveCache[key] = value
   if (value !== null) {
-    storageCache_.set!(key, value)
+    storageCache_.set(key, value)
   } else {
-    storageCache_.delete!(key)
+    storageCache_.delete(key)
   }
 }
 

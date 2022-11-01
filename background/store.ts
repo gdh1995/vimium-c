@@ -50,7 +50,8 @@ export const Origin2_ = location.origin + "/"
 export let hasEmptyLocalStorage_ = false
 export let hasGroupPermission_ff_: boolean | 0 = false
 export const settingsCache_ = {} as Readonly<SettingsNS.SettingsWithDefaults>
-export const storageCache_: PartialOrEnsured<Map<SettingsNS.LocalSettingNames, string>, "get" | "forEach"> = new Map()
+export const storageCache_: Pick<Map<SettingsNS.LocalSettingNames, string>, "get" | "forEach" | "set" | "delete">
+    = new Map()
 export let newTabUrl_f = "", vomnibarPage_f = ""
 export const contentPayload_ = {
   v: OnChrome ? CurCVer_ : OnFirefox ? CurFFVer_ : 0,

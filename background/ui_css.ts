@@ -1,7 +1,7 @@
 import {
   findCSS_, innerCSS_, omniPayload_, set_findCSS_, set_innerCSS_, CurCVer_, CurFFVer_, IsEdg_, omniStyleOverridden_,
   OnChrome, OnEdge, OnFirefox, isHighContrast_ff_, set_isHighContrast_ff_, bgIniting_, CONST_, set_helpDialogData_,
-  framesForOmni_, settingsCache_, set_omniStyleOverridden_, updateHooks_, storageCache_
+  framesForOmni_, settingsCache_, set_omniStyleOverridden_, updateHooks_, storageCache_, installation_
 } from "./store"
 import { asyncIter_, fetchFile_, spacesRe_ } from "./utils"
 import { getFindCSS_cr_, set_getFindCSS_cr_ } from "./browser"
@@ -20,17 +20,17 @@ interface ParsedSections {
 let StyleCacheId_: string
 let findCSS_file_old_cr: FindCSS | null
 
-export const reloadCSS_ = (action: MergeAction, cssStr?: string): SettingsNS.MergedCustomCSS | void => {
+export const reloadCSS_ = (action: MergeAction, knownCssStr?: string): SettingsNS.MergedCustomCSS | void => {
   if (action === MergeAction.virtual) {
-    return mergeCSS(cssStr!, MergeAction.virtual)
+    return mergeCSS(knownCssStr!, MergeAction.virtual)
   }
   if (action === MergeAction.rebuildAndBroadcast) { set_helpDialogData_(null) }
   {
-    let findCSSStr: string | undefined | false
-    if (findCSSStr = action === MergeAction.readFromCache && storageCache_.get("findCSS")) {
+    let findCSSStr: string | undefined
+    if (action === MergeAction.readFromCache && (findCSSStr = storageCache_.get("findCSS"))) {
       OnChrome && (findCSS_file_old_cr = null)
       set_findCSS_(parseFindCSS_(findCSSStr))
-      set_innerCSS_(cssStr!.slice(StyleCacheId_.length))
+      set_innerCSS_(knownCssStr!.slice(StyleCacheId_.length))
       omniPayload_.c = storageCache_.get("omniCSS") || ""
       return
     }
@@ -266,10 +266,11 @@ void ready_.then((): void => {
       + ";"
 set_innerCSS_(storageCache_.get("innerCSS") || "")
 if (innerCSS_ && !innerCSS_.startsWith(StyleCacheId_)) {
-  storageCache_.set!("vomnibarPage_f", "")
-  reloadCSS_(MergeAction.rebuildWhenInit, innerCSS_)
+    storageCache_.set("vomnibarPage_f", "")
+    reloadCSS_(MergeAction.rebuildWhenInit)
 } else {
-  reloadCSS_(MergeAction.readFromCache, innerCSS_)
+    reloadCSS_(MergeAction.readFromCache, innerCSS_)
+    installation_ && installation_.then(details => details && reloadCSS_(MergeAction.rebuildWhenInit))
 }
   updateHooks_.userDefinedCss = mergeCSS
 })
