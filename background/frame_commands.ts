@@ -36,9 +36,8 @@ set_runOnTee_(((task, serializable, data): Promise<boolean | string> => {
   }, 40_000)
   const deferred = BgUtils_.deferPromise_<boolean | string>()
     setTeeTask_(null, { i: id, t: task, s: serializable, d: Build.MV3 ? null : data, r: deferred.resolve_ })
-    const allow = !OnChrome ? ""
-        : task === kTeeTask.CopyImage || task === kTeeTask.Copy || task === kTeeTask.DrawAndCopy
-        ? "clipboard-write" : Build.MV3 && task === kTeeTask.Paste ? "clipboard-read" : ""
+    const allow = task === kTeeTask.CopyImage || task === kTeeTask.Copy || task === kTeeTask.DrawAndCopy
+        || Build.MV3 && task === kTeeTask.Paste ? "clipboard-write; clipboard-read" : ""
   if (port) {
     portSendFgCmd(port, kFgCmd.callTee, 1, { u: CONST_.TeeFrame_, c: "R TEE UI", a: allow, t: 3000 }, 1)
   } else {
@@ -309,13 +308,13 @@ export const handleImageUrl = (url: `data:${string}` | "", buffer: Blob | null
           && CurCVer_ < BrowserVer.MinEnsured$Clipboard$$write$and$ClipboardItem ? Promise.resolve(false)
       : (url || copyFromBlobUrl ? Promise.resolve()
           : BgUtils_.convertToDataURL_(buffer!).then((u2): void => { url = u2 }))
-      .then(((buffer2: Blob): Promise<Result> => {
+      .then((): Promise<Result> => {
         return runOnTee_(actions === kTeeTask.DrawAndCopy ? actions : kTeeTask.CopyImage, {
           u: copyFromBlobUrl ? blobRef : url, t: text,
           b: Build.BTypes && !(Build.BTypes & (Build.BTypes - 1)) ? Build.BTypes as number : OnOther_
-        }, buffer2)
-      }).bind(0, buffer!)))
-      .then((ok): void => {
+        }, buffer!)
+      }))
+      .then(async (ok): Promise<void> => {
         if (OnFirefox && typeof ok === "string") {
           handleImageUrl(ok as "data:", null, kTeeTask.CopyImage, resolve, title, text)
           return
@@ -324,7 +323,7 @@ export const handleImageUrl = (url: `data:${string}` | "", buffer: Blob | null
         const doc = (globalThis as MaybeWithWindow).document!
         const img = doc.createElement("img")
         img.alt = title.replace(BgUtils_.getImageExtRe_(), "")
-        img.src = url
+        img.src = url || await BgUtils_.convertToDataURL_(buffer!)
         doc.documentElement!.appendChild(img)
         const sel = doc.getSelection(), range = doc.createRange()
         range.selectNode(img)
