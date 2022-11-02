@@ -43,6 +43,7 @@ let timer_: ValidTimeoutID = TimerID.None
 let dialogWrapper_: HTMLDialogElement | false | null | undefined
 let canUseVW: boolean
 let screenHeight_: number
+let maxOutHeight_ = 99
 
 export { box as omni_box, status as omni_status }
 
@@ -56,14 +57,8 @@ export const hide: (fromInner?: 0 | null | undefined) => void = <InnerHide> ((fr
       oldIsActive && fromInner !== 0 && postToOmni(VomnibarNS.kCReq.hide)
       return
     }
-    if (OnChrome && Build.MinCVer <= BrowserVer.StyleSrc$UnsafeInline$MayNotImply$UnsafeEval) {
-      let style_old_cr = box!.style
-      style_old_cr.height = style_old_cr.top = ""
-      setDisplaying_s(box!)
-    } else {
-      box!.style.cssText = "display:none"
-    }
-    WithDialog && dialogWrapper_ && (dialogWrapper_.close(), setDisplaying_s(dialogWrapper_))
+    box!.style.height = maxOutHeight_ + "px"
+    WithDialog && dialogWrapper_ ? (dialogWrapper_.close(), setDisplaying_s(dialogWrapper_)) : setDisplaying_s(box!)
 })
 
 export const activate = function (options: FullOptions, count: number): void {
@@ -79,8 +74,6 @@ const init = ({k: secret, v: page, t: type, i: inner}: FullOptions): void => {
     }
     const el = createElement_("iframe") as NonNullable<typeof box>, kRef = "referrerPolicy"
     setClassName_s(el, "R UI Omnibar")
-    setDisplaying_s(el)
-    // setOrRemoveAttr_s(el, "allow", "clipboard-read; clipboard-write")
     if (type !== VomnibarNS.PageType.web) { /* empty */ }
     else if (OnChrome && timeout_ !== interval_ // there's no usable interval_
         || (!Build.NDEBUG && !VTr(kTip.nonLocalhostRe) || createRegExp(kTip.nonLocalhostRe, "i").test(page))
@@ -191,24 +184,18 @@ const onOmniMessage = function (this: OmniPort, msg: { data: any, target?: Messa
       box!.onload = omniOptions = null as never
       break;
     case VomnibarNS.kFReq.style:
-      const style = box!.style
-      style.height = math.ceil(data.h / docZoom_
-          / (Build.MinCVer < BrowserVer.MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent
-              && OnChrome ? wndSize_(2) : 1)) + "px"
+      const style = box!.style, ratio_cr = OnChrome &&
+          Build.MinCVer < BrowserVer.MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent ? wndSize_(2) : 1
+      style.height = math.ceil(data.h / docZoom_ / ratio_cr) + "px"
       if (status === Status.ToShow) {
         status = Status.Showing
         const maxBoxHeight = data.m!,
-        topHalfThreshold = maxBoxHeight * 0.6 + VomnibarNS.PixelData.MarginTop *
-            (Build.MinCVer < BrowserVer.MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent
-              && OnChrome ? wndSize_(2) : 1),
+        topHalfThreshold = maxBoxHeight * 0.6 + VomnibarNS.PixelData.MarginTop * ratio_cr,
         top = screenHeight_ > topHalfThreshold * 2 ? ((50 - maxBoxHeight * 0.6 / screenHeight_ * 100) | 0
             ) + (canUseVW ? "vh" : "%") : ""
         style.top = top
-        setDisplaying_s(box!, 1)
+        maxOutHeight_ = math.ceil(maxBoxHeight / docZoom_ / ratio_cr)
         focus_(box!)
-        if (WithDialog && dialogWrapper_) {
-          setDisplaying_s(dialogWrapper_, 1), dialogWrapper_.open || dialogWrapper_.showModal()
-        }
         clearTimeout_(timer1)
         timeout_(refreshKeyHandler, GlobalConsts.TimeOfSuppressingTailKeydownEvents - 40)
       }
@@ -312,6 +299,8 @@ const refreshKeyHandler = (): void => {
     return
   } else if (status === Status.Inactive) {
     status = Status.ToShow
+    !(WithDialog && dialogWrapper_) ? setDisplaying_s(box!, 1)
+        : (setDisplaying_s(dialogWrapper_, 1), dialogWrapper_.open || dialogWrapper_.showModal())
   } else if (status > Status.ToShow) {
     postToOmni(VomnibarNS.kCReq.focus)
     status = Status.ToShow

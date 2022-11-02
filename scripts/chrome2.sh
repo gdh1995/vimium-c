@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-
 VER=
 FLAGS=
 PAGE_FLAGS=
@@ -23,6 +22,7 @@ default_vc_root=/e/Git/weidu+vim/vimium-c
 default_chrome_root="/d/Program Files/Google"
 version_archives=/f/Application/Browser/chrome
 export WSLENV=PATH/l
+shopt -s extglob
 
 function wp() {
   local dir=${2}
@@ -128,7 +128,7 @@ case "$1" in
     if test $DO_CLEAN -eq 1; then DO_CLEAN=2; fi
     shift
     ;;
-  [3-9][0-9]|[1-3][0-9][0-9]|cur|wo|prev|[1-9a-f][1-9a-f][1-9a-f][1-9a-f][1-9a-f][1-9a-f]*) # ver
+  [3-9][0-9]|[1-9][0-9][0-9]*([0-9])|cur|wo|prev|[1-9a-f][1-9a-f][1-9a-f][1-9a-f][1-9a-f][1-9a-f]*) # ver
     VER=$1
     shift
     ;;

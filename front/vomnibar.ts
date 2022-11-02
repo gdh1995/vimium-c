@@ -169,6 +169,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   },
 
   isActive_: false,
+  firstly_: 1 as BOOL,
   options_: null as never as VomnibarNS.GlobalOptions,
   inputText_: "",
   lastQuery_: "",
@@ -254,12 +255,9 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     removeEventListener("keyup", a.toggleAlt_, true)
     fromContent ||
     VPort_ && VPort_.post_({ H: kFgReq.nextFrame, t: Frames.NextType.current, o: !a.doEnter_, k: a.lastKey_ })
-    if (Build.MinCVer <= BrowserVer.StyleSrc$UnsafeInline$MayNotImply$UnsafeEval && Build.BTypes & BrowserType.Chrome) {
-      a.docSt_.zoom = ""
-    } else {
-      a.docSt_.cssText = ""
-    }
-    a.bodySt_.display = "none"
+    Build.MinCVer <= BrowserVer.StyleSrc$UnsafeInline$MayNotImply$UnsafeEval && Build.BTypes & BrowserType.Chrome
+        ? a.docSt_.zoom = "" : a.docSt_.cssText = ""
+    a.bodySt_.visibility = "hidden"
     a.list_.textContent = el.value = "";
     a.list_.style.height = "";
     a.barCls_.remove("empty");
@@ -1090,6 +1088,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       N: VomnibarNS.kFReq.style, h: height * wdZoom
     };
     if (!a.isActive_) { return; }
+    oldH || (msg.m = Math.ceil(a.mode_.r * a.itemHeight_ + a.baseHeightIfNotEmpty_) * wdZoom);
+    if (height > oldH) { VPort_.postToOwner_(msg) }
     a.total_ = response.t;
     a.showFavIcon_ = response.i;
     a.matchType_ = response.m;
@@ -1099,11 +1099,12 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     a.isSearchOnTop_ = len > 0 && completions[0].e === "search" && !(completions[0] as CompletersNS.SearchSuggestion).n
     a.selection_ = a.isSearchOnTop_ || (autoSelect == null ? response.a : autoSelect && notEmpty) ? 0 : -1
     a.isSelOriginal_ = true;
-    oldH || (msg.m = Math.ceil(a.mode_.r * a.itemHeight_ + a.baseHeightIfNotEmpty_) * wdZoom);
-    if (height > oldH) { VPort_.postToOwner_(msg); }
     a.completions_.forEach(a.Parse_);
     a.renderItems_(a.completions_, list);
-    if (!oldH) { a.bodySt_.display = "" }
+    if (!oldH) {
+      a.firstly_ ? setTimeout(() => { Vomnibar_.bodySt_.visibility = "" }, 17, a.firstly_ = 0)
+          : a.bodySt_.visibility = ""
+    }
     a.toggleInputMode_()
     if (!(Build.BTypes & ~BrowserType.Firefox)
         || Build.BTypes & BrowserType.Firefox && a.browser_ & BrowserType.Firefox) {

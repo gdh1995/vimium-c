@@ -572,6 +572,12 @@ declare const enum BrowserVer {
   Min$Event$$path$Deprecated = 101, // even if EXPERIMENTAL or LEGACY
   MinEnsured$HTMLElement$$inert = 101, // even if EXPERIMENTAL
   MinColorSchemeNormalMeansSystemDark = 102, // even if EXPERIMENTAL
+  // if flag `ThrottleDisplayNoneAndVisibilityHiddenCrossOriginIframesEnabled` is enabled (e.g. if EXPERIMENTAL),
+  // then there's no latency in a 2nd showing of v1.99.3; otherwise 2nd showing is very slow.
+  // I don't know why its name and effects have conflicts.
+  // A 1st showing may be delayed randomly since 102, and mostly on C107
+  // The usage of ThrottleDisplayNoneAndVisibilityHiddenCrossOriginIframesEnabled in 102-107 is updated during 101
+  MinLatencyOnVomnibarShowWithDisplayNone = 102, // even if LEGACY
   Min$AbortSignal$$timeout = 103, // even if LEGACY; since 100 if EXPERIMENTAL
   MinEnsured$Element$$role = 103, // even if LEGACY; since 68 if EXPERIMENTAL
   MinMV3FaviconAPI = 104,

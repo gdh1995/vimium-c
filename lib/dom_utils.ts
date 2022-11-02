@@ -608,7 +608,7 @@ export const setClassName_s = (el: SafeHTMLElement, className: string): void => 
   el.className = className
 }
 
-export const setVisibility_s = (el: SafeHTMLElement, visible: boolean): void => {
+export const setVisibility_s = (el: SafeHTMLElement, visible?: boolean | BOOL): void => {
   el.style.visibility = visible ? "" : HDN
 }
 
