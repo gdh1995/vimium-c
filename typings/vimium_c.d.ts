@@ -446,13 +446,13 @@ declare namespace VomnibarNS {
     WindowSizeX = 0.8, AllHNotInput = AllHNotUrl,
   }
   interface GlobalOptions extends TrailingSlashOptions, UserSedOptions {
-    mode: string;
+    mode?: string;
     currentWindow?: boolean;
-    newtab: boolean | BOOL;
-    keyword: string;
+    newtab?: boolean | BOOL;
+    keyword?: string;
     url?: true | string | null;
     /** known url */ u?: string | null | undefined
-    urlSedKeys: "sedKeys" | null
+    urlSedKeys?: "sedKeys" | null
     exitOnClick?: boolean;
     autoSelect?: boolean | null | BOOL;
     preferTabs?: "new" | "new-opened" | "newOpened";
@@ -468,9 +468,10 @@ declare namespace VomnibarNS {
     noSessions?: boolean | "always" | "start"
     clickLike?: null | "chrome" | /** as "chrome" */ true | "vivaldi" | /** as "vivaldi" */ "chrome2"
     activeOnCtrl?: boolean
-    position: OpenPageUrlOptions["position"]
-    itemSedKeys: "sedKeys" | null
-    itemKeyword: string | null
+    position?: OpenPageUrlOptions["position"]
+    inputSedKeys?: "sedKeys" | null
+    itemSedKeys?: "sedKeys" | null
+    itemKeyword?: string | null
   }
 }
 

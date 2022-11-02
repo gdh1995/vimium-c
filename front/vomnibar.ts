@@ -79,8 +79,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     a.updateQueryFlag_(CompletersNS.QueryFlags.NoTabEngine, !!options.noTabs);
     a.updateQueryFlag_(CompletersNS.QueryFlags.EvenHiddenTabs, !!options.hiddenTabs);
     a.updateQueryFlag_(CompletersNS.QueryFlags.IncognitoTabs, !!options.incognitoTabs)
-    a.doesOpenInIncognito_ = options.incognito;
     a.updateQueryFlag_(CompletersNS.QueryFlags.NoSessions, !!options.noSessions)
+    a.options_ = options
     let engines = options.engines
     engines instanceof Array && (engines = engines.join() as keyof typeof CompletersNS.SugType)
     if (typeof engines === "string" && engines) {
@@ -94,21 +94,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     if (a.mode_.e) {
       a.mode_.o = "omni"
     }
-    a.caseInsensitive_ = !!options.icase;
-    a.forceNewTab_ = !!options.newtab;
-    a.selectFirst_ = options.autoSelect;
-    a.position_ = options.position
-    a.notSearchInput_ = options.searchInput === false;
     a.baseHttps_ = null;
-    a.noSessionsOnStart_ = options.noSessions === "start"
-    {
-      const sed = options.sed, sed2 = options.itemSedKeys || null
-      a.sed_ = typeof sed === "object" && sed || { r: sed, k: options.sedKeys || options.sedKey }
-      a.itemSed_ = sed2 ? { r: true, k: sed2 + "" } : null
-      a.itemKeyword_ = options.itemKeyword || null
-    }
-    a.clickLike_ = options.clickLike
-    a.activeOnCtrl_ = !!options.activeOnCtrl
     let { url, keyword, p: search } = options, start: number | undefined;
     let scale = Build.MinCVer < BrowserVer.MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent
             && (!(Build.BTypes & ~BrowserType.Chrome)
@@ -183,7 +169,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   },
 
   isActive_: false,
-  doesOpenInIncognito_: null as VomnibarNS.GlobalOptions["incognito"],
+  options_: null as never as VomnibarNS.GlobalOptions,
   inputText_: "",
   lastQuery_: "",
   useInput_: true,
@@ -193,7 +179,6 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   maxPageNum_: Math.min(Math.max(3, (window.VomnibarMaxPageNum! | 0) || 10), 100),
   isEditing_: false,
   isInputComposing_: null as [left: number, right: number] | null,
-  position_: null as OpenPageUrlOptions["position"],
   baseHttps_: null as boolean | null,
   isHttps_: null as boolean | null,
   isSearchOnTop_: false,
@@ -206,12 +191,6 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   codeFocusTime_: 0,
   codeFocusReceived_: false,
   blurWanted_: 0 as BOOL,
-  forceNewTab_: false,
-  selectFirst_: false as VomnibarNS.GlobalOptions["autoSelect"],
-  notSearchInput_: false,
-  noSessionsOnStart_: false,
-  clickLike_: null as VomnibarNS.GlobalOptions["clickLike"],
-  activeOnCtrl_: false,
   showFavIcon_: 0 as 0 | 1 | 2,
   showRelevancy_: false,
   docZoom_: 1,
@@ -244,7 +223,6 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   isEdg_: false,
   os_: (Build.OS & (Build.OS - 1) ? kOS.win : Build.OS < 8 ? (Build.OS / 2) | 0 : Math.log2(Build.OS)
       ) as SettingsNS.ConstItems["o"][1],
-  caseInsensitive_: false,
   mappedKeyRegistry_: null as SettingsNS.AllVomnibarItems["m"][1],
   keyLayout_: 0,
   maxMatches_: 0,
@@ -256,24 +234,21 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   styles_: "",
   styleEl_: null as HTMLStyleElement | null,
   darkBtn_: null as HTMLElement | null,
-  wheelOptions_: { passive: false, capture: true } as const,
-  sed_: null as ParsedSedOpts | null,
-  itemSed_: null as ParsedSedOpts | null,
-  itemKeyword_: null as string | null,
   showTime_: 0 as 0 | /** abs-num */ 1 | /** abs */ 2 | /** relative */ 3,
   show_ (): void {
     const a = Vomnibar_
     a.showing_ = true;
     setTimeout(a.focus_, 0);
-    ((document.body as Element).addEventListener as typeof addEventListener)("wheel", a.onWheel_, a.wheelOptions_)
+    ((document.body as Element).addEventListener as typeof addEventListener)("wheel", a.onWheel_
+        , { passive: false, capture: true })
   },
   hide_ (fromContent?: BOOL): void {
     const a = Vomnibar_, el = a.input_;
     a.isActive_ = a.showing_ = a.isEditing_ = a.codeFocusReceived_ = false
-    a.noSessionsOnStart_ = false
     a.isInputComposing_ = a._canvas = null
     a.codeFocusTime_ = a.blurWanted_ = a.inputType_ = 0;
-    ((document.body as Element).removeEventListener as typeof removeEventListener)("wheel", a.onWheel_, a.wheelOptions_)
+    ((document.body as Element).removeEventListener as typeof removeEventListener)("wheel", a.onWheel_
+        , { passive: false, capture: true })
     a.timer_ > 0 && clearTimeout(a.timer_);
     window.onkeyup = null as never;
     removeEventListener("keyup", a.toggleAlt_, true)
@@ -310,12 +285,11 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     a.timer_ = a.height_ = a.matchType_ = a.sugTypes_ = a.wheelStart_ = a.wheelTime_ = a.actionType_ = a.inputType_ =
     a.total_ = a.lastKey_ = a.wheelDelta_ = VUtils_.timeCache_ = 0;
     a.docZoom_ = 1;
-    a.clickLike_ = a.itemSed_ = a.itemKeyword_ =
-    a.sed_ = a.doesOpenInIncognito_ = a.completions_ = a.onUpdate_ = a.isHttps_ = a.baseHttps_ = null as never
+    a.options_ = a.completions_ = a.onUpdate_ = a.isHttps_ = a.baseHttps_ = null as never
     a.mode_.q = a.lastQuery_ = a.inputText_ = a.resMode_ = "";
     a.mode_.o = "omni";
     a.mode_.t = CompletersNS.SugType.Empty;
-    a.isSearchOnTop_ = a.activeOnCtrl_ = false
+    a.isSearchOnTop_ = false
     if (!a.doEnter_ || !VPort_) {
       (<RegExpOne> /a?/).test("")
     } else if (Build.BTypes & BrowserType.Firefox
@@ -900,23 +874,23 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     a.update_(0);
   },
   onEnter_ (event?: KeyStat | true | string, newSel?: number | null): void {
-    const a = Vomnibar_;
+    const a = Vomnibar_, options = a.options_
     let sel = newSel != null ? newSel : a.selection_;
     if (typeof event === "string") {
       event = (event.includes("a-") ? KeyStat.altKey : 0) + (event.includes("c-") ? KeyStat.ctrlKey : 0)
           + (event.includes("m-") ? KeyStat.metaKey : 0) + (event.includes("s-") ? KeyStat.shiftKey : 0);
     }
     a.actionType_ = event == null ? a.actionType_
-      : event === true ? a.forceNewTab_ ? ReuseType.newFg : ReuseType.current
-      : event & (KeyStat.PrimaryModifier | KeyStat.shiftKey) && a.clickLike_ ? a.parseClickEventAs_(event)
+      : event === true ? options.newtab ? ReuseType.newFg : ReuseType.current
+      : event & (KeyStat.PrimaryModifier | KeyStat.shiftKey) && options.clickLike ? a.parseClickEventAs_(event)
       : event & KeyStat.PrimaryModifier ? event & KeyStat.shiftKey ? ReuseType.newBg : ReuseType.newFg
-      : event & KeyStat.shiftKey || !a.forceNewTab_ ? ReuseType.current : ReuseType.newFg;
+      : event & KeyStat.shiftKey || !options.newtab ? ReuseType.current : ReuseType.newFg
     if (sel === -1) {
       const input = a.input_.value.trim();
       if (!input) {
         return;
       }
-      if (a.notSearchInput_ && !event && !input.includes("://")) {
+      if (options.searchInput === false && !event && !input.includes("://")) {
         try { new URL(input); } catch { return; }
       }
     }
@@ -931,11 +905,14 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     type UrlInfo = SugToExec & Partial<Pick<CompletersNS.Suggestion, "s">>
     const useItem = sel >= 0
     const item: SuggestionE | UrlInfo = useItem ? a.completions_[sel] : { u: a.input_.value.trim() },
-    action = a.actionType_, https = a.isHttps_, incognito = a.doesOpenInIncognito_,
-    navReq: Req.fg<kFgReq.openUrl> | null = useItem && item.s != null && !a.itemSed_ && !a.itemKeyword_
+    inputSed = options.sed, sed2 = options.itemSedKeys || null,
+    itemSed = sed2 ? { r: true, k: sed2 + "" } : null, itemKeyword = options.itemKeyword || null,
+    action = a.actionType_, https = a.isHttps_,
+    navReq: Req.fg<kFgReq.openUrl> | null = useItem && item.s != null && !itemSed && !itemKeyword
         ? null : { H: kFgReq.openUrl, f: false, r: action, h: useItem ? null : https, u: item.u,
-      o: { i: incognito, s: useItem ? a.itemSed_ || { r: false, k: "" } : a.sed_, k: a.itemKeyword_,
-          p: a.position_, t: useItem ? false : "whole" }
+      o: { i: options.incognito, s: useItem ? itemSed || { r: false, k: "" } : typeof inputSed === "object" && inputSed
+              || { r: inputSed, k: options.inputSedKeys || options.sedKeys || options.sedKey },
+          k: itemKeyword, p: options.position, t: useItem ? false : "whole" }
     }, sessionReq: Req.fg<kFgReq.gotoSession> | null = navReq ? null : { H: kFgReq.gotoSession,
       a: action > ReuseType.newBg, s: item.s!
     },
@@ -978,12 +955,12 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     }
   },
   parseClickEventAs_ (event: KeyStat): ReuseType {
-    const a = Vomnibar_, type = a.clickLike_ === true ? "chrome" : a.clickLike_ + "",
+    const a = Vomnibar_, type = a.options_.clickLike === true ? "chrome" : a.options_.clickLike + "",
     hasCtrl = event & KeyStat.PrimaryModifier, hasShift = event & KeyStat.shiftKey,
     likeVivaldi = type.endsWith("2") ? type.includes("chro") : type.includes("viva")
     return likeVivaldi ? hasCtrl ? hasShift ? ReuseType.newWnd : ReuseType.newBg : ReuseType.newFg
         // likeChrome / likeFirefox
-        : hasCtrl ? !!hasShift !== a.activeOnCtrl_ ? ReuseType.newFg : ReuseType.newBg : ReuseType.newWnd
+        : hasCtrl ? !!hasShift !== !!a.options_.activeOnCtrl ? ReuseType.newFg : ReuseType.newBg : ReuseType.newWnd
   },
   removeCur_ (): void {
     if (Vomnibar_.selection_ < 0 || Vomnibar_.timer_) { return }
@@ -1102,7 +1079,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     a.update_(inputType ? 0 : -1, a.inAlt_ ? a.toggleAlt_ : null)
   },
   omni_ (response: BgVomnibarSpecialReq[kBgReq.omni_omni]): void {
-    const a = Vomnibar_;
+    const a = Vomnibar_, autoSelect = a.options_.autoSelect
     const completions = response.l, len = completions.length, notEmpty = len > 0, oldH = a.height_, list = a.list_;
     const height = a.height_ = Math.ceil(notEmpty ? len * a.itemHeight_ + a.baseHeightIfNotEmpty_ : a.heightIfEmpty_),
     wdZoom = Build.MinCVer < BrowserVer.MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent
@@ -1120,7 +1097,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     a.resMode_ = response.r && response.r + " "
     a.completions_ = completions;
     a.isSearchOnTop_ = len > 0 && completions[0].e === "search" && !(completions[0] as CompletersNS.SearchSuggestion).n
-    a.selection_ = a.isSearchOnTop_ || (a.selectFirst_ == null ? response.a : a.selectFirst_ && notEmpty) ? 0 : -1;
+    a.selection_ = a.isSearchOnTop_ || (autoSelect == null ? response.a : autoSelect && notEmpty) ? 0 : -1
     a.isSelOriginal_ = true;
     oldH || (msg.m = Math.ceil(a.mode_.r * a.itemHeight_ + a.baseHeightIfNotEmpty_) * wdZoom);
     if (height > oldH) { VPort_.postToOwner_(msg); }
@@ -1515,7 +1492,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         str = str.slice(0, left) + str.slice(left, end).replace(<RegExpG> /'/g, "") + str.slice(end)
       }
       str = str.replace(a.spacesRe_, " ");
-      if (a.caseInsensitive_) {
+      if (a.options_.icase) {
         const prefix = (<RegExpOne> /^:[WBH] /).test(str) ? 3 : 0
         str = prefix ? str.slice(0, prefix) + str.slice(prefix).toLowerCase() : str.toLowerCase()
       }
@@ -1529,12 +1506,12 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       a.onInnerWidth_();
     } else {
       a.useInput_ = true;
-      if (a.caseInsensitive_) {
+      if (a.options_.icase) {
         mode.q = mode.q.toLowerCase();
       }
     }
     VPort_.post_(mode);
-    if (mode.f & CompletersNS.QueryFlags.NoSessions && a.noSessionsOnStart_) {
+    if (mode.f & CompletersNS.QueryFlags.NoSessions && (a.options_.noSessions === "start")) {
       mode.f &= ~CompletersNS.QueryFlags.NoSessions
     }
   },

@@ -451,7 +451,8 @@ domainEngine = {
   },
   rsortByR_: (a: { r: number }, b: { r: number }): number => b.r - a.r
 },
-
+kTabMarks: string[] =
+    "audible audio muted unmuted active discarded incognito normal pinned visited new grouped ungrouped".split(" "),
 tabEngine = {
   filter_ (query: CompletersNS.QueryStatus, index: number): void {
     if (!(allExpectedTypes & SugType.tab)
@@ -482,25 +483,36 @@ tabEngine = {
       }
     }
     const tabs: TabEx[] = [], wndIds: number[] = [];
-    const hasMarks = (<RegExpG & RegExpSearchable<0>> /^:[a-z]/gm).test(queryTerms.join("\n"))
-    curTab = !curTab && hasMarks ? tabs0.filter(i => i.id === curTabId)[0] : curTab
-    const groupId = hasMarks && curTab ? getGroupId(curTab) : null
+    const marks = (queryTerms.join("\n").match(<RegExpG & RegExpSearchable<0>> /^:[a-z]+$/gm) || [])
+        .reduce((i, j): number => {
+      j = j.slice(1)
+      const k = kTabMarks.findIndex(m => m.startsWith(j))
+      return i | (k >= 0 ? 1 << k : 0)
+    }, 0)
+    curTab = !curTab && marks ? tabs0.filter(i => i.id === curTabId)[0] : curTab
+    const groupId = marks && curTab ? getGroupId(curTab) : null
     for (const tab of tabs0) {
       if (!wantInCurrentWindow && tabsInNormal && tab.incognito) { continue }
       const url = getTabUrl(tab)
       let text = tab.text || (tab.text = UrlDecoder_.decodeURL_(url, tab.incognito ? "" : url))
       let title = tab.title
-      if (hasMarks) {
+      if (marks) {
         if (queryTerms.length === 1) { text = title = "" }
         if (tab.audible) {
-          title += " :audible :audio"
-          title += isTabMuted(tab) ? " :muted" : " :unmuted"
+          marks & 1 && (title += " :audible"), marks & 2 && (title += " :audio")
+          !(marks & (4 | 8)) ? 0 :
+          isTabMuted(tab) ? marks & 4 && (title += " :muted") : marks & 8 && (title += " :unmuted")
         }
-        tab.active && !wantInCurrentWindow && (title += ":active")
-        tab.discarded && (title += " :discarded")
-         title += tab.incognito ? " :incognito" : " :normal"
-        tab.pinned && (title += " :pinned")
-        groupId && getGroupId(tab) === groupId && (title += " :group")
+        marks & 16 && tab.active && !wantInCurrentWindow && (title += ":active")
+        marks & 32 && tab.discarded && (title += " :discarded")
+        !(marks & (64 | 128)) ? 0 :
+        tab.incognito ? marks & 64 && (title += " :incognito") : marks & 128 && (title += " :normal")
+        marks & 0x100 && tab.pinned && (title += " :pinned")
+        !(marks & (0x200 | 0x400)) ? 0 :
+        recencyForTab_.has(tab.id) ? marks & 0x200 && (title += " :visited") : marks & 0x400 && (title += " :new")
+        !(marks & (0x800 | 0x1000)) ? 0
+            : groupId && getGroupId(tab) === groupId ? marks & 0x800 && (title += " :grouped")
+            : marks & 0x1000 && (title += " :ungrouped")
       }
       if (noFilter || match2_(text, title)) {
         const wndId = tab.windowId;
