@@ -4,6 +4,25 @@ Release Notes of Vimium C
 ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 说明文档: https://gitee.com/gdh1995/vimium-c#readme , https://github.com/gdh1995/vimium-c/blob/master/README-zh.md .
 
+#### v1.99.5
+* **experimental**: auto release resources on inactive pages,
+  to prepare for [Manifest V3 of extensions](https://developer.chrome.com/docs/extensions/mv3/intro/)
+* fix broken copying images on Chrome 107
+* fix it may cause initing of big pages very slow ([#751](https://github.com/gdh1995/vimium-c/issues/751))
+* Vomnibar: fix a second run is too slow on Chrome 102+
+  * fix unexpected white background color on Firefox 106+
+  * change labels for tabs and now support `:active` and `:new`
+  * vomnibar options: `styles` field: support `wheel-speed=<number>`
+* LinkHints: improves "tooHigh" mode and support `longPage=true` to disable it
+* VisualMode: `caret` mode: allow `aw` and `as` to select a range, but not unconditionally collapse into one character
+* plain insert mode: now allow `mapKey x <v-xxx>` to create shortcuts like `:` + `xxx`
+* `runKey`: change the way of parsing nested `runKey` commands to work with `.mask` better
+  * `vimium://run` in search engines: queries are joined by `%20` by default
+* add/open bookmark: add `path` and support both folders and URL nodes
+* `dispatchEvent`: add `trusted=true` to make Vimium C itself handle the simulated keys
+* now can detect focused editable boxes in more edge cases
+* fix many small bugs and add more parameters for command
+
 #### v1.99.3
 * fix broken `mapKey <*-*> <f1_xxx>` in Insert mode (since v1.98.0)
 * fix broken `mapKey <*-*> <v-***>` in Normal and Insert mode on v1.99.1/2
