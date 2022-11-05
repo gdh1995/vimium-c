@@ -1,6 +1,6 @@
 import {
   blank_, bookmarkCache_, Completion_, CurCVer_, historyCache_, OnChrome, OnEdge, OnFirefox, urlDecodingDict_,
-  set_findBookmark, findBookmark, updateHooks_
+  set_findBookmark_, findBookmark_, updateHooks_
 } from "./store"
 import { Tabs_, browser_, runtimeError_, browserSessions_ } from "./browser"
 import * as BgUtils_ from "./utils"
@@ -189,17 +189,21 @@ export const BookmarkManager_ = {
   }
 }
 
-set_findBookmark((titleOrPath: string) => {
+set_findBookmark_((titleOrPath: string, isId: boolean) => {
   if (bookmarkCache_.status_ !== CompletersNS.BookmarkStatus.inited) {
     const defer = BgUtils_.deferPromise_<void>()
     BookmarkManager_.onLoad_ = defer.resolve_
     BookmarkManager_.refresh_()
-    return defer.promise_.then(findBookmark.bind(0, titleOrPath))
+    return defer.promise_.then(findBookmark_.bind(0, titleOrPath, isId))
   }
-  const maybePath = titleOrPath.includes("/")
+  const maybePath = !isId && titleOrPath.includes("/")
   const nodes = maybePath ? (titleOrPath + "").replace(<RegExpG & RegExpSearchable<0>> /\\\/?|\//g
       , s => s.length > 1 ? "/" : "\n").split("\n").filter(i => i) : []
   if (!titleOrPath || maybePath && !nodes.length) { return Promise.resolve(false) }
+  if (isId) {
+    return Promise.resolve(bookmarkCache_.bookmarks_.find(i => i.id_ === titleOrPath)
+        || bookmarkCache_.dirs_.find(i => i.id_ === titleOrPath) || null)
+  }
   const path2 = maybePath ? "/" + nodes.slice(1).join("/") : "", path1 = maybePath ? "/" + nodes[0] + path2 : ""
   for (const item of bookmarkCache_.bookmarks_) {
     if (maybePath && (item.path_ === path1 || item.path_ === path2) || item.title_ === titleOrPath) {

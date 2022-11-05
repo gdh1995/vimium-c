@@ -58,7 +58,7 @@ interface BgCmdOptions {
 //#endregion
   [kBgCmd.addBookmark]: {
     folder: string; /** (deprecated) */ path: string; position: null | "before" | "after" | "begin" | "end"
-    all: true | "window"
+    all: true | "window"; id: string
   } & LimitedRangeOptions & TabFilterOptions
   [kBgCmd.autoOpenFallback]: Extract<CmdOptions[kFgCmd.autoOpen], { o?: 1 }>
   [kBgCmd.captureTab]: {
@@ -156,7 +156,7 @@ interface BgCmdOptions {
   [kBgCmd.visitPreviousTab]: { acrossWindows: true; onlyActive: true } & TabFilterOptions & Req.FallbackOptions
   [kBgCmd.closeDownloadBar]: { newWindow?: null | true | false; all: 1 }
   [kBgCmd.reset]: { suppress: boolean } & Pick<BgCmdOptions[kBgCmd.insertMode], "unhover"> & Req.FallbackOptions
-  [kBgCmd.openBookmark]: { title: string; path: string; name: string; value: string
+  [kBgCmd.openBookmark]: { title: string; path: string; id: string; name: string; value: string
       $cache: [CompletersNS.Bookmark["id_"], number] | null } & MaskOptions
 }
 

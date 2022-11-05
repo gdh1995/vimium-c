@@ -723,7 +723,7 @@ export const openUrlReq = (request: FgReq[kFgReq.openUrl], port?: Port | null): 
   BgUtils_.safer_(request)
   let isWeb = port != null && isNotVomnibarPage(port, true)
   set_cPort(isWeb ? port! : findCPort(port) || cPort)
-  let url: Urls.Url | undefined = request.u
+  let url: Urls.Url | undefined = request.u || ""
   // { url_f: string, ... } | { copied: true, ... }
   const opts: KnownOptions<C.openUrl> = request.n && parseFallbackOptions(request.n) || {}
   const o2: Readonly<Partial<FgReq[kFgReq.openUrl]["o"]>> = request.o || BgUtils_.safeObj_() as {}
@@ -741,7 +741,7 @@ export const openUrlReq = (request: FgReq[kFgReq.openUrl], port?: Port | null): 
       : (hintMode & HintMode.queue ? ReuseType.newBg : ReuseType.newFg)
         + (request.t === "last-window" ? ReuseType.OFFSET_LAST_WINDOW : 0)
   opts.window = o2.w
-  if (url) {
+  if (url || !isWeb) {
     if (url[0] === ":" && !isWeb && (<RegExpOne> /^:[bhtwWBHdso]\s/).test(url)) {
       url = request.u = url.slice(2).trim()
     }

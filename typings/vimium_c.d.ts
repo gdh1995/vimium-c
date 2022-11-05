@@ -92,6 +92,7 @@ declare namespace CompletersNS {
   interface TabSuggestion extends Suggestion {
     level?: string;
   }
+  interface SuggestionWithId extends Suggestion { id?: string; }
 }
 
 declare namespace MarksNS {
@@ -441,6 +442,7 @@ declare namespace VomnibarNS {
     inputSedKeys?: "sedKeys" | null
     itemSedKeys?: "sedKeys" | null
     itemKeyword?: string | null
+    itemField?: string | null
   }
 }
 

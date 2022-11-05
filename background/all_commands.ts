@@ -2,7 +2,7 @@ import * as BgUtils_ from "./utils"
 import {
   cPort, cRepeat, cKey, get_cOptions, set_cPort, set_cRepeat, contentPayload_,
   framesForOmni_, bgC_, set_bgC_, set_cmdInfo_, curIncognito_, curTabId_, recencyForTab_, settingsCache_, CurCVer_,
-  OnChrome, OnFirefox, OnEdge, substitute_, CONST_, curWndId_, findBookmark, bookmarkCache_, extAllowList_, Origin2_
+  OnChrome, OnFirefox, OnEdge, substitute_, CONST_, curWndId_, findBookmark_, bookmarkCache_, extAllowList_, Origin2_
 } from "./store"
 import {
   Tabs_, Windows_, InfoToCreateMultiTab, openMultiTabs, tabsGet, getTabUrl, selectFrom, runtimeError_, R_,
@@ -270,12 +270,14 @@ set_bgC_([
 //#endregion
 
   /* kBgCmd.addBookmark: */ (resolve): void | kBgCmd.addBookmark => {
-    const path: string | UnknownValue = get_cOptions<C.addBookmark>().folder || get_cOptions<C.addBookmark>().path
+    const id = get_cOptions<C.openBookmark>().id
+    const path: string | UnknownValue = id != null && id + ""
+        || get_cOptions<C.addBookmark>().folder || get_cOptions<C.addBookmark>().path
     const position = ((get_cOptions<C.addBookmark>().position || "") + "").toLowerCase(
         ) as Extract<BgCmdOptions[C.addBookmark]["position"], string> | ""
     const wantAll = !!get_cOptions<C.addBookmark>().all
     if (!path || typeof path !== "string") { showHUD('Need "folder" to refer a bookmark folder.'); resolve(0); return }
-    void findBookmark(path).then((folder): void => {
+    void findBookmark_(path, id != null && !!(id + "")).then((folder): void => {
       if (!folder) {
         resolve(0)
         showHUD(folder === false ? 'Need valid "folder".' : "The bookmark folder is not found.")
@@ -873,10 +875,10 @@ set_bgC_([
   },
   /* kBgCmd.openBookmark: */ (resolve): void | kBgCmd.openBookmark => {
     const rawCache = get_cOptions<C.openBookmark, true>().$cache
-    let p: ReturnType<typeof findBookmark> | undefined
+    let p: ReturnType<typeof findBookmark_> | undefined
     if (rawCache != null) {
-      const find = bookmarkCache_.stamp_ === rawCache[1] && ((i: CompletersNS.BaseBookmark) => i.id_ === rawCache[0])
-      const cached = find && (bookmarkCache_.bookmarks_.find(find) || bookmarkCache_.dirs_.find(find))
+      const id = bookmarkCache_.stamp_ === rawCache[1] ? rawCache[0] : "",
+      cached = id && (bookmarkCache_.bookmarks_.find(i => i.id_ === id) || bookmarkCache_.dirs_.find(i => i.id_ === id))
       if (cached) {
         p = Promise.resolve(cached)
       } else {
@@ -886,9 +888,11 @@ set_bgC_([
     const hasValidCache = !!p, count = cRepeat
     let dynamicResult = false
     if (!p) {
-    let title = get_cOptions<C.openBookmark>().path || get_cOptions<C.openBookmark>().title
+      let id = get_cOptions<C.openBookmark>().id
+      let path = get_cOptions<C.openBookmark>().path
+      let title = id != null && id + "" || path || get_cOptions<C.openBookmark>().title
     if (!title || typeof title !== "string") {
-      showHUD("Invalid bookmark " + (get_cOptions<C.openBookmark>().path ? "path" : "title")); resolve(0); return
+        showHUD("Invalid bookmark " + (id != null ? "id" : path ? "path" : "title")); resolve(0); return
     }
     const result = fillOptionWithMask<C.openBookmark>(title, get_cOptions<C.openBookmark>().mask, "name"
         , ["path", "title", "mask", "name", "value"], count)
@@ -897,7 +901,7 @@ set_bgC_([
       return
     }
       dynamicResult = result.useCount
-      p = findBookmark(result.result)
+      p = findBookmark_(result.result, id != null && !!(id + ""))
     }
     void p.then((node): void => {
       if (!node) {

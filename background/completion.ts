@@ -127,6 +127,7 @@ const bookmarkEngine = {
       const historyIdx = otherFlags & CompletersNS.QueryFlags.ShowTime
           && HistoryManager_.sorted_ ? HistoryManager_.binarySearch_(i.u) : -1
       sug.visit = historyIdx < 0 ? 0 : historyCache_.history_![historyIdx].time_
+      ; (sug as CompletersNS.SuggestionWithId).id = i.id_
       results2.push(sug);
       if (i.jsUrl_ === null) { continue; }
       (sug as CompletersNS.WritableCoreSuggestion).u = (i as CompletersNS.JSBookmark).jsUrl_

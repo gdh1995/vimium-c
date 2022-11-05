@@ -889,7 +889,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       if (!input) {
         return;
       }
-      if (options.searchInput === false && !event && !input.includes("://")) {
+      if ((options.searchInput === false || options.itemField) && !event && !input.includes("://")) {
         try { new URL(input); } catch { return; }
       }
     }
@@ -905,13 +905,14 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     const useItem = sel >= 0
     const item: SuggestionE | UrlInfo = useItem ? a.completions_[sel] : { u: a.input_.value.trim() },
     inputSed = options.sed, sed2 = options.itemSedKeys || null,
-    itemSed = sed2 ? { r: true, k: sed2 + "" } : null, itemKeyword = options.itemKeyword || null,
+    itemSed = sed2 ? { r: true, k: sed2 + "" } : null, itemKeyword = options.itemKeyword, field = options.itemField,
     action = a.actionType_, https = a.isHttps_,
     navReq: Req.fg<kFgReq.openUrl> | null = useItem && item.s != null && !itemSed && !itemKeyword
-        ? null : { H: kFgReq.openUrl, f: false, r: action, h: useItem ? null : https, u: item.u,
+        ? null : { H: kFgReq.openUrl, f: false, r: action, h: useItem ? null : https,
+      u: field && useItem ? field in item ? item[field as keyof typeof item] + "" : "" : item.u,
       o: { i: options.incognito, s: useItem ? itemSed || { r: false, k: "" } : typeof inputSed === "object" && inputSed
               || { r: inputSed, k: options.inputSedKeys || options.sedKeys || options.sedKey },
-          k: itemKeyword, p: options.position, t: useItem ? false : "whole" }
+          k: (useItem || !field) && itemKeyword || null, p: options.position, t: useItem ? false : "whole" }
     }, sessionReq: Req.fg<kFgReq.gotoSession> | null = navReq ? null : { H: kFgReq.gotoSession,
       a: action > ReuseType.newBg, s: item.s!
     },
