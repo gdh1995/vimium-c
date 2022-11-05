@@ -629,10 +629,8 @@ setTimeout((): void => {
     const tabId = info.tabId
     set_curTabId_(tabId), lastVisitTabTime = now
     if (Build.MV3 || Build.LessPorts) {
-      const frames = framesForTab_.get(tabId), flags = frames !== undefined ? frames.flags_ : 0
-      if (flags & (Frames.Flags.ResReleased | Frames.Flags.WaitToRelease)) {
-        flags & Frames.Flags.ResReleased ? refreshPorts_(frames!, 0) : (frames!.flags_ &= ~Frames.Flags.WaitToRelease)
-      }
+      const frames = framesForTab_.get(tabId)
+      if (frames && frames.flags_ & Frames.Flags.ResReleased) { refreshPorts_(frames, 0) }
     }
     _mediaTimer === -2 && (_mediaTimer = -3, setTimeout(MediaWatcher_.resume_, 0)) // not block onActivated listener
   }

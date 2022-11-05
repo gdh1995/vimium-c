@@ -257,7 +257,7 @@ declare namespace Frames {
   const enum Flags {
     Default = 0, blank = Default, locked = 1, lockedAndDisabled = 3, MASK_LOCK_STATUS = 3, userActed = 4,
     hasCSS = 8, hadVisualMode = 16, hasFindCSS = 32, hadHelpDialog = 64,
-    otherExtension = 128, isVomnibar = 256, ResReleased = 512, WaitToRelease = 1024, SOURCE_WARNED = 2048,
+    otherExtension = 128, isVomnibar = 256, ResReleased = 512, OldEnough = 1024, SOURCE_WARNED = 2048,
     UrlUpdated = 0x1000, SettingsUpdated = 0x2000, CssUpdated = 0x4000, KeyMappingsUpdated = 0x8000,
     KeyFSMUpdated = 0x10000, MASK_UPDATES = 0x1f000, HadIFrames = 0x20000,
   }

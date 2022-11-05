@@ -83,7 +83,7 @@ export const OnConnect = (port: Frames.Port, type: PortType): void => {
     sender.flags_ = flags
   }
   if (type & PortType.reconnect) {
-    if ((Build.MV3 || Build.LessPorts) && type & Frames.Flags.UrlUpdated || !Build.MV3 && ref === undefined) {
+    if ((Build.MV3 || Build.LessPorts) && type & Frames.Flags.UrlUpdated || ref === undefined) {
       port.postMessage({ N: kBgReq.reset, p: passKeys, f: flags & Frames.Flags.MASK_LOCK_STATUS })
     }
     /*#__NOINLINE__*/ _recoverStates(ref, port, type as number as Frames.Flags)
@@ -226,6 +226,7 @@ const revokeOldPorts = (ports_: Frames.Port[]) => {
 
 const _safeRefreshPort = (port: Port): void | /** failed */ 1 => {
   try {
+    (port.s.flags_ satisfies Frames.Flags) |= Frames.Flags.ResReleased
     port.onDisconnect.removeListener(onDisconnect)
     port.postMessage({ N: kBgReq.refreshPort })
   } catch {
@@ -482,48 +483,54 @@ export const getParentFrame = (tabId: number, curFrameId: number, level: number)
   })
 }
 
-const RELEASE_TIMEOUT = Build.NDEBUG ? 1000 * (60 * 4 + 45) : 1000 * 90
-const MAX_KEEP_ALIVE = Build.NDEBUG ? 4 : 2
+const RELEASE_TIMEOUT = Build.NDEBUG ? 1000 * (60 * 4 + 48) : 1000 * 100
+const MAX_KEEP_ALIVE = Build.NDEBUG ? 5 : 2
 
 ; (Build.MV3 || Build.LessPorts) && setInterval((): void => {
   const now = performance.now()
   for (let port of framesForOmni_) {
-    const tabId = port.s.tabId_
-    const doesRelease = tabId !== curTabId_ && tabId >= 0
-        && now - (recencyForTab_.get(tabId) || 0) > RELEASE_TIMEOUT - 1000
+    if (!(port.s.flags_ & Frames.Flags.OldEnough)) {
+      (port.s.flags_ satisfies Frames.Flags) |= Frames.Flags.OldEnough
+      continue
+    }
+    const doesRelease = port.s.flags_ !== curTabId_
     ; (Build.MV3 || doesRelease) && port.postMessage({ N: kBgReq.omni_refresh, d: doesRelease })
   }
   let oldestToKeepAlive = 0
   {
     const visited: number[] = []
     framesForTab_.forEach((frames, tabId): void => {
-      const visit = !(frames.flags_ & Frames.Flags.ResReleased) && tabId >= 0 && recencyForTab_.get(tabId) || 0
+      const visit = frames.ports_.length && tabId >= 0 && recencyForTab_.get(tabId) || 0
       visit > 0 && visited.push(visit)
     })
     visited.sort((i, j) => j - i)
     oldestToKeepAlive = Math.max(now - RELEASE_TIMEOUT, visited.length
-        ? visited[Math.min(MAX_KEEP_ALIVE, visited.length)] : 0) - 1000
+        ? visited[Math.min(MAX_KEEP_ALIVE, visited.length - 1)] : 0) - 1000
   }
   let lastMaxVisit = -1, lastMaxFrames: Frames.Frames | null = null
   const listToRelease: Frames.Frames[] = [], protocol = OnChrome ? "chrome" : location.protocol
   framesForTab_.forEach((frames, tabId): void => {
-    if (!(Build.MV3 && lastMaxVisit >= 0) && !frames.ports_.length) { return }
-    const rawVisit = tabId >= 0 && recencyForTab_.get(tabId) || 0
-    let visit = rawVisit
-    if (rawVisit == 0 && !(frames.flags_ & (Frames.Flags.ResReleased | Frames.Flags.WaitToRelease))) {
-      frames.flags_ |= Frames.Flags.WaitToRelease
-      visit = now + tabId
+    const ports = frames.ports_
+    if (!(Build.MV3 && lastMaxVisit >= 0) && !ports.length) { return }
+    let hasOld = false
+    for (const i of ports) {
+      if (i.s.flags_ & Frames.Flags.OldEnough) {
+        Build.MV3 && ((i.s.flags_ satisfies Frames.Flags) |= Frames.Flags.ResReleased)
+        hasOld = true; break
+      }
+      (i.s.flags_ satisfies Frames.Flags) |= Frames.Flags.OldEnough
     }
-    if (Build.MV3 && visit > lastMaxVisit && (!lastMaxFrames || frames.ports_.length || !lastMaxFrames.ports_.length)) {
+    const visit = tabId >= 0 && recencyForTab_.get(tabId) || 0
+    if (Build.MV3 && lastMaxVisit >= -1 && visit > lastMaxVisit
+        && (!lastMaxFrames || ports.length || !lastMaxFrames.ports_.length)) {
       lastMaxVisit = visit, lastMaxFrames = frames
     }
-    const doesRelease = now - visit > oldestToKeepAlive && tabId !== curTabId_
-        && (frames.ports_.length === 1 && !(frames.flags_ & Frames.Flags.HadIFrames) && frames.ports_[0] === frames.top_
-             || frames.ports_.some(i => !i.s.url_.startsWith(protocol)))
-    if (Build.MV3 ? frames.ports_.length : doesRelease) {
-      if (!Build.MV3 || doesRelease) {
-        frames.flags_ = (frames.flags_ & ~Frames.Flags.WaitToRelease) | Frames.Flags.ResReleased
-      }
+    if (!hasOld) { Build.MV3 && ports.length && (lastMaxVisit = -2); return }
+    const doesRelease: boolean = visit < oldestToKeepAlive && tabId !== curTabId_
+        && (ports.length === 1 && !(frames.flags_ & Frames.Flags.HadIFrames) && ports[0] === frames.top_
+             || ports.some(i => !i.s.url_.startsWith(protocol)))
+    if (Build.MV3 ? ports.length : doesRelease) {
+      Build.MV3 && !doesRelease || (frames.flags_ = Frames.Flags.ResReleased)
       listToRelease.push(frames)
     }
   })
@@ -532,37 +539,40 @@ const MAX_KEEP_ALIVE = Build.NDEBUG ? 4 : 2
     let hadIFrames = !!(frames.flags_ & Frames.Flags.HadIFrames) || frames.ports_.length > 1, failed: BOOL = 0
     const stillAlive: Port[] = Build.MV3 ? null as never : []
     for (const port of frames.ports_) {
-      port.s.flags_ |= Frames.Flags.ResReleased
-      if (doesRelease && !(hadIFrames && port.s.url_.startsWith(protocol))) {
+      if (Build.MV3 && !(port.s.flags_ & Frames.Flags.ResReleased)) {
+        lastMaxVisit = -3
+        stillAlive.push(port)
+      } else if (doesRelease && !(hadIFrames && port.s.url_.startsWith(protocol))) {
         port.disconnect()
+        Build.MV3 || (port.s.flags_ |= Frames.Flags.ResReleased)
         port.s.frameId_ && (frames.flags_ |= Frames.Flags.HadIFrames)
       } else if (Build.MV3) {
-        lastMaxVisit = -2
-        failed = /*#__NOINLINE__*/ _safeRefreshPort(port) || failed
+        _safeRefreshPort(port) ? failed = 1 : lastMaxVisit = -4
       } else {
         stillAlive.push(port)
       }
     }
     frames.ports_.length = 0
-    Build.MV3 ? failed && /** never */ refreshPorts_(frames, 1) : stillAlive.length && frames.ports_.push(...stillAlive)
+    Build.MV3 ? failed && /** never */ (stillAlive.forEach(_safeRefreshPort), refreshPorts_(frames, 1))
+        : stillAlive.length && frames.ports_.push(...stillAlive)
   }
   if (Build.MV3 && lastMaxVisit >= 0) {
     refreshPorts_(lastMaxFrames!, 0)
   }
-}, RELEASE_TIMEOUT)
+}, RELEASE_TIMEOUT / 2)
 
 export const refreshPorts_ = Build.MV3 || Build.LessPorts ? (frames: Frames.Frames, forced: BOOL): void => {
   executeScript_(frames.cur_.s.tabId_, -1, null, (_: 0, updates: number): void => { // @ts-ignore
     typeof VApi === "object" && VApi && (VApi as Frames.BaseVApi)
       .q(0, updates) // Frames.RefreshPort
   }, [0, PortType.refreshInBatch | (forced ? PortType.reconnect : 0) | (frames.flags_ & Frames.Flags.MASK_UPDATES)])
-  frames.flags_ &= ~(Frames.Flags.WaitToRelease | Frames.Flags.ResReleased | Frames.Flags.MASK_UPDATES
-      | Frames.Flags.HadIFrames)
+  frames.flags_ &= ~(Frames.Flags.ResReleased | Frames.Flags.MASK_UPDATES | Frames.Flags.HadIFrames)
 } : 0 as never
 
 const _recoverStates = (frames: Frames.Frames | undefined, port: Port, type: PortType | Frames.Flags): void => {
   (port.s.flags_ satisfies Frames.Flags) |= PortType.hasCSS === <number> Frames.Flags.hasCSS ? type & PortType.hasCSS
       : (type & PortType.hasCSS) && Frames.Flags.hasCSS
+  frames || refreshPorts_({ cur_: port, top_: null, ports_: [], lock_: null, flags_: Frames.Flags.Default }, 0)
   if (!(Build.MV3 || Build.LessPorts)) { return }
   if (!(type & PortType.refreshInBatch)) {
     if (!(type & PortType.hasFocus) // frame is not focused - on refreshing ports of inactive tabs
