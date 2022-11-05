@@ -317,7 +317,7 @@ const addChildTrees = (parts: HintSources, allNodes: NodeListOf<SafeElement>): H
   const local_addChildFrame_ = addChildFrame_, hosts: SafeElement[] = []
   for (let i = 0, len = allNodes.length; i < len; i++) {
     let el = allNodes[i]
-    if (evenClosed ? GetShadowRoot_(el)
+    if (evenClosed ? OnFirefox ? (el as any).openOrClosedShadowRoot : GetShadowRoot_(el)
         : (Build.BTypes & BrowserType.Chrome) && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
           && prefixedShadow_cr ? el.webkitShadowRoot : el.shadowRoot) {
       hosts.push(el)
@@ -445,7 +445,8 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
       const el: SafeElement = cur_tree[cur_ind++]
       if ("lang" in (el as ElementToHTML)) {
         filter(output, el as SafeHTMLElement)
-        const shadow = evenClosed ? GetShadowRoot_(el) : ((Build.BTypes & BrowserType.Chrome)
+        const shadow = evenClosed ? OnFirefox ? (el as any).openOrClosedShadowRoot : GetShadowRoot_(el)
+            : ((Build.BTypes & BrowserType.Chrome)
             && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0 && prefixedShadow_cr
             ? el.webkitShadowRoot : el.shadowRoot) as ShadowRoot | null | undefined;
         if (shadow) {
