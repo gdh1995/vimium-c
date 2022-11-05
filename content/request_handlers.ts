@@ -23,7 +23,7 @@ import {
   set_isPassKeysReversed, isPassKeysReversed, set_passKeys, set_mappedKeys, set_mapKeyTypes, keyFSM,
 } from "./key_handler"
 import { HintManager, kSafeAllSelector, set_kSafeAllSelector } from "./link_hints"
-import { createMark, gotoMark } from "./marks"
+import { gotoMark } from "./marks"
 import {
   set_findCSS, styleInHUD, deactivate as findExit, toggleSelectableStyle, styleSelColorIn, styleSelColorOut
 } from "./mode_find"
@@ -199,7 +199,6 @@ set_requestHandlers([
       (contentCommands_ as TypeToCheck as TypeChecked)[request.c](safer(options || {}), request.n)
     }
   } as (req: BaseExecute<object, keyof CmdOptions>) => void,
-  /* kBgReq.createMark: */ createMark,
   /* kBgReq.showHUD: */ <VApiTy["t"]> function (req: BgReq[kBgReq.showHUD]): void {
     if (req.H) {
       setUICSS(req.H);

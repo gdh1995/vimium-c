@@ -169,17 +169,13 @@ declare const enum IncognitoType {
 }
 
 declare namespace MarksNS {
-  interface StoredGlobalMark {
-    tabId: number;
-    url: BaseMarkProps["u"];
-    scroll: BaseMarkProps["s"];
-  }
-
-  interface InfoToGo extends FocusOrLaunch, Partial<BaseMark> {
-    /** scroll */ s: ScrollInfo;
+  interface MarkToGo extends WithEnsured<FocusOrLaunch, "s"> {
+    /** markName */ n: string;
     /** tabId */ t?: number;
   }
-  type MarkToGo = InfoToGo & BaseMark;
+  interface GlobalMarkV1 { tabId: number; url: string; /** `undefined` is just in case */ scroll?: ScrollInfo }
+  type StoredMarkV2 = /** global marks */ (Ensure<MarkToGo, "u" | "t"> & { s?: ScrollInfo | number })
+      | /** local marks */ (ScrollInfo | number)
 }
 
 declare namespace ExclusionsNS {

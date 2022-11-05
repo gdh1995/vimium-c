@@ -218,6 +218,32 @@ export const showVomnibar = (forceInner?: boolean): void => {
   set_cOptions(options) // safe on renaming
 }
 
+export const findMarkCPort_ = (): void => {
+  if (cPort.s.frameId_ && get_cOptions<C.marksActivate>().frame !== true) {
+    const rawTabId = cPort.s.tabId_, ref = framesForTab_.get(rawTabId >= 0 ? rawTabId : curTabId_)
+    if (ref && ref.top_ && (rawTabId < 0 || !(cPort.s.flags_ & Frames.Flags.otherExtension)
+        || ref.ports_.find(i => !!(i.s.frameId_ && i.s.flags_ & Frames.Flags.otherExtension) ))) {
+      set_cPort(ref.top_)
+    }
+  }
+}
+
+export const marksActivate_ = (): void | kBgCmd.marksActivate => {
+  findMarkCPort_()
+  let mode = get_cOptions<C.marksActivate>().mode, count = cRepeat < 2 || cRepeat > 9 ? 1 : cRepeat
+  const action = mode && (mode + "").toLowerCase() === "create" ? kMarkAction.create : kMarkAction.goto
+  Promise.resolve(trans_(action === kMarkAction.create ? "mBeginCreate" : "mBeginGoto")).then((title): void => {
+    cPort.postMessage<1, kFgCmd.marks>({ N: kBgReq.execute, H: ensureInnerCSS(cPort.s), c: kFgCmd.marks, n: count,
+        a: BgUtils_.extendIf_<CmdOptions[kFgCmd.marks], Partial<CmdOptions[kFgCmd.marks]>>(
+          BgUtils_.safer_<CmdOptions[kFgCmd.marks]>({
+      a: action,
+      p: get_cOptions<C.marksActivate>().prefix !== false,
+      s: get_cOptions<C.marksActivate>().swap !== true,
+      t: title,
+    }), get_cOptions<C.marksActivate, true>()) })
+  })
+}
+
 export const enterVisualMode = (): void | kBgCmd.visualMode => {
   if (OnEdge) {
     complainLimits("control selection on MS Edge")

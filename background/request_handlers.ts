@@ -20,8 +20,8 @@ import { setOmniStyle_ } from "./ui_css"
 import { contentI18n_, extTrans_, i18nReadyExt_, loadContentI18n_, transPart_, trans_ } from "./i18n"
 import { keyRe_, parseVal_ } from "./key_mappings"
 import {
-  sendFgCmd, replaceCmdOptions, onConfirmResponse, executeCommand, portSendFgCmd, executeExternalCmd,
-  waitAndRunKeyReq, runNextCmdBy, parseFallbackOptions
+  sendFgCmd, replaceCmdOptions, onConfirmResponse, executeCommand, portSendFgCmd, executeExternalCmd, runNextCmdBy,
+  waitAndRunKeyReq, parseFallbackOptions
 } from "./run_commands"
 import { parseEmbeddedOptions, runKeyWithCond } from "./run_keys"
 import { focusOrLaunch_, openJSUrl, openUrlReq } from "./open_urls"
@@ -411,12 +411,18 @@ set_reqH_([
   },
   /** kFgReq.nextKey: */ _AsReqH<kFgReq.nextKey>(waitAndRunKeyReq),
   /** kFgReq.marks: */ (request: FgReq[kFgReq.marks], port: Port): void => {
+    let ok: BOOL | -1 = 0
     set_cPort(port)
-    switch (request.a) {
-    case kMarkAction.create: return Marks_.createMark_(request, port)
-    case kMarkAction.goto: return Marks_.gotoMark_(request, port)
-    case kMarkAction.clear: return Marks_.clear_(request.u)
-    default: return
+    if (request.c === kMarkAction.clear) {
+      const removed = Marks_.clear_(request.u)
+      request.f && runNextCmdBy(removed > 0 ? 1 : 0, request.f)
+    } else if (request.c.a === kMarkAction.create) {
+      Marks_.set_(request satisfies MarksNS.FgQuery as MarksNS.FgCreateQuery, port.s.incognito_, port.s.tabId_)
+      showHUDEx(port, "mNormalMarkTask", 1, [ ["mCreate"], [request.l ? "Local" : "Global"], request.n ])
+      runNextCmdBy(1, request.c)
+    } else {
+      ok = Marks_.gotoMark_(request.c, request satisfies MarksNS.FgQuery as MarksNS.FgGotoQuery, port)
+      ok !== -1 && runNextCmdBy(ok, request.c)
     }
   },
   /** kFgReq.focusOrLaunch: */ _AsReqH<kFgReq.focusOrLaunch, false>(focusOrLaunch_),
@@ -542,11 +548,9 @@ set_reqH_([
         , d: false, m: HintMode.DEFAULT }, findCPort(port)!)
   },
   /** kFgReq.didLocalMarkTask: */ (req: FgReq[kFgReq.didLocalMarkTask], port): void => {
-    if (req.i != null) {
-      showHUDEx(port, "mLocalMarkTask", 1, [ [req.m ? "mJumpTo" : "mCreate"], req.i || ["mLastMark"] ])
-    } else {
-      showHUDEx(port, "mCreateLastMark", 1, [])
-    }
+    showHUDEx(port, "mLocalMarkTask", 1, [ [req.c.a ? "mCreate" : "mJumpTo"], req.i > 1 ? req.i : ["mLastMark"] ])
+    set_cPort(port)
+    runNextCmdBy(1, req.c)
   },
   /** kFgReq.recheckTee: */ (req: (FgReqWithRes | FgReq)[kFgReq.recheckTee]): boolean | void => {
     const taskOnce = setTeeTask_(null, null)

@@ -10,15 +10,14 @@ declare const enum kTip {
   /* 62..63 */ prev = 62, next,
   /* 68..70 */ START_FOR_OTHERS = 68, OFFSET_VISUAL_MODE = 67, visual, line, caret,
   /* 71: */ noLinks, exitForIME, linkRemoved, notImg,
-  /* 75: */ hoverScrollable, ignorePassword, noNewToCopy, downloaded, nowGotoMark,
-  /* 80: */ nowCreateMark, noMatchFor, inVisualMode, noUsableSel, loseSel,
+  /* 75: */ hoverScrollable, ignorePassword, noNewToCopy, downloaded, paused,
+  /* 80: */ onTopNormal, noMatchFor, inVisualMode, noUsableSel, loseSel,
   /* 85: */ needSel, forcedColors, editableSelector, removeCurScript, removeEventScript,
   /* 90: */ notANestedFrame, cssUrl, newClickableClasses, oldClickableClasses, clickableRoles,
   /* 95: */ invisibleHintText, notMatchedHintText, metaKeywordsForMobile, css0d01OrDPI, visibleElementsInScopeChildren,
   /* 100: */ voidJS, nonLocalhostRe, scrollable, buttonOrA, closableClasses,
   /* 105: */ highContrast_WOB, invisibleElements, imgExt, searchResults, excludeWhenGoNext,
-  /* 110..114: */ kCommonEvents, logOmniFallback, logNotWorkOnSandboxed, logGrabFocus, paused,
-  /* 115: */ onTopNormal, isWithRel,
+  /* 110..114: */ kCommonEvents, logOmniFallback, logNotWorkOnSandboxed, logGrabFocus, isWithRel,
   INJECTED_CONTENT_END,
   /* 200: */ XHTML = 200,
   /** used by {@link ../Gulpfile.js} */ extendClick = 999,
@@ -85,7 +84,7 @@ declare const enum kBgReq {
   START = 0,
   init = START, reset, injectorRun, url, msg, eval,
   settingsUpdate, focusFrame, exitGrab, keyFSM, execute,
-  createMark, showHUD, count, queryForRunKey, goToMark, suppressForAWhile, refreshPort,
+  showHUD, count, queryForRunKey, goToMark, suppressForAWhile, refreshPort,
   OMNI_MIN = 42,
   omni_init = OMNI_MIN, omni_omni, omni_parsed, omni_returnFocus,
   omni_toggleStyle, omni_updateOptions, omni_refresh, omni_runTeeTask,
@@ -128,9 +127,6 @@ interface BgReq {
     /** mid */ m: number;
     /** response */ r: FgRes[keyof FgRes];
   };
-  [kBgReq.createMark]: {
-    /** markName */ n: string;
-  };
   [kBgReq.keyFSM]: {
     /** mappedKeys */ m: SafeDict<string> | null;
     /** keyMap */ k: KeyFSM | null;
@@ -169,9 +165,9 @@ interface BgReq {
   };
   [kBgReq.queryForRunKey]: { n: number; c: CurrentEnvCache }
   [kBgReq.goToMark]: {
-    /** local */ l: 0 | /** kTip.local - kTip.global */ 2
+    /** local */ l: boolean
     /** markName */ n?: string | undefined
-    /** scroll */ s: MarksNS.FgMark
+    /** scroll */ s: MarksNS.ScrollInfo
   }
   [kBgReq.suppressForAWhile]: { /** timeout */ t: number }
   [kBgReq.refreshPort]: {}
@@ -231,7 +227,7 @@ declare const enum kBgCmd {
   blank, goNext,
   // region: need cport
   insertMode, nextFrame, parentFrame,
-  performFind, toggle, showHelp, dispatchEventCmd, showVomnibar, visualMode,
+  performFind, toggle, showHelp, dispatchEventCmd, showVomnibar, marksActivate, visualMode,
   MIN_NEED_CPORT = insertMode, MAX_NEED_CPORT = visualMode,
   // endregion: need cport
   addBookmark, autoOpenFallback,
@@ -347,9 +343,10 @@ declare const enum kScFlag { scBy = 0, INC = 1, TO = 2, toMin = 2, toMax = 3, _m
 interface CmdOptions {
   [kFgCmd.linkHints]: HintsNS.Options;
   [kFgCmd.marks]: {
-    mode?: "create" | /* all others are treated as "goto"  */ "goto" | "goTo";
-    prefix?: true | false;
-    swap?: false | true;
+    /** action */ a: kMarkAction.goto | kMarkAction.create
+    /** use url prefix */ p: boolean
+    /** swap shiftKey */ s: boolean
+    /** action title */ t: string
   } & OpenPageUrlOptions & Req.FallbackOptions
   [kFgCmd.scroll]: {
     /** continuous */ $c?: kKeyCode;
@@ -667,11 +664,10 @@ interface FgReq {
       /** wait for a while; 0 means no waiting */ w?: number | null
     }
   };
-  [kFgReq.marks]: ({ /** action */ a: kMarkAction.create } & (MarksNS.NewTopMark | MarksNS.NewMark)) | {
-    /** action */ a: kMarkAction.clear;
-    /** url */ u: string;
-  } | ({ /** action */ a: kMarkAction.goto; c: CmdOptions[kFgCmd.marks] } & MarksNS.FgQuery)
-  [kFgReq.didLocalMarkTask]: { /** remembered mark */ m?: MarksNS.FgMark | undefined, /** index */ i?: number }
+  [kFgReq.marks]: { c: kMarkAction.clear, f: Req.FallbackOptions | null; /** url */ u: string; } | ({
+      /** command options */ c: CmdOptions[kFgCmd.marks]
+  } & MarksNS.FgQuery)
+  [kFgReq.didLocalMarkTask]: { /** command options */ c: CmdOptions[kFgCmd.marks], /** index */ i: number }
   /**
    * .url is guaranteed to be well formatted by frontend
    */

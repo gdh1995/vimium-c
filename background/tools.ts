@@ -13,7 +13,7 @@ import {
 import { hostRe_, removeComposedScheme_ } from "./normalize_urls"
 import { prepareReParsingPrefix_ } from "./parse_urls"
 import * as settings_ from "./settings"
-import { complainLimits, getFrames_, refreshPorts_, showHUD, showHUDEx, waitForPorts_ } from "./ports"
+import { complainLimits, refreshPorts_, showHUD, showHUDEx, waitForPorts_ } from "./ports"
 import { setOmniStyle_ } from "./ui_css"
 import { trans_ } from "./i18n"
 import { parseFallbackOptions, runNextCmd, getRunNextCmdBy, kRunOn, runNextCmdBy } from "./run_commands"
@@ -131,7 +131,7 @@ export const ContentSettings_ = OnChrome ? {
         if (err) { resolve(0); return }
         if (!tab.incognito) {
           const key = ContentSettings_.makeKey_(contentType);
-          storageCache_.get(key) !== "1" && settings_.setInLocal_(key, "1")
+          settings_.getInLocal_(key) !== 1 && settings_.setInLocal_(key, 1)
         }
         let arr: Frames.Frames | undefined,
         couldNotRefresh = OnEdge || !browserSessions_()
@@ -267,70 +267,69 @@ export const ContentSettings_ = OnChrome ? {
 } as never
 
 export const Marks_ = { // NOTE: all public members should be static
-  set_ ({ l: local, n: markName, u: url, s: scroll }: MarksNS.NewMark, incognito: boolean, tabId?: number
-      , logPort?: Port): void {
+  set_ ({ l: local, n: markName, s: scroll, u: url }: MarksNS.FgCreateQuery, incognito: boolean, tabId: number): void {
     if (local && scroll[0] === 0 && scroll[1] === 0) {
       if (scroll.length === 2) {
         const i = url.indexOf("#");
-        i > 0 && i < url.length - 1 && scroll.push(url.slice(i));
+        i > 0 && i < url.length - 1 && (scroll = [0, 0, url.slice(i)])
       } else if ((scroll[2] || "").length < 2) { // '#' or (wrongly) ''
-        scroll.pop();
+        scroll = [0, 0]
       }
     }
+    const sc2 = incognito ? scroll : scroll.length === 2 && !scroll[0] && !scroll[1] ? 0
+        : scroll.length !== 2 || scroll[1] > 0x7ffff || scroll[0] > 0x1fff ? scroll
+        : Math.max(0, scroll[0]) | (Math.max(0, scroll[1]) << 13)
     const key = Marks_.getLocationKey_(markName, local ? url : "")
-    const val = JSON.stringify<MarksNS.StoredGlobalMark | MarksNS.ScrollInfo>(local ? scroll
-        : { tabId: tabId!, url, scroll })
+    const val: MarksNS.StoredMarkV2 = local ? sc2
+        : sc2 ? { s: sc2, t: tabId, u: url } : { t: tabId, u: url }
     incognito ? (incognitoMarkCache_ || (IncognitoWatcher_.watch_(), set_incognitoMarkCache_(new Map()))).set(key, val)
         : settings_.setInLocal_(key, val)
-    logPort && showHUDEx(logPort, "mNormalMarkTask", 1, [ ["mCreate"], [local ? "Local" : "Global"], markName ])
   },
-  createMark_ (this: void, request: MarksNS.NewTopMark | MarksNS.NewMark, port: Port): void {
-    let tabId = port.s.tabId_;
-    if (request.s) {
-      Marks_.set_(request, port.s.incognito_, tabId, port)
-      return
+  gotoMark_ (this: void, options: CmdOptions[kFgCmd.marks], request: MarksNS.FgGotoQuery, port: Port): BOOL | -1 {
+    const { n: markName } = request, key = Marks_.getLocationKey_(markName, request.l ? request.u : "")
+    const stored = port.s.incognito_ && incognitoMarkCache_?.get(key)
+        || settings_.getInLocal_<MarksNS.StoredMarkV2 | string>(key)
+    let parsed: MarksNS.GlobalMarkV1 | MarksNS.ScrollInfo | undefined =
+        typeof stored === "number" ? [stored & 0x1fff, stored >>> 13] : typeof stored === "string" ? JSON.parse(stored)
+        : !stored || stored instanceof Array ? stored : { url: stored.u, tabId: stored.t,
+            s: typeof stored.s !== "number" ? stored.s || [0, 0] : [stored.s & 0x1fff, stored.s >>> 13] }
+    if (typeof stored === "string") {
+      Marks_.set_({ l: request.l, n: markName, s: parsed instanceof Array ? parsed : parsed!.scroll || [0, 0]
+          , u: request.u }, false, port.s.tabId_)
     }
-    (port = getFrames_(port)?.top_ || port) && port.postMessage({
-      N: kBgReq.createMark,
-      n: request.n
-    });
-  },
-  gotoMark_ (this: void, request: Extract<FgReq[kFgReq.marks], { a: kMarkAction.goto }>, port: Port): void {
-    const frames = framesForTab_.get(port.s.tabId_)!
-    const { n: markName } = request, key = Marks_.getLocationKey_(markName, request.u)
-    const str = port.s.incognito_ && incognitoMarkCache_?.get(key) || storageCache_.get(key)
-    const options = request.c
-    if (request.l) {
-      let scroll: MarksNS.FgMark | null = str ? JSON.parse(str) as MarksNS.FgMark : null;
-      if (!scroll) {
-        let oldPos = request.o, x: number, y: number
-        if (oldPos && (x = +oldPos.x) >= 0 && (y = +oldPos.y) >= 0) {
-          scroll = [x, y, oldPos.h]
-        }
+    if (parsed instanceof Array) {
+      if (!parsed && request.s) {
+        try {
+          const pos: {scrollX: number, scrollY: number, hash?: string} | null = JSON.parse(request.s)
+          if (pos && typeof pos === "object") {
+            const scrollX = +pos.scrollX, scrollY = +pos.scrollY
+            scrollX >= 0 && scrollY >= 0 && (parsed = [scrollX | 0, scrollY | 0, "" + (pos.hash || "")])
+          }
+        } catch {}
       }
-      if (scroll) {
-        Marks_.goToInContent_(port.s.tabId_, frames, 2, markName, scroll, options)
-        return
+      if (parsed) {
+        Marks_.goToInContent_(port.s.tabId_, null, port, true, markName, parsed, options)
+        return 1
       }
     }
-    if (!str) {
-      showHUDEx(frames.top_ || port, "noMark", 0, [[request.l ? "Local" : "Global"], markName])
-      return
+    if (!parsed) {
+      showHUDEx(port, "noMark", 0, [[request.l ? "Local" : "Global"], markName])
+      return 0
     }
-    const stored = JSON.parse(str) as MarksNS.StoredGlobalMark;
-    const tabId = +stored.tabId, markInfo: MarksNS.MarkToGo = {
-      u: stored.url, s: stored.scroll, t: stored.tabId,
+    const fallback = parseFallbackOptions(options)
+    fallback && (fallback.$else = fallback.$then)
+    const tabId = parsed.tabId, markInfo: MarksNS.MarkToGo = {
       n: markName, p: true,
       q: parseOpenPageUrlOptions(options),
-      f: parseFallbackOptions(options)
+      s: parsed.scroll || [0, 0], t: tabId, u: parsed.url, f: fallback
     };
-    markInfo.p = options.prefix !== false && markInfo.s[1] === 0 && markInfo.s[0] === 0 &&
-        !!BgUtils_.IsURLHttp_(markInfo.u);
+    markInfo.p = options.p && markInfo.s[1] === 0 && markInfo.s[0] === 0 && !!BgUtils_.IsURLHttp_(markInfo.u)
     if (tabId >= 0 && framesForTab_.has(tabId)) {
       tabsGet(tabId, Marks_.checkTab_.bind(0, markInfo))
     } else {
       focusOrLaunch_(markInfo)
     }
+    return -1
   },
   checkTab_ (this: 0, mark: MarksNS.MarkToGo, tab: Tab): void {
     const url = getTabUrl(tab).split("#", 1)[0]
@@ -346,9 +345,9 @@ export const Marks_ = { // NOTE: all public members should be static
         + (url.length > 1 ? "|" + markName : "") : "vimiumGlobalMark|" + markName
         ) as `${string}|${string}`
   },
-  goToInContent_ (tabId: number, frames: Frames.Frames | undefined
-      , local: 0 | 2, name: string | undefined, scroll: MarksNS.ScrollInfo, f: MarksNS.InfoToGo["f"]): void {
-    const port = frames && frames.top_ && !(frames.top_.s.flags_ & Frames.Flags.ResReleased) ? frames.top_ : null
+  goToInContent_ (tabId: number, frames: Frames.Frames | null | undefined, port: Port | null
+      , local: boolean, name: string | undefined, scroll: MarksNS.ScrollInfo, f: MarksNS.MarkToGo["f"]): void {
+    port = frames && frames.top_ && !(frames.top_.s.flags_ & Frames.Flags.ResReleased) ? frames.top_ : port
     if (port) {
       port.postMessage({ N: kBgReq.goToMark, l: local, n: name, s: scroll })
     } else {
@@ -359,16 +358,16 @@ export const Marks_ = { // NOTE: all public members should be static
     name && showHUDEx(port, "mNormalMarkTask", local ? 1 : 2, [ ["mJumpTo"], [local ? "Local" : "Global"], name ])
     f && runNextCmdBy(1, f)
   },
-  scrollTab_ (this: void, markInfo: MarksNS.InfoToGo, tab: Tab): void {
+  scrollTab_ (this: void, markInfo: MarksNS.MarkToGo, tab: Tab): void {
     const tabId = tab.id, frames = framesForTab_.get(tabId)
     void waitForPorts_(frames).then(() => {
-      Marks_.goToInContent_(tabId, frames, 0, markInfo.n, markInfo.s, markInfo.f)
+      Marks_.goToInContent_(tabId, frames, null, false, markInfo.n, markInfo.s, markInfo.f)
     })
     if (markInfo.t !== tabId && markInfo.n) {
-      Marks_.set_(markInfo as typeof markInfo & MarksNS.BaseMark, curIncognito_ === IncognitoType.true, tabId)
+      Marks_.set_({l: false, n: markInfo.n, s: markInfo.s, u: markInfo.u}, curIncognito_ === IncognitoType.true, tabId)
     }
   },
-  clear_ (this: void, url?: string): void {
+  clear_ (this: void, url?: string): number {
     const key_start = Marks_.getLocationKey_("", url);
     let num = 0
     storageCache_.forEach((_: unknown, key: string): void => {
@@ -378,7 +377,7 @@ export const Marks_ = { // NOTE: all public members should be static
       }
     })
     const storage2 = incognitoMarkCache_
-    storage2 && storage2.forEach((_v, key): void => {
+    storage2 && storage2.forEach((_: unknown, key): void => {
       if (key.startsWith(key_start)) {
         num++
         storage2.delete(key)
@@ -386,6 +385,7 @@ export const Marks_ = { // NOTE: all public members should be static
     })
     showHUDEx(cPort, "markRemoved", 0
         , [num, [url === "#" ? "allLocal" : url ? "Local" : "Global"], [num !== 1 ? "have" : "has"]])
+    return num
   }
 }
 

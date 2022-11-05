@@ -95,49 +95,18 @@ declare namespace CompletersNS {
 }
 
 declare namespace MarksNS {
-  type ScrollInfo = [ x: number, y: number, hash?: string ]
+  type ScrollInfo = readonly [ x: number, y: number, hash?: string, ...exArgs: unknown[] ]
   interface ScrollableMark {
     scroll: ScrollInfo;
   }
-  interface BaseMark {
+  interface FgQuery {
     /** markName */ n: string;
+    /** local */ l: boolean
+    /** url */ u: string
+    /** other info */ s: string | null | 0 | ScrollInfo
   }
-
-  interface BaseMarkProps {
-    /** scroll */ s: ScrollInfo;
-    /** url */ u: string;
-  }
-
-  interface Mark extends BaseMark, BaseMarkProps {
-  }
-
-  interface NewTopMark extends BaseMark {
-    /** scroll */ s?: undefined;
-  }
-  interface NewMark extends Mark {
-    /** local */ l?: 0 | 2; /** default to false */
-  }
-
-  interface FgGlobalQuery extends BaseMark {
-    /** local */ l?: 0; /** default to false */
-    /** url */ u?: undefined;
-    /** old */ o?: undefined
-  }
-  interface FgLocalQuery extends BaseMark {
-    /** local */ l: 2;
-    /** url */ u: string;
-    /** old */ o?: {
-      /** scrollX */ x: number;
-      /** scrollY */ y: number;
-      /** hash */ h: string;
-    };
-  }
-  type FgQuery = FgGlobalQuery | FgLocalQuery;
-
-  interface FgMark extends ScrollInfo {
-    [2]?: string;
-  }
-
+  interface FgCreateQuery extends FgQuery { /** scroll */ s: ScrollInfo }
+  interface FgGotoQuery extends FgQuery { /** old mark */ s: string | null | 0 }
   interface FocusOrLaunch {
     /** scroll */ s?: ScrollInfo;
     /** url */ u: string;

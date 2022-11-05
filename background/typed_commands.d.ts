@@ -44,6 +44,12 @@ interface BgCmdOptions {
   [kBgCmd.showHelp]: Omit<ShowHelpDialogOptions, "h">
   [kBgCmd.dispatchEventCmd]: CmdOptions[kFgCmd.dispatchEventCmd]
   [kBgCmd.showVomnibar]: VomnibarNS.GlobalOptions
+  [kBgCmd.marksActivate]: {
+    mode: "create" | /* all others are treated as "goto"  */ "goto" | "goTo"
+    frame: boolean // work even in iframes without any other condition
+    swap: boolean // swap meanings of shiftKey
+    prefix?: true | false
+  } & OpenPageUrlOptions & Req.FallbackOptions
   [kBgCmd.visualMode]: {
     mode: "visual" | "Visual" | "caret" | "Caret" | "line" | "Line" | ""
     richText: boolean
@@ -64,7 +70,7 @@ interface BgCmdOptions {
   } & Pick<OpenPageUrlOptions, "reuse" | "replace" | "position" | "window">
   [kBgCmd.clearCS]: { type: chrome.contentSettings.ValidTypes }
   [kBgCmd.clearFindHistory]: {}
-  [kBgCmd.clearMarks]: { local: boolean; all: boolean }
+  [kBgCmd.clearMarks]: { local: boolean; all: boolean } & Req.FallbackOptions
   [kBgCmd.copyWindowInfo]: UserSedOptions & LimitedRangeOptions & TabFilterOptions & {
     keyword: string
     type: "" | "frame" | "browser" | "window" | "tab" | "title" | "url" | "host" | "hostname" | "origin"
@@ -332,11 +338,11 @@ interface CmdNameIds {
   "LinkHints.activateWithQueue": kFgCmd.linkHints
   "LinkHints.click": kFgCmd.linkHints
   "LinkHints.unhoverLast": kFgCmd.insertMode
-  "Marks.activate": kFgCmd.marks
-  "Marks.activateCreate": kFgCmd.marks
-  "Marks.activateCreateMode": kFgCmd.marks
-  "Marks.activateGoto": kFgCmd.marks
-  "Marks.activateGotoMode": kFgCmd.marks
+  "Marks.activate": kBgCmd.marksActivate
+  "Marks.activateCreate": kBgCmd.marksActivate
+  "Marks.activateCreateMode": kBgCmd.marksActivate
+  "Marks.activateGoto": kBgCmd.marksActivate
+  "Marks.activateGotoMode": kBgCmd.marksActivate
   "Marks.clearGlobal": kBgCmd.clearMarks
   "Marks.clearLocal": kBgCmd.clearMarks
   "Vomnibar.activate": kBgCmd.showVomnibar

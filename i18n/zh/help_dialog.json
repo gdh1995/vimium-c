@@ -59,7 +59,7 @@
   "Marks.activate": "跳转到指定标记",
   "Marks.activateCreate": "创建一个新标记",
   "Marks.clearGlobal": "清理所有全局标记",
-  "Marks.clearLocal": "清理当前网站下的所有标记",
+  "Marks.clearLocal": "清理当前网页下的所有标记",
   "Vomnibar.activate": "显示多功能搜索框",
   "Vomnibar.activateBookmarks": "显示搜索框并搜索收藏夹的内容",
   "Vomnibar.activateBookmarksInNewTab": "搜索收藏夹的内容并在新标签页打开",

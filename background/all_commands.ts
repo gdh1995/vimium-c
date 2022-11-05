@@ -24,7 +24,7 @@ import { runKeyWithCond, runKeyInSeq } from "./run_keys"
 import { doesNeedToSed, parseSedOptions_ } from "./clipboard"
 import { goToNextUrl, newTabIndex, openUrl } from "./open_urls"
 import {
-  parentFrame, enterVisualMode, showVomnibar, toggleZoom, captureTab,
+  parentFrame, showVomnibar, findMarkCPort_, marksActivate_, enterVisualMode, toggleZoom, captureTab,
   initHelp, framesGoBack, mainFrame, nextFrame, performFind, framesGoNext
 } from "./frame_commands"
 import {
@@ -41,7 +41,7 @@ import Info = kCmdInfo
 
 set_cmdInfo_([
   /* kBgCmd.blank           */ Info.NoTab, Info.NoTab, Info.NoTab, Info.NoTab, Info.NoTab,
-  /* kBgCmd.performFind     */ Info.NoTab, Info.NoTab, Info.NoTab, Info.NoTab, Info.NoTab,
+  /* kBgCmd.performFind     */ Info.NoTab, Info.NoTab, Info.NoTab, Info.NoTab, Info.NoTab, Info.NoTab,
   /* kBgCmd.addBookmark     */ Info.NoTab, Info.NoTab, Info.NoTab, Info.ActiveTab, Info.NoTab, Info.NoTab,
   /* kBgCmd.clearMarks      */ Info.NoTab, Info.NoTab, Info.ActiveTab, Info.CurShownTabsIfRepeat, Info.NoTab,
   /* kBgCmd.goBackFallback  */ Info.ActiveTab, Info.NoTab, Info.NoTab, Info.NoTab, Info.NoTab,
@@ -265,6 +265,7 @@ set_bgC_([
     portSendFgCmd(cPort, kFgCmd.dispatchEventCmd, false, opts2 as CmdOptions[kFgCmd.dispatchEventCmd], cRepeat)
   },
   /* kBgCmd.showVomnibar: */ (): void | kBgCmd.showVomnibar => { showVomnibar() },
+  /* kBgCmd.marksActivate: */ _AsBgC<BgCmdNoTab<kBgCmd.marksActivate>>(marksActivate_),
   /* kBgCmd.visualMode: */ _AsBgC<BgCmdNoTab<kBgCmd.visualMode>>(enterVisualMode),
 //#endregion
 
@@ -325,9 +326,12 @@ set_bgC_([
     resolve(1)
   },
   /* kBgCmd.clearMarks: */ (resolve): void | kBgCmd.clearMarks => {
-    const p = get_cOptions<C.clearMarks>().local ? get_cOptions<C.clearMarks>().all ? Marks_.clear_("#")
-    : requireURL_({ H: kFgReq.marks, u: "" as "url", a: kMarkAction.clear }, true) : Marks_.clear_()
-    p && p instanceof Promise ? p.then((url): void => { url && resolve(1) }) : resolve(1)
+    findMarkCPort_()
+    const removed = get_cOptions<C.clearMarks>().local ? get_cOptions<C.clearMarks>().all ? Marks_.clear_("#")
+        : requireURL_({ H: kFgReq.marks, u: "" as "url", c: kMarkAction.clear
+            , f: parseFallbackOptions(get_cOptions<C.clearMarks, true>()) }, true)
+        : Marks_.clear_()
+    typeof removed === "number" && resolve(removed > 0 ? 1 : 0)
   },
   /* kBgCmd.copyWindowInfo: */ _AsBgC<BgCmdNoTab<kBgCmd.copyWindowInfo>>(copyWindowInfo),
   /* kBgCmd.createTab: */ function createTab(tabs: [Tab] | undefined, _: OnCmdResolved | 0, dedup?: "dedup"): void {
