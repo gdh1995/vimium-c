@@ -219,6 +219,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   wheelStart_: 0,
   wheelTime_: 0,
   wheelDelta_: 0,
+  wheelSpeed_: 1,
   browser_: Build.BTypes && !(Build.BTypes & (Build.BTypes - 1)) ? Build.BTypes as never : BrowserType.Chrome,
   browserVer_: BrowserVer.assumedVer,
   isEdg_: false,
@@ -1027,17 +1028,16 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     }
     a.wheelTime_ = now;
     let total = a.wheelDelta_ + (mode ? mode === /* WheelEvent.DOM_DELTA_LINE */ 1
-          ? deltaY * (GlobalConsts.VomnibarWheelStepForPage / 3)
-          : /* WheelEvent.DOM_DELTA_PAGE */ deltaY * GlobalConsts.VomnibarWheelStepForPage : deltaY)
-      , abs = Math.abs(total);
-    if (abs < GlobalConsts.VomnibarWheelStepForPage
-        || a.wheelStart_ && now - a.wheelStart_ < GlobalConsts.VomnibarWheelIntervalForPage
-            && now - a.wheelStart_ > -33
+          ? deltaY * (GlobalConsts.VomnibarWheelStepForPage / 3) * a.wheelSpeed_
+          : /* WheelEvent.DOM_DELTA_PAGE */ deltaY * GlobalConsts.VomnibarWheelStepForPage : deltaY * a.wheelSpeed_)
+    if (Math.abs(total) < GlobalConsts.VomnibarWheelStepForPage
+        || a.wheelStart_ && now - a.wheelStart_ > -33 && now - a.wheelStart_ <
+            GlobalConsts.VomnibarWheelIntervalForPage / Math.max(1, 1 + Math.log(a.wheelSpeed_))
     ) {
       a.wheelDelta_ = total;
       return;
     }
-    a.wheelDelta_ = (abs % GlobalConsts.VomnibarWheelStepForPage) * (abs > 0 ? 1 : -1);
+    a.wheelDelta_ = (Math.abs(total) % GlobalConsts.VomnibarWheelStepForPage) * (total > 0 ? 1 : -1)
     a.wheelStart_ = now;
     a.goPage_(deltaY > 0);
   },
@@ -1161,7 +1161,6 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     const oldStyles = Vomnibar_.styles_ && ` ${Vomnibar_.styles_} `, toggle = ` ${req.t} `,
     add = !oldStyles.includes(toggle),
     omniStyles = (add ? oldStyles + req.t : oldStyles.replace(toggle, " ")).trim().replace(Vomnibar_.spacesRe_, " ");
-    Vomnibar_.styles_ = omniStyles;
     Vomnibar_.onStyleUpdate_(omniStyles);
     if (!req.c) {
       VPort_.post_({
@@ -1173,6 +1172,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     }
   },
   onStyleUpdate_ (omniStyles: string): void {
+    Vomnibar_.styles_ = omniStyles;
     omniStyles = ` ${omniStyles} `;
     const docEl = document.documentElement as HTMLHtmlElement
     const body = document.body as HTMLBodyElement
@@ -1203,6 +1203,11 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         omniStyles = omniStyles.replace(key, " ");
       }
     }
+    Vomnibar_.wheelSpeed_ = 1
+    omniStyles = omniStyles.replace(<RegExpG & RegExpSearchable<2>> /\b([\w-]+)=([\w.]+)/g, (_, key, val): string => {
+      key === "wheel-speed" && (Vomnibar_.wheelSpeed_ = Math.max(0.1, Math.min(parseFloat(val) || 1), 10))
+      return ""
+    })
     omniStyles = omniStyles.trim().replace(Vomnibar_.spacesRe_, " ");
     docEl.className !== omniStyles && (docEl.className = omniStyles);
     if (!!(Vomnibar_.mode_.f & CompletersNS.QueryFlags.MonospaceURL) !== monospaceURL) {
@@ -1216,7 +1221,6 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   updateOptions_ (response: Req.bg<kBgReq.omni_updateOptions>): void {
     const delta = VUtils_.safer_(response.d), styles = delta.t;
     if (styles != null && Vomnibar_.styles_ !== styles) {
-      Vomnibar_.styles_ = styles;
       Vomnibar_.onStyleUpdate_(styles);
     }
     delta.c != null && Vomnibar_.css_(delta.c);
