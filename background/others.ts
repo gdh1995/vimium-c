@@ -320,7 +320,7 @@ Build.MV3 || setTimeout((): void => {
       console.log("Error: want to delete a suggestion but no related info found (may spend too long before deleting).");
       return;
     }
-    reqH_[kFgReq.removeSug]({ t: type, s: info.sessionId_, u: info.url_ }, null)
+    reqH_[kFgReq.removeSug]({ t: type, s: info.sessionId_, u: info.url_ })
   })
 })()
 

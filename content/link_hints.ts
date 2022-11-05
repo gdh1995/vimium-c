@@ -523,7 +523,7 @@ const callExecuteHint = (hint: ExecutableHintItem, event?: HandlerNS.Event): voi
 }
 
 export const findAnElement_ = (options: OptionsToFindElement, count: number, alsoBody?: 1
-    ): [element: SafeElement | null | undefined, wholeDoc: boolean, indByCount: boolean, sel: boolean | undefined ] => {
+    ): [element: SafeElement | null | undefined, wholeDoc: boolean, indByCount: boolean, sel?: boolean | BOOL ] => {
   const exOpts = options.directOptions || {},
   elIndex = exOpts.index, indByCount = elIndex === "count" || count < 0,
   offset = exOpts.offset || "", wholeDoc = ("" + exOpts.search).startsWith("doc"),
@@ -542,15 +542,16 @@ export const findAnElement_ = (options: OptionsToFindElement, count: number, als
     }
     return low < -matchIndex ? end : low + matchIndex
   }
-  let isSel: boolean | undefined
+  let isSel: boolean | BOOL | undefined
   let matches: (Hint | Hint0)[] | undefined, oneMatch: Hint | Hint0 | undefined, matchIndex: number
   let el: SafeElement | null | false | undefined
   let d = options.direct! as string | true, defaultMatch = options.match
   defaultMatch = isTY(defaultMatch) && defaultMatch || null
-  d = isTY(d) ? d : "em,sel,f,h"
+  d = isTY(d) && d ? d : defaultMatch && d === !0 ? "em" : "em,sel,f,h"
   prepareCrop_()
   for (let i of d.split(d.includes(";") ? ";" : ",")) {
     const _key = i.split("=")[0], testD = "".includes.bind(Lower(_key)), j = i.slice(_key.length + 1).trim()
+    isSel = 0
     el = testD("em") ? (options.match = <"css-selector" | ""> j || defaultMatch) // element
       && (matches = traverse(kSafeAllSelector, options, matchEl, 1, wholeDoc, 1),
           matchIndex = indByCount ? count < 0 ? count : count - 1 : +elIndex! || 0,
@@ -566,9 +567,9 @@ export const findAnElement_ = (options: OptionsToFindElement, count: number, als
       : testD("b") ? /* body */ OnFirefox ? <SafeElement | null> (doc.body || docEl_unsafe_())
           : SafeEl_not_ff_!(doc.body || docEl_unsafe_())
       : null
-    if (el = testD("em") || el && isNotInViewport(el) < (wholeDoc
-          ? VisibilityType.OutOfView + 1 : VisibilityType.Visible + 1)
-        && excludeHints([[el as SafeElementForMouse]], options, 1).length > 0 ? el : null) { break }
+    el = testD("em") || el && isNotInViewport(el) < (wholeDoc ? VisibilityType.OutOfView+1 : VisibilityType.Visible + 1)
+        && excludeHints([[el as SafeElementForMouse]], options, 1).length > 0 ? el : null
+    if (el) { break }
   }
   return [el as SafeElement | null | undefined, wholeDoc, indByCount, isSel]
 }

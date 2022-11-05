@@ -154,7 +154,8 @@ async function App (this: void): Promise<void> {
   switch (type) {
   case "image":
     if (VData.auto) {
-      let newUrl = await parseClearImageUrl_(url);
+      let newUrl = await parseClearImageUrl_(
+          useBG && await post_(kPgReq.substitute, [url, SedContext.image]) || url, url)
       if (newUrl) {
         console.log("Auto predict a better URL:\n %o =>\n %o", url, newUrl);
         url = VData.url = newUrl;
@@ -697,9 +698,7 @@ function clean(): void {
   }
 }
 
-async function parseClearImageUrl_(originUrl: string): Promise<string | null> {
-  const stdUrl = originUrl;
-  originUrl = useBG && await post_(kPgReq.substitute, [originUrl, SedContext.image]) || originUrl
+async function parseClearImageUrl_(originUrl: string, stdUrl?: string): Promise<string | null> {
   function safeParseURL(url1: string): URL | null { try { return new URL(url1); } catch {} return null; }
   const parsed = safeParseURL(originUrl);
   if (!parsed || !(<RegExpI> /^(ht|s?f)tp/i).test(parsed.protocol)) { return null; }
@@ -711,6 +710,7 @@ async function parseClearImageUrl_(originUrl: string): Promise<string | null> {
     } catch {}
     return url1 as string;
   }
+  stdUrl = stdUrl || originUrl
   if (search.length > 10) {
     for (const item of search.slice(1).split("&")) {
       const key = item.split("=", 1)[0];
@@ -766,6 +766,12 @@ async function parseClearImageUrl_(originUrl: string): Promise<string | null> {
         len += arr2[0].length;
       }
       search = path.slice(offset + len);
+      if (path.lastIndexOf("@", offset + len) >= 0 && search.includes("!")) {
+        const tail = search.slice(search.indexOf("!")).toLowerCase()
+        if (tail.includes("cover") && (<RegExpI> /^![a-z\d_\.-]+\.(avif|jpe?g|a?png|svg|webp)$/).test(tail)) {
+          search = search.split("!")[0]
+        }
+      }
       if ((<RegExpOne> /[@!]$/).test(search || path.charAt(offset - 1))) {
         if (search) {
           search = search.slice(0, -1);

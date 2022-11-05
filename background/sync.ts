@@ -85,12 +85,13 @@ const log: (... _: any[]) => void = console.log.bind(console, "[%s]", { toString
 const storeAndPropagate = (key: string, value: any, map?: Dict<any>): void | 8 => {
   const serialized = value && typeof value === "object"
       && (value as Partial<SerializationMetaData | SingleSerialized>).$_serialize || ""
+  let tmpStr: string | undefined
   if (!(key in settings_.defaults_) || !shouldSyncKey(key)) {
     const toUpgrade = serialized || !settings_.needToUpgradeSettings_ ? -1
         : (settings_.kSettingsToUpgrade_ as string[]).indexOf(key)
-    if (toUpgrade >= 0 && storageCache_.get(key as (typeof settings_.kSettingsToUpgrade_)[0])
-          !== (value !== null ? value + "" : void 0)) {
-      settings_.setInLocal_(key as (typeof settings_.kSettingsToUpgrade_)[0], value !== void 0 ? value + "" : null)
+    if (toUpgrade >= 0 && (tmpStr = storageCache_.get(key as (typeof settings_.kSettingsToUpgrade_)[0])
+          , tmpStr != null ? tmpStr + "" : null) !== (value != null ? value + "" : null)) {
+      settings_.setInLocal_(key as (typeof settings_.kSettingsToUpgrade_)[0], value != null ? value : null)
       settings_.reloadFromLegacy_(toUpgrade)
     }
     return

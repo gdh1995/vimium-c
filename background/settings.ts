@@ -55,7 +55,7 @@ export const ready_: Promise<number> = Promise.all([
       if (item[0] in defaults_) {
         cache[item[0] as PersistentKeys] = item[1] as string | number | boolean
       } else {
-        storageCache_.set(item[0] as SettingsNS.LocalSettingNames, item[1] + "")
+        storageCache_.set(item[0] as SettingsNS.LocalSettingNames, item[1] as string)
       }
     }
     let n = 0
@@ -109,17 +109,20 @@ export const set_ = <K extends keyof SettingsWithDefaults> (key: K, value: Setti
     }
 }
 
-export const setInLocal_ = (key: SettingsNS.LocalSettingNames, value: string | null): void => {
+export const setInLocal_ = (key: SettingsNS.LocalSettingNames
+    , value: string | number | object | null): void => {
   const old = storageCache_.get(key)
   if ((old !== undefined ? old : null) === value) { return }
   if (!toSaveCache) { toSaveCache = safeObj_(), setTimeout(saveAllLocally, 0) }
   toSaveCache[key] = value
   if (value !== null) {
-    storageCache_.set(key, value)
+    storageCache_.set(key, value as string)
   } else {
     storageCache_.delete(key)
   }
 }
+
+export const getInLocal_ = <T = unknown> (key: `${string}|${string}`): T | undefined => storageCache_.get(key) as any
 
 const saveAllLocally = (): void => {
   const toSet = toSaveCache!, toRemove: string[] = []
@@ -186,8 +189,9 @@ export const broadcastOmni_ = <K extends ValidBgVomnibarReq> (request: Req.bg<K>
 }
 
 const loadLegacyKeyLayout_ = (): kKeyLayout => {
-  const ikl = storageCache_.get(kSettingsToUpgrade_[0]), icl = storageCache_.get(kSettingsToUpgrade_[1]),
+  let ikl = storageCache_.get(kSettingsToUpgrade_[0]), icl = storageCache_.get(kSettingsToUpgrade_[1]),
   mm = storageCache_.get(kSettingsToUpgrade_[2])
+  ikl !== void 0 && (ikl = ikl + ""), icl !== void 0 && (icl = icl + ""), mm !== void 0 && (mm = mm + "")
   let kl = kKeyLayout.DefaultFromOld
   if (ikl !== void 0 || icl !== void 0 || mm !== void 0) {
     kl = ikl == null ? kKeyLayout.inCmdIgnoreIfNotASCII : ikl === "2" || ikl === "true" ? kKeyLayout.alwaysIgnore

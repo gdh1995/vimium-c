@@ -19,7 +19,7 @@ ALSO_VC=0
 UBO=0
 HOME_PAGE=
 default_vc_root=/e/Git/weidu+vim/vimium-c
-default_chrome_root="/d/Program Files/Google"
+default_chrome_root=${default_chrome_root:-/d/Program Files/Google}
 version_archives=/f/Application/Browser/chrome
 export WSLENV=PATH/l
 shopt -s extglob
@@ -241,9 +241,12 @@ else
   EXE=$WORKING_DIR/${VER:-cur}/chrome.exe
   if test $USE_INSTALLED -ge 1 || ! test -f "$EXE"; then
     EXE=$CHROME_ROOT/${VER:-Chrome}/chrome.exe
-    if test ! -f "$EXE" -a -n "$VER" \
-        && find "$CHROME_ROOT/Chrome/" -name "${VER}.*" 2>/dev/null | grep . >/dev/null 2>&1; then
-      EXE=$CHROME_ROOT/Chrome/chrome.exe
+    if ! test -f "$EXE"; then
+      if test -n "$VER" && find "$CHROME_ROOT/Chrome/" -name "${VER}.*" 2>/dev/null | grep . >/dev/null 2>&1; then
+        EXE=$CHROME_ROOT/Chrome/chrome.exe
+      elif test -f "$CHROME_ROOT/chrome.exe"; then
+        EXE=$CHROME_ROOT/chrome.exe
+      fi
     fi
     if test -n "$VER" && ! test -e "$WORKING_DIR/${VER}"; then
       ARCHIVE="$version_archives/Chrome-${VER}.7z"
