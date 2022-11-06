@@ -26,7 +26,7 @@ import { scrollToMark, setPreviousMarkPosition } from "./marks"
 import { hudHide, hud_box, hudTip, hud_opacity, toggleOpacity as hud_toggleOpacity } from "./hud"
 import { post_, send_, runFallbackKey } from "./port"
 import { insert_Lock_, raw_insert_lock, setupSuppress } from "./insert"
-import { lastHovered_, set_lastHovered_, select_ } from "./async_dispatcher"
+import { lastHovered_, set_lastHovered_, set_lastBubbledHovered_, select_ } from "./async_dispatcher"
 import { checkKey, checkKeyOnTop, currentKeys, set_isCmdTriggered } from "./key_handler"
 
 export declare const enum FindAction {
@@ -309,7 +309,7 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
     outerBox_ && removeEl_s(outerBox_)
     highlighting && highlighting()
     highlightTimeout_ && clearTimeout_(highlightTimeout_)
-    if (box_ === deref_(lastHovered_)) { set_lastHovered_(null) }
+    if (box_ === deref_(lastHovered_)) { set_lastHovered_(set_lastBubbledHovered_(null)) }
     parsedQuery_ = query_ = query0_ = ""
     historyIndex = matchCount = doesCheckAlive = 0;
     styleInHUD = onUnexpectedBlur = outerBox_ = isRegex = ignoreCase =

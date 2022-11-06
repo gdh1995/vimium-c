@@ -33,7 +33,8 @@ export declare const enum kClickButton { none = 0, primary = 1, second = 2, prim
 type AcceptableClickButtons = kClickButton.none | kClickButton.second | kClickButton.primaryAndTwice
 type MyMouseControlKeys = [ altKey: boolean, ctrlKey: boolean, metaKey: boolean, shiftKey: boolean ]
 
-type kMouseMoveEvents = "mouseover" | "mouseenter" | "mousemove" | "mouseout" | "mouseleave"
+type kMouseMoveEvents = "mouseover" | "mousemove" | "mouseout"
+type kMouseEventsNotBubble = "mouseenter" | "mouseleave"
 type kMouseClickEvents = "mousedown" | "mouseup" | "click" | "auxclick" | "dblclick" | "contextmenu"
 type NullableSafeElForM = SafeElementForMouse | null | undefined
 
@@ -43,9 +44,12 @@ type YieldableFunction = (pos: YieldedPos) => [/** step */ number, /** returned 
 
 let evIDC_cr: InputDeviceCapabilities | undefined
 let lastHovered_: WeakRef<SafeElementForMouse> | null | undefined
+let lastBubbledHovered_: WeakRef<SafeElementForMouse> | null | undefined | 0
+let enableBubblesForEnterLeave_: BOOL | undefined
 
 export { lastHovered_, evIDC_cr }
-export function set_lastHovered_ (_newHovered: WeakRef<SafeElementForMouse> | null): void { lastHovered_ = _newHovered }
+export function set_lastHovered_ (_newHovered: null): void { lastHovered_ = _newHovered }
+export function set_lastBubbledHovered_ (_newBH: null): null { return lastBubbledHovered_ = _newBH }
 export function set_evIDC_cr (_newIDC: InputDeviceCapabilities | undefined): void { evIDC_cr = _newIDC }
 
 /** util functions */
@@ -124,14 +128,14 @@ export const catchAsyncErrorSilently = <T> (__pFromAsync: Promise<T>): Promise<T
 /** sync dispatchers */
 
 const mouse_ = function (element: SafeElementForMouse
-    , type: kMouseClickEvents | kMouseMoveEvents
+    , type: kMouseClickEvents | kMouseEventsNotBubble | kMouseMoveEvents
     , center: Point2D, modifiers?: MyMouseControlKeys | null, relatedTarget?: NullableSafeElForM | 0
-    , button?: AcceptableClickButtons, isTouch?: BOOL): boolean {
+    , button?: AcceptableClickButtons, isTouch?: BOOL, forceToBubble?: boolean | BOOL): boolean {
   const doc1 = element.ownerDocument as Document, view = doc1.defaultView || window,
   tyKey = type.slice(5, 6),
   // is: down | up | (click) | dblclick | auxclick
   detail = !"dui".includes(tyKey) ? 0 : button! & kClickButton.primaryAndTwice ? 2 : 1,
-  bubbles = tyKey !== "e" && tyKey !== "l", // not (enter | leave)
+  cancelable = tyKey !== "e" && tyKey !== "l", // not (enter | leave)
   x = center[0], y = center[1],
   altKey = modifiers ? modifiers[0] : !1, ctrlKey = modifiers ? modifiers[1] : !1,
   metaKey = modifiers ? modifiers[2] : !1, shiftKey = modifiers ? modifiers[3] : !1
@@ -147,7 +151,7 @@ const mouse_ = function (element: SafeElementForMouse
       screenX: x, screenY: y, clientX: x, clientY: y, ctrlKey, altKey, shiftKey, metaKey,
       button, buttons: tyKey === "d" ? button || 1 : 0,
       relatedTarget
-    }, !bubbles, !bubbles)
+    }, !cancelable, !cancelable && !forceToBubble)
     OnChrome && setupIDC_cr!(init)
     if (OnChrome && (Build.MinCVer >= BrowserVer.MinEnsuredPointerEventForRealClick
           || chromeVer_ > BrowserVer.MinEnsuredPointerEventForRealClick - 1)
@@ -159,8 +163,8 @@ const mouse_ = function (element: SafeElementForMouse
     }
   } else {
     mouseEvent = doc1.createEvent("MouseEvents")
-    mouseEvent.initMouseEvent(type, bubbles, bubbles, view, detail, x, y, x, y
-      , ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget)
+    mouseEvent.initMouseEvent(type, !!forceToBubble || cancelable, cancelable
+        , view, detail, x, y, x, y, ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget)
   }
   if (OnFirefox && Build.MinFFVer < FirefoxBrowserVer.MinPopupBlockerPassOrdinaryClicksDuringExtMessages
       && clickEventToPrevent_) { // must be a click event
@@ -171,6 +175,8 @@ const mouse_ = function (element: SafeElementForMouse
   (element: SafeElementForMouse, type: kMouseClickEvents, center: Point2D
     , modifiers?: MyMouseControlKeys | null, related?: NullableSafeElForM | 0, button?: AcceptableClickButtons
     , isTouch?: BOOL): boolean
+  (element: SafeElementForMouse, type: kMouseEventsNotBubble, center: Point2D, modifiers?: null
+    , related?: NullableSafeElForM | 0, button?: kClickButton.none, isTouch?: 0, forceToBubble?: boolean|BOOL): boolean
   (element: SafeElementForMouse, type: kMouseMoveEvents, center: Point2D
     , modifiers?: null, related?: NullableSafeElForM): boolean
 }
@@ -210,13 +216,14 @@ export const hover_async = (async (newEl?: NullableSafeElForM
   // if center is affected by zoom / transform, then still dispatch mousemove
   let elFromPoint = center && doc.elementFromPoint(center[0], center[1]),
   canDispatchMove: boolean = !newEl || elFromPoint === newEl || !elFromPoint || !IsInDOM_(newEl, elFromPoint),
-  last = derefInDoc_(lastHovered_), N = lastHovered_ = null
+  last = derefInDoc_(lastHovered_), forceToBubble = lastBubbledHovered_ === lastHovered_,
+  N = lastHovered_ = lastBubbledHovered_ = null
   const notSame = newEl !== last
   if (last) {
     // MS Edge 90 dispatches mouseout and mouseleave if only a target element is in doc
     await mouse_(last, "mouseout", [0, 0], N, notSame ? newEl : N)
     if ((!newEl || notSame && !IsInDOM_(newEl, last, 1)) && IsInDOM_(last, doc)) {
-      mouse_(last, "mouseleave", [0, 0], N, newEl)
+      mouse_(last, "mouseleave", [0, 0], N, newEl, kClickButton.none, 0, forceToBubble || enableBubblesForEnterLeave_)
       if (doesFocus && IsInDOM_(await last)) { // always blur even when moved to another document
         blur_unsafe(last)
       }
@@ -230,17 +237,18 @@ export const hover_async = (async (newEl?: NullableSafeElForM
     // then center is not null
     await mouse_(newEl, "mouseover", center!, N, last)
     if (IsInDOM_(newEl)) {
-      await mouse_(newEl, "mouseenter", center!, N, last)
+      await mouse_(newEl, "mouseenter", center!, N, last, kClickButton.none, 0, enableBubblesForEnterLeave_)
       if (canDispatchMove && IsInDOM_(newEl)) {
         mouse_(newEl, "mousemove", center!)
       }
       lastHovered_ = IsInDOM_(newEl) ? OnFirefox ? weakRef_ff(newEl, kElRef.lastHovered) : weakRef_not_ff!(newEl) : N
+      lastBubbledHovered_ = enableBubblesForEnterLeave_ && lastHovered_
       notSame && doesFocus && lastHovered_ && focus_(newEl)
     }
   }
   // here always ensure lastHovered_ is "in DOM" or null
 }) as {
-  (newEl: SafeElementForMouse, center: Point2D, focus?: boolean): Promise<void>
+  <T extends 1 = 1> (newEl: SafeElementForMouse, center: Point2D, focus?: boolean): Promise<void>
   (newEl?: null): Promise<void>
 }
 
@@ -266,11 +274,20 @@ export const unhover_async = (!OnChrome || Build.MinCVer >= BrowserVer.MinEnsure
     return blur_unsafe(el)
   }
 }) as {
-  (element?: NullableSafeElForM, step?: undefined, active?: undefined): Promise<void | false>
+  <T extends 1 = 1> (element?: NullableSafeElForM, step?: undefined, active?: undefined): Promise<void | false>
   (element: NullableSafeElForM, step: 1, active: NullableSafeElForM): Promise<void | false>
   (element: NullableSafeElForM, step: 2): /* all false values */ void | false
 }
 
+export const wrap_enable_bubbles = (<Func extends (...a: any[]) => Promise<unknown>> (opts: {bubbles?: boolean} | null
+    , func: Func, args: Func extends () => void ? undefined : Parameters<Func>): ReturnType<Func> => {
+  const bubbles = opts && opts.bubbles && (enableBubblesForEnterLeave_ = 1), p = func.apply(0, args || [])
+  return (bubbles ? p.then(val => (enableBubblesForEnterLeave_ = 0, val)) : p) as ReturnType<Func>
+}) as {
+  <Res> (options: {bubbles?: boolean}, func: () => Promise<Res>): Promise<Res>
+  <Func extends (...Args: any[]) => Promise<unknown>> (options: {bubbles?: boolean} | null
+    , func: Func, args: Parameters<Func>): ReturnType<Func>
+}
 
 export const click_async = (async (element: SafeElementForMouse
     , rect?: Rect | null, addFocus?: boolean | BOOL, modifiers?: MyMouseControlKeys
@@ -314,7 +331,7 @@ export const click_async = (async (element: SafeElementForMouse
     if (!IsInDOM_(element)) { return }
   }
   if (element !== deref_(lastHovered_)) {
-    await hover_async(element, center)
+    await wrap_enable_bubbles(userOptions, hover_async as typeof hover_async<1>, [element, center])
     if (!lastHovered_) { return }
   }
   if (OnFirefox) {

@@ -274,6 +274,7 @@ declare namespace HintsNS {
     /** mode */ m: HintMode
     /** hint characters */ c?: string
     action?: string;
+    /** enable bubbles when hovering / unhovering */ bubbles?: boolean;
     caret?: boolean;
     download?: "" | "force"
     focus?: boolean | "css-selector"
@@ -404,7 +405,7 @@ interface CmdOptions {
     /** unhover last */ u?: boolean;
     /** reset all: 2=destroying */ r: 0 | 1 | 2;
     /** insert mode */ i: boolean;
-  } & InsertModeOptions) & Req.FallbackOptions
+  } & InsertModeOptions) & Req.FallbackOptions & { /** enable bubbles when unhovering */ bubbles?: boolean }
   [kFgCmd.visualMode]: {
     /** mode */ m?: VisualModeNS.Mode.Visual | VisualModeNS.Mode.Line | VisualModeNS.Mode.Caret;
     /** find CSS */ f?: FindCSS | null

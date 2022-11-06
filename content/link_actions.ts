@@ -26,7 +26,7 @@ import {
 import { prevent_, suppressTail_, whenNextIsEsc_ } from "../lib/keyboard_utils"
 import { set_grabBackFocus } from "./insert"
 import {
-  kClickAction, kClickButton, unhover_async, hover_async, click_async, select_, catchAsyncErrorSilently
+  kClickAction, kClickButton, unhover_async, hover_async, click_async, select_, catchAsyncErrorSilently, wrap_enable_bubbles
 } from "./async_dispatcher"
 import { omni_box, Status as VomnibarStatus, omni_status, postToOmni } from "./omni"
 import { execCommand } from "./mode_find"
@@ -237,8 +237,8 @@ const hoverEl = (): void => {
     // here not check lastHovered on purpose
     // so that "HOVER" -> any mouse events from users -> "HOVER" can still work
     setNewScrolling(clickEl)
-  retPromise = catchAsyncErrorSilently(hover_async(clickEl
-        , center_(rect, hintOptions.xy as HintsNS.StdXY | undefined), doesFocus)).then((): void => {
+  retPromise = catchAsyncErrorSilently(wrap_enable_bubbles(hintOptions, hover_async<1>
+      , [clickEl, center_(rect, hintOptions.xy as HintsNS.StdXY | undefined), doesFocus])).then((): void => {
     set_cachedScrollable(currentScrolling)
     if (mode1_ < HintMode.min_job) { // called from Modes[-1]
       hintApi.h(kTip.hoverScrollable)
@@ -561,7 +561,7 @@ const autoShowRect = (): Rect | null => (removeFlash || showRect && rect && flas
     } else if (forHover_) {
       (HintMode.HOVER + 1 === HintMode.UNHOVER ? HintMode.HOVER & 1 ? mode1_ & 1 : !(mode1_ & 1)
         : HintMode.HOVER < HintMode.UNHOVER ? mode1_ < HintMode.HOVER + 1 : mode1_ > HintMode.HOVER - 1)
-      ? hoverEl() : retPromise = catchAsyncErrorSilently(unhover_async(clickEl))
+      ? hoverEl() : retPromise = catchAsyncErrorSilently(wrap_enable_bubbles(hintOptions, unhover_async<1>, [clickEl]))
     } else if (mode1_ < HintMode.FOCUS + 1) {
       view_(clickEl)
       setNewScrolling(clickEl)

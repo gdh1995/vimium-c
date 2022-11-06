@@ -31,10 +31,13 @@ import {
   InputHintItem, activate as linkActivate, clear as linkClear, kSafeAllSelector, findAnElement_
 } from "./link_hints"
 import { activate as markActivate } from "./marks"
-import { FindAction, activate as findActivate, deactivate as findDeactivate, execCommand, find_box, find_input } from "./mode_find"
+import {
+  FindAction, activate as findActivate, deactivate as findDeactivate, execCommand, find_box, find_input
+} from "./mode_find"
 import {
   exitInputHint, insert_inputHint, insert_last_, raw_insert_lock, insert_Lock_, resetInsert, set_is_last_mutable,
-  set_inputHint, set_insert_global_, set_isHintingInput, set_insert_last_, exitInsertMode, set_passAsNormal, insert_global_,
+  set_inputHint, set_insert_global_, set_isHintingInput, set_insert_last_, exitInsertMode, set_passAsNormal,
+  insert_global_
 } from "./insert"
 import { activate as visualActivate, deactivate as visualDeactivate } from "./visual"
 import { activate as scActivate, onActivate, currentScrolling, setNewScrolling, scrollTick } from "./scroller"
@@ -42,7 +45,8 @@ import { activate as omniActivate, hide as omniHide } from "./omni"
 import { findNextInText, findNextInRel } from "./pagination"
 import { traverse, getEditable, filterOutNonReachable } from "./local_links"
 import {
-  select_, unhover_async, set_lastHovered_, lastHovered_, catchAsyncErrorSilently, setupIDC_cr, click_async
+  select_, unhover_async, set_lastHovered_, lastHovered_, catchAsyncErrorSilently, setupIDC_cr, click_async,
+  wrap_enable_bubbles, set_lastBubbledHovered_
 } from "./async_dispatcher"
 /* eslint-disable @typescript-eslint/no-floating-promises */
 
@@ -87,7 +91,7 @@ set_contentCommands_([
   /* kFgCmd.insertMode: */ (opt: CmdOptions[kFgCmd.insertMode]): void => {
     if (opt.u) {
       const done = derefInDoc_(lastHovered_) ? 0 : 2
-      catchAsyncErrorSilently(unhover_async()).then((): void => {
+      void catchAsyncErrorSilently(wrap_enable_bubbles(opt, unhover_async<1>)).then((): void => {
         hudTip(kTip.didUnHoverLast)
         opt.i || runFallbackKey(opt, done)
       })
@@ -547,7 +551,7 @@ set_contentCommands_([
       event && prevent_(event)
       advCmd.onclick = optLink.onclick = closeBtn.onclick = null as never
       let i: Element | null | undefined = deref_(lastHovered_)
-      i && contains_s(outerBox, i) && set_lastHovered_(null)
+      i && contains_s(outerBox, i) && set_lastHovered_(set_lastBubbledHovered_(null))
       if ((i = deref_(currentScrolling)) && contains_s(box, i)) {
         setNewScrolling(null)
       }

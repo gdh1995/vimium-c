@@ -129,6 +129,7 @@ set_bgC_([
       i: !!get_cOptions<C.insertMode>().insert,
       p: !!get_cOptions<C.insertMode>().passExitKey,
       r: <BOOL> +!!get_cOptions<C.insertMode>().reset,
+      bubbles: !!get_cOptions<C.insertMode>().bubbles,
       u: !!get_cOptions<C.insertMode>().unhover
     }, parseFallbackOptions(get_cOptions<C.insertMode, true>()) || {}))
       hideHUD && hideHUD !== "force" && hideHUD !== "always" && showHUD(msg, kTip.raw)

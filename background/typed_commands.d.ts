@@ -25,7 +25,7 @@ interface BgCmdOptions {
     passExitKey: boolean
     reset: boolean
     unhover: boolean
-  } & Req.FallbackOptions
+  } & Req.FallbackOptions & Pick<CmdOptions[kFgCmd.insertMode], "bubbles">
   [kBgCmd.nextFrame]: Req.FallbackOptions
   [kBgCmd.parentFrame]: Req.FallbackOptions
   [kBgCmd.performFind]: {
