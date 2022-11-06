@@ -344,8 +344,9 @@ const parseKeyMappings_ = (wholeMappings: string): void => {
         }
         break
       case "unmap": case "unmap!":
-        if (!key || val && val[0] !== "#") {
+        if (!key || val && !"#$".includes(val[0])) {
           logError_(`unmap: ${val ? "only " : ""}needs one mapped key:`, line)
+        } else if (doesMatchEnv_(getOptions_(line, cmd.length + key.length + 1)) === false) { /* empty */
         } else if (tmpInt = -1, builtinToAdd !== 0
             && (tmpInt = (builtinToAdd || (builtinToAdd = defaultKeyMappings_.split(" "))).indexOf(key)) >= 0
             && tmpInt & 1 || registry.has(key)) {
