@@ -275,14 +275,8 @@ let optionsInit1_ = function (): void {
     const sel2 = ((event.currentTarget as HTMLElement).dataset as KnownOptionsDataset).for.split(":").slice(-1)[0]
     const maybeNode2 = $$<EnsuredMountedHTMLElement & HTMLInputElement>(sel2)
     const node2 = (maybeNode2.find(i => i.checked) || maybeNode2[0]).nextElementSibling
-    {
-      OnChrome && Build.MinCVer < BrowserVer.MinScrollIntoViewOptions
-        && CurCVer_ < BrowserVer.MinScrollIntoViewOptions
-      ? node2.scrollIntoViewIfNeeded!()
-      : node2.scrollIntoView({ block: "center" });
-      node2.focus();
-    }
-    VApi && VApi.x(node2.parentElement.parentElement as SafeHTMLElement)
+    scrollAndFocus_(node2, OnChrome
+        , (node3): void => { VApi && VApi.x(node3.parentElement.parentElement as SafeHTMLElement) })
   };
   for (const element of $$<HTMLLabelElement>(".ref-text")) {
     const name = (element.dataset as KnownOptionsDataset).for, fields = name.slice(name.indexOf(":") + 1)
@@ -409,6 +403,7 @@ optionsInitAll_ = function (): void {
       loaderScript.src = "loader.js"
       loaderScript.async = true
       document.head!.appendChild(loaderScript)
+      document.documentElement!.classList.add("smooth")
     }, 120)
   })
 };
@@ -500,16 +495,20 @@ document.addEventListener("keydown", (event): void => {
   }
 });
 
-window.onhashchange = (): void => {
-  let hash = location.hash, node: HTMLElement | null;
+export const onHash_ = (hash: string): void => {
+  let node: HTMLElement | null;
   hash = hash.slice(hash[1] === "!" ? 2 : 1);
-  if (!hash || !(<RegExpI> /^[a-z][a-z\d_-]*$/i).test(hash)) { return; }
+  if (!hash || !(<RegExpI> /^[a-z][\w-]*$/i).test(hash)) { return; }
   if (node = $(`[data-hash="${hash}"]`) as HTMLElement | null) {
     didBindEvent("click")
     if (node.onclick) {
         (node as ElementWithHash).onclick(null, "hash");
     }
-  } else if (node = $("#" + hash)) {
+  } else if (node = !OnEdge && (!OnChrome || Build.MinCVer >= BrowserVer.MinEnsuredCaseInSensitiveAttrSelector
+      || CurCVer_ >= BrowserVer.MinEnsuredCaseInSensitiveAttrSelector)
+      ? $(`[id="${hash.replace(<RegExpG & RegExpSearchable<0>> /-/g, "")}" i]`)
+      : hash.includes("-") && $("#" + hash.replace(<RegExpG & RegExpSearchable<0>> /-[a-z]/gi
+        , s => s[1].toUpperCase())) || $("#" + hash)) {
     if ((node.dataset as KnownOptionsDataset).model) {
       node = node.localName === "input" && (node as HTMLInputElement).type === "checked"
           ? node.parentElement as HTMLElement : node
@@ -519,16 +518,29 @@ window.onhashchange = (): void => {
       if (event && event.target !== window) { return; }
       if (window.onload) {
         window.onload = null as never;
-        window.scrollTo(0, 0);
+        !OnEdge && (!OnChrome || Build.MinCVer >= BrowserVer.MinEnsuredCSS$ScrollBehavior
+          || Element.prototype.scrollBy as unknown)
+        ? (scrollTo as typeof scrollBy)({behavior: "instant", top: 0, left: 0}) : scrollTo(0, 0)
       }
-      const node2 = node as Element;
-      !(OnEdge || OnFirefox) ? node2.scrollIntoViewIfNeeded!() : node2.scrollIntoView();
+      scrollAndFocus_(node!)
     };
     if (document.readyState === "complete") { return callback(); }
     window.scrollTo(0, 0);
     window.onload = callback;
   }
 };
+window.onhashchange = () => { onHash_(location.hash) }
+
+const scrollAndFocus_ = <T extends HTMLElement> (node: T, near?: boolean, callback?: (node: T) => void): void => {
+  let last = -1
+  OnChrome && Build.MinCVer < BrowserVer.MinScrollIntoViewOptions && CurCVer_ < BrowserVer.MinScrollIntoViewOptions
+  ? node.scrollIntoViewIfNeeded!(true) : node.scrollIntoView({ block: near ? "nearest" : "center", behavior: "smooth" })
+  const timer = setInterval((): void => {
+    const newTop = scrollY
+    if (newTop === last) { clearInterval(timer); callback && callback(node); node.focus() }
+    last = newTop
+  }, 72)
+}
 
 void bgSettings_.preloadCache_().then(optionsInitAll_)
 void post_(kPgReq.keyMappingErrors).then((err): void => { nextTick_(onKeyMappingsError, err) })

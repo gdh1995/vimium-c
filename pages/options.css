@@ -13,6 +13,10 @@ html {
   --vc-link-hover-color: #15c;
   --vc-link-active-color: #052577;
   --vc-tiny: 0.5px;
+  overflow-anchor: none;
+}
+.smooth {
+  scroll-behavior: smooth;
 }
 .less-motion {
   --vc-transition-duration: 0;
@@ -728,6 +732,14 @@ button::-moz-focus-inner {
 select:-moz-focusring {
   color: transparent;
   text-shadow: 0 0 0 var(--vc-button-hover-color);
+}
+
+[data-model], [role=checkbox] {
+  scroll-margin-bottom: 60px;
+  scroll-margin-top: 20vh;
+}
+#optionalPermissions {
+  scroll-margin: 40vh 0 50vh 0;
 }
 
 @supports (-moz-appearance: none) {

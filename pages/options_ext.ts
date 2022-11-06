@@ -5,7 +5,7 @@ import {
 import { bgSettings_, AllowedOptions, ExclusionRulesOption_, Option_, oTrans_, getSettingsCache_ } from "./options_base"
 import { exportBtn, saveBtn } from "./options_defs"
 import { manifest } from "./options_permissions";
-import { advancedOptBtn, ElementWithDelay, delayed_task, clear_delayed_task } from "./options_wnd"
+import { advancedOptBtn, ElementWithDelay, delayed_task, clear_delayed_task, onHash_ } from "./options_wnd"
 import { kPgReq } from "../background/page_messages"
 
 const kSettingsToUpgrade_: readonly SettingsNS.LocalSettingNames[] = [
@@ -17,14 +17,18 @@ const showHelp = (event?: EventToPrevent | "force" | void | null): void => {
     void isVApiReady_.then(showHelp.bind(null, event))
     return;
   }
-  let node: HTMLElement | null, root = VApi.y().r;
+  let node: HTMLElement | null, root = VApi.y().r, diff = false
   event && event !== "force" && event.preventDefault()
   if (!root) { /* empty */ }
   else if (node = root.querySelector("#HCls") as HTMLElement | null) {
     if (event !== "force" && root.querySelector(".HelpCommandName") != null) { simulateClick(node); return }
+    const node2 = root.querySelector("#HDlg") as HTMLElement
+    const outerBox = node2 && (node2 as SafeHTMLElement).parentElement || node2
+    diff = !!outerBox && outerBox.remove !== HTMLElement.prototype.remove
+    outerBox && (outerBox.remove = HTMLElement.prototype.remove)
   }
   VApi!.r[0]<kFgReq.pages>(kFgReq.pages, { i: 1, q: [ { n: kPgReq.initHelp, q: null } ] }
-      , !event && location.hash.length > 1 ? (): void => {
+      , diff || location.hash === "#commands" ? (): void => {
     const misc = VApi && VApi.y()
     const node2 = misc && misc.r && misc.r.querySelector("#HDlg") as HTMLElement
     if (!node2) { return; }
@@ -32,6 +36,9 @@ const showHelp = (event?: EventToPrevent | "force" | void | null): void => {
     outerBox.remove = (): void => {
       HTMLElement.prototype.remove.call(outerBox)
       location.hash = "";
+      if ($("#optionalPermissionsBox").style.display != "none") {
+        onHash_("#optionalPermissions")
+      }
     }
   } : (): void => { /* empty */ })
 };

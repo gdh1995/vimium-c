@@ -11,6 +11,8 @@ import {
 import { exclusionListening_, getExcluded_, exclusionListenHash_ } from "./exclusions"
 import { I18nNames, transEx_ } from "./i18n"
 
+const DEBUG: BOOL | boolean = 0
+
 const onMessage = <K extends keyof FgReq, T extends keyof FgRes> (request: Req.fg<K> | Req.fgWithRes<T>
     , port: Frames.Port): void => {
   type ReqK = keyof FgReq
@@ -83,6 +85,10 @@ export const OnConnect = (port: Frames.Port, type: PortType): void => {
     sender.flags_ = flags
   }
   if (type & PortType.reconnect) {
+    if (!Build.NDEBUG && DEBUG) {
+      console.log("on port reconnect: tab=%o, frameId=%o, frames.flag=%o, old-ports=%o"
+          , sender.tabId_, sender.frameId_, ref ? ref.flags_ : -1, ref ? ref.ports_.length : 0)
+    }
     if ((Build.MV3 || Build.LessPorts) && type & Frames.Flags.UrlUpdated || ref === undefined) {
       port.postMessage({ N: kBgReq.reset, p: passKeys, f: flags & Frames.Flags.MASK_LOCK_STATUS })
     }
@@ -552,6 +558,10 @@ const MAX_KEEP_ALIVE = Build.NDEBUG ? 5 : 2
         stillAlive.push(port)
       }
     }
+    if (!Build.NDEBUG && DEBUG) {
+      console.log("free ports: tab=%o, release=%o, ports=%o, result.alive=%o", frames.cur_.s.tabId_, doesRelease
+          , frames.ports_.length, stillAlive.length)
+    }
     frames.ports_.length = 0
     Build.MV3 ? failed && /** never */ (stillAlive.forEach(_safeRefreshPort), refreshPorts_(frames, 1))
         : stillAlive.length && frames.ports_.push(...stillAlive)
@@ -562,6 +572,10 @@ const MAX_KEEP_ALIVE = Build.NDEBUG ? 5 : 2
 }, RELEASE_TIMEOUT / 2)
 
 export const refreshPorts_ = Build.MV3 || Build.LessPorts ? (frames: Frames.Frames, forced: BOOL): void => {
+  if (!Build.NDEBUG && DEBUG) {
+    console.log("refresh ports: tab=%o, forced=%o, flags=%o, ports=%o", frames.cur_.s.tabId_, forced
+        , frames.flags_, frames.ports_.length)
+  }
   executeScript_(frames.cur_.s.tabId_, -1, null, (_: 0, updates: number): void => { // @ts-ignore
     typeof VApi === "object" && VApi && (VApi as Frames.BaseVApi)
       .q(0, updates) // Frames.RefreshPort
