@@ -40,7 +40,7 @@ let status = Status.NotInited
 let omniOptions: VomnibarNS.FgOptionsToFront | null = null
 let secondActivateWithNewOptions: (() => void) | null = null
 let timer_: ValidTimeoutID = TimerID.None
-let dialogWrapper_: HTMLDialogElement | false | null | undefined
+let dialog_non_ff: HTMLDialogElement | false | null | undefined
 let canUseVW: boolean
 let screenHeight_: number
 let maxOutHeight_ = 99
@@ -58,7 +58,8 @@ export const hide: (fromInner?: 0 | null | undefined) => void = <InnerHide> ((fr
       return
     }
     box!.style.height = maxOutHeight_ + "px"
-    WithDialog && dialogWrapper_ ? (dialogWrapper_.close(), setDisplaying_s(dialogWrapper_)) : setDisplaying_s(box!)
+    !OnFirefox && WithDialog && dialog_non_ff ? (dialog_non_ff.close(), setDisplaying_s(dialog_non_ff))
+        : setDisplaying_s(box!)
 })
 
 export const activate = function (options: FullOptions, count: number): void {
@@ -131,16 +132,16 @@ const init = ({k: secret, v: page, t: type, i: inner}: FullOptions): void => {
       }
       type === VomnibarNS.PageType.web ? initMsgInterval = interval_(doPostMsg, 66) : doPostMsg(1)
     };
-    if (WithDialog) {
-      dialogWrapper_ = (OnChrome && Build.MinCVer >= BrowserVer.MinEnsuredHTMLDialogElement || doesSupportDialog())
+    if (!OnFirefox && WithDialog) {
+      dialog_non_ff = (OnChrome && Build.MinCVer >= BrowserVer.MinEnsuredHTMLDialogElement || doesSupportDialog())
           && hasInCSSFilter_() && createElement_("dialog")
-      if (dialogWrapper_) {
-        setClassName_s(dialogWrapper_, "R DLG")
-        appendNode_s(dialogWrapper_, el)
+      if (dialog_non_ff) {
+        setClassName_s(dialog_non_ff, "R DLG")
+        appendNode_s(dialog_non_ff, el)
       }
     }
     box = el
-    addUIElement(WithDialog && dialogWrapper_ || el, AdjustType.MustAdjust, hud_box)
+    addUIElement(!OnFirefox && WithDialog && dialog_non_ff || el, AdjustType.MustAdjust, hud_box)
     slowLoadTimer = type !== VomnibarNS.PageType.inner ? timeout_(function (i): void {
       clearInterval_(initMsgInterval)
       loaded || (OnChrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake && i) ||
@@ -157,9 +158,9 @@ const resetWhenBoxExists = (redo?: boolean): void | 1 => {
         && Build.MinCVer < BrowserVer.Min$Event$$IsTrusted) {
       box!.onload = null as never
     }
-    removeEl_s(WithDialog && dialogWrapper_ || box!)
+    removeEl_s(!OnFirefox && WithDialog && dialog_non_ff || box!)
     portToOmni = box = omniOptions = null as never
-    WithDialog && (dialogWrapper_ = null)
+    !OnFirefox && WithDialog && (dialog_non_ff = null)
     refreshKeyHandler(); // just for safer code
     if (secondActivateWithNewOptions) { secondActivateWithNewOptions(); }
     else if (redo && oldStatus > Status.ToShow - 1) {
@@ -195,7 +196,7 @@ const onOmniMessage = function (this: OmniPort, msg: { data: any, target?: Messa
             ) + (canUseVW ? "vh" : "%") : ""
         style.top = top
         maxOutHeight_ = math.ceil(maxBoxHeight / docZoom_ / ratio_cr)
-        !OnFirefox && WithDialog && dialogWrapper_ && (dialogWrapper_.open || dialogWrapper_.showModal())
+        !OnFirefox && WithDialog && dialog_non_ff && (dialog_non_ff.open || dialog_non_ff.showModal())
         focus_(box!)
         clearTimeout_(timer1)
         timeout_(refreshKeyHandler, GlobalConsts.TimeOfSuppressingTailKeydownEvents - 40)
@@ -286,6 +287,7 @@ const refreshKeyHandler = (): void => {
     console.log("Assert error: Status.Inactive - Status.NotInited === 1")
   }
   options.u = options.u || vApi.u()
+  if (OnFirefox) { options.d = hasInCSSFilter_() }
   box && adjustUI()
   if (status === Status.NotInited) {
     if (!options.$forced) { // re-check it for safety
@@ -300,7 +302,7 @@ const refreshKeyHandler = (): void => {
     return
   } else if (status === Status.Inactive) {
     status = Status.ToShow
-    !(!OnFirefox && WithDialog && dialogWrapper_) ? setDisplaying_s(box!, 1) : (setDisplaying_s(dialogWrapper_, 1))
+    !(!OnFirefox && WithDialog && dialog_non_ff) ? setDisplaying_s(box!, 1) : (setDisplaying_s(dialog_non_ff, 1))
   } else if (status > Status.ToShow) {
     postToOmni(VomnibarNS.kCReq.focus)
     status = Status.ToShow

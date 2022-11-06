@@ -170,7 +170,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
 
   isActive_: false,
   firstly_: 1 as BOOL,
-  options_: null as never as VomnibarNS.GlobalOptions,
+  options_: null as never as VomnibarNS.ContentOptions,
   inputText_: "",
   lastQuery_: "",
   useInput_: true,
@@ -1177,12 +1177,16 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     omniStyles = ` ${omniStyles} `;
     const docEl = document.documentElement as HTMLHtmlElement
     const body = document.body as HTMLBodyElement
-    const dark = omniStyles.includes(" dark ");
-    if (Vomnibar_.darkBtn_) {
+    const dark = omniStyles.includes(" dark ")
+    if (Build.BTypes & BrowserType.Firefox && Vomnibar_.options_.d) {
+      Vomnibar_.darkBtn_ && (Vomnibar_.darkBtn_.style.display = "none")
+      Vomnibar_.styles_ = omniStyles = (dark ? omniStyles.replace(" dark ", "") : omniStyles + "dark ") + " filtered "
+    } else if (Vomnibar_.darkBtn_) {
       if (!Vomnibar_.darkBtn_.childElementCount) {
         Vomnibar_.darkBtn_.textContent = dark ? "\u2600" : "\u263D";
       }
       Vomnibar_.darkBtn_.classList.toggle("toggled", dark);
+      Vomnibar_.darkBtn_.style.display = ""
     }
     const monospaceURL = omniStyles.includes(" mono-url ");
     Vomnibar_.showTime_ = !omniStyles.includes(" time ") ? 0 : omniStyles.includes(" absolute-num-time ") ? 1
@@ -1340,7 +1344,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     a.styleEl_ && document.head!.appendChild(a.styleEl_);
     a.darkBtn_ = document.querySelector("#toggle-dark") as HTMLElement | null;
     a.darkBtn_ && (a.darkBtn_.onclick = (event: MouseEvent): void => {
-      Vomnibar_.toggleStyle_({ t: "dark", c: event.ctrlKey });
+      Build.BTypes & BrowserType.Firefox && a.options_.d || Vomnibar_.toggleStyle_({ t: "dark", c: event.ctrlKey })
       Vomnibar_.input_.focus();
     });
     a.onStyleUpdate_(a.styles_);
