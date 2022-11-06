@@ -459,9 +459,9 @@ const defaultClick = (): void => {
         , [!1, !isMac && ctrl, isMac && ctrl, shift]
         , specialActions, isRight ? kClickButton.second : kClickButton.none
         , !OnChrome || otherActions || newTab || newWindow ? 0 : hintOptions.touch))
-    .then((ret): void => {
+    .then((ret): void | Promise<unknown> | number | boolean => {
       showUrlIfNeeded()
-      doesUnhoverAtOnce && (!interactive || isTY(autoUnhover)) ? void catchAsyncErrorSilently(unhover_async())
+      return doesUnhoverAtOnce && (!interactive || isTY(autoUnhover)) ? catchAsyncErrorSilently(unhover_async())
       : isQueue || elType || (ret || doesUnhoverOnEsc) &&
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
         whenNextIsEsc_(kHandler.unhoverOnEsc, kModeId.Link, Build.NDEBUG ? unhover_async : unhoverOnEsc_d!)

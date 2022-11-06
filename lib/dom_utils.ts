@@ -326,11 +326,10 @@ export const getEventPath = (event: Event) => {
 
 //#region computation section
 
-export const derefInDoc_ = ((val: WeakRef<SafeElement> | SafeElement | null | undefined
-    ): SafeElement | null | undefined => {
+export const derefInDoc_ = ((val: WeakRef<SafeElement> | SafeElement | null | undefined): SafeElement | null => {
   val = deref_(val as WeakRef<SafeElement> | null | undefined)
   return val && IsInDOM_(val, doc) ? val : null
-}) as <T extends SafeElement> (val: WeakRef<T> | T | null | undefined) => T | null | undefined
+}) as <T extends SafeElement> (val: WeakRef<T> | T | null | undefined) => T | null
 
 export const queryChildByTag_ = (parent: SafeElement, childTag: "summary" | "div" | "ul"): SafeHTMLElement | null => {
     // not query `:scope>summary` for more consistent performance

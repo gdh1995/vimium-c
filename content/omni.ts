@@ -195,6 +195,7 @@ const onOmniMessage = function (this: OmniPort, msg: { data: any, target?: Messa
             ) + (canUseVW ? "vh" : "%") : ""
         style.top = top
         maxOutHeight_ = math.ceil(maxBoxHeight / docZoom_ / ratio_cr)
+        !OnFirefox && WithDialog && dialogWrapper_ && (dialogWrapper_.open || dialogWrapper_.showModal())
         focus_(box!)
         clearTimeout_(timer1)
         timeout_(refreshKeyHandler, GlobalConsts.TimeOfSuppressingTailKeydownEvents - 40)
@@ -299,8 +300,7 @@ const refreshKeyHandler = (): void => {
     return
   } else if (status === Status.Inactive) {
     status = Status.ToShow
-    !(WithDialog && dialogWrapper_) ? setDisplaying_s(box!, 1)
-        : (setDisplaying_s(dialogWrapper_, 1), dialogWrapper_.open || dialogWrapper_.showModal())
+    !(!OnFirefox && WithDialog && dialogWrapper_) ? setDisplaying_s(box!, 1) : (setDisplaying_s(dialogWrapper_, 1))
   } else if (status > Status.ToShow) {
     postToOmni(VomnibarNS.kCReq.focus)
     status = Status.ToShow

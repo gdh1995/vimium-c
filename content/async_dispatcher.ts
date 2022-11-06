@@ -125,7 +125,7 @@ export const catchAsyncErrorSilently = <T> (__pFromAsync: Promise<T>): Promise<T
 
 const mouse_ = function (element: SafeElementForMouse
     , type: kMouseClickEvents | kMouseMoveEvents
-    , center: Point2D, modifiers?: MyMouseControlKeys | null, relatedTarget?: NullableSafeElForM
+    , center: Point2D, modifiers?: MyMouseControlKeys | null, relatedTarget?: NullableSafeElForM | 0
     , button?: AcceptableClickButtons, isTouch?: BOOL): boolean {
   const doc1 = element.ownerDocument as Document, view = doc1.defaultView || window,
   tyKey = type.slice(5, 6),
@@ -247,7 +247,7 @@ export const hover_async = (async (newEl?: NullableSafeElForM
 export const unhover_async = (!OnChrome || Build.MinCVer >= BrowserVer.MinEnsuredGeneratorFunction
 ? async (element?: NullableSafeElForM): Promise<void> => {
   const old = derefInDoc_(lastHovered_), active = element || old
-  if (old !== element) {
+  if (old !== (element || null)) {
     await hover_async()
   }
   lastHovered_ = OnFirefox ? weakRef_ff(element, kElRef.lastHovered) : weakRef_not_ff!(element)

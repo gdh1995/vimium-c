@@ -346,11 +346,11 @@ const parseKeyMappings_ = (wholeMappings: string): void => {
       case "unmap": case "unmap!":
         if (!key || val && val[0] !== "#") {
           logError_(`unmap: ${val ? "only " : ""}needs one mapped key:`, line)
-        } else if (registry.has(key)) {
+        } else if (tmpInt = -1, builtinToAdd !== 0
+            && (tmpInt = (builtinToAdd || (builtinToAdd = defaultKeyMappings_.split(" "))).indexOf(key)) >= 0
+            && tmpInt & 1 || registry.has(key)) {
           registry.delete(key)
-        } else if (builtinToAdd !== 0
-            && (tmpInt = (builtinToAdd || (builtinToAdd = defaultKeyMappings_.split(" "))).indexOf(key)) >= 0) {
-          builtinToAdd.splice(tmpInt, 2)
+          tmpInt < 0 || (builtinToAdd as Exclude<typeof builtinToAdd, 0 | null>)!.splice(tmpInt, 2)
         } else if (key.length === 1 && (key >= "0" && key < kChar.minNotNum || key[0] === kChar.minus)) {
           if (key2 = key + ":" + GlobalConsts.NormalModeId,
               key2 in mkReg && mkReg[key2] !== GlobalConsts.ForcedMapNum + key) {
@@ -382,6 +382,7 @@ const parseKeyMappings_ = (wholeMappings: string): void => {
       builtinOffset_ = registry.size
       builtinToAdd || (builtinToAdd = defaultKeyMappings_.split(" "))
       for (_len = builtinToAdd.length, _i = 0; _i < _len; _i += 2) {
+        registry.has(builtinToAdd[_i]) ||
         registry.set(builtinToAdd[_i], makeCommand_(builtinToAdd[_i + 1] as kCName, null))
       }
     }

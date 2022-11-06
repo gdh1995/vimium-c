@@ -87,7 +87,7 @@ export const framesForTab_ = new Map() as Frames.FramesMap
 export const framesForOmni_: Port[] = []
 export interface RecencyMap extends Map<number, /** mono time */ number> {
   keys: never; entries: never; values: never
-  forEach (callback: (frames: number, tabId: number) => void): void
+  forEach (callback: (lastVisitTime: number, tabId: number) => void): void
 }
 export const recencyForTab_ = new Map() as RecencyMap
 export let curTabId_: number = GlobalConsts.TabIdNone

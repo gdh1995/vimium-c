@@ -121,10 +121,11 @@ export const Qs_: {
   <F extends ApiTemplate<[any, any]>      > (browserApi: F, ...args: ApiParams<F>): Promise<ApiCb<F>>
   <F extends ApiTemplate<[any, any, any]> > (browserApi: F, ...args: ApiParams<F>): Promise<ApiCb<F>>
 } = (OnChrome || OnEdge ? function (func: Function): Promise<unknown> {
-  return new Promise(resolve => { func(resolve) })
+  const arr: unknown[] = [].slice.call(arguments, 1)
+  return new Promise(resolve => { arr.push(resolve); func.apply(0, arr) })
 } : function (func: Function): Promise<unknown> {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-  return func()
+  const arr: unknown[] = [].slice.call(arguments, 1)
+  return func.apply(0, arr)
 }) as <F extends ApiTemplate<[]>> (browserApi: F) => Promise<ApiCb<F>>
 
 const doesIgnoreUrlField_ = (url: string, incognito?: boolean): boolean => {
