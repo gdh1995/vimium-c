@@ -562,10 +562,13 @@ set_bgC_([
   /* kBgCmd.removeTabsR: */ (resolve): void | kBgCmd.removeTabsR => {
     /** `direction` is treated as limited; limited by pinned */
     const direction = get_cOptions<C.removeTabsR>().other ? 0 : cRepeat
-    getTabsIfRepeat_(direction, function onRemoveTabsR(oriTabs: Tab[] | undefined): void {
+    const across = direction === 0 && get_cOptions<C.removeTabsR>().acrossWindows
+    across ? Tabs_.query({}, onRemoveTabsR) : getTabsIfRepeat_(direction, onRemoveTabsR)
+    function onRemoveTabsR(oriTabs: Tab[] | undefined): void {
       let tabs: Readonly<Tab>[] | undefined = oriTabs
       if (!tabs || tabs.length === 0) { return runtimeError_() }
-    let i = selectIndexFrom(tabs), noPinned = get_cOptions<C.removeTabsR, true>().noPinned
+    let acrossI = across ? tabs.findIndex(i => i.id===curTabId_) : 0, i = acrossI>=0 ? acrossI : selectIndexFrom(tabs),
+    noPinned = get_cOptions<C.removeTabsR, true>().noPinned
     const filter = get_cOptions<C.removeTabsR, true>().filter
     const activeTab = tabs[i]
     if (direction > 0) {
@@ -596,7 +599,7 @@ set_bgC_([
     } else {
       resolve(0)
     }
-    })
+    }
   },
   /* kBgCmd.reopenTab: */ (tabs: [Tab] | never[], resolve): void | kBgCmd.reopenTab => {
     if (tabs.length <= 0) { resolve(0); return }

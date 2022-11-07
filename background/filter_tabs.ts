@@ -1,9 +1,10 @@
 import {
-  OnFirefox, cRepeat, get_cOptions, curWndId_, curTabId_, recencyForTab_, CurCVer_, OnChrome, set_cRepeat
+  OnFirefox, cRepeat, get_cOptions, curWndId_, curTabId_, recencyForTab_, CurCVer_, OnChrome, set_cRepeat, lastWndId_,
+  set_lastWndId_, framesForTab_
 } from "./store"
 import * as BgUtils_ from "./utils"
 import {
-  Tabs_, getCurShownTabs_, getCurWnd, runtimeError_, isNotHidden_, getCurTab, getCurTabs,
+  Tabs_, getCurShownTabs_, getCurWnd, runtimeError_, isNotHidden_, getCurTab, getCurTabs, Window, Qs_,
   getTabUrl, getGroupId, isTabMuted, Q_, Windows_, selectIndexFrom
 } from "./browser"
 import { getPortUrl_, showHUD } from "./ports"
@@ -358,4 +359,40 @@ export const sortTabsByCond_ = (allTabs: Readonly<Tab>[]
     list.sort((a, b) => a.pinned !== b.pinned ? a.pinned ? -1 : 1 : a.ind - b.ind)
   }
   return changed ? list.map(i => i.tab) : allTabs
+}
+
+export const findLastVisibleWindow_ = async <AcceptCur extends boolean> (wndType: "popup" | "normal" | undefined
+    , alsoCur: AcceptCur, incognito: boolean | null, curWndId: number, noMin?: boolean
+    ): Promise<Window | (AcceptCur extends false ? [Window[], Window | undefined] : null)> => {
+  const filter = (wnd: Window): boolean =>
+      (!wndType || wnd.type === wndType) && (incognito == null || wnd.incognito === incognito)
+      && (noMin || wnd.state !== "minimized")
+  if (lastWndId_ >= 0) {
+    const wnd = await Q_(Windows_.get, lastWndId_)
+    if (wnd && filter(wnd)) { return wnd }
+    set_lastWndId_(GlobalConsts.WndIdNone)
+  }
+  const otherTabs: (readonly [tabId: number, time: number])[] = []
+  {
+    const curIds = (await Q_(getCurTabs) || []).map(tab => tab.id)
+    curIds.push(curTabId_)
+    recencyForTab_.forEach((time, tabId) => { curIds.includes(tabId) || otherTabs.push([tabId, time]) })
+    otherTabs.sort((i, j) => j[1] - i[1])
+  }
+  if (otherTabs.length > 0) {
+    let tab: Tab | undefined = await Qs_(Tabs_.get, otherTabs[0][0])
+    if (!tab) {
+      const lastActive = otherTabs.find(i => framesForTab_.has(i[0]))
+      tab = lastActive && await Qs_(Tabs_.get, lastActive[0])
+    }
+    const wnd = tab && await Qs_(Windows_.get, tab.windowId)
+    if (wnd && filter(wnd)) { return wnd }
+  }
+  const allWnds = await Qs_(Windows_.getAll), matches = allWnds.filter(filter)
+  const otherWnds = matches.filter(i => i.id !== curWndId)
+  otherWnds.sort((i, j) => j.id - i.id)
+  const wnd2 = otherWnds.length > 0 ? otherWnds[0] : null
+  if (wnd2) { return wnd2 }
+  if (alsoCur) { return allWnds.find(w => w.id === curWndId) || allWnds.find(w => w.focused) || null as never }
+  return [matches, allWnds.find(i => i.id === curWndId)] as never
 }

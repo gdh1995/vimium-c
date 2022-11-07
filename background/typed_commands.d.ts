@@ -120,7 +120,7 @@ interface BgCmdOptions {
     /** only work when close one tab */ filter: TabFilterOptions["filter"]
   } & Req.FallbackOptions
   [kBgCmd.removeTabsR]: {
-    other: boolean; mayConfirm: true; noPinned: boolean
+    other: boolean; mayConfirm: true; noPinned: boolean; acrossWindows: true
   } & TabFilterOptions & Req.FallbackOptions
   [kBgCmd.reopenTab]: Pick<OpenUrlOptions, "group"> & Req.FallbackOptions
   [kBgCmd.restoreTab]: { incognito: "force" | true; one: boolean; active: false; currentWindow?: boolean }

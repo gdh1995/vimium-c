@@ -1,5 +1,5 @@
 import {
-  framesForTab_, cPort, cRepeat, get_cOptions, set_cOptions, set_cPort, set_cRepeat, set_lastWndId_, set_cEnv,
+  framesForTab_, cPort, cRepeat, get_cOptions, set_cOptions, set_cPort, set_cRepeat, set_cEnv,
   lastWndId_, curIncognito_, curTabId_, curWndId_, recencyForTab_, vomnibarBgOptions_, OnFirefox, OnChrome, OnEdge,
   CurCVer_, IsEdg_, paste_, substitute_, newTabUrls_, os_, CONST_, shownHash_, set_shownHash_, newTabUrl_f
 } from "./store"
@@ -21,8 +21,9 @@ import {
   copyCmdOptions, runNextCmdBy, parseFallbackOptions, replaceCmdOptions, overrideOption, runNextCmd,
   overrideCmdOptions, runNextOnTabLoaded, executeCommand, fillOptionWithMask, sendFgCmd
 } from "./run_commands"
-import { parseSedOptions_ } from "./clipboard"
 import { Marks_ } from "./tools"
+import { parseSedOptions_ } from "./clipboard"
+import { findLastVisibleWindow_ } from "./filter_tabs"
 import C = kBgCmd
 
 type ShowPageData = [string, typeof shownHash_, number]
@@ -74,25 +75,6 @@ const normalizeIncognito = (incognito: OpenUrlOptions["incognito"]): boolean | n
 
 const normalizeWndType = (wndType: string | boolean | null | undefined): "popup" | "normal" | undefined =>
     wndType === "popup" || wndType === "normal" ? wndType : undefined
-
-const findLastVisibleWindow = (wndType: "popup" | "normal" | undefined, alsoCur: boolean
-    , incognito: boolean | null): Promise<Window | null> => {
-  const filter = (wnd: Window): boolean =>
-      (!wndType || wnd.type === wndType) && (incognito == null || wnd.incognito === incognito)
-      && wnd.state !== "minimized"
-  const p = (lastWndId_ < 0 ? Promise.resolve(null) : new Promise<Window | null>(resolve => {
-    Windows_.get(lastWndId_, wnd => {
-      resolve(wnd ? filter(wnd) ? wnd : null : (set_lastWndId_(GlobalConsts.WndIdNone), null))
-      return runtimeError_()
-    })
-  }))
-  return p.then(wnd => wnd || new Promise(resolve => Windows_.getAll((wnds): void => {
-    const last = wnds.filter(i => filter(i) && i.id !== curWndId_)
-    const wnd2 = last.length > 0 ? last.sort((i, j) => j.id - i.id)[0] : null
-    wnd2 && lastWndId_ < 0 && (set_lastWndId_(wnd2.id))
-    resolve(wnd2 || !alsoCur ? wnd2 : wnds.find(w => w.id === curWndId_) || wnds.find(w => w.focused) || null)
-  })))
-}
 
 export const checkHarmfulUrl_ = (url: string, port?: Port | null): boolean => {
   url = url.slice(0, 128).split("?")[0].replace(<RegExpG> /\\/g, "/")
@@ -275,7 +257,7 @@ const openUrlInAnotherWindow = (urls: string[], reuse: Exclude<ReuseType
   let p: Promise<PopWindow | null>
   p = (reuse > ReuseType.OFFSET_LAST_WINDOW ? new Promise<Window | null>(resolve => {
     getCurWnd(false, wnd => (resolve(wnd || null), runtimeError_()))
-  }) : findLastVisibleWindow(normalizeWndType(options.window), true, incognito)).then(wnd => wnd &&
+  }) : findLastVisibleWindow_(normalizeWndType(options.window), true, incognito, curWndId_)).then(wnd => wnd &&
     new Promise(resolve => { Tabs_.query({ active: true, windowId: wnd.id }, tabs => {
       wnd.tabs = tabs; resolve(wnd as PopWindow)
       return runtimeError_()
@@ -380,7 +362,8 @@ const replaceOrOpenInNewTab = <Reuse extends Exclude<ReuseType, ReuseType.curren
   }
   let p: Promise<Pick<Window, "id"> | null>
   if (reuse < ReuseType.OFFSET_LAST_WINDOW + 1 && matcher) {
-    p = findLastVisibleWindow(wndType, reuse === ReuseType.ifLastWnd, incognito)
+    p = findLastVisibleWindow_(wndType, reuse === ReuseType.ifLastWnd, incognito, curWndId_)
+        .then(wnd => wnd && !(wnd instanceof Array) ? wnd : null)
   } else {
     p = Promise.resolve(!allWindows && curWndId_ >= 0 ? {id: curWndId_} : null)
   }

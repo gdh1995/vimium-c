@@ -1,6 +1,6 @@
 import {
   cRepeat, get_cOptions, cPort, curIncognito_, curTabId_, curWndId_, recencyForTab_, set_curWndId_, set_curTabId_,
-  copy_, newTabUrl_f, CurCVer_, IsEdg_, OnChrome, OnEdge, OnFirefox, CONST_, reqH_, set_cRepeat, lastWndId_
+  copy_, newTabUrl_f, CurCVer_, IsEdg_, OnChrome, OnEdge, OnFirefox, CONST_, reqH_, set_cRepeat
 } from "./store"
 import * as BgUtils_ from "./utils"
 import {
@@ -20,7 +20,7 @@ import { parseSedOptions_ } from "./clipboard"
 import { newTabIndex, preferLastWnd, openUrlWithActions } from "./open_urls"
 import { focusFrame } from "./frame_commands"
 import {
-  FilterInfo, filterTabsByCond_, findNearShownTab_, getNecessaryCurTabInfo, getTabRange, onShownTabsIfRepeat_, Range3,
+  FilterInfo, filterTabsByCond_, findLastVisibleWindow_, findNearShownTab_, getNecessaryCurTabInfo, getTabRange, onShownTabsIfRepeat_, Range3,
   sortTabsByCond_, tryLastActiveTab_
 } from "./filter_tabs"
 import { TabRecency_ } from "./tools"
@@ -373,30 +373,38 @@ export const moveTabToNewWindow = (resolve: OnCmdResolved): void | kBgCmd.moveTa
 }
 
 export const moveTabToNextWindow = ([tab]: [Tab], resolve: OnCmdResolved): void | kBgCmd.moveTabToNextWindow => {
-  Windows_.getAll((wnds0: Window[]): void => {
-    let wnds: Window[], ids: number[]
     const noMin = get_cOptions<C.moveTabToNextWindow>().minimized === false
         || get_cOptions<C.moveTabToNextWindow>().min === false
+  const useLastWnd = get_cOptions<C.moveTabToNextWindow, true>().last
+  useLastWnd ? findLastVisibleWindow_("normal", false, tab.incognito, tab.windowId, noMin).then((wndOrPair): void => {
+    wndOrPair && !(wndOrPair instanceof Array) ? onWindows([wndOrPair])
+        : onWindows(/* already be [], in fact */wndOrPair[0].slice(0, 1), wndOrPair[1])
+  }) : Windows_.getAll((wnds): void => {
+    onWindows(wnds.filter(wnd => wnd.incognito === tab.incognito && wnd.type === "normal"
+        && (!noMin || wnd.state !== "minimized")), wnds.find(wnd => wnd.id === tab.windowId))
+  })
+  function onWindows(wnds: Window[], curWnd?: Window): void {
+    let ids: number[]
     const focused = get_cOptions<C.moveTabToNextWindow>().focused !== false
     const filter = get_cOptions<C.moveTabToNextWindow, true>().filter
-    const useTabs = !!(get_cOptions<C.moveTabToNextWindow>().tabs || filter)
-    wnds = wnds0.filter(wnd => wnd.incognito === tab.incognito && wnd.type === "normal"
-        && (!noMin || wnd.state !== "minimized"))
+    const useTabs = !!(get_cOptions<C.moveTabToNextWindow>().tabs || filter || useLastWnd)
     if (wnds.length > 0) {
-      ids = wnds.map(wnd => wnd.id)
+      ids = wnds.map(wnd => wnd.id).sort((i, j) => i - j)
       const index = ids.indexOf(tab.windowId)
-      if (ids.length >= 2 || index < 0) {
-        const lastWndIdx = ids.indexOf(lastWndId_)
-        const firstWndIdx = get_cOptions<C.moveTabToNextWindow>().last && lastWndIdx >= 0 ? lastWndIdx
-            : index >= 0 ? index + 1 : 0
+      if (ids.length >= 2 || ids.length > 0 && index < 0) {
         const rawNext = get_cOptions<C.moveTabToNextWindow>().nextWindow
-        const nextWindow = (rawNext == null ? 1 : typeof rawNext === "boolean" ? rawNext ? 1 : -1 : (+rawNext | 0) || 1
+        const nextWindow = useLastWnd ? 1
+            : (rawNext == null ? 1 : typeof rawNext === "boolean" ? rawNext ? 1 : -1 : (+rawNext | 0) || 1
             ) * (useTabs ? 1 : cRepeat)
+        const firstWndIdx = useLastWnd ? 0 : index >= 0 ? nextWindow > 0 ? index + 1 : index : 0
         let dest = nextWindow > 0 ? firstWndIdx + nextWindow - 1 : firstWndIdx + nextWindow
         dest = ((dest % ids.length) + ids.length) % ids.length
         dest = dest !== index ? dest : dest + (nextWindow > 0 ? 1 : -1)
         dest = ((dest % ids.length) + ids.length) % ids.length
-        Tabs_.query({windowId: ids[dest], active: true}, ([tab2]): void => {
+        const destWndId = ids[dest], destWnd = wnds.find(i => i.id === destWndId)
+        const newDestState = focused && !noMin && destWnd && destWnd.state === "minimized"
+            ? (curWnd && curWnd.state === "maximized" ? curWnd.state : "normal") : ""
+        Tabs_.query({windowId: destWndId, active: true}, ([tab2]): void => {
           const newIndex = getDestIndex(tab2)
           const toRight = newIndex == null || newIndex > tab2.index
           let allToMove: Tab[] | null = null, nearInOld: Tab | null | false = false
@@ -409,7 +417,7 @@ export const moveTabToNextWindow = ([tab]: [Tab], resolve: OnCmdResolved): void 
             }
             let q: Promise<unknown> | boolean
             focused || nearInOld && selectTab(nearInOld.id)
-            Tabs_.move(tab.id, { index: newIndex ?? -1, windowId: tab2.windowId }, (resultCur): void => {
+            Tabs_.move(tab.id, { index: newIndex ?? -1, windowId: destWndId }, (resultCur): void => {
               if (runtimeError_()) { resolve(0); selectWnd(tab); return runtimeError_() }
               Promise.resolve(q).then((): void => resolve(1))
               allToMove = allToMove || [tab]
@@ -421,7 +429,10 @@ export const moveTabToNextWindow = ([tab]: [Tab], resolve: OnCmdResolved): void 
                 }
               cPort && cPort.s.tabId_ === resultCur.id && notifyCKey()
             })
-            focused && selectWnd(tab2)
+            if (focused) {
+              newDestState && Windows_.update(destWndId, { state: newDestState })
+              selectWnd(tab2)
+            }
             q = get_cOptions<C.moveTabToNextWindow>().active !== false
                 && new Promise((resolve): void => { selectTab(tab.id, resolve) })
             focused && nearInOld && selectTab(nearInOld.id)
@@ -454,7 +465,7 @@ export const moveTabToNextWindow = ([tab]: [Tab], resolve: OnCmdResolved): void 
         return
       }
     } else {
-      wnds = wnds0.filter(wnd => wnd.id === tab.windowId)
+      wnds = curWnd ? [curWnd] : []
     }
     if (useTabs && abs(cRepeat) > 1) {
       moveTabToNewWindow(resolve)
@@ -470,7 +481,7 @@ export const moveTabToNextWindow = ([tab]: [Tab], resolve: OnCmdResolved): void 
       resolve(!!newWnd)
     })
     })
-  })
+  }
 }
 
 export const reloadTab = (tabs: Tab[], [start, ind, end]: Range3, r: OnCmdResolved, force1?: boolean): void => {
