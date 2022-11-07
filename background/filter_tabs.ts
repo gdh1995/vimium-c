@@ -125,7 +125,7 @@ export const getTabsIfRepeat_ = (count: number, callback_r: (tabsIncludingActive
     getCurTab((cur): void => {
       const newInd = cur[0].index + count
       newInd >= 0 ? Tabs_.query({ windowId: cur[0].windowId, index: newInd }, (other): void => {
-        other ? callback_r(count > 0 ? [cur[0], other[0]] : [other[0], cur[0]]) : getCurTabs(callback_r)
+        other && other[0] ? callback_r(count > 0 ? [cur[0], other[0]] : [other[0], cur[0]]) : getCurTabs(callback_r)
         return runtimeError_()
       }) : getCurTabs(callback_r)
     })

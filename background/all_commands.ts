@@ -567,7 +567,7 @@ set_bgC_([
     function onRemoveTabsR(oriTabs: Tab[] | undefined): void {
       let tabs: Readonly<Tab>[] | undefined = oriTabs
       if (!tabs || tabs.length === 0) { return runtimeError_() }
-    let acrossI = across ? tabs.findIndex(i => i.id===curTabId_) : 0, i = acrossI>=0 ? acrossI : selectIndexFrom(tabs),
+    let acrossI = across ? tabs.findIndex(i => i.id===curTabId_) : -1, i = acrossI>=0 ? acrossI : selectIndexFrom(tabs),
     noPinned = get_cOptions<C.removeTabsR, true>().noPinned
     const filter = get_cOptions<C.removeTabsR, true>().filter
     const activeTab = tabs[i]
@@ -579,7 +579,7 @@ set_bgC_([
       if (direction < 0) {
         tabs = tabs.slice(Math.max(i + direction, 0), i)
       } else {
-        tabs.splice(i, 1)
+        (tabs = tabs.slice(0)).splice(i, 1)
       }
     }
     if (noPinned) {

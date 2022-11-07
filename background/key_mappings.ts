@@ -349,7 +349,7 @@ const parseKeyMappings_ = (wholeMappings: string): void => {
         } else if (doesMatchEnv_(getOptions_(line, cmd.length + key.length + 1)) === false) { /* empty */
         } else if (tmpInt = -1, builtinToAdd !== 0
             && (tmpInt = (builtinToAdd || (builtinToAdd = defaultKeyMappings_.split(" "))).indexOf(key)) >= 0
-            && tmpInt & 1 || registry.has(key)) {
+            && !(tmpInt & 1) || registry.has(key)) {
           registry.delete(key)
           tmpInt < 0 || (builtinToAdd as Exclude<typeof builtinToAdd, 0 | null>)!.splice(tmpInt, 2)
         } else if (key.length === 1 && (key >= "0" && key < kChar.minNotNum || key[0] === kChar.minus)) {
