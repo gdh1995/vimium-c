@@ -5,6 +5,7 @@ ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 说明文档: https://gitee.com/gdh1995/vimium-c#readme , https://github.com/gdh1995/vimium-c/blob/master/README-zh.md .
 
 #### v1.99.5
+* **v1.99.7**: fix imported bugs on key mappings
 * **experimental**: auto release resources on inactive pages,
   to prepare for [Manifest V3 of extensions](https://developer.chrome.com/docs/extensions/mv3/intro/)
 * fix broken copying images on Chrome 107

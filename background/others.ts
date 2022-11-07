@@ -393,7 +393,9 @@ installation_ && void Promise.all([installation_, settings_.ready_]).then(([deta
     return
   }
   settings_.postUpdate_("vomnibarPage")
-  if (parseFloat(CONST_.VerCode_) <= parseFloat(oldVer) && oldVer < "1.99.5") { return }
+  if (parseFloat(oldVer) >= parseFloat(CONST_.VerCode_)) {
+    if (oldVer >= "1.99.6" || CONST_.VerCode_ < "1.99.6") { return }
+  }
 
   if (Build.MV3) { /* empty */ }
   else if (updateToLocal_) {
