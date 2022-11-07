@@ -13,7 +13,9 @@ ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
   * fix unexpected white background color on Firefox 106+
   * change labels for tabs and now support `:active` and `:new`
   * vomnibar options: `styles` field: support `wheel-speed=<number>`
+  * v1.99.6: work around dark reader's `Filter(+)` mode on Firefox
 * LinkHints: improves "tooHigh" mode and support `longPage=true` to disable it
+  * v1.99.6: add `bubbles=true` to bubble `mouseenter` and `mouseleave` events
 * VisualMode: `caret` mode: allow `aw` and `as` to select a range, but not unconditionally collapse into one character
 * plain insert mode: now allow `mapKey x <v-xxx>` to create shortcuts like `:` + `xxx`
 * `runKey`: change the way of parsing nested `runKey` commands to work with `.mask` better
