@@ -256,9 +256,10 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     removeEventListener("keyup", a.toggleAlt_, true)
     fromContent ||
     VPort_ && VPort_.post_({ H: kFgReq.nextFrame, t: Frames.NextType.current, o: !a.doEnter_, k: a.lastKey_ })
+    el.blur() // in case of a wrong IME state on Chrome 107 on v1.99.6
+    a.bodySt_.visibility = "hidden"
     Build.MinCVer <= BrowserVer.StyleSrc$UnsafeInline$MayNotImply$UnsafeEval && Build.BTypes & BrowserType.Chrome
         ? a.docSt_.zoom = "" : a.docSt_.cssText = ""
-    a.bodySt_.visibility = "hidden"
     a.list_.textContent = el.value = "";
     a.list_.style.height = "";
     a.barCls_.remove("empty");
