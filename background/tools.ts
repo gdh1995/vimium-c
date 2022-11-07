@@ -603,17 +603,6 @@ let lastVisitTabTime = 0
 
 setTimeout((): void => {
   const noneWnd = curWndId_, cache = recencyForTab_
-  const clean = (tabs: Tab[] | undefined): void => {
-    const existing = tabs ? tabs.map(i => cache.get(i.id)).filter((i): i is number => i !== undefined) : []
-    let minStamp: number
-    if (existing.length > GlobalConsts.MaxTabsKeepingRecency) {
-      existing.sort((i, j) => i - j)
-      minStamp = existing[existing.length - GlobalConsts.MaxTabsKeepingRecency + 1]
-    } else {
-      minStamp = existing.reduce((i, j) => i < j ? i : j, Infinity)
-    }
-    cache.forEach((val, i): void => { val < minStamp && cache.delete(i) })
-  }
   function listener(info: chrome.tabs.TabActiveInfo): void {
     if (info.windowId !== curWndId_) {
       Windows_.get(info.windowId, maybeOnBgWndActiveTabChange)
@@ -624,7 +613,6 @@ setTimeout((): void => {
       const
       monoNow = (OnChrome || OnFirefox) && Build.OS & (1 << kOS.unixLike) && os_ === kOS.unixLike ? Date.now() : now
       cache.set(curTabId_, monoNow)
-      cache.size > GlobalConsts.MaxTabRecency && Tabs_.query({}, clean)
     }
     const tabId = info.tabId
     set_curTabId_(tabId), lastVisitTabTime = now
