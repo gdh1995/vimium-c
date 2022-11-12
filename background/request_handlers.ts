@@ -552,13 +552,22 @@ set_reqH_([
     set_cPort(port)
     runNextCmdBy(1, req.c)
   },
-  /** kFgReq.recheckTee: */ (req: (FgReqWithRes | FgReq)[kFgReq.recheckTee]): boolean | void => {
+  /** kFgReq.recheckTee: */ (): FgRes[kFgReq.recheckTee] => {
     const taskOnce = setTeeTask_(null, null)
     if (taskOnce) {
       clearTimeout(taskOnce.i)
       taskOnce.r && taskOnce.r(false)
     }
-    if (req === 0) { return !taskOnce }
+    return !taskOnce
+  },
+  /** kFgReq.afterTee: */ (req: FgReqWithRes[kFgReq.afterTee], port: Port): FgRes[kFgReq.afterTee] => {
+    const otherPort = req > 0 && indexFrame(port.s.tabId_, req)
+    if (otherPort) {
+      focusFrame(otherPort, false, FrameMaskType.NoMask, 1)
+      return FrameMaskType.NoMask
+    }
+    req <= 0 && reqH_[kFgReq.recheckTee]()
+    return req ? FrameMaskType.NormalNext : FrameMaskType.NoMask
   }
 ])
 

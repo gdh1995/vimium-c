@@ -106,8 +106,8 @@
       "content/mode_find.js",
       "content/visual.js",
       "content/scroller.js",
-      "content/commands.js",
       "content/request_handlers.js",
+      "content/commands.js",
       "content/extend_click.js",
       "content/extend_click_ff.js",
       "content/frontend.js"

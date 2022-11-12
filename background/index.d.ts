@@ -369,6 +369,7 @@ declare namespace BackendHandlersNS {
     [kFgReq.focusOrLaunch]: (this: void, request: FgReq[kFgReq.focusOrLaunch], port?: Port | null) => void
     [kFgReq.removeSug]: (this: void, request: FgReq[kFgReq.removeSug], _port?: Port | null) => void
     [kFgReq.key]: (this: void, request: FgReq[kFgReq.key], port: Port | null) => void
+    [kFgReq.recheckTee]: () => FgRes[kFgReq.recheckTee]
   }
   type FgRequestHandlers = {
     readonly [K in keyof FgReqWithRes | keyof FgReq]:

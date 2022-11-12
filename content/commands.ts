@@ -48,6 +48,7 @@ import {
   select_, unhover_async, set_lastHovered_, lastHovered_, catchAsyncErrorSilently, setupIDC_cr, click_async,
   wrap_enable_bubbles, set_lastBubbledHovered_
 } from "./async_dispatcher"
+import { showFrameMask } from "./request_handlers"
 /* eslint-disable @typescript-eslint/no-floating-promises */
 
 export const RSC = "readystatechange"
@@ -595,17 +596,18 @@ set_contentCommands_([
     const timer = timeout_((send_ as (typeof send_<kFgReq.recheckTee>)).bind(0, kFgReq.recheckTee, 0, (used): void => {
       used || onWndFocus === oldWndFocus || (onWndFocus as (e: Event | BOOL) => void)(0)
     }), options.t)
-    const oldWndFocus = onWndFocus, focused = deepActiveEl_unsafe_()
+    const oldWndFocus = onWndFocus, focused = docHasFocus_() && deepActiveEl_unsafe_()
     const frame = createElement_("iframe")
     frame.src = options.u
     OnChrome && ((frame as HTMLIFrameElement & { allow: string }).allow = options.a)
     setClassName_s(frame, options.c)
-    set_onWndFocus(frame.onerror = (event?: Event | BOOL): void => {
+    set_onWndFocus(frame.onerror = (/** true: on error; 0: timed out; void: ok */ event?: Event | BOOL): void => {
       set_onWndFocus(oldWndFocus), frame.onerror = null as never
       clearTimeout_(timer)
-      event || focused && (OnFirefox || !notSafe_not_ff_!(focused))
+      // now focused by `tee.html`; or no focus changes before `onerror`
+      ; (event || event !== 0 && options.i) && send_(kFgReq.afterTee, event ? -options.i : options.i, showFrameMask)
+      focused && (OnFirefox || !notSafe_not_ff_!(focused))
           && IsInDOM_(focused as SafeElement, doc) && focus_(focused as SafeElement)
-      event ? post_({ H: kFgReq.recheckTee }) : oldWndFocus()
       removeEl_s(frame)
       isEnabled_ || adjustUI(2)
     })

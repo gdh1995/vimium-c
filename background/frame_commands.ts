@@ -25,7 +25,13 @@ import C = kBgCmd
 
 set_runOnTee_(((task, serializable, data): Promise<boolean | string> => {
   const frames = framesForTab_.get(curTabId_) || cPort && getCurFrames_()
-  const port = frames ? frames.cur_ : cPort as typeof cPort | null
+  let port = frames ? frames.cur_ : cPort as typeof cPort | null
+  if (frames && frames.top_ && port !== frames.top_ && !(frames.top_.s.flags_ & Frames.Flags.ResReleased)
+      // here can not check `!port!.s.url_.startsWith(location.protocol)` - such an ext iframe is limited by default
+      && (!BgUtils_.protocolRe_.test(frames.top_.s.url_) || port!.s.flags_ & Frames.Flags.ResReleased
+          || !port!.s.url_.startsWith((BgUtils_.safeParseURL_(frames.top_.s.url_)?.origin ?? "") + "/"))) {
+    port = frames.top_
+  }
   if (Build.MV3 && task === kTeeTask.Paste && OnChrome && !serializable) {
     return navigator.permissions!.query({ name: "clipboard-read" }).catch(blank_)
         .then((res) => !!res && res.state !== "denied" && runOnTee_(kTeeTask.Paste, true, null))
@@ -39,7 +45,9 @@ set_runOnTee_(((task, serializable, data): Promise<boolean | string> => {
     const allow = task === kTeeTask.CopyImage || task === kTeeTask.Copy || task === kTeeTask.DrawAndCopy
         || Build.MV3 && task === kTeeTask.Paste ? "clipboard-write; clipboard-read" : ""
   if (port) {
-    portSendFgCmd(port, kFgCmd.callTee, 1, { u: CONST_.TeeFrame_, c: "R TEE UI", a: allow, t: 3000 }, 1)
+    portSendFgCmd(port, kFgCmd.callTee, 1, { u: CONST_.TeeFrame_, c: "R TEE UI", a: allow, t: 3000,
+        i: frames && port !== frames.cur_ && !(frames.cur_.s.flags_ & Frames.Flags.ResReleased)
+            ? frames.cur_.s.frameId_ : 0 }, 1)
   } else {
     let promise = deferred.promise_
     getCurWnd(false, (curWnd): void => {

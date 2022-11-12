@@ -98,11 +98,10 @@ declare const enum kFgReq {
   vomnibar, omni, copy, key, nextKey,
   marks, focusOrLaunch, cmd, removeSug, openImage,
   evalJSFallback,
-  /** can be used only with `FgCmdAcrossFrames` and when a fg command is just being called */
   gotoMainFrame, setOmniStyle, findFromVisual, framesGoBack,
   i18n, cssLearnt, visualMode, respondForRunKey, downloadLink, wait,
   optionToggled, keyFromOmni, pages, showUrl,
-  omniCopy, didLocalMarkTask, recheckTee, END,
+  omniCopy, didLocalMarkTask, recheckTee, afterTee, END,
   msg = 90, inject = 99,
   command = "command", id = "id", shortcut = "shortcut", focus = "focus", tip = "tip",
 }
@@ -495,6 +494,7 @@ interface CmdOptions {
     /** className */ c: string
     /** allow */ a: string
     /** timeout */ t: number
+    /** current frame's ID */ i: number
   }
 }
 
@@ -530,6 +530,7 @@ interface FgRes {
   [kFgReq.wait]: TimerType.fake
   [kFgReq.pages]: { /** id of query array */ i: number; /** answers */ a: unknown[] } | false
   [kFgReq.recheckTee]: /** has the TEE task been used */ boolean
+  [kFgReq.afterTee]: FrameMaskType
   [kFgReq.blank]: 0
 }
 interface FgReqWithRes {
@@ -549,6 +550,7 @@ interface FgReqWithRes {
   [kFgReq.wait]: number
   [kFgReq.pages]: FgReq[kFgReq.pages]
   [kFgReq.recheckTee]: 0
+  [kFgReq.afterTee]: /** iframe id; non-positive means on error */ number
   [kFgReq.blank]: 0
 }
 
@@ -731,7 +733,6 @@ interface FgReq {
   [kFgReq.pages]: { /** id of query array */ i: number; /** queries */ q: unknown[] }
   [kFgReq.showUrl]: { u: string }
   [kFgReq.omniCopy]: { /** title */ t: string, /** url */ u: string }
-  [kFgReq.recheckTee]: {}
 }
 
 interface CurrentEnvCache {} // eslint-disable-line @typescript-eslint/no-empty-interface
