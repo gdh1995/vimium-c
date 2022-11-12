@@ -442,7 +442,8 @@ const parseTree = (tokens_: readonly Token[], inNewFunc: boolean | undefined): O
   for (let pos_ = 0, before = T.block, cur: Token, type: T, topIsDict = false;
       pos_ < tokens_.length; before = type, pos_++) {
     cur = tokens_[pos_], type = cur.t
-    if (topIsDict && type & (T.prefix | T.action | T.fn | T.literal)) {
+    if (topIsDict && type & (T.prefix | T.action | T.fn | T.literal)
+        && !(before === T.comma && tokens_[pos_ - 2].t === T.ref && tokens_[pos_ - 2].v === "...")) {
       (cur.v as VarLiterals) = (cur.t === T.literal ? cur.v.v + ""
           : (cur as SomeTokens<T.prefix | T.action | T.fn>).v satisfies string) as "var1"
       type = (cur.t as T) = T.ref, Build.NDEBUG || ((cur.n as string) = "ref")
@@ -821,7 +822,7 @@ const evalNever = (op: BaseOp<O.block | O.statGroup | O.stat | O.pair>): void =>
     if (item.o === O.token && item.v === "...") {
       ++i
       const subArray = opEvals[opList[i].o](opList[i])
-      arr = arr.concat(subArray instanceof Array ? subArray : [].slice.call(subArray))
+      arr = arr.concat(subArray instanceof Array ? subArray : /** throwable */ [].slice.call(subArray))
     } else if (item.o === O.token && typeof item.v === "object" && item.v.v === kFakeValue) {
       arr.length += 1
     } else {

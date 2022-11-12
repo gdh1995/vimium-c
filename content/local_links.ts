@@ -452,7 +452,7 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
         if (shadow) {
           if (filter === getIfOnlyVisible) {
             const last = output.pop()
-            last && last[0] === el && testMatch(matchSelector!, last) && (output as Hint0[]).push(last)
+            !last || last[0] === el && !testMatch(matchSelector!, last) || (output as Hint0[]).push(last)
           }
           tree_scopes.push([cur_tree, cur_ind, extraClickable_])
           cur_tree = matchSafeElements(selector, shadow, matchSelector)
@@ -605,7 +605,7 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
       })
     }
   }
-  if (!OnFirefox && !OnEdge && ui_root && !wholeDoc
+  if (!OnFirefox && !OnEdge && ui_root && !wholeDoc && !(OnChrome && evenClosed_cr_ff)
       && (OnChrome && Build.MinCVer >= BrowserVer.MinShadowDOMV0 || ui_root !== ui_box)
       && (Build.NDEBUG && (!OnChrome || Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1)
           ? !notWantVUI : !notWantVUI && ui_root.mode === "closed")) {

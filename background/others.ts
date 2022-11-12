@@ -330,7 +330,7 @@ OnChrome && Build.OnBrowserNativePages && ((): void => {
   ntp = !IsEdg_ ? protocol + "//newtab/" : "", ntp2 = !IsEdg_ ? protocol + "//new-tab-page/" : ""
   const onCommitted = (nav: chrome.webNavigation.WebNavigationTransitionCallbackDetails): void => {
     if (nav.frameId === 0 && nav.url.startsWith(protocol)
-        && status & (nav.url.startsWith(ntp) || nav.url.startsWith(ntp2) ? 2 : 1) && !refreshTimer) {
+        && status & (!IsEdg_ && (nav.url.startsWith(ntp) || nav.url.startsWith(ntp2)) ? 2 : 1) && !refreshTimer) {
       runContentScriptsOn_(nav.tabId)
     }
   }

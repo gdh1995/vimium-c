@@ -306,6 +306,8 @@ var Tasks = {
     }
     if (!getBuildItem("OnBrowserNativePages")) {
       optional = optional.filter(i => { return !i.includes("chrome:") })
+      const hosts = manifest.host_permissions
+      hosts && (manifest.host_permissions = hosts.filter(i => { return !i.includes("chrome:") }))
     }
     if (!(browser & BrowserType.Chrome) || browser & ~BrowserType.Chrome && !locally || minVer < 35) {
       delete manifest.offline_enabled;

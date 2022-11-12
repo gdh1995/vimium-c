@@ -101,7 +101,14 @@ export class OptionalPermissionsOption_ extends Option_<"nextPatterns"> {
       i.previous_ = wanted
       if (OnChrome && Build.OnBrowserNativePages && i.name_ === kCrURL) {
         if (<boolean> bgSettings_.get_("allBrowserUrls") !== (wanted === 2)) {
-          void bgSettings_.set_("allBrowserUrls", wanted === 2)
+          waiting++
+          void Promise.resolve(bgSettings_.get_("allBrowserUrls")).then((allBrowserUrls): void => {
+            if (allBrowserUrls !== (wanted === 2)) {
+              bgSettings_.set_("allBrowserUrls", wanted === 2).then(tryRefreshing)
+            } else {
+              tryRefreshing()
+            }
+          })
         }
       }
       if (i.type_ === 2) {

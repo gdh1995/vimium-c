@@ -543,7 +543,7 @@ const MAX_KEEP_ALIVE = Build.NDEBUG ? 5 : 2
   for (const frames of listToRelease) {
     const doesRelease = !!(!Build.MV3 || frames.flags_ & Frames.Flags.ResReleased) && frames !== lastMaxFrames
     let hadIFrames = !!(frames.flags_ & Frames.Flags.HadIFrames) || frames.ports_.length > 1, failed: BOOL = 0
-    const stillAlive: Port[] = Build.MV3 ? null as never : []
+    const stillAlive: Port[] = []
     for (const port of frames.ports_) {
       if (Build.MV3 && !(port.s.flags_ & Frames.Flags.ResReleased)) {
         lastMaxVisit = -3

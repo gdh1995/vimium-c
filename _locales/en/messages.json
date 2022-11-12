@@ -106,7 +106,7 @@
   "111": { "message": "Vimium C uses the built-in Vomnibar page because the preferred is too old." },
   "112": { "message": "Some functions of Vimium C may not work because %o is sandboxed at %o." },
   "113": { "message": "Vimium C blocks auto-focusing on %s at %o." },
-  "116": { "message": ":is(a,area,link)[rel~=$1 i]" },
+  "114": { "message": ":is(a,area,link)[rel~=$1 i]" },
   "200": { "message": "http://www.w3.org/1999/xhtml" },
   "0": { "message": "Open link in current tab" },
   "2": { "message": "Open link in new tab" },

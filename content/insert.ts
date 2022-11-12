@@ -227,7 +227,8 @@ export const onFocus = (event: Event | FocusEvent): void => {
   // since BrowserVer.MinMaybeAutoFillInShadowDOM , Chrome will auto fill a password in a shadow tree
   if (lock_ && lock_ === (OnChrome ? deepActiveEl_unsafe_() : activeEl_unsafe_())) { return; }
   if (target === ui_box) { Stop_(event); return }
-  const sr = GetShadowRoot_(target as Element);
+  // on Edge 107 and MV3 mode, chrome.dom may throw `invalid extension context`
+  const sr = OnChrome ? safeCall(GetShadowRoot_, target as Element) : GetShadowRoot_(target as Element)
   if (sr) {
     const path = getEventPath(event)
     let topOfPath: EventTarget | undefined

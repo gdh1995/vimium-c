@@ -182,7 +182,7 @@ let optionsInit1_ = function (): void {
         if (OnChrome ? CurCVer_ >= parseInt(key.slice(1)) : key.includes("nonC")) { continue }
         const secondCond = key.split(",", 2)[1] || ","
         if (secondCond[0] === "." ? (window as Dict<any>)[secondCond.slice(1)] != null
-            : secondCond[0] === "(" && matchMedia(secondCond.slice(1, -1))) { continue }
+            : secondCond[0] === "(" && matchMedia(secondCond).matches) { continue }
         if (!OnChrome && secondCond[0] === ".") {
           nextTick_((el2): void => { el2.style.display = "none" }, el.parentElement as HTMLElement)
           continue

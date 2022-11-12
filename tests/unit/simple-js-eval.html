@@ -40,6 +40,8 @@ var setProto_1=Object.setPrototypeOf?function(opt){
 globalThis.Set=function(){setProto_1(this);this.map_=Object.create(null);this.isSet_=1;};
 globalThis.Map=function(){setProto_1(this);this.map_=Object.create(null);this.isSet_=0;};}
 })();
+typeof chrome !== "undefined" || (window.chrome = {});
+(chrome.runtime || (chrome.runtime={})).getManifest = function(){return {content_security_policy:{extension_pages:""}}}
     </script>
   </head>
   <body>
@@ -205,6 +207,7 @@ function onLoad() {
   VApi.v.noNative();
 
   // =============================== assert ===============================
+  assert(function () { return {...null, ...123} })
   assert(function () {
     return navigator.userAgent.match(/\bChrom(?:e|ium)\/(\d+)/)
   })
