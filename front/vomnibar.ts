@@ -779,7 +779,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     }
   },
   // b(2): left; d(4): right-extend-delete; e(5) / f(6): right; (7): right-extend; (8): left-extend
-  onWordAction_ (code: number, delayed?: boolean): void { // -1: delete a left word; -2: delete from current to start
+  // -1: delete a left word; -2: delete from current to start; -3: delete all
+  onWordAction_ (code: number, delayed?: boolean | BOOL, mode?: 1 | 2): void {
     const BTy = !Build.BTypes || Build.BTypes & (Build.BTypes - 1) ? Vomnibar_.browser_ : Build.BTypes as never
     const re = <RegExpOne> (!(Build.BTypes & BrowserType.Edge || Build.BTypes & BrowserType.Firefox
             && Build.MinFFVer < FirefoxBrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
@@ -798,7 +799,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     if (Build.BTypes & ~BrowserType.Firefox && (!(Build.BTypes & BrowserType.Firefox) || BTy !== BrowserType.Firefox)
         && !(Build.BTypes & BrowserType.Chrome && delayed)
         && !(code < -1 || isDel && input.selectionStart !== input.selectionEnd)) {
-      getSelection().modify(isExtend ? "extend" : "move", isRight ? "forward" : "backward", "word")
+      getSelection().modify(isExtend ? "extend" : "move", isRight?"forward":"backward", mode===2?"character":"word")
     }
     const { value: str, selectionStart: start, selectionEnd: end } = input
     let _toR = input.selectionDirection !== "backward", anchor0 = _toR ? start : end, focus1 = _toR ? end : start
@@ -806,7 +807,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     // test string: " a+ bc +dw+ef  + daf + ++  +++  sdf fas sdd  "
     if (code < -1) { // Cmd (+ Shift)? + backspace
       a2 = 0, focus = code < -2 ? str.length : end
-    } else if (isDel && anchor0 !== focus1) { // Ctrl + backspace / Alt+D
+    } else if (isDel && anchor0 !== focus1 || mode) { // Ctrl + backspace / Alt+D
     } else if (Build.BTypes & ~BrowserType.Firefox
         && (!(Build.BTypes & BrowserType.Firefox) || BTy !== BrowserType.Firefox)) {
       const notNewCr = !(Build.BTypes & BrowserType.Chrome && BTy & BrowserType.Chrome)
@@ -1018,10 +1019,16 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     if (event.ctrlKey || event.metaKey
         || (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
             ? !event.isTrusted : event.isTrusted === false)) { return; }
-    const a = Vomnibar_, deltaY = event.deltaY, now = Date.now(), mode = event.deltaMode;
-    if (a.isActive_ && a.inputBar_.contains(event.target as Element)) { return }
+    const a = Vomnibar_, deltaY = event.deltaY, now = Date.now(), mode = event.deltaMode
+    const target = event.target as Element, input = a.input_
+    if (a.isActive_ && target == input && !deltaY && (event.deltaX < 0 ? input.scrollLeft > 0
+        : input.scrollLeft + 1e-2 < input.scrollWidth - input.clientWidth)) { return }
     VUtils_.Stop_(event, 1);
-    if (event.deltaX || !deltaY || !a.isActive_ || a.isSearchOnTop_) { return }
+    if (deltaY && target === input) {
+      a.onWordAction_(deltaY < 0 ? 5 : 2, 0, mode === /* WheelEvent.DOM_DELTA_LINE */ 1 ? 1: 2)
+      return
+    }
+    if (event.deltaX || !deltaY || !a.isActive_ || a.isSearchOnTop_ || a.inputBar_.contains(target)) { return }
     if (now - a.wheelTime_ > (!mode /* WheelEvent.DOM_DELTA_PIXEL */
                               ? GlobalConsts.TouchpadTimeout : GlobalConsts.WheelTimeout)
         || now - a.wheelTime_ < -33) {
@@ -1179,7 +1186,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     const docEl = document.documentElement as HTMLHtmlElement
     const body = document.body as HTMLBodyElement
     const dark = omniStyles.includes(" dark ")
-    if (Build.BTypes & BrowserType.Firefox && Vomnibar_.options_.d) {
+    if (Build.BTypes & BrowserType.Firefox && Vomnibar_.options_.d && !omniStyles.includes(" ignore-filter ")) {
       Vomnibar_.darkBtn_ && (Vomnibar_.darkBtn_.style.display = "none")
       Vomnibar_.styles_ = omniStyles = (dark ? omniStyles.replace(" dark ", "") : omniStyles + "dark ") + " filtered "
     } else if (Vomnibar_.darkBtn_) {
