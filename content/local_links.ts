@@ -317,7 +317,7 @@ const addChildTrees = (parts: HintSources, allNodes: NodeListOf<SafeElement>): H
   const local_addChildFrame_ = addChildFrame_, hosts: SafeElement[] = []
   for (let i = 0, len = allNodes.length; i < len; i++) {
     let el = allNodes[i]
-    if (evenClosed ? OnFirefox ? (el as any).openOrClosedShadowRoot : GetShadowRoot_(el)
+    if (evenClosed_cr_ff ? OnFirefox ? (el as any).openOrClosedShadowRoot : GetShadowRoot_(el, 0)
         : (Build.BTypes & BrowserType.Chrome) && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
           && prefixedShadow_cr ? el.webkitShadowRoot : el.shadowRoot) {
       hosts.push(el)
@@ -371,7 +371,7 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
   textFilter: OtherFilterOptions["textFilter"] | void | RegExpI | RegExpOne | false = options.textFilter,
   matchAll = (!Build.NDEBUG && selector === "*" // for easier debugging
       ? selector = kSafeAllSelector : selector) === kSafeAllSelector && !matchSelector,
-  evenClosed = OnFirefox || OnChrome && (Build.MinCVer >= BrowserVer.Min$dom$$openOrClosedShadowRoot
+  evenClosed_cr_ff = OnFirefox || OnChrome && (Build.MinCVer >= BrowserVer.Min$dom$$openOrClosedShadowRoot
       || chromeVer_ > BrowserVer.Min$dom$$openOrClosedShadowRoot - 1) && !!options.closedShadow,
   clickableSelector = matchAll && options.clickable || null,
   clickableOnHost: string | null | undefined | void | false = matchAll && options.clickableOnHost,
@@ -445,7 +445,7 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
       const el: SafeElement = cur_tree[cur_ind++]
       if ("lang" in (el as ElementToHTML)) {
         filter(output, el as SafeHTMLElement)
-        const shadow = evenClosed ? OnFirefox ? (el as any).openOrClosedShadowRoot : GetShadowRoot_(el)
+        const shadow = evenClosed_cr_ff ? OnFirefox ? (el as any).openOrClosedShadowRoot : GetShadowRoot_(el, 0)
             : ((Build.BTypes & BrowserType.Chrome)
             && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0 && prefixedShadow_cr
             ? el.webkitShadowRoot : el.shadowRoot) as ShadowRoot | null | undefined;
@@ -606,8 +606,7 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
     }
   }
   if (!OnFirefox && !OnEdge && ui_root && !wholeDoc
-      && (OnChrome && Build.MinCVer >= BrowserVer.MinShadowDOMV0
-          || ui_root !== ui_box)
+      && (OnChrome && Build.MinCVer >= BrowserVer.MinShadowDOMV0 || ui_root !== ui_box)
       && (Build.NDEBUG && (!OnChrome || Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1)
           ? !notWantVUI : !notWantVUI && ui_root.mode === "closed")) {
     const bz = bZoom_, hasHookedScroll = scrolled

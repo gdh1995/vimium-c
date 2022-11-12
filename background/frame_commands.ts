@@ -523,9 +523,9 @@ export const framesGoBack = (req: FgReq[kFgReq.framesGoBack], port: Port | null,
         framesGoBack({ s: count, o: opts }, null, tab)
       }
       const newTabIdx = tab.index--
-      const wantedIdx = position === "end" ? 3e4 : newTabIndex(tab, position, false, true)
+      const wantedIdx = position === "end" ? -1 : newTabIndex(tab, position, false, true)
       if (wantedIdx != null && wantedIdx !== newTabIdx) {
-        Tabs_.move(tab.id, { index: wantedIdx }, runtimeError_)
+        Tabs_.move(tab.id, { index: wantedIdx === 3e4 ? -1 : wantedIdx }, runtimeError_)
       }
     })
   } else {

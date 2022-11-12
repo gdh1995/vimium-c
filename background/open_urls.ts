@@ -48,12 +48,12 @@ export const newTabIndex = (tab: Readonly<Tab>
     : doesGroup !== false && getGroupId(tab) != null
     // next to the current if no opener - in case of failing in setting group
     ? pos === "start" || pos === "begin" ? tab.index
-      : (pos satisfies "end" | UnknownValue) === "end" ? undefined
-      : OnFirefox && opener ? undefined : tab.index + 1
+      : pos === "end" ? undefined
+      : (pos satisfies UnknownValue, OnFirefox && opener) ? undefined : tab.index + 1
     : pos === "start" || pos === "begin" ? 0
-    : (pos satisfies "end" | UnknownValue) === "end" ? opener ? 3e4 : undefined
+    : pos === "end" ? opener ? 3e4 : undefined
     /** pos is undefined, or "default" */
-    : OnFirefox && opener ? undefined : tab.index + 1
+    : (pos satisfies UnknownValue, OnFirefox && opener) ? undefined : tab.index + 1
 
 export const preferLastWnd = <T extends Pick<Window, "id">> (wnds: T[]): T => {
   return wnds.find(i => i.id === lastWndId_) || wnds[wnds.length - 1]!

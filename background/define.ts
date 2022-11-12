@@ -24,10 +24,10 @@ globalThis.__filename = null
     // @ts-ignore
     const name = getName(__filename || ((document as HTMLDocument).currentScript as HTMLScriptElement).src)
     let exports = modules[name]
-    if (!(Build.NDEBUG || !exports || !exports.__esModule || exports instanceof Promise)) {
+    if (!(Build.NDEBUG || !exports || !exports.__esModule || !Build.MV3 && exports instanceof Promise)) {
       throw new Error(`module filenames must be unique: duplicated "${name}"`)
     }
-    if (exports && exports instanceof Promise) {
+    if (!Build.MV3 && exports && exports instanceof Promise) {
       const promise: LoadingPromise = exports.then((): void => {
         modules[name] = exports
         _innerDefine(name, depNames, factory, exports as {})
@@ -35,11 +35,12 @@ globalThis.__filename = null
       exports = promise.__esModule = exports.__esModule || {}
       modules[name] = promise
     } else {
-      _innerDefine(name, depNames, factory, exports || (modules[name] = {}))
+      _innerDefine(name, depNames, factory, exports as Exclude<typeof exports, Promise<any>> || (modules[name] = {}))
     }
   }
   const _innerDefine = (name: string, depNames: string[], factory: FactoryTy, exports: ModuleTy): void => {
-    const obj = factory.bind(null, doImport, exports).apply(null, depNames.slice(2).map(myRequire))
+    const obj = factory.bind(null, Build.MV3 ? null as never : doImport, exports
+        ).apply(null, depNames.slice(2).map(myRequire))
     if (!(Build.NDEBUG || !obj)) {
       throw new Error("Unexpected return-style module")
     }
@@ -49,7 +50,8 @@ globalThis.__filename = null
     name = getName(name)
     let exports = modules[name]
     exports = !exports ? modules[name] = {}
-        : exports instanceof Promise ? exports.__esModule || (exports.__esModule = {}) : exports
+        : !Build.MV3 && exports instanceof Promise ? exports.__esModule || (exports.__esModule = {})
+        : exports as Exclude<typeof exports, Promise<any>>
     return exports
   }
   const doImport: AsyncRequireTy = ([path], callback): void => {
@@ -75,8 +77,8 @@ globalThis.__filename = null
     exports instanceof Promise ? void exports.then(() => { doImport([path], callback) }) : callback(exports)
   }
   if (Build.MV3) { globalThis.__moduleMap = modules }
+  if (!Build.NDEBUG) { (globalThis as any).__importStar = (obj: {}): {} => obj }
   globalThis.define = myDefine;
-  (globalThis as any).__importStar = (obj: {}): {} => obj
 })()
 
 if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES$Object$$values$and$$entries

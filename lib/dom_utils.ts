@@ -154,7 +154,7 @@ export const SafeEl_not_ff_ = !OnFirefox ? function (
   (el: Element | null | void, type?: PNType.DirectElement): SafeElement | null | undefined
 } : 0 as never as null
 
-export const GetShadowRoot_ = (el: Element, noClosed_cr?: 1): ShadowRoot | null => {
+export const GetShadowRoot_ = (el: Element, noClosed_cr?: 1 | BOOL): ShadowRoot | null => {
     if (OnFirefox) {
       return Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1
           ? (el as any).openOrClosedShadowRoot : (el as any).openOrClosedShadowRoot || null

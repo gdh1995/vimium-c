@@ -247,7 +247,7 @@ export const moveTabToNewWindow = (resolve: OnCmdResolved): void | kBgCmd.moveTa
     }
     const curIncognito = activeTab.incognito
     const firstTab = tabs.includes(activeTab) ? activeTab : tabs[0]
-    const rightInOld = (getDestIndex(activeTab) ?? 3e4) <= activeTab.index
+    const rightInOld = (getDestIndex(activeTab) ?? activeTab.index + 1) <= activeTab.index
     const wndInit: Parameters<typeof makeWindow>[0] = { tabId: firstTab.id, incognito: curIncognito, focused }
     const wndState = wnd.type === "normal" ? wnd.state : ""
     void findNearShownTab_(tabs[rightInOld ? tabs.length - 1 : 0], rightInOld, allTabs).then((nearInOld): void => {
