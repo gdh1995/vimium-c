@@ -153,11 +153,12 @@ const pageRequestHandlers_: {
   /** kPgReq.popupInit: */ (): Promise<PgReq[kPgReq.popupInit][1]> => {
     const oldRef = !(OnChrome && Build.MinCVer < BrowserVer.MinWithFrameId && CurCVer_ < BrowserVer.MinWithFrameId)
         && curTabId_ >= 0 && framesForTab_.get(curTabId_) || null
-    const oldTabId = oldRef ? curTabId_ : -1, oldFrameId = oldRef ? oldRef.cur_.s.frameId_ : 0
-    const webNav = oldFrameId && browserWebNav_() || null
+    const oldTabId = oldRef ? curTabId_ : -1, oldFrameId = oldRef ? oldRef.cur_.s.frameId_ : -1
+    const webNav = oldFrameId >= 0 && browserWebNav_() || null
     return Promise.all([
-        Q_(getCurTab).then(tabs => tabs && tabs.length ? tabs : Q_(tabsGet, oldTabId).then(i => i && [i])),
-        webNav && Q_(webNav.getFrame, { tabId: curTabId_, frameId: oldFrameId }),
+        Q_(getCurTab).then(tabs => tabs && tabs.length ? tabs : oldTabId < 0 ? null
+            : Q_(tabsGet, oldTabId).then(i => i && [i])),
+        webNav ? Q_(webNav.getFrame, { tabId: oldTabId, frameId: oldFrameId }) : null,
         restoreSettings_
     ]).then(([_tabs, frameInfo]): PgReq[kPgReq.popupInit][1] => {
       const tab = _tabs && _tabs[0] || null, tabId = tab ? tab.id : curTabId_

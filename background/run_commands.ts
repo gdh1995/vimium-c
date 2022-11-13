@@ -4,7 +4,7 @@ import {
 } from "./store"
 import * as BgUtils_ from "./utils"
 import { Tabs_, runtimeError_, getCurTab, getCurShownTabs_, tabsGet } from "./browser"
-import { ensureInnerCSS, ensuredExitAllGrab, indexFrame, showHUD, getCurFrames_ } from "./ports"
+import { ensureInnerCSS, ensuredExitAllGrab, indexFrame, showHUD, getCurFrames_, refreshPorts_ } from "./ports"
 import { getI18nJson, trans_ } from "./i18n"
 import {
   shortcutRegistry_, normalizedOptions_, availableCommands_,
@@ -349,10 +349,11 @@ export const executeShortcut = (shortcutName: StandardShortcutNames, ref: Frames
   const isRunKey = registry.alias_ === kBgCmd.runKey && registry.background_
   if (isRunKey) { inlineRunKey_(registry) }
   setupSingletonCmdTimer(0)
-  if (ref) {
+  if (ref && !(ref.cur_.s.flags_ & Frames.Flags.ResReleased)) {
     let port = ref.cur_
     setupSingletonCmdTimer(setTimeout(executeShortcut, 100, shortcutName, null))
     port.postMessage({ N: kBgReq.count, c: shortcutName, i: _gCmdTimer, m: "" })
+    ref.flags_ & Frames.Flags.ResReleased && refreshPorts_(ref, 0)
     ensuredExitAllGrab(ref)
     return
   }

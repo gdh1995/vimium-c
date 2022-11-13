@@ -291,7 +291,7 @@ Build.MV3 || setTimeout((): void => {
     getCurWnd(false, (wnd): void => {
       const width = wnd && wnd.width;
       maxChars = width
-        ? Math.floor((width - OmniboxData.MarginH / devicePixelRatio) / OmniboxData.MeanWidthOfChar)
+        ? Math.floor((width - OmniboxData.MarginH / (Build.MV3 ? 1 : devicePixelRatio)) / OmniboxData.MeanWidthOfChar)
         : OmniboxData.DefaultMaxChars;
     });
     if (!msg_inited) {

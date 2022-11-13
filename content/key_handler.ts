@@ -10,7 +10,7 @@ import {
   deepActiveEl_unsafe_, getSelection_, ElementProto_not_ff, getElDesc_, blur_unsafe, getEventPath
 } from "../lib/dom_utils"
 import { wndSize_ } from "../lib/rect"
-import { post_ } from "./port"
+import { post_, runtimeConnect, runtime_port } from "./port"
 import { removeSelection } from "./dom_ui"
 import {
   exitInsertMode, focusUpper, insert_global_, insert_Lock_, findNewEditable, passAsNormal, raw_insert_lock,
@@ -122,6 +122,7 @@ export const checkKey = ((event: HandlerNS.Event, key: string
   }
   currentKeys += key2.length > 1 ? `<${key2}>` : key2
   if (j === KeyAction.cmd) {
+    if (Build.NDEBUG) { runtime_port || runtimeConnect() }
     post_({ H: kFgReq.key, k: currentKeys, l: event.i, e: getElDesc_(raw_insert_lock) });
     esc!(HandlerResult.Prevent);
     isCmdTriggered = event.i || kKeyCode.True

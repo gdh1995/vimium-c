@@ -3,7 +3,7 @@ import {
   framesForOmni_, getNextFakeTabId, curTabId_, vomnibarPage_f, OnChrome, CurCVer_, OnEdge, setIcon_,
   keyFSM_, mappedKeyRegistry_, CONST_, mappedKeyTypes_, recencyForTab_, setTeeTask_
 } from "./store"
-import { asyncIter_, deferPromise_, getOmniSecret_, keys_ } from "./utils"
+import { asyncIter_, deferPromise_, getOmniSecret_, isNotPriviledged, keys_ } from "./utils"
 import {
   removeTempTab, tabsGet, runtimeError_, getCurTab, getTabUrl, browserWebNav_, Q_, executeScript_, getFindCSS_cr_,
   selectTab, selectWndIfNeed
@@ -514,7 +514,7 @@ const MAX_KEEP_ALIVE = Build.NDEBUG ? 5 : 2
         ? visited[Math.min(MAX_KEEP_ALIVE, visited.length - 1)] : 0) - 1000
   }
   let lastMaxVisit = -1, lastMaxFrames: Frames.Frames | null = null
-  const listToRelease: Frames.Frames[] = [], protocol = OnChrome ? "chrome" : location.protocol
+  const listToRelease: Frames.Frames[] = []
   framesForTab_.forEach((frames, tabId): void => {
     const ports = frames.ports_
     if (!(Build.MV3 && lastMaxVisit >= 0) && !ports.length) { return }
@@ -534,7 +534,7 @@ const MAX_KEEP_ALIVE = Build.NDEBUG ? 5 : 2
     if (!hasOld) { Build.MV3 && ports.length && (lastMaxVisit = -2); return }
     const doesRelease: boolean = visit < oldestToKeepAlive && tabId !== curTabId_
         && (ports.length === 1 && !(frames.flags_ & Frames.Flags.HadIFrames) && ports[0] === frames.top_
-             || ports.some(i => !i.s.url_.startsWith(protocol)))
+             || ports.some(isNotPriviledged))
     if (Build.MV3 ? ports.length : doesRelease) {
       Build.MV3 && !doesRelease || (frames.flags_ = Frames.Flags.ResReleased)
       listToRelease.push(frames)
@@ -548,7 +548,7 @@ const MAX_KEEP_ALIVE = Build.NDEBUG ? 5 : 2
       if (Build.MV3 && !(port.s.flags_ & Frames.Flags.ResReleased)) {
         lastMaxVisit = -3
         stillAlive.push(port)
-      } else if (doesRelease && !(hadIFrames && port.s.url_.startsWith(protocol))) {
+      } else if (doesRelease && (!hadIFrames || isNotPriviledged(port))) {
         port.disconnect()
         Build.MV3 || (port.s.flags_ |= Frames.Flags.ResReleased)
         port.s.frameId_ && (frames.flags_ |= Frames.Flags.HadIFrames)
@@ -572,6 +572,7 @@ const MAX_KEEP_ALIVE = Build.NDEBUG ? 5 : 2
 }, RELEASE_TIMEOUT / 2)
 
 export const refreshPorts_ = Build.MV3 || Build.LessPorts ? (frames: Frames.Frames, forced: BOOL): void => {
+  if (!(frames.flags_ & Frames.Flags.HadIFrames) && !isNotPriviledged(frames.cur_)) { return }
   if (!Build.NDEBUG && DEBUG) {
     console.log("refresh ports: tab=%o, forced=%o, flags=%o, ports=%o", frames.cur_.s.tabId_, forced
         , frames.flags_, frames.ports_.length)
