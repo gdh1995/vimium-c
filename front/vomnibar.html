@@ -8,11 +8,11 @@
 body{border-radius:5px;box-shadow:0 2px 7px 0.5px rgba(0,0,0,0.8);contain:content;margin:9px 12px 10px;
 overflow:hidden;padding:0;position:relative;white-space:nowrap;}
 body::after{border:0.5px solid #555;border-radius:5px;bottom:0;left:0;pointer-events:none;position:fixed;right:0;top:0;}
-.blurred{opacity:0.6667;transition:opacity 167ms 33ms;}
+.inactive{opacity:0.6667;transition:opacity 167ms 33ms;}
 #bar{background:#f1f1f1;border-bottom:1px dashed #ccc;border-radius:4px 4px 0 0;
 contain:strict;font-size:0;height:34px;padding:10px;}#bar.empty{border-radius:4px;border:none;}
 #toolbar{color:#999;opacity:0;position:absolute;right:17px;top:17px;transition:opacity 120ms 80ms;}
-#toolbar,.label{-webkit-user-select:none;user-select:none;}#toolbar:hover,.blurred #toolbar{opacity:1;}
+#toolbar,.label{-webkit-user-select:none;user-select:none;}#toolbar:hover,.inactive #toolbar{opacity:1;}
 .button{contain:strict;cursor:default;display:inline-block;fill:currentColor;height:20px;margin-left:4px;
 stroke:currentColor;width:20px;}.button:hover{border-radius:5px;background:rgba(255,255,255,0.8);color:#666;}
 #input{background:#fff;border:0.5px solid #e8e8e8;border-radius:3px;box-shadow:0 0 1.5px #444;box-sizing:border-box;
@@ -40,7 +40,7 @@ match{color:#000;font-weight:bold;}.title>match{text-decoration:underline;}
 .i-sun{stroke-width:2.1}#toggle-dark:not(.toggled) .i-sun,#toggle-dark.toggled .i-moon{visibility:hidden;}
 #close{stroke-linecap:round;stroke-linejoin:round;stroke-width:2.4;}
 .level-2{padding-right:32px;}.level-3{padding-right:48px;}.level-4{padding-right:60px;}.level-5{padding-right:72px;}
-.less-motion .blurred, .less-motion #toolbar{transition:none;}
+.less-motion .inactive, .less-motion #toolbar{transition:none;}
 .tab{d:path("M2 22v36h44V22zm8 0v-8h44v36h-6m8 -8h6V6H18v6");}
 .math{d:path("M2 2h60v60H2zm8 8H54V22H10zm0 20h8v8h-8zm0 16h8v8h-8zm16 0h8v8H26zM26 30h8v8h-8zm16 0h12v24h-12z");}
 .bookm{d:path("M32 0l8 20 24 2-20 14 6 26-18-14-20 14 8-26L0 22l24-2");}
@@ -50,7 +50,7 @@ match{color:#000;font-weight:bold;}.title>match{text-decoration:underline;}
 </style>
 	<style data-media="(forced-colors: active), (-ms-high-contrast: active)" id="high-contrast">
 *{border-radius:0 !important;}body::after{content:"";border-radius:0;}
-.blurred,#toolbar{opacity:1;}#toggle-dark{display:none;}.btn_svg{stroke:#999;}:hover>.btn_svg{stroke:currentColor;}
+.inactive,#toolbar{opacity:1;}#toggle-dark{display:none;}.btn_svg{stroke:#999;}:hover>.btn_svg{stroke:currentColor;}
 .s,.item:hover{border-bottom-style:solid;}.s>.top,:hover>.top{font-weight:bold;--vc-c:currentColor;}
 </style>
 	<style id="dark">

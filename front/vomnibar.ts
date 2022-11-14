@@ -1291,7 +1291,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     !Vomnibar_.isActive_ || (blurred != null ? !blurred : (Build.MinCVer < BrowserVer.Min$document$$hidden
             && Build.BTypes & BrowserType.Chrome && Vomnibar_.browserVer_ < BrowserVer.Min$document$$hidden
             ? doc.webkitHidden : doc.hidden) || doc.hasFocus())
-      ? a.remove("blurred", kTransparent) : a.add("blurred", kTransparent)
+      ? a.remove("inactive", kTransparent) : a.add("inactive", kTransparent)
   },
   init_ (): void {
     const a = Vomnibar_;
