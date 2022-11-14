@@ -45,13 +45,13 @@ export const isTabMuted = OnChrome && Build.MinCVer < BrowserVer.MinMutedInfo &&
     ? (maybe_muted: Tab): boolean => maybe_muted.muted!
     : OnEdge ? (_tab: Tab) => false : (maybe_muted: Tab): boolean => maybe_muted.mutedInfo.muted
 
-export const getCurTab = Tabs_.query.bind(null, { active: true, currentWindow: true }
+export const getCurTab = Tabs_.query.bind(null, { active: true, lastFocusedWindow: true }
   ) as (callback: (result: [Tab], _ex: FakeArg) => void) => 1
 
-export const getCurTabs = Tabs_.query.bind(null, {currentWindow: true})
+export const getCurTabs = Tabs_.query.bind(null, {lastFocusedWindow: true})
 
 export const getCurShownTabs_ = OnFirefox
-    ? Tabs_.query.bind(null, { currentWindow: true, hidden: false }) : getCurTabs
+    ? Tabs_.query.bind(null, { lastFocusedWindow: true, hidden: false }) : getCurTabs
 
 export const isNotHidden_ = OnFirefox ? (tab: Tab): boolean => !tab.hidden : () => true
 

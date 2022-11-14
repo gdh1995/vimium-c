@@ -68,7 +68,7 @@ export const copyWindowInfo = (resolve: OnCmdResolved): void | kBgCmd.copyWindow
   }
   // include those hidden on Firefox
   Tabs_.query(type === "browser" ? {windowType: "normal"} : { active: type !== "window" && !wantNTabs || void 0,
-          currentWindow: true }, (tabs): void => {
+          lastFocusedWindow: true }, (tabs): void => {
     if ((!type || type !== "browser" && type !== "window" && type !== "tab" && typeof type === "string")
         && !rawFormat) {
       const s = type === "title" ? tabs[0].title : !type || type === "frame" || type === "url" ? getTabUrl(tabs[0])
