@@ -220,6 +220,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   wheelTime_: 0,
   wheelDelta_: 0,
   wheelSpeed_: 1,
+  wheelMinStep_: 0,
   browser_: Build.BTypes && !(Build.BTypes & (Build.BTypes - 1)) ? Build.BTypes as never : BrowserType.Chrome,
   browserVer_: BrowserVer.assumedVer,
   isEdg_: false,
@@ -808,7 +809,9 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     // test string: " a+ bc +dw+ef  + daf + ++  +++  sdf fas sdd  "
     if (code < -1) { // Cmd (+ Shift)? + backspace
       a2 = 0, focus = code < -2 ? str.length : end
-    } else if (isDel && anchor0 !== focus1 || mode) { // Ctrl + backspace / Alt+D
+    } else if (isDel && anchor0 !== focus1) { // Ctrl + backspace / Alt+D
+    } else if (Build.BTypes & ~BrowserType.Firefox
+        && (!(Build.BTypes & BrowserType.Firefox) || BTy !== BrowserType.Firefox) && mode) { /* empty */
     } else if (Build.BTypes & ~BrowserType.Firefox
         && (!(Build.BTypes & BrowserType.Firefox) || BTy !== BrowserType.Firefox)) {
       const notNewCr = !(Build.BTypes & BrowserType.Chrome && BTy & BrowserType.Chrome)
@@ -822,6 +825,9 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         focus = input.selectionDirection !== "backward" ? input.selectionEnd : input.selectionStart
       }
       notNewCr || (focus1 = focus)
+    } else if (mode === 2) {
+      focus += isRight ? focus < str.length ? 1 : 0 : focus > 0 ? -1 : 0
+      focus += focus < str.length && (<RegExpOne> /[\udc00-\udcff]/).test(str[focus]) ? isRight ? 1 : -1 : 0
     } else if (isRight) {
       let arr = re.exec(str.slice(focus)), i1 = arr ? arr.index : 0
       s1 = arr ? arr[0] : ""
@@ -1020,29 +1026,33 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     if (event.ctrlKey || event.metaKey
         || (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
             ? !event.isTrusted : event.isTrusted === false)) { return; }
-    const a = Vomnibar_, deltaY = event.deltaY, now = Date.now(), mode = event.deltaMode
+    const a = Vomnibar_, deltaY = event.deltaY, deltaX = event.deltaX, now = Date.now(), mode = event.deltaMode
     const target = event.target as Element, input = a.input_
     if (a.isActive_ && target == input && !deltaY && (event.deltaX < 0 ? input.scrollLeft > 0
         : input.scrollLeft + 1e-2 < input.scrollWidth - input.clientWidth)) { return }
     VUtils_.Stop_(event, 1);
+    const absDelta = Math.abs(deltaY || deltaX)
+    const notTouchpad = mode === /* WheelEvent.DOM_DELTA_LINE */ 1 || !mode && !(deltaX * deltaY)
+        && (a.wheelMinStep_ ? absDelta >= Math.abs(a.wheelMinStep_) : (absDelta % 10) === 0 && absDelta >= 150)
     if (deltaY && target === input) {
-      a.onWordAction_(deltaY < 0 ? 5 : 2, 0, mode === /* WheelEvent.DOM_DELTA_LINE */ 1 ? 1: 2)
+      a.onWordAction_((deltaY < 0) !== (notTouchpad !== (a.wheelMinStep_ < 0)) ? 5 : 2, 0, notTouchpad ? 1: 2)
       return
     }
     if (event.deltaX || !deltaY || !a.isActive_ || a.isSearchOnTop_ || a.inputBar_.contains(target)) { return }
-    if (now - a.wheelTime_ > (!mode /* WheelEvent.DOM_DELTA_PIXEL */
+    if (now - a.wheelTime_ > (!mode && !notTouchpad
                               ? GlobalConsts.TouchpadTimeout : GlobalConsts.WheelTimeout)
         || now - a.wheelTime_ < -33) {
       a.wheelDelta_ = 0;
       a.wheelStart_ = 0;
     }
     a.wheelTime_ = now;
-    let total = a.wheelDelta_ + (mode ? mode === /* WheelEvent.DOM_DELTA_LINE */ 1
+    let scale = Math.max(1, 1 + Math.log(a.wheelSpeed_)), total = a.wheelDelta_ + (notTouchpad
           ? deltaY * (GlobalConsts.VomnibarWheelStepForPage / 3) * a.wheelSpeed_
-          : /* WheelEvent.DOM_DELTA_PAGE */ deltaY * GlobalConsts.VomnibarWheelStepForPage : deltaY * a.wheelSpeed_)
+          : notTouchpad || mode ? /* WheelEvent.DOM_DELTA_PAGE */ deltaY * GlobalConsts.VomnibarWheelStepForPage
+          : deltaY * scale)
     if (Math.abs(total) < GlobalConsts.VomnibarWheelStepForPage
         || a.wheelStart_ && now - a.wheelStart_ > -33 && now - a.wheelStart_ <
-            GlobalConsts.VomnibarWheelIntervalForPage / Math.max(1, 1 + Math.log(a.wheelSpeed_))
+            GlobalConsts.VomnibarWheelIntervalForPage / scale
     ) {
       a.wheelDelta_ = total;
       return;
@@ -1218,8 +1228,11 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       }
     }
     Vomnibar_.wheelSpeed_ = 1
+    Vomnibar_.wheelMinStep_ = Build.BTypes & BrowserType.Chrome && (!(Build.BTypes & ~BrowserType.Chrome)
+            || Vomnibar_.browser_ === BrowserType.Chrome) ? 0 : 120
     omniStyles = omniStyles.replace(<RegExpG & RegExpSearchable<2>> /\b([\w-]+)=([\w.]+)/g, (_, key, val): string => {
-      key === "wheel-speed" && (Vomnibar_.wheelSpeed_ = Math.max(0.1, Math.min(parseFloat(val) || 1), 10))
+      key === "wheel-speed" && (Vomnibar_.wheelSpeed_ = Math.max(0.1, Math.min(parseFloat(val) || 1, 10)))
+      key === "wheel-min-step" && (Vomnibar_.wheelMinStep_ = Math.max(-2e3, Math.min(parseInt(val) || 0, 2e3)))
       return ""
     })
     omniStyles = omniStyles.trim().replace(Vomnibar_.spacesRe_, " ");
