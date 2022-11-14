@@ -1,6 +1,6 @@
 import {
   clickable_, timeout_, loc_, getTime, clearTimeout_, vApi, recordLog, doc, setupEventListener, VTr, raw_unwrap_ff,
-  isTY, OnFirefox, isAsContent, isEnabled_, reflectApply_not_cr
+  isTY, OnFirefox, isAsContent, isEnabled_, reflectApply_not_cr, fgCache
 } from "../lib/utils"
 import {
   CLK, MDW, OnDocLoaded_, isHTML_, set_createElement_, createElement_, onReadyState_, dispatchEvent_
@@ -53,7 +53,7 @@ export const main_ff = (OnFirefox ? (): void => {
     const first = doc.readyState < "l" && (isWrite || args.length < 3) && self === doc
     const oriHref = Build.NDEBUG || !first ? "" : location.host && location.pathname || location.href
     const ret = reflectApply_not_cr!(isWrite ? _docWrite : _docOpen, self, args)
-    if (first && isEnabled_) {
+    if (first && (isEnabled_ || !fgCache)) {
       hookOnWnd(HookAction.Install)
       insertInit()
       timeout_(onReadyState_, 18)

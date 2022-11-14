@@ -1,7 +1,7 @@
 import {
   clickable_, setupEventListener, timeout_, doc, isAlive_, set_noRAF_old_cr_, math, isTop, OnChrome, readyState_,
   loc_, getTime, recordLog, VTr, vApi, Stop_, isTY, OnEdge, abs_, isEnabled_, interval_, clearTimeout_, clearInterval_,
-  setupTimerFunc_cr_mv3
+  setupTimerFunc_cr_mv3, fgCache
 } from "../lib/utils"
 import {
   createElement_, set_createElement_, OnDocLoaded_, runJS_, rAF_, removeEl_s, dispatchEvent_,
@@ -97,7 +97,7 @@ export const main_not_ff = (Build.BTypes & ~BrowserType.Firefox ? (): void => {
     if (detail) {
       for (const index of detail[0]) {
         if (!Build.NDEBUG && index === InnerConsts.SignalDocWrite || index === InnerConsts.SignalDocOpen) {
-          if (isEnabled_) {
+          if (isEnabled_ || !fgCache) {
             hookOnWnd(HookAction.Install)
             setupEventListener(0, kVOnClick1, onClick)
             insertInit()

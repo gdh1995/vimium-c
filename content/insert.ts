@@ -33,8 +33,8 @@ let suppressType: string | 0 = 0
 let insert_last_: WeakRef<LockableElement> | null | undefined
 let is_last_mutable: BOOL = 1
 let lastWndFocusTime = 0
-// the `readyState_ > "c"` is just to grab focus on `chrome://*/*` URLs
-let grabBackFocus: boolean | ((event: Event, target: LockableElement) => void) = readyState_ > (OnChrome ? "i" : "l")
+// the `readyState_ > "i"` is to grab focus on `chrome://*/*` URLs and `about:*` iframes
+let grabBackFocus: boolean | ((event: Event, target: LockableElement) => void) = readyState_ > "i"
 let onExitSuppress: ((this: void) => void) | 0 | undefined
 let onWndBlur2: ((this: void) => void) | undefined | null
 let passAsNormal: BOOL = 0
