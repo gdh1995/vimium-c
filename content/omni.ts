@@ -45,7 +45,7 @@ let canUseVW: boolean
 let screenHeight_: number
 let maxOutHeight_ = 99
 
-export { box as omni_box, status as omni_status }
+export { box as omni_box, status as omni_status, dialog_non_ff as omni_dialog_non_ff }
 
 type InnerHide = (fromInner?: BOOL | null) => void
 export const hide: (fromInner?: 0 | null | undefined) => void = <InnerHide> ((fromInner): void => {
@@ -308,7 +308,7 @@ const refreshKeyHandler = (): void => {
     status = Status.ToShow
   }
   toggleClass_s(box!, "O2", !canUseVW)
-  options.e && setupExitOnClick(kExitOnClick.vomnibar)
+  ; (!OnFirefox && WithDialog && dialog_non_ff || options.e) && setupExitOnClick(kExitOnClick.vomnibar)
   if (url != null) {
     url = options.url = url || options.u
     upper = count > 1 ? 1 - count : count < 0 ? -count : 0

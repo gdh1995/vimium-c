@@ -11,7 +11,7 @@ import {
 } from "../lib/dom_utils"
 import { wndSize_ } from "../lib/rect"
 import { post_, runtimeConnect, runtime_port } from "./port"
-import { removeSelection } from "./dom_ui"
+import { doExitOnClick_, removeSelection, toExitOnClick_ } from "./dom_ui"
 import {
   exitInsertMode, focusUpper, insert_global_, insert_Lock_, findNewEditable, passAsNormal, raw_insert_lock,
   setupSuppress, suppressType,
@@ -42,8 +42,7 @@ set_esc(function<T extends Exclude<HandlerResult, HandlerResult.ExitNormalMode>>
 })
 
 export {
-  passKeys, keyFSM, mappedKeys, currentKeys,
-  isWaitingAccessKey, isCmdTriggered, anyClickHandler,
+  passKeys, keyFSM, mappedKeys, currentKeys, isWaitingAccessKey, isCmdTriggered, anyClickHandler,
   onPassKey, isPassKeysReversed,
 }
 export function set_isCmdTriggered (_newTriggerred: kKeyCode): kKeyCode { return isCmdTriggered = _newTriggerred }
@@ -174,14 +173,14 @@ const checkAccessKey_cr = OnChrome ? (event: HandlerNS.Event): void => {
         && getKeyStat_(event.e, 1) /* Chrome ignore .shiftKey */ ===
             (Build.OS & ~(1 << kOS.mac) && os_ ? KeyStat.altKey : KeyStat.altKey | KeyStat.ctrlKey)
         ) {
-      resetAnyClickHandler(!isWaitingAccessKey)
+      resetAnyClickHandler_cr(!isWaitingAccessKey)
     }
   }
 } : 0 as never
 
-export const resetAnyClickHandler = (enable?: boolean): void => {
+export const resetAnyClickHandler_cr = (enable?: boolean): void => {
   isWaitingAccessKey = !!enable
-  anyClickHandler.handleEvent = enable ? /*#__NOINLINE__*/ onAnyClick_cr : noopEventHandler
+  anyClickHandler.handleEvent = enable ? onAnyClick_cr : toExitOnClick_ ? doExitOnClick_ : noopEventHandler
 }
 
 const onAnyClick_cr = OnChrome ? (event: MouseEventToPrevent): void => {
@@ -198,7 +197,7 @@ const onAnyClick_cr = OnChrome ? (event: MouseEventToPrevent): void => {
         ? path![0] as Element : event.target as Element;
     if (ElementProto_not_ff!.getAttribute.call(t, "accesskey")) {
       // if a script has modified [accesskey], then do nothing on - just in case.
-      /*#__NOINLINE__*/ resetAnyClickHandler();
+      /*#__NOINLINE__*/ resetAnyClickHandler_cr();
       prevent_(event);
       if (Build.MinCVer >= BrowserVer.MinAccessKeyCausesFocus || chromeVer_ > BrowserVer.MinAccessKeyCausesFocus - 1) {
         blur_unsafe(t)
@@ -219,7 +218,7 @@ export const onKeydown = (event: KeyboardEventToPrevent): void => {
     OnChrome && checkAccessKey_cr(eventWrapper)
     return;
   }
-  OnChrome && isWaitingAccessKey && /*#__NOINLINE__*/ resetAnyClickHandler()
+  OnChrome && isWaitingAccessKey && /*#__NOINLINE__*/ resetAnyClickHandler_cr()
   OnFirefox && raw_insert_lock && insert_Lock_()
   let action = HandlerResult.Nothing, keyStr: string;
   for (let ind = handler_stack.length; 0 < ind && action === HandlerResult.Nothing; ) {
@@ -320,7 +319,7 @@ export const onKeyup = (event: KeyboardEventToPrevent): void => {
     scrollTick(0);
   }
   isCmdTriggered = kKeyCode.None
-  OnChrome && isWaitingAccessKey && /*#__NOINLINE__*/ resetAnyClickHandler()
+  OnChrome && isWaitingAccessKey && /*#__NOINLINE__*/ resetAnyClickHandler_cr()
   if (suppressType && getSelection_().type !== suppressType) {
     setupSuppress();
   }

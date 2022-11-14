@@ -155,6 +155,7 @@ export const SafeEl_not_ff_ = !OnFirefox ? function (
 } : 0 as never as null
 
 export const GetShadowRoot_ = (el: Element, noClosed_cr?: 1 | BOOL): ShadowRoot | null => {
+    let sr: Element["shadowRoot"] | Element["webkitShadowRoot"]
     if (OnFirefox) {
       return Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1
           ? (el as any).openOrClosedShadowRoot : (el as any).openOrClosedShadowRoot || null
@@ -166,7 +167,7 @@ export const GetShadowRoot_ = (el: Element, noClosed_cr?: 1 | BOOL): ShadowRoot 
       }
     }
     // Note: .webkitShadowRoot and .shadowRoot share a same object
-    const sr = OnChrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
+    sr = OnChrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
         && chromeVer_ < BrowserVer.MinEnsuredUnprefixedShadowDOMV0 ? el.webkitShadowRoot : el.shadowRoot;
     // according to https://developer.mozilla.org/en-US/docs/Web/API/Element/attachShadow,
     // <form> and <frameset> can not have shadowRoot

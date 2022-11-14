@@ -7,7 +7,7 @@ import { post_, runFallbackKey, safePost } from "./port"
 import { getParentVApi, ui_box, ui_root } from "./dom_ui"
 import { hudHide } from "./hud"
 import { setNewScrolling, scrollTick } from "./scroller"
-import { set_isCmdTriggered, resetAnyClickHandler, onPassKey } from "./key_handler"
+import { set_isCmdTriggered, resetAnyClickHandler_cr, onPassKey } from "./key_handler"
 import {
   activeEl_unsafe_, getEditableType_, GetShadowRoot_, getSelection_, frameElement_, deepActiveEl_unsafe_, blur_unsafe,
   SafeEl_not_ff_, MDW, fullscreenEl_unsafe_, removeEl_s, isNode_, BU, docHasFocus_, getRootNode_mounted, testMatch,
@@ -343,9 +343,7 @@ const onWndBlur = (): void => {
     set_keydownEvents_(safeObj<any>(null))
   }
   set_isCmdTriggered(kKeyCode.None)
-  if (OnChrome) {
-    /*#__NOINLINE__*/ resetAnyClickHandler();
-  }
+  OnChrome && /*#__NOINLINE__*/ resetAnyClickHandler_cr()
   injector || (<RegExpOne> /a?/).test("");
   esc!(HandlerResult.ExitNormalMode);
 }
