@@ -86,7 +86,7 @@ export type AddChildDirectly = (officer: BaseHintWorker, el: KnownIFrameElement,
 import {
   VTr, isAlive_, isEnabled_, setupEventListener, keydownEvents_, set_keydownEvents_, timeout_, max_, min_, abs_, OnEdge,
   clearTimeout_, fgCache, doc, readyState_, chromeVer_, vApi, deref_, getTime, unwrap_ff, OnFirefox, OnChrome,
-  WithDialog, Lower, safeCall, locHref, os_, firefoxVer_, weakRef_not_ff, weakRef_ff, isTY
+  WithDialog, Lower, safeCall, os_, firefoxVer_, weakRef_not_ff, weakRef_ff, isTY, isIFrameInNullOrigin
 } from "../lib/utils"
 import {
   querySelector_unsafe_, isHTML_, scrollingEl_, docEl_unsafe_, IsInDOM_, GetParent_unsafe_, hasInCSSFilter_,derefInDoc_,
@@ -295,7 +295,7 @@ const collectFrameHints = (options: ContentOptions, count: number
 const render: BaseHintWorker["r"] = (hints, arr, raw_apis): void => {
     const managerOrA = manager_ || coreHints;
     let body = doc.body
-    if (manager_ && (body && htmlTag_(body) && body.isContentEditable || locHref().startsWith("about"))) {
+    if (manager_ && (body && htmlTag_(body) && body.isContentEditable || isIFrameInNullOrigin)) {
       hookOnWnd(HookAction.Install)
     }
     removeBox()

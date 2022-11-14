@@ -120,6 +120,7 @@ declare const enum BrowserVer {
   MinEnsuredES6$String$$StartsWithEndsWithRepeatAndIncludes = 43, // even if LEGACY
   MinSafe$String$$StartsWith = MinEnsuredES6$String$$StartsWithEndsWithRepeatAndIncludes,
   MinEnsuredES6$String$$fromCodePoint = 43, // even if LEGACY; since C41 if not
+  Min$HTMLIFrameElement$$sandbox$isTokenList = 43, // even if EXPERIMENTAL or LEGACY
   MinRuntimePlatformOs = 44,
   MinCreateWndWithState = 44,
   // the 3 below are correct even if EXPERIMENTAL or LEGACY
