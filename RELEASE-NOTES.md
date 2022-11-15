@@ -4,6 +4,12 @@ Release Notes of Vimium C
 ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 说明文档: https://gitee.com/gdh1995/vimium-c#readme , https://github.com/gdh1995/vimium-c/blob/master/README-zh.md .
 
+#### v1.99.8
+* fix support for sandboxed `about:blank` iframes
+* fix broken `goNext` in v1.99.4-v1.99.7
+* Vomnibar: move caret if there're wheel and touchpad events on its input
+* fix other bugs
+
 #### v1.99.5
 * **v1.99.7**: fix imported bugs on key mappings
 * **experimental**: auto release resources on inactive pages,
