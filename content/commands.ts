@@ -54,34 +54,26 @@ import { showFrameMask } from "./request_handlers"
 export const RSC = "readystatechange"
 
 set_contentCommands_([
-  /* kFgCmd.framesGoBack: */ (options: CmdOptions[kFgCmd.framesGoBack], rawStep?: number): void => {
-    const maxStep = min_(rawStep! < 0 ? -rawStep! : rawStep!, history.length - 1),
-    reuse = (options as Extract<typeof options, {r?: null}>).reuse,
-    realStep = rawStep! < 0 ? -maxStep : maxStep;
-    if (options.r) {
-      timeout_((): void => {
-        if (!options.u) {
-          if (checkHidden(kFgCmd.framesGoBack, options as typeof options & SafeObject, 1)) { return }
-          loc_.reload(!!options.hard)
-        } else {
-          loc_.href = options.u
-        }
-        runFallbackKey(options, !1)
-      }, 17)
-    }
-    else if ((OnChrome ? Build.MinCVer >= BrowserVer.Min$tabs$$goBack
-              : OnFirefox ? Build.MinFFVer >= FirefoxBrowserVer.Min$tabs$$goBack : !OnEdge)
-        || (OnChrome && chromeVer_ > BrowserVer.Min$tabs$$goBack - 1
-              || OnFirefox && firefoxVer_ > FirefoxBrowserVer.Min$tabs$$goBack - 1
-            ) && maxStep > 1 && !reuse
-        || maxStep && reuse && reuse !== "current" // then reuse !== ReuseType.current
-    ) {
-      // maxStep > 1 && reuse == null || maxStep && reuse && !isCurrent
-      post_({ H: kFgReq.framesGoBack, s: realStep, o: options })
-    } else {
-      maxStep && history.go(realStep);
-      runFallbackKey(options, maxStep ? !1 : 2)
-    }
+  /* kFgCmd.callTee: */ (options: CmdOptions[kFgCmd.callTee]): any => {
+    const timer = timeout_((send_ as (typeof send_<kFgReq.recheckTee>)).bind(0, kFgReq.recheckTee, 0, (used): void => {
+      used || onWndFocus === oldWndFocus || (onWndFocus as (e: Event | BOOL) => void)(0)
+    }), options.t)
+    const oldWndFocus = onWndFocus, focused = docHasFocus_() && deepActiveEl_unsafe_()
+    const frame = createElement_("iframe")
+    frame.src = options.u
+    OnChrome && ((frame as HTMLIFrameElement & { allow: string }).allow = options.a)
+    setClassName_s(frame, options.c)
+    set_onWndFocus(frame.onerror = (/** true: on error; 0: timed out; void: ok */ event?: Event | BOOL): void => {
+      set_onWndFocus(oldWndFocus), frame.onerror = null as never
+      clearTimeout_(timer)
+      // now focused by `tee.html`; or no focus changes before `onerror`
+      ; (event || event !== 0 && options.i) && send_(kFgReq.afterTee, event ? -options.i : options.i, showFrameMask)
+      focused && (OnFirefox || !notSafe_not_ff_!(focused))
+          && IsInDOM_(focused as SafeElement, doc) && focus_(focused as SafeElement)
+      removeEl_s(frame)
+      isEnabled_ || adjustUI(2)
+    })
+    addUIElement(frame, AdjustType.Normal, true)
   },
   /* kFgCmd.findMode: */ findActivate,
   /* kFgCmd.linkHints: */ linkActivate,
@@ -592,25 +584,33 @@ set_contentCommands_([
     // if no [tabindex=0], `.focus()` works if :exp and since MinElement$Focus$MayMakeArrowKeySelectIt or on Firefox
     timeout_((): void => { focus_(box) }, 17)
   }) as (options: CmdOptions[kFgCmd.showHelpDialog]) => void,
-  /* kFgCmd.callTee: */ (options: CmdOptions[kFgCmd.callTee]): any => {
-    const timer = timeout_((send_ as (typeof send_<kFgReq.recheckTee>)).bind(0, kFgReq.recheckTee, 0, (used): void => {
-      used || onWndFocus === oldWndFocus || (onWndFocus as (e: Event | BOOL) => void)(0)
-    }), options.t)
-    const oldWndFocus = onWndFocus, focused = docHasFocus_() && deepActiveEl_unsafe_()
-    const frame = createElement_("iframe")
-    frame.src = options.u
-    OnChrome && ((frame as HTMLIFrameElement & { allow: string }).allow = options.a)
-    setClassName_s(frame, options.c)
-    set_onWndFocus(frame.onerror = (/** true: on error; 0: timed out; void: ok */ event?: Event | BOOL): void => {
-      set_onWndFocus(oldWndFocus), frame.onerror = null as never
-      clearTimeout_(timer)
-      // now focused by `tee.html`; or no focus changes before `onerror`
-      ; (event || event !== 0 && options.i) && send_(kFgReq.afterTee, event ? -options.i : options.i, showFrameMask)
-      focused && (OnFirefox || !notSafe_not_ff_!(focused))
-          && IsInDOM_(focused as SafeElement, doc) && focus_(focused as SafeElement)
-      removeEl_s(frame)
-      isEnabled_ || adjustUI(2)
-    })
-    addUIElement(frame, AdjustType.Normal, true)
+  /* kFgCmd.framesGoBack: */ (options: CmdOptions[kFgCmd.framesGoBack], rawStep?: number): void => {
+    const maxStep = min_(rawStep! < 0 ? -rawStep! : rawStep!, history.length - 1),
+    reuse = (options as Extract<typeof options, {r?: null}>).reuse,
+    realStep = rawStep! < 0 ? -maxStep : maxStep;
+    if (options.r) {
+      timeout_((): void => {
+        if (!options.u) {
+          if (checkHidden(kFgCmd.framesGoBack, options as typeof options & SafeObject, 1)) { return }
+          loc_.reload(!!options.hard)
+        } else {
+          loc_.href = options.u
+        }
+        runFallbackKey(options, !1)
+      }, 17)
+    }
+    else if ((OnChrome ? Build.MinCVer >= BrowserVer.Min$tabs$$goBack
+              : OnFirefox ? Build.MinFFVer >= FirefoxBrowserVer.Min$tabs$$goBack : !OnEdge)
+        || (OnChrome && chromeVer_ > BrowserVer.Min$tabs$$goBack - 1
+              || OnFirefox && firefoxVer_ > FirefoxBrowserVer.Min$tabs$$goBack - 1
+            ) && maxStep > 1 && !reuse
+        || maxStep && reuse && reuse !== "current" // then reuse !== ReuseType.current
+    ) {
+      // maxStep > 1 && reuse == null || maxStep && reuse && !isCurrent
+      post_({ H: kFgReq.framesGoBack, s: realStep, o: options })
+    } else {
+      maxStep && history.go(realStep);
+      runFallbackKey(options, maxStep ? !1 : 2)
+    }
   }
 ])

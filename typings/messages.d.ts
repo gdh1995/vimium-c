@@ -241,9 +241,9 @@ declare const enum kBgCmd {
 }
 
 declare const enum kFgCmd {
-  framesGoBack, findMode, linkHints, marks, scroll, visualMode, vomnibar, insertMode, toggle,
+  callTee, findMode, linkHints, marks, scroll, visualMode, vomnibar, insertMode, toggle,
   passNextKey, goNext, autoOpen, focusInput, editText, scrollSelect, toggleStyle, dispatchEventCmd, showHelpDialog,
-  callTee,
+  framesGoBack,
   END, ENDS = "END",
 }
 

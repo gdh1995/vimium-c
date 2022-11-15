@@ -37,7 +37,7 @@ export const isAsContent = injector === void 0
 export const doc = document
 export const loc_ = location
 // contentDocument.open may replace a location of `about:blank` with the parent frame's
-export const isIFrameInNullOrigin = !isTop && loc_.protocol === "about:"
+export const isIFrameInAbout_ = !isTop && loc_.protocol === "about:"
 export const runtime_ff = OnFirefox ? (browser as typeof chrome).runtime : null
 
 let esc: {

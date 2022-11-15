@@ -1,6 +1,6 @@
 import {
   setupEventListener, isTop, keydownEvents_, timeout_, fgCache, doc, isAlive_, isJSUrl, chromeVer_, VTr, OnEdge,
-  vApi, Stop_, createRegExp, isTY, OBJECT_TYPES, OnChrome, OnFirefox, WithDialog, isAsContent, safeCall, max_
+  vApi, Stop_, createRegExp, isTY, OBJECT_TYPES, OnChrome, OnFirefox, WithDialog, isAsContent, safeCall, max_, isIFrameInAbout_
 } from "../lib/utils"
 import { prevent_ } from "../lib/keyboard_utils"
 import {
@@ -541,8 +541,10 @@ export const checkHidden = ((cmd?: FgCmdAcrossFrames, options?: OptionsWithForce
   el = curFrameElement || docEl_unsafe_();
   let box: Rect | null,
   parEvents: ReturnType<typeof getParentVApi> | undefined,
+  defaultToPar = isIFrameInAbout_ && cmd === kFgCmd.framesGoBack,
   // use client{Width,Height} in case an <iframe> has border (e.g.: is blocked so its CSS is never added)
-  result: boolean | BOOL = dimSize_(curFrameElement, kDim.elClientH) < 4
+  result: boolean | BOOL = defaultToPar
+      || dimSize_(curFrameElement, kDim.elClientH) < 4
       || dimSize_(curFrameElement, kDim.elClientW) < 4 || !!el && !isStyleVisible_(el)
   if (cmd) {
     // if in a forced cross-origin env (by setting doc.domain),
@@ -550,10 +552,10 @@ export const checkHidden = ((cmd?: FgCmdAcrossFrames, options?: OptionsWithForce
     // so here only use `parApi.innerHeight_()` in case
     if ((OnFirefox ? (parEvents = getParentVApi()) : curFrameElement)
         && (result || (box = boundingRect_(curFrameElement!)).b <= 0
-            || (OnFirefox ? box.t > parEvents!.i!() : box.t > (parent as Window).innerHeight))) {
+            || box.t > (OnFirefox ? parEvents!.i!() : (parent as Window).innerHeight))) {
       OnFirefox || (parEvents = getParentVApi())
       if (parEvents && !parEvents.a(keydownEvents_)) {
-        parEvents.f(cmd, options!, count!, 1);
+        parEvents.f(cmd, options!, count!, +!defaultToPar as boolean | BOOL as BOOL)
         result = 1;
       }
     }
