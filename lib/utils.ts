@@ -6,6 +6,7 @@ const OnOther_: BrowserType = Build.BTypes && !(Build.BTypes & (Build.BTypes - 1
     : Build.BTypes & BrowserType.Safari && typeof safari !== "undefined" && safari ? BrowserType.Safari
     : !(Build.BTypes & BrowserType.Chrome) || Build.BTypes & BrowserType.Firefox && typeof browser !== "undefined"
       && browser && (browser as typeof chrome).runtime
+      && (!(Build.MinCVer < BrowserVer.MinSafe$String$$StartsWith) || "".startsWith)
       && (browser as typeof chrome).runtime.getURL("").startsWith("moz")
     ? BrowserType.Firefox : BrowserType.Chrome
 export const OnChrome: boolean = !(Build.BTypes & ~BrowserType.Chrome)
@@ -36,7 +37,7 @@ export const isAsContent = injector === void 0
 export const doc = document
 export const loc_ = location
 // contentDocument.open may replace a location of `about:blank` with the parent frame's
-export const isIFrameInNullOrigin = !isTop && loc_.origin === "null"
+export const isIFrameInNullOrigin = !isTop && loc_.protocol === "about:"
 export const runtime_ff = OnFirefox ? (browser as typeof chrome).runtime : null
 
 let esc: {
