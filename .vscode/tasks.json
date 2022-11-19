@@ -4,7 +4,7 @@
 		{
 			"type": "shell",
 			"group": "build",
-			"problemMatcher": [],
+			"problemMatcher": ["$tsc-watch"],
 			"label": "tsc: watch",
 			"command": "node",
 			"args": ["scripts/tsc.js", "--watch"],

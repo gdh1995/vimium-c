@@ -417,7 +417,7 @@ export const executeScript_ = <Args extends (number | boolean | null)[]>(tabId: 
     const toRun: chrome.tabs.InjectDetails = frameId >= 0 ? { frameId } : { allFrames: true, matchAboutBlank: true }
     toRun.runAt = "document_start"
     if (func) {
-      toRun.code = `${(func + "").split("{")[1].split("(")[0]}(${args ? args.join(",") : ""})`
+      toRun.code = `${(func + "").split("{")[1].split("(")[0].trim()}(${args ? args.join(",") : ""})`
     } else { toRun.file = files![0] }
     if (OnChrome && Build.MinCVer < BrowserVer.Min$tabs$$executeScript$hasFrameIdArg
         && CurCVer_ < BrowserVer.Min$tabs$$executeScript$hasFrameIdArg) {

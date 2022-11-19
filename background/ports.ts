@@ -510,8 +510,8 @@ const MAX_KEEP_ALIVE = Build.NDEBUG ? 5 : 2
       visit > 0 && visited.push(visit)
     })
     visited.sort((i, j) => j - i)
-    oldestToKeepAlive = Math.max(now - RELEASE_TIMEOUT, visited.length
-        ? visited[Math.min(MAX_KEEP_ALIVE, visited.length - 1)] : 0) - 1000
+    oldestToKeepAlive = Math.min(now - RELEASE_TIMEOUT, visited.length
+        ? visited[Math.min(MAX_KEEP_ALIVE, visited.length - 1)] - 1000 : now)
   }
   let lastMaxVisit = -1, lastMaxFrames: Frames.Frames | null = null
   const listToRelease: Frames.Frames[] = []
@@ -522,7 +522,8 @@ const MAX_KEEP_ALIVE = Build.NDEBUG ? 5 : 2
     for (const i of ports) {
       if (i.s.flags_ & Frames.Flags.OldEnough) {
         Build.MV3 && ((i.s.flags_ satisfies Frames.Flags) |= Frames.Flags.ResReleased)
-        hasOld = true; break
+        hasOld = true
+        break
       }
       (i.s.flags_ satisfies Frames.Flags) |= Frames.Flags.OldEnough
     }
@@ -587,7 +588,7 @@ export const refreshPorts_ = Build.MV3 || Build.LessPorts ? (frames: Frames.Fram
 const _recoverStates = (frames: Frames.Frames | undefined, port: Port, type: PortType | Frames.Flags): void => {
   (port.s.flags_ satisfies Frames.Flags) |= PortType.hasCSS === <number> Frames.Flags.hasCSS ? type & PortType.hasCSS
       : (type & PortType.hasCSS) && Frames.Flags.hasCSS
-  frames || refreshPorts_({ cur_: port, top_: null, ports_: [], lock_: null, flags_: Frames.Flags.Default }, 0)
+  frames || refreshPorts_({ cur_: port, top_: null, ports_: [], lock_: null, flags_: Frames.Flags.HadIFrames }, 0)
   if (!(Build.MV3 || Build.LessPorts)) { return }
   if (!(type & PortType.refreshInBatch)) {
     if (!(type & PortType.hasFocus) // frame is not focused - on refreshing ports of inactive tabs
