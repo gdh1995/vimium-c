@@ -246,7 +246,7 @@ const _safeRefreshPort = (port: Port): void | /** failed */ 1 => {
  * @returns string - valid URL
  * @returns Promise&lt;string> - valid URL or empty string for a top frame in "port's or the current" tab
  */
-export const getPortUrl_ = (port?: Port | null, ignoreHash?: boolean, request?: Req.baseFg<kFgReq>
+export const getPortUrl_ = (port?: Port | null, ignoreHash?: boolean, request?: Req.queryUrl<kFgReq>
     ): string | Promise<string> => {
   port = port || framesForTab_.get(curTabId_)?.top_
   return port && exclusionListening_ && (ignoreHash || exclusionListenHash_) ? port.s.url_
@@ -260,7 +260,7 @@ export const getPortUrl_ = (port?: Port | null, ignoreHash?: boolean, request?: 
         (tab?: chrome.webNavigation.GetFrameResultDetails | Tab | null): void => {
       const url = tab ? tab.url : ""
       if (!url && webNav) {
-        (request! as unknown as Req.bg<kBgReq.url>).N = kBgReq.url
+        (request! as Req.bgUrl<kFgReq>).N = kBgReq.url
         safePost(port!, request as Req.bg<kBgReq.url>)
       }
       resolve(url)
@@ -272,7 +272,7 @@ export const getPortUrl_ = (port?: Port | null, ignoreHash?: boolean, request?: 
   })
 }
 
-export const requireURL_ = <k extends keyof FgReq>(request: Req.fg<k> & {u: "url"}, ignoreHash?: true
+export const requireURL_ = <K extends keyof FgReq>(request: Req.queryUrl<K>, ignoreHash?: true
     ): Promise<string> | void => {
   type T1 = keyof FgReq
   type Req1 = { [K in T1]: (req: FgReq[K], port: Frames.Port) => void }
@@ -281,12 +281,12 @@ export const requireURL_ = <k extends keyof FgReq>(request: Req.fg<k> & {u: "url
   const res = getPortUrl_(cPort, ignoreHash, request)
   if (typeof res !== "string") {
     return res.then(url => {
-      request.u = url as "url"
+      request.u = url
       url && (reqH_ as Req1 as Req2)[request.H](request, cPort)
       return url
     })
   } else {
-    request.u = res as "url"
+    request.u = res;
     (reqH_ as Req1 as Req2)[request.H](request, cPort)
   }
 }

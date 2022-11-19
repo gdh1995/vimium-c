@@ -152,7 +152,8 @@ interface BgReq {
   };
   [kBgReq.url]: {
     /** url */ u?: string;
-  } & Req.baseFg<keyof FgReq> & Partial<Req.baseBg<kBgReq.url>>;
+    /** use vApi.u */ U: BOOL;
+  } & Req.baseFg<keyof FgReq>
   [kBgReq.eval]: {
     /** url */ u: string; // a javascript: URL
     /** only $then */ f?: Req.FallbackOptions | null
@@ -777,6 +778,9 @@ declare namespace Req {
     K extends keyof BgReq ? BgReq[K] & baseBg<K> :
     K extends keyof BgVomnibarSpecialReq ? BgVomnibarSpecialReq[K] & baseBg<K> :
     never;
+  type queryUrl<K extends kFgReq> = K extends keyof FgReq ? "u" extends keyof FgReq[K]
+      ? Omit<FgReq[K], "u"> & BgReq[kBgReq.url] & Req.baseFg<K> : never : never
+  type bgUrl<K extends kFgReq> = queryUrl<K> & baseBg<kBgReq.url>
   interface baseTee<K extends kTeeTask> extends Omit<BaseTeeTask, "t" | "s" | "d"> { t: K }
   type tee<K extends keyof TeeTasks> = Pick<TeeTasks[K], "s"> & PartialOf<TeeTasks[K], "d"> & baseTee<K>
   interface baseFg<K extends kFgReq> {

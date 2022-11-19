@@ -141,6 +141,8 @@ export let bgC_: {
 export let cmdInfo_: { readonly [k in number]: kCmdInfo }
 export let runOneMapping_: (key: string, port: Port | null, fStatus: NonNullable<FgReq[kFgReq.nextKey]["f"]>) => void
 export let inlineRunKey_: (rootRegistry: Writable<CommandsNS.Item>, path?: CommandsNS.Item[]) => void
+export let focusAndExecuteOn_: <T extends FgCmdAcrossFrames> (port: Port, cmd: T, options: CmdOptions[T], count: number
+    , focusAndShowFrameBorder: BOOL) => void
 let _teeTask: BaseTeeTask & { /** unique id */ i: number } | null = null
 //#endregion
 
@@ -190,6 +192,7 @@ export const set_cmdInfo_ = (_newCmdInfo: typeof cmdInfo_): void => { cmdInfo_ =
 export const set_installation_ = (_newInstallation: typeof installation_): void => { installation_ = _newInstallation }
 export const set_runOneMapping_ = (_newF: typeof runOneMapping_): void => { runOneMapping_ = _newF }
 export const set_inlineRunKey_ = (_newInlineRunKey: typeof inlineRunKey_): void => { inlineRunKey_ = _newInlineRunKey }
+export const set_focusAndExecuteOn_ = (_newFAE: typeof focusAndExecuteOn_): void => { focusAndExecuteOn_ = _newFAE }
 export const setTeeTask_ = (expected: number | null, newTask: typeof _teeTask): typeof _teeTask => {
   const old = _teeTask, matches = !expected || old && old.i === expected
   _teeTask = matches ? newTask : old

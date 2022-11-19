@@ -52,14 +52,14 @@ export const copyWindowInfo = (resolve: OnCmdResolved): void | kBgCmd.copyWindow
   const sed = parseSedOptions_(get_cOptions<C.copyWindowInfo, true>())
   const opts2: ParsedOpenPageUrlOptions = { d: decoded !== false, s: sed, k: keyword }
   if (type === "frame" && cPort && !rawFormat) {
-    let p: Promise<"tab" | void> | "tab" | void | 1
+    let p: PromiseOr<"tab" | void> | 1
     if (cPort.s.flags_ & Frames.Flags.otherExtension) {
       cPort.postMessage({
-        N: kBgReq.url, H: kFgReq.copy, o: opts2
-      } as Req.bg<kBgReq.url> & FgReq[kFgReq.copy])
+        N: kBgReq.url, H: kFgReq.copy, U: 1, o: opts2
+      } satisfies Req.bgUrl<kFgReq.copy> as Req.bgUrl<kFgReq.copy>)
       p = 1
     } else {
-      p = requireURL_({ H: kFgReq.copy, u: "" as "url", o: opts2 }) as Promise<"tab" | void> | "tab" | void
+      p = requireURL_<kFgReq.copy>({ H: kFgReq.copy, U: 1, o: opts2 }) as PromiseOr<"tab" | void>
     }
     if (p !== 1) {
       p && p instanceof Promise ? p.then((): void => { resolve(1) }) : resolve(1)

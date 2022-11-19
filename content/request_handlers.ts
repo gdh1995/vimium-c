@@ -140,10 +140,10 @@ set_requestHandlers([
     if (ui_box) { adjustUI(+isEnabled_ ? 1 : 2) }
   },
   /* kBgReq.injectorRun: */ injector! && injector.$m,
-  /* kBgReq.url: */ function<T extends keyof FgReq> (this: void, request: BgReq[kBgReq.url] & Req.fg<T>): void {
-    delete request.N
-    request.u = (request.H === kFgReq.copy ? vApi.u : locHref)()
-    post_<T>(request);
+  /* kBgReq.url: */ (request: BgReq[kBgReq.url]): void => {
+    delete (request as Partial<Req.bg<kBgReq.url>>).N
+    request.u = (request.U ? vApi.u : locHref)()
+    post_<kFgReq.checkIfEnabled>(request as WithEnsured<Req.queryUrl<kFgReq.checkIfEnabled>, "u">)
   },
   /* kBgReq.msg: */ onPortRes_,
   /* kBgReq.eval: */ evalIfOK,

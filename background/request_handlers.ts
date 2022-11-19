@@ -2,7 +2,7 @@ import {
   set_cPort, set_cRepeat, set_cOptions, needIcon_, set_cKey, cKey, get_cOptions, set_reqH_, reqH_, restoreSettings_,
   innerCSS_, framesForTab_, cRepeat, curTabId_, Completion_, CurCVer_, OnChrome, OnEdge, OnFirefox, setIcon_, blank_,
   substitute_, paste_, keyToCommandMap_, CONST_, copy_, set_cEnv, settingsCache_, vomnibarBgOptions_, setTeeTask_,
-  curIncognito_, inlineRunKey_, CurFFVer_, Origin2_
+  curIncognito_, inlineRunKey_, CurFFVer_, Origin2_, focusAndExecuteOn_, set_focusAndExecuteOn_
 } from "./store"
 import * as BgUtils_ from "./utils"
 import {
@@ -638,17 +638,22 @@ const onCompletions = function (this: Port, favIcon0: 0 | 1 | 2, list: Array<Rea
   BgUtils_.resetRe_()
 }
 
-const focusAndExecute = (req: Omit<FgReq[kFgReq.gotoMainFrame], "f">
-    , port: Port, targetPort: Port | null, focusAndShowFrameBorder: BOOL): void => {
-  if (targetPort && targetPort.s.status_ !== Frames.Status.disabled) {
+set_focusAndExecuteOn_((<T extends FgCmdAcrossFrames> (targetPort: Port, cmd: T, options: CmdOptions[T], count: number
+      , focusAndShowFrameBorder: BOOL): void => {
     targetPort.postMessage({
       N: kBgReq.focusFrame,
       H: focusAndShowFrameBorder || cmd !== kFgCmd.scroll ? ensureInnerCSS(targetPort.s) : null,
       m: focusAndShowFrameBorder ? FrameMaskType.ForcedSelf : FrameMaskType.NoMaskAndNoFocus,
       k: focusAndShowFrameBorder ? cKey : kKeyCode.None,
       f: {},
-      c: req.c, n: req.n || 0, a: req.a
+      c: cmd, n: count || 0, a: options as FgOptions
     })
+}) satisfies typeof focusAndExecuteOn_)
+
+const focusAndExecute = (req: Omit<FgReq[kFgReq.gotoMainFrame], "f">
+    , port: Port, targetPort: Port | null, focusAndShowFrameBorder: BOOL): void => {
+  if (targetPort && targetPort.s.status_ !== Frames.Status.disabled) {
+    focusAndExecuteOn_(targetPort, req.c, req.a as CmdOptions[FgCmdAcrossFrames], req.n, focusAndShowFrameBorder)
   } else {
     req.a.$forced = 1
     portSendFgCmd(port, req.c, false, req.a as Dict<any>, req.n || 0)
@@ -681,7 +686,7 @@ Build.MV3 || (( // @ts-ignore
     teeTask && clearTimeout(teeTask.i)
     return teeTask as never
   }
-  const queries = !OnFirefox ? req.q
+  const queries: typeof req.q = !OnFirefox ? req.q
       : Build.MinFFVer >= FirefoxBrowserVer.Min$structuredClone || typeof structuredClone === "function"
       ? structuredClone!(req.q) : JSON.parse(JSON.stringify(req.q))
   return onPagesReq(queries, req.i, null)

@@ -331,7 +331,7 @@ set_bgC_([
   /* kBgCmd.clearMarks: */ (resolve): void | kBgCmd.clearMarks => {
     findMarkCPort_()
     const removed = get_cOptions<C.clearMarks>().local ? get_cOptions<C.clearMarks>().all ? Marks_.clear_("#")
-        : requireURL_({ H: kFgReq.marks, u: "" as "url", c: kMarkAction.clear
+          : requireURL_<kFgReq.marks>({ H: kFgReq.marks, U: 0, c: kMarkAction.clear
             , f: parseFallbackOptions(get_cOptions<C.clearMarks, true>()) }, true)
         : Marks_.clear_()
     typeof removed === "number" && resolve(removed > 0 ? 1 : 0)
@@ -502,14 +502,14 @@ set_bgC_([
     if (get_cOptions<C.goUp>().type !== "frame" && cPort && cPort.s.frameId_) {
       set_cPort(getCurFrames_()?.top_ || cPort)
     }
-    const arg: Req.fg<kFgReq.parseUpperUrl> & {u: "url"} = { H: kFgReq.parseUpperUrl, u: "" as "url",
+    const arg: Req.queryUrl<kFgReq.parseUpperUrl> = { H: kFgReq.parseUpperUrl, U: 0,
       p: cRepeat,
       t: get_cOptions<C.goUp, true>().trailingSlash, r: get_cOptions<C.goUp, true>().trailing_slash,
       s: parseSedOptions_(get_cOptions<C.goUp, true>()),
       e: get_cOptions<C.goUp>().reloadOnRoot !== false
     }
-    const p = requireURL_(arg)
-    Promise.resolve(p || "url").then((): void => {
+    const p = requireURL_<kFgReq.parseUpperUrl>(arg)
+    Promise.resolve(p || "").then((): void => {
       if (typeof arg.e === "object") {
         getRunNextCmdBy(kRunOn.otherPromise)(arg.e.p != null || void 0)
       }

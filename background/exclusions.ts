@@ -125,7 +125,7 @@ let getOnURLChange_ = (): null | ExclusionsNS.Listener => {
       ? (details): void => { reqH_[kFgReq.checkIfEnabled](details) }
       : (details): void => {
         const ref = framesForTab_.get(details.tabId),
-        msg: Req.bg<kBgReq.url> = { N: kBgReq.url, H: kFgReq.checkIfEnabled };
+        msg: Req.bgUrl<kFgReq.checkIfEnabled> = { N: kBgReq.url, H: kFgReq.checkIfEnabled, U: 0 }
         Build.LessPorts && ref && ref.flags_ & Frames.Flags.ResReleased && (ref.flags_ |= Frames.Flags.UrlUpdated)
         // force the tab's ports to reconnect and refresh their pass keys
         for (const port of ref ? ref.ports_ : []) {
@@ -153,7 +153,8 @@ export const RefreshStatus_ = (old_is_empty: boolean): void => {
       N: kBgReq.reset, p: null, f: 0
     };
     if (old_is_empty) {
-      always_enabled || settings.broadcast_({ N: kBgReq.url, H: kFgReq.checkIfEnabled })
+      always_enabled || settings.broadcast_({ N: kBgReq.url, H: kFgReq.checkIfEnabled, U: 0
+          } satisfies Req.bgUrl<kFgReq.checkIfEnabled>)
       return;
     }
     const needIcon = iconData_ != null || iconData_ !== undefined && needIcon_
