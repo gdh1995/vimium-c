@@ -246,21 +246,22 @@ const _safeRefreshPort = (port: Port): void | /** failed */ 1 => {
  * @returns string - valid URL
  * @returns Promise&lt;string> - valid URL or empty string for a top frame in "port's or the current" tab
  */
-export const getPortUrl_ = (port?: Port | null, ignoreHash?: boolean, request?: Req.queryUrl<kFgReq>
-    ): string | Promise<string> => {
-  port = port || framesForTab_.get(curTabId_)?.top_
-  return port && exclusionListening_ && (ignoreHash || exclusionListenHash_) ? port.s.url_
+export const getPortUrl_ = (port?: Port | null, ignoreHash?: boolean, noSender?: BOOL, request?: Req.queryUrl<kFgReq>
+    ): PromiseOr<string> => {
+  port = port || framesForTab_.get(curTabId_)?.top_ || null
+  return port && !noSender && exclusionListening_ && (ignoreHash || exclusionListenHash_) ? port.s.url_
       : new Promise<string>((resolve): void => {
     const webNav = !OnEdge && (!OnChrome || Build.MinCVer >= BrowserVer.Min$webNavigation$$getFrame$IgnoreProcessId
             || CurCVer_ > BrowserVer.Min$webNavigation$$getFrame$IgnoreProcessId - 1)
-        && port && port.s.frameId_ ? browserWebNav_() : null
-    port ? (webNav ? webNav.getFrame : tabsGet as never as typeof chrome.webNavigation.getFrame)(
+        && port && port.s.frameId_ && isNotPriviledged(port) ? browserWebNav_() : null
+    port ? (!port.s.frameId_ ? tabsGet as never as typeof chrome.webNavigation.getFrame
+            : webNav ? webNav.getFrame : (_: unknown, callback: (result: null) => void) => callback(null))(
         webNav ? {tabId: port.s.tabId_, frameId: port.s.frameId_}
-          : port.s.tabId_ satisfies Parameters<typeof chrome.tabs.get>[0] as never,
+          : port.s.tabId_ satisfies Parameters<typeof tabsGet>[0] as never,
         (tab?: chrome.webNavigation.GetFrameResultDetails | Tab | null): void => {
       const url = tab ? tab.url : ""
-      if (!url && webNav) {
-        (request! as Req.bgUrl<kFgReq>).N = kBgReq.url
+      if (!url && request) {
+        (request as Req.bgUrl<kFgReq>).N = kBgReq.url
         safePost(port!, request as Req.bg<kBgReq.url>)
       }
       resolve(url)
@@ -272,22 +273,22 @@ export const getPortUrl_ = (port?: Port | null, ignoreHash?: boolean, request?: 
   })
 }
 
-export const requireURL_ = <K extends keyof FgReq>(request: Req.queryUrl<K>, ignoreHash?: true
-    ): Promise<string> | void => {
+export const requireURL_ = <K extends keyof FgReq> (request: Req.queryUrl<K>, ignoreHash?: boolean, noSender?: BOOL
+    , port?: Port): Promise<string> | void => {
   type T1 = keyof FgReq
   type Req1 = { [K in T1]: (req: FgReq[K], port: Frames.Port) => void }
   type Req2 = { [K in T1]: <T extends T1>(req: FgReq[T], port: Frames.Port) => void }
-  set_cPort(cPort || framesForTab_.get(curTabId_)?.top_)
-  const res = getPortUrl_(cPort, ignoreHash, request)
+  if (!port) { set_cPort(port = cPort || framesForTab_.get(curTabId_)?.top_) }
+  const res = getPortUrl_(port, ignoreHash, noSender, request)
   if (typeof res !== "string") {
     return res.then(url => {
       request.u = url
-      url && (reqH_ as Req1 as Req2)[request.H](request, cPort)
+      url && (reqH_ as Req1 as Req2)[request.H](request, port!)
       return url
     })
   } else {
     request.u = res;
-    (reqH_ as Req1 as Req2)[request.H](request, cPort)
+    (reqH_ as Req1 as Req2)[request.H](request, port!)
   }
 }
 
