@@ -297,8 +297,7 @@ export const Marks_ = { // NOTE: all public members should be static
       Marks_.set_({ l: request.l, n: markName, s: parsed instanceof Array ? parsed : parsed!.scroll || [0, 0]
           , u: request.u }, false, port.s.tabId_)
     }
-    if (parsed instanceof Array) {
-      if (!parsed && request.s) {
+    if (!parsed && request.s) {
         try {
           const pos: {scrollX: number, scrollY: number, hash?: string} | null = JSON.parse(request.s)
           if (pos && typeof pos === "object") {
@@ -306,11 +305,10 @@ export const Marks_ = { // NOTE: all public members should be static
             scrollX >= 0 && scrollY >= 0 && (parsed = [scrollX | 0, scrollY | 0, "" + (pos.hash || "")])
           }
         } catch {}
-      }
-      if (parsed) {
+    }
+    if (parsed instanceof Array) {
         Marks_.goToInContent_(port.s.tabId_, null, port, true, markName, parsed, options)
         return 1
-      }
     }
     if (!parsed) {
       showHUDEx(port, "noMark", 0, [[request.l ? "Local" : "Global"], markName])
@@ -347,20 +345,23 @@ export const Marks_ = { // NOTE: all public members should be static
   },
   goToInContent_ (tabId: number, frames: Frames.Frames | null | undefined, port: Port | null
       , local: boolean, name: string | undefined, scroll: MarksNS.ScrollInfo, f: MarksNS.MarkToGo["f"]): void {
+    let fallbackDelayed = false
     port = frames && frames.top_ && !(frames.top_.s.flags_ & Frames.Flags.ResReleased) ? frames.top_ : port
     if (port) {
       port.postMessage({ N: kBgReq.goToMark, l: local, n: name, s: scroll })
     } else {
-      executeScript_(tabId, 0, null, (x: number, y: number) => // @ts-ignore
+      executeScript_(tabId, 0, null, (x: number, y: number) => { // @ts-ignore
           (window as unknown as typeof globalThis)
-          .scrollTo(x, y), [scroll[0], scroll[1]], f ? () => { runNextCmdBy(1, f); return runtimeError_() } : null)
+          .scrollTo(x, y)
+      }, [scroll[0], scroll[1]], f ? () => { runNextCmdBy(1, f); return runtimeError_() } : null)
+      fallbackDelayed = true
     }
     name && showHUDEx(port, "mNormalMarkTask", local ? 1 : 2, [ ["mJumpTo"], [local ? "Local" : "Global"], name ])
-    f && runNextCmdBy(1, f)
+    fallbackDelayed || f && runNextCmdBy(1, f)
   },
   scrollTab_ (this: void, markInfo: MarksNS.MarkToGo, tab: Tab): void {
     const tabId = tab.id, frames = framesForTab_.get(tabId)
-    void waitForPorts_(frames).then(() => {
+    void waitForPorts_(frames).then((): void => {
       Marks_.goToInContent_(tabId, frames, null, false, markInfo.n, markInfo.s, markInfo.f)
     })
     if (markInfo.t !== tabId && markInfo.n) {

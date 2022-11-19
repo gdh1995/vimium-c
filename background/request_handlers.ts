@@ -548,7 +548,7 @@ set_reqH_([
         , d: false, m: HintMode.DEFAULT }, findCPort(port)!)
   },
   /** kFgReq.didLocalMarkTask: */ (req: FgReq[kFgReq.didLocalMarkTask], port): void => {
-    showHUDEx(port, "mLocalMarkTask", 1, [ [req.c.a ? "mCreate" : "mJumpTo"], req.i > 1 ? req.i : ["mLastMark"] ])
+    showHUDEx(port, "mLocalMarkTask", 1, [ [req.n ? "mCreate" : "mJumpTo"], req.i > 1 ? req.i : ["mLastMark"] ])
     set_cPort(port)
     runNextCmdBy(1, req.c)
   },
@@ -643,7 +643,7 @@ const focusAndExecute = (req: Omit<FgReq[kFgReq.gotoMainFrame], "f">
   if (targetPort && targetPort.s.status_ !== Frames.Status.disabled) {
     targetPort.postMessage({
       N: kBgReq.focusFrame,
-      H: focusAndShowFrameBorder || req.c !== kFgCmd.scroll ? ensureInnerCSS(port.s) : null,
+      H: focusAndShowFrameBorder || cmd !== kFgCmd.scroll ? ensureInnerCSS(targetPort.s) : null,
       m: focusAndShowFrameBorder ? FrameMaskType.ForcedSelf : FrameMaskType.NoMaskAndNoFocus,
       k: focusAndShowFrameBorder ? cKey : kKeyCode.None,
       f: {},

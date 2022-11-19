@@ -53,7 +53,7 @@ export const activate = (options: CmdOptions[kFgCmd.marks], count: number): void
       setPreviousMarkPosition(tempPos ? 1 : count)
       tempPos && scrollToMark(dispatchMark(tempPos))
     }
-    post_({ H: kFgReq.didLocalMarkTask, c: options, i: count })
+    post_({ H: kFgReq.didLocalMarkTask, c: options, i: count, n: !tempPos })
   } else {
     local = (OnFirefox ? hasShift_ff!(event.e) : event.e.shiftKey) !== options.s
     options.a || local || hudHide()

@@ -670,7 +670,7 @@ interface FgReq {
   [kFgReq.marks]: { c: kMarkAction.clear, f: Req.FallbackOptions | null; /** url */ u: string; } | ({
       /** command options */ c: CmdOptions[kFgCmd.marks]
   } & MarksNS.FgQuery)
-  [kFgReq.didLocalMarkTask]: { /** command options */ c: CmdOptions[kFgCmd.marks], /** index */ i: number }
+  [kFgReq.didLocalMarkTask]: { c: CmdOptions[kFgCmd.marks]; /** index */ i: number; /** no old */ n: boolean }
   /**
    * .url is guaranteed to be well formatted by frontend
    */
