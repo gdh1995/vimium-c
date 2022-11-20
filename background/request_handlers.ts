@@ -191,9 +191,9 @@ set_reqH_([
       }
     }
     const { s: sender } = port, oldUrl = sender.url_, ref = framesForTab_.get(sender.tabId_)
+    const url = sender.url_ = from_content ? request.u! : (request as ExclusionsNS.Details).url
     if (ref && ref.lock_) { return }
-    const pattern = !exclusionListening_ ? null
-        : getExcluded_(sender.url_ = from_content ? request.u! : (request as ExclusionsNS.Details).url, sender),
+    const pattern = !exclusionListening_ ? null : getExcluded_(url, sender),
     status = pattern === null ? Frames.Status.enabled : pattern ? Frames.Status.partial : Frames.Status.disabled
     if (sender.status_ !== status) {
       sender.status_ = status
