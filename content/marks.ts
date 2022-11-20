@@ -1,14 +1,16 @@
-import { loc_, vApi, locHref, OnFirefox } from "../lib/utils"
-import { createElement_, dispatchEvent_, wrapEventInit_, scrollingEl_, textContent_s } from "../lib/dom_utils"
-import { post_ } from "./port"
-import { hudHide, hudShow } from "./hud"
+import { loc_, locHref, OnFirefox, timeout_ } from "../lib/utils"
+import {
+  createElement_, dispatchEvent_, wrapEventInit_, scrollingEl_, textContent_s, OnDocLoaded_
+} from "../lib/dom_utils"
+import { post_, runFallbackKey } from "./port"
+import { hudHide, hudShow, hudTip, hud_tipTimer } from "./hud"
 import { removeHandler_, getMappedKey, isEscape_, replaceOrSuppressMost_, hasShift_ff } from "../lib/keyboard_utils"
 import { makeElementScrollBy_ } from "./scroller"
 
 // [1..9]
 let previous: MarksNS.ScrollInfo[] = []
 
-const dispatchMark = ((mark?: MarksNS.ScrollInfo | 0 | undefined, global?: boolean
+export const dispatchMark = ((mark?: MarksNS.ScrollInfo | 0 | undefined, global?: boolean
     ): MarksNS.ScrollInfo | MarksNS.ScrollInfo | null => {
   let a = createElement_("a"), oldStr: string | undefined, newStr: string, match: string[],
   newMark: MarksNS.ScrollInfo | 0 | null | undefined
@@ -37,12 +39,13 @@ export const activate = (options: CmdOptions[kFgCmd.marks], count: number): void
   replaceOrSuppressMost_(kHandler.marks, (event): HandlerResult => {
   let storage: typeof localStorage, local: boolean
   if (event.i === kKeyCode.ime) { return HandlerResult.Nothing }
-  const keyChar = getMappedKey(event, kModeId.Marks)
+  let keyChar = getMappedKey(event, kModeId.Marks)
   let tempPos: MarksNS.ScrollInfo | undefined
   if (keyChar.length !== 1 && !isEscape_(keyChar)) {
     return HandlerResult.Suppress
   }
   removeHandler_(kHandler.marks)
+  keyChar < kChar.minNotNum && keyChar > kChar.maxNotNum && options.n && (count = +keyChar || 10, keyChar = "'")
   if (isEscape_(keyChar)) {
     hudHide()
   } else if ("`'".includes(keyChar)) {
@@ -56,13 +59,13 @@ export const activate = (options: CmdOptions[kFgCmd.marks], count: number): void
     post_({ H: kFgReq.didLocalMarkTask, c: options, i: count, n: !tempPos })
   } else {
     local = (OnFirefox ? hasShift_ff!(event.e) : event.e.shiftKey) !== options.s
-    options.a || local || hudHide()
     post_<kFgReq.marks>({
-      H: kFgReq.marks, c: options, l: local, n: keyChar,
+      H: kFgReq.marks, c: options, l: local, k: event.i, n: keyChar,
       s: options.a ? dispatchMark(0, !local) : local && (storage = localStorage)
           ? storage.getItem(`vimiumMark|${locHref().split("#", 1)[0]}|${keyChar}`) : 0,
       u: locHref()
     });
+    timeout_((): void => { hud_tipTimer || hudHide() }, 100)
   }
   return HandlerResult.Prevent
   })
@@ -78,8 +81,12 @@ export const scrollToMark = (scroll: MarksNS.ScrollInfo | null | undefined): voi
   }
 }
 
-export const gotoMark = ({ n, s: scroll, l: local }: BgReq[kBgReq.goToMark]): void => {
-    n && setPreviousMarkPosition()
-    scrollToMark(dispatchMark(scroll, !local))
-    local || vApi.f()
+export const goToMark_ = (options: CmdOptions[kFgCmd.goToMark]): void => {
+  const cb = (): void => {
+    options.t && setPreviousMarkPosition()
+    scrollToMark(dispatchMark(options.s, options.g))
+    hudTip(kTip.raw, (options.g satisfies boolean as boolean | number as number + 1) as 1 | 2, options.t)
+    runFallbackKey(options.f, 0)
+  }
+  options.w ? OnDocLoaded_(timeout_.bind(0, cb, options.w), 1) : cb()
 }

@@ -84,7 +84,7 @@ declare const enum kBgReq {
   START = 0,
   init = START, reset, injectorRun, url, msg, eval,
   settingsUpdate, focusFrame, exitGrab, keyFSM, execute,
-  showHUD, count, queryForRunKey, goToMark, suppressForAWhile, refreshPort,
+  showHUD, count, queryForRunKey, suppressForAWhile, refreshPort,
   OMNI_MIN = 42,
   omni_init = OMNI_MIN, omni_omni, omni_parsed, omni_returnFocus,
   omni_toggleStyle, omni_updateOptions, omni_refresh, omni_runTeeTask,
@@ -97,8 +97,7 @@ declare const enum kFgReq {
   nextFrame, exitGrab, execInChild, initHelp, css,
   vomnibar, omni, copy, key, nextKey,
   marks, focusOrLaunch, cmd, removeSug, openImage,
-  evalJSFallback,
-  gotoMainFrame, setOmniStyle, findFromVisual, framesGoBack,
+  evalJSFallback, gotoMainFrame, setOmniStyle, findFromVisual, framesGoBack,
   i18n, cssLearnt, visualMode, respondForRunKey, downloadLink, wait,
   optionToggled, keyFromOmni, pages, showUrl,
   omniCopy, didLocalMarkTask, recheckTee, afterTee, END,
@@ -152,7 +151,7 @@ interface BgReq {
   };
   [kBgReq.url]: {
     /** url */ u?: string;
-    /** use vApi.u */ U: BOOL;
+    /** use vApi.u */ U: 0 | 1 | 2 | 3
   } & Req.baseFg<keyof FgReq>
   [kBgReq.eval]: {
     /** url */ u: string; // a javascript: URL
@@ -164,11 +163,6 @@ interface BgReq {
     /** message-in-confirmation-dialog */ m: string;
   };
   [kBgReq.queryForRunKey]: { n: number; c: CurrentEnvCache }
-  [kBgReq.goToMark]: {
-    /** local */ l: boolean
-    /** markName */ n?: string | undefined
-    /** scroll */ s: MarksNS.ScrollInfo
-  }
   [kBgReq.suppressForAWhile]: { /** timeout */ t: number }
   [kBgReq.refreshPort]: {}
 }
@@ -244,12 +238,12 @@ declare const enum kBgCmd {
 declare const enum kFgCmd {
   callTee, findMode, linkHints, marks, scroll, visualMode, vomnibar, insertMode, toggle,
   passNextKey, goNext, autoOpen, focusInput, editText, scrollSelect, toggleStyle, dispatchEventCmd, showHelpDialog,
-  framesGoBack,
+  framesGoBack, goToMark,
   END, ENDS = "END",
 }
 
 type FgCmdAcrossFrames = kFgCmd.linkHints | kFgCmd.scroll | kFgCmd.vomnibar | kFgCmd.goNext | kFgCmd.framesGoBack
-    | kFgCmd.insertMode | kFgCmd.dispatchEventCmd
+    | kFgCmd.insertMode | kFgCmd.dispatchEventCmd | kFgCmd.goToMark
 
 interface FgOptions extends SafeDict<any> {}
 type SelectActions = "" | "all" | "all-input" | "all-line" | "start" | "end";
@@ -345,10 +339,11 @@ interface CmdOptions {
   [kFgCmd.linkHints]: HintsNS.Options;
   [kFgCmd.marks]: {
     /** action */ a: kMarkAction.goto | kMarkAction.create
-    /** use url prefix */ p: boolean
+    /** not store a persistent mark for number keys */ n: boolean
     /** swap shiftKey */ s: boolean
     /** action title */ t: string
-  } & OpenPageUrlOptions & Req.FallbackOptions
+    /** extra options */ o: OpenPageUrlOptions & Req.FallbackOptions
+  }
   [kFgCmd.scroll]: {
     /** continuous */ $c?: kKeyCode;
     axis?: "y" | "x";
@@ -379,6 +374,13 @@ interface CmdOptions {
   } & Req.FallbackOptions
   [kFgCmd.framesGoBack]: (Pick<OpenUrlOptions, "reuse" | "position"> & { r?: null }
       | { r: 1 } & ({ u: string; hard?: undefined } | { u?: undefined; hard?: boolean })) & Req.FallbackOptions
+  [kFgCmd.goToMark]: {
+    /** global */ g: boolean
+    /** scroll */ s: MarksNS.ScrollInfo
+    /** mark tip */ t: string
+    /** fallback */ f: Req.FallbackOptions
+    /** wait a while */ w: number
+  }
   [kFgCmd.vomnibar]: {
     /* vomnibar */ v: string;
     /* vomnibar2 */ i: string | null;
@@ -669,7 +671,9 @@ interface FgReq {
     }
   };
   [kFgReq.marks]: { c: kMarkAction.clear, f: Req.FallbackOptions | null; /** url */ u: string; } | ({
-      /** command options */ c: CmdOptions[kFgCmd.marks]
+      /** all command options */ c: CmdOptions[kFgCmd.marks]
+      /** forced (aka. not find another port any more) */ f?: boolean
+      /** last key */ k: kKeyCode
   } & MarksNS.FgQuery)
   [kFgReq.didLocalMarkTask]: { c: CmdOptions[kFgCmd.marks]; /** index */ i: number; /** no old */ n: boolean }
   /**

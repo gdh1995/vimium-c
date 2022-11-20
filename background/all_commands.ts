@@ -24,7 +24,7 @@ import { runKeyWithCond, runKeyInSeq } from "./run_keys"
 import { doesNeedToSed, parseSedOptions_ } from "./clipboard"
 import { goToNextUrl, newTabIndex, openUrl } from "./open_urls"
 import {
-  parentFrame, showVomnibar, findMarkCPort_, marksActivate_, enterVisualMode, toggleZoom, captureTab,
+  parentFrame, showVomnibar, findContentPort_, marksActivate_, enterVisualMode, toggleZoom, captureTab,
   initHelp, framesGoBack, mainFrame, nextFrame, performFind, framesGoNext
 } from "./frame_commands"
 import {
@@ -329,12 +329,15 @@ set_bgC_([
     resolve(1)
   },
   /* kBgCmd.clearMarks: */ (resolve): void | kBgCmd.clearMarks => {
-    findMarkCPort_()
+    const p = cPort
+        && findContentPort_(cPort, get_cOptions<C.clearMarks, true>().type, !!get_cOptions<C.clearMarks>().local)
+    void Promise.resolve(p).then((port2): void => {
     const removed = get_cOptions<C.clearMarks>().local ? get_cOptions<C.clearMarks>().all ? Marks_.clear_("#")
-          : requireURL_<kFgReq.marks>({ H: kFgReq.marks, U: 0, c: kMarkAction.clear
-            , f: parseFallbackOptions(get_cOptions<C.clearMarks, true>()) }, true)
+          : void requireURL_<kFgReq.marks>({ H: kFgReq.marks, U: 0, c: kMarkAction.clear
+              , f: parseFallbackOptions(get_cOptions<C.clearMarks, true>()) }, true, 1, port2)
         : Marks_.clear_()
     typeof removed === "number" && resolve(removed > 0 ? 1 : 0)
+    })
   },
   /* kBgCmd.copyWindowInfo: */ _AsBgC<BgCmdNoTab<kBgCmd.copyWindowInfo>>(copyWindowInfo),
   /* kBgCmd.createTab: */ function createTab(tabs: [Tab] | undefined, _: OnCmdResolved | 0, dedup?: "dedup"): void {

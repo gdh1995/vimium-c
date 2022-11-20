@@ -179,7 +179,7 @@ export const showVomnibar = (forceInner?: boolean): void => {
   let defaultUrl: string | null = null
   if (optUrl != null && get_cOptions<C.showVomnibar>().urlSedKeys) {
     const res = typeof optUrl === "string" ? optUrl : typeof get_cOptions<C.showVomnibar>().u === "string"
-        ? get_cOptions<C.showVomnibar>().u as string : getPortUrl_()
+        ? get_cOptions<C.showVomnibar, true>().u! : getPortUrl_()
     if (res && res instanceof Promise) {
       void res.then((url): void => {
         overrideCmdOptions<C.showVomnibar>({ u: url || "" }, true)
@@ -226,29 +226,41 @@ export const showVomnibar = (forceInner?: boolean): void => {
   set_cOptions(options) // safe on renaming
 }
 
-export const findMarkCPort_ = (): void => {
-  if (cPort.s.frameId_ && get_cOptions<C.marksActivate>().frame !== true) {
-    const rawTabId = cPort.s.tabId_, ref = framesForTab_.get(rawTabId >= 0 ? rawTabId : curTabId_)
-    if (ref && ref.top_ && (rawTabId < 0 || !(cPort.s.flags_ & Frames.Flags.otherExtension)
-        || ref.ports_.find(i => !!(i.s.frameId_ && i.s.flags_ & Frames.Flags.otherExtension) ))) {
-      set_cPort(ref.top_)
+export const findContentPort_ = (port: Port, type: KnownOptions<kBgCmd.marksActivate>["type"], local: boolean
+    ): PromiseOr<Port> => {
+  const rawId = port.s.tabId_, tabId = rawId >= 0 ? rawId : curTabId_
+  const ref = port.s.frameId_ || rawId < 0 ? framesForTab_.get(tabId) : null
+  if (ref) {
+    if (rawId < 0 && port.s.url_.startsWith("about:")) { port = ref.cur_ }
+    if (type === "tab" || !type && !local && rawId < 0) {
+      (ref.top_ || rawId < 0) && (port = ref.top_ || ref.cur_)
+    }
+    if (port.s.url_.startsWith("about:") && port.s.frameId_) {
+      return getParentFrame(tabId, port.s.frameId_, 1).then((port2): Port => {
+        return port2 || ref.top_ || ref.cur_
+      })
     }
   }
+  return port
 }
 
 export const marksActivate_ = (): void | kBgCmd.marksActivate => {
-  findMarkCPort_()
-  let mode = get_cOptions<C.marksActivate>().mode, count = cRepeat < 2 || cRepeat > 9 ? 1 : cRepeat
+  let mode = get_cOptions<C.marksActivate>().mode, count = cRepeat < 2 || cRepeat > 10 ? 1 : cRepeat
   const action = mode && (mode + "").toLowerCase() === "create" ? kMarkAction.create : kMarkAction.goto
-  Promise.resolve(trans_(action === kMarkAction.create ? "mBeginCreate" : "mBeginGoto")).then((title): void => {
-    cPort.postMessage<1, kFgCmd.marks>({ N: kBgReq.execute, H: ensureInnerCSS(cPort.s), c: kFgCmd.marks, n: count,
-        a: BgUtils_.extendIf_<CmdOptions[kFgCmd.marks], Partial<CmdOptions[kFgCmd.marks]>>(
-          BgUtils_.safer_<CmdOptions[kFgCmd.marks]>({
-      a: action,
-      p: get_cOptions<C.marksActivate>().prefix !== false,
-      s: get_cOptions<C.marksActivate>().swap !== true,
-      t: title,
-    }), get_cOptions<C.marksActivate, true>()) })
+  const key = get_cOptions<C.marksActivate>().key
+  const options: CmdOptions[kFgCmd.marks] = {
+    a: action, n: !get_cOptions<C.marksActivate>().storeCount, s: get_cOptions<C.marksActivate>().swap !== true,
+    t: "", o: get_cOptions<C.marksActivate, true>() as OpenPageUrlOptions & Req.FallbackOptions
+  }
+  if (typeof key === "string" && key.trim().length === 1) {
+    options.a = kMarkAction.goto
+    reqH_[kFgReq.marks]({ H: kFgReq.marks, c: options, k: cKey, n: key.trim(), s: 0, u: ""
+        , l: !!get_cOptions<C.marksActivate>().local } satisfies Req.fg<kFgReq.marks> as FgReq[kFgReq.marks], cPort)
+    return
+  }
+  void Promise.resolve(trans_(action === kMarkAction.create ? "mBeginCreate" : "mBeginGoto")).then((title): void => {
+    options.t = title
+    portSendFgCmd(cPort, kFgCmd.marks, true, options, count)
   })
 }
 

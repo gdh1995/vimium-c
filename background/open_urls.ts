@@ -820,8 +820,9 @@ const updateMatchedTab = (tabs2: Tab[]): void => {
   } else {
     const cur = OnChrome && IsEdg_ ? tab.url.replace(<RegExpOne> /^edge:/, "chrome:") : tab.url
     const wanted = OnChrome && IsEdg_ ? url.replace(<RegExpOne> /^edge:/, "chrome:") : url
+    finallyMatched = cur.startsWith(wanted)
     tabsUpdate(tab.id, {
-      url: cur.startsWith(wanted) ? undefined : url, active: true
+      url: finallyMatched ? undefined : url, active: true
     }, callback)
     selectWndIfNeed(tab)
   }
@@ -830,11 +831,12 @@ const updateMatchedTab = (tabs2: Tab[]): void => {
 const callback = (tab?: Tab | null): void => {
   if (!tab) { request.f && runNextCmdBy(0, request.f); return runtimeError_(); }
   runNextOnTabLoaded(request.f || {}, tab, request.s && ((): void => {
-    Marks_.scrollTab_(request as MarksNS.MarkToGo, tab)
+    Marks_.scrollTab_(request as MarksNS.MarkToGo, tab, kKeyCode.None, finallyMatched)
   }))
 }
 
   let curTabs: [Tab] | never[]
+  let finallyMatched = false
   // * do not limit windowId or windowType
   let toTest = reformatURL_(request.u.split("#", 1)[0])
   if (checkHarmfulUrl_(toTest, port)) {

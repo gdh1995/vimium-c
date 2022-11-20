@@ -113,6 +113,7 @@ declare namespace MarksNS {
     /** url */ u: string;
     /** prefix */ p?: boolean | null
     /** match a tab to replace */ q?: SimpleParsedOpenUrlOptions
+    /** wait a while on a new tab */ w?: number | boolean | null
     /** fallback */ f?: Req.FallbackOptions | null
   }
 }

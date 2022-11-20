@@ -23,7 +23,7 @@ import {
   set_isPassKeysReversed, isPassKeysReversed, set_passKeys, set_mappedKeys, set_mapKeyTypes, keyFSM,
 } from "./key_handler"
 import { HintManager, kSafeAllSelector, set_kSafeAllSelector } from "./link_hints"
-import { gotoMark } from "./marks"
+import { dispatchMark } from "./marks"
 import {
   set_findCSS, styleInHUD, deactivate as findExit, toggleSelectableStyle, styleSelColorIn, styleSelColorOut
 } from "./mode_find"
@@ -142,8 +142,10 @@ set_requestHandlers([
   /* kBgReq.injectorRun: */ injector! && injector.$m,
   /* kBgReq.url: */ (request: BgReq[kBgReq.url]): void => {
     delete (request as Partial<Req.bg<kBgReq.url>>).N
-    request.u = (request.U ? vApi.u : locHref)()
-    post_<kFgReq.checkIfEnabled>(request as WithEnsured<Req.queryUrl<kFgReq.checkIfEnabled>, "u">)
+    request.u = (request.U & 1 ? vApi.u : locHref)()
+    request.U & 2 && ((request as Extract<Req.queryUrl<kFgReq.marks>, {s: any}>).s = dispatchMark(0
+        , !(request as Extract<Req.queryUrl<kFgReq.marks>, {s: any}>).l))
+    post_<kFgReq.marks>(request as WithEnsured<Req.queryUrl<kFgReq.marks>, "u">)
   },
   /* kBgReq.msg: */ onPortRes_,
   /* kBgReq.eval: */ evalIfOK,
@@ -229,7 +231,6 @@ set_requestHandlers([
     const lock = insert_Lock_() || deepActiveEl_unsafe_(1)
     post_({ H: kFgReq.respondForRunKey, r: request, e: getElDesc_(lock) })
   },
-  /* kBgReq.goToMark: */ gotoMark,
   /* kBgReq.suppressForAWhile: */ (request: BgReq[kBgReq.suppressForAWhile]): void => { suppressTail_(request.t) },
   /* kBgReq.refreshPort: */ ((req?: BgReq[kBgReq.refreshPort] | 0, updates?: number): void => {
     if (!(Build.MV3 || Build.LessPorts)) { req = {} }

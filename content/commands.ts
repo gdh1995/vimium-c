@@ -30,7 +30,7 @@ import { onPassKey, set_onPassKey, passKeys, set_nextKeys, keyFSM, onEscDown } f
 import {
   InputHintItem, activate as linkActivate, clear as linkClear, kSafeAllSelector, findAnElement_
 } from "./link_hints"
-import { activate as markActivate } from "./marks"
+import { activate as markActivate, goToMark_ } from "./marks"
 import {
   FindAction, activate as findActivate, deactivate as findDeactivate, execCommand, find_box, find_input
 } from "./mode_find"
@@ -612,5 +612,6 @@ set_contentCommands_([
       maxStep && history.go(realStep);
       runFallbackKey(options, maxStep ? !1 : 2)
     }
-  }
+  },
+  /* kFgCmd.goToMark: */ goToMark_
 ])

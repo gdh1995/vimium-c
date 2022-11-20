@@ -45,10 +45,15 @@ interface BgCmdOptions {
   [kBgCmd.dispatchEventCmd]: CmdOptions[kFgCmd.dispatchEventCmd]
   [kBgCmd.showVomnibar]: VomnibarNS.GlobalOptions
   [kBgCmd.marksActivate]: {
+    extUrl: boolean
+    key?: string
+    local?: boolean
     mode: "create" | /* all others are treated as "goto"  */ "goto" | "goTo"
-    frame: boolean // work even in iframes without any other condition
+    type: null | "tab" | "frame"
     swap: boolean // swap meanings of shiftKey
     prefix?: true | false
+    storeCount: boolean
+    wait?: boolean | number
   } & OpenPageUrlOptions & Req.FallbackOptions
   [kBgCmd.visualMode]: {
     mode: "visual" | "Visual" | "caret" | "Caret" | "line" | "Line" | ""
@@ -70,7 +75,8 @@ interface BgCmdOptions {
   } & Pick<OpenPageUrlOptions, "reuse" | "replace" | "position" | "window">
   [kBgCmd.clearCS]: { type: chrome.contentSettings.ValidTypes }
   [kBgCmd.clearFindHistory]: {}
-  [kBgCmd.clearMarks]: { local: boolean; all: boolean } & Req.FallbackOptions
+  [kBgCmd.clearMarks]: Pick<BgCmdOptions[kBgCmd.marksActivate], "type"> & { local: boolean; all: boolean }
+      & Req.FallbackOptions
   [kBgCmd.copyWindowInfo]: UserSedOptions & LimitedRangeOptions & TabFilterOptions & {
     keyword: string
     type: "" | "frame" | "browser" | "window" | "tab" | "title" | "url" | "host" | "hostname" | "origin"

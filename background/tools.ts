@@ -1,7 +1,7 @@
 import {
   curIncognito_, curTabId_, curWndId_, framesForTab_, incognitoFindHistoryList_, recencyForTab_, set_curIncognito_,
-  set_curTabId_, set_curWndId_, set_incognitoFindHistoryList_, set_lastWndId_, incognitoMarkCache_,
-  set_incognitoMarkCache_, contentPayload_, settingsCache_, OnFirefox, OnChrome, CurCVer_, updateHooks_,
+  set_curTabId_, set_curWndId_, set_incognitoFindHistoryList_, set_lastWndId_, incognitoMarkCache_, focusAndExecuteOn_,
+  set_incognitoMarkCache_, contentPayload_, settingsCache_, OnFirefox, OnChrome, CurCVer_, updateHooks_, set_cKey,
   OnEdge, isHighContrast_ff_, omniPayload_, blank_, CONST_, CurFFVer_, storageCache_, os_,
   vomnibarBgOptions_, cPort
 } from "./store"
@@ -15,8 +15,8 @@ import { prepareReParsingPrefix_ } from "./parse_urls"
 import * as settings_ from "./settings"
 import { complainLimits, refreshPorts_, showHUD, showHUDEx, waitForPorts_ } from "./ports"
 import { setOmniStyle_ } from "./ui_css"
-import { trans_ } from "./i18n"
-import { parseFallbackOptions, runNextCmd, getRunNextCmdBy, kRunOn, runNextCmdBy } from "./run_commands"
+import { transEx_, trans_ } from "./i18n"
+import { parseFallbackOptions, runNextCmd, getRunNextCmdBy, kRunOn, runNextCmdBy, portSendFgCmd } from "./run_commands"
 import { focusOrLaunch_, parseOpenPageUrlOptions, preferLastWnd } from "./open_urls"
 import { reopenTab_ } from "./tab_commands"
 
@@ -276,6 +276,7 @@ export const Marks_ = { // NOTE: all public members should be static
         scroll = [0, 0]
       }
     }
+    tabId = tabId >= 0 ? tabId : -1
     const sc2 = incognito ? scroll : scroll.length === 2 && !scroll[0] && !scroll[1] ? 0
         : scroll.length !== 2 || scroll[1] > 0x7ffff || scroll[0] > 0x1fff ? scroll
         : Math.max(0, scroll[0]) | (Math.max(0, scroll[1]) << 13)
@@ -285,14 +286,17 @@ export const Marks_ = { // NOTE: all public members should be static
     incognito ? (incognitoMarkCache_ || (IncognitoWatcher_.watch_(), set_incognitoMarkCache_(new Map()))).set(key, val)
         : settings_.setInLocal_(key, val)
   },
-  gotoMark_ (this: void, options: CmdOptions[kFgCmd.marks], request: MarksNS.FgGotoQuery, port: Port): BOOL | -1 {
+  goToMark_ (exOpts: KnownOptions<kBgCmd.marksActivate>, request: MarksNS.FgGotoQuery, port: Port
+      , lastKey: kKeyCode): void {
     const { n: markName } = request, key = Marks_.getLocationKey_(markName, request.l ? request.u : "")
     const stored = port.s.incognito_ && incognitoMarkCache_?.get(key)
         || settings_.getInLocal_<MarksNS.StoredMarkV2 | string>(key)
     let parsed: MarksNS.GlobalMarkV1 | MarksNS.ScrollInfo | undefined =
-        typeof stored === "number" ? [stored & 0x1fff, stored >>> 13] : typeof stored === "string" ? JSON.parse(stored)
+        typeof stored === "number" ? [stored & 0x1fff, stored >>> 13]
+        : typeof stored === "string" ? JSON.parse<MarksNS.GlobalMarkV1 | MarksNS.ScrollInfo>(stored)
         : !stored || stored instanceof Array ? stored : { url: stored.u, tabId: stored.t,
-            s: typeof stored.s !== "number" ? stored.s || [0, 0] : [stored.s & 0x1fff, stored.s >>> 13] }
+            scroll: typeof stored.s !== "number" ? stored.s || [0, 0] : [stored.s & 0x1fff, stored.s >>> 13]
+    }
     if (typeof stored === "string") {
       Marks_.set_({ l: request.l, n: markName, s: parsed instanceof Array ? parsed : parsed!.scroll || [0, 0]
           , u: request.u }, false, port.s.tabId_)
@@ -306,63 +310,76 @@ export const Marks_ = { // NOTE: all public members should be static
           }
         } catch {}
     }
-    if (parsed instanceof Array) {
-        Marks_.goToInContent_(port.s.tabId_, null, port, true, markName, parsed, options)
-        return 1
-    }
     if (!parsed) {
       showHUDEx(port, "noMark", 0, [[request.l ? "Local" : "Global"], markName])
-      return 0
+      runNextCmdBy(0, exOpts)
+      return
     }
-    const fallback = parseFallbackOptions(options)
+    const fallback = parseFallbackOptions(exOpts)
+    if (parsed instanceof Array) {
+      fallback && (fallback.$else = null)
+      Marks_.goToInContent_(port.s.tabId_, null, port, true, markName, parsed, 0, fallback, lastKey)
+      return
+    }
     fallback && (fallback.$else = fallback.$then)
-    const tabId = parsed.tabId, markInfo: MarksNS.MarkToGo = {
+    const tabId = parsed.tabId, wait = exOpts.wait, markInfo: MarksNS.MarkToGo = {
       n: markName, p: true,
-      q: parseOpenPageUrlOptions(options),
-      s: parsed.scroll || [0, 0], t: tabId, u: parsed.url, f: fallback
+      q: parseOpenPageUrlOptions(exOpts), s: parsed.scroll || [0, 0], t: tabId, u: parsed.url, f: fallback,
+      w: typeof wait === "number" ? Math.min(Math.max(0, wait || 0), 2e3) : wait
     };
-    markInfo.p = options.p && markInfo.s[1] === 0 && markInfo.s[0] === 0 && !!BgUtils_.IsURLHttp_(markInfo.u)
-    if (tabId >= 0 && framesForTab_.has(tabId)) {
-      tabsGet(tabId, Marks_.checkTab_.bind(0, markInfo))
+    markInfo.p = markInfo.s[1] === 0 && markInfo.s[0] === 0 && exOpts.prefix !== !1 && !!BgUtils_.IsURLHttp_(markInfo.u)
+        || exOpts.prefix === true
+    if (request.u === markInfo.u || markInfo.p && markInfo.u.startsWith(request.u)) {
+      Marks_.goToInContent_(port.s.tabId_, null, port, false, markName, markInfo.s, 0, fallback, lastKey)
+    } else if (tabId >= 0 && framesForTab_.has(tabId)) {
+      tabsGet(tabId, Marks_.checkTab_.bind(0, markInfo, lastKey))
     } else {
       focusOrLaunch_(markInfo)
     }
-    return -1
   },
-  checkTab_ (this: 0, mark: MarksNS.MarkToGo, tab: Tab): void {
+  checkTab_ (this: 0, mark: MarksNS.MarkToGo, lastKey: kKeyCode, tab: Tab): void {
     const url = getTabUrl(tab).split("#", 1)[0]
     if (url === mark.u || mark.p && mark.u.startsWith(url)) {
-      selectTab(tab.id, selectWndIfNeed)
-      Marks_.scrollTab_(mark, tab)
+      const useCur = tab.id === curTabId_
+      useCur || selectTab(tab.id, selectWndIfNeed)
+      Marks_.scrollTab_(mark, tab, useCur ? lastKey : kKeyCode.None, true)
     } else {
       focusOrLaunch_(mark)
     }
   },
   getLocationKey_ (markName: string, url: string | undefined): `${string}|${string}` {
-    return (url ? "vimiumMark|" + prepareReParsingPrefix_(url.split("#", 1)[0])
+    return (url ? "vimiumMark|" + prepareReParsingPrefix_(url.slice(0, 499).split("#", 1)[0])
         + (url.length > 1 ? "|" + markName : "") : "vimiumGlobalMark|" + markName
         ) as `${string}|${string}`
   },
   goToInContent_ (tabId: number, frames: Frames.Frames | null | undefined, port: Port | null
-      , local: boolean, name: string | undefined, scroll: MarksNS.ScrollInfo, f: MarksNS.MarkToGo["f"]): void {
-    let fallbackDelayed = false
+      , local: boolean, name: string | undefined, scroll: MarksNS.ScrollInfo, wait: number | undefined
+      , fallback?: Req.FallbackOptions | null, lastKey?: kKeyCode): void {
     port = frames && frames.top_ && !(frames.top_.s.flags_ & Frames.Flags.ResReleased) ? frames.top_ : port
     if (port) {
-      port.postMessage({ N: kBgReq.goToMark, l: local, n: name, s: scroll })
+      const args: CmdOptions[kFgCmd.goToMark] = { g: !local, s: scroll, t: "", f: fallback || {}, w: wait || 0 }
+      void Promise.resolve(name && transEx_("mNormalMarkTask", [ ["mJumpTo"], [local ? "Local" : "Global"], name ])
+          ).then((tip): void => {
+        args.t = tip || ""
+        if (lastKey) {
+          set_cKey(lastKey)
+          focusAndExecuteOn_(port!, kFgCmd.goToMark, args, 1, 1)
+        } else {
+          portSendFgCmd(port!, kFgCmd.goToMark, true, args, 1)
+        }
+      })
     } else {
       executeScript_(tabId, 0, null, (x: number, y: number) => { // @ts-ignore
           (window as unknown as typeof globalThis)
           .scrollTo(x, y)
-      }, [scroll[0], scroll[1]], f ? () => { runNextCmdBy(1, f); return runtimeError_() } : null)
-      fallbackDelayed = true
+      }, [scroll[0], scroll[1]], fallback ? () => { runNextCmdBy(1, fallback); return runtimeError_() } : null)
     }
-    name && showHUDEx(port, "mNormalMarkTask", local ? 1 : 2, [ ["mJumpTo"], [local ? "Local" : "Global"], name ])
-    fallbackDelayed || f && runNextCmdBy(1, f)
   },
-  scrollTab_ (this: void, markInfo: MarksNS.MarkToGo, tab: Tab): void {
-    const tabId = tab.id, frames = framesForTab_.get(tabId)
+  scrollTab_ (this: void, markInfo: MarksNS.MarkToGo, tab: Tab, lastKey?: kKeyCode, notANewTab?: boolean): void {
+    const tabId = tab.id, frames = framesForTab_.get(tabId), wait = markInfo.w
     void waitForPorts_(frames).then((): void => {
-      Marks_.goToInContent_(tabId, frames, null, false, markInfo.n, markInfo.s, markInfo.f)
+      Marks_.goToInContent_(tabId, frames, null, false, markInfo.n, markInfo.s
+          , notANewTab || wait === false ? 0 : typeof wait !== "number" ? 200 : wait, markInfo.f, lastKey)
     })
     if (markInfo.t !== tabId && markInfo.n) {
       Marks_.set_({l: false, n: markInfo.n, s: markInfo.s, u: markInfo.u}, curIncognito_ === IncognitoType.true, tabId)

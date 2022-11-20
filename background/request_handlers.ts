@@ -13,7 +13,7 @@ import { findUrlEndingWithPunctuation_, parseSearchUrl_, parseUpperUrl_ } from "
 import * as settings_ from "./settings"
 import {
   findCPort, isNotVomnibarPage, indexFrame, safePost, complainNoSession, showHUD, complainLimits, ensureInnerCSS,
-  getParentFrame, sendResponse, showHUDEx, getFrames_
+  getParentFrame, sendResponse, showHUDEx, getFrames_, requireURL_
 } from "./ports"
 import { exclusionListening_, getExcluded_ } from "./exclusions"
 import { setOmniStyle_ } from "./ui_css"
@@ -27,7 +27,7 @@ import { parseEmbeddedOptions, runKeyWithCond } from "./run_keys"
 import { focusOrLaunch_, openJSUrl, openUrlReq } from "./open_urls"
 import {
   initHelp, openImgReq, framesGoBack, enterVisualMode, showVomnibar, parentFrame, nextFrame, performFind, focusFrame,
-  handleImageUrl
+  handleImageUrl, findContentPort_
 } from "./frame_commands"
 import { FindModeHistory_, Marks_ } from "./tools"
 import { convertToUrl_ } from "./normalize_urls"
@@ -410,20 +410,33 @@ set_reqH_([
     }
   },
   /** kFgReq.nextKey: */ _AsReqH<kFgReq.nextKey>(waitAndRunKeyReq),
-  /** kFgReq.marks: */ (request: FgReq[kFgReq.marks], port: Port): void => {
-    let ok: BOOL | -1 = 0
-    set_cPort(port)
+  /** kFgReq.marks: */ (request: FgReq[kFgReq.marks], urlPort: Port): void => {
     if (request.c === kMarkAction.clear) {
       const removed = Marks_.clear_(request.u)
       request.f && runNextCmdBy(removed > 0 ? 1 : 0, request.f)
-    } else if (request.c.a === kMarkAction.create) {
-      Marks_.set_(request satisfies MarksNS.FgQuery as MarksNS.FgCreateQuery, port.s.incognito_, port.s.tabId_)
-      showHUDEx(port, "mNormalMarkTask", 1, [ ["mCreate"], [request.l ? "Local" : "Global"], request.n ])
-      runNextCmdBy(1, request.c)
-    } else {
-      ok = Marks_.gotoMark_(request.c, request satisfies MarksNS.FgQuery as MarksNS.FgGotoQuery, port)
-      ok !== -1 && runNextCmdBy(ok, request.c)
+      return
     }
+    const forced = !!request.f
+    const exOpts: KnownOptions<kBgCmd.marksActivate> = request.c.o satisfies OpenPageUrlOptions | Req.FallbackOptions
+    forced || set_cPort(urlPort)
+    const p = !forced && findContentPort_(urlPort, exOpts.type, request.l) || urlPort
+    void Promise.resolve(p).then((upperPort): void => {
+      if (!forced && (upperPort !== urlPort || !request.u)) {
+        const req2 = request as Req.fg<kFgReq.marks> satisfies Omit<Req.queryUrl<kFgReq.marks>, "U"
+            > as Req.queryUrl<kFgReq.marks>
+        req2.U = ((exOpts.extUrl ? 1 : 0) | (request.c.a ? 2 : 0)) as 0 | 1 | 2 | 3
+        ; (req2 as Extract<FgReq[kFgReq.marks], { c: CmdOptions[kFgCmd.marks] }>).f = true
+        void requireURL_(req2, true, 1, upperPort)
+        return
+      }
+      if (request.c.a === kMarkAction.create) {
+        Marks_.set_(request satisfies MarksNS.FgQuery as MarksNS.FgCreateQuery, urlPort.s.incognito_, urlPort.s.tabId_)
+        showHUDEx(urlPort, "mNormalMarkTask", 1, [ ["mCreate"], [request.l ? "Local" : "Global"], request.n ])
+        runNextCmdBy(1, exOpts)
+      } else {
+        Marks_.goToMark_(exOpts, request as MarksNS.FgGotoQuery, urlPort, request.l && forced ? request.k : 0)
+      }
+    })
   },
   /** kFgReq.focusOrLaunch: */ _AsReqH<kFgReq.focusOrLaunch, false>(focusOrLaunch_),
   /** kFgReq.cmd: */ _AsReqH<kFgReq.cmd>(onConfirmResponse),
@@ -550,7 +563,7 @@ set_reqH_([
   /** kFgReq.didLocalMarkTask: */ (req: FgReq[kFgReq.didLocalMarkTask], port): void => {
     showHUDEx(port, "mLocalMarkTask", 1, [ [req.n ? "mCreate" : "mJumpTo"], req.i > 1 ? req.i : ["mLastMark"] ])
     set_cPort(port)
-    runNextCmdBy(1, req.c)
+    runNextCmdBy(1, req.c.o)
   },
   /** kFgReq.recheckTee: */ (): FgRes[kFgReq.recheckTee] => {
     const taskOnce = setTeeTask_(null, null)
