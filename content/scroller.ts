@@ -13,7 +13,7 @@ declare const enum ScrollConsts {
 
     AmountLimitToScrollAndWaitRepeatedKeys = 40,
     MinLatencyToAutoPreventHover = 20,
-    DEBUG = 15,
+    DEBUG = 0,
 }
 interface ElementScrollInfo {
   /** area */ a: number;
