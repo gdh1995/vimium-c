@@ -6,7 +6,7 @@
   "addons": "Firefox Add-ons",
   "webstore": "Chrome Web Store",
   "edgestore": "MS Edge Add-ons",
-  "cmdList": "Command Listing",
+  "cmdList": "List of Commands",
   "tipClickToCopy": "Tip: Click a command name to copy it to the clipboard.",
   "cmdParams": " (use *)",
   "browserHelp": "Browser shortcuts",

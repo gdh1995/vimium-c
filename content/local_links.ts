@@ -351,8 +351,10 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
         || jsaEnabled_ && (s = attr_s(element, "jsaction")) && checkJSAction(s)
       ? ClickType.attrListener
       : hasTabIdx && tabIndex! >= 0 ? element.localName === "a" ? ClickType.attrListener : ClickType.tabindex
-      : (s = attr_s(element, "class")) && clickableClasses_.test(s)
+      : ((s = attr_s(element, "class")) && clickableClasses_.test(s)
+          || (s = element.localName) === "svg" && getComputedStyle_(element).cursor === "pointer")
           && (par = GetParent_unsafe_(element, PNType.DirectElement)) && htmlTag_<1>(par)
+          && (s !== "svg" || getComputedStyle_(par).cursor !== "pointer")
           && !(hints.length && contains_s(hints[hints.length - 1][0], element)) ? ClickType.classname
       : ClickType.Default
   if (type && (arr = getVisibleClientRect_(element, null))

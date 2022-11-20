@@ -139,11 +139,12 @@ export const getKeyStat_ = (event: Pick<KeyboardEvent, "altKey" | "ctrlKey" | "m
 
 export const isKeyRepeat_ = (event: HandlerNS.Event): boolean => {
   const repeat = event.e.repeat
-  if (!OnFirefox && (!OnChrome || Build.MinCVer >= BrowserVer.Min$KeyboardEvent$$Repeat$ExistsButNotWork
-      || chromeVer_ > BrowserVer.Min$KeyboardEvent$$Repeat$ExistsButNotWork - 1)) {
+  if (OnChrome ? Build.MinCVer < BrowserVer.Min$KeyboardEvent$$Repeat$ExistsButNotWork
+      : OnFirefox && !(Build.OS & (1 << kOS.unixLike))) {
     return repeat
   }
-  return repeat || event.i in keydownEvents_
+  return repeat || (OnChrome ? chromeVer_ < BrowserVer.Min$KeyboardEvent$$Repeat$ExistsButNotWork - 1
+    : OnFirefox && (!(Build.OS & ~(1 << kOS.unixLike)) || os_ === kOS.unixLike)) && event.i in keydownEvents_
 }
 
 export const isEscape_ = (key: string): HandlerResult.AdvancedEsc | HandlerResult.PlainEsc | HandlerResult.Nothing => {

@@ -96,7 +96,7 @@ export class OptionalPermissionsOption_ extends Option_<"nextPatterns"> {
       const i = shownItems[_ind], previous = i.previous_
       const wanted = +wanted_value[_ind] as 0 | 1 | 2
       if (previous === wanted) { continue }
-      const orig2: kBrowserPermission | "" = OnChrome && Build.OnBrowserNativePages && i.name_ === kNTP
+      const orig2: kBrowserPermission | "" = !Build.MV3 && OnChrome && Build.OnBrowserNativePages && i.name_ === kNTP
           ? "chrome://newtab/*" : ""
       i.previous_ = wanted
       if (OnChrome && Build.OnBrowserNativePages && i.name_ === kCrURL) {
@@ -116,17 +116,18 @@ export class OptionalPermissionsOption_ extends Option_<"nextPatterns"> {
         else if (wanted === 2) {
           new_nav_permissions.push(i.name_)
         }
+      } else if (Build.MV3 && i.type_ === 1) {
+        /* empty */
       } else if (wanted) {
         i.name_ === kShelf && new_browser_permissions.push("downloads");
-        (i.type_ === 1 ? new_origins : new_browser_permissions).push(i.name_)
-        orig2 && new_origins.push(orig2)
+        (!Build.MV3 && i.type_ === 1 ? new_origins : new_browser_permissions).push(i.name_)
+        Build.MV3 || orig2 && new_origins.push(orig2)
         changed[i.name_] = i
       } else {
         waiting++
-        void browserPermissions_.remove(i.type_ === 1 ? { origins: orig2 ? [i.name_, orig2] : [i.name_] } : {
-          permissions: i.name_ === kShelf ? ["downloads", i.name_] : [i.name_]
-        }).then(([ok, err]): void => {
-          const msg1 = "Can not remove the permission %o :", msg2 = err && err.message || err;
+        void browserPermissions_.remove(!Build.MV3 && i.type_ === 1 ? { origins: orig2 ? [i.name_, orig2] : [i.name_] }
+              : { permissions: i.name_ === kShelf ? ["downloads", i.name_] : [i.name_] }).then(([ok, err]): void => {
+          const msg1 = "Can not remove the permission %o : ", msg2 = err && err.message || err;
           (err || !ok) && console.log(msg1, i.name_, msg2)
           const box = i.element_.parentElement as Element as EnsuredMountedHTMLElement
           TextOption_.showError_(err ? msg1.replace("%o", i.name_) + msg2 : "", void 0, box)
@@ -168,13 +169,11 @@ export class OptionalPermissionsOption_ extends Option_<"nextPatterns"> {
     waiting += (new_browser_permissions.length && 1) + (new_origins.length && 1)
     new_browser_permissions.length &&
         browserPermissions_.request({ permissions: new_browser_permissions }).then(cb.bind(0, new_browser_permissions))
-    new_origins.length && browserPermissions_.request({ origins: new_origins }).then(cb.bind(0, new_origins))
-    for (const new_nav_name of new_nav_permissions) {
-      if (new_nav_name === "clipboard-read") {
+    Build.MV3 || new_origins.length && browserPermissions_.request({ origins: new_origins }).then(cb.bind(0, new_origins))
+    if (new_nav_permissions.includes("clipboard-read")) {
         const clipboard = navigator.clipboard!
         waiting++
         clipboard.readText!().catch((): void => {}).then(tryRefreshing)
-      }
     }
     tryRefreshing()
     return Promise.resolve(wanted_value)
@@ -268,6 +267,9 @@ if (!OnEdge) {
   OnChrome || ignored.push(<RegExpOne> /^chrome:/, "contentSettings")
   OnChrome && IsEdg_ && Build.OnBrowserNativePages && ignored.push(kNTP)
   OnFirefox || ignored.push("cookies")
+  if (Build.MV3 && OnChrome) {
+    optional_permissions = optional_permissions.concat((manifest.host_permissions || []).filter(i => i.includes(":")))
+  }
   optional_permissions = optional_permissions.filter(
       i => !ignored.some(j => typeof j === "string" ? i === j : j.test(i)))
 }

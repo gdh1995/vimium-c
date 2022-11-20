@@ -190,6 +190,7 @@ let optionsInit1_ = function (): void {
         transArgs = OnChrome || secondCond === "," ? ["beforeChromium", [key.slice(1).split(",", 1)[0]]]
             : ["lackPermission", [secondCond]]
       } else {
+        if (!Build.MV3) { key === "action" ? (key = "browser_action") : key }
         if (key in manifest || validKeys2.includes(key)) { continue }
         transArgs = ["lackPermission", [key ? ":\n* " + key : ""]]
       }

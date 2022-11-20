@@ -145,12 +145,12 @@
     "keyword": "v"
   },
   "optional_permissions": [
-    "chrome://*/*",
-    "chrome://new-tab-page/*",
-    "contentSettings",
-    "cookies",
     "downloads",
-    "downloads.shelf"
+    "downloads.shelf",
+    "cookies",
+    "contentSettings",
+    "chrome://*/*",
+    "chrome://new-tab-page/*"
   ],
   "optional_permissions[].v3": [
     "-chrome://*/*",
@@ -186,7 +186,7 @@
   ],
   "short_name": "Vimium C",
   "update_url": "https://clients2.google.com/service/update2/crx",
-  "version": "1.99.8",
+  "version": "1.99.9",
   "web_accessible_resources": [
     "content/*",
     "front/vomnibar*",

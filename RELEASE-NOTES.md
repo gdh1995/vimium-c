@@ -4,6 +4,12 @@ Release Notes of Vimium C
 ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 说明文档: https://gitee.com/gdh1995/vimium-c#readme , https://github.com/gdh1995/vimium-c/blob/master/README-zh.md .
 
+#### v1.99.9
+* Marks: rewrite logic again (and add parameters) to fix bugs since v1.99.4
+* work around broken `KeyboardEvent.repeat` of Firefox in Wayland mode
+* LinkHints: now show hints for SVG icons with a cursor of pointer
+* `reload` and `Marks.activate`: auto go to a parent frame from an `about:` frame
+
 #### v1.99.8
 * fix support for sandboxed `about:blank` iframes
 * fix broken `goNext` in v1.99.4-v1.99.7

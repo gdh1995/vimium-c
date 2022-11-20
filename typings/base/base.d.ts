@@ -181,6 +181,7 @@ declare namespace chrome.runtime {
     name: string
     version: string
   }
+  interface Manifest { host_permissions: chrome.permissions.kPermission[] }
   export function getBrowserInfo(exArg?: FakeArg): Promise<BrowserInfo>
   export const getFrameId: ((frame: Window | HTMLIFrameElement | HTMLFrameElement) => number) | undefined
 }

@@ -6,7 +6,7 @@
   "addons": "Firefox 附加组件",
   "webstore": "Chrome 网上应用店",
   "edgestore": "Microsoft Edge 加载项",
-  "cmdList": "命令列表",
+  "cmdList": "全部命令",
   "tipClickToCopy": "提示：点击命令名称即可复制到剪贴板。",
   "cmdParams": "（参数：*）",
   "Wiki": "操作手册",
