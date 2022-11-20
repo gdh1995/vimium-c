@@ -76,6 +76,7 @@ export const OnConnect = (port: Frames.Port, type: PortType): void => {
     flags = Frames.Flags.blank
   }
   sender.status_ = status
+  if (type & PortType.aboutIframe) { sender.flags_ = (flags |= Frames.Flags.aboutIframe) }
   if (ref !== undefined && isNewFrameInSameTab) {
     flags |= ref.flags_ & Frames.Flags.userActed
     if (type & PortType.otherExtension) {

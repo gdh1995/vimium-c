@@ -257,10 +257,10 @@ declare namespace Frames {
   // upper-case items are for tabs
   const enum Flags {
     Default = 0, blank = Default, locked = 1, lockedAndDisabled = 3, MASK_LOCK_STATUS = 3, userActed = 4,
-    hasCSS = 8, hadVisualMode = 16, hasFindCSS = 32, hadHelpDialog = 64,
+    hasCSS = 8, hadVisualMode = 16, hasFindCSS = 32, aboutIframe = 64,
     otherExtension = 128, isVomnibar = 256, ResReleased = 512, OldEnough = 1024, SOURCE_WARNED = 2048,
     UrlUpdated = 0x1000, SettingsUpdated = 0x2000, CssUpdated = 0x4000, KeyMappingsUpdated = 0x8000,
-    KeyFSMUpdated = 0x10000, MASK_UPDATES = 0x1f000, HadIFrames = 0x20000,
+    KeyFSMUpdated = 0x10000, MASK_UPDATES = 0x1f000, HadIFrames = 0x20000, hadHelpDialog = 0x40000,
   }
   const enum NextType {
     next = 0, Default = next, parent = 1, current = 2,
@@ -278,7 +278,7 @@ declare const enum PortNameEnum {
 
 declare const enum PortType {
   initing = 0, isTop = 1, hasFocus = 2, reconnect = 4, hasCSS = 8,
-  omnibar = 16, otherExtension = 32, selfPages = 64, Tee = 128, refreshInBatch = 256,
+  omnibar = 16, otherExtension = 32, aboutIframe = 64, selfPages = 128, Tee = 256, refreshInBatch = 512,
   /** for external extensions like NewTab Adapter */ CloseSelf = 999,
 }
 

@@ -231,11 +231,11 @@ export const findContentPort_ = (port: Port, type: KnownOptions<kBgCmd.marksActi
   const rawId = port.s.tabId_, tabId = rawId >= 0 ? rawId : curTabId_
   const ref = port.s.frameId_ || rawId < 0 ? framesForTab_.get(tabId) : null
   if (ref) {
-    if (rawId < 0 && port.s.url_.startsWith("about:")) { port = ref.cur_ }
+    if (rawId < 0 && (port.s.flags_ & Frames.Flags.aboutIframe || port.s.url_.startsWith("about:"))) { port = ref.cur_ }
     if (type === "tab" || !type && !local && rawId < 0) {
       (ref.top_ || rawId < 0) && (port = ref.top_ || ref.cur_)
     }
-    if (port.s.url_.startsWith("about:") && port.s.frameId_) {
+    if (port.s.flags_ & Frames.Flags.aboutIframe || port.s.url_.startsWith("blob:")) {
       return getParentFrame(tabId, port.s.frameId_, 1).then((port2): Port => {
         return port2 || ref.top_ || ref.cur_
       })

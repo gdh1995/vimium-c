@@ -1,6 +1,6 @@
 import {
   injector, safer, timeout_, isAlive_, isTop, set_i18n_getMsg, locHref, OnEdge, OnChrome, OnFirefox, isTY, fgCache,
-  interval_, setupTimerFunc_cr, noRAF_old_cr_, runtime_ff
+  interval_, setupTimerFunc_cr, noRAF_old_cr_, runtime_ff, isIFrameInAbout_
 } from "../lib/utils"
 import { suppressTail_ } from "../lib/keyboard_utils"
 import { docHasFocus_, rAF_ } from "../lib/dom_utils"
@@ -66,7 +66,8 @@ export const runtimeConnect = (function (this: void, extraFlags?: number): void 
   status = !fgCache ? PortType.initing
       : (PortType.reconnect | extraFlags!) + (PortType.hasCSS * <number> <boolean | number> !!style_ui),
   name = (PortType.isTop === 1 ? <number> <boolean | number> isTop : PortType.isTop * <number> <number | boolean> isTop)
-      + PortType.hasFocus * <number> <number | boolean> docHasFocus_() + status,
+      + PortType.hasFocus * <number> <number | boolean> docHasFocus_()
+      + PortType.aboutIframe * <number> <number | boolean> isIFrameInAbout_ + status,
   data = { name: injector ? PortNameEnum.Prefix + name + injector.$h
                   : OnEdge ? name + PortNameEnum.Delimiter + locHref() : "" + name },
   connect = (OnFirefox ? runtime_ff! : api.runtime).connect
