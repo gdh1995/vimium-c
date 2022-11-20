@@ -13,7 +13,7 @@ declare const enum ScrollConsts {
 
     AmountLimitToScrollAndWaitRepeatedKeys = 40,
     MinLatencyToAutoPreventHover = 20,
-    DEBUG = 0,
+    DEBUG = 15,
 }
 interface ElementScrollInfo {
   /** area */ a: number;
@@ -43,7 +43,7 @@ import {
 import { isCmdTriggered } from "./key_handler"
 import { detectUsableChild, hint_box, tryNestedFrame } from "./link_hints"
 import { setPreviousMarkPosition } from "./marks"
-import { keyNames_, prevent_ } from "../lib/keyboard_utils"
+import { isKeyRepeat_, keyNames_, prevent_ } from "../lib/keyboard_utils"
 import { post_, runFallbackKey } from "./port"
 
 const kSE = "scrollend"
@@ -163,7 +163,7 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
       if (ScrollConsts.DEBUG & 2) {
         const near_fps = 1e3 / near_elapsed
         console.log("do scroll: %o + round2(%o fps %s %o px = %o); effect=%o ; amount=%o ; keyIsDown=%o"
-            , ((totalDelta * 100) | 0) / 100, near_fps > 300 ? -1 : ((near_fps * 100) | 0) / 100
+            , ((totalDelta * 100) | 0) / 100, near_fps > 300 ? -1 : (Math.round(near_fps * 100)) / 100
             , padding > 0 ? "-" : "+", ((abs_(padding) * 100) | 0) / 100, ((wanted * 100) | 0) / 100
             , ((delta * 100) | 0) / 100, amount
             , ((keyIsDown * 10) | 0) / 10)
@@ -444,7 +444,7 @@ let overrideScrollRestoration = function (kScrollRestoration, kManual): void {
   /** @argument willContinue 1: continue; 0: skip middle steps; 2: abort further actions; 5: resume */
 export const scrollTick: VApiTy["k"] = (willContinue: 0 | 1 | 2 | 5): void => {
     if (ScrollConsts.DEBUG & 4 && (keyIsDown || willContinue === 1)) {
-      console.log("update keyIsDown from", ((keyIsDown * 10) | 0) / 10, "to", willContinue - 1 ? 0 : maxKeyInterval, "@"
+      console.log("update keyIsDown from", ((keyIsDown * 10) | 0) / 10, "to", willContinue & 1 ? maxKeyInterval : 0, "@"
           , ((performance.now() % 1e3 * 1e2) | 0) / 1e2)
     }
     keyIsDown = willContinue & 1 ? maxKeyInterval : 0
@@ -468,10 +468,9 @@ export const beginScroll = (eventWrapper: 0 | Pick<HandlerNS.Event, "e">, key: s
     }
 }
 
-export const onScrolls = (event: KeyboardEventToPrevent): boolean => {
-    const repeat = OnChrome && Build.MinCVer < BrowserVer.Min$KeyboardEvent$$Repeat$ExistsButNotWork
-        ? !!event.repeat : event.repeat
-    repeat && prevent_(event);
+export const onScrolls = (event: HandlerNS.Event): boolean => {
+    const repeat = isKeyRepeat_(event)
+    repeat && prevent_(event.e)
     scrollTick(repeat ? 5 : 0)
     return repeat;
 }

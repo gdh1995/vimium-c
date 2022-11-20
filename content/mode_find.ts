@@ -556,12 +556,12 @@ const onIFrameKeydown = (event: KeyboardEventToPrevent): void => {
     Stop_(event)
     if ((!OnChrome || Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted
         ? !event.isTrusted : event.isTrusted === false) && (event as UserTrustedKeyboardEvent).z !== fgCache) { return }
-    if (!n || n === kKeyCode.ime || scroll_keyIsDown && onScrolls(event) || isUp) {
+    const eventWrapper: HandlerNS.Event = {c: kChar.INVALID, e: event, i: n, v: ""}
+    if (!n || n === kKeyCode.ime || scroll_keyIsDown && onScrolls(eventWrapper) || isUp) {
       if (isUp && keydownEvents_[n]) { keydownEvents_[n] = 0; prevent_(event) }
       return
     }
-    const eventWrapper: HandlerNS.Event = {c: kChar.INVALID, e: event, i: n, v: ""},
-    consumedByHost = currentKeys && checkKeyOnTop(eventWrapper),
+    const consumedByHost = currentKeys && checkKeyOnTop(eventWrapper),
     key = getMappedKey(eventWrapper, kModeId.Find), keybody = keybody_(key);
     const i: FindAction | KeyStat = consumedByHost ? FindAction.ConsumedByHost
       : key.includes("a-") && event.altKey ? FindAction.DoNothing

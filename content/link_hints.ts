@@ -99,7 +99,7 @@ import {
 } from "../lib/rect"
 import {
   replaceOrSuppressMost_, removeHandler_, getMappedKey, keybody_, isEscape_, getKeyStat_, keyNames_, suppressTail_,
-  BSP, ENTER, SPC,
+  BSP, ENTER, SPC, isKeyRepeat_,
 } from "../lib/keyboard_utils"
 import {
   style_ui, addElementList, ensureBorder, adjustUI, flash_, getParentVApi, getWndVApi_ff, checkHidden, removeModal,
@@ -386,7 +386,7 @@ const onKeydown = (event: HandlerNS.Event): HandlerResult => {
       ret = manager_.n(event)
     } else if (onWaitingKey && !isEscape_(getMappedKey(event, kModeId.Link))) {
       onWaitingKey()
-    } else if (event.e.repeat || !isActive) {
+    } else if (isKeyRepeat_(event) || !isActive) {
       isActive || isEscape_(getMappedKey(event, kModeId.Link)) && clear()
       // NOTE: should always prevent repeated keys.
     } else if (i === kKeyCode.ime) {

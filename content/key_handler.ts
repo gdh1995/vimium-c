@@ -214,7 +214,7 @@ export const onKeydown = (event: KeyboardEventToPrevent): void => {
           && (event as UserTrustedKeyboardEvent).z !== fgCache
       || !key) { return; }
   const eventWrapper: HandlerNS.Event = {c: kChar.INVALID, e: event, i: key, v: ""}
-  if (scroll_keyIsDown && onScrolls(event)) {
+  if (scroll_keyIsDown && onScrolls(eventWrapper)) {
     OnChrome && checkAccessKey_cr(eventWrapper)
     return;
   }

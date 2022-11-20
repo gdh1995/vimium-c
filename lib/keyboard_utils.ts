@@ -1,5 +1,5 @@
 import {
-  fgCache, clearTimeout_, timeout_, isAlive_, Stop_ as stopEvent, Lower, OnChrome, OnEdge, getTime, OnFirefox, abs_, os_
+  fgCache, clearTimeout_, timeout_, isAlive_, Stop_ as stopEvent, Lower, OnChrome, OnEdge, getTime, OnFirefox, abs_, os_, chromeVer_, keydownEvents_
 } from "./utils"
 
 const DEL = kChar.delete, BSP = kChar.backspace, SP = kChar.space
@@ -137,6 +137,15 @@ export const getKeyStat_ = (event: Pick<KeyboardEvent, "altKey" | "ctrlKey" | "m
             (ignoreShift ? 0
               : <number> <boolean|number> (OnFirefox ? hasShift_ff!(event as KeyboardEvent) : event.shiftKey) * 8)
 
+export const isKeyRepeat_ = (event: HandlerNS.Event): boolean => {
+  const repeat = event.e.repeat
+  if (!OnFirefox && (!OnChrome || Build.MinCVer >= BrowserVer.Min$KeyboardEvent$$Repeat$ExistsButNotWork
+      || chromeVer_ > BrowserVer.Min$KeyboardEvent$$Repeat$ExistsButNotWork - 1)) {
+    return repeat
+  }
+  return repeat || event.i in keydownEvents_
+}
+
 export const isEscape_ = (key: string): HandlerResult.AdvancedEsc | HandlerResult.PlainEsc | HandlerResult.Nothing => {
     return key === kChar.esc ? HandlerResult.AdvancedEsc
         : key === "c-" + kChar.bracketLeft ? HandlerResult.PlainEsc : HandlerResult.Nothing;
@@ -176,7 +185,7 @@ export const suppressTail_ = ((timeout?: number
     , callback?: HandlerNS.VoidHandler<unknown> | 0): HandlerNS.Handler | HandlerNS.VoidHandler<HandlerResult> => {
   let timer: ValidTimeoutID = TimerID.None, now: number, func = (event?: HandlerNS.Event): HandlerResult => {
       if (!timeout) {
-        if (event!.e.repeat) { return HandlerResult.Prevent }
+        if (isKeyRepeat_(event!)) { return HandlerResult.Prevent }
         exit()
         return HandlerResult.Nothing;
       }
