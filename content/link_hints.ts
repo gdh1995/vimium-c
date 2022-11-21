@@ -386,8 +386,9 @@ const onKeydown = (event: HandlerNS.Event): HandlerResult => {
       ret = manager_.n(event)
     } else if (onWaitingKey && !isEscape_(getMappedKey(event, kModeId.Link))) {
       onWaitingKey()
-    } else if (isKeyRepeat_(event) || !isActive) {
-      isActive || isEscape_(getMappedKey(event, kModeId.Link)) && clear()
+    } else if (!isActive) {
+      isEscape_(getMappedKey(event, kModeId.Link)) && clear()
+    } else if (isKeyRepeat_(event)) {
       // NOTE: should always prevent repeated keys.
     } else if (i === kKeyCode.ime) {
       hudTip(kTip.exitForIME)

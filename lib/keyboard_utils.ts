@@ -144,7 +144,8 @@ export const isKeyRepeat_ = (event: HandlerNS.Event): boolean => {
     return repeat
   }
   return repeat || (OnChrome ? chromeVer_ < BrowserVer.Min$KeyboardEvent$$Repeat$ExistsButNotWork - 1
-    : OnFirefox && (!(Build.OS & ~(1 << kOS.unixLike)) || os_ === kOS.unixLike)) && event.i in keydownEvents_
+    : OnFirefox && (!(Build.OS & ~(1 << kOS.unixLike)) || os_ === kOS.unixLike))
+      && !!(keydownEvents_[event.i] && event.i)
 }
 
 export const isEscape_ = (key: string): HandlerResult.AdvancedEsc | HandlerResult.PlainEsc | HandlerResult.Nothing => {

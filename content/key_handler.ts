@@ -314,7 +314,7 @@ export const onKeyup = (event: KeyboardEventToPrevent): void => {
       || (!OnChrome || Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted ? !event.isTrusted
           : event.isTrusted === false) // skip checks of `instanceof KeyboardEvent` if checking `!.keyCode`
           && (event as UserTrustedKeyboardEvent).z !== fgCache
-      || !key) { return; }
+  ) { return; }
   if (scroll_keyIsDown && (key === isCmdTriggered || isCmdTriggered < kKeyCode.True + 1)) {
     scrollTick(0);
   }
@@ -323,7 +323,7 @@ export const onKeyup = (event: KeyboardEventToPrevent): void => {
   if (suppressType && getSelection_().type !== suppressType) {
     setupSuppress();
   }
-  if (keydownEvents_[key]) {
+  if (keydownEvents_[key] && key) {
     keydownEvents_[key] = 0;
     prevent_(event);
   } else if (onPassKey) {
