@@ -276,7 +276,7 @@ export const getSelected = (notExpectCount?: {r?: ShadowRoot | null}): Selection
     let sel2 = OnChrome && Build.MinCVer >= BrowserVer.MinShadowDOMV0
         || !OnFirefox && typeof ShadowRoot == OBJECT_TYPES[kTY.func] ? sel : null
     while (sel2) {
-      sel2 = null;
+          sel2 = null
           el = singleSelectionElement_unsafe(sel)
           if (el && (sr = GetShadowRoot_(el as Element))) {
             if (OnChrome ? sel2 = getSelectionOf(sr) : hasGetSelection(sr) && (sel2 = getSelectionOf(sr))) {
@@ -386,7 +386,8 @@ export const moveSel_s_throwable = (element: LockableElement, action: SelectActi
     }
     // not need `this.getSelection_()`
     if (type > EditableType.input_) {
-      selectAllOfNode(element);
+      action && doesCollpase || !contains_s(element, getAccessibleSelectedNode(getSelected()) || doc)
+          ? selectAllOfNode(element) : doesCollpase = 0
     } else {
       len = (element as TextElement).value.length
       const start = textOffset_(element as TextElement), end = textOffset_(element as TextElement, 1)

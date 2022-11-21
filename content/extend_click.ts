@@ -84,7 +84,7 @@ export const main_not_ff = (Build.BTypes & ~BrowserType.Firefox ? (): void => {
     isSafe = this === box,
     detail = rawDetail && isTY(rawDetail, kTY.obj) && isSafe ? rawDetail : "",
     fromAttrs: 0 | 1 | 2 = detail ? (detail[1] + 1) as 1 | 2 : 0;
-    let path: typeof event2.path, reHint: number | undefined, mismatch: 1 | undefined,
+    let path: ReturnType<typeof getEventPath>, reHint: number | undefined, mismatch: 1 | undefined,
     docChildren: HTMLCollectionOf<Element> | undefined, boxChildren: HTMLCollectionOf<Element> | undefined,
     target = detail ? null : isSafe ? (event2 as DelegateEventCls["prototype"]).relatedTarget as Element | null
         : (!OnEdge

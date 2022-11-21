@@ -239,9 +239,9 @@ set_contentCommands_([
   },
   /* kFgCmd.focusInput: */ (options: CmdOptions[kFgCmd.focusInput], count: number): void => {
     const S = "IH IHS"
-    const act = options.act || options.action, known_last = derefInDoc_(insert_last_)
+    const act = options.act || options.action, selAction = options.select, known_last = derefInDoc_(insert_last_)
     const selectOrClick = (el: SafeHTMLElement, rect?: Rect | null, onlyOnce?: true): Promise<void> => {
-      return getEditableType_(el) ? select_(el, rect, onlyOnce, action, onlyOnce)
+      return getEditableType_(el) ? select_(el, rect, onlyOnce, selAction, onlyOnce)
           : click_async(el, rect, 1).then((): void => { onlyOnce && flash_(el) })
     }
     OnFirefox && insert_Lock_()
@@ -262,7 +262,7 @@ set_contentCommands_([
         set_is_last_mutable(1)
         getZoom_(newEl);
         prepareCrop_();
-        select_(newEl, null, !!options.flash, options.select, true);
+        select_(newEl, null, !!options.flash, selAction, true);
       } else {
         ret = act[0] === "l" ? -1 : kTip.focusedIsHidden
         flash_(newEl)
@@ -279,7 +279,7 @@ set_contentCommands_([
     const visibleInputs = traverse(!OnFirefox
           ? VTr(kTip.editableSelector) + kSafeAllSelector : VTr(kTip.editableSelector), options, getEditable
         ) as (Hint & { [0]: SafeHTMLElement })[],
-    action = options.select, keep = options.keep, pass = options.passExitKey, reachable = options.reachable;
+    keep = options.keep, pass = options.passExitKey, reachable = options.reachable;
     if (!(reachable != null ? reachable : fgCache.e) || curModalElement
         || !filterOutNonReachable(visibleInputs, 1)) {
       OnEdge || filterOutInert(visibleInputs)

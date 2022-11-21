@@ -316,7 +316,7 @@ export const getAccessibleSelectedNode = (sel: Selection, focused?: 1): Node | n
   return node
 }
 
-export const getEventPath = (event: Event) => {
+export const getEventPath = (event: Event): EventPath | undefined => {
   return !OnEdge && (!OnChrome
         || Build.MinCVer >= BrowserVer.Min$Event$$composedPath$ExistAndIncludeWindowAndElementsIfListenedOnWindow
         || chromeVer_ > BrowserVer.Min$Event$$composedPath$ExistAndIncludeWindowAndElementsIfListenedOnWindow - 1
