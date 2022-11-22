@@ -562,7 +562,7 @@ declare const enum BrowserVer {
   MinEnsured$string$$replaceAll = 91,
   MinEnsured$WeakRef = 92, // even if LEGACY
   MinEnsuredPointerEventForRealClick = 92, // even if LEGACY; since MinMaybePointerEventForRealClick if EXPERIMENTAL
-  BuildMinManifestV3 = 93,
+  BuildMinManifestV3 = 93, // can use JavaScript modules and `import ...` in service workers
   /** @todo: trace https://bugs.chromium.org/p/chromium/issues/detail?id=649162 */
   MinMaybeAutoFillInShadowDOM = 93, // if --enable-blink-features=AutofillShadowDOM
   MinNotPropagateBodyStyleIfContained = 96, // even if EXPERIMENTAL or LEGACY
@@ -579,6 +579,8 @@ declare const enum BrowserVer {
   // A 1st showing may be delayed randomly since 102, and mostly on C107
   // The usage of ThrottleDisplayNoneAndVisibilityHiddenCrossOriginIframesEnabled in 102-107 is updated during 101
   MinLatencyOnVomnibarShowWithDisplayNone = 102, // even if LEGACY
+  // omnibox, injectImmediately, registerContentScripts::world, optional_host_permissions
+  MinUsableMV3 = 102, // Refer to: https://developer.chrome.com/docs/extensions/whatsnew/
   Min$AbortSignal$$timeout = 103, // even if LEGACY; since 100 if EXPERIMENTAL
   MinEnsured$Element$$role = 103, // even if LEGACY; since 68 if EXPERIMENTAL
   MinMV3FaviconAPI = 104,
@@ -643,6 +645,9 @@ declare const enum FirefoxBrowserVer {
   Min$sessions$$getRecentlyClosed$follow$maxResults = 96, // even if EXPERIMENTAL or LEGACY
   Min$AbortSignal$$timeout = 100,
   MinEnsured$dom$events$asyncclipboard = 100, // include .readText and .writeText, but not .read
+  Min$StorageArea$$onChanged = 101,
+  // scripting, action, host_permissions, StorageArea.onChanged
+  MinUsableMV3 = 101, // Refer to: https://developer.mozilla.org/en-US/docs/Mozilla/Firefox/Releases/101
   MinMaybe$navigator$$userAgentData = 101,
   // members of a Selection are never updated when an <input> gets focused, so no work-around
   Min$Selection$SupportTextBox = 999,

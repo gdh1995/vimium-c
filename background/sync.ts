@@ -1,6 +1,7 @@
 import {
-  blank_, set_sync_, sync_, set_restoreSettings_, OnChrome, OnEdge, updateHooks_, storageCache_,
-  hasEmptyLocalStorage_, set_updateToLocal_, updateToLocal_, settingsCache_, installation_, set_installation_
+  blank_, set_sync_, sync_, set_restoreSettings_, OnChrome, OnEdge, updateHooks_, storageCache_, CurCVer_, CurFFVer_,
+  hasEmptyLocalStorage_, set_updateToLocal_, updateToLocal_, settingsCache_, installation_, set_installation_, OnSafari,
+  OnFirefox
 } from "./store"
 import * as BgUtils_ from "./utils"
 import { browser_, runtimeError_ } from "./browser"
@@ -41,7 +42,8 @@ const HandleSyncAreaUpdate = (changes: EnsuredDict<StorageChange>): void => {
 }
 
 const HandleStorageUpdate = (changes: EnsuredDict<StorageChange>, area: string | FakeArg): void => {
-  if (area !== "sync") { return }
+  if (!(OnChrome && Build.MinCVer >= BrowserVer.Min$StorageArea$$onChanged
+        || OnFirefox && Build.MinFFVer >= FirefoxBrowserVer.Min$StorageArea$$onChanged) && area !== "sync") { return }
   const waitAndUpdate = (items: Dict<any>): void => {
     if (changes_to_merge) {
       BgUtils_.safer_(items)
@@ -433,11 +435,17 @@ const beginToRestore = (items: LocalSettings, resolve: () => void): void => {
 
 updateHooks_.vimSync = (value): void => {
   if (!storage()) { return }
-  const areaOnChanged_cr = OnChrome && Build.MinCVer >= BrowserVer.Min$StorageArea$$onChanged
+  const areaOnChanged = (OnChrome
+      ? Build.MinCVer >= BrowserVer.Min$StorageArea$$onChanged || CurCVer_ > BrowserVer.Min$StorageArea$$onChanged - 1
+      : OnFirefox ? (Build.MinFFVer >= FirefoxBrowserVer.Min$StorageArea$$onChanged
+          || CurFFVer_ > FirefoxBrowserVer.Min$StorageArea$$onChanged - 1)
+      : OnSafari && storage().onChanged)
       ? storage().onChanged! : OnChrome ? storage().onChanged : null
-  const event = OnChrome && Build.MinCVer >= BrowserVer.Min$StorageArea$$onChanged
-      ? areaOnChanged_cr! : OnChrome && areaOnChanged_cr || browserStorage_.onChanged
-  const listener = OnChrome && (Build.MinCVer >= BrowserVer.Min$StorageArea$$onChanged || areaOnChanged_cr)
+  const event = (OnChrome && Build.MinCVer >= BrowserVer.Min$StorageArea$$onChanged
+      || OnFirefox && Build.MinFFVer >= FirefoxBrowserVer.Min$StorageArea$$onChanged)
+      ? areaOnChanged! : areaOnChanged || browserStorage_.onChanged
+  const listener = !(OnChrome && Build.MinCVer >= BrowserVer.Min$StorageArea$$onChanged
+      || OnFirefox && Build.MinFFVer >= FirefoxBrowserVer.Min$StorageArea$$onChanged) && areaOnChanged
       ? HandleSyncAreaUpdate : HandleStorageUpdate
   if (!value) {
     event.removeListener(listener)

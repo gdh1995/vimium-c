@@ -455,13 +455,13 @@ nextTick_((el0): void => {
   const brands = (OnChrome && Build.MinCVer >= BrowserVer.MinEnsuredNavigator$userAgentData ? data!.brands
       : data && (OnChrome && Build.MinCVer <= BrowserVer.Only$navigator$$userAgentData$$$uaList
           ? data.brands || data.uaList : data.brands) || []
-    ).filter(i => (OnChrome ? i.version === CurCVer_ && i.brand !== "Chromium" || i.brand.includes("Opera")
-      : OnFirefox ? i.version === CurFFVer_ : true) && !(` ${i.brand} `.includes(" Not ")))
+    ).filter(i => (OnChrome ? parseInt(i.version) === CurCVer_ && i.brand !== "Chromium" || i.brand.includes("Opera")
+      : OnFirefox ? parseInt(i.version) === CurFFVer_ : true) && !(` ${i.brand} `.includes(" Not ")))
   const brand = OnChrome && brands.find(i => (<RegExpOne> /\b(Edge|Opera)\b/).test(i.brand)) || brands[0]
   const nameFallback = OnFirefox ? "Firefox" : IsEdg_ ? "MS Edge" : ""
   name = brand ? brand.brand : data ? nameFallback || "Chromium"
       : OnChrome && ((<RegExpOne> /\bChromium\b/).exec(navigator.userAgent!) || [""])[0] || nameFallback || "Chrome"
-    if (brand) { version = brand.version }
+    if (brand) { version = parseInt(brand.version) }
   }
 el0.textContent = (OnEdge ? "MS Edge (EdgeHTML)" : name + " " + version
   ) + oTrans_("comma") + oTrans_("NS")

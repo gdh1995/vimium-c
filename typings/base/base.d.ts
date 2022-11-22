@@ -181,7 +181,10 @@ declare namespace chrome.runtime {
     name: string
     version: string
   }
-  interface Manifest { host_permissions: chrome.permissions.kPermission[] }
+  interface Manifest {
+    host_permissions: chrome.permissions.kPermission[]
+    optional_host_permissions: chrome.permissions.kPermission[]
+  }
   export function getBrowserInfo(exArg?: FakeArg): Promise<BrowserInfo>
   export const getFrameId: ((frame: Window | HTMLIFrameElement | HTMLFrameElement) => number) | undefined
 }
@@ -265,7 +268,7 @@ interface NavigatorID {
   readonly vendorSub: string;
 }
 
-interface UABrandInfo { brand: string, version: number }
+interface UABrandInfo { brand: string, version: string }
 interface Navigator {
   scheduling?: {
     isInputPending (options?: { includeContinuous?: boolean }): boolean // options must be an cls intance on C84 if exp

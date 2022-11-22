@@ -27,7 +27,7 @@ export const IsEdg_: boolean = OnChrome && (Build.MinCVer < BrowserVer.MinEnsure
 export const CurCVer_: BrowserVer = !OnChrome ? BrowserVer.assumedVer
     : Build.MinCVer >= BrowserVer.MinEnsuredNavigator$userAgentData || brands
     ? (tmpBrand = brands!.find(i => i.brand.includes("Chromium")))
-      ? tmpBrand.version : BrowserVer.MinMaybe$navigator$$userAgentData > Build.MinCVer
+      ? parseInt(tmpBrand.version) : BrowserVer.MinMaybe$navigator$$userAgentData > Build.MinCVer
       ? BrowserVer.MinMaybe$navigator$$userAgentData : Build.MinCVer
     : (Build.MinCVer <= BrowserVer.FlagFreezeUserAgentGiveFakeUAMajor ? ((): BrowserVer => {
       const ver = navigator.userAgent!.match(<RegExpOne> /\bChrom(?:e|ium)\/(\d+)/)
@@ -38,7 +38,7 @@ export const CurCVer_: BrowserVer = !OnChrome ? BrowserVer.assumedVer
     : 0 | <number> (navigator.userAgent!.match(<RegExpOne> /\bChrom(?:e|ium)\/(\d+)/) || [0, BrowserVer.assumedVer])[1])
 export let CurFFVer_: FirefoxBrowserVer = !OnFirefox ? FirefoxBrowserVer.assumedVer
     : brands ? (tmpBrand = brands.find(i => i.brand.includes("Firefox")))
-      ? tmpBrand.version : FirefoxBrowserVer.MinMaybe$navigator$$userAgentData > Build.MinFFVer
+      ? parseInt(tmpBrand.version) : FirefoxBrowserVer.MinMaybe$navigator$$userAgentData > Build.MinFFVer
       ? FirefoxBrowserVer.MinMaybe$navigator$$userAgentData : Build.MinFFVer
     : parseInt(navigator.userAgent!.split("Firefox/")[1] || "0") || FirefoxBrowserVer.assumedVer
 export let os_: kOS = Build.OS & (Build.OS - 1) ? kOS.win : Build.OS < 8 ? (Build.OS / 2) | 0 : Math.log2(Build.OS)
