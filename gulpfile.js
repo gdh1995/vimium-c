@@ -217,7 +217,7 @@ var Tasks = {
     if (jsmin_status[1]) {
       return cb();
     }
-    gulpUtils.checkJSAndMinifyAll(1, [ [manifest.background.scripts.concat(["background/*.js"]), "."] ]
+    gulpUtils.checkJSAndMinifyAll(1, [ [(manifest.background.scripts || []).concat(["background/*.js"]), "."] ]
       , "min/bg", { nameCache: {}, format: { max_line_len: MaxLineLen } }, cb, jsmin_status, debugging)
   },
   "min/pages": function(cb) {
@@ -252,11 +252,11 @@ var Tasks = {
     {
       const mv3 = !!getBuildItem("MV3")
       for (const key of Object.keys(manifest)) {
-        if (key.endsWith(".v3")) {
+        if (key.endsWith(".v2")) {
           const val = manifest[key]
           delete manifest[key]
-          if (!mv3) { /* empty */ }
-          else if (key.endsWith("[].v3") && val instanceof Array) {
+          if (mv3) { /* empty */ }
+          else if (key.endsWith("[].v2") && val instanceof Array) {
             const old = manifest[key.slice(0, -5)]
             for (const item of val) {
               if (item[0] === "-") {
@@ -272,7 +272,7 @@ var Tasks = {
         }
       }
     }
-    if (locally ? browser & ~BrowserType.Chrome : !(browser & BrowserType.Chrome)) {
+    if (!(browser & BrowserType.Chrome)) {
       delete manifest.minimum_chrome_version;
       delete manifest.key;
       delete manifest.update_url;
@@ -724,7 +724,7 @@ const postTerser = exports.postTerser = async (terserConfig, file, allPaths) => 
     get()
     contents = contents.trim() === '"use strict";' ? "" : contents
   }
-  if (terserConfig.format && terserConfig.format.max_line_len) {
+  if (terserConfig && terserConfig.format && terserConfig.format.max_line_len) {
     get()
     const tooLong = contents.split("\n").filter(i => i.length > MaxLineLen2)
     if (tooLong.length > 0) {

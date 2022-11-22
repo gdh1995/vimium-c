@@ -1,6 +1,10 @@
 {
   "author": "gdh1995@qq.com",
   "background": {
+    "service_worker": "background/worker.js",
+    "type": "module"
+  },
+  "background.v2": {
     "persistent": true,
     "scripts": [
       "background/define.js",
@@ -29,11 +33,7 @@
       "background/main.js"
     ]
   },
-  "background.v3": {
-    "service_worker": "background/worker.js",
-    "type": "module"
-  },
-  "browser_action": {
+  "browser_action.v2": {
     "default_icon": {
       "19": "icons/enabled_19.png",
       "38": "icons/enabled_38.png"
@@ -41,8 +41,7 @@
     "default_popup": "pages/popup.html",
     "default_title": "__MSG_name__\n\n__MSG_noActiveState__"
   },
-  "browser_action.v3": null,
-  "action.v3": {
+  "action": {
     "default_icon": {
       "19": "icons/enabled_19.png",
       "38": "icons/enabled_38.png"
@@ -50,6 +49,7 @@
     "default_popup": "pages/popup.html",
     "default_title": "__MSG_name__\n\n__MSG_noActiveState__"
   },
+  "action.v2": null,
   "browser_specific_settings": {
     "gecko": {
       "id": "vimium-c.dev@gdh1995.cn",
@@ -113,21 +113,21 @@
       "content/frontend.js"
     ],
     "match_about_blank": true,
+    "match_origin_as_fallback": true,
     "matches": [ "<all_urls>" ],
     "run_at": "document_start"
   } ],
-  "content_security_policy": "script-src 'self'; style-src 'self' 'unsafe-inline'; object-src 'none'",
-  "content_security_policy.v3": {
+  "content_security_policy": {
     "extension_pages": "script-src 'self'; style-src 'self' 'unsafe-inline'; object-src 'none'"
   },
+  "content_security_policy.v2": "script-src 'self'; style-src 'self' 'unsafe-inline'; object-src 'none'",
   "default_locale": "en",
   "description": "__MSG_description__",
   "homepage_url": "https://github.com/gdh1995/vimium-c",
-  "host_permissions.v3": [
-    "<all_urls>",
-    "chrome://*/*",
-    "chrome://new-tab-page/*"
+  "host_permissions": [
+    "<all_urls>"
   ],
+  "host_permissions.v2": null,
   "icons": {
     "128": "icons/icon128.png",
     "16": "icons/icon16.png",
@@ -136,34 +136,37 @@
   },
   "incognito": "spanning",
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAnaZQnkvrHvNlwXPnSfavEya+9sPtVgBR2hWLsNvwdv6+zHRGr/qhqEbtof1v7gDXzpC5+Dr4kOay6aflw5CaFzA1zyVJySAjpb0RkVh774kp9msRpjyb39obSIWAIB76PTwawEAE+K1f26jXDbTC2gEBe4OWk5KW9u9+KoTmeKLHo73ScR1jFcFaOTbrhwHtIDqj00vpIfrSAofpLIq1gP//Og+FoOT4dF107fwlVfDJuu171svuT68wmcKStl6OANxcnXCXE6OWbeZcjMehcQH41wzTtDugmt0o8w+hJ2WVugwWWmGmE8qSiwo9QYZTJW+5EvMcmNZWUmPbTLGkGQIDAQAB",
-  "manifest_version": 2,
-  "manifest_version.v3": 3,
+  "manifest_version": 3,
+  "manifest_version.v2": 2,
   "minimum_chrome_version": "88",
   "name": "__MSG_name__",
   "offline_enabled": true,
   "omnibox": {
     "keyword": "v"
   },
+  "optional_host_permissions": [
+    "chrome://*/*",
+    "chrome://new-tab-page/*"
+  ],
+  "optional_host_permissions.v2": null,
   "optional_permissions": [
     "downloads",
     "downloads.shelf",
     "cookies",
-    "contentSettings",
+    "contentSettings"
+  ],
+  "optional_permissions[].v2": [
     "chrome://*/*",
     "chrome://new-tab-page/*"
-  ],
-  "optional_permissions[].v3": [
-    "-chrome://*/*",
-    "-chrome://new-tab-page/*"
   ],
   "options_page": "pages/options.html",
   "options_ui": {
     "page": "pages/options.html",
-    "chrome_style": false,
     "open_in_tab": true
   },
-  "options_ui.v3": {
+  "options_ui.v2": {
     "page": "pages/options.html",
+    "chrome_style": false,
     "open_in_tab": true
   },
   "permissions": [
@@ -176,25 +179,27 @@
     "storage",
     "tabs",
     "webNavigation",
-    "<all_urls>"
-  ],
-  "permissions[].v3": [
-    "-<all_urls>",
     "favicon",
     "scripting",
     "tabGroups"
   ],
+  "permissions[].v2": [
+    "<all_urls>",
+    "-favicon",
+    "-scripting",
+    "-tabGroups"
+  ],
   "short_name": "Vimium C",
   "update_url": "https://clients2.google.com/service/update2/crx",
-  "version": "1.99.90",
-  "web_accessible_resources": [
-    "content/*",
-    "front/vomnibar*",
-    "lib/*"
-  ],
-  "web_accessible_resources.v3": [{
+  "version": "2.0.0",
+  "web_accessible_resources": [{
     "resources": [ "content/*", "front/vomnibar*", "lib/*" ],
     "matches": [ "<all_urls>", "chrome-extension://*/*" ],
     "use_dynamic_url": false
-  }]
+  }],
+  "web_accessible_resources.v2": [
+    "content/*",
+    "front/vomnibar*",
+    "lib/*"
+  ]
 }
