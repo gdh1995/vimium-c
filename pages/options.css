@@ -589,23 +589,23 @@ label:active {
   height: 18px;
   letter-spacing: 0.5px;
   letter-spacing: var(--vc-tiny);
-  margin-left: 1em;
+  margin: -0.5px 0 0 1em;
   min-width: 104px;
   outline: none;
   position: absolute;
-  padding-top: 0.5px;
-  padding-top: var(--vc-tiny);
+  padding: 1px 2.5px 0;
+  padding: calc(var(--vc-tiny) + 0.5px) calc(var(--vc-tiny) + 2px) 0;
   text-align: center;
 }
 #testKeyInput:focus {
   border-color: var(--vc-input-focus-border-color);
 }
 #testKeyInput:lang(zh) {
-  margin-top: 2px;
+  margin-top: 1.5px;
 }
 #testKeyInput.outline {
   border-radius: 2px;
-  padding-top: 0;
+  padding: 0.5px 2px 0;
   border-style: solid;
 }
 #footer {
