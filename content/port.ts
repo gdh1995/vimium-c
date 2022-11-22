@@ -74,10 +74,10 @@ export const runtimeConnect = (function (this: void, extraFlags?: number): void 
   port_ = (injector ? connect(injector.id, data) : connect(data)) as ContentNS.Port
   port_.onDisconnect.addListener((): void => {
     port_ = null
-    ; (Build.MV3 || Build.LessPorts) && fgCache ? 0 :
+    ; fgCache ? 0 :
     OnChrome && timeout_ === interval_ ? safeDestroy() : timeout_((): void => {
       try { port_ || !isAlive_ || runtimeConnect() } catch { safeDestroy() }
-    }, (!(Build.MV3 || Build.LessPorts) && fgCache ? 5000 : 2000) + (isTop as number | boolean as number) * 50)
+    }, (!fgCache ? 5000 : 2000) + (isTop as number | boolean as number) * 50)
   });
   port_.onMessage.addListener(<T extends keyof BgReq> (response: Req.bg<T>): void => {
     type TypeToCheck = { [k in keyof BgReq]: (this: void, request: BgReq[k]) => unknown };
@@ -111,7 +111,7 @@ export const runFallbackKey = ((options: Req.FallbackOptions
 export const setupBackupTimer_cr = !OnChrome ? 0 as never : (): void => {
   /*#__INLINE__*/ setupTimerFunc_cr((func: (info?: TimerType.fake) => void, timeout: number): number => {
     return (Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage && noRAF_old_cr_
-        || timeout > GlobalConsts.MinCancelableInBackupTimer - 1) && (!(Build.MV3 || Build.LessPorts) || port_)
+        || timeout > GlobalConsts.MinCancelableInBackupTimer - 1) && port_
         ? (send_(kFgReq.wait, timeout, func), tick + 0.5) : rAF_((): void => { func(TimerType.fake) })
   }, (timer: ValidTimeoutID | ValidIntervalID): void => {
     timer && port_callbacks[timer as number - 0.5] &&

@@ -233,7 +233,6 @@ set_requestHandlers([
   },
   /* kBgReq.suppressForAWhile: */ (request: BgReq[kBgReq.suppressForAWhile]): void => { suppressTail_(request.t) },
   /* kBgReq.refreshPort: */ ((req?: BgReq[kBgReq.refreshPort] | 0, updates?: number): void => {
-    if (!(Build.MV3 || Build.LessPorts)) { req = {} }
     (req = req || updates! & ~PortType.refreshInBatch) && runtime_port && runtime_port.disconnect()
     !req && runtime_port || runtimeConnect(updates)
   }) satisfies VApiTy["q"]

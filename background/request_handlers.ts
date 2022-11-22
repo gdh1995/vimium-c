@@ -185,7 +185,7 @@ set_reqH_([
     if (!port) {
       port = indexFrame((request as ExclusionsNS.Details).tabId, (request as ExclusionsNS.Details).frameId)
       if (!port) {
-        const ref = Build.MV3 || Build.LessPorts ? framesForTab_.get((request as ExclusionsNS.Details).tabId) : null
+        const ref = framesForTab_.get((request as ExclusionsNS.Details).tabId)
         ref && ref.flags_ & Frames.Flags.ResReleased && (ref.flags_ |= Frames.Flags.UrlUpdated)
         return
       }

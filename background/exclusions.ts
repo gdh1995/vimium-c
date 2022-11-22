@@ -126,7 +126,7 @@ let getOnURLChange_ = (): null | ExclusionsNS.Listener => {
       : (details): void => {
         const ref = framesForTab_.get(details.tabId),
         msg: Req.bgUrl<kFgReq.checkIfEnabled> = { N: kBgReq.url, H: kFgReq.checkIfEnabled, U: 0 }
-        Build.LessPorts && ref && ref.flags_ & Frames.Flags.ResReleased && (ref.flags_ |= Frames.Flags.UrlUpdated)
+        ref && ref.flags_ & Frames.Flags.ResReleased && (ref.flags_ |= Frames.Flags.UrlUpdated)
         // force the tab's ports to reconnect and refresh their pass keys
         for (const port of ref ? ref.ports_ : []) {
           port.postMessage(msg)

@@ -90,7 +90,7 @@ export const OnConnect = (port: Frames.Port, type: PortType): void => {
       console.log("on port reconnect: tab=%o, frameId=%o, frames.flag=%o, old-ports=%o"
           , sender.tabId_, sender.frameId_, ref ? ref.flags_ : -1, ref ? ref.ports_.length : 0)
     }
-    if ((Build.MV3 || Build.LessPorts) && type & Frames.Flags.UrlUpdated || ref === undefined) {
+    if (type & Frames.Flags.UrlUpdated || ref === undefined) {
       port.postMessage({ N: kBgReq.reset, p: passKeys, f: flags & Frames.Flags.MASK_LOCK_STATUS })
     }
     /*#__NOINLINE__*/ _recoverStates(ref, port, type as number as Frames.Flags)
@@ -422,7 +422,7 @@ export const asyncIterFrames_ = (itemUpdatedFlag: Frames.Flags
   const iter = (tab: number): number => {
     let frames = framesForTab_.get(tab), weight = 0
     if (frames !== undefined) {
-      if ((Build.MV3 || Build.LessPorts) && frames.flags_ & Frames.Flags.ResReleased && itemUpdatedFlag) {
+      if (frames.flags_ & Frames.Flags.ResReleased && itemUpdatedFlag) {
         frames.flags_ |= itemUpdatedFlag
       }
       weight = Math.min(frames.ports_.length, 8)
@@ -494,7 +494,7 @@ export const getParentFrame = (tabId: number, curFrameId: number, level: number)
 const RELEASE_TIMEOUT = Build.NDEBUG ? 1000 * (60 * 4 + 48) : 1000 * 100
 const MAX_KEEP_ALIVE = Build.NDEBUG ? 5 : 2
 
-; (Build.MV3 || Build.LessPorts) && setInterval((): void => {
+; setInterval((): void => {
   const now = performance.now()
   for (let port of framesForOmni_) {
     if (!(port.s.flags_ & Frames.Flags.OldEnough)) {
@@ -574,7 +574,7 @@ const MAX_KEEP_ALIVE = Build.NDEBUG ? 5 : 2
   }
 }, RELEASE_TIMEOUT / 2)
 
-export const refreshPorts_ = Build.MV3 || Build.LessPorts ? (frames: Frames.Frames, forced: BOOL): void => {
+export const refreshPorts_ = (frames: Frames.Frames, forced: BOOL): void => {
   if (!(frames.flags_ & Frames.Flags.HadIFrames) && !isNotPriviledged(frames.cur_)) { return }
   if (!Build.NDEBUG && DEBUG) {
     console.log("refresh ports: tab=%o, forced=%o, flags=%o, ports=%o", frames.cur_.s.tabId_, forced
@@ -585,13 +585,12 @@ export const refreshPorts_ = Build.MV3 || Build.LessPorts ? (frames: Frames.Fram
       .q(0, updates) // Frames.RefreshPort
   }, [0, PortType.refreshInBatch | (forced ? PortType.reconnect : 0) | (frames.flags_ & Frames.Flags.MASK_UPDATES)])
   frames.flags_ &= ~(Frames.Flags.ResReleased | Frames.Flags.MASK_UPDATES | Frames.Flags.HadIFrames)
-} : 0 as never
+}
 
 const _recoverStates = (frames: Frames.Frames | undefined, port: Port, type: PortType | Frames.Flags): void => {
   (port.s.flags_ satisfies Frames.Flags) |= PortType.hasCSS === <number> Frames.Flags.hasCSS ? type & PortType.hasCSS
       : (type & PortType.hasCSS) && Frames.Flags.hasCSS
   frames || refreshPorts_({ cur_: port, top_: null, ports_: [], lock_: null, flags_: Frames.Flags.HadIFrames }, 0)
-  if (!(Build.MV3 || Build.LessPorts)) { return }
   if (!(type & PortType.refreshInBatch)) {
     if (!(type & PortType.hasFocus) // frame is not focused - on refreshing ports of inactive tabs
         || !frames || !(frames.flags_ & Frames.Flags.ResReleased)) { // no old data to sync
@@ -614,7 +613,6 @@ const _recoverStates = (frames: Frames.Frames | undefined, port: Port, type: Por
 }
 
 export const waitForPorts_ = (frames: Frames.Frames | undefined): Promise<void> => {
-  if (!(Build.MV3 || Build.LessPorts)) { return Promise.resolve() }
   const defer = deferPromise_<void>()
   if (!frames || !(frames.flags_ & Frames.Flags.ResReleased)) {
     defer.resolve_()

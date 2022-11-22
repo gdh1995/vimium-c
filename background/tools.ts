@@ -634,10 +634,8 @@ setTimeout((): void => {
     }
     const tabId = info.tabId
     set_curTabId_(tabId), lastVisitTabTime = now
-    if (Build.MV3 || Build.LessPorts) {
       const frames = framesForTab_.get(tabId)
       if (frames && frames.flags_ & Frames.Flags.ResReleased) { refreshPorts_(frames, 0) }
-    }
     _mediaTimer === -2 && (_mediaTimer = -3, setTimeout(MediaWatcher_.resume_, 0)) // not block onActivated listener
   }
   function maybeOnBgWndActiveTabChange(wnd: chrome.windows.Window): void {
@@ -673,7 +671,7 @@ setTimeout((): void => {
     // here windowId may pointer to a devTools window on C45 - see BrowserVer.Min$windows$APIsFilterOutDevToolsByDefault
     Tabs_.query({windowId, active: true}, onFocusChanged)
   });
-  ; (Build.MV3 || Build.LessPorts) && Tabs_.onRemoved.addListener((tabId): void => {
+  ; Tabs_.onRemoved.addListener((tabId): void => {
     framesForTab_.delete(tabId)
     cache.delete(tabId)
   })
