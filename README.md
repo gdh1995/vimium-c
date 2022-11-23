@@ -64,7 +64,7 @@ and licensed under the [MIT license](LICENSE.txt).
 本项目主要由 [gdh1995](https://github.com/gdh1995) 开发并维护，且以 [MIT 许可协议](LICENSE.txt) 开源。
 
 It (the released version) supports the new Microsoft Edge, Google Chrome and other Chromium-based browsers
-  whose core versions are >= 47, and has a prefect support for a recent Firefox (since version 63.0, desktop).
+  whose core versions are >= 47, and has a perfect support for a recent Firefox (since version 63.0, desktop).
 It can even run on Microsoft Edge (EdgeHTML), though there're still some errors.
 If re-compiled from the source code, Vimium C is able to support Chromium 32~46.
 
