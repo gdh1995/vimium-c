@@ -517,7 +517,8 @@ const populateKeyMap_ = (value: string | null): void => {
     const refSorted: EnsuredDict<ValidKeyAction | ChildKeyFSM> = {}, keys2 = BgUtils_.keys_(ref).sort()
     for (const key of keys2) {
       const val = ref.get(key)!, keys = typeof val === "object" ? Object.keys(val) : null
-      refSorted[key] = keys && keys.length > 1 ? JSON.parse<typeof val>(JSON.stringify(val, keys.sort())) : val
+      refSorted[key] = keys && keys.length > 1
+          ? JSON.parse<typeof val>(JSON.stringify<1>(val as Extract<typeof val, object>, keys.sort())) : val
     }
     set_keyFSM_(refSorted)
     if (value) {

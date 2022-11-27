@@ -1,6 +1,6 @@
 import {
   clickable_, vApi, isAlive_, safer, timeout_, escapeAllForRe, tryCreateRegExp, VTr, isTY, Lower, chromeVer_, OnSafari,
-  OnChrome, OnFirefox, OnEdge, evenHidden_, doc, firefoxVer_, urlSameIgnorehash
+  OnChrome, OnFirefox, OnEdge, evenHidden_, doc, firefoxVer_, urlSameIgnoringHash
 } from "../lib/utils"
 import {
   htmlTag_, isAriaFalse_, isStyleVisible_, querySelectorAll_unsafe_, isIFrameElement, ALA, attr_s, findAnchor_,
@@ -188,7 +188,7 @@ export const findNextInRel = (options: CmdOptions[kFgCmd.goNext]
         && ((s = (element as HTMLElementWithRel).href) || tag < "aa")
         && (tag > "b" || isInteractiveInPage(element))) {
       if (matched) {
-        if (s && urlSameIgnorehash(s, matched.href)) {
+        if (s && !urlSameIgnoringHash(s, matched.href || s)) {
           return null;
         }
       }

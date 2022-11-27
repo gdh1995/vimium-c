@@ -316,7 +316,7 @@ export abstract class Option_<T extends keyof AllowedOptions> {
   atomicUpdate_: (this: Option_<T> & {element_: TextElement}, value: string, undo: boolean, locked: boolean) => void;
 
   static areJSONEqual_ (this: void, a: object, b: object): boolean {
-    return JSON.stringify(a, Object.keys(a).sort()) === JSON.stringify(b, Object.keys(b).sort())
+    return JSON.stringify(a) === JSON.stringify(b)
   }
   static saveOptions_: (this: void) => Promise<boolean>
   static needSaveOptions_: (this: void) => boolean;

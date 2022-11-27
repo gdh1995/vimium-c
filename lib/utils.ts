@@ -279,4 +279,4 @@ export const abs_: (num: number) => number = Build.Inline ? math.abs : (arg): nu
 
 export function includes_<T> (this: T[] | readonly T[], el: T): boolean { return this.indexOf(el) >= 0 }
 
-export const urlSameIgnorehash = (s1: string, s2: string): boolean | "" => s2 && s1.split("#")[0] !== s2.split("#")[0]
+export const urlSameIgnoringHash = (s1: string, s2: string): boolean | "" => s2 && s1.split("#")[0] === s2.split("#")[0]

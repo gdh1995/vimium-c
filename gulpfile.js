@@ -95,7 +95,8 @@ var Tasks = {
     const path = ["pages/*.css", "lib/*.css"];
     if (!getBuildItem("NDEBUG")) { return copyByPath(path) }
     return copyByPath(path, file => {
-    const CleanCSS = require("clean-css"), clean_css = new CleanCSS();
+      const CleanCSS = require("clean-css")
+      const clean_css = new CleanCSS({ level: { 1: { variableValueOptimizers: ["color", "urlWhiteSpace"]} } })
       ToBuffer(file, clean_css.minify(file.contents).styles)
     });
   },
