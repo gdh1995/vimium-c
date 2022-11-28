@@ -214,6 +214,7 @@ interface TeeTasks {
   [kTeeTask.Copy]: { s: string, d: null }
   [kTeeTask.Paste]: { s: null | /** permitted */ true, d: null }
   [kTeeTask.CopyImage]: { s: ImageToCopy, d: Blob }
+  [kTeeTask.Download]: { s: ImageToCopy, d: null }
   [kTeeTask.DrawAndCopy]: { s: ImageToCopy, d: Blob }
 }
 

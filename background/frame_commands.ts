@@ -301,18 +301,20 @@ export const enterVisualMode = (): void | kBgCmd.visualMode => {
   sendFgCmd(kFgCmd.visualMode, true, opts2)
 }
 
-let _tempBlob: [number, string] | null | undefined
+let _tempBlob_mv2: [number, string] | null | undefined
+
+const revokeBlobUrl_mv2 = Build.MV3 ? 0 as never : (url: string): void => { try { URL.revokeObjectURL(url) } catch {} }
 
 export const handleImageUrl = (url: `data:${string}` | "", buffer: Blob | null
     , actions: kTeeTask.CopyImage | kTeeTask.ShowImage | kTeeTask.Download | kTeeTask.DrawAndCopy
     , resolve: (ok: BOOL | boolean) => void
     , title: string, text: string, doShow?: ((url: string) => void) | null, inGroup?: boolean): void => {
   if (!actions) { resolve(1); return }
-  const copyFromBlobUrl = !!(actions & kTeeTask.CopyImage)
+  const copyFromBlobUrl_mv2 = !Build.MV3 && !!(actions & kTeeTask.CopyImage)
       && curIncognito_ !== IncognitoType.true && (!cPort || !cPort.s.incognito_)
       && (!OnFirefox || actions === kTeeTask.DrawAndCopy && !inGroup)
-  const needBlob = actions & kTeeTask.Download || copyFromBlobUrl
-  if (needBlob && !buffer) {
+  const needBlob_mv2 = !Build.MV3 && (actions & kTeeTask.Download || copyFromBlobUrl_mv2)
+  if (!Build.MV3 && needBlob_mv2 && !buffer) {
     const p = BgUtils_.fetchFile_(url as "data:", "blob")
     Build.NDEBUG || p.catch((err: any | Event): void => { console.log("handleImageUrl can't request `data:` :", err) })
     void p.then((buffer2): void => {
@@ -320,21 +322,21 @@ export const handleImageUrl = (url: `data:${string}` | "", buffer: Blob | null
     })
     return
   }
-  if (_tempBlob) {
-    clearTimeout(_tempBlob[0]), BgUtils_.revokeBlobUrl_(_tempBlob[1])
-    _tempBlob = null
+  if (!Build.MV3 && _tempBlob_mv2) {
+    clearTimeout(_tempBlob_mv2[0]), revokeBlobUrl_mv2(_tempBlob_mv2[1])
+    _tempBlob_mv2 = null
   }
-  const blobRef = needBlob ? URL.createObjectURL(buffer) : ""
-  if (blobRef) {
-    _tempBlob = [setTimeout((): void => {
-      _tempBlob && BgUtils_.revokeBlobUrl_(_tempBlob[1]); _tempBlob = null
-    }, actions & kTeeTask.Download ? 30000 : 5000), blobRef]
+  const blobRef_mv2 = !Build.MV3 && needBlob_mv2 ? URL.createObjectURL(buffer) : ""
+  if (!Build.MV3 && blobRef_mv2) {
+    _tempBlob_mv2 = [setTimeout((): void => {
+      _tempBlob_mv2 && revokeBlobUrl_mv2(_tempBlob_mv2[1]); _tempBlob_mv2 = null
+    }, actions & kTeeTask.Download ? 30000 : 5000), blobRef_mv2]
     const outResolve = resolve
     resolve = ! [kTeeTask.CopyImage, kTeeTask.Download, kTeeTask.DrawAndCopy].includes(actions) ? outResolve
         : (ok: BOOL | boolean) => {
       outResolve(ok)
-      _tempBlob && BgUtils_.revokeBlobUrl_(blobRef)
-      _tempBlob && _tempBlob[1] === blobRef && (clearTimeout(_tempBlob[0]), _tempBlob = null)
+      _tempBlob_mv2 && revokeBlobUrl_mv2(blobRef_mv2)
+      _tempBlob_mv2 && _tempBlob_mv2[1] === blobRef_mv2 && (clearTimeout(_tempBlob_mv2[0]), _tempBlob_mv2 = null)
     }
   }
   if (actions & kTeeTask.CopyImage) {
@@ -347,16 +349,16 @@ export const handleImageUrl = (url: `data:${string}` | "", buffer: Blob | null
         }, (err): void => { console.log("Error when copying image: " + err); resolve(0) })
       })
     } else {
-      // on Chrome 103, a tee.html in a incognito tab can not access `blob:` URLs
+      // on Chrome 103, a tee.html in an incognito tab can not access `blob:` URLs
       type Result = BOOL | boolean | string;
       void (OnEdge || OnChrome
           && Build.MinCVer < BrowserVer.MinEnsured$Clipboard$$write$and$ClipboardItem
           && CurCVer_ < BrowserVer.MinEnsured$Clipboard$$write$and$ClipboardItem ? Promise.resolve(false)
-      : (url || copyFromBlobUrl ? Promise.resolve()
+      : (url || !Build.MV3 && copyFromBlobUrl_mv2 ? Promise.resolve()
           : BgUtils_.convertToDataURL_(buffer!).then((u2): void => { url = u2 }))
       .then((): Promise<Result> => {
         return runOnTee_(actions === kTeeTask.DrawAndCopy ? actions : kTeeTask.CopyImage, {
-          u: copyFromBlobUrl ? blobRef : url, t: text,
+          u: !Build.MV3 && copyFromBlobUrl_mv2 ? blobRef_mv2 : url, t: text,
           b: Build.BTypes && !(Build.BTypes & (Build.BTypes - 1)) ? Build.BTypes as number : OnOther_
         }, buffer!)
       }))
@@ -382,7 +384,7 @@ export const handleImageUrl = (url: `data:${string}` | "", buffer: Blob | null
     }
   }
   if (actions & kTeeTask.ShowImage) {
-    doShow!(url || blobRef)
+    doShow!(Build.MV3 ? url : url || blobRef_mv2)
     actions & kTeeTask.CopyImage || resolve(1)
     return
   }
@@ -390,22 +392,23 @@ export const handleImageUrl = (url: `data:${string}` | "", buffer: Blob | null
     const port = getCurFrames_()?.top_ || cPort
     const p2 = BgUtils_.deferPromise_<unknown>()
     if (actions & kTeeTask.CopyImage && !(OnFirefox && actions !== kTeeTask.DrawAndCopy)) {
-      setTimeout(p2.resolve_, 300)
+      setTimeout(p2.resolve_, 800)
     } else {
       p2.resolve_(0)
     }
-    p2.promise_.then((): void => {
-    downloadFile(blobRef, title, port ? port.s.url_ : null, (succeed): void => {
+    p2.promise_.then((): Promise<boolean | string> =>
+      Build.MV3 && url.startsWith("data:") ? runOnTee_(kTeeTask.Download, { u: url, t: title }, null)
+      : downloadFile(blobRef_mv2, title, port ? port.s.url_ : null)
+    ).then((succeed: boolean | string): void => {
       const clickAnchor_cr = (): void => {
         const a = (globalThis as MaybeWithWindow).document!.createElement("a")
-        a.href = blobRef
+        a.href = blobRef_mv2
         a.download = title
         a.target = "_blank"
         a.click()
       }
-      succeed ? 0 : Build.MV3 || OnFirefox ? doShow!(url || blobRef) : clickAnchor_cr()
+      succeed ? 0 : Build.MV3 || OnFirefox ? doShow!(Build.MV3 ? url : url || blobRef_mv2) : clickAnchor_cr()
       actions === kTeeTask.Download && resolve(true)
-    })
     })
   }
 }

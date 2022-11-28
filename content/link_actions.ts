@@ -91,8 +91,9 @@ const tryDrawOnCanvas = ((hudMsg: string | 0, req?: Req.fg<kFgReq.openImage | kF
     const inIncognito = (OnChrome ? chrome : browser as never).extension.inIncognitoContext
     r1 = defer1.r
     richText = (richText || "") + "" as Extract<typeof richText, string>
-    if (!richText.includes("safe") && isGlobal && !inIncognito || OnFirefox && req && hasKeyword_ff
-        || parsed.pathname.endsWith(".gif") && !richText.includes("force")) {
+    if (!richText.includes("safe") && isGlobal && !inIncognito && (!OnFirefox || !parsed.pathname.endsWith(".gif"))
+          && !urlSameIgnoringHash(url, locHref()) || OnFirefox && req && hasKeyword_ff
+        || !OnFirefox && parsed.pathname.endsWith(".gif") && !richText.includes("force")) {
       r1(0)
     } else if (isHtmlImage && urlSameIgnoringHash(url, getMediaUrl(img, 2)) && (sameOrigin || img.crossOrigin)) {
       r1(1)
@@ -391,7 +392,7 @@ const downloadLink = (url?: string, filename?: string): void => {
   oldUrl: string | true | null = newLink || attr_s(link, "href"),
   changed = (url = url || getUrlData()) !== link.href
   filename = filename || attr_s(clickEl, kD) || ""
-  if (OnFirefox || OnChrome && hintOptions.download === "force") {
+  if (OnFirefox || OnChrome && hintOptions.download === "force" && !urlSameIgnoringHash(url, locHref())) {
     hintApi.p({ H: kFgReq.downloadLink, u: url, f: filename, r: OnFirefox ? locHref() : 0
         , m: mode1_, o: parseOpenPageUrlOptions(hintOptions) })
     return

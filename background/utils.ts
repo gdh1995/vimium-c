@@ -307,7 +307,7 @@ export const fetchFile_ = ((filePath: string, format?: "blob" | "arraybuffer"): 
 declare var AbortController: new () => { signal: object, abort(): void }
 declare var AbortSignal: { timeout? (timeout: number): object }
 
-export const fetchOnlineResources_ = (url: string, timeout?: number): Promise<[Blob, string] | null | 0> => {
+export const fetchOnlineResources_ = (url: string, timeout?: number): Promise<[Blob | null, string] | null | 0> => {
   let timer1 = 0, p: Promise<Response> | Promise<Blob | null | 0>
   timeout = timeout || 10_000
   if (!OnChrome || Build.MinCVer >= BrowserVer.MinAbortController
@@ -321,13 +321,15 @@ export const fetchOnlineResources_ = (url: string, timeout?: number): Promise<[B
       timer1 = setTimeout(abortCtrl.abort.bind(abortCtrl), timeout)
       p = (fetch as GlobalFetch)(url, { cache: "force-cache", signal: abortCtrl.signal })
     }
-    p = p.then<Blob | 0, null>(res => res.blob().catch(() => 0 as const), () => null)
+    p = p.then<Blob | 0 | null, null>(res => res.status >= 300 || res.status < 200 ? null
+          : res.blob().catch((e) => (console.log("on reading response:", e), 0 as const))
+        , (e) => (console.log("on requesting", e), null))
   } else {
     const req = new XMLHttpRequest() as BlobXHR, defer = deferPromise_<Blob | null | 0>()
     req.open("GET", url, true)
     req.responseType = "blob"
-    req.onload = (): void => { defer.resolve_(req.response) }
-    req.onerror = (): void => { defer.resolve_(null) }
+    req.onload = (): void => { defer.resolve_(req.status < 300 && req.status >= 200 ? req.response : null) }
+    req.onerror = (e): void => { Build.NDEBUG || console.log("on requesting", e); defer.resolve_(null) }
     timer1 = setTimeout((): void => {
       req.onload = req.onerror = null as never
       defer.resolve_(0)
@@ -339,10 +341,11 @@ export const fetchOnlineResources_ = (url: string, timeout?: number): Promise<[B
   timer1 && p.then((): void => { clearTimeout(timer1) })
   return p.then(blob => {
     if (!blob) {
-      console.clear()
+      Build.NDEBUG && console.clear()
       return blob
     }
-    return convertToDataURL_(blob.slice(0, Math.min(16, blob.size), blob.type)).then(dataUrl => [blob, dataUrl])
+    return convertToDataURL_(blob.slice(0, Math.min(16, blob.size), blob.type))
+        .then(dataUrl => [Build.MV3 ? null : blob, dataUrl])
   })
 }
 
@@ -351,12 +354,6 @@ export const convertToDataURL_ = (blob: Blob): Promise<"data:"> => {
   reader.onload = (ev): void => { defer.resolve_(ev.target.result) }
   reader.readAsDataURL(blob)
   return defer.promise_
-}
-
-export const revokeBlobUrl_ = (url: string): void => {
-  try {
-    URL.revokeObjectURL(url)
-  } catch {}
 }
 
 export const escapeAllForRe_ = (s: string): string =>

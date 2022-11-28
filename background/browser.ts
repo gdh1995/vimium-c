@@ -289,14 +289,10 @@ export const makeTempWindow_r = (tabId: number, incognito: boolean
   Windows_.create(options, callback)
 }
 
-export const downloadFile = (url: string, filename?: string | null, refer?: string | null
-    , onFinish?: ((succeed: boolean) => void) | null): void => {
-  if (!(OnChrome || OnFirefox)) {
-    onFinish && onFinish(false)
-    return
-  }
-  void Q_(browser_.permissions.contains, { permissions: ["downloads"] }).then((permitted): void => {
-    if (permitted) {
+export const downloadFile = (url: string, filename?: string | null, refer?: string | null): Promise<boolean> => {
+  if (!(OnChrome || OnFirefox)) { return Promise.resolve(false) }
+  return Q_(browser_.permissions.contains, { permissions: ["downloads"] }).then((permitted): PromiseOr<boolean> => {
+      if (!permitted) { return false }
       const opts: chrome.downloads.DownloadOptions = { url }
       if (filename) {
         const extRe = <RegExpI> /\.[a-z\d]{1,4}(?=$|[?&])/i
@@ -315,10 +311,7 @@ export const downloadFile = (url: string, filename?: string | null, refer?: stri
         opts.headers = [ { name: "Referer", value: refer } ]
       }
       const q = Q_(browser_.downloads.download!, opts)
-      onFinish && q.then((): void => { onFinish(true) })
-    } else if (onFinish) {
-      onFinish(false)
-    }
+      return q.then((): true => true)
   })
 }
 

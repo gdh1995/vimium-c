@@ -322,7 +322,7 @@ set_reqH_([
     if (request.i != null) {
       const richText = (request.r || "") + "" as Extract<typeof request.r, string>
       const i0 = request.i, title = richText.includes("name") ? request.u : ""
-      void Promise.all<"data:" | "" | [Blob, string] | null | 0, [Tab] | never[] | null | undefined>([
+      void Promise.all<"data:" | "" | [Blob | null, string] | null | 0, [Tab] | never[] | null | undefined>([
         (<RegExpI> /^data:/i).test(i0) ? Promise.resolve(i0) : BgUtils_.fetchOnlineResources_(i0 || request.u),
         OnFirefox && !curIncognito_ ? Q_(getCurTab) : null
       ]).then(([res, curTab]) => {
@@ -341,7 +341,7 @@ set_reqH_([
             : (mime.split("/")[1] || "").toUpperCase() || mime
         const text = title && (<RegExpI> /^(http|ftp|file)/i).test(title) ? title : ""
         const wantSafe = richText.includes("safe") && tag !== "GIF" || richText.includes("force")
-        handleImageUrl(isStr ? res : "", isStr ? null : res[0]
+        handleImageUrl(Build.MV3 ? dataUrl as "data:" : isStr ? res : "", isStr ? null : res[0]
             , wantSafe && tag !== "PNG" ? kTeeTask.DrawAndCopy : kTeeTask.CopyImage, (ok): void => {
           showHUD(trans_(ok ? "imgCopied" : "failCopyingImg", [ok === 1 ? "HTML" : wantSafe ? "PNG" : tag]))
         }, title, text, null, OnFirefox ? !curTab || !curTab[0] || getGroupId(curTab[0]) !== null : false)
@@ -523,9 +523,9 @@ set_reqH_([
     url = (url !== req.u || o2.k) ? convertToUrl_(url, o2.k, Urls.WorkType.Default) : url
     set_cPort(port)
     showHUD(url, kTip.downloaded)
-    downloadFile(url, req.f, req.r || "", req.m < HintMode.DOWNLOAD_LINK ? (succeed): void => {
+    downloadFile(url, req.f, req.r || "").then(req.m < HintMode.DOWNLOAD_LINK ? (succeed): void => {
       succeed || reqH_[kFgReq.openImage]({ m: HintMode.OPEN_IMAGE, f: req.f, u: url }, port)
-    } : null)
+    } : void 0)
   },
   /** kFgReq.wait: */ (req: FgReqWithRes[kFgReq.wait], port, msgId): Port => {
     setTimeout(() => { sendResponse(port, msgId, TimerType.fake) }, req)

@@ -33,6 +33,20 @@
             const navClip = navigator.clipboard!
             return taskId === kTeeTask.Copy ? navClip.writeText!(serialized)
                 : navClip.readText!().then((result): void => { okResult = result })
+        case kTeeTask.Download:
+          return ((window as any).fetch as GlobalFetch)(serialized.u)
+              .then<Blob>(res => res.status < 300 && res.status > 199 ? res.blob() : Promise.reject("HTTP "+res.status))
+              .then((blob): void => {
+            const url = URL.createObjectURL(blob)
+            const a = document.createElement("a")
+            a.href = url
+            a.download = serialized.t
+            a.target = "_blank"
+            const mouseEvent = new MouseEvent("click", {
+              bubbles: true, cancelable: true, altKey: true, detail: 1, button: 0, buttons: 1
+            } as ValidMouseEventInit)
+            a.dispatchEvent(mouseEvent)
+          })
         }
       }
       switch (taskId) {
