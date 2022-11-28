@@ -60,11 +60,13 @@ fi
 set -o noglob
 
 ver=$(grep -m1 -o '"version":\s*"[0-9\.]*"' ${ZIP_BASE}manifest.json | awk -F '"' '{print $4;}')
+manifest_version=$(grep -m1 -o '"manifest_version":\s*[0-9\.]*' ${ZIP_BASE}manifest.json | awk -F ':\\s*' '{print $2;}')
 output=$1
 ori_output=$output
 test_working=${TEST_WORKING:-1}
 # 0: may be; 1: is Chromium; 2: is Firefox
 chrome_only=${BUILD_BTypes:-0}
+test "$manifest_version" == "2" && mv2_tail="-mv2" || mv2_tail=
 if [ -z "$output" -o -d "$output" ]; then
   output=${output%/}
   [ -z "${output#.}" ] && output=
@@ -95,7 +97,7 @@ if [ -z "$output" -o -d "$output" ]; then
     fi
     git_hash=$("$exact_git" rev-parse --short=7 HEAD 2>/dev/null)
     # echo "Use Git Hash: $git_hash"
-    ver=${ver}${git_hash:+-${git_hash}}${has_mod}
+    ver=${ver}${git_hash:+-${git_hash}}${mv2_tail}${has_mod}
     if bool "$test_working" && [ -d '/wo' ]; then
       output=/wo/
     fi
@@ -176,9 +178,11 @@ echo "$action_name $output"
 
 function print_reproduce() {
   if bool "$IN_DIST" && test -f "$ZIP_BASE/.snapshot.sh"; then
-    echo $'\n''>>> 'Reproduce:
-    cat "$ZIP_BASE/.snapshot.sh"
-    echo
+    echo -n $'\n'Source version:$'\n''>>> '
+    cat "$ZIP_BASE/.snapshot.sh" | head -n 1
+    echo $'\n'Building steps in a Bash shell with Node.js 17+ and NPM:$'\n''```'
+    cat "$ZIP_BASE/.snapshot.sh" | tail -n +2
+    echo '```'$'\n'
   fi
 }
 

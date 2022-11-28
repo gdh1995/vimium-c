@@ -78,5 +78,5 @@
   "turnOff": "$1 a été désactivée",
   "Upgrade": "Mise à jour",
   "upgradeMsg": "Vimium C a été mise à jour vers la v$1.\n",
-  "upgradeMsg2": "Libération automatique des ressources inactives (une fonctionnalité expérimentale de la v2.0)"
+  "upgradeMsg2": "Prise en charge complète de WebExtension Manifest V3."
 }

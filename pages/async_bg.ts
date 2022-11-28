@@ -227,18 +227,24 @@ export const toggleReduceMotion = (reduced: boolean): void => {
 }
 
 export let enableNextTick_: (type: kReadyInfo, toRemove?: kReadyInfo) => void
+const dbg_task_ = !Build.NDEBUG ? (console as any).createTask as ((
+    name: string) => { run (cb: () => void): void; (): unknown }) | undefined : null
 
 export const nextTick_ = ((): { <T>(task: (self: T) => void, self: T): void; (task: (this: void) => void): void } => {
   const ticked = function (): void {
     const oldSize = tasks.length
-    for (let i = 0; i < oldSize; i++) { tasks[i]() }
+    for (let i = 0; i < oldSize; i++) {
+      (void 0, tasks[i])()
+    }
     if (tasks.length > oldSize) {
       tasks.splice(0, oldSize)
       queueTask_(ticked)
     } else {
       tasks.length = 0
+      taskId = 0
     }
   }, tasks: (() => void)[] = []
+  let taskId = 0
   enableNextTick_ = (type, toRemove): void => {
     readyInfo_ = (readyInfo_ | type) & ~(toRemove || 0)
     if (readyInfo_ === kReadyInfo.FINISHED) {
@@ -249,10 +255,14 @@ export const nextTick_ = ((): { <T>(task: (self: T) => void, self: T): void; (ta
     if (tasks.length <= 0 && readyInfo_ === kReadyInfo.FINISHED) {
       queueTask_(ticked)
     }
+    const asyncTask = !Build.NDEBUG && dbg_task_ ? dbg_task_(`task-${++taskId}`) : null
     if (context as unknown as number === 9) {
+      task = asyncTask ? asyncTask.run.bind(asyncTask, task as (this: void) => void) : task
       tasks.unshift(task as (this: void) => void) // here ignores the case of re-entry
     } else {
-      tasks.push(context ? (task as (firstArg: T) => void).bind(null, context) : task as (this: void) => void)
+      let task2 = context ? (task as (firstArg: T) => void).bind(null, context) : task as (this: void) => void
+      task2 = asyncTask ? asyncTask.run.bind(asyncTask, task2) : task2
+      tasks.push(task2)
     }
   }
 })()
