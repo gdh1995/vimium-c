@@ -525,28 +525,47 @@ const selectLine = (count1: number): void => {
   }
 }
 
-const ensureLine = (command1: number): void => {
-  let di = getDirection()
-  if (di && command1 < VisualAction.MinNotWrapSelectionModify
-      && command1 >= VisualAction.MinWrapSelectionModify && !diType_ && selType() === SelType.Caret) {
-    di = (1 & ~command1) as ForwardDir // old Di
+const ensureLine = (command1: number, s0: string): void => {
+  let di = getDirection(), len = 2, noBacked: BOOL | false = 0
+  if (command1 < VisualAction.MinNotWrapSelectionModify && command1 >= VisualAction.MinWrapSelectionModify
+      && !diType_ && (di && selType() === SelType.Caret || (OnFirefox ? (<RegExpOne> /^\r?\n$/).test(
+          "" + <SelWithToStr> curSelection) : "" + <SelWithToStr> curSelection === "\n"))) {
+    selType() === SelType.Range && collpaseSelection(curSelection, 1 - di)
+    di = di_ = (1 & ~command1) as ForwardDir
     modify(di, kG.lineBoundary)
     selType() !== SelType.Range && modify(di, kG.line)
-    di_ = di
-    reverseSelection()
-    let len = ("" + <SelWithToStr> curSelection).length
-    modify(di = di_ = 1 - di, kG.lineBoundary);
-    ("" + <SelWithToStr> curSelection).length - len || modify(di, kG.line)
-    return
+    noBacked = len = 1
   }
-  for (let _iter = 2; 0 < _iter--; ) {
-    reverseSelection()
-    di = di_ = (1 - di) as ForwardDir
-    modify(di, kG.lineBoundary)
+  for (; 0 < len--; ) {
+    if (noBacked !== !1) {
+      reverseSelection()
+      di = di_ = (1 - di) as ForwardDir
+    }
+    let s1 = noBacked ? "" : "" + <SelWithToStr> curSelection, backed: string | 0 = 0
+    if (!(di ? s1.endsWith("\n") : s1.startsWith("\n"))) {
+      const r1 = diType_ || !s1 ? 0 : [getAccessibleSelectedNode(curSelection, 1), selOffset_(curSelection, 1)] as const
+      if (s1 && (len || !(<RegExpOne>/\r|\n/).test(s1.slice(di ? OnFirefox ? -3 : -2 : 0).slice(0, OnFirefox ?3 :2)))) {
+        modify(1 - di, kG.character)
+        backed = "" + <SelWithToStr> curSelection
+        backed + "\n" === s1 ? backed = 0
+        : backed === s1 && (backed = 0, // sel.addRange will reset selection direction on C107, so have to use extend
+            r1 && (!OnFirefox || r1[0]) ? curSelection.extend(r1[0]!, r1[1]) : modify(di, kG.character))
+      }
+      modify(di, kG.lineBoundary + <BOOL> noBacked); kG.lineBoundary satisfies 3; kG.line satisfies 4
+      const reduced = !len && r1 && (!OnFirefox || r1[0]) && di !== (command1 & 1)
+      const s2 = backed || reduced ? "" + <SelWithToStr> curSelection : ""
+      if (backed && s2 === backed) {
+        modify(di, kG.character)
+        modify(di, kG.lineBoundary)
+      } else if (reduced && (s2.length >= s0.length)) {
+        curSelection.extend(r1[0]!, r1[1])
+      }
+    }
+    if (noBacked && !diType_) { len++, noBacked = !1 }
   }
 }
 
-  let mode = mode_
+  let mode = mode_, s0_line: string = ""
   if (command > VisualAction.MaxNotScroll) {
     executeScroll(1, command - VisualAction.ScrollDown ? -count : count, kScFlag.scBy)
     return;
@@ -600,6 +619,7 @@ const ensureLine = (command1: number): void => {
   } else if (command === VisualAction.Reverse) {
     reverseSelection()
   } else if (command >= VisualAction.MinWrapSelectionModify) {
+    s0_line += mode === Mode.Line ? <SelWithToStr> curSelection : s0_line
     runMovements((command & 1) as 0 | 1, command >> 1, count)
   }
   if (mode === Mode.Caret) {
@@ -608,7 +628,7 @@ const ensureLine = (command1: number): void => {
       extend(kDirTy.left)
     }
   } else if (mode === Mode.Line) {
-    ensureLine(command)
+    ensureLine(command, s0_line)
   }
   getDirection("")
   diType_ & DiType.Complicated || scrollIntoView_s(getSelectionFocusEdge_(curSelection, di_))
