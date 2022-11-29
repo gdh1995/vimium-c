@@ -39,10 +39,10 @@ export const IsEdg_: boolean = OnChrome && (Build.MinCVer < BrowserVer.MinEnsure
     ? Build.MV3 ? false : matchMedia("(-ms-high-contrast)").matches
     : !!brands!.find(i => i.brand.includes("Edge") || i.brand.includes("Microsoft")))
 export const CurCVer_: BrowserVer = !OnChrome ? BrowserVer.assumedVer
-    : Build.MinCVer >= BrowserVer.MinEnsuredNavigator$userAgentData || brands
-    ? (tmpBrand = brands!.find(i => i.brand.includes("Chromium")))
-      ? parseInt(tmpBrand.version) : BrowserVer.MinMaybe$navigator$$userAgentData > Build.MinCVer
-      ? BrowserVer.MinMaybe$navigator$$userAgentData : Build.MinCVer
+    : (Build.MinCVer >= BrowserVer.MinEnsuredNavigator$userAgentData || brands)
+      && (tmpBrand = brands!.find(i => i.brand.includes("Chromium")))
+      && parseInt(tmpBrand.version) > BrowserVer.MinMaybe$navigator$$userAgentData - 1
+    ? parseInt(tmpBrand.version)
     : (Build.MinCVer <= BrowserVer.FlagFreezeUserAgentGiveFakeUAMajor ? ((): BrowserVer => {
       const ver = navigator.userAgent!.match(<RegExpOne> /\bChrom(?:e|ium)\/(\d+)/)
       return !ver ? BrowserVer.assumedVer : +ver[1] === BrowserVer.FakeUAMajorWhenFreezeUserAgent
@@ -51,10 +51,10 @@ export const CurCVer_: BrowserVer = !OnChrome ? BrowserVer.assumedVer
     })()
     : 0 | <number> (navigator.userAgent!.match(<RegExpOne> /\bChrom(?:e|ium)\/(\d+)/) || [0, BrowserVer.assumedVer])[1])
 export let CurFFVer_: FirefoxBrowserVer = !OnFirefox ? FirefoxBrowserVer.assumedVer
-    : brands ? (tmpBrand = brands.find(i => i.brand.includes("Firefox")))
-      ? parseInt(tmpBrand.version) : FirefoxBrowserVer.MinMaybe$navigator$$userAgentData > Build.MinFFVer
-      ? FirefoxBrowserVer.MinMaybe$navigator$$userAgentData : Build.MinFFVer
-    : 0 | <number>(navigator.userAgent!.match(<RegExpOne> /\bFirefox\/(\d+)/) || [0, FirefoxBrowserVer.assumedVer])[1]
+    : brands && (tmpBrand = brands.find(i => i.brand.includes("Firefox")))
+      && parseInt(tmpBrand.version) >= FirefoxBrowserVer.MinMaybe$navigator$$userAgentData
+    ? parseInt(tmpBrand.version)
+    : parseInt(navigator.userAgent!.split("Firefox/")[1] || "0") || FirefoxBrowserVer.assumedVer
 export let BrowserName_: string | undefined
 
 export const browser_: typeof chrome = OnChrome ? chrome : browser as typeof chrome
