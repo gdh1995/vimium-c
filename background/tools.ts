@@ -622,6 +622,8 @@ let lastVisitTabTime = 0
 setTimeout((): void => {
   const noneWnd = curWndId_, cache = recencyForTab_
   function listener(info: chrome.tabs.TabActiveInfo): void {
+    const tabId = info.tabId, frames = framesForTab_.get(tabId)
+    if (frames && frames.flags_ & Frames.Flags.ResReleased) { refreshPorts_(frames, 0) }
     if (info.windowId !== curWndId_) {
       Windows_.get(info.windowId, maybeOnBgWndActiveTabChange)
       return
@@ -632,10 +634,8 @@ setTimeout((): void => {
       monoNow = (OnChrome || OnFirefox) && Build.OS & (1 << kOS.unixLike) && os_ === kOS.unixLike ? Date.now() : now
       cache.set(curTabId_, monoNow)
     }
-    const tabId = info.tabId
     set_curTabId_(tabId), lastVisitTabTime = now
-      const frames = framesForTab_.get(tabId)
-      if (frames && frames.flags_ & Frames.Flags.ResReleased) { refreshPorts_(frames, 0) }
+    if (!Build.MV3) { return }
     _mediaTimer === -2 && (_mediaTimer = -3, setTimeout(MediaWatcher_.resume_, 0)) // not block onActivated listener
   }
   function maybeOnBgWndActiveTabChange(wnd: chrome.windows.Window): void {

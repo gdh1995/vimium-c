@@ -1,7 +1,7 @@
 import { kPgReq } from "../background/page_messages"
 import { $, OnEdge, browser_, OnFirefox, OnChrome, nextTick_, CurCVer_, IsEdg_, post_, pageLangs_ } from "./async_bg"
 import { Option_, KnownOptionsDataset, oTrans_, bgSettings_, delayBinding } from "./options_base"
-import { registerClass, createNewOption, TextOption_, BooleanOption_ } from "./options_defs"
+import { registerClass, createNewOption, TextOption_ } from "./options_defs"
 import kBrowserPermission = chrome.permissions.kPermission
 
 type AllowedApi = "contains" | "request" | "remove"
@@ -65,6 +65,7 @@ const placeholder = <true> !OnEdge && $<HTMLTemplateElement & EnsuredMountedHTML
 const template = <true> !OnEdge && placeholder.content.firstElementChild as HTMLElement
 const container = <true> !OnEdge && placeholder.parentElement
 const navPermissionTip = (Build.MV3 as BOOL) && OnChrome ? $<SafeHTMLElement>("#navPermissionTip") : null
+const gotoCrSC = (Build.MV3 as BOOL) && OnChrome ? $<SafeHTMLElement>("#gotoCrSC") : null
 const shownItems: PermissionItem[] = []
 export const manifest = browser_.runtime.getManifest() as Readonly<chrome.runtime.Manifest>
 let optional_permissions = (!OnEdge && manifest.optional_permissions || []) as readonly kBrowserPermission[]
@@ -83,7 +84,6 @@ export class OptionalPermissionsOption_ extends Option_<"nextPatterns"> {
       shown.element_.indeterminate = value[i] === "1"
       if (Build.MV3 && shown.type_ === 2 && value[i] !== "1") {
         (shown.element_.parentElement as HTMLElement).title = navPermissionTip!.innerText
-        BooleanOption_.ToggleDisabled_(shown.element_, true)
       }
     }
   }
@@ -91,7 +91,7 @@ export class OptionalPermissionsOption_ extends Option_<"nextPatterns"> {
     const new_browser_permissions: kBrowserPermission[] = [], new_origins: kBrowserPermission[] = []
     const new_nav_permissions: kNavPermissionName[] = []
     const changed: { [key in kBrowserPermission]?: PermissionItem } = {}
-    let waiting = 1
+    let waiting = 1, gotoCrContentSettings = false
     for (let _ind = 0; _ind < shownItems.length; _ind++) {
       const i = shownItems[_ind], previous = i.previous_
       const wanted = +wanted_value[_ind] as 0 | 1 | 2
@@ -112,9 +112,11 @@ export class OptionalPermissionsOption_ extends Option_<"nextPatterns"> {
         }
       }
       if (i.type_ === 2) {
-        if (!Build.MV3 || previous !== 1) { /* empty */ }
+        if (!Build.MV3) { /* empty */ }
         else if (wanted === 2) {
           new_nav_permissions.push(i.name_)
+        } else {
+          gotoCrContentSettings = true
         }
       } else if (wanted) {
         i.name_ === kShelf && new_browser_permissions.push("downloads");
@@ -146,7 +148,7 @@ export class OptionalPermissionsOption_ extends Option_<"nextPatterns"> {
           if (name.startsWith("chrome://") && msg.includes("Only permissions specified in the manifest")) {
             if (name.startsWith("chrome:")) {
               msg = oTrans_("optNeedChromeUrlFirst")
-              msg = IsEdg_ ? msg.replace("chrome:", "edge:") : msg
+              msg = IsEdg_ ? msg.replace("chrome", "edge") : msg
             }
           }
           msg = oTrans_("exc") + msg
@@ -162,6 +164,7 @@ export class OptionalPermissionsOption_ extends Option_<"nextPatterns"> {
       if (waiting > 0) { return }
       void Promise.all(shownItems.map(doPermissionsContain_)).then((): void => {
         void this.fetch_()
+        if (gotoCrContentSettings) { gotoCrSC!.click() }
       })
     }
     waiting += (new_browser_permissions.length && 1) + (new_origins.length && 1)
@@ -214,6 +217,7 @@ const initOptionalPermissions = (): void => {
   }
   container.appendChild(fragment)
   delayBinding(container, "input", onInput, true)
+  gotoCrSC && delayBinding(gotoCrSC, "click", onCrUrlClick, true)
 }
 
 const doPermissionsContain_ = (item: PermissionItem): Promise<void> => {
@@ -258,6 +262,11 @@ const onInput = (e: Event): void => {
   if (Build.MV3 && OnChrome && item.type_ === 2) {
     el.checked || (el.indeterminate = true)
   }
+}
+
+const onCrUrlClick = (e: EventToPrevent): void => {
+  e.preventDefault()
+  void post_(kPgReq.focusOrLaunch, { u: (e.target as HTMLAnchorElement).href, p: false })
 }
 
 if (!OnEdge) {

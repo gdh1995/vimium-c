@@ -1,6 +1,6 @@
 import {
   CurCVer_, CurFFVer_, curIncognito_, curWndId_, newTabUrls_, OnChrome, OnEdge, OnFirefox, newTabUrl_f, blank_,
-  CONST_, IsEdg_, hasGroupPermission_ff_, bgIniting_, set_installation_, Origin2_
+  CONST_, IsEdg_, hasGroupPermission_ff_, bgIniting_, set_installation_, Origin2_, runOnTee_
 } from "./store"
 import { DecodeURLPart_, deferPromise_ } from "./utils"
 
@@ -290,6 +290,9 @@ export const makeTempWindow_r = (tabId: number, incognito: boolean
 }
 
 export const downloadFile = (url: string, filename?: string | null, refer?: string | null): Promise<boolean> => {
+  if (Build.MV3 && url.startsWith("data:")) {
+    return runOnTee_(kTeeTask.Download, { u: url, t: filename || "" }, null).then(i => !!i)
+  }
   if (!(OnChrome || OnFirefox)) { return Promise.resolve(false) }
   return Q_(browser_.permissions.contains, { permissions: ["downloads"] }).then((permitted): PromiseOr<boolean> => {
       if (!permitted) { return false }

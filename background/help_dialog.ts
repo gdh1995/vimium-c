@@ -78,8 +78,9 @@ export const render_ = (isOptionsPage: boolean, showNames: boolean | null | unde
       let keys = commandToKeys.get(command)
       keys ? keys.push([key, registry]) : commandToKeys.set(command, [[key, registry]])
     })
+    const title2 = isOptionsPage ? " " + i18n_.get("cmdList") : ""
     const result = BgUtils_.safer_<Dict<string>>({
-      title2: isOptionsPage ? " " + i18n_.get("cmdList") : "",
+      title2: title2 && (title2.includes(" ", 1) ? title2 : title2.trimLeft()),
       name2: " - " + (extTrans_("name") as string).split(" - ")[1],
       tip: showNames && i18n_.get("tipClickToCopy") || "",
       lbPad: showNames ? '\n\t\t<tr><td class="HelpTd TdBottom">&#160;</td></tr>' : ""

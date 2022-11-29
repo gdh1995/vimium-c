@@ -518,16 +518,16 @@ const MAX_KEEP_ALIVE = Build.NDEBUG ? 5 : 2
   let lastMaxVisit = -1, lastMaxFrames: Frames.Frames | null = null
   const listToRelease: Frames.Frames[] = []
   framesForTab_.forEach((frames, tabId): void => {
-    const ports = frames.ports_
+    const ports = frames.ports_, portNum = ports.length
     if (!(Build.MV3 && lastMaxVisit >= 0) && !ports.length) { return }
     let hasOld = false
     for (const i of ports) {
       if (i.s.flags_ & Frames.Flags.OldEnough) {
-        Build.MV3 && ((i.s.flags_ satisfies Frames.Flags) |= Frames.Flags.ResReleased)
+        (i.s.flags_ satisfies Frames.Flags) |= Frames.Flags.ResReleased
         hasOld = true
-        break
+      } else {
+        (i.s.flags_ satisfies Frames.Flags) |= Frames.Flags.OldEnough
       }
-      (i.s.flags_ satisfies Frames.Flags) |= Frames.Flags.OldEnough
     }
     const visit = tabId >= 0 && recencyForTab_.get(tabId) || 0
     if (Build.MV3 && lastMaxVisit >= -1 && visit > lastMaxVisit
@@ -536,10 +536,10 @@ const MAX_KEEP_ALIVE = Build.NDEBUG ? 5 : 2
     }
     if (!hasOld) { Build.MV3 && ports.length && (lastMaxVisit = -2); return }
     const doesRelease: boolean = visit < oldestToKeepAlive && tabId !== curTabId_
-        && (ports.length === 1 && !(frames.flags_ & Frames.Flags.HadIFrames) && ports[0] === frames.top_
+        && (portNum === 1 && !(frames.flags_ & Frames.Flags.HadIFrames) && ports[0] === frames.top_
              || ports.some(isNotPriviledged))
-    if (Build.MV3 ? ports.length : doesRelease) {
-      Build.MV3 && !doesRelease || (frames.flags_ = Frames.Flags.ResReleased)
+    if (Build.MV3 ? portNum : doesRelease) {
+      (!Build.MV3 || doesRelease) && (frames.flags_ |= Frames.Flags.ResReleased)
       listToRelease.push(frames)
     }
   })
@@ -548,12 +548,11 @@ const MAX_KEEP_ALIVE = Build.NDEBUG ? 5 : 2
     let hadIFrames = !!(frames.flags_ & Frames.Flags.HadIFrames) || frames.ports_.length > 1, failed: BOOL = 0
     const stillAlive: Port[] = []
     for (const port of frames.ports_) {
-      if (Build.MV3 && !(port.s.flags_ & Frames.Flags.ResReleased)) {
+      if (!(port.s.flags_ & Frames.Flags.ResReleased)) {
         lastMaxVisit = -3
         stillAlive.push(port)
       } else if (doesRelease && (!hadIFrames || isNotPriviledged(port))) {
         port.disconnect()
-        Build.MV3 || (port.s.flags_ |= Frames.Flags.ResReleased)
         port.s.frameId_ && (frames.flags_ |= Frames.Flags.HadIFrames)
       } else if (Build.MV3) {
         _safeRefreshPort(port) ? failed = 1 : lastMaxVisit = -4
@@ -565,6 +564,7 @@ const MAX_KEEP_ALIVE = Build.NDEBUG ? 5 : 2
       console.log("free ports: tab=%o, release=%o, ports=%o, result.alive=%o", frames.cur_.s.tabId_, doesRelease
           , frames.ports_.length, stillAlive.length)
     }
+    if (frames === lastMaxFrames) { frames.flags_ &= ~Frames.Flags.ResReleased }
     frames.ports_.length = 0
     Build.MV3 ? failed && /** never */ (stillAlive.forEach(_safeRefreshPort), refreshPorts_(frames, 1))
         : stillAlive.length && frames.ports_.push(...stillAlive)

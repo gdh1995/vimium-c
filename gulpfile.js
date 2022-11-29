@@ -252,11 +252,12 @@ var Tasks = {
     minVer = minVer ? (minVer | 0) : 0;
     {
       const mv3 = !!getBuildItem("MV3")
+      if (mv3 && browser === BrowserType.Firefox) { delete manifest.background }
       for (const key of Object.keys(manifest)) {
         if (key.endsWith(".v2")) {
           const val = manifest[key]
           delete manifest[key]
-          if (mv3) { /* empty */ }
+          if (mv3) { if (browser === BrowserType.Firefox && key === "background.v2") { manifest.background = val } }
           else if (key.endsWith("[].v2") && val instanceof Array) {
             const old = manifest[key.slice(0, -5)]
             for (const item of val) {
@@ -270,6 +271,8 @@ var Tasks = {
             val != null ? (manifest[key.slice(0, -3)] = val) : delete manifest[key.slice(0, -3)]
             delete manifest[key]
           }
+        } else if (!mv3 && key === "content_scripts") {
+          for (const item of manifest[key]) { delete item.match_origin_as_fallback }
         }
       }
     }
@@ -291,6 +294,7 @@ var Tasks = {
     let optional = manifest.optional_permissions
     if (browser === BrowserType.Firefox) {
       delete manifest.background.persistent;
+      for (const i of manifest.web_accessible_resources || []) { delete i.use_dynamic_url }
     }
     if (optional && !(browser & BrowserType.Firefox)) {
       optional = optional.filter(i => { return i !== "cookies" })

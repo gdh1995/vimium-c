@@ -55,7 +55,7 @@ Option_.saveOptions_ = async function (): Promise<boolean> {
   await Promise.all([bgSettings_.preloadCache_(), permissionsPromise])
   for (const i in arr) {
     const opt = arr[i as keyof AllowedOptions]
-    if (!opt.saved_ && opt._isDirty()) {
+    if (!opt.saved_ && opt.isDirty_()) {
       dirty.push(opt.i18nName_())
     }
   }
@@ -116,8 +116,6 @@ Option_.prototype.i18nName_ = function (): string {
   }
   return (el.innerText as string).replace(<RegExpG> /[\r\n]/g, "")
 }
-
-Option_.prototype.areEqual_ = (a, b) => a === b
 
 interface NumberChecker extends Checker<"scrollStepSize"> {
   min: number | null; max: number | null; default: number
@@ -377,6 +375,12 @@ export class JSONOption_<T extends JSONOptionNames> extends TextOption_<T> {
     }
     return obj
   }
+  override areEqual_ (a: object, b: object): boolean {
+    return JSON.stringify(a) === JSON.stringify<1>(b, Object.keys(b).sort())
+  }
+  override normalize_(value: object): SettingsNS.PersistentSettings[T] {
+    return JSON.parse(JSON.stringify<1>(value, Object.keys(value).sort()))
+  }
 }
 
 export class MaskedText_<T extends TextOptionNames> extends TextOption_<T> {
@@ -473,8 +477,6 @@ TextOption_.prototype.atomicUpdate_ = NumberOption_.prototype.atomicUpdate_ = fu
   this.locked_ = false
 }
 
-JSONOption_.prototype.areEqual_ = Option_.areJSONEqual_
-
 ExclusionRulesOption_.prototype.onRowChange_ = function (this: ExclusionRulesOption_, isAdd: number): void {
   if (this.list_.length !== isAdd) { return }
   const el = $("#exclusionToolbar"), options = $$("[data-model]", el)
@@ -498,7 +500,7 @@ export const createNewOption = ((): <T extends keyof AllowedOptions> (_element: 
   savedStatus = newStat => status = newStat != null ? newStat : status
   const onUpdated = function <T extends keyof AllowedOptions>(this: Option_<T>): void {
     if (this.locked_) { return }
-    if (this.saved_ = this.areEqual_(this.readValueFromElement_(), this.previous_)) {
+    if (this.saved_ = this.areEqual_(this.previous_, this.readValueFromElement_())) {
       if (status && !Option_.needSaveOptions_()) {
         if (OnFirefox) {
           saveBtn.blur()

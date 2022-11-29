@@ -30,7 +30,10 @@ nextTick_(showI18n)
 setupBorderWidth_ && nextTick_(setupBorderWidth_);
 nextTick_((versionEl): void => {
   versionEl.textContent = manifest.version_name || manifest.version
-}, $("#version"))
+  if ((parseInt(manifest.version) >= 2) !== (manifest.manifest_version === 3)) {
+    versionEl.parentElement.nextElementSibling.textContent = "-mv" + manifest.manifest_version
+  }
+}, $<EnsuredMountedHTMLElement>("#version"))
 
 delayBinding(saveBtn, "click", ((virtually): void => {
     if (virtually !== false) {

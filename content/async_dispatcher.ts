@@ -472,3 +472,15 @@ if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredGe
     alert("Assert error: async functions should have used `label_` and `sent_`")
   }
 }
+if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredGeneratorFunction
+    && Build.BTypes & BrowserType.Firefox) {
+  const error = "Assert error: Vimium C for Firefox requires `async`, so doesn't work on Chrome " + Build.MinCVer
+  if (Build.NDEBUG) {
+    alert(error)
+  } else {
+    console.error(error)
+    if (OnFirefox) {
+      Object.assign(typeof globalThis !== "undefined" ? globalThis : window as any, { __generator, __awaiter })
+    }
+  }
+}

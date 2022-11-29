@@ -167,16 +167,17 @@ Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES$Arr
       const setProto = Build.MinCVer < BrowserVer.Min$Object$$setPrototypeOf && Build.BTypes & BrowserType.Chrome
           && !Object.setPrototypeOf ? (obj: SimulatedMap): void => { (obj as any).__proto__ = proto }
           : (opt: SimulatedMap): void => { Object.setPrototypeOf(opt, proto as any as null) };
-      globalThis.Set = function (this: SimulatedMap): any {
-        setProto(this)
-        this.map_ = Object.create(null)
+      type SimulatedMapCtor = (this: SimulatedMap) => any;
+      globalThis.Set = function () {
+        ; (Map as any as SimulatedMapCtor).call(this)
         this.isSet_ = 1
-      } as any;
+      } satisfies SimulatedMapCtor as any;
       globalThis.Map = function (this: SimulatedMap): any {
         setProto(this)
         this.map_ = Object.create(null)
+        ; (this.size satisfies number) = 0
         this.isSet_ = 0
-      } as any
+      } satisfies SimulatedMapCtor as any
     }
 })()
 

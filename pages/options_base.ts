@@ -289,10 +289,10 @@ export abstract class Option_<T extends keyof AllowedOptions> {
     }
     return this.onSave_()
   }
-  _isDirty (): boolean {
+  isDirty_ (): boolean {
     const latest = this.innerFetch_() as AllowedOptions[T]
     const diff = !this.areEqual_(this.previous_, latest)
-    if (diff && this.areEqual_(this.readValueFromElement_(), latest)) {
+    if (diff && this.areEqual_(latest, this.readValueFromElement_())) {
       this.previous_ = latest
       this.saved_ = true
       return false
@@ -310,14 +310,11 @@ export abstract class Option_<T extends keyof AllowedOptions> {
   abstract readValueFromElement_ (): AllowedOptions[T];
   abstract populateElement_ (value: AllowedOptions[T], enableUndo?: boolean): void;
   doesPopulateOnSave_ (_val: AllowedOptions[T]): boolean { return false }
+  areEqual_ (this: Option_<T>, old: AllowedOptions[T], newVal: AllowedOptions[T]): boolean { return old === newVal }
   _onCacheUpdated: (this: Option_<T>, onUpdated: (this: Option_<T>) => void) => void;
   _manuallySyncCache: (this: Option_<T>, onUpdated: (this: Option_<T>) => void) => void;
-  areEqual_: (this: Option_<T>, a: AllowedOptions[T], b: AllowedOptions[T]) => boolean;
   atomicUpdate_: (this: Option_<T> & {element_: TextElement}, value: string, undo: boolean, locked: boolean) => void;
 
-  static areJSONEqual_ (this: void, a: object, b: object): boolean {
-    return JSON.stringify(a) === JSON.stringify(b)
-  }
   static saveOptions_: (this: void) => Promise<boolean>
   static needSaveOptions_: (this: void) => boolean;
   i18nName_: () => string
@@ -572,8 +569,7 @@ override onSave_ (): void {
     }
   }
 }
-
-override readonly areEqual_ = Option_.areJSONEqual_;
+override areEqual_ (this: void, a: object, b: object): boolean { return JSON.stringify(a) === JSON.stringify(b) }
 sortRules_: (el?: HTMLElement) => void;
 timer_?: number;
 }

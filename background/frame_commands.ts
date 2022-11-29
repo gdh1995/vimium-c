@@ -396,10 +396,7 @@ export const handleImageUrl = (url: `data:${string}` | "", buffer: Blob | null
     } else {
       p2.resolve_(0)
     }
-    p2.promise_.then((): Promise<boolean | string> =>
-      Build.MV3 && url.startsWith("data:") ? runOnTee_(kTeeTask.Download, { u: url, t: title }, null)
-      : downloadFile(blobRef_mv2, title, port ? port.s.url_ : null)
-    ).then((succeed: boolean | string): void => {
+    p2.promise_.then(() => downloadFile(blobRef_mv2, title, port ? port.s.url_ : null)).then((succeed): void => {
       const clickAnchor_cr = (): void => {
         const a = (globalThis as MaybeWithWindow).document!.createElement("a")
         a.href = blobRef_mv2
