@@ -11,7 +11,7 @@ import { HookAction, hookOnWnd, safeDestroy, setupBackupTimer_cr } from "./port"
 import { coreHints, doesWantToReloadLinkHints, hintOptions, reinitLinkHintsIn } from "./link_hints"
 import { grabBackFocus, insertInit } from "./insert"
 
-export const main_not_ff = (Build.BTypes & ~BrowserType.Firefox ? (): void => {
+export const main_not_ff_mv2 = (Build.BTypes & ~BrowserType.Firefox ? (): void => {
 (function extendClick(this: void, isFirstTime?: boolean): void {
 /** Note(gdh1995):
  * According to source code of C72,
