@@ -2,8 +2,8 @@ import {
   curIncognito_, curTabId_, curWndId_, framesForTab_, incognitoFindHistoryList_, recencyForTab_, set_curIncognito_,
   set_curTabId_, set_curWndId_, set_incognitoFindHistoryList_, set_lastWndId_, incognitoMarkCache_, focusAndExecuteOn_,
   set_incognitoMarkCache_, contentPayload_, settingsCache_, OnFirefox, OnChrome, CurCVer_, updateHooks_, set_cKey,
-  OnEdge, isHighContrast_ff_, omniPayload_, blank_, CONST_, CurFFVer_, storageCache_, os_,
-  vomnibarBgOptions_, cPort
+  OnEdge, isHighContrast_ff_, omniPayload_, blank_, CONST_, CurFFVer_, storageCache_, os_, vomnibarBgOptions_, cPort,
+  lastKeptTabId_
 } from "./store"
 import * as BgUtils_ from "./utils"
 import {
@@ -13,7 +13,9 @@ import {
 import { hostRe_, removeComposedScheme_ } from "./normalize_urls"
 import { prepareReParsingPrefix_ } from "./parse_urls"
 import * as settings_ from "./settings"
-import { complainLimits, refreshPorts_, showHUD, showHUDEx, waitForPorts_ } from "./ports"
+import {
+  complainLimits, refreshPorts_, showHUD, showHUDEx, tryToKeepAliveIfNeeded_mv3_non_ff, waitForPorts_
+} from "./ports"
 import { setOmniStyle_ } from "./ui_css"
 import { transEx_, trans_ } from "./i18n"
 import { parseFallbackOptions, runNextCmd, getRunNextCmdBy, kRunOn, runNextCmdBy, portSendFgCmd } from "./run_commands"
@@ -612,16 +614,14 @@ export const MediaWatcher_ = Build.MV3 ? null as never : {
   }
 }
 
-
+const noneWnd = Build.NDEBUG ? GlobalConsts.WndIdNone : curWndId_, cache = recencyForTab_
 export const TabRecency_ = {
-  rCompare_: null as never as (a: {id: number}, b: {id: number}) => number,
+  rCompare_: (a: {id: number}, b: {id: number}): number => cache.get(b.id)! - cache.get(a.id)!,
   onWndChange_: blank_
 };
 let lastVisitTabTime = 0
 
-setTimeout((): void => {
-  const noneWnd = curWndId_, cache = recencyForTab_
-  function listener(info: chrome.tabs.TabActiveInfo): void {
+  function onTabActivated(info: chrome.tabs.TabActiveInfo): void {
     const tabId = info.tabId, frames = framesForTab_.get(tabId)
     if (frames && frames.flags_ & Frames.Flags.ResReleased) { refreshPorts_(frames, 0) }
     if (info.windowId !== curWndId_) {
@@ -662,9 +662,9 @@ setTimeout((): void => {
         : !OnChrome || Build.MinCVer >= BrowserVer.MinNoAbnormalIncognito
         ? IncognitoType.ensuredFalse : IncognitoType.mayFalse)
     TabRecency_.onWndChange_()
-    listener({ tabId: a.id, windowId: current })
+    onTabActivated({ tabId: a.id, windowId: current })
   }
-  Tabs_.onActivated.addListener(listener)
+  Tabs_.onActivated.addListener(onTabActivated)
   OnFirefox && Build.MayAndroidOnFirefox && !Windows_ ||
   Windows_.onFocusChanged.addListener(function (windowId): void {
     if (windowId === noneWnd) { return; }
@@ -672,9 +672,12 @@ setTimeout((): void => {
     Tabs_.query({windowId, active: true}, onFocusChanged)
   });
   ; Tabs_.onRemoved.addListener((tabId): void => {
-    framesForTab_.delete(tabId)
+    const existing = framesForTab_.delete(tabId)
     cache.delete(tabId)
+    Build.MV3 && !OnFirefox && tabId === lastKeptTabId_ && existing && tryToKeepAliveIfNeeded_mv3_non_ff(tabId)
   })
+
+void settings_.ready_.then((): void => {
   getCurTab((tabs: [Tab]): void => {
     lastVisitTabTime = performance.now()
     const a = tabs && tabs[0];
@@ -685,15 +688,15 @@ setTimeout((): void => {
       : !OnChrome || Build.MinCVer >= BrowserVer.MinNoAbnormalIncognito
       ? IncognitoType.ensuredFalse : IncognitoType.mayFalse)
   });
-  TabRecency_.rCompare_ = (a, b): number => cache.get(b.id)! - cache.get(a.id)!
-
-  OnChrome && void settings_.ready_.then((): void => {
+  if (!OnChrome) { return }
+  const items: CSTypes[] = []
   for (const i of ["images", "plugins", "javascript", "cookies"] as const) {
-    storageCache_.get(ContentSettings_.makeKey_(i)) != null &&
-    browser_.contentSettings && setTimeout(ContentSettings_.Clear_, 100, i)
+    storageCache_.get(ContentSettings_.makeKey_(i)) != null && items.push(i)
   }
-  })
-}, 120)
+  items.length && browser_.contentSettings && setTimeout(() => {
+    for (const i of items) { ContentSettings_.Clear_(i) }
+  }, 100)
+})
 
 if (!Build.MV3) {
   updateHooks_.autoDarkMode = updateHooks_.autoReduceMotion = (value: 0 | 1 | 2 | boolean

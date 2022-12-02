@@ -146,7 +146,25 @@ declare namespace chrome.tabs {
     cookieStoreId?: GroupId
     openInReaderMode?: boolean
   }
-  export function group (options: { tabIds: number | number[], groupId?: number }): Promise<object>
+  interface UpdateProperties {
+    autoDiscardable?: boolean
+  }
+  export function group (options: { tabIds: number | number[], groupId?: number, createProperties?: {
+      windowId?: number } }): Promise<number>
+}
+
+declare namespace chrome.tabGroups {
+  interface TabGroup {
+    id: number
+    collapsed: boolean
+    color: "grey" | "blue" | "red"
+    title?: string
+    windowId: number
+  }
+  export function update (groupId: number, properties: PartialOf<TabGroup, "collapsed" | "color" | "title">
+      ): Promise<TabGroup | undefined>
+  export function query (queryInfo: PartialOf<TabGroup, "collapsed" | "color" | "title" | "windowId">
+      ): Promise<TabGroup | undefined>
 }
 
 declare namespace chrome.scripting {

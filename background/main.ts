@@ -1,7 +1,7 @@
 import {
   framesForTab_, framesForOmni_, OnChrome, CurCVer_, OnEdge, OnFirefox, os_, curTabId_, bgC_,
   set_visualWordsRe_, bgIniting_, Completion_, CONST_, keyFSM_, reqH_, set_bgIniting_, set_hasGroupPermission_ff_,
-  onInit_, set_onInit_, set_cPort
+  onInit_, set_onInit_, set_cPort, lastKeptTabId_, set_lastKeptTabId_
 } from "./store"
 import * as BgUtils_ from "./utils"
 import { runtimeError_, tabsGet, Tabs_, browser_, watchPermissions_ } from "./browser"
@@ -174,6 +174,7 @@ OnEdge || void settings_.ready_.then((): void => {
 OnFirefox && Build.MayAndroidOnFirefox && !Tabs_.onReplaced || // Not exist on Thunderbird
 Tabs_.onReplaced.addListener((addedTabId, removedTabId): void => {
     const frames = framesForTab_.get(removedTabId)
+    if (lastKeptTabId_ === removedTabId) { set_lastKeptTabId_(addedTabId) }
     if (!frames) { return; }
     framesForTab_.delete(removedTabId)
     framesForTab_.set(addedTabId, frames)

@@ -318,6 +318,7 @@ declare namespace SettingsNS {
     vomnibarPage: string;
     omniBlockList: string;
     keyLayout: kKeyLayout
+    keepWorkerAlive: boolean
   }
   interface PersistentSettings extends FrontendSettings, BackendSettings {}
 

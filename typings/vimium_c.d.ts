@@ -568,6 +568,7 @@ declare const enum GlobalConsts {
   ForcedMapNum = "c-v-",
   KeySequenceTimeout = 3e5,
   OptionsPage = "pages/options.html",
+  KeepAliveHash = "#keep-alive",
   kLoadEvent = "VimiumC"
 }
 

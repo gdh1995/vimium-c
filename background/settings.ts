@@ -350,6 +350,7 @@ saladict@crimx.com`
     filterLinkHints: false,
     grabBackFocus: false,
     hideHud: false,
+    keepWorkerAlive: true,
     keyLayout: kKeyLayout.Default,
     keyboard: [560, 33],
     keyupTime: 120,
@@ -361,6 +362,7 @@ saladict@crimx.com`
     /** mutable */ newTabUrl: "",
     nextPatterns: "\u4e0b\u4e00\u5c01,\u4e0b\u9875,\u4e0b\u4e00\u9875,\u4e0b\u4e00\u7ae0,\u540e\u4e00\u9875\
 ,\u4e0b\u4e00\u5f20,next,more,newer,>,\u203a,\u2192,\xbb,\u226b,>>",
+    notifyUpdate: true,
     omniBlockList: "",
     passEsc: "[aria-controls],[role=combobox],#kw.s_ipt", // MS Bing / Google / Baidu
     previousPatterns: "\u4e0a\u4e00\u5c01,\u4e0a\u9875,\u4e0a\u4e00\u9875,\u4e0a\u4e00\u7ae0,\u524d\u4e00\u9875\
@@ -467,8 +469,8 @@ js\\:|Js: javascript:\\ $S; JavaScript`,
     showAdvancedCommands: true,
     showAdvancedOptions: true,
     showInIncognito: false,
-    notifyUpdate: true,
     smoothScroll: true,
+    userDefinedCss: "",
     vomnibarOptions: {
       actions: "" as never,
       maxMatches: 10,
@@ -479,7 +481,6 @@ js\\:|Js: javascript:\\ $S; JavaScript`,
           ,
       styles: "mono-url"
     },
-    userDefinedCss: "",
     vimSync: null,
     vomnibarPage: "front/vomnibar.html",
     waitForEnter: true
@@ -529,6 +530,7 @@ bgIniting_ < BackendHandlersNS.kInitStat.FINISHED && ((): void => {
       ).map(i => i === kShortcutAliases.nextTab1 ? "nextTab" : i)
   obj.VerCode_ = ref.version;
   obj.VerName_ = ref.version_name || ref.version;
+  if (Build.MV3 && !OnFirefox) { obj.PrivateAlivePage_ = func(obj.PrivateAlivePage_) }
   obj.OptionsPage_ = func(ref.options_page || obj.OptionsPage_);
   obj.ShowPage_ = func(obj.ShowPage_);
   obj.VomnibarPageInner_ = func(defaults_.vomnibarPage)
