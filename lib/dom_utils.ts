@@ -702,4 +702,11 @@ export const blur_unsafe = (el: Element | null | undefined): void => {
 export const dispatchEvent_ = (target: Window | Document | SafeElement
     , event: Event): boolean => target.dispatchEvent(event)
 
+export const dispatchAsync_ = <T extends 0 | 1 | 2 = 0> (target: T extends 1 ? SafeHTMLElement : Document | SafeElement
+      , event: T extends 0 ? Event : 0, work?: T): Promise<T extends 0 ? boolean : undefined> =>
+    Promise.resolve().then((work === 1 ? (target as SafeHTMLElement).click as never
+        : work === 2 ? target.focus as never : target.dispatchEvent
+      ).bind<EventTarget, Event, [], boolean>(target, work ? (void 0) as never : event as Event)
+    ) as Promise<T extends 0 ? boolean : undefined>
+
 //#endregion

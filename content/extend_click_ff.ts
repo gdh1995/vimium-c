@@ -3,7 +3,7 @@ import {
   isTY, OnFirefox, isAsContent, isEnabled_, reflectApply_not_cr, fgCache
 } from "../lib/utils"
 import {
-  CLK, MDW, OnDocLoaded_, isHTML_, set_createElement_, createElement_, onReadyState_, dispatchEvent_
+  CLK, MDW, OnDocLoaded_, isHTML_, set_createElement_, createElement_, onReadyState_, dispatchAsync_
 } from "../lib/dom_utils"
 import { grabBackFocus, insertInit } from "./insert"
 import { coreHints, doesWantToReloadLinkHints, reinitLinkHintsIn } from "./link_hints"
@@ -17,7 +17,7 @@ declare function exportFunction(func: unknown, targetScope: object
 let clickEventToPrevent_: boolean | 0 | Event | undefined
 let clickAnchor_: HTMLAnchorElement & SafeHTMLElement | false | 0 | undefined = 0
 let isClickEventPreventedByPage: BOOL = 0
-let preventEventOnWindow: ((wnd: Window) => Promise<void>) | undefined
+let preventEventOnWindow: ((wnd: Window) => (event: Event) => void) | undefined
 let hookMethods: (setter: typeof eportToMainWorld, event: EventToPrevent) => void
 
 export { clickEventToPrevent_ }
@@ -178,10 +178,10 @@ export const unblockClick_old_ff = (): void => {
     if (grabBackFocus && isAsContent && stdMembers.every(i => isTY(i[0], kTY.func))) {
       hookMethods(eportToMainWorld, EventCls!)
     }
-    preventEventOnWindow = async (wnd: Window): Promise<void> => {
+    preventEventOnWindow = (wnd: Window): ((event: Event) => void) => {
       isClickEventPreventedByPage = notDuringAct = isHandingTheSecondTime = 1
-      await setupEventListener(wnd, CLK, tryToPreventClick, 0, 3)
-      setupEventListener(wnd, CLK, tryToPreventClick, 1, 3)
+      setupEventListener(wnd, CLK, tryToPreventClick, 0, 3)
+      return tryToPreventClick
     }
     clickEventToPrevent_ = 0
   } catch (e) {
@@ -195,19 +195,22 @@ export const prepareToBlockClick_old_ff = (doesBeginPrevent: boolean
   clickAnchor_ = clickEventToPrevent_ && anchor
 }
 
-export const dispatchAndBlockClickOnce_old_ff = (targetElement: SafeElement, clickEvent: MouseEvent): boolean => {
+export const dispatchAndBlockClickOnce_old_ff = async (targetElement: SafeElement, clickEvent: MouseEvent
+    ): Promise<boolean> => {
   const view = (targetElement.ownerDocument as Document).defaultView
   const doesBlock = view === window
+  let toRemove: ((event: Event) => void) | undefined
   if (!(Build.NDEBUG || view !== raw_unwrap_ff(window))) {
     console.log("Assert error: a target element is bound to window.wrappedJSObject");
   }
   if (doesBlock) {
     clickEventToPrevent_ = clickEvent
-    void preventEventOnWindow!(view)
+    toRemove = preventEventOnWindow!(view)
     isAsContent || hookMethods((a, k, v): void => { a[k] = v }, clickEvent as MouseEventToPrevent)
   }
-  const rawDispatchRetVal = dispatchEvent_(targetElement, clickEvent),
+  const rawDispatchRetVal = await dispatchAsync_(targetElement, clickEvent),
   wrappedRetVal = rawDispatchRetVal || doesBlock && !isClickEventPreventedByPage
+  toRemove && setupEventListener(view, CLK, toRemove, 1, 3)
   if (!Build.NDEBUG) {
     console.log("Vimium C: try blocking a click event, and the returned is %o when %s %o, so return %o"
         , rawDispatchRetVal, "clickEventToPrevent_ is"
