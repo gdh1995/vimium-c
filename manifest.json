@@ -191,7 +191,7 @@
   ],
   "short_name": "Vimium C",
   "update_url": "https://clients2.google.com/service/update2/crx",
-  "version": "2.0.0",
+  "version": "1.99.96",
   "web_accessible_resources": [{
     "resources": [ "content/*", "front/vomnibar*", "lib/*" ],
     "matches": [ "<all_urls>", "chrome-extension://*/*" ],

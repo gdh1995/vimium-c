@@ -4,7 +4,15 @@ Release Notes of Vimium C
 ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 说明文档: https://gitee.com/gdh1995/vimium-c#readme , https://github.com/gdh1995/vimium-c/blob/master/README-zh.md .
 
-#### v1.99.9
+#### v1.99.96
+* fix exclusions rule changes can not be saved on options page ([#811](https://github.com/gdh1995/vimium-c/issues/811))
+* FindMode: fix compatibility with `scroll-behavior: smooth` ([#819](https://github.com/gdh1995/vimium-c/issues/819))
+* VisualMode: line mode: try its best to make moving work ([#813](https://github.com/gdh1995/vimium-c/issues/813))
+  * tested on Chrome 107 and Firefox 106 only
+* improve detection of browser version to support 360 eex ([#814](https://github.com/gdh1995/vimium-c/issues/814))
+* fix some other bugs and usage issues
+
+#### v1.99.90
 * Marks: rewrite logic again (and add parameters) to fix bugs since v1.99.4
 * work around broken `KeyboardEvent.repeat` of Firefox in Wayland mode
 * LinkHints: now show hints for SVG icons with a cursor of pointer
