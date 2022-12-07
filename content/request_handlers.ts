@@ -242,7 +242,7 @@ export const showFrameMask = (mask: FrameMaskType): void => {
   if (!isTop && mask === FrameMaskType.NormalNext) {
     let docEl = docEl_unsafe_();
     if (docEl) {
-      OnChrome && Build.MinCVer < BrowserVer.MinScrollIntoViewOptions
+      OnChrome && Build.MinCVer < BrowserVer.MinScrollIntoViewOptions && chromeVer_<BrowserVer.MinScrollIntoViewOptions
       ? ElementProto_not_ff!.scrollIntoViewIfNeeded!.call(docEl) : scrollIntoView_(docEl)
     }
   }

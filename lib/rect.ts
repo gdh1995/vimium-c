@@ -407,12 +407,13 @@ export const view_ = (el: SafeElement, oldY?: number): VisibilityType => {
     let ih = wndSize_(), delta = rect.t < 0 ? -1 : rect.t > ih ? 1 : 0, f = oldY != null,
     elHeight = rect.b - rect.t
     OnChrome && Build.MinCVer < BrowserVer.MinScrollIntoViewOptions
-    ? scrollIntoView_(el, delta < 0) : scrollIntoView_(el);
+        ? scrollIntoView_(el, delta < 0) : scrollIntoView_(el)
     if (f) {
       secondScroll = elHeight < ih ? oldY! - scrollY : 0
       // required range of wanted: delta > 0 ? [-limit, 0] : [0, limit]
       f = delta * secondScroll <= 0 && delta * secondScroll >= elHeight - ih
     }
+    isNotInViewport(el) || // in case of `scroll-behavior: smooth`
     (delta || f) && scrollWndBy_(1, f ? secondScroll! * secondScroll! < 4 ? 0 : secondScroll! : delta * ih / 5)
   }
   return ty
