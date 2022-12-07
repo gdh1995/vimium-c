@@ -250,15 +250,15 @@ interface FgOptions extends SafeDict<any> {}
 type SelectActions = "" | "all" | "all-input" | "all-line" | "start" | "end";
 
 interface ParsedSedOpts {
-  /** sed rules, split by spaces */ r: string | boolean | null | undefined
-  /** keys */ k: string | null | undefined | object
+  /** sed rules, split by spaces */ r: string | number | boolean | null | undefined
+  /** keys */ k: string | number | null | undefined | object
 }
-type MixedSedOpts = string | boolean | ParsedSedOpts
+type MixedSedOpts = string | number | boolean | ParsedSedOpts
 interface UserSedOptions {
   sed?: MixedSedOpts | null
   /** only in LinkHints now */ sedIf?: "regexp-for-<a>.href" | null
-  sedKeys?: string | null
-  sedKey?: string | null
+  sedKeys?: string | number | null
+  sedKey?: string | number | null
   /** cached parsing result */ $sed?: ParsedSedOpts | null
 }
 

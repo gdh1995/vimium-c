@@ -233,7 +233,7 @@ const fillUrlMasks = (url: string, tabs: [Tab?] | undefined, url_mask: string | 
       for (const j of matches) { if (ind < j[1] && end >= j[0]) { continue } }
       matches.push([ ind, end, i === 0
           ? (<RegExpOne> /^[%$]S|^\$\{S:/).test(mask) ? tabUrl : BgUtils_.encodeAsciiComponent_(tabUrl)
-          : i === 1 ? new URL(tabUrl).host : i === 2 ? tabUrl && "" + tabs![0]!.id
+          : i === 1 ? BgUtils_.encodeAsciiComponent_(new URL(tabUrl).host) : i === 2 ? tabUrl && "" + tabs![0]!.id
           : i === 3 ? tabUrl && "" + BgUtils_.encodeAsciiComponent_(tabs![0]!.title) : browser_.runtime.id ])
     }
   }

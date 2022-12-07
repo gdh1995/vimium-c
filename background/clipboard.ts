@@ -191,17 +191,19 @@ const tryParseJSON = (text: string): string => {
 export const parseSedOptions_ = (sed: UserSedOptions): ParsedSedOpts | null => {
   if (sed.$sed != null) { return sed.$sed }
   let r = sed.sed, k = sed.sedKeys || sed.sedKey
-  return r == null && !k ? null
-      : !r || typeof r !== "object" ? sed.$sed = { r, k } : r.r != null || r.k ? r : null
+  return r == null && (!k && k !== 0) ? null : !r || typeof r !== "object"
+      ? sed.$sed = { r: typeof r === "number" ? r + "" : r, k: typeof k === "number" ? k + "" : k }
+      : r.r != null || r.k ? r : null
 }
 
-const parseSedKeys_ = (keys: string | object, parsed?: ParsedSedOpts): Contexts | null => {
+const parseSedKeys_ = (keys: string | number | object, parsed?: ParsedSedOpts): Contexts | null => {
   if (typeof keys === "object") {
     return (keys as Contexts).normal_ || (keys as Contexts).extras_ ? keys as Contexts : parsed ? parsed.k = null : null
   }
   let extras_: kCharCode[] | null = null, normal_ = SedContext.NONE
-  for (let i = 0; i < keys.length; i++) {
-    const code = keys.charCodeAt(i), ch = code & ~kCharCode.CASE_DELTA
+  const keysStr = typeof keys === "number" ? keys + "" : keys
+  for (let i = 0; i < keysStr.length; i++) {
+    const code = keysStr.charCodeAt(i), ch = code & ~kCharCode.CASE_DELTA
     if (!(ch > kCharCode.maxNotAlphabet && ch < kCharCode.minNotAlphabet)) {
       extras_ || (extras_ = [])
       if (parsed || !extras_.includes(code)) {
@@ -256,12 +258,13 @@ set_substitute_((text: string, normalContext: SedContext, mixedSed?: MixedSedOpt
   let rules = !mixedSed || typeof mixedSed !== "object" ? mixedSed : mixedSed.r
   if (rules === false) { return text }
   let arr = staticSeds_ || (staticSeds_ = parseSeds_(settingsCache_.clipSub, null))
-  if (rules && typeof rules === "string" && rules.length <= 6 && !(<RegExpOne> /[^\w\x80-\ufffd]/).test(rules)) {
+  if (rules && (typeof rules === "number"
+      || typeof rules === "string" && rules.length <= 6 && !(<RegExpOne> /[^\w\x80-\ufffd]/).test(rules))) {
     mixedSed = { r: null, k: rules }
     rules = null
   }
-  let contexts = mixedSed && typeof mixedSed === "object" && mixedSed.k && parseSedKeys_(mixedSed.k, mixedSed)
-      || (normalContext ? { normal_: normalContext, extras_: null } : null)
+  let contexts = mixedSed && typeof mixedSed === "object" && (mixedSed.k || mixedSed.k === 0)
+      && parseSedKeys_(mixedSed.k, mixedSed) || (normalContext ? { normal_: normalContext, extras_: null } : null)
   // note: `sed` may come from options of key mappings, so here always convert it to a string
   if (rules && rules !== true) {
     contexts || (arr = [])

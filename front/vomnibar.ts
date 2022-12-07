@@ -91,9 +91,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
           + (engines.includes("domain") ? SugType2.domain : 0)
     }
     a.mode_.e = ((engines as CompletersNS.SugType | "") || SugType2.Empty) | 0
-    if (a.mode_.e) {
-      a.mode_.o = "omni"
-    }
+    if (a.mode_.e) { a.mode_.o = "omni" }
     a.baseHttps_ = null;
     let { url, keyword, p: search } = options, start: number | undefined;
     let scale = Build.MinCVer < BrowserVer.MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent
@@ -421,7 +419,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   },
   parsed_ ({ i: id, s: search }: BgVomnibarSpecialReq[kBgReq.omni_parsed]): void {
     const line = Vomnibar_.completions_[id] as SuggestionEx;
-    line.parsed_ = search ? (Vomnibar_.mode_.o.endsWith("omni") && !Vomnibar_.resMode_ ? "" : ":o ")
+    line.parsed_ = search ? ((Vomnibar_.mode_.e ? Vomnibar_.mode_.e & CompletersNS.SugType.search
+          : Vomnibar_.mode_.o.endsWith("omni")) && !Vomnibar_.resMode_ ? "" : ":o ")
         + search.k + " " + search.u + " " : Vomnibar_.resMode_ + line.t
     if (id === Vomnibar_.selection_) {
       return Vomnibar_._updateInput(line, line.parsed_);
