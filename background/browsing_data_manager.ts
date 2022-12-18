@@ -29,7 +29,7 @@ const WithTextDecoder = !OnEdge && (Build.MinCVer >= BrowserVer.MinEnsuredTextEn
 const _decodeFunc = decodeURIComponent
 let decodingEnabled: boolean | undefined, decodingJobs: ItemToDecode[], decodingIndex = -1, dataUrlToDecode_ = "1"
 let charsetDecoder_: TextDecoder | null = null
-let omniBlockList: string[] | null = null, omniBlockListRe: RegExpOne | null = null
+let omniBlockList: string[] | null = null, omniBlockListRe: RegExpOne | null = null, omniBlockPath = false
 
 export { omniBlockList }
 
@@ -117,7 +117,7 @@ export const BookmarkManager_ = {
       bookmarkCache_.bookmarks_.push({
         id_: id, path_: path, title_: title,
         t: isJS ? jsScheme : url,
-        visible_: omniBlockList ? TestNotBlocked_(url, rawTitle) : kVisibility.visible,
+        visible_: omniBlockList ? TestNotBlocked_(url, omniBlockPath ? path : rawTitle) : kVisibility.visible,
         u: isJS ? jsScheme : url, pid_: BookmarkManager_.iterPid_, ind_: index,
         jsUrl_: isJS ? url : null, jsText_: isJS ? BgUtils_.DecodeURLPart_(url) : null
       })
@@ -162,7 +162,7 @@ export const BookmarkManager_ = {
           UrlDecoder_.continueToWork_()
         }
         if (omniBlockList) {
-          cur.visible_ = TestNotBlocked_(cur.u, cur.title_)
+          cur.visible_ = TestNotBlocked_(cur.jsUrl_ || cur.u, omniBlockPath ? cur.path_ : cur.title_)
         }
         bookmarkCache_.stamp_ = performance.now()
       } else {
@@ -547,8 +547,8 @@ export const BlockListFilter_ = {
   UpdateAll_ (): void {
     if (bookmarkCache_.bookmarks_) {
       for (const k of bookmarkCache_.bookmarks_) {
-        (k as Writable<Bookmark>).visible_ = omniBlockList ? TestNotBlocked_(k.t, k.path_)
-          : kVisibility.visible
+        (k as Writable<Bookmark>).visible_ =
+            omniBlockList ? TestNotBlocked_(k.jsUrl_ || k.u, omniBlockPath ? k.path_ : k.title_) : kVisibility.visible
       }
     }
     if (!historyCache_.history_) {
@@ -556,7 +556,7 @@ export const BlockListFilter_ = {
     }
     const d = historyCache_.domains_
     for (const k of historyCache_.history_) {
-      const newVisible = omniBlockList ? TestNotBlocked_(k.t, k.title_) : kVisibility.visible
+      const newVisible = omniBlockList ? TestNotBlocked_(k.u, k.title_) : kVisibility.visible
       if (k.visible_ !== newVisible) {
         k.visible_ = newVisible
         if (d) {
@@ -688,6 +688,7 @@ updateHooks_.omniBlockList = function (newList: string): void {
     }
   }
   omniBlockListRe = arr.length > 0 ? new RegExp(arr.map(BgUtils_.escapeAllForRe_).join("|"), "") : null
+  omniBlockPath = arr.join("").includes("/")
   omniBlockList = arr.length > 0 ? arr : null;
   (historyCache_.history_ || bookmarkCache_.bookmarks_.length) && setTimeout(BlockListFilter_.UpdateAll_, 100)
 }

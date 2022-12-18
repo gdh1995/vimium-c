@@ -487,7 +487,7 @@ set_contentCommands_([
         useResult = !useClick && options.return
         // earlier, in case listeners are too slow
         useResult || runFallbackKey(options, activeEl !== docBody ? 0 : 2, "", delay)
-        const q = dispatchAsync_<0 | 1>(activeEl as SafeHTMLElement, useClick ? 0 : event, 1)
+        const q = dispatchAsync_<0 | 1>(activeEl as SafeHTMLElement, useClick ? 0 : event, useClick ? 1 : 0)
         useResult && void q.then((result2) => runFallbackKey(options, result2 ? 0 : 2, "", delay))
         return
       } else {

@@ -1,6 +1,6 @@
 import {
   chromeVer_, clickable_, doc, esc, fgCache, injector, isEnabled_, isLocked_, isAlive_, isTop, abs_, includes_,
-  keydownEvents_, set_chromeVer_, set_clickable_, set_fgCache, set_isLocked_, OnChrome, OnFirefox, safeCall,
+  keydownEvents_, set_chromeVer_, set_clickable_, set_fgCache, set_isLocked_, OnChrome, OnFirefox, safeCall, recordLog,
   set_isEnabled_, set_onWndFocus, onWndFocus, timeout_, safer, set_os_, safeObj, set_keydownEvents_,
   interval_, getTime, vApi, clearInterval_, locHref, set_firefoxVer_, firefoxVer_, os_, isAsContent, isIFrameInAbout_,
 } from "../lib/utils"
@@ -69,6 +69,7 @@ set_requestHandlers([
         hookOnWnd(HookAction.SuppressListenersOnDocument);
       }
       OnFirefox || isIFrameInAbout_ && !vApi.e && timeout_(hookOnWnd.bind(0, HookAction.Install), 1e3)
+      OnChrome && timeout_ === interval_ && recordLog(kTip.logNotWorkOnSandboxed)()
     } else {
       set_grabBackFocus(false)
       hookOnWnd(HookAction.Suppress);

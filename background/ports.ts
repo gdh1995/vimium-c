@@ -544,16 +544,15 @@ const tryToKeepAlive = (rawNotFromInterval?: 1 | TimerType.fake): void => {
           : portNum ? KKeep.NormalWithPorts : KKeep.NormalWoPorts
       framesToKeep = frames
     }
-    let mayRelease = false
+    const mayRelease: Port[] = []
     if (isFromInterval) for (const i of ports) {
       if (i.s.flags_ & Frames.Flags.OldEnough) {
-        (i.s.flags_ satisfies Frames.Flags) |= Frames.Flags.ResReleased
-        mayRelease = true
+        mayRelease.push(i)
       } else {
         (i.s.flags_ satisfies Frames.Flags) |= Frames.Flags.OldEnough
       }
     }
-    if (!mayRelease) {
+    if (!mayRelease.length) {
       if (Build.MV3 && !OnFirefox && typeOfFramesToKeep===KKeep.NormalWithPorts && portNum && tabId !== lastPrivAlive) {
         typeOfFramesToKeep = KKeep.NormalFresh, framesToKeep = frames
       }
@@ -565,6 +564,7 @@ const tryToKeepAlive = (rawNotFromInterval?: 1 | TimerType.fake): void => {
              || ports.some(isNotPriviledged))
     if (Build.MV3 && !OnFirefox ? portNum : doesRelease) {
       (!Build.MV3 || OnFirefox || doesRelease) && (frames.flags_ |= Frames.Flags.ResReleased)
+      for (const i of mayRelease) { (i.s.flags_ satisfies Frames.Flags) |= Frames.Flags.ResReleased }
       listToRelease.push(frames)
     }
   })
