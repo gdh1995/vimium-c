@@ -244,7 +244,7 @@ select.font-fix {
 }
 
 pre, kbd, .code {
-  font-family: Consolas, "Liberation Mono", "Courier New", "PingFang SC", "Hiragino Sans GB",
+  font-family: Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", "PingFang SC", "Hiragino Sans GB",
     "Heiti SC", "WenQuanYi Micro Hei", monospace;
 }
 pre, .help-block {
