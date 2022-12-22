@@ -5,10 +5,13 @@ ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 说明文档: https://gitee.com/gdh1995/vimium-c#readme , https://github.com/gdh1995/vimium-c/blob/master/README-zh.md .
 
 #### v1.99.96
+<a name="v1.99.97"></a>
+* UI: on macOS, prefer Menlo and Monaco in monospace fonts by default
 * fix exclusions rule changes can not be saved on options page ([#811](https://github.com/gdh1995/vimium-c/issues/811))
 * FindMode: fix compatibility with `scroll-behavior: smooth` ([#819](https://github.com/gdh1995/vimium-c/issues/819))
 * VisualMode: line mode: try its best to make moving work ([#813](https://github.com/gdh1995/vimium-c/issues/813))
   * tested on Chrome 107 and Firefox 106 only
+* now the word block list also applies on bookmark paths ([#824](https://github.com/gdh1995/vimium-c/issues/824))
 * improve detection of browser version to support 360 eex ([#814](https://github.com/gdh1995/vimium-c/issues/814))
 * fix some other bugs and usage issues
 
