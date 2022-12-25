@@ -1,6 +1,6 @@
 import {
-  setupEventListener, isTop, keydownEvents_, timeout_, fgCache, doc, isAlive_, isJSUrl, chromeVer_, VTr, OnEdge,
-  vApi, Stop_, createRegExp, isTY, OBJECT_TYPES, OnChrome, OnFirefox, WithDialog, isAsContent, safeCall, max_, isIFrameInAbout_
+  setupEventListener, isTop, keydownEvents_, timeout_, fgCache, doc, isAlive_, isJSUrl, chromeVer_, VTr, OnEdge, Stop_,
+  vApi, createRegExp, isTY, OBJECT_TYPES, OnChrome, OnFirefox, WithDialog, isAsContent, safeCall, max_,isIFrameInAbout_
 } from "../lib/utils"
 import { prevent_ } from "../lib/keyboard_utils"
 import {
@@ -21,7 +21,7 @@ import { DrawableHintItem, isHintsActive, hintManager, reinitLinkHintsIn, isHC_ 
 import { post_, runFallbackKey } from "./port"
 import { insert_Lock_, raw_insert_lock } from "./insert"
 import { isWaitingAccessKey, resetAnyClickHandler_cr } from "./key_handler"
-import { hide as omniHide, omni_box, omni_dialog_non_ff, omni_status, Status as OmniStatus } from "./omni"
+import { hide as omniHide, omni_box, omni_dialog_non_ff, omni_status, postToOmni, Status as OmniStatus } from "./omni"
 
 export declare const enum kExitOnClick { // eslint-disable-next-line @typescript-eslint/no-shadow
   NONE = 0, REMOVE = 8, helpDialog = 1, vomnibar = 2,
@@ -485,6 +485,12 @@ export const doExitOnClick_ = (event?: MouseEventToPrevent): void => {
   event && prevent_(event)
   toExitOnClick_ & kExitOnClick.helpDialog && hideHelp!()
   toExitOnClick_ & kExitOnClick.vomnibar && omniHide()
+}
+
+export const focusIframeContentWnd_ = (iframe: KnownIFrameElement, res?: boolean): void => {
+  if (res) { return }
+  iframe === omni_box ? omni_status < OmniStatus.Showing || postToOmni(VomnibarNS.kCReq.focus)
+  : iframe.contentWindow.focus()
 }
 
 /** must be called only if having known anotherWindow is "in a same origin" */

@@ -18,7 +18,7 @@ import { wdZoom_, prepareCrop_, view_, dimSize_, selRange_, getZoom_, isSelARang
 import {
   ui_box, ui_root, getSelectionParent_unsafe, resetSelectionToDocStart, getBoxTagName_old_cr, collpaseSelection,
   createStyle, getSelectionText, checkDocSelectable, adjustUI, ensureBorder, addUIElement, getSelected, flash_,
-  getSelectionOf, getSelectionBoundingBox_, hasGetSelection
+  getSelectionOf, getSelectionBoundingBox_, hasGetSelection, focusIframeContentWnd_
 } from "./dom_ui"
 import { highlightRange, deactivate as visualDeactivate } from "./visual"
 import { keyIsDown as scroll_keyIsDown, beginScroll, onScrolls } from "./scroller"
@@ -719,7 +719,7 @@ const doFocus = (): void => {
     input_.blur()
   }
   !OnFirefox && (!OnChrome || Build.MinCVer >= BrowserVer.MinFocusIframeDirectlyWithout$wnd$$focus
-      || chromeVer_ < BrowserVer.MinFocusIframeDirectlyWithout$wnd$$focus) && box_.contentWindow.focus()
+      || chromeVer_ > BrowserVer.MinFocusIframeDirectlyWithout$wnd$$focus - 1) || focusIframeContentWnd_(box_)
   focus_(input_)
   doesCheckAlive = 1
 }

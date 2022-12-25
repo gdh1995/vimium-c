@@ -21,14 +21,15 @@ import { currentScrolling, set_cachedScrollable, setNewScrolling } from "./scrol
 import { post_, send_ } from "./port"
 import {
   collpaseSelection, evalIfOK, flash_, getRect, getSelected, lastFlashEl, resetSelectionToDocStart, selectAllOfNode,
-  selectNode_, ui_box
+  selectNode_, ui_box, focusIframeContentWnd_
 } from "./dom_ui"
 import { prevent_, suppressTail_, whenNextIsEsc_ } from "../lib/keyboard_utils"
 import { set_grabBackFocus } from "./insert"
 import {
-  kClickAction, kClickButton, unhover_async, hover_async, click_async, select_, catchAsyncErrorSilently, wrap_enable_bubbles
+  kClickAction, kClickButton, unhover_async, hover_async, click_async, select_, catchAsyncErrorSilently,
+  wrap_enable_bubbles
 } from "./async_dispatcher"
-import { omni_box, Status as VomnibarStatus, omni_status, postToOmni } from "./omni"
+import { omni_box } from "./omni"
 import { execCommand } from "./mode_find"
 type LinkEl = Hint[0];
 /* eslint-disable @typescript-eslint/no-floating-promises */
@@ -535,10 +536,10 @@ const autoShowRect = (): Rect | null => (removeFlash || showRect && rect && flas
                   || firefoxVer_ > FirefoxBrowserVer.Min$runtime$$getFrameId - 1)
                 ? runtime_ff!.getFrameId!(clickEl) : -1 : 0,
             u: clickEl.src, n: hintCount_, k: event ? event.i : kKeyCode.None, a: hintOptions
-          }, (res): void => { res || clickEl.contentWindow.focus() })
+          }, focusIframeContentWnd_.bind(0, clickEl))
         }
       } else {
-        omni_status < VomnibarStatus.Showing || postToOmni(VomnibarNS.kCReq.focus)
+        focusIframeContentWnd_(clickEl)
       }
     } else if (mode1_ < HintMode.min_job || mode1_ === HintMode.FOCUS_EDITABLE) {
       if (tag === "details") {

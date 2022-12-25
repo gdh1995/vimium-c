@@ -108,16 +108,17 @@ export const OnConnect = (port: Frames.Port, type: PortType): void => {
   if (OnChrome && Build.MinCVer < BrowserVer.MinWithFrameId && CurCVer_ < BrowserVer.MinWithFrameId) {
     (sender as Writable<Frames.Sender>).frameId_ = (type & PortType.isTop) ? 0 : ((Math.random() * 9999997) | 0) + 2
   }
+  const isTopFrame = sender.frameId_ === 0
   if (ref !== undefined && isNewFrameInSameTab) {
     if (type & PortType.hasFocus) {
       needIcon_ && ref.cur_.s.status_ !== status && setIcon_(tabId, status)
       ref.cur_ = port
     }
-    type & PortType.isTop && ((ref as Writable<typeof ref>).top_ = port)
+    isTopFrame && ((ref as Writable<typeof ref>).top_ = port)
     ref.ports_.push(port)
   } else {
     framesForTab_.set(tabId, {
-      cur_: port, top_: type & PortType.isTop ? port : null, ports_: [port],
+      cur_: port, top_: isTopFrame ? port : null, ports_: [port],
       lock_: null, flags_: Frames.Flags.Default
     })
     status !== Frames.Status.enabled && needIcon_ && setIcon_(tabId, status)

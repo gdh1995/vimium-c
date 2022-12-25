@@ -8,7 +8,8 @@ import {
   isHTML_, hasTag_, createElement_, querySelectorAll_unsafe_, SafeEl_not_ff_, docEl_unsafe_, MDW, CLK, derefInDoc_,
   querySelector_unsafe_, DAC, removeEl_s, appendNode_s, setClassName_s, INP, contains_s, toggleClass_s, modifySel,
   focus_, testMatch, docHasFocus_, deepActiveEl_unsafe_, getEditableType_, textOffset_, getAccessibleSelectedNode,
-  getDirectionOfNormalSelection, inputSelRange, dispatchAsync_, notSafe_not_ff_, activeEl_unsafe_, IsInDOM_
+  getDirectionOfNormalSelection, inputSelRange, dispatchAsync_, notSafe_not_ff_, activeEl_unsafe_, IsInDOM_,
+  isIFrameElement
 } from "../lib/dom_utils"
 import {
   replaceOrSuppressMost_, removeHandler_, getMappedKey, prevent_, isEscape_, keybody_, DEL, BSP, ENTER, handler_stack,
@@ -23,7 +24,7 @@ import {
   addElementList, ensureBorder, evalIfOK, getSelected, getSelectionText, getParentVApi, curModalElement, createStyle,
   getBoxTagName_old_cr, setupExitOnClick, addUIElement, removeSelection, ui_root, kExitOnClick, collpaseSelection,
   hideHelp, set_hideHelp, set_helpBox, checkHidden, flash_, filterOutInert, doesSelectRightInEditableLock, selectNode_,
-  adjustUI
+  adjustUI, focusIframeContentWnd_
 } from "./dom_ui"
 import { hudHide, hudShow, hudTip, hud_text } from "./hud"
 import { onPassKey, set_onPassKey, passKeys, set_nextKeys, keyFSM, onEscDown } from "./key_handler"
@@ -68,8 +69,9 @@ set_contentCommands_([
       clearTimeout_(timer)
       // now focused by `tee.html`; or no focus changes before `onerror`
       ; (event || event !== 0 && options.i) && send_(kFgReq.afterTee, event ? -options.i : options.i, showFrameMask)
-      focused && (OnFirefox || !notSafe_not_ff_!(focused))
-          && IsInDOM_(focused as SafeElement, doc) && focus_(focused as SafeElement)
+      if (focused && (OnFirefox || !notSafe_not_ff_!(focused)) && IsInDOM_(focused as SafeElement, doc)) {
+        isIFrameElement(focused) ? focusIframeContentWnd_(focused) : focus_(focused as SafeElement)
+      }
       removeEl_s(frame)
       isEnabled_ || adjustUI(2)
     })

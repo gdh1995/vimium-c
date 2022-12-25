@@ -662,6 +662,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       if (focused && char.length === 1 && char > kChar.a && char < kChar.g && char !== kChar.c) {
         return a.onWordAction_(char.charCodeAt(0) - (kCharCode.maxNotAlphabet | kCharCode.CASE_DELTA))
       }
+      if (key === "a-c-c" || key === "a-m-c") { return a.onAction_(AllowedActions.copyPlain) }
       if (mainModifier === "a" && char !== kChar.enter) { a.keyResult_ = SimpleKeyResult.Nothing; return; }
     }
     if (char === kChar.enter) {
@@ -674,7 +675,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     }
     if (mainModifier === "c" || mainModifier === "m") {
       if (char === kChar.c) {
-        action = key.includes("s-") ? AllowedActions.copyPlain : a.selection_ >= 0 && getSelection().type !== "Range"
+        action = a.selection_ >= 0 && getSelection().type !== "Range"
             && (!(Build.BTypes & BrowserType.Firefox) && !(Build.BTypes & BrowserType.Chrome)
                   || Build.MinCVer > BrowserVer.$Selection$NotShowStatusInTextBox
               || a.input_.selectionStart === a.input_.selectionEnd)

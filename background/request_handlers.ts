@@ -556,7 +556,7 @@ set_reqH_([
     const title = req.t, url = BgUtils_.decodeUrlForCopy_(req.u)
     let join = title && url ? (vomnibarBgOptions_.actions.find(i => i.startsWith("itemJoin=")) || "").slice(9) : ""
     join = join ? join.includes("\\") ? parseVal_(join[0] === '"' ? join : `"${join}"`)
-        : BgUtils_.DecodeURLPart_(join) : ": "
+        : BgUtils_.DecodeURLPart_(join) : "\n"
     reqH_[kFgReq.copy]({ s: title && url ? title + join + url : url || title
         , d: false, m: HintMode.DEFAULT }, findCPort(port)!)
   },
