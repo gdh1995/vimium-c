@@ -350,7 +350,7 @@ saladict@crimx.com`
     filterLinkHints: false,
     grabBackFocus: false,
     hideHud: false,
-    keepWorkerAlive: true,
+    keepWorkerAlive: false, // a priv tab may be not enough and it seems to make Chrome 108 for macOS crash
     keyLayout: kKeyLayout.Default,
     keyboard: [560, 33],
     keyupTime: 120,
