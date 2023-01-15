@@ -220,8 +220,8 @@ const splitTokens = (expression_: string): Token[] => {
         v: last_.slice(0, isEnd ? -1 : -2).replace(<RegExpG & RegExpSearchable<1>> /\\(x..|u\{.*?\}|u.{4}|[^])/g,onHex),
       } }), Token(T.comma, ","))
       !isEnd ? (tokens_.push(Token(T.group, "(")), curlyBraces.push(1)) : tokens_.push(Token(T.groupEnd, "]"))
-    } else if (
-        expect(/^(=>|[!=]=?=?|[+\-*\/%^]=|&&?=?|\|\|?=?|>>?>?=?|<<?=?|\*\*=?|\?\?=?|\?\.|[,?:*\/%^~.\{\}\[\]()])/)) {
+    } else if (expect(
+        /^(=>|[!=]=?=?|[+\-*\/%^]=|&&?=?|\|\|?=?|>>?>?=?|<<?=?|\*\*=?|\?\?=?|\??\.(?!\d)|[,?:*\/%^~\{\}\[\]()])/)) {
       last_ === "{" ? curlyBraces.push(0) : last_ === "}" ? curlyBraces.pop() : 0
       tokens_.push(Token(kTokenEnums[last_] as T.or, last_ as "||"))
     } else if (expect(/^\+\+?|^--?/)) {

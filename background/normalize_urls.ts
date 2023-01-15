@@ -432,7 +432,7 @@ export const decodeFileURL_ = (url: string, rawUrl?: string): string => {
   return url
 }
 
-export const normalizeSVG_ = (svg_outer_html: string): string => {
+const normalizeSVG_mv2 = (svg_outer_html: string): string => {
   let svg = new DOMParser().parseFromString(svg_outer_html, "image/svg+xml").firstElementChild as SVGSVGElement | null
   for (const el of svg ? ([] as Element[]).slice.call(svg.querySelectorAll("script,use")) : []) { el.remove() }
   if (!svg || !svg.lastElementChild) { return "" }
@@ -455,8 +455,20 @@ export const normalizeSVG_ = (svg_outer_html: string): string => {
     s2.length < s.length &&
     (node.data = !s2 ? " " : (spacesRe_.test(s[0]) ? " " : "") + s2 + (spacesRe_.test(s.slice(-1)) ? " " : ""))
   }
-  let out = svg.outerHTML.replace(<RegExpG> /\xa0/g, " ")
-  // out = '<?xml version="1.0" standalone="no"?>' + out
+  return svg.outerHTML.replace(<RegExpG> /\xa0/g, " ")
+}
+
+export const normalizeSVG_ = (svg_outer_html: string): string => {
+  let out: string
+  if (Build.MV3) {
+    if (!svg_outer_html.slice(0, 100).toLowerCase().includes("xmlns")) {
+      svg_outer_html = svg_outer_html.replace(<RegExpOne> /<svg /i, '$&xmlns="http://www.w3.org/2000/svg"')
+    }
+    out = svg_outer_html.replace(<RegExpG & RegExpSearchable<0>> /<(?!\/)[^>]+>/g,
+        attributes => attributes.replace(<RegExpG> /\b(id|class|aria-[\w-]+)(\="[^"]+")? ?/g, ""))
+  } else {
+    out = normalizeSVG_mv2(svg_outer_html)
+  }
   out = out.replace(<RegExpG & RegExpSearchable<0>> /<\/?[A-Z:]+(?=\s|>)/g, s => s.toLowerCase())
   out = out.replace(<RegExpG & RegExpSearchable<0>> /(?:[%?#]|[^\S ])+/g, encodeURIComponent)
   return "data:image/svg+xml," + out

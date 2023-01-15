@@ -380,9 +380,9 @@ export const safePost = <K extends keyof FullBgReq>(port: Port, req: Req.bg<K>):
   } catch { return 0 }
 }
 
-const show2 = (tipId: kTip | undefined, text: string): void => { showHUD(text, tipId) }
+const show2 = (tipId: kTip | undefined, text: string | 0): void => { showHUD(text + "", tipId) }
 
-export const showHUD = (text: string | Promise<string>, tipId?: kTip): void => {
+export const showHUD = (text: string | Promise<string | 0>, tipId?: kTip): void => {
   if (typeof text !== "string") { void text.then(/*#__NOINLINE__*/ show2.bind(null, tipId)); return }
   const isCopy = tipId === kTip.noUrlCopied || tipId === kTip.noTextCopied
   if (isCopy) {

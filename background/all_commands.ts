@@ -758,15 +758,15 @@ set_bgC_([
   },
   /* kBgCmd.showHUD: */ (resolve): void | kBgCmd.showHUD => {
     let text: string | UnknownValue | Promise<string> = get_cOptions<C.showHUD>().text
-    const silent = !!get_cOptions<C.showHUD>().silent
+    const isNum = typeof text === "number", silent = !!get_cOptions<C.showHUD>().silent
     const isError = get_cOptions<C.showHUD>().isError
-    if (!text && !silent && isError == null && get_cOptions<C.showHUD>().$f) {
+    if (!text && !isNum && !silent && isError == null && get_cOptions<C.showHUD>().$f) {
       const fallbackContext = get_cOptions<C.showHUD, true>().$f
       text = fallbackContext && fallbackContext.t ? extTrans_(`${fallbackContext.t as 99}`) : ""
       if (!text) { resolve(false); return }
     }
-    silent || showHUD(text ? text instanceof Promise ? text : text + "" : trans_("needText"))
-    resolve(isError != null ? !!isError : !!text)
+    silent || showHUD(text || isNum ? text instanceof Promise ? text : text + "" : trans_("needText"))
+    resolve(isError != null ? !!isError : !!text || isNum)
   },
   /* kBgCmd.toggleCS: */ (tabs: [Tab], resolve): void | kBgCmd.toggleCS => {
     OnChrome ? ContentSettings_.toggleCS_(get_cOptions<C.toggleCS, true>(), cRepeat, tabs, resolve)

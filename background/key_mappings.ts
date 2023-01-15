@@ -45,11 +45,10 @@ export const stripKey_ = (key: string): string =>
 
 const wrapKey_ = (key: string): string => key.length > 1 ? `<${key}>` : key
 
-/** should never export it, to avoid `logError_` crashes */
 const getOptions_ = (line: string, start: number): CommandsNS.RawOptions | "__not_parsed__" | null => {
   return line.length <= start ? null
       : line.includes(" $", start) || line.includes(" =", start)
-      ? parseOptions_(line.slice(start + 1), line.includes(" $if={", start) ? 0 : 1)
+      ? parseOptions_(line.slice(start + 1), line.includes(" $if=", start) ? 0 : 1)
       : line.slice(start + 1) as "__not_parsed__"
 }
 
@@ -72,7 +71,7 @@ export const parseOptions_ = ((options_line: string, fakeVal?: 0 | 1 | 2): Comma
     } else {
       const val = str.slice(ind + 1)
       str = str.slice(0, ind);
-      opt[str] = typeof fakeVal === "number" ? fakeVal === 2 ? val && parseVal_limited(val) : 1 : val && parseVal_(val)
+      opt[str] = fakeVal === 2 ? val && parseVal_limited(val) : fakeVal === 1 ? 1 : val && parseVal_(val)
       hasOpt = 1
     }
   }
@@ -196,18 +195,17 @@ export const normalizedOptions_ = (item: CommandsNS.ValidItem): CommandsNS.Norma
 
 const hasIfOption = (line: string, start: number): boolean => {
   let ind: number
-  return line.length > start && (ind = line.indexOf(" $if={", start)) > 0
+  return line.length > start && (ind = line.indexOf(" $if=", start)) > 0
       && !(<RegExpOne> / (#|\/\/)/).test(line.slice(start, ind + 2))
 }
 
 const doesMatchEnv_ = (options: CommandsNS.RawOptions | string | null): boolean | null => {
     const condition = options && typeof options === "object" && options.$if
     return condition && typeof condition === "object" ? condition.sys && condition.sys !== CONST_.Platform_
-        || !!condition.before && condition.before.replace("v", "") <= CONST_.VerCode_
-        || !!condition.browser
-          && !(condition.browser & (Build.BTypes && !(Build.BTypes & (Build.BTypes - 1))
-                ? Build.BTypes : OnOther_)) ? true : false
-        : null
+      || condition.browser && !(condition.browser & (Build.BTypes && !(Build.BTypes & (Build.BTypes - 1))
+          ? Build.BTypes : OnOther_))
+      || condition.before && condition.before.replace("v", "") < CONST_.VerCode_
+      ? false : true : null
 }
 
 const parseKeyMappings_ = (wholeMappings: string): void => {

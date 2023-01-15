@@ -639,7 +639,7 @@ let lastVisitTabTime = 0
     _mediaTimer === -2 && (_mediaTimer = -3, setTimeout(MediaWatcher_.resume_, 0)) // not block onActivated listener
   }
   function maybeOnBgWndActiveTabChange(wnd: chrome.windows.Window): void {
-    if (!wnd.focused) { return }
+    if (!wnd || !wnd.focused) { return runtimeError_() }
     const newWndId = wnd.id
     if (newWndId !== curWndId_) {
       set_lastWndId_(curWndId_)

@@ -146,6 +146,7 @@ export const DecodeURLPart_ = (url: string | undefined, wholeURL?: 1 | "atob"): 
 
 export const decodeUrlForCopy_ = (url: string, __allowSpace?: boolean): string => {
     if (!url.includes("%")) { return url }
+    if (!protocolRe_.test(url) && !(<RegExpI> /^(about|data|javascript|vimium)/i).test(url)) { return url }
     const ori = url.replace(<RegExpG> /%(2[356f]|3[adf]|40)/gi, "%25$1"
         ).replace(<RegExpG> /%(?![\da-fA-F]{2})/g, "%25")
     let str = DecodeURLPart_(ori, 1)

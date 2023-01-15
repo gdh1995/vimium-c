@@ -367,7 +367,7 @@ set_reqH_([
         str = BgUtils_.decodeUrlForCopy_(str)
       }
     } else if (typeof str === "string") {
-      if (str.length < 4 && str.trim() && str[0] === " ") {
+      if (str.length < 4 && !str.trim() && str[0] === " ") {
         str = ""
       }
     }
