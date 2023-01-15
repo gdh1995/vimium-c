@@ -44,8 +44,8 @@ set_evalVimiumUrl_(function (path: string, workType?: Urls.WorkType
     return [path, Urls.kEval.ERROR];
   } }
   else if (workType >= Urls.WorkType.ActAnyway) { switch (cmd) {
-  case "run":
-    return [["run", path], Urls.kEval.run]
+  case "run": case "run1": case "run-one": case "run-one-key":
+    return [[cmd, path], Urls.kEval.run]
   case "status": case "state":
     if (workType >= Urls.WorkType.EvenAffectStatus) {
       /*#__NOINLINE__*/ forceStatus_(path as Frames.ForcedStatusText)

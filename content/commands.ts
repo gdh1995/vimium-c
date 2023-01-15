@@ -362,7 +362,8 @@ set_contentCommands_([
     const editable = insert_Lock_() && getEditableType_<0>(raw_insert_lock!) === EditableType.TextBox
         ? raw_insert_lock as TextElement : 0;
     (editable || options.dom) && timeout_((): void => {
-      let commands = options.run.split(<RegExpG> /,\s*/g), sel: Selection | undefined, absCount = abs_(count)
+      let commands = isTY(options.run) ? options.run.split(<RegExpG> /,\s*/g) : options.run
+      let sel: Selection | undefined, absCount = abs_(count)
       let cur: string | 0, offset: number, dir: boolean
       let start: number, end: number | null, start0: number, rawOffset: number | null
       while (0 < absCount--) {

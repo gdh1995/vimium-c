@@ -21,7 +21,8 @@ interface Contexts { normal_: SedContext, extras_: kCharCode[] | null }
 interface ClipSubItem {
   readonly contexts_: Contexts; readonly match_: RegExp
   host_: string | ValidUrlMatchers | /** regexp is broken */ -1 | null
-  readonly retainMatched_: number; readonly actions_: SedAction[]; readonly replaced_: string
+  readonly retainMatched_: number; readonly actions_: SedAction[]; readonly replaced_: string;
+  readonly keyword_: string | null
 }
 
 const SedActionMap: ReadonlySafeDict<SedAction> = {
@@ -63,11 +64,13 @@ const parseSeds_ = (text: string, fixedContexts: Contexts | null): readonly Clip
     const body = sepRe.exec(line = line.slice(prefix[0].length))
     if (!body) { continue }
     const head = prefix[1], flags = body[3], tail = line.slice(body[0].length), actions: SedAction[] = []
-    let host: string | null = null, retainMatched: number = 0
+    let host: string | null = null, keyword: string | null = null, retainMatched: number = 0
     for (const rawI of tail ? tail.split(",") : []) {
       const i = rawI.toLowerCase()
       if (i.startsWith("host=")) {
         host = rawI.slice(5)
+      } else if (i.startsWith("keyword=")) {
+        keyword = rawI.slice(8)
       } else if (i.startsWith("match")) {
         retainMatched = Math.max(i.includes("=") && parseInt(i.split("=")[1]) || 1, 1)
       } else {
@@ -82,7 +85,8 @@ const parseSeds_ = (text: string, fixedContexts: Contexts | null): readonly Clip
       match_: matchRe,
       retainMatched_: retainMatched,
       actions_: actions,
-      replaced_: decodeSlash_(body[2], 1)
+      replaced_: decodeSlash_(body[2], 1),
+      keyword_: keyword,
     })
   }
   return result
@@ -254,7 +258,7 @@ const convertJoinedRules = (rules: string): string => {
       , (s, a): string => s[1] === " " ? s : "\n" + a)
 }
 
-set_substitute_((text: string, normalContext: SedContext, mixedSed?: MixedSedOpts | null): string => {
+set_substitute_((text: string, normalContext: SedContext, mixedSed?: MixedSedOpts | null, exOut?:InfoOnSed): string => {
   let rules = !mixedSed || typeof mixedSed !== "object" ? mixedSed : mixedSed.r
   if (rules === false) { return text }
   let arr = staticSeds_ || (staticSeds_ = parseSeds_(settingsCache_.clipSub, null))
@@ -296,9 +300,10 @@ set_substitute_((text: string, normalContext: SedContext, mixedSed?: MixedSedOpt
       if (end < 0) {
         continue
       }
-      if (!text) { break }
-      let doesReturn = false
+      if (item.keyword_ && exOut) { exOut.keyword_ = item.keyword_ }
+      let doesReturn = !text
       for (const action of item.actions_) {
+        if (doesReturn) { break }
         text = action === SedAction.decodeForCopy ? BgUtils_.decodeUrlForCopy_(text)
             : action === SedAction.decodeMaybeEscaped ? BgUtils_.decodeEscapedURL_(text)
             : action === SedAction.decodeAll ? BgUtils_.decodeEscapedURL_(text, true)
@@ -324,7 +329,7 @@ set_substitute_((text: string, normalContext: SedContext, mixedSed?: MixedSedOpt
                 action === SedAction.capitalizeAll ? convertCaseWithLocale(text, action)
               : text
             )
-        doesReturn = action === SedAction.return
+        doesReturn = action === SedAction.return || !text
       }
       if (doesReturn) { break }
     }
@@ -345,15 +350,18 @@ const getTextArea_html = (): HTMLTextAreaElement => {
 
 const format_ = (data: string | any[], join: FgReq[kFgReq.copy]["j"] | undefined, sed: MixedSedOpts | null | undefined
     , keyword: string | null | undefined): string => {
+  const oriKeyword = keyword
   let pattern: Search.Engine | null | undefined
   const createSearchToCopy = (data: string): string => {
     if (pattern === void 0) { pattern = searchEngines_.map.get(keyword!) || null }
     return pattern ? createSearch_(data.trim().split(BgUtils_.spacesRe_), pattern.url_, pattern.blank_) : data
   }
   if (typeof data !== "string") {
-    data = data.map(i => substitute_(i, SedContext.paste, sed))
-    if (keyword)
-    keyword && (data = data.map(createSearchToCopy))
+    data = data.map((i): string => {
+      const exOut: InfoOnSed = {}, s = substitute_(i, SedContext.paste, sed, exOut)
+      keyword = exOut.keyword_ || oriKeyword
+      return keyword ? createSearchToCopy(s) : s
+    })
     data = typeof join === "string" && join.startsWith("json") ? JSON.stringify(data, null, +join.slice(4) || 2)
       : data.join(join !== !!join && (join as string) || "\n") +
         (data.length > 1 && (!join || join === !!join) ? "\n" : "")
@@ -371,15 +379,19 @@ const format_ = (data: string | any[], join: FgReq[kFgReq.copy]["j"] | undefined
   } else if ((i = data.charCodeAt(0)) !== kCharCode.space && i !== kCharCode.tab) {
     data = data.trimRight()
   }
-  data = substitute_(data, SedContext.copy, sed)
-  data = keyword ? createSearchToCopy(data) : data
+  {
+    const exOut: InfoOnSed = {}
+    data = substitute_(data, SedContext.copy, sed, exOut)
+    keyword = exOut.keyword_ || oriKeyword
+    data = keyword ? createSearchToCopy(data) : data
+  }
   return data
 }
 
-const reformat_ = (copied: string, sed?: MixedSedOpts | null): string => {
+const reformat_ = (copied: string, sed?: MixedSedOpts | null, exOut?: InfoOnSed): string => {
   if (copied) {
   copied = copied.replace(<RegExpG> /\xa0/g, " ")
-  copied = substitute_(copied, SedContext.paste, sed)
+    copied = substitute_(copied, SedContext.paste, sed, exOut)
   }
   return copied
 }
@@ -404,11 +416,11 @@ set_copy_(((data, join, sed, keyword): string | Promise<string> => {
   }
 }) satisfies typeof copy_)
 
-set_paste_(((sed, newLenLimit?: number): string | Promise<string | null> => {
+set_paste_(((sed, newLenLimit?: number, exOut?: InfoOnSed): string | Promise<string | null> => {
   if (Build.MV3 || OnFirefox && (navClipboard || (navClipboard = navigator.clipboard))) {
     return (Build.MV3 ? runOnTee_(kTeeTask.Paste, null, null)
         : navClipboard!.readText!().catch(() => null)).then(s => s && typeof s === "string"
-              ? reformat_(s.slice(0, GlobalConsts.MaxBufferLengthForPastingLongURL), sed) : null)
+              ? reformat_(s.slice(0, GlobalConsts.MaxBufferLengthForPastingLongURL), sed, exOut) : null)
   }
   const doc = (globalThis as MaybeWithWindow).document!, textArea = getTextArea_html()
   textArea.maxLength = newLenLimit || GlobalConsts.MaxBufferLengthForPastingNormalText
@@ -423,7 +435,7 @@ set_paste_(((sed, newLenLimit?: number): string | Promise<string | null> => {
       && (value.slice(0, 5).toLowerCase() === "data:" || BgUtils_.isJSUrl_(value))) {
     return paste_(sed, GlobalConsts.MaxBufferLengthForPastingLongURL) as string
   }
-  return reformat_(value, sed)
+  return reformat_(value, sed, exOut)
 }) satisfies typeof paste_)
 
 updateHooks_.clipSub = (): void => { staticSeds_ = null }

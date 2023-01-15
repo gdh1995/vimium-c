@@ -122,9 +122,9 @@ set_reqH_([
       request.n && runNextCmdBy(0, request.n)
       return
     }
-    const o2 = request.o || {}
-    query = request.t.trim() && substitute_(request.t.trim(), SedContext.pageText, o2.s).trim()
-        || (request.c ? paste_(o2.s) : "")
+    const o2 = request.o || {}, exOut: InfoOnSed = {}
+    query = request.t.trim() && substitute_(request.t.trim(), SedContext.pageText, o2.s, exOut).trim()
+        || (request.c ? paste_(o2.s, 0, exOut) : "")
     void Promise.resolve(query).then((query2: string | null): void => {
       let err = query2 === null ? "It's not allowed to read clipboard"
         : (query2 = query2.trim()) ? "" : trans_("noSelOrCopied")
@@ -134,7 +134,7 @@ set_reqH_([
         request.n && runNextCmdBy(0, request.n)
         return
       }
-      o2.k = o2.k == null ? search!.k : o2.k // not change .testUrl, in case a user specifies it
+      o2.k = exOut.keyword_ || (o2.k == null ? search!.k : o2.k) // not change .testUrl, in case a user specifies it
       reqH_[kFgReq.openUrl]({ u: query2!, o: o2, r: ReuseType.current, n: parseFallbackOptions(request.n) || {} }, port)
     })
   },
@@ -290,10 +290,11 @@ set_reqH_([
     set_cKey(kKeyCode.None) // it's only from LinkHints' task / Vomnibar reloading, so no Key to suppress
     if (request.u != null) {
       const {m, t} = request, isLinkJob = m >= HintMode.min_link_job && m <= HintMode.max_link_job
-      let url = request.u
+      let url = request.u, exOut: InfoOnSed = {}
       url = isLinkJob ? findUrlEndingWithPunctuation_(url, true) : url
-      url = substitute_(url, isLinkJob ? SedContext.pageURL : SedContext.pageText, request.o && request.o.s)
-      replaceCmdOptions<kBgCmd.showVomnibar>({ url, newtab: t != null ? !!t : !isLinkJob, keyword: request.o.k })
+      url = substitute_(url, isLinkJob ? SedContext.pageURL : SedContext.pageText, request.o && request.o.s, exOut)
+      replaceCmdOptions<kBgCmd.showVomnibar>({ url, newtab: t != null ? !!t : !isLinkJob
+          , keyword: exOut.keyword_ || request.o.k })
       replaceForwardedOptions(request.f)
       set_cRepeat(1)
     } else if (request.r !== true) {
@@ -518,9 +519,10 @@ set_reqH_([
     }
   },
   /** kFgReq.downloadLink: */ (req: FgReq[kFgReq.downloadLink], port): void => {
-    const o2 = req.o || {}
-    let url = substitute_(findUrlEndingWithPunctuation_(req.u, true), SedContext.pageURL, o2.s)
-    url = (url !== req.u || o2.k) ? convertToUrl_(url, o2.k, Urls.WorkType.Default) : url
+    const o2 = req.o || {}, exOut: InfoOnSed = {}
+    let url = substitute_(findUrlEndingWithPunctuation_(req.u, true), SedContext.pageURL, o2.s, exOut)
+    const keyword = exOut.keyword_ || o2.k
+    url = url !== req.u || keyword ? convertToUrl_(url, keyword, Urls.WorkType.Default) : url
     set_cPort(port)
     showHUD(url, kTip.downloaded)
     downloadFile(url, req.f, req.r || "").then(req.m < HintMode.DOWNLOAD_LINK ? (succeed): void => {

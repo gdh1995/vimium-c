@@ -126,7 +126,7 @@ const normalizeExpects = (options: KnownOptions<C.runKey>): (NormalizedEnvCond |
   const expected_rules = options.expect
   if (options.$normalized) { return expected_rules as NormalizedEnvCond[] }
   const normalizeKeys = (keys: string | string[] | null | undefined): string[] => {
-    return keys ? typeof keys === "string" ? keys.trim().split(<RegExpG> /[, ]+/)
+    return keys ? typeof keys === "string" ? (<RegExpOne> /[#&]#/).test(keys) ? [keys] : keys.trim().split(/[, ]+/)
         : keys instanceof Array ? keys : [] : []
   }
   let new_rules: (NormalizedEnvCond | null)[] = []
@@ -274,8 +274,8 @@ interface IfElseNode extends BaseNode { t: kN.ifElse; val: { cond: Node, t: Node
 interface ErrorNode extends BaseNode { t: kN.error; val: string; par: null }
 type Node = ListNode | IfElseNode
 export const parseKeySeq = (keys: string): ListNode | ErrorNode => {
-  const re = <RegExpOne>
-      /^([$%][a-zA-Z]\+?)*([\d-]\d*\+?)?([$%][a-zA-Z]\+?)*((<([acmsv]-){0,4}.\w*(:i)?>|[^#()?:+$%-])+|-)(#[^()?:+]*)?/
+  const re = <RegExpOne
+      > /^([$%][a-zA-Z]\+?)*([\d-]\d*\+?)?([$%][a-zA-Z]\+?)*((<([acmsv]-){0,4}.\w*(:i)?>|[^#()?:+$%-])+|-)(#[^()?:+]*)?/
   let cur: ListNode = { t: kN.list, val: [], par: null }, root: ListNode = cur, last: Node | null
   for (let i = keys.length > 1 ? 0 : keys.length; i < keys.length; i++) {
     switch (keys[i]) {
@@ -311,9 +311,15 @@ export const parseKeySeq = (keys: string): ListNode | ErrorNode => {
         const hash = oneKey.indexOf("#")
         if (hash > 0 && (<RegExpOne> /[#&]#/).test(oneKey.slice(hash))) {
           oneKey = keys.slice(i)
+          i = keys.length
+        } else if (hash > 0 && (<RegExpOne> /["\[]/).test(oneKey.slice(hash))) {
+          const arr = BgUtils_.extractComplexOptions_(keys.slice(i + hash))
+          oneKey = oneKey.slice(0, hash) + arr[0]
+          i += hash + arr[1]
+        } else {
+          i += oneKey.length
         }
         cur.val.push({ t: kN.key, val: oneKey, par: cur })
-        i += oneKey.length
       }
       i--
       break
@@ -422,7 +428,7 @@ export const runKeyInSeq = (seq: BgCmdOptions[C.runKey]["$seq"], dir: number
 
 //#region run one key node with count and placeholder prefixes and a suffix of inline options
 
-const parseKeyNode = (cursor: KeyNode): OneKeyInstance => {
+export const parseKeyNode = (cursor: KeyNode): OneKeyInstance => {
   let str = cursor.val
   if (typeof str !== "string") { return str }
   let arr = (<RegExpOne> /^([$%][a-zA-Z]\+?|-)+/).exec(str)

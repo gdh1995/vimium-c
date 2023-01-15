@@ -187,7 +187,9 @@ export const showVomnibar = (forceInner?: boolean): void => {
       })
       return
     }
-    defaultUrl = substitute_(res, SedContext.NONE, { r: null, k: get_cOptions<C.showVomnibar, true>().urlSedKeys! })
+    const exOut: InfoOnSed = {}
+    defaultUrl = substitute_(res, SedContext.NONE, {r: null, k: get_cOptions<C.showVomnibar,true>().urlSedKeys!}, exOut)
+    exOut.keyword_ && overrideOption<C.openUrl, "keyword">("keyword", exOut.keyword_)
   }
   if (get_cOptions<C.showVomnibar>().mode === "bookmark") { overrideOption<C.showVomnibar, "mode">("mode", "bookm") }
   const page = vomnibarPage_f, { url_: url } = port.s,
@@ -476,9 +478,9 @@ export const openImgReq = (req: FgReq[kFgReq.openImage], port?: Port): void => {
   }
   req.t && (prefix += req.t)
   const opts2: ParsedOpenPageUrlOptions = req.o || BgUtils_.safeObj_() as {}
-  const keyword = OnFirefox && req.m === HintMode.DOWNLOAD_MEDIA ? "" : opts2.k
+  const exOut: InfoOnSed = {}, urlAfterSed = opts2.s ? substitute_(url, SedContext.paste, opts2.s, exOut) : url
+  const keyword = exOut.keyword_ || (OnFirefox && req.m === HintMode.DOWNLOAD_MEDIA ? "" : opts2.k)
   const testUrl = opts2.t ?? !keyword
-  const urlAfterSed = opts2.s ? substitute_(url, SedContext.paste, opts2.s) : url
   const hasSed = urlAfterSed !== url
   const reuse = opts2.r != null ? opts2.r : req.m & HintMode.queue ? ReuseType.newBg : ReuseType.newFg
   url = urlAfterSed

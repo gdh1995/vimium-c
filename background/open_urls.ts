@@ -1,5 +1,5 @@
 import {
-  framesForTab_, cPort, cRepeat, get_cOptions, set_cOptions, set_cPort, set_cRepeat, set_cEnv,
+  framesForTab_, cPort, cRepeat, get_cOptions, set_cOptions, set_cPort, set_cRepeat, set_cEnv, runOneMapping_,
   lastWndId_, curIncognito_, curTabId_, curWndId_, recencyForTab_, vomnibarBgOptions_, OnFirefox, OnChrome, OnEdge,
   CurCVer_, IsEdg_, paste_, substitute_, newTabUrls_, os_, CONST_, shownHash_, set_shownHash_, newTabUrl_f
 } from "./store"
@@ -137,10 +137,14 @@ const onEvalUrl_ = (workType: Urls.WorkType, options: KnownOptions<C.openUrl>, t
       return
     }
     setTimeout((): void => {
-      const frames = framesForTab_.get(curTab)
+      const frames = framesForTab_.get(curTab), port = frames ? frames.cur_ : null
       const opts: KnownOptions<C.runKey> & SafeObject = BgUtils_.safer_({ keys: [cmd[1]] })
       set_cEnv(null)
-      executeCommand(makeCommand_("runKey", opts)!, 1, kKeyCode.None, frames ? frames.cur_ : null, 0, null)
+      if (cmd[0] === "run1") {
+        runOneMapping_(cmd[1], port, { c: options.$f, r: options.$retry, u: 0, w: 0 })
+      } else {
+        executeCommand(makeCommand_("runKey", opts)!, 1, kKeyCode.None, port, 0, null)
+      }
     }, 0)
     break
   }
@@ -537,7 +541,7 @@ export const openUrlWithActions = (url: Urls.Url, workType: Urls.WorkType, sed?:
   if (typeof url !== "string") { /* empty */ }
   else if (url || workType !== Urls.WorkType.FakeType) {
     const fill = fillOptionWithMask<C.openUrl>(url, get_cOptions<C.openUrl>().mask
-        , "value", ["url", "url_mask", "url_mark", "value"], cRepeat)
+        , "value", ["url", "url_mask", "url_mark", "value"], cRepeat), exOut: InfoOnSed = {}
     if (fill.ok) {
       url = fill.result
       if (fill.useCount) { set_cRepeat(1) }
@@ -548,10 +552,10 @@ export const openUrlWithActions = (url: Urls.Url, workType: Urls.WorkType, sed?:
     }
     if (sed) {
       const postSed = parseSedOptions_(get_cOptions<C.openUrl, true>())
-      url = substitute_(url, SedContext.NONE, postSed)
+      url = substitute_(url, SedContext.NONE, postSed, exOut)
     }
     if (workType !== Urls.WorkType.FakeType) {
-      const keyword = (get_cOptions<C.openUrl>().keyword as AllowToString || "") + ""
+      const keyword = exOut.keyword_ || (get_cOptions<C.openUrl>().keyword as AllowToString || "") + ""
       const testUrl = get_cOptions<C.openUrl>().testUrl ?? !keyword
       const isSpecialKW = !!keyword && keyword !== "~"
       url = testUrl ? convertToUrl_(url, keyword, workType)
@@ -562,7 +566,9 @@ export const openUrlWithActions = (url: Urls.Url, workType: Urls.WorkType, sed?:
     }
     const goNext = get_cOptions<C.openUrl, true>().goNext
     if (goNext && url && typeof url === "string") {
-      url = substitute_(url, SedContext.goNext)
+      const exOut2: InfoOnSed = {}
+      url = substitute_(url, SedContext.goNext, null, exOut2)
+      exOut2.keyword_ && overrideOption<C.openUrl, "keyword">("keyword", exOut2.keyword_)
       url = goToNextUrl(url, cRepeat, goNext === "absolute")[1]
     }
     url = typeof url === "string" ? reformatURL_(url) : url
@@ -605,8 +611,8 @@ const openCopiedUrl = (tabs: [Tab] | [] | undefined, url: string | null): void =
   let urls: string[]
   const copied = get_cOptions<C.openUrl>().copied, searchLines = typeof copied === "string" && copied.includes("any")
   if ((copied === "urls" || searchLines) && (urls = url.split(<RegExpG> /[\r\n]+/g)).length > 1) {
-    const urls2: string[] = [], keyword = searchLines && get_cOptions<C.openUrl>().keyword
-        ? get_cOptions<C.openUrl>().keyword + "" : null
+    const urls2: string[] = [], rawKeyword = searchLines && get_cOptions<C.openUrl>().keyword
+    const keyword = rawKeyword ? rawKeyword + "" : null
     let has_err = false
     for (let i of urls) {
       i = i.trim()
@@ -690,7 +696,8 @@ export const openUrl = (tabs?: [Tab] | []): void => {
   if (rawUrl) {
     openUrlWithActions(rawUrl as AllowToString + "", Urls.WorkType.EvenAffectStatus, true, tabs)
   } else if (get_cOptions<C.openUrl>().copied) {
-    const url = paste_(parseSedOptions_(get_cOptions<C.openUrl, true>()))
+    const exOut: InfoOnSed = {}, url = paste_(parseSedOptions_(get_cOptions<C.openUrl, true>()), 0, exOut)
+    exOut.keyword_ && overrideOption<C.openUrl, "keyword">("keyword", exOut.keyword_)
     if (url instanceof Promise) {
       void url.then(/*#__NOINLINE__*/ openCopiedUrl.bind(null, tabs))
     } else {
@@ -710,7 +717,7 @@ export const openUrlReq = (request: FgReq[kFgReq.openUrl], port?: Port | null): 
   // { url_f: string, ... } | { copied: true, ... }
   const opts: KnownOptions<C.openUrl> = request.n && parseFallbackOptions(request.n) || {}
   const o2: Readonly<Partial<FgReq[kFgReq.openUrl]["o"]>> = request.o || BgUtils_.safeObj_() as {}
-  const keyword = (o2.k || "") + "", testUrl = o2.t ?? !keyword
+  const rawKeyword = (o2.k || "") + "", testUrl = o2.t ?? !rawKeyword
   const sed = o2.s
   const hintMode = request.m || HintMode.DEFAULT
   const mode1 = hintMode < HintMode.min_disable_queue ? hintMode & ~HintMode.queue : hintMode
@@ -728,11 +735,11 @@ export const openUrlReq = (request: FgReq[kFgReq.openUrl], port?: Port | null): 
     if (url[0] === ":" && !isWeb && (<RegExpOne> /^:[bhtwWBHdso]\s/).test(url)) {
       url = request.u = url.slice(2).trim()
     }
-    const originalUrl = url
+    const originalUrl = url, exOut: InfoOnSed = {}, context = !isWeb ? testUrl ? SedContext.omni : SedContext.NONE
+        : formatted ? SedContext.pageURL : SedContext.pageText
     url = testUrl ? findUrlEndingWithPunctuation_(url, formatted) : url
-    url = substitute_(url, !isWeb ? /** from input bar */ testUrl ? SedContext.omni : SedContext.NONE
-          : formatted ? SedContext.pageURL : SedContext.pageText, sed)
-    let converted: boolean
+    url = substitute_(url, context, sed, exOut)
+    let converted: boolean, keyword = exOut.keyword_ || rawKeyword
     if (formatted) {
       url = (converted = url !== originalUrl) ? convertToUrl_(url, null, Urls.WorkType.ConvertKnown) : url
     } else if (converted = !!testUrl || !isWeb && !keyword) {
@@ -757,7 +764,7 @@ export const openUrlReq = (request: FgReq[kFgReq.openUrl], port?: Port | null): 
     opts.url_f = url
   } else {
     if (request.c === false) { return }
-    opts.copied = request.c != null ? request.c : true, opts.keyword = keyword, opts.testUrl = o2.t
+    opts.copied = request.c != null ? request.c : true, opts.keyword = rawKeyword, opts.testUrl = o2.t
     opts.sed = sed
   }
   set_cRepeat(1)

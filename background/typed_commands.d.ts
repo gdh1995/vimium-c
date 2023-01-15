@@ -219,7 +219,7 @@ declare namespace CommandsNS {
       sys?: string
       browser?: BrowserType
       before?: string
-    } | null
+    } | "win" | "!win" | "linux" | "mac" | "chrome" | "chromium" | "edg" | "firefox" | "edge" | "safari" | null
   }
   interface Options extends ReadonlySafeDict<any>, SharedPublicOptions, SharedInnerOptions {}
   interface SharedPublicOptions {

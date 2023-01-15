@@ -277,7 +277,8 @@ const hoverEl = (): void => {
                     ] as SafeElement)
               : clickEl.closest!(selector))) {
           if (OnFirefox || !notSafe_not_ff_!(selected)) {
-            for (const toggle of toggleMap[key].split(/[ ,]/)) {
+            const val = toggleMap[key]
+            for (const toggle of isTY(val) ? val.split(/[ ,]/) : val) {
               const s0 = toggle[0], remove = s0 === "-", add = s0 === "+" || (!remove && null)
               const idx = +(add || remove)
               if (toggle[idx] === "[") {

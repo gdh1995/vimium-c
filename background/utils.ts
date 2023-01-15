@@ -410,3 +410,43 @@ export const isNotPriviledged = (port: Port): boolean => {
   const url = port.s.url_
   return !(OnChrome ? url.startsWith("chrome") || url.startsWith("edge") : url.startsWith(location.protocol))
 }
+
+export const extractComplexOptions_ = (expression_: string): [options: string, endInSource: number] => {
+  const pairs: [number, number][] = []
+  let pos_ = 0, lastStart = -1, curlyBraces = 0, end = expression_.length
+  for (; pos_ < end; pos_++) {
+    switch (expression_[pos_]) {
+    case "&": if (expression_.charAt(pos_ + 1) === "#") { pos_ = expression_.length } break
+    case "(": case ")": case "?": case "+": end = pos_; break
+    case ":": curlyBraces || (end = pos_); break
+    case "{": case "[": curlyBraces++ || (lastStart = pos_); break
+    case "]": case "}": --curlyBraces || pairs.push([lastStart, pos_ + 1]); break
+    case '"': {
+      const literal = (<RegExpOne> /^"([^"\\]|\\[^])*"/).exec(expression_.slice(pos_))
+      pos_ += literal ? literal[0].length - 1 : 0
+      break
+    }
+    default: {
+      const literal = (<RegExpOne> /^(?:[$a-zA-Z_][$\w]*|\d[\d.eE+-]|,?\s+)/).exec(expression_.slice(pos_))
+      pos_ += literal ? literal[0].length - 1 : 0
+      // no break;
+    }
+    }
+  }
+  let output = "", lastRight = 0
+  const tryParse = (slice: string): object | string => {
+    try { return JSON.parse(slice) }
+    catch { return slice }
+  }
+  for (const [left, right] of pairs) {
+    output += expression_.slice(lastRight, left)
+    const parsed = tryParse(expression_.slice(left, right)), correct = typeof parsed !== "string"
+    const str = correct ? JSON.stringify(parsed) : parsed
+    output += str.replace(<RegExpG & RegExpSearchable<0>> /[()?:+%\s]/g,
+        correct ? s => s === ":" ? "%3a" : "\\u" + (s.charCodeAt(0) + 0x10000).toString(16).slice(1)
+        : s => encodeURIComponent(s))
+    lastRight = right
+  }
+  output += expression_.slice(lastRight, end)
+  return [output, end]
+}

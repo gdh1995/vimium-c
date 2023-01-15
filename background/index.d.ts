@@ -26,7 +26,7 @@ declare namespace Search {
 
 declare namespace Urls {
   const enum kEval {
-    math = 0, copy = 1, search = 2, ERROR = 3, status = 4, paste = 5, run = 6, plainUrl = 7,
+    math = 0, copy = 1, search = 2, ERROR = 3, status = 4, paste = 5, run = 6, plainUrl = 7, run1 = 8,
   }
 
   interface BaseEvalResult extends Array<any> {
@@ -55,7 +55,10 @@ declare namespace Urls {
   interface StatusEvalResult extends BasePlainEvalResult<kEval.status> {
     readonly [0]: Frames.ForcedStatusText;
   }
-  interface RunEvalResult extends Urls.BaseEvalResult { [0]: ["run" | "openUrls", ...string[]]; [1]: Urls.kEval.run }
+  interface RunEvalResult extends Urls.BaseEvalResult {
+    [0]: ["run" | "run1" | "openUrls", ...string[]]
+    [1]: Urls.kEval.run
+  }
 
   type EvalArrayResultWithSideEffects = CopyEvalResult;
 
@@ -405,3 +408,7 @@ type ExtApiResult<T> = [T, undefined] | [undefined, { message?: any }]
 declare function fetch(input: `/${string}` | `data:${string}`, init?: Partial<Request>): Promise<Response>;
 
 interface MaybeWithWindow { window?: Window; document?: HTMLDocument }
+
+interface InfoOnSed {
+  keyword_?: string
+}

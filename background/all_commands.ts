@@ -98,10 +98,11 @@ set_bgC_([
     }
     void Promise.resolve(getPortUrl_(cPort && getCurFrames_()!.top_)).then((tabUrl): void => {
       const count = isNext ? cRepeat : -cRepeat
-      const template = tabUrl && substitute_(tabUrl, SedContext.goNext, sed)
+      const exOut: InfoOnSed = {}, template = tabUrl && substitute_(tabUrl, SedContext.goNext, sed)
       const [hasPlaceholder, next] = template ? goToNextUrl(template, count, absolute) : [false, tabUrl]
       if (hasPlaceholder && next) {
         set_cRepeat(count)
+        exOut.keyword_ && overrideOption<C.openUrl, "keyword">("keyword", exOut.keyword_)
         if (get_cOptions<C.goNext>().reuse == null) {
           overrideOption<C.goNext, "reuse">("reuse", ReuseType.current)
         }
@@ -716,8 +717,9 @@ set_bgC_([
       }
       return
     }
-    let sed = parseSedOptions_(get_cOptions<C.searchInAnother, true>())
-    query.u = substitute_(query.u, SedContext.NONE, sed)
+    let exOut: InfoOnSed = {}, sed = parseSedOptions_(get_cOptions<C.searchInAnother, true>())
+    query.u = substitute_(query.u, SedContext.NONE, sed, exOut)
+    exOut.keyword_ && (keyword = exOut.keyword_)
     let url_f = createSearchUrl_(query.u.split(" "), keyword, Urls.WorkType.ActAnyway)
     let reuse = get_cOptions<C.searchInAnother, true>().reuse
     overrideCmdOptions<C.openUrl>({

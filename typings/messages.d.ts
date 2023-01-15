@@ -294,7 +294,7 @@ declare namespace HintsNS {
     decoded?: boolean;
     anyText?: boolean
     toggle?: {
-      [selector: string]: string;
+      [selector: string]: string | string[];
     };
     auto?: boolean;
     /** clickElement / pageLoad is enabled by default */
@@ -464,7 +464,7 @@ interface CmdOptions {
   } & CSSOptions & Req.FallbackOptions
   [kFgCmd.editText]: {
     dom?: boolean;
-    run: string;
+    run: string | string[]
   } & OptionsToFindElement & Req.FallbackOptions
   [kFgCmd.scrollSelect]: {
     position?: "begin" | "home" | "start" | "end" | "last"

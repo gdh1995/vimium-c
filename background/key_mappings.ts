@@ -200,12 +200,22 @@ const hasIfOption = (line: string, start: number): boolean => {
 }
 
 const doesMatchEnv_ = (options: CommandsNS.RawOptions | string | null): boolean | null => {
-    const condition = options && typeof options === "object" && options.$if
+  let condition = options && typeof options === "object" && options.$if
+  let resultOnMismatch = false
+  if (typeof condition === "string") {
+    condition = condition.toLowerCase()
+    condition[0] === "!" && (condition = condition.slice(1).trim() as typeof condition, resultOnMismatch = true)
+    condition = "mac linux win".includes(condition) ? { sys: condition }
+        : "chrome chromium edge firefox safari".includes(condition)
+        ? { browser: { c: BrowserType.Chrome, e: condition.includes("edge") ? BrowserType.Edge : BrowserType.Chrome,
+            f: BrowserType.Firefox, s: BrowserType.Safari }[condition[0]] }
+        : null
+  }
     return condition && typeof condition === "object" ? condition.sys && condition.sys !== CONST_.Platform_
       || condition.browser && !(condition.browser & (Build.BTypes && !(Build.BTypes & (Build.BTypes - 1))
           ? Build.BTypes : OnOther_))
       || condition.before && condition.before.replace("v", "") < CONST_.VerCode_
-      ? false : true : null
+      ? resultOnMismatch : !resultOnMismatch : null
 }
 
 const parseKeyMappings_ = (wholeMappings: string): void => {

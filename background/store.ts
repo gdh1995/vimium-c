@@ -215,8 +215,10 @@ export let sync_: SettingsNS.Sync["set"] = blank_
 export let restoreSettings_: Promise<void> | null = null
 export let copy_: (text: string | any[], join?: FgReq[kFgReq.copy]["j"]
     , sed?: MixedSedOpts | null, keyword?: string | null) => string | Promise<string> = (() => "")
-export let paste_: (sed?: MixedSedOpts | null, len?: number) => string | Promise<string | null> | null = () => ""
-export let substitute_: (text: string, context: SedContext, sed?: MixedSedOpts | null) => string = s => s
+export let paste_: (sed?: MixedSedOpts | null, len?: number, exOut?: InfoOnSed
+    ) => string | Promise<string | null> | null = () => ""
+export let substitute_: (text: string, context: SedContext, sed?: MixedSedOpts | null, exOut?: InfoOnSed) => string
+    = s => s
 export let evalVimiumUrl_: Urls.Executor = () => null
 export let updateToLocal_: ((wait: number) => void) | true | null = null
 export let shownHash_: ((this: void) => string) | null = null
