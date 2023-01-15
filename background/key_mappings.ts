@@ -249,7 +249,7 @@ const parseKeyMappings_ = (wholeMappings: string): void => {
       let doesPass = noCheck
       switch (cmd) {
       case "map": case "run":
-        const isRun = cmd === "run" && !(val in availableCommands_)
+        const isRun = cmd === "run"
         details = undefined
         if (noCheck) { /* empty */
         } else if (!key || key.length > 8 && (key === "__proto__" || key.includes("<__proto__>"))) {
