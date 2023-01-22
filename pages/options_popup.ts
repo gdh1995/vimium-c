@@ -274,7 +274,9 @@ const initOptionsLink = (_url: string): void => {
 const initExclusionRulesTable = (): void => {
   !(Build.OS & (1 << kOS.mac)) || Build.OS & ~(1 << kOS.mac) && OnChrome && conf_.os ||
   window.addEventListener("keydown", function (event): void {
-    if (event.altKey
+    if (event.keyCode === kKeyCode.enter && event.metaKey) {
+      onEnterKeyUp(event)
+    } else if (event.altKey
         && (event.keyCode === kKeyCode.X || conf_.lock !== null && event.keyCode === kKeyCode.Z)
         && !(event.ctrlKey || event.metaKey || hasShift_(event))
         ) {
@@ -330,20 +332,7 @@ void post_(kPgReq.popupInit).then((_resolved): void => {
   conf_.exclusions = null
 
   saveBtn2.onclick = saveOptions
-  document.addEventListener("keyup", function (event): void {
-    if (event.keyCode === kKeyCode.enter) {
-      const el = event.target as Element
-      if (el instanceof HTMLAnchorElement) {
-        el.hasAttribute("href") || setTimeout(function (el1) {
-          el1.click()
-          el1.blur()
-        }, 0, el);
-      } else if (event.ctrlKey || event.metaKey) {
-        const q = !saved && saveOptions()
-        q && q.then((): void => { setTimeout(window.close, 300) })
-      }
-    }
-  })
+  document.addEventListener("keyup", onEnterKeyUp)
 
   initOptionsLink(_url)
   updateBottomLeft()
@@ -352,6 +341,21 @@ void post_(kPgReq.popupInit).then((_resolved): void => {
   setupBorderWidth_ && nextTick_(setupBorderWidth_)
   nextTick_(didShow)
 })
+
+const onEnterKeyUp = (event: KeyboardEventToPrevent): void => {
+  if (event.keyCode === kKeyCode.enter) {
+    const el = event.target as Element
+    if (el instanceof HTMLAnchorElement) {
+      el.hasAttribute("href") || setTimeout(function (el1) {
+        el1.click()
+        el1.blur()
+      }, 0, el);
+    } else if (event.ctrlKey || event.metaKey) {
+      const q = !saved && saveOptions()
+      q && q.then((): void => { setTimeout(window.close, 300) })
+    }
+  }
+}
 
 const didShow = (): void => {
   const docEl = document.documentElement as HTMLHtmlElement

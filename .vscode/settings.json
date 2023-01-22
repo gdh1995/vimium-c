@@ -1,5 +1,8 @@
 {
-    "files.associations": {
+    "editor.rulers": [
+		120
+	],
+	"files.associations": {
         "*.json": "jsonc"
     },
     "files.eol": "\n",

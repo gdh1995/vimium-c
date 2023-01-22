@@ -112,18 +112,7 @@ let optionsInit1_ = function (): void {
       }
       return;
     }
-    if (el instanceof HTMLAnchorElement) {
-      el.hasAttribute("href") || setTimeout(function (el1) {
-        simulateClick(el1)
-        el1.blur();
-      }, 0, el);
-    } else if (event.ctrlKey || event.metaKey) {
-      el.blur && el.blur();
-      if (savedStatus()) {
-        didBindEvent("click")
-        return saveBtn.onclick();
-      }
-    }
+    onEnterKeyUp(event)
   });
 
   delayBinding("[data-check]", "input", function onCheck(): void {
@@ -418,6 +407,23 @@ optionsInitAll_ = function (): void {
   })
 };
 
+const onEnterKeyUp = (event: KeyboardEventToPrevent): void => {
+  const el = event.target as Element
+  if (el instanceof HTMLAnchorElement) {
+    el.hasAttribute("href") || (setTimeout(function (el1) {
+      simulateClick(el1)
+      el1.blur()
+    }, 0, el), event.preventDefault())
+  } else if (event.ctrlKey || event.metaKey) {
+    event.preventDefault()
+    el.blur && el.blur()
+    if (savedStatus()) {
+      didBindEvent("click")
+      saveBtn.onclick()
+    }
+  }
+}
+
 delayBinding(Option_.all_.userDefinedCss.element_, "input", debounce_((): void => {
   const self = Option_.all_.userDefinedCss
   const isDebugging = self.element_.classList.contains("debugging")
@@ -478,7 +484,10 @@ el0.textContent = (OnEdge ? "MS Edge (EdgeHTML)" : name + " " + version
 }, $("#browserName"));
 
 document.addEventListener("keydown", (event): void => {
-  if (event.keyCode !== kKeyCode.space) {
+  if (Build.OS & (1 << kOS.mac) && event.keyCode === kKeyCode.enter && event.metaKey) {
+    onEnterKeyUp(event)
+    return
+  } else if (event.keyCode !== kKeyCode.space) {
     if (!VApi || !VApi.z || "input textarea".includes(document.activeElement!.localName as string)) { return; }
     const key = VApi.r[3]({c: kChar.INVALID, e: event, i: event.keyCode, v: ""}, kModeId.NO_MAP_KEY)
     if (key === "a-" + kChar.f12) {
