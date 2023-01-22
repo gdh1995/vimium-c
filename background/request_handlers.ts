@@ -562,6 +562,10 @@ set_reqH_([
     reqH_[kFgReq.copy]({ s: title && url ? title + join + url : url || title
         , d: false, m: HintMode.DEFAULT }, findCPort(port)!)
   },
+  /** kFgReq.omniCopy: */ (req: FgReq[kFgReq.omniCopied], port): void => {
+    set_cPort(findCPort(port)!)
+    showHUD(req.t, kTip.noTextCopied)
+  },
   /** kFgReq.didLocalMarkTask: */ (req: FgReq[kFgReq.didLocalMarkTask], port): void => {
     showHUDEx(port, "mLocalMarkTask", 1, [ [req.n ? "mCreate" : "mJumpTo"], req.i > 1 ? req.i : ["mLastMark"] ])
     set_cPort(port)

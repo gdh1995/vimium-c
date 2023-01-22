@@ -1,7 +1,7 @@
 import {
   contentPayload_, extAllowList_, newTabUrls_, omniPayload_, OnChrome, OnEdge, OnFirefox, framesForOmni_, sync_, IsEdg_,
   settingsCache_, bgIniting_, set_bgIniting_, CurCVer_, CONST_, OnOther_, onInit_, storageCache_, searchEngines_,
-  set_hasEmptyLocalStorage_, set_newTabUrl_f, newTabUrl_f, set_vomnibarPage_f, updateHooks_,set_CurFFVer_,
+  set_hasEmptyLocalStorage_, set_newTabUrl_f, newTabUrl_f, set_vomnibarPage_f, updateHooks_,set_CurFFVer_, UseZhLang_,
   CurFFVer_, set_os_, os_
 } from "./store"
 import { asyncIter_, nextTick_, safeObj_ } from "./utils"
@@ -369,9 +369,9 @@ saladict@crimx.com`
 ,\u4e0a\u4e00\u5f20,prev,previous,back,older,<,\u2039,\u2190,\xab,\u226a,<<",
     regexFindMode: false,
     scrollStepSize: 100,
-    searchUrl: (navigator.language as string).startsWith("zh") ? "https://www.baidu.com/s?ie=utf-8&wd=%s \u767e\u5ea6"
+    searchUrl: UseZhLang_ ? "https://www.baidu.com/s?ie=utf-8&wd=%s \u767e\u5ea6"
       : "https://www.google.com/search?q=%s Google",
-    searchEngines: (navigator.language as string).startsWith("zh")
+    searchEngines: UseZhLang_
 ? `b|ba|baidu|Baidu|\u767e\u5ea6: https://www.baidu.com/s?ie=utf-8&wd=%s \\
   blank=https://www.baidu.com/ \u767e\u5ea6
 bi: https://www.bing.com/search?q=$s

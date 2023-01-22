@@ -679,7 +679,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
             && (!(Build.BTypes & BrowserType.Firefox) && !(Build.BTypes & BrowserType.Chrome)
                   || Build.MinCVer > BrowserVer.$Selection$NotShowStatusInTextBox
               || a.input_.selectionStart === a.input_.selectionEnd)
-            ? key.includes("s") ? AllowedActions.copyWithTitle : AllowedActions.copy : AllowedActions.nothing
+            ? key.includes("s") ? AllowedActions.copyWithTitle : AllowedActions.copy
+            : key.includes("s") ? AllowedActions.copyPlain : AllowedActions.nothing
       } else if (key.includes("s-")) {
         action = char === kChar.f ? AllowedActions.pagedown : char === kChar.b ? AllowedActions.pageup
           : char === kChar.v ? AllowedActions.pastePlain : AllowedActions.nothing;
@@ -773,6 +774,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
             && Build.MinFFVer < FirefoxBrowserVer.MinEnsured$dom$events$asyncclipboard
           ) || navClip) && action === AllowedActions.copyPlain ? getSelection() + "" : ""
       action === AllowedActions.copyPlain ? plain && void navClip!.writeText!(plain) : document.execCommand("paste")
+      action === AllowedActions.copyPlain && plain && VPort_.post_({ H: kFgReq.omniCopied, t: plain })
       break
     case AllowedActions.home: case AllowedActions.end:
       sel = action === AllowedActions.home ? 0 : a.input_.value.length

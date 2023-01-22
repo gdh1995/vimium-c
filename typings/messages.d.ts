@@ -100,7 +100,7 @@ declare const enum kFgReq {
   evalJSFallback, gotoMainFrame, setOmniStyle, findFromVisual, framesGoBack,
   i18n, cssLearnt, visualMode, respondForRunKey, downloadLink, wait,
   optionToggled, keyFromOmni, pages, showUrl,
-  omniCopy, didLocalMarkTask, recheckTee, afterTee, END,
+  omniCopy, omniCopied, didLocalMarkTask, recheckTee, afterTee, END,
   msg = 90, inject = 99,
   command = "command", id = "id", shortcut = "shortcut", focus = "focus", tip = "tip",
 }
@@ -739,6 +739,7 @@ interface FgReq {
   [kFgReq.pages]: { /** id of query array */ i: number; /** queries */ q: unknown[] }
   [kFgReq.showUrl]: { u: string }
   [kFgReq.omniCopy]: { /** title */ t: string, /** url */ u: string }
+  [kFgReq.omniCopied]: { /** text */ t: string }
 }
 
 interface CurrentEnvCache {} // eslint-disable-line @typescript-eslint/no-empty-interface

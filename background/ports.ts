@@ -1,7 +1,7 @@
 import {
   needIcon_, cPort, set_cPort, reqH_, contentPayload_, omniPayload_, innerCSS_, extAllowList_, framesForTab_, findCSS_,
   framesForOmni_, getNextFakeTabId, curTabId_, vomnibarPage_f, OnChrome, CurCVer_, OnEdge, setIcon_, lastKeptTabId_,
-  keyFSM_, mappedKeyRegistry_, CONST_, mappedKeyTypes_, recencyForTab_, setTeeTask_, OnFirefox, blank_,
+  keyFSM_, mappedKeyRegistry_, CONST_, mappedKeyTypes_, recencyForTab_, setTeeTask_, OnFirefox, blank_, UseZhLang_,
   isLastKeptTabPrivate_, set_isLastKeptTabPrivate_, set_lastKeptTabId_, settingsCache_
 } from "./store"
 import { asyncIter_, deferPromise_, getOmniSecret_, isNotPriviledged, keys_ } from "./utils"
@@ -389,7 +389,7 @@ export const showHUD = (text: string | Promise<string | 0>, tipId?: kTip): void 
     if (text.startsWith(CONST_.BrowserProtocol_ + "-") && text.includes("://")) {
       text = text.slice(text.indexOf("/", text.indexOf("/") + 2) + 1) || text
     }
-    text = text.length > 41 ? text.slice(0, 41) + "\u2026" : text && text + "."
+    text = text.length > 41 ? text.slice(0, 41) + "\u2026" : text && text + (UseZhLang_ ? "\u3002" : ".")
   }
   if (cPort && !safePost(cPort, {
       N: kBgReq.showHUD, H: ensureInnerCSS(cPort.s), k: isCopy && text ? kTip.copiedIs : tipId || kTip.raw, t: text
