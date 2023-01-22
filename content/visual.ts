@@ -147,17 +147,16 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode], count: number):
       }
     }
     // editable text elements
-    const lock = OnFirefox ? null : insert_Lock_()
-    if (lock && parentNode_unsafe_s(lock) === anchorNode) {
-      if (oldDiType & DiType.Unknown && getEditableType_<0>(lock) > EditableType.MaxNotTextModeElement) {
+    if (!OnFirefox && raw_insert_lock && parentNode_unsafe_s(raw_insert_lock) === anchorNode) {
+      if (oldDiType & DiType.Unknown && getEditableType_<0>(raw_insert_lock) > EditableType.MaxNotTextModeElement) {
         const child = (OnFirefox ? (anchorNode as Element).childNodes as NodeList
             : GetChildNodes_not_ff!(anchorNode as Element)
             )[num1 >= 0 ? num1 : selOffset_(sel)] as Node | undefined
-        if (lock === child || /** tend to trust that the selected is a textbox */ !child) {
+        if (raw_insert_lock === child || /** tend to trust that the selected is a textbox */ !child) {
           if (!OnChrome || Build.MinCVer >= BrowserVer.Min$selectionStart$MayBeNull
               || chromeVer_ > BrowserVer.Min$selectionStart$MayBeNull - 1
-              ? textOffset_(lock as TextElement) != null
-              : safeCall(textOffset_, lock as TextElement) != null) {
+              ? textOffset_(raw_insert_lock as TextElement) != null
+              : safeCall(textOffset_, raw_insert_lock as TextElement) != null) {
             diType_ = DiType.TextBox | (oldDiType & DiType.isUnsafe)
           }
         }

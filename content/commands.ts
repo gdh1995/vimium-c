@@ -7,8 +7,8 @@ import {
 import {
   isHTML_, hasTag_, createElement_, querySelectorAll_unsafe_, SafeEl_not_ff_, docEl_unsafe_, MDW, CLK, derefInDoc_,
   querySelector_unsafe_, DAC, removeEl_s, appendNode_s, setClassName_s, INP, contains_s, toggleClass_s, modifySel,
-  focus_, testMatch, docHasFocus_, deepActiveEl_unsafe_, getEditableType_, textOffset_, getAccessibleSelectedNode,
-  getDirectionOfNormalSelection, inputSelRange, dispatchAsync_, notSafe_not_ff_, activeEl_unsafe_, IsInDOM_,
+  focus_, testMatch, docHasFocus_, deepActiveEl_unsafe_, getEditableType_, textOffset_,
+  inputSelRange, dispatchAsync_, notSafe_not_ff_, activeEl_unsafe_, IsInDOM_,
   isIFrameElement
 } from "../lib/dom_utils"
 import {
@@ -23,7 +23,7 @@ import { post_, set_contentCommands_, runFallbackKey, send_ } from "./port"
 import {
   addElementList, ensureBorder, evalIfOK, getSelected, getSelectionText, getParentVApi, curModalElement, createStyle,
   getBoxTagName_old_cr, setupExitOnClick, addUIElement, removeSelection, ui_root, kExitOnClick, collpaseSelection,
-  hideHelp, set_hideHelp, set_helpBox, checkHidden, flash_, filterOutInert, doesSelectRightInEditableLock, selectNode_,
+  hideHelp, set_hideHelp, set_helpBox, checkHidden, flash_, filterOutInert, maySelectRight_, selectNode_,
   adjustUI, focusIframeContentWnd_
 } from "./dom_ui"
 import { hudHide, hudShow, hudTip, hud_text } from "./hud"
@@ -363,7 +363,7 @@ set_contentCommands_([
         ? raw_insert_lock as TextElement : 0;
     (editable || options.dom) && timeout_((): void => {
       let commands = isTY(options.run) ? options.run.split(<RegExpG> /,\s*/g) : options.run
-      let sel: Selection | undefined, absCount = abs_(count)
+      let sel: Selection | undefined, absCount = abs_(count), firstCmd = 0
       let cur: string | 0, offset: number, dir: boolean
       let start: number, end: number | null, start0: number, rawOffset: number | null
       while (0 < absCount--) {
@@ -392,19 +392,24 @@ set_contentCommands_([
             }))
             editable === insert_Lock_() && rawOffset != null && inputSelRange(editable, start, end)
           } else if (cmd === "select") {
-            const activeEl = findAnElement_(options, count)[0]
+            const activeEl = findAnElement_(options, i > firstCmd ? 1 : count)[0]
             activeEl && ((activeEl as Partial<TextElement>).select ? (activeEl as TextElement).select()
                 : selectNode_(activeEl))
+          } else if (sel = sel || getSelected(), cmd === "when" || cmd === "if") {
+            firstCmd = 3
+            for (const cond of Lower((a1 + ";" + a2)) .split(";")) {
+              if (cond === "caret" || cond === "range" ? (cond[0] === "r") !== isSelARange(sel)
+                  : cond === "input" || cond === "dom" ? (cond === "dom") !== !editable
+                  : (<RegExpOne> /^(for|back)/).test(cond) ? (cond[0] === "f") !== maySelectRight_(sel) : 0) {
+                i += 3; break
+              }
+            }
           } else {
-            sel = sel || getSelected()
-            // a1: string := count | focus(ed) | forward(s) | backward(s) | begin | start | end
-            dir = count > 0 === (a1[4] !== "s" ? a1 > kChar.c && a1 < "s" : (
-              insert_Lock_() && getEditableType_<0>(raw_insert_lock!) === EditableType.TextBox
-              ? doesSelectRightInEditableLock()
-              : !!getDirectionOfNormalSelection(sel, getAccessibleSelectedNode(sel), getAccessibleSelectedNode(sel, 1))
-            ))
+            // a1: string := count | anchor | focus(ed) | forward(s) | backward(s) | begin | start | end
+            dir = (i > firstCmd || count > 0) === (a1[4] === "s" ? maySelectRight_(sel)
+                : a1[0] === "a" ? !maySelectRight_(sel) : a1 > kChar.c && a1 < "s")
             if (cmd === "collapse") {
-              collpaseSelection(sel, dir)
+              collpaseSelection(sel, dir, 1)
             } else {
               // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
               modifySel(sel, cmd === "auto" ? isSelARange(sel) : cmd < kChar.f, dir, a2 as any)

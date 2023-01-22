@@ -588,7 +588,7 @@ const autoShowRect = (): Rect | null => (removeFlash || showRect && rect && flas
     } else { // HintMode.ENTER_VISUAL_MODE
       selectAllOfNode(clickEl)
       const sel = getSelection_(), caret = hintOptions.caret
-      collpaseSelection(sel)
+      collpaseSelection(sel, VisualModeNS.kDir.left, 1)
       modifySel(sel, 1, 1, caret ? kGCh : "word")
       hintOptions.visual === !1 || post_({ H: kFgReq.visualMode, c: caret, f: then })
     }

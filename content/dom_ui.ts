@@ -8,7 +8,8 @@ import {
   GetParent_unsafe_, getSelection_, GetShadowRoot_, getEditableType_, htmlTag_, textOffset_, derefInDoc_, supportInert_,
   notSafe_not_ff_, CLK, frameElement_, runJS_, isStyleVisible_, rangeCount_, getAccessibleSelectedNode, removeEl_s,
   appendNode_s, append_not_ff, setClassName_s, isNode_, contains_s, setOrRemoveAttr_s, textContent_s, inputSelRange,
-  parentNode_unsafe_s, setDisplaying_s, editableTypes_, getRootNode_mounted, singleSelectionElement_unsafe, isHTML_
+  parentNode_unsafe_s, setDisplaying_s, editableTypes_, getRootNode_mounted, singleSelectionElement_unsafe, isHTML_,
+  getDirectionOfNormalSelection,
 } from "../lib/dom_utils"
 import {
   bZoom_, dScale_, getZoom_, wdZoom_, boundingRect_, prepareCrop_, getClientRectsForAreas_,
@@ -346,6 +347,11 @@ export const getSelectionText = (type?: 0 | 1, sel?: Selection): string => {
 export const doesSelectRightInEditableLock = (): boolean =>
     (raw_insert_lock as TextElement).selectionDirection !== kDir[0]
 
+export const maySelectRight_ = (sel: Selection): boolean =>
+    insert_Lock_() && getEditableType_<0>(raw_insert_lock!) === EditableType.TextBox
+    ? doesSelectRightInEditableLock()
+    : !!getDirectionOfNormalSelection(sel, getAccessibleSelectedNode(sel), getAccessibleSelectedNode(sel, 1))
+
 export const removeSelection = function (root?: VUIRoot & Pick<DocumentOrShadowRoot, "getSelection">): boolean {
     const sel = (OnChrome && Build.MinCVer >= BrowserVer.MinShadowDOMV0
         ? root : root && hasGetSelection(root)) ? getSelectionOf(root as ShadowRoot) : getSelection_()
@@ -413,8 +419,15 @@ export const moveSel_s_throwable = (element: LockableElement, action: SelectActi
     }
 }
 
-export const collpaseSelection = (sel: Selection, toEnd?: VisualModeNS.ForwardDir | boolean): void => {
-  toEnd ? sel.collapseToEnd() : sel.collapseToStart()
+export const collpaseSelection = (sel: Selection, toEnd?: VisualModeNS.ForwardDir | boolean,
+    fix_input?: number): void => {
+  if (!OnFirefox && fix_input && raw_insert_lock && getEditableType_(raw_insert_lock) &&
+      editableTypes_[htmlTag_(raw_insert_lock)]! > EditableType.MaxNotTextModeElement) {
+    fix_input = textOffset_(raw_insert_lock as TextElement, toEnd)!
+    inputSelRange(raw_insert_lock as TextElement, fix_input, fix_input, VisualModeNS.kDir.right)
+  } else {
+    toEnd ? sel.collapseToEnd() : sel.collapseToStart()
+  }
 }
 
 export const getRect = (clickEl: SafeElement, refer?: HTMLElementUsingMap | null): Rect | null => {

@@ -228,7 +228,7 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
     const sel = getSelectionOf(OnChrome ? Build.MinCVer >= BrowserVer.MinShadowDOMV0 ? root_! : root_ || innerDoc_
         : root_ && hasGetSelection(root_) ? root_ : innerDoc_)!
     if (action > 2) {
-      if (sel + "" === input_.innerText) { collpaseSelection(sel, VisualModeNS.kDir.right) }
+      if (sel + "" === input_.innerText) { collpaseSelection(sel, VisualModeNS.kDir.right, 1) }
       else { historyIndex++ }
     } else if (action) {
       const node = getAccessibleSelectedNode(sel, 1)
