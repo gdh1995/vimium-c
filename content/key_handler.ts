@@ -4,7 +4,7 @@ import {
 } from "../lib/utils"
 import {
   set_getMappedKey, char_, getMappedKey, isEscape_, getKeyStat_, prevent_, handler_stack, keybody_, SPC, hasShift_ff,
-  replaceOrSuppressMost_, removeHandler_
+  replaceOrSuppressMost_, removeHandler_, isRepeated_, consumeKey_mac
 } from "../lib/keyboard_utils"
 import {
   deepActiveEl_unsafe_, getSelection_, ElementProto_not_ff, getElDesc_, blur_unsafe, getEventPath
@@ -245,7 +245,7 @@ export const onKeydown = (event: KeyboardEventToPrevent): void => {
     ) {
       OnChrome && checkAccessKey_cr(eventWrapper) // even if nothing will be done or `passEsc` matches
       if (!insert_global_ && (raw_insert_lock && raw_insert_lock === doc.body || !isTop && wndSize_() < 5)) {
-        event.repeat && focusUpper(key, true, event);
+        isRepeated_(eventWrapper) && focusUpper(key, true, event);
         action = /* the real is HandlerResult.PassKey; here's for smaller code */ HandlerResult.Nothing;
       } else {
         action = /*#__NOINLINE__*/ exitInsertMode(event.target as Element, eventWrapper)
@@ -262,7 +262,7 @@ export const onKeydown = (event: KeyboardEventToPrevent): void => {
       keyStr = getMappedKey(eventWrapper, currentKeys ? kModeId.Next : kModeId.Normal)
       action = keyStr ? checkKey(eventWrapper, keyStr, 0) : HandlerResult.Nothing
       if (action > HandlerResult.MaxNotEsc) {
-        action = action > HandlerResult.PlainEsc ? /*#__NOINLINE__*/ onEscDown(event, key, event.repeat)
+        action = action > HandlerResult.PlainEsc ? /*#__NOINLINE__*/ onEscDown(event, key, isRepeated_(eventWrapper))
             : HandlerResult.Nothing;
       }
       if (action === HandlerResult.Nothing && suppressType && eventWrapper.c.length === 1 && !getKeyStat_(event)) {
@@ -272,7 +272,8 @@ export const onKeydown = (event: KeyboardEventToPrevent): void => {
   }
   if (action < HandlerResult.MinStopOrPreventEvents) {
     // https://github.com/gdh1995/vimium-c/issues/390#issuecomment-894687506
-    if (Build.OS & (1 << kOS.mac) && !os_ && keydownEvents_[key] === 1 && !event.repeat) {
+    if (Build.OS & (1 << kOS.mac) && (!(Build.OS & ~(1 << kOS.mac)) || !os_) &&
+        keydownEvents_[key] === 1 && (Build.BTypes & BrowserType.Chrome ? !event.repeat : isRepeated_(eventWrapper))) {
       keydownEvents_[key] = 0
     }
     return
@@ -287,7 +288,7 @@ export const onKeydown = (event: KeyboardEventToPrevent): void => {
   } else {
     Stop_(event);
   }
-  keydownEvents_[key] = 1;
+  Build.OS & (1 << kOS.mac) ? consumeKey_mac(key, event) : (keydownEvents_[key] = 1)
 }
 
 /** @param key should be valid */

@@ -56,6 +56,9 @@ export let CurFFVer_: FirefoxBrowserVer = !OnFirefox ? FirefoxBrowserVer.assumed
     ? parseInt(tmpBrand.version)
     : parseInt(navigator.userAgent!.split("Firefox/")[1] || "0") || FirefoxBrowserVer.assumedVer
 export let BrowserName_: string | undefined
+export let PageOs_: kOS = Build.OS & (Build.OS - 1) ? kOS.UNKNOWN : (Build.OS < 8 ? (Build.OS / 2) | 0
+    : Math.log2(Build.OS)) as kOS
+export const setupPageOs_ = (os: kOS) => { PageOs_ = os }
 
 export const browser_: typeof chrome = OnChrome ? chrome : browser as typeof chrome
 if (!OnChrome && window.chrome) { window.chrome = null as never }
@@ -470,6 +473,25 @@ export const hasShift_ = (event: Pick<KeyboardEvent, "shiftKey" | "key" | "getMo
   const key = event.key!
   // if `privacy.resistFingerprinting` && CapsLock && A-Z, then Shift is reversed
   return key.length === 1 && event.getModifierState("CapsLock") ? key !== key.toUpperCase() : event.shiftKey
+}
+
+export const isRepeated_ = (event: KeyboardEvent): boolean => {
+  const repeated = event.repeat
+  if (OnChrome ? Build.MinCVer >= BrowserVer.MinCorrect$KeyboardEvent$$Repeat
+      : OnFirefox ? !(Build.OS & (1 << kOS.unixLike)) : true) {
+    return repeated
+  }
+  return repeated || (OnChrome ? CurCVer_ < BrowserVer.MinCorrect$KeyboardEvent$$Repeat
+    : OnFirefox && (!(Build.OS & ~(1 << kOS.unixLike)) || PageOs_ === kOS.unixLike))
+      && !!(VApi && VApi.a()[event.keyCode] && event.keyCode)
+}
+
+export const prevent_ = (event: EventToPrevent & PartialOf<KeyboardEvent, "keyCode" | "metaKey">): void => {
+  event.preventDefault()
+  const keyCode = event.type === "keydown" ? event.keyCode : kKeyCode.None
+  if (keyCode && (!(Build.OS & (1 << kOS.mac)) || Build.OS & ~(1 << kOS.mac) && PageOs_ || !event.metaKey)) {
+    VApi && (VApi.a()[keyCode] = 1)
+  }
 }
 
 if (typeof VApi === "undefined") { globalThis.VApi = undefined }

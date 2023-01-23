@@ -1,6 +1,6 @@
 import {
   CurCVer_, CurFFVer_, OnChrome, OnEdge, OnFirefox, $, import2, OnSafari, enableNextTick_, isVApiReady_, kReadyInfo,
-  simulateClick, ValidFetch, post_
+  simulateClick, ValidFetch, post_, prevent_
 } from "./async_bg"
 import { bgSettings_, AllowedOptions, ExclusionRulesOption_, Option_, oTrans_, getSettingsCache_ } from "./options_base"
 import { exportBtn, saveBtn } from "./options_defs"
@@ -18,7 +18,7 @@ const showHelp = (event?: EventToPrevent | "force" | void | null): void => {
     return;
   }
   let node: HTMLElement | null, root = VApi.y().r, diff = false
-  event && event !== "force" && event.preventDefault()
+  event && event !== "force" && prevent_(event)
   if (!root) { /* empty */ }
   else if (node = root.querySelector("#HCls") as HTMLElement | null) {
     if (event !== "force" && root.querySelector(".HelpCommandName") != null) { simulateClick(node); return }

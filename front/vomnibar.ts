@@ -235,6 +235,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   styles_: "",
   styleEl_: null as HTMLStyleElement | null,
   darkBtn_: null as HTMLElement | null,
+  last_scrolling_key_: kKeyCode.None,
   showTime_: 0 as 0 | /** abs-num */ 1 | /** abs */ 2 | /** relative */ 3,
   show_ (): void {
     const a = Vomnibar_
@@ -591,7 +592,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   onKeydown_ (event: KeyboardEventToPrevent): void {
     const a = Vomnibar_, n = event.keyCode, focused = a.focused_,
     { mapped, key } = n !== kKeyCode.ime ? a.getMappedKey_(event) : { mapped: false, key: "" }
-    a.lastKey_ = n;
+    a.lastKey_ = (!(Build.OS & (1 << kOS.mac)) || Build.OS & ~(1 << kOS.mac) && a.os_ || !event.metaKey) ? n : 0
     if (!key) {
       a.inAlt_ && !a._modifierKeys[Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key
             && Build.BTypes & BrowserType.Chrome ? event.key || "" : event.key!] && a.toggleAlt_(0);
@@ -612,7 +613,6 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         if (key === "a-" + kChar.Alt || key === "a-" + kChar.Modifier) {
           a.inAlt_ || addEventListener("keyup", a.toggleAlt_, true)
           a.inAlt_ = a.inAlt_ || setTimeout(a.toggleAlt_, 260, -1)
-          a.inAlt_ < 0 && !event.repeat && a.toggleAlt_(0)
           return;
         }
         if (char === kChar.down || char === kChar.up || (<RegExpOne> /^[jknp]$/).test(char)) {
@@ -687,6 +687,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       } else if (char === kChar.up || char === kChar.down || char === kChar.end || char === kChar.home) {
         event.preventDefault();
         a.lastScrolling_ = event.timeStamp
+        a.last_scrolling_key_ = -n
         window.onkeyup = Vomnibar_.HandleKeydown_;
         VPort_.postToOwner_({ N: VomnibarNS.kFReq.scroll, k: key, b: char });
         return;
@@ -1445,17 +1446,23 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     if (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome) ? !event.isTrusted
         : event.isTrusted !== true && !(event.isTrusted == null && event instanceof KeyboardEvent)) { return; }
     Vomnibar_.keyResult_ = SimpleKeyResult.Prevent as SimpleKeyResult;
-    if (window.onkeyup) {
-      let keyCode = event.keyCode, stop = !event.repeat, now = 0;
-      if (!Vomnibar_.lastScrolling_) {
-        // clear state, to avoid OnEnterUp receives unrelated keys
-        stop = keyCode > kKeyCode.maxAcsKeys || keyCode < kKeyCode.minAcsKeys;
-      } else if (stop || (now = event.timeStamp) - Vomnibar_.lastScrolling_ > 40 || now < Vomnibar_.lastScrolling_) {
+    let stop: 0 | 1 | 2 | 3 = 3, now = 0
+    if (Vomnibar_.last_scrolling_key_) {
+      const keyCode = event.keyCode, hasChar = keyCode > kKeyCode.maxAcsKeys || keyCode < kKeyCode.minAcsKeys,
+      isSameChar = keyCode === Math.abs(Vomnibar_.last_scrolling_key_)
+      stop = event.repeat || hasChar && isSameChar && event.type === "keydown" ? 0 : 1
+      if (hasChar && !isSameChar) { stop = 3 }
+      else if (Vomnibar_.last_scrolling_key_ > 0) { stop = event.type === "keyup" ? 2 : 0 }
+      else if (stop || (now = event.timeStamp) - Vomnibar_.lastScrolling_ > 40 || now < Vomnibar_.lastScrolling_) {
         VPort_.postToOwner_({ N: stop ? VomnibarNS.kFReq.scrollEnd : VomnibarNS.kFReq.scrollGoing });
         Vomnibar_.lastScrolling_ = now;
       }
-      if (stop) { window.onkeyup = null as never; }
-    } else if (Vomnibar_.isActive_) {
+      if (stop) {
+        Vomnibar_.last_scrolling_key_ = hasChar || stop > 1 ? kKeyCode.None : Math.abs(Vomnibar_.last_scrolling_key_)
+        if (!Vomnibar_.last_scrolling_key_) { window.onkeyup = null as never }
+      }
+    }
+    if (stop === 3 && Vomnibar_.isActive_) {
       /*#__NOINLINE__*/ Vomnibar_.onKeydown_(event)
     }
     if (Vomnibar_.keyResult_ === SimpleKeyResult.Nothing) { return; }
@@ -1467,7 +1474,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     if (isKeyup = enable !== -1 && enable !== 0 && enable !== undefined) {
       const key = Vomnibar_.getMappedKey_(enable).key
       if (!(key === kChar.Alt || key === "a-" + kChar.Alt)) { return }
-      enable = Vomnibar_.inAlt_ > 0 ? -1 : 0
+      enable = inAlt > 0 ? -1 : 0
     }
     enable = enable || 0
     if (inAlt !== enable) {

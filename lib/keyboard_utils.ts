@@ -137,15 +137,21 @@ export const getKeyStat_ = (event: Pick<KeyboardEvent, "altKey" | "ctrlKey" | "m
             (ignoreShift ? 0
               : <number> <boolean|number> (OnFirefox ? hasShift_ff!(event as KeyboardEvent) : event.shiftKey) * 8)
 
-export const isKeyRepeat_ = (event: HandlerNS.Event): boolean => {
+export const isRepeated_ = (event: HandlerNS.Event): boolean => {
   const repeat = event.e.repeat
-  if (OnChrome ? Build.MinCVer < BrowserVer.Min$KeyboardEvent$$Repeat$ExistsButNotWork
-      : OnFirefox && !(Build.OS & (1 << kOS.unixLike))) {
+  if (OnChrome ? Build.MinCVer >= BrowserVer.MinCorrect$KeyboardEvent$$Repeat
+      : OnFirefox ? !(Build.OS & (1 << kOS.unixLike)) : true) {
     return repeat
   }
-  return repeat || (OnChrome ? chromeVer_ < BrowserVer.Min$KeyboardEvent$$Repeat$ExistsButNotWork - 1
+  return repeat || (OnChrome ? chromeVer_ < BrowserVer.MinCorrect$KeyboardEvent$$Repeat
     : OnFirefox && (!(Build.OS & ~(1 << kOS.unixLike)) || os_ === kOS.unixLike))
       && !!(keydownEvents_[event.i] && event.i)
+}
+
+export const consumeKey_mac = (keyToConsume: kKeyCode, eventToConsume: KeyboardEvent): void => {
+  if (!(Build.OS & (1 << kOS.mac)) || Build.OS & ~(1 << kOS.mac) && os_ || !eventToConsume.metaKey) {
+    keydownEvents_[keyToConsume] = 1
+  }
 }
 
 export const isEscape_ = (key: string): HandlerResult.AdvancedEsc | HandlerResult.PlainEsc | HandlerResult.Nothing => {
@@ -187,7 +193,7 @@ export const suppressTail_ = ((timeout?: number
     , callback?: HandlerNS.VoidHandler<unknown> | 0): HandlerNS.Handler | HandlerNS.VoidHandler<HandlerResult> => {
   let timer: ValidTimeoutID = TimerID.None, now: number, func = (event?: HandlerNS.Event): HandlerResult => {
       if (!timeout) {
-        if (isKeyRepeat_(event!)) { return HandlerResult.Prevent }
+        if (isRepeated_(event!)) { return HandlerResult.Prevent }
         exit()
         return HandlerResult.Nothing;
       }

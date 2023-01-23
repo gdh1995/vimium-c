@@ -1,6 +1,6 @@
 import {
   CurCVer_, CurFFVer_, OnChrome, OnFirefox, OnEdge, $, pageTrans_, browser_, nextTick_, enableNextTick_, kReadyInfo,
-  import2, TransTy, isVApiReady_, post_, disconnect_, simulateClick, ValidFetch, hasShift_
+  import2, TransTy, isVApiReady_, post_, disconnect_, simulateClick, ValidFetch, hasShift_, setupPageOs_, isRepeated_, prevent_
 } from "./async_bg"
 import { kPgReq } from "../background/page_messages"
 import type * as i18n_popup from "../i18n/zh/popup.json"
@@ -290,6 +290,7 @@ nextTick_((): void => {
   window.onhashchange = App // eslint-disable-line @typescript-eslint/no-misused-promises
   window.onpopstate = App // eslint-disable-line @typescript-eslint/no-misused-promises
   void App().then((): void => { void isVApiReady_.then(disconnect_) })
+  void post_(kPgReq.showInit).then((conf): void => { setupPageOs_(conf.os) })
 })
 
 window.onunload = destroyObject_;
@@ -299,7 +300,7 @@ body.ondrop = (e): void => {
   if (files.length === 1) {
     const file = files.item(0), name = file.name
     if (file.type.startsWith("image/") || ImageExtRe.test(name)) {
-      (e as Event as EventToPrevent).preventDefault()
+      prevent_(e as Event as EventToPrevent)
       _nextUrl = "#!image download=" + encodeAsciiComponent_(name) + "&" + URL.createObjectURL(file);
       void App()
     }
@@ -311,7 +312,7 @@ body.ondragover = body.ondragenter = (e): void => {
   if (items.length === 1) {
     const item = items[0]
     if (item.type.startsWith("image/")) {
-      (e as Event as EventToPrevent).preventDefault()
+      prevent_(e as Event as EventToPrevent)
     }
   }
 }
@@ -320,7 +321,7 @@ document.addEventListener("keydown", function (this: void, event): void {
   if (VData.type === "image" && imgOnKeydown(event)) {
     return;
   }
-  if (!(event.ctrlKey || event.metaKey) || event.altKey || event.repeat || hasShift_(event)) { return }
+  if (!(event.ctrlKey || event.metaKey) || event.altKey || isRepeated_(event) || hasShift_(event)) { return }
   const str = String.fromCharCode(event.keyCode as kKeyCode | kCharCode as kCharCode);
   if (str === "S") {
     clickLink({
@@ -331,7 +332,7 @@ document.addEventListener("keydown", function (this: void, event): void {
   } else if (str === "A") {
     toggleInvert(event);
   } else if (str === "O") {
-    event.preventDefault()
+    prevent_(event)
     const input = document.createElement("input")
     input.type = "file"
     input.accept = "image/*"
@@ -357,7 +358,7 @@ function showBgLink(this: void): void {
 
 function clickLink(this: void, options: { [key: string]: string }
     , event: MouseEventToPrevent | KeyboardEventToPrevent): void {
-  event.preventDefault();
+  prevent_(event)
   if (!VData.url) { return; }
   const a = document.createElement("a")
     Object.setPrototypeOf(options, null);
@@ -398,7 +399,7 @@ function imgOnKeydown(event: KeyboardEventToPrevent): boolean {
         return true
       }
     }
-    event.preventDefault();
+    prevent_(event)
     if (keybody === kChar.enter && viewer_ && viewer_.isShown && !viewer_.hiding && !viewer_.played) {
       viewer_.play(true);
     } else if (!viewer_ || !viewer_.isShown || viewer_.hiding) {
@@ -414,7 +415,7 @@ function imgOnKeydown(event: KeyboardEventToPrevent): boolean {
   case "c--": case "m--": case "-": case "down": action = -1; break;
   default: return false;
   }
-  event.preventDefault();
+  prevent_(event)
   event.stopImmediatePropagation();
   if (viewer_ && viewer_.viewed) {
     doImageAction(viewer_, action);
@@ -467,7 +468,7 @@ function defaultOnClick(event: MouseEventToPrevent): void {
 }
 
 function clickShownNode(event: MouseEventToPrevent): void {
-  event.preventDefault();
+  prevent_(event)
   const a = VShown as ValidNodeTypes;
   if (a.onclick) {
     a.onclick(event);
@@ -500,7 +501,7 @@ function copyThing(event: EventToPrevent): void {
       // e.g. Ctrl+A and then Ctrl+C; work well with MS Word
       return;
     }
-    event.preventDefault();
+    prevent_(event)
     const clipboard = navigator.clipboard;
     if (OnFirefox || OnChrome
           && Build.MinCVer >= BrowserVer.MinEnsured$Clipboard$$write$and$ClipboardItem
@@ -548,17 +549,17 @@ function copyThing(event: EventToPrevent): void {
 
 function _copyStr(str: string, event?: EventToPrevent): void {
   if (!(str && VApi)) { return; }
-  event && event.preventDefault();
+  event && prevent_(event)
   VApi.p({
     H: kFgReq.copy,
     s: str
   });
 }
 
-function toggleInvert(event: EventToPrevent): void {
+function toggleInvert(event: KeyboardEventToPrevent): void {
   if (VData.type === "image") {
     if (VData.error || viewer_ && viewer_.isShown && !viewer_.hiding) {
-      event.preventDefault();
+      prevent_(event)
     } else {
       (VShown as ValidNodeTypes).classList.toggle("invert");
     }

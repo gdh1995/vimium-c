@@ -274,6 +274,9 @@ const pageRequestHandlers_: {
   },
   /** kPgReq.saveToSyncAtOnce: */ (): void => {
     settingsCache_.vimSync && updateHooks_.vimSync!(true, "vimSync")
+  },
+  /** kPgReq.showInit: */ (): PgReq[kPgReq.showInit][1] => {
+    return { os: os_ }
   }
 ]
 

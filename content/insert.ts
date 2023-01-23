@@ -13,7 +13,7 @@ import {
   SafeEl_not_ff_, MDW, fullscreenEl_unsafe_, removeEl_s, isNode_, BU, docHasFocus_, getRootNode_mounted, testMatch,
   getEventPath
 } from "../lib/dom_utils"
-import { handler_stack, removeHandler_, prevent_, isEscape_ } from "../lib/keyboard_utils"
+import { handler_stack, removeHandler_, prevent_, isEscape_, consumeKey_mac } from "../lib/keyboard_utils"
 import { InputHintItem } from "./link_hints"
 import { find_box } from "./mode_find"
 
@@ -160,7 +160,8 @@ export const focusUpper = (key: kKeyCode, force: boolean, event: ToPrevent | 0):
   if (!parEl && (!force || isTop)) { return; }
   event && prevent_(event); // safer
   if (parEl) {
-    keydownEvents_[key] = 1;
+    Build.OS & (1 << kOS.mac) ? consumeKey_mac(key, event as KeyboardEventToPrevent)
+        : (keydownEvents_[key] = 1)
     const parApi = getParentVApi()
     if (parApi && !parApi.a(keydownEvents_)) {
       parApi.s()

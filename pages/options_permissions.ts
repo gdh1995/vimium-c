@@ -1,5 +1,7 @@
 import { kPgReq } from "../background/page_messages"
-import { $, OnEdge, browser_, OnFirefox, OnChrome, nextTick_, CurCVer_, IsEdg_, post_, pageLangs_ } from "./async_bg"
+import {
+  $, OnEdge, browser_, OnFirefox, OnChrome, nextTick_, CurCVer_, IsEdg_, post_, pageLangs_, PageOs_, prevent_
+} from "./async_bg"
 import { Option_, KnownOptionsDataset, oTrans_, bgSettings_, delayBinding } from "./options_base"
 import { registerClass, createNewOption, TextOption_ } from "./options_defs"
 import kBrowserPermission = chrome.permissions.kPermission
@@ -184,7 +186,7 @@ OnEdge || registerClass("OptionalPermissions", OptionalPermissionsOption_)
 
 const initOptionalPermissions = (): void => {
   const fragment = document.createDocumentFragment()
-  if (OnFirefox && Build.OS & (1 << kOS.unixLike) && bgSettings_.os_ === kOS.unixLike) {
+  if (OnFirefox && Build.OS & (1 << kOS.unixLike) && PageOs_ === kOS.unixLike) {
     template.querySelector("input")!.classList.add("baseline")
   }
   for (const shownItem of shownItems) {
@@ -265,7 +267,7 @@ const onInput = (e: Event): void => {
 }
 
 const onCrUrlClick = (e: EventToPrevent): void => {
-  e.preventDefault()
+  prevent_(e)
   void post_(kPgReq.focusOrLaunch, { u: (e.target as HTMLAnchorElement).href, p: false })
 }
 

@@ -1,6 +1,6 @@
 import {
   CurCVer_, OnChrome, OnFirefox, $, $$, nextTick_, post_, enableNextTick_, kReadyInfo, toggleReduceMotion, OnEdge,
-  CurFFVer_, OnSafari
+  CurFFVer_, OnSafari, prevent_
 } from "./async_bg"
 import {
   bgSettings_, Option_, AllowedOptions, Checker, PossibleOptionNames, ExclusionRulesOption_, oTrans_, delayBinding,
@@ -159,7 +159,7 @@ export class NumberOption_<T extends UniversalNumberOptions> extends Option_<T> 
     el.addEventListener("blur", onBlur)
   }
   onWheel_ (event: WheelEvent & ToPrevent): void {
-    event.preventDefault()
+    prevent_(event)
     const oldTime = this.wheelTime_
     let i = Date.now() // safe for time changes
     if (i - oldTime < 100 && i + 99 > oldTime && oldTime) { return }
@@ -222,7 +222,7 @@ export class BooleanOption_<T extends keyof AllowedOptions> extends Option_<T> {
   }
   static ToggleTripleStatuses (old: 0 | 1 | 2, event: Event): 0 | 1 | 2 {
     const elemenc = event.target as HTMLInputElement
-    (event as EventToPrevent).preventDefault()
+    prevent_(event as EventToPrevent)
     const newVal = old === 2 ? 1 : old ? 0 : 2
     elemenc.indeterminate = old === 2
     elemenc.checked = newVal === 2
@@ -546,7 +546,7 @@ export const createNewOption = ((): <T extends keyof AllowedOptions> (_element: 
   table.ondragstart = (event): void => {
     const dragged = event.target as HTMLTableRowElement | HTMLInputElement
     const cur = document.activeElement!
-    if (cur.localName === "input") { cur !== dragged && (event as Event as EventToPrevent).preventDefault(); return }
+    if (cur.localName === "input") { cur !== dragged && prevent_(event as Event as EventToPrevent); return }
     exclusionRules.dragged_ = dragged as HTMLTableRowElement
     dragged.style.opacity = "0.5"
     if (OnFirefox) {
@@ -558,9 +558,9 @@ export const createNewOption = ((): <T extends keyof AllowedOptions> (_element: 
     exclusionRules.dragged_ = null
     dragged && (dragged.style.opacity = "")
   }
-  table.ondragover = (event): void => { exclusionRules.dragged_ && event.preventDefault() }
+  table.ondragover = (event): void => { exclusionRules.dragged_ && prevent_(event) }
   table.ondrop = (event): void => {
-    event.preventDefault()
+    prevent_(event)
     const dragged = exclusionRules.dragged_
     if (!dragged) { return }
     let target: Element | null = event.target as Element

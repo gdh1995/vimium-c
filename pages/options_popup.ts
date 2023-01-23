@@ -1,6 +1,6 @@
 import {
   OnFirefox, OnEdge, OnChrome, $, pageTrans_, enableNextTick_, nextTick_, kReadyInfo, TransTy, IsEdg_, post_,
-  toggleReduceMotion, hasShift_
+  toggleReduceMotion, hasShift_, PageOs_, setupPageOs_, prevent_
 } from "./async_bg"
 import {
   bgSettings_, ExclusionVisibleVirtualNode, ExclusionRulesOption_, setupBorderWidth_, showI18n, kExclusionChange,
@@ -178,7 +178,7 @@ const _forceState = (cmd: string): Promise<void> => {
 }
 
 const forceState = (act: "Reset" | "Enable" | "Disable", event?: EventToPrevent): void => {
-  event && event.preventDefault()
+  event && prevent_(event)
   const notClose = event && ((event as Event as MouseEvent).ctrlKey || (event as Event as MouseEvent).metaKey)
   void _forceState(`${conf_.tabId}/${act}`).then((): void => {
     notClose ? (updateBottomLeft(), updateState(false)) : window.close()
@@ -263,7 +263,7 @@ const initOptionsLink = (_url: string): void => {
       element.href = optionsUrl
     })
     element.onclick = (event: EventToPrevent): void => {
-      event.preventDefault()
+      prevent_(event)
       void post_(kPgReq.focusOrLaunch, { u: optionsUrl, p: true }).then((): void => {
         window.close()
       })
@@ -272,7 +272,7 @@ const initOptionsLink = (_url: string): void => {
 }
 
 const initExclusionRulesTable = (): void => {
-  !(Build.OS & (1 << kOS.mac)) || Build.OS & ~(1 << kOS.mac) && OnChrome && conf_.os ||
+  !(Build.OS & (1 << kOS.mac)) || Build.OS & ~(1 << kOS.mac) && OnChrome && PageOs_ ||
   window.addEventListener("keydown", function (event): void {
     if (event.keyCode === kKeyCode.enter && event.metaKey) {
       onEnterKeyUp(event)
@@ -280,7 +280,7 @@ const initExclusionRulesTable = (): void => {
         && (event.keyCode === kKeyCode.X || conf_.lock !== null && event.keyCode === kKeyCode.Z)
         && !(event.ctrlKey || event.metaKey || hasShift_(event))
         ) {
-      event.preventDefault()
+      prevent_(event)
       event.stopImmediatePropagation()
       forceState(event.keyCode === kKeyCode.X ? toggleAction : "Reset")
     }
@@ -305,6 +305,7 @@ const initExclusionRulesTable = (): void => {
 
 void post_(kPgReq.popupInit).then((_resolved): void => {
   conf_ = _resolved
+  setupPageOs_(conf_.os)
   const _url = conf_.url
   let blockedMsg = $("#blocked-msg")
   enableNextTick_(kReadyInfo.popup)
@@ -402,7 +403,7 @@ const onNotRunnable = (blockedMsg: HTMLElement): void => {
   if (!retryInjectElement) { return }
   if (!OnFirefox && (<RegExpOne> /^(file|ftps?|https?):/).test(_url) && conf_.tabId >= 0) {
     retryInjectElement.onclick = (event): void => {
-      event.preventDefault()
+      prevent_(event)
       void post_(kPgReq.runFgOn, conf_.tabId).then((): void => {
         window.close()
       })

@@ -13,7 +13,7 @@ import {
 } from "../lib/dom_utils"
 import {
   replaceOrSuppressMost_, removeHandler_, getMappedKey, prevent_, isEscape_, keybody_, DEL, BSP, ENTER, handler_stack,
-  getKeyStat_, suppressTail_, isKeyRepeat_
+  getKeyStat_, suppressTail_, isRepeated_
 } from "../lib/keyboard_utils"
 import {
   view_, wndSize_, isNotInViewport, getZoom_, prepareCrop_, getViewBox_, padClientRect_, isSelARange, center_,
@@ -187,7 +187,7 @@ set_contentCommands_([
       return !count
     } : null
     replaceOrSuppressMost_(kHandler.passNextKey, event => {
-      if (!isKeyRepeat_(event) && (Build.OS & (1 << kOS.mac) ? shouldExit_delayed_mac!(event.e, 1) : !count)) {
+      if (!isRepeated_(event) && (Build.OS & (1 << kOS.mac) ? shouldExit_delayed_mac!(event.e, 1) : !count)) {
         return HandlerResult.Nothing
       }
       keyCount += !keys[event.i] as boolean | BOOL as BOOL
@@ -329,7 +329,7 @@ set_contentCommands_([
     set_inputHint({ b: addElementList<false>(hints, arr), h: hints })
     hints = 0 as never
     replaceOrSuppressMost_(kHandler.focusInput, (event): HandlerResult => {
-      const keyCode = event.i, isIME = keyCode === kKeyCode.ime, repeat = isKeyRepeat_(event),
+      const keyCode = event.i, isIME = keyCode === kKeyCode.ime, repeat = isRepeated_(event),
       key = isIME || repeat ? "" : getMappedKey(event, kModeId.Insert)
       if (OnFirefox && !insert_Lock_()) {
         exitInputHint()

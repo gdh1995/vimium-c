@@ -1,7 +1,7 @@
 import {
-  safer, fgCache, isImageUrl, isJSUrl, set_keydownEvents_, keydownEvents_, doc, chromeVer_, os_, timeout_,
+  safer, fgCache, isImageUrl, isJSUrl, set_keydownEvents_, doc, chromeVer_, os_, timeout_,
   createRegExp, isTY, max_, min_, OnFirefox, OnChrome, safeCall, locHref, parseOpenPageUrlOptions, VTr, loc_, OnSafari,
-  clearTimeout_, promiseDefer_, OnEdge, urlSameIgnoringHash, firefoxVer_, runtime_ff
+  clearTimeout_, promiseDefer_, OnEdge, urlSameIgnoringHash, firefoxVer_, runtime_ff, keydownEvents_
 } from "../lib/utils"
 import { getVisibleClientRect_, center_, view_, selRange_ } from "../lib/rect"
 import {
@@ -23,7 +23,7 @@ import {
   collpaseSelection, evalIfOK, flash_, getRect, getSelected, lastFlashEl, resetSelectionToDocStart, selectAllOfNode,
   selectNode_, ui_box, focusIframeContentWnd_
 } from "./dom_ui"
-import { prevent_, suppressTail_, whenNextIsEsc_ } from "../lib/keyboard_utils"
+import { consumeKey_mac, prevent_, suppressTail_, whenNextIsEsc_ } from "../lib/keyboard_utils"
 import { set_grabBackFocus } from "./insert"
 import {
   kClickAction, kClickButton, unhover_async, hover_async, click_async, select_, catchAsyncErrorSilently,
@@ -494,7 +494,7 @@ const autoShowRect = (): Rect | null => (removeFlash || showRect && rect && flas
   }
   if (event) {
     prevent_(event.e)
-    keydownEvents_[event.i] = 1
+    Build.OS & (1 << kOS.mac) ? consumeKey_mac(event.i, event.e) : (keydownEvents_[event.i] = 1)
   }
   masterOrA.v() // here .keyStatus_ is reset
   set_grabBackFocus(false)

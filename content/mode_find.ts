@@ -5,7 +5,7 @@ import {
 } from "../lib/utils"
 import {
   replaceOrSuppressMost_, removeHandler_, prevent_, getMappedKey, keybody_, isEscape_, keyNames_, DEL, BSP, ENTER,
-  whenNextIsEsc_
+  whenNextIsEsc_, isRepeated_, consumeKey_mac
 } from "../lib/keyboard_utils"
 import {
   attachShadow_, getSelectionFocusEdge_, deepActiveEl_unsafe_, setClassName_s, compareDocumentPosition, kGCh,
@@ -573,7 +573,7 @@ const onIFrameKeydown = (event: KeyboardEventToPrevent): void => {
         ? isEscape_(key) ? FindAction.ExitForEsc : FindAction.DoNothing
       : OnFirefox && key[0] === "c" ? FindAction.CtrlDelete
       : query_ || (n === kKeyCode.deleteKey && (Build.OS & ~(1 << kOS.mac) && Build.OS & (1 << kOS.mac) ? os_
-          : !!(Build.OS & ~(1 << kOS.mac))) || event.repeat) ? FindAction.PassDirectly
+          : !!(Build.OS & ~(1 << kOS.mac))) || isRepeated_(eventWrapper)) ? FindAction.PassDirectly
       : FindAction.Exit;
     let h = HandlerResult.Prevent, scroll: number;
     if (i < FindAction.PassDirectly + 1) { h = HandlerResult.Suppress }
@@ -607,7 +607,7 @@ const onIFrameKeydown = (event: KeyboardEventToPrevent): void => {
         }
       }
       else { h = HandlerResult.Suppress; }
-    h > HandlerResult.Prevent - 1 && (prevent_(event), keydownEvents_[n] = 1)
+    h > HandlerResult.Prevent - 1 && (prevent_(event), consumeKey_mac(n, event))
     if (i < FindAction.DoNothing + 1) { /* empty */ }
     else if (i === FindAction.ResumeFind) {
       setQuery(input_.innerText.replace("\\0", ""))

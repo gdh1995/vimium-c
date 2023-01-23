@@ -1,7 +1,8 @@
 import { kPgReq } from "../background/page_messages"
 import {
-  CurCVer_, CurFFVer_, OnFirefox, OnChrome, OnEdge, $, $$, post_, disconnect_, isVApiReady_, simulateClick,
-  toggleDark, browser_, selfTabId_, enableNextTick_, nextTick_, kReadyInfo, IsEdg_, import2, BrowserName_, pageTrans_
+  CurCVer_, CurFFVer_, OnFirefox, OnChrome, OnEdge, $, $$, post_, disconnect_, isVApiReady_, simulateClick, PageOs_,
+  toggleDark, browser_, selfTabId_, enableNextTick_, nextTick_, kReadyInfo, IsEdg_, import2, BrowserName_, pageTrans_,
+  isRepeated_, prevent_
 } from "./async_bg"
 import {
   bgSettings_, KnownOptionsDataset, showI18n, setupBorderWidth_, Option_, AllowedOptions, debounce_, oTrans_,
@@ -87,7 +88,7 @@ let optionsInit1_ = function (): void {
       console.log("Warning: some options are not ready to fetch:", fetching.join(", "))
     }
   }
-  OnFirefox && Build.OS & (1 << kOS.unixLike) && bgSettings_.os_ === kOS.unixLike && nextTick_((): void => {
+  OnFirefox && Build.OS & (1 << kOS.unixLike) && PageOs_ === kOS.unixLike && nextTick_((): void => {
     for (let key in Option_.all_) {
       const obj = Option_.all_[key as "vimSync"]
       if (obj instanceof BooleanOption_) {
@@ -101,19 +102,7 @@ let optionsInit1_ = function (): void {
     }, $("#exclusionToolbar"));
   }
 
-  document.addEventListener("keyup", function (this: void, event): void {
-    const el = event.target as Element, i = event.keyCode;
-    if (i !== kKeyCode.enter) {
-      if (i !== kKeyCode.space) { return; }
-      if (el instanceof HTMLSpanElement && el.parentElement instanceof HTMLLabelElement) {
-        event.preventDefault();
-        const ctrl = el.parentElement.control as HTMLInputElement
-        ctrl.disabled || ctrl.readOnly || simulateClick(ctrl)
-      }
-      return;
-    }
-    onEnterKeyUp(event)
-  });
+  document.addEventListener("keyup", onKeyUp)
 
   delayBinding("[data-check]", "input", function onCheck(): void {
     for (const el of $$("[data-check]")) {
@@ -140,9 +129,7 @@ let optionsInit1_ = function (): void {
   delayBinding("[data-delay]", "click", function (this: HTMLElement, event): void {
     let str = (this.dataset as KnownOptionsDataset).delay, e = null as MouseEventToPrevent | null
     if (str === "event") { e = event as MouseEventToPrevent || null }
-    if (str !== "continue") {
-      event && event.preventDefault();
-    }
+    if (str !== "continue") { event && prevent_(event) }
     delayed_task = ["#" + this.id, e]
     if (document.readyState === "complete") {
       void import2("./options_ext.js")
@@ -159,7 +146,7 @@ let optionsInit1_ = function (): void {
       && CurCVer_ < BrowserVer.MinEnsuredWebkitUserSelectAll &&
   delayBinding(".sel-all", "mousedown", function (this: HTMLElement, event): void {
     if (event.target !== this) { return; }
-    event.preventDefault();
+    prevent_(event)
     getSelection().selectAllChildren(this);
   })
 
@@ -270,7 +257,7 @@ let optionsInit1_ = function (): void {
     if (!advancedMode) {
       advancedOptBtn.onclick(null)
     }
-    event.preventDefault();
+    prevent_(event)
     const sel2 = ((event.currentTarget as HTMLElement).dataset as KnownOptionsDataset).for.split(":").slice(-1)[0]
     const maybeNode2 = $$<EnsuredMountedHTMLElement & HTMLInputElement>(sel2)
     const node2 = (maybeNode2.find(i => i.checked) || maybeNode2[0]).nextElementSibling
@@ -305,7 +292,7 @@ optionsInitAll_ = function (): void {
   optionsInit1_()
   optionsInit1_ = optionsInitAll_ = null as never
 
-  !(Build.OS & (1 << kOS.mac)) || Build.OS & ~(1 << kOS.mac) && bgSettings_.os_ ||
+  !(Build.OS & (1 << kOS.mac)) || Build.OS & ~(1 << kOS.mac) && PageOs_ ||
   nextTick_((el): void => { el.textContent = "Cmd" }, $("#Ctrl"))
   for (let key in Option_.all_) {
     void Option_.all_[key as keyof AllowedOptions].onSave_()
@@ -407,15 +394,23 @@ optionsInitAll_ = function (): void {
   })
 };
 
-const onEnterKeyUp = (event: KeyboardEventToPrevent): void => {
-  const el = event.target as Element
-  if (el instanceof HTMLAnchorElement) {
+const onKeyUp = (event: KeyboardEventToPrevent): void => {
+  const el = event.target as Element, i = event.keyCode
+  if (i !== kKeyCode.enter) {
+    if (i !== kKeyCode.space) { return }
+    if (el instanceof HTMLSpanElement && el.parentElement instanceof HTMLLabelElement) {
+      prevent_(event)
+      const ctrl = el.parentElement.control as HTMLInputElement
+      ctrl.disabled || ctrl.readOnly || simulateClick(ctrl)
+    }
+    return
+  } else if (el instanceof HTMLAnchorElement) {
     el.hasAttribute("href") || (setTimeout(function (el1) {
       simulateClick(el1)
       el1.blur()
-    }, 0, el), event.preventDefault())
+    }, 0, el), prevent_(event))
   } else if (event.ctrlKey || event.metaKey) {
-    event.preventDefault()
+    prevent_(event)
     el.blur && el.blur()
     if (savedStatus()) {
       didBindEvent("click")
@@ -484,8 +479,8 @@ el0.textContent = (OnEdge ? "MS Edge (EdgeHTML)" : name + " " + version
 }, $("#browserName"));
 
 document.addEventListener("keydown", (event): void => {
-  if (Build.OS & (1 << kOS.mac) && event.keyCode === kKeyCode.enter && event.metaKey) {
-    onEnterKeyUp(event)
+  if ((!(Build.OS & ~(1 << kOS.mac)) || Build.OS & (1 << kOS.mac) && !PageOs_) && event.metaKey) {
+    onKeyUp(event)
     return
   } else if (event.keyCode !== kKeyCode.space) {
     if (!VApi || !VApi.z || "input textarea".includes(document.activeElement!.localName as string)) { return; }
@@ -509,9 +504,7 @@ document.addEventListener("keydown", (event): void => {
     return;
   }
   const el = event.target as Element;
-  if (el.localName === "span" && (el as EnsuredMountedHTMLElement).parentElement.localName === "label") {
-    event.preventDefault();
-  }
+  el.localName === "span" && (el as EnsuredMountedHTMLElement).parentElement.localName === "label" && prevent_(event)
 });
 
 export const onHash_ = (hash: string): void => {
@@ -568,7 +561,7 @@ void post_(kPgReq.whatsHelp).then((matched): void => {
 })
 
 delayBinding("#openExtensionsPage", "click", (event: EventToPrevent): void => {
-    event.preventDefault();
+    prevent_(event)
     if (OnFirefox) {
       VApi ? VApi.h(kTip.raw, 0, oTrans_("haveToOpenManually"))
       : alert(oTrans_("haveToOpenManually"))
@@ -618,7 +611,6 @@ delayBinding("#testKeyInputBox", "focus", function KeyTester(_focusEvent: Event)
     }
     return result
   }
-  const blockEvent = ((event: EventToPrevent) => { event.preventDefault() }) as (ev: Event) => void
   let lastKey: KeyboardEvent | undefined, lastPrevented = kKeyCode.None, hasOutline = false
   let lastKeyLayout: kKeyLayout
   testKeyInput.onkeydown = (event): void => {
@@ -627,7 +619,7 @@ delayBinding("#testKeyInputBox", "focus", function KeyTester(_focusEvent: Event)
       text_("")
       return
     }
-    if (VApi && !event.repeat) {
+    if (VApi && !isRepeated_(event)) {
       const eventWrapper: HandlerNS.Event = {c: kChar.INVALID, e: event as KeyboardEventToPrevent,
           i: event.keyCode, v: ""}
       const key = VApi.r[3](eventWrapper, kModeId.NO_MAP_KEY), isEsc = key === "esc" || key === "c-["
@@ -643,10 +635,10 @@ delayBinding("#testKeyInputBox", "focus", function KeyTester(_focusEvent: Event)
       }
     }
     lastPrevented = event.keyCode
-    blockEvent(event)
+    prevent_(event as KeyboardEventToPrevent)
   }
   testKeyInput.onkeyup = (event): void => {
-    if ((event as KeyboardEventToPrevent).keyCode === lastPrevented) { blockEvent(event) }
+    if ((event as KeyboardEventToPrevent).keyCode === lastPrevented) { prevent_(event as KeyboardEventToPrevent) }
   }
   testKeyInput.onfocus = (): void => {
     if (VApi) {
@@ -664,7 +656,7 @@ delayBinding("#testKeyInputBox", "focus", function KeyTester(_focusEvent: Event)
     }
   }
   testKeyInput.addEventListener("compositionend", (): void => { text_("") })
-  testKeyInput.onpaste = blockEvent
+  testKeyInput.onpaste = prevent_ as (event: Event, _?: void) => void
   testKeyInput.onclick = (): void => { testKeyInput.focus() }
   const checkboxTestKeyInInput = $<HTMLInputElement>("#testKeyInInput")
   checkboxTestKeyInInput.onchange = (): void => {

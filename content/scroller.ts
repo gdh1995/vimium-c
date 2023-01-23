@@ -43,7 +43,7 @@ import {
 import { isCmdTriggered } from "./key_handler"
 import { detectUsableChild, hint_box, tryNestedFrame } from "./link_hints"
 import { setPreviousMarkPosition } from "./marks"
-import { isKeyRepeat_, keyNames_, prevent_ } from "../lib/keyboard_utils"
+import { isRepeated_, keyNames_, prevent_ } from "../lib/keyboard_utils"
 import { post_, runFallbackKey } from "./port"
 
 const kSE = "scrollend"
@@ -471,7 +471,7 @@ export const beginScroll = (eventWrapper: 0 | Pick<HandlerNS.Event, "e">, key: s
 }
 
 export const onScrolls = (event: HandlerNS.Event): boolean => {
-    const repeat = isKeyRepeat_(event)
+    const repeat = isRepeated_(event)
     repeat && prevent_(event.e)
     scrollTick(repeat ? 5 : 0)
     return repeat;

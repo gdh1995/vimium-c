@@ -1,6 +1,6 @@
 import {
   CurCVer_, OnChrome, $, $$, nextTick_, pageLangs_, TransTy, pageTrans_, post_, enableNextTick_, kReadyInfo, onDicts_,
-  curPagePath_
+  curPagePath_, setupPageOs_
 } from "./async_bg"
 import { kPgReq } from "../background/page_messages"
 import type * as i18n_options from "../i18n/zh/options.json"
@@ -146,14 +146,13 @@ export const getSettingsCache_ = () => settingsCache_ as Partial<SettingsNS.Pers
 
 export const bgSettings_ = {
   platform_: "" as "win" | "linux" | "mac" | "unknown",
-  os_: Build.OS & (Build.OS - 1) ? kOS.UNKNOWN : (Build.OS < 8 ? (Build.OS / 2) | 0 : Math.log2(Build.OS)) as kOS,
   defaults_: null as never as SettingsWithDefaults,
   resetCache_ (): void { settingsCache_ = null },
   preloadCache_ (this: void): Promise<void> {
     if (settingsCache_) { return settingsCache_ instanceof Promise ? settingsCache_ : Promise.resolve()  }
     bgSettings_.defaults_ || post_(kPgReq.settingsDefaults).then((res): void => {
       bgSettings_.defaults_ = res[0]
-      Build.OS & (Build.OS - 1) && (bgSettings_.os_ = res[1])
+      Build.OS & (Build.OS - 1) && (setupPageOs_(res[1]))
       bgSettings_.platform_ = res[2] as typeof bgSettings_.platform_
       enableNextTick_(kReadyInfo.options)
     })
