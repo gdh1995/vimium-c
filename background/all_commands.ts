@@ -599,6 +599,7 @@ set_bgC_([
       return
     }
     if (tabs.length > 0) {
+      direction < 0 && (tabs = tabs.reverse())
       Tabs_.remove(tabs.map(tab => tab.id), R_(resolve))
     } else {
       resolve(0)

@@ -640,12 +640,12 @@ const removeTabsInOrder = (tab: Tab, tabs: readonly Tab[], start: number, end: n
     , resolve: OnCmdResolved | null): void => {
   const curInd = Math.max(0, tabs.indexOf(tab))
   Tabs_.remove(tab.id, resolve ? R_(resolve) : runtimeError_)
-  let parts1 = tabs.slice(curInd + 1, end), parts2 = tabs.slice(start, curInd)
+  let rightParts = tabs.slice(curInd + 1, end), leftParts = tabs.slice(start, curInd)
   if (cRepeat < 0) {
-    [parts1, parts2] = [parts2, parts1]
+    [rightParts, leftParts] = [leftParts, rightParts]
   }
-  parts1.length > 0 && Tabs_.remove(parts1.map(j => j.id), runtimeError_)
-  parts2.length > 0 && Tabs_.remove(parts2.map(j => j.id), runtimeError_)
+  rightParts.length > 0 && Tabs_.remove(rightParts.map(j => j.id), runtimeError_)
+  leftParts.length > 0 && Tabs_.remove(leftParts.map(j => j.id).reverse(), runtimeError_)
 }
 
 export const toggleMuteTab = (resolve: OnCmdResolved): void | kBgCmd.toggleMuteTab => {

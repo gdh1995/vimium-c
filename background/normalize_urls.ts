@@ -1,6 +1,6 @@
 import {
   CONST_, os_, CurCVer_, evalVimiumUrl_, historyCache_, IsEdg_, OnChrome, OnFirefox, searchEngines_, newTabUrl_f,
-  Origin2_
+  Origin2_, substitute_
 } from "./store"
 import {
   isJSUrl_, DecodeURLPart_, resetRe_, isIPHost_, encodeAsciiComponent_, spacesRe_, protocolRe_, isTld_
@@ -11,6 +11,7 @@ export const customProtocolRe_ = <RegExpOne> /^(?:ext|web)\+[a-z]+:/
 export const quotedStringRe_ = <RegExpOne> /^"[^"]*"$|^'[^']*'$|^\u201c[^\u201d]*\u201d$/
 export const searchWordRe_ = <RegExpG & RegExpSearchable<2>> /\$([sS$])?(?:\{([^}]*)})?/g
 export const searchVariableRe_ = <RegExpG & RegExpSearchable<1>> /\$([+-]?\d+)/g
+export const tailSedKeysRe_ = <RegExpG & RegExpSearchable<1>> /\|[\w\x80-\ufffd]{1,6}$/g
 
 const KnownPages_ = ["blank", "newtab", "options", "show"]
 const kOpts = "options.html"
@@ -303,7 +304,7 @@ export const createSearch_ = function (query: string[], url: string, blank: stri
   url = query.length === 0 && blank ? blank : url.replace(searchWordRe_
       , (full, s1: string | undefined, s2: string | undefined, ind): string => {
     let arr: string[];
-    if (full.endsWith("$")) { return "$" }
+    if (full.endsWith("$") || !s1 && !s2) { return "$" }
     if (!s1) {
       if ((<RegExpOne> /^s:/i).test(s2!)) { s1 = s2![0]; s2 = s2?.slice(2) }
       else { s1 = "s" }
@@ -315,8 +316,10 @@ export const createSearch_ = function (query: string[], url: string, blank: stri
       arr = (q2 || (q2 = query.map(encodeAsciiComponent_)));
       s1 = isJSUrl_(url) || url.startsWith("vimium://run") ? "%20" : "+"
     }
-    if (arr.length === 0) { return ""; }
-    if (s2 && s2.includes("$")) {
+    const sed = s2 ? tailSedKeysRe_.exec(s2) : null
+    sed && (s2 = s2!.slice(0, sed.index))
+    if (arr.length === 0) { s2 = "" }
+    else if (s2 && s2.includes("$")) {
       s2 = s2.replace(searchVariableRe_, function (_t: string, s3: string): string {
         let i = parseInt(s3, 10);
         if (!i) {
@@ -331,7 +334,8 @@ export const createSearch_ = function (query: string[], url: string, blank: stri
     } else {
       s2 = arr.join(s2 != null ? s2 : s1);
     }
-    if (indexes != null) {
+    sed && (s2 = substitute_(s2, SedContext.NONE, { r: null, k: sed[0].slice(1) }))
+    if (indexes != null && s2) {
       ind += delta;
       indexes.push(ind, ind + s2.length);
       delta += s2.length - full.length

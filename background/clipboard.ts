@@ -17,11 +17,12 @@ declare const enum SedAction {
   json = 20, jsonParse = 21,
   break = 99, stop = 99, return = 99,
 }
-interface Contexts { normal_: SedContext, extras_: kCharCode[] | null }
+type SedActions = SedAction | `${string}=${string}`
+interface Contexts { normal_: SedContext, extras_: (kCharCode | string)[] | null }
 interface ClipSubItem {
   readonly contexts_: Contexts; readonly match_: RegExp
   host_: string | ValidUrlMatchers | /** regexp is broken */ -1 | null
-  readonly retainMatched_: number; readonly actions_: SedAction[]; readonly replaced_: string;
+  readonly retainMatched_: number; readonly actions_: SedActions[]; readonly replaced_: string;
   readonly keyword_: string | null
 }
 
@@ -46,7 +47,8 @@ const SedActionMap: ReadonlySafeDict<SedAction> = {
   [key in Exclude<keyof typeof SedAction, "NONE"> as NormalizeKeywords<key>]: (typeof SedAction)[key]
 }
 
-let staticSeds_: readonly ClipSubItem[] | null = null
+const innerClipboard_ = new Map<string, string>()
+let staticSeds_: readonly ClipSubItem[] | null = null, timeoutToClearInnerClipboard_ = 0
 
 const parseSeds_ = (text: string, fixedContexts: Contexts | null): readonly ClipSubItem[] => {
   const result: ClipSubItem[] = []
@@ -63,7 +65,7 @@ const parseSeds_ = (text: string, fixedContexts: Contexts | null): readonly Clip
     }
     const body = sepRe.exec(line = line.slice(prefix[0].length))
     if (!body) { continue }
-    const head = prefix[1], flags = body[3], tail = line.slice(body[0].length), actions: SedAction[] = []
+    const head = prefix[1], flags = body[3], tail = line.slice(body[0].length), actions: SedActions[] = []
     let host: string | null = null, keyword: string | null = null, retainMatched: number = 0
     for (const rawI of tail ? tail.split(",") : []) {
       const i = rawI.toLowerCase()
@@ -73,6 +75,8 @@ const parseSeds_ = (text: string, fixedContexts: Contexts | null): readonly Clip
         keyword = rawI.slice(8)
       } else if (i.startsWith("match")) {
         retainMatched = Math.max(i.includes("=") && parseInt(i.split("=")[1]) || 1, 1)
+      } else if (i.includes("=")) {
+        actions.push(i as `${string}=${string}`)
       } else {
         let action = SedActionMap[i.replace(<RegExpG> /[_-]/g, "")] || SedAction.NONE
         action && actions.push(action)
@@ -80,12 +84,8 @@ const parseSeds_ = (text: string, fixedContexts: Contexts | null): readonly Clip
     }
     const matchRe = BgUtils_.makeRegexp_(body[1], retainMatched ? flags.replace(<RegExpG> /g/g, "") : flags)
     matchRe && result.push({
-      contexts_: fixedContexts || parseSedKeys_(head)!,
-      host_: host,
-      match_: matchRe,
-      retainMatched_: retainMatched,
-      actions_: actions,
-      replaced_: decodeSlash_(body[2], 1),
+      contexts_: fixedContexts || parseSedKeys_(head)!, host_: host, match_: matchRe, retainMatched_: retainMatched,
+      replaced_: decodeSlash_(body[2], 1), actions_: actions,
       keyword_: keyword,
     })
   }
@@ -204,8 +204,12 @@ const parseSedKeys_ = (keys: string | number | object, parsed?: ParsedSedOpts): 
   if (typeof keys === "object") {
     return (keys as Contexts).normal_ || (keys as Contexts).extras_ ? keys as Contexts : parsed ? parsed.k = null : null
   }
-  let extras_: kCharCode[] | null = null, normal_ = SedContext.NONE
-  const keysStr = typeof keys === "number" ? keys + "" : keys
+  let extras_: Contexts["extras_"] = null, normal_ = SedContext.NONE
+  let keysStr = typeof keys === "number" ? keys + "" : keys
+  if (keysStr[0] === "_") {
+    extras_ = [keysStr.slice(1)]
+    keysStr = ""
+  }
   for (let i = 0; i < keysStr.length; i++) {
     const code = keysStr.charCodeAt(i), ch = code & ~kCharCode.CASE_DELTA
     if (!(ch > kCharCode.maxNotAlphabet && ch < kCharCode.minNotAlphabet)) {
@@ -301,10 +305,17 @@ set_substitute_((text: string, normalContext: SedContext, mixedSed?: MixedSedOpt
         continue
       }
       if (item.keyword_ && exOut) { exOut.keyword_ = item.keyword_ }
-      let doesReturn = !text
+      let doesReturn = false
       for (const action of item.actions_) {
-        if (doesReturn) { break }
-        text = action === SedAction.decodeForCopy ? BgUtils_.decodeUrlForCopy_(text)
+        if (typeof action === "string") {
+          const actionName = action.split("=")[0], actionVal = action.slice(actionName.length + 1)
+          if (actionName === "copy") { writeInnerClipboard_(actionVal, text) }
+          else if (actionName === "paste") { text = innerClipboard_.get(actionVal) || "" }
+        }
+        if (doesReturn = action === SedAction.return) { break }
+//#region character manipulation
+        text = !text ? ""
+            : action === SedAction.decodeForCopy ? BgUtils_.decodeUrlForCopy_(text)
             : action === SedAction.decodeMaybeEscaped ? BgUtils_.decodeEscapedURL_(text)
             : action === SedAction.decodeAll ? BgUtils_.decodeEscapedURL_(text, true)
             : action === SedAction.unescape ? decodeSlash_(text)
@@ -329,7 +340,7 @@ set_substitute_((text: string, normalContext: SedContext, mixedSed?: MixedSedOpt
                 action === SedAction.capitalizeAll ? convertCaseWithLocale(text, action)
               : text
             )
-        doesReturn = action === SedAction.return || !text
+//#endregion
       }
       if (doesReturn) { break }
     }
@@ -337,6 +348,12 @@ set_substitute_((text: string, normalContext: SedContext, mixedSed?: MixedSedOpt
   BgUtils_.resetRe_()
   return text
 })
+
+const writeInnerClipboard_ = (name: string, text: string): void => {
+  innerClipboard_.set(name, text)
+  timeoutToClearInnerClipboard_ && clearTimeout(timeoutToClearInnerClipboard_)
+  timeoutToClearInnerClipboard_ = setTimeout((): void => { innerClipboard_.clear() }, Build.NDEBUG ? 10_000 : 45_000)
+}
 
 const getTextArea_html = (): HTMLTextAreaElement => {
   const el = (globalThis as MaybeWithWindow).document!.createElement("textarea")
@@ -346,7 +363,6 @@ const getTextArea_html = (): HTMLTextAreaElement => {
   OnFirefox && (el.contentEditable = "true")
   return el
 }
-
 
 const format_ = (data: string | any[], join: FgReq[kFgReq.copy]["j"] | undefined, sed: MixedSedOpts | null | undefined
     , keyword: string | null | undefined): string => {
