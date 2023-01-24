@@ -146,7 +146,7 @@ historyEngine = {
     const history = historyCache_.history_, someQuery = queryTerms.length > 0
     if (history) {
       if (someQuery) {
-        Completers.next_(historyEngine.performSearch_(), SugType.history)
+        historyEngine.performSearch_()
         return
       }
       if (historyCache_.updateCount_ > 10 || historyCache_.toRefreshCount_ > 0) {
@@ -154,7 +154,7 @@ historyEngine = {
       }
     } else {
       const loadAllHistory: Parameters<typeof HistoryManager_.use_>[0] = !someQuery ? null : (): void => {
-        query.o || Completers.next_(historyEngine.performSearch_(), SugType.history)
+        query.o || historyEngine.performSearch_()
       };
       if (someQuery && (isForAddressBar || HistoryManager_.loadingTimer_)) {
         HistoryManager_.loadingTimer_ > 0 && clearTimeout(HistoryManager_.loadingTimer_)
@@ -181,7 +181,7 @@ historyEngine = {
       getRecentSessions_(offset + maxResults, showThoseInBlocklist, historyEngine.loadSessions_.bind(null, query))
     }
   },
-  performSearch_ (): Suggestion[] {
+  performSearch_ (): void {
     const firstTerm = queryTerms.length === 1 ? queryTerms[0] : "",
     onlyUseTime = !!firstTerm && (firstTerm[0] === "." ? (<RegExpOne> /^\.[\da-zA-Z]+$/).test(firstTerm)
       : (convertToUrl_(firstTerm, null, Urls.WorkType.KeepAll),
@@ -241,32 +241,29 @@ historyEngine = {
       }
     }
     UrlDecoder_.continueToWork_()
-    return sugs;
+    Completers.next_(sugs, SugType.history)
   },
   loadTabs_ (this: void, query: CompletersNS.QueryStatus, tabs: readonly WritableTabEx[]): void {
     MatchCacheManager_.cacheTabs_(tabs)
     if (query.o) { return; }
-    const arr: Set<string> = new Set!()
-    let count = 0;
+    const urlSet = new Set!<string>()
     for (const tab of tabs) {
-      if (tab.incognito && tabsInNormal) { continue }
-      let url = getTabUrl(tab)
-      if (!arr.has(url)) { arr.add(url), count++ }
+      tab.incognito && tabsInNormal || urlSet.add(getTabUrl(tab))
     }
-    return historyEngine.filterFill_([], query, arr, offset, count);
+    historyEngine.filterFill_([], query, urlSet, offset, urlSet.size)
   },
   loadSessions_ (this: void, query: CompletersNS.QueryStatus, sessions: BrowserUrlItem[]): void {
     if (query.o) { return; }
-    const historyArr: BrowserUrlItem[] = [], arr: Set<string> = new Set!()
+    const historyArr: BrowserUrlItem[] = [], idSet = new Set!<string>(), urlSet = new Set!<string>()
     let i = -offset;
-    return sessions.some(function (item): boolean {
+    sessions.some(function (item): boolean {
       let url = item.u, key: string
       key = url + "\n" + item.title_
-      if (arr.has(key)) { return false }
-      arr.add(key), arr.add(url)
+      if (idSet.has(key)) { return false }
+      idSet.add(key), urlSet.add(url)
       ++i > 0 && historyArr.push(item)
       return historyArr.length >= maxResults;
-    }) ? historyEngine.filterFinish_(historyArr) : historyEngine.filterFill_(historyArr, query, arr, -i, 0);
+    }) ? historyEngine.filterFinish_(historyArr) : historyEngine.filterFill_(historyArr, query, urlSet, -i, 0)
   },
   filterFill_ (historyArr: BrowserUrlItem[], query: CompletersNS.QueryStatus, urlSet: Set<string>,
       cut: number, neededMore: number): void {

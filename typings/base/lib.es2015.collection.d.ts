@@ -20,12 +20,12 @@ and limitations under the License.
 
 interface Map<K extends string | number | object, V> {
     clear(): void;
-    delete(key: K): unknown;
+    delete(key: K): boolean;
     forEach(callbackfn: K extends string ? (value: V, key: K) => void : (value: V, key: K | string) => void
         , thisArg?: any): void;
     get(key: K): V | undefined;
     has(key: K): boolean;
-    set(key: K, value: V): unknown;
+    set(key: K, value: V): Map<K, V>;
     readonly size: number;
 }
 
@@ -57,13 +57,11 @@ interface WeakMapConstructor {
 declare var WeakMap: WeakMapConstructor | undefined;
 
 interface Set<T> {
-    add(value: T): unknown;
+    add(value: T): Set<T>;
     clear(): void;
     delete(value: T): boolean;
     forEach(callbackfn: (value: T) => void, thisArg?: any): void;
     has(value: T): boolean;
-}
-interface NativeSet<T> extends Set<T> {
     readonly size: number;
 }
 

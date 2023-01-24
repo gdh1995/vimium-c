@@ -371,16 +371,13 @@ export const HistoryManager_ = {
     if (toRemove.allHistory) {
       historyCache_.history_ = []
       historyCache_.domains_ = new Map()
-      const d2 = OnChrome && Build.MinCVer < BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol
-          && CurCVer_ < BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol ? new Set!<string>()
-          : new Set!<string>(bookmarkCache_.bookmarks_.map(i => i.u))
-      if (OnChrome && Build.MinCVer < BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol
-          && CurCVer_ < BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol) {
-        bookmarkCache_.bookmarks_.forEach(i => d2.add(i.u))
+      const toKeep = []
+      for (const i of bookmarkCache_.bookmarks_) {
+        const decoded = d.get(i.u)
+        decoded && toKeep.push([i.u, decoded])
       }
-      d.forEach((_, k): void => {
-        d2.has(k) || d.delete(k)
-      })
+      d.clear()
+      for (const [k, v] of toKeep) { d.set(k, v) }
       return
     }
     const bs = HistoryManager_.binarySearch_

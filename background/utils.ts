@@ -269,16 +269,9 @@ export const fetchFile_ = ((filePath: string, format?: "blob" | "arraybuffer"): 
   filePath = !format && !filePath.includes("/") ? "/front/" + filePath : filePath
   if (!OnChrome || (format ? Build.MinCVer >= BrowserVer.MinFetchDataURL || CurCVer_ >= BrowserVer.MinFetchDataURL
       : Build.MinCVer >= BrowserVer.MinFetchExtensionFiles || CurCVer_ >= BrowserVer.MinFetchExtensionFiles)) {
-    return fetch(filePath as `/${string}`).then(r => json ? r.json<Dict<string>>().then((res): Map<string, any> => {
-      safer_(res)
-      if (!OnChrome || Build.MinCVer >= BrowserVer.MinEnsuredES$Object$$values$and$$entries
-          || CurCVer_ >= BrowserVer.MinEnsuredES$Object$$values$and$$entries) {
-        return new Map<string, any>(Object.entries!(res))
-      }
-      const map = new Map<string, any>()
-      for (let key in res) { map.set(key, res[key]) }
-      return map
-    }) : format ? format === "blob" ? r.blob() : r.arrayBuffer() : r.text())
+    return fetch(filePath as `/${string}`).then(r =>
+        json ? r.json<Dict<string>>().then((res): Map<string, any> => new Map<string, any>(Object.entries!(res)))
+        : format ? format === "blob" ? r.blob() : r.arrayBuffer() : r.text())
   }
   const req = new XMLHttpRequest() as TextXHR | JSONXHR | BlobXHR | ArrayXHR
   req.open("GET", filePath, true)

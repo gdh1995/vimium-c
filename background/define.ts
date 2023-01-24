@@ -151,7 +151,7 @@ Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES$Arr
     const ver = navigator.userAgent!.match(<RegExpOne> /\bChrom(?:e|ium)\/(\d+)/)
     if (ver && +ver[1] < BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol) {
       const proto = {
-        add (k: string): any { const old = k in this.map_; this.map_[k] = 1; old || this.size++ },
+        add (k: string): any { const old = k in this.map_; this.map_[k] = 1; old || this.size++; return this },
         clear (): void { this.map_ = Object.create(null); this.size = 0 },
         delete (k: string): boolean { const old = k in this.map_; delete this.map_[k]; old && this.size--; return old },
         forEach (cb): any {
@@ -162,21 +162,27 @@ Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES$Arr
         },
         get (k: string): any { return this.map_[k] },
         has (k: string): boolean { return k in this.map_ },
-        set (k: string, v: any): any { const old = k in this.map_; this.map_[k] = v; old || this.size++ }
+        set (k: string, v: any): any { const old = k in this.map_; this.map_[k] = v; old || this.size++; return this }
       } as Writable<SimulatedMap>
       const setProto = Build.MinCVer < BrowserVer.Min$Object$$setPrototypeOf && Build.BTypes & BrowserType.Chrome
           && !Object.setPrototypeOf ? (obj: SimulatedMap): void => { (obj as any).__proto__ = proto }
           : (opt: SimulatedMap): void => { Object.setPrototypeOf(opt, proto as any as null) };
-      type SimulatedMapCtor = (this: SimulatedMap) => any;
-      globalThis.Set = function () {
+      type SimulatedMapCtor = (this: SimulatedMap, arr?: any[]) => any;
+      globalThis.Set = function (arr?: string[]) {
         ; (Map as any as SimulatedMapCtor).call(this)
         this.isSet_ = 1
+        for (let i = 0, end = arr ? arr.length : 0; i < end; i++) {
+          this.add(arr![i])
+        }
       } satisfies SimulatedMapCtor as any;
-      globalThis.Map = function (this: SimulatedMap): any {
+      globalThis.Map = function (arr?: [string, any][]): any {
         setProto(this)
         this.map_ = Object.create(null)
         ; (this.size satisfies number) = 0
         this.isSet_ = 0
+        for (let i = 0, end = arr ? arr.length : 0; i < end; i++) {
+          this.set(arr![i][0], arr![i][1])
+        }
       } satisfies SimulatedMapCtor as any
     }
 })()

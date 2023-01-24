@@ -127,7 +127,7 @@ Build.MV3 || setTimeout((): void => {
     matchType = newMatchType;
     matchedSugTypes = newMatchedSugTypes;
     suggestions = [];
-    const urlDict: Set<string> = new Set!()
+    const urlDict = new Set!<string>()
     const showTypeLetter = ` ${omniPayload_.t} `.includes(" type-letter ")
     for (let i = 0, di = autoSelect ? 0 : 1, len = response.length; i < len; i++) {
       const sugItem = response[i], { title, u: rawUrl, e: type } = sugItem
