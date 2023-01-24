@@ -205,10 +205,10 @@ const doesMatchEnv_ = (options: CommandsNS.RawOptions | string | null): boolean 
   if (typeof condition === "string") {
     condition = condition.toLowerCase()
     condition[0] === "!" && (condition = condition.slice(1).trim() as typeof condition, resultOnMismatch = true)
-    condition = "mac linux win".includes(condition) ? { sys: condition }
-        : "chrome chromium edge firefox safari".includes(condition)
-        ? { browser: { c: BrowserType.Chrome, e: condition.includes("edge") ? BrowserType.Edge : BrowserType.Chrome,
-            f: BrowserType.Firefox, s: BrowserType.Safari }[condition[0]] }
+    condition = (<RegExpOne> /(?:mac|win|linux)/).test(condition) ? { sys: condition }
+        : (<RegExpOne> /(?:chrom|edg|firefox|safari)/).test(condition)
+        ? { browser: { c: BrowserType.Chrome, e: condition.includes("edge") && !condition.includes("chrom")
+            ? BrowserType.Edge : BrowserType.Chrome, f: BrowserType.Firefox, s: BrowserType.Safari }[condition[0]] }
         : null
   }
     return condition && typeof condition === "object" ? condition.sys && condition.sys !== CONST_.Platform_
@@ -216,6 +216,21 @@ const doesMatchEnv_ = (options: CommandsNS.RawOptions | string | null): boolean 
           ? Build.BTypes : OnOther_))
       || condition.before && condition.before.replace("v", "") < CONST_.VerCode_
       ? resultOnMismatch : !resultOnMismatch : null
+}
+
+const getNextIfNotMatch_ = (lines: string[], start: number): number => {
+  let cond = lines[start].slice(4).trim(), nested = 0, next = start,
+  ifVal = cond.startsWith("{") ? parseVal_(cond) : cond.split(/#|\/\//)[0]
+  if (ifVal && doesMatchEnv_(BgUtils_.safer_({ $if: ifVal })) === false) {
+    while (++next < lines.length) {
+      if (lines[next].startsWith("#endif")) {
+        if (--nested <= 0) { break }
+      } else if (lines[next].startsWith("#if")) {
+        nested++
+      }
+    }
+  }
+  return next
 }
 
 const parseKeyMappings_ = (wholeMappings: string): void => {
@@ -240,7 +255,14 @@ const parseKeyMappings_ = (wholeMappings: string): void => {
     _i >= lines.length || lines[_i] !== "unmapAll" && lines[_i] !== "unmapall" || (builtinToAdd = 0, _i++)
     for (_len = lines.length; _i < _len; _i++) {
       const line = lines[_i].trim();
-      if (line < kChar.minNotCommentHead) { continue; } // mask: /[!"#]/
+      if (line < kChar.minNotCommentHead) { // mask: /[!"#]/
+        if (line.startsWith("#if ")) {
+          const next = getNextIfNotMatch_(lines, _i)
+          noCheck = noCheck && next > _i
+          _i = next
+        }
+        continue
+      }
       const _splitLine = line.split(" ", 3);
       const cmd = _splitLine[0] as ValidMappingInstructions | "__unknown__"
       const key = _splitLine.length > 1 ? _splitLine[1] : ""
