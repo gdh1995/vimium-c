@@ -589,9 +589,10 @@ tabEngine = {
       } else if (resultLength > offset + maxResults) {
         suggestions.length = resultLength = offset + maxResults;
       }
-      for (let i = hasOtherSuggestions ? 0 : resultLength; i < resultLength; i++) {
+      for (let i = hasOtherSuggestions ? 0 : resultLength, end = Math.min(resultLength, 28); i < end; i++) {
         suggestions[i].r *= 8 / (i / 4 + 1);
       }
+      !offset && Completers.suggestions_ && Completers.dedupPreviousAndMergeTo_(suggestions)
     } else if (offset > 0) {
       const exceededArr = suggestions.slice(0, exceed).map(i => Object.assign({} as unknown as typeof i, i))
       for (let sug of exceededArr) {
@@ -840,6 +841,14 @@ Completers = {
   },
   rSortQueryTerms_ (a: string, b: string): number {
     return b.length - a.length || (a < b ? -1 : a === b ? 0 : 1);
+  },
+  dedupPreviousAndMergeTo_ (suggestions: Suggestion[]): void {
+    const tabSugMap = new Map!<string, Suggestion>(suggestions.map(i => [i.u, i]))
+    Completers.suggestions_ = Completers.suggestions_!.filter(i => {
+      const mapped = i.e === "search" ? void 0 : tabSugMap.get(i.u)
+      mapped && mapped.r < i.r && (mapped.r = i.r)
+      return !mapped
+    })
   },
   next_ (newSugs: Suggestion[], type: Exclude<SugType, SugType.Empty>): void {
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion

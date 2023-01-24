@@ -31,7 +31,7 @@ declare namespace CompletersNS {
     SugTypeOffset = 3,
     MatchTypeMask = (1 << SugTypeOffset) - 1,
   }
-  type ValidTypes = "bookm" | "domain" | "history" | "omni" | "bomni" | "search" | "tab";
+  type ValidTypes = "bookm" | "domain" | "history" | "search" | "tab"
   /**
    * "math" can not be the first suggestion, which is limited by omnibox handlers
    */
@@ -57,7 +57,7 @@ declare namespace CompletersNS {
     /** maxResults */ r?: number;
     /** flags */ f: QueryFlags;
     /** last sug types: empty means all */ t: SugType;
-    /** original type */ o: ValidTypes;
+    /** original type */ o: ValidTypes | "omni" | "bomni"
   }
 
   interface WritableCoreSuggestion {
