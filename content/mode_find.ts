@@ -83,9 +83,10 @@ let isSmall = false
 let postLock: Element | null = null
 let cachedInnerText: { /** innerText */ i: string, /** timestamp */ t: number, n: boolean } | null | undefined
 let deactivate: (i: FindAction) => void
+const kIT = "insertText"
 
 export { findCSS, query_ as find_query, hasResults as find_hasResults, box_ as find_box, styleSelectable,
-    styleInHUD, styleSelColorIn, styleSelColorOut, input_ as find_input, deactivate }
+    styleInHUD, styleSelColorIn, styleSelColorOut, input_ as find_input, deactivate, kIT as kInsertText }
 export function set_findCSS (_newFindCSS: FindCSS): void { findCSS = _newFindCSS }
 
 export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
@@ -146,7 +147,7 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
       suppressOnInput_ = 1
       if (query !== 1) {
         execCommand("selectAll")
-        execCommand("insertText", 0, query) // "\xa0" is not needed, because of `white-space: pre;`
+        execCommand(kIT, 0, query) // "\xa0" is not needed, because of `white-space: pre;`
       } else {
         execCommand("undo")
       }
@@ -548,7 +549,7 @@ const onMousedown = function (this: Window | HTMLDivElement | HTMLBodyElement, e
 const onPaste_not_cr = !OnChrome ? (event: ClipboardEvent & ToPrevent): void => {
     const d = event.clipboardData, text = d && isTY(d.getData, kTY.func) ? d.getData("text/plain") : "";
     prevent_(event);
-    text && execCommand("insertText", 0, text)
+    text && execCommand(kIT, 0, text)
 } : 0 as never as null
 
 const onIFrameKeydown = (event: KeyboardEventToPrevent): void => {

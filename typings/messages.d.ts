@@ -273,6 +273,7 @@ declare namespace HintsNS {
     caret?: boolean;
     download?: "" | "force"
     focus?: boolean | "css-selector"
+    flash?: boolean
     then?: object | string
     ordinal?: boolean
     useFilter?: boolean;

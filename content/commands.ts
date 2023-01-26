@@ -33,7 +33,7 @@ import {
 } from "./link_hints"
 import { activate as markActivate, goToMark_ } from "./marks"
 import {
-  FindAction, activate as findActivate, deactivate as findDeactivate, execCommand, find_box, find_input
+  FindAction, activate as findActivate, deactivate as findDeactivate, execCommand, find_box, find_input, kInsertText
 } from "./mode_find"
 import {
   exitInputHint, insert_inputHint, insert_last_, raw_insert_lock, insert_Lock_, resetInsert, set_is_last_mutable,
@@ -264,7 +264,7 @@ set_contentCommands_([
         set_is_last_mutable(1)
         getZoom_(newEl);
         prepareCrop_();
-        select_(newEl, null, !!options.flash, selAction, true);
+        select_(newEl, null, options.flash, selAction, true)
       } else {
         ret = act[0] === "l" ? -1 : kTip.focusedIsHidden
         flash_(newEl)
@@ -376,7 +376,7 @@ set_contentCommands_([
             start = rawOffset || 0, end = editable && textOffset_(editable, 1)
             end = end != null ? end : (editable as TextElement).value.length
             cur = 0, offset = 0, start0 = start
-            execCommand("insertText", doc
+            execCommand(kInsertText, doc
                 , a1.replace(<RegExpG & RegExpSearchable<0>> /[$%]s|(?:%[a-f\d]{2})+/gi, (s, ind): string => {
               if (s[1] !== "s") {
                 offset -= s.length

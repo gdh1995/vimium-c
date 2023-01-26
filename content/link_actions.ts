@@ -24,13 +24,13 @@ import {
   selectNode_, ui_box, focusIframeContentWnd_
 } from "./dom_ui"
 import { consumeKey_mac, prevent_, suppressTail_, whenNextIsEsc_ } from "../lib/keyboard_utils"
-import { set_grabBackFocus } from "./insert"
+import { raw_insert_lock, set_grabBackFocus } from "./insert"
 import {
   kClickAction, kClickButton, unhover_async, hover_async, click_async, select_, catchAsyncErrorSilently,
   wrap_enable_bubbles
 } from "./async_dispatcher"
 import { omni_box } from "./omni"
-import { execCommand } from "./mode_find"
+import { execCommand, kInsertText } from "./mode_find"
 type LinkEl = Hint[0];
 /* eslint-disable @typescript-eslint/no-floating-promises */
 
@@ -234,13 +234,14 @@ const showUrlIfNeeded = (): void => {
 
 const hoverEl = (): void => {
     const toggleMap = hintOptions.toggle
-    const manualFocus = !elType && !isIFrameElement(clickEl), doesFocus = manualFocus
-        && checkBoolOrSelector(rawFocus, (clickEl as ElementToHTMLOrForeign).tabIndex! >= 0)
     // here not check lastHovered on purpose
     // so that "HOVER" -> any mouse events from users -> "HOVER" can still work
     setNewScrolling(clickEl)
   retPromise = catchAsyncErrorSilently(wrap_enable_bubbles(hintOptions, hover_async<1>
-      , [clickEl, center_(rect, hintOptions.xy as HintsNS.StdXY | undefined), doesFocus])).then((): void => {
+      , [clickEl, center_(rect, hintOptions.xy as HintsNS.StdXY | undefined)
+          , checkBoolOrSelector(rawFocus, !elType && (clickEl as ElementToHTMLOrForeign).tabIndex! >= 0
+              && !isIFrameElement(clickEl))])).then((): void => {
+    let rval: any, lval: any;
     set_cachedScrollable(currentScrolling)
     if (mode1_ < HintMode.min_job) { // called from Modes[-1]
       hintApi.h(kTip.hoverScrollable)
@@ -277,10 +278,10 @@ const hoverEl = (): void => {
                     ] as SafeElement)
               : clickEl.closest!(selector))) {
           if (OnFirefox || !notSafe_not_ff_!(selected)) {
-            const val = toggleMap[key]
-            for (const toggle of isTY(val) ? val.split(/[ ,]/) : val) {
+            const toggleVal = toggleMap[key]
+            for (const toggle of isTY(toggleVal) ? toggleVal.split(/[ ,]/) : toggleVal) {
               const s0 = toggle[0], remove = s0 === "-", add = s0 === "+" || (!remove && null)
-              const idx = +(add || remove)
+              const idx = +(add satisfies boolean | null as boolean) || +remove
               if (toggle[idx] === "[") {
                 const arr = toggle.slice(idx + 1, -1).split("="), rawAttr = arr[0], val = arr[1] || "",
                 op = rawAttr.slice(-1), isOnlyIncluded = op === "*", isWord = op === "~" || isOnlyIncluded,
@@ -291,6 +292,20 @@ const hoverEl = (): void => {
                     isWord && old ? (oldWords.includes(valWord) ? add ? old : oldWords.replace(valWord, " ")
                         : remove ? old : old + valWord).trim()
                     : add || !remove && rawOld !== val ? val : null)
+              } else if (!idx && toggle[0] === "." && toggle.includes("=")) {
+                const opArr = (<RegExpOne> /[:+*/-]?=/).exec(toggle)!, op = opArr[0][0],
+                prop = toggle.slice(1, opArr.index), valStr = toggle.slice(opArr.index + opArr[0].length),
+                newVal = op === "=" ? valStr
+                    : (rval = safeCall<string, any>(JSON.parse, valStr) || valStr, op === ":") ? rval
+                    : (lval = op !== ":" && (selected satisfies object as {} as Dict<any>)[prop], op === "+")
+                    ? lval + rval : op === "-" ? lval - rval : op === "*" ? lval * rval : lval / rval
+                if (prop === "value" && selected === raw_insert_lock && isTY(newVal)
+                    && editableTypes_[htmlTag_(selected)]! > EditableType.MaxNotTextModeElement) {
+                  (selected as TextElement).select()
+                  execCommand(kInsertText, doc, newVal)
+                } else {
+                  (selected satisfies object as {} as Dict<any>)[prop] = newVal
+                }
               } else {
                 let cls = toggle.slice(idx + ((toggle[idx] === ".") as boolean | BOOL as BOOL))
                 cls.trim() && toggleClass_s(selected as SafeElement, cls, add)
@@ -300,9 +315,6 @@ const hoverEl = (): void => {
         }
       } catch {}
       if (selected) {
-        selected === clickEl && manualFocus && !doesFocus
-            && checkBoolOrSelector(rawFocus, (selected as HTMLElement).tabIndex >= 0)
-            && focus_(selected as typeof clickEl)
         break;
       }
     }
@@ -487,7 +499,7 @@ const autoShowRect = (): Rect | null => (removeFlash || showRect && rect && flas
   const isHtmlImage = tag === "img"
   let rect: Rect | null = null
   let retPromise: Promise<unknown> | undefined
-  let showRect: BOOL | 2 = 1
+  let showRect: BOOL | 2 = hintOptions.flash !== false ? 1 : 0
   if (hintManager) {
     set_keydownEvents_(hintApi.a())
     setMode(masterOrA.$().m, 1)
@@ -571,7 +583,7 @@ const autoShowRect = (): Rect | null => (removeFlash || showRect && rect && flas
       focus_(clickEl)
       set_cachedScrollable(currentScrolling)
       showUrlIfNeeded()
-      removeFlash || flash_(clickEl)
+      removeFlash || showRect && flash_(clickEl)
       showRect = 0
     } else if (mode1_ < HintMode.max_media + 1) {
       downloadOrOpenMedia()
