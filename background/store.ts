@@ -126,6 +126,7 @@ export let keyFSM_: KeyFSM | null = null
 export let mappedKeyRegistry_: SafeDict<string> | null = null
 export let keyToCommandMap_: Map<string, CommandsNS.Item>
 export let mappedKeyTypes_ = kMapKey.NONE
+export const innerClipboard_: ReadonlyMap<string, string> = new Map<string, string>()
 
 export let cKey: kKeyCode = kKeyCode.None
 let cOptions: CommandsNS.Options = null as never

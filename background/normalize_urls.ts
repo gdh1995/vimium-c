@@ -1,6 +1,6 @@
 import {
   CONST_, os_, CurCVer_, evalVimiumUrl_, historyCache_, IsEdg_, OnChrome, OnFirefox, searchEngines_, newTabUrl_f,
-  Origin2_, substitute_
+  Origin2_, substitute_, innerClipboard_
 } from "./store"
 import {
   isJSUrl_, DecodeURLPart_, resetRe_, isIPHost_, encodeAsciiComponent_, spacesRe_, protocolRe_, isTld_
@@ -11,6 +11,8 @@ export const customProtocolRe_ = <RegExpOne> /^(?:ext|web)\+[a-z]+:/
 export const quotedStringRe_ = <RegExpOne> /^"[^"]*"$|^'[^']*'$|^\u201c[^\u201d]*\u201d$/
 export const searchWordRe_ = <RegExpG & RegExpSearchable<2>> /\$([sS$])?(?:\{([^}]*)})?/g
 export const searchVariableRe_ = <RegExpG & RegExpSearchable<1>> /\$([+-]?\d+|\$)/g
+export const headClipNameRe_ = <RegExpOne> /^[\w\x80-\ufffd]{1,8}>/
+export const tailClipNameRe_ = <RegExpOne> /<[\w\x80-\ufffd]{1,8}$/
 export const tailSedKeysRe_ = <RegExpOne> /\|[\w\x80-\ufffd]{1,8}$/
 
 const KnownPages_ = ["blank", "newtab", "options", "show"]
@@ -309,15 +311,24 @@ export const createSearch_ = function (query: string[], url: string, blank: stri
       if ((<RegExpOne> /^s:/i).test(s2!)) { s1 = s2![0]; s2 = s2?.slice(2) }
       else { s1 = "s" }
     }
+    let localQuery = query
+    let sed = s2 ? tailSedKeysRe_.exec(s2) : null
+    sed && s2!.charAt(sed.index - 1) !== "\\" ? (s2 = s2!.slice(0, sed.index)) : (sed = null)
+    const clip = s2 ? tailClipNameRe_.exec(s2) || headClipNameRe_.exec(s2) : null
+    if (clip && (clip[0][0] !== "<" || s2!.charAt(clip.index - 1) !== "\\")) {
+      s2 = clip[0][0] === "<" ? s2!.slice(0, clip.index) : s2!.slice(clip[0].length)
+      localQuery = [innerClipboard_.get(clip[0][0] === "<" ? clip[0].slice(1) : clip[0].slice(0, -1)) || ""]
+      localQuery = localQuery[0].split(" ")
+    }
     if (s1 === "S") {
-      arr = query;
+      arr = localQuery
       s1 = " ";
     } else {
-      arr = (q2 || (q2 = query.map(encodeAsciiComponent_)));
+      arr = localQuery === query && q2 ? q2 : localQuery.map(encodeAsciiComponent_)
+      localQuery === query && !q2 && (q2 = arr)
       s1 = isJSUrl_(url) || url.startsWith("vimium://run") ? "%20" : "+"
     }
-    const sed = s2 ? tailSedKeysRe_.exec(s2) : null
-    sed && (s2 = s2!.slice(0, sed.index))
+    s2 && s2.includes("\\") && (s2 = s2.replace(<RegExpG> /\\([\\<>|])/g, "$1"))
     if (arr.length === 0) { s2 = "" }
     else if (s2 && s2.includes("$")) {
       s2 = s2.replace(searchVariableRe_, function (_t: string, s3: string): string {

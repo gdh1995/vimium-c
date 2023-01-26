@@ -1,6 +1,6 @@
 import {
   CurCVer_, CurFFVer_, OnChrome, OnEdge, OnFirefox, copy_, paste_, substitute_, set_copy_, set_paste_, set_substitute_,
-  settingsCache_, updateHooks_, searchEngines_, blank_, runOnTee_
+  settingsCache_, updateHooks_, searchEngines_, blank_, runOnTee_, innerClipboard_
 } from "./store"
 import * as BgUtils_ from "./utils"
 import * as Exclusions from "./exclusions"
@@ -14,7 +14,7 @@ declare const enum SedAction {
   encode = 10, encodeComp = 11, encodeAll = 12, encodeAllComp = 13,
   camel = 14, camelcase = 14, dash = 15, dashed = 15, hyphen = 15, capitalize = 16, capitalizeAll = 17,
   latin = 18, latinize = 18, latinise = 18, noaccent = 18, nodiacritic = 18, decodeAll = 19,
-  json = 20, jsonParse = 21,
+  json = 20, jsonParse = 21, virtually = 22, virtual = 22, dryRun = 22,
   break = 99, stop = 99, return = 99,
 }
 type SedActions = SedAction | `${string}=${string}`
@@ -23,7 +23,6 @@ interface ClipSubItem {
   readonly contexts_: Contexts; readonly match_: RegExp
   host_: string | ValidUrlMatchers | /** regexp is broken */ -1 | null
   readonly retainMatched_: number; readonly actions_: SedActions[]; readonly replaced_: string;
-  readonly keyword_: string | null
 }
 
 const SedActionMap: ReadonlySafeDict<SedAction> = {
@@ -43,11 +42,11 @@ const SedActionMap: ReadonlySafeDict<SedAction> = {
   latin: SedAction.latin, latinize: SedAction.latin, latinise: SedAction.latin,
   noaccent: SedAction.latin, nodiacritic: SedAction.latin,
   json: SedAction.json, jsonparse: SedAction.jsonParse,
+  virtual: SedAction.virtually, virtually: SedAction.virtually, dryrun: SedAction.virtually,
 } satisfies SafeObject & {
   [key in Exclude<keyof typeof SedAction, "NONE"> as NormalizeKeywords<key>]: (typeof SedAction)[key]
 }
 
-const innerClipboard_ = new Map<string, string>()
 let staticSeds_: readonly ClipSubItem[] | null = null, timeoutToClearInnerClipboard_ = 0
 
 const parseSeds_ = (text: string, fixedContexts: Contexts | null): readonly ClipSubItem[] => {
@@ -55,7 +54,10 @@ const parseSeds_ = (text: string, fixedContexts: Contexts | null): readonly Clip
   const sepReCache: Map<string, RegExpOne> = new Map()
   for (let line of text.replace(<RegExpSearchable<0>> /\\\\?\n/g, t => t.length === 3 ? "\\\n" : "").split("\n")) {
     line = line.trim()
-    const prefix = (<RegExpOne> /^([\w\x80-\ufffd]{1,6})([^\x00- \w\\\x7f-\uffff])/).exec(line)
+    if ((<RegExpOne> /^[<>][\w\x80-\ufffd]{1,8}$|^[\w\x80-\ufffd]{1,8}>$/).test(line)) {
+      line = `s/^//,${line[0] === ">" ? "paste" : "copy"}=${line.endsWith(">") ? line.slice(0, -1) : line.slice(1)}`
+    }
+    const prefix = (<RegExpOne> /^([\w\x80-\ufffd]{1,8})([^\x00- \w\\\x7f-\uffff])/).exec(line)
     if (!prefix) { continue }
     let sep = prefix[2], sepRe = sepReCache.get(sep)
     if (!sepRe) {
@@ -66,13 +68,11 @@ const parseSeds_ = (text: string, fixedContexts: Contexts | null): readonly Clip
     const body = sepRe.exec(line = line.slice(prefix[0].length))
     if (!body) { continue }
     const head = prefix[1], flags = body[3], tail = line.slice(body[0].length), actions: SedActions[] = []
-    let host: string | null = null, keyword: string | null = null, retainMatched: number = 0
+    let host: string | null = null, retainMatched: number = 0
     for (const rawI of tail ? tail.split(",") : []) {
       const i = rawI.toLowerCase()
       if (i.startsWith("host=")) {
         host = rawI.slice(5)
-      } else if (i.startsWith("keyword=")) {
-        keyword = rawI.slice(8)
       } else if (i.startsWith("match")) {
         retainMatched = Math.max(i.includes("=") && parseInt(i.split("=")[1]) || 1, 1)
       } else if (i.includes("=")) {
@@ -86,7 +86,6 @@ const parseSeds_ = (text: string, fixedContexts: Contexts | null): readonly Clip
     matchRe && result.push({
       contexts_: fixedContexts || parseSedKeys_(head)!, host_: host, match_: matchRe, retainMatched_: retainMatched,
       replaced_: decodeSlash_(body[2], 1), actions_: actions,
-      keyword_: keyword,
     })
   }
   return result
@@ -253,23 +252,23 @@ const convertJoinedRules = (rules: string): string => {
   return rules.includes("\n") ? rules : !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
   && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsuredLookBehindInRegexp)
   && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinLookBehindInRegexp)
-  ? rules.replace(<RegExpG> /(?<!\\) ([\w\x80-\ufffd]{1,6})(?![\x00- \w\\\x7f-\uffff])/g, "\n$1")
+  ? rules.replace(<RegExpG> /(?<!\\) ([\w\x80-\ufffd]{1,8})(?![\x00- \w\\\x7f-\uffff])/g, "\n$1")
   : OnChrome && CurCVer_ > BrowserVer.MinEnsuredLookBehindInRegexp - 1
     || OnFirefox && CurFFVer_ > FirefoxBrowserVer.MinLookBehindInRegexp - 1
-  ? rules.replace(new RegExp("(?<!\\\\) ([\\w\\x80-\\ufffd]{1,6})(?![\\x00- \\w\\\\\\x7f-\\uffff])", "g")
+  ? rules.replace(new RegExp("(?<!\\\\) ([\\w\\x80-\\ufffd]{1,8})(?![\\x00- \\w\\\\\\x7f-\\uffff])", "g")
       , "\n$1")
-  : rules.replace(<RegExpG & RegExpSearchable<1>> /\\ | ([\w\x80-\ufffd]{1,6})(?![\x00- \w\\\x7f-\uffff])/g
+  : rules.replace(<RegExpG & RegExpSearchable<1>> /\\ | ([\w\x80-\ufffd]{1,8})(?![\x00- \w\\\x7f-\uffff])/g
       , (s, a): string => s[1] === " " ? s : "\n" + a)
 }
 
-set_substitute_((text: string, normalContext: SedContext, mixedSed?: MixedSedOpts | null
+set_substitute_((input: string, normalContext: SedContext, mixedSed?: MixedSedOpts | null
     , exOut?: InfoOnSed): string => {
   exOut && (exOut.keyword_ = null)
   let rules = !mixedSed || typeof mixedSed !== "object" ? mixedSed : mixedSed.r
-  if (rules === false) { return text }
+  if (rules === false) { return input }
   let arr = staticSeds_ || (staticSeds_ = parseSeds_(settingsCache_.clipSub, null))
   if (rules && (typeof rules === "number"
-      || typeof rules === "string" && rules.length <= 6 && !(<RegExpOne> /[^\w\x80-\ufffd]/).test(rules))) {
+      || typeof rules === "string" && rules.length <= 8 && !(<RegExpOne> /[^\w\x80-\ufffd]/).test(rules))) {
     mixedSed = { r: null, k: rules }
     rules = null
   }
@@ -284,9 +283,16 @@ set_substitute_((text: string, normalContext: SedContext, mixedSed?: MixedSedOpt
   for (const item of contexts ? arr : []) {
     if (intersectContexts(item.contexts_, contexts!) && (!item.host_
           || (typeof item.host_ === "string" && (item.host_ = Exclusions.createSimpleUrlMatcher_(item.host_) || -1),
-              item.host_ !== -1 && Exclusions.matchSimply_(item.host_, text))
+              item.host_ !== -1 && Exclusions.matchSimply_(item.host_, input))
         )) {
+      const getReplaced = (): string => {
+        let str = item.replaced_
+        return !str.includes("${") ? str : str.replace(<RegExpG & RegExpSearchable<1>> /\$(?:\$|\{([^}]*)})/g
+            , (full, s1: string | undefined): string => !s1 ? full : (innerClipboard_.get(
+                  s1.replace(<RegExpOne> /^<|>$/, "")) || "").replace(<RegExpG> /\$/g, "$$$$"))
+      }
       let end = -1
+      let text = input
       if (item.retainMatched_) {
         let start = 0, first_group: string | undefined, retain = item.retainMatched_
         text.replace(item.match_ as RegExpOne & RegExpSearchable<0>, function (matched_text): string {
@@ -296,14 +302,22 @@ set_substitute_((text: string, normalContext: SedContext, mixedSed?: MixedSedOpt
           return ""
         })
         if (end >= 0) {
-          const newText = text.replace(item.match_ as RegExpOne, item.replaced_)
+          const newText = text.replace(item.match_ as RegExpOne, getReplaced())
           text = newText.slice(start, newText.length - (text.length - end)) || first_group || text.slice(start, end)
         }
       } else if ((item.match_ as RegExpOne).test(text)) {
         end = (item.match_ as RegExpG).lastIndex = 0
-        text = text.replace(item.match_ as RegExpG, item.replaced_)
+        text = text.replace(item.match_ as RegExpG, getReplaced())
       }
       if (end < 0) {
+        const elseVal = (item.actions_.find((i) => typeof i === "string" && i.startsWith("else=")
+            ) as string | undefined || "").slice(5)
+        if (elseVal) {
+          if (SedActionMap[elseVal] === SedAction.return) { break }
+          if (((<RegExpOne> /^[\w\x80-\ufffd]{1,8}$/).test(elseVal))) {
+            contexts = parseSedKeys_(elseVal)
+          }
+        }
         continue
       }
       let doesReturn = false
@@ -345,17 +359,22 @@ set_substitute_((text: string, normalContext: SedContext, mixedSed?: MixedSedOpt
             )
 //#endregion
       }
-      if (doesReturn) { break }
+      if (!item.actions_.includes(SedAction.virtually)) {
+        input = text
+        if (doesReturn) { break }
+      }
     }
   }
   BgUtils_.resetRe_()
-  return text
+  return input
 })
 
 const writeInnerClipboard_ = (name: string, text: string): void => {
-  innerClipboard_.set(name, text)
+  (innerClipboard_ as Map<string, string>).set(name, text)
   timeoutToClearInnerClipboard_ && clearTimeout(timeoutToClearInnerClipboard_)
-  timeoutToClearInnerClipboard_ = setTimeout((): void => { innerClipboard_.clear() }, Build.NDEBUG ? 10_000 : 45_000)
+  timeoutToClearInnerClipboard_ = setTimeout((): void => {
+    (innerClipboard_ as Map<string, string>).clear()
+  }, Build.NDEBUG ? 10_000 : 45_000)
 }
 
 const getTextArea_html = (): HTMLTextAreaElement => {
@@ -418,7 +437,11 @@ const reformat_ = (copied: string, sed?: MixedSedOpts | null, exOut?: InfoOnSed)
 let navClipboard: (typeof navigator.clipboard) | undefined
 
 set_copy_(((data, join, sed, keyword): string | Promise<string> => {
+  const singleRule = sed && (typeof sed === "string" ? sed : typeof sed === "object" && (sed.r || sed.k))
+  const clip = singleRule && typeof singleRule === "string" && singleRule[0] === ">" ? singleRule.slice(1) : null
+  if (clip) { sed = null }
   data = format_(data, join, sed, keyword)
+  if (clip) { writeInnerClipboard_(clip, data) }
   if (!data) { return "" }
   if (Build.MV3 || OnFirefox && (navClipboard || (navClipboard = navigator.clipboard))) {
     return (Build.MV3 ? runOnTee_(kTeeTask.Copy, data, null)

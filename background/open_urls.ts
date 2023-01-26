@@ -1,7 +1,8 @@
 import {
   framesForTab_, cPort, cRepeat, get_cOptions, set_cOptions, set_cPort, set_cRepeat, set_cEnv, runOneMapping_,
   lastWndId_, curIncognito_, curTabId_, curWndId_, recencyForTab_, vomnibarBgOptions_, OnFirefox, OnChrome, OnEdge,
-  CurCVer_, IsEdg_, paste_, substitute_, newTabUrls_, os_, CONST_, shownHash_, set_shownHash_, newTabUrl_f
+  CurCVer_, IsEdg_, paste_, substitute_, newTabUrls_, os_, CONST_, shownHash_, set_shownHash_, newTabUrl_f,
+  innerClipboard_
 } from "./store"
 import * as BgUtils_ from "./utils"
 import {
@@ -89,12 +90,12 @@ export const checkHarmfulUrl_ = (url: string, port?: Port | null): boolean => {
 
 const onEvalUrl_ = (workType: Urls.WorkType, options: KnownOptions<C.openUrl>, tabs: [Tab] | [] | undefined
     , arr: Urls.BaseEvalResult): void => {
+  BgUtils_.resetRe_()
   const applyOptions = (urls: string[] | null): void => {
     replaceCmdOptions<C.openUrl>(options)
     overrideCmdOptions<C.openUrl>({ urls, url: null, url_f: null, copied: null, keyword: null }, true)
   }
-  BgUtils_.resetRe_()
-  switch (arr[1]) {
+  switch (arr[1]) { // on Chrome 109.0.5414.87 and macOS 13.1 (22C65), `switch(BgUtils_.resetRe_(), arr[1])` crashes
   case Urls.kEval.copy:
     showHUD((arr as Urls.CopyEvalResult)[0], kTip.noTextCopied)
     runNextCmdBy(1, options as {})
@@ -582,8 +583,7 @@ export const openUrlWithActions = (url: Urls.Url, workType: Urls.WorkType, sed?:
     reuse = reuse !== ReuseType.newBg ? ReuseType.newFg : reuse
   }
   typeof url !== "string"
-      ? url instanceof Promise ? url.then(onEvalUrl_.bind(0, workType, options, tabs))
-        : /*#__NOINLINE__*/ onEvalUrl_(workType, options, tabs, url)
+      ? void Promise.resolve(url).then(onEvalUrl_.bind(0, workType, options, tabs))
       : /*#__NOINLINE__*/ openShowPage(url, reuse, options) ? 0
       : BgUtils_.isJSUrl_(url) ? /*#__NOINLINE__*/ openJSUrl(url, options, null, reuse)
       : checkHarmfulUrl_(url) ? runNextCmdBy(0, options)
@@ -597,7 +597,8 @@ export const openUrlWithActions = (url: Urls.Url, workType: Urls.WorkType, sed?:
 
 }
 
-const openCopiedUrl = (tabs: [Tab] | [] | undefined, url: string | null): void => {
+const openCopiedUrl = (copied: KnownOptions<C.openUrl>["copied"]
+    , tabs: [Tab] | [] | undefined, url: string | null): void => {
   if (url === null) {
     complainLimits("read clipboard")
     runNextCmd<C.openUrl>(0)
@@ -608,8 +609,8 @@ const openCopiedUrl = (tabs: [Tab] | [] | undefined, url: string | null): void =
     runNextCmd<C.openUrl>(0)
     return
   }
+  const searchLines = typeof copied === "string" && copied.includes("any")
   let urls: string[]
-  const copied = get_cOptions<C.openUrl>().copied, searchLines = typeof copied === "string" && copied.includes("any")
   if ((copied === "urls" || searchLines) && (urls = url.split(<RegExpG> /[\r\n]+/g)).length > 1) {
     const urls2: string[] = [], rawKeyword = searchLines && get_cOptions<C.openUrl>().keyword
     const keyword = rawKeyword ? rawKeyword + "" : null
@@ -698,10 +699,17 @@ export const openUrl = (tabs?: [Tab] | []): void => {
   } else if (get_cOptions<C.openUrl>().copied) {
     const exOut: InfoOnSed = {}, url = paste_(parseSedOptions_(get_cOptions<C.openUrl, true>()), 0, exOut)
     exOut.keyword_ != null && overrideOption<C.openUrl, "keyword">("keyword", exOut.keyword_!)
-    if (url instanceof Promise) {
-      void url.then(/*#__NOINLINE__*/ openCopiedUrl.bind(null, tabs))
+    let copied = get_cOptions<C.openUrl, true>().copied
+    let copiedName = typeof copied !== "string" ? null : copied.includes("<") ? copied.split("<")[1]
+        : copied.includes(">") ? copied.split(">")[0] : null
+    if (copiedName) {
+      openCopiedUrl(((copied as string).includes("<") ? (copied as string).split("<")[0]
+            : (copied as string).split(">")[1]) as (typeof copied) & string
+          , tabs, innerClipboard_.get(copiedName) || "")
+    } else if (url instanceof Promise) {
+      void url.then(/*#__NOINLINE__*/ openCopiedUrl.bind(null, copied, tabs))
     } else {
-      openCopiedUrl(tabs, url)
+      openCopiedUrl(copied, tabs, url)
     }
   } else {
     let url_f = get_cOptions<C.openUrl, true>().url_f!

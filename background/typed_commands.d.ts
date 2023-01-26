@@ -107,7 +107,7 @@ interface BgCmdOptions {
   [kBgCmd.openUrl]: OpenUrlOptions & MasksForOpenUrl & {
     urls: string[]; $fmt: 1 | 2
     url: string; url_f: Urls.Url
-    copied: boolean | "urls" | "any-urls"; /** has pasted once */ $p: 1
+    copied: boolean | "urls" | "any-urls" | `url<${string}`; /** has pasted once */ $p: 1
     goNext: boolean | "absolute"; /** for ReuseType.reuse */ prefix: boolean
     /** value for .mask */ value: string
   } & Ensure<OpenPageUrlOptions, keyof OpenPageUrlOptions>
