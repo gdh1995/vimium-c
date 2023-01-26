@@ -262,7 +262,9 @@ const convertJoinedRules = (rules: string): string => {
       , (s, a): string => s[1] === " " ? s : "\n" + a)
 }
 
-set_substitute_((text: string, normalContext: SedContext, mixedSed?: MixedSedOpts | null, exOut?:InfoOnSed): string => {
+set_substitute_((text: string, normalContext: SedContext, mixedSed?: MixedSedOpts | null
+    , exOut?: InfoOnSed): string => {
+  exOut && (exOut.keyword_ = null)
   let rules = !mixedSed || typeof mixedSed !== "object" ? mixedSed : mixedSed.r
   if (rules === false) { return text }
   let arr = staticSeds_ || (staticSeds_ = parseSeds_(settingsCache_.clipSub, null))
@@ -304,13 +306,14 @@ set_substitute_((text: string, normalContext: SedContext, mixedSed?: MixedSedOpt
       if (end < 0) {
         continue
       }
-      if (item.keyword_ && exOut) { exOut.keyword_ = item.keyword_ }
       let doesReturn = false
       for (const action of item.actions_) {
         if (typeof action === "string") {
           const actionName = action.split("=")[0], actionVal = action.slice(actionName.length + 1)
           if (actionName === "copy") { writeInnerClipboard_(actionVal, text) }
           else if (actionName === "paste") { text = innerClipboard_.get(actionVal) || "" }
+          else if (actionName === "keyword" && exOut) { exOut.keyword_ = actionVal }
+          continue
         }
         if (doesReturn = action === SedAction.return) { break }
 //#region character manipulation
@@ -375,7 +378,7 @@ const format_ = (data: string | any[], join: FgReq[kFgReq.copy]["j"] | undefined
   if (typeof data !== "string") {
     data = data.map((i): string => {
       const exOut: InfoOnSed = {}, s = substitute_(i, SedContext.paste, sed, exOut)
-      keyword = exOut.keyword_ || oriKeyword
+      keyword = exOut.keyword_ ?? oriKeyword
       return keyword ? createSearchToCopy(s) : s
     })
     data = typeof join === "string" && join.startsWith("json") ? JSON.stringify(data, null, +join.slice(4) || 2)
@@ -398,7 +401,7 @@ const format_ = (data: string | any[], join: FgReq[kFgReq.copy]["j"] | undefined
   {
     const exOut: InfoOnSed = {}
     data = substitute_(data, SedContext.copy, sed, exOut)
-    keyword = exOut.keyword_ || oriKeyword
+    keyword = exOut.keyword_ ?? oriKeyword
     data = keyword ? createSearchToCopy(data) : data
   }
   return data

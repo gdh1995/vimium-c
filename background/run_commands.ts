@@ -121,7 +121,7 @@ export const fillOptionWithMask = <Cmd extends keyof BgCmdOptions>(template: str
       if (!body) { return "$" }
       ok = 1
       useDict++
-      let encode = true
+      let encode = false
       const sed = tailSedKeysRe_.exec(body)
       sed && (body = body.slice(0, sed.index))
       if ((<RegExpOne> /^[sS]:/).test(body)) { encode = body[0] === "s"; body = body.slice(2) }

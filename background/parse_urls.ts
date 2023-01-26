@@ -394,7 +394,7 @@ export const parseSearchEngines_ = (str: string, map: Map<string, Search.Engine>
         })
         if (tmpRule = reParseSearchUrl_(val, ind)) {
           if (key.includes("$")) {
-            key = key.replace(searchVariableRe_, "(.*)");
+            key = key.replace(searchVariableRe_, s => s === "$$" ? "\\$" : "(.*)")
             tmpKey = new RegExp("^" + key, (<RegExpI> /[a-z]/i).test(key) ? "i" as "" : ""
               ) as RegExpI | RegExpOne;
           } else {

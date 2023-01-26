@@ -49,19 +49,19 @@ const keyMappingChecker_ = {
       s3 = value;
     }
     value = value.replace(<RegExpG> /\ufffe/g, "")
-    const multiLines = value.includes("\\\r")
+    const multiLines = value.includes("\x7f")
     try {
-      const obj = JSON.parse(multiLines ? value.replace(<RegExpG> /\\\r/g, "") : value)
+      const obj = JSON.parse(multiLines ? value.replace(<RegExpG> /\x7f/g, "") : value)
       if (typeof obj !== "string") {
         return obj !== true ? s3 ? "=" + s3 + tail : str : tail
       }
-      value = multiLines ? JSON.parse(value.replace(<RegExpG> /\\\r/g, "\ufffe")) : obj
+      value = multiLines ? JSON.parse(value) : obj
     } catch {
-      value = multiLines ? (s2 || value).replace(<RegExpG> /\\\r/g, "\ufffe") : s2 || value
+      value = multiLines ? (s2 || value) : s2 || value
     }
     value = value && value.replace(<RegExpG & RegExpSearchable<1>> /\\(\\|s)/g, (a, i) => i === "s" ? " " : a)
     value = value && JSON.stringify(value).replace(<RegExpG & RegExpSearchable<0>> /\s/g, keyMappingChecker_.onToHex_)
-    value = multiLines ? value.replace(<RegExpG> /\ufffe/g, "\\\r") : value
+    value = multiLines ? value : value
     return "=" + value + tail;
   },
   onToHex_ (this: void, s: string): string {
@@ -99,7 +99,7 @@ const keyMappingChecker_ = {
     if ((<RegExpOne> /\s(createTab|openUrl)/).test(name) && !(<RegExpI> /\surls?=/i).test(options)) {
       options = keyMappingChecker_.convertFromLegacyUrlList_(options)
     }
-    options = options ? options.replace(<RegExpG & RegExpSearchable<3>> /=("(\S*(?:\s[^=]*)?)"|[\S\r]+)(\s|$)/g,
+    options = options ? options.replace(<RegExpG & RegExpSearchable<3>> /=("(\S*(?:\s[^=]*)?)"|\S+)(\s|$)/g,
         keyMappingChecker_.normalizeOptions_) : "";
     return prefix + name + options;
   },
@@ -113,7 +113,7 @@ const keyMappingChecker_ = {
   check_ (str: string): string {
     if (!str) { return str; }
     this.init_ && this.init_();
-    str = str.replace(<RegExpG & RegExpSearchable<0>> /\\\\?\n/g, i => i.length === 3 ? i : "\\\r")
+    str = str.replace(<RegExpG & RegExpSearchable<0>> /\\\\?\n/g, i => i.length === 3 ? i : "\x7f")
     str = str.replace(<RegExpG & RegExpSearchable<3>
         >/^([ \t]*(?:#\s?)?map\s+(?:<(?!<)(?:.-){0,4}.[\w:]*?>|\S)\s+)(<(?!<)(?:[ACMSVacmsv]-){0,4}.\w*?>|\S)(?=\s|$)/gm
         , this.correctMapKey_);
@@ -121,7 +121,7 @@ const keyMappingChecker_ = {
         , this.normalizeMap_);
     str = str.replace(<RegExpG & RegExpSearchable<3>> /^([ \t]*(?:#\s?)?(?:command|shortcut)\s+)(\S+)([^\n]*)/gm,
         this.normalizeCmd_);
-    str = str.replace(<RegExpG & RegExpSearchable<0>> /\\\r/g, "\\\n").trim();
+    str = str.replace(<RegExpG & RegExpSearchable<0>> /\x7f/g, "\\\n").trim();
     return str;
   }
 };

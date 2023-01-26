@@ -513,7 +513,8 @@ const runOneKeyWithOptions = (key: string, count: number
     registryEntry = makeCommand_(key as Exclude<keyof typeof availableCommands_, "__proto__">, null)
   }
   if (registryEntry == null) {
-    showHUD(`"${(<RegExpOne> /^\w+$/).test(key) ? finalKey : key}" has not been mapped`)
+    let desc = (<RegExpOne> /^\w+$/).test(key) ? finalKey : key
+    showHUD(`"${desc.length >= 20 ? desc.slice(0, 19) + "\u2026" : desc}" has not been mapped`)
     return
   }
   if (registryEntry.alias_ === kBgCmd.runKey && registryEntry.background_) {

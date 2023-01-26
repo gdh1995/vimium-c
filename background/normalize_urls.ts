@@ -10,8 +10,8 @@ export const hostRe_ = <RegExpOne & RegExpSearchable<4>> /^([^:]+(:[^:]+)?@)?([^
 export const customProtocolRe_ = <RegExpOne> /^(?:ext|web)\+[a-z]+:/
 export const quotedStringRe_ = <RegExpOne> /^"[^"]*"$|^'[^']*'$|^\u201c[^\u201d]*\u201d$/
 export const searchWordRe_ = <RegExpG & RegExpSearchable<2>> /\$([sS$])?(?:\{([^}]*)})?/g
-export const searchVariableRe_ = <RegExpG & RegExpSearchable<1>> /\$([+-]?\d+)/g
-export const tailSedKeysRe_ = <RegExpG & RegExpSearchable<1>> /\|[\w\x80-\ufffd]{1,6}$/g
+export const searchVariableRe_ = <RegExpG & RegExpSearchable<1>> /\$([+-]?\d+|\$)/g
+export const tailSedKeysRe_ = <RegExpOne> /\|[\w\x80-\ufffd]{1,8}$/
 
 const KnownPages_ = ["blank", "newtab", "options", "show"]
 const kOpts = "options.html"
@@ -321,6 +321,7 @@ export const createSearch_ = function (query: string[], url: string, blank: stri
     if (arr.length === 0) { s2 = "" }
     else if (s2 && s2.includes("$")) {
       s2 = s2.replace(searchVariableRe_, function (_t: string, s3: string): string {
+        if (s3 === "$") { return "$" }
         let i = parseInt(s3, 10);
         if (!i) {
           return arr.join(s1);

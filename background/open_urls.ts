@@ -555,7 +555,7 @@ export const openUrlWithActions = (url: Urls.Url, workType: Urls.WorkType, sed?:
       url = substitute_(url, SedContext.NONE, postSed, exOut)
     }
     if (workType !== Urls.WorkType.FakeType) {
-      const keyword = exOut.keyword_ || (get_cOptions<C.openUrl>().keyword as AllowToString || "") + ""
+      const keyword = exOut.keyword_ ?? (get_cOptions<C.openUrl>().keyword as AllowToString || "") + ""
       const testUrl = get_cOptions<C.openUrl>().testUrl ?? !keyword
       const isSpecialKW = !!keyword && keyword !== "~"
       url = testUrl ? convertToUrl_(url, keyword, workType)
@@ -568,7 +568,7 @@ export const openUrlWithActions = (url: Urls.Url, workType: Urls.WorkType, sed?:
     if (goNext && url && typeof url === "string") {
       const exOut2: InfoOnSed = {}
       url = substitute_(url, SedContext.goNext, null, exOut2)
-      exOut2.keyword_ && overrideOption<C.openUrl, "keyword">("keyword", exOut2.keyword_)
+      exOut2.keyword_ != null && overrideOption<C.openUrl, "keyword">("keyword", exOut2.keyword_!)
       url = goToNextUrl(url, cRepeat, goNext === "absolute")[1]
     }
     url = typeof url === "string" ? reformatURL_(url) : url
@@ -697,7 +697,7 @@ export const openUrl = (tabs?: [Tab] | []): void => {
     openUrlWithActions(rawUrl as AllowToString + "", Urls.WorkType.EvenAffectStatus, true, tabs)
   } else if (get_cOptions<C.openUrl>().copied) {
     const exOut: InfoOnSed = {}, url = paste_(parseSedOptions_(get_cOptions<C.openUrl, true>()), 0, exOut)
-    exOut.keyword_ && overrideOption<C.openUrl, "keyword">("keyword", exOut.keyword_)
+    exOut.keyword_ != null && overrideOption<C.openUrl, "keyword">("keyword", exOut.keyword_!)
     if (url instanceof Promise) {
       void url.then(/*#__NOINLINE__*/ openCopiedUrl.bind(null, tabs))
     } else {
@@ -739,7 +739,7 @@ export const openUrlReq = (request: FgReq[kFgReq.openUrl], port?: Port | null): 
         : formatted ? SedContext.pageURL : SedContext.pageText
     url = testUrl ? findUrlEndingWithPunctuation_(url, formatted) : url
     url = substitute_(url, context, sed, exOut)
-    let converted: boolean, keyword = exOut.keyword_ || rawKeyword
+    let converted: boolean, keyword = exOut.keyword_ ?? rawKeyword
     if (formatted) {
       url = (converted = url !== originalUrl) ? convertToUrl_(url, null, Urls.WorkType.ConvertKnown) : url
     } else if (converted = !!testUrl || !isWeb && !keyword) {

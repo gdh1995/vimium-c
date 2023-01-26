@@ -410,5 +410,5 @@ declare function fetch(input: `/${string}` | `data:${string}`, init?: Partial<Re
 interface MaybeWithWindow { window?: Window; document?: HTMLDocument }
 
 interface InfoOnSed {
-  keyword_?: string
+  keyword_?: string | null
 }

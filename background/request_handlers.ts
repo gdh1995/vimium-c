@@ -134,7 +134,7 @@ set_reqH_([
         request.n && runNextCmdBy(0, request.n)
         return
       }
-      o2.k = exOut.keyword_ || (o2.k == null ? search!.k : o2.k) // not change .testUrl, in case a user specifies it
+      o2.k = exOut.keyword_ ?? (o2.k == null ? search!.k : o2.k) // not change .testUrl, in case a user specifies it
       reqH_[kFgReq.openUrl]({ u: query2!, o: o2, r: ReuseType.current, n: parseFallbackOptions(request.n) || {} }, port)
     })
   },
@@ -294,7 +294,7 @@ set_reqH_([
       url = isLinkJob ? findUrlEndingWithPunctuation_(url, true) : url
       url = substitute_(url, isLinkJob ? SedContext.pageURL : SedContext.pageText, request.o && request.o.s, exOut)
       replaceCmdOptions<kBgCmd.showVomnibar>({ url, newtab: t != null ? !!t : !isLinkJob
-          , keyword: exOut.keyword_ || request.o.k })
+          , keyword: exOut.keyword_ ?? request.o.k })
       replaceForwardedOptions(request.f)
       set_cRepeat(1)
     } else if (request.r !== true) {
@@ -521,7 +521,7 @@ set_reqH_([
   /** kFgReq.downloadLink: */ (req: FgReq[kFgReq.downloadLink], port): void => {
     const o2 = req.o || {}, exOut: InfoOnSed = {}
     let url = substitute_(findUrlEndingWithPunctuation_(req.u, true), SedContext.pageURL, o2.s, exOut)
-    const keyword = exOut.keyword_ || o2.k
+    const keyword = exOut.keyword_ ?? o2.k
     url = url !== req.u || keyword ? convertToUrl_(url, keyword, Urls.WorkType.Default) : url
     set_cPort(port)
     showHUD(url, kTip.downloaded)

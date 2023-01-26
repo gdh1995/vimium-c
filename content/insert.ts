@@ -3,7 +3,7 @@ import {
   esc, onWndFocus, isEnabled_, readyState_, injector, recordLog, weakRef_not_ff, OnEdge, getTime, abs_, fgCache,
   safeCall, timeout_, timeStamp_
 } from "../lib/utils"
-import { post_, runFallbackKey, safePost } from "./port"
+import { post_, runFallbackKey, runtime_port, safePost } from "./port"
 import { getParentVApi, ui_box, ui_root } from "./dom_ui"
 import { hudHide } from "./hud"
 import { setNewScrolling, scrollTick } from "./scroller"
@@ -229,7 +229,7 @@ export const onFocus = (event: Event | FocusEvent): void => {
   if (lock_ && lock_ === (OnChrome ? deepActiveEl_unsafe_() : activeEl_unsafe_())) { return; }
   if (target === ui_box) { Stop_(event); return }
   // on Edge 107 and MV3 mode, chrome.dom may throw `invalid extension context`
-  const sr = OnChrome ? safeCall(GetShadowRoot_, target as Element) : GetShadowRoot_(target as Element)
+  const sr = OnChrome ? GetShadowRoot_(target as Element, !runtime_port) : GetShadowRoot_(target as Element)
   if (sr) {
     const path = getEventPath(event)
     let topOfPath: EventTarget | undefined
@@ -278,7 +278,7 @@ export const onBlur = (event: Event | FocusEvent): void => {
   let target: EventTarget | Element | Window | Document = event.target, topOfPath: EventTarget | undefined
   if (target === window) { onWndBlur(); return }
   if (OnFirefox && target === doc) { return; }
-  const sr = GetShadowRoot_(target as Element)
+  const sr = OnChrome ? GetShadowRoot_(target as Element, !runtime_port) : GetShadowRoot_(target as Element)
   if (sr && target !== ui_box) {
   const path = getEventPath(event)
   const same = !OnEdge && (!OnChrome
