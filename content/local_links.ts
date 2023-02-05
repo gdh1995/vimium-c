@@ -87,7 +87,7 @@ const getClickable = (hints: Hint[], element: SafeHTMLElement): void => {
       isClickable = !(element as TextElement).readOnly || mode1_ > HintMode.min_job - 1
     } else if (s !== "hidden") {
       const st = getComputedStyle_(element)
-      isClickable = <number> <string | number> st.opacity > 0
+      isClickable = <number> <string | number> st.opacity > 0 || <number> <string | number> st.zIndex > 0
       if (isClickable || !(element as HTMLInputElement).labels.length) {
         arr = getVisibleBoundingRect_(element as HTMLInputElement, <BOOL> +isClickable, st)
         isClickable = !!arr
@@ -662,7 +662,8 @@ const isDescendant = function (c: Element | null, p: Element, shouldBeSingleChil
   return i > 2;
 } as (c: Element, p: Element, shouldBeSingleChild: BOOL | boolean) => boolean
 
-export const filterOutNonReachable = (list: Hint[], notForAllClickable?: boolean | BOOL): void | boolean => {
+export const filterOutNonReachable = (list: Hint[], notForAllClickable?: boolean | BOOL
+    , useMatch?: HintsNS.Options["match"]): void | boolean => {
   const zoom = OnChrome ? docZoom_ * bZoom_ : 1, zoomD2 = OnChrome ? zoom / 2 : 0.5, start = getTime(),
   body = doc.body, docEl = docEl_unsafe_(),
   // note: exclude the case of `fromPoint.contains(el)`, to exclude invisible items in lists
@@ -718,6 +719,10 @@ export const filterOutNonReachable = (list: Hint[], notForAllClickable?: boolean
       continue;
     }
     if (hasInert && !editableTypes_[tag] && el.closest!("[inert]")) { continue }
+    if (tag === "label" && hasTag_(INP, fromPoint!) && (el as HTMLLabelElement).control === fromPoint!) {
+      useMatch || (list[i][0] = fromPoint! as HTMLInputElement)
+      continue
+    }
     now = i & 3 ? now : getTime()
     let index2 = 0
     const stack = root.elementsFromPoint(cx, cy), elPos = stack.indexOf(el)
@@ -846,7 +851,7 @@ export const getVisibleElements = (view: ViewBox): readonly Hint[] => {
   if ((reachable != null ? reachable
         : (_i < HintMode.max_mouse_events + 1 || _i === HintMode.FOCUS_EDITABLE) && fgCache.e)
       && visibleElements.length < GlobalConsts.MinElementCountToStopPointerDetection
-      && filterOutNonReachable(visibleElements, _i > HintMode.max_mouse_events)) { /* empty */ }
+      && filterOutNonReachable(visibleElements, _i > HintMode.max_mouse_events, hintOptions.match)) { /* empty */ }
   else {
     OnEdge || _i === HintMode.FOCUS_EDITABLE && filterOutInert(visibleElements)
   }
