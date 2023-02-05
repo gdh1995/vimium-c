@@ -23,7 +23,7 @@ interface ElementScrollInfo {
 
 import {
   isAlive_, setupEventListener, timeout_, clearTimeout_, fgCache, doc, noRAF_old_cr_, readyState_, chromeVer_,
-  vApi, weakRef_not_ff, max_, math, min_, Lower, OnChrome, OnFirefox, OnEdge, WithDialog, OnSafari,
+  vApi, weakRef_not_ff, max_, math, min_, Lower, OnChrome, OnFirefox, OnEdge, WithDialog, OnSafari, deref_,
   isTop, injector, isTY, promiseDefer_, weakRef_ff, Stop_, abs_
 } from "../lib/utils"
 import {
@@ -571,7 +571,8 @@ export const getPixelScaleToScroll = (skipGetZoom?: 1): void => {
 const checkCurrent = (el: SafeElement | null): void => {
   let cur = derefInDoc_(currentScrolling)
   if (cur ? cur !== el && isNotInViewport(cur) : currentScrolling) {
-    setNewScrolling(el)
+    const last = cur && cachedScrollable && deref_(cachedScrollable), par = last && last !== cur && IsInDOM_(last, cur!) && !isNotInViewport(last) ? last : 0
+    setNewScrolling(par || el)
   }
 }
 
