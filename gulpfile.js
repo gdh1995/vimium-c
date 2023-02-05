@@ -912,6 +912,12 @@ function patchExtendClick(source) {
 var known_defs
 const loadTerserConfig = exports.loadTerserConfig = (reload) => {
   var a = _loadTerserConfig(getBuildItem("NDEBUG") ? "scripts/uglifyjs.dist.json" : "scripts/uglifyjs.local.json", reload);
+  if (!getBuildItem("Mangle")) {
+    a.mangle = false
+    a.compress.sequences = false
+    a.compress.join_vars = false
+  }
+  if (!a.mangle) { a.format.beautify = true }
   {
     if (!getBuildItem("NDEBUG")) {
       a.format.beautify = true
@@ -929,7 +935,5 @@ const loadTerserConfig = exports.loadTerserConfig = (reload) => {
   if (gNoComments || getBuildItem("NDEBUG")) {
     a.format.comments = /^!/
   }
-  if (!getBuildItem("Mangle")) { a.mangle = false }
-  if (!a.mangle) { a.format.beautify = true }
   return a;
 }

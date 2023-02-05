@@ -441,7 +441,7 @@ set_copy_(((data, join, sed, keyword): string | Promise<string> => {
   const clip = singleRule && typeof singleRule === "string" && singleRule[0] === ">" ? singleRule.slice(1) : null
   if (clip) { sed = null }
   data = format_(data, join, sed, keyword)
-  if (clip) { writeInnerClipboard_(clip, data) }
+  if (clip) { writeInnerClipboard_(clip, data); return data }
   if (!data) { return "" }
   if (Build.MV3 || OnFirefox && (navClipboard || (navClipboard = navigator.clipboard))) {
     return (Build.MV3 ? runOnTee_(kTeeTask.Copy, data, null)
