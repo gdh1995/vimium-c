@@ -153,7 +153,10 @@ export const decodeUrlForCopy_ = (url: string, __allowSpace?: boolean): string =
     str = str.length !== ori.length ? str : encodeAsciiURI_(url, 1)
     const noSpace = !__allowSpace && (protocolRe_.test(str) ? !str.startsWith("vimium:")
         : str.startsWith("data:") || str.startsWith("about:"))
-    str = str.replace(noSpace ? spacesRe_ : <RegExpG & RegExpSearchable<0>> /[\r\n]+|\s$/g, encodeURIComponent)
+    const eUC = encodeURIComponent
+    str = str.replace(noSpace ? spacesRe_ : <RegExpG & RegExpSearchable<0>> /[\r\n]+/g, eUC)
+    str = str.replace(<RegExpOne & RegExpSearchable<0>> /[\s`~!@$^*()\-_[\]{}\\|;:'",.<>]$/
+        , ch => ch < "\x7f" ? "%" + (ch.charCodeAt(0) + 256).toString(16).slice(1) : eUC(ch))
     return str
 }
 

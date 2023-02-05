@@ -13,7 +13,7 @@ import { beginScroll, scrollTick } from "./scroller"
 import {
   getSelectionText, adjustUI, setupExitOnClick, addUIElement, getParentVApi, evalIfOK, checkHidden, kExitOnClick,
 } from "./dom_ui"
-import { tryNestedFrame } from "./link_hints"
+import { coreHints, isHintsActive, tryNestedFrame } from "./link_hints"
 import { insert_Lock_ } from "./insert"
 import { hudTip, hud_box } from "./hud"
 import { post_, send_ } from "./port"
@@ -216,7 +216,7 @@ const onOmniMessage = function (this: OmniPort, msg: { data: any, target?: Messa
 
 const refreshKeyHandler = (): void => {
   status < Status.Showing ? status < Status.Inactive + 1 ? removeHandler_(kHandler.omni) : 0
-      : replaceOrSuppressMost_(kHandler.omni, ((event: HandlerNS.Event | string): HandlerResult => {
+      : (replaceOrSuppressMost_(kHandler.omni, ((event: HandlerNS.Event | string): HandlerResult => {
     if (insert_Lock_()) { return HandlerResult.Nothing; }
     event = getMappedKey(event as HandlerNS.Event, kModeId.Omni)
     if (isEscape_(event)) { hide(); return HandlerResult.Prevent }
@@ -225,7 +225,8 @@ const refreshKeyHandler = (): void => {
       return HandlerResult.Prevent;
     }
     return HandlerResult.Nothing;
-  }) as (event: HandlerNS.Event) => HandlerResult)
+  }) as (event: HandlerNS.Event) => HandlerResult),
+  isHintsActive && replaceOrSuppressMost_(kHandler.linkHints, coreHints.n))
 }
 
   const timer1 = timeout_(refreshKeyHandler, GlobalConsts.TimeOfSuppressingTailKeydownEvents), oldTimer = timer_

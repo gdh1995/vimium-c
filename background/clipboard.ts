@@ -15,6 +15,7 @@ declare const enum SedAction {
   camel = 14, camelcase = 14, dash = 15, dashed = 15, hyphen = 15, capitalize = 16, capitalizeAll = 17,
   latin = 18, latinize = 18, latinise = 18, noaccent = 18, nodiacritic = 18, decodeAll = 19,
   json = 20, jsonParse = 21, virtually = 22, virtual = 22, dryRun = 22,
+  inc = 23, increase = 23, dec = 24, decrease = 24,
   break = 99, stop = 99, return = 99,
 }
 type SedActions = SedAction | `${string}=${string}`
@@ -43,6 +44,7 @@ const SedActionMap: ReadonlySafeDict<SedAction> = {
   noaccent: SedAction.latin, nodiacritic: SedAction.latin,
   json: SedAction.json, jsonparse: SedAction.jsonParse,
   virtual: SedAction.virtually, virtually: SedAction.virtually, dryrun: SedAction.virtually,
+  inc: SedAction.inc, dec: SedAction.dec, increase: SedAction.inc, decrease: SedAction.dec,
 } satisfies SafeObject & {
   [key in Exclude<keyof typeof SedAction, "NONE"> as NormalizeKeywords<key>]: (typeof SedAction)[key]
 }
@@ -346,6 +348,8 @@ set_substitute_((input: string, normalContext: SedContext, mixedSed?: MixedSedOp
             : action === SedAction.base64Encode ? btoa(text)
             : action === SedAction.json ? jsonToEmbed(text)
             : action === SedAction.jsonParse ? tryParseJSON(text)
+            : action === SedAction.inc ? +text + 1 + ""
+            : action === SedAction.dec ? +text - 1 + ""
             : (text = (action === SedAction.normalize || action === SedAction.reverseText || action === SedAction.latin)
                   && (!OnChrome || Build.MinCVer >= BrowserVer.Min$String$$Normalize
                       || text.normalize) ? text.normalize(action === SedAction.latin ? "NFD" : "NFC") : text,
@@ -353,8 +357,9 @@ set_substitute_((input: string, normalContext: SedContext, mixedSed?: MixedSedOp
               ? (OnChrome && Build.MinCVer < BrowserVer.Min$Array$$From
                 && !Array.from ? text.split("") : Array.from(text)).reverse().join("")
               : action === SedAction.latin ? latinize(text)
-              : action === SedAction.camel || action === SedAction.dash || action === SedAction.capitalize ||
-                action === SedAction.capitalizeAll ? convertCaseWithLocale(text, action)
+              : action === SedAction.camel || action === SedAction.dash || action === SedAction.capitalize
+                || (action satisfies SedAction.NONE | SedAction.normalize | SedAction.capitalizeAll
+                    | SedAction.virtually) === SedAction.capitalizeAll ? convertCaseWithLocale(text, action)
               : text
             )
 //#endregion
