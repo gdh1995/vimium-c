@@ -153,11 +153,13 @@ export const decodeUrlForCopy_ = (url: string, __allowSpace?: boolean): string =
     str = str.length !== ori.length ? str : encodeAsciiURI_(url, 1)
     const noSpace = !__allowSpace && (protocolRe_.test(str) ? !str.startsWith("vimium:")
         : str.startsWith("data:") || str.startsWith("about:"))
-    const eUC = encodeURIComponent
-    str = str.replace(noSpace ? spacesRe_ : <RegExpG & RegExpSearchable<0>> /[\r\n]+/g, eUC)
-    str = str.replace(<RegExpOne & RegExpSearchable<0>> /[\s`~!@$^*()\-_[\]{}\\|;:'",.<>]$/
-        , ch => ch < "\x7f" ? "%" + (ch.charCodeAt(0) + 256).toString(16).slice(1) : eUC(ch))
-    return str
+    str = str.replace(noSpace ? spacesRe_ : <RegExpG & RegExpSearchable<0>> /[\r\n]+/g, encodeURIComponent)
+  let ch = str && str.charAt(str.length - 1)
+  if (ch && !(<RegExpI> /[a-z\d\ud800-\udfff]/i).test(ch)) {
+    ch = ch < "\x7f" ? "%" + (ch.charCodeAt(0) + 256).toString(16).slice(1) : encodeAsciiComponent_(ch)
+    ch.length > 1 && (str = str.slice(0, str.length - 1) + ch)
+  }
+  return str
 }
 
 export const decodeEscapedURL_ = (url: string, allowSpace?: boolean): string => {

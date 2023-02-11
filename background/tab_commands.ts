@@ -655,7 +655,8 @@ export const toggleMuteTab = (resolve: OnCmdResolved): void | kBgCmd.toggleMuteT
     return
   }
   const filter = get_cOptions<C.toggleMuteTab, true>().filter
-  if (!(get_cOptions<C.toggleMuteTab>().all || filter
+  const currentWindow = get_cOptions<C.toggleMuteTab, true>().currentWindow
+  if (!(get_cOptions<C.toggleMuteTab>().all || currentWindow || filter
         || get_cOptions<C.toggleMuteTab>().other || get_cOptions<C.toggleMuteTab>().others)) {
     getCurTab(([tab]: [Tab]): void => {
       const neg = !isTabMuted(tab)
@@ -693,15 +694,10 @@ export const toggleMuteTab = (resolve: OnCmdResolved): void | kBgCmd.toggleMuteT
     resolve(1)
   }
   const wantedCurTabInfo = getNecessaryCurTabInfo(filter)
-  if (wantedCurTabInfo) {
-    wantedCurTabInfo.then((tab): void => {
-      activeTab = tab
-      Tabs_.query({ audible: true }, cb)
-    })
-  }
-  else {
-    Tabs_.query({audible: true}, cb)
-  }
+  const tabQueryCond: chrome.tabs.QueryInfo = currentWindow && curWndId_ >= 0 ? { audible: true, windowId: curWndId_ }
+      : { audible: true }
+  wantedCurTabInfo ? wantedCurTabInfo.then((tab): void => { activeTab = tab; Tabs_.query(tabQueryCond, cb) })
+      : Tabs_.query(tabQueryCond, cb)
 }
 
 export const togglePinTab = (tabs: Tab[], oriRange: Range3, resolve: OnCmdResolved): void => {

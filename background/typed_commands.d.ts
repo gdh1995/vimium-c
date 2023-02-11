@@ -155,7 +155,7 @@ interface BgCmdOptions {
     /** only return cmd result, but not show */ silent: boolean
   } & Req.FallbackOptions
   [kBgCmd.toggleCS]: { action: "" | "reopen"; incognito: boolean; type: chrome.contentSettings.ValidTypes }
-  [kBgCmd.toggleMuteTab]: { all: boolean; other: boolean; others: boolean; mute: boolean }
+  [kBgCmd.toggleMuteTab]: { all: boolean; currentWindow?: boolean; other: boolean; others: boolean; mute: boolean }
       & TabFilterOptions & Req.FallbackOptions
   [kBgCmd.togglePinTab]: LimitedRangeOptions & TabFilterOptions & Req.FallbackOptions
   [kBgCmd.toggleTabUrl]: { keyword: string; parsed: string; reader: boolean } & OpenUrlOptions

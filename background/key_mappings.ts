@@ -218,13 +218,16 @@ const doesMatchEnv_ = (options: CommandsNS.RawOptions | string | null): boolean 
       ? resultOnMismatch : !resultOnMismatch : null
 }
 
-const getNextIfNotMatch_ = (lines: string[], start: number): number => {
-  let cond = lines[start].slice(4).trim(), nested = 0, next = start,
-  ifVal = cond.startsWith("{") ? parseVal_(cond) : cond.split(/#|\/\//)[0]
-  if (ifVal && doesMatchEnv_(BgUtils_.safer_({ $if: ifVal })) === false) {
+export const getNextOnIfElse_ = (lines: string[], start: number): number => {
+  let skip = true, nested = 0, next = start
+  if (lines[start].startsWith("#if")) {
+    const cond = lines[start].slice(4).trim(), ifVal = cond.startsWith("{") ? parseVal_(cond) : cond.split(/#|\/\//)[0]
+    skip = ifVal && doesMatchEnv_(BgUtils_.safer_({ $if: ifVal })) === false
+  }
+  if (skip) {
     while (++next < lines.length) {
       if (lines[next].startsWith("#endif")) {
-        if (--nested <= 0) { break }
+        if (--nested < 0) { break }
       } else if (lines[next].startsWith("#if")) {
         nested++
       }
@@ -256,10 +259,9 @@ const parseKeyMappings_ = (wholeMappings: string): void => {
     for (_len = lines.length; _i < _len; _i++) {
       const line = lines[_i].trim();
       if (line < kChar.minNotCommentHead) { // mask: /[!"#]/
-        if (line.startsWith("#if ")) {
-          const next = getNextIfNotMatch_(lines, _i)
-          noCheck = noCheck && next > _i
-          _i = next
+        if ((<RegExpOne> /^#(?:if|else)\b/).test(line)) {
+          _i = getNextOnIfElse_(lines, _i)
+          noCheck = false
         }
         continue
       }
