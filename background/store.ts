@@ -143,7 +143,8 @@ export let bgC_: {
     : BgCmdNoTab<K>
 }
 export let cmdInfo_: { readonly [k in number]: kCmdInfo }
-export let runOneMapping_: (key: string, port: Port | null, fStatus: NonNullable<FgReq[kFgReq.nextKey]["f"]>) => void
+export let runOneMapping_: (key: string, port: Port | null, fStatus: NonNullable<FgReq[kFgReq.nextKey]["f"]>
+    , baseCount?: number) => void
 export let inlineRunKey_: (rootRegistry: Writable<CommandsNS.Item>, path?: CommandsNS.Item[]) => void
 export let focusAndExecuteOn_: <T extends FgCmdAcrossFrames> (port: Port, cmd: T, options: CmdOptions[T], count: number
     , focusAndShowFrameBorder: BOOL) => void

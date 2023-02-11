@@ -21,7 +21,7 @@ import { contentI18n_, extTrans_, i18nReadyExt_, loadContentI18n_, transPart_, t
 import { keyRe_, parseVal_ } from "./key_mappings"
 import {
   sendFgCmd, replaceCmdOptions, onConfirmResponse, executeCommand, portSendFgCmd, executeExternalCmd, runNextCmdBy,
-  waitAndRunKeyReq, parseFallbackOptions
+  waitAndRunKeyReq, parseFallbackOptions, onBeforeConfirm
 } from "./run_commands"
 import { parseEmbeddedOptions, runKeyWithCond } from "./run_keys"
 import { focusOrLaunch_, openJSUrl, openUrlReq } from "./open_urls"
@@ -440,6 +440,7 @@ set_reqH_([
     })
   },
   /** kFgReq.focusOrLaunch: */ _AsReqH<kFgReq.focusOrLaunch, false>(focusOrLaunch_),
+  /** kFgReq.beforeCmd: */ _AsReqH<kFgReq.beforeCmd>(onBeforeConfirm),
   /** kFgReq.cmd: */ _AsReqH<kFgReq.cmd>(onConfirmResponse),
   /** kFgReq.removeSug: */ (req: FgReq[kFgReq.removeSug], port?: Port | null): void => {
     if (req.t === "e") {

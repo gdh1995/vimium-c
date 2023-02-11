@@ -474,7 +474,7 @@ const runOneKey = (cursor: KeyNode, seq: BgCmdOptions[C.runKey]["$seq"], envInfo
   runOneKeyWithOptions(info.key, info.count * (hasCount ? seq.repeat : 1), options, envInfo, null, isFirst)
 }
 
-set_runOneMapping_(((key, port, fStatus): void => {
+set_runOneMapping_(((key, port, fStatus, baseCount): void => {
   key = key.replace(<RegExpOne> /^([$%][a-zA-Z]\+?)+(?=\S)/, "")
   const arr: null | string[] = (<RegExpOne> /^\d+|^-\d*/).exec(key)
   let count = 1
@@ -483,6 +483,7 @@ set_runOneMapping_(((key, port, fStatus): void => {
     key = key.slice(prefix.length)
     count = prefix !== "-" ? parseInt(prefix, 10) || 1 : -1
   }
+  baseCount && (count *= baseCount)
   key = key.replace(<RegExpOne> /^([$%][a-zA-Z]\+?)+(?=\S)/, "")
   let hash = 1
   while (hash = key.indexOf("#", hash) + 1) {

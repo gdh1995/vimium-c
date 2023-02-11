@@ -81,6 +81,7 @@
   "closeSomeOtherTabs": "关闭其它标签页",
   "closeTabsOnLeft": "关闭左侧所有标签页",
   "closeTabsOnRight": "关闭右侧所有标签页",
+  "confirm": "弹出确认对话框并等待",
   "copyCurrentTitle": "复制当前标签页的标题",
   "copyCurrentUrl": "复制当前标签页或当前子页面的网址或标题",
   "copyWindowInfo": "复制当前窗口所有标签页的标题和网址",

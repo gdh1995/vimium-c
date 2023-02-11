@@ -13,6 +13,8 @@ interface BgCmdOptions {
     /** ms */ for: CountValueOrRef; wait: CountValueOrRef; block: boolean; isError?: boolean
   } & Req.FallbackOptions
 //#region need cport
+  [kBgCmd.confirm]: { question: string, ask?: string, text?: string, value?: string }
+      & Req.FallbackOptions
   [kBgCmd.goNext]: {
     isNext: boolean; noRel: boolean; patterns: string | string[]; rel: string; $fmt: 1; absolute: true; view?: false
     avoidClick?: boolean
@@ -377,6 +379,7 @@ interface CmdNameIds {
   closeSomeOtherTabs: kBgCmd.removeTabsR
   closeTabsOnLeft: kBgCmd.removeTabsR
   closeTabsOnRight: kBgCmd.removeTabsR
+  confirm: kBgCmd.confirm
   copyCurrentTitle: kBgCmd.copyWindowInfo
   copyCurrentUrl: kBgCmd.copyWindowInfo
   copyWindowInfo: kBgCmd.copyWindowInfo

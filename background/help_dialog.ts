@@ -74,7 +74,7 @@ export const render_ = (isOptionsPage: boolean, showNames: boolean | null | unde
         inlineRunKey_(registry)
         rawCommand = registry.command_
       }
-      const command = normalizeCmdName(rawCommand)
+      const command = normalizeCmdName_(rawCommand)
       let keys = commandToKeys.get(command)
       keys ? keys.push([key, registry]) : commandToKeys.set(command, [[key, registry]])
     })
@@ -121,7 +121,7 @@ type _NormalizedNames2<T extends kCName> =
     : T
 type NormalizedNames = _NormalizedNames2<_NormalizedNames1<kCName>>
 
-const normalizeCmdName = (command: kCName): NormalizedNames => {
+export const normalizeCmdName_ = (command: kCName): NormalizedNames => {
       if (includes(command, "Mode") && includes(command, ".activate")) {
         command = includes(command, "ModeTo") ? command.replace("ModeTo", "")
             : command.replace("Mode", "")
@@ -377,6 +377,7 @@ const commandGroups_: {
     , "reset", 1
     , "runKey", 1, "$expect:Envs, keys:KeySequence[]|string"
     , "sendToExtension", 1, "$id:string, data:any, raw"
+    , "confirm", 1, "$ask:string, $then, $else"
     , "blank", 1
   ]
 }

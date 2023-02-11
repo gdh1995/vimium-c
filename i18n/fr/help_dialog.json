@@ -75,6 +75,7 @@
   "closeSomeOtherTabs": "Fermer les autres onglets",
   "closeTabsOnLeft": "Fermer tous les onglets sur la gauche",
   "closeTabsOnRight": "Fermer tous les onglets sur la droite",
+  "confirm": "Afficher la boîte de dialogue de confirmation et patienter",
   "copyCurrentTitle": "Copier le titre de l'onglet courant",
   "copyCurrentUrl": "Copier les informations de la page",
   "copyWindowInfo": "Copier le titre/l'URL de la fenêtre courante",

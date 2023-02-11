@@ -74,6 +74,7 @@
   "closeSomeOtherTabs": "Close other tabs",
   "closeTabsOnLeft": "Close all tabs on the left",
   "closeTabsOnRight": "Close all tabs on the right",
+  "confirm": "Display confirmation dialog and wait",
   "copyCurrentTitle": "Copy current tab's title",
   "copyCurrentUrl": "Copy page's info",
   "copyWindowInfo": "Copy title/URL info of a current window",

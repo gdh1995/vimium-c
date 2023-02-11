@@ -1,23 +1,23 @@
 import {
   cPort, cRepeat, get_cOptions, set_cPort, set_cOptions, set_cRepeat, framesForTab_, findCSS_, cKey, reqH_, runOnTee_,
   curTabId_, settingsCache_, OnChrome, visualWordsRe_, CurCVer_, OnEdge, OnFirefox, substitute_, CONST_, set_runOnTee_,
-  helpDialogData_, set_helpDialogData_, curWndId_, vomnibarPage_f, vomnibarBgOptions_, setTeeTask_, blank_,
+  curWndId_, vomnibarPage_f, vomnibarBgOptions_, setTeeTask_, blank_,
   curIncognito_, OnOther_, keyToCommandMap_, Origin2_
 } from "./store"
 import * as BgUtils_ from "./utils"
 import {
-  Tabs_, downloadFile, getTabUrl, runtimeError_, selectTab, R_, Q_, browser_, import2, getCurWnd, makeWindow, Windows_,
+  Tabs_, downloadFile, getTabUrl, runtimeError_, selectTab, R_, Q_, browser_, getCurWnd, makeWindow, Windows_,
   executeScript_, getFindCSS_cr_
 } from "./browser"
 import { convertToUrl_, createSearchUrl_, normalizeSVG_ } from "./normalize_urls"
 import {
   showHUD, complainLimits, ensureInnerCSS, getParentFrame, getPortUrl_, safePost, getCurFrames_, getFrames_
 } from "./ports"
-import { getI18nJson, trans_ } from "./i18n"
+import { trans_ } from "./i18n"
 import { keyMappingErrors_, normalizedOptions_, visualGranularities_, visualKeys_ } from "./key_mappings"
 import {
   wrapFallbackOptions, copyCmdOptions, parseFallbackOptions, portSendFgCmd, sendFgCmd, replaceCmdOptions,
-  overrideOption, runNextCmd, hasFallbackOptions, getRunNextCmdBy, kRunOn, overrideCmdOptions
+  overrideOption, runNextCmd, hasFallbackOptions, getRunNextCmdBy, kRunOn, overrideCmdOptions, initHelpDialog
 } from "./run_commands"
 import { parseReuse, newTabIndex, openUrlWithActions } from "./open_urls"
 import { FindModeHistory_ } from "./tools"
@@ -126,21 +126,14 @@ export const performFind = (): void | kBgCmd.performFind => {
 }
 
 export const initHelp = (request: FgReq[kFgReq.initHelp], port: Port): Promise<void> => {
-  const curHData = helpDialogData_ || []
-  return Promise.all([
-    import2<typeof import("./help_dialog")>(CONST_.HelpDialogJS),
-    curHData[0] != null ? null : BgUtils_.fetchFile_("help_dialog.html"),
-    curHData[1] != null ? null : getI18nJson("help_dialog")
-  ]).then(([helpDialog, temp1, temp2]): void => {
+  return initHelpDialog().then((helpDialog): void => {
+    if (!helpDialog) { return }
     const port2 = request.w && getFrames_(port)?.top_ || port,
     isOptionsPage = port2.s.url_.startsWith(CONST_.OptionsPage_)
     let options = request.a || {};
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
     (port2.s as Frames.Sender).flags_ |= Frames.Flags.hadHelpDialog
     set_cPort(port2)
-    const newHData = helpDialogData_ || set_helpDialogData_([null, null])
-    temp1 && (newHData[0] = temp1)
-    temp2 && (newHData[1] = temp2)
     if (request.f) {
       let cmdRegistry = keyToCommandMap_.get("?")
       let matched = cmdRegistry && cmdRegistry.alias_ === kBgCmd.showHelp && cmdRegistry.background_ ? "?" : ""
@@ -157,9 +150,6 @@ export const initHelp = (request: FgReq[kFgReq.initHelp], port: Port): Promise<v
       e: !!options.exitOnClick,
       c: isOptionsPage && !!keyMappingErrors_ || settingsCache_.showAdvancedCommands
     })
-  }, Build.NDEBUG ? OnChrome && Build.MinCVer < BrowserVer.Min$Promise$$Then$Accepts$null
-      ? undefined : null as never : (args): void => {
-    console.error("Promises for initHelp failed: %o ; %o", args[0], args[1])
   })
 }
 

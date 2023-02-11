@@ -1,10 +1,10 @@
 import {
   framesForTab_, get_cOptions, cPort, cRepeat, bgC_, cmdInfo_, set_helpDialogData_, helpDialogData_, inlineRunKey_,
   set_cOptions, set_cPort, cKey, set_cKey, set_cRepeat, curTabId_, OnEdge, runOneMapping_, blank_, set_cEnv,
-  substitute_, innerClipboard_
+  substitute_, innerClipboard_, CONST_, OnChrome
 } from "./store"
 import * as BgUtils_ from "./utils"
-import { Tabs_, runtimeError_, getCurTab, getCurShownTabs_, tabsGet } from "./browser"
+import { Tabs_, runtimeError_, getCurTab, getCurShownTabs_, tabsGet, import2 } from "./browser"
 import { headClipNameRe_, tailClipNameRe_, tailSedKeysRe_ } from "./normalize_urls"
 import { ensureInnerCSS, ensuredExitAllGrab, indexFrame, showHUD, getCurFrames_, refreshPorts_ } from "./ports"
 import { getI18nJson, trans_ } from "./i18n"
@@ -19,6 +19,7 @@ let _gCmdTimer = 0
 let gOnConfirmCallback: ((force1: boolean, arg?: FakeArg) => void) | null | undefined
 let _gCmdHasNext: boolean | null
 let _cNeedConfirm: BOOL = 1
+let _helpDialogModule: typeof import("./help_dialog") | undefined
 
 /** operate command options */
 
@@ -283,9 +284,9 @@ export const needConfirm_ = (): boolean | BOOL => {
 }
 
 /** 0=cancel, 1=force1, count=accept */
-export const confirm_ = <T extends kCName> (command: CmdNameIds[T] extends kBgCmd ? T : never
+export const confirm_ = <T extends kCName> (command: CmdNameIds[T] extends kBgCmd ? T : [string | [string]]
     , askedCount: number): Promise<boolean> => {
-  if (!(Build.NDEBUG || !command.includes("."))) {
+  if (!(Build.NDEBUG || typeof command !== "string" || !command.includes("."))) {
     console.log("Assert error: command should has no limit on repeats: %c%s", "color:red", command)
   }
   if (!cPort) {
@@ -293,15 +294,15 @@ export const confirm_ = <T extends kCName> (command: CmdNameIds[T] extends kBgCm
     set_cRepeat(cRepeat > 0 ? 1 : -1)
     return Promise.resolve(cRepeat > 0)
   }
-  if (!helpDialogData_ || !helpDialogData_[1]) {
-    return getI18nJson("help_dialog").then(dict => {
-      helpDialogData_ ? helpDialogData_[1] = dict : set_helpDialogData_([null, dict])
-      return confirm_(command, askedCount)
+  const cmdName = typeof command === "string" ? command : typeof command[0] === "string" ? command[0] : null
+  if (!_helpDialogModule && cmdName) {
+    return initHelpDialog().then((): Promise<boolean> => {
+      return confirm_(command as (CmdNameIds[T] extends kBgCmd ? T : never), askedCount)
     })
   }
   const { promise_, resolve_ } = BgUtils_.deferPromise_<boolean>()
   const countToReplay = cRepeat, bakOptions = get_cOptions() as any, bakPort = cPort
-  setupSingletonCmdTimer(setTimeout(onConfirm, 3000, 0))
+  setupSingletonCmdTimer(setTimeout(onConfirm, 2000, 0, void 0))
   gOnConfirmCallback = (force1: boolean): void => {
     set_cKey(kKeyCode.None)
     set_cOptions(bakOptions)
@@ -311,17 +312,19 @@ export const confirm_ = <T extends kCName> (command: CmdNameIds[T] extends kBgCm
     resolve_(force1)
     setTimeout((): void => { _cNeedConfirm = 1 }, 0)
   }
-  void Promise.resolve(trans_("cmdConfirm", [askedCount, helpDialogData_[1].get(command) || `### ${command} ###`]))
+  void Promise.resolve(!cmdName ? (command[0] as [string])[0] : trans_("cmdConfirm", [askedCount
+      , helpDialogData_![1]!.get(_helpDialogModule!.normalizeCmdName_(cmdName as kCName)) || `### ${cmdName} ###`]))
   .then((msg): void => {
-    (getCurFrames_()?.top_ || cPort).postMessage({ N: kBgReq.count, c: "", i: _gCmdTimer, m: msg })
+    (getCurFrames_()?.top_ || cPort).postMessage({ N: kBgReq.count, c: "", i: _gCmdTimer, m: msg
+        , r: typeof command !== "string" })
   })
   return promise_
 }
 
-const onConfirm = (response: FgReq[kFgReq.cmd]["r"]): void => {
+const onConfirm = (response: Extract<FgReq[kFgReq.cmd], { i: object }>["r"], request?: BgReq[kBgReq.count]): void => {
   const callback = gOnConfirmCallback
   gOnConfirmCallback = null
-  response > 1 && callback && callback(response < 3)
+  ; (response > 1 || request?.i) && callback && callback(response < 3)
 }
 
 const setupSingletonCmdTimer = (newTimer: number): void => {
@@ -329,16 +332,20 @@ const setupSingletonCmdTimer = (newTimer: number): void => {
   _gCmdTimer = newTimer
 }
 
-export const onConfirmResponse = (request: FgReq[kFgReq.cmd], port: Port): void => {
-  const cmd = request.c as StandardShortcutNames, id = request.i
+export const onBeforeConfirm = (response: FgReq[kFgReq.beforeCmd]) => {
+  if (response.i >= -1 && _gCmdTimer === response.i) { clearTimeout(response.i) }
+}
+
+export const onConfirmResponse = (response: FgReq[kFgReq.cmd], port: Port): void => {
+  const id = typeof response.i !== "number" ? response.i.i : 0
   // if id < -1, then pass it, so that 3rd-party extensions may use kFgReq.cmd to run commands
-  if (id >= -1 && _gCmdTimer !== id) { return } // an old / aborted / test message
+  if (response.i === 0 || id >= -1 && _gCmdTimer !== id) { return } // an old / aborted / test message
   setupSingletonCmdTimer(0)
-  if (request.r) {
-    onConfirm(request.r)
+  if (response.r) {
+    onConfirm(response.r, response.i)
     return
   }
-  executeCommand(shortcutRegistry_!.get(cmd)!, request.n, kKeyCode.None, port, 0)
+  executeCommand(shortcutRegistry_!.get(response.i.c as StandardShortcutNames)!, response.n, kKeyCode.None, port, 0)
 }
 
 /** forward a triggered command */
@@ -360,7 +367,7 @@ export const executeShortcut = (shortcutName: StandardShortcutNames, ref: Frames
   if (ref && !(ref.cur_.s.flags_ & Frames.Flags.ResReleased)) {
     let port = ref.cur_
     setupSingletonCmdTimer(setTimeout(executeShortcut, 100, shortcutName, null))
-    port.postMessage({ N: kBgReq.count, c: shortcutName, i: _gCmdTimer, m: "" })
+    port.postMessage({ N: kBgReq.count, c: shortcutName, i: _gCmdTimer, m: "", r: false })
     ref.flags_ & Frames.Flags.ResReleased && refreshPorts_(ref, 0)
     ensuredExitAllGrab(ref)
     return
@@ -524,4 +531,21 @@ export const waitAndRunKeyReq = (request: FgReq[kFgReq.nextKey], port: Port | nu
   } else {
     runNextCmdBy(1, options, fallbackInfo && fallbackInfo.w)
   }
+}
+
+export const initHelpDialog = (): Promise<typeof import("./help_dialog") | void> => {
+  const curHData = helpDialogData_ || []
+  return _helpDialogModule ? Promise.resolve(_helpDialogModule) : Promise.all([
+    import2<typeof import("./help_dialog")>(CONST_.HelpDialogJS),
+    curHData[0] != null ? null : BgUtils_.fetchFile_("help_dialog.html"),
+    curHData[1] != null ? null : getI18nJson("help_dialog")
+  ]).then(([helpDialog, temp1, temp2]): typeof import("./help_dialog") => {
+    const newHData = helpDialogData_ || set_helpDialogData_([null, null])
+    temp1 && (newHData[0] = temp1)
+    temp2 && (newHData[1] = temp2)
+    return _helpDialogModule = helpDialog
+  }, Build.NDEBUG ? OnChrome && Build.MinCVer < BrowserVer.Min$Promise$$Then$Accepts$null
+      ? undefined : null as never : (args): void => {
+    console.error("Promises for initHelp failed: %o ; %o", args[0], args[1])
+  })
 }

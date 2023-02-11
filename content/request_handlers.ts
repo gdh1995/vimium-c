@@ -223,10 +223,11 @@ set_requestHandlers([
     esc!(HandlerResult.Nothing);
     exitGrab();
     if (request.m) {
+      post_({ H: kFgReq.beforeCmd, i: request.i })
       const now = getTime(), result = safeCall(confirm, request.m)
       count2 = abs_(getTime() - now) > 9 ? result ? 3 : 1 : 2
     }
-    post_({ H: kFgReq.cmd, c: request.c, n, i: request.i, r: count2 });
+    post_({ H: kFgReq.cmd, n, i: request, r: count2 });
   },
   /* kBgReq.queryForRunAs: */ (request: BgReq[kBgReq.queryForRunKey]): void => {
     const lock = insert_Lock_() || deepActiveEl_unsafe_(1)

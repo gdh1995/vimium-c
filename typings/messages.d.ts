@@ -96,7 +96,7 @@ declare const enum kFgReq {
   searchAs, gotoSession, openUrl, onFrameFocused, checkIfEnabled,
   nextFrame, exitGrab, execInChild, initHelp, css,
   vomnibar, omni, copy, key, nextKey,
-  marks, focusOrLaunch, cmd, removeSug, openImage,
+  marks, focusOrLaunch, beforeCmd, cmd, removeSug, openImage,
   evalJSFallback, gotoMainFrame, setOmniStyle, findFromVisual, framesGoBack,
   i18n, cssLearnt, visualMode, respondForRunKey, downloadLink, wait,
   optionToggled, keyFromOmni, pages, showUrl,
@@ -160,6 +160,7 @@ interface BgReq {
   [kBgReq.count]: {
     /** cmd */ c: string | "";
     /** id */ i: number;
+    /** always resolve*/ r: boolean;
     /** message-in-confirmation-dialog */ m: string;
   };
   [kBgReq.queryForRunKey]: { n: number; c: CurrentEnvCache }
@@ -219,7 +220,7 @@ interface TeeTasks {
 }
 
 declare const enum kBgCmd {
-  blank, goNext,
+  blank, confirm, goNext,
   // region: need cport
   insertMode, nextFrame, parentFrame,
   performFind, toggle, showHelp, dispatchEventCmd, showVomnibar, marksActivate, visualMode,
@@ -682,10 +683,12 @@ interface FgReq {
    * .url is guaranteed to be well formatted by frontend
    */
   [kFgReq.focusOrLaunch]: MarksNS.FocusOrLaunch;
-  [kFgReq.cmd]: Pick<BgReq[kBgReq.count], "c" | "i"> & {
+  [kFgReq.beforeCmd]: Pick<BgReq[kBgReq.count], "i">
+  [kFgReq.cmd]: {
+    /** input request */ i: BgReq[kBgReq.count]
     /** count */ n: number;
     /** confirmation-response: 0=fail, 1=cancel, 2=force1, 3=confirm */ r: 0 | 1 | 2 | 3
-  };
+  } | { i: 0 }
   [kFgReq.removeSug]: {
     /** type */ t: "tab" | "history";
     /** sessionId / tabId */ s?: CompletersNS.SessionId | null

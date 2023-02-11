@@ -1,6 +1,6 @@
 import * as BgUtils_ from "./utils"
 import {
-  cPort, cRepeat, cKey, get_cOptions, set_cPort, set_cRepeat, contentPayload_,
+  cPort, cRepeat, cKey, get_cOptions, set_cPort, set_cRepeat, contentPayload_, runOneMapping_,
   framesForOmni_, bgC_, set_bgC_, set_cmdInfo_, curIncognito_, curTabId_, recencyForTab_, settingsCache_, CurCVer_,
   OnChrome, OnFirefox, OnEdge, substitute_, CONST_, curWndId_, findBookmark_, bookmarkCache_, extAllowList_, Origin2_
 } from "./store"
@@ -40,7 +40,7 @@ import C = kBgCmd
 import Info = kCmdInfo
 
 set_cmdInfo_([
-  /* kBgCmd.blank           */ Info.NoTab, Info.NoTab, Info.NoTab, Info.NoTab, Info.NoTab,
+  /* kBgCmd.blank           */ Info.NoTab, Info.NoTab, Info.NoTab, Info.NoTab, Info.NoTab, Info.NoTab,
   /* kBgCmd.performFind     */ Info.NoTab, Info.NoTab, Info.NoTab, Info.NoTab, Info.NoTab, Info.NoTab,
   /* kBgCmd.addBookmark     */ Info.NoTab, Info.NoTab, Info.NoTab, Info.ActiveTab, Info.NoTab, Info.NoTab,
   /* kBgCmd.clearMarks      */ Info.NoTab, Info.NoTab, Info.ActiveTab, Info.CurShownTabsIfRepeat, Info.NoTab,
@@ -86,6 +86,22 @@ set_bgC_([
   },
 
 //#region need cport
+  /* kBgCmd.confirm: */ (): void | kBgCmd.confirm => {
+    const ifThen: Promise<string> | string = (get_cOptions<C.confirm, true>().$then || "") + "",
+    ifElse = (get_cOptions<C.confirm, true>().$else || "") + "", repeat = cRepeat
+    if (!ifThen && !ifElse) { showHUD('"confirm" requires "$then" or "$else"'); return }
+    let question: string[] | string | UnknownValue = get_cOptions<C.confirm>().question
+        || get_cOptions<C.confirm>().ask || get_cOptions<C.confirm>().text || get_cOptions<C.confirm>().value
+    const comp = question ? null : [ifThen, ifElse].map(i => i.split("#", 1)[0].split("+").slice(-1)[0])
+    confirm_([!comp ? [question + ""] : comp[0] === comp[1] ? ifThen
+        : comp[0].replace(<RegExpOne> /^([$%][a-zA-Z]\+?)+(?=\S)/, "")
+    ], repeat).then((cancelled): void => {
+      (cancelled ? ifElse : ifThen) && setTimeout((): void => {
+        set_cRepeat(repeat)
+        runOneMapping_(cancelled ? ifElse : ifThen, cPort, { c: null, r: null, u: 0, w: 0 }, cancelled? 1 : repeat)
+      }, 0)
+    })
+  },
   /* kBgCmd.goNext: */ (): void | kBgCmd.goNext => {
     const rawRel = get_cOptions<C.goNext>().rel, absolute = !!get_cOptions<C.goNext>().absolute
     const rel = rawRel ? (rawRel + "").toLowerCase() : "next"
