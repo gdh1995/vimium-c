@@ -368,7 +368,7 @@ export const executeScroll: VApiTy["c"] = function (di: ScrollByY, amount0: numb
         , options && options.scrollable)
     const elementIsTop = element === scrollingTop
     const mayUpperFrame = !isTop && elementIsTop && element && !fullscreenEl_unsafe_()
-    let viewSize: number | undefined,
+    let viewSize: number | undefined, toDoInSelf: BOOL = 1,
     amount = elementIsTop && isTopScrollable < 1 ? 0 : !factor ?
         (!di && amount0 && element && dimSize_(element, kDim.scrollW)
             <= dimSize_(element, kDim.scrollH) * (dimSize_(element, kDim.scrollW) < 720 ? 2 : 1)
@@ -393,19 +393,19 @@ export const executeScroll: VApiTy["c"] = function (di: ScrollByY, amount0: numb
     }
     amount = amount * amount > 0.01 ? amount : 0
     if (mayUpperFrame && (core = getParentVApi())
-        && (!amount && !amount0 || Lower(attr_s(frameElement_()!, "scrolling") || "") === "no"
+        && (!amount || Lower(attr_s(frameElement_()!, "scrolling") || "") === "no"
             || !doesScroll(element, di, amount || toMax))) {
         core.c(di, amount0, flags as 0, factor, options, oriCount, 1)
         if (core.y().k) {
           scrollTick(1)
           joined = core
         }
-        amount = 0;
+        amount = toDoInSelf = 0
     } else if (mayUpperFrame && options && !injector && !(options as OptionsWithForce).$forced
         && options.acrossFrames !== false
-        && (!amount && !amount0 || !core && !doesScroll(element, di, amount || toMax))) {
+        && (!amount || !core && !doesScroll(element, di, amount || toMax))) {
       post_({ H: kFgReq.gotoMainFrame, f: 1, c: kFgCmd.scroll, n: oriCount!, a: options as OptionsWithForce })
-      amount = 0
+      amount = toDoInSelf = 0
     }
     if (toFlags && elementIsTop && amount) {
       di && setPreviousMarkPosition()
@@ -424,12 +424,12 @@ export const executeScroll: VApiTy["c"] = function (di: ScrollByY, amount0: numb
     if (amount && readyState_ > "i" && overrideScrollRestoration) {
       overrideScrollRestoration("scrollRestoration", "manual")
     }
-    const ret = vApi.$(element, di, amount, options)
+    const ret = toDoInSelf && vApi.$(element, di, amount, options)
     preventPointEvents = keyIsDown ? preventPointEvents : 0
     scrolled = 0
     if (ret && isTY(ret, kTY.obj)) {
       void ret.then((succeed): void => { runFallbackKey(options!, succeed ? 0 : 2) })
-    } else if (ret != null) {
+    } else if (toDoInSelf) {
       runFallbackKey(options, ret ? 0 : 2)
     }
 }

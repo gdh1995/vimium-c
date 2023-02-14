@@ -11,7 +11,7 @@ export declare const enum HookAction { Install = 0, SuppressListenersOnDocument 
 
 let port_callbacks: { [msgId: number]: <k extends keyof FgRes>(this: void, res: FgRes[k]) => unknown }
 let port_: ContentNS.Port | null = null
-let tick = 1
+let tick = 0
 let safeDestroy: (silent?: boolean | BOOL | 9) => void
 let requestHandlers: { [k in keyof BgReq]: (this: void, request: BgReq[k]) => unknown }
 let contentCommands_: {
@@ -35,7 +35,7 @@ export const post_ = <k extends keyof FgReq>(request: FgReq[k] & Req.baseFg<k>):
 
 export const send_  = <k extends keyof FgRes> (cmd: k, args: Req.fgWithRes<k>["a"]
     , callback: (this: void, res: FgRes[k]) => void): void => {
-  (post_ as ContentNS.Port["postMessage"])({ H: kFgReq.msg, i: ++tick, c: cmd, a: args })
+  (post_ as ContentNS.Port["postMessage"])({ H: kFgReq.msg, i: OnChrome ? tick += 2 : ++tick, c: cmd, a: args })
   ; port_callbacks = port_callbacks || safer({})
   port_callbacks[tick] =
           callback as <K2 extends keyof FgRes>(this: void, res: FgRes[K2]) => void
@@ -74,8 +74,7 @@ export const runtimeConnect = (function (this: void, extraFlags?: number): void 
   port_ = (injector ? connect(injector.id, data) : connect(data)) as ContentNS.Port
   port_.onDisconnect.addListener((): void => {
     port_ = null
-    ; fgCache ? 0 :
-    OnChrome && timeout_ === interval_ ? safeDestroy() : timeout_((): void => {
+    fgCache ? 0 : OnChrome && timeout_ === interval_ ? safeDestroy() : timeout_((): void => {
       try { port_ || !isAlive_ || runtimeConnect() } catch { safeDestroy() }
     }, (!fgCache ? 5000 : 2000) + (isTop as number | boolean as number) * 50)
   });
@@ -112,10 +111,10 @@ export const setupBackupTimer_cr = !OnChrome ? 0 as never : (): void => {
   /*#__INLINE__*/ setupTimerFunc_cr((func: (info?: TimerType.fake) => void, timeout: number): number => {
     return (Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage && noRAF_old_cr_
         || timeout > GlobalConsts.MinCancelableInBackupTimer - 1) && port_
-        ? (send_(kFgReq.wait, timeout, func), tick + 0.5) : rAF_((): void => { func(TimerType.fake) })
+        ? (send_(kFgReq.wait, timeout, func), tick - 1) : rAF_((): void => { func(TimerType.fake) })
   }, (timer: ValidTimeoutID | ValidIntervalID): void => {
-    timer && port_callbacks[timer as number - 0.5] &&
+    timer && port_callbacks && port_callbacks[timer as number + 1] &&
     ((port_callbacks as { [msgId: number]: (this: void, res: FgRes[kFgReq.wait]) => unknown }
-      )[timer as number - 0.5] = isTY)
+      )[timer as number + 1] = isTY)
   })
 }
