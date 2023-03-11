@@ -630,7 +630,9 @@ const ensureLine = (command1: number, s0: string): void => {
     ensureLine(command, s0_line)
   }
   getDirection("")
-  diType_ & DiType.Complicated || scrollIntoView_s(getSelectionFocusEdge_(curSelection, di_))
+  diType_ & DiType.Complicated ||
+  scrollIntoView_s(getSelectionFocusEdge_(curSelection, di_), getSelectionBoundingBox_(curSelection)
+      , command < VisualAction.MinNotWrapSelectionModify ? (command & VisualAction.inc) as 0 | 1 : 2)
 }
 
     const typeIdx = { None: SelType.None, Caret: SelType.Caret, Range: SelType.Range }

@@ -334,13 +334,13 @@ domainEngine = {
     ret_many: Array<{r: number, d: string, m: Domain}> | null =
         allExpectedTypes === SugType.domain && autoSelect ? [] : null, // autoSelect means there's only 1 engine in mode
     word = queryTerms[0].replace("/", "").toLowerCase();
-    const extraSlash = word === queryTerms[0]
+    const addExtraSlash = word.length === queryTerms[0].length
     let sugs: Suggestion[] = [], result = "", matchedDomain: Domain | undefined, result_score = -1.1
     sync_maxScoreP_(RankingEnums.maximumScore)
     if (Build.MinCVer >= BrowserVer.BuildMinForOf && Build.MinCVer >= BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol
         || !(Build.BTypes & BrowserType.Chrome)) {
       for (const domain of (ref as IterableMap<string, Domain>).keys()) {
-        if (!domain.includes(word)) { continue }
+        if (addExtraSlash ? !domain.includes(word) : !domain.endsWith(word)) { continue }
         matchedDomain = ref.get(domain)!
         if (showThoseInBlocklist || matchedDomain.count_ > 0) {
           const score = ComputeRelevancy(domain, "", matchedDomain.time_)
@@ -354,7 +354,7 @@ domainEngine = {
       let iter_i: IteratorResult<string> | undefined
       while (iter_i = iterator.next(), !iter_i.done) {
         const domain = iter_i.value
-        if (!domain.includes(word)) { continue; }
+        if (addExtraSlash ? !domain.includes(word) : !domain.endsWith(word)) { continue }
         matchedDomain = ref.get(domain)!
         if (showThoseInBlocklist || matchedDomain.count_ > 0) {
           const score = ComputeRelevancy(domain, "", matchedDomain.time_)
@@ -364,7 +364,7 @@ domainEngine = {
       }
     } else {
       for (const domain in (ref as any as SimulatedMap).map_ as any as SafeDict<Domain>) {
-        if (!domain.includes(word)) { continue; }
+        if (addExtraSlash ? !domain.includes(word) : !domain.endsWith(word)) { continue }
         matchedDomain = ref.get(domain)!
         if (showThoseInBlocklist || matchedDomain.count_ > 0) {
           const score = ComputeRelevancy(domain, "", matchedDomain.time_)
@@ -401,7 +401,7 @@ domainEngine = {
     if (result) {
       matchedTotal++;
       autoSelect = !offset && isMainPart || autoSelect
-      sugs = domainEngine.createDomainSug_(result, matchedDomain!, 0, extraSlash)
+      sugs = domainEngine.createDomainSug_(result, matchedDomain!, 0, addExtraSlash)
     } else if (ret_many) {
       ret_many.sort(domainEngine.rsortByR_)
       matchedTotal = ret_many.length
@@ -409,7 +409,7 @@ domainEngine = {
         ret_many.length = offset + maxResults
       }
       for (const i of ret_many) {
-        sugs.push(domainEngine.createDomainSug_(i.d, i.m, i.r, extraSlash)[0])
+        sugs.push(domainEngine.createDomainSug_(i.d, i.m, i.r, addExtraSlash)[0])
       }
     }
     sync_maxScoreP_(oldMaxScoreP)
@@ -881,8 +881,8 @@ Completers = {
     if (queryTerms.length > 0) {
       let s0 = queryTerms[0], s1 = shortenUrl(s0), cut = s0.length !== s1.length;
       if (cut || s0.endsWith("/") && s0.length > 1 && !s0.endsWith("//")) {
-        queryTerms[0] = cut ? s1 : s0.slice(0, -1);
-        RegExpCache_.fixParts_(queryTerms[0])
+        cut && (queryTerms[0] = s1)
+        RegExpCache_.fixParts_(queryTerms[0], cut)
       }
     }
     suggestions.forEach(prepareHTML_)

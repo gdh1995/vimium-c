@@ -273,7 +273,7 @@ export const onKeydown = (event: KeyboardEventToPrevent): void => {
   if (action < HandlerResult.MinStopOrPreventEvents) {
     // https://github.com/gdh1995/vimium-c/issues/390#issuecomment-894687506
     if (Build.OS & (1 << kOS.mac) && (!(Build.OS & ~(1 << kOS.mac)) || !os_) &&
-        keydownEvents_[key] === 1 && (Build.BTypes & BrowserType.Chrome ? !event.repeat : isRepeated_(eventWrapper))) {
+        keydownEvents_[key] === 1 && !(Build.BTypes & BrowserType.Chrome ? event.repeat : isRepeated_(eventWrapper))) {
       keydownEvents_[key] = 0
     }
     return

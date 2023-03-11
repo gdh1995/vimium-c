@@ -1,6 +1,6 @@
 import {
   OnFirefox, OnEdge, OnChrome, $, pageTrans_, enableNextTick_, nextTick_, kReadyInfo, TransTy, IsEdg_, post_,
-  toggleReduceMotion, hasShift_, PageOs_, setupPageOs_, prevent_
+  toggleReduceMotion, hasShift_, PageOs_, setupPageOs_, prevent_, CurCVer_
 } from "./async_bg"
 import {
   bgSettings_, ExclusionVisibleVirtualNode, ExclusionRulesOption_, setupBorderWidth_, showI18n, kExclusionChange,
@@ -188,7 +188,7 @@ const forceState = (act: "Reset" | "Enable" | "Disable", event?: EventToPrevent)
 const doesMatchCur_ = (rule: ValidUrlMatchers | false): boolean => {
   if (!rule) { return false }
   return rule.t === kMatchUrl.StringPrefix ? url.startsWith(rule.v) || (!!topUrl && topUrl.startsWith(rule.v))
-      : rule.t === kMatchUrl.Pattern ? rule.v.test(url) || (!!topUrl && rule.v.test(topUrl))
+      : rule.t === kMatchUrl.Pattern ? rule.v.p.test(url) || (!!topUrl && rule.v.p.test(topUrl))
       : rule.v.test(url) || (!!topUrl && rule.v.test(topUrl))
 }
 
@@ -205,7 +205,13 @@ const parseMatcher = (vnode: ExclusionVisibleVirtualNode): Promise<CachedMatcher
 
 const deserializeMatcher = (serialized: BaseUrlMatcher): ValidUrlMatchers => {
   return serialized.t === kMatchUrl.StringPrefix ? { t: serialized.t, v: serialized.v as string }
-      : serialized.t === kMatchUrl.Pattern ? { t: serialized.t, v: new URLPattern!(serialized.v as URLPatternDict) }
+      : serialized.t === kMatchUrl.Pattern ? { t: serialized.t, v: {
+        p: OnChrome && Build.MinCVer < BrowserVer.MinURLPatternWith$ignoreCase
+          && CurCVer_ < BrowserVer.MinURLPatternWith$ignoreCase
+          ? new URLPattern!(serialized.v as string)
+          : new URLPattern!(serialized.v as string, "http://localhost", { ignoreCase: true }),
+        s: serialized.v as string
+      } }
       : { t: serialized.t, v: new RegExp(serialized.v as string, "") }
 }
 
@@ -222,7 +228,7 @@ const getExcluded_ = (inIframe: boolean, vnodes: ExclusionVisibleVirtualNode[]):
   for (const node of vnodes) {
     const rule = node.matcher_! as Exclude<ExclusionBaseVirtualNode["matcher_"], null | Promise<any>>
     if (rule && (rule.t === kMatchUrl.StringPrefix ? url.startsWith(rule.v)
-          : rule.t === kMatchUrl.Pattern ? rule.v.test(url) : rule.v.test(url))) {
+          : rule.t === kMatchUrl.Pattern ? rule.v.p.test(url) : rule.v.test(url))) {
       const str = node.rule_.passKeys
       if (str.length === 0 || _onlyFirstMatch || str[0] === "^" && str.length > 2) { return str }
       matchedKeys += str

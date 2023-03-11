@@ -290,6 +290,7 @@ if ! test -f "$EXE"; then
 fi
 if test -n "$VER"; then
   rm -f -v "${EXE%/*}/default_apps/"* "${EXE%/*}/"[0-9]*"/default_apps/"* "${EXE%/*}/"[0-9]*"/Installer/"*
+  rm -f -v "${EXE%/*}/"[0-9]*"/Locales/"[a-df-y]* "${EXE%/*}/"[0-9]*"/Locales/"e[a-mo-z]* >/dev/null
 fi
 
 if test -n "$PAGE_FLAGS"; then

@@ -2,7 +2,7 @@ import * as BgUtils_ from "./utils"
 import {
   cPort, cRepeat, cKey, get_cOptions, set_cPort, set_cRepeat, contentPayload_, runOneMapping_,
   framesForOmni_, bgC_, set_bgC_, set_cmdInfo_, curIncognito_, curTabId_, recencyForTab_, settingsCache_, CurCVer_,
-  OnChrome, OnFirefox, OnEdge, substitute_, CONST_, curWndId_, findBookmark_, bookmarkCache_, extAllowList_, Origin2_
+  OnChrome, OnFirefox, OnEdge, substitute_, CONST_, curWndId_, findBookmark_, bookmarkCache_, extAllowList_, Origin2_, os_
 } from "./store"
 import {
   Tabs_, Windows_, InfoToCreateMultiTab, openMultiTabs, tabsGet, getTabUrl, selectFrom, runtimeError_, R_,
@@ -118,7 +118,7 @@ set_bgC_([
       const [hasPlaceholder, next] = template ? goToNextUrl(template, count, absolute) : [false, tabUrl]
       if (hasPlaceholder && next) {
         set_cRepeat(count)
-        exOut.keyword_ !== null && overrideOption<C.openUrl, "keyword">("keyword", exOut.keyword_!)
+        exOut.keyword_ != null && overrideCmdOptions<C.openUrl>({ keyword: exOut.keyword_ })
         if (get_cOptions<C.goNext>().reuse == null) {
           overrideOption<C.goNext, "reuse">("reuse", ReuseType.current)
         }
@@ -234,18 +234,23 @@ set_bgC_([
         const v = dict !== opts2 && i in dict ? dict[i] : opts2[i]
         destDict[i] = v !== false && (v != null || type !== "mouseenter" && type !== "mouseleave")
       }
-      const skipped = {
+      const skipped: { [key: string]: 1 } = {
         e: 1, c: 1, t: 1, class: 1, type: 1, key: 1, return: 1, delay: 1, esc: 1, click: 1, init: 1, xy: 1, match: 1,
         direct: 1, directOptions: 1, clickable: 1, exclude: 1, evenIf: 1, scroll: 1, typeFilter: 1, textFilter: 1,
-        clickableOnHost: 1, excludeOnHost: 1, closedShadow: 1, trust: 1, trusted: 1, isTrusted: 1
+        clickableOnHost: 1, excludeOnHost: 1, closedShadow: 1, trust: 1, trusted: 1, isTrusted: 1, superKey: 1,
       } satisfies {
         [key in Exclude<keyof BgCmdOptions[C.dispatchEventCmd], keyof EventInit | `$${string}`>]: 1
       }
       for (const [key, val] of Object.entries!(dict)) {
-        if (key && key[0] !== "$" && !(skipped as Object).hasOwnProperty(key)) {
+        if (key && key[0] !== "$" && !skipped.hasOwnProperty(key)) {
           destDict[(dict === opts2 && key.startsWith("o.") ? key.slice(2) : key) as keyof EventInit] = val as any
           dict === opts2 && delete (opts2)[key as keyof EventInit]
         }
+      }
+      if (opts2.superKey) {
+        Build.OS & (1 << kOS.mac) && (!(Build.OS & ~(1 << kOS.mac)) || os_ === kOS.mac)
+        ? destDict.metaKey = true : destDict.ctrlKey = true
+        delete opts2.superKey
       }
       let nonWordArr: RegExpExecArray | null = null
       if (key && (typeof key === "object" || typeof key === "string")) {

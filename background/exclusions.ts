@@ -24,7 +24,7 @@ export const createRule_ = (pattern: string, keys: string): ExclusionsNS.Tester 
       }
     }
     rule = re ? { t: kMatchUrl.RegExp, v: re as RegExpOne, k: keys }
-        : newPattern ? { t: kMatchUrl.Pattern, v: newPattern, k: keys }
+        : newPattern ? { t: kMatchUrl.Pattern, v: { p: newPattern, s: pattern.slice(1) }, k: keys }
         : {
       t: kMatchUrl.StringPrefix,
       v: pattern.startsWith(":vimium://")
@@ -43,8 +43,8 @@ export const createSimpleUrlMatcher_ = (host: string): ValidUrlMatchers | null =
       const re = BgUtils_.makeRegexp_(host, "")
       return re ? { t: kMatchUrl.RegExp, v: re as RegExpOne } : null
     } else if (host[0] === "`") {
-      const newPattern = BgUtils_.makePattern_(host.slice(1))
-      return newPattern ? { t: kMatchUrl.Pattern, v: newPattern } : null
+      const slice = host.slice(1), newPattern = BgUtils_.makePattern_(slice)
+      return newPattern ? { t: kMatchUrl.Pattern, v: { p: newPattern, s: slice } } : null
     } else if (host === "localhost" || !host.includes("/") && host.includes(".")
         && (!(<RegExpOne> /:(?!\d+$)/).test(host) || BgUtils_.isIPHost_(host, 6))) { // ignore rare `IPV6 + :port`
       host = host.toLowerCase()
@@ -72,7 +72,7 @@ export const createSimpleUrlMatcher_ = (host: string): ValidUrlMatchers | null =
 
 export const matchSimply_ = (matcher: ValidUrlMatchers, url: string): boolean =>
     matcher.t === kMatchUrl.RegExp ? matcher.v.test(url)
-    : matcher.t === kMatchUrl.StringPrefix ? url.startsWith(matcher.v) : matcher.v.test(url)
+    : matcher.t === kMatchUrl.StringPrefix ? url.startsWith(matcher.v) : matcher.v.p.test(url)
 
 let listening_ = false
 let listeningHash_ = false
@@ -88,14 +88,7 @@ const setRules_ = (rules: ExclusionsNS.StoredRule[]): void => {
 export const parseMatcher_ = (pattern: string | null): BaseUrlMatcher[] => {
   const res = pattern ? [createRule_(pattern, "")] : rules_
   return res.map<BaseUrlMatcher>(i => ({ t: i.t, v: i.t === kMatchUrl.RegExp ? i.v.source
-      : i.t === kMatchUrl.StringPrefix ? i.v : {
-    hash: i.v.hash,
-    hostname: i.v.hostname,
-    pathname: i.v.pathname,
-    port: i.v.port,
-    protocol: i.v.protocol,
-    search: i.v.search,
-  } satisfies URLPatternDict}))
+      : i.t === kMatchUrl.StringPrefix ? i.v : i.v.s }))
 }
 
 export const getExcluded_ = (url: string, sender: Frames.Sender): string | null => {
@@ -103,7 +96,7 @@ export const getExcluded_ = (url: string, sender: Frames.Sender): string | null 
     for (const rule of rules_) {
       if (rule.t === kMatchUrl.RegExp ? rule.v.test(url)
           : rule.t === kMatchUrl.StringPrefix ? url.startsWith(rule.v)
-          : rule.v.test(url)) {
+          : rule.v.p.test(url)) {
         const str = rule.k;
         if (str.length === 0 || str[0] === "^" && str.length > 2 || _onlyFirstMatch) { return str && str.trim() }
         matchedKeys += str;

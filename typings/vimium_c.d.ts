@@ -206,7 +206,7 @@ interface PrefixUrlMatcher extends BaseUrlMatcher {
 }
 interface PatternUrlMatcher extends BaseUrlMatcher {
   /** type */ readonly t: kMatchUrl.Pattern
-  /** value */ readonly v: URLPattern
+  /** value */ readonly v: { p: URLPattern, s: string }
 }
 type ValidUrlMatchers = RegExpUrlMatcher | PrefixUrlMatcher | PatternUrlMatcher
 

@@ -15,7 +15,7 @@ declare const enum SedAction {
   camel = 14, camelcase = 14, dash = 15, dashed = 15, hyphen = 15, capitalize = 16, capitalizeAll = 17,
   latin = 18, latinize = 18, latinise = 18, noaccent = 18, nodiacritic = 18, decodeAll = 19,
   json = 20, jsonParse = 21, virtually = 22, virtual = 22, dryRun = 22,
-  inc = 23, increase = 23, dec = 24, decrease = 24,
+  inc = 23, increase = 23, dec = 24, decrease = 24, readableJson = 25,
   break = 99, stop = 99, return = 99,
 }
 type SedActions = SedAction | `${string}=${string}`
@@ -23,7 +23,7 @@ interface Contexts { normal_: SedContext, extras_: (kCharCode | string)[] | null
 interface ClipSubItem {
   readonly contexts_: Contexts; readonly match_: RegExp
   host_: string | ValidUrlMatchers | /** regexp is broken */ -1 | null
-  readonly retainMatched_: number; readonly actions_: SedActions[]; readonly replaced_: string;
+  readonly retainMatched_: number; readonly actions_: SedActions[]; readonly replace_: string;
 }
 
 const SedActionMap: ReadonlySafeDict<SedAction> = {
@@ -42,7 +42,7 @@ const SedActionMap: ReadonlySafeDict<SedAction> = {
   break: SedAction.return, stop: SedAction.return, return: SedAction.return,
   latin: SedAction.latin, latinize: SedAction.latin, latinise: SedAction.latin,
   noaccent: SedAction.latin, nodiacritic: SedAction.latin,
-  json: SedAction.json, jsonparse: SedAction.jsonParse,
+  json: SedAction.json, jsonparse: SedAction.jsonParse, readablejson: SedAction.readableJson,
   virtual: SedAction.virtually, virtually: SedAction.virtually, dryrun: SedAction.virtually,
   inc: SedAction.inc, dec: SedAction.dec, increase: SedAction.inc, decrease: SedAction.dec,
 } satisfies SafeObject & {
@@ -87,16 +87,16 @@ const parseSeds_ = (text: string, fixedContexts: Contexts | null): readonly Clip
     const matchRe = BgUtils_.makeRegexp_(body[1], retainMatched ? flags.replace(<RegExpG> /g/g, "") : flags)
     matchRe && result.push({
       contexts_: fixedContexts || parseSedKeys_(head)!, host_: host, match_: matchRe, retainMatched_: retainMatched,
-      replaced_: decodeSlash_(body[2], 1), actions_: actions,
+      replace_: decodeSlash_(body[2], 1), actions_: actions,
     })
   }
   return result
 }
 
 const decodeSlash_ = (text: string, numbersInRe?: 1): string =>
-    text.replace(<RegExpSearchable<1>> /\\(x[0-9a-fA-F]{2}|u[0-9a-fA-F]{4}|[^])|\$0/g,
+    text.replace(<RegExpSearchable<1>> /\\(x[0-9a-fA-F]{2}|u[0-9a-fA-F]{4}|[^])|\$[0$]/g,
         (raw, s: string): string =>
-            !s ? numbersInRe ? "$&" : raw : s[0] === "x" || s[0] === "u"
+            !s ? numbersInRe && raw === "$0" ? "$&" : raw : s[0] === "x" || s[0] === "u"
             ? (s = String.fromCharCode(parseInt(s.slice(1), 16)), s === "$" ? s + s : s)
             : s === "t" ? "\t" : s === "r" ? "\r" : s === "n" ? "\n"
             : !numbersInRe ? s
@@ -263,7 +263,46 @@ const convertJoinedRules = (rules: string): string => {
       , (s, a): string => s[1] === " " ? s : "\n" + a)
 }
 
-set_substitute_((input: string, normalContext: SedContext, mixedSed?: MixedSedOpts | null
+export const replaceUsingClipboard = (text: string, item: ClipSubItem, lastCleanTimer: number): string => {
+  const rawReplacement = item.replace_
+  if (!rawReplacement.includes("${")) {
+    return text.replace(item.match_ as RegExpOne, rawReplacement)
+  }
+  const toCopy = new Map<string, string[]>
+  const referred = new Map<string, string>()
+  const replacement = rawReplacement.replace(<RegExpSearchable<1>> /\$(?:\$|\{([^}]*)})/g, (f, s1?: string): string => {
+    if (!s1) { return f }
+    const arr = s1.split(<RegExpOne> />(?=[\w\x80-\ufffd]{1,8}$)/)
+    if (arr.length > 1 && arr[0]) {
+      let key = arr[0], clipName = arr[1]
+      key = key === "0" || key === "$0" ? "&" : key[0] === "$" ? key.slice(1) : key.length === 1 ? key
+          : ({ input: "_", lastMatch: "&", lastParen: "+", leftContext: "`", rightContext: "'" })[key] || "1"
+      toCopy.has(clipName) ? toCopy.get(clipName)!.push(key) : toCopy.set(clipName, [key])
+      return "$" + key
+    }
+    return (innerClipboard_.get(s1.replace(<RegExpOne> /^<|>$/, "")) || "").replace(<RegExpG> /\$/g, "$$$$")
+  })
+  text = text.replace(item.match_ as RegExpOne & RegExpSearchable<0>, toCopy.size ? function (): string {
+    const args = arguments, len = args.length, index = args[len - 2]
+    return replacement.replace(<RegExpG & RegExpSearchable<1>> /\$([$1-9_&+`'])/g, (_, s): string => {
+      if (s === "$") { return "$" }
+      const value = s === "_" ? text : s === "&" ? args[0]
+          : s === "`" ? text.slice(0, index) : s === "'" ? text.slice(index + args[0].length)
+          : len - 3 <= 0 ? "" : s >= "1" && s < "9" ? +s <= len - 2 ? args[+s] : ""
+          : s === "+" ? args[len - 3] : args[1]
+      referred.set(s, value)
+      return value
+    })
+  } : replacement as never)
+  toCopy.forEach((refs, clipName): void => {
+    const value = refs.reduce((oldValue, ref) => oldValue || referred.get(ref) || "", "")
+    timeoutToClearInnerClipboard_ !== lastCleanTimer ? (innerClipboard_ as Map<string, string>).set(clipName, value)
+        : writeInnerClipboard_(clipName, value)
+  })
+  return text
+}
+
+set_substitute_(((input: string, normalContext: SedContext, mixedSed?: MixedSedOpts | null
     , exOut?: InfoOnSed): string => {
   exOut && (exOut.keyword_ = null)
   let rules = !mixedSed || typeof mixedSed !== "object" ? mixedSed : mixedSed.r
@@ -282,17 +321,12 @@ set_substitute_((input: string, normalContext: SedContext, mixedSed?: MixedSedOp
     arr = parseSeds_(convertJoinedRules(rules + "")
         , contexts || (contexts = { normal_: SedContext.NO_STATIC, extras_: null })).concat(arr)
   }
+  const lastCleanTimer = timeoutToClearInnerClipboard_
   for (const item of contexts ? arr : []) {
     if (intersectContexts(item.contexts_, contexts!) && (!item.host_
           || (typeof item.host_ === "string" && (item.host_ = Exclusions.createSimpleUrlMatcher_(item.host_) || -1),
               item.host_ !== -1 && Exclusions.matchSimply_(item.host_, input))
         )) {
-      const getReplaced = (): string => {
-        let str = item.replaced_
-        return !str.includes("${") ? str : str.replace(<RegExpG & RegExpSearchable<1>> /\$(?:\$|\{([^}]*)})/g
-            , (full, s1: string | undefined): string => !s1 ? full : (innerClipboard_.get(
-                  s1.replace(<RegExpOne> /^<|>$/, "")) || "").replace(<RegExpG> /\$/g, "$$$$"))
-      }
       let end = -1
       let text = input
       if (item.retainMatched_) {
@@ -304,12 +338,12 @@ set_substitute_((input: string, normalContext: SedContext, mixedSed?: MixedSedOp
           return ""
         })
         if (end >= 0) {
-          const newText = text.replace(item.match_ as RegExpOne, getReplaced())
+          const newText = replaceUsingClipboard(text, item, lastCleanTimer)
           text = newText.slice(start, newText.length - (text.length - end)) || first_group || text.slice(start, end)
         }
       } else if ((item.match_ as RegExpOne).test(text)) {
         end = (item.match_ as RegExpG).lastIndex = 0
-        text = text.replace(item.match_ as RegExpG, getReplaced())
+        text = replaceUsingClipboard(text, item, lastCleanTimer)
       }
       if (end < 0) {
         const elseVal = (item.actions_.find((i) => typeof i === "string" && i.startsWith("else=")
@@ -347,6 +381,7 @@ set_substitute_((input: string, normalContext: SedContext, mixedSed?: MixedSedOp
             : action === SedAction.base64Decode ? BgUtils_.DecodeURLPart_(text, "atob")
             : action === SedAction.base64Encode ? btoa(text)
             : action === SedAction.json ? jsonToEmbed(text)
+            : action === SedAction.readableJson ? JSON.stringify(text).slice(1, -1)
             : action === SedAction.jsonParse ? tryParseJSON(text)
             : action === SedAction.inc ? +text + 1 + ""
             : action === SedAction.dec ? +text - 1 + ""
@@ -372,13 +407,14 @@ set_substitute_((input: string, normalContext: SedContext, mixedSed?: MixedSedOp
   }
   BgUtils_.resetRe_()
   return input
-})
+}) satisfies typeof substitute_)
 
 const writeInnerClipboard_ = (name: string, text: string): void => {
   (innerClipboard_ as Map<string, string>).set(name, text)
   timeoutToClearInnerClipboard_ && clearTimeout(timeoutToClearInnerClipboard_)
   timeoutToClearInnerClipboard_ = setTimeout((): void => {
     (innerClipboard_ as Map<string, string>).clear()
+    timeoutToClearInnerClipboard_ = 0
   }, Build.NDEBUG ? 10_000 : 45_000)
 }
 

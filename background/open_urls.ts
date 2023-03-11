@@ -569,7 +569,7 @@ export const openUrlWithActions = (url: Urls.Url, workType: Urls.WorkType, sed?:
     if (goNext && url && typeof url === "string") {
       const exOut2: InfoOnSed = {}
       url = substitute_(url, SedContext.goNext, null, exOut2)
-      exOut2.keyword_ != null && overrideOption<C.openUrl, "keyword">("keyword", exOut2.keyword_!)
+      exOut.keyword_ != null && overrideCmdOptions<C.openUrl>({ keyword: exOut.keyword_ })
       url = goToNextUrl(url, cRepeat, goNext === "absolute")[1]
     }
     url = typeof url === "string" ? reformatURL_(url) : url
@@ -698,7 +698,7 @@ export const openUrl = (tabs?: [Tab] | []): void => {
     openUrlWithActions(rawUrl as AllowToString + "", Urls.WorkType.EvenAffectStatus, true, tabs)
   } else if (get_cOptions<C.openUrl>().copied) {
     const exOut: InfoOnSed = {}, url = paste_(parseSedOptions_(get_cOptions<C.openUrl, true>()), 0, exOut)
-    exOut.keyword_ != null && overrideOption<C.openUrl, "keyword">("keyword", exOut.keyword_!)
+    exOut.keyword_ != null && overrideCmdOptions<C.openUrl>({ keyword: exOut.keyword_ })
     let copied = get_cOptions<C.openUrl, true>().copied
     let copiedName = typeof copied !== "string" ? null : copied.includes("<") ? copied.split("<")[1]
         : copied.includes(">") ? copied.split(">")[0] : null

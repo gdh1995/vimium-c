@@ -560,13 +560,18 @@ export const wrapEventInit_ = <T extends EventInit> (event: T
   return event
 }
 
-export const findSelectorByHost = (rules: string | kTip | null | undefined
-    ): "css-selector" | "" | null | void => {
-  const host = loc_.host, isKTip = isTY(rules, kTY.num)
+type MayBeSelector = "" | false | 0 | null | void | undefined
+export const joinValidSelectors = (selector: string | MayBeSelector
+      , validAnother: "css-selector" | MayBeSelector): "css-selector" | null =>
+    selector && safeCall(querySelector_unsafe_, selector) !== void 0
+    ? (validAnother ? selector + "," + validAnother : selector) as "css-selector" : validAnother || null
+
+export const findSelectorByHost = (rules: string | kTip | MayBeSelector): "css-selector" | void => {
+  const host = loc_.host, path = loc_.host + "/" + loc_.pathname, isKTip = isTY(rules, kTY.num)
   for (const arr of (isKTip ? VTr(rules) : rules ? rules + "" : "").split(";")) {
-    const items = arr.split("##"), re = items[0] && tryCreateRegExp(items[0])
-    if (re && re.test(host) && (isKTip || safeCall(querySelector_unsafe_, items[1]!) !== void 0)) {
-      return items[1]! as "css-selector" | undefined
+    const items = arr.split("##"), cond = items[0], re = cond && tryCreateRegExp(cond)
+    if (re && re.test(cond.includes("/") ? path : host) && (isKTip || joinValidSelectors(items[1]!))) {
+      return items[1] as "css-selector"
     }
   }
 }

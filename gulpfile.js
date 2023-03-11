@@ -47,7 +47,6 @@ var CompileTasks = {
   background: ["background/*.ts", "background/*.d.ts"],
   content: [["content/*.ts", "lib/*.ts", "!" + POLYFILL_FILE, "!lib/injector.ts", "!lib/simple_eval.ts"]
       , "lib/*.d.ts", {module: "distES6"}],
-  lib: ["lib/*.ts"].concat(has_polyfill ? [] : ["!" + POLYFILL_FILE]),
   front: [["front/*.ts", has_polyfill ? POLYFILL_FILE : "!" + POLYFILL_FILE
             , "lib/injector.ts", "lib/simple_eval.ts"], ["lib/base.omni.d.ts"], { inBatch: false }],
   vomnibar: [["front/vomnibar*.ts", "front/tee.ts"], ["lib/base.omni.d.ts"]],
@@ -419,7 +418,6 @@ var Tasks = {
   bg: ["background"],
   c: ["content"],
   f: ["front"],
-  l: ["lib"],
   p: ["pages"],
   pa: ["pages"],
   pg: ["pages"],

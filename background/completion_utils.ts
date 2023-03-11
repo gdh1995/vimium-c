@@ -190,9 +190,10 @@ export const RegExpCache_ = {
       ws.push(new RegExp(start + "\\b", flags) as CachedRegExp);
     }
   },
-  fixParts_ (s: string): void {
+  fixParts_ (s: string, isShortUrl: boolean): void {
     if (!RegExpCache_.parts_) { return; }
-    RegExpCache_.parts_[0] = new RegExp(BgUtils_.escapeAllForRe_(s), RegExpCache_.parts_[0].flags as ""
+    s = BgUtils_.escapeAllForRe_(isShortUrl ? s : s.slice(0, -1))
+    RegExpCache_.parts_[0] = new RegExp(isShortUrl ? s : s + "(?:/|$)", RegExpCache_.parts_[0].flags as ""
       ) as CachedRegExp;
   }
 }

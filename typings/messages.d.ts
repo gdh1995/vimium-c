@@ -494,6 +494,7 @@ interface CmdOptions {
     init?: Dict<any>
     xy?: null | HintsNS.Options["xy"]
     trust?: boolean; trusted?: boolean; isTrusted?: boolean | "force"
+    superKey?: boolean
   } & OptionsToFindElement & Req.FallbackOptions & EventInit
   [kFgCmd.callTee]: {
     /** url */ u: string

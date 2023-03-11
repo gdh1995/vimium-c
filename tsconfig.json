@@ -1,0 +1,11 @@
+{
+  "references": [
+    { "path": "background" },
+    { "path": "content" },
+    { "path": "front" },
+    { "path": "pages" },
+  ],
+  "exclude": [
+    "**/*"
+  ]
+}

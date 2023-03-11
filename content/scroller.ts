@@ -33,7 +33,7 @@ import {
   getEditableType_, dispatchAsync_, wrapEventInit_, findSelectorByHost
 } from "../lib/dom_utils"
 import {
-  scrollWndBy_, wndSize_, getZoom_, wdZoom_, bZoom_, isNotInViewport, prepareCrop_, padClientRect_, instantScOpt,
+  scrollWndBy_, wndSize_, getZoom_, wdZoom_, bZoom_, isNotInViewport, prepareCrop_, boundingRect_, instantScOpt,
   getBoundingClientRect_, getVisibleBoundingRect_, getVisibleClientRect_, dimSize_, scrollingTop, set_scrollingTop,
   isSelARange
 } from "../lib/rect"
@@ -544,9 +544,10 @@ const findScrollable = (di: ScrollByY, amount: number
         topRoot = top && getRootNode_mounted(top as SafeElement & EnsuredMountedElement)
         element = (topRoot && isNode_(topRoot, kNode.DOCUMENT_FRAGMENT_NODE) ? topRoot : doc
             ).elementFromPoint(wndSize_(1) / 2, wndSize_() / 2)
+        if (element && getEditableType_(element) && dimSize_(element, kDim.elClientH) < wndSize_() / 2) {
+          element = GetParent_unsafe_(element, PNType.RevealSlotAndGotoParent)
+        }
         OnFirefox || (element = SafeEl_not_ff_!(element))
-        element = element && (!getEditableType_(element) || dimSize_(element, kDim.elClientH) > wndSize_() / 2)
-            ? element : null
         element && selectAncestor()
         candidate = !element && selectFirst({ a: 0, e: top as SafeElement, h: 0 })
       }
@@ -571,7 +572,8 @@ export const getPixelScaleToScroll = (skipGetZoom?: 1): void => {
 const checkCurrent = (el: SafeElement | null): void => {
   let cur = derefInDoc_(currentScrolling)
   if (cur ? cur !== el && isNotInViewport(cur) : currentScrolling) {
-    const last = cur && cachedScrollable && deref_(cachedScrollable), par = last && last !== cur && IsInDOM_(last, cur!) && !isNotInViewport(last) ? last : 0
+    const last = cur && cachedScrollable && deref_(cachedScrollable)
+    const par = last && last !== cur && IsInDOM_(last, cur!) && !isNotInViewport(last) ? last : 0
     setNewScrolling(par || el)
   }
 }
@@ -605,13 +607,19 @@ const doesScroll = (el: SafeElement, di: ScrollByY, amount: number): boolean => 
     return !!changed;
 }
 
-export const scrollIntoView_s = (el?: SafeElement | null): void => {
-    const rect = el && el.getClientRects()[0] as ClientRect | undefined
-    if (!rect) { return; }
-    let r = padClientRect_(rect), iw = wndSize_(1), ih = wndSize_(),
+export const scrollIntoView_s = (el: SafeElement | null, r2: Rect | null, dir: 0 | 1 | 2): void => {
+    let rect1 = el && boundingRect_(el)
+    rect1 = rect1 && (rect1.t - rect1.b || rect1.l - rect1.r) ? rect1 : r2
+    if (!rect1) { return }
+    let { l, t, r, b } = rect1
+    if (r2) {
+      l = min_(max_(l, r2.l), r), t = min_(max_(t, r2.t), b), r = max_(l, min_(r2.r, r)), b = max_(t, min_(r2.b, b))
+    }
+    dir < 1 ? (r = l, b = t) : dir < 2 && (l = r, t = b)
+    let iw = wndSize_(1), ih = wndSize_(),
     ihm = min_(96, ih / 2), iwm = min_(64, iw / 2),
-    hasY = r.b < ihm ? max_(r.b - ih + ihm, r.t - ihm) : ih < r.t + ihm ? min_(r.b - ih + ihm, r.t - ihm) : 0,
-    hasX = r.r < 0 ? max_(r.l - iwm, r.r - iw + iwm) : iw < r.l ? min_(r.r - iw + iwm, r.l - iwm) : 0
+    hasY = b < ihm ? max_(b - ih + ihm, t - ihm) : ih < t + ihm ? min_(b - ih + ihm, t - ihm) : 0,
+    hasX = r < 0 ? max_(l - iwm, r - iw + iwm) : iw < l ? min_(r - iw + iwm, l - iwm) : 0
     setNewScrolling(el!)
     for (; el && (hasX || hasY); el = GetParent_unsafe_(el, PNType.RevealSlotAndGotoParent) as SafeElement | null) {
         const pos = getComputedStyle_(el).position;

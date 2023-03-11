@@ -179,7 +179,7 @@ export const showVomnibar = (forceInner?: boolean): void => {
     }
     const exOut: InfoOnSed = {}
     defaultUrl = substitute_(res, SedContext.NONE, {r: null, k: get_cOptions<C.showVomnibar,true>().urlSedKeys!}, exOut)
-    exOut.keyword_ !== null && overrideOption<C.openUrl, "keyword">("keyword", exOut.keyword_!)
+    exOut.keyword_ != null && overrideCmdOptions<C.openUrl>({ keyword: exOut.keyword_ })
   }
   if (get_cOptions<C.showVomnibar>().mode === "bookmark") { overrideOption<C.showVomnibar, "mode">("mode", "bookm") }
   const page = vomnibarPage_f, { url_: url } = port.s,

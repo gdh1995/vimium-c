@@ -566,6 +566,7 @@ declare const enum BrowserVer {
   BuildMinManifestV3 = 93, // can use JavaScript modules and `import ...` in service workers
   /** @todo: trace https://bugs.chromium.org/p/chromium/issues/detail?id=649162 */
   MinMaybeAutoFillInShadowDOM = 93, // if --enable-blink-features=AutofillShadowDOM
+  MinEnsuredURLPattern = 95, // even if LEGACY; since C93 if EXPERIMENTAL
   MinNotPropagateBodyStyleIfContained = 96, // even if EXPERIMENTAL or LEGACY
   Min$structuredClone = 98, // even if EXPERIMENTAL or LEGACY
   MinEnsured$input$$showPicker = 99, // even if LEGACY; since 97 if EXPERIMENTAL
@@ -585,6 +586,7 @@ declare const enum BrowserVer {
   Min$AbortSignal$$timeout = 103, // even if LEGACY; since 100 if EXPERIMENTAL
   MinEnsured$Element$$role = 103, // even if LEGACY; since 68 if EXPERIMENTAL
   MinMV3FaviconAPI = 104,
+  MinURLPatternWith$ignoreCase = 107, // even if EXPERIMENTAL or LEGACY
   MinNo$TimerType$$Fake = 999,
   assumedVer = 998,
 }

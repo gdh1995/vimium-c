@@ -320,7 +320,10 @@ interface URLPattern extends URLPatternDict {
   test (url: string): boolean
 }
 interface URLPatternResult {}
-declare var URLPattern: { new (template: string | URLPatternDict): URLPattern } | undefined
+declare var URLPattern: {
+  new (template: string, base: string, options?: { ignoreCase?: boolean }): URLPattern // tested on Chrome 110
+  new (template: string | URLPatternDict): URLPattern
+} | undefined
 
 declare module crypto {
   const getRandomValues: (buffer: Uint8Array) => unknown

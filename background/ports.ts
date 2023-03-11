@@ -733,16 +733,18 @@ const _recoverStates = (frames: Frames.Frames | undefined, port: Port, type: Por
   }
 }
 
-export const waitForPorts_ = (frames: Frames.Frames | undefined): Promise<void> => {
+export const waitForPorts_ = (frames: Frames.Frames | undefined, checkCur?: boolean): Promise<void> => {
   const defer = deferPromise_<void>()
-  if (!frames || !(frames.flags_ & Frames.Flags.ResReleased)) {
+  const oldChecked = frames && (checkCur ? frames.cur_ : frames.top_)
+  if (!frames || oldChecked && !(oldChecked.s.flags_ & Frames.Flags.ResReleased)) {
     defer.resolve_()
   } else {
     refreshPorts_(frames, 0)
     ; (<RegExpOne> /^(?:http|file|ftp)/i).test(frames.cur_.s.url_) || selectTab(frames.cur_.s.tabId_, selectWndIfNeed)
     let tick = 0, interval = setInterval(() => {
       tick++
-      if (tick === 5 || frames.top_ && !(frames.top_.s.flags_ & Frames.Flags.ResReleased)) {
+      const checked = checkCur ? frames.cur_ : frames.top_
+      if (tick === 5 || checked && !(checked.s.flags_ & Frames.Flags.ResReleased)) {
         clearInterval(interval)
         defer.resolve_()
       }

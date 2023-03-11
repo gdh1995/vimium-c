@@ -57,7 +57,7 @@ const matchEnvRule = (rule: CommandsNS.EnvItem, info: CurrentEnvCache): EnvMatch
   if (host != null) {
     let url: string | null | undefined | Promise<string> = info.url, slash: number
     if (url != null ? false : host.t === kMatchUrl.Pattern
-        ? ["/*", "*"].includes(host.v.pathname) && host.v.search === "*" && host.v.hash === "*"
+        ? ["/*", "*"].includes(host.v.p.pathname) && host.v.p.search === "*" && host.v.p.hash === "*"
         : host.t === kMatchUrl.StringPrefix
         && ((slash = host.v.indexOf("/", host.v.indexOf("://") + 3)) === host.v.length - 1 || slash === -1)) {
       const frames = getCurFrames_(), port = frames && frames.top_ || cPort

@@ -6,7 +6,9 @@ import {
 import * as BgUtils_ from "./utils"
 import { Tabs_, runtimeError_, getCurTab, getCurShownTabs_, tabsGet, import2 } from "./browser"
 import { headClipNameRe_, tailClipNameRe_, tailSedKeysRe_ } from "./normalize_urls"
-import { ensureInnerCSS, ensuredExitAllGrab, indexFrame, showHUD, getCurFrames_, refreshPorts_ } from "./ports"
+import {
+  ensureInnerCSS, ensuredExitAllGrab, indexFrame, showHUD, getCurFrames_, refreshPorts_, waitForPorts_
+} from "./ports"
 import { getI18nJson, trans_ } from "./i18n"
 import {
   shortcutRegistry_, normalizedOptions_, availableCommands_,
@@ -56,13 +58,13 @@ export const overrideCmdOptions = <T extends keyof BgCmdOptions> (known: CmdOpti
   oriOptions || set_cOptions(known as KnownOptions<T> as KnownOptions<T> & SafeObject)
 }
 
-type StrStartWith$<K extends string> = K extends `$${string}` ? K : never
+type StrStartingWith$<K extends string> = K extends `$${string}` ? K : never
 type BgCmdCanBeOverride = keyof SafeStatefulBgCmdOptions | keyof StatefulBgCmdOptions
 type KeyCanBeOverride<T extends BgCmdCanBeOverride> =
     T extends keyof SafeStatefulBgCmdOptions ? SafeStatefulBgCmdOptions[T]
     : T extends keyof StatefulBgCmdOptions
     ? (StatefulBgCmdOptions[T] extends null ? never : StatefulBgCmdOptions[T] & keyof BgCmdOptions[T])
-      | Exclude<StrStartWith$<keyof BgCmdOptions[T] & string>, keyof Req.FallbackOptions>
+      | Exclude<StrStartingWith$<keyof BgCmdOptions[T] & string>, keyof Req.FallbackOptions>
     : never
 export const overrideOption = <T extends BgCmdCanBeOverride, K extends KeyCanBeOverride<T> = KeyCanBeOverride<T>>(
     field: K, value: K extends keyof BgCmdOptions[T]
@@ -193,7 +195,7 @@ export const executeCommand = (registryEntry: CommandsNS.Item, count: number, la
         : (count | 0) || 1)
   if (count === 1) { /* empty */ }
   else if (repeat === 1) { count = 1 }
-  else if (repeat > 0 && (count > repeat || count < -repeat)) {
+  else if (repeat > 1 && (count > repeat || count < -repeat)) {
     if (fallbackCounter != null) {
       count = count < 0 ? -1 : 1
     } else if (!overriddenCount && (!options || options.confirmed !== true)) {
@@ -476,11 +478,12 @@ export const runNextCmdBy = (useThen: BOOL, options: Req.FallbackOptions, timeou
   if (hasFallback) {
     const fStatus: NonNullable<FgReq[kFgReq.nextKey]["f"]> = { c: options.$f, r: options.$retry, u: 0, w: 0 }
     const noDelay = nextKey && (<RegExpOne> /\$D/).test(nextKey.split("#", 1)[0])
-    setupSingletonCmdTimer(setTimeout((): void => {
-      const frames = framesForTab_.get(curTabId_),
-      port = cPort && cPort.s.tabId_ === curTabId_ && frames && frames.ports_.indexOf(cPort) > 0 ? cPort
+    setupSingletonCmdTimer(setTimeout(async (): Promise<void> => {
+      const frames = framesForTab_.get(curTabId_)
+      await waitForPorts_(frames, true)
+      const port = cPort && cPort.s.tabId_ === curTabId_ && frames && frames.ports_.indexOf(cPort) > 0 ? cPort
           : !frames ? null : frames.cur_.s.status_ === Frames.Status.disabled
-          && frames.ports_.filter(i => i.s.status_ !== Frames.Status.disabled)
+          && frames.ports_.filter(i => i.s.status_ !== Frames.Status.disabled && !(i.s.flags_&Frames.Flags.ResReleased))
               .sort((a, b) => a.s.frameId_ - b.s.frameId_)[0] || frames.cur_
       frames && ensuredExitAllGrab(frames)
       runOneMapping_(nextKey, port, fStatus)

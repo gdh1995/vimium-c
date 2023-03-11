@@ -1,10 +1,10 @@
 import {
   clickable_, isJSUrl, doc, isImageUrl, fgCache, readyState_, chromeVer_, VTr, createRegExp, max_, OnChrome,
-  math, includes_, OnFirefox, OnEdge, WithDialog, safeCall, evenHidden_, set_evenHidden_, tryCreateRegExp, loc_,
+  math, includes_, OnFirefox, OnEdge, WithDialog, evenHidden_, set_evenHidden_, tryCreateRegExp, loc_,
   getTime, firefoxVer_
 } from "../lib/utils"
 import {
-  isIFrameElement, uneditableInputs_, getComputedStyle_, queryChildByTag_, htmlTag_, isAriaFalse_,
+  isIFrameElement, uneditableInputs_, getComputedStyle_, queryChildByTag_, htmlTag_, isAriaFalse_,  joinValidSelectors,
   kMediaTag, NONE, querySelector_unsafe_, isStyleVisible_, fullscreenEl_unsafe_, notSafe_not_ff_, docEl_unsafe_,
   GetParent_unsafe_, unsafeFramesetTag_old_cr_, isHTML_, querySelectorAll_unsafe_, isNode_, INP, attr_s, supportInert_,
   getMediaTag, getMediaUrl, contains_s, GetShadowRoot_, parentNode_unsafe_s, testMatch, hasTag_, editableTypes_,
@@ -250,16 +250,15 @@ const inferTypeOfListener = ((el: SafeHTMLElement, tag: "" | keyof HTMLElementTa
         );
 }) as (el: SafeHTMLElement, tag: keyof HTMLElementTagNameMap) => boolean
 
-/** Note: required by {@link #kFgCmd.focusInput}, should only add LockableElement instances */
 export const getEditable = (hints: Hint[], element: SafeHTMLElement): void => {
-  let s: string = element.localName;
+  let s: string = element.localName, asClickable = extraClickable_ && extraClickable_.has(element)
   if ((s === INP || s === "textarea")
-      ? s < "t" && uneditableInputs_[(element as HTMLInputElement).type]
-        || (element as TextElement).disabled || (element as TextElement).readOnly
-      : (s = element.contentEditable) === "inherit" || s === "false") {
-    return
+      ? !(s < "t" && uneditableInputs_[(element as HTMLInputElement).type]
+          || (element as TextElement).disabled || (element as TextElement).readOnly) || asClickable
+      : (OnFirefox || !notSafe_not_ff_!(element))
+        && ((s = element.contentEditable) !== "inherit" && s !== "false" || asClickable)) {
+    getIfOnlyVisible(hints, element)
   }
-  getIfOnlyVisible(hints, element)
 }
 
 const getIfOnlyVisible = (hints: (Hint | Hint0)[], element: SafeElement): void => {
@@ -371,21 +370,17 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
   traverseRoot = !wholeDoc ? fullscreenEl_unsafe_() : !Build.NDEBUG && isInAnElement && wholeDoc || null
   let matchSelector = options.match || null,
   textFilter: OtherFilterOptions["textFilter"] | void | RegExpI | RegExpOne | false = options.textFilter,
-  matchAll = (!Build.NDEBUG && selector === "*" // for easier debugging
-      ? selector = kSafeAllSelector : selector) === kSafeAllSelector && !matchSelector,
+  matchAll = selector === kSafeAllSelector && !matchSelector,
   evenClosed_cr_ff = OnFirefox || OnChrome && (Build.MinCVer >= BrowserVer.Min$dom$$openOrClosedShadowRoot
       || chromeVer_ > BrowserVer.Min$dom$$openOrClosedShadowRoot - 1) && !!options.closedShadow,
-  clickableSelector = matchAll && options.clickable || null,
-  clickableOnHost: string | null | undefined | void | false = matchAll && options.clickableOnHost,
+  clickableSelector = joinValidSelectors(matchAll && options.clickable
+      , findSelectorByHost(matchAll && options.clickableOnHost)),
   output: Hint[] | Hint0[] = [],
-  cur_arr: HintSources | null = matchSafeElements(selector, traverseRoot, matchSelector, 1) || (matchSelector = " ", [])
+  cur_arr: HintSources | null = matchSafeElements(filter !== getEditable ? selector : (matchAll = !1,
+        selector = VTr(kTip.editableSelector) + (clickableSelector ? "," + clickableSelector : ""))
+      , traverseRoot, matchSelector, 1) || (matchSelector = " ", [])
   set_evenHidden_(options.evenIf! | (options.scroll === "force" ? kHidden.OverflowHidden : 0))
   initTestRegExps()
-  if (clickableOnHost && (clickableOnHost = findSelectorByHost(clickableOnHost))) {
-    clickableSelector = (clickableOnHost
-        + (clickableSelector && safeCall(querySelector_unsafe_, clickableSelector) !== void 0
-            ? "," + clickableSelector : "")) as "css-selector"
-  }
   if (wantClickable) {
     getPixelScaleToScroll(1)
     clickTypeFilter_ = options.typeFilter! | 0
@@ -439,8 +434,7 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
   //     forHover_ ? ",[onmouseover]" : ""}${ngEnabled ? ",[ng-click]" : ""}${jsaEnabled_ ? ",[jsaction]" : ""
   //     },[aria-selected],[data-tab]`
   const tree_scopes: Array<typeof cur_scope> = [[cur_arr, 0
-      , createElementSet(clickableSelector && querySelectorAll_unsafe_(clickableSelector, traverseRoot, 1)
-          || (clickableSelector = null, [])) ]]
+      , clickableSelector && createElementSet(querySelectorAll_unsafe_(clickableSelector, traverseRoot, 1)!) ]]
   let cur_scope: [HintSources, number, IterableElementSet | null] | undefined, cur_tree: HintSources, cur_ind: number
   for (; cur_scope = tree_scopes.pop(); ) {
     for ([cur_tree, cur_ind, extraClickable_] = cur_scope; cur_ind < cur_tree.length; ) {
@@ -461,9 +455,7 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
           cur_tree = matchAll ? cur_tree : addChildTrees(cur_tree
               , querySelectorAll_unsafe_(kSafeAllSelector, shadow) as NodeListOf<SafeElement>)
           cur_ind = 0
-          if (clickableSelector) {
-            extraClickable_ = createElementSet(querySelectorAll_unsafe_(clickableSelector, shadow)!)
-          }
+          extraClickable_ = clickableSelector && createElementSet(querySelectorAll_unsafe_(clickableSelector, shadow)!)
         }
       } else if (checkNonHTML) {
         checkNonHTML(output, el)
@@ -636,12 +628,10 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
 }
 
 export const excludeHints = (output: Hint0[], options: CSSOptions, wantClickable: boolean| BOOL): Hint0[] => {
-  let excludedSelector: HintsNS.Options["exclude"] | "" | false = options.exclude
   const excl2 = findSelectorByHost(options.excludeOnHost)
       || (wantClickable && mode1_ < HintMode.min_job && !options.match
-          && (<RegExpOne> /^\/s($|earch)/).test(loc_.pathname) && findSelectorByHost(kTip.searchResults)) || ""
-  excludedSelector = excludedSelector && safeCall(querySelector_unsafe_, excludedSelector) !== void 0
-      ? (excludedSelector + (excl2 && "," + excl2)) as "css-selector" : excl2
+          && (<RegExpOne> /^\/s($|earch)/).test(loc_.pathname) && findSelectorByHost(kTip.searchResults))
+  const excludedSelector = joinValidSelectors(options.exclude, excl2)
   return excludedSelector && output.filter(hint => !testMatch(excludedSelector as "css-selector", hint)) || output
 }
 
@@ -817,8 +807,7 @@ export const getVisibleElements = (view: ViewBox): readonly Hint[] => {
           getIfOnlyVisible(hints, element)
         }
       })
-    : !(_i - HintMode.FOCUS_EDITABLE) ? traverse(OnFirefox ? VTr(kTip.editableSelector)
-        : VTr(kTip.editableSelector) + kSafeAllSelector, hintOptions, /*#__NOINLINE__*/ getEditable)
+    : !(_i - HintMode.FOCUS_EDITABLE) ? traverse(kSafeAllSelector, hintOptions, getEditable)
     : !(_i - HintMode.ENTER_VISUAL_MODE) || hintOptions.anyText
     // not use `":not(:empty)"`, because it will require another selectAll to collect shadow hosts
     ? traverse(OnFirefox ? ":not(:-moz-only-whitespace)" : kSafeAllSelector

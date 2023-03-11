@@ -278,8 +278,7 @@ set_contentCommands_([
     const arr = getViewBox_()
     prepareCrop_(1);
     // here those editable and inside UI root are always detected, in case that a user modifies the shadow DOM
-    const visibleInputs = traverse(!OnFirefox
-          ? VTr(kTip.editableSelector) + kSafeAllSelector : VTr(kTip.editableSelector), options, getEditable
+    const visibleInputs = traverse(kSafeAllSelector, options, getEditable
         ) as (Hint & { [0]: SafeHTMLElement })[],
     keep = options.keep, pass = options.passExitKey, reachable = options.reachable;
     if (!(reachable != null ? reachable : fgCache.e) || curModalElement
@@ -397,11 +396,13 @@ set_contentCommands_([
                 : selectNode_(activeEl))
           } else if (sel = sel || getSelected(), cmd === "when" || cmd === "if") {
             firstCmd = 3
-            for (const cond of Lower((a1 + ";" + a2)) .split(";")) {
-              if (cond === "caret" || cond === "range" ? (cond[0] === "r") !== isSelARange(sel)
-                  : cond === "input" || cond === "dom" ? (cond === "dom") !== !editable
-                  : (<RegExpOne> /^(for|back)/).test(cond) ? (cond[0] === "f") !== maySelectRight_(sel) : 0) {
-                i += 3; break
+            for (const cond of Lower((a1 + ";" + a2)) .split(<RegExpOne> /[;&+]/)) {
+              if (cond === "caret" || cond === "range" ? (cond > "r") !== isSelARange(sel)
+                  : cond === "input" || cond === "dom" ? (cond < "i") !== !editable
+                  : (<RegExpOne>/^(multi|single|one)/).test(cond) ? (cond < "o") !== (sel+"").slice(0,-1).includes("\n")
+                  : (<RegExpOne> /^for|^back/).test(cond) ? (cond > "f") !== maySelectRight_(sel) : 0) {
+                while ((<RegExpOne>/when|if/).test(commands[i])) { i += 3 }
+                break
               }
             }
           } else {
