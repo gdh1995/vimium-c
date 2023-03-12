@@ -4,7 +4,7 @@ import {
 } from "../lib/utils"
 import {
   set_getMappedKey, char_, getMappedKey, isEscape_, getKeyStat_, prevent_, handler_stack, keybody_, SPC, hasShift_ff,
-  replaceOrSuppressMost_, removeHandler_, isRepeated_, consumeKey_mac
+  replaceOrSuppressMost_, removeHandler_, isRepeated_, consumeKey_mac, MODIFIER
 } from "../lib/keyboard_utils"
 import {
   deepActiveEl_unsafe_, getSelection_, ElementProto_not_ff, getElDesc_, blur_unsafe, getEventPath
@@ -119,25 +119,29 @@ export const checkKey = ((event: HandlerNS.Event, key: string
     }
     if (j !== KeyAction.cmd) { currentKeys = ""; }
   }
-  currentKeys += key2.length > 1 ? `<${key2}>` : key2
+  currentKeys += key2.length > 1 ? key2 = `<${key2}>` : key2
+  let result = HandlerResult.Prevent
   if (j === KeyAction.cmd) {
     if (Build.NDEBUG) { runtime_port || runtimeConnect() }
     post_({ H: kFgReq.key, k: currentKeys, l: event.i, e: getElDesc_(raw_insert_lock) });
     esc!(HandlerResult.Prevent);
     isCmdTriggered = event.i || kKeyCode.True
   } else {
+    curKeyTimestamp = timeStamp_(event.e)
     if (j !== KeyAction.count) {
+      nextKeys = safer(j)
       if (isVirtual) {
         replaceOrSuppressMost_(kHandler.onTopNormal, /*#__NOINLINE__*/ checkKeyOnTop)
         hudHide()
+      } else if (event.c === MODIFIER && currentKeys === key2) {
+        curKeyTimestamp -= GlobalConsts.KeySequenceTimeout - GlobalConsts.ModifierKeyTimeout
+        result = HandlerResult.Nothing
       }
-      nextKeys = safer(j)
     } else {
       nextKeys = keyFSM
     }
-    curKeyTimestamp = timeStamp_(event.e)
   }
-  return HandlerResult.Prevent;
+  return result
 }) as {
   (event: HandlerNS.Event, key: `v-${string}`): HandlerResult.Nothing | HandlerResult.Prevent
   (event: HandlerNS.Event, key: string, modeType: BOOL | 2

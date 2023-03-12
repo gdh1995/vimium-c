@@ -3,8 +3,8 @@ import {
 } from "./utils"
 
 const DEL = kChar.delete, BSP = kChar.backspace, SP = kChar.space
-const ENT = kChar.enter
-export { ENT as ENTER }
+const ENT = kChar.enter, MDF = kChar.Modifier
+export { ENT as ENTER, MDF as MODIFIER }
 const keyNames_: readonly kChar[] = [SP, kChar.pageup, kChar.pagedown, kChar.end, kChar.home,
     kChar.left, kChar.up, kChar.right, kChar.down]
 let keyIdCorrectionOffset_old_cr_ = OnChrome && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key
@@ -38,7 +38,7 @@ const _getKeyName = (event: Pick<KeyboardEvent, "key" | "keyCode" | "location">)
           : i === kKeyCode.tab ? kChar.tab : i === kKeyCode.enter ? ENT
           : (i < kKeyCode.maxAcsKeys + 1 ? i > kKeyCode.minAcsKeys - 1 : i > kKeyCode.maxNotMetaKey)
             && fgCache.l > kKeyLayout.MapModifierStart - 1
-            && (fgCache.l >> kKeyLayout.MapModifierOffset) === event.location ? kChar.Modifier
+            && (fgCache.l >> kKeyLayout.MapModifierOffset) === event.location ? MDF
           : kChar.None
         )
       : i === kKeyCode.menuKey && Build.BTypes & ~BrowserType.Safari
@@ -102,7 +102,7 @@ export const char_ = (eventWrapper: HandlerNS.Event, forceASCII: number): kChar 
             ? !shiftKey || code < "0" || code > "9" ? code : kChar.EnNumTrans[+code]
             : _modifierKeys[key]
             ? fgCache.l > kKeyLayout.MapModifierStart - 1
-              && (fgCache.l >> kKeyLayout.MapModifierOffset) === event.location ? kChar.Modifier : ""
+              && (fgCache.l >> kKeyLayout.MapModifierOffset) === event.location ? MDF : ""
             : key === "Escape" ? kChar.esc // e.g. https://github.com/gdh1995/vimium-c/issues/129
             // 1. an example of code is empty is https://github.com/philc/vimium/issues/3451#issuecomment-569124026
             // 2. if both `key` is long, then prefer `key` to support outside mappings (like composed-key-as-an-action).
