@@ -137,7 +137,7 @@ export const isIPHost_ = (hostname: string, type: 0 | 4 | 6): boolean => {
 export const safeParseURL_ = (url: string): URL | null => { try { return new URL(url) } catch { return null } }
 
 export const DecodeURLPart_ = (url: string | undefined, wholeURL?: 1 | "atob"): string => {
-    if (!url) { return ""; }
+    if (!url || !url.includes("%")) { return url || "" }
     try {
       url = (wholeURL ? wholeURL === "atob" ? atob : decodeURI : decodeURIComponent)(url);
     } catch {}
@@ -414,14 +414,19 @@ export const isNotPriviledged = (port: Port): boolean => {
   return !(OnChrome ? url.startsWith("chrome") || url.startsWith("edge") : url.startsWith(location.protocol))
 }
 
-export const detectSubExpressions_ = (expression_: string): [pairs: [number, number][], end: number] => {
+const detectSubExpressions_ = (expression_: string, singleCmd?: 1): [pairs: [number, number][], end: number] => {
   const pairs: [number, number][] = []
   let pos_ = 0, lastStart = -1, curlyBraces = 0, end = expression_.length
   for (; pos_ < end; pos_++) {
     switch (expression_[pos_]) {
-    case "&": if (expression_.charAt(pos_ + 1) === "#") { end = pos_ = expression_.length } break
-    case "(": case ")": case "?": case "+": end = pos_; break
-    case ":": curlyBraces || (end = pos_); break
+    case "#": case "&":
+      if (expression_.charAt(pos_ + 1) === "#") {
+        pairs.push([pos_ + 1, end])
+        pos_ = expression_.length
+      }
+      break
+    case "(": case ")": case "?": case "+": singleCmd && (end = pos_); break
+    case ":": curlyBraces || singleCmd && (end = pos_); break
     case "{": case "[": curlyBraces++ || (lastStart = pos_); break
     case "]": case "}": --curlyBraces || pairs.push([lastStart, pos_ + 1]); break
     case '"': {
@@ -446,17 +451,22 @@ export const tryParse = <T = object>(slice: string): T | string => {
 }
 
 export const extractComplexOptions_ = (expression_: string): [options: string, endInSource: number] => {
-  const [pairs, end] = detectSubExpressions_(expression_)
+  const [pairs, end] = detectSubExpressions_(expression_, 1)
   let output = "", lastRight = 0
   for (const [left, right] of pairs) {
-    if (expression_[left] === '"') { continue }
+    if (expression_[left] === '#') { break }
+    if (expression_[left - 1] !== "=" || expression_[right] && expression_[right] !== "&") { continue }
     output += expression_.slice(lastRight, left)
-    const parsed = tryParse(expression_.slice(left, right)), correct = typeof parsed !== "string"
-    const str = correct ? JSON.stringify(parsed) : parsed
-    output += str.replace(<RegExpG & RegExpSearchable<0>> /[()?:+%\s]/g,
-        correct ? s => s === ":" ? "%3a" : "\\u" + (s.charCodeAt(0) + 0x10000).toString(16).slice(1)
-        : s => encodeURIComponent(s))
     lastRight = right
+    const parsed = tryParse(expression_.slice(left, right))
+    const correct = typeof parsed !== "string" || parsed.length !== right - left
+    if (!correct) {
+      output += parsed.replace(<RegExpG & RegExpSearchable<0>> /&/g, "%26")
+      continue
+    }
+    const str = JSON.stringify(parsed)
+    output += str.replace(<RegExpG & RegExpSearchable<0>> /[%\s&]/g,
+        s => "\\u" + (s.charCodeAt(0) + 0x10000).toString(16).slice(1))
   }
   output += expression_.slice(lastRight, end)
   return [output, end]
