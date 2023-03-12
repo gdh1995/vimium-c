@@ -25,7 +25,7 @@ import { doesNeedToSed, parseSedOptions_ } from "./clipboard"
 import { goToNextUrl, newTabIndex, openUrl } from "./open_urls"
 import {
   parentFrame, showVomnibar, findContentPort_, marksActivate_, enterVisualMode, toggleZoom, captureTab,
-  initHelp, framesGoBack, mainFrame, nextFrame, performFind, framesGoNext
+  initHelp, framesGoBack, mainFrame, nextFrame, performFind, framesGoNext, blurInsertOnTabChange
 } from "./frame_commands"
 import {
   onShownTabsIfRepeat_, getTabRange, getTabsIfRepeat_, tryLastActiveTab_, filterTabsByCond_, testBoolFilter_,
@@ -474,6 +474,7 @@ set_bgC_([
   /* kBgCmd.goToTab: */ (resolve): void | kBgCmd.goToTab => {
     const absolute = !!get_cOptions<C.goToTab>().absolute
     const filter = get_cOptions<C.goToTab, true>().filter
+    const blur = get_cOptions<C.goToTab, true>().blur || get_cOptions<C.goToTab, true>().grabFocus
     const goToTab = (tabs: Tab[]): void => {
       const count = cRepeat
       const cur = selectFrom(tabs)
@@ -501,8 +502,12 @@ set_bgC_([
       }
     }
       const toSelect = tabs[index], doesGo = !toSelect.active
-      if (doesGo) { selectTab(toSelect.id) }
-      resolve(doesGo)
+      if (doesGo) {
+        selectTab(toSelect.id, blur? blurInsertOnTabChange : null)
+        blur || resolve(doesGo)
+      } else {
+        resolve(doesGo)
+      }
     }
     const reqireAllTabs = (curs?: Tab[]): void => {
       const evenHidden = OnFirefox && testBoolFilter_(filter, "hidden") === true
@@ -825,6 +830,7 @@ set_bgC_([
     const onlyActive = !!get_cOptions<C.visitPreviousTab>().onlyActive
     const filter = get_cOptions<C.visitPreviousTab, true>().filter
     const evenHidden = OnFirefox ? testBoolFilter_(filter, "hidden") : null
+    const blur = get_cOptions<C.goToTab, true>().blur || get_cOptions<C.goToTab, true>().grabFocus
     const defaultCondition: chrome.tabs.QueryInfo = OnFirefox && evenHidden !== true ? { hidden: false } : {}
     const cb = (tabs: Tab[]): void => {
       if (tabs.length < 2) {
@@ -842,13 +848,15 @@ set_bgC_([
       tabs = onlyActive && tabs2.length === 0 ? tabs.sort((a, b) => b.id - a.id) : tabs2
       const tab = tabs[cRepeat > 0 ? Math.min(cRepeat, tabs.length) - 1 : Math.max(0, tabs.length + cRepeat)]
       if (tab) {
-        onlyActive ? Windows_.update(tab.windowId, { focused: true }, R_(resolve)) : doActivate(tab.id)
+        onlyActive ? Windows_.update(tab.windowId, { focused: true }, blur ? blurInsertOnTabChange : R_(resolve))
+            : doActivate(tab.id)
       } else {
         resolve(0)
       }
     }
     const doActivate = (tabId: number): void => {
-      selectTab(tabId, (tab): void => (tab && selectWndIfNeed(tab), R_(resolve)()))
+      selectTab(tabId, (tab): void =>
+          (tab && selectWndIfNeed(tab), blur ? blurInsertOnTabChange() : R_(resolve)()))
     }
     if (cRepeat === 1 && !onlyActive && curTabId_ !== GlobalConsts.TabIdNone) {
       let tabId = tryLastActiveTab_()

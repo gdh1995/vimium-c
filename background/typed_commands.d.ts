@@ -89,7 +89,8 @@ interface BgCmdOptions {
   [kBgCmd.discardTab]: TabFilterOptions
   [kBgCmd.duplicateTab]: { active: false }
   [kBgCmd.goBackFallback]: Extract<CmdOptions[kFgCmd.framesGoBack], {r?: null}>
-  [kBgCmd.goToTab]: { absolute: boolean; noPinned: boolean } & TabFilterOptions
+  [kBgCmd.goToTab]: { absolute: boolean; noPinned: boolean; blur: boolean; grabFocus: boolean
+      } & TabFilterOptions & Req.FallbackOptions
   [kBgCmd.goUp]: { type: "tab" | "frame"; reloadOnRoot: true | false } & TrailingSlashOptions & UserSedOptions
   [kBgCmd.joinTabs]: {
     sort: "" | /** time */ true | "time" | "create" | "recency" | "id" | "url" | "host" | "title" | "reverse"

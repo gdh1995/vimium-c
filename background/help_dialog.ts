@@ -329,8 +329,8 @@ const commandGroups_: {
     , "clearFindHistory", 1
   ],
   tabManipulation: [
-    "nextTab"
-    , "previousTab"
+    "nextTab", "$blur"
+    , "previousTab", "$blur"
     , "firstTab"
     , "lastTab"
     , "createTab"
@@ -347,7 +347,7 @@ const commandGroups_: {
     , "sortTabs", "$sort=recency|createTime"
     , "togglePinTab"
     , "toggleMuteTab", "$all, other"
-    , "visitPreviousTab", "$acrossWindows, onlyActive"
+    , "visitPreviousTab", "$blur, acrossWindows, onlyActive"
     , "closeTabsOnLeft", 1, "$$count=0"
     , "closeTabsOnRight", 1, "$$count=0"
     , "closeOtherTabs", 1, "$filter=\"\"/url/url+hash/url+title"

@@ -11,12 +11,13 @@ import {
 } from "./browser"
 import { convertToUrl_, createSearchUrl_, normalizeSVG_ } from "./normalize_urls"
 import {
-  showHUD, complainLimits, ensureInnerCSS, getParentFrame, getPortUrl_, safePost, getCurFrames_, getFrames_
+  showHUD, complainLimits, ensureInnerCSS, getParentFrame, getPortUrl_, safePost, getCurFrames_, getFrames_,
+  waitForPorts_
 } from "./ports"
 import { trans_ } from "./i18n"
 import { keyMappingErrors_, normalizedOptions_, visualGranularities_, visualKeys_ } from "./key_mappings"
 import {
-  wrapFallbackOptions, copyCmdOptions, parseFallbackOptions, portSendFgCmd, sendFgCmd, replaceCmdOptions,
+  wrapFallbackOptions, copyCmdOptions, parseFallbackOptions, portSendFgCmd, sendFgCmd, replaceCmdOptions, runNextCmdBy,
   overrideOption, runNextCmd, hasFallbackOptions, getRunNextCmdBy, kRunOn, overrideCmdOptions, initHelpDialog
 } from "./run_commands"
 import { parseReuse, newTabIndex, openUrlWithActions } from "./open_urls"
@@ -640,4 +641,24 @@ export const focusFrame = (port: Port, css: boolean, mask: FrameMaskType, noFall
   port.postMessage({ N: kBgReq.focusFrame, H: css ? ensureInnerCSS(port.s) : null, m: mask, k: cKey, c: 0,
     f: !noFallback && get_cOptions<C.nextFrame>() && parseFallbackOptions(get_cOptions<C.nextFrame, true>()) || {}
   })
+}
+
+export const blurInsertOnTabChange = (): void => {
+  const fallback = parseFallbackOptions(get_cOptions<C.goToTab, true>())
+  if (runtimeError_()) {
+    fallback && runNextCmdBy(1, fallback)
+    return runtimeError_()
+  }
+  setTimeout((): void => {
+    waitForPorts_(framesForTab_.get(curTabId_), true).then((): void => {
+      const frames = framesForTab_.get(curTabId_)
+      if (frames && !(frames.flags_ & Frames.Flags.ResReleased)) {
+        const options = BgUtils_.safer_({ esc: true } as CmdOptions[kFgCmd.dispatchEventCmd])
+        fallback && copyCmdOptions(options, BgUtils_.safer_(fallback))
+        portSendFgCmd(frames.cur_, kFgCmd.dispatchEventCmd, false, options, -1)
+      } else {
+        fallback && runNextCmdBy(1, fallback)
+      }
+    })
+  }, 17)
 }
