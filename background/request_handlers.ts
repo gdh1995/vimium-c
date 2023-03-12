@@ -18,7 +18,7 @@ import {
 import { exclusionListening_, getExcluded_ } from "./exclusions"
 import { setOmniStyle_ } from "./ui_css"
 import { contentI18n_, extTrans_, i18nReadyExt_, loadContentI18n_, transPart_, trans_ } from "./i18n"
-import { keyRe_, parseVal_ } from "./key_mappings"
+import { keyRe_ } from "./key_mappings"
 import {
   sendFgCmd, replaceCmdOptions, onConfirmResponse, executeCommand, portSendFgCmd, executeExternalCmd, runNextCmdBy,
   waitAndRunKeyReq, parseFallbackOptions, onBeforeConfirm
@@ -558,7 +558,7 @@ set_reqH_([
   /** kFgReq.omniCopy: */ (req: FgReq[kFgReq.omniCopy], port): void => {
     const title = req.t, url = BgUtils_.decodeUrlForCopy_(req.u)
     let join = title && url ? (vomnibarBgOptions_.actions.find(i => i.startsWith("itemJoin=")) || "").slice(9) : ""
-    join = join ? join.includes("\\") ? parseVal_(join[0] === '"' ? join : `"${join}"`)
+    join = join ? join.includes("\\") ? BgUtils_.tryParse(join[0] === '"' ? join : `"${join}"`)
         : BgUtils_.DecodeURLPart_(join) : "\n"
     reqH_[kFgReq.copy]({ s: title && url ? title + join + url : url || title
         , d: false, m: HintMode.DEFAULT }, findCPort(port)!)

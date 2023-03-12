@@ -126,8 +126,9 @@ const normalizeExpects = (options: KnownOptions<C.runKey>): (NormalizedEnvCond |
   const expected_rules = options.expect
   if (options.$normalized) { return expected_rules as NormalizedEnvCond[] }
   const normalizeKeys = (keys: string | string[] | null | undefined): string[] => {
-    return keys ? typeof keys === "string" ? (<RegExpOne> /[#&]#/).test(keys) ? [keys] : keys.trim().split(/[, ]+/)
-        : keys instanceof Array ? keys : [] : []
+    return !keys ? [] : typeof keys !== "string" ? (keys instanceof Array ? keys : [])
+        : (<RegExpOne> /[#&]#/).test(keys = keys.trim()) ? [keys]
+        : keys.includes(" ") ? keys.split(/ +/) : BgUtils_.splitWhenKeepExpressions(keys, ",")
   }
   let new_rules: (NormalizedEnvCond | null)[] = []
   if (!expected_rules) { /* empty */ }

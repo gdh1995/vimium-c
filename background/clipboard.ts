@@ -189,8 +189,7 @@ const tryParseJSON = (text: string): string => {
   text = text[0] === '"' ? text.slice(1, text.endsWith('"') ? -1 : undefined) : text
   text = text.replace(<RegExpG & RegExpSearchable<0>> /[\r\n\0]/g, s => s < "\n" ? "\\0" : s > "\n" ? "\\r" : "\\n")
   text = `"${text}"`
-  try { text = JSON.parse(text) } catch { /* empty */ }
-  return text
+  return BgUtils_.tryParse<string>(text)
 }
 
 export const parseSedOptions_ = (sed: UserSedOptions): ParsedSedOpts | null => {

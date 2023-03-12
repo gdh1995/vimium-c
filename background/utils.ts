@@ -414,18 +414,19 @@ export const isNotPriviledged = (port: Port): boolean => {
   return !(OnChrome ? url.startsWith("chrome") || url.startsWith("edge") : url.startsWith(location.protocol))
 }
 
-export const extractComplexOptions_ = (expression_: string): [options: string, endInSource: number] => {
+export const detectSubExpressions_ = (expression_: string): [pairs: [number, number][], end: number] => {
   const pairs: [number, number][] = []
   let pos_ = 0, lastStart = -1, curlyBraces = 0, end = expression_.length
   for (; pos_ < end; pos_++) {
     switch (expression_[pos_]) {
-    case "&": if (expression_.charAt(pos_ + 1) === "#") { pos_ = expression_.length } break
+    case "&": if (expression_.charAt(pos_ + 1) === "#") { end = pos_ = expression_.length } break
     case "(": case ")": case "?": case "+": end = pos_; break
     case ":": curlyBraces || (end = pos_); break
     case "{": case "[": curlyBraces++ || (lastStart = pos_); break
     case "]": case "}": --curlyBraces || pairs.push([lastStart, pos_ + 1]); break
     case '"': {
       const literal = (<RegExpOne> /^"([^"\\]|\\[^])*"/).exec(expression_.slice(pos_))
+      curlyBraces || literal && pairs.push([pos_, pos_ + literal[0].length])
       pos_ += literal ? literal[0].length - 1 : 0
       break
     }
@@ -436,12 +437,19 @@ export const extractComplexOptions_ = (expression_: string): [options: string, e
     }
     }
   }
-  let output = "", lastRight = 0
-  const tryParse = (slice: string): object | string => {
+  return [pairs, end]
+}
+
+export const tryParse = <T = object>(slice: string): T | string => {
     try { return JSON.parse(slice) }
     catch { return slice }
-  }
+}
+
+export const extractComplexOptions_ = (expression_: string): [options: string, endInSource: number] => {
+  const [pairs, end] = detectSubExpressions_(expression_)
+  let output = "", lastRight = 0
   for (const [left, right] of pairs) {
+    if (expression_[left] === '"') { continue }
     output += expression_.slice(lastRight, left)
     const parsed = tryParse(expression_.slice(left, right)), correct = typeof parsed !== "string"
     const str = correct ? JSON.stringify(parsed) : parsed
@@ -452,4 +460,20 @@ export const extractComplexOptions_ = (expression_: string): [options: string, e
   }
   output += expression_.slice(lastRight, end)
   return [output, end]
+}
+
+export const splitWhenKeepExpressions = (src: string, sep: string): string[] => {
+  const pairs = detectSubExpressions_(src)[0]
+  let ind = -1, ind2 = 0, lastInd = 0, results: string[] = []
+  while ((ind = src.indexOf(sep, ind + 1)) >= 0) {
+    while (ind2 < pairs.length && ind >= pairs[ind2][1]) { ind2++ }
+    if (ind2 < pairs.length && ind >= pairs[ind2][0]) {
+      ind = pairs[ind2][1] - 1
+    } else {
+      results.push(src.slice(lastInd, ind))
+      lastInd = ind + 1
+    }
+  }
+  results.push(src.slice(lastInd))
+  return results
 }

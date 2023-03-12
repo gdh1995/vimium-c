@@ -4,6 +4,7 @@ import {
   settingsCache_, updateHooks_, CurFFVer_
 } from "./store"
 import * as BgUtils_ from "./utils"
+import { tryParse } from "./utils"
 import * as settings_ from "./settings"
 import * as Exclusions from "./exclusions"
 
@@ -29,6 +30,8 @@ type NameMetaMapEx = NameMetaMap & {
 }
 type ValidMappingInstructions = "map" | "run" | "mapkey" | "mapKey" | "env" | "shortcut" | "command"
     | "unmap" | "unmap!" | "unmapAll" | "unmapall"
+
+const parseVal_: (slice: string) => any = tryParse
 
 const keyRe_ = <RegExpG & RegExpSearchable<0>> /<(?!<)(?:.-){0,4}.\w*?(?::i)?>|./g /* need to support "<<left>" */
 let builtinOffset_: number
@@ -79,13 +82,6 @@ export const parseOptions_ = ((options_line: string, fakeVal?: 0 | 1 | 2): Comma
 }) as {
   (options_line: string, fakeVal: 0 | 1): CommandsNS.RawOptions | "__not_parsed__" | null
   (options_line: string, lessException?: 2): CommandsNS.RawOptions | null
-}
-
-export const parseVal_ = (val: string): any => {
-    try {
-      return JSON.parse(val);
-    } catch {}
-    return val;
 }
 
 const parseVal_limited = (val: string): any => {
