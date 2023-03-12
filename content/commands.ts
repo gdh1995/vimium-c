@@ -17,7 +17,7 @@ import {
 } from "../lib/keyboard_utils"
 import {
   view_, wndSize_, isNotInViewport, getZoom_, prepareCrop_, getViewBox_, padClientRect_, isSelARange, center_,
-  getBoundingClientRect_, setBoundary_, wdZoom_, dScale_, getVisibleClientRect_, getVisibleBoundingRect_
+  getBoundingClientRect_, setBoundary_, wdZoom_, dScale_, getVisibleClientRect_, getVisibleBoundingRect_, isSelMultiline
 } from "../lib/rect"
 import { post_, set_contentCommands_, runFallbackKey, send_ } from "./port"
 import {
@@ -399,7 +399,7 @@ set_contentCommands_([
             for (const cond of Lower((a1 + ";" + a2)) .split(<RegExpOne> /[;&+]/)) {
               if (cond === "caret" || cond === "range" ? (cond > "r") !== isSelARange(sel)
                   : cond === "input" || cond === "dom" ? (cond < "i") !== !editable
-                  : (<RegExpOne>/^(multi|single|one)/).test(cond) ? (cond < "o") !== (sel+"").slice(0,-1).includes("\n")
+                  : (<RegExpOne>/^(multi|single|one)/).test(cond) ? (cond < "o") !== isSelMultiline(sel)
                   : (<RegExpOne> /^for|^back/).test(cond) ? (cond > "f") !== maySelectRight_(sel) : 0) {
                 while ((<RegExpOne>/when|if/).test(commands[i])) { i += 3 }
                 break

@@ -251,6 +251,7 @@ export const doesNeedToSed = (context: SedContext, sed: ParsedSedOpts | null): b
 }
 
 const convertJoinedRules = (rules: string): string => {
+  rules.startsWith(",") && (rules = "s/^//" + rules)
   return rules.includes("\n") ? rules : !(Build.BTypes & ~BrowserType.ChromeOrFirefox)
   && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsuredLookBehindInRegexp)
   && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinLookBehindInRegexp)

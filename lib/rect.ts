@@ -400,6 +400,20 @@ export const selRange_ = ((sel: Selection, ensured?: 1): Range | null =>
   (sel: Selection, ensured?: BOOL | undefined): Range | null
 }
 
+export const isSelMultiline = (sel: Selection): boolean => {
+  const rects = !(sel+"").slice(0,-1).includes("\n") && rangeCount_(sel) && selRange_(sel)!.getClientRects()
+  if (rects && rects.length > 1) {
+    const first = padClientRect_(rects[0])
+    for (let i = 1; i < rects.length; i++) {
+      const next = padClientRect_(rects[i]), cy = (next.t + next.b) / 2
+      if (cy > first.b || cy < first.t) { // ignore rotation - no wayt to detect it
+        return true
+      }
+    }
+  }
+  return rects === !1
+}
+
 export const view_ = (el: SafeElement, oldY?: number): VisibilityType => {
   let rect = boundingRect_(el), secondScroll: number,
   ty = isNotInViewport(el, rect)

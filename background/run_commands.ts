@@ -134,7 +134,7 @@ export const fillOptionWithMask = <Cmd extends keyof BgCmdOptions>(template: str
       let val = clip ? innerClipboard_.get(clip[0][0] === "<" ? clip[0].slice(1) : clip[0].slice(0, -1)) || ""
           : body === "__proto__" || body[0] === "$" ? "" : body ? (usableOptions as Dict<any>)[body] : getValue()
       val = typeof val === "string" ? val : val && typeof val === "object" ? JSON.stringify(val) : val + ""
-      sed && (val = substitute_(val, SedContext.NONE, { r: null, k: sed[0].slice(1) }))
+      sed && (val = substitute_(val, SedContext.NONE, sed[0].slice(1)))
       return encode ? BgUtils_.encodeAsciiComponent_(val) : val
     })
   } else if (hasMask0) {
