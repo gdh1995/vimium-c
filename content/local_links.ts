@@ -371,14 +371,22 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
   let matchSelector = options.match || null,
   textFilter: OtherFilterOptions["textFilter"] | void | RegExpI | RegExpOne | false = options.textFilter,
   matchAll = selector === kSafeAllSelector && !matchSelector,
+  rawClosedShadow_cr = options.closedShadow,
   evenClosed_cr_ff = OnFirefox || OnChrome && (Build.MinCVer >= BrowserVer.Min$dom$$openOrClosedShadowRoot
-      || chromeVer_ > BrowserVer.Min$dom$$openOrClosedShadowRoot - 1) && !!options.closedShadow,
+      || chromeVer_ > BrowserVer.Min$dom$$openOrClosedShadowRoot - 1) && !!rawClosedShadow_cr,
   clickableSelector = joinValidSelectors(matchAll && options.clickable
       , findSelectorByHost(matchAll && options.clickableOnHost)),
   output: Hint[] | Hint0[] = [],
   cur_arr: HintSources | null = matchSafeElements(filter !== getEditable ? selector : (matchAll = !1,
         selector = VTr(kTip.editableSelector) + (clickableSelector ? "," + clickableSelector : ""))
-      , traverseRoot, matchSelector, 1) || (matchSelector = " ", [])
+      , traverseRoot, matchSelector, 1) || (matchSelector = " ", []),
+  docBody_cr = OnChrome ? doc.body : null as never,
+  may_nextToBody_cr = OnChrome && matchAll && !evenClosed_cr_ff && !wholeDoc && !traverseRoot && bZoom_ === 1
+      && rawClosedShadow_cr == null && docBody_cr && !notSafe_not_ff_!(docBody_cr)
+      && (Build.MinCVer >= BrowserVer.Min$dom$$openOrClosedShadowRoot
+          || chromeVer_>BrowserVer.Min$dom$$openOrClosedShadowRoot-1) && docBody_cr.nextElementSibling as Element|null,
+  nextToBody_cr = OnChrome && may_nextToBody_cr
+      && (may_nextToBody_cr !== ui_box || may_nextToBody_cr.nextElementSibling) ? may_nextToBody_cr : null
   set_evenHidden_(options.evenIf! | (options.scroll === "force" ? kHidden.OverflowHidden : 0))
   initTestRegExps()
   if (wantClickable) {
@@ -441,6 +449,7 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
       const el: SafeElement = cur_tree[cur_ind++]
       if ("lang" in (el as ElementToHTML)) {
         filter(output, el as SafeHTMLElement)
+        Build.BTypes & BrowserType.Chrome && el === nextToBody_cr && (evenClosed_cr_ff = true)
         const shadow = evenClosed_cr_ff ? OnFirefox ? (el as any).openOrClosedShadowRoot : GetShadowRoot_(el, 0)
             : ((Build.BTypes & BrowserType.Chrome)
             && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0 && prefixedShadow_cr
@@ -467,7 +476,8 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
   }
   cur_scope = extraClickable_ = cur_tree = cur_arr = null as never
   set_evenHidden_(kHidden.None)
-  while (output.length && (output[0][0] === docEl_unsafe_() || !hintManager && output[0][0] === doc.body)) {
+  while (output.length
+      && (output[0][0] === docEl_unsafe_() || !hintManager && output[0][0] === (OnChrome ? docBody_cr : doc.body))) {
     output.shift()
   }
   if (Build.NDEBUG ? wholeDoc : wholeDoc && !isInAnElement) {
