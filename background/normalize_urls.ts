@@ -13,7 +13,7 @@ export const searchWordRe_ = <RegExpG & RegExpSearchable<2>> /\$([sS$])?(?:\{([^
 export const searchVariableRe_ = <RegExpG & RegExpSearchable<1>> /\$([+-]?\d+|\$)/g
 export const headClipNameRe_ = <RegExpOne> /^[\w\x80-\ufffd]{1,8}>/
 export const tailClipNameRe_ = <RegExpOne> /<[\w\x80-\ufffd]{1,8}$/
-export const tailSedKeysRe_ = <RegExpOne> /\|([\w\x80-\ufffd]{1,8}|,[a-zA-Z,_-]*)$/
+export const tailSedKeysRe_ = <RegExpOne> /\|([\w\x80-\ufffd]{1,8}|(,|%2[cC])[\w,-]*)$/
 
 const KnownPages_ = ["blank", "newtab", "options", "show"]
 const kOpts = "options.html"
@@ -346,7 +346,7 @@ export const createSearch_ = function (query: string[], url: string, blank: stri
     } else {
       s2 = arr.join(s2 != null ? s2 : s1);
     }
-    sed && (s2 = substitute_(s2, SedContext.NONE, sed[0].slice(1)))
+    sed && (s2 = substitute_(s2, SedContext.NONE, DecodeURLPart_(sed[0].slice(1))))
     if (indexes != null && s2) {
       ind += delta;
       indexes.push(ind, ind + s2.length);

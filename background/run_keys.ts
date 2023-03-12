@@ -457,11 +457,11 @@ export const parseEmbeddedOptions = (/** has no prefixed "#" */ str: string): Co
       (<RegExpOne> /\s/).test(s) ? JSON.stringify(s).replace(<RegExpG & RegExpSearchable<0>> /\s/g, encodeUnicode) : s
   str = (arrHash ? str.slice(0, arrHash.index) : str).split("&").map((pair): string => {
     const key = pair.split("=", 1)[0], val = pair.slice(key.length)
-    return key + (val ? "=" + encodeValue(BgUtils_.DecodeURLPart_(val.slice(1))) : "")
+    return key ? key + (val && val !== "true" ? "=" + encodeValue(BgUtils_.DecodeURLPart_(val.slice(1))) : "") : ""
   }).join(" ")
   if (rawPart) {
     const key2 = rawPart.split("=", 1)[0], val2 = rawPart.slice(key2.length)
-    str = (str ? str + " " : "") + key2 + (val2 ? "=" + encodeValue(val2.slice(1)) : "")
+    str = key2 ? (str ? str + " " : "") + key2 + (val2 ? "=" + encodeValue(val2.slice(1)) : "") : ""
   }
   return parseOptions_(str, 2)
 }
