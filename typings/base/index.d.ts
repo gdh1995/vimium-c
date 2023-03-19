@@ -89,10 +89,13 @@ type Lowercase<S extends string> = intrinsic;
 type Uppercase<S extends string> = intrinsic;
 interface String {
   replace <Self extends string, S extends string, T extends string> (
-     this: Self, searchValue: RegExpG & { source: S }, replaceValue: T): ReplaceStrAll<Self, S , T>
+      this: Self, searchValue: RegExpG & { source: S }, replaceValue: T): ReplaceStrAll<Self, S , T>
   replace <Self extends string, S extends string, T extends string> (
-     this: Self, searchValue: S, replaceValue: T
-     ): T extends `${"" | "$&"}${number}` ? string : string extends T ? string | symbol : ReplaceStrOnce<Self, S , T>
+      this: Self, searchValue: S, replaceValue: T
+    ): T extends `${"" | "$&"}${number}` ? string : string extends T ? string | symbol : ReplaceStrOnce<Self, S , T>
+  replace(searchValue: RegExpSearchable<5>, replacer: (this: void, substring: string,
+      a: string, b: string, c: string, d: string, e: string, index: number, source: string
+    ) => string): string
   toLowerCase <Self extends string> (this: Self): string extends Self ? string : `${Lowercase<Self>}`
   toUpperCase <Self extends string> (this: Self): string extends Self ? string : `${Uppercase<Self>}`
 }

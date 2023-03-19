@@ -120,6 +120,7 @@ export const normalizeCommand_ = (cmd: Writable<CommandsNS.BaseItem>, details?: 
         let mode = lhOpt.mode, stdMode = lhOpt.m!
         const rawChars = lhOpt.characters
         const action = lhOpt.action
+        const button = lhOpt.button
         const chars = !rawChars || typeof rawChars !== "string" ? null
             : BgUtils_.dedupChars_(settings_.updatePayload_<"c" | "n">("c", rawChars))
         if (chars && chars.length < GlobalConsts.MinHintCharSetSize) {
@@ -143,6 +144,11 @@ export const normalizeCommand_ = (cmd: Writable<CommandsNS.BaseItem>, details?: 
               ? lhOpt.join != null ? HintMode.COPY_TEXT | HintMode.queue | HintMode.list : mode
               : lhOpt.join != null ? HintMode.COPY_URL | HintMode.queue | HintMode.list : HintMode.COPY_URL
             : mode > HintMode.min_disable_queue + HintMode.queue - 1 ? mode - HintMode.queue : mode;
+        }
+        if (button != null) {
+          lhOpt.button = typeof button === "string" ? button === "right" ? 2
+              : button.startsWith("mid") || button.startsWith("aux") ? 1 : 0
+              : Math.max(0, Math.min(button | 0, 2)) as typeof button
         }
         if (lhOpt.xy !== void 0) { lhOpt.xy = BgUtils_.normalizeXY_(lhOpt.xy) }
         lhOpt.direct && (mode &= ~HintMode.queue)

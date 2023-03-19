@@ -171,8 +171,8 @@ interface MouseEventInit extends EventModifierInit {
     screenY?: number;
     clientX?: number;
     clientY?: number;
-    /** 0: main-pressed; 2: second pressed */ button?: 0 | 2;
-    /** 0: not-mousedown; 1: primary; 2: second */ buttons?: 0 | 1 | 2;
+    /** 0: main-pressed; 2: second pressed */ button?: 0 | 2 | 1;
+    /** 0: not-mousedown; 1: primary; 2: second */ buttons?: 0 | 1 | 2 | 4;
     relatedTarget?: EventTarget | null;
 }
 

@@ -136,7 +136,12 @@ Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES$Arr
       endsWith: { enumerable: false, value: function endsWith(this: string, s: string): boolean {
         const i = this.length - s.length
         return i >= 0 && this.indexOf(s, i) === i
-      } }
+      } },
+      repeat: { enumerable: false, value: function repeat(this: string, num: number): string {
+        let res = "", slice = this
+        for (let i = 0; i < num; i++) { res += slice }
+        return res
+      } },
     })
     } else if (Build.MinCVer <= BrowserVer.Maybe$Promise$onlyHas$$resolved) {
       Promise.resolve || (Promise.resolve = Promise.resolved!)

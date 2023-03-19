@@ -29,8 +29,9 @@ const enum ActionType {
   MinOpenUrl = kClickAction.MinNeverInteract - kClickAction.BaseMayInteract,
   DispatchAndMayOpenTab = MinOpenUrl, OpenTabButNotDispatch = DispatchAndMayOpenTab * 2,
 }
-export declare const enum kClickButton { none = 0, primary = 1, second = 2, primaryAndTwice = 4 }
-type AcceptableClickButtons = kClickButton.none | kClickButton.second | kClickButton.primaryAndTwice
+export declare const enum kClickButton { none = 0, auxiliary = 1, second = 2, primaryAndTwice = 4, _others = 8 }
+type AcceptableClickButtons = kClickButton.none | kClickButton.auxiliary | kClickButton.second
+    | kClickButton.primaryAndTwice
 type MyMouseControlKeys = [ altKey: boolean, ctrlKey: boolean, metaKey: boolean, shiftKey: boolean ]
 
 type kMouseMoveEvents = "mouseover" | "mousemove" | "mouseout"
@@ -134,12 +135,14 @@ const mouse_ = function (element: SafeElementForMouse
   const doc1 = element.ownerDocument as Document, view = doc1.defaultView || window,
   tyKey = type.slice(5, 6),
   // is: down | up | (click) | dblclick | auxclick
-  detail = !"dui".includes(tyKey) ? 0 : button! & kClickButton.primaryAndTwice ? 2 : 1,
+  detail = !"dui".includes(tyKey) || button === kClickButton.auxiliary && tyKey === "u" ? 0
+      : button! & kClickButton.primaryAndTwice ? 2 : 1,
   cancelable = tyKey !== "e" && tyKey !== "l", // not (enter | leave)
   x = center[0], y = center[1],
   altKey = modifiers ? modifiers[0] : !1, ctrlKey = modifiers ? modifiers[1] : !1,
   metaKey = modifiers ? modifiers[2] : !1, shiftKey = modifiers ? modifiers[3] : !1
-  button = (button! & kClickButton.second) as kClickButton.none | kClickButton.second
+  button = (button! & (kClickButton.primaryAndTwice - 1)
+      ) as kClickButton.none | kClickButton.auxiliary | kClickButton.second
   relatedTarget = relatedTarget && relatedTarget.ownerDocument === doc1 ? relatedTarget : null
   let mouseEvent: MouseEvent
   // note: there seems no way to get correct screenX/Y of an element
@@ -149,7 +152,7 @@ const mouse_ = function (element: SafeElementForMouse
     const init = wrapEventInit_<ValidMouseEventInit & Partial<Omit<PointerEventInit, keyof MouseEventInit>>>({
       view, detail,
       screenX: x, screenY: y, clientX: x, clientY: y, ctrlKey, altKey, shiftKey, metaKey,
-      button, buttons: tyKey === "d" ? button || 1 : 0,
+      button, buttons: tyKey === "d" ? button - 1 ? button || 1 : 4 : 0,
       relatedTarget
     }, !cancelable, !cancelable && !forceToBubble)
     OnChrome && setupIDC_cr!(init)
@@ -352,8 +355,8 @@ export const click_async = (async (element: SafeElementForMouse
   }
   await mouse_(element, "mouseup", center, modifiers, 0, button)
   await 0
-  if (!IsInDOM_(element)) { return }
-  if (button === kClickButton.second) {
+  if (!IsInDOM_(element) || button! & kClickButton.auxiliary) { return }
+  if (button! & kClickButton.second) {
     // if button is the right, then auxclick can be triggered even if element.disabled
     await mouse_(element, "auxclick", center, modifiers, 0, button, isTouch)
     await mouse_(element, kMenu, center, modifiers, 0, button, isTouch)

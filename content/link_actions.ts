@@ -434,7 +434,7 @@ const downloadLink = (url?: string, filename?: string): void => {
 
 const defaultClick = (): void => {
     const mask = hintMode_ & HintMode.mask_focus_new, isMac = !!(Build.OS & (1 << kOS.mac)) && !os_,
-    isRight = hintOptions.button === "right",
+    rawBtn = hintOptions.button, isRight = rawBtn === 2,
     dblClick = !!hintOptions.dblclick && !isRight,
     newTabStr = (rawNewtab + "") as ToString<Exclude<HintsNS.Options["newtab"], boolean>>,
     otherActions = isRight || dblClick,
@@ -472,7 +472,7 @@ const defaultClick = (): void => {
         , /*#__PURE__*/ checkBoolOrSelector(rawFocus
             , mask > 0 || interactive || (clickEl as ElementToHTMLOrForeign).tabIndex! >= 0)
         , [!1, !isMac && ctrl, isMac && ctrl, shift]
-        , specialActions, isRight ? kClickButton.second : kClickButton.none
+        , specialActions, (rawBtn as typeof rawBtn & number) || kClickButton.none
         , !OnChrome || otherActions || newTab || newWindow ? 0 : hintOptions.touch))
     .then((ret): void | Promise<unknown> | number | boolean => {
       showUrlIfNeeded()

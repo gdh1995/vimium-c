@@ -669,18 +669,31 @@ const openCopiedUrl = (copied: KnownOptions<C.openUrl>["copied"]
 
 export const goToNextUrl = (url: string, count: number, abs?: boolean): [found: boolean, newUrl: string] => {
   let matched = false
-  let re = <RegExpSearchable<4>> /\$(?:\{(\d+)[,\/#@](\d*):(\d*)(:-?\d*)?\}|\$)/g
-  url = url.replace(<RegExpG & RegExpSearchable<4>> re, (s, n, min, end, t): string => {
+  let re = <RegExpSearchable<5>> /\$(?:\{([\da-zA-z]+)(?:[,\/#@](\d*)(?::(\d*)(:-?\d*)?)?(?:[,\/#@]([^}]+))?)?\}|\$)/g
+  url = url.replace(<RegExpG & typeof re> re, (s, n, min, end, t, exArgs): string => {
     if (s === "$$") { return "$" }
     matched = true
-    let cur = n && parseInt(n) || 1
+    let radix = 10, min_len = 1, reverse = false
+    for (const [key, val] of exArgs ? exArgs.split("&").map(i => i.split("=")) : []) {
+      if (key === "min_len" || key === "len") {
+        min_len = +val || 1
+      } else if (key === "radix") {
+        radix = +val || 0
+        radix = radix >= 2 && radix <= 36 ? radix : 10
+      } else if (key === "reverse" || key === "negative") {
+        reverse = val === "1" || val.toLowerCase() === "true"
+      }
+    }
+    let cur = n && parseInt(n, radix) || 1
     let mini = min && parseInt(min) || 0
     let endi = end && parseInt(end) || 0
     let stepi = t && parseInt(t.slice(1)) || 1
-    stepi < 0 && ([mini, endi] = [endi, mini])
-    count *= stepi
+    stepi < 0 && ([mini, endi] = [Math.min(mini, endi), Math.max(mini, endi)])
+    count *= reverse ? -stepi : stepi
     cur = !abs ? cur + count : count > 0 ? mini + count - 1 : count < 0 ? endi + count : cur
-    return "" + Math.max(mini || 1, Math.min(cur, endi ? endi - 1 : cur))
+    let y = "" + Math.max(mini || 1, Math.min(cur, endi ? endi - 1 : cur))
+    y = "0".repeat!(min_len - y.length) + y
+    return y
   })
   return [matched, url]
 }

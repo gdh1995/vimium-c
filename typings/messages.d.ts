@@ -289,7 +289,7 @@ declare namespace HintsNS {
         | "force" | "force-current" | "force-mode"
         | "last-window" | "window" | /** Firefox-only */ "no-prevent"
     reuse?: UserReuseType
-    button?: "right";
+    button?: "right" | "middle" | "auxiliary" | 0 | 1 | 2
     contextmenu?: boolean
     touch?: null | boolean | "auto";
     join?: FgReq[kFgReq.copy]["j"];
