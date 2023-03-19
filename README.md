@@ -79,6 +79,157 @@ This project is hosted on https://github.com/gdh1995/vimium-c and https://gitee.
 An old name of this project is "Vimium++", which has been given up on 2018-08-21.
 
 
+# Keyboard Bindings
+_This section is modified from [philc/vimium 's](https://github.com/philc/vimium#keyboard-bindings)._
+
+Modifier keys are specified as `<c-x>`, `<m-x>`, and `<a-x>` for Ctrl+x, Meta+x, and Alt+x respectively.
+For Shift+X and Ctrl+Shift+X, just type `X` and `<c-s-x>`.
+See the next section for how to customize these bindings.
+
+Once you have Vimium C installed, you can see this list of key bindings at any time by typing `?`.
+
+Navigating the current page:
+
+    ?       show the help dialog for a list of all available keys
+    h       scroll left
+    j       scroll down
+    k       scroll up
+    l       scroll right
+    gg      scroll to top of the page
+    G       scroll to bottom of the page
+    d       scroll down half a page
+    u       scroll up half a page
+    f       open a link in the current tab
+    F       open a link in a new tab
+    r       reload
+    gs      view source
+    i       enter insert mode -- all commands will be ignored until you hit Esc to exit
+    yy      copy the current url to the clipboard
+    yf      copy a link url to the clipboard
+    gf      cycle forward to the next frame
+    gF      focus the main/top frame
+
+Navigating to new pages:
+
+    o       Open URL, bookmark, or history entry, on an English letter "o"
+    O       Open URL, bookmark, history entry in a new tab, on an English letter "O"
+    b       Open bookmark
+    B       Open bookmark in a new tab
+
+Using find:
+
+    /       enter find mode
+              -- type your search query and hit enter to search, or Esc to cancel
+    n       cycle forward to the next find match
+    N       cycle backward to the previous find match
+
+For advanced usage, see [regular expressions](https://github.com/philc/vimium/wiki/Find-Mode) on the wiki.
+
+Navigating your history:
+
+    H       go back in history
+    L       go forward in history
+
+Manipulating tabs:
+
+    J, gT   go one tab left
+    K, gt   go one tab right
+    g0      go to the first tab. Use `ng0` to go to n-th tab, on `g` and a number character of `0`
+    g$      go to the last tab
+    ^       visit the previously-visited tab
+    t       create tab
+    yt      duplicate current tab
+    x       close current tab
+    X       restore closed tab (i.e. unwind the `x` command)
+    T       search through your open tabs
+    W       move current tab to new window
+    <a-p>   pin/unpin current tab
+
+Using marks:
+
+    ma, mA  set local mark "a" (global mark "A")
+    `a, `A  jump to local mark "a" (global mark "A")
+    ``      jump back to the position before the previous jump
+              -- that is, before the previous gg, G, n, N, / or `a
+
+Additional advanced browsing commands:
+
+    ]], [[  Follow the link labeled "next or ">" ("previous" or "<">)
+              - helpful for browsing paginated sites
+    <a-f>   open multiple links in a new tab
+    gi      focus the first (or n-th) text input box on the page. Use <tab> to cycle through options.
+    gu      go up one level in the URL hierarchy
+    gU      go up to root of the URL hierarchy
+    ge      edit the current URL
+    gE      edit the current URL and open in a new tab
+    zH      scroll all the way left
+    zL      scroll all the way right
+    v       enter visual mode; use p/P to paste-and-go, use y to yank
+    V       enter visual line mode
+
+Vimium C supports command repetition so, for example, hitting `5t` will open 5 tabs in rapid succession. `<esc>`
+(or `<c-[>`) will clear any partial commands in the queue and will also exit insert and find modes.
+
+There are some advanced commands which aren't documented here; refer to the help dialog (type `?`) for a full list.
+
+
+# Custom Key Mappings
+_This section is modified from [philc/vimium 's](https://github.com/philc/vimium#custom-key-mappings)._
+
+When you have just installed Vimium C, it will open a new tab to show its default key mappings,
+and you may also open Vimium C's options page and press `?` (usually it's `Shift+/`) to show those mappings again.
+
+You may remap or unmap any of the default key bindings in the "Custom key mappings" on the options page.
+
+Enter one of the following key mapping commands per line:
+
+* `map <key> command`: Maps a _key_ to a Vimium C command. Overrides web pages' default behavior (if any).
+* `mapKey <key> <another_key>`: Let Vimium C treat _key_ as _another key_. Can not affect your browser or web pages.
+* `unmap <key>`: Unmaps a key and restores the default behavior (if any).
+* `unmapAll`: Unmaps all bindings. This is useful if you want to completely wipe Vimium C's default commands and start
+  from scratch with your own setup.
+
+Examples:
+
+* `map r reload` maps the r key to reloading the page.
+* `map <c-d> scrollPageDown` maps Ctrl+D to scrolling the page down.
+* `unmap r` removes any mapping for the r key.
+* `unmap <c-d>` removes any mapping for Ctrl+D and restores web page or browser's default behavior.
+* `unmap g0` removes any mapping for a `g` key and a next `0` key.
+
+Available Vimium C commands can be found via the "Show available commands" link or `?` key on the options page.
+The command name appears to the right of the description in parenthesis.
+
+You can add comments to key mappings by starting a line with `"` or `#`, or a space character and a next `#` in a line.
+
+The following special keys are available for mapping:
+
+* `<c-*>`, `<a-*>`, `<s-*>`, `<m-*>` for Ctrl, Alt, Shift, and Meta (Command on macOS) respectively with any key.
+  Replace `*` with the key name of choice.
+* `<left>`, `<right>`, `<up>`, `<down>` for the arrow keys.
+* `<f1>` through `<f12>` for the function keys.
+* `<space>` for the space key.
+* `<tab>`, `<enter>`, `<delete>`, `<backspace>`, `<insert>`, `<home>` and `<end>` for non-printable keys
+
+Here're some advanced usages which are different with philc/vimium:
+
+* <kbd>Shift</kbd> are automatically detected, so, `&` corresponds to <kbd>Shift+7</kbd> on an English QWERTY keyboard.
+  * However, if a single key is longer than 1 character, please wrap it with `<`+`>` and insert a `s-`
+  * If you want to trigger a key when multiple modifier keys are pressed, sort `a/c/m/s-` prefixes by letter order
+  * For example, these keys are valid names: `<s-left>`, `<a-s-7>` and `<c-s-j>`
+* `mapKey <key:o> <another_key>` makes _key_ work as another key only in a special mode named Vomnibar
+  * `mapKey` rules always take effect before matching a key with `map` rules
+  * some other modes are list in https://github.com/gdh1995/vimium-c/wiki/Use-in-another-keyboard-layout#per-mode-mapkey
+* `map <key:i> command` makes _key_ trigger the command in insert mode only, but not the default normal mode
+* since v1.99.98, `map! <single_key>` maps _key_ in both normal mode and insert mode, if only it's not a long sequence
+  * For example, `map! jj` is invalid, but `map! <home>` and `map! <c-j>` are suitable
+* `unmap` can only unmap a manually-mapped key or a default key, so a second `unmap <key>` may result in an error
+  * You may use `unmap!` when you're not sure whether a key has been mapped before
+* number keys (`0`-`9` and `-`) are mapped to "count prefix" of commands by default, so won't be passed to web pages.
+  * And then, even after `unmapAll`, they will be automatically added back on a next `map`
+  * you may write `unmap 0` to unmap it explicitly
+
+
 # Project Introduction
 
 __<span style="color: #2f508e;">Vim</span>ium <span style="color: #a55e18;">C</span>:__

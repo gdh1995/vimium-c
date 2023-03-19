@@ -78,5 +78,5 @@
   "turnOff": "$1 has been turned off",
   "Upgrade": "Upgrade",
   "upgradeMsg": "Vimium C has been upgraded to v$1.\n",
-  "upgradeMsg2": "Full support for WebExtension Manifest V3."
+  "upgradeMsg2": "Easier to add key mapping and text substitution rules."
 }

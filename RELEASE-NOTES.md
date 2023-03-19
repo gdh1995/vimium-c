@@ -4,6 +4,25 @@ Release Notes of Vimium C
 ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 说明文档: https://gitee.com/gdh1995/vimium-c#readme , https://github.com/gdh1995/vimium-c/blob/master/README-zh.md .
 
+#### v1.99.98
+* key mappings: support `map!` and `#if`/`#else`/`#endif` and even nested pairs
+  * change how `runKey` and `run` rules gets parsed
+* text substitution: add a temporary inner clipboard and then
+  * substitution and `runKey mask` can read/write it,
+  * so that command may create complex `runKey` task from text in system clipboard easily
+* now when `<*-modifier>` works as a first prefix key, it will end in 3 seconds
+  * the key will be passed to web page scripts, to work better with `*+Letter`
+* Vomnibar: de-duplicate suggestions even in different types
+  * change what's copied on `Ctrl+C` and `Ctrl+Shift+C`
+* Scroller: fix checks of whether an area should be scrolled or not
+* VisualMode: fix the logic of scrolling caret into view
+  * Now `f` and `F` can open Find bar and then extend selection to a match
+* `nextTab`/.../`visitPreviousTab`: support `blur: boolean | host-matcher-string` to grab focus from input again
+* `focusInput` now supports `clickable` and `clickableOnHost`
+* `editText`: add `when` clause to control what to do
+* `confirm`: will show a prompt dialog; parameters are `ask: string, $then`
+* fix quite a few edge cases
+
 #### v1.99.96
 <a name="v1.99.97"></a>
 * UI: on macOS, prefer Menlo and Monaco in monospace fonts by default
