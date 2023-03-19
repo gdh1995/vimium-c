@@ -81,7 +81,7 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode], count: number):
     let node: Text | null, str: string | undefined, offset: number
     if (!isHTML_()) { return 0 }
     prepareCrop_()
-    const nodes = doc.createTreeWalker(initialScope.r || doc.body || docEl_unsafe_()!, NodeFilter.SHOW_TEXT)
+    const nodes = doc.createTreeWalker(scope || doc.body || docEl_unsafe_()!, NodeFilter.SHOW_TEXT)
     while (node = nodes.nextNode() as Text | null) {
       if (50 <= (str = node.data).length && 50 < str.trim().length) {
         const element = node.parentElement
@@ -92,7 +92,7 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode], count: number):
       }
     }
     if (!node) {
-      if (initialScope.r) {
+      if (scope) {
         curSelection = getSelection_()
         scope = null
         return establishInitialSelectionAnchor()
@@ -733,8 +733,8 @@ const ensureLine = (command1: number, s0: string): void => {
     set_scrollingTop(scrollingEl_(1))
     getPixelScaleToScroll()
     curSelection = getSelected(initialScope)
-  let scope = initialScope.r as Exclude<typeof initialScope.r, undefined>, diff: number
-  toggleSelectableStyle(1)
+    let scope = initialScope.r as Exclude<typeof initialScope.r, undefined>, diff: number
+    toggleSelectableStyle(1)
   {
     let type: SelType = selType()
     retainSelection = type === SelType.Range
@@ -755,18 +755,18 @@ const ensureLine = (command1: number, s0: string): void => {
     modeName = mode_ = diff ? Mode.Caret : mode_
     di_ = type - SelType.Caret ? kDirTy.unknown : kDirTy.right
 
-  if (OnFirefox && raw_insert_lock
-      || /* type === SelType.None */ !type && (options.$else || !establishInitialSelectionAnchor())) {
-      deactivate()
-      runFallbackKey(options, kTip.needSel)
-      return
-  }
-  if (mode_ === Mode.Caret && type > SelType.Range - 1) {
-      // `sel` is not changed by @establish... , since `isRange`
-    getDirection()
-    collapseToRight(options.s != null ? <BOOL> +!options.s : di_
-        && <BOOL> +(("" + <SelWithToStr> curSelection).length > 1))
-  }
+    if (OnFirefox && raw_insert_lock
+        || /* type === SelType.None */ !type && (options.$else || !establishInitialSelectionAnchor())) {
+        deactivate()
+        runFallbackKey(options, kTip.needSel)
+        return
+    }
+    if (mode_ === Mode.Caret && type > SelType.Range - 1) {
+        // `sel` is not changed by @establish... , since `isRange`
+      getDirection()
+      collapseToRight(options.s != null ? <BOOL> +!options.s : di_
+          && <BOOL> +(("" + <SelWithToStr> curSelection).length > 1))
+    }
   }
   replaceOrSuppressMost_(kHandler.visual, (event: HandlerNS.Event): HandlerResult => {
     const doPass = event.i === kKeyCode.menuKey && (Build.OS & ~(1 << kOS.mac) && Build.OS & (1 << kOS.mac) ? os_

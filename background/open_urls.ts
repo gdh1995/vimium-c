@@ -569,8 +569,10 @@ export const openUrlWithActions = (url: Urls.Url, workType: Urls.WorkType, sed?:
     if (goNext && url && typeof url === "string") {
       const exOut2: InfoOnSed = {}
       url = substitute_(url, SedContext.goNext, null, exOut2)
-      exOut.keyword_ != null && overrideCmdOptions<C.openUrl>({ keyword: exOut.keyword_ })
       url = goToNextUrl(url, cRepeat, goNext === "absolute")[1]
+      if (exOut.keyword_) {
+        url = createSearchUrl_(url.trim().split(BgUtils_.spacesRe_), exOut.keyword_, Urls.WorkType.EvenAffectStatus)
+      }
     }
     url = typeof url === "string" ? reformatURL_(url) : url
   } else {

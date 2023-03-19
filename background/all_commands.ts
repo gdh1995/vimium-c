@@ -117,12 +117,13 @@ set_bgC_([
       const exOut: InfoOnSed = {}, template = tabUrl && substitute_(tabUrl, SedContext.goNext, sed)
       const [hasPlaceholder, next] = template ? goToNextUrl(template, count, absolute) : [false, tabUrl]
       if (hasPlaceholder && next) {
+        let url = !exOut.keyword_ ? next
+            : createSearchUrl_(next.trim().split(BgUtils_.spacesRe_), exOut.keyword_, Urls.WorkType.EvenAffectStatus)
         set_cRepeat(count)
-        exOut.keyword_ != null && overrideCmdOptions<C.openUrl>({ keyword: exOut.keyword_ })
         if (get_cOptions<C.goNext>().reuse == null) {
           overrideOption<C.goNext, "reuse">("reuse", ReuseType.current)
         }
-        overrideCmdOptions<C.openUrl>({ url_f: next, goNext: false })
+        overrideCmdOptions<C.openUrl>({ url_f: url, goNext: false })
         openUrl()
       } else if (absolute) {
         runNextCmd<C.goNext>(0)
