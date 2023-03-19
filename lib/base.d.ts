@@ -119,10 +119,11 @@ declare const enum EditableType {
   Default = NotEditable,
   Embed = 1,
   Select = 2,
-  MaxNotTextModeElement = 2,
-  TextBox = 3,
-  input_ = 4,
-  rich_ = 5,
+  MaxNotEditableElement = 2,
+  ContentEditable = 3,
+  MaxNotTextBox = 3,
+  TextArea = 4,
+  Input = 5,
 }
 
 declare namespace HintsNS {

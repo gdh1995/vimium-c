@@ -358,7 +358,7 @@ set_contentCommands_([
     })
   },
   /* kFgCmd.editText: */ (options: CmdOptions[kFgCmd.editText], count: number) => {
-    const editable = insert_Lock_() && getEditableType_<0>(raw_insert_lock!) === EditableType.TextBox
+    const editable = insert_Lock_() && getEditableType_<0>(raw_insert_lock!) > EditableType.MaxNotEditableElement
         ? raw_insert_lock as TextElement : 0;
     (editable || options.dom) && timeout_((): void => {
       let commands = isTY(options.run) ? options.run.split(<RegExpG> /,\s*/g) : options.run

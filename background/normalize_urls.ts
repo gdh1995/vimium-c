@@ -140,7 +140,6 @@ export const convertToUrl_ = function (str: string, keyword?: string | null, vim
     type = expected;
   } else if ((index = str.lastIndexOf(".")) < 0
       || (type = isTld_(str.slice(index + 1))) === Urls.TldType.NotTld) {
-    index < 0 && str === "__proto__" && (str = "." + str);
     index2 = str.length - index - 1;
     // the new gTLDs allow long and notEnglish TLDs
     // https://en.wikipedia.org/wiki/Generic_top-level_domain#New_top-level_domains
@@ -148,7 +147,7 @@ export const convertToUrl_ = function (str: string, keyword?: string | null, vim
         // most of TLDs longer than 14 chars mean some specific business companies (2021-09-13)
           : index2 >= 2 && index2 <= 14) && !(<RegExpOne> /[^a-z]/).test(str.slice(index + 1)))
         || checkInDomain_(str, arr[4]) > 0 ? expected : Urls.Type.Search
-  } else if ((<RegExpOne> /[^.\da-z\-]|xn--|^-/).test(str)) {
+  } else if ((<RegExpOne> /[^.\da-z_\-]|xn--|^-/).test(str)) {
     // non-English domain, maybe with an English but non-CC TLD
     type = (str.startsWith("xn--") || str.includes(".xn--") ? true
         : str.length === index + 3 || type !== Urls.TldType.ENTld ? !expected
@@ -191,7 +190,8 @@ export const convertToUrl_ = function (str: string, keyword?: string | null, vim
 }
 
 const checkInDomain_ = (host: string, port?: string | null): 0 | 1 | 2 => {
-  const domain = port && historyCache_.domains_.get(host + port) || historyCache_.domains_.get(host)
+  const domain = port && historyCache_.domains_.get(host + port) || historyCache_.domains_.get(OnChrome
+      && Build.MinCVer < BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol && host === "__proto__" ? "." + host : host)
   return domain ? domain.https_ ? 2 : 1 : 0;
 }
 

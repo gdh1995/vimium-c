@@ -509,7 +509,7 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
         if (s = ((element = list[i][0]) as SafeHTMLElement).localName, s === "i" || s === D) {
           if (notRemoveParents
               = i > 0 && buttonOrATags_.test(list[i - 1][0].localName)
-              ? (s < "i" || !element.innerHTML.trim()) && isDescendant(element, list[i - 1][0], s < "i")
+              ? (s < "i" || !element.firstChild) && isDescendant(element, list[i - 1][0], s < "i")
               : !!(element = (element as SafeHTMLElement).parentElement)
                 && hasTag_("button", element) && element.disabled
               ) {

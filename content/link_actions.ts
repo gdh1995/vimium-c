@@ -247,7 +247,7 @@ const hoverEl = (): void => {
       hintApi.h(kTip.hoverScrollable)
       return
     }
-    hintMode_ & HintMode.queue || elType > EditableType.MaxNotTextModeElement
+    hintMode_ & HintMode.queue || elType > EditableType.MaxNotEditableElement
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
         || whenNextIsEsc_(kHandler.unhoverOnEsc, kModeId.Link, Build.NDEBUG ? unhover_async : unhoverOnEsc_d!)
     showUrlIfNeeded()
@@ -300,7 +300,7 @@ const hoverEl = (): void => {
                     : (lval = op !== ":" && (selected satisfies object as {} as Dict<any>)[prop], op === "+")
                     ? lval + rval : op === "-" ? lval - rval : op === "*" ? lval * rval : lval / rval
                 if (prop === "value" && selected === raw_insert_lock && isTY(newVal)
-                    && editableTypes_[htmlTag_(selected)]! > EditableType.MaxNotTextModeElement) {
+                    && getEditableType_<0>(selected) > EditableType.MaxNotTextBox) {
                   (selected as TextElement).select()
                   execCommand(kInsertText, doc, newVal)
                 } else {
@@ -567,7 +567,7 @@ const autoShowRect = (): Rect | null => (removeFlash || showRect && rect && flas
         }
       } else if (hint.r && hint.r === clickEl) {
         hoverEl()
-      } else if (elType > EditableType.MaxNotTextModeElement) {
+      } else if (elType > EditableType.MaxNotEditableElement) {
         retPromise = select_(clickEl as LockableElement, rect, !removeFlash)
         showRect = 0
       } else {

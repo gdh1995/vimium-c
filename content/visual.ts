@@ -148,7 +148,7 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode], count: number):
     }
     // editable text elements
     if (!OnFirefox && raw_insert_lock && parentNode_unsafe_s(raw_insert_lock) === anchorNode) {
-      if (oldDiType & DiType.Unknown && getEditableType_<0>(raw_insert_lock) > EditableType.MaxNotTextModeElement) {
+      if (oldDiType & DiType.Unknown && getEditableType_<0>(raw_insert_lock) > EditableType.MaxNotEditableElement) {
         const child = (OnFirefox ? (anchorNode as Element).childNodes as NodeList
             : GetChildNodes_not_ff!(anchorNode as Element)
             )[num1 >= 0 ? num1 : selOffset_(sel)] as Node | undefined
@@ -570,7 +570,7 @@ const ensureLine = (command1: number, s0: string): void => {
     return;
   }
   if (command > VisualAction.MaxNotNewMode) {
-    if (command === VisualAction.EmbeddedFindMode) {
+    if (command > VisualAction.EmbeddedFindMode - 1) {
       hudHide() // it should auto keep HUD showing the mode text
       post_({ H: kFgReq.findFromVisual });
     } else {

@@ -275,7 +275,8 @@ const parseKeyMappings_ = (wholeMappings: string): void => {
         const isRun = cmd === "run"
         details = undefined
         if (noCheck) { /* empty */
-        } else if (!key || key.length > 8 && (key === "__proto__" || key.includes("<__proto__>"))) {
+        } else if (!key || key.length > 8 && (Build.MinCVer < BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol
+            && OnChrome && key === "__proto__" || key.includes("<__proto__>"))) {
           logError_('Unsupported key sequence %c"%s"', colorRed, key || '""', `for "${val || ""}"`)
         } else if (cmd.length === 4 && (key.match(keyRe_)!.length !== 1 || key.slice(-3, -2) === ":")) {
           logError_('"map!" should only be used for a single key without mode suffix')
@@ -363,7 +364,7 @@ const parseKeyMappings_ = (wholeMappings: string): void => {
         if (noCheck) { /* empty */ }
         else if (!val) {
           logError_("Lack conditions in env declaration:", line)
-        } else if (key === "__proto__") {
+        } else if (OnChrome && Build.MinCVer<BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol && key === "__proto__") {
           logError_('Unsupported env name %c"%s"', colorRed, key)
         } else if (envMap && envMap.has(key) && !hasIfOption(line, knownLen - 1 - val.length)) {
           logError_('The environment name %c"%s"', colorRed, key, "has been used")

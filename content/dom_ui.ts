@@ -5,10 +5,10 @@ import {
 import { prevent_ } from "../lib/keyboard_utils"
 import {
   createElement_, attachShadow_, NONE, fullscreenEl_unsafe_, docEl_unsafe_, getComputedStyle_, set_docSelectable_, kDir,
-  GetParent_unsafe_, getSelection_, GetShadowRoot_, getEditableType_, htmlTag_, textOffset_, derefInDoc_, supportInert_,
+  GetParent_unsafe_, getSelection_, GetShadowRoot_, getEditableType_, textOffset_, derefInDoc_, supportInert_,
   notSafe_not_ff_, CLK, frameElement_, runJS_, isStyleVisible_, rangeCount_, getAccessibleSelectedNode, removeEl_s,
   appendNode_s, append_not_ff, setClassName_s, isNode_, contains_s, setOrRemoveAttr_s, textContent_s, inputSelRange,
-  parentNode_unsafe_s, setDisplaying_s, editableTypes_, getRootNode_mounted, singleSelectionElement_unsafe, isHTML_,
+  parentNode_unsafe_s, setDisplaying_s, getRootNode_mounted, singleSelectionElement_unsafe, isHTML_,
   getDirectionOfNormalSelection,
 } from "../lib/dom_utils"
 import {
@@ -333,11 +333,11 @@ export const getSelectionText = (type?: 0 | 1, sel?: Selection): string => {
     sel = sel || getSelection_()
     let s = "" + <SelWithToStr> sel, node: Element | null, start: number | null
     if (OnFirefox && !s) {
-      s = !insert_Lock_() || getEditableType_<0>(node = raw_insert_lock!) !== EditableType.TextBox
+      s = !insert_Lock_() || getEditableType_<0>(node = raw_insert_lock!) < EditableType.MaxNotTextBox + 1
           || (start = textOffset_(node as TextElement)) == null ? s
           : (node as TextElement).value.slice(start, textOffset_(node as TextElement, 1)!)
     } else if (s && !insert_Lock_()
-        && (node = singleSelectionElement_unsafe(sel)) && getEditableType_<0>(node) === EditableType.TextBox
+        && (node = singleSelectionElement_unsafe(sel)) && getEditableType_<0>(node) > EditableType.MaxNotTextBox
         && !getSelectionBoundingBox_(sel, 1)) {
       s = "";
     }
@@ -348,7 +348,7 @@ export const doesSelectRightInEditableLock = (): boolean =>
     (raw_insert_lock as TextElement).selectionDirection !== kDir[0]
 
 export const maySelectRight_ = (sel: Selection): boolean =>
-    insert_Lock_() && getEditableType_<0>(raw_insert_lock!) === EditableType.TextBox
+    insert_Lock_() && getEditableType_<0>(raw_insert_lock!) > EditableType.MaxNotTextBox
     ? doesSelectRightInEditableLock()
     : !!getDirectionOfNormalSelection(sel, getAccessibleSelectedNode(sel), getAccessibleSelectedNode(sel, 1))
 
@@ -368,7 +368,7 @@ export const resetSelectionToDocStart = (sel?: Selection, range?: Range | null):
 export const selectAllOfNode = (node: Node): void => { getSelection_().selectAllChildren(node) }
 
 export const selectNode_ = (element: SafeElement): void => {
-  if (getEditableType_<0>(element) > EditableType.MaxNotTextModeElement) {
+  if (getEditableType_<0>(element) > EditableType.MaxNotEditableElement) {
     (element as TextElement).select()
   } else {
     const range = doc.createRange()
@@ -378,10 +378,9 @@ export const selectNode_ = (element: SafeElement): void => {
 }
 
 export const moveSel_s_throwable = (element: LockableElement, action: SelectActions | undefined): void => {
-    const elTag = htmlTag_(element), _rawType = editableTypes_[elTag]
-    const type = _rawType ? _rawType > EditableType.MaxNotTextModeElement ? _rawType : EditableType.Default
-        : element.isContentEditable ? EditableType.rich_ : EditableType.Default
-    const isBox = type === EditableType.TextBox || type > EditableType.input_ && textContent_s(element).includes("\n"),
+    const type = getEditableType_<0>(element)
+    const isBox = type === EditableType.TextArea
+        || type === EditableType.ContentEditable && textContent_s(element).includes("\n"),
     gotoStart = action === "start",
     gotoEnd = !action || action === "end" || isBox && (action + "")[3] === "-"
     let doesCollpase: boolean | BOOL = gotoEnd || gotoStart
@@ -391,7 +390,7 @@ export const moveSel_s_throwable = (element: LockableElement, action: SelectActi
       return;
     }
     // not need `this.getSelection_()`
-    if (type > EditableType.input_) {
+    if (type === EditableType.ContentEditable) {
       action && doesCollpase || !contains_s(element, getAccessibleSelectedNode(getSelected()) || doc)
           ? selectAllOfNode(element) : doesCollpase = 0
     } else {
@@ -409,7 +408,7 @@ export const moveSel_s_throwable = (element: LockableElement, action: SelectActi
       }
     }
     doesCollpase && collpaseSelection(getSelection_(), gotoEnd)
-    if (type === EditableType.input_
+    if (type === EditableType.Input
         && (OnChrome && Build.MinCVer >= BrowserVer.MinEnsured$input$$showPicker
             || (element as HTMLInputElement).showPicker)
         && (!len && (str = (element as HTMLInputElement).autocomplete) && str !== "off"
@@ -421,8 +420,7 @@ export const moveSel_s_throwable = (element: LockableElement, action: SelectActi
 
 export const collpaseSelection = (sel: Selection, toEnd?: VisualModeNS.ForwardDir | boolean,
     fix_input?: number): void => {
-  if (!OnFirefox && fix_input && raw_insert_lock && getEditableType_(raw_insert_lock) &&
-      editableTypes_[htmlTag_(raw_insert_lock)]! > EditableType.MaxNotTextModeElement) {
+  if (!OnFirefox && fix_input && raw_insert_lock && getEditableType_<0>(raw_insert_lock) > EditableType.MaxNotTextBox) {
     fix_input = textOffset_(raw_insert_lock as TextElement, toEnd)!
     inputSelRange(raw_insert_lock as TextElement, fix_input, fix_input, VisualModeNS.kDir.right)
   } else {

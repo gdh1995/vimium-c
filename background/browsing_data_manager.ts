@@ -41,7 +41,8 @@ export const parseDomainAndScheme_ = (url: string): UrlDomain | null => {
   else { return null }
   i = url.indexOf("/", d)
   url = url.slice(d, i < 0 ? url.length : i)
-  return { domain_: url !== "__proto__" ? url : ".__proto__", scheme_: d }
+  return { domain_: OnChrome && Build.MinCVer < BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol && url === "__proto__"
+      ? ".__proto__" : url, scheme_: d }
 }
 
 export const BookmarkManager_ = {
@@ -556,14 +557,10 @@ export const BlockListFilter_ = {
       const newVisible = omniBlockList ? TestNotBlocked_(k.u, k.title_) : kVisibility.visible
       if (k.visible_ !== newVisible) {
         k.visible_ = newVisible
-        if (d) {
-          const domain = parseDomainAndScheme_(k.u)
-          if (domain) {
-            const slot = d.get(domain.domain_)
-            if (slot) {
-              slot.count_ += newVisible || -1
-            }
-          }
+        const domain = d && parseDomainAndScheme_(k.u)
+        const slot = domain && d.get(domain.domain_)
+        if (slot) {
+          slot.count_ += newVisible || -1
         }
       }
     }

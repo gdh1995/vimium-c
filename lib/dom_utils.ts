@@ -78,7 +78,7 @@ export const contains_s = (par: SafeElement, child: Node): boolean =>
 
 export const attr_s = (el: SafeElement, attr: string): string | null => el.getAttribute(attr)
 
-export const selOffset_ = (sel: Selection, focus?: 1): number => focus ? sel.focusOffset : sel.anchorOffset
+export const selOffset_ = (sel: Selection, focus?: BOOL): number => focus ? sel.focusOffset : sel.anchorOffset
 
 export const textOffset_ = (el: TextElement, dir?: VisualModeNS.ForwardDir | boolean): number | null =>
     dir ? el.selectionEnd! : el.selectionStart!
@@ -306,7 +306,7 @@ export const compareDocumentPosition = (anchorNode: Node, focusNode: Node): kNod
     !OnFirefox ? Node.prototype.compareDocumentPosition.call(anchorNode, focusNode)
     : anchorNode.compareDocumentPosition(focusNode)
 
-export const getAccessibleSelectedNode = (sel: Selection, focused?: 1): Node | null => {
+export const getAccessibleSelectedNode = (sel: Selection, focused?: BOOL): Node | null => {
   let node = focused ? sel.focusNode : sel.anchorNode
   if (OnFirefox) {
     try {
@@ -450,7 +450,7 @@ export const editableTypes_: SafeObject & { readonly [localName in ""]?: undefin
 } & {
   readonly [localName in keyof HTMLElementTagNameMap]?: EditableType | undefined
 } = { __proto__: null as never,
-    input: EditableType.input_, textarea: EditableType.TextBox,
+    input: EditableType.Input, textarea: EditableType.TextArea,
     select: EditableType.Select,
     embed: EditableType.Embed, object: EditableType.Embed
 }
@@ -461,11 +461,10 @@ export const editableTypes_: SafeObject & { readonly [localName in ""]?: undefin
    */
 export const getEditableType_ = function (element: Element): EditableType {
     const tag = htmlTag_(element), ty = editableTypes_[tag];
-    return !tag ? EditableType.NotEditable : ty !== EditableType.input_ ? (ty ||
+    return !tag ? EditableType.NotEditable : ty !== EditableType.Input ? (ty ||
         ((element as HTMLElement).isContentEditable !== true
-        ? EditableType.NotEditable : EditableType.TextBox)
-      )
-      : uneditableInputs_[(element as HTMLInputElement).type] ? EditableType.NotEditable : EditableType.TextBox
+          ? EditableType.NotEditable : EditableType.ContentEditable))
+      : uneditableInputs_[(element as HTMLInputElement).type] ? EditableType.NotEditable : EditableType.Input
 } as {
     (element: Element): element is LockableElement;
     // eslint-disable-next-line @typescript-eslint/no-unused-vars

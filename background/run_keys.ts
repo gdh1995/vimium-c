@@ -1,5 +1,5 @@
 import {
-  get_cOptions, cPort, cRepeat, set_cPort, cKey, keyToCommandMap_, get_cEnv, set_cEnv,
+  get_cOptions, cPort, cRepeat, set_cPort, cKey, keyToCommandMap_, get_cEnv, set_cEnv, OnChrome,
   set_cKey, set_cOptions, set_runOneMapping_, runOneMapping_, inlineRunKey_, set_inlineRunKey_
 } from "./store"
 import * as BgUtils_ from "./utils"
@@ -150,7 +150,8 @@ const normalizeExpects = (options: KnownOptions<C.runKey>): (NormalizedEnvCond |
               : ({ env: rule[0].trim(), keys: normalizeKeys(rule[1]), options: null }))
   }
   new_rules = new_rules.map((i): NormalizedEnvCond | null =>
-        i && i.env && i.env !== "__proto__" && i.keys.length ? i : null)
+        i && i.env && !(OnChrome && Build.MinCVer < BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol
+            && i.env === "__proto__") && i.keys.length ? i : null)
   overrideOption<C.runKey, "expect">("expect", new_rules, options)
   overrideOption<C.runKey, "keys">("keys", normalizeKeys(options.keys), options)
   overrideOption<C.runKey, "$normalized">("$normalized", 1, options)
@@ -447,7 +448,8 @@ export const parseKeyNode = (cursor: KeyNode): OneKeyInstance => {
     str = str.slice(hashIndex + 1)
     options = parseEmbeddedOptions(str)
   }
-  return cursor.val = { prefix, count, key: key !== "__proto__" ? key : "<v-__proto__>", options }
+  return cursor.val = { prefix, count, key: OnChrome && Build.MinCVer < BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol
+            && key === "__proto__" ? "<v-__proto__>" : key, options }
 }
 
 export const parseEmbeddedOptions = (/** has no prefixed "#" */ str: string): CommandsNS.RawOptions | null => {
@@ -507,7 +509,8 @@ const runOneKeyWithOptions = (key: string, count: number
     , exOptions: CommandsNS.EnvItemOptions | string | null | undefined
     , envInfo: CurrentEnvCache | null, fallbackCounter?: FgReq[kFgReq.nextKey]["f"] | null
     , avoidStackOverflow?: boolean): void => {
-  let finalKey = key, registryEntry = key !== "__proto__" && keyToCommandMap_.get(key)
+  let finalKey = key, registryEntry = !(OnChrome && Build.MinCVer < BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol
+          && key === "__proto__") && keyToCommandMap_.get(key)
       || !key.includes("<") && !key.includes(":", 1) && keyToCommandMap_.get(finalKey = `<v-${key}>`) || null
   let entryReadonly = true
   if (registryEntry == null && key in availableCommands_) {

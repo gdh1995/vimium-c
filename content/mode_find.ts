@@ -331,7 +331,7 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
     if (i > FindAction.MaxExitButNoWork && knownHasResults && (!el || el !== insert_Lock_())) {
       let container = focusFoundLinkIfAny()
       if (container && i === FindAction.ExitForEsc && (el2 = deepActiveEl_unsafe_())
-          && getEditableType_<0>(el2) > EditableType.TextBox - 1 && contains_s(container, el2)) {
+          && getEditableType_<0>(el2) > EditableType.MaxNotEditableElement && contains_s(container, el2)) {
         prepareCrop_();
         void select_(el2 as LockableElement).then((): void => {
           toggleSelectableStyle()

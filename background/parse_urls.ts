@@ -330,7 +330,8 @@ export const parseSearchEngines_ = (str: string, map: Map<string, Search.Engine>
   ind: number, rules: Search.Rule[] = [], re = searchWordRe_,
   rSpace = <RegExpOne> /\s/,
   func = (function (k: string): boolean {
-    return (k = k.trim()) && k !== "__proto__" && k.length < Consts.MinInvalidLengthOfSearchKey
+    return (k = k.trim()) && !(OnChrome && Build.MinCVer < BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol
+        && k === "__proto__") && k.length < Consts.MinInvalidLengthOfSearchKey
       ? (map.set(k, obj), true) : false
   }),
   pair: RegExpExecArray | null
