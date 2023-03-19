@@ -14,6 +14,7 @@ import {
   showHUD, complainLimits, ensureInnerCSS, getParentFrame, getPortUrl_, safePost, getCurFrames_, getFrames_,
   waitForPorts_
 } from "./ports"
+import { createSimpleUrlMatcher_, matchSimply_ } from "./exclusions"
 import { trans_ } from "./i18n"
 import { keyMappingErrors_, normalizedOptions_, visualGranularities_, visualKeys_ } from "./key_mappings"
 import {
@@ -643,9 +644,26 @@ export const focusFrame = (port: Port, css: boolean, mask: FrameMaskType, noFall
   })
 }
 
-export const blurInsertOnTabChange = (): void => {
-  const fallback = parseFallbackOptions(get_cOptions<C.goToTab, true>())
-  if (runtimeError_()) {
+export const getBlurOption_ = (): MoveTabOptions["blur"] | null | undefined =>
+    get_cOptions<C.goToTab, true>().blur ?? get_cOptions<C.goToTab, true>().grabFocus
+
+export const blurInsertOnTabChange = (tab: Tab | undefined): void => {
+  let fallback = parseFallbackOptions(get_cOptions<C.goToTab, true>())
+  if (fallback && fallback.$then) {
+    fallback.$else = fallback.$then
+  } else {
+    fallback = null
+  }
+  let blur = getBlurOption_()
+  if (typeof blur === "string") {
+    const parsed = createSimpleUrlMatcher_(blur) || false
+    overrideOption<C.goToTab>(blur === get_cOptions<C.goToTab>().blur ? "blur" : "grabFocus", parsed)
+    blur = parsed
+  }
+  const frames = tab ? framesForTab_.get(tab.id) : null
+  if (runtimeError_() || !frames
+      || blur && blur !== true && !matchSimply_(blur, frames.cur_.s.frameId_ ? frames.cur_.s.url_ : tab!.url)) {
+    // use `.url_` directly: faster is better
     fallback && runNextCmdBy(1, fallback)
     return runtimeError_()
   }

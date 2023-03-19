@@ -89,8 +89,7 @@ interface BgCmdOptions {
   [kBgCmd.discardTab]: TabFilterOptions
   [kBgCmd.duplicateTab]: { active: false }
   [kBgCmd.goBackFallback]: Extract<CmdOptions[kFgCmd.framesGoBack], {r?: null}>
-  [kBgCmd.goToTab]: { absolute: boolean; noPinned: boolean; blur: boolean; grabFocus: boolean
-      } & TabFilterOptions & Req.FallbackOptions
+  [kBgCmd.goToTab]: { absolute: boolean; noPinned: boolean } & TabFilterOptions & MoveTabOptions
   [kBgCmd.goUp]: { type: "tab" | "frame"; reloadOnRoot: true | false } & TrailingSlashOptions & UserSedOptions
   [kBgCmd.joinTabs]: {
     sort: "" | /** time */ true | "time" | "create" | "recency" | "id" | "url" | "host" | "title" | "reverse"
@@ -162,7 +161,7 @@ interface BgCmdOptions {
   [kBgCmd.toggleTabUrl]: { keyword: string; parsed: string; reader: boolean } & OpenUrlOptions
   [kBgCmd.toggleVomnibarStyle]: { style: string; current: boolean }
   [kBgCmd.toggleZoom]: { level: number; in?: true; out?: true; reset?: true; min: number; max: number }
-  [kBgCmd.visitPreviousTab]: { acrossWindows: true; onlyActive: true } & TabFilterOptions & Req.FallbackOptions
+  [kBgCmd.visitPreviousTab]: { acrossWindows: true; onlyActive: true } & TabFilterOptions & MoveTabOptions
   [kBgCmd.closeDownloadBar]: { newWindow?: null | true | false; all: 1 }
   [kBgCmd.reset]: { suppress: boolean } & Pick<BgCmdOptions[kBgCmd.insertMode], "unhover"> & Req.FallbackOptions
   [kBgCmd.openBookmark]: { title: string; path: string; id: string; name: string; value: string
@@ -212,6 +211,10 @@ interface MaskOptions { mask: boolean | string | ""; $masked: boolean }
 
 interface TabFilterOptions {
   filter: "url" | "hash" | "url=..." | "host" | "host=..." | "title" | "title*" | "group" | "url+hash" | "host&title"
+}
+interface MoveTabOptions extends Req.FallbackOptions {
+  blur: boolean | /** host matcher */ string | ValidUrlMatchers
+  grabFocus: boolean | string // alias of .blur
 }
 
 declare namespace CommandsNS {
@@ -275,6 +278,7 @@ interface StatefulBgCmdOptions {
   [kBgCmd.createTab]: null
   [kBgCmd.openBookmark]: null
   [kBgCmd.goNext]: "patterns" | "reuse"
+  [kBgCmd.goToTab]: "blur" | "grabFocus"
   [kBgCmd.openUrl]: "urls" | "group" | "replace"
   [kBgCmd.runKey]: "expect" | "keys"
   [kBgCmd.togglePinTab]: null
