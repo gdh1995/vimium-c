@@ -429,11 +429,13 @@ interface CmdOptions {
   } & Partial<BgCSSReq> | ShowHelpDialogOptions
   [kFgCmd.findMode]: {
     /** count */ c: number;
+    /** default search direction */ d: 1 | -1;
     /** highlight multiple times in a single direction */ m: number
     /** leave find mode */ l: BOOL
     /** query */ q: string;
     /* return to view port */ r: boolean;
     /* auto use selected text */ s: boolean;
+    /* extend selection */ t: 0 | /** left" */ 1 | /** right */ 2
     /** findCSS */ f: FindCSS | null;
     /** use post mode on esc */ p: boolean;
     /** restart finding */ e: boolean;
@@ -717,7 +719,7 @@ interface FgReq {
     /** override-system-settings */ o?: 1; // `o === 1` and `b === false` should never be true in the meanwhile
     /** broadcast, default to true */ b?: boolean;
   };
-  [kFgReq.findFromVisual]: {};
+  [kFgReq.findFromVisual]: { /** command */ c: VisualAction }
   [kFgReq.framesGoBack]: {
     /** step */ s: number
     /** only use o.position */ o: PickIn<Extract<CmdOptions[kFgCmd.framesGoBack], {r?: null}>

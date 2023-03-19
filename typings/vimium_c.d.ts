@@ -163,7 +163,9 @@ declare const enum VisualAction {
 
   MaxNotNewMode = 50,
   VisualMode = MaxNotNewMode + VisualModeNS.Mode.Visual, VisualLineMode = MaxNotNewMode + VisualModeNS.Mode.Line,
-  CaretMode = MaxNotNewMode + VisualModeNS.Mode.Caret, EmbeddedFindMode = CaretMode + 2,
+  CaretMode = MaxNotNewMode + VisualModeNS.Mode.Caret,
+  EmbeddedFindMode = (CaretMode + 2) & ~1, EmbeddedFindAndExtendSelection,
+  EmbeddedFindModeToPrev, EmbeddedFindToPrevAndExtendSelection,
 
   MaxNotScroll = 60, ScrollUp, ScrollDown,
 }

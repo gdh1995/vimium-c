@@ -41,6 +41,8 @@ interface BgCmdOptions {
     restart: boolean
     returnToViewport: true
     selected: boolean
+    extend: boolean | "after" | "" | "before"
+    direction: "after" | "" | "before"
   } & Req.FallbackOptions
   [kBgCmd.toggle]: { key: string; value: any } & Req.FallbackOptions
   [kBgCmd.showHelp]: Omit<ShowHelpDialogOptions, "h">

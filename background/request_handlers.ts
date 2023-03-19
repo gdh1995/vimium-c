@@ -485,8 +485,9 @@ set_reqH_([
     focusAndExecute(req, port, getFrames_(port)?.top_ || null, req.f)
   },
   /** kFgReq.setOmniStyle: */ _AsReqH<kFgReq.setOmniStyle>(setOmniStyle_),
-  /** kFgReq.findFromVisual: */ (_: FgReq[kFgReq.findFromVisual], port: Port): void => {
-    replaceCmdOptions<kBgCmd.performFind>({ active: true, returnToViewport: true })
+  /** kFgReq.findFromVisual: */ (req: FgReq[kFgReq.findFromVisual], port: Port): void => {
+    replaceCmdOptions<kBgCmd.performFind>({ active: true, returnToViewport: true
+        , extend: !!(req.c & 1), direction: req.c >= VisualAction.EmbeddedFindModeToPrev ? "before" : null })
     set_cPort(port), set_cRepeat(1)
     performFind()
   },

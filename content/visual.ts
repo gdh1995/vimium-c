@@ -572,7 +572,7 @@ const ensureLine = (command1: number, s0: string): void => {
   if (command > VisualAction.MaxNotNewMode) {
     if (command > VisualAction.EmbeddedFindMode - 1) {
       hudHide() // it should auto keep HUD showing the mode text
-      post_({ H: kFgReq.findFromVisual });
+      post_({ H: kFgReq.findFromVisual, c: command })
     } else {
       options.m = command - VisualAction.MaxNotNewMode;
       contentCommands_[kFgCmd.visualMode](options as typeof options & SafeObject, 1)

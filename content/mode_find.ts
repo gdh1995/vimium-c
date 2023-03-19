@@ -12,13 +12,14 @@ import {
   getEditableType_, scrollIntoView_, SafeEl_not_ff_, GetParent_unsafe_, focus_, fullscreenEl_unsafe_, docEl_unsafe_,
   getSelection_, isSelected_, docSelectable_, isHTML_, createElement_, CLK, MDW, removeEl_s, appendNode_s, isNode_,
   setDisplaying_s, findAnchor_, notSafe_not_ff_, textContent_s, modifySel, parentNode_unsafe_s, selOffset_, blur_unsafe,
-  getAccessibleSelectedNode,  INP, BU, UNL, contains_s, setOrRemoveAttr_s
+  getAccessibleSelectedNode,  INP, BU, UNL, contains_s, setOrRemoveAttr_s, singleSelectionElement_unsafe,
+  getDirectionOfNormalSelection
 } from "../lib/dom_utils"
 import { wdZoom_, prepareCrop_, view_, dimSize_, selRange_, getZoom_, isSelARange, getViewBox_ } from "../lib/rect"
 import {
   ui_box, ui_root, getSelectionParent_unsafe, resetSelectionToDocStart, getBoxTagName_old_cr, collpaseSelection,
   createStyle, getSelectionText, checkDocSelectable, adjustUI, ensureBorder, addUIElement, getSelected, flash_,
-  getSelectionOf, getSelectionBoundingBox_, hasGetSelection, focusIframeContentWnd_
+  getSelectionOf, getSelectionBoundingBox_, hasGetSelection, focusIframeContentWnd_, maySelectRight_
 } from "./dom_ui"
 import { highlightRange, deactivate as visualDeactivate } from "./visual"
 import { keyIsDown as scroll_keyIsDown, beginScroll, onScrolls } from "./scroller"
@@ -34,9 +35,9 @@ export declare const enum FindAction {
   DoNothing = 0, Exit, ExitNoAnyFocus, ExitNoFocus, ExitUnexpectedly,
   MaxExitButNoWork = ExitUnexpectedly, MinExitAndWork,
   ExitForEsc = MinExitAndWork, ExitForEnter,
-  MinNotExit, CtrlDelete = MinNotExit, ResumeFind, ConsumedByHost,
+  MinNotExit, CtrlDelete = MinNotExit, ResumeFind, CopySel, ConsumedByHost,
 }
-interface ExecuteOptions extends Partial<Pick<CmdOptions[kFgCmd.findMode], "c">> {
+interface ExecuteOptions extends Partial<Pick<CmdOptions[kFgCmd.findMode], "c" | "t">> {
   /** highlight */ h?: [number, number, Rect[]] | false;
   /** ignore$hasResult */ i?: 1;
   /** just inputted */ j?: 1;
@@ -62,6 +63,7 @@ let matchCount = 0
 let latest_options_: CmdOptions[kFgCmd.findMode]
 let coords: null | MarksNS.ScrollInfo = null
 let initialRange: Range | null = null
+let hasInitialRange: BOOL | 2 | undefined
 let activeRegexIndex = 0
 let regexMatches: string[] | null = null
 let root_: ShadowRoot | null = null
@@ -99,14 +101,16 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
           || OnFirefox && Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1
           || !OnEdge && ui_box !== ui_root ? createStyle(css) : sin
   }
-  const initStartPoint = (keep?: BOOL): void => {
-    if (initialRange = selRange_(getSelected())) {
+  const initStartPoint = (keep?: BOOL | 2): void => {
+    const sel = getSelected()
+    if (initialRange = selRange_(sel)) {
+      hasInitialRange = options.t && (1 + +maySelectRight_(sel)) as 1 | 2
       keep ? initialRange = initialRange.cloneRange() :
       collpaseSelection(getSelection_()) // `range.collapse` doesn't work when inside a ShadowRoot (C72)
     } else {
-      (initialRange = doc.createRange()).setStart(doc.body || docEl_unsafe_()!, 0)
+      (initialRange = doc.createRange()).setStart(doc.body || docEl_unsafe_()!, hasInitialRange = 0)
     }
-    initialRange.collapse(!0)
+    hasInitialRange || initialRange.collapse(!0)
     if (options.r) { coords = [scrollX, scrollY] }
   }
   /** return an element if no <a> else null */
@@ -207,7 +211,7 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
       updateQuery(query)
       if (suppressOnInput_) { showCount(1); return }
       restoreSelection()
-      executeFind(!isRegex ? parsedQuery_ : regexMatches ? regexMatches[0] : "", { j: 1 })
+      executeFind(!isRegex ? parsedQuery_ : regexMatches ? regexMatches[0] : "", { j: 1, c: options.d, t: options.t })
       showCount(1)
       lastInputTime_ = getTime()
       highlightTimeout_ = options.m ? highlightTimeout_ || timeout_(highlightMany, 200) : 0
@@ -259,19 +263,19 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
       prepareCrop_(1)
       const range = selRange_(sel), viewBox = getViewBox_()
       highlightTimeout_ && toggleStyle(0)
-    range && collpaseSelection(sel)
+      range && collpaseSelection(sel)
       executeFind("", opt)
-    if (range) {
-      resetSelectionToDocStart(sel, range)
-      activeRegexIndex = oldActiveRegexIndex
-      opt.c = -options.m
-      executeFind("", opt)
-    }
+      if (range) {
+        resetSelectionToDocStart(sel, range)
+        activeRegexIndex = oldActiveRegexIndex
+        opt.c = -options.m
+        executeFind("", opt)
+      }
       insert_Lock_() && blur_unsafe(raw_insert_lock!)
-    highlighting && highlighting()
+      highlighting && highlighting()
       const cbs = arr.map(cr => flash_(null, cr, -1, " Sel SelH", viewBox))
-    activeRegexIndex = oldActiveRegexIndex
-    range ? resetSelectionToDocStart(sel, range) : restoreSelection()
+      activeRegexIndex = oldActiveRegexIndex
+      range ? resetSelectionToDocStart(sel, range) : restoreSelection()
       highlighting = (): void => { highlighting = 0; clearTimeout_(clearTimeout); cbs.map(callFunc) }
       const clearTimeout = highlightTimeout_ || arr.length && timeout_(highlighting, 2400)
       highlightTimeout_ && timeout_(hookSel, 0)
@@ -297,7 +301,7 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
    * * a host script has removed all ranges
    */
   deactivate = deactivate || ((i: FindAction): void => {
-    const sin = styleSelColorIn, styleSheet = sin && sin.sheet, knownHasResults = hasResults
+    const styleSheet = styleSelColorIn && styleSelColorIn.sheet, knownHasResults = hasResults
     const knownOptions = latest_options_
     const maxNotRunPost = knownOptions.p ? FindAction.ExitForEsc - 1 : FindAction.ExitForEnter - 1
     let el: SafeElement | null | undefined, el2: Element | null
@@ -311,19 +315,23 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
     highlighting && highlighting()
     highlightTimeout_ && clearTimeout_(highlightTimeout_)
     if (box_ === deref_(lastHovered_)) { set_lastHovered_(set_lastBubbledHovered_(null)) }
+    if (knownOptions.t) {
+       extendToCurRange(initialRange!, hasInitialRange!, i !== FindAction.ExitForEnter, styleSheet)
+    } else {
+      if (i > FindAction.MaxExitButNoWork) {
+        el = getSelectionFocusEdge_(getSelected())
+        el && (i > FindAction.ExitForEnter - 1 && knownHasResults || !getEditableType_(el)) && focus_(el)
+      }
+      if ((i === FindAction.ExitForEsc || !knownHasResults || visualDeactivate) && styleSheet) {
+        toggleStyle(1)
+        restoreSelection(1)
+      }
+    }
     parsedQuery_ = query_ = query0_ = ""
-    historyIndex = matchCount = doesCheckAlive = 0;
+    historyIndex = matchCount = doesCheckAlive = hasInitialRange = 0
     styleInHUD = onUnexpectedBlur = outerBox_ = isRegex = ignoreCase =
     box_ = innerDoc_ = root_ = input_ = countEl = parsedRegexp_ =
     deactivate = vApi.n = latest_options_ = initialRange = regexMatches = coords = cachedInnerText = null as never
-    if (i > FindAction.MaxExitButNoWork) {
-      el = getSelectionFocusEdge_(getSelected())
-      el && (i > FindAction.ExitForEnter - 1 && knownHasResults || !getEditableType_(el)) && focus_(el)
-    }
-    if ((i === FindAction.ExitForEsc || !knownHasResults || visualDeactivate) && styleSheet) {
-      toggleStyle(1)
-      restoreSelection(1)
-    }
     if (visualDeactivate) {
       visualDeactivate!(2)
       return;
@@ -400,7 +408,7 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
     setFirstQuery(initial_query)
     // not reinstall keydown handler - make code smaller
   } else {
-    initStartPoint()
+    initStartPoint(options.t)
     parsedQuery_ = query_ = ""
     parsedRegexp_ = regexMatches = null
     activeRegexIndex = 0
@@ -571,7 +579,8 @@ const onIFrameKeydown = (event: KeyboardEventToPrevent): void => {
           : suppressOnInput_ && key === ENTER ? FindAction.ResumeFind
           : (query0_ && post_({ H: kFgReq.findQuery, q: query0_ }), FindAction.ExitForEnter)
       : keybody !== DEL && keybody !== BSP
-        ? isEscape_(key) ? FindAction.ExitForEsc : FindAction.DoNothing
+        ? isEscape_(key) ? FindAction.ExitForEsc
+        : (<RegExpOne> /^[cm]-s-c$/).test(key) ? FindAction.CopySel : FindAction.DoNothing
       : OnFirefox && key[0] === "c" ? FindAction.CtrlDelete
       : query_ || (n === kKeyCode.deleteKey && (Build.OS & ~(1 << kOS.mac) && Build.OS & (1 << kOS.mac) ? os_
           : !!(Build.OS & ~(1 << kOS.mac))) || isRepeated_(eventWrapper)) ? FindAction.PassDirectly
@@ -610,8 +619,11 @@ const onIFrameKeydown = (event: KeyboardEventToPrevent): void => {
       else { h = HandlerResult.Suppress; }
     h > HandlerResult.Prevent - 1 && (prevent_(event), consumeKey_mac(n, event))
     if (i < FindAction.DoNothing + 1) { /* empty */ }
+    if (i < FindAction.DoNothing + 1) { /* empty */ }
     else if (i === FindAction.ResumeFind) {
       setQuery(input_.innerText.replace("\\0", ""))
+    } else if (i === FindAction.CopySel) {
+      post_({ H: kFgReq.copy, s: "" + getSelection_() })
     } else if (OnFirefox && i === FindAction.CtrlDelete) {
       const sel = getSelectionOf(innerDoc_)!
       // on Chrome 79 + Win 10 / Firefox 69 + Ubuntu 18, delete a range itself
@@ -635,7 +647,7 @@ const onHostKeydown = (event: HandlerNS.Event): HandlerResult => {
     else if (key.length > 4) {
       highlightMany()
     } else {
-      executeFind("", { c: -(keybody > kChar.j), i: 1 })
+      executeFind("", { c: -(keybody > kChar.j), i: 1, t: options.t })
       if (options.m && !highlighting) { highlightTimeout_ ||= timeout_(highlightMany, 200) }
     }
     return HandlerResult.Prevent
@@ -740,6 +752,7 @@ export const updateQuery = (query: string): void => {
   }
   const WB = "\\b"
   let ww = suppressOnInput_ = !1, isRe: boolean | null = null, matches: string[] | null = null, delta: number
+  let text: HTMLElement["innerText"] | undefined
   query_ = query0_ = query
   wrapAround = !0
   ignoreCase = null as boolean | null
@@ -757,21 +770,21 @@ export const updateQuery = (query: string): void => {
   if (isQueryRichText_) {
     if (isRe === null && !ww) {
       isRe = fgCache.r;
-      const info = 2 * +query.startsWith(WB) + +query.endsWith(WB);
-      if (info === 3 && !isRe && query.length > 3) {
+      delta = 2 * +query.startsWith(WB) + +query.endsWith(WB)
+      if (delta === 3 && !isRe && query.length > 3) {
         query = query.slice(2, -2);
         ww = true;
-      } else if (info && info < 3) {
+      } else if (delta && delta < 3) {
         isRe = true;
       }
     }
+    text = query.replace(<RegExpG & RegExpSearchable<0>> /\\\\/g, "\\")
     if (OnChrome ? ww && isRe : ww) {
-      query = WB + escapeAllForRe(query.replace(<RegExpG & RegExpSearchable<0>> /\\\\/g, "\\")) + WB
+      query = WB + escapeAllForRe(text) + WB
       ww = false;
       isRe = true;
     }
-    query = isRe ? query !== "\\b\\b" && query !== WB ? query : ""
-        : query.replace(<RegExpG & RegExpSearchable<0>> /\\\\/g, "\\");
+    query = isRe ? query !== "\\b\\b" && query !== WB ? query : "" : text
   }
   parsedQuery_ = query
   isRegex = !!isRe
@@ -781,7 +794,6 @@ export const updateQuery = (query: string): void => {
   const didNorm = !isRe && !!latest_options_.n
   isRe || (query = isActive ? escapeAllForRe(didNorm ? normLetters(query) : query) : "")
 
-  let text: HTMLElement["innerText"] | undefined
   let re: RegExpG | null = query && tryCreateRegExp(ww ? WB + query + WB : query, (ignoreCase ? "gim" : "gm") as "g")
       || null
   if (re && !suppressOnInput_) {
@@ -898,6 +910,7 @@ export const executeFind = (query: string | null, options: ExecuteOptions): void
         hudTip(kTip.wrapWhenFind, 1, VTr(back ? kTip.atStart : kTip.atEnd))
       }
     }
+    found! && options.t && extendToCurRange(initialRange!, hasInitialRange!)
     noColor || timeout_(hookSel, 0);
     (el = insert_Lock_()) && !isSelected_() && el.blur();
     OnFirefox && focusHUD && doFocus()
@@ -940,4 +953,22 @@ export const toggleSelectableStyle = (enable?: 1): void => {
   !enable || docSelectable_ && !findCSS.s.includes("\n")
   ? styleSelectable && (removeEl_s(styleSelectable), styleSelectable = null)
   : appendNode_s(ui_box!, styleSelectable = createStyle(findCSS.s, styleSelectable))
+}
+
+export const extendToCurRange = (range: Range, hasRange: 0 | 1 | 2, abortCur?: boolean
+    , hasStyle?: StyleSheet | null): void => {
+  const sel = getSelected(), focused = getAccessibleSelectedNode(sel, 1), focusedOffset = selOffset_(sel, 1),
+  anchor = (!OnFirefox || focused) && getAccessibleSelectedNode(sel), anchorOffset = selOffset_(sel),
+  isCurLeft = abortCur || !!focused && !getDirectionOfNormalSelection(sel, anchor, focused)
+  hasStyle && toggleStyle(1)
+  if (hasRange && (abortCur || focused && getEditableType_<0>(singleSelectionElement_unsafe(sel) || docEl_unsafe_()!
+        ) < EditableType.MaxNotTextBox + 1)) {
+    const start = range.startContainer, startOffset = range.startOffset
+    const end = range.endContainer, endOffset = range.endOffset
+    const isLeft = abortCur ? hasRange < 2 : anchor && (start === focused ? focusedOffset < startOffset
+        : compareDocumentPosition(start, focused!) & kNode.DOCUMENT_POSITION_PRECEDING)
+    getSelection_().setBaseAndExtent(isLeft ? end : start, isLeft ? endOffset : startOffset
+        , abortCur ? isLeft ? start : end : isLeft !== isCurLeft ? anchor! : focused!
+        , abortCur ? isLeft ? startOffset : endOffset : isLeft !== isCurLeft ? anchorOffset : focusedOffset)
+  }
 }

@@ -843,11 +843,12 @@ export const visualKeys_: VisualModeNS.KeyMap = {
     y: VisualAction.Yank, Y: VisualAction.YankLine, C: VisualAction.YankWithoutExit, "c-s-c": VisualAction.YankRichText,
     p: VisualAction.YankAndOpen, P: VisualAction.YankAndNewTab,
 
+    f: VisualAction.EmbeddedFindAndExtendSelection, F: VisualAction.EmbeddedFindToPrevAndExtendSelection,
     n: VisualAction.FindNext, N: VisualAction.FindPrevious,
     f1: VisualAction.HighlightRange, "a-f1": VisualAction.HighlightRange,
 
     v: VisualAction.VisualMode, V: VisualAction.VisualLineMode, c: VisualAction.CaretMode,
-    "/": VisualAction.EmbeddedFindMode,
+    "/": VisualAction.EmbeddedFindMode, "?": VisualAction.EmbeddedFindModeToPrev,
 
     "c-e": VisualAction.ScrollDown, "c-y": VisualAction.ScrollUp,
     "c-down": VisualAction.ScrollDown, "c-up": VisualAction.ScrollUp
