@@ -109,8 +109,9 @@ export const checkKey = ((event: HandlerNS.Event, key: string
         : modeType < 2 &&
         // insert mode: not accept a sequence of multiple keys,
         // because the simplified keyFSM can not be used when nextKeys && !nextKeys[key]
-          (keyFSM[key2 = key + ":" + GlobalConsts.InsertModeId] || (key2 = keybody_(key)
-            ) < kChar.minNotF_num && key2 > kChar.maxNotF_num && keyFSM[key2 = key]) === KeyAction.cmd
+          (keyFSM[key2 = key + ":" + GlobalConsts.InsertModeId]
+            || (key2 = keybody_(key)) < kChar.minNotF_num && key2 > kChar.maxNotF_num && keyFSM[key2 = key]
+          ) === KeyAction.cmd
         ? KeyAction.cmd : KeyAction.INVALID
     if (!j || currentKeys && passKeys
           && passKeys.has(mappedKeys ? getMappedKey(event, kModeId.NO_MAP_KEY) : key) !== isPassKeysReversed
