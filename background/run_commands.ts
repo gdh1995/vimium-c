@@ -493,7 +493,7 @@ export const runNextCmdBy = (useThen: BOOL, options: Req.FallbackOptions, timeou
 }
 
 export const runNextOnTabLoaded = (options: OpenUrlOptions | Req.FallbackOptions | CommandsNS.Options
-    , targetTab: Tab | null | undefined | /* in cur without wait */ false, callback?: () => void): void => {
+    , targetTab: Pick<Tab, "id"> | null | undefined | /* in cur without wait */ false, callback?: () => void): void => {
   const nextKey = (options as Req.FallbackOptions).$then
   if ((!nextKey || typeof nextKey !== "string") && !callback) {
     return

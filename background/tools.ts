@@ -344,7 +344,7 @@ export const Marks_ = { // NOTE: all public members should be static
     if (url === mark.u || mark.p && mark.u.startsWith(url)) {
       const useCur = tab.id === curTabId_
       useCur || selectTab(tab.id, selectWndIfNeed)
-      Marks_.scrollTab_(mark, tab, useCur ? lastKey : kKeyCode.None, true)
+      Marks_.scrollTab_(mark, tab.id, useCur ? lastKey : kKeyCode.None, true)
     } else {
       focusOrLaunch_(mark)
     }
@@ -377,8 +377,8 @@ export const Marks_ = { // NOTE: all public members should be static
       }, [scroll[0], scroll[1]], fallback ? () => { runNextCmdBy(1, fallback); return runtimeError_() } : null)
     }
   },
-  scrollTab_ (this: void, markInfo: MarksNS.MarkToGo, tab: Tab, lastKey?: kKeyCode, notANewTab?: boolean): void {
-    const tabId = tab.id, frames = framesForTab_.get(tabId), wait = markInfo.w
+  scrollTab_ (this: void, markInfo: MarksNS.MarkToGo, tabId: number, lastKey?: kKeyCode, notANewTab?: boolean): void {
+    const frames = framesForTab_.get(tabId), wait = markInfo.w
     void waitForPorts_(frames).then((): void => {
       Marks_.goToInContent_(tabId, frames, null, false, markInfo.n, markInfo.s
           , notANewTab || wait === false ? 0 : typeof wait !== "number" ? 200 : wait, markInfo.f, lastKey)

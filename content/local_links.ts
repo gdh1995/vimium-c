@@ -447,9 +447,9 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
   for (; cur_scope = tree_scopes.pop(); ) {
     for ([cur_tree, cur_ind, extraClickable_] = cur_scope; cur_ind < cur_tree.length; ) {
       const el: SafeElement = cur_tree[cur_ind++]
+      Build.BTypes & BrowserType.Chrome && el === nextToBody_cr && (evenClosed_cr_ff = true)
       if ("lang" in (el as ElementToHTML)) {
         filter(output, el as SafeHTMLElement)
-        Build.BTypes & BrowserType.Chrome && el === nextToBody_cr && (evenClosed_cr_ff = true)
         const shadow = evenClosed_cr_ff ? OnFirefox ? (el as any).openOrClosedShadowRoot : GetShadowRoot_(el, 0)
             : ((Build.BTypes & BrowserType.Chrome)
             && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0 && prefixedShadow_cr

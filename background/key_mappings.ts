@@ -783,6 +783,7 @@ export const availableCommands_: { readonly [key in kCName]: CommandsNS.Descript
   sendToExtension: [ kBgCmd.sendToExtension, kCxt.bg, 0 ],
   showHelp: [ kBgCmd.showHelp, kCxt.bg, 1 ],
   showHUD: [ kBgCmd.showHUD, kCxt.bg, 1 ],
+  showHud: [ kBgCmd.showHUD, kCxt.bg, 1 ],
   showTip: [ kBgCmd.showHUD, kCxt.bg, 1 ],
   simBackspace: [ kFgCmd.focusInput, kCxt.fg, 1, { action: "backspace" } ],
   simulateBackspace: [ kFgCmd.focusInput, kCxt.fg, 1, { action: "backspace" } ],

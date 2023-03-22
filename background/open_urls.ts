@@ -152,7 +152,7 @@ const onEvalUrl_ = (workType: Urls.WorkType, options: KnownOptions<C.openUrl>, t
 }
 
 const runNextIf = (succeed: boolean | Tab | Window | undefined, options: OpenUrlOptions | Req.FallbackOptions
-    , result?: Tab | null | false): void => {
+    , result?: Pick<Tab, "id"> | null | false): void => {
   succeed ? runNextOnTabLoaded(options, result) : runNextCmdBy(0, options as OpenUrlOptions & Req.FallbackOptions)
 }
 
@@ -169,7 +169,9 @@ const safeUpdate = (options: OpenUrlOptions, reuse: ReuseType, url: string
     return
   }
   if (reuse === ReuseType.frame && cPort && cPort.s.frameId_) {
+    const fakeTab: Pick<Tab, "id"> = { id: cPort.s.tabId_ }
     sendFgCmd(kFgCmd.framesGoBack, false, { r: 1, u: url })
+    setTimeout(() => runNextIf(true, options, fakeTab), 100)
     return
   }
   tabs1 ? tabsUpdate(tabs1[0].id, { url }, callback) : tabsUpdate({ url }, callback)
@@ -816,8 +818,8 @@ const onMatchedTabs = (tabs: Tab[]): void => {
   const notInCurWnd = curIncognito_ === IncognitoType.true && isRefusingIncognito_(request.u)
   // if `request.s`, then `typeof request` is `MarksNS.MarkToGo`
   if (request.f && runNextCmdBy(0, request.f)) { /* empty */ }
-  else if (curTabs.length <= 0 || opts2.w
-      || curIncognito_ === IncognitoType.true && !curTabs[0].incognito) {
+  else if (curTabs.length <= 0 || opts2.w || OnChrome && Build.MinCVer < BrowserVer.MinNoAbnormalIncognito
+      && curIncognito_ === IncognitoType.true && !curTabs[0].incognito) {
     makeWindow({ url: request.u, type: normalizeWndType(opts2.w),
       incognito: notInCurWnd ? false : curIncognito_ === IncognitoType.true
     }, "", (wnd): void => {
@@ -825,6 +827,14 @@ const onMatchedTabs = (tabs: Tab[]): void => {
     })
   } else if (notInCurWnd) {
     openMultiTabs({ url: request.u, active: true }, 1, null, [null], opts2.g, null, callback)
+  } else if (reuse === ReuseType.current || reuse === ReuseType.frame) {
+    safeUpdate({}, reuse, request.u)
+    if (reuse === ReuseType.frame && port && port.s.frameId_) {
+      sendFgCmd(kFgCmd.framesGoBack, false, { r: 1, u: request.u })
+      callback(curTabs[0])
+    } else {
+      tabsUpdate(curTabs[0].id, { url: request.u }, callback)
+    }
   } else {
     openMultiTabs({
       url: request.u, index: newTabIndex(curTabs[0], opts2.p, false, true),
@@ -858,10 +868,10 @@ const updateMatchedTab = (tabs2: Tab[]): void => {
   }
 }
 
-const callback = (tab?: Tab | null): void => {
+const callback = (tab?: Pick<Tab, "id"> | null): void => {
   if (!tab) { request.f && runNextCmdBy(0, request.f); return runtimeError_(); }
   runNextOnTabLoaded(request.f || {}, tab, request.s && ((): void => {
-    Marks_.scrollTab_(request as MarksNS.MarkToGo, tab, kKeyCode.None, finallyMatched)
+    Marks_.scrollTab_(request as MarksNS.MarkToGo, tab.id, kKeyCode.None, finallyMatched)
   }))
 }
 
@@ -876,9 +886,10 @@ const callback = (tab?: Tab | null): void => {
   if (opts2.g == null || toTest.startsWith(CONST_.OptionsPage_)) {
     opts2.g = false // disable group detection by default
   }
-  const reuse = opts2.r != null && parseReuse(opts2.r) || ReuseType.reuse
+  const reuse = opts2.r != null ? parseReuse(opts2.r) : ReuseType.reuse
   if (opts2.m) {
-    replaceOrOpenInNewTab(request.u, reuse !== ReuseType.frame ? reuse : ReuseType.reuse, opts2.m, null, request)
+    replaceOrOpenInNewTab(request.u, reuse !== ReuseType.frame && reuse !== ReuseType.current
+        ? reuse : ReuseType.reuse, opts2.m, null, request)
     return
   }
   void Q_(getCurTab).then(async (curTabs1): Promise<void> => {

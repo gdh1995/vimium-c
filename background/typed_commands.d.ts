@@ -480,6 +480,7 @@ interface CmdNameIds {
   toggleViewSource: kBgCmd.toggleTabUrl
   toggleVomnibarStyle: kBgCmd.toggleVomnibarStyle
   showHUD: kBgCmd.showHUD
+  showHud: kBgCmd.showHUD
   showTip: kBgCmd.showHUD
   visitPreviousTab: kBgCmd.visitPreviousTab
   wait: kBgCmd.blank

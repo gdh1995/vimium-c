@@ -117,7 +117,7 @@ type _NormalizedNames2<T extends kCName> =
     : T extends "quickNext" ? "nextTab"
     : T extends "closeSomeOtherTabs" ? "closeOtherTabs"
     : T extends "newTab" ? "createTab" : T extends "simBackspace" ? "simulateBackspace"
-    : T extends "showHUD" ? "showTip" : T extends "wait" ? "blank"
+    : T extends "showHUD" | "showHud" ? "showTip" : T extends "wait" ? "blank"
     : T
 type NormalizedNames = _NormalizedNames2<_NormalizedNames1<kCName>>
 
@@ -147,7 +147,7 @@ export const normalizeCmdName_ = (command: kCName): NormalizedNames => {
         command = "closeOtherTabs"
       } else if (command === "simBackspace") {
         command = "simulateBackspace"
-      } else if (command === "showHUD") {
+      } else if (command === "showHUD" || command === "showHud") {
         command = "showTip"
       } else if (command === "wait") {
         command = "blank"
