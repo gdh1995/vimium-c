@@ -117,7 +117,7 @@ const keyMappingChecker_ = {
     str = str.replace(<RegExpG & RegExpSearchable<3>
         >/^([ \t]*(?:#\s?)?map\s+(?:<(?!<)(?:.-){0,4}.[\w:]*?>|\S)\s+)(<(?!<)(?:[ACMSVacmsv]-){0,4}.\w*?>|\S)(?=\s|$)/gm
         , this.correctMapKey_);
-    str = str.replace(<RegExpG & RegExpSearchable<4>> /^([ \t]*(?:#\s?)?(map(?:[kK]ey)?|run|unmap!?)\s+)(\S+)([^\n]*)/gm
+    str = str.replace(<RegExpSearchable<4>> /^([ \t]*(?:#\s?)?(map(?:[kK]ey|!)?|run!?|unmap!?)\s+)(\S+)([^\n]*)/gm
         , this.normalizeMap_);
     str = str.replace(<RegExpG & RegExpSearchable<3>> /^([ \t]*(?:#\s?)?(?:command|shortcut)\s+)(\S+)([^\n]*)/gm,
         this.normalizeCmd_);

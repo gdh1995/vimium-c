@@ -28,7 +28,7 @@ type NameMetaMapEx = NameMetaMap & {
   readonly [k in keyof OtherCNamesForDebug]: OtherCNamesForDebug[k] extends keyof BgCmdOptions
       ? RawCmdDesc<kCName, OtherCNamesForDebug[k]> : never
 }
-type ValidMappingInstructions = "map" | "map!" | "run" | "mapkey" | "mapKey" | "env" | "shortcut" | "command"
+type ValidMappingInstructions = "map" | "map!" | "run" | "run!" | "mapkey" | "mapKey" | "env" | "shortcut" | "command"
     | "unmap" | "unmap!" | "unmapAll" | "unmapall"
 
 const parseVal_: (slice: string) => any = tryParse
@@ -238,8 +238,7 @@ export const getNextOnIfElse_ = (lines: string[], start: number): number => {
   return next
 }
 
-const toKeyInInsert = (key: string) =>
-    key.length > 1 ? `<${key.slice(1, -1) + ":" + GlobalConsts.InsertModeId}>` : key + ":" + GlobalConsts.InsertModeId
+const toKeyInInsert = (key: string) => `<${key.slice(1, -1) + ":" + GlobalConsts.InsertModeId}>`
 
 const parseKeyMappings_ = (wholeMappings: string): void => {
     let lines: string[], mk = 0, _i = 0, key2: string | undefined
@@ -277,15 +276,16 @@ const parseKeyMappings_ = (wholeMappings: string): void => {
       const knownLen = cmd.length + key.length + val.length + 2
       let doesPass = noCheck
       switch (cmd) {
-      case "map": case "map!": case "run":
+      case "map": case "map!": case "run": case "run!":
         const isRun = cmd === "run"
         details = undefined
         if (noCheck) { /* empty */
         } else if (!key || key.length > 8 && (Build.MinCVer < BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol
             && OnChrome && key === "__proto__" || key.includes("<__proto__>"))) {
           logError_('Unsupported key sequence %c"%s"', colorRed, key || '""', `for "${val || ""}"`)
-        } else if (cmd.length === 4 && (key.match(keyRe_)!.length !== 1 || key.slice(-3, -2) === ":")) {
-          logError_('"map!" should only be used for a single key without mode suffix')
+        } else if (cmd.length === 4
+            && (key.length < 2 || key.match(keyRe_)!.length !== 1 || key.slice(-3, -2) === ":")) {
+          logError_('"map!" should only be used for a single long key without mode suffix')
         } else if (registry.has(key) && !hasIfOption(line, knownLen)) {
           logError_('Key %c"%s"', colorRed, key, "has been mapped to", registry.get(key)!.command_)
         } else if (!val) {
@@ -390,22 +390,22 @@ const parseKeyMappings_ = (wholeMappings: string): void => {
         } else if (doesMatchEnv_(getOptions_(line, cmd.length + key.length + 1)) === false) { /* empty */
         } else if (tmpInt = -1, builtinToAdd !== 0
             && (tmpInt = (builtinToAdd || (builtinToAdd = defaultKeyMappings_.split(" "))).indexOf(key)) >= 0
-            && !(tmpInt & 1) || registry.has(key) || registry.has(toKeyInInsert(key))) {
+            && !(tmpInt & 1) || registry.has(key) || key.length > 1 && registry.has(toKeyInInsert(key))) {
           registry.delete(key)
-          cmd === "unmap!" && registry.delete(toKeyInInsert(key))
+          cmd.length === 6 && key.length > 1 && registry.delete(toKeyInInsert(key))
           tmpInt < 0 || (builtinToAdd as Exclude<typeof builtinToAdd, 0 | null>)!.splice(tmpInt, 2)
         } else if (key.length === 1 && (key >= "0" && key < kChar.minNotNum || key[0] === kChar.minus)) {
           if (key2 = key + ":" + GlobalConsts.NormalModeId,
               key2 in mkReg && mkReg[key2] !== GlobalConsts.ForcedMapNum + key) {
             logError_("`unmap %s...` and `mapKey <%s>` can not be used at the same time", key, key2)
           } else if (nonNumList_ && nonNumList_.has(key)) {
-            cmd !== "unmap!" && logError_('Number prefix: %c"%s"', colorRed, key, "has been unmapped")
+            cmd.length !== 6 && logError_('Number prefix: %c"%s"', colorRed, key, "has been unmapped")
           } else {
             (nonNumList_ || (nonNumList_ = new Set!())).add(key)
             mkReg[key2] = GlobalConsts.ForcedMapNum + key
             mk = 1
           }
-        } else if (cmd !== "unmap!") {
+        } else if (cmd.length !== 6) {
           logError_('Unmap: %c"%s"', colorRed, key, "has not been mapped")
         }
         break
