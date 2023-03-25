@@ -64,11 +64,13 @@ interface OtherFilterOptions {
 interface OptionsToFindElement extends CSSOptions, OtherFilterOptions {
   direct?: boolean | "element,sel,focus,hover" | "element" | "selected" | "currentScrollable" | "DOMActivate"
       | "last-focused" | "recently-focused" | "focus" | "hovered" | "clicked" | "body"
+  target?: boolean | "element,sel,focus,hover" | "element" // alias
   directOptions?: {
     search?: "view" | "doc" | "document"
     offset?: 0 | "cur" | "current" | "end" | "last"
     index?: "count" | number
   }
+  targetOptions?: object
 }
 
 interface FindCSS {
@@ -276,7 +278,8 @@ declare namespace HintsNS {
     download?: "" | "force"
     focus?: boolean | "css-selector"
     flash?: boolean
-    then?: object | string
+    then?: object | "string" | string
+    else?: object | "string" | string
     ordinal?: boolean
     useFilter?: boolean;
     url?: boolean;

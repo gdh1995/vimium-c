@@ -20,7 +20,7 @@ import { trans_ } from "./i18n"
 import { makeCommand_ } from "./key_mappings"
 import {
   copyCmdOptions, runNextCmdBy, parseFallbackOptions, replaceCmdOptions, overrideOption, runNextCmd,
-  overrideCmdOptions, runNextOnTabLoaded, executeCommand, fillOptionWithMask, sendFgCmd
+  overrideCmdOptions, runNextOnTabLoaded, executeCommand, fillOptionWithMask, sendFgCmd, hasFallbackOptions
 } from "./run_commands"
 import { Marks_ } from "./tools"
 import { parseSedOptions_ } from "./clipboard"
@@ -561,7 +561,7 @@ export const openUrlWithActions = (url: Urls.Url, workType: Urls.WorkType, sed?:
     if (workType !== Urls.WorkType.FakeType) {
       const keyword = exOut.keyword_ ?? (get_cOptions<C.openUrl>().keyword as AllowToString || "") + ""
       const testUrl = get_cOptions<C.openUrl>().testUrl ?? !keyword
-      const isSpecialKW = !!keyword && keyword !== "~"
+      const isSpecialKW = !!exOut.keyword_ || !!exOut.actAnyway_ || !!keyword && keyword !== "~"
       url = testUrl ? convertToUrl_(url, keyword, workType)
           : createSearchUrl_(url.trim().split(BgUtils_.spacesRe_), keyword
               , isSpecialKW ? Urls.WorkType.KeepAll : workType)
@@ -715,8 +715,6 @@ export const openUrl = (tabs?: [Tab] | []): void => {
   if (rawUrl) {
     openUrlWithActions(rawUrl as AllowToString + "", Urls.WorkType.EvenAffectStatus, true, tabs)
   } else if (get_cOptions<C.openUrl>().copied) {
-    const exOut: InfoOnSed = {}, url = paste_(parseSedOptions_(get_cOptions<C.openUrl, true>()), 0, exOut)
-    exOut.keyword_ != null && overrideCmdOptions<C.openUrl>({ keyword: exOut.keyword_ })
     let copied = get_cOptions<C.openUrl, true>().copied
     let copiedName = typeof copied !== "string" ? null : copied.includes("<") ? copied.split("<")[1]
         : copied.includes(">") ? copied.split(">")[0] : null
@@ -724,7 +722,11 @@ export const openUrl = (tabs?: [Tab] | []): void => {
       openCopiedUrl(((copied as string).includes("<") ? (copied as string).split("<")[0]
             : (copied as string).split(">")[1]) as (typeof copied) & string
           , tabs, innerClipboard_.get(copiedName) || "")
-    } else if (url instanceof Promise) {
+      return
+    }
+    const exOut: InfoOnSed = {}, url = paste_(parseSedOptions_(get_cOptions<C.openUrl, true>()), 0, exOut)
+    exOut.keyword_ != null && overrideCmdOptions<C.openUrl>({ keyword: exOut.keyword_ })
+    if (url instanceof Promise) {
       void url.then(/*#__NOINLINE__*/ openCopiedUrl.bind(null, copied, tabs))
     } else {
       openCopiedUrl(copied, tabs, url)
@@ -747,7 +749,7 @@ export const openUrlReq = (request: FgReq[kFgReq.openUrl], port?: Port | null): 
   const sed = o2.s
   const hintMode = request.m || HintMode.DEFAULT
   const mode1 = hintMode < HintMode.min_disable_queue ? hintMode & ~HintMode.queue : hintMode
-  const formatted = request.f != null ? request.f : mode1 === HintMode.OPEN_INCOGNITO_LINK
+  const formatted = request.f != null ? request.f : mode1 === HintMode.OPEN_INCOGNITO_LINK || mode1===HintMode.OPEN_LINK
   opts.group = isWeb ? o2.g : true
   opts.incognito = normalizeIncognito(o2.i) != null ? o2.i : mode1 === HintMode.OPEN_INCOGNITO_LINK || null
   opts.replace = o2.m
@@ -789,8 +791,14 @@ export const openUrlReq = (request: FgReq[kFgReq.openUrl], port?: Port | null): 
     opts.opener = isWeb ? o2.o !== false : vomnibarBgOptions_.actions.includes("opener")
     opts.url_f = url
   } else {
-    if (request.c === false) { return }
-    opts.copied = request.c != null ? request.c : true, opts.keyword = rawKeyword, opts.testUrl = o2.t
+    if (!request.c) {
+      if (!hasFallbackOptions(opts)) {
+        set_cPort(port || findCPort(null)!)
+        showHUD("", kTip.noUrlCopied)
+      }
+      return
+    }
+    opts.copied = request.c, opts.keyword = rawKeyword, opts.testUrl = o2.t
     opts.sed = sed
   }
   set_cRepeat(1)

@@ -218,11 +218,11 @@ const downloadOrOpenMedia = (): void => {
   }
 }
 
-const openTextOrUrl = (url: string): void => {
-  evalIfOK(url) || hintApi.p({
+const openTextOrUrl = (url: string, isText?: BOOL | boolean): void => {
+  url ? evalIfOK(url) || hintApi.p({
     H: kFgReq.openUrl,
     u: url, m: hintMode_, t: rawNewtab, o: parseOpenPageUrlOptions(hintOptions)
-  });
+  }) : hintApi.h(isText ? kTip.noTextCopied : kTip.noUrlCopied)
 }
 
 const showUrlIfNeeded = (): void => {
@@ -383,10 +383,8 @@ const copyText = (): void => {
       });
   } else if (richText) {
     tryDrawOnCanvas(str)
-  } else if (!str) {
-    hintApi.h(isUrl ? kTip.noUrlCopied : kTip.noTextCopied)
-  } else if (mode1_ === HintMode.SEARCH_TEXT) {
-    openTextOrUrl(str)
+  } else if (!str || mode1_ === HintMode.SEARCH_TEXT) {
+    openTextOrUrl(str, !isUrl)
   } else {
     // then mode1 can only be HintMode.COPY_*
     let lastYanked = mode1_ & HintMode.list ? (hintManager || coreHints).y : 0 as const;
@@ -487,17 +485,27 @@ const checkBoolOrSelector = (userVal: string | boolean | null | void | undefined
   return userVal == null ? defaultVal : !!userVal && (!isTY(userVal)
       || (userVal = safeCall(testMatch, userVal, [clickEl])), userVal != null ? userVal : defaultVal)
 }
-const autoShowRect = (): Rect | null => (removeFlash || showRect && rect && flash_(null, rect), rect)
+const doPostAction = (): Rect | null => {
+  if (then && (mode1_ < HintMode.min_then_as_arg || mode1_ > HintMode.max_then_as_arg)) {
+    for (const thenSelector of Object.keys(isTY(then, kTY.obj) ? then : isTY(then) ? then = { "*": then } : {})) {
+      if (safeCall(testMatch, thenSelector, [clickEl])) {
+        post_({ H: kFgReq.nextKey, k: (then as Dict<string>)[thenSelector] + "" })
+      }
+    }
+  }
+  removeFlash || showRect && rect && flash_(null, rect)
+  return rect
+}
 
   const masterOrA = hintManager || coreHints, keyStatus = masterOrA.$().k
   const clickEl: LinkEl = hint.d
   const tag = htmlTag_(clickEl), elType = getEditableType_<0>(clickEl)
   const kD = "download", kLW = "last-window"
   let richText = hintOptions.richText, rawNewtab = hintOptions.newtab, rawFocus = hintOptions.focus
-  const then = hintOptions.then
   const hasKeyword_ff = OnFirefox && hintOptions.keyword != null
   const isHtmlImage = tag === "img"
   let rect: Rect | null = null
+  let then = hintOptions.then
   let retPromise: Promise<unknown> | undefined
   let showRect: BOOL | 2 = hintOptions.flash !== false ? 1 : 0
   if (hintManager) {
@@ -604,12 +612,10 @@ const autoShowRect = (): Rect | null => (removeFlash || showRect && rect && flas
       modifySel(sel, 1, 1, caret ? kGCh : "word")
       hintOptions.visual === !1 || post_({ H: kFgReq.visualMode, c: caret, f: then })
     }
-    if (then && isTY(then) && (mode1_ < HintMode.min_then_as_arg || mode1_ > HintMode.max_then_as_arg)) {
-      post_({ H: kFgReq.nextKey, k: then })
-    }
     showRect && (rect || (rect = getVisibleClientRect_(clickEl)))
   } else {
     hintApi.h(kTip.linkRemoved, 2)
+    then = hintOptions.else
   }
-  return retPromise ? retPromise.then(autoShowRect) : Promise.resolve(autoShowRect())
+  return retPromise ? retPromise.then(doPostAction) : Promise.resolve(doPostAction())
 }

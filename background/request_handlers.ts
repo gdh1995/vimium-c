@@ -122,9 +122,9 @@ set_reqH_([
       request.n && runNextCmdBy(0, request.n)
       return
     }
-    const o2 = request.o || {}, exOut: InfoOnSed = {}
+    let o2 = request.o || {}, exOut: InfoOnSed = {}
     query = request.t.trim() && substitute_(request.t.trim(), SedContext.pageText, o2.s, exOut).trim()
-        || (request.c ? paste_(o2.s, 0, exOut) : "")
+        || (request.c ? paste_(o2.s, 0, exOut = {}) : "")
     void Promise.resolve(query).then((query2: string | null): void => {
       let err = query2 === null ? "It's not allowed to read clipboard"
         : (query2 = query2.trim()) ? "" : trans_("noSelOrCopied")

@@ -151,7 +151,11 @@ export const normalizeCommand_ = (cmd: Writable<CommandsNS.BaseItem>, details?: 
               : Math.max(0, Math.min(button | 0, 2)) as typeof button
         }
         if (lhOpt.xy !== void 0) { lhOpt.xy = BgUtils_.normalizeXY_(lhOpt.xy) }
-        lhOpt.direct && (mode &= ~HintMode.queue)
+        if (lhOpt.direct || lhOpt.target) {
+          lhOpt.direct = lhOpt.direct || lhOpt.target, lhOpt.directOptions = lhOpt.directOptions || lhOpt.targetOptions
+          delete lhOpt.target, delete lhOpt.targetOptions
+          mode &= ~HintMode.queue
+        }
         if (mode !== stdMode) {
           lhOpt.m = mode
         }

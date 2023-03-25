@@ -304,7 +304,6 @@ export const replaceUsingClipboard = (text: string, item: ClipSubItem, lastClean
 
 set_substitute_(((input: string, normalContext: SedContext, mixedSed?: MixedSedOpts | null
     , exOut?: InfoOnSed): string => {
-  exOut && (exOut.keyword_ = null)
   let rules = !mixedSed || typeof mixedSed !== "object" ? mixedSed : mixedSed.r
   if (rules === false) { return input }
   let arr = staticSeds_ || (staticSeds_ = parseSeds_(settingsCache_.clipSub, null))
@@ -363,6 +362,7 @@ set_substitute_(((input: string, normalContext: SedContext, mixedSed?: MixedSedO
           if (actionName === "copy") { writeInnerClipboard_(actionVal, text) }
           else if (actionName === "paste") { text = innerClipboard_.get(actionVal) || "" }
           else if (actionName === "keyword" && exOut) { exOut.keyword_ = actionVal }
+          else if (actionName === "act" && exOut) { exOut.actAnyway_ = actionVal !== "false" }
           continue
         }
         if (doesReturn = action === SedAction.return) { break }

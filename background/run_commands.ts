@@ -522,6 +522,9 @@ export const runNextOnTabLoaded = (options: OpenUrlOptions | Req.FallbackOptions
   setupSingletonCmdTimer(setInterval((): void => {
     tabsGet(tabId !== GlobalConsts.TabIdNone ? tabId : curTabId_, onTimer)
   }, evenLoading ? 50 : 100)) // it's safe to clear an interval using `clearTimeout`
+  if (nextKey && (<RegExpOne> /\$D/).test(nextKey.split("#", 1)[0])) {
+    tabsGet(tabId !== GlobalConsts.TabIdNone ? tabId : curTabId_, onTimer)
+  }
 }
 
 export const waitAndRunKeyReq = (request: FgReq[kFgReq.nextKey], port: Port | null): void => {

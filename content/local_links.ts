@@ -128,8 +128,11 @@ const getClickable = (hints: Hint[], element: SafeHTMLElement): void => {
       isClickable = true;
     }
     break;
-  case "code": mode1_ > HintMode.max_mouse_events && (isClickable = true); clientSize = 1; break
-  case "aside": case "div": case "nav": case "ol": case "pre": case "table": case "tbody": case "ul":
+  case "code": case "pre":
+    mode1_ > HintMode.max_mouse_events && (tag < "p" || getComputedStyle_(element).display === "block")
+        && (isClickable = true)
+    // no break
+  case "aside": case "div": case "nav": case "ol": case "table": case "tbody": case "ul":
     clientSize = 1;
     break;
   }

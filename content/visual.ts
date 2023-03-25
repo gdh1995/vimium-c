@@ -593,7 +593,7 @@ const ensureLine = (command1: number, s0: string): void => {
     highlightRange(curSelection)
     return
   }
-  mode === Mode.Caret && collapseToFocus(0)
+  mode === Mode.Caret && (command > VisualAction.MaxNotFind || command < VisualAction.MaxNotYank + 1)
   if (command > VisualAction.MaxNotFind) {
     findV(command - VisualAction.PerformFind ? count : -count)
     return;
@@ -602,7 +602,7 @@ const ensureLine = (command1: number, s0: string): void => {
     command === VisualAction.YankLine && selectLine(count)
     yank(([kYank.Exit, kYank.Exit, kYank.NotExit, ReuseType.current, ReuseType.newFg, kYank.RichTextButNotExit
           ] as const)[command - VisualAction.Yank])
-    if (command !== VisualAction.YankWithoutExit && command !== VisualAction.YankRichText) { return; }
+    return
   } else if (command > VisualAction.MaxNotLexical) {
     const entity = (command - VisualAction.MaxNotLexical) as kG.sentence | kG.word
     mode_ = VisualModeNS.Mode.Visual

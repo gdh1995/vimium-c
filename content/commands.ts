@@ -225,7 +225,7 @@ set_contentCommands_([
     const selected = options.selected, opts2 = parseOpenPageUrlOptions(options),
     str = options.s && !selected ? "" : getSelectionText(1) || (options.text || "") + "",
     urlOpt = options.url, getUrl = urlOpt === "raw" ? locHref : vApi.u,
-    url = str.trim(), copied = options.copied
+    url = str.trim(), rawCopied = options.copied, copied = rawCopied || rawCopied == null
     options.copy && (url || !options.o) && post_({
       H: kFgReq.copy,
       s: str as never as undefined,

@@ -236,7 +236,8 @@ export const activate = (options: ContentOptions, count: number, force?: 2 | Tim
       for (const i of toCleanArray) { i.p = null; i.c() }
       total = allHints.length;
       if (!total || total > GlobalConsts.MaxCountToHint) {
-        hudTip(total ? kTip.tooManyLinks : mode_ < HintMode.min_job && !options.match ? kTip.noLinks : kTip.noTargets)
+        runFallbackKey(options
+            , total ? kTip.tooManyLinks : mode_ < HintMode.min_job && !options.match ? kTip.noLinks : kTip.noTargets)
         return clear()
       }
       hints_ = keyStatus_.c = allHints
@@ -505,7 +506,7 @@ const callExecuteHint = (hint: ExecutableHintItem, event?: HandlerNS.Event): voi
       void p.then((result): void => {
     (<RegExpOne> /a?/).test("")
     isActive = 0
-    runFallbackKey(options_, false)
+    runFallbackKey(options_, mode_ > HintMode.min_job - 1 && 0)
       removeFlash && removeFlash()
       set_removeFlash(null)
       if (!(mode_ & HintMode.queue)) {
@@ -581,7 +582,7 @@ const activateDirectly = (options: ContentOptions, count: number): void => {
     if (count < 1) { clear(); return }
     count = IsInDOM_(el!) ? (coreHints.e({d: el as LinkEl, r: null, m: null}, 0
         , res[3] && getSelectionBoundingBox_()), count - 1) : 0
-    count || runFallbackKey(options_, false)
+    count || runFallbackKey(options_, mode > HintMode.min_job - 1 && 0)
     timeout_(next, count > 99 ? 1 : count && 17)
   },
   res = findAnElement_(options, count), rawEl = res[0],
