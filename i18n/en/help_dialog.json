@@ -43,6 +43,7 @@
   "LinkHints.activateOpenInNewForegroundTab": "Open a link in a new tab and switch to it",
   "LinkHints.activateOpenInNewTab": "Open a link in a new tab",
   "LinkHints.activateOpenIncognito": "Open a link in incognito window",
+  "LinkHints.activateOpenUrl": "Open a URL directly without simulating mouse actions",
   "LinkHints.activateOpenVomnibar": "Edit a link text on Vomnibar",
   "LinkHints.activateSearchLinkText": "Open or search a link text",
   "LinkHints.activateSelect": "Select text and enter visual mode",

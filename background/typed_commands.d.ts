@@ -337,6 +337,7 @@ interface CmdNameIds {
   "LinkHints.activateModeToOpenIncognito": kFgCmd.linkHints
   "LinkHints.activateModeToOpenInNewForegroundTab": kFgCmd.linkHints
   "LinkHints.activateModeToOpenInNewTab": kFgCmd.linkHints
+  "LinkHints.activateModeToOpenUrl": kFgCmd.linkHints
   "LinkHints.activateModeToOpenVomnibar": kFgCmd.linkHints
   "LinkHints.activateModeToSearchLinkText": kFgCmd.linkHints
   "LinkHints.activateModeToSelect": kFgCmd.linkHints
@@ -346,6 +347,7 @@ interface CmdNameIds {
   "LinkHints.activateOpenIncognito": kFgCmd.linkHints
   "LinkHints.activateOpenInNewForegroundTab": kFgCmd.linkHints
   "LinkHints.activateOpenInNewTab": kFgCmd.linkHints
+  "LinkHints.activateOpenUrl": kFgCmd.linkHints
   "LinkHints.activateOpenVomnibar": kFgCmd.linkHints
   "LinkHints.activateSearchLinkText": kFgCmd.linkHints
   "LinkHints.activateSelect": kFgCmd.linkHints

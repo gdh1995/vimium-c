@@ -278,6 +278,7 @@ const commandGroups_: {
     , "LinkHints.activateOpenImage", 1, "$auto=true"
     , "LinkHints.activateDownloadLink", 1
     , "LinkHints.activateOpenIncognito", 1
+    , "LinkHints.activateOpenUrl", 1
     , "LinkHints.activateFocus"
     , "LinkHints.activateHover", 1, OnFirefox ? "$" : "$showUrl=true"
     , "LinkHints.activateLeave", 1

@@ -393,6 +393,7 @@ declare const enum HintMode {
     mode1_url_list = /* COPY_URL | list */ 43, min_link_job = /* COPY_URL */ 42, max_copying = /* mode1_url_list */ 43,
   DOWNLOAD_LINK= 44,
   OPEN_INCOGNITO_LINK = 45,
+  OPEN_LINK = 46,
   EDIT_LINK_URL = /* min_disable_queue */ 64,
     max_link_job = /* EDIT_LINK_URL */ 64, min_edit = /* EDIT_LINK_URL */ 64, min_then_as_arg = /* EDIT_LINK_URL */ 64, 
   EDIT_TEXT = 65, max_edit = /* EDIT_TEXT */ 65,

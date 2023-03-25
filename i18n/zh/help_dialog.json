@@ -50,6 +50,7 @@
   "LinkHints.activateOpenInNewForegroundTab": "在新标签页中打开链接",
   "LinkHints.activateOpenInNewTab": "在新标签页中打开链接（不转到）",
   "LinkHints.activateOpenIncognito": "在隐私窗口中打开链接",
+  "LinkHints.activateOpenUrl": "直接打开链接网址而不模拟鼠标动作",
   "LinkHints.activateOpenVomnibar": "用搜索框编辑链接的文字内容",
   "LinkHints.activateSearchLinkText": "搜索链接的文字",
   "LinkHints.activateSelect": "选择文字以进入自由选择模式",

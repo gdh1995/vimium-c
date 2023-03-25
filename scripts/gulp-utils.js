@@ -54,7 +54,9 @@ exports.minifyJson = function (toJs, file) {
   var contents = exports.ToString(file)
   contents = contents.replace(/\r\n?/g, "\n").trim()
   var oldLen = contents.length
-  contents = JSON.stringify(JSON.parse(contents));
+  const obj = JSON.parse(contents), obj2 = {}
+  for (const i of Object.keys(obj).sort()) { obj2[i] = obj[i] }
+  contents = JSON.stringify(obj2)
   if (contents.length < oldLen) {
     contents = toJs ? "export default" + (contents[0] === "{" ? "" : " ") + contents : contents
     exports.ToBuffer(file, contents)

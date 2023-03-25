@@ -6,8 +6,8 @@ declare const enum kTip {
   /* 20..25 */ copiedIs = 20, omniFrameFail, tooManyLinks, wrapWhenFind, atStart, atEnd,
   /* 26..31 */ nMatches, oneMatch, someMatches, noMatches, modalHints, expectKeys,
   /* 39, 41, 43: */ findFrameFail = 39, noOldQuery = 41, selectLineBoundary = 43, // neither 41 nor 43 is in HintMode
-  /* 46..47, 55 */ waitForEnter = 46, reDownloading, needSel = 55,
-  /* 62..63 */ prev = 62, next,
+  /* 46..47, 55 */ reDownloading = 47, needSel = 55,
+  /* 63 */ waitForEnter = 63,
   /* 68..70 */ START_FOR_OTHERS = 68, OFFSET_VISUAL_MODE = 67, visual, line, caret,
   /* 71: */ noLinks, exitForIME, linkRemoved, notImg,
   /* 75: */ hoverScrollable, ignorePassword, noNewToCopy, downloaded, paused,
@@ -18,6 +18,7 @@ declare const enum kTip {
   /* 100: */ voidJS, nonLocalhostRe, scrollable, buttonOrA, closableClasses,
   /* 105: */ highContrast_WOB, invisibleElements, imgExt, searchResults, excludeWhenGoNext,
   /* 110..113: */ kCommonEvents, logOmniFallback, logNotWorkOnSandboxed, logGrabFocus,
+  /* 114..115: */ prev, next,
   INJECTED_CONTENT_END,
   /* 200: */ XHTML = 200,
   /** used by {@link ../Gulpfile.js} */ extendClick = 999,

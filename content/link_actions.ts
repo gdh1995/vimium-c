@@ -592,7 +592,7 @@ const autoShowRect = (): Rect | null => (removeFlash || showRect && rect && flas
     } else if (mode1_ < HintMode.DOWNLOAD_LINK + 1) {
       /** satisfy {@link ModesWithOnlyHTMLElements} */
       downloadLink()
-    } else if (mode1_ < HintMode.OPEN_INCOGNITO_LINK + 1) {
+    } else if (mode1_ < HintMode.EDIT_LINK_URL) {
       /** satisfy {@link ModesWithOnlyHTMLElements} */
       openTextOrUrl(getUrlData())
     } else if (mode1_ < HintMode.max_edit + 1) {
