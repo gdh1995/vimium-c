@@ -216,8 +216,9 @@ const openUrlInIncognito = (urls: string[], reuse: ReuseType
 
 export const parseReuse = (reuse: UserReuseType | null | undefined): ReuseType =>
     reuse == null ? ReuseType.Default
-    : typeof reuse !== "string" ? typeof reuse === "boolean" ? reuse ? ReuseType.reuse : ReuseType.newFg
-       : isNaN(+reuse) ? ReuseType.Default : reuse | 0
+    : typeof reuse !== "string" ? typeof reuse === "boolean" ? reuse ? ReuseType.reuse : ReuseType.Default
+       : isNaN(reuse = +reuse && (reuse | 0)) || reuse > ReuseType.MAX || reuse < ReuseType.MIN ? ReuseType.Default
+       : reuse
     : (reuse = reuse.toLowerCase().replace("window", "wnd").replace(<RegExpG & { source: "-" }> /-/g, ""),
       reuse in ReuseValues ? ReuseValues[reuse as keyof typeof ReuseValues] : ReuseType.Default)
 
@@ -819,7 +820,7 @@ const onMatchedTabs = (tabs: Tab[]): void => {
   // if `request.s`, then `typeof request` is `MarksNS.MarkToGo`
   if (request.f && runNextCmdBy(0, request.f)) { /* empty */ }
   else if (curTabs.length <= 0 || opts2.w || OnChrome && Build.MinCVer < BrowserVer.MinNoAbnormalIncognito
-      && curIncognito_ === IncognitoType.true && !curTabs[0].incognito) {
+      && curIncognito_ === IncognitoType.true && !curTabs[0].incognito || reuse === ReuseType.newWnd) {
     makeWindow({ url: request.u, type: normalizeWndType(opts2.w),
       incognito: notInCurWnd ? false : curIncognito_ === IncognitoType.true
     }, "", (wnd): void => {

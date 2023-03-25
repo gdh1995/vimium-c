@@ -231,9 +231,9 @@ declare const enum ReuseType {
   lastWndBgInactive = -8,
   /** @deprecated */ lastWndBgBg = lastWndBgInactive,
   Default = newFg,
-  MAX = 3,
+  MAX = 3, MIN = -8,
 }
-type ValidReuseNames = Exclude<keyof typeof ReuseType, "MAX" | "OFFSET_LAST_WINDOW" | "Default">
+type ValidReuseNames = Exclude<keyof typeof ReuseType, "MAX" | "MIN" | "OFFSET_LAST_WINDOW" | "Default">
 declare type UserReuseType = ReuseType | boolean | ValidReuseNames
     | "newwindow" | "new-window" | "newwnd" | "new-wnd" | "newfg" | "new-fg" | "newbg" | "new-bg"
     | "lastwndfg" | "lastwnd" | "last-wnd-fg" | "last-wnd" | "lastwndbg" | "last-wnd-bg" | "if-last-wnd" | "iflastwnd"
