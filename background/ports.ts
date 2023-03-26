@@ -271,6 +271,12 @@ const _safeRefreshPort = (port: Port): void | /** failed */ 1 => {
   }
 }
 
+export const OnFreeze = (port: Port): void => {
+  port.onDisconnect.removeListener(onDisconnect)
+  port.s.frameId_ || ((port.s.frameId_ as number) = 2)
+  onDisconnect(port)
+}
+
 /**
  * @returns "" - in a child frame, so need to send request to content
  * @returns string - valid URL

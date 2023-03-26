@@ -13,7 +13,7 @@ import { findUrlEndingWithPunctuation_, parseSearchUrl_, parseUpperUrl_ } from "
 import * as settings_ from "./settings"
 import {
   findCPort, isNotVomnibarPage, indexFrame, safePost, complainNoSession, showHUD, complainLimits, ensureInnerCSS,
-  getParentFrame, sendResponse, showHUDEx, getFrames_, requireURL_
+  getParentFrame, sendResponse, showHUDEx, getFrames_, requireURL_, OnFreeze
 } from "./ports"
 import { exclusionListening_, getExcluded_ } from "./exclusions"
 import { setOmniStyle_ } from "./ui_css"
@@ -589,6 +589,9 @@ set_reqH_([
     }
     req <= 0 && reqH_[kFgReq.recheckTee]()
     return req ? FrameMaskType.NormalNext : FrameMaskType.NoMask
+  },
+  /** kFgReq.onFreeze: */ (_: FgReq[kFgReq.onFreeze], port): void => {
+    OnFreeze(port)
   }
 ])
 

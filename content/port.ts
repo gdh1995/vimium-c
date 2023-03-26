@@ -118,3 +118,11 @@ export const setupBackupTimer_cr = !OnChrome ? 0 as never : (): void => {
       )[timer as number + 1] = isTY)
   })
 }
+
+export const onFreezePort = (): void => {
+  if (port_) {
+    post_({ H: kFgReq.onFreeze })
+    port_.disconnect()
+    port_ = null
+  }
+}

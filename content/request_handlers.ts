@@ -11,7 +11,7 @@ import {
   docEl_unsafe_, scrollIntoView_, CLK, ElementProto_not_ff, isIFrameElement, DAC, removeEl_s, toggleClass_s, getElDesc_
 } from "../lib/dom_utils"
 import {
-  onPortRes_, post_, safePost, set_requestHandlers, requestHandlers, hookOnWnd, set_hookOnWnd,
+  onPortRes_, post_, safePost, set_requestHandlers, requestHandlers, hookOnWnd, set_hookOnWnd, onFreezePort,
   HookAction, contentCommands_, runFallbackKey, runtime_port, runtimeConnect, set_port_,
 } from "./port"
 import {
@@ -268,7 +268,7 @@ export const showFrameMask = (mask: FrameMaskType): void => {
   addUIElement(framemask_node, AdjustType.DEFAULT);
 }
 
-set_hookOnWnd(((action: HookAction): void => {
+set_hookOnWnd((((action: HookAction): void => {
   let f = action ? removeEventListener : addEventListener, t = true
   if (OnChrome && Build.MinCVer < BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow
         && (action || chromeVer_ < BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow)) {
@@ -276,13 +276,17 @@ set_hookOnWnd(((action: HookAction): void => {
     f.call(doc, DAC, onActivate, t)
     if (action === HookAction.SuppressListenersOnDocument) { return; }
   }
-  f("keydown", onKeydown, t)
-  f("keyup", onKeyup, t)
-  action !== HookAction.Suppress && f("focus", onFocus, t)
   f(BU, onBlur, t)
   OnChrome && f(CLK, anyClickHandler, t)
   f(OnChrome ? DAC: CLK, onActivate, t)
-}))
+  if (action !== HookAction.Suppress) {
+    f("focus", onFocus, t)
+    // https://developer.chrome.com/blog/page-lifecycle-api/
+    OnChrome && f("freeze", onFreezePort, t)
+  }
+  f("keydown", onKeydown, t)
+  f("keyup", onKeyup, t)
+}) satisfies typeof hookOnWnd))
 
 export const focusAndRun = (cmd?: FgCmdAcrossFrames, options?: FgOptions, count?: number
     , showBorder?: 0 | 1 | 2, childFrame?: SafeHTMLElement | null | void): void => {
