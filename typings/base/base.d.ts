@@ -203,6 +203,9 @@ declare namespace chrome.runtime {
     host_permissions: chrome.permissions.kPermission[]
     optional_host_permissions: chrome.permissions.kPermission[]
   }
+  interface MessageSender {
+    documentLifecycle?: "prerender" | "active" | "cached" | "pending_deletion"
+  }
   export function getBrowserInfo(exArg?: FakeArg): Promise<BrowserInfo>
   export const getFrameId: ((frame: Window | HTMLIFrameElement | HTMLFrameElement) => number) | undefined
 }

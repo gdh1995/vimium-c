@@ -12,7 +12,7 @@ import {
 } from "../lib/dom_utils"
 import {
   onPortRes_, post_, safePost, set_requestHandlers, requestHandlers, hookOnWnd, set_hookOnWnd,
-  HookAction, contentCommands_, runFallbackKey, runtime_port, runtimeConnect,
+  HookAction, contentCommands_, runFallbackKey, runtime_port, runtimeConnect, set_port_,
 } from "./port"
 import {
   addUIElement, adjustUI, createStyle, getParentVApi, getBoxTagName_old_cr, setUICSS, ui_box, evalIfOK, checkHidden,
@@ -76,6 +76,7 @@ set_requestHandlers([
       vApi.e && vApi.e(kContentCmd.SuppressClickable);
     }
     requestHandlers[kBgReq.init] = null as never;
+    request.d && set_port_(null) // in case `port.onDisconnect` was not triggered
     OnDocLoaded_(function (): void {
       set_onWndFocus(safePost.bind(0, <Req.fg<kFgReq.onFrameFocused>> { H: kFgReq.onFrameFocused }))
       isTop || docHasFocus_() && onWndFocus()

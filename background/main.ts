@@ -171,7 +171,7 @@ OnEdge || void settings_.ready_.then((): void => {
   settings_.postUpdate_("searchUrl", null) // will also update newTabUrl
 })
 
-OnFirefox && Build.MayAndroidOnFirefox && !Tabs_.onReplaced || // Not exist on Thunderbird
+!OnChrome && !Tabs_.onReplaced || // Not exist on Thunderbird
 Tabs_.onReplaced.addListener((addedTabId, removedTabId): void => {
     const frames = framesForTab_.get(removedTabId)
     if (lastKeptTabId_ === removedTabId) { set_lastKeptTabId_(addedTabId) }

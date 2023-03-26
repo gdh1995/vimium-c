@@ -156,9 +156,9 @@ Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES$Arr
     const ver = navigator.userAgent!.match(<RegExpOne> /\bChrom(?:e|ium)\/(\d+)/)
     if (ver && +ver[1] < BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol) {
       const proto = {
-        add (k: string): any { const old = k in this.map_; this.map_[k] = 1; old || this.size++; return this },
+        add (k: string): any { const old = k in this.map_; old || (this.map_[k] = 1, this.size++); return this },
         clear (): void { this.map_ = Object.create(null); this.size = 0 },
-        delete (k: string): boolean { const old = k in this.map_; delete this.map_[k]; old && this.size--; return old },
+        delete (k: string): boolean { const o = k in this.map_; o && (delete this.map_[k], this.size--); return o },
         forEach (cb): any {
           const isSet = this.isSet_, map = this.map_
           for (let key in map) {

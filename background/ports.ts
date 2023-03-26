@@ -50,6 +50,8 @@ export const OnConnect = (port: Frames.Port, type: PortType): void => {
     /*#__NOINLINE__*/ _onPageConnect(port, type)
     return
   }
+  const lifecycle = (port as Frames.BrowserPort).sender.documentLifecycle
+  const isInActive = !!lifecycle && lifecycle !== "active"
   const sender = /*#__NOINLINE__*/ formatPortSender(port)
   const url = sender.url_, isOmni = url === vomnibarPage_f
   if (type > PortType.reconnect - 1 || isOmni) {
@@ -59,6 +61,14 @@ export const OnConnect = (port: Frames.Port, type: PortType): void => {
       return
     } else if (type & PortType.omnibar || isOmni) {
       /*#__NOINLINE__*/ _onOmniConnect(port, type, isOmni || url === CONST_.VomnibarPageInner_)
+      return
+    }
+    if (isInActive) {
+      port.disconnect()
+      if (!Build.NDEBUG && DEBUG) {
+        console.log("on inactive port reconnect: tab=%o, frameId=%o, lifecycle=%o"
+            , sender.tabId_, sender.frameId_, lifecycle)
+      }
       return
     }
   }
@@ -98,9 +108,17 @@ export const OnConnect = (port: Frames.Port, type: PortType): void => {
     /*#__NOINLINE__*/ _recoverStates(ref, port, type as number as Frames.Flags)
   } else {
     port.postMessage({
-      N: kBgReq.init, f: flags, c: contentPayload_, p: passKeys,
-      m: mappedKeyRegistry_, t: mappedKeyTypes_, k: keyFSM_!
+      N: kBgReq.init, c: contentPayload_, d: isInActive, f: flags,
+      k: keyFSM_!, m: mappedKeyRegistry_, p: passKeys, t: mappedKeyTypes_
     })
+    if (isInActive) {
+      port.disconnect()
+      if (!Build.NDEBUG && DEBUG) {
+        console.log("on inactive port connect: tab=%o, frameId=%o, lifecycle=%o"
+            , sender.tabId_, sender.frameId_, lifecycle)
+      }
+      return
+    }
   }
   if (!OnChrome) { (port as Frames.BrowserPort).sender.tab = null as never }
   port.onDisconnect.addListener(onDisconnect)
@@ -130,7 +148,7 @@ export const OnConnect = (port: Frames.Port, type: PortType): void => {
 
 const onDisconnect = (port: Port): void => {
   let { tabId_: tabId } = port.s, i: number, ref = framesForTab_.get(tabId)
-  if (!ref) { return }
+  if (!ref) { return runtimeError_() }
   const ports = ref.ports_
   i = ports.lastIndexOf(port)
   if (!port.s.frameId_) {
@@ -153,6 +171,7 @@ const onDisconnect = (port: Port): void => {
   } else if (port === ref.cur_) {
     ref.cur_ = ports[0]
   }
+  return runtimeError_()
 }
 
 const _onOmniConnect = (port: Frames.Port, type: PortType, isOmniUrl: boolean): void => {
@@ -189,6 +208,7 @@ const onOmniDisconnect = (port: Port): void => {
   } else if (i >= 0) {
     ref.splice(i, 1)
   }
+  return runtimeError_()
 }
 
 const _onPageConnect = (port: Port, type: PortType): void => {

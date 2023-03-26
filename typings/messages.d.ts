@@ -112,6 +112,7 @@ interface BgReq {
   [kBgReq.init]: {
     /** flags */ f: Frames.Flags;
     /** cache (aka. payload) */ c: SettingsNS.FrontendSettingCache;
+    /** disconnected */ d: boolean;
     /** passKeys */ p: string | null;
     /** mappedKeys */ m: SafeDict<string> | null;
     /** keyFSM */ k: KeyFSM;
