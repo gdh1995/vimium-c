@@ -271,7 +271,7 @@ const _safeRefreshPort = (port: Port): void | /** failed */ 1 => {
   }
 }
 
-export const OnFreeze = (port: Port): void => {
+export const OnFreeze = (_: unknown, port: Port): void => {
   port.onDisconnect.removeListener(onDisconnect)
   port.s.frameId_ || ((port.s.frameId_ as number) = 2)
   onDisconnect(port)

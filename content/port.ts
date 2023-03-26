@@ -119,8 +119,8 @@ export const setupBackupTimer_cr = !OnChrome ? 0 as never : (): void => {
   })
 }
 
-export const onFreezePort = (): void => {
-  if (port_) {
+export const onFreezePort = (event: Event): void => {
+  if (port_ && event.isTrusted) {
     post_({ H: kFgReq.onFreeze })
     port_.disconnect()
     port_ = null

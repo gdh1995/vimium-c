@@ -590,9 +590,7 @@ set_reqH_([
     req <= 0 && reqH_[kFgReq.recheckTee]()
     return req ? FrameMaskType.NormalNext : FrameMaskType.NoMask
   },
-  /** kFgReq.onFreeze: */ (_: FgReq[kFgReq.onFreeze], port): void => {
-    OnFreeze(port)
-  }
+  /** kFgReq.onFreeze: */ _AsReqH<kFgReq.onFreeze>(OnFreeze)
 ])
 
 const onCompletions = function (this: Port, favIcon0: 0 | 1 | 2, list: Array<Readonly<Suggestion>>
