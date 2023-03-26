@@ -207,8 +207,10 @@ const downloadOrOpenMedia = (): void => {
       || src.length > text.length + 7 && (text === (clickEl as SafeElement & {href?: string}).href)) {
     text = src;
   }
-  if (!text) { hintApi.h(kTip.notImg) }
-  else if (OnFirefox && hasKeyword_ff || mode1_ - HintMode.DOWNLOAD_MEDIA || /** <svg> */ !tag) {
+  if (!text) { hintApi.h(kTip.notImg), then = optElse }
+  else if (hintOptions.url) {
+    copyText(text)
+  } else if (OnFirefox && hasKeyword_ff || mode1_ - HintMode.DOWNLOAD_MEDIA || /** <svg> */ !tag) {
     tryDrawOnCanvas(0, {
       H: kFgReq.openImage, m: hintMode_, o: parseOpenPageUrlOptions(hintOptions), a: hintOptions.auto,
       f: filename, u: tag ? text && getUrlData(text) : text
@@ -222,7 +224,7 @@ const openTextOrUrl = (url: string, isText?: BOOL | boolean): void => {
   url ? evalIfOK(url) || hintApi.p({
     H: kFgReq.openUrl,
     u: url, m: hintMode_, t: rawNewtab, o: parseOpenPageUrlOptions(hintOptions)
-  }) : hintApi.h(isText ? kTip.noTextCopied : kTip.noUrlCopied)
+  }) : (hintApi.h(isText ? kTip.noTextCopied : kTip.noUrlCopied), then = optElse)
 }
 
 const showUrlIfNeeded = (): void => {
@@ -313,7 +315,7 @@ const hoverEl = (): void => {
             }
           }
         }
-      } catch {}
+      } catch { then = optElse }
       if (selected) {
         break;
       }
@@ -336,11 +338,11 @@ const extractTextContent = (): string => {
   return str
 }
 
-const copyText = (): void => {
+const copyText = (str?: string | null): void => {
     let isUrl = mode1_ > HintMode.min_link_job - 1 && mode1_ < HintMode.max_link_job + 1,
-        childEl: Element | null, files: HTMLInputElement["files"],
-        str: string | null | undefined;
-    if (isUrl) {
+        childEl: Element | null, files: HTMLInputElement["files"]
+    if (str) { /* empty */ }
+    else if (isUrl) {
       /** satisfy {@link ModesWithOnlyHTMLElements} */
       str = getUrlData()
     }
@@ -349,6 +351,7 @@ const copyText = (): void => {
       if (tag === INP) {
         const type = (clickEl as HTMLInputElement).type
         if (type === "password") {
+          then = optElse
           return hintApi.h(kTip.ignorePassword)
         }
         if (!uneditableInputs_[type]) {
@@ -505,7 +508,7 @@ const doPostAction = (): Rect | null => {
   const hasKeyword_ff = OnFirefox && hintOptions.keyword != null
   const isHtmlImage = tag === "img"
   let rect: Rect | null = null
-  let then = hintOptions.then
+  let then = hintOptions.then, optElse = hintOptions.else
   let retPromise: Promise<unknown> | undefined
   let showRect: BOOL | 2 = hintOptions.flash !== false ? 1 : 0
   if (hintManager) {
@@ -615,7 +618,7 @@ const doPostAction = (): Rect | null => {
     showRect && (rect || (rect = getVisibleClientRect_(clickEl)))
   } else {
     hintApi.h(kTip.linkRemoved, 2)
-    then = hintOptions.else
+    then = optElse
   }
   return retPromise ? retPromise.then(doPostAction) : Promise.resolve(doPostAction())
 }
