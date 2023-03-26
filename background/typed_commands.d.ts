@@ -13,7 +13,7 @@ interface BgCmdOptions {
     /** ms */ for: CountValueOrRef; wait: CountValueOrRef; block: boolean; isError?: boolean
   } & Req.FallbackOptions
 //#region need cport
-  [kBgCmd.confirm]: { question: string, ask?: string, text?: string, value?: string }
+  [kBgCmd.confirm]: { question: string, ask?: string, text?: string, value?: string, minRepeat: number }
       & Req.FallbackOptions
   [kBgCmd.goNext]: {
     isNext: boolean; noRel: boolean; patterns: string | string[]; rel: string; $fmt: 1; absolute: true; view?: false

@@ -93,12 +93,13 @@ set_bgC_([
     let question: string[] | string | UnknownValue = get_cOptions<C.confirm>().question
         || get_cOptions<C.confirm>().ask || get_cOptions<C.confirm>().text || get_cOptions<C.confirm>().value
     const comp = question ? null : [ifThen, ifElse].map(i => i.split("#", 1)[0].split("+").slice(-1)[0])
-    confirm_([!comp ? [question + ""] : comp[0] === comp[1] ? ifThen
-        : comp[0].replace(<RegExpOne> /^([$%][a-zA-Z]\+?)+(?=\S)/, "")
-    ], repeat).then((cancelled): void => {
+    const minRepeat = Math.abs((get_cOptions<C.confirm, true>().minRepeat || 0) | 0)
+    ; (Math.abs(repeat) < minRepeat ? Promise.resolve() : confirm_([!comp ? [question + ""]
+        : comp[0] === comp[1] ? ifThen : comp[0].replace(<RegExpOne> /^([$%][a-zA-Z]\+?)+(?=\S)/, "")
+    ], repeat)).then((cancelled): void => {
       (cancelled ? ifElse : ifThen) && setTimeout((): void => {
         set_cRepeat(repeat)
-        runOneMapping_(cancelled ? ifElse : ifThen, cPort, { c: null, r: null, u: 0, w: 0 }, cancelled? 1 : repeat)
+        runOneMapping_(cancelled ? ifElse : ifThen, cPort, { c: null, r: null, u: 0, w: 0 }, cancelled ? 1 : repeat)
       }, 0)
     })
   },
