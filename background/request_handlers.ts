@@ -351,11 +351,13 @@ set_reqH_([
       return
     }
     str = request.u || request.s || ""
-    const opts2 = request.o || request.n && parseOpenPageUrlOptions(request.n) || {}
+    const oriOptions = request.n as CmdOptions[kFgCmd.autoOpen] | undefined
+    const opts2 = request.o || oriOptions && parseOpenPageUrlOptions(oriOptions) || {}
+    const isInOpenAndCopy = !!(oriOptions && oriOptions.copy && oriOptions.o)
     const mode1 = request.s != null && request.m || HintMode.DEFAULT
-    const sed = opts2.s, keyword = opts2.k
+    const sed = isInOpenAndCopy ? null : opts2.s, keyword = isInOpenAndCopy ? null : opts2.k
     const correctUrl = mode1 >= HintMode.min_link_job && mode1 <= HintMode.max_link_job
-    && (!sed || sed.r !== false)
+        && (!sed || sed.r !== false)
     const decode = request.d ? opts2.d !== false : !!opts2.d
     if (decode) {
       if (typeof str !== "string") {

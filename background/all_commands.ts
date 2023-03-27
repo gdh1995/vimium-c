@@ -748,7 +748,7 @@ set_bgC_([
     }
     let exOut: InfoOnSed = {}, sed = parseSedOptions_(get_cOptions<C.searchInAnother, true>())
     query.u = substitute_(query.u, SedContext.NONE, sed, exOut)
-    exOut.keyword_ !== null && (keyword = exOut.keyword_!)
+    exOut.keyword_ != null && (keyword = exOut.keyword_)
     let url_f = createSearchUrl_(query.u.split(" "), keyword, Urls.WorkType.ActAnyway)
     let reuse = get_cOptions<C.searchInAnother, true>().reuse
     overrideCmdOptions<C.openUrl>({

@@ -430,14 +430,13 @@ const getTextArea_html = (): HTMLTextAreaElement => {
 const format_ = (data: string | any[], join: FgReq[kFgReq.copy]["j"] | undefined, sed: MixedSedOpts | null | undefined
     , keyword: string | null | undefined): string => {
   const oriKeyword = keyword
-  let pattern: Search.Engine | null | undefined
   const createSearchToCopy = (data: string): string => {
-    if (pattern === void 0) { pattern = searchEngines_.map.get(keyword!) || null }
+    const pattern = searchEngines_.map.get(keyword!)
     return pattern ? createSearch_(data.trim().split(BgUtils_.spacesRe_), pattern.url_, pattern.blank_) : data
   }
   if (typeof data !== "string") {
     data = data.map((i): string => {
-      const exOut: InfoOnSed = {}, s = substitute_(i, SedContext.paste, sed, exOut)
+      const exOut: InfoOnSed = {}, s = substitute_(i, SedContext.copy, sed, exOut)
       keyword = exOut.keyword_ ?? oriKeyword
       return keyword ? createSearchToCopy(s) : s
     })
