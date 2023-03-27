@@ -12,6 +12,7 @@ export declare const enum HookAction { Install = 0, SuppressListenersOnDocument 
 let port_callbacks: { [msgId: number]: <k extends keyof FgRes>(this: void, res: FgRes[k]) => unknown }
 let port_: ContentNS.Port | null = null
 let tick = 0
+let onceFreezed: PortType.onceFreezed | 0 = 0
 let safeDestroy: (silent?: boolean | BOOL | 9) => void
 let requestHandlers: { [k in keyof BgReq]: (this: void, request: BgReq[k]) => unknown }
 let contentCommands_: {
@@ -64,12 +65,11 @@ export const safePost = <k extends keyof FgReq> (request: FgReq[k] & Req.baseFg<
 export const runtimeConnect = (function (this: void, extraFlags?: number): void {
   const api = OnChrome ? chrome : OnFirefox ? null as never : browser as typeof chrome,
   status = !fgCache ? PortType.initing
-      : (PortType.reconnect | extraFlags!) + (PortType.hasCSS * <number> <boolean | number> !!style_ui),
+      : PortType.reconnect | extraFlags! | PortType.hasCSS * <number> <boolean | number> !!style_ui,
   name = (PortType.isTop === 1 ? <number> <boolean | number> isTop : PortType.isTop * <number> <number | boolean> isTop)
-      + PortType.hasFocus * <number> <number | boolean> docHasFocus_()
-      + PortType.aboutIframe * <number> <number | boolean> isIFrameInAbout_ + status,
-  data = { name: injector ? PortNameEnum.Prefix + name + injector.$h
-                  : OnEdge ? name + PortNameEnum.Delimiter + locHref() : "" + name },
+      | PortType.aboutIframe * <number> <number | boolean> isIFrameInAbout_ | onceFreezed | status
+      | PortType.hasFocus * <number> <number | boolean> docHasFocus_(),
+  data = { name: injector ? injector.$h(name) : OnEdge ? name + PortNameEnum.Delimiter + locHref() : "" + name },
   connect = (OnFirefox ? runtime_ff! : api.runtime).connect
   port_ = (injector ? connect(injector.id, data) : connect(data)) as ContentNS.Port
   port_.onDisconnect.addListener((): void => {
@@ -83,6 +83,7 @@ export const runtimeConnect = (function (this: void, extraFlags?: number): void 
     type TypeChecked = { [k in keyof BgReq]: <T2 extends keyof BgReq>(this: void, request: BgReq[T2]) => unknown };
     (requestHandlers as TypeToCheck as TypeChecked)[response.N](response);
   })
+  onceFreezed = 0
   set_i18n_getMsg((OnFirefox ? browser as typeof chrome : api).i18n.getMessage)
 })
 
@@ -121,6 +122,7 @@ export const setupBackupTimer_cr = !OnChrome ? 0 as never : (): void => {
 
 export const onFreezePort = (event: Event): void => {
   if (port_ && event.isTrusted) {
+    onceFreezed = PortType.onceFreezed
     post_({ H: kFgReq.onFreeze })
     port_.disconnect()
     port_ = null

@@ -280,7 +280,8 @@ declare const enum PortNameEnum {
 
 declare const enum PortType {
   initing = 0, isTop = 1, hasFocus = 2, reconnect = 4, hasCSS = 8,
-  omnibar = 16, otherExtension = 32, aboutIframe = 64, selfPages = 128, Tee = 256, refreshInBatch = 512,
+  omnibar = 16, onceFreezed = 32, aboutIframe = 64, selfPages = 128, Tee = 256, refreshInBatch = 512,
+  otherExtension = 1024,
   /** for external extensions like NewTab Adapter */ CloseSelf = 999,
 }
 
@@ -473,7 +474,7 @@ interface VimiumInjectorTy {
   host: string;
   version: string;
   $: VApiTy;
-  $h: ExternalMsgs[kFgReq.inject]["res"]["h"];
+  $h: (stat_num: number) => string
   clickable: ElementSet | null | undefined;
   cache: Dict<any> | null;
   getCommandCount: (this: void) => number;

@@ -76,6 +76,7 @@ export const OnConnect = (port: Frames.Port, type: PortType): void => {
   const ref = tabId >= 0 ? framesForTab_.get(tabId)
       : ((tabId = (sender as Writable<Frames.Sender>).tabId_ = getNextFakeTabId()), undefined)
   const isNewFrameInSameTab = (type & (PortType.isTop | PortType.reconnect)) !== PortType.isTop
+      && (type & (PortType.isTop | PortType.onceFreezed)) !== (PortType.isTop | PortType.onceFreezed)
   let status: Frames.ValidStatus
   let passKeys: null | string, flags: BgReq[kBgReq.reset]["f"]
   if (ref !== undefined && ref.lock_ !== null && isNewFrameInSameTab) {
@@ -102,10 +103,10 @@ export const OnConnect = (port: Frames.Port, type: PortType): void => {
       console.log("on port reconnect: tab=%o, frameId=%o, frames.flag=%o, old-ports=%o"
           , sender.tabId_, sender.frameId_, ref ? ref.flags_ : -1, ref ? ref.ports_.length : 0)
     }
-    if (type & Frames.Flags.UrlUpdated || ref === undefined) {
+    if (type & (Frames.Flags.UrlUpdated | PortType.onceFreezed) || ref === undefined) {
       port.postMessage({ N: kBgReq.reset, p: passKeys, f: flags & Frames.Flags.MASK_LOCK_STATUS })
     }
-    /*#__NOINLINE__*/ _recoverStates(ref, port, type as number as Frames.Flags)
+    /*#__NOINLINE__*/ _recoverStates(ref, port, type)
   } else {
     port.postMessage({
       N: kBgReq.init, c: contentPayload_, d: isInActive, f: flags,
@@ -738,22 +739,23 @@ const _recoverStates = (frames: Frames.Frames | undefined, port: Port, type: Por
   (port.s.flags_ satisfies Frames.Flags) |= PortType.hasCSS === <number> Frames.Flags.hasCSS ? type & PortType.hasCSS
       : (type & PortType.hasCSS) && Frames.Flags.hasCSS
   frames || refreshPorts_({ cur_: port, top_: null, ports_: [], lock_: null, flags_: Frames.Flags.HadIFrames }, 0)
+  let flag = type as Frames.Flags
   if (!(type & PortType.refreshInBatch)) {
     if (!(type & PortType.hasFocus) // frame is not focused - on refreshing ports of inactive tabs
         || !frames || !(frames.flags_ & Frames.Flags.ResReleased)) { // no old data to sync
       return
     }
-    type = frames.flags_ & (Frames.Flags.MASK_UPDATES | Frames.Flags.HadIFrames)
-    if (type & Frames.Flags.HadIFrames || port.s.frameId_) { refreshPorts_(frames, 0) }
+    flag = frames.flags_ & (Frames.Flags.MASK_UPDATES | Frames.Flags.HadIFrames)
+    if (flag & Frames.Flags.HadIFrames || port.s.frameId_) { refreshPorts_(frames, 0) }
   }
-  if (type & Frames.Flags.SettingsUpdated) {
+  if (flag & Frames.Flags.SettingsUpdated) {
     port.postMessage({ N: kBgReq.settingsUpdate, d: contentPayload_ })
   }
-  if (type & Frames.Flags.KeyMappingsUpdated) {
+  if (flag & Frames.Flags.KeyMappingsUpdated) {
     port.postMessage({ N: kBgReq.keyFSM, m: mappedKeyRegistry_, t: mappedKeyTypes_
-        , k: type & Frames.Flags.KeyFSMUpdated ? keyFSM_ : null })
+        , k: flag & Frames.Flags.KeyFSMUpdated ? keyFSM_ : null })
   }
-  if (type & Frames.Flags.CssUpdated && port.s.flags_ & Frames.Flags.hasCSS) {
+  if (flag & Frames.Flags.CssUpdated && port.s.flags_ & Frames.Flags.hasCSS) {
     (port.s.flags_ satisfies Frames.Flags) |= Frames.Flags.hasFindCSS
     port.postMessage({ N: kBgReq.showHUD, H: innerCSS_, f: OnChrome ? getFindCSS_cr_!(port.s) : findCSS_ })
   }

@@ -16,7 +16,7 @@ var VimiumInjector: VimiumInjectorTy | undefined | null
   const old = VimiumInjector, cur: VimiumInjectorTy = {
     id: "", alive: -1, host: "", version: "", cache: null,
     clickable: undefined, eval: null, reload: null as never, checkIfEnabled: null as never,
-    $: null as never, $h: "", $m: null as never, $r: null as never, $g: null,
+    $: null as never, $h: null as never, $m: null as never, $r: null as never, $g: null,
     getCommandCount: null as never, callback: null, destroy: null
   };
   if (old) {
@@ -84,6 +84,7 @@ function handler(this: void, res: ExternalMsgs[kFgReq.inject]["res"] | undefined
     _old.destroy(true);
   }
 
+  const verHash = res ? res.h : ""
   const newInjector = VimiumInjector = {
     id: extID,
     alive: 0,
@@ -95,7 +96,7 @@ function handler(this: void, res: ExternalMsgs[kFgReq.inject]["res"] | undefined
     reload: injectorBuilder(scriptSrc),
     checkIfEnabled: null as never,
     $: null as never,
-    $h: res ? res.h : "",
+    $h (stat_num) { return PortNameEnum.Prefix + stat_num + verHash },
     $m (task): void { VimiumInjector && VimiumInjector.$r(typeof task === "object" ? task.t : task); },
     $r (): void { /* empty */ },
     $g: confBlockFocus != null ? (confBlockFocus === "" || confBlockFocus.toLowerCase() === "true") : null,
