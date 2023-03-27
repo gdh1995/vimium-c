@@ -1,8 +1,7 @@
 import {
   chromeVer_, doc, esc, fgCache, isTop, set_esc, VTr, safer, timeout_, loc_, weakRef_not_ff, weakRef_ff, deref_,
   keydownEvents_, Stop_, suppressCommonEvents, setupEventListener, vApi, locHref, isTY, min_, onWndFocus, clearTimeout_,
-  OnChrome, OnFirefox, OnEdge, firefoxVer_, safeCall, parseOpenPageUrlOptions, os_, abs_, Lower, timeStamp_, isEnabled_,
-  set_onWndFocus
+  OnChrome, OnFirefox, OnEdge, firefoxVer_, safeCall, os_, abs_, Lower, timeStamp_, isEnabled_, set_onWndFocus
 } from "../lib/utils"
 import {
   isHTML_, hasTag_, createElement_, querySelectorAll_unsafe_, SafeEl_not_ff_, docEl_unsafe_, MDW, CLK, derefInDoc_,
@@ -222,7 +221,7 @@ set_contentCommands_([
     }
   },
   /* kFgCmd.autoOpen: */ (options: CmdOptions[kFgCmd.autoOpen]): void => {
-    const selected = options.selected, opts2 = parseOpenPageUrlOptions(options),
+    const selected = options.selected,
     str = options.s && !selected ? "" : getSelectionText(1) || (options.text || "") + "",
     urlOpt = options.url, getUrl = urlOpt === "raw" ? locHref : vApi.u,
     url = str.trim(), rawCopied = options.copied, copied = rawCopied || rawCopied == null
@@ -230,13 +229,13 @@ set_contentCommands_([
       H: kFgReq.copy,
       s: str as never as undefined,
       u: (str ? "" : urlOpt ? getUrl() : doc.title) as "url",
-      o: opts2
+      n: options
     })
-    options.o && (url && evalIfOK(url) || post_({
-      H: kFgReq.openUrl, c: copied, u: url, o: opts2, n: options
+    options.o && (url && evalIfOK(url) ? runFallbackKey(options, 0) : post_({
+      H: kFgReq.openUrl, c: copied, u: url, n: options
     }))
     options.s && !options.o && post_({
-      H: kFgReq.searchAs, u: getUrl(), c: copied, t: selected ? url : "", o: opts2, n: options
+      H: kFgReq.searchAs, u: getUrl(), c: copied, t: selected ? url : "", n: options
     })
   },
   /* kFgCmd.focusInput: */ (options: CmdOptions[kFgCmd.focusInput], count: number): void => {

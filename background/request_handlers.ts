@@ -24,7 +24,7 @@ import {
   waitAndRunKeyReq, parseFallbackOptions, onBeforeConfirm
 } from "./run_commands"
 import { parseEmbeddedOptions, runKeyWithCond } from "./run_keys"
-import { focusOrLaunch_, openJSUrl, openUrlReq } from "./open_urls"
+import { focusOrLaunch_, openJSUrl, openUrlReq, parseOpenPageUrlOptions } from "./open_urls"
 import {
   initHelp, openImgReq, framesGoBack, enterVisualMode, showVomnibar, parentFrame, nextFrame, performFind, focusFrame,
   handleImageUrl, findContentPort_
@@ -122,7 +122,7 @@ set_reqH_([
       request.n && runNextCmdBy(0, request.n)
       return
     }
-    let o2 = request.o || {}, exOut: InfoOnSed = {}
+    let o2 = request.o || parseOpenPageUrlOptions(request.n), exOut: InfoOnSed = {}
     query = request.t.trim() && substitute_(request.t.trim(), SedContext.pageText, o2.s, exOut).trim()
         || (request.c ? paste_(o2.s, 0, exOut = {}) : "")
     void Promise.resolve(query).then((query2: string | null): void => {
@@ -351,7 +351,7 @@ set_reqH_([
       return
     }
     str = request.u || request.s || ""
-    const opts2 = request.o || {}
+    const opts2 = request.o || request.n && parseOpenPageUrlOptions(request.n) || {}
     const mode1 = request.s != null && request.m || HintMode.DEFAULT
     const sed = opts2.s, keyword = opts2.k
     const correctUrl = mode1 >= HintMode.min_link_job && mode1 <= HintMode.max_link_job
@@ -372,12 +372,13 @@ set_reqH_([
         str = ""
       }
     }
-    let str2 = str && copy_(str, request.j, sed, keyword)
+    let hasStr = !!str, str2 = str && copy_(str, request.j, sed, keyword)
     str2 = request.s && typeof request.s === "object" ? `[${request.s.length}] ` + request.s.slice(-1)[0] : str2
-    Promise.resolve(str2).then((str3) => {
+    Promise.resolve(str2).then((str3): void => {
       set_cPort(port)
       showHUD(decode ? str3.replace(<RegExpG & RegExpSearchable<0>> /%[0-7][\dA-Fa-f]/g, decodeURIComponent)
           : str3, request.u ? kTip.noUrlCopied : kTip.noTextCopied)
+      request.n && runNextCmdBy(hasStr ? 1 : 0, request.n)
     })
   },
   /** kFgReq.key: */ (request: FgReq[kFgReq.key], port: Port | null): void => {

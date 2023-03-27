@@ -457,9 +457,8 @@ interface CmdOptions {
     /** for searchAs */
     s?: 1;
     /** default to true */ selected?: boolean;
-  } & {
     /** default to true */ copied?: boolean | "urls" | "any-urls";
-  } & UserSedOptions & OpenPageUrlOptions & Req.FallbackOptions
+  } & OpenPageUrlOptions & Req.FallbackOptions
   [kFgCmd.focusInput]: {
     act?: "" | "backspace" | "switch" | "last" | "last-visible";
     action?: "" | "backspace" | "switch" | "last" | "last-visible";
@@ -601,7 +600,7 @@ interface FgReq {
     // note: need to sync members to ReqH::openUrl in main.ts
     /** url */ u?: string;
     /** options */ o?: ParsedOpenPageUrlOptions | null
-    /** command options with "$" */ n?: CmdOptions[kFgCmd.autoOpen]
+    /** all command options */ n?: OpenPageUrlOptions & Req.FallbackOptions
     /** formatted-by-<a>.href */ f?: boolean;
     /** copied */ c?: boolean | "urls" | "any-urls";
     /** https */ h?: boolean | null;
@@ -612,7 +611,7 @@ interface FgReq {
     /** url */ u: string;
     /** selected text */ t: string;
     /** options for openUrl */ o?: ParsedOpenPageUrlOptions | null
-    /** command options with "$" */ n: CmdOptions[kFgCmd.autoOpen]
+    /** all command options */ n: OpenPageUrlOptions & Req.FallbackOptions
     /** copied */ c: boolean | "urls" | "any-urls" | undefined;
   };
   [kFgReq.onFrameFocused]: {};
@@ -666,6 +665,7 @@ interface FgReq {
     /** richText */ r: HintsNS.Options["richText"]
   }) & {
     /** sed and keyword */ o?: ParsedOpenPageUrlOptions;
+    /** all command options */ n?: OpenPageUrlOptions & Req.FallbackOptions;
     /** decode by default */ d?: boolean;
   };
   [kFgReq.key]: {

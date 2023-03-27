@@ -20,7 +20,7 @@ import { trans_ } from "./i18n"
 import { makeCommand_ } from "./key_mappings"
 import {
   copyCmdOptions, runNextCmdBy, parseFallbackOptions, replaceCmdOptions, overrideOption, runNextCmd,
-  overrideCmdOptions, runNextOnTabLoaded, executeCommand, fillOptionWithMask, sendFgCmd, hasFallbackOptions
+  overrideCmdOptions, runNextOnTabLoaded, executeCommand, fillOptionWithMask, sendFgCmd
 } from "./run_commands"
 import { Marks_ } from "./tools"
 import { parseSedOptions_ } from "./clipboard"
@@ -60,10 +60,13 @@ export const preferLastWnd = <T extends Pick<Window, "id">> (wnds: T[]): T => {
   return wnds.find(i => i.id === lastWndId_) || wnds[wnds.length - 1]!
 }
 
-export const parseOpenPageUrlOptions = (options: OpenPageUrlOptions): SimpleParsedOpenUrlOptions => ({
-  g: options.group, i: options.incognito, m: options.replace,
-  o: options.opener, r: options.reuse, p: options.position, w: options.window
-})
+type AllowUndefined<T> = { [P in keyof T]: T[P] | undefined }
+export const parseOpenPageUrlOptions = ((opts, decoded?: boolean | null
+    ): AllowUndefined<EnsureExisting<ParsedOpenPageUrlOptions>> => ({
+  d: (decoded = opts.decoded, decoded != null ? decoded : opts.decode),
+  g: opts.group, i: opts.incognito, k: opts.keyword, m: opts.replace,
+  o: opts.opener, p: opts.position, r: opts.reuse, s: parseSedOptions_(opts), t: opts.testUrl, w: opts.window
+})) as (opts: OpenPageUrlOptions & UserSedOptions) => ParsedOpenPageUrlOptions
 
 const normalizeIncognito = (incognito: OpenUrlOptions["incognito"]): boolean | null => {
   return typeof incognito === "boolean" ? incognito
@@ -744,7 +747,7 @@ export const openUrlReq = (request: FgReq[kFgReq.openUrl], port?: Port | null): 
   let url: Urls.Url | undefined = request.u || ""
   // { url_f: string, ... } | { copied: true, ... }
   const opts: KnownOptions<C.openUrl> = request.n && parseFallbackOptions(request.n) || {}
-  const o2: Readonly<Partial<FgReq[kFgReq.openUrl]["o"]>> = request.o || BgUtils_.safeObj_() as {}
+  const o2: Readonly<Partial<FgReq[kFgReq.openUrl]["o"]>> = request.o || parseOpenPageUrlOptions(opts)
   const rawKeyword = (o2.k || "") + "", testUrl = o2.t ?? !rawKeyword
   const sed = o2.s
   const hintMode = request.m || HintMode.DEFAULT
@@ -792,10 +795,8 @@ export const openUrlReq = (request: FgReq[kFgReq.openUrl], port?: Port | null): 
     opts.url_f = url
   } else {
     if (!request.c) {
-      if (!hasFallbackOptions(opts)) {
-        set_cPort(port || findCPort(null)!)
-        showHUD("", kTip.noUrlCopied)
-      }
+      set_cPort(port || findCPort(null)!)
+      runNextCmdBy(0, opts) || showHUD("", kTip.noUrlCopied)
       return
     }
     opts.copied = request.c, opts.keyword = rawKeyword, opts.testUrl = o2.t
