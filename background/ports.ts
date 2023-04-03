@@ -77,20 +77,21 @@ export const OnConnect = (port: Frames.Port, type: PortType): void => {
       : ((tabId = (sender as Writable<Frames.Sender>).tabId_ = getNextFakeTabId()), undefined)
   const isNewFrameInSameTab = (type & (PortType.isTop | PortType.reconnect)) !== PortType.isTop
       && (type & (PortType.isTop | PortType.onceFreezed)) !== (PortType.isTop | PortType.onceFreezed)
+      && ref !== undefined
   let status: Frames.ValidStatus
-  let passKeys: null | string, flags: BgReq[kBgReq.reset]["f"]
-  if (ref !== undefined && ref.lock_ !== null && isNewFrameInSameTab) {
+  let passKeys: null | string, flags: BgReq[kBgReq.reset]["f"];
+  if (isNewFrameInSameTab && ref.lock_ !== null) {
     passKeys = ref.lock_.passKeys_
     status = ref.lock_.status_
     flags = status === Frames.Status.disabled ? Frames.Flags.lockedAndDisabled : Frames.Flags.locked
   } else {
-    passKeys = exclusionListening_ ? getExcluded_(url, sender) : null
+    passKeys = exclusionListening_ && !(type & PortType.reconnect) ? getExcluded_(url, sender) : null
     status = passKeys === null ? Frames.Status.enabled : passKeys ? Frames.Status.partial : Frames.Status.disabled
     flags = Frames.Flags.blank
   }
   sender.status_ = status
   if (type & PortType.aboutIframe) { sender.flags_ = (flags |= Frames.Flags.aboutIframe) }
-  if (ref !== undefined && isNewFrameInSameTab) {
+  if (isNewFrameInSameTab) {
     flags |= ref.flags_ & Frames.Flags.userActed
     if (type & PortType.otherExtension) {
       flags |= Frames.Flags.otherExtension
@@ -104,7 +105,8 @@ export const OnConnect = (port: Frames.Port, type: PortType): void => {
           , sender.tabId_, sender.frameId_, ref ? ref.flags_ : -1, ref ? ref.ports_.length : 0)
     }
     if (type & Frames.Flags.UrlUpdated) {
-      port.postMessage({ N: kBgReq.reset, p: passKeys, f: flags & Frames.Flags.MASK_LOCK_STATUS })
+      port.postMessage({ N: kBgReq.reset, p: flags & Frames.Flags.locked ? passKeys : getExcluded_(url, sender)
+          , f: flags & Frames.Flags.MASK_LOCK_STATUS })
     }
     /*#__NOINLINE__*/ _recoverStates(ref, port, type)
   } else {
@@ -128,7 +130,7 @@ export const OnConnect = (port: Frames.Port, type: PortType): void => {
     (sender as Writable<Frames.Sender>).frameId_ = (type & PortType.isTop) ? 0 : ((Math.random() * 9999997) | 0) + 2
   }
   const isTopFrame = sender.frameId_ === 0
-  if (ref !== undefined && isNewFrameInSameTab) {
+  if (isNewFrameInSameTab) {
     if (type & PortType.hasFocus) {
       needIcon_ && ref.cur_.s.status_ !== status && setIcon_(tabId, status)
       ref.cur_ = port

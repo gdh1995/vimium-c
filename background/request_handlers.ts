@@ -593,7 +593,22 @@ set_reqH_([
     req <= 0 && reqH_[kFgReq.recheckTee]()
     return req ? FrameMaskType.NormalNext : FrameMaskType.NoMask
   },
-  /** kFgReq.onFreeze: */ _AsReqH<kFgReq.onFreeze>(OnFreeze)
+  /** kFgReq.onFreeze: */ _AsReqH<kFgReq.onFreeze>(OnFreeze),
+  /** kFgReq.syncStatus: */ (req: FgReq[kFgReq.syncStatus], port): void => {
+    const [ locked, isPassKeysReversed, passKeys ] = req.s
+    const newPassKeys = passKeys && (isPassKeysReversed ? "^ " : "") + passKeys.join(" ")
+    const resetMsg: Req.bg<kBgReq.reset> = { N: kBgReq.reset, p: newPassKeys, f: locked }
+    port.postMessage(resetMsg)
+    const ref = getFrames_(port)
+    const status = locked === Frames.Flags.lockedAndDisabled ? Frames.Status.disabled : Frames.Status.enabled
+    if (!ref || ref.lock_ && ref.lock_.status_ === status && ref.lock_.passKeys_ === newPassKeys) { return }
+    ref.lock_ = { status_: status, passKeys_: newPassKeys }
+    needIcon_ && ref.cur_.s.status_ !== status && setIcon_(port.s.tabId_, status)
+    for (const port of ref.ports_) {
+      port.s.status_ = status
+      port.s.flags_ & Frames.Flags.ResReleased || port.postMessage(resetMsg)
+    }
+  },
 ])
 
 const onCompletions = function (this: Port, favIcon0: 0 | 1 | 2, list: Array<Readonly<Suggestion>>

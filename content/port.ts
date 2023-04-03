@@ -1,11 +1,12 @@
 import {
   injector, safer, timeout_, isAlive_, isTop, set_i18n_getMsg, locHref, OnEdge, OnChrome, OnFirefox, isTY, fgCache,
-  interval_, setupTimerFunc_cr, noRAF_old_cr_, runtime_ff, isIFrameInAbout_
+  interval_, setupTimerFunc_cr, noRAF_old_cr_, runtime_ff, isIFrameInAbout_, isLocked_
 } from "../lib/utils"
 import { suppressTail_ } from "../lib/keyboard_utils"
 import { docHasFocus_, rAF_ } from "../lib/dom_utils"
 import { style_ui } from "./dom_ui"
 import { hudTip } from "./hud"
+import { isPassKeysReversed, passKeys } from "./key_handler"
 
 export declare const enum HookAction { Install = 0, SuppressListenersOnDocument = 1, Suppress = 2, Destroy = 3 }
 
@@ -83,6 +84,12 @@ export const runtimeConnect = (function (this: void, extraFlags?: number): void 
     type TypeChecked = { [k in keyof BgReq]: <T2 extends keyof BgReq>(this: void, request: BgReq[T2]) => unknown };
     (requestHandlers as TypeToCheck as TypeChecked)[response.N](response);
   })
+  if (isLocked_ && onceFreezed && isTop) {
+    post_({ H: kFgReq.syncStatus, s: [isLocked_, isPassKeysReversed,
+        passKeys && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinTestedES6Environment
+        ? [...(<string[] & Set<string>>passKeys)] : Array.from(passKeys as string[] & Set<string>))
+    ] })
+  }
   onceFreezed = 0
   set_i18n_getMsg((OnFirefox ? browser as typeof chrome : api).i18n.getMessage)
 })
@@ -121,6 +128,7 @@ export const setupBackupTimer_cr = !OnChrome ? 0 as never : (): void => {
 }
 
 export const onFreezePort = (event: Event): void => {
+  console.log('on freeze', !!port_, new Date())
   if (port_ && event.isTrusted) {
     onceFreezed = PortType.onceFreezed
     post_({ H: kFgReq.onFreeze })

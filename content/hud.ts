@@ -98,7 +98,7 @@ export const hudHide = (info?: TimerType.fake | TimerType.noTimer | void): void 
     toggleOpacity(0)
     $text.data = "";
     toggleClass_s(box, "HL", 0)
-    isEnabled_ && isLocked_ < 3 || adjustUI(2)
+    isEnabled_ && isLocked_ < Frames.Flags.lockedAndDisabled || adjustUI(2)
   }
   else if (!tweenId && isAlive_) {
     tweenId = interval_(tween, 40);

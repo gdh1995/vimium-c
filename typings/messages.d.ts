@@ -99,11 +99,12 @@ declare const enum kFgReq {
   searchAs, gotoSession, openUrl, onFrameFocused, checkIfEnabled,
   nextFrame, exitGrab, execInChild, initHelp, css,
   vomnibar, omni, copy, key, nextKey,
-  marks, focusOrLaunch, beforeCmd, cmd, removeSug, openImage,
-  evalJSFallback, gotoMainFrame, setOmniStyle, findFromVisual, framesGoBack,
-  i18n, cssLearnt, visualMode, respondForRunKey, downloadLink, wait,
-  optionToggled, keyFromOmni, pages, showUrl,
-  omniCopy, omniCopied, didLocalMarkTask, recheckTee, afterTee, onFreeze, END,
+  marks, focusOrLaunch, beforeCmd, cmd, removeSug,
+  openImage, evalJSFallback, gotoMainFrame, setOmniStyle, findFromVisual,
+  framesGoBack, i18n, cssLearnt, visualMode, respondForRunKey,
+  downloadLink, wait, optionToggled, keyFromOmni, pages,
+  showUrl, omniCopy, omniCopied, didLocalMarkTask, recheckTee,
+  afterTee, onFreeze, syncStatus, END,
   msg = 90, inject = 99,
   command = "command", id = "id", shortcut = "shortcut", focus = "focus", tip = "tip",
 }
@@ -753,6 +754,12 @@ interface FgReq {
   [kFgReq.omniCopy]: { /** title */ t: string, /** url */ u: string }
   [kFgReq.omniCopied]: { /** text */ t: string }
   [kFgReq.onFreeze]: {}
+  [kFgReq.syncStatus]: {
+    s: [
+      isLocked: Frames.Flags.locked | Frames.Flags.lockedAndDisabled,
+      isPassKeysReversed: boolean, passKeys: string[] | null
+    ]
+  }
 }
 
 interface CurrentEnvCache {} // eslint-disable-line @typescript-eslint/no-empty-interface
