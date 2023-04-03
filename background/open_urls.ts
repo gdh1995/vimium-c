@@ -747,7 +747,8 @@ export const openUrlReq = (request: FgReq[kFgReq.openUrl], port?: Port | null): 
   let url: Urls.Url | undefined = request.u || ""
   // { url_f: string, ... } | { copied: true, ... }
   const opts: KnownOptions<C.openUrl> = request.n && parseFallbackOptions(request.n) || {}
-  const o2: Readonly<Partial<FgReq[kFgReq.openUrl]["o"]>> = request.o || parseOpenPageUrlOptions(opts)
+  const o2: Readonly<Partial<FgReq[kFgReq.openUrl]["o"]>> = request.o
+      || request.n && parseOpenPageUrlOptions(request.n) || {}
   const rawKeyword = (o2.k || "") + "", testUrl = o2.t ?? !rawKeyword
   const sed = o2.s
   const hintMode = request.m || HintMode.DEFAULT

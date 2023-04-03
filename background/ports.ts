@@ -103,7 +103,7 @@ export const OnConnect = (port: Frames.Port, type: PortType): void => {
       console.log("on port reconnect: tab=%o, frameId=%o, frames.flag=%o, old-ports=%o"
           , sender.tabId_, sender.frameId_, ref ? ref.flags_ : -1, ref ? ref.ports_.length : 0)
     }
-    if (type & (Frames.Flags.UrlUpdated | PortType.onceFreezed) || ref === undefined) {
+    if (type & Frames.Flags.UrlUpdated) {
       port.postMessage({ N: kBgReq.reset, p: passKeys, f: flags & Frames.Flags.MASK_LOCK_STATUS })
     }
     /*#__NOINLINE__*/ _recoverStates(ref, port, type)
