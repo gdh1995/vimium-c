@@ -484,8 +484,8 @@ tabEngine = {
     const marks = (queryTerms.join("\n").match(<RegExpG & RegExpSearchable<0>> /^:[a-z]+$/gm) || [])
         .reduce((i, j): number => {
       j = j.slice(1)
-      const k = kTabMarks.findIndex(m => m.startsWith(j))
-      return i | (k >= 0 ? 1 << k : 0)
+      for (let ind = 0; ind < kTabMarks.length; ind++) { if (kTabMarks[ind].startsWith(j)) { i |= 1 << ind } }
+      return i
     }, 0)
     curTab = !curTab && marks ? tabs0.filter(i => i.id === curTabId)[0] : curTab
     const groupId = marks && curTab ? getGroupId(curTab) : null
