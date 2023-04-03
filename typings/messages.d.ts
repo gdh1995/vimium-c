@@ -51,9 +51,9 @@ declare const enum kHidden {
 interface CSSOptions {
   match?: "css-selector" | " " | 0 | null | undefined
   clickable?: "css-selector" | null | undefined
-  clickableOnHost?: "css-selector" | null | undefined
+  clickableOnHost?: "host-re##css-selector;..." | "host-re##css-selector"[] | null | undefined
   exclude?: "css-selector" | null | undefined
-  excludeOnHost?: "host-re##css-selector;..." | null | undefined
+  excludeOnHost?: "host-re##css-selector;..." | "host-re##css-selector"[] | null | undefined
   evenIf?: kHidden | null | undefined
   /* same as `.evenIf |= kHidden.OverflowHidden` */ scroll?: "force" | null | undefined
 }
@@ -287,7 +287,7 @@ declare namespace HintsNS {
     url?: boolean;
     // access el.dataset[<json keys>] || el.attrs[key][json keys]
     // format: [<css selector>":"]<dataset-key or attr-name>[...("."<json key>)], like img:viewer.url
-    access?: string
+    access?: string | string[]
     dblclick?: boolean;
     interact?: true | "native" | false
     longPage?: boolean

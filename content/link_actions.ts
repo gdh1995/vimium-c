@@ -51,7 +51,7 @@ const accessElAttr = (isUrlOrText: 0 | 1 | 2): [string: string, isUserCustomized
   const format = dataset && hintOptions.access
   let el: SafeElement | null | undefined
   const cb = (_: string, i: string): string => i.split("||").reduce((v, j) => v || extractField(el!, j), "")
-  for (let accessor of format ? (format + "").split(",") : []) {
+  for (let accessor of format ? Array.isArray(format) ? format : (format + "").split(",") : []) {
     accessor = accessor.trim()
     const __arr = accessor.split(":"), selector = __arr.length > 1 ? __arr[0] : 0
     el = !selector ? clickEl

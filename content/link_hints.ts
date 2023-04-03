@@ -546,7 +546,7 @@ export const findAnElement_ = (options: OptionsToFindElement, count: number, als
   }
   let isSel: boolean | BOOL | undefined
   let matches: (Hint | Hint0)[] | undefined, oneMatch: Hint | Hint0 | undefined, matchIndex: number
-  let el: SafeElement | null | false | undefined
+  let el: SafeElement | null | false | 0 | undefined
   let d = options.direct! as string | true, defaultMatch = options.match
   defaultMatch = isTY(defaultMatch) && defaultMatch || null
   d = isTY(d) && d ? d : defaultMatch && d === !0 ? "em" : "em,sel,f,h"
@@ -569,8 +569,17 @@ export const findAnElement_ = (options: OptionsToFindElement, count: number, als
       : testD("b") ? /* body */ OnFirefox ? <SafeElement | null> (doc.body || docEl_unsafe_())
           : SafeEl_not_ff_!(doc.body || docEl_unsafe_())
       : null
-    el = testD("em") || el && isNotInViewport(el) < (wholeDoc ? VisibilityType.OutOfView+1 : VisibilityType.Visible + 1)
+    if (!testD("em")) {
+      if (el && j) {
+        const el2 = OnFirefox ? safeCall(querySelector_unsafe_, j, el) as (SafeElement | null | undefined)
+            : SafeEl_not_ff_!(safeCall(querySelector_unsafe_, j, el))
+        el = el2 === null && !(OnChrome && Build.MinCVer < BrowserVer.MinEnsured$Element$$Closest
+            && chromeVer_ < BrowserVer.MinEnsured$Element$$Closest) ? OnFirefox ? el.closest!(j) as SafeElement | null
+            : SafeEl_not_ff_!(el.closest!(j)) : el2
+      }
+      el = el && isNotInViewport(el) < (wholeDoc ? VisibilityType.OutOfView+1 : VisibilityType.Visible + 1)
         && excludeHints([[el as SafeElementForMouse]], options, 1).length > 0 ? el : null
+    }
     if (el) { break }
   }
   return [el as SafeElement | null | undefined, wholeDoc, indByCount, isSel]

@@ -565,9 +565,9 @@ export const joinValidSelectors = (selector: string | MayBeSelector
     selector && safeCall(querySelector_unsafe_, selector) !== void 0
     ? (validAnother ? selector + "," + validAnother : selector) as "css-selector" : validAnother || null
 
-export const findSelectorByHost = (rules: string | kTip | MayBeSelector): "css-selector" | void => {
+export const findSelectorByHost = (rules: string | string[] | kTip | MayBeSelector): "css-selector" | void => {
   const host = loc_.host, path = loc_.host + "/" + loc_.pathname, isKTip = isTY(rules, kTY.num)
-  for (const arr of (isKTip ? VTr(rules) : rules ? rules + "" : "").split(";")) {
+  for (const arr of rules && isTY(rules,kTY.obj) ? rules : (isKTip ? VTr(rules) : rules ? rules + "" : "").split(";")) {
     const items = arr.split("##"), cond = items[0], re = cond && tryCreateRegExp(cond)
     if (re && re.test(cond.includes("/") ? path : host) && (isKTip || joinValidSelectors(items[1]!))) {
       return items[1] as "css-selector"

@@ -130,6 +130,9 @@ const getClickable = (hints: Hint[], element: SafeHTMLElement): void => {
     break;
   case "code": case "pre":
     mode1_ > HintMode.max_mouse_events && (tag < "p" || getComputedStyle_(element).display === "block")
+        && !((anotherEl = GetParent_unsafe_(element, PNType.DirectElement))
+              && hints.length && hints[hints.length - 1][0] === anotherEl
+              && (hasTag_("pre", anotherEl) || hasTag_("code", anotherEl)))
         && (isClickable = true)
     // no break
   case "aside": case "div": case "nav": case "ol": case "table": case "tbody": case "ul":
