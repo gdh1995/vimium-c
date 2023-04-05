@@ -528,8 +528,9 @@ const openUrls = (tabs: [Tab] | [] | undefined): void => {
     }
     if (OnFirefox) {
       urls = urls.filter(i => !newTabUrls_.has(i) && !(<RegExpI> /file:\/\//i).test(i))
-      overrideOption<C.openUrl, "urls">("urls", urls)
     }
+    overrideCmdOptions<C.openUrl>({}, true)
+    overrideOption<C.openUrl, "urls">("urls", urls)
     overrideOption<C.openUrl, "$fmt">("$fmt", 2)
   }
   for (const url of urls) {

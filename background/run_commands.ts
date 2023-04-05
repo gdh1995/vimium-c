@@ -73,7 +73,7 @@ export const overrideOption = <T extends BgCmdCanBeOverride, K extends KeyCanBeO
   curOptions = curOptions || get_cOptions<T, true>() as KnownOptions<T>
   curOptions[field as keyof BgCmdOptions[T]] = value
   const parentOptions = (curOptions as unknown as CommandsNS.Options).$o
-  if (parentOptions != null) { overrideOption(field, value, parentOptions as unknown as KnownOptions<T>) }
+  if (parentOptions != null) { overrideOption<T, K>(field, value, parentOptions as unknown as KnownOptions<T>) }
 }
 
 export const fillOptionWithMask = <Cmd extends keyof BgCmdOptions>(template: string

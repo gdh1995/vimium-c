@@ -1,6 +1,6 @@
 import {
   cRepeat, get_cOptions, cPort, curIncognito_, curTabId_, curWndId_, recencyForTab_, set_curWndId_, set_curTabId_,
-  copy_, newTabUrl_f, CurCVer_, IsEdg_, OnChrome, OnEdge, OnFirefox, CONST_, reqH_, set_cRepeat
+  copy_, newTabUrl_f, CurCVer_, IsEdg_, OnChrome, OnEdge, OnFirefox, CONST_, reqH_, set_cRepeat, extAllowList_, Origin2_
 } from "./store"
 import * as BgUtils_ from "./utils"
 import {
@@ -824,4 +824,25 @@ export const reopenTab_ = (tab: Tab, refresh?: /* false */ 0 | /* a temp blank t
   }
   // should never remove its session item - in case that goBack/goForward might be wanted
   // not seems to need to restore muted status
+}
+
+export const onSessionRestored_ = (curWndId: number, restored: chrome.sessions.Session | null | undefined): void => {
+  if (OnChrome && restored && (restored.window || restored.tab && restored.tab.windowId !== curWndId
+        && restored.tab.index === 0)) {
+    const tab = restored.window ? selectFrom(restored.window.tabs!) : restored.tab!, url = tab.url
+    let runnable = (<RegExpOne> /^(file|ftps?|https?)/).test(url) || url.startsWith(Origin2_)
+    if (!runnable && url.startsWith(location.protocol) && !url.startsWith(Origin2_)) {
+      const extHost = new URL(url).host
+      runnable = !!extHost && extAllowList_.get(extHost) === true
+    }
+    runnable && (restored.window ? Promise.resolve(restored.window) : Q_(Tabs_.query, { windowId: tab.windowId
+          , index: 1 }) .then(tabs => tabs && tabs.length ? null : Q_(Windows_.get, tab.windowId))
+    ).then((wnd2): void => {
+      wnd2 && wnd2.type !== "popup" && Promise.all([Q_(Tabs_.create, { url: "about:blank", windowId: wnd2.id }),
+          Q_(Tabs_.remove, tab.id)]).then(([blankTab]): void => {
+        browserSessions_().restore()
+        blankTab && Tabs_.remove(blankTab.id)
+      })
+    })
+  }
 }

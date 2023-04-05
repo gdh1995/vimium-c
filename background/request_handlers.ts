@@ -2,13 +2,14 @@ import {
   set_cPort, set_cRepeat, set_cOptions, needIcon_, set_cKey, cKey, get_cOptions, set_reqH_, reqH_, restoreSettings_,
   innerCSS_, framesForTab_, cRepeat, curTabId_, Completion_, CurCVer_, OnChrome, OnEdge, OnFirefox, setIcon_, blank_,
   substitute_, paste_, keyToCommandMap_, CONST_, copy_, set_cEnv, settingsCache_, vomnibarBgOptions_, setTeeTask_,
-  curIncognito_, inlineRunKey_, CurFFVer_, Origin2_, focusAndExecuteOn_, set_focusAndExecuteOn_
+  curIncognito_, inlineRunKey_, CurFFVer_, Origin2_, focusAndExecuteOn_, set_focusAndExecuteOn_, curWndId_
 } from "./store"
 import * as BgUtils_ from "./utils"
 import {
   tabsUpdate, runtimeError_, selectTab, selectWnd, browserSessions_, browserWebNav_, downloadFile, import2, Q_,
   getCurTab, getGroupId
 } from "./browser"
+import { convertToUrl_ } from "./normalize_urls"
 import { findUrlEndingWithPunctuation_, parseSearchUrl_, parseUpperUrl_ } from "./parse_urls"
 import * as settings_ from "./settings"
 import {
@@ -24,13 +25,13 @@ import {
   waitAndRunKeyReq, parseFallbackOptions, onBeforeConfirm
 } from "./run_commands"
 import { parseEmbeddedOptions, runKeyWithCond } from "./run_keys"
+import { FindModeHistory_, Marks_ } from "./tools"
 import { focusOrLaunch_, openJSUrl, openUrlReq, parseOpenPageUrlOptions } from "./open_urls"
 import {
   initHelp, openImgReq, framesGoBack, enterVisualMode, showVomnibar, parentFrame, nextFrame, performFind, focusFrame,
   handleImageUrl, findContentPort_
 } from "./frame_commands"
-import { FindModeHistory_, Marks_ } from "./tools"
-import { convertToUrl_ } from "./normalize_urls"
+import { onSessionRestored_ } from "./tab_commands"
 
 let gTabIdOfExtWithVomnibar: number = GlobalConsts.TabIdNone
 let _pageHandlers: Promise<typeof import("./page_handlers")> | null
@@ -139,7 +140,7 @@ set_reqH_([
     })
   },
   /** kFgReq.gotoSession: */ (request: FgReq[kFgReq.gotoSession], port?: Port): void => {
-    const id = request.s, active = request.a !== false
+    const id = request.s, active = request.a !== false, curWndId = curWndId_
     set_cPort(findCPort(port)!)
     if (typeof id === "number") {
       selectTab(id, (tab): void => {
@@ -152,9 +153,9 @@ set_reqH_([
       complainNoSession()
       return
     }
-    browserSessions_().restore(id[1], (): void => {
+    browserSessions_().restore(id[1], (res): void => {
       const err = runtimeError_()
-      err && showHUD(trans_("noSessionItem"))
+      err ? showHUD(trans_("noSessionItem")) : onSessionRestored_(curWndId, res)
       return err
     })
     const tabId = active ? -1 : port!.s.tabId_ >= 0 ? port!.s.tabId_ : curTabId_

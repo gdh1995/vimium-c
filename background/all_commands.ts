@@ -1,8 +1,8 @@
 import * as BgUtils_ from "./utils"
 import {
   cPort, cRepeat, cKey, get_cOptions, set_cPort, set_cRepeat, contentPayload_, runOneMapping_,
-  framesForOmni_, bgC_, set_bgC_, set_cmdInfo_, curIncognito_, curTabId_, recencyForTab_, settingsCache_, CurCVer_,
-  OnChrome, OnFirefox, OnEdge, substitute_, CONST_, curWndId_, findBookmark_, bookmarkCache_, extAllowList_, Origin2_, os_
+  framesForOmni_, bgC_, set_bgC_, set_cmdInfo_, curIncognito_, curTabId_, recencyForTab_, settingsCache_, CurCVer_, os_,
+  OnChrome, OnFirefox, OnEdge, substitute_, CONST_, curWndId_, findBookmark_, bookmarkCache_
 } from "./store"
 import {
   Tabs_, Windows_, InfoToCreateMultiTab, openMultiTabs, tabsGet, getTabUrl, selectFrom, runtimeError_, R_,
@@ -33,7 +33,7 @@ import {
 } from "./filter_tabs"
 import {
   copyWindowInfo, joinTabs, moveTabToNewWindow, moveTabToNextWindow, reloadTab, removeTab, toggleMuteTab,
-  togglePinTab, toggleTabUrl, reopenTab_
+  togglePinTab, toggleTabUrl, reopenTab_, onSessionRestored_
 } from "./tab_commands"
 import { ContentSettings_, FindModeHistory_, Marks_, TabRecency_ } from "./tools"
 import C = kBgCmd
@@ -676,24 +676,7 @@ set_bgC_([
     const curTabId = cPort ? cPort.s.tabId_ : curTabId_, curWndId = curWndId_
     const runNext = getRunNextCmdBy(kRunOn.otherCb)
     const cb = (restored: chrome.sessions.Session | null | undefined): void => {
-      if (OnChrome && restored && (restored.window || restored.tab && restored.tab.windowId !== curWndId
-            && restored.tab.index === 0)) {
-        const tab = restored.window ? selectFrom(restored.window.tabs!) : restored.tab!, url = tab.url
-        let runnable = (<RegExpOne> /^(file|ftps?|https?)/).test(url) || url.startsWith(Origin2_)
-        if (!runnable && url.startsWith(location.protocol) && !url.startsWith(Origin2_)) {
-          const extHost = new URL(url).host
-          runnable = !!extHost && extAllowList_.get(extHost) === true
-        }
-        runnable && (restored.window ? Promise.resolve(restored.window) : Q_(Tabs_.query, { windowId: tab.windowId
-              , index: 1 }) .then(tabs => tabs && tabs.length ? null : Q_(Windows_.get, tab.windowId))
-        ).then((wnd2): void => {
-          wnd2 && wnd2.type !== "popup" && Promise.all([Q_(Tabs_.create, { url: "about:blank", windowId: wnd2.id }),
-              Q_(Tabs_.remove, tab.id)]).then(([blankTab]): void => {
-            sessions.restore()
-            blankTab && Tabs_.remove(blankTab.id)
-          })
-        })
-      }
+      onSessionRestored_(curWndId, restored)
       restored === undefined ? resolve(0) : notActive ? selectTab(curTabId, runNext) : resolve(1)
     }
     ; (async (): Promise<void> => {
