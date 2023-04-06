@@ -1,15 +1,15 @@
 import { kPgReq } from "../background/page_messages"
 import {
-  CurCVer_, CurFFVer_, OnFirefox, OnChrome, OnEdge, $, $$, post_, disconnect_, isVApiReady_, simulateClick, PageOs_,
-  toggleDark, browser_, selfTabId_, enableNextTick_, nextTick_, kReadyInfo, IsEdg_, import2, BrowserName_, pageTrans_,
+  CurCVer_, CurFFVer_, OnFirefox, OnChrome, OnEdge, $, $$, post_, disconnect_, isVApiReady_, simulateClick_, PageOs_,
+  toggleDark_, browser_, selfTabId_, enableNextTick_, nextTick_, kReadyInfo, IsEdg_, import2_, BrowserName_, pageTrans_,
   isRepeated_, prevent_
 } from "./async_bg"
 import {
-  bgSettings_, KnownOptionsDataset, showI18n, setupBorderWidth_, Option_, AllowedOptions, debounce_, oTrans_,
-  delayBinding, didBindEvent
+  bgSettings_, type KnownOptionsDataset, showI18n_, setupBorderWidth_, Option_, AllowedOptions, debounce_, oTrans_,
+  delayBinding_, didBindEvent_
 } from "./options_base"
-import { saveBtn, exportBtn, savedStatus, BooleanOption_, onKeyMappingsError, SaveBtn } from "./options_defs"
-import { manifest } from "./options_permissions"
+import { saveBtn_, exportBtn_, savedStatus_, BooleanOption_, onKeyMappingsError_, type SaveBtn } from "./options_defs"
+import { manifest_ } from "./options_permissions"
 
 interface ElementWithHash extends HTMLElement {
   onclick (this: ElementWithHash, event: MouseEventToPrevent | null, hash?: "hash"): void;
@@ -27,29 +27,29 @@ let advancedMode = false
 export const clear_delayed_task = (): void => { delayed_task = null }
 
 enableNextTick_(kReadyInfo.LOCK)
-nextTick_(showI18n)
+nextTick_(showI18n_)
 setupBorderWidth_ && nextTick_(setupBorderWidth_);
 nextTick_((versionEl): void => {
-  versionEl.textContent = manifest.version_name || manifest.version
-  if ((parseInt(manifest.version) >= 2) !== (manifest.manifest_version === 3)) {
-    versionEl.parentElement.nextElementSibling.textContent = "-mv" + manifest.manifest_version
+  versionEl.textContent = manifest_.version_name || manifest_.version
+  if ((parseInt(manifest_.version) >= 2) !== (manifest_.manifest_version === 3)) {
+    versionEl.parentElement.nextElementSibling.textContent = "-mv" + manifest_.manifest_version
   }
 }, $<EnsuredMountedHTMLElement>("#version"))
 
-delayBinding(saveBtn, "click", ((virtually): void => {
+delayBinding_(saveBtn_, "click", ((virtually): void => {
     if (virtually !== false) {
-      void Option_.saveOptions_().then((changed): void => { changed && saveBtn.onclick(false) })
+      void Option_.saveOptions_().then((changed): void => { changed && saveBtn_.onclick(false) })
       return
     }
     const toSync = Option_.syncToFrontend_;
     Option_.syncToFrontend_ = [];
     if (OnFirefox) {
-      saveBtn.blur()
+      saveBtn_.blur()
     }
-    saveBtn.disabled = true;
-    (saveBtn.firstChild as Text).data = oTrans_("115_3")
-    exportBtn.disabled = false;
-    savedStatus(false)
+    saveBtn_.disabled = true;
+    (saveBtn_.firstChild as Text).data = oTrans_("115_3")
+    exportBtn_.disabled = false;
+    savedStatus_(false)
     window.onbeforeunload = null as never;
     window.addEventListener("beforeunload", refreshSync, true)
     if (toSync.length === 0) { return; }
@@ -104,13 +104,13 @@ let optionsInit1_ = function (): void {
 
   document.addEventListener("keyup", onKeyUp)
 
-  delayBinding("[data-check]", "input", function onCheck(): void {
+  delayBinding_("[data-check]", "input", function onCheck(): void {
     for (const el of $$("[data-check]")) {
       el.removeEventListener("input", onCheck)
     }
-    void import2("./options_checker.js")
+    void import2_("./options_checker.js")
   })
-  delayBinding("[data-auto-resize]", "click", (event): void => {
+  delayBinding_("[data-auto-resize]", "click", (event): void => {
     const target = $("#" + ((event.target as HTMLElement).dataset as KnownOptionsDataset).autoResize)
     let height = target.scrollHeight, width = target.scrollWidth, dw = width - target.clientWidth;
     if (height <= target.clientHeight && dw <= 0) { return; }
@@ -126,25 +126,25 @@ let optionsInit1_ = function (): void {
     }
     target.style.height = height + "px";
   })
-  delayBinding("[data-delay]", "click", function (this: HTMLElement, event): void {
+  delayBinding_("[data-delay]", "click", function (this: HTMLElement, event): void {
     let str = (this.dataset as KnownOptionsDataset).delay, e = null as MouseEventToPrevent | null
     if (str === "event") { e = event as MouseEventToPrevent || null }
     if (str !== "continue") { event && prevent_(event) }
     delayed_task = ["#" + this.id, e]
     if (document.readyState === "complete") {
-      void import2("./options_ext.js")
+      void import2_("./options_ext.js")
       return;
     }
     window.addEventListener("load", function onLoad(event1): void {
       if (event1.target === document) {
         window.removeEventListener("load", onLoad);
-        void import2("./options_ext.js")
+        void import2_("./options_ext.js")
       }
     });
   }, "on")
   OnChrome && Build.MinCVer < BrowserVer.MinEnsuredWebkitUserSelectAll
       && CurCVer_ < BrowserVer.MinEnsuredWebkitUserSelectAll &&
-  delayBinding(".sel-all", "mousedown", function (this: HTMLElement, event): void {
+  delayBinding_(".sel-all", "mousedown", function (this: HTMLElement, event): void {
     if (event.target !== this) { return; }
     prevent_(event)
     getSelection().selectAllChildren(this);
@@ -152,7 +152,7 @@ let optionsInit1_ = function (): void {
 
   const permissionEls = $$("[data-permission]");
   permissionEls.length > 0 && ((els: HTMLElement[]): void => {
-    const validKeys2 = manifest.permissions || []
+    const validKeys2 = manifest_.permissions || []
     for (let i = els.length; 0 <= --i; ) {
       let el: HTMLElement = els[i];
       let key = (el.dataset as KnownOptionsDataset).permission
@@ -176,7 +176,7 @@ let optionsInit1_ = function (): void {
         continue
       } else {
         if (!Build.MV3) { key === "action" ? (key = "browser_action") : key }
-        if (key in manifest || validKeys2.includes(key)) { continue }
+        if (key in manifest_ || validKeys2.includes(key)) { continue }
         transArgs = ["lackPermission", [key ? ":\n* " + key : ""]]
       }
       nextTick_((el1): void => {
@@ -189,7 +189,7 @@ let optionsInit1_ = function (): void {
         } else {
           (el1 as TextElement).value = "";
           el1.title = str;
-          delayBinding(el1.parentElement as HTMLElement, "click", onclick, "on")
+          delayBinding_(el1.parentElement as HTMLElement, "click", onclick, "on")
           if (el1 instanceof HTMLSpanElement) {
             el1.style.textDecoration = "line-through"
           }
@@ -210,7 +210,7 @@ let optionsInit1_ = function (): void {
     }, $("#tipForNoShadow"));
   }
 
-  delayBinding("[data-href]", "mousedown", (): void => {
+  delayBinding_("[data-href]", "mousedown", (): void => {
     for (const element of $$<HTMLAnchorElement & { dataset: KnownOptionsDataset }>("[data-href]")) {
       element.onmousedown = null as never
       void post_(kPgReq.convertToUrl, [element.dataset.href, Urls.WorkType.ConvertKnown]).then(([str]): void => {
@@ -281,9 +281,9 @@ let optionsInit1_ = function (): void {
           (fields !== name ? $$<HTMLInputElement>(fields) : [opt.element_]) ] as const)
     }
     opt.onSave_ = (): void | Promise<void> => { syncForLabel(); return oldOnSave.call(opt) }
-    delayBinding(element, "click", onRefStatClick as (ev: EventToPrevent) => void, "on")
+    delayBinding_(element, "click", onRefStatClick as (ev: EventToPrevent) => void, "on")
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    delayBinding(opt.element_, "change", syncForLabel, true)
+    delayBinding_(opt.element_, "change", syncForLabel, true)
     nextTick_(([el, s]): void => { el.htmlFor = s }, [element, targetOptName] as const)
     
   }
@@ -302,7 +302,7 @@ optionsInitAll_ = function (): void {
   location.hash && nextTick_(window.onhashchange as () => void)
   enableNextTick_(kReadyInfo.NONE, kReadyInfo.LOCK);
 
-  Option_.all_.keyMappings.onSave_ = () => post_(kPgReq.keyMappingErrors).then(onKeyMappingsError)
+  Option_.all_.keyMappings.onSave_ = () => post_(kPgReq.keyMappingErrors).then(onKeyMappingsError_)
   let useDarkQuery = true
   let darkMedia: MediaQueryList | null = matchMedia("(prefers-color-scheme: dark)")
   const onChange = (): void => {
@@ -342,7 +342,7 @@ optionsInitAll_ = function (): void {
         void (post_(kPgReq.updatePayload, { key: "d", val }) as Promise<SettingsNS.FrontendSettingCache["d"]>)
         .then((val2): void => { VApi!.z!.d = val2 })
       }
-      toggleDark(val ? rawVal === 2 ? 2 : 1 : 0)
+      toggleDark_(val ? rawVal === 2 ? 2 : 1 : 0)
   }
   // As https://bugzilla.mozilla.org/show_bug.cgi?id=1550804 said, to simulate color schemes, enable
   // https://developer.mozilla.org/en-US/docs/Mozilla/Firefox/Experimental_features#Color_scheme_simulation
@@ -401,25 +401,25 @@ const onKeyUp = (event: KeyboardEventToPrevent): void => {
     if (el instanceof HTMLSpanElement && el.parentElement instanceof HTMLLabelElement) {
       prevent_(event)
       const ctrl = el.parentElement.control as HTMLInputElement
-      ctrl.disabled || ctrl.readOnly || simulateClick(ctrl)
+      ctrl.disabled || ctrl.readOnly || simulateClick_(ctrl)
     }
     return
   } else if (el instanceof HTMLAnchorElement) {
     el.hasAttribute("href") || (setTimeout(function (el1) {
-      simulateClick(el1)
+      simulateClick_(el1)
       el1.blur()
     }, 0, el), prevent_(event))
   } else if (event.ctrlKey || event.metaKey) {
     prevent_(event)
     el.blur && el.blur()
-    if (savedStatus()) {
-      didBindEvent("click")
-      saveBtn.onclick()
+    if (savedStatus_()) {
+      didBindEvent_("click")
+      saveBtn_.onclick()
     }
   }
 }
 
-delayBinding(Option_.all_.userDefinedCss.element_, "input", debounce_((): void => {
+delayBinding_(Option_.all_.userDefinedCss.element_, "input", debounce_((): void => {
   const self = Option_.all_.userDefinedCss
   const isDebugging = self.element_.classList.contains("debugging")
   if (self.saved_ && !isDebugging || !VApi || !VApi.z) { return }
@@ -452,9 +452,9 @@ if (OnChrome && Build.MinCVer < BrowserVer.Min$Option$HasReliableFontSize
   nextTick_(el => { el.classList.add("font-fix") }, $("select"))
 }
 
-delayBinding("#importButton", "click", (): void => {
+delayBinding_("#importButton", "click", (): void => {
   const opt = $<HTMLSelectElement>("#importOptions");
-  opt.onchange ? opt.onchange(null as never) : simulateClick($("#settingsFile"))
+  opt.onchange ? opt.onchange(null as never) : simulateClick_($("#settingsFile"))
 }, "on")
 
 nextTick_((el0): void => {
@@ -514,7 +514,7 @@ export const onHash_ = (hash: string): void => {
   hash = hash.slice(hash[1] === "!" ? 2 : 1);
   if (!hash || !(<RegExpI> /^[a-z][\w-]*$/i).test(hash)) { return; }
   if (node = $(`[data-hash="${hash}"]`) as HTMLElement | null) {
-    didBindEvent("click")
+    didBindEvent_("click")
     if (node.onclick) {
         (node as ElementWithHash).onclick(null, "hash");
     }
@@ -557,12 +557,12 @@ const scrollAndFocus_ = <T extends HTMLElement> (node: T, near?: boolean, callba
 }
 
 void bgSettings_.preloadCache_().then(optionsInitAll_)
-void post_(kPgReq.keyMappingErrors).then((err): void => { nextTick_(onKeyMappingsError, err) })
+void post_(kPgReq.keyMappingErrors).then((err): void => { nextTick_(onKeyMappingsError_, err) })
 void post_(kPgReq.whatsHelp).then((matched): void => {
   matched !== "?" && nextTick_(([el, s]): void => { el.textContent = s }, [$("#questionShortcut"), matched] as const)
 })
 
-delayBinding("#openExtensionsPage", "click", (event: EventToPrevent): void => {
+delayBinding_("#openExtensionsPage", "click", (event: EventToPrevent): void => {
     prevent_(event)
     if (OnFirefox) {
       VApi ? VApi.h(kTip.raw, 0, oTrans_("haveToOpenManually"))
@@ -571,7 +571,7 @@ delayBinding("#openExtensionsPage", "click", (event: EventToPrevent): void => {
       void post_(kPgReq.focusOrLaunch, { u: (event.target as HTMLAnchorElement).href, p: true })
     }
 })
-delayBinding(document, "click", function onClickOnce(): void {
+delayBinding_(document, "click", function onClickOnce(): void {
   const api1 = VApi, misc = api1 && api1.y()
   if (!misc || !misc.r) { return; }
   document.removeEventListener("click", onClickOnce, true);
@@ -602,7 +602,7 @@ delayBinding(document, "click", function onClickOnce(): void {
   })
 }, true);
 
-delayBinding("#testKeyInputBox", "focus", function KeyTester(_focusEvent: Event): void {
+delayBinding_("#testKeyInputBox", "focus", function KeyTester(_focusEvent: Event): void {
   const box = _focusEvent.currentTarget as HTMLElement
   const testKeyInput = $<HTMLElement>("#testKeyInput")
   const text_ = (newText?: string, moveSel?: 0): string => {

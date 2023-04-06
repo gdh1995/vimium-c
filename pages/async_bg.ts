@@ -215,7 +215,7 @@ export const $$ = ((selector: string, root?: HTMLElement | ShadowRoot | null): E
   return ([] as Element[]).slice.call(list)
 }) as <T extends HTMLElement>(selector: string, root?: HTMLElement | ShadowRoot | null) => T[]
 
-export const toggleDark = (dark: SettingsNS.PersistentSettings["autoDarkMode"]): void => {
+export const toggleDark_ = (dark: SettingsNS.PersistentSettings["autoDarkMode"]): void => {
   const el = document.head!.querySelector("meta[name=color-scheme]") as HTMLMetaElement
   const content = dark === 2 ? "light dark" : dark === 1 ? "dark" : "light"
   if (el.content !== content) {
@@ -225,7 +225,7 @@ export const toggleDark = (dark: SettingsNS.PersistentSettings["autoDarkMode"]):
     cls.toggle("dark", dark === 1)
   }
 }
-export const toggleReduceMotion = (reduced: boolean): void => {
+export const toggleReduceMotion_ = (reduced: boolean): void => {
   document.documentElement!.classList.toggle("less-motion", reduced)
 }
 
@@ -270,7 +270,7 @@ export const nextTick_ = ((): { <T>(task: (self: T) => void, self: T): void; (ta
   }
 })()
 
-export const import2 = (url: string): Promise<unknown> =>
+export const import2_ = (url: string): Promise<unknown> =>
     !(Build.BTypes & BrowserType.Edge)
       && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinUsableScript$type$$module$InExtensions)
       && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinES$DynamicImport)
@@ -429,7 +429,7 @@ if (OnChrome ? (Build.MinCVer >= BrowserVer.MinMediaQuery$PrefersColorScheme
   const storage = browser_.storage.local as { get <K extends Keys> (k: K, cb: (r: { [k in K]: any }) => void): void }
   storage.get("autoDarkMode", (res): void => {
     const value = res && res.autoDarkMode as SettingsNS.PersistentSettings["autoDarkMode"] | boolean;
-    (value === false || value === 1 || value === 0) && toggleDark(value ? 1 : 0); return browser_.runtime.lastError
+    (value === false || value === 1 || value === 0) && toggleDark_(value ? 1 : 0); return browser_.runtime.lastError
   })
 }
 OnFirefox && browser_.runtime.getBrowserInfo().then((info): void => {
@@ -449,7 +449,7 @@ curPath === "options" && void isVApiReady_.then((): void => {
   })
 })
 
-export const simulateClick = (target: HTMLElement
+export const simulateClick_ = (target: HTMLElement
     , event?: { altKey: boolean, ctrlKey: boolean, metaKey: boolean, shiftKey: boolean }): boolean => {
   let mouseEvent: MouseEvent
   event = event || { ctrlKey: false, altKey: false, shiftKey: false, metaKey: false }

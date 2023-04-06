@@ -1,10 +1,10 @@
 import {
-  OnFirefox, OnEdge, OnChrome, $, pageTrans_, enableNextTick_, nextTick_, kReadyInfo, TransTy, IsEdg_, post_,
-  toggleReduceMotion, hasShift_, PageOs_, setupPageOs_, prevent_, CurCVer_
+  OnFirefox, OnEdge, OnChrome, $, pageTrans_, enableNextTick_, nextTick_, kReadyInfo, type TransTy, IsEdg_, post_,
+  toggleReduceMotion_, hasShift_, PageOs_, setupPageOs_, prevent_, CurCVer_
 } from "./async_bg"
 import {
-  bgSettings_, ExclusionVisibleVirtualNode, ExclusionRulesOption_, setupBorderWidth_, showI18n, kExclusionChange,
-  ExclusionBaseVirtualNode, setupSettingsCache_
+  bgSettings_, type ExclusionVisibleVirtualNode, ExclusionRulesOption_, setupBorderWidth_, showI18n_, kExclusionChange,
+  type ExclusionBaseVirtualNode, setupSettingsCache_
 } from "./options_base"
 import { kPgReq, PgReq } from "../background/page_messages"
 import type * as i18n_popup from "../i18n/zh/popup.json"
@@ -318,14 +318,14 @@ void post_(kPgReq.popupInit).then((_resolved): void => {
   if (!conf_.runnable) {
     onNotRunnable(blockedMsg)
     initOptionsLink(_url)
-    nextTick_(showI18n)
+    nextTick_(showI18n_)
     nextTick_(didShow)
     return
   }
   nextTick_((versionEl): void => {
     blockedMsg.remove()
     blockedMsg = null as never
-    toggleReduceMotion(conf_.reduceMotion)
+    toggleReduceMotion_(conf_.reduceMotion)
     versionEl.textContent = conf_.ver
   }, $("#version"))
 
@@ -344,7 +344,7 @@ void post_(kPgReq.popupInit).then((_resolved): void => {
   initOptionsLink(_url)
   updateBottomLeft()
   initExclusionRulesTable()
-  nextTick_(showI18n)
+  nextTick_(showI18n_)
   setupBorderWidth_ && nextTick_(setupBorderWidth_)
   nextTick_(didShow)
 })

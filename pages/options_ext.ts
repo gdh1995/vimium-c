@@ -1,10 +1,10 @@
 import {
-  CurCVer_, CurFFVer_, OnChrome, OnEdge, OnFirefox, $, import2, OnSafari, enableNextTick_, isVApiReady_, kReadyInfo,
-  simulateClick, ValidFetch, post_, prevent_
+  CurCVer_, CurFFVer_, OnChrome, OnEdge, OnFirefox, $, import2_, OnSafari, enableNextTick_, isVApiReady_, kReadyInfo,
+  simulateClick_, ValidFetch, post_, prevent_
 } from "./async_bg"
 import { bgSettings_, AllowedOptions, ExclusionRulesOption_, Option_, oTrans_, getSettingsCache_ } from "./options_base"
-import { exportBtn, saveBtn } from "./options_defs"
-import { manifest } from "./options_permissions";
+import { exportBtn_, saveBtn_ } from "./options_defs"
+import { manifest_ } from "./options_permissions";
 import { advancedOptBtn, ElementWithDelay, delayed_task, clear_delayed_task, onHash_ } from "./options_wnd"
 import { kPgReq } from "../background/page_messages"
 
@@ -21,7 +21,7 @@ const showHelp = (event?: EventToPrevent | "force" | void | null): void => {
   event && event !== "force" && prevent_(event)
   if (!root) { /* empty */ }
   else if (node = root.querySelector("#HCls") as HTMLElement | null) {
-    if (event !== "force" && root.querySelector(".HelpCommandName") != null) { simulateClick(node); return }
+    if (event !== "force" && root.querySelector(".HelpCommandName") != null) { simulateClick_(node); return }
     const node2 = root.querySelector("#HDlg") as HTMLElement
     const outerBox = node2 && (node2 as SafeHTMLElement).parentElement || node2
     diff = !!outerBox && outerBox.remove !== HTMLElement.prototype.remove
@@ -110,7 +110,7 @@ const buildExportedFile = (now: Date, want_static: boolean): { blob: Blob, optio
     exported_object.time = now.getTime();
   }
   exported_object.environment = {
-    extension: manifest.version,
+    extension: manifest_.version,
     platform: bgSettings_.platform_
   };
   if (OnChrome) {
@@ -163,7 +163,7 @@ const buildExportedFile = (now: Date, want_static: boolean): { blob: Blob, optio
   return { blob: new Blob([exported_data], {type: "application/json", endings: "native"}), options: storedKeys.length }
 }
 
-exportBtn.onclick = function (event): void {
+exportBtn_.onclick = function (event): void {
   if (_lastBlobURL) {
     URL.revokeObjectURL(_lastBlobURL);
     _lastBlobURL = "";
@@ -187,7 +187,7 @@ exportBtn.onclick = function (event): void {
     const nodeA = document.createElement("a");
     nodeA.download = file_name;
     nodeA.href = URL.createObjectURL(blob);
-    simulateClick(nodeA)
+    simulateClick_(nodeA)
     // not `URL.revokeObjectURL(nodeA.href);` so that it works almost all the same
     // on old Chrome before BrowserVer.MinCanNotRevokeObjectURLAtOnce
     _lastBlobURL = nodeA.href;
@@ -242,7 +242,7 @@ async function _importSettings(time: number, new_data: ExportedSettings, is_reco
     , raw_ext_ver = (env && env.extension && env.extension + "" || "")
     , ext_ver = parseFloat(raw_ext_ver || 0) || 0
     , ext_ver_f = ext_ver > 1 ? raw_ext_ver.split(".", 2).join(".") as `${number}.${number}` : "" as const
-    , newer = ext_ver > parseFloat(manifest.version)
+    , newer = ext_ver > parseFloat(manifest_.version)
   plat && (plat = ("" + plat).slice(0, 10));
   if (!confirm(oTrans_("confirmImport", [
         oTrans_(is_recommended !== true ? "backupFile" : "recommendedFile"),
@@ -421,7 +421,7 @@ async function _importSettings(time: number, new_data: ExportedSettings, is_reco
   })).catch((err): void => { logUpdate("[ERROR] saving fields failed", "cause:", err) })
   enableNextTick_(kReadyInfo.NONE, kReadyInfo.LOCK)
   await 0 // eslint-disable-line @typescript-eslint/await-thenable
-  saveBtn.onclick(false);
+  saveBtn_.onclick(false);
   if (advancedOptBtn.getAttribute("aria-checked") !== "" + <boolean> bgSettings_.get_("showAdvancedOptions")) {
     advancedOptBtn.onclick(null, true)
   }
@@ -465,7 +465,7 @@ function importSettings_(time: number | string | Date, data: string, is_recommen
       return alert(err_msg);
     }
   }
-  const promisedChecker = Option_.all_.keyMappings.checker_ ? Promise.resolve() : import2("./options_checker.js")
+  const promisedChecker = Option_.all_.keyMappings.checker_ ? Promise.resolve() : import2_("./options_checker.js")
   const t2 = time, d2 = new_data
   void promisedChecker.then((): void => {
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
@@ -497,7 +497,7 @@ _el.onclick = null as never;
 _el.onchange = function (this: HTMLSelectElement): void {
   $("#importButton").focus();
   if (this.value === "exported") {
-    simulateClick($("#settingsFile"))
+    simulateClick_($("#settingsFile"))
     return;
   }
   const recommended = "../settings-template.json";

@@ -1,6 +1,6 @@
 import {
   CurCVer_, CurFFVer_, OnChrome, OnFirefox, OnEdge, $, pageTrans_, browser_, nextTick_, enableNextTick_, kReadyInfo,
-  import2, TransTy, isVApiReady_, post_, disconnect_, simulateClick, ValidFetch, hasShift_, setupPageOs_, isRepeated_, prevent_
+  import2_, TransTy, isVApiReady_, post_, disconnect_, simulateClick_, ValidFetch, hasShift_, setupPageOs_, isRepeated_, prevent_
 } from "./async_bg"
 import { kPgReq } from "../background/page_messages"
 import type * as i18n_popup from "../i18n/zh/popup.json"
@@ -367,12 +367,12 @@ function clickLink(this: void, options: { [key: string]: string }
   }
   a.href = VData.url; // lgtm [js/client-side-unvalidated-url-redirection] lgtm [js/xss] lgtm [js/xss-through-dom]
   if (!OnFirefox) {
-    simulateClick(a, event)
+    simulateClick_(a, event)
     return
   }
   browser_.permissions.contains({ permissions: ["downloads"] }, (permitted: boolean): void => {
     if (!permitted) {
-      simulateClick(a, event);
+      simulateClick_(a, event);
     } else {
       const opts: chrome.downloads.DownloadOptions = { url: a.href }
       if (a.download) { opts.filename = a.download }
@@ -403,7 +403,7 @@ function imgOnKeydown(event: KeyboardEventToPrevent): boolean {
     if (keybody === kChar.enter && viewer_ && viewer_.isShown && !viewer_.hiding && !viewer_.played) {
       viewer_.play(true);
     } else if (!viewer_ || !viewer_.isShown || viewer_.hiding) {
-      simulateClick(VShown as ValidNodeTypes, event);
+      simulateClick_(VShown as ValidNodeTypes, event);
     }
     return true;
   }
@@ -591,7 +591,7 @@ function loadViewer(): Promise<ViewerModule> {
   }
   // eslint-disable-next-line @typescript-eslint/no-unsafe-call
   !Build.NDEBUG && (window as any).define && (window as any).define.noConflict()
-  return Promise.all([import2("../lib/viewer.js"), loadCSS("../lib/viewer.css")])
+  return Promise.all([import2_("../lib/viewer.js"), loadCSS("../lib/viewer.css")])
       .then(([viewerJS]: any): ViewerModule => {
     viewerJS = viewerJS && typeof viewerJS === "function" ? viewerJS
         : (window as unknown as { Viewer: typeof viewerJS }).Viewer
@@ -1005,8 +1005,8 @@ function getContentUrl_(): string {
 
 if (!Build.NDEBUG) {
   Object.assign(window as any, {
-    showBgLink, clickLink, simulateClick, imgOnKeydown, doImageAction, decodeURLPart_,
-    importBody, defaultOnClick, clickShownNode, showText, copyThing, _copyStr, toggleInvert, import2, loadCSS,
+    showBgLink, clickLink, simulateClick: simulateClick_, imgOnKeydown, doImageAction, decodeURLPart_,
+    importBody, defaultOnClick, clickShownNode, showText, copyThing, _copyStr, toggleInvert, import2: import2_, loadCSS,
     defaultOnError, loadViewer, showSlide, clean, parseClearImageUrl_, tryToFixFileExt_, fetchImage_,
     destroyObject_, tryDecryptUrl, disableAutoAndReload_, resetOnceProperties_, recoverHash_, encrypt_,
     getOmni_: getContentUrl_,

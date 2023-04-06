@@ -1,6 +1,6 @@
 import {
-  CurCVer_, OnChrome, $, $$, nextTick_, pageLangs_, TransTy, pageTrans_, post_, enableNextTick_, kReadyInfo, onDicts_,
-  curPagePath_, setupPageOs_
+  CurCVer_, OnChrome, $, $$, nextTick_, pageLangs_, type TransTy, pageTrans_, post_, enableNextTick_, kReadyInfo,
+  onDicts_, curPagePath_, setupPageOs_
 } from "./async_bg"
 import { kPgReq } from "../background/page_messages"
 import type * as i18n_options from "../i18n/zh/options.json"
@@ -44,7 +44,7 @@ const _globalDelegates: {
   [type: string]: { selector_: string | Node, handler_ (ev: Event): void, capture_: boolean | "on" }[] | null
 } = {}
 
-export const showI18n = (): void => {
+export const showI18n_ = (): void => {
     if (pageLangs_ === "en") { return }
     const lang1 = pageLangs_.split(",")[0]
     const langInput = navigator.language as string || lang1
@@ -112,7 +112,7 @@ export const debounce_ = function<T> (func: (this: T) => void
   };
 } as <T> (func: (this: T) => void, wait: number, bound_context: T, also_immediate: BOOL) => (this: void) => void
 
-export const didBindEvent = (ev: Event | string): void => {
+export const didBindEvent_ = (ev: Event | string): void => {
   const type = typeof ev !== "string" ? ev.type : ev
   for (const delegate of _globalDelegates[type] || []) {
     for (const el of typeof delegate.selector_ === "string" ? $$(delegate.selector_) : [delegate.selector_]) {
@@ -124,13 +124,13 @@ export const didBindEvent = (ev: Event | string): void => {
     }
   }
   _globalDelegates[type] = null
-  removeEventListener(type, didBindEvent, true)
+  removeEventListener(type, didBindEvent_, true)
 }
-export const delayBinding = (selector_: string | HTMLElement | Document
+export const delayBinding_ = (selector_: string | HTMLElement | Document
     , type: string, handler_: (ev: EventToPrevent) => void, capture_?: boolean | "on") => {
   let handlers = _globalDelegates[type]
   if (!handlers) {
-    addEventListener(type, didBindEvent, true)
+    addEventListener(type, didBindEvent_, true)
     handlers = _globalDelegates[type] = []
   }
   handlers.push({ selector_, handler_, capture_: capture_ || false })
@@ -358,11 +358,11 @@ export class ExclusionRulesOption_ extends Option_<"exclusionRules"> {
         ).content.querySelector(".exclusionRule") as HTMLTableRowElement;
     this.$list_ = element.querySelector("tbody") as HTMLTableSectionElement;
     this.list_ = [];
-    delayBinding(this.$list_, "input", ExclusionRulesOption_.MarkChanged_)
-    delayBinding(this.$list_, "input", this.onUpdated_)
-    delayBinding(this.$list_, "click", e => this.onRemoveRow_(e))
+    delayBinding_(this.$list_, "input", ExclusionRulesOption_.MarkChanged_)
+    delayBinding_(this.$list_, "input", this.onUpdated_)
+    delayBinding_(this.$list_, "click", e => this.onRemoveRow_(e))
     this._rendered = false
-    delayBinding("#exclusionAddButton", "click", () => this.addRule_(""), "on")
+    delayBinding_("#exclusionAddButton", "click", () => this.addRule_(""), "on")
   }
 onRowChange_ (_isInc: number): void { /* empty */ }
 static MarkChanged_ (this: void, event: Event): void {

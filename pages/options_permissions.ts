@@ -2,8 +2,8 @@ import { kPgReq } from "../background/page_messages"
 import {
   $, OnEdge, browser_, OnFirefox, OnChrome, nextTick_, CurCVer_, IsEdg_, post_, pageLangs_, PageOs_, prevent_
 } from "./async_bg"
-import { Option_, KnownOptionsDataset, oTrans_, bgSettings_, delayBinding } from "./options_base"
-import { registerClass, createNewOption, TextOption_ } from "./options_defs"
+import { Option_, type KnownOptionsDataset, oTrans_, bgSettings_, delayBinding_ } from "./options_base"
+import { registerClass_, createNewOption_, TextOption_ } from "./options_defs"
 import kBrowserPermission = chrome.permissions.kPermission
 
 type AllowedApi = "contains" | "request" | "remove"
@@ -69,12 +69,12 @@ const container = <true> !OnEdge && placeholder.parentElement
 const navPermissionTip = (Build.MV3 as BOOL) && OnChrome ? $<SafeHTMLElement>("#navPermissionTip") : null
 const gotoCrSC = (Build.MV3 as BOOL) && OnChrome ? $<SafeHTMLElement>("#gotoCrSC") : null
 const shownItems: PermissionItem[] = []
-export const manifest = browser_.runtime.getManifest() as Readonly<chrome.runtime.Manifest>
-let optional_permissions = (!OnEdge && manifest.optional_permissions || []) as readonly kBrowserPermission[]
+export const manifest_ = browser_.runtime.getManifest() as Readonly<chrome.runtime.Manifest>
+let optional_permissions = (!OnEdge && manifest_.optional_permissions || []) as readonly kBrowserPermission[]
 const navNames: kNavPermissionName[] = (Build.MV3 as BOOL) && OnChrome ? [ "clipboard-read" ] : []
 
 export class OptionalPermissionsOption_ extends Option_<"nextPatterns"> {
-  override init_ (): void { delayBinding(this.element_, "change", this.onUpdated_) }
+  override init_ (): void { delayBinding_(this.element_, "change", this.onUpdated_) }
   override readValueFromElement_ (): string {
     return shownItems.map(i => i.element_.indeterminate ? "1" : i.element_.checked ? "2" : "0").join("")
   }
@@ -182,7 +182,7 @@ export class OptionalPermissionsOption_ extends Option_<"nextPatterns"> {
     return Promise.resolve(wanted_value)
   }
 }
-OnEdge || registerClass("OptionalPermissions", OptionalPermissionsOption_)
+OnEdge || registerClass_("OptionalPermissions", OptionalPermissionsOption_)
 
 const initOptionalPermissions = (): void => {
   const fragment = document.createDocumentFragment()
@@ -218,8 +218,8 @@ const initOptionalPermissions = (): void => {
     shownItem.element_ = checkbox
   }
   container.appendChild(fragment)
-  delayBinding(container, "input", onInput, true)
-  gotoCrSC && delayBinding(gotoCrSC, "click", onCrUrlClick, true)
+  delayBinding_(container, "input", onInput, true)
+  gotoCrSC && delayBinding_(gotoCrSC, "click", onCrUrlClick, true)
 }
 
 const doPermissionsContain_ = (item: PermissionItem): Promise<void> => {
@@ -277,7 +277,7 @@ if (!OnEdge) {
   OnChrome && IsEdg_ && Build.OnBrowserNativePages && ignored.push(kNTP)
   OnFirefox || ignored.push("cookies")
   if (Build.MV3 && (!OnChrome || Build.MinCVer >= BrowserVer.MinUsableMV3 || CurCVer_ > BrowserVer.MinUsableMV3 - 1)) {
-    optional_permissions = optional_permissions.concat(manifest.optional_host_permissions)
+    optional_permissions = optional_permissions.concat(manifest_.optional_host_permissions)
   }
   optional_permissions = optional_permissions.filter(
       i => !ignored.some(j => typeof j === "string" ? i === j : j.test(i)))
@@ -298,7 +298,7 @@ if (OnEdge || !optional_permissions.length && !(Build.MV3 && OnChrome && navName
   void Promise.all(shownItems.map(doPermissionsContain_)).then((): void => {
     nextTick_((): void => {
       (container.dataset as KnownOptionsDataset).model = "OptionalPermissions"
-      void createNewOption(container).fetch_()
+      void createNewOption_(container).fetch_()
     })
   })
 }
