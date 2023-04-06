@@ -260,12 +260,12 @@ const _fixDocZoom_cr = OnChrome ? (zoom: number, docEl: Element, devRatio: numbe
             || (Build.MinCVer >= BrowserVer.MinASameZoomOfDocElAsdevPixRatioWorksAgain
                   || chromeVer_ > BrowserVer.MinASameZoomOfDocElAsdevPixRatioWorksAgain - 1)
                 && !notSafe_not_ff_!(docEl) && (style = (docEl as ElementToHTMLOrForeign).style)
-                && style.zoom && style.zoom
-            || (isDocZoomStrange_ = 1, zoom !== _getPageZoom_cr!(zoom, devRatio, docEl))))
+                && style.zoom
+            || (isDocZoomStrange_ = 1, abs_(zoom - _getPageZoom_cr!(zoom, devRatio, docEl)))) > 1e-3)
       ? zoom : 1
 } : 0 as never as null
 
-let _getPageZoom_cr = OnChrome ? function (devRatio: number, docElZoom: number, _testEl: Element | null): number {
+let _getPageZoom_cr = OnChrome ? function (docElZoom: number, devRatio: number, _testEl: Element | null): number {
   // only detect once, so that its cost is not too big
   let iframe: HTMLIFrameElement = createElement_("iframe"),
   pageZoom: number | null | undefined, doc1: Document | null
@@ -277,7 +277,7 @@ let _getPageZoom_cr = OnChrome ? function (devRatio: number, docElZoom: number, 
   removeEl_s(iframe)
   _getPageZoom_cr = (zoom2, ratio2) => pageZoom ? ratio2 / devRatio * pageZoom : zoom2
   return pageZoom || docElZoom
-} as (devRatio: number, docElZoom: number, docEl: Element) => number : 0 as never as null
+} as (docElZoom: number, devRatio: number, docEl: Element) => number : 0 as never as null
 
 const elZoom_ = (st: CSSStyleDeclaration): number => st && st.display !== NONE && +st.zoom || 1
 
