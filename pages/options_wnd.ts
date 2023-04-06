@@ -504,7 +504,9 @@ document.addEventListener("keydown", (event): void => {
     return;
   }
   const el = event.target as Element;
-  el.localName === "span" && (el as EnsuredMountedHTMLElement).parentElement.localName === "label" && prevent_(event)
+  if (el.localName === "span" && (el as EnsuredMountedHTMLElement).parentElement.localName === "label") {
+    event.preventDefault()
+  }
 });
 
 export const onHash_ = (hash: string): void => {

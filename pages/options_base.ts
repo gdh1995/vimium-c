@@ -98,7 +98,12 @@ export const debounce_ = function<T> (func: (this: T) => void
   also_immediate = also_immediate ? 1 : 0;
   return function () {
     timestamp = Date.now(); // safe for time changes
-    if (timeout) { return; }
+    if (timeout) {
+      if (also_immediate) {
+        also_immediate = timestamp - 1
+      }
+      return
+    }
     timeout = setTimeout(later, wait);
     if (also_immediate) {
       also_immediate = timestamp;

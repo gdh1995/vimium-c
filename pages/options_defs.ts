@@ -674,7 +674,7 @@ keyLayout.populateElement_ = (value: number): void => {
     })
   }
 }
-const onAlwaysIgnoreChange = (ev?: Event): void => {
+const onAlwaysIgnoreChange = (ev?: EventToPrevent): void => {
   const always = elAlwaysIgnore.checked
   BooleanOption_.ToggleDisabled_(elIgnoreIfAlt, always)
   BooleanOption_.ToggleDisabled_(elIgnoreIfNotASCII, always)
@@ -687,6 +687,7 @@ const onAlwaysIgnoreChange = (ev?: Event): void => {
     const old = keyLayout.innerFetch_()
     if (typeof old === "number" && !(_lastKeyLayoutValue & kKeyLayout.alwaysIgnore)) {
       _lastKeyLayoutValue === old ? keyLayout.fetch_() : keyLayout.populateElement_(_lastKeyLayoutValue)
+      ev.stopImmediatePropagation()
       nextTick_(keyLayout.onUpdated_)
     }
   }
