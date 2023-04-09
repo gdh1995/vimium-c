@@ -1,6 +1,6 @@
 import {
   blank_, bookmarkCache_, Completion_, CurCVer_, historyCache_, OnChrome, OnEdge, OnFirefox, urlDecodingDict_,
-  set_findBookmark_, findBookmark_, updateHooks_
+  set_findBookmark_, findBookmark_, updateHooks_, curWndId_
 } from "./store"
 import { Tabs_, browser_, runtimeError_, browserSessions_ } from "./browser"
 import * as BgUtils_ from "./utils"
@@ -21,7 +21,7 @@ declare const enum InnerConsts {
 interface UrlDomain { domain_: string; scheme_: Urls.SchemeId }
 type ItemToDecode = string | DecodedItem
 export interface BrowserUrlItem {
-  u: string; title_: string; visit_: number; sessionId_: CompletersNS.SessionId | null
+  u: string; title_: string; visit_: number; sessionId_: CompletersNS.SessionId | null, label_: string | null
 }
 
 const WithTextDecoder = !OnEdge && (Build.MinCVer >= BrowserVer.MinEnsuredTextEncoderAndDecoder || !OnChrome
@@ -497,20 +497,31 @@ export const getRecentSessions_ = (expected: number, showBlocked: boolean
       clearTimeout(timer)
     }
     let arr2: BrowserUrlItem[] = [], t: number, anyWindow: BOOL = 0
+    const procStart = Date.now() - performance.now()
     for (const item of sessions || []) {
-      const entry = item.tab
-      if (!entry) { anyWindow = 1; continue }
+      let entry = item.tab, wnd: chrome.sessions.Session["window"] | null = null
+      if (!entry) {
+        if (!(wnd = item.window) || !wnd.tabs || !wnd.tabs.length) {
+          continue
+        }
+        anyWindow = 1
+        entry = wnd.tabs.find(i => i.active) || wnd.tabs[0]
+        wnd.sessionId || (wnd = null)
+      }
       let url = entry.url
       if (url.length > GlobalConsts.MaxHistoryURLLength) {
         url = HistoryManager_.trimURLAndTitleWhenTooLong_(url, entry)
       }
       const title = entry.title
       if (!showBlocked && !TestNotBlocked_(url, title)) { continue }
+      t = OnFirefox ? item.lastModified
+          : (t = item.lastModified, t < /* as ms: 1979-07 */ 3e11 && t > /* as ms: 1968-09 */ -4e10 ? t * 1000 : t)
       arr2.push({
         u: url, title_: title,
-        visit_: OnFirefox ? item.lastModified
-            : (t = item.lastModified, t < /* as ms: 1979-07 */ 3e11 && t > /* as ms: 1968-09 */ -4e10 ? t * 1000 : t),
-        sessionId_: [entry.windowId, entry.sessionId!]
+        visit_: t,
+        sessionId_: [entry.windowId, (wnd || entry).sessionId!, wnd ? wnd.tabs!.length : 0],
+        label_: wnd ? `+${wnd.tabs!.length > 1 ? wnd.tabs!.length - 1 : ""} `
+            : entry.windowId !== curWndId_ && t > procStart ? "+ " : ""
       })
     }
     if (anyWindow) { // for GC
