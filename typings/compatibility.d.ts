@@ -428,6 +428,7 @@ declare const enum BrowserVer {
   // https://github.com/chromium/chromium/commit/5a5267ab58dd0310fc2b427db30de60c0eea4457
   MinEnsuredNewScriptsFromExtensionOnSandboxedPage = 68, // extension can insert and run <script> correctly
   MinASameZoomOfDocElAsdevPixRatioWorksAgain = 68,
+  MinFreezeEvent = 68, // see Page Lifecycle API
   // even if EXPERIMENTAL or LEGACY
   // also on pages with JS disabled in chrome://settings/content/siteDetails?site=<origin>
   NoRAFOrRICOnSandboxedPage = 69,

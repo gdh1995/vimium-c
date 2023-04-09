@@ -308,6 +308,9 @@ const hoverEl = (): void => {
                 } else {
                   (selected satisfies object as {} as Dict<any>)[prop] = newVal
                 }
+              } else if (toggle === ":active") {
+                setNewScrolling(selected)
+                set_cachedScrollable(currentScrolling)
               } else {
                 let cls = toggle.slice(idx + ((toggle[idx] === ".") as boolean | BOOL as BOOL))
                 cls.trim() && toggleClass_s(selected as SafeElement, cls, add)

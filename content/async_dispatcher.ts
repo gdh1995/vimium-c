@@ -1,5 +1,5 @@
 import {
-  OnChrome, OnFirefox, OnEdge, doc, deref_, weakRef_ff, chromeVer_, isJSUrl, getTime, parseOpenPageUrlOptions, safeCall,
+  OnChrome, OnFirefox, OnEdge, doc, deref_, weakRef_ff, chromeVer_, isJSUrl, parseOpenPageUrlOptions, safeCall,
   tryCreateRegExp, weakRef_not_ff, firefoxVer_, fgCache, max_, promiseDefer_
 } from "../lib/utils"
 import {
@@ -193,21 +193,20 @@ export const setupIDC_cr = OnChrome ? (init: UIEventInit): void => {
   }
 } : 0 as never as null
 
-export const touch_cr_ = OnChrome ? (element: SafeElementForMouse, [x, y]: Point2D, id?: number): Promise<number> => {
-  const newId = id || getTime(),
-  touchObj = new Touch({
-    identifier: newId, target: element,
+export const touch_cr_ = OnChrome ? (element: SafeElementForMouse, [x, y]: Point2D, end?: number): Promise<unknown> => {
+  const touchObj = new Touch({
+    identifier: 99, target: element,
     clientX: x, clientY: y,
     screenX: x, screenY: y,
     pageX: x + scrollX, pageY: y + scrollY,
     radiusX: 8, radiusY: 8, force: 1
-  }), touches = id ? [] : [touchObj],
-  touchEvent = new TouchEvent(id ? "touchend" : "touchstart", wrapEventInit_<TouchEventInit>({
+  }), touches = end ? [] : [touchObj],
+  touchEvent = new TouchEvent(end ? "touchend" : "touchstart", wrapEventInit_<TouchEventInit>({
     touches, targetTouches: touches,
     changedTouches: [touchObj]
   }, Build.MinCVer >= BrowserVer.MinEnsuredTouchEventIsNotCancelable ? 1
       : chromeVer_ > BrowserVer.MinEnsuredTouchEventIsNotCancelable - 1))
-  return dispatchAsync_(element, touchEvent).then(() => newId)
+  return dispatchAsync_(element, touchEvent)
 } : 0 as never as null
 
 /** async dispatchers */
@@ -325,9 +324,9 @@ export const click_async = (async (element: SafeElementForMouse
   if (OnChrome && (Build.MinCVer >= BrowserVer.MinEnsuredTouchEventConstructor
           || chromeVer_ > BrowserVer.MinEnsuredTouchEventConstructor - 1)
       && (touchMode === !0 || touchMode && isInTouchMode_cr_!())) {
-    let id = await touch_cr_!(element, center)
+    await touch_cr_!(element, center)
     if (IsInDOM_(element)) {
-      await touch_cr_!(element, center, id)
+      await touch_cr_!(element, center, 1)
     }
     isTouch = 1
     if (!IsInDOM_(element)) { return }

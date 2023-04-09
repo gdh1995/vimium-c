@@ -282,7 +282,8 @@ set_hookOnWnd((((action: HookAction): void => {
   if (action !== HookAction.Suppress) {
     f("focus", onFocus, t)
     // https://developer.chrome.com/blog/page-lifecycle-api/
-    OnChrome && f("freeze", onFreezePort, t)
+    OnChrome && (Build.MinCVer >= BrowserVer.MinFreezeEvent || chromeVer_ > BrowserVer.MinFreezeEvent - 1)
+        && f("freeze", onFreezePort, t)
   }
   f("keydown", onKeydown, t)
   f("keyup", onKeyup, t)

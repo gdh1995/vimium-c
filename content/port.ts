@@ -128,7 +128,6 @@ export const setupBackupTimer_cr = !OnChrome ? 0 as never : (): void => {
 }
 
 export const onFreezePort = (event: Event): void => {
-  console.log('on freeze', !!port_, new Date())
   if (port_ && event.isTrusted) {
     onceFreezed = PortType.onceFreezed
     post_({ H: kFgReq.onFreeze })
