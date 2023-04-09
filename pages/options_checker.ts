@@ -113,7 +113,7 @@ const keyMappingChecker_ = {
   check_ (str: string): string {
     if (!str) { return str; }
     this.init_ && this.init_();
-    str = str.replace(<RegExpG & RegExpSearchable<0>> /\\\\?\n/g, i => i.length === 3 ? i : "\x7f")
+    str = str.replace(<RegExpG & RegExpSearchable<0>> /\\(?:\n|\\\n\s*)/g, s => s[1] === "\n" ? "\x7f" : "\xff")
     str = str.replace(<RegExpG & RegExpSearchable<3>
         >/^([ \t]*(?:#\s?)?map\s+(?:<(?!<)(?:.-){0,4}.[\w:]*?>|\S)\s+)(<(?!<)(?:[ACMSVacmsv]-){0,4}.\w*?>|\S)(?=\s|$)/gm
         , this.correctMapKey_);
@@ -121,7 +121,7 @@ const keyMappingChecker_ = {
         , this.normalizeMap_);
     str = str.replace(<RegExpG & RegExpSearchable<3>> /^([ \t]*(?:#\s?)?(?:command|shortcut)\s+)(\S+)([^\n]*)/gm,
         this.normalizeCmd_);
-    str = str.replace(<RegExpG & RegExpSearchable<0>> /\x7f/g, "\\\n").trim();
+    str = str.replace(<RegExpG & RegExpSearchable<0>> /[\x7f\xff]/g, s => s === "\x7f" ? "\\\n" : "\\\\\n  ").trim()
     return str;
   }
 };

@@ -254,7 +254,7 @@ const parseKeyMappings_ = (wholeMappings: string): void => {
       , mkReg = BgUtils_.safeObj_<string>();
     const colorRed = "color:red", shortcutLogPrefix = 'Shortcut %c"%s"';
     nonNumList_ = null
-    lines = wholeMappings.replace(<RegExpSearchable<0>> /\\\\?\n/g, t => t.length === 3 ? "\\\n" : ""
+    lines = wholeMappings.replace(<RegExpSearchable<0>> /\\(?:\n|\\\n\s*)/g, ""
                ).replace(<RegExpG> /[\t ]+/g, " ").split("\n");
     for (; _i < lines.length && (!lines[_i] || (key2 = lines[_i])[0] === kMappingsFlag.char0); _i++) {
       if (key2 && key2[1] === kMappingsFlag.char1) {

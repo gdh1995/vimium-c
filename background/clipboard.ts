@@ -54,7 +54,7 @@ let staticSeds_: readonly ClipSubItem[] | null = null, timeoutToClearInnerClipbo
 const parseSeds_ = (text: string, fixedContexts: Contexts | null): readonly ClipSubItem[] => {
   const result: ClipSubItem[] = []
   const sepReCache: Map<string, RegExpOne> = new Map()
-  for (let line of text.replace(<RegExpSearchable<0>> /\\\\?\n/g, t => t.length === 3 ? "\\\n" : "").split("\n")) {
+  for (let line of text.replace(<RegExpSearchable<0>> /\\(?:\n|\\\n\s*)/g, "").split("\n")) {
     line = line.trim()
     if ((<RegExpOne> /^[<>][\w\x80-\ufffd]{1,8}$|^[\w\x80-\ufffd]{1,8}>$/).test(line)) {
       line = `s/^//,${line[0] === ">" ? "paste" : "copy"}=${line.endsWith(">") ? line.slice(0, -1) : line.slice(1)}`
