@@ -398,15 +398,17 @@ const parseKeyMappings_ = (wholeMappings: string): void => {
           registry.delete(key)
           cmd.length === 6 && key.length > 1 && registry.delete(toKeyInInsert(key))
           tmpInt < 0 || (builtinToAdd as Exclude<typeof builtinToAdd, 0 | null>)!.splice(tmpInt, 2)
-        } else if (key.length === 1 && (key >= "0" && key < kChar.minNotNum || key[0] === kChar.minus)) {
-          if (key2 = key + ":" + GlobalConsts.NormalModeId,
+        } else if (key.length === 1 ? (key >= "0" && key < kChar.minNotNum || key[0] === kChar.minus)
+            : stripKey_(key) === kChar.esc || key === "<c-[>") {
+          if (key2 = stripKey_(key) + ":" + GlobalConsts.NormalModeId,
               key2 in mkReg && mkReg[key2] !== GlobalConsts.ForcedMapNum + key) {
             logError_("`unmap %s...` and `mapKey <%s>` can not be used at the same time", key, key2)
-          } else if (nonNumList_ && nonNumList_.has(key)) {
+          } else if (key.length === 1 && nonNumList_ && nonNumList_.has(key)) {
             cmd.length !== 6 && logError_('Number prefix: %c"%s"', colorRed, key, "has been unmapped")
           } else {
-            (nonNumList_ || (nonNumList_ = new Set!())).add(key)
-            mkReg[key2] = GlobalConsts.ForcedMapNum + key
+            key.length === 1 && (nonNumList_ || (nonNumList_ = new Set!())).add(key)
+            mkReg[key2] = GlobalConsts.ForcedMapNum + (key.length === 1 ? key : key[1] === "e" ? kChar.esc : "[")
+            key.length > 1 && (mkReg[key2.slice(0, -1) + GlobalConsts.InsertModeId] = mkReg[key2])
             mk = 1
           }
         } else if (cmd.length !== 6) {

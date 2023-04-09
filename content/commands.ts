@@ -328,7 +328,8 @@ set_contentCommands_([
     hints = 0 as never
     replaceOrSuppressMost_(kHandler.focusInput, (event): HandlerResult => {
       const keyCode = event.i, isIME = keyCode === kKeyCode.ime, repeat = isRepeated_(event),
-      key = isIME || repeat ? "" : getMappedKey(event, kModeId.Insert)
+      key = isIME || repeat ? "" : getMappedKey(event, kModeId.Insert),
+      isEsc = isEscape_(key) || key.startsWith(GlobalConsts.ForcedMapNum)
       if (OnFirefox && !insert_Lock_()) {
         exitInputHint()
         return HandlerResult.Prevent
@@ -345,10 +346,10 @@ set_contentCommands_([
         })
         return HandlerResult.Prevent;
       }
-      else if (!repeat && (!keep ? !isIME && keyCode !== kKeyCode.f12 && keyCode !== kKeyCode.shiftKey : isEscape_(key)
+      else if (!repeat && (!keep ? !isIME && keyCode !== kKeyCode.f12 && keyCode !== kKeyCode.shiftKey : isEsc
           || keybody_(key) === ENTER && key < "s" && (key[0] !== "e" || hasTag_(INP, insert_inputHint!.h[sel].d)))) {
         exitInputHint();
-        return !isEscape_(key) ? HandlerResult.Nothing : keep || !raw_insert_lock ? HandlerResult.Prevent
+        return !isEsc ? HandlerResult.Nothing : keep || !raw_insert_lock ? HandlerResult.Prevent
           : pass ? HandlerResult.PassKey : HandlerResult.Nothing;
       } else {
         return HandlerResult.Nothing;
