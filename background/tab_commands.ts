@@ -1,10 +1,11 @@
 import {
   cRepeat, get_cOptions, cPort, curIncognito_, curTabId_, curWndId_, recencyForTab_, set_curWndId_, set_curTabId_,
-  copy_, newTabUrl_f, CurCVer_, IsEdg_, OnChrome, OnEdge, OnFirefox, CONST_, reqH_, set_cRepeat, extAllowList_, Origin2_
+  copy_, newTabUrl_f, CurCVer_, IsEdg_, OnChrome, OnEdge, OnFirefox, CONST_, reqH_, set_cRepeat, extAllowList_,
+  Origin2_, lastWndId_
 } from "./store"
 import * as BgUtils_ from "./utils"
 import {
-  Tabs_, Windows_, makeTempWindow_r, makeWindow, PopWindow, tabsCreate, Window, getTabUrl, selectFrom, tabsGet, R_,
+  Tabs_, Windows_, makeTempWindow_r, makeWindow, PopWindow, tabsCreate, Window, getTabUrl, selectFrom, tabsGet, R_, Qs_,
   runtimeError_, IncNormalWnd, selectWnd, selectTab, getCurWnd, getCurTabs, getCurTab, getGroupId, tabsUpdate,
   browserSessions_, InfoToCreateMultiTab, openMultiTabs, isTabMuted, isRefusingIncognito_, Q_, isNotHidden_,
   selectIndexFrom
@@ -20,8 +21,8 @@ import { parseSedOptions_ } from "./clipboard"
 import { newTabIndex, preferLastWnd, openUrlWithActions } from "./open_urls"
 import { focusFrame } from "./frame_commands"
 import {
-  FilterInfo, filterTabsByCond_, findLastVisibleWindow_, findNearShownTab_, getNecessaryCurTabInfo, getTabRange, onShownTabsIfRepeat_, Range3,
-  sortTabsByCond_, tryLastActiveTab_
+  FilterInfo, filterTabsByCond_, findLastVisibleWindow_, findNearShownTab_, getNecessaryCurTabInfo, getTabRange,
+  onShownTabsIfRepeat_, Range3, sortTabsByCond_, tryLastActiveTab_
 } from "./filter_tabs"
 import { TabRecency_ } from "./tools"
 
@@ -845,4 +846,41 @@ export const onSessionRestored_ = (curWndId: number, restored: chrome.sessions.S
       })
     })
   }
+}
+
+export const toggleWindow = (resolve: OnCmdResolved): void | kBgCmd.toggleWindow => {
+  type WndState = chrome.windows.ValidStates
+  const target = get_cOptions<C.toggleWindow>().target
+  let states = get_cOptions<C.toggleWindow, true>().states
+  states = typeof states === "string" ? states.trim().split(<RegExpOne> /[\s,;]+/
+      ) as BgCmdOptions[C.toggleWindow]["states"] & string[] : states
+  states = states || ["normal", "maximized"]
+  const curWndId = curWndId_
+  const selected = target && target !== "current" && target !== "all" ? lastWndId_ : curWndId
+  if (selected < 0) { resolve(0); return }
+  Q_(Windows_.get, selected).then(wnd => wnd || Q_(Windows_.get, curWndId_)).then(async (wnd): Promise<void> => {
+    if (!wnd) { resolve(0); return }
+    const others = target === "others" ? await Qs_(Windows_.getAll).then((wnds): number[] => {
+      wnds = wnds?.filter(i => i.id !== curWndId && i.id !== selected && i.type !== "devtools")
+      return wnds ? wnds.map(i => i.id) : []
+    }) : []
+    let change: chrome.windows.UpdateInfo = {}
+    if (states instanceof Array) {
+      const valid: WndState[] = ["normal", "maximized", "fullscreen", "minimized"]
+      states = states.map((i): WndState | "" | " " =>
+            valid.find(j => j.startsWith(i)) ?? ("current keep".includes(i) ? "" : " ")
+          ).filter((i): i is WndState | "" => i !== " ") as BgCmdOptions[C.toggleWindow]["states"] & string[]
+      const offset = cRepeat > 1 ? cRepeat - 2 : (states as string[]).indexOf(wnd.state) + 1
+      const newState = states.length > 0 && states[offset % states.length] || wnd.state
+      if (newState !== wnd.state || others.length > 0) {
+        change.state = newState
+      }
+    }
+    if (Object.keys(change).length) {
+      Windows_.update(selected, change, R_(resolve))
+    }
+    for (const otherWndId of others) {
+      Windows_.update(otherWndId, change, runtimeError_)
+    }
+  })
 }

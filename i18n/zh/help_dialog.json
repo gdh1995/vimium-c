@@ -171,6 +171,7 @@
   "toggleSwitchTemp": "在当前页面临时切换任意选项",
   "toggleViewSource": "显示当前页面的源代码",
   "toggleVomnibarStyle": "临时切换搜索框的样式风格",
+  "toggleWindow": "改变窗口状态",
   "visitPreviousTab": "切换到最近访问的上一个标签页",
   "zoom": "缩放网页",
   "zoomIn": "放大网页",

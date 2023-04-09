@@ -164,6 +164,7 @@
   "toggleSwitchTemp": "Toggle switch only on current page",
   "toggleViewSource": "View page source",
   "toggleVomnibarStyle": "Toggle styles of vomnibar page",
+  "toggleWindow": "Change window status",
   "visitPreviousTab": "Go to previously-visited tab on current window",
   "zoom": "Make a current tab zoom",
   "zoomIn": "Make a current tab zoom in",

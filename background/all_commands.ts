@@ -33,7 +33,7 @@ import {
 } from "./filter_tabs"
 import {
   copyWindowInfo, joinTabs, moveTabToNewWindow, moveTabToNextWindow, reloadTab, removeTab, toggleMuteTab,
-  togglePinTab, toggleTabUrl, reopenTab_, onSessionRestored_
+  togglePinTab, toggleTabUrl, reopenTab_, onSessionRestored_, toggleWindow
 } from "./tab_commands"
 import { ContentSettings_, FindModeHistory_, Marks_, TabRecency_ } from "./tools"
 import C = kBgCmd
@@ -51,7 +51,7 @@ set_cmdInfo_([
   /* kBgCmd.restoreTab      */ Info.NoTab, Info.ActiveTab, Info.NoTab, Info.NoTab, Info.ActiveTab,
   /* kBgCmd.togglePinTab    */ Info.NoTab, Info.CurShownTabsIfRepeat, Info.ActiveTab, Info.ActiveTab, Info.NoTab,
       Info.NoTab,
-  /* kBgCmd.closeDownloadBar*/ Info.NoTab, Info.NoTab, Info.NoTab
+  /* kBgCmd.closeDownloadBar*/ Info.NoTab, Info.NoTab, Info.NoTab, Info.NoTab
 ] satisfies {
   [K in keyof BgCmdOptions]: K extends keyof BgCmdInfoMap ? BgCmdInfoMap[K] : Info.NoTab
 })
@@ -941,5 +941,6 @@ set_bgC_([
         openUrl()
       }
     })
-  }
+  },
+  _AsBgC<BgCmdNoTab<kBgCmd.toggleWindow>>(toggleWindow)
 ])

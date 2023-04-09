@@ -359,6 +359,7 @@ const commandGroups_: {
     , "clearContentSettings", 1
     , "copyWindowInfo", 1, "$format=\"${title}: ${url}\", join:true/string, decoded"
     , "captureTab"
+    , "toggleWindow", "$states=\"normal maximized\""
   ],
   misc: [
     "showHelp"

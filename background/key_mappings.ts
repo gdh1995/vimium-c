@@ -807,6 +807,7 @@ export const availableCommands_: { readonly [key in kCName]: CommandsNS.Descript
   toggleViewSource: [ kBgCmd.toggleTabUrl, kCxt.bg, 1, { opener: true } ],
   toggleReaderMode: [ kBgCmd.toggleTabUrl, kCxt.bg, 1, { reader: true, reuse: ReuseType.current, opener: true } ],
   toggleVomnibarStyle: [ kBgCmd.toggleVomnibarStyle, kCxt.bg, 1, { style: "dark" } ],
+  toggleWindow: [ kBgCmd.toggleWindow, kCxt.bg, 0 ],
   visitPreviousTab: [ kBgCmd.visitPreviousTab, kCxt.bg, 0 ],
   wait: [ kBgCmd.blank, kCxt.bg, 0, { wait: "count" } ],
   zoom: [ kBgCmd.toggleZoom, kCxt.bg, 0 ],

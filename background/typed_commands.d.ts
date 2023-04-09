@@ -168,6 +168,10 @@ interface BgCmdOptions {
   [kBgCmd.reset]: { suppress: boolean } & Pick<BgCmdOptions[kBgCmd.insertMode], "unhover"> & Req.FallbackOptions
   [kBgCmd.openBookmark]: { title: string; path: string; id: string; name: string; value: string
       $cache: [CompletersNS.Bookmark["id_"], number] | null } & MaskOptions
+  [kBgCmd.toggleWindow]: {
+    target: "current" | "last" | "all" | "others"
+    states: ("normal" | "minimized" | "maximized" | "fullscreen" | "current" | "keep" | "")[] | string
+  }
 }
 
 interface BgCmdInfoMap {
@@ -467,6 +471,9 @@ interface CmdNameIds {
   searchInAnother: kBgCmd.searchInAnother
   sendToExtension: kBgCmd.sendToExtension
   showHelp: kBgCmd.showHelp
+  showHUD: kBgCmd.showHUD
+  showHud: kBgCmd.showHUD
+  showTip: kBgCmd.showHUD
   simBackspace: kFgCmd.focusInput
   simulateBackspace: kFgCmd.focusInput
   sortTabs: kBgCmd.joinTabs
@@ -481,9 +488,7 @@ interface CmdNameIds {
   toggleSwitchTemp: kBgCmd.toggle
   toggleViewSource: kBgCmd.toggleTabUrl
   toggleVomnibarStyle: kBgCmd.toggleVomnibarStyle
-  showHUD: kBgCmd.showHUD
-  showHud: kBgCmd.showHUD
-  showTip: kBgCmd.showHUD
+  toggleWindow: kBgCmd.toggleWindow
   visitPreviousTab: kBgCmd.visitPreviousTab
   wait: kBgCmd.blank
   zoom: kBgCmd.toggleZoom
