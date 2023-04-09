@@ -335,7 +335,7 @@ export const parseSearchEngines_ = (str: string, map: Map<string, Search.Engine>
       ? (map.set(k, obj), true) : false
   }),
   pair: RegExpExecArray | null
-  for (let val of str.replace(<RegExpSearchable<0>> /\\(?:\n|\\\n\s*)/g, "").split("\n")) {
+  for (let val of str.replace(<RegExpSearchable<0>> /\\(?:\n|\\\n[^\S\n]*)/g, "").split("\n")) {
     val = val.trim();
     if (val < kChar.minNotCommentHead) { continue; } // mask: /[!"#]/
     ind = 0;

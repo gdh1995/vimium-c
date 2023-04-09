@@ -2,6 +2,27 @@ import { browser_, OnFirefox, post_ } from "./async_bg"
 import { bgSettings_, Option_, AllowedOptions, oTrans_ } from "./options_base"
 import { kPgReq } from "../background/page_messages"
 
+const spaceKindRe = <RegExpG & RegExpSearchable<0>> /\s/g
+
+const detectSubExpressions_ = (expression: string, pos: number): number => {
+  let curlyBraces = 0, end = expression.length
+  for (; pos < end; pos++) {
+    switch (expression[pos]) {
+    case "{": case "[": curlyBraces++; break
+    case "]": case "}": --curlyBraces; break
+    default: {
+      const literal = (<RegExpOne> (expression[pos] === '"' ? /^"([^"\\]|\\[^])*"/
+          : curlyBraces ? /^(?:[$a-zA-Z_][$\w]*|\d[\d.eE+-]|\s+)/ : /^\S+/)).exec(expression.slice(pos))
+      if (!literal && !curlyBraces && (<RegExpOne> /\s/).test(expression[pos])) {
+        return pos
+      }
+      pos += literal ? literal[0].length - 1 : 0
+    }
+    }
+  }
+  return pos
+}
+
 const keyMappingChecker_ = {
   status_: 0 as const,
   normalizeKeys_: null as never as (this: void, s: string) => string,
@@ -36,33 +57,33 @@ const keyMappingChecker_ = {
   onHex_ (this: void, _s: string, hex: string): string {
     return hex ? "\\u00" + hex : "\\\\";
   },
-  normalizeOptions_ (this: void, str: string, value: string, s2: string | undefined, tail: string): string {
-    if (s2) {
+  normalizeOptions_ (this: void, str: string): string {
+    let value = str.slice(1), s2 = "", s3 = ""
+    if (value.startsWith('"') && value.endsWith('"')) {
+      s2 = value.slice(1, -1)
       s2 = s2.replace(<RegExpGI & RegExpSearchable<1>> /\\(?:x([\da-z]{2})|\\)/gi, keyMappingChecker_.onHex_)
       value = `"${s2}"`;
-    } else if (!tail && value === "\\\\") {
-      value = "\\";
-    }
-    let s3 = "";
-    if (value.startsWith("{")) {
-      value = value.replace(<RegExpG> /([{,] ?)(\w+):/g, '$1"$2":');
+    } else if (value && "{[".includes(value[0])) {
+      value = value.replace(<RegExpG & RegExpSearchable<2>> /([{,](?: |\x7f\d*\x80)*)(\w+):|"(?:[^"\\]|\\[^])*"/g
+          , (full, s1, s2) => s1 ? `${s1}"${s2}":` : full)
       s3 = value;
     }
-    value = value.replace(<RegExpG> /\ufffe/g, "")
     const multiLines = value.includes("\x7f")
+    const p1 = multiLines && !s2 ? ((<RegExpOne> /^(?:\x7f\d*\x80)+/).exec(value) || [""])[0] : ""
+    const p2 = !multiLines || s2 ? "" : ((<RegExpOne> /(?:\x7f\d*\x80)+$/).exec(value.slice(p1.length + 1)) || [""])[0]
     try {
-      const obj = JSON.parse(multiLines ? value.replace(<RegExpG> /\x7f/g, "") : value)
-      if (typeof obj !== "string") {
-        return obj !== true ? s3 ? "=" + s3 + tail : str : tail
+      const obj = JSON.parse(multiLines ? value.replace(<RegExpG> /\x7f\d*\x80/g, "") : value)
+      if (typeof obj !== "string" && !(<RegExpOne> /\s/).test(value)) {
+        return obj === true ? "" : s3 ? "=" + s3 : str
       }
-      value = multiLines ? JSON.parse(value) : obj
+      value = multiLines ? JSON.parse(value.slice(p1.length, p2 ? -p2.length : undefined)) : obj
     } catch {
-      value = multiLines ? (s2 || value) : s2 || value
+      value = multiLines ? s2 || value.slice(p1.length, p2 ? -p2.length : undefined) : s2 || value
     }
-    value = value && value.replace(<RegExpG & RegExpSearchable<1>> /\\(\\|s)/g, (a, i) => i === "s" ? " " : a)
-    value = value && JSON.stringify(value).replace(<RegExpG & RegExpSearchable<0>> /\s/g, keyMappingChecker_.onToHex_)
-    value = multiLines ? value : value
-    return "=" + value + tail;
+    value = value && typeof value === "string"
+        ? value.replace(<RegExpG & RegExpSearchable<1>> /\\(\\|s)/g, (a, i) => i === "s" ? " " : a) : value
+    value = value && JSON.stringify(value).replace(spaceKindRe, keyMappingChecker_.onToHex_)
+    return "=" + p1 + value + p2
   },
   onToHex_ (this: void, s: string): string {
     const hex = s.charCodeAt(0) + 0x100000;
@@ -99,9 +120,24 @@ const keyMappingChecker_ = {
     if ((<RegExpOne> /\s(createTab|openUrl)/).test(name) && !(<RegExpI> /\surls?=/i).test(options)) {
       options = keyMappingChecker_.convertFromLegacyUrlList_(options)
     }
-    options = options ? options.replace(<RegExpG & RegExpSearchable<3>> /=("(\S*(?:\s[^=]*)?)"|\S+)(\s|$)/g,
-        keyMappingChecker_.normalizeOptions_) : "";
-    return prefix + name + options;
+    if (!options) { return prefix + name }
+    let before = 0, cur = -1, outOptions = ""
+    while (cur < options.length) {
+      cur = options.indexOf("=", cur + 1)
+      outOptions += options.slice(before, cur >= 0 ? cur : undefined)
+      if (cur < 0) { break }
+      let next = cur + 1
+      if (next < options.length && '"[{'.includes(options[next])) {
+        next = detectSubExpressions_(options, next)
+      } else {
+        spaceKindRe.lastIndex = cur
+        const arr = spaceKindRe.exec(options)
+        next = arr ? arr.index : options.length
+      }
+      outOptions += keyMappingChecker_.normalizeOptions_(options.slice(cur, next))
+      before = cur = next
+    }
+    return prefix + name + outOptions
   },
   convertFromLegacyUrlList_ (this: void, options: string): string {
     const urls: string[] = [];
@@ -113,7 +149,8 @@ const keyMappingChecker_ = {
   check_ (str: string): string {
     if (!str) { return str; }
     this.init_ && this.init_();
-    str = str.replace(<RegExpG & RegExpSearchable<0>> /\\(?:\n|\\\n\s*)/g, s => s[1] === "\n" ? "\x7f" : "\xff")
+    str = str.replace(<RegExpG & RegExpSearchable<0>> /\\(?:\n|\\\n[^\S\n]*)/g , s => s[1] === "\n" ? "\x7f\x80"
+        : `\x7f${s.length - 3}\x80`)
     str = str.replace(<RegExpG & RegExpSearchable<3>
         >/^([ \t]*(?:#\s?)?map\s+(?:<(?!<)(?:.-){0,4}.[\w:]*?>|\S)\s+)(<(?!<)(?:[ACMSVacmsv]-){0,4}.\w*?>|\S)(?=\s|$)/gm
         , this.correctMapKey_);
@@ -121,7 +158,9 @@ const keyMappingChecker_ = {
         , this.normalizeMap_);
     str = str.replace(<RegExpG & RegExpSearchable<3>> /^([ \t]*(?:#\s?)?(?:command|shortcut)\s+)(\S+)([^\n]*)/gm,
         this.normalizeCmd_);
-    str = str.replace(<RegExpG & RegExpSearchable<0>> /[\x7f\xff]/g, s => s === "\x7f" ? "\\\n" : "\\\\\n  ").trim()
+    str = str.replace(<RegExpG & RegExpSearchable<1>> /\x7f(\d*)\x80/g, (_, num) => num === "" ? "\\\n"
+        : "\\\\\n" + " ".repeat!(+num))
+    str = str.replace(<RegExpOne> /\\(?:\n|\\\n\s*)$/ , "").trim()
     return str;
   }
 };
