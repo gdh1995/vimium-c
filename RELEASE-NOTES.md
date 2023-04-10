@@ -5,14 +5,21 @@ ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 说明文档: https://gitee.com/gdh1995/vimium-c#readme , https://github.com/gdh1995/vimium-c/blob/master/README-zh.md .
 
 #### v1.99.98
+* fix Vimium C hangs in some situations on Chrome 110+
 * key mappings: support `map!` and `#if`/`#else`/`#endif` and even nested pairs
+  * use `map!` and `run!` to make a mapping work in both normal and plain insert mode
+  * support `unmap <esc>` and `unmap <c-[>` to disable them in normal mode
   * change how `runKey` and `run` rules gets parsed
-* text substitution: add a temporary inner clipboard and then
+  * use `\\<LF>` to merge two lines and strip whitespace prefix characters of a second line
+* text substitution: add a inner temporary clipboard and then
   * substitution and `runKey mask` can read/write it,
   * so that command may create complex `runKey` task from text in system clipboard easily
 * now when `<*-modifier>` works as a first prefix key, it will end in 3 seconds
   * the key will be passed to web page scripts, to work better with `*+Letter`
-* Vomnibar: de-duplicate suggestions even in different types
+* LinkHints: support more usages including `LinkHints.activateOpenUrl`
+  * `LinkHints.activateCopyImage` supports `.url` to copy URL instead
+* Vomnibar: de-duplicate tab and history suggestions if possible
+  * now also list closed browser window sessions
   * change what's copied on `Ctrl+C` and `Ctrl+Shift+C`
 * Scroller: fix checks of whether an area should be scrolled or not
 * VisualMode: fix the logic of scrolling caret into view
@@ -20,7 +27,7 @@ ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 * `nextTab`/.../`visitPreviousTab`: support `blur: boolean | host-matcher-string` to grab focus from input again
 * `focusInput` now supports `clickable` and `clickableOnHost`
 * `editText`: add `when` clause to control what to do
-* `confirm`: will show a prompt dialog; parameters are `ask: string, $then`
+* `confirm`: will show a prompt dialog; parameters are `ask: string, $then, minRepeat=1`
 * fix quite a few edge cases
 
 #### v1.99.96
@@ -99,7 +106,6 @@ ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 * Vomnibar: tabs mode: recognize `:xxx` filters even if there're other query words
   * add `:group` to show tabs in a same group ([#671](https://github.com/gdh1995/vimium-c/issues/671))
 * FindMode: add `highlight: boolean | number` to show outline boxes for "near" matches
-* FindMode: now type `\0` to pause instant search until an `Enter`
   (to work around [#554](https://github.com/gdh1995/vimium-c/issues/554))
 * `goNext`: fix some wrong targets on twitter.com ([#559](https://github.com/gdh1995/vimium-c/issues/559))
   * improve the logic to detect clickable elements and their titles

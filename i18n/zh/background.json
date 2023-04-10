@@ -86,5 +86,5 @@
   "turnOff": "已临时停用 $1",
   "Upgrade": "已更新",
   "upgradeMsg": "您的 Vimium C 已经更新至 $1 版。\n",
-  "upgradeMsg2": "更容易添加自定义快捷键和文本替换规则。"
+  "upgradeMsg2": "更容易添加自定义快捷键、新增内部临时剪贴板。"
 }
