@@ -211,6 +211,7 @@ let optionsInit1_ = function (): void {
   }
 
   delayBinding_("[data-href]", "mousedown", (): void => {
+    document.onmouseover = null as never
     for (const element of $$<HTMLAnchorElement & { dataset: KnownOptionsDataset }>("[data-href]")) {
       element.onmousedown = null as never
       void post_(kPgReq.convertToUrl, [element.dataset.href, Urls.WorkType.ConvertKnown]).then(([str]): void => {
@@ -219,6 +220,10 @@ let optionsInit1_ = function (): void {
       })
     }
   }, "on")
+  document.onmouseover = (): void => {
+    didBindEvent_("mousedown")
+    ; ($<HTMLElement>("[data-href]").onmousedown as () => void)()
+  }
 
   const openExt = $<HTMLAnchorElement>("#openExtensionsPage");
   if (OnChrome && Build.MinCVer < BrowserVer.MinEnsuredChromeURL$ExtensionShortcuts

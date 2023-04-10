@@ -608,7 +608,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     }
     let action: AllowedActions = AllowedActions.nothing, ind: number;
     const char = (key.slice(key.lastIndexOf("-") + 1) || key && kChar.minus) as kChar,
-    mainModifier = key.includes("-", 1) ? key[0] as "a" | "c" | "m" | "s" | "" : ""
+    mainModifier = key.includes("-", 1) ? key[0] as "a" | "c" | "m" | "s" : ""
     if (mainModifier === "a") {
         if (key === "a-" + kChar.Alt || key === "a-" + kChar.Modifier) {
           a.inAlt_ || addEventListener("keyup", a.toggleAlt_, true)
@@ -639,7 +639,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
               && !key.includes("a-c-")) { // treat <a-c-***> on macOS as <a-***> on Windows
           // -2 is for https://www.reddit.com/r/firefox/comments/767bha/how_to_make_cmdbackspace_better_on_macos/
           a.onWordAction_(mainModifier < "m" ? -1 : key.includes("s-") ? -3 : -2)
-        } else if (!(Build.OS & (1 << kOS.win)) || a.os_ < kOS.win || key.includes("a-c-")
+        } else if (!(Build.OS & (1 << kOS.win)) || Build.OS & ~(1 << kOS.win) && a.os_ < kOS.win || key.includes("a-c-")
             || Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinAltBackspaceWithShiftToUndoOrRedo
                 && a.browser_ === BrowserType.Chrome && a.browserVer_ < BrowserVer.MinAltBackspaceWithShiftToUndoOrRedo
             || Build.BTypes & ~BrowserType.ChromeOrFirefox && !(a.browser_ & BrowserType.ChromeOrFirefox)) {
@@ -652,12 +652,11 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     }
     if (mainModifier === "a" || mainModifier === "m") {
       if (char === kChar.f2) { return a.onAction_(focused ? AllowedActions.blurInput : AllowedActions.focus) }
-      if (char >= "0" && char <= "9" && (Build.OS & ~(1 << kOS.mac) && a.os_ || (<RegExpOne> /[cm]-/).test(key))) {
-          ind = +char || 10;
-          if (ind <= a.completions_.length) {
-            a.onEnter_(true, ind - 1);
-          }
-          return;
+      if (char >= "0" && char <= "9" && (!(Build.OS & (1 << kOS.mac)) || Build.OS & ~(1 << kOS.mac) && a.os_
+          || (<RegExpOne> /[cm]-/).test(key))) {
+        ind = +char || 10
+        if (ind <= a.completions_.length) { a.onEnter_(true, ind - 1) }
+        return
       }
       if (focused && char.length === 1 && char > kChar.a && char < kChar.g && char !== kChar.c) {
         return a.onWordAction_(char.charCodeAt(0) - (kCharCode.maxNotAlphabet | kCharCode.CASE_DELTA))

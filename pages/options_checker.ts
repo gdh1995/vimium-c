@@ -4,21 +4,28 @@ import { kPgReq } from "../background/page_messages"
 
 const spaceKindRe = <RegExpG & RegExpSearchable<0>> /\s/g
 
-const detectSubExpressions_ = (expression: string, pos: number): number => {
-  let curlyBraces = 0, end = expression.length
+const detectSubExpressions_ = (expression: string, start: number): number => {
+  let curlyBraces = 0, end = expression.length, pos = start
   for (; pos < end; pos++) {
     switch (expression[pos]) {
     case "{": case "[": curlyBraces++; break
-    case "]": case "}": --curlyBraces; break
+    case "]": case "}":
+      --curlyBraces;
+      if (curlyBraces > 0) { break }
+      // no break;
     default: {
       const literal = (<RegExpOne> (expression[pos] === '"' ? /^"([^"\\]|\\[^])*"/
-          : curlyBraces ? /^(?:[$a-zA-Z_][$\w]*|\d[\d.eE+-]|\s+)/ : /^\S+/)).exec(expression.slice(pos))
+          : curlyBraces > 0 ? /^(?:[$a-zA-Z_][$\w]*|\d[\d.eE+-]|\s+)/ : /^\S+/)).exec(expression.slice(pos))
       if (!literal && !curlyBraces && (<RegExpOne> /\s/).test(expression[pos])) {
         return pos
       }
       pos += literal ? literal[0].length - 1 : 0
     }
     }
+  }
+  if (curlyBraces > 0) {
+    const literal = (<RegExpOne> /^\S*/).exec(expression.slice(start))
+    return start + (literal ? literal[0].length : 0)
   }
   return pos
 }
