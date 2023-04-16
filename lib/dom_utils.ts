@@ -154,7 +154,10 @@ export const SafeEl_not_ff_ = !OnFirefox ? function (
   (el: Element | null | void, type?: PNType.DirectElement): SafeElement | null | undefined
 } : 0 as never as null
 
-export const GetShadowRoot_ = (el: Element, noClosed_cr?: boolean | BOOL): ShadowRoot | null => {
+export const TryGetShadowRoot_ = (el: Element, noClosed_cr?: boolean | BOOL): ShadowRoot | null =>
+    htmlTag_<1>(el) ? GetShadowRoot_(el, noClosed_cr) : null
+
+export const GetShadowRoot_ = (el: SafeHTMLElement, noClosed_cr?: boolean | BOOL): ShadowRoot | null => {
     let sr: Element["shadowRoot"] | Element["webkitShadowRoot"]
     if (OnFirefox) {
       return Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1
@@ -163,7 +166,7 @@ export const GetShadowRoot_ = (el: Element, noClosed_cr?: boolean | BOOL): Shado
     if (OnChrome && !noClosed_cr) {
       if ((Build.MinCVer >= BrowserVer.Min$dom$$openOrClosedShadowRoot
           || chromeVer_ > BrowserVer.Min$dom$$openOrClosedShadowRoot - 1)) {
-        return (chrome as any).dom.openOrClosedShadowRoot(el)
+        return htmlTag_(el) && (chrome as any).dom.openOrClosedShadowRoot(el)
       }
     }
     // Note: .webkitShadowRoot and .shadowRoot share a same object
@@ -433,7 +436,7 @@ export const deepActiveEl_unsafe_ = (alsoBody?: 1): Element | null => {
   let el: Element | null | undefined = activeEl_unsafe_()
   let active: Element | null | undefined = alsoBody && (el || docEl_unsafe_()), shadowRoot: ShadowRoot | null
   if (el !== doc.body && el !== docEl_unsafe_()) {
-    while (el && (shadowRoot = GetShadowRoot_(active = el))) {
+    while (el && (shadowRoot = TryGetShadowRoot_(active = el))) {
       el = shadowRoot.activeElement
     }
   }

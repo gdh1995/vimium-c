@@ -370,7 +370,8 @@ const copyText = (str?: string | null): void => {
               ? "" : (clickEl as HTMLSelectElement).options[(clickEl as HTMLSelectElement).selectedIndex].text)
           : isHtmlImage ? (clickEl as HTMLImageElement).alt
           : tag && ((clickEl as SafeHTMLElement).innerText.trim()
-                || GetShadowRoot_(clickEl) && (childEl = querySelector_unsafe_("div,span", GetShadowRoot_(clickEl)!))
+                || GetShadowRoot_(clickEl as SafeHTMLElement)
+                    && (childEl = querySelector_unsafe_("div,span", GetShadowRoot_(clickEl as SafeHTMLElement)!))
                     && htmlTag_<1>(childEl) && childEl.innerText.trim())
             || (str = extractTextContent()) && str.replace(<RegExpG> /\s+/g, " ")
       }

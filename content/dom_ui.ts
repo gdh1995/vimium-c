@@ -5,7 +5,7 @@ import {
 import { prevent_ } from "../lib/keyboard_utils"
 import {
   createElement_, attachShadow_, NONE, fullscreenEl_unsafe_, docEl_unsafe_, getComputedStyle_, set_docSelectable_, kDir,
-  GetParent_unsafe_, getSelection_, GetShadowRoot_, getEditableType_, textOffset_, derefInDoc_, supportInert_,
+  GetParent_unsafe_, getSelection_, TryGetShadowRoot_, getEditableType_, textOffset_, derefInDoc_, supportInert_,
   notSafe_not_ff_, CLK, frameElement_, runJS_, isStyleVisible_, rangeCount_, getAccessibleSelectedNode, removeEl_s,
   appendNode_s, append_not_ff, setClassName_s, isNode_, contains_s, setOrRemoveAttr_s, textContent_s, inputSelRange,
   parentNode_unsafe_s, setDisplaying_s, getRootNode_mounted, singleSelectionElement_unsafe, isHTML_,
@@ -170,7 +170,7 @@ export const adjustUI = (event?: Event | /* enable */ 1 | /* disable */ 2): void
     // doc: https://dom.spec.whatwg.org/#dom-node-appendchild
     //  -> #concept-node-append -> #concept-node-pre-insert -> #concept-node-adopt -> step 2
     disableUI ? removeEl_s(box_!) : el2 === parentNode_unsafe_s(box_!)
-        && (curModalElement || omni_box || !box_!.nextElementSibling) ||
+        && (!box_!.nextElementSibling || omni_box && omni_status > OmniStatus.Inactive || curModalElement) ||
     (OnFirefox ? (appendNode_s as typeof append_not_ff) : append_not_ff)(el2, box_!)
     const sin = styleIn_, s = sin && (sin as HTMLStyleElement).sheet
     s && (s.disabled = false);
@@ -279,7 +279,7 @@ export const getSelected = (notExpectCount?: {r?: ShadowRoot | null}): Selection
     while (sel2) {
           sel2 = null
           el = singleSelectionElement_unsafe(sel)
-          if (el && (sr = GetShadowRoot_(el as Element))) {
+          if (el && (sr = TryGetShadowRoot_(el as Element))) {
             if (OnChrome ? sel2 = getSelectionOf(sr) : hasGetSelection(sr) && (sel2 = getSelectionOf(sr))) {
               sel = sel2!;
             } else {

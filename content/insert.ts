@@ -3,16 +3,16 @@ import {
   esc, onWndFocus, isEnabled_, readyState_, injector, recordLog, weakRef_not_ff, OnEdge, getTime, abs_, fgCache,
   safeCall, timeout_, timeStamp_
 } from "../lib/utils"
+import {
+  activeEl_unsafe_, getEditableType_, getEventPath, getSelection_, frameElement_, deepActiveEl_unsafe_, blur_unsafe,
+  SafeEl_not_ff_, MDW, fullscreenEl_unsafe_, removeEl_s, isNode_, BU, docHasFocus_, getRootNode_mounted, testMatch,
+  TryGetShadowRoot_
+} from "../lib/dom_utils"
 import { post_, runFallbackKey, runtime_port, safePost } from "./port"
 import { getParentVApi, ui_box, ui_root } from "./dom_ui"
 import { hudHide } from "./hud"
 import { setNewScrolling, scrollTick } from "./scroller"
 import { set_isCmdTriggered, resetAnyClickHandler_cr, onPassKey } from "./key_handler"
-import {
-  activeEl_unsafe_, getEditableType_, GetShadowRoot_, getSelection_, frameElement_, deepActiveEl_unsafe_, blur_unsafe,
-  SafeEl_not_ff_, MDW, fullscreenEl_unsafe_, removeEl_s, isNode_, BU, docHasFocus_, getRootNode_mounted, testMatch,
-  getEventPath
-} from "../lib/dom_utils"
 import { handler_stack, removeHandler_, prevent_, isEscape_, consumeKey_mac } from "../lib/keyboard_utils"
 import { InputHintItem } from "./link_hints"
 import { find_box } from "./mode_find"
@@ -74,7 +74,7 @@ export const insertInit = (doesGrab?: boolean | null, inLoading?: 1): void => {
       grabBackFocus = (event: Event, target: LockableElement): void => {
         const activeEl1 = activeEl_unsafe_(), now = getTime()
         // on Chrome, password saver won't set doc.activeElement when dispatching "focus" events
-        if (activeEl1 === target || activeEl1 && GetShadowRoot_(activeEl1)) {
+        if (activeEl1 === target || activeEl1 && TryGetShadowRoot_(activeEl1)) {
           Stop_(event);
           counter && abs_(now - tick) > 512 ? counter = 1 : counter++ || recordLog(kTip.logGrabFocus)()
           tick = now
@@ -177,7 +177,7 @@ export const focusUpper = (key: kKeyCode, force: boolean, event: ToPrevent | 0):
 
 export const exitInsertMode = <(target: Element, event?: HandlerNS.Event) => HandlerResult> ((
     target: LockableElement | null, event?: HandlerNS.Event): HandlerResult => {
-  if (GetShadowRoot_(target!) || target === lock_) {
+  if (target === lock_ || TryGetShadowRoot_(target as Element)) {
     target = lock_
     lock_ = null
   } else {
@@ -229,7 +229,7 @@ export const onFocus = (event: Event | FocusEvent): void => {
   if (lock_ && lock_ === (OnChrome ? deepActiveEl_unsafe_() : activeEl_unsafe_())) { return; }
   if (target === ui_box) { Stop_(event); return }
   // on Edge 107 and MV3 mode, chrome.dom may throw `invalid extension context`
-  const sr = OnChrome ? GetShadowRoot_(target as Element, !runtime_port) : GetShadowRoot_(target as Element)
+  const sr = OnChrome ? TryGetShadowRoot_(target as Element, !runtime_port) : TryGetShadowRoot_(target as Element)
   if (sr) {
     const path = getEventPath(event)
     let topOfPath: EventTarget | undefined
@@ -278,7 +278,7 @@ export const onBlur = (event: Event | FocusEvent): void => {
   let target: EventTarget | Element | Window | Document = event.target, topOfPath: EventTarget | undefined
   if (target === window) { onWndBlur(); return }
   if (OnFirefox && target === doc) { return; }
-  const sr = OnChrome ? GetShadowRoot_(target as Element, !runtime_port) : GetShadowRoot_(target as Element)
+  const sr = OnChrome ? TryGetShadowRoot_(target as Element, !runtime_port) : TryGetShadowRoot_(target as Element)
   if (sr && target !== ui_box) {
   const path = getEventPath(event)
   const same = !OnEdge && (!OnChrome

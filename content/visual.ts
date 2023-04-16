@@ -594,6 +594,7 @@ const ensureLine = (command1: number, s0: string): void => {
     return
   }
   mode === Mode.Caret && (command > VisualAction.MaxNotFind || command < VisualAction.MaxNotYank + 1)
+      && collapseToFocus(0)
   if (command > VisualAction.MaxNotFind) {
     findV(command - VisualAction.PerformFind ? count : -count)
     return;

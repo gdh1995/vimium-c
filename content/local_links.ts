@@ -8,7 +8,7 @@ import {
   kMediaTag, NONE, querySelector_unsafe_, isStyleVisible_, fullscreenEl_unsafe_, notSafe_not_ff_, docEl_unsafe_,
   GetParent_unsafe_, unsafeFramesetTag_old_cr_, isHTML_, querySelectorAll_unsafe_, isNode_, INP, attr_s, supportInert_,
   getMediaTag, getMediaUrl, contains_s, GetShadowRoot_, parentNode_unsafe_s, testMatch, hasTag_, editableTypes_,
-  getRootNode_mounted, findSelectorByHost
+  getRootNode_mounted, findSelectorByHost, TryGetShadowRoot_
 } from "../lib/dom_utils"
 import {
   getVisibleClientRect_, getVisibleBoundingRect_, getClientRectsForAreas_, getCroppedRect_, boundingRect_,
@@ -322,7 +322,7 @@ const addChildTrees = (parts: HintSources, allNodes: NodeListOf<SafeElement>): H
   const local_addChildFrame_ = addChildFrame_, hosts: SafeElement[] = []
   for (let i = 0, len = allNodes.length; i < len; i++) {
     let el = allNodes[i]
-    if (evenClosed_cr_ff ? OnFirefox ? (el as any).openOrClosedShadowRoot : GetShadowRoot_(el, 0)
+    if (evenClosed_cr_ff ? OnFirefox ? (el as any).openOrClosedShadowRoot : htmlTag_<1>(el) && GetShadowRoot_(el, 0)
         : (Build.BTypes & BrowserType.Chrome) && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
           && prefixedShadow_cr ? el.webkitShadowRoot : el.shadowRoot) {
       hosts.push(el)
@@ -456,7 +456,8 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
       Build.BTypes & BrowserType.Chrome && el === nextToBody_cr && (evenClosed_cr_ff = true)
       if ("lang" in (el as ElementToHTML)) {
         filter(output, el as SafeHTMLElement)
-        const shadow = evenClosed_cr_ff ? OnFirefox ? (el as any).openOrClosedShadowRoot : GetShadowRoot_(el, 0)
+        const shadow = evenClosed_cr_ff ? OnFirefox ? (el as SafeHTMLElement as any).openOrClosedShadowRoot
+              : GetShadowRoot_(el as SafeHTMLElement, 0)
             : ((Build.BTypes & BrowserType.Chrome)
             && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0 && prefixedShadow_cr
             ? el.webkitShadowRoot : el.shadowRoot) as ShadowRoot | null | undefined;
@@ -503,7 +504,7 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
     k = list[i][2];
     notRemoveParents = k === ClickType.classname;
     if ((notRemoveParents || k === ClickType.codeListener)
-        && (shadowRoot = OnChrome ? GetShadowRoot_(list[i][0], 1) : GetShadowRoot_(list[i][0]))
+        && (shadowRoot = OnChrome ? TryGetShadowRoot_(list[i][0], 1) : TryGetShadowRoot_(list[i][0]))
         && i + 1 < list.length && list[j = i + 1][0].parentNode === shadowRoot
         && isContaining_(list[i][1], list[j][1])
         && (querySelectorAll_unsafe_(VTr(kTip.visibleElementsInScopeChildren), shadowRoot)!).length === 1) {

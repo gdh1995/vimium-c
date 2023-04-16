@@ -359,7 +359,7 @@ set_contentCommands_([
   },
   /* kFgCmd.editText: */ (options: CmdOptions[kFgCmd.editText], count: number) => {
     const editable = insert_Lock_() && getEditableType_<0>(raw_insert_lock!) > EditableType.MaxNotEditableElement
-        ? raw_insert_lock as TextElement : 0;
+        ? raw_insert_lock as TextElement : 0, html = isHTML_();
     (editable || options.dom) && timeout_((): void => {
       let commands = isTY(options.run) ? options.run.split(<RegExpG> /,\s*/g) : options.run
       let sel: Selection | undefined, absCount = abs_(count), firstCmd = 0
@@ -369,13 +369,13 @@ set_contentCommands_([
         for (var i = 0; i < commands.length; i += 3) {
           var cmd = commands[i], a1 = commands[i + 1] || "", a2 = commands[i + 2] // eslint-disable-line no-var
           if (cmd === "exec") {
-            execCommand(a1, doc, commands[i + 2])
+            html && execCommand(a1, doc, commands[i + 2])
           } else if (cmd === "replace") {
             rawOffset = editable && textOffset_(editable)
             start = rawOffset || 0, end = editable && textOffset_(editable, 1)
             end = end != null ? end : (editable as TextElement).value.length
             cur = 0, offset = 0, start0 = start
-            execCommand(kInsertText, doc
+            html && execCommand(kInsertText, doc
                 , a1.replace(<RegExpG & RegExpSearchable<0>> /[$%]s|(?:%[a-f\d]{2})+/gi, (s, ind): string => {
               if (s[1] !== "s") {
                 offset -= s.length
