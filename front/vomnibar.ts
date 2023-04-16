@@ -1042,7 +1042,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       a.onWordAction_((deltaY < 0) !== (notTouchpad !== (a.wheelMinStep_ < 0)) ? 5 : 2, 0, notTouchpad ? 1: 2)
       return
     }
-    if (deltaX || !deltaY || !a.isActive_ || a.isSearchOnTop_ || a.inputBar_.contains(target)) { return }
+    if (deltaX || !deltaY || !a.isActive_ || a.isSearchOnTop_
+        || a.inputBar_.contains(target) && a.inputBar_ !== target) { return }
     if (now - a.wheelTime_ > (!mode && !notTouchpad
                               ? GlobalConsts.TouchpadTimeout : GlobalConsts.WheelTimeout)
         || now - a.wheelTime_ < -33) {

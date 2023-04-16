@@ -4,7 +4,8 @@ Release Notes of Vimium C
 ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 说明文档: https://gitee.com/gdh1995/vimium-c#readme , https://github.com/gdh1995/vimium-c/blob/master/README-zh.md .
 
-#### v1.99.98
+#### v1.99.99
+* v1.99.99: fix broken `h` and `b` in visual-caret mode
 * fix Vimium C hangs in some situations on Chrome 110+
 * key mappings: support `map!` and `#if`/`#else`/`#endif` and even nested pairs
   * use `map!` and `run!` to make a mapping work in both normal and plain insert mode
@@ -21,6 +22,7 @@ ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 * Vomnibar: de-duplicate tab and history suggestions if possible
   * now also list closed browser window sessions
   * change what's copied on `Ctrl+C` and `Ctrl+Shift+C`
+  * v1.99.99: fix support for macbook touchpad
 * Scroller: fix checks of whether an area should be scrolled or not
 * VisualMode: fix the logic of scrolling caret into view
   * Now `f` and `F` can open Find bar and then extend selection to a match
