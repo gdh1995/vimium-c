@@ -1028,9 +1028,11 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     if (event.ctrlKey || event.metaKey
         || (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
             ? !event.isTrusted : event.isTrusted === false)) { return; }
-    const a = Vomnibar_, deltaY = event.deltaY, deltaX = event.deltaX, now = Date.now(), mode = event.deltaMode
+    const a = Vomnibar_, deltaY = event.deltaY, now = Date.now(), mode = event.deltaMode
     const target = event.target as Element, input = a.input_
-    if (a.isActive_ && target == input && !deltaY && (event.deltaX < 0 ? input.scrollLeft > 0
+    let deltaX = event.deltaX
+    deltaX = !deltaY || deltaX && Math.abs(deltaX / deltaY) > 0.66 ? deltaX : 0
+    if (a.isActive_ && target == input && !deltaY && (deltaX < 0 ? input.scrollLeft > 0
         : input.scrollLeft + 1e-2 < input.scrollWidth - input.clientWidth)) { return }
     VUtils_.Stop_(event, 1);
     const absDelta = Math.abs(deltaY || deltaX)
@@ -1040,7 +1042,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       a.onWordAction_((deltaY < 0) !== (notTouchpad !== (a.wheelMinStep_ < 0)) ? 5 : 2, 0, notTouchpad ? 1: 2)
       return
     }
-    if (event.deltaX || !deltaY || !a.isActive_ || a.isSearchOnTop_ || a.inputBar_.contains(target)) { return }
+    if (deltaX || !deltaY || !a.isActive_ || a.isSearchOnTop_ || a.inputBar_.contains(target)) { return }
     if (now - a.wheelTime_ > (!mode && !notTouchpad
                               ? GlobalConsts.TouchpadTimeout : GlobalConsts.WheelTimeout)
         || now - a.wheelTime_ < -33) {
