@@ -472,9 +472,17 @@ export const parseEmbeddedOptions = (/** has no prefixed "#" */ str: string): Co
 const runOneKey = (cursor: KeyNode, seq: BgCmdOptions[C.runKey]["$seq"], envInfo: CurrentEnvCache | null): void => {
   const info = parseKeyNode(cursor)
   const isFirst = seq.cursor === seq.keys, hasCount = isFirst || info.prefix.includes("$c")
-  let options = concatOptions(seq.options, info.options)
+  const notWait = info.prefix.includes("$W")
+  let options = notWait ? concatOptions(info.options, BgUtils_.safer_({ $then: "", $else: "" }))
+      : concatOptions(seq.options, info.options)
   seq.cursor = cursor
   runOneKeyWithOptions(info.key, info.count * (hasCount ? seq.repeat : 1), options, envInfo, null, isFirst)
+  if (notWait) {
+    setTimeout((): void => {
+      runKeyInSeq(seq, 1, null, null)
+    }, 0)
+    return
+  }
 }
 
 set_runOneMapping_(((key, port, fStatus, baseCount): void => {
