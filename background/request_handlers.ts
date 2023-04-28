@@ -7,7 +7,7 @@ import {
 import * as BgUtils_ from "./utils"
 import {
   tabsUpdate, runtimeError_, selectTab, selectWnd, browserSessions_, browserWebNav_, downloadFile, import2, Q_,
-  getCurTab, getGroupId
+  getCurTab, getGroupId, Tabs_, tabsGet
 } from "./browser"
 import { convertToUrl_ } from "./normalize_urls"
 import { findUrlEndingWithPunctuation_, parseSearchUrl_, parseUpperUrl_ } from "./parse_urls"
@@ -140,7 +140,7 @@ set_reqH_([
     })
   },
   /** kFgReq.gotoSession: */ (request: FgReq[kFgReq.gotoSession], port?: Port): void => {
-    const id = request.s, active = request.a !== false, curWndId = curWndId_
+    const id = request.s, active = request.a !== 0, forceInCurWnd = request.a === 2, curWndId = curWndId_
     set_cPort(findCPort(port)!)
     if (typeof id === "number") {
       selectTab(id, (tab): void => {
@@ -153,13 +153,21 @@ set_reqH_([
       complainNoSession()
       return
     }
+    const curTabId = port!.s.tabId_ >= 0 ? port!.s.tabId_ : curTabId_ >= 0 ? curTabId_ : null
+    const activeId = active ? null : curTabId
     browserSessions_().restore(id[1], (res): void => {
       const err = runtimeError_()
-      err ? showHUD(trans_("noSessionItem")) : onSessionRestored_(curWndId, res)
+      err ? showHUD(trans_("noSessionItem")) : onSessionRestored_(curWndId, res, activeId).then(newTab => {
+        if (forceInCurWnd && curTabId && newTab && newTab.windowId !== curWndId) {
+          tabsGet(curTabId, (tab): void => {
+            Tabs_.move(newTab.id, { windowId: curWndId, index: tab ? tab.index + 1 : -1 }, runtimeError_)
+            tabsUpdate(newTab.id, { active: true })
+          })
+        }
+      })
       return err
     })
-    const tabId = active ? -1 : port!.s.tabId_ >= 0 ? port!.s.tabId_ : curTabId_
-    if (tabId >= 0) { selectTab(tabId) }
+    activeId && selectTab(activeId, runtimeError_)
   },
   /** kFgReq.openUrl: */ _AsReqH<kFgReq.openUrl>(openUrlReq),
   /** kFgReq.onFrameFocused: */ (_0: FgReq[kFgReq.onFrameFocused], port: Port): void => {

@@ -7,7 +7,7 @@ import {
 import {
   Tabs_, Windows_, InfoToCreateMultiTab, openMultiTabs, tabsGet, getTabUrl, selectFrom, runtimeError_, R_,
   selectTab, getCurWnd, getCurTab, getCurShownTabs_, browserSessions_, browser_, selectWndIfNeed,
-  getGroupId, isRefusingIncognito_, Q_, Qs_, isNotHidden_, selectIndexFrom,
+  getGroupId, isRefusingIncognito_, Q_, Qs_, isNotHidden_, selectIndexFrom
 } from "./browser"
 import { createSearchUrl_ } from "./normalize_urls"
 import { parseSearchUrl_ } from "./parse_urls"
@@ -671,13 +671,14 @@ set_bgC_([
       resolve(0)
       return showHUD(trans_("notRestoreIfIncog"))
     }
-    const notActive = get_cOptions<C.restoreTab>().active === false
+    const activateNew = get_cOptions<C.restoreTab>().active !== false
     let onlyCurrentWnd = get_cOptions<C.restoreTab>().currentWindow === true
     const curTabId = cPort ? cPort.s.tabId_ : curTabId_, curWndId = curWndId_
-    const runNext = getRunNextCmdBy(kRunOn.otherCb)
     const cb = (restored: chrome.sessions.Session | null | undefined): void => {
-      onSessionRestored_(curWndId, restored)
-      restored === undefined ? resolve(0) : notActive ? selectTab(curTabId, runNext) : resolve(1)
+      if (restored === undefined) { resolve(0); return }
+      onSessionRestored_(curWndId, restored, activateNew ? null : curTabId).then((newTab): void => {
+        activateNew && newTab ? runNextOnTabLoaded(get_cOptions<C.restoreTab, true>(), newTab) : resolve(1)
+      })
     }
     ; (async (): Promise<void> => {
       const expected = Math.max((count * 1.2) | 0, 2)
@@ -713,7 +714,7 @@ set_bgC_([
             .map(item => Q_(sessions.restore, (item.tab || item.window)!.sessionId)))
         .then((res): void => { cb(onlyOne ? res[0] : null) })
       }
-      notActive && selectTab(curTabId, runtimeError_)
+      activateNew || selectTab(curTabId, runtimeError_)
     })()
   },
   /* kBgCmd.runKey: */ (): void | kBgCmd.runKey => {

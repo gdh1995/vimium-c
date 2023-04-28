@@ -595,7 +595,7 @@ interface FgReq {
   };
   [kFgReq.gotoSession]: {
     /** sessionId */ s: CompletersNS.SessionId
-    /** active: default to true  */ a?: boolean;
+    /** action: 0: inactive; 1: active; 2: force-in-cur-wnd  */ a?: 0 | 1 | 2
   };
   [kFgReq.openUrl]: {
     // note: need to sync members to ReqH::openUrl in main.ts

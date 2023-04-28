@@ -181,7 +181,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   baseHttps_: null as boolean | null,
   isHttps_: null as boolean | null,
   isSearchOnTop_: false,
-  actionType_: ReuseType.Default,
+  actionType_: ReuseType.Default as ReuseType | null,
   matchType_: CompletersNS.MatchType.Default,
   sugTypes_: CompletersNS.SugType.Empty,
   resMode_: "",
@@ -891,10 +891,10 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
           + (event.includes("m-") ? KeyStat.metaKey : 0) + (event.includes("s-") ? KeyStat.shiftKey : 0);
     }
     a.actionType_ = event == null ? a.actionType_
-      : event === true ? options.newtab ? ReuseType.newFg : ReuseType.current
+      : event === true ? null
       : event & (KeyStat.PrimaryModifier | KeyStat.shiftKey) && options.clickLike ? a.parseClickEventAs_(event)
       : event & KeyStat.PrimaryModifier ? event & KeyStat.shiftKey ? ReuseType.newBg : ReuseType.newFg
-      : event & KeyStat.shiftKey || !options.newtab ? ReuseType.current : ReuseType.newFg
+      : event & KeyStat.shiftKey ? ReuseType.current : null
     if (sel === -1) {
       const input = a.input_.value.trim();
       if (!input) {
@@ -917,7 +917,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     const item: SuggestionE | UrlInfo = useItem ? a.completions_[sel] : { u: a.input_.value.trim() },
     inputSed = options.sed, sed2 = options.itemSedKeys || null,
     itemSed = sed2 ? { r: true, k: sed2 + "" } : null, itemKeyword = options.itemKeyword, field = options.itemField,
-    action = a.actionType_, https = a.isHttps_,
+    action = a.actionType_ ?? (options.newtab ? ReuseType.newFg : ReuseType.current), https = a.isHttps_,
     navReq: Req.fg<kFgReq.openUrl> | null = useItem && item.s != null && !itemSed && !itemKeyword
         ? null : { H: kFgReq.openUrl, f: false, r: action, h: useItem ? null : https,
       u: field && useItem ? field in item ? item[field as keyof typeof item] + "" : "" : item.u,
@@ -925,7 +925,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
               || { r: inputSed, k: options.inputSedKeys || options.sedKeys || options.sedKey },
           k: (useItem || !field) && itemKeyword || null, p: options.position, t: useItem ? false : "whole" }
     }, sessionReq: Req.fg<kFgReq.gotoSession> | null = navReq ? null : { H: kFgReq.gotoSession,
-      a: action > ReuseType.newBg, s: item.s!
+      a: a.actionType_ === null ? 1 : action === ReuseType.newFg ? 2 : 0, s: item.s!
     },
     func = function (this: void): void {
       !VPort_ ? 0 : navReq ? Vomnibar_.navigateToUrl_(navReq, action)

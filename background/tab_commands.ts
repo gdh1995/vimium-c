@@ -827,25 +827,46 @@ export const reopenTab_ = (tab: Tab, refresh?: /* false */ 0 | /* a temp blank t
   // not seems to need to restore muted status
 }
 
-export const onSessionRestored_ = (curWndId: number, restored: chrome.sessions.Session | null | undefined): void => {
-  if (OnChrome && restored && (restored.window || restored.tab && restored.tab.windowId !== curWndId
-        && restored.tab.index === 0)) {
-    const tab = restored.window ? selectFrom(restored.window.tabs!) : restored.tab!, url = tab.url
+export const onSessionRestored_ = (curWndId: number, restored: chrome.sessions.Session | null | undefined
+    , tabIdToReActivate: number | null): Promise<Tab | null> => {
+  let restoredTab: Tab | null = null
+  const ensureSessionTabAccessable = async (): Promise<void> => {
+    const tab = restored ? restored.window ? selectFrom(restored.window.tabs!) : restored.tab! : null
+    tab && (restoredTab = tab)
+    if (!OnChrome || !tab || !(restored!.window || tab.windowId !== curWndId && tab.index === 0)) {
+      return
+    }
+    const url = tab.url
     let runnable = (<RegExpOne> /^(file|ftps?|https?)/).test(url) || url.startsWith(Origin2_)
     if (!runnable && url.startsWith(location.protocol) && !url.startsWith(Origin2_)) {
       const extHost = new URL(url).host
       runnable = !!extHost && extAllowList_.get(extHost) === true
     }
-    runnable && (restored.window ? Promise.resolve(restored.window) : Q_(Tabs_.query, { windowId: tab.windowId
-          , index: 1 }) .then(tabs => tabs && tabs.length ? null : Q_(Windows_.get, tab.windowId))
-    ).then((wnd2): void => {
-      wnd2 && wnd2.type !== "popup" && Promise.all([Q_(Tabs_.create, { url: "about:blank", windowId: wnd2.id }),
-          Q_(Tabs_.remove, tab.id)]).then(([blankTab]): void => {
-        browserSessions_().restore()
-        blankTab && Tabs_.remove(blankTab.id)
-      })
-    })
+    if (!runnable) {
+      return
+    }
+    let wnd2: Window | null | undefined = restored!.window
+    if (!wnd2) {
+      const tabs = await Q_(Tabs_.query, { windowId: tab.windowId, index: 1 })
+      wnd2 = tabs && tabs.length ? null : await Q_(Windows_.get, tab.windowId)
+    }
+    if (!wnd2 || wnd2.type === "popup") {
+      return
+    }
+    const p1 = Q_(Tabs_.create, { url: "about:blank", windowId: wnd2.id })
+    await Q_(Tabs_.remove, tab.id)
+    const blankTab = await p1
+    const p2 = Q_(browserSessions_().restore)
+    restoredTab = (await p2)?.tab || null
+    blankTab && await Tabs_.remove(blankTab.id)
   }
+  return ensureSessionTabAccessable().then(async (): Promise<Tab | null> => {
+    if (tabIdToReActivate) {
+      await Q_(tabsUpdate, tabIdToReActivate, { active: true })
+      curWndId_ !== curWndId && await Q_(Windows_.update, curWndId, { focused: true })
+    }
+    return restoredTab
+  })
 }
 
 export const toggleWindow = (resolve: OnCmdResolved): void | kBgCmd.toggleWindow => {

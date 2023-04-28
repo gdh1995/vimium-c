@@ -138,9 +138,8 @@ export const set_getFindCSS_cr_ = (newGet: typeof getFindCSS_cr_): void => { get
 
 //#region actions
 
-/** if `alsoWnd`, then it's safe when tab does not exist */
 export const selectTab = (tabId: number, callback?: ((tab?: Tab) => void) | null): void => {
-  tabsUpdate(tabId, {active: true}, callback)
+  tabsUpdate(tabId, { active: true }, callback)
 }
 
 export const selectWnd = (tab?: { windowId: number }): void => {
