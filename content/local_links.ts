@@ -23,6 +23,7 @@ import {
 } from "./link_hints"
 import { shouldScroll_s, getPixelScaleToScroll, scrolled, set_scrolled, suppressScroll } from "./scroller"
 import { ui_root, ui_box, helpBox, curModalElement, filterOutInert } from "./dom_ui"
+import { generateHintText } from "./hint_filters"
 
 export declare const enum ClickType {
   Default = 0, edit = 1,
@@ -84,7 +85,9 @@ const getClickable = (hints: Hint[], element: SafeHTMLElement): void => {
     // on C75, a <textarea disabled> is still focusable
     if ((element as TextElement).disabled && mode1_ < HintMode.max_mouse_events + 1) { /* empty */ }
     else if (tag > "t" || !uneditableInputs_[s = (element as HTMLInputElement).type]) {
-      isClickable = !(element as TextElement).readOnly || mode1_ > HintMode.min_job - 1
+      isClickable = (!(element as TextElement).readOnly || mode1_ > HintMode.min_job - 1)
+          && (mode1_ < HintMode.min_string || mode1_ > HintMode.max_string
+              || extraClickable_ && extraClickable_.has(element) || !!generateHintText([element as HTMLInputElement]).t)
     } else if (s !== "hidden") {
       const st = getComputedStyle_(element)
       isClickable = <number> <string | number> st.opacity > 0 || <number> <string | number> st.zIndex > 0

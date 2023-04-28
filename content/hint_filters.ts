@@ -157,7 +157,7 @@ export const initFilterEngine = (hints: readonly FilteredHintItem[]): void => {
   pageNumberHintArray = hints.slice(curRangeSecond - 1, curRangeSecond + curRangeCountS1)
   getMatchingHints(hintKeyStatus, "", "", 0);
 }
-export const generateHintText = (hint: Hint, hintInd: number, allItems: readonly HintItem[]): HintText => {
+export const generateHintText = ((hint: Hint, hintInd: number, allItems: readonly HintItem[]): HintText => {
   const el = hint[0], localName = el.localName
   let text = "", show: 0 | 1 | 2 = 0, ind: number;
   if (!("lang" in el)) { // SVG elements or plain `Element` nodes
@@ -224,6 +224,9 @@ export const generateHintText = (hint: Hint, hintInd: number, allItems: readonly
       show > 1 && ++hintInd < allItems.length && allItems[hintInd].h!.t.replace(":", "") === text
     ) ? ":" + text : text
   return { t: text, w: null };
+}) as {
+  (hint: Hint, hintInd: number, allItems: readonly HintItem[]): HintText
+  (hint: [HTMLInputElement]): HintText
 }
 
 export const getMatchingHints = (keyStatus: KeyStatus, text: string, seq: string

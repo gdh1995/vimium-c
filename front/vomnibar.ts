@@ -1894,7 +1894,7 @@ VPort_ = {
   },
   _Listener<T extends ValidBgVomnibarReq> (this: void, response: Req.bg<T>): void {
     const name = response.N;
-    name === kBgReq.omni_omni ? Vomnibar_.omni_(response) :
+    name === kBgReq.omni_omni ? Vomnibar_.options_ && Vomnibar_.omni_(response) :
     name === kBgReq.omni_parsed ? Vomnibar_.parsed_(response) :
     name === kBgReq.omni_init ? Vomnibar_.secret_ && Vomnibar_.secret_(response) :
     name === kBgReq.omni_returnFocus ? VPort_.postToOwner_({ N: VomnibarNS.kFReq.focus, l: response.l }) :
