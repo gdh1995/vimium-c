@@ -535,7 +535,7 @@ export const removeTab = (resolve: OnCmdResolved, phase?: 1 | 2 | 3, tabs?: read
     if (noPinned) {
       while (tabs[skipped].pinned) { skipped++ }
     }
-    const range = getTabRange(curInd, total - skipped, total)
+    const range = getTabRange(curInd - skipped, total - skipped, total)
     count = range[1] - range[0]
     if (count > 20 && needConfirm_() && phase < 3) {
       void confirm_("removeTab", count).then(removeTab.bind(null, resolve, 2, tabs))
