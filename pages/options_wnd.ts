@@ -8,7 +8,7 @@ import {
   bgSettings_, type KnownOptionsDataset, showI18n_, setupBorderWidth_, Option_, AllowedOptions, debounce_, oTrans_,
   delayBinding_, didBindEvent_
 } from "./options_base"
-import { saveBtn_, exportBtn_, savedStatus_, BooleanOption_, onKeyMappingsError_, type SaveBtn } from "./options_defs"
+import { saveBtn_, exportBtn_, savedStatus_, onKeyMappingsError_, type SaveBtn } from "./options_defs"
 import { manifest_ } from "./options_permissions"
 
 interface ElementWithHash extends HTMLElement {
@@ -88,14 +88,6 @@ let optionsInit1_ = function (): void {
       console.log("Warning: some options are not ready to fetch:", fetching.join(", "))
     }
   }
-  OnFirefox && Build.OS & (1 << kOS.unixLike) && PageOs_ === kOS.unixLike && nextTick_((): void => {
-    for (let key in Option_.all_) {
-      const obj = Option_.all_[key as "vimSync"]
-      if (obj instanceof BooleanOption_) {
-        obj.element_.classList.add("baseline")
-      }
-    }
-  });
   if (Option_.all_.exclusionRules.previous_.length > 0) {
     nextTick_((el): void => {
       el.style.visibility = "";

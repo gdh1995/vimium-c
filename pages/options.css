@@ -109,7 +109,7 @@ html.dark {
 }
 
 body {
-  font: 14px "Helvetica Neue",Helvetica,Arial,"PingFang SC","Hiragino Sans GB"
+  font: 14px "Helvetica Neue",Arial,"PingFang SC","Hiragino Sans GB"
     ,"Microsoft YaHei","Heiti SC","WenQuanYi Micro Hei",sans-serif;
   margin: 0;
 }
@@ -160,7 +160,7 @@ button, select {
   box-sizing: border-box;
   color: #444;
   color: var(--vc-button-color, #444);
-  font: 12px/1 "Helvetica Neue",Helvetica,Arial,"PingFang SC","Hiragino Sans GB"
+  font: 12px/1 "Helvetica Neue",Arial,"PingFang SC","Hiragino Sans GB"
     ,"Microsoft YaHei","Heiti SC","WenQuanYi Micro Hei",sans-serif !important;
   height: 24px;
   outline: none;
@@ -565,7 +565,7 @@ label:active {
 .exclusionHeader {
   color: #444;
   display: inline-block;
-  font: 14px/16px "Helvetica Neue",Helvetica,Arial,"PingFang SC","Hiragino Sans GB"
+  font: 14px/16px "Helvetica Neue",Arial,"PingFang SC","Hiragino Sans GB"
     ,"Microsoft YaHei","Heiti SC","WenQuanYi Micro Hei",sans-serif;
   height: 16px;
   padding-left: 4px;
@@ -745,9 +745,6 @@ select:-moz-focusring {
 @supports (-moz-appearance: none) {
   #keyMappings {
     min-height: 182px;
-  }
-  input.baseline[type=checkbox] {
-    vertical-align: baseline;
   }
 }
 @supports (display: -ms-grid) {

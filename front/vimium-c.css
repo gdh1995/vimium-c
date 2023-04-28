@@ -5,7 +5,7 @@ transform:none!important;width:0!important;display:contents!important}:host:befo
 letter-spacing:normal;line-height-step:0;margin:0;opacity:1;outline:none;padding:0;text-align-last:auto;text-indent:0;
 text-shadow:none;text-transform:none;visibility:visible;white-space:normal;word-spacing:normal;
 -webkit-writing-mode:horizontal-tb;all:initial;display:block;text-align:left;unicode-bidi:normal;
-color:#000;contain:layout style;direction:ltr;font:12px/1 "Helvetica Neue",Helvetica,Arial,sans-serif;
+color:#000;contain:layout style;direction:ltr;font:12px/1 "Helvetica Neue",Arial,sans-serif;
 pointer-events:none;position:fixed;user-select:none;z-index:2147483647}
 .HM{font-weight:bold;position:absolute;white-space:nowrap}.DLG::backdrop{background:#0000}
 .LH{background:linear-gradient(#fff785,#ffc542);border:0.01px solid #e3be23;border-radius:3px;box-shadow:0 3px
@@ -27,7 +27,7 @@ padding:4px 4px 1px;right:152px;text-overflow:ellipsis;white-space:nowrap}
 /*#find*/
 ::selection { background: #ff9632 !important; }
 html, body, * { user-select: auto; }
-*{cursor:text;font:14px/16px "Helvetica Neue",Helvetica,Arial,sans-serif;margin:0;outline:none;white-space:pre}
+*{cursor:text;font:14px/16px "Helvetica Neue",Arial,sans-serif;margin:0;outline:none;white-space:pre}
 .r{all:initial;background:#fff;border-radius:3px 3px 0 0;box-shadow:inset 0 0 1.5px 1px #aaa;color:#000;
 cursor:text;display:flex;height:21px;padding:4px 4px 0}.r.D{background:#222;color:#d4d4d4}
 #s{flex:0 0 4px}#i{flex:0 1 auto;height:16px;min-width:9px;margin-left:2px;overflow:hidden;padding:0 2px 0 0}

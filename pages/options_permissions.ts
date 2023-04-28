@@ -1,6 +1,6 @@
 import { kPgReq } from "../background/page_messages"
 import {
-  $, OnEdge, browser_, OnFirefox, OnChrome, nextTick_, CurCVer_, IsEdg_, post_, pageLangs_, PageOs_, prevent_
+  $, OnEdge, browser_, OnFirefox, OnChrome, nextTick_, CurCVer_, IsEdg_, post_, pageLangs_, prevent_
 } from "./async_bg"
 import { Option_, type KnownOptionsDataset, oTrans_, bgSettings_, delayBinding_ } from "./options_base"
 import { registerClass_, createNewOption_, TextOption_ } from "./options_defs"
@@ -186,9 +186,6 @@ OnEdge || registerClass_("OptionalPermissions", OptionalPermissionsOption_)
 
 const initOptionalPermissions = (): void => {
   const fragment = document.createDocumentFragment()
-  if (OnFirefox && Build.OS & (1 << kOS.unixLike) && PageOs_ === kOS.unixLike) {
-    template.querySelector("input")!.classList.add("baseline")
-  }
   for (const shownItem of shownItems) {
     const name = shownItem.name_
     const node = document.importNode(template, true) as EnsuredMountedHTMLElement

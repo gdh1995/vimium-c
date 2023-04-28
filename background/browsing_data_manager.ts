@@ -520,8 +520,8 @@ export const getRecentSessions_ = (expected: number, showBlocked: boolean
         u: url, title_: title,
         visit_: t,
         sessionId_: [entry.windowId, (wnd || entry).sessionId!, wnd ? wnd.tabs!.length : 0],
-        label_: wnd ? `+${wnd.tabs!.length > 1 ? wnd.tabs!.length - 1 : ""} `
-            : entry.windowId !== curWndId_ && t > procStart ? "+ " : ""
+        label_: wnd ? ` +${wnd.tabs!.length > 1 ? wnd.tabs!.length - 1 : ""}`
+            : entry.windowId !== curWndId_ && t > procStart ? " +" : ""
       })
     }
     if (anyWindow) { // for GC
