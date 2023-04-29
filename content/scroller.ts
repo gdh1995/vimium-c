@@ -285,10 +285,11 @@ const performScroll = ((el: SafeElement | null, di: ScrollByY, amount: number, b
     if (el) {
       (OnChrome ? Build.MinCVer >= BrowserVer.MinEnsuredCSS$ScrollBehavior : !OnEdge) ||
       // avoid using `Element`, so that users may override it
-      el.scrollBy ? OnSafari ? el.scrollBy(di ? 0 : amount, di && amount) : el.scrollBy(instantScOpt(di, amount))
+      el.scrollBy
+      ? OnSafari ? el.scrollBy(di ? 0 : amount, di && amount) : el.scrollBy(instantScOpt(di ? 0 : amount, di && amount))
       : di ? el.scrollTop = before + amount : el.scrollLeft = before + amount
     } else {
-      scrollWndBy_(di, amount)
+      scrollWndBy_(di ? 0 : amount, di && amount)
     }
     return dimSize_(el, kDim.positionX + di) - before
 }) as {
@@ -598,7 +599,7 @@ const doesScroll = (el: SafeElement, di: ScrollByY, amount: number): boolean => 
         let changed2 = performScroll(el, 0, -changed, before)
         changed2 * changed2 > 0.1 && performScroll(el, 0, -changed2, before)
       } else if ((OnChrome ? Build.MinCVer >= BrowserVer.MinEnsuredCSS$ScrollBehavior : !OnEdge) || el.scrollTo) {
-        OnSafari ? el.scrollTo(di ? 0 : before, di && before) : el.scrollTo(instantScOpt(di, before))
+        OnSafari ? el.scrollTo(di ? 0 : before, di && before) : el.scrollTo(instantScOpt(di ? 0 : before, di && before))
       } else {
         di ? (el.scrollTop = before) : (el.scrollLeft = before);
       }

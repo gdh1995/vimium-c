@@ -428,18 +428,18 @@ export const view_ = (el: SafeElement, oldY?: number): VisibilityType => {
       f = delta * secondScroll <= 0 && delta * secondScroll >= elHeight - ih
     }
     isNotInViewport(el) || // in case of `scroll-behavior: smooth`
-    (delta || f) && scrollWndBy_(1, f ? secondScroll! * secondScroll! < 4 ? 0 : secondScroll! : delta * ih / 5)
+    (delta || f) && scrollWndBy_(0, f ? secondScroll! * secondScroll! < 4 ? 0 : secondScroll! : delta * ih / 5)
   }
   return ty
 }
 
-export const instantScOpt = (di: number, amount: number): ScrollToOptions =>
-    ({behavior: "instant", [di ? "top" : "left"]: amount})
+export const instantScOpt = (x: number, y: number): ScrollToOptions =>
+    ({behavior: "instant", left: x, top: y})
 
-export const scrollWndBy_ = (di: ScrollByY, amount: number): void => {
+export const scrollWndBy_ = (x: number, y: number): void => {
   !OnEdge && (!OnChrome || Build.MinCVer >= BrowserVer.MinEnsuredCSS$ScrollBehavior
       || ElementProto_not_ff!.scrollBy as unknown
-  ) ? scrollBy(instantScOpt(di, amount)) : scrollBy(di ? 0 : amount, di && amount)
+  ) ? scrollBy(instantScOpt(x, y)) : scrollBy(x, y)
 }
 
 export const center_ = (rect: Rect | null, xy: HintsNS.StdXY | null | undefined): Point2D => {

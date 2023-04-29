@@ -15,7 +15,9 @@ import {
   getAccessibleSelectedNode,  INP, BU, UNL, contains_s, setOrRemoveAttr_s, singleSelectionElement_unsafe,
   getDirectionOfNormalSelection
 } from "../lib/dom_utils"
-import { wdZoom_, prepareCrop_, view_, dimSize_, selRange_, getZoom_, isSelARange, getViewBox_ } from "../lib/rect"
+import {
+  wdZoom_, prepareCrop_, view_, dimSize_, selRange_, getZoom_, isSelARange, getViewBox_, scrollWndBy_
+} from "../lib/rect"
 import {
   ui_box, ui_root, getSelectionParent_unsafe, resetSelectionToDocStart, getBoxTagName_old_cr, collpaseSelection,
   createStyle, getSelectionText, checkDocSelectable, adjustUI, ensureBorder, addUIElement, getSelected, flash_,
@@ -255,7 +257,7 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
   }
   const highlightMany = (): void => {
     const oldActiveRegexIndex = activeRegexIndex
-    const arr: Rect[] = [], opt: ExecuteOptions = { h: [scrollX, scrollY, arr], i: 1, c: options.m }
+    const arr: Rect[] = [], opt: ExecuteOptions = { h: [scrollX, scrollY, arr], i: 1, c: options.m || 20 }
     const sel = getSelected()
     let newAnchor: Node | null
     if (hasResults && (OnFirefox || (newAnchor = getAccessibleSelectedNode(sel, 1))
@@ -268,7 +270,7 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
       if (range) {
         resetSelectionToDocStart(sel, range)
         activeRegexIndex = oldActiveRegexIndex
-        opt.c = -options.m
+        opt.c = -opt.c!
         executeFind("", opt)
       }
       insert_Lock_() && blur_unsafe(raw_insert_lock!)
@@ -821,7 +823,7 @@ export const updateQuery = (query: string): void => {
   matchCount = matches ? matches.length : 0
 }
 
-export const executeFind = (query: string | null, options: ExecuteOptions): void => {
+export const executeFind = (query: string | null, options: Readonly<ExecuteOptions>): void => {
 /**
  * According to https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/editing/editor.cc?q=FindRangeOfString&g=0&l=815 ,
  * the range to find is either `[selection..docEnd]` or `[docStart..selection]`,
@@ -880,7 +882,7 @@ export const executeFind = (query: string | null, options: ExecuteOptions): void
           && timesRegExpNotMatch++ < regexpNoMatchLimit) {
         activeRegexIndex = oldReInd
       } else if (highlight) {
-        scrollTo(highlight[0], highlight[1])
+        scrollWndBy_(highlight[0] - scrollX, highlight[1] - scrollY)
         curSel = getSelected()
         const rect = getSelectionBoundingBox_(curSel)
         if (rect) { back ? highlight[2].unshift(rect) : highlight[2].push(rect) }
