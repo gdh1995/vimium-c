@@ -14,7 +14,8 @@ if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$I
 }
 interface VisualViewport { width?: number; height: number; offsetLeft: number; offsetTop: number;
     pageLeft: number; pageTop: number; scale: number; }
-if (Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.MinEnsured$visualViewport$) {
+if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$visualViewport$
+    || Build.BTypes & BrowserType.Edge) {
   var visualViewport: VisualViewport | undefined;
 }
 if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$WeakRef

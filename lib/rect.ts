@@ -1,5 +1,5 @@
 import {
-  isTY,
+  isTY, OnSafari,
   doc, chromeVer_, Lower, max_, min_, math, OnChrome, OnFirefox, WithDialog, evenHidden_, set_evenHidden_, OnEdge, abs_
 } from "./utils"
 import {
@@ -39,8 +39,8 @@ export const dimSize_ = (el: SafeElement | null, index: kDim | ScrollByY): numbe
         : index < kDim.positionX ? byY ? el.scrollHeight : el.scrollWidth
         : byY ? el.scrollTop : el.scrollLeft
       : index > kDim.positionX - 1 ? byY ? scrollY : scrollX
-      : (visual = visualViewport,
-          OnChrome && Build.MinCVer >= BrowserVer.MinEnsured$visualViewport$
+      : (visual = OnFirefox ? (window as {} as typeof globalThis).visualViewport : visualViewport,
+          OnChrome && Build.MinCVer >= BrowserVer.MinEnsured$visualViewport$ || OnSafari
           || (OnChrome ? visual && visual.width : visual)
           ? byY ? visual!.height : visual!.width!
           : wndSize_((1 - byY) as BOOL))
@@ -49,7 +49,7 @@ export const dimSize_ = (el: SafeElement | null, index: kDim | ScrollByY): numbe
 /** depends on .docZoom_, .bZoom_, .paintBox_ */
 export let prepareCrop_ = (inVisualViewport?: 1, limited?: Rect | null): number | void => {
     const fz = !OnFirefox ? docZoom_ * bZoom_ : 1,
-    visual = inVisualViewport && visualViewport
+    visual = inVisualViewport && (OnFirefox ? (window as {} as typeof globalThis).visualViewport : visualViewport)
     let i: number, j: number, el: Element | null, docEl: Document["documentElement"]
     vleft = vtop = 0
     if (!OnChrome || Build.MinCVer >= BrowserVer.MinEnsured$visualViewport$ ? visual : visual && visual.width) {
@@ -245,9 +245,9 @@ export const getCroppedRect_ = function (el: Element, crect: Rect | null): Rect 
 }
 
 const _fixDocZoom_cr = OnChrome ? (zoom: number, docEl: Element, devRatio: number): number => {
-  let rectWidth: number, viewportWidth: number, style: CSSStyleDeclaration | false | undefined
-  if (BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl !== BrowserVer.MinEnsured$visualViewport$) {
-    console.log("Assert error: MinDevicePixelRatioImplyZoomOfDocEl should be equal with MinEnsured$visualViewport$")
+  let rectWidth: number, viewportWidth: number, style: CSSStyleDeclaration | false | undefined;
+  if (!(BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl >= BrowserVer.MinEnsured$visualViewport$)) {
+    console.log("Assert error: MinDevicePixelRatioImplyZoomOfDocEl should be >= MinEnsured$visualViewport$")
   }
   isDocZoomStrange_ = 0
   return zoom === 1

@@ -257,9 +257,9 @@ export const getRootNode_mounted = ((el: Node): Node => {
 
 export const scrollingEl_ = (fallback?: 1): SafeElement | null => {
     // Both C73 and FF66 still supports the Quirk mode (entered by `doc.open()`)
-    let el = doc.scrollingElement, docEl = docEl_unsafe_();
+    let el = doc.scrollingElement, docEl = OnFirefox ? null : docEl_unsafe_()
     if (OnFirefox) {
-      return el || !fallback ? el as SafeElement | null : docEl as SafeElement | null;
+      return !fallback || el ? el as SafeElement | null : docEl_unsafe_() as SafeElement | null
     }
     if (OnChrome && Build.MinCVer < BrowserVer.Min$Document$$ScrollingElement
         && el === void 0) {

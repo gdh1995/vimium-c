@@ -627,7 +627,7 @@ exports.skip_declaring_known_globals = (btypes, minCVer, get_code) =>{
   if (!(btypes & BrowserType.Chrome) || minCVer >= /* MinEnsured$InputDeviceCapabilities */ 47) {
     toRemovedGlobal += "InputDeviceCapabilities|";
   }
-  if (!(btypes & ~BrowserType.Chrome) && minCVer >= /* MinEnsured$visualViewport$ */ 61) {
+  if (!(btypes & BrowserType.Chrome && minCVer < /* MinEnsured$visualViewport$ */ 61 || btypes & BrowserType.Edge)) {
     toRemovedGlobal += "visualViewport|";
   }
   if (!(btypes & BrowserType.Chrome && minCVer < /* BrowserVer.MinEnsured$WeakRef */ 92
