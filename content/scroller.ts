@@ -76,19 +76,22 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
   let amount: number, sign: number, calibration: number, di: ScrollByY, duration: number, element: SafeElement | null,
   elementRoot: DocumentFragment | Document | 0,
   beforePos: number, timestamp: number, rawTimestamp: number, totalDelta: number, totalElapsed: number, min_delta = 0,
-  running = 0, flags: kScFlag & number, calibTime: number, lostFrames: number,
+  running = 0, flags: kScFlag & number, calibTime: number, lostFrames: number, totalTick: number,
   styleTop: SafeElement | HTMLElement | null | undefined, onFinish: ((succeed: number) => void) | 0 | undefined,
   wait2: number | boolean | null | undefined, timer: ValidTimeoutID = TimerID.None, padding: number,
   animate = (newRawTimestamp: number): void => {
     const continuous = keyIsDown > 0
     let rawElapsed = newRawTimestamp - rawTimestamp
-    let newTimestamp = newRawTimestamp, elapsed: number, delay2: number
+    let newTimestamp = newRawTimestamp, elapsed: number, delay2: number;
     // although timestamp is mono, Firefox adds too many limits to its precision
     if (!timestamp) {
       newTimestamp = performance.now()
       elapsed = max_(newRawTimestamp + (min_delta || ScrollConsts.firstTick) - newTimestamp, 1)
       newTimestamp = max_(newRawTimestamp, newTimestamp)
       beforePos = dimSize_(element, kDim.positionX + di)
+    } else if (rawElapsed < 3 && totalTick < 2) {
+      elapsed = min_delta || ScrollConsts.tickForUnexpectedTime
+      newTimestamp = timestamp + elapsed
     } else if (rawElapsed < 1e-5) {
       if (OnFirefox && rawElapsed > -1e-5) {
         elapsed = min_delta || ScrollConsts.tickForUnexpectedTime
@@ -119,6 +122,7 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
       }
     }
     totalElapsed += elapsed
+    totalTick++
     if (ScrollConsts.DEBUG & 1) {
       console.log("rawOld>rawNew: +%o = %o ; old>new: +%o = %o ; elapsed: +%o = %o; min_delta = %o (%o fps)"
           , ((((rawTimestamp ? newRawTimestamp : newRawTimestamp % 1e4) - rawTimestamp) * 1e2) | 0) / 1e2
@@ -221,7 +225,7 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
             , ((totalElapsed * 1e2) | 0) / 1e2, ((totalDelta * 1e2) | 0) / 1e2)
       }
       OnChrome && hasNewScrollEnd_cr && setupEventListener(elementRoot, kSE, Stop_, 1)
-      elementRoot =
+      elementRoot = totalTick =
       running = timestamp = rawTimestamp = beforePos = calibTime = preventPointEvents = lostFrames = onFinish = 0
       element = null
     }
@@ -255,7 +259,7 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
     timer && clearTimeout_(timer)
     timer = TimerID.None
     totalDelta = totalElapsed = padding = 0.0
-    timestamp = rawTimestamp = calibTime = lostFrames = onFinish = 0
+    timestamp = rawTimestamp = calibTime = lostFrames = onFinish = totalTick = 0
     const keyboard = fgCache.k;
     keyboard.length > 2 && (min_delta = min_(min_delta, +keyboard[2]! || min_delta))
     maxKeyInterval = max_(min_delta, keyboard[1]) * 2 + ScrollConsts.DelayTolerance
