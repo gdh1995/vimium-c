@@ -226,6 +226,7 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
     }
   },
   domFeatures: 0 | 1 | 2 | 3 = 0,
+  awaitAndAnimate = (): number => rAF_(() => rAF_(() => rAF_(animate))),
   resumeAnimation = (): void => {
     padding = 0
     if (!keyIsDown) { toggleAnimation!(); return }
@@ -292,6 +293,32 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
           , norm4(min_delta)
           , `\n  keyInterval = ${maxKeyInterval}, minDelay = ${minDelay}` // lgtm [js/useless-expression]
           , `flags = ${flags}, wait2 = ${wait2 ?? -1}`) // lgtm [js/useless-expression]
+    }
+    if (OnFirefox) {
+      const visual_ff = element === scrollingTop ? (window as {} as typeof globalThis).visualViewport : null
+      if (visual_ff && visual_ff.scale > 1) {
+        const scPos = dimSize_(element, kDim.scPosX + di)
+        const oriSize = wndSize_((1 - di) as BOOL)
+        const lacked = max_(2, min_(amount, 30)) - (sign < 0 ? scPos
+            : dimSize_(element, kDim.scrollW + di) - oriSize - scPos)
+        if (lacked > 0) {
+          const offset = di ? visual_ff!.offsetTop : visual_ff!.offsetLeft
+          const fromScaledViewEnd = sign < 0 ? oriSize - visual_ff!.height - offset + lacked : offset + lacked
+          if (fromScaledViewEnd > 0) {
+            const stat_ = (): [scrollLeftTop: number, visualOffsetLeftTop: number] | null => ScrollConsts.DEBUG & 2
+                ? [dimSize_(element, kDim.scPosX + di), visual_ff![di ? "offsetTop" : "offsetLeft"]] : null
+            const st1 = stat_()
+            performScroll(element, di, -sign * fromScaledViewEnd, 0)
+            const st2 = stat_()
+            performScroll(element, di, sign * fromScaledViewEnd, 0)
+            if (ScrollConsts.DEBUG & 2) {
+              console.log("fix scaled view: %o, %o / %o + ~ => %o / %o, - ~ => %o / %o"
+                  , ...[fromScaledViewEnd].concat(st1!, st2!, stat_()!).map(norm))
+            }
+            running = awaitAndAnimate()
+          }
+        }
+      }
     }
     running = running || rAF_(animate)
     let defer: ReturnType<(typeof promiseDefer_<number>)>
@@ -612,7 +639,9 @@ const doesScroll = (el: SafeElement, di: ScrollByY, amount: number): boolean => 
     before = OnEdge || el !== scrollingTop ? visualBefore : dimSize_(el, kDim.scPosX + di),
     changed = performScroll(el, di, amount > 0 ? scale : -scale, visualBefore)
     if (changed) {
-      if (!OnFirefox && !di && hasSpecialScrollSnap(el)) {
+      if (OnFirefox && el === scrollingTop) {
+        performScroll(el, di, abs_(changed - scale) < 2 ? -scale : -changed, 0)
+      } else if (!OnFirefox && !di && hasSpecialScrollSnap(el)) {
         /**
          * Here needs the third scrolling, because in `X Prox. LTR` mode, a second scrolling may jump very far.
          * Tested on https://developer.mozilla.org/en-US/docs/Web/CSS/scroll-snap-type .
