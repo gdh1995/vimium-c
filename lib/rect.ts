@@ -34,16 +34,17 @@ export const wndSize_ = (id?: 0 | 1 | 2): number => id ? id < 2 ? innerWidth : d
 /** if `el` is null, then return viewSize for `kDim.scrollSize` */
 export const dimSize_ = (el: SafeElement | null, index: kDim | ScrollByY): number => {
   let visual, byY = (index & kDim.byY) as BOOL;
-  return el && (index > kDim.elClientW - 1 || el !== scrollingTop)
+  return el && (el !== scrollingTop || index > kDim.elClientW - 1 && index < kDim.positionX)
       ? index < kDim.scrollW ? byY ? el.clientHeight : el.clientWidth
-        : index < kDim.positionX ? byY ? el.scrollHeight : el.scrollWidth
+        : index < kDim.scPosX ? byY ? el.scrollHeight : el.scrollWidth
         : byY ? el.scrollTop : el.scrollLeft
-      : index > kDim.positionX - 1 ? byY ? scrollY : scrollX
-      : (visual = OnFirefox ? (window as {} as typeof globalThis).visualViewport : visualViewport,
+      : index - byY !== kDim.scPosX
+        && (visual = OnFirefox ? (window as {} as typeof globalThis).visualViewport : visualViewport,
           OnChrome && Build.MinCVer >= BrowserVer.MinEnsured$visualViewport$ || OnSafari
-          || (OnChrome ? visual && visual.width : visual)
-          ? byY ? visual!.height : visual!.width!
-          : wndSize_((1 - byY) as BOOL))
+          || (OnChrome ? visual && visual.width : visual))
+      ? index > kDim.positionX - 1 ? byY ? visual!.pageTop : visual!.pageLeft : byY ? visual!.height : visual!.width!
+      : index > kDim.scPosX - 1 ? index > kDim.positionX && el ? dimSize_(el, kDim.scPosX+byY) : byY ? scrollY : scrollX
+      : wndSize_((1 - byY) as BOOL)
 }
 
 /** depends on .docZoom_, .bZoom_, .paintBox_ */

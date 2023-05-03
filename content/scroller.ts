@@ -69,6 +69,10 @@ export const setNewScrolling = (el: Element | null): void => {
 }
 export function set_cachedScrollable (_newCachedSc: typeof cachedScrollable): void { cachedScrollable = _newCachedSc }
 
+const norm = (i: number) => parseFloat(i.toFixed(2))
+const norm3 = (i: number) => parseFloat(i.toFixed(3))
+const norm4 = (i: number) => parseFloat(i.toFixed(4))
+
 let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: number
     , newOpts?: CmdOptions[kFgCmd.scroll]): ReturnType<VApiTy["$"]> => {
   const hasNewScrollEnd_cr = OnChrome && (Build.MinCVer >= BrowserVer.MinScrollEndForInstantScrolling
@@ -125,11 +129,11 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
     totalTick++
     if (ScrollConsts.DEBUG & 1) {
       console.log("rawOld>rawNew: +%o = %o ; old>new: +%o = %o ; elapsed: +%o = %o; min_delta = %o (%o fps)"
-          , ((((rawTimestamp ? newRawTimestamp : newRawTimestamp % 1e4) - rawTimestamp) * 1e2) | 0) / 1e2
-          , (((newRawTimestamp % 1e4) * 1e3 + 0.5) | 0) / 1e3
-          , ((((timestamp ? newTimestamp : newTimestamp % 1e4) - timestamp) * 1e2) | 0) / 1e2
-          , (((newTimestamp % 1e4) * 1e3 + 0.5) | 0) / 1e3
-          , ((elapsed * 1e2) | 0) / 1e2, ((totalElapsed * 1e2) | 0) / 1e2, ((min_delta * 1e4) | 0) / 1e4
+          , norm3((rawTimestamp ? newRawTimestamp : newRawTimestamp % 3e5) - rawTimestamp)
+          , norm3(newRawTimestamp % 3e5)
+          , norm3((timestamp ? newTimestamp : newTimestamp % 3e5) - timestamp)
+          , norm3(newTimestamp % 3e5)
+          , norm(elapsed), norm(totalElapsed), norm4(min_delta)
           , min_delta ? math.round(1000 / min_delta * 10) / 10 : -1
       )
     }
@@ -161,16 +165,27 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
       delta = max_(0, min_(delta + 2 > amount - totalDelta && delta > 4 ? amount : delta, amount - totalDelta))
     }
     if (delta > 0) {
-      const wanted = delta
+      const wanted = delta, beforeScPos = ScrollConsts.DEBUG & 2 ? dimSize_(element, kDim.scPosX + di) : -1,
+      visual = !(ScrollConsts.DEBUG & 2 && element === scrollingTop) ? null
+          : OnFirefox? (window as {} as typeof globalThis).visualViewport : visualViewport
+      const beforeViewOffset = ScrollConsts.DEBUG & 2 && visual?.[di ? "offsetTop" : "offsetLeft"] || 0
+      const beforeViewPos = ScrollConsts.DEBUG & 2 && visual?.[di ? "pageTop" : "pageLeft"] || 0
       // here should keep safe even if there're bounce effects
       delta = performScroll(element, di, sign * (delta > 4 ? math.round : math.ceil)(delta), beforePos)
       if (ScrollConsts.DEBUG & 2) {
-        const near_fps = 1e3 / near_elapsed
-        console.log("do scroll: %o + round2(%o fps %s %o px = %o); effect=%o ; amount=%o ; keyIsDown=%o"
-            , ((totalDelta * 100) | 0) / 100, near_fps > 300 ? -1 : (Math.round(near_fps * 100)) / 100
-            , padding > 0 ? "-" : "+", ((abs_(padding) * 100) | 0) / 100, ((wanted * 100) | 0) / 100
-            , ((delta * 100) | 0) / 100, amount
-            , ((keyIsDown * 10) | 0) / 10)
+        const near_fps = 1e3 / near_elapsed, resScPos = dimSize_(element, kDim.scPosX + di)
+        const resViewOffset = ScrollConsts.DEBUG & 2 && visual?.[di ? "offsetTop" : "offsetLeft"] || 0
+        const resViewPos = ScrollConsts.DEBUG & 2 && visual?.[di ? "pageTop" : "pageLeft"] || 0
+        console.log("do scroll: e := %o + ~(%o fps %s %o px = %o) => %o ; "
+              + "r := mem %o / sc %o / view %o/%o + ~ %s%o / d %o => %o / %o / %o/%o; %o, %o"
+            , /* e := */ norm(totalDelta), /* + ~( */ near_fps > 300 ? -1 : norm(near_fps) /* fps */
+                , padding > 0 ? "-" : "+", norm(abs_(padding)), /* px = */ norm(wanted) /* ) */
+                , /* => */ norm(totalDelta + sign * (wanted > 4 ? math.round : math.ceil)(wanted))
+            , /* r := mem */ norm(beforePos), /* / sc */ norm(beforeScPos)
+                , /* / view */ norm(beforeViewOffset), /* / */ norm(beforeViewPos)
+                , /* + ~ */ sign > 0 ? "" : "-", norm(wanted), /* / d */norm(delta), /* => */ norm(beforePos + delta)
+                , /* / */ norm(resScPos), /* / */ norm(resViewOffset), /* / */ norm(resViewPos)
+            , /* am= */ norm(amount), norm(keyIsDown))
       }
       padding = wanted > 4 && abs_(delta - wanted) < 2 ? delta - wanted : 0
       // if `scrollPageDown`, then amount is very large, but when it has been at page top/bottom,
@@ -187,7 +202,7 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
         timer = timeout_(/*#__NOINLINE__*/ resumeAnimation, delay2 - totalElapsed)
         totalElapsed = delay2
         if (ScrollConsts.DEBUG) {
-          console.log(">>> [animation] wait for %o - %o ms", delay2, ((totalElapsed * 1e2) | 0) / 1e2)
+          console.log(">>> [animation] wait for %o - %o ms", delay2, norm(totalElapsed))
         }
       } else {
         rAF_(animate)
@@ -221,13 +236,14 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
     if (scrolling === 4) { wait2 || timer && (clearTimeout_(timer), resumeAnimation()); return }
     if (!scrolling) {
       if (ScrollConsts.DEBUG) {
-        console.log(">>> [animation] end after %o ms / %o px"
-            , ((totalElapsed * 1e2) | 0) / 1e2, ((totalDelta * 1e2) | 0) / 1e2)
+        console.log(">>> [animation] end after %o ms / %o px / %o ticks"
+            , norm(totalElapsed), norm(totalDelta), totalTick)
       }
       OnChrome && hasNewScrollEnd_cr && setupEventListener(elementRoot, kSE, Stop_, 1)
       elementRoot = totalTick =
       running = timestamp = rawTimestamp = beforePos = calibTime = preventPointEvents = lostFrames = onFinish = 0
       element = null
+      set_scrollingTop(null)
     }
     const P = "pointerEvents"
     let el: SafeElement & ElementToHTMLOrForeign | HTMLElement | null
@@ -272,10 +288,10 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
     }
     if (ScrollConsts.DEBUG) {
       console.log("%c[animation]%c start with axis = %o, amount = %o, dir = %o, duration = %o, min_delta = %o%s %s"
-          , "color: #1155cc", "color: auto", di ? "y" : "x", amount, sign, duration
-          , ((min_delta * 1e4) | 0) / 1e4)
+          , "color: #1155cc", "color: auto", di ? "y" : "x", norm(amount), sign, duration
+          , norm4(min_delta)
           , `\n  keyInterval = ${maxKeyInterval}, minDelay = ${minDelay}` // lgtm [js/useless-expression]
-          , `flags = ${flags}, wait2 = ${wait2}` // lgtm [js/useless-expression]
+          , `flags = ${flags}, wait2 = ${wait2 ?? -1}`) // lgtm [js/useless-expression]
     }
     running = running || rAF_(animate)
     let defer: ReturnType<(typeof promiseDefer_<number>)>
@@ -392,8 +408,8 @@ export const executeScroll: VApiTy["c"] = function (di: ScrollByY, amount0: numb
       amount = oldAmount > 0 && amount * amount < 1 ? 0 : amount
       amount = amount0 ? amount : toMax ? max_(amount, 0) : min_(amount, 0)
       if (ScrollConsts.DEBUG & 8) {
-        console.log("[scrollTo] cur=%o top_max=%o view=%o amount=%o, so final amount=%o", curPos, viewSize, max
-            , oldAmount, amount)
+        console.log("[scrollTo] cur=%o view=%o max=%o amount=%o, so final amount=%o", norm(curPos), norm(viewSize)
+            , norm(max), norm(oldAmount), norm(amount))
       }
     }
     amount = amount * amount > 0.01 ? amount : 0
@@ -418,7 +434,6 @@ export const executeScroll: VApiTy["c"] = function (di: ScrollByY, amount0: numb
         resetSelectionToDocStart()
       }
     }
-    set_scrollingTop(null)
     isTopScrollable = 1
     const keepHover = options && options.keepHover
     preventPointEvents = keepHover === !1 ? 1 : keepHover === "never" ? 2
@@ -431,6 +446,7 @@ export const executeScroll: VApiTy["c"] = function (di: ScrollByY, amount0: numb
     }
     const ret = toDoInSelf && vApi.$(element, di, amount, options)
     preventPointEvents = keyIsDown ? preventPointEvents : 0
+    keyIsDown || set_scrollingTop(null)
     scrolled = 0
     if (ret && isTY(ret, kTY.obj)) {
       void ret.then((succeed): void => { runFallbackKey(options!, succeed ? 0 : 2) })
@@ -451,8 +467,8 @@ let overrideScrollRestoration = function (kScrollRestoration, kManual): void {
   /** @argument willContinue 1: continue; 0: skip middle steps; 2: abort further actions; 5: resume */
 export const scrollTick: VApiTy["k"] = (willContinue: 0 | 1 | 2 | 5): void => {
     if (ScrollConsts.DEBUG & 4 && (keyIsDown || willContinue === 1)) {
-      console.log("update keyIsDown from", ((keyIsDown * 10) | 0) / 10, "to", willContinue & 1 ? maxKeyInterval : 0, "@"
-          , ((performance.now() % 1e3 * 1e2) | 0) / 1e2)
+      console.log("update keyIsDown from", norm(keyIsDown), "to", willContinue & 1 ? maxKeyInterval : 0, "@"
+          , norm(performance.now() % 3e5))
     }
     keyIsDown = willContinue & 1 ? maxKeyInterval : 0
     willContinue > 1 && toggleAnimation && toggleAnimation((willContinue & 4) as 0 | 4)
@@ -592,16 +608,17 @@ const doesScroll = (el: SafeElement, di: ScrollByY, amount: number): boolean => 
     /** @todo: (help wanted) it seems not detectable when hasSpecialScrollSnap_ on Firefox */
     // Currently, Firefox corrects positions before .scrollBy returns,
     // so it always fails if amount < next-box-size
-    const before = dimSize_(el, di + kDim.positionX),
-    changed = performScroll(el, di, amount > 0 ? scale : -scale, before)
+    const visualBefore = dimSize_(el, kDim.positionX + di),
+    before = OnEdge || el !== scrollingTop ? visualBefore : dimSize_(el, kDim.scPosX + di),
+    changed = performScroll(el, di, amount > 0 ? scale : -scale, visualBefore)
     if (changed) {
       if (!OnFirefox && !di && hasSpecialScrollSnap(el)) {
         /**
          * Here needs the third scrolling, because in `X Prox. LTR` mode, a second scrolling may jump very far.
          * Tested on https://developer.mozilla.org/en-US/docs/Web/CSS/scroll-snap-type .
          */
-        let changed2 = performScroll(el, 0, -changed, before)
-        changed2 * changed2 > 0.1 && performScroll(el, 0, -changed2, before)
+        let changed2 = performScroll(el, 0, -changed, visualBefore)
+        changed2 * changed2 > 0.1 && performScroll(el, 0, -changed2, 0)
       } else if ((OnChrome ? Build.MinCVer >= BrowserVer.MinEnsuredCSS$ScrollBehavior : !OnEdge) || el.scrollTo) {
         OnSafari ? el.scrollTo(di ? 0 : before, di && before) : el.scrollTo(instantScOpt(di ? 0 : before, di && before))
       } else {
@@ -647,7 +664,7 @@ export const shouldScroll_s = (element: SafeElement, di: BOOL | 2 | 3, amount: n
     const st = getComputedStyle_(element), overflow = di ? st.overflowY : st.overflowX
     return (overflow === HDN && di < 2 || overflow === "clip")
       || st.display === NONE || !isRawStyleVisible(st) ? -1
-      : <BOOL> +doesScroll(element, (di & 1) as BOOL, amount || +!dimSize_(element, kDim.positionX + di))
+      : <BOOL> +doesScroll(element, (di & 1) as BOOL, amount || +!dimSize_(element, kDim.scPosX + (di & 1)))
 }
 
 export const suppressScroll = (timedOut?: number): void => {
