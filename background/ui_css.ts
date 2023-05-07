@@ -99,7 +99,7 @@ export const reloadCSS_ = (action: MergeAction, knownCssStr?: string): SettingsN
     }
     if (OnFirefox) {
       const ind1 = css.indexOf(".LH{") + 4, ind2 = css.indexOf("}", ind1)
-      let items = css.slice(ind1, ind2).replace("2.5px 3px 2px", "3px").replace("0.5px", "1px")
+      let items = css.slice(ind1, ind2).replace("0.5px", "1px")
       css = css.slice(0, ind1) + items + css.slice(ind2)
     }
     if (OnFirefox && isHighContrast_ff) {

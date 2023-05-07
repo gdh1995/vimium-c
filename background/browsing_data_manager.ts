@@ -516,12 +516,13 @@ export const getRecentSessions_ = (expected: number, showBlocked: boolean
       if (!showBlocked && !TestNotBlocked_(url, title)) { continue }
       t = OnFirefox ? item.lastModified
           : (t = item.lastModified, t < /* as ms: 1979-07 */ 3e11 && t > /* as ms: 1968-09 */ -4e10 ? t * 1000 : t)
+      const wndId = entry.windowId // can be 0 on Chrome 112 for Ubuntu 22
       arr2.push({
         u: url, title_: title,
         visit_: t,
-        sessionId_: [entry.windowId, (wnd || entry).sessionId!, wnd ? wnd.tabs!.length : 0],
+        sessionId_: [wndId, (wnd || entry).sessionId!, wnd ? wnd.tabs!.length : 0],
         label_: wnd ? ` +${wnd.tabs!.length > 1 ? wnd.tabs!.length - 1 : ""}`
-            : entry.windowId !== curWndId_ && t > procStart ? " +" : ""
+            : wndId && wndId !== curWndId_ && t > procStart ? " +" : ""
       })
     }
     if (anyWindow) { // for GC
