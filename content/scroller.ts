@@ -640,7 +640,7 @@ const doesScroll = (el: SafeElement, di: ScrollByY, amount: number): boolean => 
     changed = performScroll(el, di, amount > 0 ? scale : -scale, visualBefore)
     if (changed) {
       if (OnFirefox && el === scrollingTop) {
-        performScroll(el, di, abs_(changed - scale) < 2 ? -scale : -changed, 0)
+        el.scrollBy(instantScOpt(di ? 0 : -changed, di && -changed))
       } else if (!OnFirefox && !di && hasSpecialScrollSnap(el)) {
         /**
          * Here needs the third scrolling, because in `X Prox. LTR` mode, a second scrolling may jump very far.
@@ -648,8 +648,9 @@ const doesScroll = (el: SafeElement, di: ScrollByY, amount: number): boolean => 
          */
         let changed2 = performScroll(el, 0, -changed, visualBefore)
         changed2 * changed2 > 0.1 && performScroll(el, 0, -changed2, 0)
-      } else if ((OnChrome ? Build.MinCVer >= BrowserVer.MinEnsuredCSS$ScrollBehavior : !OnEdge) || el.scrollTo) {
-        OnSafari ? el.scrollTo(di ? 0 : before, di && before) : el.scrollTo(instantScOpt(di ? 0 : before, di && before))
+      } else if (!OnSafari
+          && ((OnChrome ? Build.MinCVer >= BrowserVer.MinEnsuredCSS$ScrollBehavior : !OnEdge) || el.scrollTo)) {
+        el.scrollTo(instantScOpt(di ? void 0 as never : before, di ? before : void 0 as never))
       } else {
         di ? (el.scrollTop = before) : (el.scrollLeft = before);
       }
