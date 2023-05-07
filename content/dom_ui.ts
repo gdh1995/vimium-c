@@ -261,7 +261,7 @@ export const getSelectionOf = (node: DocumentOrShadowRootMixin): Selection | nul
 export const getSelected = (notExpectCount?: {r?: ShadowRoot | null}): Selection => {
   type Item<Ref> = Ref extends WeakRef<infer U> ? U : never
   let el: Document | DocumentFragment | Element | null | undefined, sel: Selection | null
-  let sr: ShadowRoot | null = null
+  let sr: ShadowRoot | null = null, sr2: ShadowRoot | null
   if (el = derefInDoc_(currentScrolling)) {
       type ReferredInDoc = EnsuredMountedElement & Item<typeof currentScrolling>;
       el = getRootNode_mounted(el as ReferredInDoc)
@@ -272,24 +272,19 @@ export const getSelected = (notExpectCount?: {r?: ShadowRoot | null}): Selection
         }
       }
   }
-  if (!sr) {
-    sel = getSelection_();
-    let sel2 = OnChrome && Build.MinCVer >= BrowserVer.MinShadowDOMV0
+  sel = sr ? sel! : getSelection_()
+  let sel2: Selection | null | false = OnChrome && (Build.MinCVer >= BrowserVer.MinShadowDOMV0
+          || chromeVer_ > BrowserVer.MinShadowDOMV0 - 1)
         || !OnFirefox && typeof ShadowRoot == OBJECT_TYPES[kTY.func] ? sel : null
-    while (sel2) {
-          sel2 = null
+  while (sel2) {
           el = singleSelectionElement_unsafe(sel)
-          if (el && (sr = TryGetShadowRoot_(el as Element))) {
-            if (OnChrome ? sel2 = getSelectionOf(sr) : hasGetSelection(sr) && (sel2 = getSelectionOf(sr))) {
-              sel = sel2!;
-            } else {
-              sr = null;
-            }
-          }
+    sel2 = el && (sr2 = TryGetShadowRoot_(el as Element)) && (OnChrome || hasGetSelection(sr2)) && getSelectionOf(sr2)
+    if (sel2) {
+      sr = sr2!, sel = sel2
     }
   }
   notExpectCount && (notExpectCount.r = sr)
-  return sel!
+  return sel
 }
 
 /** return HTMLElement if there's only Firefox */
@@ -297,7 +292,7 @@ export const getSelectionParent_unsafe = ((sel: Selection, re?: RegExpG & RegExp
     let range = selRange_(sel), text: HTMLElement["innerText"] | undefined
       , selected: string | undefined, match: RegExpExecArray | null, result = 0
       , par: Node | null = range && range.commonAncestorContainer, lastPar = par!
-    while (par && !(par as NodeToElement).tagName) {
+    while (par && !isNode_(par, kNode.ELEMENT_NODE)) {
       par = parentNode_unsafe_s(par as Text)
     }
     // now par is Element or null, and may be a <form> / <frameset>

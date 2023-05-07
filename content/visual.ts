@@ -42,7 +42,7 @@ import {
 } from "../lib/keyboard_utils"
 import {
   getSelection_, getSelectionFocusEdge_, isHTML_, docEl_unsafe_, notSafe_not_ff_, getEditableType_,
-  GetChildNodes_not_ff, rangeCount_, getAccessibleSelectedNode, scrollingEl_, isNode_,
+  getNodeChild_, rangeCount_, getAccessibleSelectedNode, scrollingEl_, isNode_,
   getDirectionOfNormalSelection, selOffset_, modifySel, parentNode_unsafe_s, textOffset_, inputSelRange
 } from "../lib/dom_utils"
 import { prepareCrop_, cropRectToVisible_, getVisibleClientRect_, set_scrollingTop, selRange_ } from "../lib/rect"
@@ -127,7 +127,7 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode], count: number):
   const getDirection = function (magic?: string): kDirTy.left | kDirTy.right | kDirTy.unknown {
     if (di_ !== kDirTy.unknown) { return di_ }
     const oldDiType = diType_, sel = curSelection, anchorNode = getAccessibleSelectedNode(sel)
-    let num1 = -1, num2: number
+    let num1 = -2, num2: number
     if (OnFirefox && !anchorNode) {
       diType_ = DiType.Normal
       return di_ = kDirTy.right
@@ -149,9 +149,7 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode], count: number):
     // editable text elements
     if (!OnFirefox && raw_insert_lock && parentNode_unsafe_s(raw_insert_lock) === anchorNode) {
       if (oldDiType & DiType.Unknown && getEditableType_<0>(raw_insert_lock) > EditableType.MaxNotEditableElement) {
-        const child = (OnFirefox ? (anchorNode as Element).childNodes as NodeList
-            : GetChildNodes_not_ff!(anchorNode as Element)
-            )[num1 >= 0 ? num1 : selOffset_(sel)] as Node | undefined
+        const child = getNodeChild_(anchorNode!, sel, num1 + 2)
         if (raw_insert_lock === child || /** tend to trust that the selected is a textbox */ !child) {
           if (!OnChrome || Build.MinCVer >= BrowserVer.Min$selectionStart$MayBeNull
               || chromeVer_ > BrowserVer.Min$selectionStart$MayBeNull - 1
@@ -283,7 +281,7 @@ const getNextRightCharacter = (isMove: BOOL): string => {
           , di_ === kDirTy.right || doesSelectRightInEditableLock())!)
     }
     if (!diType_) {
-      let focusNode = getAccessibleSelectedNode(sel, 1)
+      const focusNode = getAccessibleSelectedNode(sel, 1)
       if (OnFirefox && !focusNode) { return "" }
       if (isNode_(focusNode!, kNode.TEXT_NODE)) {
         const i = selOffset_(sel, 1), str = focusNode.data;
@@ -542,22 +540,23 @@ const ensureLine = (command1: number, s0: string): void => {
     }
     let s1 = noBacked ? "" : "" + <SelWithToStr> curSelection, backed: string | 0 = 0
     if (!(di ? s1.endsWith("\n") : s1.startsWith("\n"))) {
-      const r1 = diType_ || !s1 ? 0 : [getAccessibleSelectedNode(curSelection, 1), selOffset_(curSelection, 1)] as const
+      const r1 = !diType_ && s1 && getAccessibleSelectedNode(curSelection, 1)
+      const r2 = r1 && selOffset_(curSelection, 1)
       if (s1 && (len || !(<RegExpOne>/\r|\n/).test(s1.slice(di ? OnFirefox ? -3 : -2 : 0).slice(0, OnFirefox ?3 :2)))) {
         modify(1 - di, kG.character)
         backed = "" + <SelWithToStr> curSelection
         backed + "\n" === s1 ? backed = 0
         : backed === s1 && (backed = 0, // sel.addRange will reset selection direction on C107, so have to use extend
-            r1 && (!OnFirefox || r1[0]) ? curSelection.extend(r1[0]!, r1[1]) : modify(di, kG.character))
+            r1 ? curSelection.extend(r1, r2 as number) : modify(di, kG.character))
       }
       modify(di, kG.lineBoundary + <BOOL> noBacked); kG.lineBoundary satisfies 3; kG.line satisfies 4
-      const reduced = !len && r1 && (!OnFirefox || r1[0]) && di !== (command1 & 1)
+      const reduced = !len && r1 && di !== (command1 & 1)
       const s2 = backed || reduced ? "" + <SelWithToStr> curSelection : ""
       if (backed && s2 === backed) {
         modify(di, kG.character)
         modify(di, kG.lineBoundary)
       } else if (reduced && (s2.length >= s0.length)) {
-        curSelection.extend(r1[0]!, r1[1])
+        curSelection.extend(r1, r2 as number)
       }
     }
     if (noBacked && !diType_) { len++, noBacked = !1 }

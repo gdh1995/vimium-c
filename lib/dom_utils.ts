@@ -68,7 +68,9 @@ export const isIFrameElement = (el: Element): el is KnownIFrameElement => {
 }
 
 export const isNode_ = <T extends keyof kNodeToType> (node: Node, typeId: T): node is kNodeToType[T] => {
-  return node.nodeType === typeId
+  const type = node.nodeType
+  return !(Build.BTypes & ~BrowserType.Firefox) ? type === typeId
+      : type === typeId || typeId === kNode.ELEMENT_NODE && isTY(type, kTY.obj)
 }
 
 export const rangeCount_ = (sel: Selection): number => sel.rangeCount
@@ -179,22 +181,30 @@ export const GetShadowRoot_ = (el: SafeHTMLElement, noClosed_cr?: boolean | BOOL
       : sr && !notSafe_not_ff_!(el) && <Exclude<typeof sr, Element | RadioNodeList | Window>> sr || null;
 }
 
-export const GetChildNodes_not_ff = !OnFirefox ? (el: Element): NodeList => {
-  if (!OnChrome || Build.MinCVer >= BrowserVer.MinParentNodeGetterInNodePrototype) {
-    return notSafe_not_ff_!(el) ? _getter_unsafeOnly_not_ff_!(Node, el, "childNodes")! : el.childNodes as NodeList
-  } else {
-    let cn = el.childNodes
-    return !notSafe_not_ff_!(el) || cn instanceof NodeList && !("value" in cn) ? cn as NodeList
-        : _getter_unsafeOnly_not_ff_!(Node, el, "childNodes") || <NodeList> <{[index: number]: Node}> []
+// offset: 0: anchor, 1: focus; >= 2: directly use (offset - 2)
+export const getNodeChild_ = (node: Node, sel: Selection, offset?: number): Node | void => {
+  const type = node.nodeType
+  let childNodes: NodeList
+  if (type === kNode.ELEMENT_NODE || type === kNode.DOCUMENT_FRAGMENT_NODE || !OnFirefox && isTY(type, kTY.obj)) {
+    if (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinParentNodeGetterInNodePrototype) {
+      childNodes = OnFirefox || type === kNode.DOCUMENT_FRAGMENT_NODE || notSafe_not_ff_!(node as Element)
+          ? node.childNodes as NodeList : _getter_unsafeOnly_not_ff_!(Node, node, "childNodes")!
+    } else {
+      childNodes = node.childNodes as unknown as NodeList
+      childNodes = OnFirefox || type === kNode.DOCUMENT_FRAGMENT_NODE || !notSafe_not_ff_!(node as Element)
+          || childNodes instanceof NodeList && !("value" in childNodes) ? childNodes
+          : _getter_unsafeOnly_not_ff_!(Node, node, "childNodes") || <NodeList> <{[index: number]: Node}> []
+    }
+    return childNodes[offset! > 1 ? offset! - 2 : selOffset_(sel, offset as 1 | 0 | undefined)]
   }
-} : 0 as never as null
+}
 
 /** Try its best to find a real parent */
 export const GetParent_unsafe_ = function (el: Node | Element
     , type: PNType.DirectNode | PNType.DirectElement | PNType.RevealSlot | PNType.RevealSlotAndGotoParent
     ): Node | null {
   /** Chrome: a selection / range can only know nodes and text in a same tree scope */
-  if (!OnEdge && type >= PNType.RevealSlot) {
+  if (!OnEdge && type > PNType.RevealSlot - 1) {
       if (OnChrome && Build.MinCVer < BrowserVer.MinNoShadowDOMv0 && chromeVer_ < BrowserVer.MinNoShadowDOMv0) {
         const func = ElementProto_not_ff!.getDestinationInsertionPoints,
         arr = func ? func.call(el) : [], len = arr.length;
@@ -204,7 +214,7 @@ export const GetParent_unsafe_ = function (el: Node | Element
       !OnFirefox && slot && notSafe_not_ff_!(el as Element) &&
       (slot = _getter_unsafeOnly_not_ff_!(Element, el as Element, "assignedSlot"));
       if (slot) {
-        if (type === PNType.RevealSlot) { return slot; }
+        if (type < PNType.RevealSlot + 1) { return slot; }
         while (slot = slot.assignedSlot) { el = slot; }
       }
   }
@@ -482,9 +492,7 @@ export const isSelected_ = (): boolean => {
     return !node || !element ? false
       : (element as TypeToAssert<Element, HTMLElement, "isContentEditable">).isContentEditable === true
       ? OnFirefox ? contains_s(element as SafeElement, node) : doc.contains.call(element, node)
-      : element === node || !!(node as NodeToElement).tagName
-        && element === (!OnFirefox ? GetChildNodes_not_ff!(node as Element)
-            : node.childNodes as NodeList)[selOffset_(sel)]
+      : element === node || element === getNodeChild_(node, sel)
 }
 
 /** return `right` in case of unknown cases */
@@ -500,19 +508,16 @@ export const getDirectionOfNormalSelection = (sel: Selection, anc: Node | null, 
 
 export const getSelectionFocusEdge_ = (sel: Selection
       , knownDi?: VisualModeNS.ForwardDir | VisualModeNS.kDir.unknown): SafeElement | null => {
-    let el = rangeCount_(sel) && getAccessibleSelectedNode(sel, 1), nt: Node["nodeType"], o: Node | null | 0 = el
+    let el = rangeCount_(sel) && getAccessibleSelectedNode(sel, 1), o: Node | 0 | null | void
     if (!el) { return null; }
     const anc = getAccessibleSelectedNode(sel)
     knownDi = knownDi != null ? knownDi : getDirectionOfNormalSelection(sel, anc, el)
-    if ((el as NodeToElement).tagName) {
-      o = (OnFirefox ? el.childNodes as NodeList : GetChildNodes_not_ff!(el as Element))[selOffset_(sel, 1)]
-    } else {
+    o = getNodeChild_(el, sel, 1)
+    if (!o) {
+      o = el
       el = GetParent_unsafe_(el as Element | Text, PNType.ResolveShadowHost)
     }
-    for (; o && (!OnChrome || Build.MinCVer >= BrowserVer.MinFramesetHasNoNamedGetter
-          ? <number> <Element | RadioNodeList | kNode> o.nodeType - kNode.ELEMENT_NODE
-          : isTY(nt = o.nodeType, kTY.num) && nt - kNode.ELEMENT_NODE)
-        ; o = knownDi ? o.previousSibling : o.nextSibling) { /* empty */ }
+    for (; o && !isNode_(o, kNode.ELEMENT_NODE); o = knownDi ? o.previousSibling : o.nextSibling) { /* empty */ }
     if (o && anc) {
       const num = compareDocumentPosition(anc, o)
       if (!(num & (kNode.DOCUMENT_POSITION_CONTAINS | kNode.DOCUMENT_POSITION_CONTAINED_BY))
@@ -528,11 +533,10 @@ export const getSelectionFocusEdge_ = (sel: Selection
 
 /** may skip a `<form> having <input name="nodeType">` */
 export const singleSelectionElement_unsafe = (sel: Selection): Element | null => {
-  let el: Node | null | false | "" | undefined = getAccessibleSelectedNode(sel), offset: number
-  el = el && (el as NodeToElement).tagName && el === getAccessibleSelectedNode(sel, 1)
-      && (offset = selOffset_(sel)) === selOffset_(sel, 1)
-      && (OnFirefox ? el.childNodes as NodeList : GetChildNodes_not_ff!(el as Element))[offset]
-  return el && isNode_(el, kNode.ELEMENT_NODE) ? el : null
+  const anchor: Node | null | false | "" | undefined = getAccessibleSelectedNode(sel)
+  const child = anchor && getNodeChild_(anchor, sel)
+  return child && anchor === getAccessibleSelectedNode(sel, 1)
+      && selOffset_(sel) === selOffset_(sel, 1) && isNode_(child, kNode.ELEMENT_NODE) ? child : null
 }
 
 export const getElDesc_ = (el: Element | null): FgReq[kFgReq.respondForRunKey]["e"] =>

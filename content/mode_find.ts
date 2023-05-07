@@ -12,7 +12,7 @@ import {
   getEditableType_, scrollIntoView_, SafeEl_not_ff_, GetParent_unsafe_, focus_, fullscreenEl_unsafe_, docEl_unsafe_,
   getSelection_, isSelected_, docSelectable_, isHTML_, createElement_, CLK, MDW, removeEl_s, appendNode_s, isNode_,
   setDisplaying_s, findAnchor_, notSafe_not_ff_, textContent_s, modifySel, parentNode_unsafe_s, selOffset_, blur_unsafe,
-  getAccessibleSelectedNode,  INP, BU, UNL, contains_s, setOrRemoveAttr_s, singleSelectionElement_unsafe,
+  getAccessibleSelectedNode,  INP, BU, UNL, contains_s, setOrRemoveAttr_s, singleSelectionElement_unsafe, getNodeChild_,
   getDirectionOfNormalSelection
 } from "../lib/dom_utils"
 import {
@@ -259,9 +259,7 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
     const oldActiveRegexIndex = activeRegexIndex
     const arr: Rect[] = [], opt: ExecuteOptions = { h: [scrollX, scrollY, arr], i: 1, c: options.m || 20 }
     const sel = getSelected()
-    let newAnchor: Node | null
-    if (hasResults && (OnFirefox || (newAnchor = getAccessibleSelectedNode(sel, 1))
-        && !(isNode_(newAnchor, kNode.ELEMENT_NODE) && selOffset_(sel) === selOffset_(sel, 1) ))) {
+    if (hasResults && (OnFirefox || !singleSelectionElement_unsafe(sel))) {
       prepareCrop_(1)
       const range = selRange_(sel), viewBox = getViewBox_()
       highlightTimeout_ && toggleStyle(0)
@@ -838,7 +836,7 @@ export const executeFind = (query: string | null, options: Readonly<ExecuteOptio
     } as Window["find"] : 0 as never as null
     let el: LockableElement | null, highlight = safer(options).h, noColor = highlight || options.noColor
       , newRange: Range | null
-      , newAnchor: false | Node | null, posChange: false | kNode | null
+      , newAnchor: false | Node | null | void, posChange: false | kNode | null
       , found: boolean, count = (options.c! | 0) || 1, back = count < 0
       , par: Element | 0 | null | undefined, timesRegExpNotMatch = 0
       , q: string, notSens = ignoreCase && !options.caseSensitive
@@ -887,8 +885,7 @@ export const executeFind = (query: string | null, options: Readonly<ExecuteOptio
         const rect = getSelectionBoundingBox_(curSel)
         if (rect) { back ? highlight[2].unshift(rect) : highlight[2].push(rect) }
         else if (!OnFirefox && (newAnchor = getAccessibleSelectedNode(curSel, 1))
-            && isNode_(newAnchor, kNode.ELEMENT_NODE) && !notSafe_not_ff_!(newAnchor)) {
-          newAnchor = ((newAnchor as SafeElement).childNodes as NodeList)[selOffset_(curSel, 1)]
+            && (newAnchor = getNodeChild_(newAnchor, curSel, 1))) {
           newRange = selRange_(curSel, 1).cloneRange()
           back ? newRange.setEndBefore(newAnchor) : newRange.setStartAfter(newAnchor)
           newRange.collapse(!back)
