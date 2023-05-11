@@ -653,6 +653,7 @@ declare const enum FirefoxBrowserVer {
   // scripting, action, host_permissions, StorageArea.onChanged
   MinUsableMV3 = 101, // Refer to: https://developer.mozilla.org/en-US/docs/Mozilla/Firefox/Releases/101
   MinMaybe$navigator$$userAgentData = 101,
+  MinMaybeScrollEndEvent = 109,
   // members of a Selection are never updated when an <input> gets focused, so no work-around
   Min$Selection$SupportTextBox = 999,
   None = 0,

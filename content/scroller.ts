@@ -75,8 +75,8 @@ const norm4 = (i: number) => parseFloat(i.toFixed(4))
 
 let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: number
     , newOpts?: CmdOptions[kFgCmd.scroll]): ReturnType<VApiTy["$"]> => {
-  const hasNewScrollEnd_cr = OnChrome && (Build.MinCVer >= BrowserVer.MinScrollEndForInstantScrolling
-        || chromeVer_ > BrowserVer.MinScrollEndForInstantScrolling - 1) && ("on" + kSE) in Image.prototype
+  const hasNewScrollEnd = (OnFirefox || OnChrome && (Build.MinCVer >= BrowserVer.MinScrollEndForInstantScrolling
+        || chromeVer_ > BrowserVer.MinScrollEndForInstantScrolling - 1)) && ("on" + kSE) in Image.prototype
   let amount: number, sign: number, calibration: number, di: ScrollByY, duration: number, element: SafeElement | null,
   elementRoot: DocumentFragment | Document | 0,
   beforePos: number, timestamp: number, rawTimestamp: number, totalDelta: number, totalElapsed: number, min_delta = 0,
@@ -212,7 +212,7 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
       if (!Build.NDEBUG) { totalElapsed -= elapsed }
       onFinish && onFinish(totalDelta)
       toggleAnimation!()
-      if (OnChrome && hasNewScrollEnd_cr) { // ignore Chrome 74~77 with EXP enabled, to make code smaller
+      if ((OnChrome || OnFirefox) && hasNewScrollEnd) { // ignore Chrome 74~77 with EXP enabled, to make code smaller
         // according to tests on C75, no "scrollend" events if scrolling behavior is "instant";
         // the doc on Google Docs requires no "overscroll" events for programmatic scrolling
         const notEl: boolean = !el2 || el2 === scrollingEl_();
@@ -240,7 +240,7 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
         console.log(">>> [animation] end after %o ms / %o px / %o ticks"
             , norm(totalElapsed), norm(totalDelta), totalTick)
       }
-      OnChrome && hasNewScrollEnd_cr && setupEventListener(elementRoot, kSE, Stop_, 1)
+      (OnChrome || OnFirefox) && hasNewScrollEnd && setupEventListener(elementRoot, kSE, Stop_, 1)
       elementRoot = totalTick =
       running = timestamp = rawTimestamp = beforePos = calibTime = preventPointEvents = lostFrames = onFinish = 0
       element = null
@@ -282,7 +282,7 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
     maxKeyInterval = max_(min_delta, keyboard[1]) * 2 + ScrollConsts.DelayTolerance
     minDelay = keyboard[0] + max_(keyboard[1], ScrollConsts.DelayMinDelta) + ScrollConsts.DelayTolerance;
     (preventPointEvents === 2 || preventPointEvents === 1 && !isSelARange(getSelection_())) && toggleAnimation!(1)
-    if (OnChrome && hasNewScrollEnd_cr) {
+    if ((OnChrome || OnFirefox) && hasNewScrollEnd) {
       elementRoot = element ? getRootNode_mounted(element as EnsuredMountedElement & typeof element) : doc
       elementRoot = elementRoot !== doc ? elementRoot : 0
       setupEventListener(elementRoot, kSE)
@@ -701,7 +701,7 @@ export const suppressScroll = (timedOut?: number): void => {
     timedOut = timedOut || OnChrome && Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage && noRAF_old_cr_ ? 1 : 0
     scrolled = timedOut ? 0 : 2
     setupEventListener(0, "scroll", Stop_, timedOut as BOOL);
-    (OnChrome && (Build.MinCVer >= BrowserVer.MinScrollEndForInstantScrolling
+    (OnFirefox || OnChrome && (Build.MinCVer >= BrowserVer.MinScrollEndForInstantScrolling
         || chromeVer_ > BrowserVer.MinScrollEndForInstantScrolling - 1) && ("on" + kSE) in Image.prototype) &&
     setupEventListener(0, kSE, Stop_, timedOut as BOOL)
     timedOut || rAF_(suppressScroll)
