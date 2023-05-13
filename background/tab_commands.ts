@@ -657,8 +657,9 @@ export const toggleMuteTab = (resolve: OnCmdResolved): void | kBgCmd.toggleMuteT
   }
   const filter = get_cOptions<C.toggleMuteTab, true>().filter
   const currentWindow = get_cOptions<C.toggleMuteTab, true>().currentWindow
-  if (!(get_cOptions<C.toggleMuteTab>().all || currentWindow || filter
-        || get_cOptions<C.toggleMuteTab>().other || get_cOptions<C.toggleMuteTab>().others)) {
+  const rawOthers = get_cOptions<C.toggleMuteTab>().others
+  const others = rawOthers != null ? rawOthers : get_cOptions<C.toggleMuteTab>().other
+  if (!(get_cOptions<C.toggleMuteTab>().all || currentWindow || filter || others)) {
     getCurTab(([tab]: [Tab]): void => {
       const neg = !isTabMuted(tab)
       const mute = get_cOptions<kBgCmd.toggleMuteTab>().mute != null ? !!get_cOptions<kBgCmd.toggleMuteTab>().mute : neg
@@ -670,8 +671,7 @@ export const toggleMuteTab = (resolve: OnCmdResolved): void | kBgCmd.toggleMuteT
   }
   let activeTab: Tab | null | undefined
   const cb = (tabs: Tab[]): void => {
-    let curId = get_cOptions<C.toggleMuteTab>().other || get_cOptions<C.toggleMuteTab>().others
-          ? cPort ? cPort.s.tabId_ : curTabId_ : GlobalConsts.TabIdNone
+    let curId = others ? cPort ? cPort.s.tabId_ : curTabId_ : GlobalConsts.TabIdNone
       , mute = tabs.length === 0 || curId !== GlobalConsts.TabIdNone && tabs.length === 1 && tabs[0].id === curId
     if (get_cOptions<kBgCmd.toggleMuteTab>().mute != null) {
       mute = !!get_cOptions<kBgCmd.toggleMuteTab>().mute
@@ -881,7 +881,7 @@ export const toggleWindow = (resolve: OnCmdResolved): void | kBgCmd.toggleWindow
   if (selected < 0) { resolve(0); return }
   Q_(Windows_.get, selected).then(wnd => wnd || Q_(Windows_.get, curWndId_)).then(async (wnd): Promise<void> => {
     if (!wnd) { resolve(0); return }
-    const others = target === "others" ? await Qs_(Windows_.getAll).then((wnds): number[] => {
+    const others = target === "other" || target === "others" ? await Qs_(Windows_.getAll).then((wnds): number[] => {
       wnds = wnds?.filter(i => i.id !== curWndId && i.id !== selected && i.type !== "devtools")
       return wnds ? wnds.map(i => i.id) : []
     }) : []

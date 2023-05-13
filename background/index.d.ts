@@ -209,6 +209,7 @@ declare namespace CommandsNS {
     host?: string | ValidUrlMatchers | null
     /** (deprecated) @see host */ url?: string
     fullscreen?: boolean
+    incognito?: boolean
     iframe?: string | boolean | ValidUrlMatchers | null
     options?: (object & EnvItemOptions) | null
   }

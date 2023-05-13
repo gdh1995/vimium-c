@@ -170,6 +170,14 @@ export const testBoolFilter_ = (filter: TabFilterOptions["filter"] | null | unde
   return val !== null ? parseBool(val, only) : null
 }
 
+const makeStringMatcher = (val: string, str: string | null | undefined): ((x?: string | null) => boolean) | null => {
+  const lastSlash = val && val[0] === "/" ? val.lastIndexOf("/") : 0
+  const strRe = lastSlash > 1 && (<RegExpOne> /^[a-z]+$/).test(val.slice(lastSlash + 1))
+      ? BgUtils_.makeRegexp_(val.slice(1, lastSlash)
+        , val.slice(lastSlash + 1).replace(<RegExpG> /g/g, ""), 0) as RegExpOne : null
+  return strRe ? x => strRe.test(x || "") : str ? x => (x || "").includes(str) : null
+}
+
 export interface FilterInfo { known?: boolean }
 
 export const filterTabsByCond_ = (activeTab: Tab | null | undefined
@@ -186,11 +194,8 @@ export const filterTabsByCond_ = (activeTab: Tab | null | undefined
     let cond: ((tab: Tab) => boolean) | null = null
     switch (key) {
     case "title": case "title*":
-      const title = val ? val : activeTab && activeTab.title
-      const lastSlash = val && val[0] === "/" ? val.lastIndexOf("/") : 0
-      const titleRe = lastSlash > 1 ? BgUtils_.makeRegexp_(val.slice(1, lastSlash)
-          , val.slice(lastSlash + 1).replace(<RegExpG> /g/g, ""), 0) as RegExpOne : null
-      cond = titleRe ? tab => titleRe.test(tab.title || "") : title ? tab => (tab.title || "").includes(title) : cond
+      const titleMatcher = makeStringMatcher(val, val ? val : activeTab && activeTab.title)
+      cond = titleMatcher ? (tab) => titleMatcher(tab.title) : null
       break
     case "url": case "urlhash": case "url+hash": case "url-hash": case "hash":
       let matcher: ValidUrlMatchers | null = null
@@ -202,6 +207,10 @@ export const filterTabsByCond_ = (activeTab: Tab | null | undefined
         matcher = url ? Exclusions.createSimpleUrlMatcher_(":" + (useHash ? url : url.split("#", 1)[0])) : null
       }
       cond = matcher ? tab => Exclusions.matchSimply_(matcher!, getTabUrl(tab)) : cond
+      break
+    case "title+url":
+      const strMatcher = val && makeStringMatcher(val, val)!
+      cond = strMatcher ? tab => strMatcher(tab.title) || strMatcher(getTabUrl(tab)) : cond
       break
     case "host": case "":
       const host = val ? val : key && activeTab ? BgUtils_.safeParseURL_(getTabUrl(activeTab))?.host : ""

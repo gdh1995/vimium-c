@@ -913,7 +913,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       return;
     }
     type UrlInfo = SugToExec & Partial<Pick<CompletersNS.Suggestion, "s">>
-    const useItem = sel >= 0
+    const useItem = sel >= 0, testUrl = options.testUrl
     const item: SuggestionE | UrlInfo = useItem ? a.completions_[sel] : { u: a.input_.value.trim() },
     inputSed = options.sed, sed2 = options.itemSedKeys || null,
     itemSed = sed2 ? { r: true, k: sed2 + "" } : null, itemKeyword = options.itemKeyword, field = options.itemField,
@@ -923,7 +923,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       u: field && useItem ? field in item ? item[field as keyof typeof item] + "" : "" : item.u,
       o: { i: options.incognito, s: useItem ? itemSed || { r: false, k: "" } : typeof inputSed === "object" && inputSed
               || { r: inputSed, k: options.inputSedKeys || options.sedKeys || options.sedKey },
-          k: (useItem || !field) && itemKeyword || null, p: options.position, t: useItem ? false : "whole" }
+          k: (useItem || !field) && itemKeyword || null, p: options.position,
+          t: useItem ? !!testUrl : testUrl != null ? testUrl : "whole" }
     }, sessionReq: Req.fg<kFgReq.gotoSession> | null = navReq ? null : { H: kFgReq.gotoSession,
       a: a.actionType_ === null ? 1 : action === ReuseType.newFg ? 2 : 0, s: item.s!
     },

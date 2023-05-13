@@ -1,5 +1,5 @@
 import {
-  get_cOptions, cPort, cRepeat, set_cPort, cKey, keyToCommandMap_, get_cEnv, set_cEnv, OnChrome,
+  get_cOptions, cPort, cRepeat, set_cPort, cKey, keyToCommandMap_, get_cEnv, set_cEnv, OnChrome, curIncognito_,
   set_cKey, set_cOptions, set_runOneMapping_, runOneMapping_, inlineRunKey_, set_inlineRunKey_
 } from "./store"
 import * as BgUtils_ from "./utils"
@@ -42,14 +42,19 @@ const collectOptions = (opts: { [key: `o.${string}`]: any }): CommandsNS.Options
 
 //#region execute a command when in a special environment
 
-declare const enum EnvMatchResult { abort, nextEnv, matched }
+declare const enum EnvMatchResult { interrupt, nextEnv, matched }
 
 const matchEnvRule = (rule: CommandsNS.EnvItem, info: CurrentEnvCache): EnvMatchResult => {
   // avoid sending messages to content scripts - in case a current tab is running slow
-  let host = rule.host, iframe = rule.iframe, fullscreen = rule.fullscreen, elSelector = rule.element
+  let { host, iframe, fullscreen, element: elSelector, incognito } = rule
   if (host === undefined) {
     host = rule.host = rule.url != null ? rule.url : null
     delete rule.url
+  }
+  if (incognito != null) {
+    if ((curIncognito_ === IncognitoType.true) !== !!incognito) {
+      return EnvMatchResult.nextEnv
+    }
   }
   if (typeof host === "string") {
     host = rule.host = createSimpleUrlMatcher_(host)
@@ -69,7 +74,7 @@ const matchEnvRule = (rule: CommandsNS.EnvItem, info: CurrentEnvCache): EnvMatch
             : /** should not reach here */ "")
         runKeyWithCond(info)
       })
-      return EnvMatchResult.abort
+      return EnvMatchResult.interrupt
     }
     if (!matchSimply_(host, url)) { return EnvMatchResult.nextEnv }
   }
@@ -91,7 +96,7 @@ const matchEnvRule = (rule: CommandsNS.EnvItem, info: CurrentEnvCache): EnvMatch
       runKeyWithCond(info)
       return runtimeError_()
     })
-    return EnvMatchResult.abort
+    return EnvMatchResult.interrupt
   } else if (!!fullscreen !== info.fullscreen) {
     return EnvMatchResult.nextEnv
   }
@@ -111,7 +116,7 @@ const matchEnvRule = (rule: CommandsNS.EnvItem, info: CurrentEnvCache): EnvMatch
     if (!selectorArr.length) { /* empty */ }
     else if (cur == null) {
       cPort && safePost(cPort, { N: kBgReq.queryForRunKey, n: performance.now(), c: info })
-      return cPort ? EnvMatchResult.abort : EnvMatchResult.nextEnv
+      return cPort ? EnvMatchResult.interrupt : EnvMatchResult.nextEnv
     } else if (! selectorArr.some((s): any => cur === 0 ? s.tag === "body" && !s.id && !s.classList :
         (!s.tag || cur[0] === s.tag) && (!s.id || cur[1] === s.id)
         && (!s.classList.length || cur[2].length > 0 && s.classList.every(i => cur[2].includes(i)))
@@ -150,8 +155,8 @@ const normalizeExpects = (options: KnownOptions<C.runKey>): (NormalizedEnvCond |
               : ({ env: rule[0].trim(), keys: normalizeKeys(rule[1]), options: null }))
   }
   new_rules = new_rules.map((i): NormalizedEnvCond | null =>
-        i && i.env && !(OnChrome && Build.MinCVer < BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol
-            && i.env === "__proto__") && i.keys.length ? i : null)
+      i && i.env && !(OnChrome && Build.MinCVer < BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol
+        && i.env === "__proto__") && (i.keys.length || i.options) ? i : null)
   overrideOption<C.runKey, "expect">("expect", new_rules, options)
   overrideOption<C.runKey, "keys">("keys", normalizeKeys(options.keys), options)
   overrideOption<C.runKey, "$normalized">("$normalized", 1, options)
@@ -198,13 +203,14 @@ export const runKeyWithCond = (info?: CurrentEnvCache): void => {
       if (rule === null) { continue }
     }
     const res = matchEnvRule(rule, info)
-    if (res === EnvMatchResult.abort) { return }
+    if (res === EnvMatchResult.interrupt) { return }
     if (res === EnvMatchResult.matched) {
       matched = normalizedRule
       break
     }
   }
-  const keys = (matched ? matched.keys : get_cOptions<C.runKey, true>().keys) as (string | SingleSequence)[]
+  const keys = (matched && matched.keys.length ? matched.keys : get_cOptions<C.runKey, true>().keys
+      ) as (string | SingleSequence)[]
   let seq: string | SingleSequence, keysInd: number
   const sub_name = matched ? typeof matched.env === "string" ? `[${matched.env}]: `
       : `(${expected_rules.indexOf(matched)})` : ""
@@ -236,7 +242,8 @@ export const runKeyWithCond = (info?: CurrentEnvCache): void => {
       key.t === kN.error && showHUD(key.val)
       return
     }
-    let options = matched && matched.options || get_cOptions<C.runKey, true>().options
+    let options = matched && matched.options && typeof matched.options === "object" && matched.options
+        || get_cOptions<C.runKey, true>().options
         || (get_cOptions<C.runKey, true>().$masked ? null : collectOptions(get_cOptions<C.runKey, true>()))
     options = concatOptions(options, options2)
     const newIntId = loopIdToRunSeq = (loopIdToRunSeq + 1) % 64 || 1

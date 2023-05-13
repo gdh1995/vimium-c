@@ -593,7 +593,8 @@ set_bgC_([
   /* kBgCmd.removeTab: */ _AsBgC<BgCmdNoTab<kBgCmd.removeTab>>(removeTab),
   /* kBgCmd.removeTabsR: */ (resolve): void | kBgCmd.removeTabsR => {
     /** `direction` is treated as limited; limited by pinned */
-    const direction = get_cOptions<C.removeTabsR>().other ? 0 : cRepeat
+    const rawOthers = get_cOptions<C.removeTabsR>().others
+    const direction = (rawOthers != null ? rawOthers : get_cOptions<C.removeTabsR>().other) ? 0 : cRepeat
     const across = direction === 0 && get_cOptions<C.removeTabsR>().acrossWindows
     across ? Tabs_.query({}, onRemoveTabsR) : getTabsIfRepeat_(direction, onRemoveTabsR)
     function onRemoveTabsR(oriTabs: Tab[] | undefined): void {

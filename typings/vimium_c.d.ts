@@ -449,6 +449,7 @@ declare namespace VomnibarNS {
     itemSedKeys?: "sedKeys" | null
     itemKeyword?: string | null
     itemField?: string | null
+    testUrl?: null | boolean | "whole" | "whole-string"
   }
 }
 

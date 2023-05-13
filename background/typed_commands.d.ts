@@ -130,7 +130,7 @@ interface BgCmdOptions {
     /** only work when close one tab */ filter: TabFilterOptions["filter"]
   } & Req.FallbackOptions
   [kBgCmd.removeTabsR]: {
-    other: boolean; mayConfirm: true; noPinned: boolean; acrossWindows: true
+    others: boolean; other: boolean; mayConfirm: true; noPinned: boolean; acrossWindows: true
   } & TabFilterOptions & Req.FallbackOptions
   [kBgCmd.reopenTab]: Pick<OpenUrlOptions, "group"> & Req.FallbackOptions
   [kBgCmd.restoreTab]: { incognito: "force" | true; one: boolean; active: false; currentWindow?: boolean }
@@ -157,7 +157,7 @@ interface BgCmdOptions {
     /** only return cmd result, but not show */ silent: boolean
   } & Req.FallbackOptions
   [kBgCmd.toggleCS]: { action: "" | "reopen"; incognito: boolean; type: chrome.contentSettings.ValidTypes }
-  [kBgCmd.toggleMuteTab]: { all: boolean; currentWindow?: boolean; other: boolean; others: boolean; mute: boolean }
+  [kBgCmd.toggleMuteTab]: { all: boolean; currentWindow?: boolean; others: boolean; other: boolean; mute: boolean }
       & TabFilterOptions & Req.FallbackOptions
   [kBgCmd.togglePinTab]: LimitedRangeOptions & TabFilterOptions & Req.FallbackOptions
   [kBgCmd.toggleTabUrl]: { keyword: string; parsed: string; reader: boolean } & OpenUrlOptions
@@ -169,7 +169,7 @@ interface BgCmdOptions {
   [kBgCmd.openBookmark]: { title: string; path: string; id: string; name: string; value: string
       $cache: [CompletersNS.Bookmark["id_"], number] | null } & MaskOptions
   [kBgCmd.toggleWindow]: {
-    target: "current" | "last" | "all" | "others"
+    target: "current" | "last" | "all" | "others" | "other"
     states: ("normal" | "minimized" | "maximized" | "fullscreen" | "current" | "keep" | "")[] | string
   }
 }
