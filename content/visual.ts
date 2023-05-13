@@ -45,7 +45,9 @@ import {
   getNodeChild_, rangeCount_, getAccessibleSelectedNode, scrollingEl_, isNode_,
   getDirectionOfNormalSelection, selOffset_, modifySel, parentNode_unsafe_s, textOffset_, inputSelRange
 } from "../lib/dom_utils"
-import { prepareCrop_, cropRectToVisible_, getVisibleClientRect_, set_scrollingTop, selRange_ } from "../lib/rect"
+import {
+  prepareCrop_, cropRectToVisible_, getVisibleClientRect_, set_scrollingTop, selRange_, cropRectS_
+} from "../lib/rect"
 import {
   getSelectionBoundingBox_, doesSelectRightInEditableLock,
   checkDocSelectable, getSelected, resetSelectionToDocStart, flash_, collpaseSelection, getSelectionText
@@ -742,7 +744,7 @@ const ensureLine = (command1: number, s0: string): void => {
       if (!insert_Lock_() && /* (type === SelType.Caret || type === SelType.Range) */ type) {
         prepareCrop_();
         const br = getSelectionBoundingBox_(curSelection, 1)
-        if (!br || !cropRectToVisible_(br.l, br.t, br.r, br.b)) {
+        if (!br || !cropRectS_(br)) {
           resetSelectionToDocStart(curSelection)
         } else if (type === SelType.Caret) {
           extend(kDirTy.right)

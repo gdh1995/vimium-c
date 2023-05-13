@@ -31,7 +31,7 @@ let nextKeys: KeyFSM | ReadonlyChildKeyFSM & SafeObject | null
 
 let isWaitingAccessKey = false
 let isCmdTriggered: kKeyCode = kKeyCode.None
-let noopEventHandler: EventListenerObject["handleEvent"] = Object.is as any
+let noopEventHandler: EventListenerObject["handleEvent"] & (() => void) = Object.is as any
 interface MouseEventListener extends EventListenerObject { handleEvent (evt: MouseEventToPrevent): ELRet }
 let anyClickHandler: MouseEventListener = { handleEvent: noopEventHandler }
 
@@ -43,7 +43,7 @@ set_esc(function<T extends Exclude<HandlerResult, HandlerResult.ExitNormalMode>>
 
 export {
   passKeys, keyFSM, mappedKeys, currentKeys, isWaitingAccessKey, isCmdTriggered, anyClickHandler,
-  onPassKey, isPassKeysReversed,
+  onPassKey, isPassKeysReversed, noopEventHandler as noopHandler,
 }
 export function set_isCmdTriggered (_newTriggerred: kKeyCode): kKeyCode { return isCmdTriggered = _newTriggerred }
 export function set_passKeys (_newPassKeys: typeof passKeys): void { passKeys = _newPassKeys }

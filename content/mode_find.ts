@@ -16,7 +16,8 @@ import {
   getDirectionOfNormalSelection
 } from "../lib/dom_utils"
 import {
-  wdZoom_, prepareCrop_, view_, dimSize_, selRange_, getZoom_, isSelARange, getViewBox_, scrollWndBy_
+  wdZoom_, prepareCrop_, view_, dimSize_, selRange_, getZoom_, isSelARange, getViewBox_, scrollWndBy_, cropRectS_,
+  setupPageLevelCrops
 } from "../lib/rect"
 import {
   ui_box, ui_root, getSelectionParent_unsafe, resetSelectionToDocStart, getBoxTagName_old_cr, collpaseSelection,
@@ -30,7 +31,7 @@ import { hudHide, hud_box, hudTip, hud_opacity, toggleOpacity as hud_toggleOpaci
 import { post_, send_, runFallbackKey } from "./port"
 import { insert_Lock_, raw_insert_lock, setupSuppress } from "./insert"
 import { lastHovered_, set_lastHovered_, set_lastBubbledHovered_, select_ } from "./async_dispatcher"
-import { checkKey, checkKeyOnTop, currentKeys, set_isCmdTriggered } from "./key_handler"
+import { checkKey, checkKeyOnTop, currentKeys, noopHandler, set_isCmdTriggered } from "./key_handler"
 
 export declare const enum FindAction {
   PassDirectly = -1,
@@ -260,8 +261,8 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
     const arr: Rect[] = [], opt: ExecuteOptions = { h: [scrollX, scrollY, arr], i: 1, c: options.m || 20 }
     const sel = getSelected()
     if (hasResults && (OnFirefox || !singleSelectionElement_unsafe(sel))) {
-      prepareCrop_(1)
-      const range = selRange_(sel), viewBox = getViewBox_()
+      prepareCrop_()
+      const range = selRange_(sel), viewBox = getViewBox_(1)
       highlightTimeout_ && toggleStyle(0)
       range && collpaseSelection(sel)
       executeFind("", opt)
@@ -273,7 +274,8 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
       }
       insert_Lock_() && blur_unsafe(raw_insert_lock!)
       highlighting && highlighting()
-      const cbs = arr.map(cr => flash_(null, cr, -1, " Sel SelH", viewBox))
+      /*#__INLINE__*/ setupPageLevelCrops(viewBox)
+      const cbs = arr.map(cropRectS_).map(cr => cr ? flash_(null, cr, -1, " Sel SelH", viewBox) : noopHandler)
       activeRegexIndex = oldActiveRegexIndex
       range ? resetSelectionToDocStart(sel, range) : restoreSelection()
       highlighting = (): void => { highlighting = 0; clearTimeout_(clearTimeout); cbs.map(callFunc) }
@@ -880,9 +882,11 @@ export const executeFind = (query: string | null, options: Readonly<ExecuteOptio
           && timesRegExpNotMatch++ < regexpNoMatchLimit) {
         activeRegexIndex = oldReInd
       } else if (highlight) {
-        scrollWndBy_(highlight[0] - scrollX, highlight[1] - scrollY)
+        const sx = highlight[0] - scrollX, sy = highlight[1] - scrollY
+        ; (sx || sy) && scrollWndBy_(sx, sy)
         curSel = getSelected()
-        const rect = getSelectionBoundingBox_(curSel)
+        let rect = getSelectionBoundingBox_(curSel)
+        rect = sx || sy ? rect : rect && cropRectS_(rect)
         if (rect) { back ? highlight[2].unshift(rect) : highlight[2].push(rect) }
         else if (!OnFirefox && (newAnchor = getAccessibleSelectedNode(curSel, 1))
             && (newAnchor = getNodeChild_(newAnchor, curSel, 1))) {

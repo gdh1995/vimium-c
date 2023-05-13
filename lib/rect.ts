@@ -98,6 +98,12 @@ export const cropRectToVisible_ = (left: number, top: number, right: number, bot
     return cr.r - cr.l > 2 && cr.b - cr.t > 2 ? cr : null
 }
 
+export const setupPageLevelCrops = (newPageBox: ViewBox): void => {
+  vleft = -scrollX, vtop = vtops = -scrollY, vright = newPageBox[2], vbottom = vbottoms = max_(newPageBox[3], vbottom)
+}
+
+export const cropRectS_ = (rect: Rect): Rect | null => cropRectToVisible_(rect.l, rect.t, rect.r, rect.b)
+
 export let getBoundingClientRect_: (el: Element) => ClientRect = !OnFirefox ? el => {
   type ClientRectGetter = (this: Element) => ClientRect
   const func = ElementProto_not_ff!.getBoundingClientRect as ClientRectGetter
@@ -374,7 +380,7 @@ export const getViewBox_ = function (needBox?: 1 | /** dialog-found */ 2): ViewB
   }
   iw = iw < mw ? iw : mw, ih = ih < mh ? ih : mh
   iw = (iw / zoom2) | 0, ih = (ih / zoom2) | 0
-  if (OnChrome && Build.MinCVer >= BrowserVer.MinAbsolutePositionNotCauseScrollbar) {
+  if (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinAbsolutePositionNotCauseScrollbar) {
     return [x, y, iw, yScrollable ? ih - GlobalConsts.MaxHeightOfLinkHintMarker : ih] as unknown as ViewBox
   }
   return [x, y, iw, yScrollable ? ih - GlobalConsts.MaxHeightOfLinkHintMarker : ih, xScrollable ? iw : 0]
@@ -447,7 +453,7 @@ export const center_ = (rect: Rect | null, xy: HintsNS.StdXY | null | undefined)
   let zoom = !OnFirefox ? docZoom_ * bZoom_ / (xy ? 1 : 2) : xy ? 1 : 0.5
   let n = xy ? xy.n - 1 ? xy.n * xy.s : 0.5 : 0
   let x = xy ? isTY(xy.x) ? n : xy.x : 0, y = xy ? isTY(xy.y) ? n : xy.y : 0
-  rect = rect && cropRectToVisible_(rect.l, rect.t, rect.r, rect.b) || rect
+  rect = rect && cropRectS_(rect) || rect
   x = !rect ? 0 : !xy ? rect.l + rect.r
       : max_(rect.l, min_((x < 0 ? rect.r : rect.l) + (x * x > 1 ? x : (rect.r - rect.l) * x), rect.r - 1))
   y = !rect ? 0 : !xy ? rect.t + rect.b
@@ -476,7 +482,7 @@ export const getVisibleBoundingRect_ = (element: Element, crop?: BOOL, st?: CSSS
   rect = boundingRect_(element),
   arr: Rect | null = !OnFirefox
       ? cropRectToVisible_(rect.l * zoom, rect.t * zoom, rect.r * zoom, rect.b * zoom)
-      : cropRectToVisible_(rect.l, rect.t, rect.r, rect.b)
+      : cropRectS_(rect)
   if (crop) {
     arr = getCroppedRect_(element, arr)
   }

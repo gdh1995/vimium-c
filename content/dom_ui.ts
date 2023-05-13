@@ -13,7 +13,7 @@ import {
 } from "../lib/dom_utils"
 import {
   bZoom_, dScale_, getZoom_, wdZoom_, boundingRect_, prepareCrop_, getClientRectsForAreas_,
-  getVisibleClientRect_, getBoundingClientRect_, padClientRect_, isContaining_, cropRectToVisible_, getCroppedRect_,
+  getVisibleClientRect_, getBoundingClientRect_, padClientRect_, isContaining_, cropRectS_, getCroppedRect_,
   setBoundary_, wndSize_, dimSize_, selRange_, isSelARange, ViewOffset
 } from "../lib/rect"
 import { currentScrolling } from "./scroller"
@@ -431,8 +431,7 @@ export const getRect = (clickEl: SafeElement, refer?: HTMLElementUsingMap | null
     }
     const rect = OnFirefox || !notSafe_not_ff_!(clickEl) ? getVisibleClientRect_(clickEl) : null,
     bcr = padClientRect_(getBoundingClientRect_(clickEl), 8),
-    rect2 = rect && !isContaining_(bcr, rect) ? rect
-      : cropRectToVisible_(bcr.l, bcr.t, bcr.r, bcr.b) ? bcr : null;
+    rect2 = rect && !isContaining_(bcr, rect) ? rect : cropRectS_(bcr) ? bcr : null
     return rect2 && getCroppedRect_(clickEl, rect2);
 }
 
