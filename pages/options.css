@@ -747,7 +747,7 @@ select:-moz-focusring {
     min-height: 182px;
   }
 }
-@supports (display: -ms-grid) {
+@supports (-ms-ime-align:auto) {
   option:hover {
     color: var(--vc-icon-button-active-color);
   }

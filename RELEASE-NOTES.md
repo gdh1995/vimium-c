@@ -4,6 +4,12 @@ Release Notes of Vimium C
 ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 说明文档: https://gitee.com/gdh1995/vimium-c#readme , https://github.com/gdh1995/vimium-c/blob/master/README-zh.md .
 
+#### v1.99.991
+* FindMode: fix some issues when highlighting all matches
+* Firefox: fix broken scrolling when a page is pinch-zoomed
+* key mappings: `env` now supports `incognito: boolean`
+* fix some UI issues on macOS, Ubuntu or Firefox
+
 #### v1.99.99
 * v1.99.99: fix broken `h` and `b` in visual-caret mode
 * fix Vimium C hangs in some situations on Chrome 110+
