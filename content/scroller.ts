@@ -249,7 +249,7 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
     const P = "pointerEvents"
     let el: SafeElement & ElementToHTMLOrForeign | HTMLElement | null
     let style: CSSStyleDeclaration | null | undefined
-    if (!(OnChrome && Build.MinCVer >= BrowserVer.MinEnsured$HTMLElement$$inert) && !domFeatures && isHTML_()) {
+    if (!(OnChrome && Build.MinCVer >= BrowserVer.MinEnsuredHTMLDialogElement) && !domFeatures && isHTML_()) {
       domFeatures = // here should not use inert - it affects too many DOM APIs
           OnChrome && Build.MinCVer >= BrowserVer.MinEnsuredHTMLDialogElement || WithDialog && doesSupportDialog() ? 2
           : 1

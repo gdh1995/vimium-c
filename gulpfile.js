@@ -106,7 +106,6 @@ var Tasks = {
     return copyByPath(arr, file => { ToBuffer(file, require("html-minifier").minify(ToString(file), {
       collapseWhitespace: true,
       minifyCSS: true,
-      maxLineLength: MaxLineLen2
     })) })
   },
   "static/minify": function(cb) {

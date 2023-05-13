@@ -439,7 +439,7 @@ delayBinding_(Option_.all_.userDefinedCss.element_, "input", debounce_((): void 
     }
     styleDebug.parentNode || (doc.head as HTMLHeadElement).appendChild(styleDebug)
     styleDebug.classList.add("debugged")
-    styleDebug.textContent = (isSame ? "\n" : "\n.transparent { opacity: 1; }\n") + (css.omni && css.omni + "\n" || "")
+    styleDebug.textContent = (isSame ? "\n" : "\n.inactive { opacity: 1; }\n") + (css.omni && css.omni + "\n" || "")
   }
   })
 }, 1200, null, 0))
