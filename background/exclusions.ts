@@ -60,8 +60,10 @@ export const createSimpleUrlMatcher_ = (host: string): ValidUrlMatchers | null =
           : { t: kMatchUrl.StringPrefix, v: "https://" + (host.startsWith(".") ? host.slice(1) : host) + "/" }
     } else {
       host = (host[0] === ":" ? host.slice(1) : host).replace(<RegExpOne> /([\/?#])\*$/, "$1")
-      host = host.startsWith("vimium://")
-          ? formatVimiumUrl_(host.slice(9), false, Urls.WorkType.ConvertKnown) : host
+      host = host.startsWith("vimium://") ? formatVimiumUrl_(host.slice(9), false, Urls.WorkType.ConvertKnown)
+          : host.startsWith("extension:") ? OnChrome ? "chrome-" + host : OnFirefox ? "moz-" + host
+            : location.protocol + host.slice(10)
+          : host
       ind = host.indexOf("://")
       return {
         t: kMatchUrl.StringPrefix,
