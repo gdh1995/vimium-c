@@ -178,8 +178,8 @@ echo "$action_name $output"
 
 function print_reproduce() {
   if bool "$IN_DIST" && test -f "$ZIP_BASE/.snapshot.sh"; then
-    echo -n $'\n'Source version:$'\n''>>> '
-    cat "$ZIP_BASE/.snapshot.sh" | head -n 1
+    echo -n $'\n'Source version:$'\n'''
+    cat "$ZIP_BASE/.snapshot.sh" | head -n 2
     echo $'\n'Building steps in a Bash shell with Node.js 17+ and NPM:$'\n''```'
     cat "$ZIP_BASE/.snapshot.sh" | tail -n +2
     echo '```'$'\n'

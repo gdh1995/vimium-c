@@ -574,8 +574,8 @@ declare const enum BrowserVer {
   MinScrollbarIncreasePadding = 99, // even if LEGACY; since 97 if EXPERIMENTAL
   MinBg$i18n$$getMessage$InMV3 = 100, // even if EXPERIMENTAL or LEGACY
   Min$Event$$path$Deprecated = 101, // even if EXPERIMENTAL or LEGACY
-  MinEnsured$HTMLElement$$inert = 101, // even if EXPERIMENTAL
   MinColorSchemeNormalMeansSystemDark = 102, // even if EXPERIMENTAL
+  MinEnsured$HTMLElement$$inert = 102, // even if EXPERIMENTAL
   // if flag `ThrottleDisplayNoneAndVisibilityHiddenCrossOriginIframesEnabled` is enabled (e.g. if EXPERIMENTAL),
   // then there's no latency in a 2nd showing of v1.99.3; otherwise 2nd showing is very slow.
   // I don't know why its name and effects have conflicts.
@@ -588,6 +588,7 @@ declare const enum BrowserVer {
   MinEnsured$Element$$role = 103, // even if LEGACY; since 68 if EXPERIMENTAL
   MinMV3FaviconAPI = 104,
   MinURLPatternWith$ignoreCase = 107, // even if EXPERIMENTAL or LEGACY
+  MinCSAcceptWorldInManifest = 111, // even if EXPERIMENTAL or LEGACY
   MinNo$TimerType$$Fake = 999,
   assumedVer = 998,
 }

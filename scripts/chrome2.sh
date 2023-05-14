@@ -91,10 +91,12 @@ case "$1" in
     ;;
   dist|--dist)
     DIST=1
+    VC_ROOT=
     shift
     ;;
   local|--local)
     DIST=0
+    VC_ROOT=
     shift
     ;;
   installed|--installed)

@@ -385,10 +385,15 @@ var Tasks = {
     let shortCommit = gulpUtils.NeedCommitInfo ? getBuildItem("Commit") : ""
     if (shortCommit && !cmd.toLowerCase().includes(" BUILD_Commit=")) { cmd += `BUILD_Commit=${shortCommit} ` }
     cmd += "TEST_WORKING=0 "
-    cmd += `npm run ${isEdge ? "edge-c" : getBuildItem("BTypes") === BrowserType.Firefox ? "firefox" : "chrome"}`
-    let checkout = shortCommit && `git checkout ${getGitCommit(-1) || shortCommit}`
+    if (getBuildItem("MV3") !== 0) {
+      cmd += `npm run ${isEdge ? "edge" : getBuildItem("BTypes") === BrowserType.Firefox ? "firefox" : "chrome"}`
+    } else {
+      cmd += `npm run ${isEdge ? "mv2-edge" : getBuildItem("BTypes") === BrowserType.Firefox ? "mv2-ff" : "mv2-cr"}`
+    }
+    let clone = shortCommit && `>>> git clone https://github.com/gdh1995/vimium-c.git`
+    let checkout = shortCommit && `>>> git checkout ${getGitCommit(-1) || shortCommit}`
     let install_deps = `npm ci`
-    let fullCmds = [checkout, install_deps, cmd].map(i => i && i.trim()).filter(i => i)
+    let fullCmds = [clone, checkout, install_deps, cmd].map(i => i && i.trim()).filter(i => i)
     try {
       fs.writeFileSync(osPath.join(DEST, ".snapshot.sh"), fullCmds.concat("").join("\n"))
     } catch (e) {
