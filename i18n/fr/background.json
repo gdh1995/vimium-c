@@ -64,6 +64,7 @@
   "openIncog": "ouvre l'URL en mode incognito",
   "quoteA": "\"$1\"",
   "Other": "Autres",
+  "readClipboard": "lire le texte dans le presse-papiers",
   "setFileCS": "spécifie les feuilles de style du fichier depuis Chromium $1",
   "setFolderCS": "spécifie la feuille de style des dossiers de fichiers",
   "setFTPCS": "spécifie les paramètres de contenu des pages de FTP",

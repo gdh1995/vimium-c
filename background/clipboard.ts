@@ -501,8 +501,8 @@ set_copy_(((data, join, sed, keyword): string | Promise<string> => {
 set_paste_(((sed, newLenLimit?: number, exOut?: InfoOnSed): string | Promise<string | null> => {
   if (Build.MV3 || OnFirefox && (navClipboard || (navClipboard = navigator.clipboard))) {
     return (Build.MV3 ? runOnTee_(kTeeTask.Paste, null, null)
-        : navClipboard!.readText!().catch(() => null)).then(s => s && typeof s === "string"
-              ? reformat_(s.slice(0, GlobalConsts.MaxBufferLengthForPastingLongURL), sed, exOut) : null)
+        : navClipboard!.readText!().catch(() => null)).then(s => typeof s === "string"
+              ? s && reformat_(s.slice(0, GlobalConsts.MaxBufferLengthForPastingLongURL), sed, exOut) : null)
   }
   const doc = (globalThis as MaybeWithWindow).document!, textArea = getTextArea_html()
   textArea.maxLength = newLenLimit || GlobalConsts.MaxBufferLengthForPastingNormalText

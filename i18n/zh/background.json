@@ -71,6 +71,7 @@
   "openIncog": "在无痕模式下打开此网页",
   "Other": "其他",
   "quoteA": "“$1”",
+  "readClipboard": "读取剪贴板文字",
   "setFileCS": "在 Chromium $1+ 设置本地文件网页的功能权限",
   "setFolderCS": "设置本地文件夹网页的功能权限",
   "setFTPCS": "设置 FTP 网页的功能权限",

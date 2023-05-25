@@ -609,7 +609,7 @@ export const openUrlWithActions = (url: Urls.Url, workType: Urls.WorkType, sed?:
 const openCopiedUrl = (copied: KnownOptions<C.openUrl>["copied"]
     , tabs: [Tab] | [] | undefined, url: string | null): void => {
   if (url === null) {
-    complainLimits("read clipboard")
+    complainLimits(trans_("readClipboard"))
     runNextCmd<C.openUrl>(0)
     return
   }

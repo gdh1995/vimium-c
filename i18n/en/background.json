@@ -64,6 +64,7 @@
   "openExtSrc": "visit HTML of an extension's page",
   "openIncog": "open this URL in incognito mode",
   "quoteA": "\"$1\"",
+  "readClipboard": "read text in clipboard",
   "setFileCS": "set file CSs since Chromium $1",
   "setFolderCS": "set CS of file folders",
   "setFTPCS": "set FTP pages' content settings",
