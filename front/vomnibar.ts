@@ -204,6 +204,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   barCls_: null as never as DOMTokenList,
   isSelOriginal_: true,
   lastKey_: kKeyCode.None,
+  inOldShift_: 0 as BOOL | boolean,
   keyResult_: SimpleKeyResult.Nothing,
   list_: null as never as EnsuredMountedHTMLElement,
   onUpdate_: null as (() => void) | null,
@@ -284,7 +285,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     VPort_ && VPort_.postToOwner_({ N: VomnibarNS.kFReq.hide })
     const a = Vomnibar_;
     a.timer_ = a.height_ = a.matchType_ = a.sugTypes_ = a.wheelStart_ = a.wheelTime_ = a.actionType_ = a.inputType_ =
-    a.total_ = a.lastKey_ = a.wheelDelta_ = VUtils_.timeCache_ = 0;
+    a.total_ = a.lastKey_ = a.inOldShift_ = a.wheelDelta_ = VUtils_.timeCache_ = 0
     a.docZoom_ = 1;
     a.options_ = a.completions_ = a.onUpdate_ = a.isHttps_ = a.baseHttps_ = null as never
     a.mode_.q = a.lastQuery_ = a.inputText_ = a.resMode_ = "";
@@ -593,6 +594,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     const a = Vomnibar_, n = event.keyCode, focused = a.focused_,
     { mapped, key } = n !== kKeyCode.ime ? a.getMappedKey_(event) : { mapped: false, key: "" }
     a.lastKey_ = (!(Build.OS & (1 << kOS.mac)) || Build.OS & ~(1 << kOS.mac) && a.os_ || !event.metaKey) ? n : 0
+    a.inOldShift_ = event.shiftKey && (n === kKeyCode.shiftKey && !event.repeat ? false
+        : n !== kKeyCode.shiftKey && key.length === 1 || a.inOldShift_)
     if (!key) {
       a.inAlt_ && !a._modifierKeys[Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key
             && Build.BTypes & BrowserType.Chrome ? event.key || "" : event.key!] && a.toggleAlt_(0);
@@ -699,7 +702,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       }
     }
     else if (mainModifier === "s") {
-      action = a.ctrlCharOrShiftKeyMap_[char] || AllowedActions.nothing;
+      action = (n !== kKeyCode.space || !a.inOldShift_) && a.ctrlCharOrShiftKeyMap_[char] || AllowedActions.nothing
     }
     else if (action = a.normalMap_[char] || AllowedActions.nothing) { /* empty */ }
     else if (char > kChar.maxNotF_num && char < kChar.minNotF_num) { // "f" + N
