@@ -333,6 +333,13 @@ declare module crypto {
 }
 interface ScrollIntoViewOptions { behavior?: "auto" | "smooth" }
 
+interface PopoverElement extends HTMLElement {
+  popover: null | "auto" | "manual"
+  hidePopover (forced?: boolean): void
+  showPopover (forced?: boolean): void
+  togglePopover (forced?: boolean): void
+}
+
 declare const enum Instruction { next = 0, return = 2, /** aka. "goto" */ break = 3, yield = 4 }
 
 interface Reflect {

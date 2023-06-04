@@ -588,7 +588,10 @@ declare const enum BrowserVer {
   MinEnsured$Element$$role = 103, // even if LEGACY; since 68 if EXPERIMENTAL
   MinMV3FaviconAPI = 104,
   MinURLPatternWith$ignoreCase = 107, // even if EXPERIMENTAL or LEGACY
+  MinMaybePopoverWith$popovershow = 109, // if EXPERIMENTAL; use popovershow/popoverhide instead of toggle
   MinCSAcceptWorldInManifest = 111, // even if EXPERIMENTAL or LEGACY
+  MinMaybePopoverToggleEvent = 112, // if EXPERIMENTAL
+  MinEnsuredPopover = 114, // even if LEGACY
   MinNo$TimerType$$Fake = 999,
   assumedVer = 998,
 }

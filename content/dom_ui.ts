@@ -1,6 +1,6 @@
 import {
   setupEventListener, isTop, keydownEvents_, timeout_, fgCache, doc, isAlive_, isJSUrl, chromeVer_, VTr, OnEdge, Stop_,
-  vApi, createRegExp, isTY, OBJECT_TYPES, OnChrome, OnFirefox, WithDialog, isAsContent, safeCall, max_,isIFrameInAbout_
+  vApi, createRegExp, isTY, OBJECT_TYPES, OnChrome, OnFirefox, WithDialog, isAsContent, safeCall, max_,isIFrameInAbout_, firefoxVer_
 } from "../lib/utils"
 import { prevent_ } from "../lib/keyboard_utils"
 import {
@@ -31,12 +31,14 @@ export declare const enum kExitOnClick { // eslint-disable-next-line @typescript
 let box_: HTMLDivElement & SafeHTMLElement | null = null
 let styleIn_: HTMLStyleElement | string | null = null
 let root_: VUIRoot = null as never
+let uiParent_: VUIRoot | HTMLSpanElement
 let cssPatch_: [string | number, (css: string) => string] | null = null
 let lastFlashEl: SafeHTMLElement | null = null
 let toExitOnClick_ = kExitOnClick.NONE
 let curModalElement: HTMLDialogElement | null | undefined
 let helpBox: HTMLElement | null | undefined
 let hideHelp: ((event?: EventToPrevent) => void) | undefined | null
+let hasPopover_cr = 0
 
 export {
   box_ as ui_box, root_ as ui_root, styleIn_ as style_ui, lastFlashEl, curModalElement, helpBox, hideHelp,
@@ -50,28 +52,31 @@ export function set_helpBox (_newHelpBox: typeof helpBox): void { helpBox = _new
 
 export let addUIElement = function (element: HTMLElement, adjust_type?: AdjustType): void {
     box_ = createElement_("div");
-    root_ = attachShadow_(box_);
+    root_ = attachShadow_(box_)
     // listen "load" so that safer if shadowRoot is open
     // it doesn't matter to check `.mode == "closed"`, but not `.attachShadow`
     OnChrome && Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1
         || OnFirefox && Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1
-        || !OnEdge && (Build.NDEBUG ? !OnChrome || chromeVer_ > BrowserVer.MinEnsuredShadowDOMV1 - 1
-              : root_.mode === "closed")
-        || setupEventListener(OnChrome && Build.MinCVer >= BrowserVer.MinShadowDOMV0 || !OnEdge && root_ !== box_
-              ? root_ as ShadowRoot : 0, "load", function Onload(this: ShadowRoot | Window, e: Event): void {
+        || (!Build.NDEBUG ? !OnEdge && root_.mode === "closed"
+            : OnChrome ? chromeVer_ > BrowserVer.MinEnsuredShadowDOMV1 - 1
+            : OnFirefox ? firefoxVer_ > BrowserVer.MinEnsuredShadowDOMV1 - 1 : !OnEdge)
+    ? appendNode_s(root_, uiParent_ = createElement_("span"))
+    : (uiParent_ = root_,
+        setupEventListener(OnChrome && Build.MinCVer >= BrowserVer.MinShadowDOMV0 || !OnEdge && root_ !== box_
+            ? root_ as ShadowRoot : 0, "load", function Onload(this: ShadowRoot | Window, e: Event): void {
       if (!isAlive_) { setupEventListener(0, "load", Onload, 1); return; } // safe enough even if reloaded
       const t = e.target as HTMLElement | Document;
       if (t === omni_box || t === find_box) {
         Stop_(e); t.onload && t.onload(e)
       }
-    }, 0, 1); // should use a listener in active mode: https://www.chromestatus.com/features/5745543795965952
+    }, 0, 1)) // should use a listener in active mode: https://www.chromestatus.com/features/5745543795965952
     addUIElement = (element2: HTMLElement, adjust2?: AdjustType, before?: Element | null | true): void => {
       const doesAdjustFirst = (OnEdge
           || OnChrome && Build.MinCVer < BrowserVer.Min$Node$$isConnected
               && chromeVer_ < BrowserVer.Min$Node$$isConnected
           ? parentNode_unsafe_s(box_!) : box_!.isConnected!) && element2 !== curModalElement
       adjust2 && doesAdjustFirst && adjustUI()
-      root_.insertBefore(element2, before === true ? root_.firstChild : before || null)
+      uiParent_.insertBefore(element2, before === true ? uiParent_.firstChild : before || null)
       adjust2 && !doesAdjustFirst && adjustUI()
     };
     setUICSS = (innerCSS): void => {
@@ -85,7 +90,7 @@ export let addUIElement = function (element: HTMLElement, adjust_type?: AdjustTy
         createStyle(cssPatch_ ? cssPatch_[1](css) : css, styleIn_ as HTMLStyleElement)
       }
       setUICSS(innerCSS)
-      appendNode_s(root_, styleIn_)
+      appendNode_s(uiParent_, styleIn_)
       /**
        * Note: Tests on C35, 38, 41, 44, 47, 50, 53, 57, 60, 63, 67, 71, 72 confirmed
        *        that el.sheet has been valid when promise.then, even on XML pages.
@@ -98,7 +103,7 @@ export let addUIElement = function (element: HTMLElement, adjust_type?: AdjustTy
         adjust_type = AdjustType.DEFAULT // erase info about what's a first command
       }
     }
-    appendNode_s(root_, element)
+    appendNode_s(uiParent_, element)
     if (styleIn_) {
       setUICSS(styleIn_ as Exclude<typeof styleIn_, Element | null | undefined | "">)
     } else {
@@ -176,6 +181,16 @@ export const adjustUI = (event?: Event | /* enable */ 1 | /* disable */ 2): void
     s && (s.disabled = false);
     if (WithDialog) {
       disableUI || curModalElement && !curModalElement.open && curModalElement.showModal()
+      if (!OnChrome || disableUI) { /* empty */ }
+      else if (hasPopover_cr) {
+        (uiParent_ as PopoverElement).popover = "manual"
+        setClassName_s(uiParent_ as SafeHTMLElement, "PO")
+        ; (uiParent_ as PopoverElement).togglePopover(false)
+        ; (uiParent_ as PopoverElement).showPopover()
+      } else if ((uiParent_ as PopoverElement).popover) {
+        (uiParent_ as PopoverElement).popover = null
+        setClassName_s(uiParent_ as SafeHTMLElement, "")
+      }
     }
     if (el || event) {
       const removeEL = !el || disableUI, FS = "fullscreenchange";
@@ -593,6 +608,16 @@ export const filterOutInert = (hints: Hint[]): void => {
       ? hints.length : 0
   while (0 <= --i) {
     hints[i][0].closest!("[inert]") && hints.splice(i, 1)
+  }
+}
+
+export const onToggle = (event: Event & { [property in "newState" | "oldState"]?: "open" | "closed" }): void => {
+  const newState = event.newState
+  if (newState !== event.oldState) {
+    hasPopover_cr = max_(0, hasPopover_cr + (newState! > "o" ? 1 : -1))
+    if (root_ && hasPopover_cr > 0) {
+      adjustUI()
+    }
   }
 }
 
