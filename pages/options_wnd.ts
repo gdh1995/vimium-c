@@ -281,8 +281,6 @@ let optionsInit1_ = function (): void {
     delayBinding_(element, "click", onRefStatClick as (ev: EventToPrevent) => void, "on")
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
     delayBinding_(opt.element_, "change", syncForLabel, true)
-    nextTick_(([el, s]): void => { el.htmlFor = s }, [element, targetOptName] as const)
-    
   }
 },
 optionsInitAll_ = function (): void {
@@ -316,9 +314,12 @@ optionsInitAll_ = function (): void {
       if (VApi && VApi.z) {
         const root = VApi.y().r
         if (root) {
-          for (let el of OnChrome && Build.MinCVer < BrowserVer.MinEnsured$ForOf$ForDOMListTypes
-                && Build.MinCVer >= BrowserVer.BuildMinForOf && CurCVer_ < BrowserVer.MinEnsured$ForOf$ForDOMListTypes
-                ? [].slice.call(root.children) : root.children as ArrayLike<Element> as HTMLElement[]) {
+          let uiParent = root.firstElementChild && (root.firstElementChild as HTMLElement).localName === "span"
+              ? root.firstElementChild as EnsuredMountedHTMLElement : root
+          const children = OnChrome && Build.MinCVer < BrowserVer.MinEnsured$ForOf$ForDOMListTypes
+              && Build.MinCVer >= BrowserVer.BuildMinForOf && CurCVer_ < BrowserVer.MinEnsured$ForOf$ForDOMListTypes
+              ? [].slice.call(uiParent.children) : uiParent.children as ArrayLike<Element> as HTMLElement[]
+          for (let el of children) {
             if (el.localName !== "style") {
               el.classList.toggle("D", val)
               el = el.firstElementChild as HTMLElement | null || el
