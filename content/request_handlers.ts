@@ -75,6 +75,9 @@ set_requestHandlers([
       hookOnWnd(HookAction.Suppress);
       vApi.e && vApi.e(kContentCmd.SuppressClickable);
     }
+    if (OnChrome && Build.MinCVer < BrowserVer.MinFreezeEvent && chromeVer_ < BrowserVer.MinFreezeEvent) {
+      setupEventListener(0, "freeze", onFreezePort, 1)
+    }
     requestHandlers[kBgReq.init] = null as never;
     request.d && set_port_(null) // in case `port.onDisconnect` was not triggered
     OnDocLoaded_(function (): void {
@@ -282,8 +285,7 @@ set_hookOnWnd((((action: HookAction): void => {
   if (action !== HookAction.Suppress) {
     f("focus", onFocus, t)
     // https://developer.chrome.com/blog/page-lifecycle-api/
-    OnChrome && (Build.MinCVer >= BrowserVer.MinFreezeEvent || chromeVer_ > BrowserVer.MinFreezeEvent - 1)
-        && f("freeze", onFreezePort, t)
+    OnChrome && f("freeze", onFreezePort, t)
   }
   f("keydown", onKeydown, t)
   f("keyup", onKeyup, t)
