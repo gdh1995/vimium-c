@@ -593,6 +593,8 @@ declare const enum BrowserVer {
   MinMaybePopoverToggleEvent = 112, // if EXPERIMENTAL
   MinEnsuredPopover = 114, // even if LEGACY
   MinEnsuredScrollend = 114, // even if LEGACY
+  MinMaybeMouseenter$composed$IsFalse = 115, // if EXPERIMENTAL
+  MinMouseenter$composed$IsFalse = 116, // said in https://chromestatus.com/features#milestone%3D116
   MinNo$TimerType$$Fake = 999,
   assumedVer = 998,
 }

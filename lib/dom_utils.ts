@@ -561,7 +561,7 @@ export const extractField = (el: SafeElement, props: string): string => {
 }
 
 export const wrapEventInit_ = <T extends EventInit> (event: T
-    , notCancelable?: boolean | BOOL, notBubbles?: boolean | BOOL, notComposed?: 1): T => {
+    , notCancelable?: boolean | BOOL, notBubbles?: boolean | BOOL, notComposed?: BOOL | boolean): T => {
   event.bubbles = !notBubbles, event.cancelable = !notCancelable, OnEdge || (event.composed = !notComposed)
   return event
 }

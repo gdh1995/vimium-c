@@ -154,7 +154,8 @@ const mouse_ = function (element: SafeElementForMouse
       screenX: x, screenY: y, clientX: x, clientY: y, ctrlKey, altKey, shiftKey, metaKey,
       button, buttons: tyKey === "d" ? button - 1 ? button || 1 : 4 : 0,
       relatedTarget
-    }, !cancelable, !cancelable && !forceToBubble)
+    }, !cancelable, !cancelable && !forceToBubble, (Build.MinCVer >= BrowserVer.MinMouseenter$composed$IsFalse
+        || !OnChrome || chromeVer_ > BrowserVer.MinMouseenter$composed$IsFalse - 1) && !cancelable)
     OnChrome && setupIDC_cr!(init)
     if (OnChrome && (Build.MinCVer >= BrowserVer.MinEnsuredPointerEventForRealClick
           || chromeVer_ > BrowserVer.MinEnsuredPointerEventForRealClick - 1)
