@@ -592,6 +592,7 @@ declare const enum BrowserVer {
   MinCSAcceptWorldInManifest = 111, // even if EXPERIMENTAL or LEGACY
   MinMaybePopoverToggleEvent = 112, // if EXPERIMENTAL
   MinEnsuredPopover = 114, // even if LEGACY
+  MinEnsuredScrollend = 114, // even if LEGACY
   MinNo$TimerType$$Fake = 999,
   assumedVer = 998,
 }

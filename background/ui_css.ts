@@ -97,6 +97,10 @@ export const reloadCSS_ = (action: MergeAction, knownCssStr?: string): SettingsN
             && CurCVer_ < BrowserVer.MinAbsolutePositionNotCauseScrollbar)) {
       css = css.replace(".LH{", ".LH{box-sizing:border-box;")
     }
+    if (!OnChrome || Build.MinCVer < BrowserVer.MinMaybePopoverToggleEvent
+        && CurCVer_ < BrowserVer.MinMaybePopoverToggleEvent) {
+      css = css.replace(<RegExpG> /\n\.PO\{[^}]+\}/, "")
+    }
     if (OnFirefox) {
       const ind1 = css.indexOf(".LH{") + 4, ind2 = css.indexOf("}", ind1)
       let items = css.slice(ind1, ind2).replace("0.5px", "1px")

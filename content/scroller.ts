@@ -75,7 +75,9 @@ const norm4 = (i: number) => parseFloat(i.toFixed(4))
 
 let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: number
     , newOpts?: CmdOptions[kFgCmd.scroll]): ReturnType<VApiTy["$"]> => {
-  const hasNewScrollEnd = (OnFirefox || OnChrome && (Build.MinCVer >= BrowserVer.MinScrollEndForInstantScrolling
+  const hasNewScrollEnd =
+      OnChrome && (Build.MinCVer >= BrowserVer.MinEnsuredScrollend || chromeVer_ > BrowserVer.MinEnsuredScrollend - 1)
+      || (OnFirefox || OnChrome && (Build.MinCVer >= BrowserVer.MinScrollEndForInstantScrolling
         || chromeVer_ > BrowserVer.MinScrollEndForInstantScrolling - 1)) && ("on" + kSE) in Image.prototype
   let amount: number, sign: number, calibration: number, di: ScrollByY, duration: number, element: SafeElement | null,
   elementRoot: DocumentFragment | Document | 0,
@@ -701,8 +703,9 @@ export const suppressScroll = (timedOut?: number): void => {
     timedOut = timedOut || OnChrome && Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage && noRAF_old_cr_ ? 1 : 0
     scrolled = timedOut ? 0 : 2
     setupEventListener(0, "scroll", Stop_, timedOut as BOOL);
-    (OnFirefox || OnChrome && (Build.MinCVer >= BrowserVer.MinScrollEndForInstantScrolling
-        || chromeVer_ > BrowserVer.MinScrollEndForInstantScrolling - 1) && ("on" + kSE) in Image.prototype) &&
+    (OnChrome && (Build.MinCVer >= BrowserVer.MinEnsuredScrollend || chromeVer_ > BrowserVer.MinEnsuredScrollend - 1)
+      || (OnFirefox || OnChrome && (Build.MinCVer >= BrowserVer.MinScrollEndForInstantScrolling
+            || chromeVer_ > BrowserVer.MinScrollEndForInstantScrolling - 1) && ("on" + kSE) in Image.prototype)) &&
     setupEventListener(0, kSE, Stop_, timedOut as BOOL)
     timedOut || rAF_(suppressScroll)
 }
