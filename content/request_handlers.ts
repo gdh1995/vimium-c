@@ -1,7 +1,7 @@
 import {
   chromeVer_, clickable_, doc, esc, fgCache, injector, isEnabled_, isLocked_, isAlive_, isTop, abs_, includes_,
   keydownEvents_, set_chromeVer_, set_clickable_, set_fgCache, set_isLocked_, OnChrome, OnFirefox, safeCall, recordLog,
-  set_isEnabled_, set_onWndFocus, onWndFocus, timeout_, safer, set_os_, safeObj, set_keydownEvents_,
+  set_isEnabled_, set_onWndFocus, onWndFocus, timeout_, safer, set_os_, safeObj, set_keydownEvents_, setupEventListener,
   interval_, getTime, vApi, clearInterval_, locHref, set_firefoxVer_, firefoxVer_, os_, isAsContent, isIFrameInAbout_,
 } from "../lib/utils"
 import { set_keyIdCorrectionOffset_old_cr_, handler_stack, suppressTail_ } from "../lib/keyboard_utils"
@@ -16,6 +16,7 @@ import {
 } from "./port"
 import {
   addUIElement, adjustUI, createStyle, getParentVApi, getBoxTagName_old_cr, setUICSS, ui_box, evalIfOK, checkHidden,
+  onToggle,
 } from "./dom_ui"
 import { hudTip, hud_box } from "./hud"
 import {
@@ -286,6 +287,9 @@ set_hookOnWnd((((action: HookAction): void => {
     f("focus", onFocus, t)
     // https://developer.chrome.com/blog/page-lifecycle-api/
     OnChrome && f("freeze", onFreezePort, t)
+    if (OnChrome && Build.MinCVer >= BrowserVer.MinEnsuredPopover || "popover" in HTMLElement.prototype) {
+      f("toggle", onToggle, t)
+    }
   }
   f("keydown", onKeydown, t)
   f("keyup", onKeyup, t)
