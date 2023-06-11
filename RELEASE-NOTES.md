@@ -4,6 +4,14 @@ Release Notes of Vimium C
 ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 说明文档: https://gitee.com/gdh1995/vimium-c#readme , https://github.com/gdh1995/vimium-c/blob/master/README-zh.md .
 
+#### v1.99.992
+* fix broken long key sequences in ke mappings
+* a try to fix Vimium C might be freezed by browser
+* some Ctrl/Alt shortcuts of Vomnibar are removed if in conflict with system's default usages
+* fix some tip text
+* basic support for popover on Chrome 114+
+* autoCopy now supports .type=tab-url/tab-title and other `type` values of `copyWindowInfo`
+
 #### v1.99.991
 * FindMode: fix some issues when highlighting all matches
 * Firefox: fix broken scrolling when a page is pinch-zoomed

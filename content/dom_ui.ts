@@ -38,7 +38,7 @@ let toExitOnClick_ = kExitOnClick.NONE
 let curModalElement: HTMLDialogElement | null | undefined
 let helpBox: HTMLElement | null | undefined
 let hideHelp: ((event?: EventToPrevent) => void) | undefined | null
-let hasPopover_cr = 0
+let hasPopover_ = 0
 
 export {
   box_ as ui_box, root_ as ui_root, styleIn_ as style_ui, lastFlashEl, curModalElement, helpBox, hideHelp,
@@ -181,8 +181,8 @@ export const adjustUI = (event?: Event | /* enable */ 1 | /* disable */ 2): void
     s && (s.disabled = false);
     if (WithDialog) {
       disableUI || curModalElement && !curModalElement.open && curModalElement.showModal()
-      if (!OnChrome || disableUI) { /* empty */ }
-      else if (hasPopover_cr) {
+      if (!(OnChrome || OnFirefox) || disableUI) { /* empty */ }
+      else if (hasPopover_) {
         (uiParent_ as PopoverElement).popover = "manual"
         setClassName_s(uiParent_ as SafeHTMLElement, "PO")
         ; (uiParent_ as PopoverElement).togglePopover(false)
@@ -614,8 +614,8 @@ export const filterOutInert = (hints: Hint[]): void => {
 export const onToggle = (event: Event & { [property in "newState" | "oldState"]?: "open" | "closed" }): void => {
   const newState = event.newState
   if (newState !== event.oldState) {
-    hasPopover_cr = max_(0, hasPopover_cr + (newState! > "o" ? 1 : -1))
-    if (root_ && hasPopover_cr > 0) {
+    hasPopover_ = max_(0, hasPopover_ + (newState! > "o" ? 1 : -1))
+    if (root_ && hasPopover_ > 0) {
       adjustUI()
     }
   }
