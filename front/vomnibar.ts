@@ -578,7 +578,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   },
   ctrlCharOrShiftKeyMap_: {
     // for Ctrl / Meta
-    space: AllowedActions.toggle, b: AllowedActions.pageup
+    space: AllowedActions.toggle
     , j: AllowedActions.down, k: AllowedActions.up, n: AllowedActions.down, p: AllowedActions.up
     , "[": AllowedActions.dismiss, "]": AllowedActions.toggle
     // for Shift
@@ -661,7 +661,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         if (ind <= a.completions_.length) { a.onEnter_(true, ind - 1) }
         return
       }
-      if (focused && char.length === 1 && char > kChar.a && char < kChar.g && char !== kChar.c) {
+      if (focused && char.length === 1 && char > kChar.a && char < kChar.g && char !== kChar.c
+          && !(Build.OS & (1<<kOS.win) && (!(Build.OS & ~(1<<kOS.win)) || a.os_ > kOS.MAX_NOT_WIN) && key === "a-d")) {
         return a.onWordAction_(char.charCodeAt(0) - (kCharCode.maxNotAlphabet | kCharCode.CASE_DELTA))
       }
       if (key === "a-c-c" || key === "a-m-c") { return a.onAction_(AllowedActions.copyPlain) }
@@ -682,7 +683,13 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
                   || Build.MinCVer > BrowserVer.$Selection$NotShowStatusInTextBox
               || a.input_.selectionStart === a.input_.selectionEnd)
             ? key.includes("s") ? AllowedActions.copyWithTitle : AllowedActions.copy
-            : key.includes("s") ? AllowedActions.copyPlain : AllowedActions.nothing
+            : key.includes("s") ? AllowedActions.copyPlain
+            : Build.OS & (1<<kOS.mac) && (!(Build.OS & ~(1<<kOS.mac)) || !a.os_) && key === "c-c" ? AllowedActions.copy
+            : AllowedActions.nothing
+      } else if (key === "c-v" && Build.OS & (1<<kOS.mac) && (!(Build.OS & ~(1<<kOS.mac)) || !a.os_)) {
+        action = AllowedActions.pastePlain
+      } else if (key === "c-d" && (!(Build.OS & (1 << kOS.mac)) || Build.OS & ~(1 << kOS.mac) && a.os_)) {
+        return a.onWordAction_(kCharCode.D - kCharCode.maxNotAlphabet)
       } else if (key.includes("s-")) {
         action = char === kChar.f ? AllowedActions.pagedown : char === kChar.b ? AllowedActions.pageup
           : char === kChar.v ? AllowedActions.pastePlain : AllowedActions.nothing;
