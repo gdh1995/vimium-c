@@ -452,6 +452,7 @@ interface CmdOptions {
     o?: 1;
     reuse?: UserReuseType;
     copy?: boolean;
+    type?: "frame" | "tab-title" | "tab-url" | "tab" | "window"
     /** for autoCopy */
     text?: string
     url?: boolean | "raw"

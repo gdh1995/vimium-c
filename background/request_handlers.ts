@@ -19,10 +19,10 @@ import {
 import { exclusionListening_, getExcluded_ } from "./exclusions"
 import { setOmniStyle_ } from "./ui_css"
 import { contentI18n_, extTrans_, i18nReadyExt_, loadContentI18n_, transPart_, trans_ } from "./i18n"
-import { keyRe_ } from "./key_mappings"
+import { keyRe_, makeCommand_ } from "./key_mappings"
 import {
   sendFgCmd, replaceCmdOptions, onConfirmResponse, executeCommand, portSendFgCmd, executeExternalCmd, runNextCmdBy,
-  waitAndRunKeyReq, parseFallbackOptions, onBeforeConfirm
+  waitAndRunKeyReq, parseFallbackOptions, onBeforeConfirm, concatOptions
 } from "./run_commands"
 import { parseEmbeddedOptions, runKeyWithCond } from "./run_keys"
 import { FindModeHistory_, Marks_ } from "./tools"
@@ -328,7 +328,6 @@ set_reqH_([
           port, (request.i! | 0) as 0 | 1 | 2))
   },
   /** kFgReq.copy: */ (request: FgReq[kFgReq.copy], port: Port): void => {
-    let str: string | string[] | object[] | undefined
     if (request.i != null) {
       const richText = (request.r || "") + "" as Extract<typeof request.r, string>
       const i0 = request.i, title = richText.includes("name") ? request.u : ""
@@ -359,7 +358,6 @@ set_reqH_([
       })
       return
     }
-    str = request.u || request.s || ""
     const oriOptions = request.n as CmdOptions[kFgCmd.autoOpen] | undefined
     const opts2 = request.o || oriOptions && parseOpenPageUrlOptions(oriOptions) || {}
     const isInOpenAndCopy = !!(oriOptions && oriOptions.copy && oriOptions.o)
@@ -368,6 +366,18 @@ set_reqH_([
     const correctUrl = mode1 >= HintMode.min_link_job && mode1 <= HintMode.max_link_job
         && (!sed || sed.r !== false)
     const decode = request.d ? opts2.d !== false : !!opts2.d
+    if (oriOptions && oriOptions.type != null && oriOptions.type !== "frame") {
+      const type = oriOptions.type
+      const opts = concatOptions(oriOptions, BgUtils_.safer_({ url: null,
+          type: type === "tab" && oriOptions.url || type === "tab-url" ? null : type === "tab-title" ? "title" : type
+      } satisfies KnownOptions<kBgCmd.copyWindowInfo> & { url: null }))
+      set_cPort(port)
+      set_cRepeat(1)
+      executeCommand(makeCommand_("copyWindowInfo", opts), 1, cKey, port, 1
+          , oriOptions.$f && {c: oriOptions.$f, r: oriOptions.$retry, u: 0, w: 0 })
+      return
+    }
+    let str: string | string[] | object[] | undefined = request.u || request.s || ""
     if (decode) {
       if (typeof str !== "string") {
         for (let i = str.length; 0 <= --i; ) {
@@ -389,7 +399,7 @@ set_reqH_([
       set_cPort(port)
       showHUD(decode ? str3.replace(<RegExpG & RegExpSearchable<0>> /%[0-7][\dA-Fa-f]/g, decodeURIComponent)
           : str3, request.u ? kTip.noUrlCopied : kTip.noTextCopied)
-      request.n && runNextCmdBy(hasStr ? 1 : 0, request.n)
+      oriOptions && runNextCmdBy(hasStr ? 1 : 0, oriOptions)
     })
   },
   /** kFgReq.key: */ (request: FgReq[kFgReq.key], port: Port | null): void => {
@@ -464,7 +474,7 @@ set_reqH_([
     const name = type === "tab" ? type : type + " item"
     const cb = (succeed?: boolean | BOOL | void): void => {
       void Promise.resolve(trans_("sugs")).then((sugs): void => {
-        showHUD(trans_(succeed ? "delSug" : "notDelSug", [transPart_(sugs as "t(sugs)", type[0]) || name]))
+        showHUD(trans_(succeed ? "delSug" : "notDelSug", [sugs && transPart_(sugs as "t(sugs)", type[0]) || name]))
       })
     }
     set_cPort(findCPort(port)!)
