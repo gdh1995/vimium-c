@@ -376,11 +376,26 @@ export class JSONOption_<T extends JSONOptionNames> extends TextOption_<T> {
     }
     return obj
   }
+  static stableJsonify(obj: object): string {
+    if (!obj || typeof obj !== "object") { return JSON.stringify(obj) }
+    const keys = Object.keys(obj)
+    const collectOtherKeys = (value: object): void => {
+      for (const [subKey, subVal] of Object.entries!(value)) {
+        if (keys.lastIndexOf(subKey) < 0) { keys.push(subKey) }
+        if (subVal && typeof subVal === "object") { collectOtherKeys(subVal) }
+      }
+    }
+    for (const fieldValue of Object.values(obj)) {
+      if (fieldValue && typeof fieldValue === "object") { collectOtherKeys(fieldValue) }
+    }
+    keys.sort()
+    return JSON.stringify(obj, keys as never as null)
+  }
   override areEqual_ (a: object, b: object): boolean {
-    return JSON.stringify(a) === JSON.stringify<1>(b, Object.keys(b).sort())
+    return JSON.stringify(a) === JSONOption_.stableJsonify(b)
   }
   override normalize_(value: object): SettingsNS.PersistentSettings[T] {
-    return JSON.parse(JSON.stringify<1>(value, Object.keys(value).sort()))
+    return JSON.parse(JSONOption_.stableJsonify(value))
   }
 }
 

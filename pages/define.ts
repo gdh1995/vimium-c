@@ -148,6 +148,11 @@ if (Build.BTypes & (Build.BTypes & BrowserType.ChromeOrFirefox | BrowserType.Edg
 Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES$Object$$values$and$$entries &&
 !Object.values && (function (): void {
   Object.values = (item): any[] => Object.keys(item).map(i => (item as Dict<any>)[i])
+  Object.entries = <T extends string> (object: object): [T, unknown][] => {
+    const entries: ReturnType<ObjectConstructor["entries"]> = []
+    for (const name of Object.keys(object)) { entries.push([name, (object as Dict<unknown>)[name]]) }
+    return entries as [T, unknown][]
+  }
   if (Build.MinCVer >= BrowserVer.MinEnsuredES$Array$$Includes || [].includes as unknown) { return }
   const noArrayFind = ![].find
   Object.defineProperty(Array.prototype, "includes", { enumerable: false,
