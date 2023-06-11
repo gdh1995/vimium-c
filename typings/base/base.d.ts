@@ -180,8 +180,20 @@ declare namespace chrome.scripting {
     world?: "ISOLATED" | "MAIN" // "ISOLATED" is since C95+
     func?: (...args: Args) => Res // C92+
   }
+  interface RegisteredContentScript {
+    allFrames?: boolean
+    css?: string[]
+    excludeMatches?: string[]
+    id: string
+    js?: string[] /// files
+    matches: string[]
+    persistAcrossSessions?: boolean // default to true
+    runAt?: "document_start" | "document_end" | "document_idle"
+    world?: "ISOLATED" | "MAIN"
+  }
   export function executeScript<Args extends (string | number | boolean | null)[], Res>(
       injection: ScriptInjection<Args, Res>, callback?: (results: {frameId: number, result: Res}[]) => void): 1
+  export function registerContentScripts(scripts: RegisteredContentScript[]): Promise<void>
 }
 
 declare namespace chrome.bookmarks {

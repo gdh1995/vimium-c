@@ -875,7 +875,7 @@ set_bgC_([
           toggleShelf(false)
           setTimeout((): void => { toggleShelf(true); resolve(1) }, 256)
         } catch (e: any) { err = (e && e.message || e) + "" }
-        showHUD(err ? "Can not close the shelf: " + err : "The download bar has been closed")
+        showHUD(err ? "Can not close the shelf: " + err : trans_("downloadBarClosed"))
         err && resolve(0)
       } else if (newWindow === false && cPort) {
         showHUD("No permissions to close download bar")

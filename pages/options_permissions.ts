@@ -197,7 +197,7 @@ const initOptionalPermissions = (): void => {
       i18nName = IsEdg_ ? i18nName.replace("chrome:", "edge:") : i18nName
       suffix = oTrans_("optOfChromeUrl").replace(IsEdg_ ? "chrome" : "edge", "edge")
     }
-    checkbox.value = name
+    checkbox.name = name
     if (OnChrome && Build.OnBrowserNativePages && name === kNTP) {
       if (OnChrome && Build.MinCVer < BrowserVer.MinChromeURL$NewTabPage
           && CurCVer_ < BrowserVer.MinChromeURL$NewTabPage) {
