@@ -1,17 +1,14 @@
+"use strict";
+//@ts-check
 // <!-- saved from url=(0028)https://smblott.org/keyboard.js on 2019/08/08 -->
 // modified by gdh1995
 (function() {
-  var count, n, ref;
-
-  n = 30;
-
-  count = 0;
+  var count = 0, n = 30, ref = "keydown keypress keyup".trim().split(/\s+/);
 
   var table = document.getElementById("keyTable").querySelector("tbody");
   var templateContent = document.querySelector("#rowTemplate").content;
   var preventAllCheckbox = document.querySelector("#preventAll");
 
-  ref = "keydown keypress keyup".trim().split(/\s+/);
   for (var i = 0, len = ref.length; i < len; i++) {
     window.addEventListener(ref[i], onKeyboard, true)
   }
@@ -25,9 +22,8 @@
           type += ".repeat";
         }
         element.querySelector(".eventColumn").textContent = type;
-        element.querySelector(".codeColumn").textContent = event.code;
-        let key = event.key;
-        key = key ? key : key === "" ? "(empty)" : "(" + key + ")";
+        element.querySelector(".codeColumn").textContent = wrapValue(event.code);
+        var key = wrapValue(event.key);
         if (key.trim() !== key) {
           key = "(" + key.replace(/\s/g, function(s) {
             return "\\u" + (s.charCodeAt() + 0x10000).toString(16).slice(1)
@@ -53,7 +49,7 @@
           event.getModifierState("AltGraph") && (modifiers += " AltGr=On")
         }
         element.querySelector(".modifierColumn").textContent = modifiers.trim()
-        element.querySelector(".keyCodeColumn").textContent = event.keyCode;
+        element.querySelector(".keyCodeColumn").textContent = wrapValue(event.keyCode);
         if (n < table.rows.length) {
           table.firstElementChild.remove()
         }
@@ -68,5 +64,10 @@
     table.textContent = "";
     document.querySelector("#input").value = "";
     count = 0;
+  }
+
+  /** @type {(val: any) => string} */
+  function wrapValue(val) {
+    return val ? val + "" : val === "" ? "(empty)" : "(" + val + ")"
   }
 }).call(this);
