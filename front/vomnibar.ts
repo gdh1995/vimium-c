@@ -662,14 +662,14 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         return
       }
       if (focused && char.length === 1 && char > kChar.a && char < kChar.g && char !== kChar.c
-          && !(Build.OS & (1<<kOS.win) && (!(Build.OS & ~(1<<kOS.win)) || a.os_ > kOS.MAX_NOT_WIN) && key === "a-d")) {
+          && !(Build.OS & ~(1<<kOS.mac) && (!(Build.OS & (1<<kOS.mac)) || a.os_) && key === "a-d")) {
         return a.onWordAction_(char.charCodeAt(0) - (kCharCode.maxNotAlphabet | kCharCode.CASE_DELTA))
       }
       if (key === "a-c-c" || key === "a-m-c") { return a.onAction_(AllowedActions.copyPlain) }
       if (mainModifier === "a" && char !== kChar.enter) { a.keyResult_ = SimpleKeyResult.Nothing; return; }
     }
     if (char === kChar.enter) {
-      if (event.key === "Enter" || n === kKeyCode.enter) {
+      if (!event.metaKey && (event.key === "Enter" || n === kKeyCode.enter)) {
         window.onkeyup = a.OnNativeEnterUp_.bind(null, key, mapped)
       } else {
         a.onEnter_(key);

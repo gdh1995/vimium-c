@@ -366,7 +366,7 @@ set_reqH_([
     const correctUrl = mode1 >= HintMode.min_link_job && mode1 <= HintMode.max_link_job
         && (!sed || sed.r !== false)
     const decode = request.d ? opts2.d !== false : !!opts2.d
-    if (oriOptions && oriOptions.type != null && oriOptions.type !== "frame") {
+    if (!request.s && oriOptions && oriOptions.type != null && oriOptions.type !== "frame") {
       const type = oriOptions.type
       const opts = concatOptions(oriOptions, BgUtils_.safer_({ url: null,
           type: type === "tab" && oriOptions.url || type === "tab-url" ? null : type === "tab-title" ? "title" : type

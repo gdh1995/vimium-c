@@ -378,10 +378,10 @@ export class JSONOption_<T extends JSONOptionNames> extends TextOption_<T> {
   }
   static stableJsonify(obj: object): string {
     if (!obj || typeof obj !== "object") { return JSON.stringify(obj) }
-    const keys = Object.keys(obj)
+    const keys = obj instanceof Array ? [] : Object.keys(obj)
     const collectOtherKeys = (value: object): void => {
       for (const [subKey, subVal] of Object.entries!(value)) {
-        if (keys.lastIndexOf(subKey) < 0) { keys.push(subKey) }
+        if (typeof subKey === "string" && keys.lastIndexOf(subKey) < 0) { keys.push(subKey) }
         if (subVal && typeof subVal === "object") { collectOtherKeys(subVal) }
       }
     }

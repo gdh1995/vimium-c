@@ -393,7 +393,7 @@ export const parseSearchEngines_ = (str: string, map: Map<string, Search.Engine>
         val = val.replace(<RegExpG & RegExpSearchable<0>> /\$[$s]/g, (s: string, index: number): string => {
           return s === "$$" ? (ind > 0 || ind--,  "$") : (ind = ind > 0 ? ind : ind + index + 1, s)
         })
-        if (tmpRule = reParseSearchUrl_(val, ind)) {
+        if (tmpRule = reParseSearchUrl_(val, ind, key)) {
           if (key.includes("$")) {
             key = key.replace(searchVariableRe_, s => s === "$$" ? "\\$" : "(.*)")
             tmpKey = new RegExp("^" + key, (<RegExpI> /[a-z]/i).test(key) ? "i" as "" : ""
@@ -408,22 +408,26 @@ export const parseSearchEngines_ = (str: string, map: Map<string, Search.Engine>
           });
         }
       }
-    } else if (str.charCodeAt(ind + 4) === kCharCode.slash) {
+    } else if (str.charAt(ind + 4) && !rSpace.test(str.charAt(ind + 4))) {
       key = ind > 1 ? str.slice(1, ind).trim() : "";
-      str = str.slice(ind + 5);
-      ind = str.search(<RegExpOne> /[^\\]\//) + 1;
+      const useSlash = str.charCodeAt(ind + 4) === kCharCode.slash
+      if (useSlash) {
+        str = str.slice(ind + 5);
+        ind = str.search(<RegExpOne> /[^\\]\//) + 1;
+      } else {
+        str = str.slice(ind + 4)
+        ind = str.search(rSpace)
+      }
       val = str.slice(0, ind);
-      str = str.slice(ind + 1);
+      str = str.slice(useSlash ? ind + 1 : ind)
       ind = str.search(rSpace);
-      const tmpKey2 = BgUtils_.makeRegexp_(val, ind >= 0 ? str.slice(0, ind) : str);
+      const tmpKey2 = BgUtils_.makeRegexp_(val, useSlash ? ind >= 0 ? str.slice(0, ind) : str : "")
       if (tmpKey2) {
         key = prepareReParsingPrefix_(key);
         rules.push({prefix_: key, matcher_: tmpKey2, name_: ids[0].trimRight(),
             delimiter_: obj.url_.lastIndexOf("$S") >= 0 ? " " : "+"});
       }
       str = ind >= 0 ? str.slice(ind + 1) : "";
-    } else {
-      str = str.slice(ind + 4);
     }
     str = str.trimLeft();
     obj.name_ = str ? BgUtils_.DecodeURLPart_(str) : ids[ids.length - 1].trimLeft();
@@ -431,7 +435,7 @@ export const parseSearchEngines_ = (str: string, map: Map<string, Search.Engine>
   return rules;
 }
 
-const reParseSearchUrl_ = (url: string, ind: number): Search.TmpRule | null => {
+const reParseSearchUrl_ = (url: string, ind: number, pattern: string): Search.TmpRule | null => {
   if (ind < 1 || !BgUtils_.protocolRe_.test(url)) { return null; }
   let prefix: string, str: string, str2: string, ind2: number;
   prefix = url.slice(0, ind - 1);
@@ -441,16 +445,18 @@ const reParseSearchUrl_ = (url: string, ind: number): Search.TmpRule | null => {
     if (ind2 = str.lastIndexOf("&") + 1) {
       str2 = str.slice(ind2);
     }
+    const excluded = (pattern.includes("&") ? "" : "&") + (pattern.includes("#") ? "" : "#")
     if (str2 && str2.indexOf("=") >= 1) {
       str = "[#&?]";
-      url = "([^#&]*)"
+      url = `([^${excluded}]*)`
     } else {
       str2 = str;
       str = url[ind - 1] === "#" ? "#" : str2 ? "[#?]" : "\\?";
-      url = "([^#&?]*)"
+      url = `([^${excluded}?]*)`
     }
   } else {
-    str = "^([^#?]*)";
+    const excluded = (pattern.includes("#") ? "" : "#") + (pattern.includes("?") ? "" : "?")
+    str = `^([^${excluded}]*)`
     if (str2 = url.slice(prefix.length + 2)) {
       if (ind = str2.search(<RegExpOne> /[#?]/) + 1) {
         str2 = str2.slice(0, ind - 1);
