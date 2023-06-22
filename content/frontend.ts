@@ -24,7 +24,7 @@ import { find_box, find_input } from "./mode_find"
 import { filterTextToGoNext, jumpToNextLink } from "./pagination"
 import { set_needToRetryParentClickable, focusAndRun } from "./request_handlers"
 import { RSC } from "./commands"
-import { main_not_ff_mv2 as extend_click_not_ff_mv2 } from  "./extend_click_mv2"
+import { main_not_ff_mv2 as extend_click_not_ff_mv2 } from  "./extend_click"
 import { main_ff as extend_click_ff, unblockClick_old_ff } from  "./extend_click_ff"
 import { hudTip } from "./hud"
 

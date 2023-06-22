@@ -15,7 +15,7 @@ declare const enum Build {
 // Note: one random value must be used only in one .ts file, to avoid issues caused by partly building
 declare const enum BuildStr {
   Commit = "dev",
-  /** used by {@link ../../content/extend_click_mv2.ts} */
+  /** used by {@link ../../content/extend_click.ts} */
   RandomClick = 2021831,
   /** used by {@link ../../content/frontend.ts} */
   RandomReq = 2019070,

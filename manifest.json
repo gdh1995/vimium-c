@@ -108,7 +108,7 @@
       "content/scroller.js",
       "content/request_handlers.js",
       "content/commands.js",
-      "content/extend_click_mv2.js",
+      "content/extend_click.js",
       "content/extend_click_ff.js",
       "content/frontend.js"
     ],

@@ -719,7 +719,7 @@ const postTerser = exports.postTerser = async (terserConfig, file, allPaths) => 
     get()
     contents = contents.replace(/\n?\/\*!? ?@OUTPUT ?\{([^}]+)\} ?\*\/\n?/g, '$1')
   }
-  if (allPathStr.indexOf("extend_click_mv2.") >= 0) {
+  if (allPathStr.indexOf("extend_click.") >= 0) {
     get();
     contents = patchExtendClick(contents);
   }
