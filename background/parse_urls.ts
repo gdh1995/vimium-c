@@ -1,7 +1,7 @@
 import { CONST_, CurCVer_, CurFFVer_, OnChrome, OnEdge, OnFirefox, searchEngines_, substitute_ } from "./store"
 import * as BgUtils_ from "./utils"
 import {
-  checkSpecialSchemes_,
+  checkSpecialSchemes_, resetLastUrlType_,
   convertToUrl_, formatVimiumUrl_, lastUrlType_, removeComposedScheme_, searchVariableRe_, searchWordRe_
 } from "./normalize_urls"
 
@@ -298,7 +298,7 @@ const detectLinkDeclaration_ = (str: string): string => {
   }
   if (url && endChar.includes(url[0])) { url = url.slice(1).trim() }
   if (nextTasks & 1 && url && leftCharRe.test(url[0])) { url = url.slice(1) }
-  convertToUrl_("javascript:;") // just to reset lastUrlType_
+  resetLastUrlType_()
   url = fixCharsInUrl_(url, false, true)
   return lastUrlType_ <= Urls.Type.MaxOfInputIsPlainUrl && !url.startsWith("vimium:") ? url : str;
 }

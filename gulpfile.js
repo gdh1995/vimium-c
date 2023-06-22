@@ -606,7 +606,7 @@ function computeModuleType(needDynamicImport) {
   const btypes = getBuildItem("BTypes")
   return btypes & BrowserType.Edge
       || btypes & BrowserType.Chrome && (
-        getBuildItem("MinCVer") < /* MinUsableScript$type$$module$InExtensions */ 63
+        getBuildItem("MinCVer") < /* MinUsableScript$type$$module$InExtensions */ 66
         || needDynamicImport && getBuildItem("MinCVer") < /* MinES$DynamicImport */ 63) // lgtm [js/redundant-operation]
       || btypes & BrowserType.Firefox &&
         needDynamicImport && getBuildItem("MinFFVer") < /* MinEnsuredES$DynamicImport */ 67

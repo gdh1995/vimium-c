@@ -26,8 +26,10 @@ const RedirectedUrls_: SafeDict<string> = { __proto__: null as never,
   setting: kOpts, settings: kOpts, wiki: "/wiki"
 }
 
-export let lastUrlType_ = Urls.Type.Default
+export let lastUrlType_ = Urls.Type.Full
 export let hasUsedKeyword_ = false
+
+export const resetLastUrlType_ = (): void => { lastUrlType_ = Urls.Type.Full }
 
 export const convertToUrl_ = function (str: string, keyword?: string | null, vimiumUrlWork?: Urls.WorkType
     , _isNested?: number): Urls.Url {

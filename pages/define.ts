@@ -1,5 +1,5 @@
 /// <reference path="../typings/lib/window.d.ts" />
-declare var define: any, __filename: string | null | undefined // eslint-disable-line no-var
+declare var define: any, __filename: string | null | undefined, AbortController: unknown // eslint-disable-line no-var
 
 if (Build.BTypes & (Build.BTypes & BrowserType.ChromeOrFirefox | BrowserType.Edge)
     && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer < BrowserVer.Min$globalThis)
@@ -37,9 +37,9 @@ if (Build.BTypes & (Build.BTypes & BrowserType.ChromeOrFirefox | BrowserType.Edg
       || !!(Build.BTypes & BrowserType.Chrome && _browser & BrowserType.Chrome)
   const OnEdge: boolean = !(Build.BTypes & ~BrowserType.Edge)
       || !!(Build.BTypes & BrowserType.Edge && _browser & BrowserType.Edge)
-  const navInfo = OnChrome ? (Build.MinCVer >= BrowserVer.MinEnsuredFetchRequestCache
-        || (Build.MinCVer >= BrowserVer.MinEnsured$fetch || typeof Request === "function")
-            && "cache" in Request.prototype) ? [0, BrowserVer.assumedVer]
+  const navInfo = OnChrome ? Build.MinCVer >= BrowserVer.MinUsableScript$type$$module$InExtensions
+        || (Build.MinCVer >= BrowserVer.MinAbortController || typeof AbortController === "function")
+      ? [0, BrowserVer.assumedVer]
       : navigator.appVersion!.match(<RegExpOne & RegExpSearchable<1>> /\bChrom(?:e|ium)\/(\d+)/) : 0 as const
   const navVer = OnChrome && Build.MinCVer < BrowserVer.MinUsableScript$type$$module$InExtensions
       ? navInfo && <BrowserVer> +navInfo[1] || 0 : 0
@@ -221,6 +221,6 @@ if (!(Build.NDEBUG || BrowserVer.MinMaybeES$Array$$Includes >= BrowserVer.Min$Ar
 if (!(Build.NDEBUG || BrowserVer.BuildMinForOf >= BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol)) {
   alert("expect BrowserVer.BuildMinForOf >= BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol")
 }
-if (!(Build.NDEBUG || BrowserVer.MinEnsuredFetchRequestCache >= BrowserVer.MinUsableScript$type$$module$InExtensions)) {
-  alert("expect BrowserVer.MinEnsuredFetchRequestCache >= BrowserVer.MinUsableScript$type$$module$InExtensions")
+if (!(Build.NDEBUG || BrowserVer.MinAbortController >= BrowserVer.MinUsableScript$type$$module$InExtensions)) {
+  alert("expect BrowserVer.MinAbortController >= BrowserVer.MinUsableScript$type$$module$InExtensions")
 }

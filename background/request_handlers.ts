@@ -729,7 +729,7 @@ const replaceForwardedOptions = (toForward?: object | string | null): void => {
 const onPagesReq = (req: FgReqWithRes[kFgReq.pages]["q"], id: number
     , port: Frames.PagePort | null): Promise<FgRes[kFgReq.pages]> => {
   if (!_pageHandlers) {
-    _pageHandlers = (Build.MV3 ? settings_.ready_ : import("/background/sync.js" as any).then(() => settings_.ready_))
+    _pageHandlers = (Build.MV3 ? settings_.ready_ : import2("/background/sync.js" as any).then(() => settings_.ready_))
         .then(() => import2<typeof import("./page_handlers")>("/background/page_handlers.js"))
   }
   return _pageHandlers.then(module => Promise.all(req.map(i => module.onReq(i, port))))

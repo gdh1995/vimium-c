@@ -1,6 +1,6 @@
 import {
   CurCVer_, CurFFVer_, OnChrome, OnEdge, OnFirefox, $, import2_, OnSafari, enableNextTick_, isVApiReady_, kReadyInfo,
-  simulateClick_, ValidFetch, post_, prevent_
+  simulateClick_, ValidFetch, post_, prevent_, browser_
 } from "./async_bg"
 import { bgSettings_, AllowedOptions, ExclusionRulesOption_, Option_, oTrans_, getSettingsCache_ } from "./options_base"
 import { exportBtn_, saveBtn_ } from "./options_defs"
@@ -11,6 +11,17 @@ import { kPgReq } from "../background/page_messages"
 const kSettingsToUpgrade_: readonly SettingsNS.LocalSettingNames[] = [
   "ignoreKeyboardLayout", "ignoreCapsLock", "mapModifier"
 ]
+
+const createURLSafe = (text: string): string => {
+  if (!Build.MV3 && OnChrome && Build.MinCVer < BrowserVer.MinExtOptionsOnStartupCanCreateBlobURLSafely
+      && CurCVer_ < BrowserVer.MinExtOptionsOnStartupCanCreateBlobURLSafely
+      && !browser_.extension.getBackgroundPage) {
+    text = btoa(String.fromCharCode.apply(String, new TextEncoder().encode(text) as ArrayLike<number> as number[]))
+    return "data:application/json;base64," + text
+  }
+  const blob = new Blob([text], { type: "application/json", endings: "native" })
+  return URL.createObjectURL(blob)
+}
 
 const showHelp = (event?: EventToPrevent | "force" | void | null): void => {
   if (!VApi || !VApi.z) {
@@ -101,7 +112,7 @@ interface ExportedSettings extends Dict<any> {
 
 let _lastBlobURL = "";
 
-const buildExportedFile = (now: Date, want_static: boolean): { blob: Blob, options: number } => {
+const buildExportedFile = (now: Date, want_static: boolean): { text: string, options: number } => {
   let exported_object: ExportedSettings | null;
   exported_object = Object.create(null) as ExportedSettings & SafeObject;
   exported_object.name = "Vimium C";
@@ -160,7 +171,7 @@ const buildExportedFile = (now: Date, want_static: boolean): { blob: Blob, optio
     // in case "endings" didn't work
     exported_data = exported_data.replace(<RegExpG> /\n/g, "\r\n");
   }
-  return { blob: new Blob([exported_data], {type: "application/json", endings: "native"}), options: storedKeys.length }
+  return { text: exported_data, options: storedKeys.length }
 }
 
 exportBtn_.onclick = function (event): void {
@@ -170,7 +181,7 @@ exportBtn_.onclick = function (event): void {
   }
   const now = new Date()
   const all_static = event ? event.ctrlKey || event.metaKey || event.shiftKey : false
-  const blob = buildExportedFile(now, all_static).blob, d_s = formatDate_(now)
+  const blob_data = buildExportedFile(now, all_static).text, d_s = formatDate_(now)
   let file_name = "vimium_c-";
   if (all_static) {
     file_name += "settings";
@@ -182,11 +193,12 @@ exportBtn_.onclick = function (event): void {
   type BlobSaver = (blobData: Blob, fileName: string) => any;
   interface NavigatorEx extends Navigator { msSaveOrOpenBlob?: BlobSaver }
   if (OnEdge && (navigator as NavigatorEx).msSaveOrOpenBlob) {
+    const blob = new Blob([blob_data], {type: "application/json"});
     (navigator as NavigatorEx & {msSaveOrOpenBlob: BlobSaver}).msSaveOrOpenBlob(blob, file_name);
   } else {
     const nodeA = document.createElement("a");
     nodeA.download = file_name;
-    nodeA.href = URL.createObjectURL(blob);
+    nodeA.href = createURLSafe(blob_data)
     simulateClick_(nodeA)
     // not `URL.revokeObjectURL(nodeA.href);` so that it works almost all the same
     // on old Chrome before BrowserVer.MinCanNotRevokeObjectURLAtOnce
@@ -428,9 +440,10 @@ async function _importSettings(time: number, new_data: ExportedSettings, is_reco
   if (really_updated <= 0) {
     console.info("no differences found.")
   } else if (old_settings_file.options > 0) {
-    console.info(`[message] you may recover old configuration of ${old_settings_file.options
-        } option(s), by open the blob: URL below ON THIS TAB:\n%c${URL.createObjectURL(old_settings_file.blob)}`
-        , "color: #15c;")
+    const text = createURLSafe(old_settings_file.text)
+    console.info(
+        `[message] you may recover old configuration of %d option(s), by open the %s URL below ON THIS TAB:\n%c%s`
+        , old_settings_file.options, text.slice(0, 5), "color: #15c;", text)
   }
   console.info("import settings: finished.")
   console.groupEnd()

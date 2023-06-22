@@ -469,10 +469,12 @@ void settings_.ready_.then((): void => {
       set_updateToLocal_(doUpdate ? null : updateLegacyToLocal!)
       doUpdate && updateLegacyToLocal!(6000)
     }
-    set_installation_(null)
+    Build.MV3 || "showActionIcon" in updateHooks_ ? set_installation_(null)
+        : setTimeout((): void => { set_installation_(null) }, 1000)
   } else if (installation_) { // on startup
     innerRestoreSettings = installation_.then((reason): boolean => {
-      set_installation_(null)
+      Build.MV3 || "showActionIcon" in updateHooks_ ? set_installation_(null)
+          : setTimeout((): void => { set_installation_(null) }, 1000)
       return !!reason && reason.reason === "install"
     }).then((installed): Promise<void> => new Promise((r): void => {
       storage() ? storage().get((items): void => {

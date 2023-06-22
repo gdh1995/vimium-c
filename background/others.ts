@@ -23,7 +23,7 @@ declare const enum OmniboxData {
   PreservedTitle = 16,
 }
 
-const enableShowIcon = updateHooks_.showActionIcon = (value): void => {
+updateHooks_.showActionIcon = (value): void => {
     const api = Build.MV3 ? (browser_ as any).action as never : browser_.browserAction
     if (!api) {
       updateHooks_.showActionIcon = undefined
@@ -38,7 +38,7 @@ const enableShowIcon = updateHooks_.showActionIcon = (value): void => {
 }
 void settings_.ready_.then((): void => {
   if (settingsCache_.showActionIcon) {
-    enableShowIcon(true)
+    updateHooks_.showActionIcon!(true, "showActionIcon")
   } else {
     set_setIcon_(blank_)
   }

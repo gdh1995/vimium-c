@@ -325,6 +325,8 @@ declare const enum BrowserVer {
   MinSetInnerTextOnHTMLHtmlElement = 58,
   // .type is always 'Caret'
   $Selection$NotShowStatusInTextBox = 58, // Now only version 81-110 of Chrome 58 stable have such a problem
+  // in C58~C62, new FileReader().readAs***() also makes Chrome crash
+  MinExtOptionsOnStartupMayCrashOnCreatingBlobURL = 58, // until MinExtOptionsOnStartupCanCreateBlobURLSafely
   /** @see {@link content/visual.ts#VVisual.init_ } */
   MinSelExtendForwardOnlySkipWhitespaces = 59,
   Min$Space$NotMatch$U180e$InRegExp = 59,
@@ -373,6 +375,7 @@ declare const enum BrowserVer {
   Min$performance$$timeOrigin = 62, // even if EXPERIMENTAL or LEGACY
   MinCSS$Color$$RRGGBBAA = 62,
   Min$NotSecure$LabelsForSomeHttpPages = 62, // https://developers.google.com/web/updates/2017/10/nic62#https
+  MinExtOptionsOnStartupCanCreateBlobURLSafely = 63, // in C58~C62, it crashes even if EXPERIMENTAL or LEGACY
   // there's a bug of C62/63 even if EXPERIMENTAL or LEGACY:
   // * if a `createShadowRoot()` from ext isolates after docReady and before wnd.onload,
   //   then some pages using ShadowDOM v0 heavily may be stuck.
@@ -380,7 +383,6 @@ declare const enum BrowserVer {
   // https://github.com/philc/vimium/issues/2921#issuecomment-361052160
   CreateShadowRootOnDocReadyBreakPages1 = 62,
   CreateShadowRootOnDocReadyBreakPages2 = 63,
-  MinUsableScript$type$$module$InExtensions = 63, // even if EXPERIMENTAL or LEGACY
   // the 8 below are correct even if EXPERIMENTAL or LEGACY
   // `/deep/` works on C35 even if LEGACY
   // static `/deep/` selector in query is still supported on Chrome LATEST_TESTED
@@ -395,7 +397,7 @@ declare const enum BrowserVer {
   /** replace {@link #BrowserVer.MinFocusIframeDirectlyWithout$wnd$$focus} */
   MinFocusIframeDirectlyBy$activeElement$$focus = 64, // need .activeElement.blur() or .contentWindow.focus() before
   MinEnsuredUnicodePropertyEscapesInRegExp = 64, // https://www.chromestatus.com/features/6706900393525248
-  MinEnsuredFetchRequestCache = 64, // even if LEGACY
+  MinEnsuredFetchRequestCache = 64, // even if LEGACY; since C59 if EXPERIMENTAL
   MinEnsuredLookBehindInRegexp = 64, // even if LEGACY
   // a 3rd-party Vomnibar will trigger "navigation" and clear all logs in console on Chrome 64
   // this still occurs on Chrome 65.0.3325.181 (Stable, x64, Windows 10)
@@ -409,6 +411,7 @@ declare const enum BrowserVer {
   MinCanNotRevokeObjectURLAtOnce = 65,
   MinExtraScrollbarWidthIfScrollStyleIsOverlay = 65, // fixed in C87
   MinEnsuredDisplayContents = 65,
+  MinUsableScript$type$$module$InExtensions = 66, // even if `Content-Type: text/plain`, EXPERIMENTAL or LEGACY
   MinInputMode = 66, // even if LEGACY; still works on C35 if EXPERIMENTAL
   // @see MinEscapeHashInBodyOfDataURL
   // https://github.com/chromium/chromium/commit/511efa694bdf9fbed3dc83e3fa4cda12909ce2b6
@@ -575,7 +578,7 @@ declare const enum BrowserVer {
   MinBg$i18n$$getMessage$InMV3 = 100, // even if EXPERIMENTAL or LEGACY
   Min$Event$$path$Deprecated = 101, // even if EXPERIMENTAL or LEGACY
   MinColorSchemeNormalMeansSystemDark = 102, // even if EXPERIMENTAL
-  MinEnsured$HTMLElement$$inert = 102, // even if EXPERIMENTAL
+  MinEnsured$HTMLElement$$inert = 102, // even if LEGACY; since MinMaybe$HTMLElement$$inert if EXPERIMENTAL
   // if flag `ThrottleDisplayNoneAndVisibilityHiddenCrossOriginIframesEnabled` is enabled (e.g. if EXPERIMENTAL),
   // then there's no latency in a 2nd showing of v1.99.3; otherwise 2nd showing is very slow.
   // I don't know why its name and effects have conflicts.
