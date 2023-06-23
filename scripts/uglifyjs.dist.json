@@ -18,7 +18,7 @@
     "global_defs": {
       "define.amd": true,
       "@exports": "undefined",
-      "@__importStar": "i=>i",
+      "@__importStar": "function(i){return i}",
       "@module": "undefined"
     },
     "hoist_funs": true,

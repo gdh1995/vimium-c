@@ -1,11 +1,13 @@
 import {
   CurCVer_, CurFFVer_, OnChrome, OnEdge, OnFirefox, $, import2_, OnSafari, enableNextTick_, isVApiReady_, kReadyInfo,
-  simulateClick_, ValidFetch, post_, prevent_, browser_
+  simulateClick_, ValidFetch, post_, prevent_
 } from "./async_bg"
 import { bgSettings_, AllowedOptions, ExclusionRulesOption_, Option_, oTrans_, getSettingsCache_ } from "./options_base"
 import { exportBtn_, saveBtn_ } from "./options_defs"
 import { manifest_ } from "./options_permissions";
-import { advancedOptBtn, ElementWithDelay, delayed_task, clear_delayed_task, onHash_ } from "./options_wnd"
+import {
+  advancedOptBtn, ElementWithDelay, delayed_task, clear_delayed_task, onHash_, noBlobSupport_cr_mv2_
+} from "./options_wnd"
 import { kPgReq } from "../background/page_messages"
 
 const kSettingsToUpgrade_: readonly SettingsNS.LocalSettingNames[] = [
@@ -13,9 +15,7 @@ const kSettingsToUpgrade_: readonly SettingsNS.LocalSettingNames[] = [
 ]
 
 const createURLSafe = (text: string): string => {
-  if (!Build.MV3 && OnChrome && Build.MinCVer < BrowserVer.MinExtOptionsOnStartupCanCreateBlobURLSafely
-      && CurCVer_ < BrowserVer.MinExtOptionsOnStartupCanCreateBlobURLSafely
-      && !browser_.extension.getBackgroundPage) {
+  if (OnChrome && !Build.MV3 && noBlobSupport_cr_mv2_()) {
     text = btoa(String.fromCharCode.apply(String, new TextEncoder().encode(text) as ArrayLike<number> as number[]))
     return "data:application/json;base64," + text
   }
@@ -486,9 +486,9 @@ function importSettings_(time: number | string | Date, data: string, is_recommen
   });
 }
 
-let _el: HTMLInputElement | HTMLSelectElement | null = $<HTMLInputElement>("#settingsFile");
-_el.onclick = null as never;
-_el.onchange = function (this: HTMLInputElement): void {
+const fileInput = $<HTMLInputElement>("#settingsFile")
+fileInput.onclick = null as never
+fileInput.onchange = function (this: HTMLInputElement): void {
   const file = (this.files as FileList)[0];
   this.value = "";
   if (!file) { return; }
@@ -505,12 +505,14 @@ _el.onchange = function (this: HTMLInputElement): void {
   reader.readAsText(file);
 };
 
-_el = $<HTMLSelectElement>("#importOptions");
-_el.onclick = null as never;
-_el.onchange = function (this: HTMLSelectElement): void {
+const importTypeSelect = $<HTMLSelectElement>("#importOptions")
+importTypeSelect.onclick = null as never
+importTypeSelect.onchange = function (this: HTMLSelectElement): void {
   $("#importButton").focus();
   if (this.value === "exported") {
-    simulateClick_($("#settingsFile"))
+    if (!(OnChrome && !Build.MV3 && noBlobSupport_cr_mv2_(1))) {
+      simulateClick_(fileInput)
+    }
     return;
   }
   const recommended = "../settings-template.json";
@@ -527,7 +529,6 @@ _el.onchange = function (this: HTMLSelectElement): void {
   };
   req.send();
 };
-_el = null;
 
 delayed_task && (function () {
   const arr = delayed_task

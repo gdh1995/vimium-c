@@ -4,7 +4,7 @@ import {
   storageCache_, os_, framesForOmni_, updateHooks_, Origin2_, CurCVer_
 } from "./store"
 import { deferPromise_, protocolRe_, safeObj_ } from "./utils"
-import { browserWebNav_, browser_, getCurTab, getTabUrl, Q_, runContentScriptsOn_, runtimeError_, tabsGet } from "./browser"
+import { browserWebNav_, browser_, getCurTab, getTabUrl, Q_, runContentScriptsOn_, runtimeError_, tabsCreate, tabsGet } from "./browser"
 import { convertToUrl_, lastUrlType_, reformatURL_ } from "./normalize_urls"
 import { findUrlInText_, parseSearchEngines_ } from "./parse_urls"
 import * as settings_ from "./settings"
@@ -277,6 +277,10 @@ const pageRequestHandlers_: {
   },
   /** kPgReq.showInit: */ (): PgReq[kPgReq.showInit][1] => {
     return { os: os_ }
+  },
+  /** kPgReq.reopenTab: */ (req: PgReq[kPgReq.reopenTab][0]): void => {
+    tabsCreate({ url: req.url })
+    browser_.tabs.remove(req.tabId)
   }
 ]
 

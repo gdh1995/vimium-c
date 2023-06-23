@@ -114,9 +114,8 @@ var writeFile = function(path, data, writeBom) {
     data = lib.addMetaData(path, data)
     same = same && lib.readFile(path, {}) === data;
   }
-  var prefix = logPrefix && "[" + logPrefix + "]";
-  prefix += logPrefix && " ".repeat(12 - prefix.length)
-  prefix += logPrefix && " "
+  var prefix = logPrefix && "[" + logPrefix + "]", space = " "
+  prefix += logPrefix && space.repeat && space.repeat(13 - prefix.length)
   console.log("%s%s: %s", prefix, skip ? " SKIP" : same ? "TOUCH" : "WRITE", path.replace(root, ""));
   if (same) {
     lib.touchFileIfNeeded(path, srcPath);
@@ -281,7 +280,7 @@ function main(args) {
         // @ts-ignore
         stdio: ["ignore", process.stdout, process.stderr]
       });
-      child.on("close", function (code) { resolve(code); });
+      child.on("close", function (code) { resolve(code || 0); });
     }));
   }
   // @ts-ignore
@@ -298,9 +297,7 @@ function main(args) {
         // @ts-ignore
         stdio: ["ignore", process.stdout, process.stderr]
       });
-      child.on("close", function (code) {
-        resolve(code);
-      });
+      child.on("close", function (code) { resolve(code || 0); });
     }));
   }
   var watchedDest = destDirs[0];

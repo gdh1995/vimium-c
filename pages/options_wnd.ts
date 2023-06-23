@@ -450,9 +450,22 @@ if (OnChrome && Build.MinCVer < BrowserVer.Min$Option$HasReliableFontSize
   nextTick_(el => { el.classList.add("font-fix") }, $("select"))
 }
 
+export const noBlobSupport_cr_mv2_ = (autoReopenPage?: 1): boolean => {
+  const mayCrash = !Build.MV3 && OnChrome && Build.MinCVer < BrowserVer.MinExtOptionsOnStartupCanCreateBlobURLSafely
+      && CurCVer_ < BrowserVer.MinExtOptionsOnStartupCanCreateBlobURLSafely
+      && (Build.MinCVer >= BrowserVer.MinExtOptionsOnStartupMayCrashOnCreatingBlobURL
+          || CurCVer_ > BrowserVer.MinExtOptionsOnStartupMayCrashOnCreatingBlobURL - 1)
+      && !browser_.extension.getBackgroundPage
+  if (mayCrash && autoReopenPage) {
+    post_(kPgReq.reopenTab, { url: location.href.split("#")[0] + "#importButton", tabId: selfTabId_ })
+  }
+  return mayCrash
+}
+
 delayBinding_("#importButton", "click", (): void => {
   const opt = $<HTMLSelectElement>("#importOptions");
-  opt.onchange ? opt.onchange(null as never) : simulateClick_($("#settingsFile"))
+  opt.onchange ? opt.onchange(null as never)
+  : OnChrome && !Build.MV3 && noBlobSupport_cr_mv2_(1) || simulateClick_($("#settingsFile"))
 }, "on")
 
 nextTick_((el0): void => {
@@ -535,6 +548,8 @@ export const onHash_ = (hash: string): void => {
         ? (scrollTo as typeof scrollBy)({behavior: "instant", top: 0, left: 0}) : scrollTo(0, 0)
       }
       scrollAndFocus_(node!)
+      const tag = node!.localName
+      if (tag === "button" || tag === "a") { simulateClick_(node!) }
     };
     if (document.readyState === "complete") { return callback(); }
     window.scrollTo(0, 0);

@@ -12,6 +12,8 @@ IS_EDGE=0
 EDGE_VER=
 CHROME_ROOT=
 EXE=
+RUN=
+WAIT=0
 WORKING_DIR=${WORKING_DIR:-/r/working}
 VC_ROOT=
 DIST=0
@@ -150,6 +152,10 @@ case "$1" in
     OTHER_ARGS=$OTHER_ARGS" --enable-use-zoom-for-dsf=false"
     shift
     ;;
+  wait|--wait)
+    WAIT=1
+    shift
+    ;;
   --*)
     OTHER_ARGS=$OTHER_ARGS" $1"
     shift
@@ -185,6 +191,7 @@ else
   RUN="$(which env.exe) start2.exe"
   REALPATH=/bin/wslpath
 fi
+test $WAIT -eq 1 && RUN=
 
 if test $IS_EDGE -gt 0; then
   case "$IS_EDGE" in
