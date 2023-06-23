@@ -6,7 +6,7 @@ import {
 } from "../lib/utils"
 import { suppressTail_, getMappedKey } from "../lib/keyboard_utils"
 import {
-  frameElement_, runJS_, OnDocLoaded_, set_OnDocLoaded_, onReadyState_, set_onReadyState_
+  frameElement_, runJS_, OnDocLoaded_, set_OnDocLoaded_, onReadyState_, set_onReadyState_,
 } from "../lib/dom_utils"
 import { wndSize_ } from "../lib/rect"
 import {
@@ -24,7 +24,7 @@ import { find_box, find_input } from "./mode_find"
 import { filterTextToGoNext, jumpToNextLink } from "./pagination"
 import { set_needToRetryParentClickable, focusAndRun } from "./request_handlers"
 import { RSC } from "./commands"
-import { main_not_ff_mv2 as extend_click_not_ff_mv2 } from  "./extend_click"
+import { ec_main_not_ff } from  "./extend_click"
 import { main_ff as extend_click_ff, unblockClick_old_ff } from  "./extend_click_ff"
 import { hudTip } from "./hud"
 
@@ -221,7 +221,7 @@ if (isAlive_) {
     if (OnFirefox) {
       /*#__INLINE__*/ extend_click_ff()
     } else {
-      /*#__INLINE__*/ extend_click_not_ff_mv2()
+      ec_main_not_ff()
     }
   }
   OnFirefox && Build.MinFFVer < FirefoxBrowserVer.MinPopupBlockerPassOrdinaryClicksDuringExtMessages

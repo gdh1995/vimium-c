@@ -46,6 +46,7 @@ const JSON_TO_JS = ["i18n/*/options.json", "i18n/*/popup.json"]
 var CompileTasks = {
   background: ["background/*.ts", "background/*.d.ts"],
   content: [["content/*.ts", "lib/*.ts", "!" + POLYFILL_FILE, "!lib/injector.ts", "!lib/simple_eval.ts"]
+              .concat(getBuildItem("MV3") ? [] : ["!*/extend_click_vc.*"])
       , "lib/*.d.ts", {module: "distES6"}],
   front: [["front/*.ts", has_polyfill ? POLYFILL_FILE : "!" + POLYFILL_FILE
             , "lib/injector.ts", "lib/simple_eval.ts"], ["lib/base.omni.d.ts"], { inBatch: false }],
@@ -267,10 +268,17 @@ var Tasks = {
             }
           } else {
             val != null ? (manifest[key.slice(0, -3)] = val) : delete manifest[key.slice(0, -3)]
-            delete manifest[key]
           }
-        } else if (!mv3 && key === "content_scripts") {
-          for (const item of manifest[key]) { delete item.match_origin_as_fallback }
+        } else if (key === "content_scripts") {
+          manifest[key].splice(1, manifest[key].length - 1)
+          if (!mv3) {
+            for (const item of manifest[key]) { delete item.match_origin_as_fallback }
+          } else if (!(browser & ~BrowserType.Chrome) && minVer >= /* BrowserVer.MinCSAcceptWorldInManifest */ 111) {
+            const cs = structuredClone(manifest[key][0])
+            cs.js = ["content/extend_click_vc.js"]
+            cs.world = "MAIN"
+            manifest[key].push(cs)
+          }
         }
       }
     }
@@ -499,9 +507,8 @@ gulp.task("locally", function(done) {
   if (locally) { return done(); }
   locally = true;
   gTypescript = null;
-  if (process.env.BUILD_MV3 && !process.env.LOCAL_DIST) {
-    delete process.env.BUILD_MV3
-    print("MV3 is not enabled locally")
+  if (process.env.BUILD_MV3 === "0" && !process.env.LOCAL_DIST) {
+    throw new Exception("MV3 can not be disabled locally")
   }
   compilerOptions = loadValidCompilerOptions("scripts/gulp.tsconfig.json");
   createBuildConfigCache();
@@ -724,8 +731,15 @@ const postTerser = exports.postTerser = async (terserConfig, file, allPaths) => 
     contents = contents.replace(/\n?\/\*!? ?@OUTPUT ?\{([^}]+)\} ?\*\/\n?/g, '$1')
   }
   if (allPathStr.indexOf("extend_click.") >= 0) {
-    get();
-    contents = patchExtendClick(contents);
+    var btypes = getBuildItem("BTypes"), minCVer = getBuildItem("MinCVer")
+    if (!getBuildItem("MV3") || btypes & ~(BrowserType.Chrome | BrowserType.Firefox)
+        || btypes & BrowserType.Chrome && minCVer < /* MinRegisterContentScriptsWorldInMV3 */ 102) {
+      get();
+      contents = patchExtendClick(contents);
+    }
+  }
+  if (allPathStr.indexOf("extend_click_vc.") >= 0) {
+    logger("%o: %o %s", ":extend_click_vc", (contents || file.contents).length, "bytes in file");
   }
   if (locally) {
     get();

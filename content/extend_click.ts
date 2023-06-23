@@ -4,14 +4,14 @@ import {
   setupTimerFunc_cr_mv3, fgCache
 } from "../lib/utils"
 import {
-  createElement_, set_createElement_, OnDocLoaded_, runJS_, rAF_, removeEl_s, dispatchEvent_,
-  parentNode_unsafe_s, onReadyState_, getEventPath, appendNode_s
+  createElement_, set_createElement_, OnDocLoaded_, runJS_, rAF_, removeEl_s, dispatchEvent_, HTMLElementProto,
+  parentNode_unsafe_s, onReadyState_, getEventPath, appendNode_s, htmlTag_
 } from "../lib/dom_utils"
 import { HookAction, hookOnWnd, safeDestroy, setupBackupTimer_cr } from "./port"
 import { coreHints, doesWantToReloadLinkHints, hintOptions, reinitLinkHintsIn } from "./link_hints"
 import { grabBackFocus, insertInit } from "./insert"
 
-export const main_not_ff_mv2 = (Build.BTypes & ~BrowserType.Firefox ? (): void => {
+export const ec_main_not_ff = (Build.BTypes & ~BrowserType.Firefox ? (): void => {
 (function extendClick(this: void, isFirstTime?: boolean): void {
 /** Note(gdh1995):
  * According to source code of C72,
@@ -57,6 +57,8 @@ export const main_not_ff_mv2 = (Build.BTypes & ~BrowserType.Firefox ? (): void =
         , eventInitDict: Pick<FocusEventInit, "relatedTarget" | "composed">): FocusEvent;
   }
 
+  const kInjectManually = !Build.MV3 || (Build.BTypes & ~BrowserType.ChromeOrFirefox && !OnChrome)
+      || Build.MinCVer < BrowserVer.MinUsableMV3 && "onbeforematch" in HTMLElementProto!
   const kVOnClick1 = InnerConsts.kVOnClick
     , outKMK = GlobalConsts.MarkAcrossJSWorlds
     , appInfo = OnChrome
@@ -74,8 +76,8 @@ export const main_not_ff_mv2 = (Build.BTypes & ~BrowserType.Firefox ? (): void =
             || Build.MinCVer < BrowserVer.MinEventListenersFromExtensionOnSandboxedPage)
         ? appInfo && <BrowserVer> +appInfo[1] || 0
         : OnChrome ? 1 : 0
-    , secret: string = ((math.random() * GlobalConsts.SecretRange + GlobalConsts.SecretBase) | 0) + ""
-  let script = createElement_("script");
+  const secret: string = !kInjectManually ? ""
+      : ((math.random() * GlobalConsts.SecretRange + GlobalConsts.SecretBase) | 0) + ""
   function onClick(this: Element | Window, event2: Event): void {
     const rawDetail = (
         event2 as NonNullable<ConstructorParameters<CustomEventCls>[1]>
@@ -85,13 +87,26 @@ export const main_not_ff_mv2 = (Build.BTypes & ~BrowserType.Firefox ? (): void =
     fromAttrs: 0 | 1 | 2 = detail ? (detail[1] + 1) as 1 | 2 : 0;
     let path: ReturnType<typeof getEventPath>, reHint: number | undefined, mismatch: 1 | undefined,
     docChildren: HTMLCollectionOf<Element> | undefined, boxChildren: HTMLCollectionOf<Element> | undefined,
-    target = detail ? null : isSafe ? (event2 as DelegateEventCls["prototype"]).relatedTarget as Element | null
+    target = detail ? null : isSafe || !kInjectManually && box == null
+        ? (event2 as DelegateEventCls["prototype"]).relatedTarget as Element | null
         : (!OnEdge
             && (!OnChrome || Build.MinCVer >= BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow)
             ? getEventPath(event2)![0] as Element
             : (path = getEventPath(event2)) && path.length > 1 ? path[0] as Element : null)
     Stop_(event2)
-    if (!box) { return }
+    if (!box) {
+      if (!kInjectManually && readyState_ > "l" && target && htmlTag_<1>(target)) {
+        if (target.dataset.vimium === "" + BuildStr.RandomClick) {
+          box = target satisfies SafeHTMLElement as HTMLDivElement
+          readyTimeout = timeout_(initOnDocReady, InnerConsts.DelayToWaitDomReady)
+          OnDocLoaded_(initOnDocReady)
+          target.dataset.vimium = ""
+        } else {
+          execute(kContentCmd.Destroy)
+        }
+      }
+      return
+    }
     let tickDoc = 0, tickBox = 0
     if (detail) {
       for (const index of detail[0]) {
@@ -118,8 +133,8 @@ export const main_not_ff_mv2 = (Build.BTypes & ~BrowserType.Firefox ? (): void =
           if (!Build.NDEBUG) { isBox ? tickBox++ : tickDoc++ }
         }
       }
-    } else if (/* safer */ target
-        && (isSafe && !rawDetail || +secret % InnerConsts.kModToExposeSecret + <string> target.tagName === rawDetail)) {
+    } else if (/* safer */ target && (isSafe && !rawDetail || (kInjectManually ? +secret : BuildStr.RandomClick
+          ) % InnerConsts.kModToExposeSecret + <string> target.tagName === rawDetail)) {
       clickable_.add(target);
     } else {
       mismatch = 1
@@ -154,9 +169,8 @@ export const main_not_ff_mv2 = (Build.BTypes & ~BrowserType.Firefox ? (): void =
     reHint && reinitLinkHintsIn(reHint)
   }
   const dispatchCmd = (cmd: SecondLevelContentCmds): void => {
-    box && dispatchEvent_(box, new (CustomEvent as CustomEventCls)(
-        InnerConsts.kCmd, {
-      detail: ((+secret << kContentCmd.MaskedBitNumber) | cmd) as CommandEventDetail
+    box && dispatchEvent_(box, new (CustomEvent as CustomEventCls)(InnerConsts.kCmd, { detail:
+      (((kInjectManually ? +secret : BuildStr.RandomClick) << kContentCmd.MaskedBitNumber) | cmd) as CommandEventDetail
     }));
   }
   const execute = (cmd: ValidContentCommands): void => {
@@ -166,18 +180,19 @@ export const main_not_ff_mv2 = (Build.BTypes & ~BrowserType.Firefox ? (): void =
       return;
     }
     /** this function should keep idempotent */
+    setupEventListener(0, kVOnClick1, onClick, 1)
     if (box) {
       setupEventListener(box, kVOnClick1, onClick, 1);
-      setupEventListener(0, kVOnClick1, onClick, 1);
       dispatchCmd(kContentCmd.Destroy);
     }
     box = 0;
     vApi.e = script = null as never
   }
   const initOnDocReady = (): void => {
+    clearTimeout_(readyTimeout)
+    if (kInjectManually) {
     if (!script) { return }
     box = createElement_("div")
-    readyState_ > "l" || clearTimeout_(readyTimeout)
     appendNode_s(script, box)
     dispatchEvent_(script, new Event(outKMK + BuildStr.RandomClick))
     if (parentNode_unsafe_s(box)) {
@@ -189,8 +204,11 @@ export const main_not_ff_mv2 = (Build.BTypes & ~BrowserType.Firefox ? (): void =
       return
     }
     script = null as never
-    setupEventListener(box, kVOnClick1, onClick);
     removeEl_s(box)
+    } else {
+      vApi.e = execute
+    }
+    setupEventListener(box!, kVOnClick1, onClick)
     // only for new versions of Chrome (and Edge);
     // CSP would block a <script> before MinEnsuredNewScriptsFromExtensionOnSandboxedPage
     // if !box, avoid checking isFirstTime, so that auto clean VApi.execute_
@@ -199,7 +217,28 @@ export const main_not_ff_mv2 = (Build.BTypes & ~BrowserType.Firefox ? (): void =
       isFirstResolve = 0;
     }, GlobalConsts.ExtendClick_DelayToFindAll), 1);
   }
+  let script: HTMLScriptElement, box: HTMLDivElement | undefined | 0, counterResolvePath = 0, reHookTimes = 0,
+  isFirstResolve: 0 | 1 | 2 | 3 | 4 = isTop ? 3 : 4, readyTimeout: ValidTimeoutID
 
+  if (!Build.NDEBUG && isFirstTime && readyState_ === "complete") {
+    alert("Vimium C: Error! should not run extend_click twice")
+    return
+  }
+  if (!kInjectManually) {
+    if (grabBackFocus) {
+      setupEventListener(0, kVOnClick1, onClick);
+      OnDocLoaded_(() => { // check CSP script-src or JS-disabled-in-CS
+        if (box) { return }
+        execute(kContentCmd.Destroy);
+        if (OnChrome) {
+          const t = timeout_, i = interval_, ct = clearTimeout_, ci = clearInterval_
+          timeout_((): void => { /*#__INLINE__*/ setupTimerFunc_cr_mv3(t, i, ct, ci) }, 0)
+          /*#__INLINE__*/ setupBackupTimer_cr()
+        }
+      })
+    }
+    return
+  }
 /**
  * Note:
  *   should not create HTML/SVG elements before document gets ready,
@@ -211,15 +250,13 @@ export const main_not_ff_mv2 = (Build.BTypes & ~BrowserType.Firefox ? (): void =
  * * https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/dom/document.cc?g=0&q=Document::CreateRawElement&l=946
  * Vimium issue: https://github.com/philc/vimium/pull/1797#issuecomment-135761835
  */
+  script = createElement_("script")
   if ((script as Element as ElementToHTML).lang == null || !isAlive_) {
     set_createElement_(doc.createElementNS.bind(doc, VTr(kTip.XHTML) as "http://www.w3.org/1999/xhtml"
         ) as typeof createElement_)
     isFirstTime != null && OnDocLoaded_(extendClick); // retry after a while, using a real <script>
     return
   }
-
-  let box: HTMLDivElement | undefined | 0, counterResolvePath = 0, reHookTimes = 0,
-  isFirstResolve: 0 | 1 | 2 | 3 | 4 = isTop ? 3 : 4, readyTimeout: ValidTimeoutID
 
 // #region injected code
   /** the `InnerVerifier` needs to satisfy
@@ -444,7 +481,8 @@ const prepareRegister = (element: Element): void => {
           && typeof (s = element.tagName) === "string") {
         parent !== doc0 && parent !== root && call(Append, root, parent);
         unsafeDispatchCounter++;
-        dispatch(element, new CECls(kVOnClick, { detail: +sec % InnerConsts.kModToExposeSecret + s, composed: !0 }))
+        dispatch(element, new CECls(kVOnClick, {
+            detail: +sec % InnerConsts.kModToExposeSecret + s, composed: !0 }))
       }
     } else {
       unsafeDispatchCounter++;
@@ -484,8 +522,8 @@ const safeReRegister = (element: Element, doc1: Document): void => {
 const executeCmd = (eventOrDestroy?: Event): void => {
   const detail: CommandEventDetail = eventOrDestroy && (eventOrDestroy as CustomEvent).detail,
   cmd: SecondLevelContentCmds | kContentCmd._fake = detail
-      ? (detail >> kContentCmd.MaskedBitNumber) === +sec ? detail & ((1 << kContentCmd.MaskedBitNumber) - 1)
-        : kContentCmd._fake
+      ? (detail >> kContentCmd.MaskedBitNumber) === +sec
+        ? detail & ((1 << kContentCmd.MaskedBitNumber) - 1) : kContentCmd._fake
       : eventOrDestroy ? kContentCmd._fake : kContentCmd.Destroy;
   // always stopProp even if the secret does not match, so that an attacker can not detect secret by enumerating numbers
   detail && call(StopProp, eventOrDestroy!);
@@ -569,10 +607,6 @@ DocCls.write = myDocWrite
 // #endregion injected code
 
   if (isFirstTime) {
-    if (!Build.NDEBUG && readyState_ === "complete") {
-      alert("Vimium C: Error! should not run extend_click twice")
-      return
-    }
     if (OnChrome && Build.MinCVer < BrowserVer.MinEnsuredES6MethodFunction
         && tmpChromeVer >= BrowserVer.MinEnsuredES6MethodFunction) {
       injected = injected.replace(<RegExpG> /: ?function \w+/g, "");
@@ -641,4 +675,8 @@ if (!(Build.NDEBUG || BrowserVer.Min$queueMicrotask >= BrowserVer.NoRAFOrRICOnSa
 if (!(Build.NDEBUG
       || BrowserVer.MinEnsuredNewScriptsFromExtensionOnSandboxedPage <= BrowserVer.NoRAFOrRICOnSandboxedPage)) {
   console.log("Assert error: Warning: may no timer function on sandbox page!");
+}
+
+if (!(Build.NDEBUG || BrowserVer.Min$beforematch$Event === BrowserVer.MinRegisterContentScriptsWorldInMV3)) {
+  console.log("Assert error: BrowserVer.Min$beforematch$Event === BrowserVer.MinRegisterContentScriptsWorldInMV3")
 }

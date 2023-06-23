@@ -196,6 +196,22 @@ OnFirefox && watchPermissions_([{ permissions: ["cookies"] }], (allowed): void =
 set_bgIniting_(bgIniting_ | BackendHandlersNS.kInitStat.main)
 onInit_!()
 
+if (Build.MV3 && !OnFirefox && (!OnChrome || Build.MinCVer < BrowserVer.MinCSAcceptWorldInManifest
+    && (Build.MinCVer >= BrowserVer.MinRegisterContentScriptsWorldInMV3
+        || CurCVer_ > BrowserVer.MinRegisterContentScriptsWorldInMV3 - 1))) {
+  browser_.scripting.registerContentScripts([{
+    id: "extend_click",
+    js: ["content/extend_click_vc.js"],
+    matches: ["<all_urls>"],
+    allFrames: true,
+    runAt: "document_start",
+    world: "MAIN"
+  }]).catch(err => {
+    const msg = err + ""
+    msg.includes("Duplicate script ID") || console.log("Can not register extend_click:", err)
+  })
+}
+
   // will run only on <kbd>F5</kbd>, not on runtime.reload
 // @ts-ignore
 Build.MV3 || ((window as Window) // `window.` is necessary on Chrome 32
