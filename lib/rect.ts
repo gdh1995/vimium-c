@@ -466,13 +466,10 @@ export const isContaining_ = (a: Rect, b: Rect): boolean => {
   return b.b - 5 < a.b && b.r - 5 < a.r && b.t > a.t - 5 && b.l > a.l - 5
 }
 
-export const padClientRect_ = function (rect: ClientRect, padding?: number): WritableRect {
+export const padClientRect_ = (rect: ClientRect, padding?: number): Rect => {
   const x = rect.left, y = rect.top, w = rect.width, h = rect.height
   padding = w || h ? padding || 0 : 0
   return {l: x | 0, t: y | 0, r: (x + max_(w, padding)) | 0, b: (y + max_(h, padding)) | 0}
-} as {
-  (rect: ClientRect, padding: number): WritableRect
-  (rect: ClientRect): Rect
 }
 
 export const boundingRect_ = (element: Element): Rect => padClientRect_(getBoundingClientRect_(element), 0)
@@ -489,12 +486,13 @@ export const getVisibleBoundingRect_ = (element: Element, crop?: BOOL, st?: CSSS
   return arr
 }
 
-export const setBoundary_ = (style: CSSStyleDeclaration, r: WritableRect
-    , arr?: ViewOffset, allowAbs?: BOOL | 2): boolean => {
+export const setBoundary_ = (style: CSSStyleDeclaration, r: Rect
+    , allowAbs?: BOOL | 2, arr?: ViewOffset): boolean => {
   const need_abs = allowAbs === 2 || !!allowAbs && (r.t < 0 || r.l < 0 || r.b > wndSize_() || r.r > wndSize_(1)),
   P = "px"
-  if (need_abs && (arr || (arr = getViewBox_()))) {
-    r.l += arr[0], r.r += arr[0], r.t += arr[1], r.b += arr[1]
+  if (need_abs) {
+    arr || (arr = getViewBox_())
+    r = { l: r.l + arr[0], t: r.t + arr[1], r: r.r + arr[0], b: r.b + arr[1] }
   }
   style.left = r.l + P, style.top = r.t + P
   style.width = (r.r - r.l) + P, style.height = (r.b - r.t) + P

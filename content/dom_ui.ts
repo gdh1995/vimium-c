@@ -458,7 +458,7 @@ export const flash_ = function (el: SafeElement | null, rect?: Rect | null, life
         && Build.MinCVer < BrowserVer.MinForcedColorsMode ? getBoxTagName_old_cr() : "div"),
     nfs = knownViewOffset ? 2 : <BOOL> <BOOL | boolean> +!fullscreenEl_unsafe_()
     setClassName_s(flashEl, "R Flash" + (classNames || "")
-        + (setBoundary_(flashEl.style, rect, knownViewOffset, nfs) ? " AbsF" : ""))
+        + (setBoundary_(flashEl.style, rect, nfs, knownViewOffset) ? " AbsF" : ""))
     OnChrome &&
     bZoom_ !== 1 && nfs && (flashEl.style.zoom = "" + bZoom_);
     addUIElement(flashEl, AdjustType.DEFAULT)

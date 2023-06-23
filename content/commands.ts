@@ -6,9 +6,8 @@ import {
 import {
   isHTML_, hasTag_, createElement_, querySelectorAll_unsafe_, SafeEl_not_ff_, docEl_unsafe_, MDW, CLK, derefInDoc_,
   querySelector_unsafe_, DAC, removeEl_s, appendNode_s, setClassName_s, INP, contains_s, toggleClass_s, modifySel,
-  focus_, testMatch, docHasFocus_, deepActiveEl_unsafe_, getEditableType_, textOffset_,
-  inputSelRange, dispatchAsync_, notSafe_not_ff_, activeEl_unsafe_, IsInDOM_,
-  isIFrameElement
+  focus_, testMatch, docHasFocus_, deepActiveEl_unsafe_, getEditableType_, textOffset_, fullscreenEl_unsafe_, IsInDOM_,
+  inputSelRange, dispatchAsync_, notSafe_not_ff_, activeEl_unsafe_, isIFrameElement
 } from "../lib/dom_utils"
 import {
   replaceOrSuppressMost_, removeHandler_, getMappedKey, prevent_, isEscape_, keybody_, DEL, BSP, ENTER, handler_stack,
@@ -300,12 +299,24 @@ set_contentCommands_([
           : j < 0 ? -ind - sel : -ind
     }
     visibleInputs.sort((a, b) => a[2] < 1 || b[2] < 1 ? b[2] - a[2] : a[2] - b[2])
+    const scrollPos = [scrollX, scrollY]
+    const refineRect = (el: Element): Rect => {
+      const rect = padClientRect_(getBoundingClientRect_(el), 3) satisfies Rect as WritableRect
+      rect.l--, rect.t--, rect.r--, rect.b--
+      return rect
+    }
+    const updateHint = (hint: InputHintItem): void => {
+      if (getEditableType_(hint.d)) {
+        const fs = fullscreenEl_unsafe_(), arr2 = fs ? getViewBox_() : [scrollX, scrollY], arr1 = fs ? arr : scrollPos
+        const rect = arr2 && refineRect(hint.d)
+        rect && setBoundary_(hint.m.style, rect, 2, [arr2[0] - arr1[0], arr2[1] - arr1[1]])
+      }
+      setClassName_s(hint.m, S)
+    }
     let hints: InputHintItem[] = visibleInputs.map((link): InputHintItem => {
-      const marker = createElement_("span") as InputHintItem["m"],
-      rect = padClientRect_(getBoundingClientRect_(link[0]), 3);
-      rect.l--, rect.t--, rect.r--, rect.b--;
+      const marker = createElement_("span") as InputHintItem["m"]
       setClassName_s(marker, "IH")
-      setBoundary_(marker.style, rect, arr)
+      setBoundary_(marker.style, refineRect(link[0]))
       return {m: marker, d: link[0]};
     })
     count -= (count > 0) as boolean | BOOL as BOOL
@@ -320,9 +331,9 @@ set_contentCommands_([
       }
       sel = (((ind + count) % sel) + sel) % sel
     }
-    setClassName_s(hints[sel].m, S)
     exitInputHint() // avoid masking inputs
     selectOrClick(hints[sel].d, visibleInputs[sel][1]).then((): void => {
+    updateHint(hints[sel])
     ensureBorder(wdZoom_ / dScale_)
     set_inputHint({ b: addElementList<false>(hints, arr), h: hints })
     hints = 0 as never
@@ -341,8 +352,8 @@ set_contentCommands_([
         prevent_(event.e); // in case that selecting is too slow
         void selectOrClick(hints2[sel].d).then((): void => {
           set_isHintingInput(0)
+          updateHint(hints2[sel])
           setClassName_s(hints2[oldSel].m, "IH")
-          setClassName_s(hints2[sel].m, S)
         })
         return HandlerResult.Prevent;
       }
