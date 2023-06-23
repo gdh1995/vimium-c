@@ -103,10 +103,6 @@ var writeFile = function(path, data, writeBom) {
   if (!skip) {
     if (doesMinifyLocalFiles && isJS) {
       data = await getTerser()(data, null, path);
-      if (path.indexOf("extend_click_mv2.") >= 0) {
-        var patched = lib.patchExtendClick(data, true);
-        data = typeof patched === "string" ? patched : patched[0] + patched[1] + patched[2];
-      }
     }
     data = data.replace(/\bimport\b[^'"}]+\}?\s?\bfrom\b\s?['"][.\/\w]+['"]/g, s => {
       return s.includes(".js") ? s : s.slice(0, -1) + ".js" + s.slice(-1)

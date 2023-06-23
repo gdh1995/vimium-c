@@ -30,7 +30,6 @@ export const main_not_ff_mv2 = (Build.BTypes & ~BrowserType.Firefox ? (): void =
     SignalDocOpen = -3,
     SignalDocWrite = -4,
     OffsetForBoxChildren = -8,
-    kSecretAttr = "data-vimium",
 
     kVOnClick = "VimiumCClickable",
     kHook = "VimiumC",
@@ -236,7 +235,7 @@ export const main_not_ff_mv2 = (Build.BTypes & ~BrowserType.Firefox ? (): void =
 
 type FUNC = (this: unknown, ...args: never[]) => unknown;
 const V = /** verifier */ (maybeSecret: string): void | boolean => {
-    I = GlobalConsts.MarkAcrossJSWorlds + BuildStr.RandomClick === maybeSecret
+    I = GlobalConsts.MarkAcrossJSWorlds === maybeSecret
 },
 MayChrome = !!(Build.BTypes & BrowserType.Chrome),
 MayEdge = !!(Build.BTypes & BrowserType.Edge), MayNotEdge = !!(Build.BTypes & ~BrowserType.Edge),
@@ -283,19 +282,18 @@ DocCls = Document[kProto] as Partial<Document> as Pick<Document, "createElement"
 getElementsByTagNameInDoc = DocCls[kByTag],
 _docOpen = DocCls.open, _docWrite = DocCls.write,
 kVOnClick = InnerConsts.kVOnClick, kRand = BuildStr.RandomClick, kEventName2 = kVOnClick + kRand, kFunc = "function",
-StringSplit = !Build.NDEBUG ? kFunc.split : 0 as never, StringSubstr = kFunc.substr,
+StringSplit = !(Build.NDEBUG && Build.Mangle) ? kFunc.split : 0 as never, StringSubstr = kFunc.substr,
 checkIsNotVerifier = (func?: InnerVerifier | unknown): void | 42 => {
-  if (!Build.NDEBUG && !verifierPrefixLen) {
+  if (!(Build.NDEBUG && Build.Mangle) && !verifierPrefixLen) {
     verifierLen = (verifierStrPrefix = call(_toString, V)).length,
     verifierPrefixLen = (verifierStrPrefix = call(StringSplit, verifierStrPrefix, sec)[0]).length
   }
   func && (func as InnerVerifier)(
         call(StringSubstr, call(_toString, func as InnerVerifier)
-          , !Build.NDEBUG ? verifierPrefixLen!
-                - (GlobalConsts.LengthOfMarkAcrossJSWorlds + InnerConsts.kRandStrLenInBuild)
+          , !(Build.NDEBUG && Build.Mangle) ? verifierPrefixLen! - GlobalConsts.LengthOfMarkAcrossJSWorlds
               /** `16` is for {@see #BrowserVer.MinEnsured$Function$$toString$preservesWhitespace} */
               : MayES5 ? 16 : 7
-          , GlobalConsts.LengthOfMarkAcrossJSWorlds + InnerConsts.kRandStrLenInBuild + GlobalConsts.SecretStringLength)
+          , GlobalConsts.LengthOfMarkAcrossJSWorlds + GlobalConsts.SecretStringLength)
   )
 },
 hooks = {
@@ -305,29 +303,30 @@ hooks = {
     const mayStrBeToStr: boolean
         = str !== (myAELStr
                   || (myToStrStr = call(_toString, myToStr),
-                      Build.NDEBUG
+                      Build.NDEBUG && Build.Mangle
                       ? verifierStrPrefix = call(StringSubstr, call(_toString, V), 0
-                        , GlobalConsts.LengthOfMarkAcrossJSWorlds + InnerConsts.kRandStrLenInBuild + (MayES5 ? 16 : 7))
+                        , GlobalConsts.LengthOfMarkAcrossJSWorlds + (MayES5 ? 16 : 7))
                       : (verifierLen = (verifierStrPrefix = call(_toString, V)).length,
                         verifierPrefixLen = (verifierStrPrefix = call(StringSplit, verifierStrPrefix, sec)[0]).length),
                       myAELStr = call(_toString, myAEL)))
-    args[0] === kMk + BuildStr.RandomClick && checkIsNotVerifier(args[1])
+    args[0] === GlobalConsts.MarkAcrossJSWorlds && checkIsNotVerifier(args[1])
     detectDisabled && str === detectDisabled && executeCmd()
     return mayStrBeToStr && str !== myToStrStr
-        ? str.length !== (!Build.NDEBUG ? verifierLen
+        ? str.length !== (!(Build.NDEBUG && Build.Mangle) ? verifierLen
               : GlobalConsts.LengthOfMarkAcrossJSWorlds + GlobalConsts.SecretStringLength + (MayES5 ? 22 : 13))
-          || call(StringSubstr, str, 0, !Build.NDEBUG ? verifierPrefixLen! : GlobalConsts.LengthOfMarkAcrossJSWorlds
-                  + InnerConsts.kRandStrLenInBuild + (MayES5 ? 16 : 7)) !== verifierStrPrefix
+          || call(StringSubstr, str, 0
+              , !(Build.NDEBUG && Build.Mangle) ? verifierPrefixLen! : GlobalConsts.LengthOfMarkAcrossJSWorlds
+                  + (MayES5 ? 16 : 7)) !== verifierStrPrefix
           ? str : call(_toString, noop)
         : a === myToStr || a === myAEL || (I = 0,
           // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-argument
-          mayStrBeToStr ? call(a as any, noop, kMk + kRand, V) : (a as any)(kMk + kRand, noop, 0, V), I)
+          mayStrBeToStr ? call(a as any, noop, kMk, V) : (a as any)(kMk, noop, 0, V), I)
         ? call(_toString, mayStrBeToStr ? _toString : _listen) : str
   },
   addEventListener: function addEventListener(this: EventTarget, type: string
       , listener: EventListenerOrEventListenerObject): void {
     const a = this, args = arguments
-    const ret = type === GlobalConsts.MarkAcrossJSWorlds + BuildStr.RandomClick ? checkIsNotVerifier(args[3])
+    const ret = type === GlobalConsts.MarkAcrossJSWorlds ? checkIsNotVerifier(args[3])
         : apply(_listen, a, args)
     if (type === "click" || type === "mousedown" || type === "dblclick"
         ? listener && a instanceof ElCls && a.localName !== "a" && a !== toRegister[toRegister.length - 1]
@@ -582,7 +581,7 @@ DocCls.write = myDocWrite
         && tmpChromeVer < BrowserVer.MinEnsuredES6ArrowFunction) {
       injected = injected.replace(<RegExpG> (Build.NDEBUG ? /\(([\w,]*\))=>/g : /\(([\w, ]*\))=>/g), "function($1")
     }
-    injected = injected.replace("" + BuildStr.RandomClick, "$&" + secret as `$&${typeof secret}`)
+    injected = injected.replace(outKMK, "$&" + secret as `$&${typeof secret}`)
     vApi.e = execute;
     script.dataset.vimium = secret
     setupEventListener(0, kVOnClick1, onClick);
