@@ -309,8 +309,12 @@ var Tasks = {
     }
     if (!getBuildItem("OnBrowserNativePages")) {
       optional = optional.filter(i => { return !i.includes("chrome:") })
-      const hosts = manifest.host_permissions
-      hosts && (manifest.host_permissions = hosts.filter(i => { return !i.includes("chrome:") }))
+      let hosts = manifest.host_permissions
+      hosts && (hosts = hosts.filter(i => { return !i.includes("chrome:") }),
+          hosts.length ? manifest.host_permissions = hosts : delete manifest.host_permissions)
+      hosts = manifest.optional_host_permissions
+      hosts && (hosts = hosts.filter(i => { return !i.includes("chrome:") }),
+          hosts.length ? manifest.optional_host_permissions = hosts : delete manifest.optional_host_permissions)
     }
     if (!(browser & BrowserType.Chrome) || browser & ~BrowserType.Chrome && !locally || minVer < 35) {
       delete manifest.offline_enabled;

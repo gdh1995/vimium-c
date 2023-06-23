@@ -405,7 +405,7 @@ export const executeScript_ = <Args extends (number | boolean | null)[]>(tabId: 
   if (Build.MV3) {
     const toRun: chrome.scripting.ScriptInjection<Args, void> = { files: func ? void 0 : files!, func, args,
         target: frameId >= 0 ? { tabId, frameIds: [frameId] } : { tabId, allFrames: true }, injectImmediately: true }
-    OnChrome && Build.MinCVer < BrowserVer.MinUsableMV3 && CurCVer_ < BrowserVer.MinUsableMV3
+    OnChrome && Build.MinCVer < BrowserVer.MinInjectImmediatelyInMV3 && CurCVer_ < BrowserVer.MinInjectImmediatelyInMV3
         && delete toRun.injectImmediately
     browser_.scripting.executeScript(toRun, callback || runtimeError_)
     return

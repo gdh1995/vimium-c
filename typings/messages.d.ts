@@ -758,7 +758,7 @@ interface FgReq {
   [kFgReq.syncStatus]: {
     s: [
       isLocked: Frames.Flags.locked | Frames.Flags.lockedAndDisabled,
-      isPassKeysReversed: boolean, passKeys: string[] | null
+      isPassKeysReversed: boolean, passKeys: string[] | "" | null
     ]
   }
 }

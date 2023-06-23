@@ -273,7 +273,8 @@ if (!OnEdge) {
   OnChrome || ignored.push(<RegExpOne> /^chrome:/, "contentSettings")
   OnChrome && IsEdg_ && Build.OnBrowserNativePages && ignored.push(kNTP)
   OnFirefox || ignored.push("cookies")
-  if (Build.MV3 && (!OnChrome || Build.MinCVer >= BrowserVer.MinUsableMV3 || CurCVer_ > BrowserVer.MinUsableMV3 - 1)) {
+  if (Build.MV3 && (!OnChrome || Build.MinCVer >= BrowserVer.MinOptionalHostPermissionInMV3
+      || CurCVer_ > BrowserVer.MinOptionalHostPermissionInMV3 - 1)) {
     optional_permissions = optional_permissions.concat(manifest_.optional_host_permissions)
   }
   optional_permissions = optional_permissions.filter(

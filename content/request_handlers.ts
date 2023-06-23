@@ -3,10 +3,11 @@ import {
   keydownEvents_, set_chromeVer_, set_clickable_, set_fgCache, set_isLocked_, OnChrome, OnFirefox, safeCall, recordLog,
   set_isEnabled_, set_onWndFocus, onWndFocus, timeout_, safer, set_os_, safeObj, set_keydownEvents_, setupEventListener,
   interval_, getTime, vApi, clearInterval_, locHref, set_firefoxVer_, firefoxVer_, os_, isAsContent, isIFrameInAbout_,
+  OnEdge
 } from "../lib/utils"
 import { set_keyIdCorrectionOffset_old_cr_, handler_stack, suppressTail_ } from "../lib/keyboard_utils"
 import {
-  editableTypes_, markFramesetTagUnsafe_old_cr, OnDocLoaded_, BU, docHasFocus_, deepActiveEl_unsafe_,
+  editableTypes_, markFramesetTagUnsafe_old_cr, OnDocLoaded_, BU, docHasFocus_, deepActiveEl_unsafe_, HTMLElementProto,
   hasTag_, querySelector_unsafe_, isHTML_, createElement_, setClassName_s, onReadyState_,
   docEl_unsafe_, scrollIntoView_, CLK, ElementProto_not_ff, isIFrameElement, DAC, removeEl_s, toggleClass_s, getElDesc_
 } from "../lib/dom_utils"
@@ -125,7 +126,7 @@ set_requestHandlers([
         set_passKeys(new Set!(arr))
       }
     } else {
-      set_passKeys(newPassKeys as Exclude<typeof newPassKeys, string>) // ignore `""`
+      set_passKeys(newPassKeys as Exclude<typeof newPassKeys, string> | "")
     }
     if (initing) {
       return;
@@ -138,11 +139,11 @@ set_requestHandlers([
       set_keydownEvents_(keydownEvents_ || safeObj(null))
       old || insertInit();
       (old && !isLocked_) || hookOnWnd(HookAction.Install);
-      onReadyState_()
       // here should not return even if old - a url change may mean the fullscreen mode is changed
     } else {
       contentCommands_[kFgCmd.insertMode]({r: 1})
     }
+    onReadyState_()
     if (ui_box) { adjustUI(+isEnabled_ ? 1 : 2) }
   },
   /* kBgReq.injectorRun: */ injector! && injector.$m,
@@ -287,8 +288,7 @@ set_hookOnWnd((((action: HookAction): void => {
     f("focus", onFocus, t)
     // https://developer.chrome.com/blog/page-lifecycle-api/
     OnChrome && f("freeze", onFreezePort, t)
-    if (OnChrome && Build.MinCVer >= BrowserVer.MinEnsuredPopover
-        || (OnChrome || OnFirefox) && "popover" in HTMLElement.prototype) {
+    if (OnChrome && Build.MinCVer >= BrowserVer.MinEnsuredPopover || !OnEdge && "popover" in HTMLElementProto!) {
       f("toggle", onToggle, t)
     }
   }

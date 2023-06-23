@@ -20,7 +20,7 @@ import { keyIsDown as scroll_keyIsDown, onScrolls, scrollTick } from "./scroller
 import { catchAsyncErrorSilently, evIDC_cr, lastHovered_, set_evIDC_cr, unhover_async } from "./async_dispatcher"
 import { hudHide } from "./hud"
 
-let passKeys: Set<string> | null = null
+let passKeys: Set<string> | "" | null = null
 let isPassKeysReversed = false
 let mapKeyTypes = kMapKey.NONE
 let mappedKeys: SafeDict<string> | null = null

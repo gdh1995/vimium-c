@@ -418,7 +418,7 @@ declare const enum BrowserVer {
   MinWarningOfEscapingHashInBodyOfDataURL = 66,
   BorderRadiusCauseBorderDisappearOnIFrame = 66,
   MinEnsured$Clipboard$and$$writeText = 66, // exist if EXPERIMENTAL on C65
-  MinAbortController = 66, // even if EXPERIMENTAL or LEGACY
+  MinAbortController = 66, // even if EXPERIMENTAL or LEGACY; also AbortSignal
   // @see https://bugs.chromium.org/p/chromium/issues/detail?id=582245
   Min$ContentDocument$NotThrow = 67, // even if EXPERIMENTAL or LEGACY
   MinSlotIsNotDisplayContents = 67,
@@ -579,12 +579,16 @@ declare const enum BrowserVer {
   Min$Event$$path$Deprecated = 101, // even if EXPERIMENTAL or LEGACY
   MinColorSchemeNormalMeansSystemDark = 102, // even if EXPERIMENTAL
   MinEnsured$HTMLElement$$inert = 102, // even if LEGACY; since MinMaybe$HTMLElement$$inert if EXPERIMENTAL
+  Min$beforematch$Event = 102, // even if EXPERIMENTAL or LEGACY
   // if flag `ThrottleDisplayNoneAndVisibilityHiddenCrossOriginIframesEnabled` is enabled (e.g. if EXPERIMENTAL),
   // then there's no latency in a 2nd showing of v1.99.3; otherwise 2nd showing is very slow.
   // I don't know why its name and effects have conflicts.
   // A 1st showing may be delayed randomly since 102, and mostly on C107
   // The usage of ThrottleDisplayNoneAndVisibilityHiddenCrossOriginIframesEnabled in 102-107 is updated during 101
   MinLatencyOnVomnibarShowWithDisplayNone = 102, // even if LEGACY
+  MinInjectImmediatelyInMV3 = 102,
+  MinOptionalHostPermissionInMV3 = 102,
+  MinRegisterContentScriptsWorldInMV3 = 102,
   // omnibox, injectImmediately, registerContentScripts::world, optional_host_permissions
   MinUsableMV3 = 102, // Refer to: https://developer.chrome.com/docs/extensions/whatsnew/
   Min$AbortSignal$$timeout = 103, // even if LEGACY; since 100 if EXPERIMENTAL
