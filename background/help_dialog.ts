@@ -230,8 +230,7 @@ const commandGroups_: {
     readonly [key in
         "pageNavigation" | "vomnibarCommands" | "historyNavigation" | "findCommands" | "tabManipulation" | "misc"
         ]: readonly (NoAliasInCNames<kCName> | 1 | `$${string}`)[]
-} & SafeObject = {
-  __proto__: null as never,
+} = {
   pageNavigation: [
     "LinkHints.activate"
     , "$button=\"\"/right, touch=false/true/\"auto\""

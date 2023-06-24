@@ -11,7 +11,6 @@ import type { OptionalPermissionsOption_ } from "./options_permissions"
 import { kPgReq } from "../background/page_messages"
 import SettingsWithDefaults = SettingsNS.SettingsWithDefaults
 
-Option_.all_ = Object.create(null)
 Option_.syncToFrontend_ = []
 
 Option_.prototype._onCacheUpdated = function<T extends keyof SettingsNS.AutoSyncedNameMap

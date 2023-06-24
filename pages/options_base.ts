@@ -238,8 +238,8 @@ export abstract class Option_<T extends keyof AllowedOptions> {
   onSave_ (): void | Promise<void> { /* empty */ }
   checker_?: Checker<T>;
 
-  static all_: { [N in keyof AllowedOptions]: OptionType<N> } & SafeObject
-  static syncToFrontend_: Array<keyof SettingsNS.AutoSyncedNameMap>;
+  static all_ = {} as { [N in keyof AllowedOptions]: OptionType<N> }
+  static syncToFrontend_: Array<keyof SettingsNS.AutoSyncedNameMap> = null as never
   static onFgCacheUpdated_: (() => void) | null = null
   static suppressPopulate_ = false
 

@@ -531,12 +531,12 @@ tabEngine = {
     }
 
     wndIds.sort((a, b) => a - b)
-    const treeLevels: SafeDict<number> = treeMode ? BgUtils_.safeObj_() : null as never, curWndId = curWndId_
+    const treeLevels = treeMode ? new Map<number, number>() : null as never, curWndId = curWndId_
     if (treeMode) {
       for (const tab of tabs) { // only from start to end, and should not execute nested queries
-        const pid = tab.openerTabId, pLevel = pid && treeLevels[pid];
-        treeLevels[tab.id] = pLevel
-            ? pLevel < GlobalConsts.MaxTabTreeIndent ? pLevel + 1 : GlobalConsts.MaxTabTreeIndent : 1;
+        const pid = tab.openerTabId, pLevel = pid && treeLevels.get(pid)
+        treeLevels.set(tab.id, pLevel
+            ? pLevel < GlobalConsts.MaxTabTreeIndent ? pLevel + 1 : GlobalConsts.MaxTabTreeIndent : 1)
       }
     }
     const timeOffset = !(otherFlags & CompletersNS.QueryFlags.ShowTime) ? 0
@@ -549,7 +549,7 @@ tabEngine = {
             || (otherFlags & CompletersNS.QueryFlags.PreferNewOpened ? monoNow + tabId : -tabId))
     for (let ind = 0; ind < tabs.length; ) {
       const tab = tabs[ind++]
-      const tabId = tab.id, level = treeMode ? treeLevels[tabId]! : 1,
+      const tabId = tab.id, level = treeMode ? treeLevels.get(tabId)! : 1,
       url = getTabUrl(tab),
       visit = recencyForTab_.get(tabId),
       suggestion = new Suggestion("tab", url, tab.text, tab.title,

@@ -17,7 +17,8 @@ type MultiLineSerialized = Dict<SerializationMetaData | string> & {
     [key in keyof SettingsToUpdate]: SerializationMetaData }
 type StorageChange = chrome.storage.StorageChange
 
-const doNotSync: PartialTypedSafeEnum<SettingsToSync> = BgUtils_.safer_({
+const doNotSync: PartialTypedSafeEnum<SettingsToSync> & { readonly [key in SettingsNS.LocalSettingNames]?: 1 } =
+    BgUtils_.safer_({
   // Note(gdh1995): need to keep synced with pages/options_ext.ts#_importSettings
   findModeRawQueryList: 1, innerCSS: 1, keyboard: 1, newTabUrl_f: 1
   , vomnibarPage_f: 1
