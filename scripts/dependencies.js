@@ -118,7 +118,7 @@ function _makeJSONReader() {
   /** @type { {[path: string]: string} } */
   var cached = {};
   /** @param {string} str */
-  function spaceN(str) {
+  function spaceN(str) { // @ts-ignore
     return ' '.repeat(str.length);
   }
   /** @param {string} str */

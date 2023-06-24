@@ -57,30 +57,14 @@
     }
   },
   "commands": {
-    "createTab": {
-      "description": "__MSG_createTab_s__"
-    },
-    "goBack": {
-      "description": "__MSG_goBack_s__"
-    },
-    "goForward": {
-      "description": "__MSG_goForward_s__"
-    },
-    "previousTab": {
-      "description": "__MSG_previousTab_s__"
-    },
-    "quickNext": {
-      "description": "__MSG_quickNext_s__"
-    },
-    "reloadTab": {
-      "description": "__MSG_reloadTab_s__"
-    },
-    "userCustomized1": {
-      "description": "__MSG_userCustomized__ 1"
-    },
-    "userCustomized2": {
-      "description": "__MSG_userCustomized__ 2"
-    }
+    "createTab": { "description": "__MSG_createTab_s__" },
+    "goBack": { "description": "__MSG_goBack_s__" },
+    "goForward": { "description": "__MSG_goForward_s__" },
+    "previousTab": { "description": "__MSG_previousTab_s__" },
+    "quickNext": { "description": "__MSG_quickNext_s__" },
+    "reloadTab": { "description": "__MSG_reloadTab_s__" },
+    "userCustomized1": { "description": "__MSG_userCustomized__ 1" },
+    "userCustomized2": { "description": "__MSG_userCustomized__ 2" }
   },
   "content_scripts": [ {
     "all_frames": true,
@@ -173,19 +157,21 @@
     "bookmarks",
     "clipboardRead",
     "clipboardWrite",
+    "favicon",
     "history",
     "notifications",
+    "offscreen",
+    "scripting",
     "sessions",
     "storage",
+    "tabGroups",
     "tabs",
-    "webNavigation",
-    "favicon",
-    "scripting",
-    "tabGroups"
+    "webNavigation"
   ],
   "permissions[].v2": [
     "<all_urls>",
     "-favicon",
+    "-offscreen",
     "-scripting",
     "-tabGroups"
   ],
