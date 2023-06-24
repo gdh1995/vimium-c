@@ -397,9 +397,9 @@ set_reqH_([
     str2 = request.s && typeof request.s === "object" ? `[${request.s.length}] ` + request.s.slice(-1)[0] : str2
     Promise.resolve(str2).then((str3): void => {
       set_cPort(port)
+      oriOptions && runNextCmdBy(hasStr ? 1 : 0, oriOptions) ||
       showHUD(decode ? str3.replace(<RegExpG & RegExpSearchable<0>> /%[0-7][\dA-Fa-f]/g, decodeURIComponent)
           : str3, request.u ? kTip.noUrlCopied : kTip.noTextCopied)
-      oriOptions && runNextCmdBy(hasStr ? 1 : 0, oriOptions)
     })
   },
   /** kFgReq.key: */ (request: FgReq[kFgReq.key], port: Port | null): void => {

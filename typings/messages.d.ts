@@ -667,7 +667,7 @@ interface FgReq {
     /** richText */ r: HintsNS.Options["richText"]
   }) & {
     /** sed and keyword */ o?: ParsedOpenPageUrlOptions;
-    /** all command options */ n?: OpenPageUrlOptions & Req.FallbackOptions;
+    /** all command options */ n?: OpenPageUrlOptions & Req.FallbackOptions | null
     /** decode by default */ d?: boolean;
   };
   [kFgReq.key]: {

@@ -15,7 +15,7 @@ import { parseSearchUrl_ } from "./parse_urls"
 import { complainLimits, requireURL_, showHUD, showHUDEx } from "./ports"
 import { trans_ } from "./i18n"
 import {
-  confirm_, overrideCmdOptions, runNextOnTabLoaded, runNextCmd, getRunNextCmdBy, kRunOn, needConfirm_
+  confirm_, overrideCmdOptions, runNextOnTabLoaded, runNextCmd, getRunNextCmdBy, kRunOn, needConfirm_, parseFallbackOptions
 } from "./run_commands"
 import { parseSedOptions_ } from "./clipboard"
 import { newTabIndex, preferLastWnd, openUrlWithActions } from "./open_urls"
@@ -74,8 +74,10 @@ export const copyWindowInfo = (resolve: OnCmdResolved): void | kBgCmd.copyWindow
         && !rawFormat) {
       const s = type === "title" ? tabs[0].title : !type || type === "frame" || type === "url" ? getTabUrl(tabs[0])
           : BgUtils_.safeParseURL_(getTabUrl(tabs[0]))?.[type as Exclude<typeof type, "42">] || ""
-      reqH_[kFgReq.copy](type === "title" ? { s, o: opts2 } : { u: s as "url", o: opts2 }, cPort)
-      resolve(1)
+      const copyReq: FgReq[kFgReq.copy] = type === "title" ? { s } : { u: s as "url" }
+      copyReq.o = opts2
+      copyReq.n = parseFallbackOptions(get_cOptions<C.copyWindowInfo, true>())
+      reqH_[kFgReq.copy](copyReq, cPort)
       return
     }
     const incognito = cPort ? cPort.s.incognito_ : curIncognito_ === IncognitoType.true,

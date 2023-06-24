@@ -49,6 +49,7 @@ const SedActionMap: ReadonlySafeDict<SedAction> = {
   [key in Exclude<keyof typeof SedAction, "NONE"> as NormalizeKeywords<key>]: (typeof SedAction)[key]
 }
 
+const kDirectClipNameRe = <RegExpOne> /^[<>][\w\x80-\ufffd]{1,8}$|^[\w\x80-\ufffd]{1,8}>$/
 let staticSeds_: readonly ClipSubItem[] | null = null, timeoutToClearInnerClipboard_ = 0
 
 const parseSeds_ = (text: string, fixedContexts: Contexts | null): readonly ClipSubItem[] => {
@@ -56,8 +57,8 @@ const parseSeds_ = (text: string, fixedContexts: Contexts | null): readonly Clip
   const sepReCache: Map<string, RegExpOne> = new Map()
   for (let line of text.replace(<RegExpSearchable<0>> /\\(?:\n|\\\n[^\S\n]*)/g, "").split("\n")) {
     line = line.trim()
-    if ((<RegExpOne> /^[<>][\w\x80-\ufffd]{1,8}$|^[\w\x80-\ufffd]{1,8}>$/).test(line)) {
-      line = `s/^//,${line[0] === ">" ? "paste" : "copy"}=${line.endsWith(">") ? line.slice(0, -1) : line.slice(1)}`
+    if (kDirectClipNameRe.test(line)) {
+      line = `s/^//,${line[0] === ">" ? "copy" : "paste"}=${line.endsWith(">") ? line.slice(0, -1) : line.slice(1)}`
     }
     const prefix = (<RegExpOne> /^([\w\x80-\ufffd]{1,8})([^\x00- \w\\\x7f-\uffff])/).exec(line)
     if (!prefix) { continue }
@@ -363,6 +364,9 @@ set_substitute_(((input: string, normalContext: SedContext, mixedSed?: MixedSedO
           else if (actionName === "paste") { text = innerClipboard_.get(actionVal) || "" }
           else if (actionName === "keyword" && exOut) { exOut.keyword_ = actionVal }
           else if (actionName === "act" && exOut) { exOut.actAnyway_ = actionVal !== "false" }
+          else if ((actionName === "sys-clip" || actionName === "sysclip") && exOut) {
+            exOut.noSysClip_ = (<RegExpI> /^-1$|^false$|^non?e?$|null$/i).test(actionName)
+          }
           continue
         }
         if (doesReturn = action === SedAction.return) { break }
@@ -428,7 +432,7 @@ const getTextArea_html = (): HTMLTextAreaElement => {
 }
 
 const format_ = (data: string | any[], join: FgReq[kFgReq.copy]["j"] | undefined, sed: MixedSedOpts | null | undefined
-    , keyword: string | null | undefined): string => {
+    , keyword: string | null | undefined, exOut: InfoOnSed): string => {
   const oriKeyword = keyword
   const createSearchToCopy = (data: string): string => {
     const pattern = searchEngines_.map.get(keyword!)
@@ -436,8 +440,8 @@ const format_ = (data: string | any[], join: FgReq[kFgReq.copy]["j"] | undefined
   }
   if (typeof data !== "string") {
     data = data.map((i): string => {
-      const exOut: InfoOnSed = {}, s = substitute_(i, SedContext.copy, sed, exOut)
-      keyword = exOut.keyword_ ?? oriKeyword
+      const exSubOut: InfoOnSed = {}, s = substitute_(i, SedContext.copy, sed, exSubOut)
+      keyword = exSubOut.keyword_ ?? oriKeyword
       return keyword ? createSearchToCopy(s) : s
     })
     data = typeof join === "string" && join.startsWith("json") ? JSON.stringify(data, null, +join.slice(4) || 2)
@@ -445,7 +449,7 @@ const format_ = (data: string | any[], join: FgReq[kFgReq.copy]["j"] | undefined
         (data.length > 1 && (!join || join === !!join) ? "\n" : "")
     const rules = !sed || typeof sed !== "object" ? sed : sed.r
     if (rules !== false) {
-      data = substitute_(data, SedContext.multiline)
+      data = substitute_(data, SedContext.multiline, null, exOut)
     }
     return data
   }
@@ -458,7 +462,6 @@ const format_ = (data: string | any[], join: FgReq[kFgReq.copy]["j"] | undefined
     data = data.trimRight()
   }
   {
-    const exOut: InfoOnSed = {}
     data = substitute_(data, SedContext.copy, sed, exOut)
     keyword = exOut.keyword_ ?? oriKeyword
     data = keyword ? createSearchToCopy(data) : data
@@ -466,23 +469,30 @@ const format_ = (data: string | any[], join: FgReq[kFgReq.copy]["j"] | undefined
   return data
 }
 
-const reformat_ = (copied: string, sed?: MixedSedOpts | null, exOut?: InfoOnSed): string => {
-  if (copied) {
-  copied = copied.replace(<RegExpG> /\xa0/g, " ")
-    copied = substitute_(copied, SedContext.paste, sed, exOut)
+const reformat_ = (data: string, sed?: MixedSedOpts | null, exOut?: InfoOnSed): string => {
+  if (data) {
+    data = data.replace(<RegExpG> /\xa0/g, " ")
+    data = substitute_(data, SedContext.paste, sed, exOut)
   }
-  return copied
+  return data
 }
 
 let navClipboard: (typeof navigator.clipboard) | undefined
 
-set_copy_(((data, join, sed, keyword): string | Promise<string> => {
+const detectClipSed = (sed: MixedSedOpts | null | undefined, prefix: "<" | ">"): string | null => {
   const singleRule = sed && (typeof sed === "string" ? sed : typeof sed === "object" && (sed.r || sed.k))
-  const clip = singleRule && typeof singleRule === "string" && singleRule[0] === ">" ? singleRule.slice(1) : null
+  const clip = !singleRule || typeof singleRule !== "string" ? null
+      : (singleRule[0] === prefix || singleRule.endsWith(">")) && kDirectClipNameRe.test(singleRule)
+      ? singleRule[0] === prefix ? singleRule.slice(1) : singleRule.slice(0, -1) : null
+  return clip
+}
+
+set_copy_(((data, join, sed, keyword): string | Promise<string> => {
+  const clip = detectClipSed(sed, ">"), exOut: InfoOnSed = {}
   if (clip) { sed = null }
-  data = format_(data, join, sed, keyword)
+  data = format_(data, join, sed, keyword, exOut)
   if (clip) { writeInnerClipboard_(clip, data); return data }
-  if (!data) { return "" }
+  if (!data || exOut.noSysClip_) { return data }
   if (Build.MV3 || OnFirefox && (navClipboard || (navClipboard = navigator.clipboard))) {
     return (Build.MV3 ? runOnTee_(kTeeTask.Copy, data, null)
         : navClipboard!.writeText!(data).catch(blank_)).then(() => data as string)
@@ -499,6 +509,10 @@ set_copy_(((data, join, sed, keyword): string | Promise<string> => {
 }) satisfies typeof copy_)
 
 set_paste_(((sed, newLenLimit?: number, exOut?: InfoOnSed): string | Promise<string | null> => {
+  const clip = detectClipSed(sed, "<")
+  if (clip) {
+    return reformat_(innerClipboard_.get(clip) || "", null, exOut)
+  }
   if (Build.MV3 || OnFirefox && (navClipboard || (navClipboard = navigator.clipboard))) {
     return (Build.MV3 ? runOnTee_(kTeeTask.Paste, null, null)
         : navClipboard!.readText!().catch(() => null)).then(s => typeof s === "string"

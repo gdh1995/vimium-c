@@ -413,4 +413,5 @@ interface MaybeWithWindow { window?: Window; document?: HTMLDocument }
 interface InfoOnSed {
   keyword_?: string | null
   actAnyway_?: boolean | null
+  noSysClip_?: boolean | null
 }

@@ -722,13 +722,15 @@ export const openUrl = (tabs?: [Tab] | []): void => {
     let copied = get_cOptions<C.openUrl, true>().copied
     let copiedName = typeof copied !== "string" ? null : copied.includes("<") ? copied.split("<")[1]
         : copied.includes(">") ? copied.split(">")[0] : null
+    let exOut: InfoOnSed = {}, url: string | null | Promise<string | null>
     if (copiedName) {
-      openCopiedUrl(((copied as string).includes("<") ? (copied as string).split("<")[0]
+      copied = ((copied as string).includes("<") ? (copied as string).split("<")[0]
             : (copied as string).split(">")[1]) as (typeof copied) & string
-          , tabs, innerClipboard_.get(copiedName) || "")
-      return
+      url = innerClipboard_.get(copiedName) || ""
+      url = substitute_(url, SedContext.paste, parseSedOptions_(get_cOptions<C.openUrl, true>()), exOut)
+    } else {
+      url = paste_(parseSedOptions_(get_cOptions<C.openUrl, true>()), 0, exOut)
     }
-    const exOut: InfoOnSed = {}, url = paste_(parseSedOptions_(get_cOptions<C.openUrl, true>()), 0, exOut)
     exOut.keyword_ != null && overrideCmdOptions<C.openUrl>({ keyword: exOut.keyword_ })
     if (url instanceof Promise) {
       void url.then(/*#__NOINLINE__*/ openCopiedUrl.bind(null, copied, tabs))
