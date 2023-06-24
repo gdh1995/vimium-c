@@ -676,7 +676,7 @@ const openCopiedUrl = (copied: KnownOptions<C.openUrl>["copied"]
 
 export const goToNextUrl = (url: string, count: number, abs?: boolean): [found: boolean, newUrl: string] => {
   let matched = false
-  let re = <RegExpSearchable<5>> /\$(?:\{([\da-zA-z]+)(?:[,\/#@](\d*)(?::(\d*)(:-?\d*)?)?(?:[,\/#@]([^}]+))?)?\}|\$)/g
+  let re = <RegExpSearchable<5>> /\$(?:\{([\da-zA-Z_-]+)(?:[,\/#@](\d*)(?::(\d*)(:-?\d*)?)?(?:[,\/#@]([^}]+))?)?\}|\$)/g
   url = url.replace(<RegExpG & typeof re> re, (s, n, min, end, t, exArgs): string => {
     if (s === "$$") { return "$" }
     matched = true
