@@ -5,7 +5,7 @@ import {
 } from "../lib/utils"
 import {
   createElement_, set_createElement_, OnDocLoaded_, runJS_, rAF_, removeEl_s, dispatchEvent_, HTMLElementProto,
-  parentNode_unsafe_s, onReadyState_, getEventPath, appendNode_s, htmlTag_
+  parentNode_unsafe_s, onReadyState_, getEventPath, appendNode_s, htmlTag_, setOrRemoveAttr_s, attr_s
 } from "../lib/dom_utils"
 import { HookAction, hookOnWnd, safeDestroy, setupBackupTimer_cr } from "./port"
 import { coreHints, doesWantToReloadLinkHints, hintOptions, reinitLinkHintsIn } from "./link_hints"
@@ -30,6 +30,7 @@ export const ec_main_not_ff = (Build.BTypes & ~BrowserType.Firefox ? (): void =>
     SignalDocOpen = -3,
     SignalDocWrite = -4,
     OffsetForBoxChildren = -8,
+    kSecretAttr = "data-vimium",
 
     kVOnClick = "VimiumCClickable",
     kHook = "VimiumC",
@@ -59,6 +60,7 @@ export const ec_main_not_ff = (Build.BTypes & ~BrowserType.Firefox ? (): void =>
 
   const kInjectManually = !Build.MV3 || (!!(Build.BTypes & ~BrowserType.ChromeOrFirefox) && !OnChrome)
       || Build.MinCVer < BrowserVer.MinRegisterContentScriptsWorldInMV3 && !("onbeforematch" in HTMLElementProto!)
+  const kSA = InnerConsts.kSecretAttr
   const kVOnClick1 = InnerConsts.kVOnClick
     , outKMK = GlobalConsts.MarkAcrossJSWorlds
     , appInfo = OnChrome
@@ -96,11 +98,11 @@ export const ec_main_not_ff = (Build.BTypes & ~BrowserType.Firefox ? (): void =>
     Stop_(event2)
     if (!box) {
       if (!kInjectManually && readyState_ > "l" && target && htmlTag_<1>(target)) {
-        if (target.dataset.vimium === "" + BuildStr.RandomClick) {
+        if (attr_s(target, kSA) === "" + BuildStr.RandomClick) {
           box = target satisfies SafeHTMLElement as HTMLDivElement
           readyTimeout = timeout_(initOnDocReady, InnerConsts.DelayToWaitDomReady)
           OnDocLoaded_(initOnDocReady)
-          target.dataset.vimium = ""
+          setOrRemoveAttr_s(target, kSA, "")
         } else {
           execute(kContentCmd.Destroy)
         }
@@ -169,9 +171,13 @@ export const ec_main_not_ff = (Build.BTypes & ~BrowserType.Firefox ? (): void =>
     reHint && reinitLinkHintsIn(reHint)
   }
   const dispatchCmd = (cmd: SecondLevelContentCmds): void => {
-    box && dispatchEvent_(box, new (CustomEvent as CustomEventCls)(InnerConsts.kCmd, { detail:
-      (((kInjectManually ? +secret : BuildStr.RandomClick) << kContentCmd.MaskedBitNumber) | cmd) as CommandEventDetail
-    }));
+    const msg = (((kInjectManually ? +secret : BuildStr.RandomClick) << kContentCmd.MaskedBitNumber) | cmd)
+    if (box) {
+      // Not use CustomEvent.detail, because it's a getter property since BrowserVer.Min$CustomEvent$$detail$getter
+      setOrRemoveAttr_s(box, kSA, "" + msg)
+      dispatchEvent_(box, new Event(InnerConsts.kCmd))
+      setOrRemoveAttr_s(box, kSA, "")
+    }
   }
   const execute = (cmd: ValidContentCommands): void => {
     if (cmd < kContentCmd._minSuppressClickable) {
@@ -279,7 +285,9 @@ MayEdge = !!(Build.BTypes & BrowserType.Edge), MayNotEdge = !!(Build.BTypes & ~B
 MayES5 = !!(Build.BTypes & BrowserType.Chrome) && Build.MinCVer < BrowserVer.MinTestedES6Environment,
 EnsuredGetRootNode = !(Build.BTypes & BrowserType.Edge)
     && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.Min$Node$$getRootNode),
+MayNoSetProto = !!(Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$Object$$setPrototypeOf),
 doc0 = document,
+SetProp = MayNoSetProto ? null : Object.setPrototypeOf,
 kAEL = "addEventListener", kToS = "toString", kProto = "prototype", kByTag = "getElementsByTagName",
 ETP = EventTarget[kProto], _listen = ETP[kAEL],
 toRegister: Element[] = [],
@@ -291,11 +299,10 @@ apply = !(Build.BTypes & BrowserType.Chrome)
     : _call.bind(_call.apply as any) as never,
 // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 call = _call.bind(_call as any) as <T, A extends any[], R>(func: (this: T, ...a: A) => R, thisArg: T, ...args: A) => R,
-dispatch = _call.bind<(this: (this: EventTarget, ev: Event) => boolean
-    , self: EventTarget, evt: Event) => boolean>(ETP.dispatchEvent),
+_dispatch = ETP.dispatchEvent,
 ElCls = Element, ElProto = ElCls[kProto],
 Append = !MayChrome || Build.MinCVer >= BrowserVer.MinEnsured$ParentNode$$appendAndPrepend
-    ? ElProto.append! : ElProto.appendChild,
+    ? ElProto.append! : ElProto.appendChild, GetAttr = ElProto.getAttribute,
 HasAttr = ElProto.hasAttribute, Remove = ElProto.remove,
 getElementsByTagNameInEP = ElProto[kByTag],
 nodeIndexList: number[] = [], Slice = (nodeIndexList as unknown[] as Element[]).slice,
@@ -317,7 +324,7 @@ DocCls = Document[kProto] as Partial<Document> as Pick<Document, "createElement"
       open (): void, write (markup: string): void },
 getElementsByTagNameInDoc = DocCls[kByTag],
 _docOpen = DocCls.open, _docWrite = DocCls.write,
-kVOnClick = InnerConsts.kVOnClick, kRand = BuildStr.RandomClick, kEventName2 = kVOnClick + kRand, kFn = "function",
+kOC = InnerConsts.kVOnClick, kRC = BuildStr.RandomClick, kEventName2 = kOC + kRC, kFn = "function",
 StringSplit = !(Build.NDEBUG && Build.Mangle) ? "".split : 0 as never, StringSubstr = kEventName2.substr,
 checkIsNotVerifier = (func?: InnerVerifier | unknown): void | 42 => {
   if (!(Build.NDEBUG && Build.Mangle) && !verifierPrefixLen) {
@@ -392,6 +399,7 @@ verifierStrPrefix: string | undefined, verifierPrefixLen: number | undefined, ve
 getRootNode = (EnsuredGetRootNode ? _call.bind(ElProto.getRootNode!) : ElProto.getRootNode) as never as {
   (self: Node, options?: { composed?: boolean }): Node } | undefined,
 contains = EnsuredGetRootNode || getRootNode ? null : ElProto.contains.bind(doc0), // in fact, it is Node::contains
+kGetComposedRoot = { __proto__: null, composed: !0 },
 // here `setTimeout` is normal and will not use TimerType.fake
 setTimeout_ = setTimeout as SafeSetTimeout,
 scriptChildren: HTMLElement["children"] | ((index: number) => Element | null) = root.children,
@@ -417,6 +425,12 @@ const next: (_unused?: unknown) => void = (): void => {
   unsafeDispatchCounter = 0
   apply(forEach, apply(splice, toRegister, [start, len - start]), [prepareRegister])
   doRegister(0);
+}
+const safeDispatch_ = <Cls extends CustomEventCls | DelegateEventCls> (
+    cls: Cls, data: Cls extends new (type: infer _, init: infer B) => any ? B & { __proto__?: null } : never,
+    target?: Element): void => {
+  apply(_dispatch, target || root, [new cls(kOC, MayNoSetProto ? data as object : SetProp!(data as object, null)
+  )])
 }
 const prepareRegister = (element: Element): void => {
   if (EnsuredGetRootNode || getRootNode ? getRootNode!(element) === doc0 : contains!(element)) {
@@ -475,17 +489,18 @@ const prepareRegister = (element: Element): void => {
     if (MayNotEdge && (tempParent = (parent as TypeToAssert<DocumentFragment, ShadowRoot, "host">).host)) {
       parent = (EnsuredGetRootNode || getRootNode)
           && (tempParent as NonNullable<ShadowRoot["host"]>).shadowRoot // an open shadow tree
-          && getRootNode!(element, {composed: !0})
+          && getRootNode!(element, kGetComposedRoot)
       if (parent && (parent === doc0 || (<NodeToElement> parent).nodeType === kNode.ELEMENT_NODE)
           && typeof (s = element.tagName) === "string") {
         parent !== doc0 && parent !== root && call(Append, root, parent);
         unsafeDispatchCounter++;
-        dispatch(element, new CECls(kVOnClick, {
-            detail: +sec % InnerConsts.kModToExposeSecret + s, composed: !0 }))
+        safeDispatch_(CECls, MayNoSetProto
+            ? { detail: +sec % InnerConsts.kModToExposeSecret + s, composed: !0, __proto__: null }
+            : { detail: +sec % InnerConsts.kModToExposeSecret + s, composed: !0 }, element)
       }
     } else {
       unsafeDispatchCounter++;
-      dispatch(root, new DECls(kVOnClick, {relatedTarget: element}));
+      safeDispatch_(DECls, MayNoSetProto ? { relatedTarget: element, __proto__: null } : { relatedTarget: element })
     }
   } else {
       pushToRegister(element)
@@ -499,7 +514,8 @@ const prepareRegister = (element: Element): void => {
 const doRegister: (fromAttrs: BOOL, _unused?: number) => void = (fromAttrs: BOOL): void => {
   if (nodeIndexList.length) {
     unsafeDispatchCounter++
-    dispatch(root, new CECls(kVOnClick, { detail: [nodeIndexList, fromAttrs] }))
+    safeDispatch_(CECls, MayNoSetProto
+        ? { detail: [nodeIndexList, fromAttrs], __proto__: null } : { detail: [nodeIndexList, fromAttrs] })
     nodeIndexList.length = 0
   }
   allNodesInDocument = allNodesForDetached = null
@@ -519,7 +535,7 @@ const safeReRegister = (element: Element, doc1: Document): void => {
   }
 }
 const executeCmd = (eventOrDestroy?: Event): void => {
-  const detail: CommandEventDetail = eventOrDestroy && (eventOrDestroy as CustomEvent).detail,
+  const detail = eventOrDestroy && root && +call(GetAttr, root, InnerConsts.kSecretAttr)! as CommandEventDetail | 0,
   cmd: SecondLevelContentCmds | kContentCmd._fake = detail
       ? (detail >> kContentCmd.MaskedBitNumber) === +sec
         ? detail & ((1 << kContentCmd.MaskedBitNumber) - 1) : kContentCmd._fake
@@ -527,7 +543,7 @@ const executeCmd = (eventOrDestroy?: Event): void => {
   // always stopProp even if the secret does not match, so that an attacker can not detect secret by enumerating numbers
   detail && call(StopProp, eventOrDestroy!);
   if (cmd < kContentCmd._minSuppressClickable) {
-    if (cmd && root) {
+    if (cmd) {
       cmd > kContentCmd.ReportKnownAtOnce_not_ff - 1
           ? next(clearTimeout1(timer)) // lgtm [js/superfluous-trailing-arguments]
           : /*#__NOINLINE__*/ collectOnclickElements(cmd)
@@ -560,9 +576,10 @@ const docOpenHook = (isWrite: BOOL, self: unknown, args: IArguments): void => {
     if (Build.NDEBUG) {
       root && doRegister(0, pushInDocument(InnerConsts.SignalDocOpen)) // lgtm [js/superfluous-trailing-arguments]
     } else if (root) {
-      dispatch(root, new CECls(kVOnClick, { detail: [
-        [isWrite ? InnerConsts.SignalDocWrite : InnerConsts.SignalDocOpen as number]
-      , 0, oriHref] }))
+      safeDispatch_(CECls, MayNoSetProto
+          ? { detail: [ [isWrite ? InnerConsts.SignalDocWrite : InnerConsts.SignalDocOpen as number] , 0, oriHref],
+              __proto__: null }
+          : { detail: [ [isWrite ? InnerConsts.SignalDocWrite : InnerConsts.SignalDocOpen as number] , 0, oriHref] })
     }
   }
   return ret
@@ -585,7 +602,7 @@ if (MayEdge) {
 }
 // only the below can affect outsides
 call(Remove, root)
-call(_listen, root, kMk + kRand, (): void => {
+call(_listen, root, kMk + kRC, (): void => {
   // note: `HTMLCollection::operator []` can not be overridden by `Object.defineProperty` on C32/83
   root = (MayEdge ? (scriptChildren as Extract<typeof scriptChildren, Function>)(0)
       : (scriptChildren as Exclude<typeof scriptChildren, Function>)[0]) as HTMLDivElement

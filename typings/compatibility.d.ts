@@ -143,7 +143,8 @@ declare const enum BrowserVer {
   MinTabAudible = 45,
   // https://www.chromestatus.com/features/5697181675683840
   MinNoMousePositionUpdatesWhenScrolling = 45, // replaced by MinRuntimeFlag$UpdateHoverAtBeginFrame
-  // the 3 below are even if EXPERIMENTAL or LEGACY
+  // the 4 below are even if EXPERIMENTAL or LEGACY
+  Min$CustomEvent$$detail$getter = 45,
   Min$Array$$find$$findIndex = 45,
   MinAutoDecodeJSURL = 46,
   Min$Event$$IsTrusted = 46,

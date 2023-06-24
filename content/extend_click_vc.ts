@@ -11,6 +11,7 @@ Build.MV3 && Build.BTypes & BrowserType.Chrome && (function VC(this: void): void
     SignalDocOpen = -3,
     SignalDocWrite = -4,
     OffsetForBoxChildren = -8,
+    kSecretAttr = "data-vimium",
 
     kVOnClick = "VimiumCClickable",
     kHook = "VimiumC",
@@ -39,7 +40,7 @@ type FUNC = (this: unknown, ...args: never[]) => unknown;
 const V = /** verifier */ (maybeSecret: string): void | boolean => {
     I = GlobalConsts.MarkAcrossJSWorlds + BuildStr.RandomClick === maybeSecret
 },
-doc0 = document,
+doc0 = document, SetProp = Object.setPrototypeOf as <T extends object>(object: T, proto: null) => T,
 kAEL = "addEventListener", kToS = "toString", kProto = "prototype", kByTag = "getElementsByTagName",
 ETP = EventTarget[kProto], _listen = ETP[kAEL],
 toRegister: Element[] = [],
@@ -48,10 +49,8 @@ apply = Reflect!.apply as <T, A extends any[], R>(func: (this: T, ...a: A) => R,
 // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 call = _call.bind(_call as any) as <T, A extends any[], R>(func: (this: T, ...a: A) => R, thisArg: T, ...args: A) => R,
 _dispatch = ETP.dispatchEvent,
-dispatch = _call.bind<(this: (this: EventTarget, ev: Event) => boolean
-    , self: EventTarget, evt: Event) => boolean>(_dispatch),
 ElCls = Element, ElProto = ElCls[kProto],
-Append = ElProto.append!,
+Append = ElProto.append!, GetAttr = ElProto.getAttribute,
 HasAttr = ElProto.hasAttribute, Remove = ElProto.remove,
 getElementsByTagNameInEP = ElProto[kByTag],
 nodeIndexList: number[] = [], Slice = (nodeIndexList as unknown[] as Element[]).slice,
@@ -67,7 +66,7 @@ DocCls = Document[kProto] as Partial<Document> as Pick<Document, "createElement"
       open (): void, write (markup: string): void },
 getElementsByTagNameInDoc = DocCls[kByTag],
 _docOpen = DocCls.open, _docWrite = DocCls.write,
-kVOnClick = InnerConsts.kVOnClick, kRC = "" + BuildStr.RandomClick, kEventName2 = kVOnClick + kRC,
+kOC = InnerConsts.kVOnClick, kRC = "" + BuildStr.RandomClick, kEventName2 = kOC + kRC,
 StringSplit = !(Build.NDEBUG && Build.Mangle) ? "".split : 0 as never, StringSubstr = kEventName2.substr,
 checkIsNotVerifier = (func?: InnerVerifier | unknown): void | 42 => {
   if (!(Build.NDEBUG && Build.Mangle) && !verifierPrefixLen) {
@@ -134,6 +133,7 @@ verifierStrPrefix: string | undefined, verifierPrefixLen: number | undefined, ve
 /** verifierIsLastMatched */ I: BOOL | boolean | undefined,
 getRootNode = (_call.bind(ElProto.getRootNode!)) as never as {
   (self: Node, options?: { composed?: boolean }): Node },
+kGetComposedRoot = SetProp({ composed: !0 }, null),
 // here `setTimeout` is normal and will not use TimerType.fake
 setTimeout_ = setTimeout as SafeSetTimeout,
 unsafeDispatchCounter = 0,
@@ -155,6 +155,10 @@ const next: (_unused?: unknown) => void = (): void => {
   unsafeDispatchCounter = 0
   apply(forEach, apply(splice, toRegister, [start, len - start]), [prepareRegister])
   doRegister(0);
+}
+const safeDispatch_ = <Cls extends CustomEventCls | DelegateEventCls> (
+    cls: Cls, data: Cls extends new (type: infer _, init: infer B) => any ? B : never, target?: Element): void => {
+  apply(_dispatch, target || root, [new cls(kOC, SetProp(data as object, null))])
 }
 const prepareRegister = (element: Element): void => {
   if (getRootNode(element) === doc0) {
@@ -193,17 +197,16 @@ const prepareRegister = (element: Element): void => {
   else if (unsafeDispatchCounter < InnerConsts.MaxUnsafeEventsInOneTick - 2) {
     if (tempParent = (parent as TypeToAssert<DocumentFragment, ShadowRoot, "host">).host) {
       parent = (tempParent as NonNullable<ShadowRoot["host"]>).shadowRoot // an open shadow tree
-          && getRootNode(element, {composed: !0})
+          && getRootNode(element, kGetComposedRoot)
       if (parent && (parent === doc0 || (<NodeToElement> parent).nodeType === kNode.ELEMENT_NODE)
           && typeof (s = element.tagName) === "string") {
         parent !== doc0 && parent !== root && call(Append, root, parent);
         unsafeDispatchCounter++;
-        dispatch(element, new CECls(kVOnClick, {
-            detail: BuildStr.RandomClick % InnerConsts.kModToExposeSecret + s, composed: !0 }))
+        safeDispatch_(CECls, {detail: BuildStr.RandomClick % InnerConsts.kModToExposeSecret + s, composed: !0}, element)
       }
     } else {
       unsafeDispatchCounter++;
-      dispatch(root, new DECls(kVOnClick, {relatedTarget: element}));
+      safeDispatch_(DECls, { relatedTarget: element })
     }
   } else {
       pushToRegister(element)
@@ -217,7 +220,7 @@ const prepareRegister = (element: Element): void => {
 const doRegister: (fromAttrs: BOOL, _unused?: number) => void = (fromAttrs: BOOL): void => {
   if (nodeIndexList.length) {
     unsafeDispatchCounter++
-    dispatch(root, new CECls(kVOnClick, { detail: [nodeIndexList, fromAttrs] }))
+    safeDispatch_(CECls, { detail: [nodeIndexList, fromAttrs] })
     nodeIndexList.length = 0
   }
   allNodesInDocument = allNodesForDetached = null
@@ -237,7 +240,7 @@ const safeReRegister = (element: Element, doc1: Document): void => {
   }
 }
 const executeCmd = (eventOrDestroy?: Event): void => {
-  const detail: CommandEventDetail = eventOrDestroy && (eventOrDestroy as CustomEvent).detail,
+  const detail = eventOrDestroy && root && +call(GetAttr, root, InnerConsts.kSecretAttr)! as CommandEventDetail | 0,
   cmd: SecondLevelContentCmds | kContentCmd._fake = detail
       ? (detail >> kContentCmd.MaskedBitNumber) === BuildStr.RandomClick
         ? detail & ((1 << kContentCmd.MaskedBitNumber) - 1) : kContentCmd._fake
@@ -245,7 +248,7 @@ const executeCmd = (eventOrDestroy?: Event): void => {
   // always stopProp even if the secret does not match, so that an attacker can not detect secret by enumerating numbers
   detail && call(StopProp, eventOrDestroy!);
   if (cmd < kContentCmd._minSuppressClickable) {
-    if (cmd && root) {
+    if (cmd) {
       cmd > kContentCmd.ReportKnownAtOnce_not_ff - 1
           ? next(clearTimeout1(timer)) // lgtm [js/superfluous-trailing-arguments]
           : /*#__NOINLINE__*/ collectOnclickElements(cmd)
@@ -278,9 +281,9 @@ const docOpenHook = (isWrite: BOOL, self: unknown, args: IArguments): void => {
     if (Build.NDEBUG) {
       root && doRegister(0, pushInDocument(InnerConsts.SignalDocOpen)) // lgtm [js/superfluous-trailing-arguments]
     } else if (root) {
-      dispatch(root, new CECls(kVOnClick, { detail: [
+      safeDispatch_(CECls, { detail: [
         [isWrite ? InnerConsts.SignalDocWrite : InnerConsts.SignalDocOpen as number]
-      , 0, oriHref] }))
+      , 0, oriHref] })
     }
   }
   return ret
@@ -290,7 +293,7 @@ const dataset = (root as Element as TypeToAssert<Element, HTMLElement, "dataset"
 if (dataset && (
   dataset.vimium = kRC,
 // only the below can affect outsides
-  _dispatch(new DECls(kVOnClick, {relatedTarget: root})),
+  _dispatch(new DECls(kOC, {relatedTarget: root})),
   !dataset.vimium
 )) {
   root[kAEL](InnerConsts.kCmd, executeCmd, !0)
