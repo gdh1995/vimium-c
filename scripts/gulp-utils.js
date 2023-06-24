@@ -585,9 +585,6 @@ exports.checkJSAndMinifyAll = function (taskOrder, maps, key, exArgs, cb
       tasks.push(name);
       gulp.task(name, function() {
           const newExArgs = {...exArgs, rollup};
-          if (exArgs.aggressiveMangle) {
-            exArgs.aggressiveMangle = false;
-          }
           return exports.minifyJSFiles(map[0], map[1], newExArgs)
       });
     }
@@ -668,9 +665,6 @@ exports.minifyJSFiles = function (path, output, exArgs) {
     if (exArgs.format) { config = { ...config, format: { ...(config.format || {}), ...exArgs.format} } }
     stream = stream.pipe(exports.getGulpTerser(!!(exArgs.aggressiveMangle && config.mangle)
         , minifyDistPasses, gNoComments)(config))
-    if (exArgs.aggressiveMangle) {
-      exArgs.aggressiveMangle = false;
-    }
   }
   if (!isJson) {
     stream = stream.pipe(exports.gulpMap(function (file) {

@@ -42,7 +42,7 @@ VApi!.e = function (cmd): void {
   let jsEvalPromise: Promise<void> | undefined
   const tryEval = (code: string): unknown => {
     const injector1 = VimiumInjector!
-    if (injector1.eval) { const ret = injector1.eval(code); if (ret !== code) { return ret } }
+    if (injector1.eval) { const ret2 = injector1.eval(code); if (ret2 !== code) { return ret2 } }
     jsEvalPromise = jsEvalPromise || new Promise((resolve): void => {
       const script = document.createElement("script")
       script.src = `${location.protocol}//${injector1.host || injector1.id}/lib/simple_eval.js`

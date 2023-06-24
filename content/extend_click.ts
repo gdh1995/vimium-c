@@ -57,8 +57,8 @@ export const ec_main_not_ff = (Build.BTypes & ~BrowserType.Firefox ? (): void =>
         , eventInitDict: Pick<FocusEventInit, "relatedTarget" | "composed">): FocusEvent;
   }
 
-  const kInjectManually = !Build.MV3 || (Build.BTypes & ~BrowserType.ChromeOrFirefox && !OnChrome)
-      || Build.MinCVer < BrowserVer.MinUsableMV3 && "onbeforematch" in HTMLElementProto!
+  const kInjectManually = !Build.MV3 || (!!(Build.BTypes & ~BrowserType.ChromeOrFirefox) && !OnChrome)
+      || Build.MinCVer < BrowserVer.MinRegisterContentScriptsWorldInMV3 && !("onbeforematch" in HTMLElementProto!)
   const kVOnClick1 = InnerConsts.kVOnClick
     , outKMK = GlobalConsts.MarkAcrossJSWorlds
     , appInfo = OnChrome
@@ -297,14 +297,13 @@ ElCls = Element, ElProto = ElCls[kProto],
 Append = !MayChrome || Build.MinCVer >= BrowserVer.MinEnsured$ParentNode$$appendAndPrepend
     ? ElProto.append! : ElProto.appendChild,
 HasAttr = ElProto.hasAttribute, Remove = ElProto.remove,
-StopProp = Event[kProto].stopImmediatePropagation as (this: Event) => void,
 getElementsByTagNameInEP = ElProto[kByTag],
 nodeIndexList: number[] = [], Slice = (nodeIndexList as unknown[] as Element[]).slice,
 IndexOf = _call.bind(nodeIndexList.indexOf) as <T>(list: ArrayLike<T>, item: T) => number,
 forEach = nodeIndexList.forEach as <T> (this: T[], callback: (item: T, index: number) => unknown) => void,
 splice = nodeIndexList.splice as <T> (this: T[], start: number, deleteCount?: number) => T[],
 pushInDocument = nodeIndexList.push.bind(nodeIndexList),
-CECls = CustomEvent as CustomEventCls,
+CECls = CustomEvent as CustomEventCls, StopProp = CECls[kProto].stopImmediatePropagation as (this: Event) => void,
 DECls = FocusEvent as DelegateEventCls,
 FProto = Function[kProto], _toString = FProto[kToS],
 listen = _call.bind<(this: (this: EventTarget,
@@ -318,8 +317,8 @@ DocCls = Document[kProto] as Partial<Document> as Pick<Document, "createElement"
       open (): void, write (markup: string): void },
 getElementsByTagNameInDoc = DocCls[kByTag],
 _docOpen = DocCls.open, _docWrite = DocCls.write,
-kVOnClick = InnerConsts.kVOnClick, kRand = BuildStr.RandomClick, kEventName2 = kVOnClick + kRand, kFunc = "function",
-StringSplit = !(Build.NDEBUG && Build.Mangle) ? kFunc.split : 0 as never, StringSubstr = kFunc.substr,
+kVOnClick = InnerConsts.kVOnClick, kRand = BuildStr.RandomClick, kEventName2 = kVOnClick + kRand, kFn = "function",
+StringSplit = !(Build.NDEBUG && Build.Mangle) ? "".split : 0 as never, StringSubstr = kEventName2.substr,
 checkIsNotVerifier = (func?: InnerVerifier | unknown): void | 42 => {
   if (!(Build.NDEBUG && Build.Mangle) && !verifierPrefixLen) {
     verifierLen = (verifierStrPrefix = call(_toString, V)).length,
@@ -507,7 +506,7 @@ const doRegister: (fromAttrs: BOOL, _unused?: number) => void = (fromAttrs: BOOL
 }
 const safeReRegister = (element: Element, doc1: Document): void => {
   const localAEL = doc1[kAEL], localREL = doc1.removeEventListener;
-  if (typeof localAEL == kFunc && typeof localREL == kFunc && localAEL !== myAEL) {
+  if (typeof localAEL == kFn && typeof localREL == kFn && localAEL !== myAEL) {
     isReRegistering = 1;
     try {
       // Note: here may break in case .addEventListener is an <embed> or overridden by host code
@@ -571,7 +570,7 @@ const docOpenHook = (isWrite: BOOL, self: unknown, args: IArguments): void => {
 const noop = (): 1 => { return 1 }
 
 if (!MayNotEdge
-    || (MayEdge || MayChrome && Build.MinCVer < BrowserVer.Min$queueMicrotask) && typeof queueMicroTask_ !== kFunc) {
+    || (MayEdge || MayChrome && Build.MinCVer < BrowserVer.Min$queueMicrotask) && typeof queueMicroTask_ !== kFn) {
   if (MayChrome && Build.MinCVer <= BrowserVer.Maybe$Promise$onlyHas$$resolved) {
     const promise_ = Promise
     queueMicroTask_ = (promise_.resolve ? promise_.resolve() : promise_.resolved!()) as any

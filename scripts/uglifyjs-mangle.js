@@ -8,7 +8,7 @@ const MIN_LONG_STRING = 20;
 const MIN_STRING_LENGTH_TO_COMPUTE_GAIN = 2;
 const MIN_EXPECTED_STRING_GAIN = 11;
 const ALLOWED_SHORT_NAMES = new Set([
-  ":SP:0", ":BU:0", ":V:1", ":I:1"
+  ":SP:0", ":BU:0", ":V:0", ":I:0", ":V:1", ":I:1"
 ])
 
 // @ts-ignore
@@ -212,7 +212,7 @@ async function myMinify(files, options) {
   /** @type {MinifyOptions["compress"]} */
   const compress = { ...(options && typeof options.compress === "object" && options.compress || {}),
       sequences: false, passes: 1 }
-  let ast = parse(sources.join("\n"), options && options.parse)
+  let ast = parse(sources.join("\n"), options && options.parse || undefined)
   /** @type { (() => void) | null | undefined } */
   let disposeNameMangler;
   const isES6 = options && options.ecma && options.ecma >= 6;
@@ -341,7 +341,7 @@ function replaceLets(ast) {
 function testScopedLets(selfVar, context, varNames) {
   let root = context.find_parent(AST_Lambda)
   if (!root) { return false }
-  /** @type { AST_Node[] } */
+  /** @type { (AST_Node | undefined)[] } */
   let curBlocks = []
   for (let i = 0, may_block; may_block = context.parent(i), may_block !== root; i++) {
     (may_block instanceof AST_Block || may_block instanceof AST_IterationStatement) && curBlocks.push(may_block)
@@ -350,8 +350,8 @@ function testScopedLets(selfVar, context, varNames) {
     throw Error("unsupported AST: unknown type of blocks")
   }
   let sameNameFound = false
-  /** @type { AST_Node } */
-  let sameVar
+  /** @type { AST_Node } */ //@ts-expect-error
+  let sameVar = null
   let sameNames = ""
   root.walk(new TreeWalker(function (node1) {
     if (!sameNameFound && (node1.TYPE === "Let" || node1.TYPE === "Const" || node1.TYPE === "Var")
@@ -419,13 +419,13 @@ function testScopedLets(selfVar, context, varNames) {
 }
 
 /**
- * @param {AST_LambdaClass} func
+ * @param {AST_LambdaClass | undefined} func
  * @returns {Set<string>}
  */
 function collectArgumentNames(func) {
   /** @type { Set<string> } */
   const argNames = new Set()
-  if (func.argnames.length) {
+  if (func && func.argnames.length) {
     /** string */
     for (const arg of func.argnames) {
       switch (arg.TYPE) {
@@ -465,7 +465,7 @@ function* collectVariableAndValues(var1, context) {
       continue
     }
     let hasValue = !!def.value, parent = context.parent(0)
-    if (!hasValue) {
+    if (!hasValue && parent) {
       const type = parent.TYPE
       if (type === "ForOf" || type === "ForIn") {
         // @ts-ignore
@@ -501,9 +501,10 @@ async function hookMangleNamesOnce() {
     // @ts-ignore
     const body = mainClosure && mainClosure.body, expression = body && body.expression,
     isVC = this.name && this.name.name === "VC"
+    const isVC2 = expression && expression.name && expression.name.name === "VC"
     /** @type {Map<string, any>} */
     const astVariables = isVC ? this.variables : expression && expression.variables;
-    if (!astVariables || !isVC && astVariables.size < MIN_COMPLEX_CLOSURE) { return; }
+    if (!astVariables || !(isVC || isVC2) && astVariables.size < MIN_COMPLEX_CLOSURE) { return; }
     /** @type {Map<string, number>} */
     const varCountMap = new Map([...astVariables].map(([name, { references: { length: count } }]) => [name, count]))
     const reversed = ["do", "for", "if", "in", "new", "try", "var", "let"
@@ -533,7 +534,7 @@ async function hookMangleNamesOnce() {
     // const rareVars = astVariableNameList.filter(k => varCountMap.get(k) && varCountMap.get(k) <= 1)
     if (isVC) { return; }
     succeed = true;
-    this.walk(new TreeWalker(function (node) {
+    isVC2 || this.walk(new TreeWalker(function (node) {
       switch (node.TYPE) {
       case "Accessor": case "Function": case "Arrow": case "Defun": case "Lambda":
         // @ts-ignore
@@ -599,7 +600,7 @@ const createMangler = (function (doesTest) {
      */
     const tryAddUnique = (name) => usedMaps.has(name) ? false : (usedMaps.add(name), true)
     return function nextName(originalName) {
-      let shorter = originalName.match(firstCharInWordRe).map(i => i.slice(-1)).join("")
+      let shorter = (originalName.match(firstCharInWordRe) || []).map(i => i.slice(-1)).join("")
       shorter = shorter.length >= width ? shorter : originalName.slice(0, width)
       while (shorter.length < width) { shorter += suffixChars[0] }
       const lower = shorter.toLowerCase(), upper = lower.toUpperCase()

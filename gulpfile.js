@@ -698,6 +698,9 @@ const beforeTerser = exports.beforeTerser = (file) => {
       contents = result
     }
   }
+  if (allPathStr.indexOf("/extend_click_vc.") >= 0) {
+    contents = contents.replace(/\b(let|const)\s/g, "var ")
+  }
   if (locally ? doesMinifyLocalFiles : allPathStr.includes("pages/") || allPathStr.includes("background/")) {
     get()
     if (!known_defs) {
@@ -739,7 +742,9 @@ const postTerser = exports.postTerser = async (terserConfig, file, allPaths) => 
     }
   }
   if (allPathStr.indexOf("extend_click_vc.") >= 0) {
-    logger("%o: %o %s", ":extend_click_vc", (contents || file.contents).length, "bytes in file");
+    get()
+    contents = contents.replace(/ ?\bVC\b ?/, "")
+    logger("%o: %o %s", ":extend_click_vc", contents.length, "bytes in file");
   }
   if (locally) {
     get();

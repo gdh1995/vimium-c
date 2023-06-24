@@ -1,5 +1,5 @@
 "use strict";
-Build.MV3 && Build.BTypes & BrowserType.Chrome && (function (this: void): void {
+Build.MV3 && Build.BTypes & BrowserType.Chrome && (function VC(this: void): void {
   const enum InnerConsts {
     MaxElementsInOneTickDebug = 1024,
     MaxElementsInOneTickRelease = 512,
@@ -53,14 +53,13 @@ dispatch = _call.bind<(this: (this: EventTarget, ev: Event) => boolean
 ElCls = Element, ElProto = ElCls[kProto],
 Append = ElProto.append!,
 HasAttr = ElProto.hasAttribute, Remove = ElProto.remove,
-StopProp = Event[kProto].stopImmediatePropagation as (this: Event) => void,
 getElementsByTagNameInEP = ElProto[kByTag],
 nodeIndexList: number[] = [], Slice = (nodeIndexList as unknown[] as Element[]).slice,
 IndexOf = _call.bind(nodeIndexList.indexOf) as <T>(list: ArrayLike<T>, item: T) => number,
 forEach = nodeIndexList.forEach as <T> (this: T[], callback: (item: T, index: number) => unknown) => void,
 splice = nodeIndexList.splice as <T> (this: T[], start: number, deleteCount?: number) => T[],
 pushInDocument = nodeIndexList.push.bind(nodeIndexList),
-CECls = CustomEvent as CustomEventCls,
+CECls = CustomEvent as CustomEventCls, StopProp = CECls[kProto].stopImmediatePropagation as (this: Event) => void,
 DECls = FocusEvent as DelegateEventCls,
 FProto = Function[kProto], _toString = FProto[kToS],
 clearTimeout1 = clearTimeout,
@@ -68,12 +67,12 @@ DocCls = Document[kProto] as Partial<Document> as Pick<Document, "createElement"
       open (): void, write (markup: string): void },
 getElementsByTagNameInDoc = DocCls[kByTag],
 _docOpen = DocCls.open, _docWrite = DocCls.write,
-kVOnClick = InnerConsts.kVOnClick, kR = "" + BuildStr.RandomClick, kEventName2 = kVOnClick + kR, kFunc = "function",
-StringSplit = !(Build.NDEBUG && Build.Mangle) ? kFunc.split : 0 as never, StringSubstr = kFunc.substr,
+kVOnClick = InnerConsts.kVOnClick, kRC = "" + BuildStr.RandomClick, kEventName2 = kVOnClick + kRC,
+StringSplit = !(Build.NDEBUG && Build.Mangle) ? "".split : 0 as never, StringSubstr = kEventName2.substr,
 checkIsNotVerifier = (func?: InnerVerifier | unknown): void | 42 => {
   if (!(Build.NDEBUG && Build.Mangle) && !verifierPrefixLen) {
     verifierLen = (verifierStrPrefix = call(_toString, V)).length,
-    verifierPrefixLen = (verifierStrPrefix = call(StringSplit, verifierStrPrefix, kR)[0]).length
+    verifierPrefixLen = (verifierStrPrefix = call(StringSplit, verifierStrPrefix, kRC)[0]).length
   }
   func && (func as InnerVerifier)(
         call(StringSubstr, call(_toString, func as InnerVerifier)
@@ -92,7 +91,7 @@ hooks = {
                       ? verifierStrPrefix = call(StringSubstr, call(_toString, V), 0
                           , GlobalConsts.LengthOfMarkAcrossJSWorlds + 7)
                       : (verifierLen = (verifierStrPrefix = call(_toString, V)).length,
-                         verifierPrefixLen = (verifierStrPrefix = call(StringSplit, verifierStrPrefix, kR)[0]).length),
+                         verifierPrefixLen = (verifierStrPrefix = call(StringSplit, verifierStrPrefix, kRC)[0]).length),
                       myAELStr = call(_toString, myAEL)))
     args[0] === GlobalConsts.MarkAcrossJSWorlds && checkIsNotVerifier(args[1])
     return mayStrBeToStr && str !== myToStrStr
@@ -224,8 +223,8 @@ const doRegister: (fromAttrs: BOOL, _unused?: number) => void = (fromAttrs: BOOL
   allNodesInDocument = allNodesForDetached = null
 }
 const safeReRegister = (element: Element, doc1: Document): void => {
-  const localAEL = doc1[kAEL], localREL = doc1.removeEventListener;
-  if (typeof localAEL == kFunc && typeof localREL == kFunc && localAEL !== myAEL) {
+  const localAEL = doc1[kAEL], localREL = doc1.removeEventListener, F = "function"
+  if (typeof localAEL == F && typeof localREL == F && localAEL !== myAEL) {
     isReRegistering = 1;
     try {
       // Note: here may break in case .addEventListener is an <embed> or overridden by host code
@@ -288,11 +287,12 @@ const docOpenHook = (isWrite: BOOL, self: unknown, args: IArguments): void => {
 }
 const noop = (): 1 => { return 1 }
 const dataset = (root as Element as TypeToAssert<Element, HTMLElement, "dataset", "tagName">).dataset
-if (dataset) {
-  dataset.vimium = kR
+if (dataset && (
+  dataset.vimium = kRC,
 // only the below can affect outsides
-  _dispatch(new DECls(kVOnClick, {relatedTarget: root}))
-  if (dataset.vimium) { return }
+  _dispatch(new DECls(kVOnClick, {relatedTarget: root})),
+  !dataset.vimium
+)) {
   root[kAEL](InnerConsts.kCmd, executeCmd, !0)
   timer = toRegister.length > 0 ? setTimeout_(next, InnerConsts.DelayForNext) : 0
 ETP[kAEL] = myAEL;
