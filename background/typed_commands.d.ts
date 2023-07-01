@@ -55,7 +55,8 @@ interface BgCmdOptions {
     mode: "create" | /* all others are treated as "goto"  */ "goto" | "goTo"
     type: null | "tab" | "frame"
     swap: boolean // swap meanings of shiftKey
-    prefix?: true | false
+    prefix: true | false
+    parent: boolean
     storeCount: boolean
     wait?: boolean | number
   } & OpenPageUrlOptions & Req.FallbackOptions
@@ -112,7 +113,7 @@ interface BgCmdOptions {
     urls: string[]; $fmt: 1 | 2
     url: string; url_f: Urls.Url
     copied: boolean | "urls" | "any-urls" | `url<${string}`; /** has pasted once */ $p: 1
-    goNext: boolean | "absolute"; /** for ReuseType.reuse */ prefix: boolean
+    goNext: boolean | "absolute"; /** for ReuseType.reuse */ prefix: boolean; parent: boolean
     /** value for .mask */ value: string
   } & Ensure<OpenPageUrlOptions, keyof OpenPageUrlOptions>
     & /** for .replace, ReuseType.reuse and JS URLs */ Req.FallbackOptions

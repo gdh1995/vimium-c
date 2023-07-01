@@ -112,6 +112,7 @@ declare namespace MarksNS {
     /** scroll */ s?: ScrollInfo;
     /** url */ u: string;
     /** prefix */ p?: boolean | null
+    /** parent */ a?: boolean | null
     /** match a tab to replace */ q?: SimpleParsedOpenUrlOptions
     /** wait a while on a new tab */ w?: number | boolean | null
     /** fallback */ f?: Req.FallbackOptions | null

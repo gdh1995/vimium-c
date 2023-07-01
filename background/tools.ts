@@ -284,7 +284,7 @@ export const Marks_ = { // NOTE: all public members should be static
         : Math.max(0, scroll[0]) | (Math.max(0, scroll[1]) << 13)
     const key = Marks_.getLocationKey_(markName, local ? url : "")
     const val: MarksNS.StoredMarkV2 = local ? sc2
-        : sc2 ? { s: sc2, t: tabId, u: url } : { t: tabId, u: url }
+        : sc2 ? { s: sc2, t: tabId, u: url.slice(0, 8192) } : { t: tabId, u: url.slice(0, 8192) }
     incognito ? (incognitoMarkCache_ || (IncognitoWatcher_.watch_(), set_incognitoMarkCache_(new Map()))).set(key, val)
         : settings_.setInLocal_(key, val)
   },
@@ -296,7 +296,9 @@ export const Marks_ = { // NOTE: all public members should be static
     let parsed: MarksNS.GlobalMarkV1 | MarksNS.ScrollInfo | undefined =
         typeof stored === "number" ? [stored & 0x1fff, stored >>> 13]
         : typeof stored === "string" ? JSON.parse<MarksNS.GlobalMarkV1 | MarksNS.ScrollInfo>(stored)
-        : !stored || stored instanceof Array ? stored : { url: stored.u, tabId: stored.t,
+        : !stored ? stored
+        : stored instanceof Array ? stored.slice(0) as unknown as MarksNS.ScrollInfo
+        : { url: stored.u, tabId: stored.t,
             scroll: typeof stored.s !== "number" ? stored.s || [0, 0] : [stored.s & 0x1fff, stored.s >>> 13]
     }
     if (typeof stored === "string") {
@@ -324,14 +326,15 @@ export const Marks_ = { // NOTE: all public members should be static
       return
     }
     fallback && (fallback.$else = fallback.$then)
-    const tabId = parsed.tabId, wait = exOpts.wait, markInfo: MarksNS.MarkToGo = {
-      n: markName, p: true,
-      q: parseOpenPageUrlOptions(exOpts), s: parsed.scroll || [0, 0], t: tabId, u: parsed.url, f: fallback,
+    const tabId = parsed.tabId, wait = exOpts.wait, rawPrefix = exOpts.prefix, rawUrl = parsed.url,
+    markInfo: MarksNS.MarkToGo = {
+      n: markName, a: !!exOpts.parent && !rawPrefix, p: true,
+      q: parseOpenPageUrlOptions(exOpts), s: parsed.scroll || [0, 0], t: tabId, u: rawUrl, f: fallback,
       w: typeof wait === "number" ? Math.min(Math.max(0, wait || 0), 2e3) : wait
     };
-    markInfo.p = markInfo.s[1] === 0 && markInfo.s[0] === 0 && exOpts.prefix !== !1 && !!BgUtils_.IsURLHttp_(markInfo.u)
-        || exOpts.prefix === true
-    if (request.u === markInfo.u || markInfo.p && markInfo.u.startsWith(request.u)) {
+    markInfo.p = !!rawPrefix || rawPrefix == null && !markInfo.a && markInfo.s[1] === 0 && markInfo.s[0] === 0
+        && !!BgUtils_.IsURLHttp_(rawUrl) && (!rawUrl.includes("#") || request.u.startsWith(rawUrl))
+    if (Marks_.CompareUrls_(request.u, rawUrl, markInfo)) {
       Marks_.goToInContent_(port.s.tabId_, null, port, false, markName, markInfo.s, 0, fallback, lastKey)
     } else if (tabId >= 0 && framesForTab_.has(tabId)) {
       tabsGet(tabId, Marks_.checkTab_.bind(0, markInfo, lastKey))
@@ -339,9 +342,15 @@ export const Marks_ = { // NOTE: all public members should be static
       focusOrLaunch_(markInfo)
     }
   },
+  CompareUrls_ (tabUrl: string, markUrl: string, markInfo: MarksNS.MarkToGo): boolean {
+    const curU = tabUrl.split("#", 1)[0], wantedU = markUrl.split("#", 1)[0]
+    return curU === wantedU
+        || !!markInfo.p && curU.startsWith(wantedU.endsWith("/") || wantedU.includes("?") ? wantedU : wantedU + "/")
+        || !!markInfo.a && wantedU.startsWith(curU.endsWith("/") || curU.includes("?") ? curU : curU + "/")
+  },
   checkTab_ (this: 0, mark: MarksNS.MarkToGo, lastKey: kKeyCode, tab: Tab): void {
-    const url = getTabUrl(tab).split("#", 1)[0]
-    if (url === mark.u || mark.p && mark.u.startsWith(url)) {
+    const url = getTabUrl(tab)
+    if (Marks_.CompareUrls_(url, mark.u, mark)) {
       const useCur = tab.id === curTabId_
       useCur || selectTab(tab.id, selectWndIfNeed)
       Marks_.scrollTab_(mark, tab.id, useCur ? lastKey : kKeyCode.None, true)

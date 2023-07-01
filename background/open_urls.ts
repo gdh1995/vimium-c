@@ -494,7 +494,8 @@ export const openShowPage = (url: string, reuse: ReuseType, options: KnownOption
     OnFirefox && (options.group = false)
     options.incognito = false
     reuse === ReuseType.reuse || reuse === ReuseType.reuseInCurWnd ? replaceOrOpenInNewTab(url, reuse, options.replace
-        , null, { u: prefix, p: options.prefix, q: parseOpenPageUrlOptions(options), f: parseFallbackOptions(options)
+        , null, { u: prefix, a: options.parent, p: options.prefix
+            , q: parseOpenPageUrlOptions(options), f: parseFallbackOptions(options)
         }, _tab ? [_tab] : void 0)
     : openUrlInNewTab([prefix], reuse, options, _tab ? [_tab] : void 0)
   }
@@ -508,7 +509,7 @@ const updateShownPage = (options: Req.FallbackOptions, tab: Tab): void => {
               || CurCVer_ >= BrowserVer.Min$Extension$$GetView$AcceptsTabId)
           && !tab.url.split("#", 2)[1]
       ? browser_.extension.getViews({ tabId: tab.id }) : []
-    if (!OnEdge && views.length > 0
+    if (!Build.MV3 && !OnEdge && views.length > 0
         && views[0].location.href.startsWith(prefix) && views[0].onhashchange as unknown) {
       (views[0].onhashchange as () => void)()
       selectTab(tab.id)
@@ -598,7 +599,8 @@ export const openUrlWithActions = (url: Urls.Url, workType: Urls.WorkType, sed?:
       : checkHarmfulUrl_(url) ? runNextCmdBy(0, options)
       : reuse === ReuseType.reuse || reuse === ReuseType.reuseInCurWnd
         ? replaceOrOpenInNewTab(url, reuse, options.replace, null
-            , { u: url, p: options.prefix, q: parseOpenPageUrlOptions(options), f: parseFallbackOptions(options)}, tabs)
+            , { u: url, a: options.parent, p: options.prefix
+                , q: parseOpenPageUrlOptions(options), f: parseFallbackOptions(options)}, tabs)
       : reuse === ReuseType.current || reuse === ReuseType.frame ? /*#__NOINLINE__*/ safeUpdate(options, reuse, url)
       : options.replace ? replaceOrOpenInNewTab(url, reuse, options.replace, options, null, tabs)
       : tabs ? openUrlInNewTab([url], reuse, options, tabs)
@@ -861,11 +863,11 @@ const onMatchedTabs = (tabs: Tab[]): void => {
 
 const updateMatchedTab = (tabs2: Tab[]): void => {
   const url = request.u
-  request.p && tabs2.sort((a, b) => a.url.length - b.url.length)
+  const prefix = !!request.p, matchDifferent = prefix ? 1 : request.a ? -1 : 0
+  matchDifferent && tabs2.sort((a, b) => (a.url.length - b.url.length) * matchDifferent)
   let tab: Tab = selectFrom(tabs2)
-  if (tab.url.length > tabs2[0].url.length) { tab = tabs2[0]; }
-  if (OnChrome
-      && url.startsWith(CONST_.OptionsPage_) && !framesForTab_.get(tab.id) && !request.s) {
+  if (matchDifferent && (tab.url.length > tabs2[0].url.length) === prefix) { tab = tabs2[0]; }
+  if (OnChrome && url.startsWith(CONST_.OptionsPage_) && !framesForTab_.get(tab.id) && !request.s) {
     /* safe-for-group */ tabsCreate({ url }, callback)
     Tabs_.remove(tab.id)
   } else if (shownHash_ && tab.url.startsWith(CONST_.ShowPage_)) {
@@ -873,8 +875,8 @@ const updateMatchedTab = (tabs2: Tab[]): void => {
     selectWndIfNeed(tab)
   } else {
     const cur = OnChrome && IsEdg_ ? tab.url.replace(<RegExpOne> /^edge:/, "chrome:") : tab.url
-    const wanted = OnChrome && IsEdg_ ? url.replace(<RegExpOne> /^edge:/, "chrome:") : url
-    finallyMatched = cur.startsWith(wanted)
+    const wanted = OnChrome && IsEdg_ ? url.replace(<RegExpOne> /^edge:/i, "chrome:") : url
+    finallyMatched = prefix ? cur.startsWith(wanted) : request.a ? wanted.startsWith(cur) : wanted === cur
     tabsUpdate(tab.id, {
       url: finallyMatched ? undefined : url, active: true
     }, callback)
@@ -912,19 +914,30 @@ const callback = (tab?: Pick<Tab, "id"> | null): void => {
     let toTest2 = toTest, windowType = normalizeWndType(opts2.w) || "normal"
     if (BgUtils_.protocolRe_.test(toTest)) {
       let i = toTest.indexOf("/") + 2, j = toTest.indexOf("/", i + 1), host = toTest.slice(i, j > 0 ? j : void 0)
+      if (request.a) {
+        toTest = toTest.slice(0, j > 0 ? j + 1 : void 0)
+        toTest2 = toTest = toTest.endsWith("/") ? toTest : toTest + "/"
+      }
       if (host && host.includes("@")) { toTest2 = toTest = toTest.slice(0, i) + host.split("@")[1] + toTest.slice(j) }
-      if (OnFirefox && host.includes(":")) { toTest2 = toTest.slice(0, i) + host.split(":")[0] + toTest.slice(j) }
+      if (OnFirefox && host.includes(":") && host[0] !== "[") {
+        toTest2 = toTest.slice(0, i) + host.split(":")[0] + toTest.slice(j)
+      }
     }
-  if ((toTest.startsWith("file:") || toTest.startsWith("ftp")) && !toTest.includes(".", toTest.lastIndexOf("/") + 1)) {
-      allTests.push(toTest2 + (request.p ? "/*" : "/"))
-      OnFirefox && toTest2 !== toTest && allTests.push(toTest + (request.p ? "/*" : "/"))
-  }
-    allTests.push(request.p ? toTest2 + "*" : toTest2)
-    OnFirefox && toTest2 !== toTest && allTests.push(request.p ? toTest + "*" : toTest)
-  // if no .replace, then only search in normal windows by intent
+    const matchDifferent = !!(request.p || request.a)
+    if ((toTest.startsWith("file:") || toTest.startsWith("ftp")) && !toTest.includes(".",toTest.lastIndexOf("/") + 1)) {
+      allTests.push(toTest2 + (matchDifferent ? "/*" : "/"))
+      OnFirefox && toTest2 !== toTest && allTests.push(toTest + (matchDifferent ? "/*" : "/"))
+    }
+    allTests.push(matchDifferent ? toTest2 + "*" : toTest2)
+    OnFirefox && toTest2 !== toTest && allTests.push(matchDifferent ? toTest + "*" : toTest)
+    // if no .replace, then only search in normal windows by intent
     for (let cond of allTests) {
       let matched = await Q_(Tabs_.query, { url: cond, windowType, windowId: wndId })
       if (OnFirefox && matched && matched.length) { matched = matched.filter(i => i.url.startsWith(toTest)) }
+      if (matched && request.a) {
+        OnChrome && IsEdg_ && (toTest = toTest.replace(<RegExpOne> /^chrome:/i, "edge:"))
+        matched = matched.filter(i => toTest.startsWith(i.url.split(<RegExpOne> /[#?]/, 1)[0]))
+      }
       if (matched && matched.length > 0) { return onMatchedTabs(matched) }
     }
     onMatchedTabs([])
