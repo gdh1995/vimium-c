@@ -490,7 +490,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
               : i === kKeyCode.altKey ? kChar.Alt : kChar.INVALID
             : kChar.None
         : i === kKeyCode.menuKey && Build.BTypes & ~BrowserType.Safari
-          && (Build.BTypes & ~BrowserType.Chrome || Build.OS & ~kOS.mac) ? kChar.Menu
+          && (Build.BTypes & ~BrowserType.Chrome || Build.OS & ~(1 << kOS.mac)) ? kChar.Menu
         : ((s = event.key) ? (<RegExpOne> /^F\d/).test(s) : i > kKeyCode.maxNotFn && i < kKeyCode.minNotFn)
         ? ("f" + (s ? s.slice(1) : i - kKeyCode.maxNotFn)) as kChar.F_num
         : s && s.length > 1 && !Vomnibar_._modifierKeys[s] ? s.toLowerCase() as kChar : kChar.None
@@ -1361,7 +1361,6 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         || Build.BTypes & BrowserType.Edge
             && (!(Build.BTypes & ~BrowserType.Edge) || a.browser_ === BrowserType.Edge)) { // is old Chrome or Edge
       const css = document.createElement("style");
-      css.type = "text/css";
       css.textContent = !(Build.BTypes & ~BrowserType.Chrome)
         || Build.BTypes & BrowserType.Chrome && a.browser_ === BrowserType.Chrome
         ? `body::after, #input, .item { border-width: ${
@@ -1422,7 +1421,6 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     if (!st) {
       st = Vomnibar_.styleEl_ = <HTMLStyleElement | null> document.querySelector("#custom")
         || document.createElement("style");
-      st.type = "text/css";
       st.id = "custom";
       Vomnibar_.init_ || document.head!.appendChild(st);
     }
@@ -1467,7 +1465,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       if (hasChar && !isSameChar) { stop = 3 }
       else if (Vomnibar_.last_scrolling_key_ > 0) { stop = event.type === "keyup" ? 2 : 0 }
       else if (stop || (now = event.timeStamp) - Vomnibar_.lastScrolling_ > 40 || now < Vomnibar_.lastScrolling_) {
-        VPort_.postToOwner_({ N: stop ? VomnibarNS.kFReq.scrollEnd : VomnibarNS.kFReq.scrollGoing });
+        VPort_.postToOwner_({ N: stop ? VomnibarNS.kFReq.stopScroll : VomnibarNS.kFReq.scrollGoing })
         Vomnibar_.lastScrolling_ = now;
       }
       if (stop) {

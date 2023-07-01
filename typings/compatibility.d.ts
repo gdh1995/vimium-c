@@ -28,6 +28,7 @@ declare const enum BrowserVer {
   // before 33, `a=activeElement; a.blur(); a.focus()` can not make its iframe grab focus
   MinFocusIframeDirectlyWithout$wnd$$focus = 33, // even if EXPERIMENTAL or LEGACY; need .contentWindow.focus() before
   MinDocument$visibilityState = 33,
+  MinDocument$hasFocus = 34, // even if EXPERIMENTAL or LEGACY; before C34, `hasFocus` is in HTMLDocument
   MinCSSWidthUnit$vw$InCalc = 34, // even if EXPERIMENTAL or LEGACY
   Min$Object$$setPrototypeOf = 34,
   // before C34, 2 images share a size part (the first one's), and different height/width would work as the smaller one

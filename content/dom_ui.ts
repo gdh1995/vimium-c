@@ -234,7 +234,6 @@ export const ensureBorder = (zoom?: number): void => {
 
 export const createStyle = (text: string, css?: HTMLStyleElement | null): HTMLStyleElement => {
     css = css || createElement_("style");
-    css.type = "text/css";
     textContent_s(css, text)
     return css;
 }

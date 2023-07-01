@@ -128,9 +128,10 @@ var Tasks = {
       arr.push("manifest.json");
     }
     var btypes = getBuildItem("BTypes");
-    var has_wordsRe = btypes & ~BrowserType.Firefox && getBuildItem("MinCVer") <
+    const has_wordsRe = btypes & BrowserType.Chrome && getBuildItem("MinCVer") <
                 59 /* min(MinSelExtendForwardOnlySkipWhitespaces, MinEnsuredUnicodePropertyEscapesInRegExp) */
-        || btypes & BrowserType.Firefox && !getBuildItem("NativeWordMoveOnFirefox");
+        || btypes & BrowserType.Firefox && !getBuildItem("NativeWordMoveOnFirefox")
+            && getBuildItem("MinFFVer") < /* FirefoxBrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp */ 78
     if (!has_wordsRe) {
       arr.push("!front/words.txt");
       cleanByPath("front/words.txt", DEST)

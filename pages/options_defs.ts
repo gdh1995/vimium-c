@@ -375,26 +375,20 @@ export class JSONOption_<T extends JSONOptionNames> extends TextOption_<T> {
     }
     return obj
   }
-  static stableJsonify(obj: object): string {
-    if (!obj || typeof obj !== "object") { return JSON.stringify(obj) }
-    const keys = obj instanceof Array ? [] : Object.keys(obj)
-    const collectOtherKeys = (value: object): void => {
-      for (const [subKey, subVal] of Object.entries!(value)) {
-        if (typeof subKey === "string" && keys.lastIndexOf(subKey) < 0) { keys.push(subKey) }
-        if (subVal && typeof subVal === "object") { collectOtherKeys(subVal) }
-      }
+  static stableClone_<T> (src: T): T {
+    if (!src || typeof src !== "object") { return src }
+    if (src instanceof Array) { return src.map(JSONOption_.stableClone_) as T }
+    const dest: Dict<unknown> = {}
+    for (let key of Object.keys(src).sort()) {
+      dest[key] = JSONOption_.stableClone_((src as Dict<unknown>)[key])
     }
-    for (const fieldValue of Object.values(obj)) {
-      if (fieldValue && typeof fieldValue === "object") { collectOtherKeys(fieldValue) }
-    }
-    keys.sort()
-    return JSON.stringify(obj, keys as never as null)
+    return dest as T
   }
   override areEqual_ (a: object, b: object): boolean {
-    return JSON.stringify(a) === JSONOption_.stableJsonify(b)
+    return JSON.stringify(a) === JSON.stringify(JSONOption_.stableClone_(b))
   }
   override normalize_(value: object): SettingsNS.PersistentSettings[T] {
-    return JSON.parse(JSONOption_.stableJsonify(value))
+    return JSONOption_.stableClone_(value) as SettingsNS.PersistentSettings[T]
   }
 }
 

@@ -672,8 +672,11 @@ const ensureLine = (command1: number, s0: string): void => {
           if (BrowserVer.MinSelExtendForwardOnlySkipWhitespaces <= BrowserVer.MinMaybeUnicodePropertyEscapesInRegExp
               && OnChrome) {
             WordsRe_ff_old_cr = tryCreateRegExp(options.w!)!
-          } else {
+          } else if (!(Build.BTypes & ~BrowserType.Firefox)
+              && Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp) {
             // note: here thinks the `/^[^]*[~~~]/` has acceptable performance
+            WordsRe_ff_old_cr = <RegExpU> /^[^]*[\p{L}\p{Nd}_]/u
+          } else {
             WordsRe_ff_old_cr = tryCreateRegExp(options.w! || "^[^]*[\\p{L}\\p{Nd}_]", options.w! ? "" : "u" as never)!
           }
       }

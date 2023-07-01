@@ -91,7 +91,8 @@ export const doesSupportDialog = (): boolean => typeof HTMLDialogElement == OBJE
 export const parentNode_unsafe_s = (el: SafeElement | Text
     ): Element | Document | DocumentFragment | null => el.parentNode as any
 
-export const docHasFocus_ = (): boolean => doc.hasFocus()
+export const docHasFocus_ = (): boolean => OnChrome && Build.MinCVer < BrowserVer.MinDocument$hasFocus
+    && !doc.hasFocus ? true : doc.hasFocus()
 
 //#endregion
 

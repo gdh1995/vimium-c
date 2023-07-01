@@ -435,7 +435,7 @@ delayBinding_(Option_.all_.userDefinedCss.element_, "input", debounce_((): void 
     let styleDebug = doc.querySelector("style.debugged") || doc.querySelector("style#custom")
     if (!styleDebug) {
       /** should keep the same as {@link ../front/vomnibar#Vomnibar_.css_} */
-      (styleDebug = doc.createElement("style")).type = "text/css"
+      styleDebug = doc.createElement("style")
       styleDebug.id = "custom"
     }
     styleDebug.parentNode || (doc.head as HTMLHeadElement).appendChild(styleDebug)

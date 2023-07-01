@@ -206,7 +206,7 @@ const onOmniMessage = function (this: OmniPort, msg: { data: any, target?: Messa
     case VomnibarNS.kFReq.hide: (hide as InnerHide)(1); break
     case VomnibarNS.kFReq.scroll: beginScroll(0, data.k, data.b); break
     case VomnibarNS.kFReq.scrollGoing: // no break;
-    case VomnibarNS.kFReq.scrollEnd: scrollTick((VomnibarNS.kFReq.scrollEnd - data.N) as BOOL); break
+    case VomnibarNS.kFReq.stopScroll: scrollTick((VomnibarNS.kFReq.stopScroll - data.N) as BOOL); break
     case VomnibarNS.kFReq.evalJS: evalIfOK(data); break
     case VomnibarNS.kFReq.broken: focus(); // no break;
     case VomnibarNS.kFReq.unload: isAlive_ && resetWhenBoxExists(data.N === VomnibarNS.kFReq.broken); break

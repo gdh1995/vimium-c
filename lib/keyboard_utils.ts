@@ -42,7 +42,7 @@ const _getKeyName = (event: Pick<KeyboardEvent, "key" | "keyCode" | "location">)
           : kChar.None
         )
       : i === kKeyCode.menuKey && Build.BTypes & ~BrowserType.Safari
-        && (Build.BTypes & ~BrowserType.Chrome || Build.OS & ~kOS.mac) ? kChar.Menu
+        && (Build.BTypes & ~BrowserType.Chrome || Build.OS & ~(1 << kOS.mac)) ? kChar.Menu
       : ((s = event.key) ? (<RegExpOne> /^F\d/).test(s) : i > kKeyCode.maxNotFn && i < kKeyCode.minNotFn)
       ? (s ? Lower(s) : "f" + (i - kKeyCode.maxNotFn)) as kChar.F_num
       : s && s.length > 1 && !_modifierKeys[s] ? Lower(s) as kChar : kChar.None

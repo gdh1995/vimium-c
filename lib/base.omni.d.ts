@@ -19,7 +19,7 @@ const enum kCReq {
 }
 const enum kFReq {
   hide, focus, style, iframeIsAlive,
-  hud, evalJS, scroll, scrollGoing, scrollEnd, broken, unload,
+  hud, evalJS, scroll, scrollGoing, stopScroll, broken, unload,
   _mask = "",
 }
 interface CReq {
@@ -47,7 +47,7 @@ interface FReq {
     u: string;
   };
   [kFReq.broken]: {};
-  [kFReq.scrollEnd]: {};
+  [kFReq.stopScroll]: {}
   [kFReq.scrollGoing]: {};
   [kFReq.unload]: {};
   [kFReq.iframeIsAlive]: { /** hasOptionsPassed */ o: BOOL };

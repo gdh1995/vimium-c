@@ -275,6 +275,7 @@ export const enterVisualMode = (): void | kBgCmd.visualMode => {
   let granularities: CmdOptions[kFgCmd.visualMode]["g"] = null
   if (~sender.flags_ & Frames.Flags.hadVisualMode) {
     if (OnFirefox && !Build.NativeWordMoveOnFirefox
+            && Build.MinFFVer < FirefoxBrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
         || OnChrome && Build.MinCVer < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
             && Build.MinCVer < BrowserVer.MinSelExtendForwardOnlySkipWhitespaces) {
       words = visualWordsRe_

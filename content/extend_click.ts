@@ -629,7 +629,8 @@ DocCls.write = myDocWrite
     }
     if (OnChrome && Build.MinCVer < BrowserVer.MinEnsuredES6ArrowFunction
         && tmpChromeVer < BrowserVer.MinEnsuredES6ArrowFunction) {
-      injected = injected.replace(<RegExpG> (Build.NDEBUG ? /\(([\w,]*\))=>/g : /\(([\w, ]*\))=>/g), "function($1")
+      injected = injected.replace(<RegExpG> (Build.NDEBUG && Build.Mangle ? /\(([\w,]*\))=>/g : /\(([\w, ]*\))=>/g)
+          , "function($1")
     }
     injected = injected.replace(outKMK, "$&" + secret as `$&${typeof secret}`)
     vApi.e = execute;

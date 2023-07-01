@@ -1,7 +1,7 @@
 import {
   framesForTab_, framesForOmni_, OnChrome, CurCVer_, OnEdge, OnFirefox, os_, curTabId_, bgC_,
   set_visualWordsRe_, bgIniting_, Completion_, CONST_, keyFSM_, reqH_, set_bgIniting_, set_hasGroupPermission_ff_,
-  onInit_, set_onInit_, set_cPort, lastKeptTabId_, set_lastKeptTabId_
+  onInit_, set_onInit_, set_cPort, lastKeptTabId_, set_lastKeptTabId_, CurFFVer_
 } from "./store"
 import * as BgUtils_ from "./utils"
 import { runtimeError_, tabsGet, Tabs_, browser_, watchPermissions_ } from "./browser"
@@ -212,8 +212,7 @@ if (Build.MV3 && !OnFirefox && (!OnChrome || Build.MinCVer < BrowserVer.MinCSAcc
   })
 }
 
-  // will run only on <kbd>F5</kbd>, not on runtime.reload
-// @ts-ignore
+// @ts-ignore // will run only on <kbd>F5</kbd>, not on runtime.reload
 Build.MV3 || ((window as Window) // `window.` is necessary on Chrome 32
 .onunload = (): void => {
     for (let port of framesForOmni_) {
@@ -227,20 +226,16 @@ Build.MV3 || ((window as Window) // `window.` is necessary on Chrome 32
 })
 
 if (OnFirefox && !Build.NativeWordMoveOnFirefox
+        && Build.MinFFVer < FirefoxBrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
     || OnChrome && Build.MinCVer < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
       && Build.MinCVer < BrowserVer.MinSelExtendForwardOnlySkipWhitespaces) {
-  ( OnFirefox ? !Build.NativeWordMoveOnFirefox && !BgUtils_.makeRegexp_("\\p{L}", "u", 0)
-    : !OnChrome ? false
-    : Build.MinCVer < BrowserVer.MinSelExtendForwardOnlySkipWhitespaces
-      && Build.MinCVer < BrowserVer.MinMaybeUnicodePropertyEscapesInRegExp
-      && (BrowserVer.MinSelExtendForwardOnlySkipWhitespaces < BrowserVer.MinMaybeUnicodePropertyEscapesInRegExp
-        ? CurCVer_ < (
-          BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp < BrowserVer.MinSelExtendForwardOnlySkipWhitespaces
-          ? BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp : BrowserVer.MinSelExtendForwardOnlySkipWhitespaces)
-        : CurCVer_ < BrowserVer.MinMaybeUnicodePropertyEscapesInRegExp
-          || !BgUtils_.makeRegexp_("\\p{L}", "u", 0))
+  (OnFirefox ? CurFFVer_ < FirefoxBrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
+    : CurCVer_ < BrowserVer.MinSelExtendForwardOnlySkipWhitespaces
+      && (BrowserVer.MinSelExtendForwardOnlySkipWhitespaces <= BrowserVer.MinMaybeUnicodePropertyEscapesInRegExp
+          || CurCVer_ < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
+            && (CurCVer_ < BrowserVer.MinMaybeUnicodePropertyEscapesInRegExp || !BgUtils_.makeRegexp_("\\p{L}", "u",0)))
   ) ? void BgUtils_.fetchFile_("words.txt").then((text): void => {
     set_visualWordsRe_(text.replace(<RegExpG> /[\n\r]/g, "")
-        .replace(<RegExpG & RegExpSearchable<1>> /\\u(\w{4})/g, (_, s1) => String.fromCharCode(+("0x" + s1))))
+        .replace(<RegExpG & RegExpSearchable<1>> /\\u(\w{4})/g, (_, s1) => String.fromCharCode(parseInt(s1, 16))))
   }) : set_visualWordsRe_("")
 }

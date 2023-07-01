@@ -180,16 +180,16 @@ const Token = <T extends keyof TokenValues> (token: T, value: TokenValues[T]): S
 }
 
 const splitTokens = (expression_: string): Token[] => {
+  const escapedStrRe = <RegExpG & RegExpSearchable<1>> /\\(x..|u\{.*?\}|u.{4}|[0-7]{3}|[^])/g
   const onHex = (_: string, hex: string, codePoint: number): string =>
         hex.length < 2 ? (codePoint = "\n0bfnrtv".indexOf(hex),
           codePoint < 0 ? hex : !codePoint ? "" : ' \0\b\f\n\r\t\v'[codePoint])
-        : (codePoint = parseInt(hex[1] === "{" ? hex.slice(2, -1) : hex.slice(1), 16), codePoint < 0x10000)
+        : (codePoint = hex < "8" ? parseInt(hex, 8) : parseInt(hex[1] === "{" ? hex.slice(2, -1) : hex.slice(1), 16),
+           codePoint < 0x10000)
         ? String.fromCharCode(codePoint)
         : Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES6$String$$fromCodePoint
         ? String.fromCharCode(0xD800 + ((codePoint >> 10) - 64 & 0x3FF), 0xDC00 + (codePoint & 0x3FF))
         : String.fromCodePoint!(codePoint)
-  const decode = (_: string, hex: string): string =>
-      String.fromCharCode(parseInt(hex[0] === "{" ? hex.slice(1, -1) : hex, 16))
   const peek = (s: string): boolean => expression_.substr(pos_, s.length) === s
   const expect = (re: RegExp): boolean => {
     const reMatch = (<RegExpOne> re).exec(expression_.slice(pos_))
@@ -217,7 +217,7 @@ const splitTokens = (expression_: string): Token[] => {
       isBegin ? tokens_.push(Token(T.unary, "`"), Token(T.array, "["))
           : (tokens_.push(Token(T.groupEnd, ")"), Token(T.comma, ",")), curlyBraces.pop())
       tokens_.push(Token(T.literal, { v: { c: ((isBegin ? 1 : 0) + (isEnd ? 2 : 0)) as 0 | 1 | 2 | 3,
-        v: last_.slice(0, isEnd ? -1 : -2).replace(<RegExpG & RegExpSearchable<1>> /\\(x..|u\{.*?\}|u.{4}|[^])/g,onHex),
+        v: last_.slice(0, isEnd ? -1 : -2).replace(escapedStrRe, onHex),
       } }), Token(T.comma, ","))
       !isEnd ? (tokens_.push(Token(T.group, "(")), curlyBraces.push(1)) : tokens_.push(Token(T.groupEnd, "]"))
     } else if (expect(
@@ -233,21 +233,20 @@ const splitTokens = (expression_: string): Token[] => {
       tokens_.push(Token(T.semiColon, ";"))
     } else if (expect(/^[1-9][\d_]*n|^0n/)) {
       tokens_.push(Token(T.literal, { v: (DefaultIsolate as any).BigInt(last_.slice(0, -1)) }))
-    } else if (expect(/^0[boBO]\d[\d_]*|^0[xX][\dA-Fa-f][\dA-F_a-f]*/)) {
-      last_ = last_.toLowerCase()
+    } else if (expect(/^0(?:[boBO]\d[\d_]*|[xX][\dA-Fa-f][\dA-F_a-f]*|[0-7]+)/)) {
+      last_ = last_[1] < "8" ? "0o" + last_ : last_.toLowerCase()
       tokens_.push(Token(T.literal, { v: parseInt(last_.slice(2).replace(<RegExpG> /_/g, "")
           , last_[1] === "x" ? 16 : last_[1] === "o" ? 8 : 2) }))
     } else if (expect(/^(?:(?:0|[1-9][\d_]*)(?:\.\d[\d_]*|\.|)|\.\d[\d_]*)(?:[eE][+-]?\d[\d_]*)?/)) {
       tokens_.push(Token(T.literal, { v: parseFloat(last_.replace(<RegExpG> /_/g, "")) }))
     } else if (expect(peek("'") ? /^'([^'\\\n]|\\[^])*'/ : /^"([^"\\\n]|\\[^])*"/)) {
       last_ = last_[0] === '"' ? last_ : `"${last_.slice(1, -1)}"`
-      tokens_.push(Token(T.literal, { v:
-          last_.slice(1, -1).replace(<RegExpG & RegExpSearchable<1>> /\\(x..|u\{.*?\}|u.{4}|[^])/g, onHex) }))
+      tokens_.push(Token(T.literal, { v: last_.slice(1, -1).replace(escapedStrRe, onHex) }))
     } else if (expect(/^(?:[$A-Z_a-z\x80-\uffff]|\\u(?:\{.*?\}|.{4}))(?:[\w$\x80-\uffff]|\\u(?:\{.*?\}|.{4}))*/)) {
       if (spaceExec = (<RegExpOne> /\s/).exec(last_)) {
         pos_ -= last_.length - spaceExec.index; last_ = last_.slice(0, spaceExec.index)
       }
-      last_.includes("\\") && (last_ = last_.replace(<RegExpG & RegExpSearchable<1>> /\\u(\{.*?\}|.{4})/g, decode))
+      last_.includes("\\") && (last_ = last_.replace(<RegExpG & RegExpSearchable<1>> /\\(u\{.*?\}|u.{4})/g, onHex))
       before === T.dot || last_ in kLiterals
       ? tokens_.push(Token(T.literal, { v: before === T.dot ? last_ : kLiterals[last_] }))
       : last_ in kUnsupportedTokens ? throwSyntax("Unsupported identifier: " + last_)
