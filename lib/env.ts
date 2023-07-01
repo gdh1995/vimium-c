@@ -1,5 +1,5 @@
 /* eslint-disable no-var, @typescript-eslint/no-unused-vars */
-if (Build.BTypes & BrowserType.Chrome && Build.BTypes & ~BrowserType.Chrome) {
+if (Build.BTypes & BrowserType.Chrome && Build.BTypes !== BrowserType.Chrome as number) {
   var browser: unknown;
 }
 if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES6WeakMapAndWeakSet) {

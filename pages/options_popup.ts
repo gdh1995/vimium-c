@@ -278,7 +278,7 @@ const initOptionsLink = (_url: string): void => {
 }
 
 const initExclusionRulesTable = (): void => {
-  !(Build.OS & (1 << kOS.mac)) || Build.OS & ~(1 << kOS.mac) && OnChrome && PageOs_ ||
+  !(Build.OS & kBOS.MAC) || Build.OS !== kBOS.MAC as number && OnChrome && PageOs_ ||
   window.addEventListener("keydown", function (event): void {
     if (event.keyCode === kKeyCode.enter && event.metaKey) {
       onEnterKeyUp(event)

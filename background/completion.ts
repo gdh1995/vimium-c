@@ -540,7 +540,8 @@ tabEngine = {
       }
     }
     const timeOffset = !(otherFlags & CompletersNS.QueryFlags.ShowTime) ? 0
-        : (OnChrome || OnFirefox) && Build.OS & (1 << kOS.unixLike) && os_ === kOS.unixLike ? 0
+        : (OnChrome || OnFirefox) && Build.OS & kBOS.LINUX_LIKE
+          && (Build.OS === kBOS.LINUX_LIKE as number || os_ === kOS.linuxLike) ? 0
         : OnChrome && Build.MinCVer < BrowserVer.Min$performance$$timeOrigin
           && CurCVer_ < BrowserVer.Min$performance$$timeOrigin
         ? Date.now() - (monoNow = performance.now()) : performance.timeOrigin!
@@ -951,7 +952,7 @@ knownCs = {
 Completion_.filter_ = (query: string, options: CompletersNS.FullOptions, callback: CompletersNS.Callback): void => {
     query = query.trim()
     mayRawQueryChangeNextTime_ = false
-    if (Build.OS & (1 << kOS.win) && query && os_ === kOS.win
+    if (query && Build.OS & kBOS.WIN && (Build.OS === kBOS.WIN as number || os_ > kOS.MAX_NOT_WIN)
         && ((<RegExpOne> /^[A-Za-z]:[\\/]|^\\\\([\w$%.-]+([\\/]|$))?/).test(query)
             || query.slice(0, 5).toLowerCase() === "file:")) {
       if (":/\\".includes(query[1])) {

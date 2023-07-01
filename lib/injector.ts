@@ -30,7 +30,7 @@ var VimiumInjector: VimiumInjectorTy | undefined | null
 })();
 
 (function (_a0: 1, injectorBuilder: (scriptSrc: string) => VimiumInjectorTy["reload"]): void {
-const MayChrome = !!(Build.BTypes & BrowserType.Chrome), MayNotChrome = !!(Build.BTypes & ~BrowserType.Chrome)
+const MayChrome = !!(Build.BTypes & BrowserType.Chrome), MayNotChrome = Build.BTypes !== BrowserType.Chrome as number
 const MayEdge = !!(Build.BTypes & BrowserType.Edge)
 const mayBrowser_ = MayChrome && MayNotChrome
     && typeof browser === "object" && !("tagName" in (browser as unknown as Element))

@@ -438,7 +438,8 @@ const downloadLink = (url?: string, filename?: string): void => {
 }
 
 const defaultClick = (): void => {
-    const mask = hintMode_ & HintMode.mask_focus_new, isMac = !!(Build.OS & (1 << kOS.mac)) && !os_,
+    const mask = hintMode_ & HintMode.mask_focus_new,
+    isMac = Build.OS === kBOS.MAC as number || !!(Build.OS & kBOS.MAC) && !os_,
     rawBtn = hintOptions.button, isRight = rawBtn === 2,
     dblClick = !!hintOptions.dblclick && !isRight,
     newTabStr = (rawNewtab + "") as ToString<Exclude<HintsNS.Options["newtab"], boolean>>,
@@ -521,7 +522,7 @@ const doPostAction = (): Rect | null => {
   }
   if (event) {
     prevent_(event.e)
-    Build.OS & (1 << kOS.mac) ? consumeKey_mac(event.i, event.e) : (keydownEvents_[event.i] = 1)
+    Build.OS & kBOS.MAC ? consumeKey_mac(event.i, event.e) : (keydownEvents_[event.i] = 1)
   }
   masterOrA.v() // here .keyStatus_ is reset
   set_grabBackFocus(false)

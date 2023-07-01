@@ -630,8 +630,8 @@ let lastVisitTabTime = 0
     }
     const now = performance.now();
     if (now - lastVisitTabTime > GlobalConsts.MinStayTimeToRecordTabRecency) {
-      const
-      monoNow = (OnChrome || OnFirefox) && Build.OS & (1 << kOS.unixLike) && os_ === kOS.unixLike ? Date.now() : now
+      const monoNow = (OnChrome || OnFirefox) && Build.OS & kBOS.LINUX_LIKE
+          && (Build.OS === kBOS.LINUX_LIKE as number || os_ === kOS.linuxLike) ? Date.now() : now
       cache.set(curTabId_, monoNow)
     }
     set_curTabId_(tabId), lastVisitTabTime = now

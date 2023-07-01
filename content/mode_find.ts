@@ -469,7 +469,7 @@ const onLoad2 = (): void => {
             || firefoxVer_ > FirefoxBrowserVer.MinContentEditableInShadowOfBodyRefuseShortcuts - 1
             || Build.MinFFVer < FirefoxBrowserVer.MinContentEditableInShadowSupportIME
             && firefoxVer_ < FirefoxBrowserVer.MinContentEditableInShadowSupportIME
-            || Build.OS & (1 << kOS.unixLike) && os_ === kOS.unixLike)
+            || Build.OS & kBOS.LINUX_LIKE && (Build.OS === kBOS.LINUX_LIKE as number || os_ === kOS.linuxLike))
         ? addElement("div") as HTMLDivElement & SafeHTMLElement : body as HTMLBodyElement & SafeHTMLElement,
     root = OnEdge || OnFirefox
         && (Build.MinFFVer < FirefoxBrowserVer.MinContentEditableInShadowSupportIME
@@ -584,8 +584,8 @@ const onIFrameKeydown = (event: KeyboardEventToPrevent): void => {
         ? isEscape_(key) ? FindAction.ExitForEsc
         : (<RegExpOne> /^[cm]-s-c$/).test(key) ? FindAction.CopySel : FindAction.DoNothing
       : OnFirefox && key[0] === "c" ? FindAction.CtrlDelete
-      : query_ || (n === kKeyCode.deleteKey && (Build.OS & ~(1 << kOS.mac) && Build.OS & (1 << kOS.mac) ? os_
-          : !!(Build.OS & ~(1 << kOS.mac))) || isRepeated_(eventWrapper)) ? FindAction.PassDirectly
+      : query_ || (n === kKeyCode.deleteKey && Build.OS !== kBOS.MAC as number && (!(Build.OS & kBOS.MAC) || os_)
+                    || isRepeated_(eventWrapper)) ? FindAction.PassDirectly
       : FindAction.Exit;
     let h = HandlerResult.Prevent, scroll: number;
     if (i < FindAction.PassDirectly + 1) { h = HandlerResult.Suppress }

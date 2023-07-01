@@ -891,7 +891,7 @@ const upgradeKeyMappings = (value: string): void => {
 
 if (bgIniting_ & BackendHandlersNS.kInitStat.settings) {
   populateKeyMap_(settingsCache_.keyMappings)
-  if (!OnEdge && Build.OS & (1 << kOS.mac) && os_ === kOS.mac) {
+  if (!OnEdge && Build.OS & kBOS.MAC && (Build.OS === kBOS.MAC as number || !os_)) {
     visualKeys_["m-s-c"] = VisualAction.YankRichText
   }
 }

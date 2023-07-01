@@ -3,11 +3,11 @@
 var VApi: VApiTy | undefined, VimiumInjector: VimiumInjectorTy | undefined | null = null; // eslint-disable-line no-var
 
 (Build.NDEBUG || (window.browser || window.chrome || {}).runtime) && (function () {
-  const MayChrome = !!(Build.BTypes & BrowserType.Chrome), MayNotChrome = !!(Build.BTypes & ~BrowserType.Chrome)
+  const MayChrome = !!(Build.BTypes & BrowserType.Chrome), MayNotChrome = Build.BTypes !== BrowserType.Chrome as number
   const mayBrowser_ = MayChrome && MayNotChrome && typeof browser === "object" ? (browser as typeof chrome) : null
   const useBrowser = !MayNotChrome ? false : !MayChrome ? true : !!(mayBrowser_ && mayBrowser_.runtime)
   const browser_ = useBrowser ? browser as never : chrome
-  if (!Build.NDEBUG && Build.BTypes & ~BrowserType.Chrome && useBrowser) { window.chrome = browser_ }
+  if (!Build.NDEBUG && MayNotChrome && useBrowser) { window.chrome = browser_ }
   const OnOther: BrowserType = Build.BTypes && !(Build.BTypes & (Build.BTypes - 1))
       ? Build.BTypes as number
       : Build.BTypes & BrowserType.Chrome
@@ -74,7 +74,8 @@ var VApi: VApiTy | undefined, VimiumInjector: VimiumInjectorTy | undefined | nul
     || !Build.NDEBUG && (window as any).define && (window as any).define.noConflict()
   }
   if (curPath === "blank") {
-    const isPrivAlive = Build.MV3 && Build.BTypes & ~BrowserType.Firefox && location.hash === GlobalConsts.KeepAliveHash
+    const isPrivAlive = Build.MV3 && Build.BTypes !== BrowserType.Firefox as number
+        && location.hash === GlobalConsts.KeepAliveHash
     type Keys = keyof SettingsNS.BaseBackendSettings
     const storage = browser_.storage.local as { get <K extends Keys> (k: K, cb: (r: { [k in K]: any }) => void): void }
     isPrivAlive || storage.get("autoDarkMode", (res): void => {
@@ -85,7 +86,7 @@ var VApi: VApiTy | undefined, VimiumInjector: VimiumInjectorTy | undefined | nul
       }
       return browser_.runtime.lastError
     })
-    if (Build.MV3 && Build.BTypes & ~BrowserType.Firefox && isPrivAlive) {
+    if (Build.MV3 && Build.BTypes !== BrowserType.Firefox as number && isPrivAlive) {
       document.title = browser_.i18n.getMessage("valive") || "Keep Alive"
       console.log("test1", performance.now())
       requestAnimationFrame((): void => {

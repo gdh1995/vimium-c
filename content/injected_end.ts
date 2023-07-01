@@ -22,9 +22,12 @@ VApi!.e = function (cmd): void {
         && browser && (browser as typeof chrome).runtime
         && (browser as typeof chrome).runtime.getURL("").startsWith("moz")
       ? BrowserType.Firefox : BrowserType.Chrome
-  const OnChrome = !(Build.BTypes & ~BrowserType.Chrome) || !!(_OnOther & BrowserType.Chrome)
-  const OnFirefox = !(Build.BTypes & ~BrowserType.Firefox) || !!(_OnOther & BrowserType.Firefox)
-  const OnEdge = !(Build.BTypes & ~BrowserType.Edge) || !!(_OnOther & BrowserType.Edge)
+  const OnChrome = Build.BTypes === BrowserType.Chrome as number
+      || !!(Build.BTypes & BrowserType.Chrome) && _OnOther === BrowserType.Chrome
+  const OnFirefox = Build.BTypes === BrowserType.Firefox as number
+      || !!(Build.BTypes & BrowserType.Firefox) && _OnOther === BrowserType.Firefox
+  const OnEdge = Build.BTypes === BrowserType.Edge as number
+      || !!(Build.BTypes & BrowserType.Edge) && _OnOther === BrowserType.Edge
 
   const thisApi = VApi!
   const injector = VimiumInjector!

@@ -437,8 +437,8 @@ const onKeydown = (event: HandlerNS.Event): HandlerResult => {
       }
       timeout_(reinit, 0)
     } else if (coreHints.h = 0, i < kKeyCode.maxAcsKeys + 1 && i > kKeyCode.minAcsKeys - 1
-          || Build.OS & (1 << kOS.mac) && !os_ && (i > kKeyCode.maxNotMetaKey && i < kKeyCode.minNotMetaKeyOrMenu
-              || OnFirefox && i === kKeyCode.os_ff_mac)
+          || Build.OS & kBOS.MAC && (Build.OS === kBOS.MAC as number || !os_)
+            && (i > kKeyCode.maxNotMetaKey && i < kKeyCode.minNotMetaKeyOrMenu || OnFirefox && i === kKeyCode.os_ff_mac)
         ) {
       OnFirefox && (doesAllowModifierEvents_ff = 1)
       key && keybody !== kChar.Modifier || toggleModesOnModifierKey(event, i)
@@ -630,9 +630,9 @@ export const resetMode = (silent?: BOOL): void => {
     if (lastMode_ !== mode_ && mode_ < HintMode.min_disable_queue) {
       let d = keydownEvents_;
       if (d[kKeyCode.ctrlKey] || d[kKeyCode.metaKey /** aka .osLeft */] || d[kKeyCode.shiftKey] || d[kKeyCode.altKey]
-          || Build.OS & (1 << kOS.mac) && !OnFirefox && d[kKeyCode.osRight_mac /** aka .menuKey */]
-          || Build.OS & ~(1 << kOS.mac) && (OnChrome || OnEdge) && d[kKeyCode.osRight_not_mac]
-          || OnFirefox && Build.OS & (1 << kOS.mac) && d[kKeyCode.os_ff_mac]) {
+          || Build.OS & kBOS.MAC && !OnFirefox && d[kKeyCode.osRight_mac /** aka .menuKey */]
+          || Build.OS !== kBOS.MAC as number && (OnChrome || OnEdge) && d[kKeyCode.osRight_not_mac]
+          || OnFirefox && Build.OS & kBOS.MAC && d[kKeyCode.os_ff_mac]) {
         setMode(lastMode_, silent);
       }
     }

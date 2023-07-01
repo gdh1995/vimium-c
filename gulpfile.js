@@ -274,7 +274,7 @@ var Tasks = {
           manifest[key].splice(1, manifest[key].length - 1)
           if (!mv3) {
             for (const item of manifest[key]) { delete item.match_origin_as_fallback }
-          } else if (!(browser & ~BrowserType.Chrome) && minVer >= /* BrowserVer.MinCSAcceptWorldInManifest */ 111) {
+          } else if (browser === BrowserType.Chrome && minVer >= /* BrowserVer.MinCSAcceptWorldInManifest */ 111) {
             const cs = structuredClone(manifest[key][0])
             cs.js = ["content/extend_click_vc.js"]
             cs.world = "MAIN"
@@ -325,7 +325,7 @@ var Tasks = {
       hosts && (hosts = hosts.filter(i => { return !i.includes("chrome:") }),
           hosts.length ? manifest.optional_host_permissions = hosts : delete manifest.optional_host_permissions)
     }
-    if (!(browser & BrowserType.Chrome) || browser & ~BrowserType.Chrome && !locally || minVer < 35) {
+    if (!(browser & BrowserType.Chrome) || browser !== BrowserType.Chrome && !locally || minVer < 35) {
       delete manifest.offline_enabled;
     }
     if (browser === BrowserType.Chrome) {
@@ -887,7 +887,7 @@ function parseBuildItem(key, newVal) {
 
 function patchExtendClick(source) {
   //@ts-check
-  if (!(getBuildItem("BTypes") & ~BrowserType.Firefox)) { return source; }
+  if (getBuildItem("BTypes") === BrowserType.Firefox) { return source; }
   const patched = _patchExtendClick(source, locally, logger);
   if (typeof patched === "string") { return patched; }
   if (getBuildItem("MinCVer") < /* MinEnsuredES6ArrowFunction */ 49 && getBuildItem("BTypes") & BrowserType.Chrome) {

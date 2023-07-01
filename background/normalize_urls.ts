@@ -429,7 +429,7 @@ const convertFromFilePath = (path: string): string => {
 }
 
 export const decodeFileURL_ = (url: string, rawUrl?: string): string => {
-  if (Build.OS & (1 << kOS.win) && os_ === kOS.win && url.startsWith("file://")) {
+  if (Build.OS & kBOS.WIN && (Build.OS === kBOS.WIN as number || os_ > kOS.MAX_NOT_WIN) && url.startsWith("file://")) {
     const slash = url.indexOf("/", 7)
     if (slash < 0 || slash === url.length - 1) { return slash < 0 ? url + "/" : url }
     const type = slash === 7 ? url.charAt(9) === ":" ? 3 : url.substr(9, 3).toLowerCase() === "%3a" ? 5 : 0 : 0

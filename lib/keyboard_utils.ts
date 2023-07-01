@@ -8,7 +8,7 @@ export { ENT as ENTER, MDF as MODIFIER }
 const keyNames_: readonly kChar[] = [SP, kChar.pageup, kChar.pagedown, kChar.end, kChar.home,
     kChar.left, kChar.up, kChar.right, kChar.down]
 let keyIdCorrectionOffset_old_cr_ = OnChrome && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key
-    ? Build.OS & ~(1 << kOS.mac) ? 185 as const : 300 as const : 0 as never as null
+    ? Build.OS !== kBOS.MAC as number ? 185 as const : 300 as const : 0 as never as null
 const _codeCorrectionMap = ["Semicolon", "Equal", "Comma", "Minus", "Period", "Slash", "Backquote",
     "BracketLeft", "Backslash", "BracketRight", "Quote", "IntlBackslash"]
 const kCrct = OnChrome && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key
@@ -32,8 +32,8 @@ const _getKeyName = (event: Pick<KeyboardEvent, "key" | "keyCode" | "location">)
   return i > kKeyCode.space - 1 && i < kKeyCode.minNotDelete
       ? i < kKeyCode.insert ? keyNames_[i - kKeyCode.space] : i > kKeyCode.insert ? DEL : kChar.insert
       : i < kKeyCode.minNotDelete || i === kKeyCode.metaKey
-        || Build.OS & (1 << kOS.mac) && i === (OnFirefox ? kKeyCode.os_ff_mac : kKeyCode.osRight_mac)
-            && (!(Build.OS & ~(1 << kOS.mac)) || os_ === kOS.mac)
+        || Build.OS & kBOS.MAC && i === (OnFirefox ? kKeyCode.os_ff_mac : kKeyCode.osRight_mac)
+            && (Build.OS === kBOS.MAC as number || !os_)
       ? (i === kKeyCode.backspace ? BSP : i === kKeyCode.esc ? kChar.esc
           : i === kKeyCode.tab ? kChar.tab : i === kKeyCode.enter ? ENT
           : (i < kKeyCode.maxAcsKeys + 1 ? i > kKeyCode.minAcsKeys - 1 : i > kKeyCode.maxNotMetaKey)
@@ -41,8 +41,8 @@ const _getKeyName = (event: Pick<KeyboardEvent, "key" | "keyCode" | "location">)
             && (fgCache.l >> kKeyLayout.MapModifierOffset) === event.location ? MDF
           : kChar.None
         )
-      : i === kKeyCode.menuKey && Build.BTypes & ~BrowserType.Safari
-        && (Build.BTypes & ~BrowserType.Chrome || Build.OS & ~(1 << kOS.mac)) ? kChar.Menu
+      : i === kKeyCode.menuKey && Build.BTypes !== BrowserType.Safari as number
+        && (Build.BTypes !== BrowserType.Chrome as number || Build.OS !== kBOS.MAC as number) ? kChar.Menu
       : ((s = event.key) ? (<RegExpOne> /^F\d/).test(s) : i > kKeyCode.maxNotFn && i < kKeyCode.minNotFn)
       ? (s ? Lower(s) : "f" + (i - kKeyCode.maxNotFn)) as kChar.F_num
       : s && s.length > 1 && !_modifierKeys[s] ? Lower(s) as kChar : kChar.None
@@ -61,7 +61,7 @@ const _getKeyCharUsingKeyIdentifier_old_cr = !OnChrome
           : String.fromCharCode(keyId < kCharCode.minAlphabet || shiftKey ? keyId : keyId + kCharCode.CASE_DELTA);
     } else {
       // here omits a `(...)` after the first `&&`, since there has been `keyId >= kCharCode.minNotAlphabet`
-      return Build.OS & ~(1 << kOS.mac) && keyId > keyIdCorrectionOffset_old_cr_!
+      return Build.OS !== kBOS.MAC as number && keyId > keyIdCorrectionOffset_old_cr_!
           && (keyId -= 186) < 7 || (keyId -= 26) > 6 && keyId < 11
           ? kCrct![keyId + shiftKey * 12]
           : "";
@@ -140,16 +140,16 @@ export const getKeyStat_ = (event: Pick<KeyboardEvent, "altKey" | "ctrlKey" | "m
 export const isRepeated_ = (event: HandlerNS.Event): boolean => {
   const repeat = event.e.repeat
   if (OnChrome ? Build.MinCVer >= BrowserVer.MinCorrect$KeyboardEvent$$Repeat
-      : OnFirefox ? !(Build.OS & (1 << kOS.unixLike)) : true) {
+      : OnFirefox ? !(Build.OS & kBOS.LINUX_LIKE) : true) {
     return repeat
   }
   return repeat || (OnChrome ? chromeVer_ < BrowserVer.MinCorrect$KeyboardEvent$$Repeat
-    : OnFirefox && (!(Build.OS & ~(1 << kOS.unixLike)) || os_ === kOS.unixLike))
+    : OnFirefox && (Build.OS === kBOS.LINUX_LIKE as number || os_ === kOS.linuxLike))
       && !!(keydownEvents_[event.i] && event.i)
 }
 
 export const consumeKey_mac = (keyToConsume: kKeyCode, eventToConsume: KeyboardEvent): void => {
-  if (!(Build.OS & (1 << kOS.mac)) || Build.OS & ~(1 << kOS.mac) && os_ || !eventToConsume.metaKey) {
+  if (!(Build.OS & kBOS.MAC) || Build.OS !== kBOS.MAC as number && os_ || !eventToConsume.metaKey) {
     keydownEvents_[keyToConsume] = 1
   }
 }

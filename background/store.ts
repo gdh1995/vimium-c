@@ -7,14 +7,14 @@ export const OnOther_ = !Build.BTypes || Build.BTypes & (Build.BTypes - 1) ? Bui
     : Build.BTypes & BrowserType.Firefox ? BrowserType.Firefox
     : /* an invalid state */ BrowserType.Unknown
     : Build.BTypes as number as BrowserType
-export const OnChrome: boolean = !(Build.BTypes & ~BrowserType.Chrome)
-    || !!(Build.BTypes & BrowserType.Chrome && OnOther_ & BrowserType.Chrome)
-export const OnFirefox: boolean = !(Build.BTypes & ~BrowserType.Firefox)
-    || !!(Build.BTypes & BrowserType.Firefox && OnOther_ & BrowserType.Firefox)
-export const OnEdge: boolean = !(Build.BTypes & ~BrowserType.Edge)
-    || !!(Build.BTypes & BrowserType.Edge && OnOther_ & BrowserType.Edge)
-export const OnSafari: boolean = !(Build.BTypes & ~BrowserType.Safari)
-    || !!(Build.BTypes & BrowserType.Safari && OnOther_ & BrowserType.Safari)
+export const OnChrome: boolean = Build.BTypes === BrowserType.Chrome as number
+    || !!(Build.BTypes & BrowserType.Chrome) && OnOther_ === BrowserType.Chrome
+export const OnFirefox: boolean = Build.BTypes === BrowserType.Firefox as number
+    || !!(Build.BTypes & BrowserType.Firefox) && OnOther_ === BrowserType.Firefox
+export const OnEdge: boolean = Build.BTypes === BrowserType.Edge as number
+    || !!(Build.BTypes & BrowserType.Edge) && OnOther_ === BrowserType.Edge
+export const OnSafari: boolean = Build.BTypes === BrowserType.Safari as number
+    || !!(Build.BTypes & BrowserType.Safari) && OnOther_ === BrowserType.Safari
 
 const uad = navigator.userAgentData
 const brands = OnChrome && Build.MinCVer >= BrowserVer.MinEnsuredNavigator$userAgentData ? uad!.brands

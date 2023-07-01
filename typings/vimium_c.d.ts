@@ -318,7 +318,7 @@ declare namespace SettingsNS {
     /** browser */ b: ["browser", BrowserType | undefined];
     /** browserVer */ v: ["browserVer", BrowserVer | FirefoxBrowserVer | 0]
     /** browserSecondVersionCode */ V: ["browserVer2nd", number];
-    /** OS */ o: ["OS", kOS.mac | kOS.unixLike | kOS.win];
+    /** OS */ o: ["OS", kOS.mac | kOS.linuxLike | kOS.win]
   }
   type DeclaredConstValues = Readonly<SelectValueType<Pick<ConstItems, "v">>>;
   interface AllConstValues extends Readonly<SelectValueType<ConstItems>> {}
@@ -367,9 +367,10 @@ declare namespace SettingsNS {
   interface VomnibarPayload extends DeclaredVomnibarPayload, AllConstValues {}
 }
 declare const enum kOS {
-  mac = 0, unixLike = 1, win = 2,
+  mac = 0, linuxLike = 1, win = 2,
   MAX_NOT_WIN = 1, UNKNOWN = 9,
 }
+declare const enum kBOS { MAC = 1, LINUX_LIKE = 2, WIN = 4 }
 
 declare const enum HintMode {
     empty = 0, focused = 1, list = 1, newTab = 2,

@@ -208,7 +208,7 @@ export const generateHintText = ((hint: Hint, hintInd: number, allItems: readonl
           ? generateHintText([el2] as {[0]: Hint[0]} as Hint, hintInd, allItems).t : ""
       show = text ? 2 : 0
     }
-    text = text || el.title || (!(Build.BTypes & ~BrowserType.Safari)
+    text = text || el.title || (Build.BTypes === BrowserType.Safari as number
             || !(Build.BTypes & ~(BrowserType.Chrome | BrowserType.Safari))
                 && Build.MinCVer >= BrowserVer.MinEnsuredAriaProperties ? el.ariaLabel : attr_s(el, ALA))
         || ((text = el.className) && closableClasses_.test(text) ? "Close" : "")

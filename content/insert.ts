@@ -160,8 +160,7 @@ export const focusUpper = (key: kKeyCode, force: boolean, event: ToPrevent | 0):
   if (!parEl && (!force || isTop)) { return; }
   event && prevent_(event); // safer
   if (parEl) {
-    Build.OS & (1 << kOS.mac) ? consumeKey_mac(key, event as KeyboardEventToPrevent)
-        : (keydownEvents_[key] = 1)
+    Build.OS & kBOS.MAC ? consumeKey_mac(key, event as KeyboardEventToPrevent) : (keydownEvents_[key] = 1)
     const parApi = getParentVApi()
     if (parApi && !parApi.a(keydownEvents_)) {
       parApi.s()

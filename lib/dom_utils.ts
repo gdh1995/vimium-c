@@ -70,7 +70,7 @@ export const isIFrameElement = (el: Element): el is KnownIFrameElement => {
 
 export const isNode_ = <T extends keyof kNodeToType> (node: Node, typeId: T): node is kNodeToType[T] => {
   const type = node.nodeType
-  return !(Build.BTypes & ~BrowserType.Firefox) ? type === typeId
+  return Build.BTypes === BrowserType.Firefox as number ? type === typeId
       : type === typeId || typeId === kNode.ELEMENT_NODE && isTY(type, kTY.obj)
 }
 
@@ -415,7 +415,7 @@ export const isStyleVisible_ = (element: Element): boolean => isRawStyleVisible(
 export const isRawStyleVisible = (style: CSSStyleDeclaration): boolean => style.visibility === "visible"
 
 export const isAriaFalse_ = (element: SafeElement, ariaType: kAria): boolean => {
-    let s = !(Build.BTypes & ~BrowserType.Safari) || !(Build.BTypes & ~(BrowserType.Chrome | BrowserType.Safari))
+    let s = Build.BTypes === BrowserType.Safari as number|| !(Build.BTypes & ~(BrowserType.Chrome | BrowserType.Safari))
         && Build.MinCVer >= BrowserVer.MinCorrectAriaSelected ? ariaType > kAria.disabled ? element.ariaHasPopup
         : ariaType < kAria.disabled ? element.ariaHidden : element.ariaDisabled as string | null
         : element.getAttribute(AriaArray[ariaType])

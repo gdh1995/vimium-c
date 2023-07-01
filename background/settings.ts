@@ -39,7 +39,7 @@ export const ready_: Promise<number> = Promise.all([
     const os = (OnChrome ? info.os : info.os || "").toLowerCase(),
     types = !(Build.OS & (Build.OS - 1)) ? null as never : !OnChrome || Build.MinCVer >= BrowserVer.MinRuntimePlatformOs
       ? browser_.runtime.PlatformOs! : browser_.runtime.PlatformOs || { MAC: "mac", WIN: "win" },
-    osEnum = !(Build.OS & (Build.OS - 1)) || os === types.WIN ? kOS.win : os === types.MAC ? kOS.mac : kOS.unixLike
+    osEnum = !(Build.OS & (Build.OS - 1)) || os === types.WIN ? kOS.win : os === types.MAC ? kOS.mac : kOS.linuxLike
     CONST_.Platform_ = os
     if (Build.OS & (Build.OS - 1)) {
       (omniPayload_ as Writable<typeof omniPayload_>).o = (contentPayload_ as Writable<typeof contentPayload_>).o
@@ -224,7 +224,7 @@ export const updatePayload_ = function (shortKey: keyof SettingsNS.FrontendCompl
     case "c": case "n": value = (value as ValType<"c" | "n">).toLowerCase().toUpperCase(); break
     case "l":
       value = (value & kKeyLayout.FgMask) | (value & kKeyLayout.ignoreCapsOnMac
-          && (!(Build.OS & ~(1 << kOS.mac)) || !!(Build.OS & (1 << kOS.mac)) && !os_) ? kKeyLayout.ignoreCaps : 0)
+          && Build.OS & kBOS.MAC && (Build.OS === kBOS.MAC as number || !os_) ? kKeyLayout.ignoreCaps : 0)
       break
     case "d": value = value ? " D" : ""; break
     default: if (0) { shortKey satisfies never } break // lgtm [js/unreachable-statement]

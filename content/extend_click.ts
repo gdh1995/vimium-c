@@ -11,7 +11,7 @@ import { HookAction, hookOnWnd, safeDestroy, setupBackupTimer_cr } from "./port"
 import { coreHints, doesWantToReloadLinkHints, hintOptions, reinitLinkHintsIn } from "./link_hints"
 import { grabBackFocus, insertInit } from "./insert"
 
-export const ec_main_not_ff = (Build.BTypes & ~BrowserType.Firefox ? (): void => {
+export const ec_main_not_ff = (Build.BTypes !== BrowserType.Firefox as number ? (): void => {
 (function extendClick(this: void, isFirstTime?: boolean): void {
 /** Note(gdh1995):
  * According to source code of C72,
@@ -281,7 +281,8 @@ const V = /** verifier */ (maybeSecret: string): void | boolean => {
     I = GlobalConsts.MarkAcrossJSWorlds === maybeSecret
 },
 MayChrome = !!(Build.BTypes & BrowserType.Chrome),
-MayEdge = !!(Build.BTypes & BrowserType.Edge), MayNotEdge = !!(Build.BTypes & ~BrowserType.Edge),
+MayEdge = !!(Build.BTypes & BrowserType.Edge),
+MayNotEdge = !!(Build.BTypes & ~(BrowserType.Edge | BrowserType.Firefox)),
 MayES5 = !!(Build.BTypes & BrowserType.Chrome) && Build.MinCVer < BrowserVer.MinTestedES6Environment,
 EnsuredGetRootNode = !(Build.BTypes & BrowserType.Edge)
     && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.Min$Node$$getRootNode),

@@ -72,7 +72,7 @@ export const filterTextToGoNext: VApiTy["g"] = (candidates, names, options, maxL
   for (; 0 <= --index; ) {
     const link = links[index][0]
     s = "lang" in link ? (s = link.innerText, s.length > 2 && hasTag_("a", link) && link.childElementCount === 1
-              && (ch = !(Build.BTypes & ~BrowserType.Safari)
+              && (ch = Build.BTypes === BrowserType.Safari as number
                     || !(Build.BTypes & ~(BrowserType.Chrome | BrowserType.Safari))
                         && Build.MinCVer >= BrowserVer.MinEnsuredAriaProperties ? link.ariaLabel : attr_s(link, ALA))
               && (link.firstElementChild as Element as TypeToPick<Element, HTMLElement, "innerText">).innerText === s

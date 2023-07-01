@@ -33,10 +33,10 @@ if (Build.BTypes & (Build.BTypes & BrowserType.ChromeOrFirefox | BrowserType.Edg
       : Build.BTypes & BrowserType.Edge && globalThis.StyleMedia ? BrowserType.Edge
       : Build.BTypes & BrowserType.Firefox ? BrowserType.Firefox
       : /* an invalid state */ BrowserType.Unknown
-  const OnChrome: boolean = !(Build.BTypes & ~BrowserType.Chrome)
-      || !!(Build.BTypes & BrowserType.Chrome && _browser & BrowserType.Chrome)
-  const OnEdge: boolean = !(Build.BTypes & ~BrowserType.Edge)
-      || !!(Build.BTypes & BrowserType.Edge && _browser & BrowserType.Edge)
+  const OnChrome: boolean = Build.BTypes === BrowserType.Chrome as number
+      || !!(Build.BTypes & BrowserType.Chrome && _browser === BrowserType.Chrome)
+  const OnEdge: boolean = Build.BTypes === BrowserType.Edge as number
+      || !!(Build.BTypes & BrowserType.Edge && _browser === BrowserType.Edge)
   const navInfo = OnChrome ? Build.MinCVer >= BrowserVer.MinUsableScript$type$$module$InExtensions
         || (Build.MinCVer >= BrowserVer.MinAbortController || typeof AbortController === "function")
       ? [0, BrowserVer.assumedVer]

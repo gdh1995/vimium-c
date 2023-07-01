@@ -169,8 +169,8 @@ set_contentCommands_([
       esc!(HandlerResult.Nothing);
       return;
     }
-    const shouldExit_delayed_mac = Build.OS & (1 << kOS.mac) ? (event: KeyboardEvent, isDown: BOOL): boolean => {
-      if ((!(Build.OS & ~(1 << kOS.mac)) || !os_) && keyCount && (isDown || !getKeyStat_(event))) {
+    const shouldExit_delayed_mac = Build.OS & kBOS.MAC ? (event: KeyboardEvent, isDown: BOOL): boolean => {
+      if ((Build.OS === kBOS.MAC as number || !os_) && keyCount && (isDown || !getKeyStat_(event))) {
         for (const rawKey in keys) {
           const key = +rawKey
           if (keys[key] && timeStamp_(event) - <number> keys[key] > (
@@ -185,15 +185,15 @@ set_contentCommands_([
       return !count
     } : null
     replaceOrSuppressMost_(kHandler.passNextKey, event => {
-      if (!isRepeated_(event) && (Build.OS & (1 << kOS.mac) ? shouldExit_delayed_mac!(event.e, 1) : !count)) {
+      if (!isRepeated_(event) && (Build.OS & kBOS.MAC ? shouldExit_delayed_mac!(event.e, 1) : !count)) {
         return HandlerResult.Nothing
       }
       keyCount += !keys[event.i] as boolean | BOOL as BOOL
-      keys[event.i] = !(Build.OS & (1 << kOS.mac)) || Build.OS & ~(1 << kOS.mac) && os_ ? 1 : timeStamp_(event.e)
+      keys[event.i] = !(Build.OS & kBOS.MAC) || Build.OS !== kBOS.MAC as number && os_ ? 1 : timeStamp_(event.e)
       return HandlerResult.PassKey;
     })
     set_onPassKey((event): void => {
-      if (event && (Build.OS & (1 << kOS.mac) ? shouldExit_delayed_mac!(event, 0) : !count)) { /* empty */ }
+      if (event && (Build.OS & kBOS.MAC ? shouldExit_delayed_mac!(event, 0) : !count)) { /* empty */ }
       else if (event && keys[event.keyCode] ? --keyCount > 0 || (keyCount = 0, --count)
           : event === 0 && keyCount || count) {
         keys[event! && event.keyCode] = 0

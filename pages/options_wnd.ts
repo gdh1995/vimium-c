@@ -287,7 +287,7 @@ optionsInitAll_ = function (): void {
   optionsInit1_()
   optionsInit1_ = optionsInitAll_ = null as never
 
-  !(Build.OS & (1 << kOS.mac)) || Build.OS & ~(1 << kOS.mac) && PageOs_ ||
+  !(Build.OS & kBOS.MAC) || Build.OS !== kBOS.MAC as number && PageOs_ ||
   nextTick_((el): void => { el.textContent = "Cmd" }, $("#Ctrl"))
   for (let key in Option_.all_) {
     void Option_.all_[key as keyof AllowedOptions].onSave_()
@@ -490,7 +490,7 @@ el0.textContent = (OnEdge ? "MS Edge (EdgeHTML)" : name + " " + version
 }, $("#browserName"));
 
 document.addEventListener("keydown", (event): void => {
-  if ((!(Build.OS & ~(1 << kOS.mac)) || Build.OS & (1 << kOS.mac) && !PageOs_) && event.metaKey) {
+  if ((Build.OS === kBOS.MAC as number || Build.OS & kBOS.MAC && !PageOs_) && event.metaKey) {
     onKeyUp(event)
     return
   } else if (event.keyCode !== kKeyCode.space) {

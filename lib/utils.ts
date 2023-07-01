@@ -9,14 +9,14 @@ const OnOther_: BrowserType = Build.BTypes && !(Build.BTypes & (Build.BTypes - 1
       && (!(Build.MinCVer < BrowserVer.MinSafe$String$$StartsWith) || "".startsWith)
       && (browser as typeof chrome).runtime.getURL("").startsWith("moz")
     ? BrowserType.Firefox : BrowserType.Chrome
-export const OnChrome: boolean = !(Build.BTypes & ~BrowserType.Chrome)
-    || !!(Build.BTypes & BrowserType.Chrome && OnOther_ & BrowserType.Chrome)
-export const OnFirefox: boolean = !(Build.BTypes & ~BrowserType.Firefox)
-    || !!(Build.BTypes & BrowserType.Firefox && OnOther_ & BrowserType.Firefox)
-export const OnEdge: boolean = !(Build.BTypes & ~BrowserType.Edge)
-    || !!(Build.BTypes & BrowserType.Edge && OnOther_ & BrowserType.Edge)
-export const OnSafari: boolean = !(Build.BTypes & ~BrowserType.Safari)
-    || !!(Build.BTypes & BrowserType.Safari && OnOther_ & BrowserType.Safari)
+export const OnChrome: boolean = Build.BTypes === BrowserType.Chrome as number
+    || !!(Build.BTypes & BrowserType.Chrome) && OnOther_ === BrowserType.Chrome
+export const OnFirefox: boolean = Build.BTypes === BrowserType.Firefox as number
+    || !!(Build.BTypes & BrowserType.Firefox) && OnOther_ === BrowserType.Firefox
+export const OnEdge: boolean = Build.BTypes === BrowserType.Edge as number
+    || !!(Build.BTypes & BrowserType.Edge) && OnOther_ === BrowserType.Edge
+export const OnSafari: boolean = Build.BTypes === BrowserType.Safari as number
+    || !!(Build.BTypes & BrowserType.Safari) && OnOther_ === BrowserType.Safari
 export const WithDialog: boolean = OnChrome || OnFirefox
 
 /** its initial value should be 0, need by {@see ../content/request_handlers#hookOnWnd} */

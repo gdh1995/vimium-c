@@ -336,16 +336,16 @@ const runMovements = (direction: ForwardDir, granularity: kG | kVimG.vimWord, co
         fixWord = !Build.NativeWordMoveOnFirefox || shouldSkipSpaceWhenMovingRight
         if (!Build.NativeWordMoveOnFirefox) { count1 -= fixWord as boolean | BOOL as BOOL }
       } else {
-        fixWord = !(Build.OS & (1 << kOS.win)) ? shouldSkipSpaceWhenMovingRight
-            : !(Build.OS & ~(1 << kOS.win)) ? !shouldSkipSpaceWhenMovingRight
+        fixWord = !(Build.OS & kBOS.WIN) ? shouldSkipSpaceWhenMovingRight
+            : Build.OS === kBOS.WIN as number ? !shouldSkipSpaceWhenMovingRight
             : (os_ > kOS.MAX_NOT_WIN) !== shouldSkipSpaceWhenMovingRight
-        OnChrome && !!(Build.OS & (1 << kOS.win)) && (!(Build.OS & ~(1 << kOS.win)) || os_ > kOS.MAX_NOT_WIN)
+        OnChrome && Build.OS & kBOS.WIN && (Build.OS === kBOS.WIN as number || os_ > kOS.MAX_NOT_WIN)
             && (Build.MinCVer >= BrowserVer.MinOnWindows$Selection$$extend$stopWhenWhiteSpaceEnd
                 || chromeVer_ > BrowserVer.MinOnWindows$Selection$$extend$stopWhenWhiteSpaceEnd - 1)
             && (fixDeltaHasOnlySpaces_cr_win = moveRightByWordButNotSkipSpaces!(0))
             && (fixDeltaHasOnlySpaces_cr_win = --count1 ? null : fixDeltaHasOnlySpaces_cr_win)
-        if (Build.OS & (1 << kOS.win)) {
-          count1 -= (Build.OS & ~(1 << kOS.win) ? fixWord > // lgtm [js/implicit-operand-conversion]
+        if (Build.OS & kBOS.WIN) {
+          count1 -= (Build.OS !== kBOS.WIN as number ? fixWord > // lgtm [js/implicit-operand-conversion]
               shouldSkipSpaceWhenMovingRight : fixWord) as unknown as BOOL // lgtm [js/implicit-operand-conversion]
         }
       }
@@ -361,13 +361,13 @@ const runMovements = (direction: ForwardDir, granularity: kG | kVimG.vimWord, co
     }
     granularity - kG.lineBoundary || hudTip(kTip.selectLineBoundary, 2)
     if (!fixWord) {
-      OnChrome && Build.OS & (1 << kOS.win) && fixDeltaHasOnlySpaces_cr_win !== undefined
+      OnChrome && Build.OS & kBOS.WIN && fixDeltaHasOnlySpaces_cr_win !== undefined
           && isMove && /* moveRightByWordButNotSkipSpaces->extend() make diType safe */ collapseToRight(kDirTy.right)
       return
     }
     if (OnFirefox && Build.NativeWordMoveOnFirefox) { /* then shouldSkipSpaceWhenMovingRight is true */ }
     else if (!shouldSkipSpaceWhenMovingRight) { // OnFirefox || OS === Win
-      OnChrome && Build.OS & (1 << kOS.win)
+      OnChrome && Build.OS & kBOS.WIN
           ? moveRightByWordButNotSkipSpaces!(fixDeltaHasOnlySpaces_cr_win)
           : moveRightByWordButNotSkipSpaces!()
       return
@@ -422,7 +422,7 @@ const runMovements = (direction: ForwardDir, granularity: kG | kVimG.vimWord, co
 const moveRightByWordButNotSkipSpaces = OnFirefox && Build.NativeWordMoveOnFirefox ? null
       : ((testOnlySpace_cr_win?: InfoToMoveRightByWord | null | 0): InfoToMoveRightByWord | null | boolean => {
   let newLen: number, changeLen: number, toGoLeft: number
-  if (OnChrome && Build.OS & (1 << kOS.win) && testOnlySpace_cr_win) {
+  if (OnChrome && Build.OS & kBOS.WIN && testOnlySpace_cr_win) {
     newLen = testOnlySpace_cr_win[0], changeLen = testOnlySpace_cr_win[1], toGoLeft = testOnlySpace_cr_win[2]
   } else {
     let oldStr = "" + <SelWithToStr> curSelection, oldLen = oldStr.length
@@ -672,7 +672,7 @@ const ensureLine = (command1: number, s0: string): void => {
           if (BrowserVer.MinSelExtendForwardOnlySkipWhitespaces <= BrowserVer.MinMaybeUnicodePropertyEscapesInRegExp
               && OnChrome) {
             WordsRe_ff_old_cr = tryCreateRegExp(options.w!)!
-          } else if (!(Build.BTypes & ~BrowserType.Firefox)
+          } else if (Build.BTypes === BrowserType.Firefox as number
               && Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp) {
             // note: here thinks the `/^[^]*[~~~]/` has acceptable performance
             WordsRe_ff_old_cr = <RegExpU> /^[^]*[\p{L}\p{Nd}_]/u
@@ -774,8 +774,8 @@ const ensureLine = (command1: number, s0: string): void => {
     }
   }
   replaceOrSuppressMost_(kHandler.visual, (event: HandlerNS.Event): HandlerResult => {
-    const doPass = event.i === kKeyCode.menuKey && (Build.OS & ~(1 << kOS.mac) && Build.OS & (1 << kOS.mac) ? os_
-        : !!(Build.OS & ~(1 << kOS.mac))) || event.i === kKeyCode.ime,
+    const doPass = Build.OS !== kBOS.MAC as number && (!(Build.OS & kBOS.MAC) || os_) && event.i === kKeyCode.menuKey
+        || event.i === kKeyCode.ime,
     key = doPass ? "" : getMappedKey(event, kModeId.Visual), keybody = keybody_(key);
     let count: number
     if (!key || isEscape_(key)) {

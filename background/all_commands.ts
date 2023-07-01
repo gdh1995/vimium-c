@@ -251,7 +251,7 @@ set_bgC_([
         }
       }
       if (opts2.superKey) {
-        Build.OS & (1 << kOS.mac) && (!(Build.OS & ~(1 << kOS.mac)) || os_ === kOS.mac)
+        Build.OS & kBOS.MAC && (Build.OS === kBOS.MAC as number || !os_)
         ? destDict.metaKey = true : destDict.ctrlKey = true
         delete opts2.superKey
       }

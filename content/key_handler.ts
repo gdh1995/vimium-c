@@ -176,7 +176,8 @@ const checkAccessKey_cr = OnChrome ? (event: HandlerNS.Event): void => {
     getMappedKey(event, kModeId.Plain)
     if (isWaitingAccessKey !== (event.c.length === 1 || event.c === SPC)
         && getKeyStat_(event.e, 1) /* Chrome ignore .shiftKey */ ===
-            (Build.OS & ~(1 << kOS.mac) && os_ ? KeyStat.altKey : KeyStat.altKey | KeyStat.ctrlKey)
+            (!(Build.OS & kBOS.MAC) || Build.OS !== kBOS.MAC as number && os_
+              ? KeyStat.altKey : KeyStat.altKey | KeyStat.ctrlKey)
         ) {
       resetAnyClickHandler_cr(!isWaitingAccessKey)
     }
@@ -277,7 +278,7 @@ export const onKeydown = (event: KeyboardEventToPrevent): void => {
   }
   if (action < HandlerResult.MinStopOrPreventEvents) {
     // https://github.com/gdh1995/vimium-c/issues/390#issuecomment-894687506
-    if (Build.OS & (1 << kOS.mac) && (!(Build.OS & ~(1 << kOS.mac)) || !os_) &&
+    if (Build.OS & kBOS.MAC && (Build.OS === kBOS.MAC as number || !os_) &&
         keydownEvents_[key] === 1 && !(Build.BTypes & BrowserType.Chrome ? event.repeat : isRepeated_(eventWrapper))) {
       keydownEvents_[key] = 0
     }
@@ -293,7 +294,7 @@ export const onKeydown = (event: KeyboardEventToPrevent): void => {
   } else {
     Stop_(event);
   }
-  Build.OS & (1 << kOS.mac) ? consumeKey_mac(key, event) : (keydownEvents_[key] = 1)
+  Build.OS & kBOS.MAC ? consumeKey_mac(key, event) : (keydownEvents_[key] = 1)
 }
 
 /** @param key should be valid */

@@ -82,7 +82,7 @@ const normalizeWndType = (wndType: string | boolean | null | undefined): "popup"
 
 export const checkHarmfulUrl_ = (url: string, port?: Port | null): boolean => {
   url = url.slice(0, 128).split("?")[0].replace(<RegExpG> /\\/g, "/")
-  let bsod = !!(Build.OS & (1 << kOS.win)) && os_ === kOS.win
+  let bsod = !!(Build.OS & kBOS.WIN) && (Build.OS === kBOS.WIN as number || os_ > kOS.MAX_NOT_WIN)
       && (<RegExpOne> /\/globalroot\/device\/condrv|\bdevice\/condrv\/kernelconnect/).test(url)
   if (bsod) {
     set_cPort(port || cPort)

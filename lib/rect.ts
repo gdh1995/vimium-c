@@ -380,7 +380,7 @@ export const getViewBox_ = function (needBox?: 1 | /** dialog-found */ 2): ViewB
   }
   iw = iw < mw ? iw : mw, ih = ih < mh ? ih : mh
   iw = (iw / zoom2) | 0, ih = (ih / zoom2) | 0
-  if (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinAbsolutePositionNotCauseScrollbar) {
+  if (Build.BTypes === BrowserType.Chrome as number&&Build.MinCVer >= BrowserVer.MinAbsolutePositionNotCauseScrollbar) {
     return [x, y, iw, yScrollable ? ih - GlobalConsts.MaxHeightOfLinkHintMarker : ih] as unknown as ViewBox
   }
   return [x, y, iw, yScrollable ? ih - GlobalConsts.MaxHeightOfLinkHintMarker : ih, xScrollable ? iw : 0]

@@ -95,12 +95,12 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     a.baseHttps_ = null;
     let { url, keyword, p: search } = options, start: number | undefined;
     let scale = Build.MinCVer < BrowserVer.MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent
-            && (!(Build.BTypes & ~BrowserType.Chrome)
+            && (Build.BTypes === BrowserType.Chrome as number
                 || Build.BTypes & BrowserType.Chrome && a.browser_ === BrowserType.Chrome)
           ? devicePixelRatio : options.z
       , dz = a.docZoom_ = scale < 0.98 ? 1 / scale : 1;
     if (Build.MinCVer < BrowserVer.MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent
-        && (!(Build.BTypes & ~BrowserType.Chrome)
+        && (Build.BTypes === BrowserType.Chrome as number
             || Build.BTypes & BrowserType.Chrome && a.browser_ === BrowserType.Chrome)) {
       a.onInnerWidth_((options.w * a.panelWidth_ + PixelData.MarginH * options.z) / scale);
     } else {
@@ -108,7 +108,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     }
     const max = Math.max(3, Math.min(0 | ((options.h / dz
           / (Build.MinCVer < BrowserVer.MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent
-              && (!(Build.BTypes & ~BrowserType.Chrome)
+              && (Build.BTypes === BrowserType.Chrome as number
                   || Build.BTypes & BrowserType.Chrome && a.browser_ === BrowserType.Chrome)
               ? scale : 1)
           - a.baseHeightIfNotEmpty_
@@ -117,13 +117,13 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         ) / a.itemHeight_), a.maxMatches_));
     a.mode_.r = max;
     a.preInit_ && a.preInit_(options.t)
-    if (Build.BTypes & ~BrowserType.Firefox) {
+    if (Build.BTypes !== BrowserType.Firefox as number) {
       a.docSt_.zoom = dz > 1 ? dz + "" : "";
     } else {
       a.docSt_.fontSize = dz > 1 ? dz + "px" : "";
     }
     if (Build.BTypes & BrowserType.Firefox
-        && (!(Build.BTypes & ~BrowserType.Firefox) || a.browser_ === BrowserType.Firefox)) {
+        && (Build.BTypes === BrowserType.Firefox as number || a.browser_ === BrowserType.Firefox)) {
       /* empty */
     } else if (a.mode_.i) {
       scale = scale === 1 ? 1 : scale < 3 ? 2 : scale < 3.5 ? 3 : 4;
@@ -268,7 +268,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     a.list_.classList.remove("no-favicon");
     a.toggleAlt_(0);
     a.afterHideTimer_ = requestAnimationFrame(Build.BTypes & BrowserType.Firefox
-        && (!(Build.BTypes & ~BrowserType.Firefox) || a.browser_ === BrowserType.Firefox) || !a.doEnter_
+        && (Build.BTypes === BrowserType.Firefox as number || a.browser_ === BrowserType.Firefox) || !a.doEnter_
         ? a.AfterHide_ : (): void => { a.afterHideTimer_ = requestAnimationFrame(a.AfterHide_) })
     a.timer_ = setTimeout(a.AfterHide_, a.doEnter_ ? 35 : 17)
   },
@@ -295,7 +295,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     if (!a.doEnter_ || !VPort_) {
       (<RegExpOne> /a?/).test("")
     } else if (Build.BTypes & BrowserType.Firefox
-        && (!(Build.BTypes & ~BrowserType.Firefox) || a.browser_ === BrowserType.Firefox)
+        && (Build.BTypes === BrowserType.Firefox as number || a.browser_ === BrowserType.Firefox)
         && document.hasFocus() && a.doEnter_[1] !== ReuseType.current) {
       const cb = (): void => {
         const curDoEnter = Vomnibar_.doEnter_
@@ -308,7 +308,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       return
     } else {
       setTimeout(a.doEnter_[0], Build.BTypes & BrowserType.Firefox
-          && (!(Build.BTypes & ~BrowserType.Firefox) || a.browser_ === BrowserType.Firefox) ? 1 : 0)
+          && (Build.BTypes === BrowserType.Firefox as number || a.browser_ === BrowserType.Firefox) ? 1 : 0)
     }
     a.doEnter_ = null;
   },
@@ -473,15 +473,15 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   } satisfies Dict<1> as Dict<1> as SafeEnum,
   keyIdCorrectionOffset_old_cr_: Build.BTypes & BrowserType.Chrome
       && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key
-      ? Build.OS & ~(1 << kOS.mac) ? 185 as const : 300 as const : 0 as never as null,
+      ? Build.OS !== kBOS.MAC as number ? 185 as const : 300 as const : 0 as never as null,
   _getKeyName (event: Pick<KeyboardEvent, "key" | "keyCode" | "location">): kChar {
     let i = event.keyCode, s: string | undefined
     return i > kKeyCode.space - 1 && i < kKeyCode.minNotDelete ? Vomnibar_._keyNames![i - kKeyCode.space]
         : i < kKeyCode.minNotDelete || i === kKeyCode.metaKey
-          || Build.OS & (1 << kOS.mac) && i === (!(Build.BTypes & ~BrowserType.Firefox)
+          || Build.OS & kBOS.MAC && i === (Build.BTypes === BrowserType.Firefox as number
                 || Build.BTypes & BrowserType.Firefox && Vomnibar_.browser_ === BrowserType.Firefox
                 ? kKeyCode.os_ff_mac : kKeyCode.osRight_mac)
-              && (!(Build.OS & ~(1 << kOS.mac)) || Vomnibar_.os_ === kOS.mac)
+              && (Build.OS === kBOS.MAC as number || !Vomnibar_.os_)
         ? i === kKeyCode.backspace ? kChar.backspace : i === kKeyCode.esc ? kChar.esc
             : i === kKeyCode.tab ? kChar.tab : i === kKeyCode.enter ? kChar.enter
             : (i < kKeyCode.maxAcsKeys + 1 ? i > kKeyCode.minAcsKeys - 1 : i > kKeyCode.maxNotMetaKey)
@@ -489,8 +489,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
               && (Vomnibar_.keyLayout_ >> kKeyLayout.MapModifierOffset) === event.location ? kChar.Modifier
               : i === kKeyCode.altKey ? kChar.Alt : kChar.INVALID
             : kChar.None
-        : i === kKeyCode.menuKey && Build.BTypes & ~BrowserType.Safari
-          && (Build.BTypes & ~BrowserType.Chrome || Build.OS & ~(1 << kOS.mac)) ? kChar.Menu
+        : i === kKeyCode.menuKey && Build.BTypes !== BrowserType.Safari as number
+          && (Build.BTypes !== BrowserType.Chrome as number || Build.OS !== kBOS.MAC as number) ? kChar.Menu
         : ((s = event.key) ? (<RegExpOne> /^F\d/).test(s) : i > kKeyCode.maxNotFn && i < kKeyCode.minNotFn)
         ? ("f" + (s ? s.slice(1) : i - kKeyCode.maxNotFn)) as kChar.F_num
         : s && s.length > 1 && !Vomnibar_._modifierKeys[s] ? s.toLowerCase() as kChar : kChar.None
@@ -507,7 +507,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
             : String.fromCharCode(keyId < kCharCode.minAlphabet || shiftKey ? keyId : keyId + kCharCode.CASE_DELTA)
     } else {
       // here omits a `(...)` after the first `&&`, since there has been `keyId >= kCharCode.minNotAlphabet`
-      return Build.OS & ~(1 << kOS.mac) && keyId > Vomnibar_.keyIdCorrectionOffset_old_cr_!
+      return Build.OS !== kBOS.MAC as number && keyId > Vomnibar_.keyIdCorrectionOffset_old_cr_!
           && (keyId -= 186) < 7 || (keyId -= 26) > 6 && keyId < 11
         ? kChar.CharCorrectionList[keyId + 12 * +shiftKey] : ""
     }
@@ -515,13 +515,14 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   char_ (event: Pick<KeyboardEvent, "code" | "key" | "keyCode" | "keyIdentifier" | "location" | "shiftKey" | "altKey">
       ): string {
     const shiftKey = Build.BTypes & BrowserType.Firefox ? Vomnibar_.hasShift_(event as KeyboardEvent) : event.shiftKey
-    let key = event.key!, isDeadKey = Build.BTypes & ~BrowserType.Edge && (key === "Dead" || key === "Unidentified")
+    let key = event.key!
+    let isDeadKey = Build.BTypes !== BrowserType.Edge as number && (key === "Dead" || key === "Unidentified")
     let code = event.code!
     if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key && !key) {
       return Vomnibar_._getKeyName(event) || Vomnibar_._getKeyCharUsingKeyIdentifier_old_cr(
             event as Pick<OldKeyboardEvent, "keyIdentifier">, +shiftKey as BOOL)
-    } else if ((!(Build.BTypes & BrowserType.Edge)
-        || Build.BTypes & ~BrowserType.Edge && Vomnibar_.browser_ !== BrowserType.Edge)
+    } else if (Build.BTypes !== BrowserType.Edge as number
+        && (!(Build.BTypes & BrowserType.Edge) || Vomnibar_.browser_ !== BrowserType.Edge)
         && (Vomnibar_.keyLayout_ & kKeyLayout.alwaysIgnore
             || Vomnibar_.keyLayout_ & kKeyLayout.ignoreIfAlt && event.altKey || isDeadKey
             || key > kChar.maxASCII && key.length === 1)) {
@@ -552,7 +553,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     return key;
   },
   hasShift_: Build.BTypes & BrowserType.Firefox ? (event: KeyboardEvent): boolean => {
-    const key = !(Build.BTypes & ~BrowserType.Firefox) || Vomnibar_.browser_ === BrowserType.Firefox ? event.key! : ""
+    const key = Build.BTypes === BrowserType.Firefox as number || Vomnibar_.browser_ === BrowserType.Firefox
+        ? event.key! : ""
     return key.length === 1 && event.getModifierState("CapsLock") ? key !== key.toUpperCase() : event.shiftKey
   } : 0 as never,
   getMappedKey_ (event: KeyboardEvent): { mapped: boolean, key: string } {
@@ -593,14 +595,14 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   onKeydown_ (event: KeyboardEventToPrevent): void {
     const a = Vomnibar_, n = event.keyCode, focused = a.focused_,
     { mapped, key } = n !== kKeyCode.ime ? a.getMappedKey_(event) : { mapped: false, key: "" }
-    a.lastKey_ = (!(Build.OS & (1 << kOS.mac)) || Build.OS & ~(1 << kOS.mac) && a.os_ || !event.metaKey) ? n : 0
+    a.lastKey_ = (!(Build.OS & kBOS.MAC) || Build.OS !== kBOS.MAC as number && a.os_ || !event.metaKey) ? n : 0
     a.inOldShift_ = event.shiftKey && (n === kKeyCode.shiftKey && !event.repeat ? false
         : n !== kKeyCode.shiftKey && key.length === 1 || a.inOldShift_)
     if (!key) {
       a.inAlt_ && !a._modifierKeys[Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key
             && Build.BTypes & BrowserType.Chrome ? event.key || "" : event.key!] && a.toggleAlt_(0);
-      a.keyResult_ = focused && !(Build.OS & ~(1 << kOS.mac) && n === kKeyCode.menuKey && a.os_) && n !== kKeyCode.ime
-          ? SimpleKeyResult.Suppress : SimpleKeyResult.Nothing;
+      a.keyResult_ = focused && !(Build.OS !== kBOS.MAC as number && n === kKeyCode.menuKey && a.os_)
+          && n !== kKeyCode.ime ? SimpleKeyResult.Suppress : SimpleKeyResult.Nothing
       return;
     }
     if (key.startsWith("v-")) {
@@ -625,12 +627,12 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     }
     if (mainModifier && mainModifier < "s" && focused) {
       if ((char === kChar.left || char === kChar.right) // always modify selection by words
-          && (!(Build.OS & ~(1 << kOS.mac)) || Build.OS & (1 << kOS.mac) && !a.os_ || !key.includes("m-"))) {
+          && (Build.OS === kBOS.MAC as number || Build.OS & kBOS.MAC && !a.os_ || !key.includes("m-"))) {
         action = (key.includes("s-") ? char > kChar.r ? kCharCode.G : kCharCode.H
             : char > kChar.r ? kCharCode.F : kKeyCode.B) - kCharCode.maxNotAlphabet
-        if (Build.BTypes & BrowserType.Chrome && (!(Build.BTypes & ~BrowserType.Chrome)
+        if (Build.BTypes & BrowserType.Chrome && (Build.BTypes === BrowserType.Chrome as number
               || a.browser_ & BrowserType.Chrome) && !mapped
-            && mainModifier === (!(Build.OS & (1 << kOS.mac)) || Build.OS & ~(1 << kOS.mac) && a.os_ ? "c" : "a")) {
+            && mainModifier === (!(Build.OS & kBOS.MAC) || Build.OS !== kBOS.MAC as number && a.os_ ? "c" : "a")) {
           VUtils_.nextTask_(a.onWordAction_.bind(0, action, true)) // `setTimeout` may be too late on Chrome in WSLg
           a.keyResult_ = SimpleKeyResult.Suppress;
         } else {
@@ -638,11 +640,11 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         }
         return
       } else if (char === kChar.backspace) {
-        if (mainModifier > "a" || Build.OS & (1 << kOS.mac) && (!(Build.OS & ~(1 << kOS.mac)) || !a.os_)
+        if (mainModifier > "a" || Build.OS & kBOS.MAC && (Build.OS === kBOS.MAC as number || !a.os_)
               && !key.includes("a-c-")) { // treat <a-c-***> on macOS as <a-***> on Windows
           // -2 is for https://www.reddit.com/r/firefox/comments/767bha/how_to_make_cmdbackspace_better_on_macos/
           a.onWordAction_(mainModifier < "m" ? -1 : key.includes("s-") ? -3 : -2)
-        } else if (!(Build.OS & (1 << kOS.win)) || Build.OS & ~(1 << kOS.win) && a.os_ < kOS.win || key.includes("a-c-")
+        } else if (!(Build.OS & kBOS.WIN) || Build.OS !== kBOS.WIN as number && a.os_ < kOS.win || key.includes("a-c-")
             || Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinAltBackspaceWithShiftToUndoOrRedo
                 && a.browser_ === BrowserType.Chrome && a.browserVer_ < BrowserVer.MinAltBackspaceWithShiftToUndoOrRedo
             || Build.BTypes & ~BrowserType.ChromeOrFirefox && !(a.browser_ & BrowserType.ChromeOrFirefox)) {
@@ -655,14 +657,14 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     }
     if (mainModifier === "a" || mainModifier === "m") {
       if (char === kChar.f2) { return a.onAction_(focused ? AllowedActions.blurInput : AllowedActions.focus) }
-      if (char >= "0" && char <= "9" && (!(Build.OS & (1 << kOS.mac)) || Build.OS & ~(1 << kOS.mac) && a.os_
+      if (char >= "0" && char <= "9" && (!(Build.OS & kBOS.MAC) || Build.OS !== kBOS.MAC as number && a.os_
           || (<RegExpOne> /[cm]-/).test(key))) {
         ind = +char || 10
         if (ind <= a.completions_.length) { a.onEnter_(true, ind - 1) }
         return
       }
       if (focused && char.length === 1 && char > kChar.a && char < kChar.g && char !== kChar.c
-          && !(Build.OS & ~(1<<kOS.mac) && (!(Build.OS & (1<<kOS.mac)) || a.os_) && key === "a-d")) {
+          && !(Build.OS !== kBOS.MAC as number && (!(Build.OS & kBOS.MAC) || a.os_) && key === "a-d")) {
         return a.onWordAction_(char.charCodeAt(0) - (kCharCode.maxNotAlphabet | kCharCode.CASE_DELTA))
       }
       if (key === "a-c-c" || key === "a-m-c") { return a.onAction_(AllowedActions.copyPlain) }
@@ -684,11 +686,11 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
               || a.input_.selectionStart === a.input_.selectionEnd)
             ? key.includes("s") ? AllowedActions.copyWithTitle : AllowedActions.copy
             : key.includes("s") ? AllowedActions.copyPlain
-            : Build.OS & (1<<kOS.mac) && (!(Build.OS & ~(1<<kOS.mac)) || !a.os_) && key === "c-c" ? AllowedActions.copy
+            : Build.OS & kBOS.MAC && (Build.OS === kBOS.MAC as number || !a.os_) && key === "c-c" ? AllowedActions.copy
             : AllowedActions.nothing
-      } else if (key === "c-v" && Build.OS & (1<<kOS.mac) && (!(Build.OS & ~(1<<kOS.mac)) || !a.os_)) {
+      } else if (key === "c-v" && Build.OS & kBOS.MAC && (Build.OS === kBOS.MAC as number || !a.os_)) {
         action = AllowedActions.pastePlain
-      } else if (key === "c-d" && (!(Build.OS & (1 << kOS.mac)) || Build.OS & ~(1 << kOS.mac) && a.os_)) {
+      } else if (key === "c-d" && (!(Build.OS & kBOS.MAC) || Build.OS !== kBOS.MAC as number && a.os_)) {
         return a.onWordAction_(kCharCode.D - kCharCode.maxNotAlphabet)
       } else if (key.includes("s-")) {
         action = char === kChar.f ? AllowedActions.pagedown : char === kChar.b ? AllowedActions.pageup
@@ -729,7 +731,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     }
 
     if (focused || char.length !== 1 || isNaN(ind = parseInt(char, 10))) {
-      a.keyResult_ = (focused ? !(Build.OS & ~(1 << kOS.mac) && n === kKeyCode.menuKey && a.os_) : key.length > 1)
+      a.keyResult_ = (focused ? !(Build.OS !== kBOS.MAC as number && n === kKeyCode.menuKey && a.os_) : key.length > 1)
           ? SimpleKeyResult.Suppress : SimpleKeyResult.Nothing;
     } else {
       ind = ind || 10;
@@ -800,17 +802,20 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
             && Build.MinFFVer < FirefoxBrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
         || Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp)
         ? /[^\p{L}\p{Nd}_]+/u
-        : ((!(Build.BTypes & ~BrowserType.Chrome) || Build.BTypes & BrowserType.Chrome && BTy & BrowserType.Chrome)
+        : ((Build.BTypes === BrowserType.Chrome as number
+              || Build.BTypes & BrowserType.Chrome && BTy & BrowserType.Chrome)
             ? Build.MinCVer < BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
               && Vomnibar_.browserVer_ > BrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp - 1
-            : !(Build.BTypes & ~BrowserType.Firefox) || Build.BTypes & BrowserType.Firefox && BTy & BrowserType.Firefox
+            : Build.BTypes === BrowserType.Firefox as number
+              || Build.BTypes & BrowserType.Firefox && BTy & BrowserType.Firefox
             ? Build.MinFFVer < FirefoxBrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
               && Vomnibar_.browserVer_ > FirefoxBrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp - 1
-            : ! (!(Build.BTypes & ~BrowserType.Edge) || Build.BTypes & BrowserType.Edge && BTy & BrowserType.Edge))
+            : !(Build.BTypes === BrowserType.Edge as number
+                || Build.BTypes & BrowserType.Edge && BTy & BrowserType.Edge))
         ? new RegExp("[^\\p{L}\\p{Nd}_]+", "u") : /[^\w\u0386-\u03fb\u4e00-\u9fff]+/)
     const isDel = code === 4 || code < 0, isExtend = isDel || code > 6, isRight = code > 3 && code < 8
     const input = Vomnibar_.input_, spacesRe = <RegExpOne> /\s+/
-    if (Build.BTypes & ~BrowserType.Firefox && (!(Build.BTypes & BrowserType.Firefox) || BTy !== BrowserType.Firefox)
+    if (Build.BTypes !== BrowserType.Firefox as number && (!(Build.BTypes & BrowserType.Firefox) || BTy !== BrowserType.Firefox)
         && !(Build.BTypes & BrowserType.Chrome && delayed)
         && !(code < -1 || isDel && input.selectionStart !== input.selectionEnd)) {
       getSelection().modify(isExtend ? "extend" : "move", isRight?"forward":"backward", mode===2?"character":"word")
@@ -822,9 +827,9 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     if (code < -1) { // Cmd (+ Shift)? + backspace
       a2 = 0, focus = code < -2 ? str.length : end
     } else if (isDel && anchor0 !== focus1) { // Ctrl + backspace / Alt+D
-    } else if (Build.BTypes & ~BrowserType.Firefox
+    } else if (Build.BTypes !== BrowserType.Firefox as number
         && (!(Build.BTypes & BrowserType.Firefox) || BTy !== BrowserType.Firefox) && mode) { /* empty */
-    } else if (Build.BTypes & ~BrowserType.Firefox
+    } else if (Build.BTypes !== BrowserType.Firefox as number
         && (!(Build.BTypes & BrowserType.Firefox) || BTy !== BrowserType.Firefox)) {
       const notNewCr = !(Build.BTypes & BrowserType.Chrome && BTy & BrowserType.Chrome)
           || Build.MinCVer < BrowserVer.MinOnWindows$Selection$$extend$stopWhenWhiteSpaceEnd
@@ -965,8 +970,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
           : (event.altKey || keyCode === kKeyCode.altKey ? KeyStat.altKey : 0)
           + (event.ctrlKey || keyCode === kKeyCode.ctrlKey ? KeyStat.ctrlKey : 0)
           + (event.metaKey || keyCode > kKeyCode.maxNotMetaKey && keyCode < kKeyCode.minNotMetaKeyOrMenu
-              || Build.BTypes & BrowserType.Firefox && Build.OS & (1 << kOS.mac)
-                  && (!(Build.BTypes & ~BrowserType.Firefox) || a.browser_ === BrowserType.Firefox)
+              || Build.BTypes & BrowserType.Firefox && Build.OS & kBOS.MAC
+                  && (Build.BTypes === BrowserType.Firefox as number || a.browser_ === BrowserType.Firefox)
                   && keyCode === kKeyCode.os_ff_mac
               ? KeyStat.metaKey : 0)
           + (event.shiftKey || keyCode === kKeyCode.shiftKey ? KeyStat.shiftKey : 0)
@@ -987,7 +992,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   removeCur_ (): void {
     if (Vomnibar_.selection_ < 0 || Vomnibar_.timer_) { return }
     const completion = Vomnibar_.completions_[Vomnibar_.selection_], type = completion.e;
-    if (type !== "tab" && (type !== "history" || (Build.BTypes & ~BrowserType.Firefox
+    if (type !== "tab" && (type !== "history" || (Build.BTypes !== BrowserType.Firefox as number
           && (!(Build.BTypes & BrowserType.Firefox) || Vomnibar_.browser_ !== BrowserType.Firefox)
           && completion.s != null))) {
       VPort_.post_({ H: kFgReq.removeSug, t: "e" })
@@ -1117,7 +1122,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     const completions = response.l, len = completions.length, notEmpty = len > 0, oldH = a.height_, list = a.list_;
     const height = a.height_ = Math.ceil(notEmpty ? len * a.itemHeight_ + a.baseHeightIfNotEmpty_ : a.heightIfEmpty_),
     wdZoom = Build.MinCVer < BrowserVer.MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent
-          && (!(Build.BTypes & ~BrowserType.Chrome)
+          && (Build.BTypes === BrowserType.Chrome as number
               || Build.BTypes & BrowserType.Chrome && a.browser_ === BrowserType.Chrome)
         ? a.docZoom_ * devicePixelRatio : a.docZoom_,
     msg: VomnibarNS.FReq[VomnibarNS.kFReq.style] & VomnibarNS.Msg<VomnibarNS.kFReq.style> = {
@@ -1142,7 +1147,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
           : a.bodySt_.visibility = ""
     }
     a.toggleInputMode_()
-    if (!(Build.BTypes & ~BrowserType.Firefox)
+    if (Build.BTypes === BrowserType.Firefox as number
         || Build.BTypes & BrowserType.Firefox && a.browser_ & BrowserType.Firefox) {
       a.toggleAttr_("mozactionhint", a.isSearchOnTop_ ? "Search" : "Go", 1)
     } else {
@@ -1244,7 +1249,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       }
     }
     Vomnibar_.wheelSpeed_ = 1
-    Vomnibar_.wheelMinStep_ = Build.BTypes & BrowserType.Chrome && (!(Build.BTypes & ~BrowserType.Chrome)
+    Vomnibar_.wheelMinStep_ = Build.BTypes & BrowserType.Chrome && (Build.BTypes === BrowserType.Chrome as number
             || Vomnibar_.browser_ === BrowserType.Chrome) ? 0 : 120
     omniStyles = omniStyles.replace(<RegExpG & RegExpSearchable<2>> /\b([\w-]+)=([\w.]+)/g, (_, key, val): string => {
       key === "wheel-speed" && (Vomnibar_.wheelSpeed_ = Math.max(0.1, Math.min(parseFloat(val) || 1, 10)))
@@ -1359,9 +1364,9 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
           || Build.MinCVer < BrowserVer.MinRoundedBorderWidthIsNotEnsured
               && ver < BrowserVer.MinRoundedBorderWidthIsNotEnsured)
         || Build.BTypes & BrowserType.Edge
-            && (!(Build.BTypes & ~BrowserType.Edge) || a.browser_ === BrowserType.Edge)) { // is old Chrome or Edge
+            && (Build.BTypes === BrowserType.Edge as number || a.browser_ === BrowserType.Edge)) { // is old Chrome or Edge
       const css = document.createElement("style");
-      css.textContent = !(Build.BTypes & ~BrowserType.Chrome)
+      css.textContent = Build.BTypes === BrowserType.Chrome as number
         || Build.BTypes & BrowserType.Chrome && a.browser_ === BrowserType.Chrome
         ? `body::after, #input, .item { border-width: ${
           Build.MinCVer < BrowserVer.MinEnsuredBorderWidthWithoutDeviceInfo &&
@@ -1369,7 +1374,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         : "#input::-ms-clear { display: none; }";
       document.head!.appendChild(css);
     }
-    if (Build.BTypes & ~BrowserType.Firefox
+    if (Build.BTypes !== BrowserType.Firefox as number
         && (!(Build.BTypes & BrowserType.Firefox) || a.browser_ !== BrowserType.Firefox)) {
       let func = function (this: HTMLInputElement, event: CompositionEvent): void {
         const doesStart = event.type === "compositionstart", box = Vomnibar_.input_
@@ -1395,7 +1400,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     }
     a.init_ = a.preInit_ = VUtils_.makeListRenderer_ = null as never;
     if (Build.BTypes & BrowserType.Chrome
-          && (!(Build.BTypes & ~BrowserType.Chrome) || a.browser_ === BrowserType.Chrome)
+          && (Build.BTypes === BrowserType.Chrome as number || a.browser_ === BrowserType.Chrome)
           && (Build.MinCVer >= BrowserVer.MinEnsuredSVG$Path$Has$d$CSSAttribute
               || ver >= BrowserVer.MinEnsuredSVG$Path$Has$d$CSSAttribute)
         || a.bodySt_.d != null) {
@@ -1437,7 +1442,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     const canShowOnExtOrWeb = Build.MinCVer >= BrowserVer.MinExtensionContentPageAlwaysCanShowFavIcon
           || !!(Build.BTypes & BrowserType.Chrome)
               && a.browserVer_ >= BrowserVer.MinExtensionContentPageAlwaysCanShowFavIcon;
-    if (!(Build.BTypes & ~BrowserType.Firefox)
+    if (Build.BTypes === BrowserType.Firefox as number
         || Build.BTypes & BrowserType.Firefox && a.browser_ & BrowserType.Firefox) {
       // we know that Firefox uses `data:...` as icons
       fav = 2;
@@ -1574,7 +1579,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     item.r = Vomnibar_.showRelevancy_ ? `\n\t\t\t<span class="relevancy">${item.r}</span>` : "";
     (str = item.label) && (item.label = ` <span class="label">${str}</span>`);
     if (Build.BTypes & BrowserType.Firefox
-        && (!(Build.BTypes & ~BrowserType.Firefox) || Vomnibar_.browser_ === BrowserType.Firefox)) {
+        && (Build.BTypes === BrowserType.Firefox as number || Vomnibar_.browser_ === BrowserType.Firefox)) {
       return;
     }
     item.favIcon = (str = Vomnibar_.showFavIcon_ ? item.u : "") && Vomnibar_._favPrefix +
@@ -1651,7 +1656,7 @@ VUtils_ = {
     ) as (<T extends object> (opt: T) => T & SafeObject),
   makeListRenderer_ (this: void, template: string): Render {
     const a = template.split(/\{\{(\w+)}}/g);
-    const parser = Build.BTypes & ~BrowserType.Firefox ? 0 as never : new DOMParser();
+    const parser = Build.BTypes !== BrowserType.Firefox as number ? 0 as never : new DOMParser();
     return function (objectArray, element): void {
       let html = "", len = a.length - 1;
       VUtils_.timeCache_ = 0
@@ -1664,13 +1669,13 @@ VUtils_ = {
               : key === "index" ? index + 1 : key === "altIndex" ? index > 9 ? "" : index < 9 ? index + 1 : 0
               : key === "time" ? Vomnibar_.showTime_ ? VUtils_.timeStr_(objectArray[index].visit) : ""
               : Build.BTypes & BrowserType.Firefox
-                && (!(Build.BTypes & ~BrowserType.Firefox) || Vomnibar_.browser_ === BrowserType.Firefox)
+                && (Build.BTypes === BrowserType.Firefox as number || Vomnibar_.browser_ === BrowserType.Firefox)
                 && key === "favIcon" ? ""
               : objectArray[index][key as keyof SuggestionE] || "";
         }
         html += a[len];
       }
-      if (Build.BTypes & ~BrowserType.Firefox) {
+      if (Build.BTypes !== BrowserType.Firefox as number) {
         element.innerHTML = html;
       } else {
         element.innerHTML = "";
@@ -1678,7 +1683,7 @@ VUtils_ = {
           ... <Element[]> <ArrayLike<Element>> parser.parseFromString(html, "text/html").body.children);
       }
       if (Build.BTypes & BrowserType.Firefox
-          && (!(Build.BTypes & ~BrowserType.Firefox) || Vomnibar_.browser_ === BrowserType.Firefox)) {
+          && (Build.BTypes === BrowserType.Firefox as number || Vomnibar_.browser_ === BrowserType.Firefox)) {
         /*#__NOINLINE__*/ VUtils_.assignFavIcons_ff_(objectArray, element)
       }
     };
@@ -1712,7 +1717,7 @@ VUtils_ = {
     return url;
   },
   decodeFileURL_ (url: string, decoded: boolean): string {
-    if (Build.OS & (1 << kOS.win) && Vomnibar_.os_ === kOS.win && url.startsWith("file://")) {
+    if (Build.OS & kBOS.WIN && Vomnibar_.os_ > kOS.MAX_NOT_WIN && url.startsWith("file://")) {
       const slash = url.indexOf("/", 7)
       if (slash < 0 || slash === url.length - 1) { return slash < 0 ? url + "/" : url }
       const type = slash === 7 ? url.charAt(9) === ":" ? 3 : url.substr(9, 3).toLowerCase() === "%3a" ? 5 : 0 : 0
@@ -1762,7 +1767,7 @@ VUtils_ = {
     return str === "amp" ? "&" : str === "apos" ? "'" : str === "quot" ? '"'
       : str === "gt" ? ">" : str === "lt" ? "<" : "";
   },
-  escapeCSSUrlInAttr_mv2_not_ff_: !Build.MV3 && Build.BTypes & ~BrowserType.Firefox ? (s0: string): string => {
+  escapeCSSUrlInAttr_mv2_not_ff_: !Build.MV3 && Build.BTypes !== BrowserType.Firefox as number ? (s0: string): string => {
     const escapeRe = <RegExpG & RegExpSearchable<0>> /["&'<>]/g;
     function escapeCallback(c: string): string {
       const i = c.charCodeAt(0);
@@ -1815,12 +1820,12 @@ VUtils_ = {
             localeMatcher: "best fit", second: "2-digit",
             year: "numeric", month: "short", weekday: "long", day: "numeric", hour: "numeric", minute: "2-digit"
           })
-          if (Build.BTypes & ~BrowserType.Firefox
+          if (Build.BTypes !== BrowserType.Firefox as number
               && Build.MinCVer < BrowserVer.MinEnsured$Intl$$DateTimeFormat$$$formatToParts) {
             dateTimeFormatter = dateTimeFormatter.formatToParts ? dateTimeFormatter : 1
           }
         }
-        if (Build.BTypes & ~BrowserType.Firefox
+        if (Build.BTypes !== BrowserType.Firefox as number
             && Build.MinCVer < BrowserVer.MinEnsured$Intl$$DateTimeFormat$$$formatToParts && dateTimeFormatter === 1
             || Vomnibar_.showTime_ < 2) {
           str = stdDateTime
@@ -1925,7 +1930,7 @@ VPort_ = {
   _ClearPort (this: void): void { VPort_._port = null; },
   connect_ (type: PortType): FgPort {
     const data = { name: VCID_ ? PortNameEnum.Prefix + type + (PortNameEnum.Delimiter + BuildStr.Commit)
-        : !(Build.BTypes & ~BrowserType.Edge)
+        : Build.BTypes === BrowserType.Edge as number
           || Build.BTypes & BrowserType.Edge && !!(window as {} as {StyleMedia: unknown}).StyleMedia
         ? type + PortNameEnum.Delimiter + location.href
         : "" + type },
@@ -1950,7 +1955,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinSafe$Stri
 });
 }
 
-if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType.Chrome) ? true
+if (Build.BTypes === BrowserType.Chrome as number ? false : !(Build.BTypes & BrowserType.Chrome) ? true
     : typeof browser === "object" && browser && (browser as typeof chrome).runtime) {
   window.chrome = browser as typeof chrome;
 }
@@ -1973,7 +1978,7 @@ if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType
     (VCID_ = VCID_ || "");
     VHost_ = VCID_;
     if (!(Build.BTypes & BrowserType.Chrome)
-        || Build.BTypes & ~BrowserType.Chrome && (VCID_).includes("-")) {
+        || Build.BTypes !== BrowserType.Chrome as number && VCID_.includes("-")) {
       VCID_ = curEl.dataset.vimiumId || BuildStr.FirefoxID;
     }
   } else {
@@ -2025,7 +2030,7 @@ if (!(Build.BTypes & ~BrowserType.Chrome) ? false : !(Build.BTypes & BrowserType
       Vomnibar_.isEdg_ = payload.v! < 0
     }
     if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key) {
-      Build.OS & (1 << kOS.mac) && Build.OS & ~(1 << kOS.mac) &&
+      Build.OS & kBOS.MAC && Build.OS !== kBOS.MAC as number &&
       (payload.o || (Vomnibar_.keyIdCorrectionOffset_old_cr_ = 300))
     }
     if (Build.OS & (Build.OS - 1)) { Vomnibar_.os_ = payload.o }

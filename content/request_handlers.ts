@@ -45,8 +45,8 @@ set_requestHandlers([
     OnChrome && set_chromeVer_(fgCache.v as BrowserVer)
     OnFirefox && set_firefoxVer_(fgCache.v as FirefoxBrowserVer)
     Build.OS & (Build.OS - 1) && set_os_(fgCache.o)
-    if (OnChrome && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key && Build.OS & ~(1 << kOS.mac)) {
-      (Build.OS & (1 << kOS.mac)) && !os_ && set_keyIdCorrectionOffset_old_cr_(300)
+    if (OnChrome && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key) {
+      Build.OS !== kBOS.MAC as number && Build.OS & kBOS.MAC && !os_ && set_keyIdCorrectionOffset_old_cr_(300)
     }
     if (OnChrome && Build.MinCVer < BrowserVer.MinNoKeygenElement && chromeVer_ < BrowserVer.MinNoKeygenElement
         || OnFirefox && Build.MinFFVer < FirefoxBrowserVer.MinNoKeygenElement

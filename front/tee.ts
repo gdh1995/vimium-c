@@ -1,7 +1,7 @@
 /// <reference path="../typings/lib/window.d.ts" />
 
 (function (): void {
-  const MayChrome = !!(Build.BTypes & BrowserType.Chrome), MayNotChrome = !!(Build.BTypes & ~BrowserType.Chrome)
+  const MayChrome = !!(Build.BTypes & BrowserType.Chrome), MayNotChrome = Build.BTypes !== BrowserType.Chrome as number
   const mayBrowser_ = MayChrome && MayNotChrome
       && typeof browser === "object" && !("tagName" in (browser as unknown as Element))
       ? (browser as typeof chrome) : null
@@ -77,7 +77,7 @@
           return res instanceof Response ? res.blob() : res
         })
         .then((image): Promise<unknown> => {
-          if (!(Build.BTypes & ~BrowserType.Firefox)
+          if (Build.BTypes === BrowserType.Firefox as number
                 || !!(Build.BTypes & BrowserType.Firefox) && serialized.b! & BrowserType.Firefox) {
             return new Promise<void>((resolve): void => {
               const reader = new FileReader()

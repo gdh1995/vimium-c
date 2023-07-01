@@ -145,7 +145,7 @@ const getClickable = (hints: Hint[], element: SafeHTMLElement): void => {
   if (isClickable === null) {
     type = (s = element.contentEditable) !== "inherit" && s !== "false" ? ClickType.edit
       : (OnFirefox ? element.onclick || element.onmousedown : element.getAttribute("onclick"))
-        || (s = !(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinEnsured$Element$$role
+        || (s = Build.BTypes === BrowserType.Chrome as number && Build.MinCVer >= BrowserVer.MinEnsured$Element$$role
               ? element.role as Exclude<Element["role"], undefined> : element.getAttribute("role"))
             && clickableRoles_.test(s) && (
           !(s.startsWith("menu") && queryChildByTag_(element, "ul"))
@@ -170,8 +170,9 @@ const getClickable = (hints: Hint[], element: SafeHTMLElement): void => {
             && (!(anotherEl = element.parentElement)
                 || (type ? (s = htmlTag_(anotherEl), !s.includes("button") && s !== "a")
                     : clickable_.has(anotherEl) && hasTag_("ul", anotherEl) && !s.includes("active")))
-            || (!(Build.BTypes & ~BrowserType.Safari) || !(Build.BTypes & ~(BrowserType.Chrome | BrowserType.Safari))
-                && Build.MinCVer >= BrowserVer.MinCorrectAriaSelected ? element.ariaSelected !== null
+            || (Build.BTypes === BrowserType.Safari as number
+                || !(Build.BTypes & ~(BrowserType.Chrome | BrowserType.Safari))
+                   && Build.MinCVer >= BrowserVer.MinCorrectAriaSelected ? element.ariaSelected !== null
                 : element.hasAttribute("aria-selected"))
             || element.getAttribute("data-tab") ? ClickType.classname : ClickType.Default);
     isClickable = type > ClickType.Default

@@ -21,14 +21,14 @@ const OnOther: BrowserType = Build.BTypes && !(Build.BTypes & (Build.BTypes - 1)
     : Build.BTypes & BrowserType.Firefox ? BrowserType.Firefox
     : /* an invalid state */ BrowserType.Unknown
 
-export const OnChrome: boolean = !(Build.BTypes & ~BrowserType.Chrome)
-    || !!(Build.BTypes & BrowserType.Chrome && OnOther & BrowserType.Chrome)
-export const OnFirefox: boolean = !(Build.BTypes & ~BrowserType.Firefox)
-    || !!(Build.BTypes & BrowserType.Firefox && OnOther & BrowserType.Firefox)
-export const OnEdge: boolean = !(Build.BTypes & ~BrowserType.Edge)
-    || !!(Build.BTypes & BrowserType.Edge && OnOther & BrowserType.Edge)
-export const OnSafari: boolean = !(Build.BTypes & ~BrowserType.Safari)
-    || !!(Build.BTypes & BrowserType.Safari && OnOther & BrowserType.Safari)
+export const OnChrome: boolean = Build.BTypes === BrowserType.Chrome as number
+    || !!(Build.BTypes & BrowserType.Chrome) && OnOther === BrowserType.Chrome
+export const OnFirefox: boolean = Build.BTypes === BrowserType.Firefox as number
+    || !!(Build.BTypes & BrowserType.Firefox) && OnOther === BrowserType.Firefox
+export const OnEdge: boolean = Build.BTypes === BrowserType.Edge as number
+    || !!(Build.BTypes & BrowserType.Edge) && OnOther === BrowserType.Edge
+export const OnSafari: boolean = Build.BTypes === BrowserType.Safari as number
+    || !!(Build.BTypes & BrowserType.Safari) && OnOther === BrowserType.Safari
 
 const uad = navigator.userAgentData
 const brands = OnChrome && Build.MinCVer >= BrowserVer.MinEnsuredNavigator$userAgentData ? uad!.brands
@@ -478,18 +478,18 @@ export const hasShift_ = (event: Pick<KeyboardEvent, "shiftKey" | "key" | "getMo
 export const isRepeated_ = (event: KeyboardEvent): boolean => {
   const repeated = event.repeat
   if (OnChrome ? Build.MinCVer >= BrowserVer.MinCorrect$KeyboardEvent$$Repeat
-      : OnFirefox ? !(Build.OS & (1 << kOS.unixLike)) : true) {
+      : OnFirefox ? !(Build.OS & kBOS.LINUX_LIKE) : true) {
     return repeated
   }
   return repeated || (OnChrome ? CurCVer_ < BrowserVer.MinCorrect$KeyboardEvent$$Repeat
-    : OnFirefox && (!(Build.OS & ~(1 << kOS.unixLike)) || PageOs_ === kOS.unixLike))
+    : OnFirefox && (Build.OS === kBOS.LINUX_LIKE as number || PageOs_ === kOS.linuxLike))
       && !!(VApi && VApi.a()[event.keyCode] && event.keyCode)
 }
 
 export const prevent_ = (event: EventToPrevent & PartialOf<KeyboardEvent, "keyCode" | "metaKey">): void => {
   event.preventDefault()
   const keyCode = event.type === "keydown" ? event.keyCode : kKeyCode.None
-  if (keyCode && (!(Build.OS & (1 << kOS.mac)) || Build.OS & ~(1 << kOS.mac) && PageOs_ || !event.metaKey)) {
+  if (keyCode && (!(Build.OS & kBOS.MAC) || Build.OS !== kBOS.MAC as number && PageOs_ || !event.metaKey)) {
     VApi && (VApi.a()[keyCode] = 1)
   }
 }
