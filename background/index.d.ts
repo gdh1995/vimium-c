@@ -314,7 +314,6 @@ declare namespace SettingsNS {
     searchUrl: string;
     searchEngines: string;
     showActionIcon: boolean;
-    showAdvancedOptions: boolean;
     showInIncognito: boolean;
     notifyUpdate: boolean;
     userDefinedCss: string;

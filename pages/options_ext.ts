@@ -5,9 +5,7 @@ import {
 import { bgSettings_, AllowedOptions, ExclusionRulesOption_, Option_, oTrans_, getSettingsCache_ } from "./options_base"
 import { exportBtn_, saveBtn_ } from "./options_defs"
 import { manifest_ } from "./options_permissions";
-import {
-  advancedOptBtn, ElementWithDelay, delayed_task, clear_delayed_task, onHash_, noBlobSupport_cr_mv2_
-} from "./options_wnd"
+import { ElementWithDelay, delayed_task, clear_delayed_task, onHash_, noBlobSupport_cr_mv2_ } from "./options_wnd"
 import { kPgReq } from "../background/page_messages"
 
 const kSettingsToUpgrade_: readonly SettingsNS.LocalSettingNames[] = [
@@ -434,9 +432,6 @@ async function _importSettings(time: number, new_data: ExportedSettings, is_reco
   enableNextTick_(kReadyInfo.NONE, kReadyInfo.LOCK)
   await 0 // eslint-disable-line @typescript-eslint/await-thenable
   saveBtn_.onclick(false);
-  if (advancedOptBtn.getAttribute("aria-checked") !== "" + <boolean> bgSettings_.get_("showAdvancedOptions")) {
-    advancedOptBtn.onclick(null, true)
-  }
   if (really_updated <= 0) {
     console.info("no differences found.")
   } else if (old_settings_file.options > 0) {

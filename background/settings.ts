@@ -467,7 +467,6 @@ ge|gitee: https://search.gitee.com/?type=repository&q=$s \\
 js\\:|Js: javascript:\\ $S; JavaScript`,
     showActionIcon: true,
     showAdvancedCommands: true,
-    showAdvancedOptions: true,
     showInIncognito: false,
     smoothScroll: true,
     userDefinedCss: "",
@@ -531,7 +530,7 @@ bgIniting_ < BackendHandlersNS.kInitStat.FINISHED && ((): void => {
   obj.VerCode_ = ref.version;
   obj.VerName_ = ref.version_name || ref.version;
   if (Build.MV3 && !OnFirefox) { obj.PrivateAlivePage_ = func(obj.PrivateAlivePage_) }
-  obj.OptionsPage_ = func(ref.options_page || obj.OptionsPage_);
+  obj.OptionsPage_ = func(obj.OptionsPage_);
   obj.ShowPage_ = func(obj.ShowPage_);
   obj.VomnibarPageInner_ = func(defaults_.vomnibarPage)
   obj.VomnibarScript_f_ = func(obj.VomnibarScript_);

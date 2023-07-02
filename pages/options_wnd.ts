@@ -17,13 +17,8 @@ interface ElementWithHash extends HTMLElement {
 export interface ElementWithDelay extends HTMLElement {
   onclick (this: ElementWithDelay, event?: MouseEventToPrevent | null): void;
 }
-interface AdvancedOptBtn extends HTMLButtonElement {
-  onclick (_0: MouseEvent | null, init?: "hash" | true): void;
-}
 
 export let delayed_task: [string, MouseEventToPrevent | null] | null | undefined
-export const advancedOptBtn = $<AdvancedOptBtn>("#advancedOptionsButton")
-let advancedMode = false
 export const clear_delayed_task = (): void => { delayed_task = null }
 
 enableNextTick_(kReadyInfo.LOCK)
@@ -61,24 +56,6 @@ delayBinding_(saveBtn_, "click", ((virtually): void => {
 const refreshSync = (): void => { post_(kPgReq.saveToSyncAtOnce) }
 
 let optionsInit1_ = function (): void {
-  advancedOptBtn.onclick = function (ev, init): void {
-    let oldVal: boolean | null = null
-    const loadOld = (): boolean => oldVal = <boolean> bgSettings_.get_("showAdvancedOptions")
-    if (ev != null || (init === "hash" && loadOld() === false)) {
-      advancedMode = !advancedMode;
-      void bgSettings_.set_("showAdvancedOptions", advancedMode)
-    } else {
-      advancedMode = oldVal != null ? oldVal : loadOld()
-    }
-    let el = init === true && advancedMode ? null : $("#advancedOptions")
-    nextTick_((): void => {
-      while (el) { el.style.display = advancedMode ? "" : "none"; el = el.nextElementSibling as HTMLElement | null }
-    const s = advancedMode ? "Hide" : "Show";
-    (this.firstChild as Text).data = oTrans_(s) || s
-    this.setAttribute("aria-checked", "" + advancedMode);
-    }, 9);
-  };
-  advancedOptBtn.onclick(null, true)
   Option_.suppressPopulate_ = false
   if (Build.NDEBUG) {
     for (let key in Option_.all_) { void Option_.all_[key as "vimSync"].fetch_() }
@@ -251,9 +228,6 @@ let optionsInit1_ = function (): void {
   }
 
   const onRefStatClick = (event: MouseEventToPrevent): void => {
-    if (!advancedMode) {
-      advancedOptBtn.onclick(null)
-    }
     prevent_(event)
     const sel2 = ((event.currentTarget as HTMLElement).dataset as KnownOptionsDataset).for.split(":").slice(-1)[0]
     const maybeNode2 = $$<EnsuredMountedHTMLElement & HTMLInputElement>(sel2)

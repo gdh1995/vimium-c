@@ -143,7 +143,7 @@
     "chrome://*/*",
     "chrome://new-tab-page/*"
   ],
-  "options_page": "pages/options.html",
+  "options_page.v2": "pages/options.html",
   "options_ui": {
     "page": "pages/options.html",
     "open_in_tab": true
