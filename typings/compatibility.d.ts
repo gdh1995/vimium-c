@@ -1,5 +1,5 @@
 /**
- * #define EXPERIMENTAL (#enable-experimental-web-platform-features \
+ * #define EXP (#enable-experimental-web-platform-features \
  *    && #enable-javascript-harmony \
  *    && #enable-experimental-canvas-features \
  * )
@@ -12,43 +12,43 @@ declare const enum BrowserVer {
   MinShadowDOMV0 = 31, // the real version is <= C31; it's prefixed
   // mouseEvent.buttons is since C43 but a `buttons` property does no harm on Chrome <= 42
   MinUsable$MouseEvent$$constructor = 31, // the real version is <= C31
-  MinMaybe$String$$StartsWithAndEndsWith = 31, // the real version is <= C31; if EXPERIMENTAL
+  MinMaybe$String$$StartsWithAndEndsWith = 31, // the real version is <= C31; if EXP
   MinEnsured$onwheel = 31, // even if LEGACY
   MinFormatOptionWhenCaptureTab = 31, // even if LEGACY
   MinSupported = 32,
   MinEnsuredES6Promise = 32, // even if LEGACY
-  // the 5 below are correct even if EXPERIMENTAL or LEGACY
+  // the 5 below are correct even if EXP or LEGACY
   Min$URL$NewableAndInstancesHaveProperties = 32,
   Min$KeyboardEvent$$Repeat$ExistsButNotWork = 32, // replaced by MinCorrect$KeyboardEvent$$Repeat (C38)
   Min$document$$hidden = 33, // unprefixed; .webkitHidden still exists on C31
   // `<input type=number>.selectionStart` throws since Chrome 33 and before C58 (Min$selectionStart$MayBeNull),
   Min$selectionStart$MayThrow = 33,
   Min$Promise$$Then$Accepts$null = 33,
-  Maybe$Promise$onlyHas$$resolved = 33, // only if EXPERIMENTAL
+  Maybe$Promise$onlyHas$$resolved = 33, // only if EXP
   // before 33, `a=activeElement; a.blur(); a.focus()` can not make its iframe grab focus
-  MinFocusIframeDirectlyWithout$wnd$$focus = 33, // even if EXPERIMENTAL or LEGACY; need .contentWindow.focus() before
+  MinFocusIframeDirectlyWithout$wnd$$focus = 33, // even if EXP or LEGACY; need .contentWindow.focus() before
   MinDocument$visibilityState = 33,
-  MinDocument$hasFocus = 34, // even if EXPERIMENTAL or LEGACY; before C34, `hasFocus` is in HTMLDocument
-  MinCSSWidthUnit$vw$InCalc = 34, // even if EXPERIMENTAL or LEGACY
+  MinDocument$hasFocus = 34, // even if EXP or LEGACY; before C34, `hasFocus` is in HTMLDocument
+  MinCSSWidthUnit$vw$InCalc = 34, // even if EXP or LEGACY
   Min$Object$$setPrototypeOf = 34,
   // before C34, 2 images share a size part (the first one's), and different height/width would work as the smaller one
   /** {@see ../pages/options.css#select { background: ...; }} */
   MinMultipleBackgroundImagesNotShareSizePart = 34,
-  // on C34 and if EXPERIMENTAL, then it's not implied; before C37, `'unsafe-inline'` is necessary in CSP
+  // on C34 and if EXP, then it's not implied; before C37, `'unsafe-inline'` is necessary in CSP
   StyleSrc$UnsafeInline$MayNotImply$UnsafeEval = 34,
-  Min$String$$Normalize = 34, // even if EXPERIMENTAL or LEGACY
-  Min$Element$$matches = 34, // even if EXPERIMENTAL or LEGACY
+  Min$String$$Normalize = 34, // even if EXP or LEGACY
+  Min$Element$$matches = 34, // even if EXP or LEGACY
   MinEnsuredUnprefixedShadowDOMV0 = 35, // even if LEGACY
   MinEnsured$Event$$Path = 35, // = MinEnsuredUnprefixedShadowDOMV0
   // there're WeakMap, WeakSet, Map, Set and Symbol on C31, if #enable-javascript-harmony
-  Min$String$document$$all$isCorrect = 36, // even if EXPERIMENTAL or LEGACY; before C36, it returns `"undefined"`
+  Min$String$document$$all$isCorrect = 36, // even if EXP or LEGACY; before C36, it returns `"undefined"`
   MinEnsuredES6WeakMapAndWeakSet = 36,
   Min$Set$Has$$forEach = 36, // if #enable-javascript-harmony
   // but shadowRoot.getElementById still exists on C31
-  Min$DocumentFragment$$getElementById = 36, // even if EXPERIMENTAL or LEGACY
-  MinPhysicalPixelOnWindows = 37, // even if EXPERIMENTAL or LEGACY; replaced by MinHighDPIOnWindows
+  Min$DocumentFragment$$getElementById = 36, // even if EXP or LEGACY
+  MinPhysicalPixelOnWindows = 37, // even if EXP or LEGACY; replaced by MinHighDPIOnWindows
   // before C37, if a page has no `'unsafe-inline'` in its CSP::`style-src`, then Vimium's styles is totally broken
-  MinStyleSrcInCSPNotBreakUI = 37, // even if EXPERIMENTAL or LEGACY
+  MinStyleSrcInCSPNotBreakUI = 37, // even if EXP or LEGACY
   MinSessions = 37,
   /*
    * an `all:initial` prevents position/z-index attrs in other matched rules from working
@@ -63,65 +63,65 @@ declare const enum BrowserVer {
    * so must remove the all: before MinFixedCSS$All$MayMistakenlyResetFixedPosition
    */
   MinCSS$All$MightOverwriteFixedPosition = 37,
-  MinEnsuredHTMLDialogElement = 37, // not on Edge; under a flag since FF53; still exists on C31 if EXPERIMENTAL
-  // since C37, if EXPERIMENTAL `Symbol.iterator` is valid and `for-of` can be used on Set and Map
+  MinEnsuredHTMLDialogElement = 37, // not on Edge; under a flag since FF53; still exists on C31 if EXP
+  // since C37, if EXP `Symbol.iterator` is valid and `for-of` can be used on Set and Map
   MinMaybe$Symbol$$Iterator$existsAndWorksFor$Set$and$Map = 37,
-  // for-of is only for generators before C38, so an array can not be iterated on C37 even if EXPERIMENTAL
-  MinEnsuredES6$ForOf$Map$SetAnd$Symbol = 38, // even if LEGACY; still exists on C31 if EXPERIMENTAL
+  // for-of is only for generators before C38, so an array can not be iterated on C37 even if EXP
+  MinEnsuredES6$ForOf$Map$SetAnd$Symbol = 38, // even if LEGACY; still exists on C31 if EXP
   BuildMinForOf = 38,
-  // .repeat exists since C32, but only works since C38, even if EXPERIMENTAL
+  // .repeat exists since C32, but only works since C38, even if EXP
   // because there seems no simple fix, just ignore it
   // https://bugs.chromium.org/p/chromium/issues/detail?id=394907
   MinCorrect$KeyboardEvent$$Repeat = 38,
-  MinEnsuredTextEncoderAndDecoder = 38, // even if LEGACY; still exists on C31 if EXPERIMENTAL
-  MinEnsured$Math$$log2 = 38, // even if LEGACY; exists on C34 if EXPERIMENTAL
-  MinNewWeakSetWithSetOrArray = 38, // `s=new Set();s.add(a={});new WeakSet(s).has(a)` : even if EXPERIMENTAL or LEGACY
+  MinEnsuredTextEncoderAndDecoder = 38, // even if LEGACY; still exists on C31 if EXP
+  MinEnsured$Math$$log2 = 38, // even if LEGACY; exists on C34 if EXP
+  MinNewWeakSetWithSetOrArray = 38, // `s=new Set();s.add(a={});new WeakSet(s).has(a)` : even if EXP or LEGACY
   MinCmdArg$__javascript_harmony = 39, // before C39, it's not `--javascript-harmony` but `--js-flags=--harmony`
   MinWithFrameIdInArg = 39,
   // only cause event#load even if failing in decoding its data. Test code:
   // var a=new XMLHttpRequest();a.open("GET","data:text/plain;charset=utf-8,%E9%9A",!0);
   // a.onerror=a.onload=function(i){console.log(i.type,i)};a.responseType='text';a.send();
-  MinRequestDataURLOnBackgroundPage = 39, // even if EXPERIMENTAL or LEGACY
-  Min$Set$accept$Symbol$$Iterator = 39, // even if EXPERIMENTAL or LEGACY; test code: new Set('foo')
-  MinEnsuredGeneratorFunction = 39, // even if LEGACY; exists on C31 if EXPERIMENTAL
+  MinRequestDataURLOnBackgroundPage = 39, // even if EXP or LEGACY
+  Min$Set$accept$Symbol$$Iterator = 39, // even if EXP or LEGACY; test code: new Set('foo')
+  MinEnsuredGeneratorFunction = 39, // even if LEGACY; exists on C31 if EXP
   MinOptionsUI = 40,
   MinDisableMoveTabAcrossIncognito = 40,
-  // even if EXPERIMENTAL or LEGACY
+  // even if EXP or LEGACY
   MinWarningSyncXHR = 40,
   MinEnsured$Element$$Closest = 41, // even if LEGACY
   MinWithFrameId = 41,
   // just means it's enabled by default
-  Min$String$$StartsWithEndsWithAndIncludes$ByDefault = 41, // no "".includes before 41 even if EXPERIMENTAL
+  Min$String$$StartsWithEndsWithAndIncludes$ByDefault = 41, // no "".includes before 41 even if EXP
   MinGlobal$HTMLDetailsElement = 41,
   MinFixedCSS$All$MightOverwriteFixedPosition = 41,
   // ignore MinFixedCSS$All$MightOverwriteAnchorColor
   MinUsableCSS$All = MinFixedCSS$All$MightOverwriteFixedPosition,
-  // (if EXPERIMENTAL, then it exists since C34 but) has no effects before C41;
-  // if EXPERIMENTAL, there's Element::scrollTo and Element::scrollBy only since C41
+  // (if EXP, then it exists since C34 but) has no effects before C41;
+  // if EXP, there's Element::scrollTo and Element::scrollBy only since C41
   MinCSS$ScrollBehavior$$Smooth$Work = 41,
   // MethodFunction is accepted since C42 if EMPTY
-  MinMayBeES6MethodFunction = 41, // if EXPERIMENTAL
-  MinMaybe$fetch$And$Request = 41, // if EXPERIMENTAL
-  // before 42, event.path is a simple NodeList instance ; even if EXPERIMENTAL or LEGACY
+  MinMayBeES6MethodFunction = 41, // if EXP
+  MinMaybe$fetch$And$Request = 41, // if EXP
+  // before 42, event.path is a simple NodeList instance ; even if EXP or LEGACY
   Min$Event$$path$IsStdArrayAndIncludesWindow = 42,
   Min$Tabs$$getZoom = 42,
   Min$Tabs$$setZoom = 42,
   Min$EnableSitePerProcess$Flag = 42,
-  // 'shadowRoot' in Element.prototype since C43, and 'assignedSlot' since C53, even if EXPERIMENTAL or LEGACY
-  MinParentNodeGetterInNodePrototype = 42, // also .childNodes; even if EXPERIMENTAL or LEGACY
+  // 'shadowRoot' in Element.prototype since C43, and 'assignedSlot' since C53, even if EXP or LEGACY
+  MinParentNodeGetterInNodePrototype = 42, // also .childNodes; even if EXP or LEGACY
   MinEnsured$fetch = 42, // even if LEGACY; also window.Request; can not fetch chrome-extension:// before C47
   // before C43, "font-size: ***" of <select> overrides those of its <options>s'
   // since C42@exp, <option> is visible, but its text has a strange extra prefix of "A" - fixed on C43
   Min$Option$HasReliableFontSize = 43, // even if LEGACY
-  Min$DocumentOrShadowRoot$$elementsFromPoint = 43, // even if EXPERIMENTAL or LEGACY
+  Min$DocumentOrShadowRoot$$elementsFromPoint = 43, // even if EXP or LEGACY
   MinEnsuredES6LetAndConst = 43, // even if LEGACY; only in "use strict" mode
   MinEnsuredES6$String$$StartsWithEndsWithRepeatAndIncludes = 43, // even if LEGACY
   MinSafe$String$$StartsWith = MinEnsuredES6$String$$StartsWithEndsWithRepeatAndIncludes,
   MinEnsuredES6$String$$fromCodePoint = 43, // even if LEGACY; since C41 if not
-  Min$HTMLIFrameElement$$sandbox$isTokenList = 43, // even if EXPERIMENTAL or LEGACY
+  Min$HTMLIFrameElement$$sandbox$isTokenList = 43, // even if EXP or LEGACY
   MinRuntimePlatformOs = 44,
   MinCreateWndWithState = 44,
-  // the 3 below are correct even if EXPERIMENTAL or LEGACY
+  // the 3 below are correct even if EXP or LEGACY
   // #scroll-top-left-interop is also since C44
   // `scrollingElement` is added in (commit 8df26a52e71e5b239c3749ec6f4180441ee4fc7e)
   // before C44, the real scrolling may be <body> even if document.compatMode is "CSS1Compat"
@@ -129,8 +129,8 @@ declare const enum BrowserVer {
   Min$Document$$ScrollingElement = 44,
   MinTreat$LetterColon$AsFilePath = 44,
   MinFixedCSS$All$MightOverwriteAnchorColor = 44, // affect links on the help dialog; ignored
-  CSS$All$$initial$MayBreakHelpDialog = 45, // `.R.H{all:initial}` is necessary on C46-C55, but fails on C45
-  // the 2 below are even if EXPERIMENTAL or EMPTY
+  CSS$All$$initial$MayBreakHelpDialog = 45, // if EXP, `.R.H{all:initial}` is necessary on C46-C55, but fails on C45
+  // the 2 below are even if EXP or EMPTY
   MinMayBeES6ArrowFunction = 45,
   // for VHints.traverse_, Array.from takes >= 2x time to convert a static NodeList of 7242 elements to an array
   // and the average time data is 119~126ms / 255~266ms for 100 times
@@ -142,28 +142,28 @@ declare const enum BrowserVer {
   MinTabAudible = 45,
   // https://www.chromestatus.com/features/5697181675683840
   MinNoMousePositionUpdatesWhenScrolling = 45, // replaced by MinRuntimeFlag$UpdateHoverAtBeginFrame
-  // the 4 below are even if EXPERIMENTAL or LEGACY
+  // the 4 below are even if EXP or LEGACY
   Min$CustomEvent$$detail$getter = 45,
   Min$Array$$find$$findIndex = 45,
   MinAutoDecodeJSURL = 46,
   Min$Event$$IsTrusted = 46,
   MinMutedInfo = 46,
-  // occur on Chrome 46 if EXPERIMENTAL; always enabled since C47 even if LEGACY
+  // occur on Chrome 46 if EXP; always enabled since C47 even if LEGACY
   MinMayBe$requestIdleCallback = 46,
-  MinMaybeES$Array$$Includes = 46, // if EXPERIMENTAL
+  MinMaybeES$Array$$Includes = 46, // if EXP
   Min$windows$APIsFilterOutDevToolsByDefault = 46,
   Min$windows$$GetAll$SupportWindowTypes = 46,
-  Min$CSS$$escape = 46, // even if EXPERIMENTAL or LEGACY
+  Min$CSS$$escape = 46, // even if EXP or LEGACY
   MinEnsured$requestIdleCallback = 47,
   Min$Tabs$$Query$RejectHash = 47,
   // if .key exists, it's "v" for `v`, but "" (empty) for `<c-v>` - doesn't support all cases
-  Min$KeyboardEvent$MayHave$$Key = 47, // if EXPERIMENTAL
-  Min$IFrame$MayHave$$Referrerpolicy = 47, // if EXPERIMENTAL
+  Min$KeyboardEvent$MayHave$$Key = 47, // if EXP
+  Min$IFrame$MayHave$$Referrerpolicy = 47, // if EXP
   MinEnsured$InputDeviceCapabilities = 47, // even if LEGACY; also ensured UIEvent.sourceCapabilities
   MinEnsured$Object$$assign = 47, // even if LEGACY; since C45 if only no LEGACY
-  MinFetchExtensionFiles = 47, // even if EXPERIMENTAL or LEGACY
-  MinFetchDataURL = 48, // even if EXPERIMENTAL; test code: fetch('data:,abc').then(i=>i.text()).then(cb,cb)
-  // even if EXPERIMENTAL or LEGACY
+  MinFetchExtensionFiles = 47, // even if EXP or LEGACY
+  MinFetchDataURL = 48, // even if EXP; test code: fetch('data:,abc').then(i=>i.text()).then(cb,cb)
+  // even if EXP or LEGACY
   // before: real_width := Math.floor(width * zoom)
   // after: real_width := Math.floor(width * zoom) || (width ? 1 : 0)
   MinEnsuredBorderWidthWithoutDeviceInfo = 48, // inc 0.0001px to the min "visible" width
@@ -174,37 +174,37 @@ declare const enum BrowserVer {
   MinEnsuredES6ArrowFunction = 48,
   MinEnsuredES6SpreadOperator = 48,
   MinEnsuredES6NewTarget = 48, // even if LEGACY; since 46 if not
-  // even if EXPERIMENTAL or LEGACY
+  // even if EXP or LEGACY
   MinSafeGlobal$frameElement = 48,
   // just means it's enabled even if LEGACY;
-  // if EXPERIMENTAL, .code is "" on Chrome 42/43, and works well since C44
+  // if EXP, .code is "" on Chrome 42/43, and works well since C44
   MinEnsured$KeyboardEvent$$Code = 48,
-  MinMayBeShadowDOMV1 = 48, // if EXPERIMENTAL
+  MinMayBeShadowDOMV1 = 48, // if EXP
   // a path of an older DOMActivate event has all nodes (windows -> nodes in shadow DOM)
   // this feature is enabled by default on C53, 54, 55;
   // and replaced by MinDOMActivateInClosedShadowRootHasNoShadowNodesInPathWhenOnDocument since C56
-  MinMayNoDOMActivateInClosedShadowRootPassedToFrameDocument = 48, // if EXPERIMENTAL
+  MinMayNoDOMActivateInClosedShadowRootPassedToFrameDocument = 48, // if EXP
   MinEnsuredTouchEventConstructor = 48, // even if LEGACY
   MinEnsuredBorderAndBoxWidthWithoutDeviceInfo = 49, // inc 0.0001px to the min "visible" width
-  // since C46 (MinMaybeES$Array$$Includes) if EXPERIMENTAL; since C47 if not LEGACY
+  // since C46 (MinMaybeES$Array$$Includes) if EXP; since C47 if not LEGACY
   MinEnsuredES$Array$$Includes = 49, // even if LEGACY
-  // the 3 below are correct even if EXPERIMENTAL or LEGACY
+  // the 3 below are correct even if EXP or LEGACY
   MinSafeWndPostMessageAcrossProcesses = 49,
   MinES6No$Promise$$defer = 49,
   Min$resolve$Promise$MeansThen = 49, // see {@doc ./tests/unit/order-when-resolve-promise.html}
   /* content scripts are always injected (tested on Chrome from 35 to 66), and can always be listed by the Dev Tools */
-  // even if EXPERIMENTAL or LEGACY; length of an older addEventListener is 0
+  // even if EXP or LEGACY; length of an older addEventListener is 0
   Min$addEventListener$$length$Is2 = 49,
   // by default, `noreferrer` can also make `opener` null, and it still works on C35
-  // a single `noopener` only works since C49 even if EXPERIMENTAL or LEGACY
+  // a single `noopener` only works since C49 even if EXP or LEGACY
   MinLinkRelAcceptNoopener = 49,
   Min$webNavigation$$getFrame$IgnoreProcessId = 49,
-  MinSVG$Path$MayHave$d$CSSAttribute = 49, // if EXPERIMENTAL
-  MinEnsuredCSSVariables = 49, // even if LEGACY; works on C48 if EXPERIMENTAL
+  MinSVG$Path$MayHave$d$CSSAttribute = 49, // if EXP
+  MinEnsuredCSSVariables = 49, // even if LEGACY; works on C48 if EXP
   MinTestedES6Environment = 49, // must be <= MinEnsuredFullES6Environment
-  MinCSS$whiteSpace$$pre$Means$overflowWrap$$normal = 49, // even if EXPERIMENTAL
-  MinEnsuredCaseInSensitiveAttrSelector = 49, // even if LEGACY; since C38 if EXPERIMENTAL
-  // Object.observe is from C36 to C49 even if EXPERIMENTAL or LEGACY
+  MinCSS$whiteSpace$$pre$Means$overflowWrap$$normal = 49, // even if EXP
+  MinEnsuredCaseInSensitiveAttrSelector = 49, // even if LEGACY; since C38 if EXP
+  // Object.observe is from C36 to C49 even if EXP or LEGACY
   MinES6No$Object$$Observe = 50,
   // The real support for arg frameId of chrome.tabs.executeScript is since C50,
   //   and is neither 41 (an older version) nor 39 (cur ver on 2018-02-18)
@@ -212,12 +212,12 @@ declare const enum BrowserVer {
   // And, all "since C39" lines are totally wrong in the 2018-02-18 version of `tabs.executeScript`
   Min$tabs$$executeScript$hasFrameIdArg = 50,
   MinSVG$Path$Has$Use$Attribute = 50, // <path use="..." />
-  MinMaybe$window$$InputEvent = 50, // only if EXPERIMENTAL
-  MinEnsured$canvas$$toBlob = 50, // even if LEGACY; since C47 if EXPERIMENTAL
+  MinMaybe$window$$InputEvent = 50, // only if EXP
+  MinEnsured$canvas$$toBlob = 50, // even if LEGACY; since C47 if EXP
   // MinShowBlockForBrokenImage = 51, // not reproduced
   MinEnsuredIFrameReferrerpolicy = 51,
   MinEnsured$KeyboardEvent$$Key = 51,
-  // the 6 below are correct even if EXPERIMENTAL or LEGACY
+  // the 6 below are correct even if EXP or LEGACY
   MinPassiveEventListener = 51,
   // before C51, if an iframe has no scrollable boxes, its parent frame scrolls and gets events
   // since C51, its parent still scrolls but gets no wheel events
@@ -227,45 +227,45 @@ declare const enum BrowserVer {
   Min$Node$$isConnected = 51, // not on Edge
   Min$ScrollIntoView$SetTabNavigationNode = 51,
   MinEnsured$Reflect$$apply$And$$construct = 51, // even if LEGACY
-  // Chrome also began to put contain attr in use on 51 if EXPERIMENTAL
+  // Chrome also began to put contain attr in use on 51 if EXP
   // but obviously there's some bugs about this feature: e.g. `layout` breaks size of link hints
   CSS$Contain$BreaksHelpDialogSize = 51,
   MinEnsured$ForOf$ForDOMListTypes = 51, // NodeList has also forEach (neither HTMLCollection nor ClientRectList)
   // test: var {a,b,c}={a:(...a)=>[-1,`${Math.sign(2)}`,...a],b(i=2){return i*6}, ['c'](d){let j=class A{};return ""+j}}
   // on C51, the above passes, but the Developer Tools can not be opened if LEGACY
-  MinMaybeES$Object$$values$and$$entries = 51, // if EXPERIMENTAL; since C56 even if LEGACY
+  MinMaybeES$Object$$values$and$$entries = 51, // if EXP; since C56 even if LEGACY
   MinEnsuredFullES6Environment = 52,
-  // the 2 below are correct even if EXPERIMENTAL or LEGACY
+  // the 2 below are correct even if EXP or LEGACY
   MinNoAbnormalIncognito = 52,
   // since https://github.com/chromium/chromium/commit/866d1237c72059624def2242e218a7dfe78b125e
   MinEventListenersFromExtensionOnSandboxedPage = 52,
   // the 4 below are correct even if LEGACY
-  MinEnsuredCSSEnableContain = 52, // on C51, not exists unless EXPERIMENTAL
-  MinEnsuredSVG$Path$Has$d$CSSAttribute = 52, // svg path { d: path('...'); } ; on C51, not exists unless EXPERIMENTAL
+  MinEnsuredCSSEnableContain = 52, // on C51, not exists unless EXP
+  MinEnsuredSVG$Path$Has$d$CSSAttribute = 52, // svg path { d: path('...'); } ; on C51, not exists unless EXP
   MinForcedDirectWriteOnWindows = 52,
   // if #enable-site-per-process or #enable-top-document-isolation,
-  // for 3rd-party child frames in other processes, it keeps the same only since C52 even if EXPERIMENTAL
+  // for 3rd-party child frames in other processes, it keeps the same only since C52 even if EXP
   MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent = 52,
-  MinPositionMayBeSticky = 52, // if EXPERIMENTAL; enabled by default since C56 even if LEGACY
-  MinAutoScrollerAllocNewSpace = 53, // even if EXPERIMENTAL or LEGACY; if box-sizing is content-box
+  MinPositionMayBeSticky = 52, // if EXP; enabled by default since C56 even if LEGACY
+  MinAutoScrollerAllocNewSpace = 53, // even if EXP or LEGACY; if box-sizing is content-box
   MinEnsuredShadowDOMV1 = 53,
   // since C53, Vimium's inner styles have been really safe, because `>>>` only works on "open" mode shadow trees
   MinEnsuredSafeInnerCSS = MinEnsuredShadowDOMV1,
-  MinEnsuredWebkitUserSelectAll = 53, // `-webkit-user-select: all` still works on C31 if EXPERIMENTAL
-  // even if EXPERIMENTAL or LEGACY
+  MinEnsuredWebkitUserSelectAll = 53, // `-webkit-user-select: all` still works on C31 if EXP
+  // even if EXP or LEGACY
   MinUntrustedEventsDoNothing = 53, // fake click events won't show a <select>'s popup
   MinEnsuredUnicodeFlagInRegExp = 53, // even if LEGACY
   // before Chrome 53, there may be window.VisualViewport under flags, but not the instance
   // between C53 and C59, `visualViewport` only has .clientW/H .scrollL/T, .pageX/Y and .scale
-  Min$visualViewport$UnderFlags = 53, // window.visualViewport occurs if EXPERIMENTAL (though not on C60)
+  Min$visualViewport$UnderFlags = 53, // window.visualViewport occurs if EXP (though not on C60)
   MinCSS$filter = 53,
   // only Chrome accepts it:
   // https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/extension/getViews
   Min$Extension$$GetView$AcceptsTabId = 54,
   Min$tabs$$discard = 54,
   MinEnsured$ParentNode$$appendAndPrepend = 54, // even if LEGACY
-  MinMaybe$auxclick = 54, // if EXPERIMENTAL; since C55 even if LEGACY
-  // the 10 below are correct even if EXPERIMENTAL or LEGACY
+  MinMaybe$auxclick = 54, // if EXP; since C55 even if LEGACY
+  // the 10 below are correct even if EXP or LEGACY
   MinUnprefixedUserSelect = 54,
   MinHighDPIOnWindows = 54, // replace MinPhysicalPixelOnWindows
   MinNo$KeyboardEvent$$keyIdentifier = 54,
@@ -282,26 +282,26 @@ declare const enum BrowserVer {
   MinEnsured$auxclick = 55, // even if LEGACY; replace MinMaybe$auxclick
   MinSomeDocumentListenersArePassiveByDefault = 56,
   // not need if LEGACY or EMPTY (even on Chrome 66)
-  MinMayNeedCSPForScriptsFromOtherExtensions = 56, // if EXPERIMENTAL
-  // the 3 below are correct even if EXPERIMENTAL or LEGACY
+  MinMayNeedCSPForScriptsFromOtherExtensions = 56, // if EXP
+  // the 3 below are correct even if EXP or LEGACY
   MinDOMActivateInClosedShadowRootHasNoShadowNodesInPathWhenOnDocument = 56,
   MinFailToToggleImageOnFileURL = 56,
   // note: an "input" event is not KeyboardEvent: {@see Min$InputEvent$$isComposing}
   Min$KeyboardEvent$$isComposing = 56,
-  MinEnsuredTouchEventIsNotCancelable = 56, // even if LEGACY; since C54 if EXPERIMENTAL
+  MinEnsuredTouchEventIsNotCancelable = 56, // even if LEGACY; since C54 if EXP
   // the static selector `>>>` is not supported since MinNoSelector$GtGtGt
   // `>>>` can only match those under "open"-mode shadow roots
-  MinMaybeStaticSelector$GtGtGt = 56, // only if EXPERIMENTAL
+  MinMaybeStaticSelector$GtGtGt = 56, // only if EXP
   // also .getOwnPropertyDescriptors
-  MinEnsuredES$Object$$values$and$$entries = 56, // even if LEGACY; since C54 if not LEGACY; since C51 if EXPERIMENTAL
-  // the 2 below are correct even if EXPERIMENTAL or LEGACY
+  MinEnsuredES$Object$$values$and$$entries = 56, // even if LEGACY; since C54 if not LEGACY; since C51 if EXP
+  // the 2 below are correct even if EXP or LEGACY
   MinNoKeygenElement = 57,
   MinCSSPlaceholderPseudo = 57,
-  MinEnsuredCSSGrid = 57, // even if LEGACY; still partly works on C35 if EXPERIMENTAL
+  MinEnsuredCSSGrid = 57, // even if LEGACY; still partly works on C35 if EXP
   MinEnsuredES2017AsyncFunctions = 57, // even if LEGACY
   /*
    * Chrome before 58 does this if #enable-site-per-process or #enable-top-document-isolation;
-   * Chrome 56 / 57 always merge extension iframes if EXPERIMENTAL
+   * Chrome 56 / 57 always merge extension iframes if EXP
    * Chrome since 58 always merge extension iframes even if the two flags are disabled and LEGACY
    *
    * Special cases:
@@ -316,7 +316,7 @@ declare const enum BrowserVer {
   MinExtIframesAlwaysInSharedProcess = 58,
   MinExtensionContentPageAlwaysCanShowFavIcon = MinExtIframesAlwaysInSharedProcess,
   MinEmbedElementIsNotFunction = 58,
-  // the 7 below are correct even if EXPERIMENTAL or LEGACY
+  // the 7 below are correct even if EXP or LEGACY
   MinTbodyAcceptInnerTextSetter = 58,
   MinCaseSensitiveUseMap = 58,
   // tmp_width := (since 58 ? Math.round : Math.floor)(width * devicePixelRatio * zoom)
@@ -332,8 +332,8 @@ declare const enum BrowserVer {
   /** @see {@link content/visual.ts#VVisual.init_ } */
   MinSelExtendForwardOnlySkipWhitespaces = 59,
   Min$Space$NotMatch$U180e$InRegExp = 59,
-  MinMaybeUnicodePropertyEscapesInRegExp = 59, // only if EXPERIMENTAL
-  // the 2 below are correct even if EXPERIMENTAL or LEGACY
+  MinMaybeUnicodePropertyEscapesInRegExp = 59, // only if EXP
+  // the 2 below are correct even if EXP or LEGACY
   // PasswordSaverDispatchesVirtualFocusEvents (document.activeElement is not updated)
   //   is confirmed on Chrome LATEST_TESTED
   // See `WebFormControlElement::SetAutofillValue` on
@@ -343,15 +343,15 @@ declare const enum BrowserVer {
   MinEnsured$window$$InputEvent = 60, // even if LEGACY
   MinWarningWebkitGradient = 60, // only happened on a Canary version
   MinOmniboxUIMaxAutocompleteMatchesMayBe12 = 60, // #omnibox-ui-max-autocomplete-matches
-  // only if EXPERIMENTAL; tests show there're mouseover/mousedown/mouseup/mouseout events
+  // only if EXP; tests show there're mouseover/mousedown/mouseup/mouseout events
   // but no click events
   MinMaybeSomeMouseEventsOnDisabledFormControlElements = 60,
-  // the 8 below are correct even if EXPERIMENTAL or LEGACY
+  // the 8 below are correct even if EXP or LEGACY
   MinNoBorderForBrokenImage = 60,
   MinNoSelectionColorOnTextBoxWhenFindModeHUDIsFocused = 60,
   MinEnsuredInputEventIsNotOnlyInShadowDOMV1 = 60, // even if LEGACY; in ShadowDOMV0, "input" will also work on window
-  MinEnsured$Intl$$DateTimeFormat$$$formatToParts = 60, // even if LEGACY; since C57 in neither EXPERIMENTAL nor LEGACY
-  MinMaybe$HTMLElement$$inert = 60, // if EXPERIMENTAL
+  MinEnsured$Intl$$DateTimeFormat$$$formatToParts = 60, // even if LEGACY; since C57 in neither EXP nor LEGACY
+  MinMaybe$HTMLElement$$inert = 60, // if EXP
   MinTabsCreateRefuseOpenerTabIdIfNotOnCurrentWindow = 61,
   MinRoundedBorderWidthIsNotEnsured = 61, // a border is only showing if `(real_width = width * ratio * zoom) >= 0.5`
   // a bug that special style.zoom may not work is fixed since MinASameZoomOfDocElAsdevPixRatioWorksAgain
@@ -363,7 +363,7 @@ declare const enum BrowserVer {
   MinScrollIntoViewOptions = 61,
   // also means ensured Element::scrollBy, Element::scrollTo and window.scrollTo/scrollBy({})
   // not on edge
-  MinEnsuredCSS$ScrollBehavior = 61, // still exists since C34 (although has no effects before C41) if EXPERIMENTAL
+  MinEnsuredCSS$ScrollBehavior = 61, // still exists since C34 (although has no effects before C41) if EXP
   // e.g. https://www.google.com.hk/_/chrome/newtab?espv=2&ie=UTF-8
   MinNotRunOnChromeNewTab = 61,
     // according to https://github.com/w3ctag/design-reviews/issues/51#issuecomment-96759374 ,
@@ -372,20 +372,20 @@ declare const enum BrowserVer {
     // and it's always fixed since C61
   MinEnsured$ScrollingElement$CannotBeFrameset = 61,
   MinScrollTopLeftInteropIsAlwaysEnabled = 61,
-  MinMaybe$Document$$fullscreenElement = 61, // if EXPERIMENTAL
+  MinMaybe$Document$$fullscreenElement = 61, // if EXP
   MinEnsuredScript$type$$module = 61, // even if LEGACY
-  Min$performance$$timeOrigin = 62, // even if EXPERIMENTAL or LEGACY
+  Min$performance$$timeOrigin = 62, // even if EXP or LEGACY
   MinCSS$Color$$RRGGBBAA = 62,
   Min$NotSecure$LabelsForSomeHttpPages = 62, // https://developers.google.com/web/updates/2017/10/nic62#https
-  MinExtOptionsOnStartupCanCreateBlobURLSafely = 63, // in C58~C62, it crashes even if EXPERIMENTAL or LEGACY
-  // there's a bug of C62/63 even if EXPERIMENTAL or LEGACY:
+  MinExtOptionsOnStartupCanCreateBlobURLSafely = 63, // in C58~C62, it crashes even if EXP or LEGACY
+  // there's a bug of C62/63 even if EXP or LEGACY:
   // * if a `createShadowRoot()` from ext isolates after docReady and before wnd.onload,
   //   then some pages using ShadowDOM v0 heavily may be stuck.
   // * before C62 / since C64 / attachShadow has no such a bug
   // https://github.com/philc/vimium/issues/2921#issuecomment-361052160
   CreateShadowRootOnDocReadyBreakPages1 = 62,
   CreateShadowRootOnDocReadyBreakPages2 = 63,
-  // the 8 below are correct even if EXPERIMENTAL or LEGACY
+  // the 8 below are correct even if EXP or LEGACY
   // `/deep/` works on C35 even if LEGACY
   // static `/deep/` selector in query is still supported on Chrome LATEST_TESTED
   // https://www.chromestatus.com/features/6750456638341120
@@ -399,7 +399,7 @@ declare const enum BrowserVer {
   /** replace {@link #BrowserVer.MinFocusIframeDirectlyWithout$wnd$$focus} */
   MinFocusIframeDirectlyBy$activeElement$$focus = 64, // need .activeElement.blur() or .contentWindow.focus() before
   MinEnsuredUnicodePropertyEscapesInRegExp = 64, // https://www.chromestatus.com/features/6706900393525248
-  MinEnsuredFetchRequestCache = 64, // even if LEGACY; since C59 if EXPERIMENTAL
+  MinEnsuredFetchRequestCache = 64, // even if LEGACY; since C59 if EXP
   MinEnsuredLookBehindInRegexp = 64, // even if LEGACY
   // a 3rd-party Vomnibar will trigger "navigation" and clear all logs in console on Chrome 64
   // this still occurs on Chrome 65.0.3325.181 (Stable, x64, Windows 10)
@@ -407,26 +407,26 @@ declare const enum BrowserVer {
   VomnibarMayClearLog2 = 65,
   // if #enable-md-extensions, it's there since C60
   MinEnsuredChromeURL$ExtensionShortcuts = 65,
-  // the 3 below are correct even if EXPERIMENTAL or LEGACY
+  // the 3 below are correct even if EXP or LEGACY
   /** @todo: trace https://bugs.chromium.org/p/chromium/issues/detail?id=1038569 */
   Min$compositionend$$isComposing$IsMistakenlyFalse = 65,
   MinCanNotRevokeObjectURLAtOnce = 65,
   MinExtraScrollbarWidthIfScrollStyleIsOverlay = 65, // fixed in C87
   MinEnsuredDisplayContents = 65,
-  MinUsableScript$type$$module$InExtensions = 66, // even if `Content-Type: text/plain`, EXPERIMENTAL or LEGACY
-  MinInputMode = 66, // even if LEGACY; still works on C35 if EXPERIMENTAL
+  MinUsableScript$type$$module$InExtensions = 66, // even if `Content-Type: text/plain`, EXP or LEGACY
+  MinInputMode = 66, // even if LEGACY; still works on C35 if EXP
   // @see MinEscapeHashInBodyOfDataURL
   // https://github.com/chromium/chromium/commit/511efa694bdf9fbed3dc83e3fa4cda12909ce2b6
   MinWarningOfEscapingHashInBodyOfDataURL = 66,
   BorderRadiusCauseBorderDisappearOnIFrame = 66,
-  MinEnsured$Clipboard$and$$writeText = 66, // exist if EXPERIMENTAL on C65
-  MinAbortController = 66, // even if EXPERIMENTAL or LEGACY; also AbortSignal
+  MinEnsured$Clipboard$and$$writeText = 66, // exist if EXP on C65
+  MinAbortController = 66, // even if EXP or LEGACY; also AbortSignal
   // @see https://bugs.chromium.org/p/chromium/issues/detail?id=582245
-  Min$ContentDocument$NotThrow = 67, // even if EXPERIMENTAL or LEGACY
+  Min$ContentDocument$NotThrow = 67, // even if EXP or LEGACY
   MinSlotIsNotDisplayContents = 67,
   Min$NotificationOptions$$isClickable$IsDeprecated = 67,
-  MinPinchZoomOnWindowsAndTouchpad = 67, // even if EXPERIMENTAL or LEGACY
-  // even if EXPERIMENTAL or LEGACY
+  MinPinchZoomOnWindowsAndTouchpad = 67, // even if EXP or LEGACY
+  // even if EXP or LEGACY
   // but not on pages whose JS is disabled in chrome://settings/content/siteDetails?site=<origin>
   // @see https://bugs.chromium.org/p/chromium/issues/detail?id=811528
   // the commit is firstly applied to C68:
@@ -434,46 +434,46 @@ declare const enum BrowserVer {
   MinEnsuredNewScriptsFromExtensionOnSandboxedPage = 68, // extension can insert and run <script> correctly
   MinASameZoomOfDocElAsdevPixRatioWorksAgain = 68,
   MinFreezeEvent = 68, // see Page Lifecycle API
-  // even if EXPERIMENTAL or LEGACY
+  // even if EXP or LEGACY
   // also on pages with JS disabled in chrome://settings/content/siteDetails?site=<origin>
   NoRAFOrRICOnSandboxedPage = 69,
   MinTabIdMayBeMuchLarger = 69,
-  // `>>>` only works if EXPERIMENTAL before C69 and since C56
+  // `>>>` only works if EXP before C69 and since C56
   // (MinStaticSelector$GtGtGt$IfFlag$ExperimentalWebPlatformFeatures$Enabled)
   // https://github.com/chromium/chromium/commit/c81707c532183d4e6b878041964e85b0441b9f50
   MinNoSelector$GtGtGt = 69,
   // if an element has position:absolute and is at the right/bottom edge, it won't cause the page shows a scrollbar
-  MinAbsolutePositionNotCauseScrollbar = 69, // even if EXPERIMENTAL or LEGACY
+  MinAbsolutePositionNotCauseScrollbar = 69, // even if EXP or LEGACY
   MinEnsuredScrollSnapType = 69, // even if LEGACY
   // https://github.com/chromium/chromium/commit/6a866d29f4314b990981119285da46540a50742c
   MinFramesetHasNoNamedGetter = 70,
-  MinContainLayoutBreakUIBox = 70, // even if EXPERIMENTAL
+  MinContainLayoutBreakUIBox = 70, // even if EXP
   Min$NotificationOptions$$silent = 70,
   // if `toggleCS` repeatedly, then a 3rd-party iframe gets a new CS later than its owner top frame
   // and if reopenTab, the CS is synced among frames again
-  MinIframeInRestoredSessionTabHasPreviousTopFrameContentSettings = 70, // even if EXPERIMENTAL or LEGACY
+  MinIframeInRestoredSessionTabHasPreviousTopFrameContentSettings = 70, // even if EXP or LEGACY
   // test: https://mathiasbynens.be/demo/sort-stability
-  MinStableSort = 70, // even if EXPERIMENTAL or LEGACY
-  Min$Intl$$DateTimeFormat$$$formatToParts$Use$dayPeriod = 70, // even if EXPERIMENTAL or LEGACY
-  MinContainLayoutOnDocAffectPositions = 70, // even if EXPERIMENTAL or LEGACY
+  MinStableSort = 70, // even if EXP or LEGACY
+  Min$Intl$$DateTimeFormat$$$formatToParts$Use$dayPeriod = 70, // even if EXP or LEGACY
+  MinContainLayoutOnDocAffectPositions = 70, // even if EXP or LEGACY
   // means unprefixed properties and event name
   MinEnsured$Document$$fullscreenElement = 71, // even if LEGACY; MinMaybe$Document$$fullscreenElement=61
   Min$Tabs$$Update$DoesNotAcceptJavaScriptURLs = 71,
   MinTabIdBeSmallAgain = 71,
-  Min$queueMicrotask = 71, // even if EXPERIMENTAL or LEGACY
+  Min$queueMicrotask = 71, // even if EXP or LEGACY
   Min$globalThis = 71,
-  // since C59 if EXPERIMENTAL; enabled by default since C66; C71 is even if LEGACY
+  // since C59 if EXP; enabled by default since C66; C71 is even if LEGACY
   MinEnsured$Function$$toString$preservesWhitespace = 71, // also preserve comments
-  Min$tabs$$goBack = 72, // and tabs.goForward; even if EXPERIMENTAL or LEGACY
+  Min$tabs$$goBack = 72, // and tabs.goForward; even if EXP or LEGACY
   // https://www.chromestatus.com/features/5656049583390720
   // deprecation is since C66
   MinEscapeHashInBodyOfDataURL = 72,
   // @see https://bugs.chromium.org/p/chromium/issues/detail?id=908809 seems related with it
-  MinElement$Focus$MayMakeArrowKeySelectIt = 72, // if only EXPERIMENTAL (feature #KeyboardFocusableScrollers)
+  MinElement$Focus$MayMakeArrowKeySelectIt = 72, // if only EXP (feature #KeyboardFocusableScrollers)
   // https://www.chromestatus.com/features/5722065667620864 , https://mustaqahmed.github.io/user-activation-v2/
-  MinUserActivationV2 = 72, // even if EXPERIMENTAL or LEGACY
+  MinUserActivationV2 = 72, // even if EXP or LEGACY
   // before C72, chrome.permissions report "allowed" on chrome://new-tab-page/*
-  MinCorrectExtPermissionsOnChromeURL$NewTabPage = 72, // even if EXPERIMENTAL or LEGACY
+  MinCorrectExtPermissionsOnChromeURL$NewTabPage = 72, // even if EXP or LEGACY
   // https://www.chromestatus.com/features/6569666117894144
   // @see https://bugs.chromium.org/p/chromium/issues/detail?id=179006#c45
   MinSpecCompliantShadowBlurRadius = 73,
@@ -497,92 +497,92 @@ declare const enum BrowserVer {
    *   * `OnSetFrameOwnerProperties` of either `RenderFrameImpl` or `RenderFrameProxy` is called
    *   * run `WebFrame::SetFrameOwnerProperties` to notify changes and re-compute styles
    */
-  MinNoFocusOrSelectionStringOnHiddenIFrame = 74, // even if EXPERIMENTAL or LEGACY
+  MinNoFocusOrSelectionStringOnHiddenIFrame = 74, // even if EXP or LEGACY
   // https://www.chromestatus.com/features/5650553247891456
   // https://docs.google.com/document/d/1CJgCg7Y31v5MbO14RDHyBAa5Sf0ZnPVtZMiOFCNbgWc/edit
-  MinMaybeScrollEndAndOverScrollEvents = 74, // if EXPERIMENTAL
+  MinMaybeScrollEndAndOverScrollEvents = 74, // if EXP
   MinEnsured$Intl$$RelativeTimeFormat = 74, // even if LEGACY
-  // the 4 below are even if EXPERIMENTAL or LEGACY
+  // the 4 below are even if EXP or LEGACY
   MinMediaQuery$PrefersReducedMotion = 74,
   // https://chromium.googlesource.com/chromium/src/+/5e84b7a819637ed4dd8f9c4d11288127663c8267
   MinBlockAutoFocusingInCrossOriginFrame = 75,
   MinAccessKeyCausesFocus = 75,
   FakeUAMajorWhenFreezeUserAgent = 75,
   MinMediaQuery$PrefersColorScheme = 76,
-  MinEnsured$Clipboard$$write$and$ClipboardItem = 76, // before 76, exist if EXPERIMENTAL (C75 often fails or crashes)
+  MinEnsured$Clipboard$$write$and$ClipboardItem = 76, // before 76, exist if EXP (C75 often fails or crashes)
   // https://bugs.chromium.org/p/chromium/issues/detail?id=877132
   MinRuntimeFlag$UpdateHoverAtBeginFrame = 77, // #update-hover-at-begin-frame is enabled by default
   MinChromeFavicon2 = 77, // tested on 77.0.3865.90, chrome://favicon2/ is forbidden to use on extension pages
-  MinScrollEndForInstantScrolling = 78, // if EXPERIMENTAL
-  MinMaybePointerEventForRealClick = 79, // if EXPERIMENTAL
+  MinScrollEndForInstantScrolling = 78, // if EXP
+  MinMaybePointerEventForRealClick = 79, // if EXP
   // https://groups.google.com/a/chromium.org/forum/#!msg/blink-dev/h-JwMiPUnuU/sl79aLoLBQAJ
   // https://www.chromestatus.com/features/4507242028072960
   MinNoShadowDOMv0 = 80,
-  Min$CrossOriginIsolation$Flag = 80, // #cross-origin-isolation; will break Vomnibar; included by EXPERIMENTAL on C81
-  MinSelectionTreatPunctuationsAsWords = 80, // even if EXPERIMENTAL
+  Min$CrossOriginIsolation$Flag = 80, // #cross-origin-isolation; will break Vomnibar; included by EXP on C81
+  MinSelectionTreatPunctuationsAsWords = 80, // even if EXP
   // blank on C80, too simple on C81, usable since C83 and work as default since C85;
   // with a fresh user data on C85, the newtab is chrome-search://... , and chrome://new-tab-page/ since a second start
-  MinChromeURL$NewTabPage = 80, // chrome://new-tab-page/ ; even if EXPERIMENTAL or LEGACY
-  MinAltBackspaceWithShiftToUndoOrRedo = 81, // a-backspace: undo; a-s-~: redo; even if EXPERIMENTAL or LEGACY
+  MinChromeURL$NewTabPage = 80, // chrome://new-tab-page/ ; even if EXP or LEGACY
+  MinAltBackspaceWithShiftToUndoOrRedo = 81, // a-backspace: undo; a-s-~: redo; even if EXP or LEGACY
   // https://github.com/philc/vimium/issues/3449#issuecomment-568248237
   FlagOutOfBlinkCorsMayCauseBug = 81,
   // #freeze-user-agent: https://www.chromestatus.com/features/5704553745874944
   FlagFreezeUserAgentGiveFakeUAMajor = 81, // FakeUAMajorWhenFreezeUserAgent
-  MinEnsuredAriaProperties = 81, // even if LEGACY; since 68 if EXPERIMENTAL; .ariaSelected is wrong before C84
+  MinEnsuredAriaProperties = 81, // even if LEGACY; since 68 if EXP; .ariaSelected is wrong before C84
   /** @see #Min$CrossOriginIsolation$Flag */
   MinEnsuredCrossOriginEmbedderPolicy = 83, // https://www.chromestatus.com/features/5642721685405696
-  // require special CSP; not applied to extension contexts; seems to begin from C73 if EXPERIMENTAL
+  // require special CSP; not applied to extension contexts; seems to begin from C73 if EXP
   MinEnsuredTrustedTypes = 83, // https://www.chromestatus.com/features/5650088592408576
-  MinMaybe$navigator$$userAgentData = 83, // if EXPERIMENTAL
+  MinMaybe$navigator$$userAgentData = 83, // if EXP
   Only$navigator$$userAgentData$$$uaList = 83,
   // #strict-origin-isolation; prevent LinkHints from getting child coreHints
   MinOriginIsolation = 84, // https://www.chromestatus.com/features/5683766104162304
   /** This fixes that {@see #Min$CrossOriginIsolation$Flag} would break Vomnibar */
   MinExtensionResourcesHaveCOEP = 84, // https://bugs.chromium.org/p/chromium/issues/detail?id=1085915
-  MinCSS$appearance = 84, // even if EXPERIMENTAL or LEGACY
+  MinCSS$appearance = 84, // even if EXP or LEGACY
   MinMaybe$WeakRef = 84, // no `WeakRef` if LEGACY
   // 2->0.25/0.5; 5->0.04/0.2; 6->0.027778/0.166667
-  MinBorderWidth$Ensure1$Or$Floor = 85, // even if EXPERIMENTAL or LEGACY
+  MinBorderWidth$Ensure1$Or$Floor = 85, // even if EXP or LEGACY
   // on C84 options must be `new IsInputPendingOptions()`
   // before C84 it logs a warning of "requires site-per-process" on Vimium C Options page
-  MinMaybeUsableNavigator$scheduling$$isInputPending = 85, // if EXPERIMENTAL
-  MinCorrectAriaSelected = 84, // even if EXPERIMENTAL or LEGACY; aria-expanded is fixed in C73 if EXPERIMENTAL
+  MinMaybeUsableNavigator$scheduling$$isInputPending = 85, // if EXP
+  MinCorrectAriaSelected = 84, // even if EXP or LEGACY; aria-expanded is fixed in C73 if EXP
   MinClipboardWriteHTML = 86,
-  MinFileNameIsSelectableOnFilesPage = 86, // even if EXPERIMENTAL or LEGACY
-  // if EXPERIMENTAL, since 79 there's also `navigator.scheduling.isFramePending()`
-  MinEnsuredNavigator$scheduling$$isInputPending = 87, // even if LEGACY; since 74 if EXPERIMENTAL
-  // the 2 below are even if EXPERIMENTAL or LEGACY
+  MinFileNameIsSelectableOnFilesPage = 86, // even if EXP or LEGACY
+  // if EXP, since 79 there's also `navigator.scheduling.isFramePending()`
+  MinEnsuredNavigator$scheduling$$isInputPending = 87, // even if LEGACY; since 74 if EXP
+  // the 2 below are even if EXP or LEGACY
   MinNoExtraScrollbarWidthIfScrollStyleIsOverlay = 87, // replace MinExtraScrollbarWidthIfScrollStyleIsOverlay
   MinCSS$quotes$$auto = 87,
-  MinMaybeScrollbarGutter = 88, // since 94 if not EXPERIMENTAL but even LEGACY
+  MinMaybeScrollbarGutter = 88, // since 94 if not EXP but even LEGACY
   Min$TargetIsBlank$Implies$Noopener = 88, // https://chromestatus.com/features/6140064063029248
-  MinEnsuredCSS$is$selector = 88, // even if LEGACY; since C68 if EXPERIMENTAL
-  Min$dom$$openOrClosedShadowRoot = 88, // even if EXPERIMENTAL or LEGACY
-  MinBgGradientMayBeDarkWhenWebContentsForceDark = 88, // even if EXPERIMENTAL or LEGACY; issue #860
-  MinEnsuredES$TopLevelAwait = 89, // even if LEGACY; since 84 if EXPERIMENTAL
-  MinForcedColorsMode = 89, // even if EXPERIMENTAL or LEGACY; enable `(forced-colors: active|none)` and color schemes
-  MinCaptureBeforeBubbleOnEventTarget = 89, // even if EXPERIMENTAL or LEGACY
-  MinCSS$overflow$clip = 90, // even if EXPERIMENTAL or LEGACY
-  MinOnWindows$Selection$$extend$stopWhenWhiteSpaceEnd = 90, // even if EXPERIMENTAL
+  MinEnsuredCSS$is$selector = 88, // even if LEGACY; since C68 if EXP
+  Min$dom$$openOrClosedShadowRoot = 88, // even if EXP or LEGACY
+  MinBgGradientMayBeDarkWhenWebContentsForceDark = 88, // even if EXP or LEGACY; issue #860
+  MinEnsuredES$TopLevelAwait = 89, // even if LEGACY; since 84 if EXP
+  MinForcedColorsMode = 89, // even if EXP or LEGACY; enable `(forced-colors: active|none)` and color schemes
+  MinCaptureBeforeBubbleOnEventTarget = 89, // even if EXP or LEGACY
+  MinCSS$overflow$clip = 90, // even if EXP or LEGACY
+  MinOnWindows$Selection$$extend$stopWhenWhiteSpaceEnd = 90, // even if EXP
   MinEnsuredNavigator$userAgentData = 90, // even if LEGACY; replace MinMaybe$navigator$$userAgentData
   MinESModulesInServiceWorker = 91,
   MinEnsured$string$$replaceAll = 91,
   MinEnsured$WeakRef = 92, // even if LEGACY
-  MinEnsuredPointerEventForRealClick = 92, // even if LEGACY; since MinMaybePointerEventForRealClick if EXPERIMENTAL
+  MinEnsuredPointerEventForRealClick = 92, // even if LEGACY; since MinMaybePointerEventForRealClick if EXP
   BuildMinManifestV3 = 93, // can use JavaScript modules and `import ...` in service workers
   /** @todo: trace https://bugs.chromium.org/p/chromium/issues/detail?id=649162 */
   MinMaybeAutoFillInShadowDOM = 93, // if --enable-blink-features=AutofillShadowDOM
-  MinEnsuredURLPattern = 95, // even if LEGACY; since C93 if EXPERIMENTAL
-  MinNotPropagateBodyStyleIfContained = 96, // even if EXPERIMENTAL or LEGACY
-  Min$structuredClone = 98, // even if EXPERIMENTAL or LEGACY
-  MinEnsured$input$$showPicker = 99, // even if LEGACY; since 97 if EXPERIMENTAL
-  MinScrollbarIncreasePadding = 99, // even if LEGACY; since 97 if EXPERIMENTAL
-  MinBg$i18n$$getMessage$InMV3 = 100, // even if EXPERIMENTAL or LEGACY
-  Min$Event$$path$Deprecated = 101, // even if EXPERIMENTAL or LEGACY
-  MinColorSchemeNormalMeansSystemDark = 102, // even if EXPERIMENTAL
-  MinEnsured$HTMLElement$$inert = 102, // even if LEGACY; since MinMaybe$HTMLElement$$inert if EXPERIMENTAL
-  Min$beforematch$Event = 102, // even if EXPERIMENTAL or LEGACY
-  // if flag `ThrottleDisplayNoneAndVisibilityHiddenCrossOriginIframesEnabled` is enabled (e.g. if EXPERIMENTAL),
+  MinEnsuredURLPattern = 95, // even if LEGACY; since C93 if EXP
+  MinNotPropagateBodyStyleIfContained = 96, // even if EXP or LEGACY
+  Min$structuredClone = 98, // even if EXP or LEGACY
+  MinEnsured$input$$showPicker = 99, // even if LEGACY; since 97 if EXP
+  MinScrollbarIncreasePadding = 99, // even if LEGACY; since 97 if EXP
+  MinBg$i18n$$getMessage$InMV3 = 100, // even if EXP or LEGACY
+  Min$Event$$path$Deprecated = 101, // even if EXP or LEGACY
+  MinColorSchemeNormalMeansSystemDark = 102, // even if EXP
+  MinEnsured$HTMLElement$$inert = 102, // even if LEGACY; since MinMaybe$HTMLElement$$inert if EXP
+  Min$beforematch$Event = 102, // even if EXP or LEGACY
+  // if flag `ThrottleDisplayNoneAndVisibilityHiddenCrossOriginIframesEnabled` is enabled (e.g. if EXP),
   // then there's no latency in a 2nd showing of v1.99.3; otherwise 2nd showing is very slow.
   // I don't know why its name and effects have conflicts.
   // A 1st showing may be delayed randomly since 102, and mostly on C107
@@ -593,16 +593,16 @@ declare const enum BrowserVer {
   MinRegisterContentScriptsWorldInMV3 = 102,
   // omnibox, injectImmediately, registerContentScripts::world, optional_host_permissions
   MinUsableMV3 = 102, // Refer to: https://developer.chrome.com/docs/extensions/whatsnew/
-  Min$AbortSignal$$timeout = 103, // even if LEGACY; since 100 if EXPERIMENTAL
-  MinEnsured$Element$$role = 103, // even if LEGACY; since 68 if EXPERIMENTAL
+  Min$AbortSignal$$timeout = 103, // even if LEGACY; since 100 if EXP
+  MinEnsured$Element$$role = 103, // even if LEGACY; since 68 if EXP
   MinMV3FaviconAPI = 104,
-  MinURLPatternWith$ignoreCase = 107, // even if EXPERIMENTAL or LEGACY
-  MinMaybePopoverWith$popovershow = 109, // if EXPERIMENTAL; use popovershow/popoverhide instead of toggle
-  MinCSAcceptWorldInManifest = 111, // even if EXPERIMENTAL or LEGACY
-  MinMaybePopoverToggleEvent = 112, // if EXPERIMENTAL
+  MinURLPatternWith$ignoreCase = 107, // even if EXP or LEGACY
+  MinMaybePopoverWith$popovershow = 109, // if EXP; use popovershow/popoverhide instead of toggle
+  MinCSAcceptWorldInManifest = 111, // even if EXP or LEGACY
+  MinMaybePopoverToggleEvent = 112, // if EXP
   MinEnsuredPopover = 114, // even if LEGACY
   MinEnsuredScrollend = 114, // even if LEGACY
-  MinMaybeMouseenter$composed$IsFalse = 115, // if EXPERIMENTAL
+  MinMaybeMouseenter$composed$IsFalse = 115, // if EXP
   MinMouseenter$composed$IsFalse = 116, // said in https://chromestatus.com/features#milestone%3D116
   MinNo$TimerType$$Fake = 999,
   assumedVer = 998,
@@ -662,7 +662,7 @@ declare const enum FirefoxBrowserVer {
   MinPopupBlockerPassUntrustedComposedClicks = 96, // https://github.com/philc/vimium/pull/3985#issue-1101757110
   MinPopupBlockerPassOrdinaryClicksDuringExtMessages = 96,
   Min$runtime$$getFrameId = 96,
-  Min$sessions$$getRecentlyClosed$follow$maxResults = 96, // even if EXPERIMENTAL or LEGACY
+  Min$sessions$$getRecentlyClosed$follow$maxResults = 96, // even if EXP or LEGACY
   Min$AbortSignal$$timeout = 100,
   MinEnsured$dom$events$asyncclipboard = 100, // include .readText and .writeText, but not .read
   Min$StorageArea$$onChanged = 101,
