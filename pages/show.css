@@ -7,9 +7,6 @@ body {
   min-width: 96vw;
   min-height: 96vh;
 }
-body.filled:not(.viewer-open) {
-  overflow: overlay;
-}
 #shownImage {
   min-width: 32px;
   min-height: 32px;

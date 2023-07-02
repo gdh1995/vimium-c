@@ -552,6 +552,7 @@ declare const enum BrowserVer {
   // if EXP, since 79 there's also `navigator.scheduling.isFramePending()`
   MinEnsuredNavigator$scheduling$$isInputPending = 87, // even if LEGACY; since 74 if EXP
   // the 2 below are even if EXP or LEGACY
+  // replaced by MinExtraGutterInBoxIfScrollbarIsVisible
   MinNoExtraScrollbarWidthIfScrollStyleIsOverlay = 87, // replace MinExtraScrollbarWidthIfScrollStyleIsOverlay
   MinCSS$quotes$$auto = 87,
   MinMaybeScrollbarGutter = 88, // since 94 if not EXP but even LEGACY
@@ -575,6 +576,7 @@ declare const enum BrowserVer {
   MinEnsuredURLPattern = 95, // even if LEGACY; since C93 if EXP
   MinNotPropagateBodyStyleIfContained = 96, // even if EXP or LEGACY
   Min$structuredClone = 98, // even if EXP or LEGACY
+  MinExtraGutterInBoxIfScrollbarIsVisible = 99, // even if EXP or LEGACY
   MinEnsured$input$$showPicker = 99, // even if LEGACY; since 97 if EXP
   MinScrollbarIncreasePadding = 99, // even if LEGACY; since 97 if EXP
   MinBg$i18n$$getMessage$InMV3 = 100, // even if EXP or LEGACY
@@ -602,6 +604,7 @@ declare const enum BrowserVer {
   MinMaybePopoverToggleEvent = 112, // if EXP
   MinEnsuredPopover = 114, // even if LEGACY
   MinEnsuredScrollend = 114, // even if LEGACY
+  MinNoOverflowOverlay = 114, // even if EXP or LEGACY
   MinMaybeMouseenter$composed$IsFalse = 115, // if EXP
   MinMouseenter$composed$IsFalse = 116, // said in https://chromestatus.com/features#milestone%3D116
   MinNo$TimerType$$Fake = 999,

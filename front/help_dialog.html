@@ -12,7 +12,7 @@
 	border: 1px solid #b3b3b3;
 	border-radius: 8px;
 	box-shadow: 0 0 6px rgba(0, 0, 0, 0.4);
-	box-sizing: content-box;
+	box-sizing: border-box;
 	contain: content;
 	left: calc(50% - 479px);
 	line-height: 130%;
@@ -20,11 +20,12 @@
 	min-height: 25px;
 	overflow: auto;
 	overscroll-behavior: contain;
-	padding: 8px 18px 0 18px;
+	padding: 8px 6px 0 18px;
+	scrollbar-gutter: stable;
 	top: 52px;
 	-webkit-user-select: auto;
 	user-select: auto;
-	width: 920px;
+	width: 958px;
 }
 #HDlg:focus {
 	outline: none;
@@ -197,13 +198,13 @@
 @media (max-width: 999.9px) {
 	#HDlg {
 		left: calc(50% - 419px);
-		width: 800px;
+		width: 838px;
 	}
 	#HelpContent, .HelpTables {
 		width: 800px;
 	}
 }
-@media (max-width: 837.9px) {
+@media (max-width: 859.9px) {
 	#HDlg {
 		left: 4px;
 		right: 4px;
@@ -280,7 +281,6 @@
 #HDlg.Scroll::-webkit-scrollbar-thumb:active {
 	background: #666;
 }
-@supports (quotes: auto) { #HDlg.Scroll { overflow-y: overlay; } }
 @media (forced-colors: active), (-ms-high-contrast: active) {
 	.Scroll::-webkit-scrollbar-thumb:vertical {
 		border: 2px solid #ddd;
