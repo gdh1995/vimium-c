@@ -2,7 +2,7 @@ import {
   chromeVer_, doc, createRegExp, isTY, Lower, OBJECT_TYPES, OnFirefox, OnChrome, OnEdge, evenHidden_, safeCall, deref_,
   loc_, VTr, tryCreateRegExp, isTop
 } from "./utils"
-import { dimSize_, selRange_ } from "./rect"
+import { dimSize_, Point2D, selRange_ } from "./rect"
 
 export declare const enum kMediaTag { img = 0, otherMedias = 1, a = 2, others = 3, MIN_NOT_MEDIA_EL = 2, LAST = 3 }
 interface kNodeToType {
@@ -404,6 +404,7 @@ export const IsInDOM_ = function (element: Element, root?: Element | Document | 
     return (pe || GetParent_unsafe_(element, PNType.DirectNode)) === root;
 } as {
   (element: SafeElement, maybeRoot: Element, checkMouseEnter: 1): boolean
+  (element: SafeElement): element is SafeElement & EnsuredMountedElement
   (element: SafeElement, maybeRoot?: Element | Document): boolean
 }
 
@@ -577,11 +578,18 @@ export const joinValidSelectors = (selector: string | MayBeSelector
 export const findSelectorByHost = (rules: string | string[] | kTip | MayBeSelector): "css-selector" | void => {
   const host = loc_.host, path = loc_.host + "/" + loc_.pathname, isKTip = isTY(rules, kTY.num)
   for (const arr of rules && isTY(rules,kTY.obj) ? rules : (isKTip ? VTr(rules) : rules ? rules + "" : "").split(";")) {
-    const items = arr.split("##"), cond = items[0], re = cond && tryCreateRegExp(cond)
-    if (re && re.test(cond.includes("/") ? path : host) && (isKTip || joinValidSelectors(items[1]!))) {
-      return items[1] as "css-selector"
+    const items = arr.split("##"), isOnHost = items.length > 1, sel = items[isOnHost as boolean | BOOL as BOOL]
+    const cond = isOnHost ? items[0] : "", re = cond && tryCreateRegExp(cond)
+    if ((re ? re.test(cond.includes("/") ? path : host) : !cond) && (isKTip || joinValidSelectors(sel))) {
+      return sel as "css-selector"
     }
   }
+}
+
+export const elFromPoint_ = (center?: Point2D | null, baseEl?: SafeElement | null): Element | null => {
+  const root = center && (baseEl ? IsInDOM_(baseEl) && getRootNode_mounted(baseEl) : doc)
+  const el = root && root.elementFromPoint(center![0], center![1])
+  return el && el !== doc.body ? el : null
 }
 
 //#endregion

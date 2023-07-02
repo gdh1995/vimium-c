@@ -3,16 +3,16 @@ import {
   createRegExp, isTY, max_, min_, OnFirefox, OnChrome, safeCall, locHref, parseOpenPageUrlOptions, VTr, loc_, OnSafari,
   clearTimeout_, promiseDefer_, OnEdge, urlSameIgnoringHash, firefoxVer_, runtime_ff, keydownEvents_
 } from "../lib/utils"
-import { getVisibleClientRect_, center_, view_, selRange_ } from "../lib/rect"
+import { getVisibleClientRect_, center_, view_, selRange_, bZoom_, set_bZoom_ } from "../lib/rect"
 import {
   IsInDOM_, createElement_, htmlTag_, getComputedStyle_, getEditableType_, isIFrameElement, GetParent_unsafe_, focus_,
-  kMediaTag, ElementProto_not_ff, querySelector_unsafe_, uneditableInputs_, GetShadowRoot_, scrollingEl_,
+  kMediaTag, ElementProto_not_ff, querySelector_unsafe_, uneditableInputs_, GetShadowRoot_, scrollingEl_, elFromPoint_,
   queryChildByTag_, getSelection_, removeEl_s, appendNode_s, getMediaUrl, getMediaTag, INP, ALA, attr_s, hasTag_, kGCh,
   setOrRemoveAttr_s, toggleClass_s, textContent_s, notSafe_not_ff_, modifySel, SafeEl_not_ff_, testMatch,
-  extractField, querySelectorAll_unsafe_, editableTypes_, findAnchor_, dispatchEvent_, wrapEventInit_
+  extractField, querySelectorAll_unsafe_, editableTypes_, findAnchor_, dispatchEvent_, wrapEventInit_,
+  findSelectorByHost
 } from "../lib/dom_utils"
 import { getPreferredRectOfAnchor, initTestRegExps } from "./local_links"
-import type { ModesWithOnlyHTMLElements } from "./local_links"
 import {
   hintOptions, mode1_, hintMode_, hintApi, hintManager, coreHints, setMode, detectUsableChild, hintCount_,
   ExecutableHintItem, forHover_
@@ -31,7 +31,6 @@ import {
 } from "./async_dispatcher"
 import { omni_box } from "./omni"
 import { execCommand, kInsertText } from "./mode_find"
-type LinkEl = Hint[0];
 /* eslint-disable @typescript-eslint/no-floating-promises */
 
 declare var fetch: unknown, AbortController: new () => { signal: object, abort(): void }
@@ -346,7 +345,6 @@ const copyText = (str?: string | null): void => {
         childEl: Element | null, files: HTMLInputElement["files"]
     if (str) { /* empty */ }
     else if (isUrl) {
-      /** satisfy {@link ModesWithOnlyHTMLElements} */
       str = getUrlData()
     }
     else if (str = accessElAttr(2)[0].trim()) { /* empty */ }
@@ -482,6 +480,7 @@ const defaultClick = (): void => {
         , !OnChrome || otherActions || newTab || newWindow ? 0 : hintOptions.touch))
     .then((ret): void | Promise<unknown> | number | boolean => {
       showUrlIfNeeded()
+      newTabStr === "inactive" && post_({ H: kFgReq.focusCurTab }) // not use ports of a parent frame
       return doesUnhoverAtOnce && (!interactive || isTY(autoUnhover)) ? catchAsyncErrorSilently(unhover_async())
       : isQueue || elType || (ret || doesUnhoverOnEsc) &&
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
@@ -506,15 +505,15 @@ const doPostAction = (): Rect | null => {
 }
 
   const masterOrA = hintManager || coreHints, keyStatus = masterOrA.$().k
-  const clickEl: LinkEl = hint.d
-  const tag = htmlTag_(clickEl), elType = getEditableType_<0>(clickEl)
+  let clickEl: SafeElementForMouse = hint.d
+  let tag: "" | keyof HTMLElementTagNameMap, elType: EditableType, isHtmlImage: boolean
   const kD = "download", kLW = "last-window"
   let richText = hintOptions.richText, rawNewtab = hintOptions.newtab, rawFocus = hintOptions.focus
   const hasKeyword_ff = OnFirefox && hintOptions.keyword != null
-  const isHtmlImage = tag === "img"
   let rect: Rect | null = null
   let then = hintOptions.then, optElse = hintOptions.else
   let retPromise: Promise<unknown> | undefined
+  let childSel: HintsNS.Options["autoChild"] | void = hintOptions.autoChild
   let showRect: BOOL | 2 = hintOptions.flash !== false ? 1 : 0
   if (hintManager) {
     set_keydownEvents_(hintApi.a())
@@ -527,11 +526,20 @@ const doPostAction = (): Rect | null => {
   masterOrA.v() // here .keyStatus_ is reset
   set_grabBackFocus(false)
   if (IsInDOM_(clickEl)) {
+    if (!OnFirefox && bZoom_ !== 1 && doc.body && !IsInDOM_(clickEl, doc.body)) { set_bZoom_(1) }
+    if (childSel && !isIFrameElement(clickEl)) {
+      let el2 = isTY(childSel) && childSel !== ":root"
+          ? (childSel = findSelectorByHost(childSel)) && querySelector_unsafe_(childSel, clickEl)
+          : elFromPoint_(center_(getVisibleClientRect_(clickEl), hintOptions.xy as HintsNS.StdXY | undefined), clickEl)
+      clickEl = ((OnFirefox ? el2 : el2 && SafeEl_not_ff_!(el2)) satisfies Element | void | null
+          ) as SafeElementForMouse | void | null || clickEl
+    }
+    tag = htmlTag_(clickEl), elType = getEditableType_<0>(clickEl), isHtmlImage = tag === "img"
     initTestRegExps() // needed by getPreferredRectOfAnchor
     // must get outline first, because clickEl may hide itself when activated
     // must use UI.getRect, so that zooms are updated, and prepareCrop is called
     rect = knownRect || tag === "a" && getPreferredRectOfAnchor(clickEl as HTMLAnchorElement)
-        || getRect(clickEl, hint.r !== clickEl ? hint.r as HTMLElementUsingMap | null : null)
+        || getRect(clickEl, hint.r !== hint.d ? hint.r as HTMLElementUsingMap | null : null)
     if (hint.m && keyStatus.t && !keyStatus.k && !keyStatus.n) {
       if ((!OnChrome || Build.MinCVer < BrowserVer.MinUserActivationV2 && chromeVer_ < BrowserVer.MinUserActivationV2)
           && !fgCache.w) {
@@ -581,7 +589,7 @@ const doPostAction = (): Rect | null => {
         } else {
           (clickEl as HTMLDetailsElement).open = !(clickEl as HTMLDetailsElement).open
         }
-      } else if (hint.r && hint.r === clickEl) {
+      } else if (hint.r && hint.r === hint.d) {
         hoverEl()
       } else if (elType > EditableType.MaxNotEditableElement) {
         retPromise = select_(clickEl as LockableElement, rect, !removeFlash)
@@ -606,10 +614,8 @@ const doPostAction = (): Rect | null => {
     } else if (mode1_ < HintMode.max_copying + 1) {
       copyText()
     } else if (mode1_ < HintMode.DOWNLOAD_LINK + 1) {
-      /** satisfy {@link ModesWithOnlyHTMLElements} */
       downloadLink()
     } else if (mode1_ < HintMode.EDIT_LINK_URL) {
-      /** satisfy {@link ModesWithOnlyHTMLElements} */
       openTextOrUrl(getUrlData())
     } else if (mode1_ < HintMode.max_edit + 1) {
       copyText()

@@ -7,7 +7,7 @@ import {
 import * as BgUtils_ from "./utils"
 import {
   tabsUpdate, runtimeError_, selectTab, selectWnd, browserSessions_, browserWebNav_, downloadFile, import2, Q_,
-  getCurTab, getGroupId, Tabs_, tabsGet
+  getCurTab, getGroupId, Tabs_, tabsGet, selectWndIfNeed
 } from "./browser"
 import { convertToUrl_ } from "./normalize_urls"
 import { findUrlEndingWithPunctuation_, parseSearchUrl_, parseUpperUrl_ } from "./parse_urls"
@@ -628,6 +628,19 @@ set_reqH_([
       port.s.flags_ & Frames.Flags.ResReleased || port.postMessage(resetMsg)
     }
   },
+  /** kFgReq.focusCurTab: */ (_req: FgReq[kFgReq.focusCurTab], port): void => {
+    let tabId = port.s.tabId_, tick = 0, timer = setInterval(() => {
+      const ref = framesForTab_.get(tabId)
+      if (tabId !== curTabId_ && ref) {
+        clearInterval(timer)
+        if (ref.ports_.includes(port) || port.s.flags_ & Frames.Flags.ResReleased) {
+          selectTab(tabId, selectWndIfNeed)
+        }
+      } else if (++tick >= 12 || !ref) {
+        clearInterval(timer)
+      }
+    }, 17)
+  }
 ])
 
 const onCompletions = function (this: Port, favIcon0: 0 | 1 | 2, list: Array<Readonly<Suggestion>>

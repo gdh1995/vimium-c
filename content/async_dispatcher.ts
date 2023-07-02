@@ -4,7 +4,7 @@ import {
 } from "../lib/utils"
 import {
   IsInDOM_, isInTouchMode_cr_, MDW, hasTag_, CLK, attr_s, fullscreenEl_unsafe_, findAnchor_, dispatchAsync_,
-  blur_unsafe, derefInDoc_, wrapEventInit_, getRootNode_mounted
+  blur_unsafe, derefInDoc_, wrapEventInit_, getRootNode_mounted, elFromPoint_
 } from "../lib/dom_utils"
 import { suppressTail_ } from "../lib/keyboard_utils"
 import { Point2D, center_, getVisibleClientRect_, view_ } from "../lib/rect"
@@ -216,7 +216,7 @@ export const touch_cr_ = OnChrome ? (element: SafeElementForMouse, [x, y]: Point
 export const hover_async = (async (newEl?: NullableSafeElForM
     , center?: Point2D, doesFocus?: boolean): Promise<void> => {
   // if center is affected by zoom / transform, then still dispatch mousemove
-  let elFromPoint = center && doc.elementFromPoint(center[0], center[1]),
+  let elFromPoint = elFromPoint_(center, newEl),
   canDispatchMove: boolean = !newEl || elFromPoint === newEl || !elFromPoint || !IsInDOM_(newEl, elFromPoint),
   last = derefInDoc_(lastHovered_), forceToBubble = lastBubbledHovered_ === lastHovered_,
   N = lastHovered_ = lastBubbledHovered_ = null
@@ -418,8 +418,9 @@ export const click_async = (async (element: SafeElementForMouse
             }
           }
         } else {
-          (element as HTMLMediaElement).paused !== initialStat ? 0
-              : initialStat ? (element as HTMLMediaElement).play() : (element as HTMLMediaElement).pause()
+          (element as SafeHTMLElement as HTMLMediaElement).paused !== initialStat ? 0
+              : initialStat ? (element as SafeHTMLElement as HTMLMediaElement).play()
+              : (element as SafeHTMLElement as HTMLMediaElement).pause()
         }
       }
       return

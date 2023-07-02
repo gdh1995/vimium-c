@@ -385,7 +385,7 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
   evenClosed_cr_ff = OnFirefox || OnChrome && (Build.MinCVer >= BrowserVer.Min$dom$$openOrClosedShadowRoot
       || chromeVer_ > BrowserVer.Min$dom$$openOrClosedShadowRoot - 1) && !!rawClosedShadow_cr,
   clickableSelector = joinValidSelectors(matchAll && options.clickable
-      , findSelectorByHost(matchAll && options.clickableOnHost)),
+      , matchAll && findSelectorByHost(options.clickableOnHost)),
   output: Hint[] | Hint0[] = [],
   cur_arr: HintSources | null = matchSafeElements(filter !== getEditable ? selector : (matchAll = !1,
         selector = VTr(kTip.editableSelector) + (clickableSelector ? "," + clickableSelector : ""))
@@ -758,10 +758,6 @@ export const filterOutNonReachable = (list: Hint[], notForAllClickable?: boolean
   }
   return i < 0
 }
-
-export type ModesWithOnlyHTMLElements = HintMode.min_link_job | HintMode.max_link_job
-    | HintMode.COPY_URL | HintMode.DOWNLOAD_LINK | HintMode.OPEN_INCOGNITO_LINK | HintMode.OPEN_LINK
-    | HintMode.COPY_IMAGE | HintMode.EDIT_LINK_URL | HintMode.FOCUS_EDITABLE
 
 export const getVisibleElements = (view: ViewBox): readonly Hint[] => {
   let r2 = null as Rect[] | null, subtractor: Rect, subtracted: Rect[]

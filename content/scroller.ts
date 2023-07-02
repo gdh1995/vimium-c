@@ -27,7 +27,7 @@ import {
   isTop, injector, isTY, promiseDefer_, weakRef_ff, Stop_, abs_
 } from "../lib/utils"
 import {
-  rAF_, scrollingEl_, SafeEl_not_ff_, docEl_unsafe_, NONE, frameElement_, OnDocLoaded_, GetParent_unsafe_, isNode_,
+  rAF_, scrollingEl_, SafeEl_not_ff_, docEl_unsafe_, NONE, frameElement_, OnDocLoaded_, GetParent_unsafe_, elFromPoint_,
   querySelector_unsafe_, getComputedStyle_, notSafe_not_ff_, HDN, isRawStyleVisible, fullscreenEl_unsafe_, getEventPath,
   doesSupportDialog, attr_s, getSelection_, isIFrameElement, derefInDoc_, isHTML_, IsInDOM_, getRootNode_mounted,
   getEditableType_, dispatchAsync_, wrapEventInit_, findSelectorByHost
@@ -576,7 +576,6 @@ const findScrollable = (di: ScrollByY, amount: number
       }
     }
     let candidate: false | ElementScrollInfo | null | undefined
-    let topRoot: Document | ShadowRoot
     let element: Element | null = activeEl
     activeEl && selectAncestor()
     if (!element) {
@@ -591,9 +590,7 @@ const findScrollable = (di: ScrollByY, amount: number
     if (!element && top && (OnFirefox || !notSafe_not_ff_!(top))) {
       isTopScrollable = shouldScroll_s(top as SafeElement, di, 0)
       if (isTopScrollable < 1) {
-        topRoot = top && getRootNode_mounted(top as SafeElement & EnsuredMountedElement)
-        element = (topRoot && isNode_(topRoot, kNode.DOCUMENT_FRAGMENT_NODE) ? topRoot : doc
-            ).elementFromPoint(wndSize_(1) / 2, wndSize_() / 2)
+        element = elFromPoint_([wndSize_(1) / 2, wndSize_() / 2], top as SafeElement)
         if (element && getEditableType_(element) && dimSize_(element, kDim.elClientH) < wndSize_() / 2) {
           element = GetParent_unsafe_(element, PNType.RevealSlotAndGotoParent)
         }

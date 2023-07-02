@@ -104,7 +104,7 @@ declare const enum kFgReq {
   framesGoBack, i18n, cssLearnt, visualMode, respondForRunKey,
   downloadLink, wait, optionToggled, keyFromOmni, pages,
   showUrl, omniCopy, omniCopied, didLocalMarkTask, recheckTee,
-  afterTee, onFreeze, syncStatus, END,
+  afterTee, onFreeze, syncStatus, focusCurTab, END,
   msg = 90, inject = 99,
   command = "command", id = "id", shortcut = "shortcut", focus = "focus", tip = "tip",
 }
@@ -291,8 +291,9 @@ declare namespace HintsNS {
     dblclick?: boolean;
     interact?: true | "native" | false
     longPage?: boolean
+    autoChild?: boolean | "css-selector" | ":root"
     newtab?: null | /** only in editing mode */ boolean
-        | "force" | "force-current" | "force-mode"
+        | "force" | "force-current" | "force-mode" | "inactive"
         | "last-window" | "window" | /** Firefox-only */ "no-prevent"
     reuse?: UserReuseType
     button?: "right" | "middle" | "auxiliary" | 0 | 1 | 2
@@ -761,6 +762,7 @@ interface FgReq {
       isPassKeysReversed: boolean, passKeys: string[] | "" | null
     ]
   }
+  [kFgReq.focusCurTab]: {}
 }
 
 interface CurrentEnvCache {} // eslint-disable-line @typescript-eslint/no-empty-interface
