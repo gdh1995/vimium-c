@@ -699,9 +699,6 @@ const beforeTerser = exports.beforeTerser = (file) => {
       contents = result
     }
   }
-  if (allPathStr.indexOf("/extend_click_vc.") >= 0) {
-    contents = contents.replace(/\b(let|const)\s/g, "var ")
-  }
   if (locally ? doesMinifyLocalFiles : allPathStr.includes("pages/") || allPathStr.includes("background/")) {
     get()
     if (!known_defs) {

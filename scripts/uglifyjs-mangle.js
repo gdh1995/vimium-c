@@ -45,9 +45,6 @@ let AST_Var
 let AST_SymbolVar
 /** @type { typeof import("../typings/base/terser").AST_Lambda } */
 let AST_Lambda
-/** @type { typeof import("../typings/base/terser").AST_Scope } */
-// @ts-ignore
-let AST_Scope
 /** @type { typeof import("../typings/base/terser").AST_Block } */
 let AST_Block
 /** @type { typeof import("../typings/base/terser").AST_IterationStatement } */
@@ -58,7 +55,7 @@ const P = Promise.all([
   import("terser/lib/parse").then(i => parse = i.parse),
   import("terser/lib/ast").then(i => {
     TreeWalker = i.TreeWalker; AST_Var = i.AST_Var; AST_SymbolVar = i.AST_SymbolVar; AST_Lambda = i.AST_Lambda
-    AST_Scope = i.AST_Scope, AST_Block = i.AST_Block, AST_IterationStatement = i.AST_IterationStatement
+    AST_Block = i.AST_Block, AST_IterationStatement = i.AST_IterationStatement
   }),
 ])
 
@@ -371,6 +368,14 @@ function testScopedLets(selfVar, context, varNames) {
           if (node2 === curBlocks[0]) { return found() }
         }
         if (!inSubBlock) { return found() }
+      } // @ts-ignore
+    } else if (!sameNameFound && node1.TYPE === "SymbolRef" && varNames.has(node1.name)) {
+      /** @type { import("../typings/base/terser").AST_Scope | null } */ // @ts-ignore
+      let def_scope = node1.thedef.scope
+      for (; def_scope !== root && def_scope; def_scope = def_scope.parent_scope) {}
+      if (def_scope !== root) { //@ts-ignore
+        sameNames = node1.name + ", "; sameVar = node1.thedef
+        return sameNameFound = true
       }
     }
     return sameNameFound
