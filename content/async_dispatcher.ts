@@ -4,7 +4,7 @@ import {
 } from "../lib/utils"
 import {
   IsInDOM_, isInTouchMode_cr_, MDW, hasTag_, CLK, attr_s, fullscreenEl_unsafe_, findAnchor_, dispatchAsync_,
-  blur_unsafe, derefInDoc_, wrapEventInit_, getRootNode_mounted, elFromPoint_
+  blur_unsafe, derefInDoc_, wrapEventInit_, getRootNode_mounted, elFromPoint_, HTMLElementProto
 } from "../lib/dom_utils"
 import { suppressTail_ } from "../lib/keyboard_utils"
 import { Point2D, center_, getVisibleClientRect_, view_ } from "../lib/rect"
@@ -358,7 +358,9 @@ export const click_async = (async (element: SafeElementForMouse
   if (!IsInDOM_(element) || button! & kClickButton.auxiliary) { return }
   if (button! & kClickButton.second) {
     // if button is the right, then auxclick can be triggered even if element.disabled
-    await mouse_(element, "auxclick", center, modifiers, 0, button, isTouch)
+    OnEdge || OnChrome && Build.MinCVer < BrowserVer.MinEnsured$auxclick && chromeVer_ < BrowserVer.MinEnsured$auxclick
+          && !("onauxclick" in HTMLElementProto!)
+        || await mouse_(element, "auxclick", center, modifiers, 0, button, isTouch)
     await mouse_(element, kMenu, center, modifiers, 0, button, isTouch)
     return
   }

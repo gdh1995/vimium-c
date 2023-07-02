@@ -699,7 +699,7 @@ const onHostKeydown = (event: HandlerNS.Event): HandlerResult => {
   if (OnChrome) {
     f("compositionend", onInput, t)
   }
-  suppressCommonEvents(wnd, CLK);
+  suppressCommonEvents(wnd, CLK) // no `<a>`, so no `auxclick` events
   f(BU, onUnexpectedBlur = (event): void => {
     const delta = getTime() - now
     if (event && isActive && delta < 500 && delta > -99 && event.target === wnd) {

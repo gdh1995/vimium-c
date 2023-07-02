@@ -532,6 +532,7 @@ set_contentCommands_([
     const outerBox = createElement_(OnChrome
         && Build.MinCVer < BrowserVer.MinForcedColorsMode ? getBoxTagName_old_cr() : "div")
     setClassName_s(outerBox, "R H" + fgCache.d)
+    interface WithOnAuxclick extends SafeHTMLElement { onauxclick: unknown }
     let box: SafeHTMLElement
     if (OnFirefox) {
       // on FF66, if a page is limited by "script-src 'self'; style-src 'self'"
@@ -545,7 +546,7 @@ set_contentCommands_([
       outerBox.innerHTML = html as string
       box = outerBox.lastChild as SafeHTMLElement
     }
-    box.onclick = Stop_
+    box.onclick = (box as WithOnAuxclick).onauxclick = Stop_
     suppressCommonEvents(box, MDW)
     if (!OnChrome || Build.MinCVer >= BrowserVer.MinMayNoDOMActivateInClosedShadowRootPassedToFrameDocument
         || chromeVer_ > BrowserVer.MinMayNoDOMActivateInClosedShadowRootPassedToFrameDocument - 1) {
@@ -553,7 +554,7 @@ set_contentCommands_([
     }
 
     const closeBtn = querySelector_unsafe_("#HCls", box) as HTMLElement,
-    optLink = querySelector_unsafe_("#HOpt", box) as HTMLAnchorElement,
+    optLink = querySelector_unsafe_("#HOpt", box) as WithOnAuxclick,
     advCmd = querySelector_unsafe_("#HAdv", box) as HTMLElement,
     toggleAdvanced = (): void => {
       const el2 = advCmd.firstChild as HTMLElement
@@ -564,7 +565,6 @@ set_contentCommands_([
       set_hideHelp(null)
       set_helpBox(null)
       event && prevent_(event)
-      advCmd.onclick = optLink.onclick = closeBtn.onclick = null as never
       let i: Element | null | undefined = deref_(lastHovered_)
       i && contains_s(outerBox, i) && set_lastHovered_(set_lastBubbledHovered_(null))
       if ((i = deref_(currentScrolling)) && contains_s(box, i)) {
@@ -575,8 +575,8 @@ set_contentCommands_([
       setupExitOnClick(kExitOnClick.helpDialog | kExitOnClick.REMOVE)
     })
     if (! locHref().startsWith(optionUrl)) {
-      optLink.href = optionUrl
-      optLink.onclick = event => {
+      optLink.onauxclick = optLink.onclick = (event: MouseEventToPrevent): void => {
+        if (event.button > 1) { return }
         post_({ H: kFgReq.focusOrLaunch, u: optionUrl })
         hideHelp!(event)
       }

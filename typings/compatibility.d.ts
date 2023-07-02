@@ -266,7 +266,8 @@ declare const enum BrowserVer {
   Min$Extension$$GetView$AcceptsTabId = 54,
   Min$tabs$$discard = 54,
   MinEnsured$ParentNode$$appendAndPrepend = 54, // even if LEGACY
-  // the 11 below are correct even if EXPERIMENTAL or LEGACY
+  MinMaybe$auxclick = 54, // if EXPERIMENTAL; since C55 even if LEGACY
+  // the 10 below are correct even if EXPERIMENTAL or LEGACY
   MinUnprefixedUserSelect = 54,
   MinHighDPIOnWindows = 54, // replace MinPhysicalPixelOnWindows
   MinNo$KeyboardEvent$$keyIdentifier = 54,
@@ -279,8 +280,9 @@ declare const enum BrowserVer {
   Min$Event$$composedPath$ExistAndIncludeWindowAndElementsIfListenedOnWindow = 55,
   Min$SVGElement$$dataset = 55,
   // MinStricterArgsIn$Windows$$Create = 55, // I forget what's stricter
-  MinSomeDocumentListenersArePassiveByDefault = 56,
   Min$addEventListener$support$once = 55,
+  MinEnsured$auxclick = 55, // even if LEGACY; replace MinMaybe$auxclick
+  MinSomeDocumentListenersArePassiveByDefault = 56,
   // not need if LEGACY or EMPTY (even on Chrome 66)
   MinMayNeedCSPForScriptsFromOtherExtensions = 56, // if EXPERIMENTAL
   // the 3 below are correct even if EXPERIMENTAL or LEGACY

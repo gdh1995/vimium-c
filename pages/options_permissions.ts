@@ -281,7 +281,7 @@ if (!OnEdge) {
       i => !ignored.some(j => typeof j === "string" ? i === j : j.test(i)))
 }
 if (OnEdge || !optional_permissions.length && !(Build.MV3 && OnChrome && navNames.length)) {
-  nextTick_((): void => { $("#optionalPermissionsBox").style.display = "none" })
+  nextTick_((): void => { $("#optionalPermissionsBox").style.display = "none" }, 9)
 } else {
   if (Build.MV3 && OnChrome) {
     for (const name of navNames) {
@@ -292,7 +292,7 @@ if (OnEdge || !optional_permissions.length && !(Build.MV3 && OnChrome && navName
     shownItems.push({ name_: name, type_: name.includes(":") ? 1 : 0, previous_: 0, element_: null as never })
   }
   Build.MV3 && navPermissionTip && nextTick_((): void => { navPermissionTip!.style.display = "" })
-  nextTick_(initOptionalPermissions)
+  nextTick_(initOptionalPermissions, 9)
   void Promise.all(shownItems.map(doPermissionsContain_)).then((): void => {
     nextTick_((): void => {
       (container.dataset as KnownOptionsDataset).model = "OptionalPermissions"
