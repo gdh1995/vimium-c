@@ -50,9 +50,6 @@ declare const enum BrowserVer {
   // before C37, if a page has no `'unsafe-inline'` in its CSP::`style-src`, then Vimium's styles is totally broken
   MinStyleSrcInCSPNotBreakUI = 37, // even if EXPERIMENTAL or LEGACY
   MinSessions = 37,
-  // even if EXPERIMENTAL; Note: should use MinUsableCSS$All
-  // so this is deprecated
-  MinUnsafeCSS$All$Attr = 37,
   /*
    * an `all:initial` prevents position/z-index attrs in other matched rules from working
    * this Chrome bug causes the help dialog may have `position: static;`
@@ -132,6 +129,7 @@ declare const enum BrowserVer {
   Min$Document$$ScrollingElement = 44,
   MinTreat$LetterColon$AsFilePath = 44,
   MinFixedCSS$All$MightOverwriteAnchorColor = 44, // affect links on the help dialog; ignored
+  CSS$All$$initial$MayBreakHelpDialog = 45, // `.R.H{all:initial}` is necessary on C46-C55, but fails on C45
   // the 2 below are even if EXPERIMENTAL or EMPTY
   MinMayBeES6ArrowFunction = 45,
   // for VHints.traverse_, Array.from takes >= 2x time to convert a static NodeList of 7242 elements to an array
@@ -230,7 +228,7 @@ declare const enum BrowserVer {
   Min$ScrollIntoView$SetTabNavigationNode = 51,
   MinEnsured$Reflect$$apply$And$$construct = 51, // even if LEGACY
   // Chrome also began to put contain attr in use on 51 if EXPERIMENTAL
-  // but obviously there's some bugs about this feature
+  // but obviously there's some bugs about this feature: e.g. `layout` breaks size of link hints
   CSS$Contain$BreaksHelpDialogSize = 51,
   MinEnsured$ForOf$ForDOMListTypes = 51, // NodeList has also forEach (neither HTMLCollection nor ClientRectList)
   // test: var {a,b,c}={a:(...a)=>[-1,`${Math.sign(2)}`,...a],b(i=2){return i*6}, ['c'](d){let j=class A{};return ""+j}}

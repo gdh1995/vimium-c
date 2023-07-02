@@ -24,6 +24,8 @@ export const parseHTML = (template: string): [string, string] => {
           && !(OnChrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
                 ? globalThis.ShadowRoot || (globalThis as MaybeWithWindow).document!.body!.webkitCreateShadowRoot
                 : globalThis.ShadowRoot),
+      noAllInitial = OnChrome && Build.MinCVer <= BrowserVer.CSS$All$$initial$MayBreakHelpDialog
+          && CurCVer_ === BrowserVer.CSS$All$$initial$MayBreakHelpDialog,
       noContain = OnChrome && Build.MinCVer <= BrowserVer.CSS$Contain$BreaksHelpDialogSize
           && CurCVer_ === BrowserVer.CSS$Contain$BreaksHelpDialogSize;
       let pos = template.indexOf("</style>") + 8, head = template.slice(0, pos), body = template.slice(pos).trim();
@@ -32,10 +34,11 @@ export const parseHTML = (template: string): [string, string] => {
         body = head.slice(0, arr.index).trim() + body;
         head = head.slice(arr.index + arr[0].length, -8);
       }
-      if (noShadow || noContain) {
+      if (noShadow || noContain || noAllInitial) {
         if (noContain) {
-          head = head.replace(<RegExpG> /contain:\s?[\w\s]+/g, "contain: none !important");
+          head = head.replace(<RegExpG> /contain:[\w\s!]+/g, "contain: none !important")
         }
+        if (noAllInitial) { head = head.replace("initial", "inherit") }
         if (noShadow) {
           head = head.replace(<RegExpG> /[#.][A-Z][^,{};]*[,{]/g, "#VimiumUI $&");
         }

@@ -60,6 +60,10 @@ export const reloadCSS_ = (action: MergeAction, knownCssStr?: string): SettingsN
         return `rgba(${r},${g},${b},${alpha.slice(0, 4)})`
       })
     }
+    if (OnChrome && Build.MinCVer <= BrowserVer.CSS$Contain$BreaksHelpDialogSize
+        && CurCVer_ === BrowserVer.CSS$Contain$BreaksHelpDialogSize) {
+      css = css.replace(<RegExpG> /layout /g, "")
+    }
     const cssFile = parseSections_(css)
     let isHighContrast_ff = false, hcChanged_ff = false
     if (OnFirefox && !Build.MV3) {

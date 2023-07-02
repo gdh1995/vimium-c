@@ -1,6 +1,7 @@
 <div class="R Scroll UI" id="HDlg" tabindex="0">
 <style>
 .R.H {
+	all: initial; /** in C45-C55, `.R{all:initial}` forces `transform` to be "matrix(1, 0, 0, 1, 0, 0)" - hide the box */
 	contain: none;
 	/** add this line just in case */ pointer-events: all;
 	-webkit-user-select: auto;
