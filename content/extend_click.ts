@@ -103,6 +103,7 @@ export const ec_main_not_ff = (Build.BTypes !== BrowserType.Firefox as number ? 
           readyTimeout = timeout_(initOnDocReady, InnerConsts.DelayToWaitDomReady)
           OnDocLoaded_(initOnDocReady)
           setOrRemoveAttr_s(target, kSA, "")
+          vApi.e = execute
         } else {
           execute(kContentCmd.Destroy)
         }
@@ -197,24 +198,24 @@ export const ec_main_not_ff = (Build.BTypes !== BrowserType.Firefox as number ? 
   const initOnDocReady = (): void => {
     clearTimeout_(readyTimeout)
     if (kInjectManually) {
-    if (!script) { return }
-    box = createElement_("div")
-    appendNode_s(script, box)
-    dispatchEvent_(script, new Event(outKMK + BuildStr.RandomClick))
-    if (parentNode_unsafe_s(box)) {
-      // normally, if here, must have: limited by CSP; not C or C >= MinEnsuredNewScriptsFromExtensionOnSandboxedPage
-      // ignore the rare (unexpected) case that injected code breaks even when not limited by CSP,
-      //     which might mean curCVer has no ES6...
-      execute(kContentCmd.SuppressClickable)
-      runJS_("`${" + outKMK + "=>" + secret + "}`")
+      if (!script) { return }
+      box = createElement_("div")
+      appendNode_s(script, box)
+      dispatchEvent_(script, new Event(outKMK + BuildStr.RandomClick))
+      if (parentNode_unsafe_s(box)) {
+        // normally, if here, must have: limited by CSP; not C or C >= MinEnsuredNewScriptsFromExtensionOnSandboxedPage
+        // ignore the rare (unexpected) case that injected code breaks even when not limited by CSP,
+        //     which might mean curCVer has no ES6...
+        execute(kContentCmd.SuppressClickable)
+        runJS_("`${" + outKMK + "=>" + secret + "}`")
+        return
+      }
+      script = null as never
+      removeEl_s(box)
+    } else if (!box) {
       return
     }
-    script = null as never
-    removeEl_s(box)
-    } else {
-      vApi.e = execute
-    }
-    setupEventListener(box!, kVOnClick1, onClick)
+    setupEventListener(box, kVOnClick1, onClick)
     // only for new versions of Chrome (and Edge);
     // CSP would block a <script> before MinEnsuredNewScriptsFromExtensionOnSandboxedPage
     // if !box, avoid checking isFirstTime, so that auto clean VApi.e
