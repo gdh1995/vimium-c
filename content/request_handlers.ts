@@ -3,7 +3,7 @@ import {
   keydownEvents_, set_chromeVer_, set_clickable_, set_fgCache, set_isLocked_, OnChrome, OnFirefox, safeCall, recordLog,
   set_isEnabled_, set_onWndFocus, onWndFocus, timeout_, safer, set_os_, safeObj, set_keydownEvents_, setupEventListener,
   interval_, getTime, vApi, clearInterval_, locHref, set_firefoxVer_, firefoxVer_, os_, isAsContent, isIFrameInAbout_,
-  OnEdge, inherited_
+  OnEdge, inherited_, clearTimeout_, setupTimerFunc_cr_mv3
 } from "../lib/utils"
 import { set_keyIdCorrectionOffset_old_cr_, handler_stack, suppressTail_ } from "../lib/keyboard_utils"
 import {
@@ -13,7 +13,7 @@ import {
 } from "../lib/dom_utils"
 import {
   onPortRes_, post_, safePost, set_requestHandlers, requestHandlers, hookOnWnd, set_hookOnWnd, onFreezePort,
-  HookAction, contentCommands_, runFallbackKey, runtime_port, runtimeConnect, set_port_,
+  HookAction, contentCommands_, runFallbackKey, runtime_port, runtimeConnect, set_port_, setupBackupTimer_cr,
 } from "./port"
 import {
   addUIElement, adjustUI, createStyle, getParentVApi, getBoxTagName_old_cr, setUICSS, ui_box, evalIfOK, checkHidden,
@@ -63,6 +63,12 @@ set_requestHandlers([
     }
     inherited_ ? esc!(HandlerResult.Nothing) : requestHandlers[kBgReq.keyFSM](request);
     (requestHandlers[kBgReq.reset] as (request: BgReq[kBgReq.reset | kBgReq.init], initing?: 1) => void)(request, 1)
+    if (Build.MV3 && OnChrome && !vApi.e && (Build.MinCVer >= BrowserVer.MinRegisterContentScriptsWorldInMV3
+        || chromeVer_ > BrowserVer.MinRegisterContentScriptsWorldInMV3 - 1) && isAsContent) {
+      const t = timeout_, i = interval_, ct = clearTimeout_, ci = clearInterval_
+      timeout_((): void => { /*#__INLINE__*/ setupTimerFunc_cr_mv3(t, i, ct, ci) }, 0)
+      /*#__INLINE__*/ setupBackupTimer_cr()
+    }
     if (isEnabled_) {
       set_keydownEvents_(safeObj<any>(null))
       insertInit(injector ? injector.$g : fgCache.g && grabBackFocus as boolean, 1)

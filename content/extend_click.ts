@@ -217,7 +217,7 @@ export const ec_main_not_ff = (Build.BTypes !== BrowserType.Firefox as number ? 
     setupEventListener(box!, kVOnClick1, onClick)
     // only for new versions of Chrome (and Edge);
     // CSP would block a <script> before MinEnsuredNewScriptsFromExtensionOnSandboxedPage
-    // if !box, avoid checking isFirstTime, so that auto clean VApi.execute_
+    // if !box, avoid checking isFirstTime, so that auto clean VApi.e
     OnDocLoaded_(timeout_.bind(null, (): void => {
       isFirstResolve && dispatchCmd(kContentCmd.AutoFindAllOnClick);
       isFirstResolve = 0;
@@ -234,13 +234,7 @@ export const ec_main_not_ff = (Build.BTypes !== BrowserType.Firefox as number ? 
     if (grabBackFocus) {
       setupEventListener(0, kVOnClick1, onClick);
       OnDocLoaded_(() => { // check CSP script-src or JS-disabled-in-CS
-        if (box) { return }
-        execute(kContentCmd.Destroy);
-        if (OnChrome) {
-          const t = timeout_, i = interval_, ct = clearTimeout_, ci = clearInterval_
-          timeout_((): void => { /*#__INLINE__*/ setupTimerFunc_cr_mv3(t, i, ct, ci) }, 0)
-          /*#__INLINE__*/ setupBackupTimer_cr()
-        }
+        box || execute(kContentCmd.Destroy)
       })
     }
     return
