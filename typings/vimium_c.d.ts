@@ -280,9 +280,9 @@ declare const enum PortNameEnum {
 }
 
 declare const enum PortType {
-  initing = 0, isTop = 1, hasFocus = 2, reconnect = 4, hasCSS = 8,
-  omnibar = 16, onceFreezed = 32, aboutIframe = 64, selfPages = 128, Tee = 256, refreshInBatch = 512,
-  otherExtension = 1024,
+  initing = 0, isTop = 1, hasFocus = 2, confInherited = 4, reconnect = 8, hasCSS = 16,
+  onceFreezed = 32, aboutIframe = 64, selfPages = 128, omnibar = 256, refreshInBatch = 512,
+  otherExtension = 1024, Tee = 2048,
   /** for external extensions like NewTab Adapter */ CloseSelf = 999,
 }
 

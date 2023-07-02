@@ -1,6 +1,6 @@
 import {
   injector, safer, timeout_, isAlive_, isTop, set_i18n_getMsg, locHref, OnEdge, OnChrome, OnFirefox, isTY, fgCache,
-  interval_, setupTimerFunc_cr, noRAF_old_cr_, runtime_ff, isIFrameInAbout_, isLocked_
+  interval_, setupTimerFunc_cr, noRAF_old_cr_, runtime_ff, isIFrameInAbout_, isLocked_, inherited_
 } from "../lib/utils"
 import { suppressTail_ } from "../lib/keyboard_utils"
 import { docHasFocus_, rAF_ } from "../lib/dom_utils"
@@ -65,7 +65,7 @@ export const safePost = <k extends keyof FgReq> (request: FgReq[k] & Req.baseFg<
 
 export const runtimeConnect = (function (this: void, extraFlags?: number): void {
   const api = OnChrome ? chrome : OnFirefox ? null as never : browser as typeof chrome,
-  status = !fgCache ? PortType.initing
+  status = !fgCache ? PortType.initing + inherited_
       : PortType.reconnect | extraFlags! | PortType.hasCSS * <number> <boolean | number> !!style_ui,
   name = (PortType.isTop === 1 ? <number> <boolean | number> isTop : PortType.isTop * <number> <number | boolean> isTop)
       | PortType.aboutIframe * <number> <number | boolean> isIFrameInAbout_ | onceFreezed | status

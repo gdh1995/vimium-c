@@ -246,6 +246,8 @@ interface VApiTy extends Frames.BaseVApi {
     /** @see {../content/scroller.ts#keyIsDown} */ k: number
     /** UI root */ r: VUIRoot | null
     /** find input */ f: SafeHTMLElement | null
+    m: [ keyFSM: KeyFSM, mappedKeys: SafeDict<string> | null, mapKeyTypes: kMapKey,
+         vApi_z: SettingsNS.FrontendSettingCache | null ]
   }
   /** cache */ z: SettingsNS.FrontendSettingCache | null
   /** @see {../content/scroller.ts#$sc} */ $: (element: SafeElement | null, di: ScrollByY, amount: number

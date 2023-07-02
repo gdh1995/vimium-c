@@ -51,7 +51,7 @@ export const OnConnect = (port: Frames.Port, type: PortType): void => {
     return
   }
   const lifecycle = (port as Frames.BrowserPort).sender.documentLifecycle
-  const isInActive = !!lifecycle && lifecycle !== "active"
+  const isInactive = !!lifecycle && lifecycle !== "active"
   const sender = /*#__NOINLINE__*/ formatPortSender(port)
   const url = sender.url_, isOmni = url === vomnibarPage_f
   if (type > PortType.reconnect - 1 || isOmni) {
@@ -63,7 +63,7 @@ export const OnConnect = (port: Frames.Port, type: PortType): void => {
       /*#__NOINLINE__*/ _onOmniConnect(port, type, isOmni || url === CONST_.VomnibarPageInner_)
       return
     }
-    if (isInActive) {
+    if (isInactive) {
       port.disconnect()
       if (!Build.NDEBUG && DEBUG) {
         console.log("on inactive port reconnect: tab=%o, frameId=%o, lifecycle=%o"
@@ -110,11 +110,13 @@ export const OnConnect = (port: Frames.Port, type: PortType): void => {
     }
     /*#__NOINLINE__*/ _recoverStates(ref, port, type)
   } else {
-    port.postMessage({
-      N: kBgReq.init, c: contentPayload_, d: isInActive, f: flags,
+    port.postMessage<kBgReq.init>(type & PortType.confInherited ? {
+      N: kBgReq.init, c: null as never as SettingsNS.FrontendSettingCache, d: isInactive, f: flags, p: passKeys
+    } satisfies Omit<Req.bg<kBgReq.init>, keyof BgReq[kBgReq.keyFSM]> as Req.bg<kBgReq.init> : {
+      N: kBgReq.init, c: contentPayload_, d: isInactive, f: flags,
       k: keyFSM_!, m: mappedKeyRegistry_, p: passKeys, t: mappedKeyTypes_
     })
-    if (isInActive) {
+    if (isInactive) {
       port.disconnect()
       if (!Build.NDEBUG && DEBUG) {
         console.log("on inactive port connect: tab=%o, frameId=%o, lifecycle=%o"
@@ -178,7 +180,7 @@ const onDisconnect = (port: Port): void => {
 }
 
 const _onOmniConnect = (port: Frames.Port, type: PortType, isOmniUrl: boolean): void => {
-  if (type > PortType.omnibar - 1) {
+  if (type & PortType.omnibar) {
     if (isOmniUrl) {
       if (port.s.tabId_ < 0) {
         (port.s as Writable<Frames.Sender>).tabId_ = type & PortType.reconnect ? getNextFakeTabId()

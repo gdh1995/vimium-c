@@ -3,7 +3,7 @@ import {
   keydownEvents_, set_chromeVer_, set_clickable_, set_fgCache, set_isLocked_, OnChrome, OnFirefox, safeCall, recordLog,
   set_isEnabled_, set_onWndFocus, onWndFocus, timeout_, safer, set_os_, safeObj, set_keydownEvents_, setupEventListener,
   interval_, getTime, vApi, clearInterval_, locHref, set_firefoxVer_, firefoxVer_, os_, isAsContent, isIFrameInAbout_,
-  OnEdge
+  OnEdge, inherited_
 } from "../lib/utils"
 import { set_keyIdCorrectionOffset_old_cr_, handler_stack, suppressTail_ } from "../lib/keyboard_utils"
 import {
@@ -41,7 +41,7 @@ export function set_needToRetryParentClickable (_newNeeded: 1): void { needToRet
 
 set_requestHandlers([
   /* kBgReq.init: */ function (request: BgReq[kBgReq.init]): void {
-    set_fgCache(vApi.z = request.c)
+    set_fgCache(vApi.z = request.c || vApi.z)
     OnChrome && set_chromeVer_(fgCache.v as BrowserVer)
     OnFirefox && set_firefoxVer_(fgCache.v as FirefoxBrowserVer)
     Build.OS & (Build.OS - 1) && set_os_(fgCache.o)
@@ -61,7 +61,7 @@ set_requestHandlers([
       set_grabBackFocus(grabBackFocus && !(request.f & Frames.Flags.userActed))
       set_isLocked_(request.f & Frames.Flags.MASK_LOCK_STATUS)
     }
-    requestHandlers[kBgReq.keyFSM](request);
+    inherited_ ? esc!(HandlerResult.Nothing) : requestHandlers[kBgReq.keyFSM](request);
     (requestHandlers[kBgReq.reset] as (request: BgReq[kBgReq.reset | kBgReq.init], initing?: 1) => void)(request, 1)
     if (isEnabled_) {
       set_keydownEvents_(safeObj<any>(null))

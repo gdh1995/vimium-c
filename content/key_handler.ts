@@ -1,6 +1,6 @@
 import {
-  doc, esc, os_, isEnabled_, isTop, keydownEvents_, set_esc, safer, Stop_, Lower, OnChrome, OnFirefox, timeStamp_,
-  chromeVer_, deref_, fgCache, OnEdge
+  doc, esc, os_, isEnabled_, isTop, keydownEvents_, set_esc, safer, Stop_, Lower, OnChrome, OnFirefox, timeStamp_, vApi,
+  chromeVer_, deref_, fgCache, OnEdge, set_inherited_
 } from "../lib/utils"
 import {
   set_getMappedKey, char_, getMappedKey, isEscape_, getKeyStat_, prevent_, handler_stack, keybody_, SPC, hasShift_ff,
@@ -42,7 +42,7 @@ set_esc(function<T extends Exclude<HandlerResult, HandlerResult.ExitNormalMode>>
 })
 
 export {
-  passKeys, keyFSM, mappedKeys, currentKeys, isWaitingAccessKey, isCmdTriggered, anyClickHandler,
+  passKeys, keyFSM, mappedKeys, mapKeyTypes, currentKeys, isWaitingAccessKey, isCmdTriggered, anyClickHandler,
   onPassKey, isPassKeysReversed, noopEventHandler as noopHandler,
 }
 export function set_isCmdTriggered (_newTriggerred: kKeyCode): kKeyCode { return isCmdTriggered = _newTriggerred }
@@ -54,6 +54,13 @@ export function set_keyFSM (_newKeyFSM: KeyFSM): KeyFSM { return keyFSM = _newKe
 export function set_mapKeyTypes (_newMapKeyTypes: kMapKey): void { mapKeyTypes = _newMapKeyTypes }
 export function set_mappedKeys (_newMappedKeys: typeof mappedKeys): void { mappedKeys = _newMappedKeys }
 export function set_currentKeys (_newCurrentKeys: string): void { currentKeys = _newCurrentKeys }
+
+export const inheritKeyMappings = (state: ReturnType<VApiTy["y"]>): void => {
+  if (state.m[3]) {
+    [keyFSM, mappedKeys, mapKeyTypes, vApi.z] = state.m
+    set_inherited_(PortType.confInherited)
+  }
+}
 
 set_getMappedKey((eventWrapper: HandlerNS.Event, mode: kModeId): ReturnType<typeof getMappedKey> => {
   const char: kChar | "" = eventWrapper.v ? ""

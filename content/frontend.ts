@@ -2,7 +2,7 @@ import {
   doc, isTop, injector, isAsContent, set_esc, esc, setupEventListener, set_isEnabled_, XrayedObject, runtime_ff,
   set_clickable_, clickable_, isAlive_, set_VTr, setupKeydownEvents, onWndFocus, includes_,
   set_readyState_, readyState_, callFunc, recordLog, set_vApi, vApi, locHref, unwrap_ff, raw_unwrap_ff, math, OnFirefox,
-  OnChrome, OnEdge
+  OnChrome, OnEdge, fgCache
 } from "../lib/utils"
 import { suppressTail_, getMappedKey } from "../lib/keyboard_utils"
 import {
@@ -17,7 +17,7 @@ import {
   ui_box, adjustUI, getParentVApi, set_getParentVApi, set_getWndVApi_ff, learnCSS, ui_root, flash_
 } from "./dom_ui"
 import { grabBackFocus } from "./insert"
-import { currentKeys } from "./key_handler"
+import { currentKeys, inheritKeyMappings, keyFSM, mapKeyTypes, mappedKeys } from "./key_handler"
 import { coreHints } from "./link_hints"
 import { executeScroll, scrollTick, $sc, keyIsDown as scroll_keyIsDown } from "./scroller"
 import { find_box, find_input } from "./mode_find"
@@ -86,8 +86,10 @@ set_vApi(VApi = {
     return arg
   }, getMappedKey], s: suppressTail_, t: requestHandlers[kBgReq.showHUD],
   u: locHref, v: runJS_, x: flash_, y: OnFirefox ? () => ( {
-    w: onWndFocus, b: find_box, c: clickable_, k: scroll_keyIsDown, r: ui_root, f: find_input
-  } ) : () => ( {  b: find_box, c: clickable_, k: scroll_keyIsDown, r: ui_root, f: find_input } ), z: null,
+    w: onWndFocus, b: find_box, c: clickable_, k: scroll_keyIsDown, r: ui_root, f: find_input,
+    m: [keyFSM, mappedKeys, mapKeyTypes, fgCache || null ]
+  } ) : () => ( {  b: find_box, c: clickable_, k: scroll_keyIsDown, r: ui_root, f: find_input,
+    m: [keyFSM, mappedKeys, mapKeyTypes, fgCache || null ] } ), z: null,
   $: $sc
 })
 
@@ -183,6 +185,7 @@ if (!(isTop || injector)) {
             scoped_parApi.n!()
           } else {
             set_clickable_(state.c)
+            /*#__INLINE__*/ inheritKeyMappings(state)
           }
           return;
       } catch (e) {
@@ -196,13 +199,15 @@ if (!(isTop || injector)) {
       }
     })()
   } else {
+    const state = scoped_parApi.y()
       // if not `vfind`, then a parent may have destroyed for unknown reasons
-      if (scoped_parApi.y().b === frameElement_()) {
+    if (state.b === frameElement_()) {
         safeDestroy(1);
         scoped_parApi.n!()
-      } else {
-        set_clickable_(scoped_parApi.y().c)
-      }
+    } else {
+      set_clickable_(state.c)
+      /*#__INLINE__*/ inheritKeyMappings(state)
+    }
   }
 }
 

@@ -1,7 +1,8 @@
 import {
   chromeVer_, doc, esc, fgCache, isTop, set_esc, VTr, safer, timeout_, loc_, weakRef_not_ff, weakRef_ff, deref_,
   keydownEvents_, Stop_, suppressCommonEvents, setupEventListener, vApi, locHref, isTY, min_, onWndFocus, clearTimeout_,
-  OnChrome, OnFirefox, OnEdge, firefoxVer_, safeCall, os_, abs_, Lower, timeStamp_, isEnabled_, set_onWndFocus
+  OnChrome, OnFirefox, OnEdge, firefoxVer_, safeCall, os_, abs_, Lower, timeStamp_, isEnabled_, set_onWndFocus,
+  inherited_
 } from "../lib/utils"
 import {
   isHTML_, hasTag_, createElement_, querySelectorAll_unsafe_, SafeEl_not_ff_, docEl_unsafe_, MDW, CLK, derefInDoc_,
@@ -106,19 +107,19 @@ set_contentCommands_([
   },
 
   /* kFgCmd.toggle: */ (options: CmdOptions[kFgCmd.toggle]): void => {
-    const key = options.k, backupKey = "_" + key as typeof key,
-    cache = safer(fgCache), cur = cache[key];
+    const key = options.k, backupKey = "_" + key as typeof key, cur = safer(fgCache)[key];
     let val = options.v, u: undefined;
     if (val === null && (cur === !!cur)) {
       val = !cur;
     }
-    if (cache[backupKey] === u) {
-      (cache as Generalized<typeof cache>)[backupKey] = cur;
+    if (inherited_) { return }
+    if (fgCache[backupKey] === u) {
+      (fgCache as Generalized<typeof fgCache>)[backupKey] = cur
     } else if (cur === val) {
-      val = cache[backupKey];
-      cache[backupKey] = u as never;
+      val = fgCache[backupKey];
+      fgCache[backupKey] = u as never;
     }
-    (cache as Generalized<typeof cache>)[key] = val as typeof cur;
+    (fgCache as Generalized<typeof fgCache>)[key] = val as typeof cur
     options.n && post_({ H: kFgReq.optionToggled, k: options.n, v: val })
   },
   /* kFgCmd.passNextKey: */ (options: CmdOptions[kFgCmd.passNextKey], count0: number): void => {
