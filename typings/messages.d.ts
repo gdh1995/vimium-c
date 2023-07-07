@@ -291,7 +291,7 @@ declare namespace HintsNS {
     dblclick?: boolean;
     interact?: true | "native" | false
     longPage?: boolean
-    autoChild?: boolean | "css-selector" | ":root"
+    autoChild?: boolean | "css-selector" | ":root" | "html" | ":host"
     newtab?: null | /** only in editing mode */ boolean
         | "force" | "force-current" | "force-mode" | "inactive"
         | "last-window" | "window" | /** Firefox-only */ "no-prevent"

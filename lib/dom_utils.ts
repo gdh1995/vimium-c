@@ -586,8 +586,9 @@ export const findSelectorByHost = (rules: string | string[] | kTip | MayBeSelect
   }
 }
 
-export const elFromPoint_ = (center?: Point2D | null, baseEl?: SafeElement | null): Element | null => {
-  const root = center && (baseEl ? IsInDOM_(baseEl) && getRootNode_mounted(baseEl) : doc)
+export const elFromPoint_ = (center?: Point2D | null, baseEl?: SafeElement | ShadowRoot | null): Element | null => {
+  const root = center && (baseEl ? isNode_(baseEl, kNode.DOCUMENT_FRAGMENT_NODE) ? baseEl
+      : IsInDOM_(baseEl) && getRootNode_mounted(baseEl) : doc)
   const el = root && root.elementFromPoint(center![0], center![1])
   return el && el !== doc.body ? el : null
 }

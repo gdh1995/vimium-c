@@ -8,7 +8,7 @@ import {
   IsInDOM_, createElement_, htmlTag_, getComputedStyle_, getEditableType_, isIFrameElement, GetParent_unsafe_, focus_,
   kMediaTag, ElementProto_not_ff, querySelector_unsafe_, uneditableInputs_, GetShadowRoot_, scrollingEl_, elFromPoint_,
   queryChildByTag_, getSelection_, removeEl_s, appendNode_s, getMediaUrl, getMediaTag, INP, ALA, attr_s, hasTag_, kGCh,
-  setOrRemoveAttr_s, toggleClass_s, textContent_s, notSafe_not_ff_, modifySel, SafeEl_not_ff_, testMatch,
+  setOrRemoveAttr_s, toggleClass_s, textContent_s, notSafe_not_ff_, modifySel, SafeEl_not_ff_, testMatch, contains_s,
   extractField, querySelectorAll_unsafe_, editableTypes_, findAnchor_, dispatchEvent_, wrapEventInit_,
   findSelectorByHost
 } from "../lib/dom_utils"
@@ -513,8 +513,9 @@ const doPostAction = (): Rect | null => {
   let rect: Rect | null = null
   let then = hintOptions.then, optElse = hintOptions.else
   let retPromise: Promise<unknown> | undefined
-  let childSel: HintsNS.Options["autoChild"] | void = hintOptions.autoChild
+  let autoChild: HintsNS.Options["autoChild"] | 0 | void = hintOptions.autoChild
   let showRect: BOOL | 2 = hintOptions.flash !== false ? 1 : 0
+  let click2nd: Element | void | null
   if (hintManager) {
     set_keydownEvents_(hintApi.a())
     setMode(masterOrA.$().m, 1)
@@ -527,12 +528,24 @@ const doPostAction = (): Rect | null => {
   set_grabBackFocus(false)
   if (IsInDOM_(clickEl)) {
     if (!OnFirefox && bZoom_ !== 1 && doc.body && !IsInDOM_(clickEl, doc.body)) { set_bZoom_(1) }
-    if (childSel && !isIFrameElement(clickEl)) {
-      let el2 = isTY(childSel) && childSel !== ":root"
-          ? (childSel = findSelectorByHost(childSel)) && querySelector_unsafe_(childSel, clickEl)
-          : elFromPoint_(center_(getVisibleClientRect_(clickEl), hintOptions.xy as HintsNS.StdXY | undefined), clickEl)
-      clickEl = ((OnFirefox ? el2 : el2 && SafeEl_not_ff_!(el2)) satisfies Element | void | null
-          ) as SafeElementForMouse | void | null || clickEl
+    autoChild = isIFrameElement(clickEl) ? 0
+        : isTY(autoChild) ? findSelectorByHost(autoChild) as typeof autoChild : autoChild
+    if (autoChild) {
+      const anyAtPos = autoChild === "html", onlyShadow = autoChild === ":host"
+      if (isTY(autoChild) && autoChild !== ":root" && !anyAtPos && !onlyShadow) {
+        click2nd = querySelector_unsafe_(autoChild, clickEl)
+      } else {
+        const center = center_(getVisibleClientRect_(clickEl), hintOptions.xy as HintsNS.StdXY | undefined)
+        click2nd = onlyShadow ? clickEl : elFromPoint_(center, clickEl)
+        click2nd = anyAtPos || click2nd && contains_s(clickEl, click2nd) ? click2nd : null
+        let el3: Element | null = click2nd
+        while (el3 && htmlTag_<1>(el3) && GetShadowRoot_(el3)) {
+          el3 = elFromPoint_(center, GetShadowRoot_(el3))
+          if (el3 && el3 !== click2nd) { click2nd = el3 }
+        }
+      }
+      clickEl = (OnFirefox ? click2nd : click2nd && SafeEl_not_ff_!(click2nd)
+          ) satisfies Element | void | null as SafeElementForMouse | void | null || clickEl
     }
     tag = htmlTag_(clickEl), elType = getEditableType_<0>(clickEl), isHtmlImage = tag === "img"
     initTestRegExps() // needed by getPreferredRectOfAnchor
