@@ -372,9 +372,9 @@ set_contentCommands_([
   /* kFgCmd.editText: */ (options: CmdOptions[kFgCmd.editText], count: number) => {
     const editable = insert_Lock_() && getEditableType_<0>(raw_insert_lock!) > EditableType.MaxNotEditableElement
         ? raw_insert_lock as TextElement : 0, html = isHTML_();
-    (editable || options.dom) && timeout_((): void => {
-      let commands = isTY(options.run) ? options.run.split(<RegExpG> /,\s*/g) : options.run
-      let sel: Selection | undefined, absCount = abs_(count), firstCmd = 0
+    (editable || options.dom) ? timeout_((): void => {
+      let commands = isTY(options.run) ? options.run.split(<RegExpG> /,\s*/g) : options.run || []
+      let sel: Selection | undefined, absCount = abs_(count), firstCmd = 0, neverMatchCond: BOOL = 1
       let cur: string | 0, offset: number, dir: boolean
       let start: number, end: number | null, start0: number, rawOffset: number | null
       while (0 < absCount--) {
@@ -407,17 +407,19 @@ set_contentCommands_([
             activeEl && ((activeEl as Partial<TextElement>).select ? (activeEl as TextElement).select()
                 : selectNode_(activeEl))
           } else if (sel = sel || getSelected(), cmd === "when" || cmd === "if") {
-            firstCmd = 3
+            firstCmd += 3
             for (const cond of Lower((a1 + ";" + a2)) .split(<RegExpOne> /[;&+]/)) {
-              if (cond === "caret" || cond === "range" ? (cond > "r") !== isSelARange(sel)
-                  : cond === "input" || cond === "dom" ? (cond < "i") !== !editable
-                  : (<RegExpOne>/^(multi|single|one)/).test(cond) ? (cond < "o") !== isSelMultiline(sel)
-                  : (<RegExpOne> /^for|^back/).test(cond) ? (cond > "f") !== maySelectRight_(sel) : 0) {
+              if (cond === "caret" || cond === "range" ? (cond > "r") === isSelARange(sel)
+                  : cond === "input" || cond === "dom" ? (cond < "i") === !editable
+                  : (<RegExpOne>/^(multi|single|one)/).test(cond) ? (cond < "o") === isSelMultiline(sel)
+                  : (<RegExpOne> /^for|^back/).test(cond) ? (cond > "f") === maySelectRight_(sel) : 1) {
+                neverMatchCond = 0
+              } else {
                 while ((<RegExpOne>/when|if/).test(commands[i])) { i += 3 }
                 break
               }
             }
-          } else {
+          } else if (cmd !== "blank") {
             // a1: string := count | anchor | focus(ed) | forward(s) | backward(s) | begin | start | end
             dir = (i > firstCmd || count > 0) === (a1[4] === "s" ? maySelectRight_(sel)
                 : a1[0] === "a" ? !maySelectRight_(sel) : a1 > kChar.c && a1 < "s")
@@ -430,8 +432,8 @@ set_contentCommands_([
           }
         }
       }
-      runFallbackKey(options, 0)
-    }, 0);
+      runFallbackKey(options, firstCmd && neverMatchCond ? 2 : 0)
+    }, 0) : runFallbackKey(options, 2)
   },
   /* kFgCmd.scrollSelect: */ (options: CmdOptions[kFgCmd.scrollSelect], count: number): void => {
     const { dir, position: pos } = options
