@@ -54,7 +54,7 @@ type NodeToElement = TypeToAssert<Node, Element, "tagName", "nodeType">;
  * But, "nonce" occurred very late (about C61 / FF75).
  */
 type ElementToHTMLOrForeign = TypeToAssert<Element, HTMLElement | NonHTMLButFormattedElement
-    , "tabIndex" | "style", "tagName">;
+    , "tabIndex" | "style" | "focus", "tagName">;
 type ElementToSVG = TypeToAssert<Element, SVGElement, "ownerSVGElement", "tagName">
 /**
  * Document & HTMLElement & SVGStyleElement have string .title;

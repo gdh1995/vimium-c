@@ -4,7 +4,7 @@ import {
   getTime, firefoxVer_
 } from "../lib/utils"
 import {
-  isIFrameElement, uneditableInputs_, getComputedStyle_, queryChildByTag_, htmlTag_, isAriaFalse_,  joinValidSelectors,
+  isIFrameElement, uneditableInputs_, getComputedStyle_, queryHTMLChild_, htmlTag_, isAriaFalse_,  joinValidSelectors,
   kMediaTag, NONE, querySelector_unsafe_, isStyleVisible_, fullscreenEl_unsafe_, notSafe_not_ff_, docEl_unsafe_,
   GetParent_unsafe_, unsafeFramesetTag_old_cr_, isHTML_, querySelectorAll_unsafe_, isNode_, INP, attr_s, supportInert_,
   getMediaTag, getMediaUrl, contains_s, GetShadowRoot_, parentNode_unsafe_s, testMatch, hasTag_, editableTypes_,
@@ -99,7 +99,7 @@ const getClickable = (hints: Hint[], element: SafeHTMLElement): void => {
     type = ClickType.edit
     break;
   case "details":
-    isClickable = isNotReplacedBy(queryChildByTag_(element, "summary"), hints);
+    isClickable = isNotReplacedBy(queryHTMLChild_(element, "summary"), hints)
     break;
   case "dialog":
     WithDialog && (element as HTMLDialogElement).open && element !== curModalElement && !wantDialogMode_
@@ -148,8 +148,8 @@ const getClickable = (hints: Hint[], element: SafeHTMLElement): void => {
         || (s = Build.BTypes === BrowserType.Chrome as number && Build.MinCVer >= BrowserVer.MinEnsured$Element$$role
               ? element.role as Exclude<Element["role"], undefined> : element.getAttribute("role"))
             && clickableRoles_.test(s) && (
-          !(s.startsWith("menu") && queryChildByTag_(element, "ul"))
-          || isNotReplacedBy(queryChildByTag_(element, "div"), hints)
+          !(s.startsWith("menu") && queryHTMLChild_(element, "ul"))
+          || isNotReplacedBy(queryHTMLChild_(element, "div"), hints)
         )
         || extraClickable_ !== null && extraClickable_.has(element)
         || ngEnabled && attr_s(element, "ng-click")

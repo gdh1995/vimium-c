@@ -7,7 +7,7 @@ import { getVisibleClientRect_, center_, view_, selRange_, bZoom_, set_bZoom_ } 
 import {
   IsInDOM_, createElement_, htmlTag_, getComputedStyle_, getEditableType_, isIFrameElement, GetParent_unsafe_, focus_,
   kMediaTag, ElementProto_not_ff, querySelector_unsafe_, uneditableInputs_, GetShadowRoot_, scrollingEl_, elFromPoint_,
-  queryChildByTag_, getSelection_, removeEl_s, appendNode_s, getMediaUrl, getMediaTag, INP, ALA, attr_s, hasTag_, kGCh,
+  queryHTMLChild_, getSelection_, removeEl_s, appendNode_s, getMediaUrl, getMediaTag, INP, ALA, attr_s, hasTag_, kGCh,
   setOrRemoveAttr_s, toggleClass_s, textContent_s, notSafe_not_ff_, modifySel, SafeEl_not_ff_, testMatch, contains_s,
   extractField, querySelectorAll_unsafe_, editableTypes_, findAnchor_, dispatchEvent_, wrapEventInit_,
   findSelectorByHost
@@ -473,7 +473,7 @@ const defaultClick = (): void => {
         : kClickAction.none,
     doesUnhoverAtOnce = !doesUnhoverOnEsc && /*#__PURE__*/ checkBoolOrSelector(autoUnhover, !1)
     retPromise = catchAsyncErrorSilently(click_async(clickEl, rect
-        , /*#__PURE__*/ checkBoolOrSelector(rawFocus
+        , !!(clickEl as ElementToHTMLOrForeign).focus && /*#__PURE__*/ checkBoolOrSelector(rawFocus
             , mask > 0 || interactive || (clickEl as ElementToHTMLOrForeign).tabIndex! >= 0)
         , [!1, !isMac && ctrl, isMac && ctrl, shift]
         , specialActions, (rawBtn as typeof rawBtn & number) || kClickButton.none
@@ -593,7 +593,7 @@ const doPostAction = (): Rect | null => {
       }
     } else if (mode1_ < HintMode.min_job || mode1_ === HintMode.FOCUS_EDITABLE) {
       if (tag === "details") {
-        const summary = queryChildByTag_(clickEl, "summary")
+        const summary = queryHTMLChild_(clickEl, "summary")
         if (summary) {
           // `HTMLSummaryElement::DefaultEventHandler(event)` in
           // https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/html/html_summary_element.cc?l=109

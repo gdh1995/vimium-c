@@ -291,6 +291,7 @@ export const wrap_enable_bubbles = (<Func extends (...a: any[]) => Promise<unkno
     , func: Func, args: Parameters<Func>): ReturnType<Func>
 }
 
+/** if `addFocus`, then `element` must has `.focus` */
 export const click_async = (async (element: SafeElementForMouse
     , rect?: Rect | null, addFocus?: boolean | BOOL, modifiers?: MyMouseControlKeys
     , action?: kClickAction, button?: AcceptableClickButtons

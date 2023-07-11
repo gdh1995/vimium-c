@@ -347,7 +347,7 @@ export const derefInDoc_ = ((val: WeakRef<SafeElement> | SafeElement | null | un
   return val && IsInDOM_(val, doc) ? val : null
 }) as <T extends SafeElement> (val: WeakRef<T> | T | null | undefined) => T | null
 
-export const queryChildByTag_ = (parent: SafeElement, childTag: "summary" | "div" | "ul"): SafeHTMLElement | null => {
+export const queryHTMLChild_ = (parent: SafeElement, childTag: "summary" | "div" | "ul"): SafeHTMLElement | null => {
     // not query `:scope>summary` for more consistent performance
     // Specification: https://html.spec.whatwg.org/multipage/interactive-elements.html#the-summary-element
     // `HTMLDetailsElement::FindMainSummary()` in
