@@ -370,6 +370,7 @@ interface CSSStyleDeclaration { colorScheme?: string }
 interface KeyboardEventInit { keyCode?: number; which?: number }
 
 type GlobalFetch = (input: string, init?: Partial<Request & {signal: object}>) => Promise<Response>
+declare var queueMicrotask: (callback: (this: void) => void) => void
 
 interface HTMLImageElement { referrerpolicy?: string }
 interface HTMLFrameElement { sandbox?: DOMTokenList }

@@ -1,6 +1,6 @@
 import {
   chromeVer_, doc, createRegExp, isTY, Lower, OBJECT_TYPES, OnFirefox, OnChrome, OnEdge, evenHidden_, safeCall, deref_,
-  loc_, VTr, tryCreateRegExp, isTop
+  loc_, VTr, tryCreateRegExp, isTop, queueTask_
 } from "./utils"
 import { dimSize_, Point2D, selRange_ } from "./rect"
 
@@ -725,10 +725,24 @@ export const dispatchEvent_ = (target: Window | Document | SafeElement
     , event: Event): boolean => target.dispatchEvent(event)
 
 export const dispatchAsync_ = <T extends 0 | 1 | 2 = 0> (target: T extends 1 ? SafeHTMLElement : Document | SafeElement
-      , event: T extends 0 ? Event : 0, work?: T): Promise<T extends 0 ? boolean : undefined> =>
-    Promise.resolve().then((work === 1 ? (target as SafeHTMLElement).click as never
-        : work === 2 ? target.focus as never : target.dispatchEvent
+      , event: T extends 0 ? Event : 0, work?: T): Promise<T extends 0 ? boolean : undefined> => {
+  if ((Build.BTypes & BrowserType.Edge
+        || Build.BTypes & BrowserType.Firefox && Build.MinFFVer < FirefoxBrowserVer.Min$queueMicrotask
+        || Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$queueMicrotask) && !queueTask_) {
+    return Promise.resolve().then((work === 1 ? (target as SafeHTMLElement).click as never
+        : work ? target.focus as never : target.dispatchEvent
       ).bind<EventTarget, Event, [], boolean>(target, work ? (void 0) as never : event as Event)
     ) as Promise<T extends 0 ? boolean : undefined>
+  }
+  return new Promise<T extends 0 ? boolean : undefined>((resolve): void => {
+    queueTask_!((): void => {
+      const ret = work === 1 ? (target as SafeHTMLElement).click()
+          : work ? (target as Document | ElementToHTMLOrForeign).focus!()
+          : target.dispatchEvent(event as Event)
+      resolve(ret as T extends 0 ? boolean : undefined)
+    })
+  })
+}
+
 
 //#endregion

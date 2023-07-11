@@ -9712,7 +9712,6 @@ declare var Request: {
   new (_invalidArg: "should never call this"): Request
   prototype: Request;
 }
-declare function queueMicrotask(callback: (this: void) => void): void;
 declare function clearInterval(handle: number): void;
 declare function clearTimeout(handle: number): void;
 declare function atob(encodedString: string): string;

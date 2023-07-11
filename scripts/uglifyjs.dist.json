@@ -87,7 +87,7 @@
       // # globals
       "browser", "chrome", "define", "__filename", "__importStar",
       // # expected built-in global variables in content
-      "WeakMap", "WeakSet", "Set", "InputDeviceCapabilities", "visualViewport", "WeakRef",
+      "WeakMap", "WeakSet", "Set", "InputDeviceCapabilities", "visualViewport", "queueMicrotask", "WeakRef",
       // # content global names:
       "VimiumInjector", "VApi",
       // # front/vomnibar

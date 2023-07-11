@@ -259,6 +259,9 @@ export const promiseDefer_ = <T> (): { p: Promise<T>, r: (value: T) => void } =>
   return { p, r: r! }
 }
 
+export const queueTask_: typeof queueMicrotask | undefined = Build.NDEBUG ? queueMicrotask
+    : queueMicrotask ? (func: () => void): void => queueMicrotask!(func) : void 0
+
 /** ==== shortcuts of constant code ==== */
 
 type PlainObject = { arguments?: undefined } & Dict<any>

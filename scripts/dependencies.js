@@ -630,6 +630,10 @@ exports.skip_declaring_known_globals = (btypes, minCVer, get_code) =>{
   if (!(btypes & BrowserType.Chrome && minCVer < /* MinEnsured$visualViewport$ */ 61 || btypes & BrowserType.Edge)) {
     toRemovedGlobal += "visualViewport|";
   }
+  if (!(btypes & BrowserType.Chrome && minCVer < /* Min$queueMicrotask */ 71
+        || btypes & BrowserType.Firefox && minCVer < /* Min$queueMicrotask */ 69 || btypes & BrowserType.Edge)) {
+    toRemovedGlobal += "queueMicrotask|";
+  }
   if (!(btypes & BrowserType.Chrome && minCVer < /* BrowserVer.MinEnsured$WeakRef */ 92
         || btypes & BrowserType.Firefox)) {
     toRemovedGlobal += "WeakRef|";
