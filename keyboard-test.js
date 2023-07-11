@@ -50,6 +50,8 @@
         }
         element.querySelector(".modifierColumn").textContent = modifiers.trim()
         element.querySelector(".keyCodeColumn").textContent = wrapValue(event.keyCode);
+        element.querySelector(".timestampColumn").textContent = (event.timeStamp / 1000 % 3600).toFixed(3)
+            .replace(/\.\d+/, function(s) { return s.replace(/\.?0+$/, "") })
         if (n < table.rows.length) {
           table.firstElementChild.remove()
         }
