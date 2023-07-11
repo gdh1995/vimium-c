@@ -614,6 +614,9 @@ delayBinding_("#testKeyInputBox", "focus", function KeyTester(_focusEvent: Event
       const key = VApi.r[3](eventWrapper, kModeId.NO_MAP_KEY), isEsc = key === "esc" || key === "c-["
       const key2 = VApi.z!.l & kKeyLayout.inCmdIgnoreIfNotASCII
           ? VApi.r[3](eventWrapper, kModeId.NO_MAP_KEY_EVEN_MAY_IGNORE_LAYOUT) : key
+      if (!key && (eventWrapper.i === kKeyCode.shiftKey || event.key === "Shift")) {
+        return // ignore an auto-generated `Shift` keydown during `Shift down + Numpad5 up` when NumLock is on
+      }
       const s1 = key.length > 1 ? `<${key}>` : key || "(empty)"
       const s2 = key2 === key ? "" : key2.length > 1 ? `<${key2}>` : key2 || "(empty)"
       lastKey = event, lastKeyLayout = VApi.z!.l
