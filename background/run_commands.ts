@@ -223,7 +223,7 @@ export const executeCommand = (registryEntry: CommandsNS.Item, count: number, la
     if (options && ((registryEntry.alias_ === kBgCmd.runKey || context.t) && registryEntry.background_
           || hasFallbackOptions(options as Req.FallbackOptions))) {
       const opt2: Req.FallbackOptions = {}
-      options ? overrideCmdOptions<kBgCmd.blank>(opt2 as {}, false, options) : BgUtils_.safer_(opt2)
+      overrideCmdOptions<kBgCmd.blank>(opt2 as {}, false, options)
       opt2.$retry = -maxRetried, opt2.$f = context
       context.t && registryEntry.background_ && !(options as Req.FallbackOptions).$else && (opt2.$else = "showTip")
       options = opt2 as typeof opt2 & SafeObject
@@ -442,7 +442,7 @@ export const wrapFallbackOptions = <T extends KeysWithFallback<CmdOptions>, S ex
   return options_mutable as unknown as CmdOptions[T]
 }
 
-const makeFallbackContext = (old: Req.FallbackOptions["$f"], counterStep: number, newTip: kTip | 0 | false
+export const makeFallbackContext = (old: Req.FallbackOptions["$f"], counterStep: number, newTip: kTip | 0 | false
     ): NonNullable<Req.FallbackOptions["$f"]> => {
   return {
     i: (old ? old.i : 0) + counterStep,

@@ -8,7 +8,7 @@ import { getPortUrl_, safePost, showHUD, getCurFrames_ } from "./ports"
 import { createSimpleUrlMatcher_, matchSimply_ } from "./exclusions"
 import { extTrans_ } from "./i18n"
 import {
-  normalizedOptions_, envRegistry_, parseOptions_, normalizeCommand_, availableCommands_, makeCommand_
+  kCmdCxt, normalizedOptions_, envRegistry_, parseOptions_, normalizeCommand_, availableCommands_, makeCommand_
 } from "./key_mappings"
 import {
   copyCmdOptions, executeCommand, overrideOption, parseFallbackOptions, replaceCmdOptions, runNextCmdBy,
@@ -18,6 +18,9 @@ import C = kBgCmd
 import NormalizedEnvCond = CommandsNS.NormalizedEnvCond
 
 declare const enum kStr { RunKeyWithId = "<v-runKey:$1>" }
+
+const DEBUG = 0
+
 const abs = Math.abs
 const kRunKeyOptionNames: readonly (Exclude<keyof BgCmdOptions[C.runKey], `$${string}` | `o.${string}`>)[] =
     [ "expect", "keys", "options", "mask" ]
@@ -258,6 +261,9 @@ export const runKeyWithCond = (info?: CurrentEnvCache): void => {
       keyToCommandMap_.set(seqId, makeCommand_("runKey", fakeOptions as CommandsNS.Options)!)
       runKeyInSeq(fakeOptions.$seq!, 1, null, info)
     } else {
+      if (!Build.NDEBUG && DEBUG) {
+        console.log("keySeq[%o]: single = %o # %o * %o @ %o", newIntId, key.val[0].val, options, repeat, Date.now()%3e5)
+      }
       runOneKey(key.val[0], {
         keys: key, repeat, options, cursor: key, timeout: 0, id: seqId, fallback: null
       }, info)
@@ -335,7 +341,7 @@ export const parseKeySeq = (keys: string): ListNode | ErrorNode => {
     }
   }
   if (keys.length === 1) { root.val.push({ t: kN.key, val: keys, par: root }) }
-  if (!Build.NDEBUG) { (root as Object as {toJSON?: any}).toJSON = exprKeySeq }
+  if (!Build.NDEBUG) { Object.defineProperty(root, "to_json", { get: exprKeySeq }) }
   BgUtils_.resetRe_()
   return root
 }
@@ -387,20 +393,27 @@ export const runKeyInSeq = (seq: BgCmdOptions[C.runKey]["$seq"], dir: number
   const ifOk = cursor && nextKeyInSeq(cursor, 1), ifFail = cursor && nextKeyInSeq(cursor, -1)
   const isLast = !(cursor && (ifOk || ifFail))
   const finalFallback = seq.fallback
-  let cmdOptions = get_cOptions<C.runKey, true>()
-  const seqId = seq.id
+  let seqOptions = get_cOptions<C.runKey, true>()
+  const seqId = seq.id, intSeqId = !Build.NDEBUG && DEBUG ? +(<RegExpOne>/\d+/).exec(seq.id)![0] : -1
   if (isLast) {
+    if (!Build.NDEBUG && DEBUG) {
+      console.log("keySeq[%o]: last = %o, fallback = %o @ %o", intSeqId, cursor && cursor.val
+          , finalFallback, Date.now() % 3e5)
+    }
     keyToCommandMap_.delete(seqId)
     clearTimeout(seq.timeout || 0)
     if (kStr.RunKeyWithId.replace("$1", "" + loopIdToRunSeq as "1") === seqId) {
       loopIdToRunSeq = Math.max(--loopIdToRunSeq, 0)
     }
     if (cursor) {
-      delete cmdOptions.$then, delete cmdOptions.$else
+      delete seqOptions.$then, delete seqOptions.$else
       if (finalFallback) {
         seq.options = seq.options ? Object.assign(finalFallback, seq.options) : finalFallback
       }
     }
+  } else if (!Build.NDEBUG && DEBUG) {
+    console.log("keySeq[%o]: cursor = %o : $then=%o $else=%o @ %o", intSeqId, cursor && cursor.val
+        , ifOk && ifOk.val, ifFail && ifFail.val, Date.now() % 3e5)
   }
   if (!cursor) {
     if (finalFallback) {
@@ -411,17 +424,17 @@ export const runKeyInSeq = (seq: BgCmdOptions[C.runKey]["$seq"], dir: number
     dir < 0 && fallback && fallback.t && showHUD(extTrans_(`${fallback.t as 99}`))
     return
   }
-  const thenPrefix = ifOk && cmdOptions.$then ? typeof ifOk.val === "string" ? ifOk.val : ifOk.val.prefix : ""
-  const elsePrefix = ifFail && cmdOptions.$else ? typeof ifFail.val === "string" ? ifFail.val : ifFail.val.prefix : ""
+  const thenPrefix = ifOk && seqOptions.$then ? typeof ifOk.val === "string" ? ifOk.val : ifOk.val.prefix : ""
+  const elsePrefix = ifFail && seqOptions.$else ? typeof ifFail.val === "string" ? ifFail.val : ifFail.val.prefix : ""
   const evenLoading = (thenPrefix.includes("$l") ? 1 : 0) + (elsePrefix.includes("$l") ? 2 : 0)
   const noDelay = (thenPrefix.includes("$D") ? 1 : 0) + (elsePrefix.includes("$D") ? 2 : 0)
   if (evenLoading || noDelay) {
     if (seq.cursor === seq.keys) {
       overrideCmdOptions<C.runKey>({})
-      cmdOptions = get_cOptions<C.runKey, true>()
+      seqOptions = get_cOptions<C.runKey, true>()
     }
-    cmdOptions.$then = (evenLoading & 1 ? "$l+" : "") + (noDelay & 1 ? "$D+" : "") + cmdOptions.$then
-    cmdOptions.$else = (evenLoading & 2 ? "$l+" : "") + (noDelay & 2 ? "$D+" : "") + cmdOptions.$else
+    seqOptions.$then = (evenLoading & 1 ? "$l+" : "") + (noDelay & 1 ? "$D+" : "") + seqOptions.$then
+    seqOptions.$else = (evenLoading & 2 ? "$l+" : "") + (noDelay & 2 ? "$D+" : "") + seqOptions.$else
   }
   const timeout = isLast ? 0 : seq.timeout = setTimeout((): void => {
     const old = keyToCommandMap_.get(seqId)
@@ -511,6 +524,10 @@ set_runOneMapping_(((key, port, fStatus, baseCount): void => {
   set_cPort(port!)
   set_cKey(kKeyCode.None)
   set_cOptions(null)
+  if (!Build.NDEBUG && DEBUG) {
+    console.log("run one: %o # %o * %o / %o @ %o", hash ? key.slice(0, hash - 1) : key, hash ? key.slice(hash) : null
+        , count, fStatus, Date.now() % 3e5)
+  }
   runOneKeyWithOptions(hash ? key.slice(0, hash - 1) : key, count, hash ? key.slice(hash) : null, null, fStatus)
 }) satisfies typeof runOneMapping_)
 
@@ -566,6 +583,21 @@ const runOneKeyWithOptions = (key: string, count: number
         && registryEntry.background_ ? "runKey" : registryEntry.command_])
   }
   BgUtils_.resetRe_()
+  if (!Build.NDEBUG && DEBUG) {
+    const seq = registryEntry.options_ && typeof registryEntry.options_ === "object"
+        ? (registryEntry.options_ as Partial<KnownOptions<C.runKey>>).$seq : null
+    if (seq) {
+      console.log("run next in keySeq[%o] # $retry=%o * %o / %o @ %o", +(<RegExpOne>/\d+/).exec(seq.id)![0]
+          , (registryEntry.options_ as KnownOptions<C.runKey>).$retry, count, fallbackCounter, Date.now() % 3e5)
+    } else {
+      const alias = registryEntry.alias_, background = !!registryEntry.background_
+      const def = (Object.entries!(availableCommands_) as [kCName, CommandsNS.Description][]).find(
+          ([_, [defAlias, defBg]]): boolean => defAlias === alias && (defBg === kCmdCxt.bg) === background)!
+      console.log("run %o%s # %o * %o / %o @ %o", def[0]
+          , registryEntry.command_ !== def[0] ? `(${registryEntry.command_})` : ""
+          , registryEntry.options_, count, fallbackCounter, Date.now() % 3e5)
+    }
+  }
   if (avoidStackOverflow && registryEntry.alias_ === kBgCmd.runKey && registryEntry.background_) {
     setTimeout((): void => {
       set_cEnv(envInfo)
@@ -611,22 +643,22 @@ set_inlineRunKey_(((rootRegistry: Writable<CommandsNS.Item>
     if (!first) { return }
     canInline = canInline && (seq.tree as ListNode).val.length === 1 && (seq.tree as ListNode).val[0] === first
     const info = parseKeyNode(first), key = info.key
-    const parentEntry = keyToCommandMap_.get(key)
+    const calleeEntry = keyToCommandMap_.get(key)
         || !key.includes("<") && !key.includes(":", 1) && keyToCommandMap_.get(`<v-${key}>`) || null
-    if (parentEntry != null && parentEntry.alias_ === C.runKey && parentEntry.background_) {
+    if (calleeEntry != null && calleeEntry.alias_ === C.runKey && calleeEntry.background_) {
       path || (path = [rootRegistry])
-      if (path.includes(parentEntry)) {
+      if (path.includes(calleeEntry)) {
         rootRegistry.alias_ = C.showHUD
         rootRegistry.command_ = "showHUD"
         rootRegistry.options_ = BgUtils_.safer_<KnownOptions<C.showHUD>>({ text: '"runKey" should not call itself' })
         return
       }
-      path.push(parentEntry)
-      inlineRunKey_(parentEntry, path)
+      path.push(calleeEntry)
+      inlineRunKey_(calleeEntry, path)
     }
-    const newName = parentEntry ? parentEntry.command_ : key in availableCommands_ ? key as kCName : null
+    const newName = calleeEntry ? calleeEntry.command_ : key in availableCommands_ ? key as kCName : null
     if (!newName) { return }
-    const doesContinue = parentEntry != null && parentEntry.alias_ === C.runKey && parentEntry.background_
+    const doesContinue = calleeEntry != null && calleeEntry.alias_ === C.runKey && calleeEntry.background_
     if (!doesContinue && !canInline) {
       rootRegistry.command_ = newName
       return
@@ -644,17 +676,17 @@ set_inlineRunKey_(((rootRegistry: Writable<CommandsNS.Item>
       delete (fullOpts as CommandsNS.RawOptions).count
     }
     count *= ($count ?? 1) * info.count
-    const parentOptions = parentEntry && normalizedOptions_(parentEntry)
+    const calleeOptions = calleeEntry && normalizedOptions_(calleeEntry)
     if (!doesContinue) {
-      fullOpts = concatOptions(parentOptions, fullOpts)
-      fullOpts && fullOpts === parentOptions && (fullOpts = copyCmdOptions(BgUtils_.safeObj_(), fullOpts))
+      fullOpts = concatOptions(calleeOptions, fullOpts)
+      fullOpts && fullOpts === calleeOptions && (fullOpts = copyCmdOptions(BgUtils_.safeObj_(), fullOpts))
       count !== 1 && (((fullOpts || (fullOpts = BgUtils_.safeObj_())) as CommandsNS.Options).$count = count)
       Object.assign(rootRegistry, makeCommand_(newName, fullOpts))
       return
     }
     keyOpts = fullOpts && (fullOpts.keys !== void 0 || fullOpts.expect !== void 0 || fullOpts.mask !== void 0)
-        ? fullOpts = concatOptions(parentOptions, fullOpts)!
-        : parentOptions || BgUtils_.safeObj_()
+        ? fullOpts = concatOptions(calleeOptions, fullOpts)!
+        : calleeOptions || BgUtils_.safeObj_()
   }
 }) satisfies typeof inlineRunKey_)
 

@@ -41,7 +41,7 @@ let flagDoesCheck_ = true
 let errors_: null | string[][] = null
 let nonNumList_: Set<string> | null | undefined
 
-export { keyRe_, envRegistry_, shortcutRegistry_, errors_ as keyMappingErrors_ }
+export { kCxt as kCmdCxt, keyRe_, envRegistry_, shortcutRegistry_, errors_ as keyMappingErrors_ }
 
 export const stripKey_ = (key: string): string =>
     key.length > 1 ? key === "<escape>" ? kChar.esc : key.slice(1, -1) : key

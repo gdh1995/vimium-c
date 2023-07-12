@@ -443,7 +443,7 @@ export const moveTabToNextWindow = ([tab]: [Tab], resolve: OnCmdResolved): void 
           if (useTabs && (!OnChrome || Build.MinCVer >= BrowserVer.MinNoAbnormalIncognito
                 || index >= 0 || CurCVer_ >= BrowserVer.MinNoAbnormalIncognito) && (filter || abs(cRepeat) !== 1)) {
             onShownTabsIfRepeat_(true, 0, (tabs, range): void => {
-              knownTabs = tabs.slice()
+              knownTabs = tabs.slice(0)
               tab = tabs[range[1]] as Tab
               tabs = tabs.slice(range[0], range[2])
               if (OnChrome && Build.MinCVer && BrowserVer.MinNoAbnormalIncognito
