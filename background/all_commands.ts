@@ -94,12 +94,13 @@ set_bgC_([
         || get_cOptions<C.confirm>().ask || get_cOptions<C.confirm>().text || get_cOptions<C.confirm>().value
     const comp = question ? null : [ifThen, ifElse].map(i => i.split("#", 1)[0].split("+").slice(-1)[0])
     const minRepeat = Math.abs((get_cOptions<C.confirm, true>().minRepeat || 0) | 0)
+    const ctx = [get_cOptions<C.confirm, true>().$f, get_cOptions<C.confirm, true>().$retry] as const
     ; (Math.abs(repeat) < minRepeat ? Promise.resolve() : confirm_([!comp ? [question + ""]
         : comp[0] === comp[1] ? ifThen : comp[0].replace(<RegExpOne> /^([$%][a-zA-Z]\+?)+(?=\S)/, "")
     ], repeat)).then((cancelled): void => {
       (cancelled ? ifElse : ifThen) && setTimeout((): void => {
         set_cRepeat(repeat)
-        runOneMapping_(cancelled ? ifElse : ifThen, cPort, { c: null, r: null, u: 0, w: 0 }, cancelled ? 1 : repeat)
+        runOneMapping_(cancelled ? ifElse : ifThen, cPort, { c: ctx[0], r: ctx[1], u: 0, w: 0 }, cancelled ? 1 : repeat)
       }, 0)
     })
   },
@@ -720,7 +721,7 @@ set_bgC_([
   },
   /* kBgCmd.runKey: */ (): void | kBgCmd.runKey => {
     get_cOptions<C.runKey>().$seq == null ? runKeyWithCond()
-    : runKeyInSeq(get_cOptions<C.runKey, true>().$seq!, cRepeat, get_cOptions<C.runKey, true>().$f, null)
+    : runKeyInSeq(get_cOptions<C.runKey, true>().$seq!, cRepeat, null)
   },
   /* kBgCmd.searchInAnother: */ (tabs: [Tab]): void | kBgCmd.searchInAnother => {
     let keyword = (get_cOptions<C.searchInAnother>().keyword || "") + ""
