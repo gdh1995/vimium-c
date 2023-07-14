@@ -3,15 +3,13 @@
   <span style="color: #2f508e;">Vim</span>ium <span style="color: #a55e18;">C</span> - All by Keyboard
 </h2>
 
-[![Version](https://img.shields.io/github/v/release/gdh1995/vimium-c?logo=GitHub&label=gdh1995%2Fvimium-c&color=critical
+[![Version 1.99.993](https://img.shields.io/badge/gdh1995-v1.99.993-critical?logo=GitHub
   )](https://github.com/gdh1995/vimium-c/releases)
 [![MIT license](https://img.shields.io/badge/license-MIT-blue)](LICENSE.txt)
 [![GitHub stars](https://img.shields.io/github/stars/gdh1995/vimium-c?logo=GitHub&labelColor=181717&color=critical
   )](https://github.com/gdh1995/vimium-c/stargazers)
 [![Gitee star](https://gitee.com/gdh1995/vimium-c/badge/star.svg?theme=dark
   )](https://gitee.com/gdh1995/vimium-c/stargazers)
-[![Code alerts](https://img.shields.io/lgtm/alerts/g/gdh1995/vimium-c?logo=lgtm&logoWidth=18&label=lgtm
-  )](https://lgtm.com/projects/g/gdh1995/vimium-c/alerts/)
 
 [![Firefox 63+](https://img.shields.io/amo/v/vimium-c@gdh1995.cn?logo=Firefox%20Browser&logoColor=white&label=Firefox%2063%2B&labelColor=FF7139
   )](https://addons.mozilla.org/firefox/addon/vimium-c/?src=external-readme)
@@ -59,9 +57,10 @@ A <span style="color: #a55e18;">C</span>ustomized
 [阅读中文介绍 (description in Chinese) 。](README-zh.md)
 
 This project is mainly developed and maintained by [gdh1995](https://github.com/gdh1995),
-and licensed under the [MIT license](LICENSE.txt).
+and until 2023-07-14 AD it's licensed under the [MIT license](LICENSE.txt).
 
-本项目主要由 [gdh1995](https://github.com/gdh1995) 开发并维护，且以 [MIT 许可协议](LICENSE.txt) 开源。
+本项目主要由 [gdh1995](https://github.com/gdh1995) 开发并维护，
+且截至公元 2023 年 7 月 14 日均以 [MIT 许可协议](LICENSE.txt) 来开源。
 
 It (the released version) supports the new Microsoft Edge, Google Chrome and other Chromium-based browsers
   whose core versions are >= 47, and has a perfect support for a recent Firefox (since version 63.0, desktop).
@@ -238,7 +237,7 @@ __<span style="color: #2f508e;">Vim</span>ium <span style="color: #a55e18;">C</s
 * a web extension for Firefox, Microsoft Edge and Google Chrome that provides keyboard-based navigation and control
     of the web, in the spirit of the Vim editor.
 * add some powerful functions and provide more configurable details and convenience.
-* here is its [license](LICENSE.txt) and [privacy policy](PRIVACY-POLICY.md)
+* until 2023-07-14 AD, here is its [MIT license](LICENSE.txt) and [privacy policy](PRIVACY-POLICY.md)
 * the initial code is forked from [philc/vimium:master](https://github.com/philc/vimium) on 2014.
 * customized after translating it from CoffeeScript into JavaScript and then TypeScript.
 
@@ -275,16 +274,6 @@ __Other extensions supporting Vimium C:__
 <a name="changelog"></a>
 
 # Release Notes
-
-#### latest version
-
-full-featured `runKey`
-* key mappings: `runKey` supports inline options which look like `#a=b&c=d%20e` (wiki added)
-* add `openBookmark` and `vimium://run/<key-tree>` to run long command sequences with complicated options
-* fix some compatibility bugs
-* URL matching: support new `URLPattern` in W3C spec.
-* Vomnibar: support `mapKey` from keys to `<v-*>` (trigger commands) or `<enter>`
-* `dispatchEvent`: add a new mode: `key=Key,keyCode[,Code=Key]`
 
 Refer to [RELEASE-NOTES.md](RELEASE-NOTES.md).
 
@@ -328,7 +317,7 @@ Vimium C 是一款开源的浏览器扩展程序，任何人都可以安装使�
     https://opencollective.com/vimium-c)
 或 [PayPal](https://www.paypal.me/gdh1995) 无偿赠与他一小笔钱。谢谢您的支持！
 
-A donation list is in / 捐赠列表详见: https://github.com/gdh1995/vimium-c/wiki/Donation-List .
+A partial donation list is in / 部分捐赠列表详见: https://github.com/gdh1995/vimium-c/wiki/Donation-List .
 
 <img width="240" alt="gdh1995 的支付宝二维码" src="https://gdh1995.cn/alipay-recv-money.png"
   /> <img width="240" alt="gdh1995 的微信赞赏码" src="https://gdh1995.cn/wechat-recv-money.png"
@@ -337,7 +326,7 @@ A donation list is in / 捐赠列表详见: https://github.com/gdh1995/vimium-c/
 # Thanks & Licenses
 
 Vimium C: Copyright (c) Dahan Gong, Phil Crosby, Ilya Sukhar.
-See the [MIT license](LICENSE.txt) for details.
+See the [MIT license until 2023-07-14 AD](LICENSE.txt) for details.
 
 The translation files in [_locales/](https://github.com/gdh1995/vimium-c/tree/master/_locales) belong to
   [CC-BY-SA-4.0](https://creativecommons.org/licenses/by-sa/4.0/),

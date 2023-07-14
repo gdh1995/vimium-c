@@ -4,6 +4,19 @@ Release Notes of Vimium C
 ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 说明文档: https://gitee.com/gdh1995/vimium-c#readme , https://github.com/gdh1995/vimium-c/blob/master/README-zh.md .
 
+#### v1.99.993
+* Marks: fix the mistake that `.prefix` was enabled by default and matches wrong URLs (breaking)
+  * now align with philc/Vimium's in common situations
+  * `.parent: boolean` is added to re-enable the old behavior
+* fix usages of inner clipboard
+* fix conflicts of `runKey` and the `$retry` counter
+* LinkHints: add `newtab=inactive` to always switch back to a current tab, whatever a page script does
+* LinkHints: add `.autoChild: boolean | css-selector` to click not a hinted element but its topest or matched child
+* editText: add a new action of `blank` to trigger `.$else` if a `when` condition is mismatched
+* focusInput: now try updating its hinting rectangular after focusing
+* fix some small usages
+* fix support for Chrome before version 52
+
 #### v1.99.992
 * fix broken long key sequences in ke mappings
 * a try to fix Vimium C might be freezed by browser
