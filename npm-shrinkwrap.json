@@ -7,7 +7,7 @@
     "": {
       "name": "vimium-c",
       "version": "2.0.0",
-      "license": "MIT",
+      "license": "Apache-2.0",
       "dependencies": {
         "pngjs": "^6.0.0",
         "terser": "^5.15.0",

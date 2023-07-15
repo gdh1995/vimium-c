@@ -3,9 +3,9 @@
   <span style="color: #2f508e;">Vim</span>ium <span style="color: #a55e18;">C</span> - 全键盘操作浏览器
 </h2>
 
-[![版本 1.99.993](https://img.shields.io/badge/gdh1995-v1.99.993-critical?logo=GitHub
+[![版本](https://img.shields.io/badge/gdh1995-v1.99.993-critical?logo=GitHub
   )](https://github.com/gdh1995/vimium-c/releases)
-[![MIT 许可协议](https://img.shields.io/badge/许可协议-MIT-blue)](LICENSE.txt)
+[![Apache-2.0 许可协议](https://img.shields.io/badge/许可协议-Apache--2.0-blue)](LICENSE.txt)
 [![GitHub 收藏](https://img.shields.io/github/stars/gdh1995/vimium-c?logo=GitHub&label=收藏&labelColor=181717&color=critical
   )](https://github.com/gdh1995/vimium-c/stargazers)
 [![Gitee 收藏](https://gitee.com/gdh1995/vimium-c/badge/star.svg?theme=dark
@@ -50,7 +50,7 @@ Vimium C 支持 Firefox 63+、新版 Microsoft Edge 和 Chrome 47+ 等现代浏�
     style="color: #a55e18;">消耗很低</span>。
 
 本项目主要由 [gdh1995](https://github.com/gdh1995) 开发并维护，
-且截至公元 2023 年 7 月 14 日都是以 [MIT 许可协议](LICENSE.txt) 来开源。
+且以 [Apache-2.0 许可协议](LICENSE.txt) 开源。
 除部分源自 [Vimium](https://github.com/philc/vimium) 的以 MIT 许可协议 开源的英文语句外，
 本项目的翻译文件（[_locales/](https://github.com/gdh1995/vimium-c/tree/master/_locales) 文件夹）归属于
 [CC-BY-SA-4.0](https://creativecommons.org/licenses/by-sa/4.0/)（创作共用-署名-相同方式共享 4.0）协议。

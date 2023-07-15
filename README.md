@@ -3,9 +3,9 @@
   <span style="color: #2f508e;">Vim</span>ium <span style="color: #a55e18;">C</span> - All by Keyboard
 </h2>
 
-[![Version 1.99.993](https://img.shields.io/badge/gdh1995-v1.99.993-critical?logo=GitHub
+[![Version](https://img.shields.io/github/v/release/gdh1995/vimium-c?logo=GitHub&label=gdh1995%2Fvimium-c&color=critical
   )](https://github.com/gdh1995/vimium-c/releases)
-[![MIT license](https://img.shields.io/badge/license-MIT-blue)](LICENSE.txt)
+[![Apache-2.0 license](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE.txt)
 [![GitHub stars](https://img.shields.io/github/stars/gdh1995/vimium-c?logo=GitHub&labelColor=181717&color=critical
   )](https://github.com/gdh1995/vimium-c/stargazers)
 [![Gitee star](https://gitee.com/gdh1995/vimium-c/badge/star.svg?theme=dark
@@ -56,11 +56,10 @@ A <span style="color: #a55e18;">C</span>ustomized
 
 [阅读中文介绍 (description in Chinese) 。](README-zh.md)
 
-This project is mainly developed and maintained by [gdh1995](https://github.com/gdh1995),
-and until 2023-07-14 AD it's licensed under the [MIT license](LICENSE.txt).
+This project is mainly developed and maintained by [gdh1995](https://github.com/gdh1995) (Gong Dahan),
+and licensed under the [Apache-2.0 license](LICENSE.txt).
 
-本项目主要由 [gdh1995](https://github.com/gdh1995) 开发并维护，
-且截至公元 2023 年 7 月 14 日均以 [MIT 许可协议](LICENSE.txt) 来开源。
+本项目主要由 [gdh1995](https://github.com/gdh1995)（宫大汉）开发并维护，且以 [Apache-2.0 许可协议](LICENSE.txt) 开源。
 
 It (the released version) supports the new Microsoft Edge, Google Chrome and other Chromium-based browsers
   whose core versions are >= 47, and has a perfect support for a recent Firefox (since version 63.0, desktop).
@@ -237,7 +236,7 @@ __<span style="color: #2f508e;">Vim</span>ium <span style="color: #a55e18;">C</s
 * a web extension for Firefox, Microsoft Edge and Google Chrome that provides keyboard-based navigation and control
     of the web, in the spirit of the Vim editor.
 * add some powerful functions and provide more configurable details and convenience.
-* until 2023-07-14 AD, here is its [MIT license](LICENSE.txt) and [privacy policy](PRIVACY-POLICY.md)
+* here is its [Apache-2.0 license](LICENSE.txt) and [privacy policy](PRIVACY-POLICY.md)
 * the initial code is forked from [philc/vimium:master](https://github.com/philc/vimium) on 2014.
 * customized after translating it from CoffeeScript into JavaScript and then TypeScript.
 
@@ -325,8 +324,7 @@ A partial donation list is in / 部分捐赠列表详见: https://github.com/gdh
 
 # Thanks & Licenses
 
-Vimium C: Copyright (c) Dahan Gong, Phil Crosby, Ilya Sukhar.
-See the [MIT license until 2023-07-14 AD](LICENSE.txt) for details.
+Vimium C: Copyright (c) Dahan Gong. See the [Apache-2.0 license](LICENSE.txt) for details.
 
 The translation files in [_locales/](https://github.com/gdh1995/vimium-c/tree/master/_locales) belong to
   [CC-BY-SA-4.0](https://creativecommons.org/licenses/by-sa/4.0/),
@@ -352,7 +350,7 @@ except some of those English sentences which are the same as [philc/vimium](http
     https://github.com/silentmatt/expr-eval/blob/4327f05412a3046a9b527b6ec3b50843cb0428e8/LICENSE.txt).
 * The orange picture in the icon is from https://pixabay.com/vectors/orange-fruit-mandarin-citrus-fruit-158258/
 * [微度新标签页](http://www.weidunewtab.com/):
-  (c) 2012 杭州佐拉网络有限公司 保留所有权利.
+  Copyright (c) 2012 杭州佐拉网络有限公司 保留所有权利.
 * [PDF.js](https://github.com/mozilla/pdf.js/):
   Copyright (c) Mozilla and individual contributors.
   Licensed under the [Apache License 2.0](https://github.com/mozilla/pdf.js/blob/master/LICENSE).
