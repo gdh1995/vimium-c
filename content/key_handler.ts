@@ -130,7 +130,7 @@ export const checkKey = ((event: HandlerNS.Event, key: string
   currentKeys += key2.length > 1 ? key2 = `<${key2}>` : key2
   let result = HandlerResult.Prevent
   if (j === KeyAction.cmd) {
-    if (Build.NDEBUG) { runtime_port || runtimeConnect() }
+    if (Build.NDEBUG && Build.Mangle) { runtime_port || runtimeConnect() }
     post_({ H: kFgReq.key, k: currentKeys, l: event.i, e: getElDesc_(raw_insert_lock) });
     esc!(HandlerResult.Prevent);
     isCmdTriggered = event.i || kKeyCode.True

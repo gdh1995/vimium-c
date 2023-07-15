@@ -481,6 +481,7 @@ declare const enum BrowserVer {
   MinEnsuredNativeCrxBindings = 73, // even if LEGACY
   MinCrossOriginResourcePolicy = 73, // before C75 break file downloading
   Min$StorageArea$$onChanged = 73,
+  Min$runtime$$id$GetsUndefinedOnTurnOff = 73, // even if EXP, LEGACY or MV3
   /** Related: https://chromium.googlesource.com/chromium/src/+/0146a7468d623a36bcb55fc6ae69465702bae7fa%5E%21/#F18
    * Stack Trace:
    * * an `<iframe>` has `embedded_content_view_` member, and has `.IsDisplayNone: () => !embedded_content_view_`

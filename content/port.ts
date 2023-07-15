@@ -1,6 +1,6 @@
 import {
   injector, safer, timeout_, isAlive_, isTop, set_i18n_getMsg, locHref, OnEdge, OnChrome, OnFirefox, isTY, fgCache,
-  interval_, setupTimerFunc_cr, noRAF_old_cr_, runtime_ff, isIFrameInAbout_, isLocked_, inherited_
+  interval_, setupTimerFunc_cr, noRAF_old_cr_, runtime_ff, isIFrameInAbout_, isLocked_, inherited_, chromeVer_
 } from "../lib/utils"
 import { suppressTail_ } from "../lib/keyboard_utils"
 import { docHasFocus_, rAF_ } from "../lib/dom_utils"
@@ -50,8 +50,27 @@ export const onPortRes_ = function<k extends keyof FgRes> (response: Omit<Req.re
 }
 
 export const safePost = <k extends keyof FgReq> (request: FgReq[k] & Req.baseFg<k>): void => {
+  if (!(Build.NDEBUG && Build.Mangle) && Build.BTypes === BrowserType.Chrome as number
+      && Build.MinCVer >= BrowserVer.Min$runtime$$id$GetsUndefinedOnTurnOff) {
+    if (!port_) {
+      if (!chrome.runtime.id) {
+        safeDestroy()
+        return
+      }
+      runtimeConnect();
+      injector && timeout_((): void => { port_ || safeDestroy(); }, 50);
+    }
+    post_(request)
+    return
+  }
   try {
     if (!port_) {
+      if (OnChrome && (Build.MinCVer >= BrowserVer.Min$runtime$$id$GetsUndefinedOnTurnOff
+            || chromeVer_ > BrowserVer.Min$runtime$$id$GetsUndefinedOnTurnOff - 1)
+          && !chrome.runtime.id) {
+        safeDestroy()
+        return
+      }
       runtimeConnect();
       injector && timeout_((): void => { port_ || safeDestroy(); }, 50);
     } else if (OnFirefox && injector) {
