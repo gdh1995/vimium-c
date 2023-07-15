@@ -436,7 +436,8 @@ export const runContentScriptsOn_ = (tabId: number): void => {
 }
 
 export const import2 = <T> (path: string): Promise<T> =>
-    Build.MV3 ? Promise.resolve(__moduleMap![path.split("/").slice(-1)[0].replace(".js", "")] as T) : import(path)
+    Build.MV3 && Build.BTypes !== BrowserType.Firefox as number
+    ? Promise.resolve(__moduleMap![path.split("/").slice(-1)[0].replace(".js", "")] as T) : import(path)
 
 //#endregion
 

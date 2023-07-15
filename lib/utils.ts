@@ -116,7 +116,7 @@ export const safer: <T extends object> (opt: T) => T & SafeObject
       ? <T extends object> (obj: T) => ("__proto__" in obj && ((obj as any).__proto__ = null), obj as T & SafeObject)
       : <T extends object> (opt: T): T & SafeObject => Object.setPrototypeOf(opt, null);
 
-export let weakRef_not_ff = (!OnEdge ? OnFirefox ? null as never : <T extends object>(val: T | null | undefined
+export let weakRef_not_ff = (!OnEdge ? <T extends object>(val: T | null | undefined
       ): WeakRef<T> | null | undefined => val && new (WeakRef as WeakRefConstructor)(val)
     : (_newObj: object | null | undefined) => _newObj) as {
   <T extends object>(val: T): WeakRef<T>
@@ -124,18 +124,17 @@ export let weakRef_not_ff = (!OnEdge ? OnFirefox ? null as never : <T extends ob
   <T extends object>(val: T | null | undefined): WeakRef<T> | null | undefined
 } | null
 
-export let weakRef_ff = !OnFirefox ? null as never : (<T extends object>(val: T | null | undefined, id: kElRef
-      ): WeakRef<T> | null | undefined =>
-      val && ((window as any)["__ref_" + id] = new (WeakRef as WeakRefConstructor)(val))) as {
+export let weakRef_ff = (!OnFirefox ? null as never : weakRef_not_ff) as {
   <T extends object>(val: T, id: kElRef): WeakRef<T>
   <T extends object>(val: T | null, id: kElRef): WeakRef<T> | null
   <T extends object>(val: T | null | undefined, id: kElRef): WeakRef<T> | null | undefined
 }
+export function set_weakRef_ff (new_weakRef: typeof weakRef_ff) { weakRef_ff = new_weakRef }
 
 export const deref_ = OnEdge ? weakRef_not_ff as never
     : OnChrome && Build.MinCVer >= BrowserVer.MinEnsured$WeakRef || OnSafari || WeakRef
     ? <T extends object>(val: WeakRef<T> | null | undefined): T | null | undefined => val && val.deref()
-    : (weakRef_not_ff = weakRef_ff = <T> (val: T): T => val) as never
+    : (OnFirefox ? weakRef_ff = <T> (val: T): T => val : weakRef_not_ff = <T> (val: T): T => val) as never
 
 export const raw_unwrap_ff = OnFirefox ? <T extends object> (val: T): T | undefined => {
   return (val as XrayedObject<T>).wrappedJSObject

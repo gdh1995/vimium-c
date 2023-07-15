@@ -635,7 +635,7 @@ declare const enum FirefoxBrowserVer {
   Min$window$$focus$alwaysActivateTab = 68,
   MinNoKeygenElement = 69,
   MinUnprefixedUserSelect = 69,
-  MinMaybeCSS$contain = 69,
+  MinMaybeCSSEnableContain = 69, // layout.css.contain.enabled
   MinUserScriptsAPI = 69, // https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/userScripts
   Min$queueMicrotask = 69,
   // but doesn't support code changes focus during input events when is composing
@@ -648,7 +648,7 @@ declare const enum FirefoxBrowserVer {
   MinCrossOriginResourcePolicy = 74, // not break Vomnibar
   Min$tabs$$goBack = 77,
   Min$permissions$$onAdded = 77,
-  MinEnsuredCSSEnableContain = 77, // no `layout.css.contain.enabled`
+  MinEnsuredCSSEnableContain = 77, // replace MinMaybeCSSEnableContain
   MinCSS$readOnly$selector = 78, // https://developer.mozilla.org/en-US/docs/Web/CSS/:read-only
   MinMediaQueryListenersWorkInBg = 78,
   MinEnsuredUnicodePropertyEscapesInRegExp = 78,
@@ -657,7 +657,7 @@ declare const enum FirefoxBrowserVer {
   MinEnsuredCSS$is$selector = 81,
   MinMaybe$HTMLElement$$inert = 81, // if `html5.inert.enabled`
   MinInputSupportExecCommand = 89,
-  MinDefaultToEnableES$TopLevelAwait = 89, // javascript.options.experimental.top_level_await
+  MinMaybeES$TopLevelAwait = 89, // default to enabled: javascript.options.experimental.top_level_await
   MinContentEditableInShadowOfBodyRefuseShortcuts = 91,
   ESRPopupBlockerPassClicksFromExtensions = 91, // 91.6 ~ 91.12
   Min$structuredClone = 94,
@@ -673,8 +673,10 @@ declare const enum FirefoxBrowserVer {
   Min$StorageArea$$onChanged = 101,
   // scripting, action, host_permissions, StorageArea.onChanged
   MinUsableMV3 = 101, // Refer to: https://developer.mozilla.org/en-US/docs/Mozilla/Firefox/Releases/101
-  MinMaybe$navigator$$userAgentData = 101,
-  MinMaybeScrollEndEvent = 109,
+  MinWeakRefReliableForDom = 105, // https://bugzilla.mozilla.org/show_bug.cgi?id=1782936
+  MinEnsuredES$TopLevelAwait = 108, // javascript.options.experimental.top_level_await
+  MinMaybeScrollEndEvent = 109, // apz.scrollend-event.content.enabled
+  MinMaybe$navigator$$userAgentData = 116, // a fake version number
   // members of a Selection are never updated when an <input> gets focused, so no work-around
   Min$Selection$SupportTextBox = 999,
   None = 0,

@@ -96,7 +96,7 @@ case "$1" in
     if test $DO_CLEAN -eq 1; then DO_CLEAN=2; fi
     shift
     ;;
-  [3-9]+([0-9.])|[1-9][0-9]+([0-9.])|[3-9]+([0-9.])esr|[1-9][0-9]+([0-9.])esr|cur|wo|prev) # ver
+  [3-9]+([0-9.])|[1-9][0-9]+([0-9.ab])|[3-9]+([0-9.])esr|[1-9][0-9]+([0-9.])esr|cur|wo|prev) # ver
     VER=$1
     shift
     ;;
@@ -216,7 +216,7 @@ else
         && find "$FIREFOX_ROOT/core/" -name "${VER}.*" 2>/dev/null | grep . >/dev/null 2>&1; then
       EXE=$FIREFOX_ROOT/core/firefox.exe
     fi
-  elif test -n "$VER" && test "${VER%%@(esr|.)*}" -le 68; then
+  elif test -n "$VER" && test "${VER%%@(esr|.|a|b)*}" -le 68; then
     debugger_url="about:debugging#addons"
   fi
 fi

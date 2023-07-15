@@ -20,14 +20,15 @@ globalThis.__filename = null
   }
   const modules: Dict<ModuleTy | LoadingPromise> = {}
   const getName = (name: string): string => name.slice(name.lastIndexOf("/") + 1).replace(".js", "")
+  const kInSW = !!Build.MV3 && Build.BTypes !== BrowserType.Firefox as number
   const myDefine: DefineTy = (depNames, factory): void => {
     // @ts-ignore
     const name = getName(__filename || ((document as HTMLDocument).currentScript as HTMLScriptElement).src)
     let exports = modules[name]
-    if (!(Build.NDEBUG || !exports || !exports.__esModule || !Build.MV3 && exports instanceof Promise)) {
+    if (!(Build.NDEBUG || !exports || !exports.__esModule || !kInSW && exports instanceof Promise)) {
       throw new Error(`module filenames must be unique: duplicated "${name}"`)
     }
-    if (!Build.MV3 && exports && exports instanceof Promise) {
+    if (!kInSW && exports && exports instanceof Promise) {
       const promise: LoadingPromise = exports.then((): void => {
         modules[name] = exports
         _innerDefine(name, depNames, factory, exports as {})
@@ -39,7 +40,7 @@ globalThis.__filename = null
     }
   }
   const _innerDefine = (name: string, depNames: string[], factory: FactoryTy, exports: ModuleTy): void => {
-    const obj = factory.bind(null, Build.MV3 ? null as never : doImport, exports
+    const obj = factory.bind(null, kInSW ? null as never : doImport, exports
         ).apply(null, depNames.slice(2).map(myRequire))
     if (!(Build.NDEBUG || !obj)) {
       throw new Error("Unexpected return-style module")
@@ -50,7 +51,7 @@ globalThis.__filename = null
     name = getName(name)
     let exports = modules[name]
     exports = !exports ? modules[name] = {}
-        : !Build.MV3 && exports instanceof Promise ? exports.__esModule || (exports.__esModule = {})
+        : !kInSW && exports instanceof Promise ? exports.__esModule || (exports.__esModule = {})
         : exports as Exclude<typeof exports, Promise<any>>
     return exports
   }
@@ -76,7 +77,7 @@ globalThis.__filename = null
     }))
     exports instanceof Promise ? void exports.then(() => { doImport([path], callback) }) : callback(exports)
   }
-  if (Build.MV3) { globalThis.__moduleMap = modules }
+  if (kInSW) { globalThis.__moduleMap = modules }
   if (!Build.NDEBUG) { (globalThis as any).__importStar = (obj: {}): {} => obj }
   globalThis.define = myDefine;
 })()

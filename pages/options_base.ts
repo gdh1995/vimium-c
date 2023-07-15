@@ -216,8 +216,9 @@ export const bgSettings_ = {
 
 bgSettings_.preloadCache_()
 
-; !!Build.NDEBUG && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsuredES$TopLevelAwait)
-    && !(Build.BTypes & BrowserType.Edge) && !(Build.BTypes & BrowserType.Firefox) &&
+; !!Build.NDEBUG && !(Build.BTypes & BrowserType.Edge)
+    && !(Build.BTypes & BrowserType.Firefox && Build.MinFFVer < FirefoxBrowserVer.MinEnsuredES$TopLevelAwait)
+    && !(Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES$TopLevelAwait) &&
 onDicts_( // eslint-disable-next-line spaced-comment
   /*! @OUTPUT {await } */ // @ts-ignore
   Promise.all(

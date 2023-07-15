@@ -275,7 +275,7 @@ if (!OnEdge) {
   OnFirefox || ignored.push("cookies")
   if (Build.MV3 && (!OnChrome || Build.MinCVer >= BrowserVer.MinOptionalHostPermissionInMV3
       || CurCVer_ > BrowserVer.MinOptionalHostPermissionInMV3 - 1)) {
-    optional_permissions = optional_permissions.concat(manifest_.optional_host_permissions)
+    optional_permissions = optional_permissions.concat(manifest_.optional_host_permissions || [])
   }
   optional_permissions = optional_permissions.filter(
       i => !ignored.some(j => typeof j === "string" ? i === j : j.test(i)))

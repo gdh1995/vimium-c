@@ -3,7 +3,7 @@ import {
   keydownEvents_, set_chromeVer_, set_clickable_, set_fgCache, set_isLocked_, OnChrome, OnFirefox, safeCall, recordLog,
   set_isEnabled_, set_onWndFocus, onWndFocus, timeout_, safer, set_os_, safeObj, set_keydownEvents_, setupEventListener,
   interval_, getTime, vApi, clearInterval_, locHref, set_firefoxVer_, firefoxVer_, os_, isAsContent, isIFrameInAbout_,
-  OnEdge, inherited_, clearTimeout_, setupTimerFunc_cr_mv3
+  OnEdge, inherited_, clearTimeout_, setupTimerFunc_cr_mv3, set_weakRef_ff, weakRef_ff, deref_
 } from "../lib/utils"
 import { set_keyIdCorrectionOffset_old_cr_, handler_stack, suppressTail_ } from "../lib/keyboard_utils"
 import {
@@ -56,6 +56,10 @@ set_requestHandlers([
     if (OnChrome && Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter
         && chromeVer_ < BrowserVer.MinFramesetHasNoNamedGetter) {
       set_kSafeAllSelector(kSafeAllSelector + ":not(" + (/*#__INLINE__*/ markFramesetTagUnsafe_old_cr()) + ")");
+    }
+    if (OnFirefox && Build.MinFFVer < FirefoxBrowserVer.MinWeakRefReliableForDom
+        && firefoxVer_ < FirefoxBrowserVer.MinWeakRefReliableForDom && weakRef_ff !== deref_) {
+      set_weakRef_ff(/*#__INLINE__*/ _weakRef_old_ff as typeof weakRef_ff)
     }
     if (request.f) {
       set_grabBackFocus(grabBackFocus && !(request.f & Frames.Flags.userActed))
@@ -331,6 +335,10 @@ export const focusAndRun = (cmd?: FgCmdAcrossFrames, options?: FgOptions, count?
     showBorder! & 1 && showFrameMask(FrameMaskType.ForcedSelf);
   }
 }
+
+export const _weakRef_old_ff = !OnFirefox || Build.MinFFVer >= FirefoxBrowserVer.MinWeakRefReliableForDom ? null
+    : <T extends object>(val: T | null | undefined, id: kElRef): WeakRef<T> | null | undefined =>
+          val && ((window as any)["__ref_" + id] = new (WeakRef as WeakRefConstructor)(val))
 
 if (!(Build.NDEBUG || FrameMaskType.NoMaskAndNoFocus === 0)) {
   alert("Assert error: require FrameMaskType.NoMaskAndNoFocus === 0")

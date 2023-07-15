@@ -251,12 +251,12 @@ var Tasks = {
     const mv3 = !!getBuildItem("MV3")
     var minVer = getBuildItem("MinCVer"), browser = getBuildItem("BTypes");
     minVer = minVer ? (minVer | 0) : 0;
-      if (mv3 && browser === BrowserType.Firefox) { delete manifest.background }
+      if (mv3 && browser === BrowserType.Firefox) { manifest.background = manifest["background.v2"] }
       for (const key of Object.keys(manifest)) {
         if (key.endsWith(".v2")) {
           const val = manifest[key]
           delete manifest[key]
-          if (mv3) { if (browser === BrowserType.Firefox && key === "background.v2") { manifest.background = val } }
+          if (mv3) { /* empty */ }
           else if (key.endsWith("[].v2") && val instanceof Array) {
             const old = manifest[key.slice(0, -5)]
             for (const item of val) {
@@ -287,9 +287,12 @@ var Tasks = {
       delete manifest.update_url;
     } else if (minVer && minVer < 999) {
       manifest.minimum_chrome_version = "" + (minVer | 0);
-      if (!mv3 && minVer < 42 && manifest.version.includes(".0")) {
-        manifest.version = manifest.version.replace(/\.0+/g, ".").replace(/\.+$/, "")
-      }
+    }
+    if ((browser & BrowserType.Firefox
+          || !mv3 && browser & BrowserType.Chrome && minVer < /* BrowserVer.MinZeroAsPrefixInVersionNumber */ 42)
+        && manifest.version.includes(".0")) {
+      browser === BrowserType.Firefox || manifest.version_name || (manifest.version_name = manifest.version)
+      manifest.version = manifest.version.replace(/\.0+/g, ".").replace(/\.+$/, "")
     }
     if (browser & BrowserType.Edge) {
       manifest.name = "Vimium C";
@@ -299,10 +302,18 @@ var Tasks = {
       delete manifest.update_url;
     }
     const permissions = manifest.permissions
+    if (!(browser & BrowserType.Chrome)) {
+      for (const i of "favicon offscreen tabGroups".split(" ")) {
+        permissions.splice((permissions.indexOf(i) + 1 || permissions.length + 1) - 1, 1)
+      }
+      delete manifest.optional_host_permissions
+    }
     let optional = manifest.optional_permissions
     if (browser === BrowserType.Firefox) {
       delete manifest.background.persistent;
       for (const i of manifest.web_accessible_resources || []) { delete i.use_dynamic_url }
+      for (const i of manifest.content_scripts || []) { delete i.match_origin_as_fallback }
+      mv3 && manifest.action && (manifest.action.default_area = "navbar")
     }
     if (optional && !(browser & BrowserType.Firefox)) {
       optional = optional.filter(i => { return i !== "cookies" })
@@ -380,7 +391,7 @@ var Tasks = {
       var oldData = readFile(file);
       if (data === oldData) {
         if (willListEmittedFiles) {
-          print('skip', file.replace(/\\/g, "/"))
+          print("Skip " + file.replace(/\\/g, "/"))
         }
         return cb();
       }

@@ -52,7 +52,7 @@ export const CurCVer_: BrowserVer = !OnChrome ? BrowserVer.assumedVer
     : 0 | <number> (navigator.userAgent!.match(<RegExpOne> /\bChrom(?:e|ium)\/(\d+)/) || [0, BrowserVer.assumedVer])[1])
 export let CurFFVer_: FirefoxBrowserVer = !OnFirefox ? FirefoxBrowserVer.assumedVer
     : brands && (tmpBrand = brands.find(i => i.brand.includes("Firefox")))
-      && parseInt(tmpBrand.version) >= FirefoxBrowserVer.MinMaybe$navigator$$userAgentData
+      && parseInt(tmpBrand.version) > FirefoxBrowserVer.MinMaybe$navigator$$userAgentData - 1
     ? parseInt(tmpBrand.version)
     : parseInt(navigator.userAgent!.split("Firefox/")[1] || "0") || FirefoxBrowserVer.assumedVer
 export let BrowserName_: string | undefined
@@ -307,8 +307,8 @@ const curPath = location.pathname.replace("/pages/", "").split(".")[0], browserL
 export const pageLangs_ = transPart_(bTrans_("i18n"), curPath) || browserLang || "en"
 
 const useTopLevelAwait: boolean = !!Build.NDEBUG && !(Build.BTypes & BrowserType.Edge)
-    && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsuredES$TopLevelAwait)
-    && !(Build.BTypes & BrowserType.Firefox)
+    && !(Build.BTypes & BrowserType.Firefox && Build.MinFFVer < FirefoxBrowserVer.MinEnsuredES$TopLevelAwait)
+    && !(Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES$TopLevelAwait)
 const onDicts = (dicts: ({ default: Dict<string> } | string | null)[]): void => {
   const dest = i18nDict_
   for (const src of dicts.reverse()) {
@@ -322,8 +322,9 @@ const onDicts = (dicts: ({ default: Dict<string> } | string | null)[]): void => 
 export const onDicts_ = useTopLevelAwait ? onDicts : 0 as never
 export const curPagePath_ = useTopLevelAwait ? curPath : 0 as never
 
-; !!Build.NDEBUG && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsuredES$TopLevelAwait)
-    && !(Build.BTypes & BrowserType.Edge) && !(Build.BTypes & BrowserType.Firefox)
+; !!Build.NDEBUG && !(Build.BTypes & BrowserType.Edge)
+    && !(Build.BTypes & BrowserType.Firefox && Build.MinFFVer < FirefoxBrowserVer.MinEnsuredES$TopLevelAwait)
+    && !(Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES$TopLevelAwait)
 ? curPath !== "options" && curPath !== "popup" && onDicts_( // eslint-disable-next-line spaced-comment
   /*! @OUTPUT {await } */ // @ts-ignore
   Promise.all(
