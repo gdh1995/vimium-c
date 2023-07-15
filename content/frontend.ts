@@ -105,9 +105,7 @@ if (OnFirefox && isAsContent) {
         trustedRand += (unsafeRand >= 0 && unsafeRand < 1 ? unsafeRand : trustedRand);
         let a = (0x8000 * trustedRand) | 0,
         host = new URL(runtime_ff!.getURL("")).host.replace(<RegExpG> /-/g, "");
-        return ((host + (
-              typeof BuildStr.RandomReq === "number" ? (BuildStr.RandomReq as number | string as number).toString(16)
-              : BuildStr.RandomReq)
+        return ((host + Build.RandomReq.toString(16)
             ).match(<RegExpG> /[\da-f]{1,4}/gi)!
             ).map((i, ind) => parseInt(i, 16) & (ind & 1 ? ~a : a)).join("");
     }

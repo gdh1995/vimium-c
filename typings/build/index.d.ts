@@ -11,14 +11,13 @@ declare const enum Build {
   NativeWordMoveOnFirefox = 1,
   MayAndroidOnFirefox = 1,
   DetectAPIOnFirefox = 1,
-}
-// Note: one random value must be used only in one .ts file, to avoid issues caused by partly building
-declare const enum BuildStr {
-  Commit = "dev",
   /** used by {@link ../../content/extend_click.ts} */
   RandomClick = 2021831,
   /** used by {@link ../../content/frontend.ts} */
   RandomReq = 2019070,
+}
+declare const enum BuildStr {
+  Commit = "dev",
   CoreGetterFuncName = "__VimiumC_priv__",
   FirefoxID = "vimium-c@gdh1995.cn",
 }

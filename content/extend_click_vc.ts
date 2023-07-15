@@ -38,7 +38,7 @@ Build.MV3 && Build.BTypes & BrowserType.Chrome && (function VC(this: void): void
 
 type FUNC = (this: unknown, ...args: never[]) => unknown;
 const V = /** verifier */ (maybeSecret: string): void | boolean => {
-    I = GlobalConsts.MarkAcrossJSWorlds + BuildStr.RandomClick === maybeSecret
+    I = GlobalConsts.MarkAcrossJSWorlds + Build.RandomClick === maybeSecret
 },
 doc0 = document, SetProp = Object.setPrototypeOf as <T extends object>(object: T, proto: null) => T,
 kAEL = "addEventListener", kToS = "toString", kProto = "prototype", kByTag = "getElementsByTagName",
@@ -66,7 +66,7 @@ DocCls = Document[kProto] as Partial<Document> as Pick<Document, "createElement"
       open (): void, write (markup: string): void },
 getElementsByTagNameInDoc = DocCls[kByTag],
 _docOpen = DocCls.open, _docWrite = DocCls.write,
-kOC = InnerConsts.kVOnClick, kRC = "" + BuildStr.RandomClick, kEventName2 = kOC + kRC,
+kOC = InnerConsts.kVOnClick, kRC = "" + Build.RandomClick, kEventName2 = kOC + kRC,
 StringSplit = !(Build.NDEBUG && Build.Mangle) ? "".split : 0 as never, StringSubstr = kEventName2.substr,
 checkIsNotVerifier = (func?: InnerVerifier | unknown): void | 42 => {
   if (!(Build.NDEBUG && Build.Mangle) && !verifierPrefixLen) {
@@ -202,7 +202,7 @@ const prepareRegister = (element: Element): void => {
           && typeof (s = element.tagName) === "string") {
         parent !== doc0 && parent !== root && call(Append, root, parent);
         unsafeDispatchCounter++;
-        safeDispatch_(CECls, {detail: BuildStr.RandomClick % InnerConsts.kModToExposeSecret + s, composed: !0}, element)
+        safeDispatch_(CECls, {detail: Build.RandomClick % InnerConsts.kModToExposeSecret + s, composed: !0}, element)
       }
     } else {
       unsafeDispatchCounter++;
@@ -242,7 +242,7 @@ const safeReRegister = (element: Element, doc1: Document): void => {
 const executeCmd = (eventOrDestroy?: Event): void => {
   const detail = eventOrDestroy && root && +call(GetAttr, root, InnerConsts.kSecretAttr)! as CommandEventDetail | 0,
   cmd: SecondLevelContentCmds | kContentCmd._fake = detail
-      ? (detail >> kContentCmd.MaskedBitNumber) === BuildStr.RandomClick
+      ? (detail >> kContentCmd.MaskedBitNumber) === Build.RandomClick
         ? detail & ((1 << kContentCmd.MaskedBitNumber) - 1) : kContentCmd._fake
       : eventOrDestroy ? kContentCmd._fake : kContentCmd.Destroy;
   // always stopProp even if the secret does not match, so that an attacker can not detect secret by enumerating numbers

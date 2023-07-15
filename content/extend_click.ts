@@ -98,7 +98,7 @@ export const ec_main_not_ff = (Build.BTypes !== BrowserType.Firefox as number ? 
     Stop_(event2)
     if (!box) {
       if (!kInjectManually && readyState_ > "l" && target && htmlTag_<1>(target)) {
-        if (attr_s(target, kSA) === "" + BuildStr.RandomClick) {
+        if (attr_s(target, kSA) === "" + Build.RandomClick) {
           box = target satisfies SafeHTMLElement as HTMLDivElement
           readyTimeout = timeout_(initOnDocReady, InnerConsts.DelayToWaitDomReady)
           OnDocLoaded_(initOnDocReady)
@@ -136,7 +136,7 @@ export const ec_main_not_ff = (Build.BTypes !== BrowserType.Firefox as number ? 
           if (!Build.NDEBUG) { isBox ? tickBox++ : tickDoc++ }
         }
       }
-    } else if (/* safer */ target && (isSafe && !rawDetail || (kInjectManually ? +secret : BuildStr.RandomClick
+    } else if (/* safer */ target && (isSafe && !rawDetail || (kInjectManually ? +secret : Build.RandomClick
           ) % InnerConsts.kModToExposeSecret + <string> target.tagName === rawDetail)) {
       clickable_.add(target);
     } else {
@@ -172,7 +172,7 @@ export const ec_main_not_ff = (Build.BTypes !== BrowserType.Firefox as number ? 
     reHint && reinitLinkHintsIn(reHint)
   }
   const dispatchCmd = (cmd: SecondLevelContentCmds): void => {
-    const msg = (((kInjectManually ? +secret : BuildStr.RandomClick) << kContentCmd.MaskedBitNumber) | cmd)
+    const msg = (((kInjectManually ? +secret : Build.RandomClick) << kContentCmd.MaskedBitNumber) | cmd)
     if (box) {
       // Not use CustomEvent.detail, because it's a getter property since BrowserVer.Min$CustomEvent$$detail$getter
       setOrRemoveAttr_s(box, kSA, "" + msg)
@@ -201,7 +201,7 @@ export const ec_main_not_ff = (Build.BTypes !== BrowserType.Firefox as number ? 
       if (!script) { return }
       box = createElement_("div")
       appendNode_s(script, box)
-      dispatchEvent_(script, new Event(outKMK + BuildStr.RandomClick))
+      dispatchEvent_(script, new Event(outKMK + Build.RandomClick))
       if (parentNode_unsafe_s(box)) {
         // normally, if here, must have: limited by CSP; not C or C >= MinEnsuredNewScriptsFromExtensionOnSandboxedPage
         // ignore the rare (unexpected) case that injected code breaks even when not limited by CSP,
@@ -320,7 +320,7 @@ DocCls = Document[kProto] as Partial<Document> as Pick<Document, "createElement"
       open (): void, write (markup: string): void },
 getElementsByTagNameInDoc = DocCls[kByTag],
 _docOpen = DocCls.open, _docWrite = DocCls.write,
-kOC = InnerConsts.kVOnClick, kRC = BuildStr.RandomClick, kEventName2 = kOC + kRC, kFn = "function",
+kOC = InnerConsts.kVOnClick, kRC = Build.RandomClick, kEventName2 = kOC + kRC, kFn = "function",
 StringSplit = !(Build.NDEBUG && Build.Mangle) ? "".split : 0 as never, StringSubstr = kEventName2.substr,
 checkIsNotVerifier = (func?: InnerVerifier | unknown): void | 42 => {
   if (!(Build.NDEBUG && Build.Mangle) && !verifierPrefixLen) {
