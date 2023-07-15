@@ -30,6 +30,7 @@
     "keep_fargs": false,
     "keep_fnames": "/^(startsWith|endsWith|includes|addEventListener|toString|VC)$/",
     "keep_infinity": false,
+    "lhs_constants": false,
     "loops": true,
     "negate_iife": false,
     "passes": 2,

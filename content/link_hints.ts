@@ -504,7 +504,6 @@ const callExecuteHint = (hint: ExecutableHintItem, event?: HandlerNS.Event): voi
   const p = selectedHintWorker.e(hint, event)
   p && (onWaitingKey = getTime /** after {@link resetHints} */,
       void p.then((result): void => {
-    (<RegExpOne> /a?/).test("")
     isActive = 0
     runFallbackKey(options_, mode_ > HintMode.min_job - 1 && 0)
       removeFlash && removeFlash()

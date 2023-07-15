@@ -20,6 +20,7 @@
     "join_vars": false,
     "keep_fargs": false,
     "keep_fnames": true,
+    "lhs_constants": false,
     "passes": 2,
     "properties": true,
     "pure_getters": true,

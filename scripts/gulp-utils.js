@@ -41,12 +41,13 @@ exports.formatPath = function (path, base) {
 }
 
 exports.cleanByPath = function (path, dest) {
+  var rimraf
   path = exports.formatPath(path, dest);
   return gulp.src(path, {
       base: ".", read: false, dot: true, allowEmpty: true, nodir: true
   }).pipe(exports.gulpMap(file => {
-    var rimraf = require("rimraf")
-    rimraf.sync(file.path, { disableGlob: true });
+    rimraf = rimraf || require("rimraf")
+    rimraf.sync(file.path, { glob: false })
   }));
 }
 

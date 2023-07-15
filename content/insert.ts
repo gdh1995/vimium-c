@@ -1,6 +1,6 @@
 import {
   doc, keydownEvents_, safeObj, isTop, set_keydownEvents_, setupEventListener, Stop_, OnChrome, OnFirefox, weakRef_ff,
-  esc, onWndFocus, isEnabled_, readyState_, injector, recordLog, weakRef_not_ff, OnEdge, getTime, abs_, fgCache,
+  esc, onWndFocus, isEnabled_, readyState_, recordLog, weakRef_not_ff, OnEdge, getTime, abs_, fgCache,
   safeCall, timeout_, timeStamp_
 } from "../lib/utils"
 import {
@@ -344,7 +344,6 @@ const onWndBlur = (): void => {
   }
   set_isCmdTriggered(kKeyCode.None)
   OnChrome && /*#__NOINLINE__*/ resetAnyClickHandler_cr()
-  injector || (<RegExpOne> /a?/).test("");
   esc!(HandlerResult.ExitNormalMode);
 }
 

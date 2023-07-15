@@ -72,7 +72,6 @@ set_safeDestroy(((silent): void => {
 
     if (runtime_port) { try { runtime_port.disconnect(); } catch {} }
     silent || recordLog("Vimium C on %o has been destroyed at %o.")()
-    injector || (<RegExpOne> /a?/).test("");
 }) satisfies typeof safeDestroy)
 
 set_vApi(VApi = {
