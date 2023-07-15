@@ -107,6 +107,7 @@ declare const enum BrowserVer {
   Min$Tabs$$getZoom = 42,
   Min$Tabs$$setZoom = 42,
   Min$EnableSitePerProcess$Flag = 42,
+  MinZeroAsPrefixInVersionNumber = 42, // even if EXP or LEGACY
   // 'shadowRoot' in Element.prototype since C43, and 'assignedSlot' since C53, even if EXP or LEGACY
   MinParentNodeGetterInNodePrototype = 42, // also .childNodes; even if EXP or LEGACY
   MinEnsured$fetch = 42, // even if LEGACY; also window.Request; can not fetch chrome-extension:// before C47

@@ -105,11 +105,10 @@ const _tlds = ["", "",
 
 export const safeObj_ = (() => Object.create(null)) as { (): SafeObject; <T>(): SafeDict<T> }
 
-export const safer_ = (OnChrome && Build.MinCVer < BrowserVer.Min$Object$$setPrototypeOf
-      && !Object.setPrototypeOf ? function <T extends object> (obj: T): T & SafeObject {
-        (obj as any).__proto__ = null; return obj as T & SafeObject; }
+export const safer_ = (OnChrome && Build.MinCVer < BrowserVer.Min$Object$$setPrototypeOf && !Object.setPrototypeOf
+      ? <T extends object> (obj: T) => ("__proto__" in obj && ((obj as any).__proto__ = null), obj as T & SafeObject)
       : <T extends object> (opt: T): T & SafeObject => Object.setPrototypeOf(opt, null)
-    ) as (<T extends object> (opt: T) => T & SafeObject)
+    ) as <T extends object> (opt: T) => T & SafeObject
 
 export const isTld_ = (tld: string, onlyEN?: boolean): Urls.TldType =>
     !onlyEN && (<RegExpOne> /[^a-z]/).test(tld) ? ((<RegExpOne> /^xn--[\x20-\x7f]+/).test(tld)

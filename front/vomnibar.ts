@@ -1650,10 +1650,10 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
 },
 VUtils_ = {
   safer_: (Build.MinCVer < BrowserVer.Min$Object$$setPrototypeOf && Build.BTypes & BrowserType.Chrome
-      && !Object.setPrototypeOf ? function <T extends object> (obj: T): T & SafeObject {
-        (obj as any).__proto__ = null; return obj as T & SafeObject; }
+      && !Object.setPrototypeOf
+      ? <T extends object> (obj: T) => ("__proto__" in obj && ((obj as any).__proto__ = null), obj as T & SafeObject)
       : <T extends object> (opt: T): T & SafeObject => Object.setPrototypeOf(opt, null)
-    ) as (<T extends object> (opt: T) => T & SafeObject),
+    ) as <T extends object> (opt: T) => T & SafeObject,
   makeListRenderer_ (this: void, template: string): Render {
     const a = template.split(/\{\{(\w+)}}/g);
     const parser = Build.BTypes !== BrowserType.Firefox as number ? 0 as never : new DOMParser();

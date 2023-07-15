@@ -169,9 +169,9 @@ Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES$Arr
         has (k: string): boolean { return k in this.map_ },
         set (k: string, v: any): any { const old = k in this.map_; this.map_[k] = v; old || this.size++; return this }
       } as Writable<SimulatedMap>
-      const setProto = Build.MinCVer < BrowserVer.Min$Object$$setPrototypeOf && Build.BTypes & BrowserType.Chrome
-          && !Object.setPrototypeOf ? (obj: SimulatedMap): void => { (obj as any).__proto__ = proto }
-          : (opt: SimulatedMap): void => { Object.setPrototypeOf(opt, proto as any as null) };
+      const setProto = (Build.MinCVer < BrowserVer.Min$Object$$setPrototypeOf && Build.BTypes & BrowserType.Chrome
+          ? Object.setPrototypeOf || ((obj: SimulatedMap): void => { (obj as any).__proto__ = proto })
+          : Object.setPrototypeOf) as (obj: SimulatedMap, newProto: any) => void
       type SimulatedMapCtor = (this: SimulatedMap, arr?: any[]) => any;
       globalThis.Set = function (arr?: string[]) {
         ; (Map as any as SimulatedMapCtor).call(this)
@@ -181,7 +181,7 @@ Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES$Arr
         }
       } satisfies SimulatedMapCtor as any;
       globalThis.Map = function (arr?: [string, any][]): any {
-        setProto(this)
+        setProto(this, proto)
         this.map_ = Object.create(null)
         ; (this.size satisfies number) = 0
         this.isSet_ = 0

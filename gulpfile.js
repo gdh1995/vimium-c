@@ -248,10 +248,9 @@ var Tasks = {
   },
   "min/others": ["min/pages", "min/omni", "min/misc"],
   _manifest: function(cb) {
+    const mv3 = !!getBuildItem("MV3")
     var minVer = getBuildItem("MinCVer"), browser = getBuildItem("BTypes");
     minVer = minVer ? (minVer | 0) : 0;
-    {
-      const mv3 = !!getBuildItem("MV3")
       if (mv3 && browser === BrowserType.Firefox) { delete manifest.background }
       for (const key of Object.keys(manifest)) {
         if (key.endsWith(".v2")) {
@@ -282,13 +281,15 @@ var Tasks = {
           }
         }
       }
-    }
     if (!(browser & BrowserType.Chrome)) {
       delete manifest.minimum_chrome_version;
       delete manifest.key;
       delete manifest.update_url;
     } else if (minVer && minVer < 999) {
       manifest.minimum_chrome_version = "" + (minVer | 0);
+      if (!mv3 && minVer < 42 && manifest.version.includes(".0")) {
+        manifest.version = manifest.version.replace(/\.0+/g, ".").replace(/\.+$/, "")
+      }
     }
     if (browser & BrowserType.Edge) {
       manifest.name = "Vimium C";

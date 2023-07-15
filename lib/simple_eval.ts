@@ -143,8 +143,8 @@ const kBreakBlock: BreakValue = { c: 0, v: 0 }
 const kUnknown = "(...)"
 // `document.all == null` returns `true`
 const isLooselyNull = (obj: unknown): obj is null | undefined => obj === null || obj === undefined
-const safer_ = <T> (a: T): T => (typeof a === "object" && a && !(a instanceof Array)
-    ? ((a as any).__proto__ && ((a as any).__proto__ = null), a) : a) as T
+const safer_d = <T> (obj: T): T extends Array<any> ? unknown : T =>
+    (typeof obj === "object" && obj ? ("__proto__" in obj && ((obj as any).__proto__ = null), obj) : obj) as any
 const resetRe_ = (): true => (<RegExpOne> /a?/).test("") as true
 const objEntries = !(Build.BTypes & BrowserType.Chrome)
     || Build.MinCVer >= BrowserVer.MinEnsuredES$Object$$values$and$$entries ? Object.entries! as never
@@ -175,8 +175,8 @@ const VarName = (name: VarLiterals): VarNames => (name !== kProto ? name : name 
 //#region tokenize
 
 const Token = <T extends keyof TokenValues> (token: T, value: TokenValues[T]): SomeTokens<T> => {
-  return (NDEBUG ? { t: token, v: value } : {
-      n: kTokenNames[Math.log2(token)], v: safer_(value), t: token, __proto__: null }) as SomeTokens<T>
+  return (NDEBUG ? { t: token, v: value } : { n: kTokenNames[Math.log2(token)],
+    v: safer_d(value satisfies string | { v: unknown }), t: token, __proto__: null }) as SomeTokens<T>
 }
 
 const splitTokens = (expression_: string): Token[] => {
@@ -273,7 +273,7 @@ const splitTokens = (expression_: string): Token[] => {
 
 const Op = <T extends keyof OpValues, V extends OpValues[T]> (op: T, value: V): SomeOps<T> & { v: V } => {
   return (NDEBUG ? { o: op, v: value } : { n: op === O.composed ? (value as OpValues[O.composed]).b === "{"
-        ? "dict" : "array" : kOpNames[op], v: safer_(value), o: op, __proto__: null
+        ? "dict" : "array" : kOpNames[op], v: safer_d(value), o: op, __proto__: null
       }) as SomeOps<T> as SomeOps<T> & { v: V }
 }
 
@@ -958,7 +958,7 @@ const evalNever = (op: BaseOp<O.block | O.statGroup | O.stat | O.pair>): void =>
     const desc: PropertyDescriptor = props[key]
     if (prefix) {
       desc && !("value" in desc) ? desc[prefix] = value as () => unknown
-      : (props[key] = safer_({ configurable: true, enumerable: true, [prefix]: value as () => unknown }))
+      : props[key] = { configurable: true, enumerable: true, [prefix]: value as () => unknown }
     } else if (key !== kProto || isToken || item.v.k.o !== O.token || item.v.v.o === O.fn && item.v.v.v.t === "(){") {
       desc && !("value" in desc) ? desc.value = value : (props[key] = ValueProperty(value, true, true, true))
     } else {

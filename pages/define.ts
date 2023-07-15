@@ -200,7 +200,7 @@ Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES$Obj
       } }
     })
     if (!Object.setPrototypeOf) {
-      Object.setPrototypeOf = (opt: {}, proto: any): any => ((opt as { __proto__: unknown }).__proto__ = proto, opt)
+      Object.setPrototypeOf = (opt: {}, proto: any):any => ("__proto__" in opt && ((opt as any).__proto__ = proto), opt)
     }
   } else if (Build.MinCVer <= BrowserVer.Maybe$Promise$onlyHas$$resolved) {
     Promise.resolve || (Promise.resolve = Promise.resolved!)
