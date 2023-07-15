@@ -149,8 +149,7 @@ export const broadcast_ = <K extends kBgReq.settingsUpdate | kBgReq.url | kBgReq
     } else if ((request.d as Extract<SettingsUpdateMsg["d"], string[]>).length == null) {
       _BroadcastSettingsUpdates(request)
     } else {
-      let cur = request.d as Extract<SettingsUpdateMsg["d"], string[]>,
-      old = newSettingsToBroadcast_
+      let cur = request.d as Extract<SettingsUpdateMsg["d"], string[]>, old = newSettingsToBroadcast_
       if (old) {
         cur = cur.concat(old)
       } else {

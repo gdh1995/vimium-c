@@ -1,5 +1,14 @@
 {
   "author": "gdh1995@qq.com",
+  "action": {
+    "default_icon": {
+      "19": "icons/enabled_19.png",
+      "38": "icons/enabled_38.png"
+    },
+    "default_popup": "pages/popup.html",
+    "default_title": "__MSG_name__\n\n__MSG_noActiveState__"
+  },
+  "action.v2": null,
   "background": {
     "service_worker": "background/worker.js",
     "type": "module"
@@ -41,15 +50,6 @@
     "default_popup": "pages/popup.html",
     "default_title": "__MSG_name__\n\n__MSG_noActiveState__"
   },
-  "action": {
-    "default_icon": {
-      "19": "icons/enabled_19.png",
-      "38": "icons/enabled_38.png"
-    },
-    "default_popup": "pages/popup.html",
-    "default_title": "__MSG_name__\n\n__MSG_noActiveState__"
-  },
-  "action.v2": null,
   "browser_specific_settings": {
     "gecko": {
       "id": "vimium-c.dev@gdh1995.cn",

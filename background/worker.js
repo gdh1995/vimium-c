@@ -39,4 +39,3 @@ __moduleMap.page_handlers = __moduleMap.page_handlers || page_handlers
 __moduleMap.help_dialog   = __moduleMap.help_dialog   || help_dialog
 __moduleMap.math_parser   = __moduleMap.math_parser   || math_parser
 //#endregion
-// syntax: since Chrome 63 (BrowserVer.MinUsableScript$type$$module$InExtensions)

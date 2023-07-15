@@ -19,12 +19,12 @@ import NormalizedEnvCond = CommandsNS.NormalizedEnvCond
 
 declare const enum kStr { RunKeyWithId = "<v-runKey:$1>" }
 
-const DEBUG = 1
+const DEBUG = 0
 
 const abs = Math.abs
 const kRunKeyOptionNames: readonly (Exclude<keyof BgCmdOptions[C.runKey], `$${string}` | `o.${string}`>)[] =
     [ "expect", "keys", "options", "mask" ]
-let loopIdToRunSeq = 0
+let _loopIdToRunSeq = 0
 
 const collectOptions = (opts: { [key: `o.${string}`]: any }): CommandsNS.Options | null => {
   const o2 = BgUtils_.safeObj_<any>(), others = [] as string[]
@@ -249,20 +249,22 @@ export const runKeyWithCond = (info?: CurrentEnvCache): void => {
         || get_cOptions<C.runKey, true>().options
         || (get_cOptions<C.runKey, true>().$masked ? null : collectOptions(get_cOptions<C.runKey, true>()))
     options = concatOptions(options, options2)
-    const newIntId = loopIdToRunSeq = (loopIdToRunSeq + 1) % 64 || 1
-    const seqId = kStr.RunKeyWithId.replace("$1", "" + newIntId as "1")
+    const newIntId = (_loopIdToRunSeq + 1) % 64 || 1
     const $seq: BgCmdOptions[C.runKey]["$seq"] = {
-      keys: key, repeat, options, cursor: key, timeout: 0, id: seqId,
+      keys: key, repeat, options, cursor: key, timeout: 0, id: "single",
       fallback: parseFallbackOptions(get_cOptions<C.runKey, true>())
     }
     if (key.val.length > 1 || key.val[0].t !== kN.key) {
+      const seqId = kStr.RunKeyWithId.replace("$1", "" + newIntId as "1")
       const fakeOptions: KnownOptions<C.runKey> = { $seq, $then: seqId, $else: "-" + seqId, $retry: -999 }
+      $seq.id = seqId
+      _loopIdToRunSeq = newIntId
       replaceCmdOptions(fakeOptions)
       keyToCommandMap_.set(seqId, makeCommand_("runKey", fakeOptions as CommandsNS.Options)!)
       runKeyInSeq($seq, 1, info)
     } else {
       if (!Build.NDEBUG && DEBUG) {
-        console.log("keySeq[%o]: single = %o # %o * %o @ %o", newIntId, key.val[0].val, options, repeat, Date.now()%3e5)
+        console.log("keySeq[%o]: single(%o) # %o * %o @ %o", newIntId, key.val[0].val, options, repeat, Date.now()%3e5)
       }
       replaceCmdOptions<C.runKey>({ $seq } satisfies KnownOptions<C.runKey> as KnownOptions<C.runKey>)
       onLastKeyInSeq($seq, key.val[0])
@@ -388,36 +390,36 @@ const nextKeyInSeq = (lastCursor: ListNode | KeyNode, dir: number): KeyNode | nu
 }
 
 /** Note: this requires a temporary cOptions to modify */
-const onLastKeyInSeq = (seq: BgCmdOptions[C.runKey]["$seq"], cursor: KeyNode | null): void => {
-  if (kStr.RunKeyWithId.replace("$1", "" + loopIdToRunSeq as "1") === seq.id) {
-    loopIdToRunSeq = Math.max(--loopIdToRunSeq, 0)
+const onLastKeyInSeq = ($seq: BgCmdOptions[C.runKey]["$seq"], cursor: KeyNode | null): void => {
+  const runOptions = get_cOptions<C.runKey, true>() as KnownOptions<C.runKey> | null
+  const finalFallback = $seq.fallback
+  if (cursor && runOptions) { delete runOptions.$then, delete runOptions.$else }
+  if (!finalFallback) { return }
+  if (cursor) { // ensured no $then/$else in outerFallback
+    $seq.options = $seq.options ? Object.assign(finalFallback, $seq.options) : finalFallback
+  } else if (runOptions?.$f) {
+    finalFallback.$f = makeFallbackContext(finalFallback.$f, 0, runOptions.$f.t)
   }
-  const seqOptions = get_cOptions<C.runKey, true>()
-  const outerFallback = seq.fallback
-  if (cursor && seqOptions) { delete seqOptions.$then, delete seqOptions.$else }
-  if (!outerFallback) { return }
-  if (cursor) {
-    seq.options = seq.options ? Object.assign(outerFallback, seq.options) : outerFallback
-  } else if (seqOptions?.$f) {
-    outerFallback.$f = makeFallbackContext(outerFallback.$f, 0, seqOptions.$f.t)
-  }
-  seqOptions && (seqOptions.$f = outerFallback.$f)
+  runOptions && (runOptions.$f = finalFallback.$f)
 }
 
-export const runKeyInSeq = (seq: BgCmdOptions[C.runKey]["$seq"], dir: number, envInfo: CurrentEnvCache | null):void => {
-  const cursor: KeyNode | null = nextKeyInSeq(seq.cursor as ListNode | KeyNode, dir)
+export const runKeyInSeq = ($seq: BgCmdOptions[C.runKey]["$seq"], dir: number, envInfo: CurrentEnvCache|null): void => {
+  const cursor: KeyNode | null = nextKeyInSeq($seq.cursor as ListNode | KeyNode, dir)
   const ifOk = cursor && nextKeyInSeq(cursor, 1), ifFail = cursor && nextKeyInSeq(cursor, -1)
   const isLast = !(cursor && (ifOk || ifFail))
-  const finalFallback = seq.fallback
-  const seqId = seq.id, intSeqId = !Build.NDEBUG && DEBUG ? +(<RegExpOne>/\d+/).exec(seq.id)![0] : -1
+  const finalFallback = $seq.fallback
+  const seqId = $seq.id, intSeqId = !Build.NDEBUG && DEBUG ? +(<RegExpOne>/\d+/).exec($seq.id)![0] : -1
   if (isLast) {
     if (!Build.NDEBUG && DEBUG) {
       console.log("keySeq[%o]: last = %o, fallback = %o @ %o", intSeqId, cursor && cursor.val
           , finalFallback, Date.now() % 3e5)
     }
+    if (kStr.RunKeyWithId.replace("$1", "" + _loopIdToRunSeq as "1") === $seq.id) {
+      _loopIdToRunSeq = Math.max(--_loopIdToRunSeq, 0)
+    }
     keyToCommandMap_.delete(seqId)
-    clearTimeout(seq.timeout || 0)
-    onLastKeyInSeq(seq, cursor)
+    clearTimeout($seq.timeout || 0)
+    onLastKeyInSeq($seq, cursor)
   } else if (!Build.NDEBUG && DEBUG) {
     console.log("keySeq[%o]: cursor = %o : $then=%o $else=%o @ %o", intSeqId, cursor && cursor.val
         , ifOk && ifOk.val, ifFail && ifFail.val, Date.now() % 3e5)
@@ -434,21 +436,21 @@ export const runKeyInSeq = (seq: BgCmdOptions[C.runKey]["$seq"], dir: number, en
   const evenLoading = (thenPrefix.includes("$l") ? 1 : 0) + (elsePrefix.includes("$l") ? 2 : 0)
   const noDelay = (thenPrefix.includes("$D") ? 1 : 0) + (elsePrefix.includes("$D") ? 2 : 0)
   if (evenLoading || noDelay) {
-    if (seq.cursor === seq.keys) {
+    if ($seq.cursor === $seq.keys) {
       overrideCmdOptions<C.runKey>({})
       seqOptions = get_cOptions<C.runKey, true>()
     }
     seqOptions.$then = (evenLoading & 1 ? "$l+" : "") + (noDelay & 1 ? "$D+" : "") + seqOptions.$then
     seqOptions.$else = (evenLoading & 2 ? "$l+" : "") + (noDelay & 2 ? "$D+" : "") + seqOptions.$else
   }
-  const timeout = isLast ? 0 : seq.timeout = setTimeout((): void => {
+  const timeout = isLast ? 0 : $seq.timeout = setTimeout((): void => {
     const old = keyToCommandMap_.get(seqId)
     const opts2 = old && (old.options_ as KnownOptions<C.runKey>)
     if (opts2 && opts2.$seq && opts2.$seq.timeout === timeout) {
       keyToCommandMap_.delete(seqId)
     }
   }, 30000)
-  runOneKey(cursor, seq, envInfo)
+  runOneKey(cursor, $seq, envInfo)
 }
 
 //#endregion

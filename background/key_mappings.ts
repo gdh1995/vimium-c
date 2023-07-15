@@ -55,14 +55,14 @@ const getOptions_ = (line: string, start: number): CommandsNS.RawOptions | "__no
       : line.slice(start + 1) as "__not_parsed__"
 }
 
-export const parseOptions_ = ((options_line: string, fakeVal?: 0 | 1 | 2): CommandsNS.RawOptions | string | null => {
+export const parseOptions_ = ((options_line: string, type: 0 | 1 | 2 | 3): CommandsNS.RawOptions | string | null => {
   let opt: CommandsNS.RawOptions = BgUtils_.safeObj_(), hasOpt = 0
   for (let str of options_line.split(" ")) {
     const ind = str.indexOf("=")
     if ("$#/=_".includes(str[0])) {
       if (ind === 0 || str === "__proto__"
           || str[0] === "$" && !"$if=$key=$desc=$count=$then=$else=$retry=".includes(str.slice(0, ind + 1))) {
-        (fakeVal === 0 || fakeVal === 1) && logError_("%s option key:", ind === 0 ? "Missing" : "Unsupported", str)
+        type < 2 && logError_("%s option key:", ind === 0 ? "Missing" : "Unsupported", str)
         continue
       } else if (str[0] === "#" || str.startsWith("//")) { // treat the following as comment
         break
@@ -74,14 +74,14 @@ export const parseOptions_ = ((options_line: string, fakeVal?: 0 | 1 | 2): Comma
     } else {
       const val = str.slice(ind + 1)
       str = str.slice(0, ind);
-      opt[str] = fakeVal === 2 ? val && parseVal_limited(val) : fakeVal === 1 ? 1 : val && parseVal_(val)
+      opt[str] = type === 2 ? val && parseVal_limited(val) : type === 1 ? 1 : val && parseVal_(val)
       hasOpt = 1
     }
   }
-  return hasOpt === 1 ? fakeVal === 1 ? options_line : opt : null
+  return hasOpt === 1 ? type === 1 ? options_line : opt : null
 }) as {
   (options_line: string, fakeVal: 0 | 1): CommandsNS.RawOptions | "__not_parsed__" | null
-  (options_line: string, lessException?: 2): CommandsNS.RawOptions | null
+  (options_line: string, lessException: 2 | 3): CommandsNS.RawOptions | null
 }
 
 const parseVal_limited = (val: string): any => {
@@ -99,7 +99,7 @@ export const normalizeCommand_ = (cmd: Writable<CommandsNS.BaseItem>, details?: 
     let opt: CommandsNS.Options | null
     opt = details.length < 4 ? null : BgUtils_.safer_(details[3]!);
     if (typeof options === "string") {
-      options = parseOptions_(options)
+      options = parseOptions_(options, 3)
     }
     if (options) {
       if ("$count" in options || "count" in options) {
@@ -443,7 +443,7 @@ const parseKeyMappings_ = (wholeMappings: string): void => {
 
 const setupShortcut_ = (cmdMap: NonNullable<typeof shortcutRegistry_>, key: StandardShortcutNames
       , options: CommandsNS.RawCustomizedOptions | "__not_parsed__" | null): string => {
-    options = options && typeof options === "string" ? parseOptions_(options) : options!
+    options = options && typeof options === "string" ? parseOptions_(options, 3) : options!
     let has_cmd: BOOL = 1
       , command: string = options && options.command || (has_cmd = 0, key.startsWith("user") ? "" : key)
       , regItem: CommandsNS.Item | null

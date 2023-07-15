@@ -211,7 +211,7 @@ export const mergeCSS = (css2Str: string, action: MergeAction | "userDefinedCss"
     asyncIterFrames_(Frames.Flags.CssUpdated, (frames: Frames.Frames): void => {
         for (const port of frames.ports_) {
           const flags = port.s.flags_
-          if (port.s.flags_ & Frames.Flags.hasCSS) {
+          if (flags & Frames.Flags.hasCSS) {
             port.postMessage({
               N: kBgReq.showHUD, H: innerCSS_,
               f: flags & Frames.Flags.hasFindCSS ? OnChrome ? getFindCSS_cr_!(port.s) : findCSS_ : void 0
