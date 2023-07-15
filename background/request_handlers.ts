@@ -553,7 +553,8 @@ set_reqH_([
       succeed || reqH_[kFgReq.openImage]({ m: HintMode.OPEN_IMAGE, f: req.f, u: url }, port)
     } : void 0)
   },
-  /** kFgReq.wait: */ (req: FgReqWithRes[kFgReq.wait], port, msgId): Port => {
+  /** kFgReq.wait: */ (req: FgReqWithRes[kFgReq.wait], port, msgId): Port | TimerType.fake => {
+    if (req === 0) { return TimerType.fake }
     setTimeout(() => { sendResponse(port, msgId, TimerType.fake) }, req)
     return port
   },

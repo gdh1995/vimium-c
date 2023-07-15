@@ -13,7 +13,7 @@ import {
 } from "../lib/dom_utils"
 import {
   onPortRes_, post_, safePost, set_requestHandlers, requestHandlers, hookOnWnd, set_hookOnWnd, onFreezePort,
-  HookAction, contentCommands_, runFallbackKey, runtime_port, runtimeConnect, set_port_, setupBackupTimer_cr,
+  HookAction, contentCommands_, runFallbackKey, runtime_port, runtimeConnect, set_port_, setupBackupTimer_cr, send_,
 } from "./port"
 import {
   addUIElement, adjustUI, createStyle, getParentVApi, getBoxTagName_old_cr, setUICSS, ui_box, evalIfOK, checkHidden,
@@ -67,11 +67,11 @@ set_requestHandlers([
     }
     inherited_ ? esc!(HandlerResult.Nothing) : requestHandlers[kBgReq.keyFSM](request);
     (requestHandlers[kBgReq.reset] as (request: BgReq[kBgReq.reset | kBgReq.init], initing?: 1) => void)(request, 1)
-    if (Build.MV3 && OnChrome && !vApi.e && (Build.MinCVer >= BrowserVer.MinRegisterContentScriptsWorldInMV3
-        || chromeVer_ > BrowserVer.MinRegisterContentScriptsWorldInMV3 - 1) && isAsContent) {
+    if (Build.MV3 && OnChrome && !vApi.e && isAsContent) {
       const t = timeout_, i = interval_, ct = clearTimeout_, ci = clearInterval_
-      timeout_((): void => { /*#__INLINE__*/ setupTimerFunc_cr_mv3(t, i, ct, ci) }, 0)
+      t((): void => { /*#__INLINE__*/ setupTimerFunc_cr_mv3(t, i, ct, ci) }, 0)
       /*#__INLINE__*/ setupBackupTimer_cr()
+      send_(kFgReq.wait, 0, () => timeout_ !== t && recordLog(kTip.logNotWorkOnSandboxed)())
     }
     if (isEnabled_) {
       set_keydownEvents_(safeObj<any>(null))
@@ -81,7 +81,7 @@ set_requestHandlers([
         hookOnWnd(HookAction.SuppressListenersOnDocument);
       }
       OnFirefox || isIFrameInAbout_ && !vApi.e && timeout_(hookOnWnd.bind(0, HookAction.Install), 1e3)
-      OnChrome && timeout_ === interval_ && recordLog(kTip.logNotWorkOnSandboxed)()
+      !Build.MV3 && OnChrome && timeout_ === interval_ && recordLog(kTip.logNotWorkOnSandboxed)()
     } else {
       set_grabBackFocus(false)
       hookOnWnd(HookAction.Suppress);

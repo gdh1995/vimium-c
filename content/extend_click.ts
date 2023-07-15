@@ -1,7 +1,6 @@
 import {
   clickable_, setupEventListener, timeout_, doc, isAlive_, set_noRAF_old_cr_, math, isTop, OnChrome, readyState_,
-  loc_, getTime, recordLog, VTr, vApi, Stop_, isTY, OnEdge, abs_, isEnabled_, interval_, clearTimeout_, clearInterval_,
-  setupTimerFunc_cr_mv3, fgCache
+  loc_, getTime, recordLog, VTr, vApi, Stop_, isTY, OnEdge, abs_, isEnabled_, clearTimeout_, fgCache
 } from "../lib/utils"
 import {
   createElement_, set_createElement_, OnDocLoaded_, runJS_, rAF_, removeEl_s, dispatchEvent_, HTMLElementProto,
@@ -398,7 +397,6 @@ contains = EnsuredGetRootNode || getRootNode ? null : ElProto.contains.bind(doc0
 kGetComposedRoot = { __proto__: null, composed: !0 },
 // here `setTimeout` is normal and will not use TimerType.fake
 setTimeout_ = setTimeout as SafeSetTimeout,
-scriptChildren: HTMLElement["children"] | ((index: number) => Element | null) = root.children,
 unsafeDispatchCounter = 0,
 allNodesInDocument = null as Element[] | null, allNodesForDetached = null as Element[] | null,
 pushToRegister = (nodeIndexList as unknown[] as Element[]).push.bind(toRegister),
@@ -593,22 +591,15 @@ if (!MayNotEdge
   queueMicroTask_ = (queueMicroTask_ as any as Promise<void>).then.bind(queueMicroTask_ as any as Promise<void>);
 }
 if (!EnsuredGetRootNode && getRootNode) { getRootNode = _call.bind(getRootNode as any) as any }
-if (MayEdge) {
-  scriptChildren = scriptChildren.item.bind(scriptChildren)
-}
 // only the below can affect outsides
 call(Remove, root)
 call(_listen, root, kMk + kRC, (): void => {
-  // note: `HTMLCollection::operator []` can not be overridden by `Object.defineProperty` on C32/83
-  root = (MayEdge ? (scriptChildren as Extract<typeof scriptChildren, Function>)(0)
-      : (scriptChildren as Exclude<typeof scriptChildren, Function>)[0]) as HTMLDivElement
+  root = call(getElementsByTagNameInEP, root as HTMLScriptElement, "*")[0] as HTMLDivElement
   call(Remove, root)
   listen(root, InnerConsts.kCmd, executeCmd, !0)
   timer = toRegister.length > 0 ? setTimeout_(next, InnerConsts.DelayForNext) : 0
   detectDisabled = 0
-  scriptChildren = null as never
 })
-root = 0 as never
 ETP[kAEL] = myAEL;
 FProto[kToS] = myToStr
 DocCls.open = myDocOpen
@@ -669,11 +660,7 @@ DocCls.write = myDocWrite
       && tmpChromeVer && tmpChromeVer < BrowserVer.MinEventListenersFromExtensionOnSandboxedPage) {
     recordLog(kTip.logNotWorkOnSandboxed)()
     safeDestroy(1)
-  } else {
-    if (Build.MV3) {
-      const t = timeout_, i = interval_, ct = clearTimeout_, ci = clearInterval_
-      timeout_((): void => { /*#__INLINE__*/ setupTimerFunc_cr_mv3(t, i, ct, ci) }, 0)
-    }
+  } else if (!Build.MV3) {
     /*#__INLINE__*/ setupBackupTimer_cr()
   }
 })(grabBackFocus as boolean)

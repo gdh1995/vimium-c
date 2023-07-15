@@ -138,7 +138,7 @@ export const setupBackupTimer_cr = !OnChrome ? 0 as never : (): void => {
   /*#__INLINE__*/ setupTimerFunc_cr((func: (info?: TimerType.fake) => void, timeout: number): number => {
     return (Build.MinCVer <= BrowserVer.NoRAFOrRICOnSandboxedPage && noRAF_old_cr_
         || timeout > GlobalConsts.MinCancelableInBackupTimer - 1) && port_
-        ? (send_(kFgReq.wait, timeout, func), tick - 1) : rAF_((): void => { func(TimerType.fake) })
+        ? (send_(kFgReq.wait, timeout, func), tick - 1) : rAF_(func.bind(null, TimerType.fake))
   }, (timer: ValidTimeoutID | ValidIntervalID): void => {
     timer && port_callbacks && port_callbacks[timer as number + 1] &&
     ((port_callbacks as { [msgId: number]: (this: void, res: FgRes[kFgReq.wait]) => unknown }
