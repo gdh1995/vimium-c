@@ -259,8 +259,14 @@ export const promiseDefer_ = <T> (): { p: Promise<T>, r: (value: T) => void } =>
   return { p, r: r! }
 }
 
-export const queueTask_: typeof queueMicrotask | undefined = Build.NDEBUG ? queueMicrotask
-    : queueMicrotask ? (func: () => void): void => queueMicrotask!(func) : void 0
+// if `var queueMicrotask`, on Firefox globalThis.queueMicrotask is undefined even when window.queueMicrotask exists
+export const queueTask_: typeof queueMicrotask | undefined = !Build.NDEBUG
+    ? (window as {} as typeof globalThis).queueMicrotask
+      && ((func: () => void): void => (window as {} as typeof globalThis).queueMicrotask(func))
+    : !(Build.BTypes & BrowserType.Edge
+      || Build.BTypes & BrowserType.Firefox && Build.MinFFVer < FirefoxBrowserVer.Min$queueMicrotask
+      || Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$queueMicrotask) || !OnFirefox
+    ? queueMicrotask : (window as {} as typeof globalThis).queueMicrotask
 
 /** ==== shortcuts of constant code ==== */
 

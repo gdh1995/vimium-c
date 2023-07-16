@@ -630,8 +630,7 @@ exports.skip_declaring_known_globals = (btypes, minCVer, get_code) =>{
   if (!(btypes & BrowserType.Chrome && minCVer < /* MinEnsured$visualViewport$ */ 61 || btypes & BrowserType.Edge)) {
     toRemovedGlobal += "visualViewport|";
   }
-  if (!(btypes & BrowserType.Chrome && minCVer < /* Min$queueMicrotask */ 71
-        || btypes & BrowserType.Firefox && minCVer < /* Min$queueMicrotask */ 69 || btypes & BrowserType.Edge)) {
+  if (!(btypes & BrowserType.Chrome && minCVer < /* Min$queueMicrotask */ 71 || btypes & BrowserType.Edge)) {
     toRemovedGlobal += "queueMicrotask|";
   }
   if (!(btypes & BrowserType.Chrome && minCVer < /* BrowserVer.MinEnsured$WeakRef */ 92
@@ -643,7 +642,7 @@ exports.skip_declaring_known_globals = (btypes, minCVer, get_code) =>{
     const re = new RegExp(`(const|let|var|,)\\s?(${toRemovedGlobal})[,;]\n?\n?`, "g")
     let n = 0, remove = str => str[0] === "," ? str.slice(-1) : str.slice(-1) === "," ? str.split(/\s/)[0] + " " : "";
     const contents = get_code()
-    let s1 = contents.slice(0, 1000);
+    let s1 = contents.slice(0, 2000)
     for (; ; n++) {
       let s2 = s1.replace(re, remove);
       if (s2.length === s1.length) {
@@ -652,7 +651,7 @@ exports.skip_declaring_known_globals = (btypes, minCVer, get_code) =>{
       s1 = s2;
     }
     if (n > 0) {
-      return s1 + contents.slice(1000)
+      return s1 + contents.slice(2000)
     }
   }
   return null
