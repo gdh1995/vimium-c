@@ -57,6 +57,8 @@ Vimium C 支持 Firefox 63+、新版 Microsoft Edge 和 Chrome 47+ 等现代浏�
 
 本项目的主仓库是 https://github.com/gdh1995/vimium-c 和 https://gitee.com/gdh1995/vimium-c 。
 
+Vimium C 的部分旧代码以 MIT 许可协议开源，可以前往 https://github.com/gdh1995/vimium-c/tree/MIT-licensed-v1 获得源码。
+
 [Here's its description in English](README.md)（点击查看英文介绍）。
 
 # 主要功能

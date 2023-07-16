@@ -57,7 +57,7 @@ A <span style="color: #a55e18;">C</span>ustomized
 [阅读中文介绍 (description in Chinese) 。](README-zh.md)
 
 This project is mainly developed and maintained by [gdh1995](https://github.com/gdh1995) (Gong Dahan),
-and licensed under the [Apache-2.0 license](LICENSE.txt).
+and open-sourced under the [Apache-2.0 license](LICENSE.txt).
 
 本项目主要由 [gdh1995](https://github.com/gdh1995)（宫大汉）开发并维护，且以 [Apache-2.0 许可协议](LICENSE.txt) 开源。
 
@@ -73,6 +73,11 @@ If re-compiled from the source code, Vimium C is able to support Chromium 32~46.
 ![Usage Demo of Vimium C](https://gdh1995.cn/vimium-c/demo.gif)
 
 This project is hosted on https://github.com/gdh1995/vimium-c and https://gitee.com/gdh1995/vimium-c .
+
+Some old code of Vimium C was under the MIT license,
+and you may get it in https://github.com/gdh1995/vimium-c/tree/MIT-licensed-v1 .
+
+Vimium C 的部分旧代码以 MIT 许可协议开源，可以前往 https://github.com/gdh1995/vimium-c/tree/MIT-licensed-v1 获得源码。
 
 An old name of this project is "Vimium++", which has been given up on 2018-08-21.
 
@@ -324,7 +329,7 @@ A partial donation list is in / 部分捐赠列表详见: https://github.com/gdh
 
 # Thanks & Licenses
 
-Vimium C: Copyright (c) Dahan Gong. See the [Apache-2.0 license](LICENSE.txt) for details.
+Vimium C: Copyright (c) Gong Dahan. See the [Apache-2.0 license](LICENSE.txt) for details.
 
 The translation files in [_locales/](https://github.com/gdh1995/vimium-c/tree/master/_locales) belong to
   [CC-BY-SA-4.0](https://creativecommons.org/licenses/by-sa/4.0/),
