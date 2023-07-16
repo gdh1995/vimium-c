@@ -1,6 +1,6 @@
 import {
   clickable_, setupEventListener, timeout_, doc, isAlive_, set_noRAF_old_cr_, math, isTop, OnChrome, readyState_,
-  loc_, getTime, recordLog, VTr, vApi, Stop_, isTY, OnEdge, abs_, isEnabled_, clearTimeout_, fgCache
+  loc_, getTime, recordLog, VTr, vApi, Stop_, isTY, OnEdge, abs_, isEnabled_, clearTimeout_, fgCache, queueTask_
 } from "../lib/utils"
 import {
   createElement_, set_createElement_, OnDocLoaded_, runJS_, rAF_, removeEl_s, dispatchEvent_, HTMLElementProto,
@@ -67,7 +67,7 @@ export const ec_main_not_ff = (Build.BTypes !== BrowserType.Firefox as number ? 
             || Build.MinCVer < BrowserVer.MinEnsuredNewScriptsFromExtensionOnSandboxedPage
             || Build.MinCVer < BrowserVer.MinEnsuredES6MethodFunction
             || Build.MinCVer < BrowserVer.MinEventListenersFromExtensionOnSandboxedPage)
-        ? !isTY((window as PartialOf<typeof globalThis, "queueMicrotask">).queueMicrotask, kTY.func)
+        ? !queueTask_
           ? navigator.userAgent!.match(<RegExpOne & RegExpSearchable<1>> /\bChrom(?:e|ium)\/(\d+)/) : 0 as const
         : [BrowserVer.Min$queueMicrotask]
     , tmpChromeVer: BrowserVer | 1 | 0 = OnChrome

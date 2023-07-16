@@ -245,7 +245,7 @@ export const deferPromise_ = <T> (): { promise_: Promise<T>, resolve_ (result: T
 
 export const nextTick_ = !OnEdge
     && (!OnChrome || Build.MinCVer >= BrowserVer.Min$queueMicrotask || CurCVer_ > BrowserVer.Min$queueMicrotask - 1)
-    && (!OnFirefox || Build.MinFFVer >= FirefoxBrowserVer.Min$queueMicrotask || typeof queueMicrotask === "function")
+    && (!OnFirefox || Build.MinFFVer >= FirefoxBrowserVer.Min$queueMicrotask || globalThis.queueMicrotask)
     ? (callback: () => void): void => { queueMicrotask(callback) }
     : (callback: () => void): void => { void Promise.resolve().then(callback) }
 

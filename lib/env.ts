@@ -19,8 +19,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$v
   var visualViewport: VisualViewport | undefined;
 }
 if (Build.BTypes & BrowserType.Edge
-    || Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$queueMicrotask
-    || Build.BTypes & BrowserType.Firefox && Build.MinFFVer < FirefoxBrowserVer.Min$queueMicrotask) {
+    || Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$queueMicrotask) {
   var queueMicrotask: (callback: (this: void) => void) => void
 }
 if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$WeakRef
