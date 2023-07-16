@@ -75,6 +75,10 @@ If re-compiled from the source code, Vimium C is able to support Chromium 32~46.
 
 This project is hosted on https://github.com/gdh1995/vimium-c and https://gitee.com/gdh1995/vimium-c .
 
+This release (repo branch) contains legacy code of Vimium C v1 with only some of v2's bug fixes,
+so if you want to use a more powerful and faster version,
+you may visit https://github.com/gdh1995/vimium-c and its latest code is open-sourced under the Apache-2.0 license.
+
 An old name of this project is "Vimium++", which has been given up on 2018-08-21.
 
 
