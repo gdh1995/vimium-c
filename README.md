@@ -79,6 +79,10 @@ This release (repo branch) contains legacy code of Vimium C v1 with only some of
 so if you want to use a more powerful and faster version,
 you may visit https://github.com/gdh1995/vimium-c and its latest code is open-sourced under the Apache-2.0 license.
 
+当前发行版本（代码分支）仅包含 Vimium C v1 版本的代码，以及部分 v2 版本的问题补丁。
+因此如果您想使用更先进、更快的新版本，您可以访问 https://github.com/gdh1995/vimium-c 网页，
+以获取 Apache-2.0 许可协议 下开源的新版本。
+
 An old name of this project is "Vimium++", which has been given up on 2018-08-21.
 
 
