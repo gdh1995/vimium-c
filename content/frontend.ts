@@ -172,14 +172,14 @@ if (!(isTop || injector)) {
         }
       }
   } else if (OnFirefox) {
-    /*#__NOINLINE__*/ (function (): void {
+    /*#__NOINLINE__*/ (function (parApi: VApiTy): void {
       try { // `vApi` is still unsafe
-          const state = scoped_parApi.y()
+          const state = parApi.y()
           if ((state.b && ( // @ts-ignore
                 XPCNativeWrapper as <T extends object> (wrapped: T) => XrayedObject<T>
               )(state.b)) === frameElement_()) {
             safeDestroy(1);
-            scoped_parApi.n!()
+            parApi.n!()
           } else {
             set_clickable_(state.c)
             /*#__INLINE__*/ inheritKeyMappings(state)
@@ -194,7 +194,7 @@ if (!(isTop || injector)) {
         // here the parent `core` is invalid - maybe from a fake provider
         set_getParentVApi(() => null)
       }
-    })()
+    })(scoped_parApi)
   } else {
     const state = scoped_parApi.y()
       // if not `vfind`, then a parent may have destroyed for unknown reasons

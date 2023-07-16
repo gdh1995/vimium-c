@@ -49,6 +49,8 @@ let AST_Lambda
 let AST_Block
 /** @type { typeof import("../typings/base/terser").AST_IterationStatement } */
 let AST_IterationStatement
+/** @type { typeof import("../typings/base/terser").AST_Block } */
+let AST_TryBlock
 const P = Promise.all([
   // @ts-ignore
   import("terser").then(i => minify = i.minify),
@@ -56,6 +58,7 @@ const P = Promise.all([
   import("terser/lib/ast").then(i => {
     TreeWalker = i.TreeWalker; AST_Var = i.AST_Var; AST_SymbolVar = i.AST_SymbolVar; AST_Lambda = i.AST_Lambda
     AST_Block = i.AST_Block, AST_IterationStatement = i.AST_IterationStatement
+    AST_TryBlock = i.AST_TryBlock
   }),
 ])
 
@@ -308,7 +311,7 @@ function replaceLets(ast) {
       // @ts-ignore
       const es6Var = node
       const names = new Map(collectVariableAndValues(es6Var, this))
-      if ([...names.values()].some(i => !i)) {
+      if ([...names.values()].includes(false)) {
           const func_context = this.find_parent(AST_Lambda)
           for (let i = 0, node2; node2 = this.parent(i), node2 && node2 !== func_context; i++) {
             if (node2 instanceof AST_IterationStatement) {
@@ -336,8 +339,12 @@ function replaceLets(ast) {
  * @returns { boolean } whether it can be converted to a `var`
  */
 function testScopedLets(selfVar, context, varNames) {
-  let root = context.find_parent(AST_Lambda)
+  const root = context.find_parent(AST_Lambda)
   if (!root) { return false }
+  const argNames = collectArgumentNames(root)
+  for (const name of argNames.keys()) {
+    if (varNames.get(name) == false) { return false }
+  }
   /** @type { (AST_Node | undefined)[] } */
   let curBlocks = []
   for (let i = 0, may_block; may_block = context.parent(i), may_block !== root; i++) {
@@ -373,7 +380,7 @@ function testScopedLets(selfVar, context, varNames) {
       /** @type { import("../typings/base/terser").AST_Scope | null } */ // @ts-ignore
       let def_scope = node1.thedef.scope
       for (; def_scope !== root && def_scope; def_scope = def_scope.parent_scope) {}
-      if (def_scope !== root) { //@ts-ignore
+      if (!def_scope) { //@ts-ignore
         sameNames = node1.name + ", "; sameVar = node1.thedef
         return sameNameFound = true
       }
@@ -388,37 +395,56 @@ function testScopedLets(selfVar, context, varNames) {
     }
     return false
   }
-  if (curBlocks.some(i => i instanceof AST_IterationStatement)) {
-    let foundFuncInLoop = 0
-    curBlocks[0].walk(new TreeWalker(function (node1) {
-      if (foundFuncInLoop < 2 && node1 instanceof AST_Lambda) {
-        node1.walk(new TreeWalker(function (node2) {
-          // @ts-ignore
-          if (node2.TYPE === "SymbolRef" && varNames.has(node2.name)) {
-            foundFuncInLoop = 2; return true
-          }
-          return false
-        }))
-        if (foundFuncInLoop < 1) { foundFuncInLoop = 1 }
-        return true
+  const inIter = curBlocks.some(i => i instanceof AST_IterationStatement)
+  let other_closures = false // @ts-ignore
+  const cur_scope = inIter ? null : curBlocks[0].block_scope
+  inIter || root.walk(new TreeWalker((node) => {
+    if (other_closures) { return true }
+    if (node !== root && node instanceof AST_Lambda) {
+      let scope = node.parent_scope, variables = root.variables.size
+      for (; scope !== root && scope !== cur_scope && scope; scope = scope.parent_scope) {
+        variables += scope.variables.size
       }
-      return foundFuncInLoop >= 2
-    }))
-    if (foundFuncInLoop === 1) {
-      console.log("Warning: Found a function in a scoped loop:", curBlocks[0].print_to_string())
+      return scope === cur_scope && !!cur_scope || (other_closures = variables > 0)
     }
-    if (foundFuncInLoop === 2) {
-      if (!varNames.has("stdFunc")) {
-        console.log("[Warning] ====== A function uses let/const variables of a loop's scoped closure !!! ======",
-            curBlocks[0].print_to_string())
-        throw new Error("scoped variable in a loop!");
+  }))
+  if (inIter || other_closures) {
+    let foundFuncInLoop = 0, foundNames = new Set()
+    /** @type { (walk_root: AST_Node, node2: AST_Node) => boolean } */
+    const walk = (walk_root, node2) => {
+      if (node2 === walk_root) { /* empty */ } // @ts-ignore
+      else if (node2.TYPE === "SymbolRef" && varNames.has(node2.name) && !/^(is|kIs)/.test(node2.name)) { // @ts-ignore
+        foundFuncInLoop = 2; foundNames.add(node2.name)
+      } else if (node2 instanceof AST_Lambda) {
+        node2.walk(new TreeWalker(walk.bind(null, node2)))
       }
       return false
     }
-  }
-  const argNames = collectArgumentNames(context.find_parent(AST_Lambda))
-  for (const name of argNames.keys()) {
-    if (varNames.get(name) == false) { return false }
+    curBlocks[0].walk(new TreeWalker(function (node1) {
+      if (node1 instanceof AST_Lambda) {
+        foundFuncInLoop = foundFuncInLoop || 1
+        node1.walk(new TreeWalker(walk.bind(null, node1)))
+      }
+      return false
+    }))
+    if (foundFuncInLoop === 1 && inIter) {
+      console.error("[Warning] Found a function in a scoped loop:", curBlocks[0].print_to_string())
+      throw new Error("Please avoid scoped variable in a loop!")
+    }
+    if (foundFuncInLoop === 2) {
+      if (!varNames.has("stdFunc") && !root.async) {
+        if (inIter) {
+          console.log("[Error] ====== A function uses let/const variables of a loop's scoped closure !!! ======",
+              curBlocks[0].print_to_string())
+          throw new Error("scoped variable in a loop!");
+        } else {
+          console.log("[Error] ====== A function uses let/const variables when other closures exit !!! ======",
+              curBlocks[0].print_to_string(), " === for ", [...foundNames].join(", "))
+          throw new Error("scoped variable in multi-closures!");
+        }
+      }
+      return false
+    }
   }
   return true
 }

@@ -88,20 +88,20 @@ const tryDrawOnCanvas = ((hudMsg: string | 0, req?: Req.fg<kFgReq.openImage | kF
     const parsed = new URL(url), isGlobal = (<RegExpI> /^(https?|data):/i).test(url)
     const origin = parsed.origin || "", sameOrigin = origin[0] === "h" && origin === loc_.origin
     const defer1 = promiseDefer_<ImageLoadingResult>()
-    const inIncognito = (OnChrome ? chrome : browser as never).extension.inIncognitoContext
+    const isInIncognito = (OnChrome ? chrome : browser as never).extension.inIncognitoContext
     r1 = defer1.r
     richText = (richText || "") + "" as Extract<typeof richText, string>
-    if (!richText.includes("safe") && isGlobal && !inIncognito && (!OnFirefox || !parsed.pathname.endsWith(".gif"))
+    if (!richText.includes("safe") && isGlobal && !isInIncognito && (!OnFirefox || !parsed.pathname.endsWith(".gif"))
           && !urlSameIgnoringHash(url, locHref()) || OnFirefox && req && hasKeyword_ff
         || !OnFirefox && parsed.pathname.endsWith(".gif") && !richText.includes("force")) {
       r1(0)
     } else if (isHtmlImage && urlSameIgnoringHash(url, getMediaUrl(img, 2)) && (sameOrigin || img.crossOrigin)) {
       r1(1)
-    } else if(sameOrigin || inIncognito) {
+    } else if(sameOrigin || isInIncognito) {
       timer1 = timeout_(r1, 9000)
       img = createElement_("img")
       img.onload = img.onerror = r1
-      inIncognito && (img.crossOrigin = "anonymous")
+      isInIncognito && (img.crossOrigin = "anonymous")
       OnFirefox && (img.referrerpolicy = "strict-origin-when-cross-origin") // avoid a warning on FF 102.0.1esr
       img.src = url
       hintApi.h(kTip.reDownloading, 9)
@@ -140,7 +140,7 @@ const tryDrawOnCanvas = ((hudMsg: string | 0, req?: Req.fg<kFgReq.openImage | kF
       }
       if (ok) { return }
       img !== clickEl && setOrRemoveAttr_s(img, "src")
-      if ((inIncognito || !isGlobal) && (!OnChrome || Build.MinCVer >= BrowserVer.MinAbortController
+      if ((isInIncognito || !isGlobal) && (!OnChrome || Build.MinCVer >= BrowserVer.MinAbortController
           || chromeVer_ > BrowserVer.MinAbortController - 1)) {
         hintApi.h(kTip.reDownloading, 9)
         if (!(Build.BTypes & ~BrowserType.ChromeOrFirefox)

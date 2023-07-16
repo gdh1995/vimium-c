@@ -129,8 +129,8 @@ set_contentCommands_([
     let keyCount = 0, count = count0 > 0 ? count0 : -count0
     removeHandler_(kHandler.passNextKey)
     onPassKey ? onPassKey() : esc!(HandlerResult.ExitNormalMode); // singleton
+    const oldEsc = esc!
     if (hasExpected || !!options.normal === (count0 > 0)) {
-      const oldEsc = esc!
       if (!hasExpected && !passKeys && !insert_Lock_() && !isTY(options.normal)) { return hudTip(kTip.noPassKeys) }
       hasExpected && replaceOrSuppressMost_(kHandler.passNextKey, (event): HandlerResult => {
         const rawKey = getMappedKey(event, kModeId.Plain)

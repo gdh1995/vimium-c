@@ -55,9 +55,9 @@ export function set_mapKeyTypes (_newMapKeyTypes: kMapKey): void { mapKeyTypes =
 export function set_mappedKeys (_newMappedKeys: typeof mappedKeys): void { mappedKeys = _newMappedKeys }
 export function set_currentKeys (_newCurrentKeys: string): void { currentKeys = _newCurrentKeys }
 
-export const inheritKeyMappings = (state: ReturnType<VApiTy["y"]>): void => {
-  if (state.m[3]) {
-    [keyFSM, mappedKeys, mapKeyTypes, vApi.z] = state.m
+export const inheritKeyMappings = (newState: ReturnType<VApiTy["y"]>): void => {
+  if (newState.m[3]) {
+    [keyFSM, mappedKeys, mapKeyTypes, vApi.z] = newState.m
     set_inherited_(PortType.confInherited)
   }
 }
