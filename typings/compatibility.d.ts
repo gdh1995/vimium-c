@@ -110,6 +110,7 @@ declare const enum BrowserVer {
   MinZeroAsPrefixInVersionNumber = 42, // even if EXP or LEGACY
   // 'shadowRoot' in Element.prototype since C43, and 'assignedSlot' since C53, even if EXP or LEGACY
   MinParentNodeGetterInNodePrototype = 42, // also .childNodes; even if EXP or LEGACY
+  MinOnclickInHTMLElementPrototype = 43, // also .onmousedown; even if EXP or LEGACY
   MinEnsured$fetch = 42, // even if LEGACY; also window.Request; can not fetch chrome-extension:// before C47
   // before C43, "font-size: ***" of <select> overrides those of its <options>s'
   // since C42@exp, <option> is visible, but its text has a strange extra prefix of "A" - fixed on C43

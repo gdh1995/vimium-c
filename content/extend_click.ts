@@ -271,6 +271,7 @@ export const ec_main_not_ff = (Build.BTypes !== BrowserType.Firefox as number ? 
         || "'use strict';(" + (function VC(this: void): void {
 
 type FUNC = (this: unknown, ...args: never[]) => unknown;
+type OnEventSetter = (this: HTMLElement, handler: (this: HTMLElement, event: MouseEventToPrevent) => unknown) => void
 const V = /** verifier */ (maybeSecret: string): void | boolean => {
     I = GlobalConsts.MarkAcrossJSWorlds === maybeSecret
 },
@@ -295,7 +296,7 @@ apply = !(Build.BTypes & BrowserType.Chrome)
 // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 call = _call.bind(_call as any) as <T, A extends any[], R>(func: (this: T, ...a: A) => R, thisArg: T, ...args: A) => R,
 _dispatch = ETP.dispatchEvent,
-ElCls = Element, ElProto = ElCls[kProto],
+HtmlElProto = HTMLElement[kProto], ElCls = Element, ElProto = ElCls[kProto],
 Append = !MayChrome || Build.MinCVer >= BrowserVer.MinEnsured$ParentNode$$appendAndPrepend
     ? ElProto.append! : ElProto.appendChild, GetAttr = ElProto.getAttribute,
 HasAttr = ElProto.hasAttribute, Remove = ElProto.remove,
@@ -308,12 +309,6 @@ pushInDocument = nodeIndexList.push.bind(nodeIndexList),
 CECls = CustomEvent as CustomEventCls, StopProp = CECls[kProto].stopImmediatePropagation as (this: Event) => void,
 DECls = FocusEvent as DelegateEventCls,
 FProto = Function[kProto], _toString = FProto[kToS],
-listen = _call.bind<(this: (this: EventTarget,
-          type: string, listener: EventListenerOrEventListenerObject, useCapture?: EventListenerOptions | boolean
-        ) => 42 | void,
-        self: EventTarget, name: string, listener: EventListenerOrEventListenerObject,
-        opts?: EventListenerOptions | boolean
-    ) => 42 | void>(_listen),
 clearTimeout1 = clearTimeout,
 DocCls = Document[kProto] as Partial<Document> as Pick<Document, "createElement" | typeof kByTag> & {
       open (): void, write (markup: string): void },
@@ -334,10 +329,16 @@ checkIsNotVerifier = (func?: InnerVerifier | unknown): void | 42 => {
           , GlobalConsts.LengthOfMarkAcrossJSWorlds + GlobalConsts.SecretStringLength)
   )
 },
+enqueue = (a: Element, listener: any): void => {
+  if (typeof listener === "function" && a.localName !== "a") {
+    pushToRegister(a as Element)
+    timer = timer || (queueMicroTask_(delayToStartIteration), 1);
+  }
+},
 hooks = {
   toString: function toString(this: FUNC): string {
-    const a = this, args = arguments;
-    const str = apply(_toString, a === myDocWrite ? _docWrite : a === myDocOpen ? _docOpen : a, args)
+    const a = this, args = arguments, hookedInd = IndexOf(hookedFuncs, a)
+    const str = apply(_toString, hookedInd < 0 ? a : hookedFuncs[hookedInd + 1], args)
     const mayStrBeToStr: boolean
         = str !== (myAELStr
                   || (myToStrStr = call(_toString, myToStr),
@@ -347,7 +348,7 @@ hooks = {
                       : (verifierLen = (verifierStrPrefix = call(_toString, V)).length,
                         verifierPrefixLen = (verifierStrPrefix = call(StringSplit, verifierStrPrefix, sec)[0]).length),
                       myAELStr = call(_toString, myAEL)))
-    args[0] === GlobalConsts.MarkAcrossJSWorlds && checkIsNotVerifier(args[1])
+    args.length === 2 && args[0] === GlobalConsts.MarkAcrossJSWorlds && checkIsNotVerifier(args[1])
     detectDisabled && str === detectDisabled && executeCmd()
     return mayStrBeToStr && str !== myToStrStr
         ? str.length !== (!(Build.NDEBUG && Build.Mangle) ? verifierLen
@@ -356,7 +357,7 @@ hooks = {
               , !(Build.NDEBUG && Build.Mangle) ? verifierPrefixLen! : GlobalConsts.LengthOfMarkAcrossJSWorlds
                   + (MayES5 ? 16 : 7)) !== verifierStrPrefix
           ? str : call(_toString, noop)
-        : a === myToStr || a === myAEL || (I = 0,
+        : (I = 0,
           // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-argument
           mayStrBeToStr ? call(a as any, noop, kMk, V) : (a as any)(kMk, noop, 0, V), I)
         ? call(_toString, mayStrBeToStr ? _toString : _listen) : str
@@ -364,23 +365,26 @@ hooks = {
   addEventListener: function addEventListener(this: EventTarget, type: string
       , listener: EventListenerOrEventListenerObject): void {
     const a = this, args = arguments
-    const ret = type === GlobalConsts.MarkAcrossJSWorlds ? checkIsNotVerifier(args[3])
+    const ret = args.length === 4 && type === GlobalConsts.MarkAcrossJSWorlds ? checkIsNotVerifier(args[3])
         : apply(_listen, a, args)
     if (type === "click" || type === "mousedown" || type === "dblclick"
-        ? listener && a instanceof ElCls && a.localName !== "a" && a !== toRegister[toRegister.length - 1]
+        ? a instanceof ElCls && a !== toRegister[toRegister.length - 1]
         : type === kEventName2 && !isReRegistering
           // note: window.history is mutable on C35, so only these can be used: top,window,location,document
           && a && !(a as Window).window && (a as Node).nodeType === kNode.ELEMENT_NODE) {
-      pushToRegister(a as Element)
-      timer = timer || (queueMicroTask_(delayToStartIteration), 1);
+      enqueue(a as Element, listener)
     }
     return ret as void
   },
   open: function open(this: Document): void { return docOpenHook(0, this, arguments) },
-  write: function write(this: Document): void { return docOpenHook(1, this, arguments) }
+  write: function write(this: Document): void { return docOpenHook(1, this, arguments) },
+  "set onclick": function (value): void { call(hookedFuncs[0], this, value); enqueue(this, value) } as OnEventSetter,
+  "set onmousedown": function (v): void { call(hookedFuncs[2], this, v); enqueue(this, v) } as OnEventSetter
 },
 myAEL = (/*#__NOINLINE__*/ hooks)[kAEL], myToStr = (/*#__NOINLINE__*/ hooks)[kToS],
-myDocOpen = (/*#__NOINLINE__*/ hooks).open, myDocWrite = (/*#__NOINLINE__*/ hooks).write
+myDocOpen = (/*#__NOINLINE__*/ hooks).open, myDocWrite = (/*#__NOINLINE__*/ hooks).write,
+hookedFuncs = [0 as never as OnEventSetter, 0 as never as Function, 0 as never as OnEventSetter, 0 as never as Function
+    , _listen, myAEL, _toString, myToStr, _docOpen, myDocOpen, _docWrite, myDocWrite] as const
 
 let root = (Build.MV3 ? ( // @ts-ignore
     event as Event
@@ -404,7 +408,7 @@ queueMicroTask_: (callback: () => void) => void =
     MayEdge || MayChrome && Build.MinCVer < BrowserVer.Min$queueMicrotask
     ? MayNotEdge ? (window as PartialOf<typeof globalThis, "queueMicrotask">).queueMicrotask! : 0 as never
     : queueMicrotask,
-isReRegistering: BOOL | boolean = 0
+isReRegistering: number = 4
 // To avoid a host script detect Vimum C by code like:
 // ` a1 = setTimeout(()=>{}); $0.addEventListener('click', ()=>{}); a2=setTimeout(()=>{}); [a1, a2] `
 const delayToStartIteration = (): void => { timer = setTimeout_(next, GlobalConsts.ExtendClick_DelayToStartIteration) }
@@ -591,12 +595,22 @@ if (!MayNotEdge
   queueMicroTask_ = (queueMicroTask_ as any as Promise<void>).then.bind(queueMicroTask_ as any as Promise<void>);
 }
 if (!EnsuredGetRootNode && getRootNode) { getRootNode = _call.bind(getRootNode as any) as any }
+for (; isReRegistering; ) {
+  const propName = (isReRegistering -= 2) ? "onmousedown" : "onclick"
+  const propDesc = Object.getOwnPropertyDescriptor(HtmlElProto, propName)!
+  if (!MayChrome || Build.MinCVer >= BrowserVer.MinOnclickInHTMLElementPrototype || propDesc) {
+    (hookedFuncs as Writable<typeof hookedFuncs>)[isReRegistering] = propDesc.set as OnEventSetter
+    ; (hookedFuncs as Writable<typeof hookedFuncs>)[isReRegistering + 1] = propDesc.set =
+        hooks[("set " + propName) as `set ${typeof propName}`]
+    Object.defineProperty(HtmlElProto, propName, propDesc)
+  }
+}
 // only the below can affect outsides
 call(Remove, root)
 call(_listen, root, kMk + kRC, (): void => {
   root = call(getElementsByTagNameInEP, root as HTMLScriptElement, "*")[0] as HTMLDivElement
   call(Remove, root)
-  listen(root, InnerConsts.kCmd, executeCmd, !0)
+  call(_listen, root, InnerConsts.kCmd, executeCmd, !0)
   timer = toRegister.length > 0 ? setTimeout_(next, InnerConsts.DelayForNext) : 0
   detectDisabled = 0
 })
