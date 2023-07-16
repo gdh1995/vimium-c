@@ -16,7 +16,7 @@ declare function exportFunction(func: unknown, targetScope: object
 /** `null`: disabled; `false`: nothing to do; `true`: begin to watch; `Event`: watching; `0`: page prevented */
 let clickEventToPrevent_: boolean | 0 | Event | undefined
 let clickAnchor_: HTMLAnchorElement & SafeHTMLElement | false | 0 | undefined = 0
-let isClickEventPreventedByPage: BOOL = 0
+let isClickEventPreventedByPage: 0 | 1 | 2 | 3 = 0
 let preventEventOnWindow: ((wnd: Window) => (event: Event) => void) | undefined
 let hookMethods: (setter: typeof eportToMainWorld, event: EventToPrevent) => void
 
@@ -110,7 +110,7 @@ export const main_ff = (OnFirefox ? (): void => {
 } : 0 as never) as () => void
 
 export const unblockClick_old_ff = (): void => {
-  let isHandingTheSecondTime: BOOL, notDuringAct: BOOL
+  let notDuringAct: BOOL
   /**
    * This idea of hooking and appending `preventDefault` is from lydell's `LinkHints`:
    * https://github.com/lydell/LinkHints/blob/efa18fdfbf95016bd706b83a2d51545cb157b440/src/worker/Program.js#L1337-L1631
@@ -128,17 +128,14 @@ export const unblockClick_old_ff = (): void => {
     tryToPreventClick = (event: Event): void => {
       if (event !== clickEventToPrevent_) { /* empty */ }
       else if (event.defaultPrevented) {
-        isClickEventPreventedByPage = 1
-      } else if (isHandingTheSecondTime) { // MUST NOT clear `clickEventToPrevent_` here
+        isClickEventPreventedByPage & 2 || (isClickEventPreventedByPage = 1)
+      } else { // MUST NOT clear `clickEventToPrevent_` here
         callPreviousPreventSafely(event)
         if (!Build.NDEBUG) {
           console.log("Vimium C: event#click calls .prevetDefault at %o on %o"
               , event.eventPhase > 2 ? "bubble" : event.eventPhase > 1 ? "target" : "capture"
               , event.currentTarget === window ? "#window" : event.currentTarget)
         }
-      } else {
-        void listenToPreventClick(event)
-        isHandingTheSecondTime = 1
       }
     },
     callPreviousPreventSafely = (event: Event): void => {
@@ -146,30 +143,21 @@ export const unblockClick_old_ff = (): void => {
       if (notDuringAct && (!clickAnchor_ || clickAnchor_.target === "_blank")) {
         isClickEventPreventedByPage = 0
         notDuringAct = 0
-        try { setupEventListener.call.call(stdMembers[kAct.prevent][0], event) } catch (e) {}
+        try { reflectApply_not_cr!(stdMembers[kAct.prevent][0], event, []) } catch (e) {}
         notDuringAct = 1
       }
-    },
-    listenToPreventClick = async (event: Event): Promise<void> => {
-      const curTarget = event.currentTarget,
-      phase = event.eventPhase,
-      localSetupListener = setupEventListener.bind(null, curTarget, CLK, tryToPreventClick)
-      isHandingTheSecondTime = 0
-      // ensure listener is the latest one
-      localSetupListener(1, 1), localSetupListener(1, 3)
-      phase < /** Event.BUBBLING_PHASE  */ 3 && localSetupListener(0, 1)
-      await (phase > /** Event.CAPTURING_PHASE */ 1 && localSetupListener(0, 3))
-      localSetupListener(1, 1), localSetupListener(1, 3)
     }
 
     hookMethods = (setter, event): void => {
       for (const [stdFunc, idx] of stdMembers) {
-        setter(event, stdFunc.name as "preventDefault" | "stopPropagation" | "stopImmediatePropagation"
+        setter(event, stdFunc.name as "preventDefault" | "stopImmediatePropagation" | "stopPropagation"
             , function (this: EventToPrevent): any {
           const self = this, ret = reflectApply_not_cr!(stdFunc, self, arguments)
           self !== clickEventToPrevent_ ? 0
-          : idx < kAct.stopImm || self.defaultPrevented ? isClickEventPreventedByPage = 1 // idx === kAct.prevent
-          : idx > kAct.stopImm ? void listenToPreventClick(self) // idx === kAct.stopProp
+          : idx < kAct.stopImm ? isClickEventPreventedByPage = 1 // idx === kAct.prevent
+          : self.defaultPrevented ? isClickEventPreventedByPage & 2 || (isClickEventPreventedByPage = 1)
+          : idx > kAct.stopImm // remove `listenToPreventClick` because new listeners in currentTarget won't be executed
+          ? (Build.NDEBUG ? callPreviousPreventSafely(self) : tryToPreventClick(self), isClickEventPreventedByPage = 2)
           : callPreviousPreventSafely(self) // idx === kAct.stopImm
           return ret
         });
@@ -179,7 +167,7 @@ export const unblockClick_old_ff = (): void => {
       hookMethods(eportToMainWorld, EventCls!)
     }
     preventEventOnWindow = (wnd: Window): ((event: Event) => void) => {
-      isClickEventPreventedByPage = notDuringAct = isHandingTheSecondTime = 1
+      isClickEventPreventedByPage = notDuringAct = 1
       setupEventListener(wnd, CLK, tryToPreventClick, 0, 3)
       return tryToPreventClick
     }
@@ -209,7 +197,7 @@ export const dispatchAndBlockClickOnce_old_ff = async (targetElement: SafeElemen
     isAsContent || hookMethods((a, k, v): void => { a[k] = v }, clickEvent as MouseEventToPrevent)
   }
   const rawDispatchRetVal = await dispatchAsync_(targetElement, clickEvent),
-  wrappedRetVal = rawDispatchRetVal || doesBlock && !isClickEventPreventedByPage
+  wrappedRetVal = rawDispatchRetVal || doesBlock && !(isClickEventPreventedByPage & 1)
   toRemove && setupEventListener(view, CLK, toRemove, 1, 3)
   if (!Build.NDEBUG) {
     console.log("Vimium C: try blocking a click event, and the returned is %o when %s %o, so return %o"
