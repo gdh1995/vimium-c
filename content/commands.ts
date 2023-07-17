@@ -8,7 +8,7 @@ import {
   isHTML_, hasTag_, createElement_, querySelectorAll_unsafe_, SafeEl_not_ff_, docEl_unsafe_, MDW, CLK, derefInDoc_,
   querySelector_unsafe_, DAC, removeEl_s, appendNode_s, setClassName_s, INP, contains_s, toggleClass_s, modifySel,
   focus_, testMatch, docHasFocus_, deepActiveEl_unsafe_, getEditableType_, textOffset_, fullscreenEl_unsafe_, IsInDOM_,
-  inputSelRange, dispatchAsync_, notSafe_not_ff_, activeEl_unsafe_, isIFrameElement
+  inputSelRange, dispatchAsync_, notSafe_not_ff_, activeEl_unsafe_, isIFrameElement, elFromPoint_
 } from "../lib/dom_utils"
 import {
   replaceOrSuppressMost_, removeHandler_, getMappedKey, prevent_, isEscape_, keybody_, DEL, BSP, ENTER, handler_stack,
@@ -263,10 +263,15 @@ set_contentCommands_([
         set_is_last_mutable(1)
         getZoom_(newEl);
         prepareCrop_();
-        select_(newEl, null, options.flash, selAction, true)
+        let flash = options.flash, p = select_(newEl, null, flash, selAction, true)
+        flash || p.then((): void => {
+          prepareCrop_();
+          const rect = getVisibleClientRect_(newEl!)
+          const topmost = rect && elFromPoint_(center_(rect, null), newEl)
+          topmost && !contains_s(newEl!, topmost) && flash_(null, rect)
+        })
       } else {
-        ret = act[0] === "l" ? -1 : kTip.focusedIsHidden
-        flash_(newEl)
+        ret = act[0] === "l" ? -1 : (flash_(newEl), kTip.focusedIsHidden)
       }
       if (ret >= 0) {
         runFallbackKey(options, ret)

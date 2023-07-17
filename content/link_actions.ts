@@ -535,8 +535,9 @@ const doPostAction = (): Rect | null => {
       if (isTY(autoChild) && autoChild !== ":root" && !anyAtPos && !onlyShadow) {
         click2nd = querySelector_unsafe_(autoChild, clickEl)
       } else {
-        const center = center_(getVisibleClientRect_(clickEl), hintOptions.xy as HintsNS.StdXY | undefined)
-        click2nd = onlyShadow ? clickEl : elFromPoint_(center, clickEl)
+        rect = getVisibleClientRect_(clickEl)
+        const center = center_(rect, hintOptions.xy as HintsNS.StdXY | undefined)
+        click2nd = rect && (onlyShadow ? clickEl : elFromPoint_(center, clickEl))
         click2nd = anyAtPos || click2nd && contains_s(clickEl, click2nd) ? click2nd : null
         let el3: Element | null = click2nd
         while (el3 && htmlTag_<1>(el3) && GetShadowRoot_(el3)) {
