@@ -181,7 +181,7 @@ export const activate = (options: ContentOptions, count: number, force?: 2 | Tim
     const parApi = !fullscreenEl_unsafe_() && getParentVApi()
     if (parApi) {
       parApi.l(style_ui)
-      // recursively go up and use the topest frame in a same origin
+      // recursively go up and use the topmost frame in a same origin
       return parApi.f(kFgCmd.linkHints, options, count, 2, frameElement_())
     }
     const useFilter0 = options.useFilter, useFilter = useFilter0 != null ? !!useFilter0 : fgCache.f,

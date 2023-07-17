@@ -11,7 +11,7 @@ ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 * fix usages of inner clipboard
 * fix conflicts of `runKey` and the `$retry` counter
 * LinkHints: add `newtab=inactive` to always switch back to a current tab, whatever a page script does
-* LinkHints: add `.autoChild: boolean | css-selector` to click not a hinted element but its topest or matched child
+* LinkHints: add `.autoChild: boolean | css-selector` to click not a hinted element but its topmost or matched child
 * editText: add a new action of `blank` to trigger `.$else` if a `when` condition is mismatched
 * focusInput: now try updating its hinting rectangular after focusing
 * fix some small usages
