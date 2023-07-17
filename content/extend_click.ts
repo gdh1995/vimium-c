@@ -348,7 +348,7 @@ hooks = {
                       : (verifierLen = (verifierStrPrefix = call(_toString, V)).length,
                         verifierPrefixLen = (verifierStrPrefix = call(StringSplit, verifierStrPrefix, sec)[0]).length),
                       myAELStr = call(_toString, myAEL)))
-    args[0] === GlobalConsts.MarkAcrossJSWorlds && checkIsNotVerifier(args[1])
+    args.length === 2 && args[0] === GlobalConsts.MarkAcrossJSWorlds && checkIsNotVerifier(args[1])
     detectDisabled && str === detectDisabled && executeCmd()
     return mayStrBeToStr && str !== myToStrStr
         ? str.length !== (!(Build.NDEBUG && Build.Mangle) ? verifierLen
@@ -365,7 +365,7 @@ hooks = {
   addEventListener: function addEventListener(this: EventTarget, type: string
       , listener: EventListenerOrEventListenerObject): void {
     const a = this, args = arguments
-    const ret = type === GlobalConsts.MarkAcrossJSWorlds ? checkIsNotVerifier(args[3])
+    const ret = args.length === 4 && type === GlobalConsts.MarkAcrossJSWorlds ? checkIsNotVerifier(args[3])
         : apply(_listen, a, args)
     if (type === "click" || type === "mousedown" || type === "dblclick"
         ? listener && a instanceof ElCls && a.localName !== "a" && a !== toRegister[toRegister.length - 1]

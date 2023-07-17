@@ -908,7 +908,7 @@ export const executeFind = (query: string | null, options: Readonly<ExecuteOptio
     if (found! && !highlight && (par = par || getSelectionParent_unsafe(curSel = getSelected()))) {
       newAnchor = oldAnchor && getAccessibleSelectedNode(curSel!)
       posChange = newAnchor && compareDocumentPosition(oldAnchor as Node, newAnchor)
-      !OnFirefox && notSafe_not_ff_!(par) || view_(par as SafeElement)
+      !OnFirefox && notSafe_not_ff_!(par) || view_(par as SafeElement, 1)
       if (posChange && /** go back */ !!(posChange & kNode.DOCUMENT_POSITION_PRECEDING) !== back) {
         hudTip(kTip.wrapWhenFind, 1, VTr(back ? kTip.atStart : kTip.atEnd))
       }

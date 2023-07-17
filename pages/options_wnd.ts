@@ -458,7 +458,7 @@ nextTick_((el0): void => {
       : OnChrome && ((<RegExpOne> /\bChromium\b/).exec(navigator.userAgent!) || [""])[0] || nameFallback || "Chrome"
     if (brand) { version = parseInt(brand.version) }
   }
-el0.textContent = (OnEdge ? "MS Edge (EdgeHTML)" : name + " " + version
+el0.textContent = (OnEdge ? "MS Edge (EdgeHTML)" : name + " " + version + (name === "Chromium" ? " based" : "")
   ) + oTrans_("comma") + oTrans_("NS")
   + (oTrans_(platform as "win" | "mac") || platform[0].toUpperCase() + platform.slice(1))
 }, $("#browserName"));

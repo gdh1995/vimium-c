@@ -112,9 +112,8 @@ export function set_onWndFocus (_newOnWndFocus: (this: void) => void): void { on
 export const safeObj = Object.create as { (o: null): any; <T>(o: null): SafeDict<T> }
 
 export const safer: <T extends object> (opt: T) => T & SafeObject
-    = OnChrome && Build.MinCVer < BrowserVer.Min$Object$$setPrototypeOf
-        && !Object.setPrototypeOf
-      ? <T extends object> (obj: T): T & SafeObject => { (obj as any).__proto__ = null; return obj as T & SafeObject; }
+    = OnChrome && Build.MinCVer < BrowserVer.Min$Object$$setPrototypeOf && !Object.setPrototypeOf
+      ? <T extends object> (obj: T) => ("__proto__" in obj && ((obj as any).__proto__ = null), obj as T & SafeObject)
       : <T extends object> (opt: T): T & SafeObject => Object.setPrototypeOf(opt, null);
 
 export let weakRef_not_ff = (!OnEdge ? OnFirefox ? null as never : <T extends object>(val: T | null | undefined

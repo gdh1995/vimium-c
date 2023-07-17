@@ -19,7 +19,7 @@ import NormalizedEnvCond = CommandsNS.NormalizedEnvCond
 
 declare const enum kStr { RunKeyWithId = "<v-runKey:$1>" }
 
-const DEBUG = 1
+const DEBUG = 0
 
 const abs = Math.abs
 const kRunKeyOptionNames: readonly (Exclude<keyof BgCmdOptions[C.runKey], `$${string}` | `o.${string}`>)[] =
