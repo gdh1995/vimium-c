@@ -343,7 +343,6 @@ declare var URLPattern: {
 declare module crypto {
   const getRandomValues: (buffer: Uint8Array) => unknown
 }
-interface ScrollIntoViewOptions { behavior?: "auto" | "smooth" }
 
 interface PopoverElement extends HTMLElement {
   popover: null | "auto" | "manual"

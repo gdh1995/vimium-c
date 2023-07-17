@@ -9739,8 +9739,6 @@ type KeyFormat = string;
 type KeyType = string;
 type KeyUsage = string;
 type payloadtype = number;
-// Note: although "instant" was removed from CSSOM in Dec, 2013,
-// it's still used by Chrome 73 and Firefox 65
 type ScrollBehavior = "auto" | "instant" | "smooth";
 type ScrollLogicalPosition = "start" | "center" | "end" | "nearest";
 type IDBValidKey = number | string | Date | IDBArrayKey;

@@ -131,22 +131,6 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
     notEmpty = !!query_
     notEmpty && execCommand("selectAll")
   }
-  // @see https://bugs.chromium.org/p/chromium/issues/detail?id=594613
-/** ScrollIntoView to notify it's `<tab>`'s current target since Min$ScrollIntoView$SetTabNavigationNode (C51)
- * https://chromium.googlesource.com/chromium/src/+/0bb887b20c70582eeafad2a58ac1650b7159f2b6
- *
- * Tracking:
- * https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/dom/element.cc?q=ScrollIntoViewNoVisualUpdate&g=0&l=717
- * https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/dom/document.cc?q=SetSequentialFocusNavigationStartingPoint&g=0&l=4773
- *
- * Firefox seems to have "focused" it
- */
-  const fixTabNav_cr_old = OnChrome && Build.MinCVer < BrowserVer.MinScrollIntoViewOptions
-      ? (el: Element): void => {
-    let oldPos: MarksNS.ScrollInfo | 0 = chromeVer_ < BrowserVer.MinScrollIntoViewOptions ? [scrollX, scrollY] : 0
-    scrollIntoView_(el)
-    oldPos && scrollToMark(oldPos)
-  } : 0 as never
   const setQuery = (query: string | 1): void => {
     if (query === query0_ || !innerDoc_) { /* empty */ }
     else if (!query && historyIndex > 0) { --historyIndex }
@@ -350,7 +334,14 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
         return
       } else if (el) {
         // always call scrollIntoView if only possible, to keep a consistent behavior
-        OnChrome && Build.MinCVer < BrowserVer.MinScrollIntoViewOptions ? fixTabNav_cr_old(el) : scrollIntoView_(el)
+        if (OnChrome && Build.MinCVer < BrowserVer.MinScrollIntoViewOptions) {
+          // ScrollIntoView to notify it's `<tab>`'s current target since Min$ScrollIntoView$SetTabNavigationNode (C51)
+          let pos: MarksNS.ScrollInfo | 0 = chromeVer_ < BrowserVer.MinScrollIntoViewOptions ? [scrollX, scrollY] : 0
+          scrollIntoView_(el)
+          pos && scrollToMark(pos)
+        } else {
+          scrollIntoView_(el)
+        }
       }
     }
     toggleSelectableStyle()
@@ -694,7 +685,7 @@ const onHostKeydown = (event: HandlerNS.Event): HandlerResult => {
   f("keyup", onIFrameKeydown, t)
   f(INP, onInput, t)
   OnChrome || f("paste", onPaste_not_cr!, t)
-  f(UNL, /*#__NOINLINE__*/ onIframeUnload, t)
+  f(UNL, onIframeUnload, t)
   options.m && f("compositionstart", (): void => { clearTimeout_(highlightTimeout_) }, t)
   if (OnChrome) {
     f("compositionend", onInput, t)
@@ -709,8 +700,8 @@ const onHostKeydown = (event: HandlerNS.Event): HandlerResult => {
       onUnexpectedBlur = null
     }
   }, t);
-  f("focus", /*#__NOINLINE__*/ onIframeFocus, t)
-  f("blur", /*#__NOINLINE__*/ onIframeFocus, t)
+  f("focus", onIframeFocus, t)
+  f("blur", onIframeFocus, t)
 
   box_.onload = later ? null as never : (e): void => {
     (e.target as typeof box_).onload = null as never; isActive && onLoad2()
@@ -908,7 +899,7 @@ export const executeFind = (query: string | null, options: Readonly<ExecuteOptio
     if (found! && !highlight && (par = par || getSelectionParent_unsafe(curSel = getSelected()))) {
       newAnchor = oldAnchor && getAccessibleSelectedNode(curSel!)
       posChange = newAnchor && compareDocumentPosition(oldAnchor as Node, newAnchor)
-      !OnFirefox && notSafe_not_ff_!(par) || view_(par as SafeElement)
+      !OnFirefox && notSafe_not_ff_!(par) || view_(par as SafeElement, 1)
       if (posChange && /** go back */ !!(posChange & kNode.DOCUMENT_POSITION_PRECEDING) !== back) {
         hudTip(kTip.wrapWhenFind, 1, VTr(back ? kTip.atStart : kTip.atEnd))
       }

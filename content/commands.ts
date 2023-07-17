@@ -250,7 +250,7 @@ set_contentCommands_([
       let newEl: LockableElement | null | undefined = raw_insert_lock, ret: kTip | 0 | -1 = 0;
       if (newEl) {
         if (act === BSP) {
-          if (!view_(newEl)) { execCommand(DEL, doc); }
+          if (!view_(newEl, 1)) { execCommand(DEL, doc); }
         } else {
           set_insert_last_(OnFirefox ? weakRef_ff(newEl, kElRef.lastEditable) : weakRef_not_ff!(newEl))
           set_is_last_mutable(0)

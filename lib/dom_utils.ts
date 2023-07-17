@@ -667,10 +667,12 @@ export const attachShadow_ = <T extends HTMLDivElement | HTMLBodyElement> (box: 
       ? box.webkitCreateShadowRoot!() : box
 }
 
-export const scrollIntoView_ = (el: Element, dir?: boolean): void => {
-    OnFirefox ? el.scrollIntoView({ block: "nearest" })
+export const scrollIntoView_ = (el: Element, instant?: boolean, dir?: boolean, _unused?: undefined): void => {
+  // although Chrome 114 still ignores `behavior: "instant"`, here still set it for the future
+  OnFirefox ? el.scrollIntoView({ block: "nearest", behavior: instant ? "instant" : _unused })
       : ElementProto_not_ff!.scrollIntoView.call(el,
-          OnChrome && Build.MinCVer < BrowserVer.MinScrollIntoViewOptions && dir != null ? dir : { block: "nearest" })
+            OnEdge || OnChrome && Build.MinCVer < BrowserVer.MinScrollIntoViewOptions && dir != null
+            ? dir : { block: "nearest", behavior: instant ? "instant" : _unused })
 }
 
 export const modifySel = (sel: Selection, extend: BOOL | boolean | 2, di: BOOL | boolean

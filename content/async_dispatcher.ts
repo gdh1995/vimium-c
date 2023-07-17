@@ -455,7 +455,7 @@ export const select_ = (element: LockableElement, rect?: Rect | null, show_flash
     , action?: SelectActions, suppressRepeated?: boolean): Promise<void> => {
   const y = scrollY
   return catchAsyncErrorSilently(click_async(element, rect, 1)).then((): void => {
-    view_(element, y)
+    view_(element, !show_flash, y)
     // re-compute rect of element, in case that an input is resized when focused
     show_flash && flash_(element)
     if (element !== insert_Lock_()) { return }

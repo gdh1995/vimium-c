@@ -225,7 +225,7 @@ export const jumpToNextLink: VApiTy["j"] = (linkElement: GoNextBaseCandidate[0],
   if (avoidClick && url) {
     contentCommands_[kFgCmd.framesGoBack](safer<CmdOptions[kFgCmd.framesGoBack]>({ r: 1, u: url }))
   } else {
-    options.v && invisible === VisibilityType.OutOfView && view_(linkElement)
+    options.v && invisible === VisibilityType.OutOfView && view_(linkElement, 1)
     flash_(linkElement) // here calls getRect -> preparCrop_
     timeout_((): void => { void catchAsyncErrorSilently(click_async(linkElement)) }, 100)
   }

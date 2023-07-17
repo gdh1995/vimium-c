@@ -421,14 +421,22 @@ export const isSelMultiline = (sel: Selection): boolean => {
   return rects === !1
 }
 
-export const view_ = (el: SafeElement, oldY?: number): VisibilityType => {
+export const view_ = (el: SafeElement, allowSmooth?: BOOL | boolean, oldY?: number): VisibilityType => {
   let rect = boundingRect_(el), secondScroll: number,
   ty = isNotInViewport(el, rect)
   if (ty === VisibilityType.OutOfView) {
     let ih = wndSize_(), delta = rect.t < 0 ? -1 : rect.t > ih ? 1 : 0, f = oldY != null,
     elHeight = rect.b - rect.t
-    OnChrome && Build.MinCVer < BrowserVer.MinScrollIntoViewOptions
-        ? scrollIntoView_(el, delta < 0) : scrollIntoView_(el)
+    const kBh = "scroll-behavior"
+    const top = OnChrome && !allowSmooth && (Build.MinCVer > BrowserVer.MinScrollIntoViewOptions
+        || chromeVer_ > BrowserVer.MinScrollIntoViewOptions) && scrollingEl_(1)
+    const style = top && getComputedStyle_(top)[kBh as "scrollBehavior"] === "smooth"
+        && (top as TypeToPick<Element, HTMLElement, "style">).style
+    const oldCss = style && style.cssText
+    if (style) { style.setProperty(kBh, "auto", "important") }
+    OnEdge || OnChrome && Build.MinCVer < BrowserVer.MinScrollIntoViewOptions
+        ? scrollIntoView_(el, !allowSmooth, delta < 0) : scrollIntoView_(el, !allowSmooth)
+    if (style) { style.cssText = oldCss as string }
     if (f) {
       secondScroll = elHeight < ih ? oldY! - scrollY : 0
       // required range of wanted: delta > 0 ? [-limit, 0] : [0, limit]
