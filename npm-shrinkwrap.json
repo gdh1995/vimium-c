@@ -11,7 +11,7 @@
       "dependencies": {
         "pngjs": "^6.0.0",
         "terser": "^5.15.0",
-        "typescript": "^4.9.1-beta"
+        "typescript": "^4.9.1"
       },
       "devDependencies": {
         "clean-css": "^5.3.1",
@@ -5542,9 +5542,9 @@
       "dev": true
     },
     "node_modules/typescript": {
-      "version": "4.9.1-beta",
-      "resolved": "https://registry.npmmirror.com/typescript/-/typescript-4.9.1-beta.tgz",
-      "integrity": "sha512-D4c0t1+sMOS5Hy8DQsGFfEYUuKzolXhf+7e/N0Td5etBPflEYzVwWLBrbVgHpLpLC53OJQCtxk31+NWO2SBPaA==",
+      "version": "4.9.5",
+      "resolved": "https://registry.npmmirror.com/typescript/-/typescript-4.9.5.tgz",
+      "integrity": "sha512-1FXk9E2Hm+QzZQ7z+McJiHL4NW1F2EzMu9Nq9i3zAaGqibafqYwCVU6WyWAuyQRRzOlxou8xZSyXLEN8oKj24g==",
       "bin": {
         "tsc": "bin/tsc",
         "tsserver": "bin/tsserver"
