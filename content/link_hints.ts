@@ -175,7 +175,7 @@ export const activate = (options: ContentOptions, count: number, force?: 2 | Tim
         return replaceOrSuppressMost_(kHandler.linkHints)
       }
     }
-    OnFirefox || oldTimer && isClickListened_ && vApi.e && vApi.e(kContentCmd.ReportKnownAtOnce_not_ff)
+    OnFirefox || isClickListened_ && vApi.e && vApi.e(kContentCmd.AutoReportKnownAtOnce_not_ff)
     if (xy && !xy.n) { xy.n = count, count = 1 }
     if (options.direct) { return activateDirectly(options, count) }
     const parApi = !fullscreenEl_unsafe_() && getParentVApi()
@@ -424,17 +424,12 @@ const onKeydown = (event: HandlerNS.Event): HandlerResult => {
         i = 0
       } else { // plain <f2>
         isClickListened_ = true;
-        OnFirefox || vApi.e(kContentCmd.ManuallyFindAllOnClick)
       }
       resetMode(i as BOOL | undefined)
       i && timeout_(reinit, 0)
     } else if (keybody === kChar.tab && !useFilter_ && !keyStatus_.k) {
       tooHigh_ = null;
       resetMode();
-      if (!OnFirefox && isClickListened_ && coreHints.h && vApi.e
-          && abs_(getTime() - abs_(coreHints.h)) < 1000) {
-        vApi.e(kContentCmd.ManuallyFindAllOnClick)
-      }
       timeout_(reinit, 0)
     } else if (coreHints.h = 0, i < kKeyCode.maxAcsKeys + 1 && i > kKeyCode.minAcsKeys - 1
           || Build.OS & kBOS.MAC && (Build.OS === kBOS.MAC as number || !os_)

@@ -248,30 +248,14 @@ const executeCmd = (eventOrDestroy?: Event): void => {
   // always stopProp even if the secret does not match, so that an attacker can not detect secret by enumerating numbers
   detail && call(StopProp, eventOrDestroy!);
   if (cmd < kContentCmd._minSuppressClickable) {
-    if (cmd) {
-      cmd > kContentCmd.ReportKnownAtOnce_not_ff - 1
-          ? next(clearTimeout1(timer)) // lgtm [js/superfluous-trailing-arguments]
-          : /*#__NOINLINE__*/ collectOnclickElements(cmd)
+    if (cmd) { // AutoReportKnownAtOnce_not_ff
+      cmd && next(clearTimeout1(timer)) // lgtm [js/superfluous-trailing-arguments]
     }
     return;
   }
   root = (toRegister.length = 0) as never
   pushToRegister = setTimeout_ = noop
   timer = 1
-}
-const collectOnclickElements = (cmd: SecondLevelContentCmds): void => {
-  let len = (call(Remove, root), allNodesInDocument = call(Slice, call(getElementsByTagNameInDoc, doc0, "*"))).length
-  let i = unsafeDispatchCounter = 0, tag: Element["localName"], el: Element
-  len = len < GlobalConsts.MinElementCountToStopScanOnClick || cmd > kContentCmd.ManuallyFindAllOnClick - 1
-      ? len : 0; // stop it
-  for (; i < len; i++) {
-    el = allNodesInDocument[i]
-    if (((el as HTMLElement).onclick || (el as HTMLElement).onmousedown) && !apply(HasAttr, el, ["onclick"])
-        && (tag = el.localName) !== "a" && tag !== "button") { // ignore <button>s to iter faster
-      pushInDocument(i);
-    }
-  }
-  doRegister(1);
 }
 const docOpenHook = (isWrite: BOOL, self: unknown, args: IArguments): void => {
   const first = doc0.readyState < "l" && (isWrite || args.length < 3) && self === doc0

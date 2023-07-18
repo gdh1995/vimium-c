@@ -258,9 +258,8 @@ declare var VimiumInjector: VimiumInjectorTy | undefined | null // eslint-disabl
 
 declare const enum kContentCmd {
   _fake = 0,
-  AutoFindAllOnClick = 1,
-  ManuallyFindAllOnClick = 2,
-  ReportKnownAtOnce_not_ff = 3,
+  AutoReportKnownAtOnce_not_ff = 1,
+  ManuallyReportKnownAtOnce_not_ff = 3,
   _minSuppressClickable = 4,
   // see injected_end.ts for difference between Destroy and SuppressClickable
   SuppressClickable = 5,
@@ -268,9 +267,8 @@ declare const enum kContentCmd {
   MaskedBitNumber = 3,
 }
 type ValidContentCommands = Exclude<kContentCmd, kContentCmd._fake | kContentCmd._minSuppressClickable
-    | kContentCmd.MaskedBitNumber | kContentCmd.AutoFindAllOnClick> | kContentCmd.ReportKnownAtOnce_not_ff;
-type ContentCommandsNotSuppress = kContentCmd.AutoFindAllOnClick | kContentCmd.ManuallyFindAllOnClick
-    | kContentCmd.ReportKnownAtOnce_not_ff
+    | kContentCmd.MaskedBitNumber> | kContentCmd.AutoReportKnownAtOnce_not_ff
+type ContentCommandsNotSuppress = kContentCmd.AutoReportKnownAtOnce_not_ff
 type SecondLevelContentCmds = ContentCommandsNotSuppress | kContentCmd.Destroy
 
 declare const enum TimerID { None = 0, Valid = 42, Timeout = "43", Interval = "44", __mask = "" }

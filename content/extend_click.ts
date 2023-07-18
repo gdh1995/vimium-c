@@ -215,16 +215,11 @@ export const ec_main_not_ff = (Build.BTypes !== BrowserType.Firefox as number ? 
       return
     }
     setupEventListener(box, kVOnClick1, onClick)
-    // only for new versions of Chrome (and Edge);
-    // CSP would block a <script> before MinEnsuredNewScriptsFromExtensionOnSandboxedPage
-    // if !box, avoid checking isFirstTime, so that auto clean VApi.e
-    OnDocLoaded_(timeout_.bind(null, (): void => {
-      isFirstResolve && dispatchCmd(kContentCmd.AutoFindAllOnClick);
-      isFirstResolve = 0;
-    }, GlobalConsts.ExtendClick_DelayToFindAll), 1);
+    isTop && OnDocLoaded_(timeout_.bind(null
+        , (): void => { isFirstResolve = 0; }, GlobalConsts.ExtendClick_DelayToFindAll), 1)
   }
   let script: HTMLScriptElement, box: HTMLDivElement | undefined | 0, counterResolvePath = 0, reHookTimes = 0,
-  isFirstResolve: 0 | 1 | 2 | 3 | 4 = isTop ? 3 : 4, readyTimeout: ValidTimeoutID
+  isFirstResolve: number = isTop ? 7 : 0, readyTimeout: ValidTimeoutID
 
   if (!Build.NDEBUG && isFirstTime && readyState_ === "complete") {
     alert("Vimium C: Error! should not run extend_click twice")
@@ -378,8 +373,8 @@ hooks = {
   },
   open: function open(this: Document): void { return docOpenHook(0, this, arguments) },
   write: function write(this: Document): void { return docOpenHook(1, this, arguments) },
-  "set onclick": function (value): void { call(hookedFuncs[0], this, value); enqueue(this, value) } as OnEventSetter,
-  "set onmousedown": function (v): void { call(hookedFuncs[2], this, v); enqueue(this, v) } as OnEventSetter
+  "set onclick": function (val): void { call(hookedFuncs[0], this, val); val && enqueue(this, val) } as OnEventSetter,
+  "set onmousedown": function (v): void { call(hookedFuncs[2], this, v); v && enqueue(this, v) } as OnEventSetter
 },
 myAEL = (/*#__NOINLINE__*/ hooks)[kAEL], myToStr = (/*#__NOINLINE__*/ hooks)[kToS],
 myDocOpen = (/*#__NOINLINE__*/ hooks).open, myDocWrite = (/*#__NOINLINE__*/ hooks).write,
@@ -541,30 +536,14 @@ const executeCmd = (eventOrDestroy?: Event): void => {
   // always stopProp even if the secret does not match, so that an attacker can not detect secret by enumerating numbers
   detail && call(StopProp, eventOrDestroy!);
   if (cmd < kContentCmd._minSuppressClickable) {
-    if (cmd) {
-      cmd > kContentCmd.ReportKnownAtOnce_not_ff - 1
-          ? next(clearTimeout1(timer)) // lgtm [js/superfluous-trailing-arguments]
-          : /*#__NOINLINE__*/ collectOnclickElements(cmd)
+    if (cmd) { // AutoReportKnownAtOnce_not_ff
+      cmd && next(clearTimeout1(timer)) // lgtm [js/superfluous-trailing-arguments]
     }
     return;
   }
   root = (toRegister.length = detectDisabled = 0) as never
   pushToRegister = setTimeout_ = noop
   timer = 1
-}
-const collectOnclickElements = (cmd: SecondLevelContentCmds): void => {
-  let len = (call(Remove, root), allNodesInDocument = call(Slice, call(getElementsByTagNameInDoc, doc0, "*"))).length
-  let i = unsafeDispatchCounter = 0, tag: Element["localName"], el: Element
-  len = len < GlobalConsts.MinElementCountToStopScanOnClick || cmd > kContentCmd.ManuallyFindAllOnClick - 1
-      ? len : 0; // stop it
-  for (; i < len; i++) {
-    el = allNodesInDocument[i]
-    if (((el as HTMLElement).onclick || (el as HTMLElement).onmousedown) && !apply(HasAttr, el, ["onclick"])
-        && (tag = el.localName) !== "a" && tag !== "button") { // ignore <button>s to iter faster
-      pushInDocument(i);
-    }
-  }
-  doRegister(1);
 }
 const docOpenHook = (isWrite: BOOL, self: unknown, args: IArguments): void => {
   const first = doc0.readyState < "l" && (isWrite || args.length < 3) && self === doc0
