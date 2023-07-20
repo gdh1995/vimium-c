@@ -548,7 +548,7 @@ declare const enum GlobalConsts {
   MaxRetryTimesForSecret = 89,
   MarkAcrossJSWorlds = "__VimiumC_", // .length should be {@link #GlobalConsts.LengthOfMarkAcrossJSWorlds}
   LengthOfMarkAcrossJSWorlds = 10,
-  ExtendClick_DelayToFindAll = 600,
+  ExtendClick_EndTimeOfAutoReloadLinkHints = 600,
   ExtendClick_DelayToStartIteration = 666,
   SYNC_QUOTA_BYTES = 102_400, // QUOTA_BYTES of storage.sync in https://developer.chrome.com/extensions/storage
   SYNC_QUOTA_BYTES_PER_ITEM = 8192,

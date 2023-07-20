@@ -175,7 +175,8 @@ export const activate = (options: ContentOptions, count: number, force?: 2 | Tim
         return replaceOrSuppressMost_(kHandler.linkHints)
       }
     }
-    OnFirefox || isClickListened_ && vApi.e && vApi.e(kContentCmd.AutoReportKnownAtOnce_not_ff)
+    OnFirefox || isClickListened_ && vApi.e
+        && vApi.e(oldTimer ? kContentCmd.ManuallyReportKnownAtOnce : kContentCmd.AutoReportKnownAtOnce_not_ff)
     if (xy && !xy.n) { xy.n = count, count = 1 }
     if (options.direct) { return activateDirectly(options, count) }
     const parApi = !fullscreenEl_unsafe_() && getParentVApi()
@@ -688,7 +689,6 @@ export const reinitLinkHintsIn = ((timeout: number, officer?: BaseHintWorker | n
     , el?: WeakRef<LinkEl>, r?: Rect | null, start?: number): void => {
   const now = getTime()
   _reinitTime = max_(now, (start || now) + timeout, _reinitTime)
-  timeout = _reinitTime - now
   clearTimeout_(_timer)
   _timer = timeout_(isTY(officer, kTY.func) ? officer : (): void => {
     _timer = _reinitTime = TimerID.None
@@ -698,7 +698,7 @@ export const reinitLinkHintsIn = ((timeout: number, officer?: BaseHintWorker | n
           isActive && coreHints.h && hints_ && hints_.length < (frameArray.length > 1 ? 200 : 99))
     } catch {}
     doesReinit && reinit(1)
-  }, timeout)
+  }, OnChrome ? Math.max(_reinitTime - now, GlobalConsts.MinCancelableInBackupTimer) : _reinitTime - now)
 }) as {
   (timeout: 380 | 255
     , officer: BaseHintWorker | null | undefined, el: WeakRef<LinkEl>, r: Rect | null, startTimestamp?: number): void

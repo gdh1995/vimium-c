@@ -165,7 +165,7 @@ export const ec_main_not_ff = (Build.BTypes !== BrowserType.Firefox as number ? 
       coreHints.h < 0 && doesWantToReloadLinkHints("lo") && (reHint = GlobalConsts.MinCancelableInBackupTimer)
     }
     if (coreHints.h > 0 && !reHint && hintOptions.autoReload && doesWantToReloadLinkHints("de")) {
-      reHint = abs_(getTime() - coreHints.h) < GlobalConsts.ExtendClick_DelayToStartIteration + 100
+      reHint = abs_(getTime() - coreHints.h) < GlobalConsts.ExtendClick_DelayToStartIteration + 200
           ? InnerConsts.DelayForNext + 17 : 0
     }
     reHint && reinitLinkHintsIn(reHint)
@@ -181,7 +181,7 @@ export const ec_main_not_ff = (Build.BTypes !== BrowserType.Firefox as number ? 
   }
   const execute = (cmd: ValidContentCommands): void => {
     if (cmd < kContentCmd._minSuppressClickable) {
-      isFirstResolve = 0;
+      cmd > kContentCmd.ManuallyReportKnownAtOnce - 1 && (isFirstResolve = 0)
       dispatchCmd(cmd as ValidContentCommands & ContentCommandsNotSuppress);
       return;
     }
@@ -216,10 +216,10 @@ export const ec_main_not_ff = (Build.BTypes !== BrowserType.Firefox as number ? 
     }
     setupEventListener(box, kVOnClick1, onClick)
     isTop && OnDocLoaded_(timeout_.bind(null
-        , (): void => { isFirstResolve = 0; }, GlobalConsts.ExtendClick_DelayToFindAll), 1)
+        , (): void => { isFirstResolve = 0; }, GlobalConsts.ExtendClick_EndTimeOfAutoReloadLinkHints), 1)
   }
   let script: HTMLScriptElement, box: HTMLDivElement | undefined | 0, counterResolvePath = 0, reHookTimes = 0,
-  isFirstResolve: number = isTop ? 7 : 0, readyTimeout: ValidTimeoutID
+  isFirstResolve: number = isTop ? 3 : 0, readyTimeout: ValidTimeoutID
 
   if (!Build.NDEBUG && isFirstTime && readyState_ === "complete") {
     alert("Vimium C: Error! should not run extend_click twice")

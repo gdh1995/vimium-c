@@ -1,13 +1,13 @@
 import {
   clickable_, timeout_, loc_, getTime, clearTimeout_, vApi, recordLog, doc, setupEventListener, VTr, raw_unwrap_ff,
-  isTY, OnFirefox, isAsContent, isEnabled_, reflectApply_not_cr, fgCache
+  isTY, OnFirefox, isAsContent, isEnabled_, reflectApply_not_cr, fgCache, abs_
 } from "../lib/utils"
 import {
   CLK, MDW, OnDocLoaded_, isHTML_, set_createElement_, createElement_, onReadyState_, dispatchAsync_
 } from "../lib/dom_utils"
 import { grabBackFocus, insertInit } from "./insert"
-import { coreHints, doesWantToReloadLinkHints, reinitLinkHintsIn } from "./link_hints"
 import { HookAction, hookOnWnd } from "./port"
+import { coreHints, doesWantToReloadLinkHints, hintOptions, reinitLinkHintsIn } from "./link_hints"
 /* eslint-disable @typescript-eslint/await-thenable */
 
 declare function exportFunction(func: unknown, targetScope: object
@@ -31,6 +31,9 @@ export const main_ff = (OnFirefox ? (): void => {
       ) as typeof createElement_)
   if (!grabBackFocus) { return }
 (function (): void {
+  const enum InnerConsts {
+    DelayForNext = 36,
+  }
   const PEventTarget = (window as PartialOf<typeof globalThis, "EventTarget">).EventTarget,
   ETCls = PEventTarget && PEventTarget.prototype,
   wrappedET = ETCls && raw_unwrap_ff(ETCls),
@@ -42,8 +45,8 @@ export const main_ff = (OnFirefox ? (): void => {
           && listener && !(a instanceof HTMLAnchorElement) && a instanceof Element) {
         if (!Build.NDEBUG) {
           clickable_.has(a) || resolved++
-          timer = timer || timeout_(resolve, GlobalConsts.ExtendClick_DelayToStartIteration)
         }
+        timer = timer || (coreHints.h > 0 ? timeout_(onRegister, GlobalConsts.ExtendClick_DelayToStartIteration) : 0)
         clickable_.add(a)
       }
   },
@@ -70,14 +73,21 @@ export const main_ff = (OnFirefox ? (): void => {
   newDocWrite = function write(this: Document): void {
     return docOpenHook(1, this, arguments)
   }
-  let resolve = !Build.NDEBUG ? (): void => {
+  let onRegister = (): void => {
+    if (coreHints.h > 0 && hintOptions.autoReload && doesWantToReloadLinkHints("de")
+        && abs_(getTime() - coreHints.h) < GlobalConsts.ExtendClick_DelayToStartIteration + 200) {
+      reinitLinkHintsIn(InnerConsts.DelayForNext + 17)
+    }
+    if (!Build.NDEBUG) {
       (++counterResolvePath <= 32 || Math.floor(Math.log(counterResolvePath) / Math.log(1.414)) !==
            Math.floor(Math.log(counterResolvePath - 1) / Math.log(1.414))) &&
       console.log("Vimium C: extend click: resolve %o in %o @t=%o .", resolved
           , loc_.pathname.replace(<RegExpOne> /^.*(\/[^\/]+\/?)$/, "$1"), getTime() % 3600000)
-      timer && clearTimeout_(timer)
-      timer = resolved = 0
-    } : 0 as never
+    }
+    clearTimeout_(timer)
+    timer = 0
+    Build.NDEBUG || (resolved = 0)
+  }
   let alive = false, timer: ValidTimeoutID = TimerID.None, resolved = 0, counterResolvePath = 0
   let reHookTimes = 0
   let _listen: EventTarget["addEventListener"] | undefined
@@ -101,7 +111,7 @@ export const main_ff = (OnFirefox ? (): void => {
         timeout_(function (): void {
           coreHints.h < 0 && doesWantToReloadLinkHints("lo") &&
           reinitLinkHintsIn(GlobalConsts.MinCancelableInBackupTimer)
-        }, GlobalConsts.ExtendClick_DelayToFindAll)
+        }, GlobalConsts.ExtendClick_EndTimeOfAutoReloadLinkHints)
     }, 1)
   } catch (e) {
     Build.NDEBUG || (recordLog("Vimium C: extending click crashed in %o @t=%o .")(), console.log(e))
