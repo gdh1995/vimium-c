@@ -1,6 +1,6 @@
 import { loc_, locHref, OnFirefox, timeout_ } from "../lib/utils"
 import {
-  createElement_, dispatchEvent_, wrapEventInit_, scrollingEl_, textContent_s, OnDocLoaded_
+  createElement_, dispatchEvent_, newEvent_, scrollingEl_, textContent_s, OnDocLoaded_
 } from "../lib/dom_utils"
 import { post_, runFallbackKey } from "./port"
 import { hudHide, hudShow, hudTip, hud_tipTimer } from "./hud"
@@ -16,8 +16,8 @@ export const dispatchMark = ((mark?: MarksNS.ScrollInfo | 0 | undefined, global?
   newMark: MarksNS.ScrollInfo | 0 | null | undefined
   mark && textContent_s(a, oldStr = mark + "")
   global || (a.dataset.local = "")
-  newMark = !dispatchEvent_(window, new FocusEvent("vimiumMark"
-        , wrapEventInit_<FocusEventInit>({ relatedTarget: a }))) ? null
+  newMark = !dispatchEvent_(window, newEvent_("vimiumMark", 0, 0, 0
+        , { relatedTarget: a }, FocusEvent)) ? null
       : (newStr = textContent_s(a)) === oldStr ? mark
       : (match = newStr.split(",")).length > 1 ? ([~~match[0], ~~match[1]] as const
           ).concat(match.slice(2) as never) as [number, number, string]

@@ -9,7 +9,7 @@ import {
   kMediaTag, ElementProto_not_ff, querySelector_unsafe_, uneditableInputs_, GetShadowRoot_, scrollingEl_, elFromPoint_,
   queryHTMLChild_, getSelection_, removeEl_s, appendNode_s, getMediaUrl, getMediaTag, INP, ALA, attr_s, hasTag_, kGCh,
   setOrRemoveAttr_s, toggleClass_s, textContent_s, notSafe_not_ff_, modifySel, SafeEl_not_ff_, testMatch, contains_s,
-  extractField, querySelectorAll_unsafe_, editableTypes_, findAnchor_, dispatchEvent_, wrapEventInit_,
+  extractField, querySelectorAll_unsafe_, editableTypes_, findAnchor_, dispatchEvent_, newEvent_,
   findSelectorByHost
 } from "../lib/dom_utils"
 import { getPreferredRectOfAnchor, initTestRegExps } from "./local_links"
@@ -62,7 +62,7 @@ const accessElAttr = (isUrlOrText: 0 | 1 | 2): [string: string, isUserCustomized
     if (json) { return [json, 1] }
   }
   if (dataset && isUrlOrText && (dataset.vimText === "" || dataset.vimUrl === "")) {
-    dispatchEvent_(clickEl, new Event("vimiumData", wrapEventInit_({})))
+    dispatchEvent_(clickEl, newEvent_("vimiumData"))
   }
   return [dataset && ((isUrlOrText > 1 ? dataset.vimText : isUrlOrText && dataset.vimUrl)
       || isUrlOrText < 2 && (dataset.canonicalSrc || dataset.src || tag === "a" && dataset.href)) || ""]
@@ -279,7 +279,7 @@ const hoverEl = (): void => {
                     ] as SafeElement)
               : clickEl.closest!(selector))) {
           if (OnFirefox || !notSafe_not_ff_!(selected)) {
-            const toggleVal = toggleMap[key]
+            const toggleVal = toggleMap[key as "css-selector"]
             for (const toggle of isTY(toggleVal) ? toggleVal.split(/[ ,]/) : toggleVal) {
               const s0 = toggle[0], remove = s0 === "-", add = s0 === "+" || (!remove && null)
               const idx = +(add satisfies boolean | null as boolean) || +remove
@@ -296,16 +296,25 @@ const hoverEl = (): void => {
               } else if (!idx && toggle[0] === "." && toggle.includes("=")) {
                 const opArr = (<RegExpOne> /[:+*/-]?=/).exec(toggle)!, op = opArr[0][0],
                 prop = toggle.slice(1, opArr.index), valStr = toggle.slice(opArr.index + opArr[0].length),
+                tagType = (prop === "value" || prop === "selectedIndex")
+                    && editableTypes_[htmlTag_(selected)] || EditableType.NotEditable,
+                isTextElement = tagType && getEditableType_<0>(selected) > EditableType.MaxNotTextBox,
                 newVal = op === "=" ? valStr
                     : (rval = safeCall<string, any>(JSON.parse, valStr) || valStr, op === ":") ? rval
-                    : (lval = op !== ":" && (selected satisfies object as {} as Dict<any>)[prop], op === "+")
+                    : (lval = (selected satisfies object as {} as Dict<any>)[prop], op === "+")
                     ? lval + rval : op === "-" ? lval - rval : op === "*" ? lval * rval : lval / rval
-                if (prop === "value" && selected === raw_insert_lock && isTY(newVal)
-                    && getEditableType_<0>(selected) > EditableType.MaxNotTextBox) {
+                if (isTextElement && selected === raw_insert_lock && isTY(newVal)) {
                   (selected as TextElement).select()
                   execCommand(kInsertText, doc, newVal)
                 } else {
                   (selected satisfies object as {} as Dict<any>)[prop] = newVal
+                  if (tagType > EditableType.MaxNotEditableElement) {
+                    dispatchEvent_(selected as SafeHTMLElement, newEvent_(INP, 1, 0, 0, {
+                      inputType: "insertReplacementText", data: newVal + ""
+                    }, !isTextElement || OnEdge || OnChrome && Build.MinCVer < BrowserVer.MinEnsured$window$$InputEvent
+                          && chromeVer_ < BrowserVer.MinEnsured$window$$InputEvent ? Event : InputEvent))
+                    dispatchEvent_(selected as SafeHTMLElement, newEvent_("change", 1, 1))
+                  }
                 }
               } else if (toggle === ":active") {
                 setNewScrolling(selected)
@@ -318,9 +327,7 @@ const hoverEl = (): void => {
           }
         }
       } catch { then = optElse }
-      if (selected) {
-        break;
-      }
+      if (selected && !toggleMap.many) { break }
     }
   })
 }

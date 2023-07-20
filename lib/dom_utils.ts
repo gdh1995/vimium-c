@@ -563,10 +563,14 @@ export const extractField = (el: SafeElement, props: string): string => {
   return isTY(json) || isTY(json, kTY.num) ? json + "" : ""
 }
 
-export const wrapEventInit_ = <T extends EventInit> (event: T
-    , notCancelable?: boolean | BOOL, notBubbles?: boolean | BOOL, notComposed?: BOOL | boolean): T => {
+export const newEvent_ = <T extends new (type: any, init: EventInit) => Event>(
+    type: T extends new (type: infer Type, init: any) => Event ? Type : never
+    , notCancelable?: boolean | BOOL, notComposed?: BOOL | boolean, notBubbles?: boolean | BOOL
+    , event?: T extends new (type: any, init: infer Init) => Event ? Init : never
+    , cls?: T): ReturnType<T> => {
+  event = event || {} as NonNullable<typeof event>
   event.bubbles = !notBubbles, event.cancelable = !notCancelable, OnEdge || (event.composed = !notComposed)
-  return event
+  return new (cls || Event)(type, event) as ReturnType<T>
 }
 
 type MayBeSelector = "" | false | 0 | null | void | undefined
@@ -709,7 +713,7 @@ export const runJS_ = (code: string, returnEl?: HTMLScriptElement | null | 0
       }
       if (Build.MV3) { // https://bugs.chromium.org/p/chromium/issues/detail?id=1207006#c4
         setOrRemoveAttr_s(script, "on" + INP, code)
-        dispatchEvent_(script, new Event(INP, wrapEventInit_({}, 1, 1, 1)))
+        dispatchEvent_(script, newEvent_(INP, 1, 1, 1))
       }
     }
     return returnEl != null ? script as SafeHTMLElement & HTMLScriptElement : removeEl_s(script)

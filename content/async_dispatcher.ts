@@ -4,7 +4,7 @@ import {
 } from "../lib/utils"
 import {
   IsInDOM_, isInTouchMode_cr_, MDW, hasTag_, CLK, attr_s, fullscreenEl_unsafe_, findAnchor_, dispatchAsync_,
-  blur_unsafe, derefInDoc_, wrapEventInit_, getRootNode_mounted, elFromPoint_, HTMLElementProto
+  blur_unsafe, derefInDoc_, newEvent_, getRootNode_mounted, elFromPoint_, HTMLElementProto
 } from "../lib/dom_utils"
 import { suppressTail_ } from "../lib/keyboard_utils"
 import { Point2D, center_, getVisibleClientRect_, view_ } from "../lib/rect"
@@ -149,13 +149,15 @@ const mouse_ = function (element: SafeElementForMouse
   if (!OnChrome || Build.MinCVer >= BrowserVer.MinUsable$MouseEvent$$constructor
       || chromeVer_ > BrowserVer.MinUsable$MouseEvent$$constructor - 1) {
     // Note: The `composed` here may require Shadow DOM support
-    const init = wrapEventInit_<ValidMouseEventInit & Partial<Omit<PointerEventInit, keyof MouseEventInit>>>({
+    const init: ValidMouseEventInit & Partial<Omit<PointerEventInit, keyof MouseEventInit>> = {
+      bubbles: !cancelable, cancelable: !cancelable && !forceToBubble,
+      composed: (Build.MinCVer >= BrowserVer.MinMouseenter$composed$IsFalse
+                || !OnChrome || chromeVer_ > BrowserVer.MinMouseenter$composed$IsFalse - 1) && !cancelable,
       view, detail,
       screenX: x, screenY: y, clientX: x, clientY: y, ctrlKey, altKey, shiftKey, metaKey,
       button, buttons: tyKey === "d" ? button - 1 ? button || 1 : 4 : 0,
       relatedTarget
-    }, !cancelable, !cancelable && !forceToBubble, (Build.MinCVer >= BrowserVer.MinMouseenter$composed$IsFalse
-        || !OnChrome || chromeVer_ > BrowserVer.MinMouseenter$composed$IsFalse - 1) && !cancelable)
+    }
     OnChrome && setupIDC_cr!(init)
     if (OnChrome && (Build.MinCVer >= BrowserVer.MinEnsuredPointerEventForRealClick
           || chromeVer_ > BrowserVer.MinEnsuredPointerEventForRealClick - 1)
@@ -202,11 +204,12 @@ export const touch_cr_ = OnChrome ? (element: SafeElementForMouse, [x, y]: Point
     pageX: x + scrollX, pageY: y + scrollY,
     radiusX: 8, radiusY: 8, force: 1
   }), touches = end ? [] : [touchObj],
-  touchEvent = new TouchEvent(end ? "touchend" : "touchstart", wrapEventInit_<TouchEventInit>({
+  touchEvent = newEvent_(end ? "touchend" : "touchstart"
+      , Build.MinCVer >= BrowserVer.MinEnsuredTouchEventIsNotCancelable ? 1
+        : chromeVer_ > BrowserVer.MinEnsuredTouchEventIsNotCancelable - 1, 0, 0, {
     touches, targetTouches: touches,
     changedTouches: [touchObj]
-  }, Build.MinCVer >= BrowserVer.MinEnsuredTouchEventIsNotCancelable ? 1
-      : chromeVer_ > BrowserVer.MinEnsuredTouchEventIsNotCancelable - 1))
+  }, TouchEvent)
   return dispatchAsync_(element, touchEvent)
 } : 0 as never as null
 

@@ -5291,7 +5291,7 @@ interface InputEvent extends UIEvent {
 
 declare var InputEvent: {
     prototype: InputEvent;
-    new(typeArg: string): InputEvent;
+    new(typeArg: string, init: EventInit & { inputType?: string, data?: string }): InputEvent;
 } | undefined;
 
 interface KeyboardEvent extends UIEvent {

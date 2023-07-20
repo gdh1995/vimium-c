@@ -302,9 +302,7 @@ declare namespace HintsNS {
     join?: FgReq[kFgReq.copy]["j"];
     decoded?: boolean;
     anyText?: boolean
-    toggle?: {
-      [selector: string]: string | string[];
-    };
+    toggle?: { [selector in "css-selector"]: string | string[] } & { many?: 1 }
     auto?: boolean;
     /** clickElement / pageLoad is enabled by default */
     autoReload?: "clickElement" | "click" | "cl" | "pageLoad" | "lo" | "delayedListen" | "delayed" | "de" | "all"
