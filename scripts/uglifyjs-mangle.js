@@ -427,18 +427,23 @@ function testScopedLets(selfVar, context, varNames) {
       }
       return false
     }))
-    if (foundFuncInLoop === 1 && inIter) {
+    if (foundFuncInLoop === 1 && inIter) { // @ts-ignore
+      const comments_after = curBlocks[0].start.comments_after 
+      if (comments_after.length > 0 && (comments_after[0].value + "").includes("__ENABLE_SCOPED__")) { return false }
       console.error("[Warning] Found a function in a scoped loop:", curBlocks[0].print_to_string())
       throw new Error("Please avoid scoped variable in a loop!")
     }
     if (foundFuncInLoop === 2) {
-      if (!varNames.has("stdFunc") && !root.async) {
-        if (inIter) {
+      if (!varNames.has("stdFunc") && !root.async) { // @ts-ignore
+        const comments_after = (curBlocks[0] instanceof AST_IterationStatement && curBlocks[0].body || curBlocks[0]
+            ).start.comments_after
+        if (comments_after.length > 0 && (comments_after[0].value + "").includes("__ENABLE_SCOPED__")) { /* empty */ }
+        else if (inIter) {
           console.log("[Error] ====== A function uses let/const variables of a loop's scoped closure !!! ======",
               curBlocks[0].print_to_string())
-          throw new Error("scoped variable in a loop!");
+          throw new Error("scoped variable in a loop!"); // @ts-ignore
         } else {
-          console.log("[Error] ====== A function uses let/const variables when other closures exit !!! ======",
+          console.log("[Error] ====== A function uses let/const variables when other closures exist !!! ======",
               curBlocks[0].print_to_string(), " === for ", [...foundNames].join(", "))
           throw new Error("scoped variable in multi-closures!");
         }

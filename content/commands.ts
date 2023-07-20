@@ -245,9 +245,10 @@ set_contentCommands_([
       return getEditableType_(el) ? select_(el, rect, onlyOnce, selAction, onlyOnce)
           : click_async(el, rect, 1).then((): void => { onlyOnce && flash_(el) })
     }
+    let actRet: kTip | 0 | -1 = 0
     OnFirefox && insert_Lock_()
-    if (act && (act[0] !== "l" || known_last && !raw_insert_lock)) {
-      let newEl: LockableElement | null | undefined = raw_insert_lock, ret: kTip | 0 | -1 = 0;
+    if (act && (act[0] !== "l" || known_last && !raw_insert_lock)) { /*#__ENABLE_SCOPED__*/
+      let newEl: LockableElement | null | undefined = raw_insert_lock;
       if (newEl) {
         if (act === BSP) {
           if (!view_(newEl, 1)) { execCommand(DEL, doc); }
@@ -257,7 +258,7 @@ set_contentCommands_([
           newEl.blur();
         }
       } else if (!(newEl = known_last)) {
-        ret = kTip.noFocused
+        actRet = kTip.noFocused
       } else if (!(act === "last-visible" ? isNotInViewport : view_)(newEl)) {
         set_insert_last_(null)
         set_is_last_mutable(1)
@@ -271,12 +272,13 @@ set_contentCommands_([
           topmost && !contains_s(newEl!, topmost) && flash_(null, rect)
         })
       } else {
-        ret = act[0] === "l" ? -1 : (flash_(newEl), kTip.focusedIsHidden)
+        actRet = act[0] === "l" ? -1 : (flash_(newEl), kTip.focusedIsHidden)
       }
-      if (ret >= 0) {
-        runFallbackKey(options, ret)
+      if (actRet >= 0) {
+        runFallbackKey(options, actRet)
         return;
       }
+      if (OnChrome && Build.MinCVer < BrowserVer.MinTestedES6Environment) { newEl = null } // clean the `var newEl`
     }
     insert_inputHint && (insert_inputHint.h = null as never);
     const arr = getViewBox_()
