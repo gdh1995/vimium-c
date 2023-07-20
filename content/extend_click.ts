@@ -294,7 +294,7 @@ _dispatch = ETP.dispatchEvent,
 HtmlElProto = HTMLElement[kProto], ElCls = Element, ElProto = ElCls[kProto],
 Append = !MayChrome || Build.MinCVer >= BrowserVer.MinEnsured$ParentNode$$appendAndPrepend
     ? ElProto.append! : ElProto.appendChild, GetAttr = ElProto.getAttribute,
-HasAttr = ElProto.hasAttribute, Remove = ElProto.remove,
+Remove = ElProto.remove,
 getElementsByTagNameInEP = ElProto[kByTag],
 nodeIndexList: number[] = [], Slice = (nodeIndexList as unknown[] as Element[]).slice,
 IndexOf = _call.bind(nodeIndexList.indexOf) as <T>(list: ArrayLike<T>, item: T) => number,
@@ -333,7 +333,7 @@ enqueue = (a: Element, listener: any): void => {
 hooks = {
   toString: function toString(this: FUNC): string {
     const a = this, args = arguments, hookedInd = IndexOf(hookedFuncs, a)
-    const str = apply(_toString, hookedInd < 0 ? a : hookedFuncs[hookedInd + 1], args)
+    const str = apply(_toString, hookedInd < 0 ? a : hookedFuncs[hookedInd - 1], args)
     const mayStrBeToStr: boolean
         = str !== (myAELStr
                   || (myToStrStr = call(_toString, myToStr),

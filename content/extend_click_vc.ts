@@ -37,6 +37,7 @@ Build.MV3 && Build.BTypes & BrowserType.Chrome && (function VC(this: void): void
   interface InnerVerifier { (maybeSecret: string): void }
 
 type FUNC = (this: unknown, ...args: never[]) => unknown;
+type OnEventSetter = (this: HTMLElement, handler: (this: HTMLElement, event: MouseEventToPrevent) => unknown) => void
 const V = /** verifier */ (maybeSecret: string): void | boolean => {
     I = GlobalConsts.MarkAcrossJSWorlds + Build.RandomClick === maybeSecret
 },
@@ -49,9 +50,9 @@ apply = Reflect!.apply as <T, A extends any[], R>(func: (this: T, ...a: A) => R,
 // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 call = _call.bind(_call as any) as <T, A extends any[], R>(func: (this: T, ...a: A) => R, thisArg: T, ...args: A) => R,
 _dispatch = ETP.dispatchEvent,
-ElCls = Element, ElProto = ElCls[kProto],
+HtmlElProto = HTMLElement[kProto], ElCls = Element, ElProto = ElCls[kProto],
 Append = ElProto.append!, GetAttr = ElProto.getAttribute,
-HasAttr = ElProto.hasAttribute, Remove = ElProto.remove,
+Remove = ElProto.remove,
 getElementsByTagNameInEP = ElProto[kByTag],
 nodeIndexList: number[] = [], Slice = (nodeIndexList as unknown[] as Element[]).slice,
 IndexOf = _call.bind(nodeIndexList.indexOf) as <T>(list: ArrayLike<T>, item: T) => number,
@@ -79,10 +80,16 @@ checkIsNotVerifier = (func?: InnerVerifier | unknown): void | 42 => {
           , GlobalConsts.LengthOfMarkAcrossJSWorlds + InnerConsts.kRandStrLenInBuild)
   )
 },
+enqueue = (a: Element, listener: any): void => {
+  if (typeof listener === "function" && a.localName !== "a") {
+    pushToRegister(a as Element)
+    timer = timer || (queueMicroTask_(delayToStartIteration), 1);
+  }
+},
 hooks = {
   toString (this: FUNC): string {
-    const a = this, args = arguments;
-    const str = apply(_toString, a === myDocWrite ? _docWrite : a === myDocOpen ? _docOpen : a, args)
+    const a = this, args = arguments, hookedInd = IndexOf(hookedFuncs, a)
+    const str = apply(_toString, hookedInd < 0 ? a : hookedFuncs[hookedInd - 1], args)
     const mayStrBeToStr: boolean
         = str !== (myAELStr
                   || (myToStrStr = call(_toString, myToStr),
@@ -92,7 +99,7 @@ hooks = {
                       : (verifierLen = (verifierStrPrefix = call(_toString, V)).length,
                          verifierPrefixLen = (verifierStrPrefix = call(StringSplit, verifierStrPrefix, kRC)[0]).length),
                       myAELStr = call(_toString, myAEL)))
-    args[0] === GlobalConsts.MarkAcrossJSWorlds && checkIsNotVerifier(args[1])
+    args.length === 2 && args[0] === GlobalConsts.MarkAcrossJSWorlds && checkIsNotVerifier(args[1])
     return mayStrBeToStr && str !== myToStrStr
         ? str.length !== (!(Build.NDEBUG && Build.Mangle) ? verifierLen
               : GlobalConsts.LengthOfMarkAcrossJSWorlds + InnerConsts.kRandStrLenInBuild + 13)
@@ -100,7 +107,7 @@ hooks = {
               , !(Build.NDEBUG && Build.Mangle) ? verifierPrefixLen! : GlobalConsts.LengthOfMarkAcrossJSWorlds
                   + 7) !== verifierStrPrefix
           ? str : call(_toString, noop)
-        : a === myToStr || a === myAEL || (I = 0,
+        : (I = 0,
           // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-argument
           mayStrBeToStr ? call(a as any, noop, kMk, V) : (a as any)(kMk, noop, 0, V), I)
         ? call(_toString, mayStrBeToStr ? _toString : _listen) : str
@@ -108,23 +115,26 @@ hooks = {
   addEventListener (this: EventTarget, type: string
       , listener: EventListenerOrEventListenerObject): void {
     const a = this, args = arguments
-    const ret = type === GlobalConsts.MarkAcrossJSWorlds ? checkIsNotVerifier(args[3])
+    const ret = args.length === 4 && type === GlobalConsts.MarkAcrossJSWorlds ? checkIsNotVerifier(args[3])
         : apply(_listen, a, args)
     if (type === "click" || type === "mousedown" || type === "dblclick"
         ? listener && a instanceof ElCls && a.localName !== "a" && a !== toRegister[toRegister.length - 1]
         : type === kEventName2 && !isReRegistering
           // note: window.history is mutable on C35, so only these can be used: top,window,location,document
           && a && !(a as Window).window && (a as Node).nodeType === kNode.ELEMENT_NODE) {
-      pushToRegister(a as Element)
-      timer = timer || (queueMicroTask_(delayToStartIteration), 1);
+      enqueue(a as Element, listener)
     }
     return ret as void
   },
   open (this: Document): void { return docOpenHook(0, this, arguments) },
-  write (this: Document): void { return docOpenHook(1, this, arguments) }
+  write (this: Document): void { return docOpenHook(1, this, arguments) },
+  "set onclick": function (val): void { call(hookedFuncs[0], this, val); val && enqueue(this, val) } as OnEventSetter,
+  "set onmousedown": function (v): void { call(hookedFuncs[2], this, v); v && enqueue(this, v) } as OnEventSetter
 },
 myAEL = (/*#__NOINLINE__*/ hooks)[kAEL], myToStr = (/*#__NOINLINE__*/ hooks)[kToS],
-myDocOpen = (/*#__NOINLINE__*/ hooks).open, myDocWrite = (/*#__NOINLINE__*/ hooks).write
+myDocOpen = (/*#__NOINLINE__*/ hooks).open, myDocWrite = (/*#__NOINLINE__*/ hooks).write,
+hookedFuncs = [0 as never as OnEventSetter, 0 as never as Function, 0 as never as OnEventSetter, 0 as never as Function
+    , _listen, myAEL, _toString, myToStr, _docOpen, myDocOpen, _docWrite, myDocWrite] as const
 
 let root = doc0.createElement("div"), timer = 1,
 /** kMarkToVerify */ kMk = GlobalConsts.MarkAcrossJSWorlds as const,
@@ -140,7 +150,7 @@ unsafeDispatchCounter = 0,
 allNodesInDocument = null as Element[] | null, allNodesForDetached = null as Element[] | null,
 pushToRegister = (nodeIndexList as unknown[] as Element[]).push.bind(toRegister),
 queueMicroTask_ = queueMicrotask,
-isReRegistering: BOOL | boolean = 0
+isReRegistering: number = 4
 // To avoid a host script detect Vimum C by code like:
 // ` a1 = setTimeout(()=>{}); $0.addEventListener('click', ()=>{}); a2=setTimeout(()=>{}); [a1, a2] `
 const delayToStartIteration = (): void => { timer = setTimeout_(next, GlobalConsts.ExtendClick_DelayToStartIteration) }
@@ -286,6 +296,14 @@ ETP[kAEL] = myAEL;
 FProto[kToS] = myToStr
 DocCls.open = myDocOpen
 DocCls.write = myDocWrite
+  for (; isReRegistering; ) {
+    const propName = (isReRegistering -= 2) ? "onmousedown" : "onclick"
+    const propDesc = Object.getOwnPropertyDescriptor(HtmlElProto, propName)!
+    ; (hookedFuncs as Writable<typeof hookedFuncs>)[isReRegistering] = propDesc.set as OnEventSetter
+    ; (hookedFuncs as Writable<typeof hookedFuncs>)[isReRegistering + 1] = propDesc.set =
+        hooks[("set " + propName) as `set ${typeof propName}`]
+    Object.defineProperty(HtmlElProto, propName, propDesc)
+  }
 }
 
 })()
