@@ -66,7 +66,6 @@ clearTimeout1 = clearTimeout,
 DocCls = Document[kProto] as Partial<Document> as Pick<Document, "createElement" | typeof kByTag> & {
       open (): void, write (markup: string): void },
 getElementsByTagNameInDoc = DocCls[kByTag],
-_docOpen = DocCls.open, _docWrite = DocCls.write,
 kOC = InnerConsts.kVOnClick, kRC = "" + Build.RandomClick, kEventName2 = kOC + kRC,
 StringSplit = !(Build.NDEBUG && Build.Mangle) ? "".split : 0 as never, StringSubstr = kEventName2.substr,
 checkIsNotVerifier = (func?: InnerVerifier | unknown): void | 42 => {
@@ -125,16 +124,11 @@ hooks = {
       enqueue(a as Element, listener)
     }
     return ret as void
-  },
-  open (this: Document): void { return docOpenHook(0, this, arguments) },
-  write (this: Document): void { return docOpenHook(1, this, arguments) },
-  "set onclick": function (val): void { call(hookedFuncs[0], this, val); val && enqueue(this, val) } as OnEventSetter,
-  "set onmousedown": function (v): void { call(hookedFuncs[2], this, v); v && enqueue(this, v) } as OnEventSetter
+  }
 },
 myAEL = (/*#__NOINLINE__*/ hooks)[kAEL], myToStr = (/*#__NOINLINE__*/ hooks)[kToS],
-myDocOpen = (/*#__NOINLINE__*/ hooks).open, myDocWrite = (/*#__NOINLINE__*/ hooks).write,
 hookedFuncs = [0 as never as OnEventSetter, 0 as never as Function, 0 as never as OnEventSetter, 0 as never as Function
-    , _listen, myAEL, _toString, myToStr, _docOpen, myDocOpen, _docWrite, myDocWrite] as const
+    , _listen, myAEL, _toString, myToStr] as const
 
 let root = doc0.createElement("div"), timer = 1,
 /** kMarkToVerify */ kMk = GlobalConsts.MarkAcrossJSWorlds as const,
@@ -150,7 +144,7 @@ unsafeDispatchCounter = 0,
 allNodesInDocument = null as Element[] | null, allNodesForDetached = null as Element[] | null,
 pushToRegister = (nodeIndexList as unknown[] as Element[]).push.bind(toRegister),
 queueMicroTask_ = queueMicrotask,
-isReRegistering: number = 4
+isReRegistering: BOOL = 0, hasKnownDocOpened: 0 | 1 | 2 = 0
 // To avoid a host script detect Vimum C by code like:
 // ` a1 = setTimeout(()=>{}); $0.addEventListener('click', ()=>{}); a2=setTimeout(()=>{}); [a1, a2] `
 const delayToStartIteration = (): void => { timer = setTimeout_(next, GlobalConsts.ExtendClick_DelayToStartIteration) }
@@ -267,11 +261,9 @@ const executeCmd = (eventOrDestroy?: Event): void => {
   pushToRegister = setTimeout_ = noop
   timer = 1
 }
-const docOpenHook = (isWrite: BOOL, self: unknown, args: IArguments): void => {
-  const first = doc0.readyState < "l" && (isWrite || args.length < 3) && self === doc0
-  const oriHref = Build.NDEBUG || !first ? "" : location.host && location.pathname || location.href
-  const ret = apply(isWrite ? _docWrite : _docOpen, self, args)
-  if (first) {
+const onDocOpen = (isWrite?: 0 | 2, oriHref?: string): void => {
+  if (hasKnownDocOpened === 1) {
+    hasKnownDocOpened = 0
     if (Build.NDEBUG) {
       root && doRegister(0, pushInDocument(InnerConsts.SignalDocOpen)) // lgtm [js/superfluous-trailing-arguments]
     } else if (root) {
@@ -280,9 +272,9 @@ const docOpenHook = (isWrite: BOOL, self: unknown, args: IArguments): void => {
       , 0, oriHref] })
     }
   }
-  return ret
 }
 const noop = (): 1 => { return 1 }
+const defineProp = Object.defineProperty
 const dataset = (root as Element as TypeToAssert<Element, HTMLElement, "dataset", "tagName">).dataset
 if (dataset && (
   dataset.vimium = kRC,
@@ -292,17 +284,38 @@ if (dataset && (
 )) {
   root[kAEL](InnerConsts.kCmd, executeCmd, !0)
   timer = toRegister.length > 0 ? setTimeout_(next, InnerConsts.DelayForNext) : 0
-ETP[kAEL] = myAEL;
-FProto[kToS] = myToStr
-DocCls.open = myDocOpen
-DocCls.write = myDocWrite
-  for (; isReRegistering; ) {
-    const propName = (isReRegistering -= 2) ? "onmousedown" : "onclick"
+  ETP[kAEL] = myAEL
+  FProto[kToS] = myToStr
+  for (let i of [0, 2] as const) {
+    let propName: "onmousedown" | "onclick" | "open" | "write" = i ? "onmousedown" : "onclick"
+    const setterName = ("set " + propName) as `set ${typeof propName}`
+    const proxy = {
+      [setterName] (this: HTMLElement, val: (this: HTMLElement, event: MouseEventToPrevent) => unknown): void {
+        call(hookedFuncs[i], this, val); val && enqueue(this, val)
+      }
+    }
     const propDesc = Object.getOwnPropertyDescriptor(HtmlElProto, propName)!
-    ; (hookedFuncs as Writable<typeof hookedFuncs>)[isReRegistering] = propDesc.set as OnEventSetter
-    ; (hookedFuncs as Writable<typeof hookedFuncs>)[isReRegistering + 1] = propDesc.set =
-        hooks[("set " + propName) as `set ${typeof propName}`]
-    Object.defineProperty(HtmlElProto, propName, propDesc)
+    ; (hookedFuncs as Writable<typeof hookedFuncs>)[i] = propDesc.set as OnEventSetter
+    ; (hookedFuncs as Writable<typeof hookedFuncs>)[i + 1] = propDesc.set = proxy[setterName]
+    defineProp(HtmlElProto, propName, propDesc)
+    let _docFunc = DocCls[propName = i ? "write" : "open"]
+    defineProp(DocCls, propName, {
+      enumerable: true, configurable: true,
+      set (newDocFunc) { _docFunc = newDocFunc },
+      get () {
+        const oriHref = Build.NDEBUG ? "" : location.host && location.pathname || location.href
+        if (doc0.readyState > "l") {
+          if (hasKnownDocOpened === 1) {
+            Build.NDEBUG ? onDocOpen() : onDocOpen(i, oriHref)
+            hasKnownDocOpened = 2
+          }
+        } else if (hasKnownDocOpened !== 1) {
+          hasKnownDocOpened = 1
+          queueMicroTask_(Build.NDEBUG ? onDocOpen : () => { onDocOpen(i, oriHref) })
+        }
+        return _docFunc
+      }
+    })
   }
 }
 
