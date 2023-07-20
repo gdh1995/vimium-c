@@ -232,8 +232,9 @@ button.left:focus+select.right {
 select.right > option {
   background-color: #f3f3f3;
   background-color: var(--vc-select-option-background-color, #f3f3f3);
-  font-size: 13px;
+  font-size: 14px;
   text-align: left;
+  white-space: pre;
 }
 select > option.option-hr {
   font-size: 7px;
