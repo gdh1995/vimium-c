@@ -278,9 +278,9 @@ const hoverEl = (): void => {
                 : querySelector_unsafe_(selector, ancestors[max_(0, min_(up + 1, ancestors.length - 1))
                     ] as SafeElement)
               : clickEl.closest!(selector))) {
+          const toggleVal = toggleMap[key as "css-selector"]
           if (OnFirefox || !notSafe_not_ff_!(selected)) {
-            const toggleVal = toggleMap[key as "css-selector"]
-            for (const toggle of isTY(toggleVal) ? toggleVal.split(/[ ,]/) : toggleVal) {
+            for (const toggle of toggleVal ? isTY(toggleVal) ? toggleVal.split(/[ ,]/) : toggleVal : []) {
               const s0 = toggle[0], remove = s0 === "-", add = s0 === "+" || (!remove && null)
               const idx = +(add satisfies boolean | null as boolean) || +remove
               if (toggle[idx] === "[") {
@@ -308,7 +308,7 @@ const hoverEl = (): void => {
                   execCommand(kInsertText, doc, newVal)
                 } else {
                   (selected satisfies object as {} as Dict<any>)[prop] = newVal
-                  if (tagType > EditableType.MaxNotEditableElement) {
+                  if (tagType > EditableType.Select - 1) {
                     dispatchEvent_(selected as SafeHTMLElement, newEvent_(INP, 1, 0, 0, {
                       inputType: "insertReplacementText", data: newVal + ""
                     }, !isTextElement || OnEdge || OnChrome && Build.MinCVer < BrowserVer.MinEnsured$window$$InputEvent
@@ -319,6 +319,17 @@ const hoverEl = (): void => {
               } else if (toggle === ":active") {
                 setNewScrolling(selected)
                 set_cachedScrollable(currentScrolling)
+              } else if (toggle.startsWith(":sel") || toggle === ":extend") {
+                if (toggle[1] > "f" && !hintOptions.$s) {
+                  selectNode_(selected as SafeElement)
+                  hintOptions.$s = 1
+                } else {
+                  getSelection_().extend(selected, ((selected as SafeElement).childNodes as NodeList).length)
+                }
+              } else if (toggle[0] === "@") {
+                const idx2 = toggle.indexOf("=")
+                dispatchEvent_(selected as SafeElement, newEvent_(toggle.slice(1, idx2 > 0 ? idx2 : 1e4), 1, 0, 0
+                    , idx2 > 0 ? safeCall<string, any>(JSON.parse, toggle.slice(idx2 + 1)) : {}))
               } else {
                 let cls = toggle.slice(idx + ((toggle[idx] === ".") as boolean | BOOL as BOOL))
                 cls.trim() && toggleClass_s(selected as SafeElement, cls, add)

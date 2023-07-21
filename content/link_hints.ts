@@ -1,4 +1,4 @@
-interface ContentOptions extends HintsNS.Options, SafeObject {}
+interface ContentOptions extends HintsNS.Options, SafeObject { $s?: 1 }
 type LinkEl = Hint[0]
 export interface MarkerElement extends SafeHTMLElement {
   readonly localName: "span"
