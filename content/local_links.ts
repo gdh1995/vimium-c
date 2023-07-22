@@ -154,7 +154,8 @@ const getClickable = (hints: Hint[], element: SafeHTMLElement): void => {
         || extraClickable_ !== null && extraClickable_.has(element)
         || ngEnabled && attr_s(element, "ng-click")
         || forHover_ && attr_s(element, "onmouseover")
-        || jsaEnabled_ && (s = attr_s(element, "jsaction")) && checkJSAction(s) || element.getAttribute("onmousedown")
+        || jsaEnabled_ && (s = attr_s(element, "jsaction")) && checkJSAction(s)
+        || (Build.BTypes === BrowserType.Firefox as number ? 0 : element.getAttribute("onmousedown"))
       ? ClickType.attrListener
       : clickable_.has(element) && isClickListened_ && /*#__NOINLINE__*/ inferTypeOfListener(element, tag)
       ? ClickType.codeListener

@@ -9,7 +9,7 @@ import {
   kMediaTag, ElementProto_not_ff, querySelector_unsafe_, uneditableInputs_, GetShadowRoot_, scrollingEl_, elFromPoint_,
   queryHTMLChild_, getSelection_, removeEl_s, appendNode_s, getMediaUrl, getMediaTag, INP, ALA, attr_s, hasTag_, kGCh,
   setOrRemoveAttr_s, toggleClass_s, textContent_s, notSafe_not_ff_, modifySel, SafeEl_not_ff_, testMatch, contains_s,
-  extractField, querySelectorAll_unsafe_, editableTypes_, findAnchor_, dispatchEvent_, newEvent_,
+  extractField, querySelectorAll_unsafe_, editableTypes_, findAnchor_, dispatchEvent_, newEvent_, rangeCount_,
   findSelectorByHost
 } from "../lib/dom_utils"
 import { getPreferredRectOfAnchor, initTestRegExps } from "./local_links"
@@ -320,16 +320,17 @@ const hoverEl = (): void => {
                 setNewScrolling(selected)
                 set_cachedScrollable(currentScrolling)
               } else if (toggle.startsWith(":sel") || toggle === ":extend") {
-                if (toggle[1] > "f" && !hintOptions.$s) {
+                if (toggle[1] > "f" && !hintOptions.$s || !rangeCount_(getSelection_())) {
                   selectNode_(selected as SafeElement)
                   hintOptions.$s = 1
                 } else {
                   getSelection_().extend(selected, ((selected as SafeElement).childNodes as NodeList).length)
                 }
               } else if (toggle[0] === "@") {
-                const idx2 = toggle.indexOf("=")
-                dispatchEvent_(selected as SafeElement, newEvent_(toggle.slice(1, idx2 > 0 ? idx2 : 1e4), 1, 0, 0
-                    , idx2 > 0 ? safeCall<string, any>(JSON.parse, toggle.slice(idx2 + 1)) : {}))
+                const arr2 = (<RegExpOne> /^@(.*?)(:(\w+))?(=(.*))?$/).exec(toggle)
+                arr2 && arr2[1] && dispatchEvent_(selected as SafeElement
+                    , new (arr2[3] && (window as any)[arr2[3]] as never || CustomEvent)(arr2[1]
+                        , arr2[5] && safeCall<string, any>(JSON.parse, arr2[5]) || {}))
               } else {
                 let cls = toggle.slice(idx + ((toggle[idx] === ".") as boolean | BOOL as BOOL))
                 cls.trim() && toggleClass_s(selected as SafeElement, cls, add)
