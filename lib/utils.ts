@@ -265,7 +265,7 @@ export const queueTask_: typeof queueMicrotask | undefined = !Build.NDEBUG
     : !(Build.BTypes & BrowserType.Edge
       || Build.BTypes & BrowserType.Firefox && Build.MinFFVer < FirefoxBrowserVer.Min$queueMicrotask
       || Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$queueMicrotask) || !OnFirefox
-    ? queueMicrotask : (window as {} as typeof globalThis).queueMicrotask
+    ? queueMicrotask : (window as {} as typeof globalThis).queueMicrotask.bind(window)
 
 /** ==== shortcuts of constant code ==== */
 
