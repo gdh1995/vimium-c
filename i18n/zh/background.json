@@ -88,5 +88,5 @@
   "turnOff": "已临时停用 $1",
   "Upgrade": "已更新",
   "upgradeMsg": "您的 Vimium C 已经更新至 $1 版。\n",
-  "upgradeMsg2": "更容易添加自定义快捷键、新增内部临时剪贴板。"
+  "upgradeMsg2": "本版本是最后一个基于“浏览器扩展平台 V2”的版本。"
 }

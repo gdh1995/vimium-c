@@ -3,7 +3,7 @@
   <span style="color: #2f508e;">Vim</span>ium <span style="color: #a55e18;">C</span> - All by Keyboard
 </h2>
 
-[![Version 1.99.993](https://img.shields.io/badge/gdh1995-v1.99.993-critical?logo=GitHub
+[![Version 1.99.994](https://img.shields.io/badge/gdh1995-v1.99.994-critical?logo=GitHub
   )](https://github.com/gdh1995/vimium-c/releases)
 [![MIT license](https://img.shields.io/badge/license-MIT-blue)](LICENSE.txt)
 [![GitHub stars](https://img.shields.io/github/stars/gdh1995/vimium-c?logo=GitHub&labelColor=181717&color=critical

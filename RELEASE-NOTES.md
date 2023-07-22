@@ -4,7 +4,7 @@ Release Notes of Vimium C
 ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 说明文档: https://gitee.com/gdh1995/vimium-c#readme , https://github.com/gdh1995/vimium-c/blob/master/README-zh.md .
 
-#### v1.99.993
+#### v1.99.994
 * Marks: fix the mistake that `.prefix` was enabled by default and matches wrong URLs (breaking)
   * now align with philc/Vimium's in common situations
   * `.parent: boolean` is added to re-enable the old behavior

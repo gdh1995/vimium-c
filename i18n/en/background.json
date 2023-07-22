@@ -80,5 +80,5 @@
   "turnOff": "$1 has been turned off",
   "Upgrade": "Upgrade",
   "upgradeMsg": "Vimium C has been upgraded to v$1.\n",
-  "upgradeMsg2": "Plus facile d'ajouter un mappage de touches et d'ajouter un presse-papiers temporaire interne."
+  "upgradeMsg2": "This is the last version on Web Extension Manifest V2."
 }
