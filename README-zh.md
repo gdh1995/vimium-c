@@ -3,7 +3,7 @@
   <span style="color: #2f508e;">Vim</span>ium <span style="color: #a55e18;">C</span> - 全键盘操作浏览器
 </h2>
 
-[![版本 1.99.994](https://img.shields.io/badge/gdh1995-v1.99.994-critical?logo=GitHub
+[![版本 1.99.995](https://img.shields.io/badge/gdh1995-v1.99.995-critical?logo=GitHub
   )](https://github.com/gdh1995/vimium-c/releases)
 [![MIT 许可协议](https://img.shields.io/badge/许可协议-MIT-blue)](LICENSE.txt)
 [![GitHub 收藏](https://img.shields.io/github/stars/gdh1995/vimium-c?logo=GitHub&label=收藏&labelColor=181717&color=critical
