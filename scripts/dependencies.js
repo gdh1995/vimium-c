@@ -277,6 +277,7 @@ exports.extendIf = (b, a) => {
  */
 exports.getGitCommit = (maxLen) => {
   try {
+    if (fs.statSync(".git").isDirectory()) {
     var branch = exports.readFile(".git/HEAD");
     branch = branch && branch.trim();
     /** @type {string | undefined} */
@@ -285,6 +286,9 @@ exports.getGitCommit = (maxLen) => {
       commit = branch;
     } else if (branch.startsWith("ref:") && branch.length > 4) {
       commit = exports.readFile(".git/" + branch.slice(4).trim());
+    }
+    } else {
+      commit = require('child_process').execSync("git rev-parse HEAD").toString("utf8")
     }
     maxLen = maxLen || 0
     return commit ? commit.trim().slice(0, maxLen > 0 ? maxLen : maxLen < 0 ? commit.length : 7) : null;
