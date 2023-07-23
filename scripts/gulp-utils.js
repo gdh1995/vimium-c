@@ -717,10 +717,6 @@ exports.kAllBuildEnv = Object.entries(process.env)
 
 exports.parseBuildEnv = function (key, literalVal) {
   var newVal = process.env["BUILD_" + key];
-  if (!newVal) {
-    let env_key = key.replace(/[A-Z]+[a-z\d]*/g, word => "_" + word.toUpperCase()).replace(/^_/, "");
-    newVal = process.env["BUILD_" + env_key];
-  }
   if (newVal) {
     let newVal2 = exports.safeJSONParse(newVal, null, key === "Commit" ? String : null);
     if (newVal2 == null && key === "Commit") { newVal2 = newVal }
@@ -746,12 +742,10 @@ var randMap, _randSeed;
 
 exports.getRandMap = function () { return randMap }
 
-exports.getRandom = function (id, locally, getSeed) {
+exports.getRandom = function (id, _locally, getSeed) {
   var rand = randMap ? randMap[id] : 0;
   if (rand) {
-    if ((typeof rand === "string") === locally) {
-      return rand;
-    }
+    return rand;
   }
   if (!randMap) {
     randMap = {};
@@ -759,33 +753,17 @@ exports.getRandom = function (id, locally, getSeed) {
     const name = _randSeed.split("?").slice(-1)[0]
     name && print("Get random seed:", name)
     var rng;
-    if (!locally) {
       try {
         rng = require("seedrandom");
       } catch (e) {}
-    }
     if (rng) {
       _randSeed = rng(_randSeed + "/" + id)
     }
   }
-  if (!locally) {
     while (!rand || Object.values(randMap).includes(rand)) {
       /** {@see #GlobalConsts.SecretRange} */
       rand = 1e6 + (0 | ((typeof _randSeed === "function" ? _randSeed() : Math.random()) * 9e6));
     }
-  } else {
-    var hash = _randSeed + id;
-    hash = compute_hash(hash);
-    hash = hash.slice(0, 7);
-    rand = hash;
-  }
   randMap[id] = rand;
   return rand;
-}
-
-function compute_hash(str) {
-  var crypto = require("crypto")
-  var md5 = crypto.createHash('sha1')
-  md5.update(str)
-  return md5.digest('hex')
 }
