@@ -259,9 +259,9 @@ export const promiseDefer_ = <T> (): { p: Promise<T>, r: (value: T) => void } =>
 }
 
 // if `var queueMicrotask`, on Firefox globalThis.queueMicrotask is undefined even when window.queueMicrotask exists
-export const queueTask_: typeof queueMicrotask | undefined = !OnFirefox || !(Build.BTypes & BrowserType.Edge
+export const queueTask_: typeof queueMicrotask | undefined = Build.NDEBUG && (!(Build.BTypes & BrowserType.Edge
       || Build.BTypes & BrowserType.Firefox && Build.MinFFVer < FirefoxBrowserVer.Min$queueMicrotask
-      || Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$queueMicrotask)
+      || Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$queueMicrotask) || !OnFirefox)
     ? queueMicrotask
     : (window as {} as typeof globalThis).queueMicrotask
       && (window as {} as typeof globalThis).queueMicrotask.bind(window)
