@@ -150,9 +150,9 @@ const mouse_ = function (element: SafeElementForMouse
       || chromeVer_ > BrowserVer.MinUsable$MouseEvent$$constructor - 1) {
     // Note: The `composed` here may require Shadow DOM support
     const init: ValidMouseEventInit & Partial<Omit<PointerEventInit, keyof MouseEventInit>> = {
-      bubbles: !cancelable, cancelable: !cancelable && !forceToBubble,
-      composed: (Build.MinCVer >= BrowserVer.MinMouseenter$composed$IsFalse
-                || !OnChrome || chromeVer_ > BrowserVer.MinMouseenter$composed$IsFalse - 1) && !cancelable,
+      bubbles: cancelable || !!forceToBubble, cancelable,
+      composed: OnChrome && Build.MinCVer < BrowserVer.MinMouseenter$composed$IsFalse
+          && chromeVer_ < BrowserVer.MinMouseenter$composed$IsFalse || cancelable,
       view, detail,
       screenX: x, screenY: y, clientX: x, clientY: y, ctrlKey, altKey, shiftKey, metaKey,
       button, buttons: tyKey === "d" ? button - 1 ? button || 1 : 4 : 0,
