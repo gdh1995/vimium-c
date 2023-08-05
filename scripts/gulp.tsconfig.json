@@ -9,7 +9,7 @@
     "typescript": "typescript/lib/typescript"
   },
   "build": { // for [ local, dist ]
-    "MinCVer": [ 104, 102 ], // keep dist to be 47 : the release version
+    "MinCVer": [ 102, 102 ], // keep dist to be 47 : the release version
     "MinFFVer": [ 102, 89 ],
     "BTypes": [ 1, 1 ], // [ Chrome | Firefox, Chrome ]
     "OS": [ 7, 7 ],

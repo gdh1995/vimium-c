@@ -66,8 +66,8 @@ export const OnConnect = (port: Frames.Port, type: PortType): void => {
     if (isInactive) {
       port.disconnect()
       if (!Build.NDEBUG && DEBUG) {
-        console.log("on inactive port reconnect: tab=%o, frameId=%o, lifecycle=%o"
-            , sender.tabId_, sender.frameId_, lifecycle)
+        console.log("on inactive port reconnect: tab=%o, frameId=%o, lifecycle=%o @ %o"
+            , sender.tabId_, sender.frameId_, lifecycle, Date.now() % 9e5)
       }
       return
     }
@@ -101,8 +101,8 @@ export const OnConnect = (port: Frames.Port, type: PortType): void => {
   }
   if (type & PortType.reconnect) {
     if (!Build.NDEBUG && DEBUG) {
-      console.log("on port reconnect: tab=%o, frameId=%o, frames.flag=%o, old-ports=%o"
-          , sender.tabId_, sender.frameId_, ref ? ref.flags_ : -1, ref ? ref.ports_.length : 0)
+      console.log("on port reconnect: tab=%o, frameId=%o, frames.flag=%o, old-ports=%o @ %o"
+          , sender.tabId_, sender.frameId_, ref ? ref.flags_ : -1, ref ? ref.ports_.length : 0, Date.now() % 9e5)
     }
     if (type & Frames.Flags.UrlUpdated) {
       port.postMessage({ N: kBgReq.reset, p: flags & Frames.Flags.locked ? passKeys : getExcluded_(url, sender)
@@ -119,8 +119,8 @@ export const OnConnect = (port: Frames.Port, type: PortType): void => {
     if (isInactive) {
       port.disconnect()
       if (!Build.NDEBUG && DEBUG) {
-        console.log("on inactive port connect: tab=%o, frameId=%o, lifecycle=%o"
-            , sender.tabId_, sender.frameId_, lifecycle)
+        console.log("on inactive port connect: tab=%o, frameId=%o, lifecycle=%o @ %o"
+            , sender.tabId_, sender.frameId_, lifecycle, Date.now() % 9e5)
       }
       return
     }
@@ -631,8 +631,8 @@ const tryToKeepAlive = (rawNotFromInterval?: 1 | TimerType.fake): void => {
       }
     }
     if (!Build.NDEBUG && DEBUG) {
-      console.log("free ports: tab=%o, release=%o, ports=%o, result.alive=%o", frames.cur_.s.tabId_, doesRelease
-          , frames.ports_.length, stillAlive.length)
+      console.log("free ports: tab=%o, release=%o, ports=%o, result.alive=%o @ %o", frames.cur_.s.tabId_, doesRelease
+          , frames.ports_.length, stillAlive.length, Date.now() % 9e5)
     }
     if (Build.MV3 && !OnFirefox && frames === guessedOneToKeep) { frames.flags_ &= ~Frames.Flags.ResReleased }
     frames.ports_.length = 0
@@ -683,15 +683,15 @@ export const tryToKeepAliveIfNeeded_mv3_non_ff = (removedTabId: number): void =>
   set_lastKeptTabId_(-1)
   _timeoutToTryToKeepAliveOnce_mv3_non_ff = setTimeout(tryToKeepAlive, toWait, 1)
   if (!Build.NDEBUG && DEBUG && removedTabId >= 0) {
-    console.log("wait for %o ms to try to keep alive once @ %o", toWait, performance.now() % 3e5)
+    console.log("wait for %o ms to try to keep alive once @ %o", toWait, Date.now() % 9e5)
   }
 }
 
 export const refreshPorts_ = (frames: Frames.Frames, forced: BOOL): void => {
   if (!(frames.flags_ & Frames.Flags.HadIFrames) && !isNotPriviledged(frames.cur_)) { return }
   if (!Build.NDEBUG && DEBUG) {
-    console.log("refresh ports: tab=%o, forced=%o, flags=%o, ports=%o", frames.cur_.s.tabId_, forced
-        , frames.flags_, frames.ports_.length)
+    console.log("refresh ports: tab=%o, forced=%o, flags=%o, ports=%o @ %o", frames.cur_.s.tabId_, forced
+        , frames.flags_, frames.ports_.length, Date.now() % 9e5)
   }
   executeScript_(frames.cur_.s.tabId_, -1, null, (_: 0, updates: number): void => { // @ts-ignore
     typeof VApi === "object" && VApi && (VApi as Frames.BaseVApi)
