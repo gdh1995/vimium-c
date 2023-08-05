@@ -287,8 +287,8 @@ set_contentCommands_([
     const visibleInputs = traverse(kSafeAllSelector, options, getEditable
         ) as (Hint & { [0]: SafeHTMLElement })[],
     keep = options.keep, pass = options.passExitKey, reachable = options.reachable;
-    if (!(reachable != null ? reachable : fgCache.e) || curModalElement
-        || !filterOutNonReachable(visibleInputs, 1)) {
+    if (!(reachable != null ? reachable && !(isTY(reachable, kTY.num) && visibleInputs.length > reachable) : fgCache.e)
+        || curModalElement || !filterOutNonReachable(visibleInputs, 1)) {
       OnEdge || filterOutInert(visibleInputs)
     }
     let sel = visibleInputs.length, firstInput = visibleInputs[0]

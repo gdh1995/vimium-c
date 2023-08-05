@@ -524,8 +524,7 @@ declare const enum GlobalConsts {
   LinkHintTooHighThreshold = 20, // scrollHeight / innerHeight
   LinkHintPageHeightLimitToCheckViewportFirst = 15000,
   ElementsFromPointTakesTooSlow = 1000,
-  MinElementCountToStopPointerDetection = 400,
-  MinElementCountToStopScanOnClick = 5000,
+  DefaultMaxElementCountToDetectPointer = 400,
   MaxScrollbarWidth = 24,
   MinScrollableAreaSizeForDetection = 50,
   MaxHeightOfLinkHintMarker = 24,

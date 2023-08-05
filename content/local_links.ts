@@ -1,7 +1,7 @@
 import {
   clickable_, isJSUrl, doc, isImageUrl, fgCache, readyState_, chromeVer_, VTr, createRegExp, max_, OnChrome,
   math, includes_, OnFirefox, OnEdge, WithDialog, evenHidden_, set_evenHidden_, tryCreateRegExp, loc_,
-  getTime, firefoxVer_
+  getTime, firefoxVer_, isTY
 } from "../lib/utils"
 import {
   isIFrameElement, uneditableInputs_, getComputedStyle_, queryHTMLChild_, htmlTag_, isAriaFalse_,  joinValidSelectors,
@@ -857,7 +857,8 @@ export const getVisibleElements = (view: ViewBox): readonly Hint[] => {
     : traverse(kSafeAllSelector, hintOptions, getClickable)
   if ((reachable != null ? reachable
         : (_i < HintMode.max_mouse_events + 1 || _i === HintMode.FOCUS_EDITABLE) && fgCache.e)
-      && visibleElements.length < GlobalConsts.MinElementCountToStopPointerDetection
+      && visibleElements.length <=
+          (isTY(reachable, kTY.num) ? reachable : GlobalConsts.DefaultMaxElementCountToDetectPointer)
       && filterOutNonReachable(visibleElements, _i > HintMode.max_mouse_events, hintOptions.match)) { /* empty */ }
   else {
     OnEdge || _i === HintMode.FOCUS_EDITABLE && filterOutInert(visibleElements)

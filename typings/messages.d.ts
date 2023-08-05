@@ -315,7 +315,7 @@ declare namespace HintsNS {
     hideHud?: boolean;
     hideHUD?: boolean;
     autoUnhover?: boolean | "css-selector"
-    reachable?: null | boolean // null means "in modes for mouse events and settings.mouseReachable"
+    reachable?: null | boolean | /** limits */ number // null means "use settings.mouseReachable and for mouse events"
     richText?: boolean | "safe" | "with-name" | "safe-with-name" | ""
     visual?: false;
     suppressInput?: boolean
@@ -468,7 +468,7 @@ interface CmdOptions {
     keep?: boolean;
     passExitKey?: boolean;
     flash?: boolean;
-    reachable?: boolean; // default to true
+    reachable?: boolean | number; // default to true
     prefer?: string;
   } & CSSOptions & Req.FallbackOptions
   [kFgCmd.editText]: {
