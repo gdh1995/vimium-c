@@ -476,7 +476,7 @@ export const isContaining_ = (a: Rect, b: Rect): boolean => {
 
 export const padClientRect_ = (rect: ClientRect, padding?: number): Rect => {
   const x = rect.left, y = rect.top, w = rect.width, h = rect.height
-  padding = w || h ? padding || 0 : 0
+  padding = w || h ? padding! | 0 : 0
   return {l: x | 0, t: y | 0, r: (x + max_(w, padding)) | 0, b: (y + max_(h, padding)) | 0}
 }
 

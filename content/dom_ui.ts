@@ -331,10 +331,10 @@ export const getSelectionParent_unsafe = ((sel: Selection, re?: RegExpG & RegExp
   (sel: Selection, re?: undefined): Element | null
 }
 
-export const getSelectionBoundingBox_ = (sel?: Selection, ensured?: BOOL): Rect | null => {
-  const range = selRange_(sel || getSelected(), ensured), bcr = range && range.getBoundingClientRect(),
-  rect = bcr && padClientRect_(bcr, 3)
-  return rect && (rect.b > rect.t || rect.r > rect.l) ? rect : null
+export const getSelectionBoundingBox_ = (sel?: Selection | void, ensured?: BOOL, range0?: Range): Rect | null => {
+  const range = range0 || selRange_(sel || getSelected(), ensured), bcr = range && range.getBoundingClientRect(),
+  rect = bcr && padClientRect_(bcr, range0 ? 1 : 3)
+  return rect && rect.b > rect.t ? rect : null
 }
 
 /** `type`: 0 means to trim; always check focused `<input>` on Firefox and blurred inputs on Chrome */

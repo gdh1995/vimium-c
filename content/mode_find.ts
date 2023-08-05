@@ -957,8 +957,7 @@ export const extendToCurRange = (range: Range, hasRange: 0 | 1 | 2, abortCur?: b
   hasStyle && toggleStyle(1)
   if (hasRange && (abortCur || focused && getEditableType_<0>(singleSelectionElement_unsafe(sel) || docEl_unsafe_()!
         ) < EditableType.MaxNotTextBox + 1)) {
-    const start = range.startContainer, startOffset = range.startOffset
-    const end = range.endContainer, endOffset = range.endOffset
+    const { startContainer: start, startOffset, endContainer: end, endOffset } = range
     const isLeft = abortCur ? hasRange < 2 : anchor && (start === focused ? focusedOffset < startOffset
         : compareDocumentPosition(start, focused!) & kNode.DOCUMENT_POSITION_PRECEDING)
     getSelection_().setBaseAndExtent(isLeft ? end : start, isLeft ? endOffset : startOffset
