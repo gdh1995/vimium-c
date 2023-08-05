@@ -188,7 +188,7 @@ export const activate = (options: ContentOptions, count: number, force?: 2 | Tim
     const useFilter0 = options.useFilter, useFilter = useFilter0 != null ? !!useFilter0 : fgCache.f,
     topFrameInfo: FrameHintsInfo = {h: [], v: null as never, s: coreHints},
     toCleanArray: HintOfficer[] = [],
-    s0 = options.c, chars: string = s0 ? s0 : useFilter ? fgCache.n : fgCache.c
+    chars: string = options.c ? options.c : useFilter ? fgCache.n : fgCache.c
     frameArray = [topFrameInfo]
     isHC_ = matchMedia(VTr(
         OnChrome && Build.MinCVer < BrowserVer.MinForcedColorsMode && chromeVer_ < BrowserVer.MinForcedColorsMode
@@ -440,6 +440,9 @@ const onKeydown = (event: HandlerNS.Event): HandlerResult => {
       key && keybody !== kChar.Modifier || toggleModesOnModifierKey(event, i)
     } else if (keybody === "alt") {
       toggleModesOnModifierKey(event, kKeyCode.altKey)
+    } else if (key[0] === (Build.OS & kBOS.MAC && (Build.OS === kBOS.MAC as number || !os_) ? "m" : "c")
+        && "0-=".includes(key[2]) && !chars_.includes(key[2])) {
+      ret = HandlerResult.PassKey
     } else if (i = keyNames_.indexOf(keybody), i > 0) {
       i > 2 && raw_insert_lock || beginScroll(event, key, keybody);
       resetMode();
