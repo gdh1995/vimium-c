@@ -1,6 +1,6 @@
 import {
   CurCVer_, CurFFVer_, OnChrome, OnEdge, OnFirefox, copy_, paste_, substitute_, set_copy_, set_paste_, set_substitute_,
-  settingsCache_, updateHooks_, searchEngines_, blank_, runOnTee_, innerClipboard_
+  settingsCache_, updateHooks_, searchEngines_, blank_, runOnTee_, innerClipboard_, framesForTab_, curTabId_
 } from "./store"
 import * as BgUtils_ from "./utils"
 import * as Exclusions from "./exclusions"
@@ -23,6 +23,7 @@ interface Contexts { normal_: SedContext, extras_: (kCharCode | string)[] | null
 interface ClipSubItem {
   readonly contexts_: Contexts; readonly match_: RegExp
   host_: string | ValidUrlMatchers | /** regexp is broken */ -1 | null
+  activeTab_: string | ValidUrlMatchers | /** regexp is broken */ -1 | null
   readonly retainMatched_: number; readonly actions_: SedActions[]; readonly replace_: string;
 }
 
@@ -71,11 +72,13 @@ const parseSeds_ = (text: string, fixedContexts: Contexts | null): readonly Clip
     const body = sepRe.exec(line = line.slice(prefix[0].length))
     if (!body) { continue }
     const head = prefix[1], flags = body[3], tail = line.slice(body[0].length), actions: SedActions[] = []
-    let host: string | null = null, retainMatched: number = 0
+    let host: string | null = null, retainMatched: number = 0, activeTab: string | null = null
     for (const rawI of tail ? tail.split(",") : []) {
       const i = rawI.toLowerCase()
       if (i.startsWith("host=")) {
         host = rawI.slice(5)
+      } else if ((<RegExpOne> /^active-?tab=/).test(i)) {
+        activeTab = rawI.slice(i[9] === "=" ? 10 : 11)
       } else if (i.startsWith("match")) {
         retainMatched = Math.max(i.includes("=") && parseInt(i.split("=")[1]) || 1, 1)
       } else if (i.includes("=")) {
@@ -88,7 +91,7 @@ const parseSeds_ = (text: string, fixedContexts: Contexts | null): readonly Clip
     const matchRe = BgUtils_.makeRegexp_(body[1], retainMatched ? flags.replace(<RegExpG> /g/g, "") : flags)
     matchRe && result.push({
       contexts_: fixedContexts || parseSedKeys_(head)!, host_: host, match_: matchRe, retainMatched_: retainMatched,
-      replace_: decodeSlash_(body[2], 1), actions_: actions,
+      replace_: decodeSlash_(body[2], 1), actions_: actions, activeTab_: activeTab,
     })
   }
   return result
@@ -322,11 +325,18 @@ set_substitute_(((input: string, normalContext: SedContext, mixedSed?: MixedSedO
         , contexts || (contexts = { normal_: SedContext.NO_STATIC, extras_: null })).concat(arr)
   }
   const lastCleanTimer = timeoutToClearInnerClipboard_
+  let activeTabUrl_: string | undefined
   for (const item of contexts ? arr : []) {
-    if (intersectContexts(item.contexts_, contexts!) && (!item.host_
-          || (typeof item.host_ === "string" && (item.host_ = Exclusions.createSimpleUrlMatcher_(item.host_) || -1),
-              item.host_ !== -1 && Exclusions.matchSimply_(item.host_, input))
-        )) {
+    if (intersectContexts(item.contexts_, contexts!)
+        && (!item.host_
+            || (typeof item.host_ === "string" && (item.host_ = Exclusions.createSimpleUrlMatcher_(item.host_) || -1),
+                item.host_ !== -1 && Exclusions.matchSimply_(item.host_, input)))
+        && (!item.activeTab_ || (
+            activeTabUrl_ == null && (activeTabUrl_ = framesForTab_.get(curTabId_)?.top_?.s?.url_ || ""),
+            typeof item.activeTab_ === "string"
+                && (item.activeTab_ = Exclusions.createSimpleUrlMatcher_(item.activeTab_) || -1),
+            activeTabUrl_ && item.activeTab_ !== -1 && Exclusions.matchSimply_(item.activeTab_, activeTabUrl_)
+        ))) {
       let end = -1
       let text = input
       if (item.retainMatched_) {
