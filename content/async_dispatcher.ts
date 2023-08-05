@@ -3,17 +3,14 @@ import {
   tryCreateRegExp, weakRef_not_ff, firefoxVer_, fgCache, max_, promiseDefer_
 } from "../lib/utils"
 import {
-  IsInDOM_, isInTouchMode_cr_, MDW, hasTag_, CLK, attr_s, fullscreenEl_unsafe_, findAnchor_, dispatchAsync_, contains_s,
+  IsInDOM_, isInTouchMode_cr_, MDW, hasTag_, CLK, attr_s, fullscreenEl_unsafe_, findAnchor_, dispatchAsync_,
   blur_unsafe, derefInDoc_, newEvent_, getRootNode_mounted, elFromPoint_, HTMLElementProto, getEditableType_,
 } from "../lib/dom_utils"
 import { suppressTail_ } from "../lib/keyboard_utils"
 import { Point2D, center_, getVisibleClientRect_, view_, selRange_, isContaining_ } from "../lib/rect"
 import { insert_Lock_ } from "./insert"
 import { post_, send_ } from "./port"
-import {
-  flash_, getSelected, getSelectionBoundingBox_, getSelectionParent_unsafe, moveSel_s_throwable,
-  resetSelectionToDocStart
-} from "./dom_ui"
+import { flash_, getSelected, getSelectionBoundingBox_, moveSel_s_throwable } from "./dom_ui"
 import { coreHints, hintApi, hintManager, mode1_ as hintMode1_, hintOptions, isHintsActive } from "./link_hints"
 import { prepareToBlockClick_old_ff, clickEventToPrevent_, dispatchAndBlockClickOnce_old_ff } from "./extend_click_ff"
 import { currentScrolling, setNewScrolling, set_cachedScrollable } from "./scroller"
@@ -462,7 +459,6 @@ export const select_ = (element: LockableElement, rect?: Rect | null, show_flash
   const y = scrollY
   const sel = getEditableType_<0>(element) == EditableType.ContentEditable && getSelected()
   const range = sel && selRange_(sel)
-  const selParent = range && getSelectionParent_unsafe(sel)
   const focusedRange = range && range.cloneRange()
   const focusedRect = focusedRange && getSelectionBoundingBox_(focusedRange.collapse(!1), 0, focusedRange)
   return catchAsyncErrorSilently(click_async(element
@@ -471,9 +467,6 @@ export const select_ = (element: LockableElement, rect?: Rect | null, show_flash
     // re-compute rect of element, in case that an input is resized when focused
     show_flash && flash_(element)
     if (element !== insert_Lock_()) { return }
-    if (selParent && contains_s(element, selParent)) {
-      resetSelectionToDocStart(sel, range)
-    }
     // then `element` is always safe
     if (Build.NDEBUG) {
       safeCall(/*#__INLINE__*/ moveSel_s_throwable, element, action)
