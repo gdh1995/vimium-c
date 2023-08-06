@@ -349,7 +349,6 @@ saladict@crimx.com`
     filterLinkHints: false,
     grabBackFocus: false,
     hideHud: false,
-    keepWorkerAlive: false, // a priv tab may be not enough and it seems to make Chrome 108 for macOS crash
     keyLayout: kKeyLayout.Default,
     keyboard: [560, 33],
     keyupTime: 120,
@@ -528,7 +527,6 @@ bgIniting_ < BackendHandlersNS.kInitStat.FINISHED && ((): void => {
       ).map(i => i === kShortcutAliases.nextTab1 ? "nextTab" : i)
   obj.VerCode_ = ref.version;
   obj.VerName_ = ref.version_name || ref.version;
-  if (Build.MV3 && !OnFirefox) { obj.PrivateAlivePage_ = func(obj.PrivateAlivePage_) }
   obj.OptionsPage_ = func(obj.OptionsPage_);
   obj.ShowPage_ = func(obj.ShowPage_);
   obj.VomnibarPageInner_ = func(defaults_.vomnibarPage)

@@ -74,11 +74,9 @@ var VApi: VApiTy | undefined, VimiumInjector: VimiumInjectorTy | undefined | nul
     || !Build.NDEBUG && (window as any).define && (window as any).define.noConflict()
   }
   if (curPath === "blank") {
-    const isPrivAlive = Build.MV3 && Build.BTypes !== BrowserType.Firefox as number
-        && location.hash === GlobalConsts.KeepAliveHash
     type Keys = keyof SettingsNS.BaseBackendSettings
     const storage = browser_.storage.local as { get <K extends Keys> (k: K, cb: (r: { [k in K]: any }) => void): void }
-    isPrivAlive || storage.get("autoDarkMode", (res): void => {
+    storage.get("autoDarkMode", (res): void => {
       const value = res && res.autoDarkMode as SettingsNS.BaseBackendSettings["autoDarkMode"] | boolean
       if (value === false || value === 1) {
         const el = document.head!.querySelector("meta[name=color-scheme]") as HTMLMetaElement | null
@@ -86,16 +84,7 @@ var VApi: VApiTy | undefined, VimiumInjector: VimiumInjectorTy | undefined | nul
       }
       return browser_.runtime.lastError
     })
-    if (Build.MV3 && Build.BTypes !== BrowserType.Firefox as number && isPrivAlive) {
-      document.title = browser_.i18n.getMessage("valive") || "Keep Alive"
-      console.log("test1", performance.now())
-      requestAnimationFrame((): void => {
-        console.log("test2", performance.now())
-        const a = document.createElement("a")
-        a.href = a.textContent = location.origin + "/" + GlobalConsts.OptionsPage + "#keepWorkerAlive"
-        document.body!.append!(a)
-      })
-    } else if (browser_.i18n.getMessage("lang1")) {
+    if (browser_.i18n.getMessage("lang1")) {
       const s = browser_.i18n.getMessage("vblank")
       s && (document.title = s)
     }

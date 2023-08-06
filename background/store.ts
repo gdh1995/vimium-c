@@ -82,7 +82,6 @@ export let reqH_: BackendHandlersNS.FgRequestHandlers
 export const updateHooks_ = {} as SettingsNS.FullUpdateHookMap
 
 export let lastKeptTabId_ = -1
-export let isLastKeptTabPrivate_ = false
 //#endregion
 
 //#region info about opened tabs
@@ -191,7 +190,6 @@ export const set_onInit_ = (_newInit: typeof onInit_): void => { onInit_ = _newI
 export const set_iconData_ = (_newIconData: typeof iconData_): void => { iconData_ = _newIconData }
 export const set_hasGroupPermission_ff_ = (_newAllowed: boolean | 0): void => { hasGroupPermission_ff_ = _newAllowed }
 export const set_lastKeptTabId_ = (_newKeptTabId: number): void => { lastKeptTabId_ = _newKeptTabId }
-export const set_isLastKeptTabPrivate_ = (isLastPriv: boolean): void => { isLastKeptTabPrivate_ = isLastPriv }
 
 export const set_reqH_ = (_newRH: BackendHandlersNS.FgRequestHandlers): void => { reqH_ = _newRH }
 export const set_bgC_ = (_newBgC: typeof bgC_): void => { bgC_ = _newBgC }
@@ -243,7 +241,6 @@ export const set_os_ = Build.OS & (Build.OS - 1) ? (newOS: kOS) => { os_ = newOS
 //#endregion
 
 export const CONST_ = {
-  PrivateAlivePage_: Build.MV3 && !OnFirefox ? "pages/blank.html" + GlobalConsts.KeepAliveHash : 0 as never,
   BrowserProtocol_: OnChrome ? "chrome" : OnFirefox ? "moz" : OnEdge ? "ms-browser" : "about",
   BaseCSSLength_: 0,
   // should keep lower case

@@ -576,7 +576,6 @@ declare const enum GlobalConsts {
   KeySequenceTimeout = 30_000,
   ModifierKeyTimeout = 2_900,
   OptionsPage = "pages/options.html",
-  KeepAliveHash = "#keep-alive",
   kLoadEvent = "VimiumC"
 }
 

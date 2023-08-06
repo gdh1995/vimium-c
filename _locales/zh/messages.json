@@ -13,7 +13,6 @@
   "lang1": { "message": "zh" },
   "noActiveState": { "message": "已设置不显示工作状态" },
   "vblank": { "message": "空白页" },
-  "valive": { "message": "后台页" },
   "voptions": { "message": "设置" },
   "vshow": { "message": "展示" },
   "Close": { "message": "关闭" },

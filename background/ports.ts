@@ -1,13 +1,13 @@
 import {
   needIcon_, cPort, set_cPort, reqH_, contentPayload_, omniPayload_, innerCSS_, extAllowList_, framesForTab_, findCSS_,
   framesForOmni_, getNextFakeTabId, curTabId_, vomnibarPage_f, OnChrome, CurCVer_, OnEdge, setIcon_, lastKeptTabId_,
-  keyFSM_, mappedKeyRegistry_, CONST_, mappedKeyTypes_, recencyForTab_, setTeeTask_, OnFirefox, blank_, UseZhLang_,
-  isLastKeptTabPrivate_, set_isLastKeptTabPrivate_, set_lastKeptTabId_, settingsCache_
+  keyFSM_, mappedKeyRegistry_, CONST_, mappedKeyTypes_, recencyForTab_, setTeeTask_, OnFirefox, UseZhLang_,
+  set_lastKeptTabId_
 } from "./store"
 import { asyncIter_, deferPromise_, getOmniSecret_, isNotPriviledged, keys_ } from "./utils"
 import {
   removeTempTab, tabsGet, runtimeError_, getCurTab, getTabUrl, browserWebNav_, Q_, executeScript_, getFindCSS_cr_,
-  selectTab, selectWndIfNeed, getCurWnd, Windows_, Tabs_, browser_
+  selectTab, selectWndIfNeed
 } from "./browser"
 import { exclusionListening_, getExcluded_, exclusionListenHash_ } from "./exclusions"
 import { I18nNames, transEx_ } from "./i18n"
@@ -561,19 +561,17 @@ const tryToKeepAlive = (rawNotFromInterval?: 1 | TimerType.fake): void => {
         ? visited[Math.min(MAX_KEEP_ALIVE, visited.length - 1)] - 1000 : 0)
   }
   const enum KKeep {
-    None = 0, PrivFresh = 1, PrivWithoutPorts = 2, NormalWoPorts = 3, NormalWithPorts = 4, NormalFresh = 5,
+    None = 0, NormalWoPorts = 3, NormalWithPorts = 4, NormalFresh = 5,
     NormalRefreshed = 6, _mask = "", MIN_NORMAL = NormalWoPorts, MIN_HANDLED = NormalFresh,
   }
   let typeOfFramesToKeep: KKeep & number = KKeep.None, framesToKeep: Frames.Frames | null = null
   const listToRelease: Frames.Frames[] = []
-  const lastPrivAlive = Build.MV3 && !OnFirefox && isLastKeptTabPrivate_ ? lastKeptTabId_ : -1
   framesForTab_.forEach((frames, tabId): void => {
     const ports = frames.ports_, portNum = ports.length
     if ((!Build.MV3 || OnFirefox || typeOfFramesToKeep > KKeep.NormalWoPorts) && !portNum) { return }
     if (Build.MV3 && !OnFirefox && (typeOfFramesToKeep < KKeep.MIN_NORMAL
         || portNum && typeOfFramesToKeep === KKeep.NormalWoPorts)) {
-      typeOfFramesToKeep = tabId === lastPrivAlive ? portNum ? KKeep.PrivFresh : KKeep.PrivWithoutPorts
-          : portNum ? KKeep.NormalWithPorts : KKeep.NormalWoPorts
+      typeOfFramesToKeep = portNum ? KKeep.NormalWithPorts : KKeep.NormalWoPorts
       framesToKeep = frames
     }
     const mayRelease: Port[] = []
@@ -585,7 +583,7 @@ const tryToKeepAlive = (rawNotFromInterval?: 1 | TimerType.fake): void => {
       }
     }
     if (!mayRelease.length) {
-      if (Build.MV3 && !OnFirefox && typeOfFramesToKeep===KKeep.NormalWithPorts && portNum && tabId !== lastPrivAlive) {
+      if (Build.MV3 && !OnFirefox && typeOfFramesToKeep === KKeep.NormalWithPorts && portNum) {
         typeOfFramesToKeep = KKeep.NormalFresh, framesToKeep = frames
       }
       return
@@ -600,15 +598,7 @@ const tryToKeepAlive = (rawNotFromInterval?: 1 | TimerType.fake): void => {
       listToRelease.push(frames)
     }
   })
-  if (0 as BOOL) { framesToKeep = framesToKeep || framesForTab_.get(0) || null } // just to make tsc happy
-  if (Build.MV3 && !OnFirefox && isLastKeptTabPrivate_ && typeOfFramesToKeep > KKeep.MIN_NORMAL - 1) {
-    const privFrames = framesForTab_.get(lastKeptTabId_)
-    if (privFrames?.cur_.s.url_.startsWith(CONST_.PrivateAlivePage_)) {
-      privFrames.flags_ = (privFrames.flags_ & ~Frames.Flags.HadIFrames) | Frames.Flags.ResReleased
-      privFrames.ports_.forEach(i => i.s.flags_ |= Frames.Flags.ResReleased)
-      listToRelease.push(privFrames)
-    }
-  }
+  if (0 as BOOL) { framesToKeep = framesToKeep as Frames.Frames | null } // just to make tsc happy
   const guessedOneToKeep = framesToKeep
   for (const frames of listToRelease) {
     const doesRelease = !Build.MV3 || OnFirefox
@@ -642,13 +632,7 @@ const tryToKeepAlive = (rawNotFromInterval?: 1 | TimerType.fake): void => {
   if (!Build.MV3 || OnFirefox) { return }
   const newAliveTabId = framesToKeep ? framesToKeep.cur_.s.tabId_ : -1
   if (lastKeptTabId_ !== newAliveTabId) {
-    if (isLastKeptTabPrivate_) {
-      set_isLastKeptTabPrivate_(false)
-      tabsGet(lastKeptTabId_, didRemovePriv_)
-      if (!Build.NDEBUG && DEBUG) {
-        console.log("remove the priv-tab %o and new alive is %o @ %o", lastKeptTabId_, newAliveTabId, Date.now() % 9e5)
-      }
-    } else if (!Build.NDEBUG && DEBUG) {
+    if (!Build.NDEBUG && DEBUG) {
       console.log("update last kept tab id to %o @ %o", newAliveTabId, Date.now() % 9e5)
     }
     set_lastKeptTabId_(newAliveTabId)
@@ -656,15 +640,14 @@ const tryToKeepAlive = (rawNotFromInterval?: 1 | TimerType.fake): void => {
     console.log("reuse kept tab id: %o @ %o", newAliveTabId, Date.now() % 9e5)
   }
   if (lastKeptTabId_ === -1) {
-    settingsCache_.keepWorkerAlive && void createPriv_()
-  } else if (typeOfFramesToKeep < KKeep.MIN_HANDLED && typeOfFramesToKeep > KKeep.PrivWithoutPorts - 1) {
+  } else if (typeOfFramesToKeep < KKeep.MIN_HANDLED && typeOfFramesToKeep) {
     refreshPorts_(framesToKeep!, 0)
   }
 }
 
 export const tryToKeepAliveIfNeeded_mv3_non_ff = (removedTabId: number): void => {
   if (!(Build.MV3 && !OnFirefox)) { return }
-  if (!(removedTabId === lastKeptTabId_ && !_timeoutToTryToKeepAliveOnce_mv3_non_ff && !isLastKeptTabPrivate_)) {
+  if (removedTabId !== lastKeptTabId_ || _timeoutToTryToKeepAliveOnce_mv3_non_ff) {
     return
   }
   for (const item of framesForTab_.values()) {
@@ -698,45 +681,6 @@ export const refreshPorts_ = (frames: Frames.Frames, forced: BOOL): void => {
       .q(0, updates) // Frames.RefreshPort
   }, [0, PortType.refreshInBatch | (forced ? PortType.reconnect : 0) | (frames.flags_ & Frames.Flags.MASK_UPDATES)])
   frames.flags_ &= ~(Frames.Flags.ResReleased | Frames.Flags.MASK_UPDATES | Frames.Flags.HadIFrames)
-}
-
-const createPriv_ = async (): Promise<void> => {
-  if (!Build.NDEBUG && DEBUG) {
-    console.log("need to create a new priv-tab to keep alive @ %o", Date.now() % 9e5)
-  }
-  const wnd = await Q_(getCurWnd, false)
-  let windowId = wnd && wnd.type === "normal" ? wnd.id : undefined
-  if (windowId == null) {
-    const wnds = await Q_(Windows_.getAll, { windowTypes: ["normal"] })
-    windowId = wnds && wnds.length ? wnds[0].id : undefined
-  }
-  const privTab = await Q_(Tabs_.create, { url: CONST_.PrivateAlivePage_, windowId, active: false })
-  if (!privTab) { return }
-  const tabId = privTab.id
-  set_lastKeptTabId_(tabId), set_isLastKeptTabPrivate_(true)
-  if (!Build.NDEBUG && DEBUG) {
-    console.log("    created a priv-tab of %o", tabId)
-  }
-  Tabs_.update(tabId, { autoDiscardable: false }, runtimeError_)
-  if (!browser_.tabGroups) { return }
-  const logErr = (tag: string, err: unknown) => void console.log(tag, err)
-  const groupId = await Tabs_.group({ tabIds: [tabId], createProperties: { windowId: privTab.windowId }
-      }).catch(Build.NDEBUG ? blank_ : logErr.bind(null, "add group"))
-  groupId != null && void browser_.tabGroups.update(groupId, {
-    collapsed: true, title: "VimiumC", color: OnChrome ? "grey" : undefined
-  }).catch(Build.NDEBUG ? blank_ : logErr.bind(null, "collapse group"))
-}
-
-const didRemovePriv_ = (tab: Tab): void => {
-  if (!tab) { return runtimeError_() }
-  if (tab && tab.url.startsWith(CONST_.PrivateAlivePage_)) {
-    const tabId = tab.id
-    Tabs_.remove(tabId, (): void => {
-      const err = runtimeError_() // e.g.: a user is moving its tab label
-      if (err) { set_lastKeptTabId_(tabId), set_isLastKeptTabPrivate_(true) }
-      return err
-    })
-  }
 }
 
 const _recoverStates = (frames: Frames.Frames | undefined, port: Port, type: PortType | Frames.Flags): void => {
