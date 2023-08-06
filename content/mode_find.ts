@@ -28,7 +28,7 @@ import { highlightRange, deactivate as visualDeactivate } from "./visual"
 import { keyIsDown as scroll_keyIsDown, beginScroll, onScrolls } from "./scroller"
 import { scrollToMark, setPreviousMarkPosition } from "./marks"
 import { hudHide, hud_box, hudTip, hud_opacity, toggleOpacity as hud_toggleOpacity } from "./hud"
-import { post_, send_, runFallbackKey } from "./port"
+import { post_, send_, runFallbackKey, runtimeConnect, runtime_port } from "./port"
 import { insert_Lock_, raw_insert_lock, setupSuppress } from "./insert"
 import { lastHovered_, set_lastHovered_, set_lastBubbledHovered_, select_ } from "./async_dispatcher"
 import { checkKey, checkKeyOnTop, currentKeys, noopHandler, set_isCmdTriggered } from "./key_handler"
@@ -579,6 +579,7 @@ const onIFrameKeydown = (event: KeyboardEventToPrevent): void => {
                     || isRepeated_(eventWrapper)) ? FindAction.PassDirectly
       : FindAction.Exit;
     let h = HandlerResult.Prevent, scroll: number;
+    if (Build.NDEBUG && Build.Mangle) { runtime_port || runtimeConnect() }
     if (i < FindAction.PassDirectly + 1) { h = HandlerResult.Suppress }
       else if (i || eventWrapper.v && (checkKey(eventWrapper, eventWrapper.v), 1)) { /* empty */ }
       else if (keybody !== key) {

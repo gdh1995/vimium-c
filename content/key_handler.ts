@@ -234,8 +234,10 @@ export const onKeydown = (event: KeyboardEventToPrevent): void => {
   OnChrome && isWaitingAccessKey && /*#__NOINLINE__*/ resetAnyClickHandler_cr()
   OnFirefox && raw_insert_lock && insert_Lock_()
   let action = HandlerResult.Nothing, keyStr: string;
-  for (let ind = handler_stack.length; 0 < ind && action === HandlerResult.Nothing; ) {
-    action = (handler_stack[ind -= 2] as HandlerNS.Handler)(eventWrapper);
+  let handler_ind = handler_stack.length
+  if (Build.NDEBUG && Build.Mangle && handler_ind) { runtime_port || runtimeConnect() }
+  for (; 0 < handler_ind && action === HandlerResult.Nothing; ) {
+    action = (handler_stack[handler_ind -= 2] as HandlerNS.Handler)(eventWrapper);
   }
   if (eventWrapper.v) { action = checkKey(eventWrapper, eventWrapper.v) }
   if (action) { /* empty */ }

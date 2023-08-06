@@ -166,7 +166,7 @@ set_requestHandlers([
   },
   /* kBgReq.msg: */ onPortRes_,
   /* kBgReq.eval: */ evalIfOK,
-  /* kBgReq.settingsUpdate: */function ({ d: delta }: BgReq[kBgReq.settingsUpdate]): void {
+  /* kBgReq.settingsUpdate: */ ({ d: delta }: BgReq[kBgReq.settingsUpdate]): void => {
     type Keys = keyof typeof delta;
     safer(delta);
     for (const i in delta) {
