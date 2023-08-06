@@ -7,12 +7,23 @@ import {
 import { asyncIter_, deferPromise_, getOmniSecret_, isNotPriviledged, keys_ } from "./utils"
 import {
   removeTempTab, tabsGet, runtimeError_, getCurTab, getTabUrl, browserWebNav_, Q_, executeScript_, getFindCSS_cr_,
-  selectTab, selectWndIfNeed
+  selectTab, selectWndIfNeed, browser_
 } from "./browser"
 import { exclusionListening_, getExcluded_, exclusionListenHash_ } from "./exclusions"
 import { I18nNames, transEx_ } from "./i18n"
 
-const DEBUG: BOOL | boolean = false
+declare const enum KKeep {
+  None = 0, NormalWoPorts = 3, NormalWithPorts = 4, NormalFresh = 5,
+  NormalRefreshed = 6, _mask = "", MIN_NORMAL = NormalWoPorts, MIN_HANDLED = NormalFresh,
+}
+
+const RELEASE_TIMEOUT = Build.NDEBUG ? 1000 * (60 * 4 + 48) : 1000 * 100
+const ALIVE_TIMEOUT_IF_NO_ACTION = 30_000
+const MAX_KEEP_ALIVE = Build.NDEBUG ? 5 : 2
+
+const DEBUG: BOOL | boolean = true
+const kAliveIfOnlyAnyAction = Build.MV3 && OnChrome && (Build.MinCVer >= BrowserVer.MinBgWorkerAliveIfOnlyAnyAction
+    || CurCVer_ > BrowserVer.MinBgWorkerAliveIfOnlyAnyAction - 1)
 let _timeoutToTryToKeepAliveOnce_mv3_non_ff = 0
 
 const onMessage = <K extends keyof FgReq, T extends keyof FgRes> (request: Req.fg<K> | Req.fgWithRes<T>
@@ -531,11 +542,7 @@ export const getParentFrame = (tabId: number, curFrameId: number, level: number)
   })
 }
 
-const RELEASE_TIMEOUT = Build.NDEBUG ? 1000 * (60 * 4 + 48) : 1000 * 100
-const RELEASE_TIMEOUT_IF_NO_ALIVE = 30_000
-const MAX_KEEP_ALIVE = Build.NDEBUG ? 5 : 2
-
-const tryToKeepAlive = (rawNotFromInterval?: 1 | TimerType.fake): void => {
+const tryToKeepAlive = (rawNotFromInterval?: 1 | TimerType.fake): KKeep | void => {
   const now = performance.now(), isFromInterval = !Build.MV3 || OnFirefox || rawNotFromInterval !== 1
   if (Build.MV3 && !OnFirefox && _timeoutToTryToKeepAliveOnce_mv3_non_ff) {
     isFromInterval && clearTimeout(_timeoutToTryToKeepAliveOnce_mv3_non_ff)
@@ -560,17 +567,12 @@ const tryToKeepAlive = (rawNotFromInterval?: 1 | TimerType.fake): void => {
     oldestToKeepAlive = Math.max(now - RELEASE_TIMEOUT, visited.length // not need to keep so many
         ? visited[Math.min(MAX_KEEP_ALIVE, visited.length - 1)] - 1000 : 0)
   }
-  const enum KKeep {
-    None = 0, NormalWoPorts = 3, NormalWithPorts = 4, NormalFresh = 5,
-    NormalRefreshed = 6, _mask = "", MIN_NORMAL = NormalWoPorts, MIN_HANDLED = NormalFresh,
-  }
   let typeOfFramesToKeep: KKeep & number = KKeep.None, framesToKeep: Frames.Frames | null = null
   const listToRelease: Frames.Frames[] = []
   framesForTab_.forEach((frames, tabId): void => {
     const ports = frames.ports_, portNum = ports.length
     if ((!Build.MV3 || OnFirefox || typeOfFramesToKeep > KKeep.NormalWoPorts) && !portNum) { return }
-    if (Build.MV3 && !OnFirefox && (typeOfFramesToKeep < KKeep.MIN_NORMAL
-        || portNum && typeOfFramesToKeep === KKeep.NormalWoPorts)) {
+    if (Build.MV3 && !OnFirefox && (!typeOfFramesToKeep || portNum && typeOfFramesToKeep === KKeep.NormalWoPorts)) {
       typeOfFramesToKeep = portNum ? KKeep.NormalWithPorts : KKeep.NormalWoPorts
       framesToKeep = frames
     }
@@ -642,7 +644,9 @@ const tryToKeepAlive = (rawNotFromInterval?: 1 | TimerType.fake): void => {
   if (lastKeptTabId_ === -1) {
   } else if (typeOfFramesToKeep < KKeep.MIN_HANDLED && typeOfFramesToKeep) {
     refreshPorts_(framesToKeep!, 0)
+    typeOfFramesToKeep = KKeep.NormalRefreshed
   }
+  return typeOfFramesToKeep
 }
 
 export const tryToKeepAliveIfNeeded_mv3_non_ff = (removedTabId: number): void => {
@@ -656,7 +660,7 @@ export const tryToKeepAliveIfNeeded_mv3_non_ff = (removedTabId: number): void =>
       return
     }
   }
-  const nextCheckTime = (RELEASE_TIMEOUT_IF_NO_ALIVE + 1 - (performance.now() % RELEASE_TIMEOUT_IF_NO_ALIVE)) | 0
+  const nextCheckTime = (ALIVE_TIMEOUT_IF_NO_ACTION + 1 - (performance.now() % ALIVE_TIMEOUT_IF_NO_ACTION)) | 0
   const toWait = nextCheckTime > 3_000 ? Math.max(1_000, nextCheckTime - 5_000) | 0
       : nextCheckTime > 1200 ? 0 : -1
   if (toWait < 0) {
@@ -729,7 +733,45 @@ export const waitForPorts_ = (frames: Frames.Frames | undefined, checkCur?: bool
   return defer.promise_
 }
 
-if (!OnChrome || Build.MinCVer >= BrowserVer.BuildMinForOf || CurCVer_ > BrowserVer.BuildMinForOf - 1) {
+if (Build.MV3 && !OnFirefox && kAliveIfOnlyAnyAction) {
+  setInterval((): void => {
+    if (true as boolean) {
+      browser_.storage.local.getBytesInUse((): void => { /* empty */ })
+      return
+    }
+    const findAlivePort = (ref: Frames.Frames | undefined): Port | null =>
+        !ref || !ref.ports_.length ? null : !(ref.cur_.s.flags_ & Frames.Flags.ResReleased) ? ref.cur_
+        : ref.top_ || ref.ports_[0]
+    const curTabId = curTabId_
+    const omniPort = framesForOmni_.find(i => i.s.tabId_ === curTabId)
+        || framesForOmni_.length && framesForOmni_[framesForOmni_.length - 1]
+    let port = omniPort
+        || findAlivePort(framesForTab_.get(curTabId))
+        || (lastKeptTabId_ !== curTabId_ && lastKeptTabId_>0 ? findAlivePort(framesForTab_.get(lastKeptTabId_)) : null)
+    if (!port) {
+      for (const frames of framesForTab_.values()) {
+        if (port = findAlivePort(frames)) {
+          break
+        }
+      }
+    }
+    if (!port && tryToKeepAlive(1) < KKeep.MIN_HANDLED) {
+      port = findAlivePort(framesForTab_.get(lastKeptTabId_))
+    }
+    if (port) {
+      if (!Build.NDEBUG && DEBUG) {
+        if (port === omniPort) {
+          console.log("[verbose] send alive message to omni port: tab=%o @ %o", port.s.tabId_, Date.now() % 9e5)
+        } else {
+          console.log("[verbose] send alive message to content port: tab=%o, frameId=%o, flags=%s @ %o"
+              , port.s.tabId_, port.s.frameId_, port.s.flags_, Date.now() % 9e5)
+        }
+      }
+      port.postMessage({ N: kBgReq.showHUD, H: null, k: 0, t: "" })
+    } else {
+      console.log("[warning] no available port to send alive message @ %o", Date.now() % 9e5)
+    }
+  }, ALIVE_TIMEOUT_IF_NO_ACTION * 0.8)  // in case that heavy background tasks takes up all CPU time
+} else if (!OnChrome || Build.MinCVer >= BrowserVer.BuildMinForOf || CurCVer_ > BrowserVer.BuildMinForOf - 1) {
   setInterval(tryToKeepAlive, RELEASE_TIMEOUT / 2)
 }
-Build.MV3 && !OnFirefox && (_timeoutToTryToKeepAliveOnce_mv3_non_ff = setTimeout(tryToKeepAlive, 22_000, 1))

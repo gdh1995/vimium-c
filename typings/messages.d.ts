@@ -205,7 +205,7 @@ interface BgVomnibarSpecialReq {
   [kBgReq.omni_runTeeTask]: Pick<BaseTeeTask, "t" | "s">
   [kBgReq.omni_refresh]: { /** destroy */ d: boolean }
 }
-type ValidBgVomnibarReq = keyof BgVomnibarSpecialReq | kBgReq.injectorRun;
+type ValidBgVomnibarReq = keyof BgVomnibarSpecialReq | kBgReq.injectorRun | /** to keep bg alive */ kBgReq.showHUD
 interface FullBgReq extends BgReq, BgVomnibarSpecialReq {}
 
 declare const enum kTeeTask { CopyImage = 1, ShowImage = 2, Paste = 3, Download = 4, Copy = 5, DrawAndCopy = 9 }

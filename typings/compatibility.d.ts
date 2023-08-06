@@ -603,6 +603,7 @@ declare const enum BrowserVer {
   MinMV3FaviconAPI = 104,
   MinURLPatternWith$ignoreCase = 107, // even if EXP or LEGACY
   MinMaybePopoverWith$popovershow = 109, // if EXP; use popovershow/popoverhide instead of toggle
+  MinBgWorkerAliveIfOnlyAnyAction = 110,
   MinCSAcceptWorldInManifest = 111, // even if EXP or LEGACY
   MinMaybePopoverToggleEvent = 112, // if EXP
   MinEnsuredPopover = 114, // even if LEGACY
