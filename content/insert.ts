@@ -209,7 +209,8 @@ export const exitInputHint = (): void => {
 export const resetInsert = (): void => {
   insert_last_ = lock_ = insert_global_ = null;
   is_last_mutable = 1;
-  exitGrab(); setupSuppress();
+  exitGrab()
+  setupSuppress()
 }
 
 export const onFocus = (event: Event | FocusEvent): void => {

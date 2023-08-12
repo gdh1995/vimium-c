@@ -108,7 +108,7 @@ const __myAwaiter = Build.BTypes & BrowserType.Chrome ? Build.MinCVer < BrowserV
   resume_()
   return promise.p
   function logDebugAndResolve(err: any): void {
-    if (!Build.NDEBUG) { console.log("Vimium C: an async function fails:", err) }
+    console.log("Vimium C: an async function fails:", err)
     resolveVoid()
   }
 }
