@@ -399,6 +399,10 @@ interface SetTimeout {
   <T1>(this: void, handler: (this: void, a1: T1) => void, timeout: number, a1: T1): number;
 }
 
+interface SetInterval {
+  <T1>(this: void, handler: (this: void, a1: T1) => void, timeout: number, a1: T1): number
+}
+
 interface IterableMap<K extends string | number, V> extends Map<K, V> {
   keys (): IterableIterator<K> & K[]
 }

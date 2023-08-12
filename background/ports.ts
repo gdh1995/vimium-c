@@ -1,7 +1,7 @@
 import {
   needIcon_, cPort, set_cPort, reqH_, contentPayload_, omniPayload_, innerCSS_, extAllowList_, framesForTab_, findCSS_,
   framesForOmni_, getNextFakeTabId, curTabId_, vomnibarPage_f, OnChrome, CurCVer_, OnEdge, setIcon_, lastKeptTabId_,
-  keyFSM_, mappedKeyRegistry_, CONST_, mappedKeyTypes_, recencyForTab_, setTeeTask_, OnFirefox, UseZhLang_,
+  keyFSM_, mappedKeyRegistry_, CONST_, mappedKeyTypes_, recencyForTab_, setTeeTask_, OnFirefox, UseZhLang_, blank_,
   set_lastKeptTabId_
 } from "./store"
 import { asyncIter_, deferPromise_, getOmniSecret_, isNotPriviledged, keys_ } from "./utils"
@@ -17,14 +17,15 @@ declare const enum KKeep {
   NormalRefreshed = 6, _mask = "", MIN_NORMAL = NormalWoPorts, MIN_HANDLED = NormalFresh,
 }
 
-const RELEASE_TIMEOUT = Build.NDEBUG ? 1000 * (60 * 4 + 48) : 1000 * 100
+const RELEASE_TIMEOUT = Build.NDEBUG ? 1000 * (60 * 4 + 48) as 288_000 : 1000 * 150 as 150_000
 const ALIVE_TIMEOUT_IF_NO_ACTION = 30_000
 const MAX_KEEP_ALIVE = Build.NDEBUG ? 5 : 2
+const DEBUG: BOOL | boolean = false
 
-const DEBUG: BOOL | boolean = true
 const kAliveIfOnlyAnyAction = Build.MV3 && OnChrome && (Build.MinCVer >= BrowserVer.MinBgWorkerAliveIfOnlyAnyAction
     || CurCVer_ > BrowserVer.MinBgWorkerAliveIfOnlyAnyAction - 1)
 let _timeoutToTryToKeepAliveOnce_mv3_non_ff = 0
+let _lastTimeToKeepContentAlive = 0
 
 const onMessage = <K extends keyof FgReq, T extends keyof FgRes> (request: Req.fg<K> | Req.fgWithRes<T>
     , port: Frames.Port): void => {
@@ -113,7 +114,7 @@ export const OnConnect = (port: Frames.Port, type: PortType): void => {
   if (type & PortType.reconnect) {
     if (!Build.NDEBUG && DEBUG) {
       console.log("on port reconnect: tab=%o, frameId=%o, frames.flag=%o, old-ports=%o @ %o"
-          , sender.tabId_, sender.frameId_, ref ? ref.flags_ : -1, ref ? ref.ports_.length : 0, Date.now() % 9e5)
+          , sender.tabId_, sender.frameId_, ref ? ref.flags_ : null, ref ? ref.ports_.length : -1, Date.now() % 9e5)
     }
     if (type & Frames.Flags.UrlUpdated) {
       port.postMessage({ N: kBgReq.reset, p: flags & Frames.Flags.locked ? passKeys : getExcluded_(url, sender)
@@ -170,7 +171,8 @@ const onDisconnect = (port: Port): void => {
   if (!port.s.frameId_) {
     if (i >= 0) {
       framesForTab_.delete(tabId)
-      if (Build.MV3 && !OnFirefox && tabId === lastKeptTabId_) { tryToKeepAliveIfNeeded_mv3_non_ff(tabId) }
+      Build.MV3 && !OnFirefox && !kAliveIfOnlyAnyAction && tabId === lastKeptTabId_
+          && tryToKeepAliveIfNeeded_mv3_non_ff(tabId)
     }
     return
   }
@@ -183,7 +185,8 @@ const onDisconnect = (port: Port): void => {
     if (!(ref.flags_ & Frames.Flags.ResReleased)) {
       framesForTab_.delete(tabId)
     }
-    if (Build.MV3 && !OnFirefox && tabId === lastKeptTabId_) { tryToKeepAliveIfNeeded_mv3_non_ff(tabId) }
+    Build.MV3 && !OnFirefox && !kAliveIfOnlyAnyAction && tabId === lastKeptTabId_
+        && tryToKeepAliveIfNeeded_mv3_non_ff(tabId)
   } else if (port === ref.cur_) {
     ref.cur_ = ports[0]
   }
@@ -277,12 +280,14 @@ const revokeOldPorts = (ports_: Frames.Port[]) => {
 }
 
 const _safeRefreshPort = (port: Port): void | /** failed */ 1 => {
+  (port.s.flags_ satisfies Frames.Flags) |= Frames.Flags.ResReleased
   try {
-    (port.s.flags_ satisfies Frames.Flags) |= Frames.Flags.ResReleased
     port.onDisconnect.removeListener(onDisconnect)
     port.postMessage({ N: kBgReq.refreshPort })
   } catch {
-    port.disconnect()
+    try {
+      port.disconnect()
+    } catch {}
     return 1
   }
 }
@@ -542,9 +547,9 @@ export const getParentFrame = (tabId: number, curFrameId: number, level: number)
   })
 }
 
-const tryToKeepAlive = (rawNotFromInterval?: 1 | TimerType.fake): KKeep | void => {
+const tryToKeepAlive = (rawNotFromInterval: BOOL): KKeep | void => {
   const now = performance.now(), isFromInterval = !Build.MV3 || OnFirefox || rawNotFromInterval !== 1
-  if (Build.MV3 && !OnFirefox && _timeoutToTryToKeepAliveOnce_mv3_non_ff) {
+  if (Build.MV3 && !OnFirefox && !kAliveIfOnlyAnyAction && _timeoutToTryToKeepAliveOnce_mv3_non_ff) {
     isFromInterval && clearTimeout(_timeoutToTryToKeepAliveOnce_mv3_non_ff)
     _timeoutToTryToKeepAliveOnce_mv3_non_ff = 0
   }
@@ -577,7 +582,7 @@ const tryToKeepAlive = (rawNotFromInterval?: 1 | TimerType.fake): KKeep | void =
       framesToKeep = frames
     }
     const mayRelease: Port[] = []
-    if (isFromInterval) for (const i of ports) {
+    for (const i of isFromInterval ? ports : []) {
       if (i.s.flags_ & Frames.Flags.OldEnough) {
         mayRelease.push(i)
       } else {
@@ -735,10 +740,6 @@ export const waitForPorts_ = (frames: Frames.Frames | undefined, checkCur?: bool
 
 if (Build.MV3 && !OnFirefox && kAliveIfOnlyAnyAction) {
   setInterval((): void => {
-    if (true as boolean) {
-      browser_.storage.local.getBytesInUse((): void => { /* empty */ })
-      return
-    }
     const findAlivePort = (ref: Frames.Frames | undefined): Port | null =>
         !ref || !ref.ports_.length ? null : !(ref.cur_.s.flags_ & Frames.Flags.ResReleased) ? ref.cur_
         : ref.top_ || ref.ports_[0]
@@ -758,6 +759,7 @@ if (Build.MV3 && !OnFirefox && kAliveIfOnlyAnyAction) {
     if (!port && tryToKeepAlive(1) < KKeep.MIN_HANDLED) {
       port = findAlivePort(framesForTab_.get(lastKeptTabId_))
     }
+    let posted = 0
     if (port) {
       if (!Build.NDEBUG && DEBUG) {
         if (port === omniPort) {
@@ -767,11 +769,20 @@ if (Build.MV3 && !OnFirefox && kAliveIfOnlyAnyAction) {
               , port.s.tabId_, port.s.frameId_, port.s.flags_, Date.now() % 9e5)
         }
       }
-      port.postMessage({ N: kBgReq.showHUD, H: null, k: 0, t: "" })
-    } else {
-      console.log("[warning] no available port to send alive message @ %o", Date.now() % 9e5)
+      posted = /*#__NOINLINE__*/ safePost(port, { N: kBgReq.showHUD, H: null, k: 0, t: "" })
+    }
+    if (!posted) {
+      if (!Build.NDEBUG && DEBUG) {
+        console.log("[warning] no available port to send alive message @ %o", Date.now() % 9e5)
+      }
+      browser_.storage.local.getBytesInUse(blank_)
+    }
+    const now = performance.now()
+    if (now - _lastTimeToKeepContentAlive > RELEASE_TIMEOUT / 2 - ALIVE_TIMEOUT_IF_NO_ACTION - 100) {
+      _lastTimeToKeepContentAlive = now
+      tryToKeepAlive(0)
     }
   }, ALIVE_TIMEOUT_IF_NO_ACTION * 0.8)  // in case that heavy background tasks takes up all CPU time
 } else if (!OnChrome || Build.MinCVer >= BrowserVer.BuildMinForOf || CurCVer_ > BrowserVer.BuildMinForOf - 1) {
-  setInterval(tryToKeepAlive, RELEASE_TIMEOUT / 2)
+  setInterval(tryToKeepAlive, RELEASE_TIMEOUT / 2, 0)
 }

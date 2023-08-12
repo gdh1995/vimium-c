@@ -683,7 +683,10 @@ let lastVisitTabTime = 0
   ; Tabs_.onRemoved.addListener((tabId): void => {
     const existing = framesForTab_.delete(tabId)
     cache.delete(tabId)
-    Build.MV3 && !OnFirefox && tabId === lastKeptTabId_ && existing && tryToKeepAliveIfNeeded_mv3_non_ff(tabId)
+    const kAliveIfOnlyAnyAction = Build.MV3 && OnChrome && (Build.MinCVer >= BrowserVer.MinBgWorkerAliveIfOnlyAnyAction
+        || CurCVer_ > BrowserVer.MinBgWorkerAliveIfOnlyAnyAction - 1)
+    Build.MV3 && !OnFirefox && !kAliveIfOnlyAnyAction && tabId === lastKeptTabId_ && existing
+        && tryToKeepAliveIfNeeded_mv3_non_ff(tabId)
   })
 
 void settings_.ready_.then((): void => {
