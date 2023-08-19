@@ -256,7 +256,7 @@
 		"v.d: vimium://show\\ $S Vimium C Display",
 		"v.dd: $S vimium://show re=/\\#\\!(\\w+)(?:\\+|%20| )download=([^&]*)&(.*)$/i",
 		"v.dd: vimium://show\\ $S{$1\\ download=$2&$+3} re= Vimium C Display",
-		"v.i: $S vimium://show image re=/^(?:\\+|%20| )(?:download=[^&]*&)?(.*)$/i",
+		"v.i: $S vimium://show image re=/^(?:\\+|%20| )(?:(?:download|src)=[^&]*&){0,2}(.*)$/i",
 		"v.i: vimium://show\\ image\\ auto=once&$S re= Vimium C Display",
 		"v.m: $S vimium://show url vimium://math re=/[\\.\\d][\\.\\d)]*|\\w+(?:\\([\\w\\.]+)?|[^\\w\\s]+/g",
 		"v.m|math|vimium\\://math|v.e|eval\\:|v\\://eval|vimium\\://eval: vimium://math\\ $S \\",

@@ -10,6 +10,7 @@ interface VDataTy {
   type: "image" | "url" | "text" | ""
   original: string;
   url: string;
+  rawSrc?: string
   file?: string;
   auto?: boolean | "once";
   pixel?: boolean
@@ -118,6 +119,8 @@ async function App (this: void): Promise<void> {
       file = decodeURLPart_(val).split(<RegExpOne> /\||\uff5c| [-\xb7] /, 1)[0].trim();
       file = file.replace(<RegExpG> /[\r\n"]/g, "");
       VData.file = file;
+    } else if (key === "src") {
+      VData.rawSrc = decodeURLPart_(val)
     } else {
       val = val.toLowerCase();
       if (key === "auto") {
@@ -154,8 +157,9 @@ async function App (this: void): Promise<void> {
   switch (type) {
   case "image":
     if (VData.auto) {
+      let usableSrc = (<RegExpI> /^(blob|data):/i).test(url.slice(0, 5)) && VData.rawSrc || url
       let newUrl = await parseClearImageUrl_(
-          useBG && await post_(kPgReq.substitute, [url, SedContext.image]) || url, url)
+          useBG && await post_(kPgReq.substitute, [usableSrc, SedContext.image]) || usableSrc, usableSrc)
       if (newUrl) {
         console.log("Auto predict a better URL:\n %o =>\n %o", url, newUrl);
         url = VData.url = newUrl;
@@ -499,6 +503,7 @@ function copyThing(event: EventToPrevent): void {
   if (VData.type === "image" && VData.url) {
     if (sel.type === "Range" && !VData.url.startsWith(location.protocol)) {
       // e.g. Ctrl+A and then Ctrl+C; work well with MS Word
+      if (VApi) { VApi.h(kTip.raw, 0, sTrans_("imgCopied", ["HTML"])) }
       return;
     }
     prevent_(event)
@@ -512,7 +517,7 @@ function copyThing(event: EventToPrevent): void {
       }).then(res => res.blob()).catch(() => (_copyStr(VData.url), 0 as const)
       ).then(blob => _shownBlob = blob),
       navClipPromise = blobPromise.then<0 | void>(blob => {
-        if (!blob) { return }
+        if (!blob) { return 0 }
         if (OnFirefox && !globalThis.ClipboardItem) { throw new Error("") } // dom.events.asyncClipboard.clipboardItem
         const kPngType = "image/png", item: { [mime: string]: Blob } = {
           // Chrome 79 refuses image/jpeg
@@ -533,13 +538,15 @@ function copyThing(event: EventToPrevent): void {
         return doWrite().catch(() => (delete item["text/html"], doWrite()))
       }),
       finalPromise = OnFirefox
-          ? navClipPromise.catch((): any => {
+          ? navClipPromise.catch((): PromiseOr<void> => {
             const clip = _shownBlob && (browser as typeof chrome).clipboard
-            return clip && (Build.MinFFVer < FirefoxBrowserVer.Min$Blob$$arrayBuffer
+            return clip ? (Build.MinFFVer < FirefoxBrowserVer.Min$Blob$$arrayBuffer
                   && !(_shownBlob as Blob).arrayBuffer ? new Response(_shownBlob as Blob) : _shownBlob as Blob
-                ).arrayBuffer().then(arr => clip.setImageData(arr, "png"))
+                ).arrayBuffer().then(arr => clip.setImageData(arr, "png")) : void 0
           }) : navClipPromise;
-      finalPromise.catch(ex => { console.log(ex); _copyStr(VData.url); });
+      finalPromise.then((result: void | 0) => {
+        if (VApi && result !== 0) { VApi.h(kTip.raw, 0, sTrans_("imgCopied", ["PNG"])) }
+      }, (ex): void => { console.log("On copy image:", ex); _copyStr(VData.url) })
       return;
     }
   }
@@ -702,7 +709,7 @@ async function parseClearImageUrl_(originUrl: string, stdUrl?: string): Promise<
   function safeParseURL(url1: string): URL | null { try { return new URL(url1); } catch {} return null; }
   const parsed = safeParseURL(originUrl);
   if (!parsed || !(<RegExpI> /^(ht|s?f)tp/i).test(parsed.protocol)) { return null; }
-  const {origin, pathname: path} = parsed;
+  let {origin, pathname: path} = parsed
   let search = parsed.search;
   function DecodeURLPart_(this: void, url1: string | undefined): string {
     try {
@@ -745,6 +752,13 @@ async function parseClearImageUrl_(originUrl: string, stdUrl?: string): Promise<
   let arr1: RegExpExecArray | null = null;
   if ((arr1 = (<RegExpOne> /[?&]s=\d{2,4}(&|$)/).exec(search)) && search.split("=").length <= 4) {
     return origin + path;
+  }
+  let secondFound = 0
+  for (const i of ["/revision/latest/scale-"]) {
+    if (path.includes(i)) {
+      path = path.split(i)[0]
+      secondFound = 1
+    }
   }
   search = path;
   let offset = search.lastIndexOf("/") + 1;
@@ -807,7 +821,7 @@ async function parseClearImageUrl_(originUrl: string, stdUrl?: string): Promise<
   } else {
     found = 0;
   }
-  return found !== 0 ? origin + path.slice(0, offset) + search
+  return found !== 0 ? origin + path.slice(0, offset) + search : secondFound ? origin + path
       : stdUrl !== originUrl ? originUrl : null;
 }
 
@@ -950,8 +964,8 @@ function recoverHash_(notUpdateHistoryState?: BOOL): void {
   }
   let url = "#!" + type + " "
       + (VData.incognito ? "incognito=1&" : "")
-      + (VData.file ? "download=" + encodeAsciiComponent_(VData.file)
-          + "&" : "")
+      + (VData.file ? "download=" + encodeAsciiComponent_(VData.file) + "&" : "")
+      + (VData.rawSrc ? "src=" + encodeAsciiComponent_(VData.rawSrc) + "&" : "")
       + (VData.auto ? "auto=" + (VData.auto === "once" ? "once" : 1) + "&" : "")
       + (VData.pixel ? "pixel=1&" : "")
       + VData.original;

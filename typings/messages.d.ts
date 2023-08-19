@@ -705,6 +705,7 @@ interface FgReq {
   } | { t: "e" }
   [kFgReq.openImage]: {
     /** file */ f: string | null;
+    /** raw source without drawing */ r?: string | null
     /** url */ u: string;
     /** other options */ t?: string;
     /** options for openUrl */ o?: ParsedOpenPageUrlOptions

@@ -166,7 +166,8 @@ const tryDrawOnCanvas = ((hudMsg: string | 0, req?: Req.fg<kFgReq.openImage | kF
   retPromise = defer0.p.then((dataUrl): void => {
     dataUrl = isTY(dataUrl, kTY.obj) ? dataUrl.target.result as string : dataUrl
     if (url || req) {
-      req && mode1_ - HintMode.COPY_IMAGE ? dataUrl && ((req as FgReq[kFgReq.openImage]).u = dataUrl)
+      req && mode1_ - HintMode.COPY_IMAGE
+      ? dataUrl && ((req as FgReq[kFgReq.openImage]).r = req.u, (req as FgReq[kFgReq.openImage]).u = dataUrl)
       : req = { H: kFgReq.copy, i: (dataUrl || "") as "data:" | "", u: url as string, r: richText }
       hintApi.p(req!)
     } else {

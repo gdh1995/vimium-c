@@ -466,12 +466,9 @@ export const openImgReq = (req: FgReq[kFgReq.openImage], port?: Port): void => {
     return
   }
   let prefix = CONST_.ShowPage_ + "#!image "
-  if (req.f) {
-    prefix += "download=" + BgUtils_.encodeAsciiComponent_(req.f) + "&"
-  }
-  if (req.a !== false) {
-    prefix += "auto=once&"
-  }
+  if (req.f) { prefix += "download=" + BgUtils_.encodeAsciiComponent_(req.f) + "&" }
+  if (req.r) { prefix += "src=" + BgUtils_.encodeAsciiComponent_(req.r) + "&" }
+  if (req.a !== false) { prefix += "auto=once&" }
   req.t && (prefix += req.t)
   const opts2: ParsedOpenPageUrlOptions = req.o || BgUtils_.safeObj_() as {}
   const exOut: InfoOnSed = {}, urlAfterSed = opts2.s ? substitute_(url, SedContext.paste, opts2.s, exOut) : url

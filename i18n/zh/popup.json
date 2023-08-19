@@ -53,6 +53,7 @@
   "Enable": "启用",
   "Once": "一次",
   "failInLoading": "（图片加载失败）",
+  "imgCopied": "已复制 $1 图片",
   "s1": "以下是截图：",
   "Close": "关闭",
   "none": "（空）",
