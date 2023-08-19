@@ -1736,19 +1736,19 @@ VUtils_ = {
   },
   ensureText_ (sug: SuggestionEx): ProtocolType {
     let { u: url, t: text } = sug, str = url.slice(0, 8).toLowerCase();
-    let i = str.startsWith("http://") ? ProtocolType.http : str === "https://" ? ProtocolType.https
-            : ProtocolType.others;
-    i >= url.length && (i = ProtocolType.others);
-    let wantScheme = !i;
-    if (i === ProtocolType.https) {
-      let j = url.indexOf("/", i);
+    let protocol = str.startsWith("http://") ? ProtocolType.http : str === "https://" ? ProtocolType.https
+        : ProtocolType.others
+    protocol >= url.length && (protocol = ProtocolType.others)
+    let wantScheme = !protocol;
+    if (protocol === ProtocolType.https) {
+      let j = url.indexOf("/", protocol);
       if (j > 0 ? j < url.length : /* domain has port */ (<RegExpOne> /:\d+\/?$/).test(url)) {
-        wantScheme = true;
+        wantScheme = sug.e !== "search" || !!text && url.lastIndexOf(text, 8) === 8
       }
     }
     if (!text) {
-      text = !wantScheme && i ? url.slice(i) : url;
-    } else if (i) {
+      text = !wantScheme && protocol ? url.slice(protocol) : url
+    } else if (protocol) {
       if (wantScheme && !text.startsWith(str)) {
         text = str + text;
       }
@@ -1761,7 +1761,7 @@ VUtils_ = {
       (sug as Writable<typeof sug>).title = str.replace(<RegExpG> /<\/?match[^>]*?>/g, "").replace(
           <RegExpG & RegExpSearchable<1>> /&(amp|apos|gt|lt|quot);|\u2026/g, VUtils_.onHTMLEntity);
     }
-    return i;
+    return protocol
   },
   onHTMLEntity (_s0: string, str: string): string {
     return str === "amp" ? "&" : str === "apos" ? "'" : str === "quot" ? '"'

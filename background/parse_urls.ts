@@ -328,7 +328,7 @@ export const parseSearchEngines_ = (str: string, map: Map<string, Search.Engine>
   let ids: string[], tmpRule: Search.TmpRule | null, tmpKey: Search.Rule["delimiter_"],
   key: string, obj: Search.RawEngine,
   ind: number, rules: Search.Rule[] = [], re = searchWordRe_,
-  rSpace = <RegExpOne> /\s/,
+  reWhiteSpace = <RegExpOne> /\s/,
   func = (function (k: string): boolean {
     return (k = k.trim()) && !(OnChrome && Build.MinCVer < BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol
         && k === "__proto__") && k.length < Consts.MinInvalidLengthOfSearchKey
@@ -347,14 +347,14 @@ export const parseSearchEngines_ = (str: string, map: Map<string, Search.Engine>
     val = val.slice(ind + 1).trimLeft();
     if (!val) { continue; }
     key = val.replace(<RegExpG & RegExpSearchable<0>> /\\\s/g, "\\s");
-    ind = key.search(rSpace);
+    ind = key.search(reWhiteSpace)
     let blank = "";
-    if (ind > 0) {
+    if (ind >= 0) {
       str = val.slice(ind);
       val = key.slice(0, ind);
       ind = str.search(<RegExpI & RegExpSearchable<0>> /\sblank=/i);
       if (ind >= 0) {
-        let ind2 = str.slice(ind + 7).search(rSpace);
+        let ind2 = str.slice(ind + 7).search(reWhiteSpace)
         ind2 = ind2 > 0 ? ind + 7 + ind2 : 0;
         blank = str.slice(ind + 7, ind2 || void 0);
         str = str.slice(0, ind) + (ind2 ? str.slice(ind2) : "");
@@ -408,7 +408,7 @@ export const parseSearchEngines_ = (str: string, map: Map<string, Search.Engine>
           });
         }
       }
-    } else if (str.charAt(ind + 4) && !rSpace.test(str.charAt(ind + 4))) {
+    } else if (str.charAt(ind + 4) && !reWhiteSpace.test(str.charAt(ind + 4))) {
       key = ind > 1 ? str.slice(1, ind).trim() : "";
       const useSlash = str.charCodeAt(ind + 4) === kCharCode.slash
       if (useSlash) {
@@ -416,11 +416,11 @@ export const parseSearchEngines_ = (str: string, map: Map<string, Search.Engine>
         ind = str.search(<RegExpOne> /[^\\]\//) + 1;
       } else {
         str = str.slice(ind + 4)
-        ind = str.search(rSpace)
+        ind = str.search(reWhiteSpace)
       }
       val = str.slice(0, ind);
       str = str.slice(useSlash ? ind + 1 : ind)
-      ind = str.search(rSpace);
+      ind = str.search(reWhiteSpace)
       const tmpKey2 = BgUtils_.makeRegexp_(val, useSlash ? ind >= 0 ? str.slice(0, ind) : str : "")
       if (tmpKey2) {
         key = prepareReParsingPrefix_(key);
@@ -428,6 +428,8 @@ export const parseSearchEngines_ = (str: string, map: Map<string, Search.Engine>
             delimiter_: obj.url_.lastIndexOf("$S") >= 0 ? " " : "+"});
       }
       str = ind >= 0 ? str.slice(ind + 1) : "";
+    } else {
+      str = str.slice(ind + 4)
     }
     str = str.trimLeft();
     obj.name_ = str ? BgUtils_.DecodeURLPart_(str) : ids[ids.length - 1].trimLeft();
