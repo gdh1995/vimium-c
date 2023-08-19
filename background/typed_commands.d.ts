@@ -161,7 +161,8 @@ interface BgCmdOptions {
   [kBgCmd.toggleMuteTab]: { all: boolean; currentWindow?: boolean; others: boolean; other: boolean; mute: boolean }
       & TabFilterOptions & Req.FallbackOptions
   [kBgCmd.togglePinTab]: LimitedRangeOptions & TabFilterOptions & Req.FallbackOptions
-  [kBgCmd.toggleTabUrl]: { keyword: string; parsed: string; reader: boolean } & OpenUrlOptions
+  [kBgCmd.toggleTabUrl]: { keyword: string; parsed: string; reader: boolean; viewSource: boolean
+      } & OpenUrlOptions & MasksForOpenUrl
   [kBgCmd.toggleVomnibarStyle]: { style: string; current: boolean }
   [kBgCmd.toggleZoom]: { level: number; in?: true; out?: true; reset?: true; min: number; max: number }
   [kBgCmd.visitPreviousTab]: { acrossWindows: true; onlyActive: true } & TabFilterOptions & MoveTabOptions
@@ -202,8 +203,8 @@ type UnknownOptions<K extends keyof BgCmdOptions> = {
 }
 
 interface MasksForOpenUrl extends MaskOptions {
-  url_mask: string
-  /** (deprecated) */ url_mark: string
+  url_mask: string | boolean
+  /** (deprecated) */ url_mark: string | boolean
   host_mask: string; host_mark: string
   tabid_mask: string; tabId_mask: string; tabid_mark: string; tabId_mark: string
   title_mask: string; title_mark: string
@@ -384,9 +385,9 @@ interface CmdNameIds {
   autoOpen: kFgCmd.autoOpen
   blank: kBgCmd.blank
   captureTab: kBgCmd.captureTab
-  clearCS: kBgCmd.clearCS
   clearContentSetting: kBgCmd.clearCS
   clearContentSettings: kBgCmd.clearCS
+  clearCS: kBgCmd.clearCS
   clearFindHistory: kBgCmd.clearFindHistory
   closeDownloadBar: kBgCmd.closeDownloadBar
   closeOtherTabs: kBgCmd.removeTabsR
@@ -403,8 +404,8 @@ interface CmdNameIds {
   dispatchEvent: kBgCmd.dispatchEventCmd
   duplicateTab: kBgCmd.duplicateTab
   editText: kFgCmd.editText
-  enableCSTemp: kBgCmd.toggleCS
   enableContentSettingTemp: kBgCmd.toggleCS
+  enableCSTemp: kBgCmd.toggleCS
   enterFindMode: kBgCmd.performFind
   enterInsertMode: kBgCmd.insertMode
   enterVisualLineMode: kBgCmd.visualMode
@@ -472,21 +473,22 @@ interface CmdNameIds {
   searchInAnother: kBgCmd.searchInAnother
   sendToExtension: kBgCmd.sendToExtension
   showHelp: kBgCmd.showHelp
-  showHUD: kBgCmd.showHUD
   showHud: kBgCmd.showHUD
+  showHUD: kBgCmd.showHUD
   showTip: kBgCmd.showHUD
   simBackspace: kFgCmd.focusInput
   simulateBackspace: kFgCmd.focusInput
   sortTabs: kBgCmd.joinTabs
   switchFocus: kFgCmd.focusInput
-  toggleCS: kBgCmd.toggleCS
   toggleContentSetting: kBgCmd.toggleCS
+  toggleCS: kBgCmd.toggleCS
   toggleLinkHintCharacters: kBgCmd.toggle
   toggleMuteTab: kBgCmd.toggleMuteTab
   togglePinTab: kBgCmd.togglePinTab
   toggleReaderMode: kBgCmd.toggleTabUrl
   toggleStyle: kFgCmd.toggleStyle
   toggleSwitchTemp: kBgCmd.toggle
+  toggleUrl: kBgCmd.toggleTabUrl
   toggleViewSource: kBgCmd.toggleTabUrl
   toggleVomnibarStyle: kBgCmd.toggleVomnibarStyle
   toggleWindow: kBgCmd.toggleWindow

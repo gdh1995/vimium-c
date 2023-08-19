@@ -264,6 +264,7 @@ const commandGroups_: {
     , "zoomIn", 1
     , "zoomOut", 1
     , "zoomReset", 1
+    , "toggleUrl", 1
     , "toggleViewSource", 1
     , "copyCurrentUrl", "$type=url/title/frame, decoded"
     , "copyCurrentTitle"

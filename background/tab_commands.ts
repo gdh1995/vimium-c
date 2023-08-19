@@ -771,6 +771,10 @@ export const toggleTabUrl = (tabs: [Tab], resolve: OnCmdResolved): void | kBgCmd
     }
     return
   }
+  if (!get_cOptions<C.toggleTabUrl>().viewSource) {
+    openUrlWithActions("$S", Urls.WorkType.EvenAffectStatus, true, tabs)
+    return
+  }
   url = url.startsWith("view-source:") ? url.slice(12) : ("view-source:" + url)
   openUrlWithActions(url, Urls.WorkType.FakeType, true, tabs)
 }
