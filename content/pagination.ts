@@ -21,6 +21,7 @@ export const isInteractiveInPage = (element: SafeElement): boolean => {
   let rect: ClientRect
   return (rect = getBoundingClientRect_(element)).width > 2 && rect.height > 2
       && (isStyleVisible_(element) || !!(evenHidden_ & kHidden.VisibilityHidden))
+      || !!(evenHidden_ & kHidden.Size0)
 }
 
 export const filterTextToGoNext: VApiTy["g"] = (candidates, names, options, maxLen): number => {

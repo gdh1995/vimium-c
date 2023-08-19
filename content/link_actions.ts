@@ -95,7 +95,8 @@ const tryDrawOnCanvas = ((hudMsg: string | 0, req?: Req.fg<kFgReq.openImage | kF
           && !urlSameIgnoringHash(url, locHref()) || OnFirefox && req && hasKeyword_ff
         || !OnFirefox && parsed.pathname.endsWith(".gif") && !richText.includes("force")) {
       r1(0)
-    } else if (isHtmlImage && urlSameIgnoringHash(url, getMediaUrl(img, 2)) && (sameOrigin || img.crossOrigin)) {
+    } else if (isHtmlImage && urlSameIgnoringHash(url, getMediaUrl(img, 2)) && (sameOrigin || img.crossOrigin)
+        && img.naturalWidth) {
       r1(1)
     } else if(sameOrigin || isInIncognito) {
       timer1 = timeout_(r1, 9000)

@@ -44,7 +44,7 @@ interface ParsedSearch {
 
 declare const enum kAria { hidden = 0, disabled = 1, hasPopup = 2 }
 declare const enum kHidden {
-  None = 0, VisibilityHidden = 1, OverflowHidden = 2,
+  None = 0, VisibilityHidden = 1, OverflowHidden = 2, Size0 = 4,
   BASE_ARIA = 16, AriaHidden = BASE_ARIA << kAria.hidden, AriaDisabled = BASE_ARIA << kAria.disabled,
 }
 // Note: `clickable` is not used in `focusInput`
