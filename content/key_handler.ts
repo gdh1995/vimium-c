@@ -62,7 +62,7 @@ export const inheritKeyMappings = (newState: ReturnType<VApiTy["y"]>): void => {
   }
 }
 
-set_getMappedKey((eventWrapper: HandlerNS.Event, mode: kModeId): ReturnType<typeof getMappedKey> => {
+set_getMappedKey(((eventWrapper: HandlerNS.Event, mode: kModeId): string => {
   const char: kChar | "" = eventWrapper.v ? ""
       : !OnEdge && mode > kModeId.MIN_EXPECT_ASCII - 1 && mode < kModeId.MIN_NOT_EXPECT_ASCII
         && fgCache.l & kKeyLayout.inCmdIgnoreIfNotASCII ? char_(eventWrapper, kKeyLayout.inCmdIgnoreIfNotASCII)
@@ -78,7 +78,7 @@ set_getMappedKey((eventWrapper: HandlerNS.Event, mode: kModeId): ReturnType<type
       console.error(`Assert error: mapKey get an invalid char of "${char}" !`);
     }
     key = isLong || mod ? mod + chLower : char;
-    if (mappedKeys && mode < kModeId.NO_MAP_KEY_EVEN_MAY_IGNORE_LAYOUT) {
+    if (mappedKeys && mode < kModeId.NO_MAP_KEY_BUT_MAY_IGNORE_LAYOUT) {
       mapped = mapKeyTypes & (mode > kModeId.Insert ? kMapKey.otherMode : mode)
           && mappedKeys[key + ":" + GlobalConsts.ModeIds[mode]]
           || (mapKeyTypes & kMapKey.plain ? mappedKeys[key] : "")
@@ -91,7 +91,7 @@ set_getMappedKey((eventWrapper: HandlerNS.Event, mode: kModeId): ReturnType<type
     }
   }
   return key;
-})
+}) satisfies typeof getMappedKey)
 
 export const checkKey = ((event: HandlerNS.Event, key: string
     , /** 0 means normal; 1 means (plain) insert; 2 means on-top normal */ modeType?: BOOL
