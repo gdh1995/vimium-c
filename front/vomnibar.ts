@@ -626,8 +626,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         a.inAlt_ && a.toggleAlt_(0);
     }
     if (mainModifier && mainModifier < "s" && focused) {
-      if ((char === kChar.left || char === kChar.right) // always modify selection by words
-          && (Build.OS === kBOS.MAC as number || Build.OS & kBOS.MAC && !a.os_ || !key.includes("m-"))) {
+      if ((char === kChar.left || char === kChar.right) && !key.includes("m-")) {
         action = (key.includes("s-") ? char > kChar.r ? kCharCode.G : kCharCode.H
             : char > kChar.r ? kCharCode.F : kKeyCode.B) - kCharCode.maxNotAlphabet
         if (Build.BTypes & BrowserType.Chrome && (Build.BTypes === BrowserType.Chrome as number
