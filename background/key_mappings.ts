@@ -245,13 +245,14 @@ export const getNextOnIfElse_ = (lines: string[], start: number): number => {
 const toKeyInInsert = (key: string) => `<${key.slice(1, -1) + ":" + GlobalConsts.InsertModeId}>`
 
 const parseKeyMappings_ = (wholeMappings: string): void => {
-    let lines: string[], mk = 0, _i = 0, key2: string | undefined
+    let lines: string[], _i = 0, key2: string | undefined
       , _len: number, details: CommandsNS.Description | undefined, tmpInt: number
       , registry = new Map<string, CommandsNS.Item>()
       , cmdMap: typeof shortcutRegistry_ = new Map(), envMap: typeof envRegistry_ = null
       , regItem: CommandsNS.Item | null, options: ReturnType<typeof getOptions_>
       , noCheck = false, builtinToAdd: string[] | null | 0 = null
-      , mkReg = BgUtils_.safeObj_<string>();
+      , mkReg: SafeDict<string> | null = null, omniMkReg: SafeDict<string> | null = null
+      , useOmniMk: boolean, curMkReg: SafeDict<string> | null
     const colorRed = "color:red", shortcutLogPrefix = 'Shortcut %c"%s"';
     nonNumList_ = null
     lines = wholeMappings.replace(<RegExpSearchable<0>> /\\(?:\n|\\\n[^\S\n]*)/g, ""
@@ -314,8 +315,8 @@ const parseKeyMappings_ = (wholeMappings: string): void => {
         }
         break
       case "unmapAll": case "unmapall":
-        registry = new Map(), cmdMap = new Map(), envMap = null, nonNumList_ = null
-        mkReg = BgUtils_.safeObj_<string>(), mk = builtinToAdd = 0
+        registry = new Map(), cmdMap = new Map()
+        envMap = nonNumList_ = mkReg = omniMkReg = null, builtinToAdd = 0
         if (errors_) {
           logError_("All key mappings is unmapped, but there %s been %c%d error%s%c before this instruction"
               , errors_.length > 1 ? "have" : "has"
@@ -323,6 +324,8 @@ const parseKeyMappings_ = (wholeMappings: string): void => {
         }
         break
       case "mapKey": case "mapkey":
+        useOmniMk = key.length > 1 && key.slice(-3, -1) === ":" + GlobalConsts.OmniModeId
+        curMkReg = useOmniMk ? omniMkReg : mkReg
         if (noCheck) { key2 = stripKey_(key) }
         else if (!val || line.length > knownLen
             && !(<RegExpOne> /^(#|\/\/|\$if=\{)/).test(line.slice(knownLen).trimLeft())) {
@@ -331,14 +334,14 @@ const parseKeyMappings_ = (wholeMappings: string): void => {
           logError_("mapKey: a source key should be a single key with an optional mode id:", line)
         } else if (val.length > 1 && !(<RegExpOne> /^<(?!<|__proto__>)([a-z]-){0,4}.\w*>$/).test(val)) {
           logError_("mapKey: a target key should be a single key:", line)
-        } else if (key2 = stripKey_(key), key2 in mkReg && mkReg[key2] !== stripKey_(val)) {
+        } else if (key2 = stripKey_(key), curMkReg && key2 in curMkReg && curMkReg[key2] !== stripKey_(val)) {
           if (nonNumList_ && nonNumList_.has(key2[0]) && key2.slice(1) === ":" + GlobalConsts.NormalModeId) {
             if (doesMatchEnv_(getOptions_(line, knownLen)) !== false) {
               logError_("`mapKey %s` and `unmap %s...` can not be used at the same time", key, key2[0])
             }
           } else if (!hasIfOption(line, knownLen)) {
             logError_('The key %c"%s"', colorRed, key, "has been mapped to another key:"
-                , mkReg[key2]!.length > 1 ? `<${mkReg[key2]!}>` : mkReg[key2]!)
+                , curMkReg![key2]!.length > 1 ? `<${curMkReg![key2]!}>` : curMkReg![key2]!)
           } else {
             doesPass = true
           }
@@ -346,8 +349,14 @@ const parseKeyMappings_ = (wholeMappings: string): void => {
           doesPass = true
         }
         if (doesPass && doesMatchEnv_(getOptions_(line, knownLen)) !== false) {
-          mkReg[key2!] = stripKey_(val)
-          mk = 1;
+          if (!curMkReg) {
+            curMkReg = BgUtils_.safeObj_<string>()
+            useOmniMk ? omniMkReg = curMkReg : mkReg = curMkReg
+          }
+          curMkReg[key2!] = stripKey_(val)
+          if (key2!.length < 2 || key2!.slice(-2, -1) !== ":") {
+            (omniMkReg || (omniMkReg = BgUtils_.safeObj_<string>()))[key2!] = stripKey_(val)
+          }
         }
         break
       case "shortcut": case "command":
@@ -401,15 +410,15 @@ const parseKeyMappings_ = (wholeMappings: string): void => {
         } else if (key.length === 1 ? (key >= "0" && key < kChar.minNotNum || key[0] === kChar.minus)
             : stripKey_(key) === kChar.esc || key === "<c-[>") {
           if (key2 = stripKey_(key) + ":" + GlobalConsts.NormalModeId,
-              key2 in mkReg && mkReg[key2] !== GlobalConsts.ForcedMapNum + key) {
+              mkReg && key2 in mkReg && mkReg[key2] !== GlobalConsts.ForcedMapNum + key) {
             logError_("`unmap %s...` and `mapKey <%s>` can not be used at the same time", key, key2)
           } else if (key.length === 1 && nonNumList_ && nonNumList_.has(key)) {
             cmd.length !== 6 && logError_('Number prefix: %c"%s"', colorRed, key, "has been unmapped")
           } else {
             key.length === 1 && (nonNumList_ || (nonNumList_ = new Set!())).add(key)
+            mkReg || (mkReg = BgUtils_.safeObj_<string>())
             mkReg[key2] = GlobalConsts.ForcedMapNum + (key.length === 1 ? key : key[1] === "e" ? kChar.esc : "[")
             key.length > 1 && (mkReg[key2.slice(0, -1) + GlobalConsts.InsertModeId] = mkReg[key2])
-            mk = 1
           }
         } else if (cmd.length !== 6) {
           logError_('Unmap: %c"%s"', colorRed, key, "has not been mapped")
@@ -438,7 +447,8 @@ const parseKeyMappings_ = (wholeMappings: string): void => {
     set_keyToCommandMap_(registry)
     shortcutRegistry_ = cmdMap
     envRegistry_ = envMap
-    set_mappedKeyRegistry_(omniPayload_.m = mk ? mkReg : null)
+    set_mappedKeyRegistry_(mkReg)
+    omniPayload_.m = omniMkReg
 }
 
 const setupShortcut_ = (cmdMap: NonNullable<typeof shortcutRegistry_>, key: StandardShortcutNames
@@ -898,13 +908,15 @@ if (bgIniting_ & BackendHandlersNS.kInitStat.settings) {
 }
 
 updateHooks_.keyMappings = (value: string | null): void => {
-  const oldMappedKeys = mappedKeyRegistry_, oldFSM = keyFSM_
+  const oldMappedKeys = mappedKeyRegistry_, oldOmniMapKeys = omniPayload_.m, oldFSM = keyFSM_
   populateKeyMap_(value)
-  const f = JSON.stringify, curMapped = mappedKeyRegistry_,
+  const f = JSON.stringify, curMapped = mappedKeyRegistry_, curOmniMapped = omniPayload_.m,
   updatesInKeyFSM = !!oldFSM && f(keyFSM_) !== f(oldFSM),
   updatesInMappedKeys = oldMappedKeys ? !curMapped || f(oldMappedKeys) !== f(curMapped) : !!oldFSM && !!curMapped;
   (updatesInMappedKeys || updatesInKeyFSM) && settings_.broadcast_({
     N: kBgReq.keyFSM, m: mappedKeyRegistry_, t: mappedKeyTypes_, k: updatesInKeyFSM ? keyFSM_ : null
   });
-  updatesInMappedKeys && settings_.broadcastOmni_({ N: kBgReq.omni_updateOptions, d: { m: mappedKeyRegistry_ } })
+  if (oldOmniMapKeys ? !curOmniMapped || f(oldOmniMapKeys) !== f(curOmniMapped) : curOmniMapped) {
+    settings_.broadcastOmni_({ N: kBgReq.omni_updateOptions, d: { m: curOmniMapped } })
+  }
 };
