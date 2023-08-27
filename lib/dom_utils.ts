@@ -617,12 +617,12 @@ export function set_createElement_ (_newCreateEl: typeof createElement_): void {
 
 export const appendNode_s = (parent: SafeElement | Document | DocumentFragment
     , child: Element | DocumentFragment | Text): void => {
-  OnChrome && Build.MinCVer < BrowserVer.MinEnsured$ParentNode$$appendAndPrepend
+  Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$ParentNode$$appendAndPrepend
       ? parent.appendChild(child) : parent.append!(child) // lgtm [js/xss] lgtm [js/xss-through-dom]
 }
 
 export const append_not_ff = !OnFirefox ? (parent: Element, child: HTMLElement): void => {
-  (OnChrome && Build.MinCVer < BrowserVer.MinEnsured$ParentNode$$appendAndPrepend
+  (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsured$ParentNode$$appendAndPrepend
       ? ElementProto_not_ff!.appendChild : ElementProto_not_ff!.append!).call(parent, child)
 } : 0 as never
 

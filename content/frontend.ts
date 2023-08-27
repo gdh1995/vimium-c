@@ -6,7 +6,7 @@ import {
 } from "../lib/utils"
 import { suppressTail_, getMappedKey } from "../lib/keyboard_utils"
 import {
-  frameElement_, runJS_, OnDocLoaded_, set_OnDocLoaded_, onReadyState_, set_onReadyState_,
+  frameElement_, runJS_, OnDocLoaded_, set_OnDocLoaded_, onReadyState_, set_onReadyState_, isHTML_,
 } from "../lib/dom_utils"
 import { wndSize_ } from "../lib/rect"
 import {
@@ -30,6 +30,7 @@ import { hudTip } from "./hud"
 
 const docReadyListeners: Array<(this: void) => void> = []
 let completeListeners: Array<(this: void) => void> = []
+let oldHasVC: boolean = false
 
 set_OnDocLoaded_((callback, onloaded): ReturnType<typeof OnDocLoaded_> => {
   readyState_ > "l" || readyState_ > "i" && onloaded
@@ -146,7 +147,9 @@ if (OnFirefox && isAsContent) {
     })
     // on Firefox, such an exposed function can only be called from privileged environments
     try {
-      raw_unwrap_ff(window as XrayedObject<WindowWithGetter>)![name] = getterWrapper
+      const wnd = raw_unwrap_ff(window as XrayedObject<WindowWithGetter>)!
+      oldHasVC = !grabBackFocus && isHTML_() && !!wnd[name]
+      wnd[name] = getterWrapper
     } catch { // if window[name] is not configurable
       set_getWndVApi_ff((): void => { /* empty */ })
     }
@@ -221,7 +224,7 @@ if (isAlive_) {
 
   if (isAsContent) {
     if (OnFirefox) {
-      /*#__INLINE__*/ extend_click_ff()
+      /*#__INLINE__*/ extend_click_ff(oldHasVC)
     } else {
       ec_main_not_ff()
     }

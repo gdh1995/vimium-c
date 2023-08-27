@@ -3,11 +3,13 @@ import {
   isTY, OnFirefox, isAsContent, isEnabled_, reflectApply_not_cr, fgCache, abs_
 } from "../lib/utils"
 import {
-  CLK, MDW, OnDocLoaded_, isHTML_, set_createElement_, createElement_, onReadyState_, dispatchAsync_
+  CLK, MDW, OnDocLoaded_, isHTML_, set_createElement_, createElement_, onReadyState_, dispatchAsync_, docEl_unsafe_,
+  appendNode_s, removeEl_s
 } from "../lib/dom_utils"
 import { grabBackFocus, insertInit } from "./insert"
 import { HookAction, hookOnWnd } from "./port"
 import { coreHints, doesWantToReloadLinkHints, hintOptions, reinitLinkHintsIn } from "./link_hints"
+import { noopHandler } from "./key_handler"
 /* eslint-disable @typescript-eslint/await-thenable */
 
 declare function exportFunction(func: unknown, targetScope: object
@@ -26,11 +28,8 @@ const eportToMainWorld = <T extends object, K extends (keyof T) & string> (obj: 
   exportFunction(func, obj, { defineAs: name, allowCrossOriginArguments: true })
 }
 
-export const main_ff = (OnFirefox ? (): void => {
-  isHTML_() || set_createElement_(doc.createElementNS.bind(doc, VTr(kTip.XHTML) as "http://www.w3.org/1999/xhtml"
-      ) as typeof createElement_)
-  if (!grabBackFocus) { return }
-(function (): void {
+export const main_ff = (OnFirefox ? (ecOut_oldHasVC: boolean): void => {
+(function (oldHasVC: boolean | 2): void {
   const enum InnerConsts {
     DelayForNext = 36,
   }
@@ -93,6 +92,8 @@ export const main_ff = (OnFirefox ? (): void => {
   let _listen: EventTarget["addEventListener"] | undefined
   let listen: (self: EventTarget, name: string
       , listener: EventListenerOrEventListenerObject, opts?: EventListenerOptions | boolean) => void
+  isHTML_() || set_createElement_(doc.createElementNS.bind(doc, VTr(kTip.XHTML) as "http://www.w3.org/1999/xhtml"
+      ) as typeof createElement_)
   try {
     _listen = wrappedET && wrappedET.addEventListener
     listen = setupEventListener.call.bind<(this: (this: EventTarget,
@@ -102,10 +103,18 @@ export const main_ff = (OnFirefox ? (): void => {
           opts?: EventListenerOptions | boolean
         ) => 42 | void>(_listen!)
     if (alive = isTY(_listen, kTY.func)) {
+      if (!grabBackFocus) {
+        if (oldHasVC && newListen.toString.call(_listen) === ETCls!.addEventListener + "") {
+          oldHasVC = 2
+          _listen(CLK, noopHandler as any)
+          setupEventListener(0, CLK, noopHandler, 1)
+        }
+      } else {
         eportToMainWorld(ETCls!, _listen.name as "addEventListener", newListen)
-        eportToMainWorld(DocCls, _docOpen.name as "open", newDocOpen)
-        eportToMainWorld(DocCls, _docWrite.name as "write", newDocWrite)
+        eportToMainWorld(DocCls, "open", newDocOpen)
+        eportToMainWorld(DocCls, "write", newDocWrite)
         vApi.e = (cmd: ValidContentCommands): void => { alive = alive && cmd < kContentCmd._minSuppressClickable }
+      }
     }
     OnDocLoaded_((): void => {
         timeout_(function (): void {
@@ -114,10 +123,31 @@ export const main_ff = (OnFirefox ? (): void => {
         }, GlobalConsts.ExtendClick_EndTimeOfAutoReloadLinkHints)
     }, 1)
   } catch (e) {
-    Build.NDEBUG || (recordLog("Vimium C: extending click crashed in %o @t=%o .")(), console.log(e))
+    if (oldHasVC === 2) {
+      const iframe = createElement_("iframe")
+      try {
+        appendNode_s(docEl_unsafe_()! as SafeElement, iframe)
+        const wnd2 = iframe.contentWindow as {} as typeof globalThis
+        const ETProto2 = raw_unwrap_ff(wnd2.EventTarget.prototype)!
+        const DocProto2 = raw_unwrap_ff(wnd2.Document.prototype) as unknown as typeof DocCls
+        eportToMainWorld(ETCls!, "addEventListener", ETProto2.addEventListener)
+        eportToMainWorld(DocCls, "open", DocProto2.open)
+        eportToMainWorld(DocCls, "write", DocProto2.write)
+        ; raw_unwrap_ff(window as any).test1 = new window.WeakSet!()
+        ; raw_unwrap_ff(window as any).test1.add(wnd2)
+        ; raw_unwrap_ff(window as any).test1.add(ETProto2)
+        ; raw_unwrap_ff(window as any).test1.add(DocProto2)
+      } catch (e2: any) {
+        Build.NDEBUG || (recordLog("Vimium C: can not restore addEventListener in %o @t=%o .")()
+          , console.log(e2, e2.stack))
+      }
+      removeEl_s(iframe)
+    } else {
+      Build.NDEBUG || (recordLog("Vimium C: extending click crashed in %o @t=%o .")(), console.log(e))
+    }
   }
-})()
-} : 0 as never) as () => void
+})(ecOut_oldHasVC)
+} : 0 as never) as (ecOut_oldHasVC: boolean) => void
 
 export const unblockClick_old_ff = (): void => {
   let notDuringAct: BOOL
