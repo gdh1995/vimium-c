@@ -50,7 +50,6 @@ export const main_ff = (OnFirefox ? (ecOut_oldHasVC: boolean): void => {
       }
   },
   DocCls = Document.prototype as unknown as { open (): void, write (markup: string): void },
-  _docOpen = DocCls.open, _docWrite = DocCls.write,
   docOpenHook = (isWrite: BOOL, self: unknown, args: IArguments): void => {
     const first = doc.readyState < "l" && (isWrite || args.length < 3) && self === doc
     const oriHref = Build.NDEBUG || !first ? "" : location.host && location.pathname || location.href
@@ -89,27 +88,42 @@ export const main_ff = (OnFirefox ? (ecOut_oldHasVC: boolean): void => {
   }
   let alive = false, timer: ValidTimeoutID = TimerID.None, resolved = 0, counterResolvePath = 0
   let reHookTimes = 0
-  let _listen: EventTarget["addEventListener"] | undefined
+  let _listen: EventTarget["addEventListener"] | undefined, _docOpen = DocCls.open, _docWrite = DocCls.write
   let listen: (self: EventTarget, name: string
       , listener: EventListenerOrEventListenerObject, opts?: EventListenerOptions | boolean) => void
   isHTML_() || set_createElement_(doc.createElementNS.bind(doc, VTr(kTip.XHTML) as "http://www.w3.org/1999/xhtml"
       ) as typeof createElement_)
   try {
     _listen = wrappedET && wrappedET.addEventListener
-    listen = setupEventListener.call.bind<(this: (this: EventTarget,
-            type: string, listener: EventListenerOrEventListenerObject, useCapture?: EventListenerOptions | boolean
-          ) => 42 | void,
-          self: EventTarget, name: string, listener: EventListenerOrEventListenerObject,
-          opts?: EventListenerOptions | boolean
-        ) => 42 | void>(_listen!)
     if (alive = isTY(_listen, kTY.func)) {
       if (!grabBackFocus) {
         if (oldHasVC && newListen.toString.call(_listen) === ETCls!.addEventListener + "") {
-          oldHasVC = 2
-          _listen(CLK, noopHandler as any)
-          setupEventListener(0, CLK, noopHandler, 1)
+          try {
+            _listen(CLK, noopHandler)
+            oldHasVC = 2
+            setupEventListener(0, CLK, noopHandler, 1, 3)
+          } catch {
+            const iframe = createElement_("iframe")
+            try {
+              appendNode_s(docEl_unsafe_()! as SafeElement, iframe)
+              const DocProto2 = iframe.contentDocument! as unknown as typeof DocCls & Document
+              _listen = DocProto2!.addEventListener, _docOpen = DocProto2.open, _docWrite = DocProto2.write
+            } catch (e2: any) {
+              Build.NDEBUG || (recordLog("Vimium C: can not restore addEventListener in %o @t=%o .")()
+                , console.log(e2, e2.stack))
+              oldHasVC = 2
+            }
+            removeEl_s(iframe)
+          }
         }
-      } else {
+      }
+      if (oldHasVC !== 2) {
+        listen = setupEventListener.call.bind<(this: (this: EventTarget,
+                type: string, listener: EventListenerOrEventListenerObject, useCapture?: EventListenerOptions | boolean
+              ) => 42 | void,
+              self: EventTarget, name: string, listener: EventListenerOrEventListenerObject,
+              opts?: EventListenerOptions | boolean
+            ) => 42 | void>(_listen!)
         eportToMainWorld(ETCls!, _listen.name as "addEventListener", newListen)
         eportToMainWorld(DocCls, "open", newDocOpen)
         eportToMainWorld(DocCls, "write", newDocWrite)
@@ -123,28 +137,7 @@ export const main_ff = (OnFirefox ? (ecOut_oldHasVC: boolean): void => {
         }, GlobalConsts.ExtendClick_EndTimeOfAutoReloadLinkHints)
     }, 1)
   } catch (e) {
-    if (oldHasVC === 2) {
-      const iframe = createElement_("iframe")
-      try {
-        appendNode_s(docEl_unsafe_()! as SafeElement, iframe)
-        const wnd2 = iframe.contentWindow as {} as typeof globalThis
-        const ETProto2 = raw_unwrap_ff(wnd2.EventTarget.prototype)!
-        const DocProto2 = raw_unwrap_ff(wnd2.Document.prototype) as unknown as typeof DocCls
-        eportToMainWorld(ETCls!, "addEventListener", ETProto2.addEventListener)
-        eportToMainWorld(DocCls, "open", DocProto2.open)
-        eportToMainWorld(DocCls, "write", DocProto2.write)
-        ; raw_unwrap_ff(window as any).test1 = new window.WeakSet!()
-        ; raw_unwrap_ff(window as any).test1.add(wnd2)
-        ; raw_unwrap_ff(window as any).test1.add(ETProto2)
-        ; raw_unwrap_ff(window as any).test1.add(DocProto2)
-      } catch (e2: any) {
-        Build.NDEBUG || (recordLog("Vimium C: can not restore addEventListener in %o @t=%o .")()
-          , console.log(e2, e2.stack))
-      }
-      removeEl_s(iframe)
-    } else {
-      Build.NDEBUG || (recordLog("Vimium C: extending click crashed in %o @t=%o .")(), console.log(e))
-    }
+    Build.NDEBUG || (recordLog("Vimium C: extending click crashed in %o @t=%o .")(), console.log(e))
   }
 })(ecOut_oldHasVC)
 } : 0 as never) as (ecOut_oldHasVC: boolean) => void
