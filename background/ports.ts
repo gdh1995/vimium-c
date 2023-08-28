@@ -136,6 +136,8 @@ export const OnConnect = (port: Frames.Port, type: PortType): void => {
     if (type & PortType.hasFocus) {
       needIcon_ && ref.cur_.s.status_ !== status && setIcon_(tabId, status)
       ref.cur_ = port
+    } else if (ref.cur_.s.flags_ & Frames.Flags.ResReleased) {
+      ref.cur_ = port
     }
     isTopFrame && ((ref as Writable<typeof ref>).top_ = port)
     ref.ports_.push(port)

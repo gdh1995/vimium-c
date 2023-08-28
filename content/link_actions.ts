@@ -535,14 +535,15 @@ const doPostAction = (): Rect | null => {
       if (isTY(autoChild) && autoChild !== ":root" && !anyAtPos && !onlyShadow) {
         click2nd = querySelector_unsafe_(autoChild, clickEl)
       } else {
-        rect = getVisibleClientRect_(clickEl)
+        rect = htmlTag_(clickEl) === "a" // for www.google.com/search?q=***
+            && getPreferredRectOfAnchor(clickEl as SafeElement as HTMLAnchorElement) || getVisibleClientRect_(clickEl)
         const center = center_(rect, hintOptions.xy as HintsNS.StdXY | undefined)
         click2nd = rect && (onlyShadow ? clickEl : elFromPoint_(center, clickEl))
         click2nd = anyAtPos || click2nd && contains_s(clickEl, click2nd) ? click2nd : null
-        let el3: Element | null = click2nd
-        while (el3 && htmlTag_<1>(el3) && GetShadowRoot_(el3)) {
-          el3 = elFromPoint_(center, GetShadowRoot_(el3))
-          if (el3 && el3 !== click2nd) { click2nd = el3 }
+        let el3: Element | null | 0 = click2nd, r2: ShadowRoot | null | "" | 0 | false
+        while (r2 = el3 && htmlTag_<1>(el3) && GetShadowRoot_(el3)) {
+          el3 = elFromPoint_(center, r2)
+          el3 && r2.contains(el3) ? click2nd = el3 : el3 = 0
         }
       }
       clickEl = (OnFirefox ? click2nd : click2nd && SafeEl_not_ff_!(click2nd)
