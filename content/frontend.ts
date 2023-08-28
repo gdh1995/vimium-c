@@ -30,7 +30,7 @@ import { hudTip } from "./hud"
 
 const docReadyListeners: Array<(this: void) => void> = []
 let completeListeners: Array<(this: void) => void> = []
-let oldHasVC: boolean = false
+let oldHasVC: BOOL = 0
 
 set_OnDocLoaded_((callback, onloaded): ReturnType<typeof OnDocLoaded_> => {
   readyState_ > "l" || readyState_ > "i" && onloaded
@@ -148,7 +148,7 @@ if (OnFirefox && isAsContent) {
     // on Firefox, such an exposed function can only be called from privileged environments
     try {
       const wnd = raw_unwrap_ff(window as XrayedObject<WindowWithGetter>)!
-      oldHasVC = !grabBackFocus && isHTML_() && !!wnd[name]
+      grabBackFocus || isHTML_() && wnd[name] && (oldHasVC = 1)
       wnd[name] = getterWrapper
     } catch { // if window[name] is not configurable
       set_getWndVApi_ff((): void => { /* empty */ })

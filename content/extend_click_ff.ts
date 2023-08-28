@@ -3,8 +3,7 @@ import {
   isTY, OnFirefox, isAsContent, isEnabled_, reflectApply_not_cr, fgCache, abs_
 } from "../lib/utils"
 import {
-  CLK, MDW, OnDocLoaded_, isHTML_, set_createElement_, createElement_, onReadyState_, dispatchAsync_, docEl_unsafe_,
-  appendNode_s, removeEl_s
+  CLK, MDW, OnDocLoaded_, isHTML_, set_createElement_, createElement_, onReadyState_, dispatchAsync_
 } from "../lib/dom_utils"
 import { grabBackFocus, insertInit } from "./insert"
 import { HookAction, hookOnWnd } from "./port"
@@ -28,8 +27,8 @@ const eportToMainWorld = <T extends object, K extends (keyof T) & string> (obj: 
   exportFunction(func, obj, { defineAs: name, allowCrossOriginArguments: true })
 }
 
-export const main_ff = (OnFirefox ? (ecOut_oldHasVC: boolean): void => {
-(function (oldHasVC: boolean | 2): void {
+export const main_ff = (OnFirefox ? (ecOut_oldHasVC: number): void => {
+(function (oldHasVC: number): void {
   const enum InnerConsts {
     DelayForNext = 36,
   }
@@ -97,27 +96,19 @@ export const main_ff = (OnFirefox ? (ecOut_oldHasVC: boolean): void => {
     _listen = wrappedET && wrappedET.addEventListener
     if (alive = isTY(_listen, kTY.func)) {
       if (!grabBackFocus) {
-        if (oldHasVC && newListen.toString.call(_listen) === ETCls!.addEventListener + "") {
+        oldHasVC |= 2
+        if (oldHasVC & 1 && newListen.toString.call(_listen) === ETCls!.addEventListener + "") {
           try {
             _listen(CLK, noopHandler)
-            oldHasVC = 2
             setupEventListener(0, CLK, noopHandler, 1, 3)
           } catch {
-            const iframe = createElement_("iframe")
-            try {
-              appendNode_s(docEl_unsafe_()! as SafeElement, iframe)
-              const DocProto2 = iframe.contentDocument! as unknown as typeof DocCls & Document
-              _listen = DocProto2!.addEventListener, _docOpen = DocProto2.open, _docWrite = DocProto2.write
-            } catch (e2: any) {
-              Build.NDEBUG || (recordLog("Vimium C: can not restore addEventListener in %o @t=%o .")()
-                , console.log(e2, e2.stack))
-              oldHasVC = 2
-            }
-            removeEl_s(iframe)
+            oldHasVC = 0
+            _listen = doc.addEventListener
+            _docOpen = (doc as unknown as typeof DocCls).open, _docWrite = (doc as unknown as typeof DocCls).write
           }
         }
       }
-      if (oldHasVC !== 2) {
+      if (!oldHasVC) {
         listen = setupEventListener.call.bind<(this: (this: EventTarget,
                 type: string, listener: EventListenerOrEventListenerObject, useCapture?: EventListenerOptions | boolean
               ) => 42 | void,
@@ -140,7 +131,7 @@ export const main_ff = (OnFirefox ? (ecOut_oldHasVC: boolean): void => {
     Build.NDEBUG || (recordLog("Vimium C: extending click crashed in %o @t=%o .")(), console.log(e))
   }
 })(ecOut_oldHasVC)
-} : 0 as never) as (ecOut_oldHasVC: boolean) => void
+} : 0 as never) as (ecOut_oldHasVC: number) => void
 
 export const unblockClick_old_ff = (): void => {
   let notDuringAct: BOOL
