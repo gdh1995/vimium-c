@@ -361,7 +361,7 @@ export class ExclusionRulesOption_ extends Option_<"exclusionRules"> {
     this.list_ = [];
     delayBinding_(this.$list_, "input", ExclusionRulesOption_.MarkChanged_)
     delayBinding_(this.$list_, "input", this.onUpdated_)
-    delayBinding_(this.$list_, "click", e => this.onRemoveRow_(e))
+    delayBinding_(this.$list_, "click", e => { this.onRemoveRow_(e) })
     this._rendered = false
     delayBinding_("#exclusionAddButton", "click", () => this.addRule_(""), "on")
   }
@@ -389,7 +389,6 @@ addRule_ (pattern: string, autoFocus?: false | undefined): void {
 override populateElement_ (rules: ExclusionsNS.StoredRule[]): void {
   if (!this._rendered) {
     this._rendered = true
-    if (Option_.syncToFrontend_) { this.template_.draggable = true }
     for (const el of pageLangs_ !== "en" ? $$("[title]", this.template_) : []) {
       const t = pageTrans_(el.title)
       t && (el.title = t)
@@ -449,7 +448,7 @@ static OnNewKeys_ (vnode: ExclusionVisibleVirtualNode): void {
     vnode.$keys_.placeholder = "";
   }
 }
-onRemoveRow_ (event: Event): void {
+onRemoveRow_ (event: EventToPrevent): void {
   let element = event.target as EnsuredMountedElement
   element.localName === "path" && (element = element.parentElement)
   element.localName === "svg" && (element = element.parentElement)
@@ -458,6 +457,7 @@ onRemoveRow_ (event: Event): void {
   if (element.classList.contains("exclusionRule")) {
     const vnode = (element.querySelector(".pattern") as ExclusionRealNode).vnode;
     element.remove();
+    event.preventDefault()
     if (vnode.changed_ & kExclusionChange.mismatches && vnode.savedRule_.pattern) {
       Object.assign<ExclusionBaseVirtualNode, Partial<ExclusionBaseVirtualNode>>(vnode, {
           rule_: { passKeys: "", pattern: ""}, matcher_: false,

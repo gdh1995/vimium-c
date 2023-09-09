@@ -28,6 +28,12 @@ let _onlyFirstMatch: boolean
 const pTrans_: TransTy<keyof typeof i18n_popup> = (k, a): string => pageTrans_(k, a) || ""
 
 class PopExclusionRulesOption extends ExclusionRulesOption_ {
+  override init_ (element: HTMLElement): void {
+    super.init_(element)
+    this.$list_.onmousedown = (event: MouseEventToPrevent): void => {
+      event.detail > 1 && (event.target as EnsuredMountedElement).localName !== "input" && event.preventDefault()
+    }
+  }
   override addRule_ (_pattern: string, autoFocus?: false): void {
     super.addRule_(PopExclusionRulesOption.generateDefaultPattern_(), autoFocus)
   }

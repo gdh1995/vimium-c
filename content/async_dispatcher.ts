@@ -396,7 +396,7 @@ export const click_async = (async (element: SafeElementForMouse
         || (OnFirefox && Build.MinFFVer < FirefoxBrowserVer.MinPopupBlockerPassOrdinaryClicksDuringExtMessages
             && /*#__INLINE__*/ prepareToBlockClick_old_ff(result === ActionType.DispatchAndMayOpenTab
                 , action < kClickAction.plainMayOpenManually + 1 && parentAnchor!),
-            (await await mouse_(element, CLK, center, modifiers, 0, 0, isTouch)) && result
+            (await await mouse_(element, CLK, center, modifiers, 0, button, isTouch)) && result
               || result & ActionType.dblClick))
       && getVisibleClientRect_(element)) {
     // require element is still visible
