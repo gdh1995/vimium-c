@@ -88,8 +88,8 @@ declare const enum kBgReq {
   init = START, reset, injectorRun, url, msg, eval,
   settingsUpdate, focusFrame, exitGrab, keyFSM, execute,
   showHUD, count, queryForRunKey, suppressForAWhile, refreshPort,
-  OMNI_MIN = 42,
-  omni_init = OMNI_MIN, omni_omni, omni_parsed, omni_returnFocus,
+  COMMON_OMNI_MIN = 42, // there're also injectorRun and showHUD
+  omni_init = COMMON_OMNI_MIN, omni_omni, omni_parsed, omni_returnFocus,
   omni_toggleStyle, omni_updateOptions, omni_refresh, omni_runTeeTask,
   END = "END", // without it, TypeScript will report errors for number indexes
 }
@@ -109,6 +109,8 @@ declare const enum kFgReq {
   command = "command", id = "id", shortcut = "shortcut", focus = "focus", tip = "tip",
 }
 
+interface ConfVersionReq { /** configuration version */ v: number }
+
 interface BgReq {
   [kBgReq.init]: {
     /** flags */ f: Frames.Flags;
@@ -118,7 +120,7 @@ interface BgReq {
     /** mappedKeys */ m: SafeDict<string> | null;
     /** keyFSM */ k: KeyFSM;
     /** mappedKeyTypes */ t: kMapKey;
-  };
+  } & ConfVersionReq
   [kBgReq.injectorRun]: {
     /** task */ t: InjectorTask;
   };
@@ -134,7 +136,7 @@ interface BgReq {
     /** mappedKeys */ m: SafeDict<string> | null;
     /** keyMap */ k: KeyFSM | null;
     /** mappedKeyTypes */ t: kMapKey;
-  };
+  } & ConfVersionReq
   [kBgReq.showHUD]: {
     /** kTip */ k?: kTip | 0
     /** text */ t?: string;
@@ -153,7 +155,7 @@ interface BgReq {
   [kBgReq.exitGrab]: Req.baseBg<kBgReq.exitGrab>;
   [kBgReq.settingsUpdate]: {
     /** delta */ d: Partial<SelectValueType<SettingsNS.FrontendSettingsSyncingItems>>;
-  };
+  } & Partial<ConfVersionReq>
   [kBgReq.url]: {
     /** url */ u?: string;
     /** use vApi.u */ U: 0 | 1 | 2 | 3
@@ -190,7 +192,7 @@ interface BgVomnibarSpecialReq {
   [kBgReq.omni_init]: {
     /** secret */ s: string
     /** payload */ l: SettingsNS.VomnibarPayload;
-  };
+  } & ConfVersionReq
   [kBgReq.omni_parsed]: {
     /** id */ i: number;
     /** search */ s: FgRes[kFgReq.parseSearchUrl];
@@ -201,7 +203,7 @@ interface BgVomnibarSpecialReq {
   };
   [kBgReq.omni_updateOptions]: {
     /** delta */ d: Partial<SelectValueType<SettingsNS.AllVomnibarItems>>;
-  };
+  } & ConfVersionReq
   [kBgReq.omni_runTeeTask]: Pick<BaseTeeTask, "t" | "s">
   [kBgReq.omni_refresh]: { /** destroy */ d: boolean }
 }

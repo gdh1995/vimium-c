@@ -3,7 +3,7 @@ import {
   keydownEvents_, set_chromeVer_, set_clickable_, set_fgCache, set_isLocked_, OnChrome, OnFirefox, safeCall, recordLog,
   set_isEnabled_, set_onWndFocus, onWndFocus, timeout_, safer, set_os_, safeObj, set_keydownEvents_, setupEventListener,
   interval_, getTime, vApi, clearInterval_, locHref, set_firefoxVer_, firefoxVer_, os_, isAsContent, isIFrameInAbout_,
-  OnEdge, inherited_, clearTimeout_, setupTimerFunc_cr_mv3, set_weakRef_ff, weakRef_ff, deref_
+  OnEdge, inherited_, clearTimeout_, setupTimerFunc_cr_mv3, set_weakRef_ff, weakRef_ff, deref_, set_confVersion
 } from "../lib/utils"
 import { set_keyIdCorrectionOffset_old_cr_, handler_stack, suppressTail_ } from "../lib/keyboard_utils"
 import {
@@ -166,7 +166,7 @@ set_requestHandlers([
   },
   /* kBgReq.msg: */ onPortRes_,
   /* kBgReq.eval: */ evalIfOK,
-  /* kBgReq.settingsUpdate: */ ({ d: delta }: BgReq[kBgReq.settingsUpdate]): void => {
+  /* kBgReq.settingsUpdate: */ ({ d: delta, v: newConfVersion }: BgReq[kBgReq.settingsUpdate]): void => {
     type Keys = keyof typeof delta;
     safer(delta);
     for (const i in delta) {
@@ -175,6 +175,7 @@ set_requestHandlers([
       (i2 in fgCache) && delete safer(fgCache)[i2]
     }
     delta.d != null && hud_box && toggleClass_s(hud_box, "D", !!delta.d)
+    newConfVersion && set_confVersion(newConfVersion)
   },
   /* kBgReq.focusFrame: */ (req: BgReq[kBgReq.focusFrame]): void => {
     // Note: .c, .S are ensured to exist
@@ -202,6 +203,7 @@ set_requestHandlers([
     set_mapKeyTypes(request.t)
     set_mappedKeys(request.m)
     mappedKeys && safer(mappedKeys)
+    set_confVersion(request.v)
     esc!(HandlerResult.Nothing) // so that passNextKey#normal refreshes nextKeys to the new keyFSM
   },
   /* kBgReq.execute: */ function<O extends keyof CmdOptions> (request: BaseExecute<CmdOptions[O], O>): void {

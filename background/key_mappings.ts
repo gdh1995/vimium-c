@@ -914,9 +914,10 @@ updateHooks_.keyMappings = (value: string | null): void => {
   updatesInKeyFSM = !!oldFSM && f(keyFSM_) !== f(oldFSM),
   updatesInMappedKeys = oldMappedKeys ? !curMapped || f(oldMappedKeys) !== f(curMapped) : !!oldFSM && !!curMapped;
   (updatesInMappedKeys || updatesInKeyFSM) && settings_.broadcast_({
-    N: kBgReq.keyFSM, m: mappedKeyRegistry_, t: mappedKeyTypes_, k: updatesInKeyFSM ? keyFSM_ : null
+    N: kBgReq.keyFSM, m: mappedKeyRegistry_, t: mappedKeyTypes_, k: updatesInKeyFSM ? keyFSM_ : null,
+    v: BgUtils_.nextConfUpdate(0)
   });
   if (oldOmniMapKeys ? !curOmniMapped || f(oldOmniMapKeys) !== f(curOmniMapped) : curOmniMapped) {
-    settings_.broadcastOmni_({ N: kBgReq.omni_updateOptions, d: { m: curOmniMapped } })
+    settings_.broadcastOmniConf_({ m: curOmniMapped })
   }
 };

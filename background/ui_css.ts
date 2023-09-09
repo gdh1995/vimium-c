@@ -1,11 +1,11 @@
 import {
   findCSS_, innerCSS_, omniPayload_, set_findCSS_, set_innerCSS_, CurCVer_, CurFFVer_, IsEdg_, omniStyleOverridden_,
   OnChrome, OnEdge, OnFirefox, isHighContrast_ff_, set_isHighContrast_ff_, bgIniting_, CONST_, set_helpDialogData_,
-  framesForOmni_, settingsCache_, set_omniStyleOverridden_, updateHooks_, storageCache_, installation_
+  settingsCache_, set_omniStyleOverridden_, updateHooks_, storageCache_, installation_, contentConfVer_
 } from "./store"
-import { asyncIter_, fetchFile_, spacesRe_ } from "./utils"
+import { fetchFile_, nextConfUpdate, spacesRe_ } from "./utils"
 import { getFindCSS_cr_, set_getFindCSS_cr_ } from "./browser"
-import { ready_, broadcastOmni_, postUpdate_, setInLocal_ } from "./settings"
+import { ready_, broadcastOmniConf_, postUpdate_, setInLocal_ } from "./settings"
 import { asyncIterFrames_ } from "./ports"
 
 export declare const enum MergeAction {
@@ -208,6 +208,7 @@ export const mergeCSS = (css2Str: string, action: MergeAction | "userDefinedCss"
   setInLocal_(O, omni2 || null)
   reloadCSS_(MergeAction.readFromCache, newInnerCSS)
   if (action !== MergeAction.readFromCache && action !== MergeAction.rebuildWhenInit) {
+    nextConfUpdate(0)
     asyncIterFrames_(Frames.Flags.CssUpdated, (frames: Frames.Frames): void => {
         for (const port of frames.ports_) {
           const flags = port.s.flags_
@@ -216,10 +217,11 @@ export const mergeCSS = (css2Str: string, action: MergeAction | "userDefinedCss"
               N: kBgReq.showHUD, H: innerCSS_,
               f: flags & Frames.Flags.hasFindCSS ? OnChrome ? getFindCSS_cr_!(port.s) : findCSS_ : void 0
             })
+            port.postMessage({ N: kBgReq.settingsUpdate, d: {}, v: contentConfVer_ })
           }
         }
     })
-    broadcastOmni_({ N: kBgReq.omni_updateOptions, d: { c: omniPayload_.c } })
+    broadcastOmniConf_({ c: omniPayload_.c })
   }
 }
 
@@ -240,11 +242,7 @@ export const setOmniStyle_ = (req: FgReq[kFgReq.setOmniStyle], port?: Port): voi
   }
   if (styles === curStyles) { return }
   omniPayload_.t = styles
-  const request2: Req.bg<kBgReq.omni_updateOptions> = { N: kBgReq.omni_updateOptions, d: { t: styles } }
-  asyncIter_(framesForOmni_.slice(0), (frame): number => {
-    frame !== port && framesForOmni_.includes(frame) && frame.postMessage(request2)
-    return 1
-  })
+  broadcastOmniConf_({ t: styles }, port)
 }
 
 OnChrome && set_getFindCSS_cr_(((sender: Frames.Sender): FindCSS => {

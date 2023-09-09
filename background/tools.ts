@@ -762,10 +762,10 @@ updateHooks_.vomnibarOptions = (options: SettingsNS.BackendSettings["vomnibarOpt
     MediaWatcher_.update_(MediaNS.kName.PrefersReduceMotion, 1)
     MediaWatcher_.update_(MediaNS.kName.PrefersColorScheme, 1)
   }
-  settings_.broadcastOmni_({ N: kBgReq.omni_updateOptions, d: {
+  settings_.broadcastOmniConf_({
     n: maxMatches,
     i: queryInterval,
     s: sizes,
     t: payload.t
-  } })
+  })
 }

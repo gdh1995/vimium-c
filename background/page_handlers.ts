@@ -1,10 +1,12 @@
 import {
   contentPayload_, evalVimiumUrl_, keyFSM_, keyToCommandMap_, mappedKeyRegistry_, newTabUrls_, restoreSettings_,
   CONST_, settingsCache_, shownHash_, substitute_, framesForTab_, curTabId_, extAllowList_, OnChrome, reqH_, OnEdge,
-  storageCache_, os_, framesForOmni_, updateHooks_, Origin2_, CurCVer_
+  storageCache_, os_, framesForOmni_, updateHooks_, Origin2_, CurCVer_, omniConfVer_
 } from "./store"
 import { deferPromise_, protocolRe_, safeObj_ } from "./utils"
-import { browserWebNav_, browser_, getCurTab, getTabUrl, Q_, runContentScriptsOn_, runtimeError_, tabsCreate, tabsGet } from "./browser"
+import {
+  browserWebNav_, browser_, getCurTab, getTabUrl, Q_, runContentScriptsOn_, runtimeError_, tabsCreate, tabsGet
+} from "./browser"
 import { convertToUrl_, lastUrlType_, reformatURL_ } from "./normalize_urls"
 import { findUrlInText_, parseSearchEngines_ } from "./parse_urls"
 import * as settings_ from "./settings"
@@ -270,7 +272,7 @@ const pageRequestHandlers_: {
   /** kPgReq.updateOmniPayload: */ ({ key, val }, port): void => {
     const tabId = port && port.s && port.s.tabId_ || curTabId_
     const omniPort = framesForOmni_.find(i => i.s.tabId_ === tabId)
-    omniPort && omniPort.postMessage({ N: kBgReq.omni_updateOptions, d: { [key]: val } })
+    omniPort && omniPort.postMessage({ N: kBgReq.omni_updateOptions, d: { [key]: val }, v: omniConfVer_ })
   },
   /** kPgReq.saveToSyncAtOnce: */ (): void => {
     settingsCache_.vimSync && updateHooks_.vimSync!(true, "vimSync")

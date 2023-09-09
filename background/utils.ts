@@ -1,4 +1,7 @@
-import { CurCVer_, CurFFVer_, framesForTab_, OnChrome, OnEdge, OnFirefox } from "./store"
+import {
+  contentConfVer_, CurCVer_, CurFFVer_, framesForTab_, omniConfVer_, OnChrome, OnEdge, OnFirefox, set_contentConfVer_,
+  set_omniConfVer_
+} from "./store"
 
 export const spacesRe_ = <RegExpG & RegExpSearchable<0>> /\s+/g
 export const protocolRe_ = <RegExpOne> /^[a-z][\+\-\.\da-z]+:\/\//
@@ -485,4 +488,10 @@ export const splitWhenKeepExpressions = (src: string, sep: string): string[] => 
   }
   results.push(src.slice(lastInd))
   return results
+}
+
+export const nextConfUpdate = (useOmni: 0 | 1): number => {
+  let version = useOmni ? omniConfVer_ : contentConfVer_
+  version = ((version + 1) & 0xfff) || 1
+  return useOmni ? set_omniConfVer_(version) : set_contentConfVer_(version)
 }

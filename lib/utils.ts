@@ -66,6 +66,9 @@ export function set_noRAF_old_cr_ (_newNoRAF: BOOL): void { noRAF_old_cr_ = _new
 export let fgCache: OnlyEnsureItemsNonNull<SettingsNS.FrontendSettingCache>
 export function set_fgCache (_newCache: SettingsNS.FrontendSettingCache): void { fgCache = _newCache as typeof fgCache }
 
+export let confVersion = 0
+export function set_confVersion (_newConfVer: number): void { confVersion = _newConfVer }
+
 export let inherited_: 0 | PortType.confInherited = 0
 export function set_inherited_ (_newInherited: typeof inherited_): void { inherited_ = _newInherited }
 

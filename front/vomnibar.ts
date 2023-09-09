@@ -1286,6 +1286,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       n = sizes.length > 3 ? +sizes[3] : 0
       Vomnibar_.panelWidth_ = M(0.3, m(n || VomnibarNS.PixelData.WindowSizeX, 0.95));
     }
+    VPort_._confVersion = response.v
   },
   OnWndFocus_ (this: void, event: Event): void {
     const a = Vomnibar_, byCode = a.codeFocusTime_ && performance.now() - a.codeFocusTime_ < 120,
@@ -1895,6 +1896,7 @@ VUtils_ = {
 },
 VPort_ = {
   _port: null as FgPort | null,
+  _confVersion: 0,
   postToOwner_: null as never as <K extends keyof VomnibarNS.FReq> (this: void
       , msg: VomnibarNS.FReq[K] & VomnibarNS.Msg<K>) => void | 1,
   post_<K extends keyof FgReq> (request: FgReq[K] & Req.baseFg<K>): void {
@@ -1915,7 +1917,7 @@ VPort_ = {
     name === kBgReq.omni_updateOptions ? Vomnibar_.updateOptions_(response) :
     name === kBgReq.omni_refresh ? !Vomnibar_.isActive_ && response.d ? Vomnibar_.OnUnload_()
         : Build.MV3 ? (VPort_._port!.disconnect(), VPort_.connect_(PortType.omnibar | PortType.reconnect)) : 0 :
-    name === kBgReq.injectorRun ? 0 :
+    name === kBgReq.injectorRun || name === kBgReq.showHUD ? 0 :
     0;
   },
   _OnOwnerMessage ({ data: data }: { data: VomnibarNS.CReq[keyof VomnibarNS.CReq] }): void {
@@ -1928,6 +1930,7 @@ VPort_ = {
   },
   _ClearPort (this: void): void { VPort_._port = null; },
   connect_ (type: PortType): FgPort {
+    type |= VPort_._confVersion << PortType.OFFSET_SETTINGS
     const data = { name: VCID_ ? PortNameEnum.Prefix + type + (PortNameEnum.Delimiter + BuildStr.Commit)
         : Build.BTypes === BrowserType.Edge as number
           || Build.BTypes & BrowserType.Edge && !!(window as {} as {StyleMedia: unknown}).StyleMedia
@@ -2011,7 +2014,7 @@ if (Build.BTypes === BrowserType.Chrome as number ? false : !(Build.BTypes & Bro
     }
     location.href = "about:blank"
   }, 700)
-  Vomnibar_.secret_ = function (this: void, {l: payload, s: secret}): void {
+  Vomnibar_.secret_ = function (this: void, { l: payload, s: secret, v: confVersion }): void {
     Vomnibar_.secret_ = null;
     if (!secret) { // see https://github.com/philc/vimium/issues/3832
       _sec = "2"; unsafeMsg.length = 0
@@ -2034,7 +2037,7 @@ if (Build.BTypes === BrowserType.Chrome as number ? false : !(Build.BTypes & Bro
     }
     if (Build.OS & (Build.OS - 1)) { Vomnibar_.os_ = payload.o }
     Vomnibar_.styles_ = payload.t;
-    Vomnibar_.updateOptions_({ N: kBgReq.omni_updateOptions, d: payload })
+    Vomnibar_.updateOptions_({ N: kBgReq.omni_updateOptions, d: payload, v: confVersion })
     _sec = secret;
     for (const i of unsafeMsg) {
       if (i[0] === secret) {

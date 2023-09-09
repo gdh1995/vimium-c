@@ -2,9 +2,9 @@ import {
   contentPayload_, extAllowList_, newTabUrls_, omniPayload_, OnChrome, OnEdge, OnFirefox, framesForOmni_, sync_, IsEdg_,
   settingsCache_, bgIniting_, set_bgIniting_, CurCVer_, CONST_, OnOther_, onInit_, storageCache_, searchEngines_,
   set_hasEmptyLocalStorage_, set_newTabUrl_f, newTabUrl_f, set_vomnibarPage_f, updateHooks_,set_CurFFVer_, UseZhLang_,
-  CurFFVer_, set_os_, os_
+  CurFFVer_, set_os_, os_, contentConfVer_
 } from "./store"
-import { asyncIter_, nextTick_, safeObj_ } from "./utils"
+import { asyncIter_, nextTick_, safeObj_, nextConfUpdate } from "./utils"
 import { browser_, normalizeExtOrigin_, Qs_ } from "./browser"
 import { convertToUrl_, reformatURL_ } from "./normalize_urls"
 import { parseSearchEngines_ } from "./parse_urls"
@@ -162,7 +162,8 @@ export const broadcast_ = <K extends kBgReq.settingsUpdate | kBgReq.url | kBgReq
 
 const _BroadcastSettingsUpdates = <K extends keyof BgReq> (
       request: K extends kBgReq.settingsUpdate ? SettingsUpdateMsg : Req.bg<K>): void => {
-    if (request.N === kBgReq.settingsUpdate && !request.d) {
+    const reqName = request.N
+    if (reqName === kBgReq.settingsUpdate && !(request.d as typeof request.d | null)) {
       const obj = newSettingsToBroadcast_!
       const d: BgReq[kBgReq.settingsUpdate]["d"] = (request as Req.bg<kBgReq.settingsUpdate>).d = {}
       for (const key of obj) {
@@ -170,19 +171,25 @@ const _BroadcastSettingsUpdates = <K extends keyof BgReq> (
       }
       newSettingsToBroadcast_ = null
     }
-    asyncIterFrames_(request.N === kBgReq.url ? Frames.Flags.UrlUpdated
-          : request.N === kBgReq.keyFSM ? Frames.Flags.KeyMappingsUpdated | (request.k ? Frames.Flags.KeyFSMUpdated : 0)
+    const needConfVer = reqName === kBgReq.keyFSM || kBgReq.settingsUpdate
+    asyncIterFrames_(reqName === kBgReq.url ? Frames.Flags.UrlUpdated
+          : reqName === kBgReq.keyFSM ? Frames.Flags.KeyMappingsUpdated | (request.k ? Frames.Flags.KeyFSMUpdated : 0)
           : Frames.Flags.SettingsUpdated
         , (frames: Frames.Frames): void => {
+      needConfVer && ((request as Req.bg<kBgReq.keyFSM | kBgReq.settingsUpdate>).v = contentConfVer_)
       for (const port of frames.ports_) {
         port.postMessage(request as Req.baseBg<K> as Req.bg<K>)
       }
     })
 }
 
-export const broadcastOmni_ = <K extends ValidBgVomnibarReq> (request: Req.bg<K>): void => {
+export const broadcastOmniConf_ = (payload: BgVomnibarSpecialReq[kBgReq.omni_updateOptions]["d"]
+    , excluded?: Port): void => {
+  const msg: Req.bg<kBgReq.omni_updateOptions> = { N: kBgReq.omni_updateOptions, d: payload, v: nextConfUpdate(1) }
   asyncIter_(framesForOmni_.slice(0), (frame): number => {
-    framesForOmni_.includes(frame) && frame.postMessage(request)
+    framesForOmni_.includes(frame) && frame.postMessage(frame !== excluded ? msg : {
+      N: kBgReq.omni_updateOptions, d: {}, v: msg.v
+    })
     return 1
   })
 }
@@ -252,7 +259,7 @@ Object.assign<typeof updateHooks_, { [key in SettingsNS.DeclaredUpdateHooks]: Se
     grabBackFocus (value: SettingsWithDefaults["grabBackFocus"]): void { contentPayload_.g = value },
     keyLayout (value): void {
       omniPayload_.l = contentPayload_.l
-      broadcastOmni_({ N: kBgReq.omni_updateOptions, d: { l: contentPayload_.l } })
+      broadcastOmniConf_({ l: contentPayload_.l })
       if (needToUpgradeSettings_ & 1 && !(value & kKeyLayout.fromOld)) {
         const hasInLocal = needToUpgradeSettings_ & 2
         needToUpgradeSettings_ &= ~(1 | 2)

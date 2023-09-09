@@ -2,7 +2,7 @@ import {
   needIcon_, cPort, set_cPort, reqH_, contentPayload_, omniPayload_, innerCSS_, extAllowList_, framesForTab_, findCSS_,
   framesForOmni_, getNextFakeTabId, curTabId_, vomnibarPage_f, OnChrome, CurCVer_, OnEdge, setIcon_, lastKeptTabId_,
   keyFSM_, mappedKeyRegistry_, CONST_, mappedKeyTypes_, recencyForTab_, setTeeTask_, OnFirefox, UseZhLang_, blank_,
-  set_lastKeptTabId_
+  set_lastKeptTabId_, omniConfVer_, contentConfVer_
 } from "./store"
 import { asyncIter_, deferPromise_, getOmniSecret_, isNotPriviledged, keys_ } from "./utils"
 import {
@@ -123,10 +123,12 @@ export const OnConnect = (port: Frames.Port, type: PortType): void => {
     /*#__NOINLINE__*/ _recoverStates(ref, port, type)
   } else {
     port.postMessage<kBgReq.init>(type & PortType.confInherited ? {
-      N: kBgReq.init, c: null as never as SettingsNS.FrontendSettingCache, d: isInactive, f: flags, p: passKeys
-    } satisfies Omit<Req.bg<kBgReq.init>, keyof BgReq[kBgReq.keyFSM]> as Req.bg<kBgReq.init> : {
+      N: kBgReq.init, c: null as never as SettingsNS.FrontendSettingCache, d: isInactive, f: flags, p: passKeys,
+      v: contentConfVer_
+    } satisfies Omit<Req.bg<kBgReq.init>, keyof Omit<BgReq[kBgReq.keyFSM], keyof ConfVersionReq>> as Req.bg<kBgReq.init>
+    : {
       N: kBgReq.init, c: contentPayload_, d: isInactive, f: flags,
-      k: keyFSM_!, m: mappedKeyRegistry_, p: passKeys, t: mappedKeyTypes_
+      k: keyFSM_!, m: mappedKeyRegistry_, p: passKeys, t: mappedKeyTypes_, v: contentConfVer_
     })
     if (isInactive) {
       port.disconnect()
@@ -207,8 +209,14 @@ const _onOmniConnect = (port: Frames.Port, type: PortType, isOmniUrl: boolean): 
       if (!OnChrome) { (port as Frames.BrowserPort).sender.tab = null as never }
       port.onDisconnect.addListener(/*#__NOINLINE__*/ onOmniDisconnect)
       port.onMessage.addListener(/*#__NOINLINE__*/ onMessage)
-      type & PortType.reconnect ||
-      port.postMessage({ N: kBgReq.omni_init, l: omniPayload_, s: getOmniSecret_(false) })
+      if (type & PortType.reconnect) {
+        const oldConfVer = type >> PortType.OFFSET_SETTINGS
+        if (oldConfVer !== omniConfVer_) {
+          port.postMessage({ N: kBgReq.omni_updateOptions, d: omniPayload_, v: omniConfVer_ })
+        }
+      } else {
+        port.postMessage({ N: kBgReq.omni_init, l: omniPayload_, s: getOmniSecret_(false), v: omniConfVer_ })
+      }
       return
     }
   } else if (port.s.tabId_ < 0 // e.g.: inside a sidebar on MS Edge
@@ -699,7 +707,11 @@ const _recoverStates = (frames: Frames.Frames | undefined, port: Port, type: Por
       : (type & PortType.hasCSS) && Frames.Flags.hasCSS
   frames || refreshPorts_({ cur_: port, top_: null, ports_: [], lock_: null, flags_: Frames.Flags.HadIFrames }, 0)
   let flag = type as Frames.Flags
-  if (!(type & PortType.refreshInBatch)) {
+  if (type & PortType.refreshInBatch) { /* empty */ }
+  else if ((type >> PortType.OFFSET_SETTINGS) !== contentConfVer_
+      && !(frames && frames.flags_ & Frames.Flags.MASK_UPDATES)) {
+    flag = Frames.Flags.MASK_UPDATES
+  } else {
     if (!(type & PortType.hasFocus) // frame is not focused - on refreshing ports of inactive tabs
         || !frames || !(frames.flags_ & Frames.Flags.ResReleased)) { // no old data to sync
       return
@@ -708,11 +720,11 @@ const _recoverStates = (frames: Frames.Frames | undefined, port: Port, type: Por
     if (flag & Frames.Flags.HadIFrames || port.s.frameId_) { refreshPorts_(frames, 0) }
   }
   if (flag & Frames.Flags.SettingsUpdated) {
-    port.postMessage({ N: kBgReq.settingsUpdate, d: contentPayload_ })
+    port.postMessage({ N: kBgReq.settingsUpdate, d: contentPayload_, v: contentConfVer_ })
   }
   if (flag & Frames.Flags.KeyMappingsUpdated) {
     port.postMessage({ N: kBgReq.keyFSM, m: mappedKeyRegistry_, t: mappedKeyTypes_
-        , k: flag & Frames.Flags.KeyFSMUpdated ? keyFSM_ : null })
+        , k: flag & Frames.Flags.KeyFSMUpdated ? keyFSM_ : null, v: contentConfVer_ })
   }
   if (flag & Frames.Flags.CssUpdated && port.s.flags_ & Frames.Flags.hasCSS) {
     (port.s.flags_ satisfies Frames.Flags) |= Frames.Flags.hasFindCSS

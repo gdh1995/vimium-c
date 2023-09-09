@@ -65,6 +65,8 @@ export const omniPayload_ = {
   c: "", i: 0, l: 0, m: null, n: 0, s: "", t: ""
 } satisfies SettingsNS.DeclaredVomnibarPayload as SettingsNS.VomnibarPayload
 export const vomnibarBgOptions_ = { actions: [] as string[] }
+export let contentConfVer_ = 0
+export let omniConfVer_ = 0
 export let omniStyleOverridden_ = false
 export let findCSS_: FindCSS
 export let innerCSS_: string
@@ -190,6 +192,8 @@ export const set_onInit_ = (_newInit: typeof onInit_): void => { onInit_ = _newI
 export const set_iconData_ = (_newIconData: typeof iconData_): void => { iconData_ = _newIconData }
 export const set_hasGroupPermission_ff_ = (_newAllowed: boolean | 0): void => { hasGroupPermission_ff_ = _newAllowed }
 export const set_lastKeptTabId_ = (_newKeptTabId: number): void => { lastKeptTabId_ = _newKeptTabId }
+export const set_contentConfVer_ = (_newContConfVer: number): number => { return contentConfVer_ = _newContConfVer }
+export const set_omniConfVer_ = (_newOmniConfVer: number): number => { return omniConfVer_ = _newOmniConfVer }
 
 export const set_reqH_ = (_newRH: BackendHandlersNS.FgRequestHandlers): void => { reqH_ = _newRH }
 export const set_bgC_ = (_newBgC: typeof bgC_): void => { bgC_ = _newBgC }
