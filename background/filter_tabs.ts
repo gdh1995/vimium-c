@@ -175,7 +175,9 @@ const makeStringMatcher = (val: string, str: string | null | undefined): ((x?: s
   const strRe = lastSlash > 1 && (<RegExpOne> /^[a-z]+$/).test(val.slice(lastSlash + 1))
       ? BgUtils_.makeRegexp_(val.slice(1, lastSlash)
         , val.slice(lastSlash + 1).replace(<RegExpG> /g/g, ""), 0) as RegExpOne : null
-  return strRe ? x => strRe.test(x || "") : str ? x => (x || "").includes(str) : null
+  const lower = !strRe && !!str && str.toLowerCase()
+  return strRe ? (str = null, x => strRe.test(x || ""))
+      : str ? str === lower ? x => !!x && x.toLowerCase().includes(lower) : x => !!x && x.includes(str!) : null
 }
 
 export interface FilterInfo { known?: boolean }
@@ -206,7 +208,9 @@ export const filterTabsByCond_ = (activeTab: Tab | null | undefined
         const useHash = key.includes("hash")
         matcher = url ? Exclusions.createSimpleUrlMatcher_(":" + (useHash ? url : url.split("#", 1)[0])) : null
       }
-      cond = matcher ? tab => Exclusions.matchSimply_(matcher!, getTabUrl(tab)) : cond
+      const smartCase = !!matcher && matcher.t === kMatchUrl.StringPrefix && val === val.toLowerCase()
+      cond = matcher ? tab => Exclusions.matchSimply_(matcher!
+            , smartCase ? getTabUrl(tab).toLowerCase() : getTabUrl(tab)) : cond
       break
     case "title+url":
       const strMatcher = val && makeStringMatcher(val, val)!
