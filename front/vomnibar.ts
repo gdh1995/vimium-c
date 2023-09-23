@@ -292,6 +292,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     a.mode_.o = "omni";
     a.mode_.t = CompletersNS.SugType.Empty;
     a.isSearchOnTop_ = false
+    VUtils_._cachedFavicons = {}
     if (!a.doEnter_ || !VPort_) {
       (<RegExpOne> /a?/).test("")
     } else if (Build.BTypes & BrowserType.Firefox
@@ -1139,7 +1140,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     a.isSearchOnTop_ = len > 0 && completions[0].e === "search" && !(completions[0] as CompletersNS.SearchSuggestion).n
     a.selection_ = a.isSearchOnTop_ || (autoSelect == null ? response.a : autoSelect && notEmpty) ? 0 : -1
     a.isSelOriginal_ = true;
-    a.completions_.forEach(a.Parse_);
+    a.ParseCompletions_(a.completions_)
     a.renderItems_(a.completions_, list);
     if (!oldH) {
       a.firstly_ ? setTimeout(() => { Vomnibar_.bodySt_.visibility = "" }, 17, a.firstly_ = 0)
@@ -1574,30 +1575,36 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   },
 
   _favPrefix: "",
-  Parse_ (this: void, item: SuggestionE): void {
+  ParseCompletions_ (this: void, items: SuggestionE[]): void {
+    const arr1: SuggestionE[] = [], arr2: SuggestionE[] = []
     let str: string | undefined;
-    item.r = Vomnibar_.showRelevancy_ ? `\n\t\t\t<span class="relevancy">${item.r}</span>` : "";
-    (str = item.label) && (item.label = ` <span class="label">${str}</span>`);
+    for (const item of items) {
+      item.r = Vomnibar_.showRelevancy_ ? `\n\t\t\t<span class="relevancy">${item.r}</span>` : "";
+      (str = item.label) && (item.label = ` <span class="label">${str}</span>`);
+      if (!(Build.BTypes & BrowserType.Firefox)
+          || (Build.BTypes !== BrowserType.Firefox as number && Vomnibar_.browser_ !== BrowserType.Firefox)) {
+        (item.e === "history" || item.e === "tab" || item.v ? arr1 : arr2).push(item)
+      }
+    }
     if (Build.BTypes & BrowserType.Firefox
         && (Build.BTypes === BrowserType.Firefox as number || Vomnibar_.browser_ === BrowserType.Firefox)) {
       return;
     }
-    item.favIcon = (str = Vomnibar_.showFavIcon_ ? item.u : "") && Vomnibar_._favPrefix +
+    let n1 = arr1.length, i = 0
+    arr1.sort((i, j): number => !i.v !== !j.v ? i.v ? -1 : 1 : i.u.length - j.u.length)
+    for (const item of arr1.concat(arr2)) {
+      item.favIcon = (str = Vomnibar_.showFavIcon_ ? item.u : "") && Vomnibar_._favPrefix +
         (Build.MV3 ? encodeURIComponent : VUtils_.escapeCSSUrlInAttr_mv2_not_ff_
-            )(Vomnibar_._parseFavIcon(item, str) || "about:blank") + "&quot;);"
+            )(Vomnibar_._parseFavIcon_not_ff(item, i++ < n1, str) || "about:blank") + "&quot;);"
+    }
   },
-  _parseFavIcon (item: SuggestionE, url: string): string {
+  _parseFavIcon_not_ff (item: SuggestionE, visited: boolean, url: string): string {
     let str = url.slice(0, 11).toLowerCase(), optionsPage = "/" + GlobalConsts.OptionsPage
-    let i: number;
     return str.startsWith("vimium://")
       ? Vomnibar_.pageType_ !== VomnibarNS.PageType.ext
         ? chrome.runtime.getURL(optionsPage) : location.protocol + "//" + VHost_ + optionsPage
       : url.length > 512 || str === "javascript:" || str.startsWith("data:") ? ""
-      : item.v
-        || (item.e === "history" || item.e === "tab") && url
-        || (str.startsWith("http")
-              || str.lastIndexOf("-", str.indexOf(":") + 1 || 8) > 0 && url.lastIndexOf("://", 21) > 0
-            ? (i = url.indexOf("/", url.indexOf("://") + 3), i > 0 ? url.slice(0, i + 1) : url + "/") : url);
+      : VUtils_.getCachedFavIcons_(url, visited, item.v || "", str)
   },
   navigateToUrl_ (req: Req.fg<kFgReq.openUrl>, reuse: ReuseType): void {
     if ((<RegExpI> /^javascript:/i).test(req.u!)) {
@@ -1688,25 +1695,38 @@ VUtils_ = {
       }
     };
   },
+  _cachedFavicons: {} as Dict<string>,
+  getCachedFavIcons_ (url: string, visited: boolean, favIcon: string, scheme?: string): string {
+    scheme = scheme || url.slice(0, 11).toLowerCase()
+    let hasHost = scheme.startsWith("http")
+        || scheme.lastIndexOf("-", scheme.indexOf(":") + 1 || 8) > 0 && url.lastIndexOf("://", 21) > 0, i: number,
+    host = hasHost ? (i = url.indexOf("/", url.indexOf("://") + 3), i > 0 ? url.slice(0, i + 1) : url + "/") : null
+    return host && VUtils_._cachedFavicons[host]
+        || (Build.BTypes & BrowserType.Firefox
+            && (Build.BTypes === BrowserType.Firefox as number || Vomnibar_.browser_ === BrowserType.Firefox)
+            && favIcon && (favIcon = VUtils_.urlToCssAttr_(favIcon)),
+            visited && host && (VUtils_._cachedFavicons[host] = favIcon || url), favIcon || !visited && host || url)
+  },
+  urlToCssAttr_ (url: string): string {
+    return `url("${url.replace(<RegExpG & RegExpSearchable<0>> /"/g, (): string => "%22")}")`
+  },
   assignFavIcons_ff_: Build.BTypes & BrowserType.Firefox ? ((objectArray, element): void => {
     const els = element.querySelectorAll(".icon") as NodeListOf<HTMLElement>
     if (objectArray.length === 0 || els.length !== objectArray.length) { return }
-    const escapeRe = <RegExpG & RegExpSearchable<0>> /"/g
-    const escapeCallback = (): string => "%22"
-    const todos: [number, string][] = []
+    const todos: [number, SuggestionE][] = []
     for (let index = 0; index < objectArray.length; index++) {
-      const favIcon = objectArray[index].favIcon
+      let item: SuggestionE = objectArray[index], favIcon = item.favIcon
       if (!favIcon) { /* empty */ }
       else if (favIcon.length < 500) {
-        els[index].style.backgroundImage = `url("${favIcon.replace(escapeRe, escapeCallback)}")`
+        els[index].style.backgroundImage = VUtils_.getCachedFavIcons_(item.u, true, favIcon)
       } else {
-        todos.push([index, favIcon])
+        todos.push([index, item])
       }
     }
     todos.length > 0 && setTimeout((): void => {
       if (Vomnibar_.completions_ !== objectArray) { return }
-      for (const [index, favIcon] of todos) {
-        els[index].style.backgroundImage = `url("${favIcon.replace(escapeRe, escapeCallback)}")`
+      for (const [index, item] of todos) {
+        els[index].style.backgroundImage = VUtils_.getCachedFavIcons_(item.u, true, item.favIcon!)
       }
     }, 17)
   }) as Render : 0 as never,
