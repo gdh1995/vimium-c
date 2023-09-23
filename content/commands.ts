@@ -314,9 +314,10 @@ set_contentCommands_([
       return rect
     }
     const updateHint = (hint: InputHintItem): void => {
-      if (getEditableType_(hint.d)) {
+      const d2 = getEditableType_(hint.d) ? hint.d : insert_Lock_()
+      if (d2) {
         const fs = fullscreenEl_unsafe_(), arr2 = fs ? getViewBox_() : [scrollX, scrollY], arr1 = fs ? arr : scrollPos
-        const rect = arr2 && refineRect(hint.d)
+        const rect = arr2 && refineRect(d2)
         rect && setBoundary_(hint.m.style, rect, 2, [arr2[0] - arr1[0], arr2[1] - arr1[1]])
       }
       setClassName_s(hint.m, S)
