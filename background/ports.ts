@@ -168,24 +168,13 @@ export const OnConnect = (port: Frames.Port, type: PortType): void => {
 }
 
 const onDisconnect = (port: Port): void => {
-  let { tabId_: tabId } = port.s, i: number, ref = framesForTab_.get(tabId)
-  if (!ref) { return runtimeError_() }
-  const ports = ref.ports_
-  i = ports.lastIndexOf(port)
-  if (!port.s.frameId_) {
-    if (i >= 0) {
-      framesForTab_.delete(tabId)
-      Build.MV3 && !OnFirefox && !kAliveIfOnlyAnyAction && tabId === lastKeptTabId_
-          && tryToKeepAliveIfNeeded_mv3_non_ff(tabId)
-    }
-    return
-  }
-  if (i === ports.length - 1) {
-    --ports.length
-  } else if (i >= 0) {
+  let { tabId_: tabId } = port.s, ref = framesForTab_.get(tabId)
+  if (!ref) { return }
+  const ports = ref.ports_, i = ports.lastIndexOf(port), isTop = !port.s.frameId_
+  if (!isTop && i >= 0) {
     ports.splice(i, 1)
   }
-  if (!ports.length) {
+  if (isTop ? i >= 0 : !ports.length) {
     if (!(ref.flags_ & Frames.Flags.ResReleased)) {
       framesForTab_.delete(tabId)
     }
@@ -194,7 +183,6 @@ const onDisconnect = (port: Port): void => {
   } else if (port === ref.cur_) {
     ref.cur_ = ports[0]
   }
-  return runtimeError_()
 }
 
 const _onOmniConnect = (port: Frames.Port, type: PortType, isOmniUrl: boolean): void => {
