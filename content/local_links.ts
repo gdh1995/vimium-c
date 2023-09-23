@@ -78,6 +78,7 @@ const getClickable = (hints: Hint[], element: SafeHTMLElement): void => {
       } else if (arr) {
         (arr as WritableRect).l += 12; (arr as WritableRect).t += 9;
       }
+      /*#__NOINLINE__*/ detectCloseBtn(element as KnownIFrameElement)
     }
     type = ClickType.frame
     break;
@@ -260,6 +261,13 @@ const inferTypeOfListener = ((el: SafeHTMLElement, tag: "" | keyof HTMLElementTa
               && hasTag_("a", el2))
         );
 }) as (el: SafeHTMLElement, tag: keyof HTMLElementTagNameMap) => boolean
+
+const detectCloseBtn = (element: KnownIFrameElement): void => {
+  const next = element.nextElementSibling as Element | null
+  if (next && (OnFirefox || !notSafe_not_ff_!(next)) && next.textContent === "x") {
+    clickable_.add(next)
+  }
+}
 
 export const getEditable = (hints: Hint[], element: SafeHTMLElement): void => {
   let s: string = element.localName, asClickable = extraClickable_ && extraClickable_.has(element)
