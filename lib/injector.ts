@@ -42,11 +42,18 @@ const curEl = document.currentScript as HTMLScriptElement, scriptSrc = curEl.src
 const confBlockFocus = curEl.dataset.blockFocus
 let onIdle = MayChrome && Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback || MayEdge
     ? window.requestIdleCallback : requestIdleCallback
-let tick = 1, extID = scriptSrc.slice(i0, scriptSrc.indexOf("/", i0));
+let tick = 1, extHost = scriptSrc.slice(i0, scriptSrc.indexOf("/", i0)), extID = extHost;
 if (!MayChrome || MayNotChrome && extID.indexOf("-") > 0) {
   extID = curEl.dataset.vimiumId || BuildStr.FirefoxID;
 }
 extID = curEl.dataset.extensionId || extID;
+if (Build.BTypes & ~(BrowserType.Firefox | BrowserType.Edge) && extID === extHost
+    && (!(Build.BTypes & BrowserType.Firefox) || location.protocol.startsWith("moz-"))) {
+  if (((runtime.getManifest() || {}).manifest_version || 3) >= 3) {
+    alert("Require [data-extension-id] on <script> of vimium-c/injector.js")
+    return
+  }
+}
 VimiumInjector.id = extID;
 if (MayChrome && Build.MinCVer < BrowserVer.MinEnsured$requestIdleCallback || MayEdge) {
   onIdle = typeof onIdle !== "function" || "tagName" in (onIdle as unknown as Element) ? null as never : onIdle
