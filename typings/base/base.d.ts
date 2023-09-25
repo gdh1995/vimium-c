@@ -196,6 +196,12 @@ declare namespace chrome.scripting {
   export function registerContentScripts(scripts: RegisteredContentScript[]): Promise<void>
 }
 
+declare namespace chrome.storage {
+  var session: LocalStorageArea & {
+    setAccessLevel (level: "TRUSTED_AND_UNTRUSTED_CONTEXTS" | "TRUSTED_CONTEXTS"): Promise<void>
+  }
+}
+
 declare namespace chrome.bookmarks {
   export function create(bookmark: BookmarkCreateArg, callback?: (result: BookmarkTreeNode) => void): 1;
 }

@@ -645,6 +645,9 @@ const tryToKeepAlive = (rawNotFromInterval: BOOL): KKeep | void => {
     console.log("reuse kept tab id: %o @ %o", newAliveTabId, Date.now() % 9e5)
   }
   if (lastKeptTabId_ === -1) {
+    if (isFromInterval && browser_.storage.session) {
+      browser_.storage.session.set("recency", {})
+    }
   } else if (typeOfFramesToKeep < KKeep.MIN_HANDLED && typeOfFramesToKeep) {
     refreshPorts_(framesToKeep!, 0)
     typeOfFramesToKeep = KKeep.NormalRefreshed
@@ -771,7 +774,7 @@ if (Build.MV3 && !OnFirefox && kAliveIfOnlyAnyAction) {
               , port.s.tabId_, port.s.frameId_, port.s.flags_, Date.now() % 9e5)
         }
       }
-      posted = /*#__NOINLINE__*/ safePost(port, { N: kBgReq.showHUD, H: null, k: 0, t: "" })
+      posted = safePost(port, { N: kBgReq.showHUD, H: null, k: 0, t: "" })
     }
     if (!posted) {
       if (!Build.NDEBUG && DEBUG) {
