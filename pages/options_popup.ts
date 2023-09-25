@@ -31,7 +31,7 @@ class PopExclusionRulesOption extends ExclusionRulesOption_ {
   override init_ (element: HTMLElement): void {
     super.init_(element)
     this.$list_.onmousedown = (event: MouseEventToPrevent): void => {
-      event.detail > 1 && (event.target as EnsuredMountedElement).localName !== "input" && event.preventDefault()
+      event.detail > 1 && (event.target as EnsuredMountedElement).localName !== "input" && prevent_(event)
     }
   }
   override addRule_ (_pattern: string, autoFocus?: false): void {
