@@ -99,6 +99,9 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
                 || Build.BTypes & BrowserType.Chrome && a.browser_ === BrowserType.Chrome)
           ? devicePixelRatio : options.z
       , dz = a.docZoom_ = scale < 0.98 ? 1 / scale : 1;
+    const wdZoom = Build.MinCVer < BrowserVer.MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent
+        && (Build.BTypes === BrowserType.Chrome as number
+            || Build.BTypes & BrowserType.Chrome && a.browser_ === BrowserType.Chrome) ? dz * scale : dz
     if (Build.MinCVer < BrowserVer.MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent
         && (Build.BTypes === BrowserType.Chrome as number
             || Build.BTypes & BrowserType.Chrome && a.browser_ === BrowserType.Chrome)) {
@@ -141,7 +144,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     }
     keyword = (keyword || "") + "";
     if (url == null) {
-      return a.reset_(keyword && keyword + " ");
+      a.reset_(wdZoom, keyword && keyword + " ")
+      return
     }
     if (search) {
       start = search.s;
@@ -160,9 +164,9 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     }
     if (keyword && (!search || !search.c)) {
       start = (start || 0) + keyword.length + 1;
-      return a.reset_(keyword + " " + url, start, start + url.length);
+      a.reset_(wdZoom, keyword + " " + url, start, start + url.length)
     } else {
-      return a.reset_(url);
+      a.reset_(wdZoom, url)
     }
   },
 
@@ -172,7 +176,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   inputText_: "",
   lastQuery_: "",
   useInput_: true,
-  inputType_: 0,
+  inputType_: 0 as BOOL,
+  lastParsed_: "",
   completions_: null as never as SuggestionE[],
   total_: 0,
   maxPageNum_: Math.min(Math.max(3, (window.VomnibarMaxPageNum! | 0) || 10), 100),
@@ -262,8 +267,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     a.blurred_()
     Build.MinCVer <= BrowserVer.StyleSrc$UnsafeInline$MayNotImply$UnsafeEval && Build.BTypes & BrowserType.Chrome
         ? a.docSt_.zoom = "" : a.docSt_.cssText = ""
-    a.list_.textContent = el.value = "";
-    a.list_.style.height = "";
+    a.list_.style.height = a.lastParsed_ = a.list_.textContent = el.value = "";
     a.barCls_.remove("empty");
     a.list_.classList.remove("no-favicon");
     a.toggleAlt_(0);
@@ -313,7 +317,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     }
     a.doEnter_ = null;
   },
-  reset_ (input: string, start?: number, end?: number): void {
+  reset_ (wdZoom: number, input: string, start?: number, end?: number): void {
     const a = Vomnibar_;
     (<RegExpOne> /^\+\d\d?$/).test(input.trim()) && (start = end = 0, input = " " + input.trim())
     a.inputText_ = input;
@@ -328,6 +332,10 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     if (a.init_) { a.init_(); }
     a.input_.value = a.inputText_;
     start! <= end! && a.input_.setSelectionRange(start!, end!)
+    VPort_.postToOwner_({
+      N: VomnibarNS.kFReq.style, h: 0,
+      m: Math.ceil(a.mode_.r * a.itemHeight_ + a.baseHeightIfNotEmpty_) * wdZoom,
+    })
   },
   focus_ (this: void, focus?: false | TimerType.fake | "focus" | 1 | 2 | 3 | 4 | 5): void {
     const a = Vomnibar_;
@@ -425,6 +433,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     line.parsed_ = search ? ((Vomnibar_.mode_.e ? Vomnibar_.mode_.e & CompletersNS.SugType.search
           : Vomnibar_.mode_.o.endsWith("omni")) && !Vomnibar_.resMode_ ? "" : ":o ")
         + search.k + " " + search.u + " " : Vomnibar_.resMode_ + line.t
+    Vomnibar_.lastParsed_ = line.parsed_
     if (id === Vomnibar_.selection_) {
       return Vomnibar_._updateInput(line, line.parsed_);
     }
@@ -723,7 +732,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     else if (n === kKeyCode.backspace) { focused && (a.keyResult_ = SimpleKeyResult.Suppress); return }
     else if (char !== kChar.space) { /* empty */ }
     else if (!focused) { action = AllowedActions.focus; }
-    else if (!mapped && (a.selection_ >= 0 || a.completions_.length <= 1) && a.input_.value.endsWith("  ")) {
+    else if (!mapped && (a.selection_ >= 0 || a.completions_.length <= 1)
+        && a.input_.value.endsWith(a.lastParsed_.endsWith(" ") ? "   " : "  ")) {
       return a.onEnter_(true);
     }
     if (action) {
@@ -762,7 +772,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       break;
     case AllowedActions.up: case AllowedActions.down:
       if (a.timer_) {
-        a.onUpdate_ = (): void => { a.selection_ = -1, a.isSelOriginal_ = false; a.onAction_(action) }
+        a.onUpdate_ = () => { Vomnibar_.selection_ = -1, Vomnibar_.isSelOriginal_ = false; Vomnibar_.onAction_(action) }
         a.timer_ > 0 && a.update_(0, a.onUpdate_)
         return
       }
@@ -1084,12 +1094,12 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   },
   OnInput_ (this: void, event: InputEvent): void {
     const a = Vomnibar_, s0 = a.lastQuery_
-    let s1 = a.input_.value, str = s1.trim(), inputType = a.inputType_
+    let s1 = a.input_.value, str = s1.trim(), inputType: number = a.inputType_
     a.blurWanted_ = a.inputType_ = 0
     if (Build.BTypes & BrowserType.Chrome && s1 === "/" && a.isEdg_ && a.input_.selectionEnd && !event.isComposing) {
       s1 = a.input_.value = " /" // disable the popup menu for auto-completion from edge://settings/personalinfo
     }
-    if (str === (a.selection_ === -1 || a.isSelOriginal_ ? s0 : a.completions_[a.selection_].t)) {
+    if (str === (a.selection_ === -1 || a.isSelOriginal_ ? s0 : a.lastParsed_.trim()||a.completions_[a.selection_].t)) {
       return;
     }
     if (a.matchType_ === CompletersNS.MatchType.emptyResult && str.startsWith(s0)) {
@@ -1098,6 +1108,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         return
       }
     }
+    a.lastParsed_ = ""
     if (!str) { a.isHttps_ = a.baseHttps_ = null; }
     let i = a.input_.selectionStart, arr: RegExpExecArray | null;
     if (i && s1[i - 1] === " " && str.length > 5 && str.includes(" ") && str.startsWith(s0)
@@ -1126,10 +1137,9 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
               || Build.BTypes & BrowserType.Chrome && a.browser_ === BrowserType.Chrome)
         ? a.docZoom_ * devicePixelRatio : a.docZoom_,
     msg: VomnibarNS.FReq[VomnibarNS.kFReq.style] & VomnibarNS.Msg<VomnibarNS.kFReq.style> = {
-      N: VomnibarNS.kFReq.style, h: height * wdZoom
+      N: VomnibarNS.kFReq.style, h: height * wdZoom, m: 0
     };
     if (!a.isActive_) { return; }
-    oldH || (msg.m = Math.ceil(a.mode_.r * a.itemHeight_ + a.baseHeightIfNotEmpty_) * wdZoom);
     if (height > oldH) { VPort_.postToOwner_(msg) }
     a.total_ = response.t;
     a.showFavIcon_ = response.i;
@@ -1229,7 +1239,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       Vomnibar_.darkBtn_.style.display = ""
     }
     const monospaceURL = omniStyles.includes(" mono-url ");
-    Vomnibar_.showTime_ = !omniStyles.includes(" time ") ? 0 : omniStyles.includes(" absolute-num-time ") ? 1
+    Vomnibar_.showTime_ = !omniStyles.includes("time ") ? 0 : omniStyles.includes(" absolute-num-time ") ? 1
         : omniStyles.includes(" absolute-time ") ? 2 : 3
     Vomnibar_.updateQueryFlag_(CompletersNS.QueryFlags.ShowTime, Vomnibar_.showTime_ > 0);
     // Note: should not use style[title], because "title" on style/link has special semantics
@@ -1237,7 +1247,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     const styles = document.querySelectorAll("style[id]")
     for (let i = 0; i < styles.length; i++) { // eslint-disable-line @typescript-eslint/prefer-for-of
       const style = styles[i] as HTMLStyleElement
-      const key = " " + style.id + " ", isCustom = key === " custom ", found = isCustom || omniStyles.includes(key)
+      const key = (style.id !== "time" ? " " : "") + style.id + " ", isCustom = key === " custom "
+      const found = isCustom || omniStyles.includes(key)
       if (style.dataset.media) {
         style.media = found ? "" : style.dataset.media
       } else {
@@ -1515,7 +1526,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   updateQueryFlag_ (flag: CompletersNS.QueryFlags, enable: boolean | null): void {
     const isFirst = enable == null;
     if (isFirst) {
-      enable = ` ${Vomnibar_.styles_} `.includes(flag - CompletersNS.QueryFlags.ShowTime ? " mono-url " : " time ")
+      enable = ` ${Vomnibar_.styles_} `.includes(flag - CompletersNS.QueryFlags.ShowTime ? " mono-url " : "time ")
     }
     const newFlag = (Vomnibar_.mode_.f & ~flag) | (enable ? flag : 0);
     if (Vomnibar_.mode_.f === newFlag) { return; }

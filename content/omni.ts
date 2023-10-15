@@ -43,7 +43,7 @@ let timer_: ValidTimeoutID = TimerID.None
 let dialog_non_ff: HTMLDialogElement | false | null | undefined
 let canUseVW: boolean
 let screenHeight_: number
-let maxOutHeight_ = 99
+let maxOutHeight_ = 9
 
 export { box as omni_box, status as omni_status, dialog_non_ff as omni_dialog_non_ff }
 
@@ -187,15 +187,22 @@ const onOmniMessage = function (this: OmniPort, msg: { data: any, target?: Messa
     case VomnibarNS.kFReq.style:
       const style = box!.style, ratio_cr = OnChrome &&
           Build.MinCVer < BrowserVer.MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent ? wndSize_(2) : 1
-      style.height = math.ceil(data.h / docZoom_ / ratio_cr) + "px"
-      if (status === Status.ToShow) {
-        status = Status.Showing
-        const maxBoxHeight = data.m!,
+      if (data.h) {
+        style.height = math.ceil(data.h / docZoom_ / ratio_cr) + "px"
+      }
+      if (status !== Status.ToShow) { /* empty */ }
+      else if (data.m) {
+        // style.top may not take effect until a second paint; so if set it during omni_(),
+        // a initing Vomnibar (`display: block; height: 520px;`) may flick from `top: 64px` to a new position
+        // reproduced on Chrome 11x, Ubuntu 22.04 and X11 at 2023/09
+        const maxBoxHeight = data.m,
         topHalfThreshold = maxBoxHeight * 0.6 + VomnibarNS.PixelData.MarginTop * ratio_cr,
         top = screenHeight_ > topHalfThreshold * 2 ? ((50 - maxBoxHeight * 0.6 / screenHeight_ * 100) | 0
             ) + (canUseVW ? "vh" : "%") : ""
         style.top = top
         maxOutHeight_ = math.ceil(maxBoxHeight / docZoom_ / ratio_cr)
+      } else {
+        status = Status.Showing
         !OnFirefox && WithDialog && dialog_non_ff && (dialog_non_ff.open || dialog_non_ff.showModal())
         focus_(box!)
         clearTimeout_(timer1)

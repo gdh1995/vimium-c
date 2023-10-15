@@ -18,8 +18,9 @@ const enum kCReq {
   _mask = "",
 }
 const enum kFReq {
-  hide, focus, style, iframeIsAlive,
-  hud, evalJS, scroll, scrollGoing, stopScroll, broken, unload,
+  hide, focus, style, iframeIsAlive, hud,
+  evalJS, scroll, scrollGoing, stopScroll, broken,
+  unload,
   _mask = "",
 }
 interface CReq {
@@ -36,8 +37,8 @@ interface FReq {
   };
   [kFReq.style]: {
     // unit: physical pixel (if C<52)
-    h: number;
-    m?: number;
+    /** current height */ h: number
+    /** max box height, used just once during activating */ m: number
   };
   [kFReq.hud]: { k: kTip };
   [kFReq.focus]: {

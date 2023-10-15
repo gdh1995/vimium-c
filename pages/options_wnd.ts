@@ -510,8 +510,10 @@ export const onHash_ = (hash: string): void => {
       : hash.includes("-") && $("#" + hash.replace(<RegExpG & RegExpSearchable<0>> /-[a-z]/gi
         , s => s[1].toUpperCase())) || $("#" + hash)) {
     if ((node.dataset as KnownOptionsDataset).model) {
-      node = node.localName === "input" && (node as HTMLInputElement).type === "checked"
-          ? node.parentElement as HTMLElement : node
+      if (node.localName === "input" && (node as HTMLInputElement).type === "checkbox") {
+        const p1 = node.parentElement as EnsuredMountedHTMLElement, p2 = p1.parentElement
+        node = p2.localName === "td" ? p2 : p1
+      }
       node.classList.add("highlight")
     }
     const callback = function (event?: Event): void {

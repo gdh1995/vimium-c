@@ -780,8 +780,10 @@ const onBeforeUnload = (): string => {
       for (const i of Object.values(Option_.all_)) {
         if (i instanceof TextOption_ && i._lastError) { continue }
         let node = i.element_
-        node = node.localName === "input" && (node as HTMLInputElement).type === "checked"
-            ? node.parentElement as HTMLElement : node
+        if (node.localName === "input" && (node as HTMLInputElement).type === "checkbox") {
+          const p1 = node.parentElement as EnsuredMountedHTMLElement, p2 = p1.parentElement
+          node = p2.localName === "td" ? p2 : p1
+        }
         node.classList.toggle("highlight", !i.saved_)
       }
     }, 300)
