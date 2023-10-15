@@ -408,7 +408,6 @@ export const executeScript_ = <Args extends (number | boolean | null)[]>(tabId: 
     OnChrome && Build.MinCVer < BrowserVer.MinInjectImmediatelyInMV3 && CurCVer_ < BrowserVer.MinInjectImmediatelyInMV3
         && delete toRun.injectImmediately
     browser_.scripting.executeScript(toRun, callback || runtimeError_)
-    return
   } else {
     const toRun: chrome.tabs.InjectDetails = frameId >= 0 ? { frameId } : { allFrames: true, matchAboutBlank: true }
     toRun.runAt = "document_start"

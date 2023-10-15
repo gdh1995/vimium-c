@@ -129,7 +129,7 @@ var Tasks = {
     }
     var btypes = getBuildItem("BTypes");
     const has_wordsRe = btypes & BrowserType.Chrome && getBuildItem("MinCVer") <
-                59 /* min(MinSelExtendForwardOnlySkipWhitespaces, MinEnsuredUnicodePropertyEscapesInRegExp) */
+                /* min(MinSelExtendForwardOnlySkipWhitespaces, MinEnsuredUnicodePropertyEscapesInRegExp) */ 59
         || btypes & BrowserType.Firefox && !getBuildItem("NativeWordMoveOnFirefox")
             && getBuildItem("MinFFVer") < /* FirefoxBrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp */ 78
     if (!has_wordsRe) {
@@ -327,6 +327,8 @@ var Tasks = {
         optional = optional.filter(i => {
           return !i.includes("chrome:") && i !== "downloads.shelf" && i !== "contentSettings"
         })
+    } else if (optional && minVer >= /* MinNoDownloadBubbleFlag */ 117) {
+      optional = optional.filter(i => i !== "downloads.shelf")
     }
     if (!getBuildItem("OnBrowserNativePages")) {
       optional = optional.filter(i => { return !i.includes("chrome:") })
@@ -526,7 +528,7 @@ gulp.task("locally", function(done) {
   compilerOptions = loadValidCompilerOptions("scripts/gulp.tsconfig.json");
   createBuildConfigCache();
   var old_has_polyfill = has_polyfill;
-  has_polyfill = getBuildItem("MinCVer") < 43 /* MinSafe$String$$StartsWith */;
+  has_polyfill = getBuildItem("MinCVer") < /* MinSafe$String$$StartsWith */ 43
   if (has_polyfill != old_has_polyfill) {
     CompileTasks.front[0][1] = has_polyfill ? POLYFILL_FILE : "!" + POLYFILL_FILE;
     CompileTasks.lib.length = 1;

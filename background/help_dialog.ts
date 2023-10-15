@@ -362,7 +362,7 @@ const commandGroups_: {
     , "clearContentSettings", 1
     , "copyWindowInfo", 1, "$format=\"${title}: ${url}\", join:true/string, decoded"
     , "captureTab"
-    , "toggleWindow", "$states=\"normal maximized\""
+    , "toggleWindow", "$states=\"normal,maximized\""
   ],
   misc: [
     "showHelp"
@@ -388,7 +388,9 @@ const commandGroups_: {
 }
 
 if (OnChrome) {
-  (commandGroups_.misc as Writable<typeof commandGroups_.misc>).push("closeDownloadBar")
+  (commandGroups_.misc as Writable<typeof commandGroups_.misc>).push("closeDownloadBar", 1)
+  Build.MinCVer < BrowserVer.MinNoDownloadBubbleFlag && CurCVer_ < BrowserVer.MinNoDownloadBubbleFlag
+      && (commandGroups_.misc as Writable<typeof commandGroups_.misc>).pop()
 }
 
 if (OnFirefox || OnChrome && IsEdg_) {

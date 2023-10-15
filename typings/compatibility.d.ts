@@ -601,6 +601,7 @@ declare const enum BrowserVer {
   Min$AbortSignal$$timeout = 103, // even if LEGACY; since 100 if EXP
   MinEnsured$Element$$role = 103, // even if LEGACY; since 68 if EXP
   MinMV3FaviconAPI = 104,
+  Min$downloads$$setUiOptions = 105, // require `downloads.ui`
   MinURLPatternWith$ignoreCase = 107, // even if EXP or LEGACY
   MinMaybePopoverWith$popovershow = 109, // if EXP; use popovershow/popoverhide instead of toggle
   MinBgWorkerAliveIfOnlyAnyAction = 110,
@@ -611,6 +612,7 @@ declare const enum BrowserVer {
   MinNoOverflowOverlay = 114, // even if EXP or LEGACY
   MinMaybeMouseenter$composed$IsFalse = 115, // if EXP
   MinMouseenter$composed$IsFalse = 116, // said in https://chromestatus.com/features#milestone%3D116
+  MinNoDownloadBubbleFlag = 117,
   MinNo$TimerType$$Fake = 999,
   assumedVer = 998,
 }

@@ -145,7 +145,7 @@ export class OptionalPermissionsOption_ extends Option_<"nextPatterns"> {
           if (!item) { continue }
           item.previous_ = 0
           const box = item.element_.parentElement as Element as EnsuredMountedHTMLElement
-          if (!err) { return TextOption_.showError_("", void 0, box)  }
+          if (!err) { TextOption_.showError_("", void 0, box); continue }
           let msg = (err && err.message || JSON.stringify(err)) + ""
           if (name.startsWith("chrome://") && msg.includes("Only permissions specified in the manifest")) {
             if (name.startsWith("chrome:")) {
@@ -208,11 +208,12 @@ const initOptionalPermissions = (): void => {
       }
     }
     node.lastElementChild.textContent = i18nName + suffix
-    if (optional_permissions.length === 1 || optional_permissions.length === 2 && pageLangs_ === "en") {
-      node.classList.add("single")
-    }
     fragment.appendChild(node)
     shownItem.element_ = checkbox
+  }
+  if (!(optional_permissions.length === 1 || optional_permissions.length === 2 && pageLangs_ === "en")) {
+    $("#optionalPermissionsHelp").classList.add("has-many")
+    container.classList.add("has-many")
   }
   container.appendChild(fragment)
   delayBinding_(container, "input", onInput, true)
@@ -269,7 +270,9 @@ const onCrUrlClick = (e: EventToPrevent): void => {
 }
 
 if (!OnEdge) {
-  const ignored: Array<kBrowserPermission | RegExpOne> = OnFirefox ? [kShelf] : ["downloads"]
+  const ignored: Array<kBrowserPermission | RegExpOne> = OnFirefox || OnChrome
+      && (Build.MinCVer >= BrowserVer.MinNoDownloadBubbleFlag || CurCVer_ > BrowserVer.MinNoDownloadBubbleFlag - 1)
+      ? [kShelf] : ["downloads"]
   OnChrome || ignored.push(<RegExpOne> /^chrome:/, "contentSettings")
   OnChrome && IsEdg_ && Build.OnBrowserNativePages && ignored.push(kNTP)
   OnFirefox || ignored.push("cookies")

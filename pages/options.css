@@ -510,8 +510,12 @@ label:active {
   padding-left: 22px;
   text-indent: -22px;
 }
-.optional-permission:first-of-type:not(.single) {
-  margin-top: -4px;
+#optionalPermissions.has-many {
+  position: relative;
+  top: -4px;
+}
+#optionalPermissionsHelp.has-many {
+  top: 0;
 }
 /* Ids and classes for rendering exclusionRules */
 #exclusionRules {
