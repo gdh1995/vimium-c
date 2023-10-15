@@ -539,14 +539,9 @@ tabEngine = {
             ? pLevel < GlobalConsts.MaxTabTreeIndent ? pLevel + 1 : GlobalConsts.MaxTabTreeIndent : 1)
       }
     }
-    const timeOffset = !(otherFlags & CompletersNS.QueryFlags.ShowTime) ? 0
-        : (OnChrome || OnFirefox) && Build.OS & kBOS.LINUX_LIKE
-          && (Build.OS === kBOS.LINUX_LIKE as number || os_ === kOS.linuxLike) ? 0
-        : OnChrome && Build.MinCVer < BrowserVer.Min$performance$$timeOrigin
-          && CurCVer_ < BrowserVer.Min$performance$$timeOrigin
-        ? Date.now() - (monoNow = performance.now()) : performance.timeOrigin!
+    const timeOffset = !(otherFlags & CompletersNS.QueryFlags.ShowTime) ? 0 : BgUtils_.recencyBase_()
     const c = !noFilter ? ComputeWordRelevancy : treeMode ? (_0: unknown, index: number): number => 1 / index
-        : (monoNow = monoNow || performance.now(), (_0: unknown, tabId: number): number => recencyForTab_.get(tabId)
+        : (monoNow = performance.now(), (_0: unknown, tabId: number): number => recencyForTab_.get(tabId)
             || (otherFlags & CompletersNS.QueryFlags.PreferNewOpened ? monoNow + tabId : -tabId))
     for (let ind = 0; ind < tabs.length; ) {
       const tab = tabs[ind++]

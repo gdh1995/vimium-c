@@ -99,6 +99,7 @@ export let curWndId_: number = GlobalConsts.WndIdNone
 export let lastWndId_: number = GlobalConsts.WndIdNone
 export let curIncognito_ = Build.MinCVer >= BrowserVer.MinNoAbnormalIncognito || !OnChrome
     ? IncognitoType.ensuredFalse : IncognitoType.mayFalse
+export let saveRecency_: (() => void) | null = null
 //#endregion
 
 //#region navigation and finding/marking history
@@ -157,6 +158,7 @@ export const set_curTabId_ = (_newCurTabId: number): void => { curTabId_ = _newC
 export const set_curWndId_ = (_newCurWndId: number): void => { curWndId_ = _newCurWndId }
 export const set_lastWndId_ = (_newLastWndId: number): void => { lastWndId_ = _newLastWndId }
 export const set_curIncognito_ = (_newIncog: IncognitoType): IncognitoType => curIncognito_ = _newIncog
+export const set_saveRecency_ = (_newRecSaver: typeof saveRecency_): void => { saveRecency_ = _newRecSaver }
 
 /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
 export const set_incognitoFindHistoryList_ = <T extends string[] | null>(l: T): T => incognitoFindHistoryList_ = l as T

@@ -2,7 +2,7 @@ import {
   needIcon_, cPort, set_cPort, reqH_, contentPayload_, omniPayload_, innerCSS_, extAllowList_, framesForTab_, findCSS_,
   framesForOmni_, getNextFakeTabId, curTabId_, vomnibarPage_f, OnChrome, CurCVer_, OnEdge, setIcon_, lastKeptTabId_,
   keyFSM_, mappedKeyRegistry_, CONST_, mappedKeyTypes_, recencyForTab_, setTeeTask_, OnFirefox, UseZhLang_, blank_,
-  set_lastKeptTabId_, omniConfVer_, contentConfVer_
+  set_lastKeptTabId_, omniConfVer_, contentConfVer_, saveRecency_
 } from "./store"
 import { asyncIter_, deferPromise_, getOmniSecret_, isNotPriviledged, keys_ } from "./utils"
 import {
@@ -634,7 +634,8 @@ const tryToKeepAlive = (rawNotFromInterval: BOOL): KKeep | void => {
     Build.MV3 && !OnFirefox ? failed && /** never */ (stillAlive.forEach(_safeRefreshPort), refreshPorts_(frames, 1))
         : stillAlive.length && frames.ports_.push(...stillAlive)
   }
-  if (!Build.MV3 || OnFirefox) { return }
+  if (!Build.MV3) { return }
+  if (OnFirefox) { framesToKeep || saveRecency_ && saveRecency_(); return }
   const newAliveTabId = framesToKeep ? framesToKeep.cur_.s.tabId_ : -1
   if (lastKeptTabId_ !== newAliveTabId) {
     if (!Build.NDEBUG && DEBUG) {
@@ -645,9 +646,7 @@ const tryToKeepAlive = (rawNotFromInterval: BOOL): KKeep | void => {
     console.log("reuse kept tab id: %o @ %o", newAliveTabId, Date.now() % 9e5)
   }
   if (lastKeptTabId_ === -1) {
-    if (isFromInterval && browser_.storage.session) {
-      browser_.storage.session.set("recency", {})
-    }
+    isFromInterval && saveRecency_ && saveRecency_()
   } else if (typeOfFramesToKeep < KKeep.MIN_HANDLED && typeOfFramesToKeep) {
     refreshPorts_(framesToKeep!, 0)
     typeOfFramesToKeep = KKeep.NormalRefreshed

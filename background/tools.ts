@@ -3,7 +3,7 @@ import {
   set_curTabId_, set_curWndId_, set_incognitoFindHistoryList_, set_lastWndId_, incognitoMarkCache_, focusAndExecuteOn_,
   set_incognitoMarkCache_, contentPayload_, settingsCache_, OnFirefox, OnChrome, CurCVer_, updateHooks_, set_cKey,
   OnEdge, isHighContrast_ff_, omniPayload_, blank_, CONST_, CurFFVer_, storageCache_, os_, vomnibarBgOptions_, cPort,
-  lastKeptTabId_
+  lastKeptTabId_, set_saveRecency_
 } from "./store"
 import * as BgUtils_ from "./utils"
 import {
@@ -628,7 +628,7 @@ export const TabRecency_ = {
   rCompare_: (a: {id: number}, b: {id: number}): number => cache.get(b.id)! - cache.get(a.id)!,
   onWndChange_: blank_
 };
-let lastVisitTabTime = 0
+let lastVisitTabTime = 0, lastSaveRecencyTime = 0
 
   function onTabActivated(info: chrome.tabs.TabActiveInfo): void {
     const tabId = info.tabId, frames = framesForTab_.get(tabId)
@@ -699,6 +699,26 @@ void settings_.ready_.then((): void => {
     set_curIncognito_(a.incognito ? IncognitoType.true
       : !OnChrome || Build.MinCVer >= BrowserVer.MinNoAbnormalIncognito
       ? IncognitoType.ensuredFalse : IncognitoType.mayFalse)
+    if (!Build.MV3) { return }
+    const sessionStorage = browser_.storage.session
+    interface RecencyStorage { e: [ tabId: number, monoTime: number ][], b: number }
+    const kRecencyField = "recency"
+    sessionStorage && sessionStorage.get(kRecencyField).then((rawConf): void => {
+      const oldRec = rawConf && rawConf[kRecencyField] as RecencyStorage | undefined
+      if (oldRec) {
+        const delta = BgUtils_.recencyBase_() - oldRec.b
+        for (const [k, v] of oldRec.e) { cache.set(k, v - delta) }
+      }
+      sessionStorage.remove(kRecencyField)
+      set_saveRecency_((): void => {
+        if (lastSaveRecencyTime == lastVisitTabTime) {
+          return
+        }
+        lastSaveRecencyTime = lastVisitTabTime
+        const recency: RecencyStorage = { e: Array.from((cache as any).entries()), b: BgUtils_.recencyBase_() }
+        sessionStorage.set({ [kRecencyField]: recency })
+      })
+    }, blank_)
   });
   if (!OnChrome) { return }
   const items: CSTypes[] = []

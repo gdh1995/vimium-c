@@ -1,6 +1,6 @@
 import {
   contentConfVer_, CurCVer_, CurFFVer_, framesForTab_, omniConfVer_, OnChrome, OnEdge, OnFirefox, set_contentConfVer_,
-  set_omniConfVer_
+  set_omniConfVer_, os_
 } from "./store"
 
 export const spacesRe_ = <RegExpG & RegExpSearchable<0>> /\s+/g
@@ -494,4 +494,12 @@ export const nextConfUpdate = (useOmni: 0 | 1): number => {
   let version = useOmni ? omniConfVer_ : contentConfVer_
   version = ((version + 1) & 0xfff) || 1
   return useOmni ? set_omniConfVer_(version) : set_contentConfVer_(version)
+}
+
+export const recencyBase_ = (): number => {
+  return (OnChrome || OnFirefox) && Build.OS & kBOS.LINUX_LIKE
+      && (Build.OS === kBOS.LINUX_LIKE as number || os_ === kOS.linuxLike) ? 0
+      : OnChrome && Build.MinCVer < BrowserVer.Min$performance$$timeOrigin
+        && CurCVer_ < BrowserVer.Min$performance$$timeOrigin
+      ? Date.now() - performance.now() : performance.timeOrigin!
 }

@@ -199,6 +199,7 @@ declare namespace chrome.scripting {
 declare namespace chrome.storage {
   var session: LocalStorageArea & {
     setAccessLevel (level: "TRUSTED_AND_UNTRUSTED_CONTEXTS" | "TRUSTED_CONTEXTS"): Promise<void>
+    get <K extends string> (field: K | K[]): Promise<Record<K, unknown>>
   }
 }
 
