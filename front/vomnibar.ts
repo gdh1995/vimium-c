@@ -624,10 +624,26 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     let action: AllowedActions = AllowedActions.nothing, ind: number;
     const char = (key.slice(key.lastIndexOf("-") + 1) || key && kChar.minus) as kChar,
     mainModifier = key.includes("-", 1) ? key[0] as "a" | "c" | "m" | "s" : ""
+    if (char === kChar.enter) {
+      if (!event.metaKey && (event.key === "Enter" || n === kKeyCode.enter)) {
+        window.onkeyup = a.OnNativeEnterUp_.bind(null, key, mapped)
+      } else {
+        a.onEnter_(key)
+      }
+      return
+    }
     if (mainModifier === "a") {
+      ind = char >= "0" && char <= "9" ? +char || 10
+          : mapped || !(Build.BTypes & BrowserType.Firefox ? a.hasShift_(event as KeyboardEvent) : event.shiftKey) ? -1
+          : n > kKeyCode.maxNotNum && n < kKeyCode.minNotNum ? (n - kKeyCode.N0) || 10 : -1
+      if (ind >= 0 && (!(Build.OS & kBOS.MAC) || Build.OS !== kBOS.MAC as number && a.os_
+          || (<RegExpOne> /[cm]-/).test(key))) {
+        if (ind <= a.completions_.length) { a.onEnter_(char >= "0" && char <= "9" ? true : -2, ind - 1) }
+        return
+      }
         if (key === "a-" + kChar.Alt || key === "a-" + kChar.Modifier) {
-          a.inAlt_ || addEventListener("keyup", a.toggleAlt_, true)
-          a.inAlt_ = a.inAlt_ || setTimeout(a.toggleAlt_, 260, -1)
+          a.inAlt_ === -1 ? event.repeat || a.toggleAlt_(0) : a.inAlt_ > 0 ? 0
+          : (addEventListener("keyup", a.toggleAlt_, true), a.inAlt_ = setTimeout(a.toggleAlt_, 260, -1))
           return;
         }
         if (char === kChar.down || char === kChar.up || (<RegExpOne> /^[jknp]$/).test(char)) {
@@ -666,26 +682,12 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     }
     if (mainModifier === "a" || mainModifier === "m") {
       if (char === kChar.f2) { return a.onAction_(focused ? AllowedActions.blurInput : AllowedActions.focus) }
-      if (char >= "0" && char <= "9" && (!(Build.OS & kBOS.MAC) || Build.OS !== kBOS.MAC as number && a.os_
-          || (<RegExpOne> /[cm]-/).test(key))) {
-        ind = +char || 10
-        if (ind <= a.completions_.length) { a.onEnter_(true, ind - 1) }
-        return
-      }
       if (focused && char.length === 1 && char > kChar.a && char < kChar.g && char !== kChar.c
           && !(Build.OS !== kBOS.MAC as number && (!(Build.OS & kBOS.MAC) || a.os_) && key === "a-d")) {
         return a.onWordAction_(char.charCodeAt(0) - (kCharCode.maxNotAlphabet | kCharCode.CASE_DELTA))
       }
       if (key === "a-c-c" || key === "a-m-c") { return a.onAction_(AllowedActions.copyPlain) }
-      if (mainModifier === "a" && char !== kChar.enter) { a.keyResult_ = SimpleKeyResult.Nothing; return; }
-    }
-    if (char === kChar.enter) {
-      if (!event.metaKey && (event.key === "Enter" || n === kKeyCode.enter)) {
-        window.onkeyup = a.OnNativeEnterUp_.bind(null, key, mapped)
-      } else {
-        a.onEnter_(key);
-      }
-      return;
+      if (mainModifier === "a") { a.keyResult_ = SimpleKeyResult.Nothing; return; }
     }
     if (mainModifier === "c" || mainModifier === "m") {
       if (char === kChar.c) {
@@ -908,15 +910,17 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     a.isInputComposing_ = null
     a.update_(0);
   },
-  onEnter_ (event?: KeyStat | true | string, newSel?: number | null): void {
+  onEnter_ (event?: KeyStat | true | -2 | string, newSel?: number | null): void {
     const a = Vomnibar_, options = a.options_
     let sel = newSel != null ? newSel : a.selection_;
     if (typeof event === "string") {
       event = (event.includes("a-") ? KeyStat.altKey : 0) + (event.includes("c-") ? KeyStat.ctrlKey : 0)
           + (event.includes("m-") ? KeyStat.metaKey : 0) + (event.includes("s-") ? KeyStat.shiftKey : 0);
     }
+    const eventKey = typeof event === "number" && event >= 0 ? event : 0
     a.actionType_ = event == null ? a.actionType_
       : event === true ? null
+      : event === -2 ? ReuseType.newBg
       : event & (KeyStat.PrimaryModifier | KeyStat.shiftKey) && options.clickLike ? a.parseClickEventAs_(event)
       : event & KeyStat.PrimaryModifier ? event & KeyStat.shiftKey ? ReuseType.newBg : ReuseType.newFg
       : event & KeyStat.shiftKey ? ReuseType.current : null
@@ -959,12 +963,12 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         : Vomnibar_.gotoSession_(sessionReq!, (item as SuggestionE).e === "tab");
       (<RegExpOne> /a?/).test("");
     };
-    if (!useItem && event && event !== !0 && event & KeyStat.altKey && action > ReuseType.newBg
+    if (!useItem && eventKey & KeyStat.altKey && action > ReuseType.newBg
         && (<RegExpOne> /^\w+(-\w+)?$/).test(item.u)) {
       const domains = a.completions_.filter(i => i.e === "domain");
       navReq!.u = domains.length ? domains[0].u : `www.${item.u}.com`
     }
-    if (action > ReuseType.newBg || event && event !== !0 && event & KeyStat.altKey) {
+    if (action > ReuseType.newBg || eventKey & KeyStat.altKey) {
       a.doEnter_ = [func, action]
       a.hide_()
     } else {

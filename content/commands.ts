@@ -329,12 +329,12 @@ set_contentCommands_([
       return {m: marker, d: link[0]};
     })
     count -= (count > 0) as boolean | BOOL as BOOL
+    let preferredSelector = (options.prefer || "") + ""
     if (abs_(count) > 2 * sel) {
       sel = count < 0 ? 0 : sel - 1
     } else {
       for (ind = 0; ind < sel && hints[ind].d !== known_last; ind++) { /* empty */ }
-      if (ind >= sel) {
-        let preferredSelector = (options.prefer || "") + ""
+      if (preferredSelector.endsWith("!") ? (preferredSelector = preferredSelector.slice(0, -1)) : ind >= sel) {
         for (ind = preferredSelector && safeCall(testMatch, preferredSelector, visibleInputs[0]) === false ? 0 : sel;
             ind < sel && !testMatch(preferredSelector, visibleInputs[ind]); ind++) { /* empty */ }
       }
