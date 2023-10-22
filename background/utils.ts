@@ -113,9 +113,11 @@ export const safer_ = (OnChrome && Build.MinCVer < BrowserVer.Min$Object$$setPro
       : <T extends object> (opt: T): T & SafeObject => Object.setPrototypeOf(opt, null)
     ) as <T extends object> (opt: T) => T & SafeObject
 
-export const isTld_ = (tld: string, onlyEN?: boolean): Urls.TldType =>
+export const isTld_ = (tld: string, onlyEN?: boolean, wholeHost?: string): Urls.TldType =>
     !onlyEN && (<RegExpOne> /[^a-z]/).test(tld) ? ((<RegExpOne> /^xn--[\x20-\x7f]+/).test(tld)
         || _nonENTlds.includes("." + tld + ".") ? Urls.TldType.NonENTld : Urls.TldType.NotTld)
+      : tld.length === 2 && wholeHost && ("cc.cu.in.rs.sh".includes(tld) ? wholeHost.includes("_")
+          : tld === "so" && wholeHost.startsWith("lib")) ? Urls.TldType.NotTld
       : tld && tld.length < _tlds.length && _tlds[tld.length].includes(tld) ? Urls.TldType.ENTld
       : Urls.TldType.NotTld;
 

@@ -141,7 +141,7 @@ export const convertToUrl_ = function (str: string, keyword?: string | null, vim
   } else if (str === "localhost" || str.endsWith(".localhost") || isIPHost_(str, 4) || arr[4] && hasPath) {
     type = expected;
   } else if ((index = str.lastIndexOf(".")) < 0
-      || (type = isTld_(str.slice(index + 1))) === Urls.TldType.NotTld) {
+      || (type = isTld_(str.slice(index + 1), false, str)) === Urls.TldType.NotTld) {
     index2 = str.length - index - 1;
     // the new gTLDs allow long and notEnglish TLDs
     // https://en.wikipedia.org/wiki/Generic_top-level_domain#New_top-level_domains
