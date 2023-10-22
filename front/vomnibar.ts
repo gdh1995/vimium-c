@@ -220,6 +220,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   afterHideTimer_: 0,
   timer_: 0,
   inAlt_: 0,
+  _listenedAltDown: 0 as kChar | kKeyCode,
   wheelStart_: 0,
   wheelTime_: 0,
   wheelDelta_: 0,
@@ -254,12 +255,12 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     const a = Vomnibar_, el = a.input_;
     a.isActive_ = a.showing_ = a.isEditing_ = a.codeFocusReceived_ = false
     a.isInputComposing_ = a._canvas = null
-    a.codeFocusTime_ = a.blurWanted_ = a.inputType_ = 0;
+    a.codeFocusTime_ = a.blurWanted_ = a.inputType_ = a._listenedAltDown = 0;
     ((document.body as Element).removeEventListener as typeof removeEventListener)("wheel", a.onWheel_
         , { passive: false, capture: true })
     a.timer_ > 0 && clearTimeout(a.timer_);
     window.onkeyup = null as never;
-    removeEventListener("keyup", a.toggleAlt_, true)
+    removeEventListener("keyup", a.onAltUp_, true)
     fromContent ||
     VPort_ && VPort_.post_({ H: kFgReq.nextFrame, t: Frames.NextType.current, o: !a.doEnter_, k: a.lastKey_ })
     el.blur() // in case of a wrong IME state on Chrome 107 on v1.99.6
@@ -270,7 +271,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     a.list_.style.height = a.lastParsed_ = a.list_.textContent = el.value = "";
     a.barCls_.remove("empty");
     a.list_.classList.remove("no-favicon");
-    a.toggleAlt_(0);
+    a.toggleAlt_()
     a.afterHideTimer_ = requestAnimationFrame(Build.BTypes & BrowserType.Firefox
         && (Build.BTypes === BrowserType.Firefox as number || a.browser_ === BrowserType.Firefox) || !a.doEnter_
         ? a.AfterHide_ : (): void => { a.afterHideTimer_ = requestAnimationFrame(a.AfterHide_) })
@@ -497,6 +498,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
             : (i < kKeyCode.maxAcsKeys + 1 ? i > kKeyCode.minAcsKeys - 1 : i > kKeyCode.maxNotMetaKey)
             ? Vomnibar_.keyLayout_ > kKeyLayout.MapModifierStart - 1
               && (Vomnibar_.keyLayout_ >> kKeyLayout.MapModifierOffset) === event.location ? kChar.Modifier
+              : (i === kKeyCode.osLeft || i === kKeyCode.osRight_mac) && Build.OS & kBOS.MAC
+                && (Build.OS === kBOS.MAC as number || !Vomnibar_.os_) ? kChar.Meta
               : i === kKeyCode.altKey ? kChar.Alt : kChar.INVALID
             : kChar.None
         : i === kKeyCode.menuKey && Build.BTypes !== BrowserType.Safari as number
@@ -548,7 +551,9 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
               : Vomnibar_._modifierKeys[key]
                 ? Vomnibar_.keyLayout_ > kKeyLayout.MapModifierStart - 1
                   && (Vomnibar_.keyLayout_ >> kKeyLayout.MapModifierOffset) === event.location ? kChar.Modifier
-                : key === "Alt" ? key : ""
+                : key === "Meta" && Build.OS & kBOS.MAC
+                  && (Build.OS === kBOS.MAC as number || !Vomnibar_.os_) ? kChar.Meta
+                : key === "Alt" ? kChar.Alt : ""
               : key === "Escape" ? kChar.esc
               : code.length < 2 || !isKeyShort ? key.startsWith("Arrow") && key.slice(5) || key
               : (mapped = Vomnibar_._codeCorrectionMap.indexOf(code)) < 0 ? code
@@ -632,24 +637,28 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       }
       return
     }
-    if (mainModifier === "a") {
+    if (mainModifier === "a" || mainModifier === "m") {
       ind = char >= "0" && char <= "9" ? +char || 10
           : mapped || !(Build.BTypes & BrowserType.Firefox ? a.hasShift_(event as KeyboardEvent) : event.shiftKey) ? -1
+          : event.code ? event.code.startsWith("Digit") ? +event.code.slice(5) || 10 : -1
           : n > kKeyCode.maxNotNum && n < kKeyCode.minNotNum ? (n - kKeyCode.N0) || 10 : -1
       if (ind >= 0 && (!(Build.OS & kBOS.MAC) || Build.OS !== kBOS.MAC as number && a.os_
-          || (<RegExpOne> /[cm]-/).test(key))) {
+          || mainModifier === "a" && (<RegExpOne> /[cm]-/).test(key))) {
         if (ind <= a.completions_.length) { a.onEnter_(char >= "0" && char <= "9" ? true : -2, ind - 1) }
         return
       }
-        if (key === "a-" + kChar.Alt || key === "a-" + kChar.Modifier) {
-          a.inAlt_ === -1 ? event.repeat || a.toggleAlt_(0) : a.inAlt_ > 0 ? 0
-          : (addEventListener("keyup", a.toggleAlt_, true), a.inAlt_ = setTimeout(a.toggleAlt_, 260, -1))
+        if ((<RegExpOne> /^([am]-modifier|a-alt|m-meta)$/).test(key)) {
+          if (a.inAlt_ === 1 ? !event.repeat : a.inAlt_ === 0) {
+            a._listenedAltDown = char !== kChar.Modifier ? char : n
+            addEventListener("keyup", a.onAltUp_, true)
+            a.inAlt_ = a.inAlt_ || -setTimeout(a.toggleAlt_, 260, 1)
+          }
           return;
         }
         if (char === kChar.down || char === kChar.up || (<RegExpOne> /^[jknp]$/).test(char)) {
           return a.onAction_(char < "o" && char !== "k" ? AllowedActions.down : AllowedActions.up);
         }
-        a.inAlt_ && a.toggleAlt_(0);
+        a.inAlt_ && a.toggleAlt_()
     }
     if (mainModifier && mainModifier < "s" && focused) {
       if ((char === kChar.left || char === kChar.right) && !key.includes("m-")) {
@@ -1181,7 +1190,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       list.lastElementChild.classList.add("b");
     }
     if (a.onUpdate_ === a.toggleAlt_) {
-      a.toggleAlt_(0)
+      a.toggleAlt_()
       a.onUpdate_ = null
     }
     height > oldH ? a.postUpdate_()
@@ -1331,7 +1340,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         }, 50);
       }
     } else {
-      Vomnibar_.toggleAlt_(0);
+      Vomnibar_.toggleAlt_()
       Vomnibar_._canvas = null
     }
   },
@@ -1501,25 +1510,27 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     if (Vomnibar_.keyResult_ === SimpleKeyResult.Nothing) { return; }
     VUtils_.Stop_(event, Vomnibar_.keyResult_ === SimpleKeyResult.Prevent);
   },
-  toggleAlt_ (enable?: /** disable */ 0 | /** enable */ -1 | KeyboardEvent): void {
-    const inAlt = Vomnibar_.inAlt_
-    let isKeyup: boolean
-    if (isKeyup = enable !== -1 && enable !== 0 && enable !== undefined) {
-      const key = Vomnibar_.getMappedKey_(enable).key
-      if (!(key === kChar.Alt || key === "a-" + kChar.Alt)) { return }
-      enable = inAlt > 0 ? -1 : 0
+  onAltUp_ (event: KeyboardEvent): void {
+    const listened = Vomnibar_._listenedAltDown
+    if (!listened || (typeof listened === "string" ? Vomnibar_.getMappedKey_(event).key : event.keyCode) === listened) {
+      removeEventListener("keyup", Vomnibar_.onAltUp_, true)
+      listened && Vomnibar_.toggleAlt_(Vomnibar_.inAlt_ < 0 ? 1 : 0)
+      Vomnibar_._listenedAltDown = 0
     }
+  },
+  toggleAlt_ (enable?: BOOL): void {
+    const inAlt = Vomnibar_.inAlt_
     enable = enable || 0
     if (inAlt !== enable) {
-      if ((inAlt === -1) !== !!enable) {
+      if ((inAlt > 0) !== !!enable) {
         (document.body as HTMLBodyElement).classList.toggle("alt", !!enable);
-        (enable && !isKeyup ? addEventListener : removeEventListener)("keyup", Vomnibar_.toggleAlt_, true);
         for (let i = 0, end = enable ? Math.min(Vomnibar_.list_.childElementCount, 10) : 0; i < end; i++) {
           ((Vomnibar_.list_.children as NodeList)[i] as Element).classList.add("alt-index")
         }
       }
-      if (inAlt > 0) { clearTimeout(inAlt); }
-      Vomnibar_.inAlt_ = enable;
+      inAlt < 0 && clearTimeout(-inAlt)
+      enable || (Vomnibar_._listenedAltDown = 0)
+      Vomnibar_.inAlt_ = enable
     }
   },
   _realDevRatio: 0,
