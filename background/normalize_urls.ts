@@ -11,8 +11,8 @@ export const customProtocolRe_ = <RegExpOne> /^(?:ext|web)\+[a-z]+:/
 export const quotedStringRe_ = <RegExpOne> /^"[^"]*"$|^'[^']*'$|^\u201c[^\u201d]*\u201d$/
 export const searchWordRe_ = <RegExpG & RegExpSearchable<2>> /\$([sS$])?(?:\{([^}]*)})?/g
 export const searchVariableRe_ = <RegExpG & RegExpSearchable<1>> /\$([+-]?\d+|\$)/g
-export const headClipNameRe_ = <RegExpOne> /^[\w\x80-\ufffd]{1,8}>/
-export const tailClipNameRe_ = <RegExpOne> /<[\w\x80-\ufffd]{1,8}$/
+export const headClipNameRe_ = <RegExpOne> /^[\w\x80-\ufffd]{1,8}!?>/
+export const tailClipNameRe_ = <RegExpOne> /<[\w\x80-\ufffd]{1,8}!?$/
 export const tailSedKeysRe_ = <RegExpOne> /\|([\w\x80-\ufffd]{1,8}|(,|%2[cC])[\w,-]*)$/
 
 const KnownPages_ = ["blank", "newtab", "options", "show"]

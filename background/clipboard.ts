@@ -50,7 +50,7 @@ const SedActionMap: ReadonlySafeDict<SedAction> = {
   [key in Exclude<keyof typeof SedAction, "NONE"> as NormalizeKeywords<key>]: (typeof SedAction)[key]
 }
 
-const kDirectClipNameRe = <RegExpOne> /^[<>][\w\x80-\ufffd]{1,8}$|^[\w\x80-\ufffd]{1,8}>$/
+const kDirectClipNameRe = <RegExpOne> /^[<>][\w\x80-\ufffd]{1,8}!?$|^[\w\x80-\ufffd]{1,8}!?>$/
 let staticSeds_: readonly ClipSubItem[] | null = null, timeoutToClearInnerClipboard_ = 0
 
 const parseSeds_ = (text: string, fixedContexts: Contexts | null): readonly ClipSubItem[] => {
@@ -276,7 +276,7 @@ export const replaceUsingClipboard = (text: string, item: ClipSubItem, lastClean
   const referred = new Map<string, string>()
   const replacement = rawReplacement.replace(<RegExpSearchable<1>> /\$(?:\$|\{([^}]*)})/g, (f, s1?: string): string => {
     if (!s1) { return f }
-    const arr = s1.split(<RegExpOne> />(?=[\w\x80-\ufffd]{1,8}$)/)
+    const arr = s1.split(<RegExpOne> />(?=[\w\x80-\ufffd]{1,8}!?$)/)
     if (arr.length > 1 && arr[0]) {
       let key = arr[0], clipName = arr[1]
       key = key === "0" || key === "$0" ? "&" : key[0] === "$" ? key.slice(1) : key.length === 1 ? key
@@ -284,7 +284,21 @@ export const replaceUsingClipboard = (text: string, item: ClipSubItem, lastClean
       toCopy.has(clipName) ? toCopy.get(clipName)!.push(key) : toCopy.set(clipName, [key])
       return "$" + key
     }
-    return (innerClipboard_.get(s1.replace(<RegExpOne> /^<|>$/, "")) || "").replace(<RegExpG> /\$/g, "$$$$")
+    const cmd = s1.replace(<RegExpOne> /^<|>$/, ""), opArr = (<RegExpOne> /\|\|=|[+\-*\/\|]=?|=/).exec(cmd)
+    let name = opArr ? cmd.slice(0, opArr.index) : cmd, value = innerClipboard_.get(name) || ""
+    if (opArr && (value || "||=".includes(opArr[0]))) {
+      let op = opArr[0], alg = op[0], x = +cmd.slice(name.length + op.length) || 0, y = +value
+      if (!isNaN(y || x)) {
+        y = alg === "+" ? y + x : alg === "-" ? y - x : alg === "*" ? y * x : alg === "/" ? y / x
+            : op === "||=" ? y || x : alg === "|" ? y | x : x
+        value = y + ""
+        if (op.endsWith("=")) {
+          timeoutToClearInnerClipboard_ !== lastCleanTimer ? (innerClipboard_ as Map<string, string>).set(name, value)
+            : writeInnerClipboard_(name, value)
+        }
+      }
+    }
+    return value.replace(<RegExpG> /\$/g, "$$$$")
   })
   text = text.replace(item.match_ as RegExpOne & RegExpSearchable<0>, toCopy.size ? function (): string {
     const args = arguments, len = args.length, index = args[len - 2]
@@ -425,11 +439,16 @@ set_substitute_(((input: string, normalContext: SedContext, mixedSed?: MixedSedO
 
 const writeInnerClipboard_ = (name: string, text: string): void => {
   (innerClipboard_ as Map<string, string>).set(name, text)
+  if (name.endsWith("!")) { return }
   timeoutToClearInnerClipboard_ && clearTimeout(timeoutToClearInnerClipboard_)
   timeoutToClearInnerClipboard_ = setTimeout((): void => {
-    (innerClipboard_ as Map<string, string>).clear()
+    const keys = !(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinTestedES6Environment
+        ? (innerClipboard_ as IterableMap<string, any>).keys() : BgUtils_.keys_(innerClipboard_)
+    for (const i of keys) {
+      i.endsWith("!") || (innerClipboard_ as Map<string, string>).delete(i)
+    }
     timeoutToClearInnerClipboard_ = 0
-  }, Build.NDEBUG ? 10_000 : 45_000)
+  }, Build.NDEBUG ? 20_000 : 45_000)
 }
 
 const getTextArea_html = (): HTMLTextAreaElement => {

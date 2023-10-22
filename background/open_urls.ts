@@ -718,9 +718,7 @@ export const openUrl = (tabs?: [Tab] | []): void => {
     return runtimeError_() || <any> void getCurTab(openUrl)
   }
   let rawUrl = get_cOptions<C.openUrl>().url
-  if (rawUrl) {
-    openUrlWithActions(rawUrl as AllowToString + "", Urls.WorkType.EvenAffectStatus, true, tabs)
-  } else if (get_cOptions<C.openUrl>().copied) {
+  if (get_cOptions<C.openUrl>().copied) {
     let copied = get_cOptions<C.openUrl, true>().copied
     let copiedName = typeof copied !== "string" ? null : copied.includes("<") ? copied.split("<")[1]
         : copied.includes(">") ? copied.split(">")[0] : null
@@ -739,6 +737,8 @@ export const openUrl = (tabs?: [Tab] | []): void => {
     } else {
       openCopiedUrl(copied, tabs, url)
     }
+  } else if (rawUrl || get_cOptions<C.openUrl>().sed) {
+    openUrlWithActions(rawUrl != null ? rawUrl as AllowToString + "" : "", Urls.WorkType.EvenAffectStatus, true, tabs)
   } else {
     let url_f = get_cOptions<C.openUrl, true>().url_f!
     openUrlWithActions(url_f || "", Urls.WorkType.FakeType, false, tabs)
