@@ -926,6 +926,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         return;
       }
       if ((options.searchInput === false || options.itemField) && !event && !input.includes("://")) {
+        if (!input.includes(":")) { return }
         try { new URL(input); } catch { return; }
       }
     }

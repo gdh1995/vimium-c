@@ -81,7 +81,7 @@ interface FrameHintsInfo {
     s: HintManager | HintOfficer
 }
 /** return whether the element's VHints is not accessible */
-export type AddChildDirectly = (officer: BaseHintWorker, el: KnownIFrameElement, rect: Rect | null) => boolean
+export type AddChildDirectly = (officer: BaseHintWorker, el: AccessableIFrameElement, rect: Rect | null) => boolean
 
 import {
   VTr, isAlive_, isEnabled_, setupEventListener, keydownEvents_, set_keydownEvents_, timeout_, max_, min_, abs_, OnEdge,
@@ -90,7 +90,7 @@ import {
 } from "../lib/utils"
 import {
   querySelector_unsafe_, isHTML_, scrollingEl_, docEl_unsafe_, IsInDOM_, GetParent_unsafe_, hasInCSSFilter_,derefInDoc_,
-  getComputedStyle_, isStyleVisible_, htmlTag_, fullscreenEl_unsafe_, removeEl_s, UNL, toggleClass_s, doesSupportDialog,
+  getComputedStyle_, isStyleVisible_, htmlTag_, fullscreenEl_unsafe_, removeEl_s, PGH, toggleClass_s, doesSupportDialog,
   getSelectionFocusEdge_, SafeEl_not_ff_, compareDocumentPosition, deepActiveEl_unsafe_, frameElement_, getSelection_
 } from "../lib/dom_utils"
 import {
@@ -158,7 +158,6 @@ export {
 }
 export function set_kSafeAllSelector (_newKSafeAll: string): void { kSafeAllSelector = _newKSafeAll as any }
 export function set_isClickListened_ (_newIsClickListened: boolean): void { isClickListened_ = _newIsClickListened }
-export function set_addChildFrame_<T extends typeof addChildFrame_> (_newACF: T): void { addChildFrame_ = _newACF }
 
 export const activate = (options: ContentOptions, count: number, force?: 2 | TimerType.fake): void => {
     const oldTimer = _timer, xy = options.xy as HintsNS.StdXY | undefined
@@ -316,7 +315,7 @@ const render: BaseHintWorker["r"] = (hints, arr, raw_apis): void => {
     set_keydownEvents_((OnFirefox ? api_ : raw_apis).a())
     set_onWndBlur2(managerOrA.s)
     replaceOrSuppressMost_(kHandler.linkHints, coreHints.n)
-    manager_ && setupEventListener(0, UNL, clear);
+    manager_ && setupEventListener(0, PGH, clear) // "unload" is deprecated
     isActive = 1;
     options_.suppressInput && insertInit(true)
 }
@@ -772,7 +771,7 @@ export const clear = (onlySelfOrEvent?: 0 | 1 | Event, suppressTimeout?: number)
       hasManager && frame.c(0, suppressTimeout)
     }))
     coreHints.y = frameArray = [];
-    setupEventListener(0, UNL, clear, 1);
+    setupEventListener(0, PGH, clear, 1)
     coreHints.v()
     removeHandler_(kHandler.linkHints)
     suppressTimeout != null && suppressTail_(suppressTimeout);
@@ -826,7 +825,7 @@ const onFrameUnload = (officer: HintOfficer): void => {
     }
 }
 
-export const detectUsableChild = (el: KnownIFrameElement): VApiTy | null => {
+export const detectUsableChild = (el: AccessableIFrameElement): VApiTy | null => {
   let err: boolean | null = true, childEvents: VApiTy | null | void | undefined
   try {
     err = !el.contentDocument

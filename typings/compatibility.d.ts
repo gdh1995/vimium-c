@@ -613,6 +613,8 @@ declare const enum BrowserVer {
   MinMaybeMouseenter$composed$IsFalse = 115, // if EXP
   MinMouseenter$composed$IsFalse = 116, // said in https://chromestatus.com/features#milestone%3D116
   MinNoDownloadBubbleFlag = 117,
+  MinNew$URL$NotDecodePathname = 118,
+  MinEnsured$select$$showPicker = 999, // since 119 if EXP
   MinNo$TimerType$$Fake = 999,
   assumedVer = 998,
 }

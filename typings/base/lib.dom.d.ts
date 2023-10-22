@@ -3370,6 +3370,15 @@ declare var HTMLFrameElement: {
     new(): HTMLFrameElement;
 }
 
+interface HTMLFencedFrameElement extends SafeHTMLElement {
+    config: object | null
+}
+
+declare var HTMLFencedFrameElement: {
+    prototype: HTMLFencedFrameElement;
+    new(): HTMLFencedFrameElement;
+}
+
 interface HTMLFrameSetElementEventMap extends HTMLElementEventMap {
     "beforeprint": Event;
     "beforeunload": BeforeUnloadEvent;
@@ -9092,6 +9101,7 @@ interface HTMLElementTagNameMap {
     "form": HTMLFormElement;
     "frame": HTMLFrameElement;
     "frameset": HTMLFrameSetElement;
+    "fencedframe": HTMLFencedFrameElement;
     "h1": HTMLHeadingElement;
     "h2": HTMLHeadingElement;
     "h3": HTMLHeadingElement;

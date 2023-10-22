@@ -31,7 +31,7 @@ set_runOnTee_(((task, serializable, data): Promise<boolean | string> => {
   if (frames && frames.top_ && port !== frames.top_ && !(frames.top_.s.flags_ & Frames.Flags.ResReleased)
       // here can not check `!port!.s.url_.startsWith(location.protocol)` - such an ext iframe is limited by default
       && (!BgUtils_.protocolRe_.test(frames.top_.s.url_) || port!.s.flags_ & Frames.Flags.ResReleased
-          || !port!.s.url_.startsWith((BgUtils_.safeParseURL_(frames.top_.s.url_)?.origin ?? "") + "/"))) {
+          || !port!.s.url_.startsWith((BgUtils_.safeParseURL_(frames.top_.s.url_)?.origin || "") + "/"))) {
     port = frames.top_
   }
   if (Build.MV3 && task === kTeeTask.Paste && OnChrome && !serializable) {

@@ -9,7 +9,7 @@ import {
   notSafe_not_ff_, CLK, frameElement_, runJS_, isStyleVisible_, rangeCount_, getAccessibleSelectedNode, removeEl_s,
   appendNode_s, append_not_ff, setClassName_s, isNode_, contains_s, setOrRemoveAttr_s, textContent_s, inputSelRange,
   parentNode_unsafe_s, setDisplaying_s, getRootNode_mounted, singleSelectionElement_unsafe, isHTML_,
-  getDirectionOfNormalSelection,
+  getDirectionOfNormalSelection, showPicker_,
 } from "../lib/dom_utils"
 import {
   bZoom_, dScale_, getZoom_, wdZoom_, boundingRect_, prepareCrop_, getClientRectsForAreas_,
@@ -387,7 +387,7 @@ export const selectNode_ = (element: SafeElement): void => {
 }
 
 export const moveSel_s_throwable = (element: LockableElement, action: SelectActions | undefined): void => {
-    const type = getEditableType_<0>(element)
+    let type = getEditableType_<0>(element)
     const isBox = type === EditableType.TextArea
         || type === EditableType.ContentEditable && textContent_s(element).includes("\n"),
     gotoStart = action === "start",
@@ -417,13 +417,10 @@ export const moveSel_s_throwable = (element: LockableElement, action: SelectActi
       }
     }
     doesCollpase && collpaseSelection(getSelection_(), gotoEnd)
-    if (type === EditableType.Input
-        && (OnChrome && Build.MinCVer >= BrowserVer.MinEnsured$input$$showPicker
-            || (element as HTMLInputElement).showPicker)
+    if ((type = getEditableType_<0>(element as SafeElement)) === EditableType.Input
         && (!len && (str = (element as HTMLInputElement).autocomplete) && str !== "off"
-            || (element as HTMLInputElement).list)
-        && getEditableType_(element as HTMLInputElement)) {
-      (element as HTMLInputElement).showPicker!()
+            || (element as HTMLInputElement).list)) {
+      showPicker_(element, EditableType.Input)
     }
 }
 
@@ -506,7 +503,7 @@ export const doExitOnClick_ = (event?: MouseEventToPrevent): void => {
   toExitOnClick_ & kExitOnClick.vomnibar && omniHide()
 }
 
-export const focusIframeContentWnd_ = (iframe: KnownIFrameElement, res?: boolean): void => {
+export const focusIframeContentWnd_ = (iframe: AccessableIFrameElement, res?: boolean): void => {
   if (res) { return }
   iframe === omni_box ? omni_status < OmniStatus.Showing || postToOmni(VomnibarNS.kCReq.focus)
   : iframe.contentWindow.focus()

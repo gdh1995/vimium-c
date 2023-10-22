@@ -13,7 +13,7 @@ interface kNodeToType {
 }
 
 export const DAC = "DOMActivate", MDW = "mousedown", CLK = "click", HDN = "hidden", NONE = "none"
-export const INP = "input", BU = "blur", ALA = "aria-label", UNL = "unload"
+export const INP = "input", BU = "blur", ALA = "aria-label", PGH = "pagehide"
 export const kDir = ["backward", "forward"] as const, kGCh = "character"
 export const AriaArray = ["aria-hidden", "aria-disabled", "aria-haspopup"] as const
 
@@ -63,9 +63,10 @@ export const testMatch = (selector: string, hint: Hint0): boolean => {
       ? hint[0].webkitMatchesSelector(selector) : hint[0].matches!(selector)
 }
 
-export const isIFrameElement = (el: Element): el is KnownIFrameElement => {
+export const isIFrameElement = <T extends BOOL = 0>(el: Element, alsoFenced?: T
+    ): el is (T extends 1 ? KnownIFrameElement : AccessableIFrameElement) => {
   const tag = el.localName
-  return (tag === "iframe" || tag === "frame") && hasTag_(tag, el)
+  return (tag === "iframe" || tag === "fencedframe" && alsoFenced || tag === "frame") && hasTag_(tag, el)
 }
 
 export const isNode_ = <T extends keyof kNodeToType> (node: Node, typeId: T): node is kNodeToType[T] => {
@@ -694,8 +695,8 @@ export const rAF_: (callback: FrameRequestCallback) => number =
 export const runJS_ = (code: string, returnEl?: HTMLScriptElement | null | 0
       ): void | HTMLScriptElement & SafeHTMLElement => {
     const docEl = !OnFirefox ? docEl_unsafe_() : null
-    const script = returnEl || createElement_("script");
-    const sandbox = !isTop && ((frameElement_() || {}) as Partial<KnownIFrameElement>).sandbox, kJS = "allow-scripts"
+    const script = returnEl || createElement_("script"), kJS = "allow-scripts"
+    const sandbox = !isTop && ((frameElement_() || {}) as Partial<AccessableIFrameElement>).sandbox
     if (!Build.MV3) {
       script.type = "text/javascript";
       // keep it fast, rather than small
@@ -750,5 +751,13 @@ export const dispatchAsync_ = <T extends 0 | 1 | 2 = 0> (target: T extends 1 ? S
   })
 }
 
+export const showPicker_ = (element: SafeElement, type: EditableType): void => {
+  if ((type === EditableType.Input || type === EditableType.Select)
+      && ((type > EditableType.Input - 1 ? OnChrome && Build.MinCVer >= BrowserVer.MinEnsured$input$$showPicker
+            : OnChrome && Build.MinCVer >= BrowserVer.MinEnsured$select$$showPicker)
+          || (element as HTMLInputElement).showPicker)) {
+    (element as HTMLInputElement).showPicker!()
+  }
+}
 
 //#endregion

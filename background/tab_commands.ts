@@ -104,7 +104,7 @@ export const copyWindowInfo = (resolve: OnCmdResolved): void | kBgCmd.copyWindow
         , (_, names): string => names.split("||").reduce((old, s1) => { // eslint-disable-line arrow-body-style
       let val: any
       return old ? old : decoded && s1 === "url" ? BgUtils_.decodeUrlForCopy_(getTabUrl(i))
-        : s1 === "host" ? (val = BgUtils_.safeParseURL_(getTabUrl(i))) && (val as URL).host || ""
+        : s1 === "host" ? BgUtils_.safeParseURL_(getTabUrl(i))?.host || ""
         : s1 !== "__proto__" && (val = (i as Dict<any>)[s1],
           val && typeof val === "object" ? JSON.stringify(val) : val || "")
     }, "")))

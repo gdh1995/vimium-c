@@ -5,6 +5,7 @@ import {
 import {
   IsInDOM_, isInTouchMode_cr_, MDW, hasTag_, CLK, attr_s, fullscreenEl_unsafe_, findAnchor_, dispatchAsync_,
   blur_unsafe, derefInDoc_, newEvent_, getRootNode_mounted, elFromPoint_, HTMLElementProto, getEditableType_,
+  showPicker_
 } from "../lib/dom_utils"
 import { suppressTail_ } from "../lib/keyboard_utils"
 import { Point2D, center_, getVisibleClientRect_, view_, selRange_, isContaining_ } from "../lib/rect"
@@ -21,13 +22,13 @@ export declare const enum kClickAction {
   plainMayOpenManually = 1, plainInNewTab = 2, plainInNewWindow = 3, MaxPlain = 3,
   forceToOpenInLastWnd = 4, forceInNewTab = 5, forceToOpenInCurrent = 6,
   // the [1..BaseMayInteract) before this line should always mean HTML <a>
-  BaseMayInteract = 8, FlagDblClick = 1, FlagInteract = 2, MinNeverInteract = 12,
+  BaseMayInteract = 8, FlagDblClick = 1, FlagInteract = 2, MinNeverInteract = 16,
 }
 const enum ActionType {
   OnlyDispatch = 0,
-  dblClick = kClickAction.FlagDblClick, interact = kClickAction.FlagInteract,
+  dblClick = kClickAction.FlagDblClick, interact = kClickAction.FlagInteract, isSelect = interact * 2,
   MinOpenUrl = kClickAction.MinNeverInteract - kClickAction.BaseMayInteract,
-  DispatchAndMayOpenTab = MinOpenUrl, OpenTabButNotDispatch = DispatchAndMayOpenTab * 2,
+  DispatchAndMayOpenTab = MinOpenUrl, OpenTabButNotDispatch = DispatchAndMayOpenTab + 1,
 }
 export declare const enum kClickButton { none = 0, auxiliary = 1, second = 2, primaryAndTwice = 4, _others = 8 }
 type AcceptableClickButtons = kClickButton.none | kClickButton.auxiliary | kClickButton.second
@@ -388,6 +389,8 @@ export const click_async = (async (element: SafeElementForMouse
               : Build.MinFFVer > FirefoxBrowserVer.ESRPopupBlockerPassClicksFromExtensions
                 || firefoxVer_ - FirefoxBrowserVer.ESRPopupBlockerPassClicksFromExtensions || fgCache.V < 6)
         ? ActionType.DispatchAndMayOpenTab : ActionType.OnlyDispatch
+  } else if (!result && getEditableType_<0>(element) === EditableType.Select) {
+    result = ActionType.dblClick | ActionType.isSelect
   }
   const isCommonClick = result < ActionType.OpenTabButNotDispatch && button !== kClickButton.primaryAndTwice
       && !(modifiers && modifiers[0])
@@ -402,7 +405,7 @@ export const click_async = (async (element: SafeElementForMouse
     // require element is still visible
     isCommonClick && set_cachedScrollable(currentScrolling)
     if (result < ActionType.MinOpenUrl) {
-      if (result & ActionType.dblClick
+      if (result & ActionType.dblClick && result < (ActionType.interact | ActionType.dblClick) + 1
           && !(element as Partial<HTMLInputElement /* |HTMLSelectElement|HTMLButtonElement */>).disabled
           && (// use old rect
             await click_async(element, rect, 0, modifiers, kClickAction.none, kClickButton.primaryAndTwice),
@@ -428,6 +431,8 @@ export const click_async = (async (element: SafeElementForMouse
               : initialStat ? (element as SafeHTMLElement as HTMLMediaElement).play()
               : (element as SafeHTMLElement as HTMLMediaElement).pause()
         }
+      } else if (result & ActionType.isSelect) {
+        showPicker_(element as SafeElement, EditableType.Select)
       }
       return
     }

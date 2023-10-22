@@ -717,6 +717,10 @@ async function parseClearImageUrl_(originUrl: string, stdUrl?: string): Promise<
     } catch {}
     return url1 as string;
   }
+  if (OnChrome && Build.MinCVer < BrowserVer.MinNew$URL$NotDecodePathname
+      && CurCVer_ < BrowserVer.MinNew$URL$NotDecodePathname && originUrl.split(/[?#]/)[0].includes("%")) {
+    path = originUrl.split(/[?#]/, 1)[0].slice(origin.length)
+  }
   stdUrl = stdUrl || originUrl
   if (search.length > 10) {
     for (const item of search.slice(1).split("&")) {
@@ -726,7 +730,7 @@ async function parseClearImageUrl_(originUrl: string, stdUrl?: string): Promise<
         if (!val.includes("://") && (<RegExpOne> /%(?:3[aA]|2[fF])/).test(val)) {
           val = DecodeURLPart_(val).trim();
         }
-        if (val.includes("/") && safeParseURL(val) != null) {
+        if (val.includes("/") && !!safeParseURL(val)) {
           if ((<RegExpOne> /^(?:imgurl|mediaurl|objurl|origin(?:al)?|real\w*|src|url)$/i).test(key)) {
             return val;
           }

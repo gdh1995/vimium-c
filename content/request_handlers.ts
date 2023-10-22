@@ -315,7 +315,7 @@ export const focusAndRun = (cmd?: FgCmdAcrossFrames, options?: FgOptions, count?
   set_onWndFocus((): void => { failed = false })
   if (OnFirefox) {
     const cur = deepActiveEl_unsafe_()
-    cur && isIFrameElement(cur) && cur.blur()
+    cur && isIFrameElement(cur, 1) && cur.blur()
   }
   focus();
   /** Maybe a `doc.open()` has been called

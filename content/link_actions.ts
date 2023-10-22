@@ -243,7 +243,7 @@ const hoverEl = (): void => {
   retPromise = catchAsyncErrorSilently(wrap_enable_bubbles(hintOptions, hover_async<1>
       , [clickEl, center_(rect, hintOptions.xy as HintsNS.StdXY | undefined)
           , checkBoolOrSelector(rawFocus, !elType && (clickEl as ElementToHTMLOrForeign).tabIndex! >= 0
-              && !isIFrameElement(clickEl))])).then((): void => {
+              && !isIFrameElement(clickEl, 1))])).then((): void => {
     let rval: any, lval: any;
     set_cachedScrollable(currentScrolling)
     if (mode1_ < HintMode.min_job) { // called from Modes[-1]
@@ -549,7 +549,7 @@ const doPostAction = (): Rect | null => {
   set_grabBackFocus(false)
   if (IsInDOM_(clickEl)) {
     if (!OnFirefox && bZoom_ !== 1 && doc.body && !IsInDOM_(clickEl, doc.body)) { set_bZoom_(1) }
-    autoChild = isIFrameElement(clickEl) ? 0
+    autoChild = isIFrameElement(clickEl, 1) ? 0
         : isTY(autoChild) ? findSelectorByHost(autoChild) as typeof autoChild : autoChild
     if (autoChild) {
       const anyAtPos = autoChild === "html", onlyShadow = autoChild === ":host"
@@ -589,12 +589,13 @@ const doPostAction = (): Rect | null => {
     }
     hintManager && focus()
     // tolerate new rects in some cases
-    if (hint.m && isIFrameElement(clickEl)) {
+    if (hint.m && isIFrameElement(clickEl, 1)) {
       hintOptions.m = hintMode_;
       (hintManager || coreHints).$(1)
       showRect = 0
-      if (clickEl !== omni_box) {
-        focus_(clickEl)
+      if (clickEl === omni_box) {
+        focusIframeContentWnd_(clickEl)
+      } else if (focus_(clickEl), isIFrameElement(clickEl)) {
         // focus first, so that childApi is up-to-date (in case <iframe> was removed on focus)
         const childApi = detectUsableChild(clickEl)
         if (childApi) {
@@ -611,8 +612,6 @@ const doPostAction = (): Rect | null => {
             u: clickEl.src, n: hintCount_, k: event ? event.i : kKeyCode.None, a: hintOptions
           }, focusIframeContentWnd_.bind(0, clickEl))
         }
-      } else {
-        focusIframeContentWnd_(clickEl)
       }
     } else if (mode1_ < HintMode.min_job || mode1_ === HintMode.FOCUS_EDITABLE) {
       if (tag === "details") {

@@ -12,7 +12,7 @@ import {
   getEditableType_, scrollIntoView_, SafeEl_not_ff_, GetParent_unsafe_, focus_, fullscreenEl_unsafe_, docEl_unsafe_,
   getSelection_, isSelected_, docSelectable_, isHTML_, createElement_, CLK, MDW, removeEl_s, appendNode_s, isNode_,
   setDisplaying_s, findAnchor_, notSafe_not_ff_, textContent_s, modifySel, parentNode_unsafe_s, selOffset_, blur_unsafe,
-  getAccessibleSelectedNode,  INP, BU, UNL, contains_s, setOrRemoveAttr_s, singleSelectionElement_unsafe, getNodeChild_,
+  getAccessibleSelectedNode,  INP, BU, PGH, contains_s, setOrRemoveAttr_s, singleSelectionElement_unsafe, getNodeChild_,
   getDirectionOfNormalSelection
 } from "../lib/dom_utils"
 import {
@@ -686,7 +686,7 @@ const onHostKeydown = (event: HandlerNS.Event): HandlerResult => {
   f("keyup", onIFrameKeydown, t)
   f(INP, onInput, t)
   OnChrome || f("paste", onPaste_not_cr!, t)
-  f(UNL, onIframeUnload, t)
+  f(PGH, onIframeUnload, t)
   options.m && f("compositionstart", (): void => { clearTimeout_(highlightTimeout_) }, t)
   if (OnChrome) {
     f("compositionend", onInput, t)

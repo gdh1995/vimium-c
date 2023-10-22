@@ -36,7 +36,7 @@ type HTMLFilter<T> = (hints: T[], element: SafeHTMLElement) => void
 type Filter<T> = BaseFilter<T> | HTMLFilter<T>
 type AllowedClickTypeForNonHTML = ClickType.attrListener | ClickType.classname | ClickType.tabindex
 type HintSources = readonly SafeElement[] | NodeListOf<SafeElement>
-type NestedFrame = false | 0 | null | KnownIFrameElement
+type NestedFrame = false | 0 | null | AccessableIFrameElement
 type IterableElementSet = Pick<ElementSet, "has"> & { forEach (callback: (value: Element) => void): void }
 
 let frameNested_: NestedFrame = false
@@ -74,11 +74,11 @@ const getClickable = (hints: Hint[], element: SafeHTMLElement): void => {
     if (isClickable = element !== find_box) {
       arr = getIFrameRect(element)
       if (element !== omni_box) {
-        isClickable = addChildFrame_ ? addChildFrame_(coreHints, element as KnownIFrameElement, arr) : !!arr
+        isClickable = addChildFrame_ && isIFrameElement(element) ? addChildFrame_(coreHints, element, arr) : !!arr
+        /*#__NOINLINE__*/ detectCloseBtn(element as KnownIFrameElement)
       } else if (arr) {
         (arr as WritableRect).l += 12; (arr as WritableRect).t += 9;
       }
-      /*#__NOINLINE__*/ detectCloseBtn(element as KnownIFrameElement)
     }
     type = ClickType.frame
     break;
@@ -956,7 +956,7 @@ export const checkNestedFrame = (output?: Hint[]): void => {
           && (rect = boundingRect_(element), rect2 = boundingRect_(docEl_unsafe_()!),
               rect.t - rect2.t < 20 && rect.l - rect2.l < 20
               && rect2.r - rect.r < 20 && rect2.b - rect.b < 20)
-          && isStyleVisible_(element) ? element as KnownIFrameElement
+          && isStyleVisible_(element) ? element satisfies AccessableIFrameElement
         : null
   }
   frameNested_ = res === false && readyState_ < "i" ? null : res;

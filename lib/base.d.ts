@@ -176,7 +176,8 @@ declare const enum kDim {
 
 type ScrollByY = kDim.byX | kDim.byY;
 
-type KnownIFrameElement = HTMLIFrameElement | HTMLFrameElement
+type AccessableIFrameElement = HTMLIFrameElement | HTMLFrameElement
+type KnownIFrameElement = AccessableIFrameElement | HTMLFencedFrameElement
 
 /** ShadowRoot | HTMLDivElement */
 type VUIRoot = ShadowRoot | (HTMLDivElement & { mode?: undefined });
