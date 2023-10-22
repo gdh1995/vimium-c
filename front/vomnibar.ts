@@ -637,13 +637,14 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       }
       return
     }
-    if (mainModifier === "a" || mainModifier === "m") {
+    if (mainModifier === "a"
+        || mainModifier === "m" && Build.OS & kBOS.MAC && (Build.OS === kBOS.MAC as number || !a.os_)) {
       ind = char >= "0" && char <= "9" ? +char || 10
           : mapped || !(Build.BTypes & BrowserType.Firefox ? a.hasShift_(event as KeyboardEvent) : event.shiftKey) ? -1
           : event.code ? event.code.startsWith("Digit") ? +event.code.slice(5) || 10 : -1
           : n > kKeyCode.maxNotNum && n < kKeyCode.minNotNum ? (n - kKeyCode.N0) || 10 : -1
       if (ind >= 0 && (!(Build.OS & kBOS.MAC) || Build.OS !== kBOS.MAC as number && a.os_
-          || mainModifier === "a" && (<RegExpOne> /[cm]-/).test(key))) {
+          || mainModifier === "m" || (<RegExpOne> /[cm]-/).test(key))) {
         if (ind <= a.completions_.length) { a.onEnter_(char >= "0" && char <= "9" ? true : -2, ind - 1) }
         return
       }
