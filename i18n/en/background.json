@@ -41,7 +41,7 @@
   "muted": "Muted",
   "needText": "\"showTip\" needs a \"text\" option",
   "needVal": "need value=… for option $1",
-  "newStat": "The page status is now $1",
+  "newStat": "The page status is $1 now",
   "noCopied": "No text copied!",
   "noDiscardIfOld": "Vimium C cannot discard tabs before Chromium $1",
   "noEngineFound": "No search engine found!",
