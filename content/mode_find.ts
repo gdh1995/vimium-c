@@ -148,13 +148,12 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
     }
   }
   const postActivate = (): void => {
-    const postExit = (skip?: boolean | Event): void => {
+    const postExit = (skip?: Event | void): void => {
       // safe if destroyed, because `el.onblur = Exit`
-      if (skip && skip !== !!skip
-          && (!OnChrome || Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted
+      if (skip && (!OnChrome || Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted
               ? !skip.isTrusted : skip.isTrusted === false)) { return }
       postLock && setupEventListener(postLock, BU, postExit, 1)
-      if (!postLock || skip === true) { return }
+      if (!postLock) { return }
       postLock = null
       setupEventListener(0, CLK, postExit, 1)
       removeHandler_(kHandler.postFind)
@@ -164,11 +163,12 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
     if (!el) { postExit(); return }
     whenNextIsEsc_(kHandler.postFind, kModeId.Find, postExit)
     if (el === postLock) { return }
-    if (!postLock) {
+    if (postLock) {
+      setupEventListener(postLock, BU, postExit, 1)
+    } else {
       setupEventListener(0, CLK, postExit)
       setupSuppress(postExit)
     }
-    postExit(true)
     postLock = el
     setupEventListener(el, BU, postExit)
   }
