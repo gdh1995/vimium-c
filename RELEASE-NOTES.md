@@ -4,6 +4,9 @@ Release Notes of Vimium C
 ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 说明文档: https://gitee.com/gdh1995/vimium-c#readme , https://github.com/gdh1995/vimium-c/blob/master/README-zh.md .
 
+#### v1.99.997
+* fix some crashes of web pages and the extension itself
+
 #### v1.99.995
 * Marks: fix the mistake that `.prefix` was enabled by default and matches wrong URLs (breaking)
   * now align with philc/Vimium's in common situations
