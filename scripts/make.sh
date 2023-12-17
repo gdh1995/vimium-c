@@ -133,6 +133,7 @@ args="$ZIP_FLAGS $args"
 
 output_for_zip=$output
 pushd_err=0
+set -x
 if [ -n "$ZIP_BASE" ]; then
   if [ "${output_for_zip#/}" = "${output_for_zip#[a-zA-Z]:/}" ]; then
     output_for_zip=${PWD%/}/${output_for_zip}
@@ -147,7 +148,7 @@ if ! bool "$WITH_MAP"; then
   ZIP_IGNORE=$ZIP_IGNORE' *.map'
 fi
 if test $btypes == 2; then
-  ZIP_IGNORE=$ZIP_IGNORE' *.bin _locales/zh_CN'
+  ZIP_IGNORE=$ZIP_IGNORE' *.bin _locales/zh_CN/'
 elif test $btypes == 1; then
   ZIP_IGNORE=$ZIP_IGNORE' icons/disable*.png icons/partial*.png'
 fi
@@ -162,6 +163,7 @@ zip -rX -MM $args "$output_for_zip" ${input[@]} -x 'weidu*' 'helpers*' 'test*' '
   '*.coffee' '*.crx' '*.enc' '*.log' '*.psd' '*.sh' '*.ts' '*.zip' $ZIP_IGNORE $4
 err=$?
 [ $pushd_err -eq 0 ] && popd >/dev/null 2>&1
+set +x
 
 if [ $err -ne 0 ]; then
   echo "$0: exit because of an error during zipping" 1>&2
