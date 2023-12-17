@@ -49,10 +49,11 @@ export const main_ff = (OnFirefox ? (ecOut_oldHasVC: number): void => {
       }
   },
   DocCls = Document.prototype as unknown as { open (): void, write (markup: string): void },
+  wrappedDocCls = raw_unwrap_ff(DocCls),
   docOpenHook = (isWrite: BOOL, self: unknown, args: IArguments): void => {
     const first = doc.readyState < "l" && (isWrite || args.length < 3) && self === doc
     const oriHref = Build.NDEBUG || !first ? "" : location.host && location.pathname || location.href
-    const ret = reflectApply_not_cr!(isWrite ? _docWrite : _docOpen, self, args)
+    const ret = reflectApply_not_cr!(isWrite ? _docWrite : _docOpen!, self, args)
     if (first && (isEnabled_ || !fgCache)) {
       hookOnWnd(HookAction.Install)
       insertInit()
@@ -87,7 +88,8 @@ export const main_ff = (OnFirefox ? (ecOut_oldHasVC: number): void => {
   }
   let alive = false, timer: ValidTimeoutID = TimerID.None, resolved = 0, counterResolvePath = 0
   let reHookTimes = 0
-  let _listen: EventTarget["addEventListener"] | undefined, _docOpen = DocCls.open, _docWrite = DocCls.write
+  let _listen: EventTarget["addEventListener"] | undefined, _docOpen: (typeof DocCls)["open"] | undefined
+  let _docWrite: (typeof DocCls)["write"]
   let listen: (self: EventTarget, name: string
       , listener: EventListenerOrEventListenerObject, opts?: EventListenerOptions | boolean) => void
   isHTML_() || set_createElement_(doc.createElementNS.bind(doc, VTr(kTip.XHTML) as "http://www.w3.org/1999/xhtml"
@@ -95,20 +97,21 @@ export const main_ff = (OnFirefox ? (ecOut_oldHasVC: number): void => {
   try {
     _listen = wrappedET && wrappedET.addEventListener
     if (alive = isTY(_listen, kTY.func)) {
-      if (!grabBackFocus) {
-        oldHasVC |= 2
+      if (grabBackFocus) {
+        // here allow `doc.write(obj)` to call `obj.toString()` - https://github.com/gdh1995/vimium-c/issues/1043
+        _docOpen = wrappedDocCls!.open, _docWrite = wrappedDocCls!.write
+      } else {
         if (oldHasVC & 1 && newListen.toString.call(_listen) === ETCls!.addEventListener + "") {
           try {
             _listen(CLK, noopHandler)
             setupEventListener(0, CLK, noopHandler, 1, 3)
           } catch {
-            oldHasVC = 0
             _listen = doc.addEventListener
             _docOpen = (doc as unknown as typeof DocCls).open, _docWrite = (doc as unknown as typeof DocCls).write
           }
         }
       }
-      if (!oldHasVC) {
+      if (_docOpen) {
         listen = setupEventListener.call.bind<(this: (this: EventTarget,
                 type: string, listener: EventListenerOrEventListenerObject, useCapture?: EventListenerOptions | boolean
               ) => 42 | void,
@@ -121,7 +124,7 @@ export const main_ff = (OnFirefox ? (ecOut_oldHasVC: number): void => {
         vApi.e = (cmd: ValidContentCommands): void => { alive = alive && cmd < kContentCmd._minSuppressClickable }
       }
     }
-    OnDocLoaded_((): void => {
+    grabBackFocus && OnDocLoaded_((): void => {
         timeout_(function (): void {
           coreHints.h < 0 && doesWantToReloadLinkHints("lo") &&
           reinitLinkHintsIn(GlobalConsts.MinCancelableInBackupTimer)
