@@ -72,7 +72,7 @@ var Tasks = {
   "static/json": function() {
     const path = ["_locales/*/messages.json", "settings-template.json", "i18n/**/*.json", "!" + LOCALES_EN]
     if (getBuildItem("BTypes") === BrowserType.Firefox) {
-      path.push("!_locales/*_*/**")
+      path.push("!_locales/zh_CN/**")
     }
     if (!getBuildItem("NDEBUG")) {
       return copyByPath(path);

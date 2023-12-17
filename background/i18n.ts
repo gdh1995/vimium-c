@@ -57,7 +57,8 @@ const loadExt_ = (): Promise<void> => {
   ]).then(([enDict, wanted]): Promise<RawExtDict[]> | RawExtDict[] => {
     let all = ((enDict.get("i18nAll") || {}).message || "").split(" "), i = ""
     for (i of wanted || []) {
-      i = all.includes(i) || all.includes(i = i.split("-")[0]) ? i : ""
+      all.includes(i) || all.includes(i = i.split("-")[0]) || (i = "")
+      if (i) { break }
     }
     if (!i) { return [enDict] }
     return Promise.all([enDict, fetchFile_(`/_locales/${i}/messages.json`)])

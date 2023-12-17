@@ -10,7 +10,7 @@
   "description": {
     "message": "一款支持全鍵盤操作瀏覽器的輔助工具，只用鍵盤即可點擊任意連結、切換分頁和快速搜索任意內容，支持自訂快速鍵和調整操作細節"
   },
-  "lang1": { "message": "zh_TW" },
+  "lang1": { "message": "zh" },
   "noActiveState": { "message": "已設定不顯示工作狀態" },
   "vblank": { "message": "空白頁" },
   "voptions": { "message": "設定" },

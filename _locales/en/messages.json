@@ -12,7 +12,7 @@
   },
   "lang1": { "message": "" },
   "i18n": { "message": "" },
-  "i18nAll": { "message": "zh fr" },
+  "i18nAll": { "message": "zh fr zh-TW" },
   "noActiveState": { "message": "As configured, here's no active state" },
   "vblank": { "message": "" },
   "voptions": { "message": "" },

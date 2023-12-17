@@ -65,7 +65,7 @@ output=$1
 ori_output=$output
 test_working=${TEST_WORKING:-1}
 # 0: may be; 1: is Chromium; 2: is Firefox
-chrome_only=${BUILD_BTypes:-0}
+btypes=${BUILD_BTypes:-0}
 test "$manifest_version" == "2" && mv2_tail="-mv2" || mv2_tail=
 if [ -z "$output" -o -d "$output" ]; then
   output=${output%/}
@@ -78,13 +78,13 @@ if [ -z "$output" -o -d "$output" ]; then
       ver=${ver}-debug
     elif test "$BUILD_EdgeC" == 1; then
       ver=${ver}-edge
-      chrome_only=1
+      btypes=1
     elif test -f "$ZIP_BASE/.build/.chrome.build"; then
       ver=${ver}-chrome
-      chrome_only=1
+      btypes=1
     elif test -f "$ZIP_BASE/.build/.firefox.build"; then
       ver=${ver}-firefox
-      chrome_only=2
+      btypes=2
     else
       ver=${ver}-dist
     fi
@@ -146,9 +146,9 @@ fi
 if ! bool "$WITH_MAP"; then
   ZIP_IGNORE=$ZIP_IGNORE' *.map'
 fi
-if test $chrome_only = 2; then
-  ZIP_IGNORE=$ZIP_IGNORE' *.bin _locales/*_*'
-elif test $chrome_only = 1; then
+if test $btypes == 2; then
+  ZIP_IGNORE=$ZIP_IGNORE' *.bin _locales/zh_CN'
+elif test $btypes == 1; then
   ZIP_IGNORE=$ZIP_IGNORE' icons/disable*.png icons/partial*.png'
 fi
 if ! bool "$INCLUDE_ALL_DOCS"; then

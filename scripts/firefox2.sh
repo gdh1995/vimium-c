@@ -227,7 +227,7 @@ if test -z "$DIST" && test -f "${VC_EXT}"/manifest.json && ! test -f "${VC_EXT}"
 fi
 if test ${DIST:-0} -gt 0; then
   VC_EXT=$(/usr/bin/realpath "${VC_EXT}")
-  rm -rf "${VC_EXT}"/_locales/*_*
+  rm -rf "${VC_EXT}"/_locales/zh_CN
   wp vc_ext_w "$VC_EXT"
   if ! test -f ${VC_EXT}/manifest.json; then
     echo -e "No dist extension: "$vc_ext_w >&2
