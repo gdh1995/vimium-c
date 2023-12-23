@@ -409,6 +409,7 @@ set_contentCommands_([
                 return cur
               }
             }))
+            cur === 0 && (offset += a1.length, start += offset, end += offset)
             editable === insert_Lock_() && rawOffset != null && inputSelRange(editable, start, end)
           } else if (cmd === "select") {
             const activeEl = findAnElement_(options, i > firstCmd ? 1 : count)[0]
