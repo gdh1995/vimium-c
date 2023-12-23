@@ -608,7 +608,7 @@ export const openUrlWithActions = (url: Urls.Url, workType: Urls.WorkType, sed?:
 
 }
 
-const openCopiedUrl = (copied: KnownOptions<C.openUrl>["copied"]
+const openCopiedUrl = (copied: KnownOptions<C.openUrl>["copied"], exOut: InfoOnSed
     , tabs: [Tab] | [] | undefined, url: string | null): void => {
   if (url === null) {
     complainLimits(trans_("readClipboard"))
@@ -620,6 +620,7 @@ const openCopiedUrl = (copied: KnownOptions<C.openUrl>["copied"]
     runNextCmd<C.openUrl>(0)
     return
   }
+  exOut.keyword_ != null && overrideCmdOptions<C.openUrl>({ keyword: exOut.keyword_ })
   const searchLines = typeof copied === "string" && copied.includes("any")
   let urls: string[]
   if ((copied === "urls" || searchLines) && (urls = url.split(<RegExpG> /[\r\n]+/g)).length > 1) {
@@ -731,11 +732,10 @@ export const openUrl = (tabs?: [Tab] | []): void => {
     } else {
       url = paste_(parseSedOptions_(get_cOptions<C.openUrl, true>()), 0, exOut)
     }
-    exOut.keyword_ != null && overrideCmdOptions<C.openUrl>({ keyword: exOut.keyword_ })
     if (url instanceof Promise) {
-      void url.then(/*#__NOINLINE__*/ openCopiedUrl.bind(null, copied, tabs))
+      void url.then(/*#__NOINLINE__*/ openCopiedUrl.bind(null, copied, exOut, tabs))
     } else {
-      openCopiedUrl(copied, tabs, url)
+      openCopiedUrl(copied, exOut, tabs, url)
     }
   } else if (rawUrl || get_cOptions<C.openUrl>().sed) {
     openUrlWithActions(rawUrl != null ? rawUrl as AllowToString + "" : "", Urls.WorkType.EvenAffectStatus, true, tabs)
