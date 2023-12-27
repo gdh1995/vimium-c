@@ -503,9 +503,9 @@ export const doExitOnClick_ = (event?: MouseEventToPrevent): void => {
   toExitOnClick_ & kExitOnClick.vomnibar && omniHide()
 }
 
-export const focusIframeContentWnd_ = (iframe: AccessableIFrameElement, res?: boolean): void => {
+export const focusIframeContentWnd_ = (iframe: AccessableIFrameElement, res?: boolean | 0): void => {
   if (res) { return }
-  iframe === omni_box ? omni_status < OmniStatus.Showing || postToOmni(VomnibarNS.kCReq.focus)
+  iframe === omni_box && res !== 0 ? omni_status < OmniStatus.Showing || postToOmni(VomnibarNS.kCReq.focus)
   : iframe.contentWindow.focus()
 }
 

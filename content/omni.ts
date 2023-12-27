@@ -6,12 +6,13 @@ import {
 import { removeHandler_, replaceOrSuppressMost_, getMappedKey, isEscape_ } from "../lib/keyboard_utils"
 import {
   isHTML_, fullscreenEl_unsafe_, setDisplaying_s, createElement_, removeEl_s, setClassName_s, setOrRemoveAttr_s,
-  toggleClass_s, doesSupportDialog, hasInCSSFilter_, appendNode_s, frameElement_, focus_
+  toggleClass_s, doesSupportDialog, hasInCSSFilter_, appendNode_s, frameElement_
 } from "../lib/dom_utils"
 import { getViewBox_, docZoom_, dScale_, prepareCrop_, bZoom_, wndSize_, viewportRight } from "../lib/rect"
 import { beginScroll, scrollTick } from "./scroller"
 import {
   getSelectionText, adjustUI, setupExitOnClick, addUIElement, getParentVApi, evalIfOK, checkHidden, kExitOnClick,
+  focusIframeContentWnd_,
 } from "./dom_ui"
 import { coreHints, isHintsActive, tryNestedFrame } from "./link_hints"
 import { insert_Lock_ } from "./insert"
@@ -204,7 +205,8 @@ const onOmniMessage = function (this: OmniPort, msg: { data: any, target?: Messa
       } else {
         status = Status.Showing
         !OnFirefox && WithDialog && dialog_non_ff && (dialog_non_ff.open || dialog_non_ff.showModal())
-        focus_(box!)
+        // on C118+U22, `box.focus()` may make contentWindow blur while the although itself does become "activeElement"
+        focusIframeContentWnd_(box!, 0)
         clearTimeout_(timer1)
         timeout_(refreshKeyHandler, GlobalConsts.TimeOfSuppressingTailKeydownEvents - 40)
       }
