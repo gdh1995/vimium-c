@@ -406,6 +406,51 @@ export const dedupChars_ = (chars: string) => {
   return out
 }
 
+export const base64_ = (text: string, decode?: 1, hasEncoder?: boolean) => {
+  let WithTextDecoder = !OnEdge && (Build.MinCVer >= BrowserVer.MinEnsuredTextEncoderAndDecoder || !OnChrome
+      || CurCVer_ > BrowserVer.MinEnsuredTextEncoderAndDecoder - 1 || !!globalThis.TextDecoder)
+  WithTextDecoder = hasEncoder ?? false
+  let text2 = decode ? DecodeURLPart_(text, "atob") : text
+  if (!decode) {
+    let arr: ArrayLike<number>
+    if (WithTextDecoder) {
+      arr = new TextEncoder().encode(text)
+    } else {
+      text2 = encodeURIComponent(text).replace(<RegExpG & RegExpSearchable<0>> /%..|[^]/g
+          , (s): string => s.length === 1 ? s : String.fromCharCode(parseInt(s.slice(1), 16)))
+      arr = ([] as string[]).map.call<string[], [(ch: string) => number], number[]>(
+          text2 as string | string[] as string[], (ch: string): number => ch.charCodeAt(0))
+    }
+    text2 = btoa(String.fromCharCode.apply(String, arr as number[]))
+  } else if (text2 != text) {
+    const kPairRe = /(?:\xed(?:[\xa1-\xbf][\x80-\xbf]|\xa0[\x80-\xbf])){2}/g
+    const kUtf8Re = /([\xc0-\xdf][\x80-\xbf]|[\xe0-\xef][\x80-\xbf]{2}|[\xf0-\xf7][\x80-\xbf]{3})+/g
+    try {
+      text2 = text2.replace(<RegExpG & RegExpSearchable<0>> kPairRe, (s): string => {
+        if (s[1] > "\xb0" || s[1] == "\xb0" && s[2] >= "\x80" || s[4] < "\xb0" || s[4] == "\xb0" && s[4] < "\x80") {
+          return s
+        }
+        const x = ([] as string[]).map.call<string[], [(ch: string) => number], number[]>(
+              s as string | string[] as string[], (ch: string): number => ch.charCodeAt(0))
+        return String.fromCharCode(((x[0] & 0xf) << 12) | ((x[1] & 0x3f) << 6) | (x[2] & 0x3f)
+            , ((x[3] & 0xf) << 12) | ((x[4] & 0x3f) << 6) | (x[5] & 0x3f))
+      }).replace(<RegExpG & RegExpSearchable<0>> kUtf8Re, (utf8): string => {
+        if (WithTextDecoder) {
+          const charCodes = ([] as string[]).map.call<string[], [(ch: string) => number], number[]>(
+                utf8 as string | string[] as string[], (ch: string): number => ch.charCodeAt(0))
+          utf8 = new TextDecoder("utf-8", { fatal: true }).decode(new Uint8Array(charCodes))
+        } else {
+          const encoded = ([] as string[]).map.call<string[], [(ch: string) => string], string[]>(
+                utf8 as unknown as string[], (ch: string) => "%" + ("00" + ch.charCodeAt(0).toString(16)).slice(-2))
+          utf8 = decodeURIComponent(encoded.join(""))
+        }
+        return utf8
+      })
+    } catch { /* empty */ }
+  }
+  return text2
+}
+
 export const now = (): string => {
   return new Date(Date.now() - new Date().getTimezoneOffset() * 1000 * 60).toJSON().slice(0, -5).replace("T", " ")
 }
