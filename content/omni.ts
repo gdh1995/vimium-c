@@ -227,7 +227,7 @@ const refreshKeyHandler = (): void => {
   status < Status.Showing ? status < Status.Inactive + 1 ? removeHandler_(kHandler.omni) : 0
       : (replaceOrSuppressMost_(kHandler.omni, ((event: HandlerNS.Event | string): HandlerResult => {
     if (insert_Lock_()) { return HandlerResult.Nothing; }
-    event = getMappedKey(event as HandlerNS.Event, kModeId.NO_MAP_KEY_BUT_MAY_IGNORE_LAYOUT)
+    event = getMappedKey(event as HandlerNS.Event, kModeId.Plain)
     if (isEscape_(event)) { hide(); return HandlerResult.Prevent }
     if (event === kChar.f1 || event === kChar.f2) {
       postToOmni(VomnibarNS.kCReq.focus)
