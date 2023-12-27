@@ -141,7 +141,7 @@ export const isIPHost_ = (hostname: string, type: 0 | 4 | 6): boolean => {
 export const safeParseURL_ = (url: string): URL | null => { try { return new URL(url) } catch { return null } }
 
 export const DecodeURLPart_ = (url: string | undefined, wholeURL?: 1 | "atob"): string => {
-    if (!url || !url.includes("%")) { return url || "" }
+    if (!url || wholeURL !== "atob" && !url.includes("%")) { return url || "" }
     try {
       url = (wholeURL ? wholeURL === "atob" ? atob : decodeURI : decodeURIComponent)(url);
     } catch {}

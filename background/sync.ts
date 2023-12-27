@@ -267,7 +267,7 @@ const serialize = (key: keyof SettingsToUpdate, value: boolean | string | number
     delta = 0
     if (hasEncoder) {
       // find a boundary of char points
-      for (; pos < end && ((encoded as Uint8Array)[pos] & 0xc0) === 0x80; pos--) { /* empty */ }
+      for (; pos < end && ((encoded as Uint8Array)[pos] & 0xc0) === 0x80; pos++) { /* empty */ }
       part = textDecoder!.decode((encoded as Uint8Array).subarray(start, pos))
     } else {
       part = (encoded as string).slice(start, pos)
