@@ -361,13 +361,12 @@ const getPreciseChildRect = (frameEl: KnownIFrameElement, view: Rect): Rect | nu
 
 export const tryNestedFrame = (
       cmd: Exclude<FgCmdAcrossFrames, kFgCmd.linkHints>, options: SafeObject, count: number): boolean => {
-    let childApi: VApiTy | null
     if (frameNested_ !== null) {
       prepareCrop_();
       checkNestedFrame();
     }
     if (!frameNested_) { return false; }
-    childApi = detectUsableChild(frameNested_);
+    const childApi = detectUsableChild(frameNested_)
     if (childApi) {
       childApi.f(cmd, options, count)
       if (readyState_ > "i") { set_frameNested_(false) }
@@ -376,7 +375,7 @@ export const tryNestedFrame = (
       // * Cross-site: it's in an abnormal situation, so we needn't focus the child;
       set_frameNested_(null)
     }
-    return !!childApi;
+    return !!childApi
 }
 
 const onKeydown = (event: HandlerNS.Event): HandlerResult => {
@@ -826,11 +825,11 @@ const onFrameUnload = (officer: HintOfficer): void => {
 }
 
 export const detectUsableChild = (el: AccessableIFrameElement): VApiTy | null => {
-  let err: boolean | null = true, childEvents: VApiTy | null | void | undefined
+  let err: boolean | null = true, childApi: VApiTy | null | void | undefined
   try {
     err = !el.contentDocument
-      || !(childEvents = OnFirefox ? getWndVApi_ff!(el.contentWindow) : el.contentWindow.VApi)
-      || childEvents.a(keydownEvents_);
+      || !(childApi = OnFirefox ? getWndVApi_ff!(el.contentWindow) : el.contentWindow.VApi)
+      || childApi.a(keydownEvents_);
   } catch (e) {
     if (!Build.NDEBUG) {
       let notDocError = true;
@@ -844,7 +843,7 @@ export const detectUsableChild = (el: AccessableIFrameElement): VApiTy | null =>
       }
     }
   }
-  return err ? null : childEvents || null;
+  return err ? null : childApi || null;
 }
 
 export const doesWantToReloadLinkHints = (reason: NonNullable<ContentOptions["autoReload"]>): boolean => {

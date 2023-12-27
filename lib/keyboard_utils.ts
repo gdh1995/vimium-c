@@ -123,10 +123,9 @@ export const char_ = (eventWrapper: HandlerNS.Event, forceASCII: number): kChar 
 export const keybody_ = (key: string): kChar => (key.slice(key.lastIndexOf("-") + 1) || key && kChar.minus) as kChar
 
 export const hasShift_ff = OnFirefox ? (event: Pick<KeyboardEvent, "shiftKey" | "key" | "getModifierState">): boolean => {
-  if (!OnFirefox) { return event.shiftKey }
-  const key = event.key!
+  const key = event.key!, upper = key.length === 1 ? key.toUpperCase() : ""
   // if `privacy.resistFingerprinting` && CapsLock && A-Z, then Shift is reversed
-  return key.length === 1 && event.getModifierState("CapsLock") ? key !== key.toUpperCase() : event.shiftKey
+  return upper && Lower(key) !== upper && event.getModifierState("CapsLock") ? key !== upper : event.shiftKey
 } : 0 as never as null
 
 export const getKeyStat_ = (event: Pick<KeyboardEvent, "altKey" | "ctrlKey" | "metaKey" | "shiftKey">

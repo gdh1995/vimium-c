@@ -471,9 +471,8 @@ export const simulateClick_ = (target: HTMLElement
 
 export const hasShift_ = (event: Pick<KeyboardEvent, "shiftKey" | "key" | "getModifierState">): boolean => {
   if (!OnFirefox) { return event.shiftKey }
-  const key = event.key!
-  // if `privacy.resistFingerprinting` && CapsLock && A-Z, then Shift is reversed
-  return key.length === 1 && event.getModifierState("CapsLock") ? key !== key.toUpperCase() : event.shiftKey
+  const key = event.key!, upper = key.length === 1 ? key.toUpperCase() : ""
+  return upper && key.toLowerCase() !== upper && event.getModifierState("CapsLock") ? key !== upper : event.shiftKey
 }
 
 export const isRepeated_ = (event: KeyboardEvent): boolean => {

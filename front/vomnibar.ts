@@ -570,7 +570,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   hasShift_: Build.BTypes & BrowserType.Firefox ? (event: KeyboardEvent): boolean => {
     const key = Build.BTypes === BrowserType.Firefox as number || Vomnibar_.browser_ === BrowserType.Firefox
         ? event.key! : ""
-    return key.length === 1 && event.getModifierState("CapsLock") ? key !== key.toUpperCase() : event.shiftKey
+    const upper = key.length === 1 ? key.toUpperCase() : ""
+    return upper && key.toLowerCase() !== upper && event.getModifierState("CapsLock") ? key !== upper : event.shiftKey
   } : 0 as never,
   getMappedKey_ (event: KeyboardEvent): { mapped: boolean, key: string } {
     const char = Vomnibar_.char_(event);
