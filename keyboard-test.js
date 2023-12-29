@@ -5,6 +5,7 @@
 (function() {
   var count = 0, n = 30, ref = "keydown keypress keyup".trim().split(/\s+/);
 
+  var docEl = document.documentElement;
   var table = document.getElementById("keyTable").querySelector("tbody");
   var templateContent = document.querySelector("#rowTemplate").content;
   var preventAllCheckbox = document.querySelector("#preventAll");
@@ -52,13 +53,16 @@
         element.querySelector(".keyCodeColumn").textContent = wrapValue(event.keyCode);
         element.querySelector(".timestampColumn").textContent = (event.timeStamp / 1000 % 3600).toFixed(3)
             .replace(/\.\d+/, function(s) { return s.replace(/\.?0+$/, "") })
-        if (n < table.rows.length) {
+        if (table.rows.length > n) {
           table.firstElementChild.remove()
         }
         table.appendChild(element);
         if (preventAllCheckbox.checked) {
           event.preventDefault();
           event.stopImmediatePropagation();
+        }
+        while (table.rows.length > 5 && docEl.scrollHeight > docEl.clientHeight) {
+          table.firstElementChild.remove()
         }
   }
 
