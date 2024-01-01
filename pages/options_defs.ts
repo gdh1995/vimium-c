@@ -28,7 +28,7 @@ Option_.prototype._onCacheUpdated = function<T extends keyof SettingsNS.AutoSync
         frame && void post_(kPgReq.updateOmniPayload, { key: shortKey,
             val: (val2 != null ? val2 : val as never) as SettingsNS.DirectlySyncedItems[typeof shortKey][1] })
       }
-      Option_.onFgCacheUpdated_ && Option_.onFgCacheUpdated_()
+      Option_.onFgCacheUpdated_?.()
     })
   }
 }
@@ -645,7 +645,7 @@ filterLinkHintsOption_.onSave_ = function (): void {
 delayBinding_(filterLinkHintsOption_.element_, "change", filterLinkHintsOption_.onSave_, true)
 
 const keyLayout = Option_.all_.keyLayout
-const [elAlwaysIgnore, elIgnoreIfAlt, elIgnoreIfNotASCII, elIgnoreCaps, elMapModifier] =
+const [elAlwaysIgnore, elIgnoreIfAlt, elIgnoreIfNotASCII, elIgnoreCaps, elMapModifier, elInPrivResistFp] =
     $$<HTMLInputElement>("input", keyLayout.element_)
 keyLayout.readValueFromElement_ = (): number => {
   let flags: kKeyLayout = 0
@@ -656,6 +656,7 @@ keyLayout.readValueFromElement_ = (): number => {
     flags |= elIgnoreIfNotASCII.checked ? kKeyLayout.ignoreIfNotASCII
         : elIgnoreIfNotASCII.indeterminate ? kKeyLayout.inCmdIgnoreIfNotASCII : 0
     flags |= elIgnoreCaps.checked ? kKeyLayout.ignoreCaps : elIgnoreCaps.indeterminate ? kKeyLayout.ignoreCapsOnMac : 0
+    flags |= elInPrivResistFp.checked ? kKeyLayout.inPrivResistFp_ff : 0
   }
   flags |= elMapModifier.checked ? kKeyLayout.mapRightModifiers
       : elMapModifier.indeterminate ? kKeyLayout.mapLeftModifiers : 0
@@ -664,6 +665,7 @@ keyLayout.readValueFromElement_ = (): number => {
   return flags
 }
 let _lastKeyLayoutValue: kKeyLayout
+let _iprf_visible = true
 keyLayout.populateElement_ = (value: number): void => {
   const always = !!(value & kKeyLayout.alwaysIgnore)
   elAlwaysIgnore.checked = always
@@ -674,13 +676,19 @@ keyLayout.populateElement_ = (value: number): void => {
   elIgnoreCaps.indeterminate = !!(value & kKeyLayout.ignoreCapsOnMac)
   elMapModifier.checked = !!(value & kKeyLayout.mapRightModifiers)
   elMapModifier.indeterminate = !!(value & (kKeyLayout.mapLeftModifiers))
+  elInPrivResistFp.checked = !!(value & kKeyLayout.inPrivResistFp_ff)
   _lastKeyLayoutValue = value
   onAlwaysIgnoreChange()
   if (Option_.onFgCacheUpdated_) {
     void post_(kPgReq.updatePayload, { key: "l", val: value }).then((val2): void => {
       (VApi!.z! as Generalized<NonNullable<VApiTy["z"]>>).l = val2 != null ? val2 : value
-      Option_.onFgCacheUpdated_ && Option_.onFgCacheUpdated_()
+      Option_.onFgCacheUpdated_!()
     })
+  }
+  if (!OnFirefox && _iprf_visible) {
+    (elInPrivResistFp as HTMLElement as EnsuredMountedHTMLElement
+        ).parentElement.parentElement.parentElement.style.display = "none"
+    _iprf_visible = false
   }
 }
 const onAlwaysIgnoreChange = (ev?: EventToPrevent): void => {
@@ -688,10 +696,12 @@ const onAlwaysIgnoreChange = (ev?: EventToPrevent): void => {
   BooleanOption_.ToggleDisabled_(elIgnoreIfAlt, always)
   BooleanOption_.ToggleDisabled_(elIgnoreIfNotASCII, always)
   BooleanOption_.ToggleDisabled_(elIgnoreCaps, always)
+  BooleanOption_.ToggleDisabled_(elInPrivResistFp, always)
   if (!ev) { /* empty */ }
   else if (always) {
     elIgnoreIfAlt.checked = elIgnoreIfNotASCII.checked = elIgnoreCaps.checked = true
     elIgnoreIfNotASCII.indeterminate = elIgnoreCaps.indeterminate = false
+    elInPrivResistFp.checked = false
   } else {
     const old = keyLayout.innerFetch_()
     if (typeof old === "number" && !(_lastKeyLayoutValue & kKeyLayout.alwaysIgnore)) {

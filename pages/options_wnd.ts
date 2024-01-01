@@ -137,12 +137,6 @@ let optionsInit1_ = function (): void {
         }
         transArgs = OnChrome || secondCond === "," ? ["beforeChromium", [key.slice(1).split(",", 1)[0]]]
             : ["lackPermission", [secondCond]]
-      } else if (key === "mv3,nonFF") {
-        if (!Build.MV3 || OnFirefox) {
-          const tr = (el as EnsuredMountedHTMLElement).parentNode.parentNode.parentNode
-          tr.style.display = "none"
-        }
-        continue
       } else {
         if (!Build.MV3) { key === "action" ? (key = "browser_action") : key }
         if (key in manifest_ || validKeys2.includes(key)) { continue }
@@ -603,8 +597,10 @@ delayBinding_("#testKeyInputBox", "focus", function KeyTester(_focusEvent: Event
     }
     return result
   }
+  const tip_head = (testKeyInput.previousElementSibling as HTMLElement).textContent
   let lastKey: KeyboardEvent | undefined, lastPrevented = kKeyCode.None, hasOutline = false
   let lastKeyLayout: kKeyLayout
+  let tick = 0
   testKeyInput.onkeydown = (event): void => {
     hasOutline && (hasOutline = false, testKeyInput.classList.remove("outline"))
     if (event.keyCode === kKeyCode.ime || event.key === "Process") {
@@ -624,6 +620,8 @@ delayBinding_("#testKeyInputBox", "focus", function KeyTester(_focusEvent: Event
       const s2 = key2 === key ? "" : key2.length > 1 ? `<${key2}>` : key2 || "(empty)"
       lastKey = event, lastKeyLayout = VApi.z!.l
       text_(s2 ? `${s1} / ${s2}` : s1)
+      VApi.f(kFgCmd.insertMode, Object.setPrototypeOf<CmdOptions[kFgCmd.insertMode]>(
+          { i: true, r: 0, k: "v-esc:test", p: true, h: tip_head + ` (${++tick})` }, null), 1, 0)
       if (key === "enter" || key === "tab" || key === "s-tab" || isEsc || key === "f12") {
         (key === "enter" || isEsc) && testKeyInput.blur()
         return
@@ -639,12 +637,14 @@ delayBinding_("#testKeyInputBox", "focus", function KeyTester(_focusEvent: Event
     if (VApi) {
       testKeyInput.classList.add("outline")
       hasOutline = true
+      tick = 0
       const text = (testKeyInput.previousElementSibling as HTMLElement).textContent
       VApi.f(kFgCmd.insertMode, Object.setPrototypeOf<CmdOptions[kFgCmd.insertMode]>(
           { i: true, r: 0, k: "v-esc:test", p: true, h: text }, null), 1, 0)
     }
   }
   testKeyInput.onblur = (): void => {
+    tick = 0
     if (VApi) {
       VApi.f(kFgCmd.dispatchEventCmd, Object.setPrototypeOf<CmdOptions[kFgCmd.dispatchEventCmd]>(
           { type: "keydown", key: "Esc", esc: true }, null), 1, 0)

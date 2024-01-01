@@ -288,7 +288,7 @@ declare const enum PortType {
 
 declare const enum kKeyLayout {
   NONE = 0, alwaysIgnore = 1, ignoreIfNotASCII = 2, inCmdIgnoreIfNotASCII = 4, ignoreIfAlt = 8,
-  ignoreCaps = 16, mapLeftModifiers = 64, mapRightModifiers = 128,
+  ignoreCaps = 16, inPrivResistFp_ff = 32, mapLeftModifiers = 64, mapRightModifiers = 128,
   FgMask = 255, fromOld = 256, ignoreCapsOnMac = 512,
   MapModifierStart = mapLeftModifiers, MapModifierOffset = 6, MapModifierMask = mapLeftModifiers | mapRightModifiers,
   DefaultFromOld = inCmdIgnoreIfNotASCII | fromOld, Default = DefaultFromOld, IfFirstlyInstalled = ignoreIfNotASCII,

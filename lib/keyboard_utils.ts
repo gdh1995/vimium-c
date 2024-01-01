@@ -1,5 +1,6 @@
 import {
-  fgCache, clearTimeout_, timeout_, isAlive_, Stop_ as stopEvent, Lower, OnChrome, OnEdge, getTime, OnFirefox, abs_, os_, chromeVer_, keydownEvents_
+  fgCache, clearTimeout_, timeout_, isAlive_, Stop_, Lower, OnChrome, OnEdge, getTime, OnFirefox, abs_, os_, chromeVer_,
+  keydownEvents_, isAsContent
 } from "./utils"
 
 const DEL = kChar.delete, BSP = kChar.backspace, SP = kChar.space
@@ -11,7 +12,7 @@ let keyIdCorrectionOffset_old_cr_ = OnChrome && Build.MinCVer < BrowserVer.MinEn
     ? Build.OS !== kBOS.MAC as number ? 185 as const : 300 as const : 0 as never as null
 const _codeCorrectionMap = ["Semicolon", "Equal", "Comma", "Minus", "Period", "Slash", "Backquote",
     "BracketLeft", "Backslash", "BracketRight", "Quote", "IntlBackslash"]
-const kCrct = OnChrome && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key
+const kCrct = OnChrome && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key || Build.OS & kBOS.MAC
     ? kChar.CharCorrectionList : 0 as never as null
 const _modifierKeys: SafeEnum = {
     __proto__: null as never,
@@ -76,7 +77,7 @@ export const char_ = (eventWrapper: HandlerNS.Event, forceASCII: number): kChar 
         = eventWrapper.e
   const shiftKey = OnFirefox ? hasShift_ff!(event as KeyboardEvent) : event.shiftKey
   // on macOS, Alt+T can cause `.key === "Unidentified"` - https://github.com/gdh1995/vimium-c/issues/615
-  let mapped: number | undefined, key = event.key!, isDeadKey = !OnEdge && (key === "Dead" || key === "Unidentified")
+  let mapped: number, key = event.key!, isDeadKey = !OnEdge && (key === "Dead" || key === "Unidentified")
   if (OnChrome && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key && !key) {
     // since Browser.Min$KeyboardEvent$MayHave$$Key and before .MinEnsured$KeyboardEvent$$Key
     // event.key may be an empty string if some modifier keys are held on
@@ -109,23 +110,46 @@ export const char_ = (eventWrapper: HandlerNS.Event, forceASCII: number): kChar 
             //    see https://github.com/gdh1995/vimium-c/issues/435
             : code.length < 2 || !isKeyShort ? key.startsWith("Arrow") && key.slice(5) || key
             : (mapped = _codeCorrectionMap.indexOf(code)) < 0 ? code
-            : (OnChrome && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key
+            : (OnChrome && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key || Build.OS & kBOS.MAC
                 ? kCrct! : kChar.CharCorrectionList)[mapped + 12 * +shiftKey]
     }
     key = shiftKey && key.length < 2 ? key : Lower(key)
+  } else if (key.length > 1 || key === " ") {
+    key = /*#__NOINLINE__*/ _getKeyName(event)
   } else {
-    key = key.length > 1 || key === " " ? /*#__NOINLINE__*/ _getKeyName(event)
-        : fgCache.l & kKeyLayout.ignoreCaps ? shiftKey ? key.toUpperCase() : Lower(key) : key
+    key = fgCache.l & kKeyLayout.ignoreCaps ? shiftKey ? key.toUpperCase() : Lower(key) : key
+    if (Build.OS & kBOS.MAC && (Build.OS === kBOS.MAC as number || !os_)
+        && (OnChrome || OnFirefox) && shiftKey && key < kChar.maxASCII) { // "~" is upper-case
+      mapped = getKeyStat_(event as typeof eventWrapper.e, 1)
+      const kSpecialModifier = OnChrome ? 6 : 4
+      key = !(mapped & kSpecialModifier) ? mapped & 1 || fgCache.l & kKeyLayout.ignoreCaps
+              || !(event as typeof eventWrapper.e).getModifierState("CapsLock") ? key : Lower(key)
+          : (mapped = kCrct!.indexOf(key)) >= 0 ? kCrct![(mapped % 12) + 12]
+          : key > kChar.maxNotNum && key < kChar.minNotNum ? kChar.EnNumTrans[+key]
+          : key
+    }
   }
   return forceASCII === (kKeyLayout.inCmdIgnoreIfNotASCII | 1) ? key as kChar : eventWrapper.c = key as kChar
 }
 
 export const keybody_ = (key: string): kChar => (key.slice(key.lastIndexOf("-") + 1) || key && kChar.minus) as kChar
 
-export const hasShift_ff = OnFirefox ? (event: Pick<KeyboardEvent, "shiftKey" | "key" | "getModifierState">): boolean => {
-  const key = event.key!, upper = key.length === 1 ? key.toUpperCase() : ""
-  // if `privacy.resistFingerprinting` && CapsLock && A-Z, then Shift is reversed
-  return upper && Lower(key) !== upper && event.getModifierState("CapsLock") ? key !== upper : event.shiftKey
+export const hasShift_ff = OnFirefox ? (
+    event: Pick<KeyboardEvent, "shiftKey" | "key" | "getModifierState" | "altKey" | "metaKey">): boolean => {
+  const key = event.key!
+  const lower = key.length === 1 && (Build.OS & ~kBOS.MAC || fgCache.l & kKeyLayout.inPrivResistFp_ff) ? Lower(key) : ""
+  if (lower && event.getModifierState("CapsLock") && key.toUpperCase() !== lower) {
+    // if `privacy.resistFingerprinting` && CapsLock && A-Z, then Shift is reversed
+    if (!(Build.OS & kBOS.MAC) || Build.OS & ~kBOS.MAC && os_) {
+      return key === lower
+    }
+    // try to minimize the affect that `inPrivResistFp` is not enabled correctly
+    if ((!(Build.OS & ~kBOS.MAC) || fgCache.l & kKeyLayout.inPrivResistFp_ff)
+        && !event.altKey && !event.metaKey && isAsContent) {
+      return false
+    }
+  }
+  return event.shiftKey
 } : 0 as never as null
 
 export const getKeyStat_ = (event: Pick<KeyboardEvent, "altKey" | "ctrlKey" | "metaKey" | "shiftKey">
@@ -161,7 +185,7 @@ export const isEscape_ = (key: string): HandlerResult.AdvancedEsc | HandlerResul
 /** handler section */
 
 export const prevent_ = (event: ToPrevent): void => {
-    event.preventDefault(); stopEvent(event);
+    event.preventDefault(); Stop_(event)
 }
 
 export const replaceOrSuppressMost_ = ((id: kHandler, newHandler?: HandlerNS.Handler): void => {
