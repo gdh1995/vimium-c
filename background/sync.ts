@@ -136,6 +136,9 @@ const storeAndPropagate = (key: string, value: any, map?: Dict<any>): void | 8 =
 
 const setAndPost = (key: keyof SettingsToSync, value: any): void => {
   keyInDownloading = key
+  if (key === "keyLayout") {
+    value = (value & ~kKeyLayout.inPrivResistFp_ff) | (settingsCache_[key] & kKeyLayout.inPrivResistFp_ff)
+  }
   settings_.set_(key, value) // eslint-disable-line @typescript-eslint/no-unsafe-argument
   keyInDownloading = ""
   if (key in settings_.valuesToLoad_) {

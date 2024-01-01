@@ -656,10 +656,10 @@ keyLayout.readValueFromElement_ = (): number => {
     flags |= elIgnoreIfNotASCII.checked ? kKeyLayout.ignoreIfNotASCII
         : elIgnoreIfNotASCII.indeterminate ? kKeyLayout.inCmdIgnoreIfNotASCII : 0
     flags |= elIgnoreCaps.checked ? kKeyLayout.ignoreCaps : elIgnoreCaps.indeterminate ? kKeyLayout.ignoreCapsOnMac : 0
-    flags |= elInPrivResistFp.checked ? kKeyLayout.inPrivResistFp_ff : 0
   }
   flags |= elMapModifier.checked ? kKeyLayout.mapRightModifiers
       : elMapModifier.indeterminate ? kKeyLayout.mapLeftModifiers : 0
+  flags |= elInPrivResistFp.checked ? kKeyLayout.inPrivResistFp_ff : 0
   const old = keyLayout.previous_
   if (old & kKeyLayout.fromOld && (old & ~kKeyLayout.fromOld) === flags) { flags |= kKeyLayout.fromOld }
   return flags
@@ -674,9 +674,9 @@ keyLayout.populateElement_ = (value: number): void => {
   elIgnoreIfNotASCII.indeterminate = !!(value & kKeyLayout.inCmdIgnoreIfNotASCII)
   elIgnoreCaps.checked = always || !!(value & kKeyLayout.ignoreCaps)
   elIgnoreCaps.indeterminate = !!(value & kKeyLayout.ignoreCapsOnMac)
+  elInPrivResistFp.checked = !!(value & kKeyLayout.inPrivResistFp_ff)
   elMapModifier.checked = !!(value & kKeyLayout.mapRightModifiers)
   elMapModifier.indeterminate = !!(value & (kKeyLayout.mapLeftModifiers))
-  elInPrivResistFp.checked = !!(value & kKeyLayout.inPrivResistFp_ff)
   _lastKeyLayoutValue = value
   onAlwaysIgnoreChange()
   if (Option_.onFgCacheUpdated_) {
@@ -696,12 +696,10 @@ const onAlwaysIgnoreChange = (ev?: EventToPrevent): void => {
   BooleanOption_.ToggleDisabled_(elIgnoreIfAlt, always)
   BooleanOption_.ToggleDisabled_(elIgnoreIfNotASCII, always)
   BooleanOption_.ToggleDisabled_(elIgnoreCaps, always)
-  BooleanOption_.ToggleDisabled_(elInPrivResistFp, always)
   if (!ev) { /* empty */ }
   else if (always) {
     elIgnoreIfAlt.checked = elIgnoreIfNotASCII.checked = elIgnoreCaps.checked = true
     elIgnoreIfNotASCII.indeterminate = elIgnoreCaps.indeterminate = false
-    elInPrivResistFp.checked = false
   } else {
     const old = keyLayout.innerFetch_()
     if (typeof old === "number" && !(_lastKeyLayoutValue & kKeyLayout.alwaysIgnore)) {
