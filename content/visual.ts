@@ -791,9 +791,10 @@ const ensureLine = (command1: number, s0: string): void => {
       return esc!(HandlerResult.Prevent)
     }
     const childAction = keyMap[currentPrefix + key],
-    newActions = (<RegExpOne> /^v\d/).test(key) ? +key.slice(1) : childAction || keyMap[key]
-    if (!(newActions as VisualAction >= 0)) {
-      // asserts newActions is VisualAction.NextKey | NaN undefined
+    newActions = (<RegExpOne> /^v\d/).test(key) ? +key.slice(1) : key === "0" && currentKeys ? void 0
+        : childAction || keyMap[key]
+    if (!(newActions! >= 0)) {
+      // asserts newActions is VisualAction.NextKey | undefined (NaN)
       currentPrefix = newActions! < 0 ? key : ""
       return keybody < kChar.minNotF_num && keybody > kChar.maxNotF_num ? HandlerResult.Nothing
           : newActions ? HandlerResult.Prevent
