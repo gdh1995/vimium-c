@@ -157,6 +157,9 @@ const TrySet = <K extends SettingsNS.LocalSettingNames | keyof SettingsToSync> (
     to_update = BgUtils_.safeObj_() as SettingsToUpdate
   }
   if (type === 1) {
+    if (key === "keyLayout") {
+      (value as SettingsToSync["keyLayout"]) = (value as SettingsToSync["keyLayout"]) & ~kKeyLayout.inPrivResistFp_ff
+    }
     (to_update as Generalized<SettingsToUpdate>)[key as keyof SettingsToSync] = value
   } else {
     (toCleanDuringUpgrade || (toCleanDuringUpgrade = [])).push(key as SettingsNS.LocalSettingNames)
