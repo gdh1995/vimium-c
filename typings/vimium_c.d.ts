@@ -343,6 +343,7 @@ declare namespace SettingsNS {
     grabBackFocus: boolean;
     showAdvancedCommands: boolean;
     vomnibarOptions: SelectNVType<VomnibarOptionItems> & VomnibarBackendItems;
+    userDefinedNewTab: string;
   }
   interface FrontUpdateAllowedSettings {
     showAdvancedCommands: 0;

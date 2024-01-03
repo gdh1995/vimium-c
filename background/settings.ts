@@ -365,6 +365,7 @@ saladict@crimx.com`
     localeEncoding: "gbk",
     mouseReachable: true,
     /** mutable */ newTabUrl: "",
+    userDefinedNewTab: "",
     nextPatterns: "\u4e0b\u4e00\u5c01,\u4e0b\u9875,\u4e0b\u4e00\u9875,\u4e0b\u4e00\u7ae0,\u540e\u4e00\u9875\
 ,\u4e0b\u4e00\u5f20,next,more,newer,>,\u203a,\u2192,\xbb,\u226b,>>",
     notifyUpdate: true,

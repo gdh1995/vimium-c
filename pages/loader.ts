@@ -84,6 +84,12 @@ var VApi: VApiTy | undefined, VimiumInjector: VimiumInjectorTy | undefined | nul
       }
       return browser_.runtime.lastError
     })
+    storage.get("userDefinedNewTab", (res): void => {
+      if (!res.userDefinedNewTab) { return }
+      const userContentBody = document.getElementById('vimium-user-content');
+      if (!userContentBody) { return }
+      userContentBody.insertAdjacentHTML('beforeend', res.userDefinedNewTab);
+    });
     if (browser_.i18n.getMessage("lang1")) {
       const s = browser_.i18n.getMessage("vblank")
       s && (document.title = s)
