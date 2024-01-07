@@ -1,11 +1,7 @@
 type SimulatedMap = IterableMap<string, any> & Set<string> & { map_: SafeDict<1>, isSet_: BOOL }
 
 declare namespace Search {
-  interface RawEngine {
-    url_: string;
-    blank_: string;
-    name_: string;
-  }
+  interface RawEngine { name_: string; url_: string; blank_: string; complex_: boolean }
   interface Engine extends Readonly<RawEngine> {}
   interface Result {
     readonly url_: string;

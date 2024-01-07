@@ -284,10 +284,10 @@ Object.assign<typeof updateHooks_, { [key in SettingsNS.DeclaredUpdateHooks]: Se
     searchUrl (str): void {
       const map = searchEngines_.map
       if (str) {
-        parseSearchEngines_("~:" + str, map)
+        map.get("~")?.complex_ || parseSearchEngines_("~:" + str, map)
       } else {
         map.clear()
-        map.set("~", { name_: "~", blank_: "", url_: settingsCache_.searchUrl.split(" ", 1)[0] })
+        map.set("~", { name_: "~", url_: settingsCache_.searchUrl.split(" ", 1)[0], blank_: "", complex_: false })
         searchEngines_.rules = []
         set_newTabUrl_f(storageCache_.get("newTabUrl_f") || "")
         if (newTabUrl_f) { return }

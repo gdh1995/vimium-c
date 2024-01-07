@@ -329,12 +329,12 @@ export const parseSearchEngines_ = (str: string, map: Map<string, Search.Engine>
   key: string, obj: Search.RawEngine,
   ind: number, rules: Search.Rule[] = [], re = searchWordRe_,
   reWhiteSpace = <RegExpOne> /\s/,
-  func = (function (k: string): boolean {
+  register = (function (k: string): boolean {
     return (k = k.trim()) && !(OnChrome && Build.MinCVer < BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol
         && k === "__proto__") && k.length < Consts.MinInvalidLengthOfSearchKey
       ? (map.set(k, obj), true) : false
   }),
-  pair: RegExpExecArray | null
+  pair: RegExpExecArray | null;
   for (let val of str.replace(<RegExpSearchable<0>> /\\(?:\n|\\\n[^\S\n]*)/g, "").split("\n")) {
     val = val.trim();
     if (val < kChar.minNotCommentHead) { continue; } // mask: /[!"#]/
@@ -367,12 +367,14 @@ export const parseSearchEngines_ = (str: string, map: Map<string, Search.Engine>
     val = val.replace(<RegExpG & RegExpSearchable<0>> /\\s/g, " "
       ).trim().replace(<RegExpG & RegExpSearchable<2>> /([^\\]|^)%(s)/gi, "$1$$$2"
       ).replace(<RegExpG & RegExpSearchable<0>> /\\%/g, "%");
-    obj = {
-      name_: "",
-      blank_: blank,
-      url_: val
-    };
-    ids = ids.filter(func);
+    obj = { name_: "", url_: val, blank_: blank, complex_: map.size > 0 }
+    if (ids.includes("~") && obj.complex_) {
+      convertToUrl_(val, null, Urls.WorkType.KeepAll)
+      if (lastUrlType_ > Urls.Type.MaxOfInputIsPlainUrl) {
+        ids = ids.filter(i => i !== "~")
+      }
+    }
+    ids = ids.filter(register)
     if (ids.length === 0) { continue; }
     if (ind === -1) {
       re.lastIndex = 0;
