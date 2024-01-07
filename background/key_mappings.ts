@@ -407,7 +407,7 @@ const parseKeyMappings_ = (wholeMappings: string): void => {
           registry.delete(key)
           cmd.length === 6 && key.length > 1 && registry.delete(toKeyInInsert(key))
           tmpInt < 0 || (builtinToAdd as Exclude<typeof builtinToAdd, 0 | null>)!.splice(tmpInt, 2)
-        } else if (key.length === 1 ? (key >= "0" && key < kChar.minNotNum || key[0] === kChar.minus)
+        } else if (key.length === 1 ? (key > kChar.maxNotNum && key < kChar.minNotNum || key[0] === kChar.minus)
             : stripKey_(key) === kChar.esc || key === "<c-[>") {
           if (key2 = stripKey_(key) + ":" + GlobalConsts.NormalModeId,
               mkReg && key2 in mkReg && mkReg[key2] !== GlobalConsts.ForcedMapNum + key) {
@@ -506,8 +506,8 @@ const populateKeyMap_ = (value: string | null): void => {
       const key1 = stripKey_(arr[0]), val1 = ref.get(key1) as KeyAction.cmd | ChildKeyFSM | undefined
       if (index >= builtinOffset_ && val1 !== undefined // a built-in mapping can only use up to 2 keys
           && (val1 === KeyAction.cmd || last === 0 || typeof val1[arr[1]] === "object")) {
-            keyToCommandMap_.delete(key)
-            continue;
+        keyToCommandMap_.delete(key)
+        continue;
       } else if (last === 0) {
         val1 !== undefined && doesLog && logInactive_(key, val1 as ReadonlyChildKeyFSM)
         ref.set(key1, KeyAction.cmd)
@@ -530,7 +530,7 @@ const populateKeyMap_ = (value: string | null): void => {
     if (!nonNumList_) { /* empty */ }
     else if (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.BuildMinForOf
         && Build.MinCVer >= BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol) {
-      for (var nonNumItem of nonNumList_ as unknown as string[]) {
+      for (const nonNumItem of nonNumList_ as unknown as string[]) {
         const j = ref.get(nonNumItem); j && ref.set(GlobalConsts.ForcedMapNum + nonNumItem, j)
       }
     } else {
@@ -602,7 +602,7 @@ const logError_ = function (): void {
 
 const AsC_ = (i: kCName): kCName => i
 const defaultKeyMappings_: string =
-  "? "     +AsC_("showHelp")            +" <a-c> "  +AsC_("previousTab")     +" <a-s-c> "+AsC_("nextTab")             +
+   "? "    +AsC_("showHelp")            +" <a-c> "  +AsC_("previousTab")     +" <a-s-c> "+AsC_("nextTab")             +
   " d "    +AsC_("scrollPageDown")      +" <c-e> "  +AsC_("scrollDown")      +" f "      +AsC_("LinkHints.activate")  +
   " <f1> " +AsC_("simBackspace")        +" <s-f1> " +AsC_("switchFocus")     +" <f2> "   +AsC_("switchFocus")         +
   " <f8> " +AsC_("enterVisualMode")     +" G "      +AsC_("scrollToBottom")  +" gf "     +AsC_("nextFrame")           +
