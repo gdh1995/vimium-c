@@ -278,7 +278,7 @@ Object.assign<typeof updateHooks_, { [key in SettingsNS.DeclaredUpdateHooks]: Se
     searchEngines (): void {
       searchEngines_.map.clear()
       searchEngines_.keywords = null
-      searchEngines_.rules = parseSearchEngines_("~:" + settingsCache_.searchUrl + "\n" + settingsCache_.searchEngines
+      searchEngines_.rules = parseSearchEngines_("~:" + settingsCache_.searchUrl + "\n\n" + settingsCache_.searchEngines
           , searchEngines_.map).reverse()
     },
     searchUrl (str): void {
