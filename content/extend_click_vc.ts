@@ -274,8 +274,13 @@ const onDocOpen = (isWrite?: 0 | 2, oriHref?: string): void => {
   }
 }
 const noop = (): 1 => { return 1 }
-const defineProp = Object.defineProperty
-const dataset = (root as Element as TypeToAssert<Element, HTMLElement, "dataset", "tagName">).dataset
+const docEl = doc0.documentElement;
+(function startHook(delayed?: 1): void {
+  if (!docEl || delayed && !(!docEl.lastChild && docEl.parentNode === doc0)) {
+    return
+  }
+  const dataset = (root as Element as TypeToAssert<Element, HTMLElement, "dataset", "tagName">).dataset
+  const defineProp = Object.defineProperty
 if (dataset && (
   dataset.vimium = kRC,
 // only the below can affect outsides
@@ -317,6 +322,15 @@ if (dataset && (
       }
     })
   }
+} else if (!delayed) {
+  const listenOpt: EventListenerOptions = { capture: true, once: true }
+  const postStart = (event: EventToPrevent): void => {
+    queueMicroTask_((): void => startHook(1))
+    call(StopProp, event)
+  }
+  _listen(kOC, postStart, listenOpt)
+  _listen("readystatechange", removeEventListener.bind(window, kOC, postStart, listenOpt), listenOpt)
 }
+})()
 
 })()

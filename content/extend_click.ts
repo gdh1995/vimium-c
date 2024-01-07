@@ -143,7 +143,7 @@ export const ec_main_not_ff = (Build.BTypes !== BrowserType.Firefox as number ? 
     }
     ; (box as HTMLElement).textContent = ""
     if (mismatch) {
-      if (!Build.NDEBUG && target && !isSafe) {
+      if (!Build.NDEBUG && target && !isSafe && (kInjectManually || target as EventTarget !== window)) {
         console.error("extend click: unexpected: detail =", rawDetail, target);
       }
       return;
@@ -227,8 +227,9 @@ export const ec_main_not_ff = (Build.BTypes !== BrowserType.Firefox as number ? 
   }
   if (!kInjectManually) {
     if (grabBackFocus) {
+      dispatchEvent(new Event(kVOnClick1))
       setupEventListener(0, kVOnClick1, onClick);
-      OnDocLoaded_(() => { // check CSP script-src or JS-disabled-in-CS
+      box || OnDocLoaded_(() => { // check CSP script-src or JS-disabled-in-CS
         box || execute(kContentCmd.Destroy)
       })
     }
