@@ -133,7 +133,6 @@ args="$ZIP_FLAGS $args"
 
 output_for_zip=$output
 pushd_err=0
-set -x
 if [ -n "$ZIP_BASE" ]; then
   if [ "${output_for_zip#/}" = "${output_for_zip#[a-zA-Z]:/}" ]; then
     output_for_zip=${PWD%/}/${output_for_zip}
