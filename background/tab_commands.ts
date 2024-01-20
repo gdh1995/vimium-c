@@ -532,10 +532,12 @@ export const removeTab = (resolve: OnCmdResolved, phase?: 1 | 2 | 3, tabs?: read
   const total = tabs.length, curInd = selectIndexFrom(tabs), tab = tabs[curInd]
   let count = 1, start = curInd, end = curInd + 1
   if (abs(cRepeat) > 1 && total > 1) {
-    const noPinned = tabs[0].pinned !== tab.pinned && !(cRepeat < 0 && tabs[curInd - 1].pinned)
+    const noPinned = get_cOptions<C.removeTab, true>().noPinned
+        ?? (tabs[0].pinned !== tab.pinned && !(cRepeat < 0 && tabs[curInd - 1].pinned))
     let skipped = 0
     if (noPinned) {
-      while (tabs[skipped].pinned) { skipped++ }
+      while (skipped < tabs.length && tabs[skipped].pinned) { skipped++ }
+      if (skipped >= tabs.length) { resolve(0); return }
     }
     const range = getTabRange(curInd - skipped, total - skipped, total)
     count = range[1] - range[0]

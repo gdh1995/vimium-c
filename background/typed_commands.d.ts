@@ -129,9 +129,10 @@ interface BgCmdOptions {
     /** (deprecated) */ allow_close: boolean
     keepWindow: "at-least-one" | "always"
     /** only work when close one tab */ filter: TabFilterOptions["filter"]
+    noPinned: boolean | null
   } & Req.FallbackOptions
   [kBgCmd.removeTabsR]: {
-    others: boolean; other: boolean; mayConfirm: true; noPinned: boolean; acrossWindows: true
+    others: boolean; other: boolean; mayConfirm: true; noPinned: boolean | null; acrossWindows: true
   } & TabFilterOptions & Req.FallbackOptions
   [kBgCmd.reopenTab]: Pick<OpenUrlOptions, "group"> & Req.FallbackOptions
   [kBgCmd.restoreTab]: { incognito: "force" | true; one: boolean; active: false; currentWindow?: boolean }

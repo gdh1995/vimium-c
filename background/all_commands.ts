@@ -616,7 +616,7 @@ set_bgC_([
       ++i
       tabs = tabs.slice(i, i + direction)
     } else {
-      noPinned = noPinned != null ? noPinned && tabs[0].pinned : i > 0 && tabs[0].pinned && !tabs[i - 1].pinned
+      noPinned = noPinned ?? (i > 0 && tabs[0].pinned && !tabs[i - 1].pinned)
       if (direction < 0) {
         tabs = tabs.slice(Math.max(i + direction, 0), i)
       } else {
