@@ -306,7 +306,7 @@ export const createSearch_ = function (query: string[], url: string, blank: stri
     ): string | Search.Result {
   let q2: string[] | undefined, delta = 0;
   url = query.length === 0 && blank ? blank : url.replace(searchWordRe_
-      , (full, s1: string | undefined, s2: string | undefined, ind): string => {
+      , (full, s1: string | undefined, s2: string | undefined, ind: number): string => {
     let arr: string[];
     if (full.endsWith("$") || !s1 && !s2) { return "$" }
     if (!s1) {
@@ -328,7 +328,8 @@ export const createSearch_ = function (query: string[], url: string, blank: stri
     } else {
       arr = localQuery === query && q2 ? q2 : localQuery.map(encodeAsciiComponent_)
       localQuery === query && !q2 && (q2 = arr)
-      s1 = isJSUrl_(url) || url.startsWith("vimium://run") ? "%20" : "+"
+      s1 = isJSUrl_(url) || url.startsWith("vimium://run")
+          || !(<RegExpOne> /\?|#.*=/).test(url.slice(0, ind)) ? "%20" : "+"
     }
     s2 && s2.includes("\\") && (s2 = s2.replace(<RegExpG> /\\([\\<>|])/g, "$1"))
     if (arr.length === 0) { s2 = "" }
