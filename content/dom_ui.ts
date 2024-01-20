@@ -1,6 +1,7 @@
 import {
   setupEventListener, isTop, keydownEvents_, timeout_, fgCache, doc, isAlive_, isJSUrl, chromeVer_, VTr, OnEdge, Stop_,
-  vApi, createRegExp, isTY, OBJECT_TYPES, OnChrome, OnFirefox, WithDialog, isAsContent, safeCall, max_,isIFrameInAbout_, firefoxVer_
+  vApi, createRegExp, isTY, OBJECT_TYPES, OnChrome, OnFirefox, WithDialog, isAsContent, safeCall, max_,isIFrameInAbout_,
+  firefoxVer_
 } from "../lib/utils"
 import { prevent_ } from "../lib/keyboard_utils"
 import {
@@ -9,7 +10,7 @@ import {
   notSafe_not_ff_, CLK, frameElement_, runJS_, isStyleVisible_, rangeCount_, getAccessibleSelectedNode, removeEl_s,
   appendNode_s, append_not_ff, setClassName_s, isNode_, contains_s, setOrRemoveAttr_s, textContent_s, inputSelRange,
   parentNode_unsafe_s, setDisplaying_s, getRootNode_mounted, singleSelectionElement_unsafe, isHTML_,
-  getDirectionOfNormalSelection, showPicker_,
+  getDirectionOfNormalSelection, showPicker_, htmlTag_,
 } from "../lib/dom_utils"
 import {
   bZoom_, dScale_, getZoom_, wdZoom_, boundingRect_, prepareCrop_, getClientRectsForAreas_,
@@ -170,7 +171,9 @@ export const adjustUI = (event?: Event | /* enable */ 1 | /* disable */ 2): void
     // so here should only use `fullscreenEl_unsafe_`
     const el: Element | null = fullscreenEl_unsafe_(),
     disableUI = event === 2,
-    el2 = el && !root_.contains(el) && !contains_s(box_!, el) ? el : docEl_unsafe_()!
+    // https://developer.mozilla.org/en-US/docs/Web/CSS/Replaced_element
+    isReplacedEl = el && createRegExp(kTip.ReplacedHtmlTags, "").test(htmlTag_(el)),
+    el2 = el && !isReplacedEl && !root_.contains(el) && !contains_s(box_!, el) ? el : docEl_unsafe_()!
     // Chrome also always remove node from its parent since 58 (just like Firefox), which meets the specification
     // doc: https://dom.spec.whatwg.org/#dom-node-appendchild
     //  -> #concept-node-append -> #concept-node-pre-insert -> #concept-node-adopt -> step 2
@@ -181,8 +184,9 @@ export const adjustUI = (event?: Event | /* enable */ 1 | /* disable */ 2): void
     s && (s.disabled = false);
     if (WithDialog) {
       disableUI || curModalElement && !curModalElement.open && curModalElement.showModal()
-      if (!(OnChrome || OnFirefox) || disableUI) { /* empty */ }
-      else if (hasPopover_) {
+      if (disableUI) { /* empty */ }
+      else if (hasPopover_ || isReplacedEl && (OnChrome && Build.MinCVer >= BrowserVer.MinEnsuredPopover
+          || (uiParent_ as PopoverElement).showPopover)) {
         (uiParent_ as PopoverElement).popover = "manual"
         setClassName_s(uiParent_ as SafeHTMLElement, "PO")
         ; (uiParent_ as PopoverElement).togglePopover(false)
@@ -609,7 +613,7 @@ export const filterOutInert = (hints: Hint[]): void => {
 
 export const onToggle = (event: Event & { [property in "newState" | "oldState"]?: "open" | "closed" }): void => {
   const newState = event.newState
-  if (newState !== event.oldState) {
+  if (event.isTrusted && newState !== event.oldState) {
     hasPopover_ = max_(0, hasPopover_ + (newState! > "o" ? 1 : -1))
     if (root_ && hasPopover_ > 0) {
       adjustUI()

@@ -17,7 +17,7 @@ export const OnEdge: boolean = Build.BTypes === BrowserType.Edge as number
     || !!(Build.BTypes & BrowserType.Edge) && OnOther_ === BrowserType.Edge
 export const OnSafari: boolean = Build.BTypes === BrowserType.Safari as number
     || !!(Build.BTypes & BrowserType.Safari) && OnOther_ === BrowserType.Safari
-export const WithDialog: boolean = OnChrome || OnFirefox
+export const WithDialog: boolean = !OnEdge
 
 /** its initial value should be 0, need by {@see ../content/request_handlers#hookOnWnd} */
 export let chromeVer_: BrowserVer = 0

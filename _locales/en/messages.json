@@ -107,6 +107,7 @@
   "113": { "message": "Vimium C blocks auto-focusing on %s at %o." },
   "114": { "message": "prev" },
   "115": { "message": "next" },
+  "116": { "message": "^(canvas|embed|i?frame|img|video|object)$" },
   "200": { "message": "http://www.w3.org/1999/xhtml" },
   "0": { "message": "Open link in current tab" },
   "2": { "message": "Open link in new tab" },
