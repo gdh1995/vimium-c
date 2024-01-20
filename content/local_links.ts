@@ -13,7 +13,7 @@ import {
 import {
   getVisibleClientRect_, getVisibleBoundingRect_, getClientRectsForAreas_, getCroppedRect_, boundingRect_,
   getBoundingClientRect_, cropRectToVisible_, bZoom_, set_bZoom_, prepareCrop_, wndSize_, isContaining_,
-  isDocZoomStrange_, docZoom_, dimSize_, ViewBox, getIFrameRect
+  isDocZoomStrange_old_cr, docZoom_, dimSize_, ViewBox, getIFrameRect
 } from "../lib/rect"
 import { find_box } from "./mode_find"
 import { omni_box } from "./omni"
@@ -703,7 +703,8 @@ export const filterOutNonReachable = (list: Hint[], notForAllClickable?: boolean
                 BrowserVer.Min$DocumentOrShadowRoot$$elementsFromPoint // lgtm [js/syntax-error]
               ? BrowserVer.Min$Node$$getRootNode // lgtm [js/syntax-error]
               : BrowserVer.Min$DocumentOrShadowRoot$$elementsFromPoint) // lgtm [js/syntax-error]
-      || OnChrome && isDocZoomStrange_ && docZoom_ - 1) { // lgtm [js/syntax-error]
+      || OnChrome && Build.MinCVer < BrowserVer.MinDevicePixelRatioNotImplyZoomOfDocEl
+          && isDocZoomStrange_old_cr && docZoom_ - 1) { // lgtm [js/syntax-error]
     return
   }
   initTestRegExps() // in case of `isDescendant(..., ..., 1)`

@@ -132,12 +132,13 @@ declare const enum BrowserVer {
   MinTreat$LetterColon$AsFilePath = 44,
   MinFixedCSS$All$MightOverwriteAnchorColor = 44, // affect links on the help dialog; ignored
   CSS$All$$initial$MayBreakHelpDialog = 45, // if EXP, `.R.H{all:initial}` is necessary on C46-C55, but fails on C45
-  // the 2 below are even if EXP or EMPTY
+  // the 4 below are even if EXP or EMPTY
   MinMayBeES6ArrowFunction = 45,
   // for VHints.traverse_, Array.from takes >= 2x time to convert a static NodeList of 7242 elements to an array
   // and the average time data is 119~126ms / 255~266ms for 100 times
   Min$Array$$From = 45,
   Min$TypedArray$reduce = 45,
+  MinAShowHrefOnFocus = 45,
   // even if LEGACY
   MinEnsuredES6MethodFunction = 45, // e.g.: `a = { b() {} }`
   MinMuted = 45,
@@ -613,6 +614,7 @@ declare const enum BrowserVer {
   MinMaybeMouseenter$composed$IsFalse = 115, // if EXP
   MinMouseenter$composed$IsFalse = 116, // said in https://chromestatus.com/features#milestone%3D116
   MinNoDownloadBubbleFlag = 117,
+  MinDevicePixelRatioNotImplyZoomOfDocEl = 117, // even if EXP or LEGACY; fix MinASameZoomOfDocElAsdevPixRatioWorksAgain
   MinNew$URL$NotDecodePathname = 118,
   MinEnsured$select$$showPicker = 999, // since 119 if EXP
   MinNo$TimerType$$Fake = 999,

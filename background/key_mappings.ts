@@ -1,7 +1,7 @@
 import {
   bgIniting_, CONST_, os_, keyFSM_, keyToCommandMap_, mappedKeyRegistry_, mappedKeyTypes_, omniPayload_,
   OnChrome, OnEdge, OnFirefox, OnOther_, set_keyFSM_, set_keyToCommandMap_, set_mappedKeyRegistry_, set_mappedKeyTypes_,
-  settingsCache_, updateHooks_, CurFFVer_
+  settingsCache_, updateHooks_, CurCVer_, CurFFVer_
 } from "./store"
 import * as BgUtils_ from "./utils"
 import { tryParse } from "./utils"
@@ -643,7 +643,8 @@ export const availableCommands_: { readonly [key in kCName]: CommandsNS.Descript
   "LinkHints.activateEdit": [ kFgCmd.linkHints, kCxt.fg, 1, { m: HintMode.FOCUS_EDITABLE } ],
   "LinkHints.activateFocus": [ kFgCmd.linkHints, kCxt.fg, 0, { m: HintMode.FOCUS } ],
   "LinkHints.activateHover": [ kFgCmd.linkHints, kCxt.fg, 0,
-      OnFirefox ? { m: HintMode.HOVER } : { m: HintMode.HOVER, showUrl: 1 } ],
+      OnEdge || OnChrome && Build.MinCVer < BrowserVer.MinAShowHrefOnFocus && CurCVer_ < BrowserVer.MinAShowHrefOnFocus
+      ? { m: HintMode.HOVER, showUrl: 1 } : {m:HintMode.HOVER}],
   "LinkHints.activateLeave": [ kFgCmd.linkHints, kCxt.fg, 0, { m: HintMode.UNHOVER } ],
   "LinkHints.activateMode": [ kFgCmd.linkHints, kCxt.fg, 0, { m: HintMode.DEFAULT } ],
   "LinkHints.activateModeToCopyImage": [ kFgCmd.linkHints, kCxt.fg, 0, { m: HintMode.COPY_IMAGE } ],
@@ -654,7 +655,8 @@ export const availableCommands_: { readonly [key in kCName]: CommandsNS.Descript
   "LinkHints.activateModeToEdit": [ kFgCmd.linkHints, kCxt.fg, 1, { m: HintMode.FOCUS_EDITABLE } ],
   "LinkHints.activateModeToFocus": [ kFgCmd.linkHints, kCxt.fg, 1, { m: HintMode.FOCUS } ],
   "LinkHints.activateModeToHover": [ kFgCmd.linkHints, kCxt.fg, 0,
-      OnFirefox ? { m: HintMode.HOVER } : { m: HintMode.HOVER, showUrl: 1 } ],
+      OnEdge || OnChrome && Build.MinCVer < BrowserVer.MinAShowHrefOnFocus && CurCVer_ < BrowserVer.MinAShowHrefOnFocus
+      ? { m: HintMode.HOVER, showUrl: 1 } : {m:HintMode.HOVER}],
   "LinkHints.activateModeToLeave": [ kFgCmd.linkHints, kCxt.fg, 0, { m: HintMode.UNHOVER } ],
   "LinkHints.activateModeToOpenImage": [ kFgCmd.linkHints, kCxt.fg, 0, { m: HintMode.OPEN_IMAGE } ],
   "LinkHints.activateModeToOpenIncognito": [ kFgCmd.linkHints, kCxt.fg, 0, { m: HintMode.OPEN_INCOGNITO_LINK } ],

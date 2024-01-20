@@ -17,14 +17,14 @@ let paintBox_: [number, number] | null = null // it may need to use `paintBox[] 
 let wdZoom_ = 1 // <html>.zoom * min(devicePixelRatio, 1) := related to physical pixels
 let docZoom_ = 1 // zoom of <html>
 let bZoom_ = 1 // zoom of <body> (if not fullscreen else 1)
-let isDocZoomStrange_: BOOL = 0
+let isDocZoomStrange_old_cr: BOOL = 0
 let dScale_ = 1 // <html>.transform:scale (ignore the case of sx != sy)
 let bScale_ = 1 // <body>.transform:scale (ignore the case of sx != sy)
 let vright: number, vbottom: number, vbottoms: number, vleft: number, vtop: number, vtops: number
 let scrollingTop: SafeElement | null = null
 
 export {
-  paintBox_, wdZoom_, docZoom_, isDocZoomStrange_, dScale_, bScale_, bZoom_, scrollingTop, vright as viewportRight
+  paintBox_, wdZoom_, docZoom_, isDocZoomStrange_old_cr, dScale_, bScale_, bZoom_, scrollingTop, vright as viewportRight
 }
 export function set_bZoom_ (_newBZoom: number): void { bZoom_ = _newBZoom }
 export function set_scrollingTop (newScrollingTop: SafeElement | null): void { scrollingTop = newScrollingTop }
@@ -251,13 +251,14 @@ export const getCroppedRect_ = function (el: Element, crect: Rect | null): Rect 
   (el: Element, crect: Rect | null): Rect | null
 }
 
-const _fixDocZoom_cr = OnChrome ? (zoom: number, docEl: Element, devRatio: number): number => {
+const _fixDocZoom_old_cr = OnChrome && Build.MinCVer < BrowserVer.MinDevicePixelRatioNotImplyZoomOfDocEl
+    ? (zoom: number, docEl: Element, devRatio: number): number => {
   let rectWidth: number, viewportWidth: number, style: CSSStyleDeclaration | false | undefined;
   if (!(BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl >= BrowserVer.MinEnsured$visualViewport$)) {
     console.log("Assert error: MinDevicePixelRatioImplyZoomOfDocEl should be >= MinEnsured$visualViewport$")
   }
-  isDocZoomStrange_ = 0
-  return zoom === 1
+  isDocZoomStrange_old_cr = 0
+  return zoom === 1 || chromeVer_ >= BrowserVer.MinDevicePixelRatioNotImplyZoomOfDocEl
       || Build.MinCVer < BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl
           && chromeVer_ < BrowserVer.MinDevicePixelRatioImplyZoomOfDocEl
       || (rectWidth = getBoundingClientRect_(docEl).width,
@@ -268,11 +269,12 @@ const _fixDocZoom_cr = OnChrome ? (zoom: number, docEl: Element, devRatio: numbe
                   || chromeVer_ > BrowserVer.MinASameZoomOfDocElAsdevPixRatioWorksAgain - 1)
                 && !notSafe_not_ff_!(docEl) && (style = (docEl as ElementToHTMLOrForeign).style)
                 && style.zoom
-            || (isDocZoomStrange_ = 1, abs_(zoom - _getPageZoom_cr!(zoom, devRatio, docEl)))) > 1e-3)
+            || (isDocZoomStrange_old_cr = 1, abs_(zoom - _getPageZoom_old_cr!(zoom, devRatio, docEl)))) > 1e-3)
       ? zoom : 1
 } : 0 as never as null
 
-let _getPageZoom_cr = OnChrome ? function (docElZoom: number, devRatio: number, _testEl: Element | null): number {
+let _getPageZoom_old_cr = OnChrome && Build.MinCVer < BrowserVer.MinDevicePixelRatioNotImplyZoomOfDocEl
+    ? function (docElZoom: number, devRatio: number, _testEl: Element | null): number {
   // only detect once, so that its cost is not too big
   let iframe: HTMLIFrameElement = createElement_("iframe"),
   pageZoom: number | null | undefined, doc1: Document | null
@@ -282,7 +284,7 @@ let _getPageZoom_cr = OnChrome ? function (docElZoom: number, devRatio: number, 
     pageZoom = _testEl && +getComputedStyle_(_testEl).zoom
   } catch {}
   removeEl_s(iframe)
-  _getPageZoom_cr = (zoom2, ratio2) => pageZoom ? ratio2 / devRatio * pageZoom : zoom2
+  _getPageZoom_old_cr = (zoom2, ratio2) => pageZoom ? ratio2 / devRatio * pageZoom : zoom2
   return pageZoom || docElZoom
 } as (docElZoom: number, devRatio: number, docEl: Element) => number : 0 as never as null
 
@@ -296,7 +298,8 @@ export const getZoom_ = !OnFirefox ? function (target?: 1 | SafeElement): void {
   let docEl = docEl_unsafe_()!, ratio = wndSize_(2)
     , st = getComputedStyle_(docEl), zoom = +st.zoom || 1
     , el: Element | null = fullscreenEl_unsafe_()
-  OnChrome && (zoom = _fixDocZoom_cr!(zoom, docEl, ratio))
+  OnChrome && Build.MinCVer < BrowserVer.MinDevicePixelRatioNotImplyZoomOfDocEl
+      && (zoom = _fixDocZoom_old_cr!(zoom, docEl, ratio))
   if (target) {
     const body = el ? null : doc.body
     // if fullscreen and there's nested "contain" styles,
@@ -336,7 +339,8 @@ export const getViewBox_ = function (needBox?: 1 | /** dialog-found */ 2): ViewB
   // NOTE: if box.zoom > 1, although doc.documentElement.scrollHeight is integer,
   //   its real rect may has a float width, such as 471.333 / 472
   rect = boundingRect_(box)
-  let zoom = OnChrome ? _fixDocZoom_cr!(+st.zoom || 1, box, ratio) : !OnFirefox && +st.zoom || 1,
+  let zoom = OnChrome && Build.MinCVer < BrowserVer.MinDevicePixelRatioNotImplyZoomOfDocEl
+      ? _fixDocZoom_old_cr!(+st.zoom || 1, box, ratio) : !OnFirefox && +st.zoom || 1,
   iw = wndSize_(1), ih = wndSize_(),
   // ignore the case that x != y in "transform: scale(x, y)""
   _trans = st.transform, scale = dScale_ = _trans && !_trans.startsWith(kM) && float(_trans.slice(7)) || 1

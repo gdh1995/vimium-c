@@ -47,8 +47,8 @@
           Math.abs(ratio - +newZoom) < 0.005 ? '<span style="color:#3b0">same</span>'
               : '<span style="color:#f00">diff</span>',
           '<br/><span>&nbsp;&nbsp;&nbsp;&nbsp;</span>',
-          'width from <span style="color:#00f">', oldClientWidth, " / visual=", visualWidth,
-          '</span> to <span style="color:#00f">', newClientWidth, '</span> , so: ',
+          'width from <span style="color:#00f">', oldClientWidth, " (visual =", visualWidth,
+          '</span>) to <span style="color:#00f">', newClientWidth, '</span> , so: ',
           '<br/><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>',
           (msg = Math.abs(newClientWidth - oldClientWidth) < 2
               ? oldCorrect ? ".zoom has no effect" : "completely wrong"

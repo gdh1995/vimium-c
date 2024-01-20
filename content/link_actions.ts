@@ -10,7 +10,7 @@ import {
   queryHTMLChild_, getSelection_, removeEl_s, appendNode_s, getMediaUrl, getMediaTag, INP, ALA, attr_s, hasTag_, kGCh,
   setOrRemoveAttr_s, toggleClass_s, textContent_s, notSafe_not_ff_, modifySel, SafeEl_not_ff_, testMatch, contains_s,
   extractField, querySelectorAll_unsafe_, editableTypes_, findAnchor_, dispatchEvent_, newEvent_, rangeCount_,
-  findSelectorByHost
+  findSelectorByHost, deepActiveEl_unsafe_
 } from "../lib/dom_utils"
 import { getPreferredRectOfAnchor, initTestRegExps } from "./local_links"
 import {
@@ -230,9 +230,12 @@ const openTextOrUrl = (url: string, isText?: BOOL | boolean): void => {
 
 const showUrlIfNeeded = (): void => {
   if (OnFirefox) { return }
-  const anchor = findAnchor_(clickEl)
-  const href = anchor && hintOptions.showUrl && anchor.href
-  href && hintApi.t({ k: kTip.raw, t: href.slice(0, 256), l: 1 })
+  const anchor = hintOptions.showUrl && findAnchor_(clickEl)
+  const href = anchor && anchor.href
+  href && (OnEdge
+      || OnChrome && Build.MinCVer < BrowserVer.MinAShowHrefOnFocus && chromeVer_ < BrowserVer.MinAShowHrefOnFocus
+      || deepActiveEl_unsafe_() !== anchor) &&
+  hintApi.t({ k: kTip.raw, t: href.slice(0, 256), l: 1 })
 }
 
 const hoverEl = (): void => {
