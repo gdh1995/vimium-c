@@ -587,11 +587,13 @@ export const openUrlWithActions = (url: Urls.Url, workType: Urls.WorkType, sed?:
     url = newTabUrl_f
   }
   let options = get_cOptions<C.openUrl, true>(), reuse: ReuseType = parseReuse(options.reuse)
+  const incog = reuse === ReuseType.current || reuse === ReuseType.frame ? normalizeIncognito(options.incognito) : null
   set_cOptions(null)
   BgUtils_.resetRe_()
   if (OnFirefox && typeof url === "string" && url.startsWith("about:reader?url=")) {
     reuse = reuse !== ReuseType.newBg ? ReuseType.newFg : reuse
   }
+  if (incog != null && incog !== (curIncognito_ === IncognitoType.true)) { reuse = ReuseType.newFg }
   typeof url !== "string"
       ? void Promise.resolve(url).then(onEvalUrl_.bind(0, workType, options, tabs))
       : /*#__NOINLINE__*/ openShowPage(url, reuse, options) ? 0
