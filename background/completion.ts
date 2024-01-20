@@ -67,8 +67,8 @@ const Suggestion: SuggestionConstructor = function (
 
 const bookmarkEngine = {
   filter_ (query: CompletersNS.QueryStatus, index: number): void {
-    if (queryTerms.length === 0 || !(allExpectedTypes & SugType.bookmark)) {
-      Completers.next_([], SugType.bookmark);
+    if (queryTerms.length === 0 || !(allExpectedTypes & SugType.kBookmark)) {
+      Completers.next_([], SugType.kBookmark)
       if (index) { return; }
     } else if (bookmarkCache_.status_ === BookmarkStatus.inited) {
       bookmarkEngine.performSearch_();
@@ -103,10 +103,10 @@ const bookmarkEngine = {
     resultLength = results.length;
     matchedTotal += resultLength;
     if (!resultLength) {
-      allExpectedTypes ^= SugType.bookmark;
+      allExpectedTypes ^= SugType.kBookmark
     } else {
       results.sort(sortBy0);
-      if (offset > 0 && !(allExpectedTypes & (SugType.MultipleCandidates ^ SugType.bookmark))) {
+      if (offset > 0 && !(allExpectedTypes & (SugType.MultipleCandidates ^ SugType.kBookmark))) {
         results = results.slice(offset, offset + maxResults);
         offset = 0;
       } else if (resultLength > offset + maxResults) {
@@ -127,7 +127,6 @@ const bookmarkEngine = {
       const historyIdx = otherFlags & CompletersNS.QueryFlags.ShowTime
           && HistoryManager_.sorted_ ? HistoryManager_.binarySearch_(i.u) : -1
       sug.visit = historyIdx < 0 ? 0 : historyCache_.history_![historyIdx].time_
-      ; (sug as CompletersNS.SuggestionWithId).id = i.id_
       results2.push(sug);
       if (i.jsUrl_ === null) { continue; }
       (sug as CompletersNS.WritableCoreSuggestion).u = (i as CompletersNS.JSBookmark).jsUrl_
@@ -135,14 +134,14 @@ const bookmarkEngine = {
       sug.textSplit = "javascript: \u2026";
       sug.t = (i as CompletersNS.JSBookmark).jsText_
     }
-    Completers.next_(results2, SugType.bookmark);
+    Completers.next_(results2, SugType.kBookmark)
   }
 },
 
 historyEngine = {
   filter_ (query: CompletersNS.QueryStatus, index: number): void {
     if ((!queryTerms.length && otherFlags & CompletersNS.QueryFlags.NoSessions)
-        || !(allExpectedTypes & SugType.history)) { return Completers.next_([], SugType.history); }
+        || !(allExpectedTypes & SugType.kHistory)) { return Completers.next_([], SugType.kHistory) }
     const history = historyCache_.history_, someQuery = queryTerms.length > 0
     if (history) {
       if (someQuery) {
@@ -222,9 +221,9 @@ historyEngine = {
     }
     matchedTotal += matched;
     if (!matched) {
-      allExpectedTypes ^= SugType.history;
+      allExpectedTypes ^= SugType.kHistory
     }
-    if (!(allExpectedTypes & (SugType.MultipleCandidates ^ SugType.history))) {
+    if (!(allExpectedTypes & (SugType.MultipleCandidates ^ SugType.kHistory))) {
       i = offset * 2;
       offset = 0;
     } else {
@@ -241,7 +240,7 @@ historyEngine = {
       }
     }
     UrlDecoder_.continueToWork_()
-    Completers.next_(sugs, SugType.history)
+    Completers.next_(sugs, SugType.kHistory)
   },
   loadTabs_ (this: void, query: CompletersNS.QueryStatus, tabs: readonly WritableTabEx[]): void {
     MatchCacheManager_.cacheTabs_(tabs)
@@ -300,7 +299,7 @@ historyEngine = {
     (historyArr as BrowserUrlItem[]).forEach(historyEngine.MakeSuggestion_);
     offset = 0;
     UrlDecoder_.continueToWork_()
-    Completers.next_(historyArr as Suggestion[], SugType.history);
+    Completers.next_(historyArr as Suggestion[], SugType.kHistory)
   } as (historyArr: BrowserUrlItem[]) => void,
   MakeSuggestion_ (e: BrowserUrlItem, i: number, arr: Array<BrowserUrlItem | Suggestion>): void {
     const u = e.u, o = new Suggestion("history", u, UrlDecoder_.decodeURL_(u, u), e.title_ || "",
@@ -936,9 +935,9 @@ Completers = {
 },
 knownCs = {
   __proto__: null as never,
-  bookm: [SugType.bookmark as never, bookmarkEngine] as CompleterList,
+  bookm: [SugType.kBookmark as never, bookmarkEngine] as CompleterList,
   domain: [SugType.domain as never, domainEngine] as CompleterList,
-  history: [SugType.history as never, historyEngine] as CompleterList,
+  history: [SugType.kHistory as never, historyEngine] as CompleterList,
   omni: [SugType.Full as never, searchEngine, domainEngine, historyEngine, bookmarkEngine, tabEngine] as CompleterList,
   search: [SugType.search as never, searchEngine] as CompleterList,
   tab: [SugType.tab as never, tabEngine] as CompleterList

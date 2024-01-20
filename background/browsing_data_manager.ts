@@ -13,6 +13,8 @@ import Bookmark = CompletersNS.Bookmark
 import BookmarkStatus = CompletersNS.BookmarkStatus
 import kVisibility = CompletersNS.kVisibility
 import Domain = CompletersNS.Domain
+import BookmarkNS = chrome.bookmarks
+import HistoryNS = chrome.history
 
 declare const enum InnerConsts {
   bookmarkBasicDelay = 1000 * 60, bookmarkFurtherDelay = bookmarkBasicDelay / 2,
@@ -45,6 +47,11 @@ export const parseDomainAndScheme_ = (url: string): UrlDomain | null => {
       ? ".__proto__" : url, scheme_: d }
 }
 
+const _onBookmarksImport = OnChrome ? [
+  (): void => { browser_.bookmarks.onCreated.removeListener(BookmarkManager_.Delay_) },
+  (): void => { browser_.bookmarks.onCreated.addListener(BookmarkManager_.Delay_); BookmarkManager_.Delay_() }
+] : null
+
 export const BookmarkManager_ = {
   currentSearch_: null as CompletersNS.QueryStatus | null,
   iterPath_: "",
@@ -61,13 +68,8 @@ export const BookmarkManager_ = {
     bBm.onChanged.addListener(BookmarkManager_.Expire_)
     bBm.onMoved.addListener(BookmarkManager_.Delay_)
     if (OnChrome) {
-      bBm.onImportBegan.addListener(function (): void {
-        browser_.bookmarks.onCreated.removeListener(BookmarkManager_.Delay_)
-      })
-      bBm.onImportEnded.addListener(function (): void {
-        browser_.bookmarks.onCreated.addListener(BookmarkManager_.Delay_)
-        BookmarkManager_.Delay_()
-      })
+      bBm.onImportBegan.addListener(_onBookmarksImport![0])
+      bBm.onImportEnded.addListener(_onBookmarksImport![1])
     }
   } as (() => void) | null,
   refresh_ (): void {
@@ -86,11 +88,11 @@ export const BookmarkManager_ = {
     }
     browser_.bookmarks.getTree(BookmarkManager_.readTree_)
   },
-  readTree_ (tree: chrome.bookmarks.BookmarkTreeNode[]): void {
+  readTree_ (tree: BookmarkNS.BookmarkTreeNode[]): void {
     bookmarkCache_.bookmarks_ = []
     bookmarkCache_.dirs_ = []
     bookmarkCache_.status_ = BookmarkStatus.inited
-    MatchCacheManager_.clear_(MatchCacheType.bookmarks)
+    MatchCacheManager_.clear_(MatchCacheType.kBookmarks)
     tree.forEach(BookmarkManager_.traverseBookmark_)
     setTimeout(() => UrlDecoder_.decodeList_(bookmarkCache_.bookmarks_), 50)
     if (BookmarkManager_.Listen_) {
@@ -142,14 +144,14 @@ export const BookmarkManager_ = {
     bookmarkCache_.status_ = BookmarkStatus.notInited
   },
   Expire_ (
-      id: string, info?: chrome.bookmarks.BookmarkRemoveInfo | chrome.bookmarks.BookmarkChangeInfo): void {
+      id: string, info?: BookmarkNS.BookmarkRemoveInfo | BookmarkNS.BookmarkChangeInfo): void {
     const arr = bookmarkCache_.bookmarks_,
-    title = info && (info as chrome.bookmarks.BookmarkChangeInfo).title
+    title = info && (info as BookmarkNS.BookmarkChangeInfo).title
     let i = arr.findIndex(j => j.id_ === id)
     if (i >= 0) {
       type WBookmark = Writable<Bookmark>
       const cur = arr[i] as WBookmark, url = cur.u,
-      url2 = info && (info as chrome.bookmarks.BookmarkChangeInfo).url
+      url2 = info && (info as BookmarkNS.BookmarkChangeInfo).url
       if (decodingEnabled && (title == null ? url !== cur.t || !info : url2 != null && url !== url2)) {
         urlDecodingDict_.has(url) && HistoryManager_.sorted_ && HistoryManager_.binarySearch_(url) < 0 &&
         urlDecodingDict_.delete(url)
@@ -190,7 +192,7 @@ export const BookmarkManager_ = {
   }
 }
 
-set_findBookmark_((titleOrPath: string, isId: boolean) => {
+set_findBookmark_((titleOrPath: string, isId: boolean): ReturnType<typeof findBookmark_> => {
   if (bookmarkCache_.status_ !== CompletersNS.BookmarkStatus.inited) {
     const defer = BgUtils_.deferPromise_<void>()
     BookmarkManager_.onLoad_ = defer.resolve_
@@ -248,14 +250,14 @@ export const HistoryManager_ = {
       text: "",
       maxResults: InnerConsts.historyMaxSize,
       startTime: 0
-    }, (history: chrome.history.HistoryItem[]): void => {
+    }, (history: HistoryNS.HistoryItem[]): void => {
       setTimeout(HistoryManager_._Init!, 0, history)
     })
   },
-  _Init: function (arr: Array<chrome.history.HistoryItem | HistoryItem>): void {
+  _Init: function (arr: Array<HistoryNS.HistoryItem | HistoryItem>): void {
     HistoryManager_._Init = null
     for (let i = 0, len = arr.length; i < len; i++) {
-      let j = arr[i] as chrome.history.HistoryItem, url = j.url
+      let j = arr[i] as HistoryNS.HistoryItem, url = j.url
       if (url.length > GlobalConsts.MaxHistoryURLLength) {
         url = HistoryManager_.trimURLAndTitleWhenTooLong_(url, j)
       }
@@ -308,8 +310,8 @@ export const HistoryManager_ = {
       }
     }, 1, HistoryManager_._callbacks)
     HistoryManager_._callbacks = null
-  } as ((arr: chrome.history.HistoryItem[]) => void) | null,
-  OnPageVisited_ (newPage: chrome.history.HistoryItem): void {
+  } as ((arr: HistoryNS.HistoryItem[]) => void) | null,
+  OnPageVisited_ (newPage: HistoryNS.HistoryItem): void {
     let url = newPage.url
     if (url.length > GlobalConsts.MaxHistoryURLLength) {
       url = HistoryManager_.trimURLAndTitleWhenTooLong_(url, newPage)
@@ -348,7 +350,7 @@ export const HistoryManager_ = {
       j.time_ = time
       if (title && title !== j.title_) {
         j.title_ = title
-        MatchCacheManager_.timer_ && MatchCacheManager_.clear_(MatchCacheType.history)
+        MatchCacheManager_.timer_ && MatchCacheManager_.clear_(MatchCacheType.kHistory)
         if (omniBlockList) {
           const newVisible = TestNotBlocked_(url, title)
           if (j.visible_ !== newVisible) {
@@ -363,12 +365,12 @@ export const HistoryManager_ = {
     }
     j.t = UrlDecoder_.decodeURL_(url, j)
     historyCache_.history_!.splice(~i, 0, j)
-    MatchCacheManager_.timer_ && MatchCacheManager_.clear_(MatchCacheType.history)
+    MatchCacheManager_.timer_ && MatchCacheManager_.clear_(MatchCacheType.kHistory)
   },
-  OnVisitRemoved_ (toRemove: chrome.history.RemovedResult): void {
+  OnVisitRemoved_ (toRemove: HistoryNS.RemovedResult): void {
     decodingJobs.length = 0
     const d = urlDecodingDict_
-    MatchCacheManager_.clear_(MatchCacheType.history)
+    MatchCacheManager_.clear_(MatchCacheType.kHistory)
     if (toRemove.allHistory) {
       historyCache_.history_ = []
       historyCache_.domains_ = new Map()
@@ -398,7 +400,7 @@ export const HistoryManager_ = {
       }
     }
   },
-  trimURLAndTitleWhenTooLong_ (url: string, history: chrome.history.HistoryItem | Tab): string {
+  trimURLAndTitleWhenTooLong_ (url: string, history: HistoryNS.HistoryItem | Tab): string {
     // should be idempotent
     const colon = url.lastIndexOf(":", 9), hasHost = colon > 0 && url.substr(colon, 3) === "://",
     title = history.title
@@ -410,8 +412,8 @@ export const HistoryManager_ = {
     return url
   },
   refreshInfo_ (): void {
-    type Q = chrome.history.HistoryQuery
-    type C = (results: chrome.history.HistoryItem[]) => void
+    type Q = HistoryNS.HistoryQuery
+    type C = (results: HistoryNS.HistoryItem[]) => void
     const i = Date.now(); // safe for time change
     if (historyCache_.toRefreshCount_ <= 0) { /* empty */ }
     else if (i < historyCache_.lastRefresh_ + 1000 && i >= historyCache_.lastRefresh_) { return }
@@ -442,7 +444,7 @@ export const HistoryManager_ = {
       }
     }
   }),
-  OnInfo_ (history: chrome.history.HistoryItem[]): void {
+  OnInfo_ (history: HistoryNS.HistoryItem[]): void {
     const arr = historyCache_.history_!, bs = HistoryManager_.binarySearch_
     if (arr.length <= 0) { return }
     for (const info of history) {
@@ -750,7 +752,7 @@ Completion_.removeSug_ = (url, type: FgReq[kFgReq.removeSug]["t"], callback: (su
   case "history":
     const found = !HistoryManager_.sorted_ || HistoryManager_.binarySearch_(url as string) >= 0
     browser_.history.deleteUrl({ url: url as string })
-    found && MatchCacheManager_.clear_(MatchCacheType.history)
+    found && MatchCacheManager_.clear_(MatchCacheType.kHistory)
     callback(found)
     break
   }

@@ -17,7 +17,7 @@ export interface TabEx extends WritableTabEx {
   readonly text: string;
 }
 export declare const enum MatchCacheType {
-  history = 1, bookmarks = 2, tabs = 3,
+  kHistory = 1, kBookmarks = 2, kTabs = 3,
 }
 export declare const enum TabCacheType {
   none = 0, currentWindow = 1, onlyNormal = 2, evenHidden = 4,
@@ -124,8 +124,8 @@ export const MatchCacheManager_ = {
   },
   clear_ (type: MatchCacheType): void {
     for (const record of allRecords_) {
-      type < MatchCacheType.bookmarks ? record.history_ = null
-      : type < MatchCacheType.tabs ? record.bookmarks_ = null
+      type < MatchCacheType.kBookmarks ? record.history_ = null
+      : type < MatchCacheType.kTabs ? record.bookmarks_ = null
       : cachedTabs_ = null
     }
   },

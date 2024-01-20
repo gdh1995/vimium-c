@@ -20,6 +20,7 @@ DIST=0
 ALSO_VC=0
 UBO=0
 HOME_PAGE=
+EXE_NAME=${EXE_NAME:-chrome.exe}
 default_vc_root=/e/Git/weidu+vim/vimium-c
 default_chrome_root=${default_chrome_root:-/d/Program Files/Google}
 version_archives=/f/Application/Browser/chrome
@@ -232,35 +233,35 @@ fi
 
 dir=$(/usr/bin/realpath "${BASH_SOURCE[0]}")
 dir=${dir%/*}
-if test -f "$dir"/Chrome/chrome.exe; then
+if test -f "$dir"/Chrome/${EXE_NAME}; then
   CHROME_ROOT=$dir
   VC_ROOT=${VC_ROOT:-$default_vc_root}
 else
   CHROME_ROOT=${CHROME_ROOT:-$default_chrome_root}
   VC_ROOT=${VC_ROOT:-${dir%/*}}
 fi
-if test -z "$VER" -a $USE_INSTALLED -le 0 -a $IS_EDGE -eq 0 && test -f "$WORKING_DIR"/Chrome-bin/chrome.exe; then
+if test -z "$VER" -a $USE_INSTALLED -le 0 -a $IS_EDGE -eq 0 && test -f "$WORKING_DIR"/Chrome-bin/${EXE_NAME}; then
   VER=wo
 fi
 test "$VER" == cur && VER=
 if test -n "$EXE"; then :
 elif test "$VER" == wo; then
-  EXE=$WORKING_DIR/Chrome-bin/chrome.exe
+  EXE=$WORKING_DIR/Chrome-bin/${EXE_NAME}
 else
-  EXE=$WORKING_DIR/${VER:-cur}/chrome.exe
+  EXE=$WORKING_DIR/${VER:-cur}/${EXE_NAME}
   if test $USE_INSTALLED -ge 1 || ! test -f "$EXE"; then
-    EXE=$CHROME_ROOT/${VER:-Chrome}/chrome.exe
+    EXE=$CHROME_ROOT/${VER:-Chrome}/${EXE_NAME}
     if ! test -f "$EXE"; then
       if test -n "$VER" && find "$CHROME_ROOT/Chrome/" -name "${VER}.*" 2>/dev/null | grep . >/dev/null 2>&1; then
-        EXE=$CHROME_ROOT/Chrome/chrome.exe
-      elif test -f "$CHROME_ROOT/chrome.exe"; then
-        EXE=$CHROME_ROOT/chrome.exe
+        EXE=$CHROME_ROOT/Chrome/${EXE_NAME}
+      elif test -f "$CHROME_ROOT/${EXE_NAME}"; then
+        EXE=$CHROME_ROOT/${EXE_NAME}
       fi
     fi
     if test -n "$VER" && ! test -e "$WORKING_DIR/${VER}"; then
       ARCHIVE="$version_archives/Chrome-${VER}.7z"
       if test -f "$ARCHIVE"; then
-        EXE=$WORKING_DIR/${VER}/chrome.exe
+        EXE=$WORKING_DIR/${VER}/${EXE_NAME}
         wp wo_w "$WORKING_DIR"
         7z x -bd -o"$wo_w" -- "$ARCHIVE"
       fi

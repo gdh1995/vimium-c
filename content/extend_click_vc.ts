@@ -67,16 +67,17 @@ DocCls = Document[kProto] as Partial<Document> as Pick<Document, "createElement"
       open (): void, write (markup: string): void },
 getElementsByTagNameInDoc = DocCls[kByTag],
 kOC = InnerConsts.kVOnClick, kRC = "" + Build.RandomClick, kEventName2 = kOC + kRC,
-StringSplit = !(Build.NDEBUG && Build.Mangle) ? "".split : 0 as never, StringSubstr = kEventName2.substr,
+StringSplit = !(Build.NDEBUG && Build.Mangle) ? "".split : 0 as never, StringSlice = kEventName2.slice,
 checkIsNotVerifier = (func?: InnerVerifier | unknown): void | 42 => {
   if (!(Build.NDEBUG && Build.Mangle) && !verifierPrefixLen) {
     verifierLen = (verifierStrPrefix = call(_toString, V)).length,
     verifierPrefixLen = (verifierStrPrefix = call(StringSplit, verifierStrPrefix, kRC)[0]).length
   }
   func && (func as InnerVerifier)(
-        call(StringSubstr, call(_toString, func as InnerVerifier)
-          , !(Build.NDEBUG && Build.Mangle) ? verifierPrefixLen! - GlobalConsts.LengthOfMarkAcrossJSWorlds : 7
-          , GlobalConsts.LengthOfMarkAcrossJSWorlds + InnerConsts.kRandStrLenInBuild)
+        call(StringSlice, call(_toString, func as InnerVerifier)
+          , Build.NDEBUG && Build.Mangle ? 7 : verifierPrefixLen! - GlobalConsts.LengthOfMarkAcrossJSWorlds
+          , (Build.NDEBUG && Build.Mangle ? 7 : verifierPrefixLen! - GlobalConsts.LengthOfMarkAcrossJSWorlds)
+            + GlobalConsts.LengthOfMarkAcrossJSWorlds + InnerConsts.kRandStrLenInBuild)
   )
 },
 enqueue = (a: Element, listener: any): void => {
@@ -93,7 +94,7 @@ hooks = {
         = str !== (myAELStr
                   || (myToStrStr = call(_toString, myToStr),
                       Build.NDEBUG && Build.Mangle
-                      ? verifierStrPrefix = call(StringSubstr, call(_toString, V), 0
+                      ? verifierStrPrefix = call(StringSlice, call(_toString, V), 0
                           , GlobalConsts.LengthOfMarkAcrossJSWorlds + 7)
                       : (verifierLen = (verifierStrPrefix = call(_toString, V)).length,
                          verifierPrefixLen = (verifierStrPrefix = call(StringSplit, verifierStrPrefix, kRC)[0]).length),
@@ -102,9 +103,9 @@ hooks = {
     return mayStrBeToStr && str !== myToStrStr
         ? str.length !== (!(Build.NDEBUG && Build.Mangle) ? verifierLen
               : GlobalConsts.LengthOfMarkAcrossJSWorlds + InnerConsts.kRandStrLenInBuild + 13)
-          || call(StringSubstr, str, 0
-              , !(Build.NDEBUG && Build.Mangle) ? verifierPrefixLen! : GlobalConsts.LengthOfMarkAcrossJSWorlds
-                  + 7) !== verifierStrPrefix
+          || call(StringSlice, str, 0
+                , Build.NDEBUG && Build.Mangle ? GlobalConsts.LengthOfMarkAcrossJSWorlds + 7 : verifierPrefixLen!
+              ) !== verifierStrPrefix
           ? str : call(_toString, noop)
         : (I = 0,
           // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-argument

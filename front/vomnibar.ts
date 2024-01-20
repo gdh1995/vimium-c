@@ -84,8 +84,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     let engines = options.engines
     engines instanceof Array && (engines = engines.join() as keyof typeof CompletersNS.SugType)
     if (typeof engines === "string" && engines) {
-      engines = (engines.includes("bookmark") ? SugType2.bookmark : 0)
-          + (engines.includes("history") ? SugType2.history : 0)
+      engines = (engines.includes("bookmark") ? SugType2.kBookmark : 0)
+          + (engines.includes("history") ? SugType2.kHistory : 0)
           + (engines.includes("tab") ? SugType2.tab : 0)
           + (engines.includes("search") ? SugType2.search : 0)
           + (engines.includes("domain") ? SugType2.domain : 0)
@@ -1120,7 +1120,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     }
     if (a.matchType_ === CompletersNS.MatchType.emptyResult && str.startsWith(s0)) {
       if (!str.includes(" /", s0.length) || (<RegExpOne> /^\/|\s\//).test(str.slice(0, s0.length - 1))
-          || !(a.mode_.e ? a.mode_.e & CompletersNS.SugType.bookmark : "bomni bookmarks".includes(a.mode_.o))) {
+          || !(a.mode_.e ? a.mode_.e & CompletersNS.SugType.kBookmark : "bomni bookmarks".includes(a.mode_.o))) {
         return
       }
     }

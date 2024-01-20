@@ -72,10 +72,13 @@ export const copyWindowInfo = (resolve: OnCmdResolved): void | kBgCmd.copyWindow
           lastFocusedWindow: true }, (tabs): void => {
     if ((!type || type !== "browser" && type !== "window" && type !== "tab" && typeof type === "string")
         && !rawFormat) {
-      const s = type === "title" ? tabs[0].title : !type || type === "frame" || type === "url" ? getTabUrl(tabs[0])
+      const isRawUrl = !!type && (<RegExpI> /^raw.?url$/i).test(type)
+      const s = type === "title" ? tabs[0].title
+          : !type || type === "frame" || type === "url" || isRawUrl ? getTabUrl(tabs[0])
           : BgUtils_.safeParseURL_(getTabUrl(tabs[0]))?.[type as Exclude<typeof type, "42">] || ""
       const copyReq: FgReq[kFgReq.copy] = type === "title" ? { s } : { u: s as "url" }
       copyReq.o = opts2
+      isRawUrl && (opts2.d = false)
       copyReq.n = parseFallbackOptions(get_cOptions<C.copyWindowInfo, true>())
       reqH_[kFgReq.copy](copyReq, cPort)
       return
@@ -104,6 +107,7 @@ export const copyWindowInfo = (resolve: OnCmdResolved): void | kBgCmd.copyWindow
         , (_, names): string => names.split("||").reduce((old, s1) => { // eslint-disable-line arrow-body-style
       let val: any
       return old ? old : decoded && s1 === "url" ? BgUtils_.decodeUrlForCopy_(getTabUrl(i))
+        : (<RegExpI> /^raw.?url$/i).test(s1) ? getTabUrl(i)
         : s1 === "host" ? BgUtils_.safeParseURL_(getTabUrl(i))?.host || ""
         : s1 !== "__proto__" && (val = (i as Dict<any>)[s1],
           val && typeof val === "object" ? JSON.stringify(val) : val || "")

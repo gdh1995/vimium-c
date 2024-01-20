@@ -244,7 +244,7 @@ declare module chrome.downloads {
 }
 
 declare module chrome.permissions {
-  export type kPermission = "downloads" | "downloads.shelf"
+  export type kPermission = "bookmarks" | "downloads" | "downloads.shelf" | "history"
       | "chrome://new-tab-page/*" | "chrome://newtab/*" | "chrome://*/*"
       | "clipboardRead" | "contentSettings" | "notifications" | "cookies"
   export interface Request { origins?: kPermission[]; permissions?: kPermission[] }

@@ -2,8 +2,8 @@
 declare namespace CompletersNS {
   const enum SugType {
     Empty = 0,
-    bookmark = 1,
-    history = 2,
+    kBookmark = 1,
+    kHistory = 2,
     tab = 4,
     search = 8,
     domain = 16,
@@ -92,7 +92,6 @@ declare namespace CompletersNS {
   interface TabSuggestion extends Suggestion {
     level?: string;
   }
-  interface SuggestionWithId extends Suggestion { id?: string; }
 }
 
 declare namespace MarksNS {

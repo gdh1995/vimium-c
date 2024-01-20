@@ -92,7 +92,7 @@
   "dispatchEvent": "模拟触发任意 DOM 事件",
   "duplicateTab": "复制当前标签页",
   "editText": "向浏览器发送文字编辑指令",
-  "enableContentSettingTemp": "在无痕窗口中赋予网站对一项功能的使用权限",
+  "enableContentSettingTemp": "在无痕窗口中授予网站对一项功能的使用权限",
   "enterFindMode": "进入页内查找模式",
   "enterInsertMode": "暂停识别快捷键，按 ESC 退出",
   "enterVisualLineMode": "进入文字选择模式（对齐到行）",

@@ -92,7 +92,7 @@
   "dispatchEvent": "模擬觸發任意 DOM 事件",
   "duplicateTab": "複製當前分頁",
   "editText": "向瀏覽器發送文字編輯指令",
-  "enableContentSettingTemp": "在無痕視窗中賦予網站對一項功能的使用權限",
+  "enableContentSettingTemp": "在無痕視窗中授予網站對一項功能的使用權限",
   "enterFindMode": "進入頁內查詢模式",
   "enterInsertMode": "暫停識別快捷鍵，按 ESC 退出",
   "enterVisualLineMode": "進入文字選擇模式（對齊到行）",

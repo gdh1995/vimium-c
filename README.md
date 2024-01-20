@@ -102,8 +102,8 @@ Navigating the current page:
     G       scroll to bottom of the page
     d       scroll down half a page
     u       scroll up half a page
-    f       open a link in the current tab
-    F       open a link in a new tab
+    f       show hints for links and buttons to open in the current tab
+    F       show link hints and open a link in a new tab
     r       reload
     gs      view source
     i       enter insert mode -- all commands will be ignored until you hit Esc to exit
@@ -114,10 +114,10 @@ Navigating the current page:
 
 Navigating to new pages:
 
-    o       Open URL, bookmark, or history entry, on an English letter "o"
-    O       Open URL, bookmark, history entry in a new tab, on an English letter "O"
-    b       Open bookmark
-    B       Open bookmark in a new tab
+    o       open URL, bookmark, or history entry, on an English letter "o"
+    O       open URL, bookmark, history entry in a new tab, on an English letter "O"
+    b       open bookmark
+    B       open bookmark in a new tab
 
 Using find:
 
@@ -157,7 +157,7 @@ Using marks:
 
 Additional advanced browsing commands:
 
-    ]], [[  Follow the link labeled "next or ">" ("previous" or "<">)
+    ]], [[  follow the link labeled "next or ">" ("previous" or "<">)
               - helpful for browsing paginated sites
     <a-f>   open multiple links in a new tab
     gi      focus the first (or n-th) text input box on the page. Use <tab> to cycle through options.
