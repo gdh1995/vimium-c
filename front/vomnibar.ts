@@ -1348,12 +1348,12 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   },
   blurred_ (this: void, blurred?: boolean | null): void {
     if (!Vomnibar_) { return; }
-    const doc = document, a = (doc.body as HTMLBodyElement).classList, kTransparent = "transparent";
+    const doc = document, a = (doc.body as HTMLBodyElement).classList
     // Document.hidden is since C33, according to MDN
     !Vomnibar_.isActive_ || (blurred != null ? !blurred : (Build.MinCVer < BrowserVer.Min$document$$hidden
             && Build.BTypes & BrowserType.Chrome && Vomnibar_.browserVer_ < BrowserVer.Min$document$$hidden
             ? doc.webkitHidden : doc.hidden) || doc.hasFocus())
-      ? a.remove("inactive", kTransparent) : a.add("inactive", kTransparent)
+        ? a.remove("inactive") : a.add("inactive")
   },
   init_ (): void {
     const a = Vomnibar_;
