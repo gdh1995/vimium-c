@@ -6,6 +6,7 @@ import { browser_, getGroupId, getTabUrl, isTabMuted } from "./browser"
 import * as BgUtils_ from "./utils"
 import { convertToUrl_, lastUrlType_, createSearch_ } from "./normalize_urls"
 import { fixCharsInUrl_ } from "./parse_urls"
+import { transEx_ } from "./i18n"
 import {
   MatchCacheManager_, RankingEnums, RegExpCache_, requireNormalOrIncognitoTabs_, TabEx, sync_queryTerms_,
   tabsInNormal, setupQueryTerms, clearTabsInNormal_, TimeEnums, WritableTabEx, ComputeRecency, ComputeRelevancy,
@@ -66,11 +67,32 @@ const Suggestion: SuggestionConstructor = function (
 } as any;
 
 const bookmarkEngine = {
+  checkRevoked_ (isFirst?: boolean): true | void {
+    if (bookmarkCache_.status_ === BookmarkStatus.revoked
+        && !(allExpectedTypes & (SugType.MultipleCandidates ^ SugType.kBookmark))) {
+      Promise.resolve(transEx_("bookmarksRevoked", [])).then((msg: string): void => {
+        const sug = new Suggestion("bookm", CONST_.OptionsPage_ + "#optionalPermissions", "", msg, get2ndArg
+            , isFirst ? 8 : 1.9)
+        sug.textSplit = "\u2026"
+        Completers.next_([sug], SugType.kBookmark)
+      })
+      return true
+    }
+  },
   filter_ (query: CompletersNS.QueryStatus, index: number): void {
-    if (queryTerms.length === 0 || !(allExpectedTypes & SugType.kBookmark)) {
+    if (queryTerms.length === 0) {
+      if (!index && bookmarkCache_.status_ === BookmarkStatus.notInited) {
+        BookmarkManager_.onLoad_ = (): void => {
+          if (!query.o) { bookmarkEngine.checkRevoked_() || Completers.next_([], SugType.kBookmark) }
+        }
+      } else {
+        bookmarkEngine.checkRevoked_(index == 0) || Completers.next_([], SugType.kBookmark)
+        return
+      }
+    } else if (!(allExpectedTypes & SugType.kBookmark)) {
       Completers.next_([], SugType.kBookmark)
       if (index) { return; }
-    } else if (bookmarkCache_.status_ === BookmarkStatus.inited) {
+    } else if (bookmarkCache_.status_ >= BookmarkStatus.inited) {
       bookmarkEngine.performSearch_();
     } else {
       BookmarkManager_.onLoad_ = (): void => { if (!query.o) { bookmarkEngine.performSearch_() } }
@@ -84,6 +106,7 @@ const bookmarkEngine = {
     arr = oldCache && oldCache[0] === isPath ? oldCache[1] : bookmarkCache_.bookmarks_,
     len = arr.length;
     let results: Array<[number, number]> = [], resultLength: number;
+    if (bookmarkEngine.checkRevoked_()) { return }
     for (let ind = 0; ind < len; ind++) {
       const i = arr[ind];
       const title = isPath ? i.path_ : i.title_;

@@ -1,5 +1,6 @@
 {
   "allLocal": "Local",
+  "bookmarksRevoked": "No access to bookmarks - please grant it first",
   "cannotDelSug": "This item cannot be deleted",
   "changeItsCS": "change its content settings",
   "clickForMore": "Click here for more information.",

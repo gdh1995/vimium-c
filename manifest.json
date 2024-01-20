@@ -134,6 +134,7 @@
   ],
   "optional_host_permissions.v2": null,
   "optional_permissions": [
+    "bookmarks",
     "downloads",
     "downloads.shelf",
     "cookies",
@@ -154,7 +155,6 @@
     "open_in_tab": true
   },
   "permissions": [
-    "bookmarks",
     "clipboardRead",
     "clipboardWrite",
     "favicon",

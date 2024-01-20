@@ -22,7 +22,7 @@ import {
 } from "./run_commands"
 import { runKeyWithCond, runKeyInSeq } from "./run_keys"
 import { doesNeedToSed, parseSedOptions_ } from "./clipboard"
-import { goToNextUrl, newTabIndex, openUrl } from "./open_urls"
+import { focusOrLaunch_, goToNextUrl, newTabIndex, openUrl } from "./open_urls"
 import {
   parentFrame, showVomnibar, findContentPort_, marksActivate_, enterVisualMode, toggleZoom, captureTab, getBlurOption_,
   initHelp, framesGoBack, mainFrame, nextFrame, performFind, framesGoNext, blurInsertOnTabChange
@@ -314,7 +314,7 @@ set_bgC_([
     void findBookmark_(path, id != null && !!(id + "")).then((folder): void => {
       if (!folder) {
         resolve(0)
-        showHUD(folder === false ? 'Need valid "folder".' : "The bookmark folder is not found.")
+        complainNoBookmark(folder === false && 'Need valid "folder"')
         return
       }
       const isLeaf = folder.u != null, pid = isLeaf ? folder.pid_ : folder.id_
@@ -940,7 +940,7 @@ set_bgC_([
     void p.then((node): void => {
       if (!node) {
         resolve(0)
-        showHUD(node === false ? 'Need valid "title" or "title".' : "The bookmark node is not found.")
+        complainNoBookmark(node === false && 'Need valid "title" or "title"')
       } else {
         hasValidCache || dynamicResult || overrideOption<C.openBookmark, "$cache">("$cache"
             , [node.id_, bookmarkCache_.stamp_])
@@ -954,3 +954,12 @@ set_bgC_([
   },
   _AsBgC<BgCmdNoTab<kBgCmd.toggleWindow>>(toggleWindow)
 ])
+
+const complainNoBookmark = (text: string | false) => {
+  if (bookmarkCache_.status_ == CompletersNS.BookmarkStatus.revoked) {
+    showHUDEx(cPort, "bookmarksRevoked", 1, [])
+    setTimeout(() => { focusOrLaunch_({ u: CONST_.OptionsPage_ + "#optionalPermissions" }) }, 800)
+  } else {
+    showHUD(text || "The bookmark node is not found")
+  }
+}

@@ -14,6 +14,7 @@
   "optOfChromeUrl": " (need #extensions-on-chrome-urls)",
   "optNeedChromeUrlFirst": "Please enable the \"#extensions-on-chrome-urls\" browser flag first.",
   "opt_closeShelf": "Close the download bar and allow an alternative API to download files",
+  "opt_bookmarks": "Search in bookmarks or add new items",
   "opt_downloads": "Let browser download files",
   "opt_chromeUrl": "Run on chrome://*/* pages",
   "opt_cNewtab": "Run on Chrome's native New Tab Page",

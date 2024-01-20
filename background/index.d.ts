@@ -238,7 +238,7 @@ declare namespace CompletersNS {
   type Visibility = kVisibility.hidden | kVisibility.visible
   interface DecodedItem { readonly u: string; t: string }
   interface HistoryItem extends DecodedItem { readonly u: string; time_: number; title_: string; visible_: Visibility }
-  const enum BookmarkStatus { notInited = 0, initing = 1, inited = 2 }
+  const enum BookmarkStatus { notInited = 0, initing = 1, inited = 2, revoked = 3 }
   interface BaseBookmark {
     readonly id_: string
     readonly path_: string

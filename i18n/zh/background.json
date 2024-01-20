@@ -1,6 +1,7 @@
 {
   "All": "所有",
   "allLocal": "各个网站下的",
+  "bookmarksRevoked": "未能读取收藏列表，需要授予“收藏夹”权限",
   "cannotDelSug": "不可删除此条搜索建议",
   "changeItsCS": "改变此网页的功能权限",
   "clickForMore": "点击阅读详细信息。",

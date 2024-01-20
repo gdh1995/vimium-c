@@ -2,7 +2,7 @@ import {
   blank_, bookmarkCache_, Completion_, CurCVer_, historyCache_, OnChrome, OnEdge, OnFirefox, urlDecodingDict_,
   set_findBookmark_, findBookmark_, updateHooks_, curWndId_
 } from "./store"
-import { Tabs_, browser_, runtimeError_, browserSessions_ } from "./browser"
+import { Tabs_, browser_, runtimeError_, browserSessions_, watchPermissions_ } from "./browser"
 import * as BgUtils_ from "./utils"
 import * as settings_ from "./settings"
 import { MatchCacheManager_, MatchCacheType } from "./completion_utils"
@@ -51,16 +51,25 @@ const _onBookmarksImport = OnChrome ? [
   (): void => { browser_.bookmarks.onCreated.removeListener(BookmarkManager_.Delay_) },
   (): void => { browser_.bookmarks.onCreated.addListener(BookmarkManager_.Delay_); BookmarkManager_.Delay_() }
 ] : null
+let _onBookmarkPermissionChange = (allowList: (boolean | undefined | null)[]): void => {
+  bookmarkCache_.bookmarks_ = []
+  bookmarkCache_.dirs_ = []
+  BookmarkManager_._didLoad(allowList[0] ? BookmarkStatus.notInited : BookmarkStatus.revoked)
+}
 
 export const BookmarkManager_ = {
   currentSearch_: null as CompletersNS.QueryStatus | null,
-  iterPath_: "",
-  iterPid_: "",
-  iterDepth_: 0,
   _timer: 0,
+  _listened: false,
   expiredUrls_: 0 as BOOL,
   onLoad_: null as (() => void) | null,
-  Listen_: function (): void {
+  _didLoad (newStatus: BookmarkStatus): void {
+    const callback = BookmarkManager_.onLoad_
+    BookmarkManager_.onLoad_ = null
+    bookmarkCache_.status_ = newStatus
+    callback && callback()
+  },
+  Listen_ (): void {
     const bBm = browser_.bookmarks
     if (OnEdge && !bBm.onCreated) { return }
     bBm.onCreated.addListener(BookmarkManager_.Delay_)
@@ -71,14 +80,15 @@ export const BookmarkManager_ = {
       bBm.onImportBegan.addListener(_onBookmarksImport![0])
       bBm.onImportEnded.addListener(_onBookmarksImport![1])
     }
-  } as (() => void) | null,
+  },
   refresh_ (): void {
     const bBm = browser_.bookmarks
-    if (OnFirefox && Build.MayAndroidOnFirefox && !bBm) {
-      bookmarkCache_.status_ = BookmarkStatus.inited
-      const callback = BookmarkManager_.onLoad_
-      BookmarkManager_.onLoad_ = null
-      callback && callback()
+    if (_onBookmarkPermissionChange) {
+      watchPermissions_([{ permissions: ["bookmarks"] }], _onBookmarkPermissionChange)
+      _onBookmarkPermissionChange = null as never
+    }
+    if (!bBm) {
+      BookmarkManager_._didLoad(BookmarkStatus.revoked)
       return
     }
     bookmarkCache_.status_ = BookmarkStatus.initing
@@ -86,44 +96,50 @@ export const BookmarkManager_ = {
       clearTimeout(BookmarkManager_._timer)
       BookmarkManager_._timer = 0
     }
-    browser_.bookmarks.getTree(BookmarkManager_.readTree_)
+    try {
+      bBm.getTree(BookmarkManager_.readTree_)
+    } catch { // permission revoked
+      BookmarkManager_._didLoad(BookmarkStatus.revoked)
+    }
   },
-  readTree_ (tree: BookmarkNS.BookmarkTreeNode[]): void {
+  readTree_ (tree?: BookmarkNS.BookmarkTreeNode[]): void {
+    let iterPath_ = "", iterPid_ = "", iterDepth_ = 0
     bookmarkCache_.bookmarks_ = []
     bookmarkCache_.dirs_ = []
-    bookmarkCache_.status_ = BookmarkStatus.inited
     MatchCacheManager_.clear_(MatchCacheType.kBookmarks)
-    tree.forEach(BookmarkManager_.traverseBookmark_)
-    setTimeout(() => UrlDecoder_.decodeList_(bookmarkCache_.bookmarks_), 50)
-    if (BookmarkManager_.Listen_) {
-      setTimeout(BookmarkManager_.Listen_, 0)
-      BookmarkManager_.Listen_ = null
-    }
-    const callback = BookmarkManager_.onLoad_
-    BookmarkManager_.onLoad_ = null
-    callback && callback()
-  },
-  traverseBookmark_ (this: void, bookmark: chrome.bookmarks.BookmarkTreeNode, index: number): void {
-    const rawTitle = bookmark.title, id = bookmark.id
-    const title = rawTitle || id, path = BookmarkManager_.iterPath_ + "/" + title
-    if (bookmark.children) {
-      bookmarkCache_.dirs_.push({ id_: id, path_: path, title_: title })
-      const oldPath = BookmarkManager_.iterPath_, oldPid = BookmarkManager_.iterPid_
-      if (2 < ++BookmarkManager_.iterDepth_) { BookmarkManager_.iterPath_ = path }
-      BookmarkManager_.iterPid_ = id
-      bookmark.children.forEach(BookmarkManager_.traverseBookmark_)
-      --BookmarkManager_.iterDepth_
-      BookmarkManager_.iterPath_ = oldPath
-      BookmarkManager_.iterPid_ = oldPid
-    } else {
+    const traverseBookmark_ = (bookmark: BookmarkNS.BookmarkTreeNode, index: number): void => {
+      const rawTitle = bookmark.title, id = bookmark.id
+      const title = rawTitle || id, path = iterPath_ + "/" + title
+      if (bookmark.children) {
+        bookmarkCache_.dirs_.push({ id_: id, path_: path, title_: title })
+        const oldPath = iterPath_, oldPid = iterPid_
+        if (2 < ++iterDepth_) { iterPath_ = path }
+        iterPid_ = id
+        bookmark.children.forEach(traverseBookmark_)
+        --iterDepth_
+        iterPath_ = oldPath
+        iterPid_ = oldPid
+        return
+      }
       const url = bookmark.url!, jsScheme = "javascript:", isJS = url.startsWith(jsScheme)
       bookmarkCache_.bookmarks_.push({
         id_: id, path_: path, title_: title,
         t: isJS ? jsScheme : url,
         visible_: omniBlockList ? TestNotBlocked_(url, omniBlockPath ? path : rawTitle) : kVisibility.visible,
-        u: isJS ? jsScheme : url, pid_: BookmarkManager_.iterPid_, ind_: index,
+        u: isJS ? jsScheme : url, pid_: iterPid_, ind_: index,
         jsUrl_: isJS ? url : null, jsText_: isJS ? BgUtils_.DecodeURLPart_(url) : null
       })
+    }
+    if (!tree) {
+      BookmarkManager_._didLoad(BookmarkStatus.revoked)
+      return runtimeError_()
+    }
+    tree.forEach(traverseBookmark_)
+    BookmarkManager_._didLoad(BookmarkStatus.inited)
+    setTimeout(() => UrlDecoder_.decodeList_(bookmarkCache_.bookmarks_), 50)
+    if (!BookmarkManager_._listened) {
+      setTimeout(BookmarkManager_.Listen_, 0)
+      BookmarkManager_._listened = true
     }
   },
   Delay_ (): void {
@@ -139,7 +155,7 @@ export const BookmarkManager_ = {
     }
   }
     bookmarkCache_.stamp_ = performance.now()
-    if (bookmarkCache_.status_ < BookmarkStatus.inited) { return }
+    if (bookmarkCache_.status_ !== BookmarkStatus.inited) { return }
     BookmarkManager_._timer = setTimeout(Later_, InnerConsts.bookmarkBasicDelay)
     bookmarkCache_.status_ = BookmarkStatus.notInited
   },
@@ -193,7 +209,7 @@ export const BookmarkManager_ = {
 }
 
 set_findBookmark_((titleOrPath: string, isId: boolean): ReturnType<typeof findBookmark_> => {
-  if (bookmarkCache_.status_ !== CompletersNS.BookmarkStatus.inited) {
+  if (bookmarkCache_.status_ < CompletersNS.BookmarkStatus.inited) {
     const defer = BgUtils_.deferPromise_<void>()
     BookmarkManager_.onLoad_ = defer.resolve_
     BookmarkManager_.refresh_()
