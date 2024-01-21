@@ -220,7 +220,7 @@ Here're some advanced usages which are different with philc/vimium:
 * <kbd>Shift</kbd> are automatically detected, so, `&` corresponds to <kbd>Shift+7</kbd> on an English QWERTY keyboard.
   * However, if a single key is longer than 1 character, please wrap it with `<`+`>` and insert a `s-`
   * If you want to trigger a key when multiple modifier keys are pressed, sort `a/c/m/s-` prefixes by letter order
-  * For example, these keys are valid names: `<s-left>`, `<a-s-7>` and `<c-s-j>`
+  * For example, these keys are valid names: `<s-left>`, `<c-j>`, `<a-s-k>`, `<a-#>` and `<a-?>`
 * `mapKey <key:o> <another_key>` makes _key_ work as another key only in a special mode named Vomnibar
   * `mapKey` rules always take effect before matching a key with `map` rules
   * some other modes are list in https://github.com/gdh1995/vimium-c/wiki/Use-in-another-keyboard-layout#per-mode-mapkey
