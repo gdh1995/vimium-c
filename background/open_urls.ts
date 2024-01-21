@@ -680,31 +680,35 @@ const openCopiedUrl = (copied: KnownOptions<C.openUrl>["copied"], exOut: InfoOnS
 }
 
 export const goToNextUrl = (url: string, count: number, abs?: boolean): [found: boolean, newUrl: string] => {
+  const normalizeInt = (n: number | "" | undefined, fb: number): number => typeof n === "number" && !isNaN(n) ? n : fb
   let matched = false
-  let re = <RegExpSearchable<5>> /\$(?:\{([\da-zA-Z_-]+)(?:[,\/#@](\d*)(?::(\d*)(:-?\d*)?)?(?:[,\/#@]([^}]+))?)?\}|\$)/g
-  url = url.replace(<RegExpG & typeof re> re, (s, n, min, end, t, exArgs): string => {
+  let re=<RegExpSearchable<5>> /\$\{([\da-zA-Z_-]+)(?:[,\/#@](-?\d*)(?::(-?\d*)(:-?\d*)?)?(?:[,\/#@]([^}]+))?)?\}|\$\$/g
+  url = url.replace(<RegExpG & typeof re> re, (s, n, min, end, step, exArgs): string => {
     if (s === "$$") { return "$" }
     matched = true
-    let radix = 10, min_len = 1, reverse = false
+    let radix = 10, min_len = 1, reverse = false, outRadix = 0
     for (const [key, val] of exArgs ? exArgs.split("&").map(i => i.split("=")) : []) {
       if (key === "min_len" || key === "len") {
         min_len = +val || 1
       } else if (key === "radix") {
-        radix = +val || 0
+        radix = val as string | number as number | 0
         radix = radix >= 2 && radix <= 36 ? radix : 10
-      } else if (key === "reverse" || key === "negative") {
+      } else if (key.startsWith("out") && key.endsWith("radix")) {
+        outRadix = val as string | number as number | 0
+        outRadix = outRadix >= 2 && outRadix <= 36 ? outRadix : outRadix && 10
+      } else if (key === "reverse") {
         reverse = val === "1" || val.toLowerCase() === "true"
       }
     }
-    let cur = n && parseInt(n, radix) || 1
-    let mini = min && parseInt(min) || 0
-    let endi = end && parseInt(end) || 0
-    let stepi = t && parseInt(t.slice(1)) || 1
+    let cur = normalizeInt(n && parseInt(n, radix), 1)
+    let mini = normalizeInt(min && parseInt(min), 1)
+    let endi = normalizeInt(end && parseInt(end), Infinity)
+    let stepi = step && parseInt(step.slice(1)) || 1
     stepi < 0 && ([mini, endi] = [Math.min(mini, endi), Math.max(mini, endi)])
     count *= reverse ? -stepi : stepi
-    cur = !abs ? cur + count : count > 0 ? mini + count - 1 : count < 0 ? endi + count : cur
-    let y = "" + Math.max(mini || 1, Math.min(cur, endi ? endi - 1 : cur))
-    y = "0".repeat!(min_len - y.length) + y
+    cur = !abs ? cur + count : count > 0 ? mini + count - 1 : count < 0 ? (isFinite(endi) ? endi : 1e4) + count : cur
+    let y = Math.max(mini, Math.min(cur, endi)).toString(outRadix || radix)
+    y = y.length < min_len ? "0".repeat!(min_len - y.length) + y : y
     return y
   })
   return [matched, url]
