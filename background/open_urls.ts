@@ -701,13 +701,17 @@ export const goToNextUrl = (url: string, count: number, abs?: boolean): [found: 
       }
     }
     let cur = normalizeInt(n && parseInt(n, radix), 1)
-    let mini = normalizeInt(min && parseInt(min), 1)
-    let endi = normalizeInt(end && parseInt(end), Infinity)
-    let stepi = step && parseInt(step.slice(1)) || 1
-    stepi < 0 && ([mini, endi] = [Math.min(mini, endi), Math.max(mini, endi)])
+    let stepi = step && parseInt(step.slice(1)) || 0
+    const isNeg = stepi < 0 || !stepi && (step || "0")[0] === "-"
+    let mini = normalizeInt(min && parseInt(min), isNeg ? -1 : 1)
+    let endi = normalizeInt(end && parseInt(end), (isNeg ? -1 : 1) * Infinity)
+    stepi = (endi >= mini ? 1 : -1) * (Math.abs(stepi) || 1)
     count *= reverse ? -stepi : stepi
-    cur = !abs ? cur + count : count > 0 ? mini + count - 1 : count < 0 ? (isFinite(endi) ? endi : 1e4) + count : cur
-    let y = Math.max(mini, Math.min(cur, endi)).toString(outRadix || radix)
+    cur = !abs || !count ? cur + count
+        : stepi > 0 ? count > 0 ? mini + count - 1 : (isFinite(endi) ? endi : 1e4) + count
+        : count < 0 ? mini + count + 1 : (isFinite(endi) ? endi : -1e4) + count
+    cur = endi >= mini ? Math.max(mini, Math.min(cur, endi - 1)) : Math.max(endi + 1, Math.min(cur, mini))
+    let y = cur.toString(outRadix || radix)
     y = y.length < min_len ? "0".repeat!(min_len - y.length) + y : y
     return y
   })
