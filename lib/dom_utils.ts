@@ -22,6 +22,7 @@ export const AriaArray = ["aria-hidden", "aria-disabled", "aria-haspopup"] as co
 let unsafeFramesetTag_old_cr_: "frameset" | "" | null =
     OnChrome && Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter ? "" : 0 as never as null
 let docSelectable_ = true
+let _domInst: HTMLAnchorElement | undefined
 
 export { unsafeFramesetTag_old_cr_, docSelectable_ }
 export function markFramesetTagUnsafe_old_cr (): "frameset" { return unsafeFramesetTag_old_cr_ = "frameset" }
@@ -576,8 +577,8 @@ export const newEvent_ = <T extends new (type: any, init: EventInit) => Event>(
 
 type MayBeSelector = "" | false | 0 | null | void | undefined
 export const joinValidSelectors = (selector: string | MayBeSelector
-      , validAnother: "css-selector" | MayBeSelector): "css-selector" | null =>
-    selector && safeCall(querySelector_unsafe_, selector, /** make this O(1) */ createElement_("a")) !== void 0
+      , validAnother: "css-selector" | MayBeSelector): "css-selector" | null => // this should be O(1)
+    selector && safeCall(querySelector_unsafe_, selector, _domInst || (_domInst = createElement_("a"))) !== void 0
     ? (validAnother ? selector + "," + validAnother : selector) as "css-selector" : validAnother || null
 
 export const findSelectorByHost = (rules: string | string[] | kTip | MayBeSelector): "css-selector" | void => {
