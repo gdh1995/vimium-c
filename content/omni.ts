@@ -20,7 +20,7 @@ import { hudTip, hud_box } from "./hud"
 import { post_, send_ } from "./port"
 
 export declare const enum Status {
-  NeedRedo = -3, KeepBroken = -2, NotInited = -1, Inactive = 0, Initing = 1, ToShow = 2, Showing = 3
+  BrokenOnce = -2, NotInited = -1, Inactive = 0, Initing = 1, ToShow = 2, Showing = 3
 }
 interface OmniPort {
   postMessage<K extends keyof VomnibarNS.CReq> (this: OmniPort, msg: VomnibarNS.CReq[K]): void | 1
@@ -117,8 +117,10 @@ const init = ({k: secret, v: page, t: type, i: inner}: FullOptions): void => {
         if (type !== VomnibarNS.PageType.inner) { reload(); return }
         resetWhenBoxExists()
         focus();
-        status = Status.KeepBroken
+        status = Status.BrokenOnce
         activate(safer({}) as never, 1)
+        status = Status.NotInited
+        hudTip(kTip.omniFrameFail, 2)
       }, 400)
       const doPostMsg = (postMsgStat?: TimerType.fake | 1): void => {
         const wnd = el.contentWindow, isFile = page.startsWith("file:")
@@ -248,11 +250,8 @@ const refreshKeyHandler = (): void => {
   secondActivateWithNewOptions = null
   timer_ = TimerID.None
   oldTimer && clearTimeout_(oldTimer)
+  if (status === Status.BrokenOnce) { return }
   if (checkHidden(kFgCmd.vomnibar, options, count)) { return }
-  if (status === Status.KeepBroken) {
-    hudTip(kTip.omniFrameFail, 2)
-    return
-  }
   if (!options || !options.k || !options.v) { return; }
   if (status === Status.NotInited && readyState_ > "l") { // a second `o` should show Vomnibar at once
     if (!oldTimer) {
