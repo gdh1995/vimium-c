@@ -510,6 +510,9 @@ label:active {
   padding-left: 22px;
   text-indent: -22px;
 }
+.after-importants {
+  margin-bottom: 23px;
+}
 #optionalPermissions.has-many {
   position: relative;
   top: -4px;

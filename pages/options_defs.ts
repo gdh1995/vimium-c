@@ -545,7 +545,7 @@ export const createNewOption_ = ((): <T extends keyof AllowedOptions> (_element:
     return Option_.all_[instance.field_] = instance as any
   }
   Option_.suppressPopulate_ = true
-  for (const el of ($$("[data-model]") as HTMLElement[])) { createOption(el) }
+  for (const el of ($$('[data-model]:not([data-model=""])') as HTMLElement[])) { createOption(el) }
   registerClass_ = (name, cls) => { (types as Dict<new (el: any, cb: () => void) => any>)[name] = cls }
   return createOption
 })()

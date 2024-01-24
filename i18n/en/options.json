@@ -21,6 +21,7 @@
   "opt_contentSettings": "Modify content settings of websites like images and JavaScript",
   "opt_cookies": "cookies: only for contextual info to work with Multi-Account Containers",
   "opt_clipboardRead": "Read text in system clipboard (only during related commands)",
+  "rec_perm": " [recommended]",
   "dirtyOptions":
     "Such options have been changed at other places:\n      * $1\n\nContinue to save and override these changes?",
   "clickToUnmask": "# Click to unmask the content…",

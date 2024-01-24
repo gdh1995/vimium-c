@@ -207,6 +207,7 @@
   "opt_contentSettings": "修改网站对 图像、JS 等功能的使用权限",
   "opt_cookies": "cookies: 仅用来获取标签页所属容器，以兼容“多账户容器”扩展",
   "opt_clipboardRead": "读取系统剪贴板里的文字（仅在执行到相应命令时）",
+  "rec_perm": "【推荐】",
   "keyMappingsP": "# 在此处定义新的按键映射和快捷键",
   "help": "帮助",
   "sft": "快捷键补充工具：\n提供了 32 个可配置的快捷键栏位",

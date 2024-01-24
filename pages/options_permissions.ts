@@ -186,10 +186,11 @@ OnEdge || registerClass_("OptionalPermissions", OptionalPermissionsOption_)
 
 const initOptionalPermissions = (): void => {
   const fragment = document.createDocumentFragment()
+  let is_important = true
   for (const shownItem of shownItems) {
     const name = shownItem.name_
     const node = document.importNode(template, true) as EnsuredMountedHTMLElement
-    const checkbox = node.querySelector("input")!
+    const checkbox = node.querySelector("input") as EnsuredMountedHTMLElement & HTMLInputElement
     const i18nKey = i18nItems[name as keyof typeof i18nItems]
     let i18nName = oTrans_(i18nKey || `opt_${name}`) || name
     let suffix = ""
@@ -207,7 +208,12 @@ const initOptionalPermissions = (): void => {
         node.title = oTrans_("invalidOption", [oTrans_("beforeChromium", [BrowserVer.MinChromeURL$NewTabPage])])
       }
     }
-    node.lastElementChild.textContent = i18nName + suffix
+    if (is_important) { suffix += oTrans_("rec_perm") }
+    checkbox.nextElementSibling.textContent = i18nName + suffix
+    if (name == "bookmarks" && fragment.childElementCount + 1 < shownItems.length) {
+      node.classList.add("after-importants")
+      is_important = false
+    }
     fragment.appendChild(node)
     shownItem.element_ = checkbox
   }

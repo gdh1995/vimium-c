@@ -503,7 +503,7 @@ export const onHash_ = (hash: string): void => {
       ? $(`[id="${hash.replace(<RegExpG & RegExpSearchable<0>> /-/g, "")}" i]`)
       : hash.includes("-") && $("#" + hash.replace(<RegExpG & RegExpSearchable<0>> /-[a-z]/gi
         , s => s[1].toUpperCase())) || $("#" + hash)) {
-    if ((node.dataset as KnownOptionsDataset).model) {
+    if ((node.dataset as KnownOptionsDataset).model != null) {
       if (node.localName === "input" && (node as HTMLInputElement).type === "checkbox") {
         const p1 = node.parentElement as EnsuredMountedHTMLElement, p2 = p1.parentElement
         node = p2.localName === "td" ? p2 : p1
