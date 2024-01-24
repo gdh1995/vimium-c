@@ -10,7 +10,7 @@ import {
   queryHTMLChild_, getSelection_, removeEl_s, appendNode_s, getMediaUrl, getMediaTag, INP, ALA, attr_s, hasTag_, kGCh,
   setOrRemoveAttr_s, toggleClass_s, textContent_s, notSafe_not_ff_, modifySel, SafeEl_not_ff_, testMatch, contains_s,
   extractField, querySelectorAll_unsafe_, editableTypes_, findAnchor_, dispatchEvent_, newEvent_, rangeCount_,
-  findSelectorByHost, deepActiveEl_unsafe_
+  findSelectorByHost, deepActiveEl_unsafe_, getRootNode_mounted, isNode_
 } from "../lib/dom_utils"
 import { getPreferredRectOfAnchor, initTestRegExps } from "./local_links"
 import {
@@ -537,9 +537,11 @@ const doPostAction = (): Rect | null => {
   let rect: Rect | null = null
   let then = hintOptions.then, optElse = hintOptions.else
   let retPromise: Promise<unknown> | undefined
+  let autoParent: HintsNS.Options["autoParent"] | false | void = hintOptions.autoParent
   let autoChild: HintsNS.Options["autoChild"] | 0 | void = hintOptions.autoChild
   let showRect: BOOL | 2 = hintOptions.flash !== false ? 1 : 0
-  let click2nd: Element | void | null
+  let click2nd: Element | void | false | 0 | null, sr2: ShadowRoot | null | "" | 0 | false
+  let click3nd: Element | null | undefined | 0
   if (hintManager) {
     set_keydownEvents_(hintApi.a())
     setMode(masterOrA.$().m, 1)
@@ -552,6 +554,17 @@ const doPostAction = (): Rect | null => {
   set_grabBackFocus(false)
   if (IsInDOM_(clickEl)) {
     if (!OnFirefox && bZoom_ !== 1 && doc.body && !IsInDOM_(clickEl, doc.body)) { set_bZoom_(1) }
+    autoParent = isTY(autoParent) && findSelectorByHost(autoParent)
+    if (autoParent && !(OnChrome && Build.MinCVer < BrowserVer.MinEnsured$Element$$Closest
+          && chromeVer_ < BrowserVer.MinEnsured$Element$$Closest)) {
+      click2nd = clickEl
+      while (click2nd && !(click3nd = click2nd.closest!(autoParent))) {
+        sr2 = (getRootNode_mounted(click2nd as EnsuredMountedElement & SafeElement) as ShadowRoot)
+        click2nd = isNode_(sr2, kNode.DOCUMENT_FRAGMENT_NODE) && (OnFirefox ? sr2.host : SafeEl_not_ff_!(sr2.host))
+      }
+      clickEl = (OnFirefox ? click3nd : click3nd && SafeEl_not_ff_!(click3nd)
+          ) satisfies Element | null | undefined | 0 as SafeElementForMouse | null || clickEl
+    }
     autoChild = isIFrameElement(clickEl, 1) ? 0
         : isTY(autoChild) ? findSelectorByHost(autoChild) as typeof autoChild : autoChild
     if (autoChild) {
@@ -564,15 +577,16 @@ const doPostAction = (): Rect | null => {
         const center = center_(rect, hintOptions.xy as HintsNS.StdXY | undefined)
         click2nd = rect && (onlyShadow ? clickEl : elFromPoint_(center, clickEl))
         click2nd = anyAtPos || click2nd && contains_s(clickEl, click2nd) ? click2nd : null
-        let el3: Element | null | 0 = click2nd, r2: ShadowRoot | null | "" | 0 | false
-        while (r2 = el3 && htmlTag_<1>(el3) && GetShadowRoot_(el3)) {
-          el3 = elFromPoint_(center, r2)
-          el3 && r2.contains(el3) ? click2nd = el3 : el3 = 0
+        click3nd = click2nd
+        while (sr2 = click3nd && htmlTag_<1>(click3nd) && GetShadowRoot_(click3nd)) {
+          click3nd = elFromPoint_(center, sr2)
+          click3nd && sr2.contains(click3nd) ? click2nd = click3nd : click3nd = 0
         }
       }
       clickEl = (OnFirefox ? click2nd : click2nd && SafeEl_not_ff_!(click2nd)
           ) satisfies Element | void | null as SafeElementForMouse | void | null || clickEl
     }
+    click2nd = click3nd = sr2 = 0
     tag = htmlTag_(clickEl), elType = getEditableType_<0>(clickEl), isHtmlImage = tag === "img"
     initTestRegExps() // needed by getPreferredRectOfAnchor
     // must get outline first, because clickEl may hide itself when activated

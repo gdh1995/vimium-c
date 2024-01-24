@@ -577,7 +577,7 @@ export const newEvent_ = <T extends new (type: any, init: EventInit) => Event>(
 type MayBeSelector = "" | false | 0 | null | void | undefined
 export const joinValidSelectors = (selector: string | MayBeSelector
       , validAnother: "css-selector" | MayBeSelector): "css-selector" | null =>
-    selector && safeCall(querySelector_unsafe_, selector) !== void 0
+    selector && safeCall(querySelector_unsafe_, selector, /** make this O(1) */ createElement_("a")) !== void 0
     ? (validAnother ? selector + "," + validAnother : selector) as "css-selector" : validAnother || null
 
 export const findSelectorByHost = (rules: string | string[] | kTip | MayBeSelector): "css-selector" | void => {
