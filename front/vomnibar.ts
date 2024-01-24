@@ -797,11 +797,12 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     case AllowedActions.remove: return a.removeCur_();
     case AllowedActions.copy: case AllowedActions.copyWithTitle:
       let item = a.completions_[a.selection_] as SuggestionEx, title = item.title, type = item.e, math = type === "math"
+      let mathSearch = !a.selection_ && a.completions_.length > 1 && a.completions_[1].e === "math"
       VUtils_.ensureText_(item)
       title = action === AllowedActions.copyWithTitle
           && type !== "search" && !math && title !== item.u && title !== item.t ? title : ""
       return VPort_.post_({ H: kFgReq.omniCopy, t: math ? item.textSplit + " = " + item.t : title
-          , u: math ? "" : item.u })
+          , u: math ? "" : mathSearch ? a.completions_[1].t : item.u })
     case AllowedActions.copyPlain: case AllowedActions.pastePlain:
       const navClip = navigator.clipboard
       const plain = (!(Build.BTypes & BrowserType.Edge || Build.BTypes & BrowserType.Chrome

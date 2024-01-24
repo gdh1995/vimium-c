@@ -768,9 +768,9 @@ searchEngine = {
     return sug;
   },
   mathResult_ (stdSug: SearchSuggestion, arr: Urls.MathEvalResult): [SearchSuggestion, Suggestion] {
-    const result = arr[0];
-    const sug = new Suggestion("math", "vimium://copy " + result, result, result, get2ndArg, 9);
-    --sug.r;
+    const result = arr[0], urlToCopy = "vimium://copy " + result
+    const sug = new Suggestion("math", stdSug.u, result, result, get2ndArg, 8)
+    ; (stdSug.u satisfies string) = urlToCopy
     if (!(OnFirefox && isForAddressBar)) {
       sug.title = `<match style="text-decoration: none;">${cutTitle(sug.title, [])}<match>`
     }
