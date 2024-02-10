@@ -578,6 +578,7 @@ export const newEvent_ = <T extends new (type: any, init: EventInit) => Event>(
 type MayBeSelector = "" | false | 0 | null | void | undefined
 export const joinValidSelectors = (selector: string | MayBeSelector
       , validAnother: "css-selector" | MayBeSelector): "css-selector" | null => // this should be O(1)
+    // here can not use `docEl.matches`, because of `:has(...)`
     selector && safeCall(querySelector_unsafe_, selector, _domInst || (_domInst = createElement_("a"))) !== void 0
     ? (validAnother ? selector + "," + validAnother : selector) as "css-selector" : validAnother || null
 

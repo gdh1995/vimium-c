@@ -787,7 +787,7 @@ export const openUrlReq = (request: FgReq[kFgReq.openUrl], port?: Port | null): 
     url = testUrl ? findUrlEndingWithPunctuation_(url, formatted) : url
     url = substitute_(url, context, sed, exOut)
     let converted: boolean, keyword = exOut.keyword_ ?? rawKeyword
-    if (formatted) {
+    if (formatted && !keyword) {
       url = (converted = url !== originalUrl) ? convertToUrl_(url, null, Urls.WorkType.ConvertKnown) : url
     } else if (converted = !!testUrl || !isWeb && !keyword) {
       url = testUrl ? findUrlInText_(url, testUrl) : url

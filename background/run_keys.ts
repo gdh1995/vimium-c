@@ -514,6 +514,10 @@ const runOneKey = (cursor: KeyNode, seq: BgCmdOptions[C.runKey]["$seq"], envInfo
   }
 }
 
+const mayBuildVKey = (key: string): boolean => !key.includes("<") && !key.includes(":", 1)
+const findMappedVKey = (key: string): CommandsNS.Item | null =>
+    mayBuildVKey(key) && keyToCommandMap_.get(`<v-${key}>`) || null
+
 set_runOneMapping_(((key, port, fStatus, baseCount): void => {
   key = key.replace(<RegExpOne> /^([$%][a-zA-Z]\+?)+(?=\S)/, "")
   const arr: null | string[] = (<RegExpOne> /^\d+|^-\d*/).exec(key)
@@ -528,7 +532,7 @@ set_runOneMapping_(((key, port, fStatus, baseCount): void => {
   let hash = 1
   while (hash = key.indexOf("#", hash) + 1) {
     const slice = key.slice(0, hash - 1)
-    if (keyToCommandMap_.has(slice) || (<RegExpI> /^[a-z]+(\.[a-z]+)?$/i).test(slice)) { break }
+    if (keyToCommandMap_.has(slice) || findMappedVKey(slice) || (<RegExpI> /^[a-z]+(\.[a-z]+)?$/i).test(slice)) {break}
   }
   set_cPort(port!)
   set_cKey(kKeyCode.None)
@@ -552,7 +556,7 @@ const runOneKeyWithOptions = (key: string, count: number
     , avoidStackOverflow?: boolean): void => {
   let finalKey = key, registryEntry = !(OnChrome && Build.MinCVer < BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol
           && key === "__proto__") && keyToCommandMap_.get(key)
-      || !key.includes("<") && !key.includes(":", 1) && keyToCommandMap_.get(finalKey = `<v-${key}>`) || null
+      || mayBuildVKey(key) && keyToCommandMap_.get(finalKey = `<v-${key}>`) || null
   let entryReadonly = true
   if (registryEntry == null && key in availableCommands_) {
     entryReadonly = false
@@ -652,8 +656,7 @@ set_inlineRunKey_(((rootRegistry: Writable<CommandsNS.Item>
     if (!first) { return }
     canInline = canInline && (seq.tree as ListNode).val.length === 1 && (seq.tree as ListNode).val[0] === first
     const info = parseKeyNode(first), key = info.key
-    const calleeEntry = keyToCommandMap_.get(key)
-        || !key.includes("<") && !key.includes(":", 1) && keyToCommandMap_.get(`<v-${key}>`) || null
+    const calleeEntry = keyToCommandMap_.get(key) || findMappedVKey(key)
     if (calleeEntry != null && calleeEntry.alias_ === C.runKey && calleeEntry.background_) {
       path || (path = [rootRegistry])
       if (path.includes(calleeEntry)) {
