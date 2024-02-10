@@ -584,7 +584,7 @@ export const joinValidSelectors = (selector: string | MayBeSelector
 export const findSelectorByHost = (rules: string | string[] | kTip | MayBeSelector): "css-selector" | void => {
   const host = loc_.host, path = loc_.host + "/" + loc_.pathname, isKTip = isTY(rules, kTY.num)
   for (const arr of rules && isTY(rules,kTY.obj) ? rules : (isKTip ? VTr(rules) : rules ? rules + "" : "").split(";")) {
-    const items = arr.split("##"), isOnHost = items.length > 1, sel = items[isOnHost as boolean | BOOL as BOOL]
+    const items = arr.split("##"), isOnHost = items.length > 1, sel = items[+isOnHost as BOOL]
     const cond = isOnHost ? items[0] : "", re = cond && tryCreateRegExp(cond)
     if ((re ? re.test(cond.includes("/") ? path : host) : !cond) && (isKTip || joinValidSelectors(sel))) {
       return sel as "css-selector"
