@@ -175,7 +175,7 @@ const collectPass = (pass: string): string => {
   isReversed && (pass = pass.slice(1).trimLeft())
   const dict = Object.create<1>(null)
   for (let i of pass.split(" ")) {
-    dict[i] = 1
+    dict[i === "*" ? aTrans_("asterisk") : i] = 1
   }
   return (isReversed ? "^ " : "") + Object.keys(dict).sort().join(" ")
 }

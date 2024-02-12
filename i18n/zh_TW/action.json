@@ -47,6 +47,7 @@
   "onlyHook": "僅這些按鍵生效",
   "passThrough": "僅這些按鍵被停用（不組成快捷鍵）",
   "completelyDisabled": "完全停止工作",
+  "asterisk": "星號*",
   "VerIs": "版本：",
   "Disable": "停用",
   "Enable": "啟用",
