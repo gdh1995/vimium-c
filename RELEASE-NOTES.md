@@ -677,7 +677,7 @@ bug fixes:
   https://github.com/gdh1995/vimium-c/issues/127#issuecomment-602038442))
 * `goNext`: prefer completely matched text (e.g. `">"` is preferred to `">|"`)
 * `goBack`: add an option of `local` to always use `history.go`, instead of async going
-* popup page: if an extension wants to run Vimium C but not is allowed, show a button to auto allow it
+* action page: if an extension wants to run Vimium C but not is allowed, show a button to auto allow it
 * some bug fixes
 
 #### 1.81.0
@@ -873,7 +873,7 @@ bug fixes:
 * some other bug fixes
 
 1.76.5:
-* fix a bug in the popup page ([#64](https://github.com/gdh1995/vimium-c/issues/64))
+* fix a bug in the action page ([#64](https://github.com/gdh1995/vimium-c/issues/64))
 * extension allow list: allow [Vimium C's helpers](https://github.com/gdh1995/vimium-c-helpers) by default
 
 1.76.4:

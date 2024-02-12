@@ -20,7 +20,7 @@ const kOpts = "options.html"
 const RedirectedUrls_: SafeDict<string> = { __proto__: null as never,
   about: "", changelog: "/RELEASE-NOTES.md", help: "/wiki", home: "", license: "/LICENSE.txt",
   option: kOpts, permissions: "/PRIVACY-POLICY.md#permissions-required", policy: "/PRIVACY-POLICY.md",
-  popup: kOpts, preference: kOpts, preferences: kOpts,
+  action: kOpts, popup: kOpts, preference: kOpts, preferences: kOpts,
   privacy: "/PRIVACY-POLICY.md#privacy-policy", profile: kOpts, profiles: kOpts,
   readme: "#readme", release: "/RELEASE-NOTES.md", releases: "/RELEASE-NOTES.md", "release-notes": "/RELEASE-NOTES.md",
   setting: kOpts, settings: kOpts, wiki: "/wiki"

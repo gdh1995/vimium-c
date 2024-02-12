@@ -146,7 +146,7 @@ declare namespace Frames {
     readonly ports_: Port[]
     lock_: { status_: ValidStatus, passKeys_: string | null } | null
     flags_: Flags
-    unknownExt_?: null | /** id */ string | /** too many */ 2 | /** the popup dialog has shown */ -1
+    unknownExt_?: null | /** id */ string | /** too many */ 2 | /** the action dialog has shown */ -1
   }
 
   interface FramesMap extends Map<number, Frames> {

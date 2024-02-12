@@ -41,7 +41,7 @@ var has_polyfill = !!(getBuildItem("BTypes") & BrowserType.Chrome)
     && getBuildItem("MinCVer") < 43 /* MinSafe$String$$StartsWith */;
 const POLYFILL_FILE = "lib/polyfill.ts"
 const LOCALES_EN = "_locales/en/messages.json"
-const JSON_TO_JS = ["i18n/*/options.json", "i18n/*/popup.json"]
+const JSON_TO_JS = ["i18n/*/options.json", "i18n/*/action.json"]
 
 var CompileTasks = {
   background: ["background/*.ts", "background/*.d.ts"],

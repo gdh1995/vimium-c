@@ -7,10 +7,10 @@ import {
   type ExclusionBaseVirtualNode, setupSettingsCache_
 } from "./options_base"
 import { kPgReq, PgReq } from "../background/page_messages"
-import type * as i18n_popup from "../i18n/zh/popup.json"
+import type * as i18n_action from "../i18n/zh/action.json"
 
 type CachedMatcher = ValidUrlMatchers | false
-let conf_: PgReq[kPgReq.popupInit][1]
+let conf_: PgReq[kPgReq.actionInit][1]
 let url: string, topUrl = ""
 let inited: 0 | 1 /* no initial matches */ | 2 /* some matched */ | 3 /* is saving (temp status) */ = 0
 let saved = true, oldPass: string | null = null
@@ -25,7 +25,7 @@ let stateValue = stateAction.nextElementSibling, stateTail = stateValue.nextElem
 const testers_: SafeDict<Promise<CachedMatcher> | CachedMatcher> = Object.create(null)
 let _onlyFirstMatch: boolean
 
-const pTrans_: TransTy<keyof typeof i18n_popup> = (k, a): string => pageTrans_(k, a) || ""
+const aTrans_: TransTy<keyof typeof i18n_action> = (k, a): string => pageTrans_(k, a) || ""
 
 class PopExclusionRulesOption extends ExclusionRulesOption_ {
   override init_ (element: HTMLElement): void {
@@ -65,9 +65,9 @@ class PopExclusionRulesOption extends ExclusionRulesOption_ {
   override updateVNode_ (vnode: ExclusionVisibleVirtualNode, pattern: string, passKeys: string): void {
     const patternIsSame = vnode.rule_.pattern === pattern, oldMatcher = vnode.matcher_
     super.updateVNode_(vnode, pattern, passKeys)
-    const tip = !pattern ? "" : !passKeys ? pTrans_("completelyDisabled") || "completely disabled"
+    const tip = !pattern ? "" : !passKeys ? aTrans_("completelyDisabled") || "completely disabled"
         : passKeys.length > 1 && passKeys[0] === "^"
-        ? pTrans_("onlyHook") || "only hook such keys" : pTrans_("passThrough") || "pass through such keys"
+        ? aTrans_("onlyHook") || "only hook such keys" : aTrans_("passThrough") || "pass through such keys"
     vnode.$pattern_.title !== pattern && (vnode.$pattern_.title = pattern)
     vnode.$keys_.title !== tip && (vnode.$keys_.title = tip)
     if (patternIsSame) {
@@ -133,21 +133,21 @@ const _doUpdateState = (oldInited: typeof inited
   const same = pass === oldPass
   const isReversed = !!pass && pass.length > 2 && pass[0] === "^"
   stateAction.textContent =
-    (isSaving ? pass ? pTrans_("137") + pTrans_(isReversed ? "138" : "139") : pTrans_("140")
-      : pTrans_(same ? "141" : "142") + pTrans_(pass ? isReversed ? "138" : "139" : same ? "143" : "143_2")
+    (isSaving ? pass ? aTrans_("137") + aTrans_(isReversed ? "138" : "139") : aTrans_("140")
+      : aTrans_(same ? "141" : "142") + aTrans_(pass ? isReversed ? "138" : "139" : same ? "143" : "143_2")
       ).replace(" to be", "")
-    + pTrans_("colon") + pTrans_("NS")
+    + aTrans_("colon") + aTrans_("NS")
   /* note: on C91, Win10, text may have a negative margin-left (zh/fr) when inline-block and its left is inline */
   stateValue.className = pass ? "code" : ""
   stateValue.textContent = pass ? isReversed ? pass.slice(2) : pass
-    : pTrans_("143_3") + pTrans_(pass !== null ? "144" : "145")
+    : aTrans_("143_3") + aTrans_(pass !== null ? "144" : "145")
   stateTail.textContent = conf_.lock !== null && !isSaving && same
-    ? pTrans_("147", [pTrans_(conf_.lock !== Frames.Status.enabled ? "144" : "145")])
-    : conf_.lock !== null ? pTrans_("148") : ""
+    ? aTrans_("147", [aTrans_(conf_.lock !== Frames.Status.enabled ? "144" : "145")])
+    : conf_.lock !== null ? aTrans_("148") : ""
   const mismatches = toCheck.some(vnode => !!(vnode.changed_ & kExclusionChange.mismatches)
       && (vnode.rule_.pattern !== vnode.savedRule_.pattern || vnode.rule_.passKeys !== vnode.savedRule_.passKeys))
   saveBtn2.disabled = same && !mismatches
-  saveBtn2.firstChild.data = pTrans_(isSaving ? "115_3" : same && !mismatches ? "115" : "115_2")
+  saveBtn2.firstChild.data = aTrans_(isSaving ? "115_3" : same && !mismatches ? "115" : "115_2")
 }
 
 const saveOptions = (): void | Promise<void> => {
@@ -160,7 +160,7 @@ const saveOptions = (): void | Promise<void> => {
   inited = 3
   updateBottomLeft()
   updateState(true)
-  saveBtn2.firstChild.data = pTrans_("115_3")
+  saveBtn2.firstChild.data = aTrans_("115_3")
   if (OnFirefox) {
     saveBtn2.blur()
   }
@@ -254,8 +254,8 @@ const updateBottomLeft = (): void => {
   toggleAction = conf_.status !== Frames.Status.disabled ? "Disable" : "Enable"
   let el0 = $<EnsuredMountedHTMLElement>("#toggleOnce"), el1 = el0.nextElementSibling
   nextTick_((): void => {
-    el0.firstElementChild.textContent = (pTrans_(toggleAction) || toggleAction)
-        + (conf_.lock !== null ? "" : pTrans_("Once"))
+    el0.firstElementChild.textContent = (aTrans_(toggleAction) || toggleAction)
+        + (conf_.lock !== null ? "" : aTrans_("Once"))
     el0.onclick = forceState.bind(null, toggleAction)
     stateValue.id = "state-value"
     el1.classList.toggle("hidden", conf_.lock === null)
@@ -317,12 +317,12 @@ const initExclusionRulesTable = (): void => {
   }
 }
 
-void post_(kPgReq.popupInit).then((_resolved): void => {
+void post_(kPgReq.actionInit).then((_resolved): void => {
   conf_ = _resolved
   setupPageOs_(conf_.os)
   const _url = conf_.url
   let blockedMsg = $("#blocked-msg")
-  enableNextTick_(kReadyInfo.popup)
+  enableNextTick_(kReadyInfo.action)
   if (!conf_.runnable) {
     onNotRunnable(blockedMsg)
     initOptionsLink(_url)

@@ -3,7 +3,7 @@ import {
   import2_, TransTy, isVApiReady_, post_, disconnect_, simulateClick_, ValidFetch, hasShift_, setupPageOs_, isRepeated_, prevent_
 } from "./async_bg"
 import { kPgReq } from "../background/page_messages"
-import type * as i18n_popup from "../i18n/zh/popup.json"
+import type * as i18n_action from "../i18n/zh/action.json"
 
 interface VDataTy {
   full: string
@@ -285,7 +285,7 @@ async function App (this: void): Promise<void> {
   bgLink.onclick = VShown ? clickShownNode : defaultOnClick;
 }
 
-export const sTrans_: TransTy<keyof typeof i18n_popup> = (k, a): string => pageTrans_(k, a) || ""
+export const sTrans_: TransTy<keyof typeof i18n_action> = (k, a): string => pageTrans_(k, a) || ""
 
 enableNextTick_(kReadyInfo.show)
 void isVApiReady_.then((): void => { VApi!.u = getContentUrl_ })

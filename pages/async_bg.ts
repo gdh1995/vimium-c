@@ -3,7 +3,7 @@
 import { kPgReq, PgReq, Req2 } from "../background/page_messages"
 
 export declare const enum kReadyInfo {
-  show = 1, popup = 1, options = 1, i18n = 2, browserInfo = 4,
+  show = 1, action = 1, options = 1, i18n = 2, browserInfo = 4,
   NONE = 0, FINISHED = 7, LOCK = 8,
 }
 export type ValidFetch = GlobalFetch
@@ -325,15 +325,15 @@ export const curPagePath_ = useTopLevelAwait ? curPath : 0 as never
 ; !!Build.NDEBUG && !(Build.BTypes & BrowserType.Edge)
     && !(Build.BTypes & BrowserType.Firefox && Build.MinFFVer < FirefoxBrowserVer.MinEnsuredES$TopLevelAwait)
     && !(Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES$TopLevelAwait)
-? curPath !== "options" && curPath !== "popup" && onDicts_( // eslint-disable-next-line spaced-comment
+? curPath !== "options" && curPath !== "action" && onDicts_( // eslint-disable-next-line spaced-comment
   /*! @OUTPUT {await } */ // @ts-ignore
   Promise.all(
     pageLangs_.split(",").map(lang => // @ts-ignore
     import(
-      `/i18n/${lang}/${curPath === "show" ? "popup" : curPath}.js`)))
+      `/i18n/${lang}/${curPath === "show" ? "action" : curPath}.js`)))
 ) :
 void Promise.all(pageLangs_.split(",").map((lang): Promise<string | null> => {
-  const langFile = `/i18n/${lang}/${curPath === "show" ? "popup" : curPath}.${Build.NDEBUG ? "js" : "json"}`
+  const langFile = `/i18n/${lang}/${curPath === "show" ? "action" : curPath}.${Build.NDEBUG ? "js" : "json"}`
   const p = (!OnChrome || Build.MinCVer >= BrowserVer.MinFetchExtensionFiles
       || CurCVer_ >= BrowserVer.MinFetchExtensionFiles ? (fetch as ValidFetch)(langFile).then(r => r.text())
       : new Promise<string>((resolve): void => {
@@ -439,7 +439,7 @@ OnFirefox && browser_.runtime.getBrowserInfo().then((info): void => {
   enableNextTick_(kReadyInfo.browserInfo)
 })
 
-if (browserLang && curPath !== "popup") {
+if (browserLang && curPath !== "action") {
   const s = bTrans_("v" + curPath)
   s && (document.title = "Vimium C " + s)
 }

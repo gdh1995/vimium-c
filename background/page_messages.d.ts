@@ -3,7 +3,7 @@ export declare const enum kPgReq {
    /** 5..9 */ settingItem, runFgOn, keyMappingErrors, parseCSS, reloadCSS,
    /** 10..14 */ convertToUrl, updateMediaQueries, whatsHelp, checkNewTabUrl, checkSearchUrl,
    /** 15..19 */ focusOrLaunch, showUrl, shownHash, substitute, checkHarmfulUrl,
-   /** 20..24 */ popupInit, allowExt, toggleStatus, parseMatcher, initHelp,
+   /** 20..24 */ actionInit, allowExt, toggleStatus, parseMatcher, initHelp,
    /** 25..29 */ callApi, selfTabId, getStorage, setInLocal, updateOmniPayload,
    /** 30..32 */ saveToSyncAtOnce, showInit, reopenTab,
   __mask = ""
@@ -37,7 +37,7 @@ export interface PgReq {
   [kPgReq.shownHash]: [ void, string | null ]
   [kPgReq.substitute]: [ [string, SedContext], string ]
   [kPgReq.checkHarmfulUrl]: [ string, boolean ]
-  [kPgReq.popupInit]: [ void, { ver: string, runnable: boolean, url: string, tabId: number, frameId: number,
+  [kPgReq.actionInit]: [ void, { ver: string, runnable: boolean, url: string, tabId: number, frameId: number,
     topUrl: string | null, frameUrl: string | null, lock: Frames.ValidStatus | null, status: Frames.ValidStatus,
     hasSubDomain: 0 | 1 | 2, unknownExt: string | null,
     exclusions: {

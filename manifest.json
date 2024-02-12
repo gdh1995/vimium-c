@@ -5,7 +5,7 @@
       "19": "icons/enabled_19.png",
       "38": "icons/enabled_38.png"
     },
-    "default_popup": "pages/popup.html",
+    "default_popup": "pages/action.html",
     "default_title": "__MSG_name__\n\n__MSG_noActiveState__"
   },
   "action.v2": null,
@@ -47,7 +47,7 @@
       "19": "icons/enabled_19.png",
       "38": "icons/enabled_38.png"
     },
-    "default_popup": "pages/popup.html",
+    "default_popup": "pages/action.html",
     "default_title": "__MSG_name__\n\n__MSG_noActiveState__"
   },
   "browser_specific_settings": {
