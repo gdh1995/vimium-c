@@ -1,6 +1,6 @@
 import {
   OnFirefox, OnEdge, OnChrome, $, pageTrans_, enableNextTick_, nextTick_, kReadyInfo, type TransTy, IsEdg_, post_,
-  toggleReduceMotion_, hasShift_, PageOs_, setupPageOs_, prevent_, CurCVer_
+  toggleReduceMotion_, hasShift_, PageOs_, setupPageOs_, prevent_, CurCVer_, escapeAllForRe_
 } from "./async_bg"
 import {
   bgSettings_, type ExclusionVisibleVirtualNode, ExclusionRulesOption_, setupBorderWidth_, showI18n_, kExclusionChange,
@@ -43,7 +43,7 @@ class PopExclusionRulesOption extends ExclusionRulesOption_ {
   }
   override populateElement_ (rules1: ExclusionsNS.StoredRule[]): void {
     super.populateElement_(rules1)
-    this.populateElement_ = null as never // ensure .populateElement_ is only executed for once
+    PopExclusionRulesOption.prototype.populateElement_ = null as never
     PopExclusionRulesOption.prototype.checkNodeVisible_ = ExclusionRulesOption_.prototype.checkNodeVisible_
     let visible_ = this.list_.filter((i): i is ExclusionVisibleVirtualNode => i.visible_), some = visible_.length > 0
     let element1: SafeHTMLElement
@@ -83,7 +83,7 @@ class PopExclusionRulesOption extends ExclusionRulesOption_ {
     if (!pattern || pattern === PopExclusionRulesOption.generateDefaultPattern_()) {
       patternElement.title = patternElement.style.color = ""
     } else if ((matcher = parseMatcher(vnode)) instanceof Promise) {
-      void matcher.then((): void => { this.updateLineStyle_(vnode, pattern) })
+      matcher.then(this.updateLineStyle_.bind(this as PopExclusionRulesOption, vnode, pattern))
     } else if (doesMatchCur_(matcher)) {
       patternElement.title = patternElement.style.color = ""
     } else {
@@ -93,9 +93,11 @@ class PopExclusionRulesOption extends ExclusionRulesOption_ {
     }
   }
   static generateDefaultPattern_ (this: void): string {
-    const main = url.split(<RegExpOne> /[?#]/)[0]
-    const url2 = main.startsWith("http:")
-      ? "^https?://" + main.split("/", 3)[2].replace(<RegExpG> /[$()*+.?\[\\\]\^{|}]/g, "\\$&") + "/"
+    const hasSubDomain = conf_.hasSubDomain
+    const main = (hasSubDomain ? topUrl : url).split(<RegExpOne> /[?#]/)[0]
+    const url2 = hasSubDomain || main.startsWith("http:")
+      ? (hasSubDomain < 2 && main[4] !== ":" ? "^https://" : "^https?://") + (hasSubDomain ? "(?:[^/]+\.)?" : "")
+        + escapeAllForRe_(main.split("/", 3)[2]) + "/"
       : main.startsWith(location.origin + "/")
       ? ":vimium:/" + new URL(main).pathname.replace("/pages", "")
       : (<RegExpOne> /^[^:]+:\/\/./).test(main) && !main.startsWith("file:")

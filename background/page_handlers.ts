@@ -3,7 +3,7 @@ import {
   CONST_, settingsCache_, shownHash_, substitute_, framesForTab_, curTabId_, extAllowList_, OnChrome, reqH_, OnEdge,
   storageCache_, os_, framesForOmni_, updateHooks_, Origin2_, CurCVer_, omniConfVer_
 } from "./store"
-import { deferPromise_, protocolRe_, safeObj_ } from "./utils"
+import { deferPromise_, isIPHost_, protocolRe_, safeObj_, safeParseURL_ } from "./utils"
 import {
   browserWebNav_, browser_, getCurTab, getTabUrl, Q_, runContentScriptsOn_, runtimeError_, tabsCreate, tabsGet
 } from "./browser"
@@ -174,6 +174,7 @@ const pageRequestHandlers_: {
       const notRunnable = !(ref || tab && url && tab.status === "loading" && (<RegExpOne> /^(ht|s?f)tp/).test(url))
       const unknownExt = getUnknownExt(ref)
       const runnable = !notRunnable && !unknownExt
+      let hasSubDomain: 0 | 1 | 2 = 0
       let extHost = runnable ? null : unknownExt || !url ? unknownExt
           : (url.startsWith(location.protocol) && !url.startsWith(Origin2_) ? new URL(url).host : null)
       const extStat = extHost ? extAllowList_.get(extHost) : null
@@ -187,11 +188,25 @@ const pageRequestHandlers_: {
       } else {
         extHost = null
       }
+      if (runnable && !!ref && ref.ports_.length > 1 && url.startsWith("http")) {
+        const topHost = safeParseURL_(url)?.host
+        if (!!topHost && !isIPHost_(topHost, 0)) {
+          const isTopHttp = url.startsWith("http:"), suffix = "." + topHost
+          for (const frame of ref.ports_) {
+            const iframeUrl = frame !== (ref.top_ || ref.cur_) ? frame.s.url_ : null
+            const iframeHost = iframeUrl?.startsWith("http") ? safeParseURL_(iframeUrl)?.host : null
+            if (!!iframeHost && (iframeHost.length > topHost.length && iframeHost.endsWith(suffix))) {
+              hasSubDomain = isTopHttp || iframeHost.startsWith("http:") ? 2 : 1
+              if (hasSubDomain > 1) { break }
+            }
+          }
+        }
+      }
       return { ver: CONST_.VerName_, runnable, url, tabId,
         frameId: ref && (sender || ref.top_) ? (sender || ref.top_!.s).frameId_ : 0,
         topUrl: sender && sender.frameId_ && ref!.top_ ? ref!.top_.s.url_ : null, frameUrl: sender && sender.url_,
         lock: ref && ref.lock_ ? ref.lock_.status_ : null, status: sender ? sender.status_ : Frames.Status.enabled,
-        unknownExt: extHost,
+        hasSubDomain, unknownExt: extHost,
         exclusions: runnable ? {
           rules: settingsCache_.exclusionRules, onlyFirst: settingsCache_.exclusionOnlyFirstMatch,
           matchers: Exclusions.parseMatcher_(null), defaults: settings_.defaults_.exclusionRules

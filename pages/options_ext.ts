@@ -1,6 +1,6 @@
 import {
   CurCVer_, CurFFVer_, OnChrome, OnEdge, OnFirefox, $, import2_, OnSafari, enableNextTick_, isVApiReady_, kReadyInfo,
-  simulateClick_, ValidFetch, post_, prevent_
+  simulateClick_, ValidFetch, post_, prevent_, escapeAllForRe_
 } from "./async_bg"
 import { bgSettings_, AllowedOptions, ExclusionRulesOption_, Option_, oTrans_, getSettingsCache_ } from "./options_base"
 import { exportBtn_, saveBtn_ } from "./options_defs"
@@ -225,8 +225,7 @@ function isExpectingHidden (word: string): boolean {
         arr.push(line)
       }
     }
-    omniBlockListRe = arr.length > 0 ? new RegExp(arr.map((s: string): string =>
-        s.replace(<RegExpG & RegExpSearchable<0>> /[$()*+.?\[\\\]\^{|}]/g, "\\$&")).join("|"), "") : false
+    omniBlockListRe = arr.length > 0 && new RegExp(arr.map((s: string): string => escapeAllForRe_(s)).join("|"), "")
   }
   return omniBlockListRe !== false && omniBlockListRe.test(word)
 }

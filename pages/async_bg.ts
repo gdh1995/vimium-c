@@ -494,6 +494,8 @@ export const prevent_ = (event: EventToPrevent & PartialOf<KeyboardEvent, "keyCo
   }
 }
 
+export const escapeAllForRe_ = (str: string): string => str.replace(<RegExpG> /[$()*+.?\[\\\]\^{|}]/g, "\\$&")
+
 if (typeof VApi === "undefined") { globalThis.VApi = undefined }
 
 type ToTest = StringWithOneEnd<DeepKeys<PgReq>, "_">;
