@@ -25,7 +25,7 @@ declare const enum AllowedActions {
   Default = 0,
   nothing = Default,
   dismiss, focus, blurInput, backspace, blur, up, down = up + 2, toggle, pageup, pagedown, remove, copy,
-  home, end, copyWithTitle, copyPlain, pastePlain
+  home, end, copyWithTitle, copyPlain, pastePlain, altAtOnce
 }
 interface SetTimeout {
   <T1, T2, T3>(this: void, handler: (this: void, a1: T1, a2: T2, a3: T3) => void,
@@ -606,7 +606,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     tab: AllowedActions.down, esc: AllowedActions.dismiss
     , pageup: AllowedActions.pageup, pagedown: AllowedActions.pagedown
     , up: AllowedActions.up, down: AllowedActions.down
-    , f1: AllowedActions.backspace, f2: AllowedActions.blur
+    , f1: AllowedActions.backspace, f2: AllowedActions.blur, alt2: AllowedActions.altAtOnce,
   } satisfies { [char in kChar]?: AllowedActions } as { readonly [char in kChar]?: AllowedActions },
   onKeydown_ (event: KeyboardEventToPrevent): void {
     const a = Vomnibar_, n = event.keyCode, focused = a.focused_,
@@ -816,6 +816,10 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       sel = action === AllowedActions.home ? 0 : a.input_.value.length
       a.input_.setSelectionRange(sel, sel)
       a.input_.scrollLeft = sel ? a.input_.scrollWidth : 0
+      break
+    case AllowedActions.altAtOnce:
+      a.toggleAlt_(Vomnibar_.inAlt_ ? 0 : 1)
+      break
     }
   },
   // b(2): left; d(4): right-extend-delete; e(5) / f(6): right; (7): right-extend; (8): left-extend

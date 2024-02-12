@@ -640,7 +640,7 @@ declare const enum kChar {
   maxNotNum = "/", minNotNum = ":", maxASCII = "~",
   maxNotF_num = "f0", minNotF_num = "f:", maxF_num = "f9",
   CharCorrectionList = ";=,-./`[\\]'\\:+<_>?~{|}\"|", EnNumTrans = ")!@#$%^&*(",
-  Modifier = "modifier", Alt = "alt", Meta = "meta", Menu = "contextmenu",
+  Modifier = "modifier", Alt = "alt", Meta = "meta", Menu = "contextmenu", Alt2 = "alt2"
 }
 
 declare const enum BrowserType {
