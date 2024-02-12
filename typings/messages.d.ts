@@ -310,7 +310,6 @@ declare namespace HintsNS {
     /** clickElement / pageLoad is enabled by default */
     autoReload?: "clickElement" | "click" | "cl" | "pageLoad" | "lo" | "delayedListen" | "delayed" | "de" | "all"
     ctrlShiftForWindow?: boolean | null;
-    noCtrlPlusShift?: boolean;
     retainInput?: boolean
     swapCtrlAndShift?: boolean;
     showUrl?: boolean | BOOL

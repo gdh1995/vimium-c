@@ -460,32 +460,31 @@ const downloadLink = (url?: string, filename?: string): void => {
 }
 
 const defaultClick = (): void => {
-    const mask = hintMode_ & HintMode.mask_focus_new,
-    isMac = Build.OS === kBOS.MAC as number || !!(Build.OS & kBOS.MAC) && !os_,
-    rawBtn = hintOptions.button, isRight = rawBtn === 2,
-    dblClick = !!hintOptions.dblclick && !isRight,
-    newTabStr = (rawNewtab + "") as ToString<Exclude<HintsNS.Options["newtab"], boolean>>,
-    otherActions = isRight || dblClick,
-    newWindow = newTabStr === "window" && !otherActions,
-    newTab = mask > HintMode.newTab - 1 && !newWindow && !otherActions,
-    autoUnhover = hintOptions.autoUnhover, doesUnhoverOnEsc = (autoUnhover + "")[0] === "<",
-    isQueue = hintMode_ & HintMode.queue,
-    cnsForWin = hintOptions.ctrlShiftForWindow,
-    noCtrlPlusShiftForActive: boolean | undefined = cnsForWin != null ? cnsForWin : hintOptions.noCtrlPlusShift,
-    maybeLabel = OnFirefox && !editableTypes_[tag] && clickEl.closest!("label,input,textarea,a,button"
-        ) as SafeElement | null,
-    notLabelInFormOnFF = !OnFirefox || !maybeLabel || !hasTag_("label", maybeLabel)
-        || !(maybeLabel as HTMLLabelElement).control,
-    ctrl = notLabelInFormOnFF && (newTab && !(mask > HintMode.newtab_n_active - 1 && noCtrlPlusShiftForActive)
-        || newWindow && !!noCtrlPlusShiftForActive),
-    shift = notLabelInFormOnFF && (newWindow
-        || newTab && (mask > HintMode.newtab_n_active - 1) === !hintOptions.activeOnCtrl),
-    isSel = tag === "select",
-    rawInteractive = hintOptions.interact,
-    interactive = isSel || getMediaTag(tag) === kMediaTag.otherMedias && !isRight
-        && (rawInteractive !== "native" || (clickEl as HTMLMediaElement).controls),
-    doInteract = interactive && !isSel && rawInteractive !== !1,
-    specialActions = dblClick || doInteract
+    const mask = hintMode_ & HintMode.mask_focus_new
+    const isMac = Build.OS === kBOS.MAC as number || !!(Build.OS & kBOS.MAC) && !os_
+    const rawBtn = hintOptions.button, isRight = rawBtn === 2
+    const dblClick = !!hintOptions.dblclick && !isRight
+    const newTabStr = (rawNewtab + "") as ToString<Exclude<HintsNS.Options["newtab"], boolean>>
+    const otherActions = isRight || dblClick
+    const newWindow = newTabStr === "window" && !otherActions
+    const newTab = mask > HintMode.newTab - 1 && !newWindow && !otherActions
+    const autoUnhover = hintOptions.autoUnhover, doesUnhoverOnEsc = (autoUnhover + "")[0] === "<"
+    const isQueue = hintMode_ & HintMode.queue
+    const cnsForWin = hintOptions.ctrlShiftForWindow
+    const maybeLabel = OnFirefox && !editableTypes_[tag] && clickEl.closest!("label,input,textarea,a,button"
+        ) as SafeElement | null
+    const notLabelInFormOnFF = !OnFirefox || !maybeLabel || !hasTag_("label", maybeLabel)
+        || !(maybeLabel as HTMLLabelElement).control
+    const ctrl = notLabelInFormOnFF && (newTab && !(mask > HintMode.newtab_n_active - 1 && cnsForWin)
+        || newWindow && !!cnsForWin)
+    const shift = notLabelInFormOnFF && (newWindow
+        || newTab && (mask > HintMode.newtab_n_active - 1) === !hintOptions.activeOnCtrl)
+    const isSel = tag === "select"
+    const rawInteractive = hintOptions.interact
+    const interactive = isSel || getMediaTag(tag) === kMediaTag.otherMedias && !isRight
+        && (rawInteractive !== "native" || (clickEl as HTMLMediaElement).controls)
+    const doInteract = interactive && !isSel && rawInteractive !== !1
+    const specialActions = dblClick || doInteract
         ? kClickAction.BaseMayInteract + +dblClick + kClickAction.FlagInteract * <number> <number | boolean> doInteract
         : isRight || newTabStr.startsWith("no-") ? kClickAction.none
         : newWindow ? kClickAction.plainInNewWindow
@@ -494,8 +493,8 @@ const defaultClick = (): void => {
         : newTabStr === "force" ? kClickAction.forceInNewTab
         : newTabStr === kLW ? kClickAction.forceToOpenInLastWnd
         : OnFirefox ? newTab ? kClickAction.plainInNewTab : kClickAction.plainMayOpenManually
-        : kClickAction.none,
-    doesUnhoverAtOnce = !doesUnhoverOnEsc && /*#__PURE__*/ checkBoolOrSelector(autoUnhover, !1)
+        : kClickAction.none
+    const doesUnhoverAtOnce = !doesUnhoverOnEsc && /*#__PURE__*/ checkBoolOrSelector(autoUnhover, !1)
     retPromise = catchAsyncErrorSilently(click_async(clickEl, rect
         , !!(clickEl as ElementToHTMLOrForeign).focus && /*#__PURE__*/ checkBoolOrSelector(rawFocus
             , mask > 0 || interactive || (clickEl as ElementToHTMLOrForeign).tabIndex! >= 0)
