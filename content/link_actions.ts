@@ -50,6 +50,9 @@ const accessElAttr = (isUrlOrText: 0 | 1 | 2): [string: string, isUserCustomized
   const format = dataset && hintOptions.access
   let el: SafeElement | null | undefined
   const cb = (_: string, i: string): string => i.split("||").reduce((v, j) => v || extractField(el!, j), "")
+  if (dataset && isUrlOrText && (dataset.vimText === "" || dataset.vimUrl === "")) {
+    dispatchEvent_(clickEl, newEvent_("vimiumData"))
+  }
   for (let accessor of format ? Array.isArray(format) ? format : (format + "").split(",") : []) {
     accessor = accessor.trim()
     const __arr = accessor.split(":"), selector = __arr.length > 1 ? __arr[0] : 0
@@ -60,9 +63,6 @@ const accessElAttr = (isUrlOrText: 0 | 1 | 2): [string: string, isUserCustomized
     let json = props.includes("${") ? props.replace(<RegExpG & RegExpSearchable<1>> /\$\{([^}]+)}/g, cb) : el && props
     json = json !== props ? json : extractField(el!, props)
     if (json) { return [json, 1] }
-  }
-  if (dataset && isUrlOrText && (dataset.vimText === "" || dataset.vimUrl === "")) {
-    dispatchEvent_(clickEl, newEvent_("vimiumData"))
   }
   return [dataset && ((isUrlOrText > 1 ? dataset.vimText : isUrlOrText && dataset.vimUrl)
       || isUrlOrText < 2 && (dataset.canonicalSrc || dataset.src || tag === "a" && dataset.href)) || ""]
