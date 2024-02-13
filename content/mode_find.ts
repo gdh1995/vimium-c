@@ -31,7 +31,9 @@ import { hudHide, hud_box, hudTip, hud_opacity, toggleOpacity as hud_toggleOpaci
 import { post_, send_, runFallbackKey, runtimeConnect, runtime_port } from "./port"
 import { insert_Lock_, raw_insert_lock, setupSuppress } from "./insert"
 import { lastHovered_, set_lastHovered_, set_lastBubbledHovered_, select_ } from "./async_dispatcher"
-import { checkKey, checkKeyOnTop, currentKeys, noopHandler, set_isCmdTriggered } from "./key_handler"
+import {
+  checkKey, checkKeyOnTop, currentKeys, noopHandler, set_isCmdTriggered, maybeEscIsHidden_ff, set_maybeEscIsHidden_ff
+} from "./key_handler"
 
 export declare const enum FindAction {
   PassDirectly = -1,
@@ -554,15 +556,19 @@ const onPaste_not_cr = !OnChrome ? (event: ClipboardEvent & ToPrevent): void => 
 } : 0 as never as null
 
 const onIFrameKeydown = (event: KeyboardEventToPrevent): void => {
-    const n = event.keyCode, isUp = event.type === "keyup" && !set_isCmdTriggered(0)
     Stop_(event)
     if ((!OnChrome || Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted
         ? !event.isTrusted : event.isTrusted === false) && (event as UserTrustedKeyboardEvent).z !== fgCache) { return }
+    const n = event.keyCode
     const eventWrapper: HandlerNS.Event = {c: kChar.INVALID, e: event, i: n, v: ""}
-    if (!n || n === kKeyCode.ime || scroll_keyIsDown && onScrolls(eventWrapper) || isUp) {
+    let isUp: boolean | 0 = event.type[3] > kChar.e && !set_isCmdTriggered(0)
+    const isEscDownUp = OnFirefox && n === maybeEscIsHidden_ff && isUp && n && !keydownEvents_[n]
+        && event.key === "Escape"
+    if (!n || n === kKeyCode.ime || scroll_keyIsDown && onScrolls(eventWrapper) || isUp && !isEscDownUp) {
       if (isUp && keydownEvents_[n]) { keydownEvents_[n] = 0; prevent_(event) }
       return
     }
+    OnFirefox && n === kKeyCode.esc && !isUp && set_maybeEscIsHidden_ff(0)
     const consumedByHost = currentKeys && checkKeyOnTop(eventWrapper),
     key = getMappedKey(eventWrapper, kModeId.Find), keybody = keybody_(key);
     const i: FindAction | KeyStat = consumedByHost ? FindAction.ConsumedByHost
@@ -627,6 +633,7 @@ const onIFrameKeydown = (event: KeyboardEventToPrevent): void => {
     } else {
       i < FindAction.MinNotExit && deactivate(i)
     }
+    if (OnFirefox && isEscDownUp && keydownEvents_[n]) { keydownEvents_[n] = 0; prevent_(event) }
 }
 
 const onHostKeydown = (event: HandlerNS.Event): HandlerResult => {

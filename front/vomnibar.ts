@@ -1415,6 +1415,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       };
       input.addEventListener("compositionstart", func);
       input.addEventListener("compositionend", func);
+    } else {
+      listen("keyup", a.HandleKeyup_ff_!, true);
     }
     a.styleEl_ && document.head!.appendChild(a.styleEl_);
     a.darkBtn_ = document.querySelector("#toggle-dark") as HTMLElement | null;
@@ -1495,13 +1497,19 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     if (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome) ? !event.isTrusted
         : event.isTrusted !== true && !(event.isTrusted == null && event instanceof KeyboardEvent)) { return; }
     Vomnibar_.keyResult_ = SimpleKeyResult.Prevent as SimpleKeyResult;
-    let stop: 0 | 1 | 2 | 3 = 3, now = 0
+    let keyCode = event.keyCode, stop: 0 | 1 | 2 | 3 = 3, now = 0
+    if (Build.BTypes & BrowserType.Firefox && (Build.BTypes === BrowserType.Firefox as number
+          || Vomnibar_.browser_ & BrowserType.Firefox) && keyCode === kKeyCode.esc
+        && !!Vomnibar_.HandleKeyup_ff_ && event.type[3] < kChar.e && event.key === "Escape") {
+      removeEventListener("keyup", Vomnibar_.HandleKeyup_ff_!, true)
+      Vomnibar_.HandleKeyup_ff_ = null
+    }
     if (Vomnibar_.last_scrolling_key_) {
-      const keyCode = event.keyCode, hasChar = keyCode > kKeyCode.maxAcsKeys || keyCode < kKeyCode.minAcsKeys,
+      const hasChar = keyCode > kKeyCode.maxAcsKeys || keyCode < kKeyCode.minAcsKeys,
       isSameChar = keyCode === Math.abs(Vomnibar_.last_scrolling_key_)
-      stop = event.repeat || hasChar && isSameChar && event.type === "keydown" ? 0 : 1
+      stop = event.repeat || hasChar && isSameChar && event.type[3] < kChar.e ? 0 : 1
       if (hasChar && !isSameChar) { stop = 3 }
-      else if (Vomnibar_.last_scrolling_key_ > 0) { stop = event.type === "keyup" ? 2 : 0 }
+      else if (Vomnibar_.last_scrolling_key_ > 0) { stop = event.type[3] < kChar.e ? 0 : 2 }
       else if (stop || (now = event.timeStamp) - Vomnibar_.lastScrolling_ > 40 || now < Vomnibar_.lastScrolling_) {
         VPort_.postToOwner_({ N: stop ? VomnibarNS.kFReq.stopScroll : VomnibarNS.kFReq.scrollGoing })
         Vomnibar_.lastScrolling_ = now;
@@ -1517,6 +1525,9 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     if (Vomnibar_.keyResult_ === SimpleKeyResult.Nothing) { return; }
     VUtils_.Stop_(event, Vomnibar_.keyResult_ === SimpleKeyResult.Prevent);
   },
+  HandleKeyup_ff_: Build.BTypes & BrowserType.Firefox ? (event: KeyboardEventToPrevent): void => {
+    event.keyCode === kKeyCode.esc && event.key === "Escape" && Vomnibar_.HandleKeydown_(event)
+  } : 0 as never as null,
   onAltUp_ (event: KeyboardEvent): void {
     const listened = Vomnibar_._listenedAltDown
     if (!listened || (typeof listened === "string" ? Vomnibar_.getMappedKey_(event).key : event.keyCode) === listened) {

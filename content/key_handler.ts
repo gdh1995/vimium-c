@@ -29,6 +29,7 @@ let currentKeys: string
 let curKeyTimestamp: number
 let nextKeys: KeyFSM | ReadonlyChildKeyFSM & SafeObject | null
 
+let maybeEscIsHidden_ff: kKeyCode | 0 = kKeyCode.esc
 let isWaitingAccessKey = false
 let isCmdTriggered: kKeyCode = kKeyCode.None
 let noopEventHandler: EventListenerObject["handleEvent"] & (() => void) = Object.is as any
@@ -43,7 +44,7 @@ set_esc(function<T extends Exclude<HandlerResult, HandlerResult.ExitNormalMode>>
 
 export {
   passKeys, keyFSM, mappedKeys, mapKeyTypes, currentKeys, isWaitingAccessKey, isCmdTriggered, anyClickHandler,
-  onPassKey, isPassKeysReversed, noopEventHandler as noopHandler,
+  onPassKey, isPassKeysReversed, noopEventHandler as noopHandler, maybeEscIsHidden_ff
 }
 export function set_isCmdTriggered (_newTriggerred: kKeyCode): kKeyCode { return isCmdTriggered = _newTriggerred }
 export function set_passKeys (_newPassKeys: typeof passKeys): void { passKeys = _newPassKeys }
@@ -54,6 +55,7 @@ export function set_keyFSM (_newKeyFSM: KeyFSM): KeyFSM { return keyFSM = _newKe
 export function set_mapKeyTypes (_newMapKeyTypes: kMapKey): void { mapKeyTypes = _newMapKeyTypes }
 export function set_mappedKeys (_newMappedKeys: typeof mappedKeys): void { mappedKeys = _newMappedKeys }
 export function set_currentKeys (_newCurrentKeys: string): void { currentKeys = _newCurrentKeys }
+export function set_maybeEscIsHidden_ff (_isEsc: 0): void { maybeEscIsHidden_ff = _isEsc }
 
 export const inheritKeyMappings = (newState: ReturnType<VApiTy["y"]>): void => {
   if (newState.m[3]) {
@@ -232,6 +234,7 @@ export const onKeydown = (event: KeyboardEventToPrevent): void => {
     return;
   }
   OnChrome && isWaitingAccessKey && /*#__NOINLINE__*/ resetAnyClickHandler_cr()
+  OnFirefox && key === kKeyCode.esc && event.type[3] < kChar.e && (maybeEscIsHidden_ff = 0)
   OnFirefox && raw_insert_lock && insert_Lock_()
   let action = HandlerResult.Nothing, keyStr: string;
   let handler_ind = handler_stack.length
@@ -331,6 +334,9 @@ export const onKeyup = (event: KeyboardEventToPrevent): void => {
           : event.isTrusted === false) // skip checks of `instanceof KeyboardEvent` if checking `!.keyCode`
           && (event as UserTrustedKeyboardEvent).z !== fgCache
   ) { return; }
+  if (OnFirefox && key === maybeEscIsHidden_ff && key && !keydownEvents_[key] && event.key === "Escape") {
+    onKeydown(event)
+  }
   if (scroll_keyIsDown && (key === isCmdTriggered || isCmdTriggered < kKeyCode.True + 1)) {
     scrollTick(0);
   }
