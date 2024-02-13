@@ -70,6 +70,7 @@
     table.textContent = "";
     document.querySelector("#input").value = "";
     count = 0;
+    this.blur()
   }
 
   /** @type {(val: any) => string} */
