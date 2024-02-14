@@ -440,7 +440,6 @@ export const view_ = (el: SafeElement, allowSmooth?: BOOL | boolean, oldY?: numb
     if (style) { style.setProperty(kBh, "auto", "important") }
     OnEdge || OnChrome && Build.MinCVer < BrowserVer.MinScrollIntoViewOptions
         ? scrollIntoView_(el, !allowSmooth, delta < 0) : scrollIntoView_(el, !allowSmooth)
-    if (style) { style.cssText = oldCss as string }
     if (f) {
       secondScroll = elHeight < ih ? oldY! - scrollY : 0
       // required range of wanted: delta > 0 ? [-limit, 0] : [0, limit]
@@ -448,6 +447,7 @@ export const view_ = (el: SafeElement, allowSmooth?: BOOL | boolean, oldY?: numb
     }
     isNotInViewport(el) || // in case of `scroll-behavior: smooth`
     (delta || f) && scrollWndBy_(0, f ? secondScroll! * secondScroll! < 4 ? 0 : secondScroll! : delta * ih / 5)
+    if (style) { style.cssText = oldCss as string }
   }
   return ty
 }

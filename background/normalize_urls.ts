@@ -327,7 +327,7 @@ export const createSearch_ = function (query: string[], url: string, blank: stri
     } else {
       arr = localQuery === query && q2 ? q2 : localQuery.map(encodeAsciiComponent_)
       localQuery === query && !q2 && (q2 = arr)
-      s1 = isJSUrl_(url) || url.startsWith("vimium://run")
+      s1 = isJSUrl_(url) || url.startsWith("vimium://run") || url.startsWith("data:")
           || !(<RegExpOne> /\?|#.*=/).test(url.slice(0, ind)) ? "%20" : "+"
     }
     s2 && s2.includes("\\") && (s2 = s2.replace(<RegExpG> /\\([\\<>|])/g, "$1"))
@@ -450,7 +450,7 @@ export const decodeFileURL_ = (url: string, rawUrl?: string): string => {
   return url
 }
 
-const normalizeSVG_mv2 = (svg_outer_html: string): string => {
+const _normalizeSVG_mv2 = (svg_outer_html: string): string => {
   let svg = new DOMParser().parseFromString(svg_outer_html, "image/svg+xml").firstElementChild as SVGSVGElement | null
   for (const el of svg ? ([] as Element[]).slice.call(svg.querySelectorAll("script,use")) : []) { el.remove() }
   if (!svg || !svg.lastElementChild) { return "" }
@@ -485,7 +485,7 @@ export const normalizeSVG_ = (svg_outer_html: string): string => {
     out = svg_outer_html.replace(<RegExpG & RegExpSearchable<0>> /<(?!\/)[^>]+>/g,
         attributes => attributes.replace(<RegExpG> /\b(id|class|aria-[\w-]+)(\="[^"]+")? ?/g, ""))
   } else {
-    out = normalizeSVG_mv2(svg_outer_html)
+    out = _normalizeSVG_mv2(svg_outer_html)
   }
   out = out.replace(<RegExpG & RegExpSearchable<0>> /<\/?[A-Z:]+(?=\s|>)/g, s => s.toLowerCase())
   out = out.replace(<RegExpG & RegExpSearchable<0>> /(?:[%?#]|[^\S ])+/g, encodeURIComponent)

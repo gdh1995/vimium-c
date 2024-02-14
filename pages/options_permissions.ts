@@ -186,7 +186,7 @@ OnEdge || registerClass_("OptionalPermissions", OptionalPermissionsOption_)
 
 const initOptionalPermissions = (): void => {
   const fragment = document.createDocumentFragment()
-  let is_important = true
+  let is_important = shownItems.some(i => i.name_ === "bookmarks")
   for (const shownItem of shownItems) {
     const name = shownItem.name_
     const node = document.importNode(template, true) as EnsuredMountedHTMLElement
