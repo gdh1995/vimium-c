@@ -1,7 +1,7 @@
 import {
   framesForTab_, get_cOptions, cPort, cRepeat, bgC_, cmdInfo_, set_helpDialogData_, helpDialogData_, inlineRunKey_,
   set_cOptions, set_cPort, cKey, set_cKey, set_cRepeat, curTabId_, OnEdge, runOneMapping_, blank_, set_cEnv,
-  substitute_, innerClipboard_, CONST_, OnChrome
+  substitute_, readInnerClipboard_, CONST_, OnChrome
 } from "./store"
 import * as BgUtils_ from "./utils"
 import { Tabs_, runtimeError_, getCurTab, getCurShownTabs_, tabsGet, import2 } from "./browser"
@@ -131,7 +131,7 @@ export const fillOptionWithMask = <Cmd extends keyof BgCmdOptions>(template: str
       if ((<RegExpOne> /^[sS]:/).test(body)) { encode = body[0] === "s"; body = body.slice(2) }
       const clip = tailClipNameRe_.exec(body) || headClipNameRe_.exec(body)
       if (clip) { body = clip[0][0] === "<" ? body.slice(0, clip.index) : body.slice(clip[0].length) }
-      let val = clip ? innerClipboard_.get(clip[0][0] === "<" ? clip[0].slice(1) : clip[0].slice(0, -1)) || ""
+      let val = clip ? readInnerClipboard_(clip[0][0] === "<" ? clip[0].slice(1) : clip[0].slice(0, -1))
           : body === "__proto__" || body[0] === "$" ? "" : body ? (usableOptions as Dict<any>)[body] : getValue()
       val = typeof val === "string" ? val : val && typeof val === "object" ? JSON.stringify(val) : val + ""
       sed && (val = substitute_(val, SedContext.NONE, BgUtils_.DecodeURLPart_(sed[0].slice(1))))

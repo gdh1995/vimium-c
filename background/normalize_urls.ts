@@ -1,6 +1,6 @@
 import {
   CONST_, os_, CurCVer_, evalVimiumUrl_, historyCache_, IsEdg_, OnChrome, OnFirefox, searchEngines_, newTabUrl_f,
-  Origin2_, substitute_, innerClipboard_
+  Origin2_, substitute_, readInnerClipboard_
 } from "./store"
 import {
   isJSUrl_, DecodeURLPart_, resetRe_, isIPHost_, encodeAsciiComponent_, spacesRe_, protocolRe_, isTld_
@@ -319,8 +319,7 @@ export const createSearch_ = function (query: string[], url: string, blank: stri
     const clip = s2 ? tailClipNameRe_.exec(s2) || headClipNameRe_.exec(s2) : null
     if (clip && (clip[0][0] !== "<" || s2!.charAt(clip.index - 1) !== "\\")) {
       s2 = clip[0][0] === "<" ? s2!.slice(0, clip.index) : s2!.slice(clip[0].length)
-      localQuery = [innerClipboard_.get(clip[0][0] === "<" ? clip[0].slice(1) : clip[0].slice(0, -1)) || ""]
-      localQuery = localQuery[0].split(" ")
+      localQuery = readInnerClipboard_(clip[0][0] === "<" ? clip[0].slice(1) : clip[0].slice(0, -1)).split(" ")
     }
     if (s1 === "S") {
       arr = localQuery
