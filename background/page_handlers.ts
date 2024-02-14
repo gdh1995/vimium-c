@@ -17,7 +17,7 @@ import { keyMappingErrors_ } from "./key_mappings"
 import { runNextOnTabLoaded } from "./run_commands"
 import { MediaWatcher_ } from "./tools"
 import { checkHarmfulUrl_, focusOrLaunch_ } from "./open_urls"
-import { initHelp } from "./frame_commands"
+import { focusFrame, initHelp } from "./frame_commands"
 import { kPgReq, PgReq, Req2 } from "./page_messages"
 
 import PagePort = Frames.PagePort
@@ -202,9 +202,15 @@ const pageRequestHandlers_: {
           }
         }
       }
+      const topNotSelf = sender && sender.frameId_ ? ref!.top_ : null
+      if (topNotSelf && !hasSubDomain && !(sender!.flags_ & Frames.Flags.ResReleased)) {
+        try {
+          focusFrame(ref!.cur_, true, FrameMaskType.ForcedSelf, 1)
+        } catch { /* empty */ }
+      }
       return { ver: CONST_.VerName_, runnable, url, tabId,
         frameId: ref && (sender || ref.top_) ? (sender || ref.top_!.s).frameId_ : 0,
-        topUrl: sender && sender.frameId_ && ref!.top_ ? ref!.top_.s.url_ : null, frameUrl: sender && sender.url_,
+        topUrl: topNotSelf?.s.url_, frameUrl: sender && sender.url_,
         lock: ref && ref.lock_ ? ref.lock_.status_ : null, status: sender ? sender.status_ : Frames.Status.enabled,
         hasSubDomain, unknownExt: extHost,
         exclusions: runnable ? {

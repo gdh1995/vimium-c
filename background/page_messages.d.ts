@@ -38,7 +38,7 @@ export interface PgReq {
   [kPgReq.substitute]: [ [string, SedContext], string ]
   [kPgReq.checkHarmfulUrl]: [ string, boolean ]
   [kPgReq.actionInit]: [ void, { ver: string, runnable: boolean, url: string, tabId: number, frameId: number,
-    topUrl: string | null, frameUrl: string | null, lock: Frames.ValidStatus | null, status: Frames.ValidStatus,
+    topUrl: string | undefined, frameUrl: string | null, lock: Frames.ValidStatus | null, status: Frames.ValidStatus,
     hasSubDomain: 0 | 1 | 2, unknownExt: string | null,
     exclusions: {
       rules: SettingsNS.SettingsWithDefaults["exclusionRules"], onlyFirst: boolean, matchers: BaseUrlMatcher[],
