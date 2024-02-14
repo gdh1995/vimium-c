@@ -117,8 +117,7 @@ interface BgCmdOptions {
     /** value for .mask */ value: string
   } & Ensure<OpenPageUrlOptions, keyof OpenPageUrlOptions>
     & /** for .replace, ReuseType.reuse and JS URLs */ Req.FallbackOptions
-  [kBgCmd.reloadTab]: { hard: true; /** (deprecated) */ bypassCache: true; single: boolean }
-      & LimitedRangeOptions & TabFilterOptions
+  [kBgCmd.reloadTab]: { hard: boolean; single: boolean } & LimitedRangeOptions & TabFilterOptions
   [kBgCmd.removeRightTab]: LimitedRangeOptions & TabFilterOptions & Req.FallbackOptions
   [kBgCmd.removeTab]: LimitedRangeOptions & {
     highlighted: boolean | "no-current"

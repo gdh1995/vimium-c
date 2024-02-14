@@ -259,7 +259,7 @@ const commandGroups_: {
     , "scrollSelect", 1, "$dir=down|up, position=\"\"|begin|end"
     , "reload", "$hard"
     , "reloadTab"
-    , "reloadGivenTab", 1, "$hard, bypassCache"
+    , "reloadGivenTab", 1, "$hard"
     , "zoom", "$in, out, reset"
     , "zoomIn", 1
     , "zoomOut", 1

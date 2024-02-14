@@ -492,9 +492,7 @@ export const moveTabToNextWindow = ([tab]: [Tab], resolve: OnCmdResolved): void 
 }
 
 export const reloadTab = (tabs: Tab[], [start, ind, end]: Range3, r: OnCmdResolved, force1?: boolean): void => {
-  const reloadProperties = {
-    bypassCache: (get_cOptions<C.reloadTab>().hard || get_cOptions<C.reloadTab>().bypassCache) === true
-  },
+  const reloadProperties = { bypassCache: get_cOptions<C.reloadTab>().hard === true },
   reload = Tabs_.reload, allTabs = tabs
   if (abs(cRepeat) < 2 || get_cOptions<C.reloadTab>().single) {
     reload(tabs[force1 ? ind : start].id, reloadProperties, getRunNextCmdBy(kRunOn.otherCb))
