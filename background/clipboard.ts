@@ -1,6 +1,7 @@
 import {
   CurCVer_, CurFFVer_, OnChrome, OnEdge, OnFirefox, copy_, paste_, substitute_, set_copy_, set_paste_, set_substitute_,
-  settingsCache_, updateHooks_, searchEngines_, blank_, runOnTee_, innerClipboard_, framesForTab_, curTabId_
+  settingsCache_, updateHooks_, searchEngines_, blank_, runOnTee_, innerClipboard_, framesForTab_, curTabId_,
+  readInnerClipboard_, set_readInnerClipboard_
 } from "./store"
 import * as BgUtils_ from "./utils"
 import * as Exclusions from "./exclusions"
@@ -285,7 +286,7 @@ export const replaceUsingClipboard = (text: string, item: ClipSubItem, lastClean
       return "$" + key
     }
     const cmd = s1.replace(<RegExpOne> /^<|>$/, ""), opArr = (<RegExpOne> /\|\|=|[+\-*\/\|]=?|=/).exec(cmd)
-    let name = opArr ? cmd.slice(0, opArr.index) : cmd, value = innerClipboard_.get(name) || ""
+    let name = opArr ? cmd.slice(0, opArr.index) : cmd, value = readInnerClipboard_(name)
     if (opArr && (value || "||=".includes(opArr[0]))) {
       let op = opArr[0], alg = op[0], x = +cmd.slice(name.length + op.length) || 0, y = +value
       if (!isNaN(y || x)) {
@@ -385,7 +386,7 @@ set_substitute_(((input: string, normalContext: SedContext, mixedSed?: MixedSedO
         if (typeof action === "string") {
           const actionName = action.split("=")[0], actionVal = action.slice(actionName.length + 1)
           if (actionName === "copy") { writeInnerClipboard_(actionVal, text) }
-          else if (actionName === "paste") { text = innerClipboard_.get(actionVal) || "" }
+          else if (actionName === "paste") { text = readInnerClipboard_(actionVal) }
           else if (actionName === "keyword" && exOut) { exOut.keyword_ = actionVal }
           else if (actionName === "act" && exOut) { exOut.actAnyway_ = actionVal !== "false" }
           else if ((actionName === "sys-clip" || actionName === "sysclip") && exOut) {
@@ -450,6 +451,11 @@ const writeInnerClipboard_ = (name: string, text: string): void => {
     timeoutToClearInnerClipboard_ = 0
   }, Build.NDEBUG ? 20_000 : 45_000)
 }
+
+set_readInnerClipboard_(((name: string): string => {
+  const val = innerClipboard_.get(name)
+  return (val ?? innerClipboard_.get(name.endsWith("!") ? name.slice(0, -1) : name + "!")) || ""
+}) satisfies typeof readInnerClipboard_)
 
 const getTextArea_html = (): HTMLTextAreaElement => {
   const el = (globalThis as MaybeWithWindow).document!.createElement("textarea")
@@ -540,7 +546,7 @@ set_copy_(((data, join, sed, keyword): string | Promise<string> => {
 set_paste_(((sed, newLenLimit?: number, exOut?: InfoOnSed): string | Promise<string | null> => {
   const clip = detectClipSed(sed, "<")
   if (clip) {
-    return reformat_(innerClipboard_.get(clip) || "", null, exOut)
+    return reformat_(readInnerClipboard_(clip), null, exOut)
   }
   if (Build.MV3 || OnFirefox && (navClipboard || (navClipboard = navigator.clipboard))) {
     return (Build.MV3 ? runOnTee_(kTeeTask.Paste, null, null)

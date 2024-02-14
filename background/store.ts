@@ -225,6 +225,7 @@ export let paste_: (sed?: MixedSedOpts | null, len?: number, exOut?: InfoOnSed
     ) => string | Promise<string | null> | null = () => ""
 export let substitute_: (text: string, context: SedContext, sed?: MixedSedOpts | null, exOut?: InfoOnSed) => string
     = s => s
+export let readInnerClipboard_: (name: string) => string = () => ""
 export let evalVimiumUrl_: Urls.Executor = () => null
 export let updateToLocal_: ((wait: number) => void) | true | null = null
 export let shownHash_: ((this: void) => string) | null = null
@@ -237,6 +238,7 @@ export const set_restoreSettings_ = (_newRestore: typeof restoreSettings_): void
 export const set_copy_ = (_newCopy: typeof copy_): void => { copy_ = _newCopy }
 export const set_paste_ = (_newPaste: typeof paste_): void => { paste_ = _newPaste }
 export const set_substitute_ = (_newSed: typeof substitute_): void => { substitute_ = _newSed }
+export const set_readInnerClipboard_ = (_newRIC: typeof readInnerClipboard_): void => { readInnerClipboard_ = _newRIC }
 export const set_evalVimiumUrl_ = (_newEval: typeof evalVimiumUrl_): void => { evalVimiumUrl_ = _newEval }
 export const set_shownHash_ = (_newHash: typeof shownHash_): void => { shownHash_ = _newHash }
 export const set_updateToLocal_ = (_newBackup: typeof updateToLocal_): void => { updateToLocal_ = _newBackup }
