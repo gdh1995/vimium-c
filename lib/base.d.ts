@@ -292,4 +292,6 @@ interface KnownDataset {
   canonicalSrc: string // used in HintMode.{OPEN_IMAGE,COPY_IMAGE,DOWNLOAD_MEDIA}
 }
 
-declare const enum kElRef { lastHovered = 1, lastEditable, lastClicked, currentScrolling, cachedScrollable }
+declare const enum kElRef {
+  lastHovered = 1, lastEditable, lastEditable2, lastClicked, currentScrolling, cachedScrollable
+}

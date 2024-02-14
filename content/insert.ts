@@ -1,6 +1,6 @@
 import {
   doc, keydownEvents_, safeObj, isTop, set_keydownEvents_, setupEventListener, Stop_, OnChrome, OnFirefox, weakRef_ff,
-  esc, onWndFocus, isEnabled_, readyState_, recordLog, weakRef_not_ff, OnEdge, getTime, abs_, fgCache,
+  esc, onWndFocus, isEnabled_, readyState_, recordLog, weakRef_not_ff, OnEdge, getTime, abs_, fgCache, deref_,
   safeCall, timeout_, timeStamp_
 } from "../lib/utils"
 import {
@@ -31,6 +31,7 @@ let isHintingInput: BOOL = 0
 let inputHint: { /** box */ b: HTMLDivElement | null; /** hints */ h: InputHintItem[] } | null = null
 let suppressType: string | 0 = 0
 let insert_last_: WeakRef<LockableElement> | null | undefined
+let insert_last2_: WeakRef<LockableElement> | null | undefined
 let is_last_mutable: BOOL = 1
 let lastWndFocusTime = 0
 // the `readyState_ > "i"` is to grab focus on `chrome://*/*` URLs and `about:*` iframes
@@ -41,11 +42,12 @@ let passAsNormal: BOOL = 0
 
 export {
   lock_ as raw_insert_lock, insert_global_, passAsNormal,
-  insert_last_, is_last_mutable as insert_last_mutable,
+  insert_last_, insert_last2_, is_last_mutable as insert_last_mutable,
   grabBackFocus, suppressType, inputHint as insert_inputHint, onWndBlur2,
 }
 export function set_insert_global_ (_newIGlobal: typeof insert_global_): void { insert_global_ = _newIGlobal }
 export function set_insert_last_ (_newILast: WeakRef<LockableElement> | null): void { insert_last_ = _newILast }
+export function set_insert_last2_ (_newILast2: typeof insert_last2_): void { insert_last2_ = _newILast2 }
 export function set_is_last_mutable (_newIsLastMutable: BOOL): void { is_last_mutable = _newIsLastMutable }
 export function set_inputHint (_newIHint: typeof inputHint): void { inputHint = _newIHint }
 export function set_isHintingInput (_newIsHintingInput: BOOL): void { isHintingInput = _newIsHintingInput }
@@ -60,7 +62,7 @@ export const insertInit = (doesGrab?: boolean | null, inLoading?: 1): void => {
   if (doesGrab) {
     if (activeEl && getEditableType_(activeEl)) {
       if (inLoading) {
-        insert_last_ = null;
+        insert_last_ = insert_last2_ = null
         counter = 1
         recordLog(kTip.logGrabFocus)()
       }
@@ -207,7 +209,7 @@ export const exitInputHint = (): void => {
 }
 
 export const resetInsert = (): void => {
-  insert_last_ = lock_ = insert_global_ = null;
+  insert_last_ = insert_last2_ = lock_ = insert_global_ = null
   is_last_mutable = 1;
   exitGrab()
   setupSuppress()
@@ -218,6 +220,7 @@ export const onFocus = (event: Event | FocusEvent): void => {
       ? !event.isTrusted : event.isTrusted === false) { return; }
   // on Firefox, target may also be `document`
   let target: EventTarget | Element | Window | Document = event.target;
+  let el2: SafeElement & { _: 1 } | LockableElement | null | undefined
   if (target === window) {
     lastWndFocusTime = timeStamp_(event)
     onWndFocus()
@@ -248,8 +251,8 @@ export const onFocus = (event: Event | FocusEvent): void => {
   }
   if (!lastWndFocusTime || timeStamp_(event) - lastWndFocusTime > 30) {
     if (!OnFirefox) {
-      let el: SafeElement | null = SafeEl_not_ff_!(target as Element)
-      el && setNewScrolling(el)
+      el2 = SafeEl_not_ff_!(target as Element) satisfies SafeElement | null as SafeElement & { _: 1 } | null
+      el2 && setNewScrolling(el2)
     } else {
       setNewScrolling(target as SafeElement)
     }
@@ -261,10 +264,16 @@ export const onFocus = (event: Event | FocusEvent): void => {
     } else {
       esc!(HandlerResult.Nothing)
       lock_ = target
-      if (is_last_mutable) {
-        // here ignore the rare case of an XMLDocument with a editable node on Firefox, for smaller code
-        if (activeEl_unsafe_() !== doc.body) {
+      // here ignore the rare case of an XMLDocument with a editable node on Firefox, for smaller code
+      if (activeEl_unsafe_() !== doc.body) {
+        if (is_last_mutable) {
+          el2 = deref_(insert_last_)
+          insert_last2_ = !el2 || el2 === target ? insert_last2_
+              : OnFirefox && Build.MinFFVer < FirefoxBrowserVer.MinWeakRefReliableForDom
+              ? weakRef_ff(el2, kElRef.lastEditable2) : insert_last_
           insert_last_ = OnFirefox ? weakRef_ff(target, kElRef.lastEditable) : weakRef_not_ff!(target)
+        } else {
+          insert_last2_ = OnFirefox ? weakRef_ff(target, kElRef.lastEditable2) : weakRef_not_ff!(target)
         }
       }
     }

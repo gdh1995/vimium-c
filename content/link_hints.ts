@@ -95,7 +95,7 @@ import {
 } from "../lib/dom_utils"
 import {
   ViewBox, getViewBox_, prepareCrop_, wndSize_, bZoom_, wdZoom_, dScale_, boundingRect_,
-  docZoom_, bScale_, dimSize_, isSelARange, view_, isNotInViewport, VisibilityType,
+  docZoom_, bScale_, dimSize_, isSelARange, view_, isNotInViewport, kInvisibility,
 } from "../lib/rect"
 import {
   replaceOrSuppressMost_, removeHandler_, getMappedKey, keybody_, isEscape_, getKeyStat_, keyNames_, suppressTail_,
@@ -107,7 +107,9 @@ import {
 } from "./dom_ui"
 import { scrollTick, beginScroll, currentScrolling } from "./scroller"
 import { hudTip, hudShow, hudHide, hud_tipTimer } from "./hud"
-import { set_onWndBlur2, insert_Lock_, set_grabBackFocus, insertInit, raw_insert_lock, insert_last_ } from "./insert"
+import {
+  set_onWndBlur2, insert_Lock_, set_grabBackFocus, insertInit, raw_insert_lock, insert_last_, insert_last2_
+} from "./insert"
 import {
   getVisibleElements, localLinkClear, frameNested_, checkNestedFrame, set_frameNested_, filterOutNonReachable, traverse,
   ClickType, initTestRegExps, excludeHints
@@ -558,7 +560,8 @@ export const findAnElement_ = (options: OptionsToFindElement, count: number, als
       : testD("el") // selected
         ? isSelARange(getSelection_()) && (el = getSelectionFocusEdge_(getSelected()), isSel = !!el, el)
       : testD("sc") || testD("ac") ? derefInDoc_(currentScrolling) // currentScrollable / DOMActivate
-      : testD("la") || testD("ec") ? /* last-focused / recently-focused */ derefInDoc_(insert_last_)
+      : testD("la") || testD("ec")
+        ? /* last-focused / recently-focused */ derefInDoc_(insert_last_) || derefInDoc_(insert_last2_)
       : testD("f") ? /* focused */ insert_Lock_() || (OnFirefox ? <SafeElement | null> deepActiveEl_unsafe_(alsoBody)
             : SafeEl_not_ff_!(deepActiveEl_unsafe_(alsoBody)))
       : (testD("h") || testD("cl")) ? derefInDoc_(lastHovered_) // hovered | clicked
@@ -573,7 +576,7 @@ export const findAnElement_ = (options: OptionsToFindElement, count: number, als
             && chromeVer_ < BrowserVer.MinEnsured$Element$$Closest) ? OnFirefox ? el.closest!(j) as SafeElement | null
             : SafeEl_not_ff_!(el.closest!(j)) : el2
       }
-      el = el && isNotInViewport(el) < (wholeDoc ? VisibilityType.OutOfView+1 : VisibilityType.Visible + 1)
+      el = el && isNotInViewport(el) < (wholeDoc ? kInvisibility.OutOfView + 1 : kInvisibility.Visible + 1)
         && excludeHints([[el as SafeElementForMouse]], options, 1).length > 0 ? el : null
     }
     if (el) { break }

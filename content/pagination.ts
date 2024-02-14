@@ -6,7 +6,7 @@ import {
   htmlTag_, isAriaFalse_, isStyleVisible_, querySelectorAll_unsafe_, isIFrameElement, ALA, attr_s, findAnchor_,
   contains_s, notSafe_not_ff_, hasTag_, AriaArray, testMatch, uneditableInputs_, findSelectorByHost
 } from "../lib/dom_utils"
-import { getBoundingClientRect_, isNotInViewport, view_, VisibilityType } from "../lib/rect"
+import { getBoundingClientRect_, isNotInViewport, view_, kInvisibility } from "../lib/rect"
 import { kSafeAllSelector, detectUsableChild } from "./link_hints"
 import { traverse, ngEnabled, extraClickable_ } from "./local_links"
 import { find_box } from "./mode_find"
@@ -173,7 +173,7 @@ export const findNextInRel = (options: CmdOptions[kFgCmd.goNext]
       : ":-webkit-any" + query.slice(3).replace("~= i", ""))!
   let s: string | null | undefined;
   type HTMLElementWithRel = HTMLAnchorElement | HTMLAreaElement | HTMLLinkElement;
-  let matched: HTMLElementWithRel | undefined, invisible: VisibilityType | 9 = 9, tag: "a" | "area" | "link" | ""
+  let matched: HTMLElementWithRel | undefined, invisible: kInvisibility | 9 = 9, tag: "a" | "area" | "link" | ""
   const re1 = <RegExpOne> /\s/
   if (OnChrome && Build.MinCVer < BrowserVer.MinEnsured$ForOf$ForDOMListTypes
       && Build.MinCVer >= BrowserVer.BuildMinForOf
@@ -195,12 +195,12 @@ export const findNextInRel = (options: CmdOptions[kFgCmd.goNext]
       }
       if (!matched || (invisible < 9 ? invisible : (invisible = isNotInViewport(matched as typeof element)))
           || !options.n && !isNotInViewport(element)) {
-        invisible = !matched || invisible ? 9 : VisibilityType.Visible
+        invisible = !matched || invisible ? 9 : kInvisibility.Visible
         matched = element as HTMLElementWithRel
       }
     }
   }
-  if (matched && (invisible < 9 ? invisible : isNotInViewport(matched as SafeHTMLElement)) > VisibilityType.OutOfView) {
+  if (matched && (invisible < 9 ? invisible : isNotInViewport(matched as SafeHTMLElement)) > kInvisibility.OutOfView) {
     s = matched.href
     options.match = `a[href*="${OnEdge || OnChrome && Build.MinCVer < BrowserVer.Min$CSS$$escape
           ? s.slice(new URL(s).origin.length).replace(<RegExpG> /"|\\/g, "\\$&")
@@ -217,8 +217,8 @@ export const findNextInRel = (options: CmdOptions[kFgCmd.goNext]
 }
 
 export const jumpToNextLink: VApiTy["j"] = (linkElement: GoNextBaseCandidate[0], options): void => {
-  const invisible = options.a ? VisibilityType.NoSpace : isNotInViewport(linkElement)
-  const avoidClick = invisible > VisibilityType.OutOfView
+  const invisible = options.a ? kInvisibility.NoSpace : isNotInViewport(linkElement)
+  const avoidClick = invisible > kInvisibility.OutOfView
   const url = (avoidClick || invisible && !options.v)
       && ((linkElement as TypeToPick<Element, HTMLLinkElement, "href">).href ||
           (findAnchor_(linkElement) || linkElement as TypeToPick<Element, HTMLLinkElement, "href">).href)
@@ -226,7 +226,7 @@ export const jumpToNextLink: VApiTy["j"] = (linkElement: GoNextBaseCandidate[0],
   if (avoidClick && url) {
     contentCommands_[kFgCmd.framesGoBack](safer<CmdOptions[kFgCmd.framesGoBack]>({ r: 1, u: url }))
   } else {
-    options.v && invisible === VisibilityType.OutOfView && view_(linkElement, 1)
+    options.v && invisible === kInvisibility.OutOfView && view_(linkElement, 1)
     flash_(linkElement) // here calls getRect -> preparCrop_
     timeout_((): void => { void catchAsyncErrorSilently(click_async(linkElement)) }, 100)
   }

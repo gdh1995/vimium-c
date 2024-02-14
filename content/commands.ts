@@ -8,15 +8,16 @@ import {
   isHTML_, hasTag_, createElement_, querySelectorAll_unsafe_, SafeEl_not_ff_, docEl_unsafe_, MDW, CLK, derefInDoc_,
   querySelector_unsafe_, DAC, removeEl_s, appendNode_s, setClassName_s, INP, contains_s, toggleClass_s, modifySel,
   focus_, testMatch, docHasFocus_, deepActiveEl_unsafe_, getEditableType_, textOffset_, fullscreenEl_unsafe_, IsInDOM_,
-  inputSelRange, dispatchAsync_, notSafe_not_ff_, activeEl_unsafe_, isIFrameElement, elFromPoint_
+  inputSelRange, dispatchAsync_, notSafe_not_ff_, activeEl_unsafe_, isIFrameElement, elFromPoint_, isStyleVisible_
 } from "../lib/dom_utils"
 import {
   replaceOrSuppressMost_, removeHandler_, getMappedKey, prevent_, isEscape_, keybody_, DEL, BSP, ENTER, handler_stack,
   getKeyStat_, suppressTail_, isRepeated_
 } from "../lib/keyboard_utils"
 import {
-  view_, wndSize_, isNotInViewport, getZoom_, prepareCrop_, getViewBox_, padClientRect_, isSelARange, center_,
-  getBoundingClientRect_, setBoundary_, wdZoom_, dScale_, getVisibleClientRect_, getVisibleBoundingRect_, isSelMultiline
+  view_, wndSize_, isNotInViewport, getZoom_, prepareCrop_, getViewBox_, padClientRect_, isSelARange, center_, dScale_,
+  getBoundingClientRect_, setBoundary_, wdZoom_, getVisibleClientRect_, getVisibleBoundingRect_, isSelMultiline,
+  kInvisibility
 } from "../lib/rect"
 import { post_, set_contentCommands_, runFallbackKey, send_ } from "./port"
 import {
@@ -37,7 +38,7 @@ import {
 import {
   exitInputHint, insert_inputHint, insert_last_, raw_insert_lock, insert_Lock_, resetInsert, set_is_last_mutable,
   set_inputHint, set_insert_global_, set_isHintingInput, set_insert_last_, exitInsertMode, set_passAsNormal,
-  insert_global_
+  insert_global_, insert_last2_, set_insert_last2_, insert_last_mutable
 } from "./insert"
 import { activate as visualActivate, deactivate as visualDeactivate } from "./visual"
 import { activate as scActivate, onActivate, currentScrolling, setNewScrolling, scrollTick } from "./scroller"
@@ -240,27 +241,37 @@ set_contentCommands_([
   },
   /* kFgCmd.focusInput: */ (options: CmdOptions[kFgCmd.focusInput], count: number): void => {
     const S = "IH IHS"
-    const act = options.act || options.action, selAction = options.select, known_last = derefInDoc_(insert_last_)
+    const act = options.act || options.action, selAction = options.select
+    const checkOrView = act === "last-visible" ? isNotInViewport : view_
+    const first_last = derefInDoc_(insert_last_), second_last = derefInDoc_(insert_last2_)
+    const known_last = first_last || second_last
     const selectOrClick = (el: SafeHTMLElement, rect?: Rect | null, onlyOnce?: true): Promise<void> => {
       return getEditableType_(el) ? select_(el, rect, onlyOnce, selAction, onlyOnce)
           : click_async(el, rect, 1).then((): void => { onlyOnce && flash_(el) })
     }
     let actRet: kTip | 0 | -1 = 0
     OnFirefox && insert_Lock_()
+    if (OnEdge || OnFirefox || OnChrome && Build.MinCVer < BrowserVer.MinEnsured$WeakRef) {
+      first_last || set_insert_last_(null)
+      second_last || set_insert_last2_(null)
+    }
     if (act && (act[0] !== "l" || known_last && !raw_insert_lock)) { /*#__ENABLE_SCOPED__*/
       let newEl: LockableElement | null | undefined = raw_insert_lock;
       if (newEl) {
         if (act === BSP) {
-          if (!view_(newEl, 1)) { execCommand(DEL, doc); }
+          if (!view_(newEl, 1) && isStyleVisible_(newEl)) { execCommand(DEL, doc); }
         } else {
+          insert_last_mutable && set_insert_last2_(insert_last_)
           set_insert_last_(OnFirefox ? weakRef_ff(newEl, kElRef.lastEditable) : weakRef_not_ff!(newEl))
           set_is_last_mutable(0)
           newEl.blur();
         }
-      } else if (!(newEl = known_last)) {
+      } else if (!known_last) {
         actRet = kTip.noFocused
-      } else if (!(act === "last-visible" ? isNotInViewport : view_)(newEl)) {
-        set_insert_last_(null)
+      } else if (!(actRet = checkOrView(newEl = known_last) as number) && isStyleVisible_(newEl)
+          || actRet as number - kInvisibility.OutOfView && second_last && !checkOrView(newEl = second_last)
+              && isStyleVisible_(newEl)) {
+        actRet = 0
         set_is_last_mutable(1)
         getZoom_(newEl);
         prepareCrop_();
@@ -275,7 +286,7 @@ set_contentCommands_([
         actRet = act[0] === "l" ? -1 : (flash_(newEl), kTip.focusedIsHidden)
       }
       if (actRet >= 0) {
-        runFallbackKey(options, actRet)
+        runFallbackKey(options, actRet satisfies kTip | 0)
         return;
       }
       if (OnChrome && Build.MinCVer < BrowserVer.MinTestedES6Environment) { newEl = null } // clean the `var newEl`
@@ -333,7 +344,7 @@ set_contentCommands_([
     if (abs_(count) > 2 * sel) {
       sel = count < 0 ? 0 : sel - 1
     } else {
-      for (ind = 0; ind < sel && hints[ind].d !== known_last; ind++) { /* empty */ }
+      for (ind = 0; ind < sel && hints[ind].d !== known_last && hints[ind].d !== second_last; ) { ind++ }
       if (preferredSelector.endsWith("!") ? (preferredSelector = preferredSelector.slice(0, -1)) : ind >= sel) {
         for (ind = preferredSelector && safeCall(testMatch, preferredSelector, visibleInputs[0]) === false ? 0 : sel;
             ind < sel && !testMatch(preferredSelector, visibleInputs[ind]); ind++) { /* empty */ }
