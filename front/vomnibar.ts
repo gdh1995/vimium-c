@@ -1077,14 +1077,19 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
             ? !event.isTrusted : event.isTrusted === false)) { return; }
     const a = Vomnibar_, deltaY = event.deltaY, now = Date.now(), mode = event.deltaMode
     const target = event.target as Element, input = a.input_
-    let deltaX = event.deltaX
-    deltaX = !deltaY || deltaX && Math.abs(deltaX / deltaY) > 0.66 ? deltaX : 0
+    const rawDeltaX = event.deltaX,
+    deltaX = !deltaY || rawDeltaX && Math.abs(rawDeltaX / deltaY) > 0.66 ? rawDeltaX : 0
     if (a.isActive_ && target == input && !deltaY && (deltaX < 0 ? input.scrollLeft > 0
         : input.scrollLeft + 1e-2 < input.scrollWidth - input.clientWidth)) { return }
     VUtils_.Stop_(event, 1);
-    const absDelta = Math.abs(deltaY || deltaX)
-    const notTouchpad = mode === /* WheelEvent.DOM_DELTA_LINE */ 1 || !mode && !(deltaX * deltaY)
-        && (a.wheelMinStep_ ? absDelta >= Math.abs(a.wheelMinStep_) : (absDelta % 10) === 0 && absDelta >= 150)
+    const absDelta = Math.abs(deltaY || deltaX), absMinStep = Math.abs(a.wheelMinStep_)
+    let notTouchpad: boolean | 2 = mode === /* WheelEvent.DOM_DELTA_LINE */ 1 || !mode && !(rawDeltaX * deltaY)
+        && (absMinStep > 9 ? absDelta >= absMinStep : 2)
+    if (notTouchpad === 2) {
+      const legacyWheelDelta = deltaY ? (event as any).wheelDeltaY : (event as any).wheelDeltaX as number
+      const scale = legacyWheelDelta ? Math.abs(legacyWheelDelta) / absDelta : 0
+      notTouchpad = scale ? (scale | 0) === scale : (absDelta % 10) === 0 && absDelta >= 90
+    }
     if (deltaY && target === input) {
       a.onWordAction_((deltaY < 0) !== (notTouchpad !== (a.wheelMinStep_ < 0)) ? 5 : 2, 0, notTouchpad ? 1: 2)
       return
@@ -1281,8 +1286,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       }
     }
     Vomnibar_.wheelSpeed_ = 1
-    Vomnibar_.wheelMinStep_ = Build.BTypes & BrowserType.Chrome && (Build.BTypes === BrowserType.Chrome as number
-            || Vomnibar_.browser_ === BrowserType.Chrome) ? 0 : 120
+    Vomnibar_.wheelMinStep_ = 0
     omniStyles = omniStyles.replace(<RegExpG & RegExpSearchable<2>> /\b([\w-]+)=([\w.]+)/g, (_, key, val): string => {
       key === "wheel-speed" && (Vomnibar_.wheelSpeed_ = Math.max(0.1, Math.min(parseFloat(val) || 1, 10)))
       key === "wheel-min-step" && (Vomnibar_.wheelMinStep_ = Math.max(-2e3, Math.min(parseInt(val) || 0, 2e3)))
