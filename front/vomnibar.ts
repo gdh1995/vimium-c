@@ -1078,10 +1078,11 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     if (event.ctrlKey || event.metaKey
         || (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
             ? !event.isTrusted : event.isTrusted === false)) { return; }
-    const a = Vomnibar_, input = a.input_, now = Date.now()
+    const a = Vomnibar_, input = a.input_
     const { target, deltaX: rawDeltaX, deltaY: rawDeltaY, deltaMode: mode } = event
     const deltaX = !rawDeltaY || rawDeltaX && Math.abs(rawDeltaX / rawDeltaY) > 1 ? rawDeltaX : 0
     const deltaY = deltaX ? 0 : rawDeltaY, hasXAndY = rawDeltaX && rawDeltaY, absDelta = Math.abs(deltaY || deltaX)
+    let total = 0, scale = 0
     if (Build.BTypes & BrowserType.Firefox && Build.OS & kBOS.MAC) {
       a._nearWheelHasDeltaXY = Math.max(a._nearWheelHasDeltaXY ? 1 : 0,
           Math.min(a._nearWheelDeltaLimited + (hasXAndY ? 1 : -1), 9))
@@ -1091,9 +1092,10 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     if (notTouchpad === 3) {
       const legacyWheelDelta = deltaX ? (event as any).wheelDeltaX : (event as any).wheelDeltaY as number
       const absLegacyDelta = legacyWheelDelta && Math.abs(legacyWheelDelta) || 0
-      const absMinStep = Math.abs(a.wheelMinStep_), ratio = absLegacyDelta ? absLegacyDelta / absDelta : 0
+      const absMinStep = Math.abs(a.wheelMinStep_)
+      scale = absLegacyDelta ? absLegacyDelta / absDelta : 0
       // if touchpad, then 1) isScaled; 2) absDelta should be int, unless on firefox + non-mac
-      const isScaled = !!ratio && Math.abs(absLegacyDelta / Math.round(ratio) - absDelta) <= 1
+      const isScaled = !!scale && Math.abs(absLegacyDelta / Math.round(scale) - absDelta) <= 1
           && (!!(Build.BTypes & BrowserType.Firefox) || Build.OS === kBOS.MAC as number || (absDelta|0) === absDelta)
       a._nearWheelDeltaLimited = Math.max(-9, Math.min(a._nearWheelDeltaLimited + (absDelta < 12 ? 1 : -1), 9))
       if (Build.BTypes & BrowserType.Firefox && Build.OS & kBOS.MAC && (!(Build.OS & ~kBOS.MAC) || !a.os_)
@@ -1109,24 +1111,31 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       } else if (Build.OS !== kBOS.MAC as number && (!(Build.OS & kBOS.MAC) || a.os_)) { // win or linux
         notTouchpad = (absDelta | 0) === absDelta && absDelta >= 20 && (!absLegacyDelta
             ? a._nearWheelDeltaLimited < 3 : (absDelta % 10) === 0 || absLegacyDelta >= 80 && (absLegacyDelta%10) === 0)
-      } else if (Build.BTypes === BrowserType.Firefox as number
-            || Build.BTypes & BrowserType.Firefox && a.browser_ & BrowserType.Firefox) {
-        notTouchpad = a._nearWheelDeltaLimited < 2
       } else {
-        notTouchpad = a._nearWheelDeltaLimited < ((absDelta | 0) !== absDelta ? 5 : 3) // safari or (chrome w/o legacy)
+        notTouchpad = absDelta >= 4 && a._nearWheelDeltaLimited < (Build.BTypes === BrowserType.Firefox as number
+            || Build.BTypes & BrowserType.Firefox && a.browser_ & BrowserType.Firefox ? 2
+            : /* safari or (chrome w/o legacy) */ (absDelta | 0) !== absDelta ? 5 : 3)
       }
     }
     if (notTouchpad satisfies boolean | 2 === 2) { a._nearWheelHasDeltaXY = a._nearWheelDeltaLimited = 0 }
     if (!a.isActive_ || target == input && deltaX && (deltaX < 0 ? input.scrollLeft > 0
-        : input.scrollLeft + 1e-2 < input.scrollWidth - input.clientWidth)) { return }
+          : input.scrollLeft + 1e-2 < input.scrollWidth - input.clientWidth)) { a.wheelDelta_ = 0; return }
     VUtils_.Stop_(event, 1);
     if (hasXAndY && Math.abs(rawDeltaX - rawDeltaY) < 0.5 || !absDelta) { return }
     const forward = !!notTouchpad !== (a.wheelMinStep_ < 0)
     if (target === input) {
-      deltaY && a.onWordAction_((deltaY > 0) === forward ? 5 : 2, 0, notTouchpad ? 1: 2)
+      if (deltaY) {
+        total = (a.wheelStart_ ? 0 : a.wheelDelta_) + deltaY
+        if (Math.abs(total) >= 10) { // on mac, touchpad may cause a hook (curve)
+          a.onWordAction_((total > 0) === forward ? 5 : 2, 0, notTouchpad ? 1: 2)
+          total = (Math.abs(total) % 10) * (total > 0 ? 1 : -1)
+        }
+      }
+      a.wheelDelta_ = total
       return
     }
     if (deltaX || a.isSearchOnTop_ || a.inputBar_.contains(target as Element) && a.inputBar_ !== target) { return }
+    const now = Date.now()
     if (now - a.wheelTime_ > (!mode && !notTouchpad
                               ? GlobalConsts.TouchpadTimeout : GlobalConsts.WheelTimeout)
         || now - a.wheelTime_ < -33) {
@@ -1134,7 +1143,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       a.wheelStart_ = 0;
     }
     a.wheelTime_ = now;
-    let scale = Math.max(1, 1 + Math.log(a.wheelSpeed_)), total = a.wheelDelta_ + (notTouchpad
+    scale = Math.max(1, 1 + Math.log(a.wheelSpeed_))
+    total = a.wheelDelta_ + (notTouchpad
           ? deltaY * (GlobalConsts.VomnibarWheelStepForPage / 3) * a.wheelSpeed_
           : notTouchpad || mode ? /* WheelEvent.DOM_DELTA_PAGE */ deltaY * GlobalConsts.VomnibarWheelStepForPage
           : deltaY * scale)
