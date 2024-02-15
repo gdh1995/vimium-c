@@ -226,6 +226,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   wheelDelta_: 0,
   wheelSpeed_: 1,
   wheelMinStep_: 0,
+  _nearWheelHasDeltaXY: 0,
+  _nearWheelDeltaLimited: 0,
   browser_: Build.BTypes && !(Build.BTypes & (Build.BTypes - 1)) ? Build.BTypes as never : BrowserType.Chrome,
   browserVer_: BrowserVer.assumedVer,
   isEdg_: false,
@@ -1075,27 +1077,49 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     if (event.ctrlKey || event.metaKey
         || (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
             ? !event.isTrusted : event.isTrusted === false)) { return; }
-    const a = Vomnibar_, deltaY = event.deltaY, now = Date.now(), mode = event.deltaMode
-    const target = event.target as Element, input = a.input_
-    const rawDeltaX = event.deltaX,
-    deltaX = !deltaY || rawDeltaX && Math.abs(rawDeltaX / deltaY) > 0.66 ? rawDeltaX : 0
-    if (a.isActive_ && target == input && !deltaY && (deltaX < 0 ? input.scrollLeft > 0
+    const a = Vomnibar_, input = a.input_, now = Date.now()
+    const { target, deltaX: rawDeltaX, deltaY: rawDeltaY, deltaMode: mode } = event 
+    const deltaX = !rawDeltaY || rawDeltaX && Math.abs(rawDeltaX / rawDeltaY) > 1 ? rawDeltaX : 0
+    const deltaY = deltaX ? 0 : rawDeltaY
+    if (rawDeltaX && rawDeltaY) { a._nearWheelHasDeltaXY = 1 }
+    if (rawDeltaX && rawDeltaY && Math.abs(rawDeltaX - rawDeltaY) < 0.5 || !deltaX && !deltaY) { return }
+    let notTouchpad: boolean | 2 | 3 = mode===/*WheelEvent.DOM_DELTA_LINE*/ 1 ? 2 : !mode && !(rawDeltaX*rawDeltaY) && 3
+    if (notTouchpad === 3) {
+      const legacyWheelDelta = deltaX ? (event as any).wheelDeltaX : (event as any).wheelDeltaY as number
+      const absLegacyDelta = legacyWheelDelta && Math.abs(legacyWheelDelta) || 0
+      const absDelta = Math.abs(deltaY || deltaX), absMinStep = Math.abs(a.wheelMinStep_)
+      const ratio = legacyWheelDelta ? absLegacyDelta / absDelta : 0
+      // if touchpad, then 1) isScaled; 2) absDelta should be int, unless on firefox + non-mac
+      const isScaled = !!ratio && Math.abs(absLegacyDelta / Math.round(ratio) - absDelta) <= 1
+          && (!!(Build.BTypes & BrowserType.Firefox) || Build.OS === kBOS.MAC as number || (absDelta|0) === absDelta)
+      a._nearWheelDeltaLimited = Math.max(-9, Math.min(a._nearWheelDeltaLimited + (absDelta < 12 ? 1 : -1), 9))
+      if (absLegacyDelta && !isScaled
+          || absMinStep > 9 && (absDelta >= absMinStep || absLegacyDelta >= absMinStep) && !a._nearWheelHasDeltaXY) {
+        notTouchpad = 2
+      } else if (a._nearWheelHasDeltaXY) {
+        notTouchpad = false
+      } else if (Build.OS !== kBOS.MAC as number && (!(Build.OS & kBOS.MAC) || a.os_)) { // win or linux
+        notTouchpad = (absDelta | 0) === absDelta && absDelta >= 20 && (!absLegacyDelta
+            ? a._nearWheelDeltaLimited < 3 : (absDelta % 10) === 0 || absLegacyDelta >= 80 && (absLegacyDelta%10) === 0)
+      } else if (Build.BTypes === BrowserType.Firefox as number
+            || Build.BTypes & BrowserType.Firefox && a.browser_ & BrowserType.Firefox) {
+        notTouchpad = a._nearWheelDeltaLimited < 2
+      } else {
+        notTouchpad = a._nearWheelDeltaLimited < ((absDelta | 0) !== absDelta ? 5 : 3) // safari or (chrome w/o legacy)
+
+      }
+    }
+    if (notTouchpad satisfies boolean | 2 === 2) { a._nearWheelHasDeltaXY = a._nearWheelDeltaLimited = 0 }
+    if (!a.isActive_) { VUtils_.Stop_(event, 1); return }
+    if (target == input && deltaX && (deltaX < 0 ? input.scrollLeft > 0
         : input.scrollLeft + 1e-2 < input.scrollWidth - input.clientWidth)) { return }
     VUtils_.Stop_(event, 1);
-    const absDelta = Math.abs(deltaY || deltaX), absMinStep = Math.abs(a.wheelMinStep_)
-    let notTouchpad: boolean | 2 = mode === /* WheelEvent.DOM_DELTA_LINE */ 1 || !mode && !(rawDeltaX * deltaY)
-        && (absMinStep > 9 ? absDelta >= absMinStep : 2)
-    if (notTouchpad === 2) {
-      const legacyWheelDelta = deltaY ? (event as any).wheelDeltaY : (event as any).wheelDeltaX as number
-      const scale = legacyWheelDelta ? Math.abs(legacyWheelDelta) / absDelta : 0
-      notTouchpad = scale ? (scale | 0) === scale : (absDelta % 10) === 0 && absDelta >= 90
-    }
+    const forward = !!notTouchpad !== (a.wheelMinStep_ < 0)
     if (deltaY && target === input) {
-      a.onWordAction_((deltaY < 0) !== (notTouchpad !== (a.wheelMinStep_ < 0)) ? 5 : 2, 0, notTouchpad ? 1: 2)
+      a.onWordAction_((deltaY < 0) !== forward ? 5 : 2, 0, notTouchpad ? 1: 2)
       return
     }
-    if (deltaX || !deltaY || !a.isActive_ || a.isSearchOnTop_
-        || a.inputBar_.contains(target) && a.inputBar_ !== target) { return }
+    if (deltaX || a.isSearchOnTop_ || a.inputBar_.contains(target as Element) && a.inputBar_ !== target) { return }
     if (now - a.wheelTime_ > (!mode && !notTouchpad
                               ? GlobalConsts.TouchpadTimeout : GlobalConsts.WheelTimeout)
         || now - a.wheelTime_ < -33) {
@@ -1121,7 +1145,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   OnInput_ (this: void, event: InputEvent): void {
     const a = Vomnibar_, s0 = a.lastQuery_
     let s1 = a.input_.value, str = s1.trim(), inputType: number = a.inputType_
-    a.blurWanted_ = a.inputType_ = 0
+    a.blurWanted_ = a.inputType_ = a._nearWheelHasDeltaXY = a._nearWheelDeltaLimited = 0
     if (Build.BTypes & BrowserType.Chrome && s1 === "/" && a.isEdg_ && a.input_.selectionEnd && !event.isComposing) {
       s1 = a.input_.value = " /" // disable the popup menu for auto-completion from edge://settings/personalinfo
     }
@@ -1331,6 +1355,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     if ((Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
           ? !event.isTrusted : event.isTrusted === false) || !VPort_) { return; }
     a.codeFocusReceived_ = true;
+    a._nearWheelHasDeltaXY = a._nearWheelDeltaLimited = 0
     blurred && a.onWndBlur2_ && isWnd && a.onWndBlur2_()
     if (!isWnd || !a.isActive_) {
       target === a.input_ &&
