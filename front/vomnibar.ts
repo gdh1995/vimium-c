@@ -845,7 +845,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         ? new RegExp("[^\\p{L}\\p{Nd}_]+", "u") : /[^\w\u0386-\u03fb\u4e00-\u9fff]+/)
     const isDel = code === 4 || code < 0, isExtend = isDel || code > 6, isRight = code > 3 && code < 8
     const input = Vomnibar_.input_, spacesRe = <RegExpOne> /\s+/
-    if (Build.BTypes !== BrowserType.Firefox as number && (!(Build.BTypes & BrowserType.Firefox) || BTy !== BrowserType.Firefox)
+    if (Build.BTypes !== BrowserType.Firefox as number
+        && (!(Build.BTypes & BrowserType.Firefox) || BTy !== BrowserType.Firefox)
         && !(Build.BTypes & BrowserType.Chrome && delayed)
         && !(code < -1 || isDel && input.selectionStart !== input.selectionEnd)) {
       getSelection().modify(isExtend ? "extend" : "move", isRight?"forward":"backward", mode===2?"character":"word")
@@ -1078,21 +1079,28 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         || (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
             ? !event.isTrusted : event.isTrusted === false)) { return; }
     const a = Vomnibar_, input = a.input_, now = Date.now()
-    const { target, deltaX: rawDeltaX, deltaY: rawDeltaY, deltaMode: mode } = event 
+    const { target, deltaX: rawDeltaX, deltaY: rawDeltaY, deltaMode: mode } = event
     const deltaX = !rawDeltaY || rawDeltaX && Math.abs(rawDeltaX / rawDeltaY) > 1 ? rawDeltaX : 0
-    const deltaY = deltaX ? 0 : rawDeltaY
-    if (rawDeltaX && rawDeltaY) { a._nearWheelHasDeltaXY = 1 }
-    if (rawDeltaX && rawDeltaY && Math.abs(rawDeltaX - rawDeltaY) < 0.5 || !deltaX && !deltaY) { return }
-    let notTouchpad: boolean | 2 | 3 = mode===/*WheelEvent.DOM_DELTA_LINE*/ 1 ? 2 : !mode && !(rawDeltaX*rawDeltaY) && 3
+    const deltaY = deltaX ? 0 : rawDeltaY, hasXAndY = rawDeltaX && rawDeltaY, absDelta = Math.abs(deltaY || deltaX)
+    if (Build.BTypes & BrowserType.Firefox && Build.OS & kBOS.MAC) {
+      a._nearWheelHasDeltaXY = Math.max(a._nearWheelHasDeltaXY ? 1 : 0,
+          Math.min(a._nearWheelDeltaLimited + (hasXAndY ? 1 : -1), 9))
+    }
+    else if (hasXAndY) { a._nearWheelHasDeltaXY = 1 }
+    let notTouchpad: boolean | 2 | 3 = mode === /*WheelEvent.DOM_DELTA_LINE*/ 1 ? 2 : !mode &&!hasXAndY&&!!absDelta && 3
     if (notTouchpad === 3) {
       const legacyWheelDelta = deltaX ? (event as any).wheelDeltaX : (event as any).wheelDeltaY as number
       const absLegacyDelta = legacyWheelDelta && Math.abs(legacyWheelDelta) || 0
-      const absDelta = Math.abs(deltaY || deltaX), absMinStep = Math.abs(a.wheelMinStep_)
-      const ratio = legacyWheelDelta ? absLegacyDelta / absDelta : 0
+      const absMinStep = Math.abs(a.wheelMinStep_), ratio = absLegacyDelta ? absLegacyDelta / absDelta : 0
       // if touchpad, then 1) isScaled; 2) absDelta should be int, unless on firefox + non-mac
       const isScaled = !!ratio && Math.abs(absLegacyDelta / Math.round(ratio) - absDelta) <= 1
           && (!!(Build.BTypes & BrowserType.Firefox) || Build.OS === kBOS.MAC as number || (absDelta|0) === absDelta)
       a._nearWheelDeltaLimited = Math.max(-9, Math.min(a._nearWheelDeltaLimited + (absDelta < 12 ? 1 : -1), 9))
+      if (Build.BTypes & BrowserType.Firefox && Build.OS & kBOS.MAC && (!(Build.OS & ~kBOS.MAC) || !a.os_)
+          && (Build.BTypes === BrowserType.Firefox as number || a.browser_ & BrowserType.Firefox)
+          && a._nearWheelDeltaLimited < -5 && a._nearWheelHasDeltaXY < 2) {
+        a._nearWheelHasDeltaXY = 0
+      }
       if (absLegacyDelta && !isScaled
           || absMinStep > 9 && (absDelta >= absMinStep || absLegacyDelta >= absMinStep) && !a._nearWheelHasDeltaXY) {
         notTouchpad = 2
@@ -1106,17 +1114,16 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         notTouchpad = a._nearWheelDeltaLimited < 2
       } else {
         notTouchpad = a._nearWheelDeltaLimited < ((absDelta | 0) !== absDelta ? 5 : 3) // safari or (chrome w/o legacy)
-
       }
     }
     if (notTouchpad satisfies boolean | 2 === 2) { a._nearWheelHasDeltaXY = a._nearWheelDeltaLimited = 0 }
-    if (!a.isActive_) { VUtils_.Stop_(event, 1); return }
-    if (target == input && deltaX && (deltaX < 0 ? input.scrollLeft > 0
+    if (!a.isActive_ || target == input && deltaX && (deltaX < 0 ? input.scrollLeft > 0
         : input.scrollLeft + 1e-2 < input.scrollWidth - input.clientWidth)) { return }
     VUtils_.Stop_(event, 1);
+    if (hasXAndY && Math.abs(rawDeltaX - rawDeltaY) < 0.5 || !absDelta) { return }
     const forward = !!notTouchpad !== (a.wheelMinStep_ < 0)
-    if (deltaY && target === input) {
-      a.onWordAction_((deltaY < 0) !== forward ? 5 : 2, 0, notTouchpad ? 1: 2)
+    if (target === input) {
+      deltaY && a.onWordAction_((deltaY > 0) === forward ? 5 : 2, 0, notTouchpad ? 1: 2)
       return
     }
     if (deltaX || a.isSearchOnTop_ || a.inputBar_.contains(target as Element) && a.inputBar_ !== target) { return }
