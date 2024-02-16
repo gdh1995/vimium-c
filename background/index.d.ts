@@ -16,7 +16,7 @@ declare namespace Search {
     readonly prefix_: string;
     readonly matcher_: RegExp;
     readonly name_: string;
-    readonly delimiter_: RegExpOne | RegExpI | string;
+    readonly delimiter_: RegExpOne | RegExpI | string | [ string ]
   }
 }
 

@@ -302,6 +302,11 @@ export const createSearchUrl_ = function (query: string[], keyword: string, vimi
   (query: string[], keyword?: string | null, vimiumUrlWork?: Urls.WorkType, _isNested?: number): Urls.Url
 }
 
+export const getDelimiter_ = (url: string, limit: number): string => {
+  return url.lastIndexOf("://", 21) < 0 || isJSUrl_(url) || url.startsWith("vimium://run") || url.startsWith("data:")
+      || !(<RegExpOne> /\?|#.*=/).test(url.slice(0, limit)) ? "%20" : "+"
+}
+
 export const createSearch_ = function (query: string[], url: string, blank: string, indexes?: number[]
     ): string | Search.Result {
   let q2: string[] | undefined, delta = 0;
@@ -327,8 +332,7 @@ export const createSearch_ = function (query: string[], url: string, blank: stri
     } else {
       arr = localQuery === query && q2 ? q2 : localQuery.map(encodeAsciiComponent_)
       localQuery === query && !q2 && (q2 = arr)
-      s1 = isJSUrl_(url) || url.startsWith("vimium://run") || url.startsWith("data:")
-          || !(<RegExpOne> /\?|#.*=/).test(url.slice(0, ind)) ? "%20" : "+"
+      s1 = getDelimiter_(url, ind)
     }
     s2 && s2.includes("\\") && (s2 = s2.replace(<RegExpG> /\\([\\<>|])/g, "$1"))
     if (arr.length === 0) { s2 = "" }
