@@ -9,6 +9,7 @@
   "copiedWndInfo": "(info of tabs)",
   "csCleared": "$1 content settings have been cleared",
   "delSug": "Succeed to delete a $1",
+  "disabledUrlToOpen": "Extensions can't open such URLs on Firefox",
   "discardFail": "Cannot discard the tab",
   "downloadFail": "Failed in downloading",
   "downloadTimeout": "Downloading took too long",

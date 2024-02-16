@@ -779,6 +779,7 @@ interface OpenUrlOptions extends UserSedOptions {
       | "default"
   reuse?: UserReuseType | null
   window?: boolean | "popup" | "normal" | null
+  warnFiles?: true | false | null
 }
 
 interface OpenPageUrlOptions extends OpenUrlOptions {

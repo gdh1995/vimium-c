@@ -9,6 +9,7 @@
   "copiedWndInfo": "(info des onglets)",
   "csCleared": "Les paramètres du contenu $1 ont été effacés",
   "delSug": "A réussi à supprimer un $1",
+  "disabledUrlToOpen": "Firefox n'autorise pas l'extension à ouvrir cette URL",
   "discardFail": "Ne peut pas décharger l'onglet",
   "downloadFail": "Échec du téléchargement",
   "downloadTimeout": "Le téléchargement a pris trop de temps",

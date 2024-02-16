@@ -10,6 +10,7 @@
   "copiedWndInfo": "（标签页信息）",
   "csCleared": "对各网站 $1 功能权限的修改已重置",
   "delSug": "成功删除所选$1",
+  "disabledUrlToOpen": "Firefox 不允许扩展打开此网址",
   "discardFail": "无法丢弃此网页",
   "downloadFail": "无法下载此对象",
   "downloadTimeout": "对象下载超时",

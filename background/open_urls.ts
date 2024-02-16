@@ -14,7 +14,7 @@ import {
   convertToUrl_, createSearchUrl_, hasUsedKeyword_, lastUrlType_, quotedStringRe_, reformatURL_
 } from "./normalize_urls"
 import { findUrlEndingWithPunctuation_, findUrlInText_ } from "./parse_urls"
-import { safePost, showHUD, complainLimits, findCPort, isNotVomnibarPage, getCurFrames_ } from "./ports"
+import { safePost, showHUD, complainLimits, findCPort, isNotVomnibarPage, getCurFrames_, showHUDEx } from "./ports"
 import { createSimpleUrlMatcher_, matchSimply_ } from "./exclusions"
 import { trans_ } from "./i18n"
 import { makeCommand_ } from "./key_mappings"
@@ -594,6 +594,8 @@ export const openUrlWithActions = (url: Urls.Url, workType: Urls.WorkType, sed?:
     reuse = reuse !== ReuseType.newBg ? ReuseType.newFg : reuse
   }
   if (incog != null && incog !== (curIncognito_ === IncognitoType.true)) { reuse = ReuseType.newFg }
+  OnFirefox && typeof url === "string" && cPort && (<RegExpOne> /^file:|^about:(?!blank)/).test(url)
+      && options.warnFiles !== false && showHUDEx(cPort, "disabledUrlToOpen", 2, [])
   typeof url !== "string"
       ? void Promise.resolve(url).then(onEvalUrl_.bind(0, workType, options, tabs))
       : /*#__NOINLINE__*/ openShowPage(url, reuse, options) ? 0

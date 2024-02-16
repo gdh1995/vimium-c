@@ -10,6 +10,7 @@
   "copiedWndInfo": "（分頁信息）",
   "csCleared": "對各網站 $1 功能權限的修改已重置",
   "delSug": "成功刪除所選$1",
+  "disabledUrlToOpen": "Firefox 不允許擴展存取此網址",
   "discardFail": "無法丟棄此網頁",
   "downloadFail": "無法下載此對象",
   "downloadTimeout": "對象下載超時",
