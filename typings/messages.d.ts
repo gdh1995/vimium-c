@@ -279,6 +279,7 @@ declare namespace HintsNS {
     action?: string;
     /** enable bubbles when hovering / unhovering */ bubbles?: boolean;
     caret?: boolean;
+    doClick?: "css-selector"
     download?: "" | "force"
     focus?: boolean | "css-selector"
     flash?: boolean

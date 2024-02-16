@@ -239,14 +239,16 @@ const showUrlIfNeeded = (): void => {
 }
 
 const hoverEl = (): void => {
-    const toggleMap = hintOptions.toggle
+    const toggleMap = hintOptions.toggle, doClickOpt = findSelectorByHost(hintOptions.doClick)
+    const doesClick = isTY(doClickOpt) && testMatch(doClickOpt, [clickEl])
     // here not check lastHovered on purpose
     // so that "HOVER" -> any mouse events from users -> "HOVER" can still work
     setNewScrolling(clickEl)
-  retPromise = catchAsyncErrorSilently(wrap_enable_bubbles(hintOptions, hover_async<1>
+  doesClick ? defaultClick() : (retPromise = catchAsyncErrorSilently(wrap_enable_bubbles(hintOptions, hover_async<1>
       , [clickEl, center_(rect, hintOptions.xy as HintsNS.StdXY | undefined)
           , checkBoolOrSelector(rawFocus, !elType && (clickEl as ElementToHTMLOrForeign).tabIndex! >= 0
-              && !isIFrameElement(clickEl, 1))])).then((): void => {
+              && !isIFrameElement(clickEl, 1))])))
+  retPromise = retPromise!.then((): void => {
     let rval: any, lval: any;
     set_cachedScrollable(currentScrolling)
     if (mode1_ < HintMode.min_job) { // called from Modes[-1]

@@ -443,7 +443,7 @@ export const click_async = (async (element: SafeElementForMouse
       r: action === kClickAction.plainInNewWindow ? ReuseType.newWnd
         : action > kClickAction.forceToOpenInCurrent - 1 || !action ? ReuseType.current
         : (action === kClickAction.forceToOpenInLastWnd ? ReuseType.OFFSET_LAST_WINDOW : 0)
-          + ((hintMode1_ & HintMode.newtab_n_active) - HintMode.newTab ? ReuseType.newFg : ReuseType.newBg)
+          + ((hintMode1_ & HintMode.mask_focus_new) - HintMode.newTab ? ReuseType.newFg : ReuseType.newBg)
     })
     return 1
   }
