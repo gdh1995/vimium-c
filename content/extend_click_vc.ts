@@ -114,9 +114,9 @@ hooks = {
   },
   addEventListener (this: EventTarget, type: string
       , listener: EventListenerOrEventListenerObject): void {
-    const a = this, args = arguments
+    let a = this, args = arguments
     const ret = args.length === 4 && type === GlobalConsts.MarkAcrossJSWorlds ? checkIsNotVerifier(args[3])
-        : callWithArgs(apply, [_listen, a, args])
+        : evaledAEL ? evaledAEL(apply, [_listen, a, args]) : apply(_listen, a, args)
     if (type === "click" || type === "mousedown" || type === "dblclick"
         ? listener && a instanceof ElCls && a.localName !== "a" && a !== toRegister[toRegister.length - 1]
         : type === kEventName2 && !isReRegistering
@@ -145,7 +145,7 @@ unsafeDispatchCounter = 0,
 allNodesInDocument = null as Element[] | null, allNodesForDetached = null as Element[] | null,
 pushToRegister = (nodeIndexList as unknown[] as Element[]).push.bind(toRegister),
 queueMicroTask_ = queueMicrotask,
-callWithArgs = <Args extends any[], R> (func: (...args: Args) => R, args: Args): R => func(...args),
+evaledAEL: Function | undefined,
 isReRegistering: BOOL = 0, hasKnownDocOpened: 0 | 1 | 2 = 0
 // To avoid a host script detect Vimum C by code like:
 // ` a1 = setTimeout(()=>{}); $0.addEventListener('click', ()=>{}); a2=setTimeout(()=>{}); [a1, a2] `
@@ -293,7 +293,7 @@ if (dataset && (
   timer = toRegister.length > 0 ? setTimeout_(next, InnerConsts.DelayForNext) : 0
   ETP[kAEL] = myAEL
   FProto[kToS] = myToStr
-  try { callWithArgs = new Function("f", "a", "return f(...a)") as typeof callWithArgs } catch {}
+  try { evaledAEL = new Function(`let ${kAEL}=(f,a)=>f(...a);return ` + kAEL)() } catch {}
   for (let i of [0, 2] as const) { /*#__ENABLE_SCOPED__*/
     let propName: "onmousedown" | "onclick" | "open" | "write" = i ? "onmousedown" : "onclick"
     const setterName = ("set " + propName) as `set ${typeof propName}`
