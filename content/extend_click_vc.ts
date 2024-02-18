@@ -293,7 +293,7 @@ if (dataset && (
   timer = toRegister.length > 0 ? setTimeout_(next, InnerConsts.DelayForNext) : 0
   ETP[kAEL] = myAEL
   FProto[kToS] = myToStr
-  try { evaledAEL = new Function(`let ${kAEL}=(f,a)=>f(...a);return ` + kAEL)() } catch {}
+  try { evaledAEL = new Function(`let ${kAEL}=(f,a)=>f(...a)\nreturn ` + kAEL)() } catch {}
   for (let i of [0, 2] as const) { /*#__ENABLE_SCOPED__*/
     let propName: "onmousedown" | "onclick" | "open" | "write" = i ? "onmousedown" : "onclick"
     const setterName = ("set " + propName) as `set ${typeof propName}`
