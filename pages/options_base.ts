@@ -60,7 +60,7 @@ export const showI18n_ = (): void => {
       t = pageTrans_(isTitle ? i.slice(0, -2) : i)
       t != null && (isTitle ? el.title = t : el.textContent = t)
     }
-    (document.documentElement as HTMLHtmlElement).lang = lang1 === "zh" ? "zh-CN" as "" : lang1 as ""
+    (document.documentElement as HTMLHtmlElement).lang = lang1 === "zh" ? "zh-CN" as "" : lang1.replace("_", "-") as ""
 }
 
 (window as unknown as any).__extends = function<Child, Super, Base> (

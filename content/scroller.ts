@@ -465,7 +465,7 @@ export const executeScroll: VApiTy["c"] = function (di: ScrollByY, amount0: numb
       amount = toDoInSelf = 0
     }
     if (toFlags && elementIsTop && amount) {
-      di && setPreviousMarkPosition()
+      di && setPreviousMarkPosition(1)
       if (!joined && options && (options as Extract<typeof options, {dest: string}>).sel === "clear") {
         resetSelectionToDocStart()
       }

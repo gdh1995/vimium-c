@@ -243,8 +243,7 @@ set_contentCommands_([
     const S = "IH IHS"
     const act = options.act || options.action, selAction = options.select
     const checkOrView = act === "last-visible" ? isNotInViewport : view_
-    const first_last = derefInDoc_(insert_last_), second_last = derefInDoc_(insert_last2_)
-    const known_last = first_last || second_last
+    const second_last = derefInDoc_(insert_last2_), known_last = derefInDoc_(insert_last_) || second_last
     const selectOrClick = (el: SafeHTMLElement, rect?: Rect | null, onlyOnce?: true): Promise<void> => {
       return getEditableType_(el) ? select_(el, rect, onlyOnce, selAction, onlyOnce)
           : click_async(el, rect, 1).then((): void => { onlyOnce && flash_(el) })
@@ -252,7 +251,7 @@ set_contentCommands_([
     let actRet: kTip | 0 | -1 = 0
     OnFirefox && insert_Lock_()
     if (OnEdge || OnFirefox || OnChrome && Build.MinCVer < BrowserVer.MinEnsured$WeakRef) {
-      first_last || set_insert_last_(null)
+      known_last !== second_last || set_insert_last_(null)
       second_last || set_insert_last2_(null)
     }
     if (act && (act[0] !== "l" || known_last && !raw_insert_lock)) { /*#__ENABLE_SCOPED__*/
@@ -344,7 +343,8 @@ set_contentCommands_([
     if (abs_(count) > 2 * sel) {
       sel = count < 0 ? 0 : sel - 1
     } else {
-      for (ind = 0; ind < sel && hints[ind].d !== known_last && hints[ind].d !== second_last; ) { ind++ }
+      for (ind = 0; ind < sel && hints[ind].d !== known_last; ) { ind++ }
+      if (ind >= sel) { for (ind = 0; ind < sel && hints[ind].d !== second_last; ) { ind++ } }
       if (preferredSelector.endsWith("!") ? (preferredSelector = preferredSelector.slice(0, -1)) : ind >= sel) {
         for (ind = preferredSelector && safeCall(testMatch, preferredSelector, visibleInputs[0]) === false ? 0 : sel;
             ind < sel && !testMatch(preferredSelector, visibleInputs[ind]); ind++) { /* empty */ }

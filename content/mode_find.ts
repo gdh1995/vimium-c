@@ -280,7 +280,7 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
     (initial_query.length > 99 || initial_query.includes("\n")) && (initial_query = "")
     isQueryRichText_ = !initial_query
     initial_query || (initial_query = options.q)
-    isActive || initial_query === query_ && options.l || setPreviousMarkPosition()
+    isActive || initial_query === query_ && options.l || setPreviousMarkPosition(1)
     checkDocSelectable();
     ensureBorder()
 

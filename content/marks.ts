@@ -28,10 +28,10 @@ export const dispatchMark = ((mark?: MarksNS.ScrollInfo | 0 | undefined, global?
   (mark?: 0, global?: boolean): MarksNS.ScrollInfo // create: return `Writable<MarksNS.ScrollInfo>`
 }
 
-export const setPreviousMarkPosition = (idx?: number): void => {
+export const setPreviousMarkPosition = (idx: number): void => {
   const arr = dispatchMark()
   arr.length === 2 && (arr as Writable<MarksNS.ScrollInfo>).push(loc_.hash)
-  previous[idx! | 0] = arr
+  previous[idx] = arr
 }
 
 export const activate = (options: CmdOptions[kFgCmd.marks], count: number): void => {
@@ -83,7 +83,7 @@ export const scrollToMark = (scroll: MarksNS.ScrollInfo | null | undefined): voi
 
 export const goToMark_ = (options: CmdOptions[kFgCmd.goToMark]): void => {
   const cb = (): void => {
-    options.t && setPreviousMarkPosition()
+    options.t && setPreviousMarkPosition(1)
     scrollToMark(dispatchMark(options.s, options.g))
     hudTip(kTip.raw, (options.g satisfies boolean as boolean | number as number + 1) as 1 | 2, options.t)
     runFallbackKey(options.f, 0)
