@@ -183,10 +183,6 @@ const getClickable = (hints: Hint[], element: SafeHTMLElement): void => {
       && (arr = tag === "img" ? getVisibleBoundingRect_(element as HTMLImageElement, 1)
               : arr || getVisibleClientRect_(element, null))
       && (isAriaFalse_(element, kAria.hidden) || extraClickable_ && extraClickable_.has(element))
-      && (type < ClickType.scrollX
-        || shouldScroll_s(element
-            , (<ScrollByY> (type - ClickType.scrollX) + <0 | 2> (evenHidden_ & kHidden.OverflowHidden)) as BOOL | 2 | 3
-            , 0) > 0)
       && (mode1_ > HintMode.min_job - 1 || isAriaFalse_(element, kAria.disabled))
       && (type < ClickType.codeListener || type > ClickType.classname
           || !(s = element.getAttribute("unselectable")) || s.toLowerCase() !== "on")
@@ -233,7 +229,7 @@ const isNotReplacedBy = (element: SafeHTMLElement | null, isExpected?: Hint[]): 
     set_isClickListened_(clickListened);
     if (!clickListened && isExpected && arr2.length && arr2[0][2] === ClickType.codeListener) {
       getClickable(arr2, element);
-      if (arr2.length < 2) { // note: excluded during normal logic
+      if (arr2.length < 2 || arr2[1][2] > ClickType.MaxNotBox) { // note: excluded during normal logic
         isExpected.push(arr2[0]);
       }
     }
@@ -510,9 +506,18 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
   if (wantClickable && !matchSelector) { // deduplicate
     ((list: Hint[]): void => {
   const D = "div"
-  let i = list.length, j: number, k: ClickType, s: string, notRemoveParents: boolean;
+  let i = list.length, j: number = 0, k: ClickType, s: string, notRemoveParents: boolean;
   let element: Element | null, prect: Rect, crect: Rect | null, splice = 0
   let shadowRoot: ShadowRoot | null
+  for (; j < i; ) {
+    k = list[j][2];
+    if (k > ClickType.scrollX - 1 && shouldScroll_s(list[j][0], (<ScrollByY> (k - ClickType.scrollX)
+          + <0 | 2> (evenHidden_ & kHidden.OverflowHidden)) as BOOL | 2 | 3, 0) < 1) {
+      list.splice(j, 1), i--
+    } else {
+      j++
+    }
+  }
   while (0 <= --i) {
     k = list[i][2];
     notRemoveParents = k === ClickType.classname;

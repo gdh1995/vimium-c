@@ -24,7 +24,7 @@ interface ElementScrollInfo {
 import {
   isAlive_, setupEventListener, timeout_, clearTimeout_, fgCache, doc, noRAF_old_cr_, readyState_, chromeVer_,
   vApi, weakRef_not_ff, max_, math, min_, Lower, OnChrome, OnFirefox, OnEdge, WithDialog, OnSafari, deref_,
-  isTop, injector, isTY, promiseDefer_, weakRef_ff, Stop_, abs_
+  isTop, injector, isTY, promiseDefer_, weakRef_ff, Stop_, abs_, queueTask_
 } from "../lib/utils"
 import {
   rAF_, scrollingEl_, SafeEl_not_ff_, docEl_unsafe_, NONE, frameElement_, OnDocLoaded_, GetParent_unsafe_, elFromPoint_,
@@ -711,7 +711,12 @@ export const suppressScroll = (timedOut?: number): void => {
       || (OnFirefox || OnChrome && (Build.MinCVer >= BrowserVer.MinScrollEndForInstantScrolling
             || chromeVer_ > BrowserVer.MinScrollEndForInstantScrolling - 1) && ("on" + kSE) in Image.prototype)) &&
     setupEventListener(0, kSE, Stop_, timedOut as BOOL)
-    timedOut || rAF_(suppressScroll)
+    if (!timedOut) {
+        Build.BTypes & BrowserType.Firefox && Build.MinFFVer < FirefoxBrowserVer.Min$queueMicrotask
+        || Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$queueMicrotask
+        || Build.BTypes & BrowserType.Edge ? Promise.resolve(suppressScroll).then(rAF_)
+        : queueTask_!(() => rAF_(suppressScroll))
+    }
 }
 
 export const onActivate = (event: Event): void => {
