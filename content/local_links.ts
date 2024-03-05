@@ -709,6 +709,7 @@ export const filterOutNonReachable = (list: Hint[], notForAllClickable?: boolean
   }
   initTestRegExps() // in case of `isDescendant(..., ..., 1)`
   const hasInert = OnChrome && Build.MinCVer >= BrowserVer.MinEnsured$HTMLElement$$inert ? isHTML_() : supportInert_!()
+  let hasTable: 1 | 2 | undefined
   while (0 <= --i && now - start < GlobalConsts.ElementsFromPointTakesTooSlow) {
     i & 63 || (now = getTime())
     el = list[i][0];
@@ -744,10 +745,22 @@ export const filterOutNonReachable = (list: Hint[], notForAllClickable?: boolean
       useMatch || (list[i][0] = fromPoint! as HTMLInputElement)
       continue
     }
+    const small = area.r - area.l < 17 || area.b - area.t < 17
+    if (!hasTable) {
+      hasTable = OnChrome && Build.MinCVer < BrowserVer.MinEnsured$Element$$Closest
+          && chromeVer_ < BrowserVer.MinEnsured$Element$$Closest ? 1
+          : querySelector_unsafe_("table") ? 2 : 1
+    }
+    if ((small || hasTable === 2 && el!.closest!("table"))
+        && (OnFirefox || !notSafe_not_ff_!(fromPoint!)) && !contains_s(fromPoint as SafeElement, el)) {
+      list.splice(i, 1)
+      continue
+    }
     now = i & 3 ? now : getTime()
     let index2 = 0
     const stack = root.elementsFromPoint(cx, cy), elPos = stack.indexOf(el)
-    if (elPos > 0 ? (index2 = stack.lastIndexOf(fromPoint!, elPos - 1)) >= 0 : elPos < 0) {
+    if (elPos < 0 && small) { list.splice(i, 1) }
+    else if (elPos > 0 ? (index2 = stack.lastIndexOf(fromPoint!, elPos - 1)) >= 0 : elPos < 0) {
       if (!OnFirefox && elPos < 0) {
         for (temp = el; (temp = GetParent_unsafe_(temp, PNType.RevealSlot)) && temp !== body && temp !== docEl; ) {
           if (getComputedStyle_(temp).zoom !== "1") { temp = el; break; }
@@ -759,10 +772,10 @@ export const filterOutNonReachable = (list: Hint[], notForAllClickable?: boolean
         temp = temp !== fromPoint && contains_s(el, temp) ? el : temp
       }
       temp === el
-      || does_hit(cx, Build.BTypes & BrowserType.Chrome ? (area.t + 2) * zoom : area.t + 2) // x=center, y=top
-      || does_hit(cx, Build.BTypes & BrowserType.Chrome ? (area.b - 4) * zoom : area.b - 4) // x=center, y=bottom
-      || does_hit(Build.BTypes & BrowserType.Chrome ? (area.l + 2) * zoom : area.l + 2, cy) // x=left, y=center
-      || does_hit(Build.BTypes & BrowserType.Chrome ? (area.r - 4) * zoom : area.r - 4, cy) // x=right, y=center
+      || !small && (does_hit(cx, Build.BTypes & BrowserType.Chrome ? (area.t+2) * zoom : area.t + 2) // x=center, y=top
+            || does_hit(cx, Build.BTypes & BrowserType.Chrome ? (area.b - 4) * zoom : area.b - 4) // x=center, y=bottom
+            || does_hit(Build.BTypes & BrowserType.Chrome ? (area.l + 2) * zoom : area.l + 2, cy) // x=left, y=center
+            || does_hit(Build.BTypes & BrowserType.Chrome ? (area.r - 4) * zoom : area.r - 4, cy)) // x=right, y=center
       || list.splice(i, 1);
     }
   }
