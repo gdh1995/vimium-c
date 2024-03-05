@@ -10,7 +10,7 @@ import {
   queryHTMLChild_, getSelection_, removeEl_s, appendNode_s, getMediaUrl, getMediaTag, INP, ALA, attr_s, hasTag_, kGCh,
   setOrRemoveAttr_s, toggleClass_s, textContent_s, notSafe_not_ff_, modifySel, SafeEl_not_ff_, testMatch, contains_s,
   extractField, querySelectorAll_unsafe_, editableTypes_, findAnchor_, dispatchEvent_, newEvent_, rangeCount_,
-  findSelectorByHost, deepActiveEl_unsafe_, getRootNode_mounted, isNode_
+  findSelectorByHost, deepActiveEl_unsafe_, getRootNode_mounted, isNode_, findTargetAction_
 } from "../lib/dom_utils"
 import { getPreferredRectOfAnchor, initTestRegExps } from "./local_links"
 import {
@@ -44,6 +44,42 @@ export const executeHintInOfficer = (hint: ExecutableHintItem
     , event?: HandlerNS.Event | null | 0, knownRect?: Rect | null | 0 | false): Promise<Rect | null> | null => {
 
 const unhoverOnEsc_d = Build.NDEBUG ? null : (): void => { catchAsyncErrorSilently(unhover_async()) }
+
+const findNextTargetEl = (pattern: HintsNS.Options["autoParent" | "autoChild"] | "" | void, par?: BOOL
+    ): SafeElementForMouse | null | undefined => {
+  let click2nd: Element | null | undefined, sr2: ShadowRoot | null | 0 | false
+  let click3nd: Element | false | null | undefined | 0
+  pattern = pattern && (par || !isIFrameElement(clickEl, 1)) && (findSelectorByHost(findTargetAction_(clickEl, pattern)
+      ) satisfies string | void as typeof pattern & string | "" | void)
+  if (!pattern) {}
+  else if (par) {
+    if (!(OnChrome && Build.MinCVer < BrowserVer.MinEnsured$Element$$Closest
+        && chromeVer_ < BrowserVer.MinEnsured$Element$$Closest)) {
+      click3nd = clickEl
+      while (click3nd && !(click2nd = click3nd.closest!(pattern))) {
+        sr2 = (getRootNode_mounted(click3nd as EnsuredMountedElement & SafeElement) as ShadowRoot)
+        click3nd = isNode_(sr2, kNode.DOCUMENT_FRAGMENT_NODE) && (OnFirefox ? sr2.host : SafeEl_not_ff_!(sr2.host))
+      }
+    }
+  } else if (pattern) {
+    const anyAtPos = pattern === "html", onlyShadow = pattern === ":host"
+    if (pattern !== "true" && pattern !== ":root" && !anyAtPos && !onlyShadow) {
+      click2nd = querySelector_unsafe_(pattern, clickEl)
+    } else {
+      rect = htmlTag_(clickEl) === "a" // for www.google.com/search?q=***
+          && getPreferredRectOfAnchor(clickEl as SafeElement as HTMLAnchorElement) || getVisibleClientRect_(clickEl)
+      const center = center_(rect, hintOptions.xy as HintsNS.StdXY | undefined)
+      click2nd = rect && (onlyShadow ? clickEl : elFromPoint_(center, clickEl))
+      click2nd = anyAtPos || click2nd && contains_s(clickEl, click2nd) ? click2nd : null
+      click3nd = click2nd
+      while (sr2 = click3nd && htmlTag_<1>(click3nd) && GetShadowRoot_(click3nd)) {
+        click3nd = elFromPoint_(center, sr2)
+        click3nd && sr2.contains(click3nd) ? click2nd = click3nd : click3nd = 0
+      }
+    }
+  }
+  return (OnFirefox ? click2nd : click2nd && SafeEl_not_ff_!(click2nd)) as SafeElementForMouse | null | undefined
+}
 
 const accessElAttr = (isUrlOrText: 0 | 1 | 2): [string: string, isUserCustomized?: BOOL] => {
   const dataset = (clickEl as Partial<SafeHTMLElement>).dataset
@@ -239,12 +275,12 @@ const showUrlIfNeeded = (): void => {
 }
 
 const hoverEl = (): void => {
-    const toggleMap = hintOptions.toggle, doClickOpt = findSelectorByHost(hintOptions.doClick)
-    const doesClick = isTY(doClickOpt) && testMatch(doClickOpt, [clickEl])
+    const toggleMap = hintOptions.toggle, doesClick = findNextTargetEl(hintOptions.doClick)
     // here not check lastHovered on purpose
     // so that "HOVER" -> any mouse events from users -> "HOVER" can still work
     setNewScrolling(clickEl)
-  doesClick ? defaultClick() : (retPromise = catchAsyncErrorSilently(wrap_enable_bubbles(hintOptions, hover_async<1>
+  doesClick ? defaultClick(clickEl = doesClick)
+  : (retPromise = catchAsyncErrorSilently(wrap_enable_bubbles(hintOptions, hover_async<1>
       , [clickEl, center_(rect, hintOptions.xy as HintsNS.StdXY | undefined)
           , checkBoolOrSelector(rawFocus, !elType && (clickEl as ElementToHTMLOrForeign).tabIndex! >= 0
               && !isIFrameElement(clickEl, 1))])))
@@ -461,7 +497,7 @@ const downloadLink = (url?: string, filename?: string): void => {
   })
 }
 
-const defaultClick = (): void => {
+const defaultClick = (_?: SafeElementForMouse): void => {
     const mask = hintMode_ & HintMode.mask_focus_new
     const isMac = Build.OS === kBOS.MAC as number || !!(Build.OS & kBOS.MAC) && !os_
     const rawBtn = hintOptions.button, isRight = rawBtn === 2
@@ -518,13 +554,8 @@ const checkBoolOrSelector = (userVal: string | boolean | null | void | undefined
       || (userVal = safeCall(testMatch, userVal, [clickEl])), userVal != null ? userVal : defaultVal)
 }
 const doPostAction = (): Rect | null => {
-  if (then && (mode1_ < HintMode.min_then_as_arg || mode1_ > HintMode.max_then_as_arg)) {
-    for (const thenSelector of Object.keys(isTY(then, kTY.obj) ? then : isTY(then) ? then = { "*": then } : {})) {
-      if (safeCall(testMatch, thenSelector, [clickEl])) {
-        post_({ H: kFgReq.nextKey, k: (then as Dict<string>)[thenSelector] + "" })
-      }
-    }
-  }
+  (mode1_ < HintMode.min_then_as_arg || mode1_ > HintMode.max_then_as_arg)
+      && then && (then = findTargetAction_(clickEl, then)) && post_({ H: kFgReq.nextKey, k: then })
   removeFlash || showRect && rect && flash_(null, rect)
   return rect
 }
@@ -538,11 +569,7 @@ const doPostAction = (): Rect | null => {
   let rect: Rect | null = null
   let then = hintOptions.then, optElse = hintOptions.else
   let retPromise: Promise<unknown> | undefined
-  let autoParent: HintsNS.Options["autoParent"] | false | void = hintOptions.autoParent
-  let autoChild: HintsNS.Options["autoChild"] | 0 | void = hintOptions.autoChild
   let showRect: BOOL | 2 = hintOptions.flash !== false ? 1 : 0
-  let click2nd: Element | void | false | 0 | null, sr2: ShadowRoot | null | "" | 0 | false
-  let click3nd: Element | null | undefined | 0
   if (hintManager) {
     set_keydownEvents_(hintApi.a())
     setMode(masterOrA.$().m, 1)
@@ -555,39 +582,8 @@ const doPostAction = (): Rect | null => {
   set_grabBackFocus(false)
   if (IsInDOM_(clickEl)) {
     if (!OnFirefox && bZoom_ !== 1 && doc.body && !IsInDOM_(clickEl, doc.body)) { set_bZoom_(1) }
-    autoParent = isTY(autoParent) && findSelectorByHost(autoParent)
-    if (autoParent && !(OnChrome && Build.MinCVer < BrowserVer.MinEnsured$Element$$Closest
-          && chromeVer_ < BrowserVer.MinEnsured$Element$$Closest)) {
-      click2nd = clickEl
-      while (click2nd && !(click3nd = click2nd.closest!(autoParent))) {
-        sr2 = (getRootNode_mounted(click2nd as EnsuredMountedElement & SafeElement) as ShadowRoot)
-        click2nd = isNode_(sr2, kNode.DOCUMENT_FRAGMENT_NODE) && (OnFirefox ? sr2.host : SafeEl_not_ff_!(sr2.host))
-      }
-      clickEl = (OnFirefox ? click3nd : click3nd && SafeEl_not_ff_!(click3nd)
-          ) satisfies Element | null | undefined | 0 as SafeElementForMouse | null || clickEl
-    }
-    autoChild = isIFrameElement(clickEl, 1) ? 0
-        : isTY(autoChild) ? findSelectorByHost(autoChild) as typeof autoChild : autoChild
-    if (autoChild) {
-      const anyAtPos = autoChild === "html", onlyShadow = autoChild === ":host"
-      if (isTY(autoChild) && autoChild !== ":root" && !anyAtPos && !onlyShadow) {
-        click2nd = querySelector_unsafe_(autoChild, clickEl)
-      } else {
-        rect = htmlTag_(clickEl) === "a" // for www.google.com/search?q=***
-            && getPreferredRectOfAnchor(clickEl as SafeElement as HTMLAnchorElement) || getVisibleClientRect_(clickEl)
-        const center = center_(rect, hintOptions.xy as HintsNS.StdXY | undefined)
-        click2nd = rect && (onlyShadow ? clickEl : elFromPoint_(center, clickEl))
-        click2nd = anyAtPos || click2nd && contains_s(clickEl, click2nd) ? click2nd : null
-        click3nd = click2nd
-        while (sr2 = click3nd && htmlTag_<1>(click3nd) && GetShadowRoot_(click3nd)) {
-          click3nd = elFromPoint_(center, sr2)
-          click3nd && sr2.contains(click3nd) ? click2nd = click3nd : click3nd = 0
-        }
-      }
-      clickEl = (OnFirefox ? click2nd : click2nd && SafeEl_not_ff_!(click2nd)
-          ) satisfies Element | void | null as SafeElementForMouse | void | null || clickEl
-    }
-    click2nd = click3nd = sr2 = 0
+    clickEl = findNextTargetEl(hintOptions.autoParent, 1) || clickEl
+    clickEl = findNextTargetEl(hintOptions.autoChild) || clickEl
     tag = htmlTag_(clickEl), elType = getEditableType_<0>(clickEl), isHtmlImage = tag === "img"
     initTestRegExps() // needed by getPreferredRectOfAnchor
     // must get outline first, because clickEl may hide itself when activated

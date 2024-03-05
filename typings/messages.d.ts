@@ -283,8 +283,8 @@ declare namespace HintsNS {
     download?: "" | "force"
     focus?: boolean | "css-selector"
     flash?: boolean
-    then?: object | "string" | string
-    else?: object | "string" | string
+    then?: object | string | void
+    else?: object | string | void
     ordinal?: boolean
     useFilter?: boolean;
     url?: boolean;
@@ -294,7 +294,7 @@ declare namespace HintsNS {
     dblclick?: boolean;
     interact?: true | "native" | false
     longPage?: boolean
-    autoChild?: boolean | "css-selector" | ":root" | "html" | ":host"
+    autoChild?: boolean | "true" | "css-selector" | ":root" | "html" | ":host"
     autoParent?: "css-selector"
     newtab?: null | /** only in editing mode */ boolean
         | "force" | "force-current" | "force-mode" | "inactive"
@@ -639,7 +639,7 @@ interface FgReq {
   [kFgReq.vomnibar]: ({
     /** url */ u: string
     /** newtab */ t?: HintsNS.Options["newtab"]
-    /** forwarded options */ f: object | string | null | undefined
+    /** forwarded options */ f: object | string | null | undefined | void
     /** only use .keyword and sed */ o: Pick<ParsedOpenPageUrlOptions, "k" | "s">
     /** redo */ r?: undefined;
   } & WithHintModeOptions | {
@@ -738,7 +738,7 @@ interface FgReq {
   [kFgReq.cssLearnt]: {};
   [kFgReq.visualMode]: {
     /** caret mode */ c?: boolean
-    /** forwarded options */ f: object | string | null | undefined
+    /** forwarded options */ f: object | string | null | undefined | void
   };
   [kFgReq.respondForRunKey]: {
     r: BgReq[kBgReq.queryForRunKey]

@@ -1,6 +1,6 @@
 import {
   chromeVer_, doc, createRegExp, isTY, Lower, OBJECT_TYPES, OnFirefox, OnChrome, OnEdge, evenHidden_, safeCall, deref_,
-  loc_, VTr, tryCreateRegExp, isTop, queueTask_
+  loc_, VTr, tryCreateRegExp, isTop, queueTask_, safer
 } from "./utils"
 import { dimSize_, Point2D, selRange_ } from "./rect"
 
@@ -582,10 +582,10 @@ export const joinValidSelectors = (selector: string | MayBeSelector
     selector && safeCall(querySelector_unsafe_, selector, _domInst || (_domInst = createElement_("a"))) !== void 0
     ? (validAnother ? selector + "," + validAnother : selector) as "css-selector" : validAnother || null
 
-export const findSelectorByHost = (rules: string | string[] | kTip | MayBeSelector): "css-selector" | void => {
+export const findSelectorByHost = (rules: string | string[] | kTip | MayBeSelector | void): "css-selector" | void => {
   const isKTip = isTY(rules, kTY.num)
   let host: string | undefined, path: string | undefined
-  for (const arr of rules && isTY(rules,kTY.obj) ? rules : (isKTip ? VTr(rules) : rules ? rules + "" : "").split(";")) {
+  for (const arr of !rules ? [] : isTY(rules,kTY.obj) ? rules : (isKTip ? VTr(rules) : rules + "").split(";")) {
     path || (host = Lower(loc_.host), path = loc_.host + "/" + Lower(loc_.pathname))
     const items = arr.split("##"), isOnHost = items.length > 1, sel = items[+isOnHost as BOOL]
     const cond = isOnHost ? items[0] : "", matchPath = cond.includes("/")
@@ -602,6 +602,15 @@ export const elFromPoint_ = (center?: Point2D | null, baseEl?: SafeElement | Sha
       : IsInDOM_(baseEl) && getRootNode_mounted(baseEl) : doc)
   const el = root && root.elementFromPoint(center![0], center![1])
   return el && el !== doc.body ? el : null
+}
+
+export const findTargetAction_ = (el: SafeElementForMouse, map: string | object | true): string | void => {
+  for (let key in safer(isTY(map, kTY.obj) ? map : map = { "": map })) {
+    const value = (map as Dict<string | number | boolean>)[key]
+    if (!key || (key = findSelectorByHost(key)!) && safeCall(testMatch, key, [el])) {
+      return value + ""
+    }
+  }
 }
 
 //#endregion
