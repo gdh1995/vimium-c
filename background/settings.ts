@@ -474,6 +474,7 @@ js\\:|Js: javascript:\\ $S; JavaScript`,
     showAdvancedCommands: true,
     showInIncognito: false,
     smoothScroll: true,
+    titleIgnoreList: "",
     userDefinedCss: "",
     vomnibarOptions: {
       actions: "" as never,

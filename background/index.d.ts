@@ -295,6 +295,7 @@ declare namespace MediaNS {
 
 declare namespace SettingsNS {
   interface BackendSettings extends BaseBackendSettings {
+    allBrowserUrls: boolean
     clipSub: string;
     exclusionListenHash: boolean;
     exclusionOnlyFirstMatch: boolean;
@@ -305,13 +306,13 @@ declare namespace SettingsNS {
     localeEncoding: string;
     newTabUrl: string;
     nextPatterns: string;
+    notifyUpdate: boolean;
     previousPatterns: string;
-    allBrowserUrls: boolean
     searchUrl: string;
     searchEngines: string;
     showActionIcon: boolean;
     showInIncognito: boolean;
-    notifyUpdate: boolean;
+    titleIgnoreList: string
     userDefinedCss: string;
     vimSync: boolean | null;
     vomnibarPage: string;

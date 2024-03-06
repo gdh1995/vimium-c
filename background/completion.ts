@@ -15,7 +15,7 @@ import {
 } from "./completion_utils"
 import {
   BlockListFilter_, BookmarkManager_, UrlDecoder_, HistoryManager_, TestNotBlocked_, getRecentSessions_, BrowserUrlItem,
-  omniBlockList
+  omniBlockList_, titleIgnoreListRe_
 } from "./browsing_data_manager"
 
 import MatchType = CompletersNS.MatchType;
@@ -319,18 +319,21 @@ historyEngine = {
     });
   },
   filterFinish_: function (historyArr: Array<BrowserUrlItem | Suggestion>): void {
-    (historyArr as BrowserUrlItem[]).forEach(historyEngine.MakeSuggestion_);
+    const MakeSuggestion_ = (e: BrowserUrlItem, i: number, arr: Array<BrowserUrlItem | Suggestion>): void => {
+      const u = e.u, t = e.title_ || ""
+      const ind = titleIgnoreListRe_ && t && historyCache_.history_ && titleIgnoreListRe_.test(t)
+          ? HistoryManager_.binarySearch_(u) : -1, title = ind >= 0 ? historyCache_.history_![ind].title_ : t
+      const o = new Suggestion("history", u, UrlDecoder_.decodeURL_(u, u), title,
+          get2ndArg, (99 - i) / 100), sessionId: any = e.sessionId_
+      o.visit = e.visit_
+      sessionId && (o.s = sessionId, o.label = '<span class="undo">&#8630;</span>' + e.label_!)
+      arr[i] = o;
+    }
+    ; (historyArr as BrowserUrlItem[]).forEach(MakeSuggestion_)
     offset = 0;
     UrlDecoder_.continueToWork_()
     Completers.next_(historyArr as Suggestion[], SugType.kHistory)
-  } as (historyArr: BrowserUrlItem[]) => void,
-  MakeSuggestion_ (e: BrowserUrlItem, i: number, arr: Array<BrowserUrlItem | Suggestion>): void {
-    const u = e.u, o = new Suggestion("history", u, UrlDecoder_.decodeURL_(u, u), e.title_ || "",
-        get2ndArg, (99 - i) / 100), sessionId: any = e.sessionId_
-    o.visit = e.visit_
-    sessionId && (o.s = sessionId, o.label = '<span class="undo">&#8630;</span>' + e.label_!)
-    arr[i] = o;
-  }
+  } as (historyArr: BrowserUrlItem[]) => void
 },
 
 domainEngine = {
@@ -645,7 +648,7 @@ searchEngine = {
         q.shift();
       }
       keyword = rawQuery.slice(1).trimLeft();
-      showThoseInBlocklist = !omniBlockList || showThoseInBlocklist || BlockListFilter_.IsExpectingHidden_([keyword])
+      showThoseInBlocklist = !omniBlockList_ || showThoseInBlocklist || BlockListFilter_.IsExpectingHidden_([keyword])
       if (offset) {
         offset--
         return Completers.next_([], SugType.search)
@@ -680,7 +683,7 @@ searchEngine = {
     } else if (pattern) {
       q = [];
     }
-    showThoseInBlocklist = !omniBlockList || showThoseInBlocklist && BlockListFilter_.IsExpectingHidden_([keyword])
+    showThoseInBlocklist = !omniBlockList_ || showThoseInBlocklist && BlockListFilter_.IsExpectingHidden_([keyword])
 
     let url: string, indexes: number[], text: string;
     if (pattern) {
@@ -1051,7 +1054,7 @@ Completion_.filter_ = (query: string, options: CompletersNS.FullOptions, callbac
             && !(<RegExpOne> /\uff1a([^\/\d]|\d[^\0-\xff])/).test(str)
       }
     }
-    showThoseInBlocklist = !omniBlockList || BlockListFilter_.IsExpectingHidden_(queryTerms)
+    showThoseInBlocklist = !omniBlockList_ || BlockListFilter_.IsExpectingHidden_(queryTerms)
     allExpectedTypes = expectedTypes & allowedEngines
     autoSelect = arr.length === 2
     if (rawQuery) {
