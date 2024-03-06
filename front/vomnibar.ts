@@ -174,7 +174,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   firstly_: 1 as BOOL,
   options_: null as never as VomnibarNS.ContentOptions,
   inputText_: "",
-  lastQuery_: "",
+  lastQuery_: null as string | null,
   useInput_: true,
   inputType_: 0 as BOOL,
   lastParsed_: "",
@@ -294,8 +294,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     a.timer_ = a.height_ = a.matchType_ = a.sugTypes_ = a.wheelStart_ = a.wheelTime_ = a.actionType_ = a.inputType_ =
     a.total_ = a.lastKey_ = a.inOldShift_ = a.wheelDelta_ = VUtils_.timeCache_ = 0
     a.docZoom_ = 1;
-    a.options_ = a.completions_ = a.onUpdate_ = a.isHttps_ = a.baseHttps_ = null as never
-    a.mode_.q = a.lastQuery_ = a.inputText_ = a.resMode_ = "";
+    a.options_ = a.completions_ = a.onUpdate_ = a.isHttps_ = a.baseHttps_ = a.lastQuery_ = null as never
+    a.mode_.q = a.inputText_ = a.resMode_ = ""
     a.mode_.o = "omni";
     a.mode_.t = CompletersNS.SugType.Empty;
     a.isSearchOnTop_ = false
@@ -1169,7 +1169,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     if (str === (a.selection_ === -1 || a.isSelOriginal_ ? s0 : a.lastParsed_.trim()||a.completions_[a.selection_].t)) {
       return;
     }
-    if (a.matchType_ === CompletersNS.MatchType.emptyResult && str.startsWith(s0)) {
+    if (a.matchType_ === CompletersNS.MatchType.emptyResult && s0 !== null && str.startsWith(s0)) {
       if (!str.includes(" /", s0.length) || (<RegExpOne> /^\/|\s\//).test(str.slice(0, s0.length - 1))
           || !(a.mode_.e ? a.mode_.e & CompletersNS.SugType.kBookmark : "bomni bookmarks".includes(a.mode_.o))) {
         return
@@ -1178,14 +1178,14 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     a.lastParsed_ = ""
     if (!str) { a.isHttps_ = a.baseHttps_ = null; }
     let i = a.input_.selectionStart, arr: RegExpExecArray | null;
-    if (i && s1[i - 1] === " " && str.length > 5 && str.includes(" ") && str.startsWith(s0)
-        && s1[i - 2] !== " ") { inputType = 2 }
+    if (i >= 2 && s1[i - 1] === " " && s1[i - 2] !== " " && (s0 === null || str.startsWith(s0))
+        && (str.length > (str.includes(" ") ? 3 : 6) || (<RegExpOne> /[\x80-\uffff]/).test(str))) { inputType = 2 }
     if (a.isSearchOnTop_) { /* empty */ }
     else if (i > s1.length - 2) {
       if (s1.endsWith(" +") && !a.timer_ && str.slice(0, -2).trimRight() === s0) {
         return;
       }
-    } else if ((arr = a._pageNumRe.exec(s0)) && str.endsWith(arr[0])) {
+    } else if (s0 && (arr = a._pageNumRe.exec(s0)) && str.endsWith(arr[0])) {
       const j = arr[0].length, s2 = s1.slice(0, s1.trimRight().length - j);
       if (s2.trim() !== s0.slice(0, -j).trimRight()) {
         a.input_.value = s2.trimRight();
@@ -1262,7 +1262,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     }
   },
   toggleInputMode_ (): void {
-    Vomnibar_.isInputComposing_ ||
+    Vomnibar_.isInputComposing_ || Vomnibar_.lastQuery_ === null ||
     Vomnibar_.toggleAttr_("inputmode", Vomnibar_.isSearchOnTop_
         || !(<RegExpOne> /[\/:]/).test(Vomnibar_.lastQuery_) ? "search" : "url")
   },
@@ -1394,7 +1394,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       }
     } else {
       Vomnibar_.toggleAlt_()
-      Vomnibar_._canvas = null
+      Vomnibar_._canvas = Vomnibar_.lastQuery_ = null
     }
   },
   blurred_ (this: void, blurred?: boolean | null): void {
@@ -1630,7 +1630,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   } satisfies EnsureItemsNonNull<Req.fg<kFgReq.omni>> as EnsureItemsNonNull<Req.fg<kFgReq.omni>>,
   spacesRe_: <RegExpG> /\s+/g,
   fetch_ (): void {
-    const a = Vomnibar_;
+    const a = Vomnibar_, mayUseCache = a.lastQuery_ !== null
     let mode: Req.fg<kFgReq.omni> = a.mode_
       , str: string, newMatchType = CompletersNS.MatchType.Default;
     a.timer_ = -1;
@@ -1645,7 +1645,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         const prefix = (<RegExpOne> /^:[WBH] /).test(str) ? 3 : 0
         str = prefix ? str.slice(0, prefix) + str.slice(prefix).toLowerCase() : str.toLowerCase()
       }
-      if (str === mode.q) { return a.postUpdate_(); }
+      if (str === mode.q && mayUseCache) { return a.postUpdate_(); }
       mode.t = a.matchType_ < CompletersNS.MatchType.someMatches || !str.startsWith(mode.q) ? CompletersNS.SugType.Empty
         : a.matchType_ === CompletersNS.MatchType.searchWanted
         ? !str.includes(" ") ? CompletersNS.SugType.search : CompletersNS.SugType.Empty

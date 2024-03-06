@@ -296,6 +296,7 @@ historyEngine = {
       maxResults: offset + maxResults * (showThoseInBlocklist ? 1 : 2) + neededMore
     }, (rawArr2): void => {
       if (query.o) { return; }
+      HistoryManager_.OnRefreshedInfo_(rawArr2)
       rawArr2 = rawArr2.filter((i): boolean => {
         let url = i.url;
         if (url.length > GlobalConsts.MaxHistoryURLLength) {
