@@ -604,11 +604,12 @@ export const elFromPoint_ = (center?: Point2D | null, baseEl?: SafeElement | Sha
   return el && el !== doc.body ? el : null
 }
 
-export const findTargetAction_ = (el: SafeElementForMouse, map: string | object | true): string | void => {
-  for (let key in safer(isTY(map, kTY.obj) ? map : map = { "": map })) {
+export const findTargetAction_ = (el: SafeElementForMouse, map: string | object | true
+    , down?: 0 | 1 | 2): string | false | void => {
+  for (let key in safer(isTY(map, kTY.obj) ? map : map = down === 2 ? { [map as string]: !0 } : { "": map })) {
     const value = (map as Dict<string | number | boolean>)[key]
     if (!key || (key = findSelectorByHost(key)!) && safeCall(testMatch, key, [el])) {
-      return value + ""
+      return value !== !1 && value + ""
     }
   }
 }

@@ -45,26 +45,27 @@ export const executeHintInOfficer = (hint: ExecutableHintItem
 
 const unhoverOnEsc_d = Build.NDEBUG ? null : (): void => { catchAsyncErrorSilently(unhover_async()) }
 
-const findNextTargetEl = (pattern: HintsNS.Options["autoParent" | "autoChild"] | "" | void, par?: BOOL
+const findNextTargetEl = (pattern: HintsNS.Options["autoParent" | "autoChild"] | "" | false | void, down?: 0 | 1 | 2
     ): SafeElementForMouse | null | undefined => {
   let click2nd: Element | null | undefined, sr2: ShadowRoot | null | 0 | false
   let click3nd: Element | false | null | undefined | 0
-  pattern = pattern && (par || !isIFrameElement(clickEl, 1)) && (findSelectorByHost(findTargetAction_(clickEl, pattern)
-      ) satisfies string | void as typeof pattern & string | "" | void)
+  pattern = pattern && (!down || !isIFrameElement(clickEl, 1)) && (findSelectorByHost(findTargetAction_(clickEl
+      , pattern, down)) satisfies string | void as typeof pattern & string | "" | void)
+  pattern = pattern != null ? pattern : down === 2 && testMatch(VTr(kTip.DefaultDoClickOn), [clickEl])
   if (!pattern) {}
-  else if (par) {
+  else if (!down) {
     if (!(OnChrome && Build.MinCVer < BrowserVer.MinEnsured$Element$$Closest
         && chromeVer_ < BrowserVer.MinEnsured$Element$$Closest)) {
       click3nd = clickEl
-      while (click3nd && !(click2nd = click3nd.closest!(pattern))) {
+      while (click3nd && !(click2nd = click3nd.closest!(pattern + ""))) {
         sr2 = (getRootNode_mounted(click3nd as EnsuredMountedElement & SafeElement) as ShadowRoot)
         click3nd = isNode_(sr2, kNode.DOCUMENT_FRAGMENT_NODE) && (OnFirefox ? sr2.host : SafeEl_not_ff_!(sr2.host))
       }
     }
-  } else if (pattern) {
+  } else {
     const anyAtPos = pattern === "html", onlyShadow = pattern === ":host"
-    if (pattern !== "true" && pattern !== ":root" && !anyAtPos && !onlyShadow) {
-      click2nd = querySelector_unsafe_(pattern, clickEl)
+    if (pattern + "" !== "true" && pattern !== ":root" && !anyAtPos && !onlyShadow) {
+      click2nd = querySelector_unsafe_(pattern as Exclude<typeof pattern, true | "true">, clickEl)
     } else {
       rect = htmlTag_(clickEl) === "a" // for www.google.com/search?q=***
           && getPreferredRectOfAnchor(clickEl as SafeElement as HTMLAnchorElement) || getVisibleClientRect_(clickEl)
@@ -275,15 +276,18 @@ const showUrlIfNeeded = (): void => {
 }
 
 const hoverEl = (): void => {
-    const toggleMap = hintOptions.toggle, doesClick = findNextTargetEl(hintOptions.doClick)
+    const toggleMap = hintOptions.toggle, selfClickEl = clickEl
     // here not check lastHovered on purpose
     // so that "HOVER" -> any mouse events from users -> "HOVER" can still work
     setNewScrolling(clickEl)
-  doesClick ? defaultClick(clickEl = doesClick)
-  : (retPromise = catchAsyncErrorSilently(wrap_enable_bubbles(hintOptions, hover_async<1>
+  if (realClickEl) {
+    defaultClick()
+  } else {
+    retPromise = catchAsyncErrorSilently(wrap_enable_bubbles(hintOptions, hover_async<1>
       , [clickEl, center_(rect, hintOptions.xy as HintsNS.StdXY | undefined)
           , checkBoolOrSelector(rawFocus, !elType && (clickEl as ElementToHTMLOrForeign).tabIndex! >= 0
-              && !isIFrameElement(clickEl, 1))])))
+              && !isIFrameElement(clickEl, 1))]))
+  }
   retPromise = retPromise!.then((): void => {
     let rval: any, lval: any;
     set_cachedScrollable(currentScrolling)
@@ -297,7 +301,7 @@ const hoverEl = (): void => {
     showUrlIfNeeded()
     if (!toggleMap || !isTY(toggleMap, kTY.obj)) { return }
     safer(toggleMap);
-    let ancestors: Element[] = [], top: Element | null = clickEl, re = <RegExpOne> /^-?\d+/;
+    let ancestors: Element[] = [], top: Element | null = selfClickEl, re = <RegExpOne> /^-?\d+/;
     for (let key in toggleMap) {
       // if no Element::closest, go up by 6 levels and then query the selector
       let selector = key, prefix = re.exec(key), upper = prefix && prefix[0];
@@ -306,7 +310,7 @@ const hoverEl = (): void => {
       }
       let up = (upper as string | number as number) | 0, selected: Element | null = null;
       if (OnChrome && Build.MinCVer < BrowserVer.MinEnsured$Element$$Closest && !up) {
-        up = clickEl.closest ? 0 : 6;
+        up = selfClickEl.closest ? 0 : 6;
       }
       selector = selector.trim();
       while (up && up + 1 >= ancestors.length && top) {
@@ -320,7 +324,7 @@ const hoverEl = (): void => {
                     , selector)
                 : querySelector_unsafe_(selector, ancestors[max_(0, min_(up + 1, ancestors.length - 1))
                     ] as SafeElement)
-              : clickEl.closest!(selector))) {
+              : selfClickEl.closest!(selector))) {
           const toggleVal = toggleMap[key as "css-selector"]
           if (OnFirefox || !notSafe_not_ff_!(selected)) {
             for (const toggle of toggleVal ? isTY(toggleVal) ? toggleVal.split(/[ ,]/) : toggleVal : []) {
@@ -497,7 +501,7 @@ const downloadLink = (url?: string, filename?: string): void => {
   })
 }
 
-const defaultClick = (_?: SafeElementForMouse): void => {
+const defaultClick = (): void => {
     const mask = hintMode_ & HintMode.mask_focus_new
     const isMac = Build.OS === kBOS.MAC as number || !!(Build.OS & kBOS.MAC) && !os_
     const rawBtn = hintOptions.button, isRight = rawBtn === 2
@@ -509,7 +513,8 @@ const defaultClick = (_?: SafeElementForMouse): void => {
     const autoUnhover = hintOptions.autoUnhover, doesUnhoverOnEsc = (autoUnhover + "")[0] === "<"
     const isQueue = hintMode_ & HintMode.queue
     const cnsForWin = hintOptions.ctrlShiftForWindow
-    const maybeLabel = OnFirefox && !editableTypes_[tag] && clickEl.closest!("label,input,textarea,a,button"
+    const target = realClickEl || clickEl, targetTag = htmlTag_(target), isSel = targetTag === "select"
+    const maybeLabel = OnFirefox && !editableTypes_[targetTag] && target.closest!("label,input,textarea,a,button"
         ) as SafeElement | null
     const notLabelInFormOnFF = !OnFirefox || !maybeLabel || !hasTag_("label", maybeLabel)
         || !(maybeLabel as HTMLLabelElement).control
@@ -517,10 +522,9 @@ const defaultClick = (_?: SafeElementForMouse): void => {
         || newWindow && !!cnsForWin)
     const shift = notLabelInFormOnFF && (newWindow
         || newTab && (mask > HintMode.newtab_n_active - 1) === !hintOptions.activeOnCtrl)
-    const isSel = tag === "select"
     const rawInteractive = hintOptions.interact
-    const interactive = isSel || getMediaTag(tag) === kMediaTag.otherMedias && !isRight
-        && (rawInteractive !== "native" || (clickEl as HTMLMediaElement).controls)
+    const interactive = isSel || getMediaTag(targetTag) === kMediaTag.otherMedias && !isRight
+        && (rawInteractive !== "native" || (target as HTMLMediaElement).controls)
     const doInteract = interactive && !isSel && rawInteractive !== !1
     const specialActions = dblClick || doInteract
         ? kClickAction.BaseMayInteract + +dblClick + kClickAction.FlagInteract * <number> <number | boolean> doInteract
@@ -533,9 +537,10 @@ const defaultClick = (_?: SafeElementForMouse): void => {
         : OnFirefox ? newTab ? kClickAction.plainInNewTab : kClickAction.plainMayOpenManually
         : kClickAction.none
     const doesUnhoverAtOnce = !doesUnhoverOnEsc && /*#__PURE__*/ checkBoolOrSelector(autoUnhover, !1)
-    retPromise = catchAsyncErrorSilently(click_async(clickEl, rect
-        , !!(clickEl as ElementToHTMLOrForeign).focus && /*#__PURE__*/ checkBoolOrSelector(rawFocus
-            , mask > 0 || interactive || (clickEl as ElementToHTMLOrForeign).tabIndex! >= 0)
+    retPromise = catchAsyncErrorSilently(click_async(target
+        , target === clickEl ? rect : getRect(target)
+        , !!(target as ElementToHTMLOrForeign).focus && /*#__PURE__*/ checkBoolOrSelector(rawFocus
+            , mask > 0 || interactive || (target as ElementToHTMLOrForeign).tabIndex! >= 0)
         , [!1, !isMac && ctrl, isMac && ctrl, shift]
         , specialActions, (rawBtn as typeof rawBtn & number) || kClickButton.none
         , !OnChrome || otherActions || newTab || newWindow ? 0 : hintOptions.touch))
@@ -543,7 +548,7 @@ const defaultClick = (_?: SafeElementForMouse): void => {
       showUrlIfNeeded()
       newTabStr === "inactive" && post_({ H: kFgReq.focusCurTab }) // not use ports of a parent frame
       return doesUnhoverAtOnce && (!interactive || isTY(autoUnhover)) ? catchAsyncErrorSilently(unhover_async())
-      : isQueue || elType || (ret || doesUnhoverOnEsc) &&
+      : isQueue || getEditableType_<0>(target) || (ret || doesUnhoverOnEsc) &&
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
         whenNextIsEsc_(kHandler.unhoverOnEsc, kModeId.Link, Build.NDEBUG ? unhover_async : unhoverOnEsc_d!)
     })
@@ -568,6 +573,7 @@ const doPostAction = (): Rect | null => {
   const hasKeyword_ff = OnFirefox && hintOptions.keyword != null
   let rect: Rect | null = null
   let then = hintOptions.then, optElse = hintOptions.else
+  let realClickEl: SafeElementForMouse | null | undefined | false
   let retPromise: Promise<unknown> | undefined
   let showRect: BOOL | 2 = hintOptions.flash !== false ? 1 : 0
   if (hintManager) {
@@ -582,8 +588,9 @@ const doPostAction = (): Rect | null => {
   set_grabBackFocus(false)
   if (IsInDOM_(clickEl)) {
     if (!OnFirefox && bZoom_ !== 1 && doc.body && !IsInDOM_(clickEl, doc.body)) { set_bZoom_(1) }
-    clickEl = findNextTargetEl(hintOptions.autoParent, 1) || clickEl
-    clickEl = findNextTargetEl(hintOptions.autoChild) || clickEl
+    clickEl = findNextTargetEl(hintOptions.autoParent) || clickEl
+    clickEl = findNextTargetEl(hintOptions.autoChild, 1) || clickEl
+    realClickEl = mode1_ < HintMode.HOVER + 1 && findNextTargetEl(hintOptions.doClickOn, 2)
     tag = htmlTag_(clickEl), elType = getEditableType_<0>(clickEl), isHtmlImage = tag === "img"
     initTestRegExps() // needed by getPreferredRectOfAnchor
     // must get outline first, because clickEl may hide itself when activated
@@ -628,7 +635,9 @@ const doPostAction = (): Rect | null => {
         }
       }
     } else if (mode1_ < HintMode.min_job || mode1_ === HintMode.FOCUS_EDITABLE) {
-      if (tag === "details") {
+      if (hint.r === hint.d || realClickEl) {
+        hoverEl()
+      } else if (tag === "details") {
         const summary = queryHTMLChild_(clickEl, "summary")
         if (summary) {
           // `HTMLSummaryElement::DefaultEventHandler(event)` in
@@ -638,8 +647,6 @@ const doPostAction = (): Rect | null => {
         } else {
           (clickEl as HTMLDetailsElement).open = !(clickEl as HTMLDetailsElement).open
         }
-      } else if (hint.r && hint.r === hint.d) {
-        hoverEl()
       } else if (elType > EditableType.MaxNotEditableElement) {
         retPromise = select_(clickEl as LockableElement, rect, !removeFlash)
         showRect = 0

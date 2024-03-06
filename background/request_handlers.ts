@@ -733,7 +733,7 @@ const focusAndExecute = (req: Omit<FgReq[kFgReq.gotoMainFrame], "f">
   }
 }
 
-const replaceForwardedOptions = (toForward?: object | string | null): void => {
+const replaceForwardedOptions = (toForward?: object | Exclude<HintsNS.Options["then"], object>): void => {
   if (!toForward) { return }
   typeof toForward === "string" && (toForward = parseEmbeddedOptions(toForward))
   toForward && typeof toForward === "object" &&

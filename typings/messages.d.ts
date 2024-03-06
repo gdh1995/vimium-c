@@ -18,7 +18,7 @@ declare const enum kTip {
   /* 100: */ voidJS, nonLocalhostRe, scrollable, buttonOrA, closableClasses,
   /* 105: */ highContrast_WOB, invisibleElements, imgExt, searchResults, excludeWhenGoNext,
   /* 110..113: */ kCommonEvents, logOmniFallback, logNotWorkOnSandboxed, logGrabFocus,
-  /* 114..115: */ prev, next, ReplacedHtmlTags,
+  /* 114..115: */ prev, next, ReplacedHtmlTags, DefaultDoClickOn,
   INJECTED_CONTENT_END,
   /* 200: */ XHTML = 200,
   /** used by {@link ../Gulpfile.js} */ extendClick = 999,
@@ -279,12 +279,12 @@ declare namespace HintsNS {
     action?: string;
     /** enable bubbles when hovering / unhovering */ bubbles?: boolean;
     caret?: boolean;
-    doClick?: "css-selector"
+    doClickOn?: "css-selector"
     download?: "" | "force"
     focus?: boolean | "css-selector"
     flash?: boolean
-    then?: object | string | void
-    else?: object | string | void
+    then?: object | string | null | void | false
+    else?: object | string | null | void | false
     ordinal?: boolean
     useFilter?: boolean;
     url?: boolean;
@@ -639,7 +639,7 @@ interface FgReq {
   [kFgReq.vomnibar]: ({
     /** url */ u: string
     /** newtab */ t?: HintsNS.Options["newtab"]
-    /** forwarded options */ f: object | string | null | undefined | void
+    /** forwarded options */ f: object | Exclude<HintsNS.Options["then"], object>
     /** only use .keyword and sed */ o: Pick<ParsedOpenPageUrlOptions, "k" | "s">
     /** redo */ r?: undefined;
   } & WithHintModeOptions | {
@@ -738,7 +738,7 @@ interface FgReq {
   [kFgReq.cssLearnt]: {};
   [kFgReq.visualMode]: {
     /** caret mode */ c?: boolean
-    /** forwarded options */ f: object | string | null | undefined | void
+    /** forwarded options */ f: object | Exclude<HintsNS.Options["then"], object>
   };
   [kFgReq.respondForRunKey]: {
     r: BgReq[kBgReq.queryForRunKey]
