@@ -1737,7 +1737,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
           ? e.isTrusted : e.isTrusted !== false) && VPort_._port && doRefresh_(17)
     };
   },
-  OnUnload_ (e?: Event): void {
+  OnPageHide_ (e?: Event): void {
     if (!VPort_
         || e && (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
             ? !e.isTrusted : e.isTrusted === false)) { return; }
@@ -2026,7 +2026,7 @@ VPort_ = {
     name === kBgReq.omni_returnFocus ? VPort_.postToOwner_({ N: VomnibarNS.kFReq.focus, l: response.l }) :
     name === kBgReq.omni_toggleStyle ? Vomnibar_.toggleStyle_(response) :
     name === kBgReq.omni_updateOptions ? Vomnibar_.updateOptions_(response) :
-    name === kBgReq.omni_refresh ? !Vomnibar_.isActive_ && response.d ? Vomnibar_.OnUnload_()
+    name === kBgReq.omni_refresh ? !Vomnibar_.isActive_ && response.d ? Vomnibar_.OnPageHide_()
         : Build.MV3 ? (VPort_._port!.disconnect(), VPort_.connect_(PortType.omnibar | PortType.reconnect)) : 0 :
     name === kBgReq.injectorRun || name === kBgReq.showHUD ? 0 :
     0;
@@ -2112,7 +2112,7 @@ if (Build.BTypes === BrowserType.Chrome as number ? false : !(Build.BTypes & Bro
       removeEventListener("message", onUnknownMsg, true);
     VPort_.postToOwner_ = port.postMessage.bind(port);
     port.onmessage = VPort_._OnOwnerMessage;
-    window.onunload = Vomnibar_.OnUnload_;
+    window.onpagehide = Vomnibar_.OnPageHide_;
     VPort_.postToOwner_({ N: VomnibarNS.kFReq.iframeIsAlive, o: options ? 1 : 0 });
     if (options) {
       Vomnibar_.activate_(options);

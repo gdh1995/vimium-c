@@ -214,7 +214,7 @@ if (Build.MV3 && !OnFirefox && (!OnChrome || Build.MinCVer < BrowserVer.MinCSAcc
 
 // @ts-ignore // will run only on <kbd>F5</kbd>, not on runtime.reload
 Build.MV3 || ((window as Window) // `window.` is necessary on Chrome 32
-.onunload = (): void => {
+.onpagehide = (): void => {
     for (let port of framesForOmni_) {
       port.disconnect()
     }

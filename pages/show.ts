@@ -297,7 +297,7 @@ nextTick_((): void => {
   void post_(kPgReq.showInit).then((conf): void => { setupPageOs_(conf.os) })
 })
 
-window.onunload = destroyObject_;
+window.onpagehide = destroyObject_;
 
 body.ondrop = (e): void => {
   const files = e.dataTransfer.files

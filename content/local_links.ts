@@ -19,7 +19,7 @@ import { find_box } from "./mode_find"
 import { omni_box } from "./omni"
 import {
   kSafeAllSelector, coreHints, addChildFrame_, mode1_, forHover_, hintOptions, wantDialogMode_,
-  isClickListened_, set_isClickListened_, tooHigh_, useFilter_, hintChars, hintManager, hintMode_
+  isClickListened_, set_isClickListened_, tooHigh_, useFilter_, hintChars, hintManager
 } from "./link_hints"
 import { shouldScroll_s, getPixelScaleToScroll, scrolled, set_scrolled, suppressScroll } from "./scroller"
 import { ui_root, ui_box, helpBox, curModalElement, filterOutInert } from "./dom_ui"
