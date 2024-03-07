@@ -339,9 +339,9 @@ export const HistoryManager_ = {
         || (updateCount > 10 && Date.now() - historyCache_.lastRefresh_ > 300000)) { // safe for time change
       HistoryManager_.refreshInfo_()
     }
-    HistoryManager_.DidOnVisit_(newPage, url, i)
+    HistoryManager_._DidOnVisit(newPage, url, i)
   },
-  DidOnVisit_ (newPage: HistoryNS.HistoryItem, url: string, index: number): void {
+  _DidOnVisit (newPage: HistoryNS.HistoryItem, url: string, index: number): void {
     const time = newPage.lastVisitTime,
     title = OnChrome ? newPage.title! : newPage.title || "",
     j: HistoryItem = index >= 0 ? historyCache_.history_![index] : {
@@ -367,7 +367,8 @@ export const HistoryManager_ = {
     }
     if (index >= 0) {
       j.time_ = time
-      if (title && title !== j.title_ && (titleIgnoreListRe_ === null || !titleIgnoreListRe_.test(title))) {
+      if (title && title !== j.title_ && (titleIgnoreListRe_ === null
+            || !titleIgnoreListRe_.test(title.slice(0, GlobalConsts.MaxLengthToCheckIgnoredTitles)))) {
         j.title_ = title
         MatchCacheManager_.timer_ && MatchCacheManager_.clear_(MatchCacheType.kHistory)
         if (omniBlockListRe) {
@@ -478,7 +479,7 @@ export const HistoryManager_ = {
           continue
         }
       }
-      HistoryManager_.DidOnVisit_(info, url, j)
+      HistoryManager_._DidOnVisit(info, url, j)
     }
   },
   binarySearch_ (u: string): number {
@@ -495,6 +496,22 @@ export const HistoryManager_ = {
     // (e < u ? -2 : -1) - m = (e < u ? -1 - 1 - m : -1 - m) = (e < u ? -1 - l : -1 - l)
     // = -1 - l = ~l
     return ~l
+  }
+}
+
+export const normalizeUrlAndTitles_ = (tabs: readonly Tab[]): void => {
+  const arr = historyCache_.history_, checkIgnoredTitles = !!arr && arr.length > 0 && titleIgnoreListRe_ !== null
+  let title: string | undefined
+  for (const tab of tabs) {
+    let url = tab.url
+    if (url.length > GlobalConsts.MaxHistoryURLLength) {
+      url = tab.url = HistoryManager_.trimURLAndTitleWhenTooLong_(url, tab)
+    }
+    if (checkIgnoredTitles && (title = tab.title)
+        && titleIgnoreListRe_!.test(title.slice(0, GlobalConsts.MaxLengthToCheckIgnoredTitles))) {
+      const j = HistoryManager_.binarySearch_(url)
+      j >= 0 && (tab.title = arr[j].title_)
+    }
   }
 }
 
@@ -526,11 +543,8 @@ export const getRecentSessions_ = (expected: number, showBlocked: boolean
         entry = wnd.tabs.find(i => i.active) || wnd.tabs[0]
         wnd.sessionId || (wnd = null)
       }
-      let url = entry.url
-      if (url.length > GlobalConsts.MaxHistoryURLLength) {
-        url = HistoryManager_.trimURLAndTitleWhenTooLong_(url, entry)
-      }
-      const title = entry.title
+      normalizeUrlAndTitles_([entry])
+      const { url, title } = entry
       if (!showBlocked && !TestNotBlocked_(url, title)) { continue }
       t = OnFirefox ? item.lastModified
           : (t = item.lastModified, t < /* as ms: 1979-07 */ 3e11 && t > /* as ms: 1968-09 */ -4e10 ? t * 1000 : t)
@@ -705,19 +719,15 @@ const createXhr_ = (): TextXHR => {
 
 const filterInOptList = (newList: string): string[] => {
   const arr: string[] = []
-  if (newList) {
-    for (let line of newList.split("\n")) {
-      if (line && line.trim() && line[0] !== "#") {
-        arr.push(line)
-      }
-    }
+  for (let line of newList.split("\n")) {
+    line && line.trim() && line[0] !== "#" && arr.push(line)
   }
   return arr
 }
 
 /** @see {@link ../pages/options_ext.ts#isExpectingHidden_} */
 updateHooks_.omniBlockList = function (newList: string): void {
-  const arr: string[] = filterInOptList(newList)
+  const arr: string[] = newList ? filterInOptList(newList) : []
   omniBlockListRe = arr.length > 0 ? new RegExp(arr.map(BgUtils_.escapeAllForRe_).join("|"), "") : null
   omniBlockPath = arr.join("").includes("/")
   omniBlockList_ = arr.length > 0 ? arr : null;
@@ -725,8 +735,8 @@ updateHooks_.omniBlockList = function (newList: string): void {
 }
 
 updateHooks_.titleIgnoreList = (newList: string): void => {
-  newList = filterInOptList(newList).join("|")
   titleIgnoreListRe_ = null
+  newList = newList && filterInOptList(newList).join("\n").replace(<RegExpG> /\\\n/g, "").replace(<RegExpG> /\n/g, "|")
   if (newList) {
     let str = newList.replace(<RegExpOne> /^\/\|?/, ""), hasPrefix = str.length < newList.length
     const tail = hasPrefix ? (<RegExpOne> /\|?\/([a-z]{0,16})$/).exec(str) : null

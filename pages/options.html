@@ -616,7 +616,23 @@ p:regexp-to-replace:target-string:i"
           </div></td>
         </tr>
         <tr>
-          <td class="caption" data-i="87">Block list of words for Vomnibar</td>
+          <td class="caption" data-i="87">Ignore list of history titles</td>
+          <td>
+            <textarea id="titleIgnoreList" class="code min-height-4" data-model="Text"></textarea>
+          </td>
+          <td class="help"><div class="help-inner">
+            <div data-i="87_2">
+              Usually Vomnibar follows title changes in browsing history.
+              However, if you do want to ignore some changed titles, you may add RegExp lines here.</div>
+            <span data-i="87_3">One piece per line</span><span
+                data-i="89_2">; no trimming; case-sensitive; "</span><kbd>#</kbd><span
+                data-i="90">" at the beginning means comments</span><span data-i="period">.</span><span data-i="NS">
+            </span><a class="wrap-left-space" data-auto-resize="titleIgnoreList" role="button" tabindex="0"
+                data-i="autoResize">Auto resize</a><span data-i="period">.</span>
+          </div></td>
+        </tr>
+        <tr>
+          <td class="caption" data-i="87_4">Block list of words for Vomnibar</td>
           <td>
             <textarea id="omniBlockList" class="code min-height-4 masked" data-model="MaskedText"></textarea>
           </td>
@@ -628,22 +644,6 @@ p:regexp-to-replace:target-string:i"
                 data-i="89_2">; no trimming; case-sensitive; "</span><kbd>#</kbd><span
                 data-i="90">" at the beginning means comments</span><span data-i="period">.</span><span data-i="NS">
             </span><a class="wrap-left-space" data-auto-resize="omniBlockList" role="button" tabindex="0"
-                data-i="autoResize">Auto resize</a><span data-i="period">.</span>
-          </div></td>
-        </tr>
-        <tr>
-          <td class="caption" data-i="90_2">Ignore list of history titles</td>
-          <td>
-            <textarea id="titleIgnoreList" class="code min-height-4" data-model="Text"></textarea>
-          </td>
-          <td class="help"><div class="help-inner">
-            <div data-i="90_3">
-              Usually Vomnibar follows title changes in browsing history.
-              However, if you do want to ignore some changed titles, you may add RegExp lines here.</div>
-            <span data-i="90_4">One piece per line</span><span
-                data-i="89_2">; no trimming; case-sensitive; "</span><kbd>#</kbd><span
-                data-i="90">" at the beginning means comments</span><span data-i="period">.</span><span data-i="NS">
-            </span><a class="wrap-left-space" data-auto-resize="titleIgnoreList" role="button" tabindex="0"
                 data-i="autoResize">Auto resize</a><span data-i="period">.</span>
           </div></td>
         </tr>

@@ -6,7 +6,7 @@ import * as BgUtils_ from "./utils"
 import * as settings_ from "./settings"
 import { decodeFileURL_ } from "./normalize_urls"
 import { TabRecency_ } from "./tools"
-import { HistoryManager_ } from "./browsing_data_manager"
+import { HistoryManager_, normalizeUrlAndTitles_ } from "./browsing_data_manager"
 import HistoryItem = CompletersNS.HistoryItem
 import Bookmark = CompletersNS.Bookmark
 
@@ -137,6 +137,7 @@ export const MatchCacheManager_ = {
     }
     cachedTabs_ = tabs
     if (tabs) {
+      normalizeUrlAndTitles_(tabs)
       MatchCacheManager_._tabTimer = setTimeout(MatchCacheManager_.cacheTabs_, GlobalConsts.TabCacheLifeTime, null);
     }
   }

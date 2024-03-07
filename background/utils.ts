@@ -50,14 +50,14 @@ export const unicodeRSubstring_ = (str: string, start: number, end: number): str
     // Note: ZWJ is too hard to split correctly (https://en.wikipedia.org/wiki/Zero-width_joiner)
     // so just remove such a character (if any)
     // unicode surrogates: https://www.jianshu.com/p/7ae9005e0671
-    end += charCode >= 0xD800 && charCode < 0xDC00 ? 1 : charCode === 0x200D && end > start + 1 ? -1 : 0;
+    end += charCode >= 0xD800 && charCode < 0xDC00 || charCode === 0x200D && end > start + 1 ? -1 : 0
     return str.slice(start, end);
 }
 
 export const unicodeLSubstring_ = (str: string, start: number, end: number): string => {
-    const charCode = start > 0 && start < str.length ? str.charCodeAt(start) : 0;
-    start += charCode >= 0xDC00 && charCode <= 0xDFFF ? -1
-        : charCode === 0x200D && start < str.length - 1 && start < end - 1 ? 1 : 0;
+    const charCode = start > 0 && start < str.length && start < end ? str.charCodeAt(start) : 0
+    start += charCode >= 0xDC00 && charCode <= 0xDFFF
+        || charCode === 0x200D && start < str.length - 1 && start < end - 1 ? 1 : 0
     return str.slice(start, end);
 }
 

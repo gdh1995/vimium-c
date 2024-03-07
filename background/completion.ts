@@ -15,7 +15,7 @@ import {
 } from "./completion_utils"
 import {
   BlockListFilter_, BookmarkManager_, UrlDecoder_, HistoryManager_, TestNotBlocked_, getRecentSessions_, BrowserUrlItem,
-  omniBlockList_, titleIgnoreListRe_
+  omniBlockList_
 } from "./browsing_data_manager"
 
 import MatchType = CompletersNS.MatchType;
@@ -295,13 +295,13 @@ historyEngine = {
       text: "",
       maxResults: offset + maxResults * (showThoseInBlocklist ? 1 : 2) + neededMore
     }, (rawArr2): void => {
+      for (const i of rawArr2) {
+        i.url.length>GlobalConsts.MaxHistoryURLLength && (i.url = HistoryManager_.trimURLAndTitleWhenTooLong_(i.url, i))
+      }
+      historyCache_.history_ && HistoryManager_.OnRefreshedInfo_(rawArr2)
       if (query.o) { return; }
-      HistoryManager_.OnRefreshedInfo_(rawArr2)
       rawArr2 = rawArr2.filter((i): boolean => {
         let url = i.url;
-        if (url.length > GlobalConsts.MaxHistoryURLLength) {
-          i.url = url = HistoryManager_.trimURLAndTitleWhenTooLong_(url, i)
-        }
         return !urlSet.has(url)
             && (showThoseInBlocklist || TestNotBlocked_(i.url, i.title || "") !== kVisibility.hidden)
       })
@@ -321,10 +321,7 @@ historyEngine = {
   },
   filterFinish_: function (historyArr: Array<BrowserUrlItem | Suggestion>): void {
     const MakeSuggestion_ = (e: BrowserUrlItem, i: number, arr: Array<BrowserUrlItem | Suggestion>): void => {
-      const u = e.u, t = e.title_ || ""
-      const ind = titleIgnoreListRe_ && t && historyCache_.history_ && titleIgnoreListRe_.test(t)
-          ? HistoryManager_.binarySearch_(u) : -1, title = ind >= 0 ? historyCache_.history_![ind].title_ : t
-      const o = new Suggestion("history", u, UrlDecoder_.decodeURL_(u, u), title,
+      const u = e.u, o = new Suggestion("history", u, UrlDecoder_.decodeURL_(u, u), e.title_ || "",
           get2ndArg, (99 - i) / 100), sessionId: any = e.sessionId_
       o.visit = e.visit_
       sessionId && (o.s = sessionId, o.label = '<span class="undo">&#8630;</span>' + e.label_!)
