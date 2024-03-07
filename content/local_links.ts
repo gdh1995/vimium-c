@@ -19,7 +19,7 @@ import { find_box } from "./mode_find"
 import { omni_box } from "./omni"
 import {
   kSafeAllSelector, coreHints, addChildFrame_, mode1_, forHover_, hintOptions, wantDialogMode_,
-  isClickListened_, set_isClickListened_, tooHigh_, useFilter_, hintChars, hintManager
+  isClickListened_, set_isClickListened_, tooHigh_, useFilter_, hintChars, hintManager, hintMode_
 } from "./link_hints"
 import { shouldScroll_s, getPixelScaleToScroll, scrolled, set_scrolled, suppressScroll } from "./scroller"
 import { ui_root, ui_box, helpBox, curModalElement, filterOutInert } from "./dom_ui"
@@ -371,7 +371,8 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
           && (s !== "svg" || getComputedStyle_(par).cursor !== "pointer")
           && !(hints.length && contains_s(hints[hints.length - 1][0], element)) ? ClickType.classname
       : ClickType.Default
-  if (type && (arr = getVisibleClientRect_(element, null))
+  if (type && (mode1_ < HintMode.min_media || element.localName !== "path")
+      && (arr = getVisibleClientRect_(element, null))
       && (isAriaFalse_(element, kAria.hidden) || extraClickable_ && extraClickable_.has(element))
       && (mode1_ > HintMode.min_job - 1 || isAriaFalse_(element, kAria.disabled))
       && (0 === clickTypeFilter_ || clickTypeFilter_ & (1 << type))
@@ -864,7 +865,7 @@ export const getVisibleElements = (view: ViewBox): readonly Hint[] => {
             return
         }
         const arr = element.childNodes as NodeList
-        if (!OnChrome || Build.MinCVer >= BrowserVer.MinEnsured$ForOf$ForDOMListTypes) {
+        if (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsured$ForOf$ForDOMListTypes) {
           for (const node of arr as ArrayLike<Node> as Node[]) {
             if (isNode_(node, kNode.TEXT_NODE) && node.data.trim().length > 2) {
               getIfOnlyVisible(hints, element)
