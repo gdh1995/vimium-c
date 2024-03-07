@@ -282,7 +282,7 @@ const docEl = doc0.documentElement;
     return
   }
   const dataset = (root as Element as TypeToAssert<Element, HTMLElement, "dataset", "tagName">).dataset
-  const defineProp = Object.defineProperty
+  const defineProp = Object.defineProperty, dbgLoc = Build.NDEBUG ? null as never : location
 if (dataset && (
   dataset.vimium = kRC,
 // only the below can affect outsides
@@ -293,7 +293,9 @@ if (dataset && (
   timer = toRegister.length > 0 ? setTimeout_(next, InnerConsts.DelayForNext) : 0
   ETP[kAEL] = myAEL
   FProto[kToS] = myToStr
-  try { evaledAEL = new Function(`let ${kAEL}=(f,a)=>f(...a)\nreturn ` + kAEL)() } catch {}
+  if (!(<RegExpOne> /\.(bing\.com|google\.com(\.\w+)?)$/).test("." + location.host)) {
+    try { evaledAEL = new Function(`let ${kAEL}=(f,a)=>f(...a)\nreturn ` + kAEL)() } catch {}
+  }
   for (let i of [0, 2] as const) { /*#__ENABLE_SCOPED__*/
     let propName: "onmousedown" | "onclick" | "open" | "write" = i ? "onmousedown" : "onclick"
     const setterName = ("set " + propName) as `set ${typeof propName}`
@@ -311,7 +313,7 @@ if (dataset && (
       enumerable: true, configurable: true,
       set (newDocFunc) { _docFunc = newDocFunc },
       get () {
-        const oriHref = Build.NDEBUG ? "" : location.host && location.pathname || location.href
+        const oriHref = Build.NDEBUG ? "" : dbgLoc.host && dbgLoc.pathname || dbgLoc.href
         if (doc0.readyState > "l") {
           if (hasKnownDocOpened === 1) {
             Build.NDEBUG ? onDocOpen() : onDocOpen(i, oriHref)
