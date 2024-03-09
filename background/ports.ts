@@ -7,7 +7,7 @@ import {
 import { asyncIter_, deferPromise_, getOmniSecret_, isNotPriviledged, keys_ } from "./utils"
 import {
   removeTempTab, tabsGet, runtimeError_, getCurTab, getTabUrl, browserWebNav_, Q_, executeScript_, getFindCSS_cr_,
-  selectTab, selectWndIfNeed, browser_
+  selectTab, selectWndIfNeed
 } from "./browser"
 import { exclusionListening_, getExcluded_, exclusionListenHash_ } from "./exclusions"
 import { I18nNames, transEx_ } from "./i18n"
@@ -26,11 +26,15 @@ const kAliveIfOnlyAnyAction = Build.MV3 && OnChrome && (Build.MinCVer >= Browser
     || CurCVer_ > BrowserVer.MinBgWorkerAliveIfOnlyAnyAction - 1)
 let _timeoutToTryToKeepAliveOnce_mv3_non_ff = 0
 let _lastTimeToKeepContentAlive = 0
+let innerKeepAliveTick_ = 0
+
+export const resetInnerKeepAliveTick_ = (): void => { innerKeepAliveTick_ = 0 }
 
 const onMessage = <K extends keyof FgReq, T extends keyof FgRes> (request: Req.fg<K> | Req.fgWithRes<T>
     , port: Frames.Port): void => {
   type ReqK = keyof FgReq
   type ResK = keyof FgRes;
+  innerKeepAliveTick_ = 0
   if (request.H !== kFgReq.msg) {
     (reqH_ as {
       [T2 in ReqK]: (req: Req.fg<T2>, port: Frames.Port) => void
@@ -744,14 +748,16 @@ export const waitForPorts_ = (frames: Frames.Frames | undefined, checkCur?: bool
 
 if (Build.MV3 && !OnFirefox && kAliveIfOnlyAnyAction) {
   setInterval((): void => {
-    const findAlivePort = (ref: Frames.Frames | undefined): Port | null =>
-        !ref || !ref.ports_.length ? null : !(ref.cur_.s.flags_ & Frames.Flags.ResReleased) ? ref.cur_
+    if (++innerKeepAliveTick_ >= ((GlobalConsts.KeepAliveTime / (ALIVE_TIMEOUT_IF_NO_ACTION * 0.8)) | 0)) {
+      return
+    }
+    const findAlivePort = (ref: Frames.Frames | undefined): Port | null => {
+      const i = !ref || !ref.ports_.length ? null : !(ref.cur_.s.flags_ & Frames.Flags.ResReleased) ? ref.cur_
         : ref.top_ || ref.ports_[0]
+      return i && i.s.url_.startsWith("http") && !(i.s.flags_ & Frames.Flags.ResReleased) ? i : null
+    }
     const curTabId = curTabId_
-    const omniPort = framesForOmni_.find(i => i.s.tabId_ === curTabId)
-        || framesForOmni_.length && framesForOmni_[framesForOmni_.length - 1]
-    let port = omniPort
-        || findAlivePort(framesForTab_.get(curTabId))
+    let port = findAlivePort(framesForTab_.get(curTabId))
         || (lastKeptTabId_ !== curTabId_ && lastKeptTabId_>0 ? findAlivePort(framesForTab_.get(lastKeptTabId_)) : null)
     if (!port) {
       for (const frames of framesForTab_.values()) {
@@ -766,12 +772,8 @@ if (Build.MV3 && !OnFirefox && kAliveIfOnlyAnyAction) {
     let posted = 0
     if (port) {
       if (!Build.NDEBUG && DEBUG) {
-        if (port === omniPort) {
-          console.log("[verbose] send alive message to omni port: tab=%o @ %o", port.s.tabId_, Date.now() % 9e5)
-        } else {
           console.log("[verbose] send alive message to content port: tab=%o, frameId=%o, flags=%s @ %o"
               , port.s.tabId_, port.s.frameId_, port.s.flags_, Date.now() % 9e5)
-        }
       }
       posted = safePost(port, { N: kBgReq.showHUD, H: null, k: 0, t: "" })
     }
@@ -779,7 +781,7 @@ if (Build.MV3 && !OnFirefox && kAliveIfOnlyAnyAction) {
       if (!Build.NDEBUG && DEBUG) {
         console.log("[warning] no available port to send alive message @ %o", Date.now() % 9e5)
       }
-      browser_.storage.local.getBytesInUse(blank_)
+      getCurTab(blank_) // storage.local.getBytesInUse fails on MS Edge 122
     }
     const now = performance.now()
     if (now - _lastTimeToKeepContentAlive > RELEASE_TIMEOUT / 2 - ALIVE_TIMEOUT_IF_NO_ACTION - 100) {

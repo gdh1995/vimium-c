@@ -576,7 +576,8 @@ declare const enum GlobalConsts {
   KeySequenceTimeout = 30_000,
   ModifierKeyTimeout = 2_900,
   OptionsPage = "pages/options.html",
-  kLoadEvent = "VimiumC"
+  kLoadEvent = "VimiumC",
+  KeepAliveTime = 900_000,
 }
 
 declare const enum kModeId {

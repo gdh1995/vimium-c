@@ -14,7 +14,8 @@ import { hostRe_, removeComposedScheme_ } from "./normalize_urls"
 import { prepareReParsingPrefix_ } from "./parse_urls"
 import * as settings_ from "./settings"
 import {
-  complainLimits, refreshPorts_, showHUD, showHUDEx, tryToKeepAliveIfNeeded_mv3_non_ff, waitForPorts_
+  complainLimits, refreshPorts_, showHUD, showHUDEx, tryToKeepAliveIfNeeded_mv3_non_ff, waitForPorts_,
+  resetInnerKeepAliveTick_
 } from "./ports"
 import { setOmniStyle_ } from "./ui_css"
 import { transEx_, trans_ } from "./i18n"
@@ -633,6 +634,7 @@ let lastVisitTabTime = 0, lastSaveRecencyTime = 0
   function onTabActivated(info: chrome.tabs.TabActiveInfo): void {
     const tabId = info.tabId, frames = framesForTab_.get(tabId)
     if (frames && frames.flags_ & Frames.Flags.ResReleased) { refreshPorts_(frames, 0) }
+    resetInnerKeepAliveTick_()
     if (info.windowId !== curWndId_) {
       Windows_.get(info.windowId, maybeOnBgWndActiveTabChange)
       return
