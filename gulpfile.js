@@ -484,7 +484,7 @@ var Tasks = {
   "minc": ["size/content"],
   "content/size": ["size/content"],
   "content/csize": ["size/content"],
-  "cize": ["size/content"],
+  "csize": ["size/content"],
   "words": ["build/content", function (cb) {
     process.env.CHECK_WORDS = "1";
     gulp.series("min/content")(function () {

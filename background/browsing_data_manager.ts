@@ -1,6 +1,6 @@
 import {
   blank_, bookmarkCache_, Completion_, CurCVer_, historyCache_, OnChrome, OnEdge, OnFirefox, urlDecodingDict_,
-  set_findBookmark_, findBookmark_, updateHooks_, curWndId_
+  set_findBookmark_, findBookmark_, updateHooks_, curWndId_, set_urlDecodingDict_
 } from "./store"
 import { Tabs_, browser_, runtimeError_, browserSessions_, watchPermissions_ } from "./browser"
 import * as BgUtils_ from "./utils"
@@ -31,7 +31,7 @@ const WithTextDecoder = !OnEdge && (Build.MinCVer >= BrowserVer.MinEnsuredTextEn
 const _decodeFunc = decodeURIComponent
 let decodingEnabled: boolean | undefined, decodingJobs: ItemToDecode[], decodingIndex = -1, dataUrlToDecode_ = "1"
 let charsetDecoder_: TextDecoder | null = null
-let omniBlockList_: string[] | null = null, omniBlockListRe: RegExpOne | null = null, omniBlockPath = false
+let omniBlockList_: string[] | null = null, blockListRe_: RegExpOne | null = null, omniBlockPath = false
 let titleIgnoreListRe_: RegExpOne | null = null
 
 export { omniBlockList_, titleIgnoreListRe_ }
@@ -126,7 +126,7 @@ export const BookmarkManager_ = {
       bookmarkCache_.bookmarks_.push({
         id_: id, path_: path, title_: title,
         t: isJS ? jsScheme : url,
-        visible_: omniBlockListRe ? TestNotBlocked_(url, omniBlockPath ? path : rawTitle) : kVisibility.visible,
+        visible_: blockListRe_ !== null ? TestNotBlocked_(url, omniBlockPath ? path : rawTitle) : kVisibility.visible,
         u: isJS ? jsScheme : url, pid_: iterPid_, ind_: index,
         jsUrl_: isJS ? url : null, jsText_: isJS ? BgUtils_.DecodeURLPart_(url) : null
       })
@@ -181,7 +181,7 @@ export const BookmarkManager_ = {
           cur.t = UrlDecoder_.decodeURL_(url2, cur)
           UrlDecoder_.continueToWork_()
         }
-        if (omniBlockListRe) {
+        if (blockListRe_ !== null) {
           cur.visible_ = TestNotBlocked_(cur.jsUrl_ || cur.u, omniBlockPath ? cur.path_ : cur.title_)
         }
         bookmarkCache_.stamp_ = performance.now()
@@ -273,22 +273,21 @@ export const HistoryManager_ = {
   },
   _Init: function (arr: Array<HistoryNS.HistoryItem | HistoryItem>): void {
     HistoryManager_._Init = null
-    for (let i = 0, len = arr.length; i < len; i++) {
-      let j = arr[i] as HistoryNS.HistoryItem, url = j.url
-      if (url.length > GlobalConsts.MaxHistoryURLLength) {
-        url = HistoryManager_.trimURLAndTitleWhenTooLong_(url, j)
-      }
-      (arr as HistoryItem[])[i] = {
+    let localOnChrome = OnChrome, trim = HistoryManager_.trimURLAndTitleWhenTooLong_, j_ind = 0
+    for (const j of arr as readonly HistoryNS.HistoryItem[]) {
+      let url = j.url
+      if (url.length > GlobalConsts.MaxHistoryURLLength) { url = trim(url, j) }
+      (arr as HistoryItem[])[j_ind++] = {
         t: url,
-        title_: OnChrome ? j.title! : j.title || "",
+        title_: localOnChrome ? j.title! : j.title || "",
         time_: j.lastVisitTime,
         visible_: kVisibility.visible,
         u: url
       }
     }
-    if (omniBlockListRe) {
+    if (blockListRe_) {
       for (const k of arr as HistoryItem[]) {
-        if (TestNotBlocked_(k.t, k.title_) === 0) {
+        if (TestNotBlocked_(k.t, k.title_) === CompletersNS.kVisibility.hidden) {
           k.visible_ = kVisibility.hidden
         }
       }
@@ -348,14 +347,12 @@ export const HistoryManager_ = {
       t: "",
       title_: title,
       time_: time,
-      visible_: omniBlockListRe ? TestNotBlocked_(url, title) : kVisibility.visible,
+      visible_: blockListRe_ !== null ? TestNotBlocked_(url, title) : kVisibility.visible,
       u: url
     }
-    let slot: Domain | undefined
-    if (historyCache_.domains_) {
-      let domain = parseDomainAndScheme_(url)
-      if (!domain) { /* empty */ }
-      else if (slot = historyCache_.domains_.get(domain.domain_)) {
+    let slot: Domain | undefined, domain = parseDomainAndScheme_(url)
+      if (domain === null) { /* empty */ }
+      else if ((slot = historyCache_.domains_.get(domain.domain_)) !== undefined) {
         slot.time_ = time
         if (index < 0) { slot.count_ += j.visible_ }
         if (domain.scheme_ > Urls.SchemeId.HTTP - 1) { slot.https_ = domain.scheme_ === Urls.SchemeId.HTTPS ? 1 : 0 }
@@ -364,18 +361,17 @@ export const HistoryManager_ = {
           time_: time, count_: j.visible_, https_: domain.scheme_ === Urls.SchemeId.HTTPS ? 1 : 0
         })
       }
-    }
     if (index >= 0) {
       j.time_ = time
       if (title && title !== j.title_ && (titleIgnoreListRe_ === null
             || !titleIgnoreListRe_.test(title.slice(0, GlobalConsts.MaxLengthToCheckIgnoredTitles)))) {
         j.title_ = title
-        MatchCacheManager_.timer_ && MatchCacheManager_.clear_(MatchCacheType.kHistory)
-        if (omniBlockListRe) {
+        MatchCacheManager_.timer_ !== 0 && MatchCacheManager_.clear_(MatchCacheType.kHistory)
+        if (blockListRe_ !== null) {
           const newVisible = TestNotBlocked_(url, title)
           if (j.visible_ !== newVisible) {
             j.visible_ = newVisible
-            if (slot) {
+            if (slot !== undefined) {
               slot.count_ += newVisible || -1
             }
           }
@@ -385,7 +381,7 @@ export const HistoryManager_ = {
     }
     j.t = UrlDecoder_.decodeURL_(url, j)
     historyCache_.history_!.splice(~index, 0, j)
-    MatchCacheManager_.timer_ && MatchCacheManager_.clear_(MatchCacheType.kHistory)
+    MatchCacheManager_.timer_ !== 0 && MatchCacheManager_.clear_(MatchCacheType.kHistory)
   },
   OnVisitRemoved_ (toRemove: HistoryNS.RemovedResult): void {
     decodingJobs.length = 0
@@ -394,13 +390,18 @@ export const HistoryManager_ = {
     if (toRemove.allHistory) {
       historyCache_.history_ = []
       historyCache_.domains_ = new Map()
-      const toKeep = []
+      const toKeep: [string, string][] = []
       for (const i of bookmarkCache_.bookmarks_) {
         const decoded = d.get(i.u)
-        decoded && toKeep.push([i.u, decoded])
+        decoded !== undefined && toKeep.push([i.u, decoded])
       }
-      d.clear()
-      for (const [k, v] of toKeep) { d.set(k, v) }
+      if (OnChrome && Build.MinCVer < BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol
+          && CurCVer_ < BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol || !toKeep.length) {
+        d.clear()
+        for (const [k, v] of toKeep) { d.set(k, v) }
+      } else {
+        set_urlDecodingDict_(new Map(toKeep))
+      }
       return
     }
     const bs = HistoryManager_.binarySearch_
@@ -409,7 +410,7 @@ export const HistoryManager_ = {
     for (const j of toRemove.urls) {
       const i = bs(j)
       if (i >= 0) {
-        if (domains && h![i].visible_) {
+        if (h![i].visible_) {
           const item = parseDomainAndScheme_(j)
           if (item && (entry = domains.get(item.domain_)) && (--entry.count_) <= 0) {
             domains.delete(item.domain_)
@@ -453,9 +454,9 @@ export const HistoryManager_ = {
     const d = historyCache_.domains_
     for (const { u: url, time_: time, visible_: visible } of history) {
       const item = parseDomainAndScheme_(url)
-      if (!item) { continue }
+      if (item === null) { continue }
       const {domain_: domain, scheme_: scheme} = item, slot = d.get(domain)
-      if (slot) {
+      if (slot !== undefined) {
         if (slot.time_ < time) { slot.time_ = time }
         slot.count_ += visible
         if (scheme > Urls.SchemeId.HTTP - 1) { slot.https_ = scheme === Urls.SchemeId.HTTPS ? 1 : 0 }
@@ -567,7 +568,7 @@ export const getRecentSessions_ = (expected: number, showBlocked: boolean
 }
 
 export const TestNotBlocked_ = (url: string, title: string): CompletersNS.Visibility => {
-  return omniBlockListRe!.test(title) || omniBlockListRe!.test(url)
+  return blockListRe_!.test(title) || blockListRe_!.test(url)
       ? kVisibility.hidden : kVisibility.visible
 }
 
@@ -587,21 +588,21 @@ export const BlockListFilter_ = {
     return false
   },
   UpdateAll_ (): void {
+    const d = historyCache_.domains_, mayBlock = blockListRe_ !== null
     if (bookmarkCache_.bookmarks_) {
       for (const k of bookmarkCache_.bookmarks_) {
         (k as Writable<Bookmark>).visible_ =
-            omniBlockListRe ? TestNotBlocked_(k.jsUrl_ || k.u, omniBlockPath ? k.path_ : k.title_) : kVisibility.visible
+            mayBlock ? TestNotBlocked_(k.jsUrl_ || k.u, omniBlockPath ? k.path_ : k.title_) : kVisibility.visible
       }
     }
     if (!historyCache_.history_) {
       return
     }
-    const d = historyCache_.domains_
     for (const k of historyCache_.history_) {
-      const newVisible = omniBlockListRe ? TestNotBlocked_(k.u, k.title_) : kVisibility.visible
+      const newVisible = mayBlock ? TestNotBlocked_(k.u, k.title_) : kVisibility.visible
       if (k.visible_ !== newVisible) {
         k.visible_ = newVisible
-        const domain = d && parseDomainAndScheme_(k.u)
+        const domain = parseDomainAndScheme_(k.u)
         const slot = domain && d.get(domain.domain_)
         if (slot) {
           slot.count_ += newVisible || -1
@@ -728,7 +729,7 @@ const filterInOptList = (newList: string): string[] => {
 /** @see {@link ../pages/options_ext.ts#isExpectingHidden_} */
 updateHooks_.omniBlockList = function (newList: string): void {
   const arr: string[] = newList ? filterInOptList(newList) : []
-  omniBlockListRe = arr.length > 0 ? new RegExp(arr.map(BgUtils_.escapeAllForRe_).join("|"), "") : null
+  blockListRe_ = arr.length > 0 ? new RegExp(arr.map(BgUtils_.escapeAllForRe_).join("|"), "") : null
   omniBlockPath = arr.join("").includes("/")
   omniBlockList_ = arr.length > 0 ? arr : null;
   (historyCache_.history_ || bookmarkCache_.bookmarks_.length) && setTimeout(BlockListFilter_.UpdateAll_, 100)

@@ -10,7 +10,7 @@ import {
   queryHTMLChild_, getSelection_, removeEl_s, appendNode_s, getMediaUrl, getMediaTag, INP, ALA, attr_s, hasTag_, kGCh,
   setOrRemoveAttr_s, toggleClass_s, textContent_s, notSafe_not_ff_, modifySel, SafeEl_not_ff_, testMatch, contains_s,
   extractField, querySelectorAll_unsafe_, editableTypes_, findAnchor_, dispatchEvent_, newEvent_, rangeCount_,
-  findSelectorByHost, deepActiveEl_unsafe_, getRootNode_mounted, isNode_, findTargetAction_
+  findSelectorByHost, deepActiveEl_unsafe_, getRootNode_mounted, isNode_, findTargetAction_, TryGetShadowRoot_
 } from "../lib/dom_utils"
 import { getPreferredRectOfAnchor, initTestRegExps } from "./local_links"
 import {
@@ -73,7 +73,7 @@ const findNextTargetEl = (pattern: HintsNS.Options["autoParent" | "autoChild"] |
       click2nd = rect && (onlyShadow ? clickEl : elFromPoint_(center, clickEl))
       click2nd = anyAtPos || click2nd && contains_s(clickEl, click2nd) ? click2nd : null
       click3nd = click2nd
-      while (sr2 = click3nd && htmlTag_<1>(click3nd) && GetShadowRoot_(click3nd)) {
+      while (sr2 = click3nd && TryGetShadowRoot_(click3nd)) {
         click3nd = elFromPoint_(center, sr2)
         click3nd && sr2.contains(click3nd) ? click2nd = click3nd : click3nd = 0
       }

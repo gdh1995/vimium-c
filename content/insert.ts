@@ -232,7 +232,7 @@ export const onFocus = (event: Event | FocusEvent): void => {
   if (lock_ && lock_ === (OnChrome ? deepActiveEl_unsafe_() : activeEl_unsafe_())) { return; }
   if (target === ui_box) { Stop_(event); return }
   // on Edge 107 and MV3 mode, chrome.dom may throw `invalid extension context`
-  const sr = OnChrome ? TryGetShadowRoot_(target as Element, !runtime_port) : TryGetShadowRoot_(target as Element)
+  const sr = OnChrome ? TryGetShadowRoot_(<Element> target, runtime_port ? 0 : 1) : TryGetShadowRoot_(target as Element)
   if (sr) {
     const path = getEventPath(event)
     let topOfPath: EventTarget | undefined
@@ -287,7 +287,7 @@ export const onBlur = (event: Event | FocusEvent): void => {
   let target: EventTarget | Element | Window | Document = event.target, topOfPath: EventTarget | undefined
   if (target === window) { onWndBlur(); return }
   if (OnFirefox && target === doc) { return; }
-  const sr = OnChrome ? TryGetShadowRoot_(target as Element, !runtime_port) : TryGetShadowRoot_(target as Element)
+  const sr = OnChrome ? TryGetShadowRoot_(target as Element, runtime_port ? 0 : 1) : TryGetShadowRoot_(<Element> target)
   if (sr && target !== ui_box) {
   const path = getEventPath(event)
   const same = !OnEdge && (!OnChrome

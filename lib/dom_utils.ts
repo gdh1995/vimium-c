@@ -19,8 +19,7 @@ export const AriaArray = ["aria-hidden", "aria-disabled", "aria-haspopup"] as co
 
 //#region data and DOM-shortcut section
 
-let unsafeFramesetTag_old_cr_: "frameset" | "" | null =
-    OnChrome && Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter ? "" : 0 as never as null
+let unsafeFramesetTag_old_cr_: "frameset" | 0 = 0
 let docSelectable_ = true
 let _domInst: HTMLAnchorElement | undefined
 
@@ -67,7 +66,7 @@ export const testMatch = (selector: string, hint: Hint0): boolean => {
 export const isIFrameElement = <T extends BOOL = 0>(el: Element, alsoFenced?: T
     ): el is (T extends 1 ? KnownIFrameElement : AccessableIFrameElement) => {
   const tag = el.localName
-  return (tag === "iframe" || tag === "fencedframe" && alsoFenced || tag === "frame") && hasTag_(tag, el)
+  return (tag === "iframe" || tag === "frame" || tag === "fencedframe" && alsoFenced === 1) && hasTag_(tag, el)
 }
 
 export const isNode_ = <T extends keyof kNodeToType> (node: Node, typeId: T): node is kNodeToType[T] => {
@@ -160,29 +159,32 @@ export const SafeEl_not_ff_ = !OnFirefox ? function (
   (el: Element | null | void, type?: PNType.DirectElement): SafeElement | null | undefined
 } : 0 as never as null
 
-export const TryGetShadowRoot_ = (el: Element, noClosed_cr?: boolean | BOOL): ShadowRoot | null =>
-    htmlTag_<1>(el) ? GetShadowRoot_(el, noClosed_cr) : null
+export const TryGetShadowRoot_ = (el: Element, noClosed_cr?: BOOL): ShadowRoot | null =>
+    htmlTag_<1>(el) ? Build.BTypes & BrowserType.Chrome ? GetShadowRoot_(el, noClosed_cr) : GetShadowRoot_(el) : null
 
-export const GetShadowRoot_ = (el: SafeHTMLElement, noClosed_cr?: boolean | BOOL): ShadowRoot | null => {
+export const GetShadowRoot_ = ((el: HTMLElement, noClosed_cr?: BOOL
+      ): ShadowRoot | Element | RadioNodeList | Window | null => {
     let sr: Element["shadowRoot"] | Element["webkitShadowRoot"]
     if (OnFirefox) {
       return Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1
           ? (el as any).openOrClosedShadowRoot : (el as any).openOrClosedShadowRoot || null
     }
-    if (OnChrome && !noClosed_cr) {
-      if ((Build.MinCVer >= BrowserVer.Min$dom$$openOrClosedShadowRoot
+    if (OnChrome && noClosed_cr !== 1 && (Build.MinCVer >= BrowserVer.Min$dom$$openOrClosedShadowRoot
           || chromeVer_ > BrowserVer.Min$dom$$openOrClosedShadowRoot - 1)) {
-        return htmlTag_(el) && (chrome as any).dom.openOrClosedShadowRoot(el)
-      }
+      return chrome.dom.openOrClosedShadowRoot!(el)
     }
     // Note: .webkitShadowRoot and .shadowRoot share a same object
     sr = OnChrome && Build.MinCVer < BrowserVer.MinEnsuredUnprefixedShadowDOMV0
         && chromeVer_ < BrowserVer.MinEnsuredUnprefixedShadowDOMV0 ? el.webkitShadowRoot : el.shadowRoot;
     // according to https://developer.mozilla.org/en-US/docs/Web/API/Element/attachShadow,
     // <form> and <frameset> can not have shadowRoot
-    return OnChrome && Build.MinCVer >= BrowserVer.MinShadowDOMV0
-      ? sr && notSafe_not_ff_!(el) ? null : sr as Exclude<typeof sr, undefined | Element | RadioNodeList | Window>
-      : sr && !notSafe_not_ff_!(el) && <Exclude<typeof sr, Element | RadioNodeList | Window>> sr || null;
+  return !(Build.BTypes & BrowserType.Edge)
+      && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsuredUnprefixedShadowDOMV0)
+      && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
+      ? sr as Exclude<typeof sr, undefined> : sr !== undefined ? sr : null
+}) as {
+  (el: SafeHTMLElement, noClosed_cr?: BOOL): ShadowRoot | null
+  (el: HTMLElement, noClosed_cr?: BOOL): ShadowRoot | Element | RadioNodeList | Window | null
 }
 
 // offset: 0: anchor, 1: focus; >= 2: directly use (offset - 2)
@@ -191,7 +193,7 @@ export const getNodeChild_ = (node: Node, sel: Selection, offset?: number): Node
   let childNodes: NodeList
   if (type === kNode.ELEMENT_NODE || type === kNode.DOCUMENT_FRAGMENT_NODE || !OnFirefox && isTY(type, kTY.obj)) {
     if (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinParentNodeGetterInNodePrototype) {
-      childNodes = OnFirefox || type === kNode.DOCUMENT_FRAGMENT_NODE || notSafe_not_ff_!(node as Element)
+      childNodes = OnFirefox || type === kNode.DOCUMENT_FRAGMENT_NODE || !notSafe_not_ff_!(node as Element)
           ? node.childNodes as NodeList : _getter_unsafeOnly_not_ff_!(Node, node, "childNodes")!
     } else {
       childNodes = node.childNodes as unknown as NodeList
@@ -229,14 +231,14 @@ export const GetParent_unsafe_ = function (el: Node | Element
   // may be `frameset,form` with pn or pe overridden; <frameset>.parentNode may be a connected shadowRoot
   if (!OnFirefox) {
     pn = (!OnChrome || Build.MinCVer >= BrowserVer.MinFramesetHasNoNamedGetter
-          || !unsafeFramesetTag_old_cr_ || (pn as ParentNodeProp as WindowWithTop).top !== top)
+          || unsafeFramesetTag_old_cr_ === 0 || (pn as ParentNodeProp as WindowWithTop).top !== top)
         && (nodeTy = pn.nodeType) && (nodeTy === kNode.DOCUMENT_FRAGMENT_NODE || nodeTy === kNode.DOCUMENT_NODE
             || nodeTy && doc.contains.call(pn, el)) ? pn
         : !OnChrome || Build.MinCVer >= BrowserVer.MinParentNodeGetterInNodePrototype
           || chromeVer_ > BrowserVer.MinParentNodeGetterInNodePrototype - 1
         ? _getter_unsafeOnly_not_ff_!(Node, el, "parentNode")
         : (Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter
-          ? pe && (!unsafeFramesetTag_old_cr_ || (pe as ParentNodeProp as WindowWithTop).top !== top) : pe)
+          ? pe && (unsafeFramesetTag_old_cr_ === 0 || (pe as ParentNodeProp as WindowWithTop).top !== top) : pe)
         && pe!.nodeType && doc.contains.call(pe as Element, el) ? (type = PNType.DirectNode, pe)
         : el === doc.body ? docEl_unsafe_() : null
   }

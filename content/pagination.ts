@@ -8,7 +8,7 @@ import {
 } from "../lib/dom_utils"
 import { getBoundingClientRect_, isNotInViewport, view_, kInvisibility } from "../lib/rect"
 import { kSafeAllSelector, detectUsableChild } from "./link_hints"
-import { traverse, ngEnabled, extraClickable_ } from "./local_links"
+import { traverse, ngEnabled_, extraClickable_ } from "./local_links"
 import { find_box } from "./mode_find"
 import { omni_box } from "./omni"
 import { flash_ } from "./dom_ui"
@@ -44,7 +44,7 @@ export const filterTextToGoNext: VApiTy["g"] = (candidates, names, options, maxL
         || (OnFirefox ? (element as HTMLElement | SVGElement).onclick : attr_s(element, "onclick"))
         || ((s = OnChrome && Build.MinCVer >= BrowserVer.MinEnsured$Element$$role
                 ? element.role : attr_s(element, "role")) ? (<RegExpI> /^(button|link)$/i).test(s)
-          : ngEnabled && attr_s(element, "ng-click"))) {
+          : ngEnabled_ === 1 && attr_s(element, "ng-click"))) {
       if ((isAriaFalse_(element, kAria.disabled) && isAriaFalse_(element, kAria.hasPopup) || fromMatchSelector)
           && isInteractiveInPage(element)) {
         hints.push([element as SafeElementForMouse])

@@ -213,6 +213,9 @@ declare namespace chrome.clipboard {
 declare namespace chrome.extension {
   export const getBackgroundPage: (() => Window | null) | undefined
 }
+declare namespace chrome.dom {
+  export const openOrClosedShadowRoot: ((element: HTMLElement) => ShadowRoot | null) | undefined
+}
 declare namespace chrome.runtime {
   interface BrowserInfo {
     name: string
