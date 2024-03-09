@@ -141,17 +141,17 @@ const _getter_unsafeOnly_not_ff_ = !OnFirefox ? function <Ty extends Node, Key e
     return desc && desc.get ? desc.get.call(instance) : null;
 } : 0 as never as null
 
-export const notSafe_not_ff_ = !OnFirefox ? (el: Element): el is HTMLFormElement => {
+export const isSafeEl_ = !OnFirefox ? (el: Element): el is SafeElement => {
   let s: Element["localName"]
-  return typeof (s = el.localName) !== "string" ||
+  return typeof (s = el.localName) === "string" &&
       (!OnChrome || Build.MinCVer >= BrowserVer.MinFramesetHasNoNamedGetter
-        ? s === "form" : s === "form" || s === unsafeFramesetTag_old_cr_)
-} : 0 as never as null
+        ? s !== "form" : s !== "form" && s !== unsafeFramesetTag_old_cr_)
+} : (() => true) as never
 
   /** @safe_even_if_any_overridden_property */
 export const SafeEl_not_ff_ = !OnFirefox ? function (
       el: Element | undefined | null, type?: PNType.DirectElement | undefined): Node | undefined | null {
-  return el && notSafe_not_ff_!(el)
+  return el && !isSafeEl_(el)
     ? SafeEl_not_ff_!(GetParent_unsafe_(el, type || PNType.RevealSlotAndGotoParent), type) : el
 } as {
   (el: SafeElement | null, type?: any): unknown
@@ -193,11 +193,11 @@ export const getNodeChild_ = (node: Node, sel: Selection, offset?: number): Node
   let childNodes: NodeList
   if (type === kNode.ELEMENT_NODE || type === kNode.DOCUMENT_FRAGMENT_NODE || !OnFirefox && isTY(type, kTY.obj)) {
     if (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinParentNodeGetterInNodePrototype) {
-      childNodes = OnFirefox || type === kNode.DOCUMENT_FRAGMENT_NODE || !notSafe_not_ff_!(node as Element)
+      childNodes = type === kNode.DOCUMENT_FRAGMENT_NODE || isSafeEl_(node as Element)
           ? node.childNodes as NodeList : _getter_unsafeOnly_not_ff_!(Node, node, "childNodes")!
     } else {
       childNodes = node.childNodes as unknown as NodeList
-      childNodes = OnFirefox || type === kNode.DOCUMENT_FRAGMENT_NODE || !notSafe_not_ff_!(node as Element)
+      childNodes = type === kNode.DOCUMENT_FRAGMENT_NODE || isSafeEl_(node as Element)
           || childNodes instanceof NodeList && !("value" in childNodes) ? childNodes
           : _getter_unsafeOnly_not_ff_!(Node, node, "childNodes") || <NodeList> <{[index: number]: Node}> []
     }
@@ -217,8 +217,7 @@ export const GetParent_unsafe_ = function (el: Node | Element
         len > 0 && (el = arr[len - 1]);
       }
       let slot = (el as Element).assignedSlot;
-      !OnFirefox && slot && notSafe_not_ff_!(el as Element) &&
-      (slot = _getter_unsafeOnly_not_ff_!(Element, el as Element, "assignedSlot"));
+      slot && !isSafeEl_(el as Element) && (slot = _getter_unsafeOnly_not_ff_!(Element, el as Element, "assignedSlot"))
       if (slot) {
         if (type < PNType.RevealSlot + 1) { return slot; }
         while (slot = slot.assignedSlot) { el = slot; }
@@ -294,8 +293,8 @@ export const scrollingEl_ = (fallback?: 1): SafeElement | null => {
       //   when it's real scroll height is not larger than innerHeight
     }
     // here `el` may be `:root, :root > body, :root > frameset` or `null`
-    return el && !notSafe_not_ff_!(el) ? el as SafeElement
-        : fallback && docEl && !notSafe_not_ff_!(docEl) ? docEl as SafeElement
+    return el && isSafeEl_(el) ? el as SafeElement
+        : fallback && docEl && isSafeEl_(docEl) ? docEl as SafeElement
         : null
 }
 
@@ -548,8 +547,7 @@ export const singleSelectionElement_unsafe = (sel: Selection): Element | null =>
 
 export const getElDesc_ = (el: Element | null): FgReq[kFgReq.respondForRunKey]["e"] =>
     // if el is SVGElement, then el.className is SVGAnimatedString
-    el && (OnFirefox || !notSafe_not_ff_!(el)) && [(el as SafeElement).localName, el.id
-        , attr_s(el as SafeElement, "class")] || null
+    el && isSafeEl_(el) && [(el as SafeElement).localName, el.id, attr_s(el as SafeElement, "class")] || null
 
 export const extractField = (el: SafeElement, props: string): string => {
   type primitiveObject = boolean | number | string | { arguments?: undefined } & Dict<any>

@@ -28,7 +28,7 @@ import {
 } from "../lib/utils"
 import {
   rAF_, scrollingEl_, SafeEl_not_ff_, docEl_unsafe_, NONE, frameElement_, OnDocLoaded_, GetParent_unsafe_, elFromPoint_,
-  querySelector_unsafe_, getComputedStyle_, notSafe_not_ff_, HDN, isRawStyleVisible, fullscreenEl_unsafe_, getEventPath,
+  querySelector_unsafe_, getComputedStyle_, isSafeEl_, HDN, isRawStyleVisible, fullscreenEl_unsafe_, getEventPath,
   doesSupportDialog, attr_s, getSelection_, isIFrameElement, derefInDoc_, isHTML_, IsInDOM_, getRootNode_mounted,
   getEditableType_, dispatchAsync_, newEvent_, findSelectorByHost, dispatchEvent_
 } from "../lib/dom_utils"
@@ -540,7 +540,7 @@ export const onScrolls = (event: HandlerNS.Event): boolean => {
 const findScrollable = (di: ScrollByY, amount: number
     , evenOverflowHidden?: boolean | 0 | 2 | null | undefined, scrollable?: string): SafeElement | null => {
   const selectFirst = (info: ElementScrollInfo, skipPrepare?: 1): ElementScrollInfo | null | undefined => {
-    let cur_el = info.e, type: 0 | 1 | -1
+    let cur_el: SafeElement | HTMLFormElement = info.e, type: 0 | 1 | -1
     if (dimSize_(cur_el, kDim.elClientH) + 3 < dimSize_(cur_el, kDim.scrollH) &&
         (type = shouldScroll_s(cur_el, cur_el !== top && cur_el !== body ? selectFirstType : di, 1),
           type > 0 || !type && dimSize_(cur_el, kDim.positionY) > 0 && doesScroll(cur_el, kDim.byY, 0))) {
@@ -549,9 +549,9 @@ const findScrollable = (di: ScrollByY, amount: number
     skipPrepare || prepareCrop_()
     let children: ElementScrollInfo[] = []
     for (let _ref = cur_el.children, _len = _ref.length > 50 ? 0 : _ref.length; 0 < _len--; ) {
-      cur_el = _ref[_len]! as /** fake `as` */ SafeElement
+      cur_el = _ref[_len]! as SafeElement | HTMLFormElement
       // here assumes that a <form> won't be a main scrollable area
-      if (!OnFirefox && notSafe_not_ff_!(cur_el)) { continue }
+      if (!isSafeEl_(cur_el)) { continue }
       const visible = getVisibleBoundingRect_(cur_el) || getVisibleClientRect_(cur_el)
       if (visible) {
         const height = visible.b - visible.t, width = visible.r - visible.l
@@ -594,16 +594,16 @@ const findScrollable = (di: ScrollByY, amount: number
           element = element && (!fullscreen || IsInDOM_(element as SafeElement, fullscreen)) ? element : null
       }
     }
-    if (!element && top && (OnFirefox || !notSafe_not_ff_!(top))) {
-      isTopScrollable = shouldScroll_s(top as SafeElement, di, 0)
+    if (!element && top && isSafeEl_(top)) {
+      isTopScrollable = shouldScroll_s(top, di, 0)
       if (isTopScrollable < 1) {
-        element = elFromPoint_([wndSize_(1) / 2, wndSize_() / 2], top as SafeElement)
+        element = elFromPoint_([wndSize_(1) / 2, wndSize_() / 2], top)
         if (element && getEditableType_(element) && dimSize_(element, kDim.elClientH) < wndSize_() / 2) {
           element = GetParent_unsafe_(element, PNType.RevealSlotAndGotoParent)
         }
         OnFirefox || (element = SafeEl_not_ff_!(element))
         element && selectAncestor()
-        candidate = !element && selectFirst({ a: 0, e: top as SafeElement, h: 0 })
+        candidate = !element && selectFirst({ a: 0, e: top, h: 0 })
       }
       element = candidate && candidate.e !== top && (!activeEl || candidate.h > wndSize_() / 2) ? candidate.e
           : element || top
@@ -611,7 +611,7 @@ const findScrollable = (di: ScrollByY, amount: number
       // otherwise, cache selected element for less further cost
       activeEl || fullscreen || setNewScrolling(element)
     }
-    return !OnFirefox && element && notSafe_not_ff_!(element) ? null : element as SafeElement | null
+    return element && !isSafeEl_(element) ? null : element
 }
 
 export const getPixelScaleToScroll = (skipGetZoom?: 1): void => {

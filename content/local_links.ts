@@ -5,7 +5,7 @@ import {
 } from "../lib/utils"
 import {
   isIFrameElement, uneditableInputs_, getComputedStyle_, queryHTMLChild_, htmlTag_, isAriaFalse_,  joinValidSelectors,
-  kMediaTag, NONE, querySelector_unsafe_, isStyleVisible_, fullscreenEl_unsafe_, notSafe_not_ff_, docEl_unsafe_,
+  kMediaTag, NONE, querySelector_unsafe_, isStyleVisible_, fullscreenEl_unsafe_, isSafeEl_, docEl_unsafe_,
   GetParent_unsafe_, unsafeFramesetTag_old_cr_, isHTML_, querySelectorAll_unsafe_, isNode_, INP, attr_s, supportInert_,
   getMediaTag, getMediaUrl, contains_s, GetShadowRoot_, parentNode_unsafe_s, testMatch, hasTag_, editableTypes_,
   getRootNode_mounted, findSelectorByHost, TryGetShadowRoot_
@@ -260,7 +260,7 @@ const inferTypeOfListener = ((el: SafeHTMLElement, tag: "" | keyof HTMLElementTa
 
 const detectCloseBtn = (element: KnownIFrameElement): void => {
   const next = element.nextElementSibling as Element | null
-  if (next && (OnFirefox || !notSafe_not_ff_!(next)) && next.textContent === "x") {
+  if (next && isSafeEl_(next) && next.textContent === "x") {
     clickable_.add(next)
   }
 }
@@ -270,8 +270,7 @@ export const getEditable = (hints: Hint[], element: SafeHTMLElement): void => {
   if ((s === INP || s === "textarea")
       ? !(s < "t" && uneditableInputs_[(element as HTMLInputElement).type]
           || (element as TextElement).disabled || (element as TextElement).readOnly) || asClickable
-      : (OnFirefox || !notSafe_not_ff_!(element))
-        && ((s = element.contentEditable) !== "inherit" && s !== "false" || asClickable)) {
+      : isSafeEl_(element) && ((s = element.contentEditable) !== "inherit" && s !== "false" || asClickable)) {
     getIfOnlyVisible(hints, element)
   }
 }
@@ -294,7 +293,7 @@ const matchSafeElements = ((selector1: string, rootNode: Element | ShadowRoot | 
   }
   return !udSelector ? list as NodeListOf<SafeElement>
     : list && ([].filter as (this: ArrayLike<Element>, filter: (el: Element) => boolean) => SafeElement[]
-        ).call(list, el => !notSafe_not_ff_!(el))
+        ).call(list, isSafeEl_)
 }) as {
   (selector: string, rootNode: ShadowRoot | HTMLDivElement, udSelector: string | null): HintSources
   (selector: string, rootNode: Element | null, udSelector: string | null, mayBeUnsafe: 1): HintSources | void
@@ -322,7 +321,7 @@ const createElementSet = (list: NodeListOf<Element> | Element[]): IterableElemen
 
 const addExtraVisibleToHints = (hints: (Hint | Hint0)[], element: Element): void => {
   for (const hint of hints) { if (hint[0] === element) { return } }
-  !OnFirefox && notSafe_not_ff_!(element) || getIfOnlyVisible(hints, element as SafeElement)
+  isSafeEl_(element) && getIfOnlyVisible(hints, element)
 }
 
 const addChildTrees = (parts: HintSources, allNodes: NodeListOf<SafeElement>): HintSources => {
@@ -334,7 +333,7 @@ const addChildTrees = (parts: HintSources, allNodes: NodeListOf<SafeElement>): H
         : (!(Build.BTypes & BrowserType.Edge) || localNotOnEdge) && "lang" in el
         && (Build.BTypes & BrowserType.Chrome ? GetShadowRoot_(<HTMLElement> el, noClosedShadow)
             : GetShadowRoot_(<HTMLElement> el)) !== null
-        && !notSafe_not_ff_!(el)) {
+        && isSafeEl_(el)) {
       hosts.push(el)
     } else if (isIFrameElement(el) && local_addChildFrame_) {
       if (OnChrome && Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1 || el !== omni_box && el !== find_box) {
@@ -399,7 +398,7 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
       , traverseRoot, matchSelector, 1) || (matchSelector = " ", [])
   const docBody_cr = OnChrome ? doc.body : null as never,
   may_nextToBody_cr = OnChrome && matchAll && noClosedShadow && !wholeDoc && !traverseRoot && bZoom_ === 1
-      && rawClosedShadow_cr == null && docBody_cr && !notSafe_not_ff_!(docBody_cr)
+      && rawClosedShadow_cr == null && docBody_cr && isSafeEl_(docBody_cr)
       && (Build.MinCVer >= BrowserVer.Min$dom$$openOrClosedShadowRoot
           || chromeVer_>BrowserVer.Min$dom$$openOrClosedShadowRoot-1) && docBody_cr.nextElementSibling as Element|null,
   nextToBody_cr = OnChrome && may_nextToBody_cr
@@ -447,8 +446,8 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
       , querySelectorAll_unsafe_(kIframes_EdgeOnly || kSafeAllSelector, traverseRoot, 1) as NodeListOf<SafeElement>)
   if (!Build.NDEBUG && isInAnElement && !matchSelector) {
     // just for easier debugging
-    if (OnFirefox || !notSafe_not_ff_!(traverseRoot!)) {
-      (cur_arr = ([] as SafeElement[]).slice.call(cur_arr)).unshift(traverseRoot as SafeElement)
+    if (isSafeEl_(traverseRoot!)) {
+      (cur_arr = ([] as SafeElement[]).slice.call(cur_arr)).unshift(traverseRoot)
     }
   }
   const checkNonHTML: BaseFilter<Hint0 | Hint> | null = wantClickable
@@ -576,7 +575,7 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
           && (element = list[i][0]).childElementCount === 1 && i + 1 < list.length) {
         element = element.firstElementChild as Element
         prect = list[i][1];
-        crect = OnFirefox || !notSafe_not_ff_!(element) ? getVisibleClientRect_(element as SafeElement) : null
+        crect = isSafeEl_(element) ? getVisibleClientRect_(element) : null
         if (crect && isContaining_(crect, prect) && htmlTag_<1>(element)) {
           if (parentNode_unsafe_s(list[i + 1][0]) !== element) {
             list[i] = [element, crect, ClickType.tabindex];
@@ -681,7 +680,7 @@ const isDescendant: (c: Element, p: Element, shouldBeSingleChild: BOOL) => boole
   while (0 < i-- && c !== null
       && (c = OnFirefox ? c.parentElement as Element | null : GetParent_unsafe_(c, PNType.DirectElement)) !== null
       && !(OnChrome && Build.MinCVer < BrowserVer.MinFramesetHasNoNamedGetter
-            ? c === p || unsafeFramesetTag_old_cr_ !== 0 && notSafe_not_ff_!(c) : c === p)
+            ? c === p || unsafeFramesetTag_old_cr_ !== 0 && !isSafeEl_(c) : c === p)
       ) { /* empty */ }
   if (c !== p || sc === 0 || buttonOrATags_.test(p.localName as string)) {
     return c === p;
@@ -742,7 +741,7 @@ export const filterOutNonReachable = (list: Hint[], notForAllClickable?: boolean
     if (mediaTag === kMediaTag.img ? isDescendant(el, fromPoint!, 0)
         : tag === "area" ? fromPoint === list[i][4]
         : tag === INP ? ((OnFirefox ? !hasTag_("label", fromPoint!)
-                : !hasTag_("label", fromPoint!) && !notSafe_not_ff_!(fromPoint!)
+                : !hasTag_("label", fromPoint!) && isSafeEl_(fromPoint!)
               && fromPoint!.parentElement || fromPoint!) as MayBeLabel).control === el
           && (notForAllClickable
               || (i < 1 || list[i - 1][0] !== el) && (i + 2 > list.length || list[i + 1][0] !== el))
@@ -760,8 +759,7 @@ export const filterOutNonReachable = (list: Hint[], notForAllClickable?: boolean
           && chromeVer_ < BrowserVer.MinEnsured$Element$$Closest ? 1
           : querySelector_unsafe_("table") ? 2 : 1
     }
-    if ((small || hasTable === 2 && el!.closest!("table"))
-        && (OnFirefox || !notSafe_not_ff_!(fromPoint!)) && !contains_s(fromPoint as SafeElement, el)) {
+    if ((small || hasTable === 2 && el!.closest!("table")) && isSafeEl_(fromPoint!) && !contains_s(fromPoint, el)) {
       list.splice(i, 1)
       continue
     }
@@ -775,7 +773,7 @@ export const filterOutNonReachable = (list: Hint[], notForAllClickable?: boolean
           if (getComputedStyle_(temp).zoom !== "1") { temp = el; break; }
         }
       } else {
-        while (temp = stack[index2], index2++ < elPos && (OnFirefox || !notSafe_not_ff_!(temp))
+        while (temp = stack[index2], index2++ < elPos && isSafeEl_(temp)
             && (!isAriaFalse_(temp as SafeElement, kAria.hidden)
                 || contains_s(temp as SafeElement, el))) { /* empty */ }
         temp = temp !== fromPoint && contains_s(el, temp) ? el : temp

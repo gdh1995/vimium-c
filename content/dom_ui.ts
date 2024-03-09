@@ -7,7 +7,7 @@ import { prevent_ } from "../lib/keyboard_utils"
 import {
   createElement_, attachShadow_, NONE, fullscreenEl_unsafe_, docEl_unsafe_, getComputedStyle_, set_docSelectable_, kDir,
   GetParent_unsafe_, getSelection_, TryGetShadowRoot_, getEditableType_, textOffset_, derefInDoc_, supportInert_,
-  notSafe_not_ff_, CLK, frameElement_, runJS_, isStyleVisible_, rangeCount_, getAccessibleSelectedNode, removeEl_s,
+  isSafeEl_, CLK, frameElement_, runJS_, isStyleVisible_, rangeCount_, getAccessibleSelectedNode, removeEl_s,
   appendNode_s, append_not_ff, setClassName_s, isNode_, contains_s, setOrRemoveAttr_s, textContent_s, inputSelRange,
   parentNode_unsafe_s, setDisplaying_s, getRootNode_mounted, singleSelectionElement_unsafe, isHTML_,
   getDirectionOfNormalSelection, showPicker_, htmlTag_,
@@ -444,7 +444,7 @@ export const getRect = (clickEl: SafeElement, refer?: HTMLElementUsingMap | null
     if (refer) {
       return getClientRectsForAreas_(refer, [], [clickEl as HTMLAreaElement]);
     }
-    const rect = OnFirefox || !notSafe_not_ff_!(clickEl) ? getVisibleClientRect_(clickEl) : null,
+    const rect = isSafeEl_(clickEl) ? getVisibleClientRect_(clickEl) : null,
     bcr = padClientRect_(getBoundingClientRect_(clickEl), 8),
     rect2 = rect && !isContaining_(bcr, rect) ? rect : cropRectS_(bcr) ? bcr : null
     return rect2 && getCroppedRect_(clickEl, rect2);

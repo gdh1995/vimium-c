@@ -41,7 +41,7 @@ import {
   removeHandler_, getMappedKey, keybody_, isEscape_, prevent_, ENTER, suppressTail_, replaceOrSuppressMost_
 } from "../lib/keyboard_utils"
 import {
-  getSelection_, getSelectionFocusEdge_, isHTML_, docEl_unsafe_, notSafe_not_ff_, getEditableType_,
+  getSelection_, getSelectionFocusEdge_, isHTML_, docEl_unsafe_, isSafeEl_, getEditableType_,
   getNodeChild_, rangeCount_, getAccessibleSelectedNode, scrollingEl_, isNode_,
   getDirectionOfNormalSelection, selOffset_, modifySel, parentNode_unsafe_s, textOffset_, inputSelRange
 } from "../lib/dom_utils"
@@ -87,8 +87,7 @@ export const activate = (options: CmdOptions[kFgCmd.visualMode], count: number):
     while (node = nodes.nextNode() as Text | null) {
       if (50 <= (str = node.data).length && 50 < str.trim().length) {
         const element = node.parentElement
-        if (element && (OnFirefox || !notSafe_not_ff_!(element))
-            && getVisibleClientRect_(element as SafeElement) && !getEditableType_(element)) {
+        if (element && isSafeEl_(element) && getVisibleClientRect_(element) && !getEditableType_(element)) {
           break
         }
       }

@@ -4,7 +4,7 @@ import {
 } from "../lib/utils"
 import {
   htmlTag_, isAriaFalse_, isStyleVisible_, querySelectorAll_unsafe_, isIFrameElement, ALA, attr_s, findAnchor_,
-  contains_s, notSafe_not_ff_, hasTag_, AriaArray, testMatch, uneditableInputs_, findSelectorByHost
+  contains_s, isSafeEl_, hasTag_, AriaArray, testMatch, uneditableInputs_, findSelectorByHost
 } from "../lib/dom_utils"
 import { getBoundingClientRect_, isNotInViewport, view_, kInvisibility } from "../lib/rect"
 import { kSafeAllSelector, detectUsableChild } from "./link_hints"
@@ -63,8 +63,8 @@ export const filterTextToGoNext: VApiTy["g"] = (candidates, names, options, maxL
   for (; i < names.length; i++) {
     if (GlobalConsts.SelectorPrefixesInPatterns.includes(names[i][0])) {
       const arr = querySelectorAll_unsafe_(names[i]);
-      if (arr && arr[0] && (OnFirefox || !notSafe_not_ff_!(arr[0]))) {
-        candidates.push([arr[0] as SafeElement as SafeElementForMouse, vApi, i << 23, ""])
+      if (arr && arr[0] && isSafeEl_(arr[0])) {
+        candidates.push([arr[0] satisfies SafeElement as SafeElementForMouse, vApi, i << 23, ""])
         names.length = i + 1
       }
     }

@@ -550,7 +550,7 @@ export const findAnElement_ = (options: OptionsToFindElement, count: number, als
   d = isTY(d) && d ? d : defaultMatch && d === !0 ? "em" : "em,sel,f,h"
   prepareCrop_()
   for (let i of d.split(d.includes(";") ? ";" : ",")) {
-    const _key = i.split("=")[0], testD = "".includes.bind(Lower(_key)), j = i.slice(_key.length + 1).trim()
+    const key = Lower(i.split("=")[0]), testD = "".includes.bind(key), j = i.slice(key.length + 1).trim()
     isSel = 0
     el = testD("em") ? (options.match = <"css-selector" | ""> j || defaultMatch) // element
       && (matches = traverse(kSafeAllSelector, options, matchEl, 1, wholeDoc, 1),

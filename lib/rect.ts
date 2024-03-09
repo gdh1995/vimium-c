@@ -3,7 +3,7 @@ import {
   doc, chromeVer_, Lower, max_, min_, math, OnChrome, OnFirefox, WithDialog, evenHidden_, set_evenHidden_, OnEdge, abs_
 } from "./utils"
 import {
-  docEl_unsafe_, scrollingEl_, notSafe_not_ff_, ElementProto_not_ff, isRawStyleVisible, getComputedStyle_, NONE,
+  docEl_unsafe_, scrollingEl_, isSafeEl_, ElementProto_not_ff, isRawStyleVisible, getComputedStyle_, NONE,
   querySelector_unsafe_, querySelectorAll_unsafe_, GetParent_unsafe_, HDN, createElement_, fullscreenEl_unsafe_,
   IsInDOM_, scrollIntoView_, rangeCount_, removeEl_s, append_not_ff, htmlTag_, getRootNode_mounted
 } from "./dom_utils"
@@ -61,7 +61,7 @@ export let prepareCrop_ = (inVisualViewport?: 1, limited?: Rect | null): number 
         el = !OnChrome || Build.MinCVer >= BrowserVer.MinScrollTopLeftInteropIsAlwaysEnabled
             ? scrollingEl_() : doc.compatMode === "BackCompat" ? doc.body : docEl,
         OnChrome && Build.MinCVer < BrowserVer.MinScrollTopLeftInteropIsAlwaysEnabled
-          ? el && !notSafe_not_ff_!(el) : el) {
+          ? el && isSafeEl_(el) : el) {
       i = dimSize_(el as SafeElement, kDim.elClientW), j = dimSize_(el as SafeElement, kDim.elClientH)
     } else {
       i = wndSize_(1), j = wndSize_()
@@ -140,7 +140,7 @@ export const getVisibleClientRect_ = OnChrome && Build.MinCVer < BrowserVer.MinE
         }
         useChild = isInline && st.display.startsWith(I)
       }
-      if (useChild && (OnFirefox || !notSafe_not_ff_!(el2)) && (cr = getVisibleClientRect_(el2 as SafeElement, st))) {
+      if (useChild && isSafeEl_(el2) && (cr = getVisibleClientRect_(el2, st))) {
         return cr
       }
     }
@@ -170,7 +170,7 @@ export const getVisibleClientRect_ = OnChrome && Build.MinCVer < BrowserVer.MinE
         }
         useChild = isInline && st.display.startsWith(I)
       }
-      if (useChild && (OnFirefox || !notSafe_not_ff_!(el2)) && (cr = getVisibleClientRect_(el2 as SafeElement, st))) {
+      if (useChild && isSafeEl_(el2) && (cr = getVisibleClientRect_(el2, st))) {
         return cr
       }
     }
@@ -267,7 +267,7 @@ const _fixDocZoom_old_cr = OnChrome && Build.MinCVer < BrowserVer.MinDevicePixel
           && (abs_(rectWidth * zoom - viewportWidth) < 0.01
             || (Build.MinCVer >= BrowserVer.MinASameZoomOfDocElAsdevPixRatioWorksAgain
                   || chromeVer_ > BrowserVer.MinASameZoomOfDocElAsdevPixRatioWorksAgain - 1)
-                && !notSafe_not_ff_!(docEl) && (style = (docEl as ElementToHTMLOrForeign).style)
+                && isSafeEl_(docEl) && (style = (docEl as ElementToHTMLOrForeign).style)
                 && style.zoom
             || (isDocZoomStrange_old_cr = 1, abs_(zoom - _getPageZoom_old_cr!(zoom, devRatio, docEl)))) > 1e-3)
       ? zoom : 1

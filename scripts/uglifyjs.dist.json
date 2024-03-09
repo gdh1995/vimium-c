@@ -51,7 +51,7 @@
       "getMatchRanges",
       "activeEl_unsafe_", "querySelector_unsafe_", "querySelectorAll_unsafe_",
       "getSelected", "getComputedStyle_",
-      "isHTML_", "htmlTag_", "hasTag_", "isInTouchMode_cr_", "_getter_unsafeOnly_not_ff_", "notSafe_not_ff_",
+      "isHTML_", "htmlTag_", "hasTag_", "isInTouchMode_cr_", "_getter_unsafeOnly_not_ff_", "isSafeEl_",
       "SafeEl_not_ff_", "GetShadowRoot_", "GetParent_unsafe_",
       "scrollingEl_", "fullscreenEl_unsafe_", "frameElement_", "getEditableType_",
       "IsInDOM_", "getSelectionBoundingBox_",

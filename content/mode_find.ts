@@ -11,7 +11,7 @@ import {
   attachShadow_, getSelectionFocusEdge_, deepActiveEl_unsafe_, setClassName_s, compareDocumentPosition, kGCh,
   getEditableType_, scrollIntoView_, SafeEl_not_ff_, GetParent_unsafe_, focus_, fullscreenEl_unsafe_, docEl_unsafe_,
   getSelection_, isSelected_, docSelectable_, isHTML_, createElement_, CLK, MDW, removeEl_s, appendNode_s, isNode_,
-  setDisplaying_s, findAnchor_, notSafe_not_ff_, textContent_s, modifySel, parentNode_unsafe_s, selOffset_, blur_unsafe,
+  setDisplaying_s, findAnchor_, isSafeEl_, textContent_s, modifySel, parentNode_unsafe_s, selOffset_, blur_unsafe,
   getAccessibleSelectedNode,  INP, BU, PGH, contains_s, setOrRemoveAttr_s, singleSelectionElement_unsafe, getNodeChild_,
   getDirectionOfNormalSelection
 } from "../lib/dom_utils"
@@ -907,7 +907,7 @@ export const executeFind = (query: string | null, options: Readonly<ExecuteOptio
     if (found! && !highlight && (par = par || getSelectionParent_unsafe(curSel = getSelected()))) {
       newAnchor = oldAnchor && getAccessibleSelectedNode(curSel!)
       posChange = newAnchor && compareDocumentPosition(oldAnchor as Node, newAnchor)
-      !OnFirefox && notSafe_not_ff_!(par) || view_(par as SafeElement, 1)
+      isSafeEl_(par) && view_(par, 1)
       if (posChange && /** go back */ !!(posChange & kNode.DOCUMENT_POSITION_PRECEDING) !== back) {
         hudTip(kTip.wrapWhenFind, 1, VTr(back ? kTip.atStart : kTip.atEnd))
       }

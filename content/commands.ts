@@ -8,7 +8,7 @@ import {
   isHTML_, hasTag_, createElement_, querySelectorAll_unsafe_, SafeEl_not_ff_, docEl_unsafe_, MDW, CLK, derefInDoc_,
   querySelector_unsafe_, DAC, removeEl_s, appendNode_s, setClassName_s, INP, contains_s, toggleClass_s, modifySel,
   focus_, testMatch, docHasFocus_, deepActiveEl_unsafe_, getEditableType_, textOffset_, fullscreenEl_unsafe_, IsInDOM_,
-  inputSelRange, dispatchAsync_, notSafe_not_ff_, activeEl_unsafe_, isIFrameElement, elFromPoint_, isStyleVisible_
+  inputSelRange, dispatchAsync_, isSafeEl_, activeEl_unsafe_, isIFrameElement, elFromPoint_, isStyleVisible_
 } from "../lib/dom_utils"
 import {
   replaceOrSuppressMost_, removeHandler_, getMappedKey, prevent_, isEscape_, keybody_, DEL, BSP, ENTER, handler_stack,
@@ -69,8 +69,8 @@ set_contentCommands_([
       clearTimeout_(timer)
       // now focused by `tee.html`; or no focus changes before `onerror`
       ; (event || event !== 0 && options.i) && send_(kFgReq.afterTee, event ? -options.i : options.i, showFrameMask)
-      if (focused && (OnFirefox || !notSafe_not_ff_!(focused)) && IsInDOM_(focused as SafeElement, doc)) {
-        isIFrameElement(focused) ? focusIframeContentWnd_(focused) : focus_(focused as SafeElement)
+      if (focused && isSafeEl_(focused) && IsInDOM_(focused, doc)) {
+        isIFrameElement(focused) ? focusIframeContentWnd_(focused) : focus_(focused)
       }
       removeEl_s(frame)
       isEnabled_ || adjustUI(2)

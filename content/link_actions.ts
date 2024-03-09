@@ -8,7 +8,7 @@ import {
   IsInDOM_, createElement_, htmlTag_, getComputedStyle_, getEditableType_, isIFrameElement, GetParent_unsafe_, focus_,
   kMediaTag, ElementProto_not_ff, querySelector_unsafe_, uneditableInputs_, GetShadowRoot_, scrollingEl_, elFromPoint_,
   queryHTMLChild_, getSelection_, removeEl_s, appendNode_s, getMediaUrl, getMediaTag, INP, ALA, attr_s, hasTag_, kGCh,
-  setOrRemoveAttr_s, toggleClass_s, textContent_s, notSafe_not_ff_, modifySel, SafeEl_not_ff_, testMatch, contains_s,
+  setOrRemoveAttr_s, toggleClass_s, textContent_s, isSafeEl_, modifySel, SafeEl_not_ff_, testMatch, contains_s,
   extractField, querySelectorAll_unsafe_, editableTypes_, findAnchor_, dispatchEvent_, newEvent_, rangeCount_,
   findSelectorByHost, deepActiveEl_unsafe_, getRootNode_mounted, isNode_, findTargetAction_, TryGetShadowRoot_
 } from "../lib/dom_utils"
@@ -326,7 +326,7 @@ const hoverEl = (): void => {
                     ] as SafeElement)
               : selfClickEl.closest!(selector))) {
           const toggleVal = toggleMap[key as "css-selector"]
-          if (OnFirefox || !notSafe_not_ff_!(selected)) {
+          if (isSafeEl_(selected)) {
             for (const toggle of toggleVal ? isTY(toggleVal) ? toggleVal.split(/[ ,]/) : toggleVal : []) {
               const s0 = toggle[0], remove = s0 === "-", add = s0 === "+" || (!remove && null)
               const idx = +(add satisfies boolean | null as boolean) || +remove
@@ -334,9 +334,9 @@ const hoverEl = (): void => {
                 const arr = toggle.slice(idx + 1, -1).split("="), rawAttr = arr[0], val = arr[1] || "",
                 op = rawAttr.slice(-1), isOnlyIncluded = op === "*", isWord = op === "~" || isOnlyIncluded,
                 attr = isWord ? rawAttr.slice(0, -1) : rawAttr,
-                rawOld = attr_s(selected as SafeElement, attr), old = rawOld || "",
+                rawOld = attr_s(selected, attr), old = rawOld || "",
                 valWord = isOnlyIncluded ? val :  " " + val + " ", oldWords = isOnlyIncluded ? old : " " + old + " "
-                attr && setOrRemoveAttr_s(selected as SafeElement, attr,
+                attr && setOrRemoveAttr_s(selected, attr,
                     isWord && old ? (oldWords.includes(valWord) ? add ? old : oldWords.replace(valWord, " ")
                         : remove ? old : old + valWord).trim()
                     : add || !remove && rawOld !== val ? val : null)
@@ -348,13 +348,13 @@ const hoverEl = (): void => {
                 isTextElement = tagType && getEditableType_<0>(selected) > EditableType.MaxNotTextBox,
                 newVal = op === "=" ? valStr
                     : (rval = safeCall<string, any>(JSON.parse, valStr) || valStr, op === ":") ? rval
-                    : (lval = (selected satisfies object as {} as Dict<any>)[prop], op === "+")
+                    : (lval = (selected satisfies SafeElement as {} as Dict<any>)[prop], op === "+")
                     ? lval + rval : op === "-" ? lval - rval : op === "*" ? lval * rval : lval / rval
                 if (isTextElement && selected === raw_insert_lock && isTY(newVal)) {
                   (selected as TextElement).select()
                   execCommand(kInsertText, doc, newVal)
                 } else {
-                  (selected satisfies object as {} as Dict<any>)[prop] = newVal
+                  (selected satisfies SafeElement as {} as Dict<any>)[prop] = newVal
                   if (tagType > EditableType.Select - 1) {
                     dispatchEvent_(selected as SafeHTMLElement, newEvent_(INP, 1, 0, 0, {
                       inputType: "insertReplacementText", data: newVal + ""
@@ -368,19 +368,19 @@ const hoverEl = (): void => {
                 set_cachedScrollable(currentScrolling)
               } else if (toggle.startsWith(":sel") || toggle === ":extend") {
                 if (toggle[1] > "f" && !hintOptions.$s || !rangeCount_(getSelection_())) {
-                  selectNode_(selected as SafeElement)
+                  selectNode_(selected)
                   hintOptions.$s = 1
                 } else {
-                  getSelection_().extend(selected, ((selected as SafeElement).childNodes as NodeList).length)
+                  getSelection_().extend(selected, ((selected satisfies SafeElement).childNodes as NodeList).length)
                 }
               } else if (toggle[0] === "@") {
                 const arr2 = (<RegExpOne> /^@(.*?)(:(\w+))?(=(.*))?$/).exec(toggle)
-                arr2 && arr2[1] && dispatchEvent_(selected as SafeElement
+                arr2 && arr2[1] && dispatchEvent_(selected
                     , new (arr2[3] && (window as any)[arr2[3]] as never || CustomEvent)(arr2[1]
                         , arr2[5] && safeCall<string, any>(JSON.parse, arr2[5]) || {}))
               } else {
                 let cls = toggle.slice(idx + ((toggle[idx] === ".") as boolean | BOOL as BOOL))
-                cls.trim() && toggleClass_s(selected as SafeElement, cls, add)
+                cls.trim() && toggleClass_s(selected, cls, add)
               }
             }
           }
