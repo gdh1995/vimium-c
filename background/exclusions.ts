@@ -6,7 +6,7 @@ import * as BgUtils_ from "./utils"
 import { browserWebNav_ } from "./browser"
 import { formatVimiumUrl_ } from "./normalize_urls"
 import * as settings from "./settings"
-import { asyncIterFrames_ } from "./ports"
+import { asyncIterFrames_, resetInnerKeepAliveTick_ } from "./ports"
 
 export const createRule_ = (pattern: string, keys: string): ExclusionsNS.Tester => {
     let re: RegExp | null | undefined, newPattern: URLPattern | null | undefined
@@ -117,7 +117,7 @@ let getOnURLChange_ = (): null | ExclusionsNS.Listener => {
   const onURLChange: null | ExclusionsNS.Listener = !browserWebNav_()
       || !(OnChrome || OnFirefox || browserWebNav_()!.onHistoryStateUpdated) ? null
       : !OnChrome || Build.MinCVer >= BrowserVer.MinWithFrameId || CurCVer_ >= BrowserVer.MinWithFrameId
-      ? (details): void => { reqH_[kFgReq.checkIfEnabled](details) }
+      ? (details): void => { reqH_[kFgReq.checkIfEnabled](details); resetInnerKeepAliveTick_() }
       : (details): void => {
         const ref = framesForTab_.get(details.tabId),
         msg: Req.bgUrl<kFgReq.checkIfEnabled> = { N: kBgReq.url, H: kFgReq.checkIfEnabled, U: 0 }
@@ -126,6 +126,7 @@ let getOnURLChange_ = (): null | ExclusionsNS.Listener => {
         for (const port of ref ? ref.ports_ : []) {
           port.postMessage(msg)
         }
+        resetInnerKeepAliveTick_()
       };
   getOnURLChange_ = () => onURLChange
   return onURLChange
