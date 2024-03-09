@@ -585,7 +585,7 @@ const onIFrameKeydown = (event: KeyboardEventToPrevent): void => {
                     || isRepeated_(eventWrapper)) ? FindAction.PassDirectly
       : FindAction.Exit;
     let h = HandlerResult.Prevent, scroll: number;
-    if (Build.NDEBUG && Build.Mangle) { runtime_port || runtimeConnect() }
+    if (Build.NDEBUG && Build.Mangle || Build.MV3) { runtime_port || runtimeConnect() }
     if (i < FindAction.PassDirectly + 1) { h = HandlerResult.Suppress }
       else if (i || eventWrapper.v && (checkKey(eventWrapper, eventWrapper.v), 1)) { /* empty */ }
       else if (keybody !== key) {

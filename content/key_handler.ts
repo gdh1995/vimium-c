@@ -132,7 +132,7 @@ export const checkKey = ((event: HandlerNS.Event, key: string
   currentKeys += key2.length > 1 ? key2 = `<${key2}>` : key2
   let result = HandlerResult.Prevent
   if (j === KeyAction.cmd) {
-    if (Build.NDEBUG && Build.Mangle) { runtime_port || runtimeConnect() }
+    if (Build.NDEBUG && Build.Mangle || Build.MV3) { runtime_port || runtimeConnect() }
     post_({ H: kFgReq.key, k: currentKeys, l: event.i, e: getElDesc_(raw_insert_lock) });
     esc!(HandlerResult.Prevent);
     isCmdTriggered = event.i || kKeyCode.True
@@ -238,7 +238,7 @@ export const onKeydown = (event: KeyboardEventToPrevent): void => {
   OnFirefox && raw_insert_lock && insert_Lock_()
   let action = HandlerResult.Nothing, keyStr: string;
   let handler_ind = handler_stack.length
-  if (Build.NDEBUG && Build.Mangle && handler_ind) { runtime_port || runtimeConnect() }
+  if ((Build.NDEBUG && Build.Mangle || Build.MV3) && handler_ind) { runtime_port || runtimeConnect() }
   for (; 0 < handler_ind && action === HandlerResult.Nothing; ) {
     action = (handler_stack[handler_ind -= 2] as HandlerNS.Handler)(eventWrapper);
   }
