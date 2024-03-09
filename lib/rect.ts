@@ -33,16 +33,18 @@ export const wndSize_ = (id?: 0 | 1 | 2): number => id ? id < 2 ? innerWidth : d
 
 /** if `el` is null, then return viewSize for `kDim.scrollSize` */
 export const dimSize_ = (el: SafeElement | null, index: kDim | ScrollByY): number => {
-  let visual, byY = (index & kDim.byY) as BOOL;
+  const kEnsuredVV = OnChrome && Build.MinCVer >= BrowserVer.MinEnsured$visualViewport$ || OnSafari
+      || OnFirefox && Build.MinFFVer >= FirefoxBrowserVer.MinEnsured$visualViewport$
+  let visual: VisualViewport | undefined, byY = (index & kDim.byY) as BOOL;
   return el && (el !== scrollingTop || index > kDim.elClientW - 1 && index < kDim.positionX)
       ? index < kDim.scrollW ? byY ? el.clientHeight : el.clientWidth
         : index < kDim.scPosX ? byY ? el.scrollHeight : el.scrollWidth
         : byY ? el.scrollTop : el.scrollLeft
       : index - byY !== kDim.scPosX
-        && (visual = OnFirefox ? (window as {} as typeof globalThis).visualViewport : visualViewport,
-          OnChrome && Build.MinCVer >= BrowserVer.MinEnsured$visualViewport$ || OnSafari
-          || (OnChrome ? visual && visual.width : visual))
-      ? index > kDim.positionX - 1 ? byY ? visual!.pageTop : visual!.pageLeft : byY ? visual!.height : visual!.width!
+        && (kEnsuredVV || (visual = OnFirefox ? (window as {} as typeof globalThis).visualViewport : visualViewport,
+            OnChrome ? visual && visual.width : visual))
+      ? (kEnsuredVV && (visual = visualViewport),
+         index > kDim.positionX - 1 ? byY ? visual!.pageTop : visual!.pageLeft : byY ? visual!.height : visual!.width!)
       : index > kDim.scPosX - 1 ? index > kDim.positionX && el ? dimSize_(el, kDim.scPosX+byY) : byY ? scrollY : scrollX
       : wndSize_((1 - byY) as BOOL)
 }
@@ -50,7 +52,8 @@ export const dimSize_ = (el: SafeElement | null, index: kDim | ScrollByY): numbe
 /** depends on .docZoom_, .bZoom_, .paintBox_ */
 export let prepareCrop_ = (inVisualViewport?: 1, limited?: Rect | null): number | void => {
     const fz = !OnFirefox ? docZoom_ * bZoom_ : 1,
-    visual = inVisualViewport && (OnFirefox ? (window as {} as typeof globalThis).visualViewport : visualViewport)
+    visual = inVisualViewport && (OnFirefox && Build.MinFFVer < FirefoxBrowserVer.MinEnsured$visualViewport$
+                                  ? (window as {} as typeof globalThis).visualViewport : visualViewport)
     let i: number, j: number, el: Element | null, docEl: Document["documentElement"]
     vleft = vtop = 0
     if (!OnChrome || Build.MinCVer >= BrowserVer.MinEnsured$visualViewport$ ? visual : visual && visual.width) {

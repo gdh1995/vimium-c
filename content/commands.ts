@@ -36,9 +36,9 @@ import {
   FindAction, activate as findActivate, deactivate as findDeactivate, execCommand, find_box, find_input, kInsertText
 } from "./mode_find"
 import {
-  exitInputHint, insert_inputHint, insert_last_, raw_insert_lock, insert_Lock_, resetInsert, set_is_last_mutable,
+  exitInputHint, insert_inputHint, insert_last_, raw_insert_lock, insert_Lock_, set_is_last_mutable,
   set_inputHint, set_insert_global_, set_isHintingInput, set_insert_last_, exitInsertMode, set_passAsNormal,
-  insert_global_, insert_last2_, set_insert_last2_, insert_last_mutable
+  insert_global_, insert_last2_, set_insert_last2_, insert_last_mutable, resetInsertAndScrolling
 } from "./insert"
 import { activate as visualActivate, deactivate as visualDeactivate } from "./visual"
 import { activate as scActivate, onActivate, currentScrolling, setNewScrolling, scrollTick } from "./scroller"
@@ -92,8 +92,8 @@ set_contentCommands_([
       })
     }
     if (opt.r) {
-      setNewScrolling(null)
-      resetInsert(), linkClear((2 - opt.r) as BOOL), visualDeactivate && visualDeactivate()
+      /*#__INLINE__*/ resetInsertAndScrolling()
+      linkClear((2 - opt.r) as BOOL), visualDeactivate && visualDeactivate()
       findDeactivate && findDeactivate(FindAction.ExitNoAnyFocus)
       omniHide(), hideHelp && hideHelp()
       /** only need a part of actions in {@link ./insert.ts#onWndBlur} */

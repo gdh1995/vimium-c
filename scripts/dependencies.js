@@ -585,11 +585,11 @@ exports.fill_global_defs = (global_defs, btypes) => {
 exports.replace_global_defs = (global_defs, code) => {
   const keys = Object.keys(global_defs).join("|")
   if (!keys) { return code }
-  const arr = new RegExp(keys, "g")
+  const keyRe = new RegExp(`\\b${keys}\\b`, "g")
   /** @type {[start: number, end: number, value: any][]} */
   const to_replace = []
   let match
-  while (match = arr.exec(code)) {
+  while (match = keyRe.exec(code)) {
     const pos = match.index, key = match[0]
     if (code[pos - 1] === "." && code.substr(pos + key.length, 12).trimLeft()[0] !== "=") {
       const arr = [...code.slice(Math.max(0, pos - 32), pos - 1)].reverse().join("")
@@ -631,7 +631,8 @@ exports.skip_declaring_known_globals = (btypes, minCVer, get_code) =>{
   if (!(btypes & BrowserType.Chrome) || minCVer >= /* MinEnsured$InputDeviceCapabilities */ 47) {
     toRemovedGlobal += "InputDeviceCapabilities|";
   }
-  if (!(btypes & BrowserType.Chrome && minCVer < /* MinEnsured$visualViewport$ */ 61 || btypes & BrowserType.Edge)) {
+  if (!(btypes & BrowserType.Chrome && minCVer < /* MinEnsured$visualViewport$ */ 61
+        || btypes & BrowserType.Edge)) {
     toRemovedGlobal += "visualViewport|";
   }
   if (!(btypes & BrowserType.Chrome && minCVer < /* Min$queueMicrotask */ 71 || btypes & BrowserType.Edge)) {

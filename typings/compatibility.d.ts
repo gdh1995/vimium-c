@@ -685,6 +685,7 @@ declare const enum FirefoxBrowserVer {
   MinEnsuredES$TopLevelAwait = 108, // javascript.options.experimental.top_level_await
   MinMaybeScrollEndEvent = 109, // apz.scrollend-event.content.enabled
   MinMaybe$navigator$$userAgentData = 116, // a fake version number
+  MinEnsured$visualViewport$ = 119,
   // members of a Selection are never updated when an <input> gets focused, so no work-around
   Min$Selection$SupportTextBox = 999,
   None = 0,

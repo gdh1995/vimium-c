@@ -176,7 +176,7 @@ export const unblockClick_old_ff = (): void => {
     }
 
     hookMethods = (setter, event): void => {
-      for (const [stdFunc, idx] of stdMembers) {
+      for (const [stdFunc, idx] of stdMembers) { /*#__ENABLE_SCOPED__*/
         setter(event, stdFunc.name as "preventDefault" | "stopImmediatePropagation" | "stopPropagation"
             , function (this: EventToPrevent): any {
           const self = this, ret = reflectApply_not_cr!(stdFunc, self, arguments)

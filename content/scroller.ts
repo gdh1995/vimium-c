@@ -169,7 +169,8 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
     if (delta > 0) {
       const wanted = delta, beforeScPos = ScrollConsts.DEBUG & 2 ? dimSize_(element, kDim.scPosX + di) : -1,
       visual = !(ScrollConsts.DEBUG & 2 && element === scrollingTop) ? null
-          : OnFirefox? (window as {} as typeof globalThis).visualViewport : visualViewport
+          : !OnFirefox || Build.MinFFVer >= FirefoxBrowserVer.MinEnsured$visualViewport$ ? visualViewport
+          : (window as {} as typeof globalThis).visualViewport
       const beforeViewOffset = ScrollConsts.DEBUG & 2 && visual?.[di ? "offsetTop" : "offsetLeft"] || 0
       const beforeViewPos = ScrollConsts.DEBUG & 2 && visual?.[di ? "pageTop" : "pageLeft"] || 0
       // here should keep safe even if there're bounce effects
@@ -304,7 +305,9 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
           , `flags = ${flags}, wait2 = ${wait2 ?? -1}`) // lgtm [js/useless-expression]
     }
     if (OnFirefox) {
-      const visual_ff = element === scrollingTop ? (window as {} as typeof globalThis).visualViewport : null
+      const visual_ff = element !== scrollingTop ? null
+          : Build.MinFFVer >= FirefoxBrowserVer.MinEnsured$visualViewport$ ? visualViewport
+          : (window as {} as typeof globalThis).visualViewport
       if (visual_ff && visual_ff.scale > 1) {
         const scPos = dimSize_(element, kDim.scPosX + di)
         const oriSize = wndSize_((1 - di) as BOOL)

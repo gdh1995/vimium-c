@@ -8,7 +8,7 @@
     "wrap_func_args": false
   },
   "compress": {
-    "booleans": false,
+    "booleans": true,
     "collapse_vars": true,
     "comparisons": true,
     "conditionals": true,

@@ -707,6 +707,10 @@ const beforeTerser = exports.beforeTerser = (file) => {
       contents = contents.replace(/\b__awaiter\(void 0,[^,]+,[^,]+,\s?(?=\(?function|\(\(?\))/g, "__myAwaiter(");
     }
   }
+  if (!(btypes & ~BrowserType.Firefox) && allPathStr.includes("/vimium-c.js")) {
+    get();
+    contents = contents.replaceAll("isSafeEl_()", "true");
+  }
   if (allPathStr.includes("/env.js")) {
     const result = skip_declaring_known_globals(btypes, minCVer, () => (get(), contents))
     if (result != null) {

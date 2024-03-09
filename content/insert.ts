@@ -208,11 +208,9 @@ export const exitInputHint = (): void => {
   }
 }
 
-export const resetInsert = (): void => {
-  insert_last_ = insert_last2_ = lock_ = insert_global_ = null
-  is_last_mutable = 1;
-  exitGrab()
-  setupSuppress()
+export const resetInsertAndScrolling = (): void => { // force terser to mark it inline
+  setNewScrolling(insert_last_ = insert_last2_ = lock_ = insert_global_ = null), is_last_mutable = 1,
+  exitGrab(), setupSuppress()
 }
 
 export const onFocus = (event: Event | FocusEvent): void => {

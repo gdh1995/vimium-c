@@ -122,24 +122,24 @@ const tryDrawOnCanvas = ((hudMsg: string | 0, req?: Req.fg<kFgReq.openImage | kF
   const defer0 = promiseDefer_<string | FileReaderLoadEvent | 0 | void>(), resolveData = defer0.r
   const url = isHtmlImage && (req ? (req as FgReq[kFgReq.openImage]).u : (s2 = getMediaUrl(img, 1)) && getUrlData(s2))
   if (url) {
-    const parsed = new URL(url), isGlobal = (<RegExpI> /^(https?|data):/i).test(url)
+    const parsed = new URL(url), kIsGlobal = (<RegExpI> /^(https?|data):/i).test(url)
     const origin = parsed.origin || "", sameOrigin = origin[0] === "h" && origin === loc_.origin
     const defer1 = promiseDefer_<ImageLoadingResult>()
-    const isInIncognito = (OnChrome ? chrome : browser as never).extension.inIncognitoContext
+    const kIsInIncognito = (OnChrome ? chrome : browser as never).extension.inIncognitoContext
     r1 = defer1.r
     richText = (richText || "") + "" as Extract<typeof richText, string>
-    if (!richText.includes("safe") && isGlobal && !isInIncognito && (!OnFirefox || !parsed.pathname.endsWith(".gif"))
+    if (!richText.includes("safe") && kIsGlobal && !kIsInIncognito && (!OnFirefox || !parsed.pathname.endsWith(".gif"))
           && !urlSameIgnoringHash(url, locHref()) || OnFirefox && req && hasKeyword_ff
         || !OnFirefox && parsed.pathname.endsWith(".gif") && !richText.includes("force")) {
       r1(0)
     } else if (isHtmlImage && urlSameIgnoringHash(url, getMediaUrl(img, 2)) && (sameOrigin || img.crossOrigin)
         && img.naturalWidth) {
       r1(1)
-    } else if(sameOrigin || isInIncognito) {
+    } else if(sameOrigin || kIsInIncognito) {
       timer1 = timeout_(r1, 9000)
       img = createElement_("img")
       img.onload = img.onerror = r1
-      isInIncognito && (img.crossOrigin = "anonymous")
+      kIsInIncognito && (img.crossOrigin = "anonymous")
       OnFirefox && (img.referrerpolicy = "strict-origin-when-cross-origin") // avoid a warning on FF 102.0.1esr
       img.src = url
       hintApi.h(kTip.reDownloading, 9)
@@ -178,7 +178,7 @@ const tryDrawOnCanvas = ((hudMsg: string | 0, req?: Req.fg<kFgReq.openImage | kF
       }
       if (ok) { return }
       img !== clickEl && setOrRemoveAttr_s(img, "src")
-      if ((isInIncognito || !isGlobal) && (!OnChrome || Build.MinCVer >= BrowserVer.MinAbortController
+      if ((kIsInIncognito || !kIsGlobal) && (!OnChrome || Build.MinCVer >= BrowserVer.MinAbortController
           || chromeVer_ > BrowserVer.MinAbortController - 1)) {
         hintApi.h(kTip.reDownloading, 9)
         if (!(Build.BTypes & ~BrowserType.ChromeOrFirefox)

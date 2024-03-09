@@ -413,7 +413,7 @@ function testScopedLets(selfVar, context, varNames) {
     /** @type { (walk_root: AST_Node, node2: AST_Node) => boolean } */
     const walk = (walk_root, node2) => {
       if (node2 === walk_root) { /* empty */ } // @ts-ignore
-      else if (node2.TYPE === "SymbolRef" && varNames.has(node2.name) && !/^(is|kIs)/.test(node2.name)) { // @ts-ignore
+      else if (node2.TYPE === "SymbolRef" && varNames.has(node2.name) && !/^kIs/.test(node2.name)) { // @ts-ignore
         foundFuncInLoop = 2; foundNames.add(node2.name)
       } else if (node2 instanceof AST_Lambda) {
         node2.walk(new TreeWalker(walk.bind(null, node2)))
@@ -429,15 +429,15 @@ function testScopedLets(selfVar, context, varNames) {
     }))
     if (foundFuncInLoop === 1 && inIter) { // @ts-ignore
       const comments_after = curBlocks[0].start.comments_after 
-      if (comments_after.length > 0 && (comments_after[0].value + "").includes("__ENABLE_SCOPED__")) { return false }
+      if (comments_after.length > 0 && (comments_after[0].value + "").includes("#__ENABLE_SCOPED__")) { return false }
       console.error("[Warning] Found a function in a scoped loop:", curBlocks[0].print_to_string())
       throw new Error("Please avoid scoped variable in a loop!")
     }
     if (foundFuncInLoop === 2) {
-      if (!varNames.has("stdFunc") && !root.async) { // @ts-ignore
-        const comments_after = (curBlocks[0] instanceof AST_IterationStatement && curBlocks[0].body || curBlocks[0]
-            ).start.comments_after
-        if (comments_after.length > 0 && (comments_after[0].value + "").includes("__ENABLE_SCOPED__")) { /* empty */ }
+      if (!root.async) { // @ts-ignore
+        const first_token = (curBlocks[0] instanceof AST_IterationStatement && curBlocks[0].body || curBlocks[0]).start
+        const comments = first_token.comments_after?.length ? first_token.comments_after : first_token.comments_before
+        if (comments.length > 0 && (comments[0].value + "").includes("#__ENABLE_SCOPED__")) { /* empty */ }
         else if (inIter) {
           console.log("[Error] ====== A function uses let/const variables of a loop's scoped closure !!! ======",
               curBlocks[0].print_to_string())
