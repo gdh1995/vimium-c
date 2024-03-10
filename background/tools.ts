@@ -38,6 +38,7 @@ export const ContentSettings_ = OnChrome ? {
     }
     if (!bcs) {
       showHUD("Has not permitted to set contentSettings")
+      setTimeout((): void => { focusOrLaunch_({ u: CONST_.OptionsPage_ + "#optionalPermissions" }) }, 800)
       return true;
     }
     if (!bcs[contentType] || (<RegExpOne> /^[A-Z]/).test(contentType) || !bcs[contentType].get) {

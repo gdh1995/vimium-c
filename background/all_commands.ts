@@ -139,8 +139,8 @@ set_bgC_([
     key = _key && typeof _key === "string" ? stripKey_(_key).trim() : ""
     key = key.length > 1 || key.length === 1 && !(<RegExpI> /[0-9a-z]/i).test(key)
         && key === key.toUpperCase() && key === key.toLowerCase() ? key : "" // refuse letters in other languages
-    const hideHUD = get_cOptions<C.insertMode>().hideHUD ?? get_cOptions<C.insertMode>().hideHud
-        ?? (!key && settingsCache_.hideHud)
+    const rawHideHUD = get_cOptions<C.insertMode>().hideHUD ?? get_cOptions<C.insertMode>().hideHud
+        ?? settingsCache_.hideHud, hideHUD = rawHideHUD === "auto" ? !key : rawHideHUD
     void Promise.resolve(trans_("globalInsertMode", [key && ": " + (key.length === 1 ? `" ${key} "` : `<${key}>`)]))
         .then((msg): void => {
     sendFgCmd(kFgCmd.insertMode, !hideHUD, Object.assign<CmdOptions[kFgCmd.insertMode], Req.FallbackOptions>({

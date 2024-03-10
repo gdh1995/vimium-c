@@ -21,7 +21,7 @@ interface BgCmdOptions {
   } & UserSedOptions & CSSOptions & Req.FallbackOptions & OpenUrlOptions
   [kBgCmd.insertMode]: {
     key: string
-    hideHUD: boolean | "force" | "always"
+    hideHUD: boolean | "force" | "always" | "auto"
     /** (deprecated) */ hideHud: boolean
     insert: boolean
     passExitKey: boolean
