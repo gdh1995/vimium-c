@@ -585,7 +585,7 @@ exports.fill_global_defs = (global_defs, btypes) => {
 exports.replace_global_defs = (global_defs, code) => {
   const keys = Object.keys(global_defs).join("|")
   if (!keys) { return code }
-  const keyRe = new RegExp(`\\b${keys}\\b`, "g")
+  const keyRe = new RegExp(`\\b(?:${keys})\\b`, "g")
   /** @type {[start: number, end: number, value: any][]} */
   const to_replace = []
   let match
