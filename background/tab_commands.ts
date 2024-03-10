@@ -608,8 +608,15 @@ export const removeTab = (resolve: OnCmdResolved, phase?: 1 | 2 | 3, tabs?: read
     goToIndex = i2 >= 0 && i2 < total ? i2 : goToIndex
   }
   if (goToIndex >= 0 && goToIndex < total) {
-    // note: here not wait real removing, otherwise the browser window may flicker
-    selectTab(tabs[goToIndex].id)
+    const removeOne = Math.min(end, tabs.length) - Math.max(0, start) === 1, destId = tabs[goToIndex].id
+    if (removeOne) {
+      removeTabsInOrder(tab, tabs, start, end, (ok): void => {
+        ok && selectTab(destId)
+        resolve(ok)
+      })
+      return
+    }
+    selectTab(destId)
   }
   removeTabsInOrder(tab, tabs, start, end, resolve)
 }
