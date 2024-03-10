@@ -21,7 +21,7 @@ import {
   kSafeAllSelector, coreHints, addChildFrame_, mode1_, forHover_, hintOptions, wantDialogMode_,
   isClickListened_, set_isClickListened_, tooHigh_, useFilter_, hintChars, hintManager
 } from "./link_hints"
-import { shouldScroll_s, getPixelScaleToScroll, scrolled, set_scrolled, suppressScroll } from "./scroller"
+import { shouldScroll_s, getPixelScaleToScroll, scrolled, suppressScroll } from "./scroller"
 import { ui_root, ui_box, helpBox, curModalElement, filterOutInert } from "./dom_ui"
 import { generateHintText } from "./hint_filters"
 
@@ -509,7 +509,6 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
       console.log("Assert error: `!wantClickable if wholeDoc` in VHints.traverse_");
     }
   } else {
-  scrolled === 1 && suppressScroll();
   if (wantClickable && !matchSelector) { // deduplicate
     ((list: Hint[]): void => {
   const D = "div"
@@ -525,6 +524,7 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
       j++
     }
   }
+  scrolled === 1 && suppressScroll()
   while (0 <= --i) {
     k = list[i][2];
     notRemoveParents = k === ClickType.classname;
@@ -641,7 +641,6 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
       })
     }
   }
-  const hasHookedScroll = scrolled
   if (!OnFirefox && !OnEdge && ui_root && !wholeDoc && (!OnChrome || noClosedShadow === 1)
       && (OnChrome && Build.MinCVer >= BrowserVer.MinShadowDOMV0 || ui_root !== ui_box)
       && (Build.NDEBUG && (!OnChrome || Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1)
@@ -655,7 +654,6 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
       for (const i of cur_arr as ArrayLike<Element> as Element[]) { htmlTag_<1>(i) && filter(output, i) }
     }
     set_bZoom_(localBZoom)
-    hasHookedScroll || set_scrolled(0)
   }
   clickTypeFilter_ = 0
   return output

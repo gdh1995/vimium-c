@@ -283,6 +283,7 @@ const docEl = doc0.documentElement;
   }
   const dataset = (root as Element as TypeToAssert<Element, HTMLElement, "dataset", "tagName">).dataset
   const defineProp = Object.defineProperty, dbgLoc = Build.NDEBUG ? null as never : location
+  const host = location.host || frameElement && (parent as Window).location.host
 if (dataset && (
   dataset.vimium = kRC,
 // only the below can affect outsides
@@ -293,7 +294,7 @@ if (dataset && (
   timer = toRegister.length > 0 ? setTimeout_(next, InnerConsts.DelayForNext) : 0
   ETP[kAEL] = myAEL
   FProto[kToS] = myToStr
-  if (!(<RegExpOne> /\.(bing\.com|google\.com(\.\w+)?)$/).test("." + location.host)) {
+  if (host && !(<RegExpOne> /\.(bing\.com|google\.com(\.\w+)?)$/).test("." + host)) {
     try { evaledAEL = new Function(`let ${kAEL}=(f,a)=>f(...a)\nreturn ` + kAEL)() } catch {}
   }
   for (let i of [0, 2] as const) { /*#__ENABLE_SCOPED__*/
