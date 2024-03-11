@@ -8,7 +8,8 @@ import {
   Tabs_, Windows_, makeTempWindow_r, makeWindow, PopWindow, tabsCreate, Window, getTabUrl, selectFrom, tabsGet, R_, Qs_,
   runtimeError_, IncNormalWnd, selectWnd, selectTab, getCurWnd, getCurTabs, getCurTab, getGroupId, tabsUpdate,
   browserSessions_, InfoToCreateMultiTab, openMultiTabs, isTabMuted, isRefusingIncognito_, Q_, isNotHidden_,
-  selectIndexFrom
+  selectIndexFrom,
+  removeTabsOrFailSoon_
 } from "./browser"
 import { convertToUrl_ } from "./normalize_urls"
 import { parseSearchUrl_ } from "./parse_urls"
@@ -586,8 +587,10 @@ export const removeTab = (resolve: OnCmdResolved, phase?: 1 | 2 | 3, tabs?: read
     if (q) {
       q.then((destTab): void => {
         if (destTab && destTab.windowId === tab.windowId && isNotHidden_(destTab)) {
-          selectTab(destTab.id)
-          Tabs_.remove(tab.id, R_(resolve))
+          removeTabsOrFailSoon_(tab.id, (succeed: boolean): void => {
+            succeed && selectTab(destTab.id)
+            resolve(succeed)
+          })
         } else {
           getCurTabs(removeTab.bind(null, resolve, 3))
         }
@@ -610,7 +613,7 @@ export const removeTab = (resolve: OnCmdResolved, phase?: 1 | 2 | 3, tabs?: read
   if (goToIndex >= 0 && goToIndex < total) {
     const removeOne = Math.min(end, tabs.length) - Math.max(0, start) === 1, destId = tabs[goToIndex].id
     if (removeOne) {
-      removeTabsInOrder(tab, tabs, start, end, (ok): void => {
+      removeTabsInOrder(tab, tabs, start, end, (ok: boolean): void => {
         ok && selectTab(destId)
         resolve(ok)
       })
@@ -651,9 +654,9 @@ const removeAllTabsInWnd = (resolve: OnCmdResolved, tab: Tab, curTabs: readonly 
 }
 
 const removeTabsInOrder = (tab: Tab, tabs: readonly Tab[], start: number, end: number
-    , resolve: OnCmdResolved | null): void => {
+    , resolve: ((ok: boolean) => void) | null): void => {
   const curInd = Math.max(0, tabs.indexOf(tab))
-  Tabs_.remove(tab.id, resolve ? R_(resolve) : runtimeError_)
+  removeTabsOrFailSoon_(tab.id, resolve || runtimeError_)
   let rightParts = tabs.slice(curInd + 1, end), leftParts = tabs.slice(start, curInd)
   if (cRepeat < 0) {
     [rightParts, leftParts] = [leftParts, rightParts]
@@ -812,7 +815,7 @@ export const reopenTab_ = (tab: Tab, refresh?: /* false */ 0 | /* a temp blank t
         tempTabId /* === -1 */ ? (tempTabId = t2.id) : Tabs_.remove(t2.id)
       })
     }
-    Tabs_.remove(tabId, () => (tabsGet(tabId, onRefresh), runtimeError_()))
+    removeTabsOrFailSoon_(tabId, (ok): void => { ok && tabsGet(tabId, onRefresh) })
     return
   }
   let recoverMuted: ((this: void, newTab: Tab) => void) | null | undefined
@@ -837,9 +840,7 @@ export const reopenTab_ = (tab: Tab, refresh?: /* false */ 0 | /* a temp blank t
     newTab && recoverMuted && recoverMuted(newTab)
     newTab ? runNextOnTabLoaded(get_cOptions<C.reopenTab, true>(), newTab) : runNextCmd<C.reopenTab>(0)
   })
-  if (!OnFirefox) {
-    Tabs_.remove(tabId)
-  }
+  OnFirefox || Tabs_.remove(tabId)
   // should never remove its session item - in case that goBack/goForward might be wanted
   // not seems to need to restore muted status
 }
@@ -871,10 +872,11 @@ export const onSessionRestored_ = (curWndId: number, restored: chrome.sessions.S
       return
     }
     const p1 = Q_(Tabs_.create, { url: "about:blank", windowId: wnd2.id })
-    await Q_(Tabs_.remove, tab.id)
+    const { promise_: p2, resolve_: resolve } = BgUtils_.deferPromise_<boolean>()
+    removeTabsOrFailSoon_(tab.id, resolve)
+    const removed = await p2
     const blankTab = await p1
-    const p2 = Q_(browserSessions_().restore)
-    restoredTab = (await p2)?.tab || null
+    restoredTab = removed && (await Q_(browserSessions_().restore))?.tab || null
     blankTab && await Tabs_.remove(blankTab.id)
   }
   return ensureSessionTabAccessable().then(async (): Promise<Tab | null> => {

@@ -2,7 +2,7 @@ import {
   blank_, bookmarkCache_, Completion_, CurCVer_, historyCache_, OnChrome, OnEdge, OnFirefox, urlDecodingDict_,
   set_findBookmark_, findBookmark_, updateHooks_, curWndId_, set_urlDecodingDict_
 } from "./store"
-import { Tabs_, browser_, runtimeError_, browserSessions_, watchPermissions_ } from "./browser"
+import { browser_, runtimeError_, browserSessions_, watchPermissions_, removeTabsOrFailSoon_ } from "./browser"
 import * as BgUtils_ from "./utils"
 import * as settings_ from "./settings"
 import { MatchCacheManager_, MatchCacheType } from "./completion_utils"
@@ -792,11 +792,9 @@ Completion_.removeSug_ = (url, type: FgReq[kFgReq.removeSug]["t"], callback: (su
   switch (type) {
   case "tab":
     MatchCacheManager_.cacheTabs_(null)
-    Tabs_.remove(+url, (): void => {
-      const err = runtimeError_()
-      err || MatchCacheManager_.cacheTabs_(null)
-      callback(!<boolean> <boolean | void> err)
-      return err
+    removeTabsOrFailSoon_(+url, (succeed: boolean): void => {
+      succeed && MatchCacheManager_.cacheTabs_(null)
+      callback(succeed)
     })
     break
   case "history":

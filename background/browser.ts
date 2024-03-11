@@ -108,7 +108,7 @@ export const Q_: {
 }) as (func: Function, ...args: any[]) => Promise<any>
 const _orNull = (result: unknown): unknown => result !== void 0 ? result : null
 
-export const R_ = (resolve: OnCmdResolved): () => void => resolve !== blank_ ? () => {
+export const R_ = (resolve: (result: boolean) => void): () => void => resolve !== blank_ ? () => {
   const error = runtimeError_()
   resolve(!error)
   return error
@@ -135,6 +135,24 @@ const doesIgnoreUrlField_ = (url: string, incognito?: boolean): boolean => {
 
 export let getFindCSS_cr_: ((sender: Frames.Sender) => FindCSS) | undefined
 export const set_getFindCSS_cr_ = (newGet: typeof getFindCSS_cr_): void => { getFindCSS_cr_ = newGet }
+
+export const removeTabsOrFailSoon_ = (ids: number|number[], callback: (ok: boolean) => void): void => {
+  const returnOnce = (ok: boolean): void => {
+    const curCb = callback
+    if (curCb) {
+      callback = null as never
+      ok && clearTimeout(timer)
+      curCb && curCb(ok as boolean)
+    }
+  }
+  if (callback === runtimeError_) { Tabs_.remove(ids, callback as typeof runtimeError_); return }
+  const kTabsRemoveTimeout = 1500, timer = setTimeout(returnOnce, kTabsRemoveTimeout, false)
+  Tabs_.remove(ids, (): void => { // avoid `R_`, to reduce memory cost
+    const error = runtimeError_()
+    returnOnce(!error)
+    return error
+  })
+}
 
 //#region actions
 
@@ -438,7 +456,7 @@ export const import2 = <T> (path: string): Promise<T> =>
     Build.MV3 && Build.BTypes !== BrowserType.Firefox as number
     ? Promise.resolve(__moduleMap![path.split("/").slice(-1)[0].replace(".js", "")] as T) : import(path)
 
-//#endregion
+//#endregion actions
 
 bgIniting_ < BackendHandlersNS.kInitStat.FINISHED && set_installation_(new Promise((resolve): void => {
   const ev = browser_.runtime.onInstalled
