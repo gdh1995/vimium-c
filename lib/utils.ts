@@ -154,20 +154,17 @@ export let timeout_: TimerFunc<ValidTimeoutID> =
     (Build.Inline ? setTimeout : (func, timeout) => setTimeout(func, timeout)) as TimerFunc<ValidTimeoutID>
 export let interval_: TimerFunc<ValidIntervalID> =
     (Build.Inline ? setInterval : (func, period) => setInterval(func, period)) as TimerFunc<ValidIntervalID>
-export let clearTimeout_: (timer: ValidTimeoutID) => void =
-    Build.Inline ? clearTimeout as never : timer => clearTimeout(timer as number)
-export let clearInterval_: (timer: ValidIntervalID) => void = // not reuse clearTimeout - avoid issues on injected pages
-    Build.Inline ? clearInterval as never : timer => clearInterval(timer as number)
+export let clearTimeout_ = (timer: ValidTimeoutID | ValidIntervalID): void => { timer && clearTimeout(timer as number) }
 
 export const setupTimerFunc_cr = !OnChrome ? 0 as never : (_newTimerFunc: TimerFunc<number>
     , _newClearTimer: (timer: ValidTimeoutID | ValidIntervalID) => void): void => {
   timeout_ = interval_ = _newTimerFunc as TimerFunc<TimerID & number>
-  clearTimeout_ = clearInterval_ = _newClearTimer
+  clearTimeout_ = _newClearTimer
 }
 
 export const setupTimerFunc_cr_mv3 = !OnChrome || !Build.MV3 ? 0 as never: (
-    newTout: typeof timeout_, newInt: typeof interval_, newCT: typeof clearTimeout_, newCI: typeof clearInterval_) => {
-  timeout_ = newTout, interval_ = newInt, clearTimeout_ = newCT, clearInterval_ = newCI
+    newTout: typeof timeout_, newInt: typeof interval_, newCT: typeof clearTimeout_) => {
+  timeout_ = newTout, interval_ = newInt, clearTimeout_ = newCT
 }
 
 /**

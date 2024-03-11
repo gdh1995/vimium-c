@@ -1,7 +1,7 @@
 /// <reference path="../lib/base.omni.d.ts" />
 import {
   isAlive_, keydownEvents_, readyState_, timeout_, clearTimeout_, recordLog, chromeVer_, math, OnChrome,
-  interval_, clearInterval_, locHref, vApi, createRegExp, safer, isTop, OnFirefox, OnEdge, safeCall, WithDialog, VTr
+  interval_, locHref, vApi, createRegExp, safer, isTop, OnFirefox, OnEdge, safeCall, WithDialog, VTr
 } from "../lib/utils"
 import { removeHandler_, replaceOrSuppressMost_, getMappedKey, isEscape_ } from "../lib/keyboard_utils"
 import {
@@ -108,7 +108,7 @@ const init = ({k: secret, v: page, t: type, i: inner}: FullOptions): void => {
       timeout_((): void => {
         // Note: if JavaScript is disabled on `chrome://settings/content/siteDetails`,
         // then the iframe will always fail if only when DevTools is open
-        clearInterval_(initMsgInterval)
+        clearTimeout_(initMsgInterval)
         if (!isAlive_ || status !== Status.Initing) {
           // only clear `onload` when receiving `VomnibarNS.kFReq.iframeIsAlive`, to avoid checking `i`
           isAlive_ && secondActivateWithNewOptions && secondActivateWithNewOptions()
@@ -146,7 +146,7 @@ const init = ({k: secret, v: page, t: type, i: inner}: FullOptions): void => {
     box = el
     addUIElement(!OnFirefox && WithDialog && dialog_non_ff || el, AdjustType.MustAdjust, hud_box)
     slowLoadTimer = type !== VomnibarNS.PageType.inner ? timeout_(function (i): void {
-      clearInterval_(initMsgInterval)
+      clearTimeout_(initMsgInterval)
       loaded || (OnChrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake && i) ||
       reload()
     }, 2000) : TimerID.None
@@ -249,7 +249,7 @@ const refreshKeyHandler = (): void => {
   replaceOrSuppressMost_(kHandler.omni)
   secondActivateWithNewOptions = null
   timer_ = TimerID.None
-  oldTimer && clearTimeout_(oldTimer)
+  clearTimeout_(oldTimer)
   if (status === Status.BrokenOnce) { return }
   if (checkHidden(kFgCmd.vomnibar, options, count)) { return }
   if (!options || !options.k || !options.v) { return; }

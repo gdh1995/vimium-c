@@ -58,7 +58,7 @@ export const ec_main_not_ff = (Build.BTypes !== BrowserType.Firefox as number ? 
   }
 
   const kInjectManually = !Build.MV3 || (!!(Build.BTypes & ~BrowserType.ChromeOrFirefox) && !OnChrome)
-      || Build.MinCVer < BrowserVer.MinRegisterContentScriptsWorldInMV3 && !("onbeforematch" in HTMLElementProto!)
+      || Build.MinCVer < BrowserVer.MinRegisterContentScriptsWorldInMV3 && !("onbeforematch" in HTMLElementProto!())
   const kSA = InnerConsts.kSecretAttr
   const kVOnClick1 = InnerConsts.kVOnClick
     , outKMK = GlobalConsts.MarkAcrossJSWorlds

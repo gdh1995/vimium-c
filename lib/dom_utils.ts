@@ -28,7 +28,7 @@ export function markFramesetTagUnsafe_old_cr (): "frameset" { return unsafeFrame
 export function set_docSelectable_ (_newDocSelectable: boolean): void { docSelectable_ = _newDocSelectable }
 
 export const ElementProto_not_ff = !OnFirefox ? Element.prototype as SafeElement : 0 as never as null
-export const HTMLElementProto = !OnEdge ? HTMLElement.prototype as SafeHTMLElement : 0 as never as null
+export const HTMLElementProto = OnEdge ? null : (): SafeHTMLElement => HTMLElement.prototype as SafeHTMLElement
 
 export const getComputedStyle_: (element: Element) => CSSStyleDeclaration =
     Build.Inline ? getComputedStyle : el => getComputedStyle(el)
@@ -121,7 +121,7 @@ export const hasTag_ = <Tag extends keyof HTMLElementTagNameMap> (htmlTag: Tag
     , el: Element | HTMLElement): el is HTMLElementTagNameMap[Tag] => el.localName === htmlTag && "lang" in el
 
 export const supportInert_ = !OnChrome || Build.MinCVer < BrowserVer.MinEnsured$HTMLElement$$inert ? (): boolean => {
-  return OnEdge ? false : isHTML_() && "inert" in HTMLElementProto!
+  return OnEdge ? false : isHTML_() && "inert" in HTMLElementProto!()
 } : 0 as never as null
 
 export const isInTouchMode_cr_ = OnChrome ? (): boolean => {

@@ -1,5 +1,5 @@
 import {
-  fgCache, isEnabled_, VTr, isAlive_, timeout_, clearTimeout_, interval_, clearInterval_, isLocked_, OnChrome, getTime,
+  fgCache, isEnabled_, VTr, isAlive_, timeout_, clearTimeout_, interval_, isLocked_, OnChrome, getTime,
   esc
 } from "../lib/utils"
 import { handler_stack } from "../lib/keyboard_utils"
@@ -34,7 +34,8 @@ export const hudShow = (tid: kTip | HintMode, args?: Array<string | number> | st
   if (!isHTML_()) { return; }
   text = VTr(tid, args);
   opacity_ = 1;
-  if (timer) { clearTimeout_(timer); timer = TimerID.None; }
+  clearTimeout_(timer)
+  timer = TimerID.None
   embed || tweenId || (tweenId = interval_(tween, 40), tweenStart = getTime())
   if (box) {
     toggleClass_s(box, "HL", 0)
@@ -72,15 +73,14 @@ const tween = (fake?: TimerType.fake): void => { // safe-interval
     hudHide(TimerType.noTimer)
   }
   if (opacity !== opacity_) { return }
-  clearInterval_(tweenId);
+  clearTimeout_(tweenId)
   tweenId = 0;
 }
 
 export const hudHide = (info?: TimerType.fake | TimerType.noTimer | void): void => {
   const n = handler_stack.length
-  if (timer) {
-    clearTimeout_(timer); timer = TimerID.None
-  }
+  clearTimeout_(timer)
+  timer = TimerID.None
   opacity_ = 0; text = ""
   if (n && handler_stack[n - 1] === kHandler.onTopNormal) {
       hudShow(kTip.onTopNormal, currentKeys)

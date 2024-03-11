@@ -117,7 +117,8 @@ VApi!.e = function (cmd): void {
         livingCheckTimer = setTimeout(onTimeout, GlobalConsts.FirefoxFocusResponseTimeout);
         return;
       case InjectorTask.reportLiving:
-        clearTimeout(livingCheckTimer);
+        livingCheckTimer && clearTimeout(livingCheckTimer)
+        livingCheckTimer = 0
         return;
       }
     }

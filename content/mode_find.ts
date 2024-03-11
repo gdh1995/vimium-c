@@ -301,7 +301,7 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
     removeHandler_(kHandler.find)
     outerBox_ && removeEl_s(outerBox_)
     highlighting && highlighting()
-    highlightTimeout_ && clearTimeout_(highlightTimeout_)
+    clearTimeout_(highlightTimeout_)
     if (box_ === deref_(lastHovered_)) { set_lastHovered_(set_lastBubbledHovered_(null)) }
     if (knownOptions.t) {
        extendToCurRange(initialRange!, hasInitialRange!, i !== FindAction.ExitForEnter, styleSheet)

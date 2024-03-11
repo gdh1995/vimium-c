@@ -61,7 +61,6 @@ let scrolled: 0 | 1 | 2 = 0
 let isTopScrollable: -1 | 0 | 1 = 1
 
 export { currentScrolling, cachedScrollable, keyIsDown, scrolled }
-export function set_scrolled (_newScrolled: 0): void { scrolled = _newScrolled }
 export const setNewScrolling = (el: Element | null): void => {
   currentScrolling = OnFirefox ? weakRef_ff(el as SafeElement | null, kElRef.currentScrolling)
       : weakRef_not_ff!(SafeEl_not_ff_!(el))
@@ -283,7 +282,7 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
         ) * fgCache.u)
     element = newEl1
     sign = newAmount1 < 0 ? -1 : 1
-    timer && clearTimeout_(timer)
+    clearTimeout_(timer)
     timer = TimerID.None
     totalDelta = totalElapsed = padding = 0.0
     timestamp = rawTimestamp = calibTime = lostFrames = onFinish = totalTick = 0

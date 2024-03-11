@@ -2,7 +2,7 @@ import {
   chromeVer_, clickable_, doc, esc, fgCache, injector, isEnabled_, isLocked_, isAlive_, isTop, abs_, includes_,
   keydownEvents_, set_chromeVer_, set_clickable_, set_fgCache, set_isLocked_, OnChrome, OnFirefox, safeCall, recordLog,
   set_isEnabled_, set_onWndFocus, onWndFocus, timeout_, safer, set_os_, safeObj, set_keydownEvents_, setupEventListener,
-  interval_, getTime, vApi, clearInterval_, locHref, set_firefoxVer_, firefoxVer_, os_, isAsContent, isIFrameInAbout_,
+  interval_, getTime, vApi, locHref, set_firefoxVer_, firefoxVer_, os_, isAsContent, isIFrameInAbout_,
   OnEdge, inherited_, clearTimeout_, setupTimerFunc_cr_mv3, set_weakRef_ff, weakRef_ff, deref_, set_confVersion
 } from "../lib/utils"
 import { set_keyIdCorrectionOffset_old_cr_, handler_stack, suppressTail_ } from "../lib/keyboard_utils"
@@ -68,8 +68,8 @@ set_requestHandlers([
     inherited_ ? esc!(HandlerResult.Nothing) : requestHandlers[kBgReq.keyFSM](request);
     (requestHandlers[kBgReq.reset] as (request: BgReq[kBgReq.reset | kBgReq.init], initing?: 1) => void)(request, 1)
     if (Build.MV3 && OnChrome && !vApi.e && isAsContent) { /*#__ENABLE_SCOPED__*/
-      const t = timeout_, i = interval_, ct = clearTimeout_, ci = clearInterval_
-      t((): void => { /*#__INLINE__*/ setupTimerFunc_cr_mv3(t, i, ct, ci) }, 0)
+      const t = timeout_, i = interval_, ct = clearTimeout_
+      t((): void => { /*#__INLINE__*/ setupTimerFunc_cr_mv3(t, i, ct) }, 0)
       /*#__INLINE__*/ setupBackupTimer_cr()
       send_(kFgReq.wait, 0, () => timeout_ !== t && recordLog(kTip.logNotWorkOnSandboxed)())
     }
@@ -278,8 +278,8 @@ export const showFrameMask = (mask: FrameMaskType): void => {
     framemask_fmTimer = interval_((): void => { // safe-interval
       if (frame_mask === 2) { frame_mask = 1; return }
       frame_mask = 0 as never
+      clearTimeout_(framemask_fmTimer)
       removeEl_s(framemask_node)
-      clearInterval_(framemask_fmTimer);
     }, isTop ? 200 : 350);
   frame_mask = 1
   addUIElement(framemask_node, AdjustType.DEFAULT);
@@ -300,7 +300,7 @@ set_hookOnWnd((((action: HookAction): void => {
     f("focus", onFocus, t)
     // https://developer.chrome.com/blog/page-lifecycle-api/
     OnChrome && f("freeze", onFreezePort, t)
-    if (OnChrome && Build.MinCVer >= BrowserVer.MinEnsuredPopover || !OnEdge && "popover" in HTMLElementProto!) {
+    if (OnChrome && Build.MinCVer >= BrowserVer.MinEnsuredPopover || !OnEdge && "popover" in HTMLElementProto!()) {
       f("toggle", onToggle, t)
     }
   }

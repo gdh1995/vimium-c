@@ -164,7 +164,7 @@ export function set_isClickListened_ (_newIsClickListened: boolean): void { isCl
 export const activate = (options: ContentOptions, count: number, force?: 2 | TimerType.fake): void => {
     const oldTimer = _timer, xy = options.xy as HintsNS.StdXY | undefined
     _timer = _reinitTime = coreHints.h = 0
-    oldTimer && clearTimeout_(oldTimer)
+    clearTimeout_(oldTimer)
     if (isActive && force !== 2 || !isEnabled_) { return; }
     if (checkHidden(kFgCmd.linkHints, options, count)) {
       return clear(1)
@@ -761,7 +761,7 @@ export const clear = (onlySelfOrEvent?: 0 | 1 | Event, suppressTimeout?: number)
       }
     }
     const manager = coreHints.p as HintManager | null, oldMode = isActive ? mode1_ : HintMode.max_mouse_events + 1
-    _timer && clearTimeout_(_timer)
+    clearTimeout_(_timer)
     isActive = _timer = _reinitTime = 0
     OnFirefox && (doesAllowModifierEvents_ff = 0)
     manager_ = coreHints.p = null;
