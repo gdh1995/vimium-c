@@ -613,10 +613,11 @@ export const removeTab = (resolve: OnCmdResolved, phase?: 1 | 2 | 3, tabs?: read
   if (goToIndex >= 0 && goToIndex < total) {
     const removeOne = Math.min(end, tabs.length) - Math.max(0, start) === 1, destId = tabs[goToIndex].id
     if (removeOne) {
-      removeTabsInOrder(tab, tabs, start, end, (ok: boolean): void => {
+      removeTabsOrFailSoon_(tab.id, (ok: boolean): void => {
         ok && selectTab(destId)
         resolve(ok)
       })
+      selectTab(destId)
       return
     }
     selectTab(destId)

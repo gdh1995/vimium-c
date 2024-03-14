@@ -352,26 +352,27 @@ const addChildTrees = (parts: HintSources, allNodes: NodeListOf<SafeElement>): H
 }
 
 const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | SafeElementWithoutFormat): void => {
-  const tabIndex = (element as ElementToHTMLOrForeign).tabIndex
+  const tabIndex = (element as ElementToHTMLOrForeign).tabIndex, tag = element.localName
   let arr: Rect | null | undefined, s: string | null | undefined, par: Element | null, hasTabIdx: boolean
   let type: ClickType.Default | AllowedClickTypeForNonHTML = clickable_.has(element)
         || extraClickable_ !== null && extraClickable_.has(element)
         || (hasTabIdx = tabIndex !== void 0) && (OnFirefox
             ? (element as NonHTMLButFormattedElement).onclick ||(element as NonHTMLButFormattedElement).onmousedown
             : attr_s(element, "onclick") || attr_s(element, "onmousedown"))
+        || (mode1_ > HintMode.min_string - 1 && mode1_ < HintMode.max_string + 1 && tag === "text")
         || (s = OnChrome && Build.MinCVer >= BrowserVer.MinEnsured$Element$$role
               ? element.role : attr_s(element, "role")) && clickableRoles_.test(s)
         || ngEnabled_ === 1 && attr_s(element, "ng-click")
         || jsaEnabled_ === 1 && (s = attr_s(element, "jsaction")) && checkJSAction(s)
       ? ClickType.attrListener
-      : hasTabIdx && tabIndex! >= 0 ? element.localName === "a" ? ClickType.attrListener : ClickType.tabindex
+      : hasTabIdx && tabIndex! >= 0 ? tag === "a" ? ClickType.attrListener : ClickType.tabindex
       : ((s = attr_s(element, "class")) && clickableClasses_.test(s)
-          || (s = element.localName) === "svg" && getComputedStyle_(element).cursor === "pointer")
+          || tag === "svg" && getComputedStyle_(element).cursor === "pointer")
           && (par = GetParent_unsafe_(element, PNType.DirectElement)) && htmlTag_<1>(par)
-          && (s !== "svg" || getComputedStyle_(par).cursor !== "pointer")
+          && (tag !== "svg" || getComputedStyle_(par).cursor !== "pointer")
           && !(hints.length && contains_s(hints[hints.length - 1][0], element)) ? ClickType.classname
       : ClickType.Default
-  if (type !== ClickType.Default && (mode1_ < HintMode.min_media || element.localName !== "path")
+  if (type !== ClickType.Default && (mode1_ < HintMode.min_media || tag !== "path")
       && (arr = getVisibleClientRect_(element, null)) !== null
       && (isAriaFalse_(element, kAria.hidden) || extraClickable_ && extraClickable_.has(element))
       && (mode1_ > HintMode.min_job - 1 || isAriaFalse_(element, kAria.disabled))

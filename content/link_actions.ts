@@ -276,7 +276,7 @@ const showUrlIfNeeded = (): void => {
 }
 
 const hoverEl = (): void => {
-    const toggleMap = hintOptions.toggle, selfClickEl = clickEl
+  const toggleMap = hintOptions.toggle
     // here not check lastHovered on purpose
     // so that "HOVER" -> any mouse events from users -> "HOVER" can still work
     setNewScrolling(clickEl)
@@ -295,13 +295,13 @@ const hoverEl = (): void => {
       hintApi.h(kTip.hoverScrollable)
       return
     }
-    hintMode_ & HintMode.queue || elType > EditableType.MaxNotEditableElement
+    hintMode_ & HintMode.queue || getEditableType_<0>(realClickEl || clickEl) > EditableType.MaxNotEditableElement
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
         || whenNextIsEsc_(kHandler.unhoverOnEsc, kModeId.Link, Build.NDEBUG ? unhover_async : unhoverOnEsc_d!)
     showUrlIfNeeded()
     if (!toggleMap || !isTY(toggleMap, kTY.obj)) { return }
     safer(toggleMap);
-    let ancestors: Element[] = [], top: Element | null = selfClickEl, re = <RegExpOne> /^-?\d+/;
+    let ancestors: Element[] = [], top: Element | null = clickEl, re = <RegExpOne> /^-?\d+/;
     for (let key in toggleMap) {
       // if no Element::closest, go up by 6 levels and then query the selector
       let selector = key, prefix = re.exec(key), upper = prefix && prefix[0];
@@ -310,7 +310,7 @@ const hoverEl = (): void => {
       }
       let up = (upper as string | number as number) | 0, selected: Element | null = null;
       if (OnChrome && Build.MinCVer < BrowserVer.MinEnsured$Element$$Closest && !up) {
-        up = selfClickEl.closest ? 0 : 6;
+        up = clickEl.closest ? 0 : 6;
       }
       selector = selector.trim();
       while (up && up + 1 >= ancestors.length && top) {
@@ -324,7 +324,7 @@ const hoverEl = (): void => {
                     , selector)
                 : querySelector_unsafe_(selector, ancestors[max_(0, min_(up + 1, ancestors.length - 1))
                     ] as SafeElement)
-              : selfClickEl.closest!(selector))) {
+              : clickEl.closest!(selector))) {
           const toggleVal = toggleMap[key as "css-selector"]
           if (isSafeEl_(selected)) {
             for (const toggle of toggleVal ? isTY(toggleVal) ? toggleVal.split(/[ ,]/) : toggleVal : []) {
@@ -543,7 +543,8 @@ const defaultClick = (): void => {
             , mask > 0 || interactive || (target as ElementToHTMLOrForeign).tabIndex! >= 0)
         , [!1, !isMac && ctrl, isMac && ctrl, shift]
         , specialActions, (rawBtn as typeof rawBtn & number) || kClickButton.none
-        , !OnChrome || otherActions || newTab || newWindow ? 0 : hintOptions.touch))
+        , !OnChrome || otherActions || newTab || newWindow ? 0 : hintOptions.touch
+        , target !== clickEl))
     .then((ret): void | Promise<unknown> | number | boolean => {
       showUrlIfNeeded()
       newTabStr === "inactive" && post_({ H: kFgReq.focusCurTab }) // not use ports of a parent frame

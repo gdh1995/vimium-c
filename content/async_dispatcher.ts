@@ -299,7 +299,8 @@ export const wrap_enable_bubbles = (<Func extends (...a: any[]) => Promise<unkno
 export const click_async = (async (element: SafeElementForMouse
     , rect?: Rect | null, addFocus?: boolean | BOOL, modifiers?: MyMouseControlKeys
     , action?: kClickAction, button?: AcceptableClickButtons
-    , /** default: false */ touchMode?: null | false | /** false */ 0 | true | "auto"): Promise<void | 1> => {
+    , /** default: false */ touchMode?: null | false | /** false */ 0 | true | "auto"
+    , noXY?: boolean): Promise<void | 1> => {
   /**
    * for important events including `mousedown`, `mouseup`, `click` and `dblclick`, wait for two micro tasks;
    * for other events, just wait for one micro task
@@ -311,7 +312,7 @@ export const click_async = (async (element: SafeElementForMouse
   }
   const kMenu = "contextmenu"
   const userOptions = isHintsActive && !((hintManager || coreHints).$().k.c as any[] | undefined) ? hintOptions : null
-  const xy = userOptions && userOptions.xy as HintsNS.StdXY | undefined
+  const xy = userOptions && !noXY && userOptions.xy as HintsNS.StdXY | undefined
       || button === kClickButton.second && userOptions![kMenu] !== !1 && { x: 20, y: -4 } as HintsNS.StdXY || null
   const center = center_(rect || (rect = getVisibleClientRect_(element)), xy)
   const sedIf = userOptions && userOptions.sedIf
@@ -451,7 +452,8 @@ export const click_async = (async (element: SafeElementForMouse
   (element: SafeElementForMouse
     , rect: Rect | null | undefined, addFocus: boolean | BOOL, modifiers: MyMouseControlKeys
     , specialAction: kClickAction, button: AcceptableClickButtons
-    , /** default: false */ touchMode: null | undefined | false | /** false */ 0 | true | "auto"): Promise<void | 1>
+    , /** default: false */ touchMode: null | undefined | false | /** false */ 0 | true | "auto"
+    , noXY: boolean): Promise<void | 1>
   (element: SafeElementForMouse
     , rect: Rect | null, addFocus: boolean | BOOL, modifiers: MyMouseControlKeys | undefined
     , specialAction: kClickAction.none, button: kClickButton.primaryAndTwice): Promise<void | 1>
