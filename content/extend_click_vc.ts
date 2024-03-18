@@ -282,19 +282,20 @@ const docEl = doc0.documentElement;
     return
   }
   const dataset = (root as Element as TypeToAssert<Element, HTMLElement, "dataset", "tagName">).dataset
-  const defineProp = Object.defineProperty, dbgLoc = Build.NDEBUG ? null as never : location
-  const host = location.host || frameElement && (parent as Window).location.host
 if (dataset && (
   dataset.vimium = kRC,
 // only the below can affect outsides
   _dispatch(new DECls(kOC, {relatedTarget: root})),
   !dataset.vimium
 )) {
+  const defineProp = Object.defineProperty
+  let loc = location, host = loc.host
+  host || frameElement && (loc = (parent as Window).location, host = loc.host)
   root[kAEL](InnerConsts.kCmd, executeCmd, !0)
   timer = toRegister.length > 0 ? setTimeout_(next, InnerConsts.DelayForNext) : 0
   ETP[kAEL] = myAEL
   FProto[kToS] = myToStr
-  if (host && !(<RegExpOne> /\.(?:bing\.com|google\.com(?:\.\w+)?)$/).test("." + host)) {
+  if (host ? !(<RegExpOne>/\.(?:bing\.com|google\.com(?:\.\w+)?)$/).test("." + host) : loc.origin.startsWith("file:")) {
     try { evaledAEL = new Function(`let ${kAEL}=(f,a)=>f(...a)\nreturn ` + kAEL)() } catch {}
   }
   for (let i of [0, 2] as const) { /*#__ENABLE_SCOPED__*/
@@ -314,7 +315,7 @@ if (dataset && (
       enumerable: true, configurable: true,
       set (newDocFunc) { _docFunc = newDocFunc },
       get () {
-        const oriHref = Build.NDEBUG ? "" : dbgLoc.host && dbgLoc.pathname || dbgLoc.href
+        const oriHref = Build.NDEBUG ? "" : loc.host && loc.pathname || loc.href
         if (doc0.readyState > "l") {
           if (hasKnownDocOpened === 1) {
             Build.NDEBUG ? onDocOpen() : onDocOpen(i, oriHref)
