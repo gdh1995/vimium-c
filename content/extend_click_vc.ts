@@ -61,7 +61,7 @@ splice = nodeIndexList.splice as <T> (this: T[], start: number, deleteCount?: nu
 pushInDocument = nodeIndexList.push.bind(nodeIndexList),
 CECls = CustomEvent as CustomEventCls, StopProp = CECls[kProto].stopImmediatePropagation as (this: Event) => void,
 DECls = FocusEvent as DelegateEventCls,
-FProto = Function[kProto], _toString = FProto[kToS],
+Fn = Function, FProto = Fn[kProto], _toString = FProto[kToS],
 clearTimeout1 = clearTimeout,
 DocCls = Document[kProto] as Partial<Document> as Pick<Document, "createElement" | typeof kByTag> & {
       open (): void, write (markup: string): void },
@@ -115,8 +115,11 @@ hooks = {
   addEventListener (this: EventTarget, type: string
       , listener: EventListenerOrEventListenerObject): void {
     let a = this, args = arguments
+    // bing.com and google.com add lots of touch and wheel event listeners
+    const useEval = typeof type === "string" && type < "DOMSv" && (type > "DOMCi" ? type > "DOMNo" : type > "DOMCh")
+    useEval && tryEval && tryEval()
     const ret = args.length === 4 && type === GlobalConsts.MarkAcrossJSWorlds ? checkIsNotVerifier(args[3])
-        : evaledAEL ? evaledAEL(apply, [_listen, a, args]) : apply(_listen, a, args)
+        : useEval && evaledAEL ? evaledAEL(apply, [_listen, a, args]) : apply(_listen, a, args)
     if (type === "click" || type === "mousedown" || type === "dblclick"
         ? listener && a instanceof ElCls && a.localName !== "a" && a !== toRegister[toRegister.length - 1]
         : type === kEventName2 && !isReRegistering
@@ -147,6 +150,9 @@ pushToRegister = (nodeIndexList as unknown[] as Element[]).push.bind(toRegister)
 queueMicroTask_ = queueMicrotask,
 evaledAEL: Function | undefined,
 isReRegistering: BOOL = 0, hasKnownDocOpened: 0 | 1 | 2 = 0
+let tryEval: (() => void) | 0 = (): void => {
+  try { evaledAEL = new Fn(`let ${kAEL}=(f,a)=>f(...a)\nreturn ` + kAEL)(tryEval = 0) } catch {}
+}
 // To avoid a host script detect Vimum C by code like:
 // ` a1 = setTimeout(()=>{}); $0.addEventListener('click', ()=>{}); a2=setTimeout(()=>{}); [a1, a2] `
 const delayToStartIteration = (): void => { timer = setTimeout_(next, GlobalConsts.ExtendClick_DelayToStartIteration) }
@@ -288,16 +294,11 @@ if (dataset && (
   _dispatch(new DECls(kOC, {relatedTarget: root})),
   !dataset.vimium
 )) {
-  const defineProp = Object.defineProperty
-  let loc = location, host = loc.host
-  host || frameElement && (loc = (parent as Window).location, host = loc.host)
+  const defineProp = Object.defineProperty, dbgLoc = Build.NDEBUG ? null as never : location
   root[kAEL](InnerConsts.kCmd, executeCmd, !0)
   timer = toRegister.length > 0 ? setTimeout_(next, InnerConsts.DelayForNext) : 0
   ETP[kAEL] = myAEL
   FProto[kToS] = myToStr
-  if (host ? !(<RegExpOne>/\.(?:bing\.com|google\.com(?:\.\w+)?)$/).test("." + host) : loc.origin.startsWith("file:")) {
-    try { evaledAEL = new Function(`let ${kAEL}=(f,a)=>f(...a)\nreturn ` + kAEL)() } catch {}
-  }
   for (let i of [0, 2] as const) { /*#__ENABLE_SCOPED__*/
     let propName: "onmousedown" | "onclick" | "open" | "write" = i ? "onmousedown" : "onclick"
     const setterName = ("set " + propName) as `set ${typeof propName}`
@@ -315,7 +316,7 @@ if (dataset && (
       enumerable: true, configurable: true,
       set (newDocFunc) { _docFunc = newDocFunc },
       get () {
-        const oriHref = Build.NDEBUG ? "" : loc.host && loc.pathname || loc.href
+        const oriHref = Build.NDEBUG ? "" : dbgLoc.host && dbgLoc.pathname || dbgLoc.href
         if (doc0.readyState > "l") {
           if (hasKnownDocOpened === 1) {
             Build.NDEBUG ? onDocOpen() : onDocOpen(i, oriHref)
