@@ -766,7 +766,8 @@ export const filterOutNonReachable = (list: Hint[], notForAllClickable?: boolean
     let index2 = 0
     const stack = root.elementsFromPoint(cx, cy), elPos = stack.indexOf(el)
     if (elPos < 0 && small) { list.splice(i, 1) }
-    else if (elPos > 0 ? (index2 = stack.lastIndexOf(fromPoint!, elPos - 1)) >= 0 : elPos < 0) {
+    else if (elPos < 1 ? elPos < 0 : (index2 = stack.lastIndexOf(fromPoint!, elPos - 1)) >= 0
+        || isSafeEl_(stack[0]) && contains_s(stack[0], fromPoint!) && (index2 = 0, 1)) {
       if (!OnFirefox && elPos < 0) {
         for (temp = el; (temp = GetParent_unsafe_(temp, PNType.RevealSlot)) && temp !== body && temp !== docEl; ) {
           if (getComputedStyle_(temp).zoom !== "1") { temp = el; break; }
