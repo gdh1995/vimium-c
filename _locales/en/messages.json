@@ -100,7 +100,7 @@
   },
   "109": { "message": "\\btwitter\\.com##[href$$=\\/trends],[data-testid=app-bar-back]" },
   "110": { "message":
-"beforecopy beforecut beforeinput compositionend compositionstart compositionupdate contextmenu copy cut keypress mouseup paste selectionchange selectstart wheel textInput "
+"beforecopy beforecut beforeinput compositionend compositionstart compositionupdate contextmenu copy cut keypress mouseup paste selectionchange selectstart textInput "
   },
   "111": { "message": "Vimium C uses the built-in Vomnibar page because the preferred is too old." },
   "112": { "message": "Some functions of Vimium C may not work because %o is sandboxed at %o." },
