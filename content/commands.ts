@@ -274,7 +274,8 @@ set_contentCommands_([
         set_is_last_mutable(1)
         getZoom_(newEl);
         prepareCrop_();
-        let flash = options.flash, p = select_(newEl, null, flash, selAction, true)
+        const rect1 = getVisibleClientRect_(newEl) || padClientRect_(getBoundingClientRect_(newEl), 3)
+        let flash = options.flash, p = select_(newEl, rect1, flash, selAction, true)
         flash || p.then((): void => {
           prepareCrop_();
           const rect = getVisibleClientRect_(newEl!)

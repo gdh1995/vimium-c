@@ -333,7 +333,6 @@ const refreshKeyHandler = (): void => {
   send_(kFgReq.parseSearchUrl, { t: options.s, p: upper, u: url }
       , ((options2: FullOptions, search: ParsedSearch | null): void => {
     options2.p = search
-    if (search != null) { options2.url = ""; }
     status > Status.Initing ? postToOmni(options2 as VomnibarNS.FgOptions as VomnibarNS.FgOptionsToFront)
         : (omniOptions = options2 as VomnibarNS.FgOptions as VomnibarNS.FgOptionsToFront)
   }).bind(0, options))
