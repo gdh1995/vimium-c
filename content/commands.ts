@@ -17,7 +17,7 @@ import {
 import {
   view_, wndSize_, isNotInViewport, getZoom_, prepareCrop_, getViewBox_, padClientRect_, isSelARange, center_, dScale_,
   getBoundingClientRect_, setBoundary_, wdZoom_, getVisibleClientRect_, getVisibleBoundingRect_, isSelMultiline,
-  kInvisibility
+  kInvisibility, cropRectS_
 } from "../lib/rect"
 import { post_, set_contentCommands_, runFallbackKey, send_ } from "./port"
 import {
@@ -274,7 +274,7 @@ set_contentCommands_([
         set_is_last_mutable(1)
         getZoom_(newEl);
         prepareCrop_();
-        const rect1 = getVisibleClientRect_(newEl) || padClientRect_(getBoundingClientRect_(newEl), 3)
+        const rect1 = getVisibleClientRect_(newEl) || cropRectS_(padClientRect_(getBoundingClientRect_(newEl), 3))
         let flash = options.flash, p = select_(newEl, rect1, flash, selAction, true)
         flash || p.then((): void => {
           prepareCrop_();
