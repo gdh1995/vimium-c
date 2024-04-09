@@ -221,7 +221,7 @@ export let setIcon_: (tabId: number, type: Frames.ValidStatus, isLater?: true) =
 export let sync_: SettingsNS.Sync["set"] = blank_
 export let restoreSettings_: Promise<void> | null = null
 export let copy_: (text: string | any[], join?: FgReq[kFgReq.copy]["j"]
-    , sed?: MixedSedOpts | null, keyword?: string | null) => string | Promise<string> = (() => "")
+    , sed?: MixedSedOpts | null, keyword?: string | null, noAutoTrim?: boolean) => string | Promise<string> = (() => "")
 export let paste_: (sed?: MixedSedOpts | null, len?: number, exOut?: InfoOnSed
     ) => string | Promise<string | null> | null = () => ""
 export let readInnerClipboard_: (name: string) => string = () => ""

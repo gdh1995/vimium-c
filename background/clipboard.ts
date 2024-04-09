@@ -467,12 +467,13 @@ const getTextArea_html = (): HTMLTextAreaElement => {
 }
 
 const format_ = (data: string | any[], join: FgReq[kFgReq.copy]["j"] | undefined, sed: MixedSedOpts | null | undefined
-    , keyword: string | null | undefined, exOut: InfoOnSed): string => {
+    , keyword: string | null | undefined, noAutoTrim: boolean | undefined, exOut: InfoOnSed): string => {
   const oriKeyword = keyword
   const createSearchToCopy = (data: string): string => {
     const pattern = searchEngines_.map.get(keyword!)
     return pattern ? createSearch_(data.trim().split(BgUtils_.spacesRe_), pattern.url_, pattern.blank_) : data
   }
+  const maySed = (!sed || typeof sed !== "object" ? sed : sed.r) !== false
   if (typeof data !== "string") {
     data = data.map((i): string => {
       const exSubOut: InfoOnSed = {}, s = substitute_(i, SedContext.copy, sed, exSubOut)
@@ -482,15 +483,14 @@ const format_ = (data: string | any[], join: FgReq[kFgReq.copy]["j"] | undefined
     data = typeof join === "string" && join.startsWith("json") ? JSON.stringify(data, null, +join.slice(4) || 2)
       : data.join(join !== !!join && (join as string) || "\n") +
         (data.length > 1 && (!join || join === !!join) ? "\n" : "")
-    const rules = !sed || typeof sed !== "object" ? sed : sed.r
-    if (rules !== false) {
+    if (maySed) {
       data = substitute_(data, SedContext.multiline, null, exOut)
     }
     return data
   }
   data = data.replace(<RegExpG> /\xa0/g, " ").replace(<RegExpG & RegExpSearchable<0>> /\r\n?/g, "\n")
   let i = data.charCodeAt(data.length - 1)
-  if (i !== kCharCode.space && i !== kCharCode.tab) { /* empty */ }
+  if (noAutoTrim || !maySed || i !== kCharCode.space && i !== kCharCode.tab) { /* empty */ }
   else if (i = data.lastIndexOf("\n") + 1) {
     data = data.slice(0, i) + data.slice(i).trimRight()
   } else if ((i = data.charCodeAt(0)) !== kCharCode.space && i !== kCharCode.tab) {
@@ -522,10 +522,10 @@ const detectClipSed = (sed: MixedSedOpts | null | undefined, prefix: "<" | ">"):
   return clip
 }
 
-set_copy_(((data, join, sed, keyword): string | Promise<string> => {
+set_copy_(((data, join, sed, keyword, noAutoTrim): string | Promise<string> => {
   const clip = detectClipSed(sed, ">"), exOut: InfoOnSed = {}
   if (clip) { sed = null }
-  data = format_(data, join, sed, keyword, exOut)
+  data = format_(data, join, sed, keyword, noAutoTrim, exOut)
   if (clip) { writeInnerClipboard_(clip, data); return data }
   if (!data || exOut.noSysClip_) { return data }
   if (Build.MV3 || OnFirefox && (navClipboard || (navClipboard = navigator.clipboard))) {

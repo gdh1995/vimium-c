@@ -359,7 +359,7 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
         || (hasTabIdx = tabIndex !== void 0) && (OnFirefox
             ? (element as NonHTMLButFormattedElement).onclick ||(element as NonHTMLButFormattedElement).onmousedown
             : attr_s(element, "onclick") || attr_s(element, "onmousedown"))
-        || (mode1_ > HintMode.min_string - 1 && mode1_ < HintMode.max_string + 1 && tag === "text")
+        || (mode1_ > HintMode.min_string - 1 && mode1_ < HintMode.max_string + 1 && tag.endsWith("text"))
         || (s = OnChrome && Build.MinCVer >= BrowserVer.MinEnsured$Element$$role
               ? element.role : attr_s(element, "role")) && clickableRoles_.test(s)
         || ngEnabled_ === 1 && attr_s(element, "ng-click")

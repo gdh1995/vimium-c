@@ -304,6 +304,7 @@ declare namespace HintsNS {
     contextmenu?: boolean
     touch?: null | boolean | "auto";
     join?: FgReq[kFgReq.copy]["j"];
+    trim?: boolean
     decoded?: boolean;
     anyText?: boolean
     toggle?: { [selector in "css-selector"]: string | string[] } & { many?: 1 }
@@ -457,6 +458,7 @@ interface CmdOptions {
     type?: "frame" | "tab-title" | "tab-url" | "tab" | "window"
     /** for autoCopy */
     text?: string
+    trim?: boolean
     url?: boolean | "raw"
     /** for searchAs */
     s?: 1;
@@ -657,16 +659,19 @@ interface FgReq {
     /** [].join($j) */ j?: string | boolean | null
     u?: undefined | ""
     i?: undefined
+    /** trim */ t?: boolean
   } & Partial<WithHintModeOptions> | {
     /** url */ u: "url";
     /** data */ s?: undefined
     j?: undefined | null
     i?: undefined
+    t?: undefined
   } | {
     /** data: image URL */ i: "data:" | ""
     /** source URL */ u: string
     j?: undefined
     /** richText */ r: HintsNS.Options["richText"]
+    t?: undefined
   }) & {
     /** sed and keyword */ o?: ParsedOpenPageUrlOptions;
     /** all command options */ n?: OpenPageUrlOptions & Req.FallbackOptions | null

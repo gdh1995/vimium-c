@@ -378,6 +378,14 @@ set_reqH_([
       return
     }
     let str: string | string[] | object[] | undefined = request.u || request.s || ""
+    const rawTrim = request.t ?? oriOptions?.trim
+    if (rawTrim) {
+      if (typeof str === "string") {
+        str = str.trim()
+      } else {
+        for (let i = str.length; 0 <= --i; ) { str[i] = (str[i] as AllowToString + "").trim() }
+      }
+    }
     if (decode) {
       if (typeof str !== "string") {
         for (let i = str.length; 0 <= --i; ) {
@@ -393,7 +401,7 @@ set_reqH_([
         str = ""
       }
     }
-    let hasStr = !!str, str2 = str && copy_(str, request.j, sed, keyword)
+    let hasStr = !!str, str2 = str && copy_(str, request.j, sed, keyword, rawTrim === false)
     str2 = request.s && typeof request.s === "object" ? `[${request.s.length}] ` + request.s.slice(-1)[0] : str2
     Promise.resolve(str2).then((str3): void => {
       set_cPort(port)

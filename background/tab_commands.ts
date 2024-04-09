@@ -76,7 +76,7 @@ export const copyWindowInfo = (resolve: OnCmdResolved): void | kBgCmd.copyWindow
       const isRawUrl = !!type && (<RegExpI> /^raw.?url$/i).test(type)
       const s = type === "title" ? tabs[0].title
           : !type || type === "frame" || type === "url" || isRawUrl ? getTabUrl(tabs[0])
-          : BgUtils_.safeParseURL_(getTabUrl(tabs[0]))?.[type as Exclude<typeof type, "42">] || ""
+          : (BgUtils_.safeParseURL_(getTabUrl(tabs[0]))?.[type as Exclude<typeof type, "42">] || "") + ""
       const copyReq: FgReq[kFgReq.copy] = type === "title" ? { s } : { u: s as "url" }
       copyReq.o = opts2
       isRawUrl && (opts2.d = false)

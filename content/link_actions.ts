@@ -464,7 +464,7 @@ const copyText = (str?: string | null): void => {
     } else {
       lastYanked && lastYanked.push(str)
       hintApi.p({ H: kFgReq.copy, j: hintOptions.join, o: parseOpenPageUrlOptions(hintOptions), m: mode1_,
-          d: isUrl, s: lastYanked || str })
+          d: isUrl, s: lastYanked || str, t: hintOptions.trim })
     }
   }
 }
