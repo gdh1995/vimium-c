@@ -391,8 +391,8 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
   rawClosedShadow_cr = options.closedShadow,
   noClosedShadow: BOOL = OnFirefox || OnChrome && (Build.MinCVer >= BrowserVer.Min$dom$$openOrClosedShadowRoot
       || chromeVer_ > BrowserVer.Min$dom$$openOrClosedShadowRoot - 1) && rawClosedShadow_cr ? 0 : 1,
-  clickableSelector = joinValidSelectors(matchAll && options.clickable
-      , matchAll && findSelectorByHost(options.clickableOnHost)),
+  clickableSelector = joinValidSelectors(matchAll && findSelectorByHost(options.clickable)
+      , matchAll && findSelectorByHost(options.clickableOnHost) || findSelectorByHost(kTip.DefaultClickableOnHost)),
   output: Hint[] | Hint0[] = [],
   cur_arr: HintSources | null = matchSafeElements(filter !== getEditable ? selector : (matchAll = !1,
         selector = VTr(kTip.editableSelector) + (clickableSelector ? "," + clickableSelector : ""))
@@ -669,7 +669,7 @@ export const excludeHints = (output: Hint0[], options: CSSOptions, wantClickable
   const excl2 = findSelectorByHost(options.excludeOnHost)
       || (wantClickable && mode1_ < HintMode.min_job && !options.match
           && (<RegExpOne> /^\/s($|earch)/).test(loc_.pathname) && findSelectorByHost(kTip.searchResults))
-  const excludedSelector = joinValidSelectors(options.exclude, excl2)
+  const excludedSelector = joinValidSelectors(findSelectorByHost(options.exclude), excl2)
   return excludedSelector && output.filter(hint => !testMatch(excludedSelector as "css-selector", hint)) || output
 }
 

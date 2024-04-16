@@ -96,9 +96,9 @@
   "106": { "message": "script,style,title,textarea" },
   "107": { "message": "\\.(?:avif|bmp|gif|icon?|jpe?g|a?png|svg|tiff?|webp)\\b" },
   "108": { "message":
-"\\bgoogle##.g;\\bbing\\.com##.b_algo;\\bbaidu\\.##.c-container;\\bmail.ru\\b##.SnippetResultInfo-favicon"
+"\\bgoogle##.g;bing.com##.b_algo;baidu.com##.c-container;mail.ru##.SnippetResultInfo-favicon"
   },
-  "109": { "message": "\\btwitter\\.com##[href$$=\\/trends],[data-testid=app-bar-back]" },
+  "109": { "message": "twitter.com##[href$$=\\/trends],[data-testid=app-bar-back]" },
   "110": { "message":
 "beforecopy beforecut beforeinput compositionend compositionstart compositionupdate contextmenu copy cut keypress mouseup paste selectionchange selectstart textInput "
   },
@@ -109,6 +109,7 @@
   "115": { "message": "next" },
   "116": { "message": "^(canvas|embed|i?frame|img|video|object)$" },
   "117": { "message": ".monaco-editor" },
+  "118": { "message": "weibo.com##.expand,.collapse" },
   "200": { "message": "http://www.w3.org/1999/xhtml" },
   "0": { "message": "Open link in current tab" },
   "2": { "message": "Open link in new tab" },

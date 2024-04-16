@@ -576,22 +576,23 @@ export const newEvent_ = <T extends new (type: any, init: EventInit) => Event>(
 }
 
 type MayBeSelector = "" | false | 0 | null | void | undefined
-export const joinValidSelectors = (selector: string | MayBeSelector
-      , validAnother: "css-selector" | MayBeSelector): "css-selector" | null => // this should be O(1)
+export const joinValidSelectors = (selector: string | false | void
+      , validAnother: "css-selector" | false | void | 0): "css-selector" | null => // this should be O(1)
     // here can not use `docEl.matches`, because of `:has(...)`
-    selector && safeCall(querySelector_unsafe_, selector, _domInst || (_domInst = createElement_("a"))) !== void 0
+    selector && (validAnother !== 0
+        || safeCall(querySelector_unsafe_, selector, _domInst || (_domInst = createElement_("a"))) !== void 0)
     ? (validAnother ? selector + "," + validAnother : selector) as "css-selector" : validAnother || null
 
 export const findSelectorByHost = (rules: string | string[] | kTip | MayBeSelector | void): "css-selector" | void => {
   const isKTip = isTY(rules, kTY.num)
   let host: string | undefined, path: string | undefined
   for (const arr of !rules ? [] : isTY(rules,kTY.obj) ? rules : (isKTip ? VTr(rules) : rules + "").split(";")) {
-    path || (host = Lower(loc_.host), path = loc_.host + "/" + Lower(loc_.pathname))
     const items = arr.split("##"), isOnHost = items.length > 1, sel = items[+isOnHost as BOOL]
     const cond = isOnHost ? items[0] : "", matchPath = cond.includes("/")
-    const re = cond && (<RegExpOne> /[^*$]/).test(cond) && tryCreateRegExp(cond)
-    if ((re ? re.test(matchPath ? path : host!) : matchPath ? path.startsWith(cond)
-            : !cond || host === cond || host!.endsWith("." + cond)) && (isKTip || joinValidSelectors(sel))) {
+    const re = cond && (<RegExpOne> /[^*+$\\?(]/).test(cond) && tryCreateRegExp(cond)
+    path || cond && (host = Lower(loc_.host), path = host + "/" + Lower(loc_.pathname))
+    if ((re ? re.test(matchPath ? path! : host!) : matchPath ? path!.startsWith(cond)
+            : !cond || host === cond || host!.endsWith("." + cond)) && (isKTip || joinValidSelectors(sel, 0))) {
       return sel as "css-selector"
     }
   }
