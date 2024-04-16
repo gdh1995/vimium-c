@@ -104,8 +104,7 @@ const getClickable = (hints: Hint[], element: SafeHTMLElement): void => {
     isClickable = isNotReplacedBy(queryHTMLChild_(element, "summary") as HTMLSummaryElement | null, hints)
     break;
   case "dialog":
-    WithDialog && (element as HTMLDialogElement).open && element !== curModalElement && !wantDialogMode_
-        && (coreHints.d = 1)
+    WithDialog && (element as HTMLDialogElement).open && element !== curModalElement && (coreHints.d = 3)
     isClickable = !1
     break
   case "label":

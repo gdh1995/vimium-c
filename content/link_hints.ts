@@ -41,7 +41,7 @@ interface HintStatus extends HintsNS.BaseHintStatus {
 interface BaseHintWorker extends HintsNS.BaseHintWorker {
   /** get stat */ $ (): Readonly<HintStatus>
   /** clear */ c: typeof clear
-  /** dialogMode */ d: BOOL
+  /** dialogMode */ d: BOOL | 3
   /** executeHint */ e: typeof executeHintInOfficer
   /** getPreciseChildRect */ g: typeof getPreciseChildRect
   /** has just started: neg means a fresh command; pos means a reinited one */ h: number
@@ -91,7 +91,7 @@ import {
 import {
   querySelector_unsafe_, isHTML_, scrollingEl_, docEl_unsafe_, IsInDOM_, GetParent_unsafe_, hasInCSSFilter_,derefInDoc_,
   getComputedStyle_, isStyleVisible_, htmlTag_, fullscreenEl_unsafe_, removeEl_s, PGH, toggleClass_s, doesSupportDialog,
-  getSelectionFocusEdge_, SafeEl_not_ff_, compareDocumentPosition, deepActiveEl_unsafe_, frameElement_, getSelection_
+  getSelectionFocusEdge_, SafeEl_not_ff_, compareDocumentPosition, deepActiveEl_unsafe_, frameElement_, getSelection_, findSelectorByHost
 } from "../lib/dom_utils"
 import {
   ViewBox, getViewBox_, prepareCrop_, wndSize_, bZoom_, wdZoom_, dScale_, boundingRect_,
@@ -103,7 +103,7 @@ import {
 } from "../lib/keyboard_utils"
 import {
   style_ui, addElementList, ensureBorder, adjustUI, flash_, getParentVApi, getWndVApi_ff, checkHidden, removeModal,
-  getSelected, getSelectionBoundingBox_
+  getSelected, getSelectionBoundingBox_, hasPopover_
 } from "./dom_ui"
 import { scrollTick, beginScroll, currentScrolling } from "./scroller"
 import { hudTip, hudShow, hudHide, hud_tipTimer } from "./hud"
@@ -188,7 +188,7 @@ export const activate = (options: ContentOptions, count: number, force?: 2 | Tim
     }
     const useFilter0 = options.useFilter, useFilter = useFilter0 != null ? !!useFilter0 : fgCache.f,
     topFrameInfo: FrameHintsInfo = {h: [], v: null as never, s: coreHints},
-    toCleanArray: HintOfficer[] = [],
+    toCleanArray: HintOfficer[] = [], wantTop = options.onTop,
     chars: string = options.c ? options.c : useFilter ? fgCache.n : fgCache.c
     frameArray = [topFrameInfo]
     isHC_ = matchMedia(VTr(
@@ -201,10 +201,10 @@ export const activate = (options: ContentOptions, count: number, force?: 2 | Tim
               && Build.MinCVer < BrowserVer.MinShadowDOMV0 && chromeVer_ < BrowserVer.MinShadowDOMV0) {
         removeModal()
       }
-      coreHints.d = <BOOL> +(
-        (OnChrome && Build.MinCVer >= BrowserVer.MinEnsuredHTMLDialogElement || doesSupportDialog())
-        && (wantDialogMode_ != null ? wantDialogMode_ : hasInCSSFilter_() || !!querySelector_unsafe_("dialog[open]"))
-        )
+      coreHints.d = !(OnChrome && Build.MinCVer >= BrowserVer.MinEnsuredHTMLDialogElement || doesSupportDialog()) ? 0
+        : hasPopover_ > 1 || querySelector_unsafe_("dialog[open]") ? 3
+        : <BOOL> +!!(wantDialogMode_ != null ? wantDialogMode_ : isTY(wantTop) ? findSelectorByHost(wantTop)
+            : options.onTop || hasInCSSFilter_() || querySelector_unsafe_("dialog[open]"))
     }
     let allHints: readonly HintItem[], child: ChildFrame | undefined, insertPos = 0
       , frameInfo: FrameHintsInfo, total: number
@@ -274,7 +274,7 @@ const collectFrameHints = (options: ContentOptions, count: number
     if (!isHTML_()) {
       return;
     }
-    const view: ViewBox = getViewBox_(OnEdge ? 1 : ((manager || coreHints).d + 1) as 1 | 2)
+    const view: ViewBox = getViewBox_(WithDialog && (manager || coreHints).d || 1)
     prepareCrop_(1, outerView);
     if (tooHigh_ !== null) {
       const scrolling = !options.longPage && scrollingEl_(1)
@@ -307,7 +307,7 @@ const render: BaseHintWorker["r"] = (hints, arr, raw_apis): void => {
     manager_ || setMode(mode_)
     if (hints.length) {
       if (WithDialog) {
-        box_ = addElementList(hints, arr, managerOrA.d || coreHints.d)
+        box_ = addElementList(hints, arr, ((managerOrA.d satisfies 0 | 1 | 3) | coreHints.d) as 0 | 1 | 3)
       } else {
         box_ = addElementList(hints, arr);
       }
@@ -331,7 +331,7 @@ export const setMode = (mode: HintMode, silent?: BOOL): void => {
     let key: string | undefined
     let msg = onTailEnter && !onWaitingKey ? VTr(kTip.waitForEnter) : VTr(mode_)
         + (useFilter_ || isHC_ ? ` [${key = isHC_ ? keyStatus_.k + keyStatus_.t : keyStatus_.t}]` : "")
-        + (WithDialog && !((useFilter_ || isHC_) && key) && (manager_ || coreHints).d ? VTr(kTip.modalHints) : "")
+        + (WithDialog && !((useFilter_ || isHC_) && key) && coreHints.d ? VTr(kTip.modalHints) : "")
     hudShow(kTip.raw, msg, true)
 }
 
@@ -416,7 +416,7 @@ const onKeydown = (event: HandlerNS.Event): HandlerResult => {
       else if (i = 1, key.includes("-s")) { // <a-s-f2>, <c-s-f2>
         fgCache.e = !fgCache.e;
       } else if (key < "b") { // <a-f2> or <a-c-f2>
-        WithDialog ? wantDialogMode_ = !wantDialogMode_ : i = 0
+        WithDialog ? wantDialogMode_ = !coreHints.d : i = 0
       } else if (key < "d" && key[0] === "m") { // <c-f2> or <m-f2>
         options_.useFilter = fgCache.f = !useFilter_;
       } else if (key !== keybody) { // <s-f2>

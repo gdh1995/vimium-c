@@ -287,6 +287,7 @@ declare namespace HintsNS {
     else?: object | string | null | void | false
     ordinal?: boolean
     useFilter?: boolean;
+    onTop?: boolean | "host-re##css-selector;..." | null
     url?: boolean;
     // access el.dataset[<json keys>] || el.attrs[key][json keys]
     // format: [<css selector>":"]<dataset-key or attr-name>[...("."<json key>)], like img:viewer.url

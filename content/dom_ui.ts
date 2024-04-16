@@ -42,7 +42,7 @@ let hideHelp: ((event?: EventToPrevent) => void) | undefined | null
 let hasPopover_ = 0
 
 export {
-  box_ as ui_box, root_ as ui_root, styleIn_ as style_ui, lastFlashEl, curModalElement, helpBox, hideHelp,
+  box_ as ui_box, root_ as ui_root, styleIn_ as style_ui, lastFlashEl, curModalElement, hasPopover_, helpBox, hideHelp,
   toExitOnClick_,
 }
 export const removeModal = WithDialog ? (): void => {
@@ -121,9 +121,9 @@ export const getBoxTagName_old_cr = OnChrome && Build.MinCVer < BrowserVer.MinFo
         ? "body" : "div"
   : 0 as never
 
-export const addElementList = function <T extends boolean | BOOL> (
+export const addElementList = function <T extends BOOL | 3> (
       array: readonly DrawableHintItem[], offset: { readonly [index in 0 | 1]: number }, dialogContainer?: T
-      ): (T extends true | 1 ? HTMLDialogElement : HTMLDivElement) & SafeElement {
+      ): (T extends 1 | 3 ? HTMLDialogElement : HTMLDivElement) & SafeElement {
     const kMaxSlice = 2048, needToSlice = array.length > kMaxSlice
     const parent = createElement_(WithDialog && dialogContainer ? "dialog"
         : OnChrome && Build.MinCVer < BrowserVer.MinForcedColorsMode ? getBoxTagName_old_cr() : "div");
@@ -163,7 +163,7 @@ export const addElementList = function <T extends boolean | BOOL> (
       curModalElement = parent as HTMLDialogElement
     }
     addUIElement(parent, AdjustType.DEFAULT, lastFlashEl)
-    return parent as (T extends true | 1 ? HTMLDialogElement : HTMLDivElement) & SafeElement
+    return parent as (T extends 1 | 3 ? HTMLDialogElement : HTMLDivElement) & SafeElement
 }
 
 export const adjustUI = (event?: Event | /* enable */ 1 | /* disable */ 2): void => {
@@ -614,7 +614,7 @@ export const filterOutInert = (hints: Hint[]): void => {
 export const onToggle = (event: Event & { [property in "newState" | "oldState"]?: "open" | "closed" }): void => {
   const newState = event.newState
   if (event.isTrusted && newState !== event.oldState) {
-    hasPopover_ = max_(0, hasPopover_ + (newState! > "o" ? 1 : -1))
+    hasPopover_ = max_(hasPopover_ & 1, hasPopover_ + (newState! > "o" ? 2 : -2))
     if (root_ && hasPopover_ > 0) {
       adjustUI()
     }

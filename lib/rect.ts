@@ -323,7 +323,7 @@ export const getZoom_ = !OnFirefox ? function (target?: 1 | SafeElement): void {
   wdZoom_ = min_(wndSize_(2), 1)
 } as never
 
-export const getViewBox_ = function (needBox?: 1 | /** dialog-found */ 2): ViewBox | ViewOffset {
+export const getViewBox_ = function (needBox?: 1 | /** dialog-or-popover-found */ 3): ViewBox | ViewOffset {
   const ratio = wndSize_(2), round = math.round, float = parseFloat,
   box = docEl_unsafe_()!, st = getComputedStyle_(box),
   box2 = doc.body, st2 = box2 ? getComputedStyle_(box2) : st,
@@ -335,7 +335,7 @@ export const getViewBox_ = function (needBox?: 1 | /** dialog-found */ 2): ViewB
   paintingLimited = (<RegExpOne> /c|p/).test(docContain),
   notPropagate = OnChrome && (Build.MinCVer >= BrowserVer.MinNotPropagateBodyStyleIfContained
       || chromeVer_ > BrowserVer.MinNotPropagateBodyStyleIfContained - 1) && (<RegExpOne> /s|t/).test(docContain),
-  stacking = !(WithDialog && needBox === 2) && (st.position !== "static" || (OnChrome
+  stacking = !(WithDialog && needBox === 3) && (st.position !== "static" || (OnChrome
       && Build.MinCVer < BrowserVer.MinContainLayoutOnDocAffectPositions
       && chromeVer_ < BrowserVer.MinContainLayoutOnDocAffectPositions ? paintingLimited
       : (<RegExpOne> /a|c/).test(docContain)) || st.transform !== NONE),
@@ -357,7 +357,7 @@ export const getViewBox_ = function (needBox?: 1 | /** dialog-found */ 2): ViewB
   if (!OnFirefox) { docZoom_ = zoom }
   let x = !stacking ? float(st.marginLeft) : OnFirefox ? -float(st.borderLeftWidth) : 0 | -box.clientLeft
     , y = !stacking ? float(st.marginTop ) : OnFirefox ? -float(st.borderTopWidth ) : 0 | -box.clientTop
-  const ltScale = WithDialog && needBox === 2 ? 1 : scale
+  const ltScale = WithDialog && needBox === 3 ? 1 : scale
   x = x * ltScale - rect.l
   y = y * ltScale - rect.t
   // note: `Math.abs(y) < 0.01` supports almost all `0.01 * N` (except .01, .26, .51, .76)
@@ -392,7 +392,7 @@ export const getViewBox_ = function (needBox?: 1 | /** dialog-found */ 2): ViewB
   }
   return [x, y, iw, yScrollable ? ih - GlobalConsts.MaxHeightOfLinkHintMarker : ih, xScrollable ? iw : 0]
 } as {
-  (needBox: 1 | 2): ViewBox
+  (needBox: 1 | 3): ViewBox
   (): ViewOffset
 }
 
