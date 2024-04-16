@@ -100,7 +100,7 @@ const getClickable = (hints: Hint[], element: SafeHTMLElement): void => {
     type = ClickType.edit
     break;
   case "details":
-    isClickable = isNotReplacedBy(queryHTMLChild_(element, "summary"), hints)
+    isClickable = isNotReplacedBy(queryHTMLChild_(element, "summary") as HTMLSummaryElement | null, hints)
     break;
   case "dialog":
     WithDialog && (element as HTMLDialogElement).open && element !== curModalElement && !wantDialogMode_
@@ -108,7 +108,7 @@ const getClickable = (hints: Hint[], element: SafeHTMLElement): void => {
     isClickable = !1
     break
   case "label":
-    isClickable = isNotReplacedBy((element as HTMLLabelElement).control as SafeHTMLElement | null);
+    isClickable = isNotReplacedBy((element as HTMLLabelElement).control as HTMLLabelableElement | null)
     break;
   case "button": case "select":
     isClickable = !(element as HTMLButtonElement | HTMLSelectElement).disabled
@@ -150,7 +150,7 @@ const getClickable = (hints: Hint[], element: SafeHTMLElement): void => {
               ? element.role as Exclude<Element["role"], undefined> : element.getAttribute("role"))
             && clickableRoles_.test(s) && (
           !(s.startsWith("menu") && queryHTMLChild_(element, "ul"))
-          || isNotReplacedBy(queryHTMLChild_(element, "div"), hints)
+          || isNotReplacedBy(queryHTMLChild_(element, "div") as HTMLDivElement | null, hints)
         )
         || extraClickable_ !== null && extraClickable_.has(element)
         || ngEnabled_ === 1 && attr_s(element, "ng-click")
@@ -220,7 +220,9 @@ export const getPreferredRectOfAnchor = (anchor: HTMLAnchorElement): Rect | null
       : null);
 }
 
-const isNotReplacedBy = (element: SafeHTMLElement | null, isExpected?: Hint[]): boolean | null => {
+const isNotReplacedBy = (element: HTMLSummaryElement | HTMLHeadingElement | HTMLLabelableElement
+      | HTMLDivElement | null
+    , isExpected?: Hint[]): boolean | null => {
   const arr2: Hint[] = [], clickListened = isClickListened_;
   if (element) {
     if (!isExpected && (element as TypeToAssert<HTMLElement, HTMLInputElement, "disabled">).disabled) { return !1; }
@@ -242,8 +244,8 @@ const inferTypeOfListener = ((el: SafeHTMLElement, tag: "" | keyof HTMLElementTa
   let el2: Element | null | undefined, D = "div" as const
   return tag !== D && tag !== "li"
       ? tag === "tr"
-        ? (el2 = querySelector_unsafe_("input[type=checkbox]", el) as SafeElement | null,
-          !!(el2 && htmlTag_<1>(el2) && isNotReplacedBy(el2)))
+        ? ((el2 = el.firstElementChild as Element | null) && hasTag_("td",el2) && (el2 = queryHTMLChild_(el2, "input")),
+          !!(el2 && uneditableInputs_[(<HTMLInputElement> el2).type] === 3 && isNotReplacedBy(el2 as HTMLInputElement)))
         : tag !== "table"
       : !(el2 = el.firstElementChild as Element | null) ||
         !(!el.className && !el.id && tag === D

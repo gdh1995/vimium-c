@@ -350,7 +350,8 @@ export const derefInDoc_ = ((val: WeakRef<SafeElement> | SafeElement | null | un
   return val && IsInDOM_(val, doc) ? val : null
 }) as <T extends SafeElement> (val: WeakRef<T> | T | null | undefined) => T | null
 
-export const queryHTMLChild_ = (parent: SafeElement, childTag: "summary" | "div" | "ul"): SafeHTMLElement | null => {
+export const queryHTMLChild_ = (
+      parent: SafeElement, childTag: "summary" | "div" | "ul" | "input"): SafeHTMLElement | null => {
     // not query `:scope>summary` for more consistent performance
     // Specification: https://html.spec.whatwg.org/multipage/interactive-elements.html#the-summary-element
     // `HTMLDetailsElement::FindMainSummary()` in
@@ -459,9 +460,9 @@ export const deepActiveEl_unsafe_ = (alsoBody?: 1): Element | null => {
   return active || null
 }
 
-export const uneditableInputs_: ReadonlySafeDict<1 | 2> = { __proto__: null as never,
-    button: 2, checkbox: 1, color: 1, file: 1, hidden: 1, //
-    image: 2, radio: 1, range: 1, reset: 1, submit: 1
+export const uneditableInputs_: ReadonlySafeDict<1 | 2 | 3> = { __proto__: null as never,
+    button: 2, checkbox: 3, color: 1, file: 1, hidden: 1, //
+    image: 2, radio: 3, range: 1, reset: 1, submit: 1
 }
 
 export const editableTypes_: SafeObject & { readonly [localName in ""]?: undefined } & {

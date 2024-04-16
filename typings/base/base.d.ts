@@ -130,6 +130,10 @@ interface HTMLInputElement extends HTMLEditableELement {
   showPicker? (): void
 }
 interface HTMLTextAreaElement extends HTMLEditableELement {}
+interface HTMLSummaryElement extends SafeHTMLElement { localName: "summary" }
+interface HTMLLabelableElement extends SafeHTMLElement {
+  localName: "button" | "input" | "meter" | "output" | "progress" | "select" | "textarea"
+}
 
 declare var Response: { new (blob: Blob): Response }
 
@@ -354,10 +358,10 @@ declare module crypto {
   const getRandomValues: (buffer: Uint8Array) => unknown
 }
 
-interface PopoverElement extends HTMLElement {
+interface PopoverElement extends SafeHTMLElement {
   popover: null | "auto" | "manual"
-  hidePopover (forced?: boolean): void
-  showPopover (forced?: boolean): void
+  hidePopover (): void
+  showPopover (): void
   togglePopover (forced?: boolean): void
 }
 
