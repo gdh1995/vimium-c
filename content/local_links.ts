@@ -66,8 +66,9 @@ const getClickable = (hints: Hint[], element: SafeHTMLElement): void => {
   const tag = element.localName;
   switch (tag) {
   case "a":
-    isClickable = true;
-    arr = /*#__NOINLINE__*/ getPreferredRectOfAnchor(element as HTMLAnchorElement)
+    arr = getVisibleClientRect_(element, null)
+    arr = arr && getPreferredRectOfAnchor(element as HTMLAnchorElement) || arr
+    isClickable = !!arr
     break;
   case "audio": case "video": isClickable = true; break;
   case "frame": case "iframe":
@@ -187,7 +188,7 @@ const getClickable = (hints: Hint[], element: SafeHTMLElement): void => {
       && (type < ClickType.codeListener || type > ClickType.classname
           || !(s = element.getAttribute("unselectable")) || s.toLowerCase() !== "on")
       && (0 === clickTypeFilter_ || clickTypeFilter_ & (1 << type))
-  ) { hints.push([element, arr, type]); }
+  ) { hints.push([element, arr, type]) }
 }
 
 const checkJSAction = (str: string): boolean => {
@@ -278,9 +279,9 @@ export const getEditable = (hints: Hint[], element: SafeHTMLElement): void => {
 }
 
 const getIfOnlyVisible = (hints: (Hint | Hint0)[], element: SafeElement): void => {
-  let arr = hasTag_("a", element) && getPreferredRectOfAnchor(element as HTMLAnchorElement)
-      || getVisibleClientRect_(element, null)
-  arr && hints.push([element as SafeElementForMouse, arr, ClickType.Default])
+  const arr = getVisibleClientRect_(element, null)
+  arr && hints.push([element as SafeElementForMouse
+      , hasTag_("a", element) && getPreferredRectOfAnchor(element) || arr, ClickType.Default])
 }
 
 export const traverse = ((selector: string, options: CSSOptions & OtherFilterOptions, filter: Filter<Hint | Hint0>
