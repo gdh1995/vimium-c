@@ -114,7 +114,8 @@ export const rotate1 = (totalHints: readonly HintItem[], reverse?: boolean, save
   }
   for (const zIndexSubArray of zIndexes_) {
     const length = zIndexSubArray.length, end = reverse ? -1 : length
-    const max = (Build.NDEBUG ? max_ : Math.max).apply(math, zIndexSubArray)
+    const max = !(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinTestedES6Environment
+        ? max_(...zIndexSubArray) : (Build.NDEBUG ? max_ : math.max).apply(math, zIndexSubArray)
     let oldI: number = totalHints[zIndexSubArray[reverse ? 0 : length - 1]].z!
     for (let j = reverse ? length - 1 : 0; j !== end; reverse ? j-- : j++) {
       const hint = totalHints[zIndexSubArray[j]]

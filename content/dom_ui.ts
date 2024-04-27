@@ -143,7 +143,6 @@ export const addElementList = function <T extends BOOL | 3> (
       for (; i < array.length; i += kMaxSlice) {
         var slice = (needToSlice ? array.slice(i, i + kMaxSlice) : array).map(el => el.m) // eslint-disable-line no-var
         !(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinTestedES6Environment
-        && Build.MinCVer >= BrowserVer.MinEnsured$ParentNode$$appendAndPrepend
         ? innerBox.append!(...slice) : innerBox.append!.apply(innerBox, slice)
       }
     } else {

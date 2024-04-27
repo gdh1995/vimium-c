@@ -365,7 +365,7 @@ export const click_async = (async (element: SafeElementForMouse
   if (button! & kClickButton.second) {
     // if button is the right, then auxclick can be triggered even if element.disabled
     OnEdge || OnChrome && Build.MinCVer < BrowserVer.MinEnsured$auxclick && chromeVer_ < BrowserVer.MinEnsured$auxclick
-          && !("onauxclick" in HTMLElementProto!())
+          && !("onauxclick" in HTMLElementProto!)
         || await mouse_(element, "auxclick", center, modifiers, 0, button, isTouch)
     await mouse_(element, kMenu, center, modifiers, 0, button, isTouch)
     return

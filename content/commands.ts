@@ -356,7 +356,7 @@ set_contentCommands_([
     selectOrClick(hints[sel].d, visibleInputs[sel][1]).then((): void => {
     updateHint(hints[sel])
     ensureBorder(wdZoom_ / dScale_)
-    set_inputHint({ b: addElementList<false>(hints, arr), h: hints })
+    set_inputHint({ b: addElementList<0>(hints, arr), h: hints })
     hints = 0 as never
     replaceOrSuppressMost_(kHandler.focusInput, (event): HandlerResult => {
       const keyCode = event.i, isIME = keyCode === kKeyCode.ime, repeat = isRepeated_(event),

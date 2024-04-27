@@ -300,7 +300,7 @@ set_hookOnWnd((((action: HookAction): void => {
     f("focus", onFocus, t)
     // https://developer.chrome.com/blog/page-lifecycle-api/
     OnChrome && f("freeze", onFreezePort, t)
-    if (OnChrome && Build.MinCVer >= BrowserVer.MinEnsuredPopover || !OnEdge && "popover" in HTMLElementProto!()) {
+    if (OnChrome && Build.MinCVer >= BrowserVer.MinEnsuredPopover || !OnEdge && "popover" in HTMLElementProto!) {
       f("toggle", onToggle, t)
     }
   }

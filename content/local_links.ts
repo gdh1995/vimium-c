@@ -18,7 +18,7 @@ import {
 import { find_box } from "./mode_find"
 import { omni_box } from "./omni"
 import {
-  kSafeAllSelector, coreHints, addChildFrame_, mode1_, forHover_, hintOptions, wantDialogMode_,
+  kSafeAllSelector, coreHints, addChildFrame_, mode1_, forHover_, hintOptions,
   isClickListened_, set_isClickListened_, tooHigh_, useFilter_, hintChars, hintManager
 } from "./link_hints"
 import { shouldScroll_s, getPixelScaleToScroll, scrolled, suppressScroll } from "./scroller"

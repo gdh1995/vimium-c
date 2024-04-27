@@ -274,7 +274,7 @@ const collectFrameHints = (options: ContentOptions, count: number
     if (!isHTML_()) {
       return;
     }
-    const view: ViewBox = getViewBox_(WithDialog && (manager || coreHints).d || 1)
+    const view: ViewBox = getViewBox_(WithDialog ? (((manager || coreHints).d satisfies 0 | 1 | 3) | 1) as 1 | 3 : 1)
     prepareCrop_(1, outerView);
     if (tooHigh_ !== null) {
       const scrolling = !options.longPage && scrollingEl_(1)
@@ -295,7 +295,7 @@ const collectFrameHints = (options: ContentOptions, count: number
     frameInfo.v = view;
 }
 
-const render: BaseHintWorker["r"] = (hints, arr, raw_apis): void => {
+const render: BaseHintWorker["r"] = (hints, arr: FrameHintsInfo["v"], raw_apis): void => {
     const managerOrA = manager_ || coreHints;
     let body = doc.body
     if (manager_ && (body && htmlTag_(body) && body.isContentEditable || isIFrameInAbout_)) {
@@ -307,7 +307,7 @@ const render: BaseHintWorker["r"] = (hints, arr, raw_apis): void => {
     manager_ || setMode(mode_)
     if (hints.length) {
       if (WithDialog) {
-        box_ = addElementList(hints, arr, ((managerOrA.d satisfies 0 | 1 | 3) | coreHints.d) as 0 | 1 | 3)
+        box_ = addElementList(hints, arr, ((managerOrA.d satisfies 0 | 1 | 3) | coreHints.d) as typeof managerOrA.d)
       } else {
         box_ = addElementList(hints, arr);
       }
