@@ -91,7 +91,8 @@ import {
 import {
   querySelector_unsafe_, isHTML_, scrollingEl_, docEl_unsafe_, IsInDOM_, GetParent_unsafe_, hasInCSSFilter_,derefInDoc_,
   getComputedStyle_, isStyleVisible_, htmlTag_, fullscreenEl_unsafe_, removeEl_s, PGH, toggleClass_s, doesSupportDialog,
-  getSelectionFocusEdge_, SafeEl_not_ff_, compareDocumentPosition, deepActiveEl_unsafe_, frameElement_, getSelection_, findSelectorByHost
+  getSelectionFocusEdge_, SafeEl_not_ff_, compareDocumentPosition, deepActiveEl_unsafe_, frameElement_, getSelection_,
+  findSelectorByHost
 } from "../lib/dom_utils"
 import {
   ViewBox, getViewBox_, prepareCrop_, wndSize_, bZoom_, wdZoom_, dScale_, boundingRect_,
@@ -203,8 +204,8 @@ export const activate = (options: ContentOptions, count: number, force?: 2 | Tim
       }
       coreHints.d = !(OnChrome && Build.MinCVer >= BrowserVer.MinEnsuredHTMLDialogElement || doesSupportDialog()) ? 0
         : hasPopover_ > 1 || querySelector_unsafe_("dialog[open]") ? 3
-        : <BOOL> +!!(wantDialogMode_ != null ? wantDialogMode_ : isTY(wantTop) ? findSelectorByHost(wantTop)
-            : options.onTop || hasInCSSFilter_() || querySelector_unsafe_("dialog[open]"))
+        : <BOOL> +!!(wantDialogMode_ != null ? wantDialogMode_
+            : isTY(wantTop) ? findSelectorByHost(wantTop) : wantTop != null ? wantTop : hasInCSSFilter_())
     }
     let allHints: readonly HintItem[], child: ChildFrame | undefined, insertPos = 0
       , frameInfo: FrameHintsInfo, total: number
@@ -773,7 +774,7 @@ export const clear = (onlySelfOrEvent?: 0 | 1 | Event, suppressTimeout?: number)
       hasManager && frame.c(0, suppressTimeout)
     }))
     coreHints.y = frameArray = [];
-    setupEventListener(0, PGH, clear, 1)
+    manager && setupEventListener(0, PGH, clear, 1)
     coreHints.v()
     removeHandler_(kHandler.linkHints)
     suppressTimeout != null && suppressTail_(suppressTimeout);

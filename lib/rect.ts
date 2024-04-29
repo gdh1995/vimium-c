@@ -335,18 +335,18 @@ export const getViewBox_ = function (needBox?: 1 | /** dialog-or-popover-found *
   paintingLimited = (<RegExpOne> /c|p/).test(docContain),
   notPropagate = OnChrome && (Build.MinCVer >= BrowserVer.MinNotPropagateBodyStyleIfContained
       || chromeVer_ > BrowserVer.MinNotPropagateBodyStyleIfContained - 1) && (<RegExpOne> /s|t/).test(docContain),
-  stacking = !(WithDialog && needBox === 3) && (st.position !== "static" || (OnChrome
-      && Build.MinCVer < BrowserVer.MinContainLayoutOnDocAffectPositions
-      && chromeVer_ < BrowserVer.MinContainLayoutOnDocAffectPositions ? paintingLimited
-      : (<RegExpOne> /a|c/).test(docContain)) || st.transform !== NONE),
   // NOTE: if box.zoom > 1, although doc.documentElement.scrollHeight is integer,
   //   its real rect may has a float width, such as 471.333 / 472
-  rect = boundingRect_(box)
-  let zoom = OnChrome && Build.MinCVer < BrowserVer.MinDevicePixelRatioNotImplyZoomOfDocEl
-      ? _fixDocZoom_old_cr!(+st.zoom || 1, box, ratio) : !OnFirefox && +st.zoom || 1,
-  iw = wndSize_(1), ih = wndSize_(),
+  rect = boundingRect_(box),
+  zoom = OnChrome && Build.MinCVer < BrowserVer.MinDevicePixelRatioNotImplyZoomOfDocEl
+      ? _fixDocZoom_old_cr!(+st.zoom || 1, box, ratio) : !OnFirefox && +st.zoom || 1
+  let iw = wndSize_(1), ih = wndSize_(), _trans = st.transform
   // ignore the case that x != y in "transform: scale(x, y)""
-  _trans = st.transform, scale = dScale_ = _trans && !_trans.startsWith(kM) && float(_trans.slice(7)) || 1
+  const scale = dScale_ = _trans && !_trans.startsWith(kM) && float(_trans.slice(7)) || 1
+  const stacking = !(WithDialog && needBox === 3) && (st.position !== "static" || (OnChrome
+      && Build.MinCVer < BrowserVer.MinContainLayoutOnDocAffectPositions
+      && chromeVer_ < BrowserVer.MinContainLayoutOnDocAffectPositions ? paintingLimited
+      : (<RegExpOne> /a|c/).test(docContain)) || _trans !== NONE)
   if (fullscreenEl_unsafe_()) {
     getZoom_(1)
     dScale_ = bScale_ = 1

@@ -10,7 +10,7 @@ import {
   isSafeEl_, CLK, frameElement_, runJS_, isStyleVisible_, rangeCount_, getAccessibleSelectedNode, removeEl_s,
   appendNode_s, append_not_ff, setClassName_s, isNode_, contains_s, setOrRemoveAttr_s, textContent_s, inputSelRange,
   parentNode_unsafe_s, setDisplaying_s, getRootNode_mounted, singleSelectionElement_unsafe, isHTML_,
-  getDirectionOfNormalSelection, showPicker_, htmlTag_,
+  getDirectionOfNormalSelection, showPicker_, htmlTag_, HTMLElementProto,
 } from "../lib/dom_utils"
 import {
   bZoom_, dScale_, getZoom_, wdZoom_, boundingRect_, prepareCrop_, getClientRectsForAreas_,
@@ -36,7 +36,7 @@ let uiParent_: VUIRoot | HTMLSpanElement
 let cssPatch_: [string | number, (css: string) => string] | null = null
 let lastFlashEl: SafeHTMLElement | null = null
 let toExitOnClick_ = kExitOnClick.NONE
-let curModalElement: HTMLDialogElement | null | undefined
+let curModalElement: HTMLDialogElement | PopoverElement | null | undefined
 let helpBox: HTMLElement | null | undefined
 let hideHelp: ((event?: EventToPrevent) => void) | undefined | null
 let hasPopover_ = 0
@@ -45,11 +45,12 @@ export {
   box_ as ui_box, root_ as ui_root, styleIn_ as style_ui, lastFlashEl, curModalElement, hasPopover_, helpBox, hideHelp,
   toExitOnClick_,
 }
-export const removeModal = WithDialog ? (): void => {
-  curModalElement && (removeEl_s(curModalElement), curModalElement = null)
-} : (): void => { /* empty */ }
 export function set_hideHelp (_newHide: typeof hideHelp): void { hideHelp = _newHide }
 export function set_helpBox (_newHelpBox: typeof helpBox): void { helpBox = _newHelpBox }
+
+export const removeModal = WithDialog ? (): void => {
+  curModalElement && (removeEl_s(curModalElement), curModalElement = null, hasPopover_ &= ~1)
+} : (): void => { /* empty */ }
 
 export let addUIElement = function (element: HTMLElement, adjust_type?: AdjustType): void {
     box_ = createElement_("div");
@@ -121,19 +122,21 @@ export const getBoxTagName_old_cr = OnChrome && Build.MinCVer < BrowserVer.MinFo
         ? "body" : "div"
   : 0 as never
 
-export const addElementList = function <T extends BOOL | 3> (
-      array: readonly DrawableHintItem[], offset: { readonly [index in 0 | 1]: number }, dialogContainer?: T
-      ): (T extends 1 | 3 ? HTMLDialogElement : HTMLDivElement) & SafeElement {
+export const addElementList = function <TopType extends BOOL | 3> (
+      array: readonly DrawableHintItem[], offset: { readonly [index in 0 | 1]: number }, onTop?: TopType
+      ): (TopType extends 1 | 3 ? HTMLDialogElement | HTMLDivElement : HTMLDivElement) & SafeElement {
     const kMaxSlice = 2048, needToSlice = array.length > kMaxSlice
-    const parent = createElement_(WithDialog && dialogContainer ? "dialog"
+    const topWithoutPopover = onTop && !(array.length && (OnChrome && Build.MinCVer >= BrowserVer.MinEnsuredPopover
+        || !OnEdge && (HTMLElementProto! satisfies HTMLElement as Partial<PopoverElement>).showPopover))
+    const parent = createElement_(WithDialog && topWithoutPopover ? "dialog"
         : OnChrome && Build.MinCVer < BrowserVer.MinForcedColorsMode ? getBoxTagName_old_cr() : "div");
     const style = parent.style
-    const cls = "R HM" + fgCache.d, zoom = bZoom_ / (WithDialog && dialogContainer ? 1 : dScale_)
+    const cls = "R HM" + fgCache.d, zoom = bZoom_ / (WithDialog && onTop ? 1 : dScale_)
     let innerBox: HTMLDivElement | HTMLBodyElement | HTMLDialogElement | undefined = parent
     let i = 0
-    setClassName_s(parent, WithDialog && dialogContainer ? cls + " DLG" : cls)
+    setClassName_s(parent, WithDialog && topWithoutPopover ? cls + " DLG" : cls)
     if (OnChrome && Build.MinCVer < BrowserVer.MinForcedColorsMode
-        && dialogContainer && array.length && getBoxTagName_old_cr() < "d") { // <body>
+        && WithDialog && topWithoutPopover && array.length && getBoxTagName_old_cr() < "d") { // <body>
       innerBox = createElement_(getBoxTagName_old_cr())
       appendNode_s(parent, innerBox)
       setClassName_s(innerBox, cls)
@@ -158,11 +161,12 @@ export const addElementList = function <T extends BOOL | 3> (
       zoom - 1 && (style.zoom = zoom as number | string as string);
     }
     fullscreenEl_unsafe_() && (style.position = "fixed");
-    if (WithDialog && dialogContainer) {
+    if (WithDialog && onTop) {
       curModalElement = parent as HTMLDialogElement
+      hasPopover_ |= !(topWithoutPopover satisfies boolean | 0 | undefined) as boolean | BOOL as BOOL
     }
     addUIElement(parent, AdjustType.DEFAULT, lastFlashEl)
-    return parent as (T extends 1 | 3 ? HTMLDialogElement : HTMLDivElement) & SafeElement
+    return parent as (TopType extends 1 | 3 ? HTMLDialogElement : HTMLDivElement) & SafeElement
 }
 
 export const adjustUI = (event?: Event | /* enable */ 1 | /* disable */ 2): void => {
@@ -182,7 +186,6 @@ export const adjustUI = (event?: Event | /* enable */ 1 | /* disable */ 2): void
     const sin = styleIn_, s = sin && (sin as HTMLStyleElement).sheet
     s && (s.disabled = false);
     if (WithDialog) {
-      disableUI || curModalElement && !curModalElement.open && curModalElement.showModal()
       if (disableUI) { /* empty */ }
       else if (hasPopover_ || isReplacedEl && (OnChrome && Build.MinCVer >= BrowserVer.MinEnsuredPopover
           || (uiParent_ as PopoverElement).showPopover)) {
@@ -193,6 +196,10 @@ export const adjustUI = (event?: Event | /* enable */ 1 | /* disable */ 2): void
       } else if ((uiParent_ as PopoverElement).popover) {
         (uiParent_ as PopoverElement).popover = null
         setClassName_s(uiParent_ as SafeHTMLElement, "")
+      } else if (curModalElement) {
+        // if box_ has been re-added, then `.open` is true and `.showModal()` throws without a `.close()`
+        (curModalElement as HTMLDialogElement).open && (curModalElement as HTMLDialogElement).close();
+        (curModalElement as HTMLDialogElement).showModal()
       }
     }
     if (el || event) {
