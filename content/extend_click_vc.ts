@@ -150,7 +150,7 @@ pushToRegister = (nodeIndexList as unknown[] as Element[]).push.bind(toRegister)
 queueMicroTask_ = queueMicrotask,
 evaledAEL: Function | undefined,
 isReRegistering: BOOL = 0, hasKnownDocOpened: 0 | 1 | 2 = 0
-let tryEval: (() => void) | 0 = (): void => {
+let tryEval: (() => void) | 0 = ("." + location.host).endsWith(".bing.com") ? 0 : (): void => {
   try { evaledAEL = new Fn(`let ${kAEL}=(f,a)=>f(...a)\nreturn ` + kAEL)(tryEval = 0) } catch {}
 }
 // To avoid a host script detect Vimum C by code like:
