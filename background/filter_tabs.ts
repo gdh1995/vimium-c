@@ -83,7 +83,8 @@ export const onShownTabsIfRepeat_ = <All extends boolean> (allInRange: All, noSe
       && (isUsable === true || isNotHidden_(theOther[0]) && (!isUsable || isUsable(theOther[0])))
       && (!filter || filterTabsByCond_(curOrTabs[0], theOther, filter).length > 0)
       ? cRepeat < 0 ? callback([theOther[0], curOrTabs[0]], [0, 1, allInRange ? 2 : 1], resolve)
-      : callback([curOrTabs[0], theOther[0]], [allInRange ? 0 : 1, 0, 2], resolve) : getCurShownTabs_(onTabs)
+        : callback([curOrTabs[0], theOther[0]], [allInRange ? 0 : 1, 0, 2], resolve)
+      : getCurShownTabs_(onTabs)
       return runtimeError_()
     })
   }

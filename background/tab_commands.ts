@@ -534,9 +534,9 @@ export const removeTab = (resolve: OnCmdResolved, phase?: 1 | 2 | 3, tabs?: read
   if (!tabs || !tabs.length) { resolve(0); return runtimeError_() }
   const total = tabs.length, curInd = selectIndexFrom(tabs), tab = tabs[curInd]
   let count = 1, start = curInd, end = curInd + 1
+  const noPinned = get_cOptions<C.removeTab, true>().noPinned
+      ?? (tabs[0].pinned !== tab.pinned && !(cRepeat < 0 && curInd && tabs[curInd - 1].pinned))
   if (abs(cRepeat) > 1 && total > 1) {
-    const noPinned = get_cOptions<C.removeTab, true>().noPinned
-        ?? (tabs[0].pinned !== tab.pinned && !(cRepeat < 0 && tabs[curInd - 1].pinned))
     let skipped = 0
     if (noPinned) {
       while (skipped < tabs.length && tabs[skipped].pinned) { skipped++ }
@@ -552,13 +552,15 @@ export const removeTab = (resolve: OnCmdResolved, phase?: 1 | 2 | 3, tabs?: read
       start = skipped + range[0], end = skipped + range[1]
     }
   } else if (optHighlighted) {
-    const highlighted = tabs.filter(j => j.highlighted && j !== tab), noCurrent = optHighlighted === "no-current"
+    const highlighted = tabs.filter(j => j.highlighted && j !== tab && !(noPinned && j.pinned))
+    const noCurrent = optHighlighted === "no-current" || noPinned && tab.pinned
     count = highlighted.length + 1
     if (count > 1 && (noCurrent || count < total)) {
       Tabs_.remove(highlighted.map(j => j.id), runtimeError_)
     }
     if (noCurrent) { resolve(count > 1); return }
-  } else if (get_cOptions<C.removeTab, true>().filter) {
+  } else if (noPinned && tab.pinned) { resolve(0); return }
+  else if (get_cOptions<C.removeTab, true>().filter) {
     if (filterTabsByCond_(tab, [tab], get_cOptions<C.removeTab, true>().filter!).length === 0) {
       resolve(0)
       return
