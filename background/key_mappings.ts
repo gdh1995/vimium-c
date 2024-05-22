@@ -116,13 +116,24 @@ export const normalizeCommand_ = (cmd: Writable<CommandsNS.BaseItem>, details?: 
         BgUtils_.extendIf_<CommandsNS.RawOptions, CommandsNS.RawOptions>(options, opt)
       }
       if (details[0] === kFgCmd.linkHints && !details[1]) {
-        const lhOpt = options as Partial<HintsNS.Options> & CommandsNS.RawLinkHintsOptions
+        if (/*#__NOINLINE__*/ normalizeLHOptions_(options, cmd)) { return true }
+      }
+    } else {
+      options = opt;
+    }
+    cmd.options_ = options
+    return true
+}
+
+const normalizeLHOptions_ = (lhOpt: Partial<HintsNS.Options> & CommandsNS.RawLinkHintsOptions
+    , cmd: Writable<CommandsNS.BaseItem>): true | void => {
         let mode = lhOpt.mode, stdMode = lhOpt.m!
         const rawChars = lhOpt.characters
         const action = lhOpt.action
         const button = lhOpt.button
         const chars = !rawChars || typeof rawChars !== "string" ? null
             : BgUtils_.dedupChars_(settings_.updatePayload_<"c" | "n">("c", rawChars))
+        const inQueue = typeof mode === "string" && mode.endsWith(".queue")
         if (chars && chars.length < GlobalConsts.MinHintCharSetSize) {
           cmd.alias_ = kBgCmd.showHUD
           cmd.background_ = 1
@@ -136,7 +147,8 @@ export const normalizeCommand_ = (cmd: Writable<CommandsNS.BaseItem>, details?: 
         rawChars != null && delete lhOpt.characters
         "action" in lhOpt && delete lhOpt.action
         "mode" in lhOpt && delete lhOpt.mode
-        mode = action ? hintModes_[action] : typeof mode === "number" ? mode : mode ? hintModes_[mode] : null
+        mode = action ? hintModes_[action] : typeof mode === "number" ? mode : typeof mode === "string"
+            ? hintModes_[mode.split(".", 1)[0]] : null
         mode = mode != null ? mode : Math.max(0, stdMode | 0)
         if (mode > HintMode.max_mouse_events) {
           mode = mode === HintMode.EDIT_TEXT ? lhOpt.url ? HintMode.EDIT_LINK_URL : mode
@@ -145,6 +157,7 @@ export const normalizeCommand_ = (cmd: Writable<CommandsNS.BaseItem>, details?: 
               : lhOpt.join != null ? HintMode.COPY_URL | HintMode.queue | HintMode.list : HintMode.COPY_URL
             : mode > HintMode.min_disable_queue + HintMode.queue - 1 ? mode - HintMode.queue : mode;
         }
+        if (inQueue) { mode = mode < HintMode.min_disable_queue ? mode | HintMode.queue : mode }
         if (button != null) {
           lhOpt.button = typeof button === "string" ? button === "right" ? 2
               : button.startsWith("mid") || button.startsWith("aux") ? 1 : 0
@@ -162,12 +175,6 @@ export const normalizeCommand_ = (cmd: Writable<CommandsNS.BaseItem>, details?: 
         if (mode > HintMode.min_disable_queue - 1) {
           cmd.repeat_ = 1
         }
-      }
-    } else {
-      options = opt;
-    }
-    cmd.options_ = options
-    return true
 }
 
 export const makeCommand_ = <T extends CommandsNS.RawOptions | "__not_parsed__" | null> (
