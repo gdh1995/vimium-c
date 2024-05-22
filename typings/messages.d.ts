@@ -370,6 +370,7 @@ interface CmdOptions {
     dir?: 1 | -1 | 0.5 | -0.5;
     offset?: number
     /** inner flags */ f?: kScFlag & number
+    outer?: number
   } & Pick<CSSOptions, "evenIf" | "scroll"> & ({
     view?: 0 | /** means 0 */ undefined | 1 | "max" | /* all others are treated as "view" */ 2 | "view";
     dest?: undefined;

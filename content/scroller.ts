@@ -382,6 +382,7 @@ export const activate = (options: CmdOptions[kFgCmd.scroll] & SafeObject, count:
     const di: ScrollByY = options.axis === "x" ? 0 : 1, oriCount = count,
     dest = options.dest;
     let fromMax = dest === "max";
+    count = abs_(count) < (options.outer! | 0) ? 1 : count
     if (dest) {
       if (count < 0) { fromMax = !fromMax; count = -count; }
       count--;
@@ -421,7 +422,9 @@ export const executeScroll: VApiTy["c"] = function (di: ScrollByY, amount0: numb
     if (scrollingTop) {
       getPixelScaleToScroll()
     }
+    const outer = options && +options.outer! || 0
     const element = findScrollable(di, toFlags ? toMax || -1 : amount0
+        , outer > 0 ? oriCount! <= outer ? abs_(oriCount!) : 1 : -outer | 0
         , options && (options.scroll ? options.scroll === "force"
             : options.evenIf != null ? (options.evenIf & kHidden.OverflowHidden) as 0 | 2 : null)
         , options && options.scrollable)
@@ -539,7 +542,7 @@ export const onScrolls = (event: HandlerNS.Event): boolean => {
   /**
    * @param amount should not be 0
    */
-const findScrollable = (di: ScrollByY, amount: number
+const findScrollable = (di: ScrollByY, amount: number, outer: number
     , evenOverflowHidden?: boolean | 0 | 2 | null | undefined, scrollable?: string): SafeElement | null => {
   const selectFirst = (info: ElementScrollInfo, skipPrepare?: 1): ElementScrollInfo | null | undefined => {
     let cur_el: SafeElement | HTMLFormElement = info.e, type: 0 | 1 | -1
@@ -572,6 +575,7 @@ const findScrollable = (di: ScrollByY, amount: number
     const selectAncestor = (): void => {
       while (element !== top && (!fullscreen || IsInDOM_(element as SafeElement, fullscreen))
           ? shouldScroll_s(<SafeElement> element, element === lastCachedScrolled ? (di + 2) as 2 | 3 : di, amount) < 1
+            || --outer > 0
           : (element = top, 0)) {
         element = (!OnFirefox
             ? SafeEl_not_ff_!(GetParent_unsafe_(element!, PNType.RevealSlotAndGotoParent))
@@ -583,6 +587,7 @@ const findScrollable = (di: ScrollByY, amount: number
         cachedScrollable = OnFirefox ? weakRef_ff(element as SafeElement | null, kElRef.cachedScrollable)
             : weakRef_not_ff!(element as SafeElement | null)
       }
+      outer = 0
     }
     let candidate: false | ElementScrollInfo | null | undefined
     let element: Element | null = activeEl
@@ -691,8 +696,8 @@ export const scrollIntoView_s = (el: SafeElement | null, r2: Rect | null, dir: 0
 }
 
 export const makeElementScrollBy_ = (el: SafeElement | null | 0, hasX: number, hasY: number): void => {
-  void (hasX && (hasY ? performScroll : vApi.$)(el !== 0 ? el : findScrollable(0, hasX), 0, hasX))
-  void (hasY && vApi.$(el !== 0 ? el : findScrollable(1, hasY), 1, hasY))
+  void (hasX && (hasY ? performScroll : vApi.$)(el !== 0 ? el : findScrollable(0, hasX, 0), 0, hasX))
+  void (hasY && vApi.$(el !== 0 ? el : findScrollable(1, hasY, 0), 1, hasY))
   isTopScrollable = 1
   scrolled = 0
   scrollTick(0) // it's safe to only clean keyIsDown here
