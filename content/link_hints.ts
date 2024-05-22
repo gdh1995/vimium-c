@@ -541,7 +541,7 @@ export const findAnElement_ = (options: OptionsToFindElement, count: number, als
       compareDocumentPosition(midEl, cur as Element) & kNode.DOCUMENT_POSITION_FOLLOWING // midEl < cur
       ? low = mid + 1 : high = mid - 1
     }
-    return low < -matchIndex ? end : low + matchIndex
+    return exOpts.loop ? (low + matchIndex) % end : low < -matchIndex ? end : low + matchIndex
   }
   let isSel: boolean | BOOL | undefined
   let matches: (Hint | Hint0)[] | undefined, oneMatch: Hint | Hint0 | undefined, matchIndex: number

@@ -657,14 +657,15 @@ const doPostAction = (): Rect | null => {
     } else if (forHover_) {
       (HintMode.HOVER + 1 === HintMode.UNHOVER ? HintMode.HOVER & 1 ? mode1_ & 1 : !(mode1_ & 1)
         : HintMode.HOVER < HintMode.UNHOVER ? mode1_ < HintMode.HOVER + 1 : mode1_ > HintMode.HOVER - 1)
-      ? hoverEl() : retPromise = catchAsyncErrorSilently(wrap_enable_bubbles(hintOptions, unhover_async<1>, [clickEl]))
+      ? hoverEl() : retPromise = catchAsyncErrorSilently(wrap_enable_bubbles(hintOptions, unhover_async<1>
+          , [realClickEl || clickEl]))
     } else if (mode1_ < HintMode.FOCUS + 1) {
       view_(clickEl)
       setNewScrolling(clickEl)
       focus_(clickEl)
       set_cachedScrollable(currentScrolling)
       showUrlIfNeeded()
-      removeFlash || showRect && flash_(clickEl)
+      removeFlash || showRect && flash_(clickEl, tag === "a" || hint.r ? rect as never : null)
       showRect = 0
     } else if (mode1_ < HintMode.max_media + 1) {
       downloadOrOpenMedia()

@@ -69,6 +69,7 @@ interface OptionsToFindElement extends CSSOptions, OtherFilterOptions {
     search?: "view" | "doc" | "document"
     offset?: 0 | "cur" | "current" | "end" | "last"
     index?: "count" | number
+    loop?: boolean | BOOL
   }
   targetOptions?: object
 }
