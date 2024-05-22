@@ -877,7 +877,7 @@ export const visualKeys_: VisualModeNS.KeyMap = {
         ap: VisualAction.LexicalParagraph, "a}": VisualAction.LexicalParagraph,
 
     y: VisualAction.Yank, Y: VisualAction.YankLine, C: VisualAction.YankWithoutExit, "c-s-c": VisualAction.YankRichText,
-    p: VisualAction.YankAndOpen, P: VisualAction.YankAndNewTab,
+    p: VisualAction.YankAndNewTab, P: VisualAction.YankAndOpen,
 
     f: VisualAction.EmbeddedFindAndExtendSelection, F: VisualAction.EmbeddedFindToPrevAndExtendSelection,
     n: VisualAction.FindNext, N: VisualAction.FindPrevious,
