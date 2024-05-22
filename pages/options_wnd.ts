@@ -6,7 +6,7 @@ import {
 } from "./async_bg"
 import {
   bgSettings_, type KnownOptionsDataset, showI18n_, setupBorderWidth_, Option_, AllowedOptions, debounce_, oTrans_,
-  delayBinding_, didBindEvent_
+  delayBinding_, didBindEvent_, getSettingsCache_
 } from "./options_base"
 import { saveBtn_, exportBtn_, savedStatus_, onKeyMappingsError_, type SaveBtn } from "./options_defs"
 import { manifest_ } from "./options_permissions"
@@ -69,6 +69,10 @@ let optionsInit1_ = function (): void {
     nextTick_((el): void => {
       el.style.visibility = "";
     }, $("#exclusionToolbar"));
+  }
+  const omniStyles = getSettingsCache_().vomnibarOptions?.styles
+  if (omniStyles && ` ${omniStyles} `.includes(" no-inputmode ")) {
+    nextTick_((els) => { for (const i of els) { i.removeAttribute("inputmode") } }, $$("[inputmode]"))
   }
 
   document.addEventListener("keyup", onKeyUp)

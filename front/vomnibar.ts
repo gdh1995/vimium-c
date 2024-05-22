@@ -221,6 +221,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   timer_: 0,
   inAlt_: 0,
   _listenedAltDown: 0 as kChar | kKeyCode,
+  noInputMode_: 0,
   wheelStart_: 0,
   wheelTime_: 0,
   wheelDelta_: 0,
@@ -1266,12 +1267,14 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     Vomnibar_.toggleAttr_("inputmode", Vomnibar_.isSearchOnTop_
         || !(<RegExpOne> /[\/:]/).test(Vomnibar_.lastQuery_) ? "search" : "url")
   },
-  toggleAttr_: <V extends "Search" | "Go" | "search" | "url"> (attr: string
+  toggleAttr_: <V extends "Search" | "Go" | "search" | "url"> (attr: "inputmode" | "enterkeyhint" | "mozactionhint"
       , value: V, trans?: V extends "Search" | "Go" ? 1 : 0) => {
     if (trans && Vomnibar_.pageType_ === VomnibarNS.PageType.inner) {
       value = chrome.i18n.getMessage(value) as never || value
     }
-    if (Vomnibar_.input_.getAttribute(attr) !== value) {
+    if (Vomnibar_.noInputMode_) {
+      Vomnibar_.input_.removeAttribute(attr)
+    } else if (Vomnibar_.input_.getAttribute(attr) !== value) {
       Vomnibar_.input_.setAttribute(attr, value);
     }
   },
@@ -1297,7 +1300,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     const dark = omniStyles.includes(" dark ")
     if (Build.BTypes & BrowserType.Firefox && Vomnibar_.options_.d && !omniStyles.includes(" ignore-filter ")) {
       Vomnibar_.darkBtn_ && (Vomnibar_.darkBtn_.style.display = "none")
-      Vomnibar_.styles_ = omniStyles = (dark ? omniStyles.replace(" dark ", "") : omniStyles + "dark ") + " filtered "
+      Vomnibar_.styles_ = omniStyles = (dark ? omniStyles.replace(" dark ", " ") : omniStyles + "dark") + " filtered "
     } else if (Vomnibar_.darkBtn_) {
       if (!Vomnibar_.darkBtn_.childElementCount) {
         Vomnibar_.darkBtn_.textContent = dark ? "\u2600" : "\u263D";
@@ -1325,6 +1328,10 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       if (found) {
         omniStyles = omniStyles.replace(key, " ");
       }
+    }
+    Vomnibar_.noInputMode_ = omniStyles.includes(" no-inputmode ") ? 1 : 0
+    if (Vomnibar_.noInputMode_) {
+      Vomnibar_.styles_ = omniStyles = omniStyles.replace(" no-inputmode ", " ")
     }
     Vomnibar_.wheelSpeed_ = 1
     Vomnibar_.wheelMinStep_ = 0
