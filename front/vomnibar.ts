@@ -1595,7 +1595,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     if (inAlt !== enable) {
       if ((inAlt > 0) !== !!enable) {
         (document.body as HTMLBodyElement).classList.toggle("alt", !!enable);
-        for (let i = 0, end = enable ? Math.min(Vomnibar_.list_.childElementCount, 10) : 0; i < end; i++) {
+        for (let i = 0, end = enable ? Vomnibar_.list_.childElementCount : 0; i < end; i++) {
           ((Vomnibar_.list_.children as NodeList)[i] as Element).classList.add("alt-index")
         }
       }
@@ -1771,7 +1771,7 @@ VUtils_ = {
           html += a[j];
           const key = a[j + 1];
           html += key === "typeIcon" ? Vomnibar_.getTypeIcon_(objectArray[index])
-              : key === "index" ? index + 1 : key === "altIndex" ? index > 9 ? "" : index < 9 ? index + 1 : 0
+              : key === "index" ? index + 1 : key === "altIndex" ? index < 9 || Vomnibar_.maxMatches_>10 ? index + 1 : 0
               : key === "time" ? Vomnibar_.showTime_ ? VUtils_.timeStr_(objectArray[index].visit) : ""
               : Build.BTypes & BrowserType.Firefox
                 && (Build.BTypes === BrowserType.Firefox as number || Vomnibar_.browser_ === BrowserType.Firefox)
