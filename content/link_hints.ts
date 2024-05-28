@@ -596,10 +596,10 @@ const activateDirectly = (options: ContentOptions, count: number): void => {
   },
   res = findAnElement_(options, count), rawEl = res[0],
   el = mode < HintMode.min_job || rawEl && htmlTag_(rawEl) ? rawEl : null
+  clear()
   if (!el || !IsInDOM_(el)) {
     runFallbackKey(options, kTip.noTargets)
   } else {
-    clear()
     count = mode < HintMode.min_job && !res[2] ? count : 1
     api_ = vApi
     options_ = options

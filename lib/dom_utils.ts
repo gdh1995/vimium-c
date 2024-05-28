@@ -272,10 +272,12 @@ export const getRootNode_mounted = ((el: Node): Node => {
 
 export const scrollingEl_ = (fallback?: 1): SafeElement | null => {
     // Both C73 and FF66 still supports the Quirk mode (entered by `doc.open()`)
-    let el = doc.scrollingElement, docEl = OnFirefox ? null : docEl_unsafe_()
     if (OnFirefox) {
-      return !fallback || el ? el as SafeElement | null : docEl_unsafe_() as SafeElement | null
+      return doc.scrollingElement as SafeElement | null
+          || (fallback && !doc.body ? docEl_unsafe_() as SafeElement | null : null)
     }
+    const docEl = docEl_unsafe_(), body = doc.body
+    let el = doc.scrollingElement
     if (OnChrome && Build.MinCVer < BrowserVer.Min$Document$$ScrollingElement
         && el === void 0) {
       /**
@@ -284,8 +286,8 @@ export const scrollingEl_ = (fallback?: 1): SafeElement | null => {
        * while the flag is hidden on Chrome 34~43 (32-bits) for Windows (34.0.1751.0 is on 2014-04-07).
        * But the flag is under the control of #enable-experimental-web-platform-features
        */
-      let body = doc.body;
-      el = doc.compatMode === "BackCompat" || body && (scrollY ? dimSize_(body as SafeElement, kDim.positionY)
+      el = doc.compatMode === "BackCompat" || body && isSafeEl_(body)
+        && (scrollY ? dimSize_(body as SafeElement, kDim.positionY)
             : dimSize_(docEl as SafeElement, kDim.scrollW) <= dimSize_(body as SafeElement, kDim.scrollH))
         ? body : body ? docEl : null;
       // If not fallback, then the task is to get an exact one in order to use `scEl.scrollHeight`,
@@ -294,7 +296,7 @@ export const scrollingEl_ = (fallback?: 1): SafeElement | null => {
     }
     // here `el` may be `:root, :root > body, :root > frameset` or `null`
     return el && isSafeEl_(el) ? el as SafeElement
-        : fallback && docEl && isSafeEl_(docEl) ? docEl as SafeElement
+        : fallback && docEl && (el || !body) && isSafeEl_(docEl) ? docEl as SafeElement
         : null
 }
 
