@@ -261,7 +261,7 @@ set_reqH_([
     }
     if (iport && iport !== port) {
       set_cKey(request.k)
-      focusAndExecute(request, port, iport, 1)
+      focusAndExecute(request, port, iport, 1, 1)
       return true
     } else if (!browserWebNav_()) {
       return false
@@ -277,7 +277,7 @@ set_reqH_([
         const port2 = childId && indexFrame(tabId, childId)
         if (port2) {
           set_cKey(request.k)
-          focusAndExecute(request, port, port2, 1)
+          focusAndExecute(request, port, port2, 1, 1)
         }
         OnChrome || msgId && sendResponse(port, msgId, !!port2)
         // here seems useless if to retry to inject content scripts,
@@ -732,8 +732,8 @@ set_focusAndExecuteOn_((<T extends FgCmdAcrossFrames> (targetPort: Port, cmd: T,
 }) satisfies typeof focusAndExecuteOn_)
 
 const focusAndExecute = (req: Omit<FgReq[kFgReq.gotoMainFrame], "f">
-    , port: Port, targetPort: Port | null, focusAndShowFrameBorder: BOOL): void => {
-  if (targetPort && targetPort.s.status_ !== Frames.Status.disabled) {
+    , port: Port, targetPort: Port | null, focusAndShowFrameBorder: BOOL, ignoreStatus?: 1): void => {
+  if (targetPort && (ignoreStatus || targetPort.s.status_ !== Frames.Status.disabled)) {
     focusAndExecuteOn_(targetPort, req.c, req.a as CmdOptions[FgCmdAcrossFrames], req.n, focusAndShowFrameBorder)
   } else {
     req.a.$forced = 1
