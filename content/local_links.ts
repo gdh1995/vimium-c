@@ -746,7 +746,7 @@ export const filterOutNonReachable = (list: Hint[], notForAllClickable?: boolean
               && fromPoint!.parentElement || fromPoint!) as MayBeLabel).control === el
           && (notForAllClickable
               || (i < 1 || list[i - 1][0] !== el) && (i + 2 > list.length || list[i + 1][0] !== el))
-        : mediaTag === kMediaTag.otherMedias) {
+        : mediaTag === kMediaTag.otherMedias || !tag && (el as ElementToSVG).ownerSVGElement) {
       continue;
     }
     if (hasInert && !editableTypes_[tag] && el.closest!("[inert]")) { continue }
