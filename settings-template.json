@@ -107,7 +107,7 @@
 		"map V openCopiedUrlInCurrentTab",
 		"run Ce V \\",
 		"  keyword=\"v.math-copy\"",
-		"map <c-v> openCopiedUrlInNewTab copied=\"urls\"",
+		"map <c-v> openCopiedUrlInNewTab copied=\"auto-urls\"",
 		"",
 		"map u goUp",
 		"run i focusInput:(<c-m>:W+150wait)%cfocusInput \\",

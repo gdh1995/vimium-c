@@ -612,7 +612,7 @@ export const openUrlWithActions = (url: Urls.Url, workType: Urls.WorkType, sed?:
 
 }
 
-const openCopiedUrl = (copied: KnownOptions<C.openUrl>["copied"], exOut: InfoOnSed
+const openCopiedUrl = (copied: KnownOptions<C.openUrl>["copied"] | "", exOut: InfoOnSed
     , tabs: [Tab] | [] | undefined, url: string | null): void => {
   if (url === null) {
     complainLimits(trans_("readClipboard"))
@@ -625,9 +625,10 @@ const openCopiedUrl = (copied: KnownOptions<C.openUrl>["copied"], exOut: InfoOnS
     return
   }
   exOut.keyword_ != null && overrideCmdOptions<C.openUrl>({ keyword: exOut.keyword_ })
-  const searchLines = typeof copied === "string" && copied.includes("any")
+  copied = typeof copied === "string" ? copied : ""
+  const searchLines = copied.includes("any")
   let urls: string[]
-  if ((copied === "urls" || searchLines) && (urls = url.split(<RegExpG> /[\r\n]+/g)).length > 1) {
+  if ((copied.includes("urls") || searchLines) && (urls = url.split(<RegExpG> /[\r\n]+/g)).length > 1) {
     const urls2: string[] = [], rawKeyword = searchLines && get_cOptions<C.openUrl>().keyword
     const keyword = rawKeyword ? rawKeyword + "" : null
     let has_err = false
@@ -651,7 +652,9 @@ const openCopiedUrl = (copied: KnownOptions<C.openUrl>["copied"], exOut: InfoOnS
       tabs && tabs.length > 0 ? openUrls(tabs) : getCurTab(openUrls)
       return
     }
-    if (has_err) {
+    if (has_err && copied.includes("auto")) {
+      url = url.replace(<RegExpG> /[\r\n]+/g, " ")
+    } else if (has_err) {
       if (! runNextCmd<C.openUrl>(0)) {
         showHUD("The copied lines are not URLs")
       }
