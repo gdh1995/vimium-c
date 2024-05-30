@@ -696,9 +696,10 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     }
     if (mainModifier === "a" || mainModifier === "m") {
       if (char === kChar.f2) { return a.onAction_(focused ? AllowedActions.blurInput : AllowedActions.focus) }
-      if (focused && char.length === 1 && char > kChar.a && char < kChar.g && char !== kChar.c
+      if (focused && char.length === 1 && "bdfw".includes(char)
           && !(Build.OS !== kBOS.MAC as number && (!(Build.OS & kBOS.MAC) || a.os_) && key === "a-d")) {
-        return a.onWordAction_(char.charCodeAt(0) - (kCharCode.maxNotAlphabet | kCharCode.CASE_DELTA))
+        return a.onWordAction_(char.charCodeAt(0) - (kCharCode.maxNotAlphabet | kCharCode.CASE_DELTA)
+            , 0, key.includes("s-") ? 3 : 0)
       }
       if (key === "a-c-c" || key === "a-m-c") { return a.onAction_(AllowedActions.copyPlain) }
       if (mainModifier === "a") { a.keyResult_ = SimpleKeyResult.Nothing; return; }
@@ -825,9 +826,9 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       break
     }
   },
-  // b(2): left; d(4): right-extend-delete; e(5) / f(6): right; (7): right-extend; (8): left-extend
+  // b(2): left; d(4): right-extend-delete; f(6): right; (7): right-extend; (8): left-extend; w: left-delete
   // -1: delete a left word; -2: delete from current to start; -3: delete all
-  onWordAction_ (code: number, delayed?: boolean | BOOL, mode?: 1 | 2): void {
+  onWordAction_ (code: number, delayed?: boolean | BOOL, mode?: 0 | 1 | 2 | 3): void {
     const BTy = !Build.BTypes || Build.BTypes & (Build.BTypes - 1) ? Vomnibar_.browser_ : Build.BTypes as never
     const re = <RegExpOne> (!(Build.BTypes & BrowserType.Edge || Build.BTypes & BrowserType.Firefox
             && Build.MinFFVer < FirefoxBrowserVer.MinEnsuredUnicodePropertyEscapesInRegExp
@@ -844,7 +845,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
             : !(Build.BTypes === BrowserType.Edge as number
                 || Build.BTypes & BrowserType.Edge && BTy & BrowserType.Edge))
         ? new RegExp("[^\\p{L}\\p{Nd}_]+", "u") : /[^\w\u0386-\u03fb\u4e00-\u9fff]+/)
-    const isDel = code === 4 || code < 0, isExtend = isDel || code > 6, isRight = code > 3 && code < 8
+    const isDel = code === 4 || code < 0 || code > 9
+    const isExtend = isDel || code > 6 || mode === 3, isRight = code > 3 && code < 8
     const input = Vomnibar_.input_, spacesRe = <RegExpOne> /\s+/
     if (Build.BTypes !== BrowserType.Firefox as number
         && (!(Build.BTypes & BrowserType.Firefox) || BTy !== BrowserType.Firefox)
@@ -860,7 +862,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       a2 = 0, focus = code < -2 ? str.length : end
     } else if (isDel && anchor0 !== focus1) { // Ctrl + backspace / Alt+D
     } else if (Build.BTypes !== BrowserType.Firefox as number
-        && (!(Build.BTypes & BrowserType.Firefox) || BTy !== BrowserType.Firefox) && mode) { /* empty */
+        && (!(Build.BTypes & BrowserType.Firefox) || BTy !== BrowserType.Firefox) && mode && mode < 3) { /* empty */
     } else if (Build.BTypes !== BrowserType.Firefox as number
         && (!(Build.BTypes & BrowserType.Firefox) || BTy !== BrowserType.Firefox)) {
       const notNewCr = !(Build.BTypes & BrowserType.Chrome && BTy & BrowserType.Chrome)
@@ -1128,7 +1130,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       if (deltaY) {
         total = (a.wheelStart_ ? 0 : a.wheelDelta_) + deltaY
         if (Math.abs(total) >= 10) { // on mac, touchpad may cause a hook (curve)
-          a.onWordAction_((total > 0) === forward ? 5 : 2, 0, notTouchpad ? 1: 2)
+          a.onWordAction_((total > 0) === forward ? 6 : 2, 0, notTouchpad ? 1 : 2)
           total = (Math.abs(total) % 10) * (total > 0 ? 1 : -1)
         }
       }
