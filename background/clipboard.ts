@@ -16,7 +16,7 @@ declare const enum SedAction {
   camel = 14, camelcase = 14, dash = 15, dashed = 15, hyphen = 15, capitalize = 16, capitalizeAll = 17,
   latin = 18, latinize = 18, latinise = 18, noaccent = 18, nodiacritic = 18, decodeAll = 19,
   json = 20, jsonParse = 21, virtually = 22, virtual = 22, dryRun = 22,
-  inc = 23, increase = 23, dec = 24, decrease = 24, readableJson = 25,
+  inc = 23, increase = 23, dec = 24, decrease = 24, readableJson = 25, length = 26,
   break = 99, stop = 99, return = 99,
 }
 type SedActions = SedAction | `${string}=${string}`
@@ -47,6 +47,7 @@ const SedActionMap: ReadonlySafeDict<SedAction> = {
   json: SedAction.json, jsonparse: SedAction.jsonParse, readablejson: SedAction.readableJson,
   virtual: SedAction.virtually, virtually: SedAction.virtually, dryrun: SedAction.virtually,
   inc: SedAction.inc, dec: SedAction.dec, increase: SedAction.inc, decrease: SedAction.dec,
+  length: SedAction.length,
 } satisfies SafeObject & {
   [key in Exclude<keyof typeof SedAction, "NONE"> as NormalizeKeywords<key>]: (typeof SedAction)[key]
 }
@@ -202,7 +203,7 @@ export const parseSedOptions_ = (sed: UserSedOptions): ParsedSedOpts | null => {
   let r = sed.sed, k = sed.sedKeys || sed.sedKey
   return r == null && (!k && k !== 0) ? null : !r || typeof r !== "object"
       ? sed.$sed = { r: typeof r === "number" ? r + "" : r, k: typeof k === "number" ? k + "" : k }
-      : r.r != null || r.k ? r : null
+      : !(r instanceof Array) && (r.r != null || r.k) ? r : null
 }
 
 const parseSedKeys_ = (keys: string | number | object, parsed?: ParsedSedOpts): Contexts | null => {
@@ -414,6 +415,7 @@ set_substitute_(((input: string, normalContext: SedContext, mixedSed?: MixedSedO
             : action === SedAction.jsonParse ? tryParseJSON(text)
             : action === SedAction.inc ? +text + 1 + ""
             : action === SedAction.dec ? +text - 1 + ""
+            : action === SedAction.length ? text.length + ""
             : (text = (action === SedAction.normalize || action === SedAction.reverseText || action === SedAction.latin)
                   && (!OnChrome || Build.MinCVer >= BrowserVer.Min$String$$Normalize
                       || text.normalize) ? text.normalize(action === SedAction.latin ? "NFD" : "NFC") : text,

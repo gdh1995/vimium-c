@@ -264,7 +264,7 @@ interface ParsedSedOpts {
 }
 type MixedSedOpts = string | number | boolean | ParsedSedOpts
 interface UserSedOptions {
-  sed?: MixedSedOpts | null
+  sed?: MixedSedOpts | string[] | null
   /** only in LinkHints now */ sedIf?: "regexp-for-<a>.href" | null
   sedKeys?: string | number | null
   sedKey?: string | number | null

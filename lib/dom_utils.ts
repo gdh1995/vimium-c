@@ -586,7 +586,8 @@ export const joinValidSelectors = (selector: string | false | void
         || safeCall(querySelector_unsafe_, selector, _domInst || (_domInst = createElement_("a"))) !== void 0)
     ? (validAnother ? selector + "," + validAnother : selector) as "css-selector" : validAnother || null
 
-export const findSelectorByHost = (rules: string | string[] | kTip | MayBeSelector | void): "css-selector" | void => {
+export const findSelectorByHost = ((rules: string | string[] | kTip | MayBeSelector | void
+    , noCheck?: 1): "css-selector" | void => {
   const isKTip = isTY(rules, kTY.num)
   let host: string | undefined, path: string | undefined
   for (const arr of !rules ? [] : isTY(rules,kTY.obj) ? rules : (isKTip ? VTr(rules) : rules + "").split(";")) {
@@ -595,11 +596,13 @@ export const findSelectorByHost = (rules: string | string[] | kTip | MayBeSelect
     const re = cond && (<RegExpOne> /[^*+$\\?(]/).test(cond) && tryCreateRegExp(cond)
     path || cond && (host = Lower(loc_.host), path = host + "/" + Lower(loc_.pathname))
     if ((re ? re.test(matchPath ? path! : host!) : matchPath ? path!.startsWith(cond)
-            : !cond || host === cond || host!.endsWith("." + cond)) && (isKTip || joinValidSelectors(sel, 0))) {
+            : !cond || host === cond || host!.endsWith("." + cond))
+        && (isKTip || noCheck || joinValidSelectors(sel, 0))) {
       return sel as "css-selector"
     }
   }
-}
+}) as <T extends BOOL = 0>(rules: string | string[] | kTip | MayBeSelector | void
+    , noCheck?: T) => T extends 1 ? string | undefined : "css-selector" | void
 
 export const elFromPoint_ = (center?: Point2D | null, baseEl?: SafeElement | ShadowRoot | null): Element | null => {
   const root = center && (baseEl ? isNode_(baseEl, kNode.DOCUMENT_FRAGMENT_NODE) ? baseEl

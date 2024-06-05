@@ -973,8 +973,9 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     navReq: Req.fg<kFgReq.openUrl> | null = useItem && item.s != null && !itemSed && !itemKeyword
         ? null : { H: kFgReq.openUrl, f: false, r: action, h: useItem ? null : https,
       u: field && useItem ? field in item ? item[field as keyof typeof item] + "" : "" : item.u,
-      o: { i: options.incognito, s: useItem ? itemSed || { r: false, k: "" } : typeof inputSed === "object" && inputSed
-              || { r: inputSed, k: options.inputSedKeys || options.sedKeys || options.sedKey },
+      o: { i: options.incognito,
+           s: useItem ? itemSed || { r: false, k: "" } : typeof inputSed === "object" ? inputSed instanceof Array
+              ? null : inputSed : { r: inputSed, k: options.inputSedKeys || options.sedKeys || options.sedKey },
           k: (useItem || !field) && itemKeyword || null, p: options.position,
           t: useItem ? !!testUrl : testUrl != null ? testUrl : "whole" }
     }, sessionReq: Req.fg<kFgReq.gotoSession> | null = navReq ? null : { H: kFgReq.gotoSession,

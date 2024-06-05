@@ -1,3 +1,5 @@
+import { findSelectorByHost } from "./dom_utils"
+
 export type XrayedObject<T extends object> = T & { wrappedJSObject: T }
 
 const OnOther_: BrowserType = Build.BTypes && !(Build.BTypes & (Build.BTypes - 1))
@@ -216,7 +218,8 @@ export const recordLog = (tip: kTip | string): (() => void) =>
 
 export const parseSedOptions = (opts: UserSedOptions): ParsedSedOpts => {
   const sed = opts.sed
-  return isTY(sed, kTY.obj) && sed || { r: sed, k: opts.sedKeys || opts.sedKey }
+  return isTY(sed, kTY.obj) && sed ? !(sed as string[]).length ? sed as Exclude<typeof sed, string[]>
+      : { r: "", k: findSelectorByHost<1>(sed as string[], 1) } : { r: sed, k: opts.sedKeys || opts.sedKey }
 }
 
 type EnsureExisting<T> = { [P in keyof T]-?: T[P] }
