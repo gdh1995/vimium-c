@@ -458,10 +458,10 @@ interface CmdOptions {
     o?: 1;
     reuse?: UserReuseType;
     copy?: boolean;
-    type?: "frame" | "tab-title" | "tab-url" | "tab" | "window"
+    type?: "tab-url" | "frame" | "tab-title" | "tab" | "window"
     /** for autoCopy */
     text?: string
-    trim?: boolean
+    trim?: boolean | "left" | "right" | "start" | "end"
     url?: boolean | "raw"
     /** for searchAs */
     s?: 1;

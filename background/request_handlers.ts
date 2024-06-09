@@ -361,12 +361,13 @@ set_reqH_([
     const oriOptions = request.n as CmdOptions[kFgCmd.autoOpen] | undefined
     const opts2 = request.o || oriOptions && parseOpenPageUrlOptions(oriOptions) || {}
     const isInOpenAndCopy = !!(oriOptions && oriOptions.copy && oriOptions.o)
-    const mode1 = request.s != null && request.m || HintMode.DEFAULT
+    const rawStr = request.s
+    const mode1 = rawStr != null && request.m || HintMode.DEFAULT
     const sed = isInOpenAndCopy ? null : opts2.s, keyword = isInOpenAndCopy ? null : opts2.k
     const correctUrl = mode1 >= HintMode.min_link_job && mode1 <= HintMode.max_link_job
         && (!sed || sed.r !== false)
-    const decode = request.d ? opts2.d !== false : !!opts2.d
-    if (!request.s && oriOptions && oriOptions.type != null && oriOptions.type !== "frame") {
+    if (!rawStr && oriOptions && !(oriOptions.type === "frame"
+        || request.u && !port.s.frameId_ && "tab-url tab".includes(oriOptions.type || ""))) {
       const type = oriOptions.type
       const opts = concatOptions(oriOptions, BgUtils_.safer_({ url: null,
           type: type === "tab" && oriOptions.url || type === "tab-url" ? null : type === "tab-title" ? "title" : type
@@ -377,13 +378,16 @@ set_reqH_([
           , oriOptions.$f && {c: oriOptions.$f, r: oriOptions.$retry, u: 0, w: 0 })
       return
     }
-    let str: string | string[] | object[] | undefined = request.u || request.s || ""
+    let str: string | string[] | object[] | undefined = request.u || rawStr || ""
+    const decode = !rawStr && (request.d ? opts2.d !== false : !!opts2.d)
     const rawTrim = request.t ?? oriOptions?.trim
     if (rawTrim) {
+      const trim: (s: string) => string = rawTrim === "start" || rawTrim === "left" ? i => i.trimLeft()
+          : rawTrim === "end" || rawTrim === "right" ? i => i.trimRight() : i => i.trim()
       if (typeof str === "string") {
-        str = str.trim()
+        str = trim(str)
       } else {
-        for (let i = str.length; 0 <= --i; ) { str[i] = (str[i] as AllowToString + "").trim() }
+        for (let i = str.length; 0 <= --i; ) { str[i] = trim(str[i] as AllowToString + "") }
       }
     }
     if (decode) {
@@ -397,17 +401,21 @@ set_reqH_([
         str = BgUtils_.decodeUrlForCopy_(str)
       }
     } else if (typeof str === "string") {
-      if (str.length < 4 && !str.trim() && str[0] === " ") {
-        str = ""
-      }
+      str = str.length < 4 && !str.trim() && (str[0] === " " || "\n\n\n".includes(str)) ? "" : str
     }
     let hasStr = !!str, str2 = str && copy_(str, request.j, sed, keyword, rawTrim === false)
-    str2 = request.s && typeof request.s === "object" ? `[${request.s.length}] ` + request.s.slice(-1)[0] : str2
+    str2 = rawStr && typeof rawStr === "object" ? `[${rawStr.length}] ` + rawStr.slice(-1)[0] : str2
     Promise.resolve(str2).then((str3): void => {
+      const encodeHex = (s: string): string => {
+        s = JSON.stringify(s).slice(1, -1)
+        return s.trim() ? s : s < "\xff" ? "\\x" + (s.charCodeAt(0) + 0x100).toString(16).slice(1)
+          : BgUtils_.encodeUnicode_(s)
+      }
       set_cPort(port)
       oriOptions && runNextCmdBy(hasStr ? 1 : 0, oriOptions) ||
       showHUD(decode ? str3.replace(<RegExpG & RegExpSearchable<0>> /%[0-7][\dA-Fa-f]/g, decodeURIComponent)
-          : str3, request.u ? kTip.noUrlCopied : kTip.noTextCopied)
+            : str3.replace(<RegExpG & RegExpSearchable<0>> (str3.trim() ? /[^\S ]/g : /[^]/g), encodeHex)
+          , request.u ? kTip.noUrlCopied : kTip.noTextCopied)
     })
   },
   /** kFgReq.key: */ (request: FgReq[kFgReq.key], port: Port | null): void => {

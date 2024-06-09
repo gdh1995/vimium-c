@@ -16,7 +16,7 @@ declare const enum SedAction {
   camel = 14, camelcase = 14, dash = 15, dashed = 15, hyphen = 15, capitalize = 16, capitalizeAll = 17,
   latin = 18, latinize = 18, latinise = 18, noaccent = 18, nodiacritic = 18, decodeAll = 19,
   json = 20, jsonParse = 21, virtually = 22, virtual = 22, dryRun = 22,
-  inc = 23, increase = 23, dec = 24, decrease = 24, readableJson = 25, length = 26,
+  inc = 23, increase = 23, dec = 24, decrease = 24, readableJson = 25, length = 26, rows = 27,
   break = 99, stop = 99, return = 99,
 }
 type SedActions = SedAction | `${string}=${string}`
@@ -47,7 +47,7 @@ const SedActionMap: ReadonlySafeDict<SedAction> = {
   json: SedAction.json, jsonparse: SedAction.jsonParse, readablejson: SedAction.readableJson,
   virtual: SedAction.virtually, virtually: SedAction.virtually, dryrun: SedAction.virtually,
   inc: SedAction.inc, dec: SedAction.dec, increase: SedAction.inc, decrease: SedAction.dec,
-  length: SedAction.length,
+  length: SedAction.length, rows: SedAction.rows,
 } satisfies SafeObject & {
   [key in Exclude<keyof typeof SedAction, "NONE"> as NormalizeKeywords<key>]: (typeof SedAction)[key]
 }
@@ -67,7 +67,7 @@ const parseSeds_ = (text: string, fixedContexts: Contexts | null): readonly Clip
     if (!prefix) { continue }
     let sep = prefix[2], sepRe = sepReCache.get(sep)
     if (!sepRe) {
-      const s = "\\u" + (sep.charCodeAt(0) + 0x10000).toString(16).slice(1)
+      const s = BgUtils_.encodeUnicode_(sep)
       sepRe = new RegExp(`^((?:\\\\[^]|[^${s}\\\\])+)${s}(.*)${s}([a-z]{0,9})(?:,|$)`)
       sepReCache.set(sep, sepRe)
     }
@@ -184,10 +184,7 @@ const latinize = (text: string): string => {
 const jsonToEmbed = (text: string): string => {
   text = JSON.stringify(text).slice(1, -1)
   /** encode OPs in `parseKeySeq` and `parseEmbeddedOptions` from {@see ./run_keys.ts} */
-  text = text.replace(<RegExpG & RegExpSearchable<0>> /[<\s"$%&#()?:+,;]/g, (s): string => {
-    const hex = s.charCodeAt(0) + 0x10000
-    return "\\u" + hex.toString(16).slice(1)
-  })
+  text = text.replace(<RegExpG & RegExpSearchable<0>> /[<\s"$%&#()?:+,;]/g, BgUtils_.encodeUnicode_)
   return text
 }
 
@@ -416,6 +413,7 @@ set_substitute_(((input: string, normalContext: SedContext, mixedSed?: MixedSedO
             : action === SedAction.inc ? +text + 1 + ""
             : action === SedAction.dec ? +text - 1 + ""
             : action === SedAction.length ? text.length + ""
+            : action === SedAction.rows ? text.split("\n").length + ""
             : (text = (action === SedAction.normalize || action === SedAction.reverseText || action === SedAction.latin)
                   && (!OnChrome || Build.MinCVer >= BrowserVer.Min$String$$Normalize
                       || text.normalize) ? text.normalize(action === SedAction.latin ? "NFD" : "NFC") : text,

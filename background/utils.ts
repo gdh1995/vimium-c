@@ -451,6 +451,8 @@ export const base64_ = (text: string, decode?: 1, hasEncoder?: boolean) => {
   return text2
 }
 
+export const encodeUnicode_ = (s: string): string => "\\u" + (s.charCodeAt(0) + 0x10000).toString(16).slice(1)
+
 export const now = (): string => {
   return new Date(Date.now() - new Date().getTimezoneOffset() * 1000 * 60).toJSON().slice(0, -5).replace("T", " ")
 }
@@ -514,8 +516,7 @@ export const extractComplexOptions_ = (expression_: string): [options: string, e
       continue
     }
     const str = JSON.stringify(parsed)
-    output += str.replace(<RegExpG & RegExpSearchable<0>> /[%\s&]/g,
-        s => "\\u" + (s.charCodeAt(0) + 0x10000).toString(16).slice(1))
+    output += str.replace(<RegExpG & RegExpSearchable<0>> /[%\s&]/g, encodeUnicode_)
   }
   output += expression_.slice(lastRight, end)
   return [output, end]

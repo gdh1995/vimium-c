@@ -225,18 +225,18 @@ set_contentCommands_([
     const selected = options.selected,
     str = options.s && !selected ? "" : getSelectionText(1) || (options.text || "") + "",
     urlOpt = options.url, getUrl = urlOpt === "raw" ? locHref : vApi.u,
-    url = str.trim(), rawCopied = options.copied, copied = rawCopied || rawCopied == null
-    options.copy && (url || !options.o) && post_({
+    trimmed = str.trim(), rawCopied = options.copied, copied = rawCopied || rawCopied == null
+    options.copy && (trimmed || !options.o) && post_({
       H: kFgReq.copy,
       s: str as never as undefined,
       u: (str ? "" : urlOpt ? getUrl() : doc.title) as "url",
       n: options
     })
-    options.o && (url && evalIfOK(url) ? runFallbackKey(options, 0) : post_({
-      H: kFgReq.openUrl, c: copied, u: url, n: options
+    options.o && (trimmed && evalIfOK(trimmed) ? runFallbackKey(options, 0) : post_({
+      H: kFgReq.openUrl, c: copied, u: trimmed, n: options
     }))
     options.s && !options.o && post_({
-      H: kFgReq.searchAs, u: getUrl(), c: copied, t: selected ? url : "", n: options
+      H: kFgReq.searchAs, u: getUrl(), c: copied, t: selected ? trimmed : "", n: options
     })
   },
   /* kFgCmd.focusInput: */ (options: CmdOptions[kFgCmd.focusInput], count: number): void => {

@@ -482,9 +482,8 @@ export const parseKeyNode = (cursor: KeyNode): OneKeyInstance => {
 export const parseEmbeddedOptions = (/** has no prefixed "#" */ str: string): CommandsNS.RawOptions | null => {
   const arrHash = (<RegExpOne> /(^|&)#/).exec(str)
   const rawPart = arrHash ? str.slice(arrHash.index + arrHash[0].length) : ""
-  const encodeUnicode = (s: string): string => "\\u" + (s.charCodeAt(0) + 0x10000).toString(16).slice(1)
-  const encodeValue = (s: string): string =>
-      (<RegExpOne> /\s/).test(s) ? JSON.stringify(s).replace(<RegExpG & RegExpSearchable<0>> /\s/g, encodeUnicode) : s
+  const encodeValue = (s: string): string => (<RegExpOne> /\s/).test(s)
+      ? JSON.stringify(s).replace(<RegExpG & RegExpSearchable<0>> /\s/g, BgUtils_.encodeUnicode_) : s
   str = (arrHash ? str.slice(0, arrHash.index) : str).split("&").map((pair): string => {
     const key = pair.split("=", 1)[0], val = pair.slice(key.length)
     return key ? key + (val ? "=" + encodeValue(BgUtils_.DecodeURLPart_(val.slice(1))) : "") : ""

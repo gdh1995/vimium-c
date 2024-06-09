@@ -73,6 +73,7 @@ export const copyWindowInfo = (resolve: OnCmdResolved): void | kBgCmd.copyWindow
           lastFocusedWindow: true }, (tabs): void => {
     if ((!type || type !== "browser" && type !== "window" && type !== "tab" && typeof type === "string")
         && !rawFormat) {
+      if (!tabs.length) { resolve(0); return }
       const isRawUrl = !!type && (<RegExpI> /^raw.?url$/i).test(type)
       const s = type === "title" ? tabs[0].title
           : !type || type === "frame" || type === "url" || isRawUrl ? getTabUrl(tabs[0])
