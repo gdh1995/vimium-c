@@ -476,11 +476,13 @@ export const HistoryManager_ = {
       const j = bs(url)
       if (j >= 0) {
         const item = arr[j], title = info.title
-        if (!title || title === item.title_) {
-          continue
+        if (title && title !== item.title_) {
+          HistoryManager_._DidOnVisit(info, url, j)
+          info.title = item.title_
         }
+      } else {
+        HistoryManager_._DidOnVisit(info, url, j)
       }
-      HistoryManager_._DidOnVisit(info, url, j)
     }
   },
   binarySearch_ (u: string): number {
@@ -502,7 +504,7 @@ export const HistoryManager_ = {
 
 export const normalizeUrlAndTitles_ = (tabs: readonly Tab[]): void => {
   const arr = historyCache_.history_, checkIgnoredTitles = !!arr && arr.length > 0 && titleIgnoreListRe_ !== null
-  let title: string | undefined
+  let title: string | undefined, urlToTitleMap: Map<string, string> | undefined
   for (const tab of tabs) {
     let url = tab.url
     if (url.length > GlobalConsts.MaxHistoryURLLength) {
@@ -510,8 +512,13 @@ export const normalizeUrlAndTitles_ = (tabs: readonly Tab[]): void => {
     }
     if (checkIgnoredTitles && (title = tab.title)
         && titleIgnoreListRe_!.test(title.slice(0, GlobalConsts.MaxLengthToCheckIgnoredTitles))) {
-      const j = HistoryManager_.binarySearch_(url)
-      j >= 0 && (tab.title = arr[j].title_)
+      let cached = urlToTitleMap?.get(url)
+      if (cached === void 0) {
+        const j = HistoryManager_.binarySearch_(url)
+        cached = j >= 0 ? arr[j].title_ : ""
+        ; (urlToTitleMap || (urlToTitleMap = new Map())).set(url, cached)
+      }
+      cached && (tab.title = cached)
     }
   }
 }

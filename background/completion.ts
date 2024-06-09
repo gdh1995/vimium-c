@@ -266,7 +266,6 @@ historyEngine = {
     Completers.next_(sugs, SugType.kHistory)
   },
   loadTabs_ (this: void, query: CompletersNS.QueryStatus, tabs: readonly WritableTabEx[]): void {
-    MatchCacheManager_.cacheTabs_(tabs)
     if (query.o) { return; }
     const urlSet = new Set!<string>()
     for (const tab of tabs) {
@@ -483,7 +482,6 @@ tabEngine = {
     }
   },
   performSearch_ (this: void, query: CompletersNS.QueryStatus, tabs0: readonly WritableTabEx[]): void {
-    MatchCacheManager_.cacheTabs_(tabs0)
     if (query.o) { return; }
     const curTabId = curTabId_, noFilter = queryTerms.length <= 0,
     hasOtherSuggestions = allExpectedTypes & (SugType.MultipleCandidates ^ SugType.tab),

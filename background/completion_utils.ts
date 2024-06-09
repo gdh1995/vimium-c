@@ -457,9 +457,10 @@ export const requireNormalOrIncognitoTabs_ = (wantInCurrentWindow: boolean, flag
     if (tabType_ !== newType) {
       cachedTabs_ = null, tabType_ = newType
     }
-    __tabs = __tabs || cachedTabs_
-    if (__tabs) {
-      func(query, __tabs);
+    const tabs = __tabs || cachedTabs_
+    MatchCacheManager_.cacheTabs_(tabs)
+    if (tabs) {
+      func(query, tabs)
     } else {
       const cb = func.bind(null, query)
       !wantInCurrentWindow ? Tabs_.query({}, cb)
