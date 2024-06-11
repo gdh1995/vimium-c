@@ -467,7 +467,7 @@ export const HistoryManager_ = {
   }),
   OnRefreshedInfo_ (history: HistoryNS.HistoryItem[]): void {
     const arr = historyCache_.history_!, bs = HistoryManager_.binarySearch_
-    if (arr.length <= 0) { return }
+    if (arr.length <= 0 || !HistoryManager_.sorted_) { return }
     for (const info of history) {
       let url = info.url
       if (url.length > GlobalConsts.MaxHistoryURLLength) {
@@ -503,7 +503,8 @@ export const HistoryManager_ = {
 }
 
 export const normalizeUrlAndTitles_ = (tabs: readonly Tab[]): void => {
-  const arr = historyCache_.history_, checkIgnoredTitles = !!arr && arr.length > 0 && titleIgnoreListRe_ !== null
+  const arr = historyCache_.history_
+  const checkIgnoredTitles = !!arr && arr.length > 0 && HistoryManager_.sorted_ && titleIgnoreListRe_ !== null
   let title: string | undefined, urlToTitleMap: Map<string, string> | undefined
   for (const tab of tabs) {
     let url = tab.url

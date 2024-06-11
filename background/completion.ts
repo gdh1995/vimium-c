@@ -205,16 +205,14 @@ historyEngine = {
   },
   performSearch_ (): void {
     const firstTerm = queryTerms.length === 1 ? queryTerms[0] : "",
-    onlyUseTime = !!firstTerm && (firstTerm[0] === "." ? (<RegExpOne> /^\.[\da-zA-Z]+$/).test(firstTerm)
+    onlyUseTime = firstTerm ? (firstTerm[0] === "." ? (<RegExpOne> /^\.[\da-zA-Z]+$/).test(firstTerm) ? 2 : 0
       : (convertToUrl_(firstTerm, null, Urls.WorkType.KeepAll),
-        lastUrlType_ <= Urls.Type.MaxOfInputIsPlainUrl)
-    ),
-    firstTermRe = !onlyUseTime ? null
-        : firstTerm[0] === "." || lastUrlType_ > Urls.Type.Full ? RegExpCache_.parts_[0]
-        : (RegExpCache_.starts_ || RegExpCache_.buildOthers_(), RegExpCache_.starts_[0]),
+         lastUrlType_ <= Urls.Type.MaxOfInputIsPlainUrl ? lastUrlType_ > Urls.Type.Full ? 2 : 1 : 0)
+    ) : 0,
+    firstTermRe = onlyUseTime > 1 ? RegExpCache_.parts_[0] : null,
     newCache = MatchCacheManager_.newMatch_ ? [] as HistoryItem[] : null,
     results = [-1.1, -1.1], sugs: Suggestion[] = [], Match2 = match2_,
-    isEncodedURL = onlyUseTime && firstTerm.includes("%") && !(<RegExpOne> /[^\x21-\x7e]|%[^A-F\da-f]/).test(firstTerm)
+    isEncodedURL = onlyUseTime > 0 && firstTerm.includes("%")&&!(<RegExpOne>/[^\x21-\x7e]|%[^A-F\da-f]/).test(firstTerm)
     let maxNum = maxResults + offset, curMinScore = -1.1, i = 0, j = 0, matched = 0
     historyUrlToSkip && maxNum++;
     for (j = maxNum; --j; ) { results.push(-1.1, -1.1); }
@@ -222,7 +220,9 @@ historyEngine = {
     const history: readonly Readonly<HistoryItem>[] = MatchCacheManager_.current_?.history_ || historyCache_.history_!
     for (const len = history.length; i < len; i++) {
       const item = history[i];
-      if (onlyUseTime ? firstTermRe!.test(isEncodedURL ? item.u : item.t) : Match2(item.t, item.title_)) {
+      if (onlyUseTime === 0 ? Match2(item.t, item.title_)
+          : onlyUseTime === 1 ? (isEncodedURL ? item.u : item.t).startsWith(firstTerm)
+          : firstTermRe!.test(isEncodedURL ? item.u : item.t)) {
         if (showThoseInBlocklist || item.visible_) {
           newCache !== null && newCache.push(item)
           matched++;
@@ -292,7 +292,7 @@ historyEngine = {
         ? ((_, cb) => (cb([], -1), 1)) satisfies typeof browser_.history.search
         : browser_.history.search)({
       text: "",
-      maxResults: offset + maxResults * (showThoseInBlocklist ? 1 : 2) + neededMore
+      maxResults: (offset + maxResults) * (showThoseInBlocklist ? 1 : 2) + neededMore
     }, (rawArr2): void => {
       for (const i of rawArr2) {
         i.url.length>GlobalConsts.MaxHistoryURLLength && (i.url = HistoryManager_.trimURLAndTitleWhenTooLong_(i.url, i))
