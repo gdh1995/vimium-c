@@ -374,7 +374,7 @@ const onKeyUp = (event: KeyboardEventToPrevent): void => {
     if (el instanceof HTMLSpanElement && el.parentElement instanceof HTMLLabelElement) {
       prevent_(event)
       const ctrl = el.parentElement.control as HTMLInputElement
-      ctrl.disabled || ctrl.readOnly || simulateClick_(ctrl)
+      ctrl.disabled || simulateClick_(ctrl)
     }
     return
   } else if (el instanceof HTMLAnchorElement) {

@@ -203,9 +203,21 @@ key: https://c.com/$s/space=\s\ space_end
         <tr id="optionalPermissionsBox">
           <td class="caption" data-i="103_2">Optional permissions</td>
           <td id="optionalPermissions" data-model="">
+            <label class="optional-permission" tabindex="-1" aria-hidden="true">
+              <input type="checkbox" tabindex="-1" aria-hidden="true" readonly id="in-incognito" />
+              <span class="checkboxHint" role="checkbox" tabindex="0" aria-hidden="false">
+                <span data-i="103_7">Allow in Incognito</span><span data-i="rec_perm"></span>
+              </span>
+            </label>
+            <label class="optional-permission" tabindex="-1" aria-hidden="true">
+              <input type="checkbox" tabindex="-1" aria-hidden="true" readonly id="on-file-urls" />
+              <span class="checkboxHint" role="checkbox" tabindex="0" aria-hidden="false">
+                <span data-i="103_8">Allow access to file URLs</span><span data-i="rec_perm"></span>
+              </span>
+            </label>
             <template id="optionalPermissionsTemplate">
               <label class="optional-permission" tabindex="-1" aria-hidden="true">
-                <input type="checkbox" tabindex="-1" aria-hidden="true"/>
+                <input type="checkbox" tabindex="-1" aria-hidden="true" />
                 <span class="checkboxHint" role="checkbox" tabindex="0" aria-hidden="false"></span>
               </label>
             </template>

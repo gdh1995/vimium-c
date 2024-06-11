@@ -245,10 +245,16 @@ const doPermissionsContain_ = (item: PermissionItem): Promise<void> => {
   })
 }
 
-const onInput = (e: Event): void => {
+const onInput = (e: EventToPrevent): void => {
   const el = e.target as HTMLInputElement
   const item = shownItems.find(i => i.element_ === el)
-  if (!item) { return }
+  if (!item) {
+    if ((el as HTMLElement).localName === "label" || el.parentElement!.localName === "label") {
+      prevent_(e)
+      e.stopImmediatePropagation()
+    }
+    return
+  }
   const value = el.checked
   if (OnChrome && Build.OnBrowserNativePages && (item.name_ === kCrURL || item.name_ === kNTP)) {
     const isCurNTP = item.name_ === kNTP, theOtherName = isCurNTP ? kCrURL : kNTP
@@ -290,7 +296,7 @@ if (!OnEdge) {
       i => !ignored.some(j => typeof j === "string" ? i === j : j.test(i)))
 }
 if (OnEdge || !optional_permissions.length && !(Build.MV3 && OnChrome && navNames.length)) {
-  nextTick_((): void => { $("#optionalPermissionsBox").style.display = "none" }, 9)
+  nextTick_((): void => { $("#optionalPermissionsHelp").style.display = "none" }, 9)
 } else {
   if (Build.MV3 && OnChrome) {
     for (const name of navNames) {
@@ -309,3 +315,16 @@ if (OnEdge || !optional_permissions.length && !(Build.MV3 && OnChrome && navName
     })
   })
 }
+
+nextTick_(([inIncognito, onFileUrls]): void => {
+  browser_.extension.isAllowedIncognitoAccess(allowed => { inIncognito.checked = allowed })
+  browser_.extension.isAllowedFileSchemeAccess(allowed => { onFileUrls.checked = allowed })
+  onFileUrls.onclick = inIncognito.onclick = (event: EventToPrevent): void => {
+    prevent_(event)
+    if (OnChrome) {
+      void post_(kPgReq.focusOrLaunch, { u: "chrome://extensions/?id=" + browser_.runtime.id, p: false })
+    } else if (OnFirefox) {
+      alert(oTrans_("haveToOpenManually") + "\n  about:addons")
+    }
+  }
+}, [$<HTMLInputElement>("#in-incognito"), $<HTMLInputElement>("#on-file-urls")])
