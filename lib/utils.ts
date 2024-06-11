@@ -1,5 +1,3 @@
-import { findSelectorByHost } from "./dom_utils"
-
 export type XrayedObject<T extends object> = T & { wrappedJSObject: T }
 
 const OnOther_: BrowserType = Build.BTypes && !(Build.BTypes & (Build.BTypes - 1))
@@ -216,10 +214,18 @@ export const recordLog = (tip: kTip | string): (() => void) =>
     console.log.bind(console, tip > 0 ? VTr(<kTip> tip) : tip
         , loc_.pathname.replace(<RegExpOne> /^.*(\/[^\/]+\/?)$/, "$1"), getTime())
 
+type MayBeSelector = "" | false | 0 | null | void | undefined
+export let findOptByHost: {
+  <NotCssSelector extends BOOL = 0>(rules: string | string[] | kTip | MayBeSelector | void
+    , noCheck?: NotCssSelector): NotCssSelector extends 1 ? string | undefined : "css-selector" | void
+}
+export function set_findOptByHost (newFindOptByHost: typeof findOptByHost): void { findOptByHost = newFindOptByHost }
+
 export const parseSedOptions = (opts: UserSedOptions): ParsedSedOpts => {
   const sed = opts.sed
   return isTY(sed, kTY.obj) && sed ? !(sed as string[]).length ? sed as Exclude<typeof sed, string[]>
-      : { r: "", k: findSelectorByHost<1>(sed as string[], 1) } : { r: sed, k: opts.sedKeys || opts.sedKey }
+        : { r: "", k: findOptByHost(sed as string[], 1) satisfies string | void as string | undefined }
+      : { r: sed, k: opts.sedKeys || opts.sedKey }
 }
 
 type EnsureExisting<T> = { [P in keyof T]-?: T[P] }

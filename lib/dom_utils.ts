@@ -1,6 +1,6 @@
 import {
   chromeVer_, doc, createRegExp, isTY, Lower, OBJECT_TYPES, OnFirefox, OnChrome, OnEdge, evenHidden_, safeCall, deref_,
-  loc_, VTr, tryCreateRegExp, isTop, queueTask_, safer
+  loc_, VTr, tryCreateRegExp, isTop, queueTask_, safer, set_findOptByHost, findOptByHost
 } from "./utils"
 import { dimSize_, Point2D, selRange_ } from "./rect"
 
@@ -586,7 +586,7 @@ export const joinValidSelectors = (selector: string | false | void
         || safeCall(querySelector_unsafe_, selector, _domInst || (_domInst = createElement_("a"))) !== void 0)
     ? (validAnother ? selector + "," + validAnother : selector) as "css-selector" : validAnother || null
 
-export const findSelectorByHost = ((rules: string | string[] | kTip | MayBeSelector | void
+set_findOptByHost(((rules: string | string[] | kTip | MayBeSelector | void
     , noCheck?: 1): "css-selector" | void => {
   const isKTip = isTY(rules, kTY.num)
   let host: string | undefined, path: string | undefined
@@ -601,8 +601,8 @@ export const findSelectorByHost = ((rules: string | string[] | kTip | MayBeSelec
       return sel as "css-selector"
     }
   }
-}) as <T extends BOOL = 0>(rules: string | string[] | kTip | MayBeSelector | void
-    , noCheck?: T) => T extends 1 ? string | undefined : "css-selector" | void
+}) as typeof findOptByHost)
+export { findOptByHost as findSelectorByHost } from "./utils"
 
 export const elFromPoint_ = (center?: Point2D | null, baseEl?: SafeElement | ShadowRoot | null): Element | null => {
   const root = center && (baseEl ? isNode_(baseEl, kNode.DOCUMENT_FRAGMENT_NODE) ? baseEl
@@ -615,7 +615,7 @@ export const findTargetAction_ = (el: SafeElementForMouse, map: string | object 
     , down?: 0 | 1 | 2): string | false | void => {
   for (let key in safer(isTY(map, kTY.obj) ? map : map = down === 2 ? { [map as string]: !0 } : { "": map })) {
     const value = (map as Dict<string | number | boolean>)[key]
-    if (!key || (key = findSelectorByHost(key)!) && safeCall(testMatch, key, [el])) {
+    if (!key || (key = findOptByHost(key)!) && safeCall(testMatch, key, [el])) {
       return value !== !1 && value + ""
     }
   }
