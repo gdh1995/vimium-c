@@ -209,7 +209,6 @@ export const activate = (options: ContentOptions, count: number, force?: 2 | Tim
     }
     let allHints: readonly HintItem[], child: ChildFrame | undefined, insertPos = 0
       , frameInfo: FrameHintsInfo, total: number
-    {
       const childFrames: ChildFrame[] = [],
       addChild: AddChildDirectly = (officer, el, rect): boolean => {
         const childApi = detectUsableChild(el),
@@ -223,6 +222,7 @@ export const activate = (options: ContentOptions, count: number, force?: 2 | Tim
         }
         return !childOfficer
       };
+    {
       coreHints.o(options, count, chars, useFilter, null, null, topFrameInfo, addChild)
       allHints = topFrameInfo.h
       while (child = childFrames.pop()) {

@@ -157,6 +157,11 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         a.baseHttps_ = (url.charCodeAt(4) | kCharCode.CASE_DELTA) === kCharCode.s;
         url = url.slice(a.baseHttps_ ? 0 : 7, url.indexOf("/", 8) === url.length - 1 ? -1 : void 0)
       }
+      const sep = (<RegExpOne> /[?#]/).exec(url), sep_index = sep ? sep.index + 1 : 0
+      if (sep_index && (<RegExpI> /%2f|%3a/i).test(url.slice(sep_index))) {
+        const arg = VUtils_.decodeURL_(url.slice(sep_index), decodeURIComponent)
+        url = sep![0] === "#" || !arg.includes("#") ? url.slice(0, sep_index) + arg : url
+      }
     } else {
       const endsWithSpace = url.trimRight().length !== url.length
       url = VUtils_.decodeURL_(url, decodeURIComponent)
