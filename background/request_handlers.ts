@@ -374,7 +374,7 @@ set_reqH_([
       } satisfies KnownOptions<kBgCmd.copyWindowInfo> & { url: null }))
       set_cPort(port)
       set_cRepeat(1)
-      executeCommand(makeCommand_("copyWindowInfo", opts), 1, cKey, port, 1
+      executeCommand(makeCommand_("copyCurrentUrl", opts), 1, cKey, port, 1
           , oriOptions.$f && {c: oriOptions.$f, r: oriOptions.$retry, u: 0, w: 0 })
       return
     }
