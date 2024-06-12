@@ -8,8 +8,7 @@ import {
   Tabs_, Windows_, makeTempWindow_r, makeWindow, PopWindow, tabsCreate, Window, getTabUrl, selectFrom, tabsGet, R_, Qs_,
   runtimeError_, IncNormalWnd, selectWnd, selectTab, getCurWnd, getCurTabs, getCurTab, getGroupId, tabsUpdate,
   browserSessions_, InfoToCreateMultiTab, openMultiTabs, isTabMuted, isRefusingIncognito_, Q_, isNotHidden_,
-  selectIndexFrom,
-  removeTabsOrFailSoon_
+  selectIndexFrom, removeTabsOrFailSoon_, browser_
 } from "./browser"
 import { convertToUrl_ } from "./normalize_urls"
 import { parseSearchUrl_ } from "./parse_urls"
@@ -175,13 +174,41 @@ export const joinTabs = (resolve: OnCmdResolved): void | kBgCmd.joinTabs => {
         start = curWnd.tabs.length
       }
       // Note: on Edge 84, the result of `tabs.move(number[], {index: number})` is (stable but) unpredictable
-      for (const tab of allTabs) {
-        Tabs_.move(tab.id, tab.windowId !== curWndId ? { windowId: curWndId, index: start++ } : { index: start++ })
+      const fixGroup = !(OnFirefox || OnEdge) && allTabs.some(i => getGroupId(i) != null)
+      const useTabGroups = !(OnFirefox || OnEdge) && (Build.MV3 || !!browser_.tabGroups)
+      let todoLock = BgUtils_.deferPromise_<1>(), todo = allTabs.length, group: chrome.tabs.GroupId | null
+      const onOneTaskFinished = (): void => { todo--; todo === 0 && todoLock!.resolve_(1); return runtimeError_() }
+      let i = fixGroup ? 0 : todo, j = 1
+      for (; i < allTabs.length; i = j, j = i + 1) {
+        group = getGroupId(allTabs[i])
+        if (group !== null) {
+          for (; j < allTabs.length && getGroupId(allTabs[j]) === group; j++) {}
+          if (j > i + 1) {
+            const firstId = allTabs[i].id, tabIds = allTabs.slice(i + 1, j).map(x => x.id)
+            Tabs_.ungroup(tabIds, onOneTaskFinished)
+            todo++
+            todoLock!.promise_.then(() => {
+              Tabs_.get(firstId, (firstTab?: Readonly<Tab>): void => {
+                if (!firstTab) { return runtimeError_() }
+                const groupId = getGroupId(firstTab) satisfies string | number | null as number | null
+                Tabs_.group(groupId !== null ? { groupId, tabIds } : (tabIds.unshift(firstTab.id), { tabIds }))
+              })
+            })
+          }
+          if (useTabGroups && allTabs[i].windowId !== curWndId) {
+            browser_.tabGroups.move(group as number, {index: -1, windowId: curWndId}, onOneTaskFinished)
+            todo++
+          }
+        }
+      }
+      for (i = 0; i < allTabs.length; i++) {
+        Tabs_.move(allTabs[i].id, allTabs[i].windowId !== curWndId
+            ? { windowId: curWndId, index: start + i } : { index: start + i }, onOneTaskFinished)
       }
       for (const tab of allTabs) {
-        tab.pinned && tab.windowId !== curWndId && tabsUpdate(tab.id, { pinned: true })
+        tab.pinned && tab.windowId !== curWndId && (tabsUpdate(tab.id, { pinned: true }, onOneTaskFinished), todo++)
       }
-      resolve(1)
+      todoLock.promise_.then(resolve)
     }
     {
     const _curWnd = _cur0.length ? _cur0[0] : null

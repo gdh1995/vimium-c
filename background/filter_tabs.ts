@@ -328,7 +328,7 @@ export const sortTabsByCond_ = (allTabs: Readonly<Tab>[]
   const list: TabInfo[] = allTabs.map((i, ind): TabInfo => ({
     tab: i, ind, time: null, rhost: null, group: getGroupId(i), pinned: i.pinned
   }))
-  let scale: number, work = -1, changed = false, monoBase = 0
+  let scale: -1 | 1, work = -1, changed = false, monoBase = 0
   for (let key of (sortOpt instanceof Array ? sortOpt.slice(0)
           : (sortOpt === true ? "time" : sortOpt + "").split(<RegExpG> /[, ]+/g)).reverse() as ValidKeys[]) {
     scale = key[0] === "r" && key[1] !== "e" || key[0] === "-" ? (key = key.slice(1) as typeof key, -1) : 1
@@ -360,13 +360,24 @@ export const sortTabsByCond_ = (allTabs: Readonly<Tab>[]
         : work === 4 ? compareStr(a.tab.title, b.tab.title)
         : work === 5 ? a.tab.id - b.tab.id
         : work === 6 ? a.tab.windowId - b.tab.windowId
-        : a.ind - b.ind) * scale || a.ind - b.ind)
+        : a.ind - b.ind) * scale
+        || (a.group != null ? b.group != null ? 0 : -1 : b.group != null ? 1 : 0)
+        || a.ind - b.ind)
     list.forEach(refreshInd)
     changed = true
   }
   if (changed && list.some(i => i.group != null)) {
-    list.sort((a, b) => a.group == null ? b.group == null ? a.ind - b.ind : 1 : b.group == null ? -1
-        : a.group < b.group ? -1 : a.group > b.group ? 1 : a.ind - b.ind)
+    const group_min_index = new Map<chrome.tabs.GroupId, number>()
+    for (const { group, ind } of list) {
+      if (group != null && !group_min_index.has(group)) {
+        group_min_index.set(group, ind)
+      }
+    }
+    list.sort((a, b) => {
+      const ind_a = a.group != null ? group_min_index.get(a.group)! : a.ind
+      const ind_b = b.group != null ? group_min_index.get(b.group)! : b.ind
+      return ind_a - ind_b || a.ind - b.ind
+    })
   }
   if (changed) {
     list.forEach(refreshInd)

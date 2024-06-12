@@ -155,6 +155,7 @@ declare namespace chrome.tabs {
   }
   export function group (options: { tabIds: number | number[], groupId?: number, createProperties?: {
       windowId?: number } }): Promise<number>
+  export function ungroup (tabIds: number | number[], callback?: () => void): void
 }
 
 declare namespace chrome.tabGroups {
@@ -169,6 +170,7 @@ declare namespace chrome.tabGroups {
       ): Promise<TabGroup | undefined>
   export function query (queryInfo: PartialOf<TabGroup, "collapsed" | "color" | "title" | "windowId">
       ): Promise<TabGroup | undefined>
+  export function move (groupId: number, prop: {index: number, windowId?: number}, callback: (_: unknown) => void): void
 }
 
 declare namespace chrome.scripting {
