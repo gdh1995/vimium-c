@@ -227,7 +227,7 @@ export const onKeydown = (event: KeyboardEventToPrevent): void => {
       || (!OnChrome || Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted ? !event.isTrusted
           : event.isTrusted === false) // skip checks of `instanceof KeyboardEvent` if checking `!.keyCode`
           && (event as UserTrustedKeyboardEvent).z !== fgCache
-      || !key) { return; }
+      || !key) { return; } // not only Chrome Password Saver but also AutoFill (WebFormControlElement::SetAutofillValue)
   const eventWrapper: HandlerNS.Event = {c: kChar.INVALID, e: event, i: key, v: ""}
   if (scroll_keyIsDown && onScrolls(eventWrapper)) {
     OnChrome && checkAccessKey_cr(eventWrapper)

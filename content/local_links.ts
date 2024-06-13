@@ -92,9 +92,9 @@ const getClickable = (hints: Hint[], element: SafeHTMLElement): void => {
               || extraClickable_ && extraClickable_.has(element) || !!generateHintText([element as HTMLInputElement]).t)
     } else if (s !== "hidden") {
       const st = getComputedStyle_(element)
-      isClickable = <number> <string | number> st.opacity > 0 || <number> <string | number> st.zIndex > 0
-      if (isClickable || !(element as HTMLInputElement).labels.length) {
-        arr = getVisibleBoundingRect_(element as HTMLInputElement, <BOOL> +isClickable, st)
+      isClickable = <number> <string | number> st.opacity > 0
+      if (isClickable || <number> <string | number> st.zIndex > 0 || !(element as HTMLInputElement).labels.length) {
+        arr = getVisibleBoundingRect_(element, +(!isClickable satisfies boolean) as BOOL, st)
         isClickable = !!arr
       }
     }
@@ -216,7 +216,7 @@ export const getPreferredRectOfAnchor = (anchor: HTMLAnchorElement): Rect | null
         // use `^...$` to exclude custom tags
       ? (<RegExpOne> /^h\d$/).test(tag!) && isNotReplacedBy(el as HTMLHeadingElement & SafeHTMLElement)
         ? getVisibleClientRect_(el as HTMLHeadingElement & SafeHTMLElement) : null
-      : tag === "img" && !dimSize_(anchor, kDim.elClientH) ? getCroppedRect_(el, getVisibleBoundingRect_(el))
+      : tag === "img" && !dimSize_(anchor, kDim.elClientH) ? getVisibleBoundingRect_(el, 1)
       : null);
 }
 
