@@ -910,8 +910,7 @@ export const executeFind = (query: string | null, options: Readonly<ExecuteOptio
       newAnchor = newAnchor && getNodeChild_(newAnchor, curSel!)
       const specialFixForTransparent = !noColor && styleSelColorOut
           && newAnchor && isNode_(newAnchor, kNode.ELEMENT_NODE)
-          && getEditableType_<0>(newAnchor) > EditableType.MaxNotTextBox
-          && getComputedStyle_((newAnchor as TextElement)).color!.includes("(0, 0, 0")
+          && getComputedStyle_(newAnchor).color!.includes("(0, 0, 0")
       isSafeEl_(par) && view_(par, 1)
       specialFixForTransparent && (styleSelColorOut!.disabled = !0)
       if (posChange && /** go back */ !!(posChange & kNode.DOCUMENT_POSITION_PRECEDING) !== back) {
