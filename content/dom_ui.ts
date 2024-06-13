@@ -7,13 +7,13 @@ import { prevent_ } from "../lib/keyboard_utils"
 import {
   createElement_, attachShadow_, NONE, fullscreenEl_unsafe_, docEl_unsafe_, getComputedStyle_, set_docSelectable_, kDir,
   GetParent_unsafe_, getSelection_, TryGetShadowRoot_, getEditableType_, textOffset_, derefInDoc_, supportInert_,
-  isSafeEl_, CLK, frameElement_, runJS_, isStyleVisible_, rangeCount_, getAccessibleSelectedNode, removeEl_s,
+  CLK, frameElement_, runJS_, isStyleVisible_, rangeCount_, getAccessibleSelectedNode, removeEl_s,
   appendNode_s, append_not_ff, setClassName_s, isNode_, contains_s, setOrRemoveAttr_s, textContent_s, inputSelRange,
   parentNode_unsafe_s, setDisplaying_s, getRootNode_mounted, singleSelectionElement_unsafe, isHTML_, HTMLElementProto,
   getDirectionOfNormalSelection, showPicker_, htmlTag_,
 } from "../lib/dom_utils"
 import {
-  bZoom_, dScale_, getZoom_, wdZoom_, boundingRect_, prepareCrop_, getClientRectsForAreas_,
+  bZoom_, dScale_, getZoom_, wdZoom_, boundingRect_, prepareCrop_, getClientRectsForAreas_, getVisibleBoundingRect_,
   getVisibleClientRect_, getBoundingClientRect_, padClientRect_, isContaining_, cropRectS_, getCroppedRect_,
   setBoundary_, wndSize_, dimSize_, selRange_, isSelARange, ViewOffset
 } from "../lib/rect"
@@ -24,6 +24,7 @@ import { post_, runFallbackKey } from "./port"
 import { insert_Lock_, raw_insert_lock } from "./insert"
 import { isWaitingAccessKey, resetAnyClickHandler_cr } from "./key_handler"
 import { hide as omniHide, omni_box, omni_dialog_non_ff, omni_status, postToOmni, Status as OmniStatus } from "./omni"
+import { getPreferredRectOfAnchor } from "./local_links"
 
 export declare const enum kExitOnClick { // eslint-disable-next-line @typescript-eslint/no-shadow
   NONE = 0, REMOVE = 8, helpDialog = 1, vomnibar = 2,
@@ -445,12 +446,15 @@ export const collpaseSelection = (sel: Selection, toEnd?: VisualModeNS.ForwardDi
 }
 
 export const getRect = (clickEl: SafeElement, refer?: HTMLElementUsingMap | null): Rect | null => {
-    getZoom_(clickEl);
-    prepareCrop_();
+    const tag = htmlTag_(clickEl)
     if (refer) {
       return getClientRectsForAreas_(refer, [], [clickEl as HTMLAreaElement]);
+    } else if (tag === "a") {
+      return getPreferredRectOfAnchor(clickEl as HTMLAnchorElement)
+    } else if (tag === "input") {
+      return getVisibleBoundingRect_(clickEl, 1)
     }
-    const rect = isSafeEl_(clickEl) ? getVisibleClientRect_(clickEl) : null,
+    const rect = getVisibleClientRect_(clickEl),
     bcr = padClientRect_(getBoundingClientRect_(clickEl), 8),
     rect2 = rect && !isContaining_(bcr, rect) ? rect : cropRectS_(bcr) ? bcr : null
     return rect2 && getCroppedRect_(clickEl, rect2);
@@ -458,7 +462,7 @@ export const getRect = (clickEl: SafeElement, refer?: HTMLElementUsingMap | null
 
 export const flash_ = function (el: SafeElement | null, rect?: Rect | null, lifeTime?: number
       , classNames?: string, knownViewOffset?: ViewOffset): (() => void) | void {
-    rect || (rect = getRect(el!))
+    rect || (getZoom_(el!), prepareCrop_(), rect = getRect(el!))
     if (!rect) { return; }
     const flashEl = createElement_(OnChrome
         && Build.MinCVer < BrowserVer.MinForcedColorsMode ? getBoxTagName_old_cr() : "div"),

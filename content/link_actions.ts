@@ -3,7 +3,9 @@ import {
   createRegExp, isTY, max_, min_, OnFirefox, OnChrome, safeCall, locHref, parseOpenPageUrlOptions, VTr, loc_, OnSafari,
   clearTimeout_, promiseDefer_, OnEdge, urlSameIgnoringHash, firefoxVer_, runtime_ff, keydownEvents_
 } from "../lib/utils"
-import { getVisibleClientRect_, center_, view_, selRange_, bZoom_, set_bZoom_ } from "../lib/rect"
+import {
+  getVisibleClientRect_, center_, view_, selRange_, bZoom_, set_bZoom_, getZoom_, prepareCrop_
+} from "../lib/rect"
 import {
   IsInDOM_, createElement_, htmlTag_, getComputedStyle_, getEditableType_, isIFrameElement, GetParent_unsafe_, focus_,
   kMediaTag, ElementProto_not_ff, querySelector_unsafe_, uneditableInputs_, GetShadowRoot_, scrollingEl_, elFromPoint_,
@@ -12,7 +14,7 @@ import {
   extractField, querySelectorAll_unsafe_, editableTypes_, findAnchor_, dispatchEvent_, newEvent_, rangeCount_,
   findSelectorByHost, deepActiveEl_unsafe_, getRootNode_mounted, isNode_, findTargetAction_, TryGetShadowRoot_
 } from "../lib/dom_utils"
-import { getPreferredRectOfAnchor, initTestRegExps } from "./local_links"
+import { initTestRegExps } from "./local_links"
 import {
   hintOptions, mode1_, hintMode_, hintApi, hintManager, coreHints, setMode, detectUsableChild, hintCount_,
   ExecutableHintItem, forHover_
@@ -67,8 +69,7 @@ const findNextTargetEl = (pattern: HintsNS.Options["autoParent" | "autoChild"] |
     if (pattern + "" !== "true" && pattern !== ":root" && !anyAtPos && !onlyShadow) {
       click2nd = querySelector_unsafe_(pattern as Exclude<typeof pattern, true | "true">, clickEl)
     } else {
-      rect = htmlTag_(clickEl) === "a" // for www.google.com/search?q=***
-          && getPreferredRectOfAnchor(clickEl as SafeElement as HTMLAnchorElement) || getVisibleClientRect_(clickEl)
+      rect = getRect(clickEl)
       const center = center_(rect, hintOptions.xy as HintsNS.StdXY | undefined)
       click2nd = rect && (onlyShadow ? clickEl : elFromPoint_(center, clickEl))
       click2nd = anyAtPos || click2nd && contains_s(clickEl, click2nd) ? click2nd : null
@@ -588,6 +589,8 @@ const doPostAction = (): Rect | null => {
   masterOrA.v() // here .keyStatus_ is reset
   set_grabBackFocus(false)
   if (IsInDOM_(clickEl)) {
+    getZoom_(clickEl)
+    prepareCrop_()
     if (!OnFirefox && bZoom_ !== 1 && doc.body && !IsInDOM_(clickEl, doc.body)) { set_bZoom_(1) }
     clickEl = findNextTargetEl(hintOptions.autoParent) || clickEl
     clickEl = findNextTargetEl(hintOptions.autoChild, 1) || clickEl
@@ -596,8 +599,7 @@ const doPostAction = (): Rect | null => {
     initTestRegExps() // needed by getPreferredRectOfAnchor
     // must get outline first, because clickEl may hide itself when activated
     // must use UI.getRect, so that zooms are updated, and prepareCrop is called
-    rect = knownRect || tag === "a" && getPreferredRectOfAnchor(clickEl as HTMLAnchorElement)
-        || getRect(clickEl, hint.r !== hint.d ? hint.r as HTMLElementUsingMap | null : null)
+    rect = knownRect || getRect(clickEl, hint.r !== hint.d ? hint.r as HTMLElementUsingMap | null : null)
     if (hint.m && keyStatus.t && !keyStatus.k && !keyStatus.n) {
       if ((!OnChrome || Build.MinCVer < BrowserVer.MinUserActivationV2 && chromeVer_ < BrowserVer.MinUserActivationV2)
           && !fgCache.w) {
