@@ -13,7 +13,7 @@ import {
   getSelection_, isSelected_, docSelectable_, isHTML_, createElement_, CLK, MDW, removeEl_s, appendNode_s, isNode_,
   setDisplaying_s, findAnchor_, isSafeEl_, textContent_s, modifySel, parentNode_unsafe_s, selOffset_, blur_unsafe,
   getAccessibleSelectedNode,  INP, BU, PGH, contains_s, setOrRemoveAttr_s, singleSelectionElement_unsafe, getNodeChild_,
-  getDirectionOfNormalSelection
+  getDirectionOfNormalSelection, getComputedStyle_
 } from "../lib/dom_utils"
 import {
   wdZoom_, prepareCrop_, view_, dimSize_, selRange_, getZoom_, isSelARange, getViewBox_, scrollWndBy_, cropRectS_,
@@ -905,9 +905,15 @@ export const executeFind = (query: string | null, options: Readonly<ExecuteOptio
       }
     }
     if (found! && !highlight && (par = par || getSelectionParent_unsafe(curSel = getSelected()))) {
-      newAnchor = oldAnchor && getAccessibleSelectedNode(curSel!)
-      posChange = newAnchor && compareDocumentPosition(oldAnchor as Node, newAnchor)
+      newAnchor = (!noColor && styleSelColorOut || oldAnchor) && getAccessibleSelectedNode(curSel!)
+      posChange = oldAnchor && newAnchor && compareDocumentPosition(oldAnchor, newAnchor)
+      newAnchor = newAnchor && getNodeChild_(newAnchor, curSel!)
+      const specialFixForTransparent = !noColor && styleSelColorOut
+          && newAnchor && isNode_(newAnchor, kNode.ELEMENT_NODE)
+          && getEditableType_<0>(newAnchor) > EditableType.MaxNotTextBox
+          && getComputedStyle_((newAnchor as TextElement)).color!.includes("(0, 0, 0")
       isSafeEl_(par) && view_(par, 1)
+      specialFixForTransparent && (styleSelColorOut!.disabled = !0)
       if (posChange && /** go back */ !!(posChange & kNode.DOCUMENT_POSITION_PRECEDING) !== back) {
         hudTip(kTip.wrapWhenFind, 1, VTr(back ? kTip.atStart : kTip.atEnd))
       }
