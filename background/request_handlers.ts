@@ -248,17 +248,23 @@ set_reqH_([
       , msgId?: number): FgRes[kFgReq.execInChild] | Port | void => {
     const tabId = port.s.tabId_, ref = getFrames_(port), url = request.u, frameId = request.f
     if (!ref || ref.ports_.length < 2) { return false }
-    let iport: Port | null | undefined
+    const childOrigin = !OnFirefox && url.startsWith("http") ? new URL(url).origin : null
+    let iport: Port | 0 | undefined, iport2: Port | 0 | undefined
     if (OnFirefox && (Build.MinFFVer >= FirefoxBrowserVer.Min$runtime$$getFrameId
         || CurFFVer_ > FirefoxBrowserVer.Min$runtime$$getFrameId - 1)) {
       iport = ref.ports_.find(i => i.s.frameId_ === frameId)
     }
     else for (const i of ref.ports_) {
-      if (i.s.url_ === url && i !== ref.top_) {
-        if (iport) { iport = null; break }
-        iport = i
+      if (i !== ref.top_ && i !== port) {
+        if (i.s.url_ === url) {
+          if (!(iport = iport ? 0 : i)) { break }
+        }
+        if (childOrigin && iport2 !== 0 && i.s.url_.startsWith("http") && new URL(i.s.url_).origin === childOrigin) {
+          iport2 = iport2 ? 0 : i
+        }
       }
     }
+    iport = iport ?? iport2
     if (iport && iport !== port) {
       set_cKey(request.k)
       focusAndExecute(request, port, iport, 1, 1)
