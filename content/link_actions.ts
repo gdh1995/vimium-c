@@ -40,7 +40,9 @@ declare var AbortSignal: { timeout? (timeout: number): object }
 let removeFlash: (() => void) | null | undefined
 
 export { removeFlash }
-export function set_removeFlash (_newRmFlash: null): null { return removeFlash = _newRmFlash }
+export function set_removeFlash<T extends typeof removeFlash>(_newRmFlash: T): T {
+  return removeFlash = _newRmFlash as T
+}
 
 export const executeHintInOfficer = (hint: ExecutableHintItem
     , event?: HandlerNS.Event | null | 0, knownRect?: Rect | null | 0 | false): Promise<Rect | null> | null => {
