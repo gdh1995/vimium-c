@@ -651,11 +651,12 @@ delayBinding_("#testKeyInputBox", "focus", function KeyTester(_focusEvent: Event
     }
   }
   testKeyInput.onblur = (): void => {
-    tick = 0
     if (VApi) {
       VApi.f(kFgCmd.dispatchEventCmd, Object.setPrototypeOf<CmdOptions[kFgCmd.dispatchEventCmd]>(
           { type: "keydown", key: "Esc", esc: true }, null), 1, 0)
+      VApi.h(kTip.raw, 0, tip_head + ` (${tick})`)
     }
+    tick = 0
   }
   testKeyInput.addEventListener("compositionend", (): void => { text_("") })
   testKeyInput.onpaste = prevent_ as (event: Event, _?: void) => void

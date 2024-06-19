@@ -53,7 +53,8 @@ export const safePost = <k extends keyof FgReq> (request: FgReq[k] & Req.baseFg<
   if (!(Build.NDEBUG && Build.Mangle) && Build.BTypes === BrowserType.Chrome as number
       && Build.MinCVer >= BrowserVer.Min$runtime$$id$GetsUndefinedOnTurnOff) {
     if (!port_) {
-      if (!chrome.runtime.id) {
+      const r = chrome.runtime
+      if (!r || !r.id) {
         safeDestroy()
         return
       }
@@ -66,10 +67,12 @@ export const safePost = <k extends keyof FgReq> (request: FgReq[k] & Req.baseFg<
   try {
     if (!port_) {
       if (OnChrome && (Build.MinCVer >= BrowserVer.Min$runtime$$id$GetsUndefinedOnTurnOff
-            || chromeVer_ > BrowserVer.Min$runtime$$id$GetsUndefinedOnTurnOff - 1)
-          && !chrome.runtime.id) {
-        safeDestroy()
-        return
+            || chromeVer_ > BrowserVer.Min$runtime$$id$GetsUndefinedOnTurnOff - 1)) {
+        const r = chrome.runtime
+        if (!r || !r.id) {
+          safeDestroy()
+          return
+        }
       }
       runtimeConnect();
       injector && timeout_((): void => { port_ || safeDestroy(); }, 50);
