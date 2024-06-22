@@ -120,7 +120,7 @@ hooks = {
     useEval && tryEval && tryEval()
     const ret = args.length === 4 && type === GlobalConsts.MarkAcrossJSWorlds ? checkIsNotVerifier(args[3])
         : useEval && evaledAEL ? evaledAEL(apply, [_listen, a, args]) : apply(_listen, a, args)
-    if (type === "click" || type === "mousedown" || type === "dblclick"
+    if (type === "click" || type === "mousedown" || type === "pointerdown" || type === "dblclick"
         ? listener && a instanceof ElCls && a.localName !== "a" && a !== toRegister[toRegister.length - 1]
         : type === kEventName2 && !isReRegistering
           // note: window.history is mutable on C35, so only these can be used: top,window,location,document

@@ -364,7 +364,7 @@ hooks = {
     const a = this, args = arguments
     const ret = args.length === 4 && type === GlobalConsts.MarkAcrossJSWorlds ? checkIsNotVerifier(args[3])
         : apply(_listen, a, args)
-    if (type === "click" || type === "mousedown" || type === "dblclick"
+    if (type === "click" || type === "mousedown" || type === "pointerdown" || type === "dblclick"
         ? a instanceof ElCls && a !== toRegister[toRegister.length - 1]
         : type === kEventName2 && !isReRegistering
           // note: window.history is mutable on C35, so only these can be used: top,window,location,document
