@@ -283,6 +283,7 @@ declare const enum BrowserVer {
   // MinStricterArgsIn$Windows$$Create = 55, // I forget what's stricter
   Min$addEventListener$support$once = 55,
   MinEnsured$auxclick = 55, // even if LEGACY; replace MinMaybe$auxclick
+  MinEnsured$PointerEvent = 55, // even if EXP; since C53 if not LEGACY; pointer/mouse timeStamps become same since C60
   MinSomeDocumentListenersArePassiveByDefault = 56,
   // not need if LEGACY or EMPTY (even on Chrome 66)
   MinMayNeedCSPForScriptsFromOtherExtensions = 56, // if EXP
@@ -448,6 +449,7 @@ declare const enum BrowserVer {
   // if an element has position:absolute and is at the right/bottom edge, it won't cause the page shows a scrollbar
   MinAbsolutePositionNotCauseScrollbar = 69, // even if EXP or LEGACY
   MinEnsuredScrollSnapType = 69, // even if LEGACY
+  MinCSSBlockInlineStartEnd = 69, // even if EXP or LEGACY
   // https://github.com/chromium/chromium/commit/6a866d29f4314b990981119285da46540a50742c
   MinFramesetHasNoNamedGetter = 70,
   MinContainLayoutBreakUIBox = 70, // even if EXP
@@ -553,6 +555,7 @@ declare const enum BrowserVer {
   MinCorrectAriaSelected = 84, // even if EXP or LEGACY; aria-expanded is fixed in C73 if EXP
   MinClipboardWriteHTML = 86,
   MinFileNameIsSelectableOnFilesPage = 86, // even if EXP or LEGACY
+  MinEnsuredNegativeScrollPosIfRTL = 86, // if EMPTY or LEGACY
   // if EXP, since 79 there's also `navigator.scheduling.isFramePending()`
   MinEnsuredNavigator$scheduling$$isInputPending = 87, // even if LEGACY; since 74 if EXP
   // the 2 below are even if EXP or LEGACY

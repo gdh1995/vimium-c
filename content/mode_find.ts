@@ -914,44 +914,9 @@ export const executeFind = (query: string | null, options: Readonly<ExecuteOptio
     if (found! && !highlight && (par = par || getSelectionParent_unsafe(curSel = getSelected()))) {
       newAnchor = getAccessibleSelectedNode(curSel!)
       posChange = oldAnchor && newAnchor && compareDocumentPosition(oldAnchor, newAnchor)
-      newAnchor = newAnchor && getNodeChild_(newAnchor, curSel!)
-      newAnchor = newAnchor && isNode_(newAnchor, kNode.ELEMENT_NODE) ? newAnchor satisfies Element : 0
-      const newStyle = newAnchor && getComputedStyle_(newAnchor as Element)
-      const specialFixForTransparent = newStyle && newStyle.color!.includes("(0, 0, 0")
-      const px2int = (s: string) => +s.slice(0, -2)
-      const textStyle_non_ff = !OnFirefox && newStyle
-          && getEditableType_<0>(newAnchor as Element) > EditableType.MaxNotTextBox
-          && [newStyle.font!, px2int(newStyle.lineHeight!),
-              dimSize_(newAnchor as TextElement, kDim.elClientW),
-              dimSize_(newAnchor as TextElement, kDim.elClientH),
-              px2int(newStyle.paddingLeft!) + px2int(newStyle.borderLeftWidth!),
-              px2int(newStyle.paddingTop!) + px2int(newStyle.borderTopWidth!)] as const
-      let textBoxRect: Rect | 1 | false | 0 | null = textStyle_non_ff && focusHUD
-          && (getZoom_(newAnchor as TextElement), prepareCrop_(), 1)
-      isSafeEl_(par) && view_(par, 1)
-      textBoxRect = textBoxRect && boundingRect_(newAnchor as TextElement)
-      specialFixForTransparent && (styleSelColorOut!.disabled = !0)
-      if (textStyle_non_ff) {
-        const context = (canvas = canvas || createElement_("canvas")).getContext("2d")!
-        const full = (newAnchor as TextElement).value.slice(0
-            , textOffset_(newAnchor as TextElement, VisualModeNS.kDir.right)!)
-        const offset = textOffset_(newAnchor as TextElement)!
-        const before = full.slice(0, offset).split("\n"), linePrefix = before.pop()!
-        const getWidth = (s: string): number => context.measureText(s).width
-        context.font = textStyle_non_ff[0]
-        let left = getWidth(linePrefix), top = before.length * textStyle_non_ff[1]
-        ; (newAnchor as TextElement).scrollTo(instantScOpt(
-            max_(0, left - textStyle_non_ff[2] / 2), max_(0, top - textStyle_non_ff[3] / 2)))
-        if (textBoxRect) {
-          left += textBoxRect!.l + textStyle_non_ff![4] - dimSize_(newAnchor as TextElement, kDim.scPosX)
-          top += textBoxRect!.t + textStyle_non_ff![5] - dimSize_(newAnchor as TextElement, kDim.scPosY)
-          removeFlash && removeFlash()
-          set_removeFlash(flash_(null, { l: left, t: top
-              , r: left + max_(4, getWidth(full.slice(offset).split("\n", 1)[0]))
-              , b: top + textStyle_non_ff[1]}))
-        }
-        isActive || (canvas = null)
-      }
+      newAnchor = newAnchor && (isNode_(newAnchor, kNode.TEXT_NODE) ? parentNode_unsafe_s(newAnchor)!
+          : getNodeChild_(newAnchor, curSel!))
+      scrollSelectionAfterFind(par, newAnchor && isNode_(newAnchor, kNode.ELEMENT_NODE) ? newAnchor : 0, focusHUD)
       if (posChange && /** go back */ !!(posChange & kNode.DOCUMENT_POSITION_PRECEDING) !== back) {
         hudTip(kTip.wrapWhenFind, 1, VTr(back ? kTip.atStart : kTip.atEnd))
       }
@@ -963,6 +928,81 @@ export const executeFind = (query: string | null, options: Readonly<ExecuteOptio
     if (!options.i) {
       hasResults = found!
     }
+}
+
+const scrollSelectionAfterFind = (par: Element, newAnchor: Element | 0, frameNotFocused: boolean | 1): void => {
+  type TextStyleArr = readonly [font: string, lineHeight: number, clientWidth: number, clientHeight: number
+      , fontSize: number, borderInlineStart: number, paddingInlineStart: number, textOffsetTop: number]
+  const kMayInTextBox = !OnFirefox
+  const kHasInlineStart = !OnEdge && (!OnChrome || Build.MinCVer >= BrowserVer.MinCSSBlockInlineStartEnd)
+      const newStyle = newAnchor && getComputedStyle_(newAnchor)
+      const specialFixForTransparent = newStyle && newStyle.color!.includes("(0, 0, 0")
+      const px2int = (s: string) => +s.slice(0, -2)
+      const ltr = newStyle && newStyle.direction !== "rtl"
+      const textStyle = !kMayInTextBox || !newStyle
+          || getEditableType_<0>(newAnchor) < EditableType.MaxNotTextBox + 1 ? 0
+          : (newStyle.writingMode as "hor*" | "vert*" | "side*" | /** < C48 */ "lr*" | "rl*" | "tb*")[0] > "s"
+          ? (frameNotFocused = 1)
+          : [newStyle.font!, px2int(newStyle.lineHeight!),
+              dimSize_(newAnchor as TextElement, kDim.elClientW),
+              dimSize_(newAnchor as TextElement, kDim.elClientH),
+              px2int(newStyle.fontSize!),
+              px2int(kHasInlineStart ? (newStyle as any).borderInlineStartWidth
+                  : ltr ? newStyle.borderLeftWidth! : newStyle.borderRightWidth!),
+              px2int(kHasInlineStart ? (newStyle as any).paddingInlineStart
+                  : ltr ? newStyle.paddingLeft! : newStyle.paddingRight!),
+              px2int(newStyle.paddingTop!) + px2int(newStyle.borderTopWidth!),
+              ] satisfies TextStyleArr as TextStyleArr
+      let textBoxRect: Rect | 1 | false | 0 | null | void = !kMayInTextBox ? null : textStyle && frameNotFocused
+          && (getZoom_(newAnchor as TextElement), prepareCrop_(), 1)
+      isSafeEl_(par) && view_(par, 1)
+  textBoxRect = kMayInTextBox ? textBoxRect && boundingRect_(newAnchor as TextElement) : null
+  if (kMayInTextBox && textStyle && textStyle !== 1) {
+        const context = (canvas = canvas || createElement_("canvas")).getContext("2d")!
+        const full = (newAnchor as TextElement).value.slice(0
+            , textOffset_(newAnchor as TextElement, VisualModeNS.kDir.right)!)
+        let offset = textOffset_(newAnchor as TextElement)!
+        const strArrBefore = full.slice(0, offset).split("\n"), lineStrBefore = strArrBefore.pop()!
+        const getWidth = (s: string): number =>
+            s.length < 400 ? context.measureText(s).width : s.length * textStyle[4] / 2
+        context.font = textStyle[0]
+    const has_neg_sc_pos = !OnEdge && (!OnChrome || Build.MinCVer >= BrowserVer.MinEnsuredNegativeScrollPosIfRTL
+        || chromeVer_ > BrowserVer.MinEnsuredNegativeScrollPosIfRTL - 1)
+    const max_width = textStyle[2]
+    const baseScPosX = has_neg_sc_pos || ltr ? 0 : dimSize_(newAnchor as TextElement, kDim.scrollW) - max_width
+    let start = getWidth(lineStrBefore), top = strArrBefore.length * textStyle[1]
+    const scX = (ltr ? 1 : -1) * max_(0, start - max_width / 2) + baseScPosX
+    const scY = max_(0, top - (textStyle[3] - textStyle[1]) / 2)
+    if ((OnChrome ? Build.MinCVer >= BrowserVer.MinEnsuredCSS$ScrollBehavior : !OnEdge)
+        || (newAnchor as Element).scrollTo) {
+      (newAnchor as TextElement).scrollTo(instantScOpt(scX, scY))
+    } else {
+      ; (newAnchor as TextElement).scrollLeft = scX
+      ; (newAnchor as TextElement).scrollTop = scY
+    }
+    if (OnChrome && Build.MinCVer < BrowserVer.MinNoSelectionColorOnTextBoxWhenFindModeHUDIsFocused
+        && chromeVer_ < BrowserVer.MinNoSelectionColorOnTextBoxWhenFindModeHUDIsFocused) {
+      textBoxRect = 0
+    } else if (textBoxRect) {
+      let widthOrEnd = max_(4, getWidth(full.slice(offset).split("\n", 1)[0]))
+      offset = dimSize_(newAnchor as TextElement, kDim.scPosX)
+      offset = ltr ? offset : max_(0, has_neg_sc_pos ? -offset : baseScPosX - offset)
+      start = max_(0, textStyle[6] + min_(start - offset, max_width))
+      widthOrEnd = min_(start + widthOrEnd, max_width)
+      offset = ltr ? textBoxRect.l + textStyle[5] : textBoxRect.r - textStyle[5]
+      top += textBoxRect.t + textStyle[7] - dimSize_(newAnchor as TextElement, kDim.scPosY)
+      textBoxRect = {
+        l: ltr ? offset + start : offset - widthOrEnd, t: top,
+        r: ltr ? offset + widthOrEnd : offset - start, b: top + textStyle[1]
+      }
+    }
+    isActive || (canvas = null)
+  }
+  if (kMayInTextBox && textBoxRect) {
+    removeFlash && removeFlash()
+    set_removeFlash(flash_(null, textBoxRect, 0, " Sel"))
+  }
+  specialFixForTransparent && (styleSelColorOut!.disabled = !0)
 }
 
 const hookSel = (t?: TimerType.fake | 1): void => {

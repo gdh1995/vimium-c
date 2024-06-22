@@ -23,7 +23,7 @@ interface ElementScrollInfo {
 
 import {
   isAlive_, setupEventListener, timeout_, clearTimeout_, fgCache, doc, noRAF_old_cr_, readyState_, chromeVer_,
-  vApi, weakRef_not_ff, max_, math, min_, Lower, OnChrome, OnFirefox, OnEdge, WithDialog, OnSafari, deref_,
+  vApi, weakRef_not_ff, max_, math, min_, Lower, OnChrome, OnFirefox, OnEdge, WithDialog, deref_,
   isTop, injector, isTY, promiseDefer_, weakRef_ff, Stop_, abs_, queueTask_
 } from "../lib/utils"
 import {
@@ -344,7 +344,7 @@ const performScroll = ((el: SafeElement | null, di: ScrollByY, amount: number, b
       (OnChrome ? Build.MinCVer >= BrowserVer.MinEnsuredCSS$ScrollBehavior : !OnEdge) ||
       // avoid using `Element`, so that users may override it
       el.scrollBy
-      ? OnSafari ? el.scrollBy(di ? 0 : amount, di && amount) : el.scrollBy(instantScOpt(di ? 0 : amount, di && amount))
+      ? el.scrollBy(instantScOpt(di ? 0 : amount, di && amount))
       : di ? el.scrollTop = before + amount : el.scrollLeft = before + amount
     } else {
       scrollWndBy_(di ? 0 : amount, di && amount)
@@ -659,10 +659,9 @@ const doesScroll = (el: SafeElement, di: ScrollByY, amount: number): boolean => 
          * Here needs the third scrolling, because in `X Prox. LTR` mode, a second scrolling may jump very far.
          * Tested on https://developer.mozilla.org/en-US/docs/Web/CSS/scroll-snap-type .
          */
-        let changed2 = performScroll(el, 0, -changed, visualBefore)
-        changed2 * changed2 > 0.1 && performScroll(el, 0, -changed2, 0)
-      } else if (!OnSafari
-          && ((OnChrome ? Build.MinCVer >= BrowserVer.MinEnsuredCSS$ScrollBehavior : !OnEdge) || el.scrollTo)) {
+        let changed2 = performScroll(el, kDim.byX, -changed, visualBefore)
+        changed2 * changed2 > 0.1 && performScroll(el, kDim.byX, -changed2, 0)
+      } else if ((OnChrome ? Build.MinCVer >= BrowserVer.MinEnsuredCSS$ScrollBehavior : !OnEdge) || el.scrollTo) {
         el.scrollTo(instantScOpt(di ? void 0 as never : before, di ? before : void 0 as never))
       } else {
         di ? (el.scrollTop = before) : (el.scrollLeft = before);
@@ -696,8 +695,8 @@ export const scrollIntoView_s = (el: SafeElement | null, r2: Rect | null, dir: 0
 }
 
 export const makeElementScrollBy_ = (el: SafeElement | null | 0, hasX: number, hasY: number): void => {
-  void (hasX && (hasY ? performScroll : vApi.$)(el !== 0 ? el : findScrollable(0, hasX, 0), 0, hasX))
-  void (hasY && vApi.$(el !== 0 ? el : findScrollable(1, hasY, 0), 1, hasY))
+  void (hasX && (hasY ? performScroll : vApi.$)(el !== 0 ? el : findScrollable(kDim.byX, hasX, 0), kDim.byX, hasX))
+  void (hasY && vApi.$(el !== 0 ? el : findScrollable(kDim.byY, hasY, 0), kDim.byY, hasY))
   isTopScrollable = 1
   scrolled = 0
   scrollTick(0) // it's safe to only clean keyIsDown here
