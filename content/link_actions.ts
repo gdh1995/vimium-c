@@ -547,6 +547,7 @@ const defaultClick = (): void => {
         , [!1, !isMac && ctrl, isMac && ctrl, shift]
         , specialActions, (rawBtn as typeof rawBtn & number) || kClickButton.none
         , !OnChrome || otherActions || newTab || newWindow ? 0 : hintOptions.touch
+        , hintOptions.pointer
         , target !== clickEl))
     .then((ret): void | Promise<unknown> | number | boolean => {
       showUrlIfNeeded()

@@ -56,6 +56,9 @@ export function set_evIDC_cr (_newIDC: InputDeviceCapabilities | undefined): voi
 
 /** util functions */
 
+const __assign = Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinTestedES6Environment
+    ? Object.assign : null; false && void(__assign) // used by `{ ...init }`
+
 const __generator = Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredGeneratorFunction
     ? (_0: void | undefined, branchedFunc: YieldableFunction): YieldableFunction => branchedFunc : 0 as never
 
@@ -132,9 +135,13 @@ export const catchAsyncErrorSilently = <T> (__pFromAsync: Promise<T>): Promise<T
 const mouse_ = function (element: SafeElementForMouse
     , type: kMouseClickEvents | kMouseEventsNotBubble | kMouseMoveEvents
     , center: Point2D, modifiers?: MyMouseControlKeys | null, relatedTarget?: NullableSafeElForM | 0
-    , button?: AcceptableClickButtons, isTouch?: BOOL, forceToBubble?: boolean | BOOL): Promise<boolean> {
+    , button?: AcceptableClickButtons, isTouch?: boolean | 0, forceToBubble?: boolean | BOOL
+    , alsoPointerUpDown?: BOOL | 0 | 2 | 3): Promise<boolean | 2 | 3> {
+  const kUpgradeClick = OnChrome
   const doc1 = element.ownerDocument as Document, view = doc1.defaultView || window,
-  tyKey = type.slice(5, 6),
+  tyKey = (type satisfies "mouseover" | "mousemove" | "mouseout" | "mouseenter" | "mouseleave"
+        | "mousedown" | "mouseup" | "click" | "auxclick" | "dblclick" | "contextmenu"
+      ).charAt(5) as "o" | "m" | "o2" | "e" | "l" | "d" | "u" | "" | "i" | "i2" | "x",
   // is: down | up | (click) | dblclick | auxclick
   detail = !"dui".includes(tyKey) || button === kClickButton.auxiliary && tyKey === "u" ? 0
       : button! & kClickButton.primaryAndTwice ? 2 : 1,
@@ -145,7 +152,8 @@ const mouse_ = function (element: SafeElementForMouse
   button = (button! & (kClickButton.primaryAndTwice - 1)
       ) as kClickButton.none | kClickButton.auxiliary | kClickButton.second
   relatedTarget = relatedTarget && relatedTarget.ownerDocument === doc1 ? relatedTarget : null
-  let mouseEvent: MouseEvent
+  let mouseEvent: MouseEvent, pointerEvent: PointerEvent | undefined, init2: PointerEventInit | undefined
+  let type2: "pointerdown" | "pointerup" | "auxclick" | "click" | "contextmenu"
   // note: there seems no way to get correct screenX/Y of an element
   if (!OnChrome || Build.MinCVer >= BrowserVer.MinUsable$MouseEvent$$constructor
       || chromeVer_ > BrowserVer.MinUsable$MouseEvent$$constructor - 1) {
@@ -159,15 +167,21 @@ const mouse_ = function (element: SafeElementForMouse
       button, buttons: tyKey === "d" ? button - 1 ? button || 1 : 4 : 0,
       relatedTarget
     }
-    OnChrome && setupIDC_cr!(init)
-    if (OnChrome && (Build.MinCVer >= BrowserVer.MinEnsuredPointerEventForRealClick
-          || chromeVer_ > BrowserVer.MinEnsuredPointerEventForRealClick - 1)
-        && "ac".includes(type[0])) {
-      init.pointerId = 1, init.pointerType = isTouch ? "touch" : "mouse"
-      mouseEvent = new PointerEvent(type, init)
-    } else {
-      mouseEvent = new MouseEvent(type, init)
+    if ((!OnChrome || Build.MinCVer >= BrowserVer.MinEnsured$PointerEvent
+          || chromeVer_ > BrowserVer.MinEnsured$PointerEvent - 1)
+        && (alsoPointerUpDown
+            || kUpgradeClick && (Build.MinCVer >= BrowserVer.MinEnsuredPointerEventForRealClick
+                                 || chromeVer_ > BrowserVer.MinEnsuredPointerEventForRealClick - 1) && type < "d")) {
+      type2 = !kUpgradeClick || alsoPointerUpDown ? `pointer${type.slice(5) as "down" | "up"}`
+          : (type as "click" | "auxclick" | "contextmenu")
+      init2 = { ...init, detail: +!tyKey as BOOL, isPrimary: !kUpgradeClick || !!alsoPointerUpDown
+          , pointerId: OnFirefox ? 0 : 1, pointerType: isTouch ? "touch" : "mouse"
+          , pressure: tyKey === "d" ? 0.5 : isTouch = 0 }
     }
+    const init2ForUpgrading = kUpgradeClick && !alsoPointerUpDown && init2
+    OnChrome && setupIDC_cr!(init2ForUpgrading || init)
+    init2 && (pointerEvent = new PointerEvent(type2!, init2))
+    mouseEvent = init2ForUpgrading || init2 && alsoPointerUpDown! > 1 ? pointerEvent! : new MouseEvent(type, init)
   } else {
     mouseEvent = doc1.createEvent("MouseEvents")
     mouseEvent.initMouseEvent(type, !!forceToBubble || cancelable, cancelable
@@ -177,13 +191,27 @@ const mouse_ = function (element: SafeElementForMouse
       && clickEventToPrevent_) { // must be a click event
     return dispatchAndBlockClickOnce_old_ff(element, mouseEvent)
   }
-  return dispatchAsync_(element, mouseEvent)
+  const ret = dispatchAsync_(element, pointerEvent || mouseEvent)
+  return !pointerEvent || mouseEvent === pointerEvent ? ret : ret.then().then<boolean | 2 | 3>(
+      notPrevented => notPrevented ? isTouch ? 3 : dispatchAsync_(element, mouseEvent) : 2)
 } as {
-  (element: SafeElementForMouse, type: kMouseClickEvents, center: Point2D
+  // for mousedown / mouseup, if `alsoPointerUpDown` is
+  // * `0`, then dispatch mouse* only, and return `boolean`
+  //   * then `isTouch` will never be used
+  // * `1`, then dispatch both pointer* and mouse*, and
+  //   * return `2` (pointer prevented)
+  //   * return `3` (pointer pass, is-touch so mouse of this call should be delayed)
+  //     * then a second `mouse_(MDW)` will return `boolean` (mouse result)
+  //   * return `boolean` (pointer pass, so mouse result)
+  // * `2 | 3`, then dispatch pointer* only, and return `boolean` (pointer result)
+  (element: SafeElementForMouse, type: "mousedown" | "mouseup", center: Point2D
+    , modifiers: MyMouseControlKeys | undefined, related: 0, button: AcceptableClickButtons | undefined
+    , isTouch?: boolean, forceToBubble?: 0, alsoPointerUpDown?: BOOL | 2 | 3): Promise<boolean | 2 | 3>
+  (element: SafeElementForMouse, type: Exclude<kMouseClickEvents, "mousedown" | "mouseup">, center: Point2D
     , modifiers?: MyMouseControlKeys | null, related?: NullableSafeElForM | 0, button?: AcceptableClickButtons
-    , isTouch?: BOOL): Promise<boolean>
+    , isTouch?: boolean): Promise<boolean>
   (element: SafeElementForMouse, type: kMouseEventsNotBubble, center: Point2D, modifiers?: null
-    , related?: NullableSafeElForM | 0, button?: kClickButton.none, isTouch?: 0, forceToBubble?: boolean|BOOL
+    , related?: NullableSafeElForM | 0, button?: kClickButton.none, isTouch?: false, forceToBubble?: boolean | BOOL
     ): Promise<boolean>
   (element: SafeElementForMouse, type: kMouseMoveEvents, center: Point2D
     , modifiers?: null, related?: NullableSafeElForM): Promise<boolean>
@@ -229,7 +257,7 @@ export const hover_async = (async (newEl?: NullableSafeElForM
     // MS Edge 90 dispatches mouseout and mouseleave if only a target element is in doc
     await mouse_(last, "mouseout", [0, 0], N, notSame ? newEl : N)
     if ((!newEl || notSame && !IsInDOM_(newEl, last, 1)) && IsInDOM_(last, doc)) {
-      await mouse_(last, "mouseleave", [0,0],N,newEl,kClickButton.none, 0, forceToBubble || enableBubblesForEnterLeave_)
+      await mouse_(last, "mouseleave", [0,0],N,newEl,kClickButton.none,!1, forceToBubble || enableBubblesForEnterLeave_)
       if (doesFocus && IsInDOM_(last)) { // always blur even when moved to another document
         blur_unsafe(last)
       }
@@ -243,7 +271,7 @@ export const hover_async = (async (newEl?: NullableSafeElForM
     // then center is not null
     await mouse_(newEl, "mouseover", center!, N, last)
     if (IsInDOM_(newEl)) {
-      await mouse_(newEl, "mouseenter", center!, N, last, kClickButton.none, 0, enableBubblesForEnterLeave_)
+      await mouse_(newEl, "mouseenter", center!, N, last, kClickButton.none, !1, enableBubblesForEnterLeave_)
       if (canDispatchMove && IsInDOM_(newEl)) {
         await mouse_(newEl, "mousemove", center!)
       }
@@ -300,6 +328,7 @@ export const click_async = (async (element: SafeElementForMouse
     , rect?: Rect | null, addFocus?: boolean | BOOL, modifiers?: MyMouseControlKeys
     , action?: kClickAction, button?: AcceptableClickButtons
     , /** default: false */ touchMode?: null | false | /** false */ 0 | true | "auto"
+    , /** default: true */ pointerEvents?: null | undefined | true | false
     , noXY?: boolean): Promise<void | 1> => {
   /**
    * for important events including `mousedown`, `mouseup`, `click` and `dblclick`, wait for two micro tasks;
@@ -310,7 +339,7 @@ export const click_async = (async (element: SafeElementForMouse
       return
     }
   }
-  const kMenu = "contextmenu"
+  const kMenu = "contextmenu", kMU = "mouseup"
   const userOptions = isHintsActive && !((hintManager || coreHints).$().k.c as any[] | undefined) ? hintOptions : null
   const xy = userOptions && !noXY && userOptions.xy as HintsNS.StdXY | undefined
       || button === kClickButton.second && userOptions![kMenu] !== !1 && { x: 20, y: -4 } as HintsNS.StdXY || null
@@ -320,22 +349,22 @@ export const click_async = (async (element: SafeElementForMouse
   const initialStat = result & ActionType.interact && result < ActionType.MinOpenUrl
       ? result & ActionType.dblClick ? hasTag_("video", element) && fullscreenEl_unsafe_()
         : (element as HTMLMediaElement).paused : 0
-  let isTouch: BOOL = 0
+  const isTouch: boolean = OnChrome && (Build.MinCVer >= BrowserVer.MinEnsuredTouchEventConstructor
+        || chromeVer_ > BrowserVer.MinEnsuredTouchEventConstructor - 1)
+      && (touchMode === !0 || !!touchMode && isInTouchMode_cr_!())
   if (OnFirefox && (Build.MinFFVer >= FirefoxBrowserVer.MinPopupBlockerPassOrdinaryClicksDuringExtMessages
-      || firefoxVer_ > FirefoxBrowserVer.MinPopupBlockerPassOrdinaryClicksDuringExtMessages - 1)) {
+        || firefoxVer_ > FirefoxBrowserVer.MinPopupBlockerPassOrdinaryClicksDuringExtMessages - 1)
+      && button !== kClickButton.primaryAndTwice) {
     const promise = promiseDefer_<unknown>()
     send_(kFgReq.blank, 0, promise.r)
     await promise.p
     if (!IsInDOM_(element)) { return }
   }
-  if (OnChrome && (Build.MinCVer >= BrowserVer.MinEnsuredTouchEventConstructor
-          || chromeVer_ > BrowserVer.MinEnsuredTouchEventConstructor - 1)
-      && (touchMode === !0 || touchMode && isInTouchMode_cr_!())) {
+  if (isTouch) {
     await touch_cr_!(element, center)
     if (IsInDOM_(element)) {
       await touch_cr_!(element, center, 1)
     }
-    isTouch = 1
     if (!IsInDOM_(element)) { return }
   }
   if (element !== deref_(lastHovered_)) {
@@ -349,17 +378,29 @@ export const click_async = (async (element: SafeElementForMouse
       return
     }
   }
-  const mousedownNotPrevented = await mouse_(element, MDW, center, modifiers, 0, button)
+  let alsoPointerUpDown: BOOL | 2 = pointerEvents === false ? 0
+      : isTouch && (button! & (kClickButton.auxiliary | kClickButton.second)
+                    || result < ActionType.MinOpenUrl && result & ActionType.dblClick) ? 2 : 1
+  let pointerdownNotPrevented = await mouse_(element, MDW, center, modifiers, 0, button, isTouch, 0, alsoPointerUpDown)
   await 0
   if (!IsInDOM_(element)) { return }
+  if (pointerdownNotPrevented === 3) {
+    await mouse_(element, kMU, center, modifiers, 0, button, isTouch, alsoPointerUpDown = 0, 3)
+    await 0
+    pointerdownNotPrevented = (await mouse_(element, MDW, center, modifiers, 0, button)) as boolean
+    await 0
+  }
   // Note: here we can check doc.activeEl only when @click is used on the current focused document
-  if (addFocus && mousedownNotPrevented && element !== (getRootNode_mounted(element) as Document).activeElement
+  if (addFocus && ((pointerdownNotPrevented satisfies boolean | 2 as BOOL | 2) & 1)
+      && element !== (getRootNode_mounted(element) as Document).activeElement
       && !(element as Partial<HTMLInputElement>).disabled) {
     await dispatchAsync_(element, 0, 2)
     if (!IsInDOM_(element)) { return }
     await 0
   }
-  await mouse_(element, "mouseup", center, modifiers, 0, button)
+  await mouse_(element, kMU, center, modifiers, 0, button, isTouch, 0
+      , alsoPointerUpDown && (((alsoPointerUpDown satisfies 1 | 2)
+            | (pointerdownNotPrevented satisfies boolean | 2 as BOOL | 2)) as 1 | 2 | 3))
   await 0
   if (!IsInDOM_(element) || button! & kClickButton.auxiliary) { return }
   if (button! & kClickButton.second) {
@@ -409,7 +450,8 @@ export const click_async = (async (element: SafeElementForMouse
       if (result & ActionType.dblClick && result < (ActionType.interact | ActionType.dblClick) + 1
           && !(element as Partial<HTMLInputElement /* |HTMLSelectElement|HTMLButtonElement */>).disabled
           && (// use old rect
-            await click_async(element, rect, 0, modifiers, kClickAction.none, kClickButton.primaryAndTwice),
+            await click_async(element, rect, 0, modifiers!, kClickAction.none, kClickButton.primaryAndTwice
+                , isTouch, pointerEvents, noXY!),
             !getVisibleClientRect_(element)
             || !await await mouse_(element, "dblclick", center, modifiers, 0, kClickButton.primaryAndTwice)
             || !getVisibleClientRect_(element)
@@ -453,6 +495,7 @@ export const click_async = (async (element: SafeElementForMouse
     , rect: Rect | null | undefined, addFocus: boolean | BOOL, modifiers: MyMouseControlKeys
     , specialAction: kClickAction, button: AcceptableClickButtons
     , /** default: false */ touchMode: null | undefined | false | /** false */ 0 | true | "auto"
+    , /** default: true */ pointerEvents: null | undefined | true | false
     , noXY: boolean): Promise<void | 1>
   (element: SafeElementForMouse
     , rect: Rect | null, addFocus: boolean | BOOL, modifiers: MyMouseControlKeys | undefined
@@ -504,4 +547,7 @@ if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredGe
       Object.assign(typeof globalThis !== "undefined" ? globalThis : window as any, { __generator, __awaiter })
     }
   }
+}
+if (!(Build.NDEBUG || BrowserVer.MinEnsured$Object$$assign <= BrowserVer.MinEnsured$PointerEvent)) {
+  console.log("Assert error: BrowserVer.MinEnsured$Object$$assign <= BrowserVer.MinEnsured$PointerEvent")
 }

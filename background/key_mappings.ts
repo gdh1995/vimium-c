@@ -159,7 +159,7 @@ const normalizeLHOptions_ = (lhOpt: Partial<HintsNS.Options> & CommandsNS.RawLin
         }
         if (inQueue) { mode = mode < HintMode.min_disable_queue ? mode | HintMode.queue : mode }
         if (button != null) {
-          lhOpt.button = typeof button === "string" ? button === "right" ? 2
+          lhOpt.button = typeof button === "string" ? button === "right" || button === "auxclick" ? 2
               : button.startsWith("mid") || button.startsWith("aux") ? 1 : 0
               : Math.max(0, Math.min(button | 0, 2)) as typeof button
         }
