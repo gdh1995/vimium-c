@@ -61,7 +61,7 @@ splice = nodeIndexList.splice as <T> (this: T[], start: number, deleteCount?: nu
 pushInDocument = nodeIndexList.push.bind(nodeIndexList),
 CECls = CustomEvent as CustomEventCls, StopProp = CECls[kProto].stopImmediatePropagation as (this: Event) => void,
 DECls = FocusEvent as DelegateEventCls,
-Fn = Function, FProto = Fn[kProto], _toString = FProto[kToS],
+Func = Function, FProto = Func[kProto], _toString = FProto[kToS],
 clearTimeout1 = clearTimeout,
 DocCls = Document[kProto] as Partial<Document> as Pick<Document, "createElement" | typeof kByTag> & {
       open (): void, write (markup: string): void },
@@ -151,7 +151,7 @@ queueMicroTask_ = queueMicrotask,
 evaledAEL: Function | undefined,
 isReRegistering: BOOL = 0, hasKnownDocOpened: 0 | 1 | 2 = 0
 let tryEval: (() => void) | 0 = ("." + location.host).endsWith(".bing.com") ? 0 : (): void => {
-  try { evaledAEL = new Fn(`let ${kAEL}=(f,a)=>f(...a)\nreturn ` + kAEL)(tryEval = 0) } catch {}
+  try { evaledAEL = new Func(`let ${kAEL}=(f,a)=>f(...a)\nreturn ` + kAEL)(tryEval = 0) } catch {}
 }
 // To avoid a host script detect Vimum C by code like:
 // ` a1 = setTimeout(()=>{}); $0.addEventListener('click', ()=>{}); a2=setTimeout(()=>{}); [a1, a2] `

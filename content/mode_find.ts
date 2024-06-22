@@ -955,10 +955,11 @@ const scrollSelectionAfterFind = (par: Element, newAnchor: Element | 0, frameNot
               ] satisfies TextStyleArr as TextStyleArr
       let textBoxRect: Rect | 1 | false | 0 | null | void = !kMayInTextBox ? null : textStyle && frameNotFocused
           && (getZoom_(newAnchor as TextElement), prepareCrop_(), 1)
+  let context: CanvasRenderingContext2D
       isSafeEl_(par) && view_(par, 1)
   textBoxRect = kMayInTextBox ? textBoxRect && boundingRect_(newAnchor as TextElement) : null
   if (kMayInTextBox && textStyle && textStyle !== 1) {
-        const context = (canvas = canvas || createElement_("canvas")).getContext("2d")!
+        context = (canvas = canvas || createElement_("canvas")).getContext("2d")!
         const full = (newAnchor as TextElement).value.slice(0
             , textOffset_(newAnchor as TextElement, VisualModeNS.kDir.right)!)
         let offset = textOffset_(newAnchor as TextElement)!
