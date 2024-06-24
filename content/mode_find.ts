@@ -17,7 +17,7 @@ import {
 } from "../lib/dom_utils"
 import {
   wdZoom_, prepareCrop_, view_, dimSize_, selRange_, getZoom_, isSelARange, getViewBox_, scrollWndBy_, cropRectS_,
-  setupPageLevelCrops, instantScOpt, boundingRect_
+  setupPageLevelCrops, instantScOpt, boundingRect_, isNotInViewport
 } from "../lib/rect"
 import {
   ui_box, ui_root, getSelectionParent_unsafe, resetSelectionToDocStart, getBoxTagName_old_cr, collpaseSelection,
@@ -916,7 +916,8 @@ export const executeFind = (query: string | null, options: Readonly<ExecuteOptio
       posChange = oldAnchor && newAnchor && compareDocumentPosition(oldAnchor, newAnchor)
       newAnchor = newAnchor && (isNode_(newAnchor, kNode.TEXT_NODE) ? parentNode_unsafe_s(newAnchor)!
           : getNodeChild_(newAnchor, curSel!))
-      scrollSelectionAfterFind(par, newAnchor && isNode_(newAnchor, kNode.ELEMENT_NODE) ? newAnchor : 0, focusHUD)
+      scrollSelectionAfterFind(par, newAnchor && isNode_(newAnchor, kNode.ELEMENT_NODE) ? newAnchor : 0
+          , curSel!, focusHUD)
       if (posChange && /** go back */ !!(posChange & kNode.DOCUMENT_POSITION_PRECEDING) !== back) {
         hudTip(kTip.wrapWhenFind, 1, VTr(back ? kTip.atStart : kTip.atEnd))
       }
@@ -930,7 +931,7 @@ export const executeFind = (query: string | null, options: Readonly<ExecuteOptio
     }
 }
 
-const scrollSelectionAfterFind = (par: Element, newAnchor: Element | 0, frameNotFocused: boolean | 1): void => {
+const scrollSelectionAfterFind = (par: Element, newAnchor: Element | 0, sel: Selection, noFocus: boolean | 1): void => {
   type TextStyleArr = readonly [font: string, lineHeight: number, clientWidth: number, clientHeight: number
       , fontSize: number, borderInlineStart: number, paddingInlineStart: number, textOffsetTop: number
       , whiteSpace: string]
@@ -943,7 +944,7 @@ const scrollSelectionAfterFind = (par: Element, newAnchor: Element | 0, frameNot
       const textStyle = !kMayInTextBox || !newStyle
           || getEditableType_<0>(newAnchor) < EditableType.MaxNotTextBox + 1 ? 0
           : (newStyle.writingMode as "hor*" | "vert*" | "side*" | /** < C48 */ "lr*" | "rl*" | "tb*")[0] > "s"
-          ? (frameNotFocused = 1)
+          ? (noFocus = 1)
           : [newStyle.font!, px2int(newStyle.lineHeight!),
               dimSize_(newAnchor as TextElement, kDim.elClientW),
               dimSize_(newAnchor as TextElement, kDim.elClientH),
@@ -955,10 +956,10 @@ const scrollSelectionAfterFind = (par: Element, newAnchor: Element | 0, frameNot
               px2int(newStyle.paddingTop!) + px2int(newStyle.borderTopWidth!),
               newStyle.whiteSpace!
               ] satisfies TextStyleArr as TextStyleArr
-      let textBoxRect: Rect | 1 | false | 0 | null | void = !kMayInTextBox ? null : textStyle && frameNotFocused
+      let textBoxRect: Rect | 1 | false | 0 | null | void = !kMayInTextBox ? null : textStyle && noFocus
           && (getZoom_(newAnchor as TextElement), prepareCrop_(), 1)
   let context: CanvasRenderingContext2D, widthOrEnd: number
-  isSafeEl_(par) && view_(par, !textBoxRect)
+  const oldInvisibility = +isSafeEl_(par) && view_(par as SafeElement, !textBoxRect)
   textBoxRect = kMayInTextBox ? textBoxRect && boundingRect_(newAnchor as TextElement) : null
   if (kMayInTextBox && textStyle && textStyle !== 1) {
         context = (canvas = canvas || createElement_("canvas")).getContext("2d")!
@@ -984,7 +985,9 @@ const scrollSelectionAfterFind = (par: Element, newAnchor: Element | 0, frameNot
     top *= textStyle[1]
     const scX = (ltr ? 1 : -1) * max_(0, start - max_width / 2) + baseScPosX
     const scY = max_(0, top - (textStyle[3] - textStyle[1]) / 2)
-    if ((OnChrome ? Build.MinCVer >= BrowserVer.MinEnsuredCSS$ScrollBehavior : !OnEdge)
+    if (OnChrome && Build.MinCVer < BrowserVer.Min$ScrollBehavior$$Instant$InJS
+        && oldInvisibility && isNotInViewport(newAnchor as TextElement)) { /* empty */ }
+    else if ((OnChrome ? Build.MinCVer >= BrowserVer.MinEnsuredCSS$ScrollBehavior : !OnEdge)
         || (newAnchor as Element).scrollTo) {
       (newAnchor as TextElement).scrollTo(instantScOpt(scX, scY))
     } else {
@@ -1009,9 +1012,9 @@ const scrollSelectionAfterFind = (par: Element, newAnchor: Element | 0, frameNot
     }
     isActive || (canvas = null)
   }
-  if (kMayInTextBox && textBoxRect) {
+  if (textBoxRect = !textStyle && noFocus ? getSelectionBoundingBox_(sel, 1) : textBoxRect) {
     removeFlash && removeFlash()
-    set_removeFlash(flash_(null, textBoxRect, 0, " Sel"))
+    set_removeFlash(flash_(null, textBoxRect, oldInvisibility && 1e3, " Sel"))
   }
   specialFixForTransparent && (styleSelColorOut!.disabled = !0)
 }
