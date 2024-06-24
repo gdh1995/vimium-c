@@ -1,7 +1,7 @@
 import {
   setupEventListener, VTr, keydownEvents_, isAlive_, suppressCommonEvents, onWndFocus, timeout_, safer, fgCache,
   doc, getTime, chromeVer_, deref_, escapeAllForRe, tryCreateRegExp, vApi, callFunc, clearTimeout_, Stop_, isTY, Lower,
-  abs_, max_, min_, OnFirefox, OnChrome, OnEdge, firefoxVer_, os_, reflectApply_not_cr, OnSafari
+  abs_, max_, min_, OnFirefox, OnChrome, OnEdge, firefoxVer_, os_, reflectApply_not_cr, OnSafari, math
 } from "../lib/utils"
 import {
   replaceOrSuppressMost_, removeHandler_, prevent_, getMappedKey, keybody_, isEscape_, keyNames_, DEL, BSP, ENTER,
@@ -932,7 +932,8 @@ export const executeFind = (query: string | null, options: Readonly<ExecuteOptio
 
 const scrollSelectionAfterFind = (par: Element, newAnchor: Element | 0, frameNotFocused: boolean | 1): void => {
   type TextStyleArr = readonly [font: string, lineHeight: number, clientWidth: number, clientHeight: number
-      , fontSize: number, borderInlineStart: number, paddingInlineStart: number, textOffsetTop: number]
+      , fontSize: number, borderInlineStart: number, paddingInlineStart: number, textOffsetTop: number
+      , whiteSpace: string]
   const kMayInTextBox = !OnFirefox
   const kHasInlineStart = !OnEdge && (!OnChrome || Build.MinCVer >= BrowserVer.MinCSSBlockInlineStartEnd)
       const newStyle = newAnchor && getComputedStyle_(newAnchor)
@@ -952,11 +953,12 @@ const scrollSelectionAfterFind = (par: Element, newAnchor: Element | 0, frameNot
               px2int(kHasInlineStart ? (newStyle as any).paddingInlineStart
                   : ltr ? newStyle.paddingLeft! : newStyle.paddingRight!),
               px2int(newStyle.paddingTop!) + px2int(newStyle.borderTopWidth!),
+              newStyle.whiteSpace!
               ] satisfies TextStyleArr as TextStyleArr
       let textBoxRect: Rect | 1 | false | 0 | null | void = !kMayInTextBox ? null : textStyle && frameNotFocused
           && (getZoom_(newAnchor as TextElement), prepareCrop_(), 1)
-  let context: CanvasRenderingContext2D
-      isSafeEl_(par) && view_(par, 1)
+  let context: CanvasRenderingContext2D, widthOrEnd: number
+  isSafeEl_(par) && view_(par, !textBoxRect)
   textBoxRect = kMayInTextBox ? textBoxRect && boundingRect_(newAnchor as TextElement) : null
   if (kMayInTextBox && textStyle && textStyle !== 1) {
         context = (canvas = canvas || createElement_("canvas")).getContext("2d")!
@@ -971,7 +973,15 @@ const scrollSelectionAfterFind = (par: Element, newAnchor: Element | 0, frameNot
         || chromeVer_ > BrowserVer.MinEnsuredNegativeScrollPosIfRTL - 1)
     const max_width = textStyle[2]
     const baseScPosX = has_neg_sc_pos || ltr ? 0 : dimSize_(newAnchor as TextElement, kDim.scrollW) - max_width
-    let start = getWidth(lineStrBefore), top = strArrBefore.length * textStyle[1]
+    let start = getWidth(lineStrBefore), top = strArrBefore.length
+    if (getEditableType_<0>(newAnchor as Element) < EditableType.TextArea + 1
+        && textStyle[8] !== "pre" && textStyle[8] !== "nowrap") {
+      widthOrEnd = max_width / textStyle[4] * 2
+      top = strArrBefore.reduce((old, x): number => old + math.ceil(x.length / widthOrEnd), 0)
+          + ((start / max_width) | 0)
+      start %= max_width
+    }
+    top *= textStyle[1]
     const scX = (ltr ? 1 : -1) * max_(0, start - max_width / 2) + baseScPosX
     const scY = max_(0, top - (textStyle[3] - textStyle[1]) / 2)
     if ((OnChrome ? Build.MinCVer >= BrowserVer.MinEnsuredCSS$ScrollBehavior : !OnEdge)
@@ -985,7 +995,7 @@ const scrollSelectionAfterFind = (par: Element, newAnchor: Element | 0, frameNot
         && chromeVer_ < BrowserVer.MinNoSelectionColorOnTextBoxWhenFindModeHUDIsFocused) {
       textBoxRect = 0
     } else if (textBoxRect) {
-      let widthOrEnd = max_(4, getWidth(full.slice(offset).split("\n", 1)[0]))
+      widthOrEnd = max_(4, getWidth(full.slice(offset).split("\n", 1)[0]))
       offset = dimSize_(newAnchor as TextElement, kDim.scPosX)
       offset = ltr ? offset : max_(0, has_neg_sc_pos ? -offset : baseScPosX - offset)
       start = max_(0, textStyle[6] + min_(start - offset, max_width))
