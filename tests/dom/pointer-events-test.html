@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<title>Pointer event tests</title>
+<div><a id="btn1" href="#">pass all</a></div>
+<div><a id="btn2" href="#">prevent pointer-down</a></div>
+<div><a id="btn3" href="#">prevent mouse-down</a></div>
+<div><a id="btn4" href="#">reset</a></div>
+<div id="test" style="white-space: pre;"></div>
+<script>
+  var arr = 'pointerdown pointerup mousedown mouseup dblclick auxclick click focus contextmenu'.split(' ')
+  var debug = /\bdebug=1/.test(location.href)
+  var logEvent = function(/** @type {PointerEvent} */ e) {
+    const info = [e.type, Date.now() % 3e5
+        , e.timeStamp.toFixed(3).replace(/\.?0+$/, "")
+        , e.constructor.name
+        , e.pointerType, e.button]
+    test.appendChild(new Text(info.join(" ")))
+    test.appendChild(document.createElement("br"))
+    ; /click$|menu$/.test(e.type) && test.appendChild(document.createElement("br"))
+    if (debug) {
+      console.log.apply(console, info.concat([e]))
+    }
+  }
+  var listener = function(e) {
+    logEvent(e)
+  }
+  for (var i = 0; i < arr.length; i++) {
+    btn1.addEventListener(arr[i], listener, true)
+  }
+  var listener2 = function(e) {
+    logEvent(e)
+    e.type === "pointerdown" && e.preventDefault()
+  }
+  for (var i = 0; i < arr.length; i++) {
+    btn2.addEventListener(arr[i], listener2, true)
+  }
+  var listener3 = function(e) {
+    logEvent(e)
+    e.type === "mousedown" && e.preventDefault()
+  }
+  for (var i = 0; i < arr.length; i++) {
+    btn3.addEventListener(arr[i], listener3, true)
+  }
+  btn4.addEventListener("click", function () {
+    test.textContent = ""
+    document.activeElement.blur()
+  }, true)
+</script>
