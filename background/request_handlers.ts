@@ -378,8 +378,9 @@ set_reqH_([
       const opts = concatOptions(oriOptions, BgUtils_.safer_({ url: null,
           type: type === "tab" && oriOptions.url || type === "tab-url" ? null : type === "tab-title" ? "title" : type
       } satisfies KnownOptions<kBgCmd.copyWindowInfo> & { url: null }))
-      set_cPort(port)
-      set_cRepeat(1)
+      const topPort = getFrames_(port)!.top_
+      port = topPort && !(topPort.s.flags_ & Frames.Flags.ResReleased) ? topPort : port
+      set_cEnv(null)
       executeCommand(makeCommand_("copyCurrentUrl", opts), 1, cKey, port, 1
           , oriOptions.$f && {c: oriOptions.$f, r: oriOptions.$retry, u: 0, w: 0 })
       return
