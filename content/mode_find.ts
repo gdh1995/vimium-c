@@ -959,9 +959,10 @@ const scrollSelectionAfterFind = (par: Element, newAnchor: Element | 0, sel: Sel
       let textBoxRect: Rect | 1 | false | 0 | null | void = !kMayInTextBox ? null : textStyle && noFocus
           && (getZoom_(newAnchor as TextElement), prepareCrop_(), 1)
   let context: CanvasRenderingContext2D, widthOrEnd: number
-  const oldInvisibility = +isSafeEl_(par) && view_(par as SafeElement, !textBoxRect)
+  const oldInvisibility = isSafeEl_(par) && (OnEdge || kMayInTextBox && isTY(textStyle, kTY.obj)
+      ? view_(par) : noFocus && isNotInViewport(par))
   textBoxRect = kMayInTextBox ? textBoxRect && boundingRect_(newAnchor as TextElement) : null
-  if (kMayInTextBox && textStyle && textStyle !== 1) {
+  if (kMayInTextBox && isTY(textStyle, kTY.obj)) {
         context = (canvas = canvas || createElement_("canvas")).getContext("2d")!
         const full = (newAnchor as TextElement).value.slice(0
             , textOffset_(newAnchor as TextElement, VisualModeNS.kDir.right)!)
@@ -986,7 +987,8 @@ const scrollSelectionAfterFind = (par: Element, newAnchor: Element | 0, sel: Sel
     const scX = (ltr ? 1 : -1) * max_(0, start - max_width / 2) + baseScPosX
     const scY = max_(0, top - (textStyle[3] - textStyle[1]) / 2)
     if (OnChrome && Build.MinCVer < BrowserVer.Min$ScrollBehavior$$Instant$InJS
-        && oldInvisibility && isNotInViewport(newAnchor as TextElement)) { /* empty */ }
+        && oldInvisibility && chromeVer_ < BrowserVer.Min$ScrollBehavior$$Instant$InJS
+        && isNotInViewport(newAnchor as TextElement)) { /* empty */ }
     else if ((OnChrome ? Build.MinCVer >= BrowserVer.MinEnsuredCSS$ScrollBehavior : !OnEdge)
         || (newAnchor as Element).scrollTo) {
       (newAnchor as TextElement).scrollTo(instantScOpt(scX, scY))
@@ -1014,7 +1016,7 @@ const scrollSelectionAfterFind = (par: Element, newAnchor: Element | 0, sel: Sel
   }
   if (textBoxRect = !textStyle && noFocus ? getSelectionBoundingBox_(sel, 1) : textBoxRect) {
     removeFlash && removeFlash()
-    set_removeFlash(flash_(null, textBoxRect, oldInvisibility && 1e3, " Sel"))
+    set_removeFlash(flash_(null, textBoxRect, +oldInvisibility && (800 + GlobalConsts.DefaultRectFlashTime), " Sel"))
   }
   specialFixForTransparent && (styleSelColorOut!.disabled = !0)
 }
