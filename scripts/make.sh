@@ -33,7 +33,7 @@ if bool "$IN_DIST" && [ -d "${ZIP_BASE}dist" -a -f "${ZIP_BASE}dist/manifest.jso
 elif [ -n "$ZIP_INPUT" ]; then
   input=($ZIP_INPUT)
 elif bool "$IN_DIST"; then
-  echo "No generator extension in ./dist !" 1>&2
+  echo "No generated extension in ./dist !" 1>&2
   exit 1
 fi
 has_mod=

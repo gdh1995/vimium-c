@@ -437,8 +437,8 @@ export const view_ = (el: SafeElement, allowSmooth?: BOOL | boolean, oldY?: numb
     const kBh = "scroll-behavior"
     const top = OnChrome && Build.MinCVer < BrowserVer.Min$ScrollBehavior$$Instant$InJS
         && chromeVer_ < BrowserVer.Min$ScrollBehavior$$Instant$InJS
-        && !allowSmooth && (Build.MinCVer > BrowserVer.MinScrollIntoViewOptions
-        || chromeVer_ > BrowserVer.MinScrollIntoViewOptions) && scrollingEl_(1)
+        && !allowSmooth && (Build.MinCVer >= BrowserVer.MinScrollIntoViewOptions
+        || chromeVer_ > BrowserVer.MinScrollIntoViewOptions - 1) && scrollingEl_(1)
     const style = top && getComputedStyle_(top)[kBh as "scrollBehavior"] === "smooth"
         && (top as TypeToPick<Element, HTMLElement, "style">).style
     const oldCss = style && style.cssText
