@@ -50,20 +50,6 @@ export const onPortRes_ = function<k extends keyof FgRes> (response: Omit<Req.re
 }
 
 export const safePost = <k extends keyof FgReq> (request: FgReq[k] & Req.baseFg<k>): void => {
-  if (!(Build.NDEBUG && Build.Mangle) && Build.BTypes === BrowserType.Chrome as number
-      && Build.MinCVer >= BrowserVer.Min$runtime$$id$GetsUndefinedOnTurnOff) {
-    if (!port_) {
-      const r = chrome.runtime
-      if (!r || !r.id) {
-        safeDestroy()
-        return
-      }
-      runtimeConnect();
-      injector && timeout_((): void => { port_ || safeDestroy(); }, 50);
-    }
-    post_(request)
-    return
-  }
   try {
     if (!port_) {
       if (OnChrome && (Build.MinCVer >= BrowserVer.Min$runtime$$id$GetsUndefinedOnTurnOff
