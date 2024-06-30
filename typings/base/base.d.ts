@@ -205,6 +205,11 @@ declare namespace chrome.scripting {
   export function registerContentScripts(scripts: RegisteredContentScript[]): Promise<void>
 }
 
+declare namespace chrome.search {
+  export function query(queryInfo: { disposition?: "CURRENT_TAB" | "NEW_TAB" | "NEW_WINDOW", text: string }): 1;
+  export function search(queryInfo: { query: string, tabId?: number }): 1;
+}
+
 declare namespace chrome.storage {
   var session: LocalStorageArea & {
     setAccessLevel (level: "TRUSTED_AND_UNTRUSTED_CONTEXTS" | "TRUSTED_CONTEXTS"): Promise<void>

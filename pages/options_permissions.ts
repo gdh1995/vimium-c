@@ -67,7 +67,7 @@ const placeholder = <true> !OnEdge && $<HTMLTemplateElement & EnsuredMountedHTML
 const template = <true> !OnEdge && placeholder.content.firstElementChild as HTMLElement
 const container = <true> !OnEdge && placeholder.parentElement
 const navPermissionTip = (Build.MV3 as BOOL) && OnChrome ? $<SafeHTMLElement>("#navPermissionTip") : null
-const gotoCrSC = (Build.MV3 as BOOL) && OnChrome ? $<SafeHTMLElement>("#gotoCrSC") : null
+const gotoCrSC = (Build.MV3 as BOOL) && OnChrome ? $<HTMLAnchorElement>("#gotoCrSC") : null
 const shownItems: PermissionItem[] = []
 export const manifest_ = browser_.runtime.getManifest() as Readonly<chrome.runtime.Manifest>
 let optional_permissions = (!OnEdge && manifest_.optional_permissions || []) as readonly kBrowserPermission[]
@@ -223,7 +223,13 @@ const initOptionalPermissions = (): void => {
   }
   container.appendChild(fragment)
   delayBinding_(container, "input", onInput, true)
-  gotoCrSC && delayBinding_(gotoCrSC, "click", onCrUrlClick, true)
+  if (gotoCrSC) {
+    delayBinding_(gotoCrSC, "click", onCrUrlClick, true)
+    if (OnChrome && IsEdg_) {
+      gotoCrSC.textContent = gotoCrSC.textContent.replace("chrome:", "edge:")
+      gotoCrSC.href = gotoCrSC.href.replace("chrome:", "edge:")
+    }
+  }
 }
 
 const doPermissionsContain_ = (item: PermissionItem): Promise<void> => {

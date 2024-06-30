@@ -11,8 +11,8 @@
   "httpVomnibar" :
     "Une page HTTP de Vomnibar est limitée par le navigateur et ne fonctionne pas sur les pages HTTPS.",
   "beforeChromium": "sur navigateurs Chromium avant v$1",
-  "lackPermission": "pour manquer de permissions$1",
-  "invalidOption": "Cette option est invalide $1",
+  "lackPermission": "pour manquer de permissions $1",
+  "invalidOption": "Cette fonctionnalité ne peut pas fonctionner $1",
   "manageShortcut": "\"Paramétrer les raccourcis\" dans \"le menu Outils\" de ",
   "addons": "Extensions Firefox",
   "webstore": "Chrome Web Store",

@@ -562,6 +562,7 @@ declare const enum BrowserVer {
   // replaced by MinExtraGutterInBoxIfScrollbarIsVisible
   MinNoExtraScrollbarWidthIfScrollStyleIsOverlay = 87, // replace MinExtraScrollbarWidthIfScrollStyleIsOverlay
   MinCSS$quotes$$auto = 87,
+  Min$search$$query = 87,
   MinMaybeScrollbarGutter = 88, // since 94 if not EXP but even LEGACY
   Min$TargetIsBlank$Implies$Noopener = 88, // https://chromestatus.com/features/6140064063029248
   MinEnsuredCSS$is$selector = 88, // even if LEGACY; since C68 if EXP
@@ -631,6 +632,7 @@ declare const enum FirefoxBrowserVer {
   MinEnsuredShadowDOMV1 = 63, // also DocumentOrShadowRoot::getSelection
   MinMaybeUsable$navigator$$clipboard = 63, // under the control of `dom.events.asyncClipboard`
   MinMediaQuery$PrefersReducedMotion = 63,
+  Min$search$$search = 63,
   Min$Document$$FullscreenElement = 64, // under the control of `full-screen-api.unprefix.enabled` on about:config
   // Min$globalThis = 65, // should not export `globalThis` into the outside
   Min$find$NotReturnFakeTrueOnPlaceholderAndSoOn = 65,
@@ -688,6 +690,7 @@ declare const enum FirefoxBrowserVer {
   MinWeakRefReliableForDom = 105, // https://bugzilla.mozilla.org/show_bug.cgi?id=1782936
   MinEnsuredES$TopLevelAwait = 108, // javascript.options.experimental.top_level_await
   MinMaybeScrollEndEvent = 109, // apz.scrollend-event.content.enabled
+  Min$search$$query = 111,
   MinMaybe$navigator$$userAgentData = 116, // a fake version number
   MinEnsured$visualViewport$ = 119,
   // members of a Selection are never updated when an <input> gets focused, so no work-around

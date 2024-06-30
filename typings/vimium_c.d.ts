@@ -221,6 +221,7 @@ declare const enum ReuseType {
   /** @deprecated */ newWindow = newWnd,
   frame = 3,
   newFg = -1,
+  newTab = -1,
   newBg = -2,
   reuseInCurWnd = -3,
   OFFSET_LAST_WINDOW = -4,
@@ -235,7 +236,7 @@ declare const enum ReuseType {
 }
 type ValidReuseNames = Exclude<keyof typeof ReuseType, "MAX" | "MIN" | "OFFSET_LAST_WINDOW" | "Default">
 declare type UserReuseType = ReuseType | boolean | ValidReuseNames
-    | "newwindow" | "new-window" | "newwnd" | "new-wnd" | "newfg" | "new-fg" | "newbg" | "new-bg"
+    | "newwindow" | "new-window" | "newwnd" | "new-wnd" | "newfg" | "new-fg" | "newbg" | "new-bg" | "new-tab" | "newtab"
     | "lastwndfg" | "lastwnd" | "last-wnd-fg" | "last-wnd" | "lastwndbg" | "last-wnd-bg" | "if-last-wnd" | "iflastwnd"
     | "last-wnd-bgbg" | "lastwndbgbg" | "last-wnd-bg-inactive" | "lastwndbginactive"
     | "reuse-in-cur-wnd" | "reuseincurwnd"

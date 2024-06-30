@@ -370,6 +370,7 @@ saladict@crimx.com`
     notifyUpdate: true,
     omniBlockList: "",
     passEsc: "[aria-controls],[role=combobox],#kw.s_ipt", // MS Bing / Google / Baidu
+    preferBrowserSearch: true,
     previousPatterns: "\u4e0a\u4e00\u5c01,\u4e0a\u9875,\u4e0a\u4e00\u9875,\u4e0a\u4e00\u7ae0,\u524d\u4e00\u9875\
 ,\u4e0a\u4e00\u5f20,prev,previous,back,older,<,\u2039,\u2190,\xab,\u226a,<<",
     regexFindMode: false,
@@ -385,6 +386,9 @@ bi|bing|Bing|\u5fc5\u5e94: https://cn.bing.com/search?q=%s \\
 g|go|gg|google|Google|\u8c37\u6b4c: https://www.google.com/search?q=%s\\
   www.google.com re=/^(?:\\.[a-z]{2,4})?\\/search\\b.*?[#&?]q=([^#&]*)/i\\
   blank=https://www.google.com/ Google
+sogou|sougou: https://www.sogou.com/web?ie=UTF-8&query=$s \u641c\u72d7
+360so|360sou|360ss: https://www.so.com/s?ie=UTF-8&q=$s 360 \u641c\u7d22
+shenma: https://m.sm.cn/s?q=$s \u795e\u9a6c\u641c\u7d22
 br|brave: https://search.brave.com/search?q=%s Brave
 d|dd|ddg|duckduckgo: https://duckduckgo.com/?q=%s DuckDuckGo
 ec|ecosia: https://www.ecosia.org/search?q=%s Ecosia
@@ -436,6 +440,8 @@ b|ba|baidu|\u767e\u5ea6: https://www.baidu.com/s?ie=utf-8&wd=%s \\
 g|go|gg|google|Google: https://www.google.com/search?q=%s \\
   www.google.com re=/^(?:\\.[a-z]{2,4})?\\/search\\b.*?[#&?]q=([^#&]*)/i\\
   blank=https://www.google.com/ Google
+sg|sogou|sougou: https://www.sogou.com/web?ie=UTF-8&query=$s \u641c\u72d7
+360|360so|360sou|360ss: https://www.so.com/s?ie=UTF-8&q=$s 360 \u641c\u7d22
 br|brave: https://search.brave.com/search?q=%s Brave
 d|dd|ddg|duckduckgo: https://duckduckgo.com/?q=%s DuckDuckGo
 ec|ecosia: https://www.ecosia.org/search?q=%s Ecosia

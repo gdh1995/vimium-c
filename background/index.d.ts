@@ -23,6 +23,7 @@ declare namespace Search {
 declare namespace Urls {
   const enum kEval {
     math = 0, copy = 1, search = 2, ERROR = 3, status = 4, paste = 5, run = 6, plainUrl = 7, run1 = 8,
+    browserSearch = 9,
   }
 
   interface BaseEvalResult extends Array<any> {
@@ -308,6 +309,7 @@ declare namespace SettingsNS {
     nextPatterns: string;
     notifyUpdate: boolean;
     previousPatterns: string;
+    preferBrowserSearch: boolean
     searchUrl: string;
     searchEngines: string;
     showActionIcon: boolean;

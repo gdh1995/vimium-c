@@ -99,7 +99,7 @@
           <textarea id="keyMappings" class="code" inputmode="text" data-model="Text" data-check=""
             placeholder="# Insert your preferred key mappings here."></textarea>
           <div class="info">
-            <span data-i="16_2">The related option "</span><label data-for="#keyLayout:#alwaysIgnore,#ignoreIfNotASCII"
+            <span data-i="16_2">The related "</span><label data-for="#keyLayout:#alwaysIgnore,#ignoreIfNotASCII"
                 class="ref-text name-of-related" role="link" for="alwaysIgnore">Always ignore keyboard layout</label><span
                 data-i="16_3"
               >" is </span><span class="status-of-related">enabled</span><span data-i="16_4"></span>
@@ -136,7 +136,7 @@ shortcut userCustomized1 command="goBack"
               data-vim-url data-href="vimium://wiki" data-i="20_3">How to &#8230;?
           </a>
           <br><span data-i="21">Global shortcuts</span><span data-i="22"> are
-            on </span><a id="openExtensionsPage" href="chrome://extensions/shortcuts"
+            on </span><a id="openExtensionsPage" href="chrome://extensions/shortcuts" target="_blank"
             >chrome://extensions/&#8230;</a><span data-i="23">; </span><a id="shortcutHelper"
               target="_blank" rel="noopener noreferrer" aria-haspopup="true"
               href="https://chrome.google.com/webstore/detail/shortcut-forwarding-tool/clnalilglegcjmlgenoppklmfppddien"
@@ -152,7 +152,7 @@ shortcut userCustomized1 command="goBack"
             /><input id="linkHintNumbers" type="text" data-model="NonEmptyText"
             data-converter="lower chars" class="code" style="display: none;" autocomplete="off" />
           <div class="info">
-            <span data-i="16_2">The related option "</span><label data-for="#filterLinkHints" for="filterLinkHints"
+            <span data-i="16_2">The related "</span><label data-for="#filterLinkHints" for="filterLinkHints"
                 class="ref-text" role="link" data-i="37_2">Use link name</label><span data-i="16_3"
               >" is </span><span class="status-of-related">enabled</span><span
                 data-i="16_4"></span><span data-i="semicolon">;</span><span data-i="NS">
@@ -163,11 +163,18 @@ shortcut userCustomized1 command="goBack"
           The characters placed next to each link after typing "f" to enter link-hint mode.
         </div></td>
       </tr>
-      <tr id="searchUrlBox">
+      <tr>
         <td class="caption" data-i="29">Default search engine</td>
         <td>
           <input id="searchUrl" type="text" inputmode="url" data-model="NonEmptyText" data-check="" autocomplete="off"/>
-          <div class="info" data-i="nonEmpty">Delete all to reset this option.</div>
+          <div class="info">
+            <span data-i="16_2">The related "</span><label
+                data-for="#preferBrowserSearch" for="preferBrowserSearch"
+                class="ref-text" role="link" data-i="58_2">Prefer browser's engine</label><span data-i="16_3"
+              >" is </span><span class="status-of-related">enabled</span><span
+                data-i="16_4"></span><span data-i="semicolon">;</span><span data-i="NS">
+            </span><span data-i="nonEmpty">Delete all to reset this option.</span>
+          </div>
         </td>
         <td class="help"><div class="help-inner line-input">
           <span data-i="30">Used when no search engine (or "</span><kbd>~</kbd><span data-i="31">") matched.</span>
@@ -371,7 +378,7 @@ key: https://c.com/$s/space=\s\ space_end
                 data-href="vimium://wiki/Using-Link-Hints">Online help</a><span data-i="period">.</span>
           </div></td>
         </tr>
-        <tr id="waitForEnterBox">
+        <tr>
           <td class="caption"></td>
           <td>
             <label class="booleanOption" tabindex="-1" aria-hidden="true">
@@ -432,6 +439,22 @@ key: https://c.com/$s/space=\s\ space_end
           </td>
           <td class="help"><div class="help-inner line-help" data-i="58">
             When enabled, the HUD will not be displayed in insert mode, just like a parameter of `hideHUD=true`.
+          </div></td>
+        </tr>
+        <tr>
+          <td class="caption"></td>
+          <td>
+            <label class="booleanOption" tabindex="-1" aria-hidden="true">
+              <input id="preferBrowserSearch" type="checkbox" tabindex="-1" aria-hidden="true" data-model="Boolean"
+                  data-permission="C87,F63" />
+              <span data-i="58_3" class="checkboxHint" role="checkbox" tabindex="0" aria-hidden="false"
+                >Prefer the browser's default search engine</span>
+            </label>
+          </td>
+          <td class="help"><div class="help-inner line-help">
+            <span data-i="58_4">If simply search words, prefer the browser's default search engine. </span><span
+                data-i="22">See </span><a id="browserSettingsSearch" href="chrome://settings/search" target="_blank"
+                >chrome://settings/search</a><span data-i="period">.</span>
           </div></td>
         </tr>
         <tr>
@@ -512,7 +535,7 @@ key: https://c.com/$s/space=\s\ space_end
             Need to reload Vimium C manually.
           </div></td>
         </tr>
-        <tr id="newTabUrlBox">
+        <tr>
           <td class="caption" data-i="25">New tab URL</td>
           <td>
             <input id="newTabUrl" type="text" inputmode="url" data-model="NonEmptyText" data-check autocomplete="off" />

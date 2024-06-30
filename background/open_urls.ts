@@ -2,7 +2,7 @@ import {
   framesForTab_, cPort, cRepeat, get_cOptions, set_cOptions, set_cPort, set_cRepeat, set_cEnv, runOneMapping_,
   lastWndId_, curIncognito_, curTabId_, curWndId_, recencyForTab_, vomnibarBgOptions_, OnFirefox, OnChrome, OnEdge,
   CurCVer_, IsEdg_, paste_, substitute_, newTabUrls_, os_, CONST_, shownHash_, set_shownHash_, newTabUrl_f,
-  innerClipboard_
+  innerClipboard_, settingsCache_, CurFFVer_
 } from "./store"
 import * as BgUtils_ from "./utils"
 import {
@@ -11,7 +11,7 @@ import {
   Windows_, tabsCreate, openMultiTabs, selectWndIfNeed, makeWindow, browser_, Q_
 } from "./browser"
 import {
-  convertToUrl_, createSearchUrl_, hasUsedKeyword_, lastUrlType_, quotedStringRe_, reformatURL_
+  convertToUrl_, createSearchUrl_, hasUsedKeyword_, lastUrlType_, quotedStringRe_, reformatURL_, resetLastUrlType_
 } from "./normalize_urls"
 import { findUrlEndingWithPunctuation_, findUrlInText_ } from "./parse_urls"
 import { safePost, showHUD, complainLimits, findCPort, isNotVomnibarPage, getCurFrames_, showHUDEx } from "./ports"
@@ -35,7 +35,7 @@ const ReuseValues: {
       K extends keyof typeof ReuseType ? (typeof ReuseType)[K] : never
 } = {
   current: ReuseType.current, reuse: ReuseType.reuse, newwnd: ReuseType.newWnd, frame: ReuseType.frame,
-  newbg: ReuseType.newBg, lastwndfg: ReuseType.lastWndFg, lastwnd: ReuseType.lastWndFg,
+  newtab: ReuseType.newFg, newbg: ReuseType.newBg, lastwndfg: ReuseType.lastWndFg, lastwnd: ReuseType.lastWndFg,
   lastwndbg: ReuseType.lastWndBg, iflastwnd: ReuseType.ifLastWnd, reuseincurwnd: ReuseType.reuseInCurWnd,
   lastwndbgbg: ReuseType.lastWndBgInactive, lastwndbginactive: ReuseType.lastWndBgInactive
 }
@@ -117,6 +117,13 @@ const onEvalUrl_ = (workType: Urls.WorkType, options: KnownOptions<C.openUrl>, t
     if (workType >= Urls.WorkType.EvenAffectStatus && arr[0]) {
       runNextCmdBy(1, options as {})
     }
+    break
+  case Urls.kEval.browserSearch:
+    runNextCmdBy(1, options as {})
+    break
+  case Urls.kEval.ERROR:
+    showHUD((arr as Urls.ErrorEvalResult)[0], kTip.raw)
+    runNextCmdBy(0, options as {})
     break
   case Urls.kEval.run:
     const cmd = (arr as Urls.RunEvalResult)[0]
@@ -778,10 +785,11 @@ export const openUrlReq = (request: FgReq[kFgReq.openUrl], port?: Port | null): 
   opts.incognito = normalizeIncognito(o2.i) != null ? o2.i : mode1 === HintMode.OPEN_INCOGNITO_LINK || null
   opts.replace = o2.m
   opts.position = o2.p
-  opts.reuse = o2.r != null ? o2.r : !hintMode ? request.r
+  const reuse = o2.r != null ? o2.r : !hintMode ? request.r
       : request.t === "window" ? ReuseType.newWnd
       : (hintMode & HintMode.queue ? ReuseType.newBg : ReuseType.newFg)
         + (request.t === "last-window" ? ReuseType.OFFSET_LAST_WINDOW : 0)
+  opts.reuse = reuse
   opts.window = o2.w
   if (url || !isWeb) {
     if (url[0] === ":" && !isWeb && (<RegExpOne> /^:[bhtwWBHdso]\s/).test(url)) {
@@ -791,21 +799,29 @@ export const openUrlReq = (request: FgReq[kFgReq.openUrl], port?: Port | null): 
         : formatted ? SedContext.pageURL : SedContext.pageText
     url = testUrl ? findUrlEndingWithPunctuation_(url, formatted) : url
     url = substitute_(url, context, sed, exOut)
-    let converted: boolean, keyword = exOut.keyword_ ?? rawKeyword
+    let keyword = exOut.keyword_ ?? rawKeyword
+    let beforeConversion = url.trim()
+    resetLastUrlType_()
     if (formatted && !keyword) {
-      url = (converted = url !== originalUrl) ? convertToUrl_(url, null, Urls.WorkType.ConvertKnown) : url
-    } else if (converted = !!testUrl || !isWeb && !keyword) {
-      url = testUrl ? findUrlInText_(url, testUrl) : url
-      url = convertToUrl_(url, keyword, isWeb ? Urls.WorkType.ConvertKnown : Urls.WorkType.EvenAffectStatus)
+      url = url !== originalUrl ? convertToUrl_(beforeConversion, null, Urls.WorkType.ConvertKnown) : beforeConversion
+    } else if (!!testUrl || !isWeb && !keyword) {
+      beforeConversion = testUrl ? findUrlInText_(beforeConversion, testUrl) : beforeConversion
+      url = convertToUrl_(beforeConversion, keyword,isWeb ? Urls.WorkType.ConvertKnown : Urls.WorkType.EvenAffectStatus)
     } else {
-      url = createSearchUrl_(url.trim().split(BgUtils_.spacesRe_), keyword
+      url = createSearchUrl_(beforeConversion.split(BgUtils_.spacesRe_), keyword
           , keyword && keyword !== "~" ? Urls.WorkType.ConvertKnown : Urls.WorkType.Default)
-      converted = hasUsedKeyword_
-      url = !converted ? url : convertToUrl_(url as string, null, (url as string).startsWith("vimium:")
-                ? Urls.WorkType.EvenAffectStatus : Urls.WorkType.Default)
+      url = !hasUsedKeyword_ ? url : convertToUrl_(beforeConversion = url as string, keyword = ""
+          , (url as string).startsWith("vimium:") ? Urls.WorkType.EvenAffectStatus : Urls.WorkType.Default)
     }
-    if (!converted) { /* empty */ }
-    else if ((lastUrlType_ === Urls.Type.NoScheme || lastUrlType_ === Urls.Type.NoProtocolName) && request.h != null) {
+    if (lastUrlType_ === Urls.Type.Search && !keyword && settingsCache_.preferBrowserSearch
+        && (OnChrome ? Build.MinCVer >= BrowserVer.Min$search$$query || CurCVer_ > BrowserVer.Min$search$$query - 1
+            : OnFirefox ? (Build.MinFFVer >= FirefoxBrowserVer.Min$search$$search
+                || CurFFVer_ > FirefoxBrowserVer.Min$search$$search - 1)
+            : !OnEdge && browser_.search)) {
+      url = `vimium://browser-search.at/${reuse}/${beforeConversion}`
+      url = convertToUrl_(url, null, Urls.WorkType.ActAnyway)
+    }
+    if ((lastUrlType_ === Urls.Type.NoScheme || lastUrlType_ === Urls.Type.NoProtocolName) && request.h != null) {
       url = (request.h ? "https" : "http") + (url as string).slice((url as string)[4] === "s" ? 5 : 4)
     } else if (lastUrlType_ === Urls.Type.PlainVimium && (url as string).startsWith("vimium:")
         && !originalUrl.startsWith("vimium://")) {

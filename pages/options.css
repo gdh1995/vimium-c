@@ -680,6 +680,7 @@ label:active {
 @media (max-width: 999.99px) {
   .booleanOption.innerLine > .checkboxHint {
     font-size: 12px;
+    vertical-align: top;
   }
 }
 @media (max-width: 879.99px) and (min-width: 550px) {

@@ -2,7 +2,7 @@ import { kPgReq } from "../background/page_messages"
 import {
   CurCVer_, CurFFVer_, OnFirefox, OnChrome, OnEdge, $, $$, post_, disconnect_, isVApiReady_, simulateClick_, PageOs_,
   toggleDark_, browser_, selfTabId_, enableNextTick_, nextTick_, kReadyInfo, IsEdg_, import2_, BrowserName_, pageTrans_,
-  isRepeated_, prevent_
+  isRepeated_, prevent_, pageLangs_
 } from "./async_bg"
 import {
   bgSettings_, type KnownOptionsDataset, showI18n_, setupBorderWidth_, Option_, AllowedOptions, debounce_, oTrans_,
@@ -54,6 +54,16 @@ delayBinding_(saveBtn_, "click", ((virtually): void => {
 }) as SaveBtn["onclick"] as (ev: Event) => void, "on")
 
 const refreshSync = (): void => { post_(kPgReq.saveToSyncAtOnce) }
+
+const onClickBrowserLink = (event: EventToPrevent): void => {
+  prevent_(event)
+  if (OnFirefox) {
+    VApi ? VApi.h(kTip.raw, 0, oTrans_("haveToOpenManually"))
+    : alert(oTrans_("haveToOpenManually"))
+  } else {
+    void post_(kPgReq.focusOrLaunch, { u: (event.target as HTMLAnchorElement).href, p: true })
+  }
+}
 
 let optionsInit1_ = function (): void {
   Option_.suppressPopulate_ = false
@@ -134,6 +144,7 @@ let optionsInit1_ = function (): void {
         if (OnChrome ? CurCVer_ >= parseInt(key.slice(1)) : key.includes("nonC")) { continue }
         const secondCond = key.split(",", 2)[1] || ","
         if (secondCond[0] === "." ? (window as Dict<any>)[secondCond.slice(1)] != null
+            : secondCond[0] === "F" ? OnFirefox && CurFFVer_ >= parseInt(secondCond.slice(1))
             : secondCond[0] === "(" && matchMedia(secondCond).matches) { continue }
         if (!OnChrome && secondCond[0] === ".") {
           nextTick_((el2): void => { el2.style.display = "none" }, el.parentElement as HTMLElement)
@@ -153,6 +164,7 @@ let optionsInit1_ = function (): void {
           (el1 as SafeHTMLElement as EnsuredMountedHTMLElement).nextElementSibling.tabIndex = -1;
           el1 = el1.parentElement as HTMLElement;
           el1.title = str
+          el1.querySelector("span")!.style.textDecoration = "line-through"
         } else {
           (el1 as TextElement).value = "";
           el1.title = str;
@@ -195,15 +207,24 @@ let optionsInit1_ = function (): void {
   document.onmouseover = FillDataHref
   document.addEventListener("vimiumData", FillDataHref)
 
-  const openExt = $<HTMLAnchorElement>("#openExtensionsPage");
+  const browserLinks = ["#openExtensionsPage", "#browserSettingsSearch"].map($<HTMLAnchorElement>)
   if (OnChrome && Build.MinCVer < BrowserVer.MinEnsuredChromeURL$ExtensionShortcuts
       && CurCVer_ < BrowserVer.MinEnsuredChromeURL$ExtensionShortcuts) {
-    nextTick_((el): void => { el.href = "chrome://extensions/configureCommands" }, openExt)
+    nextTick_((arr): void => {
+      arr[0].href = "chrome://extensions/configureCommands"
+      const href1 = arr[1].href = "chrome://settings/searchEngines"
+      arr[1].textContent = pageLangs_ === "en" ? "chrome://settings/\u2026" : href1
+    }, browserLinks)
   } else if (OnChrome && IsEdg_) {
-    nextTick_((el): void => { const s = "edge://extensions/";
-        el.href = s + "shortcuts", el.textContent = s + "\u2026" }, openExt)
+    nextTick_((arr): void => {
+      const s = "edge://extensions/", el = arr.shift()!
+      for (const i of arr) {
+        i.textContent = i.href = i.href.replace("chrome:", "edge:")
+      }
+      el.href = s + "shortcuts", el.textContent = s + "\u2026"
+    }, browserLinks)
   } else if (OnFirefox) {
-    nextTick_(([el, el2, el3]): void => {
+    nextTick_(([el, el2, el3, el4]): void => {
       el.textContent = el.href = "about:addons";
       const el1 = el.parentElement as HTMLElement, prefix = GlobalConsts.FirefoxAddonPrefix;
       const MS = "manageShortcut", MS2 = `${MS}_2` as const
@@ -213,8 +234,15 @@ let optionsInit1_ = function (): void {
           : el1.insertBefore(new Text(oTrans_(MS2)), el.nextSibling) // lgtm [js/superfluous-trailing-arguments]
       el2.href = prefix + "shortcut-forwarding-tool/?src=external-vc-options";
       el3.href = prefix + "newtab-adapter/?src=external-vc-options";
-    }, [openExt, $<HTMLAnchorElement>("#shortcutHelper"), $<HTMLAnchorElement>("#newTabAdapter")] as const);
+      el4.textContent = el4.href = "about:preferences#search"
+    }, [browserLinks[0], $<HTMLAnchorElement>("#shortcutHelper"), $<HTMLAnchorElement>("#newTabAdapter")
+        , browserLinks[1]] as const)
   }
+  nextTick_((arr): void => {
+    for (const i of arr) {
+      delayBinding_(i, "click", onClickBrowserLink)
+    }
+  }, browserLinks)
 
   if (OnFirefox || OnChrome) {
     nextTick_((el): void => {
@@ -553,15 +581,6 @@ void post_(kPgReq.whatsHelp).then((matched): void => {
   matched !== "?" && nextTick_(([el, s]): void => { el.textContent = s }, [$("#questionShortcut"), matched] as const)
 })
 
-delayBinding_("#openExtensionsPage", "click", (event: EventToPrevent): void => {
-    prevent_(event)
-    if (OnFirefox) {
-      VApi ? VApi.h(kTip.raw, 0, oTrans_("haveToOpenManually"))
-      : alert(oTrans_("haveToOpenManually"))
-    } else {
-      void post_(kPgReq.focusOrLaunch, { u: (event.target as HTMLAnchorElement).href, p: true })
-    }
-})
 delayBinding_(document, "click", function onClickOnce(): void {
   const api1 = VApi, misc = api1 && api1.y()
   if (!misc || !misc.r) { return; }
