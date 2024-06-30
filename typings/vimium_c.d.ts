@@ -263,6 +263,7 @@ declare namespace Frames {
     otherExtension = 128, isVomnibar = 256, ResReleased = 512, OldEnough = 1024, SOURCE_WARNED = 2048,
     UrlUpdated = 0x1000, SettingsUpdated = 0x2000, CssUpdated = 0x4000, KeyMappingsUpdated = 0x8000,
     KeyFSMUpdated = 0x10000, MASK_UPDATES = 0x1f000, HadIFrames = 0x20000, hadHelpDialog = 0x40000,
+    Refreshing = 0x80000,
   }
   const enum NextType {
     next = 0, Default = next, parent = 1, current = 2,

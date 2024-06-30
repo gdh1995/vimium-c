@@ -550,7 +550,7 @@ export const getParentFrame = (tabId: number, curFrameId: number, level: number)
 }
 
 const tryToKeepAlive = (rawNotFromInterval: BOOL): KKeep | void => {
-  const now = performance.now(), isFromInterval = !Build.MV3 || OnFirefox || rawNotFromInterval !== 1
+  const now = performance.now(), isFromInterval = !(Build.MV3 && !OnFirefox && rawNotFromInterval)
   if (Build.MV3 && !OnFirefox && !kAliveIfOnlyAnyAction && _timeoutToTryToKeepAliveOnce_mv3_non_ff) {
     isFromInterval && clearTimeout(_timeoutToTryToKeepAliveOnce_mv3_non_ff)
     _timeoutToTryToKeepAliveOnce_mv3_non_ff = 0
@@ -684,16 +684,35 @@ export const tryToKeepAliveIfNeeded_mv3_non_ff = (removedTabId: number): void =>
 }
 
 export const refreshPorts_ = (frames: Frames.Frames, forced: BOOL): void => {
-  if (!(frames.flags_ & Frames.Flags.HadIFrames) && !isNotPriviledged(frames.cur_)) { return }
-  if (!Build.NDEBUG && DEBUG) {
-    console.log("refresh ports: tab=%o, forced=%o, flags=%o, ports=%o @ %o", frames.cur_.s.tabId_, forced
-        , frames.flags_, frames.ports_.length, Date.now() % 9e5)
+  let flags = frames.flags_
+  if (flags & Frames.Flags.Refreshing || !((flags & Frames.Flags.HadIFrames) || isNotPriviledged(frames.cur_))) {
+    if (!Build.NDEBUG && DEBUG && flags & Frames.Flags.Refreshing) {
+      console.log("refresh ports: [de-dup] tab=%o, forced=%o, flags=%o, ports=%o @ %o", frames.cur_.s.tabId_, forced
+          , flags, frames.ports_.length, Date.now() % 9e5)
+    }
+    return
   }
-  executeScript_(frames.cur_.s.tabId_, -1, null, (_: 0, updates: number): void => { // @ts-ignore
+  const tabId = frames.cur_.s.tabId_
+  if (!Build.NDEBUG && DEBUG) {
+    console.log("refresh ports: tab=%o, forced=%o, flags=%o, ports=%o @ %o", tabId, forced
+        , flags, frames.ports_.length, Date.now() % 9e5)
+  }
+  executeScript_(tabId, -1, null, (_: 0, updates: number): void => { // @ts-ignore
     typeof VApi === "object" && VApi && (VApi as Frames.BaseVApi)
       .q(0, updates) // Frames.RefreshPort
-  }, [0, PortType.refreshInBatch | (forced ? PortType.reconnect : 0) | (frames.flags_ & Frames.Flags.MASK_UPDATES)])
-  frames.flags_ &= ~(Frames.Flags.ResReleased | Frames.Flags.MASK_UPDATES | Frames.Flags.HadIFrames)
+  }, [0, PortType.refreshInBatch | (forced ? PortType.reconnect : 0) | (flags & Frames.Flags.MASK_UPDATES)], () => {
+    const new_frames = framesForTab_.get(tabId)
+    if (!Build.NDEBUG && DEBUG) {
+      console.log("refresh ports: [done] tab=%o, flags=%o, ports=%o @ %o", tabId, flags
+          , new_frames && new_frames.ports_.length, Date.now() % 9e5)
+    }
+    if (new_frames) {
+      new_frames.flags_ &= ~Frames.Flags.Refreshing
+    }
+    return runtimeError_()
+  })
+  flags &= ~(Frames.Flags.ResReleased | Frames.Flags.MASK_UPDATES | Frames.Flags.HadIFrames)
+  frames.flags_ = flags | Frames.Flags.Refreshing
 }
 
 const _recoverStates = (frames: Frames.Frames | undefined, port: Port, type: PortType | Frames.Flags): void => {
@@ -754,7 +773,8 @@ if (Build.MV3 && !OnFirefox && kAliveIfOnlyAnyAction) {
     const findAlivePort = (ref: Frames.Frames | undefined): Port | null => {
       const i = !ref || !ref.ports_.length ? null : !(ref.cur_.s.flags_ & Frames.Flags.ResReleased) ? ref.cur_
         : ref.top_ || ref.ports_[0]
-      return i && i.s.url_.startsWith("http") && !(i.s.flags_ & Frames.Flags.ResReleased) ? i : null
+      return i && !(i.s.flags_ & Frames.Flags.ResReleased)
+          && (i.s.url_.startsWith("http") || i.s.url_.startsWith("file:")) ? i : null
     }
     const curTabId = curTabId_
     let port = findAlivePort(framesForTab_.get(curTabId))

@@ -1,4 +1,7 @@
 type BOOL = 0 | 1;
+type _IfMixOr<T, R> = string extends T ? string | R : number extends T ? number | R : boolean extends T ? true | R : T
+type IfTrueOr<T, R> = T extends false | 0 | "" | null | undefined | void ? R : _IfMixOr<T, R>
+
 interface Function { readonly arguments: IArguments }
 interface Dict<T> {
   [key: string]: T | undefined;

@@ -1,6 +1,6 @@
 import {
   injector, safer, timeout_, isAlive_, isTop, set_i18n_getMsg, locHref, OnEdge, OnChrome, OnFirefox, isTY, fgCache,
-  interval_, setupTimerFunc_cr, noRAF_old_cr_, runtime_ff, isIFrameInAbout_, isLocked_, inherited_, chromeVer_, confVersion
+  interval_, setupTimerFunc_cr, noRAF_old_cr_, runtime_ff, isIFrameInAbout_, isLocked_, inherited_, chromeVer_, confVersion, safeCall
 } from "../lib/utils"
 import { suppressTail_ } from "../lib/keyboard_utils"
 import { docHasFocus_, rAF_ } from "../lib/dom_utils"
@@ -49,25 +49,29 @@ export const onPortRes_ = function<k extends keyof FgRes> (response: Omit<Req.re
   handler(response.r)
 }
 
-export const safePost = <k extends keyof FgReq> (request: FgReq[k] & Req.baseFg<k>): void => {
-  try {
-    if (!port_) {
-      if (OnChrome && (Build.MinCVer >= BrowserVer.Min$runtime$$id$GetsUndefinedOnTurnOff
-            || chromeVer_ > BrowserVer.Min$runtime$$id$GetsUndefinedOnTurnOff - 1)) {
-        const r = chrome.runtime
-        if (!r || !r.id) {
-          safeDestroy()
-          return
-        }
-      }
-      runtimeConnect();
-      injector && timeout_((): void => { port_ || safeDestroy(); }, 50);
-    } else if (OnFirefox && injector) {
-      (requestHandlers[kBgReq.injectorRun] as VimiumInjectorTy["$m"])(InjectorTask.recheckLiving)
+export const safePost = <k extends keyof FgReq> (request: FgReq[k] & Req.baseFg<k>, retried?: 1): void => {
+  if (!port_) {
+    const r = OnChrome ? chrome.runtime : null
+    // sometimes runtime may be undefined, found on Chrome 126 + Ubuntu24, although not reproduced on Win11
+    if (OnChrome && (!r || !r.id)) { // in fact, only after BrowserVer.Min$runtime$$id$GetsUndefinedOnTurnOff
+      safeDestroy()
+      return
     }
-    post_(request);
+    safeCall(runtimeConnect)
+    injector ? timeout_((): void => { port_ || safeDestroy() }, 50) : port_ || safeDestroy()
+  } else if (OnFirefox && injector) {
+    (requestHandlers[kBgReq.injectorRun] as VimiumInjectorTy["$m"])(InjectorTask.recheckLiving)
+  }
+  try {
+    port_ && post_(request)
   } catch { // this extension is reloaded or disabled
-    safeDestroy();
+    if (OnChrome && (Build.MinCVer >= BrowserVer.Min$runtime$$id$GetsUndefinedOnTurnOff
+          || chromeVer_ > BrowserVer.Min$runtime$$id$GetsUndefinedOnTurnOff - 1) && port_ && !retried) {
+      port_ = null
+      safePost(request, 1)
+    } else {
+      safeDestroy()
+    }
   }
 }
 
