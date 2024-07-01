@@ -18,8 +18,7 @@ type SettingsUpdateMsg = {
 }
 type PersistentKeys = keyof SettingsNS.PersistentSettings
 
-const kBrowserSearch2 = "vimium://b-search-at/new-tab/$s"
-const kBrowserSearch2Line = "_browser: " + kBrowserSearch2 + " Browser default search\n"
+const kBrowserSearch2Line = "_browser: vimium://b-search-at/new-tab/$s re= Browser default search"
 let newSettingsToBroadcast_: Extract<SettingsUpdateMsg["d"], string[]> | null = null
 let toSaveCache: SafeDict<unknown> | null = null
 export let needToUpgradeSettings_ = 0
@@ -280,7 +279,7 @@ Object.assign<typeof updateHooks_, { [key in SettingsNS.DeclaredUpdateHooks]: Se
     searchEngines (): void {
       searchEngines_.map.clear()
       searchEngines_.keywords = null
-      searchEngines_.rules = parseSearchEngines_("~:" + settingsCache_.searchUrl + "\n\n" + kBrowserSearch2Line
+      searchEngines_.rules = parseSearchEngines_("~:" + settingsCache_.searchUrl + "\n\n" + kBrowserSearch2Line + "\n"
           + settingsCache_.searchEngines, searchEngines_.map).reverse()
     },
     searchUrl (str): void {
@@ -290,7 +289,6 @@ Object.assign<typeof updateHooks_, { [key in SettingsNS.DeclaredUpdateHooks]: Se
       } else {
         map.clear()
         map.set("~", { name_: "~", url_: settingsCache_.searchUrl.split(" ", 1)[0], blank_: "", complex_: false })
-        map.set("_browser", { name_: "Browser default search", url_: kBrowserSearch2, blank_: "", complex_: false })
         searchEngines_.rules = []
         set_newTabUrl_f(storageCache_.get("newTabUrl_f") || "")
         if (newTabUrl_f) { return }
@@ -389,8 +387,8 @@ bi|bing|Bing|\u5fc5\u5e94: https://cn.bing.com/search?q=%s \\
 g|go|gg|google|Google|\u8c37\u6b4c: https://www.google.com/search?q=%s \\
   www.google.com re=/^(?:\\.[a-z]{2,4})?\\/search\\b.*?[#&?]q=([^#&]*)/i \\
   blank=https://www.google.com/ Google
-` + kBrowserSearch2Line
-+ `sogou|sougou: https://www.sogou.com/web?ie=UTF-8&query=$s \u641c\u72d7
+` + kBrowserSearch2Line + `
+sogou|sougou: https://www.sogou.com/web?ie=UTF-8&query=$s \u641c\u72d7
 360so|360sou|360ss: https://www.so.com/s?ie=UTF-8&q=$s 360 \u641c\u7d22
 shenma: https://m.sm.cn/s?q=$s \u795e\u9a6c\u641c\u7d22
 br|brave: https://search.brave.com/search?q=%s Brave
@@ -444,8 +442,8 @@ b|ba|baidu|\u767e\u5ea6: https://www.baidu.com/s?ie=utf-8&wd=%s \\
 g|go|gg|google|Google: https://www.google.com/search?q=%s \\
   www.google.com re=/^(?:\\.[a-z]{2,4})?\\/search\\b.*?[#&?]q=([^#&]*)/i \\
   blank=https://www.google.com/ Google
-` + kBrowserSearch2Line
-+ `sg|sogou|sougou: https://www.sogou.com/web?ie=UTF-8&query=$s \u641c\u72d7
+` + kBrowserSearch2Line + `
+sg|sogou|sougou: https://www.sogou.com/web?ie=UTF-8&query=$s \u641c\u72d7
 360|360so|360sou|360ss: https://www.so.com/s?ie=UTF-8&q=$s 360 \u641c\u7d22
 br|brave: https://search.brave.com/search?q=%s Brave
 d|dd|ddg|duckduckgo: https://duckduckgo.com/?q=%s DuckDuckGo

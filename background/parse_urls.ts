@@ -380,7 +380,7 @@ export const parseSearchEngines_ = (str: string, map: Map<string, Search.Engine>
     val = val.replace(<RegExpG & RegExpSearchable<0>> /\\s/g, " "
       ).trim().replace(<RegExpG & RegExpSearchable<2>> /([^\\]|^)%(s)/gi, "$1$$$2"
       ).replace(<RegExpG & RegExpSearchable<0>> /\\%/g, "%");
-    obj = { name_: "", url_: val, blank_: blank, complex_: map.size > 0 }
+    obj = { name_: "", url_: val, blank_: blank, complex_: map.size > 1 }
     if (ids.includes("~") && obj.complex_) {
       convertToUrl_(val, null, Urls.WorkType.KeepAll)
       if (lastUrlType_ > Urls.Type.MaxOfInputIsPlainUrl) {
