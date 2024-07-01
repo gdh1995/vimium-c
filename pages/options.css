@@ -341,7 +341,7 @@ label:active {
 }
 #wrapper {
   border-spacing: 0 23px;
-  margin-bottom: 37px;
+  margin-bottom: 36px;
   margin-top: -23px;
 }
 .icon {
@@ -623,7 +623,7 @@ label:active {
   border-width: var(--vc-tiny);
   bottom: 0;
   left: 0;
-  padding: 6px 0 0;
+  padding: 6px 0 2px;
   position: fixed;
   right: 0;
   white-space: nowrap;
@@ -708,7 +708,7 @@ label:active {
   }
 }
 .dialog-ui #wrapper {
-  margin: -23px 0 37px 35px;
+  margin: -23px 0 36px 35px;
   width: 890px;
 }
 .dialog-ui #footer {

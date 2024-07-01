@@ -18,6 +18,8 @@ type SettingsUpdateMsg = {
 }
 type PersistentKeys = keyof SettingsNS.PersistentSettings
 
+const kBrowserSearch2 = "vimium://b-search-at/new-tab/$s"
+const kBrowserSearch2Line = "_browser: " + kBrowserSearch2 + " Browser default search\n"
 let newSettingsToBroadcast_: Extract<SettingsUpdateMsg["d"], string[]> | null = null
 let toSaveCache: SafeDict<unknown> | null = null
 export let needToUpgradeSettings_ = 0
@@ -278,8 +280,8 @@ Object.assign<typeof updateHooks_, { [key in SettingsNS.DeclaredUpdateHooks]: Se
     searchEngines (): void {
       searchEngines_.map.clear()
       searchEngines_.keywords = null
-      searchEngines_.rules = parseSearchEngines_("~:" + settingsCache_.searchUrl + "\n\n" + settingsCache_.searchEngines
-          , searchEngines_.map).reverse()
+      searchEngines_.rules = parseSearchEngines_("~:" + settingsCache_.searchUrl + "\n\n" + kBrowserSearch2Line
+          + settingsCache_.searchEngines, searchEngines_.map).reverse()
     },
     searchUrl (str): void {
       const map = searchEngines_.map
@@ -288,6 +290,7 @@ Object.assign<typeof updateHooks_, { [key in SettingsNS.DeclaredUpdateHooks]: Se
       } else {
         map.clear()
         map.set("~", { name_: "~", url_: settingsCache_.searchUrl.split(" ", 1)[0], blank_: "", complex_: false })
+        map.set("_browser", { name_: "Browser default search", url_: kBrowserSearch2, blank_: "", complex_: false })
         searchEngines_.rules = []
         set_newTabUrl_f(storageCache_.get("newTabUrl_f") || "")
         if (newTabUrl_f) { return }
@@ -383,10 +386,11 @@ saladict@crimx.com`
 bi: https://www.bing.com/search?q=$s
 bi|bing|Bing|\u5fc5\u5e94: https://cn.bing.com/search?q=%s \\
   blank=https://cn.bing.com/ \u5fc5\u5e94
-g|go|gg|google|Google|\u8c37\u6b4c: https://www.google.com/search?q=%s\\
-  www.google.com re=/^(?:\\.[a-z]{2,4})?\\/search\\b.*?[#&?]q=([^#&]*)/i\\
+g|go|gg|google|Google|\u8c37\u6b4c: https://www.google.com/search?q=%s \\
+  www.google.com re=/^(?:\\.[a-z]{2,4})?\\/search\\b.*?[#&?]q=([^#&]*)/i \\
   blank=https://www.google.com/ Google
-sogou|sougou: https://www.sogou.com/web?ie=UTF-8&query=$s \u641c\u72d7
+` + kBrowserSearch2Line
++ `sogou|sougou: https://www.sogou.com/web?ie=UTF-8&query=$s \u641c\u72d7
 360so|360sou|360ss: https://www.so.com/s?ie=UTF-8&q=$s 360 \u641c\u7d22
 shenma: https://m.sm.cn/s?q=$s \u795e\u9a6c\u641c\u7d22
 br|brave: https://search.brave.com/search?q=%s Brave
@@ -398,7 +402,7 @@ yh|yahoo: https://search.yahoo.com/search?p=%s Yahoo
 maru|mailru|mail.ru: https://go.mail.ru/search?q=%s Mail.ru
 
 b.m|bm|map|b.map|bmap|\u5730\u56fe|\u767e\u5ea6\u5730\u56fe: \\
-  https://api.map.baidu.com/geocoder?output=html&address=%s&src=vimium-c\\
+  https://api.map.baidu.com/geocoder?output=html&address=%s&src=vimium-c \\
   blank=https://map.baidu.com/
 gd|gaode|\u9ad8\u5fb7\u5730\u56fe: https://www.gaode.com/search?query=%s \\
   blank=https://www.gaode.com
@@ -413,12 +417,12 @@ w|wiki: https://www.wikipedia.org/w/index.php?search=%s Wikipedia
 b.x|b.xs|bx|bxs|bxueshu: https://xueshu.baidu.com/s?ie=utf-8&wd=%s \\
   blank=https://xueshu.baidu.com/ \u767e\u5ea6\u5b66\u672f
 gs|g.s|gscholar|g.x|gx|gxs: https://scholar.google.com/scholar?q=$s \\
-  scholar.google.com re=/^(?:\\.[a-z]{2,4})?\\/scholar\\b.*?[#&?]q=([^#&]*)/i\\
+  scholar.google.com re=/^(?:\\.[a-z]{2,4})?\\/scholar\\b.*?[#&?]q=([^#&]*)/i \\
   blank=https://scholar.google.com/ \u8c37\u6b4c\u5b66\u672f
 
 t|tb|taobao|ali|\u6dd8\u5b9d: https://s.taobao.com/search?ie=utf8&q=%s \\
   blank=https://www.taobao.com/ \u6dd8\u5b9d
-j|jd|jingdong|\u4eac\u4e1c: https://search.jd.com/Search?enc=utf-8&keyword=%s\\
+j|jd|jingdong|\u4eac\u4e1c: https://search.jd.com/Search?enc=utf-8&keyword=%s \\
   blank=https://jd.com/ \u4eac\u4e1c
 az|amazon: https://www.amazon.com/s?k=%s \\
   blank=https://www.amazon.com/ \u4e9a\u9a6c\u900a
@@ -438,9 +442,10 @@ bi|bing: https://www.bing.com/search?q=%s \\
 b|ba|baidu|\u767e\u5ea6: https://www.baidu.com/s?ie=utf-8&wd=%s \\
   blank=https://www.baidu.com/ \u767e\u5ea6
 g|go|gg|google|Google: https://www.google.com/search?q=%s \\
-  www.google.com re=/^(?:\\.[a-z]{2,4})?\\/search\\b.*?[#&?]q=([^#&]*)/i\\
+  www.google.com re=/^(?:\\.[a-z]{2,4})?\\/search\\b.*?[#&?]q=([^#&]*)/i \\
   blank=https://www.google.com/ Google
-sg|sogou|sougou: https://www.sogou.com/web?ie=UTF-8&query=$s \u641c\u72d7
+` + kBrowserSearch2Line
++ `sg|sogou|sougou: https://www.sogou.com/web?ie=UTF-8&query=$s \u641c\u72d7
 360|360so|360sou|360ss: https://www.so.com/s?ie=UTF-8&q=$s 360 \u641c\u7d22
 br|brave: https://search.brave.com/search?q=%s Brave
 d|dd|ddg|duckduckgo: https://duckduckgo.com/?q=%s DuckDuckGo
@@ -453,12 +458,13 @@ maru|mailru|mail.ru: https://go.mail.ru/search?q=%s Mail.ru
 g.m|gm|g.map|gmap: https://www.google.com/maps?q=%s \\
   blank=https://www.google.com/maps Google Maps
 b.m|bm|map|b.map|bmap|\u767e\u5ea6\u5730\u56fe: \\
-  https://api.map.baidu.com/geocoder?output=html&address=%s&src=vimium-c
+  https://api.map.baidu.com/geocoder?output=html&address=%s&src=vimium-c \\
+  blank=https://map.baidu.com/
 y|yt: https://www.youtube.com/results?search_query=%s \\
   blank=https://www.youtube.com/ YouTube
 w|wiki: https://www.wikipedia.org/w/index.php?search=%s Wikipedia
 g.s|gs|gscholar: https://scholar.google.com/scholar?q=$s \\
-  scholar.google.com re=/^(?:\\.[a-z]{2,4})?\\/scholar\\b.*?[#&?]q=([^#&]*)/i\\
+  scholar.google.com re=/^(?:\\.[a-z]{2,4})?\\/scholar\\b.*?[#&?]q=([^#&]*)/i \\
   blank=https://scholar.google.com/ Google Scholar
 
 a|ae|ali|alie|aliexp: https://www.aliexpress.com/wholesale?SearchText=%s \\
