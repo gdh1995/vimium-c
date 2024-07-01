@@ -102,7 +102,6 @@ var Tasks = {
   },
   "minify-html": function() {
     const arr = ["front/*.html", "pages/*.html", "!*/vomnibar.html"];
-    getBuildItem("MV3") && arr.push("background/worker.html")
     if (!getBuildItem("NDEBUG")) { return copyByPath(arr) }
     return copyByPath(arr, file => { ToBuffer(file, require("html-minifier").minify(ToString(file), {
       collapseWhitespace: true,
