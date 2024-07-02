@@ -102,6 +102,7 @@ var Tasks = {
   },
   "minify-html": function() {
     const arr = ["front/*.html", "pages/*.html", "!*/vomnibar.html"];
+    if (!getBuildItem("MV3")) { arr.push("!*/offscreen.html") }
     if (!getBuildItem("NDEBUG")) { return copyByPath(arr) }
     return copyByPath(arr, file => { ToBuffer(file, require("html-minifier").minify(ToString(file), {
       collapseWhitespace: true,
@@ -145,7 +146,7 @@ var Tasks = {
   "build/_clean_diff": function() {
     return cleanByPath([".build/**", "manifest.json", "*/vomnibar.html", "background/*.html", ".*.build"
         , ...JSON_TO_JS, "*/*.html", "*/*.css", "**/*.json", "**/*.js", "!helpers/*/*.js", ".snapshot.sh", LOCALES_EN
-        ], DEST)
+        , "*/offscreen.html"], DEST)
   },
   "build/_all": ["build/scripts", "build/pages"],
   "build/ts": function(cb) {

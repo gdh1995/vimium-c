@@ -9,28 +9,55 @@
       : !!(mayBrowser_ && mayBrowser_.runtime && mayBrowser_.runtime.connect)
   const browser_ = useBrowser ? (browser as typeof chrome) : chrome
   const runtime = browser_.runtime
+  const isOffscreen = !!Build.MV3 && location.pathname.endsWith("offscreen.html")
   const destroy = (): void => {
-    window !== top && (parent as Window).focus()
+    isOffscreen || (parent as Window).focus()
     window.closed || window.close()
     port = null
   }
   const onTask = (_response: BaseTeeTask): void => {
     type TaskTypes<K> = K extends keyof TeeTasks ? Req.tee<K> : never
     let onFinish = (ok: boolean | string): void => {
+      okResult = true
       if (Build.MV3 || port) {
         (port as any).postMessage(ok)
       } else {
         resolve!(ok)
       }
-      setTimeout(destroy, 0) // try to avoid a strange crashes on Chrome 103
+      isOffscreen || setTimeout(destroy, 0) // try to avoid a strange crashes on Chrome 103
     }
     const { t: taskId, s: serialized, d: data, r: resolve } = _response as TaskTypes<keyof TeeTasks>
     const runTask = (): void | Promise<unknown> => {
+      // MV3
+      // || OnChrome && chromeVer_ >= MinEnsured$Clipboard$$write$and$ClipboardItem
+      // || OnFirefox && taskId === kTeeTask.DrawAndCopy
       if (Build.MV3) {
         switch (taskId) {
         case kTeeTask.Copy:
         case kTeeTask.Paste:
             const navClip = navigator.clipboard!
+            if (!(Build.BTypes & ~BrowserType.Chrome) && Build.MinCVer >= BrowserVer.MinOffscreenAPIs || isOffscreen) {
+              const doc = document, textArea = doc.createElement("textarea")
+              if (taskId === kTeeTask.Copy) {
+                textArea.value = serialized
+                doc.body!.appendChild(textArea)
+                textArea.select()
+                doc.execCommand("copy")
+                textArea.remove()
+                textArea.value = ""
+              } else {
+                const newLenLimit = serialized < 0 ? -1 - serialized : serialized
+                textArea.maxLength = newLenLimit || GlobalConsts.MaxBufferLengthForPastingNormalText
+                doc.body!.appendChild(textArea)
+                textArea.focus()
+                doc.execCommand("paste")
+                okResult = textArea.value.slice(0, newLenLimit || GlobalConsts.MaxBufferLengthForPastingNormalText)
+                textArea.value = ""
+                textArea.remove()
+                textArea.removeAttribute("maxlength")
+              }
+              return Promise.resolve()
+            }
             return taskId === kTeeTask.Copy ? navClip.writeText!(serialized)
                 : navClip.readText!().then((result): void => { okResult = result })
         case kTeeTask.Download:
@@ -109,9 +136,9 @@
       }) : onFinish(false)
     }
     let okResult: true | string = true
-    document.hasFocus() ? onFocus() : (window.onfocus = onFocus, window.focus())
+    ; (isOffscreen || document.hasFocus()) ? onFocus() : (window.onfocus = onFocus, window.focus())
   }
-  let port: chrome.runtime.Port | null, once = false
+  let port: chrome.runtime.Port | null, refusedMoreMessages = false
   if (!Build.MV3) {
     const getBg = browser_.extension.getBackgroundPage
     const bg = getBg && getBg() as unknown as BgExports | null
@@ -124,7 +151,7 @@
     }
   }
   try {
-    port = runtime.connect({ name: "" + (PortType.selfPages | PortType.Tee) })
+    port = runtime.connect({ name: "" + (PortType.selfPages | PortType.Tee | (isOffscreen ? PortType.Offscreen : 0)) })
     port.onDisconnect.addListener(destroy)
   } catch {
     destroy()
@@ -132,11 +159,11 @@
   }
   port.onMessage.addListener((_response: unknown): void => {
     const response = _response as Req.bg<kBgReq>
-    if (response.N !== kBgReq.omni_runTeeTask || once) {
+    if (response.N !== kBgReq.omni_runTeeTask || refusedMoreMessages) {
       Build.NDEBUG || console.log("Vimium C: error: unknown message:", response)
       destroy()
     } else {
-      once = true
+      refusedMoreMessages = !isOffscreen
       onTask(response)
     }
   })

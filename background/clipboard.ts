@@ -549,7 +549,7 @@ set_paste_(((sed, newLenLimit?: number, exOut?: InfoOnSed): string | Promise<str
     return reformat_(readInnerClipboard_(clip), null, exOut)
   }
   if (Build.MV3 || OnFirefox && (navClipboard || (navClipboard = navigator.clipboard))) {
-    return (Build.MV3 ? runOnTee_(kTeeTask.Paste, null, null)
+    return (Build.MV3 ? runOnTee_(kTeeTask.Paste, newLenLimit || 0, null)
         : navClipboard!.readText!().catch(() => null)).then(s => typeof s === "string"
               ? s && reformat_(s.slice(0, GlobalConsts.MaxBufferLengthForPastingLongURL), sed, exOut) : null)
   }

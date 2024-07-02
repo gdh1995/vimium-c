@@ -221,7 +221,7 @@ interface BaseTeeTask {
 interface ImageToCopy { /** url for binary data */ u: string, /** text */ t: string, /** browser */ b?: BrowserType }
 interface TeeTasks {
   [kTeeTask.Copy]: { s: string, d: null }
-  [kTeeTask.Paste]: { s: null | /** permitted */ true, d: null }
+  [kTeeTask.Paste]: { /** negative means permitted */ s: number, d: null }
   [kTeeTask.CopyImage]: { s: ImageToCopy, d: Blob }
   [kTeeTask.Download]: { s: ImageToCopy, d: null }
   [kTeeTask.DrawAndCopy]: { s: ImageToCopy, d: Blob }

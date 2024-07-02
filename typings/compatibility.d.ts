@@ -609,6 +609,7 @@ declare const enum BrowserVer {
   Min$downloads$$setUiOptions = 105, // require `downloads.ui`
   MinURLPatternWith$ignoreCase = 107, // even if EXP or LEGACY
   MinMaybePopoverWith$popovershow = 109, // if EXP; use popovershow/popoverhide instead of toggle
+  MinOffscreenAPIs = 109, // even if EXP or LEGACY
   MinBgWorkerAliveIfOnlyAnyAction = 110,
   MinCSAcceptWorldInManifest = 111, // even if EXP or LEGACY
   MinMaybePopoverToggleEvent = 112, // if EXP

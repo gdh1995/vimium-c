@@ -150,7 +150,8 @@ export let runOneMapping_: (key: string, port: Port | null, fStatus: NonNullable
 export let inlineRunKey_: (rootRegistry: Writable<CommandsNS.Item>, path?: CommandsNS.Item[]) => void
 export let focusAndExecuteOn_: <T extends FgCmdAcrossFrames> (port: Port, cmd: T, options: CmdOptions[T], count: number
     , focusAndShowFrameBorder: BOOL) => void
-let _teeTask: BaseTeeTask & { /** unique id */ i: number } | null = null
+export let teeTask_: BaseTeeTask & { /** unique id */ i: number } | null = null
+export let offscreenPort_: Frames.BrowserPort | null = null
 //#endregion
 
 //#region variable setter
@@ -205,11 +206,12 @@ export const set_installation_ = (_newInstallation: typeof installation_): void 
 export const set_runOneMapping_ = (_newF: typeof runOneMapping_): void => { runOneMapping_ = _newF }
 export const set_inlineRunKey_ = (_newInlineRunKey: typeof inlineRunKey_): void => { inlineRunKey_ = _newInlineRunKey }
 export const set_focusAndExecuteOn_ = (_newFAE: typeof focusAndExecuteOn_): void => { focusAndExecuteOn_ = _newFAE }
-export const setTeeTask_ = (expected: number | null, newTask: typeof _teeTask): typeof _teeTask => {
-  const old = _teeTask, matches = !expected || old && old.i === expected
-  _teeTask = matches ? newTask : old
+export const replaceTeeTask_ = (expected: number | null, newTask: typeof teeTask_): typeof teeTask_ => {
+  const old = teeTask_, matches = !expected || old && old.i === expected
+  teeTask_ = matches ? newTask : old
   return matches ? old : null
 }
+export const set_offscreenPort_ = (_newOffscrPort: typeof offscreenPort_): void => { offscreenPort_ = _newOffscrPort}
 //#endregion
 
 //#region some shared util functions
@@ -263,6 +265,7 @@ export const CONST_ = {
   GitVer: BuildStr.Commit as string,
   Injector_: "/lib/injector.js",
   TeeFrame_: "/front/vomnibar-tee.html",
+  OffscreenFrame_: "/front/offscreen.html",
   HelpDialogJS: "/background/help_dialog.js" as const,
   OptionsPage_: GlobalConsts.OptionsPage as string, Platform_: "browser", BrowserName_: "",
   HomePage_: "https://github.com/gdh1995/vimium-c",

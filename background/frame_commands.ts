@@ -1,7 +1,7 @@
 import {
   cPort, cRepeat, get_cOptions, set_cPort, set_cOptions, set_cRepeat, framesForTab_, findCSS_, cKey, reqH_, runOnTee_,
   curTabId_, settingsCache_, OnChrome, visualWordsRe_, CurCVer_, OnEdge, OnFirefox, substitute_, CONST_, set_runOnTee_,
-  curWndId_, vomnibarPage_f, vomnibarBgOptions_, setTeeTask_, blank_,
+  curWndId_, vomnibarPage_f, vomnibarBgOptions_, replaceTeeTask_, blank_, offscreenPort_, teeTask_,
   curIncognito_, OnOther_, keyToCommandMap_, Origin2_
 } from "./store"
 import * as BgUtils_ from "./utils"
@@ -12,7 +12,7 @@ import {
 import { convertToUrl_, createSearchUrl_, normalizeSVG_ } from "./normalize_urls"
 import {
   showHUD, complainLimits, ensureInnerCSS, getParentFrame, getPortUrl_, safePost, getCurFrames_, getFrames_,
-  waitForPorts_
+  waitForPorts_, postTeeTask_, resetOffscreenPort_
 } from "./ports"
 import { createSimpleUrlMatcher_, matchSimply_ } from "./exclusions"
 import { trans_ } from "./i18n"
@@ -25,28 +25,68 @@ import { parseReuse, newTabIndex, openUrlWithActions } from "./open_urls"
 import { FindModeHistory_ } from "./tools"
 import C = kBgCmd
 
+const DEBUG_OFFSCREEN: BOOL | boolean = false
+let _lastOffscreenWndId = 0
+let _offscreenFailed = false
+
 set_runOnTee_(((task, serializable, data): Promise<boolean | string> => {
-  const frames = framesForTab_.get(curTabId_) || cPort && getCurFrames_()
-  let port = frames ? frames.cur_ : cPort as typeof cPort | null
+  if (Build.MV3 && task === kTeeTask.Paste && OnChrome && serializable >= 0) {
+    return navigator.permissions!.query({ name: "clipboard-read" }).catch(blank_)
+        .then((res) => !!res && res.state !== "denied" && runOnTee_(kTeeTask.Paste, -1 - <number> serializable, null))
+  }
+  const useOffscreen = !!Build.MV3 && !_offscreenFailed && OnChrome && (Build.MinCVer >= BrowserVer.MinOffscreenAPIs
+        || CurCVer_ > BrowserVer.MinOffscreenAPIs - 1)
+      && (task !== kTeeTask.CopyImage && task !== kTeeTask.DrawAndCopy)
+  const frames = useOffscreen ? null : framesForTab_.get(curTabId_) || cPort && getCurFrames_()
+  let port = useOffscreen ? null : frames ? frames.cur_ : cPort as typeof cPort | null
   if (frames && frames.top_ && port !== frames.top_ && !(frames.top_.s.flags_ & Frames.Flags.ResReleased)
       // here can not check `!port!.s.url_.startsWith(location.protocol)` - such an ext iframe is limited by default
       && (!BgUtils_.protocolRe_.test(frames.top_.s.url_) || port!.s.flags_ & Frames.Flags.ResReleased
           || !port!.s.url_.startsWith((BgUtils_.safeParseURL_(frames.top_.s.url_)?.origin || "") + "/"))) {
     port = frames.top_
   }
-  if (Build.MV3 && task === kTeeTask.Paste && OnChrome && !serializable) {
-    return navigator.permissions!.query({ name: "clipboard-read" }).catch(blank_)
-        .then((res) => !!res && res.state !== "denied" && runOnTee_(kTeeTask.Paste, true, null))
-  }
   const id = setTimeout((): void => {
-      const latest = setTeeTask_(id, null)
+    const latest = replaceTeeTask_(id, null)
     latest && latest.r && latest.r(false)
   }, 40_000)
   const deferred = BgUtils_.deferPromise_<boolean | string>()
-    setTeeTask_(null, { i: id, t: task, s: serializable, d: Build.MV3 ? null : data, r: deferred.resolve_ })
+  replaceTeeTask_(null, { i: id, t: task, s: serializable, d: Build.MV3 ? null : data, r: deferred.resolve_ })
+  if (useOffscreen) {
+    if (offscreenPort_) {
+      try {
+        if (!Build.NDEBUG && DEBUG_OFFSCREEN) {
+          Windows_.update(_lastOffscreenWndId, { focused: true }, (): void => {
+            postTeeTask_(offscreenPort_!, teeTask_!)
+          })
+        } else {
+          postTeeTask_(offscreenPort_, teeTask_!)
+        }
+      } catch {
+        resetOffscreenPort_()
+      }
+    }
+    if (offscreenPort_) { /* empty */ }
+    else if (!Build.NDEBUG && DEBUG_OFFSCREEN) {
+      Windows_.create({ url: CONST_.OffscreenFrame_ }, (wnd): void => { _lastOffscreenWndId = wnd.id })
+    } else {
+      const all_reasons = browser_.offscreen.Reason
+      const reasons: chrome.offscreen.kReason[] = [all_reasons.BLOBS, all_reasons.CLIPBOARD, all_reasons.MATCH_MEDIA
+          ].filter(<T> (i: T | undefined): i is T => !!i)
+      browser_.offscreen.createDocument({
+        reasons: reasons.length > 0 ? reasons : ["CLIPBOARD"], url: CONST_.OffscreenFrame_,
+        justification: "read and write system clipboard",
+      }, (): void => {
+        const err = runtimeError_()
+        if (err) {
+          _offscreenFailed = true
+          resetOffscreenPort_()
+          return err
+        }
+      })
+    }
+  } else if (port) {
     const allow = task === kTeeTask.CopyImage || task === kTeeTask.Copy || task === kTeeTask.DrawAndCopy
         || Build.MV3 && task === kTeeTask.Paste ? "clipboard-write; clipboard-read" : ""
-  if (port) {
     portSendFgCmd(port, kFgCmd.callTee, 1, { u: CONST_.TeeFrame_, c: "R TEE UI", a: allow, t: 3000,
         i: frames && port !== frames.cur_ && !(frames.cur_.s.flags_ & Frames.Flags.ResReleased)
             ? frames.cur_.s.frameId_ : 0 }, 1)
@@ -56,7 +96,7 @@ set_runOnTee_(((task, serializable, data): Promise<boolean | string> => {
       const lastWndId = curWnd ? curWnd.id : curWndId_
       makeWindow({ type: "popup", url: CONST_.TeeFrame_, focused: true, incognito: false
           , left: 0, top: 0, width: 100, height: 32  }, "", (wnd): void => {
-        const teeTask = wnd ? null : setTeeTask_(null, null)
+        const teeTask = wnd ? null : replaceTeeTask_(null, null)
         if (wnd) {
           const newWndId = wnd.id
           void promise.then((): void => {
@@ -355,7 +395,7 @@ export const handleImageUrl = (url: `data:${string}` | "", buffer: Blob | null
       : (url || !Build.MV3 && copyFromBlobUrl_mv2 ? Promise.resolve()
           : BgUtils_.convertToDataURL_(buffer!).then((u2): void => { url = u2 }))
       .then((): Promise<Result> => {
-        return runOnTee_(actions === kTeeTask.DrawAndCopy ? actions : kTeeTask.CopyImage, {
+        return runOnTee_(actions === kTeeTask.DrawAndCopy ? kTeeTask.DrawAndCopy : kTeeTask.CopyImage, {
           u: !Build.MV3 && copyFromBlobUrl_mv2 ? blobRef_mv2 : url, t: text,
           b: Build.BTypes && !(Build.BTypes & (Build.BTypes - 1)) ? Build.BTypes as number : OnOther_
         }, buffer!)

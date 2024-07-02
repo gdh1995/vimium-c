@@ -1,13 +1,13 @@
 import {
   needIcon_, cPort, set_cPort, reqH_, contentPayload_, omniPayload_, innerCSS_, extAllowList_, framesForTab_, findCSS_,
   framesForOmni_, getNextFakeTabId, curTabId_, vomnibarPage_f, OnChrome, CurCVer_, OnEdge, setIcon_, lastKeptTabId_,
-  keyFSM_, mappedKeyRegistry_, CONST_, mappedKeyTypes_, recencyForTab_, setTeeTask_, OnFirefox, UseZhLang_, blank_,
-  set_lastKeptTabId_, omniConfVer_, contentConfVer_, saveRecency_
+  keyFSM_, mappedKeyRegistry_, CONST_, mappedKeyTypes_, recencyForTab_, replaceTeeTask_, OnFirefox, UseZhLang_, blank_,
+  set_lastKeptTabId_, omniConfVer_, contentConfVer_, saveRecency_, set_offscreenPort_, teeTask_
 } from "./store"
 import { asyncIter_, deferPromise_, getOmniSecret_, isNotPriviledged, keys_ } from "./utils"
 import {
   removeTempTab, tabsGet, runtimeError_, getCurTab, getTabUrl, browserWebNav_, Q_, executeScript_, getFindCSS_cr_,
-  selectTab, selectWndIfNeed
+  selectTab, selectWndIfNeed, browser_
 } from "./browser"
 import { exclusionListening_, getExcluded_, exclusionListenHash_ } from "./exclusions"
 import { I18nNames, transEx_ } from "./i18n"
@@ -232,32 +232,43 @@ const onOmniDisconnect = (port: Port): void => {
   return runtimeError_()
 }
 
-const _onPageConnect = (port: Port, type: PortType): void => {
+export const postTeeTask_ = (port: Frames.BrowserPort, task: NonNullable<typeof teeTask_>): void => {
+  ; (port as Port).postMessage({ N: kBgReq.omni_runTeeTask, t: task.t, s: task.s })
+}
+
+const onTeeResult_ = (res: any): void => {
+  const task = replaceTeeTask_(null, null)
+  if (task) {
+    clearTimeout(task.i)
+    task.r && task.r(res)
+  }
+}
+const markTeeFail_ = (): void => { onTeeResult_(false) }
+export const resetOffscreenPort_ = (): void => {
+  set_offscreenPort_(null); onTeeResult_(false)
+  browser_.offscreen.closeDocument(runtimeError_)
+}
+
+const _onPageConnect = (port: Frames.BrowserPort, type: PortType): void => {
   if (type & PortType.otherExtension) {
     port.disconnect()
     return
   }
-  (port as Frames.Port).s = false as never
   if (type & PortType.Tee) {
-    let taskOnce = setTeeTask_(null, null)
-    if (taskOnce && taskOnce.t) {
-      taskOnce.d = null
-      port.postMessage({ N: kBgReq.omni_runTeeTask, t: taskOnce.t, s: taskOnce.s })
-      const callback = (res: any): void => {
-        if (taskOnce) {
-          clearTimeout(taskOnce.i)
-          taskOnce.r && taskOnce.r(res)
-        }
-        taskOnce = null
-      }
-      port.onMessage.addListener(callback)
-      port.onDisconnect.addListener((): void => { callback(false) })
+    if (teeTask_) {
+      const isOffscreen = Build.MV3 && type & PortType.Offscreen
+      Build.MV3 || (teeTask_.d = null)
+      port.onMessage.addListener(onTeeResult_)
+      postTeeTask_(port, teeTask_)
+      port.onDisconnect.addListener(isOffscreen ? resetOffscreenPort_ : markTeeFail_)
+      isOffscreen && set_offscreenPort_(port)
     } else {
       port.disconnect()
     }
     return
   }
-  port.onMessage.addListener(onMessage)
+  (port as Frames.Port).s = false as never
+  ; (port as Port).onMessage.addListener(onMessage)
 }
 
 const formatPortSender = (port: Port): Frames.Sender => {

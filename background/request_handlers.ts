@@ -1,7 +1,7 @@
 import {
   set_cPort, set_cRepeat, set_cOptions, needIcon_, set_cKey, cKey, get_cOptions, set_reqH_, reqH_, restoreSettings_,
   innerCSS_, framesForTab_, cRepeat, curTabId_, Completion_, CurCVer_, OnChrome, OnEdge, OnFirefox, setIcon_, blank_,
-  substitute_, paste_, keyToCommandMap_, CONST_, copy_, set_cEnv, settingsCache_, vomnibarBgOptions_, setTeeTask_,
+  substitute_, paste_, keyToCommandMap_, CONST_, copy_, set_cEnv, settingsCache_, vomnibarBgOptions_, replaceTeeTask_,
   curIncognito_, inlineRunKey_, CurFFVer_, Origin2_, focusAndExecuteOn_, set_focusAndExecuteOn_, curWndId_
 } from "./store"
 import * as BgUtils_ from "./utils"
@@ -620,7 +620,7 @@ set_reqH_([
     runNextCmdBy(1, req.c.o)
   },
   /** kFgReq.recheckTee: */ (): FgRes[kFgReq.recheckTee] => {
-    const taskOnce = setTeeTask_(null, null)
+    const taskOnce = replaceTeeTask_(null, null)
     if (taskOnce) {
       clearTimeout(taskOnce.i)
       taskOnce.r && taskOnce.r(false)
@@ -778,7 +778,7 @@ Build.MV3 || (( // @ts-ignore
   window as BgExports
 ).onPagesReq = (req): Promise<FgRes[kFgReq.pages]> => {
   if (req.i === GlobalConsts.TeeReqId) {
-    const teeTask = setTeeTask_(null, null)
+    const teeTask = replaceTeeTask_(null, null)
     teeTask && clearTimeout(teeTask.i)
     return teeTask as never
   }

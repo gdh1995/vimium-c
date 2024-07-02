@@ -246,6 +246,17 @@ declare namespace chrome.runtime {
   export const getFrameId: ((frame: Window | HTMLIFrameElement | HTMLFrameElement) => number) | undefined
 }
 
+declare namespace chrome.offscreen {
+  export type kReason = "CLIPBOARD" | "MATCH_MEDIA" | "BLOBS"
+  export const Reason: {
+    BLOBS: "BLOBS",
+    CLIPBOARD: "CLIPBOARD",
+    MATCH_MEDIA?: "MATCH_MEDIA",
+  }
+  export function createDocument(args: { reasons: kReason[], url: string, justification: string }, cb: () => void): void
+  export function closeDocument(callback: (_fake: FakeArg) => void): void
+}
+
 declare module chrome.downloads {
   export interface DownloadOptions {
     url: string
