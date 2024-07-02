@@ -818,7 +818,7 @@ export const openUrlReq = (request: FgReq[kFgReq.openUrl], port?: Port | null): 
             : OnFirefox ? (Build.MinFFVer >= FirefoxBrowserVer.Min$search$$search
                 || CurFFVer_ > FirefoxBrowserVer.Min$search$$search - 1)
             : !OnEdge && browser_.search)) {
-      url = `vimium://browser-search.at/${reuse}/${beforeConversion}`
+      url = `vimium://b-search-at/${reuse}/${beforeConversion}`
       url = convertToUrl_(url, null, Urls.WorkType.ActAnyway)
     }
     if ((lastUrlType_ === Urls.Type.NoScheme || lastUrlType_ === Urls.Type.NoProtocolName) && request.h != null) {

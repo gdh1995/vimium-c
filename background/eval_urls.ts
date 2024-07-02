@@ -72,13 +72,14 @@ set_evalVimiumUrl_(function (path: string, workType?: Urls.WorkType
         : path3.then<Urls.CopyEvalResult>(path32 => [path32, Urls.kEval.copy])
   case "browser-search": case "browser-search2": case "browser-search.at": case "browser-search-at":
   case "bs": case "bs2": case "bs.at": case "bs-at": case "b-s": case "b-s2": case "b-s.at": case "b-s-at":
+  case "b-search": case "b-search2": case "b-search.at": case "b-search-at":
     if (OnChrome ? Build.MinCVer >= BrowserVer.Min$search$$query || CurCVer_ > BrowserVer.Min$search$$query - 1
         : OnFirefox ? (Build.MinFFVer >= FirefoxBrowserVer.Min$search$$search
             || CurFFVer_ > FirefoxBrowserVer.Min$search$$search - 1)
         : !OnEdge && browser_.search) {
       let disposition: Parameters<typeof chrome.search.query>[0]["disposition"] = "NEW_TAB"
       if (cmd.endsWith("2") || cmd.endsWith("at")) {
-        const prefixArr = (<RegExpOne> /^\w[^ /]*/).exec(path)
+        const prefixArr = (<RegExpOne> /^[-\w][^ /]*/).exec(path)
         if (prefixArr) {
           const reuse = parseReuse(prefixArr[0] as UserReuseType & string)
           disposition = reuse === ReuseType.newWnd ? "NEW_WINDOW"
