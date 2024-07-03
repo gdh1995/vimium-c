@@ -6,7 +6,7 @@ import {
 import {
   activeEl_unsafe_, getEditableType_, getEventPath, getSelection_, frameElement_, deepActiveEl_unsafe_, blur_unsafe,
   SafeEl_not_ff_, MDW, fullscreenEl_unsafe_, removeEl_s, isNode_, BU, docHasFocus_, getRootNode_mounted, testMatch,
-  TryGetShadowRoot_
+  TryGetShadowRoot_, isAriaFalse_
 } from "../lib/dom_utils"
 import { post_, runFallbackKey, runtime_port, safePost } from "./port"
 import { getParentVApi, ui_box, ui_root } from "./dom_ui"
@@ -256,9 +256,16 @@ export const onFocus = (event: Event | FocusEvent): void => {
     }
   }
   lastWndFocusTime = 0;
-  if (getEditableType_<EventTarget>(target)) {
+  let match: boolean | void, readOnly: boolean, type: EditableType | boolean
+  if (type = getEditableType_<EventTarget>(target)) {
     if (grabBackFocus) {
       (grabBackFocus as Exclude<typeof grabBackFocus, boolean>)(event, target);
+    } else if (readOnly =
+          (type as number | boolean as EditableType) > EditableType.MaxNotTextBox && (target as TextElement).readOnly
+          || (type as number | boolean as EditableType) > EditableType.MaxNotEditableElement
+              && !isAriaFalse_(target, kAria.readOnly),
+        readOnly && (match = safeCall(testMatch, fgCache.y, [target]), match != null ? match : (fgCache.y = ""))) {
+      /* empty */
     } else {
       esc!(HandlerResult.Nothing)
       lock_ = target

@@ -294,6 +294,7 @@ interface Element {
   ariaDisabled?: boolean | string | null
   ariaHasPopup?: string | null
   ariaHidden?: string | null
+  ariaReadOnly?: string | null
 }
 interface HTMLElement {
   focus (options?: { preventScroll?: boolean }): void

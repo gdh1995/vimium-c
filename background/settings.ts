@@ -233,6 +233,9 @@ export const updatePayload_ = function (shortKey: keyof SettingsNS.FrontendCompl
           && Build.OS & kBOS.MAC && (Build.OS === kBOS.MAC as number || !os_) ? kKeyLayout.ignoreCaps : 0)
       break
     case "d": value = value ? " D" : ""; break
+    case "p": case "y":
+      value = value.replace(":default", shortKey === "p" ? defaults_.passEsc : defaults_.ignoreReadonly)
+      break
     default: if (0) { shortKey satisfies never } break // lgtm [js/unreachable-statement]
     }
     return obj ? (obj as Generalized<SettingsNS.FrontendSettingCache>)[shortKey] = value : value
@@ -357,6 +360,7 @@ saladict@crimx.com`
     filterLinkHints: false,
     grabBackFocus: false,
     hideHud: false,
+    ignoreReadonly: "#read-only-cursor-text-area", // GitHub file content
     keyLayout: kKeyLayout.Default,
     keyboard: [560, 33],
     keyupTime: 120,
@@ -505,7 +509,7 @@ export const frontUpdateAllowed_: ReadonlyArray<keyof SettingsNS.FrontUpdateAllo
 
 export const valuesToLoad_ = {
     __proto__: null as never,
-    filterLinkHints: "f", keyLayout: "l", keyboard: "k", keyupTime: "u",
+    filterLinkHints: "f", ignoreReadonly: "y", keyLayout: "l", keyboard: "k", keyupTime: "u",
     linkHintCharacters: "c", linkHintNumbers: "n", mouseReachable: "e", passEsc: "p",
     regexFindMode: "r", smoothScroll: "s", scrollStepSize: "t", waitForEnter: "w"
 } satisfies SettingsNS.AutoSyncedNameMap & SafeObject as SettingsNS.AutoSyncedNameMap

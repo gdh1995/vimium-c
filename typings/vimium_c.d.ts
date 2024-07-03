@@ -296,6 +296,7 @@ declare const enum kKeyLayout {
 }
 declare namespace SettingsNS {
   interface DirectlySyncedItems {
+    /** ignoreReadonly */ y: ["ignoreReadonly", string]
     /** keyLayout */ l: ["keyLayout", kKeyLayout]
     /** keyboard */ k: ["keyboard", [delay: number, interval: number, /** on Firefox */ screenRefreshRate?: number]]
     /** linkHintCharacters */ c: ["linkHintCharacters", string];
@@ -351,7 +352,7 @@ declare namespace SettingsNS {
 
   interface AutoSyncedItems extends DirectlySyncedItems {}
   interface FrontendSettingsSyncingItems extends AutoSyncedItems, ManuallySyncedItems {}
-  type FrontendComplexSyncingItems = Pick<FrontendSettingsSyncingItems, "c" | "n" | "l" | "d">
+  type FrontendComplexSyncingItems = Pick<FrontendSettingsSyncingItems, "c" | "n" | "l" | "d" | "p" | "y">
   interface DeclaredFrontendValues extends SelectValueType<ManuallySyncedItems & OneTimeItems>, DeclaredConstValues {
   }
   type AutoSyncedNameMap = SelectNameToKey<AutoSyncedItems>

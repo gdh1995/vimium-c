@@ -357,6 +357,22 @@ export class NonEmptyTextOption_<T extends TextOptionNames> extends TextOption_<
   }
 }
 
+const kPseudoDefault = ":default"
+
+export class CssSelectorOption_ extends TextOption_<"passEsc" | "ignoreReadonly"> {
+  override readValueFromElement_(): string {
+    let value = super.readValueFromElement_()
+    value = value.replace(<RegExpOne> /:default\(.*?\)/, kPseudoDefault)
+    value = value !== kPseudoDefault ? value.replace(<RegExpG> /,\s+/g, ",") : bgSettings_.defaults_[this.field_]
+    return value
+  }
+  override formatValue_ (value: string): string {
+    value = value !== bgSettings_.defaults_[this.field_] ? value : kPseudoDefault
+    value = value.replace(kPseudoDefault, `${kPseudoDefault}(${bgSettings_.defaults_[this.field_]})`)
+    return value.replace(<RegExpG> /,/g, ", ")
+  }
+}
+
 export type JSONOptionNames = PossibleOptionNames<object>
 export class JSONOption_<T extends JSONOptionNames> extends TextOption_<T> {
   override formatValue_ (obj: AllowedOptions[T]): string {
@@ -537,7 +553,7 @@ export const createNewOption_ = ((): <T extends keyof AllowedOptions> (_element:
   const types = {
     Number: NumberOption_, Boolean: BooleanOption_,
     Text: TextOption_, NonEmptyText: NonEmptyTextOption_, JSON: JSONOption_, MaskedText: MaskedText_,
-    ExclusionRules: ExclusionRulesOption_
+    ExclusionRules: ExclusionRulesOption_, CssSelector: CssSelectorOption_,
   }
   const createOption = <T extends keyof AllowedOptions> (element: HTMLElement): Option_<T> => {
     const cls = types[(element.dataset as KnownOptionsDataset).model as "Text"]
@@ -776,11 +792,6 @@ Option_.all_.autoReduceMotion.onSave_ = function (): void {
     toggleReduceMotion_(value === 2 ? matchMedia("(prefers-reduced-motion: reduce)").matches : value > 0)
   })
 }
-
-Option_.all_.passEsc.readValueFromElement_ = function (): string {
-  return NonEmptyTextOption_.prototype.readValueFromElement_.call(this).replace(<RegExpG> /, /g, ",")
-}
-Option_.all_.passEsc.formatValue_ = (value: string): string => value.replace(<RegExpG> /,/g, ", ")
 
 const onBeforeUnload = (): string => {
   setTimeout((): void => { // wait until the confirmation dialog returning

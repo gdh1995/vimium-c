@@ -205,12 +205,12 @@ export const bgSettings_ = {
   },
   valuesToLoad_: {
     __proto__: null as never,
-    filterLinkHints: "f", keyLayout: "l", mouseReachable: "e",
+    filterLinkHints: "f", ignoreReadonly: "y", keyLayout: "l", mouseReachable: "e",
     keyboard: "k", keyupTime: "u", linkHintCharacters: "c", linkHintNumbers: "n", passEsc: "p",
     regexFindMode: "r", smoothScroll: "s", scrollStepSize: "t", waitForEnter: "w"
   } satisfies SettingsNS.AutoSyncedNameMap & SafeObject as SettingsNS.AutoSyncedNameMap,
   complexValuesToLoad_: {
-    __proto__: null as never, c: 1, n: 1, l: 1, d: 1
+    __proto__: null as never, c: 1, n: 1, l: 1, d: 1, p: 1, y: 1
   } satisfies TypedSafeEnum<SettingsNS.FrontendComplexSyncingItems>
 }
 
