@@ -5,7 +5,7 @@ export declare const enum kPgReq {
    /** 15..19 */ focusOrLaunch, showUrl, shownHash, substitute, checkHarmfulUrl,
    /** 20..24 */ actionInit, allowExt, toggleStatus, parseMatcher, initHelp,
    /** 25..29 */ callApi, selfTabId, getStorage, setInLocal, updateOmniPayload,
-   /** 30..32 */ saveToSyncAtOnce, showInit, reopenTab,
+   /** 30..33 */ saveToSyncAtOnce, showInit, reopenTab, checkAllowingAccess,
   __mask = ""
 }
 
@@ -63,6 +63,7 @@ export interface PgReq {
   [kPgReq.saveToSyncAtOnce]: [ void, void ]
   [kPgReq.showInit]: [ void, { os: kOS } ]
   [kPgReq.reopenTab]: [ { url: string, tabId: number }, void ]
+  [kPgReq.checkAllowingAccess]: [ void, [incognito: boolean, fileScheme: boolean] ]
 }
 
 export declare namespace Req2 {

@@ -323,8 +323,22 @@ if (OnEdge || !optional_permissions.length && !(Build.MV3 && OnChrome && navName
 }
 
 nextTick_(([inIncognito, onFileUrls]): void => {
-  browser_.extension.isAllowedIncognitoAccess(allowed => { inIncognito.checked = allowed })
-  browser_.extension.isAllowedFileSchemeAccess(allowed => { onFileUrls.checked = allowed })
+  if (browser_.extension.isAllowedIncognitoAccess) {
+    browser_.extension.isAllowedIncognitoAccess(allowed => { inIncognito.checked = allowed })
+    if (!OnEdge || browser_.extension.isAllowedFileSchemeAccess) {
+      browser_.extension.isAllowedFileSchemeAccess(allowed => { onFileUrls.checked = allowed })
+    }
+  } else {
+    // reproduce:
+    // 1. `chrome2 dist clean 126`
+    // 2. open chrome://extensions/?id=hfjbmagddngcpeloejdejnfgbamkjaeg , and enable incognito
+    // 3. close chrome, and then `chrome2 dist 126 exp`
+    // 4. then `chrome.extension` only has `inIncognitoContext`
+    post_(kPgReq.checkAllowingAccess).then(([incognitoAccess, fileSchemeAccess]): void => {
+      inIncognito.checked = incognitoAccess
+      onFileUrls.checked = fileSchemeAccess
+    })
+  }
   onFileUrls.onclick = inIncognito.onclick = (event: EventToPrevent): void => {
     prevent_(event)
     if (OnChrome) {

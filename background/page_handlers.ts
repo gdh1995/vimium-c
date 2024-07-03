@@ -304,6 +304,13 @@ const pageRequestHandlers_: {
   /** kPgReq.reopenTab: */ (req: PgReq[kPgReq.reopenTab][0]): void => {
     tabsCreate({ url: req.url })
     browser_.tabs.remove(req.tabId)
+  },
+  /** kPgReq.checkAllowingAccess: */ (): Promise<PgReq[kPgReq.checkAllowingAccess][1]> => {
+    return Promise.all([new Promise<boolean>((resolve): void => {
+      browser_.extension.isAllowedIncognitoAccess((allowed): void => { resolve(allowed) })
+    }), OnEdge ? false : new Promise<boolean>((resolve): void => {
+      browser_.extension.isAllowedFileSchemeAccess((allowed): void => { resolve(allowed) })
+    })])
   }
 ]
 
