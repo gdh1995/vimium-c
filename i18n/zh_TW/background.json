@@ -47,7 +47,7 @@
   "muted": "已靜音",
   "needText": "需要“text”參數為提示文字",
   "needVal": "需要為$1指定“value”參數",
-  "newStat": "Vimium C 快捷鍵 $1",
+  "newStat": "Vimium C 快速鍵 $1",
   "noCopied": "剪貼簿中沒有文字",
   "noDiscardIfOld": "在 Chromium $1 之前擴展不能丟棄網頁",
   "noEngineFound": "未能識別所屬的搜索引擎",
@@ -90,5 +90,5 @@
   "turnOff": "已臨時停用 $1",
   "Upgrade": "已更新",
   "upgradeMsg": "您的 Vimium C 已經更新至 $1 版。\n",
-  "upgradeMsg2": "更容易添加自訂快捷鍵、新增內部臨時剪貼簿。"
+  "upgradeMsg2": "更容易添加自訂快速鍵、新增內部臨時剪貼簿。"
 }

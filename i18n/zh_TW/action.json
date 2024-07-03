@@ -45,7 +45,7 @@
   "Keys": "按鍵列表",
   "Remove": "刪除",
   "onlyHook": "僅這些按鍵生效",
-  "passThrough": "僅這些按鍵被停用（不組成快捷鍵）",
+  "passThrough": "僅這些按鍵被停用（不組成快速鍵）",
   "completelyDisabled": "完全停止工作",
   "asterisk": "星號*",
   "VerIs": "版本：",

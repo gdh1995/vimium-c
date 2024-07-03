@@ -5,7 +5,7 @@
   "previousTab_s": { "message": "切換到左側分頁" },
   "quickNext_s": { "message": "切換到右側分頁" },
   "reloadTab_s": { "message": "刷新整個頁面" },
-  "userCustomized": { "message": "自訂快捷鍵" },
+  "userCustomized": { "message": "自訂快速鍵" },
   "name": { "message": "Vimium C - 全鍵盤操作瀏覽器" },
   "description": {
     "message": "一款支持全鍵盤操作瀏覽器的輔助工具，只用鍵盤即可點擊任意連結、切換分頁和快速搜索任意內容，支持自訂快速鍵和調整操作細節"
@@ -21,10 +21,10 @@
   "Go": { "message": "前往" },
   "4": { "message": "模擬了滑鼠從上次選中內容上移出" },
   "5": { "message": "沒有找到符合條件的頁面對象" },
-  "6": { "message": "沒有快捷鍵被停用" },
+  "6": { "message": "沒有快速鍵被停用" },
   "7": { "message": "臨時啟用所有按鍵$1" },
   "8": { "message": "：剩餘 $1 次" },
-  "9": { "message": "臨時停用所有快捷鍵$1" },
+  "9": { "message": "臨時停用所有快速鍵$1" },
   "10": { "message": "沒有找到“$1”對應的按鈕或連結" },
   "11": { "message": "沒有輸入框獲得過鍵盤焦點" },
   "12": { "message": "上次有鍵盤焦點的輸入框現在不可見" },
