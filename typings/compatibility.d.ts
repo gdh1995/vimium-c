@@ -88,7 +88,7 @@ declare const enum BrowserVer {
   MinDisableMoveTabAcrossIncognito = 40,
   // even if EXP or LEGACY
   MinWarningSyncXHR = 40,
-  MinEnsured$Element$$Closest = 41, // even if LEGACY
+  Min$Element$$closest = 41, // even if EXP or LEGACY
   MinWithFrameId = 41,
   // just means it's enabled by default
   Min$String$$StartsWithEndsWithAndIncludes$ByDefault = 41, // no "".includes before 41 even if EXP

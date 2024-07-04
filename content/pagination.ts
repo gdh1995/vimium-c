@@ -92,12 +92,12 @@ export const filterTextToGoNext: VApiTy["g"] = (candidates, names, options, maxL
       for (i = 0; i < names.length; i++) {
         if (s.length < lenLimits[i] && s.includes(names[i])) {
           if (!s.includes(refusedStr) && (len = (s = s.trim()).split(wsRe).length) <= maxLen
-              && (!excOnHost || !testMatch(excOnHost, [link]))
+              && (!excOnHost || !testMatch(excOnHost, link))
               && (s !== "back" ? s !== "more"
                     || !(OnSafari || OnChrome && Build.MinCVer >= BrowserVer.MinEnsuredAriaProperties
                           ? link.ariaHasPopup : attr_s(link, AriaArray[kAria.hasPopup]))
-                  : OnChrome && Build.MinCVer < BrowserVer.MinEnsured$Element$$Closest
-                    && chromeVer_ < BrowserVer.MinEnsured$Element$$Closest ? hasTag_("a", link)
+                  : OnChrome && Build.MinCVer < BrowserVer.Min$Element$$closest
+                    && chromeVer_ < BrowserVer.Min$Element$$closest ? hasTag_("a", link)
                   : link.closest!("a"))
               ) {
             maxLen > len && (maxLen = len + 1);

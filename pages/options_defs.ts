@@ -97,8 +97,7 @@ Option_.needSaveOptions_ = function (): boolean {
 Option_.prototype.i18nName_ = function (): string {
   let el: EnsuredMountedHTMLElement | null = this.element_ as EnsuredMountedHTMLElement
   if (this instanceof BooleanOption_) { return el.nextElementSibling.textContent }
-  if (OnChrome && Build.MinCVer < BrowserVer.MinEnsured$Element$$Closest
-      && CurCVer_ < BrowserVer.MinEnsured$Element$$Closest) {
+  if (OnChrome && Build.MinCVer < BrowserVer.Min$Element$$closest && CurCVer_ < BrowserVer.Min$Element$$closest) {
     while (el && el.localName !== "tr") {
       el = el.parentElement as EnsuredMountedHTMLElement | null
     }
@@ -589,8 +588,7 @@ export const createNewOption_ = ((): <T extends keyof AllowedOptions> (_element:
     const dragged = exclusionRules.dragged_
     if (!dragged) { return }
     let target: Element | null = event.target as Element
-    if (OnChrome && Build.MinCVer < BrowserVer.MinEnsured$Element$$Closest
-        && CurCVer_ < BrowserVer.MinEnsured$Element$$Closest) {
+    if (OnChrome && Build.MinCVer < BrowserVer.Min$Element$$closest && CurCVer_ < BrowserVer.Min$Element$$closest) {
       while (target && target.classList.contains("exclusionRule")) {
         target = target.parentElement as SafeHTMLElement | null
       }

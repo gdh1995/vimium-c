@@ -54,12 +54,11 @@ const findNextTargetEl = (pattern: HintsNS.Options["autoParent" | "autoChild"] |
   let click2nd: Element | null | undefined, sr2: ShadowRoot | null | 0 | false
   let click3nd: Element | false | null | undefined | 0
   pattern = pattern && (!down || !isIFrameElement(clickEl, 1)) && (findSelectorByHost(findTargetAction_(clickEl
-      , pattern, down)) satisfies string | void as typeof pattern & string | "" | void)
-  pattern = pattern != null ? pattern : down === 2 && testMatch(VTr(kTip.DefaultDoClickOn), [clickEl])
+      , pattern, down)) satisfies "css-selector" | void as typeof pattern & string | "" | void)
+  pattern = pattern != null ? pattern : down === 2 && testMatch(VTr(kTip.DefaultDoClickOn), clickEl)
   if (!pattern) {}
   else if (!down) {
-    if (!(OnChrome && Build.MinCVer < BrowserVer.MinEnsured$Element$$Closest
-        && chromeVer_ < BrowserVer.MinEnsured$Element$$Closest)) {
+    if (!(OnChrome && Build.MinCVer < BrowserVer.Min$Element$$closest && chromeVer_ <BrowserVer.Min$Element$$closest)) {
       click3nd = clickEl
       while (click3nd && !(click2nd = click3nd.closest!(pattern + ""))) {
         sr2 = (getRootNode_mounted(click3nd as EnsuredMountedElement & SafeElement) as ShadowRoot)
@@ -312,8 +311,8 @@ const hoverEl = (): void => {
         selector = selector.slice(upper.length);
       }
       let up = (upper as string | number as number) | 0, selected: Element | null = null;
-      if (OnChrome && Build.MinCVer < BrowserVer.MinEnsured$Element$$Closest && !up) {
-        up = clickEl.closest ? 0 : 6;
+      if (OnChrome && Build.MinCVer < BrowserVer.Min$Element$$closest && !up) {
+        up = chromeVer_ > BrowserVer.Min$Element$$closest - 1 ? 0 : 6
       }
       selector = selector.trim();
       while (up && up + 1 >= ancestors.length && top) {
@@ -561,7 +560,7 @@ const defaultClick = (): void => {
 
 const checkBoolOrSelector = (userVal: string | boolean | null | void | undefined, defaultVal: boolean): boolean => {
   return userVal == null ? defaultVal : !!userVal && (!isTY(userVal)
-      || (userVal = safeCall(testMatch, userVal, [clickEl])), userVal != null ? userVal : defaultVal)
+      || (userVal = safeCall(testMatch, userVal, clickEl)), userVal != null ? userVal : defaultVal)
 }
 const doPostAction = (): Rect | null => {
   (mode1_ < HintMode.min_then_as_arg || mode1_ > HintMode.max_then_as_arg)

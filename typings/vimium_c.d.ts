@@ -296,6 +296,7 @@ declare const enum kKeyLayout {
 }
 declare namespace SettingsNS {
   interface DirectlySyncedItems {
+    /** hideHud */ h: ["hideHud", boolean]
     /** ignoreReadonly */ y: ["ignoreReadonly", string]
     /** keyLayout */ l: ["keyLayout", kKeyLayout]
     /** keyboard */ k: ["keyboard", [delay: number, interval: number, /** on Firefox */ screenRefreshRate?: number]]

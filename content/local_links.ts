@@ -483,7 +483,7 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
         if (shadow !== null) {
           if (filter === getIfOnlyVisible) {
             const last = output.pop()
-            last === void 0 || last[0] === el && !testMatch(matchSelector!, last) || (output as Hint0[]).push(last)
+            last === void 0 || last[0] === el && !testMatch(matchSelector!, last[0]) || (output as Hint0[]).push(last)
           }
           tree_scopes.push([cur_tree, cur_ind, extraClickable_])
           cur_tree = matchSafeElements(selector, shadow, matchSelector)
@@ -667,12 +667,12 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
       , wholeDoc?: 0, acceptNonHTML?: 1): Hint[]
 }
 
-export const excludeHints = (output: Hint0[], options: CSSOptions, wantClickable: boolean| BOOL): Hint0[] => {
-  const excl2 = findSelectorByHost(options.excludeOnHost)
+export const excludeHints = (output: Hint0[], options: CSSOptions, wantClickable: boolean | 1): Hint0[] => {
+  const excl2: "css-selector" | void | false = findSelectorByHost(options.excludeOnHost)
       || (wantClickable && mode1_ < HintMode.min_job && !options.match
           && (<RegExpOne> /^\/s($|earch)/).test(loc_.pathname) && findSelectorByHost(kTip.searchResults))
   const excludedSelector = joinValidSelectors(findSelectorByHost(options.exclude), excl2)
-  return excludedSelector && output.filter(hint => !testMatch(excludedSelector as "css-selector", hint)) || output
+  return excludedSelector && output.filter(hint => !testMatch(excludedSelector as "css-selector", hint[0])) || output
 }
 
 const isDescendant: (c: Element, p: Element, shouldBeSingleChild: BOOL) => boolean = (c: Element | null, p, sc) => {
@@ -756,8 +756,8 @@ export const filterOutNonReachable = (list: Hint[], notForAllClickable?: boolean
     }
     const small = area.r - area.l < 17 || area.b - area.t < 17
     if (!hasTable) {
-      hasTable = OnChrome && Build.MinCVer < BrowserVer.MinEnsured$Element$$Closest
-          && chromeVer_ < BrowserVer.MinEnsured$Element$$Closest ? 1
+      hasTable = OnChrome && Build.MinCVer < BrowserVer.Min$Element$$closest
+          && chromeVer_ < BrowserVer.Min$Element$$closest ? 1
           : querySelector_unsafe_("table") ? 2 : 1
     }
     if ((small || hasTable === 2 && el!.closest!("table")) && isSafeEl_(fromPoint!) && !contains_s(fromPoint, el)) {

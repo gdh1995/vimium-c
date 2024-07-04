@@ -17,8 +17,8 @@ declare const enum kTip {
   /* 95: */ invisibleHintText, notMatchedHintText, metaKeywordsForMobile, css0d01OrDPI, visibleElementsInScopeChildren,
   /* 100: */ voidJS, nonLocalhostRe, scrollable, buttonOrA, closableClasses,
   /* 105: */ highContrast_WOB, invisibleElements, imgExt, searchResults, excludeWhenGoNext,
-  /* 110..113: */ kCommonEvents, logOmniFallback, logNotWorkOnSandboxed, logGrabFocus,
-  /* 114..115: */ prev, next, ReplacedHtmlTags, DefaultDoClickOn, DefaultClickableOnHost = 118,
+  /* 110: */ kCommonEvents, logOmniFallback, logNotWorkOnSandboxed, logGrabFocus, prev,
+  /* 115: */ next, ReplacedHtmlTags, DefaultDoClickOn, DefaultClickableOnHost, readOnly,
   INJECTED_CONTENT_END,
   /* 200: */ XHTML = 200,
   /** used by {@link ../Gulpfile.js} */ extendClick = 999,
@@ -288,7 +288,7 @@ declare namespace HintsNS {
     else?: object | string | null | void | false
     ordinal?: boolean
     useFilter?: boolean;
-    onTop?: boolean | "host-re##css-selector;..." | null
+    onTop?: boolean | "host-re##fake-selector;..." | null
     url?: boolean;
     // access el.dataset[<json keys>] || el.attrs[key][json keys]
     // format: [<css selector>":"]<dataset-key or attr-name>[...("."<json key>)], like img:viewer.url

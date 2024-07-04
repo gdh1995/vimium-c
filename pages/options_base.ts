@@ -205,7 +205,7 @@ export const bgSettings_ = {
   },
   valuesToLoad_: {
     __proto__: null as never,
-    filterLinkHints: "f", ignoreReadonly: "y", keyLayout: "l", mouseReachable: "e",
+    filterLinkHints: "f", hideHud: "h", ignoreReadonly: "y", keyLayout: "l", mouseReachable: "e",
     keyboard: "k", keyupTime: "u", linkHintCharacters: "c", linkHintNumbers: "n", passEsc: "p",
     regexFindMode: "r", smoothScroll: "s", scrollStepSize: "t", waitForEnter: "w"
   } satisfies SettingsNS.AutoSyncedNameMap & SafeObject as SettingsNS.AutoSyncedNameMap,

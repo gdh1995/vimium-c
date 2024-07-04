@@ -2,7 +2,7 @@ import {
   chromeVer_, doc, esc, fgCache, isTop, set_esc, VTr, safer, timeout_, loc_, weakRef_not_ff, weakRef_ff, deref_,
   keydownEvents_, Stop_, suppressCommonEvents, setupEventListener, vApi, locHref, isTY, min_, onWndFocus, clearTimeout_,
   OnChrome, OnFirefox, OnEdge, firefoxVer_, safeCall, os_, abs_, Lower, timeStamp_, isEnabled_, set_onWndFocus,
-  inherited_
+  inherited_, findOptByHost
 } from "../lib/utils"
 import {
   isHTML_, hasTag_, createElement_, querySelectorAll_unsafe_, SafeEl_not_ff_, docEl_unsafe_, MDW, CLK, derefInDoc_,
@@ -340,15 +340,15 @@ set_contentCommands_([
       return {m: marker, d: link[0]};
     })
     count -= (count > 0) as boolean | BOOL as BOOL
-    let preferredSelector = (options.prefer || "") + ""
+    let preferredSelector = findOptByHost(options.prefer, 0) || ""
     if (abs_(count) > 2 * sel) {
       sel = count < 0 ? 0 : sel - 1
     } else {
       for (ind = 0; ind < sel && hints[ind].d !== known_last; ) { ind++ }
       if (ind >= sel) { for (ind = 0; ind < sel && hints[ind].d !== second_last; ) { ind++ } }
       if (preferredSelector.endsWith("!") ? (preferredSelector = preferredSelector.slice(0, -1)) : ind >= sel) {
-        for (ind = preferredSelector && safeCall(testMatch, preferredSelector, visibleInputs[0]) === false ? 0 : sel;
-            ind < sel && !testMatch(preferredSelector, visibleInputs[ind]); ind++) { /* empty */ }
+        for (ind = preferredSelector && safeCall(testMatch, preferredSelector, visibleInputs[0][0]) === false ? 0 : sel;
+            ind < sel && !testMatch(preferredSelector, visibleInputs[ind][0]); ind++) { /* empty */ }
       }
       sel = (((ind + count) % sel) + sel) % sel
     }

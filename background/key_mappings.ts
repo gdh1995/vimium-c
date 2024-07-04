@@ -169,6 +169,7 @@ const normalizeLHOptions_ = (lhOpt: Partial<HintsNS.Options> & CommandsNS.RawLin
           delete lhOpt.target, delete lhOpt.targetOptions
           mode &= ~HintMode.queue
         }
+        if (lhOpt.hideHud != null) { lhOpt.hideHUD ||= lhOpt.hideHud; delete lhOpt.hideHud }
         if (mode !== stdMode) {
           lhOpt.m = mode
         }

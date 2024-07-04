@@ -21,7 +21,7 @@ export const AriaArray = ["aria-hidden", "aria-disabled", "aria-haspopup", "aria
 
 let unsafeFramesetTag_old_cr_: "frameset" | 0 = 0
 let docSelectable_ = true
-let _domInst: HTMLAnchorElement | undefined
+let _cssChecker: HTMLParagraphElement | undefined
 
 export { unsafeFramesetTag_old_cr_, docSelectable_ }
 export function markFramesetTagUnsafe_old_cr (): "frameset" { return unsafeFramesetTag_old_cr_ = "frameset" }
@@ -58,9 +58,9 @@ export const querySelectorAll_unsafe_ = ((selector: string, scope?: Element | Sh
   (selector: string, scope?: Element | ShadowRoot | null, isScopeAnElementOrNull?: 0): NodeListOf<Element> | void
 }
 
-export const testMatch = (selector: string, hint: Hint0): boolean => {
+export const testMatch = (selector: string, element: SafeElement): boolean => {
   return OnChrome && Build.MinCVer < BrowserVer.Min$Element$$matches && chromeVer_ < BrowserVer.Min$Element$$matches
-      ? hint[0].webkitMatchesSelector(selector) : hint[0].matches!(selector)
+      ? element.webkitMatchesSelector(selector) : element.matches!(selector)
 }
 
 export const isIFrameElement = <T extends BOOL = 0>(el: Element, alsoFenced?: T
@@ -579,16 +579,14 @@ export const newEvent_ = <T extends new (type: any, init: EventInit) => Event>(
   return new (cls || Event)(type, event) as ReturnType<T>
 }
 
-type MayBeSelector = "" | false | 0 | null | void | undefined
+type MayBeSelector = "" | false | null | void | undefined
 export const joinValidSelectors = (selector: string | false | void
-      , validAnother: "css-selector" | false | void | 0): "css-selector" | null => // this should be O(1)
+      , validAnother: "css-selector" | false | void): "css-selector" | null => // this should be O(1)
     // here can not use `docEl.matches`, because of `:has(...)`
-    selector && (validAnother !== 0
-        || safeCall(querySelector_unsafe_, selector, _domInst || (_domInst = createElement_("a"))) !== void 0)
-    ? (validAnother ? selector + "," + validAnother : selector) as "css-selector" : validAnother || null
+    selector ? (validAnother ? selector + "," + validAnother : selector) as "css-selector" : validAnother || null
 
-set_findOptByHost(((rules: string | string[] | kTip | MayBeSelector | void
-    , noCheck?: 1): "css-selector" | void => {
+set_findOptByHost((rules: string | string[] | kTip | MayBeSelector
+    , cssCheckEl?: SafeElement | 0): "css-selector" | void => {
   const isKTip = isTY(rules, kTY.num)
   let host: string | undefined, path: string | undefined
   for (const arr of !rules ? [] : isTY(rules,kTY.obj) ? rules : (isKTip ? VTr(rules) : rules + "").split(";")) {
@@ -598,11 +596,12 @@ set_findOptByHost(((rules: string | string[] | kTip | MayBeSelector | void
     path || cond && (host = Lower(loc_.host), path = host + "/" + Lower(loc_.pathname))
     if ((re ? re.test(matchPath ? path! : host!) : matchPath ? path!.startsWith(cond)
             : !cond || host === cond || host!.endsWith("." + cond))
-        && (isKTip || noCheck || joinValidSelectors(sel, 0))) {
+        && (isKTip || cssCheckEl === 0
+            || safeCall(testMatch, sel, _cssChecker || cssCheckEl || (_cssChecker = createElement_("p"))))) {
       return sel as "css-selector"
     }
   }
-}) as typeof findOptByHost)
+})
 export { findOptByHost as findSelectorByHost } from "./utils"
 
 export const elFromPoint_ = (center?: Point2D | null, baseEl?: SafeElement | ShadowRoot | null): Element | null => {
@@ -616,7 +615,7 @@ export const findTargetAction_ = (el: SafeElementForMouse, map: string | object 
     , down?: 0 | 1 | 2): string | false | void => {
   for (let key in safer(isTY(map, kTY.obj) ? map : map = down === 2 ? { [map as string]: !0 } : { "": map })) {
     const value = (map as Dict<string | number | boolean>)[key]
-    if (!key || (key = findOptByHost(key)!) && safeCall(testMatch, key, [el])) {
+    if (!key || (key = findOptByHost(key, 0)!) && safeCall(testMatch, key, el)) {
       return value !== !1 && value + ""
     }
   }
@@ -635,7 +634,7 @@ export function set_OnDocLoaded_ (_newOnDocLoaded: typeof OnDocLoaded_): void { 
 export function set_onReadyState_ (_newOnReady: typeof onReadyState_): void { onReadyState_ = _newOnReady }
 
 export let createElement_ = doc.createElement.bind(doc) as {
-  <K extends "div" | "span" | "style" | "iframe" | "a" | "script" | "dialog" | "body" | "img" | "canvas"> (
+  <K extends "div" | "span" | "style" | "iframe" | "a" | "p" | "script" | "dialog" | "body" | "img" | "canvas"> (
       htmlTagName: K): HTMLElementTagNameMap[K]
 }
 export function set_createElement_ (_newCreateEl: typeof createElement_): void { createElement_ = _newCreateEl }

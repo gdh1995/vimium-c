@@ -360,7 +360,9 @@ saladict@crimx.com`
     filterLinkHints: false,
     grabBackFocus: false,
     hideHud: false,
-    ignoreReadonly: "#read-only-cursor-text-area", // GitHub file content
+    ignoreReadonly: "#read-only-cursor-text-area" // GitHub file content
+        + ",.monaco-mouse-cursor-text[aria-autocomplete=none]" // Monaco editor >= ~0.42.0-dev-20230901
+        ,
     keyLayout: kKeyLayout.Default,
     keyboard: [560, 33],
     keyupTime: 120,
@@ -509,7 +511,7 @@ export const frontUpdateAllowed_: ReadonlyArray<keyof SettingsNS.FrontUpdateAllo
 
 export const valuesToLoad_ = {
     __proto__: null as never,
-    filterLinkHints: "f", ignoreReadonly: "y", keyLayout: "l", keyboard: "k", keyupTime: "u",
+    filterLinkHints: "f", hideHud: "h", ignoreReadonly: "y", keyLayout: "l", keyboard: "k", keyupTime: "u",
     linkHintCharacters: "c", linkHintNumbers: "n", mouseReachable: "e", passEsc: "p",
     regexFindMode: "r", smoothScroll: "s", scrollStepSize: "t", waitForEnter: "w"
 } satisfies SettingsNS.AutoSyncedNameMap & SafeObject as SettingsNS.AutoSyncedNameMap

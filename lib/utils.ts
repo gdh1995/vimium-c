@@ -216,15 +216,16 @@ export const recordLog = (tip: kTip | string): (() => void) =>
 
 type MayBeSelector = "" | false | 0 | null | void | undefined
 export let findOptByHost: {
-  <NotCssSelector extends BOOL = 0>(rules: string | string[] | kTip | MayBeSelector | void
-    , noCheck?: NotCssSelector): NotCssSelector extends 1 ? string | undefined : "css-selector" | void
+  (rules: kTip, cssCheckEl?: undefined): "css-selector" | void
+  (rules: string | string[] | MayBeSelector | void, cssCheckEl: 0): string | void
+  (rules: string | string[] | MayBeSelector | void, cssCheckEl?: SafeElement): "css-selector" | void
 }
 export function set_findOptByHost (newFindOptByHost: typeof findOptByHost): void { findOptByHost = newFindOptByHost }
 
 export const parseSedOptions = (opts: UserSedOptions): ParsedSedOpts => {
   const sed = opts.sed
   return isTY(sed, kTY.obj) && sed ? !(sed as string[]).length ? sed as Exclude<typeof sed, string[]>
-        : { r: "", k: findOptByHost(sed as string[], 1) satisfies string | void as string | undefined }
+        : { r: "", k: findOptByHost(sed as string[], 0) satisfies string | void as string | undefined }
       : { r: sed, k: opts.sedKeys || opts.sedKey }
 }
 

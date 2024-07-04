@@ -110,6 +110,7 @@
   "116": { "message": "^(canvas|embed|i?frame|img|video|object)$" },
   "117": { "message": ".monaco-editor" },
   "118": { "message": "weibo.com##.expand,.collapse" },
+  "119": { "message": "Readonly text box is focused" },
   "200": { "message": "http://www.w3.org/1999/xhtml" },
   "0": { "message": "Open link in current tab" },
   "2": { "message": "Open link in new tab" },

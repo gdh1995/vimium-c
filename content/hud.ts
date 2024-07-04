@@ -8,7 +8,7 @@ import {
 } from "../lib/dom_utils"
 import { ui_box, ensureBorder, addUIElement, adjustUI, getBoxTagName_old_cr } from "./dom_ui"
 import { allHints, isHintsActive, hintManager, setMode as setHintMode, hintMode_ } from "./link_hints"
-import { insert_global_, passAsNormal } from "./insert"
+import { insert_global_, passAsNormal, raw_insert_lock, readonlyFocused_, set_readonlyFocused_ } from "./insert"
 import { visual_mode_name } from "./visual"
 import { find_box } from "./mode_find"
 import { wdZoom_ } from "../lib/rect"
@@ -92,6 +92,8 @@ export const hudHide = (info?: TimerType.fake | TimerType.noTimer | void): void 
       hudShow(kTip.raw, insert_global_.h)
   } else if (passAsNormal) {
       esc!(HandlerResult.RefreshPassAsNormal)
+  } else if (readonlyFocused_ && set_readonlyFocused_(!!raw_insert_lock) && !fgCache.h) {
+    hudShow(kTip.readOnly)
   }
   else if (!box) { /* empty */ }
   else if ((OnChrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake ? info === TimerType.noTimer : info)

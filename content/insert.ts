@@ -1,12 +1,12 @@
 import {
   doc, keydownEvents_, safeObj, isTop, set_keydownEvents_, setupEventListener, Stop_, OnChrome, OnFirefox, weakRef_ff,
   esc, onWndFocus, isEnabled_, readyState_, recordLog, weakRef_not_ff, OnEdge, getTime, abs_, fgCache, deref_,
-  safeCall, timeout_, timeStamp_
+  isTY, timeout_, timeStamp_, chromeVer_
 } from "../lib/utils"
 import {
   activeEl_unsafe_, getEditableType_, getEventPath, getSelection_, frameElement_, deepActiveEl_unsafe_, blur_unsafe,
   SafeEl_not_ff_, MDW, fullscreenEl_unsafe_, removeEl_s, isNode_, BU, docHasFocus_, getRootNode_mounted, testMatch,
-  TryGetShadowRoot_, isAriaFalse_
+  TryGetShadowRoot_, isAriaFalse_, findSelectorByHost
 } from "../lib/dom_utils"
 import { post_, runFallbackKey, runtime_port, safePost } from "./port"
 import { getParentVApi, ui_box, ui_root } from "./dom_ui"
@@ -39,9 +39,10 @@ let grabBackFocus: boolean | ((event: Event, target: LockableElement) => void) =
 let onExitSuppress: ((this: void) => void) | 0 | undefined
 let onWndBlur2: ((this: void) => void) | undefined | null
 let passAsNormal: BOOL = 0
+let readonlyFocused_: boolean | 0 | undefined
 
 export {
-  lock_ as raw_insert_lock, insert_global_, passAsNormal,
+  lock_ as raw_insert_lock, insert_global_, passAsNormal, readonlyFocused_,
   insert_last_, insert_last2_, is_last_mutable as insert_last_mutable,
   grabBackFocus, suppressType, inputHint as insert_inputHint, onWndBlur2,
 }
@@ -54,6 +55,7 @@ export function set_isHintingInput (_newIsHintingInput: BOOL): void { isHintingI
 export function set_grabBackFocus (_newGrabBackFocus: typeof grabBackFocus): void { grabBackFocus = _newGrabBackFocus }
 export function set_onWndBlur2 (_newOnBlur: typeof onWndBlur2): void { onWndBlur2 = _newOnBlur }
 export function set_passAsNormal (_newNormal: BOOL): void { passAsNormal = _newNormal }
+export function set_readonlyFocused_ (_newRoFocused: boolean): boolean { return readonlyFocused_ = _newRoFocused}
 // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
 
 export const insertInit = (doesGrab?: boolean | null, inLoading?: 1): void => {
@@ -184,13 +186,11 @@ export const exitInsertMode = <(target: Element, event?: HandlerNS.Event) => Han
   } else {
     target = getEditableType_(target!) ? target : null
   }
-  let match: boolean | void = !1
   const ret = insert_global_ && insert_global_.p || target && event
-      && (fgCache.p && (match = safeCall(testMatch, fgCache.p, [target])))
+      && testConfiguredSelector_<"passEsc">(target, "p")
       && isEscape_(event.c) ? HandlerResult.Nothing : HandlerResult.Prevent
   if (target) {
     ret ? target.blur() : timeout_(blur_unsafe.bind(0, target), 0)
-    match !== !!match && (fgCache.p = "")
   }
   if (insert_global_) {
     runFallbackKey(insert_global_, 0)
@@ -256,15 +256,22 @@ export const onFocus = (event: Event | FocusEvent): void => {
     }
   }
   lastWndFocusTime = 0;
-  let match: boolean | void, readOnly: boolean, type: EditableType | boolean
+  let type: EditableType | boolean, ceParent: SafeElement | null = target as SafeElement
   if (type = getEditableType_<EventTarget>(target)) {
     if (grabBackFocus) {
       (grabBackFocus as Exclude<typeof grabBackFocus, boolean>)(event, target);
-    } else if (readOnly =
-          (type as number | boolean as EditableType) > EditableType.MaxNotTextBox && (target as TextElement).readOnly
-          || (type as number | boolean as EditableType) > EditableType.MaxNotEditableElement
-              && !isAriaFalse_(target, kAria.readOnly),
-        readOnly && (match = safeCall(testMatch, fgCache.y, [target]), match != null ? match : (fgCache.y = ""))) {
+    } else if (
+        (readonlyFocused_ = 
+            (type as number | boolean as EditableType) > EditableType.MaxNotTextBox && (target as TextElement).readOnly
+            || (type as number | boolean as EditableType) > EditableType.MaxNotEditableElement
+                && !!(ceParent = (type as number | boolean as EditableType) > EditableType.ContentEditable
+                        || OnChrome && Build.MinCVer < BrowserVer.Min$Element$$closest
+                            && chromeVer_ < BrowserVer.Min$Element$$closest
+                        ? target
+                        : OnFirefox ? target.closest!("[contenteditable]")satisfies Element | null as SafeElement | null
+                        : SafeEl_not_ff_!(target.closest!("[contenteditable]")))
+                 && !isAriaFalse_(ceParent, kAria.readOnly))
+        && testConfiguredSelector_<"ignoreReadonly">(ceParent!, "y")) {
       /* empty */
     } else {
       esc!(HandlerResult.Nothing)
@@ -280,6 +287,7 @@ export const onFocus = (event: Event | FocusEvent): void => {
         } else {
           insert_last2_ = OnFirefox ? weakRef_ff(target, kElRef.lastEditable2) : weakRef_not_ff!(target)
         }
+        readonlyFocused_ && hudHide()
       }
     }
   }
@@ -313,6 +321,7 @@ export const onBlur = (event: Event | FocusEvent): void => {
     if (inputHint && !isHintingInput && docHasFocus_()) {
       exitInputHint();
     }
+    readonlyFocused_ && hudHide()
   }
 }
 
@@ -369,4 +378,14 @@ const getSimpleNodeMap = (): ShadowNodeMap => {
     get (node: Node): kNodeInfo | undefined { return (node as NodeWithInfo).vimiumC },
     delete (node: Node): any { (node as NodeWithInfo).vimiumC = kNodeInfo.NONE }
   }
+}
+
+const testConfiguredSelector_ = <T extends "passEsc" | "ignoreReadonly">(target: SafeElement
+    , confKey: SettingsNS.AutoSyncedNameMap[T]): boolean | 0 => {
+  let selector: string | [string] | 0 | void = fgCache[confKey] as string | [string] | 0
+  if (isTY(selector)) {
+    selector = findSelectorByHost(selector, target)
+    fgCache[confKey] = (selector = (selector ? [selector] : 0) satisfies [string] | 0) as never
+  }
+  return selector && testMatch(selector[0], target)
 }

@@ -66,6 +66,7 @@
   "84": { "message": "Sélection perdue" },
   "114": { "message": "précedent" },
   "115": { "message": "suivant" },
+  "119": { "message": "Le texte en lecture seule est ciblé" },
   "0": { "message": "Ouvre le lien dans l'onglet courant" },
   "2": { "message": "Ouvre le lien dans un nouvel onglet" },
   "3": { "message": "Ouvre le lien dans un nouvel onglet actif" },

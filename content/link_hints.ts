@@ -86,13 +86,12 @@ export type AddChildDirectly = (officer: BaseHintWorker, el: AccessableIFrameEle
 import {
   VTr, isAlive_, isEnabled_, setupEventListener, keydownEvents_, set_keydownEvents_, timeout_, max_, min_, abs_, OnEdge,
   clearTimeout_, fgCache, doc, readyState_, chromeVer_, vApi, deref_, getTime, unwrap_ff, OnFirefox, OnChrome,
-  WithDialog, Lower, safeCall, os_, firefoxVer_, weakRef_not_ff, weakRef_ff, isTY, isIFrameInAbout_
+  WithDialog, Lower, safeCall, os_, firefoxVer_, weakRef_not_ff, weakRef_ff, isTY, isIFrameInAbout_, findOptByHost
 } from "../lib/utils"
 import {
   querySelector_unsafe_, isHTML_, scrollingEl_, docEl_unsafe_, IsInDOM_, GetParent_unsafe_, hasInCSSFilter_,derefInDoc_,
   getComputedStyle_, isStyleVisible_, htmlTag_, fullscreenEl_unsafe_, removeEl_s, PGH, toggleClass_s, doesSupportDialog,
   getSelectionFocusEdge_, SafeEl_not_ff_, compareDocumentPosition, deepActiveEl_unsafe_, frameElement_, getSelection_,
-  findSelectorByHost
 } from "../lib/dom_utils"
 import {
   ViewBox, getViewBox_, prepareCrop_, wndSize_, bZoom_, wdZoom_, dScale_, boundingRect_,
@@ -205,7 +204,7 @@ export const activate = (options: ContentOptions, count: number, force?: 2 | Tim
       coreHints.d = !(OnChrome && Build.MinCVer >= BrowserVer.MinEnsuredHTMLDialogElement || doesSupportDialog()) ? 0
         : hasPopover_ > 1 || querySelector_unsafe_("dialog[open]") ? 3
         : <BOOL> +!!(wantDialogMode_ != null ? wantDialogMode_
-            : isTY(wantTop) ? findSelectorByHost(wantTop) : wantTop != null ? wantTop : hasInCSSFilter_())
+            : isTY(wantTop) ? findOptByHost(wantTop, 0) : wantTop != null ? wantTop : hasInCSSFilter_())
     }
     let allHints: readonly HintItem[], child: ChildFrame | undefined, insertPos = 0
       , frameInfo: FrameHintsInfo, total: number
@@ -246,8 +245,7 @@ export const activate = (options: ContentOptions, count: number, force?: 2 | Tim
       hints_ = keyStatus_.c = allHints
       if (!Build.NDEBUG) { coreHints.hints_ = allHints }
     }
-    noHUD_ = !(useFilter || topFrameInfo.v[3] > 40 && topFrameInfo.v[2] > 320) || !!(options.hideHUD || options.hideHud)
-        ? 1 : 0
+    noHUD_ = !(useFilter || topFrameInfo.v[3] > 40 && topFrameInfo.v[2] > 320) || options.hideHUD ? 1 : 0
     useFilter ? /*#__NOINLINE__*/ initFilterEngine(allHints as readonly FilteredHintItem[])
         : initAlphabetEngine(allHints)
     renderMarkers(allHints)
@@ -573,8 +571,8 @@ export const findAnElement_ = (options: OptionsToFindElement, count: number, als
       if (el && j) {
         const el2 = OnFirefox ? safeCall(querySelector_unsafe_, j, el) as (SafeElement | null | undefined)
             : SafeEl_not_ff_!(safeCall(querySelector_unsafe_, j, el))
-        el = el2 === null && !(OnChrome && Build.MinCVer < BrowserVer.MinEnsured$Element$$Closest
-            && chromeVer_ < BrowserVer.MinEnsured$Element$$Closest) ? OnFirefox ? el.closest!(j) as SafeElement | null
+        el = el2 === null && !(OnChrome && Build.MinCVer < BrowserVer.Min$Element$$closest
+            && chromeVer_ < BrowserVer.Min$Element$$closest) ? OnFirefox ? el.closest!(j) as SafeElement | null
             : SafeEl_not_ff_!(el.closest!(j)) : el2
       }
       el = el && isNotInViewport(el) < (wholeDoc ? kInvisibility.OutOfView + 1 : kInvisibility.Visible + 1)

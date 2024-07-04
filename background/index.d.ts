@@ -302,7 +302,6 @@ declare namespace SettingsNS {
     exclusionOnlyFirstMatch: boolean;
     exclusionRules: ExclusionsNS.StoredRule[];
     extAllowList: string;
-    hideHud: boolean;
     keyMappings: string;
     localeEncoding: string;
     newTabUrl: string;
