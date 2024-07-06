@@ -256,22 +256,17 @@ export const onFocus = (event: Event | FocusEvent): void => {
     }
   }
   lastWndFocusTime = 0;
-  let type: EditableType | boolean, ceParent: SafeElement | null = target as SafeElement
+  let editableParent: SafeElement | null, type: EditableType | boolean
   if (type = getEditableType_<EventTarget>(target)) {
     if (grabBackFocus) {
       (grabBackFocus as Exclude<typeof grabBackFocus, boolean>)(event, target);
     } else if (
-        (readonlyFocused_ = 
-            (type as number | boolean as EditableType) > EditableType.MaxNotTextBox && (target as TextElement).readOnly
-            || (type as number | boolean as EditableType) > EditableType.MaxNotEditableElement
-                && !!(ceParent = (type as number | boolean as EditableType) > EditableType.ContentEditable
-                        || OnChrome && Build.MinCVer < BrowserVer.Min$Element$$closest
-                            && chromeVer_ < BrowserVer.Min$Element$$closest
-                        ? target
-                        : OnFirefox ? target.closest!("[contenteditable]")satisfies Element | null as SafeElement | null
-                        : SafeEl_not_ff_!(target.closest!("[contenteditable]")))
-                 && !isAriaFalse_(ceParent, kAria.readOnly))
-        && testConfiguredSelector_<"ignoreReadonly">(ceParent!, "y")) {
+      editableParent = (type as number | boolean as EditableType) !== EditableType.ContentEditable
+          || OnChrome && Build.MinCVer < BrowserVer.Min$Element$$closest && chromeVer_ < BrowserVer.Min$Element$$closest
+          ? target
+          : OnFirefox ? target.closest!("[contenteditable]") satisfies Element | null as SafeElement | null
+          : SafeEl_not_ff_!(target.closest!("[contenteditable]")),
+      editableParent && testConfiguredSelector_<"ignoreReadonly">(editableParent, "y")) {
       /* empty */
     } else {
       esc!(HandlerResult.Nothing)
@@ -287,8 +282,11 @@ export const onFocus = (event: Event | FocusEvent): void => {
         } else {
           insert_last2_ = OnFirefox ? weakRef_ff(target, kElRef.lastEditable2) : weakRef_not_ff!(target)
         }
-        readonlyFocused_ && hudHide()
       }
+      readonlyFocused_ = (type as number | boolean as EditableType) > EditableType.MaxNotEditableElement
+          && editableParent && !isAriaFalse_(editableParent, kAria.readOnly)
+          || (type as number|boolean as EditableType) > EditableType.MaxNotTextBox && (target as TextElement).readOnly
+      readonlyFocused_ && hudHide()
     }
   }
 }

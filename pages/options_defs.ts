@@ -356,19 +356,58 @@ export class NonEmptyTextOption_<T extends TextOptionNames> extends TextOption_<
   }
 }
 
-const kPseudoDefault = ":default"
+const kDefaultRule = ":default"
+
+const sortCssRules = (arr: string[]): string[] => {
+  if (!OnEdge && (!OnChrome || Build.MinCVer >= BrowserVer.MinStableSort || CurCVer_ > BrowserVer.MinStableSort - 1)) {
+    return arr.sort((i, j) => i[0] !== j[0] ? i > j ? -1 : 1 : 0)  // ";" > ","
+  }
+  return arr.map((i, ind) => [i, ind] as const).sort((i, j) => i[0][0] !== j[0][0] ? i[0] > j[0] ? -1 : 1 : i[1] - j[1])
+      .map(i => i[0])
+}
+
+const _knownBrokenCssSelectors: Dict<1> = {}
+const isValidCssSelector = (el: TextElement, selector: string, errors: string[]): boolean => {
+  selector = selector.replace(<RegExpOne> /[,;]\s*$/, "")
+  if (!_knownBrokenCssSelectors[selector]) {
+    try {
+      el.querySelector(selector)
+      return true
+    } catch { /* empty */ }
+    _knownBrokenCssSelectors[selector] = 1
+  }
+  errors.push(selector)
+  return false
+}
 
 export class CssSelectorOption_ extends TextOption_<"passEsc" | "ignoreReadonly"> {
   override readValueFromElement_(): string {
     let value = super.readValueFromElement_()
-    value = value.replace(<RegExpOne> /:default\(.*?\)/, kPseudoDefault)
-    value = value !== kPseudoDefault ? value.replace(<RegExpG> /,\s+/g, ",") : bgSettings_.defaults_[this.field_]
+    value = value.replace(<RegExpOne> /:default\([^)]*\)/, kDefaultRule)
+    const errors: string[] = []
+    value = value === kDefaultRule ? bgSettings_.defaults_[this.field_] : sortCssRules(value.split("\n").map(i => {
+          i = i.trim()
+          return !i ? "" : i.includes("##") || !isValidCssSelector(this.element_, i, errors) ? `;${i};` : `,${i},`
+        }).filter(i => !!i))
+        .join("").replace(<RegExpG> /,[,\s]+/g, ",").replace(<RegExpG> /,;[,;]*|;[,;]+/g, ";")
+        .replace(<RegExpOne> /^[,;]/, "").replace(<RegExpOne> /[,;]$/, "").replace(<RegExpG> / > /g, ">")
+    if (errors.length > 0) {
+      this.showError_("Invalid selectors:\n" + errors.join("\n"), "has-error")
+    } else {
+      this.showError_("")
+    }
     return value
   }
   override formatValue_ (value: string): string {
-    value = value !== bgSettings_.defaults_[this.field_] ? value : kPseudoDefault
-    value = value.replace(kPseudoDefault, `${kPseudoDefault}(${bgSettings_.defaults_[this.field_]})`)
-    return value.replace(<RegExpG> /,/g, ", ")
+    let default_val = bgSettings_.defaults_[this.field_]
+    value = value !== default_val ? value : kDefaultRule
+    value = value.replace(kDefaultRule + ",", `${kDefaultRule}\n`).replace("," + kDefaultRule, `\n${kDefaultRule}`)
+    value = value.replace(<RegExpG> /,/g, ", ").replace(<RegExpG> /;/g, "\n")
+    default_val = default_val.length > 50 ? default_val.replace(<RegExpG> /,/g, ",\n  ") : default_val
+    value = value.replace(kDefaultRule, `${kDefaultRule}(${default_val})\n`).replace(<RegExpG> /\n\n+/g, "\n")
+    value = value.endsWith(")\n") && value.split("\n").length >= 5 ? value.slice(0, -1) : value
+    value = value.replace(<RegExpG> />/g, " > ")
+    return value
   }
 }
 

@@ -616,6 +616,9 @@ label:active {
   padding: 0.5px 2px 0;
   border-style: solid;
 }
+#ignoreReadonly {
+  min-height: 92px;
+}
 #footer {
   background: #f3f3f3;
   background: var(--vc-panel-background-color);

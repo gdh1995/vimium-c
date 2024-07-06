@@ -360,8 +360,10 @@ saladict@crimx.com`
     filterLinkHints: false,
     grabBackFocus: false,
     hideHud: false,
-    ignoreReadonly: "#read-only-cursor-text-area" // GitHub file content
+    ignoreReadonly: "#read-only-cursor-text-area" // GitHub source file content
         + ",.monaco-mouse-cursor-text[aria-autocomplete=none]" // Monaco editor >= ~0.42.0-dev-20230901
+        + ',.CodeMirror>div[style]>textarea[readonly=""][style]' // Code Mirror 5
+        + ",.sidebar-view-item-name>input[value][readonly]" // Netron attribute name
         ,
     keyLayout: kKeyLayout.Default,
     keyboard: [560, 33],
