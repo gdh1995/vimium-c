@@ -34,6 +34,7 @@
   "beforeChromium": "before Chromium $1",
   "lackPermission": "for lacking permission $1",
   "invalidOption": "This feature can not work $1",
+  "invalidCss": "Found invalid CSS selectors:",
   "manageShortcut": "\"Manage Shortcuts\" in \"Tools Menu\" of ",
   "addons": "Firefox Add-ons",
   "webstore": "Chrome Web Store",

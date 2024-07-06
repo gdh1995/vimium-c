@@ -13,6 +13,7 @@
   "beforeChromium": "sur navigateurs Chromium avant v$1",
   "lackPermission": "pour manquer de permissions $1",
   "invalidOption": "Cette fonctionnalité ne peut pas fonctionner $1",
+  "invalidCss": "Sélecteurs CSS non valides trouvés:",
   "manageShortcut": "\"Paramétrer les raccourcis\" dans \"le menu Outils\" de ",
   "addons": "Extensions Firefox",
   "webstore": "Chrome Web Store",

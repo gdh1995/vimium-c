@@ -80,7 +80,7 @@ export const showI18n_ = (): void => {
   child.prototype = new __();
 }
 
-export const debounce_ = function<T> (func: (this: T) => void
+export const debounce_ = function<T> (func: (this: T) => unknown
     , wait: number, bound_context: T, also_immediate: number
     ): (this: void) => void {
   let timeout = 0, timestamp: number;
@@ -92,11 +92,11 @@ export const debounce_ = function<T> (func: (this: T) => void
     }
     timeout = 0;
     if (timestamp !== also_immediate) {
-      return func.call(bound_context);
+      func.call(bound_context)
     }
   };
   also_immediate = also_immediate ? 1 : 0;
-  return function () {
+  return function (): void {
     timestamp = Date.now(); // safe for time changes
     if (timeout) {
       if (also_immediate) {
@@ -107,7 +107,7 @@ export const debounce_ = function<T> (func: (this: T) => void
     timeout = setTimeout(later, wait);
     if (also_immediate) {
       also_immediate = timestamp;
-      return func.call(bound_context);
+      func.call(bound_context)
     }
   };
 } as <T> (func: (this: T) => void, wait: number, bound_context: T, also_immediate: BOOL) => (this: void) => void
@@ -234,7 +234,7 @@ export abstract class Option_<T extends keyof AllowedOptions> {
   readonly field_: T;
   previous_: AllowedOptions[T];
   saved_: boolean;
-  locked_?: boolean;
+  locked_: boolean
   readonly onUpdated_: (this: void) => void;
   onSave_ (): void | Promise<void> { /* empty */ }
   checker_?: Checker<T>;
@@ -244,12 +244,13 @@ export abstract class Option_<T extends keyof AllowedOptions> {
   static onFgCacheUpdated_: (() => void) | null = null
   static suppressPopulate_ = false
 
-  constructor (element: HTMLElement, onUpdated: () => void) {
+  constructor (element: HTMLElement, onUpdated: () => unknown) {
     const field = element.id as T;
     this.field_ = field
     this.element_ = element;
     this.previous_ = this.onUpdated_ = null as never;
     this.saved_ = false;
+    this.locked_ = false
     if (field in bgSettings_.valuesToLoad_) {
       onUpdated = this._onCacheUpdated.bind(this, onUpdated);
     } else if (field === "autoDarkMode" || field === "autoReduceMotion") {
@@ -316,8 +317,8 @@ export abstract class Option_<T extends keyof AllowedOptions> {
   abstract populateElement_ (value: AllowedOptions[T], enableUndo?: boolean): void;
   doesPopulateOnSave_ (_val: AllowedOptions[T]): boolean { return false }
   areEqual_ (this: Option_<T>, old: AllowedOptions[T], newVal: AllowedOptions[T]): boolean { return old === newVal }
-  _onCacheUpdated: (this: Option_<T>, onUpdated: (this: Option_<T>) => void) => void;
-  _manuallySyncCache: (this: Option_<T>, onUpdated: (this: Option_<T>) => void) => void;
+  _onCacheUpdated: (this: Option_<T>, onUpdated: (this: Option_<T>) => unknown) => void;
+  _manuallySyncCache: (this: Option_<T>, onUpdated: (this: Option_<T>) => unknown) => void;
   atomicUpdate_: (this: Option_<T> & {element_: TextElement}, value: string, undo: boolean, locked: boolean) => void;
 
   static saveOptions_: (this: void) => Promise<boolean>

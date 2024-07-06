@@ -237,6 +237,7 @@
   "beforeChromium": " Chromium 版本低於 $1",
   "lackPermission": "缺少相關權限 $1",
   "invalidOption": "無法啟用此功能，因為$1",
+  "invalidCss": "一些 CSS 選擇器存在錯誤：",
   "manageShortcut": "",
   "manageShortcut_2": " 上“工具”按鈕的“管理擴充快速鍵”",
   "addons": "Firefox 附加組件",

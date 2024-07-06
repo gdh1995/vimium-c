@@ -14,11 +14,10 @@ import SettingsWithDefaults = SettingsNS.SettingsWithDefaults
 Option_.syncToFrontend_ = []
 
 Option_.prototype._onCacheUpdated = function<T extends keyof SettingsNS.AutoSyncedNameMap
-    > (this: Option_<T>, func: (this: Option_<T>) => void): void {
-  func.call(this)
-  if (VApi) {
+    > (this: Option_<T>, func: (this: Option_<T>) => unknown): void {
+  const val = func.call(this) as SettingsNS.PersistentSettings[T]
+  if (VApi && !this.locked_) {
     const shortKey = bgSettings_.valuesToLoad_[this.field_ as keyof SettingsNS.AutoSyncedNameMap]
-    const val = this.readValueFromElement_()
     const p = shortKey in bgSettings_.complexValuesToLoad_ ? post_(kPgReq.updatePayload, { key: shortKey, val })
         : Promise.resolve(val)
     void p.then((val2): void => {
@@ -34,10 +33,10 @@ Option_.prototype._onCacheUpdated = function<T extends keyof SettingsNS.AutoSync
 }
 
 Option_.prototype._manuallySyncCache = function<T extends "autoDarkMode" | "autoReduceMotion"
-    > (this: Option_<T>, func: (this: Option_<T>) => void): void {
-  func.call(this)
-  const rawVal = this.readValueFromElement_()
-  if (this.field_ === "autoReduceMotion") {
+    > (this: Option_<T>, func: (this: Option_<T>) => unknown): void {
+  const rawVal = func.call(this) as SettingsNS.PersistentSettings[T]
+  if (this.locked_) { /* empty */ }
+  else if (this.field_ === "autoReduceMotion") {
     const val = rawVal === 1 ? true : rawVal === 0 ? false : matchMedia("(prefers-reduced-motion: reduce)").matches
     VApi && (VApi.z!.m = val)
     toggleReduceMotion_(val)
@@ -367,11 +366,18 @@ const sortCssRules = (arr: string[]): string[] => {
 }
 
 const _knownBrokenCssSelectors: Dict<1> = {}
-const isValidCssSelector = (el: TextElement, selector: string, errors: string[]): boolean => {
-  selector = selector.replace(<RegExpOne> /[,;]\s*$/, "")
+const isValidCssSelector = (option: CssSelectorOption_, selector: string, errors: string[]): boolean => {
+  selector = selector.replace(<RegExpOne> /[,;]\s*$/, "").trim()
+  if (selector === kDefaultRule) {
+    if (Build.NDEBUG) { return true } // EdgeHTML may have no `:default`
+    selector = bgSettings_.defaults_[option.field_]
+  }
+  if (selector.includes(",")) {
+    return selector.split(",").map(i => isValidCssSelector(option, i, errors)).reduce((old, x) => old || x, false)
+  }
   if (!_knownBrokenCssSelectors[selector]) {
     try {
-      el.querySelector(selector)
+      option.element_.querySelector(selector)
       return true
     } catch { /* empty */ }
     _knownBrokenCssSelectors[selector] = 1
@@ -380,19 +386,24 @@ const isValidCssSelector = (el: TextElement, selector: string, errors: string[])
   return false
 }
 
-export class CssSelectorOption_ extends TextOption_<"passEsc" | "ignoreReadonly"> {
+export class CssSelectorOption_ extends NonEmptyTextOption_<"passEsc" | "ignoreReadonly"> {
   override readValueFromElement_(): string {
     let value = super.readValueFromElement_()
-    value = value.replace(<RegExpOne> /:default\([^)]*\)/, kDefaultRule)
+    let selectorsInDefault: string | undefined
+    value = value.replace(<RegExpOne & RegExpSearchable<0>> /:default\([^)]*\)/, Build.NDEBUG ? kDefaultRule as never
+        : (s: string): string => (selectorsInDefault = s.slice(kDefaultRule.length + 1, -1), kDefaultRule))
     const errors: string[] = []
-    value = value === kDefaultRule ? bgSettings_.defaults_[this.field_] : sortCssRules(value.split("\n").map(i => {
+    value = Build.NDEBUG && value === kDefaultRule ? bgSettings_.defaults_[this.field_]
+        : sortCssRules(value.split("\n").map(i => {
           i = i.trim()
-          return !i ? "" : i.includes("##") || !isValidCssSelector(this.element_, i, errors) ? `;${i};` : `,${i},`
+          return !i ? "" : i.includes("##") || !isValidCssSelector(this, Build.NDEBUG || i !== kDefaultRule
+              ? i : selectorsInDefault || i, errors) ? `;${i};` : `,${i},`
         }).filter(i => !!i))
         .join("").replace(<RegExpG> /,[,\s]+/g, ",").replace(<RegExpG> /,;[,;]*|;[,;]+/g, ";")
         .replace(<RegExpOne> /^[,;]/, "").replace(<RegExpOne> /[,;]$/, "").replace(<RegExpG> / > /g, ">")
     if (errors.length > 0) {
-      this.showError_("Invalid selectors:\n" + errors.join("\n"), "has-error")
+      errors.unshift(oTrans_("invalidCss"))
+      this.showError_(errors.join("\n"), "has-error")
     } else {
       this.showError_("")
     }
@@ -510,7 +521,10 @@ TextOption_.prototype.atomicUpdate_ = NumberOption_.prototype.atomicUpdate_ = fu
   document.execCommand("insertText", false, diffValue)
   if (OnFirefox && Build.MinFFVer < FirefoxBrowserVer.MinInputSupportExecCommand
       && CurFFVer_ < FirefoxBrowserVer.MinInputSupportExecCommand) {
-    if (input.value !== value) { input.value = value }
+    if (input.value !== value) {
+      input.value = value
+      this.onUpdated_()
+    }
   }
   newFocused && input.blur()
   if (initialValue !== oldValue) {
@@ -561,9 +575,10 @@ export let registerClass_: (type: string, cls: new (el: HTMLElement, cb: () => v
 export const createNewOption_ = ((): <T extends keyof AllowedOptions> (_element: HTMLElement) => Option_<T> => {
   let status = false
   savedStatus_ = newStat => status = newStat != null ? newStat : status
-  const onUpdated = function <T extends keyof AllowedOptions>(this: Option_<T>): void {
+  const onUpdated = function <T extends keyof AllowedOptions>(this: Option_<T>): unknown {
     if (this.locked_) { return }
-    if (this.saved_ = this.areEqual_(this.previous_, this.readValueFromElement_())) {
+    const rawVal = this.readValueFromElement_()
+    if (this.saved_ = this.areEqual_(this.previous_, rawVal)) {
       if (status && !Option_.needSaveOptions_()) {
         if (OnFirefox) {
           saveBtn_.blur()
@@ -574,9 +589,9 @@ export const createNewOption_ = ((): <T extends keyof AllowedOptions> (_element:
         savedStatus_(false)
         window.onbeforeunload = null as never
       }
-      return
+      return rawVal
     } else if (status) {
-      return
+      return rawVal
     }
     window.onbeforeunload = onBeforeUnload
     savedStatus_(true)
@@ -586,6 +601,7 @@ export const createNewOption_ = ((): <T extends keyof AllowedOptions> (_element:
       exportBtn_.blur()
     }
     exportBtn_.disabled = true
+    return rawVal
   }
 
   const types = {
