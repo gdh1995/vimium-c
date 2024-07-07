@@ -5,6 +5,7 @@ import {
 import { dimSize_, Point2D, selRange_ } from "./rect"
 
 export declare const enum kMediaTag { img = 0, otherMedias = 1, a = 2, others = 3, MIN_NOT_MEDIA_EL = 2, LAST = 3 }
+export declare const enum kDispatch { event = 0, clickFn = 1, focusFn = 2, _mask = "number" }
 interface kNodeToType {
   [kNode.TEXT_NODE]: Text
   [kNode.ELEMENT_NODE]: Element
@@ -572,11 +573,11 @@ export const extractField = (el: SafeElement, props: string): string => {
 export const newEvent_ = <T extends new (type: any, init: EventInit) => Event>(
     type: T extends new (type: infer Type, init: any) => Event ? Type : never
     , notCancelable?: boolean | BOOL, notComposed?: BOOL | boolean, notBubbles?: boolean | BOOL
-    , event?: T extends new (type: any, init: infer Init) => Event ? Init : never
-    , cls?: T): ReturnType<T> => {
-  event = event || {} as NonNullable<typeof event>
-  event.bubbles = !notBubbles, event.cancelable = !notCancelable, OnEdge || (event.composed = !notComposed)
-  return new (cls || Event)(type, event) as ReturnType<T>
+    , init?: T extends new (type: any, init: infer Init) => Event ? Init : never
+    , cls?: T): InstanceType<T> => {
+  init = init || {} as NonNullable<typeof init>
+  init.bubbles = !notBubbles, init.cancelable = !notCancelable, OnEdge || (init.composed = !notComposed)
+  return new (cls || Event)(type, init) as InstanceType<T>
 }
 
 type MayBeSelector = "" | false | null | void | undefined
@@ -754,22 +755,24 @@ export const blur_unsafe = (el: Element | null | undefined): void => {
 export const dispatchEvent_ = (target: Window | Document | SafeElement
     , event: Event): boolean => target.dispatchEvent(event)
 
-export const dispatchAsync_ = <T extends 0 | 1 | 2 = 0> (target: T extends 1 ? SafeHTMLElement : Document | SafeElement
-      , event: T extends 0 ? Event : 0, work?: T): Promise<T extends 0 ? boolean : undefined> => {
+export const dispatchAsync_ = <T extends Event | kDispatch.clickFn | kDispatch.focusFn> (
+    target: T extends kDispatch.clickFn ? SafeHTMLElement : Document | SafeElement
+    , event: T): Promise<T extends Event ? boolean : undefined> => {
   if ((Build.BTypes & BrowserType.Edge
         || Build.BTypes & BrowserType.Firefox && Build.MinFFVer < FirefoxBrowserVer.Min$queueMicrotask
         || Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$queueMicrotask) && !queueTask_) {
-    return Promise.resolve().then((work === 1 ? (target as SafeHTMLElement).click as never
-        : work ? target.focus as never : target.dispatchEvent
-      ).bind<EventTarget, Event, [], boolean>(target, work ? (void 0) as never : event as Event)
-    ) as Promise<T extends 0 ? boolean : undefined>
+    return Promise.resolve(isTY(event satisfies Event | number, kTY.num) ? (void 0) as never : event as Event)
+        .then<boolean>((event === kDispatch.clickFn ? (target as SafeHTMLElement).click as never
+          : event === kDispatch.focusFn ? target.focus as never : target.dispatchEvent
+        ).bind<EventTarget, [Event], boolean>(target as Document | SafeElement)
+    ) as Promise<T extends Event ? boolean : undefined>
   }
-  return new Promise<T extends 0 ? boolean : undefined>((resolve): void => {
+  return new Promise<T extends Event ? boolean : undefined>((resolve): void => {
     queueTask_!((): void => {
-      const ret = work === 1 ? (target as SafeHTMLElement).click()
-          : work ? (target as Document | ElementToHTMLOrForeign).focus!()
+      const ret = event === kDispatch.clickFn ? (target as SafeHTMLElement).click()
+          : event === kDispatch.focusFn ? (target as Document | ElementToHTMLOrForeign).focus!()
           : target.dispatchEvent(event as Event)
-      resolve(ret as T extends 0 ? boolean : undefined)
+      resolve(ret as T extends Event ? boolean : undefined)
     })
   })
 }

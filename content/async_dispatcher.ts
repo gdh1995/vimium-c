@@ -3,7 +3,7 @@ import {
   tryCreateRegExp, weakRef_not_ff, firefoxVer_, fgCache, max_, promiseDefer_
 } from "../lib/utils"
 import {
-  IsInDOM_, isInTouchMode_cr_, MDW, hasTag_, CLK, attr_s, fullscreenEl_unsafe_, findAnchor_, dispatchAsync_,
+  IsInDOM_, isInTouchMode_cr_, MDW, hasTag_, CLK, attr_s, fullscreenEl_unsafe_, findAnchor_, dispatchAsync_, kDispatch,
   blur_unsafe, derefInDoc_, newEvent_, getRootNode_mounted, elFromPoint_, HTMLElementProto, getEditableType_,
   showPicker_
 } from "../lib/dom_utils"
@@ -277,7 +277,7 @@ export const hover_async = (async (newEl?: NullableSafeElForM
       }
       lastHovered_ = IsInDOM_(newEl) ? OnFirefox ? weakRef_ff(newEl, kElRef.lastHovered) : weakRef_not_ff!(newEl) : N
       lastBubbledHovered_ = enableBubblesForEnterLeave_ && lastHovered_
-      notSame && doesFocus && lastHovered_ && await dispatchAsync_(newEl, 0, 2)
+      notSame && doesFocus && lastHovered_ && await dispatchAsync_(newEl, kDispatch.focusFn)
     }
   }
   // here always ensure lastHovered_ is "in DOM" or null
@@ -313,14 +313,10 @@ export const unhover_async = (!OnChrome || Build.MinCVer >= BrowserVer.MinEnsure
   (element: NullableSafeElForM, step: 2): /* all false values */ void | false
 }
 
-export const wrap_enable_bubbles = (<Func extends (...a: any[]) => Promise<unknown>> (opts: {bubbles?: boolean} | null
-    , func: Func, args: Func extends () => void ? undefined : Parameters<Func>): ReturnType<Func> => {
-  const bubbles = opts && opts.bubbles && (enableBubblesForEnterLeave_ = 1), p = func.apply(0, args || [])
+export const wrap_enable_bubbles = <Func extends (...a: any[]) => Promise<unknown>> (opts: {bubbles?: boolean} | null
+    , func: Func, args: Parameters<Func>): ReturnType<Func> => {
+  const bubbles = opts && opts.bubbles && (enableBubblesForEnterLeave_ = 1), p = func.apply(0, args)
   return (bubbles ? p.then(val => (enableBubblesForEnterLeave_ = 0, val)) : p) as ReturnType<Func>
-}) as {
-  <Res> (options: {bubbles?: boolean}, func: () => Promise<Res>): Promise<Res>
-  <Func extends (...Args: any[]) => Promise<unknown>> (options: {bubbles?: boolean} | null
-    , func: Func, args: Parameters<Func>): ReturnType<Func>
 }
 
 /** if `addFocus`, then `element` must has `.focus` */
@@ -394,7 +390,7 @@ export const click_async = (async (element: SafeElementForMouse
   if (addFocus && ((pointerdownNotPrevented satisfies boolean | 2 as BOOL | 2) & 1)
       && element !== (getRootNode_mounted(element) as Document).activeElement
       && !(element as Partial<HTMLInputElement>).disabled) {
-    await dispatchAsync_(element, 0, 2)
+    await dispatchAsync_(element, kDispatch.focusFn)
     if (!IsInDOM_(element)) { return }
     await 0
   }

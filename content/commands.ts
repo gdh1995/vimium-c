@@ -8,7 +8,7 @@ import {
   isHTML_, hasTag_, createElement_, querySelectorAll_unsafe_, SafeEl_not_ff_, docEl_unsafe_, MDW, CLK, derefInDoc_,
   querySelector_unsafe_, DAC, removeEl_s, appendNode_s, setClassName_s, INP, contains_s, toggleClass_s, modifySel,
   focus_, testMatch, docHasFocus_, deepActiveEl_unsafe_, getEditableType_, textOffset_, fullscreenEl_unsafe_, IsInDOM_,
-  inputSelRange, dispatchAsync_, isSafeEl_, activeEl_unsafe_, isIFrameElement, elFromPoint_, isStyleVisible_
+  inputSelRange, dispatchAsync_, isSafeEl_, activeEl_unsafe_, isIFrameElement, elFromPoint_, isStyleVisible_, kDispatch,
 } from "../lib/dom_utils"
 import {
   replaceOrSuppressMost_, removeHandler_, getMappedKey, prevent_, isEscape_, keybody_, DEL, BSP, ENTER, handler_stack,
@@ -86,7 +86,7 @@ set_contentCommands_([
   /* kFgCmd.insertMode: */ (opt: CmdOptions[kFgCmd.insertMode]): void => {
     if (opt.u) {
       const done = derefInDoc_(lastHovered_) ? 0 : 2
-      void catchAsyncErrorSilently(wrap_enable_bubbles(opt, unhover_async<1>)).then((): void => {
+      void catchAsyncErrorSilently(wrap_enable_bubbles(opt, unhover_async<1>, [])).then((): void => {
         hudTip(kTip.didUnHoverLast)
         opt.i || runFallbackKey(opt, done)
       })
@@ -531,7 +531,7 @@ set_contentCommands_([
         useResult = !useClick && options.return
         // earlier, in case listeners are too slow
         useResult || runFallbackKey(options, activeEl !== docBody ? 0 : 2, "", delay)
-        const q = dispatchAsync_<0 | 1>(activeEl as SafeHTMLElement, useClick ? 0 : event, useClick ? 1 : 0)
+        const q = dispatchAsync_(activeEl as SafeHTMLElement, useClick ? kDispatch.clickFn : event)
         useResult && void q.then((result2) => runFallbackKey(options, result2 ? 0 : 2, "", delay))
         return
       } else {
