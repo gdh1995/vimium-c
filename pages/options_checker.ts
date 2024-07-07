@@ -1,5 +1,6 @@
-import { browser_, OnFirefox, post_ } from "./async_bg"
+import { browser_, CurCVer_, OnChrome, OnEdge, OnFirefox, post_ } from "./async_bg"
 import { bgSettings_, Option_, AllowedOptions, oTrans_ } from "./options_base"
+import { type TextOption_, kDefaultRule } from "./options_defs"
 import { kPgReq } from "../background/page_messages"
 
 const spaceKindRe = <RegExpG & RegExpSearchable<0>> /\s/g
@@ -239,3 +240,59 @@ Option_.all_.keyboard.checker_ = {
         ) as SettingsNS.FrontendSettings["keyboard"]
   }
 };
+
+const sortCssRules = (arr: string[]): string[] => {
+  if (!OnEdge && (!OnChrome || Build.MinCVer >= BrowserVer.MinStableSort || CurCVer_ > BrowserVer.MinStableSort - 1)) {
+    return arr.sort((i, j) => i[0] !== j[0] ? i > j ? -1 : 1 : 0)  // ";" > ","
+  }
+  return arr.map((i, ind) => [i, ind] as const).sort((i, j) => i[0][0] !== j[0][0] ? i[0] > j[0] ? -1 : 1 : i[1] - j[1])
+      .map(i => i[0])
+}
+
+type CssOptions = TextOption_<"passEsc"> | TextOption_<"ignoreReadonly">
+const _knownBrokenCssSelectors: Dict<1> = {}
+const isValidCssSelector = (option: CssOptions, selector: string, errors: string[]): boolean => {
+  selector = selector.replace(<RegExpOne> /[,;]\s*$/, "").trim()
+  if (selector === kDefaultRule) {
+    if (Build.NDEBUG) { return true } // EdgeHTML may have no `:default`
+    selector = bgSettings_.defaults_[option.field_]
+  }
+  if (selector.includes(",")) {
+    return selector.split(",").map(i => isValidCssSelector(option, i, errors)).reduce((old, x) => old || x, false)
+  }
+  if (!_knownBrokenCssSelectors[selector]) {
+    try {
+      option.element_.querySelector(selector)
+      return true
+    } catch { /* empty */ }
+    _knownBrokenCssSelectors[selector] = 1
+  }
+  errors.push(selector)
+  return false
+}
+
+const checkCssSelector = (opt: CssOptions, value: string): string => {
+  let selectorsInDefault: string | undefined
+  value = value.replace(<RegExpOne & RegExpSearchable<0>> /:default\([^)]*\)/, Build.NDEBUG ? kDefaultRule as never
+      : (s: string): string => (selectorsInDefault = s.slice(kDefaultRule.length + 1, -1), kDefaultRule))
+  const errors: string[] = []
+  value = Build.NDEBUG && value === kDefaultRule ? bgSettings_.defaults_[opt.field_]
+      : sortCssRules(value.split("\n").map(i => {
+          i = i.trim()
+          return !i ? "" : i.includes("##") ? `;${i};` : isValidCssSelector(opt, Build.NDEBUG || i !== kDefaultRule
+              ? i : selectorsInDefault || i, errors) ? `,${i},` : `\0${i}\0`
+      }).filter(i => !!i))
+      .join("").replace(<RegExpG & RegExpSearchable<0>> /\0+/g, (s) => s.length > 1 ? "," : ";")
+      .replace(<RegExpG> /,[,\s]+/g, ",").replace(<RegExpG> /,;[,;]*|;[,;]+/g, ";")
+      .replace(<RegExpOne> /^[,;]/, "").replace(<RegExpOne> /[,;]$/, "").replace(<RegExpG> / > /g, ">")
+  if (errors.length > 0) {
+    errors.unshift(oTrans_("invalidCss"))
+    opt.showError_(errors.join("\n"), "has-error")
+  } else {
+    opt.showError_("")
+  }
+  return value
+}
+
+Option_.all_.passEsc.checker_ = { status_: 0, check_: checkCssSelector.bind(null, Option_.all_.passEsc) }
+Option_.all_.ignoreReadonly.checker_ = { status_: 0, check_: checkCssSelector.bind(null, Option_.all_.ignoreReadonly) }

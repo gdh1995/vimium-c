@@ -355,59 +355,16 @@ export class NonEmptyTextOption_<T extends TextOptionNames> extends TextOption_<
   }
 }
 
-const kDefaultRule = ":default"
+export const kDefaultRule = ":default"
 
-const sortCssRules = (arr: string[]): string[] => {
-  if (!OnEdge && (!OnChrome || Build.MinCVer >= BrowserVer.MinStableSort || CurCVer_ > BrowserVer.MinStableSort - 1)) {
-    return arr.sort((i, j) => i[0] !== j[0] ? i > j ? -1 : 1 : 0)  // ";" > ","
-  }
-  return arr.map((i, ind) => [i, ind] as const).sort((i, j) => i[0][0] !== j[0][0] ? i[0] > j[0] ? -1 : 1 : i[1] - j[1])
-      .map(i => i[0])
-}
-
-const _knownBrokenCssSelectors: Dict<1> = {}
-const isValidCssSelector = (option: CssSelectorOption_, selector: string, errors: string[]): boolean => {
-  selector = selector.replace(<RegExpOne> /[,;]\s*$/, "").trim()
-  if (selector === kDefaultRule) {
-    if (Build.NDEBUG) { return true } // EdgeHTML may have no `:default`
-    selector = bgSettings_.defaults_[option.field_]
-  }
-  if (selector.includes(",")) {
-    return selector.split(",").map(i => isValidCssSelector(option, i, errors)).reduce((old, x) => old || x, false)
-  }
-  if (!_knownBrokenCssSelectors[selector]) {
-    try {
-      option.element_.querySelector(selector)
-      return true
-    } catch { /* empty */ }
-    _knownBrokenCssSelectors[selector] = 1
-  }
-  errors.push(selector)
-  return false
-}
-
-export class CssSelectorOption_ extends NonEmptyTextOption_<"passEsc" | "ignoreReadonly"> {
+export class CssSelectorOption_ extends TextOption_<"passEsc" | "ignoreReadonly"> {
   override readValueFromElement_(): string {
-    let value = super.readValueFromElement_()
-    let selectorsInDefault: string | undefined
-    value = value.replace(<RegExpOne & RegExpSearchable<0>> /:default\([^)]*\)/, Build.NDEBUG ? kDefaultRule as never
-        : (s: string): string => (selectorsInDefault = s.slice(kDefaultRule.length + 1, -1), kDefaultRule))
-    const errors: string[] = []
-    value = Build.NDEBUG && value === kDefaultRule ? bgSettings_.defaults_[this.field_]
-        : sortCssRules(value.split("\n").map(i => {
-            i = i.trim()
-            return !i ? "" : i.includes("##") ? `;${i};` : isValidCssSelector(this, Build.NDEBUG || i !== kDefaultRule
-                ? i : selectorsInDefault || i, errors) ? `,${i},` : `\0${i}\0`
-        }).filter(i => !!i))
-        .join("").replace(<RegExpG & RegExpSearchable<0>> /\0+/g, (s) => s.length > 1 ? "," : ";")
-        .replace(<RegExpG> /,[,\s]+/g, ",").replace(<RegExpG> /,;[,;]*|;[,;]+/g, ";")
-        .replace(<RegExpOne> /^[,;]/, "").replace(<RegExpOne> /[,;]$/, "").replace(<RegExpG> / > /g, ">")
-    if (errors.length > 0) {
-      errors.unshift(oTrans_("invalidCss"))
-      this.showError_(errors.join("\n"), "has-error")
-    } else {
-      this.showError_("")
+    let value = this.readRaw_()
+    if (!value) {
+      value = kDefaultRule
+      this.populateElement_(value, true)
     }
+    value = this.checker_ ? this.checker_.check_(value) as string : value
     return value
   }
   override formatValue_ (value: string): string {
