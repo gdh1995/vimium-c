@@ -246,7 +246,7 @@ export const touch_cr_ = OnChrome ? (element: SafeElementForMouse, [x, y]: Point
 
 /** note: will NOT skip even if newEl == @lastHovered */
 export const hover_async = (async (newEl?: NullableSafeElForM
-    , center?: Point2D, doesFocus?: boolean): Promise<void> => {
+    , center?: Point2D, doesFocus?: boolean, allowScroll?: boolean): Promise<void> => {
   // if center is affected by zoom / transform, then still dispatch mousemove
   let elFromPoint = elFromPoint_(center, newEl),
   canDispatchMove: boolean = !newEl || elFromPoint === newEl || !elFromPoint || !IsInDOM_(newEl, elFromPoint),
@@ -277,12 +277,13 @@ export const hover_async = (async (newEl?: NullableSafeElForM
       }
       lastHovered_ = IsInDOM_(newEl) ? OnFirefox ? weakRef_ff(newEl, kElRef.lastHovered) : weakRef_not_ff!(newEl) : N
       lastBubbledHovered_ = enableBubblesForEnterLeave_ && lastHovered_
-      notSame && doesFocus && lastHovered_ && await dispatchAsync_(newEl, kDispatch.focusFn)
+      notSame && doesFocus && lastHovered_ && await dispatchAsync_(newEl, kDispatch.focusFn
+          , { preventScroll: !allowScroll })
     }
   }
   // here always ensure lastHovered_ is "in DOM" or null
 }) as {
-  <T extends 1 = 1> (newEl: SafeElementForMouse, center: Point2D, focus?: boolean): Promise<void>
+  <T extends 1 = 1> (newEl: SafeElementForMouse, center: Point2D, focus?: boolean, allowScroll?: boolean): Promise<void>
   (newEl?: null): Promise<void>
 }
 

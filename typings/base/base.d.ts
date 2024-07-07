@@ -296,8 +296,11 @@ interface Element {
   ariaHidden?: string | null
   ariaReadOnly?: string | null
 }
+interface FocusOptions {
+  preventScroll?: boolean
+}
 interface HTMLElement {
-  focus (options?: { preventScroll?: boolean }): void
+  focus (options?: FocusOptions): void
 }
 
 interface HTMLMediaElement {

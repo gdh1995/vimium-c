@@ -288,7 +288,7 @@ const hoverEl = (): void => {
     retPromise = catchAsyncErrorSilently(wrap_enable_bubbles(hintOptions, hover_async<1>
       , [clickEl, center_(rect, hintOptions.xy as HintsNS.StdXY | undefined)
           , checkBoolOrSelector(rawFocus, !elType && (clickEl as ElementToHTMLOrForeign).tabIndex! >= 0
-              && !isIFrameElement(clickEl, 1))]))
+              && !isIFrameElement(clickEl, 1)), !!rawFocus]))
   }
   retPromise = retPromise!.then((): void => {
     let rval: any, lval: any;

@@ -757,11 +757,12 @@ export const dispatchEvent_ = (target: Window | Document | SafeElement
 
 export const dispatchAsync_ = <T extends Event | kDispatch.clickFn | kDispatch.focusFn> (
     target: T extends kDispatch.clickFn ? SafeHTMLElement : Document | SafeElement
-    , event: T): Promise<T extends Event ? boolean : undefined> => {
+    , event: T, focusOpt?: T extends kDispatch.focusFn ? FocusOptions : undefined
+    ): Promise<T extends Event ? boolean : undefined> => {
   if ((Build.BTypes & BrowserType.Edge
         || Build.BTypes & BrowserType.Firefox && Build.MinFFVer < FirefoxBrowserVer.Min$queueMicrotask
         || Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.Min$queueMicrotask) && !queueTask_) {
-    return Promise.resolve(isTY(event satisfies Event | number, kTY.num) ? (void 0) as never : event as Event)
+    return Promise.resolve(isTY(event satisfies Event | number, kTY.num) ? focusOpt as never : event as Event)
         .then<boolean>((event === kDispatch.clickFn ? (target as SafeHTMLElement).click as never
           : event === kDispatch.focusFn ? target.focus as never : target.dispatchEvent
         ).bind<EventTarget, [Event], boolean>(target as Document | SafeElement)
@@ -770,7 +771,7 @@ export const dispatchAsync_ = <T extends Event | kDispatch.clickFn | kDispatch.f
   return new Promise<T extends Event ? boolean : undefined>((resolve): void => {
     queueTask_!((): void => {
       const ret = event === kDispatch.clickFn ? (target as SafeHTMLElement).click()
-          : event === kDispatch.focusFn ? (target as Document | ElementToHTMLOrForeign).focus!()
+          : event === kDispatch.focusFn ? (target as Document | ElementToHTMLOrForeign).focus!(focusOpt)
           : target.dispatchEvent(event as Event)
       resolve(ret as T extends Event ? boolean : undefined)
     })
