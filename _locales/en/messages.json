@@ -108,7 +108,7 @@
   "114": { "message": "prev" },
   "115": { "message": "next" },
   "116": { "message": "^(canvas|embed|i?frame|img|video|object)$" },
-  "117": { "message": ".monaco-editor" },
+  "117": { "message": ".monaco-editor//textarea.monaco-mouse-cursor-text//" },
   "118": { "message": "weibo.com##.expand,.collapse" },
   "119": { "message": "Readonly text box is focused" },
   "200": { "message": "http://www.w3.org/1999/xhtml" },

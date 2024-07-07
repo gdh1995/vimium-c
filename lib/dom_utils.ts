@@ -1,11 +1,12 @@
 import {
   chromeVer_, doc, createRegExp, isTY, Lower, OBJECT_TYPES, OnFirefox, OnChrome, OnEdge, evenHidden_, safeCall, deref_,
-  loc_, VTr, tryCreateRegExp, isTop, queueTask_, safer, set_findOptByHost, findOptByHost
+  loc_, VTr, tryCreateRegExp, isTop, queueTask_, set_findOptByHost, splitEntries_
 } from "./utils"
 import { dimSize_, Point2D, selRange_ } from "./rect"
 
 export declare const enum kMediaTag { img = 0, otherMedias = 1, a = 2, others = 3, MIN_NOT_MEDIA_EL = 2, LAST = 3 }
-export declare const enum kDispatch { event = 0, clickFn = 1, focusFn = 2, _mask = "number" }
+export declare const enum kDispatch { event = 0, clickFn = 1, focusFn = 2, _mask = "" }
+export declare const enum kNextTarget { parent = 0, child = 1, realClick = 2, nonCss = 3, _mask = "" }
 interface kNodeToType {
   [kNode.TEXT_NODE]: Text
   [kNode.ELEMENT_NODE]: Element
@@ -586,20 +587,45 @@ export const joinValidSelectors = (selector: string | false | void
     // here can not use `docEl.matches`, because of `:has(...)`
     selector ? (validAnother ? selector + "," + validAnother : selector) as "css-selector" : validAnother || null
 
-set_findOptByHost((rules: string | string[] | kTip | MayBeSelector
-    , cssCheckEl?: SafeElement | 0): "css-selector" | void => {
+// { "host-cond": boolean | "query//value, q2//v2" | ("q//v" | boolean | ["q", "v"])[]  }
+// { "host-cond##q": boolean | "v" }
+set_findOptByHost((rules: string | object | kTip | true | MayBeSelector
+    , cssCheckEl?: SafeElement | 0, mapMode?: kNextTarget.child | kNextTarget.realClick | kNextTarget.nonCss
+    ): "css-selector" | void => {
+  type Val = string | boolean
   const isKTip = isTY(rules, kTY.num)
   let host: string | undefined, path: string | undefined
-  for (const arr of !rules ? [] : isTY(rules,kTY.obj) ? rules : (isKTip ? VTr(rules) : rules + "").split(";")) {
-    const items = arr.split("##"), isOnHost = items.length > 1, sel = items[+isOnHost as BOOL]
-    const cond = isOnHost ? items[0] : "", matchPath = cond.includes("/")
+  for (const hostLine of rules == null ? []
+        : splitEntries_<[string, Val | (Val | [string, Val])[]], true>(isKTip ? VTr(rules) : rules as any, ";")) {
+    const items = splitEntries_(hostLine, "##")
+    let isOnHost = items.length > 1, sel = items[+isOnHost as BOOL], cond = isOnHost ? items[0] : ""
+    let _j = cond.split("##"); _j.length > 1 && (cond = _j[0], sel = [[ _j[1], sel as Val ]])
+    let matchPath = cond.includes("/")
     const re = cond && (<RegExpOne> /[*+?^$\\(]/).test(cond) && tryCreateRegExp(cond)
     path || cond && (host = Lower(loc_.host), path = host + "/" + Lower(loc_.pathname))
-    if ((re ? re.test(matchPath ? path! : host!) : matchPath ? path!.startsWith(cond)
-            : !cond || host === cond || host!.endsWith("." + cond))
-        && (isKTip || cssCheckEl === 0 || sel.includes("//")
-            || safeCall(testMatch, sel, _cssChecker || cssCheckEl || (_cssChecker = createElement_("p"))) != null)) {
-      return sel as "css-selector"
+    if (re ? re.test(matchPath ? path! : host!) : matchPath ? path!.startsWith(cond)
+            : !cond || host === cond || host!.endsWith("." + cond)) {
+      if (!mapMode) {
+        return isKTip || cssCheckEl === 0 || sel && safeCall(testMatch, sel as string, _cssChecker || cssCheckEl
+            || (_cssChecker = createElement_("p"))) != null ? sel as "css-selector" : void 0
+      }
+      for (const rawEntry of splitEntries_<Val | [string, Val], true>(sel, ",")) {
+        let ret: string | boolean | 0 = 0
+        if (rawEntry === "true" || rawEntry === "false") { ret = rawEntry }
+        else {
+          const entry = splitEntries_(rawEntry, "//"), len = entry.length, val = len < 2 || entry[1]
+          const matched = len < 2 && mapMode > kNextTarget.nonCss - 1
+              || safeCall(testMatch, entry[0] || "*", cssCheckEl as SafeElement)
+          ret = len < 2 ? matched != null ? mapMode < kNextTarget.realClick || matched || 0 : 0
+              : !matched ? 0 : !isTY(val) ? !!(val satisfies boolean) : !val ? mapMode > kNextTarget.realClick - 1
+              : (mapMode > kNextTarget.nonCss - 1 || safeCall(testMatch, val, cssCheckEl as SafeElement) != null)
+                && val + (len > 2 ? ",true" : "")
+        }
+        if (ret !== 0) {
+          ret += ""
+          return (ret === "true" || ret !== "false" && (ret + "").trim()) as string as "css-selector"
+        }
+      }
     }
   }
 })
@@ -610,16 +636,6 @@ export const elFromPoint_ = (center?: Point2D | null, baseEl?: SafeElement | Sha
       : IsInDOM_(baseEl) && getRootNode_mounted(baseEl) : doc)
   const el = root && root.elementFromPoint(center![0], center![1])
   return el && el !== doc.body ? el : null
-}
-
-export const findTargetAction_ = (el: SafeElementForMouse, map: string | object | true
-    , down?: 0 | 1 | 2): string | false | void => {
-  for (let key in safer(isTY(map, kTY.obj) ? map : map = down === 2 ? { [map as string]: !0 } : { "": map })) {
-    const value = (map as Dict<string | number | boolean>)[key]
-    if (!key || (key = findOptByHost(key, 0)!) && safeCall(testMatch, key, el)) {
-      return value !== !1 && value + ""
-    }
-  }
 }
 
 //#endregion

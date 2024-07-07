@@ -214,11 +214,31 @@ export const recordLog = (tip: kTip | string): (() => void) =>
     console.log.bind(console, tip > 0 ? VTr(<kTip> tip) : tip
         , loc_.pathname.replace(<RegExpOne> /^.*(\/[^\/]+\/?)$/, "$1"), getTime())
 
-type MayBeSelector = "" | false | 0 | null | void | undefined
+export const splitEntries_ = <T, LongArr extends boolean = false> (
+    map: (LongArr extends true ? (T extends [string, infer A] ? Dict<A> : never) | T[] : [string, T]) | string | boolean
+    , sep?: "," | ";" | "##" | "//"): LongArr extends true ? T[] : [string, T] => {
+  let arr: unknown[]
+  if (isTY(map as object, kTY.obj) && (map as ArrayLike<unknown>).length == null) {
+    if (OnChrome && Build.BTypes < BrowserVer.MinEnsuredES$Object$$values$and$$entries
+        && chromeVer_ < BrowserVer.MinEnsuredES$Object$$values$and$$entries) {
+      arr = []
+      for (let key in map as Dict<unknown>) { arr.push([key, (map as EnsuredDict<unknown>)[key]]) }
+    } else {
+      arr = Object.entries!(map as object) as [string, unknown][]
+    }
+  } else {
+    arr = (map + "").split(sep!)
+  }
+  return arr as any
+}
+
+type MayBeSelector = "" | true | false | 0 | null | void | undefined
 export let findOptByHost: {
   (rules: kTip, cssCheckEl?: undefined): "css-selector" | void
-  (rules: string | string[] | MayBeSelector | void, cssCheckEl: 0): string | void
-  (rules: string | string[] | MayBeSelector | void, cssCheckEl?: SafeElement): "css-selector" | void
+  (rules: string | kTip | object | MayBeSelector | void, cssCheckEl: SafeElement, mapMode: 1 | 2 | 3
+      ): string | boolean | void
+  (rules: string | object | MayBeSelector | void, cssCheckEl: 0): string | void
+  (rules: string | object | MayBeSelector | void, cssCheckEl?: SafeElement): "css-selector" | void
 }
 export function set_findOptByHost (newFindOptByHost: typeof findOptByHost): void { findOptByHost = newFindOptByHost }
 
