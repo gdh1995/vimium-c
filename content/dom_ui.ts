@@ -455,7 +455,7 @@ export const getRect = (clickEl: SafeElement, refer?: HTMLElementUsingMap | null
       return getVisibleBoundingRect_(clickEl, 1)
     }
     const rect = getVisibleClientRect_(clickEl),
-    bcr = padClientRect_(getBoundingClientRect_(clickEl), 8),
+    bcr = padClientRect_(getBoundingClientRect_(clickEl), 3),
     rect2 = rect && !isContaining_(bcr, rect) ? rect : cropRectS_(bcr) ? bcr : null
     return rect2 && getCroppedRect_(clickEl, rect2);
 }
@@ -468,7 +468,7 @@ export const flash_ = function (el: SafeElement | null, rect?: Rect | null, life
         && Build.MinCVer < BrowserVer.MinForcedColorsMode ? getBoxTagName_old_cr() : "div"),
     nfs = knownViewOffset ? 2 : <BOOL> <BOOL | boolean> +!fullscreenEl_unsafe_()
     setClassName_s(flashEl, "R Flash" + (classNames || "")
-        + (setBoundary_(flashEl.style, rect, nfs, knownViewOffset) ? " AbsF" : ""))
+        + (setBoundary_(flashEl.style, rect, nfs, knownViewOffset, 8) ? " AbsF" : ""))
     OnChrome &&
     bZoom_ !== 1 && nfs && (flashEl.style.zoom = "" + bZoom_);
     addUIElement(flashEl, AdjustType.DEFAULT)
