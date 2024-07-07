@@ -592,12 +592,12 @@ set_findOptByHost((rules: string | string[] | kTip | MayBeSelector
   for (const arr of !rules ? [] : isTY(rules,kTY.obj) ? rules : (isKTip ? VTr(rules) : rules + "").split(";")) {
     const items = arr.split("##"), isOnHost = items.length > 1, sel = items[+isOnHost as BOOL]
     const cond = isOnHost ? items[0] : "", matchPath = cond.includes("/")
-    const re = cond && (<RegExpOne> /[^*+$\\?(]/).test(cond) && tryCreateRegExp(cond)
+    const re = cond && (<RegExpOne> /[*+?^$\\(]/).test(cond) && tryCreateRegExp(cond)
     path || cond && (host = Lower(loc_.host), path = host + "/" + Lower(loc_.pathname))
     if ((re ? re.test(matchPath ? path! : host!) : matchPath ? path!.startsWith(cond)
             : !cond || host === cond || host!.endsWith("." + cond))
-        && (isKTip || cssCheckEl === 0
-            || safeCall(testMatch, sel, _cssChecker || cssCheckEl || (_cssChecker = createElement_("p"))))) {
+        && (isKTip || cssCheckEl === 0 || sel.includes("//")
+            || safeCall(testMatch, sel, _cssChecker || cssCheckEl || (_cssChecker = createElement_("p"))) != null)) {
       return sel as "css-selector"
     }
   }

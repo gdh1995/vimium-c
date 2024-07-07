@@ -1,11 +1,8 @@
 import {
-  fgCache, isEnabled_, VTr, isAlive_, timeout_, clearTimeout_, interval_, isLocked_, OnChrome, getTime,
-  esc
+  fgCache, isEnabled_, VTr, isAlive_, timeout_, clearTimeout_, interval_, isLocked_, OnChrome, getTime, esc, doc
 } from "../lib/utils"
 import { handler_stack } from "../lib/keyboard_utils"
-import {
-  isHTML_, createElement_, setClassName_s, appendNode_s, setVisibility_s, docHasFocus_, toggleClass_s
-} from "../lib/dom_utils"
+import { isHTML_, createElement_, setClassName_s, appendNode_s, setVisibility_s, toggleClass_s } from "../lib/dom_utils"
 import { ui_box, ensureBorder, addUIElement, adjustUI, getBoxTagName_old_cr } from "./dom_ui"
 import { allHints, isHintsActive, hintManager, setMode as setHintMode, hintMode_ } from "./link_hints"
 import { insert_global_, passAsNormal, raw_insert_lock, readonlyFocused_, set_readonlyFocused_ } from "./insert"
@@ -61,7 +58,7 @@ const tween = (fake?: TimerType.fake): void => { // safe-interval
     toggleOpacity(OnChrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake && fake || fgCache.m ? 1 : 0.25)
     fake && (tweenId = 0)
     return adjustUI();
-  } else if (!fgCache.m && docHasFocus_() && getTime() - tweenStart < 996) {
+  } else if (!fgCache.m && !doc.hidden && getTime() - tweenStart < 996) {
     // in "efficiency mode" of MS Edge 98, step of interval or following timeout may be increased into 1 second
     opacity += opacity < opacity_ ? 0.25 : -0.25;
   } else {
