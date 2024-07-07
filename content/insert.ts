@@ -319,8 +319,8 @@ export const onBlur = (event: Event | FocusEvent): void => {
     if (inputHint && !isHintingInput && docHasFocus_()) {
       exitInputHint();
     }
-    readonlyFocused_ && hudHide()
   }
+  readonlyFocused_ && hudHide()
 }
 
 const onShadow = function (this: ShadowRoot, event: FocusEvent): void {

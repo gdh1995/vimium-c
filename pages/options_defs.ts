@@ -395,11 +395,12 @@ export class CssSelectorOption_ extends NonEmptyTextOption_<"passEsc" | "ignoreR
     const errors: string[] = []
     value = Build.NDEBUG && value === kDefaultRule ? bgSettings_.defaults_[this.field_]
         : sortCssRules(value.split("\n").map(i => {
-          i = i.trim()
-          return !i ? "" : i.includes("##") || !isValidCssSelector(this, Build.NDEBUG || i !== kDefaultRule
-              ? i : selectorsInDefault || i, errors) ? `;${i};` : `,${i},`
+            i = i.trim()
+            return !i ? "" : i.includes("##") ? `;${i};` : isValidCssSelector(this, Build.NDEBUG || i !== kDefaultRule
+                ? i : selectorsInDefault || i, errors) ? `,${i},` : `\0${i}\0`
         }).filter(i => !!i))
-        .join("").replace(<RegExpG> /,[,\s]+/g, ",").replace(<RegExpG> /,;[,;]*|;[,;]+/g, ";")
+        .join("").replace(<RegExpG & RegExpSearchable<0>> /\0+/g, (s) => s.length > 1 ? "," : ";")
+        .replace(<RegExpG> /,[,\s]+/g, ",").replace(<RegExpG> /,;[,;]*|;[,;]+/g, ";")
         .replace(<RegExpOne> /^[,;]/, "").replace(<RegExpOne> /[,;]$/, "").replace(<RegExpG> / > /g, ">")
     if (errors.length > 0) {
       errors.unshift(oTrans_("invalidCss"))
@@ -413,7 +414,9 @@ export class CssSelectorOption_ extends NonEmptyTextOption_<"passEsc" | "ignoreR
     let default_val = bgSettings_.defaults_[this.field_]
     value = value !== default_val ? value : kDefaultRule
     value = value.replace(kDefaultRule + ",", `${kDefaultRule}\n`).replace("," + kDefaultRule, `\n${kDefaultRule}`)
-    value = value.replace(<RegExpG> /,/g, ", ").replace(<RegExpG> /;/g, "\n")
+    value = value.replace(<RegExpG> /;/g, "\n")
+    value = value.split("\n").map(i => i.length>64 && !i.includes("##") ? i.replace(<RegExpG>/,/g, "\n") : i).join("\n")
+    value = value.replace(<RegExpG> /,/g, ", ")
     default_val = default_val.length > 50 ? default_val.replace(<RegExpG> /,/g, ",\n  ") : default_val
     value = value.replace(kDefaultRule, `${kDefaultRule}(${default_val})\n`).replace(<RegExpG> /\n\n+/g, "\n")
     value = value.endsWith(")\n") && value.split("\n").length >= 5 ? value.slice(0, -1) : value
