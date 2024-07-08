@@ -604,14 +604,14 @@ set_findOptByHost((rules: string | object | kTip | true | MayBeSelector
     const re = cond && (<RegExpOne> /[*+?^$\\(]/).test(cond) && tryCreateRegExp(cond)
     path || cond && (host = Lower(loc_.host), path = host + "/" + Lower(loc_.pathname))
     if (re ? re.test(matchPath ? path! : host!) : matchPath ? path!.startsWith(cond)
-            : !cond || host === cond || host!.endsWith("." + cond)) {
+            : !cond && sel || host === cond || host!.endsWith("." + cond)) {
       if (!mapMode) {
         return isKTip || cssCheckEl === 0 || sel && safeCall(testMatch, sel as string, _cssChecker || cssCheckEl
             || (_cssChecker = createElement_("p"))) != null ? sel as "css-selector" : void 0
       }
       for (const rawEntry of splitEntries_<Val | [string, Val], true>(sel, ",")) {
         let ret: string | boolean | 0 = 0
-        if (rawEntry === "true" || rawEntry === "false") { ret = rawEntry }
+        if (!rawEntry || rawEntry === "true" || rawEntry === "false") { ret = rawEntry || 0 }
         else {
           const entry = splitEntries_(rawEntry, "//"), len = entry.length, val = len < 2 || entry[1]
           const matched = len < 2 && mapMode > kNextTarget.nonCss - 1

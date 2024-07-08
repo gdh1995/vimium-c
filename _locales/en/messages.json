@@ -111,6 +111,12 @@
   "117": { "message": ".monaco-editor//textarea.monaco-mouse-cursor-text//" },
   "118": { "message": "weibo.com##.expand,.collapse" },
   "119": { "message": "Readonly text box is focused" },
+  "120": { "message":
+"#read-only-cursor-text-area,.monaco-mouse-cursor-text[aria-autocomplete=none],.CodeMirror>div>textarea[readonly=''][style]"
+  },
+  "121": { "message":
+"[aria-controls],[role=combobox],#kw.s_ipt,input[placeholder$$=搜索],input[type=search][name=q],.monaco-inputbox>div>textarea[style]"
+  },
   "200": { "message": "http://www.w3.org/1999/xhtml" },
   "0": { "message": "Open link in current tab" },
   "2": { "message": "Open link in new tab" },

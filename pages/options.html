@@ -587,9 +587,10 @@ key: https://c.com/$s/space=\s\ space_end
             <span data-i="95_5">If a readonly textbox gets focused, specify if to keep a current normal mode,
               or otherwise to enter insert mode. </span><span data-i="106">Format: </span>
             <code><pre>
-host.name##.class-selector1
-host2.com###id-selector,.class2
-#id-on-any-host</pre></code>
+host.com###id-selector,.class
+#id-on-any-host,[attr=value]</pre></code>
+            <a data-auto-resize="ignoreReadonly" role="button" tabindex="0" data-i="autoResize">Auto resize
+            </a><span data-i="period">.</span>
           </div></td>
         </tr>
         <tr>
@@ -598,9 +599,11 @@ host2.com###id-selector,.class2
             <textarea id="passEsc" class="code min-height-4" data-model="CssSelector" data-check=""></textarea>
             <div class="info" data-i="nonEmpty">Delete all to reset this option.</div>
           </td>
-          <td class="help"><div class="help-inner" data-i="95_3">
+          <td class="help"><div class="help-inner"><span data-i="95_3">
             In plain insert mode, specify when to pass <kbd>Escape</kbd> keydown events to pages and delay blurring.
-            The default value may collapse some search suggestions.
+            The default value may collapse some search suggestions. </span><a
+              data-auto-resize="passEsc" role="button" tabindex="0" data-i="autoResize">Auto resize
+            </a><span data-i="period">.</span>
           </div></td>
         </tr>
         <tr>

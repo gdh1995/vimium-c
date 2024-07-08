@@ -220,6 +220,8 @@ export const reloadFromLegacy_ = (changed: number): void => {
   }
 }
 
+const RemoveComment = (i: string) => i.startsWith("# ") ? "" : i.split("//", 1)[0].trim()
+
   /** @argument value may come from `LinkHints.*::characters` and `kBgCmd.toggle::value` */
 export const updatePayload_ = function (shortKey: keyof SettingsNS.FrontendComplexSyncingItems, value: any
       , obj?: Partial<SettingsNS.FrontendSettingCache>
@@ -233,8 +235,11 @@ export const updatePayload_ = function (shortKey: keyof SettingsNS.FrontendCompl
           && Build.OS & kBOS.MAC && (Build.OS === kBOS.MAC as number || !os_) ? kKeyLayout.ignoreCaps : 0)
       break
     case "d": value = value ? " D" : ""; break
-    case "p": case "y":
-      value = value.replace(":default", shortKey === "p" ? defaults_.passEsc : defaults_.ignoreReadonly)
+    case "p":
+      value = value.replace("[aria-controls],[role=combobox],#kw.s_ipt", GlobalConsts.kCssDefault) // migration
+      // no break;
+    case "y":
+      value = value.split("\n").map(RemoveComment).join("")
       break
     default: if (0) { shortKey satisfies never } break // lgtm [js/unreachable-statement]
     }
@@ -360,10 +365,10 @@ saladict@crimx.com`
     filterLinkHints: false,
     grabBackFocus: false,
     hideHud: false,
-    ignoreReadonly: "#read-only-cursor-text-area" // GitHub source file content
+    ignoreReadonly: GlobalConsts.kCssDefault as const
+        || "#read-only-cursor-text-area" // GitHub source file content
         + ",.monaco-mouse-cursor-text[aria-autocomplete=none]" // Monaco editor >= ~0.42.0-dev-20230901
-        + ',.CodeMirror>div[style]>textarea[readonly=""][style]' // Code Mirror 5
-        + ",.sidebar-view-item-name>input[value][readonly]" // Netron attribute name
+        + ",.CodeMirror>div>textarea[readonly=''][style]" // Code Mirror 5
         ,
     keyLayout: kKeyLayout.Default,
     keyboard: [560, 33],
@@ -378,7 +383,12 @@ saladict@crimx.com`
 ,\u4e0b\u4e00\u5f20,next,more,newer,>,\u203a,\u2192,\xbb,\u226b,>>",
     notifyUpdate: true,
     omniBlockList: "",
-    passEsc: "[aria-controls],[role=combobox],#kw.s_ipt", // MS Bing / Google / Baidu
+    passEsc: GlobalConsts.kCssDefault as const
+        || "[aria-controls],[role=combobox],#kw.s_ipt" // MS Bing / Google / Baidu
+        + ",input[placeholder$=\u641c\u7d22]" // some Chinese websites
+        + ",input[type=search][name=q]" // Bing search result page
+        + ",.monaco-inputbox>div>textarea[style]" // Monaco find input
+        ,
     preferBrowserSearch: true,
     previousPatterns: "\u4e0a\u4e00\u5c01,\u4e0a\u9875,\u4e0a\u4e00\u9875,\u4e0a\u4e00\u7ae0,\u524d\u4e00\u9875\
 ,\u4e0a\u4e00\u5f20,prev,previous,back,older,<,\u2039,\u2190,\xab,\u226a,<<",

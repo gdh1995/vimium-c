@@ -1,7 +1,7 @@
 import {
   doc, keydownEvents_, safeObj, isTop, set_keydownEvents_, setupEventListener, Stop_, OnChrome, OnFirefox, weakRef_ff,
   esc, onWndFocus, isEnabled_, readyState_, recordLog, weakRef_not_ff, OnEdge, getTime, abs_, fgCache, deref_,
-  isTY, timeout_, timeStamp_, chromeVer_
+  isTY, timeout_, timeStamp_, chromeVer_, VTr
 } from "../lib/utils"
 import {
   activeEl_unsafe_, getEditableType_, getEventPath, getSelection_, frameElement_, deepActiveEl_unsafe_, blur_unsafe,
@@ -382,8 +382,14 @@ const testConfiguredSelector_ = <T extends "passEsc" | "ignoreReadonly">(target:
     , confKey: SettingsNS.AutoSyncedNameMap[T]): boolean | 0 => {
   let selector: string | [string] | 0 | void = fgCache[confKey] as string | [string] | 0
   if (isTY(selector)) {
+    if (OnEdge) {
+      selector = selector.replace(<RegExpG & RegExpSearchable<0>> /:default/g
+          , () => VTr((confKey === "p") as boolean | BOOL as BOOL + kTip.defaultIgnoreReadonly))
+    }
     selector = findSelectorByHost(selector, target)
-    fgCache[confKey] = (selector = (selector ? [selector] : 0) satisfies [string] | 0) as never
+    selector = selector ? (!OnEdge ? [selector.replace(":default"
+        , VTr((confKey === "p") as boolean | BOOL as BOOL + kTip.defaultIgnoreReadonly) as "css")] : [selector]) : 0
+    fgCache[confKey] = (selector satisfies [string] | 0) as never
   }
   return selector && testMatch(selector[0], target)
 }

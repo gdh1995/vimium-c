@@ -1,6 +1,6 @@
 import {
   CurCVer_, OnChrome, OnFirefox, $, $$, nextTick_, post_, enableNextTick_, kReadyInfo, toggleReduceMotion_, OnEdge,
-  CurFFVer_, OnSafari, prevent_
+  CurFFVer_, OnSafari, prevent_, bTrans_
 } from "./async_bg"
 import type {
   AllowedOptions, Checker, PossibleOptionNames, KnownOptionsDataset, OptionErrorType, ExclusionRealNode,
@@ -346,39 +346,46 @@ export class TextOption_<T extends TextualizedOptionNames> extends Option_<T> {
 
 export class NonEmptyTextOption_<T extends TextOptionNames> extends TextOption_<T> {
   override readValueFromElement_ (): string {
-    let value = super.readValueFromElement_()
-    if (!value) {
-      value = bgSettings_.defaults_[this.field_]
-      this.populateElement_(value, true)
+    if (!this.element_.value.trim()) {
+      this.populateElement_(bgSettings_.defaults_[this.field_], true)
     }
-    return value
+    return super.readValueFromElement_()
   }
 }
 
-export const kDefaultRule = ":default"
-
-export class CssSelectorOption_ extends TextOption_<"passEsc" | "ignoreReadonly"> {
-  override readValueFromElement_(): string {
-    let value = this.readRaw_()
-    if (!value) {
-      value = kDefaultRule
-      this.populateElement_(value, true)
-    }
-    value = this.checker_ ? this.checker_.check_(value) as string : value
+export class CssSelectorOption_<T extends "passEsc" | "ignoreReadonly"> extends NonEmptyTextOption_<T> {
+  override readRaw_ (): string {
+    const value = super.readRaw_()
+    return value.replace(<RegExpOne> /:default\([^)]*\)/, GlobalConsts.kCssDefault)
+  }
+  override formatValue_(value: string): string {
+    value = value.replace(<RegExpG & RegExpSearchable<1>> /(?:^# |\/\/)[^\n]*|([,>])/g, (full, s): string => {
+      return s ? s === "," ? ", " : " > " : full
+    })
+    value = value.replace(<RegExpOne & RegExpSearchable<2>> /(^|\n):default(?!\()/, (_, prefix): string => {
+      const val_with_default = `${GlobalConsts.kCssDefault}(${this.getRealDefault()})`
+      return prefix + CssSelectorOption_.WrapAndOutput_(val_with_default)
+    })
     return value
   }
-  override formatValue_ (value: string): string {
-    let default_val = bgSettings_.defaults_[this.field_]
-    value = value !== default_val ? value : kDefaultRule
-    value = value.replace(kDefaultRule + ",", `${kDefaultRule}\n`).replace("," + kDefaultRule, `\n${kDefaultRule}`)
-    value = value.replace(<RegExpG> /;/g, "\n")
-    value = value.split("\n").map(i => i.length>64 && !i.includes("##") ? i.replace(<RegExpG>/,/g, "\n") : i).join("\n")
-    value = value.replace(<RegExpG> /,/g, ", ")
-    default_val = default_val.length > 50 ? default_val.replace(<RegExpG> /,/g, ",\n  ") : default_val
-    value = value.replace(kDefaultRule, `${kDefaultRule}(${default_val})\n`).replace(<RegExpG> /\n\n+/g, "\n")
-    value = value.endsWith(")\n") && value.split("\n").length >= 5 ? value.slice(0, -1) : value
-    value = value.replace(<RegExpG> />/g, " > ")
-    return value
+  getRealDefault(): string {
+    return bTrans_((this.field_ === "passEsc" ? "" + kTip.defaultPassEsc : "" + kTip.defaultIgnoreReadonly))
+  }
+  static WrapAndOutput_ (line: string): string {
+    const hostSep = line.indexOf("##")
+    let str = hostSep >= 0 ? line.slice(0, hostSep + 2) : ""
+    let output = ""
+    line = hostSep >= 0 ? line.slice(hostSep + 2) : line
+    line = line.replace(<RegExpSearchable<1>> /,|>/g, s => s === "," ? ", " : " > ")
+    for (const i of line.split(", ")) {
+      if (str && str.length + i.length > 62) {
+        output.length ? (output += "\n" + str + ",") : (output = str + ",")
+        str = "  " + i
+      } else {
+        str = str ? str + ", " + i : i
+      }
+    }
+    return str ? output ? output + "\n" + str : str : output
   }
 }
 

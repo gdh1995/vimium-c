@@ -567,6 +567,7 @@ declare const enum GlobalConsts {
   ChromeHelp = "https://support.google.com/chrome/answer/157179",
   EdgStorePage = "https://microsoftedge.microsoft.com/addons/detail/aibcglbfblnogfjhbcmmpobjhnomhcdo",
   EdgHelp = "https://support.microsoft.com/help/4531783/microsoft-edge-keyboard-shortcuts",
+  kCssDefault = ":default",
 
   kIsHighContrast = "isHC_f",
   MinCancelableInBackupTimer = 50,

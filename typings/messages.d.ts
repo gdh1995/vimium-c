@@ -19,6 +19,7 @@ declare const enum kTip {
   /* 105: */ highContrast_WOB, invisibleElements, imgExt, searchResults, excludeWhenGoNext,
   /* 110: */ kCommonEvents, logOmniFallback, logNotWorkOnSandboxed, logGrabFocus, prev,
   /* 115: */ next, ReplacedHtmlTags, DefaultDoClickOn, DefaultClickableOnHost, readOnly,
+  /* 120: */ defaultIgnoreReadonly, defaultPassEsc,
   INJECTED_CONTENT_END,
   /* 200: */ XHTML = 200,
   /** used by {@link ../Gulpfile.js} */ extendClick = 999,
