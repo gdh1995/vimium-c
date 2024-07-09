@@ -521,6 +521,7 @@ declare const enum BrowserVer {
   MinChromeFavicon2 = 77, // tested on 77.0.3865.90, chrome://favicon2/ is forbidden to use on extension pages
   MinScrollEndForInstantScrolling = 78, // if EXP
   MinMaybePointerEventForRealClick = 79, // if EXP
+  MinCssMinMax = 79, // even if EXP or LEGACY
   // https://groups.google.com/a/chromium.org/forum/#!msg/blink-dev/h-JwMiPUnuU/sl79aLoLBQAJ
   // https://www.chromestatus.com/features/4507242028072960
   MinNoShadowDOMv0 = 80,
@@ -661,6 +662,7 @@ declare const enum FirefoxBrowserVer {
   Min$downloads$$download$acceptReferer = 70,
   Min$MathMLElement$Prototype = 71,
   MinCrossOriginResourcePolicy = 74, // not break Vomnibar
+  MinCssMinMax = 75,
   Min$tabs$$goBack = 77,
   Min$permissions$$onAdded = 77,
   MinEnsuredCSSEnableContain = 77, // replace MinMaybeCSSEnableContain

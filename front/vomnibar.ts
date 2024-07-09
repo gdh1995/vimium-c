@@ -105,9 +105,9 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     if (Build.MinCVer < BrowserVer.MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent
         && (Build.BTypes === BrowserType.Chrome as number
             || Build.BTypes & BrowserType.Chrome && a.browser_ === BrowserType.Chrome)) {
-      a.onInnerWidth_((options.w * a.panelWidth_ + PixelData.MarginH * options.z) / scale);
+      a.onInnerWidth_((Math.min(options.w * a.panelWidth_, a.maxWidthInPixel_) + PixelData.MarginH * options.z) / scale)
     } else {
-      a.onInnerWidth_(options.w * a.panelWidth_ + PixelData.MarginH);
+      a.onInnerWidth_(Math.min(options.w * a.panelWidth_, a.maxWidthInPixel_) + PixelData.MarginH)
     }
     const max = Math.max(3, Math.min(0 | ((options.h / dz
           / (Build.MinCVer < BrowserVer.MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent
@@ -247,6 +247,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   baseHeightIfNotEmpty_: VomnibarNS.PixelData.OthersIfNotEmpty,
   itemHeight_: VomnibarNS.PixelData.Item,
   panelWidth_: VomnibarNS.PixelData.WindowSizeX,
+  maxWidthInPixel_: VomnibarNS.PixelData.MaxWidthInPixel,
   styles_: "",
   styleEl_: null as HTMLStyleElement | null,
   darkBtn_: null as HTMLElement | null,
@@ -1378,6 +1379,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       Vomnibar_.itemHeight_ = M(14, m(n || VomnibarNS.PixelData.Item, 120));
       n = sizes.length > 3 ? +sizes[3] : 0
       Vomnibar_.panelWidth_ = M(0.3, m(n || VomnibarNS.PixelData.WindowSizeX, 0.95));
+      n = sizes.length > 4 ? +sizes[4] : 0
+      Vomnibar_.maxWidthInPixel_ = M(200, m(n || VomnibarNS.PixelData.MaxWidthInPixel, 8192))
     }
     VPort_._confVersion = response.v
   },

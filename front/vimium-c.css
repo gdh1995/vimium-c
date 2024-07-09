@@ -18,8 +18,8 @@ padding:4px 4px 1px;right:152px;text-overflow:ellipsis;white-space:nowrap}
 .HUD.UI{cursor:text;height:24px}.Find{cursor:text;position:static;width:100%}
 .Flash{box-shadow:0 0 4px 2px #4183c4;padding:1px}.AbsF{padding:0;position:absolute}.Sel{box-shadow:0 0 4px 2px #fa0}
 .Frame{border:5px solid #ff0}.Frame,.DLG,.HUD:after{box-sizing:border-box;height:100%;left:0;top:0;width:100%}
-.Omnibar{left:calc(10vw - 12px);height:520px;top:64px;width:calc(80vw + 24px)}
-.O2{left:calc(10% - 12px);width:calc(80% + 24px)}
+.Omnibar{left:max(10vw - 12px,50vw - 972px);height:520px;top:64px;width:min(80vw + 24px,1944px)}
+.O2{left:max(10% - 12px,50% - 972px);width:min(80% + 24px,1944px)}
 .BH{color:#902809}.MC,.MH{color:#d4ac3a}.One{border-color:#fa7}.UI,.DLG{color-scheme:light;pointer-events:all}
 .PO{all:initial;left:0;position:absolute;top:0}
 .D>.LH{background:linear-gradient(#cb0,#c80)}.HUD.D{color:#ccc}.HUD.D:after{background:#222}

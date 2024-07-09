@@ -509,6 +509,7 @@ js\\:|Js: javascript:\\ $S; JavaScript`,
       sizes: VomnibarNS.PixelData.OthersIfEmpty + ","
           + (VomnibarNS.PixelData.OthersIfNotEmpty - VomnibarNS.PixelData.OthersIfEmpty) + ","
           + VomnibarNS.PixelData.Item + "," + VomnibarNS.PixelData.WindowSizeX
+          + "," + VomnibarNS.PixelData.MaxWidthInPixel
           ,
       styles: "mono-url"
     },
