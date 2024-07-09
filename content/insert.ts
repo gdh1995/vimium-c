@@ -187,7 +187,7 @@ export const exitInsertMode = <(target: Element, event?: HandlerNS.Event) => Han
     target = getEditableType_(target!) ? target : null
   }
   const ret = insert_global_ && insert_global_.p || target && event
-      && testConfiguredSelector_<"passEsc">(target, "p")
+      && testConfiguredSelector_<"passEsc">(target, 1)
       && isEscape_(event.c) ? HandlerResult.Nothing : HandlerResult.Prevent
   if (target) {
     ret ? target.blur() : timeout_(blur_unsafe.bind(0, target), 0)
@@ -266,7 +266,7 @@ export const onFocus = (event: Event | FocusEvent): void => {
           ? target
           : OnFirefox ? target.closest!("[contenteditable]") satisfies Element | null as SafeElement | null
           : SafeEl_not_ff_!(target.closest!("[contenteditable]")),
-      editableParent && testConfiguredSelector_<"ignoreReadonly">(editableParent, "y")) {
+      editableParent && testConfiguredSelector_<"ignoreReadonly">(editableParent, 0)) {
       /* empty */
     } else {
       esc!(HandlerResult.Nothing)
@@ -379,17 +379,17 @@ const getSimpleNodeMap = (): ShadowNodeMap => {
 }
 
 const testConfiguredSelector_ = <T extends "passEsc" | "ignoreReadonly">(target: SafeElement
-    , confKey: SettingsNS.AutoSyncedNameMap[T]): boolean | 0 => {
-  let selector: string | [string] | 0 | void = fgCache[confKey] as string | [string] | 0
+    , passEsc: T extends "passEsc" ? 1 : 0): boolean | 0 => {
+  let selector: string | [string] | 0 | void = (passEsc ? fgCache.p : fgCache.y) as string | [string] | 0
   if (isTY(selector)) {
     if (OnEdge) {
       selector = selector.replace(<RegExpG & RegExpSearchable<0>> /:default/g
-          , () => VTr((confKey === "p") as boolean | BOOL as BOOL + kTip.defaultIgnoreReadonly))
+          , () => VTr(passEsc + kTip.defaultIgnoreReadonly))
     }
     selector = findSelectorByHost(selector, target)
     selector = selector ? (!OnEdge ? [selector.replace(":default"
-        , VTr((confKey === "p") as boolean | BOOL as BOOL + kTip.defaultIgnoreReadonly) as "css")] : [selector]) : 0
-    fgCache[confKey] = (selector satisfies [string] | 0) as never
+        , VTr(passEsc + kTip.defaultIgnoreReadonly) as "css")] : [selector]) : 0
+    fgCache[("yp"[passEsc]) as "y" | "p"] = (selector satisfies [string] | 0) as never
   }
   return selector && testMatch(selector[0], target)
 }

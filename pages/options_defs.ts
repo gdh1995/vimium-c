@@ -16,7 +16,9 @@ Option_.syncToFrontend_ = []
 Option_.prototype._onCacheUpdated = function<T extends keyof SettingsNS.AutoSyncedNameMap
     > (this: Option_<T>, func: (this: Option_<T>) => unknown): void {
   const val = func.call(this) as SettingsNS.PersistentSettings[T]
-  if (VApi && !this.locked_) {
+  if (this.field_ === "passEsc" || this.field_ === "ignoreReadonly") {
+    this.normalize_(val)
+  } else if (VApi && !this.locked_) {
     const shortKey = bgSettings_.valuesToLoad_[this.field_ as keyof SettingsNS.AutoSyncedNameMap]
     const p = shortKey in bgSettings_.complexValuesToLoad_ ? post_(kPgReq.updatePayload, { key: shortKey, val })
         : Promise.resolve(val)
@@ -359,8 +361,8 @@ export class CssSelectorOption_<T extends "passEsc" | "ignoreReadonly"> extends 
     return value.replace(<RegExpOne> /:default\([^)]*\)/, GlobalConsts.kCssDefault)
   }
   override formatValue_(value: string): string {
-    value = value.replace(<RegExpG & RegExpSearchable<1>> /(?:^# |\/\/)[^\n]*|([,>])/g, (full, s): string => {
-      return s ? s === "," ? ", " : " > " : full
+    value = value.replace(<RegExpG & RegExpSearchable<1>> /(?:^# |\/\/)[^\n]*|([,>] ?)(?!$|\n)/g, (full, s): string => {
+      return s ? s !== ">" ? ", " : " > " : full
     })
     value = value.replace(<RegExpOne & RegExpSearchable<2>> /(^|\n):default(?!\()/, (_, prefix): string => {
       const val_with_default = `${GlobalConsts.kCssDefault}(${this.getRealDefault()})`
@@ -376,16 +378,16 @@ export class CssSelectorOption_<T extends "passEsc" | "ignoreReadonly"> extends 
     let str = hostSep >= 0 ? line.slice(0, hostSep + 2) : ""
     let output = ""
     line = hostSep >= 0 ? line.slice(hostSep + 2) : line
-    line = line.replace(<RegExpSearchable<1>> /,|>/g, s => s === "," ? ", " : " > ")
+    line = line.replace(<RegExpSearchable<1>> /,|>/g, s => s === "," ? ", " : " > ").trimRight()
     for (const i of line.split(", ")) {
       if (str && str.length + i.length > 62) {
-        output.length ? (output += "\n" + str + ",") : (output = str + ",")
+        output = str.endsWith("#") ? str : (output ? output + "\n" : "") + str + ","
         str = "  " + i
       } else {
-        str = str ? str + ", " + i : i
+        str = str ? str + (str.endsWith("#") ? "" : ", ") + i : i
       }
     }
-    return str ? output ? output + "\n" + str : str : output
+    return str ? (output ? output + "\n" : "") + str.trimRight() : output
   }
 }
 

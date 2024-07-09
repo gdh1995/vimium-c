@@ -604,7 +604,7 @@ set_findOptByHost((rules: string | object | kTip | true | MayBeSelector
     const re = cond && (<RegExpOne> /[*+?^$\\(]/).test(cond) && tryCreateRegExp(cond)
     path || cond && (host = Lower(loc_.host), path = host + "/" + Lower(loc_.pathname))
     if (re ? re.test(matchPath ? path! : host!) : matchPath ? path!.startsWith(cond)
-            : !cond && sel || host === cond || host!.endsWith("." + cond)) {
+            : cond ? host === cond || host!.endsWith("." + cond) : sel) {
       if (!mapMode) {
         return isKTip || cssCheckEl === 0 || sel && safeCall(testMatch, sel as string, _cssChecker || cssCheckEl
             || (_cssChecker = createElement_("p"))) != null ? sel as "css-selector" : void 0

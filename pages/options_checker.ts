@@ -252,7 +252,7 @@ const isValidCssSelector = (option: CssOptions, selector: string, errors: string
   if (selector.includes(",")) {
     return selector.split(",").map(i => isValidCssSelector(option, i, errors)).reduce((old, x) => old && x, true)
   }
-  let valid = selector ?  _validCssSelectors[selector] : 1
+  let valid = selector ? _validCssSelectors[selector] : 1
   if (valid == null) {
     try {
       option.element_.querySelector(selector)
@@ -280,7 +280,10 @@ const checkCssSelector = (opt: CssOptions, value: string): string => {
       continue
     }
     const commentSep = line.indexOf("//")
-    const subLines: Line[] = (commentSep > 0 ? line.slice(0, commentSep) : line).split(";").map((i, ind, arr): Line => {
+    const mid = (commentSep > 0 ? line.slice(0, commentSep) : line)
+        .replace(<RegExpG & RegExpSearchable<0>> /;[\s;]+|,[\s,]+/g, (s: string): string => s[0])
+        .replace(<RegExpG & RegExpSearchable<0>> /,;/g, ";")
+    const subLines: Line[] = mid.split(";").map((i, ind, arr): Line => {
       i = ind ? i.trim() : i.trimRight()
       return { s: ind < arr.length - 1 ? i + ";" : i, c: "" }
     })
@@ -289,13 +292,13 @@ const checkCssSelector = (opt: CssOptions, value: string): string => {
     const prevChar = lastRule.s.slice(-1)
     if (prevChar !== ";" && subLines[0].s.includes("##")) {
       lastRule.s = (prevChar === "," ? lastRule.s.slice(0, -1) : lastRule.s) + ";"
-    } else if (!",;".includes(prevChar) && !",;".includes(subLines[0].s[0])) {
+    } else if (!",;#".includes(prevChar) && !",;".includes(subLines[0].s[0])) {
       lastRule.s += ","
     }
     outputs.push(...subLines)
     lastRule = outputs[outputs.length - 1]
   }
-  lastRule.s.endsWith(";") || (lastRule.s += ";")
+  lastRule.s.endsWith(";") || (lastRule.s = (lastRule.s.endsWith(",") ? lastRule.s.slice(0, -1) : lastRule.s) + ";")
 
   interface Group { l: Line[], s: string, i: number }
   const groups: Group[] = []
@@ -318,19 +321,27 @@ const checkCssSelector = (opt: CssOptions, value: string): string => {
   let stream: string = ""
   Build.NDEBUG || selectorsInDefault && isValidCssSelector(opt, selectorsInDefault, errors)
   for (const group of groups) {
+    let prevChar = ";", hasHost: 0 | 1 | 2 = 0
     for (const line of group.l) {
-      if (line.c) { stream += line.c + "\n"; continue }
+      if (!line.s) { stream += line.c + "\n"; continue }
+      hasHost || (hasHost = line.s.includes("##") ? 2 : 1)
       let s = line.s.replace(<RegExpG> /\s{2,}/g, " ")
           .replace(<RegExpG & RegExpSearchable<1>> /^ | ?([,>]) ?/g, (_, x) => x || "  ")
+      if (prevChar !== ";") {
+        s = hasHost === 2 ? s[0] !== " " ? "  " + s : s: s[0] !== " " ? s : s.trimLeft()
+      }
       s = CssSelectorOption_.WrapAndOutput_(s)
-      const selectors = s.slice(s.indexOf("##") + 1).replace(<RegExpG> /\n /g, "")
-      selectors.split(", ").forEach(i => isValidCssSelector(opt, i, errors))
+      const hostSep = s.indexOf("##")
+      const selectors = s.slice(hostSep >= 0 ? hostSep + 2 : 0).replace(<RegExpG> /\n /g, "")
+      selectors.split(",").forEach(i => isValidCssSelector(opt, i, errors))
       s = s.replace(<RegExpG & RegExpSearchable<0>> /, | > /g, s => s.trim())
       s = line.c ? s + " " + line.c + "\n" : s + "\n"
       stream += s
+      prevChar = line.s.slice(-1)
     }
   }
   stream = stream.trim()
+  ; (stream.endsWith(";") || stream.endsWith(",")) && (stream = stream.slice(0, -1))
   if (errors.length > 0) {
     errors.unshift(oTrans_("invalidCss"))
     opt.showError_(errors.join("\n"), "has-error")
