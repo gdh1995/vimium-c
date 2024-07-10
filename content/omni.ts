@@ -1,7 +1,7 @@
 /// <reference path="../lib/base.omni.d.ts" />
 import {
   isAlive_, keydownEvents_, readyState_, timeout_, clearTimeout_, recordLog, chromeVer_, math, OnChrome,
-  interval_, locHref, vApi, createRegExp, safer, isTop, OnFirefox, OnEdge, safeCall, WithDialog, VTr
+  interval_, locHref, vApi, createRegExp, safer, isTop, OnFirefox, OnEdge, safeCall, WithDialog, VTr, firefoxVer_
 } from "../lib/utils"
 import { removeHandler_, replaceOrSuppressMost_, getMappedKey, isEscape_ } from "../lib/keyboard_utils"
 import {
@@ -316,7 +316,21 @@ const refreshKeyHandler = (): void => {
     postToOmni(VomnibarNS.kCReq.focus)
     status = Status.ToShow
   }
-  toggleClass_s(box!, "O2", !canUseVW)
+  if ((OnFirefox && Build.MinFFVer < FirefoxBrowserVer.MinCssMinMax && firefoxVer_ < FirefoxBrowserVer.MinCssMinMax
+        || OnEdge || OnChrome && Build.MinCVer < BrowserVer.MinCssMinMax && chromeVer_ < BrowserVer.MinCssMinMax)
+      && width > (((VomnibarNS.PixelData.MaxWidthInPixel - VomnibarNS.PixelData.MarginH
+                    ) / VomnibarNS.PixelData.WindowSizeX + 3.5) | 0)) {
+    const dest = ((((VomnibarNS.PixelData.MaxWidthInPixel - VomnibarNS.PixelData.MarginH
+                      ) / VomnibarNS.PixelData.WindowSizeX + 1.5) | 0) & ~1)
+    box!.style.width = dest + "px"
+    box!.style.left = `calc(50% - ${dest / 2}px)`
+  } else {
+    toggleClass_s(box!, "O2", !canUseVW)
+    if (OnFirefox && Build.MinFFVer < FirefoxBrowserVer.MinCssMinMax && firefoxVer_ < FirefoxBrowserVer.MinCssMinMax
+        || OnEdge || OnChrome && Build.MinCVer < BrowserVer.MinCssMinMax && chromeVer_ < BrowserVer.MinCssMinMax) {
+      box!.style.width = box!.style.left = ""
+    }
+  }
   ; (!OnFirefox && WithDialog && dialog_non_ff || options.e) && setupExitOnClick(kExitOnClick.vomnibar)
   if (url != null) {
     url = options.url = url || options.u

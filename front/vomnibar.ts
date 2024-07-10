@@ -105,9 +105,9 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     if (Build.MinCVer < BrowserVer.MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent
         && (Build.BTypes === BrowserType.Chrome as number
             || Build.BTypes & BrowserType.Chrome && a.browser_ === BrowserType.Chrome)) {
-      a.onInnerWidth_((Math.min(options.w * a.panelWidth_, a.maxWidthInPixel_) + PixelData.MarginH * options.z) / scale)
+      a.onInnerWidth_(Math.min(options.w * a.panelWidth_ + PixelData.MarginH * options.z, a.maxWidthInPixel_) / scale)
     } else {
-      a.onInnerWidth_(Math.min(options.w * a.panelWidth_, a.maxWidthInPixel_) + PixelData.MarginH)
+      a.onInnerWidth_(Math.min(options.w * a.panelWidth_ + PixelData.MarginH, a.maxWidthInPixel_))
     }
     const max = Math.max(3, Math.min(0 | ((options.h / dz
           / (Build.MinCVer < BrowserVer.MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent
