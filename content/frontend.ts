@@ -84,12 +84,15 @@ set_vApi(VApi = {
       : task < 2 ? set_clickable_(arg as ElementSet)
       : set_VTr(arg as VTransType)
     return arg
-  }, getMappedKey], s: suppressTail_, t: requestHandlers[kBgReq.showHUD],
-  u: locHref, v: runJS_, x: flash_, y: OnFirefox ? () => ( {
+  }, getMappedKey],
+  s: suppressTail_, t: requestHandlers[kBgReq.showHUD],
+  u: locHref, v: runJS_, x: flash_,
+  y: OnFirefox ? () => ( {
     w: onWndFocus, b: find_box, c: clickable_, k: scroll_keyIsDown, r: ui_root, f: find_input,
     m: [keyFSM, mappedKeys, mapKeyTypes, fgCache || null ]
   } ) : () => ( {  b: find_box, c: clickable_, k: scroll_keyIsDown, r: ui_root, f: find_input,
-    m: [keyFSM, mappedKeys, mapKeyTypes, fgCache || null ] } ), z: null,
+    m: [keyFSM, mappedKeys, mapKeyTypes, fgCache || null ] } ),
+  z: null,
   $: $sc
 })
 

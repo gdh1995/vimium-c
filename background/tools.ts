@@ -1,9 +1,9 @@
 import {
   curIncognito_, curTabId_, curWndId_, framesForTab_, incognitoFindHistoryList_, recencyForTab_, set_curIncognito_,
   set_curTabId_, set_curWndId_, set_incognitoFindHistoryList_, set_lastWndId_, incognitoMarkCache_, focusAndExecuteOn_,
-  set_incognitoMarkCache_, contentPayload_, settingsCache_, OnFirefox, OnChrome, CurCVer_, updateHooks_, set_cKey,
-  OnEdge, isHighContrast_ff_, omniPayload_, blank_, CONST_, CurFFVer_, storageCache_, os_, vomnibarBgOptions_, cPort,
-  lastKeptTabId_, set_saveRecency_
+  set_incognitoMarkCache_, settingsCache_, OnFirefox, OnChrome, CurCVer_, updateHooks_, set_cKey, set_lastVisitTabTime_,
+  OnEdge, isHighContrast_ff_, omniPayload_, blank_, CONST_, storageCache_, os_, vomnibarBgOptions_, cPort,
+  lastKeptTabId_, set_saveRecency_, lastVisitTabTime_
 } from "./store"
 import * as BgUtils_ from "./utils"
 import {
@@ -17,7 +17,7 @@ import {
   complainLimits, refreshPorts_, showHUD, showHUDEx, tryToKeepAliveIfNeeded_mv3_non_ff, waitForPorts_,
   resetInnerKeepAliveTick_
 } from "./ports"
-import { setOmniStyle_ } from "./ui_css"
+import { MediaWatcher_ } from "./ui_css"
 import { transEx_, trans_ } from "./i18n"
 import { parseFallbackOptions, runNextCmd, getRunNextCmdBy, kRunOn, runNextCmdBy, portSendFgCmd } from "./run_commands"
 import { focusOrLaunch_, parseOpenPageUrlOptions, preferLastWnd } from "./open_urls"
@@ -522,115 +522,12 @@ const IncognitoWatcher_ = {
   }
 }
 
-let hasReliableWatchers: boolean = OnFirefox && Build.MinFFVer >= FirefoxBrowserVer.MinMediaQueryListenersWorkInBg
-let _mediaTimer = hasReliableWatchers ? -1 : 0
-OnFirefox && Build.MinFFVer < FirefoxBrowserVer.MinMediaQueryListenersWorkInBg && settings_.ready_.then((): void => {
-  hasReliableWatchers = CurFFVer_ > FirefoxBrowserVer.MinMediaQueryListenersWorkInBg - 1
-  _mediaTimer = hasReliableWatchers ? -1 : 0
-})
-
-export const MediaWatcher_ = Build.MV3 ? null as never : {
-  watchers_: [
-    (OnChrome && Build.MinCVer >= BrowserVer.MinMediaQuery$PrefersReducedMotion)
-      || (OnFirefox && Build.MinFFVer >= FirefoxBrowserVer.MinMediaQuery$PrefersReducedMotion)
-    ? MediaNS.Watcher.NotWatching : MediaNS.Watcher.WaitToTest,
-    (OnChrome && Build.MinCVer >= BrowserVer.MinMediaQuery$PrefersColorScheme)
-      && (OnFirefox && Build.MinFFVer >= FirefoxBrowserVer.MinMediaQuery$PrefersColorScheme)
-    ? MediaNS.Watcher.NotWatching : MediaNS.Watcher.WaitToTest
-  ] as { [k in MediaNS.kName]: MediaNS.Watcher | MediaQueryList } & Array<MediaNS.Watcher | MediaQueryList>,
-  get_ (key: MediaNS.kName): boolean | null {
-    let watcher = MediaWatcher_.watchers_[key];
-    return typeof watcher === "object" ? watcher.matches : null;
-  },
-  listen_ (key: MediaNS.kName, listenType: 0 | 1 | 2): void {
-    const doListen = listenType === 2
-    let a = MediaWatcher_, watchers = a.watchers_, cur = watchers[key],
-    name = !key ? "prefers-reduced-motion" as const : "prefers-color-scheme" as const;
-    if (cur === MediaNS.Watcher.WaitToTest && doListen) {
-      watchers[key] = cur = matchMedia(`(${name})`).matches ? MediaNS.Watcher.NotWatching
-          : MediaNS.Watcher.InvalidMedia;
-    }
-    if (doListen && cur === MediaNS.Watcher.NotWatching) {
-      const query = matchMedia(`(${name}: ${!key ? "reduce" : "dark"})`);
-      query.onchange = a._onChange;
-      watchers[key] = query;
-      if (_mediaTimer === 0 || _mediaTimer === -2) {
-        _mediaTimer = setInterval(MediaWatcher_.RefreshAll_, GlobalConsts.MediaWatchInterval)
-      }
-    } else if (!doListen && typeof cur === "object") {
-      cur.onchange = null;
-      watchers[key] = MediaNS.Watcher.NotWatching;
-      if ((_mediaTimer > 0 || _mediaTimer === -2) && watchers.every(i => typeof i !== "object")) {
-        _mediaTimer > 0 && clearInterval(_mediaTimer)
-        _mediaTimer = 0
-      }
-    }
-  },
-  update_ (this: void, key: MediaNS.kName, embed?: 1 | 0, rawMatched?: boolean | null): void {
-    type ObjWatcher = Exclude<typeof watcher, number>;
-    let watcher = MediaWatcher_.watchers_[key], isObj = typeof watcher === "object";
-    if (!hasReliableWatchers && OnFirefox && embed == null && isObj) {
-      let watcher2 = matchMedia((watcher as ObjWatcher).media);
-      watcher2.onchange = (watcher as ObjWatcher).onchange;
-      (watcher as ObjWatcher).onchange = null;
-      MediaWatcher_.watchers_[key] = watcher = watcher2;
-    }
-    const omniToggled = key ? "dark" : "less-motion",
-    bMatched: boolean = isObj ? (watcher as ObjWatcher).matches : rawMatched != null ? rawMatched
-        : (key === MediaNS.kName.PrefersReduceMotion ? settingsCache_.autoReduceMotion
-            : settingsCache_.autoDarkMode) === 1
-    const payloadKey = key ? "d" : "m", newPayloadVal = settings_.updatePayload_(payloadKey, bMatched)
-    if (contentPayload_[payloadKey] !== newPayloadVal) {
-      (contentPayload_ as Generalized<Pick<typeof contentPayload_, typeof payloadKey>>)[payloadKey] = newPayloadVal
-      embed || settings_.broadcast_({ N: kBgReq.settingsUpdate, d: [payloadKey] })
-    }
-    setOmniStyle_({
-      t: omniToggled,
-      e: bMatched || ` ${settingsCache_.vomnibarOptions.styles} `.includes(` ${omniToggled} `),
-      b: !embed
-    });
-  },
-  RefreshAll_ (this: void): void {
-    if (_mediaTimer > 0) {
-      if (performance.now() - lastVisitTabTime > 1000 * 60 * 4.5) {
-        clearInterval(_mediaTimer)
-        _mediaTimer = -2
-      }
-    }
-    for (let arr = MediaWatcher_.watchers_, i = arr.length; 0 <= --i; ) {
-      let watcher = arr[i];
-      if (typeof watcher === "object") {
-        MediaWatcher_.update_(i);
-      }
-    }
-  },
-  resume_ (): void {
-    MediaWatcher_.RefreshAll_()
-    _mediaTimer = setInterval(MediaWatcher_.RefreshAll_, GlobalConsts.MediaWatchInterval)
-  },
-  _onChange (this: MediaQueryList): void {
-    if (!hasReliableWatchers) {
-      _mediaTimer > 0 && clearInterval(_mediaTimer)
-      _mediaTimer = -1
-      hasReliableWatchers = true
-    }
-    let index = MediaWatcher_.watchers_.indexOf(this);
-    if (index >= 0) {
-      MediaWatcher_.update_(index);
-    }
-    if (!Build.NDEBUG) {
-      console.log("Media watcher:", this.media, "has changed to",
-          matchMedia(this.media).matches, "/", index < 0 ? index : MediaWatcher_.get_(index));
-    }
-  }
-}
-
 const noneWnd = Build.NDEBUG ? GlobalConsts.WndIdNone : curWndId_, cache = recencyForTab_
 export const TabRecency_ = {
   rCompare_: (a: {id: number}, b: {id: number}): number => cache.get(b.id)! - cache.get(a.id)!,
   onWndChange_: blank_
 };
-let lastVisitTabTime = 0, lastSaveRecencyTime = 0
+let lastSaveRecencyTime = 0
 
   function onTabActivated(info: chrome.tabs.TabActiveInfo): void {
     const tabId = info.tabId, frames = framesForTab_.get(tabId)
@@ -641,14 +538,14 @@ let lastVisitTabTime = 0, lastSaveRecencyTime = 0
       return
     }
     const now = performance.now();
-    if (now - lastVisitTabTime > GlobalConsts.MinStayTimeToRecordTabRecency) {
+    if (now - lastVisitTabTime_ > GlobalConsts.MinStayTimeToRecordTabRecency) {
       const monoNow = (OnChrome || OnFirefox) && Build.OS & kBOS.LINUX_LIKE
           && (Build.OS === kBOS.LINUX_LIKE as number || os_ === kOS.linuxLike) ? Date.now() : now
       cache.set(curTabId_, monoNow)
     }
-    set_curTabId_(tabId), lastVisitTabTime = now
-    if (!Build.MV3) { return }
-    _mediaTimer === -2 && (_mediaTimer = -3, setTimeout(MediaWatcher_.resume_, 0)) // not block onActivated listener
+    set_lastVisitTabTime_(now)
+    set_curTabId_(tabId)
+    MediaWatcher_.resume_mv3_() // not block onActivated listener
   }
   function maybeOnBgWndActiveTabChange(wnd: chrome.windows.Window): void {
     if (!wnd || !wnd.focused) { return runtimeError_() }
@@ -694,7 +591,7 @@ let lastVisitTabTime = 0, lastSaveRecencyTime = 0
 
 void settings_.ready_.then((): void => {
   getCurTab((tabs: [Tab]): void => {
-    lastVisitTabTime = performance.now()
+    set_lastVisitTabTime_(performance.now())
     const a = tabs && tabs[0];
     if (!a) { return runtimeError_() }
     set_curTabId_(a.id)
@@ -714,10 +611,10 @@ void settings_.ready_.then((): void => {
       }
       sessionStorage.remove(kRecencyField)
       set_saveRecency_((): void => {
-        if (lastSaveRecencyTime == lastVisitTabTime) {
+        if (lastSaveRecencyTime == lastVisitTabTime_) {
           return
         }
-        lastSaveRecencyTime = lastVisitTabTime
+        lastSaveRecencyTime = lastVisitTabTime_
         const recency: RecencyStorage = { e: Array.from((cache as any).entries()), b: BgUtils_.recencyBase_() }
         sessionStorage.set({ [kRecencyField]: recency })
       })

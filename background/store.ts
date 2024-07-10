@@ -94,6 +94,7 @@ export interface RecencyMap extends Map<number, /** mono time */ number> {
   forEach (callback: (lastVisitTime: number, tabId: number) => void): void
 }
 export const recencyForTab_ = new Map() as RecencyMap
+export let lastVisitTabTime_ = 0
 export let curTabId_: number = GlobalConsts.TabIdNone
 export let curWndId_: number = GlobalConsts.WndIdNone
 export let lastWndId_: number = GlobalConsts.WndIdNone
@@ -155,6 +156,7 @@ export let offscreenPort_: Frames.BrowserPort | null = null
 //#endregion
 
 //#region variable setter
+export const set_lastVisitTabTime_ = (_newLastVisit: number): void => { lastVisitTabTime_ = _newLastVisit }
 export const set_curTabId_ = (_newCurTabId: number): void => { curTabId_ = _newCurTabId }
 export const set_curWndId_ = (_newCurWndId: number): void => { curWndId_ = _newCurWndId }
 export const set_lastWndId_ = (_newLastWndId: number): void => { lastWndId_ = _newLastWndId }

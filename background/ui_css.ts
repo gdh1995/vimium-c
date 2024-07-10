@@ -1,11 +1,12 @@
 import {
   findCSS_, innerCSS_, omniPayload_, set_findCSS_, set_innerCSS_, CurCVer_, CurFFVer_, IsEdg_, omniStyleOverridden_,
   OnChrome, OnEdge, OnFirefox, isHighContrast_ff_, set_isHighContrast_ff_, bgIniting_, CONST_, set_helpDialogData_,
-  settingsCache_, set_omniStyleOverridden_, updateHooks_, storageCache_, installation_, contentConfVer_
+  settingsCache_, set_omniStyleOverridden_, updateHooks_, storageCache_, installation_,contentConfVer_, contentPayload_,
+  lastVisitTabTime_
 } from "./store"
 import { fetchFile_, nextConfUpdate, spacesRe_ } from "./utils"
 import { getFindCSS_cr_, set_getFindCSS_cr_ } from "./browser"
-import { ready_, broadcastOmniConf_, postUpdate_, setInLocal_ } from "./settings"
+import { ready_, broadcastOmniConf_, postUpdate_, setInLocal_, updatePayload_, broadcast_ } from "./settings"
 import { asyncIterFrames_ } from "./ports"
 
 export declare const enum MergeAction {
@@ -19,6 +20,8 @@ interface ParsedSections {
 
 let StyleCacheId_: string
 let findCSS_file_old_cr: FindCSS | null
+let hasReliableWatchers: boolean = OnFirefox && Build.MinFFVer >= FirefoxBrowserVer.MinMediaQueryListenersWorkInBg
+let _mediaTimer = hasReliableWatchers ? -1 : 0
 
 export const reloadCSS_ = (action: MergeAction, knownCssStr?: string): SettingsNS.MergedCustomCSS | void => {
   if (action === MergeAction.virtual) {
@@ -231,6 +234,106 @@ export const mergeCSS = (css2Str: string, action: MergeAction | "userDefinedCss"
   }
 }
 
+export const MediaWatcher_ = Build.MV3 ? null as never : {
+  watchers_: [
+    (OnChrome && Build.MinCVer >= BrowserVer.MinMediaQuery$PrefersReducedMotion)
+      || (OnFirefox && Build.MinFFVer >= FirefoxBrowserVer.MinMediaQuery$PrefersReducedMotion)
+    ? MediaNS.Watcher.NotWatching : MediaNS.Watcher.WaitToTest,
+    (OnChrome && Build.MinCVer >= BrowserVer.MinMediaQuery$PrefersColorScheme)
+      && (OnFirefox && Build.MinFFVer >= FirefoxBrowserVer.MinMediaQuery$PrefersColorScheme)
+    ? MediaNS.Watcher.NotWatching : MediaNS.Watcher.WaitToTest
+  ] as { [k in MediaNS.kName]: MediaNS.Watcher | MediaQueryList } & Array<MediaNS.Watcher | MediaQueryList>,
+  get_ (key: MediaNS.kName): boolean | null {
+    let watcher = MediaWatcher_.watchers_[key];
+    return typeof watcher === "object" ? watcher.matches : null;
+  },
+  listen_ (key: MediaNS.kName, listenType: 0 | 1 | 2): void {
+    const doListen = listenType === 2
+    let a = MediaWatcher_, watchers = a.watchers_, cur = watchers[key],
+    name = !key ? "prefers-reduced-motion" as const : "prefers-color-scheme" as const;
+    if (cur === MediaNS.Watcher.WaitToTest && doListen) {
+      watchers[key] = cur = matchMedia(`(${name})`).matches ? MediaNS.Watcher.NotWatching
+          : MediaNS.Watcher.InvalidMedia;
+    }
+    if (doListen && cur === MediaNS.Watcher.NotWatching) {
+      const query = matchMedia(`(${name}: ${!key ? "reduce" : "dark"})`);
+      query.onchange = a._onChange;
+      watchers[key] = query;
+      if (_mediaTimer === 0 || _mediaTimer === -2) {
+        _mediaTimer = setInterval(MediaWatcher_.RefreshAll_, GlobalConsts.MediaWatchInterval)
+      }
+    } else if (!doListen && typeof cur === "object") {
+      cur.onchange = null;
+      watchers[key] = MediaNS.Watcher.NotWatching;
+      if ((_mediaTimer > 0 || _mediaTimer === -2) && watchers.every(i => typeof i !== "object")) {
+        _mediaTimer > 0 && clearInterval(_mediaTimer)
+        _mediaTimer = 0
+      }
+    }
+  },
+  update_ (this: void, key: MediaNS.kName, embed?: 1 | 0, rawMatched?: boolean | null): void {
+    type ObjWatcher = Exclude<typeof watcher, number>;
+    let watcher = MediaWatcher_.watchers_[key], isObj = typeof watcher === "object";
+    if (!hasReliableWatchers && OnFirefox && embed == null && isObj) {
+      let watcher2 = matchMedia((watcher as ObjWatcher).media);
+      watcher2.onchange = (watcher as ObjWatcher).onchange;
+      (watcher as ObjWatcher).onchange = null;
+      MediaWatcher_.watchers_[key] = watcher = watcher2;
+    }
+    const omniToggled = key ? "dark" : "less-motion",
+    bMatched: boolean = isObj ? (watcher as ObjWatcher).matches : rawMatched != null ? rawMatched
+        : (key === MediaNS.kName.PrefersReduceMotion ? settingsCache_.autoReduceMotion
+            : settingsCache_.autoDarkMode) === 1
+    const payloadKey = key ? "d" : "m", newPayloadVal = updatePayload_(payloadKey, bMatched)
+    if (contentPayload_[payloadKey] !== newPayloadVal) {
+      (contentPayload_ as Generalized<Pick<typeof contentPayload_, typeof payloadKey>>)[payloadKey] = newPayloadVal
+      embed || broadcast_({ N: kBgReq.settingsUpdate, d: [payloadKey] })
+    }
+    setOmniStyle_({
+      t: omniToggled,
+      e: bMatched || ` ${settingsCache_.vomnibarOptions.styles} `.includes(` ${omniToggled} `),
+      b: !embed
+    });
+  },
+  RefreshAll_ (this: void): void {
+    if (_mediaTimer > 0) {
+      if (performance.now() - lastVisitTabTime_ > 1000 * 60 * 4.5) {
+        clearInterval(_mediaTimer)
+        _mediaTimer = -2
+      }
+    }
+    for (let arr = MediaWatcher_.watchers_, i = arr.length; 0 <= --i; ) {
+      let watcher = arr[i];
+      if (typeof watcher === "object") {
+        MediaWatcher_.update_(i);
+      }
+    }
+  },
+  resume_mv3_ (): void {
+    if (!Build.MV3 || _mediaTimer !== -2) { return }
+    _mediaTimer = -3
+    setTimeout((): void => {
+      MediaWatcher_.RefreshAll_()
+      _mediaTimer = setInterval(MediaWatcher_.RefreshAll_, GlobalConsts.MediaWatchInterval)
+    }, 0)
+  },
+  _onChange (this: MediaQueryList): void {
+    if (!hasReliableWatchers) {
+      _mediaTimer > 0 && clearInterval(_mediaTimer)
+      _mediaTimer = -1
+      hasReliableWatchers = true
+    }
+    let index = MediaWatcher_.watchers_.indexOf(this);
+    if (index >= 0) {
+      MediaWatcher_.update_(index);
+    }
+    if (!Build.NDEBUG) {
+      console.log("Media watcher:", this.media, "has changed to",
+          matchMedia(this.media).matches, "/", index < 0 ? index : MediaWatcher_.get_(index));
+    }
+  }
+}
+
 export const setOmniStyle_ = (req: FgReq[kFgReq.setOmniStyle], port?: Port): void => {
   let styles: string, curStyles = omniPayload_.t
   if (!req.o && omniStyleOverridden_) {
@@ -276,13 +379,17 @@ void ready_.then((): void => {
           && (!OnEdge || "all" in ((globalThis as MaybeWithWindow).document!.body as HTMLElement).style)
         ? "a" : "")
       + ";"
-set_innerCSS_(storageCache_.get("innerCSS") || "")
-if (innerCSS_ && !innerCSS_.startsWith(StyleCacheId_)) {
+  set_innerCSS_(storageCache_.get("innerCSS") || "")
+  if (innerCSS_ && !innerCSS_.startsWith(StyleCacheId_)) {
     storageCache_.set("vomnibarPage_f", "")
     reloadCSS_(MergeAction.rebuildWhenInit)
-} else {
+  } else {
     reloadCSS_(MergeAction.readFromCache, innerCSS_)
     installation_ && installation_.then(details => details && reloadCSS_(MergeAction.rebuildWhenInit))
-}
+  }
   updateHooks_.userDefinedCss = mergeCSS
+  if (OnFirefox && Build.MinFFVer < FirefoxBrowserVer.MinMediaQueryListenersWorkInBg) {
+    hasReliableWatchers = CurFFVer_ > FirefoxBrowserVer.MinMediaQueryListenersWorkInBg - 1
+    _mediaTimer = hasReliableWatchers ? -1 : 0
+  }
 })
