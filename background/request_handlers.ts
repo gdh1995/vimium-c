@@ -141,7 +141,7 @@ set_reqH_([
   },
   /** kFgReq.gotoSession: */ (request: FgReq[kFgReq.gotoSession], port?: Port): void => {
     const id = request.s, active = request.a !== 0, forceInCurWnd = request.a === 2, curWndId = curWndId_
-    set_cPort(findCPort(port)!)
+    set_cPort(findCPort(port)!) // no port if on browser:// tab and called from omnibox
     if (typeof id === "number") {
       selectTab(id, (tab): void => {
         runtimeError_() ? showHUD(trans_("noTabItem")) : selectWnd(tab)
@@ -153,7 +153,7 @@ set_reqH_([
       complainNoSession()
       return
     }
-    const curTabId = port!.s.tabId_ >= 0 ? port!.s.tabId_ : curTabId_ >= 0 ? curTabId_ : null
+    const curTabId = port && port.s.tabId_ >= 0 ? port.s.tabId_ : curTabId_ >= 0 ? curTabId_ : null
     const activeId = active ? null : curTabId
     browserSessions_().restore(id[1], (res): void => {
       const err = runtimeError_()

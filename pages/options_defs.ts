@@ -17,7 +17,7 @@ Option_.prototype._onCacheUpdated = function<T extends keyof SettingsNS.AutoSync
     > (this: Option_<T>, func: (this: Option_<T>) => unknown): void {
   const val = func.call(this) as SettingsNS.PersistentSettings[T]
   if (this.field_ === "passEsc" || this.field_ === "ignoreReadonly") {
-    this.normalize_(val)
+    this.locked_ || this.normalize_(val)
   } else if (VApi && !this.locked_) {
     const shortKey = bgSettings_.valuesToLoad_[this.field_ as keyof SettingsNS.AutoSyncedNameMap]
     const p = shortKey in bgSettings_.complexValuesToLoad_ ? post_(kPgReq.updatePayload, { key: shortKey, val })
@@ -364,9 +364,9 @@ export class CssSelectorOption_<T extends "passEsc" | "ignoreReadonly"> extends 
     value = value.replace(<RegExpG & RegExpSearchable<1>> /(?:^# |\/\/)[^\n]*|([,>] ?)(?!$|\n)/g, (full, s): string => {
       return s ? s !== ">" ? ", " : " > " : full
     })
-    value = value.replace(<RegExpOne & RegExpSearchable<2>> /(^|\n):default(?!\()/, (_, prefix): string => {
+    value = value.replace(<RegExpOne&RegExpSearchable<2>>/(^|\n):default(?!\()(, \S)?/, (_, prefix, suffix): string => {
       const val_with_default = `${GlobalConsts.kCssDefault}(${this.getRealDefault()})`
-      return prefix + CssSelectorOption_.WrapAndOutput_(val_with_default)
+      return prefix + CssSelectorOption_.WrapAndOutput_(val_with_default) + (suffix ? ",\n" + suffix[2] : "")
     })
     return value
   }

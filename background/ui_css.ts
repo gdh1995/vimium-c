@@ -142,10 +142,11 @@ export const reloadCSS_ = (action: MergeAction, knownCssStr?: string): SettingsN
     if (OnFirefox) { /** {@link ../tests/dom/firefox-position_fixed-in-dialog.html} */
       css += ".DLG>.Omnibar{position:absolute}"
     }
-    if (OnChrome && Build.MinCVer < BrowserVer.MinCssMinMax && CurCVer_ < BrowserVer.MinCssMinMax
+    if (OnEdge || OnChrome && Build.MinCVer < BrowserVer.MinCssMinMax && CurCVer_ < BrowserVer.MinCssMinMax
         || OnFirefox && Build.MinFFVer < FirefoxBrowserVer.MinCssMinMax && CurFFVer_ < FirefoxBrowserVer.MinCssMinMax) {
-      css = css.replace(<RegExpG & RegExpSearchable<0>>/\bm(?:in|ax)\([^)]+\)/g
-          , s => "calc" + s.slice(3).split(",", 1)[0] + ")")
+      css = css.replace(<RegExpOne & RegExpSearchable<0>>/width:min\([^)]+\)/
+          , s => `width:calc${s.slice(9).split(",", 1)[0]});max-width:${s.split(",", 2)[1].slice(0, -1)}`)
+        .replace(<RegExpG & RegExpSearchable<0>>/\bm(?:in|ax)\([^)]+\)/g, s => `calc${s.slice(3).split(",", 1)[0]})`)
     }
     setInLocal_("innerCSS", StyleCacheId_ + css)
     let findCSS = cssFile.find!
