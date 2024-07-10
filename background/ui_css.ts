@@ -233,7 +233,7 @@ export const mergeCSS = (css2Str: string, action: MergeAction | "userDefinedCss"
   }
 }
 
-export const MediaWatcher_ = Build.MV3 ? null as never : {
+export const MediaWatcher_ = {
   watchers_: [
     (OnChrome && Build.MinCVer >= BrowserVer.MinMediaQuery$PrefersReducedMotion)
       || (OnFirefox && Build.MinFFVer >= FirefoxBrowserVer.MinMediaQuery$PrefersReducedMotion)
@@ -333,20 +333,19 @@ export const setMediaState_ = (key: MediaNS.kName, matched: boolean, broadcast: 
     styles = matched ? exists ? styles : styles + toggled : extSt.replace(toggled, " ")
     styles = styles.trim().replace(spacesRe_, " ")
   }
-  if (!broadcast) {
-    for (const content_port of getFrames_(omni_port!)?.ports_ || []) {
-      content_port.postMessage({ N: kBgReq.settingsUpdate, d: { [payloadKey]: newPayloadVal }, v: contentConfVer_ })
-    }
-    omni_port!.postMessage({ N: kBgReq.omni_updateOptions, d: { t: styles }, v: omniConfVer_ })
-    return
-  }
   if (contentPayload_[payloadKey] !== newPayloadVal) {
     (contentPayload_ as Generalized<Pick<typeof contentPayload_, typeof payloadKey>>)[payloadKey] = newPayloadVal
     broadcast < 9 && broadcast_({ N: kBgReq.settingsUpdate, d: [payloadKey] })
+  } else if (!broadcast) {
+    for (const content_port of getFrames_(omni_port!)?.ports_ || []) {
+      content_port.postMessage({ N: kBgReq.settingsUpdate, d: { [payloadKey]: newPayloadVal }, v: contentConfVer_ })
+    }
   }
   if (styles !== omniPayload_.t) {
     omniPayload_.t = styles
     broadcast < 9 && broadcastOmniConf_({ t: styles })
+  } else if (!broadcast) {
+    omni_port!.postMessage({ N: kBgReq.omni_updateOptions, d: { t: styles }, v: omniConfVer_ })
   }
 }
 
