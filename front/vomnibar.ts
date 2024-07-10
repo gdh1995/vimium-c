@@ -49,6 +49,7 @@ interface ConfigurableItems {
   VomnibarMaxPageNum?: number;
 }
 interface KnownDataset {
+  mode: CompletersNS.ValidTypes | "omni" | "bomni"
   vimiumId: string
   favicons: "" | "true" | "false" // if "" or "true" then always show favicons
   version: `${number}.${number}` // html version
@@ -342,6 +343,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     if (a.init_) { a.init_(); }
     a.input_.value = a.inputText_;
     start! <= end! && a.input_.setSelectionRange(start!, end!)
+    document.body!.dataset.mode = a.mode_.o
     VPort_.postToOwner_({
       N: VomnibarNS.kFReq.style, h: 0,
       m: Math.ceil(a.mode_.r * a.itemHeight_ + a.baseHeightIfNotEmpty_) * wdZoom,
