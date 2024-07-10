@@ -67,7 +67,6 @@ export const omniPayload_ = {
 export const vomnibarBgOptions_ = { actions: [] as string[] }
 export let contentConfVer_ = 0
 export let omniConfVer_ = 0
-export let omniStyleOverridden_ = false
 export let findCSS_: FindCSS
 export let innerCSS_: string
 export let isHighContrast_ff_: boolean
@@ -187,7 +186,6 @@ export const set_cEnv = (_newEnv: typeof cEnv): void => { cEnv = _newEnv }
 export const set_hasEmptyLocalStorage_ = (_newEmpty: boolean): void => { hasEmptyLocalStorage_ = _newEmpty }
 export const set_newTabUrl_f = (_newNTP: string): void => { newTabUrl_f = _newNTP }
 export const set_vomnibarPage_f = (_newOmniP: string): void => { vomnibarPage_f = _newOmniP }
-export const set_omniStyleOverridden_ = (_newOverridden: boolean): void => { omniStyleOverridden_ = _newOverridden }
 export const set_findCSS_ = (_newFindCSS: FindCSS): void => { findCSS_ = _newFindCSS }
 export const set_innerCSS_ = (_newInnerCSS: string): void => { innerCSS_ = _newInnerCSS }
 export const set_isHighContrast_ff_ = (_newHC: boolean): void => { isHighContrast_ff_ = _newHC }

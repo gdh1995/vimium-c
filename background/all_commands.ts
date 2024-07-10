@@ -2,7 +2,7 @@ import * as BgUtils_ from "./utils"
 import {
   cPort, cRepeat, cKey, get_cOptions, set_cPort, set_cRepeat, contentPayload_, runOneMapping_,
   framesForOmni_, bgC_, set_bgC_, set_cmdInfo_, curIncognito_, curTabId_, recencyForTab_, settingsCache_, CurCVer_, os_,
-  OnChrome, OnFirefox, OnEdge, substitute_, CONST_, curWndId_, findBookmark_, bookmarkCache_
+  OnChrome, OnFirefox, OnEdge, substitute_, CONST_, curWndId_, findBookmark_, bookmarkCache_, omniPayload_
 } from "./store"
 import {
   Tabs_, Windows_, InfoToCreateMultiTab, openMultiTabs, tabsGet, getTabUrl, selectFrom, runtimeError_, R_,
@@ -13,7 +13,6 @@ import { createSearchUrl_ } from "./normalize_urls"
 import { parseSearchUrl_ } from "./parse_urls"
 import * as settings_ from "./settings"
 import { requireURL_, complainNoSession, showHUD, complainLimits, getPortUrl_, showHUDEx, getCurFrames_ } from "./ports"
-import { setOmniStyle_ } from "./ui_css"
 import { trans_, I18nNames, extTrans_ } from "./i18n"
 import { stripKey_ } from "./key_mappings"
 import {
@@ -801,23 +800,28 @@ set_bgC_([
     onShownTabsIfRepeat_(true, 0, togglePinTab, curs, resolve)
   },
   /* kBgCmd.toggleTabUrl: */ _AsBgC<BgCmdActiveTab<kBgCmd.toggleTabUrl>>(toggleTabUrl),
-  /* kBgCmd.toggleVomnibarStyle: */ (tabs: [Tab], resolve): void | kBgCmd.toggleVomnibarStyle => {
-    const tabId = tabs[0].id, toggled = ((get_cOptions<C.toggleVomnibarStyle>().style || "") + "").trim(),
+  /* kBgCmd.toggleVomnibarStyle: */ (tabs: [Tab]): void | kBgCmd.toggleVomnibarStyle => {
+    const tabId = tabs ? tabs[0].id : cPort ? cPort.s.tabId_ : curTabId_
+    const toggled = ((get_cOptions<C.toggleVomnibarStyle>().style || "") + "").trim(),
     current = !!get_cOptions<C.toggleVomnibarStyle>().current
-    if (!toggled) {
-      showHUD(trans_("noStyleName"))
-      resolve(0)
-      return
-    }
-    for (const frame of framesForOmni_) {
-      if (frame.s.tabId_ === tabId) {
-        frame.postMessage({ N: kBgReq.omni_toggleStyle, t: toggled, c: current })
-        setTimeout(resolve, 100, 1)
+    let enable = get_cOptions<C.toggleVomnibarStyle, true>().enable
+    if (enable == null) {
+      const port = framesForOmni_.find(i => i.s.tabId_ === tabId)
+      if (port) {
+        port.postMessage({ N: kBgReq.omni_toggleStyle, t: toggled, b: !current })
         return
       }
     }
-    current || setOmniStyle_({ t: toggled, o: 1 })
-    setTimeout(resolve, 100, 1)
+    let styles: string = omniPayload_.t
+    const extSt = styles && ` ${styles} `, oldEnabled = extSt.includes(` ${toggled} `)
+    enable = enable != null ? !!enable : !oldEnabled
+    if (enable !== oldEnabled) {
+      styles = enable === oldEnabled ? styles : enable ? styles + toggled : extSt.replace(toggled, " ")
+      styles = styles.trim().replace(BgUtils_.spacesRe_, " ")
+      omniPayload_.t = styles
+      settings_.broadcastOmniConf_({ t: styles })
+    }
+    runNextCmdBy(enable ? 1 : 0, get_cOptions<C.toggleVomnibarStyle, true>(), 100)
   },
   /* kBgCmd.toggleZoom: */ _AsBgC<BgCmdNoTab<kBgCmd.toggleZoom>>(toggleZoom),
   /* kBgCmd.visitPreviousTab: */ (resolve: OnCmdResolved): void | kBgCmd.visitPreviousTab => {

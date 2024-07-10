@@ -2,7 +2,7 @@ import {
   set_cPort, set_cRepeat, set_cOptions, needIcon_, set_cKey, cKey, get_cOptions, set_reqH_, reqH_, restoreSettings_,
   innerCSS_, framesForTab_, cRepeat, curTabId_, Completion_, CurCVer_, OnChrome, OnEdge, OnFirefox, setIcon_, blank_,
   substitute_, paste_, keyToCommandMap_, CONST_, copy_, set_cEnv, settingsCache_, vomnibarBgOptions_, replaceTeeTask_,
-  curIncognito_, inlineRunKey_, CurFFVer_, Origin2_, focusAndExecuteOn_, set_focusAndExecuteOn_, curWndId_
+  curIncognito_, inlineRunKey_, CurFFVer_, Origin2_, focusAndExecuteOn_, set_focusAndExecuteOn_, curWndId_, bgC_
 } from "./store"
 import * as BgUtils_ from "./utils"
 import {
@@ -17,12 +17,12 @@ import {
   getParentFrame, sendResponse, showHUDEx, getFrames_, requireURL_, OnFreeze
 } from "./ports"
 import { exclusionListening_, getExcluded_ } from "./exclusions"
-import { setOmniStyle_ } from "./ui_css"
+import { setMediaState_ } from "./ui_css"
 import { contentI18n_, extTrans_, i18nReadyExt_, loadContentI18n_, transPart_, trans_ } from "./i18n"
 import { keyRe_, makeCommand_ } from "./key_mappings"
 import {
   sendFgCmd, replaceCmdOptions, onConfirmResponse, executeCommand, portSendFgCmd, executeExternalCmd, runNextCmdBy,
-  waitAndRunKeyReq, parseFallbackOptions, onBeforeConfirm, concatOptions
+  waitAndRunKeyReq, parseFallbackOptions, onBeforeConfirm, concatOptions, overrideCmdOptions
 } from "./run_commands"
 import { parseEmbeddedOptions, runKeyWithCond } from "./run_keys"
 import { FindModeHistory_, Marks_ } from "./tools"
@@ -529,7 +529,14 @@ set_reqH_([
     // Now that content scripts always auto-reconnect, it's not needed to find a parent frame.
     focusAndExecute(req, port, getFrames_(port)?.top_ || null, req.f)
   },
-  /** kFgReq.setOmniStyle: */ _AsReqH<kFgReq.setOmniStyle>(setOmniStyle_),
+  /** kFgReq.omniToggleMedia: */ (req: FgReq[kFgReq.omniToggleMedia], omni_port: Port): void => {
+    if (!req.t) {
+      setMediaState_(MediaNS.kName.PrefersColorScheme, req.v, +(req.b satisfies boolean) as BOOL, omni_port)
+    } else {
+      overrideCmdOptions<kBgCmd.toggleVomnibarStyle>({ enable: req.v }  )
+      bgC_[kBgCmd.toggleVomnibarStyle](null as never, blank_)
+    }
+  },
   /** kFgReq.findFromVisual: */ (req: FgReq[kFgReq.findFromVisual], port: Port): void => {
     replaceCmdOptions<kBgCmd.performFind>({ active: true, returnToViewport: true
         , extend: !!(req.c & 1), direction: req.c >= VisualAction.EmbeddedFindModeToPrev ? "before" : null })

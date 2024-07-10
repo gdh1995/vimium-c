@@ -183,13 +183,10 @@ const _BroadcastSettingsUpdates = <K extends keyof BgReq> (
     })
 }
 
-export const broadcastOmniConf_ = (payload: BgVomnibarSpecialReq[kBgReq.omni_updateOptions]["d"]
-    , excluded?: Port): void => {
+export const broadcastOmniConf_ = (payload: BgVomnibarSpecialReq[kBgReq.omni_updateOptions]["d"]): void => {
   const msg: Req.bg<kBgReq.omni_updateOptions> = { N: kBgReq.omni_updateOptions, d: payload, v: nextConfUpdate(1) }
   asyncIter_(framesForOmni_.slice(0), (frame): number => {
-    framesForOmni_.includes(frame) && frame.postMessage(frame !== excluded ? msg : {
-      N: kBgReq.omni_updateOptions, d: {}, v: msg.v
-    })
+    framesForOmni_.includes(frame) && frame.postMessage(msg)
     return 1
   })
 }
@@ -246,8 +243,7 @@ export const updatePayload_ = function (shortKey: keyof SettingsNS.FrontendCompl
     return obj ? (obj as Generalized<SettingsNS.FrontendSettingCache>)[shortKey] = value : value
 } as <T extends keyof (SettingsNS.FrontendSettingsSyncingItems)> (shortKey: T
       , value: T extends keyof SettingsNS.AutoSyncedItems ? SettingsWithDefaults[SettingsNS.AutoSyncedItems[T][0]]
-          : T extends keyof SettingsNS.ManuallySyncedItems
-            ? T extends "d" ? SettingsWithDefaults["autoDarkMode"] : SettingsNS.ManuallySyncedItems[T][1]
+          : T extends keyof SettingsNS.ManuallySyncedItems ? boolean
           : never
       , obj?: Partial<SettingsNS.FrontendSettingCache>
 ) => (SettingsNS.FrontendSettingsSyncingItems)[T][1]

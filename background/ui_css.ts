@@ -1,13 +1,12 @@
 import {
-  findCSS_, innerCSS_, omniPayload_, set_findCSS_, set_innerCSS_, CurCVer_, CurFFVer_, IsEdg_, omniStyleOverridden_,
+  findCSS_, innerCSS_, omniPayload_, set_findCSS_, set_innerCSS_, CurCVer_, CurFFVer_, IsEdg_, omniConfVer_,
   OnChrome, OnEdge, OnFirefox, isHighContrast_ff_, set_isHighContrast_ff_, bgIniting_, CONST_, set_helpDialogData_,
-  settingsCache_, set_omniStyleOverridden_, updateHooks_, storageCache_, installation_,contentConfVer_, contentPayload_,
-  lastVisitTabTime_
+  settingsCache_, updateHooks_, storageCache_, installation_,contentConfVer_, contentPayload_, lastVisitTabTime_
 } from "./store"
 import { fetchFile_, nextConfUpdate, spacesRe_ } from "./utils"
 import { getFindCSS_cr_, set_getFindCSS_cr_ } from "./browser"
 import { ready_, broadcastOmniConf_, postUpdate_, setInLocal_, updatePayload_, broadcast_ } from "./settings"
-import { asyncIterFrames_ } from "./ports"
+import { asyncIterFrames_, getFrames_ } from "./ports"
 
 export declare const enum MergeAction {
   virtual = -1, readFromCache = 0, rebuildWhenInit = 1, rebuildAndBroadcast = 2,
@@ -280,20 +279,10 @@ export const MediaWatcher_ = Build.MV3 ? null as never : {
       (watcher as ObjWatcher).onchange = null;
       MediaWatcher_.watchers_[key] = watcher = watcher2;
     }
-    const omniToggled = key ? "dark" : "less-motion",
-    bMatched: boolean = isObj ? (watcher as ObjWatcher).matches : rawMatched != null ? rawMatched
+    const finalMatched: boolean = isObj ? (watcher as ObjWatcher).matches : rawMatched != null ? rawMatched
         : (key === MediaNS.kName.PrefersReduceMotion ? settingsCache_.autoReduceMotion
             : settingsCache_.autoDarkMode) === 1
-    const payloadKey = key ? "d" : "m", newPayloadVal = updatePayload_(payloadKey, bMatched)
-    if (contentPayload_[payloadKey] !== newPayloadVal) {
-      (contentPayload_ as Generalized<Pick<typeof contentPayload_, typeof payloadKey>>)[payloadKey] = newPayloadVal
-      embed || broadcast_({ N: kBgReq.settingsUpdate, d: [payloadKey] })
-    }
-    setOmniStyle_({
-      t: omniToggled,
-      e: bMatched || ` ${settingsCache_.vomnibarOptions.styles} `.includes(` ${omniToggled} `),
-      b: !embed
-    });
+    setMediaState_(key, finalMatched, embed ? 9 : 1)
   },
   RefreshAll_ (this: void): void {
     if (_mediaTimer > 0) {
@@ -334,24 +323,31 @@ export const MediaWatcher_ = Build.MV3 ? null as never : {
   }
 }
 
-export const setOmniStyle_ = (req: FgReq[kFgReq.setOmniStyle], port?: Port): void => {
-  let styles: string, curStyles = omniPayload_.t
-  if (!req.o && omniStyleOverridden_) {
+export const setMediaState_ = (key: MediaNS.kName, matched: boolean, broadcast: 0 | 1 | 9, omni_port?: Port): void => {
+  const payloadKey = key ? "d" : "m"
+  const newPayloadVal = updatePayload_(payloadKey, matched)
+  let styles: string = omniPayload_.t
+  {
+    const toggled = key ? " dark " : " less-motion "
+    const extSt = styles && ` ${styles} `, exists = extSt.includes(toggled)
+    styles = matched ? exists ? styles : styles + toggled : extSt.replace(toggled, " ")
+    styles = styles.trim().replace(spacesRe_, " ")
+  }
+  if (!broadcast) {
+    for (const content_port of getFrames_(omni_port!)?.ports_ || []) {
+      content_port.postMessage({ N: kBgReq.settingsUpdate, d: { [payloadKey]: newPayloadVal }, v: contentConfVer_ })
+    }
+    omni_port!.postMessage({ N: kBgReq.omni_updateOptions, d: { t: styles }, v: omniConfVer_ })
     return
   }
-  {
-    let toggled = ` ${req.t} `, extSt = curStyles && ` ${curStyles} `, exists = extSt.includes(toggled),
-    newExist = req.e != null ? req.e : exists
-    styles = newExist ? exists ? curStyles : curStyles + toggled : extSt.replace(toggled, " ")
-    styles = styles.trim().replace(spacesRe_, " ")
-    if (req.b === false) { omniPayload_.t = styles; return }
-    if (req.o) {
-      set_omniStyleOverridden_(newExist !== (` ${settingsCache_.vomnibarOptions.styles} `.includes(toggled)))
-    }
+  if (contentPayload_[payloadKey] !== newPayloadVal) {
+    (contentPayload_ as Generalized<Pick<typeof contentPayload_, typeof payloadKey>>)[payloadKey] = newPayloadVal
+    broadcast < 9 && broadcast_({ N: kBgReq.settingsUpdate, d: [payloadKey] })
   }
-  if (styles === curStyles) { return }
-  omniPayload_.t = styles
-  broadcastOmniConf_({ t: styles }, port)
+  if (styles !== omniPayload_.t) {
+    omniPayload_.t = styles
+    broadcast < 9 && broadcastOmniConf_({ t: styles })
+  }
 }
 
 OnChrome && set_getFindCSS_cr_(((sender: Frames.Sender): FindCSS => {

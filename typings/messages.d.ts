@@ -102,7 +102,7 @@ declare const enum kFgReq {
   nextFrame, exitGrab, execInChild, initHelp, css,
   vomnibar, omni, copy, key, nextKey,
   marks, focusOrLaunch, beforeCmd, cmd, removeSug,
-  openImage, evalJSFallback, gotoMainFrame, setOmniStyle, findFromVisual,
+  openImage, evalJSFallback, gotoMainFrame, omniToggleMedia, findFromVisual,
   framesGoBack, i18n, cssLearnt, visualMode, respondForRunKey,
   downloadLink, wait, optionToggled, keyFromOmni, pages,
   showUrl, omniCopy, omniCopied, didLocalMarkTask, recheckTee,
@@ -200,8 +200,8 @@ interface BgVomnibarSpecialReq {
     /** search */ s: FgRes[kFgReq.parseSearchUrl];
   };
   [kBgReq.omni_toggleStyle]: {
-    /** toggled */ t: string;
-    /** current */ c: boolean;
+    /** toggled, default to "dark" */ t: string | ""
+    /** broadcast */ b: boolean
   };
   [kBgReq.omni_updateOptions]: {
     /** delta */ d: Partial<SelectValueType<SettingsNS.AllVomnibarItems>>;
@@ -733,11 +733,10 @@ interface FgReq {
     /** count */ n: number;
     /** options */ a: OptionsWithForce;
   };
-  [kFgReq.setOmniStyle]: {
-    /** toggled */ t: string;
-    /** enable */ e?: boolean; /* if null, then toggle .t */
-    /** override-system-settings */ o?: 1; // `o === 1` and `b === false` should never be true in the meanwhile
-    /** broadcast, default to true */ b?: boolean;
+  [kFgReq.omniToggleMedia]: {
+    /** target style or "dark" */ t: string
+    /** broadcast, default to true */ b: boolean;
+    /** new value of darkMode */ v: boolean;
   };
   [kFgReq.findFromVisual]: { /** command */ c: VisualAction }
   [kFgReq.framesGoBack]: {

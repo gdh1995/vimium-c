@@ -1288,18 +1288,9 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     }
   },
   toggleStyle_ (req: BgVomnibarSpecialReq[kBgReq.omni_toggleStyle]): void {
-    const oldStyles = Vomnibar_.styles_ && ` ${Vomnibar_.styles_} `, toggle = ` ${req.t} `,
-    add = !oldStyles.includes(toggle),
-    omniStyles = (add ? oldStyles + req.t : oldStyles.replace(toggle, " ")).trim().replace(Vomnibar_.spacesRe_, " ");
-    Vomnibar_.onStyleUpdate_(omniStyles);
-    if (!req.c) {
-      VPort_.post_({
-        H: kFgReq.setOmniStyle,
-        t: req.t,
-        o: 1,
-        e: add
-      });
-    }
+    const oldStyles = Vomnibar_.styles_ && ` ${Vomnibar_.styles_} `, toggle = ` ${req.t || "dark"} `,
+    enable = !oldStyles.includes(toggle)
+    VPort_.post_({ H: kFgReq.omniToggleMedia, t: req.t, b: req.b, v: enable })
   },
   onStyleUpdate_ (omniStyles: string): void {
     Vomnibar_.styles_ = omniStyles;
@@ -1315,7 +1306,9 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         Vomnibar_.darkBtn_.textContent = dark ? "\u2600" : "\u263D";
       }
       Vomnibar_.darkBtn_.classList.toggle("toggled", dark);
-      Vomnibar_.darkBtn_.style.display = ""
+      if (Build.BTypes & BrowserType.Firefox) {
+        Vomnibar_.darkBtn_.style.display = ""
+      }
     }
     const monospaceURL = omniStyles.includes(" mono-url ");
     Vomnibar_.showTime_ = !omniStyles.includes("time ") ? 0 : omniStyles.includes(" absolute-num-time ") ? 1
@@ -1484,8 +1477,9 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     }
     a.styleEl_ && document.head!.appendChild(a.styleEl_);
     a.darkBtn_ = document.querySelector("#toggle-dark") as HTMLElement | null;
-    a.darkBtn_ && (a.darkBtn_.onclick = (event: MouseEvent): void => {
-      Build.BTypes & BrowserType.Firefox && a.options_.d || Vomnibar_.toggleStyle_({ t: "dark", c: event.ctrlKey })
+    a.darkBtn_ && (a.darkBtn_.onclick = (event: MouseEventToPrevent): void => {
+      Vomnibar_.toggleStyle_({ t: "", b: !(event.ctrlKey || event.metaKey) })
+      VUtils_.Stop_(event, 1)
       Vomnibar_.input_.focus();
     });
     a.onStyleUpdate_(a.styles_);

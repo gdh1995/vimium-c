@@ -163,7 +163,7 @@ interface BgCmdOptions {
   [kBgCmd.togglePinTab]: LimitedRangeOptions & TabFilterOptions & Req.FallbackOptions
   [kBgCmd.toggleTabUrl]: { keyword: string; parsed: string; reader: boolean; viewSource: boolean
       } & OpenUrlOptions & MasksForOpenUrl
-  [kBgCmd.toggleVomnibarStyle]: { style: string; current: boolean }
+  [kBgCmd.toggleVomnibarStyle]: { style?: string; current: boolean; enable?: boolean | null } & Req.FallbackOptions
   [kBgCmd.toggleZoom]: { level: number; in?: true; out?: true; reset?: true; min: number; max: number }
   [kBgCmd.visitPreviousTab]: { acrossWindows: true; onlyActive: true } & TabFilterOptions & MoveTabOptions
   [kBgCmd.closeDownloadBar]: { newWindow?: null | true | false; all: 1 }
