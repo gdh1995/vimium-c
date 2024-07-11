@@ -270,7 +270,6 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         , { passive: false, capture: true })
     a.timer_ > 0 && clearTimeout(a.timer_);
     window.onkeyup = null as never;
-    removeEventListener("keyup", a.onAltUp_, true)
     fromContent ||
     VPort_ && VPort_.post_({ H: kFgReq.nextFrame, t: Frames.NextType.current, o: !a.doEnter_, k: a.lastKey_ })
     el.blur() // in case of a wrong IME state on Chrome 107 on v1.99.6
@@ -627,7 +626,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         : n !== kKeyCode.shiftKey && key.length === 1 || a.inOldShift_)
     if (!key) {
       a.inAlt_ && !a._modifierKeys[Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key
-            && Build.BTypes & BrowserType.Chrome ? event.key || "" : event.key!] && a.toggleAlt_(0);
+            && Build.BTypes & BrowserType.Chrome ? event.key || "" : event.key!] && a.toggleAlt_()
       a.keyResult_ = focused && !(Build.OS !== kBOS.MAC as number && n === kKeyCode.menuKey && a.os_)
           && n !== kKeyCode.ime ? SimpleKeyResult.Suppress : SimpleKeyResult.Nothing
       return;
@@ -635,7 +634,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     if (key.startsWith("v-")) {
       VPort_.post_({ H: kFgReq.keyFromOmni, k: `<${key}>`, l: n,
           e: focused ? [ a.input_.localName, a.input_.id, a.input_.className ] : ["body", "", ""] })
-      a.inAlt_ && a.toggleAlt_(0)
+      a.inAlt_ && a.toggleAlt_()
       return
     }
     let action: AllowedActions = AllowedActions.nothing, ind: number;
@@ -662,8 +661,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       }
         if ((<RegExpOne> /^([am]-modifier|a-alt|m-meta)$/).test(key)) {
           if (a.inAlt_ === 1 ? !event.repeat : a.inAlt_ === 0) {
-            a._listenedAltDown = char !== kChar.Modifier ? char : n
-            addEventListener("keyup", a.onAltUp_, true)
+            a._listenedAltDown = char !== kChar.Modifier && !mapped ? char : n
+            addEventListener("keyup", a._onAltUp, true)
             a.inAlt_ = a.inAlt_ || -setTimeout(a.toggleAlt_, 260, 1)
           }
           return;
@@ -1406,7 +1405,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         }, 50);
       }
     } else {
-      Vomnibar_.toggleAlt_()
+      Vomnibar_.inAlt_ < 0 && Vomnibar_.toggleAlt_()
       Vomnibar_._canvas = Vomnibar_.lastQuery_ = null
     }
   },
@@ -1588,11 +1587,11 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   HandleKeyup_ff_: Build.BTypes & BrowserType.Firefox ? (event: KeyboardEventToPrevent): void => {
     event.keyCode === kKeyCode.esc && event.key === "Escape" && Vomnibar_.HandleKeydown_(event)
   } : 0 as never as null,
-  onAltUp_ (event: KeyboardEvent): void {
+  _onAltUp (event?: KeyboardEvent): void {
     const listened = Vomnibar_._listenedAltDown
-    if (!listened || (typeof listened === "string" ? Vomnibar_.getMappedKey_(event).key : event.keyCode) === listened) {
-      removeEventListener("keyup", Vomnibar_.onAltUp_, true)
-      listened && Vomnibar_.toggleAlt_(Vomnibar_.inAlt_ < 0 ? 1 : 0)
+    if (!event || (typeof listened === "string" ? Vomnibar_.getMappedKey_(event).key : event.keyCode) === listened) {
+      removeEventListener("keyup", Vomnibar_._onAltUp, true)
+      event && Vomnibar_.toggleAlt_(Vomnibar_.inAlt_ < 0 ? 1 : 0)
       Vomnibar_._listenedAltDown = 0
     }
   },
@@ -1607,7 +1606,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         }
       }
       inAlt < 0 && clearTimeout(-inAlt)
-      enable || (Vomnibar_._listenedAltDown = 0)
+      enable || Vomnibar_._onAltUp()
       Vomnibar_.inAlt_ = enable
     }
   },
