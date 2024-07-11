@@ -1480,7 +1480,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     a.styleEl_ && document.head!.appendChild(a.styleEl_);
     a.darkBtn_ = document.querySelector("#toggle-dark") as HTMLElement | null;
     a.darkBtn_ && (a.darkBtn_.onclick = (event: MouseEventToPrevent): void => {
-      Vomnibar_.toggleStyle_({ t: "", b: !(event.ctrlKey || event.metaKey) })
+      Vomnibar_.toggleStyle_({ t: "", b: event.ctrlKey || event.metaKey })
       VUtils_.Stop_(event, 1)
       Vomnibar_.input_.focus();
     });

@@ -295,7 +295,7 @@ const refreshKeyHandler = (): void => {
   if (!(Build.NDEBUG || Status.Inactive - Status.NotInited === 1)) {
     console.log("Assert error: Status.Inactive - Status.NotInited === 1")
   }
-  options.u = options.u || vApi.u()
+  options.u options.u || vApi.u()
   if (OnFirefox) { options.d = hasInCSSFilter_() }
   box && adjustUI()
   if (status === Status.NotInited) {
@@ -318,9 +318,8 @@ const refreshKeyHandler = (): void => {
   }
   if ((OnFirefox && Build.MinFFVer < FirefoxBrowserVer.MinCssMinMax && firefoxVer_ < FirefoxBrowserVer.MinCssMinMax
         || OnEdge || OnChrome && Build.MinCVer < BrowserVer.MinCssMinMax && chromeVer_ < BrowserVer.MinCssMinMax)
-      && width > (((VomnibarNS.PixelData.MaxWidthInPixel - VomnibarNS.PixelData.MarginH
-                    ) / VomnibarNS.PixelData.WindowSizeX + 3.5) | 0)) {
-    box!.style.left = `calc(50% - ${VomnibarNS.PixelData.MaxWidthInPixel / 2}px)`
+      && width > (((options.m! - VomnibarNS.PixelData.MarginH) / VomnibarNS.PixelData.WindowSizeX + 3.5) | 0)) {
+    box!.style.left = `calc(50% - ${options.m! / 2}px)`
   } else {
     toggleClass_s(box!, "O2", !canUseVW)
     if (OnFirefox && Build.MinFFVer < FirefoxBrowserVer.MinCssMinMax && firefoxVer_ < FirefoxBrowserVer.MinCssMinMax
