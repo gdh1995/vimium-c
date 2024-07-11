@@ -406,6 +406,7 @@ interface CmdOptions {
     /** <script> */ j: string;
     /** secret */ k: string
     /** exitOnClick */ e: boolean;
+    /** maxWidthInPixel */ m?: number;
   } & Pick<VomnibarNS.GlobalOptions, "u" | "url">
   [kFgCmd.goNext]: {
     /** rel */ r: string;

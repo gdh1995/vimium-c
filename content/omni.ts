@@ -295,7 +295,7 @@ const refreshKeyHandler = (): void => {
   if (!(Build.NDEBUG || Status.Inactive - Status.NotInited === 1)) {
     console.log("Assert error: Status.Inactive - Status.NotInited === 1")
   }
-  options.u options.u || vApi.u()
+  options.u = options.u || vApi.u()
   if (OnFirefox) { options.d = hasInCSSFilter_() }
   box && adjustUI()
   if (status === Status.NotInited) {
