@@ -415,13 +415,13 @@ declare namespace VomnibarNS {
     Default = inner,
   }
   const enum PixelData {
-    MarginTop = 64,
+    FrameTop = 64,
     InputBar = 54, InputBarWithLine = InputBar + 1,
     Item = 44, LastItemDelta = 46 - Item,
     MarginV1 = 9, MarginV2 = 10, ShadowOffset = 2, MarginV = MarginV1 + MarginV2 + ShadowOffset * 2,
     OthersIfEmpty = InputBar + MarginV,
     OthersIfNotEmpty = InputBarWithLine + MarginV + LastItemDelta,
-    ListSpaceDeltaWithoutScrollbar = MarginTop + MarginV1 + InputBarWithLine + LastItemDelta + ((MarginV2 / 2) | 0),
+    ListSpaceDeltaWithoutScrollbar = FrameTop + MarginV1 + InputBarWithLine + LastItemDelta + ((MarginV2 / 2) | 0),
     MarginH = 24, AllHNotUrl = 20 * 2 + 20 + MarginH,
     MeanWidthOfMonoFont = 7.7, MeanWidthOfNonMonoFont = 4,
     WindowSizeX = 0.8, MaxWidthInPixel = 1920, AllHNotInput = AllHNotUrl,

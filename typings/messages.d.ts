@@ -407,6 +407,7 @@ interface CmdOptions {
     /** secret */ k: string
     /** exitOnClick */ e: boolean;
     /** maxWidthInPixel */ m?: number;
+    /** maxOutHeight without zooming and scaling */ n: number
   } & Pick<VomnibarNS.GlobalOptions, "u" | "url">
   [kFgCmd.goNext]: {
     /** rel */ r: string;

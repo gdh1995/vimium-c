@@ -253,7 +253,8 @@ export const showVomnibar = (forceInner?: boolean): void => {
     e: !!(get_cOptions<C.showVomnibar>()).exitOnClick,
     u: defaultUrl,
     url: typeof optUrl === "string" ? defaultUrl || optUrl : optUrl,
-    k: BgUtils_.getOmniSecret_(true)
+    k: BgUtils_.getOmniSecret_(true),
+    n: vomnibarBgOptions_.maxBoxHeight_,
   }), get_cOptions<C.showVomnibar, true>()) as CmdOptions[kFgCmd.vomnibar] & SafeObject
   if (options.icase == null) {
     if (vomnibarBgOptions_.actions.includes("icase")) { options.icase = true }

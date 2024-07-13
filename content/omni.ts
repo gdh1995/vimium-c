@@ -1,7 +1,7 @@
 /// <reference path="../lib/base.omni.d.ts" />
 import {
   isAlive_, keydownEvents_, readyState_, timeout_, clearTimeout_, recordLog, chromeVer_, math, OnChrome,
-  interval_, locHref, vApi, createRegExp, safer, isTop, OnFirefox, OnEdge, safeCall, WithDialog, VTr, firefoxVer_
+  interval_, locHref, vApi, createRegExp, safer, isTop, OnFirefox, OnEdge, safeCall, WithDialog, VTr, firefoxVer_, min_, isAsContent
 } from "../lib/utils"
 import { removeHandler_, replaceOrSuppressMost_, getMappedKey, isEscape_ } from "../lib/keyboard_utils"
 import {
@@ -43,24 +43,22 @@ let secondActivateWithNewOptions: (() => void) | null = null
 let timer_: ValidTimeoutID = TimerID.None
 let dialog_non_ff: HTMLDialogElement | false | null | undefined
 let canUseVW: boolean
-let screenHeight_: number
-let maxOutHeight_ = 9
 
 export { box as omni_box, status as omni_status, dialog_non_ff as omni_dialog_non_ff }
 
 type InnerHide = (fromInner?: BOOL | null) => void
 export const hide: (fromInner?: 0 | null | undefined) => void = <InnerHide> ((fromInner): void => {
     const oldIsActive = status > Status.Inactive
-    status < Status.Inactive || (status = screenHeight_ = Status.Inactive)
+    status < Status.Inactive || (status = Status.Inactive)
     setupExitOnClick(kExitOnClick.vomnibar | kExitOnClick.REMOVE)
     removeHandler_(kHandler.omni)
     if (!fromInner) {
       oldIsActive && fromInner !== 0 && postToOmni(VomnibarNS.kCReq.hide)
       return
     }
-    box!.style.height = maxOutHeight_ + "px"
     !OnFirefox && WithDialog && dialog_non_ff ? (dialog_non_ff.close(), setDisplaying_s(dialog_non_ff))
         : setDisplaying_s(box!)
+    box!.style.height = ""
 })
 
 export const activate = function (options: FullOptions, count: number): void {
@@ -105,7 +103,7 @@ const init = ({k: secret, v: page, t: type, i: inner}: FullOptions): void => {
         reload()
         return
       }
-      timeout_((): void => {
+      !Build.NDEBUG && !isAsContent || timeout_((): void => {
         // Note: if JavaScript is disabled on `chrome://settings/content/siteDetails`,
         // then the iframe will always fail if only when DevTools is open
         clearTimeout_(initMsgInterval)
@@ -190,21 +188,8 @@ const onOmniMessage = function (this: OmniPort, msg: { data: any, target?: Messa
     case VomnibarNS.kFReq.style:
       const style = box!.style, ratio_cr = OnChrome &&
           Build.MinCVer < BrowserVer.MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent ? wndSize_(2) : 1
-      if (data.h) {
-        style.height = math.ceil(data.h / docZoom_ / ratio_cr) + "px"
-      }
-      if (status !== Status.ToShow) { /* empty */ }
-      else if (data.m) {
-        // style.top may not take effect until a second paint; so if set it during omni_(),
-        // a initing Vomnibar (`display: block; height: 520px;`) may flick from `top: 64px` to a new position
-        // reproduced on Chrome 11x, Ubuntu 22.04 and X11 at 2023/09
-        const maxBoxHeight = data.m,
-        topHalfThreshold = maxBoxHeight * 0.6 + VomnibarNS.PixelData.MarginTop * ratio_cr,
-        top = screenHeight_ > topHalfThreshold * 2 ? ((50 - maxBoxHeight * 0.6 / screenHeight_ * 100) | 0
-            ) + (canUseVW ? "vh" : "%") : ""
-        style.top = top
-        maxOutHeight_ = math.ceil(maxBoxHeight / docZoom_ / ratio_cr)
-      } else {
+      style.height = math.ceil(data.h / docZoom_ / ratio_cr) + "px"
+      if (status === Status.ToShow) {
         status = Status.Showing
         !OnFirefox && WithDialog && dialog_non_ff && (dialog_non_ff.open || dialog_non_ff.showModal())
         // on C118+U22, `box.focus()` may make contentWindow blur while the although itself does become "activeElement"
@@ -241,10 +226,10 @@ const refreshKeyHandler = (): void => {
 }
 
   const timer1 = timeout_(refreshKeyHandler, GlobalConsts.TimeOfSuppressingTailKeydownEvents), oldTimer = timer_
-  const scale = wndSize_(2)
+  const scale = wndSize_(2), screenHeight = wndSize_() // unit: logic pixel if not (C<52) else physical pixel
   const notInFullScreen = !fullscreenEl_unsafe_()
+  const maxOutHeight = options.n / min_(1, scale), topVH = 50 - maxOutHeight / screenHeight * 60
   let url = options.url, upper = 0
-  screenHeight_ = 0 // unit: physical pixel (if C<52)
   // hide all further key events to wait iframe loading and focus changing from JS
   replaceOrSuppressMost_(kHandler.omni)
   secondActivateWithNewOptions = null
@@ -282,14 +267,13 @@ const refreshKeyHandler = (): void => {
   canUseVW = (!OnChrome || Build.MinCVer >= BrowserVer.MinCSSWidthUnit$vw$InCalc
           || chromeVer_ > BrowserVer.MinCSSWidthUnit$vw$InCalc - 1)
       && notInFullScreen && docZoom_ === 1 && dScale_ === 1
-  let width = canUseVW ? wndSize_(1) : (prepareCrop_()
-      , OnFirefox ? viewportRight : viewportRight * docZoom_ * bZoom_)
+  let width = canUseVW ? wndSize_(1) : (prepareCrop_(), OnFirefox ? viewportRight : viewportRight * docZoom_ * bZoom_)
   if (OnChrome && Build.MinCVer < BrowserVer.MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent) {
     options.w = width * scale
-    options.h = screenHeight_ = wndSize_() * scale
+    options.h = screenHeight * scale
   } else {
     options.w = width
-    options.h = screenHeight_ = wndSize_()
+    options.h = screenHeight
   }
   options.z = scale
   if (!(Build.NDEBUG || Status.Inactive - Status.NotInited === 1)) {
@@ -316,17 +300,20 @@ const refreshKeyHandler = (): void => {
     postToOmni(VomnibarNS.kCReq.focus)
     status = Status.ToShow
   }
+  const style = box!.style
   if ((OnFirefox && Build.MinFFVer < FirefoxBrowserVer.MinCssMinMax && firefoxVer_ < FirefoxBrowserVer.MinCssMinMax
         || OnEdge || OnChrome && Build.MinCVer < BrowserVer.MinCssMinMax && chromeVer_ < BrowserVer.MinCssMinMax)
       && width > (((options.m! - VomnibarNS.PixelData.MarginH) / VomnibarNS.PixelData.WindowSizeX + 3.5) | 0)) {
-    box!.style.left = `calc(50% - ${options.m! / 2}px)`
+    style.left = `calc(50% - ${options.m! / 2}px)`
   } else {
     toggleClass_s(box!, "O2", !canUseVW)
     if (OnFirefox && Build.MinFFVer < FirefoxBrowserVer.MinCssMinMax && firefoxVer_ < FirefoxBrowserVer.MinCssMinMax
         || OnEdge || OnChrome && Build.MinCVer < BrowserVer.MinCssMinMax && chromeVer_ < BrowserVer.MinCssMinMax) {
-      box!.style.left = ""
+      style.left = ""
     }
   }
+  topVH > 6400 / screenHeight && (style.top = topVH.toFixed(1) + (canUseVW ? "vh" : "%"))
+  style.height = math.ceil(maxOutHeight / docZoom_) + "px"
   ; (!OnFirefox && WithDialog && dialog_non_ff || options.e) && setupExitOnClick(kExitOnClick.vomnibar)
   if (url != null) {
     url = options.url = url || options.u

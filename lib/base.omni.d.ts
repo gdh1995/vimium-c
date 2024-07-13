@@ -38,7 +38,6 @@ interface FReq {
   [kFReq.style]: {
     // unit: physical pixel (if C<52)
     /** current height */ h: number
-    /** max box height, used just once during activating */ m: number
   };
   [kFReq.hud]: { k: kTip };
   [kFReq.focus]: {

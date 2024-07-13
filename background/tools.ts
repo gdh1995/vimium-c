@@ -689,4 +689,10 @@ updateHooks_.vomnibarOptions = (options: SettingsNS.BackendSettings["vomnibarOpt
     t: payload.t
   })
   vomnibarBgOptions_.actions = actions.split(" ")
+  const sizes2 = sizes.split(",")
+  const heightIfEmpty = Math.max(24, Math.min(sizes2.length && +sizes2[0] || VomnibarNS.PixelData.OthersIfEmpty, 320))
+  const baseHeightIfNotEmpty = Math.max(24, Math.min(heightIfEmpty + (sizes2.length > 1 && +sizes2[1]
+      || (VomnibarNS.PixelData.OthersIfNotEmpty - VomnibarNS.PixelData.OthersIfEmpty)), 320))
+  const itemHeight = Math.max(14, Math.min(sizes2.length > 2 && +sizes2[2] || VomnibarNS.PixelData.Item, 120))
+  vomnibarBgOptions_.maxBoxHeight_ = maxMatches * itemHeight + baseHeightIfNotEmpty
 }

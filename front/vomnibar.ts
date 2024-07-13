@@ -100,9 +100,6 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
                 || Build.BTypes & BrowserType.Chrome && a.browser_ === BrowserType.Chrome)
           ? devicePixelRatio : options.z
       , dz = a.docZoom_ = scale < 0.98 ? 1 / scale : 1;
-    const wdZoom = Build.MinCVer < BrowserVer.MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent
-        && (Build.BTypes === BrowserType.Chrome as number
-            || Build.BTypes & BrowserType.Chrome && a.browser_ === BrowserType.Chrome) ? dz * scale : dz
     if (Build.MinCVer < BrowserVer.MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent
         && (Build.BTypes === BrowserType.Chrome as number
             || Build.BTypes & BrowserType.Chrome && a.browser_ === BrowserType.Chrome)) {
@@ -116,7 +113,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
                   || Build.BTypes & BrowserType.Chrome && a.browser_ === BrowserType.Chrome)
               ? dz * scale : dz)
           - a.baseHeightIfNotEmpty_
-          - (PixelData.MarginTop - ((PixelData.MarginV2 / 2 + 1) | 0) - PixelData.ShadowOffset * 2
+          - (PixelData.FrameTop - ((PixelData.MarginV2 / 2 + 1) | 0) - PixelData.ShadowOffset * 2
              + GlobalConsts.MaxScrollbarWidth)
         ) / a.itemHeight_), a.maxMatches_));
     a.mode_.r = max;
@@ -145,7 +142,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     }
     keyword = (keyword || "") + "";
     if (url == null) {
-      a.reset_(wdZoom, keyword && keyword + " ")
+      a.reset_(keyword && keyword + " ")
       return
     }
     if (search) {
@@ -170,9 +167,9 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     }
     if (keyword && (!search || !search.c)) {
       start = (start || 0) + keyword.length + 1;
-      a.reset_(wdZoom, keyword + " " + url, start, start + url.length)
+      a.reset_(keyword + " " + url, start, start + url.length)
     } else {
-      a.reset_(wdZoom, url)
+      a.reset_(url)
     }
   },
 
@@ -275,7 +272,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     el.blur() // in case of a wrong IME state on Chrome 107 on v1.99.6
     a.bodySt_.visibility = "hidden"
     a.blurred_()
-    Build.MinCVer <= BrowserVer.StyleSrc$UnsafeInline$MayNotImply$UnsafeEval && Build.BTypes & BrowserType.Chrome
+    Build.MinCVer < BrowserVer.MinStyleSrcInCSPNotBreakUI && Build.BTypes & BrowserType.Chrome
         ? a.docSt_.zoom = "" : a.docSt_.cssText = ""
     a.list_.style.height = a.lastParsed_ = a.list_.textContent = el.value = "";
     a.barCls_.remove("empty");
@@ -327,7 +324,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     }
     a.doEnter_ = null;
   },
-  reset_ (wdZoom: number, input: string, start?: number, end?: number): void {
+  reset_ (input: string, start?: number, end?: number): void {
     const a = Vomnibar_;
     (<RegExpOne> /^\+\d\d?$/).test(input.trim()) && (start = end = 0, input = " " + input.trim())
     a.inputText_ = input;
@@ -343,10 +340,6 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     a.input_.value = a.inputText_;
     start! <= end! && a.input_.setSelectionRange(start!, end!)
     document.body!.dataset.mode = a.mode_.o
-    VPort_.postToOwner_({
-      N: VomnibarNS.kFReq.style, h: 0,
-      m: Math.ceil(a.mode_.r * a.itemHeight_ + a.baseHeightIfNotEmpty_) * wdZoom,
-    })
   },
   focus_ (this: void, focus?: false | TimerType.fake | "focus" | 1 | 2 | 3 | 4 | 5): void {
     const a = Vomnibar_;
@@ -1215,7 +1208,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
               || Build.BTypes & BrowserType.Chrome && a.browser_ === BrowserType.Chrome)
         ? a.docZoom_ * devicePixelRatio : a.docZoom_,
     msg: VomnibarNS.FReq[VomnibarNS.kFReq.style] & VomnibarNS.Msg<VomnibarNS.kFReq.style> = {
-      N: VomnibarNS.kFReq.style, h: height * wdZoom, m: 0
+      N: VomnibarNS.kFReq.style, h: height * wdZoom
     };
     if (!a.isActive_) { return; }
     if (height > oldH) { VPort_.postToOwner_(msg) }
