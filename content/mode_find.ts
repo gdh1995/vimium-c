@@ -135,6 +135,7 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
     return link ? focus_(link) : cur
   }
   const setFirstQuery = (query: string): void => {
+    hudHide(TimerType.noTimer) // delay hudHide, so that avoid flicker on Firefox
     doFocus()
     query0_ = ""
     query_ || setQuery(query)
@@ -404,10 +405,7 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
         }
       }
       runFallbackKey(options, !initial_query ? kTip.noOldQuery : hasResults ? 0 : kTip.noMatchFor, initial_query)
-      return
-  }
-  if (isActive) {
-      hudHide(TimerType.noTimer);
+  } else if (isActive) {
     setFirstQuery(initial_query)
     // not reinstall keydown handler - make code smaller
   } else {
@@ -469,7 +467,7 @@ const onLoad2 = (): void => {
         && (Build.MinFFVer >= FirefoxBrowserVer.MinContentEditableInShadowOfBodyRefuseShortcuts
             || firefoxVer_ > FirefoxBrowserVer.MinContentEditableInShadowOfBodyRefuseShortcuts - 1
             || Build.MinFFVer < FirefoxBrowserVer.MinContentEditableInShadowSupportIME
-            && firefoxVer_ < FirefoxBrowserVer.MinContentEditableInShadowSupportIME
+               && firefoxVer_ < FirefoxBrowserVer.MinContentEditableInShadowSupportIME
             || Build.OS & kBOS.LINUX_LIKE && (Build.OS === kBOS.LINUX_LIKE as number || os_ === kOS.linuxLike))
         ? addElement("div") as HTMLDivElement & SafeHTMLElement : body as HTMLBodyElement & SafeHTMLElement,
     root = OnEdge || OnFirefox
@@ -518,9 +516,10 @@ const onLoad2 = (): void => {
     }
     setDisplaying_s(outerBox_, 1)
     replaceOrSuppressMost_(kHandler.find, onHostKeydown)
-    // delay hudHide, so that avoid flicker on Firefox
-    hudHide(TimerType.noTimer);
     setFirstQuery(query0_)
+    // fix that: Ctrl+F, "a", focus content, press `/` to enter find mode, then activeElement is indeed the <span ce>
+    // but it's not in "input mode" and no characters can be typed
+    OnChrome && timeout_(doFocus, 100)
 }
 
 const onIframeFocus = function (this: Window, event: Event): void {
@@ -709,7 +708,7 @@ const onHostKeydown = (event: HandlerNS.Event): HandlerResult => {
   f(BU, onUnexpectedBlur = (event): void => {
     const delta = getTime() - now
     if (event && isActive && delta < 500 && delta > -99 && event.target === wnd) {
-      wnd.closed || timeout_((): void => { isActive && doFocus(); }, tick++ * 17)
+      wnd.closed || timeout_(doFocus, tick++ * 17)
     } else {
       setupEventListener(wnd, BU, onUnexpectedBlur, 1, 1)
       onUnexpectedBlur = null
@@ -734,6 +733,7 @@ const onHostKeydown = (event: HandlerNS.Event): HandlerResult => {
 }
 
 const doFocus = (): void => {
+  if (!isActive) { return }
   doesCheckAlive = 0
   // fix that: search for "a" in VFind, Ctrl+F, "a", Esc, select any normal text using mouse - then `/` can not refocus
   if (OnChrome && (Build.MinCVer >= BrowserVer.MinShadowDOMV0 ? root_! : root_ || innerDoc_).activeElement === input_) {
