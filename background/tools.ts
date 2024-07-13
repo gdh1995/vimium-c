@@ -658,12 +658,12 @@ updateHooks_.vomnibarOptions = (options: SettingsNS.BackendSettings["vomnibarOpt
               && newSizes === sizes && actions as never as string === newActions
               && styles === newStyles
     if (!isSame) {
+      actions = newActions
       maxMatches = newMaxMatches
       queryInterval = newQueryInterval
       sizes = newSizes
       styles = newStyles
     }
-    vomnibarBgOptions_.actions = newActions ? newActions.split(" ") : []
     options.actions = newActions
     options.maxMatches = newMaxMatches
     options.queryInterval = newQueryInterval
@@ -688,4 +688,5 @@ updateHooks_.vomnibarOptions = (options: SettingsNS.BackendSettings["vomnibarOpt
     s: sizes,
     t: payload.t
   })
+  vomnibarBgOptions_.actions = actions.split(" ")
 }
