@@ -110,11 +110,11 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     } else {
       a.onInnerWidth_(Math.min(options.w * a.panelWidth_ + PixelData.MarginH, a.maxWidthInPixel_))
     }
-    const max = Math.max(3, Math.min(0 | ((options.h / dz
+    const max = Math.max(3, Math.min(0 | ((options.h
           / (Build.MinCVer < BrowserVer.MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent
               && (Build.BTypes === BrowserType.Chrome as number
                   || Build.BTypes & BrowserType.Chrome && a.browser_ === BrowserType.Chrome)
-              ? scale : 1)
+              ? dz * scale : dz)
           - a.baseHeightIfNotEmpty_
           - (PixelData.MarginTop - ((PixelData.MarginV2 / 2 + 1) | 0) - PixelData.ShadowOffset * 2
              + GlobalConsts.MaxScrollbarWidth)
@@ -667,10 +667,10 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
           }
           return;
         }
+        a.inAlt_ > 0 ? a._onAltUp() : a.toggleAlt_()
         if (char === kChar.down || char === kChar.up || (<RegExpOne> /^[jknp]$/).test(char)) {
           return a.onAction_(char < "o" && char !== "k" ? AllowedActions.down : AllowedActions.up);
         }
-        a.inAlt_ && a.toggleAlt_()
     }
     if (mainModifier && mainModifier < "s" && focused) {
       if ((char === kChar.left || char === kChar.right) && !key.includes("m-")) {
@@ -2131,7 +2131,20 @@ if (Build.BTypes === BrowserType.Chrome as number ? false : !(Build.BTypes & Bro
       Vomnibar_.activate_(options);
     }
   },
-  autoUnloadTimer = setTimeout(function (): void {
+  onUnknownMsg = (event: MessageEvent): void => {
+    if (event.source !== parent) { return }
+    const data: VomnibarNS.MessageData = event.data
+    if (!(data && data.length === 3 && data[0] === "VimiumC"
+          && typeof data[1] === "string" && typeof data[2] === "object")) { return }
+    isWeb && VUtils_.Stop_(event, 0) // smell like VomnibarNS.MessageData
+    if (data[1].length === GlobalConsts.VomnibarSecretLength) {
+      handler(data[1], event.ports[0] as VomnibarNS.IframePort, data[2])
+    }
+  },
+  autoUnloadTimer = !Build.NDEBUG && (Build.BTypes & BrowserType.Edge || Build.BTypes & BrowserType.Chrome
+        && Build.MinCVer < BrowserVer.MinSafeGlobal$frameElement
+        ? ((): Element | null | void => { try { return frameElement } catch { /* empty */ } })() : frameElement)
+      ? 0 : setTimeout(function (): void {
     if (!Build.NDEBUG) {
       console.log("Error: Vomnibar page hadn't received a valid secret")
       debugger // eslint-disable-line no-debugger
@@ -2171,16 +2184,5 @@ if (Build.BTypes === BrowserType.Chrome as number ? false : !(Build.BTypes & Bro
     }
   };
     addEventListener("message", onUnknownMsg, true);
-  function onUnknownMsg(event: MessageEvent): void {
-    if (event.source === parent) {
-      const data: VomnibarNS.MessageData = event.data;
-      if (!(data && data.length === 3 && data[0] === "VimiumC"
-            && typeof data[1] === "string" && typeof data[2] === "object")) { return }
-      isWeb && VUtils_.Stop_(event, 0); // smell like VomnibarNS.MessageData
-      if (data[1].length === GlobalConsts.VomnibarSecretLength) {
-        handler(data[1], event.ports[0] as VomnibarNS.IframePort, data[2])
-      }
-    }
-  }
   VPort_.connect_(PortType.omnibar);
 })();
