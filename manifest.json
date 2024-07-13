@@ -8,47 +8,9 @@
     "default_popup": "pages/action.html",
     "default_title": "__MSG_name__\n\n__MSG_noActiveState__"
   },
-  "action.v2": null,
   "background": {
     "service_worker": "background/worker.js",
     "type": "module"
-  },
-  "background.v2": {
-    "persistent": true,
-    "scripts": [
-      "background/define.js",
-      "background/store.js",
-      "background/utils.js",
-      "background/browser.js",
-      "background/normalize_urls.js",
-      "background/parse_urls.js",
-      "background/settings.js",
-      "background/ports.js",
-      "background/exclusions.js",
-      "background/ui_css.js",
-      "background/i18n.js",
-      "background/key_mappings.js",
-      "background/run_commands.js",
-      "background/run_keys.js",
-      "background/tools.js",
-      "background/clipboard.js",
-      "background/eval_urls.js",
-      "background/filter_tabs.js",
-      "background/open_urls.js",
-      "background/frame_commands.js",
-      "background/tab_commands.js",
-      "background/all_commands.js",
-      "background/request_handlers.js",
-      "background/main.js"
-    ]
-  },
-  "browser_action.v2": {
-    "default_icon": {
-      "19": "icons/enabled_19.png",
-      "38": "icons/enabled_38.png"
-    },
-    "default_popup": "pages/action.html",
-    "default_title": "__MSG_name__\n\n__MSG_noActiveState__"
   },
   "browser_specific_settings": {
     "gecko": {
@@ -104,14 +66,12 @@
   "content_security_policy": {
     "extension_pages": "script-src 'self'; style-src 'self' 'unsafe-inline'; object-src 'none'"
   },
-  "content_security_policy.v2": "script-src 'self'; style-src 'self' 'unsafe-inline'; object-src 'none'",
   "default_locale": "en",
   "description": "__MSG_description__",
   "homepage_url": "https://github.com/gdh1995/vimium-c",
   "host_permissions": [
     "<all_urls>"
   ],
-  "host_permissions.v2": null,
   "icons": {
     "128": "icons/icon128.png",
     "16": "icons/icon16.png",
@@ -121,7 +81,6 @@
   "incognito": "spanning",
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAnaZQnkvrHvNlwXPnSfavEya+9sPtVgBR2hWLsNvwdv6+zHRGr/qhqEbtof1v7gDXzpC5+Dr4kOay6aflw5CaFzA1zyVJySAjpb0RkVh774kp9msRpjyb39obSIWAIB76PTwawEAE+K1f26jXDbTC2gEBe4OWk5KW9u9+KoTmeKLHo73ScR1jFcFaOTbrhwHtIDqj00vpIfrSAofpLIq1gP//Og+FoOT4dF107fwlVfDJuu171svuT68wmcKStl6OANxcnXCXE6OWbeZcjMehcQH41wzTtDugmt0o8w+hJ2WVugwWWmGmE8qSiwo9QYZTJW+5EvMcmNZWUmPbTLGkGQIDAQAB",
   "manifest_version": 3,
-  "manifest_version.v2": 2,
   "minimum_chrome_version": "88",
   "name": "__MSG_name__",
   "offline_enabled": true,
@@ -132,7 +91,6 @@
     "chrome://*/*",
     "chrome://new-tab-page/*"
   ],
-  "optional_host_permissions.v2": null,
   "optional_permissions": [
     "bookmarks",
     "downloads",
@@ -140,18 +98,8 @@
     "cookies",
     "contentSettings"
   ],
-  "optional_permissions[].v2": [
-    "chrome://*/*",
-    "chrome://new-tab-page/*"
-  ],
-  "options_page.v2": "pages/options.html",
   "options_ui": {
     "page": "pages/options.html",
-    "open_in_tab": true
-  },
-  "options_ui.v2": {
-    "page": "pages/options.html",
-    "chrome_style": false,
     "open_in_tab": true
   },
   "permissions": [
@@ -169,25 +117,13 @@
     "tabs",
     "webNavigation"
   ],
-  "permissions[].v2": [
-    "<all_urls>",
-    "-favicon",
-    "-offscreen",
-    "-scripting",
-    "-tabGroups"
-  ],
   "short_name": "Vimium C",
   "update_url": "https://clients2.google.com/service/update2/crx",
   "version": "2.01",
   "version_name": "2.01",
-  "web_accessible_resources": [{
+  "web_accessible_resources": [ {
     "resources": [ "content/*", "front/vomnibar*", "lib/*" ],
     "matches": [ "<all_urls>", "chrome-extension://*/*" ],
     "use_dynamic_url": false
-  }],
-  "web_accessible_resources.v2": [
-    "content/*",
-    "front/vomnibar*",
-    "lib/*"
-  ]
+  } ]
 }

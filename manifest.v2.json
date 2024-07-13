@@ -1,0 +1,66 @@
+{
+  "action": null,
+  "background": {
+    "persistent": true,
+    "scripts": [
+      "background/define.js",
+      "background/store.js",
+      "background/utils.js",
+      "background/browser.js",
+      "background/normalize_urls.js",
+      "background/parse_urls.js",
+      "background/settings.js",
+      "background/ports.js",
+      "background/exclusions.js",
+      "background/ui_css.js",
+      "background/i18n.js",
+      "background/key_mappings.js",
+      "background/run_commands.js",
+      "background/run_keys.js",
+      "background/tools.js",
+      "background/clipboard.js",
+      "background/eval_urls.js",
+      "background/filter_tabs.js",
+      "background/open_urls.js",
+      "background/frame_commands.js",
+      "background/tab_commands.js",
+      "background/all_commands.js",
+      "background/request_handlers.js",
+      "background/main.js"
+    ]
+  },
+  "browser_action": {
+    "default_icon": {
+      "19": "icons/enabled_19.png",
+      "38": "icons/enabled_38.png"
+    },
+    "default_popup": "pages/action.html",
+    "default_title": "__MSG_name__\n\n__MSG_noActiveState__"
+  },
+  "content_security_policy": "script-src 'self'; style-src 'self' 'unsafe-inline'; object-src 'none'",
+  "host_permissions": null,
+  "manifest_version": 2,
+  "optional_host_permissions": null,
+  "optional_permissions[]": [
+    "chrome://*/*",
+    "chrome://new-tab-page/*"
+  ],
+  "options_page": "pages/options.html",
+  "options_ui": {
+    "page": "pages/options.html",
+    "chrome_style": false,
+    "open_in_tab": true
+  },
+  "permissions[]": [
+    "<all_urls>",
+    "-favicon",
+    "-offscreen",
+    "-scripting",
+    "-tabGroups"
+  ],
+  "web_accessible_resources": [
+    "content/*",
+    "front/vomnibar*",
+    "lib/*"
+  ]
+}

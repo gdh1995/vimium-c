@@ -249,16 +249,15 @@ var Tasks = {
   "min/others": ["min/pages", "min/omni", "min/misc"],
   _manifest: function(cb) {
     const mv3 = !!getBuildItem("MV3")
+    const manifest_v2 = readJSON("./manifest.v2.json")
     var minVer = getBuildItem("MinCVer"), browser = getBuildItem("BTypes");
     minVer = minVer ? (minVer | 0) : 0;
-      if (mv3 && browser === BrowserType.Firefox) { manifest.background = manifest["background.v2"] }
-      for (const key of Object.keys(manifest)) {
-        if (key.endsWith(".v2")) {
-          const val = manifest[key]
-          delete manifest[key]
+      if (mv3 && browser === BrowserType.Firefox) { manifest.background = manifest_v2.background }
+      for (const key of Object.keys(manifest_v2)) {
+          const val = manifest_v2[key]
           if (mv3) { /* empty */ }
-          else if (key.endsWith("[].v2") && val instanceof Array) {
-            const old = manifest[key.slice(0, -5)]
+          else if (key.endsWith("[]") && val instanceof Array) {
+            const old = manifest[key.slice(0, -2)]
             for (const item of val) {
               if (item[0] === "-") {
                 let found = old.indexOf(item.slice(1)); found >= 0 && old.splice(found, 1)
@@ -267,9 +266,10 @@ var Tasks = {
               }
             }
           } else {
-            val != null ? (manifest[key.slice(0, -3)] = val) : delete manifest[key.slice(0, -3)]
+            val != null ? (manifest[key] = val) : delete manifest[key]
           }
-        } else if (key === "content_scripts") {
+      }
+      for (const key of ["content_scripts"]) {
           manifest[key].splice(1, manifest[key].length - 1)
           if (!mv3) {
             for (const item of manifest[key]) { delete item.match_origin_as_fallback }
@@ -279,7 +279,6 @@ var Tasks = {
             cs.world = "MAIN"
             manifest[key].push(cs)
           }
-        }
       }
     if (!(browser & BrowserType.Chrome)) {
       delete manifest.minimum_chrome_version;
