@@ -652,7 +652,8 @@ updateHooks_.vomnibarOptions = (options: SettingsNS.BackendSettings["vomnibarOpt
     newActions = rawNewActions ? rawNewActions.replace(<RegExpG> /[,\s]+/g, " ").trim() : "",
     newInterval = +options.queryInterval,
     newSizes = ((options.sizes || "") + "").trim(),
-    newStyles = ((options.styles || "") + "").trim(),
+    rawNewStyles = options.styles,
+    newStyles = rawNewStyles instanceof Array ? rawNewStyles : ((rawNewStyles || "") + "").trim(),
     newQueryInterval = Math.max(0, Math.min(newInterval >= 0 ? newInterval : queryInterval, 1200))
     isSame = maxMatches === newMaxMatches && queryInterval === newQueryInterval
               && newSizes === sizes && actions as never as string === newActions
@@ -670,14 +671,15 @@ updateHooks_.vomnibarOptions = (options: SettingsNS.BackendSettings["vomnibarOpt
     options.sizes = newSizes
     options.styles = newStyles
   }
-  if (OnFirefox && isHighContrast_ff_ && !(<RegExpOne> /(^|\s)high-contrast(\s|$)/).test(styles)) {
-    styles += " high-contrast"
+  let finalStyles = styles instanceof Array ? styles.join(" ") : styles
+  if (OnFirefox && isHighContrast_ff_ && !(<RegExpOne> /(^|\s)high-contrast(\s|$)/).test(finalStyles)) {
+    finalStyles += " high-contrast"
   }
   (settingsCache_ as SettingsNS.SettingsWithDefaults).vomnibarOptions = isSame ? defaultOptions : options!
   payload.n = maxMatches
   payload.i = queryInterval
   payload.s = sizes
-  payload.t = styles
+  payload.t = finalStyles
   if (!Build.MV3) {
     MediaWatcher_.update_(MediaNS.kName.PrefersReduceMotion, 1)
     MediaWatcher_.update_(MediaNS.kName.PrefersColorScheme, 1)
@@ -686,7 +688,7 @@ updateHooks_.vomnibarOptions = (options: SettingsNS.BackendSettings["vomnibarOpt
     n: maxMatches,
     i: queryInterval,
     s: sizes,
-    t: payload.t
+    t: finalStyles
   })
   vomnibarBgOptions_.actions = actions.split(" ")
   const sizes2 = sizes.split(",")

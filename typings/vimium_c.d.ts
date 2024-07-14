@@ -330,10 +330,11 @@ declare namespace SettingsNS {
     /** maxMatchNumber */ n: ["maxMatches", number];
     /** queryInterval */ i: ["queryInterval", number];
     /** comma-joined size numbers */ s: ["sizes", string];
-    /** styles */ t: ["styles", string];
+    /** styles */ t: ["styles", string]
   }
-  interface VomnibarBackendItems {
+  interface VomnibarBackendItems extends SelectNVType<Omit<VomnibarOptionItems, "t">> {
     actions: string;
+    styles: string | string[]
   }
   interface OtherVomnibarItems {
     /** css */ c: ["omniCSS", string];
@@ -345,7 +346,7 @@ declare namespace SettingsNS {
     /** `2`: auto (following browser); `1`: fixed true */ autoReduceMotion: 0 | 1 | 2
     grabBackFocus: boolean;
     showAdvancedCommands: boolean;
-    vomnibarOptions: SelectNVType<VomnibarOptionItems> & VomnibarBackendItems;
+    vomnibarOptions: VomnibarBackendItems;
   }
   interface FrontUpdateAllowedSettings {
     showAdvancedCommands: 0;

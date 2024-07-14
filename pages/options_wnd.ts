@@ -81,7 +81,8 @@ let optionsInit1_ = function (): void {
     }, $("#exclusionToolbar"));
   }
   const omniStyles = getSettingsCache_().vomnibarOptions?.styles
-  if (omniStyles && ` ${omniStyles} `.includes(" no-inputmode ")) {
+  if (omniStyles && (<RegExpOne> / inputmode=(no|false|0) /).test(
+        ` ${omniStyles instanceof Array ? omniStyles.join(" ") : omniStyles} `)) {
     nextTick_((els) => { for (const i of els) { i.removeAttribute("inputmode") } }, $$("[inputmode]"))
   }
 

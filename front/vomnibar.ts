@@ -224,7 +224,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   timer_: 0,
   inAlt_: 0,
   _listenedAltDown: 0 as kChar | kKeyCode,
-  noInputMode_: 0,
+  noInputMode_: false,
+  altChars_: null as string[] | null,
   wheelStart_: 0,
   wheelTime_: 0,
   wheelDelta_: 0,
@@ -247,6 +248,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   panelWidth_: VomnibarNS.PixelData.WindowSizeX,
   maxWidthInPixel_: VomnibarNS.PixelData.MaxWidthInPixel,
   styles_: "",
+  customCss_: "",
   styleEl_: null as HTMLStyleElement | null,
   darkBtn_: null as HTMLElement | null,
   last_scrolling_key_: kKeyCode.None,
@@ -1278,19 +1280,17 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     }
   },
   toggleStyle_ (req: BgVomnibarSpecialReq[kBgReq.omni_toggleStyle]): void {
-    const oldStyles = Vomnibar_.styles_ && ` ${Vomnibar_.styles_} `, toggle = ` ${req.t || "dark"} `,
-    enable = !oldStyles.includes(toggle)
+    const enable = !Vomnibar_.styles_.includes(` ${req.t || "dark"} `)
     VPort_.post_({ H: kFgReq.omniToggleMedia, t: req.t, b: req.b, v: enable })
   },
   onStyleUpdate_ (omniStyles: string): void {
     Vomnibar_.styles_ = omniStyles;
-    omniStyles = ` ${omniStyles} `;
     const docEl = document.documentElement as HTMLHtmlElement
     const body = document.body as HTMLBodyElement
     const dark = omniStyles.includes(" dark ")
     if (Build.BTypes & BrowserType.Firefox && Vomnibar_.options_.d && !omniStyles.includes(" ignore-filter ")) {
       Vomnibar_.darkBtn_ && (Vomnibar_.darkBtn_.style.display = "none")
-      Vomnibar_.styles_ = omniStyles = (dark ? omniStyles.replace(" dark ", " ") : omniStyles + "dark") + " filtered "
+      Vomnibar_.styles_ = omniStyles = (dark ? omniStyles.replace(" dark ", " ") : omniStyles + "dark ") + "filtered "
     } else if (Vomnibar_.darkBtn_) {
       if (!Vomnibar_.darkBtn_.childElementCount) {
         Vomnibar_.darkBtn_.textContent = dark ? "\u2600" : "\u263D";
@@ -1321,15 +1321,18 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         omniStyles = omniStyles.replace(key, " ");
       }
     }
-    Vomnibar_.noInputMode_ = omniStyles.includes(" no-inputmode ") ? 1 : 0
-    if (Vomnibar_.noInputMode_) {
-      Vomnibar_.styles_ = omniStyles = omniStyles.replace(" no-inputmode ", " ")
-    }
     Vomnibar_.wheelSpeed_ = 1
     Vomnibar_.wheelMinStep_ = 0
+    Vomnibar_.noInputMode_ = false
+    Vomnibar_.altChars_ = null
     omniStyles = omniStyles.replace(<RegExpG & RegExpSearchable<2>> /\b([\w-]+)=([\w.]+)/g, (_, key, val): string => {
+      let val2: string[]
       key === "wheel-speed" && (Vomnibar_.wheelSpeed_ = Math.max(0.1, Math.min(parseFloat(val) || 1, 10)))
       key === "wheel-min-step" && (Vomnibar_.wheelMinStep_ = Math.max(-2e3, Math.min(parseInt(val) || 0, 2e3)))
+      key === "inputmode" && (Vomnibar_.noInputMode_ = val === "no" || val === "false" || val === "0")
+      key === "alt-characters" && (
+          val2 = val ? val.replace(<RegExpG> /["'<>]/g, "").split(val.includes(",") ? "," : "") : [],
+          Vomnibar_.altChars_ = val2.length > 3 ? val2 : null)
       return ""
     })
     omniStyles = omniStyles.trim().replace(Vomnibar_.spacesRe_, " ");
@@ -1342,12 +1345,13 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       }
     }
   },
-  updateOptions_ (response: Req.bg<kBgReq.omni_updateOptions>): void {
-    const delta = VUtils_.safer_(response.d), styles = delta.t;
-    if (styles != null && Vomnibar_.styles_ !== styles) {
-      Vomnibar_.onStyleUpdate_(styles);
+  updateOptions_ (delta: Req.bg<kBgReq.omni_updateOptions>["d"], confVer: number): void {
+    VUtils_.safer_(delta)
+    if (!Vomnibar_.init_) {
+      const styles = delta.t
+      styles != null && Vomnibar_.onStyleUpdate_(` ${styles} `)
+      delta.c != null && Vomnibar_.onCss_(delta.c)
     }
-    delta.c != null && Vomnibar_.css_(delta.c);
     delta.n != null && (Vomnibar_.maxMatches_ = delta.n);
     delta.i != null && (Vomnibar_.queryInterval_ = delta.i)
     delta.m !== undefined && (Vomnibar_.mappedKeyRegistry_ = delta.m)
@@ -1365,7 +1369,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       n = sizes.length > 4 ? +sizes[4] : 0
       Vomnibar_.maxWidthInPixel_ = M(200, m(n || VomnibarNS.PixelData.MaxWidthInPixel, 8192))
     }
-    VPort_._confVersion = response.v
+    VPort_._confVersion = confVer
   },
   OnWndFocus_ (this: void, event: Event): void {
     const a = Vomnibar_, byCode = a.codeFocusTime_ && performance.now() - a.codeFocusTime_ < 120,
@@ -1473,6 +1477,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       Vomnibar_.input_.focus();
     });
     a.onStyleUpdate_(a.styles_);
+    a.onCss_(a.customCss_)
     if (a.pageType_ === VomnibarNS.PageType.inner) {
       const els = document.querySelectorAll("[title]")
       for (let i = 0; i < els.length; i++) { // eslint-disable-line @typescript-eslint/prefer-for-of
@@ -1499,7 +1504,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       return path ? `${type}" d="${path}` : type;
     };
   },
-  css_ (css: string): void {
+  onCss_ (css: string): void {
     let st = Vomnibar_.styleEl_;
     if (!css) {
       st && st.remove();
@@ -1608,7 +1613,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   updateQueryFlag_ (flag: CompletersNS.QueryFlags, enable: boolean | null): void {
     const isFirst = enable == null;
     if (isFirst) {
-      enable = ` ${Vomnibar_.styles_} `.includes(flag - CompletersNS.QueryFlags.ShowTime ? " mono-url " : "time ")
+      enable = Vomnibar_.styles_.includes(flag - CompletersNS.QueryFlags.ShowTime ? " mono-url " : "time ")
     }
     const newFlag = (Vomnibar_.mode_.f & ~flag) | (enable ? flag : 0);
     if (Vomnibar_.mode_.f === newFlag) { return; }
@@ -1755,25 +1760,35 @@ VUtils_ = {
       : <T extends object> (opt: T): T & SafeObject => Object.setPrototypeOf(opt, null)
     ) as <T extends object> (opt: T) => T & SafeObject,
   makeListRenderer_ (this: void, template: string): Render {
-    const a = template.split(/\{\{(\w+)}}/g);
+    const a = template.trim().replace(<RegExpG> /\s{2,}/g, " ").replace(<RegExpG> /> /g, ">").split(/\{\{(\w+)}}/g)
+        .map(function (this: string[], placeholder, index) {
+      const id = index & 1 ? this.indexOf(placeholder) + 2 : 0
+      return ({ i: id, n: id < 2 ? placeholder : "" })
+    }, ["typeIcon", "altIndex", "time", "index",
+        Build.BTypes & BrowserType.Firefox && (Build.BTypes === BrowserType.Firefox as number
+            || Vomnibar_.browser_ === BrowserType.Firefox) ? "favIcon" : ""])
     const parser = Build.BTypes !== BrowserType.Firefox as number ? 0 as never : new DOMParser();
-    return function (objectArray, element): void {
-      let html = "", len = a.length - 1;
+    return (objectArray, element): void => {
+      const altChars = Vomnibar_.altChars_
+      let html = "", len = a.length - 1, index = 0, j: number, val: SuggestionE
       VUtils_.timeCache_ = 0
-      for (let index = 0; index < objectArray.length; index++) {
-        let j = 0;
-        for (; j < len; j += 2) {
-          html += a[j];
-          const key = a[j + 1];
-          html += key === "typeIcon" ? Vomnibar_.getTypeIcon_(objectArray[index])
-              : key === "index" ? index + 1 : key === "altIndex" ? index < 9 || Vomnibar_.maxMatches_>10 ? index + 1 : 0
-              : key === "time" ? Vomnibar_.showTime_ ? VUtils_.timeStr_(objectArray[index].visit) : ""
-              : Build.BTypes & BrowserType.Firefox
-                && (Build.BTypes === BrowserType.Firefox as number || Vomnibar_.browser_ === BrowserType.Firefox)
-                && key === "favIcon" ? ""
-              : objectArray[index][key as keyof SuggestionE] || "";
+      for (; index < objectArray.length; index++) {
+        val = objectArray[index]
+        for (j = 0; j < len; j += 2) {
+          html += a[j].n;
+          const { i: id, n: propName } = a[j + 1]
+          html += id === 1 ? val[propName as keyof SuggestionE] || ""
+              : id === 2 ? Vomnibar_.getTypeIcon_(val)
+              : id === 3 ? altChars !== null
+                ? index < altChars.length ? altChars[index]
+                  : index >= altChars.length * altChars.length ? ""
+                  : altChars[((index / altChars.length) | 0) % altChars.length] + altChars[index % altChars.length]
+                : index < 9 || Vomnibar_.maxMatches_ > 10 ? index + 1 + "" : "0"
+              : id === 4 ? Vomnibar_.showTime_ ? VUtils_.timeStr_(val.visit) : ""
+              : id === 5 ? index + 1 + ""
+              : ""
         }
-        html += a[len];
+        html += a[len].n
       }
       if (Build.BTypes !== BrowserType.Firefox as number) {
         element.innerHTML = html;
@@ -2027,7 +2042,7 @@ VPort_ = {
     name === kBgReq.omni_init ? Vomnibar_.secret_ && Vomnibar_.secret_(response) :
     name === kBgReq.omni_returnFocus ? VPort_.postToOwner_({ N: VomnibarNS.kFReq.focus, l: response.l }) :
     name === kBgReq.omni_toggleStyle ? Vomnibar_.toggleStyle_(response) :
-    name === kBgReq.omni_updateOptions ? Vomnibar_.updateOptions_(response) :
+    name === kBgReq.omni_updateOptions ? Vomnibar_.updateOptions_(response.d, response.v) :
     name === kBgReq.omni_refresh ? !Vomnibar_.isActive_ && response.d ? Vomnibar_.OnPageHide_()
         : Build.MV3 ? (VPort_._port!.disconnect(), VPort_.connect_(PortType.omnibar | PortType.reconnect)) : 0 :
     name === kBgReq.injectorRun || name === kBgReq.showHUD ? 0 :
@@ -2162,8 +2177,9 @@ if (Build.BTypes === BrowserType.Chrome as number ? false : !(Build.BTypes & Bro
       (payload.o || (Vomnibar_.keyIdCorrectionOffset_old_cr_ = 300))
     }
     if (Build.OS & (Build.OS - 1)) { Vomnibar_.os_ = payload.o }
-    Vomnibar_.styles_ = payload.t;
-    Vomnibar_.updateOptions_({ N: kBgReq.omni_updateOptions, d: payload, v: confVersion })
+    Vomnibar_.styles_ = ` ${payload.t} `
+    Vomnibar_.customCss_ = payload.c
+    Vomnibar_.updateOptions_(payload, confVersion)
     _sec = secret;
     for (const i of unsafeMsg) {
       if (i[0] === secret) {
