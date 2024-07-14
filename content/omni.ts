@@ -207,6 +207,12 @@ const onOmniMessage = function (this: OmniPort, msg: { data: any, target?: Messa
     case VomnibarNS.kFReq.broken: focus(); // no break;
     case VomnibarNS.kFReq.unload: isAlive_ && resetWhenBoxExists(data.N === VomnibarNS.kFReq.broken); break
     case VomnibarNS.kFReq.hud: hudTip(data.k); break
+    case VomnibarNS.kFReq.scaled_old_cr:
+      if (OnChrome && Build.MinCVer < BrowserVer.MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent) {
+        box!.style.top = data.t && data.t + (canUseVW ? "vh" : "%")
+      }
+      break
+    default: if (0) { data satisfies never; } break
     }
 } as <K extends keyof VomnibarNS.FReq> ({ data }: { data: VomnibarNS.FReq[K] & VomnibarNS.Msg<K> }) => void | 1
 
@@ -228,7 +234,7 @@ const refreshKeyHandler = (): void => {
   const timer1 = timeout_(refreshKeyHandler, GlobalConsts.TimeOfSuppressingTailKeydownEvents), oldTimer = timer_
   const scale = wndSize_(2), screenHeight = wndSize_() // unit: logic pixel if not (C<52) else physical pixel
   const notInFullScreen = !fullscreenEl_unsafe_()
-  const maxOutHeight = options.n / min_(1, scale), topVH = 50 - maxOutHeight / screenHeight * 60
+  const maxOutHeight = options.h / min_(1, scale), topVH = 50 - maxOutHeight / screenHeight * 60
   let url = options.url, upper = 0
   // hide all further key events to wait iframe loading and focus changing from JS
   replaceOrSuppressMost_(kHandler.omni)
@@ -268,14 +274,7 @@ const refreshKeyHandler = (): void => {
           || chromeVer_ > BrowserVer.MinCSSWidthUnit$vw$InCalc - 1)
       && notInFullScreen && docZoom_ === 1 && dScale_ === 1
   const width = canUseVW ? wndSize_(1) : (prepareCrop_(), OnFirefox ? viewportRight : viewportRight * docZoom_ * bZoom_)
-  if (OnChrome && Build.MinCVer < BrowserVer.MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent) {
-    options.w = width * scale
-    options.h = screenHeight * scale
-  } else {
-    options.w = width
-    options.h = screenHeight
-  }
-  options.z = scale
+  options.w = [width, screenHeight, scale]
   if (!(Build.NDEBUG || Status.Inactive - Status.NotInited === 1)) {
     console.log("Assert error: Status.Inactive - Status.NotInited === 1")
   }
@@ -301,12 +300,12 @@ const refreshKeyHandler = (): void => {
     status = Status.ToShow
   }
   const style = box!.style
+  toggleClass_s(box!, "O2", !canUseVW)
   if ((OnFirefox && Build.MinFFVer < FirefoxBrowserVer.MinCssMinMax && firefoxVer_ < FirefoxBrowserVer.MinCssMinMax
         || OnEdge || OnChrome && Build.MinCVer < BrowserVer.MinCssMinMax && chromeVer_ < BrowserVer.MinCssMinMax)
-      && width > (options.m! - VomnibarNS.PixelData.MarginH + 3) / VomnibarNS.PixelData.WindowSizeX) {
-    style.left = `calc(50% - ${options.m! / 2}px)`
+      && width > options.m!) {
+    style.left = options.x!
   } else {
-    toggleClass_s(box!, "O2", !canUseVW)
     if (OnFirefox && Build.MinFFVer < FirefoxBrowserVer.MinCssMinMax && firefoxVer_ < FirefoxBrowserVer.MinCssMinMax
         || OnEdge || OnChrome && Build.MinCVer < BrowserVer.MinCssMinMax && chromeVer_ < BrowserVer.MinCssMinMax) {
       style.left = ""

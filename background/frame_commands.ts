@@ -2,7 +2,7 @@ import {
   cPort, cRepeat, get_cOptions, set_cPort, set_cOptions, set_cRepeat, framesForTab_, findCSS_, cKey, reqH_, runOnTee_,
   curTabId_, settingsCache_, OnChrome, visualWordsRe_, CurCVer_, OnEdge, OnFirefox, substitute_, CONST_, set_runOnTee_,
   curWndId_, vomnibarPage_f, vomnibarBgOptions_, replaceTeeTask_, blank_, offscreenPort_, teeTask_,
-  curIncognito_, OnOther_, keyToCommandMap_, Origin2_, CurFFVer_, omniPayload_
+  curIncognito_, OnOther_, keyToCommandMap_, Origin2_, CurFFVer_
 } from "./store"
 import * as BgUtils_ from "./utils"
 import {
@@ -254,16 +254,15 @@ export const showVomnibar = (forceInner?: boolean): void => {
     u: defaultUrl,
     url: typeof optUrl === "string" ? defaultUrl || optUrl : optUrl,
     k: BgUtils_.getOmniSecret_(true),
-    n: vomnibarBgOptions_.maxBoxHeight_,
+    h: vomnibarBgOptions_.maxBoxHeight_,
   }), get_cOptions<C.showVomnibar, true>()) as CmdOptions[kFgCmd.vomnibar] & SafeObject
   if (options.icase == null) {
     if (vomnibarBgOptions_.actions.includes("icase")) { options.icase = true }
   }
   if ((OnFirefox && Build.MinFFVer < FirefoxBrowserVer.MinCssMinMax && CurFFVer_ < FirefoxBrowserVer.MinCssMinMax
         || OnEdge || OnChrome && Build.MinCVer < BrowserVer.MinCssMinMax && CurCVer_ < BrowserVer.MinCssMinMax)) {
-    const raw = +omniPayload_.s.split(",")[4]
-    const maxWidthInPixel = Math.max(200, Math.min(raw || VomnibarNS.PixelData.MaxWidthInPixel, 8192))
-    options.m = maxWidthInPixel
+    options.m = vomnibarBgOptions_.maxWidthInPixel_![0]
+    options.x = vomnibarBgOptions_.maxWidthInPixel_![1]
   }
   portSendFgCmd(port, kFgCmd.vomnibar, true, options, cRepeat)
   options.k = "omni"

@@ -1,10 +1,7 @@
 /// <reference path="../typings/lib/window.d.ts" />
 declare namespace VomnibarNS {
 interface BaseFgOptions extends Pick<CmdOptions[kFgCmd.vomnibar], "s" | "t"> {
-  // physical pixel size (if C<52) and devicePixelRatio
-  w: number;
-  h: number;
-  z: number;
+  w: [hostInnerWidth: number, hostInnerHeight: number, devicePixelRatio: number]
   p: "" | FgRes[kFgReq.parseSearchUrl];
 }
 interface FgOptions extends BaseFgOptions, Partial<GlobalOptions> {
@@ -20,7 +17,7 @@ const enum kCReq {
 const enum kFReq {
   hide, focus, style, iframeIsAlive, hud,
   evalJS, scroll, scrollGoing, stopScroll, broken,
-  unload,
+  unload, scaled_old_cr,
   _mask = "",
 }
 interface CReq {
@@ -51,6 +48,7 @@ interface FReq {
   [kFReq.scrollGoing]: {};
   [kFReq.unload]: {};
   [kFReq.iframeIsAlive]: { /** hasOptionsPassed */ o: BOOL };
+  [kFReq.scaled_old_cr]: { t: string }
 }
 interface IframePort {
   postMessage<K extends keyof FReq> (this: IframePort, msg: FReq[K] & Msg<K>): void | 1;

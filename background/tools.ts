@@ -2,7 +2,7 @@ import {
   curIncognito_, curTabId_, curWndId_, framesForTab_, incognitoFindHistoryList_, recencyForTab_, set_curIncognito_,
   set_curTabId_, set_curWndId_, set_incognitoFindHistoryList_, set_lastWndId_, incognitoMarkCache_, focusAndExecuteOn_,
   set_incognitoMarkCache_, settingsCache_, OnFirefox, OnChrome, CurCVer_, updateHooks_, set_cKey, set_lastVisitTabTime_,
-  OnEdge, isHighContrast_ff_, omniPayload_, blank_, CONST_, storageCache_, os_, vomnibarBgOptions_, cPort,
+  OnEdge, isHighContrast_ff_, omniPayload_, blank_, CONST_, storageCache_, os_, vomnibarBgOptions_, cPort, CurFFVer_,
   lastKeptTabId_, set_saveRecency_, lastVisitTabTime_
 } from "./store"
 import * as BgUtils_ from "./utils"
@@ -697,4 +697,12 @@ updateHooks_.vomnibarOptions = (options: SettingsNS.BackendSettings["vomnibarOpt
       || (VomnibarNS.PixelData.OthersIfNotEmpty - VomnibarNS.PixelData.OthersIfEmpty)), 320))
   const itemHeight = Math.max(14, Math.min(sizes2.length > 2 && +sizes2[2] || VomnibarNS.PixelData.Item, 120))
   vomnibarBgOptions_.maxBoxHeight_ = maxMatches * itemHeight + baseHeightIfNotEmpty
+  if ((OnFirefox && Build.MinFFVer < FirefoxBrowserVer.MinCssMinMax && CurFFVer_ < FirefoxBrowserVer.MinCssMinMax
+        || OnEdge || OnChrome && Build.MinCVer < BrowserVer.MinCssMinMax && CurCVer_ < BrowserVer.MinCssMinMax)) {
+    const scaleX = sizes2.length > 3 && +sizes2[3] || VomnibarNS.PixelData.WindowSizeRatioX
+    const rawMaxW = sizes2.length > 4 && +sizes2[4] || VomnibarNS.PixelData.MaxWidthInPixel
+    const maxWidth = Math.max(200, Math.min(rawMaxW | 0, 8192))
+    vomnibarBgOptions_.maxWidthInPixel_ = [((maxWidth - VomnibarNS.PixelData.MarginH + 3) / scaleX) | 0,
+        `calc(50% - ${maxWidth >>> 1}px)`]
+  }
 }

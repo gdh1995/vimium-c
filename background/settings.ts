@@ -504,7 +504,7 @@ js\\:|Js: javascript:\\ $S; JavaScript`,
       queryInterval: 333,
       sizes: VomnibarNS.PixelData.OthersIfEmpty + ","
           + (VomnibarNS.PixelData.OthersIfNotEmpty - VomnibarNS.PixelData.OthersIfEmpty) + ","
-          + VomnibarNS.PixelData.Item + "," + VomnibarNS.PixelData.WindowSizeX
+          + VomnibarNS.PixelData.Item + "," + VomnibarNS.PixelData.WindowSizeRatioX
           + "," + VomnibarNS.PixelData.MaxWidthInPixel
           ,
       styles: "mono-url"

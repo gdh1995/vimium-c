@@ -425,7 +425,7 @@ declare namespace VomnibarNS {
     ListSpaceDeltaWithoutScrollbar = FrameTop + MarginV1 + InputBarWithLine + LastItemDelta + ((MarginV2 / 2) | 0),
     MarginH = 24, AllHNotUrl = 20 * 2 + 20 + MarginH,
     MeanWidthOfMonoFont = 7.7, MeanWidthOfNonMonoFont = 4,
-    WindowSizeX = 0.8, MaxWidthInPixel = 1920, AllHNotInput = AllHNotUrl,
+    WindowSizeRatioX = 0.8, MaxWidthInPixel = 1944, AllHNotInput = AllHNotUrl,
   }
   interface GlobalOptions extends TrailingSlashOptions, UserSedOptions {
     mode?: string;

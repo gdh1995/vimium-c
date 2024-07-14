@@ -406,8 +406,9 @@ interface CmdOptions {
     /** <script> */ j: string;
     /** secret */ k: string
     /** exitOnClick */ e: boolean;
-    /** maxWidthInPixel */ m?: number;
-    /** maxOutHeight without zooming and scaling */ n: number
+    /** (maxFrameElWidth - 24) / (panelWidth := 0.8) */ m?: number;
+    /** `calc(50% - ${maxFrameElWidth >>> 1}px)` */ x?: string;
+    /** maxOutHeight without zooming and scaling */ h: number
   } & Pick<VomnibarNS.GlobalOptions, "u" | "url">
   [kFgCmd.goNext]: {
     /** rel */ r: string;

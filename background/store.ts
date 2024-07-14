@@ -64,7 +64,9 @@ export const omniPayload_ = {
   v: OnChrome ? IsEdg_ ? -CurCVer_ : CurCVer_ : OnFirefox ? CurFFVer_ : 0,
   c: "", i: 0, l: 0, m: null, n: 0, s: "", t: ""
 } satisfies SettingsNS.DeclaredVomnibarPayload as SettingsNS.VomnibarPayload
-export const vomnibarBgOptions_ = { actions: [] as string[], maxBoxHeight_: 0 }
+export const vomnibarBgOptions_: {
+  actions: string[], maxBoxHeight_: number, maxWidthInPixel_?: [number, string]
+} = { actions: [], maxBoxHeight_: 0 }
 export let contentConfVer_ = 0
 export let omniConfVer_ = 0
 export let findCSS_: FindCSS

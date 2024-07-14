@@ -95,23 +95,30 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     if (a.mode_.e) { a.mode_.o = "omni" }
     a.baseHttps_ = null;
     let { url, keyword, p: search } = options, start: number | undefined;
+    let [parWidth, parHeight, parScale] = options.w
     let scale = Build.MinCVer < BrowserVer.MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent
             && (Build.BTypes === BrowserType.Chrome as number
                 || Build.BTypes & BrowserType.Chrome && a.browser_ === BrowserType.Chrome)
-          ? devicePixelRatio : options.z
+            && a.browserVer_ < BrowserVer.MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent
+          ? devicePixelRatio : parScale
       , dz = a.docZoom_ = scale < 0.98 ? 1 / scale : 1;
+    const frameElWidth = Math.min(parWidth * a.wndRatioX_ + PixelData.MarginH, a.maxWidthInPixel_)
     if (Build.MinCVer < BrowserVer.MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent
         && (Build.BTypes === BrowserType.Chrome as number
             || Build.BTypes & BrowserType.Chrome && a.browser_ === BrowserType.Chrome)) {
-      a.onInnerWidth_(Math.min(options.w * a.panelWidth_ + PixelData.MarginH * options.z, a.maxWidthInPixel_ * options.z) / scale)
+      if (a.browserVer_ < BrowserVer.MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent
+          && Math.abs(parScale - scale) > 1e-3) {
+        const maxH = (options satisfies Pick<CmdOptions[kFgCmd.vomnibar], "s"|"t"> as Pick<CmdOptions[kFgCmd.vomnibar]
+            , "s" | "t"> as CmdOptions[kFgCmd.vomnibar]).h, topVH = 50 - maxH * scale / parScale / parHeight * 60
+        VPort_.postToOwner_({ N: VomnibarNS.kFReq.scaled_old_cr
+            , t: topVH > 6400 / parHeight ? topVH.toFixed(1) : "" })
+      }
+      a.onInnerWidth_(parScale / scale * frameElWidth)
+      parHeight *= parScale / scale
     } else {
-      a.onInnerWidth_(Math.min(options.w * a.panelWidth_ + PixelData.MarginH, a.maxWidthInPixel_))
+      a.onInnerWidth_(frameElWidth)
     }
-    const max = Math.max(3, Math.min(0 | ((options.h
-          / (Build.MinCVer < BrowserVer.MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent
-              && (Build.BTypes === BrowserType.Chrome as number
-                  || Build.BTypes & BrowserType.Chrome && a.browser_ === BrowserType.Chrome)
-              ? dz * scale : dz)
+    const max = Math.max(3, Math.min(0 | ((parHeight / dz
           - a.baseHeightIfNotEmpty_
           - (PixelData.FrameTop - ((PixelData.MarginV2 / 2 + 1) | 0) - PixelData.ShadowOffset * 2
              + GlobalConsts.MaxScrollbarWidth)
@@ -128,7 +135,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         && (Build.BTypes === BrowserType.Firefox as number || a.browser_ === BrowserType.Firefox)) {
       /* empty */
     } else if (a.mode_.i) {
-      scale = scale === 1 ? 1 : scale < 3 ? 2 : scale < 3.5 ? 3 : 4;
+      const favScale = scale === 1 ? 1 : scale < 3 ? 2 : scale < 3.5 ? 3 : 4
 /**
  * Note: "@1x" is necessary, because only the whole 'size/aa@bx/' can be optional
  * * definition: https://cs.chromium.org/chromium/src/chrome/browser/ui/webui/favicon_source.h?type=cs&q=FaviconSource&g=0&l=47
@@ -136,9 +143,9 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
  */
       const prefix = '" style="background-image: url(&quot;';
       if (Build.MV3) {
-        a._favPrefix = prefix + location.origin + "/_favicon/?size=" + (16 * scale) + "&pageUrl="
+        a._favPrefix = prefix + location.origin + "/_favicon/?size=" + (16 * favScale) + "&pageUrl="
       } else {
-        a._favPrefix = prefix + "chrome://favicon/size/16@" + scale + "x/";
+        a._favPrefix = prefix + "chrome://favicon/size/16@" + favScale + "x/"
       }
     }
     keyword = (keyword || "") + "";
@@ -245,7 +252,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   heightIfEmpty_: VomnibarNS.PixelData.OthersIfEmpty,
   baseHeightIfNotEmpty_: VomnibarNS.PixelData.OthersIfNotEmpty,
   itemHeight_: VomnibarNS.PixelData.Item,
-  panelWidth_: VomnibarNS.PixelData.WindowSizeX,
+  wndRatioX_: VomnibarNS.PixelData.WindowSizeRatioX,
   maxWidthInPixel_: VomnibarNS.PixelData.MaxWidthInPixel,
   styles_: "",
   customCss_: "",
@@ -468,14 +475,14 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   },
   updateSelection_ (sel: number): void {
     const a = Vomnibar_;
-    const _ref = a.list_.children, old = a.selection_;
+    const ref = a.list_.children, old = a.selection_;
     (a.isSelOriginal_ || old === -1) && (a.inputText_ = a.input_.value)
     a.selection_ = sel
     a.updateInput_()
-    old >= 1 && _ref[old - 1].classList.remove("p");
-    old >= 0 && _ref[old].classList.remove("s");
-    sel >= 1 && _ref[sel - 1].classList.add("p");
-    sel >= 0 && _ref[sel].classList.add("s");
+    old >= 1 && ref[old - 1].classList.remove("p");
+    old >= 0 && ref[old].classList.remove("s");
+    sel >= 1 && ref[sel - 1].classList.add("p");
+    sel >= 0 && ref[sel].classList.add("s");
   },
   _keyNames: [kChar.space, kChar.pageup, kChar.pagedown, kChar.end, kChar.home,
         kChar.left, kChar.up, kChar.right, kChar.down,
@@ -856,7 +863,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       getSelection().modify(isExtend ? "extend" : "move", isRight?"forward":"backward", mode===2?"character":"word")
     }
     const { value: str, selectionStart: start, selectionEnd: end } = input
-    let _toR = input.selectionDirection !== "backward", anchor0 = _toR ? start : end, focus1 = _toR ? end : start
+    let isFwd = input.selectionDirection !== "backward", anchor0 = isFwd ? start : end, focus1 = isFwd ? end : start
     let a2 = anchor0, focus = focus1, s1: string
     // test string: " a+ bc +dw+ef  + daf + ++  +++  sdf fas sdd  "
     if (code < -1) { // Cmd (+ Shift)? + backspace
@@ -1064,8 +1071,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     if (!(el instanceof Anchor) || el.href) { return; }
     for (item = el; item && item.parentElement !== Vomnibar_.list_;
           item = item.parentElement as HTMLElement | null) { /* empty */ }
-    const _i = ([] as Array<Node | null>).indexOf.call(Vomnibar_.list_.children, item);
-    _i >= 0 && (el.href = Vomnibar_.completions_[_i].u);
+    const ind = ([] as Array<Node | null>).indexOf.call(Vomnibar_.list_.children, item);
+    ind >= 0 && (el.href = Vomnibar_.completions_[ind].u);
   },
   OnSelect_ (this: HTMLInputElement): void {
     let el = this as typeof Vomnibar_.input_;
@@ -1365,7 +1372,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       n = +sizes[2];
       Vomnibar_.itemHeight_ = M(14, m(n || VomnibarNS.PixelData.Item, 120));
       n = sizes.length > 3 ? +sizes[3] : 0
-      Vomnibar_.panelWidth_ = M(0.3, m(n || VomnibarNS.PixelData.WindowSizeX, 0.95));
+      Vomnibar_.wndRatioX_ = M(0.3, m(n || VomnibarNS.PixelData.WindowSizeRatioX, 0.95));
       n = sizes.length > 4 ? +sizes[4] : 0
       Vomnibar_.maxWidthInPixel_ = M(200, m(n || VomnibarNS.PixelData.MaxWidthInPixel, 8192))
     }
@@ -1721,7 +1728,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     Vomnibar_ && Vomnibar_.isActive_ && Vomnibar_.refresh_(isTab)
   },
   refresh_ (waitFocus?: boolean): void {
-    const doRefresh_ = (wait: number): void => {
+    const doRefresh = (wait: number): void => {
       let oldSel = Vomnibar_.selection_, origin = Vomnibar_.isSelOriginal_
       Vomnibar_.useInput_ = false
       Vomnibar_.onInnerWidth_()
@@ -1737,11 +1744,11 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       });
     }
     Vomnibar_.focused_ || getSelection().removeAllRanges()
-    if (!waitFocus) { doRefresh_(150); return }
+    if (!waitFocus) { doRefresh(150); return }
     window.onfocus = function (e: Event): void {
       window.onfocus = null as never;
       (Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted || !(Build.BTypes & BrowserType.Chrome)
-          ? e.isTrusted : e.isTrusted !== false) && VPort_._port && doRefresh_(17)
+          ? e.isTrusted : e.isTrusted !== false) && VPort_._port && doRefresh(17)
     };
   },
   OnPageHide_ (e?: Event): void {
