@@ -653,9 +653,9 @@ interface FgReq {
     /** redo */ r?: undefined;
   } & WithHintModeOptions | {
     /** url */ u?: undefined
-    /** redo */ r: boolean;
+    /** redo */ r: 9;
   }) & {
-    /** inner */ i?: boolean;
+    /** inner */ i?: BOOL | boolean;
   };
   [kFgReq.omni]: {
     /** query */ q: string;

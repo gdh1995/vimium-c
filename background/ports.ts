@@ -566,13 +566,15 @@ const tryToKeepAlive = (rawNotFromInterval: BOOL): KKeep | void => {
     isFromInterval && clearTimeout(_timeoutToTryToKeepAliveOnce_mv3_non_ff)
     _timeoutToTryToKeepAliveOnce_mv3_non_ff = 0
   }
-  for (let port of isFromInterval ? framesForOmni_ : []) {
-    if (!(port.s.flags_ & Frames.Flags.OldEnough)) {
-      (port.s.flags_ satisfies Frames.Flags) |= Frames.Flags.OldEnough
-      continue
+  if (isFromInterval) {
+    for (let port of framesForOmni_) {
+      if (port.s.flags_ & Frames.Flags.OldEnough) {
+        const doesRelease = port.s.flags_ !== curTabId_
+        ; (Build.MV3 && !OnFirefox || doesRelease) && port.postMessage({ N: kBgReq.omni_refresh, d: doesRelease })
+      } else {
+        (port.s.flags_ satisfies Frames.Flags) |= Frames.Flags.OldEnough
+      }
     }
-    const doesRelease = port.s.flags_ !== curTabId_
-    ; (Build.MV3 && !OnFirefox || doesRelease) && port.postMessage({ N: kBgReq.omni_refresh, d: doesRelease })
   }
   let oldestToKeepAlive = 0
   if (isFromInterval) {

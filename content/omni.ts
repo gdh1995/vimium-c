@@ -42,7 +42,6 @@ let omniOptions: VomnibarNS.FgOptionsToFront | null = null
 let secondActivateWithNewOptions: (() => void) | null = null
 let timer_: ValidTimeoutID = TimerID.None
 let dialog_non_ff: HTMLDialogElement | false | null | undefined
-let canUseVW: boolean
 
 export { box as omni_box, status as omni_status, dialog_non_ff as omni_dialog_non_ff }
 
@@ -165,7 +164,7 @@ const resetWhenBoxExists = (redo?: boolean): void | 1 => {
     refreshKeyHandler(); // just for safer code
     if (secondActivateWithNewOptions) { secondActivateWithNewOptions(); }
     else if (redo && oldStatus > Status.ToShow - 1) {
-      post_({ H: kFgReq.vomnibar, r: true, i: true })
+      post_({ H: kFgReq.vomnibar, r: 9, i: 1 })
     }
 }
 
@@ -186,9 +185,10 @@ const onOmniMessage = function (this: OmniPort, msg: { data: any, target?: Messa
       box!.onload = omniOptions = null as never
       break;
     case VomnibarNS.kFReq.style:
-      const style = box!.style, ratio_cr = OnChrome &&
-          Build.MinCVer < BrowserVer.MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent ? wndSize_(2) : 1
-      style.height = math.ceil(data.h / docZoom_ / ratio_cr) + "px"
+      const style = box!.style, zoom = Build.MinCVer < BrowserVer.MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent
+          && OnChrome ? docZoom_ * wndSize_(2) : docZoom_
+      const height2 = math.ceil(data.h / zoom) + "px"
+      style.height !== height2 && (style.height = height2)
       if (status === Status.ToShow) {
         status = Status.Showing
         !OnFirefox && WithDialog && dialog_non_ff && (dialog_non_ff.open || dialog_non_ff.showModal())
@@ -264,10 +264,10 @@ const refreshKeyHandler = (): void => {
   omniOptions = null
   getViewBox_()
   // `canUseVW` is computed for the gulp-built version of vomnibar.html
-  canUseVW = (!OnChrome || Build.MinCVer >= BrowserVer.MinCSSWidthUnit$vw$InCalc
+  const canUseVW = (!OnChrome || Build.MinCVer >= BrowserVer.MinCSSWidthUnit$vw$InCalc
           || chromeVer_ > BrowserVer.MinCSSWidthUnit$vw$InCalc - 1)
       && notInFullScreen && docZoom_ === 1 && dScale_ === 1
-  let width = canUseVW ? wndSize_(1) : (prepareCrop_(), OnFirefox ? viewportRight : viewportRight * docZoom_ * bZoom_)
+  const width = canUseVW ? wndSize_(1) : (prepareCrop_(), OnFirefox ? viewportRight : viewportRight * docZoom_ * bZoom_)
   if (OnChrome && Build.MinCVer < BrowserVer.MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent) {
     options.w = width * scale
     options.h = screenHeight * scale
@@ -303,7 +303,7 @@ const refreshKeyHandler = (): void => {
   const style = box!.style
   if ((OnFirefox && Build.MinFFVer < FirefoxBrowserVer.MinCssMinMax && firefoxVer_ < FirefoxBrowserVer.MinCssMinMax
         || OnEdge || OnChrome && Build.MinCVer < BrowserVer.MinCssMinMax && chromeVer_ < BrowserVer.MinCssMinMax)
-      && width > (((options.m! - VomnibarNS.PixelData.MarginH) / VomnibarNS.PixelData.WindowSizeX + 3.5) | 0)) {
+      && width > (options.m! - VomnibarNS.PixelData.MarginH + 3) / VomnibarNS.PixelData.WindowSizeX) {
     style.left = `calc(50% - ${options.m! / 2}px)`
   } else {
     toggleClass_s(box!, "O2", !canUseVW)
@@ -312,8 +312,10 @@ const refreshKeyHandler = (): void => {
       style.left = ""
     }
   }
-  topVH > 6400 / screenHeight && (style.top = topVH.toFixed(1) + (canUseVW ? "vh" : "%"))
-  style.height = math.ceil(maxOutHeight / docZoom_) + "px"
+  style.top = topVH > 6400 / screenHeight ? topVH.toFixed(1) + (canUseVW ? "vh" : "%") : ""
+  if (status !== Status.Showing) {
+    style.height = math.ceil(maxOutHeight / docZoom_) + "px"
+  }
   ; (!OnFirefox && WithDialog && dialog_non_ff || options.e) && setupExitOnClick(kExitOnClick.vomnibar)
   if (url != null) {
     url = options.url = url || options.u

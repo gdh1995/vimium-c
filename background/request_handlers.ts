@@ -312,7 +312,7 @@ set_reqH_([
           , keyword: exOut.keyword_ ?? request.o.k })
       replaceForwardedOptions(request.f)
       set_cRepeat(1)
-    } else if (request.r !== true) {
+    } else if (request.r !== 9) {
       return
     } else if (get_cOptions<any>() == null
         || (get_cOptions<kBgCmd.showVomnibar>() as SafeObject as SafeObject & CmdOptions[kFgCmd.vomnibar]
@@ -325,7 +325,7 @@ set_reqH_([
       return
     }
     set_cPort(port)
-    showVomnibar(inner)
+    showVomnibar(!!inner)
   },
   /** kFgReq.omni: */ (request: FgReq[kFgReq.omni], port: Port): void => {
     if (isNotVomnibarPage(port, false)) { return }

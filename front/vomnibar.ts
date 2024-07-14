@@ -103,7 +103,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     if (Build.MinCVer < BrowserVer.MinEnsuredChildFrameUseTheSameDevicePixelRatioAsParent
         && (Build.BTypes === BrowserType.Chrome as number
             || Build.BTypes & BrowserType.Chrome && a.browser_ === BrowserType.Chrome)) {
-      a.onInnerWidth_(Math.min(options.w * a.panelWidth_ + PixelData.MarginH * options.z, a.maxWidthInPixel_) / scale)
+      a.onInnerWidth_(Math.min(options.w * a.panelWidth_ + PixelData.MarginH * options.z, a.maxWidthInPixel_ * options.z) / scale)
     } else {
       a.onInnerWidth_(Math.min(options.w * a.panelWidth_ + PixelData.MarginH, a.maxWidthInPixel_))
     }
@@ -117,6 +117,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
              + GlobalConsts.MaxScrollbarWidth)
         ) / a.itemHeight_), a.maxMatches_));
     a.mode_.r = max;
+    a.height_ = +a.isActive_
     a.preInit_ && a.preInit_(options.t)
     if (Build.BTypes !== BrowserType.Firefox as number) {
       a.docSt_.zoom = dz > 1 ? dz + "" : "";
@@ -174,7 +175,6 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   },
 
   isActive_: false,
-  firstly_: 1 as BOOL,
   options_: null as never as VomnibarNS.ContentOptions,
   inputText_: "",
   lastQuery_: null as string | null,
@@ -270,7 +270,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     fromContent ||
     VPort_ && VPort_.post_({ H: kFgReq.nextFrame, t: Frames.NextType.current, o: !a.doEnter_, k: a.lastKey_ })
     el.blur() // in case of a wrong IME state on Chrome 107 on v1.99.6
-    a.bodySt_.visibility = "hidden"
+    a.bodySt_.display = "none"
     a.blurred_()
     Build.MinCVer < BrowserVer.MinStyleSrcInCSPNotBreakUI && Build.BTypes & BrowserType.Chrome
         ? a.docSt_.zoom = "" : a.docSt_.cssText = ""
@@ -288,7 +288,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     a.afterHideTimer_ && cancelAnimationFrame(a.afterHideTimer_);
     a.timer_ && clearTimeout(a.timer_);
     a.afterHideTimer_ = a.timer_ = 0
-    if (a.height_) {
+    if (a.height_ && !a.isActive_) {
       a.onHidden_();
     }
   },
@@ -331,9 +331,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     a.useInput_ = a.showing_ = false;
     a.isHttps_ = a.baseHttps_;
     a.mode_.q = a.lastQuery_ = input && input.trim().replace(a.spacesRe_, " ");
-    a.height_ = 0;
-    a.AfterHide_() // clear afterHideTimer_
     a.isActive_ = true;
+    a.AfterHide_() // clear afterHideTimer_
     // also clear @timer
     a.update_(0)
     if (a.init_) { a.init_(); }
@@ -1223,10 +1222,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     a.isSelOriginal_ = true;
     a.ParseCompletions_(a.completions_)
     a.renderItems_(a.completions_, list);
-    if (!oldH) {
-      a.firstly_ ? setTimeout(() => { Vomnibar_.bodySt_.visibility = "" }, 17, a.firstly_ = 0)
-          : a.bodySt_.visibility = ""
-    }
+    if (!oldH) { a.bodySt_.display = "" }
     a.toggleInputMode_()
     if (Build.BTypes === BrowserType.Firefox as number
         || Build.BTypes & BrowserType.Firefox && a.browser_ & BrowserType.Firefox) {
@@ -1250,8 +1246,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       a.toggleAlt_()
       a.onUpdate_ = null
     }
-    height > oldH ? a.postUpdate_()
-        : requestAnimationFrame((): void => { height !== oldH && VPort_.postToOwner_(msg); Vomnibar_.postUpdate_() })
+    height >= oldH ? a.postUpdate_()
+        : requestAnimationFrame((): void => { VPort_.postToOwner_(msg); Vomnibar_.postUpdate_() })
   },
   postUpdate_ (): void {
     let func: typeof Vomnibar_.onUpdate_;
