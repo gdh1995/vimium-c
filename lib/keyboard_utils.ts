@@ -6,7 +6,7 @@ import {
 const DEL = kChar.delete, BSP = kChar.backspace, SP = kChar.space
 const ENT = kChar.enter, MDF = kChar.Modifier
 export { ENT as ENTER, MDF as MODIFIER }
-const keyNames_: readonly kChar[] = [SP, kChar.pageup, kChar.pagedown, kChar.end, kChar.home,
+const keyNames_: readonly kChar[/* 9 */] = [SP, kChar.pageup, kChar.pagedown, kChar.end, kChar.home,
     kChar.left, kChar.up, kChar.right, kChar.down]
 let keyIdCorrectionOffset_old_cr_ = OnChrome && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key
     ? Build.OS !== kBOS.MAC as number ? 185 as const : 300 as const : 0 as never as null
@@ -31,7 +31,8 @@ export function set_keyIdCorrectionOffset_old_cr_ (_newKeyIdCorrectionOffset: 18
 const _getKeyName = (event: Pick<KeyboardEvent, "key" | "keyCode" | "location">): kChar => {
   let i = event.keyCode, s: string | undefined
   return i > kKeyCode.space - 1 && i < kKeyCode.minNotDelete
-      ? i < kKeyCode.insert ? keyNames_[i - kKeyCode.space] : i > kKeyCode.insert ? DEL : kChar.insert
+      ? i < kKeyCode.minNotDown ? keyNames_[i - kKeyCode.space]
+        : i > kKeyCode.insert ? DEL : i < kKeyCode.insert ? kChar.None : kChar.insert
       : i < kKeyCode.minNotDelete || i === kKeyCode.metaKey
         || Build.OS & kBOS.MAC && i === (OnFirefox ? kKeyCode.os_ff_mac : kKeyCode.osRight_mac)
             && (Build.OS === kBOS.MAC as number || !os_)

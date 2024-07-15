@@ -739,9 +739,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       } else if (char === kChar.delete || char === kChar.tab) {
         a.keyResult_ = SimpleKeyResult.Suppress;
       } else {
-        action = char === kChar.bracketLeft ? AllowedActions.dismiss
-          : char === kChar.bracketRight ? AllowedActions.toggle
-          : a.ctrlCharOrShiftKeyMap_[char] || AllowedActions.nothing;
+        action = (n !== kKeyCode.space || mainModifier === "c")
+            && a.ctrlCharOrShiftKeyMap_[char] || AllowedActions.nothing
       }
     }
     else if (mainModifier === "s") {
