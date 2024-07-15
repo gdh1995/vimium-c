@@ -160,8 +160,9 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     } else if (search === null) {
       url = VUtils_.decodeURL_(url).replace(<RegExpG> /\s$/g, "%20");
       if (!keyword && (<RegExpI> /^https?:\/\//i).test(url)) {
-        a.baseHttps_ = (url.charCodeAt(4) | kCharCode.CASE_DELTA) === kCharCode.s;
-        url = url.slice(a.baseHttps_ ? 0 : 7, url.indexOf("/", 8) === url.length - 1 ? -1 : void 0)
+        const isHttps = (url.charCodeAt(4) | kCharCode.CASE_DELTA) === kCharCode.s
+        url = url.slice(isHttps ? 0 : 7, url.indexOf("/", 8) === url.length - 1 ? -1 : void 0)
+        a.baseHttps_ = [isHttps, url.slice(isHttps ? 8 : 0).split("/", 1)[0]]
       }
       const sep = (<RegExpOne> /[?#]/).exec(url), sep_index = sep ? sep.index + 1 : 0
       if (sep_index && (<RegExpI> /%2f|%3a/i).test(url.slice(sep_index))) {
@@ -193,8 +194,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   maxPageNum_: Math.min(Math.max(3, (window.VomnibarMaxPageNum! | 0) || 10), 100),
   isEditing_: false,
   isInputComposing_: null as [left: number, right: number] | null,
-  baseHttps_: null as boolean | null,
-  isHttps_: null as boolean | null,
+  baseHttps_: null as [boolean, string] | null,
+  isHttps_: null as [boolean, string] | null,
   isSearchOnTop_: false,
   actionType_: ReuseType.Default as ReuseType | null,
   matchType_: CompletersNS.MatchType.Default,
@@ -414,7 +415,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     blurred && focused && a.input_.blur();
     const line = a.completions_[a.selection_] as SuggestionEx
     if (line.parsed_) {
-      return a._updateInput(line, line.parsed_);
+      a._didUpdateInput(line, line.parsed_)
+      return
     }
     (line as Partial<SuggestionEx>).https_ == null && (line.https_ = line.u.startsWith("https://"));
     if (line.e !== "history" && line.e !== "tab" && !(line.e === "search" && a.mode_.q.startsWith(":"))) {
@@ -422,7 +424,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         VUtils_.ensureText_(line);
         line.parsed_ = "";
       }
-      a._updateInput(line, line.t);
+      a._didUpdateInput(line, line.t)
       line.e === "math" && !blurred && a.input_.select();
       return;
     }
@@ -447,7 +449,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
         + search.k + " " + search.u + " " : Vomnibar_.resMode_ + line.t
     Vomnibar_.lastParsed_ = line.parsed_
     if (id === Vomnibar_.selection_) {
-      return Vomnibar_._updateInput(line, line.parsed_);
+      Vomnibar_._didUpdateInput(line, line.parsed_)
     }
   },
   toggleInput_ (): void {
@@ -461,16 +463,17 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     a.resMode_ && (str = str.slice(a.resMode_.length))
     str = str === (line.title || line.u) ? line.parsed_ || a.resMode_ + (line.title === line.t ? line.u : line.t)
         : a.resMode_ + (line.title && str === line.u ? line.title : str === line.t ? line.u : line.t)
-    return a._updateInput(line, str);
+    a._didUpdateInput(line, str)
   },
-  _updateInput (line: SuggestionEx, str: string): void {
+  _didUpdateInput (line: SuggestionEx, str: string): void {
     const maxW = str.length * 10, tooLong = maxW > innerWidth - PixelData.AllHNotInput;
     if (Vomnibar_.input_.value !== str) {
       Vomnibar_.input_.value = str
       if (line.e === "domain") { Vomnibar_.input_.select() }
     }
     tooLong && (Vomnibar_.input_.scrollLeft = maxW);
-    Vomnibar_.isHttps_ = line.https_ && str === line.t;
+    Vomnibar_.isHttps_ = str !== line.t || !line.u.includes("://") ? null
+        : [line.https_, line.u.split("://")[1].split("/", 1)[0]]
     Vomnibar_.isEditing_ = str !== line.parsed_ || line.parsed_ === line.t;
   },
   updateSelection_ (sel: number): void {
@@ -981,7 +984,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     itemSed = sed2 ? { r: true, k: sed2 + "" } : null, itemKeyword = options.itemKeyword, field = options.itemField,
     action = a.actionType_ ?? (options.newtab ? ReuseType.newFg : ReuseType.current), https = a.isHttps_,
     navReq: Req.fg<kFgReq.openUrl> | null = useItem && item.s != null && !itemSed && !itemKeyword
-        ? null : { H: kFgReq.openUrl, f: false, r: action, h: useItem ? null : https,
+        ? null : { H: kFgReq.openUrl, f: false, r: action,
+      h: useItem ? null : https && ("." + item.u.split("/", 1)[0]).endsWith("." + https[1]) ? https[0] : null,
       u: field && useItem ? field in item ? item[field as keyof typeof item] + "" : "" : item.u,
       o: { i: options.incognito,
            s: useItem ? itemSed || { r: false, k: "" } : typeof inputSed === "object" ? inputSed instanceof Array
