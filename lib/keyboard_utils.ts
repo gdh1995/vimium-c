@@ -6,7 +6,8 @@ import {
 const DEL = kChar.delete, BSP = kChar.backspace, SP = kChar.space
 const ENT = kChar.enter, MDF = kChar.Modifier
 export { ENT as ENTER, MDF as MODIFIER }
-const keyNames_: readonly kChar[/* 9 */] = [SP, kChar.pageup, kChar.pagedown, kChar.end, kChar.home,
+/** readonly kChar[9] */
+const keyNames_: readonly kChar[] = [SP, kChar.pageup, kChar.pagedown, kChar.end, kChar.home,
     kChar.left, kChar.up, kChar.right, kChar.down]
 let keyIdCorrectionOffset_old_cr_ = OnChrome && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key
     ? Build.OS !== kBOS.MAC as number ? 185 as const : 300 as const : 0 as never as null
