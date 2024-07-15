@@ -291,6 +291,7 @@ declare namespace MediaNS {
     InvalidMedia = 0,
     WaitToTest,
     NotWatching,
+    _mask = ""
   }
 }
 

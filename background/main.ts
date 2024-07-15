@@ -58,7 +58,7 @@ set_onInit_(((): void => {
       }
       settings_.postUpdate_("exclusionListenHash")
       settings_.postUpdate_("vomnibarOptions")
-      if (!Build.MV3) { // media watchers should be setup after vomnibarOptions
+      { // media watchers should be setup after vomnibarOptions
         settings_.postUpdate_("autoDarkMode")
         settings_.postUpdate_("autoReduceMotion")
       }

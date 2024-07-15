@@ -212,7 +212,10 @@ interface BgVomnibarSpecialReq {
 type ValidBgVomnibarReq = keyof BgVomnibarSpecialReq | kBgReq.injectorRun | /** to keep bg alive */ kBgReq.showHUD
 interface FullBgReq extends BgReq, BgVomnibarSpecialReq {}
 
-declare const enum kTeeTask { CopyImage = 1, ShowImage = 2, Paste = 3, Download = 4, Copy = 5, DrawAndCopy = 9 }
+declare const enum kTeeTask {
+  CopyImage = 1, ShowImage = 2, Paste = 3, Download = 4, Copy = 5, DrawAndCopy = 9,
+  updateMedia = 10,
+}
 interface BaseTeeTask {
   /** task enum */ t: kTeeTask
   /** serializable data */ s: any
@@ -226,6 +229,7 @@ interface TeeTasks {
   [kTeeTask.CopyImage]: { s: ImageToCopy, d: Blob }
   [kTeeTask.Download]: { s: ImageToCopy, d: null }
   [kTeeTask.DrawAndCopy]: { s: ImageToCopy, d: Blob }
+  [kTeeTask.updateMedia]: { s: string[], d: null }
 }
 
 declare const enum kBgCmd {

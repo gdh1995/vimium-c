@@ -312,7 +312,7 @@ optionsInitAll_ = function (): void {
   let useDarkQuery = true
   let darkMedia: MediaQueryList | null = matchMedia("(prefers-color-scheme: dark)")
   const onChange = (): void => {
-    if (Build.MV3 || OnFirefox && (Build.MinFFVer >= FirefoxBrowserVer.MinMediaQueryListenersWorkInBg
+    if (OnFirefox && (Build.MinFFVer >= FirefoxBrowserVer.MinMediaQueryListenersWorkInBg
           || CurFFVer_ > FirefoxBrowserVer.MinMediaQueryListenersWorkInBg - 1)) { /* empty */ }
     else if (!useDarkQuery || !darkOpt.saved_) { /* empty */ }
     else { void post_(kPgReq.updateMediaQueries) }

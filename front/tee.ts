@@ -74,6 +74,12 @@
             } as ValidMouseEventInit)
             a.dispatchEvent(mouseEvent)
           })
+        case kTeeTask.updateMedia:
+          if (Build.MV3) {
+            const obj = serialized.map(i => i ? matchMedia(i).matches : false)
+            onFinish(obj as any)
+          }
+          return
         }
       }
       switch (taskId) {

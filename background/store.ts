@@ -29,7 +29,7 @@ export const CurCVer_: BrowserVer = !OnChrome ? BrowserVer.assumedVer
       && (tmpBrand = brands!.find(i => i.brand.includes("Chromium")))
       && parseInt(tmpBrand.version) > BrowserVer.MinMaybe$navigator$$userAgentData - 1
     ? parseInt(tmpBrand.version)
-    : (Build.MinCVer <= BrowserVer.FlagFreezeUserAgentGiveFakeUAMajor ? ((): BrowserVer => {
+    : (!Build.MV3 && Build.MinCVer <= BrowserVer.FlagFreezeUserAgentGiveFakeUAMajor ? ((): BrowserVer => {
       const ver = navigator.userAgent!.match(<RegExpOne> /\bChrom(?:e|ium)\/(\d+)/)
       return !ver ? BrowserVer.assumedVer : +ver[1] === BrowserVer.FakeUAMajorWhenFreezeUserAgent
           && matchMedia("(prefers-color-scheme)").matches ? BrowserVer.FlagFreezeUserAgentGiveFakeUAMajor

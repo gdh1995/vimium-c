@@ -630,16 +630,6 @@ void settings_.ready_.then((): void => {
   }, 100)
 })
 
-if (!Build.MV3) {
-  updateHooks_.autoDarkMode = updateHooks_.autoReduceMotion = (value: 0 | 1 | 2 | boolean
-      , keyName: "autoReduceMotion" | "autoDarkMode"): void => {
-    const key = keyName.length > 12 ? MediaNS.kName.PrefersReduceMotion : MediaNS.kName.PrefersColorScheme;
-    value = typeof value === "boolean" ? value ? 2 : 0 : value
-    MediaWatcher_.listen_(key, value);
-    MediaWatcher_.update_(key, 0, value === 2 ? null : value > 0)
-  }
-}
-
 updateHooks_.vomnibarOptions = (options: SettingsNS.BackendSettings["vomnibarOptions"] | null): void => {
   const defaultOptions = settings_.defaults_.vomnibarOptions,
   payload = omniPayload_
@@ -672,7 +662,7 @@ updateHooks_.vomnibarOptions = (options: SettingsNS.BackendSettings["vomnibarOpt
     options.styles = newStyles
   }
   let finalStyles = styles instanceof Array ? styles.join(" ") : styles
-  if (OnFirefox && isHighContrast_ff_ && !(<RegExpOne> /(^|\s)high-contrast(\s|$)/).test(finalStyles)) {
+  if (OnFirefox && !Build.MV3 && isHighContrast_ff_ && !(<RegExpOne> /(^|\s)high-contrast(\s|$)/).test(finalStyles)) {
     finalStyles += " high-contrast"
   }
   (settingsCache_ as SettingsNS.SettingsWithDefaults).vomnibarOptions = isSame ? defaultOptions : options!
@@ -680,15 +670,13 @@ updateHooks_.vomnibarOptions = (options: SettingsNS.BackendSettings["vomnibarOpt
   payload.i = queryInterval
   payload.s = sizes
   payload.t = finalStyles
-  if (!Build.MV3) {
-    MediaWatcher_.update_(MediaNS.kName.PrefersReduceMotion, 1)
-    MediaWatcher_.update_(MediaNS.kName.PrefersColorScheme, 1)
-  }
+  MediaWatcher_.update_(MediaNS.kName.PrefersReduceMotion, 1)
+  MediaWatcher_.update_(MediaNS.kName.PrefersColorScheme, 1)
   settings_.broadcastOmniConf_({
     n: maxMatches,
     i: queryInterval,
     s: sizes,
-    t: finalStyles
+    t: payload.t
   })
   vomnibarBgOptions_.actions = actions.split(" ")
   const sizes2 = sizes.split(",")

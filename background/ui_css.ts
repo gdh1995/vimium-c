@@ -1,7 +1,8 @@
 import {
   findCSS_, innerCSS_, omniPayload_, set_findCSS_, set_innerCSS_, CurCVer_, CurFFVer_, IsEdg_, omniConfVer_,
   OnChrome, OnEdge, OnFirefox, isHighContrast_ff_, set_isHighContrast_ff_, bgIniting_, CONST_, set_helpDialogData_,
-  settingsCache_, updateHooks_, storageCache_, installation_,contentConfVer_, contentPayload_, lastVisitTabTime_
+  settingsCache_, updateHooks_, storageCache_, installation_,contentConfVer_, contentPayload_, lastVisitTabTime_,
+  runOnTee_
 } from "./store"
 import { fetchFile_, nextConfUpdate, spacesRe_ } from "./utils"
 import { getFindCSS_cr_, set_getFindCSS_cr_ } from "./browser"
@@ -233,6 +234,16 @@ export const mergeCSS = (css2Str: string, action: MergeAction | "userDefinedCss"
   }
 }
 
+interface BaseMediaQueryList {
+  media: string
+  matches: boolean
+  onchange: ((event: Event) => void) | null
+}
+
+const matchMedia_: (media: string) => BaseMediaQueryList = !Build.MV3 ? matchMedia : (media): BaseMediaQueryList => {
+  return { media, matches: false, onchange: null }
+}
+
 export const MediaWatcher_ = {
   watchers_: [
     (OnChrome && Build.MinCVer >= BrowserVer.MinMediaQuery$PrefersReducedMotion)
@@ -241,7 +252,7 @@ export const MediaWatcher_ = {
     (OnChrome && Build.MinCVer >= BrowserVer.MinMediaQuery$PrefersColorScheme)
       && (OnFirefox && Build.MinFFVer >= FirefoxBrowserVer.MinMediaQuery$PrefersColorScheme)
     ? MediaNS.Watcher.NotWatching : MediaNS.Watcher.WaitToTest
-  ] as { [k in MediaNS.kName]: MediaNS.Watcher | MediaQueryList } & Array<MediaNS.Watcher | MediaQueryList>,
+  ] as Array<MediaNS.Watcher & number | BaseMediaQueryList>,
   get_ (key: MediaNS.kName): boolean | null {
     let watcher = MediaWatcher_.watchers_[key];
     return typeof watcher === "object" ? watcher.matches : null;
@@ -251,15 +262,20 @@ export const MediaWatcher_ = {
     let a = MediaWatcher_, watchers = a.watchers_, cur = watchers[key],
     name = !key ? "prefers-reduced-motion" as const : "prefers-color-scheme" as const;
     if (cur === MediaNS.Watcher.WaitToTest && doListen) {
-      watchers[key] = cur = matchMedia(`(${name})`).matches ? MediaNS.Watcher.NotWatching
+      watchers[key] = cur = (Build.MV3 || matchMedia_(`(${name})`).matches) ? MediaNS.Watcher.NotWatching
           : MediaNS.Watcher.InvalidMedia;
     }
     if (doListen && cur === MediaNS.Watcher.NotWatching) {
-      const query = matchMedia(`(${name}: ${!key ? "reduce" : "dark"})`);
+      const query = matchMedia_(`(${name}: ${!key ? "reduce" : "dark"})`);
       query.onchange = a._onChange;
       watchers[key] = query;
       if (_mediaTimer === 0 || _mediaTimer === -2) {
-        _mediaTimer = setInterval(MediaWatcher_.RefreshAll_, GlobalConsts.MediaWatchInterval)
+        if (Build.MV3) {
+          _mediaTimer = -2
+          MediaWatcher_.resume_mv3_()
+        } else {
+          _mediaTimer = setInterval(MediaWatcher_.RefreshAll_, GlobalConsts.MediaWatchInterval)
+        }
       }
     } else if (!doListen && typeof cur === "object") {
       cur.onchange = null;
@@ -271,15 +287,16 @@ export const MediaWatcher_ = {
     }
   },
   update_ (this: void, key: MediaNS.kName, embed?: 1 | 0, rawMatched?: boolean | null): void {
-    type ObjWatcher = Exclude<typeof watcher, number>;
-    let watcher = MediaWatcher_.watchers_[key], isObj = typeof watcher === "object";
+    const watcher = MediaWatcher_.watchers_[key]
+    const isObj = typeof watcher === "object"
+    let watcher2 = watcher
     if (!hasReliableWatchers && OnFirefox && embed == null && isObj) {
-      let watcher2 = matchMedia((watcher as ObjWatcher).media);
-      watcher2.onchange = (watcher as ObjWatcher).onchange;
-      (watcher as ObjWatcher).onchange = null;
-      MediaWatcher_.watchers_[key] = watcher = watcher2;
+      watcher2 = matchMedia_(watcher.media);
+      watcher2.onchange = watcher.onchange;
+      watcher.onchange = null
+      MediaWatcher_.watchers_[key] = watcher2;
     }
-    const finalMatched: boolean = isObj ? (watcher as ObjWatcher).matches : rawMatched != null ? rawMatched
+    const finalMatched: boolean = isObj ? (watcher as BaseMediaQueryList).matches : rawMatched != null ? rawMatched
         : (key === MediaNS.kName.PrefersReduceMotion ? settingsCache_.autoReduceMotion
             : settingsCache_.autoDarkMode) === 1
     setMediaState_(key, finalMatched, embed ? 9 : 1)
@@ -290,6 +307,16 @@ export const MediaWatcher_ = {
         clearInterval(_mediaTimer)
         _mediaTimer = -2
       }
+    }
+    if (Build.MV3) {
+      if ((Build.MV3 && Build.MinCVer < BrowserVer.MinOffscreenAPIs && CurCVer_ < BrowserVer.MinOffscreenAPIs)) {
+        return
+      }
+      const args = MediaWatcher_.watchers_.map(i => typeof i === "object" ? i.media : "")
+      if (args.join("")) {
+        void runOnTee_(kTeeTask.updateMedia, args, null).then(MediaWatcher_._onAsyncResults_mv3)
+      }
+      return
     }
     for (let arr = MediaWatcher_.watchers_, i = arr.length; 0 <= --i; ) {
       let watcher = arr[i];
@@ -306,7 +333,17 @@ export const MediaWatcher_ = {
       _mediaTimer = setInterval(MediaWatcher_.RefreshAll_, GlobalConsts.MediaWatchInterval)
     }, 0)
   },
-  _onChange (this: MediaQueryList): void {
+  _onAsyncResults_mv3 (rawRet: unknown): void {
+    const ret = rawRet as boolean[]
+    for (let i = 0; i < MediaWatcher_.watchers_.length; i++) {
+      const watcher = MediaWatcher_.watchers_[i]
+      if (typeof watcher === "object" && watcher.matches !== ret[i]) {
+        watcher.matches = ret[i]
+        MediaWatcher_.update_(i)
+      }
+    }
+  },
+  _onChange (this: BaseMediaQueryList): void {
     if (!hasReliableWatchers) {
       _mediaTimer > 0 && clearInterval(_mediaTimer)
       _mediaTimer = -1
@@ -347,6 +384,14 @@ export const setMediaState_ = (key: MediaNS.kName, matched: boolean, broadcast: 
   } else if (!broadcast) {
     omni_port!.postMessage({ N: kBgReq.omni_updateOptions, d: { t: styles }, v: omniConfVer_ })
   }
+}
+
+updateHooks_.autoDarkMode = updateHooks_.autoReduceMotion = (value: 0 | 1 | 2 | boolean
+      , keyName: "autoReduceMotion" | "autoDarkMode"): void => {
+    const key = keyName.length > 12 ? MediaNS.kName.PrefersReduceMotion : MediaNS.kName.PrefersColorScheme;
+    value = typeof value === "boolean" ? value ? 2 : 0 : value
+    MediaWatcher_.listen_(key, value);
+    MediaWatcher_.update_(key, 0, value === 2 ? null : value > 0)
 }
 
 OnChrome && set_getFindCSS_cr_(((sender: Frames.Sender): FindCSS => {

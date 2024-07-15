@@ -28,6 +28,7 @@ import C = kBgCmd
 const DEBUG_OFFSCREEN: BOOL | boolean = false
 let _lastOffscreenWndId = 0
 let _offscreenFailed = false
+let _offscreenLoading = false
 
 set_runOnTee_(((task, serializable, data): Promise<boolean | string> => {
   if (Build.MV3 && task === kTeeTask.Paste && OnChrome && serializable >= 0) {
@@ -68,15 +69,17 @@ set_runOnTee_(((task, serializable, data): Promise<boolean | string> => {
     if (offscreenPort_) { /* empty */ }
     else if (!Build.NDEBUG && DEBUG_OFFSCREEN) {
       Windows_.create({ url: CONST_.OffscreenFrame_ }, (wnd): void => { _lastOffscreenWndId = wnd.id })
-    } else {
+    } else if (!_offscreenLoading) {
       const all_reasons = browser_.offscreen.Reason
       const reasons: chrome.offscreen.kReason[] = [all_reasons.BLOBS, all_reasons.CLIPBOARD, all_reasons.MATCH_MEDIA
           ].filter(<T> (i: T | undefined): i is T => !!i)
+      _offscreenLoading = true
       browser_.offscreen.createDocument({
         reasons: reasons.length > 0 ? reasons : ["CLIPBOARD"], url: CONST_.OffscreenFrame_,
         justification: "read and write system clipboard",
       }, (): void => {
         const err = runtimeError_()
+        _offscreenLoading = false
         if (err) {
           _offscreenFailed = true
           resetOffscreenPort_()

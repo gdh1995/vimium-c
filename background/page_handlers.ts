@@ -107,7 +107,7 @@ const pageRequestHandlers_: {
     return [url, lastUrlType_]
   },
   /** kPgReq.updateMediaQueries: */ (): PgReq[kPgReq.updateMediaQueries][1] => {
-    Build.MV3 || MediaWatcher_.RefreshAll_()
+    MediaWatcher_.RefreshAll_()
   },
   /** kPgReq.whatsHelp: */ (): PgReq[kPgReq.whatsHelp][1] => {
     const cmdRegistry = keyToCommandMap_.get("?")
