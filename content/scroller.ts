@@ -521,7 +521,7 @@ export const scrollTick: VApiTy["k"] = (willContinue: 0 | 1 | 2 | 5): void => {
 
 export const beginScroll = (eventWrapper: 0 | Pick<HandlerNS.Event, "e">, key: string, keybody: kChar): void => {
     if (key.includes("s-") || key.includes("a-")) { return; }
-    const index = keyNames_.indexOf(keybody) as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8
+    const index = keyNames_.indexOf(keybody); // [0..8]
     (index > 2 || key === keybody) && eventWrapper && prevent_(eventWrapper.e);
     if (index > 4) {
       executeScroll((~index & 1) as BOOL, index < 7 ? -1 : 1, kScFlag.scBy)
