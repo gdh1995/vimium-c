@@ -780,8 +780,8 @@ body {
   color: var(--vc-item-caption-color);
 }
 
-@media (forced-colors: active), (-ms-high-contrast:active) {
+@media (forced-colors: active) {
   * {
-    border-radius:0 !important;
+    border-radius: 0 !important;
   }
 }

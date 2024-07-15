@@ -17,7 +17,7 @@ let html_: [string, string] | null = null
 let i18n_: Map<keyof typeof import("../i18n/zh/help_dialog.json"), string>
 const descriptions_ = new Map<kCName, [/** description */ string, /** parameters */ string]>()
 
-export const parseHTML = (template: string): [string, string] => {
+const parseHTML = (template: string): [string, string] => {
       const noShadow = !(Build.MV3 || (!OnChrome || Build.MinCVer >= BrowserVer.MinShadowDOMV0)
             && (!OnFirefox || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
             && (OnChrome || OnFirefox))
@@ -43,8 +43,12 @@ export const parseHTML = (template: string): [string, string] => {
           head = head.replace(<RegExpG> /[#.][A-Z][^,{};]*[,{]/g, "#VimiumUI $&");
         }
       }
+    if (OnChrome && Build.MinCVer < BrowserVer.MinForcedColorsMode
+        && IsEdg_ && CurCVer_ < BrowserVer.MinForcedColorsMode) {
+      head = head.replace(<RegExpG> /forced-colors/g, "-ms-high-contrast")
+    }
       body = body.replace(<RegExpG & RegExpSearchable<1>> /\$(\w+)/g, (_, s): string => i18n_.get(s as "misc") ?? s)
-      const consts = BgUtils_.safer_<Dict<string>>({
+    const consts = BgUtils_.safer_<Dict<string>>({
       homePage: CONST_.HomePage_,
       version: CONST_.VerName_,
       release: convertToUrl_("vimium://release"),
@@ -56,9 +60,9 @@ export const parseHTML = (template: string): [string, string] => {
       browserHelp: OnFirefox ? GlobalConsts.FirefoxHelp as string
           : OnChrome && IsEdg_ ? GlobalConsts.EdgHelp
           : GlobalConsts.ChromeHelp
-      });
-      body = body.replace(<RegExpSearchable<1>> /\{\{(\w+)}}/g, (_, group: string) => consts[group] || _);
-      return [head, body]
+    })
+    body = body.replace(<RegExpSearchable<1>> /\{\{(\w+)}}/g, (_, group: string) => consts[group] || _)
+    return [head, body]
 }
 
 export const render_ = (isOptionsPage: boolean, showNames: boolean | null | undefined

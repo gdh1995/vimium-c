@@ -1321,7 +1321,10 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       const key = (style.id !== "time" ? " " : "") + style.id + " ", isCustom = key === " custom "
       const found = isCustom || omniStyles.includes(key)
       if (style.dataset.media) {
-        style.media = found ? "" : style.dataset.media
+        style.media = found ? "" : Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinForcedColorsMode
+            && Vomnibar_.isEdg_ && Vomnibar_.browserVer_ < BrowserVer.MinForcedColorsMode
+            ? style.dataset.media.replace("forced-colors", "-ms-high-contrast")
+            : style.dataset.media
       } else {
         style.sheet!.disabled = !found;
       }

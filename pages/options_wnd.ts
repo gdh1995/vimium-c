@@ -87,7 +87,6 @@ let optionsInit1_ = function (): void {
   }
 
   document.addEventListener("keyup", onKeyUp)
-
   delayBinding_("[data-check]", "input", function onCheck(): void {
     for (const el of $$("[data-check]")) {
       el.removeEventListener("input", onCheck)
@@ -290,6 +289,14 @@ let optionsInit1_ = function (): void {
 optionsInitAll_ = function (): void {
   optionsInit1_()
   optionsInit1_ = optionsInitAll_ = null as never
+
+  if (OnChrome && Build.MinCVer < BrowserVer.MinForcedColorsMode
+      && IsEdg_ && CurCVer_ < BrowserVer.MinForcedColorsMode) {
+    const hcSt = document.createElement("style")
+    hcSt.media = "(-ms-high-contrast: active)"
+    hcSt.textContent = "* { border-radius: 0 !important; }"
+    nextTick_((el): void => { document.head!.appendChild(el) }, hcSt)
+  }
 
   !(Build.OS & kBOS.MAC) || Build.OS !== kBOS.MAC as number && PageOs_ ||
   nextTick_((el): void => { el.textContent = "Cmd" }, $("#Ctrl"))
