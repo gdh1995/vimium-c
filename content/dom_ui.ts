@@ -10,7 +10,7 @@ import {
   CLK, frameElement_, runJS_, isStyleVisible_, rangeCount_, getAccessibleSelectedNode, removeEl_s,
   appendNode_s, append_not_ff, setClassName_s, isNode_, contains_s, setOrRemoveAttr_s, textContent_s, inputSelRange,
   parentNode_unsafe_s, setDisplaying_s, getRootNode_mounted, singleSelectionElement_unsafe, isHTML_, HTMLElementProto,
-  getDirectionOfNormalSelection, showPicker_, htmlTag_,
+  getDirectionOfNormalSelection, showPicker_, htmlTag_, hasTag_,
 } from "../lib/dom_utils"
 import {
   bZoom_, dScale_, getZoom_, wdZoom_, boundingRect_, prepareCrop_, getClientRectsForAreas_, getVisibleBoundingRect_,
@@ -622,8 +622,8 @@ export const filterOutInert = (hints: Hint[]): void => {
 }
 
 export const onToggle = (event: Event & { [property in "newState" | "oldState"]?: "open" | "closed" }): void => {
-  const newState = event.newState
-  if (event.isTrusted && newState !== event.oldState) {
+  const newState = event.newState, target = event.target as Node
+  if (event.isTrusted && isNode_(target, kNode.ELEMENT_NODE) && !hasTag_("details", target)) {
     hasPopover_ = max_(hasPopover_ & 1, hasPopover_ + (newState! > "o" ? 2 : -2))
     if (root_ && hasPopover_ > 0) {
       adjustUI()

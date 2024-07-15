@@ -224,10 +224,12 @@ const _onOmniConnect = (port: Frames.Port, type: PortType, isOmniUrl: boolean): 
 
 const onOmniDisconnect = (port: Port): void => {
   const ref = framesForOmni_, i = ref.lastIndexOf(port)
-  if (i === ref.length - 1) {
-    --ref.length
-  } else if (i >= 0) {
-    ref.splice(i, 1)
+  if (i >= 0) {
+    if (i === ref.length - 1) {
+      --ref.length
+    } else {
+      ref.splice(i, 1)
+    }
   }
   return runtimeError_()
 }
@@ -569,7 +571,7 @@ const tryToKeepAlive = (rawNotFromInterval: BOOL): KKeep | void => {
   if (isFromInterval) {
     for (let port of framesForOmni_) {
       if (port.s.flags_ & Frames.Flags.OldEnough) {
-        const doesRelease = port.s.flags_ !== curTabId_
+        const doesRelease = port.s.tabId_ !== curTabId_
         ; (Build.MV3 && !OnFirefox || doesRelease) && port.postMessage({ N: kBgReq.omni_refresh, d: doesRelease })
       } else {
         (port.s.flags_ satisfies Frames.Flags) |= Frames.Flags.OldEnough
