@@ -31,7 +31,10 @@ export function set_keyIdCorrectionOffset_old_cr_ (_newKeyIdCorrectionOffset: 18
 const _getKeyName = (event: Pick<KeyboardEvent, "key" | "keyCode" | "location">): kChar => {
   let i = event.keyCode, s: string | undefined
   return i > kKeyCode.space - 1 && i < kKeyCode.minNotDelete
-      ? i < kKeyCode.minNotDown ? keyNames_[i - kKeyCode.space]
+      ? i < kKeyCode.minNotDown
+        ? i < kKeyCode.space + 1 && (Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key
+            && Build.BTypes & BrowserType.Chrome ? (s = event.key) && s.length > 1 : (s = event.key!).length > 1)
+          ? Lower(s!) as kChar.space | kChar.groupnext : keyNames_[i - kKeyCode.space]
         : i > kKeyCode.insert ? DEL : i < kKeyCode.insert ? kChar.None : kChar.insert
       : i < kKeyCode.minNotDelete || i === kKeyCode.metaKey
         || Build.OS & kBOS.MAC && i === (OnFirefox ? kKeyCode.os_ff_mac : kKeyCode.osRight_mac)

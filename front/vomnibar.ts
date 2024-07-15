@@ -498,7 +498,9 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       ? Build.OS !== kBOS.MAC as number ? 185 as const : 300 as const : 0 as never as null,
   _getKeyName (event: Pick<KeyboardEvent, "key" | "keyCode" | "location">): kChar {
     let i = event.keyCode, s: string | undefined
-    return i > kKeyCode.space - 1 && i < kKeyCode.minNotDelete ? Vomnibar_._keyNames![i - kKeyCode.space]
+    return i > kKeyCode.space - 1 && i < kKeyCode.minNotDelete
+        ? i < kKeyCode.space + 1 && (s = event.key) && s.length > 1 ? s.toLowerCase() as kChar.space
+          : Vomnibar_._keyNames[i - kKeyCode.space]
         : i < kKeyCode.minNotDelete || i === kKeyCode.metaKey
           || Build.OS & kBOS.MAC && i === (Build.BTypes === BrowserType.Firefox as number
                 || Build.BTypes & BrowserType.Firefox && Vomnibar_.browser_ === BrowserType.Firefox

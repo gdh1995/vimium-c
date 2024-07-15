@@ -635,7 +635,7 @@ declare const enum KeyStat {
 }
 declare const enum kChar {
   INVALID = " ", EMPTY = "",
-  hash = "#", minNotCommentHead = "$",
+  hash = "#", minNotCommentHead = "$", groupnext = "groupnext",
   space = "space", pageup = "pageup", pagedown = "pagedown",
   end = "end", home = "home", left = "left", up = "up", right = "right", down = "down",
   insert = "insert", delete = "delete",
