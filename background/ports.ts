@@ -300,11 +300,15 @@ const _safeRefreshPort = (port: Port): void | /** failed */ 1 => {
     port.onDisconnect.removeListener(onDisconnect)
     port.postMessage({ N: kBgReq.refreshPort })
   } catch {
+    safeDisconnect(port)
+    return 1
+  }
+}
+
+const safeDisconnect = (port: Port): void => {
     try {
       port.disconnect()
     } catch {}
-    return 1
-  }
 }
 
 export const OnFreeze = (_: unknown, port: Port): void => {
@@ -569,12 +573,24 @@ const tryToKeepAlive = (rawNotFromInterval: BOOL): KKeep | void => {
     _timeoutToTryToKeepAliveOnce_mv3_non_ff = 0
   }
   if (isFromInterval) {
-    for (let port of framesForOmni_) {
-      if (port.s.flags_ & Frames.Flags.OldEnough) {
+    for (let i = framesForOmni_.length; 0 <= --i; ) {
+      const port = framesForOmni_[i]
+      const flags = port.s.flags_
+      if (flags & Frames.Flags.OldEnough) {
         const doesRelease = port.s.tabId_ !== curTabId_
-        ; (Build.MV3 && !OnFirefox || doesRelease) && port.postMessage({ N: kBgReq.omni_refresh, d: doesRelease })
+        if (Build.MV3 && !OnFirefox || doesRelease) {
+          // send only once, because the page may be freezed so not respond on this message
+          if (doesRelease) {
+            (port.s.flags_ satisfies Frames.Flags) = flags | Frames.Flags.ResReleased
+            safeDisconnect(port)
+            framesForOmni_.splice(i, 1)
+          } else if (!(flags & Frames.Flags.Refreshing)) {
+            (port.s.flags_ satisfies Frames.Flags) = flags | Frames.Flags.Refreshing
+            port.postMessage({ N: kBgReq.omni_refresh })
+          }
+        }
       } else {
-        (port.s.flags_ satisfies Frames.Flags) |= Frames.Flags.OldEnough
+        (port.s.flags_ satisfies Frames.Flags) = flags | Frames.Flags.OldEnough
       }
     }
   }

@@ -207,7 +207,7 @@ interface BgVomnibarSpecialReq {
     /** delta */ d: Partial<SelectValueType<SettingsNS.AllVomnibarItems>>;
   } & ConfVersionReq
   [kBgReq.omni_runTeeTask]: Pick<BaseTeeTask, "t" | "s">
-  [kBgReq.omni_refresh]: { /** destroy */ d: boolean }
+  [kBgReq.omni_refresh]: {}
 }
 type ValidBgVomnibarReq = keyof BgVomnibarSpecialReq | kBgReq.injectorRun | /** to keep bg alive */ kBgReq.showHUD
 interface FullBgReq extends BgReq, BgVomnibarSpecialReq {}

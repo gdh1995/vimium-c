@@ -1766,6 +1766,8 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
             ? !e.isTrusted : e.isTrusted === false)) { return; }
     Vomnibar_.isActive_ = false;
     Vomnibar_.timer_ > 0 && clearTimeout(Vomnibar_.timer_);
+    VPort_._port?.disconnect()
+    VPort_._port = null
     VPort_.postToOwner_({ N: VomnibarNS.kFReq.unload });
   }
 },
@@ -2044,12 +2046,22 @@ VPort_ = {
   postToOwner_: null as never as <K extends keyof VomnibarNS.FReq> (this: void
       , msg: VomnibarNS.FReq[K] & VomnibarNS.Msg<K>) => void | 1,
   post_<K extends keyof FgReq> (request: FgReq[K] & Req.baseFg<K>): void {
+    if (VPort_._port) {
+      try {
+        VPort_._port.postMessage<K>(request)
+        return
+      } catch {
+        VPort_._port = null as never;
+      }
+    }
     try {
-      (VPort_._port || VPort_.connect_(PortType.omnibar | PortType.reconnect)).postMessage<K>(request);
+      VPort_.connect_(PortType.omnibar | PortType.reconnect)
     } catch {
       VPort_ = null as never;
       this.postToOwner_({ N: VomnibarNS.kFReq.broken });
+      return
     }
+    VPort_._port!.postMessage<K>(request)
   },
   _Listener<T extends ValidBgVomnibarReq> (this: void, response: Req.bg<T>): void {
     const name = response.N;
@@ -2059,8 +2071,8 @@ VPort_ = {
     name === kBgReq.omni_returnFocus ? VPort_.postToOwner_({ N: VomnibarNS.kFReq.focus, l: response.l }) :
     name === kBgReq.omni_toggleStyle ? Vomnibar_.toggleStyle_(response) :
     name === kBgReq.omni_updateOptions ? Vomnibar_.updateOptions_(response.d, response.v) :
-    name === kBgReq.omni_refresh ? !Vomnibar_.isActive_ && response.d ? Vomnibar_.OnPageHide_()
-        : Build.MV3 ? (VPort_._port!.disconnect(), VPort_.connect_(PortType.omnibar | PortType.reconnect)) : 0 :
+    name === kBgReq.omni_refresh
+        ? Build.MV3 ? (VPort_._port!.disconnect(), VPort_.connect_(PortType.omnibar | PortType.reconnect)) : 0 :
     name === kBgReq.injectorRun || name === kBgReq.showHUD ? 0 :
     0;
   },
@@ -2072,7 +2084,10 @@ VPort_ = {
     name === VomnibarNS.kCReq.hide ? Vomnibar_.hide_(1) :
     0;
   },
-  _ClearPort (this: void): void { VPort_._port = null; },
+  _ClearPort (this: void): void {
+    VPort_._port = null
+    Build.MV3 && !Vomnibar_.isActive_ && Vomnibar_.OnPageHide_()
+  },
   connect_ (type: PortType): FgPort {
     type |= VPort_._confVersion << PortType.OFFSET_SETTINGS
     const data = { name: VCID_ ? PortNameEnum.Prefix + type + (PortNameEnum.Delimiter + BuildStr.Commit)
