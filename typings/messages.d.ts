@@ -12,7 +12,8 @@ declare const enum kTip {
   /* 71: */ noLinks, exitForIME, linkRemoved, notImg,
   /* 75: */ hoverScrollable, ignorePassword, noNewToCopy, downloaded, paused,
   /* 80: */ onTopNormal, noMatchFor, inVisualMode, noUsableSel, loseSel,
-  /* 85: */ isWithRel, forcedColors, editableSelector, removeCurScript, removeEventScript,
+  /* 85: */ isWithRel, forcedColors, editableSelector,
+      removeCurScript, removeEventScript, // also used in ../gulpfile.js#patchExtendClick
   /* 90: */ mayNotANestedFrame, cssUrl, newClickableClasses, oldClickableClasses, clickableRoles,
   /* 95: */ invisibleHintText, notMatchedHintText, metaKeywordsForMobile, css0d01OrDPI, visibleElementsInScopeChildren,
   /* 100: */ voidJS, nonLocalhostRe, scrollable, buttonOrA, closableClasses,

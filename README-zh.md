@@ -11,19 +11,19 @@
 [![Gitee 收藏](https://gitee.com/gdh1995/vimium-c/badge/star.svg?theme=dark
   )](https://gitee.com/gdh1995/vimium-c/stargazers)
 
-[![Firefox 63+](https://img.shields.io/amo/v/vimium-c@gdh1995.cn?logo=Firefox%20Browser&logoColor=white&label=Firefox%2063%2B&labelColor=FF7139
+[![Firefox 101+](https://img.shields.io/amo/v/vimium-c@gdh1995.cn?logo=Firefox%20Browser&logoColor=white&label=Firefox%20101%2B&labelColor=FF7139
   )](https://addons.mozilla.org/firefox/addon/vimium-c/?src=external-readme)
 [![用户数](https://img.shields.io/amo/users/vimium-c@gdh1995.cn?logo=Firefox%20Browser&logoColor=white&label=用户数&labelColor=FF7139
   )](https://addons.mozilla.org/firefox/addon/vimium-c/?src=external-readme)
 [![评分](https://img.shields.io/amo/rating/vimium-c@gdh1995.cn?logo=Firefox%20Browser&logoColor=white&label=评分&labelColor=FF7139&color=blue
   )](https://addons.mozilla.org/firefox/addon/vimium-c/reviews/?src=external-readme)
-[![Edge 79+](https://img.shields.io/badge/dynamic/json?logo=Microsoft%20Edge&label=Edge%2079%2B&prefix=v&query=%24.version&url=https%3A%2F%2Fmicrosoftedge.microsoft.com%2Faddons%2Fgetproductdetailsbycrxid%2Faibcglbfblnogfjhbcmmpobjhnomhcdo
+[![Edge 109+](https://img.shields.io/badge/dynamic/json?logo=Microsoft%20Edge&label=Edge%20109%2B&prefix=v&query=%24.version&url=https%3A%2F%2Fmicrosoftedge.microsoft.com%2Faddons%2Fgetproductdetailsbycrxid%2Faibcglbfblnogfjhbcmmpobjhnomhcdo
   )](https://microsoftedge.microsoft.com/addons/detail/aibcglbfblnogfjhbcmmpobjhnomhcdo)
 [![用户数](https://img.shields.io/badge/dynamic/json?logo=Microsoft%20Edge&label=用户数&query=%24.activeInstallCount&url=https%3A%2F%2Fmicrosoftedge.microsoft.com%2Faddons%2Fgetproductdetailsbycrxid%2Faibcglbfblnogfjhbcmmpobjhnomhcdo
   )](https://microsoftedge.microsoft.com/addons/detail/aibcglbfblnogfjhbcmmpobjhnomhcdo)
 [![评分](https://img.shields.io/badge/dynamic/json?logo=Microsoft%20Edge&label=评分&query=%24.averageRating&url=https%3A%2F%2Fmicrosoftedge.microsoft.com%2Faddons%2Fgetproductdetailsbycrxid%2Faibcglbfblnogfjhbcmmpobjhnomhcdo
   )](https://microsoftedge.microsoft.com/addons/detail/aibcglbfblnogfjhbcmmpobjhnomhcdo)
-[![Chrome 47+](https://img.shields.io/chrome-web-store/v/hfjbmagddngcpeloejdejnfgbamkjaeg?logo=Google%20Chrome&logoColor=white&label=Chrome%2047%2B&labelColor=4285F4&color=critical
+[![Chrome 109+](https://img.shields.io/chrome-web-store/v/hfjbmagddngcpeloejdejnfgbamkjaeg?logo=Google%20Chrome&logoColor=white&label=Chrome%20109%2B&labelColor=4285F4&color=critical
   )](https://chrome.google.com/webstore/detail/vimium-c-all-by-keyboard/hfjbmagddngcpeloejdejnfgbamkjaeg)
 [![用户数](https://img.shields.io/chrome-web-store/users/hfjbmagddngcpeloejdejnfgbamkjaeg?logo=Google%20Chrome&logoColor=white&label=用户数&labelColor=4285F4&color=critical
   )](https://chrome.google.com/webstore/detail/vimium-c-all-by-keyboard/hfjbmagddngcpeloejdejnfgbamkjaeg)
@@ -39,7 +39,8 @@ Vimium C 是一款开源、免费的键盘增强类浏览器扩展，支持为�
 只要有键盘，您就能自由点击网页中的链接和按钮、选择和复制文字和网址，也能轻松操作浏览器标签页，
 还能在一个便捷的搜索框中随意搜索历史记录、收藏夹和打开的标签页等等。
 
-Vimium C 支持 Firefox 63+、新版 Microsoft Edge 和 Chrome 47+ 等现代浏览器。
+Vimium C 支持 Firefox 101+、新版 Microsoft Edge 109+ 和 Chrome 109+ 等现代浏览器；
+如果从源码重新编译，还可以支持 Chromium 32~108 和 Firefox 63~100。
 
 本项目的前身是[<span style="color: #2f508e;">Vim</span>ium](https://github.com/philc/vimium
   )。和其相比，除了大量细节改进、新增很多命令参数外，Vimium C 添加了完整的 <span style="color: #a55e18;">中文

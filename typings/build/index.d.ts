@@ -1,6 +1,6 @@
 declare const enum Build {
-  MinCVer = 102, // minimum Chrome version
-  MinFFVer = 102, // minimum Firefox version
+  MinCVer = 121, // minimum Chrome version
+  MinFFVer = 119, // minimum Firefox version
   BTypes = 1, // default browser types: only BrowserType.Chrome - MV3 of Firefox 115 doesn't support service worker yet
   OS = 7, // mac = 1 << 0, linux = 1 << 1, win = 1 << 2
   MV3 = 1,

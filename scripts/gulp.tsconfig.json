@@ -9,8 +9,8 @@
     "typescript": "typescript/lib/typescript"
   },
   "build": { // for [ local, dist ]
-    "MinCVer": [ 102, 102 ], // keep dist to be 47 : the release version
-    "MinFFVer": [ 102, 89 ],
+    "MinCVer": [ 121, 109 ], // keep dist to be 47 : the release version
+    "MinFFVer": [ 119, 101 ],
     "BTypes": [ 1, 1 ], // [ Chrome | Firefox, Chrome ]
     "OS": [ 7, 7 ],
     "DetectAPIOnFirefox": [1, 0],

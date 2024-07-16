@@ -4,6 +4,15 @@ Release Notes of Vimium C
 ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 说明文档: https://gitee.com/gdh1995/vimium-c#readme , https://github.com/gdh1995/vimium-c/blob/master/README-zh.md .
 
+#### v2.11.1
+* Update the minimum version of Chromium to 109, and the one of Firefox to 101
+
+#### v2.11
+* Upgrade to the [Manifest V3](https://developer.chrome.com/docs/extensions/develop/migrate/what-is-mv3)
+  web-extension platform
+* Update the minimum version of Chromium to 102
+* tons of changes and some are not backward compatible
+
 #### v1.99.993
 * Marks: fix the mistake that `.prefix` was enabled by default and matches wrong URLs (breaking)
   * now align with philc/Vimium's in common situations
