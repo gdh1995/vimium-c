@@ -225,16 +225,6 @@ export const ec_main_not_ff = (Build.BTypes !== BrowserType.Firefox as number ? 
     alert("Vimium C: Error! should not run extend_click twice")
     return
   }
-  if (!kInjectManually) {
-    if (grabBackFocus) {
-      dispatchEvent(new Event(kVOnClick1)) // it seems MS Edge may get a wrong order between dynamic and static scripts
-      setupEventListener(0, kVOnClick1, onClick);
-      box || OnDocLoaded_(() => { // check CSP script-src or JS-disabled-in-CS
-        box || execute(kContentCmd.Destroy)
-      })
-    }
-    return
-  }
 /**
  * Note:
  *   should not create HTML/SVG elements before document gets ready,
@@ -246,11 +236,21 @@ export const ec_main_not_ff = (Build.BTypes !== BrowserType.Firefox as number ? 
  * * https://cs.chromium.org/chromium/src/third_party/blink/renderer/core/dom/document.cc?g=0&q=Document::CreateRawElement&l=946
  * Vimium issue: https://github.com/philc/vimium/pull/1797#issuecomment-135761835
  */
-  script = createElement_("script")
-  if ((script as Element as ElementToHTML).lang == null || !isAlive_) {
+  script = createElement_(kInjectManually ? "script" : "p" as never)
+  if ((script as Element as ElementToHTML).lang == null || kInjectManually && !isAlive_) {
     set_createElement_(doc.createElementNS.bind(doc, VTr(kTip.XHTML) as "http://www.w3.org/1999/xhtml"
         ) as typeof createElement_)
-    isFirstTime != null && OnDocLoaded_(extendClick); // retry after a while, using a real <script>
+    kInjectManually && isFirstTime != null && OnDocLoaded_(extendClick) // retry after a while, using a real <script>
+    return
+  }
+  if (!kInjectManually) {
+    if (grabBackFocus) {
+      dispatchEvent(new Event(kVOnClick1)) // it seems MS Edge may get a wrong order between dynamic and static scripts
+      setupEventListener(0, kVOnClick1, onClick);
+      box || OnDocLoaded_(() => { // check CSP script-src or JS-disabled-in-CS
+        box || execute(kContentCmd.Destroy)
+      })
+    }
     return
   }
 
