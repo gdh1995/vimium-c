@@ -2,7 +2,7 @@ import {
   chromeVer_, doc, esc, fgCache, isTop, set_esc, VTr, safer, timeout_, loc_, weakRef_not_ff, weakRef_ff, deref_,
   keydownEvents_, Stop_, suppressCommonEvents, setupEventListener, vApi, locHref, isTY, min_, onWndFocus, clearTimeout_,
   OnChrome, OnFirefox, OnEdge, firefoxVer_, safeCall, os_, abs_, Lower, timeStamp_, isEnabled_, set_onWndFocus,
-  inherited_, findOptByHost
+  inherited_, findOptByHost, splitEntries_
 } from "../lib/utils"
 import {
   isHTML_, hasTag_, createElement_, querySelectorAll_unsafe_, SafeEl_not_ff_, docEl_unsafe_, MDW, CLK, derefInDoc_,
@@ -393,22 +393,23 @@ set_contentCommands_([
     const editable = insert_Lock_() && getEditableType_<0>(raw_insert_lock!) > EditableType.MaxNotEditableElement
         ? raw_insert_lock as TextElement : 0, html = isHTML_();
     (editable || options.dom) ? timeout_((): void => {
-      let commands = isTY(options.run) ? options.run.split(<RegExpG> /,\s*/g) : options.run || []
+      let commands = splitEntries_<string, true>(options.run, ",")
       let sel: Selection | undefined, absCount = abs_(count), firstCmd = 0, neverMatchCond: BOOL = 1
       let cur: string | 0, offset: number, dir: boolean
       let start: number, end: number | null, start0: number, rawOffset: number | null
       while (0 < absCount--) {
         for (var i = 0; i < commands.length; i += 3) {
-          var cmd = commands[i], a1 = commands[i + 1] || "", a2 = commands[i + 2] // eslint-disable-line no-var
+          var cmd = commands[i].trim(), rawA1 = commands[i + 1] || "", a1 = rawA1.trim()
+            , rawA2 = commands[i + 2] || ""
           if (cmd === "exec") {
-            html && execCommand(a1, doc, commands[i + 2])
+            html && execCommand(a1, doc, rawA2)
           } else if (cmd === "replace") {
             rawOffset = editable && textOffset_(editable)
             start = rawOffset || 0, end = editable && textOffset_(editable, 1)
             end = end != null ? end : (editable as TextElement).value.length
             cur = 0, offset = 0, start0 = start
             html && execCommand(kInsertText, doc
-                , a1.replace(<RegExpG & RegExpSearchable<0>> /[$%]s|(?:%[a-f\d]{2})+/gi, (s, ind): string => {
+                , rawA1.replace(<RegExpG & RegExpSearchable<0>> /[$%]s|(?:%[a-f\d]{2})+/gi, (s, ind): string => {
               if (s[1] !== "s") {
                 offset -= s.length
                 s = safeCall(decodeURIComponent, s) || s
@@ -421,7 +422,7 @@ set_contentCommands_([
                 return cur
               }
             }))
-            cur === 0 && (offset += a1.length, start += offset, end += offset)
+            cur === 0 && (offset += rawA1.length, start += offset, end += offset)
             editable === insert_Lock_() && rawOffset != null && inputSelRange(editable, start, end)
           } else if (cmd === "select") {
             const activeEl = findAnElement_(options, i > firstCmd ? 1 : count)[0]
@@ -429,7 +430,7 @@ set_contentCommands_([
                 : selectNode_(activeEl))
           } else if (sel = sel || getSelected(), cmd === "when" || cmd === "if") {
             firstCmd += 3
-            for (const cond of Lower((a1 + ";" + a2)) .split(<RegExpOne> /[;&+]/)) {
+            for (const cond of Lower((a1 + ";" + rawA2)) .split(<RegExpOne> /[;&+\s]+/)) {
               if (cond === "caret" || cond === "range" ? (cond > "r") === isSelARange(sel)
                   : cond === "input" || cond === "dom" ? (cond < "i") === !editable
                   : (<RegExpOne>/^(multi|single|one)/).test(cond) ? (cond < "o") === isSelMultiline(sel)
@@ -448,7 +449,7 @@ set_contentCommands_([
               collpaseSelection(sel, dir, 1)
             } else {
               // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-              modifySel(sel, cmd === "auto" ? isSelARange(sel) : cmd < kChar.f, dir, a2 as any)
+              modifySel(sel, cmd === "auto" ? isSelARange(sel) : cmd < kChar.f, dir, rawA2.trim() as any)
             }
           }
         }
