@@ -1531,7 +1531,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       st = Vomnibar_.styleEl_ = <HTMLStyleElement | null> document.querySelector("#custom")
         || document.createElement("style");
       st.id = "custom";
-      Vomnibar_.init_ || document.head!.appendChild(st);
+      st.parentNode || document.head!.appendChild(st)
     }
     st.textContent = css;
   },
