@@ -33,6 +33,12 @@ Vimium C requires these permissions:
 * **`storage`**: its syncing functionality is **not in use** by default. However, if you enable "`Sync settings with
   your current account for this browser`", Vimium C will require **`storage.sync`**, to sync your settings items with
   the browser account servers.
+* **`tabGroups`**: to follow and keep current tab groups during `moveTab*` commands and so on
+* **`cookies`**: (on Firefox only) to follow tab containers during moving tabs and opening URLs
+* **`downloads`**: to let your browser directly download some links
+* **`favicon`**: to show website icons on Vomnibar
+* **`scripting`**: to collect information about what items on webpages are clickable
+* **`search`**: to search for query words on Vomnibar using your browser's default search engine
 
 Note:
 * The "**browsing activity**" listed above actually includes a number of separate permissions: `tabs`, `<all_urls>` and
