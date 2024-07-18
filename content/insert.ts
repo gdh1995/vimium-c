@@ -39,7 +39,7 @@ let grabBackFocus: boolean | ((event: Event, target: LockableElement) => void) =
 let onExitSuppress: ((this: void) => void) | 0 | undefined
 let onWndBlur2: ((this: void) => void) | undefined | null
 let passAsNormal: BOOL = 0
-let readonlyFocused_: boolean | 0 | undefined
+let readonlyFocused_: 0 | 1 | -1 = 0
 
 export {
   lock_ as raw_insert_lock, insert_global_, passAsNormal, readonlyFocused_,
@@ -55,7 +55,7 @@ export function set_isHintingInput (_newIsHintingInput: BOOL): void { isHintingI
 export function set_grabBackFocus (_newGrabBackFocus: typeof grabBackFocus): void { grabBackFocus = _newGrabBackFocus }
 export function set_onWndBlur2 (_newOnBlur: typeof onWndBlur2): void { onWndBlur2 = _newOnBlur }
 export function set_passAsNormal (_newNormal: BOOL): void { passAsNormal = _newNormal }
-export function set_readonlyFocused_ (_newRoFocused: boolean): boolean { return readonlyFocused_ = _newRoFocused}
+export function set_readonlyFocused_ (_newRoFocused: 0 | 1 | -1): 0 | 1 | -1 { return readonlyFocused_ = _newRoFocused }
 // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
 
 export const insertInit = (doesGrab?: boolean | null, inLoading?: 1): void => {
@@ -211,6 +211,7 @@ export const exitInputHint = (): void => {
 export const resetInsertAndScrolling = (): void => { // force terser to mark it inline
   setNewScrolling(insert_last_ = insert_last2_ = lock_ = insert_global_ = null), is_last_mutable = 1,
   exitGrab(), setupSuppress()
+  readonlyFocused_ > 0 && hudHide()
 }
 
 export const onFocus = (event: Event | FocusEvent): void => {
@@ -260,14 +261,6 @@ export const onFocus = (event: Event | FocusEvent): void => {
   if (type = getEditableType_<EventTarget>(target)) {
     if (grabBackFocus) {
       (grabBackFocus as Exclude<typeof grabBackFocus, boolean>)(event, target);
-    } else if (
-      editableParent = (type as number | boolean as EditableType) !== EditableType.ContentEditable
-          || OnChrome && Build.MinCVer < BrowserVer.Min$Element$$closest && chromeVer_ < BrowserVer.Min$Element$$closest
-          ? target
-          : OnFirefox ? target.closest!("[contenteditable]") satisfies Element | null as SafeElement | null
-          : SafeEl_not_ff_!(target.closest!("[contenteditable]")),
-      editableParent && testConfiguredSelector_<"ignoreReadonly">(editableParent, 0)) {
-      /* empty */
     } else {
       esc!(HandlerResult.Nothing)
       lock_ = target
@@ -283,10 +276,17 @@ export const onFocus = (event: Event | FocusEvent): void => {
           insert_last2_ = OnFirefox ? weakRef_ff(target, kElRef.lastEditable2) : weakRef_not_ff!(target)
         }
       }
-      readonlyFocused_ = (type as number | boolean as EditableType) > EditableType.MaxNotEditableElement
+      editableParent = (type as number | boolean as EditableType) !== EditableType.ContentEditable
+          || OnChrome && Build.MinCVer < BrowserVer.Min$Element$$closest && chromeVer_ < BrowserVer.Min$Element$$closest
+          ? target
+          : OnFirefox ? target.closest!("[contenteditable]") satisfies Element | null as SafeElement | null
+          : SafeEl_not_ff_!(target.closest!("[contenteditable]"))
+      readonlyFocused_ = editableParent && testConfiguredSelector_<"ignoreReadonly">(editableParent, 0) ? -1
+        : (type as number | boolean as EditableType) > EditableType.MaxNotEditableElement
           && editableParent && !isAriaFalse_(editableParent, kAria.readOnly)
           || (type as number|boolean as EditableType) > EditableType.MaxNotTextBox && (target as TextElement).readOnly
-      readonlyFocused_ && hudHide()
+        ? 1 : 0
+      readonlyFocused_ > 0 && hudHide()
     }
   }
 }
@@ -319,8 +319,8 @@ export const onBlur = (event: Event | FocusEvent): void => {
     if (inputHint && !isHintingInput && docHasFocus_()) {
       exitInputHint();
     }
+    readonlyFocused_ > 0 && hudHide()
   }
-  readonlyFocused_ && hudHide()
 }
 
 const onShadow = function (this: ShadowRoot, event: FocusEvent): void {

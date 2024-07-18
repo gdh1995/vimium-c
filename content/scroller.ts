@@ -632,7 +632,7 @@ export const getPixelScaleToScroll = (skipGetZoom?: 1): void => {
 
 const checkCurrent = (el: SafeElement | null): void => {
   let cur = derefInDoc_(currentScrolling)
-  if (cur ? cur !== el && isNotInViewport(cur) : currentScrolling) {
+  if (!cur || cur !== el && isNotInViewport(cur)) {
     const last = cur && cachedScrollable && deref_(cachedScrollable)
     const par = last && last !== cur && IsInDOM_(last, cur!) && !isNotInViewport(last) ? last : 0
     setNewScrolling(par || el)

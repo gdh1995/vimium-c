@@ -14,7 +14,7 @@ import { post_, runtimeConnect, runtime_port } from "./port"
 import { doExitOnClick_, removeSelection, toExitOnClick_ } from "./dom_ui"
 import {
   exitInsertMode, focusUpper, insert_global_, insert_Lock_, findNewEditable, passAsNormal, raw_insert_lock,
-  setupSuppress, suppressType,
+  setupSuppress, suppressType, readonlyFocused_,
 } from "./insert"
 import { keyIsDown as scroll_keyIsDown, onScrolls, scrollTick } from "./scroller"
 import { catchAsyncErrorSilently, evIDC_cr, lastHovered_, set_evIDC_cr, unhover_async } from "./async_dispatcher"
@@ -248,7 +248,8 @@ export const onKeydown = (event: KeyboardEventToPrevent): void => {
   if (eventWrapper.v) { action = checkKey(eventWrapper, eventWrapper.v) }
   if (action) { /* empty */ }
   else if (insert_global_
-      || (raw_insert_lock || /*#__NOINLINE__*/ findNewEditable()) && !suppressType && !passAsNormal) {
+      || (raw_insert_lock || /*#__NOINLINE__*/ findNewEditable()) && !suppressType && !passAsNormal
+          && readonlyFocused_ >= 0) {
     keyStr = key === kKeyCode.ime ? "" : mapKeyTypes & (insert_global_ && insert_global_.k
                 ? kMapKey.insertMode | kMapKey.plain : kMapKey.insertMode | kMapKey.plain_in_insert)
           || (insert_global_ ? insert_global_.k

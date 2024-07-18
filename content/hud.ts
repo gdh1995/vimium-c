@@ -89,7 +89,7 @@ export const hudHide = (info?: TimerType.fake | TimerType.noTimer | void): void 
       hudShow(kTip.raw, insert_global_.h)
   } else if (passAsNormal) {
       esc!(HandlerResult.RefreshPassAsNormal)
-  } else if (readonlyFocused_ && set_readonlyFocused_(!!raw_insert_lock) && !fgCache.h) {
+  } else if (readonlyFocused_ > 0 && set_readonlyFocused_(raw_insert_lock ? 1 : 0) && !fgCache.h) {
     hudShow(kTip.readOnly)
   }
   else if (!box) { /* empty */ }
