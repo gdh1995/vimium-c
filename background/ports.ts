@@ -298,8 +298,12 @@ const _safeRefreshPort = (port: Port): void | /** failed */ 1 => {
   (port.s.flags_ satisfies Frames.Flags) |= Frames.Flags.ResReleased
   try {
     port.onDisconnect.removeListener(onDisconnect)
+    port.onMessage.removeListener(onMessage)
     port.postMessage({ N: kBgReq.refreshPort })
-  } catch {
+  } catch (e: any) {
+    if (!Build.NDEBUG) {
+      console.log("Can not refresh port safely: " + (e.message || e))
+    }
     safeDisconnect(port)
     return 1
   }
@@ -312,6 +316,7 @@ const safeDisconnect = (port: Port): void => {
 }
 
 export const OnFreeze = (_: unknown, port: Port): void => {
+  (port.s.flags_ satisfies Frames.Flags) |= Frames.Flags.ResReleased
   port.onDisconnect.removeListener(onDisconnect)
   port.s.frameId_ || ((port.s.frameId_ as number) = 2)
   onDisconnect(port)
@@ -633,7 +638,7 @@ const tryToKeepAlive = (rawNotFromInterval: BOOL): KKeep | void => {
         && (portNum === 1 && !(frames.flags_ & Frames.Flags.HadIFrames) && ports[0] === frames.top_
              || ports.some(isNotPriviledged))
     if (Build.MV3 && !OnFirefox ? portNum : doesRelease) {
-      (!Build.MV3 || OnFirefox || doesRelease) && (frames.flags_ |= Frames.Flags.ResReleased)
+      (Build.MV3 && !OnFirefox && !doesRelease) || (frames.flags_ |= Frames.Flags.ResReleased)
       for (const i of mayRelease) { (i.s.flags_ satisfies Frames.Flags) |= Frames.Flags.ResReleased }
       listToRelease.push(frames)
     }
@@ -650,13 +655,14 @@ const tryToKeepAlive = (rawNotFromInterval: BOOL): KKeep | void => {
         Build.MV3 && !OnFirefox && typeOfFramesToKeep < KKeep.NormalFresh
             && (typeOfFramesToKeep = KKeep.NormalFresh, framesToKeep = frames)
         stillAlive.push(port)
-      } else if (!Build.MV3 || OnFirefox || doesRelease && (!hadIFrames || isNotPriviledged(port))) {
+      } else if ((!Build.MV3 || OnFirefox || doesRelease) && (!hadIFrames || isNotPriviledged(port))) {
         port.disconnect()
         port.s.frameId_ && (frames.flags_ |= Frames.Flags.HadIFrames)
       } else if (Build.MV3 && !OnFirefox) {
-        _safeRefreshPort(port) ? failed = 1 : !OnFirefox && typeOfFramesToKeep < KKeep.NormalRefreshed
+        _safeRefreshPort(port) ? failed = 1 : typeOfFramesToKeep < KKeep.NormalRefreshed
             && (typeOfFramesToKeep = KKeep.NormalRefreshed, framesToKeep = frames)
       } else {
+        port.s.flags_ ^= Frames.Flags.ResReleased
         stillAlive.push(port)
       }
     }
@@ -664,7 +670,7 @@ const tryToKeepAlive = (rawNotFromInterval: BOOL): KKeep | void => {
       console.log("free ports: tab=%o, release=%o, ports=%o, result.alive=%o @ %o", frames.cur_.s.tabId_, doesRelease
           , frames.ports_.length, stillAlive.length, Date.now() % 9e5)
     }
-    if (Build.MV3 && !OnFirefox && frames === guessedOneToKeep) { frames.flags_ &= ~Frames.Flags.ResReleased }
+    if (Build.MV3 && !OnFirefox && frames === framesToKeep) { frames.flags_ &= ~Frames.Flags.ResReleased }
     frames.ports_.length = 0
     Build.MV3 && !OnFirefox ? failed && /** never */ (stillAlive.forEach(_safeRefreshPort), refreshPorts_(frames, 1))
         : stillAlive.length && frames.ports_.push(...stillAlive)
