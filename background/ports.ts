@@ -22,6 +22,7 @@ const ALIVE_TIMEOUT_IF_NO_ACTION = 30_000
 const MAX_KEEP_ALIVE = Build.NDEBUG ? 5 : 2
 const DEBUG: BOOL | boolean = false
 
+const kAutoDisconnectPorts = Build.MV3 && !OnFirefox
 const kAliveIfOnlyAnyAction = Build.MV3 && OnChrome && (Build.MinCVer >= BrowserVer.MinBgWorkerAliveIfOnlyAnyAction
     || CurCVer_ > BrowserVer.MinBgWorkerAliveIfOnlyAnyAction - 1)
 let _timeoutToTryToKeepAliveOnce_mv3_non_ff = 0
@@ -182,7 +183,7 @@ const onDisconnect = (port: Port): void => {
     if (!(ref.flags_ & Frames.Flags.ResReleased)) {
       framesForTab_.delete(tabId)
     }
-    Build.MV3 && !OnFirefox && !kAliveIfOnlyAnyAction && tabId === lastKeptTabId_
+    kAutoDisconnectPorts && !kAliveIfOnlyAnyAction && tabId === lastKeptTabId_
         && tryToKeepAliveIfNeeded_mv3_non_ff(tabId)
   } else if (port === ref.cur_) {
     ref.cur_ = ports[0]
@@ -572,8 +573,8 @@ export const getParentFrame = (tabId: number, curFrameId: number, level: number)
 }
 
 const tryToKeepAlive = (rawNotFromInterval: BOOL): KKeep | void => {
-  const now = performance.now(), isFromInterval = !(Build.MV3 && !OnFirefox && rawNotFromInterval)
-  if (Build.MV3 && !OnFirefox && !kAliveIfOnlyAnyAction && _timeoutToTryToKeepAliveOnce_mv3_non_ff) {
+  const now = performance.now(), isFromInterval = !(kAutoDisconnectPorts && rawNotFromInterval)
+  if (kAutoDisconnectPorts && !kAliveIfOnlyAnyAction && _timeoutToTryToKeepAliveOnce_mv3_non_ff) {
     isFromInterval && clearTimeout(_timeoutToTryToKeepAliveOnce_mv3_non_ff)
     _timeoutToTryToKeepAliveOnce_mv3_non_ff = 0
   }
@@ -583,7 +584,7 @@ const tryToKeepAlive = (rawNotFromInterval: BOOL): KKeep | void => {
       const flags = port.s.flags_
       if (flags & Frames.Flags.OldEnough) {
         const doesRelease = port.s.tabId_ !== curTabId_
-        if (Build.MV3 && !OnFirefox || doesRelease) {
+        if (kAutoDisconnectPorts || doesRelease) {
           // send only once, because the page may be freezed so not respond on this message
           if (doesRelease) {
             (port.s.flags_ satisfies Frames.Flags) = flags | Frames.Flags.ResReleased
@@ -614,8 +615,8 @@ const tryToKeepAlive = (rawNotFromInterval: BOOL): KKeep | void => {
   const listToRelease: Frames.Frames[] = []
   framesForTab_.forEach((frames, tabId): void => {
     const ports = frames.ports_, portNum = ports.length
-    if ((!Build.MV3 || OnFirefox || typeOfFramesToKeep > KKeep.NormalWoPorts) && !portNum) { return }
-    if (Build.MV3 && !OnFirefox && (!typeOfFramesToKeep || portNum && typeOfFramesToKeep === KKeep.NormalWoPorts)) {
+    if ((!kAutoDisconnectPorts || typeOfFramesToKeep > KKeep.NormalWoPorts) && !portNum) { return }
+    if (kAutoDisconnectPorts && (!typeOfFramesToKeep || portNum && typeOfFramesToKeep === KKeep.NormalWoPorts)) {
       typeOfFramesToKeep = portNum ? KKeep.NormalWithPorts : KKeep.NormalWoPorts
       framesToKeep = frames
     }
@@ -628,7 +629,7 @@ const tryToKeepAlive = (rawNotFromInterval: BOOL): KKeep | void => {
       }
     }
     if (!mayRelease.length) {
-      if (Build.MV3 && !OnFirefox && typeOfFramesToKeep === KKeep.NormalWithPorts && portNum) {
+      if (kAutoDisconnectPorts && typeOfFramesToKeep === KKeep.NormalWithPorts && portNum) {
         typeOfFramesToKeep = KKeep.NormalFresh, framesToKeep = frames
       }
       return
@@ -637,8 +638,8 @@ const tryToKeepAlive = (rawNotFromInterval: BOOL): KKeep | void => {
     const doesRelease: boolean = visit < oldestToKeepAlive && tabId !== curTabId_
         && (portNum === 1 && !(frames.flags_ & Frames.Flags.HadIFrames) && ports[0] === frames.top_
              || ports.some(isNotPriviledged))
-    if (Build.MV3 && !OnFirefox ? portNum : doesRelease) {
-      (Build.MV3 && !OnFirefox && !doesRelease) || (frames.flags_ |= Frames.Flags.ResReleased)
+    if (kAutoDisconnectPorts ? portNum : doesRelease) {
+      kAutoDisconnectPorts && !doesRelease || (frames.flags_ |= Frames.Flags.ResReleased)
       for (const i of mayRelease) { (i.s.flags_ satisfies Frames.Flags) |= Frames.Flags.ResReleased }
       listToRelease.push(frames)
     }
@@ -646,19 +647,19 @@ const tryToKeepAlive = (rawNotFromInterval: BOOL): KKeep | void => {
   if (0 as BOOL) { framesToKeep = framesToKeep as Frames.Frames | null } // just to make tsc happy
   const guessedOneToKeep = framesToKeep
   for (const frames of listToRelease) {
-    const doesRelease = !Build.MV3 || OnFirefox
+    const doesRelease = !kAutoDisconnectPorts
         || !!(frames.flags_ & Frames.Flags.ResReleased) && frames !== guessedOneToKeep
     let hadIFrames = !!(frames.flags_ & Frames.Flags.HadIFrames) || frames.ports_.length > 1, failed: BOOL = 0
     const stillAlive: Port[] = []
     for (const port of frames.ports_) {
       if (!(port.s.flags_ & Frames.Flags.ResReleased)) {
-        Build.MV3 && !OnFirefox && typeOfFramesToKeep < KKeep.NormalFresh
+        kAutoDisconnectPorts && typeOfFramesToKeep < KKeep.NormalFresh
             && (typeOfFramesToKeep = KKeep.NormalFresh, framesToKeep = frames)
         stillAlive.push(port)
-      } else if ((!Build.MV3 || OnFirefox || doesRelease) && (!hadIFrames || isNotPriviledged(port))) {
+      } else if ((!kAutoDisconnectPorts || doesRelease) && (!hadIFrames || isNotPriviledged(port))) {
         port.disconnect()
         port.s.frameId_ && (frames.flags_ |= Frames.Flags.HadIFrames)
-      } else if (Build.MV3 && !OnFirefox) {
+      } else if (kAutoDisconnectPorts) {
         _safeRefreshPort(port) ? failed = 1 : typeOfFramesToKeep < KKeep.NormalRefreshed
             && (typeOfFramesToKeep = KKeep.NormalRefreshed, framesToKeep = frames)
       } else {
@@ -670,13 +671,13 @@ const tryToKeepAlive = (rawNotFromInterval: BOOL): KKeep | void => {
       console.log("free ports: tab=%o, release=%o, ports=%o, result.alive=%o @ %o", frames.cur_.s.tabId_, doesRelease
           , frames.ports_.length, stillAlive.length, Date.now() % 9e5)
     }
-    if (Build.MV3 && !OnFirefox && frames === framesToKeep) { frames.flags_ &= ~Frames.Flags.ResReleased }
+    if (kAutoDisconnectPorts && frames === framesToKeep) { frames.flags_ &= ~Frames.Flags.ResReleased }
     frames.ports_.length = 0
-    Build.MV3 && !OnFirefox ? failed && /** never */ (stillAlive.forEach(_safeRefreshPort), refreshPorts_(frames, 1))
+    kAutoDisconnectPorts ? failed && /** never */ (stillAlive.forEach(_safeRefreshPort), refreshPorts_(frames, 1))
         : stillAlive.length && frames.ports_.push(...stillAlive)
   }
   if (!Build.MV3) { return }
-  if (OnFirefox) { framesToKeep || saveRecency_ && saveRecency_(); return }
+  if (!kAutoDisconnectPorts) { framesToKeep || saveRecency_ && saveRecency_(); return }
   const newAliveTabId = framesToKeep ? framesToKeep.cur_.s.tabId_ : -1
   if (lastKeptTabId_ !== newAliveTabId) {
     if (!Build.NDEBUG && DEBUG) {
@@ -696,7 +697,7 @@ const tryToKeepAlive = (rawNotFromInterval: BOOL): KKeep | void => {
 }
 
 export const tryToKeepAliveIfNeeded_mv3_non_ff = (removedTabId: number): void => {
-  if (!(Build.MV3 && !OnFirefox)) { return }
+  if (!kAutoDisconnectPorts) { return }
   if (removedTabId !== lastKeptTabId_ || _timeoutToTryToKeepAliveOnce_mv3_non_ff) {
     return
   }
@@ -802,7 +803,7 @@ export const waitForPorts_ = (frames: Frames.Frames | undefined, checkCur?: bool
   return defer.promise_
 }
 
-if (Build.MV3 && !OnFirefox && kAliveIfOnlyAnyAction) {
+if (kAutoDisconnectPorts && kAliveIfOnlyAnyAction) {
   setInterval((): void => {
     if (++innerKeepAliveTick_ >= ((GlobalConsts.KeepAliveTime / (ALIVE_TIMEOUT_IF_NO_ACTION * 0.8)) | 0)) {
       return

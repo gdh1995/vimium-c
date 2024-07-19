@@ -15,7 +15,7 @@
   "browser_specific_settings": {
     "gecko": {
       "id": "vimium-c.dev@gdh1995.cn",
-      "strict_min_version": "62.0"
+      "strict_min_version": "119.0"
     }
   },
   "commands": {

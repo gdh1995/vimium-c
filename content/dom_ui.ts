@@ -428,7 +428,7 @@ export const moveSel_s_throwable = (element: LockableElement, action: SelectActi
       }
     }
     doesCollpase && collpaseSelection(getSelection_(), gotoEnd)
-    if ((type = getEditableType_<0>(element as SafeElement)) === EditableType.Input
+    if (getEditableType_<0>(element as SafeElement) === EditableType.Input
         && (!len && (str = (element as HTMLInputElement).autocomplete) && str !== "off"
             || (element as HTMLInputElement).list)) {
       showPicker_(element, EditableType.Input)
