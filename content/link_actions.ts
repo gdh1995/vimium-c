@@ -92,7 +92,7 @@ const accessElAttr = (isUrlOrText: 0 | 1 | 2): [string: string, isUserCustomized
   const format = dataset && hintOptions.access
   let el: SafeElement | null | undefined
   const cb = (_: string, i: string): string => i.split("||").reduce((v, j) => v || extractField(el!, j), "")
-  if (dataset && isUrlOrText && (dataset.vimText === "" || dataset.vimUrl === "")) {
+  if (dataset && isUrlOrText && (dataset.vimText != null || dataset.vimUrl != null)) {
     dispatchEvent_(clickEl, newEvent_("vimiumData"))
   }
   for (let accessor of format ? splitEntries_<string, true>(format, ",") : []) {

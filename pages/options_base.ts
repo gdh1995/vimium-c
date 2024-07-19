@@ -36,7 +36,7 @@ export interface KnownOptionsDataset extends KnownDataset {
   autoResize: keyof AllowedOptions // enum of option names
   delay: "" | "continue" | "event" // work type when delaying click events
   permission: "webNavigation" | "C76" | string // required permissions
-  href: `vimium://${string}`
+  vimUrl: `vimium://${string}`
 }
 export declare const enum kExclusionChange { NONE = 0, pattern = 1, passKeys = 2, mismatches = 4, deleted = 8 }
 

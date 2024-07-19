@@ -263,7 +263,7 @@ export const formatVimiumUrl_ = (fullPath: string, partly: boolean, vimiumUrlWor
   if (!(<RegExpOne> /\.\w+$/).test(path)) {
     path = path.toLowerCase();
     if ((tempStr = RedirectedUrls_[path]) != null) {
-      (path === "release" || path === "releases") && (tempStr += "#" + CONST_.VerCode_.replace(<RegExpG> /\D/g, ""))
+      (path === "release" || path === "releases") && (tempStr += "#v" + CONST_.VerCode_.replace(<RegExpG> /\D/g, ""))
       tempStr = path = !tempStr || tempStr[0] === "/" || tempStr[0] === "#"
         ? CONST_.HomePage_ + (tempStr.includes(".") ? "/blob/master" + tempStr : tempStr)
         : tempStr;

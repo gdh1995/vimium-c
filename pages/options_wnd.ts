@@ -189,20 +189,22 @@ let optionsInit1_ = function (): void {
     }, $("#tipForNoShadow"));
   }
 
-  delayBinding_("[data-href]", "mousedown", (): void => {
+  delayBinding_("[data-vim-url]", "mousedown", (): void => {
     document.onmouseover = null as never
     document.removeEventListener("vimiumData", FillDataHref)
-    for (const element of $$<HTMLAnchorElement & { dataset: KnownOptionsDataset }>("[data-href]")) {
+    for (const element of $$<HTMLAnchorElement & { dataset: KnownOptionsDataset }>("[data-vim-url]")) {
       element.onmousedown = null as never
-      void post_(kPgReq.convertToUrl, [element.dataset.href, Urls.WorkType.ConvertKnown]).then(([str]): void => {
-        element.removeAttribute("data-href")
+      void post_(kPgReq.convertToUrl, [element.dataset.vimUrl, Urls.WorkType.ConvertKnown]).then(([str]): void => {
+        element.removeAttribute("data-vim-url")
         element.href = str
+        element.target = "_blank"
+        element.rel = "noopener noreferrer"
       })
     }
   }, "on")
   const FillDataHref = (): void => {
     didBindEvent_("mousedown")
-    ; ($<HTMLElement>("[data-href]").onmousedown as () => void)()
+    ; ($<HTMLElement>("[data-vim-url]").onmousedown as () => void)()
   }
   document.onmouseover = FillDataHref
   document.addEventListener("vimiumData", FillDataHref)
