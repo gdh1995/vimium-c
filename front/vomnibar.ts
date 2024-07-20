@@ -1298,7 +1298,6 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   },
   onStyleUpdate_ (omniStyles: string): void {
     Vomnibar_.styles_ = omniStyles;
-    const docEl = document.documentElement as HTMLHtmlElement
     const body = document.body as HTMLBodyElement
     const dark = omniStyles.includes(" dark ")
     if (Build.BTypes & BrowserType.Firefox && Vomnibar_.options_.d && !omniStyles.includes(" ignore-filter ")) {
@@ -1317,6 +1316,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     Vomnibar_.showTime_ = !omniStyles.includes("time ") ? 0 : omniStyles.includes(" absolute-num-time ") ? 1
         : omniStyles.includes(" absolute-time ") ? 2 : 3
     Vomnibar_.updateQueryFlag_(CompletersNS.QueryFlags.ShowTime, Vomnibar_.showTime_ > 0);
+    let newClassName = ""
     // Note: should not use style[title], because "title" on style/link has special semantics
     // https://html.spec.whatwg.org/multipage/semantics.html#the-style-element
     const styles = document.querySelectorAll("style[id]")
@@ -1332,7 +1332,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       } else {
         style.sheet!.disabled = !found;
       }
-      isCustom || body.classList.toggle("has-" + style.id, found)
+      isCustom || found && (newClassName += " has-" + style.id)
       if (found) {
         omniStyles = omniStyles.replace(key, " ");
       }
@@ -1352,7 +1352,10 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       return ""
     })
     omniStyles = omniStyles.trim().replace(Vomnibar_.spacesRe_, " ");
-    docEl.className !== omniStyles && (docEl.className = omniStyles);
+    newClassName += " " + omniStyles
+    body.classList.contains("inactive") && (newClassName += " inactive")
+    newClassName = newClassName.trimLeft()
+    body.className !== newClassName && (body.className = newClassName);
     if (!!(Vomnibar_.mode_.f & CompletersNS.QueryFlags.MonospaceURL) !== monospaceURL) {
       Vomnibar_.updateQueryFlag_(CompletersNS.QueryFlags.MonospaceURL, monospaceURL);
       if (Vomnibar_.isActive_ && !Vomnibar_.init_) {
@@ -1477,7 +1480,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
           || Build.MinCVer < BrowserVer.MinRoundedBorderWidthIsNotEnsured
               && ver < BrowserVer.MinRoundedBorderWidthIsNotEnsured)
         || Build.BTypes & BrowserType.Edge
-            && (Build.BTypes === BrowserType.Edge as number || a.browser_ === BrowserType.Edge)) { // is old Chrome or Edge
+            && (Build.BTypes === BrowserType.Edge as number || a.browser_ === BrowserType.Edge)) {
       const css = document.createElement("style");
       css.textContent = Build.BTypes === BrowserType.Chrome as number
         || Build.BTypes & BrowserType.Chrome && a.browser_ === BrowserType.Chrome
