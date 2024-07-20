@@ -531,9 +531,9 @@ set_reqH_([
   },
   /** kFgReq.omniToggleMedia: */ (req: FgReq[kFgReq.omniToggleMedia], omni_port: Port): void => {
     if (!req.t) {
-      setMediaState_(MediaNS.kName.PrefersColorScheme, req.v, +(req.b satisfies boolean) as BOOL, omni_port)
+      setMediaState_(MediaNS.kName.PrefersColorScheme, req.v, req.b ? 2 : 9, omni_port)
     } else {
-      overrideCmdOptions<kBgCmd.toggleVomnibarStyle>({ enable: req.v }  )
+      overrideCmdOptions<kBgCmd.toggleVomnibarStyle>({ enable: req.v, forced: true }  )
       bgC_[kBgCmd.toggleVomnibarStyle](null as never, blank_)
     }
   },

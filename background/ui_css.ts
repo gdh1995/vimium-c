@@ -21,7 +21,7 @@ interface ParsedSections {
 let StyleCacheId_: string
 let findCSS_file_old_cr: FindCSS | null
 let hasReliableWatchers: boolean = OnFirefox && Build.MinFFVer >= FirefoxBrowserVer.MinMediaQueryListenersWorkInBg
-let _mediaTimer = hasReliableWatchers ? -1 : 0
+let _mediaTimer = !Build.MV3 && hasReliableWatchers ? -1 : 0
 
 export const reloadCSS_ = (action: MergeAction, knownCssStr?: string): SettingsNS.MergedCustomCSS | void => {
   if (action === MergeAction.virtual) {
@@ -237,19 +237,19 @@ export const mergeCSS = (css2Str: string, action: MergeAction | "userDefinedCss"
 interface BaseMediaQueryList {
   media: string
   matches: boolean
-  onchange: ((event: Event) => void) | null
+  onchange?: ((event: Event) => void) | null
 }
 
 const matchMedia_: (media: string) => BaseMediaQueryList = !Build.MV3 ? matchMedia : (media): BaseMediaQueryList => {
-  return { media, matches: false, onchange: null }
+  return { media, matches: false }
 }
 
 export const MediaWatcher_ = {
   watchers_: [
-    (OnChrome && Build.MinCVer >= BrowserVer.MinMediaQuery$PrefersReducedMotion)
+    Build.MV3 || (OnChrome && Build.MinCVer >= BrowserVer.MinMediaQuery$PrefersReducedMotion)
       || (OnFirefox && Build.MinFFVer >= FirefoxBrowserVer.MinMediaQuery$PrefersReducedMotion)
     ? MediaNS.Watcher.NotWatching : MediaNS.Watcher.WaitToTest,
-    (OnChrome && Build.MinCVer >= BrowserVer.MinMediaQuery$PrefersColorScheme)
+    Build.MV3 || (OnChrome && Build.MinCVer >= BrowserVer.MinMediaQuery$PrefersColorScheme)
       && (OnFirefox && Build.MinFFVer >= FirefoxBrowserVer.MinMediaQuery$PrefersColorScheme)
     ? MediaNS.Watcher.NotWatching : MediaNS.Watcher.WaitToTest
   ] as Array<MediaNS.Watcher & number | BaseMediaQueryList>,
@@ -259,57 +259,53 @@ export const MediaWatcher_ = {
   },
   listen_ (key: MediaNS.kName, listenType: 0 | 1 | 2): void {
     const doListen = listenType === 2
-    let a = MediaWatcher_, watchers = a.watchers_, cur = watchers[key],
+    let watchers = MediaWatcher_.watchers_, cur = watchers[key],
     name = !key ? "prefers-reduced-motion" as const : "prefers-color-scheme" as const;
-    if (cur === MediaNS.Watcher.WaitToTest && doListen) {
-      watchers[key] = cur = (Build.MV3 || matchMedia_(`(${name})`).matches) ? MediaNS.Watcher.NotWatching
+    if (!Build.MV3 && cur === MediaNS.Watcher.WaitToTest && doListen) {
+      watchers[key] = cur = matchMedia_(`(${name})`).matches ? MediaNS.Watcher.NotWatching
           : MediaNS.Watcher.InvalidMedia;
     }
     if (doListen && cur === MediaNS.Watcher.NotWatching) {
       const query = matchMedia_(`(${name}: ${!key ? "reduce" : "dark"})`);
-      query.onchange = a._onChange;
+      Build.MV3 || (query.onchange = MediaWatcher_._onChange)
       watchers[key] = query;
-      if (_mediaTimer === 0 || _mediaTimer === -2) {
+      if (!_mediaTimer) {
         if (Build.MV3) {
-          _mediaTimer = -2
-          MediaWatcher_.resume_mv3_()
+          MediaWatcher_.resume_()
         } else {
           _mediaTimer = setInterval(MediaWatcher_.RefreshAll_, GlobalConsts.MediaWatchInterval)
         }
       }
     } else if (!doListen && typeof cur === "object") {
-      cur.onchange = null;
+      Build.MV3 || (cur.onchange = null)
       watchers[key] = MediaNS.Watcher.NotWatching;
-      if ((_mediaTimer > 0 || _mediaTimer === -2) && watchers.every(i => typeof i !== "object")) {
-        _mediaTimer > 0 && clearInterval(_mediaTimer)
+      if (_mediaTimer > 0 && watchers.every(i => typeof i !== "object")) {
+        clearInterval(_mediaTimer)
         _mediaTimer = 0
       }
     }
   },
   update_ (this: void, key: MediaNS.kName, embed?: 1 | 0, rawMatched?: boolean | null): void {
-    const watcher = MediaWatcher_.watchers_[key]
-    const isObj = typeof watcher === "object"
-    let watcher2 = watcher
-    if (!hasReliableWatchers && OnFirefox && embed == null && isObj) {
-      watcher2 = matchMedia_(watcher.media);
-      watcher2.onchange = watcher.onchange;
+    let watcher = MediaWatcher_.watchers_[key]
+    if (!Build.MV3 && !hasReliableWatchers && OnFirefox && embed == null && typeof watcher === "object") {
       watcher.onchange = null
-      MediaWatcher_.watchers_[key] = watcher2;
+      watcher = matchMedia_(watcher.media)
+      watcher.onchange = MediaWatcher_._onChange
+      MediaWatcher_.watchers_[key] = watcher
     }
-    const finalMatched: boolean = isObj ? (watcher as BaseMediaQueryList).matches : rawMatched != null ? rawMatched
-        : (key === MediaNS.kName.PrefersReduceMotion ? settingsCache_.autoReduceMotion
-            : settingsCache_.autoDarkMode) === 1
-    setMediaState_(key, finalMatched, embed ? 9 : 1)
+    const finalMatched: boolean = typeof watcher === "object" ? watcher.matches : rawMatched != null ? rawMatched
+        : (key ? settingsCache_.autoDarkMode : settingsCache_.autoReduceMotion) === 1
+    setMediaState_(key, finalMatched, embed ? 0 : 1)
   },
   RefreshAll_ (this: void): void {
     if (_mediaTimer > 0) {
       if (performance.now() - lastVisitTabTime_ > 1000 * 60 * 4.5) {
         clearInterval(_mediaTimer)
-        _mediaTimer = -2
+        _mediaTimer = 0
       }
     }
     if (Build.MV3) {
-      if ((Build.MV3 && Build.MinCVer < BrowserVer.MinOffscreenAPIs && CurCVer_ < BrowserVer.MinOffscreenAPIs)) {
+      if (OnChrome && Build.MinCVer < BrowserVer.MinOffscreenAPIs && CurCVer_ < BrowserVer.MinOffscreenAPIs) {
         return
       }
       const args = MediaWatcher_.watchers_.map(i => typeof i === "object" ? i.media : "")
@@ -325,15 +321,15 @@ export const MediaWatcher_ = {
       }
     }
   },
-  resume_mv3_ (): void {
-    if (!Build.MV3 || _mediaTimer !== -2) { return }
-    _mediaTimer = -3
+  resume_ (): void {
+    if (_mediaTimer) { return }
+    _mediaTimer = -2
     setTimeout((): void => {
       MediaWatcher_.RefreshAll_()
       _mediaTimer = setInterval(MediaWatcher_.RefreshAll_, GlobalConsts.MediaWatchInterval)
     }, 0)
   },
-  _onAsyncResults_mv3 (rawRet: unknown): void {
+  _onAsyncResults_mv3: Build.MV3 ? (rawRet: unknown): void => {
     const ret = rawRet as boolean[]
     for (let i = 0; i < MediaWatcher_.watchers_.length; i++) {
       const watcher = MediaWatcher_.watchers_[i]
@@ -342,8 +338,8 @@ export const MediaWatcher_ = {
         MediaWatcher_.update_(i)
       }
     }
-  },
-  _onChange (this: BaseMediaQueryList): void {
+  } : 0 as never,
+  _onChange: Build.MV3 ? 0 as never : function (this: BaseMediaQueryList): void {
     if (!hasReliableWatchers) {
       _mediaTimer > 0 && clearInterval(_mediaTimer)
       _mediaTimer = -1
@@ -360,7 +356,8 @@ export const MediaWatcher_ = {
   }
 }
 
-export const setMediaState_ = (key: MediaNS.kName, matched: boolean, broadcast: 0 | 1 | 9, omni_port?: Port): void => {
+export const setMediaState_ = (key: MediaNS.kName, matched: boolean
+    , broadcast: 0 | 1 | 2 | 9, omni_port?: Port): void => {
   const payloadKey = key ? "d" : "m"
   const newPayloadVal = updatePayload_(payloadKey, matched)
   let styles: string = omniPayload_.t
@@ -370,19 +367,20 @@ export const setMediaState_ = (key: MediaNS.kName, matched: boolean, broadcast: 
     styles = matched ? exists ? styles : styles + toggled : extSt.replace(toggled, " ")
     styles = styles.trim().replace(spacesRe_, " ")
   }
-  if (contentPayload_[payloadKey] !== newPayloadVal) {
-    (contentPayload_ as Generalized<Pick<typeof contentPayload_, typeof payloadKey>>)[payloadKey] = newPayloadVal
-    broadcast < 9 && broadcast_({ N: kBgReq.settingsUpdate, d: [payloadKey] })
-  } else if (!broadcast) {
+  if (broadcast === 9) {
     for (const content_port of getFrames_(omni_port!)?.ports_ || []) {
       content_port.postMessage({ N: kBgReq.settingsUpdate, d: { [payloadKey]: newPayloadVal }, v: contentConfVer_ })
     }
-  }
-  if (styles !== omniPayload_.t) {
-    omniPayload_.t = styles
-    broadcast < 9 && broadcastOmniConf_({ t: styles })
-  } else if (!broadcast) {
     omni_port!.postMessage({ N: kBgReq.omni_updateOptions, d: { t: styles }, v: omniConfVer_ })
+    return
+  }
+  if (contentPayload_[payloadKey] !== newPayloadVal || broadcast === 2) {
+    (contentPayload_ as Generalized<Pick<typeof contentPayload_, typeof payloadKey>>)[payloadKey] = newPayloadVal
+    broadcast && broadcast_({ N: kBgReq.settingsUpdate, d: [payloadKey] })
+  }
+  if (styles !== omniPayload_.t || broadcast === 2) {
+    omniPayload_.t = styles
+    broadcast && broadcastOmniConf_({ t: styles })
   }
 }
 
@@ -428,7 +426,7 @@ void ready_.then((): void => {
     installation_ && installation_.then(details => details && reloadCSS_(MergeAction.rebuildWhenInit))
   }
   updateHooks_.userDefinedCss = mergeCSS
-  if (OnFirefox && Build.MinFFVer < FirefoxBrowserVer.MinMediaQueryListenersWorkInBg) {
+  if (!Build.MV3 && OnFirefox && Build.MinFFVer < FirefoxBrowserVer.MinMediaQueryListenersWorkInBg) {
     hasReliableWatchers = CurFFVer_ > FirefoxBrowserVer.MinMediaQueryListenersWorkInBg - 1
     _mediaTimer = hasReliableWatchers ? -1 : 0
   }

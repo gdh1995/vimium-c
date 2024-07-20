@@ -545,7 +545,7 @@ let lastSaveRecencyTime = 0
     }
     set_lastVisitTabTime_(now)
     set_curTabId_(tabId)
-    MediaWatcher_.resume_mv3_() // not block onActivated listener
+    MediaWatcher_.resume_() // not block onActivated listener
   }
   function maybeOnBgWndActiveTabChange(wnd: chrome.windows.Window): void {
     if (!wnd || !wnd.focused) { return runtimeError_() }
