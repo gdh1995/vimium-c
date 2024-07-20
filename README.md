@@ -17,13 +17,13 @@
   )](https://addons.mozilla.org/firefox/addon/vimium-c/?src=external-readme)
 [![rating](https://img.shields.io/amo/rating/vimium-c@gdh1995.cn?logo=Firefox%20Browser&logoColor=white&label=rating&labelColor=FF7139&color=blue
   )](https://addons.mozilla.org/firefox/addon/vimium-c/reviews/?src=external-readme)
-[![Edge 109+](https://img.shields.io/badge/dynamic/json?logo=Microsoft%20Edge&label=Edge%20109%2B&prefix=v&query=%24.version&url=https%3A%2F%2Fmicrosoftedge.microsoft.com%2Faddons%2Fgetproductdetailsbycrxid%2Faibcglbfblnogfjhbcmmpobjhnomhcdo
+[![Edge 102+](https://img.shields.io/badge/dynamic/json?logo=Microsoft%20Edge&label=Edge%20102%2B&prefix=v&query=%24.version&url=https%3A%2F%2Fmicrosoftedge.microsoft.com%2Faddons%2Fgetproductdetailsbycrxid%2Faibcglbfblnogfjhbcmmpobjhnomhcdo
   )](https://microsoftedge.microsoft.com/addons/detail/aibcglbfblnogfjhbcmmpobjhnomhcdo)
 [![users](https://img.shields.io/badge/dynamic/json?logo=Microsoft%20Edge&label=users&query=%24.activeInstallCount&url=https%3A%2F%2Fmicrosoftedge.microsoft.com%2Faddons%2Fgetproductdetailsbycrxid%2Faibcglbfblnogfjhbcmmpobjhnomhcdo
   )](https://microsoftedge.microsoft.com/addons/detail/aibcglbfblnogfjhbcmmpobjhnomhcdo)
 [![rating](https://img.shields.io/badge/dynamic/json?logo=Microsoft%20Edge&label=rating&query=%24.averageRating&url=https%3A%2F%2Fmicrosoftedge.microsoft.com%2Faddons%2Fgetproductdetailsbycrxid%2Faibcglbfblnogfjhbcmmpobjhnomhcdo
   )](https://microsoftedge.microsoft.com/addons/detail/aibcglbfblnogfjhbcmmpobjhnomhcdo)
-[![Chrome 109+](https://img.shields.io/chrome-web-store/v/hfjbmagddngcpeloejdejnfgbamkjaeg?logo=Google%20Chrome&logoColor=white&label=Chrome%20109%2B&labelColor=4285F4&color=critical
+[![Chrome 102+](https://img.shields.io/chrome-web-store/v/hfjbmagddngcpeloejdejnfgbamkjaeg?logo=Google%20Chrome&logoColor=white&label=Chrome%20102%2B&labelColor=4285F4&color=critical
   )](https://chrome.google.com/webstore/detail/vimium-c-all-by-keyboard/hfjbmagddngcpeloejdejnfgbamkjaeg)
 [![users](https://img.shields.io/chrome-web-store/users/hfjbmagddngcpeloejdejnfgbamkjaeg?logo=Google%20Chrome&logoColor=white&label=users&labelColor=4285F4&color=critical
   )](https://chrome.google.com/webstore/detail/vimium-c-all-by-keyboard/hfjbmagddngcpeloejdejnfgbamkjaeg)
@@ -62,11 +62,11 @@ and open-sourced under the [Apache-2.0 license](LICENSE.txt).
 本项目主要由 [gdh1995](https://github.com/gdh1995)（宫大汉）开发并维护，且以 [Apache-2.0 许可协议](LICENSE.txt) 开源。
 
 It (the released version) supports the new Microsoft Edge, Google Chrome and other Chromium-based browsers
-  whose core versions are >= 109, and has a perfect support for a recent Firefox (since version 101.0, desktop).
+  whose core versions are >= 102, and has a perfect support for a recent Firefox (since version 101.0, desktop).
 It can even run on Microsoft Edge (EdgeHTML), though there're still some errors.
 If re-compiled from the source code, Vimium C is able to support Chromium 32~108 and Firefox 63~100.
 
-它支持内核版本不低于 109 的新版 Microsoft Edge、Google Chrome 和其它以 Chromium 为内核的浏览器，
+它支持内核版本不低于 102 的新版 Microsoft Edge、Google Chrome 和其它以 Chromium 为内核的浏览器，
 同时也能完美运行在近些年发布的 Firefox 101（桌面版）和更高版本上，甚至在 Edge (EdgeHTML 内核) 上也能正常执行大部分命令。
 如果从源码重新编译，Vimum C 还可以支持 Chromium 32~108 和 Firefox 63~100。
 
