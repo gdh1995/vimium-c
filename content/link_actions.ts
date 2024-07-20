@@ -434,8 +434,8 @@ const copyText = (str?: string | null): void => {
           str = (clickEl as HTMLInputElement).value;
         }
       } else {
-        str = tag === "textarea" ? (clickEl as HTMLTextAreaElement).value
-          : tag === "select" ? ((clickEl as HTMLSelectElement).selectedIndex < 0
+        str = editableTypes_[tag] === EditableType.TextArea ? (clickEl as HTMLTextAreaElement).value
+          : editableTypes_[tag] === EditableType.Select ? ((clickEl as HTMLSelectElement).selectedIndex < 0
               ? "" : (clickEl as HTMLSelectElement).options[(clickEl as HTMLSelectElement).selectedIndex].text)
           : isHtmlImage ? (clickEl as HTMLImageElement).alt
           : tag && ((clickEl as SafeHTMLElement).innerText.trim()
@@ -518,20 +518,21 @@ const defaultClick = (): void => {
     const autoUnhover = hintOptions.autoUnhover, doesUnhoverOnEsc = (autoUnhover + "")[0] === "<"
     const isQueue = hintMode_ & HintMode.queue
     const cnsForWin = hintOptions.ctrlShiftForWindow
-    const target = realClickEl || clickEl, targetTag = htmlTag_(target), isSel = targetTag === "select"
+    const target = realClickEl || clickEl, targetTag = htmlTag_(target)
+    const isSel = editableTypes_[targetTag] === EditableType.Select
     const maybeLabel = OnFirefox && !editableTypes_[targetTag] && target.closest!("label,input,textarea,a,button"
         ) as SafeElement | null
-    const notLabelInFormOnFF = !OnFirefox || !maybeLabel || !hasTag_("label", maybeLabel)
+    const notLabelInFormOnFF: boolean = !OnFirefox || !maybeLabel || !hasTag_("label", maybeLabel)
         || !(maybeLabel as HTMLLabelElement).control
-    const ctrl = notLabelInFormOnFF && (newTab && !(mask > HintMode.newtab_n_active - 1 && cnsForWin)
+    const ctrl: boolean = notLabelInFormOnFF && (newTab && !(mask > HintMode.newtab_n_active - 1 && cnsForWin)
         || newWindow && !!cnsForWin)
-    const shift = notLabelInFormOnFF && (newWindow
+    const shift: boolean = notLabelInFormOnFF && (newWindow
         || newTab && (mask > HintMode.newtab_n_active - 1) === !hintOptions.activeOnCtrl)
     const rawInteractive = hintOptions.interact
-    const interactive = isSel || getMediaTag(targetTag) === kMediaTag.otherMedias && !isRight
+    const interactive: boolean = isSel || getMediaTag(targetTag) === kMediaTag.otherMedias && !isRight
         && (rawInteractive !== "native" || (target as HTMLMediaElement).controls)
-    const doInteract = interactive && !isSel && rawInteractive !== !1
-    const specialActions = dblClick || doInteract
+    const doInteract: boolean = interactive && !isSel && rawInteractive !== !1
+    const specialActions: kClickAction = dblClick || doInteract
         ? kClickAction.BaseMayInteract + +dblClick + kClickAction.FlagInteract * <number> <number | boolean> doInteract
         : isRight || newTabStr.startsWith("no-") ? kClickAction.none
         : newWindow ? kClickAction.plainInNewWindow
@@ -541,7 +542,7 @@ const defaultClick = (): void => {
         : newTabStr === kLW ? kClickAction.forceToOpenInLastWnd
         : OnFirefox ? newTab ? kClickAction.plainInNewTab : kClickAction.plainMayOpenManually
         : kClickAction.none
-    const doesUnhoverAtOnce = !doesUnhoverOnEsc && /*#__PURE__*/ checkBoolOrSelector(autoUnhover, !1)
+    const doesUnhoverAtOnce: boolean = !doesUnhoverOnEsc && /*#__PURE__*/ checkBoolOrSelector(autoUnhover, !1)
     retPromise = catchAsyncErrorSilently(click_async(target
         , target === clickEl ? rect : getRect(target)
         , !!(target as ElementToHTMLOrForeign).focus && /*#__PURE__*/ checkBoolOrSelector(rawFocus
@@ -600,7 +601,7 @@ const doPostAction = (): Rect | null => {
     if (!OnFirefox && bZoom_ !== 1 && doc.body && !IsInDOM_(clickEl, doc.body)) { set_bZoom_(1) }
     clickEl = findNextTargetEl(hintOptions.autoParent, kNextTarget.parent) || clickEl
     clickEl = findNextTargetEl(hintOptions.autoChild, kNextTarget.child) || clickEl
-    realClickEl = mode1_ < HintMode.HOVER + 1 && findNextTargetEl(hintOptions.doClickOn, kNextTarget.realClick)
+    realClickEl = mode1_ < HintMode.max_mouse_events+1 && findNextTargetEl(hintOptions.doClickOn, kNextTarget.realClick)
     tag = htmlTag_(clickEl), elType = getEditableType_<0>(clickEl), isHtmlImage = tag === "img"
     initTestRegExps() // needed by getPreferredRectOfAnchor
     // must get outline first, because clickEl may hide itself when activated
