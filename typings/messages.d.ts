@@ -108,7 +108,7 @@ declare const enum kFgReq {
   downloadLink, wait, optionToggled, keyFromOmni, pages,
   showUrl, omniCopy, omniCopied, didLocalMarkTask, recheckTee,
   afterTee, onFreeze, syncStatus, focusCurTab, onOmniFreeze, END,
-  msg = 90, inject = 99,
+  msg = 90, teeRes = 92, inject = 99,
   command = "command", id = "id", shortcut = "shortcut", focus = "focus", tip = "tip",
 }
 
@@ -785,6 +785,10 @@ interface FgReq {
   [kFgReq.onOmniFreeze]: {}
 }
 
+interface TeeReq {
+  [kFgReq.teeRes]: { /** response */ r: boolean | string }
+}
+
 interface CurrentEnvCache {} // eslint-disable-line @typescript-eslint/no-empty-interface
 
 interface WithHintModeOptions { /** hint mode "w/ or w/o" queue info */ m: HintMode }
@@ -837,6 +841,7 @@ declare namespace Req {
     /** handler */ H: K;
   }
   type fg<K extends keyof FgReq> = FgReq[K] & baseFg<K>;
+  type teeFg<K extends keyof TeeReq> = TeeReq[K] & baseFg<K>
 
   interface fgWithRes<K extends keyof FgRes> extends baseFg<kFgReq.msg> {
     /** msgId */ i: number;

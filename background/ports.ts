@@ -239,16 +239,19 @@ export const postTeeTask_ = (port: Frames.BrowserPort, task: NonNullable<typeof 
   ; (port as Port).postMessage({ N: kBgReq.omni_runTeeTask, t: task.t, s: task.s })
 }
 
-const onTeeResult_ = (res: any): void => {
+const onTeeResult_ = <K extends keyof TeeReq> (res: K extends keyof TeeReq ? Req.teeFg<K> : never): void => {
+  if (res.H !== kFgReq.teeRes) {
+    return
+  }
   const task = replaceTeeTask_(null, null)
   if (task) {
     clearTimeout(task.i)
-    task.r && task.r(res)
+    task.r && task.r(res.r)
   }
 }
-const markTeeFail_ = (): void => { onTeeResult_(false) }
+const markTeeFail_ = (): void => { onTeeResult_({ H:kFgReq.teeRes, r: false }) }
 export const resetOffscreenPort_ = (): void => {
-  set_offscreenPort_(null); onTeeResult_(false)
+  set_offscreenPort_(null); onTeeResult_({ H:kFgReq.teeRes, r: false })
   browser_.offscreen.closeDocument(runtimeError_)
 }
 
@@ -261,7 +264,7 @@ const _onPageConnect = (port: Frames.BrowserPort, type: PortType): void => {
     if (teeTask_) {
       const isOffscreen = Build.MV3 && type & PortType.Offscreen
       Build.MV3 || (teeTask_.d = null)
-      port.onMessage.addListener(onTeeResult_)
+      port.onMessage.addListener(onTeeResult_ as (res: unknown) => void)
       postTeeTask_(port, teeTask_)
       port.onDisconnect.addListener(isOffscreen ? resetOffscreenPort_ : markTeeFail_)
       isOffscreen && set_offscreenPort_(port)

@@ -20,13 +20,14 @@
     let onFinish = (ok: boolean | string): void => {
       okResult = true
       if (Build.MV3 || port) {
-        (port as any).postMessage(ok)
+        (port as any).postMessage({ H: kFgReq.teeRes, r: ok })
       } else {
         resolve!(ok)
       }
       isOffscreen || setTimeout(destroy, 0) // try to avoid a strange crashes on Chrome 103
     }
-    const { t: taskId, s: serialized, d: data, r: resolve } = _response as TaskTypes<keyof TeeTasks>
+    const { t: taskId, s: serialized, d: data } = _response as TaskTypes<keyof TeeTasks>
+    const resolve = Build.MV3 ? null : _response.r
     const runTask = (): void | Promise<unknown> => {
       // MV3
       // || OnChrome && chromeVer_ >= MinEnsured$Clipboard$$write$and$ClipboardItem
