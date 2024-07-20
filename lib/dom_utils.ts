@@ -465,8 +465,8 @@ export const deepActiveEl_unsafe_ = (alsoBody?: 1): Element | null => {
   return active || null
 }
 
-export const uneditableInputs_: ReadonlySafeDict<1 | 2 | 3> = { __proto__: null as never,
-    button: 2, checkbox: 3, color: 1, file: 1, hidden: 1, //
+export const uneditableInputs_: ReadonlySafeDict<1 | 2 | 3 | 4> = { __proto__: null as never,
+    button: 2, checkbox: 3, color: 4, file: 1, hidden: 1, //
     image: 2, radio: 3, range: 1, reset: 1, submit: 1
 }
 
@@ -792,15 +792,6 @@ export const dispatchAsync_ = <T extends Event | kDispatch.clickFn | kDispatch.f
       resolve(ret as T extends Event ? boolean : undefined)
     })
   })
-}
-
-export const showPicker_ = (element: SafeElement, type: EditableType): void => {
-  if ((type === EditableType.Input || type === EditableType.Select)
-      && ((type > EditableType.Input - 1 ? OnChrome && Build.MinCVer >= BrowserVer.MinEnsured$input$$showPicker
-            : OnChrome && Build.MinCVer >= BrowserVer.MinEnsured$select$$showPicker)
-          || (element as HTMLInputElement).showPicker)) {
-    (element as HTMLInputElement).showPicker!()
-  }
 }
 
 //#endregion

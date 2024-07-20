@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Test showPicker</title>
+</head>
+<body>
+
+<p>Test showPicker on Chromium 99+</p>
+<select>
+    <option value="o1">Option #1</option>
+    <option value="o2" selected="selected">Hello world</option>
+    <option value="o3">12356</option>
+</select>
+<p>
+    <datalist id="browsers">
+        <option value="Chrome"></option>
+        <option value="Firefox"></option>
+        <option value="Opera"></option>
+        <option value="Safari"></option>
+        <option value="Microsoft Edge"></option>
+    </datalist>
+    <input type="text" list="browsers" />
+    <button>Select browser</button>
+</p>
+<p>
+    <input type="color" />
+    <button>Show the color picker</button>
+    <br> <input type="date" />
+    <br> <input type="month" />
+    <br> <input type="week" />
+    <br> <input type="time" />
+    <br> <input type="datetime-local" />
+</p>
+<input autocomplete="name" />
+<button>Show autocomplete options</button>
+
+<script>
+    "use strict";
+    document.querySelectorAll("button").forEach((button) => {
+        button.addEventListener("click", (event) => {
+            const input = event.srcElement.previousElementSibling;
+            try {
+                input.showPicker();
+            } catch (error) {
+                window.alert(error);
+            }
+        });
+    });
+</script>
+
+</body>
+</html>

@@ -8,7 +8,10 @@
 <body>
   <form name="superBug" id="superBug">
     parentELement: <input type="text" name="parentElement"/><br/>
-    parentNode: <select name="parentNode"><option>this is a select</option></select><br/>
+    parentNode: <select name="parentNode">
+      <option name="childElementCount">this is a select</option>
+      <option id="option1" name="option1">this is a select</option>
+    </select><br/>
     <br/>
     contains: <input type="text" name="contains" /><br/>
     getBoundingClientRect: <input type="text" name="getBoundingClientRect" /><br/>

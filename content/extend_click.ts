@@ -80,11 +80,11 @@ export const ec_main_not_ff = (Build.BTypes !== BrowserType.Firefox as number ? 
   const secret: string = !kInjectManually ? ""
       : ((math.random() * GlobalConsts.SecretRange + GlobalConsts.SecretBase) | 0) + ""
   function onClick(this: Element | Window, event2: Event): void {
-    const rawDetail = (
+    const isSafe = this === box,
+    rawDetail = isSafe && (
         event2 as NonNullable<ConstructorParameters<CustomEventCls>[1]>
         ).detail as NonNullable<ConstructorParameters<CustomEventCls>[1]>["detail"] | undefined,
-    isSafe = this === box,
-    detail = rawDetail && isTY(rawDetail, kTY.obj) && isSafe ? rawDetail : "",
+    detail = rawDetail && isTY(rawDetail, kTY.obj) ? rawDetail : "",
     fromAttrs: 0 | 1 | 2 = detail ? (detail[1] + 1) as 1 | 2 : 0;
     let path: ReturnType<typeof getEventPath>, reHint: number | undefined, mismatch: 1 | undefined,
     docChildren: HTMLCollectionOf<Element> | undefined, boxChildren: HTMLCollectionOf<Element> | undefined,
@@ -141,7 +141,7 @@ export const ec_main_not_ff = (Build.BTypes !== BrowserType.Firefox as number ? 
     } else {
       mismatch = 1
     }
-    ; (box as HTMLElement).textContent = ""
+    box.textContent = ""
     if (mismatch) {
       if (!Build.NDEBUG && target && !isSafe && (kInjectManually || target as EventTarget !== window)) {
         console.error("extend click: unexpected: detail =", rawDetail, target);
@@ -170,18 +170,18 @@ export const ec_main_not_ff = (Build.BTypes !== BrowserType.Firefox as number ? 
     }
     reHint && reinitLinkHintsIn(reHint)
   }
-  const dispatchCmd = (cmd: SecondLevelContentCmds): void => {
+  const dispatchCmd = (cmd: SecondLevelContentCmds, element?: SafeHTMLElement | null): void => {
     const msg = (((kInjectManually ? +secret : Build.RandomClick) << kContentCmd.MaskedBitNumber) | cmd)
-    if (box) {
       // Not use CustomEvent.detail, because it's a getter property since BrowserVer.Min$CustomEvent$$detail$getter
-      setOrRemoveAttr_s(box, kSA, "" + msg)
-      dispatchEvent_(box, new Event(InnerConsts.kCmd))
-      setOrRemoveAttr_s(box, kSA, "")
-    }
+      setOrRemoveAttr_s(box!, kSA, "" + msg)
+      dispatchEvent_(box!, Build.MV3 && Build.BTypes & BrowserType.Chrome
+          ? new FocusEvent(InnerConsts.kCmd, { relatedTarget: element }) : new Event(InnerConsts.kCmd))
+      setOrRemoveAttr_s(box!, kSA, "")
   }
-  const execute = (cmd: ValidContentCommands): void => {
+  const execute = (cmd: ValidContentCommands, element?: SafeHTMLElement): void => {
     if (cmd < kContentCmd._minSuppressClickable) {
-      cmd > kContentCmd.ManuallyReportKnownAtOnce - 1 && (isFirstResolve = 0)
+      cmd - kContentCmd.ManuallyReportKnownAtOnce || (isFirstResolve = 0)
+      Build.MV3 && OnChrome ? dispatchCmd(cmd as ValidContentCommands & ContentCommandsNotSuppress, element) :
       dispatchCmd(cmd as ValidContentCommands & ContentCommandsNotSuppress);
       return;
     }
@@ -191,14 +191,13 @@ export const ec_main_not_ff = (Build.BTypes !== BrowserType.Firefox as number ? 
       setupEventListener(box, kVOnClick1, onClick, 1);
       dispatchCmd(kContentCmd.Destroy);
     }
-    box = 0;
-    vApi.e = script = null as never
+    box = vApi.e = script = null as never
   }
   const initOnDocReady = (): void => {
     clearTimeout_(readyTimeout)
+    if (!box) { return }
     if (kInjectManually) {
       if (!script) { return }
-      box = createElement_("div")
       appendNode_s(script, box)
       dispatchEvent_(script, new Event(outKMK + Build.RandomClick))
       if (parentNode_unsafe_s(box)) {
@@ -211,14 +210,12 @@ export const ec_main_not_ff = (Build.BTypes !== BrowserType.Firefox as number ? 
       }
       script = null as never
       removeEl_s(box)
-    } else if (!box) {
-      return
     }
     setupEventListener(box, kVOnClick1, onClick)
     isTop && OnDocLoaded_(timeout_.bind(null
         , (): void => { isFirstResolve = 0; }, GlobalConsts.ExtendClick_EndTimeOfAutoReloadLinkHints), 1)
   }
-  let script: HTMLScriptElement, box: HTMLDivElement | undefined | 0, counterResolvePath = 0, reHookTimes = 0,
+  let script: HTMLScriptElement, box: HTMLDivElement | undefined | null, counterResolvePath = 0, reHookTimes = 0,
   isFirstResolve: number = isTop ? 3 : 0, readyTimeout: ValidTimeoutID
 
   if (!Build.NDEBUG && isFirstTime && readyState_ === "complete") {
@@ -310,6 +307,13 @@ DocCls = Document[kProto] as Partial<Document> as Pick<Document, "createElement"
       open (): void, write (markup: string): void },
 getElementsByTagNameInDoc = DocCls[kByTag],
 _docOpen = DocCls.open, _docWrite = DocCls.write,
+OwnProp_cr_mv3 = Build.MV3 && Build.BTypes & BrowserType.Chrome
+    && Build.MinCVer < BrowserVer.MinRegisterContentScriptsWorldInMV3
+    ? Object.getOwnPropertyDescriptor : 0 as never as null,
+relatedTargetGetter = Build.MV3 && Build.BTypes & BrowserType.Chrome
+    && Build.MinCVer < BrowserVer.MinRegisterContentScriptsWorldInMV3
+    ? OwnProp_cr_mv3!(DECls[kProto], "relatedTarget"
+      )!.get as (this: FocusEvent) => EventTarget | null : 0 as never as null,
 kOC = InnerConsts.kVOnClick, kRC = Build.RandomClick, kEventName2 = kOC + kRC, kFn = "function",
 StringSplit = !(Build.NDEBUG && Build.Mangle) ? "".split : 0 as never, StringSlice = kEventName2.slice,
 checkIsNotVerifier = (func?: InnerVerifier | unknown): void | 42 => {
@@ -538,8 +542,10 @@ const executeCmd = (eventOrDestroy?: Event): void => {
   // always stopProp even if the secret does not match, so that an attacker can not detect secret by enumerating numbers
   detail && call(StopProp, eventOrDestroy!);
   if (cmd < kContentCmd._minSuppressClickable) {
-    if (cmd) { // AutoReportKnownAtOnce_not_ff
-      cmd && next(clearTimeout1(timer)) // lgtm [js/superfluous-trailing-arguments]
+    if (Build.MV3 && Build.BTypes & BrowserType.Chrome && cmd > kContentCmd.ShowPicker_cr_mv3 - 1) {
+      (call(relatedTargetGetter!, eventOrDestroy as FocusEvent) as HTMLInputElement | HTMLSelectElement).showPicker!()
+    } else {
+      next(clearTimeout1(timer)) // lgtm [js/superfluous-trailing-arguments]
     }
     return;
   }
@@ -578,7 +584,9 @@ if (!MayNotEdge
 if (!EnsuredGetRootNode && getRootNode) { getRootNode = _call.bind(getRootNode as any) as any }
 for (; isReRegistering; ) {
   const propName = (isReRegistering -= 2) ? "onmousedown" : "onclick"
-  const propDesc = Object.getOwnPropertyDescriptor(HtmlElProto, propName)!
+  const propDesc = (Build.MV3 && Build.BTypes & BrowserType.Chrome
+      && Build.MinCVer < BrowserVer.MinRegisterContentScriptsWorldInMV3
+      ? OwnProp_cr_mv3! : Object.getOwnPropertyDescriptor)(HtmlElProto, propName)!
   if (!MayChrome || Build.MinCVer >= BrowserVer.MinOnclickInHTMLElementPrototype || propDesc) {
     (hookedFuncs as Writable<typeof hookedFuncs>)[isReRegistering] = propDesc.set as OnEventSetter
     ; (hookedFuncs as Writable<typeof hookedFuncs>)[isReRegistering + 1] = propDesc.set =
@@ -615,7 +623,6 @@ DocCls.write = myDocWrite
           , "function($1")
     }
     injected = injected.replace(outKMK, "$&" + secret as `$&${typeof secret}`)
-    vApi.e = execute;
     script.dataset.vimium = secret
     setupEventListener(0, kVOnClick1, onClick);
   }
@@ -636,6 +643,8 @@ DocCls.write = myDocWrite
   // not check MinEnsuredNewScriptsFromExtensionOnSandboxedPage
   // for the case JavaScript is disabled in CS: https://github.com/philc/vimium/issues/3187
   if (!parentNode_unsafe_s(script)) { // It succeeded in hooking.
+    box = createElement_("div")
+    vApi.e = execute;
     // wait the inner listener of `start` to finish its work
     if (isFirstTime) {
       readyTimeout = timeout_(initOnDocReady, InnerConsts.DelayToWaitDomReady)

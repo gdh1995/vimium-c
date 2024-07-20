@@ -66,6 +66,10 @@ clearTimeout1 = clearTimeout,
 DocCls = Document[kProto] as Partial<Document> as Pick<Document, "createElement" | typeof kByTag> & {
       open (): void, write (markup: string): void },
 getElementsByTagNameInDoc = DocCls[kByTag],
+OwnProp = Object.getOwnPropertyDescriptor,
+relatedTargetGetter = Build.BTypes & BrowserType.Chrome
+    ? OwnProp(DECls[kProto], "relatedTarget"
+      )!.get as (this: FocusEvent) => EventTarget | null : 0 as never as null,
 kOC = InnerConsts.kVOnClick, kRC = "" + Build.RandomClick, kEventName2 = kOC + kRC,
 StringSplit = !(Build.NDEBUG && Build.Mangle) ? "".split : 0 as never, StringSlice = kEventName2.slice,
 checkIsNotVerifier = (func?: InnerVerifier | unknown): void | 42 => {
@@ -260,8 +264,11 @@ const executeCmd = (eventOrDestroy?: Event): void => {
   // always stopProp even if the secret does not match, so that an attacker can not detect secret by enumerating numbers
   detail && call(StopProp, eventOrDestroy!);
   if (cmd < kContentCmd._minSuppressClickable) {
-    if (cmd) { // AutoReportKnownAtOnce_not_ff
-      cmd && next(clearTimeout1(timer)) // lgtm [js/superfluous-trailing-arguments]
+    if (Build.BTypes & BrowserType.Chrome && cmd > kContentCmd.ShowPicker_cr_mv3 - 1) {
+      // not hook showPicker - it seems not needed
+      (call(relatedTargetGetter!, eventOrDestroy as FocusEvent) as HTMLInputElement | HTMLSelectElement).showPicker!()
+    } else {
+      next(clearTimeout1(timer)) // lgtm [js/superfluous-trailing-arguments]
     }
     return;
   }
@@ -307,7 +314,7 @@ if (dataset && (
         call(hookedFuncs[i], this, val); val && enqueue(this, val)
       }
     }
-    const propDesc = Object.getOwnPropertyDescriptor(HtmlElProto, propName)!
+    const propDesc = OwnProp(HtmlElProto, propName)!
     ; (hookedFuncs as Writable<typeof hookedFuncs>)[i] = propDesc.set as OnEventSetter
     ; (hookedFuncs as Writable<typeof hookedFuncs>)[i + 1] = propDesc.set = proxy[setterName]
     defineProp(HtmlElProto, propName, propDesc)

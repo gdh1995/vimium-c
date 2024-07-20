@@ -206,7 +206,7 @@ interface VApiTy extends Frames.BaseVApi {
     (di: ScrollByY, amount: number, flags: kScFlag.scBy | kScFlag.toMin | kScFlag.toMax
       , factor?: undefined | 0, options?: CmdOptions[kFgCmd.scroll], oriCount?: number, force?: 1): void
   }
-  /** execute content commands */ e: ((this: void, cmd: ValidContentCommands) => void) | null
+  /** execute content commands */ e: ((this: void, cmd: ValidContentCommands, el?: SafeHTMLElement) => void) | null
   /** focusAndRun */ f: {
     (this: void): void
     (this: void, cmd: FgCmdAcrossFrames, options: FgOptions, count: number
@@ -261,6 +261,7 @@ declare const enum kContentCmd {
   _fake = 0,
   AutoReportKnownAtOnce_not_ff = 1,
   ManuallyReportKnownAtOnce = 2,
+  ShowPicker_cr_mv3 = 3,
   _minSuppressClickable = 4,
   // see injected_end.ts for difference between Destroy and SuppressClickable
   SuppressClickable = 5,
@@ -268,6 +269,7 @@ declare const enum kContentCmd {
   MaskedBitNumber = 3,
 }
 type ContentCommandsNotSuppress = kContentCmd.AutoReportKnownAtOnce_not_ff | kContentCmd.ManuallyReportKnownAtOnce
+    | kContentCmd.ShowPicker_cr_mv3
 type ValidContentCommands = Exclude<kContentCmd, kContentCmd._fake | kContentCmd._minSuppressClickable
     | kContentCmd.MaskedBitNumber> | ContentCommandsNotSuppress
 type SecondLevelContentCmds = ContentCommandsNotSuppress | kContentCmd.Destroy

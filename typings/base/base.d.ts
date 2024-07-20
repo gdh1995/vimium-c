@@ -132,6 +132,9 @@ interface HTMLInputElement extends HTMLEditableELement {
   className: string
   showPicker? (): void
 }
+interface HTMLSelectElement extends HTMLEditableELement {
+  showPicker? (): void
+}
 interface HTMLTextAreaElement extends HTMLEditableELement {}
 interface HTMLSummaryElement extends SafeHTMLElement { localName: "summary" }
 interface HTMLLabelableElement extends SafeHTMLElement {

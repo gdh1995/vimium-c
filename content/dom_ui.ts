@@ -7,10 +7,11 @@ import { prevent_ } from "../lib/keyboard_utils"
 import {
   createElement_, attachShadow_, NONE, fullscreenEl_unsafe_, docEl_unsafe_, getComputedStyle_, set_docSelectable_, kDir,
   GetParent_unsafe_, getSelection_, TryGetShadowRoot_, getEditableType_, textOffset_, derefInDoc_, supportInert_,
-  CLK, frameElement_, runJS_, isStyleVisible_, rangeCount_, getAccessibleSelectedNode, removeEl_s,
+  CLK, frameElement_, runJS_, isStyleVisible_, rangeCount_, getAccessibleSelectedNode, removeEl_s, htmlTag_, hasTag_,
   appendNode_s, append_not_ff, setClassName_s, isNode_, contains_s, setOrRemoveAttr_s, textContent_s, inputSelRange,
   parentNode_unsafe_s, setDisplaying_s, getRootNode_mounted, singleSelectionElement_unsafe, isHTML_, HTMLElementProto,
-  getDirectionOfNormalSelection, showPicker_, htmlTag_, hasTag_,
+  getDirectionOfNormalSelection,
+  uneditableInputs_
 } from "../lib/dom_utils"
 import {
   bZoom_, dScale_, getZoom_, wdZoom_, boundingRect_, prepareCrop_, getClientRectsForAreas_, getVisibleBoundingRect_,
@@ -25,6 +26,7 @@ import { insert_Lock_, raw_insert_lock } from "./insert"
 import { isWaitingAccessKey, resetAnyClickHandler_cr } from "./key_handler"
 import { hide as omniHide, omni_box, omni_dialog_non_ff, omni_status, postToOmni, Status as OmniStatus } from "./omni"
 import { getPreferredRectOfAnchor } from "./local_links"
+import { showPicker_ } from "./async_dispatcher"
 
 export declare const enum kExitOnClick { // eslint-disable-next-line @typescript-eslint/no-shadow
   NONE = 0, REMOVE = 8, helpDialog = 1, vomnibar = 2,
@@ -429,9 +431,11 @@ export const moveSel_s_throwable = (element: LockableElement, action: SelectActi
     }
     doesCollpase && collpaseSelection(getSelection_(), gotoEnd)
     if (getEditableType_<0>(element as SafeElement) === EditableType.Input
-        && (!len && (str = (element as HTMLInputElement).autocomplete) && str !== "off"
-            || (element as HTMLInputElement).list)) {
-      showPicker_(element, EditableType.Input)
+        ? (!len && (str = (element as HTMLInputElement).autocomplete) && str !== "off"
+            || (element as HTMLInputElement).list)
+        : Build.MV3 && OnChrome && // in case it change .type
+          hasTag_("input", element) && uneditableInputs_[element.type] === 4) {
+      showPicker_(element as HTMLInputElement, EditableType.Input)
     }
 }
 

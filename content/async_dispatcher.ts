@@ -1,11 +1,11 @@
 import {
-  OnChrome, OnFirefox, OnEdge, doc, deref_, weakRef_ff, chromeVer_, isJSUrl, parseOpenPageUrlOptions, safeCall,
+  OnChrome, OnFirefox, OnEdge, doc, deref_, weakRef_ff, chromeVer_, isJSUrl, parseOpenPageUrlOptions, safeCall, vApi,
   tryCreateRegExp, weakRef_not_ff, firefoxVer_, fgCache, max_, promiseDefer_
 } from "../lib/utils"
 import {
-  IsInDOM_, isInTouchMode_cr_, MDW, hasTag_, CLK, attr_s, fullscreenEl_unsafe_, findAnchor_, dispatchAsync_, kDispatch,
+  IsInDOM_, isInTouchMode_cr_, MDW, htmlTag_, CLK, attr_s, fullscreenEl_unsafe_, findAnchor_, dispatchAsync_, kDispatch,
   blur_unsafe, derefInDoc_, newEvent_, getRootNode_mounted, elFromPoint_, HTMLElementProto, getEditableType_,
-  showPicker_
+  uneditableInputs_, editableTypes_
 } from "../lib/dom_utils"
 import { suppressTail_ } from "../lib/keyboard_utils"
 import { Point2D, center_, getVisibleClientRect_, view_, selRange_, isContaining_ } from "../lib/rect"
@@ -26,7 +26,7 @@ export declare const enum kClickAction {
 }
 const enum ActionType {
   OnlyDispatch = 0,
-  dblClick = kClickAction.FlagDblClick, interact = kClickAction.FlagInteract, isSelect = interact * 2,
+  dblClick = kClickAction.FlagDblClick, interact = kClickAction.FlagInteract, hasPicker = interact * 2,
   MinOpenUrl = kClickAction.MinNeverInteract - kClickAction.BaseMayInteract,
   DispatchAndMayOpenTab = MinOpenUrl, OpenTabButNotDispatch = DispatchAndMayOpenTab + 1,
 }
@@ -343,8 +343,9 @@ export const click_async = (async (element: SafeElementForMouse
   const center = center_(rect || (rect = getVisibleClientRect_(element)), xy)
   const sedIf = userOptions && userOptions.sedIf
   let result: ActionType = max_((action = action! | 0) - kClickAction.BaseMayInteract, 0)
+  const tag = htmlTag_(element)
   const initialStat = result & ActionType.interact && result < ActionType.MinOpenUrl
-      ? result & ActionType.dblClick ? hasTag_("video", element) && fullscreenEl_unsafe_()
+      ? result & ActionType.dblClick ? tag === "video" && fullscreenEl_unsafe_()
         : (element as HTMLMediaElement).paused : 0
   const isTouch: boolean = OnChrome && (Build.MinCVer >= BrowserVer.MinEnsuredTouchEventConstructor
         || chromeVer_ > BrowserVer.MinEnsuredTouchEventConstructor - 1)
@@ -428,8 +429,10 @@ export const click_async = (async (element: SafeElementForMouse
               : Build.MinFFVer > FirefoxBrowserVer.ESRPopupBlockerPassClicksFromExtensions
                 || firefoxVer_ - FirefoxBrowserVer.ESRPopupBlockerPassClicksFromExtensions || fgCache.V < 6)
         ? ActionType.DispatchAndMayOpenTab : ActionType.OnlyDispatch
-  } else if (!result && getEditableType_<0>(element) === EditableType.Select) {
-    result = ActionType.dblClick | ActionType.isSelect
+  } else if (!result && (editableTypes_[tag] === EditableType.Select
+      || Build.MV3 && OnChrome && editableTypes_[tag] === EditableType.Input
+          && uneditableInputs_[(element satisfies SafeElement as SafeElement as HTMLInputElement).type] === 4)) {
+    result = ActionType.dblClick | ActionType.hasPicker
   }
   const isCommonClick = result < ActionType.OpenTabButNotDispatch && button !== kClickButton.primaryAndTwice
       && !(modifiers && modifiers[0])
@@ -471,8 +474,9 @@ export const click_async = (async (element: SafeElementForMouse
               : initialStat ? (element as SafeHTMLElement as HTMLMediaElement).play()
               : (element as SafeHTMLElement as HTMLMediaElement).pause()
         }
-      } else if (result & ActionType.isSelect) {
-        showPicker_(element as SafeElement, EditableType.Select)
+      } else if (result & ActionType.hasPicker) {
+        showPicker_(element as SafeElement as HTMLInputElement | HTMLSelectElement
+            , editableTypes_[tag] as EditableType.Select | EditableType.Input)
       }
       return
     }
@@ -526,6 +530,20 @@ export const select_ = (element: LockableElement, rect?: Rect | null, show_flash
     }
     if (suppressRepeated) { suppressTail_() }
   })
+}
+
+
+export const showPicker_ = (element: HTMLInputElement | HTMLSelectElement
+    , type: EditableType.Input | EditableType.Select): void => {
+  if ((type > EditableType.Input - 1 ? OnChrome && Build.MinCVer >= BrowserVer.MinEnsured$input$$showPicker
+        : OnChrome && Build.MinCVer >= BrowserVer.MinEnsured$select$$showPicker)
+      || Build.BTypes & ~BrowserType.Edge && element.showPicker) {
+    if (Build.MV3 && OnChrome && vApi.e) {
+      vApi.e(kContentCmd.ShowPicker_cr_mv3, element)
+    } else {
+      element.showPicker!()
+    }
+  }
 }
 
 if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredGeneratorFunction) {

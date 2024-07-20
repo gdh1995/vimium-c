@@ -123,7 +123,7 @@ interface ExceptionInformation {
 }
 
 interface FocusEventInit extends UIEventInit {
-    relatedTarget?: EventTarget;
+    relatedTarget?: EventTarget | null;
 }
 
 interface HashChangeEventInit extends EventInit {
@@ -3283,7 +3283,7 @@ interface HTMLFormElement extends HTMLElement {
     submit(): void;
     addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLFormElement, ev: HTMLElementEventMap[K]) => any, useCapture?: boolean): void;
     addEventListener(type: string, listener: EventListenerOrEventListenerObject, useCapture?: boolean): void;
-    [name: string]: any;
+    // [name: string]: any; // not use it
 }
 
 declare var HTMLFormElement: {
@@ -4648,7 +4648,6 @@ interface HTMLSelectElement extends SafeHTMLElement {
     setCustomValidity(error: string): void;
     addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLSelectElement, ev: HTMLElementEventMap[K]) => any, useCapture?: boolean): void;
     addEventListener(type: string, listener: EventListenerOrEventListenerObject, useCapture?: boolean): void;
-    [name: string]: any;
 }
 
 declare var HTMLSelectElement: {

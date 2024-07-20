@@ -623,7 +623,7 @@ declare const enum BrowserVer {
   MinDevicePixelRatioNotImplyZoomOfDocEl = 117, // even if EXP or LEGACY; fix MinASameZoomOfDocElAsdevPixRatioWorksAgain
   MinNew$URL$NotDecodePathname = 118,
   Min$ScrollBehavior$$Instant$InJS = 121, // even if EXP or LEGACY
-  MinEnsured$select$$showPicker = 999, // since 119 if EXP
+  MinEnsured$select$$showPicker = 121, // since 119 if EXP
   MinNo$TimerType$$Fake = 999,
   assumedVer = 998,
 }

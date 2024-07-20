@@ -1,4 +1,4 @@
-VApi!.e = function (cmd): void {
+VApi!.e = function (cmd, el2): void {
   const injector = VimiumInjector;
   if (cmd === kContentCmd.Destroy && injector) {
     const rEL = removeEventListener, onHashChnage = injector.checkIfEnabled
@@ -10,6 +10,8 @@ VApi!.e = function (cmd): void {
     injector.$ = injector.$r = injector.$m = null as never;
     injector.clickable = null;
     injector.callback && injector.callback(3, "destroy")
+  } else if (cmd === kContentCmd.ShowPicker_cr_mv3 && Build.BTypes & BrowserType.Chrome && Build.MV3) {
+    (el2 as HTMLInputElement).showPicker!()
   }
 };
 

@@ -196,7 +196,9 @@ OnFirefox && watchPermissions_([{ permissions: ["cookies"] }], (allowed): void =
 set_bgIniting_(bgIniting_ | BackendHandlersNS.kInitStat.main)
 onInit_!()
 
-if (Build.MV3 && !OnFirefox && (!OnChrome || Build.MinCVer < BrowserVer.MinCSAcceptWorldInManifest
+if (Build.MV3 && !OnFirefox && (!OnChrome ||
+    (Build.MinCVer < BrowserVer.MinCSAcceptWorldInManifest
+        || !Build.NDEBUG && browser_.runtime.getManifest().content_scripts!.length === 1)
     && (Build.MinCVer >= BrowserVer.MinRegisterContentScriptsWorldInMV3
         || CurCVer_ > BrowserVer.MinRegisterContentScriptsWorldInMV3 - 1))) {
   browser_.scripting.registerContentScripts([{
