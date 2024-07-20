@@ -107,7 +107,7 @@ declare const enum kFgReq {
   framesGoBack, i18n, cssLearnt, visualMode, respondForRunKey,
   downloadLink, wait, optionToggled, keyFromOmni, pages,
   showUrl, omniCopy, omniCopied, didLocalMarkTask, recheckTee,
-  afterTee, onFreeze, syncStatus, focusCurTab, END,
+  afterTee, onFreeze, syncStatus, focusCurTab, onOmniFreeze, END,
   msg = 90, inject = 99,
   command = "command", id = "id", shortcut = "shortcut", focus = "focus", tip = "tip",
 }
@@ -782,6 +782,7 @@ interface FgReq {
     ]
   }
   [kFgReq.focusCurTab]: {}
+  [kFgReq.onOmniFreeze]: {}
 }
 
 interface CurrentEnvCache {} // eslint-disable-line @typescript-eslint/no-empty-interface

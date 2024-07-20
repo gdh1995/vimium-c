@@ -1427,6 +1427,15 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
             ? doc.webkitHidden : doc.hidden) || doc.hasFocus())
         ? a.remove("inactive") : a.add("inactive")
   },
+  onWndFreeze_ (event: Event): void {
+    if (VPort_._port && event.isTrusted) {
+      try {
+        VPort_._port.postMessage({ H: kFgReq.onOmniFreeze })
+        VPort_._port.disconnect()
+      } catch { /* empty */ }
+      VPort_._port = null
+    }
+  },
   init_ (): void {
     const a = Vomnibar_;
     window.onclick = Vomnibar_.onClick_
@@ -1445,6 +1454,10 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     listen("keydown", a.HandleKeydown_, true);
     listen("focus", a.OnWndFocus_, true);
     listen("blur", a.OnWndFocus_, true);
+    if (Build.BTypes & BrowserType.Chrome && (!(Build.BTypes&~BrowserType.Chrome) || a.browser_ === BrowserType.Chrome)
+        && (Build.MinCVer >= BrowserVer.MinFreezeEvent || ver > BrowserVer.MinFreezeEvent - 1)) {
+      listen("freeze", a.onWndFreeze_, true);
+    }
     input.oninput = a.OnInput_ as (e: Event) => void
     input.onselect = a.OnSelect_;
     input.onpaste = (): void => { Vomnibar_.inputType_ = 1 }

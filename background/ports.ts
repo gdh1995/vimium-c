@@ -316,11 +316,17 @@ const safeDisconnect = (port: Port): void => {
     } catch {}
 }
 
-export const OnFreeze = (_: unknown, port: Port): void => {
+export const OnFreeze_ = (_: unknown, port: Port): void => {
   (port.s.flags_ satisfies Frames.Flags) |= Frames.Flags.ResReleased
   port.onDisconnect.removeListener(onDisconnect)
   port.s.frameId_ || ((port.s.frameId_ as number) = 2)
   onDisconnect(port)
+}
+
+export const OnOmniFreeze_ = (_: unknown, port: Port): void => {
+  (port.s.flags_ satisfies Frames.Flags) |= Frames.Flags.ResReleased
+  port.onDisconnect.removeListener(onOmniDisconnect)
+  onOmniDisconnect(port)
 }
 
 /**
