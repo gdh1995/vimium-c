@@ -81,15 +81,15 @@ export const ec_main_not_ff = (Build.BTypes !== BrowserType.Firefox as number ? 
       : ((math.random() * GlobalConsts.SecretRange + GlobalConsts.SecretBase) | 0) + ""
   function onClick(this: Element | Window, event2: Event): void {
     const isSafe = this === box,
-    rawDetail = isSafe && (
+    rawDetail = (
         event2 as NonNullable<ConstructorParameters<CustomEventCls>[1]>
         ).detail as NonNullable<ConstructorParameters<CustomEventCls>[1]>["detail"] | undefined,
-    detail = rawDetail && isTY(rawDetail, kTY.obj) ? rawDetail : "",
-    fromAttrs: 0 | 1 | 2 = detail ? (detail[1] + 1) as 1 | 2 : 0;
+    detail = isSafe && rawDetail && isTY(rawDetail, kTY.obj) ? rawDetail satisfies readonly unknown[] : 0,
+    fromAttrs: 0 | 1 | 2 = detail && (detail[1] + 1) as 1 | 2;
     let path: ReturnType<typeof getEventPath>, reHint: number | undefined, mismatch: 1 | undefined,
     docChildren: HTMLCollectionOf<Element> | undefined, boxChildren: HTMLCollectionOf<Element> | undefined,
     target = detail ? null : isSafe || !kInjectManually && box == null
-        ? (event2 as DelegateEventCls["prototype"]).relatedTarget as Element | null
+        ? (event2 as DelegateEventCls["prototype"]).relatedTarget as Element | null | undefined
         : (!OnEdge
             && (!OnChrome || Build.MinCVer >= BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow)
             ? getEventPath(event2)![0] as Element
