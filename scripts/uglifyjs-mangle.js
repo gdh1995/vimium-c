@@ -8,7 +8,7 @@ const MIN_LONG_STRING = 20;
 const MIN_STRING_LENGTH_TO_COMPUTE_GAIN = 2;
 const MIN_EXPECTED_STRING_GAIN = 11;
 const ALLOWED_SHORT_NAMES = new Set([
-  ":SP:0", ":BU:0", ":V:0", ":I:0", ":V:1", ":I:1"
+  ":SP:0", ":BU:0", ":V:0", ":I:0", ":V:1", ":I:1", ":VC:0"
 ])
 
 // @ts-ignore

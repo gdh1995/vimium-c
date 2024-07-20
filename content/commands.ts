@@ -84,7 +84,7 @@ set_contentCommands_([
   /* kFgCmd.visualMode: */ visualActivate,
   /* kFgCmd.vomnibar: */ omniActivate,
   /* kFgCmd.insertMode: */ (opt: CmdOptions[kFgCmd.insertMode]): void => {
-    if (opt.u) {
+    if (opt.u) { /*#__ENABLE_SCOPED__*/
       const done = derefInDoc_(lastHovered_) ? 0 : 2
       void catchAsyncErrorSilently(wrap_enable_bubbles(opt, unhover_async<1>, [])).then((): void => {
         hudTip(kTip.didUnHoverLast)

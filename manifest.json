@@ -12,12 +12,6 @@
     "service_worker": "background/worker.js",
     "type": "module"
   },
-  "browser_specific_settings": {
-    "gecko": {
-      "id": "vimium-c.dev@gdh1995.cn",
-      "strict_min_version": "119.0"
-    }
-  },
   "commands": {
     "createTab": { "description": "__MSG_createTab_s__" },
     "goBack": { "description": "__MSG_goBack_s__" },
@@ -62,6 +56,16 @@
     "match_origin_as_fallback": true,
     "matches": [ "<all_urls>" ],
     "run_at": "document_start"
+  }, {
+    "all_frames": true,
+    "js": [
+      "content/extend_click_vc.js"
+    ],
+    "match_about_blank": true,
+    "match_origin_as_fallback": true,
+    "matches": [ "<all_urls>" ],
+    "run_at": "document_start",
+    "world": "MAIN"
   } ],
   "content_security_policy": {
     "extension_pages": "script-src 'self'; style-src 'self' 'unsafe-inline'; object-src 'none'"

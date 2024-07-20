@@ -1,5 +1,5 @@
 "use strict";
-Build.MV3 && Build.BTypes & BrowserType.Chrome && (function VC(this: void): void {
+Build.MV3 && Build.BTypes & BrowserType.Chrome && (function VC(this: void, delayed?: 1): void {
   const enum InnerConsts {
     MaxElementsInOneTickDebug = 1024,
     MaxElementsInOneTickRelease = 512,
@@ -290,18 +290,20 @@ const onDocOpen = (isWrite?: 0 | 2, oriHref?: string): void => {
 }
 const noop = (): 1 => { return 1 }
 const docEl = doc0.documentElement;
-(function startHook(delayed?: 1): void {
-  if (!docEl || delayed && !(!docEl.lastChild && docEl.parentNode === doc0)) {
+const defineProp = Object.defineProperty, dbgLoc = Build.NDEBUG ? null as never : location
+const dataset = (root as Element as TypeToAssert<Element, HTMLElement, "dataset", "tagName">).dataset
+if (!docEl || (Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.MinCSAcceptWorldInManifest)
+    && delayed && !(!docEl.lastChild && docEl.parentNode === doc0)) {
     return
-  }
-  const dataset = (root as Element as TypeToAssert<Element, HTMLElement, "dataset", "tagName">).dataset
+}
 if (dataset && (
   dataset.vimium = kRC,
+
 // only the below can affect outsides
+
   _dispatch(new DECls(kOC, {relatedTarget: root})),
   !dataset.vimium
 )) {
-  const defineProp = Object.defineProperty, dbgLoc = Build.NDEBUG ? null as never : location
   root[kAEL](InnerConsts.kCmd, executeCmd, !0)
   timer = toRegister.length > 0 ? setTimeout_(next, InnerConsts.DelayForNext) : 0
   ETP[kAEL] = myAEL
@@ -337,15 +339,14 @@ if (dataset && (
       }
     })
   }
-} else if (!delayed) {
+} else if ((Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.MinCSAcceptWorldInManifest) && !delayed) {
   const listenOpt: EventListenerOptions = { capture: true, once: true }
   const postStart = (event: EventToPrevent): void => {
-    queueMicroTask_((): void => startHook(1))
+    queueMicroTask_((): void => VC(1))
     call(StopProp, event)
   }
   _listen(kOC, postStart, listenOpt)
   _listen("readystatechange", removeEventListener.bind(window, kOC, postStart, listenOpt), listenOpt)
 }
-})()
 
 })()

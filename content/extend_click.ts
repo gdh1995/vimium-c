@@ -242,9 +242,12 @@ export const ec_main_not_ff = (Build.BTypes !== BrowserType.Firefox as number ? 
   }
   if (!kInjectManually) {
     if (grabBackFocus) {
-      dispatchEvent(new Event(kVOnClick1)) // it seems MS Edge may get a wrong order between dynamic and static scripts
+      if (Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.MinCSAcceptWorldInManifest) {
+        // MS Edge may get a wrong order between dynamic and static scripts, but not reproduced on Chrome / Edge 126
+        dispatchEvent(new Event(kVOnClick1))
+      }
       setupEventListener(0, kVOnClick1, onClick);
-      box || OnDocLoaded_(() => { // check CSP script-src or JS-disabled-in-CS
+      OnDocLoaded_(() => { // check CSP script-src or JS-disabled-in-CS
         box || execute(kContentCmd.Destroy)
       })
     }
