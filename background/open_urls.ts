@@ -226,8 +226,9 @@ const openUrlInIncognito = (urls: string[], reuse: ReuseType
 
 export const parseReuse = (reuse: UserReuseType | null | undefined): ReuseType =>
     reuse == null ? ReuseType.Default
-    : typeof reuse !== "string" ? typeof reuse === "boolean" ? reuse ? ReuseType.reuse : ReuseType.Default
-       : isNaN(reuse = +reuse && (reuse | 0)) || reuse > ReuseType.MAX || reuse < ReuseType.MIN ? ReuseType.Default
+    : typeof reuse !== "string" || (<RegExpOne> /^-?\d+$/).test(reuse)
+    ? typeof reuse === "boolean" ? reuse ? ReuseType.reuse : ReuseType.Default
+       : isNaN(reuse = +reuse && (+reuse | 0)) || reuse > ReuseType.MAX || reuse < ReuseType.MIN ? ReuseType.Default
        : reuse
     : (reuse = reuse.toLowerCase().replace("window", "wnd").replace(<RegExpG & { source: "-" }> /-/g, ""),
       reuse in ReuseValues ? ReuseValues[reuse as keyof typeof ReuseValues] : ReuseType.Default)
