@@ -79,7 +79,7 @@ export const ec_main_not_ff = (Build.BTypes !== BrowserType.Firefox as number ? 
         : OnChrome ? 1 : 0
   const secret: string = !kInjectManually ? ""
       : ((math.random() * GlobalConsts.SecretRange + GlobalConsts.SecretBase) | 0) + ""
-  function onClick(this: Element | Window, event2: Event): void {
+  const onClick = (function (this: Element | Window, event2: Event): void {
     const isSafe = this === box,
     rawDetail = (
         event2 as NonNullable<ConstructorParameters<CustomEventCls>[1]>
@@ -169,7 +169,7 @@ export const ec_main_not_ff = (Build.BTypes !== BrowserType.Firefox as number ? 
           ? InnerConsts.DelayForNext + 17 : 0
     }
     reHint && reinitLinkHintsIn(reHint)
-  }
+  })
   const dispatchCmd = (cmd: SecondLevelContentCmds, element?: SafeHTMLElement | null): void => {
     const msg = (((kInjectManually ? +secret : Build.RandomClick) << kContentCmd.MaskedBitNumber) | cmd)
       // Not use CustomEvent.detail, because it's a getter property since BrowserVer.Min$CustomEvent$$detail$getter

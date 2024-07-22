@@ -285,7 +285,7 @@ export const showFrameMask = (mask: FrameMaskType): void => {
   addUIElement(framemask_node, AdjustType.DEFAULT);
 }
 
-set_hookOnWnd((((action: HookAction): void => {
+set_hookOnWnd((function (action: HookAction): void {
   let f = action ? removeEventListener : addEventListener, t = true
   if (OnChrome && Build.MinCVer < BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow
         && (action || chromeVer_ < BrowserVer.Min$Event$$Path$IncludeWindowAndElementsIfListenedOnWindow)) {
@@ -307,7 +307,7 @@ set_hookOnWnd((((action: HookAction): void => {
   }
   f("keydown", onKeydown, t)
   f("keyup", onKeyup, t)
-}) satisfies typeof hookOnWnd))
+}) satisfies typeof hookOnWnd)
 
 export const focusAndRun = (cmd?: FgCmdAcrossFrames, options?: FgOptions, count?: number
     , showBorder?: 0 | 1 | 2, childFrame?: SafeHTMLElement | null | void): void => {
