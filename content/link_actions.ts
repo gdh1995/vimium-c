@@ -674,7 +674,7 @@ const doPostAction = (): Rect | null => {
       focus_(clickEl)
       set_cachedScrollable(currentScrolling)
       showUrlIfNeeded()
-      removeFlash || showRect && flash_(clickEl, tag === "a" || hint.r ? rect as never : null)
+      removeFlash || showRect && flash_(clickEl, tag === "a" || hint.r ? rect : null)
       showRect = 0
     } else if (mode1_ < HintMode.max_media + 1) {
       downloadOrOpenMedia()

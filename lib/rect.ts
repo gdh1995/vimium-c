@@ -504,10 +504,15 @@ export const getVisibleBoundingRect_ = (element: Element, crop?: BOOL, st?: CSSS
 }
 
 export const setBoundary_ = (style: CSSStyleDeclaration, r: Rect
-    , allowAbs?: BOOL | 2, arr?: ViewOffset, minSize?: 8): boolean => {
-  const need_abs = allowAbs === 2 || !!allowAbs && (r.t < 0 || r.l < 0 || r.b > wndSize_() || r.r > wndSize_(1)),
+    , allowAbs?: BOOL | 2 | 3, arr?: ViewOffset, minSize?: 8): boolean => {
+  let top: SafeElement | null
+  const need_abs = allowAbs === 1
+      ? (r.t < 0 || r.l < 0 || r.b > wndSize_() || r.r > wndSize_(1))
+        && (arr = arr || getViewBox_(), top = scrollingEl_(1),
+            arr[1] + r.b < dimSize_(top, kDim.scrollH) && arr[0] + r.r < dimSize_(top, kDim.scrollW))
+      : !!allowAbs,
   P = "px"
-  style.left = r.l + (need_abs ? (arr = arr || getViewBox_())[0] : 0) + P
+  style.left = r.l + (need_abs ? arr![0] : 0) + P
   style.top = r.t + (need_abs ? arr![1] : 0) + P
   style.width = max_(minSize! | 0, r.r - r.l) + P, style.height = max_(minSize! | 0, r.b - r.t) + P
   return need_abs

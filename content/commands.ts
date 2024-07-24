@@ -17,7 +17,7 @@ import {
 import {
   view_, wndSize_, isNotInViewport, getZoom_, prepareCrop_, getViewBox_, padClientRect_, isSelARange, center_, dScale_,
   getBoundingClientRect_, setBoundary_, wdZoom_, getVisibleClientRect_, getVisibleBoundingRect_, isSelMultiline,
-  kInvisibility, cropRectS_
+  kInvisibility, cropRectS_, type ViewOffset
 } from "../lib/rect"
 import { post_, set_contentCommands_, runFallbackKey, send_ } from "./port"
 import {
@@ -327,9 +327,9 @@ set_contentCommands_([
     const updateHint = (hint: InputHintItem): void => {
       const d2 = getEditableType_(hint.d) ? hint.d : insert_Lock_()
       if (d2) {
-        const fs = fullscreenEl_unsafe_(), arr2 = fs ? getViewBox_() : [scrollX, scrollY], arr1 = fs ? arr : scrollPos
-        const rect = arr2 && refineRect(d2)
-        rect && setBoundary_(hint.m.style, rect, 2, [arr2[0] - arr1[0], arr2[1] - arr1[1]])
+        const rect = refineRect(d2)
+        const offset: ViewOffset = fullscreenEl_unsafe_() ? [0, 0] : [scrollX - scrollPos[0], scrollY - scrollPos[1]]
+        setBoundary_(hint.m.style, rect, 2, offset)
       }
       setClassName_s(hint.m, S)
     }

@@ -465,7 +465,7 @@ export const getRect = (clickEl: SafeElement, refer?: HTMLElementUsingMap | null
 }
 
 export const flash_ = function (el: SafeElement | null, rect?: Rect | null, lifeTime?: number
-      , classNames?: string, knownViewOffset?: ViewOffset): (() => void) | void {
+      , classNames?: string, knownViewOffset?: ViewOffset): SafeHTMLElement | (() => void) | void {
     rect || (getZoom_(el!), prepareCrop_(), rect = getRect(el!))
     if (!rect) { return; }
     const flashEl = createElement_(OnChrome
@@ -477,16 +477,16 @@ export const flash_ = function (el: SafeElement | null, rect?: Rect | null, life
     bZoom_ !== 1 && nfs && (flashEl.style.zoom = "" + bZoom_);
     addUIElement(flashEl, AdjustType.DEFAULT)
     lastFlashEl = flashEl
-    // not need to normalize lifeTime
     const remove = (): void => {
       lastFlashEl === flashEl && (lastFlashEl = null)
       removeEl_s(flashEl)
     };
-    lifeTime! < 0 || timeout_(remove, (lifeTime || GlobalConsts.DefaultRectFlashTime) * (1 + +fgCache.m))
+    knownViewOffset || timeout_(remove, (lifeTime || GlobalConsts.DefaultRectFlashTime) * (1 + +fgCache.m))
     return remove;
 } as {
-    (el: null, rect: Rect, lifeTime?: number, classNames?: string, knownViewOffset?: ViewOffset): () => void;
-    (el: SafeElement, rect?: null, lifeTime?: number, classNames?: string): (() => void) | void;
+    (el: null, rect: Rect, lifeTime: -1, classNames: string, knownViewOffset: ViewOffset): () => void
+    (el: null, rect: Rect, lifeTime?: number, classNames?: string, _offset?: void): () => void
+    (el: SafeElement, rect?: Rect | null, lifeTime?: number, classNames?: string, _offset?: void): (() => void) | void
 }
 
   /** key: 1 := help dialog; 2 := vomnibar; -1: remove for help dialog; -2: remove for vomnibar */
