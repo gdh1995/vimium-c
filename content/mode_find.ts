@@ -941,7 +941,7 @@ const scrollSelectionAfterFind = (par: Element, newAnchor: Element | 0, sel: Sel
       const specialFixForTransparent = newStyle && newStyle.color!.includes("(0, 0, 0")
       const px2int = (s: string) => +s.slice(0, -2)
       const ltr = newStyle && newStyle.direction !== "rtl"
-      const textStyle = !kMayInTextBox || !newStyle
+      const textStyle: TextStyleArr | BOOL = !kMayInTextBox || !newStyle
           || getEditableType_<0>(newAnchor) < EditableType.MaxNotTextBox + 1 ? 0
           : (newStyle.writingMode as "hor*" | "vert*" | "side*" | /** < C48 */ "lr*" | "rl*" | "tb*")[0] > "s"
           ? (noFocus = 1)
@@ -959,8 +959,7 @@ const scrollSelectionAfterFind = (par: Element, newAnchor: Element | 0, sel: Sel
       let textBoxRect: Rect | 1 | false | 0 | null | void = !kMayInTextBox ? null : textStyle && noFocus
           && (getZoom_(newAnchor as TextElement), prepareCrop_(), 1)
   let context: CanvasRenderingContext2D, widthOrEnd: number
-  const oldInvisibility = isSafeEl_(par) && (OnEdge || kMayInTextBox && isTY(textStyle, kTY.obj)
-      ? view_(par) : noFocus && isNotInViewport(par))
+  const oldInvisibility = +isSafeEl_(par) && view_(par as SafeElement, !textBoxRect)
   textBoxRect = kMayInTextBox ? textBoxRect && boundingRect_(newAnchor as TextElement) : null
   if (kMayInTextBox && isTY(textStyle, kTY.obj)) {
         context = (canvas = canvas || createElement_("canvas")).getContext("2d")!
@@ -986,8 +985,9 @@ const scrollSelectionAfterFind = (par: Element, newAnchor: Element | 0, sel: Sel
     top *= textStyle[1]
     const scX = (ltr ? 1 : -1) * max_(0, start - max_width / 2) + baseScPosX
     const scY = max_(0, top - (textStyle[3] - textStyle[1]) / 2)
-    if (OnChrome && Build.MinCVer < BrowserVer.Min$ScrollBehavior$$Instant$InJS
-        && oldInvisibility && chromeVer_ < BrowserVer.Min$ScrollBehavior$$Instant$InJS
+    if (OnChrome && Build.MinCVer < BrowserVer.MinJsScrollNotBreakAutoScrollAfterFind
+        && oldInvisibility && (BrowserVer.MinJsScrollNotBreakAutoScrollAfterFind >= 999
+            || chromeVer_ < BrowserVer.MinJsScrollNotBreakAutoScrollAfterFind)
         && isNotInViewport(newAnchor as TextElement)) { /* empty */ }
     else if ((OnChrome ? Build.MinCVer >= BrowserVer.MinEnsuredCSS$ScrollBehavior : !OnEdge)
         || (newAnchor as Element).scrollTo) {

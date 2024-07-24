@@ -445,12 +445,14 @@ export const view_ = (el: SafeElement, allowSmooth?: BOOL | boolean, oldY?: numb
     if (style) { style.setProperty(kBh, "auto", "important") }
     OnEdge || OnChrome && Build.MinCVer < BrowserVer.MinScrollIntoViewOptions
         ? scrollIntoView_(el, !allowSmooth, delta < 0) : scrollIntoView_(el, !allowSmooth)
-    if (f) {
+    const stillNotInView = (OnChrome ? Build.MinCVer < BrowserVer.MinJsScrollNotBreakAutoScrollAfterFind : !OnEdge)
+        && isNotInViewport(el)
+    if (!stillNotInView && f) {
       secondScroll = elHeight < ih ? oldY! - scrollY : 0
       // required range of wanted: delta > 0 ? [-limit, 0] : [0, limit]
       f = delta * secondScroll <= 0 && delta * secondScroll >= elHeight - ih
     }
-    OnChrome && Build.MinCVer < BrowserVer.Min$ScrollBehavior$$Instant$InJS && isNotInViewport(el) ||
+    stillNotInView ||
     (delta || f) && scrollWndBy_(0, f ? secondScroll! * secondScroll! < 4 ? 0 : secondScroll! : delta * ih / 5)
     if (style) { style.cssText = oldCss as string }
   }
