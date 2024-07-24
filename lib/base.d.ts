@@ -295,5 +295,5 @@ interface KnownDataset {
 }
 
 declare const enum kElRef {
-  lastHovered = 1, lastEditable, lastEditable2, lastClicked, currentScrolling, cachedScrollable
+  lastHovered = 1, lastEditable, lastEditable2, lastClicked, currentScrolling
 }

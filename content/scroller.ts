@@ -23,7 +23,7 @@ interface ElementScrollInfo {
 
 import {
   isAlive_, setupEventListener, timeout_, clearTimeout_, fgCache, doc, noRAF_old_cr_, readyState_, chromeVer_,
-  vApi, weakRef_not_ff, max_, math, min_, Lower, OnChrome, OnFirefox, OnEdge, WithDialog, deref_,
+  vApi, weakRef_not_ff, max_, math, min_, Lower, OnChrome, OnFirefox, OnEdge, WithDialog,
   isTop, injector, isTY, promiseDefer_, weakRef_ff, Stop_, abs_, queueTask_
 } from "../lib/utils"
 import {
@@ -52,7 +52,7 @@ let toggleAnimation: ((scrolling?: BOOL | /** resume */ 4) => void) | null = nul
 let maxKeyInterval = 1
 let minDelay: number
 let currentScrolling: WeakRef<SafeElement> | null = null
-let cachedScrollable: WeakRef<SafeElement> | 0 | null = 0
+let cachedScrollable: WeakRef<SafeElement> | null = null
 let keyIsDown = 0
 let preventPointEvents: BOOL | 2 | ScrollConsts.MinLatencyToAutoPreventHover
 let scale = 1
@@ -64,9 +64,9 @@ export { currentScrolling, cachedScrollable, keyIsDown, scrolled }
 export const setNewScrolling = (el: Element | null): void => {
   currentScrolling = OnFirefox ? weakRef_ff(el as SafeElement | null, kElRef.currentScrolling)
       : weakRef_not_ff!(SafeEl_not_ff_!(el))
-  cachedScrollable = 0
+  cachedScrollable = null
 }
-export function set_cachedScrollable (_newCachedSc: typeof cachedScrollable): void { cachedScrollable = _newCachedSc }
+export function set_cachedScrollable (_newCurSc: typeof currentScrolling): void { cachedScrollable = _newCurSc }
 
 const norm = (i: number) => parseFloat(i.toFixed(2))
 const norm3 = (i: number) => parseFloat(i.toFixed(3))
@@ -570,7 +570,7 @@ const findScrollable = (di: ScrollByY, amount: number, outer: number
     const selectFirstType = (evenOverflowHidden != null ? evenOverflowHidden : isTop || injector)
         ? (di + 2) as 2 | 3 : di
     const activeEl: SafeElement | null | undefined = derefInDoc_(currentScrolling) || null
-    const lastCachedScrolled = cachedScrollable && derefInDoc_(cachedScrollable) || null
+    const lastCachedScrolled = derefInDoc_(cachedScrollable)
     const fullscreen = fullscreenEl_unsafe_(), top: Element | null = fullscreen || scrollingTop, body = doc.body
     const selectAncestor = (): void => {
       while (element !== top && (!fullscreen || IsInDOM_(element as SafeElement, fullscreen))
@@ -583,10 +583,6 @@ const findScrollable = (di: ScrollByY, amount: number, outer: number
           ) || top;
       }
       element = element !== top ? element : null
-      if (!fullscreen) {
-        cachedScrollable = OnFirefox ? weakRef_ff(element as SafeElement | null, kElRef.cachedScrollable)
-            : weakRef_not_ff!(element as SafeElement | null)
-      }
       outer = 0
     }
     let candidate: false | ElementScrollInfo | null | undefined
@@ -631,11 +627,13 @@ export const getPixelScaleToScroll = (skipGetZoom?: 1): void => {
 }
 
 const checkCurrent = (el: SafeElement | null): void => {
-  let cur = derefInDoc_(currentScrolling)
-  if (!cur || cur !== el && isNotInViewport(cur)) {
-    const last = cur && cachedScrollable && deref_(cachedScrollable)
-    const par = last && last !== cur && IsInDOM_(last, cur!) && !isNotInViewport(last) ? last : 0
-    setNewScrolling(par || el)
+  const cur = derefInDoc_(currentScrolling)
+  if (el && (!cur || cur !== el && !(IsInDOM_(cur, el) && !isNotInViewport(cur)))) {
+    const last = derefInDoc_(cachedScrollable)
+    const par: SafeElement = last && el !== last && last !== cur && IsInDOM_(last, el) && !isNotInViewport(last) ? last
+        : el
+    setNewScrolling(par)
+    set_cachedScrollable(currentScrolling)
   }
 }
 
