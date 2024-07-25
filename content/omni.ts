@@ -253,7 +253,7 @@ const refreshKeyHandler = (): void => {
   }
   if (url === true || count !== 1 && url == null) {
     // update options.url to string, so that this block can only run once per command
-    if (options.url = url = url ? getSelectionText() : "") {
+    if ((options.url = url = url ? getSelectionText() : "") && options.newtab == null) {
       options.newtab = 1
     }
   }

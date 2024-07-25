@@ -197,7 +197,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   baseHttps_: null as [boolean, string] | null,
   isHttps_: null as [boolean, string] | null,
   isSearchOnTop_: false,
-  actionType_: ReuseType.Default as ReuseType | null,
+  actionType_: ReuseType.current as ReuseType | null,
   matchType_: CompletersNS.MatchType.Default,
   sugTypes_: CompletersNS.SugType.Empty,
   resMode_: "",
