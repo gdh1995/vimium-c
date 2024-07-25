@@ -176,17 +176,24 @@ const onDisconnect = (port: Port): void => {
   let { tabId_: tabId } = port.s, ref = framesForTab_.get(tabId)
   if (!ref) { return }
   const ports = ref.ports_, i = ports.lastIndexOf(port), isTop = !port.s.frameId_
-  if (!isTop && i >= 0) {
-    ports.splice(i, 1)
+  let len = ports.length
+  if (i >= 0) {
+    len-- === 1 ? ports.length = 0 : ports.splice(i, 1)
+    // if (isTop) {
+    //   (ref.top_ as Frames.Frames["top_"]) = null
+    // }
+    if (len > 0 && port === ref.cur_) {
+      ref.cur_ = ports[0]
+    }
   }
-  if (isTop ? i >= 0 : !ports.length) {
+  if (isTop ? i >= 0 : !len) {
     if (!(ref.flags_ & Frames.Flags.ResReleased)) {
       framesForTab_.delete(tabId)
+    } else {
+      (port.s.flags_ as Frames.Flags) |= Frames.Flags.ResReleased
     }
     kAutoDisconnectPorts && !kAliveIfOnlyAnyAction && tabId === lastKeptTabId_
         && tryToKeepAliveIfNeeded_mv3_non_ff(tabId)
-  } else if (port === ref.cur_) {
-    ref.cur_ = ports[0]
   }
 }
 
@@ -322,7 +329,6 @@ const safeDisconnect = (port: Port): void => {
 export const OnFreeze_ = (_: unknown, port: Port): void => {
   (port.s.flags_ satisfies Frames.Flags) |= Frames.Flags.ResReleased
   port.onDisconnect.removeListener(onDisconnect)
-  port.s.frameId_ || ((port.s.frameId_ as number) = 2)
   onDisconnect(port)
 }
 
@@ -712,18 +718,18 @@ export const tryToKeepAliveIfNeeded_mv3_non_ff = (removedTabId: number): void =>
   }
   for (const item of framesForTab_.values()) {
     if (item.ports_.length) {
-      set_lastKeptTabId_(removedTabId)
+      set_lastKeptTabId_(item.cur_.s.tabId_)
       return
     }
   }
   const nextCheckTime = (ALIVE_TIMEOUT_IF_NO_ACTION + 1 - (performance.now() % ALIVE_TIMEOUT_IF_NO_ACTION)) | 0
   const toWait = nextCheckTime > 3_000 ? Math.max(1_000, nextCheckTime - 5_000) | 0
       : nextCheckTime > 1200 ? 0 : -1
+  set_lastKeptTabId_(-1)
   if (toWait < 0) {
     tryToKeepAlive(1)
     return
   }
-  set_lastKeptTabId_(-1)
   _timeoutToTryToKeepAliveOnce_mv3_non_ff = setTimeout(tryToKeepAlive, toWait, 1)
   if (!Build.NDEBUG && DEBUG && removedTabId >= 0) {
     console.log("wait for %o ms to try to keep alive once @ %o", toWait, Date.now() % 9e5)
