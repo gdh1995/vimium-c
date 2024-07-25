@@ -758,7 +758,9 @@ const postTerser = exports.postTerser = async (terserConfig, file, allPaths) => 
   }
   if (allPathStr.indexOf("extend_click_vc.") >= 0) {
     get()
-    contents = contents.replace(/ ?\bVC\b ?/, "")
+    if (!contents.includes("VC(1)")) {
+      contents = contents.replace(/ ?\bVC\b ?/, "")
+    }
     logger("%o: %o %s", ":extend_click_vc", contents.length, "bytes in file");
   }
   if (locally) {
