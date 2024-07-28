@@ -18,6 +18,13 @@ interface Isolate extends VarDict {}
 interface Ref { readonly y: { [index: number]: number }, readonly i: number /** | ... */ }
 interface Function2 { (this: unknown, ...args: unknown[]): unknown; __fn?: OpValues[O.fn] }
 
+const enum T { block = 1, blockEnd = 2, semiColon = 4, prefix = 8, action = 16, group = 32, dict = 64, array = 128,
+  groupEnd = 256, comma = 512, question = 1024, colon = 2048, fn = 4096, assign = 8192, or = 16384, and = 32768,
+  bitOr = 65536, bitXor = 131072, bitAnd = 262144, compare1 = 524288, compare2 = 1048576,
+  bitMove = 2097152, math1 = 4194304, math2 = 8388608, math3 = 16777216, unary = 33554432,
+  rightUnary = 67108864, callOrAccess = 134217728, dot = 268435456, ref = 536870912, literal = 1073741824,
+  END
+}
 interface TokenValues {
   [T.block]: "{", [T.blockEnd]: "}", [T.semiColon]: ";" | "\n", [T.prefix]: BlockPrefixes, [T.action]: LineActions,
   [T.group]: "(", [T.dict]: "{", [T.array]: "[", [T.groupEnd]: ")" | "}" | "]",
@@ -30,13 +37,6 @@ interface TokenValues {
   [T.unary]: "+" | "-" | "!" | "~" | "typeof" | "void" | "delete" | "++" | "--" | "`", [T.rightUnary]: "++" | "--"
   [T.callOrAccess]: "new" | "?." | "__call__", [T.dot]: "." | "?."
   [T.ref]: VarLiterals, [T.literal]: { v: string | number | boolean | null | undefined | ComplexLiteral | FakeValue }
-}
-const enum T { block = 1, blockEnd = 2, semiColon = 4, prefix = 8, action = 16, group = 32, dict = 64, array = 128,
-  groupEnd = 256, comma = 512, question = 1024, colon = 2048, fn = 4096, assign = 8192, or = 16384, and = 32768,
-  bitOr = 65536, bitXor = 131072, bitAnd = 262144, compare1 = 524288, compare2 = 1048576,
-  bitMove = 2097152, math1 = 4194304, math2 = 8388608, math3 = 16777216, unary = 33554432,
-  rightUnary = 67108864, callOrAccess = 134217728, dot = 268435456, ref = 536870912, literal = 1073741824,
-  END
 }
 interface BaseToken<K extends keyof TokenValues> { readonly t: K; readonly v: TokenValues[K];
     /** @deprecated */ readonly n?: unknown }

@@ -161,8 +161,7 @@ interface BgReq {
   } & Partial<ConfVersionReq>
   [kBgReq.url]: {
     /** url */ u?: string;
-    /** use vApi.u */ U: 0 | 1 | 2 | 3
-  } & Req.baseFg<keyof FgReq>
+  } & Req.baseQueryUrl & Req.baseFg<keyof FgReq>
   [kBgReq.eval]: {
     /** url */ u: string; // a javascript: URL
     /** only $then */ f?: Req.FallbackOptions | null
@@ -832,6 +831,7 @@ declare namespace Req {
     K extends keyof BgReq ? BgReq[K] & baseBg<K> :
     K extends keyof BgVomnibarSpecialReq ? BgVomnibarSpecialReq[K] & baseBg<K> :
     never;
+  type baseQueryUrl = { /** use vApi.u */ U: 0 | 1 | 2 | 3 }
   type queryUrl<K extends kFgReq> = K extends keyof FgReq ? "u" extends keyof FgReq[K]
       ? Omit<FgReq[K], "u"> & BgReq[kBgReq.url] & Req.baseFg<K> : never : never
   type bgUrl<K extends kFgReq> = queryUrl<K> & baseBg<kBgReq.url>
