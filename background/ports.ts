@@ -167,27 +167,35 @@ export const OnConnect = (port: Frames.Port, type: PortType): void => {
     })
     status !== Frames.Status.enabled && needIcon_ && setIcon_(tabId, status)
     if (ref !== undefined) {
-      /*#__NOINLINE__*/ revokeOldPorts(ref.ports_) // those in a new page will auto re-connect
+      /*#__NOINLINE__*/ revokeOldPorts(ref) // those in a new page will auto re-connect
     }
   }
 }
 
-const onDisconnect = (port: Port): void => {
-  let { tabId_: tabId } = port.s, ref = framesForTab_.get(tabId)
+const _debugReleasedPort = function (this: Port, req: any): void | 1 {
+  console.log("Can not send message %o from a dead port %o%s", req, this.s
+      , (new Error().stack + "").replace(<RegExpOne> /^.*\n/, ""))
+}
+
+const onDisconnect = (port: Frames.Port): void => {
+  const sender = port.s, tabId = sender.tabId_, ref = framesForTab_.get(tabId)
+  port === cPort && (sender.flags_ |= Frames.Flags.ResReleased
+      , Build.NDEBUG && Build.Mangle || ((port.postMessage as any) = _debugReleasedPort))
   if (!ref) { return }
-  const ports = ref.ports_, i = ports.lastIndexOf(port), isTop = !port.s.frameId_
+  const ports = ref.ports_, i = ports.lastIndexOf(port), isTop = !sender.frameId_
   let len = ports.length
   if (i >= 0) {
     len-- === 1 ? ports.length = 0 : ports.splice(i, 1)
     if (len > 0 && port === ref.cur_) {
       ref.cur_ = ports[0]
     }
+    Build.NDEBUG && Build.Mangle || ((port.postMessage as any) = _debugReleasedPort)
   }
   if (isTop ? i >= 0 : !len) {
     if (!(ref.flags_ & Frames.Flags.ResReleased)) {
       framesForTab_.delete(tabId)
     } else {
-      (port.s.flags_ as Frames.Flags) |= Frames.Flags.ResReleased
+      sender.flags_ |= Frames.Flags.ResReleased
     }
     kAutoDisconnectPorts && !kAliveIfOnlyAnyAction && tabId === lastKeptTabId_
         && tryToKeepAliveIfNeeded_mv3_non_ff(tabId)
@@ -236,6 +244,7 @@ const onOmniDisconnect = (port: Port): void => {
       ref.splice(i, 1)
     }
   }
+  Build.NDEBUG && Build.Mangle || ((port.postMessage as any) = _debugReleasedPort)
   return runtimeError_()
 }
 
@@ -294,8 +303,12 @@ const formatPortSender = (port: Port): Frames.Sender => {
   }
 }
 
-const revokeOldPorts = (ports_: Frames.Port[]) => {
-  for (const port of ports_) {
+const revokeOldPorts = (frames: Frames.Frames) => {
+  if (cPort && cPort.s.tabId_ === frames.cur_.s.tabId_) {
+    cPort.s.flags_ |= Frames.Flags.ResReleased
+    Build.NDEBUG && Build.Mangle || ((cPort.postMessage as any) = _debugReleasedPort)
+  }
+  for (const port of frames.ports_) {
     if (port.s.frameId_) {
       _safeRefreshPort(port)
     }
@@ -308,6 +321,8 @@ const _safeRefreshPort = (port: Port): void | /** failed */ 1 => {
     port.onDisconnect.removeListener(onDisconnect)
     port.onMessage.removeListener(onMessage)
     port.postMessage({ N: kBgReq.refreshPort })
+    Build.NDEBUG && Build.Mangle
+        || ((port.s.flags_ as number) |= Frames.Flags.Refreshing, (port.postMessage as any) = _debugReleasedPort)
   } catch (e: any) {
     if (!Build.NDEBUG) {
       console.log("Can not refresh port safely: " + (e.message || e))
@@ -320,6 +335,7 @@ const _safeRefreshPort = (port: Port): void | /** failed */ 1 => {
 const safeDisconnect = (port: Port): void => {
     try {
       port.disconnect()
+      Build.NDEBUG && Build.Mangle || ((port.postMessage as any) = _debugReleasedPort)
     } catch {}
 }
 
@@ -447,7 +463,7 @@ export const isNotVomnibarPage = (port: Frames.Port, noLog: boolean): boolean =>
 export const safePost = <K extends keyof FullBgReq>(port: Port, req: Req.bg<K>): BOOL => {
   try {
     const released = port.s.flags_ & Frames.Flags.ResReleased
-    released || port.postMessage(req)
+    !released ? port.postMessage(req) : Build.NDEBUG && Build.Mangle ? 0 : _debugReleasedPort.call(port, req)
     return released ? 0 : 1
   } catch { return 0 }
 }
@@ -659,6 +675,7 @@ const tryToKeepAlive = (rawNotFromInterval: BOOL): KKeep | void => {
       } else if ((!kAutoDisconnectPorts || doesRelease) && (!hadIFrames || isNotPriviledged(port))) {
         port.disconnect()
         port.s.frameId_ && (frames.flags_ |= Frames.Flags.HadIFrames)
+        Build.NDEBUG && Build.Mangle || ((port.postMessage as any) = _debugReleasedPort)
       } else if (kAutoDisconnectPorts) {
         _safeRefreshPort(port) ? failed = 1 : typeOfFramesToKeep < KKeep.NormalRefreshed
             && (typeOfFramesToKeep = KKeep.NormalRefreshed, framesToKeep = frames)
