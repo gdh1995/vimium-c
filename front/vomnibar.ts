@@ -1433,7 +1433,6 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
   onWndFreeze_ (event: Event): void {
     if (VPort_._port && event.isTrusted) {
       try {
-        VPort_._port.postMessage({ H: kFgReq.onOmniFreeze })
         VPort_._port.disconnect()
       } catch { /* empty */ }
       VPort_._port = null

@@ -107,7 +107,7 @@ declare const enum kFgReq {
   framesGoBack, i18n, cssLearnt, visualMode, respondForRunKey,
   downloadLink, wait, optionToggled, keyFromOmni, pages,
   showUrl, omniCopy, omniCopied, didLocalMarkTask, recheckTee,
-  afterTee, onFreeze, syncStatus, focusCurTab, onOmniFreeze, END,
+  afterTee, _deleted1, syncStatus, focusCurTab, END,
   msg = 90, teeRes = 92, inject = 99,
   command = "command", id = "id", shortcut = "shortcut", focus = "focus", tip = "tip",
 }
@@ -773,7 +773,7 @@ interface FgReq {
   [kFgReq.showUrl]: { u: string }
   [kFgReq.omniCopy]: { /** title */ t: string, /** url */ u: string }
   [kFgReq.omniCopied]: { /** text */ t: string }
-  [kFgReq.onFreeze]: {}
+  [kFgReq._deleted1]: {}
   [kFgReq.syncStatus]: {
     s: [
       isLocked: Frames.Flags.locked | Frames.Flags.lockedAndDisabled,
@@ -781,7 +781,6 @@ interface FgReq {
     ]
   }
   [kFgReq.focusCurTab]: {}
-  [kFgReq.onOmniFreeze]: {}
 }
 
 interface TeeReq {

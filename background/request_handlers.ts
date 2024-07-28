@@ -14,7 +14,7 @@ import { findUrlEndingWithPunctuation_, parseSearchUrl_, parseUpperUrl_ } from "
 import * as settings_ from "./settings"
 import {
   findCPort, isNotVomnibarPage, indexFrame, safePost, complainNoSession, showHUD, complainLimits, ensureInnerCSS,
-  getParentFrame, sendResponse, showHUDEx, getFrames_, requireURL_, OnFreeze_, OnOmniFreeze_
+  getParentFrame, sendResponse, showHUDEx, getFrames_, requireURL_
 } from "./ports"
 import { exclusionListening_, getExcluded_ } from "./exclusions"
 import { setMediaState_ } from "./ui_css"
@@ -643,7 +643,8 @@ set_reqH_([
     req <= 0 && reqH_[kFgReq.recheckTee]()
     return req ? FrameMaskType.NormalNext : FrameMaskType.NoMask
   },
-  /** kFgReq.onFreeze: */ _AsReqH<kFgReq.onFreeze>(OnFreeze_),
+  /** kFgReq._deleted1: */ (_req: FgReq[kFgReq._deleted1], _port): void => {
+  },
   /** kFgReq.syncStatus: */ (req: FgReq[kFgReq.syncStatus], port): void => {
     const [ locked, isPassKeysReversed, passKeys ] = req.s
     const newPassKeys = passKeys && (isPassKeysReversed ? "^ " : "") + passKeys.join(" ")
@@ -671,8 +672,7 @@ set_reqH_([
         clearInterval(timer)
       }
     }, 17)
-  },
-  /** kFgReq.onOmniFreeze: */ _AsReqH<kFgReq.onOmniFreeze>(OnOmniFreeze_)
+  }
 ])
 
 const onCompletions = function (this: Port, favIcon0: 0 | 1 | 2, list: Array<Readonly<Suggestion>>

@@ -323,18 +323,6 @@ const safeDisconnect = (port: Port): void => {
     } catch {}
 }
 
-export const OnFreeze_ = (_: unknown, port: Port): void => {
-  (port.s.flags_ satisfies Frames.Flags) |= Frames.Flags.ResReleased
-  port.onDisconnect.removeListener(onDisconnect)
-  onDisconnect(port)
-}
-
-export const OnOmniFreeze_ = (_: unknown, port: Port): void => {
-  (port.s.flags_ satisfies Frames.Flags) |= Frames.Flags.ResReleased
-  port.onDisconnect.removeListener(onOmniDisconnect)
-  onOmniDisconnect(port)
-}
-
 /**
  * @returns "" - in a child frame, so need to send request to content
  * @returns string - valid URL
