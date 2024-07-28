@@ -460,7 +460,7 @@ export const now = (): string => {
 export const getImageExtRe_ = (): RegExpI & RegExpOne & RegExpSearchable<0> =>
     (<RegExpI & RegExpOne & RegExpSearchable<0>> /\.(?:avif|bmp|gif|icon?|jpe?g|a?png|svg|tiff?|webp)$/i)
 
-export const isNotPriviledged = (port: Port): boolean => {
+export const isNotPriviledged = (port: WSender): boolean => {
   const url = port.s.url_
   return !(OnChrome ? url.startsWith("chrome") || url.startsWith("edge") : url.startsWith(location.protocol))
 }

@@ -159,6 +159,9 @@ declare namespace Frames {
   }
 }
 
+interface WSender {
+  readonly s: Readonly<Frames.Sender>;
+}
 interface Port extends Frames.Port {
   readonly s: Readonly<Frames.Sender>;
 }

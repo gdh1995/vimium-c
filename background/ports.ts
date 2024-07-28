@@ -179,9 +179,6 @@ const onDisconnect = (port: Port): void => {
   let len = ports.length
   if (i >= 0) {
     len-- === 1 ? ports.length = 0 : ports.splice(i, 1)
-    // if (isTop) {
-    //   (ref.top_ as Frames.Frames["top_"]) = null
-    // }
     if (len > 0 && port === ref.cur_) {
       ref.cur_ = ports[0]
     }
@@ -375,7 +372,7 @@ export const requireURL_ = <K extends keyof FgReq> (request: Req.queryUrl<K>, ig
   type T1 = keyof FgReq
   type Req1 = { [K in T1]: (req: FgReq[K], port: Frames.Port) => void }
   type Req2 = { [K in T1]: <T extends T1>(req: FgReq[T], port: Frames.Port) => void }
-  if (!port) { set_cPort(port = cPort || framesForTab_.get(curTabId_)?.top_) }
+  if (!port) { port = cPort || framesForTab_.get(curTabId_)?.top_ }
   const res = getPortUrl_(port, ignoreHash, noSender, request)
   if (typeof res !== "string") {
     return res.then(url => {
