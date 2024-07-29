@@ -553,7 +553,7 @@ export const showPicker_ = (element: HTMLInputElement | HTMLSelectElement
         : OnFirefox && !getEditableType_<0>(element)) {
       // on Firefox 101-128, input[type=color].showPicker is always blocked due to lack of user activation
     } else {
-      element.showPicker!()
+      safeCall(() => element.showPicker!())
     }
   }
 }
