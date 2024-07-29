@@ -959,6 +959,7 @@ const scrollSelectionAfterFind = (par: Element, newAnchor: Element | 0, sel: Sel
       let textBoxRect: Rect | 1 | false | 0 | null | void = !kMayInTextBox ? null : textStyle && noFocus
           && (getZoom_(newAnchor as TextElement), prepareCrop_(), 1)
   let context: CanvasRenderingContext2D, widthOrEnd: number
+  // `window.find()` may auto make a target scroll into view smoothly, but a manual `scrollBy` breaks the animation
   const oldInvisibility = +isSafeEl_(par) && view_(par as SafeElement, !textBoxRect)
   textBoxRect = kMayInTextBox ? textBoxRect && boundingRect_(newAnchor as TextElement) : null
   if (kMayInTextBox && isTY(textStyle, kTY.obj)) {
@@ -985,10 +986,7 @@ const scrollSelectionAfterFind = (par: Element, newAnchor: Element | 0, sel: Sel
     top *= textStyle[1]
     const scX = (ltr ? 1 : -1) * max_(0, start - max_width / 2) + baseScPosX
     const scY = max_(0, top - (textStyle[3] - textStyle[1]) / 2)
-    if (OnChrome && Build.MinCVer < BrowserVer.MinJsScrollNotBreakAutoScrollAfterFind
-        && oldInvisibility && (BrowserVer.MinJsScrollNotBreakAutoScrollAfterFind >= 999
-            || chromeVer_ < BrowserVer.MinJsScrollNotBreakAutoScrollAfterFind)
-        && isNotInViewport(newAnchor as TextElement)) { /* empty */ }
+    if (OnChrome && oldInvisibility && isNotInViewport(newAnchor as TextElement)) { /* empty */ }
     else if ((OnChrome ? Build.MinCVer >= BrowserVer.MinEnsuredCSS$ScrollBehavior : !OnEdge)
         || (newAnchor as Element).scrollTo) {
       (newAnchor as TextElement).scrollTo(instantScOpt(scX, scY))

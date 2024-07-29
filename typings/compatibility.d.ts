@@ -626,8 +626,6 @@ declare const enum BrowserVer {
   MinNew$URL$NotDecodePathname = 118,
   Min$ScrollBehavior$$Instant$InJS = 121, // even if EXP or LEGACY
   MinEnsured$select$$showPicker = 121, // since 119 if EXP
-  // `window.find()` may auto make a target scroll into view smoothly, but a manual `scrollBy` breaks the animation
-  MinJsScrollNotBreakAutoScrollAfterFind = 999,
   MinNo$TimerType$$Fake = 999,
   assumedVer = 998,
 }

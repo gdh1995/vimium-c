@@ -445,8 +445,7 @@ export const view_ = (el: SafeElement, allowSmooth?: BOOL | boolean, oldY?: numb
     if (style) { style.setProperty(kBh, "auto", "important") }
     OnEdge || OnChrome && Build.MinCVer < BrowserVer.MinScrollIntoViewOptions
         ? scrollIntoView_(el, !allowSmooth, delta < 0) : scrollIntoView_(el, !allowSmooth)
-    const stillNotInView = (OnChrome ? Build.MinCVer < BrowserVer.MinJsScrollNotBreakAutoScrollAfterFind : !OnEdge)
-        && isNotInViewport(el)
+    const stillNotInView = !OnEdge && isNotInViewport(el)
     if (!stillNotInView && f) {
       secondScroll = elHeight < ih ? oldY! - scrollY : 0
       // required range of wanted: delta > 0 ? [-limit, 0] : [0, limit]
