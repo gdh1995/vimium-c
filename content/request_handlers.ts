@@ -91,7 +91,7 @@ set_requestHandlers([
       setupEventListener(0, "freeze", onFreezePort, 1)
     }
     requestHandlers[kBgReq.init] = null as never;
-    request.d && set_port_(null) // in case `port.onDisconnect` was not triggered
+    OnChrome && request.d && set_port_(null) // in case `port.onDisconnect` was not triggered
     OnDocLoaded_(function (): void {
       set_onWndFocus(safePost.bind(0, <Req.fg<kFgReq.onFrameFocused>> { H: kFgReq.onFrameFocused }))
       isTop || docHasFocus_() && onWndFocus()

@@ -67,8 +67,9 @@ export const OnConnect = (port: Frames.Port, type: PortType): void => {
     /*#__NOINLINE__*/ _onPageConnect(port, type)
     return
   }
-  const lifecycle = (port as Frames.BrowserPort).sender.documentLifecycle
-  const isInactive = !!lifecycle && lifecycle !== "active"
+  const lifecycle = OnChrome && (port as Frames.BrowserPort).sender.documentLifecycle
+  const isInactive = OnChrome && (Build.MinCVer >= BrowserVer.MinPortSenderLifecycle || !!lifecycle)
+      && lifecycle !== "active"
   const sender = /*#__NOINLINE__*/ formatPortSender(port)
   const url = sender.url_, isOmni = url === vomnibarPage_f
   if (type > PortType.reconnect - 1 || isOmni) {

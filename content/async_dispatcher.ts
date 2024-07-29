@@ -1,6 +1,6 @@
 import {
   OnChrome, OnFirefox, OnEdge, doc, deref_, weakRef_ff, chromeVer_, isJSUrl, parseOpenPageUrlOptions, safeCall, vApi,
-  tryCreateRegExp, weakRef_not_ff, firefoxVer_, fgCache, max_, promiseDefer_
+  tryCreateRegExp, weakRef_not_ff, firefoxVer_, fgCache, max_, promiseDefer_, isAsContent
 } from "../lib/utils"
 import {
   IsInDOM_, isInTouchMode_cr_, MDW, htmlTag_, CLK, attr_s, fullscreenEl_unsafe_, findAnchor_, dispatchAsync_, kDispatch,
@@ -412,9 +412,17 @@ export const click_async = (async (element: SafeElementForMouse
   if (OnChrome && (element as Partial<HTMLInputElement /* |HTMLSelectElement|HTMLButtonElement */>).disabled) {
     return
   }
+  const isColorInput = Build.BTypes & ~BrowserType.Edge && editableTypes_[tag] === EditableType.Input
+      && uneditableInputs_[(element satisfies SafeElement as SafeElement as HTMLInputElement).type] === 4
   let url: string | null
   let parentAnchor: HTMLAnchorElement & SafeHTMLElement | null, sedIfRe: RegExpOne | void
-  if (!result && (action || sedIf) && (parentAnchor = findAnchor_(element))
+  if (Build.MV3 && OnChrome && !vApi.e && isAsContent && isColorInput
+      && (Build.MinCVer>BrowserVer.MinMaybe$input$$showPicker || chromeVer_>BrowserVer.MinMaybe$input$$showPicker-1)) {
+    return
+  }
+  if (result) {
+    result = result
+  } else if ((action || sedIf) && (parentAnchor = findAnchor_(element))
       && (url = attr_s(parentAnchor as SafeElement, "href"))
       && !(OnFirefox && parentAnchor.href.startsWith("file:") || url[0] === "#")) {
     // for forceToDblclick, element can be OtherSafeElement; for [1..BaseMayInteract), element must be in <html:a>
@@ -429,10 +437,10 @@ export const click_async = (async (element: SafeElementForMouse
               : Build.MinFFVer > FirefoxBrowserVer.ESRPopupBlockerPassClicksFromExtensions
                 || firefoxVer_ - FirefoxBrowserVer.ESRPopupBlockerPassClicksFromExtensions || fgCache.V < 6)
         ? ActionType.DispatchAndMayOpenTab : ActionType.OnlyDispatch
-  } else if (!result && (editableTypes_[tag] === EditableType.Select
-      || Build.MV3 && OnChrome && editableTypes_[tag] === EditableType.Input
-          && uneditableInputs_[(element satisfies SafeElement as SafeElement as HTMLInputElement).type] === 4)) {
-    result = ActionType.dblClick | ActionType.hasPicker
+  } else {
+    result = OnEdge ? ActionType.OnlyDispatch
+        : isColorInput || editableTypes_[tag] === EditableType.Select ? ActionType.dblClick | ActionType.hasPicker
+        : ActionType.OnlyDispatch
   }
   const isCommonClick = result < ActionType.OpenTabButNotDispatch && button !== kClickButton.primaryAndTwice
       && !(modifiers && modifiers[0])
@@ -474,7 +482,7 @@ export const click_async = (async (element: SafeElementForMouse
               : initialStat ? (element as SafeHTMLElement as HTMLMediaElement).play()
               : (element as SafeHTMLElement as HTMLMediaElement).pause()
         }
-      } else if (result & ActionType.hasPicker) {
+      } else if (result & ActionType.hasPicker && Build.BTypes & ~BrowserType.Edge) {
         showPicker_(element as SafeElement as HTMLInputElement | HTMLSelectElement
             , editableTypes_[tag] as EditableType.Select | EditableType.Input)
       }
@@ -536,10 +544,14 @@ export const select_ = (element: LockableElement, rect?: Rect | null, show_flash
 export const showPicker_ = (element: HTMLInputElement | HTMLSelectElement
     , type: EditableType.Input | EditableType.Select): void => {
   if ((type > EditableType.Input - 1 ? OnChrome && Build.MinCVer >= BrowserVer.MinEnsured$input$$showPicker
+          || OnFirefox && Build.MinFFVer >= FirefoxBrowserVer.MinEnsured$input$$showPicker
         : OnChrome && Build.MinCVer >= BrowserVer.MinEnsured$select$$showPicker)
       || Build.BTypes & ~BrowserType.Edge && element.showPicker) {
     if (Build.MV3 && OnChrome && vApi.e) {
       vApi.e(kContentCmd.ShowPicker_cr_mv3, element)
+    } else if (type < EditableType.Input ? Build.MV3 && OnChrome && isAsContent
+        : OnFirefox && !getEditableType_<0>(element)) {
+      // on Firefox 101-128, input[type=color].showPicker is always blocked due to lack of user activation
     } else {
       element.showPicker!()
     }

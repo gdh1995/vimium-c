@@ -319,7 +319,7 @@ const callOpenUrls = (path: string, workType: Urls.WorkType): Urls.ErrorEvalResu
   const keys = path.slice(0, ind - 1).split(path.lastIndexOf(" ", ind - 1) >= 0 ? " " : "|")
       .filter(i => searchEngines_.map.has(i))
   if (keys.length <= 0) { return ["No valid search engines found", Urls.kEval.ERROR] }
-  const query = path.slice(ind).split(" ")
+  const query = path.slice(ind).trim().split(" ")
   const urls: Urls.RunEvalResult[0] = ["openUrls"]
   // `as string` is safe when only used by {@see open_urls.ts#onEvalUrl_}
   for (const keyword of keys) { urls.push(createSearchUrl_(query, keyword, workType) as string) }

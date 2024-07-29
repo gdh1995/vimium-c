@@ -584,6 +584,7 @@ declare const enum BrowserVer {
   MinMaybeAutoFillInShadowDOM = 93, // if --enable-blink-features=AutofillShadowDOM
   MinEnsuredURLPattern = 95, // even if LEGACY; since C93 if EXP
   MinNotPropagateBodyStyleIfContained = 96, // even if EXP or LEGACY
+  MinMaybe$input$$showPicker = 97,
   Min$structuredClone = 98, // even if EXP or LEGACY
   MinExtraGutterInBoxIfScrollbarIsVisible = 99, // even if EXP or LEGACY
   MinEnsured$input$$showPicker = 99, // even if LEGACY; since 97 if EXP
@@ -607,6 +608,7 @@ declare const enum BrowserVer {
   Min$AbortSignal$$timeout = 103, // even if LEGACY; since 100 if EXP
   MinEnsured$Element$$role = 103, // even if LEGACY; since 68 if EXP
   MinMV3FaviconAPI = 104,
+  MinPortSenderLifecycle = 104, // even if EXP or LEGACY
   Min$downloads$$setUiOptions = 105, // require `downloads.ui`
   MinURLPatternWith$ignoreCase = 107, // even if EXP or LEGACY
   MinMaybePopoverWith$popovershow = 109, // if EXP; use popovershow/popoverhide instead of toggle
@@ -697,7 +699,9 @@ declare const enum FirefoxBrowserVer {
   MinMaybeScrollEndEvent = 109, // apz.scrollend-event.content.enabled
   Min$search$$query = 111,
   MinMaybe$navigator$$userAgentData = 116, // a fake version number
+  MinEnsured$input$$showPicker = 117, // no dom.input.showPicker
   MinEnsured$visualViewport$ = 119,
+  MinMaybe$select$$showPicker = 121, // if dom.select.showPicker.enabled
   // members of a Selection are never updated when an <input> gets focused, so no work-around
   Min$Selection$SupportTextBox = 999,
   None = 0,

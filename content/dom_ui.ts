@@ -430,7 +430,8 @@ export const moveSel_s_throwable = (element: LockableElement, action: SelectActi
       }
     }
     doesCollpase && collpaseSelection(getSelection_(), gotoEnd)
-    if (getEditableType_<0>(element as SafeElement) === EditableType.Input
+    if (OnEdge) { /** empty */ }
+    else if (getEditableType_<0>(element as SafeElement) === EditableType.Input
         ? (!len && (str = (element as HTMLInputElement).autocomplete) && str !== "off"
             || (element as HTMLInputElement).list)
         : Build.MV3 && OnChrome && // in case it change .type
