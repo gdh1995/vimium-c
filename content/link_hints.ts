@@ -89,7 +89,7 @@ import {
   WithDialog, Lower, safeCall, os_, firefoxVer_, weakRef_not_ff, weakRef_ff, isTY, isIFrameInAbout_, findOptByHost
 } from "../lib/utils"
 import {
-  querySelector_unsafe_, isHTML_, scrollingEl_, docEl_unsafe_, IsInDOM_, GetParent_unsafe_, hasInCSSFilter_,derefInDoc_,
+  querySelector_unsafe_, isHTML_, scrollingEl_, docEl_unsafe_, IsAInB_, GetParent_unsafe_, hasInCSSFilter_,derefInDoc_,
   getComputedStyle_, isStyleVisible_, htmlTag_, fullscreenEl_unsafe_, removeEl_s, PGH, toggleClass_s, doesSupportDialog,
   getSelectionFocusEdge_, SafeEl_not_ff_, compareDocumentPosition, deepActiveEl_unsafe_, frameElement_, getSelection_,
 } from "../lib/dom_utils"
@@ -336,7 +336,7 @@ export const setMode = (mode: HintMode, silent?: BOOL): void => {
 
 const getPreciseChildRect = (frameEl: KnownIFrameElement, view: Rect): Rect | null => {
     const V = "visible", brect = boundingRect_(frameEl), // not check <iframe>s referred by <slot>s
-    docEl = docEl_unsafe_(), body = doc.body, inBody = !!body && IsInDOM_(frameEl as SafeHTMLElement, body),
+    docEl = docEl_unsafe_(), body = doc.body, inBody = !!body && IsAInB_(frameEl as SafeHTMLElement, body),
     zoom = (OnChrome ? docZoom_ * (inBody ? bZoom_ : 1) : 1) / dScale_ / (inBody ? bScale_ : 1);
     let x0 = min_(view.l, brect.l), y0 = min_(view.t, brect.t), l = x0, t = y0, r = view.r, b = view.b
     for (let el: Element | null = frameEl; el = GetParent_unsafe_(el, PNType.RevealSlotAndGotoParent); ) {
@@ -587,7 +587,7 @@ const activateDirectly = (options: ContentOptions, count: number): void => {
   const mode = options.m,
   next = (): void => {
     if (count < 1) { clear(); return }
-    count = IsInDOM_(el!) ? (coreHints.e({d: el as LinkEl, r: null, m: null}, 0
+    count = IsAInB_(el!) ? (coreHints.e({d: el as LinkEl, r: null, m: null}, 0
         , res[3] && getSelectionBoundingBox_()), count - 1) : 0
     count || runFallbackKey(options_, mode > HintMode.min_job - 1 && 0)
     timeout_(next, count > 99 ? 1 : count && 17)
@@ -595,7 +595,7 @@ const activateDirectly = (options: ContentOptions, count: number): void => {
   res = findAnElement_(options, count), rawEl = res[0],
   el = mode < HintMode.min_job || rawEl && htmlTag_(rawEl) ? rawEl : null
   clear()
-  if (!el || !IsInDOM_(el)) {
+  if (!el || !IsAInB_(el)) {
     runFallbackKey(options, kTip.noTargets)
   } else {
     count = mode < HintMode.min_job && !res[2] ? count : 1

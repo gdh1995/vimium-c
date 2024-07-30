@@ -7,7 +7,7 @@ import {
   getVisibleClientRect_, center_, view_, selRange_, bZoom_, set_bZoom_, getZoom_, prepareCrop_
 } from "../lib/rect"
 import {
-  IsInDOM_, createElement_, htmlTag_, getComputedStyle_, getEditableType_, isIFrameElement, GetParent_unsafe_, focus_,
+  IsAInB_, createElement_, htmlTag_, getComputedStyle_, getEditableType_, isIFrameElement, GetParent_unsafe_, focus_,
   kMediaTag, ElementProto_not_ff, querySelector_unsafe_, uneditableInputs_, GetShadowRoot_, scrollingEl_, elFromPoint_,
   queryHTMLChild_, getSelection_, removeEl_s, appendNode_s, getMediaUrl, getMediaTag, INP, ALA, attr_s, hasTag_, kGCh,
   setOrRemoveAttr_s, toggleClass_s, textContent_s, isSafeEl_, modifySel, SafeEl_not_ff_, testMatch, contains_s,
@@ -595,10 +595,10 @@ const doPostAction = (): Rect | null => {
   }
   masterOrA.v() // here .keyStatus_ is reset
   set_grabBackFocus(false)
-  if (IsInDOM_(clickEl)) {
+  if (IsAInB_(clickEl)) {
     getZoom_(clickEl)
     prepareCrop_()
-    if (!OnFirefox && bZoom_ !== 1 && doc.body && !IsInDOM_(clickEl, doc.body)) { set_bZoom_(1) }
+    if (!OnFirefox && bZoom_ !== 1 && doc.body && !IsAInB_(clickEl, doc.body)) { set_bZoom_(1) }
     clickEl = findNextTargetEl(hintOptions.autoParent, kNextTarget.parent) || clickEl
     clickEl = findNextTargetEl(hintOptions.autoChild, kNextTarget.child) || clickEl
     realClickEl = mode1_ < HintMode.max_mouse_events+1 && findNextTargetEl(hintOptions.doClickOn, kNextTarget.realClick)

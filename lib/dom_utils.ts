@@ -351,7 +351,7 @@ export const getEventPath = (event: Event): EventPath | undefined => {
 
 export const derefInDoc_ = ((val: WeakRef<SafeElement> | SafeElement | null | undefined): SafeElement | null => {
   val = deref_(val as WeakRef<SafeElement> | null | undefined)
-  return val && IsInDOM_(val, doc) ? val : null
+  return val && IsAInB_(val, doc) ? val : null
 }) as <T extends SafeElement> (val: WeakRef<T> | T | null | undefined) => T | null
 
 export const queryHTMLChild_ = (
@@ -383,7 +383,7 @@ export const findAnchor_ = ((element: Element | null): SafeHTMLElement | null =>
   return element as SafeHTMLElement
 }) as (element: SafeElement) => SafeHTMLElement & HTMLAnchorElement | null
 
-export const IsInDOM_ = function (element: Element, root?: Element | Document | null
+export const IsAInB_ = function (element: Element, root?: Element | Document | null
       , checkMouseEnter?: 1): boolean {
     if (!root || isNode_(root as Element | Document, kNode.DOCUMENT_NODE)) {
       const isConnected = element.isConnected; /** {@link #BrowserVer.Min$Node$$isConnected} */
@@ -633,7 +633,7 @@ export { findOptByHost as findSelectorByHost } from "./utils"
 
 export const elFromPoint_ = (center?: Point2D | null, baseEl?: SafeElement | ShadowRoot | null): Element | null => {
   const root = center && (baseEl ? isNode_(baseEl, kNode.DOCUMENT_FRAGMENT_NODE) ? baseEl
-      : IsInDOM_(baseEl) && getRootNode_mounted(baseEl) : doc)
+      : IsAInB_(baseEl) && getRootNode_mounted(baseEl) : doc)
   const el = root && root.elementFromPoint(center![0], center![1])
   return el && el !== doc.body ? el : null
 }

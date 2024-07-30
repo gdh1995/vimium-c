@@ -54,7 +54,7 @@
       "isHTML_", "htmlTag_", "hasTag_", "isInTouchMode_cr_", "_getter_unsafeOnly_not_ff_", "isSafeEl_",
       "SafeEl_not_ff_", "GetShadowRoot_", "GetParent_unsafe_",
       "scrollingEl_", "fullscreenEl_unsafe_", "frameElement_", "getEditableType_",
-      "IsInDOM_", "getSelectionBoundingBox_",
+      "IsAInB_", "getSelectionBoundingBox_",
       "center_", "isContaining_", "padClientRect_", "boundingRect_", "getVisibleBoundingRect_", "SubtractSequence_",
       "BgUtils_.escapeText_", "escapeText_", "highlight", "cutTitle", "BgUtils_.unicodeSubstring_", "unicodeSubstring_",
       "safeObj_", "BgUtils_.safeObj_",

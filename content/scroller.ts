@@ -29,7 +29,7 @@ import {
 import {
   rAF_, scrollingEl_, SafeEl_not_ff_, docEl_unsafe_, NONE, frameElement_, OnDocLoaded_, GetParent_unsafe_, elFromPoint_,
   querySelector_unsafe_, getComputedStyle_, isSafeEl_, HDN, isRawStyleVisible, fullscreenEl_unsafe_, getEventPath,
-  doesSupportDialog, attr_s, getSelection_, isIFrameElement, derefInDoc_, isHTML_, IsInDOM_, getRootNode_mounted,
+  doesSupportDialog, attr_s, getSelection_, isIFrameElement, derefInDoc_, isHTML_, IsAInB_, getRootNode_mounted,
   getEditableType_, dispatchAsync_, newEvent_, findSelectorByHost, dispatchEvent_
 } from "../lib/dom_utils"
 import {
@@ -573,7 +573,7 @@ const findScrollable = (di: ScrollByY, amount: number, outer: number
     const lastCachedScrolled = derefInDoc_(cachedScrollable)
     const fullscreen = fullscreenEl_unsafe_(), top: Element | null = fullscreen || scrollingTop, body = doc.body
     const selectAncestor = (): void => {
-      while (element !== top && (!fullscreen || IsInDOM_(element as SafeElement, fullscreen))
+      while (element !== top && (!fullscreen || IsAInB_(element as SafeElement, fullscreen))
           ? shouldScroll_s(<SafeElement> element, element === lastCachedScrolled ? (di + 2) as 2 | 3 : di, amount) < 1
             || --outer > 0
           : (element = top, 0)) {
@@ -594,7 +594,7 @@ const findScrollable = (di: ScrollByY, amount: number, outer: number
       if (selector) {
           element = OnFirefox ? querySelector_unsafe_(selector) as SafeElement | null
                   : SafeEl_not_ff_!(querySelector_unsafe_(selector))
-          element = element && (!fullscreen || IsInDOM_(element as SafeElement, fullscreen)) ? element : null
+          element = element && (!fullscreen || IsAInB_(element as SafeElement, fullscreen)) ? element : null
       }
     }
     if (!element && top && isSafeEl_(top)) {
@@ -628,9 +628,9 @@ export const getPixelScaleToScroll = (skipGetZoom?: 1): void => {
 
 const checkCurrent = (el: SafeElement | null): void => {
   const cur = derefInDoc_(currentScrolling)
-  if (el && (!cur || cur !== el && !(IsInDOM_(cur, el) && !isNotInViewport(cur)))) {
+  if (el && (!cur || cur !== el && !(IsAInB_(cur, el) && !isNotInViewport(cur)))) {
     const last = derefInDoc_(cachedScrollable)
-    const par: SafeElement = last && el !== last && last !== cur && IsInDOM_(last, el) && !isNotInViewport(last) ? last
+    const par: SafeElement = last && el !== last && last !== cur && IsAInB_(last, el) && !isNotInViewport(last) ? last
         : el
     setNewScrolling(par)
     set_cachedScrollable(currentScrolling)

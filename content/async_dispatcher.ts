@@ -3,7 +3,7 @@ import {
   tryCreateRegExp, weakRef_not_ff, firefoxVer_, fgCache, max_, promiseDefer_, isAsContent
 } from "../lib/utils"
 import {
-  IsInDOM_, isInTouchMode_cr_, MDW, htmlTag_, CLK, attr_s, fullscreenEl_unsafe_, findAnchor_, dispatchAsync_, kDispatch,
+  IsAInB_, isInTouchMode_cr_, MDW, htmlTag_, CLK, attr_s, fullscreenEl_unsafe_, findAnchor_, dispatchAsync_, kDispatch,
   blur_unsafe, derefInDoc_, newEvent_, getRootNode_mounted, elFromPoint_, HTMLElementProto, getEditableType_,
   uneditableInputs_, editableTypes_
 } from "../lib/dom_utils"
@@ -249,16 +249,16 @@ export const hover_async = (async (newEl?: NullableSafeElForM
     , center?: Point2D, doesFocus?: boolean, allowScroll?: boolean): Promise<void> => {
   // if center is affected by zoom / transform, then still dispatch mousemove
   let elFromPoint = elFromPoint_(center, newEl),
-  canDispatchMove: boolean = !newEl || elFromPoint === newEl || !elFromPoint || !IsInDOM_(newEl, elFromPoint),
+  canDispatchMove: boolean = !newEl || elFromPoint === newEl || !elFromPoint || !IsAInB_(newEl, elFromPoint),
   last = derefInDoc_(lastHovered_), forceToBubble = lastBubbledHovered_ === lastHovered_,
   N = lastHovered_ = lastBubbledHovered_ = null
   const notSame = newEl !== last
   if (last) {
     // MS Edge 90 dispatches mouseout and mouseleave if only a target element is in doc
     await mouse_(last, "mouseout", [0, 0], N, notSame ? newEl : N)
-    if ((!newEl || notSame && !IsInDOM_(newEl, last, 1)) && IsInDOM_(last, doc)) {
+    if ((!newEl || notSame && !IsAInB_(newEl, last, 1)) && IsAInB_(last, doc)) {
       await mouse_(last, "mouseleave", [0,0],N,newEl,kClickButton.none,!1, forceToBubble || enableBubblesForEnterLeave_)
-      if (doesFocus && IsInDOM_(last)) { // always blur even when moved to another document
+      if (doesFocus && IsAInB_(last)) { // always blur even when moved to another document
         blur_unsafe(last)
       }
     }
@@ -267,15 +267,15 @@ export const hover_async = (async (newEl?: NullableSafeElForM
   } else {
     last = N
   }
-  if (newEl && IsInDOM_(newEl)) {
+  if (newEl && IsAInB_(newEl)) {
     // then center is not null
     await mouse_(newEl, "mouseover", center!, N, last)
-    if (IsInDOM_(newEl)) {
+    if (IsAInB_(newEl)) {
       await mouse_(newEl, "mouseenter", center!, N, last, kClickButton.none, !1, enableBubblesForEnterLeave_)
-      if (canDispatchMove && IsInDOM_(newEl)) {
+      if (canDispatchMove && IsAInB_(newEl)) {
         await mouse_(newEl, "mousemove", center!)
       }
-      lastHovered_ = IsInDOM_(newEl) ? OnFirefox ? weakRef_ff(newEl, kElRef.lastHovered) : weakRef_not_ff!(newEl) : N
+      lastHovered_ = IsAInB_(newEl) ? OnFirefox ? weakRef_ff(newEl, kElRef.lastHovered) : weakRef_not_ff!(newEl) : N
       lastBubbledHovered_ = enableBubblesForEnterLeave_ && lastHovered_
       notSame && doesFocus && lastHovered_ && await dispatchAsync_(newEl, kDispatch.focusFn
           , { preventScroll: !allowScroll })
@@ -356,14 +356,14 @@ export const click_async = (async (element: SafeElementForMouse
     const promise = promiseDefer_<unknown>()
     send_(kFgReq.blank, 0, promise.r)
     await promise.p
-    if (!IsInDOM_(element)) { return }
+    if (!IsAInB_(element)) { return }
   }
   if (isTouch) {
     await touch_cr_!(element, center)
-    if (IsInDOM_(element)) {
+    if (IsAInB_(element)) {
       await touch_cr_!(element, center, 1)
     }
-    if (!IsInDOM_(element)) { return }
+    if (!IsAInB_(element)) { return }
   }
   if (element !== deref_(lastHovered_)) {
     await wrap_enable_bubbles(userOptions, hover_async as typeof hover_async<1>, [element, center])
@@ -381,7 +381,7 @@ export const click_async = (async (element: SafeElementForMouse
                     || result < ActionType.MinOpenUrl && result & ActionType.dblClick) ? 2 : 1
   let pointerdownNotPrevented = await mouse_(element, MDW, center, modifiers, 0, button, isTouch, 0, alsoPointerUpDown)
   await 0
-  if (!IsInDOM_(element)) { return }
+  if (!IsAInB_(element)) { return }
   if (pointerdownNotPrevented === 3) {
     await mouse_(element, kMU, center, modifiers, 0, button, isTouch, alsoPointerUpDown = 0, 3)
     await 0
@@ -393,14 +393,14 @@ export const click_async = (async (element: SafeElementForMouse
       && element !== (getRootNode_mounted(element) as Document).activeElement
       && !(element as Partial<HTMLInputElement>).disabled) {
     await dispatchAsync_(element, kDispatch.focusFn)
-    if (!IsInDOM_(element)) { return }
+    if (!IsAInB_(element)) { return }
     await 0
   }
   await mouse_(element, kMU, center, modifiers, 0, button, isTouch, 0
       , alsoPointerUpDown && (((alsoPointerUpDown satisfies 1 | 2)
             | (pointerdownNotPrevented satisfies boolean | 2 as BOOL | 2)) as 1 | 2 | 3))
   await 0
-  if (!IsInDOM_(element) || button! & kClickButton.auxiliary) { return }
+  if (!IsAInB_(element) || button! & kClickButton.auxiliary) { return }
   if (button! & kClickButton.second) {
     // if button is the right, then auxclick can be triggered even if element.disabled
     OnEdge || OnChrome && Build.MinCVer < BrowserVer.MinEnsured$auxclick && chromeVer_ < BrowserVer.MinEnsured$auxclick

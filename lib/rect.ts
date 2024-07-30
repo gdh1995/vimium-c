@@ -5,7 +5,7 @@ import {
 import {
   docEl_unsafe_, scrollingEl_, isSafeEl_, ElementProto_not_ff, isRawStyleVisible, getComputedStyle_, NONE,
   querySelector_unsafe_, querySelectorAll_unsafe_, GetParent_unsafe_, HDN, createElement_, fullscreenEl_unsafe_,
-  IsInDOM_, scrollIntoView_, rangeCount_, removeEl_s, append_not_ff, htmlTag_, getRootNode_mounted
+  IsAInB_, scrollIntoView_, rangeCount_, removeEl_s, append_not_ff, htmlTag_, getRootNode_mounted
 } from "./dom_utils"
 
 export declare const enum kInvisibility { Visible = 0, OutOfView = 1, NotInFullscreen = 2, NoSpace = 3 }
@@ -307,7 +307,7 @@ export const getZoom_ = !OnFirefox ? function (target?: 1 | SafeElement): void {
     const body = el ? null : doc.body
     // if fullscreen and there's nested "contain" styles,
     // then it's a whole mess and nothing can be ensured to be right
-    bZoom_ = body && (target === 1 || IsInDOM_(target, body)) ? elZoom_(getComputedStyle_(body)) : 1
+    bZoom_ = body && (target === 1 || IsAInB_(target, body)) ? elZoom_(getComputedStyle_(body)) : 1
   }
   for (; el && el !== docEl;
       el = GetParent_unsafe_(el, OnChrome && Build.MinCVer < BrowserVer.MinSlotIsNotDisplayContents
@@ -400,7 +400,7 @@ export const isNotInViewport = (element: SafeElement, rect?: Rect): kInvisibilit
   let fs: Element | null
   rect = rect || boundingRect_(element!)
   return rect.b - rect.t < 1 || rect.r - rect.l < 1 ? kInvisibility.NoSpace
-      : (fs = fullscreenEl_unsafe_()) && !IsInDOM_(element, fs) ? kInvisibility.NotInFullscreen
+      : (fs = fullscreenEl_unsafe_()) && !IsAInB_(element, fs) ? kInvisibility.NotInFullscreen
       : rect.b <= 0 || rect.t >= wndSize_() || rect.r <= 0 || rect.l >= wndSize_(1)
       ? kInvisibility.OutOfView : kInvisibility.Visible
 }
