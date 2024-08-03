@@ -283,6 +283,7 @@ declare namespace HintsNS {
     /** mode */ m: HintMode
     /** hint characters */ c?: string
     action?: string;
+    action2?: "host-re##selector//<special_action:int>";
     /** enable bubbles when hovering / unhovering */ bubbles?: boolean;
     caret?: boolean;
     doClickOn?: "css-selector"

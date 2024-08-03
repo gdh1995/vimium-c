@@ -27,6 +27,7 @@ export declare const enum kClickAction {
 const enum ActionType {
   OnlyDispatch = 0,
   dblClick = kClickAction.FlagDblClick, interact = kClickAction.FlagInteract, hasPicker = interact * 2,
+  ShowPicker = hasPicker | dblClick, NothingSpecial = hasPicker | dblClick | interact,
   MinOpenUrl = kClickAction.MinNeverInteract - kClickAction.BaseMayInteract,
   DispatchAndMayOpenTab = MinOpenUrl, OpenTabButNotDispatch = DispatchAndMayOpenTab + 1,
 }
@@ -344,7 +345,7 @@ export const click_async = (async (element: SafeElementForMouse
   const sedIf = userOptions && userOptions.sedIf
   let result: ActionType = max_((action = action! | 0) - kClickAction.BaseMayInteract, 0)
   const tag = htmlTag_(element)
-  const initialStat = result & ActionType.interact && result < ActionType.MinOpenUrl
+  const initialStat = result & ActionType.interact && result < ActionType.NothingSpecial
       ? result & ActionType.dblClick ? tag === "video" && fullscreenEl_unsafe_()
         : (element as HTMLMediaElement).paused : 0
   const isTouch: boolean = OnChrome && (Build.MinCVer >= BrowserVer.MinEnsuredTouchEventConstructor
@@ -378,7 +379,7 @@ export const click_async = (async (element: SafeElementForMouse
   }
   let alsoPointerUpDown: BOOL | 2 = pointerEvents === false ? 0
       : isTouch && (button! & (kClickButton.auxiliary | kClickButton.second)
-                    || result < ActionType.MinOpenUrl && result & ActionType.dblClick) ? 2 : 1
+                    || result < ActionType.NothingSpecial && result & ActionType.dblClick) ? 2 : 1
   let pointerdownNotPrevented = await mouse_(element, MDW, center, modifiers, 0, button, isTouch, 0, alsoPointerUpDown)
   await 0
   if (!IsAInB_(element)) { return }
@@ -421,7 +422,7 @@ export const click_async = (async (element: SafeElementForMouse
     return
   }
   if (result) {
-    result = result
+    result = result - ActionType.NothingSpecial ? result : ActionType.OnlyDispatch
   } else if ((action || sedIf) && (parentAnchor = findAnchor_(element))
       && (url = attr_s(parentAnchor as SafeElement, "href"))
       && !(OnFirefox && parentAnchor.href.startsWith("file:") || url[0] === "#")) {
@@ -439,7 +440,7 @@ export const click_async = (async (element: SafeElementForMouse
         ? ActionType.DispatchAndMayOpenTab : ActionType.OnlyDispatch
   } else {
     result = OnEdge ? ActionType.OnlyDispatch
-        : isColorInput || editableTypes_[tag] === EditableType.Select ? ActionType.dblClick | ActionType.hasPicker
+        : isColorInput || editableTypes_[tag] === EditableType.Select ? ActionType.ShowPicker
         : ActionType.OnlyDispatch
   }
   const isCommonClick = result < ActionType.OpenTabButNotDispatch && button !== kClickButton.primaryAndTwice

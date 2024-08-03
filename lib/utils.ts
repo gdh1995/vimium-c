@@ -1,4 +1,5 @@
 export type XrayedObject<T extends object> = T & { wrappedJSObject: T }
+export declare const enum kNextTarget { parent = 0, child = 1, realClick = 2, nonCss = 3, _mask = "" }
 
 const OnOther_: BrowserType = Build.BTypes && !(Build.BTypes & (Build.BTypes - 1))
     ? Build.BTypes as number
@@ -235,8 +236,8 @@ export const splitEntries_ = <T, LongArr extends boolean = false> (
 type MayBeSelector = "" | true | false | 0 | null | void | undefined
 export let findOptByHost: {
   (rules: kTip, cssCheckEl?: undefined): "css-selector" | void
-  (rules: string | kTip | object | MayBeSelector | void, cssCheckEl: SafeElement, mapMode: 1 | 2 | 3
-      ): string | boolean | void
+  (rules: string | kTip | object | MayBeSelector | void, cssCheckEl: SafeElement
+      , mapMode: kNextTarget.child | kNextTarget.realClick | kNextTarget.nonCss): string | boolean | void
   (rules: string | object | MayBeSelector | void, cssCheckEl: 0): string | void
   (rules: string | object | MayBeSelector | void, cssCheckEl?: SafeElement): "css-selector" | void
 }

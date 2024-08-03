@@ -1,7 +1,7 @@
 import {
-  safer, fgCache, isImageUrl, isJSUrl, set_keydownEvents_, doc, chromeVer_, os_, timeout_, splitEntries_,
+  safer, fgCache, isImageUrl, isJSUrl, set_keydownEvents_, doc, chromeVer_, os_, timeout_, splitEntries_, kNextTarget,
   createRegExp, isTY, max_, min_, OnFirefox, OnChrome, safeCall, locHref, parseOpenPageUrlOptions, VTr, loc_, OnSafari,
-  clearTimeout_, promiseDefer_, OnEdge, urlSameIgnoringHash, firefoxVer_, runtime_ff, keydownEvents_
+  clearTimeout_, promiseDefer_, OnEdge, urlSameIgnoringHash, firefoxVer_, runtime_ff, keydownEvents_, findOptByHost
 } from "../lib/utils"
 import {
   getVisibleClientRect_, center_, view_, selRange_, bZoom_, set_bZoom_, getZoom_, prepareCrop_
@@ -12,7 +12,7 @@ import {
   queryHTMLChild_, getSelection_, removeEl_s, appendNode_s, getMediaUrl, getMediaTag, INP, ALA, attr_s, hasTag_, kGCh,
   setOrRemoveAttr_s, toggleClass_s, textContent_s, isSafeEl_, modifySel, SafeEl_not_ff_, testMatch, contains_s,
   extractField, querySelectorAll_unsafe_, editableTypes_, findAnchor_, dispatchEvent_, newEvent_, rangeCount_,
-  findSelectorByHost, deepActiveEl_unsafe_, getRootNode_mounted, isNode_, TryGetShadowRoot_, kNextTarget
+  findSelectorByHost, deepActiveEl_unsafe_, getRootNode_mounted, isNode_, TryGetShadowRoot_
 } from "../lib/dom_utils"
 import { initTestRegExps } from "./local_links"
 import {
@@ -532,9 +532,10 @@ const defaultClick = (): void => {
     const interactive: boolean = isSel || getMediaTag(targetTag) === kMediaTag.otherMedias && !isRight
         && (rawInteractive !== "native" || (target as HTMLMediaElement).controls)
     const doInteract: boolean = interactive && !isSel && rawInteractive !== !1
-    const specialActions: kClickAction = dblClick || doInteract
+    const rawAction = +findOptByHost(hintOptions.action2, target, kNextTarget.nonCss)
+    const specialActions: kClickAction = rawAction >= 0 ? rawAction : dblClick || doInteract
         ? kClickAction.BaseMayInteract + +dblClick + kClickAction.FlagInteract * <number> <number | boolean> doInteract
-        : isRight || newTabStr.startsWith("no-") ? kClickAction.none
+        : isRight || newTabStr.startsWith("no-pr") ? kClickAction.none
         : newWindow ? kClickAction.plainInNewWindow
         : newTabStr === "force-current" ? kClickAction.forceToOpenInCurrent
         : newTabStr === "force-mode" ? newTab ? kClickAction.forceInNewTab : kClickAction.forceToOpenInCurrent

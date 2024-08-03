@@ -1,12 +1,11 @@
 import {
   chromeVer_, doc, createRegExp, isTY, Lower, OBJECT_TYPES, OnFirefox, OnChrome, OnEdge, evenHidden_, safeCall, deref_,
-  loc_, VTr, tryCreateRegExp, isTop, queueTask_, set_findOptByHost, splitEntries_
+  loc_, VTr, tryCreateRegExp, isTop, queueTask_, set_findOptByHost, splitEntries_, kNextTarget
 } from "./utils"
 import { dimSize_, Point2D, selRange_ } from "./rect"
 
 export declare const enum kMediaTag { img = 0, otherMedias = 1, a = 2, others = 3, MIN_NOT_MEDIA_EL = 2, LAST = 3 }
 export declare const enum kDispatch { event = 0, clickFn = 1, focusFn = 2, _mask = "" }
-export declare const enum kNextTarget { parent = 0, child = 1, realClick = 2, nonCss = 3, _mask = "" }
 interface kNodeToType {
   [kNode.TEXT_NODE]: Text
   [kNode.ELEMENT_NODE]: Element
