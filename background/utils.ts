@@ -352,7 +352,7 @@ export const fetchOnlineResources_ = (url: string, timeout?: number): Promise<[B
       Build.NDEBUG && console.clear()
       return blob
     }
-    return convertToDataURL_(blob.slice(0, Math.min(16, blob.size), blob.type))
+    return convertToDataURL_(Build.MV3 ? blob : blob.slice(0, Math.min(16, blob.size), blob.type))
         .then(dataUrl => [Build.MV3 ? null : blob, dataUrl])
   })
 }

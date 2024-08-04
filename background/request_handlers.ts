@@ -349,10 +349,13 @@ set_reqH_([
           res ? showHUD("", kTip.notImg) : showHUD(trans_(res === 0 ? "downloadTimeout" : "downloadFail"))
           return
         }
-        let head = dataUrl.slice(prefixLen, prefixLen + 8)
-        head = contentType.includes("base64") ? BgUtils_.DecodeURLPart_(head, "atob") : head.slice(0, 6)
+        let head = dataUrl.slice(prefixLen, prefixLen + 24)
+        head = contentType.includes("base64") ? BgUtils_.DecodeURLPart_(head, "atob") : head.slice(0, 16)
         const tag = head.startsWith("\x89PNG") ? "PNG" : head.startsWith("\xff\xd8\xff") ? "JPEG"
             : (<RegExpOne> /^GIF8[79]a/).test(head) ? "GIF"
+            : (<RegExpOne> /^ftypavi[fs]/).test(head.slice(4)) ? "AVIF"
+            : (<RegExpOne> /^\xff\xd8\xff(\xdb|\xe0|\xee|\xe1[^][^]Exif\0\0)/).test(head) ? "JPEG"
+            : head.slice(8, 12) === "WEBP" ? "WebP"
             : (mime.split("/")[1] || "").toUpperCase() || mime
         const text = title && (<RegExpI> /^(http|ftp|file)/i).test(title) ? title : ""
         const wantSafe = richText.includes("safe") && tag !== "GIF" || richText.includes("force")
