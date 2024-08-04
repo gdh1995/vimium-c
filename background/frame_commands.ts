@@ -167,6 +167,7 @@ export const performFind = (): void | kBgCmd.performFind => {
     t: extend ? direction > 0 ? 2 : 1 : 0,
     p: !!get_cOptions<C.performFind>().postOnEsc,
     e: !!get_cOptions<C.performFind>().restart,
+    u: OnChrome ? !!get_cOptions<C.performFind>().scroll && get_cOptions<C.performFind>().scroll !== "auto" : 0,
     q: get_cOptions<C.performFind>().query ? get_cOptions<C.performFind>().query + ""
       : leave || get_cOptions<C.performFind>().last
       ? FindModeHistory_.query_(sender.incognito_, "", nth < 0 ? -nth : nth) : ""

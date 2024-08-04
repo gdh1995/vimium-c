@@ -462,6 +462,7 @@ interface CmdOptions {
     /** use post mode on esc */ p: boolean;
     /** restart finding */ e: boolean;
     /** normalize text */ n: boolean
+    /** manually scrolling */ u: boolean | BOOL
   } & Req.FallbackOptions
   [kFgCmd.autoOpen]: {
     /** for autoOpen */

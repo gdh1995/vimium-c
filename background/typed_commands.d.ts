@@ -43,6 +43,7 @@ interface BgCmdOptions {
     selected: boolean
     extend: boolean | "after" | "" | "before"
     direction: "after" | "" | "before"
+    scroll: "" | "auto" | "instant" | "manual"
   } & Req.FallbackOptions
   [kBgCmd.toggle]: { key: string; value: any } & Req.FallbackOptions
   [kBgCmd.showHelp]: Omit<ShowHelpDialogOptions, "h">

@@ -8,6 +8,10 @@ ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 * update minimum browser version to Chromium 109 and Firefox 115 in the public released packages
   * they are the last versions supporting Win 7 and Win 8 series
 
+#### v2.11.3
+* fix broken LinkHints.activateCopyImage
+* FindMode: prefer browser's built-in scrolling on Chrome; `scroll=manual` to disable it
+
 #### v2.11.2
 * fix new bugs
 

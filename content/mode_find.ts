@@ -953,9 +953,10 @@ const scrollSelectionAfterFind = (par: Element, newAnchor: Element | 0, sel: Sel
               px2int(newStyle.paddingTop!) + px2int(newStyle.borderTopWidth!),
               newStyle.whiteSpace!
               ] satisfies TextStyleArr as TextStyleArr
+  const scrollManually = OnChrome && latest_options_ && latest_options_.u
   let context: CanvasRenderingContext2D, widthOrEnd: number
   // `window.find()` may auto make a target scroll into view smoothly, but a manual `scrollBy` breaks the animation
-  const oldInvisibility = isSafeEl_(par) && (!OnChrome || kMayInTextBox && isTY(textStyle, kTY.obj)
+  const oldInvisibility = isSafeEl_(par) && (!OnChrome || kMayInTextBox && isTY(textStyle, kTY.obj) || scrollManually
       ? view_(par) : isNotInViewport(par))
   let selRect: Rect | undefined | null
   const flashOutline = (): void => {
@@ -1017,7 +1018,7 @@ const scrollSelectionAfterFind = (par: Element, newAnchor: Element | 0, sel: Sel
       flashOutline()
     }
     isActive || (canvas = null)
-  } else if (OnChrome && oldInvisibility) {
+  } else if (OnChrome && oldInvisibility && !scrollManually) {
     selRect = boundingRect_(newAnchor as SafeElement)
     timeout_(() => {
       const hasScrolled = (rect2: Rect, threshold: number): boolean =>
