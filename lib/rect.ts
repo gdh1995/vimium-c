@@ -432,11 +432,11 @@ export const view_ = (el: SafeElement, allowSmooth?: BOOL | boolean, oldY?: numb
   let rect = boundingRect_(el), secondScroll: number,
   ty = isNotInViewport(el, rect)
   if (ty === kInvisibility.OutOfView) {
-    let ih = wndSize_(), delta = rect.t < 0 ? -1 : rect.t > ih ? 1 : 0, f = oldY != null,
+    let ih = wndSize_(), sign = rect.t < 0 ? -1 : rect.t > ih ? 1 : 0, f = oldY != null,
     elHeight = rect.b - rect.t
     const kBh = "scroll-behavior"
-    const top = OnChrome && Build.MinCVer < BrowserVer.Min$ScrollBehavior$$Instant$InJS
-        && chromeVer_ < BrowserVer.Min$ScrollBehavior$$Instant$InJS
+    const top = OnChrome && Build.MinCVer < BrowserVer.Min$ScrollBehavior$$Instant$InScrollIntoView
+        && chromeVer_ < BrowserVer.Min$ScrollBehavior$$Instant$InScrollIntoView
         && !allowSmooth && (Build.MinCVer >= BrowserVer.MinScrollIntoViewOptions
         || chromeVer_ > BrowserVer.MinScrollIntoViewOptions - 1) && scrollingEl_(1)
     const style = top && getComputedStyle_(top)[kBh as "scrollBehavior"] === "smooth"
@@ -444,15 +444,15 @@ export const view_ = (el: SafeElement, allowSmooth?: BOOL | boolean, oldY?: numb
     const oldCss = style && style.cssText
     if (style) { style.setProperty(kBh, "auto", "important") }
     OnEdge || OnChrome && Build.MinCVer < BrowserVer.MinScrollIntoViewOptions
-        ? scrollIntoView_(el, !allowSmooth, delta < 0) : scrollIntoView_(el, !allowSmooth)
+        ? scrollIntoView_(el, !allowSmooth, sign < 0) : scrollIntoView_(el, !allowSmooth)
     const stillNotInView = !OnEdge && isNotInViewport(el)
     if (!stillNotInView && f) {
       secondScroll = elHeight < ih ? oldY! - scrollY : 0
       // required range of wanted: delta > 0 ? [-limit, 0] : [0, limit]
-      f = delta * secondScroll <= 0 && delta * secondScroll >= elHeight - ih
+      f = sign * secondScroll <= 0 && sign * secondScroll >= elHeight - ih
     }
     stillNotInView ||
-    (delta || f) && scrollWndBy_(0, f ? secondScroll! * secondScroll! < 4 ? 0 : secondScroll! : delta * ih / 5)
+    (sign || f) && scrollWndBy_(0, f ? secondScroll! * secondScroll! < 4 ? 0 : secondScroll! : sign * ih / 5)
     if (style) { style.cssText = oldCss as string }
   }
   return ty

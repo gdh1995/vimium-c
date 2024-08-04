@@ -51,14 +51,14 @@ interface ExecuteOptions extends Partial<Pick<CmdOptions[kFgCmd.findMode], "c" |
   caseSensitive?: boolean;
 }
 
-let isActive = false
+let isActive: BOOL = 0
 let query_ = ""
 let query0_ = ""
 let parsedQuery_ = ""
 let parsedRegexp_: RegExpG | null = null
 let lastInputTime_ = 0
 let historyIndex = 0
-let notEmpty = false
+let notEmpty: boolean
 let isQueryRichText_ = true
 let isRegex: boolean | null = null
 let ignoreCase: boolean | null = null
@@ -87,11 +87,12 @@ let styleInHUD: HTMLStyleElement | null = null
 let onUnexpectedBlur: ((this: unknown, event?: Event) => void) | null = null
 let doesCheckAlive: BOOL = 0
 let highlighting: (() => void) | undefined | 0
-let isSmall = false
+let isSmall: boolean
 let postLock: Element | null = null
 let cachedInnerText: { /** innerText */ i: string, /** timestamp */ t: number, n: boolean } | null | undefined
 let deactivate: (i: FindAction) => void
 let canvas: HTMLCanvasElement | null
+let delayedScrollIntoViewTick_ = 0
 const kIT = "insertText"
 
 export { findCSS, query_ as find_query, hasResults as find_hasResults, box_ as find_box, styleSelectable,
@@ -303,10 +304,10 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
     const knownOptions = latest_options_
     const maxNotRunPost = knownOptions.p ? FindAction.ExitForEsc - 1 : FindAction.ExitForEnter - 1
     let el: SafeElement | null | undefined, el2: Element | null
-    lastInputTime_ = 0
+    lastInputTime_ = isActive = 0
     i === FindAction.ExitNoAnyFocus ? hookSel(1) : focus()
     coords && scrollToMark(coords)
-    hasResults = isActive = isSmall = notEmpty = wholeWord = false
+    hasResults = isSmall = notEmpty = wholeWord = false
     wrapAround = true
     removeHandler_(kHandler.find)
     outerBox_ && removeEl_s(outerBox_)
@@ -345,14 +346,11 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
         return
       } else if (el) {
         // always call scrollIntoView if only possible, to keep a consistent behavior
-        if (OnChrome && Build.MinCVer < BrowserVer.MinScrollIntoViewOptions) {
-          // ScrollIntoView to notify it's `<tab>`'s current target since Min$ScrollIntoView$SetTabNavigationNode (C51)
-          let pos: MarksNS.ScrollInfo | 0 = chromeVer_ < BrowserVer.MinScrollIntoViewOptions ? [scrollX, scrollY] : 0
-          scrollIntoView_(el)
-          pos && scrollToMark(pos)
-        } else {
-          scrollIntoView_(el)
-        }
+        const pos: MarksNS.ScrollInfo | false = OnChrome && Build.MinCVer < BrowserVer.MinScrollIntoViewOptions
+            && chromeVer_ < BrowserVer.MinScrollIntoViewOptions && [scrollX, scrollY]
+        // ScrollIntoView to notify it's `<tab>`'s current target since Min$ScrollIntoView$SetTabNavigationNode (C51)
+        OnChrome && Build.MinCVer < BrowserVer.MinScrollIntoViewOptions ? scrollIntoView_(el, pos) : scrollIntoView_(el)
+        pos && scrollToMark(pos)
       }
     }
     toggleSelectableStyle()
@@ -726,7 +724,7 @@ const onHostKeydown = (event: HandlerNS.Event): HandlerResult => {
     replaceOrSuppressMost_(kHandler.find)
     styleSelColorOut || initSelColors(AdjustType.NotAdjust)
     toggleSelectableStyle(1)
-    isActive = true
+    isActive = 1
     appendNode_s(outerBox, box_)
     addUIElement(outerBox, AdjustType.DEFAULT, hud_box)
   }
@@ -842,7 +840,7 @@ export const executeFind = (query: string | null, options: Readonly<ExecuteOptio
         return reflectApply_not_cr!(window.find, window, arguments)
       } catch { return false; }
     } as Window["find"] : 0 as never as null
-    const focusHUD = isActive && innerDoc_.hasFocus()
+    const focusHUD = OnFirefox && isActive && innerDoc_.hasFocus()
     let el: LockableElement | null, highlight = safer(options).h, noColor = highlight || options.noColor
       , newRange: Range | null
       , newAnchor: false | Node | null | void | Element | 0, posChange: false | kNode | null
@@ -916,8 +914,7 @@ export const executeFind = (query: string | null, options: Readonly<ExecuteOptio
       posChange = oldAnchor && newAnchor && compareDocumentPosition(oldAnchor, newAnchor)
       newAnchor = newAnchor && (isNode_(newAnchor, kNode.TEXT_NODE) ? parentNode_unsafe_s(newAnchor)!
           : getNodeChild_(newAnchor, curSel!))
-      scrollSelectionAfterFind(par, newAnchor && isNode_(newAnchor, kNode.ELEMENT_NODE) ? newAnchor : 0
-          , curSel!, focusHUD)
+      scrollSelectionAfterFind(par, newAnchor && isNode_(newAnchor, kNode.ELEMENT_NODE) ? newAnchor : 0, curSel!)
       if (posChange && /** go back */ !!(posChange & kNode.DOCUMENT_POSITION_PRECEDING) !== back) {
         hudTip(kTip.wrapWhenFind, 1, VTr(back ? kTip.atStart : kTip.atEnd))
       }
@@ -931,7 +928,7 @@ export const executeFind = (query: string | null, options: Readonly<ExecuteOptio
     }
 }
 
-const scrollSelectionAfterFind = (par: Element, newAnchor: Element | 0, sel: Selection, noFocus: boolean | 1): void => {
+const scrollSelectionAfterFind = (par: Element, newAnchor: Element | 0, sel: Selection): void => {
   type TextStyleArr = readonly [font: string, lineHeight: number, clientWidth: number, clientHeight: number
       , fontSize: number, borderInlineStart: number, paddingInlineStart: number, textOffsetTop: number
       , whiteSpace: string]
@@ -944,7 +941,7 @@ const scrollSelectionAfterFind = (par: Element, newAnchor: Element | 0, sel: Sel
       const textStyle: TextStyleArr | BOOL = !kMayInTextBox || !newStyle
           || getEditableType_<0>(newAnchor) < EditableType.MaxNotTextBox + 1 ? 0
           : (newStyle.writingMode as "hor*" | "vert*" | "side*" | /** < C48 */ "lr*" | "rl*" | "tb*")[0] > "s"
-          ? (noFocus = 1)
+          ? 1
           : [newStyle.font!, px2int(newStyle.lineHeight!),
               dimSize_(newAnchor as TextElement, kDim.elClientW),
               dimSize_(newAnchor as TextElement, kDim.elClientH),
@@ -956,12 +953,18 @@ const scrollSelectionAfterFind = (par: Element, newAnchor: Element | 0, sel: Sel
               px2int(newStyle.paddingTop!) + px2int(newStyle.borderTopWidth!),
               newStyle.whiteSpace!
               ] satisfies TextStyleArr as TextStyleArr
-      let textBoxRect: Rect | 1 | false | 0 | null | void = !kMayInTextBox ? null : textStyle && noFocus
-          && (getZoom_(newAnchor as TextElement), prepareCrop_(), 1)
   let context: CanvasRenderingContext2D, widthOrEnd: number
   // `window.find()` may auto make a target scroll into view smoothly, but a manual `scrollBy` breaks the animation
-  const oldInvisibility = +isSafeEl_(par) && view_(par as SafeElement, !textBoxRect)
-  textBoxRect = kMayInTextBox ? textBoxRect && boundingRect_(newAnchor as TextElement) : null
+  const oldInvisibility = isSafeEl_(par) && (!OnChrome || kMayInTextBox && isTY(textStyle, kTY.obj)
+      ? view_(par) : isNotInViewport(par))
+  let selRect: Rect | undefined | null
+  const flashOutline = (): void => {
+    if (selRect = textStyle ? selRect : getSelectionBoundingBox_(sel, 1)) {
+      removeFlash && removeFlash()
+      set_removeFlash(flash_(null, selRect, +oldInvisibility && (800 + GlobalConsts.DefaultRectFlashTime), " Sel"))
+    }
+  }
+  const tick = ++delayedScrollIntoViewTick_
   if (kMayInTextBox && isTY(textStyle, kTY.obj)) {
         context = (canvas = canvas || createElement_("canvas")).getContext("2d")!
         const full = (newAnchor as TextElement).value.slice(0
@@ -986,7 +989,8 @@ const scrollSelectionAfterFind = (par: Element, newAnchor: Element | 0, sel: Sel
     top *= textStyle[1]
     const scX = (ltr ? 1 : -1) * max_(0, start - max_width / 2) + baseScPosX
     const scY = max_(0, top - (textStyle[3] - textStyle[1]) / 2)
-    if (OnChrome && oldInvisibility && isNotInViewport(newAnchor as TextElement)) { /* empty */ }
+    if (OnChrome && Build.MinCVer < BrowserVer.Min$ScrollBehavior$$Instant$InScrollIntoView
+        && oldInvisibility && isNotInViewport(newAnchor as TextElement)) { /* empty */ }
     else if ((OnChrome ? Build.MinCVer >= BrowserVer.MinEnsuredCSS$ScrollBehavior : !OnEdge)
         || (newAnchor as Element).scrollTo) {
       (newAnchor as TextElement).scrollTo(instantScOpt(scX, scY))
@@ -996,25 +1000,43 @@ const scrollSelectionAfterFind = (par: Element, newAnchor: Element | 0, sel: Sel
     }
     if (OnChrome && Build.MinCVer < BrowserVer.MinNoSelectionColorOnTextBoxWhenFindModeHUDIsFocused
         && chromeVer_ < BrowserVer.MinNoSelectionColorOnTextBoxWhenFindModeHUDIsFocused) {
-      textBoxRect = 0
-    } else if (textBoxRect) {
+      /** empty */
+    } else {
+      selRect = boundingRect_(newAnchor as TextElement)
       widthOrEnd = max_(4, getWidth(full.slice(offset).split("\n", 1)[0]))
       offset = dimSize_(newAnchor as TextElement, kDim.scPosX)
       offset = ltr ? offset : max_(0, has_neg_sc_pos ? -offset : baseScPosX - offset)
       start = max_(0, textStyle[6] + min_(start - offset, max_width))
       widthOrEnd = min_(start + widthOrEnd, max_width)
-      offset = ltr ? textBoxRect.l + textStyle[5] : textBoxRect.r - textStyle[5]
-      top += textBoxRect.t + textStyle[7] - dimSize_(newAnchor as TextElement, kDim.scPosY)
-      textBoxRect = {
+      offset = ltr ? selRect.l + textStyle[5] : selRect.r - textStyle[5]
+      top += selRect.t + textStyle[7] - dimSize_(newAnchor as TextElement, kDim.scPosY)
+      selRect = {
         l: ltr ? offset + start : offset - widthOrEnd, t: top,
         r: ltr ? offset + widthOrEnd : offset - start, b: top + textStyle[1]
       }
+      flashOutline()
     }
     isActive || (canvas = null)
-  }
-  if (textBoxRect = !textStyle && noFocus ? getSelectionBoundingBox_(sel, 1) : textBoxRect) {
-    removeFlash && removeFlash()
-    set_removeFlash(flash_(null, textBoxRect, +oldInvisibility && (800 + GlobalConsts.DefaultRectFlashTime), " Sel"))
+  } else if (OnChrome && oldInvisibility) {
+    selRect = boundingRect_(newAnchor as SafeElement)
+    timeout_(() => {
+      const hasScrolled = (rect2: Rect, threshold: number): boolean =>
+          abs_(rect2.t - selRect!.t) > threshold || abs_(rect2.l - selRect!.l) > threshold
+      if (tick !== delayedScrollIntoViewTick_) { /** empty */ }
+      else if (hasScrolled(boundingRect_(newAnchor as SafeElement), 2)) {
+        timeout_((): void => {
+          if (tick === delayedScrollIntoViewTick_) {
+            hasScrolled(boundingRect_(newAnchor as SafeElement), 15) || view_(newAnchor as SafeElement)
+            flashOutline()
+          }
+        }, 200)
+      } else {
+        view_(newAnchor as SafeElement)
+        flashOutline()
+      }
+    }, 50)
+  } else {
+    flashOutline()
   }
   specialFixForTransparent && (styleSelColorOut!.disabled = !0)
 }
