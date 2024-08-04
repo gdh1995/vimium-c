@@ -256,7 +256,7 @@ set_contentCommands_([
     }
     if (act && (act[0] !== "l" || known_last && !raw_insert_lock)) { /*#__ENABLE_SCOPED__*/
       let newEl: LockableElement | null | undefined = raw_insert_lock;
-      if (newEl) {
+      if (newEl && getEditableType_<0>(newEl) > EditableType.MaxNotEditableElement) {
         if (act === BSP) {
           if (!view_(newEl, 1) && isStyleVisible_(newEl)) { execCommand(DEL, doc); }
         } else {
@@ -265,11 +265,13 @@ set_contentCommands_([
           set_is_last_mutable(0)
           newEl.blur();
         }
-      } else if (!known_last) {
+      } else if (newEl = null, !known_last) {
         actRet = kTip.noFocused
-      } else if (!(actRet = checkOrView(newEl = known_last) as number) && isStyleVisible_(newEl)
-          || actRet as number - kInvisibility.OutOfView && second_last && !checkOrView(newEl = second_last)
-              && isStyleVisible_(newEl)) {
+      } else if (getEditableType_<0>(known_last) > EditableType.MaxNotEditableElement
+          && !(actRet = checkOrView(newEl = known_last) as number) && isStyleVisible_(newEl)
+          || actRet as number - kInvisibility.OutOfView && second_last
+              && getEditableType_<0>(second_last) > EditableType.MaxNotEditableElement
+              && !checkOrView(newEl = second_last) && isStyleVisible_(newEl)) {
         actRet = 0
         set_is_last_mutable(1)
         getZoom_(newEl);
@@ -283,7 +285,7 @@ set_contentCommands_([
           topmost && !contains_s(newEl!, topmost) && flash_(null, rect)
         })
       } else {
-        actRet = act[0] === "l" ? -1 : (flash_(newEl), kTip.focusedIsHidden)
+        actRet = act[0] === "l" ? -1 : newEl ? (flash_(newEl), kTip.focusedIsHidden) : kTip.noFocused
       }
       if (actRet >= 0) {
         runFallbackKey(options, actRet satisfies kTip | 0)
