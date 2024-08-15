@@ -86,5 +86,5 @@
   "turnOff": "$1 a été désactivée",
   "Upgrade": "Mise à jour",
   "upgradeMsg": "Vimium C a été mise à jour vers la v$1.\n",
-  "upgradeMsg2": "Plus facile d'ajouter des règles de mappage de touches et de substitution de texte."
+  "upgradeMsg2": "Basé sur les API Manifest V3."
 }
