@@ -115,7 +115,7 @@
 "#read-only-cursor-text-area,.monaco-mouse-cursor-text[aria-autocomplete=none],.CodeMirror>div>textarea[readonly=''][style]"
   },
   "121": { "message":
-"[aria-controls],[role=combobox],#kw.s_ipt,input[placeholder$$=搜索],input[type=search][name=q],.monaco-inputbox>div>textarea[style]"
+"[aria-controls],[role=combobox],#kw.s_ipt,input[placeholder$$=搜索],input[type=search][name=q],input[role=searchbox],.monaco-inputbox>div>textarea[style]"
   },
   "200": { "message": "http://www.w3.org/1999/xhtml" },
   "0": { "message": "Open link in current tab" },

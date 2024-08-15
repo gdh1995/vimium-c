@@ -383,6 +383,7 @@ saladict@crimx.com`
         || "[aria-controls],[role=combobox],#kw.s_ipt" // MS Bing / Google / Baidu
         + ",input[placeholder$=\u641c\u7d22]" // some Chinese websites
         + ",input[type=search][name=q]" // Bing search result page
+        + ",input[role=searchbox]" // Gitlab Quick Open by "/"
         + ",.monaco-inputbox>div>textarea[style]" // Monaco find input
         ,
     preferBrowserSearch: true,
