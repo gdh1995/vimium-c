@@ -1128,8 +1128,8 @@ const ToString = (op: Op, allowed: number): string => {
               && typeof i.v.v === "object" && i.v.v && i.v.v !== kFakeValue && i.v.v.c < 4
               ? i.v.v as Extract<ComplexLiteral, { c: 0 | 1 | 2 | 3 }> : null
           return literal ? (literal.c & 1 ? "`" : "}") + JSON.stringify(literal.v).slice(1, -1)
-                .replace(<RegExpG & RegExpSearchable<0>> /`|\\["tn]/g, s => s === "`" ? "\\`" : s[1] === '"' ? '"'
-                  : s[1] === "t" ? "\t" : "\n") + (literal.c & 2 ? "`" : "${")
+                .replace(<RegExpG & RegExpSearchable<0>> /`|\\[\\"tn]/g, s => s === "`" ? "\\`" : s[1] === '"' ? '"'
+                  : s[1] < "a" ? s : s[1] === "t" ? "\t" : "\n") + (literal.c & 2 ? "`" : "${")
               : ToString(i, allowed && (allowed | (1 << O.binary) | (1 << O.unary) | (1 << O.access) | (1 << O.token)))
         }).join("")
         : op.v.o.v + (op.v.o.v >= "a" && op.v.o.v < "zz" ? " " : "") + (ToString(op.v.x, allowed) || kUnknown)
