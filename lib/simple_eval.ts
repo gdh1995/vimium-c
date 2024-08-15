@@ -144,7 +144,8 @@ const kUnknown = "(...)"
 // `document.all == null` returns `true`
 const isLooselyNull = (obj: unknown): obj is null | undefined => obj === null || obj === undefined
 const safer_d = <T> (obj: T): T extends Array<any> ? unknown : T =>
-    (typeof obj === "object" && obj ? ("__proto__" in obj && ((obj as any).__proto__ = null), obj) : obj) as any
+    (typeof obj === "object" && obj && !Array.isArray(obj)
+      ? ("__proto__" in obj && ((obj as any).__proto__ = null), obj) : obj) as any
 const resetRe_ = (): true => (<RegExpOne> /a?/).test("") as true
 const objEntries = !(Build.BTypes & BrowserType.Chrome)
     || Build.MinCVer >= BrowserVer.MinEnsuredES$Object$$values$and$$entries ? Object.entries! as never
@@ -821,7 +822,7 @@ const evalNever = (op: BaseOp<O.block | O.statGroup | O.stat | O.pair>): void =>
     if (item.o === O.token && item.v === "...") {
       ++i
       const subArray = opEvals[opList[i].o](opList[i])
-      arr = arr.concat(subArray instanceof Array ? subArray : /** throwable */ [].slice.call(subArray))
+      arr = arr.concat(Array.isArray(subArray) ? subArray : /** throwable */ [].slice.call(subArray))
     } else if (item.o === O.token && typeof item.v === "object" && item.v.v === kFakeValue) {
       arr.length += 1
     } else {
