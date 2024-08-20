@@ -13,7 +13,7 @@ interface BreakValue { c: BOOL, v: string | 0 }
 type VarLiterals = "var1" | "bar" | "..." | "__proto__" | "new.target" | "debugger"
 type VarNames = "Var1" | "globalThis" | "this" | "arguments" | "undefined"
 type VarDict = { [index: number]: number } & { [name in VarNames]: unknown }
-interface StackFrame { readonly v: VarDict, readonly c: readonly VarNames[], n: string | null, d: boolean }
+interface StackFrame { readonly v: VarDict, readonly c: readonly VarNames[], n: string | null, r: BOOL }
 interface Isolate extends VarDict {}
 interface Ref { readonly y: { [index: number]: number }, readonly i: number /** | ... */ }
 interface Function2 { (this: unknown, ...args: unknown[]): unknown; __fn?: OpValues[O.fn] }
@@ -64,7 +64,7 @@ interface BaseStatement<T extends "" | BlockPrefixes | LineActions | "arg"> {
 type SomeStatements<T extends "" | BlockPrefixes | LineActions | "arg"> = T extends string ? BaseStatement<T> : never
 type Statement = SomeStatements<"" | BlockPrefixes | LineActions>
 
-type NullableVarList = readonly VarNames[] | null
+type NullableVarList = readonly VarNames[] | 0
 const enum O { block, statGroup, stat, comma, pair, fn, assign, ifElse, binary, unary, call, access, composed, token }
 interface OpValues {
   [O.block]: { /** consts */ c: NullableVarList, /** lets */ l: NullableVarList, x: Statement[] }
@@ -299,7 +299,7 @@ const prepareBlockBodyToRun = (pureVars: VarNames[], block: OpValues[O.block]): 
       lets.push(VarName(statement.v.v.n!))
     } else {
       statement.v.o === O.block ? prepareBlockBodyToRun(pureVars, statement.v.v)
-      : statement.v.o === O.statGroup && prepareBlockBodyToRun(pureVars, { c: null, l: null, x: statement.v.v })
+      : statement.v.o === O.statGroup && prepareBlockBodyToRun(pureVars, { c: 0, l: 0, x: statement.v.v })
       if (action === "for") {
         const stat2 = statement.c.o === O.comma ? statement.c.v[0] : statement.c
         for (const varOp of stat2.o === O.stat && stat2.v.a === "var" ? stat2.v.v.v : []) {
@@ -308,14 +308,14 @@ const prepareBlockBodyToRun = (pureVars: VarNames[], block: OpValues[O.block]): 
       }
     }
   }
-  block.l = lets.length > 0 ? lets : null
-  block.c = consts.length > 0 ? consts : null
+  block.l = lets.length > 0 ? lets : 0
+  block.c = consts.length > 0 ? consts : 0
 }
 
 const parseTree = (tokens_: readonly Token[], inNewFunc: boolean | null | undefined): Op => {
   type CtxTokens = ControlTokens | BinaryTokens | UnaryTokens | BeginGroupTokens
   const ctx_: SomeTokens<CtxTokens>[] = [ Token(T.block, "{") ]
-  const values_: Op[] = [Op(O.block, { c: null, l: null, x: null as never })]
+  const values_: Op[] = [Op(O.block, { c: 0, l: 0, x: null as never })]
   const extractMemberPrefix = (): "get" | "set" | "" => {
     const mayPrefix = values_[values_.length - 1] as BaseOp<O.comma> | RefOp, isToken = mayPrefix.o === O.token
     return isToken && (ctx_[ctx_.length - 1].t === T.dict || values_[values_.length - 2].o !== O.composed)
@@ -425,7 +425,7 @@ const parseTree = (tokens_: readonly Token[], inNewFunc: boolean | null | undefi
           : throwSyntax(`Unsupported destructuring parameters`))
       const isFn = top.v.startsWith("fn "), type = isFn && ctx_[ctx_.length - 1].t === T.block ? "fn" : top.v
       const name = isFn ? top.v.slice(3) as VarLiterals : null
-      values_.push(Op(O.fn, { a: args, t: type, n: name, v: null, b: val, p: null, r: null }))
+      values_.push(Op(O.fn, { a: args, t: type, n: name, v: 0, b: val, p: null, r: null }))
       } break
     case T.assign: /* T.assign: */ {
       const y = values_.pop()!
@@ -457,8 +457,7 @@ const parseTree = (tokens_: readonly Token[], inNewFunc: boolean | null | undefi
     switch (typeCur) {
     case T.block: case T.dict: /* T.block | T.dict: */
       topIsDict = !(before & (T.block | T.blockEnd | T.semiColon | T.prefix | T.groupEnd | T.fn | T.ref | T.literal))
-      values_.push(topIsDict ? Op(O.composed, { b: "{", v: null as never })
-          : Op(O.block, { c: null, l: null, x: null as never }))
+      values_.push(topIsDict ? Op(O.composed, { b: "{", v: null as never }) : Op(O.block, { c:0, l:0, x:<never> null }))
       type = (cur.t as T) = topIsDict ? T.dict : T.block,
       Build.NDEBUG || ((cur.n as string) = topIsDict ? "dict" : "block")
       ctx_.push(Token(type, "{"))
@@ -504,7 +503,7 @@ const parseTree = (tokens_: readonly Token[], inNewFunc: boolean | null | undefi
       } break
     case T.prefix: /* T.prefix: */
       consumeUntil(T.prefix | T.group | T.block)
-      values_.push(Op(O.block, { c: null, l: null, x: null as never })) // to recognize soft-semi easier
+      values_.push(Op(O.block, { c: 0, l: 0, x: null as never })) // to recognize soft-semi easier
       ctx_.push(cur)
       break
     case T.action: /* T.action: */
@@ -539,7 +538,7 @@ const parseTree = (tokens_: readonly Token[], inNewFunc: boolean | null | undefi
         const top = ctx_[ctx_.length - 1]
         if (top.t === T.block || top.t === T.prefix && (top.v === "labelled"
             || values_[values_.length - 2].o !== O.block)) {
-          values_.push(Op(O.block, { c: null, l: null, x: null as never }), values_.pop()!)
+          values_.push(Op(O.block, { c: 0, l: 0, x: null as never }), values_.pop()!)
           ctx_.push(Token(T.prefix, "labelled"))
         }
       }
@@ -609,7 +608,14 @@ const StackFrame = (block: OpValues[O.block], args?: readonly [VarLiterals, unkn
   for (varName of block.c || []) { varDict[varName] = kFakeValue }
   for (varName of block.l || []) { varDict[varName] = kFakeValue }
   for (const i of args || []) { varDict[VarName(i[0])] = i[1] }
-  return { v: varDict, c: block.c || [], n: scopeName !== void 0 ? scopeName : null, d: false }
+  const frame: StackFrame = { v: varDict, c: block.c || [], n: scopeName !== void 0 ? scopeName : null, r: 1 }
+  locals_.push(frame)
+  return frame
+}
+
+const exitFrame = (): void => {
+  const frame: StackFrame = locals_.pop()!
+  frame.r = 0
 }
 
 const _resolveVarRef = (name: VarLiterals, getter: R): Ref => {
@@ -661,9 +667,9 @@ const evalTry = (stats: readonly Statement[], i: number): [unknown, number] => {
     catch (ex) {
       g_exc || newException()
       locals_.length = oldLocalsPos
-      next.c && locals_.push(StackFrame(next.v.v, [[next.c.v, ex]]))
-      i++; res = evalBlockBody(next.c ? { c: null, l: null, x: next.v.v.x} : next.v.v)
-      next.c && (locals_.pop()!.d = true); g_exc = null; done = 1
+      next.c && StackFrame(next.v.v, [[next.c.v, ex]])
+      i++; res = evalBlockBody(next.c ? { c: 0, l: 0, x: next.v.v.x } : next.v.v)
+      next.c && exitFrame(); g_exc = null; done = 1
     }
   } finally { if (indFinal) {
     const oldLocals = locals_, oldExc = done ? null : g_exc || newException()
@@ -677,8 +683,8 @@ const evalTry = (stats: readonly Statement[], i: number): [unknown, number] => {
 }
 
 const SubBlock = (statement: Op): OpValues[O.block] => {
-  return statement.o === O.block ? statement.v : statement.o === O.statGroup ? { c: null, l: null, x: statement.v }
-      : { c: null, l: null, x: [(statement as BaseOp<O.stat>).v] }
+  return statement.o === O.block ? statement.v : statement.o === O.statGroup ? { c: 0, l: 0, x: statement.v }
+      : { c: 0, l: 0, x: [(statement as BaseOp<O.stat>).v] }
 }
 
 const consumeContinue = (res: FakeValue | BreakValue | undefined, self: BaseStatement<"do" | "for" | "while">
@@ -692,16 +698,16 @@ const evalFor = (statement: BaseStatement<"for">): unknown => {
   const newScope = !!varStat && varStat.a !== "var"
   const forkScope = (): VarDict => {
     const old = locals_[locals_.length - 1], newVars: VarDict = Object.create(null), oldVars = old.v
-    old.d = true
     for (let key in oldVars) { newVars[key as VarNames] = oldVars[key as VarNames] }
-    locals_[locals_.length - 1] = { v: newVars, c: old.c, n: old.n, d: false }
+    exitFrame()
+    locals_.push({ v: newVars, c: old.c, n: old.n, r: 1 })
     return newVars
   }
   let res: unknown = kFakeValue, ref: Writable<Ref>
   if (newScope) { // should enter its own scope before computing source
     const isConst = varStat.a === "const"
     const names = (varStat.v.v satisfies (RefOp | RefAssignOp)[] as (RefOp | RefAssignOp)[]).map(ToVarName)
-    locals_.push(StackFrame({ c: isConst ? names : null, l: isConst ? null : names, x: [] }))
+    StackFrame({ c: isConst ? names : 0, l: isConst ? 0 : names, x: [] })
   }
   if (statement.c.o === O.comma && statement.c.v.length > 1) {
     varStat ? evalLet(varStat, []) : opEvals[initOp!.v.v.o](initOp!.v.v)
@@ -745,7 +751,7 @@ const evalFor = (statement: BaseStatement<"for">): unknown => {
       }
     }
   }
-  newScope && (locals_.pop()!.d = true)
+  newScope && exitFrame()
   return res
 }
 
@@ -767,7 +773,7 @@ const evalLet = (statement: BaseStatement<"const" | "let" | "var" | "arg">, args
 const evalBlockBody = (block: OpValues[O.block]): unknown => {
   const statements: readonly Statement[] = block.x
   let res: unknown = kFakeValue, i = 0, statement: Statement
-  !block.l && !block.c || locals_.push(StackFrame(block))
+  !block.l && !block.c || StackFrame(block)
   for (; i < statements.length; i++) {
     statement = statements[i]
     statement.v.o === O.fn && statement.v.v.t === "fn"
@@ -814,7 +820,7 @@ const evalBlockBody = (block: OpValues[O.block]): unknown => {
     res = res === kBreakBlock && (res as BreakValue).v && statement.l
         && statement.l.indexOf((res as BreakValue).v as string) >= 0 ? ((res as BreakValue).v = 0, kFakeValue) : res
   }
-  !block.l && !block.c || (locals_.pop()!.d = true)
+  !block.l && !block.c || exitFrame()
   return res
 }
 
@@ -996,7 +1002,8 @@ const opEvals = [
   evalCall, evalAccess, evalComposed, evalTokenValue
 ] satisfies { [op in keyof OpValues]: (op: BaseOp<op>) => unknown } as { [op in keyof OpValues]: (op: Op) => unknown }
 
-const FunctionFromOp = (fn: OpValues[O.fn], globals: Isolate, closures: StackFrame[], name: string): () => unknown => {
+const FunctionFromOp = (fn: OpValues[O.fn], globals: Isolate, closures: StackFrame[], name: string
+    , topMost?: boolean): () => unknown => {
   let callable = function (this: unknown): unknown {
     const oldIsolate = isolate_, oldLocals = locals_
     const realArgs = [].slice.call(arguments) as unknown[]
@@ -1005,20 +1012,20 @@ const FunctionFromOp = (fn: OpValues[O.fn], globals: Isolate, closures: StackFra
         && Build.MinCVer < BrowserVer.MinEnsuredES6NewTarget ? this instanceof callable : new.target
     if (isNew && fn.t < "f") { throwType((stdName || "anonymous") + "is not a constructor") }
     isolate_ = globals, locals_ = closures.slice(), g_exc = g_exc && g_exc.d < 0 ? g_exc : null
-    fn.t.length > 3 && locals_.push(StackFrame({ c: [VarName(fn.n!)], l: null, x: [] }, [[fn.n!, callable]]))
+    const selfRefFrame = fn.t.length > 3 && !!StackFrame({ c: [VarName(fn.n!)], l: 0, x: [] }, [[fn.n!, callable]])
     if (fn.b.o === O.block && !fn.v) { prepareBlockBodyToRun(fn.v = [], fn.b.v) }
     ++stackDepth_
     try {
       let args: readonly [VarLiterals, unknown][] = fn.t !== "=>"
           ? [["this" as never, this], ["arguments" as never, realArgs], ["new.target", isNew ? callable : void 0]] : []
       if (fn.a.length > 0) {
-        locals_.push(frame = StackFrame({ c: null, l: fn.a.map(ToVarName), x: [] }, args, null, stdName))
+        frame = StackFrame({ c: 0, l: fn.a.map(ToVarName), x: [] }, args, 0, stdName)
         evalLet(Stat("arg", null, Op(O.comma, fn.a)), realArgs)
         args = args.concat(objEntries<VarLiterals>(frame.v))
-        locals_.pop()!.d = true
+        exitFrame()
       }
-      locals_.push(frame = StackFrame(fn.b.o === O.block ? fn.b.v : { c: null, l: null, x: [] }, args, fn.v, stdName))
-      const result = fn.b.o === O.block ? evalBlockBody({ c: null, l: null, x: fn.b.v.x }) : opEvals[fn.b.o](fn.b)
+      frame = StackFrame(fn.b.o === O.block ? fn.b.v : { c: 0, l: 0, x: [] }, args, fn.v, stdName)
+      const result = fn.b.o === O.block ? evalBlockBody({ c: 0, l: 0, x: fn.b.v.x }) : opEvals[fn.b.o](fn.b)
       done = true
       return result !== kFakeValue && result !== kBreakBlock ? result : void 0
     } finally {
@@ -1026,8 +1033,9 @@ const FunctionFromOp = (fn: OpValues[O.fn], globals: Isolate, closures: StackFra
       stackDepth_--
       !Build.NDEBUG && done && (frame && locals_[locals_.length - 1] !== frame)
           && console.log("Vimium C found a bug of stack error when calling `" + (stdName || "anonymous") + "(...)`")
+      frame && exitFrame()
+      selfRefFrame && exitFrame()
       isolate_ = oldIsolate, locals_ = oldLocals
-      frame && (frame.d = true)
     }
   }
   callable = fn.t === "=>" ? callable.bind(kFakeValue) : callable
@@ -1039,6 +1047,8 @@ const FunctionFromOp = (fn: OpValues[O.fn], globals: Isolate, closures: StackFra
     name: ValueProperty(stdName, false, false, true)
   })
   closures = closures.slice()
+  if (!topMost) {
+  }
   return callable
 }
 
@@ -1201,7 +1211,7 @@ const parseArgsAndEnv = (arr: IArguments | string[], globals: Isolate | null, cl
 }
 
 const baseFunctionCtor = ({ body, globals, closures, args }: ReturnType<typeof parseArgsAndEnv>
-    , inNewFunc?: boolean): () => unknown => {
+    , inNewFunc?: boolean | null | undefined, fromOuter?: boolean): () => unknown => {
   const tokens = splitTokens(body.replace(<RegExpG> /\r\n?/g, "\n"))
   let tree = parseTree(tokens, inNewFunc)
   const statsNum = tree.o === O.block ? tree.v.x.length : 1
@@ -1219,8 +1229,8 @@ const baseFunctionCtor = ({ body, globals, closures, args }: ReturnType<typeof p
   } else {
     outerFrames = (Array.isArray(closures) ? closures as any[] : [closures])
       .filter((dict): dict is VarDict => dict && typeof dict === "object" && !Array.isArray(dict))
-      .map((varDict): StackFrame => ({ v: varDict, c: [], n: null, d: true }))
-    if (tree.o > O.stat) { tree = Op(O.block, { c: null, l: null, x: [Stat("return", null, tree)] }) }
+      .map((varDict): StackFrame => ({ v: varDict, c: [], n: null, r: 0 }))
+    if (tree.o > O.stat) { tree = Op(O.block, { c: 0, l: 0, x: [Stat("return", null, tree)] }) }
   }
   if (!inNewFunc && tree.o === O.block) {
     let par = tree, last: Statement
@@ -1229,9 +1239,9 @@ const baseFunctionCtor = ({ body, globals, closures, args }: ReturnType<typeof p
   }
   inNewFunc = inNewFunc !== false && (tree.o === O.block || inNewFunc)
   return FunctionFromOp({ a: args.map(i => Op(O.token, i as VarLiterals)) as RefOp[],
-    t: inNewFunc ? "fn" : "=>", n: inNewFunc ? "anonymous" as string as VarLiterals : null, v: null, b: tree,
+    t: inNewFunc ? "fn" : "=>", n: inNewFunc ? "anonymous" as string as VarLiterals : null, v: 0, b: tree,
     p: null, r: null
-  }, globals || isolate_, outerFrames, "anonymous")
+  }, globals || isolate_, outerFrames, "anonymous", fromOuter)
 }
 
 const innerFunction_ = function Function(_functionBody: string): () => unknown {
@@ -1244,7 +1254,7 @@ const innerEval_ = function (_functionBody: string): unknown {
 }
 
 const outerEval_ = <VApiTy["v"] & { [method: string]: unknown }> function (_functionBody: string): unknown {
-  const func = baseFunctionCtor(parseArgsAndEnv(arguments, DefaultIsolate, []))
+  const func = baseFunctionCtor(parseArgsAndEnv(arguments, DefaultIsolate, []), null, true)
   return func()
 }
 
@@ -1273,13 +1283,13 @@ const doubleEval_ = function (_functionBody: string | object): unknown {
   }
   info.globals ||= info.globals || DefaultIsolate
   info.closures = info.closures || []
-  func = baseFunctionCtor(info)
+  func = baseFunctionCtor(info, null, true)
   return func()
 }
 
 const exposeStack = (stackArray: StackFrame[]
       ): { dict: VarDict, consts: readonly string[], name: string, done: boolean }[] =>
-    stackArray.slice().reverse().map(frame => ({ dict: frame.v, consts: frame.c, name: frame.n || "", done: frame.d }))
+    stackArray.slice().reverse().map(frame => ({ dict: frame.v, consts: frame.c, name: frame.n || "", done: !frame.r }))
 
 /**
  * (...args: [...args: string[], functionBody: string
