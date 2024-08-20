@@ -13,7 +13,8 @@ interface BreakValue { c: BOOL, v: string | 0 }
 type VarLiterals = "var1" | "bar" | "..." | "__proto__" | "new.target" | "debugger"
 type VarNames = "Var1" | "globalThis" | "this" | "arguments" | "undefined"
 type VarDict = { [index: number]: number } & { [name in VarNames]: unknown }
-interface StackFrame { readonly v: VarDict, readonly c: readonly VarNames[], n: string | null, r: BOOL }
+type Set2<K> = Pick<Set<K>, "has" | "add">
+interface StackFrame { readonly v: VarDict, readonly c: readonly VarNames[], n: string | null, r: BOOL|Set2<VarNames> }
 interface Isolate extends VarDict {}
 interface Ref { readonly y: { [index: number]: number }, readonly i: number /** | ... */ }
 interface Function2 { (this: unknown, ...args: unknown[]): unknown; __fn?: OpValues[O.fn] }
@@ -107,6 +108,7 @@ let NativeFunctionCtor: FunctionConstructor | false | null = !Build.NDEBUG && ty
       ).runtime.getManifest().content_security_policy).includes("'unsafe-eval'") ? null : false
 let isolate_: Isolate = DefaultIsolate, locals_: StackFrame[] = [], stackDepth_ = 0
 let g_exc: { g: Isolate, l: StackFrame[], d: number } | null = null
+let _collect: { (op: SomeOps<O.block | O.stat | O.fn>, enter: BOOL): void; (o: RefOp, v: VarNames): void } | null = null
 
 //#endregion configurations
 
@@ -173,6 +175,15 @@ const globalVarAccessor = {
   set eval (_value: unknown) { /* empty */ }
 } as unknown as Ref["y"]
 const VarName = (name: VarLiterals): VarNames => (name !== kProto ? name : name + ".") as VarNames
+const Set_add = function <T> (this: T[] & Set<T>, i: T) { this.indexOf(i) >= 0 || this.push(i); return this }
+const Set_has = function <T> (this: T[] & Set<T>, i: T) { return this.indexOf(i) >= 0 }
+const kHasSet = !(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.Min$Array$$From
+    && Build.MinCVer >= BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol || !!Array.from
+const Set2 = kHasSet ? <T> (): Set2<T> => new Set!<T>() : (<T> (): Set2<T> => {
+  const a = [] as T[] as T[] & Set<T>
+  a.add = Set_add, a.has = Set_has
+  return a
+}) as never
 
 //#endregion helper functions
 
@@ -586,6 +597,45 @@ const parseTree = (tokens_: readonly Token[], inNewFunc: boolean | null | undefi
   return values_.length === 2 && values_[1].o !== O.stat && !inNewFunc ? values_[1] : (consume(), values_[0])
 }
 
+const analyseEscaped = (func: BaseOp<O.fn>): void => {
+  const visited: { readonly d: NullableVarList, readonly r: Set2<VarNames> }[] = []
+  _collect = (op, enter): void => {
+    if (op.o === O.token) {
+      let val = enter as VarNames, i = visited.length - 1, decl: NullableVarList
+      if (visited[i].r.has(val) || (val as VarNames | VarLiterals) === "...") { return }
+      for (; (decl = visited[i].d) !== 0 && decl.indexOf(val) < 0; i--) { /* empty */ }
+      visited[decl ? visited.length - 1 : i].r.add(val)
+    } else if (op.o !== O.fn) {
+      if (0) { op.o satisfies O.block | O.stat } // lgtm [js/unreachable-statement]
+      const varNames = op.o === O.block ? op.v.c ? op.v.l ? op.v.c.concat(op.v.l) : op.v.c : op.v.l!
+          : op.v.a === "catch" ? [VarName(op.v.c!.v)]
+          : (((op.v.c as Extract<BaseStatement<"for">["c"], BaseOp<O.comma>>
+              ).v[0].v as SomeStatements<VarActions>).v.v satisfies (RefOp | RefAssignOp)[] as (RefOp | RefAssignOp)[]
+            ).map(ToVarName)
+      enter ? visited.push({ d: varNames, r: Set2() }) : visited.pop()
+    } else if (enter) {
+      const fn: OpValues[O.fn] = op.v
+      if (fn.b.o === O.block && !fn.v) { prepareBlockBodyToRun(fn.v = [], fn.b.v) }
+      visited.push({ d: 0, r: Set2() })
+      const args = fn.a.map(ToVarName)
+      fn.t.length > 3 && args.push(VarName(fn.n!))
+      args.length && visited.push({ d: args, r: Set2() })
+    } else {
+      const frame = visited.pop()!, set = (frame.d ? visited.pop()! : frame).r
+      const op2: RefOp = Op(O.token, "a" as unknown as VarLiterals),
+      ref = Build.MV3 || !(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinTestedES6Environment
+          ? [...set satisfies Set2<VarNames> as unknown as VarNames[]]
+          : kHasSet ? Array.from(set as unknown as VarNames[]) : (set as unknown as VarNames[]).slice()
+      ; (op.v.r satisfies OpValues[O.fn]["r"]) = ref
+      for (const i of ref) {
+        _collect!(op2, i)
+      }
+    }
+  }
+  ToString(func, 0)
+  _collect = null
+}
+
 //#endregion parse syntax tree
 
 //#region evaluate
@@ -614,8 +664,15 @@ const StackFrame = (block: OpValues[O.block], args?: readonly [VarLiterals, unkn
 }
 
 const exitFrame = (): void => {
-  const frame: StackFrame = locals_.pop()!
+  const frame: StackFrame = locals_.pop()!, { r: inClosure, v: ref } = frame
   frame.r = 0
+  if (inClosure === 1) {
+    (frame.v as StackFrame["v"]) = Object.create(null), (frame.c as StackFrame["c"]) = []
+  } else {
+    for (var key in ref) {
+      (inClosure as Exclude<typeof inClosure, 0>).has(key as (keyof typeof ref) & string) || delete ref[key]
+    }
+  }
 }
 
 const _resolveVarRef = (name: VarLiterals, getter: R): Ref => {
@@ -666,7 +723,7 @@ const evalTry = (stats: readonly Statement[], i: number): [unknown, number] => {
     else try { res = evalBlockBody(statement.v.v); done = 1 }
     catch (ex) {
       g_exc || newException()
-      locals_.length = oldLocalsPos
+      while (locals_.length > oldLocalsPos) { exitFrame() }
       next.c && StackFrame(next.v.v, [[next.c.v, ex]])
       i++; res = evalBlockBody(next.c ? { c: 0, l: 0, x: next.v.v.x } : next.v.v)
       next.c && exitFrame(); g_exc = null; done = 1
@@ -697,10 +754,10 @@ const evalFor = (statement: BaseStatement<"for">): unknown => {
   const varStat = initOp && initOp.v.a ? initOp.v as SomeStatements<VarActions> : null
   const newScope = !!varStat && varStat.a !== "var"
   const forkScope = (): VarDict => {
-    const old = locals_[locals_.length - 1], newVars: VarDict = Object.create(null), oldVars = old.v
+    const old = locals_[locals_.length - 1], newVars: VarDict = Object.create(null), { v: oldVars, c, n, r } = old
     for (let key in oldVars) { newVars[key as VarNames] = oldVars[key as VarNames] }
     exitFrame()
-    locals_.push({ v: newVars, c: old.c, n: old.n, r: 1 })
+    locals_.push({ v: newVars, c, n, r })
     return newVars
   }
   let res: unknown = kFakeValue, ref: Writable<Ref>
@@ -1012,7 +1069,8 @@ const FunctionFromOp = (fn: OpValues[O.fn], globals: Isolate, closures: StackFra
         && Build.MinCVer < BrowserVer.MinEnsuredES6NewTarget ? this instanceof callable : new.target
     if (isNew && fn.t < "f") { throwType((stdName || "anonymous") + "is not a constructor") }
     isolate_ = globals, locals_ = closures.slice(), g_exc = g_exc && g_exc.d < 0 ? g_exc : null
-    const selfRefFrame = fn.t.length > 3 && !!StackFrame({ c: [VarName(fn.n!)], l: 0, x: [] }, [[fn.n!, callable]])
+    const oldLocalsPos = locals_.length
+    fn.t.length > 3 && StackFrame({ c: [VarName(fn.n!)], l: 0, x: [] }, [[fn.n!, callable]])
     if (fn.b.o === O.block && !fn.v) { prepareBlockBodyToRun(fn.v = [], fn.b.v) }
     ++stackDepth_
     try {
@@ -1033,8 +1091,7 @@ const FunctionFromOp = (fn: OpValues[O.fn], globals: Isolate, closures: StackFra
       stackDepth_--
       !Build.NDEBUG && done && (frame && locals_[locals_.length - 1] !== frame)
           && console.log("Vimium C found a bug of stack error when calling `" + (stdName || "anonymous") + "(...)`")
-      frame && exitFrame()
-      selfRefFrame && exitFrame()
+      while (locals_.length > oldLocalsPos) { exitFrame() }
       isolate_ = oldIsolate, locals_ = oldLocals
     }
   }
@@ -1048,6 +1105,26 @@ const FunctionFromOp = (fn: OpValues[O.fn], globals: Isolate, closures: StackFra
   })
   closures = closures.slice()
   if (!topMost) {
+    fn.r || analyseEscaped(Op(O.fn, fn))
+    const kUseSet = !(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinTestedES6Environment
+    const arr = kUseSet ? new Set!<VarNames>(fn.r!) : fn.r!.slice()
+    for (let i = locals_.length; 0 <= --i && (kUseSet ? (<Set<VarNames>> arr).size : (<VarNames[]> arr).length) > 0; ) {
+      let inClosure = locals_[i].r
+      if (inClosure === 0) { break }
+      const vars = locals_[i].v
+      if (kUseSet) {
+        for (const r of arr as Set<VarNames> as unknown as VarNames[]) {
+          r in vars && ((arr as Set<VarNames>).delete(r)
+              , (inClosure = inClosure !== 1 ? inClosure : (locals_[i].r = Set2())).add(r))
+        }
+      } else {
+        for (let i = (arr as VarNames[]).length; 0 <= --i; ) {
+          const r = (arr as VarNames[])[i]
+          r in vars && ((arr as VarNames[]).splice(i, 1)
+              , (inClosure = inClosure !== 1 ? inClosure : (locals_[i].r = Set2())).add(r))
+        }
+      }
+    }
   }
   return callable
 }
@@ -1076,14 +1153,20 @@ const ToString = (op: Op, allowed: number): string => {
   let arr: string[]
   switch (op.o) {
   case O.block: case O.statGroup: /* O.block | O.statGroup: */
+    const doesCollect1 = !!_collect && op.o === O.block && !!(op.v.c || op.v.l)
     arr = []
+    doesCollect1 && _collect!(op, 1)
     for (const stat of op.o === O.block ? op.v.x : op.v) {
       let str = ToString(Op(O.stat, stat), allowed && (allowed | 1 << O.block | 1 << O.statGroup | 1 << O.stat))
       arr.push(str)
     }
+    doesCollect1 && _collect!(op, 0)
     return arr.length > 0 ? op.o === O.statGroup ? arr.join("\n") : "{\n" + indent(arr.join("\n")) + "\n}" : "{ }"
   case O.stat: /* O.stat: */ {
     const { a: prefix, c: clause, l: label } = op.v, child = op.v.v
+    const doesCollect2 = !!_collect && (prefix === "catch" ? !!clause
+        : prefix === "for" && (clause.o === O.comma && clause.v[0].v.a && clause.v[0].v.a !== "var"))
+    doesCollect2 && _collect!(op, 1)
     const c = !clause ? "" : prefix !== "for" || clause.o !== O.comma ? ToString(clause, allowed)
         : clause.v.length === 1 ? ToString(clause.v[0], allowed)
         : (clause.v[0].v.v.o === O.comma && (clause.v[0].v.v as BaseOp<O.comma>).v.length === 0 ? " ;"
@@ -1091,6 +1174,7 @@ const ToString = (op: Op, allowed: number): string => {
           + (ToString(clause.v[1], allowed) || kUnknown).trim() + "; "
           + (ToString(clause.v[2], allowed) || kUnknown).trim()
     let x = child ? ToString(child, allowed) : ""
+    doesCollect2 && _collect!(op, 0)
     return (label ? label.slice(1).map(i => i + ":\n").join("") + label[0] + ": " : "")
         + prefix + (clause ? c ? ` (${c})` : " " + kUnknown : "")
         + (!child ? "" : !x ? child.o !== O.block ? " " + kUnknown + ";" : " { ... }"
@@ -1120,9 +1204,11 @@ const ToString = (op: Op, allowed: number): string => {
               : " " + ToString(Op(O.fn, op.v.v.v), allowed && (allowed | (1 << O.fn))))
   case O.fn: /* O.fn: */ {
     if (op.v.p && op.v.p.v.v === op) { return ToString(op.v.p, allowed && (allowed | (1 << O.pair) | (1 << O.token))) }
+    _collect && _collect(op, 1)
     const argsList = !op.v.a.length ? ""
         : ToString(Op(O.comma, op.v.a), allowed && (allowed | (1 << O.comma | 1 << O.token | 1 << O.assign)))
     const body = ToWrapped(op, allowed && op.v.b.o === O.block ? (allowed | 1 << O.block) : allowed, op.v.b)
+    _collect && _collect(op, 0)
     return (op.v.t > "f" ? "function " + op.v.n + "(" : "(")
         + (argsList.includes("\n") ? argsList + "\n" : argsList)
         + (op.v.t !== "=>" ? ") " + body : op.v.b.o !== O.block && body.includes("\n") ? ") =>\n" + indent(body)
@@ -1161,6 +1247,7 @@ const ToString = (op: Op, allowed: number): string => {
           + (op.v.b === "{" ? " }" : " ]")
   case O.token: /* O.token: */ {
     const isRef = typeof op.v === "string", val = isRef ? op.v : op.v.v
+    isRef && _collect && _collect(op as RefOp, VarName((op as RefOp).v))
     return isRef ? val as RefOp["v"] : typeof val === "string" ? JSON.stringify(val) : val === kFakeValue ? " "
         : typeof val === "bigint" ? val + "n" : !val || typeof val !== "object" ? val + ""
         : val.c === 4 ? `/${val.v[0]}/${val.v[1]}` : val.v + ""
