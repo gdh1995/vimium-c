@@ -12,8 +12,8 @@ type ComplexLiteral = /* regexp */ { c: 4, v: [source: string, flags: string] }
 interface BreakValue { c: BOOL, v: string | 0 }
 type VarLiterals = "var1" | "bar" | "..." | "__proto__" | "new.target" | "debugger"
 type VarNames = "Var1" | "globalThis" | "this" | "arguments" | "undefined"
-type VarDict = { [index: number]: number } & { [name in VarNames]: unknown }
-type Set2<K> = Pick<Set<K>, "has" | "add">
+type VarDict = { [name in VarNames]: unknown }
+interface Set2<T extends string> { has (i: T): boolean; add (i: T): unknown; m?: SafeDict<1> }
 interface StackFrame { readonly v: VarDict, readonly c: readonly VarNames[], n: string | null, r: BOOL|Set2<VarNames> }
 interface Isolate extends VarDict {}
 interface Ref { readonly y: { [index: number]: number }, readonly i: number /** | ... */ }
@@ -60,7 +60,7 @@ interface BaseStatement<T extends "" | BlockPrefixes | LineActions | "arg"> {
   v: T extends "try" | "catch" | "finally" ? BaseOp<O.block>
       : T extends "var" | "let" | "arg" ? FinalOp<O.comma, (RefAssignOp | RefOp)[]>
       : T extends "const" ? FinalOp<O.comma, RefAssignOp[]> : Op
-  l: string[] | null, __proto__?: null
+  l: string[] | null
 }
 type SomeStatements<T extends "" | BlockPrefixes | LineActions | "arg"> = T extends string ? BaseStatement<T> : never
 type Statement = SomeStatements<"" | BlockPrefixes | LineActions>
@@ -72,7 +72,7 @@ interface OpValues {
   [O.statGroup]: Statement[]; [O.stat]: Statement; [O.comma]: Op[]
   [O.pair]: { k: RefOp | BaseOp<O.comma>, v: Op, p: string }
   [O.fn]: { t: TokenValues[T.fn], a: (RefOp|RefAssignOp)[], b: Op, v: NullableVarList, n: VarLiterals | null,
-      p: BaseOp<O.pair> | null, r: VarNames[] | null },
+      p: BaseOp<O.pair> | null, r: readonly VarNames[] | null },
   [O.composed]: { b: "[" | "{", v: Op[] },
   [O.assign]: { y: Op, x: Op, a: TokenValues[T.assign] }; [O.ifElse]: { c: Op, l: Op, r: Op }
   [O.binary]: { l: Op, r: Op, o: TokenValues[BinaryTokens] }; [O.unary]: { x: Op, o: SomeTokens<T.unary | T.rightUnary>}
@@ -122,20 +122,6 @@ const kTokenNames = Build.NDEBUG ? [] as never
 const kOpNames = Build.NDEBUG ? [] as never
   : "block, statGroup, stat, comma, pair, fn, assign, ifElse, binary, unary, call, access, composed, token".split(", ")
 
-const kTokenEnums: SafeDict<keyof TokenValues> = ((): SafeDict<keyof TokenValues> => {
-  const arr: string[] = [
-    "{", "}", ";", "if else try catch finally do while for", "return break continue throw var let const",
-    "(", "", "[", ") ]", ",", "?", ":", "=>", "of = += -= *= /= %= <<= >>= >>>= &= &&= ^= |= ||= **= ??=",
-    "|| ??", "&&", "|", "^", "&", "== != === !==", "< <= > >= in instanceof", "<< >> >>>", "", "* / %", "**",
-    "! ~ typeof void delete", "", "new", ". ?."
-  ], dict = Object.create<keyof TokenValues>(null)
-  let ind = 0, val = 1, token: string
-  if (!(Build.NDEBUG || 1 << arr.length === T.ref)) { alert(`Assert error: wrong fields in kTokenEnums`) }
-  for (; ind < arr.length; ind++, val <<= 1) {
-    for (token of arr[ind] ? arr[ind].split(" ") : []) { dict[token] = val }
-  }
-  return dict
-})()
 const kLiterals: ReadonlySafeDict<boolean | null> = { __proto__: null as never, true: true, false: false, null: null }
 const kUnsupportedTokens: SafeEnum = { __proto__: null as never, switch: 1, yield: 1, await: 1, async: 1 }
 const kVarAction = "var,let,const", kProto = "__proto__"
@@ -149,10 +135,8 @@ const kBreakBlock: BreakValue = { c: 0, v: 0 }
 const kUnknown = "(...)"
 // `document.all == null` returns `true`
 const isLooselyNull = (obj: unknown): obj is null | undefined => obj === null || obj === undefined
-const safer_d = <T> (obj: T): T extends Array<any> ? unknown : T =>
-    (typeof obj === "object" && obj && !Array.isArray(obj)
-      ? ("__proto__" in obj && ((obj as any).__proto__ = null), obj) : obj) as any
 const resetRe_ = (): true => (<RegExpOne> /a?/).test("") as true
+const objCreate = Object.create as { (proto: null): VarDict; <T> (o: null): SafeDict<T> }
 const objEntries = !(Build.BTypes & BrowserType.Chrome)
     || Build.MinCVer >= BrowserVer.MinEnsuredES$Object$$values$and$$entries ? Object.entries! as never
     : Object.entries as unknown as undefined || (<T extends string> (object: object): [T, unknown][] => {
@@ -175,24 +159,37 @@ const globalVarAccessor = {
   get eval (): unknown { return innerEval_ },
   set eval (_value: unknown) { /* empty */ }
 } as unknown as Ref["y"]
-const VarName = (name: VarLiterals): VarNames => (name !== kProto ? name : name + ".") as VarNames
-const Set_add = function <T> (this: T[] & Set<T>, i: T) { this.indexOf(i) >= 0 || this.push(i); return this }
-const Set_has = function <T> (this: T[] & Set<T>, i: T) { return this.indexOf(i) >= 0 }
+const VarName = (unsafe_name: VarLiterals): VarNames => unsafe_name as VarNames
 const kHasSet = !(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.Min$Array$$From
     && Build.MinCVer >= BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol || !!Array.from
-const Set2 = kHasSet ? <T> (): Set2<T> => new Set!<T>() : (<T> (): Set2<T> => {
-  const a = [] as T[] as T[] & Set<T>
-  a.add = Set_add, a.has = Set_has
-  return a
-}) as never
+const Set2: { new <T extends string> (): Set2<T> } = kHasSet ? Set!
+    : function <T extends string> (this: Set2<T> ) { this.m = objCreate<1>(null) } as never
+if (!kHasSet) {
+  Set2.prototype.add = function <T extends string> (this: Set2<T>, i: T) { this.m![i] = 1 }
+  Set2.prototype.has = function <T extends string> (this: Set2<T>, i: T) { return i in this.m! }
+}
 
 //#endregion helper functions
 
 //#region tokenize
 
 const Token = <T extends keyof TokenValues> (token: T, value: TokenValues[T]): SomeTokens<T> => {
-  return (NDEBUG ? { t: token, v: value } : { n: kTokenNames[Math.log2(token)],
-    v: safer_d(value satisfies string | { v: unknown }), t: token, __proto__: null }) as SomeTokens<T>
+  return (Build.NDEBUG ? { t: token, v: value }
+      : { n: kTokenNames[Math.log2(token)], v: value, t: token }) as SomeTokens<T>
+}
+let gTokens: ReadonlySafeDict<Token>; {
+  const arr: string[] = [
+    "{", "}", ";", "if else try catch finally do while for", "return break continue throw var let const",
+    "(", "", "[", ") ]", ",", "?", ":", "=>", "of = += -= *= /= %= <<= >>= >>>= &= &&= ^= |= ||= **= ??=",
+    "|| ??", "&&", "|", "^", "&", "== != === !==", "< <= > >= in instanceof", "<< >> >>>", "", "* / %", "**",
+    "! ~ typeof void delete", "", "new", ". ?."
+  ], dict = objCreate<Token>(null)
+  let ind = 0, val = 1, token: string
+  if (!(Build.NDEBUG || 1 << arr.length === T.ref)) { alert(`Assert error: wrong fields in Token Enums`) }
+  for (; ind < arr.length; ind++, val <<= 1) {
+    for (token of arr[ind] ? arr[ind].split(" ") : []) { dict[token] = Token(val, token) }
+  }
+  gTokens = dict
 }
 
 const splitTokens = (expression_: string): Token[] => {
@@ -239,7 +236,7 @@ const splitTokens = (expression_: string): Token[] => {
     } else if (expect(
         /^(=>|[!=]=?=?|[+\-*\/%^]=|&&?=?|\|\|?=?|>>?>?=?|<<?=?|\*\*=?|\?\?=?|\??\.(?!\d)|[,?:*\/%^~\{\}\[\]()])/)) {
       last_ === "{" ? curlyBraces.push(0) : last_ === "}" ? curlyBraces.pop() : 0
-      tokens_.push(Token(kTokenEnums[last_] as T.or, last_ as "||"))
+      tokens_.push(gTokens[last_]!)
     } else if (expect(/^\+\+?|^--?/)) {
       tokens_.push(Token(last_.length === 2 ? before & (T.groupEnd | T.ref)
             && tokens_[tokens_.length - 1].v !== "\n" ? T.rightUnary : T.unary
@@ -267,8 +264,8 @@ const splitTokens = (expression_: string): Token[] => {
       ? tokens_.push(Token(T.literal, { v: before === T.dot ? last_ : kLiterals[last_] }))
       : last_ in kUnsupportedTokens ? throwSyntax("Unsupported identifier: " + last_)
       : before === T.prefix && last_ === "if" && tokens_[tokens_.length - 1].v === "else"
-      ? (tokens_[tokens_.length - 1].v as TokenValues[T.prefix]) = "else if"
-      : tokens_.push(last_ === "function" ? Token(T.fn, "fn") : Token(kTokenEnums[last_]! || T.ref, last_ as never))
+      ? tokens_[tokens_.length - 1] = Token(T.prefix, "else if")
+      : tokens_.push(last_ === "function" ? Token(T.fn, "fn") : gTokens[last_] || Token(T.ref, last_ as VarLiterals))
     } else {
       const arr = expression_.slice(0, pos_).split("\n")
       throwSyntax(`Unexpected identifier in ${arr.length}:${arr[arr.length - 1].length + 1
@@ -289,14 +286,14 @@ const splitTokens = (expression_: string): Token[] => {
 
 const Op = <O extends keyof OpValues, V extends OpValues[O]> (op: O, value: V): FinalOp<O, V> => {
   return (NDEBUG ? { o: op, v: value } : { n: op === O.composed ? (value as OpValues[O.composed]).b === "{"
-        ? "dict" : "array" : kOpNames[op], v: safer_d(value), o: op, __proto__: null
-      }) as FinalOp<O, V>
+        ? "dict" : "array" : kOpNames[op], v: value, o: op }) as FinalOp<O, V>
 }
+const gRefOps: SafeDict<RefOp> = objCreate<RefOp>(null)
 
 const Stat = <T extends "" | BlockPrefixes | LineActions | "arg"> (
     stat: T, clause: SomeStatements<T>["c"], value: SomeStatements<T>["v"]): SomeStatements<T> => {
   return (NDEBUG ? { a: stat as "if", c: clause!, v: value, l: null } : { a: stat as "if", c: clause!,
-      v: value, l: null, __proto__: null }) satisfies SomeStatements<"if"> as SomeStatements<T>
+      v: value, l: null }) satisfies SomeStatements<"if"> as SomeStatements<T>
 }
 
 const prepareBlockBodyToRun = (pureVars: VarNames[], block: OpValues[O.block]): void => {
@@ -456,22 +453,21 @@ const parseTree = (tokens_: readonly Token[], inNewFunc: boolean | null | undefi
       break
     }
   }
-  for (let pos_ = 0, before = T.block, cur: Token, type: T, topIsDict = false;
-      pos_ < tokens_.length; before = type, pos_++) {
+  {
+  let pos_ = 0, before = T.block, cur: Token, type: T, topIsDict = false
+  for (; pos_ < tokens_.length; before = type, pos_++) {
     cur = tokens_[pos_], type = cur.t
     if (topIsDict && type & (T.prefix | T.action | T.fn | T.literal)
         && !(before === T.comma && tokens_[pos_ - 2].t === T.ref && tokens_[pos_ - 2].v === "...")) {
-      (cur.v as VarLiterals) = (cur.t === T.literal ? cur.v.v + ""
-          : (cur as SomeTokens<T.prefix | T.action | T.fn>).v satisfies string) as "var1"
-      type = (cur.t as T) = T.ref, Build.NDEBUG || ((cur.n as string) = "ref")
+      cur = Token(type = T.ref, (cur.t === T.literal ? cur.v.v + ""
+          : (cur as SomeTokens<T.prefix | T.action | T.fn>).v satisfies string) as "var1")
     }
-    const typeCur = cur.t
-    switch (typeCur) {
+    switch (cur.t) {
     case T.block: case T.dict: /* T.block | T.dict: */
       topIsDict = !(before & (T.block | T.blockEnd | T.semiColon | T.prefix | T.groupEnd | T.fn | T.ref | T.literal))
       values_.push(topIsDict ? Op(O.composed, { b: "{", v: null as never }) : Op(O.block, { c:0, l:0, x:<never> null }))
-      type = (cur.t as T) = topIsDict ? T.dict : T.block,
-      Build.NDEBUG || ((cur.n as string) = topIsDict ? "dict" : "block")
+      type = topIsDict ? T.dict : T.block,
+      Build.NDEBUG || ((tokens_[pos_] as Token) = { n: topIsDict ? "dict" : "block", v: "{", t: type })
       ctx_.push(Token(type, "{"))
       break
     case T.blockEnd: case T.groupEnd: /* T.blockEnd | T.groupEnd: */
@@ -481,7 +477,7 @@ const parseTree = (tokens_: readonly Token[], inNewFunc: boolean | null | undefi
           ? (values_[values_.length - 1] as Writable<BaseOp<O.token>>).v = { v: "debugger" } : 0
       consumeUntil(cur.v === ")" ? T.group : cur.v === "]" ? T.array : T.block | T.dict)
       if (type === T.blockEnd && ctx_[ctx_.length - 1].t === T.dict) {
-        type = (cur.t as T) = T.groupEnd, Build.NDEBUG || ((cur.n as string) = "groupEnd")
+        type = T.groupEnd, Build.NDEBUG || ((tokens_[pos_] as Token) = { n: "groupEnd", v: "}", t: type })
       }
       consume()
       topIsDict = ctx_[ctx_.length - (ctx_[ctx_.length - 1].t === T.comma ? 2 : 1)].t === T.dict
@@ -494,8 +490,8 @@ const parseTree = (tokens_: readonly Token[], inNewFunc: boolean | null | undefi
             || !!(tokens_[pos_ + 1].t & (T.ref | T.literal | T.fn | T.prefix | T.action | T.unary | T.block))
             || values_[values_.length - 1].o === O.fn && ((values_[values_.length - 1] as BaseOp<O.fn>).v.t === "=>"
                     ? tokens_[pos_ + 1].t !== T.comma : !!(ctx_[ctx_.length - 1].t & (T.block | T.prefix)))
-                && (tokens_[pos_ + 1].t === T.math1 && ((tokens_[pos_ + 1].t as T) = T.unary,
-                      Build.NDEBUG || ((tokens_[pos_ + 1].n as string) = "unary")),
+                && (tokens_[pos_ + 1].t === T.math1
+                    && ((tokens_[pos_ + 1] as Token) = Token(T.unary, tokens_[pos_ + 1].v as TokenValues[T.math1])),
                     true))
       semiColon ? consumeUntil(T.group | T.block) : mayBreak ? consumeUntil(T.comma - 1 | T.question) : 0
       const prev = mayBreak ? ctx_[ctx_.length - 1] : null
@@ -566,7 +562,10 @@ const parseTree = (tokens_: readonly Token[], inNewFunc: boolean | null | undefi
         ctx_.push(cur)
       }
       break
-    case T.ref: case T.literal: /* T.ref: T.literal: */
+    case T.ref: /* T.ref: */
+      values_.push(gRefOps[cur.v] || ((gRefOps satisfies SafeDict<RefOp> as Dict<RefOp>)[cur.v] = Op(O.token, cur.v)))
+      break
+    case T.literal: /* T.literal: */
       values_.push(Op(O.token, cur.v))
       break
     default:
@@ -575,17 +574,17 @@ const parseTree = (tokens_: readonly Token[], inNewFunc: boolean | null | undefi
       } else {
         if (cur.t === T.math1 && before === T.blockEnd
             && !(1 << values_[values_.length - 1].o & (1 << O.composed | 1 << O.fn))) {
-          type = (cur.t as T) = T.unary, Build.NDEBUG || ((cur.n as string) = "unary")
+          cur = Token(type = T.unary, cur.v as TokenValues[T.math1]), Build.NDEBUG || ((tokens_[pos_] as Token) = cur)
         } else if (cur.t === T.compare2 && cur.v === "in") {
           const t1 = ctx_[ctx_.length - (ctx_[ctx_.length - 1].t === T.group ? 2 : 1)]
           if (t1.t === T.action && kVarAction.includes(t1.v) || t1.t === T.prefix && t1.v === "for"
               && values_[values_.length - 2].o === O.block) {
-            type = (cur.t as T) = T.assign, Build.NDEBUG || ((cur.n as string) = "assign")
+            cur = Token(type = T.assign, "in"), Build.NDEBUG || ((tokens_[pos_] as Token) = cur)
           }
         } else if (cur.t === T.dot && tokens_[pos_ + 1].t & (T.group | T.array)) {
-          type = (cur.t as T) = T.callOrAccess, Build.NDEBUG || ((cur.n as string) = "callOrAccess")
+          cur = Token(type = T.callOrAccess, "?." as "?."), Build.NDEBUG || ((tokens_[pos_] as Token) = cur)
         }
-        const kOpL2R = T.comma | T.or | T.and | T.bitOr | T.bitXor | T.bitAnd | T.compare1 | T.compare2 | T.bitMove
+        const kOpL2R = T.comma | T.bitOr | T.bitXor | T.bitAnd | T.compare1 | T.compare2 | T.bitMove
             | T.math1 | T.math2 | T.math3 | T.dot
         consumeUntil((type & (T.question | T.colon | T.fn | T.assign) ? T.assign << 1
             : type & kOpL2R ? type : type << 1) - 1)
@@ -593,6 +592,7 @@ const parseTree = (tokens_: readonly Token[], inNewFunc: boolean | null | undefi
       }
       break
     }
+  }
   }
   while (ctx_.length > 1) { consume() }
   return values_.length === 2 && values_[1].o !== O.stat && !inNewFunc ? values_[1] : (consume(), values_[0])
@@ -613,20 +613,20 @@ const analyseEscaped = (func: BaseOp<O.fn>): void => {
           : (((op.v.c as Extract<BaseStatement<"for">["c"], BaseOp<O.comma>>
               ).v[0].v as SomeStatements<VarActions>).v.v satisfies (RefOp | RefAssignOp)[] as (RefOp | RefAssignOp)[]
             ).map(ToVarName)
-      enter ? visited.push({ d: varNames, r: Set2() }) : visited.pop()
+      enter ? visited.push({ d: varNames, r: new Set2() }) : visited.pop()
     } else if (enter) {
       const fn: OpValues[O.fn] = op.v
       if (fn.b.o === O.block && !fn.v) { prepareBlockBodyToRun(fn.v = [], fn.b.v) }
-      visited.push({ d: 0, r: Set2() })
+      visited.push({ d: 0, r: new Set2() })
       const args = fn.a.map(ToVarName)
       fn.t.length > 3 && args.push(VarName(fn.n!))
-      args.length && visited.push({ d: args, r: Set2() })
+      args.length && visited.push({ d: args, r: new Set2() })
     } else {
       const frame = visited.pop()!, set = (frame.d ? visited.pop()! : frame).r
       const op2: RefOp = Op(O.token, "a" as unknown as VarLiterals),
       ref = Build.MV3 || !(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinTestedES6Environment
           ? [...set satisfies Set2<VarNames> as unknown as VarNames[]]
-          : kHasSet ? Array.from(set as unknown as VarNames[]) : (set as unknown as VarNames[]).slice()
+          : kHasSet ? Array.from(set as unknown as VarNames[]) : Object.keys(set.m!) as VarNames[]
       ; (op.v.r satisfies OpValues[O.fn]["r"]) = ref
       for (const i of ref) {
         _collect!(op2, i)
@@ -653,8 +653,7 @@ const newException = (noHandler?: 1): NonNullable<typeof g_exc> =>
 const ToVarName = (op: RefOp | RefAssignOp): VarNames => VarName(op.o === O.token ? op.v : op.v.y.v)
 const StackFrame = (block: OpValues[O.block], args?: readonly [VarLiterals, unknown][] | null
     , pureVars?: NullableVarList, scopeName?: string): StackFrame => {
-  const varDict = Object.create(null)
-  let varName: string
+  let varDict = objCreate(null), varName: VarNames
   for (varName of pureVars || []) { varDict[varName] = void 0 }
   for (varName of block.c || []) { varDict[varName] = kFakeValue }
   for (varName of block.l || []) { varDict[varName] = kFakeValue }
@@ -668,10 +667,10 @@ const exitFrame = (): void => {
   const frame: StackFrame = locals_.pop()!, { r: inClosure, v: ref } = frame
   frame.r = 0
   if (inClosure === 1) {
-    (frame.v as StackFrame["v"]) = Object.create(null), (frame.c as StackFrame["c"]) = []
+    (frame.v as StackFrame["v"]) = objCreate(null), (frame.c as StackFrame["c"]) = []
   } else {
     for (var key in ref) {
-      (inClosure as Exclude<typeof inClosure, 0>).has(key as (keyof typeof ref) & string) || delete ref[key]
+      (inClosure as Exclude<typeof inClosure, 0>).has(key as (keyof typeof ref) & string) || delete (ref as any)[key]
     }
   }
 }
@@ -755,7 +754,7 @@ const evalFor = (statement: BaseStatement<"for">): unknown => {
   const varStat = initOp && initOp.v.a ? initOp.v as SomeStatements<VarActions> : null
   const newScope = !!varStat && varStat.a !== "var"
   const forkScope = (): VarDict => {
-    const old = locals_[locals_.length - 1], newVars: VarDict = Object.create(null), { v: oldVars, c, n, r } = old
+    const old = locals_[locals_.length - 1], newVars: VarDict = objCreate(null), { v: oldVars, c, n, r } = old
     for (let key in oldVars) { newVars[key as VarNames] = oldVars[key as VarNames] }
     exitFrame()
     locals_.push({ v: newVars, c, n, r })
@@ -997,7 +996,7 @@ const evalNever = (op: BaseOp<O.block | O.statGroup | O.stat | O.pair>): void =>
     }
     return obj
   }
-  const props: { [s: string | number | symbol]: PropertyDescriptor & Partial<SafeObject> } = Object.create(null)
+  const props: { [s: string | number | symbol]: PropertyDescriptor & Partial<SafeObject> } = objCreate(null) as any
   let newProto: object | null = Cls.prototype
   for (let i = 0; i < arr.length; i++) {
     const item = arr[i], isToken = item.o === O.token
@@ -1115,13 +1114,13 @@ const FunctionFromOp = (fn: OpValues[O.fn], globals: Isolate, closures: StackFra
       if (kUseSet) {
         for (const r of arr as Set<VarNames> as unknown as VarNames[]) {
           r in vars && ((arr as Set<VarNames>).delete(r)
-              , (inClosure = inClosure !== 1 ? inClosure : (locals_[i].r = Set2())).add(r))
+              , (inClosure = inClosure !== 1 ? inClosure : (locals_[i].r = new Set2())).add(r))
         }
       } else {
         for (let i = (arr as VarNames[]).length; 0 <= --i; ) {
           const r = (arr as VarNames[])[i]
           r in vars && ((arr as VarNames[]).splice(i, 1)
-              , (inClosure = inClosure !== 1 ? inClosure : (locals_[i].r = Set2())).add(r))
+              , (inClosure = inClosure !== 1 ? inClosure : (locals_[i].r = new Set2())).add(r))
         }
       }
     }
@@ -1136,7 +1135,7 @@ const FunctionFromOp = (fn: OpValues[O.fn], globals: Isolate, closures: StackFra
 const indent = (s: string): string => s.replace(<RegExpG> /^/gm, "  ")
 
 const BinaryStrToT = (tokenStr: TokenValues[BinaryTokens]): keyof TokenValues =>
-    "+-".includes(tokenStr) ? T.math1 : kTokenEnums[tokenStr]!
+    "+-".includes(tokenStr) ? T.math1 : gTokens[tokenStr]!.t
 
 const doesNeedWrap = (val: Op, op: Op): boolean => val.o >= O.call
     ? val.o === O.composed && val.v.b === "{" && (op.o === O.access ? val === op.v.y : op.o <= O.stat)
@@ -1178,7 +1177,7 @@ const ToString = (op: Op, allowed: number): string => {
     return (label ? label.join(":\n") + ": " : "")
         + prefix + (clause ? c ? ` (${c})` : " " + kUnknown : "")
         + (!child ? "" : !x ? child.o !== O.block ? " " + kUnknown + ";" : " { ... }"
-          : (x = x.trimLeft(), prefix && (prefix === "else if" || kTokenEnums[prefix] === T.prefix)
+          : (x = x.trimLeft(), prefix && (prefix === "else if" || gTokens[prefix] && gTokens[prefix]!.t === T.prefix)
               && child.o !== O.block && (x.length > 40 || x.includes("\n"))
               ? "\n" + indent(x) : prefix && x ? " " + x : x)
             + (child.o !== O.block && (child.o !== O.fn || child.v.t < "f") && !x.endsWith(";")
