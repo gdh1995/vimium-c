@@ -583,6 +583,7 @@ declare const enum GlobalConsts {
   ModifierKeyTimeout = 2_900,
   OptionsPage = "pages/options.html",
   kLoadEvent = "VimiumC",
+  kEvalNameInMV3 = "__VimiumC_eval__",
   KeepAliveTime = 900_000,
 }
 

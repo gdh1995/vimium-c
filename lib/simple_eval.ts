@@ -101,10 +101,11 @@ const HasReflect: boolean = !(Build.BTypes & BrowserType.Chrome)
     || typeof VApi === "object" && !!(VApi && VApi.z)
         && VApi.z.v! > BrowserVer.MinEnsured$Reflect$$apply$And$$construct - 1
     || typeof Reflect !== "undefined" && !!Reflect && !!Reflect.apply && !!Reflect.construct
-const DefaultIsolate = (typeof globalThis !== "undefined" ? globalThis : window) as unknown as Isolate
+const DefaultIsolate = (Build.MV3 || typeof globalThis !== "undefined" ? globalThis : window) as unknown as Isolate
 const DefaultFunction = (DefaultIsolate as Dict<unknown>)["Function"] as FunctionConstructor
-let NativeFunctionCtor: FunctionConstructor | false | null = !Build.NDEBUG && typeof VimiumInjector === "undefined"
-    ? null : JSON.stringify((typeof browser === "object" && browser as never || chrome
+let NativeFunctionCtor: FunctionConstructor | false | null =
+    Build.MV3 || !Build.NDEBUG && typeof VimiumInjector === "undefined" ? null
+    : JSON.stringify((typeof browser === "object" && browser as never || chrome
       ).runtime.getManifest().content_security_policy).includes("'unsafe-eval'") ? null : false
 let isolate_: Isolate = DefaultIsolate, locals_: StackFrame[] = [], stackDepth_ = 0
 let g_exc: { g: Isolate, l: StackFrame[], d: number } | null = null
@@ -225,7 +226,7 @@ const splitTokens = (expression_: string): Token[] => {
     } else if (peek("...")) {
       tokens_.push(Token(T.ref, "..."), Token(T.comma, ",")); pos_ += 3
     } else if (expect(curlyBraces[curlyBraces.length - 1] ? /^[\}`]/ : /^`/)) {
-      if (!expect(/^(?:[^`\\$]|\\[^]|\$(?!\{))*(?:`|\$\{)/) && !Build.NDEBUG) {
+      if (!Build.NDEBUG && !expect(/^(?:[^`\\$]|\\[^]|\$(?!\{))*(?:`|\$\{)/)) {
         throwSyntax("Unexpected template string")
       }
       const isBegin = expression_[pos_ - last_.length - 1] === "`", isEnd = last_.endsWith("`")
@@ -375,7 +376,7 @@ const parseTree = (tokens_: readonly Token[], inNewFunc: boolean | null | undefi
       } else {
         if (stat.a !== "labelled") { /* empty */ }
         else if (val.o !== O.stat) { stat.l = [(clause as RefOp).v], stat.c = null }
-        else { stat = val.v; (stat.l || ((stat.l as string[] | null) = [])).push((clause as RefOp).v) }
+        else { stat = val.v; (stat.l || ((stat.l as string[] | null) = [])).unshift((clause as RefOp).v) }
         values_.push(Op(O.stat, stat))
       }
       } break
@@ -602,7 +603,7 @@ const analyseEscaped = (func: BaseOp<O.fn>): void => {
   _collect = (op, enter): void => {
     if (op.o === O.token) {
       let val = enter as VarNames, i = visited.length - 1, decl: NullableVarList
-      if (visited[i].r.has(val) || (val as VarNames | VarLiterals) === "...") { return }
+      if (i < 0 || visited[i].r.has(val) || (val as VarNames | VarLiterals) === "...") { return }
       for (; (decl = visited[i].d) !== 0 && decl.indexOf(val) < 0; i--) { /* empty */ }
       visited[decl ? visited.length - 1 : i].r.add(val)
     } else if (op.o !== O.fn) {
@@ -968,8 +969,7 @@ const evalNever = (op: BaseOp<O.block | O.statGroup | O.stat | O.pair>): void =>
     throwType(DebugCallee(op.v.f, func.name, i2) + "is not a constructor")
   }
   if (func === DefaultFunction) { func = /*#__NOINLINE__*/ innerFunction_ as unknown as typeof func }
-  return (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinTestedES6Environment
-      && Build.MinCVer >= BrowserVer.MinEnsuredES6SpreadOperator) && noThis
+  return (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinTestedES6Environment) && noThis
       ? !op.v.n ? func(...args) : new func(...args)
       : !op.v.n ? HasReflect ? Reflect!.apply(func, noThis ? void 0 : y, args)
         : evalCall.apply.bind<(this: (this: 1, arg: 2) => 3, thisArg: 1, x: [2]) => 3>(
@@ -1175,7 +1175,7 @@ const ToString = (op: Op, allowed: number): string => {
           + (ToString(clause.v[2], allowed) || kUnknown).trim()
     let x = child ? ToString(child, allowed) : ""
     doesCollect2 && _collect!(op, 0)
-    return (label ? label.slice(1).map(i => i + ":\n").join("") + label[0] + ": " : "")
+    return (label ? label.join(":\n") + ": " : "")
         + prefix + (clause ? c ? ` (${c})` : " " + kUnknown : "")
         + (!child ? "" : !x ? child.o !== O.block ? " " + kUnknown + ";" : " { ... }"
           : (x = x.trimLeft(), prefix && (prefix === "else if" || kTokenEnums[prefix] === T.prefix)
@@ -1264,9 +1264,9 @@ const AccessToString = (access: string | number | boolean | null | undefined | o
 }
 
 const FuncToString = function (this: (...args: unknown[]) => unknown): string {
-  let func: Function2 = this, s: string
-  return typeof func !== "function" || !func.__fn ? DefaultFunction.prototype.toString.apply(func, arguments)
-      : (s = ToString(Op(O.fn, func.__fn), 0), /*#__NOINLINE__*/ resetRe_(), s)
+  let func: Function2 = this, s: string, priv_fn = typeof func === "function" && func.__fn
+  return !priv_fn ? DefaultFunction.prototype.toString.apply(func, arguments)
+      : (s = ToString(priv_fn.p || Op(O.fn, priv_fn), 0), /*#__NOINLINE__*/ resetRe_(), s)
 }
 
 const DebugCallee = (funcOp: Op, funcInst: ((...args: unknown[]) => unknown) | string | null | undefined
@@ -1340,14 +1340,18 @@ const innerEval_ = function (_functionBody: string): unknown {
   return func()
 }
 
+/**
+ * (...args: [...funcArguments: string[], functionBody: string
+ *     , globals?: Isolate | null | undefined, locals?: VarDict | VarDict[] | null | undefined]) => Result
+ */
 const outerEval_ = <VApiTy["v"] & { [method: string]: unknown }> function (_functionBody: string): unknown {
   const func = baseFunctionCtor(parseArgsAndEnv(arguments, DefaultIsolate, []), null, true)
   return func()
 }
 
-const doubleEval_ = function (_functionBody: string | object): unknown {
+const doubleEval_mv2 = function (_functionBody: string | object): unknown {
   const info = typeof _functionBody === "object" && _functionBody ? _functionBody as ReturnType<typeof parseArgsAndEnv>
-      : parseArgsAndEnv(arguments, null, null), hasEnv = !!(info.globals || info.closures)
+      : parseArgsAndEnv(arguments, null, null), hasEnv = !Build.MV3 && !!(info.globals || info.closures)
   let func: (() => unknown) | null | undefined
   if (!Build.MV3 && NativeFunctionCtor === null && !hasEnv) {
     const ctor = baseFunctionCtor(parseArgsAndEnv(["Function"], DefaultIsolate, []))() as FunctionConstructor
@@ -1368,8 +1372,8 @@ const doubleEval_ = function (_functionBody: string | object): unknown {
     } catch {}
     if (func) { return func() }
   }
-  info.globals ||= info.globals || DefaultIsolate
-  info.closures = info.closures || []
+  info.globals ||= DefaultIsolate
+  info.closures ||= []
   func = baseFunctionCtor(info, null, true)
   return func()
 }
@@ -1378,33 +1382,38 @@ const exposeStack = (stackArray: StackFrame[]
       ): { dict: VarDict, consts: readonly string[], name: string, done: boolean }[] =>
     stackArray.slice().reverse().map(frame => ({ dict: frame.v, consts: frame.c, name: frame.n || "", done: !frame.r }))
 
-/**
- * (...args: [...args: string[], functionBody: string
- *     , globals: Isolate | null | undefined, locals: VarDict | VarDict[] | null | undefined]): Result
- */
-typeof VApi === "object" && VApi ? VApi!.v = outerEval_
-    : (DefaultIsolate as Partial<VApiTy["v"]>).vimiumEval = outerEval_
-outerEval_.vimiumEval = outerEval_
-outerEval_.doubleEval = doubleEval_
-outerEval_["noNative"] = (): void => { (!Build.MV3 || !Build.NDEBUG) && (NativeFunctionCtor = false) }
+if (Build.MV3) {
+  const browser_ = Build.BTypes&BrowserType.Chrome && (DefaultIsolate as any).chrome || (DefaultIsolate as any).browser
+  if (browser_?.runtime?.connect && typeof VApi === "object" && VApi) {
+    VApi!.v = outerEval_
+  } else {
+    (DefaultIsolate as any)[GlobalConsts.kEvalNameInMV3] = outerEval_
+  }
+} else {
+  typeof VApi === "object" && VApi ? VApi!.v = outerEval_
+      : (DefaultIsolate as Partial<VApiTy["v"]>).vimiumEval = outerEval_
+  outerEval_.vimiumEval = outerEval_
+  outerEval_.doubleEval = doubleEval_mv2
+  outerEval_["noNative"] = (): void => { NativeFunctionCtor = false }
+}
 outerEval_["getStack"] = (exc?: boolean): unknown => (exc && !g_exc ? null : {
   stack: exposeStack(exc ? g_exc!.l : locals_),
   depth: exc ? g_exc!.d : stackDepth_, globals: exc ? g_exc!.g : isolate_,
 })
 outerEval_.tryEval = function (_functionBody: string): ReturnType<VApiTy["v"]["tryEval"]> {
-  const info = parseArgsAndEnv(arguments, null, null), hasEnv = !!(info.globals || info.closures)
+  const info = Build.MV3 ? null as never : parseArgsAndEnv(arguments, null, null)
+  const hasEnv = !Build.MV3 && !!(info.globals || info.closures)
   try {
-    const result = doubleEval_(info)
-    return { ok: (!Build.MV3 || !Build.NDEBUG) && NativeFunctionCtor && !hasEnv ? 1 : 2, result }
+    const result = Build.MV3 ? outerEval_(...(arguments as ArrayLike<unknown> as [string])) : doubleEval_mv2(info)
+    return { ok: !Build.MV3 && NativeFunctionCtor && !hasEnv ? 1 : 2, result }
   } catch (error) {
-    const native = (!Build.MV3 || !Build.NDEBUG) && NativeFunctionCtor && !hasEnv
+    const native = !Build.MV3 && NativeFunctionCtor && !hasEnv
     Build.NDEBUG || console.log("Vimium C: catch an eval error:", error)
     return { ok: 0, result: error, stack: native ? null : exposeStack(g_exc ? g_exc!.l : []),
       type: native ? "native": "eval", globals: native ? null : g_exc ? g_exc!.g : isolate_
     } as ReturnType<VApiTy["v"]["tryEval"]>
   }
 }
-; (outerEval_.tryEval as any).outerEval = outerEval_
 
 if (!(Build.NDEBUG || T.END < 0x80000000 && T.END > 0 )) { alert(`Assert error: wrong kTokenNames`) }
 if (!(Build.NDEBUG || kOpNames.length === O.token + 1)) { alert(`Assert error: wrong fields in kOpNames`) }

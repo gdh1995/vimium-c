@@ -41,7 +41,9 @@ globalThis.Set=function(){setProto_1(this);this.map_=Object.create(null);this.is
 globalThis.Map=function(){setProto_1(this);this.map_=Object.create(null);this.isSet_=0;};}
 })();
 typeof chrome !== "undefined" || (window.chrome = {});
+typeof browser !== "undefined" || (window.browser = chrome);
 (chrome.runtime || (chrome.runtime={})).getManifest = function(){return {content_security_policy:{extension_pages:""}}}
+chrome.runtime.connect = function(){return -42}
     </script>
   </head>
   <body>
@@ -76,7 +78,7 @@ var jsEval = function (code) {
   var error = null, value
   code = normalizeCode(code)
   try {
-    value = VApi.v.vimiumEval(code)
+    value = (VApi.v.tryEval && VApi.v)(code)
   } catch (e) {
     error = e
   }
@@ -204,7 +206,7 @@ var assert = function (code) {
 //#endregion
 function onLoad() {
   resultDiv.innerText = "(Inited)";
-  VApi.v.noNative();
+  VApi.v.noNative && VApi.v.noNative();
 
   // =============================== assert ===============================
   assert(function () { return {...null, ...123} })
@@ -373,7 +375,7 @@ assert(function () {
   })
   test(`
     const a = 1
-    if a: ab: return 12
+    if a: ab: cd: efg: return 12
     return { 0: 1, 2: 3 }
   `)
   assert(function() {
