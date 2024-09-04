@@ -600,15 +600,15 @@ declare const enum kHandler {
 }
 
 declare const enum kCharCode {
-  tab = 9, space = 32, minNotSpace, bang = 33, quote2 = 34, hash = 35,
-  maxCommentHead = hash, and = 38, quote1 = 39,
+  tab = 9, lineFeed = 10, formFeed = 11, space = 32, minNotSpace, bang = 33, quote2 = 34, hash = 35,
+  maxCommentHead = hash, and = 38, quote1 = 39, plus = 43,
   /** '-' */ dash = 45,
   dot = 46, slash = 47,
   maxNotNum = 48 - 1, N0, N1, N9 = N0 + 9, minNotNum, colon = 58, lt = 60, gt = 62, question = 63,
   A = 65, maxNotAlphabet = A - 1, minAlphabet = A, B, C, D, E, F, G,
   H, I = A + 8, K = I + 2, R = A + 17, S = A + 18, W = A + 22, Z = A + 25, maxAlphabet = A + 25, minNotAlphabet,
-  a = 97, CASE_DELTA = a - A,
-  backslash = 92, s = 115,
+  backslash = 92, /** '`' */ backtick = 96, a = 97, o = 111, s = 115, x = 120, CASE_DELTA = a - A,
+  curlyBraceStart = 123, curlyBraceEnd = 125, nbsp = 0xa0,
 }
 
 declare const enum kKeyCode {
