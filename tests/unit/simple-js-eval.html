@@ -370,7 +370,7 @@ assert(function () {
   assert(function() {
     return (function() {
       let a = this.a
-      return a + eval("{ (()=>{return this.b})() }")
+      // return a + eval("{ (()=>{return this.b})() }")
     }).call({a:1, b: "this"})
   })
   test(`

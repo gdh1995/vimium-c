@@ -668,6 +668,7 @@ declare const enum FirefoxBrowserVer {
   Min$tabs$$goBack = 77,
   Min$permissions$$onAdded = 77,
   MinEnsuredCSSEnableContain = 77, // replace MinMaybeCSSEnableContain
+  Min$string$$replaceAll = 77,
   MinCSS$readOnly$selector = 78, // https://developer.mozilla.org/en-US/docs/Web/CSS/:read-only
   MinMediaQueryListenersWorkInBg = 78,
   MinEnsuredUnicodePropertyEscapesInRegExp = 78,
