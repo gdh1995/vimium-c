@@ -44,7 +44,7 @@ interface StackFrame { readonly b: VarBindings, readonly c: number, readonly d: 
     readonly a: AnalysedVars, readonly n: string|null }
 interface Isolate extends VarDict {}
 interface Ref { readonly y: { [index: number]: number }, readonly i: number /** | ... */ }
-interface RefWithOptional { readonly y: { [index: number]: number | EmptyValue }, readonly i: number /** | ... */ }
+interface RefWithOptional { readonly y: { [index: number]: number | undefined }, readonly i: number /** | ... */ }
 interface Function2 { (this: unknown, ...args: unknown[]): unknown; readonly __fn?: BaseOp<O.fn> }
 
 const enum T { block = 1, blockEnd = 2, semiColon = 4, prefix = 8, action = 16, group = 32, dict = 64, array = 128,
@@ -223,6 +223,7 @@ const Op = ((o: O, q: unknown, x: unknown, y: unknown): BaseOp<O>=>{
   <T extends L>(op: O.literal, q: T, x: BaseLiteral<T>["x"], y: BaseLiteral<T>["y"]): SomeLiteralOps<T>
 }
 const kEmptyValue: EmptyValue = { c: 9, v: void 0 }
+const kOptionalValue = [void 0 as unknown as number] as const
 const kBreakBlock: Writable<BreakValue> = { c: 0, v: 0 }
 const kUnknown = "(...)"
 // `document.all == null` returns `true`
@@ -916,20 +917,17 @@ const _resolveVarRef = (op: RefOp, getter: R): Ref => {
 
 const Ref = <T extends R>(op: ExprLikeOps, type: T): T extends R.allowOptional ? RefWithOptional : Ref => {
   switch (op.o) {
-  case O.call: case O.access:
-    const y = op.o === O.call ? evalCall(op) : opEvals[op.x.o](op.x)
+  case O.call:
+    const ret = innerEvalCall(op, type)
+    return { y: ret === kOptionalValue ? ret : [ret], i: 0 } as (ReturnType<typeof Ref<T>>)
+  case O.access:
+    const ref = Ref(op.x, R.allowOptional), y = ref.y[ref.i]
     if (isLooselyNull(y)) {
-      for (let par: ExprLikeOps | null = op; par && (par.o === O.call || par.o === O.access); par = par.x) {
-        if (par.q[0] === "?") {
-          return type === R.allowOptional ? { y: kEmptyValue as never, i: "v" satisfies keyof EmptyValue as never }
-              : { y: [void 0 as unknown as number], i: 0 }
-        }
-      }
-      op.o === O.call || throwType(`Cannot read properties of ${y} (reading ${
+      if (ref.y as unknown === kOptionalValue || op.q[0] === "?") { return { y: kOptionalValue as never, i: 0 } }
+      throwType(`Cannot read properties of ${y} (reading ${
           AccessToString((typeof op.y === "object" ? opEvals[op.y.o](op.y) : op.y) as string, 1)})`)
     }
-    return op.o === O.call ? { y: [y as number], i: 0 }
-        : { y: y as Ref["y"], i: (typeof op.y === "object" ? opEvals[op.y.o](op.y) : op.y) as number}
+    return { y: y as unknown as Ref["y"], i: (typeof op.y === "object" ? opEvals[op.y.o](op.y) : op.y) as number}
   case O.ref: return (/*#__NOINLINE__*/ _resolveVarRef)(op, type)
   default: return { y: [opEvals[op.o](op) as number], i: 0 }
   }
@@ -948,20 +946,20 @@ const evalTry = (stats: readonly StatementOp[], i: number): TryValue => {
       exitFrame(locals_.length - oldLocalsPos)
       const newVar = next.x, elet = newVar?.y
       newVar && StackFrame({ a: [0, elet!, elet!, elet!, 1, 1], v: [newVar.q] }, [newVar.x, ex])
-      i++; res = evalBlockBody(next.y)
+      res = evalBlockBody(next.y)
       newVar && exitFrame(1); g_exc = null; done = 1
     }
   } finally { if (indFinal) {
     const oldLocals = locals_, oldExc = done ? null : g_exc || newException()
     done || (locals_ = locals_.slice(0, oldLocalsPos), oldExc && (oldExc.d = -Math.abs(oldExc.d)))
-    i = indFinal; res2 = evalBlockBody((stats[i] as BaseStatementOp<"finally">).y)
+    res2 = evalBlockBody((stats[indFinal] as BaseStatementOp<"finally">).y)
     if (res2 !== kEmptyValue) {
       res === kBreakBlock && res !== res2 && ((res as Writable<typeof res>).c = (res as Writable<typeof res>).v = 0)
       res = res2 // even override break
     }
     done || (locals_ = oldLocals, oldExc && (oldExc.d = Math.abs(oldExc.d)))
   } }
-  return { c: i, v: res }
+  return { c: indFinal || i + 1, v: res }
 }
 
 const SubBlock = (op: SomeOps<KStatLikeO>): SomeOps<O.block | O.stats> => {
@@ -1171,15 +1169,17 @@ const evalNever = (op: BaseOp<KStatLikeO | O.pair | O.fnDesc>): void => {
     return arr.join("")
   }
   case "void":
-    /*#__NOINLINE__*/ evalAccessOrRef(Op(O.access, ".", Op(O.literal, L.plain, y as never, 0)
+    /*#__NOINLINE__*/ evalAccess(Op(O.access, ".", Op(O.literal, L.plain, y as never, 0)
         , Op(O.literal, L.plain, i as never, 0)))
     // no break;
   default: if (0) { action satisfies "void" } return // lgtm [js/unreachable-statement]
   }
-}, evalCall = (op: BaseOp<O.call>): unknown => {
+}, innerEvalCall = (op: BaseOp<O.call>, getter: R): unknown => {
   const left = op.x, { y, i } = Ref(left, R.allowOptional), i2 = evalAccessKey(i)
   let func = y[i2 as number] as unknown as { new (...args: unknown[]): object; (...args: unknown[]): unknown }
-  if (isLooselyNull(func) && (y as unknown === kEmptyValue || op.y === "?.(")) { return }
+  if (isLooselyNull(func) && (y as unknown === kOptionalValue || op.y === "?.(")) {
+    return getter & R.allowOptional ? kOptionalValue : void 0
+  }
   const isNew = op.y === "new", noThis = isNew || left.o !== O.access, args = baseEvalCommaList(op.q)
   if (typeof func !== "function") {
     if (isLooselyNull(func) || func != null) { // here is to detect `document.all`
@@ -1206,6 +1206,10 @@ const evalNever = (op: BaseOp<KStatLikeO | O.pair | O.fnDesc>): void => {
       : args.length === 0 ? new func : args.length === 1 ? new func(args[0])
       : (args.unshift(void 0),
         new (evalCall.bind.apply<new (args: unknown[]) => object, unknown[], new () => object>(func, args)))
+}, evalCall = (op: BaseOp<O.call>): unknown => innerEvalCall(op, R.plain)
+, evalAccess = (op: SomeOps<O.access>): unknown => {
+  const { y, i } = Ref(op, R.plain)
+  return y[i]
 }, evalComposed = (op: BaseOp<O.composed>): unknown => {
   if (op.x === "[") { return baseEvalCommaList(op.q as ExprLikeOps[]) }
   const Cls = isolate_ !== DefaultIsolate && (isolate_ as unknown as Window).Object || null
@@ -1220,7 +1224,7 @@ const evalNever = (op: BaseOp<KStatLikeO | O.pair | O.fnDesc>): void => {
     for (const item of arr) {
       const rawKey = item.q as BaseOp<O.ref>["q"] | Exclude<PairOp["q"], BaseOp<O.comma>>
       const key: string = typeof rawKey === "object" ? (rawKey satisfies SomeLiteralOps<L.plain|L.bigint>).x+"" : rawKey
-      const value = item.o === O.ref ? evalAccessOrRef(item) : item.x.o !== O.fn
+      const value = item.o === O.ref ? evalRef(item) : item.x.o !== O.fn
           ? opEvals[item.x.o](item.x) : FunctionFromOp(item.x, isolate_, locals_, key)
       obj[key] = value
     }
@@ -1252,7 +1256,7 @@ const evalNever = (op: BaseOp<KStatLikeO | O.pair | O.fnDesc>): void => {
     const key: string | number | symbol = typeof item.q === "string" ? item.q
         : item.q.o === O.literal ? item.q.x + "" : evalAccessKey(opEvals[item.q.o](item.q))
     const prefix: OpValues[O.pair]["y"] = isRef ? null : item.y
-    const value = isRef ? evalAccessOrRef(item) : item.x.o !== O.fn ? opEvals[item.x.o](item.x)
+    const value = isRef ? evalRef(item) : item.x.o !== O.fn ? opEvals[item.x.o](item.x)
         : FunctionFromOp(item.x, isolate_, locals_, (prefix ? prefix + " " : "") + AccessToString(key))
     const desc: PropertyDescriptor = props[key]
     if (prefix) {
@@ -1266,9 +1270,6 @@ const evalNever = (op: BaseOp<KStatLikeO | O.pair | O.fnDesc>): void => {
     }
   }
   return DefaultObject.create(newProto, props)
-}, evalAccessOrRef = (op: SomeOps<O.ref | O.access>): unknown => {
-  const { y, i } = Ref(op, R.plain)
-  return y[i]
 }, evalLiteral = (op: LiteralOp): unknown => {
   switch (op.q) {
   case L.plain: return op.x
@@ -1277,6 +1278,9 @@ const evalNever = (op: BaseOp<KStatLikeO | O.pair | O.fnDesc>): void => {
     return typeof op.x === "bigint" ? op.x : (op as WritableLiteralOp<L.bigint>).x = (<any> DefaultIsolate).BigInt(op.x)
   default: if (0) { op.q satisfies L.array_hole | kTemplateLikeL } return op.x // lgtm [js/unreachable-statement]
   }
+}, evalRef = (op: BaseOp<O.ref>): unknown => {
+  const { y, i } = _resolveVarRef(op, R.plain)
+  return y[i]
 }, evalAccessKey = (key: unknown): number | string | symbol => {
   if (typeof key === "object" && key !== null) {
     const ref = {[key as never]: 1}, names = DefaultObject.getOwnPropertyNames(ref)
@@ -1290,7 +1294,7 @@ const evalNever = (op: BaseOp<KStatLikeO | O.pair | O.fnDesc>): void => {
 
 const opEvals = [
   evalNever, evalNever, evalNever, evalComma, evalNever, evalFn, evalAssign, evalIfElse, evalBinary, evalUnary,
-  evalCall, /** O.access */ evalAccessOrRef, evalComposed, evalLiteral, /** O.ref */ evalAccessOrRef, evalNever
+  evalCall, evalAccess, evalComposed, evalLiteral, evalRef, evalNever
 ] satisfies { [op in keyof OpValues]: (op: SomeOps<op>) => unknown } as {
   [op in keyof OpValues]: <T extends keyof OpValues> (op: BaseOp<T>) => unknown
 }
@@ -1433,7 +1437,7 @@ const ToString = (op: StorableEvaluatableOps, allowed: number): string => {
         }).join("")
         : op.q + (op.q >= "a" && op.q < "zz" ? " " : "") + (ToString(op.x, allowed) || kUnknown)
   case O.call: /* O.call: */ {
-    const args = op.y.length > 0 ? ToString(Op(O.comma, op.q, 0, 0), allowed) || kUnknown : ""
+    const args = op.q.length > 0 ? ToString(Op(O.comma, op.q, 0, 0), allowed) || "..." : ""
     return (op.y === "new" ? "new " : "") + ToWrapped(op, allowed, op.x) + (op.y === "?.(" ? op.y : "(") + args + ")"
   }
   case O.access: /* O.access: */
