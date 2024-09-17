@@ -14,7 +14,7 @@ interface BaseLiteral<T extends L> {
   readonly q: T
   readonly x: T extends L.plain ? string | number | boolean | null : T extends L.regexp ? string | RegExp
               : T extends L.bigint ? string | bigint : T extends L.array_hole ? 0 : string
-  readonly y: T extends L.regexp ? string : T extends kTemplateLikeL ? string : 0
+  readonly y: T extends L.regexp ? string : T extends kTemplateLikeL ? string | null : 0
 }
 type SomeLiterals<T extends L> = T extends L ? BaseLiteral<T> : never
 interface BaseLiteralOp<T extends L> extends CoreOp<O.literal>, BaseLiteral<T> {}
@@ -88,7 +88,7 @@ interface BaseStatementOp<T extends AllStatPrefix | "arg"> extends CoreOp<O.stat
       : T extends "catch" ? RefOp | null
       : T extends "for" ? CoreOp<O.block> & {
           readonly q: readonly [SomeStatementOps<VarActions> | ExprLikeOps, ExprLikeOps, ExprLikeOps]
-              | readonly [SomeStatementOps<VarActions> | ExprLikeOps]
+              | readonly [SomeStatementOps<VarActions> | RefAssignOp]
           readonly x: OpValues[O.block]["x"]
           readonly y: OpValues[O.block]["y"]
         }
@@ -103,7 +103,7 @@ const enum V { econst = 0, elet = 1, evar = 2, localv = 3, locall = 4, localc = 
 const enum O { block, stats, stat, comma, pair, fn, assign, ifElse, binary, unary, call, access, composed,
     literal, ref, fnDesc }
 interface OpValues {
-  [O.block]:    { readonly /** stats */ q: readonly StatementOp[], readonly /** hasFn */ x: null | BOOL,
+  [O.block]:    { readonly /** stats */ q: readonly EvaluatableOps[], readonly /** hasFn */ x: null | BOOL,
                   readonly /** $analysed */ y: AnalysedVars | null }
   [O.stats]:    { readonly /** stats */ q: readonly StatementOp[], readonly x: null, readonly y: null }
   [O.stat]:     StatementOp
@@ -338,9 +338,9 @@ const splitTokens = (ori_expression: string): Token[] => {
       char = 4 + (char === kCharCode.backtick ? 1 : 0) + (last_.endsWith("`") ? 2 : 0)
       char & 1 ? tokens_.push(Token(T.unary, "`"), Token(T.array, "["))
           : (tokens_.push(Token(T.groupEnd, ")"), Token(T.comma, ",")), curlyBraces.pop())
-      last_ = last_.slice(1, char & 2 ? -1 : -2)
       tokens_.push(Token(T.literal, { q: char as number as kTemplateLikeL satisfies 4 | 5 | 6 | 7
-          , x: last_.replace(escapedStrRe, onHex), y: replaceAll(last_, "\n", "\r") }), Token(T.comma, ","))
+          , x: last_.slice(1, char & 2 ? -1 : -2).replace(escapedStrRe, onHex)
+          , y: replaceAll(last_, "\n", "\r") }), Token(T.comma, ","))
       !(char & 2) ? (tokens_.push(Token(T.group, "(")), curlyBraces.push(1)) : tokens_.push(Token(T.groupEnd, "]"))
     } else if ((char === kCharCode.plus || char === kCharCode.dash) && expression_[1] !== "=") {
       char = expression_.charCodeAt(1) === char ? 2 : 1
@@ -422,7 +422,7 @@ const parseTree = (tokens_: readonly Token[], inNewFunc: boolean | null | undefi
         if (it.q === head) { matched = parent as ConcreteY<O.stat, { y: SomeOps<O.stat> }> }
         parent = it
       } else {
-        if (it.q[0].q === head && !unexpected.includes(it.q[it.q.length - 1].q)) { matched = it }
+        if (it.q[0].q satisfies AllStatPrefix === head && !unexpected.includes(it.q[it.q.length - 1].q)) { matched=it }
         parent = it.q[it.q.length - 1]
       }
     }
@@ -437,7 +437,7 @@ const parseTree = (tokens_: readonly Token[], inNewFunc: boolean | null | undefi
       let i = values_.length
       while (values_[--i].o !== O.block || (values_[i] as BaseOp<O.block>).q) { /* empty */ }
       (values_[i] as WritableOp<O.block>).q = values_.splice(i + 1, values_.length - (i + 1))
-          .map<StatementOp>(j => j.o === O.stat ? j : Op(O.stat, "", null, j as ExprLikeOps | SomeOps<O.block|O.stats>))
+          .map<EvaluatableOps>(j => j.o === O.stat && !j.q ? j.y : j as Exclude<typeof j, PairOp>)
       } break
     case T.prefix: /* T.prefix: */ {
       const clause = values_[values_.length - 1].o !== O.block ? values_.pop()! : null
@@ -459,7 +459,7 @@ const parseTree = (tokens_: readonly Token[], inNewFunc: boolean | null | undefi
       }
       } break
     case T.action: /* T.action: */
-      values_.push(Op(O.stat, top.v as "var" | "try", null, (val.o > O.comma && isVarAction(top.v)
+      values_.push(Op(O.stat, top.v as "var" | "return", null, (val.o > O.comma && isVarAction(top.v)
           ? Op(O.comma, [val as RefOp], 0, 0) : val) as BaseStatementOp<"var">["y"] | BaseOp<O.block>))
       break
     case T.group: case T.array: case T.dict: /* T.group | T.array | T.dict: */ {
@@ -638,7 +638,7 @@ const parseTree = (tokens_: readonly Token[], inNewFunc: boolean | null | undefi
         const top = ctx_[ctx_.length - 1]
         if (top.t === T.block || top.t === T.prefix && (top.v === kLabelled
             || values_[values_.length - 2].o !== O.block)) {
-          values_.push(Op(O.block, null as never, null, null), values_.pop()!)
+          values_.splice(values_.length - 1, 0, Op(O.block, null as never, null, null))
           ctx_.push(Token(T.prefix, kLabelled))
         }
       }
@@ -702,16 +702,20 @@ const getEscapeAnalyser = (): (func: BaseOp<O.fn>) => void => {
     return out
   }
   const preScanFnBody = (pureVars: VarName[], block: WritableTempBlockOp | BaseOp<O.stats>): void => {
-    const lets: VarName[] = [], consts: VarName[] = [], todos: StatementOp[] = block.q.slice()
-    let anyFn = 0
-    let statement: StatementOp | undefined
+    const lets: VarName[] = [], consts: VarName[] = [], todos: EvaluatableOps[] = block.q.slice()
+    let anyFn = 0, statement: EvaluatableOps | undefined
     while (statement = todos.shift()) {
+      if (statement.o !== O.stat) {
+        if (statement.o === O.fn && statement.y.q === "fn" && statement.y.x) {
+          lets.push(statement.y.x.q), anyFn ||= consts.unshift(kDots)
+        }
+        continue
+      }
       const { q: action, y: value } = statement
-      if (action && isVarAction(action)) {
+      if (isVarAction(action)) {
         ToVarNames(action > "v" ? pureVars :action < "l"?consts:lets, (value as SomeStatementOps<typeof action>["y"]).q)
-      } else if (value.o === O.fn && value.y.q === "fn" && value.y.x) {
-        lets.push(value.y.x.q)
-        anyFn = anyFn || consts.unshift(kDots)
+      } else if (value.o === O.fn) { // for those labelled
+        value.y.q === "fn" && value.y.x && (lets.push(value.y.x.q), anyFn ||= consts.unshift(kDots))
       } else {
         if (action === "for" && statement.x.q[0].o === O.stat) {
           const act2 = statement.x.q[0].q
@@ -933,9 +937,10 @@ const Ref = <T extends R>(op: ExprLikeOps, type: T): T extends R.allowOptional ?
   }
 }
 
-const evalTry = (stats: readonly StatementOp[], i: number): TryValue => {
+const evalTry = (stats: readonly EvaluatableOps[], i: number): TryValue => {
   const statement = stats[i] as BaseStatementOp<"try">, next = stats[i + 1] as SomeStatementOps<"catch" | "finally">
-  const indFinal = next.q === "finally" ? i + 1 : i + 2 < stats.length && stats[i + 2].q === "finally" ? i + 2 : 0
+  const indFinal = next.q === "finally" ? i + 1
+      : i + 2 < stats.length && stats[i + 2].o === O.stat && stats[i + 2].q === "finally" ? i + 2 : 0
   const oldLocalsPos = locals_.length
   let done: BOOL = 0, res: StatValue = kEmptyValue, res2: StatValue
   try {
@@ -1041,18 +1046,17 @@ const evalLet = (action: VarActions | "arg", declarations: readonly DeclareOp[],
 }
 
 const evalBlockBody = (block: SomeOps<O.block | O.stats>, labels?: VarList): StatValue => {
-  const statements: readonly StatementOp[] = block.q
-  let res: StatValue|TryValue = kEmptyValue, i = 0, statement: StatementOp, prefix: AllStatPrefix, val: StatementOp["y"]
+  const statements: readonly EvaluatableOps[] = block.q
+  let res: StatValue|TryValue = kEmptyValue, i = 0, statement:EvaluatableOps, prefix:AllStatPrefix, val:StatementOp["y"]
   block.y && StackFrame(block.y as Exclude<typeof block.y, readonly [number, number, number]>)
-  for (i = block.x === 1 ? 0 : statements.length; i < statements.length; i++) {
-    const val2 = statements[i].y
-    val2.o === O.fn && val2.y.q === "fn" && (locals_[locals_.length - 1].b[val2.y.x!.y]
+  for (const val2 of block.x ? statements : []) {
+    val2.o === O.fn && val2.y.q === "fn" && val2.y.x && (locals_[locals_.length - 1].b[val2.y.x.y]
         = FunctionFromOp(val2, isolate_, locals_, ""))
   }
   for (i = 0; i < statements.length && res === kEmptyValue; i++) {
     statement = statements[i]
-    prefix = statement.q
-    val = statement.y
+    prefix = statement.o === O.stat ? statement.q : ""
+    val = statement.o === O.stat ? statement.y : statement
     switch (prefix) {
     case "do": case "while":
       for (let isDo = prefix === "do", cond = ((isDo ? statements[++i] : statement) as BaseStatementOp<"while">).x
@@ -1090,7 +1094,8 @@ const evalBlockBody = (block: SomeOps<O.block | O.stats>, labels?: VarList): Sta
       if (prefix !== "if" && prefix !== "else if"
           || opEvals[(statement as SomeStatementOps<"if" | "else if">).x.o]((statement as SomeStatementOps<"if">).x)) {
         val.o <= O.stat ? (res = evalBlockBody(SubBlock(val as StatLikeOps))) : val.o !== O.fn && opEvals[val.o](val)
-        while (i + 1 < statements.length && statements[i + 1].q.startsWith("else")) { i++ }
+        while (i + 1 < statements.length && statements[i + 1].o === O.stat
+            && (statements[i + 1] as StatementOp).q.startsWith("else")) { i++ }
       }
       break
     }
@@ -1318,7 +1323,7 @@ const FunctionFromOp = (fn: BaseOp<O.fn>, globals: Isolate, closures: StackFrame
     ++stackDepth_
     try {
       fn.q && evalLet("arg", fn.q, [].slice.call(stdArgs!))
-      const result = block ? evalBlockBody(Op(O.stats, block.q, null, null))
+      const result = block ? evalBlockBody(Op(O.block, block.q, null, null))
           : opEvals[fn.x.o](fn.x as Exclude<typeof fn.x, { readonly o: O.block}>) as number
       done = true
       return block ? (result as ReturnType<typeof evalBlockBody>).c === 2 ? (result as StatValue).v : void 0 : result
@@ -1369,13 +1374,17 @@ const FnToStr = (op: BaseOp<O.fn>, allowed: number): string => {
 }
 
 const ToString = (op: StorableEvaluatableOps, allowed: number): string => {
-  if (allowed && !((1 << op.o) & allowed) && op.o < O.literal) { return "" }
   let arr: string[]
+  if (allowed !== 0 && !((1 << op.o) & allowed) && op.o < O.literal) { return "" }
   switch (op.o) {
   case O.block: case O.stats: /* O.block | O.stats: */
-    arr = []
+    arr = [], allowed &&= (allowed | 1 << O.block | 1 << O.stats | 1 << O.stat)
     for (const stat of op.q) {
-      arr.push(ToString(stat, allowed && (allowed | 1 << O.block | 1 << O.stats | 1 << O.stat)))
+      let x = ToString(stat, allowed).trimLeft()
+      x = !x ? stat.o !== O.block ? kUnknown + ";" : "{ ... }"
+          : stat.o !== O.stat && stat.o !== O.block && (stat.o !== O.fn || stat.y.q < "f") && !x.endsWith(";")
+          ? x + ";" : x
+      arr.push(x)
     }
     return arr.length > 0 ? op.o === O.stats ? arr.join("\n")
         : "{\n  " + replaceAll(arr.join("\n"), "\n", "\n  ") + "\n}" : "{ }"
@@ -1389,13 +1398,13 @@ const ToString = (op: StorableEvaluatableOps, allowed: number): string => {
             : ToString(clause.q[0], allowed) || (kUnknown + ";")) + " "
           + (ToString(clause.q[1]!, allowed) || kUnknown).trim() + "; "
           + (ToString(clause.q[2]!, allowed) || kUnknown).trim()
-    let x = child ? ToString(child, allowed) : ""
+    let x = ToString(child, allowed)
     return (hasNoCond ? prefix === "labelled" ? replaceAll(clause, " ", ":\n") + ":" : prefix
             : prefix + (clause ? c ? ` (${c})` : " " + kUnknown : ""))
-        + (!child ? "" : !x ? child.o !== O.block ? " " + kUnknown + ";" : " { ... }"
-          : (x = x.trimLeft(), prefix && (prefix === "else if" || gTokens[prefix]?.t === T.prefix)
+        + (!x ? child.o !== O.block ? " " + kUnknown + ";" : " { ... }"
+          : (x = x.trimLeft(), !prefix ? x : (prefix === "else if" || gTokens[prefix]?.t === T.prefix)
               && child.o !== O.block && (x.length > 40 || x.includes("\n"))
-              ? "\n  " + replaceAll(x, "\n", "\n  ") : prefix && x ? " " + x : x)
+              ? "\n  " + replaceAll(x, "\n", "\n  ") : x && " " + x)
             + (child.o !== O.block && (child.o !== O.fn || child.y.q < "f") && !x.endsWith(";")
                     && (child.o !== O.comma || child.q.length !== 1 || child.q[0].o !== O.assign
                         || !"in of".includes(child.q[0].q)) && prefix !== "labelled" ? ";" : ""))
@@ -1432,7 +1441,7 @@ const ToString = (op: StorableEvaluatableOps, allowed: number): string => {
         : op.q === "`" ? (op as TemplateOp).x.q.map(i => {
           const literal = i.o === O.literal && i.q > L.t_middle - 1 && i.q < L.t_both + 1
               ? i as SomeLiteralOps<kTemplateLikeL> : null
-          return literal ? (literal.q & 1 ? "`" : "}") + literal.y + (literal.q & 2 ? "`" : "${")
+          return literal ? (literal.y ?? replaceAll(JSON.stringify(literal.x).slice(1, -1), "`", "\\`"))
               : ToString(i, allowed && (allowed | (1 << O.binary) | (1 << O.unary) | (1 << O.access)))
         }).join("")
         : op.q + (op.q >= "a" && op.q < "zz" ? " " : "") + (ToString(op.x, allowed) || kUnknown)
@@ -1511,9 +1520,11 @@ const baseFunctionCtor = ({ body, globals, args }: ReturnType<typeof parseArgsAn
   /*#__NOINLINE__*/ resetRe_()
   if (statsNum === 0 && !inNewFunc) { return (): void => {} }
   if (!inNewFunc && tree.o === O.block) {
-    let par: StorableBlockOp = tree, last: StatementOp
-    while (last = par.q[par.q.length - 1], !last.q && last.y.o === O.block) { par = last.y as BaseOp<O.block> }
-    if (!last.q && last.y.o !== O.fn) { (last as Writable<StatementOp>).q = "return" }
+    let par: StorableBlockOp = tree, last: EvaluatableOps
+    while (last = par.q[par.q.length - 1], last.o === O.block) { par = last }
+    if (last.o > O.stat && last.o !== O.fn) {
+      (par as WritableOp2<O.block>).q[par.q.length - 1] = Op(O.stat, "return", null, last)
+    }
   }
   inNewFunc = inNewFunc !== false && (tree.o === O.block || inNewFunc)
   const op = Op(O.fn, args.length ? args.map((i): RefOp => Op(O.ref, i as VarName, 0, 0)) : null, tree
