@@ -13,8 +13,8 @@ type kTemplateLikeL = L.t_middle | L.t_begin | L.t_end | L.t_both
 interface BaseLiteral<T extends L> {
   readonly q: T
   readonly x: T extends L.plain ? string | number | boolean | null : T extends L.regexp ? string | RegExp
-              : T extends L.bigint ? string | bigint : T extends L.array_hole ? 0 : string
-  readonly y: T extends L.regexp ? string : T extends kTemplateLikeL ? string | null : 0
+              : T extends L.bigint ? string | bigint : T extends L.array_hole ? null : string
+  readonly y: T extends L.regexp ? string : T extends kTemplateLikeL ? string | null : 0 | null
 }
 type SomeLiterals<T extends L> = T extends L ? BaseLiteral<T> : never
 interface BaseLiteralOp<T extends L> extends CoreOp<O.literal>, BaseLiteral<T> {}
@@ -78,12 +78,13 @@ type UnaryTokens = T.unary | T.rightUnary
 type BeginGroupTokens = T.group | T.block | T.array | T.dict
 
 type BlockPrefixes = "labelled" | "if" | "else if" | "else" | "do" | "while" | "for" | "try" | "catch" | "finally"
+    | "switch" | "case" | "default"
 type VarActions = "var" | "let" | "const"
 type LineActions = "return" | "break" | "continue" | "throw" | VarActions
 type AllStatPrefix = "" | BlockPrefixes | LineActions
 interface BaseStatementOp<T extends AllStatPrefix | "arg"> extends CoreOp<O.stat> {
   readonly q: T
-  readonly x: T extends "if" | "else if" | "while" ? ExprLikeOps
+  readonly x: T extends "if" | "else if" | "while" | "switch" | "case" ? ExprLikeOps
       : T extends "catch" ? RefOp | null
       : T extends "for" ? CoreOp<O.block> & {
           readonly q: readonly [SomeStatementOps<VarActions> | ExprLikeOps, ExprLikeOps, ExprLikeOps]
@@ -95,6 +96,7 @@ interface BaseStatementOp<T extends AllStatPrefix | "arg"> extends CoreOp<O.stat
   readonly y: T extends "try" | "catch" | "finally" ? BaseOp<O.block>
       : T extends "var" | "let" | "arg" ? ConcreteQ<O.comma, { q: readonly DeclareOp[] }>
       : T extends "const" ? ConcreteQ<O.comma, { q: readonly RefAssignOp[] }>
+      : T extends "switch" ? ConcreteQ<O.block, { q: readonly SomeStatementOps<"case" | "default">[] }>
       : T extends "" ? ExprLikeOps | SomeOps<O.block | O.stats> : EvaluatableOps
 }
 const enum V { econst = 0, elet = 1, evar = 2, localv = 3, locall = 4, localc = 5, unused = 6, all = 5 }
@@ -203,7 +205,7 @@ const kOpNames = Build.NDEBUG ? [] as never
   : "block,stats,stat,comma,pair,fn,assign,ifElse,binary,unary,call,access,composed,literal,ref,fnDesc".split(",")
 
 const kLiterals: ReadonlySafeDict<boolean | null> = { __proto__: null as never, true: true, false: false, null: null }
-const kUnsupportedTokens: SafeEnum = { __proto__: null as never, switch: 1, yield: 1, await: 1, async: 1 }
+const kUnsupportedTokens: SafeEnum = { __proto__: null as never, yield: 1, await: 1, async: 1 }
 const kLabelled = "labelled", kProto = "__proto__", kDots = "..."
 
 //#endregion constant values of syntax
@@ -278,7 +280,8 @@ const Token = <T extends keyof TokenValues> (token: T, value: TokenValues[T]): S
 }
 let gTokens: ReadonlySafeDict<Token>; {
   const arr: string[] = [
-    "{", "}", ";", "if else try catch finally do while for", "return break continue throw var let const",
+    "{", "}", ";", "if else try catch finally do while for switch case default",
+    "return break continue throw var let const",
     "(", "", "[", ") ]", ",", "?", ":", "=>", "of = += -= *= /= %= <<= >>= >>>= &= &&= ^= |= ||= **= ??=",
     "|| ??", "&&", "|", "^", "&", "== != === !==", "< <= > >= in instanceof", "<< >> >>>", "", "* / %", "**",
     "! ~ typeof void delete", "", "new", ". ?."
@@ -506,7 +509,7 @@ const parseTree = (tokens_: readonly Token[], inNewFunc: boolean | null | undefi
             : Op(O.comma, keyOp.q, 0, 0)
         values_.push(Op(O.pair, key, val as ExprLikeOps, prefix))
         val.o === O.fn && val.y.q === "(){" && ((val as WritableOp2<O.fn>).y.x
-            = keyOp.o === O.ref && !prefix ? <typeof keyOp.q> key : Op(O.pair, key, Op(O.literal, L.plain,0,0), prefix))
+            = keyOp.o === O.ref && !prefix ? <typeof keyOp.q>key :Op(O.pair,key,Op(O.literal,L.plain,null,null),prefix))
       } else {
         ctx_.length--
         const thenVal = values_.pop()!
@@ -518,7 +521,7 @@ const parseTree = (tokens_: readonly Token[], inNewFunc: boolean | null | undefi
       const args = (rawArgs.o === O.comma ? rawArgs.q : [rawArgs]).filter((i): i is DeclareOp =>
           i.o === O.ref || i.o === O.assign && i.y.o === O.ref
           || throwSyntax(`Unsupported destructuring parameters`))
-      const isFn = top.v.length > 3, type = isFn ? ctx_[ctx_.length - 1].t === T.block ? "fn" : "fn _"
+      const isFn = top.v.length > 3, type = isFn ? ctx_[ctx_.length - 1].t & (T.block | T.prefix) ? "fn" : "fn _"
           : top.v as Exclude<typeof top.v, `fn ${string}`>
       values_.push(Op(O.fn, args.length ? args : null, val as ExprLikeOps | StorableBlockOp & { y: null }, Op(O.fnDesc
           , type, isFn ? Op(O.ref, top.v.slice(3) as VarName, 0, 0) : null, null) as OpValues[O.fn]["y"]))
@@ -563,8 +566,7 @@ const parseTree = (tokens_: readonly Token[], inNewFunc: boolean | null | undefi
       break
     case T.blockEnd: case T.groupEnd: /* T.blockEnd | T.groupEnd: */
       before & (T.group | T.array | T.dict | (type === T.groupEnd ? T.semiColon : 0))
-          ? values_.push(Op(O.comma, [], 0, 0)) : before === T.comma ? ctx_.length--
-          : 0
+          ? values_.push(Op(O.comma, [], 0, 0)) : before === T.comma ? ctx_.length-- : 0
       consumeUntil(cur.v === ")" ? T.group : cur.v === "]" ? T.array : T.block | T.dict)
       if (type === T.blockEnd && ctx_[ctx_.length - 1].t === T.dict) {
         type = T.groupEnd, Build.NDEBUG || ((tokens_[pos_] as OverriddenToken).w = { n: "groupEnd", v: "}", t: type })
@@ -621,7 +623,7 @@ const parseTree = (tokens_: readonly Token[], inNewFunc: boolean | null | undefi
       ctx_.push(cur)
       break
     case T.comma: /* T.comma: */
-      if (before & (T.comma | T.array)) { values_.push(Op(O.literal, L.array_hole, 0, 0)) }
+      if (before & (T.comma | T.array)) { values_.push(Op(O.literal, L.array_hole, null, 0)) }
       else if (before === T.groupEnd && values_[values_.length - 1].o === O.comma
           && ctx_[ctx_.length - 1].t & (T.group | T.array)) {
         values_[values_.length - 1] = Op(O.comma, [values_[values_.length - 1]], 0, 0)
@@ -640,8 +642,12 @@ const parseTree = (tokens_: readonly Token[], inNewFunc: boolean | null | undefi
         }
       }
       consumeUntil(topIsDict ? (T.comma << 1) - 1 | T.question : T.comma - 1 | T.question)
-      ctx_[ctx_.length - 1].t !== T.prefix ? (ctx_.push(cur), topIsDict = false)
-      : (type = T.groupEnd, Build.NDEBUG || ((cur as OverriddenToken).w = Token(T.groupEnd, ")"))) // `if a > 1:`
+      if (ctx_[ctx_.length - 1].t !== T.prefix) {
+        ctx_.push(cur), topIsDict = false
+      } else {
+        type = T.groupEnd, Build.NDEBUG || ((cur as OverriddenToken).w = Token(T.groupEnd, ")"))
+        "case default".includes(ctx_[ctx_.length - 1].v) && values_.push(Op(O.literal, L.plain, null, null))
+      }
       break
     case T.fn: /* T.fn: */
       if (cur.v === "fn" && tokens_[pos_ + 1].t === T.ref) {
@@ -653,7 +659,7 @@ const parseTree = (tokens_: readonly Token[], inNewFunc: boolean | null | undefi
       break
     case T.literal: /* T.literal: */ {
         const val = cur.v
-        values_.push(typeof val === "object" && val ? Op(O.literal, val.q, val.x, val.y) : Op(O.literal,L.plain,val,0))
+        values_.push(typeof val === "object" && val ? Op(O.literal,val.q,val.x,val.y) : Op(O.literal,L.plain,val,null))
       } break
     case T.ref: /* T.ref: */
       values_.push(Op(O.ref, cur.v as VarName, 0, 0))
@@ -1038,15 +1044,32 @@ const evalLet = (action: VarActions | "arg", declarations: readonly DeclareOp[],
   }
 }
 
-const evalBlockBody = (block: SomeOps<O.block | O.stats>, labels?: VarList): StatValue => {
+const evalBlockBody = (block: SomeOps<O.block | O.stats>, labels?: VarList | 0): StatValue => {
   const statements: readonly EvaluatableOps[] = block.q
   let res: StatValue|TryValue = kEmptyValue, i = 0, statement:EvaluatableOps, prefix:AllStatPrefix, val:StatementOp["y"]
   block.y && StackFrame(block.y as Exclude<typeof block.y, readonly [number, number, number]>)
-  for (const val2 of block.x ? statements : []) {
+  for (statement of block.x ? statements : []) {
+    const val2 = statement.o === O.stat ? statement.y : statement
     val2.o === O.fn && val2.y.q === "fn" && val2.y.x && (locals_[locals_.length - 1].o[val2.y.x.y!]
         = FunctionFromOp(val2, isolate_, locals_, ""))
   }
-  for (i = 0; i < statements.length && res === kEmptyValue; i++) {
+  i = 0
+  if (labels === 0) {
+    let src: unknown = kBreakBlock.v, defaultClause = 0
+    kBreakBlock.v = 0
+    for (statement of statements) {
+      if (statement.o !== O.stat) { /* empty */ }
+      else if (statement.q === "case") {
+        const val = opEvals[statement.x.o](statement.x)
+        if (val === src) { break }
+      } else {
+        defaultClause || statement.q === "default" && (defaultClause = i + 1)
+      }
+      i++
+    }
+    i = i < statements.length ? i + 1 : defaultClause || i
+  }
+  for (; i < statements.length && res === kEmptyValue; i++) {
     statement = statements[i]
     prefix = statement.o === O.stat ? statement.q : ""
     val = statement.o === O.stat ? statement.y : statement
@@ -1081,8 +1104,14 @@ const evalBlockBody = (block: SomeOps<O.block | O.stats>, labels?: VarList): Sta
       res === kBreakBlock && res.v && (Build.MV3 ? labels.includes(res.v) : labels.indexOf(res.v) >= 0)
           && ((res satisfies BreakValue as Writable<BreakValue>).v = 0, res = kEmptyValue)
       break
+    case "switch":
+      kBreakBlock.v = opEvals[(statement as BaseStatementOp<"switch">).x.o]((statement as BaseStatementOp<"switch">).x
+          ) satisfies unknown as VarName
+      res = evalBlockBody(val as BaseStatementOp<"switch">["y"], 0)
+      res = res === kBreakBlock && !res.v ? kEmptyValue : res
+      break
     default:
-      if (0) { prefix satisfies "catch" | "finally" | ""| "else" | "if" | "else if" } // lgtm [js/unreachable-statement]
+      if (0) { prefix satisfies "" | "catch" | "finally" | "else" | "if" | "else if" | "case" | "default" }
       if (!Build.NDEBUG && (prefix === "catch" || prefix === "finally")) { throwType("Error in try/catch") }
       if (prefix !== "if" && prefix !== "else if"
           || opEvals[(statement as SomeStatementOps<"if" | "else if">).x.o]((statement as SomeStatementOps<"if">).x)) {
@@ -1319,7 +1348,7 @@ const FunctionFromOp = (fn: BaseOp<O.fn>, globals: Isolate, closures: StackFrame
     ++stackDepth_
     try {
       fn.q && evalLet("arg", fn.q, [].slice.call(stdArgs!))
-      const result = block ? evalBlockBody(Op(O.block, block.q, null, null))
+      const result = block ? evalBlockBody(Op(O.block, block.q, block.x, null))
           : opEvals[fn.x.o](fn.x as Exclude<typeof fn.x, { readonly o: O.block}>) as number
       done = true
       return block ? (result as ReturnType<typeof evalBlockBody>).c === 2 ? (result as StatValue).v : void 0 : result
@@ -1383,7 +1412,7 @@ const ToString = (op: StorableEvaluatableOps, allowed: number): string => {
       arr.push(x)
     }
     return arr.length > 0 ? op.o === O.stats ? arr.join("\n")
-        : "{\n  " + replaceAll(arr.join("\n"), "\n", "\n  ") + "\n}" : "{ }"
+        : "{\n  " + replaceAll(replaceAll(arr.join("\n"), "\n", "\n  "), "\n  \b", "\n") + "\n}" : "{ }"
   case O.stat: /* O.stat: */ {
     const { q: prefix, x: clause, y: child } = op, hasNoCond = !prefix || isVarAction(prefix) || prefix === kLabelled
     const c = !clause || hasNoCond ? ""
@@ -1395,10 +1424,11 @@ const ToString = (op: StorableEvaluatableOps, allowed: number): string => {
           + (ToString(clause.q[1]!, allowed) || kUnknown).trim() + "; "
           + (ToString(clause.q[2]!, allowed) || kUnknown).trim()
     let x = ToString(child, allowed)
-    return (hasNoCond ? prefix === kLabelled ? replaceAll(clause, " ", ":\n") + ":" : prefix
+    return prefix === "case" ? `\b${prefix} ${c || kUnknown}:` : prefix === "default" ? "\b" + prefix + ":"
+        : (hasNoCond ? prefix === kLabelled ? replaceAll(clause, " ", ":\n") + ":" : prefix
             : prefix + (clause ? c ? ` (${c})` : " " + kUnknown : ""))
         + (!x ? child.o !== O.block ? " " + kUnknown + ";" : " { ... }"
-          : (x = x.trimLeft(), !prefix ? x : (prefix === "else if" || gTokens[prefix]?.t === T.prefix)
+          : (x = x.trimLeft(), !prefix ? x : (prefix==="else if" || prefix===kLabelled || gTokens[prefix]!.t===T.prefix)
               && child.o !== O.block && (x.length > 40 || x.includes("\n"))
               ? "\n  " + replaceAll(x, "\n", "\n  ") : x && " " + x)
             + (child.o !== O.block && (child.o !== O.fn || child.y.q < "f") && !x.endsWith(";")

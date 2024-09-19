@@ -292,6 +292,28 @@ function onLoad() {
     return [a?.[0]?.().a[1].b[2]()()(), b]
   })
   assert(function() {
+    let a = 1, ret = 1
+    var b
+    b: switch (a) {
+      case 12:
+        const b = 3
+        c: ret |= 2
+      case '1':
+        ret |= 4
+        function b2 () {}
+        break
+      case a + 2 - 3 + 1:
+        try {
+          b
+          ret |= 8
+        } catch {
+          ret = [ret | 16, b2]
+          break b;
+        }
+    }
+    return [...ret, b]
+  })
+  assert(function() {
     let a = 0, b = 0, c = 0
     foo: { a = 1; break foo; a = 2 }
     loop0: loop1: for (let i = 0; i < 4; i++) { loop2: for (let j = 0; j < 3; j++) {
