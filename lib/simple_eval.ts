@@ -200,7 +200,7 @@ let g_exc: { g: Isolate, l: StackFrame[], d: number } | null = null
 const kTokenNames = Build.NDEBUG ? [] as never
     : ("block, blockEnd, semiColon, prefix, action, group, dict, array, groupEnd, comma, question, colon, fn, assign"
     + ", or, and, bitOr, bitXor, bitAnd, compare1, compare2, bitMove, math1, math2, math3"
-    + ", unary, rightUnary, callOrAccess, dot, ref, literal").split(", ")
+    + ", unary, rightUnary, callOrAccess, dot, literal, ref").split(", ")
 const kOpNames = Build.NDEBUG ? [] as never
   : "block,stats,stat,comma,pair,fn,assign,ifElse,binary,unary,call,access,composed,literal,ref,fnDesc".split(",")
 
@@ -213,7 +213,7 @@ const kLabelled = "labelled", kProto = "__proto__", kDots = "..."
 //#region helper functions
 
 const Op = ((o: O, q: unknown, x: unknown, y: unknown): BaseOp<O>=>{
-  return (NDEBUG ? { o, q, x, y } : { n: o === O.composed ? q === "{"
+  return (NDEBUG ? { o, q, x, y } : { n: o === O.composed ? x as OpValues[O.composed]["x"] === "{"
         ? "dict" : "array" : kOpNames[o], q, x, y, o }) as BaseOp<O>
 }) as {
   <O extends Exclude<keyof OpValues, O.stat | O.literal>> (
@@ -645,7 +645,11 @@ const parseTree = (tokens_: readonly Token[], inNewFunc: boolean | null | undefi
         ctx_.push(cur), topIsDict = false
       } else {
         type = T.groupEnd, Build.NDEBUG || ((cur as OverriddenToken).w = Token(T.groupEnd, ")"))
-        "case default".includes(ctx_[ctx_.length - 1].v) && values_.push(Op(O.literal, L.plain, null, null))
+        const prefix = ctx_[ctx_.length - 1].v
+        if (prefix === "case" || prefix === "default") {
+          values_.push(Op(O.literal, L.plain, null, null))
+          consume()
+        }
       }
       continue
     case T.fn: /* T.fn: */
