@@ -85,7 +85,7 @@ type AllStatPrefix = "" | BlockPrefixes | LineActions
 interface BaseStatementOp<T extends AllStatPrefix | "arg"> extends CoreOp<O.stat> {
   readonly q: T
   readonly x: T extends "if" | "else if" | "while" | "switch" | "case" ? ExprLikeOps
-      : T extends "catch" ? RefOp | null
+      : T extends "catch" ? RefOp | DestructuringComposedOp | null
       : T extends "for" ? CoreOp<O.block> & {
           readonly q: readonly [SomeStatementOps<VarActions> | ExprLikeOps, ExprLikeOps, ExprLikeOps]
               | readonly [SomeStatementOps<VarActions> | RefAssignOp]
@@ -115,7 +115,8 @@ interface OpValues {
                   readonly /** body */ x: ExprLikeOps | StorableBlockOp & {
                     readonly /** $builtins */ y: [ $this: number, $arguments:number, $newTarget: number ] | null }
                   readonly y: CoreOp<O.fnDesc> & OpValues[O.fnDesc] },
-  [O.composed]: { readonly q: readonly (ExprLikeOps | PairOp)[], readonly x: "[" | "{", readonly/**$simple*/y:null|0|1},
+  [O.composed]: { readonly q: readonly (ExprLikeOps | PairOp)[], readonly x: "[" | "{",
+                  readonly /**$simple*/ y: null | BOOL | AnalysedVars },
   [O.assign]:   { readonly /** binary op token */ q: TokenValues[T.assign],
                   readonly /** source (right value) */ x: ExprLikeOps, readonly /** target (left-v) */ y: ExprLikeOps }
   [O.ifElse]:   { readonly /** condition */ q: ExprLikeOps,
@@ -130,7 +131,7 @@ interface OpValues {
   [O.ref]:      { readonly q: VarName, readonly x: number | null, readonly y: number | null }
   [O.fnDesc]:   ( { readonly q: "fn _", readonly x: RefOp } | { readonly q: "fn", readonly x: RefOp | null }
                   | { readonly q: "(){", readonly x: VarName | PairOp } | { readonly q: "=>", readonly x: null })
-                & { readonly /** $analysed */ y: AnalysedVars | null }
+                & { readonly /** $analysed */ y: AnalysedVars }
 }
 type KStatLikeO = O.block | O.stats | O.stat
 type kExprO = Exclude<keyof OpValues, KStatLikeO | O.pair | O.fnDesc>
@@ -143,7 +144,16 @@ type StatLikeOps = SomeOps<KStatLikeO>
 type EvaluatableOps = ExprLikeOps | StatLikeOps
 type PairOp = BaseOp<O.pair>
 type RefOp = BaseOp<O.ref>
-interface RefAssignOp extends BaseOp<O.assign> { readonly y: RefOp }
+type ArrayHoleOp = BaseLiteralOp<L.array_hole>
+interface DestructurePairOp extends BaseOp<O.pair> { readonly x: DeclareOp; readonly y: null }
+interface RefAssignOp extends BaseOp<O.assign> { readonly y: RefOp | DestructuringComposedOp }
+interface PlainRefAssignOp extends RefAssignOp { readonly y: RefOp }
+interface BaseDestructuringComposedOp<T extends "[" | "{"> extends BaseOp<O.composed> {
+  readonly q: readonly (T extends "[" ? DeclareOp | ArrayHoleOp : RefOp | PlainRefAssignOp | DestructurePairOp)[]
+  readonly x: T
+  readonly y: AnalysedVars
+}
+type DestructuringComposedOp = BaseDestructuringComposedOp<"["> | BaseDestructuringComposedOp<"{">
 type DeclareOp = RefOp | RefAssignOp
 interface TemplateOp extends BaseOp<O.unary> { readonly q: "`", readonly x: ConcreteX<O.composed, { x: "[" }> }
 type StorableBlockOp = Omit<BaseOp<O.block>, "y">
@@ -437,7 +447,6 @@ const parseTree = (tokens_: readonly Token[], inNewFunc: boolean | null | undefi
       } break
     case T.prefix: /* T.prefix: */ {
       const clause = values_[values_.length - 1].o !== O.block ? values_.pop()! : null
-      if (clause && top.v === "catch" && clause.o !== O.ref) { throwSyntax("Unsupported destructuring") }
       values_.length--
       const matched = ctx_[ctx_.length - 1].t & ~(T.prefix | T.group) ? tryInsertPrefix(top.v, 1) : false
       let stat = matched !== false && top.v === "while" ? Op(O.stat, top.v, val as ExprLikeOps, Op(O.comma, [], 0, 0))
@@ -517,16 +526,13 @@ const parseTree = (tokens_: readonly Token[], inNewFunc: boolean | null | undefi
       break
     case T.fn: /* T.fn: */ {
       const rawArgs = values_.pop()!
-      const args = (rawArgs.o === O.comma ? rawArgs.q : [rawArgs]).filter((i): i is DeclareOp =>
-          i.o === O.ref || i.o === O.assign && i.y.o === O.ref
-          || throwSyntax(`Unsupported destructuring parameters`))
+      const args = (rawArgs.o === O.comma ? rawArgs.q : [rawArgs]) as readonly DeclareOp[]
       const isFn = top.v.length > 3, type = isFn ? ctx_[ctx_.length - 1].t & (T.block | T.prefix) ? "fn" : "fn _"
           : top.v as Exclude<typeof top.v, `fn ${string}`>
       values_.push(Op(O.fn, args.length ? args : null, val as ExprLikeOps | StorableBlockOp & { y: null }, Op(O.fnDesc
-          , type, isFn ? Op(O.ref, top.v.slice(3) as VarName, 0, 0) : null, null) as OpValues[O.fn]["y"]))
+          , type, isFn ? Op(O.ref, top.v.slice(3) as VarName, 0, 0) : null, null as never) as OpValues[O.fn]["y"]))
       } break
     case T.assign: /* T.assign: */ {
-      if (values_[values_.length - 1].o === O.composed) { throwSyntax("Unsupported destructuring assignment") }
       values_[values_.length - 1] = Op(O.assign, top.v, val as ExprLikeOps, values_[values_.length - 1] as ExprLikeOps)
       } break
     case T.unary: case T.rightUnary: /* T.unary: T.rightUnary: */
@@ -718,8 +724,18 @@ const parseTree = (tokens_: readonly Token[], inNewFunc: boolean | null | undefi
 const getEscapeAnalyser = (): (func: BaseOp<O.fn>) => void => {
   interface WritableTempBlockOp extends Pick<BaseOp<O.block>, "o" | "q"> {
       /** consts */ x: VarName[] | null, /** lets */ y: VarName[] | null }
-  const ToVarNames = (out: VarName[], ops: readonly DeclareOp[]): VarName[] => {
-    for (const op of ops) { out.push(op.o === O.ref ? op.q : op.y.q) }
+  const ToVarNames = (out: VarName[], ops: readonly (DeclareOp | DestructurePairOp | ArrayHoleOp)[]): VarName[] => {
+    for (let op of ops) {
+      op = op.o === O.pair ? op.x : op
+      if (op.o === O.ref) {
+        out.push(op.q)
+      } else if (op.o === O.literal) { /* empty */ }
+      else if (op.y.o === O.ref) {
+        out.push(op.y.q)
+      } else {
+        ToVarNames(out, op.y.q)
+      }
+    }
     return out
   }
   const preScanFnBody = (pureVars: VarName[], block: WritableTempBlockOp | BaseOp<O.stats>): void => {
@@ -768,7 +784,7 @@ const getEscapeAnalyser = (): (func: BaseOp<O.fn>) => void => {
     _scopes.push(scope)
     return scope
   }
-  const exitScope = (op: Omit<BaseOp<O.block>, "q"> | RefOp | BaseOp<O.fnDesc>): void => {
+  const exitScope = (op: Omit<BaseOp<O.block>, "q"> | RefOp | BaseOp<O.fnDesc> | DestructuringComposedOp): void => {
     const declarations = _scopes.pop()!, level = _scopes.length, referred = op.o === O.ref ? declarations[0].x.q : null
     declarations.sort((a, b): number => a.o - b.o)
     let i = 0, numbers: [number, number, number, number, number, number, number] = [0, 0, 0, 0, 0, 0, 0]
@@ -782,9 +798,13 @@ const getEscapeAnalyser = (): (func: BaseOp<O.fn>) => void => {
     }
     let [n1, n2, n3, n4, n5, n6] = numbers
     n2 += n1, n3 += n2, n4 += n3, n5 += n4, n6 += n5
-    op.o === O.ref ? ((op as WritableOp<O.ref>).x = referred!.length ? 0 : -1, (op as WritableOp<O.ref>).y = n1)
-    : (declarations.length = n6, (op as WritableOp<O.block> | WritableOp<O.fnDesc>).y = {
-        t: [n1,n2,n3,n4,n5,n6], v: declarations.map(i => i.y) })
+    if (op.o === O.ref) {
+      (op satisfies RefOp as WritableOp<O.ref>).x = n1, (op as WritableOp<O.ref>).y = referred!.length ? 0 : -1
+    } else {
+      declarations.length = n6
+      ; (op satisfies Omit<BaseOp<O.block>, "q">|BaseOp<O.fnDesc>|DestructuringComposedOp as Writable<typeof op>).y = {
+          t: [n1, n2, n3, n4, n5, n6], v: declarations.map(i => i.y) }
+    }
   }
   const kFnBuiltinVars: VarList = ["this", "arguments", "new.target"]
   const visit = (op: EvaluatableOps | PairOp): void => {
@@ -811,10 +831,10 @@ const getEscapeAnalyser = (): (func: BaseOp<O.fn>) => void => {
         }
         return
       } else if (op.q === "catch" && op.x) {
-        Scope(null, ToVarNames([], [op.x]))
+        Scope(null, ToVarNames([], op.x.o === O.ref ? [op.x] : op.x.q))
         visit(op.x)
         visit(op.y)
-        exitScope(op.x satisfies RefOp)
+        exitScope(op.x satisfies RefOp | DestructuringComposedOp)
         return
       }
       break
@@ -849,16 +869,17 @@ const getEscapeAnalyser = (): (func: BaseOp<O.fn>) => void => {
         ; (block as typeof op.x as WritableOp<O.block>).x = (block as WritableTempBlockOp).x?.[0] === kDots ? 1 : 0
         ; (block as typeof op.x as Writable<typeof op.x>).y = !builtins || (b0.o + b1.o + b2.o === V.unused * 3) ? null
             : [ scope.indexOf(b0), scope.indexOf(b1), scope.indexOf(b2) ]
-      } else if (op.q) {
-        Scope(null, ToVarNames([], op.q))
-        op.q.forEach(visit)
+      } else {
+        Scope(null, op.q ? ToVarNames([], op.q) : [])
+        op.q?.forEach(visit)
         visit(op.x)
         exitScope(op.y satisfies BaseOp<O.fnDesc>)
-      } else {
-        visit(op.x)
       }
       _cur_fn--
       op.y.q.length > 3 && exitScope((op as ConcreteFnOp<"fn _">).y.x satisfies RefOp)
+      return
+    case O.composed:
+      op.q.forEach(visit)
       return
     case O.literal:
       return
@@ -894,6 +915,17 @@ const throwReference = (name: string | number, isLocal: boolean): never => {
 const throwType = (error: string): never => { throw new TypeError(error) }
 const newException = (noHandler?: 1): NonNullable<typeof g_exc> =>
     g_exc = { g: isolate_, l: locals_.slice(0), d: noHandler ? stackDepth_ : -stackDepth_ }
+
+const StackFrameFromComposedOp = (newVar: RefOp | DestructuringComposedOp, val: unknown
+    , parentOp: RefAssignOp | null): void => {
+  if (newVar.o === O.ref) {
+    const elet = newVar.x!
+    StackFrame({ t: [0, elet, elet, elet, 1, 1], v: [newVar.q] }, [newVar.y, val])
+  } else {
+    StackFrame(newVar.y)
+    evalDestructuring(newVar, val, parentOp)
+  }
+}
 
 const StackFrame = (analysed: AnalysedVars, defined?: readonly unknown[] | null, scopeName?: string): StackFrame|void=>{
   const varDict: VarBindings = []
@@ -966,10 +998,9 @@ const evalTry = (stats: readonly EvaluatableOps[], i: number): TryValue => {
     catch (ex) {
       g_exc || newException()
       exitFrame(locals_.length - oldLocalsPos)
-      const newVar = next.x, elet = newVar?.y
-      newVar && StackFrame({ t: [0, elet!, elet!, elet!, 1, 1], v: [newVar.q] }, [newVar.x, ex])
+      next.x && StackFrameFromComposedOp(next.x, ex, null)
       res = evalBlockBody(next.y)
-      newVar && exitFrame(1); g_exc = null; done = 1
+      next.x && exitFrame(1); g_exc = null; done = 1
     }
   } finally { if (indFinal) {
     const oldLocals = locals_, oldExc = done ? null : g_exc || newException()
@@ -1001,7 +1032,7 @@ const evalFor = (statement: BaseStatementOp<"for">, labels: NullableVarList): St
     locals_.push({ o: newVars, q: old.q, x: old.x, y: old.y })
     return newVars
   }
-  let res: StatValue = kEmptyValue, ref: Writable<Ref>
+  let res: StatValue = kEmptyValue, ref: Writable<Ref> | null
   analysedScope && StackFrame(analysedScope)
   if (statement.x.q.length === 3) {
     initOp.o === O.stat ? evalLet(initOp.q, initOp.y.q, null) : opEvals[initOp.o](initOp)
@@ -1013,31 +1044,26 @@ const evalFor = (statement: BaseStatementOp<"for">, labels: NullableVarList): St
   } else {
     const assignment = (initOp.o === O.stat ? initOp.y.q[0] : initOp) as RefAssignOp
     const source = opEvals[assignment.x.o](assignment.x) as number[] | string | null | undefined
-    ref = Ref(assignment.y, analysedScope ? R.eveNotInited : R.plain)
+    ref = assignment.y.o === O.composed ? null : _resolveVarRef(assignment.y, analysedScope ? R.eveNotInited : R.plain)
     if (assignment.q === "in") {
       for (let item in source as { [k: number]: unknown }) {
-        ref.y[ref.i] = item as string | number as number
+        ref ? (ref.y[ref.i] = item as string | number as number)
+            : evalDestructuring(assignment.y as DestructuringComposedOp, item, assignment)
         body.o <= O.stat ? res = evalBlockBody(SubBlock(body as StatLikeOps)) : opEvals[body.o](body)
         if ((res = consumeContinue(res, labels)) !== kEmptyValue) { break }
-        analysedScope && (ref.y = forkScope() satisfies unknown[] as number[])
+        analysedScope && (ref ? (ref.y = forkScope() satisfies unknown[] as number[]) : forkScope())
       }
     } else {
-      let iterator: Iterator<number>, cur: IteratorResult<number> | undefined, ind = 0
-      if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol
-          && !kIterator) {
-        if (!source ? source !== "" : source.length == null) {
-              throwType(DebugCallee(assignment.x, null, "") + " is not iterable") }
-      } else {
-        const it = isLooselyNull(source) ? source : source[kIterator!]
-        if (typeof it !== "function") { throwType(DebugCallee(assignment.x, null, "") + " is not iterable") }
-        iterator = (HasReflect ? Reflect!.apply(it!, source!, []) : evalCall.call.call(it!, source!))as Iterator<number>
-      }
+      let iterator = evalIter(source, assignment.x), cur: IteratorResult<number> | undefined, ind = 0
       while ((res = consumeContinue(res, labels)) === kEmptyValue
           && (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol
               && !kIterator ? ind < source!.length : (cur = iterator!.next(), !cur.done))) {
-        ref.y[ref.i] = cur ? cur.value : source![ind]
+        const item = Build.BTypes & BrowserType.Chrome && Build.MinCVer<BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol
+              && !kIterator ? source![ind] : cur!.value
+        ref ? (ref.y[ref.i] = item as string | number as number)
+            : evalDestructuring(assignment.y as DestructuringComposedOp, item, assignment)
         body.o <= O.stat ? res = evalBlockBody(SubBlock(body as StatLikeOps)) : opEvals[body.o](body)
-        analysedScope && (ref.y = forkScope() satisfies unknown[] as number[])
+        analysedScope && (ref ? (ref.y = forkScope() satisfies unknown[] as number[]) : forkScope())
         ind++
       }
     }
@@ -1046,18 +1072,106 @@ const evalFor = (statement: BaseStatementOp<"for">, labels: NullableVarList): St
   return res
 }
 
+const evalIter = (source: number[] | string | null | undefined, sourceOp: ExprLikeOps): Iterator<number> | void => {
+  if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol
+      && !kIterator) {
+    if (!source ? source !== "" : source.length == null) {
+          throwType(DebugCallee(sourceOp, null, "") + " is not iterable") }
+  } else {
+    const it = isLooselyNull(source) ? source : source[kIterator!]
+    if (typeof it !== "function") { throwType(DebugCallee(sourceOp, null, "") + " is not iterable") }
+    return (HasReflect ? Reflect!.apply(it!, source!, []) : evalCall.call.call(it!, source!))as Iterator<number>
+  }
+}
+
 const evalLet = (action: VarActions | "arg", declarations: readonly DeclareOp[], args: unknown[] | null): void => {
   const appendUndefined = action === "arg" || action === "let"
-  let bindings = action === "var" ? null : locals_[locals_.length - 1].o, op: DeclareOp, varPos: number, ind = -1
+  let bindings = action === "var" ? null : locals_[locals_.length - 1].o, op: DeclareOp, ind = -1
   for (op of declarations) {
     ind++
-    varPos = (op.o === O.assign ? op.y : op.q !== kDots ? op : (declarations[ind + 1] as RefOp)).y!
-    if (args !== null && op.o === O.ref && op.q === kDots) { bindings![varPos] = args.slice(ind); break }
-    if (args !== null && ind < args.length && args[ind] !== void 0) { bindings![varPos] = args[ind] }
-    else if (op.o !== O.assign) { appendUndefined && (bindings![varPos] = void 0) }
-    else {
-      (bindings ??= locals_[op.y.x!].o)[varPos] = op.x.o === O.fn
+    if (args !== null && op.o === O.ref && op.q === kDots) {
+      bindings![(declarations[ind + 1] as RefOp).y!] = args.slice(ind)
+      break
+    }
+    if (args !== null && ind < args.length && args[ind] !== void 0) {
+      op.o === O.assign ? op.y.o === O.composed ? evalDestructuring(op.y, args[ind], null)
+          : (bindings![op.y.y!] = args[ind]) : (bindings![(op satisfies RefOp).y!] = args[ind])
+    }
+    else if (op.o === O.ref) { appendUndefined && (bindings![op.y!] = void 0) }
+    else if (op.y.o === O.composed) {
+      evalDestructuring(op.y, opEvals[op.x.o](op.x), op)
+    } else {
+      (bindings ??= locals_[op.y.x!].o)[op.y.y!] = op.x.o === O.fn
           ? FunctionFromOp(op.x, isolate_, locals_, op.y.q) : opEvals[op.x.o](op.x)
+    }
+  }
+}
+
+const evalDestructuring = (destructOp: DestructuringComposedOp, composed_value: any, parentOp: RefAssignOp|null):void=>{
+  if (destructOp.x === "[") {
+    let index = 0, iterator = evalIter(composed_value, parentOp ? parentOp.x : )
+    for (const op of destructOp.q) {
+      if (op.o === O.ref && op.q === kDots) {
+        const { y, i } = _resolveVarRef(destructOp.q[index + 1] as RefOp, R.eveNotInited)
+        y[i] = [].slice.call(composed_value, index) as unknown as number
+        break
+      }
+      if (op.o === O.literal) {
+        if (0) { op.q satisfies L.array_hole }
+        
+        continue
+      }
+      const keyOp = op.o === O.ref ? op.q : op.o === O.assign ? op.y.o === O.ref ? op.y.q : index : op.q
+      const key: string | number | symbol = evalAccessKey(typeof keyOp === "object" ? opEvals[keyOp.o](keyOp) : keyOp)
+      const target: DeclareOp = op.o === O.pair ? op.x : op
+      let value = composed_value[key]
+      const useDefault = value === void 0 && target.o === O.assign
+      if (useDefault) {
+        value = opEvals[target.x.o](target.x)
+      }
+      const ref = target.o === O.ref ? _resolveVarRef(target, R.eveNotInited)
+          : target.y.o === O.ref ? _resolveVarRef(target.y, R.eveNotInited)
+          : null
+      if (ref !== null) {
+        ref.y[ref.i] = value
+      } else {
+        evalDestructuring((target as Exclude<typeof target, RefOp> & { y: BaseOp<O.composed> }).y, value
+            , useDefault ? target : Op(O.assign, "=", Op(O.access, "["
+                  , parentOp ? parentOp.x : Op(O.ref, `(${kDots})` as VarName, 0, 0)
+                  , typeof keyOp === "object" ? keyOp : Op(O.literal, L.plain, keyOp, null))
+                , target.y as DestructuringComposedOp) as RefAssignOp)
+      }
+      index++
+    }
+
+  } else {
+    const visited = new Map2<string, 1>()
+    for (const op of destructOp.q) {
+      if (op.o === O.ref && op.q === kDots) {
+        // @todo
+        break
+      }
+      const keyOp: string | ExprLikeOps = op.o === O.ref ? op.q : op.o === O.assign ? op.y.q : op.q
+      const key: string | number | symbol = evalAccessKey(typeof keyOp === "object" ? opEvals[keyOp.o](keyOp) : keyOp)
+      const target: DeclareOp = op.o === O.pair ? op.x : op
+      let value = composed_value[key]
+      const useDefault = value === void 0 && target.o === O.assign
+      if (useDefault) {
+        value = opEvals[target.x.o](target.x)
+      }
+      const ref = target.o === O.ref ? _resolveVarRef(target, R.eveNotInited)
+          : target.y.o === O.ref ? _resolveVarRef(target.y, R.eveNotInited)
+          : null
+      if (ref !== null) {
+        ref.y[ref.i] = value
+      } else {
+        evalDestructuring((target as Exclude<typeof target, RefOp> & { y: BaseOp<O.composed> }).y, value
+            , useDefault ? target : Op(O.assign, "=", Op(O.access, "["
+                  , parentOp ? parentOp.x : Op(O.ref, `(${kDots})` as VarName, 0, 0)
+                  , typeof keyOp === "object" ? keyOp : Op(O.literal, L.plain, keyOp, null))
+                , target.y as DestructuringComposedOp) as RefAssignOp)
+      }
+      visited.set(key as string, 1)
     }
   }
 }
@@ -1168,8 +1282,8 @@ const evalNever = (op: BaseOp<KStatLikeO | O.pair | O.fnDesc>): void => {
 }, evalFn = (op: BaseOp<O.fn>): unknown => {
   return FunctionFromOp(op, isolate_, locals_, "")
 }, evalAssign = (op: BaseOp<O.assign>): unknown => {
-  const action = op.q, target = op.y as RefOp | BaseOp<O.access>, direct = action === "="
-  const { y, i } = Ref(target, direct ? R.evenNeitherInitedNorFound : R.plain)
+  const action = op.q, target = op.y as RefOp | DestructuringComposedOp | BaseOp<O.access>, direct = action === "="
+  const { y, i } = target.o !== O.composed ? Ref(target, direct ? R.evenNeitherInitedNorFound : R.plain) : { y:[0],i:0 }
   let x: number = direct ? 0 : y[i]
   if (action === "??=" ? !isLooselyNull(x) : action === "||=" ? x : action === "&&=" ? !x : false) { return x }
   const source = op.x.o !== O.fn ? opEvals[op.x.o](op.x) as number : FunctionFromOp(op.x
@@ -1182,7 +1296,8 @@ const evalNever = (op: BaseOp<KStatLikeO | O.pair | O.fnDesc>): void => {
   default   : x   = source;
     if (0) { action satisfies "=" | "??=" | "&&=" | "||=" | "of" | "in" } break // lgtm [js/unreachable-statement]
   }
-  if (target.o === O.ref && target.x! >= 0) {
+  if (target.o === O.composed) { evalDestructuring(target, source, op as RefAssignOp) }
+  else if (target.o === O.ref && target.x! >= 0) {
     const analysed = locals_[target.x!].q
     if (target.y! < analysed[V.econst] || target.y! >= analysed[V.locall]) {
       throwType(`Assignment to constant variable '${target.q}'.`)
@@ -1351,7 +1466,7 @@ const FunctionFromOp = (fn: BaseOp<O.fn>, globals: Isolate, closures: StackFrame
   const callable = function (this: unknown): unknown {
     const oldIsolate = isolate_, oldLocals = locals_
     const type = fn.y.q, block = fn.x.o === O.block ? fn.x : null, builtins = block?.y
-    let frame: StackFrame | null | void, done = false
+    let frame: StackFrame | void, done = false
     const newTarget = !(builtins && builtins[2] >= 0 || type < "f") ? void 0
         : Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES6NewTarget
         ? this instanceof callable ? callable : void 0 : new.target
@@ -1359,9 +1474,8 @@ const FunctionFromOp = (fn: BaseOp<O.fn>, globals: Isolate, closures: StackFrame
     isolate_ = globals, locals_ = closures.slice(), g_exc = g_exc && g_exc.d < 0 ? g_exc : null
     const oldLocalsPos = locals_.length
     const stdArgs = fn.q || builtins && builtins[1] >= 0 ? arguments : void 0
-    const newVar = type.length > 3 ? (fn as ConcreteFnOp<"fn _">).y.x : null, elet = newVar?.y
-    newVar && StackFrame({ t: [0, elet!, elet!, elet!, 1, 1], v: [newVar.q] }, [newVar.x, callable])
-    frame = fn.y.y && StackFrame(fn.y.y, builtins && [builtins[0], builtins[0] >= 0 ? this : void 0
+    type.length > 3 && StackFrameFromComposedOp((fn as ConcreteFnOp<"fn _">).y.x, callable, null)
+    frame = StackFrame(fn.y.y, builtins && [builtins[0], builtins[0] >= 0 ? this : void 0
         , builtins[1], stdArgs, builtins[2], newTarget], stdName)
     ++stackDepth_
     try {
@@ -1373,7 +1487,7 @@ const FunctionFromOp = (fn: BaseOp<O.fn>, globals: Isolate, closures: StackFrame
     } finally {
       done ? g_exc && g_exc.d > 0 && (g_exc = null) : g_exc && g_exc.d >= stackDepth_ || newException(1)
       stackDepth_--
-      !Build.NDEBUG && done && frame !== null && (locals_[locals_.length - 1] !== frame)
+      !Build.NDEBUG && done && (locals_[locals_.length - 1] !== frame)
           && console.log("Vimium C found a bug of stack error when calling `" + (stdName || "anonymous") + "(...)`")
       exitFrame(locals_.length - oldLocalsPos)
       isolate_ = oldIsolate, locals_ = oldLocals
