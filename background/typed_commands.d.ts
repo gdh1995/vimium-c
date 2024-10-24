@@ -380,6 +380,7 @@ interface CmdNameIds {
   "Vomnibar.activateInNewTab": kBgCmd.showVomnibar
   "Vomnibar.activateTabs": kBgCmd.showVomnibar
   "Vomnibar.activateTabSelection": kBgCmd.showVomnibar
+  "Vomnibar.activateCurrentWindowTabs": kBgCmd.showVomnibar
   "Vomnibar.activateUrl": kBgCmd.showVomnibar
   "Vomnibar.activateUrlInNewTab": kBgCmd.showVomnibar
   addBookmark: kBgCmd.addBookmark

@@ -63,6 +63,7 @@
   "Vomnibar.activateHistoryInNewTab": "Open a history in a new tab",
   "Vomnibar.activateInNewTab": "Open URL, history, … in a new tab",
   "Vomnibar.activateTabs": "Search through your open tabs",
+  "Vomnibar.activateCurrentWindowTabs": "Search through tabs in the current window",
   "addBookmark": "Add tabs into a bookmark folder",
   "autoCopy": "Copy selected text or current frame's title or URL",
   "autoOpen": "Open selected or copied text in a new tab",

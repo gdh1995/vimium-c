@@ -705,6 +705,7 @@ export const availableCommands_: { readonly [key in kCName]: CommandsNS.Descript
   "Vomnibar.activateInNewTab": [ kBgCmd.showVomnibar, kCxt.bg, 0, { newtab: 1 } ],
   "Vomnibar.activateTabs": [ kBgCmd.showVomnibar, kCxt.bg, 1, { mode: "tab", newtab: 1 } ],
   "Vomnibar.activateTabSelection": [ kBgCmd.showVomnibar, kCxt.bg, 1, { mode: "tab", newtab: 1 } ],
+  "Vomnibar.activateCurrentWindowTabs": [ kBgCmd.showVomnibar, kCxt.bg, 1, { mode: "tab", newtab: 1, currentWindow: true, tree: "from-start" } ],
   "Vomnibar.activateUrl": [ kBgCmd.showVomnibar, kCxt.bg, 0, { url: true } ],
   "Vomnibar.activateUrlInNewTab": [ kBgCmd.showVomnibar, kCxt.bg, 0, { url: true, newtab: 1 } ],
   addBookmark: [ kBgCmd.addBookmark, kCxt.bg, /* 20 in all_commands.ts */ 0 ],

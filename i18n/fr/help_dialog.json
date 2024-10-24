@@ -64,6 +64,7 @@
   "Vomnibar.activateHistoryInNewTab": "Ouvrir l'historique dans un nouvel onglet",
   "Vomnibar.activateInNewTab": "Ouvrir l'URL, l'historique, ..., dans un nouvel onglet",
   "Vomnibar.activateTabs": "Chercher dans les onglets ouverts",
+  "Vomnibar.activateCurrentWindowTabs": "Chercher dans les onglets de la fenêtre courante",
   "addBookmark": "Ajouter un onglet un dossier de signets",
   "autoCopy": "Copier le texte sélectionné ou le titre du cadre courant ou l'URL",
   "autoOpen": "Ouvrir le texte sélectionné ou copié dans un nouvel onglet",

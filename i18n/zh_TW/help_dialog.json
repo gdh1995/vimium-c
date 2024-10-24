@@ -70,6 +70,7 @@
   "Vomnibar.activateHistoryInNewTab": "搜尋歷史記錄並在新分頁打開",
   "Vomnibar.activateInNewTab": "搜尋混合內容並在新分頁打開",
   "Vomnibar.activateTabs": "在所有分頁中搜尋",
+  "Vomnibar.activateCurrentWindowTabs": "在當前視窗的分頁中搜尋",
   "addBookmark": "將分頁添加到書籤",
   "autoCopy": "複製選中文字、網頁標題或網址",
   "autoOpen": "打開或搜尋選中文字或已複製的網址",

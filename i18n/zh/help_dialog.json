@@ -70,6 +70,7 @@
   "Vomnibar.activateHistoryInNewTab": "搜索历史记录并在新标签页打开",
   "Vomnibar.activateInNewTab": "搜索混合内容并在新标签页打开",
   "Vomnibar.activateTabs": "在所有标签页中搜索",
+  "Vomnibar.activateCurrentWindowTabs": "在当前窗口的标签页中搜索",
   "addBookmark": "将标签页添加到收藏夹",
   "autoCopy": "复制选中文字、网页标题或网址",
   "autoOpen": "打开或搜索选中文字或已复制的网址",
