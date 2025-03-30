@@ -63,7 +63,7 @@
   "Marks.clearLocal": "清理當前網頁下的所有標記",
   "Vomnibar.activate": "顯示多功能搜尋框",
   "Vomnibar.activateBookmarks": "顯示搜尋框並搜尋書籤的內容",
-  "Vomnibar.activatesInNewTab": "搜尋書籤的內容並在新分頁打開",
+  "Vomnibar.activateBookmarksInNewTab": "搜尋書籤的內容並在新分頁打開",
   "Vomnibar.activateEditUrl": "顯示搜尋框並編輯當前網址",
   "Vomnibar.activateEditUrlInNewTab": "編輯當前網址並在新分頁打開",
   "Vomnibar.activateHistory": "顯示搜尋框並搜尋歷史記錄",

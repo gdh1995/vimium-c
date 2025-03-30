@@ -224,7 +224,7 @@ let optionsInit1_ = function (): void {
         i.textContent = i.href = i.href.replace("chrome:", "edge:")
       }
       el.href = s + "shortcuts", el.textContent = s + "\u2026"
-    }, browserLinks)
+    }, browserLinks.slice())
   } else if (OnFirefox) {
     nextTick_(([el, el2, el3, el4]): void => {
       el.textContent = el.href = "about:addons";
