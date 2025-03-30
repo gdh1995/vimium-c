@@ -401,11 +401,14 @@ export const getViewBox_ = function (needBox?: 1 | /** dialog-or-popover-found *
 
 export const isNotInViewport = (element: SafeElement, rect?: Rect): kInvisibility => {
   let fs: Element | null
-  rect = rect || boundingRect_(element!)
-  return rect.b - rect.t < 1 || rect.r - rect.l < 1 ? kInvisibility.NoSpace
+  rect ||= boundingRect_(element!)
+  const h = rect.b - rect.t, w = rect.r - rect.l
+  return h < 1 && w < 1 ? kInvisibility.NoSpace
       : (fs = fullscreenEl_unsafe_()) && !IsAInB_(element, fs) ? kInvisibility.NotInFullscreen
-      : rect.b <= 0 || rect.t >= wndSize_() || rect.r <= 0 || rect.l >= wndSize_(1)
-      ? kInvisibility.OutOfView : kInvisibility.Visible
+      : rect.b <= 0 || rect.t >= wndSize_() || rect.r <= 0 || rect.l >= wndSize_(1) ? kInvisibility.OutOfView
+      : h > 1 && w > 1
+        || (cropNotReady_ > 1 && getZoom_(), cropNotReady_ && prepareCrop_(), getVisibleClientRect_(element))
+      ? kInvisibility.Visible : kInvisibility.NoSpace
 }
 
 export const isSelARange = (sel: Selection): boolean => sel.type === "Range"
