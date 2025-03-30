@@ -70,6 +70,7 @@ OwnProp = Object.getOwnPropertyDescriptor,
 relatedTargetGetter = Build.BTypes & BrowserType.Chrome
     ? OwnProp(DECls[kProto], "relatedTarget"
       )!.get as (this: FocusEvent) => EventTarget | null : 0 as never as null,
+_docOpen = DocCls.open, _docWrite = DocCls.write,
 kOC = InnerConsts.kVOnClick, kRC = "" + Build.RandomClick, kEventName2 = kOC + kRC,
 StringSplit = !(Build.NDEBUG && Build.Mangle) ? "".split : 0 as never, StringSlice = kEventName2.slice,
 checkIsNotVerifier = (func?: InnerVerifier | unknown): void | 42 => {
@@ -132,11 +133,15 @@ hooks = {
       enqueue(a as Element, listener)
     }
     return ret as void
-  }
+  },
+  open (this: Document): void { return docOpenHook(0, this, arguments) },
+  write (this: Document): void { return docOpenHook(1, this, arguments) }
 },
 myAEL = (/*#__NOINLINE__*/ hooks)[kAEL], myToStr = (/*#__NOINLINE__*/ hooks)[kToS],
+myDocOpen = (/*#__NOINLINE__*/ hooks).open, myDocWrite = (/*#__NOINLINE__*/ hooks).write, kHost = "." + location.host,
+kEnableDocWriteGetter = false,
 hookedFuncs = [0 as never as OnEventSetter, 0 as never as Function, 0 as never as OnEventSetter, 0 as never as Function
-    , _listen, myAEL, _toString, myToStr] as const
+    , _listen, myAEL, _toString, myToStr, _docOpen, myDocOpen, _docWrite, myDocWrite] as const
 
 let root = doc0.createElement("div"), timer = 1,
 /** kMarkToVerify */ kMk = GlobalConsts.MarkAcrossJSWorlds as const,
@@ -154,7 +159,7 @@ pushToRegister = (nodeIndexList as unknown[] as Element[]).push.bind(toRegister)
 queueMicroTask_ = queueMicrotask,
 evaledAEL: Function | undefined,
 isReRegistering: BOOL = 0, hasKnownDocOpened: 0 | 1 | 2 = 0
-let tryEval: (() => void) | 0 = ("." + location.host).endsWith(".bing.com") ? 0 : (): void => {
+let tryEval: (() => void) | 0 = kHost.endsWith(".bing.com") ? 0 : (): void => {
   try { evaledAEL = new Func(`let ${kAEL}=(f,a)=>f(...a)\nreturn ` + kAEL)(tryEval = 0) } catch {}
 }
 // To avoid a host script detect Vimum C by code like:
@@ -276,7 +281,7 @@ const executeCmd = (eventOrDestroy?: Event): void => {
   pushToRegister = setTimeout_ = noop
   timer = 1
 }
-const onDocOpen = (isWrite?: 0 | 2, oriHref?: string): void => {
+const onDocOpen = (isWrite?: 0 | 1 | 2, oriHref?: string): void => {
   if (hasKnownDocOpened === 1) {
     hasKnownDocOpened = 0
     if (Build.NDEBUG) {
@@ -287,6 +292,16 @@ const onDocOpen = (isWrite?: 0 | 2, oriHref?: string): void => {
       , 0, oriHref] })
     }
   }
+}
+const docOpenHook = (isWrite: BOOL, self: unknown, args: IArguments): void => {
+  const first = doc0.readyState < "l" && (isWrite || args.length < 3) && self === doc0
+  const oriHref = Build.NDEBUG || !first ? "" : dbgLoc.host && dbgLoc.pathname || dbgLoc.href
+  const ret = apply(isWrite ? _docWrite : _docOpen, self, args)
+  if (first) {
+    hasKnownDocOpened = 1
+    onDocOpen(isWrite, oriHref)
+  }
+  return ret
 }
 const noop = (): 1 => { return 1 }
 const docEl = doc0.documentElement;
@@ -308,6 +323,10 @@ if (dataset && (
   timer = toRegister.length > 0 ? setTimeout_(next, InnerConsts.DelayForNext) : 0
   ETP[kAEL] = myAEL
   FProto[kToS] = myToStr
+  if (!kEnableDocWriteGetter) {
+    DocCls.open = myDocOpen
+    DocCls.write = myDocWrite
+  }
   for (let i of [0, 2] as const) { /*#__ENABLE_SCOPED__*/
     let propName: "onmousedown" | "onclick" | "open" | "write" = i ? "onmousedown" : "onclick"
     const setterName = ("set " + propName) as `set ${typeof propName}`
@@ -320,8 +339,8 @@ if (dataset && (
     ; (hookedFuncs as Writable<typeof hookedFuncs>)[i] = propDesc.set as OnEventSetter
     ; (hookedFuncs as Writable<typeof hookedFuncs>)[i + 1] = propDesc.set = proxy[setterName]
     defineProp(HtmlElProto, propName, propDesc)
-    let _docFunc = DocCls[propName = i ? "write" : "open"]
-    defineProp(DocCls, propName, {
+    let _docFunc = i ? _docWrite : _docOpen
+    kEnableDocWriteGetter && defineProp(DocCls, i ? "write" : "open", {
       enumerable: true, configurable: true,
       set (newDocFunc) { _docFunc = newDocFunc },
       get () {
