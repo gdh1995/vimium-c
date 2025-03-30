@@ -94,7 +94,7 @@ import {
   getSelectionFocusEdge_, SafeEl_not_ff_, compareDocumentPosition, deepActiveEl_unsafe_, frameElement_, getSelection_,
 } from "../lib/dom_utils"
 import {
-  ViewBox, getViewBox_, prepareCrop_, wndSize_, bZoom_, wdZoom_, dScale_, boundingRect_,
+  ViewBox, getViewBox_, prepareCrop_, wndSize_, bZoom_, dScale_, boundingRect_, getZoom_, set_cropNotReady_,
   docZoom_, bScale_, dimSize_, isSelARange, view_, isNotInViewport, kInvisibility,
 } from "../lib/rect"
 import {
@@ -302,7 +302,7 @@ const render: BaseHintWorker["r"] = (hints, arr: FrameHintsInfo["v"], raw_apis):
     }
     removeBox()
     api_ = OnFirefox && manager_ ? unwrap_ff(raw_apis) : raw_apis
-    ensureBorder(wdZoom_ / dScale_);
+    ensureBorder();
     manager_ || setMode(mode_)
     if (hints.length) {
       if (WithDialog) {
@@ -363,6 +363,7 @@ const getPreciseChildRect = (frameEl: KnownIFrameElement, view: Rect): Rect | nu
 export const tryNestedFrame = (
       cmd: Exclude<FgCmdAcrossFrames, kFgCmd.linkHints>, options: SafeObject, count: number): boolean => {
     if (frameNested_ !== null) {
+      cmd - kFgCmd.vomnibar && getZoom_()
       prepareCrop_();
       checkNestedFrame();
     }
@@ -547,6 +548,7 @@ export const findAnElement_ = (options: OptionsToFindElement, count: number, als
   let d = options.direct! as string | true, defaultMatch = options.match
   defaultMatch = isTY(defaultMatch) && defaultMatch || null
   d = isTY(d) && d ? d : defaultMatch && d === !0 ? "em" : "em,sel,f,h"
+  getZoom_(1)
   prepareCrop_()
   for (let i of d.split(d.includes(";") ? ";" : ",")) {
     const key = Lower(i.split("=")[0]), testD = "".includes.bind(key), j = i.slice(key.length + 1).trim()
@@ -602,6 +604,7 @@ const activateDirectly = (options: ContentOptions, count: number): void => {
     api_ = vApi
     options_ = options
     setMode(mode, count_ = isActive = 1)
+    set_cropNotReady_(2)
     res[1] && view_(el)
     next()
   }

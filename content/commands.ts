@@ -15,9 +15,9 @@ import {
   getKeyStat_, suppressTail_, isRepeated_
 } from "../lib/keyboard_utils"
 import {
-  view_, wndSize_, isNotInViewport, getZoom_, prepareCrop_, getViewBox_, padClientRect_, isSelARange, center_, dScale_,
-  getBoundingClientRect_, setBoundary_, wdZoom_, getVisibleClientRect_, getVisibleBoundingRect_, isSelMultiline,
-  kInvisibility, cropRectS_, type ViewOffset
+  view_, wndSize_, isNotInViewport, getZoom_, prepareCrop_, getViewBox_, padClientRect_, isSelARange, center_,
+  getBoundingClientRect_, setBoundary_, getVisibleClientRect_, getVisibleBoundingRect_, isSelMultiline,
+  kInvisibility, cropRectS_, type ViewOffset, set_cropNotReady_
 } from "../lib/rect"
 import { post_, set_contentCommands_, runFallbackKey, send_ } from "./port"
 import {
@@ -211,6 +211,7 @@ set_contentCommands_([
   },
   /* kFgCmd.goNext: */ (req: CmdOptions[kFgCmd.goNext]): void => {
     let parApi: VApiTy | null | void, chosen: GoNextBaseCandidate | false | 0 | void
+    set_cropNotReady_(2)
     if (!isTop && (parApi = getParentVApi())
         && !parApi.a(keydownEvents_)) {
       parApi.f(kFgCmd.goNext, req as CmdOptions[kFgCmd.goNext] & FgOptions, 1)
@@ -258,6 +259,7 @@ set_contentCommands_([
       let newEl: LockableElement | null | undefined = raw_insert_lock;
       if (newEl && getEditableType_<0>(newEl) > EditableType.MaxNotEditableElement) {
         if (act === BSP) {
+          set_cropNotReady_(2)
           if (!view_(newEl, 1) && isStyleVisible_(newEl)) { execCommand(DEL, doc); }
         } else {
           insert_last_mutable && set_insert_last2_(insert_last_)
@@ -357,7 +359,7 @@ set_contentCommands_([
     exitInputHint() // avoid masking inputs
     selectOrClick(hints[sel].d, visibleInputs[sel][1]).then((): void => {
     updateHint(hints[sel])
-    ensureBorder(wdZoom_ / dScale_)
+    ensureBorder()
     set_inputHint({ b: addElementList<0>(hints, arr), h: hints })
     hints = 0 as never
     replaceOrSuppressMost_(kHandler.focusInput, (event): HandlerResult => {
@@ -617,7 +619,7 @@ set_contentCommands_([
       post_({ H: kFgReq.setSetting, k: 0, v: shouldShowAdvanced })
     }
     shouldShowAdvanced && toggleAdvanced()
-    ensureBorder(wdZoom_) // safe to skip `getZoom_`
+    ensureBorder() // safe to skip `getZoom_`
     addUIElement(outerBox, AdjustType.Normal, true)
     options.e && setupExitOnClick(kExitOnClick.helpDialog)
     docHasFocus_() || vApi.f()

@@ -25,7 +25,7 @@ export const isInteractiveInPage = (element: SafeElement): boolean => {
 }
 
 export const filterTextToGoNext: VApiTy["g"] = (candidates, names, options, maxLen): number => {
-  // Note: this traverser should not need a prepareCrop
+  // Note: this traverser should not need a prepareCrop before being called
   const fromMatchSelector = !!options.match
   const excOnHost = findSelectorByHost(kTip.excludeWhenGoNext)
   const links = isAlive_ ? traverse(kSafeAllSelector, options, (hints: Hint0[], element: SafeElement): void => {

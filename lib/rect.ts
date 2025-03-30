@@ -20,14 +20,17 @@ let bZoom_ = 1 // zoom of <body> (if not fullscreen else 1)
 let isDocZoomStrange_old_cr: BOOL = 0
 let dScale_ = 1 // <html>.transform:scale (ignore the case of sx != sy)
 let bScale_ = 1 // <body>.transform:scale (ignore the case of sx != sy)
+let cropNotReady_: 0 | 1 | 2 = 2 // 0: ready; 1: need prepareCrop; 2: also need getZoom_
 let vright: number, vbottom: number, vbottoms: number, vleft: number, vtop: number, vtops: number
 let scrollingTop: SafeElement | null = null
 
 export {
-  paintBox_, wdZoom_, docZoom_, isDocZoomStrange_old_cr, dScale_, bScale_, bZoom_, scrollingTop, vright as viewportRight
+  paintBox_, wdZoom_, docZoom_, isDocZoomStrange_old_cr, dScale_, bScale_, bZoom_, scrollingTop, cropNotReady_,
+  vright as viewportRight
 }
 export function set_bZoom_ (_newBZoom: number): void { bZoom_ = _newBZoom }
 export function set_scrollingTop (newScrollingTop: SafeElement | null): void { scrollingTop = newScrollingTop }
+export function set_cropNotReady_ (newCropNotReady: 1 | 2): void { cropNotReady_ = newCropNotReady }
 
 export const wndSize_ = (id?: 0 | 1 | 2): number => id ? id < 2 ? innerWidth : devicePixelRatio : innerHeight as number
 
@@ -55,7 +58,7 @@ export let prepareCrop_ = (inVisualViewport?: 1, limited?: Rect | null): number 
     visual = inVisualViewport && (OnFirefox && Build.MinFFVer < FirefoxBrowserVer.MinEnsured$visualViewport$
                                   ? (window as {} as typeof globalThis).visualViewport : visualViewport)
     let i: number, j: number, el: Element | null, docEl: Document["documentElement"]
-    vleft = vtop = 0
+    vleft = vtop = cropNotReady_ = 0
     if (!OnChrome || Build.MinCVer >= BrowserVer.MinEnsured$visualViewport$ ? visual : visual && visual.width) {
       vleft = visual!.offsetLeft | 0, vtop = visual!.offsetTop | 0
       i = vleft + visual!.width! | 0; j = vtop + visual!.height | 0

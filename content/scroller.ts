@@ -35,7 +35,7 @@ import {
 import {
   scrollWndBy_, wndSize_, getZoom_, wdZoom_, bZoom_, isNotInViewport, prepareCrop_, boundingRect_, instantScOpt,
   getBoundingClientRect_, getVisibleBoundingRect_, getVisibleClientRect_, dimSize_, scrollingTop, set_scrollingTop,
-  isSelARange
+  isSelARange, cropNotReady_, set_cropNotReady_
 } from "../lib/rect"
 import {
   getParentVApi, resetSelectionToDocStart, checkHidden, addElementList, curModalElement, removeModal
@@ -418,6 +418,7 @@ export const executeScroll: VApiTy["c"] = function (di: ScrollByY, amount0: numb
         return
       }
     }
+    set_cropNotReady_(1)
     set_scrollingTop(scrollingEl_(1))
     if (scrollingTop) {
       getPixelScaleToScroll()
@@ -544,14 +545,15 @@ export const onScrolls = (event: HandlerNS.Event): boolean => {
    */
 const findScrollable = (di: ScrollByY, amount: number, outer: number
     , evenOverflowHidden?: boolean | 0 | 2 | null | undefined, scrollable?: string): SafeElement | null => {
-  const selectFirst = (info: ElementScrollInfo, skipPrepare?: 1): ElementScrollInfo | null | undefined => {
+  const selectFirst = (info: ElementScrollInfo): ElementScrollInfo | null | undefined => {
     let cur_el: SafeElement | HTMLFormElement = info.e, type: 0 | 1 | -1
     if (dimSize_(cur_el, kDim.elClientH) + 3 < dimSize_(cur_el, kDim.scrollH) &&
         (type = shouldScroll_s(cur_el, cur_el !== top && cur_el !== body ? selectFirstType : di, 1),
           type > 0 || !type && dimSize_(cur_el, kDim.positionY) > 0 && doesScroll(cur_el, kDim.byY, 0))) {
       return info
     }
-    skipPrepare || prepareCrop_()
+    cropNotReady_ > 1 && getZoom_()
+    cropNotReady_ && prepareCrop_()
     let children: ElementScrollInfo[] = []
     for (let _ref = cur_el.children, _len = _ref.length > 50 ? 0 : _ref.length; 0 < _len--; ) {
       cur_el = _ref[_len]! as SafeElement | HTMLFormElement
@@ -564,7 +566,7 @@ const findScrollable = (di: ScrollByY, amount: number, outer: number
       }
     }
     children.sort((a, b) => b.a - a.a)
-    return children.reduce((cur, info1) => cur || selectFirst(info1, 1), null as ElementScrollInfo | null | undefined)
+    return children.reduce((cur, info1) => cur || selectFirst(info1), null as ElementScrollInfo | null | undefined)
   }
 
     const selectFirstType = (evenOverflowHidden != null ? evenOverflowHidden : isTop || injector)
@@ -693,6 +695,7 @@ export const scrollIntoView_s = (el: SafeElement | null, r2: Rect | null, dir: 0
 }
 
 export const makeElementScrollBy_ = (el: SafeElement | null | 0, hasX: number, hasY: number): void => {
+  set_cropNotReady_(2)
   void (hasX && (hasY ? performScroll : vApi.$)(el !== 0 ? el : findScrollable(kDim.byX, hasX, 0), kDim.byX, hasX))
   void (hasY && vApi.$(el !== 0 ? el : findScrollable(kDim.byY, hasY, 0), kDim.byY, hasY))
   isTopScrollable = 1

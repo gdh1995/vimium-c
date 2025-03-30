@@ -221,9 +221,9 @@ export const adjustUI = (event?: Event | /* enable */ 1 | /* disable */ 2): void
     }
 }
 
-export const ensureBorder = (zoom?: number): void => {
+export const ensureBorder = (): void => {
     const dPR = max_(wndSize_(2), 1)
-    zoom = (zoom || (getZoom_(), wdZoom_)) * dPR
+    const zoom = wdZoom_ / dScale_ * dPR
     if (!cssPatch_) {
       if (zoom >= 1 ? zoom < 2
           : OnChrome && (Build.MinCVer >= BrowserVer.MinBorderWidth$Ensure1$Or$Floor

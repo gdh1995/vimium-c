@@ -8,7 +8,6 @@ import { allHints, isHintsActive, hintManager, setMode as setHintMode, hintMode_
 import { insert_global_, passAsNormal, raw_insert_lock, readonlyFocused_, set_readonlyFocused_ } from "./insert"
 import { visual_mode_name } from "./visual"
 import { find_box } from "./mode_find"
-import { wdZoom_ } from "../lib/rect"
 import { currentKeys } from "./key_handler"
 
 let tweenId: ValidIntervalID = TimerID.None, tweenStart = 0
@@ -45,7 +44,7 @@ export const hudShow = (tid: kTip | HintMode, args?: Array<string | number> | st
   appendNode_s(box, $text = new Text(text)) // lgtm [js/superfluous-trailing-arguments]
   if (!embed) {
     toggleOpacity(0)
-    ui_box || ensureBorder(wdZoom_) // safe to skip `getZoom_`
+    ui_box || ensureBorder() // safe to skip `getZoom_`
   }
   addUIElement(box, allHints ? AdjustType.NotAdjust : AdjustType.DEFAULT)
 }

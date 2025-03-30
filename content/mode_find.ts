@@ -17,7 +17,7 @@ import {
 } from "../lib/dom_utils"
 import {
   wdZoom_, prepareCrop_, view_, dimSize_, selRange_, getZoom_, isSelARange, getViewBox_, scrollWndBy_, cropRectS_,
-  setupPageLevelCrops, instantScOpt, boundingRect_, isNotInViewport
+  setupPageLevelCrops, instantScOpt, boundingRect_, isNotInViewport, set_cropNotReady_
 } from "../lib/rect"
 import {
   ui_box, ui_root, getSelectionParent_unsafe, resetSelectionToDocStart, getBoxTagName_old_cr, collpaseSelection,
@@ -258,8 +258,8 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
     const arr: Rect[] = [], opt: ExecuteOptions = { h: [scrollX, scrollY, arr], i: 1, c: options.m || 20 }
     const sel = getSelected()
     if (hasResults && (OnFirefox || !singleSelectionElement_unsafe(sel))) {
-      prepareCrop_()
       const range = selRange_(sel), viewBox = getViewBox_(1)
+      prepareCrop_()
       highlightTimeout_ && toggleStyle(0)
       range && collpaseSelection(sel)
       executeFind("", opt)
@@ -293,6 +293,7 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
     initial_query || (initial_query = options.q)
     isActive || initial_query === query_ && options.l || setPreviousMarkPosition(1)
     checkDocSelectable();
+    getZoom_()
     ensureBorder()
 
   /** Note: host page may have no range (type is "None"), if:
@@ -338,6 +339,7 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
       let container = focusFoundLinkIfAny()
       if (container && i === FindAction.ExitForEsc && (el2 = deepActiveEl_unsafe_())
           && getEditableType_<0>(el2) > EditableType.MaxNotEditableElement && contains_s(container, el2)) {
+        getZoom_(el2 as LockableElement)
         prepareCrop_();
         void select_(el2 as LockableElement).then((): void => {
           toggleSelectableStyle()
@@ -381,7 +383,6 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
         toggleSelectableStyle()
         executeFind("", options)
         if (hasResults && options.m) {
-          getZoom_()
           highlightMany()
         }
         hud_showing && hud_toggleOpacity(1)
@@ -595,6 +596,7 @@ const onIFrameKeydown = (event: KeyboardEventToPrevent): void => {
       else if (i || eventWrapper.v && (checkKey(eventWrapper, eventWrapper.v), 1)) { /* empty */ }
       else if (keybody !== key) {
         if (key === `a-${kChar.f1}`) {
+          getZoom_()
           prepareCrop_();
           highlightRange(getSelected())
         }
@@ -956,7 +958,8 @@ const scrollSelectionAfterFind = (par: Element, newAnchor: Element | 0, sel: Sel
   const scrollManually = OnChrome && latest_options_ && latest_options_.u
   let context: CanvasRenderingContext2D, widthOrEnd: number
   // `window.find()` may auto make a target scroll into view smoothly, but a manual `scrollBy` breaks the animation
-  const oldInvisibility = isSafeEl_(par) && (!OnChrome || kMayInTextBox && isTY(textStyle, kTY.obj) || scrollManually
+  const oldInvisibility = isSafeEl_(par) && (set_cropNotReady_(2),
+      !OnChrome || kMayInTextBox && isTY(textStyle, kTY.obj) || scrollManually
       ? view_(par) : isNotInViewport(par))
   let selRect: Rect | undefined | null
   const flashOutline = (): void => {
