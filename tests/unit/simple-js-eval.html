@@ -209,6 +209,14 @@ function onLoad() {
   VApi.v.noNative && VApi.v.noNative();
 
   // =============================== assert ===============================
+  assert(function () { const a = {b:1,c:2,d:3}, {b, c, d, e} = a, {b: b2, c: c2, ...f} = a; return [b,c,d,e,f,b2,c2] })
+  assert(function () { const a = [1,2,3], [b,c,d,e] = a; return [b,c,d,e] })
+  assert(function () {
+    try { const {b,c,d} = null; return b } catch (e) { console.log(e); return (e + "").indexOf("destructure") > 0 }
+  })
+  assert(function () {
+    try { const {...b} = void 0; return b } catch (e) { console.log(e); return (e + "").indexOf("destructure") > 0 }
+  })
   assert(function () { return {...null, ...123} })
   assert(function () {
     return navigator.userAgent.match(/\bChrom(?:e|ium)\/(\d+)/)

@@ -145,11 +145,12 @@ type EvaluatableOps = ExprLikeOps | StatLikeOps
 type PairOp = BaseOp<O.pair>
 type RefOp = BaseOp<O.ref>
 type ArrayHoleOp = BaseLiteralOp<L.array_hole>
-interface DestructurePairOp extends BaseOp<O.pair> { readonly x: DeclareOp; readonly y: null }
+interface DestructurePairOp extends BaseOp<O.pair> { readonly x: DeclareOp | DestructuringComposedOp; readonly y: null }
 interface RefAssignOp extends BaseOp<O.assign> { readonly y: RefOp | DestructuringComposedOp }
 interface PlainRefAssignOp extends RefAssignOp { readonly y: RefOp }
 interface BaseDestructuringComposedOp<T extends "[" | "{"> extends BaseOp<O.composed> {
-  readonly q: readonly (T extends "[" ? DeclareOp | ArrayHoleOp : RefOp | PlainRefAssignOp | DestructurePairOp)[]
+  readonly q: T extends "[" ? readonly (DeclareOp | DestructuringComposedOp | ArrayHoleOp)[]
+      : readonly (RefOp | PlainRefAssignOp | DestructurePairOp)[]
   readonly x: T
   readonly y: AnalysedVars
 }
@@ -243,13 +244,6 @@ const isArray = Array.isArray as { <T> (x: readonly T[] | CoreOp<keyof OpValues>
 const isVarAction = <K extends AllStatPrefix> (s: K): s is K & VarActions => "let,const,var".includes(s)
 const resetRe_ = (): true => (<RegExpOne> /a?/).test("") as true
 const objCreate = DefaultObject.create as { (proto: null): VarDict; <T> (o: null): SafeDict<T> }
-const objEntries = !(Build.BTypes & BrowserType.Chrome)
-    || Build.MinCVer >= BrowserVer.MinEnsuredES$Object$$values$and$$entries ? DefaultObject.entries! as never
-    : DefaultObject.entries as unknown as undefined || (<T extends string> (object: object): [T, unknown][] => {
-  const entries: ReturnType<ObjectConstructor["entries"]> = []
-  for (const name of DefaultObject.keys(object)) { entries.push([name, (object as Dict<unknown>)[name]]) }
-  return entries as [T, unknown][]
-})
 const throwSyntax = (error: string): never => { throw new SyntaxError(error) }
 const ValueProperty = (value: unknown, writable: boolean, enumerable: boolean, config: boolean): PropertyDescriptor =>
     ({ value, writable, enumerable, configurable: config })
@@ -278,6 +272,20 @@ if (!kHasMap) {
   // Map2.prototype.has = function <K extends string, V> (this: Map2<K, V>, i: K): boolean { return i in this.m! }
   Map2.prototype.get = function <K extends string, V> (this: Map2<K, V>, i: K): V | undefined { return this.m![i] }
   Map2.prototype.set = function <K extends string, V> (this: Map2<K, V>, k: K, v: V) { this.m![k] = v }
+}
+
+const collectEnumerable = (src: any, filterKey: (key: string | symbol) => boolean
+    , props: { [s: string | number | symbol]: PropertyDescriptor & Partial<SafeObject> }) => {
+  const kSymbol = !(Build.BTypes&BrowserType.Chrome)||Build.MinCVer >= BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol
+  const GetSymbols = DefaultObject.getOwnPropertySymbols
+  for (const symbol of (Object.keys(src as object) as (string | symbol)[])
+        .concat(kSymbol || GetSymbols ? GetSymbols!(src) : [])) {
+    const prop = filterKey(symbol) ? DefaultObject.getOwnPropertyDescriptor(src, symbol as symbol) : null
+    if (prop?.enumerable) {
+      props[symbol] = ValueProperty(prop.writable !== void 0 ? prop.value : (src as any)[symbol]
+          , true, true, true)
+    }
+  }
 }
 
 //#endregion helper functions
@@ -724,13 +732,16 @@ const parseTree = (tokens_: readonly Token[], inNewFunc: boolean | null | undefi
 const getEscapeAnalyser = (): (func: BaseOp<O.fn>) => void => {
   interface WritableTempBlockOp extends Pick<BaseOp<O.block>, "o" | "q"> {
       /** consts */ x: VarName[] | null, /** lets */ y: VarName[] | null }
-  const ToVarNames = (out: VarName[], ops: readonly (DeclareOp | DestructurePairOp | ArrayHoleOp)[]): VarName[] => {
+  const ToVarNames = (out: VarName[]
+      , ops: readonly (DeclareOp | DestructurePairOp | DestructuringComposedOp | ArrayHoleOp)[]): VarName[] => {
     for (let op of ops) {
       op = op.o === O.pair ? op.x : op
       if (op.o === O.ref) {
-        out.push(op.q)
+        op.q !== kDots && out.push(op.q)
       } else if (op.o === O.literal) { /* empty */ }
-      else if (op.y.o === O.ref) {
+      else if (op.o === O.composed) {
+        ToVarNames(out, op.q)
+      } else if (op.y.o === O.ref) {
         out.push(op.y.q)
       } else {
         ToVarNames(out, op.y.q)
@@ -1109,70 +1120,72 @@ const evalLet = (action: VarActions | "arg", declarations: readonly DeclareOp[],
 
 const evalDestructuring = (destructOp: DestructuringComposedOp, composed_value: any, parentOp: RefAssignOp|null):void=>{
   if (destructOp.x === "[") {
-    let index = 0, iterator = evalIter(composed_value, parentOp ? parentOp.x : )
+    const iterator = evalIter(composed_value, parentOp ? parentOp.x : Op(O.ref, kUnknown as VarName, 0, 0))
+    let index = 0, cur: IteratorResult<any> = { value: void 0, done: false }
     for (const op of destructOp.q) {
-      if (op.o === O.ref && op.q === kDots) {
-        const { y, i } = _resolveVarRef(destructOp.q[index + 1] as RefOp, R.eveNotInited)
-        y[i] = [].slice.call(composed_value, index) as unknown as number
-        break
+      if (!cur.done) {
+        cur = Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol
+            && !kIterator ? index < composed_value.length ? { value: composed_value[index], done: false }
+            : { value: void 0, done: true } : iterator!.next()
       }
       if (op.o === O.literal) {
         if (0) { op.q satisfies L.array_hole }
-        
-        continue
-      }
-      const keyOp = op.o === O.ref ? op.q : op.o === O.assign ? op.y.o === O.ref ? op.y.q : index : op.q
-      const key: string | number | symbol = evalAccessKey(typeof keyOp === "object" ? opEvals[keyOp.o](keyOp) : keyOp)
-      const target: DeclareOp = op.o === O.pair ? op.x : op
-      let value = composed_value[key]
-      const useDefault = value === void 0 && target.o === O.assign
-      if (useDefault) {
-        value = opEvals[target.x.o](target.x)
-      }
-      const ref = target.o === O.ref ? _resolveVarRef(target, R.eveNotInited)
-          : target.y.o === O.ref ? _resolveVarRef(target.y, R.eveNotInited)
-          : null
-      if (ref !== null) {
-        ref.y[ref.i] = value
+      } else if (op.o === O.ref && op.q === kDots) { // q[index + 1]: RefOp | DestructuringComposedOp
+        const arr = cur.done ? [] : [cur.value]
+        if (Build.BTypes & BrowserType.Chrome && Build.MinCVer < BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol
+            && !kIterator) {
+          while (++index < composed_value.length) { arr.push(composed_value[index]) }
+        } else {
+          while (!(cur = iterator!.next()).done) { arr.push(cur.value) }
+        }
+        iter(kDots, destructOp.q[index + 1] as Exclude<typeof destructOp.q[0], ArrayHoleOp>, arr)
+        break
       } else {
-        evalDestructuring((target as Exclude<typeof target, RefOp> & { y: BaseOp<O.composed> }).y, value
-            , useDefault ? target : Op(O.assign, "=", Op(O.access, "["
-                  , parentOp ? parentOp.x : Op(O.ref, `(${kDots})` as VarName, 0, 0)
-                  , typeof keyOp === "object" ? keyOp : Op(O.literal, L.plain, keyOp, null))
-                , target.y as DestructuringComposedOp) as RefAssignOp)
+        iter(index, op, cur.value)
       }
       index++
     }
-
+  } else if (isLooselyNull(composed_value)) {
+    const first = destructOp.q[0], desc = first.o == O.ref ? first.q !== kDots ? first.q : ""
+        : first.o === O.pair && (typeof first.q !== "object" || first.q.o !== O.comma) && first.x.o !== O.assign
+        ? typeof first.q === "object" ? evalLiteral(first.q) : first.q : ""
+    throwType("Cannot destructure " + (desc ? "property '" + desc + "' of '" : "'")
+        + (parentOp && ToString(parentOp.x, (1 << O.call) | (1 << O.access) | (1 << O.unary)) || kUnknown)
+        + "' as it is " + composed_value + ".")
   } else {
     const visited = new Map2<string, 1>()
     for (const op of destructOp.q) {
       if (op.o === O.ref && op.q === kDots) {
-        // @todo
+        const props: Parameters<typeof collectEnumerable>[2] = objCreate(null) as any
+        collectEnumerable(composed_value, key => !visited.get(key as string), props)
+        const sub_value = (objCreate as typeof DefaultObject.create)(DefaultObject.prototype, props)
+        iter(kDots, destructOp.q[destructOp.q.length - 1] as RefOp, sub_value)
         break
       }
       const keyOp: string | ExprLikeOps = op.o === O.ref ? op.q : op.o === O.assign ? op.y.q : op.q
       const key: string | number | symbol = evalAccessKey(typeof keyOp === "object" ? opEvals[keyOp.o](keyOp) : keyOp)
-      const target: DeclareOp = op.o === O.pair ? op.x : op
-      let value = composed_value[key]
+      iter(keyOp, op.o === O.pair ? op.x : op, composed_value[key])
+      visited.set(key as string, 1)
+    }
+  }
+  function iter(keyOp: string | number | ExprLikeOps, target: DeclareOp | DestructuringComposedOp, value: any) {
       const useDefault = value === void 0 && target.o === O.assign
       if (useDefault) {
         value = opEvals[target.x.o](target.x)
       }
       const ref = target.o === O.ref ? _resolveVarRef(target, R.eveNotInited)
-          : target.y.o === O.ref ? _resolveVarRef(target.y, R.eveNotInited)
+          : target.o === O.assign && target.y.o === O.ref ? _resolveVarRef(target.y, R.eveNotInited)
           : null
       if (ref !== null) {
         ref.y[ref.i] = value
       } else {
-        evalDestructuring((target as Exclude<typeof target, RefOp> & { y: BaseOp<O.composed> }).y, value
+        evalDestructuring(target.o === O.composed ? target
+              : (target as Exclude<typeof target, RefOp> & { y: BaseOp<O.composed> }).y, value
             , useDefault ? target : Op(O.assign, "=", Op(O.access, "["
-                  , parentOp ? parentOp.x : Op(O.ref, `(${kDots})` as VarName, 0, 0)
+                  , parentOp ? parentOp.x : Op(O.ref, kUnknown as VarName, 0, 0)
                   , typeof keyOp === "object" ? keyOp : Op(O.literal, L.plain, keyOp, null))
                 , target.y as DestructuringComposedOp) as RefAssignOp)
       }
-      visited.set(key as string, 1)
-    }
   }
 }
 
@@ -1400,19 +1413,8 @@ const evalNever = (op: BaseOp<KStatLikeO | O.pair | O.fnDesc>): void => {
     if (isRef && item.q === kDots) {
       i++
       const src = opEvals[arr[i].o](arr[i])
-      if (typeof src === "object" && src !== null) {
-        const HasSymbol = !(Build.BTypes & BrowserType.Chrome)
-            || Build.MinCVer >= BrowserVer.MinEnsuredES6$ForOf$Map$SetAnd$Symbol
-        const GetSymbols = HasSymbol ? 0 as never : DefaultObject.getOwnPropertySymbols
-        const symbols = HasSymbol ? DefaultObject.getOwnPropertySymbols!(src) : GetSymbols ? GetSymbols(src) : []
-        for (const item of objEntries(src as object)) { props[item[0]] = ValueProperty(item[1], true, true, true) }
-        for (const symbol of symbols) {
-          const prop = DefaultObject.getOwnPropertyDescriptor(src, symbol)
-          if (prop?.enumerable) {
-            props[symbol] = ValueProperty(prop.writable !== void 0 ? prop.value : (src as any)[symbol]
-                , true, true, true)
-          }
-        }
+      if (typeof src === "object" && !isLooselyNull(src)) {
+        collectEnumerable(src, () => true, props)
       }
       continue
     }
@@ -1432,7 +1434,7 @@ const evalNever = (op: BaseOp<KStatLikeO | O.pair | O.fnDesc>): void => {
       newProto = value as object | null // a second key of the "__proto__" literal is a syntax error on Chrome 96
     }
   }
-  return DefaultObject.create(newProto, props)
+  return (objCreate as typeof DefaultObject.create)(newProto, props)
 }, evalLiteral = (op: LiteralOp): unknown => {
   switch (op.q) {
   case L.plain: return op.x
