@@ -18,8 +18,8 @@ import { contentCommands_, runFallbackKey } from "./port"
 let iframesToSearchForNext: VApiTy[] | null
 
 export const isInteractiveInPage = (element: SafeElement): boolean => {
-  let rect: ClientRect
-  return (rect = getBoundingClientRect_(element)).width > 2 && rect.height > 2
+  let { width: w, height: h } = getBoundingClientRect_(element)
+  return (w > 2 && h > 2 || !w !== !h) // if w = 0 or h==0, then consider it has a `float != "none"` child
       && (isStyleVisible_(element) || !!(evenHidden_ & kHidden.VisibilityHidden))
       || !!(evenHidden_ & kHidden.Size0)
 }
@@ -143,20 +143,19 @@ export const findNextInText = (names: string[], options: CmdOptions[kFgCmd.goNex
   }
   iframesToSearchForNext = null
   array = array.sort((a, b) => a[2] - b[2])
-  let arr2: GoNextCandidate[] = []
+  let best: GoNextCandidate | undefined
   for (let i = array.length ? array[0][2] >> 23 : GlobalConsts.MaxNumberOfNextPatterns; i < names.length; ) {
     const s = names[i++]
     const re = tryCreateRegExp(wordRe.test(s[0]) || wordRe.test(s.slice(-1))
-        ? `\\b${escapeAllForRe(s)}\\b` : escapeAllForRe(s))!, j = i << 23
+        ? `\\b${escapeAllForRe(s)}\\b` : escapeAllForRe(s))!
     for (candidate of array) {
-      if (candidate[2] > j) { i = GlobalConsts.MaxNumberOfNextPatterns; break }
+      if (candidate[2] > (i << 23)) { i = best ? GlobalConsts.MaxNumberOfNextPatterns : i; break }
       if (!candidate[3] || re.test(candidate[3])) {
-        candidate[1] === vApi && !isNotInViewport(candidate[0]) && (arr2 = [])
-        arr2.push(candidate)
+        best = candidate[1] === vApi && !isNotInViewport(candidate[0]) ? candidate : best || candidate
       }
     }
   }
-  return arr2[0]
+  return best
 }
 
 export const findNextInRel = (options: CmdOptions[kFgCmd.goNext]

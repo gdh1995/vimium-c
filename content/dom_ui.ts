@@ -455,7 +455,8 @@ export const getRect = (clickEl: SafeElement, refer?: HTMLElementUsingMap | null
     if (refer) {
       return getClientRectsForAreas_(refer, [], [clickEl as HTMLAreaElement]);
     } else if (tag === "a") {
-      return getPreferredRectOfAnchor(clickEl as HTMLAnchorElement)
+      const preferred = getPreferredRectOfAnchor(clickEl as HTMLAnchorElement)
+      if (preferred) { return preferred }
     } else if (tag === "input") {
       return getVisibleBoundingRect_(clickEl, 1)
     }
