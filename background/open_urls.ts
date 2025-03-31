@@ -142,9 +142,10 @@ const onEvalUrl_ = (workType: Urls.WorkType, options: KnownOptions<C.openUrl>, t
           }
         })
       }
-      if (urls2.length === 0) { return }
-      applyOptions(urls2)
-      tabs && tabs.length > 0 ? openUrls(tabs) : getCurTab(openUrls)
+      if (urls2.length > 0) {
+        tabs && tabs.length > 0 ? (applyOptions(urls2), openUrls(tabs))
+            : getCurTab((tabs) => { applyOptions(urls2); openUrls(tabs) })
+      }
       return
     }
     setTimeout((): void => {

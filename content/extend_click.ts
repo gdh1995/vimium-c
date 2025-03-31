@@ -558,7 +558,7 @@ const executeCmd = (eventOrDestroy?: Event): void => {
 }
 const docOpenHook = (isWrite: BOOL, self: unknown, args: IArguments): void => {
   const first = doc0.readyState < "l" && (isWrite || args.length < 3) && self === doc0
-  const oriHref = Build.NDEBUG || !first ? "" : location.host && location.pathname || location.href
+  const oriHref = Build.NDEBUG || !first ? "" : dbgLoc.host && dbgLoc.pathname || dbgLoc.href
   const ret = apply(isWrite ? _docWrite : _docOpen, self, args)
   if (first) {
     if (Build.NDEBUG) {
@@ -572,6 +572,7 @@ const docOpenHook = (isWrite: BOOL, self: unknown, args: IArguments): void => {
   }
   return ret
 }
+const dbgLoc = Build.NDEBUG ? null as never : location
 const noop = (): 1 => { return 1 }
 
 if (!MayNotEdge
