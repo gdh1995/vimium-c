@@ -337,8 +337,8 @@ const commandGroups_: {
     , "clearFindHistory", 1
   ],
   tabManipulation: [
-    "nextTab", "$blur"
-    , "previousTab", "$blur"
+    "nextTab", "$blur, wrap=true"
+    , "previousTab", "$blur, wrap=true"
     , "firstTab"
     , "lastTab"
     , "createTab"

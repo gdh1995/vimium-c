@@ -485,6 +485,7 @@ set_bgC_([
   /* kBgCmd.goToTab: */ (resolve): void | kBgCmd.goToTab => {
     const absolute = !!get_cOptions<C.goToTab>().absolute
     const filter = get_cOptions<C.goToTab, true>().filter
+    const doesWrap = get_cOptions<C.goToTab>().wrap !== false
     const blur = getBlurOption_()
     const goToTab = (tabs: Tab[]): void => {
       const count = cRepeat
@@ -498,13 +499,17 @@ set_bgC_([
       const baseInd = getNearArrIndex(tabs as Tab[], cur.index, count < 0)
     let index = absolute ? count > 0 ? Math.min(len, count) - 1 : Math.max(0, len + count)
         : Math.abs(count) > allLen * 2 ? (count > 0 ? len - 1 : 0) : baseInd + count
-    index = index >= 0 ? index % len : len + (index % len || -len)
+      if (doesWrap) {
+        index = index >= 0 ? index % len : len + (index % len || -len)
+      } else {
+        index = index >= len ? len - 1 : index < 0 ? 0 : index
+      }
     if (tabs[0].pinned && get_cOptions<C.goToTab>().noPinned && !cur.pinned && (count < 0 || absolute)) {
       let start = 1
       while (start < len && tabs[start].pinned) { start++ }
       len -= start
       if (len < 1) { resolve(0); return }
-      if (absolute || Math.abs(count) > allLen * 2) {
+      if (absolute || Math.abs(count) > allLen * 2 || !doesWrap) {
         index = absolute ? Math.max(start, index) : index || start
       } else {
         index = (baseInd - start) + count
