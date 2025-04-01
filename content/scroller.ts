@@ -173,7 +173,7 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
       const beforeViewOffset = ScrollConsts.DEBUG & 2 && visual?.[di ? "offsetTop" : "offsetLeft"] || 0
       const beforeViewPos = ScrollConsts.DEBUG & 2 && visual?.[di ? "pageTop" : "pageLeft"] || 0
       // here should keep safe even if there're bounce effects
-      delta = performScroll(element, di, sign * (delta > 4 ? math.round : math.ceil)(delta), beforePos)
+      delta = performScroll(element, di, sign * max_(scale, (delta > 4 ? math.round : math.ceil)(delta)), beforePos)
       if (ScrollConsts.DEBUG & 2) {
         const near_fps = 1e3 / near_elapsed, resScPos = dimSize_(element, kDim.scPosX + di)
         const resViewOffset = ScrollConsts.DEBUG & 2 && visual?.[di ? "offsetTop" : "offsetLeft"] || 0
