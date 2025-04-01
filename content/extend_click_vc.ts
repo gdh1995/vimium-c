@@ -121,10 +121,9 @@ hooks = {
       , listener: EventListenerOrEventListenerObject): void {
     let a = this, args = arguments
     // bing.com and google.com add lots of touch and wheel event listeners
-    const useEval = typeof type === "string" && type < "DOMSv" && (type > "DOMCi" ? type > "DOMNo" : type > "DOMCh")
-    useEval && tryEval && tryEval()
     const ret = args.length === 4 && type === GlobalConsts.MarkAcrossJSWorlds ? checkIsNotVerifier(args[3])
-        : useEval && evaledAEL ? evaledAEL(apply, [_listen, a, args]) : apply(_listen, a, args)
+        : (typeof type === "string" && type < "DOMSv" && (type > "DOMCi" ? type > "DOMNo" : type > "DOMCh")
+           ? (tryEval && tryEval(), evaledApply) : apply)(_listen, a, args)
     if (type === "click" || type === "mousedown" || type === "pointerdown" || type === "dblclick"
         ? listener && a instanceof ElCls && a.localName !== "a" && a !== toRegister[toRegister.length - 1]
         : type === kEventName2 && !isReRegistering
@@ -139,7 +138,6 @@ hooks = {
 },
 myAEL = (/*#__NOINLINE__*/ hooks)[kAEL], myToStr = (/*#__NOINLINE__*/ hooks)[kToS],
 myDocOpen = (/*#__NOINLINE__*/ hooks).open, myDocWrite = (/*#__NOINLINE__*/ hooks).write, kHost = "." + location.host,
-kEnableDocWriteGetter = false,
 hookedFuncs = [0 as never as OnEventSetter, 0 as never as Function, 0 as never as OnEventSetter, 0 as never as Function
     , _listen, myAEL, _toString, myToStr, _docOpen, myDocOpen, _docWrite, myDocWrite] as const
 
@@ -157,10 +155,9 @@ unsafeDispatchCounter = 0,
 allNodesInDocument = null as Element[] | null, allNodesForDetached = null as Element[] | null,
 pushToRegister = (nodeIndexList as unknown[] as Element[]).push.bind(toRegister),
 queueMicroTask_ = queueMicrotask,
-evaledAEL: Function | undefined,
-isReRegistering: BOOL = 0, hasKnownDocOpened: 0 | 1 | 2 = 0
-let tryEval: (() => void) | 0 = kHost.endsWith(".bing.com") ? 0 : (): void => {
-  try { evaledAEL = new Func(`let ${kAEL}=(f,a)=>f(...a)\nreturn ` + kAEL)(tryEval = 0) } catch {}
+evaledApply = apply, isReRegistering: BOOL = 0,
+tryEval: (() => void) | 0 = kHost.endsWith(".bing.com") && 0 ? 0 : (): void => {
+  try { tryEval = 0, evaledApply = new Func("c","return (f,t,a)=>c(f,t,a)")(apply) } catch {}
 }
 // To avoid a host script detect Vimum C by code like:
 // ` a1 = setTimeout(()=>{}); $0.addEventListener('click', ()=>{}); a2=setTimeout(()=>{}); [a1, a2] `
@@ -281,9 +278,12 @@ const executeCmd = (eventOrDestroy?: Event): void => {
   pushToRegister = setTimeout_ = noop
   timer = 1
 }
-const onDocOpen = (isWrite?: 0 | 1 | 2, oriHref?: string): void => {
-  if (hasKnownDocOpened === 1) {
-    hasKnownDocOpened = 0
+const docOpenHook = (isWrite: BOOL, self: unknown, args: IArguments): void => {
+  const first = doc0.readyState < "l" && (isWrite || args.length < 3) && self === doc0
+  const oriHref = Build.NDEBUG || !first ? "" : dbgLoc.host && dbgLoc.pathname || dbgLoc.href
+  tryEval && tryEval()
+  const ret = evaledApply(isWrite ? _docWrite : _docOpen, self, args)
+  if (first) {
     if (Build.NDEBUG) {
       root && doRegister(0, pushInDocument(InnerConsts.SignalDocOpen)) // lgtm [js/superfluous-trailing-arguments]
     } else if (root) {
@@ -292,20 +292,11 @@ const onDocOpen = (isWrite?: 0 | 1 | 2, oriHref?: string): void => {
       , 0, oriHref] })
     }
   }
-}
-const docOpenHook = (isWrite: BOOL, self: unknown, args: IArguments): void => {
-  const first = doc0.readyState < "l" && (isWrite || args.length < 3) && self === doc0
-  const oriHref = Build.NDEBUG || !first ? "" : dbgLoc.host && dbgLoc.pathname || dbgLoc.href
-  const ret = apply(isWrite ? _docWrite : _docOpen, self, args)
-  if (first) {
-    hasKnownDocOpened = 1
-    onDocOpen(isWrite, oriHref)
-  }
   return ret
 }
 const noop = (): 1 => { return 1 }
 const docEl = doc0.documentElement;
-const defineProp = Object.defineProperty, dbgLoc = Build.NDEBUG ? null as never : location
+const dbgLoc = Build.NDEBUG ? null as never : location
 const dataset = (root as Element as TypeToAssert<Element, HTMLElement, "dataset", "tagName">).dataset
 if (!docEl || (Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.MinCSAcceptWorldInManifest)
     && delayed && !(!docEl.lastChild && docEl.parentNode === doc0)) {
@@ -323,10 +314,8 @@ if (dataset && (
   timer = toRegister.length > 0 ? setTimeout_(next, InnerConsts.DelayForNext) : 0
   ETP[kAEL] = myAEL
   FProto[kToS] = myToStr
-  if (!kEnableDocWriteGetter) {
-    DocCls.open = myDocOpen
-    DocCls.write = myDocWrite
-  }
+  DocCls.open = myDocOpen
+  DocCls.write = myDocWrite
   for (let i of [0, 2] as const) { /*#__ENABLE_SCOPED__*/
     let propName: "onmousedown" | "onclick" | "open" | "write" = i ? "onmousedown" : "onclick"
     const setterName = ("set " + propName) as `set ${typeof propName}`
@@ -338,25 +327,7 @@ if (dataset && (
     const propDesc = OwnProp(HtmlElProto, propName)!
     ; (hookedFuncs as Writable<typeof hookedFuncs>)[i] = propDesc.set as OnEventSetter
     ; (hookedFuncs as Writable<typeof hookedFuncs>)[i + 1] = propDesc.set = proxy[setterName]
-    defineProp(HtmlElProto, propName, propDesc)
-    let _docFunc = i ? _docWrite : _docOpen
-    kEnableDocWriteGetter && defineProp(DocCls, i ? "write" : "open", {
-      enumerable: true, configurable: true,
-      set (newDocFunc) { _docFunc = newDocFunc },
-      get () {
-        const oriHref = Build.NDEBUG ? "" : dbgLoc.host && dbgLoc.pathname || dbgLoc.href
-        if (doc0.readyState > "l") {
-          if (hasKnownDocOpened === 1) {
-            Build.NDEBUG ? onDocOpen() : onDocOpen(i, oriHref)
-            hasKnownDocOpened = 2
-          }
-        } else if (hasKnownDocOpened !== 1) {
-          hasKnownDocOpened = 1
-          queueMicroTask_(Build.NDEBUG ? onDocOpen : () => { onDocOpen(i, oriHref) })
-        }
-        return _docFunc
-      }
-    })
+    Object.defineProperty(HtmlElProto, propName, propDesc)
   }
 } else if ((Build.BTypes & ~BrowserType.Chrome || Build.MinCVer < BrowserVer.MinCSAcceptWorldInManifest) && !delayed) {
   const listenOpt: EventListenerOptions = { capture: true, once: true }
