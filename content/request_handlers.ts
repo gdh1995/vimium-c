@@ -11,6 +11,7 @@ import {
   hasTag_, querySelector_unsafe_, isHTML_, createElement_, setClassName_s, onReadyState_,
   docEl_unsafe_, scrollIntoView_, CLK, ElementProto_not_ff, isIFrameElement, DAC, removeEl_s, toggleClass_s, getElDesc_
 } from "../lib/dom_utils"
+import { set_isOldZoom_, WithOldZoom } from "../lib/rect"
 import {
   onPortRes_, post_, safePost, set_requestHandlers, requestHandlers, hookOnWnd, set_hookOnWnd, onFreezePort,
   HookAction, contentCommands_, runFallbackKey, runtime_port, runtimeConnect, set_port_, setupBackupTimer_cr, send_,
@@ -47,6 +48,9 @@ set_requestHandlers([
     Build.OS & (Build.OS - 1) && set_os_(fgCache.o)
     if (OnChrome && Build.MinCVer < BrowserVer.MinEnsured$KeyboardEvent$$Key) {
       Build.OS !== kBOS.MAC as number && Build.OS & kBOS.MAC && !os_ && set_keyIdCorrectionOffset_old_cr_(300)
+    }
+    if (WithOldZoom && Build.BTypes & ~BrowserType.Edge) {
+      set_isOldZoom_(OnChrome ? chromeVer_ < BrowserVer.MinNewZoom : OnEdge)
     }
     if (OnChrome && Build.MinCVer < BrowserVer.MinNoKeygenElement && chromeVer_ < BrowserVer.MinNoKeygenElement
         || OnFirefox && Build.MinFFVer < FirefoxBrowserVer.MinNoKeygenElement

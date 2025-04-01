@@ -13,7 +13,7 @@ import {
 import {
   getVisibleClientRect_, getVisibleBoundingRect_, getClientRectsForAreas_, getCroppedRect_, boundingRect_,
   getBoundingClientRect_, cropRectToVisible_, bZoom_, set_bZoom_, prepareCrop_, wndSize_, isContaining_,
-  isDocZoomStrange_old_cr, docZoom_, dimSize_, ViewBox, getIFrameRect
+  isDocZoomStrange_old_cr, docZoom_, dimSize_, ViewBox, getIFrameRect, WithOldZoom
 } from "../lib/rect"
 import { find_box } from "./mode_find"
 import { omni_box } from "./omni"
@@ -461,14 +461,14 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
   //     },[aria-selected],[data-tab]`
   const tree_scopes: Array<typeof cur_scope> = [[cur_arr, 0
       , clickableSelector && createElementSet(querySelectorAll_unsafe_(clickableSelector, traverseRoot, 1)!) ]]
-  const localBZoom = bZoom_
+  const localOldBZoom = WithOldZoom ? bZoom_ : 1
   let cur_scope: [HintSources, number, IterableElementSet | null] | undefined, cur_tree: HintSources, cur_ind: number
   for (; cur_scope = tree_scopes.pop(); ) {
     for ([cur_tree, cur_ind, extraClickable_] = cur_scope; cur_ind < cur_tree.length; ) {
       const el: SafeElement = cur_tree[cur_ind++]
       if (Build.BTypes & BrowserType.Chrome && el === nextToBody_cr) {
         noClosedShadow = 0
-        if (localBZoom !== 1 && !traverseRoot) { set_bZoom_(1); prepareCrop_(1) }
+        if (localOldBZoom !== 1 && !traverseRoot) { set_bZoom_(1); prepareCrop_(1) }
       }
       if ("lang" in (el as ElementToHTML)) {
         filter(output, el as SafeHTMLElement)
@@ -648,7 +648,7 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
       && (OnChrome && Build.MinCVer >= BrowserVer.MinShadowDOMV0 || ui_root !== ui_box)
       && (Build.NDEBUG && (!OnChrome || Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1)
           ? !notWantVUI : !notWantVUI && ui_root.mode === "closed")) {
-    if (localBZoom !== 1 && !traverseRoot) { set_bZoom_(1); prepareCrop_(1) }
+    if (localOldBZoom !== 1 && !traverseRoot) { set_bZoom_(1); prepareCrop_(1) }
     cur_arr = querySelectorAll_unsafe_(selector, ui_root) as NodeListOf<SafeElement>
     if (OnChrome && Build.MinCVer < BrowserVer.MinEnsured$ForOf$ForDOMListTypes) {
       // eslint-disable-next-line @typescript-eslint/prefer-for-of
@@ -656,7 +656,7 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
     } else {
       for (const i of cur_arr as ArrayLike<Element> as Element[]) { htmlTag_<1>(i) && filter(output, i) }
     }
-    set_bZoom_(localBZoom)
+    WithOldZoom && set_bZoom_(localOldBZoom)
   }
   clickTypeFilter_ = 0
   return output
@@ -693,7 +693,7 @@ const isDescendant: (c: Element, p: Element, shouldBeSingleChild: BOOL) => boole
 
 export const filterOutNonReachable = (list: Hint[], notForAllClickable?: boolean | BOOL
     , useMatch?: HintsNS.Options["match"]): void | boolean => {
-  const zoom = OnChrome ? docZoom_ * bZoom_ : 1, zoomD2 = OnChrome ? zoom / 2 : 0.5, start = getTime(),
+  const zoom = WithOldZoom ? docZoom_ * bZoom_ : 1, zoomD2 = WithOldZoom ? zoom / 2 : 0.5, start = getTime(),
   body = doc.body, docEl = docEl_unsafe_(),
   // note: exclude the case of `fromPoint.contains(el)`, to exclude invisible items in lists
   does_hit: (x: number, y: number) => boolean = OnFirefox ? (x, y): boolean => {

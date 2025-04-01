@@ -13,6 +13,9 @@ export type Point2D = readonly [ left: number, top: number ]
 export type ViewBox = readonly [ left: number, top: number, width: number, height: number, maxLeft: number ]
 export type ViewOffset = readonly [ left: number, top: number ] | ViewBox
 
+const WithOldZoom = !!(Build.BTypes & BrowserType.Chrome) && Build.MinCVer < BrowserVer.MinNewZoom
+    || !!(Build.BTypes & BrowserType.Edge)
+let isOldZoom_: BOOL | boolean = Build.BTypes & ~BrowserType.Edge ? 0 : 1
 let paintBox_: [number, number] | null = null // it may need to use `paintBox[] / <body>.zoom`
 let wdZoom_ = 1 // <html>.zoom * min(devicePixelRatio, 1) := related to physical pixels
 let docZoom_ = 1 // zoom of <html>
@@ -26,11 +29,12 @@ let scrollingTop: SafeElement | null = null
 
 export {
   paintBox_, wdZoom_, docZoom_, isDocZoomStrange_old_cr, dScale_, bScale_, bZoom_, scrollingTop, cropNotReady_,
-  vright as viewportRight
+  vright as viewportRight, WithOldZoom, isOldZoom_
 }
 export function set_bZoom_ (_newBZoom: number): void { bZoom_ = _newBZoom }
 export function set_scrollingTop (newScrollingTop: SafeElement | null): void { scrollingTop = newScrollingTop }
 export function set_cropNotReady_ (newCropNotReady: 1 | 2): void { cropNotReady_ = newCropNotReady }
+export function set_isOldZoom_ (_newIsOldZoom: typeof isOldZoom_): void { isOldZoom_ = _newIsOldZoom }
 
 export const wndSize_ = (id?: 0 | 1 | 2): number => id ? id < 2 ? innerWidth : devicePixelRatio : innerHeight as number
 
@@ -294,7 +298,7 @@ let _getPageZoom_old_cr = OnChrome && Build.MinCVer < BrowserVer.MinDevicePixelR
   return pageZoom || docElZoom
 } as (docElZoom: number, devRatio: number, docEl: Element) => number : 0 as never as null
 
-const elZoom_ = (st: CSSStyleDeclaration): number => st && st.display !== NONE && +st.zoom || 1
+export const elZoom_ = (st: CSSStyleDeclaration | null): number => st && st.display !== NONE && +st.zoom || 1
 
 /**
  * also update docZoom_
@@ -306,7 +310,7 @@ export const getZoom_ = !OnFirefox ? function (target?: 1 | SafeElement): void {
     , el: Element | null = fullscreenEl_unsafe_()
   OnChrome && Build.MinCVer < BrowserVer.MinDevicePixelRatioNotImplyZoomOfDocEl
       && (zoom = _fixDocZoom_old_cr!(zoom, docEl, ratio))
-  if (target) {
+  if (WithOldZoom && isOldZoom_ && target) {
     const body = el ? null : doc.body
     // if fullscreen and there's nested "contain" styles,
     // then it's a whole mess and nothing can be ensured to be right
@@ -330,7 +334,7 @@ export const getViewBox_ = function (needBox?: 1 | /** dialog-or-popover-found *
   const ratio = wndSize_(2), round = math.round, float = parseFloat,
   box = docEl_unsafe_()!, st = getComputedStyle_(box),
   box2 = doc.body, st2 = box2 ? getComputedStyle_(box2) : st,
-  zoom2 = !OnFirefox ? bZoom_ = elZoom_(st2) : 1,
+  zoom2o = WithOldZoom ? bZoom_ = isOldZoom_ && box2 ? elZoom_(st2) : 1 : 1,
   docContain = OnChrome && Build.MinCVer < BrowserVer.MinEnsuredCSSEnableContain
       || OnFirefox && Build.MinFFVer < FirefoxBrowserVer.MinEnsuredCSSEnableContain ? st.contain || "" : st.contain!,
   // bodyNotPropagateOut = OnChrome && docContain !== "none",
@@ -364,8 +368,8 @@ export const getViewBox_ = function (needBox?: 1 | /** dialog-or-popover-found *
   x = x * ltScale - rect.l
   y = y * ltScale - rect.t
   // note: `Math.abs(y) < 0.01` supports almost all `0.01 * N` (except .01, .26, .51, .76)
-  x = x * x < 1e-4 ? 0 : math.ceil(round(x / zoom2 * 100) / 100)
-  y = y * y < 1e-4 ? 0 : math.ceil(round(y / zoom2 * 100) / 100)
+  x = x * x < 1e-4 ? 0 : math.ceil(WithOldZoom ? round(x / zoom2o * 100) / 100 : x)
+  y = y * y < 1e-4 ? 0 : math.ceil(WithOldZoom ? round(y / zoom2o * 100) / 100 : y)
   if (!OnFirefox) {
     iw /= zoom, ih /= zoom
   }
@@ -379,17 +383,17 @@ export const getViewBox_ = function (needBox?: 1 | /** dialog-or-popover-found *
   xScrollable = !nonScrollableRe.test("" + st.overflowX + (notPropagate ? "" : st2.overflowX)),
   yScrollable = !nonScrollableRe.test("" + st.overflowY + (notPropagate ? "" : st2.overflowY))
   if (xScrollable) {
-    mw += 64 * zoom2
+    mw += 64 * (WithOldZoom ? zoom2o : 1)
     iw = paintingLimited ? iw : sEl && (dimSize_(sEl, kDim.scrollW) - scrollX) / zoom
         || max_(iw - GlobalConsts.MaxScrollbarWidth / zoom, rect.r)
   }
   if (yScrollable) {
-    mh += 20 * zoom2
+    mh += 20 * (WithOldZoom ? zoom2o : 1)
     ih = paintingLimited ? ih : sEl && (dimSize_(sEl, kDim.scrollH) - scrollY) / zoom
         || max_(ih - GlobalConsts.MaxScrollbarWidth / zoom, rect.b)
   }
   iw = iw < mw ? iw : mw, ih = ih < mh ? ih : mh
-  iw = (iw / zoom2) | 0, ih = (ih / zoom2) | 0
+  if (WithOldZoom) { iw = (iw / zoom2o) | 0, ih = (ih / zoom2o) | 0 } else { iw |= 0, ih |= 0 }
   if (Build.BTypes === BrowserType.Chrome as number&&Build.MinCVer >= BrowserVer.MinAbsolutePositionNotCauseScrollbar) {
     return [x, y, iw, yScrollable ? ih - GlobalConsts.MaxHeightOfLinkHintMarker : ih] as unknown as ViewBox
   }

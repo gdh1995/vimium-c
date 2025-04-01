@@ -35,7 +35,7 @@ import {
 import {
   scrollWndBy_, wndSize_, getZoom_, wdZoom_, bZoom_, isNotInViewport, prepareCrop_, boundingRect_, instantScOpt,
   getBoundingClientRect_, getVisibleBoundingRect_, getVisibleClientRect_, dimSize_, scrollingTop, set_scrollingTop,
-  isSelARange, cropNotReady_, set_cropNotReady_
+  isSelARange, cropNotReady_, set_cropNotReady_, WithOldZoom, isOldZoom_, elZoom_
 } from "../lib/rect"
 import {
   getParentVApi, resetSelectionToDocStart, checkHidden, addElementList, curModalElement, removeModal
@@ -625,7 +625,8 @@ export const getPixelScaleToScroll = (skipGetZoom?: 1): void => {
      * Firefox is still using `int`: https://bugzilla.mozilla.org/show_bug.cgi?id=1217330 (filed on 2015-10-22)
      */
   skipGetZoom || getZoom_(1)
-  scale = (OnFirefox ? 2 : 1) / min_(1, wdZoom_) / min_(1, bZoom_)
+  const localBZoom: number = WithOldZoom && isOldZoom_ ? bZoom_ : elZoom_(doc.body && getComputedStyle_(doc.body))
+  scale = (OnFirefox ? 2 : 1) / min_(1, wdZoom_) / min_(1, localBZoom)
 }
 
 const checkCurrent = (el: SafeElement | null): void => {

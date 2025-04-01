@@ -4,7 +4,7 @@ import {
   clearTimeout_, promiseDefer_, OnEdge, urlSameIgnoringHash, firefoxVer_, runtime_ff, keydownEvents_, findOptByHost
 } from "../lib/utils"
 import {
-  getVisibleClientRect_, center_, view_, selRange_, bZoom_, set_bZoom_, getZoom_, prepareCrop_
+  getVisibleClientRect_, center_, view_, selRange_, bZoom_, set_bZoom_, getZoom_, prepareCrop_, WithOldZoom
 } from "../lib/rect"
 import {
   IsAInB_, createElement_, htmlTag_, getComputedStyle_, getEditableType_, isIFrameElement, GetParent_unsafe_, focus_,
@@ -599,7 +599,7 @@ const doPostAction = (): Rect | null => {
   if (IsAInB_(clickEl)) {
     getZoom_(clickEl)
     prepareCrop_()
-    if (!OnFirefox && bZoom_ !== 1 && doc.body && !IsAInB_(clickEl, doc.body)) { set_bZoom_(1) }
+    if (WithOldZoom && bZoom_ !== 1 && doc.body && !IsAInB_(clickEl, doc.body)) { set_bZoom_(1) }
     clickEl = findNextTargetEl(hintOptions.autoParent, kNextTarget.parent) || clickEl
     clickEl = findNextTargetEl(hintOptions.autoChild, kNextTarget.child) || clickEl
     realClickEl = mode1_ < HintMode.max_mouse_events+1 && findNextTargetEl(hintOptions.doClickOn, kNextTarget.realClick)
