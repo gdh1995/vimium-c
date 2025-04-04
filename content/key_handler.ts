@@ -151,7 +151,14 @@ export const checkKey = ((event: HandlerNS.Event, key: string
         result = HandlerResult.Nothing
       }
     } else {
-      nextKeys = keyFSM
+      const numPrefix = parseInt(key, 10);
+      if (!isNaN(numPrefix) && numPrefix >= 0 && numPrefix <= 9) {
+        nextKeys = keyFSM;
+        const digitPattern = new RegExp('^\\d+');
+        currentKeys = (currentKeys.match(digitPattern) || [''])[0] + numPrefix;
+      } else {
+        nextKeys = keyFSM;
+      }
     }
   }
   return result
