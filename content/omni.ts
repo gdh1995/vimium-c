@@ -1,14 +1,16 @@
 /// <reference path="../lib/base.omni.d.ts" />
 import {
-  isAlive_, keydownEvents_, readyState_, timeout_, clearTimeout_, recordLog, chromeVer_, math, OnChrome,
-  interval_, locHref, vApi, createRegExp, safer, isTop, OnFirefox, OnEdge, safeCall, WithDialog, VTr, firefoxVer_, min_, isAsContent
+  isAlive_, keydownEvents_, readyState_, timeout_, clearTimeout_, recordLog, chromeVer_, math, OnChrome, isAsContent,
+  interval_, locHref, vApi, createRegExp, safer, isTop, OnFirefox, OnEdge, safeCall, WithDialog, VTr, firefoxVer_, min_
 } from "../lib/utils"
 import { removeHandler_, replaceOrSuppressMost_, getMappedKey, isEscape_ } from "../lib/keyboard_utils"
 import {
   isHTML_, fullscreenEl_unsafe_, setDisplaying_s, createElement_, removeEl_s, setClassName_s, setOrRemoveAttr_s,
   toggleClass_s, doesSupportDialog, hasInCSSFilter_, appendNode_s, frameElement_
 } from "../lib/dom_utils"
-import { getViewBox_, docZoom_, dScale_, prepareCrop_, bZoom_, wndSize_, viewportRight } from "../lib/rect"
+import {
+  getViewBox_, docZoom_, dScale_, prepareCrop_, bZoom_, wndSize_, viewportRight, WithOldZoom, isOldZoom_, docZoomNew_
+} from "../lib/rect"
 import { beginScroll, scrollTick } from "./scroller"
 import {
   getSelectionText, adjustUI, setupExitOnClick, addUIElement, getParentVApi, evalIfOK, checkHidden, kExitOnClick,
@@ -272,8 +274,8 @@ const refreshKeyHandler = (): void => {
   // `canUseVW` is computed for the gulp-built version of vomnibar.html
   const canUseVW = (!OnChrome || Build.MinCVer >= BrowserVer.MinCSSWidthUnit$vw$InCalc
           || chromeVer_ > BrowserVer.MinCSSWidthUnit$vw$InCalc - 1)
-      && notInFullScreen && docZoom_ === 1 && dScale_ === 1
-  const width = canUseVW ? wndSize_(1) : (prepareCrop_(), OnFirefox ? viewportRight : viewportRight * docZoom_ * bZoom_)
+      && notInFullScreen && (WithOldZoom && isOldZoom_ ? docZoom_ === 1 && dScale_ === 1 : docZoomNew_ === 1)
+  const width = canUseVW ? wndSize_(1) : (prepareCrop_(), WithOldZoom ? viewportRight * docZoom_*bZoom_ : viewportRight)
   options.w = [width, screenHeight, scale]
   if (!(Build.NDEBUG || Status.Inactive - Status.NotInited === 1)) {
     console.log("Assert error: Status.Inactive - Status.NotInited === 1")

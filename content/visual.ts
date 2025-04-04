@@ -46,7 +46,7 @@ import {
   getDirectionOfNormalSelection, selOffset_, modifySel, parentNode_unsafe_s, textOffset_, inputSelRange
 } from "../lib/dom_utils"
 import {
-  prepareCrop_, cropRectToVisible_, getVisibleClientRect_, set_scrollingTop, selRange_, cropRectS_
+  prepareCrop_, cropRectToVisible_, getVisibleClientRect_, set_scrollingTop, selRange_, cropRectS_, getViewBox_
 } from "../lib/rect"
 import {
   getSelectionBoundingBox_, doesSelectRightInEditableLock,
@@ -735,6 +735,7 @@ const ensureLine = (command1: number, s0: string): void => {
 
     checkDocSelectable();
     set_scrollingTop(scrollingEl_(1))
+    getViewBox_()
     getPixelScaleToScroll()
     curSelection = getSelected(initialScope)
     let scope = initialScope.r as Exclude<typeof initialScope.r, undefined>, diff: number

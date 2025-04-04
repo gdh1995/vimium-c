@@ -7,7 +7,7 @@ import {
   HintItem, FilteredHintItem, MarkerElement, HintText, isHC_,
   hintMode_, useFilter_, hintKeyStatus, KeyStatus, hintChars, allHints, setMode, resetMode, hintOptions
 } from "./link_hints"
-import { bZoom_, boundingRect_, dimSize_,  } from "../lib/rect"
+import { bZoom_, boundingRect_, dimSize_, WithOldZoom,  } from "../lib/rect"
 import { BSP, DEL, ENTER, SPC } from "../lib/keyboard_utils"
 import { ClickType, closableClasses_, maxLeft_, maxRight_, maxTop_ } from "./local_links"
 import { ui_root } from "./dom_ui"
@@ -54,18 +54,19 @@ export const createHint = (link: Hint): HintItem => {
   };
 }
 
-export const adjustMarkers = (arr: readonly HintItem[], elements: readonly Hint[]): void => {
+export const adjustMarkers_old_cr_edge = !WithOldZoom ? 0 as never
+    : (arr: readonly HintItem[], elements: readonly Hint[]): void => {
   const zi = bZoom_;
   let i = arr.length - 1;
   if (!ui_root || i < 0 || arr[i].d !== omni_box && !querySelector_unsafe_("#HDlg", ui_root)) { return }
-  const z = !OnFirefox ? ("" + 1 / zi).slice(0, 5) : "",
+  const z = ("" + 1 / zi).slice(0, 7),
   mr = !OnChrome || Build.MinCVer < BrowserVer.MinAbsolutePositionNotCauseScrollbar
       ? maxRight_ * zi : 0,
   mt = !OnChrome || Build.MinCVer < BrowserVer.MinAbsolutePositionNotCauseScrollbar
       ? maxTop_ * zi : 0;
   while (0 <= i && ui_root.contains(arr[i].d)) {
     let st = arr[i--].m.style;
-    OnFirefox || (st.zoom = z)
+    st.zoom = z
     if (OnChrome && Build.MinCVer >= BrowserVer.MinAbsolutePositionNotCauseScrollbar) {
       continue;
     }

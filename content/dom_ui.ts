@@ -16,7 +16,7 @@ import {
 import {
   bZoom_, dScale_, getZoom_, wdZoom_, boundingRect_, prepareCrop_, getClientRectsForAreas_, getVisibleBoundingRect_,
   getVisibleClientRect_, getBoundingClientRect_, padClientRect_, isContaining_, cropRectS_, getCroppedRect_,
-  setBoundary_, wndSize_, dimSize_, selRange_, isSelARange, ViewOffset
+  setBoundary_, wndSize_, dimSize_, selRange_, isSelARange, ViewOffset, WithOldZoom, docZoomNew_
 } from "../lib/rect"
 import { currentScrolling } from "./scroller"
 import { find_box, styleSelectable } from "./mode_find"
@@ -134,7 +134,7 @@ export const addElementList = function <TopType extends BOOL | 3> (
     const parent = createElement_(WithDialog && useDialog ? "dialog"
         : OnChrome && Build.MinCVer < BrowserVer.MinForcedColorsMode ? getBoxTagName_old_cr() : "div");
     const style = parent.style
-    const cls = "R HM" + fgCache.d, zoom = bZoom_ / (WithDialog && onTop ? 1 : dScale_)
+    const cls = "R HM" + fgCache.d, zoom = (WithOldZoom ? bZoom_ : 1) / (WithDialog && onTop ? docZoomNew_ : dScale_)
     let innerBox: HTMLDivElement | HTMLBodyElement | HTMLDialogElement | undefined = parent
     let i = 0
     setClassName_s(parent, WithDialog && useDialog ? cls + " DLG" : cls)
@@ -475,8 +475,7 @@ export const flash_ = function (el: SafeElement | null, rect?: Rect | null, life
     nfs = knownViewOffset ? 2 : <BOOL> <BOOL | boolean> +!fullscreenEl_unsafe_()
     setClassName_s(flashEl, "R Flash" + (classNames || "")
         + (setBoundary_(flashEl.style, rect, nfs, knownViewOffset, 8) ? " AbsF" : ""))
-    OnChrome &&
-    bZoom_ !== 1 && nfs && (flashEl.style.zoom = "" + bZoom_);
+    WithOldZoom && bZoom_ !== 1 && nfs && (flashEl.style.zoom = "" + bZoom_);
     addUIElement(flashEl, AdjustType.DEFAULT)
     lastFlashEl = flashEl
     const remove = (): void => {

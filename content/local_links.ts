@@ -7,7 +7,7 @@ import {
   isIFrameElement, uneditableInputs_, getComputedStyle_, queryHTMLChild_, htmlTag_, isAriaFalse_,  joinValidSelectors,
   kMediaTag, NONE, querySelector_unsafe_, isStyleVisible_, fullscreenEl_unsafe_, isSafeEl_, docEl_unsafe_,
   GetParent_unsafe_, unsafeFramesetTag_old_cr_, isHTML_, querySelectorAll_unsafe_, isNode_, INP, attr_s, supportInert_,
-  getMediaTag, getMediaUrl, contains_s, GetShadowRoot_, parentNode_unsafe_s, testMatch, hasTag_, editableTypes_,
+  getMediaTag, getMediaUrl, contains_s, GetShadowRoot_, parentNode_unsafe_s, testMatch, hasTag_,
   getRootNode_mounted, findSelectorByHost, TryGetShadowRoot_
 } from "../lib/dom_utils"
 import {
@@ -384,7 +384,7 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
   }
 }
 
-  const wantClickable = filter === getClickable,
+  const wantClickable = filter === getClickable, localOldBZoom = WithOldZoom ? bZoom_ : 1,
   isInAnElement = !Build.NDEBUG && !!wholeDoc && wholeDoc !== 1 && wholeDoc.tagName != null,
   traverseRoot = !wholeDoc ? fullscreenEl_unsafe_() : !Build.NDEBUG && isInAnElement && wholeDoc || null
   let matchSelector = options.match || null,
@@ -400,7 +400,7 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
         selector = VTr(kTip.editableSelector) + (clickableSelector ? "," + clickableSelector : ""))
       , traverseRoot, matchSelector, 1) || (matchSelector = " ", [])
   const docBody_cr = OnChrome ? doc.body : null as never,
-  may_nextToBody_cr = OnChrome && matchAll && noClosedShadow && !wholeDoc && !traverseRoot && bZoom_ === 1
+  may_nextToBody_cr = OnChrome && matchAll && noClosedShadow && !wholeDoc && !traverseRoot && localOldBZoom === 1
       && rawClosedShadow_cr == null && docBody_cr && isSafeEl_(docBody_cr)
       && (Build.MinCVer >= BrowserVer.Min$dom$$openOrClosedShadowRoot
           || chromeVer_>BrowserVer.Min$dom$$openOrClosedShadowRoot-1) && docBody_cr.nextElementSibling as Element|null,
@@ -409,7 +409,7 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
   set_evenHidden_(options.evenIf! | (options.scroll === "force" ? kHidden.OverflowHidden : 0))
   initTestRegExps()
   if (wantClickable) {
-    getPixelScaleToScroll(1)
+    getPixelScaleToScroll()
     clickTypeFilter_ = options.typeFilter! | 0
   }
   if (matchSelector) {
@@ -461,7 +461,6 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
   //     },[aria-selected],[data-tab]`
   const tree_scopes: Array<typeof cur_scope> = [[cur_arr, 0
       , clickableSelector && createElementSet(querySelectorAll_unsafe_(clickableSelector, traverseRoot, 1)!) ]]
-  const localOldBZoom = WithOldZoom ? bZoom_ : 1
   let cur_scope: [HintSources, number, IterableElementSet | null] | undefined, cur_tree: HintSources, cur_ind: number
   for (; cur_scope = tree_scopes.pop(); ) {
     for ([cur_tree, cur_ind, extraClickable_] = cur_scope; cur_ind < cur_tree.length; ) {
@@ -644,7 +643,7 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
       })
     }
   }
-  if (!OnFirefox && !OnEdge && ui_root && !wholeDoc && (!OnChrome || noClosedShadow === 1)
+  if (!OnFirefox && !OnEdge && ui_root && !wholeDoc && (!OnChrome || noClosedShadow)
       && (OnChrome && Build.MinCVer >= BrowserVer.MinShadowDOMV0 || ui_root !== ui_box)
       && (Build.NDEBUG && (!OnChrome || Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1)
           ? !notWantVUI : !notWantVUI && ui_root.mode === "closed")) {
@@ -712,7 +711,7 @@ export const filterOutNonReachable = (list: Hint[], notForAllClickable?: boolean
                 BrowserVer.Min$DocumentOrShadowRoot$$elementsFromPoint // lgtm [js/syntax-error]
               ? BrowserVer.Min$Node$$getRootNode // lgtm [js/syntax-error]
               : BrowserVer.Min$DocumentOrShadowRoot$$elementsFromPoint) // lgtm [js/syntax-error]
-      || OnChrome && Build.MinCVer < BrowserVer.MinDevicePixelRatioNotImplyZoomOfDocEl
+      || OnChrome && Build.MinCVer < BrowserVer.MinEnsuredUseZoomForDSF
           && isDocZoomStrange_old_cr && docZoom_ - 1) { // lgtm [js/syntax-error]
     return
   }
@@ -749,11 +748,11 @@ export const filterOutNonReachable = (list: Hint[], notForAllClickable?: boolean
         : mediaTag === kMediaTag.otherMedias || !tag && (el as ElementToSVG).ownerSVGElement) {
       continue;
     }
-    if (hasInert && !editableTypes_[tag] && el.closest!("[inert]")) { continue }
     if (tag === "label" && hasTag_(INP, fromPoint!) && (el as HTMLLabelElement).control === fromPoint!) {
       useMatch || (list[i][0] = fromPoint! as HTMLInputElement)
       continue
     }
+    if (hasInert && el.closest!("[inert]")) { continue }
     const small = area.r - area.l < 17 || area.b - area.t < 17
     if (!hasTable) {
       hasTable = OnChrome && Build.MinCVer < BrowserVer.Min$Element$$closest
@@ -781,10 +780,10 @@ export const filterOutNonReachable = (list: Hint[], notForAllClickable?: boolean
         temp = temp !== fromPoint && contains_s(el, temp) ? el : temp
       }
       temp === el
-      || !small && (does_hit(cx, Build.BTypes & BrowserType.Chrome ? (area.t+2) * zoom : area.t + 2) // x=center, y=top
-            || does_hit(cx, Build.BTypes & BrowserType.Chrome ? (area.b - 4) * zoom : area.b - 4) // x=center, y=bottom
-            || does_hit(Build.BTypes & BrowserType.Chrome ? (area.l + 2) * zoom : area.l + 2, cy) // x=left, y=center
-            || does_hit(Build.BTypes & BrowserType.Chrome ? (area.r - 4) * zoom : area.r - 4, cy)) // x=right, y=center
+      || !small && (does_hit(cx, WithOldZoom ? (area.t+2) * zoom : area.t + 2) // x=center, y=top
+            || does_hit(cx, WithOldZoom ? (area.b - 4) * zoom : area.b - 4) // x=center, y=bottom
+            || does_hit(WithOldZoom ? (area.l + 2) * zoom : area.l + 2, cy) // x=left, y=center
+            || does_hit(WithOldZoom ? (area.r - 4) * zoom : area.r - 4, cy)) // x=right, y=center
       || list.splice(i, 1);
     }
   }

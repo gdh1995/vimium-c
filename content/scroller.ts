@@ -35,7 +35,7 @@ import {
 import {
   scrollWndBy_, wndSize_, getZoom_, wdZoom_, bZoom_, isNotInViewport, prepareCrop_, boundingRect_, instantScOpt,
   getBoundingClientRect_, getVisibleBoundingRect_, getVisibleClientRect_, dimSize_, scrollingTop, set_scrollingTop,
-  isSelARange, cropNotReady_, set_cropNotReady_, WithOldZoom, isOldZoom_, elZoom_
+  isSelARange, cropNotReady_, set_cropNotReady_, WithOldZoom, getViewBox_, dScale_, bScale_, isOldZoom_
 } from "../lib/rect"
 import {
   getParentVApi, resetSelectionToDocStart, checkHidden, addElementList, curModalElement, removeModal
@@ -421,6 +421,7 @@ export const executeScroll: VApiTy["c"] = function (di: ScrollByY, amount0: numb
     set_cropNotReady_(1)
     set_scrollingTop(scrollingEl_(1))
     if (scrollingTop) {
+      getViewBox_()
       getPixelScaleToScroll()
     }
     const outer = options && +options.outer! || 0
@@ -619,14 +620,14 @@ const findScrollable = (di: ScrollByY, amount: number, outer: number
     return element && !isSafeEl_(element) ? null : element
 }
 
-export const getPixelScaleToScroll = (skipGetZoom?: 1): void => {
+/** require `getViewBox_()` before it */
+export const getPixelScaleToScroll = (): void => {
     /** https://drafts.csswg.org/cssom-view/#dom-element-scrolltop
      * Imported on 2013-05-15 by https://github.com/w3c/csswg-drafts/commit/ad01664359641f791d99f0b3fce545b55579acdc
      * Firefox is still using `int`: https://bugzilla.mozilla.org/show_bug.cgi?id=1217330 (filed on 2015-10-22)
      */
-  skipGetZoom || getZoom_(1)
-  const localBZoom: number = WithOldZoom && isOldZoom_ ? bZoom_ : elZoom_(doc.body && getComputedStyle_(doc.body))
-  scale = (OnFirefox ? 2 : 1) / min_(1, wdZoom_) / min_(1, localBZoom)
+  scale = (OnFirefox ? 2 : 1) / min_(1, WithOldZoom && isOldZoom_ ? wdZoom_ * dScale_ : wndSize_(2) * dScale_)
+      / min_(1, WithOldZoom ? bZoom_ * bScale_ : bScale_)
 }
 
 const checkCurrent = (el: SafeElement | null): void => {

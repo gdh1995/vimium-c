@@ -95,7 +95,7 @@ import {
 } from "../lib/dom_utils"
 import {
   ViewBox, getViewBox_, prepareCrop_, wndSize_, bZoom_, dScale_, boundingRect_, getZoom_, set_cropNotReady_,
-  docZoom_, bScale_, dimSize_, isSelARange, view_, isNotInViewport, kInvisibility,
+  docZoom_, bScale_, dimSize_, isSelARange, view_, isNotInViewport, kInvisibility, WithOldZoom
 } from "../lib/rect"
 import {
   replaceOrSuppressMost_, removeHandler_, getMappedKey, keybody_, isEscape_, getKeyStat_, keyNames_, suppressTail_,
@@ -116,7 +116,8 @@ import {
 } from "./local_links"
 import {
   matchHintsByKey, zIndexes_, rotate1, initFilterEngine, initAlphabetEngine, renderMarkers, generateHintText,
-  getMatchingHints, activeHint_, hintFilterReset, set_maxPrefixLen_, set_zIndexes_, adjustMarkers, createHint
+  getMatchingHints, activeHint_, hintFilterReset, set_maxPrefixLen_, set_zIndexes_, adjustMarkers_old_cr_edge,
+  createHint
 } from "./hint_filters"
 import { executeHintInOfficer, removeFlash, set_removeFlash } from "./link_actions"
 import { hover_async, lastHovered_ } from "./async_dispatcher"
@@ -286,7 +287,7 @@ const collectFrameHints = (options: ContentOptions, count: number
     const elements = /*#__NOINLINE__*/ getVisibleElements(view)
     const hintItems = elements.map(createHint);
     addChildFrame_ = null
-    bZoom_ !== 1 && /*#__NOINLINE__*/ adjustMarkers(hintItems, elements);
+    WithOldZoom && bZoom_ !== 1 && /*#__NOINLINE__*/ adjustMarkers_old_cr_edge(hintItems, elements);
     for (let i = useFilter ? hintItems.length : 0; 0 <= --i; ) {
       hintItems[i].h = generateHintText(elements[i], i, hintItems)
     }
@@ -336,14 +337,15 @@ export const setMode = (mode: HintMode, silent?: BOOL): void => {
 
 const getPreciseChildRect = (frameEl: KnownIFrameElement, view: Rect): Rect | null => {
     const V = "visible", brect = boundingRect_(frameEl), // not check <iframe>s referred by <slot>s
-    docEl = docEl_unsafe_(), body = doc.body, inBody = !!body && IsAInB_(frameEl as SafeHTMLElement, body),
-    zoom = (OnChrome ? docZoom_ * (inBody ? bZoom_ : 1) : 1) / dScale_ / (inBody ? bScale_ : 1);
+    docEl = docEl_unsafe_()!, body = doc.body, inBody = !!body && IsAInB_(frameEl, body),
+    totalScale = inBody ? dScale_ * bScale_ : dScale_,
+    zoom = (WithOldZoom ? docZoom_ * (inBody ? bZoom_ : 1) : 1) / totalScale
     let x0 = min_(view.l, brect.l), y0 = min_(view.t, brect.t), l = x0, t = y0, r = view.r, b = view.b
     for (let el: Element | null = frameEl; el = GetParent_unsafe_(el, PNType.RevealSlotAndGotoParent); ) {
       const st = getComputedStyle_(el);
       if (st.overflow !== V) {
         let outer = boundingRect_(el), hx = st.overflowX !== V, hy = st.overflowY !== V,
-        scale = el !== docEl && inBody ? dScale_ * bScale_ : dScale_;
+        scale = el !== docEl ? totalScale : dScale_
         /** Note: since `el` is not safe, `dimSize_(el, *)` may returns `NaN` */
         hx && (l = max_(l, outer.l), r = l + min_(r - l, outer.r - outer.l
               , hy && dimSize_(el as SafeElement, kDim.elClientW) * scale || r))

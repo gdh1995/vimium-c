@@ -600,6 +600,7 @@ declare const enum BrowserVer {
   // A 1st showing may be delayed randomly since 102, and mostly on C107
   // The usage of ThrottleDisplayNoneAndVisibilityHiddenCrossOriginIframesEnabled in 102-107 is updated during 101
   MinLatencyOnVomnibarShowWithDisplayNone = 102, // even if LEGACY
+  MinEnsuredUseZoomForDSF = 102, // tested on Win11; simplify the bug of MinDevicePixelRatioImplyZoomOfDocEl
   MinInjectImmediatelyInMV3 = 102,
   MinOptionalHostPermissionInMV3 = 102,
   MinRegisterContentScriptsWorldInMV3 = 102,
@@ -622,7 +623,7 @@ declare const enum BrowserVer {
   MinMaybeMouseenter$composed$IsFalse = 115, // if EXP
   MinMouseenter$composed$IsFalse = 116, // said in https://chromestatus.com/features#milestone%3D116
   MinNoDownloadBubbleFlag = 117,
-  MinDevicePixelRatioNotImplyZoomOfDocEl = 117, // even if EXP or LEGACY; fix MinASameZoomOfDocElAsdevPixRatioWorksAgain
+  MinDevicePixelRatioNotImplyZoomOfDocEl = 117, // even if EXP or LEGACY; fix MinDevicePixelRatioImplyZoomOfDocEl
   MinNew$URL$NotDecodePathname = 118,
   Min$ScrollBehavior$$Instant$InScrollIntoView = 121, // even if EXP or LEGACY
   MinEnsured$select$$showPicker = 121, // since 119 if EXP

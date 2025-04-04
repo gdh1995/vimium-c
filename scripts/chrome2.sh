@@ -330,12 +330,12 @@ test -d "$UD" || mkdir -p "$UD" || exit $?
 echo -E Run: "${exe_w}" at ${ud_w} with "${vc_ext_w}"
 $RUN "$EXE" \
   --user-data-dir="${ud_w}" \
-  --no-first-run --disable-default-apps\
+  --no-first-run --disable-default-apps \
    --disable-sync --no-default-browser-check \
   --load-extension="${vc_ext_w}${OTHER_EXT}" \
   --homepage ${HOME_PAGE:-chrome-extension://hfjbmagddngcpeloejdejnfgbamkjaeg/pages/options.html} \
   --disable-office-editing-component-extension \
   --disable-extensions-file-access-check \
-  --disable-component-update \
+  --disable-component-update --simulate-update-hresult \
   $OTHER_ARGS \
   --start-maximized $FLAGS "$@"
