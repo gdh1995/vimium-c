@@ -23,22 +23,22 @@ interface ElementScrollInfo {
 
 import {
   isAlive_, setupEventListener, timeout_, clearTimeout_, fgCache, doc, noRAF_old_cr_, readyState_, chromeVer_,
-  vApi, weakRef_not_ff, max_, math, min_, Lower, OnChrome, OnFirefox, OnEdge, WithDialog,
+  vApi, weakRef_not_ff, max_, math, min_, Lower, OnChrome, OnFirefox, OnEdge,
   isTop, injector, isTY, promiseDefer_, weakRef_ff, Stop_, abs_, queueTask_
 } from "../lib/utils"
 import {
   rAF_, scrollingEl_, SafeEl_not_ff_, docEl_unsafe_, NONE, frameElement_, OnDocLoaded_, GetParent_unsafe_, elFromPoint_,
   querySelector_unsafe_, getComputedStyle_, isSafeEl_, HDN, isRawStyleVisible, fullscreenEl_unsafe_, getEventPath,
-  doesSupportDialog, attr_s, getSelection_, isIFrameElement, derefInDoc_, isHTML_, IsAInB_, getRootNode_mounted,
-  getEditableType_, dispatchAsync_, newEvent_, findSelectorByHost, dispatchEvent_
+  withoutToplevel_, attr_s, getSelection_, isIFrameElement, derefInDoc_, isHTML_, IsAInB_, getRootNode_mounted,
+  getEditableType_, dispatchAsync_, newEvent_, findSelectorByHost, dispatchEvent_, MayWoTopLevel
 } from "../lib/dom_utils"
 import {
   scrollWndBy_, wndSize_, getZoom_, wdZoom_, bZoom_, isNotInViewport, prepareCrop_, boundingRect_, instantScOpt,
   getBoundingClientRect_, getVisibleBoundingRect_, getVisibleClientRect_, dimSize_, scrollingTop, set_scrollingTop,
-  isSelARange, cropNotReady_, set_cropNotReady_, WithOldZoom, getViewBox_, dScale_, bScale_, isOldZoom_
+  isSelARange, cropNotReady_, set_cropNotReady_, WithOldZoom, getViewBox_, dScale_, bScale_
 } from "../lib/rect"
 import {
-  getParentVApi, resetSelectionToDocStart, checkHidden, addElementList, curModalElement, removeModal
+  getParentVApi, resetSelectionToDocStart, checkHidden, addElementList, ourDialogEl_, removeDialog_
 } from "./dom_ui"
 import { isCmdTriggered } from "./key_handler"
 import { detectUsableChild, hint_box, tryNestedFrame } from "./link_hints"
@@ -234,7 +234,6 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
       rAF_(animate)
     }
   },
-  domFeatures: 0 | 1 | 2 | 3 = 0,
   awaitAndAnimate = (): number => rAF_(() => rAF_(() => rAF_(animate))),
   resumeAnimation = (): void => {
     padding = 0
@@ -258,14 +257,10 @@ let performAnimate = (newEl: SafeElement | null, newDi: ScrollByY, newAmount: nu
     const P = "pointerEvents"
     let el: SafeElement & ElementToHTMLOrForeign | HTMLElement | null
     let style: CSSStyleDeclaration | null | undefined
-    if (!(OnChrome && Build.MinCVer >= BrowserVer.MinEnsuredHTMLDialogElement) && !domFeatures && isHTML_()) {
-      domFeatures = // here should not use inert - it affects too many DOM APIs
-          OnChrome && Build.MinCVer >= BrowserVer.MinEnsuredHTMLDialogElement || WithDialog && doesSupportDialog() ? 2
-          : 1
-    }
     if (!isHTML_()) { /* empty */ }
-    else if (OnChrome && Build.MinCVer >= BrowserVer.MinEnsuredHTMLDialogElement || domFeatures > 1) {
-      scrolling ? curModalElement || addElementList([], [0, 0], 1) : curModalElement !== hint_box && removeModal()
+    else if (!(MayWoTopLevel && withoutToplevel_())) {
+      // here should not use inert - it affects too many DOM APIs
+      scrolling ? ourDialogEl_ || addElementList([], [0, 0], 4) : ourDialogEl_ !== hint_box && removeDialog_()
     } else {
       el = (scrolling ? OnFirefox ? docEl_unsafe_() : SafeEl_not_ff_!(docEl_unsafe_())
                 : styleTop) as SafeElement & ElementToHTMLOrForeign | null
@@ -626,8 +621,7 @@ export const getPixelScaleToScroll = (): void => {
      * Imported on 2013-05-15 by https://github.com/w3c/csswg-drafts/commit/ad01664359641f791d99f0b3fce545b55579acdc
      * Firefox is still using `int`: https://bugzilla.mozilla.org/show_bug.cgi?id=1217330 (filed on 2015-10-22)
      */
-  scale = (OnFirefox ? 2 : 1) / min_(1, WithOldZoom && isOldZoom_ ? wdZoom_ * dScale_ : wndSize_(2) * dScale_)
-      / min_(1, WithOldZoom ? bZoom_ * bScale_ : bScale_)
+  scale = (OnFirefox ? 2 : 1) / min_(1, wdZoom_ * dScale_) / min_(1, WithOldZoom ? bZoom_ * bScale_ : bScale_)
 }
 
 const checkCurrent = (el: SafeElement | null): void => {

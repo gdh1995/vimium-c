@@ -419,7 +419,7 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
     st = outerBox.style
     st.width = "0";
     setDisplaying_s(outerBox)
-    if (!OnFirefox && wdZoom_ !== 1) { st.zoom = "" + 1 / wdZoom_; }
+    if (wdZoom_ !== 1) { st.zoom = "" + 1 / wdZoom_ }
     setClassName_s(outerBox, "R UI HUD" + fgCache.d)
     box_ = createElement_("iframe")
     setClassName_s(box_, "R UI Find")
@@ -428,7 +428,7 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
 const onLoad2 = (): void => {
     const docEl = innerDoc_.documentElement as HTMLHtmlElement,
     body = innerDoc_.body as HTMLBodyElement,
-    zoom = OnFirefox ? 1 : wnd.devicePixelRatio,
+    zoom = wnd.devicePixelRatio,
     list = innerDoc_.createDocumentFragment(),
     addElement = function (tag: 0 | "div" | "style", id?: string): SafeHTMLElement {
       const newEl = innerDoc_.createElement(tag || "span") as SafeHTMLElement;
@@ -510,9 +510,8 @@ const onLoad2 = (): void => {
             , createStyle(css.slice(i1, i2), addElement("style") as HTMLStyleElement))
         appendNode_s(body, box)
       }
-    } else if (zoom < 1) {
-      docEl.style.zoom = "" + 1 / zoom;
     }
+    if (zoom < 1) { docEl.style.zoom = "" + 1 / zoom }
     setDisplaying_s(outerBox_, 1)
     replaceOrSuppressMost_(kHandler.find, onHostKeydown)
     setFirstQuery(query0_)

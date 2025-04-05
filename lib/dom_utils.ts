@@ -1,6 +1,6 @@
 import {
   chromeVer_, doc, createRegExp, isTY, Lower, OBJECT_TYPES, OnFirefox, OnChrome, OnEdge, evenHidden_, safeCall, deref_,
-  loc_, VTr, tryCreateRegExp, isTop, queueTask_, set_findOptByHost, splitEntries_, kNextTarget
+  loc_, VTr, tryCreateRegExp, isTop, queueTask_, set_findOptByHost, splitEntries_, kNextTarget, firefoxVer_
 } from "./utils"
 import { dimSize_, Point2D, selRange_ } from "./rect"
 
@@ -13,6 +13,12 @@ interface kNodeToType {
   [kNode.DOCUMENT_FRAGMENT_NODE]: DocumentFragment | ShadowRoot
 }
 
+export const MayWoTopLevel: boolean = !!(Build.BTypes & BrowserType.Edge)
+    || !!(Build.BTypes & BrowserType.Chrome) && Build.MinCVer < BrowserVer.MinEnsuredDialog
+    || !!(Build.BTypes & BrowserType.Firefox) && Build.MinFFVer < FirefoxBrowserVer.MinEnsuredDialog
+export const MayWoPopover: boolean = !!(Build.BTypes & BrowserType.Edge)
+    || !!(Build.BTypes & BrowserType.Chrome) && Build.MinCVer < BrowserVer.MinEnsuredPopover
+    || !!(Build.BTypes & BrowserType.Firefox) && Build.MinFFVer < FirefoxBrowserVer.MinEnsuredPopover
 export const DAC = "DOMActivate", MDW = "mousedown", CLK = "click", HDN = "hidden", NONE = "none"
 export const INP = "input", BU = "blur", ALA = "aria-label", PGH = "pagehide"
 export const kDir = ["backward", "forward"] as const, kGCh = "character"
@@ -88,8 +94,6 @@ export const selOffset_ = (sel: Selection, focus?: BOOL): number => focus ? sel.
 export const textOffset_ = (el: TextElement, dir?: VisualModeNS.ForwardDir | boolean): number | null =>
     dir ? el.selectionEnd! : el.selectionStart!
 
-export const doesSupportDialog = (): boolean => typeof HTMLDialogElement == OBJECT_TYPES[kTY.func]
-
 export const parentNode_unsafe_s = (el: SafeElement | Text
     ): Element | Document | DocumentFragment | null => el.parentNode as any
 
@@ -124,6 +128,32 @@ export const hasTag_ = <Tag extends keyof HTMLElementTagNameMap> (htmlTag: Tag
 export const supportInert_ = !OnChrome || Build.MinCVer < BrowserVer.MinEnsured$HTMLElement$$inert ? (): boolean => {
   return OnEdge ? false : isHTML_() && "inert" in HTMLElementProto!
 } : 0 as never as null
+
+export let isInert_ = (el: Element): boolean => {
+  const interactivity = OnChrome
+      && (Build.MinCVer >= BrowserVer.MinMaybeInteractivity || chromeVer_ > BrowserVer.MinMaybeInteractivity - 1)
+      ? getComputedStyle_(el).interactivity : null
+  if (!interactivity) { return (isInert_ = (el2) => !!el2.closest!("[inert]"))(el) }
+  return interactivity === "inert"
+}
+
+export const withoutToplevel_ = MayWoTopLevel ? (): boolean => {
+  return (OnChrome ? chromeVer_ < BrowserVer.MinEnsuredDialog : !OnFirefox ? OnEdge
+      : firefoxVer_ < FirefoxBrowserVer.MinEnsuredDialog) && typeof HTMLDialogElement !== OBJECT_TYPES[kTY.func]
+} : 0 as never
+
+export const withoutPopover_ = MayWoPopover ? (): boolean => {
+  return (OnChrome
+    ? Build.MinCVer >= BrowserVer.MinEnsuredPopover || chromeVer_ > BrowserVer.MinEnsuredPopover - 1 ? false
+      : Build.MinCVer < BrowserVer.MinMaybePopoverWith$popovershow
+        && chromeVer_ < BrowserVer.MinMaybePopoverWith$popovershow ? true
+      : null
+    : OnFirefox
+    ? Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredPopover || firefoxVer_>FirefoxBrowserVer.MinEnsuredPopover-1 ? false
+      : Build.MinFFVer < FirefoxBrowserVer.MinMaybePopover && firefoxVer_ < FirefoxBrowserVer.MinMaybePopover ? true
+      : null
+    : OnEdge) ?? !(HTMLElementProto! satisfies HTMLElement as Partial<PopoverElement>).showPopover
+} : 0 as never
 
 export const isInTouchMode_cr_ = OnChrome ? (): boolean => {
     const viewport_meta = querySelector_unsafe_("meta[name=viewport]")

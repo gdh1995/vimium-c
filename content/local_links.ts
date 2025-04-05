@@ -1,11 +1,11 @@
 import {
   clickable_, isJSUrl, doc, isImageUrl, fgCache, readyState_, chromeVer_, VTr, createRegExp, max_, OnChrome,
-  math, includes_, OnFirefox, OnEdge, WithDialog, evenHidden_, set_evenHidden_, tryCreateRegExp, loc_,
+  math, includes_, OnFirefox, OnEdge, evenHidden_, set_evenHidden_, tryCreateRegExp, loc_,
   getTime, firefoxVer_, isTY
 } from "../lib/utils"
 import {
   isIFrameElement, uneditableInputs_, getComputedStyle_, queryHTMLChild_, htmlTag_, isAriaFalse_,  joinValidSelectors,
-  kMediaTag, NONE, querySelector_unsafe_, isStyleVisible_, fullscreenEl_unsafe_, isSafeEl_, docEl_unsafe_,
+  kMediaTag, NONE, querySelector_unsafe_, isStyleVisible_, fullscreenEl_unsafe_, isSafeEl_, docEl_unsafe_, isInert_,
   GetParent_unsafe_, unsafeFramesetTag_old_cr_, isHTML_, querySelectorAll_unsafe_, isNode_, INP, attr_s, supportInert_,
   getMediaTag, getMediaUrl, contains_s, GetShadowRoot_, parentNode_unsafe_s, testMatch, hasTag_,
   getRootNode_mounted, findSelectorByHost, TryGetShadowRoot_
@@ -22,7 +22,7 @@ import {
   isClickListened_, set_isClickListened_, tooHigh_, useFilter_, hintChars, hintManager
 } from "./link_hints"
 import { shouldScroll_s, getPixelScaleToScroll, scrolled, suppressScroll } from "./scroller"
-import { ui_root, ui_box, helpBox, curModalElement, filterOutInert } from "./dom_ui"
+import { ui_root, ui_box, helpBox, ourDialogEl_, filterOutInert } from "./dom_ui"
 import { generateHintText } from "./hint_filters"
 
 export declare const enum ClickType {
@@ -104,7 +104,7 @@ const getClickable = (hints: Hint[], element: SafeHTMLElement): void => {
     isClickable = isNotReplacedBy(queryHTMLChild_(element, "summary") as HTMLSummaryElement | null, hints)
     break;
   case "dialog":
-    WithDialog && (element as HTMLDialogElement).open && element !== curModalElement && (coreHints.d = 3)
+    (element as HTMLDialogElement).open && element !== ourDialogEl_ && (coreHints.d = 3)
     isClickable = !1
     break
   case "label":
@@ -752,7 +752,7 @@ export const filterOutNonReachable = (list: Hint[], notForAllClickable?: boolean
       useMatch || (list[i][0] = fromPoint! as HTMLInputElement)
       continue
     }
-    if (hasInert && el.closest!("[inert]")) { continue }
+    if (hasInert && isInert_(el)) { continue }
     const small = area.r - area.l < 17 || area.b - area.t < 17
     if (!hasTable) {
       hasTable = OnChrome && Build.MinCVer < BrowserVer.Min$Element$$closest

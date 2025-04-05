@@ -1,7 +1,7 @@
 import {
   setupEventListener, isTop, keydownEvents_, timeout_, fgCache, doc, isAlive_, isJSUrl, chromeVer_, VTr, OnEdge, Stop_,
-  vApi, createRegExp, isTY, OBJECT_TYPES, OnChrome, OnFirefox, WithDialog, isAsContent, safeCall, max_,isIFrameInAbout_,
-  firefoxVer_
+  vApi, createRegExp, isTY, OBJECT_TYPES, OnChrome, OnFirefox, isAsContent, safeCall, max_, firefoxVer_, OnSafari,
+  isIFrameInAbout_
 } from "../lib/utils"
 import { prevent_ } from "../lib/keyboard_utils"
 import {
@@ -9,9 +9,8 @@ import {
   GetParent_unsafe_, getSelection_, TryGetShadowRoot_, getEditableType_, textOffset_, derefInDoc_, supportInert_,
   CLK, frameElement_, runJS_, isStyleVisible_, rangeCount_, getAccessibleSelectedNode, removeEl_s, htmlTag_, hasTag_,
   appendNode_s, append_not_ff, setClassName_s, isNode_, contains_s, setOrRemoveAttr_s, textContent_s, inputSelRange,
-  parentNode_unsafe_s, setDisplaying_s, getRootNode_mounted, singleSelectionElement_unsafe, isHTML_, HTMLElementProto,
-  getDirectionOfNormalSelection,
-  uneditableInputs_
+  parentNode_unsafe_s, setDisplaying_s, getRootNode_mounted, singleSelectionElement_unsafe, isHTML_, withoutPopover_,
+  getDirectionOfNormalSelection, MayWoPopover, uneditableInputs_, ElementProto_not_ff, IsAInB_, isInert_
 } from "../lib/dom_utils"
 import {
   bZoom_, dScale_, getZoom_, wdZoom_, boundingRect_, prepareCrop_, getClientRectsForAreas_, getVisibleBoundingRect_,
@@ -24,7 +23,7 @@ import { DrawableHintItem, isHintsActive, hintManager, reinitLinkHintsIn, isHC_ 
 import { post_, runFallbackKey } from "./port"
 import { insert_Lock_, raw_insert_lock } from "./insert"
 import { isWaitingAccessKey, resetAnyClickHandler_cr } from "./key_handler"
-import { hide as omniHide, omni_box, omni_dialog_non_ff, omni_status, postToOmni, Status as OmniStatus } from "./omni"
+import { hide as omniHide, omni_box, omni_dialog_wo_pop_, omni_status, postToOmni, Status as OmniStatus } from "./omni"
 import { getPreferredRectOfAnchor } from "./local_links"
 import { showPicker_ } from "./async_dispatcher"
 
@@ -39,47 +38,45 @@ let uiParent_: VUIRoot | HTMLSpanElement
 let cssPatch_: [string | number, (css: string) => string] | null = null
 let lastFlashEl: SafeHTMLElement | null = null
 let toExitOnClick_ = kExitOnClick.NONE
-let curModalElement: HTMLDialogElement | HTMLDivElement | null | undefined
+let ourDialogEl_: HTMLDialogElement | null | undefined
+let usePopover_ = 0
 let helpBox: HTMLElement | null | undefined
 let hideHelp: ((event?: EventToPrevent) => void) | undefined | null
-let hasPopover_ = 0
 
 export {
-  box_ as ui_box, root_ as ui_root, styleIn_ as style_ui, lastFlashEl, curModalElement, hasPopover_, helpBox, hideHelp,
+  box_ as ui_box, root_ as ui_root, styleIn_ as style_ui, lastFlashEl, ourDialogEl_, usePopover_, helpBox, hideHelp,
   toExitOnClick_,
 }
 export function set_hideHelp (_newHide: typeof hideHelp): void { hideHelp = _newHide }
 export function set_helpBox (_newHelpBox: typeof helpBox): void { helpBox = _newHelpBox }
+export function set_usePopover_ (_newUsePopover: typeof usePopover_): void { usePopover_ = _newUsePopover }
 
-export const removeModal = WithDialog ? (): void => {
-  curModalElement && (removeEl_s(curModalElement), curModalElement = null, hasPopover_ &= ~1)
-} : (): void => { /* empty */ }
+export const removeDialog_ = (): void => { ourDialogEl_ && (removeEl_s(ourDialogEl_), ourDialogEl_ = null) }
 
 export let addUIElement = function (element: HTMLElement, adjust_type?: AdjustType): void {
     box_ = createElement_("div");
-    root_ = attachShadow_(box_)
+    uiParent_ = root_ = attachShadow_(box_)
     // listen "load" so that safer if shadowRoot is open
     // it doesn't matter to check `.mode == "closed"`, but not `.attachShadow`
-    OnChrome && Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1
+    !(MayWoPopover && withoutPopover_()) ? appendNode_s(root_, uiParent_ = createElement_("span"))
+    : OnChrome && Build.MinCVer >= BrowserVer.MinEnsuredShadowDOMV1
         || OnFirefox && Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1
         || (!Build.NDEBUG ? !OnEdge && root_.mode === "closed"
             : OnChrome ? chromeVer_ > BrowserVer.MinEnsuredShadowDOMV1 - 1
             : OnFirefox ? firefoxVer_ > BrowserVer.MinEnsuredShadowDOMV1 - 1 : !OnEdge)
-    ? appendNode_s(root_, uiParent_ = createElement_("span"))
-    : (uiParent_ = root_,
-        setupEventListener(OnChrome && Build.MinCVer >= BrowserVer.MinShadowDOMV0 || !OnEdge && root_ !== box_
+    ? 0 : setupEventListener(OnChrome && Build.MinCVer >= BrowserVer.MinShadowDOMV0 || !OnEdge && root_ !== box_
             ? root_ as ShadowRoot : 0, "load", function Onload(this: ShadowRoot | Window, e: Event): void {
       if (!isAlive_) { setupEventListener(0, "load", Onload, 1); return; } // safe enough even if reloaded
       const t = e.target as HTMLElement | Document;
       if (t === omni_box || t === find_box) {
         Stop_(e); t.onload && t.onload(e)
       }
-    }, 0, 1)) // should use a listener in active mode: https://www.chromestatus.com/features/5745543795965952
+    }, 0, 1) // should use a listener in active mode: https://www.chromestatus.com/features/5745543795965952
     addUIElement = (element2: HTMLElement, adjust2?: AdjustType, before?: Element | null | true): void => {
       const doesAdjustFirst = (OnEdge
           || OnChrome && Build.MinCVer < BrowserVer.Min$Node$$isConnected
               && chromeVer_ < BrowserVer.Min$Node$$isConnected
-          ? parentNode_unsafe_s(box_!) : box_!.isConnected!) && element2 !== curModalElement
+          ? parentNode_unsafe_s(box_!) : box_!.isConnected!) && element2 !== ourDialogEl_
       adjust2 && doesAdjustFirst && adjustUI()
       uiParent_.insertBefore(element2, before === true ? uiParent_.firstChild : before || null)
       adjust2 && !doesAdjustFirst && adjustUI()
@@ -125,21 +122,20 @@ export const getBoxTagName_old_cr = OnChrome && Build.MinCVer < BrowserVer.MinFo
         ? "body" : "div"
   : 0 as never
 
-export const addElementList = function <TopType extends BOOL | 3> (
-      array: readonly DrawableHintItem[], offset: { readonly [index in 0 | 1]: number }, onTop?: TopType
-      ): (TopType extends 1 | 3 ? HTMLDialogElement | HTMLDivElement : HTMLDivElement) & SafeElement {
+export const addElementList = function <TopType extends BOOL | 3 | 4> (
+      array: readonly DrawableHintItem[], offset: readonly [number, number, ...number[]] | "00", onTop?: TopType
+      ): (TopType extends 1 | 3 | 4 ? HTMLDialogElement | HTMLDivElement : HTMLDivElement) & SafeElement {
     const kMaxSlice = 2048, needToSlice = array.length > kMaxSlice
-    const useDialog = onTop && !(array.length && (OnChrome && Build.MinCVer >= BrowserVer.MinEnsuredPopover
-        || !OnEdge && (HTMLElementProto! satisfies HTMLElement as Partial<PopoverElement>).showPopover))
-    const parent = createElement_(WithDialog && useDialog ? "dialog"
+    const useDialog = MayWoPopover ? onTop && (onTop > 3 || withoutPopover_()) : onTop === 4
+    const parent = createElement_(useDialog ? "dialog"
         : OnChrome && Build.MinCVer < BrowserVer.MinForcedColorsMode ? getBoxTagName_old_cr() : "div");
     const style = parent.style
-    const cls = "R HM" + fgCache.d, zoom = (WithOldZoom ? bZoom_ : 1) / (WithDialog && onTop ? docZoomNew_ : dScale_)
+    const cls = "R HM" + fgCache.d, zoom = (WithOldZoom ? bZoom_ : 1) / (onTop ? docZoomNew_ : dScale_)
     let innerBox: HTMLDivElement | HTMLBodyElement | HTMLDialogElement | undefined = parent
     let i = 0
-    setClassName_s(parent, WithDialog && useDialog ? cls + " DLG" : cls)
+    setClassName_s(parent, useDialog ? cls + " DLG" : cls)
     if (OnChrome && Build.MinCVer < BrowserVer.MinForcedColorsMode
-        && WithDialog && useDialog && array.length && getBoxTagName_old_cr() < "d") { // <body>
+        && useDialog && onTop !== 4 && getBoxTagName_old_cr() < "d") { // <body>
       innerBox = createElement_(getBoxTagName_old_cr())
       appendNode_s(parent, innerBox)
       setClassName_s(innerBox, cls)
@@ -156,6 +152,8 @@ export const addElementList = function <TopType extends BOOL | 3> (
         appendNode_s(innerBox, el.m)
       }
     }
+    useDialog && (ourDialogEl_ = parent as HTMLDialogElement)
+    offset = onTop ? "00" : offset
     const left = offset[0] + "px", top = offset[1] + "px"
     if (OnFirefox && zoom - 1) {
       style.cssText = `left:0;top:0;transform:scale(${zoom})translate(${left},${top})`;
@@ -164,12 +162,8 @@ export const addElementList = function <TopType extends BOOL | 3> (
       zoom - 1 && (style.zoom = zoom as number | string as string);
     }
     fullscreenEl_unsafe_() && (style.position = "fixed");
-    if (WithDialog && onTop) {
-      curModalElement = parent as HTMLDialogElement
-      hasPopover_ |= !(useDialog satisfies boolean | 0 | undefined) as boolean | BOOL as BOOL
-    }
     addUIElement(parent, AdjustType.DEFAULT, lastFlashEl)
-    return parent as (TopType extends 1 | 3 ? HTMLDialogElement : HTMLDivElement) & SafeElement
+    return parent as (TopType extends 1 | 3 | 4 ? HTMLDialogElement | HTMLDivElement : HTMLDivElement) & SafeElement
 }
 
 export const adjustUI = (event?: Event | /* enable */ 1 | /* disable */ 2): void => {
@@ -177,6 +171,8 @@ export const adjustUI = (event?: Event | /* enable */ 1 | /* disable */ 2): void
     // so here should only use `fullscreenEl_unsafe_`
     const el: Element | null = fullscreenEl_unsafe_(),
     disableUI = event === 2,
+    moveBefore = OnChrome && (Build.MinCVer >= BrowserVer.MinMaybeMoveBefore
+        || chromeVer_ > BrowserVer.MinMaybeMoveBefore-1) && IsAInB_(box_!) && ElementProto_not_ff!.moveBefore,
     // https://developer.mozilla.org/en-US/docs/Web/CSS/Replaced_element
     isReplacedEl = el && createRegExp(kTip.ReplacedHtmlTags, "").test(htmlTag_(el)),
     el2 = el && !isReplacedEl && !root_.contains(el) && !contains_s(box_!, el) ? el : docEl_unsafe_()!
@@ -184,14 +180,15 @@ export const adjustUI = (event?: Event | /* enable */ 1 | /* disable */ 2): void
     // doc: https://dom.spec.whatwg.org/#dom-node-appendchild
     //  -> #concept-node-append -> #concept-node-pre-insert -> #concept-node-adopt -> step 2
     disableUI ? removeEl_s(box_!) : el2 === parentNode_unsafe_s(box_!)
-        && (!box_!.nextElementSibling || omni_box && omni_status > OmniStatus.Inactive || curModalElement) ||
-    (OnFirefox ? (appendNode_s as typeof append_not_ff) : append_not_ff)(el2, box_!)
+        && (!box_!.nextElementSibling || !moveBefore && (omni_box && omni_status > OmniStatus.Inactive || ourDialogEl_))
+        || (moveBefore ? moveBefore.call(el2, box_!, null)
+            : (OnFirefox ? (appendNode_s as typeof append_not_ff) : append_not_ff)(el2, box_!))
     const sin = styleIn_, s = sin && (sin as HTMLStyleElement).sheet
     s && (s.disabled = false);
-    if (WithDialog) {
+    {
       if (disableUI) { /* empty */ }
-      else if (hasPopover_ || isReplacedEl && (OnChrome && Build.MinCVer >= BrowserVer.MinEnsuredPopover
-          || (uiParent_ as PopoverElement).showPopover)) {
+      else if (usePopover_ || isReplacedEl && !(MayWoPopover && withoutPopover_())) {
+        // refresh to ensure it's topmost;
         (uiParent_ as PopoverElement).popover = "manual"
         setClassName_s(uiParent_ as SafeHTMLElement, "PO")
         ; (uiParent_ as PopoverElement).togglePopover(false)
@@ -199,10 +196,10 @@ export const adjustUI = (event?: Event | /* enable */ 1 | /* disable */ 2): void
       } else if ((uiParent_ as PopoverElement).popover) {
         (uiParent_ as PopoverElement).popover = null
         setClassName_s(uiParent_ as SafeHTMLElement, "")
-      } else if (curModalElement) {
+      } else if (ourDialogEl_) {
         // if box_ has been re-added, then `.open` is true and `.showModal()` throws without a `.close()`
-        (curModalElement as HTMLDialogElement).open && (curModalElement as HTMLDialogElement).close();
-        (curModalElement as HTMLDialogElement).showModal()
+        ourDialogEl_.open && ourDialogEl_.close()
+        ourDialogEl_.showModal()
       }
     }
     if (el || event) {
@@ -222,8 +219,8 @@ export const adjustUI = (event?: Event | /* enable */ 1 | /* disable */ 2): void
 }
 
 export const ensureBorder = (): void => {
-    const dPR = max_(wndSize_(2), 1)
-    const zoom = wdZoom_ / dScale_ * dPR
+    const dPR = WithOldZoom ? max_(wndSize_(2), 1) : 1
+    const zoom = WithOldZoom ? wdZoom_ / dScale_ * dPR : wndSize_(2) / dScale_
     if (!cssPatch_) {
       if (zoom >= 1 ? zoom < 2
           : OnChrome && (Build.MinCVer >= BrowserVer.MinBorderWidth$Ensure1$Or$Floor
@@ -508,9 +505,9 @@ export const doExitOnClick_ = (event?: MouseEventToPrevent): void => {
           // Vimium C has been disabled
           || !parentNode_unsafe_s(box_!)
           // the click target is in Vimium C's UI
-          || (OnChrome && Build.MinCVer >= BrowserVer.MinShadowDOMV0
+          || (OnChrome && Build.MinCVer >= BrowserVer.MinShadowDOMV0 || OnSafari
                 || OnFirefox && Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1 || !OnEdge && root_ !== box_
-              ? event.target === box_ && !(!OnFirefox && WithDialog && omni_dialog_non_ff
+              ? event.target === box_ && !(MayWoPopover && omni_dialog_wo_pop_
                   && omni_status == OmniStatus.Showing && !(root_ as ShadowRoot).activeElement)
               : !(event.target instanceof Element) || root_.contains(event.target))
           ) {
@@ -622,15 +619,15 @@ export const filterOutInert = (hints: Hint[]): void => {
   let i = (OnChrome && Build.MinCVer >= BrowserVer.MinEnsured$HTMLElement$$inert ? isHTML_() : supportInert_!())
       ? hints.length : 0
   while (0 <= --i) {
-    hints[i][0].closest!("[inert]") && hints.splice(i, 1)
+    isInert_(hints[i][0]) && hints.splice(i, 1)
   }
 }
 
 export const onToggle = (event: Event & { [property in "newState" | "oldState"]?: "open" | "closed" }): void => {
   const newState = event.newState, target = event.target as Node
   if (event.isTrusted && isNode_(target, kNode.ELEMENT_NODE) && !hasTag_("details", target)) {
-    hasPopover_ = max_(hasPopover_ & 1, hasPopover_ + (newState! > "o" ? 2 : -2))
-    if (root_ && hasPopover_ > 0) {
+    usePopover_ = max_(usePopover_ & 1, usePopover_ + (newState! > "o" ? 2 : -2))
+    if (root_ && usePopover_) {
       adjustUI()
     }
   }

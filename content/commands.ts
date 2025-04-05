@@ -21,7 +21,7 @@ import {
 } from "../lib/rect"
 import { post_, set_contentCommands_, runFallbackKey, send_ } from "./port"
 import {
-  addElementList, ensureBorder, evalIfOK, getSelected, getSelectionText, getParentVApi, curModalElement, createStyle,
+  addElementList, ensureBorder, evalIfOK, getSelected, getSelectionText, getParentVApi, ourDialogEl_, createStyle,
   getBoxTagName_old_cr, setupExitOnClick, addUIElement, removeSelection, ui_root, kExitOnClick, collpaseSelection,
   hideHelp, set_hideHelp, set_helpBox, checkHidden, flash_, filterOutInert, maySelectRight_, selectNode_,
   adjustUI, focusIframeContentWnd_
@@ -303,7 +303,7 @@ set_contentCommands_([
         ) as (Hint & { [0]: SafeHTMLElement })[],
     keep = options.keep, pass = options.passExitKey, reachable = options.reachable;
     if (!(reachable != null ? reachable && !(isTY(reachable, kTY.num) && visibleInputs.length > reachable) : fgCache.e)
-        || curModalElement || !filterOutNonReachable(visibleInputs, 1)) {
+        || ourDialogEl_ || !filterOutNonReachable(visibleInputs, 1)) {
       OnEdge || filterOutInert(visibleInputs)
     }
     let sel = visibleInputs.length, firstInput = visibleInputs[0]

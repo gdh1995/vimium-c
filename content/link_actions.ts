@@ -532,7 +532,7 @@ const defaultClick = (): void => {
     const interactive: boolean = isSel || getMediaTag(targetTag) === kMediaTag.otherMedias && !isRight
         && (rawInteractive !== "native" || (target as HTMLMediaElement).controls)
     const doInteract: boolean = interactive && !isSel && rawInteractive !== !1
-    const rawAction = +findOptByHost(hintOptions.action2, target, kNextTarget.nonCss)
+    const rawAction = (findOptByHost(hintOptions.action2, target, kNextTarget.nonCss) as string | number as number) | 0
     const specialActions: kClickAction = rawAction >= 0 ? rawAction : dblClick || doInteract
         ? kClickAction.BaseMayInteract + +dblClick + kClickAction.FlagInteract * <number> <number | boolean> doInteract
         : isRight || newTabStr.startsWith("no-pr") ? kClickAction.none

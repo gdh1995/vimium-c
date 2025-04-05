@@ -1,6 +1,6 @@
 import {
   isTY, OnSafari,
-  doc, chromeVer_, Lower, max_, min_, math, OnChrome, OnFirefox, WithDialog, evenHidden_, set_evenHidden_, OnEdge, abs_
+  doc, chromeVer_, Lower, max_, min_, math, OnChrome, OnFirefox, evenHidden_, set_evenHidden_, OnEdge, abs_
 } from "./utils"
 import {
   docEl_unsafe_, scrollingEl_, isSafeEl_, ElementProto_not_ff, isRawStyleVisible, getComputedStyle_, NONE,
@@ -19,7 +19,7 @@ let isOldZoom_: BOOL | boolean = Build.BTypes & ~BrowserType.Edge ? 0 : 1
 let paintBox_: [number, number] | null = null // it may need to use `paintBox[] / <body>.zoom`
 let wdZoom_ = 1 // <html>.zoom * min(devicePixelRatio, 1) := related to physical pixels
 let docZoom_ = 1 // zoom of <html>
-let docZoomNew_ = 1 // zoom of <html>
+let docZoomNew_ = 1 // zoom of <html> in the new spec
 let bZoom_ = 1 // zoom of <body> (if not fullscreen else 1)
 let isDocZoomStrange_old_cr: BOOL = 0
 let dScale_ = 1 // <html>.transform:scale (ignore the case of sx != sy) * (new-zoom ? <html>.zoom : 1)
@@ -304,10 +304,10 @@ let _getPageZoom_old_cr = OnChrome && Build.MinCVer < BrowserVer.MinEnsuredUseZo
   return pageZoom || docElZoom
 } as (docElZoom: number, devRatio: number, docEl: Element) => number : 0 as never as null
 
-export const elZoom_ = (st: CSSStyleDeclaration | null): number => st && st.display !== NONE && +st.zoom || 1
+const elZoom_ = (st: CSSStyleDeclaration | null): number => st && st.display !== NONE && +st.zoom || 1
 
 /** update `docZoom_ + bZoom_` if `target` else `docZoom_` */
-export const getZoom_ = WithOldZoom ? function (target?: 1 | SafeElement): void {
+export const getZoom_ = WithOldZoom ? (target?: 1 | SafeElement): void => {
   let docEl = docEl_unsafe_()!, ratio = wndSize_(2)
     , st = getComputedStyle_(docEl), zoom = isOldZoom_ && +st.zoom || 1
     , el: Element | null = isOldZoom_ ? fullscreenEl_unsafe_() : null
@@ -354,24 +354,24 @@ export const getViewBox_ = function (needBox?: 1 | /** dialog-or-popover-found *
   // ignore the case that x != y in "transform: scale(x, y)""
   const scale = dScale_ = (_trans < "n" && float(_trans.slice(7)) || 1)
       * (OnEdge ? 1 : +st.scale! || 1) * (WithOldZoom ? rawZoom / zoom1o : rawZoom)
-  const stacking = !(WithDialog && needBox === 3) && (st.position !== "static" || (OnChrome
+  const stacking = needBox !== 3 && (st.position !== "static" || (OnChrome
       && Build.MinCVer < BrowserVer.MinContainLayoutOnDocAffectPositions
       && chromeVer_ < BrowserVer.MinContainLayoutOnDocAffectPositions ? paintingLimited
       : (<RegExpOne> /a|c/).test(docContain)) || _trans < "n")
-  bScale_ = box2 ? ((_trans = st2.transform || "n") < "n" && float(_trans.slice(7)) || 1)
-      * (OnEdge ? 1 : +st2.scale! || 1) * (WithOldZoom ? rawZoom2 / zoom2o : elZoom_(st2)) : 1
   docZoomNew_ = WithOldZoom ? rawZoom / zoom1o : rawZoom
   if (fullscreenEl_unsafe_()) {
     getZoom_(1)
-    if (WithOldZoom && isOldZoom_) { dScale_ = bScale_ = 1 }
+    dScale_ = bScale_ = 1
     return [0, 0, WithOldZoom ? (iw * docZoom_ / wdZoom_) | 0 : iw, WithOldZoom ? (ih * docZoom_ / wdZoom_) | 0 : ih, 0]
   }
+  bScale_ = box2 ? ((_trans = st2.transform || "n") < "n" && float(_trans.slice(7)) || 1)
+      * (OnEdge ? 1 : +st2.scale! || 1) * (WithOldZoom ? rawZoom2 / zoom2o : elZoom_(st2)) : 1
   wdZoom_ = WithOldZoom ? round(zoom1o * min_(ratio, 1) * 1000) / 1000 : min_(wndSize_(2), 1)
   if (WithOldZoom) { docZoom_ = zoom1o }
   let x = !stacking ? float(st.marginLeft) : OnFirefox ? -float(st.borderLeftWidth) : 0 | -box.clientLeft
     , y = !stacking ? float(st.marginTop ) : OnFirefox ? -float(st.borderTopWidth ) : 0 | -box.clientTop
-  x = WithDialog && needBox === 3 ? 0 : x * scale - rect.l
-  y = WithDialog && needBox === 3 ? 0 : y * scale - rect.t
+  x = needBox === 3 ? 0 : x * scale - rect.l
+  y = needBox === 3 ? 0 : y * scale - rect.t
   // note: `Math.abs(y) < 0.01` supports almost all `0.01 * N` (except .01, .26, .51, .76)
   x = x * x < 1e-4 ? 0 : math.ceil(WithOldZoom ? round(x / zoom2o * 100) / 100 : x)
   y = y * y < 1e-4 ? 0 : math.ceil(WithOldZoom ? round(y / zoom2o * 100) / 100 : y)

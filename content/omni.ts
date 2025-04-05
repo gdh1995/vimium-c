@@ -1,20 +1,22 @@
 /// <reference path="../lib/base.omni.d.ts" />
 import {
   isAlive_, keydownEvents_, readyState_, timeout_, clearTimeout_, recordLog, chromeVer_, math, OnChrome, isAsContent,
-  interval_, locHref, vApi, createRegExp, safer, isTop, OnFirefox, OnEdge, safeCall, WithDialog, VTr, firefoxVer_, min_
+  interval_, locHref, vApi, createRegExp, safer, isTop, OnFirefox, OnEdge, safeCall, VTr, firefoxVer_, min_
 } from "../lib/utils"
 import { removeHandler_, replaceOrSuppressMost_, getMappedKey, isEscape_ } from "../lib/keyboard_utils"
 import {
   isHTML_, fullscreenEl_unsafe_, setDisplaying_s, createElement_, removeEl_s, setClassName_s, setOrRemoveAttr_s,
-  toggleClass_s, doesSupportDialog, hasInCSSFilter_, appendNode_s, frameElement_
+  toggleClass_s, MayWoTopLevel, withoutToplevel_, hasInCSSFilter_, appendNode_s, frameElement_, MayWoPopover,
+  withoutPopover_, ElementProto_not_ff
 } from "../lib/dom_utils"
 import {
-  getViewBox_, docZoom_, dScale_, prepareCrop_, bZoom_, wndSize_, viewportRight, WithOldZoom, isOldZoom_, docZoomNew_
+  getViewBox_, docZoom_, dScale_, prepareCrop_, bZoom_, wndSize_, viewportRight, WithOldZoom, isOldZoom_, docZoomNew_,
+  paintBox_
 } from "../lib/rect"
 import { beginScroll, scrollTick } from "./scroller"
 import {
   getSelectionText, adjustUI, setupExitOnClick, addUIElement, getParentVApi, evalIfOK, checkHidden, kExitOnClick,
-  focusIframeContentWnd_,
+  focusIframeContentWnd_, usePopover_, set_usePopover_,
 } from "./dom_ui"
 import { coreHints, isHintsActive, tryNestedFrame } from "./link_hints"
 import { insert_Lock_ } from "./insert"
@@ -43,9 +45,9 @@ let status = Status.NotInited
 let omniOptions: VomnibarNS.FgOptionsToFront | null = null
 let secondActivateWithNewOptions: (() => void) | null = null
 let timer_: ValidTimeoutID = TimerID.None
-let dialog_non_ff: HTMLDialogElement | false | null | undefined
+let omni_dialog_wo_pop_: HTMLDialogElement | null | undefined
 
-export { box as omni_box, status as omni_status, dialog_non_ff as omni_dialog_non_ff }
+export { box as omni_box, status as omni_status, omni_dialog_wo_pop_ }
 
 type InnerHide = (fromInner?: BOOL | null) => void
 export const hide: (fromInner?: 0 | null | undefined) => void = <InnerHide> ((fromInner): void => {
@@ -57,9 +59,9 @@ export const hide: (fromInner?: 0 | null | undefined) => void = <InnerHide> ((fr
       oldIsActive && fromInner !== 0 && postToOmni(VomnibarNS.kCReq.hide)
       return
     }
-    !OnFirefox && WithDialog && dialog_non_ff ? (dialog_non_ff.close(), setDisplaying_s(dialog_non_ff))
-        : setDisplaying_s(box!)
+    setDisplaying_s(MayWoPopover && omni_dialog_wo_pop_ ? (omni_dialog_wo_pop_.close(), omni_dialog_wo_pop_) : box!)
     box!.style.height = ""
+    set_usePopover_(usePopover_ & ~1)
 })
 
 export const activate = function (options: FullOptions, count: number): void {
@@ -134,16 +136,13 @@ const init = ({k: secret, v: page, t: type, i: inner}: FullOptions): void => {
       }
       type === VomnibarNS.PageType.web ? initMsgInterval = interval_(doPostMsg, 66) : doPostMsg(1)
     };
-    if (!OnFirefox && WithDialog) {
-      dialog_non_ff = (OnChrome && Build.MinCVer >= BrowserVer.MinEnsuredHTMLDialogElement || doesSupportDialog())
-          && hasInCSSFilter_() && createElement_("dialog")
-      if (dialog_non_ff) {
-        setClassName_s(dialog_non_ff, "R DLG")
-        appendNode_s(dialog_non_ff, el)
-      }
+    if (MayWoPopover && useDialog) {
+      omni_dialog_wo_pop_ = createElement_("dialog")
+      setClassName_s(omni_dialog_wo_pop_, "R DLG")
+      appendNode_s(omni_dialog_wo_pop_, el)
     }
     box = el
-    addUIElement(!OnFirefox && WithDialog && dialog_non_ff || el, AdjustType.MustAdjust, hud_box)
+    addUIElement(MayWoPopover && omni_dialog_wo_pop_ || el, AdjustType.MustAdjust, hud_box)
     slowLoadTimer = type !== VomnibarNS.PageType.inner ? timeout_(function (i): void {
       clearTimeout_(initMsgInterval)
       loaded || (OnChrome && Build.MinCVer < BrowserVer.MinNo$TimerType$$Fake && i) ||
@@ -160,9 +159,9 @@ const resetWhenBoxExists = (redo?: boolean): void | 1 => {
         && Build.MinCVer < BrowserVer.Min$Event$$IsTrusted) {
       box!.onload = null as never
     }
-    removeEl_s(!OnFirefox && WithDialog && dialog_non_ff || box!)
+    removeEl_s(MayWoPopover && omni_dialog_wo_pop_ || box!)
     portToOmni = box = omniOptions = null as never
-    !OnFirefox && WithDialog && (dialog_non_ff = null)
+    MayWoPopover && (omni_dialog_wo_pop_ = null)
     refreshKeyHandler(); // just for safer code
     if (secondActivateWithNewOptions) { secondActivateWithNewOptions(); }
     else if (redo && oldStatus > Status.ToShow - 1) {
@@ -193,7 +192,7 @@ const onOmniMessage = function (this: OmniPort, msg: { data: any, target?: Messa
       style.height !== height2 && (style.height = height2)
       if (status === Status.ToShow) {
         status = Status.Showing
-        !OnFirefox && WithDialog && dialog_non_ff && (dialog_non_ff.open || dialog_non_ff.showModal())
+        MayWoPopover && omni_dialog_wo_pop_ && (omni_dialog_wo_pop_.open || omni_dialog_wo_pop_.showModal())
         // on C118+U22, `box.focus()` may make contentWindow blur while the although itself does become "activeElement"
         focusIframeContentWnd_(box!, 0)
         clearTimeout_(timer1)
@@ -271,18 +270,25 @@ const refreshKeyHandler = (): void => {
   if (!isHTML_()) { return; }
   omniOptions = null
   getViewBox_()
-  // `canUseVW` is computed for the gulp-built version of vomnibar.html
-  const canUseVW = (!OnChrome || Build.MinCVer >= BrowserVer.MinCSSWidthUnit$vw$InCalc
-          || chromeVer_ > BrowserVer.MinCSSWidthUnit$vw$InCalc - 1)
-      && notInFullScreen && (WithOldZoom && isOldZoom_ ? docZoom_ === 1 && dScale_ === 1 : docZoomNew_ === 1)
-  const width = canUseVW ? wndSize_(1) : (prepareCrop_(), WithOldZoom ? viewportRight * docZoom_*bZoom_ : viewportRight)
-  options.w = [width, screenHeight, scale]
+  const woPopover = MayWoPopover ? withoutPopover_() : 0
+  set_usePopover_(!woPopover && (!notInFullScreen || dScale_ !== 1 || docZoomNew_ !== 1 || usePopover_ > 1
+      || !!paintBox_ || hasInCSSFilter_()) ? usePopover_ | 1 : usePopover_ & ~1)
   if (!(Build.NDEBUG || Status.Inactive - Status.NotInited === 1)) {
     console.log("Assert error: Status.Inactive - Status.NotInited === 1")
   }
   options.u = options.u || vApi.u()
-  if (OnFirefox) { options.d = hasInCSSFilter_() }
-  box && adjustUI()
+  if (OnFirefox) { options.d = woPopover && hasInCSSFilter_() }
+  box && !(OnChrome && (Build.MinCVer >= BrowserVer.MinMaybeMoveBefore || chromeVer_ > BrowserVer.MinMaybeMoveBefore-1)
+      && ElementProto_not_ff!.moveBefore) && adjustUI()
+  const useDialog = !MayWoPopover ? 0 : !!omni_dialog_wo_pop_ || woPopover && status === Status.NotInited
+      && !(MayWoTopLevel && withoutToplevel_())
+      && ((WithOldZoom && isOldZoom_ ? dScale_ : dScale_ / docZoomNew_) !== 1 || !!paintBox_ || hasInCSSFilter_())
+  // `canUseVW` is computed for the gulp-built version of vomnibar.html
+  const canUseVW = !woPopover ? usePopover_ & 1 : (!OnChrome || Build.MinCVer >= BrowserVer.MinCSSWidthUnit$vw$InCalc
+      || chromeVer_ > BrowserVer.MinCSSWidthUnit$vw$InCalc - 1) && (usePopover_ & 1 || useDialog
+      || notInFullScreen && (WithOldZoom && isOldZoom_ ? docZoom_ === 1 && dScale_ === 1 : docZoomNew_ === 1))
+  const width = canUseVW ? wndSize_(1) : (prepareCrop_(), WithOldZoom ? viewportRight * docZoom_*bZoom_ : viewportRight)
+  options.w = [width, screenHeight, scale]
   if (status === Status.NotInited) {
     if (!options.$forced) { // re-check it for safety
       options.$forced = 1
@@ -296,7 +302,7 @@ const refreshKeyHandler = (): void => {
     return
   } else if (status === Status.Inactive) {
     status = Status.ToShow
-    !(!OnFirefox && WithDialog && dialog_non_ff) ? setDisplaying_s(box!, 1) : (setDisplaying_s(dialog_non_ff, 1))
+    setDisplaying_s(MayWoPopover && omni_dialog_wo_pop_ || box!, 1)
   } else if (status > Status.ToShow) {
     postToOmni(VomnibarNS.kCReq.focus)
     status = Status.ToShow
@@ -317,7 +323,8 @@ const refreshKeyHandler = (): void => {
   if (status !== Status.Showing) {
     style.height = math.ceil(maxOutHeight / docZoom_) + "px"
   }
-  ; (!OnFirefox && WithDialog && dialog_non_ff || options.e) && setupExitOnClick(kExitOnClick.vomnibar)
+  style.zoom = ((OnFirefox || (usePopover_ & 1) || useDialog) && docZoomNew_ - 1) ? 1 / docZoomNew_ + "" : ""
+  ; (MayWoPopover && omni_dialog_wo_pop_ || options.e) && setupExitOnClick(kExitOnClick.vomnibar)
   if (url != null) {
     url = options.url = url || options.u
     upper = count > 1 ? 1 - count : count < 0 ? -count : 0

@@ -86,12 +86,13 @@ export type AddChildDirectly = (officer: BaseHintWorker, el: AccessableIFrameEle
 import {
   VTr, isAlive_, isEnabled_, setupEventListener, keydownEvents_, set_keydownEvents_, timeout_, max_, min_, abs_, OnEdge,
   clearTimeout_, fgCache, doc, readyState_, chromeVer_, vApi, deref_, getTime, unwrap_ff, OnFirefox, OnChrome,
-  WithDialog, Lower, safeCall, os_, firefoxVer_, weakRef_not_ff, weakRef_ff, isTY, isIFrameInAbout_, findOptByHost
+  Lower, safeCall, os_, firefoxVer_, weakRef_not_ff, weakRef_ff, isTY, isIFrameInAbout_, findOptByHost
 } from "../lib/utils"
 import {
   querySelector_unsafe_, isHTML_, scrollingEl_, docEl_unsafe_, IsAInB_, GetParent_unsafe_, hasInCSSFilter_,derefInDoc_,
-  getComputedStyle_, isStyleVisible_, htmlTag_, fullscreenEl_unsafe_, removeEl_s, PGH, toggleClass_s, doesSupportDialog,
+  getComputedStyle_, isStyleVisible_, htmlTag_, fullscreenEl_unsafe_, removeEl_s, PGH, toggleClass_s, withoutToplevel_,
   getSelectionFocusEdge_, SafeEl_not_ff_, compareDocumentPosition, deepActiveEl_unsafe_, frameElement_, getSelection_,
+  MayWoTopLevel,
 } from "../lib/dom_utils"
 import {
   ViewBox, getViewBox_, prepareCrop_, wndSize_, bZoom_, dScale_, boundingRect_, getZoom_, set_cropNotReady_,
@@ -102,8 +103,8 @@ import {
   BSP, ENTER, SPC, isRepeated_,
 } from "../lib/keyboard_utils"
 import {
-  style_ui, addElementList, ensureBorder, adjustUI, flash_, getParentVApi, getWndVApi_ff, checkHidden, removeModal,
-  getSelected, getSelectionBoundingBox_, hasPopover_
+  style_ui, addElementList, ensureBorder, adjustUI, flash_, getParentVApi, getWndVApi_ff, checkHidden, removeDialog_,
+  getSelected, getSelectionBoundingBox_, usePopover_
 } from "./dom_ui"
 import { scrollTick, beginScroll, currentScrolling } from "./scroller"
 import { hudTip, hudShow, hudHide, hud_tipTimer } from "./hud"
@@ -195,18 +196,17 @@ export const activate = (options: ContentOptions, count: number, force?: 2 | Tim
     isHC_ = matchMedia(VTr(
         OnChrome && Build.MinCVer < BrowserVer.MinForcedColorsMode && chromeVer_ < BrowserVer.MinForcedColorsMode
         ? kTip.highContrast_WOB : kTip.forcedColors)).matches
-    if (WithDialog) {
       if (OnFirefox && Build.MinFFVer < FirefoxBrowserVer.MinEnsuredShadowDOMV1
           ? firefoxVer_ < FirefoxBrowserVer.MinEnsuredShadowDOMV1
-          : OnChrome && BrowserVer.MinEnsuredHTMLDialogElement < BrowserVer.MinShadowDOMV0
+          : OnChrome && BrowserVer.MinEnsuredDialog < BrowserVer.MinShadowDOMV0
               && Build.MinCVer < BrowserVer.MinShadowDOMV0 && chromeVer_ < BrowserVer.MinShadowDOMV0) {
-        removeModal()
+        removeDialog_()
       }
-      coreHints.d = !(OnChrome && Build.MinCVer >= BrowserVer.MinEnsuredHTMLDialogElement || doesSupportDialog()) ? 0
-        : hasPopover_ > 1 || querySelector_unsafe_("dialog[open]") ? 3
+    coreHints.d = MayWoTopLevel && withoutToplevel_() ? 0
+      : usePopover_ || (OnChrome && Build.MinCVer >= BrowserVer.MinEnsuredDialogToggleEvent
+            && chromeVer_ > BrowserVer.MinEnsuredDialogToggleEvent - 1 || querySelector_unsafe_("dialog[open]")) ? 3
         : <BOOL> +!!(wantDialogMode_ != null ? wantDialogMode_
             : isTY(wantTop) ? findOptByHost(wantTop, 0) : wantTop != null ? wantTop : hasInCSSFilter_())
-    }
     let allHints: readonly HintItem[], child: ChildFrame | undefined, insertPos = 0
       , frameInfo: FrameHintsInfo, total: number
       const childFrames: ChildFrame[] = [],
@@ -274,14 +274,14 @@ const collectFrameHints = (options: ContentOptions, count: number
     if (!isHTML_()) {
       return;
     }
-    const view: ViewBox = getViewBox_(WithDialog ? (((manager || coreHints).d satisfies 0 | 1 | 3) | 1) as 1 | 3 : 1)
+    const view: ViewBox = getViewBox_((((manager || coreHints).d satisfies 0 | 1 | 3) | 1) as 1 | 3)
     prepareCrop_(1, outerView);
     if (tooHigh_ !== null) {
       const scrolling = !options.longPage && scrollingEl_(1)
       tooHigh_ = scrolling
           && dimSize_(scrolling, kDim.scrollH) / wndSize_() > GlobalConsts.LinkHintTooHighThreshold ? 1 : 0
     }
-    removeModal()
+    removeDialog_()
     initTestRegExps() // needed by generateHintText
     addChildFrame_ = newAddChildFrame
     const elements = /*#__NOINLINE__*/ getVisibleElements(view)
@@ -306,11 +306,7 @@ const render: BaseHintWorker["r"] = (hints, arr: FrameHintsInfo["v"], raw_apis):
     ensureBorder();
     manager_ || setMode(mode_)
     if (hints.length) {
-      if (WithDialog) {
-        box_ = addElementList(hints, arr, ((managerOrA.d satisfies 0 | 1 | 3) | coreHints.d) as typeof managerOrA.d)
-      } else {
-        box_ = addElementList(hints, arr);
-      }
+      box_ = addElementList(hints, arr, ((managerOrA.d satisfies 0 | 1 | 3) | coreHints.d) as typeof managerOrA.d)
     } else if (!manager_) {
       adjustUI();
     }
@@ -331,7 +327,7 @@ export const setMode = (mode: HintMode, silent?: BOOL): void => {
     let key: string | undefined
     let msg = onTailEnter && !onWaitingKey ? VTr(kTip.waitForEnter) : VTr(mode_)
         + (useFilter_ || isHC_ ? ` [${key = isHC_ ? keyStatus_.k + keyStatus_.t : keyStatus_.t}]` : "")
-        + (WithDialog && !((useFilter_ || isHC_) && key) && coreHints.d ? VTr(kTip.modalHints) : "")
+        + (!((useFilter_ || isHC_) && key) && coreHints.d ? VTr(kTip.modalHints) : "")
     hudShow(kTip.raw, msg, true)
 }
 
@@ -418,7 +414,7 @@ const onKeydown = (event: HandlerNS.Event): HandlerResult => {
       else if (i = 1, key.includes("-s")) { // <a-s-f2>, <c-s-f2>
         fgCache.e = !fgCache.e;
       } else if (key < "b") { // <a-f2> or <a-c-f2>
-        WithDialog ? wantDialogMode_ = !coreHints.d : i = 0
+        MayWoTopLevel && withoutToplevel_() ? i = 0 : wantDialogMode_ = !coreHints.d
       } else if (key < "d" && key[0] === "m") { // <c-f2> or <m-f2>
         options_.useFilter = fgCache.f = !useFilter_;
       } else if (key !== keybody) { // <s-f2>
@@ -785,7 +781,7 @@ export const clear = (onlySelfOrEvent?: 0 | 1 | Event, suppressTimeout?: number)
     set_onWndBlur2(set_removeFlash(isHC_ = (api_ as unknown) = (options_ as unknown) = null))
     set_maxPrefixLen_(lastMode_ = mode_ = mode1_ = count_ = coreHints.h =
         noHUD_ = forHover_ = tooHigh_ = /*#__INLINE__*/ localLinkClear())
-    if (WithDialog) { coreHints.d = 0 }
+    coreHints.d = 0
     set_grabBackFocus(useFilter_ = false)
     chars_ = "";
     removeBox()
@@ -799,7 +795,7 @@ const removeBox = (): void => {
       removeEl_s(box_)
       box_ = null
     }
-    removeModal()
+    removeDialog_()
 }
 
 const onFrameUnload = (officer: HintOfficer): void => {
