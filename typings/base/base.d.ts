@@ -121,6 +121,7 @@ interface EnsuredMountedHTMLElement extends HTMLElement {
 }
 
 interface HTMLElement { inert: boolean }
+interface Element { moveBefore? (node: Element | Text, child: Node | null): void }
 
 interface HTMLAnchorElement { className: string }
 interface HTMLAreaElement { className: string }
@@ -406,7 +407,7 @@ declare var Reflect: Reflect | undefined
 declare var InstallTrigger: object | undefined, MathMLElement: object | undefined, safari: object | null | undefined
 
 interface CSS { escape? (value: string): string }
-interface CSSStyleDeclaration { colorScheme?: string }
+interface CSSStyleDeclaration { colorScheme?: string; interactivity?: "auto" | "inert" }
 
 interface KeyboardEventInit { keyCode?: number; which?: number }
 

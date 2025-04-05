@@ -63,7 +63,7 @@ declare const enum BrowserVer {
    * so must remove the all: before MinFixedCSS$All$MayMistakenlyResetFixedPosition
    */
   MinCSS$All$MightOverwriteFixedPosition = 37,
-  MinEnsuredHTMLDialogElement = 37, // not on Edge; under a flag since FF53; still exists on C31 if EXP
+  MinEnsuredDialog = 37, // not on Edge; under a flag since FF53; still exists on C31 if EXP
   // since C37, if EXP `Symbol.iterator` is valid and `for-of` can be used on Set and Map
   MinMaybe$Symbol$$Iterator$existsAndWorksFor$Set$and$Map = 37,
   // for-of is only for generators before C38, so an array can not be iterated on C37 even if EXP
@@ -628,10 +628,15 @@ declare const enum BrowserVer {
   Min$ScrollBehavior$$Instant$InScrollIntoView = 121, // even if EXP or LEGACY
   MinEnsured$select$$showPicker = 121, // since 119 if EXP
   MinNewZoom = 128, // even if EXP or LEGACY
+  MinMaybeMoveBefore = 125, // #atomic-move on C126; #atomic-move-override on C125; enabled by default since C133
+  MinURLParse = 126, // even if EXP or LEGACY
+  MinEnsuredDialogToggleEvent = 132, // even if LEGACY; if EXP on 131
+  MinMaybeInteractivity = 132, // if EXP
   MinNo$TimerType$$Fake = 999,
   assumedVer = 998,
 }
 declare const enum FirefoxBrowserVer {
+  // `dom.dialog_element.enabled` is default to false on FF63
   MinSupported = 63,
   // though it's under the control of `dom.webcomponents.shadowdom.enabled` (removed on FF65),
   // here still think it's "ensured" since FF63 - the code will be much simpler
@@ -699,11 +704,15 @@ declare const enum FirefoxBrowserVer {
   MinEnsuredES$TopLevelAwait = 108, // javascript.options.experimental.top_level_await
   MinMaybeScrollEndEvent = 109, // apz.scrollend-event.content.enabled
   Min$search$$query = 111,
+  MinMaybePopover = 112, // under dom.element.popover.enabled
   MinMaybe$navigator$$userAgentData = 116, // a fake version number
   MinEnsured$input$$showPicker = 117, // no dom.input.showPicker
+  MinEnsuredDialog = 117, // no dom.dialog_element.enabled
   MinEnsured$visualViewport$ = 119,
   MinMaybe$select$$showPicker = 121, // if dom.select.showPicker.enabled
   MinNewZoom = 126, // layout.css.zoom.enabled (added on 120) gets default to enabled
+  MinURLParse = 126,
+  MinEnsuredPopover = 133, // fix MinMaybePopover
   // members of a Selection are never updated when an <input> gets focused, so no work-around
   Min$Selection$SupportTextBox = 999,
   None = 0,

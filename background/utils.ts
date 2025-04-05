@@ -138,7 +138,10 @@ export const isIPHost_ = (hostname: string, type: 0 | 4 | 6): boolean => {
     return false;
 }
 
-export const safeParseURL_ = (url: string): URL | null => { try { return new URL(url) } catch { return null } }
+export const safeParseURL_ = (OnChrome ? (Build.MinCVer>=BrowserVer.MinURLParse || CurCVer_ > BrowserVer.MinURLParse-1)
+      : OnFirefox ? (Build.MinFFVer >= FirefoxBrowserVer.MinURLParse || CurFFVer_ > FirefoxBrowserVer.MinURLParse - 1)
+      : !OnEdge) ? URL.parse
+    : URL.parse || ((url: string): URL | null => { try {return new URL(url)}catch{return null} })
 
 export const DecodeURLPart_ = (url: string | undefined, wholeURL?: 1 | "atob"): string => {
     if (!url || wholeURL !== "atob" && !url.includes("%")) { return url || "" }

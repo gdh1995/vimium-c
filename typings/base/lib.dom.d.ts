@@ -1840,7 +1840,7 @@ interface Document extends Node, GlobalEventHandlers, NodeSelector, DocumentEven
     xmlVersion: string | null;
     adoptNode(source: Node): Node;
     captureEvents(): void;
-    caretRangeFromPoint(x: number, y: number): Range;
+    // caretRangeFromPoint(x: number, y: number): Range;
     clear(): void;
     /**
       * Closes an output stream and forces the sent data to display.
@@ -8192,6 +8192,7 @@ declare var URL: {
     new(url: string, base?: string): URL;
     createObjectURL(object: any, options?: ObjectURLOptions): string;
     revokeObjectURL(url: string): void;
+    parse(url: string, base?: string): URL | null
 }
 
 interface ValidityState {

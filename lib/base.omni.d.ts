@@ -57,6 +57,6 @@ interface IframePort {
 type FgOptionsToFront = CReq[kCReq.activate];
 
 interface ContentOptions extends GlobalOptions {
-  /** on Firefox and has filter (maybe from dark reader's Filter(+) mode) */ d?: boolean
+  /** on Firefox and has filter (maybe from dark reader's Filter(+) mode) */ d?: boolean | 0
 }
 }

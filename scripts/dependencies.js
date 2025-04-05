@@ -561,7 +561,6 @@ const BrowserType = exports.BrowserType = {
   Firefox: 2,
   Edge: 4,
   Safari: 8,
-  WithDialog: 3,
 }
 
 /**
