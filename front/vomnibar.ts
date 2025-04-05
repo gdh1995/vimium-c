@@ -1390,6 +1390,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     }
     VPort_._confVersion = confVer
   },
+  _delayedBlurred: 0,
   OnWndFocus_ (this: void, event: Event): void {
     const a = Vomnibar_, byCode = a.codeFocusTime_ && performance.now() - a.codeFocusTime_ < 120,
     blurred = event.type === "blur", target = event.target, isWnd = target === window
@@ -1404,11 +1405,12 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       return;
     }
     a.codeFocusTime_ = 0;
+    a._delayedBlurred && clearTimeout(a._delayedBlurred)
     if (byCode) {
       a.blurred_(blurred);
       return;
     }
-    setTimeout(a.blurred_, 50, null);
+    a._delayedBlurred = setTimeout(a.blurred_, 50, null);
     if (!blurred) {
       VPort_.post_({ H: kFgReq.cmd, i: 0 })
       if (a.pageType_ !== VomnibarNS.PageType.inner && VPort_) {
@@ -1421,14 +1423,18 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
       Vomnibar_._canvas = Vomnibar_.lastQuery_ = null
     }
   },
-  blurred_ (this: void, blurred?: boolean | null): void {
+  blurred_ (this: void, blurred?: boolean | null, delayed2nd?: 1): void {
     if (!Vomnibar_) { return; }
-    const doc = document, a = (doc.body as HTMLBodyElement).classList
+    const a = Vomnibar_, doc = document, cls = (doc.body as HTMLBodyElement).classList
+    let hidden: boolean | undefined
+    a._delayedBlurred = 0
     // Document.hidden is since C33, according to MDN
-    !Vomnibar_.isActive_ || (blurred != null ? !blurred : (Build.MinCVer < BrowserVer.Min$document$$hidden
-            && Build.BTypes & BrowserType.Chrome && Vomnibar_.browserVer_ < BrowserVer.Min$document$$hidden
+    !a.isActive_ || (blurred != null ? !blurred
+        : (hidden = Build.MinCVer < BrowserVer.Min$document$$hidden
+            && Build.BTypes & BrowserType.Chrome && a.browserVer_ < BrowserVer.Min$document$$hidden
             ? doc.webkitHidden : doc.hidden) || doc.hasFocus())
-        ? a.remove("inactive") : a.add("inactive")
+      ? cls.remove("inactive") : (hidden || delayed2nd) ? cls.add("inactive")
+      : a._delayedBlurred = setTimeout(a.blurred_, 50, null, 1)
   },
   onWndFreeze_ (event: Event): void {
     if (VPort_._port && event.isTrusted) {
