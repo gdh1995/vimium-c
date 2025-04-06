@@ -82,5 +82,5 @@
   "turnOff": "$1 has been turned off",
   "Upgrade": "Upgrade",
   "upgradeMsg": "Vimium C has been upgraded to v$1.\n",
-  "upgradeMsg2": "Based on Manifest V3 APIs."
+  "upgradeMsg2": "Réparer cela pourrait casser des sites Web comme IEEE."
 }
