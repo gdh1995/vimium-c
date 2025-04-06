@@ -1050,7 +1050,8 @@ Completion_.filter_ = (query: string, options: CompletersNS.FullOptions, callbac
             && !(<RegExpOne> /\uff1a([^\/\d]|\d[^\0-\xff])/).test(str)
       }
     }
-    showThoseInBlocklist = !omniBlockList_ || BlockListFilter_.IsExpectingHidden_(queryTerms)
+    showThoseInBlocklist = !omniBlockList_
+        || !(otherFlags & CompletersNS.QueryFlags.NeverMasked) && BlockListFilter_.IsExpectingHidden_(queryTerms)
     allExpectedTypes = expectedTypes & allowedEngines
     autoSelect = arr.length === 2
     if (rawQuery) {

@@ -81,6 +81,7 @@ var VCID_: string | undefined = VCID_ || "", VHost_: string | undefined = VHost_
     a.updateQueryFlag_(CompletersNS.QueryFlags.EvenHiddenTabs, !!options.hiddenTabs);
     a.updateQueryFlag_(CompletersNS.QueryFlags.IncognitoTabs, !!options.incognitoTabs)
     a.updateQueryFlag_(CompletersNS.QueryFlags.NoSessions, !!options.noSessions)
+    a.updateQueryFlag_(CompletersNS.QueryFlags.NeverMasked, !!options.neverMasked)
     a.options_ = options
     let engines = options.engines
     engines instanceof Array && (engines = engines.join() as keyof typeof CompletersNS.SugType)
