@@ -56,7 +56,7 @@ let cachedScrollable: WeakRef<SafeElement> | null = null
 let keyIsDown = 0
 let preventPointEvents: BOOL | 2 | ScrollConsts.MinLatencyToAutoPreventHover
 let scale = 1
-let joined: VApiTy | null | undefined
+let joined: FrameVisitor["v"] = {a: 0}
 let scrolled: 0 | 1 | 2 = 0
 let isTopScrollable: -1 | 0 | 1 = 1
 
@@ -398,21 +398,26 @@ export const activate = (options: CmdOptions[kFgCmd.scroll] & SafeObject, count:
    */
 export const executeScroll: VApiTy["c"] = function (di: ScrollByY, amount0: number, flags: kScFlag & number
       , factor?: NonNullable<CmdOptions[kFgCmd.scroll]["view"]> | undefined
-      , options?: CmdOptions[kFgCmd.scroll], oriCount?: number, force?: 1): void {
+      , options?: CmdOptions[kFgCmd.scroll], oriCount?: number, visitor?: FrameVisitor, visitorDi?: 0 | 2): void {
+    const callOtherFrame = (dir: 0 | 2): void => {
+      visitor!.n += 1 - dir
+      ; (core as IfTrueOr<typeof core, null>)!.c(di, amount0, flags as 0, factor, options, oriCount, visitor, dir)
+      if ((core as IfTrueOr<typeof core, null>)!.y().k) {
+        scrollTick(1)
+        joined = visitor!.v
+      }
+    }
     const toFlags = flags & (kScFlag.TO | kScFlag.INC), toMax = (toFlags - kScFlag.TO) as BOOL
     let core: ReturnType<typeof getParentVApi> | false
     {
-      const childFrame = !force && derefInDoc_(currentScrolling)
+      const childFrame = (visitor ||= {v: joined, n: 0}, !visitorDi) && derefInDoc_(currentScrolling)
       core = childFrame && isIFrameElement(childFrame) && detectUsableChild(childFrame)
       if (core) {
-        core.c(di, amount0, flags as 0, factor, options, oriCount)
-        if (core.y().k) {
-          scrollTick(1)
-          joined = core
-        }
+        callOtherFrame(0)
         return
       }
     }
+    visitor.n > 0 ? visitor.v.a = vApi : visitor.v = {a: vApi}
     set_cropNotReady_(1)
     set_scrollingTop(scrollingEl_(1))
     if (scrollingTop) {
@@ -454,11 +459,7 @@ export const executeScroll: VApiTy["c"] = function (di: ScrollByY, amount0: numb
     if (mayUpperFrame && (core = getParentVApi())
         && (!amount || Lower(attr_s(frameElement_()!, "scrolling") || "") === "no"
             || !doesScroll(element, di, amount || toMax))) {
-        core.c(di, amount0, flags as 0, factor, options, oriCount, 1)
-        if (core.y().k) {
-          scrollTick(1)
-          joined = core
-        }
+        callOtherFrame(2)
         amount = toDoInSelf = 0
     } else if (mayUpperFrame && options && !injector && !(options as OptionsWithForce).$forced
         && options.acrossFrames !== false
@@ -510,9 +511,9 @@ export const scrollTick: VApiTy["k"] = (willContinue: 0 | 1 | 2 | 5): void => {
     }
     keyIsDown = willContinue & 1 ? maxKeyInterval : 0
     willContinue > 1 && toggleAnimation && toggleAnimation((willContinue & 4) as 0 | 4)
-    if (joined) {
-      joined.k(willContinue)
-      willContinue & 1 || (joined = null)
+    if (joined.a && joined.a !== vApi) {
+      joined.a.k(willContinue)
+      willContinue & 1 || (joined.a = 0)
     }
 }
 

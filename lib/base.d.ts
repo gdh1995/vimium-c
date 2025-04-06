@@ -193,18 +193,21 @@ declare namespace ContentNS {
   }
 }
 
+interface FrameVisitor { v: { a: VApiTy | 0 }, n: number }
+
 interface VApiTy extends Frames.BaseVApi {
   /** KeydownCacheArray */ a: {
     (this: void, srcCacheArray: KeydownCacheArray): boolean
     (this: void): KeydownCacheArray
   }
   /** baseHintWorker */ b: HintsNS.BaseHintWorker
-  /** @see {../content/scroller.ts#executeScroll} */ c: {
+  /** @see ../content/scroller.ts#executeScroll */ c: {
     (di: ScrollByY, amount: number, flags: kScFlag.scBy
       , factor?: NonNullable<CmdOptions[kFgCmd.scroll]["view"]> | undefined
-      , options?: CmdOptions[kFgCmd.scroll], oriCount?: number, force?: 1): void
+      , options?: CmdOptions[kFgCmd.scroll], oriCount?: number, visitor?: FrameVisitor, visitorDi?: 0 | 2): void
     (di: ScrollByY, amount: number, flags: kScFlag.scBy | kScFlag.toMin | kScFlag.toMax
-      , factor?: undefined | 0, options?: CmdOptions[kFgCmd.scroll], oriCount?: number, force?: 1): void
+      , factor?: undefined | 0, options?: CmdOptions[kFgCmd.scroll], oriCount?: number
+      , visitor?: FrameVisitor, visitorDi?: 0 | 2): void
   }
   /** execute content commands */ e: ((this: void, cmd: ValidContentCommands, el?: SafeHTMLElement) => void) | null
   /** focusAndRun */ f: {
@@ -244,14 +247,14 @@ interface VApiTy extends Frames.BaseVApi {
     /** onWndFocus */ w?: (this: void) => void
     /** find box */ b: HTMLIFrameElement | null
     /** clickable */ c: ElementSet
-    /** @see {../content/scroller.ts#keyIsDown} */ k: number
+    /** @see ../content/scroller.ts#keyIsDown */ k: number
     /** UI root */ r: VUIRoot | null
     /** find input */ f: SafeHTMLElement | null
     m: [ keyFSM: KeyFSM, mappedKeys: SafeDict<string> | null, mapKeyTypes: kMapKey,
          vApi_z: SettingsNS.FrontendSettingCache | null ]
   }
   /** cache */ z: SettingsNS.FrontendSettingCache | null
-  /** @see {../content/scroller.ts#$sc} */ $: (element: SafeElement | null, di: ScrollByY, amount: number
+  /** @see ../content/scroller.ts#$sc */ $: (element: SafeElement | null, di: ScrollByY, amount: number
       , options?: CmdOptions[kFgCmd.scroll]) => void | boolean | number | Promise<boolean | number> | null
 }
 
