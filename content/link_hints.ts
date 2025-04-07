@@ -411,11 +411,11 @@ const onKeydown = (event: HandlerNS.Event): HandlerResult => {
           frameArray.forEach((/*#__NOINLINE__*/ toggleClassForKey).bind(0, keybody))
         }
       } // the below mens <*-f2>
-      else if (i = 1, key.includes("-s")) { // <a-s-f2>, <c-s-f2>
+      else if (i = 1, key > "a-s" && key.includes("-s")) { // <a-s-f2>, <c-s-f2> or <m-s-f2>
         fgCache.e = !fgCache.e;
-      } else if (key < "b") { // <a-f2> or <a-c-f2>
+      } else if (key < "b") { // <a-f2>, <a-c-f2>, <a-m-f2> or <a-c-*-f2>
         MayWoTopLevel && withoutToplevel_() ? i = 0 : wantDialogMode_ = !coreHints.d
-      } else if (key < "d" && key[0] === "m") { // <c-f2> or <m-f2>
+      } else if (key < "d" || key[0] === "m") { // <c-f2> or <m-f2>
         options_.useFilter = fgCache.f = !useFilter_;
       } else if (key !== keybody) { // <s-f2>
         isClickListened_ = !isClickListened_;

@@ -248,9 +248,8 @@ const inferTypeOfListener = ((el: SafeHTMLElement, tag: "" | keyof HTMLElementTa
           !!(el2 && uneditableInputs_[(<HTMLInputElement> el2).type] === 3 && isNotReplacedBy(el2 as HTMLInputElement)))
         : tag !== "table"
       : !(el2 = el.firstElementChild as Element | null) ||
-        !(!el.className && !el.id && tag === D
-          || ((tag = htmlTag_(el2)) === D || tag === "span") && clickable_.has(el2)
-              && el2.getClientRects().length
+        !((tag = htmlTag_(el2), !el.className && !el.id && el.localName === D || tag === D || tag === "span")
+              && clickable_.has(el2) && el2.getClientRects().length
           || ((tag !== D
                 || !!(el2 = (el2 as HTMLDivElement).firstElementChild as Element | null,
                       tag = el2 ? htmlTag_(el2) : ""))
