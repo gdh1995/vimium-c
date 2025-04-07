@@ -122,11 +122,11 @@ export const getBoxTagName_old_cr = OnChrome && Build.MinCVer < BrowserVer.MinFo
         ? "body" : "div"
   : 0 as never
 
-export const addElementList = function <TopType extends BOOL | 3 | 4> (
+export const addElementList = function <TopType extends BOOL | 3 | 4 | 6> (
       array: readonly DrawableHintItem[], offset: readonly [number, number, ...number[]] | "00", onTop?: TopType
       ): (TopType extends 1 | 3 | 4 ? HTMLDialogElement | HTMLDivElement : HTMLDivElement) & SafeElement {
     const kMaxSlice = 2048, needToSlice = array.length > kMaxSlice
-    const useDialog = MayWoPopover ? onTop && (onTop > 3 || withoutPopover_()) : onTop === 4
+    const useDialog = MayWoPopover ? onTop && (onTop === 4 || withoutPopover_()) : onTop === 4
     const parent = createElement_(useDialog ? "dialog"
         : OnChrome && Build.MinCVer < BrowserVer.MinForcedColorsMode ? getBoxTagName_old_cr() : "div");
     const style = parent.style
@@ -152,7 +152,7 @@ export const addElementList = function <TopType extends BOOL | 3 | 4> (
         appendNode_s(innerBox, el.m)
       }
     }
-    useDialog && (ourDialogEl_ = parent as HTMLDialogElement)
+    useDialog ? (ourDialogEl_ = parent as HTMLDialogElement) : onTop ? usePopover_ |= onTop & 5 : 0
     offset = onTop ? "00" : offset
     const left = offset[0] + "px", top = offset[1] + "px"
     if (OnFirefox && zoom - 1) {
@@ -626,7 +626,7 @@ export const filterOutInert = (hints: Hint[]): void => {
 export const onToggle = (event: Event & { [property in "newState" | "oldState"]?: "open" | "closed" }): void => {
   const newState = event.newState, target = event.target as Node
   if (event.isTrusted && isNode_(target, kNode.ELEMENT_NODE) && !hasTag_("details", target)) {
-    usePopover_ = max_(usePopover_ & 1, usePopover_ + (newState! > "o" ? 2 : -2))
+    usePopover_ = max_(usePopover_ & 7, usePopover_ + (newState! > "o" ? 8 : -8))
     if (root_ && usePopover_) {
       adjustUI()
     }

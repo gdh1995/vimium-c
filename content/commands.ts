@@ -8,7 +8,7 @@ import {
   isHTML_, hasTag_, createElement_, querySelectorAll_unsafe_, SafeEl_not_ff_, docEl_unsafe_, MDW, CLK, derefInDoc_,
   querySelector_unsafe_, DAC, removeEl_s, appendNode_s, setClassName_s, INP, contains_s, toggleClass_s, modifySel,
   focus_, testMatch, docHasFocus_, deepActiveEl_unsafe_, getEditableType_, textOffset_, fullscreenEl_unsafe_, IsAInB_,
-  inputSelRange, dispatchAsync_, isSafeEl_, activeEl_unsafe_, isIFrameElement, elFromPoint_, isStyleVisible_, kDispatch,
+  inputSelRange, dispatchAsync_, isSafeEl_, activeEl_unsafe_, isIFrameElement, elFromPoint_, isStyleVisible_, kDispatch, MayWoPopover, withoutPopover_,
 } from "../lib/dom_utils"
 import {
   replaceOrSuppressMost_, removeHandler_, getMappedKey, prevent_, isEscape_, keybody_, DEL, BSP, ENTER, handler_stack,
@@ -24,7 +24,7 @@ import {
   addElementList, ensureBorder, evalIfOK, getSelected, getSelectionText, getParentVApi, ourDialogEl_, createStyle,
   getBoxTagName_old_cr, setupExitOnClick, addUIElement, removeSelection, ui_root, kExitOnClick, collpaseSelection,
   hideHelp, set_hideHelp, set_helpBox, checkHidden, flash_, filterOutInert, maySelectRight_, selectNode_,
-  adjustUI, focusIframeContentWnd_
+  adjustUI, focusIframeContentWnd_, usePopover_
 } from "./dom_ui"
 import { hudHide, hudShow, hudTip, hud_text } from "./hud"
 import { onPassKey, set_onPassKey, passKeys, set_nextKeys, keyFSM, onEscDown } from "./key_handler"
@@ -360,7 +360,8 @@ set_contentCommands_([
     selectOrClick(hints[sel].d, visibleInputs[sel][1]).then((): void => {
     updateHint(hints[sel])
     ensureBorder()
-    set_inputHint({ b: addElementList<0>(hints, arr), h: hints })
+    set_inputHint({ b: addElementList<0 | 6>(hints, arr
+        , usePopover_ > 7 && !(MayWoPopover && withoutPopover_()) ? 6 : 0), h: hints })
     hints = 0 as never
     replaceOrSuppressMost_(kHandler.focusInput, (event): HandlerResult => {
       const keyCode = event.i, isIME = keyCode === kKeyCode.ime, repeat = isRepeated_(event),

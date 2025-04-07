@@ -7,8 +7,8 @@ import {
 } from "../lib/utils"
 import { set_keyIdCorrectionOffset_old_cr_, handler_stack, suppressTail_ } from "../lib/keyboard_utils"
 import {
-  editableTypes_, markFramesetTagUnsafe_old_cr, OnDocLoaded_, BU, docHasFocus_, deepActiveEl_unsafe_, HTMLElementProto,
-  hasTag_, querySelector_unsafe_, isHTML_, createElement_, setClassName_s, onReadyState_,
+  editableTypes_, markFramesetTagUnsafe_old_cr, OnDocLoaded_, BU, docHasFocus_, deepActiveEl_unsafe_,
+  hasTag_, querySelector_unsafe_, isHTML_, createElement_, setClassName_s, onReadyState_, MayWoPopover, withoutPopover_,
   docEl_unsafe_, scrollIntoView_, CLK, ElementProto_not_ff, isIFrameElement, DAC, removeEl_s, toggleClass_s, getElDesc_
 } from "../lib/dom_utils"
 import { set_isOldZoom_, WithOldZoom } from "../lib/rect"
@@ -93,6 +93,9 @@ set_requestHandlers([
     }
     if (OnChrome && Build.MinCVer < BrowserVer.MinFreezeEvent && chromeVer_ < BrowserVer.MinFreezeEvent) {
       setupEventListener(0, "freeze", onFreezePort, 1)
+    }
+    if (MayWoPopover && !OnEdge && withoutPopover_()) {
+      setupEventListener(0, "toggle", onToggle, 1)
     }
     requestHandlers[kBgReq.init] = null as never;
     OnChrome && request.d && set_port_(null) // in case `port.onDisconnect` was not triggered
@@ -304,8 +307,7 @@ set_hookOnWnd((function (action: HookAction): void {
     f("focus", onFocus, t)
     // https://developer.chrome.com/blog/page-lifecycle-api/
     OnChrome && f("freeze", onFreezePort, t)
-    if (OnChrome && Build.MinCVer >= BrowserVer.MinEnsuredPopover
-        || !OnEdge && (HTMLElementProto! as Partial<PopoverElement>).showPopover) {
+    if (!OnEdge) {
       f("toggle", onToggle, t)
     }
   }

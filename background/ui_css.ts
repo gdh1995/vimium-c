@@ -104,9 +104,9 @@ export const reloadCSS_ = (action: MergeAction, knownCssStr?: string): SettingsN
             && CurCVer_ < BrowserVer.MinAbsolutePositionNotCauseScrollbar)) {
       css = css.replace(".LH{", ".LH{box-sizing:border-box;")
     }
-    if (OnEdge || OnChrome && Build.MinCVer < BrowserVer.MinMaybePopoverToggleEvent
-        && CurCVer_ < BrowserVer.MinMaybePopoverToggleEvent) {
-      css = css.replace(<RegExpG> /\n\.PO\{[^}]+\}/, "")
+    if (OnEdge || OnChrome && Build.MinCVer < BrowserVer.MinMaybePopoverWith$popovershow
+        && CurCVer_ < BrowserVer.MinMaybePopoverWith$popovershow) {
+      css = css.replace(<RegExpG> /\.PO\{[^}]+\}/, "")
     }
     if (OnFirefox) {
       const ind1 = css.indexOf(".LH{") + 4, ind2 = css.indexOf("}", ind1)

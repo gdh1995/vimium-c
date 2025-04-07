@@ -104,7 +104,7 @@ import {
 } from "../lib/keyboard_utils"
 import {
   style_ui, addElementList, ensureBorder, adjustUI, flash_, getParentVApi, getWndVApi_ff, checkHidden, removeDialog_,
-  getSelected, getSelectionBoundingBox_, usePopover_
+  getSelected, getSelectionBoundingBox_, usePopover_, set_usePopover_
 } from "./dom_ui"
 import { scrollTick, beginScroll, currentScrolling } from "./scroller"
 import { hudTip, hudShow, hudHide, hud_tipTimer } from "./hud"
@@ -203,8 +203,8 @@ export const activate = (options: ContentOptions, count: number, force?: 2 | Tim
         removeDialog_()
       }
     coreHints.d = MayWoTopLevel && withoutToplevel_() ? 0
-      : usePopover_ || (OnChrome && Build.MinCVer >= BrowserVer.MinEnsuredDialogToggleEvent
-            && chromeVer_ > BrowserVer.MinEnsuredDialogToggleEvent - 1 || querySelector_unsafe_("dialog[open]")) ? 3
+        : usePopover_ > 7 || (!OnChrome || Build.MinCVer < BrowserVer.MinEnsuredDialogToggleEvent
+            && chromeVer_ < BrowserVer.MinEnsuredDialogToggleEvent) && querySelector_unsafe_("dialog[open]") ? 3
         : <BOOL> +!!(wantDialogMode_ != null ? wantDialogMode_
             : isTY(wantTop) ? findOptByHost(wantTop, 0) : wantTop != null ? wantTop : hasInCSSFilter_())
     let allHints: readonly HintItem[], child: ChildFrame | undefined, insertPos = 0
@@ -796,6 +796,7 @@ const removeBox = (): void => {
       box_ = null
     }
     removeDialog_()
+    set_usePopover_(usePopover_ & ~1)
 }
 
 const onFrameUnload = (officer: HintOfficer): void => {

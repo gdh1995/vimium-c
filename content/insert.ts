@@ -9,7 +9,7 @@ import {
   TryGetShadowRoot_, isAriaFalse_, findSelectorByHost
 } from "../lib/dom_utils"
 import { post_, runFallbackKey, runtime_port, safePost } from "./port"
-import { getParentVApi, ui_box, ui_root } from "./dom_ui"
+import { getParentVApi, set_usePopover_, ui_box, ui_root, usePopover_ } from "./dom_ui"
 import { hudHide } from "./hud"
 import { setNewScrolling, scrollTick } from "./scroller"
 import { set_isCmdTriggered, resetAnyClickHandler_cr, onPassKey } from "./key_handler"
@@ -204,6 +204,7 @@ export const exitInputHint = (): void => {
   if (inputHint) {
     inputHint.b && removeEl_s(inputHint.b)
     inputHint = null;
+    set_usePopover_(usePopover_ & ~4)
     removeHandler_(kHandler.focusInput)
   }
 }

@@ -61,7 +61,7 @@ export const hide: (fromInner?: 0 | null | undefined) => void = <InnerHide> ((fr
     }
     setDisplaying_s(MayWoPopover && omni_dialog_wo_pop_ ? (omni_dialog_wo_pop_.close(), omni_dialog_wo_pop_) : box!)
     box!.style.height = ""
-    set_usePopover_(usePopover_ & ~1)
+    set_usePopover_(usePopover_ & ~2)
 })
 
 export const activate = function (options: FullOptions, count: number): void {
@@ -271,8 +271,8 @@ const refreshKeyHandler = (): void => {
   omniOptions = null
   getViewBox_()
   const woPopover = MayWoPopover ? withoutPopover_() : 0
-  set_usePopover_(!woPopover && (!notInFullScreen || dScale_ !== 1 || docZoomNew_ !== 1 || usePopover_ > 1
-      || !!paintBox_ || hasInCSSFilter_()) ? usePopover_ | 1 : usePopover_ & ~1)
+  set_usePopover_(!woPopover && (!notInFullScreen || dScale_ !== 1 || docZoomNew_ !== 1 || usePopover_ > 7
+      || !!paintBox_ || hasInCSSFilter_()) ? usePopover_ | 2 : usePopover_ & ~2)
   if (!(Build.NDEBUG || Status.Inactive - Status.NotInited === 1)) {
     console.log("Assert error: Status.Inactive - Status.NotInited === 1")
   }
@@ -284,8 +284,8 @@ const refreshKeyHandler = (): void => {
       && !(MayWoTopLevel && withoutToplevel_())
       && ((WithOldZoom && isOldZoom_ ? dScale_ : dScale_ / docZoomNew_) !== 1 || !!paintBox_ || hasInCSSFilter_())
   // `canUseVW` is computed for the gulp-built version of vomnibar.html
-  const canUseVW = !woPopover ? usePopover_ & 1 : (!OnChrome || Build.MinCVer >= BrowserVer.MinCSSWidthUnit$vw$InCalc
-      || chromeVer_ > BrowserVer.MinCSSWidthUnit$vw$InCalc - 1) && (usePopover_ & 1 || useDialog
+  const canUseVW = !woPopover ? usePopover_ & 2 : (!OnChrome || Build.MinCVer >= BrowserVer.MinCSSWidthUnit$vw$InCalc
+      || chromeVer_ > BrowserVer.MinCSSWidthUnit$vw$InCalc - 1) && (usePopover_ & 2 || useDialog
       || notInFullScreen && (WithOldZoom && isOldZoom_ ? docZoom_ === 1 && dScale_ === 1 : docZoomNew_ === 1))
   const width = canUseVW ? wndSize_(1) : (prepareCrop_(), WithOldZoom ? viewportRight * docZoom_*bZoom_ : viewportRight)
   options.w = [width, screenHeight, scale]
@@ -323,7 +323,7 @@ const refreshKeyHandler = (): void => {
   if (status !== Status.Showing) {
     style.height = math.ceil(maxOutHeight / docZoom_) + "px"
   }
-  style.zoom = ((OnFirefox || (usePopover_ & 1) || useDialog) && docZoomNew_ - 1) ? 1 / docZoomNew_ + "" : ""
+  style.zoom = ((OnFirefox || (usePopover_ & 2) || useDialog) && docZoomNew_ - 1) ? 1 / docZoomNew_ + "" : ""
   ; (MayWoPopover && omni_dialog_wo_pop_ || options.e) && setupExitOnClick(kExitOnClick.vomnibar)
   if (url != null) {
     url = options.url = url || options.u
