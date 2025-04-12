@@ -20,7 +20,7 @@ declare const enum kTip {
   /* 105: */ highContrast_WOB, invisibleElements, imgExt, searchResults, excludeWhenGoNext,
   /* 110: */ kCommonEvents, logOmniFallback, logNotWorkOnSandboxed, logGrabFocus, prev,
   /* 115: */ next, ReplacedHtmlTags, DefaultDoClickOn, DefaultClickableOnHost, readOnly,
-  /* 120: */ defaultIgnoreReadonly, defaultPassEsc,
+  /* 120: */ defaultIgnoreReadonly, defaultPassEsc, noLineSelected, noTextSelected,
   INJECTED_CONTENT_END,
   /* 200: */ XHTML = 200,
   /** used by {@link ../Gulpfile.js} */ extendClick = 999,
@@ -456,7 +456,7 @@ interface CmdOptions {
     /** leave find mode */ l: BOOL
     /** query */ q: string;
     /* return to view port */ r: boolean;
-    /* auto use selected text */ s: boolean;
+    /* auto use selected text */ s: 0 | 1 | 2 | 5 | 6
     /* extend selection */ t: 0 | /** left" */ 1 | /** right */ 2
     /** findCSS */ f: FindCSS | null;
     /** use post mode on esc */ p: boolean;

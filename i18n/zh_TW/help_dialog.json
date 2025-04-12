@@ -97,6 +97,8 @@
   "enterInsertMode": "暫停識別快速鍵，按 ESC 退出",
   "enterVisualLineMode": "進入文字選擇模式（對齊到行）",
   "enterVisualMode": "進入文字自由選擇模式",
+  "findSelected": "查找選擇的詞語",
+  "findSelectedBackwards": "向上查找選擇的詞語",
   "firstTab": "切換到左起指定位置的分頁",
   "focusInput": "進入輸入框選擇模式（Tab 切換）",
   "focusOrLaunch": "切換到或新建指定網址的分頁",

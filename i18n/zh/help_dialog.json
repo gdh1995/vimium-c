@@ -98,6 +98,8 @@
   "enterVisualLineMode": "进入文字选择模式（对齐到行）",
   "enterVisualMode": "进入文字自由选择模式",
   "firstTab": "切换到左起指定位置的标签页",
+  "findSelected": "查找选择的词语",
+  "findSelectedBackwards": "向上查找选择的词语",
   "focusInput": "进入文本框选择模式（Tab 切换）",
   "focusOrLaunch": "切换到或新建指定网址的标签页",
   "goBack": "在历史记录中后退",

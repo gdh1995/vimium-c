@@ -334,6 +334,8 @@ const commandGroups_: {
     , "performFind"
     , "performBackwardsFind"
     , "performAnotherFind"
+    , "findSelected", "$selected=line/any/auto-line"
+    , "findSelectedBackwards"
     , "clearFindHistory", 1
   ],
   tabManipulation: [

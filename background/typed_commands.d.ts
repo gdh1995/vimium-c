@@ -40,7 +40,7 @@ interface BgCmdOptions {
     query: string
     restart: boolean
     returnToViewport: true
-    selected: boolean
+    selected: boolean | "any" | "line" | "auto-any" | "any-fallback" | "auto-line" | "line-fallback"
     extend: boolean | "after" | "" | "before"
     direction: "after" | "" | "before"
     scroll: "" | "auto" | "instant" | "manual"
@@ -412,6 +412,8 @@ interface CmdNameIds {
   enterInsertMode: kBgCmd.insertMode
   enterVisualLineMode: kBgCmd.visualMode
   enterVisualMode: kBgCmd.visualMode
+  findSelected: kBgCmd.performFind
+  findSelectedBackwards: kBgCmd.performFind
   firstTab: kBgCmd.goToTab
   focusInput: kFgCmd.focusInput
   focusOrLaunch: kBgCmd.openUrl

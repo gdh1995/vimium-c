@@ -286,11 +286,11 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
 
     findCSS = options.f || findCSS;
     if (!isHTML_()) { return; }
-    latest_options_ = options
     let highlightTimeout_: ValidTimeoutID = 0, initial_query: string = options.s ? getSelectionText() : "";
-    (initial_query.length > 99 || initial_query.includes("\n")) && (initial_query = "")
+    (initial_query.length > 99 || initial_query.includes("\n")) && (options.s & 1) && (initial_query = "")
     isQueryRichText_ = !initial_query
-    initial_query || (initial_query = options.q)
+    initial_query || options.s & 4 ? options.q = initial_query : initial_query = options.q
+    latest_options_ = options
     isActive || initial_query === query_ && options.l || setPreviousMarkPosition(1)
     checkDocSelectable();
     getZoom_()
@@ -364,7 +364,7 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
 
   isActive && adjustUI()
   if (options.l) {
-      if (initial_query = initial_query || query_) {
+      if (initial_query = options.s & 4 ? initial_query : initial_query || query_) {
         styleSelColorOut || initSelColors(AdjustType.MustAdjust)
         const isNewQuery = initial_query !== query_
         initialRange || query_ || initStartPoint(1)
@@ -403,7 +403,8 @@ export const activate = (options: CmdOptions[kFgCmd.findMode]): void => {
           postActivate()
         }
       }
-      runFallbackKey(options, !initial_query ? kTip.noOldQuery : hasResults ? 0 : kTip.noMatchFor, initial_query)
+      runFallbackKey(options, !initial_query ? options.s & 1 ? kTip.noLineSelected : options.s & 2 ? kTip.noTextSelected
+          : kTip.noOldQuery : hasResults ? 0 : kTip.noMatchFor, initial_query)
   } else if (isActive) {
     setFirstQuery(initial_query)
     // not reinstall keydown handler - make code smaller

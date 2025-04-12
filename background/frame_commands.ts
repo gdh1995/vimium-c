@@ -151,6 +151,7 @@ export const performFind = (): void | kBgCmd.performFind => {
             : rawIndex >= 0 ? -1 - (0 | <number> <number | string> rawIndex) : 0 : 0,
   highlight = get_cOptions<C.performFind>().highlight, extend = get_cOptions<C.performFind>().extend,
   direction = extend === "before" || get_cOptions<C.performFind>().direction === "before" ? -1 : 1,
+  rawSelected = !nth && absRepeat < 2 ? get_cOptions<C.performFind>().selected : null,
   leave = !!nth || !get_cOptions<C.performFind>().active
   let sentFindCSS: CmdOptions[kFgCmd.findMode]["f"] = null
   if (!(sender.flags_ & Frames.Flags.hasFindCSS)) {
@@ -164,7 +165,10 @@ export const performFind = (): void | kBgCmd.performFind => {
         : highlight ? leave ? 100 : 20 : 0,
     n: !!get_cOptions<C.performFind>().normalize,
     r: get_cOptions<C.performFind>().returnToViewport === true,
-    s: !nth && absRepeat < 2 && !!get_cOptions<C.performFind>().selected,
+    s: rawSelected == null ? 0 : typeof rawSelected !== "string"
+          ? typeof rawSelected === "number" ? Math.max(0, rawSelected | 0) as 1 | 2 | 5 | 6 : 5
+        : ((rawSelected.includes("auto") || rawSelected.includes("fallback") ? 0 : 4)
+            | (rawSelected.includes("any") ? 2 : 1)) as 1 | 2 | 5 | 6,
     t: extend ? direction > 0 ? 2 : 1 : 0,
     p: !!get_cOptions<C.performFind>().postOnEsc,
     e: !!get_cOptions<C.performFind>().restart,

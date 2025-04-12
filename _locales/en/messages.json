@@ -117,6 +117,8 @@
   "121": { "message":
 "[aria-controls],[role=combobox],#kw.s_ipt,input[placeholder$$=搜索],input[type=search][name=q],input[role=searchbox],.monaco-inputbox>div>textarea[style]"
   },
+  "122": { "message": "Veuillez sélectionner un mot" },
+  "123": { "message": "Veuillez sélectionner du texte" },
   "200": { "message": "http://www.w3.org/1999/xhtml" },
   "0": { "message": "Open link in current tab" },
   "2": { "message": "Open link in new tab" },

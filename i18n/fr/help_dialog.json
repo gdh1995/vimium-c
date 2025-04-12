@@ -91,6 +91,8 @@
   "enterInsertMode": "Passer en mode insertion",
   "enterVisualLineMode": "Passer en mode visuel-ligne",
   "enterVisualMode": "Passer en mode visuel",
+  "findSelected": "Trouver le texte sélectionné",
+  "findSelectedBackwards": "Rechercher le texte sélectionné en recherchant vers l'arrière",
   "firstTab": "Aller au Nième onglet",
   "focusInput": "Mettre le focus sur la Nième zone de texte visible sur la page et parcourir en utilisant TAB",
   "focusOrLaunch": "Mettre le focus sur un onglet avec l'URL donnée et l'ouvrir",
