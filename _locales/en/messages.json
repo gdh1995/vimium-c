@@ -109,7 +109,7 @@
   "115": { "message": "next" },
   "116": { "message": "^(canvas|embed|i?frame|img|video|object)$" },
   "117": { "message": ".monaco-editor//textarea.monaco-mouse-cursor-text//" },
-  "118": { "message": "weibo.com##.expand,.collapse" },
+  "118": { "message": "weibo.com##.expand,.collapse;learn.microsoft.com##.tree-expander" },
   "119": { "message": "Readonly text box is focused" },
   "120": { "message":
 "#read-only-cursor-text-area,.monaco-mouse-cursor-text[aria-autocomplete=none],.CodeMirror>div>textarea[readonly=''][style]"
