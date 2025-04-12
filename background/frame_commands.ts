@@ -16,10 +16,11 @@ import {
 } from "./ports"
 import { createSimpleUrlMatcher_, matchSimply_ } from "./exclusions"
 import { trans_ } from "./i18n"
-import { keyMappingErrors_, normalizedOptions_, visualGranularities_, visualKeys_ } from "./key_mappings"
+import { keyMappingErrors_, makeCommand_, normalizedOptions_, visualGranularities_, visualKeys_ } from "./key_mappings"
 import {
   wrapFallbackOptions, copyCmdOptions, parseFallbackOptions, portSendFgCmd, sendFgCmd, replaceCmdOptions, runNextCmdBy,
-  overrideOption, runNextCmd, hasFallbackOptions, getRunNextCmdBy, kRunOn, overrideCmdOptions, initHelpDialog
+  overrideOption, runNextCmd, hasFallbackOptions, getRunNextCmdBy, kRunOn, overrideCmdOptions, initHelpDialog,
+  executeCommand
 } from "./run_commands"
 import { parseReuse, newTabIndex, openUrlWithActions } from "./open_urls"
 import { FindModeHistory_ } from "./tools"
@@ -547,6 +548,11 @@ export const framesGoBack = (req: FgReq[kFgReq.framesGoBack], port: Port | null,
   const hasTabsGoBack: boolean = OnChrome && Build.MinCVer >= BrowserVer.Min$tabs$$goBack
       || OnFirefox && Build.MinFFVer >= FirefoxBrowserVer.Min$tabs$$goBack
       || !OnEdge && !!Tabs_.goBack
+  if (req.o.r) {
+    executeCommand(makeCommand_("reloadTab", BgUtils_.safer_(req.o)), req.s, kKeyCode.None, port, 0
+        , req.o.$f && {c: req.o.$f, r: req.o.$retry, u: 0, w: 0 })
+    return
+  }
   if (!hasTabsGoBack) {
     const url = curTab ? getTabUrl(curTab) : (port!.s.frameId_ ? getFrames_(port!)!.top_! : port!).s.url_
     if (!url.startsWith(CONST_.BrowserProtocol_) || OnFirefox && url.startsWith(Origin2_)) {

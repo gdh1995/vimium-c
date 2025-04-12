@@ -750,8 +750,7 @@ interface FgReq {
   [kFgReq.findFromVisual]: { /** command */ c: VisualAction }
   [kFgReq.framesGoBack]: {
     /** step */ s: number
-    /** only use o.position */ o: PickIn<Extract<CmdOptions[kFgCmd.framesGoBack], {r?: null}>
-        , keyof OpenUrlOptions | keyof Req.FallbackOptions>
+    /** only use o.position */ o: CmdOptions[kFgCmd.framesGoBack]
   }
   [kFgReq.cssLearnt]: {};
   [kFgReq.visualMode]: {

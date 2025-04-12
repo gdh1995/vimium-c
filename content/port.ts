@@ -18,7 +18,7 @@ let safeDestroy: (silent?: boolean | BOOL | 9) => void
 let requestHandlers: { [k in keyof BgReq]: (this: void, request: BgReq[k]) => unknown }
 let contentCommands_: {
   [k in keyof CmdOptions]:
-    k extends kFgCmd.framesGoBack | kFgCmd.insertMode ? (msg: CmdOptions[k], count?: number) => void :
+    k extends kFgCmd.insertMode ? (msg: CmdOptions[k], count?: number) => void :
     (this: void, options: CmdOptions[k] & SafeObject, count: number, key?: -42 | 0 | 1 | 2 | TimerType.fake) => void;
 }
 let hookOnWnd: (action: HookAction) => void

@@ -8,7 +8,8 @@ import {
   isHTML_, hasTag_, createElement_, querySelectorAll_unsafe_, SafeEl_not_ff_, docEl_unsafe_, MDW, CLK, derefInDoc_,
   querySelector_unsafe_, DAC, removeEl_s, appendNode_s, setClassName_s, INP, contains_s, toggleClass_s, modifySel,
   focus_, testMatch, docHasFocus_, deepActiveEl_unsafe_, getEditableType_, textOffset_, fullscreenEl_unsafe_, IsAInB_,
-  inputSelRange, dispatchAsync_, isSafeEl_, activeEl_unsafe_, isIFrameElement, elFromPoint_, isStyleVisible_, kDispatch, MayWoPopover, withoutPopover_,
+  inputSelRange, dispatchAsync_, isSafeEl_, activeEl_unsafe_, isIFrameElement, elFromPoint_, isStyleVisible_, kDispatch,
+  MayWoPopover, withoutPopover_,
 } from "../lib/dom_utils"
 import {
   replaceOrSuppressMost_, removeHandler_, getMappedKey, prevent_, isEscape_, keybody_, DEL, BSP, ENTER, handler_stack,
@@ -636,11 +637,11 @@ set_contentCommands_([
     // if no [tabindex=0], `.focus()` works if :exp and since MinElement$Focus$MayMakeArrowKeySelectIt or on Firefox
     timeout_((): void => { focus_(box) }, 17)
   }) as (options: CmdOptions[kFgCmd.showHelpDialog]) => void,
-  /* kFgCmd.framesGoBack: */ (options: CmdOptions[kFgCmd.framesGoBack], rawStep?: number): void => {
-    const maxStep = min_(rawStep! < 0 ? -rawStep! : rawStep!, history.length - 1),
+  /* kFgCmd.framesGoBack: */ (options: CmdOptions[kFgCmd.framesGoBack], rawStep: number): void => {
+    const maxStep = min_(abs_(rawStep), history.length - 1),
     reuse = (options as Extract<typeof options, {r?: null}>).reuse,
-    realStep = rawStep! < 0 ? -maxStep : maxStep;
-    if (options.r) {
+    realStep = rawStep < 0 ? -maxStep : maxStep
+    if (options.r && abs_(rawStep) === 1) {
       timeout_((): void => {
         if (!options.u) {
           if (checkHidden(kFgCmd.framesGoBack, options as typeof options & SafeObject, 1)) { return }
@@ -651,7 +652,7 @@ set_contentCommands_([
         runFallbackKey(options, !1)
       }, 17)
     }
-    else if ((OnChrome ? Build.MinCVer >= BrowserVer.Min$tabs$$goBack
+    else if (options.r || (OnChrome ? Build.MinCVer >= BrowserVer.Min$tabs$$goBack
               : OnFirefox ? Build.MinFFVer >= FirefoxBrowserVer.Min$tabs$$goBack : !OnEdge)
         || (OnChrome && chromeVer_ > BrowserVer.Min$tabs$$goBack - 1
               || OnFirefox && firefoxVer_ > FirefoxBrowserVer.Min$tabs$$goBack - 1
@@ -659,7 +660,7 @@ set_contentCommands_([
         || maxStep && reuse && reuse !== "current" // then reuse !== ReuseType.current
     ) {
       // maxStep > 1 && reuse == null || maxStep && reuse && !isCurrent
-      post_({ H: kFgReq.framesGoBack, s: realStep, o: options })
+      post_({ H: kFgReq.framesGoBack, s: options.r ? rawStep : realStep, o: options })
     } else {
       maxStep && history.go(realStep);
       runFallbackKey(options, maxStep ? !1 : 2)

@@ -223,7 +223,7 @@ export const jumpToNextLink: VApiTy["j"] = (linkElement: GoNextBaseCandidate[0],
           (findAnchor_(linkElement) || linkElement as TypeToPick<Element, HTMLLinkElement, "href">).href)
   url && vApi.t({ k: kTip.raw, t: url.slice(0, 256), d: 2, l: 1 })
   if (avoidClick && url) {
-    contentCommands_[kFgCmd.framesGoBack](safer<CmdOptions[kFgCmd.framesGoBack]>({ r: 1, u: url }))
+    contentCommands_[kFgCmd.framesGoBack](safer<CmdOptions[kFgCmd.framesGoBack]>({ r: 1, u: url }), 1)
   } else {
     options.v && invisible === kInvisibility.OutOfView && view_(linkElement, 1)
     flash_(linkElement) // here calls getRect -> preparCrop_

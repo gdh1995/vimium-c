@@ -776,7 +776,7 @@ export const availableCommands_: { readonly [key in kCName]: CommandsNS.Descript
   performFind: [ kBgCmd.performFind, kCxt.bg, 0 ],
   previousTab: [ kBgCmd.goToTab, kCxt.bg, 0, { $count: -1 } ],
   quickNext: [ kBgCmd.goToTab, kCxt.bg, 0 ],
-  reload: [ kFgCmd.framesGoBack, kCxt.fg, 1, { r: 1 } ],
+  reload: [ kFgCmd.framesGoBack, kCxt.fg, 0, { r: 1 } ],
   reloadGivenTab: [ kBgCmd.reloadTab, kCxt.bg, 0, { single: true } ],
   reloadTab: [ kBgCmd.reloadTab, kCxt.bg, /** 20 in tab_commands.ts */ 0 ],
   removeRightTab: [ kBgCmd.removeRightTab, kCxt.bg, 0 ],
