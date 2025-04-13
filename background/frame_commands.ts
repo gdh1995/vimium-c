@@ -210,6 +210,13 @@ export const initHelp = (request: FgReq[kFgReq.initHelp], port: Port): Promise<v
 export const showVomnibar = (forceInner?: boolean): void => {
   let port = cPort as Port | null
   let optUrl: VomnibarNS.GlobalOptions["url"] | UnknownValue = get_cOptions<C.showVomnibar>().url
+  let optQuery: VomnibarNS.GlobalOptions["query"] = get_cOptions<C.showVomnibar, true>().query
+  if (optQuery != null) {
+    optUrl = optQuery
+    optQuery = null
+    get_cOptions<C.showVomnibar, true>().url = optUrl
+    delete get_cOptions<C.showVomnibar, true>().query
+  }
   if (optUrl != null && optUrl !== true && typeof optUrl !== "string") {
     optUrl = null
     delete get_cOptions<C.showVomnibar, true>().url

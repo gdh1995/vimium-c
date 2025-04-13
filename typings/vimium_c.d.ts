@@ -434,6 +434,7 @@ declare namespace VomnibarNS {
     newtab?: boolean | BOOL;
     keyword?: string;
     url?: true | string | null;
+    query?: string | null
     /** known url */ u?: string | null | undefined
     urlSedKeys?: "sedKeys" | null
     exitOnClick?: boolean;
