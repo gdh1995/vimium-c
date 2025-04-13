@@ -479,7 +479,8 @@ export const flash_ = function (el: SafeElement | null, rect?: Rect | null, life
       lastFlashEl === flashEl && (lastFlashEl = null)
       removeEl_s(flashEl)
     };
-    knownViewOffset || timeout_(remove, (lifeTime || GlobalConsts.DefaultRectFlashTime) * (1 + +fgCache.m))
+    // link_actions.ts requires `flash_(, , -1)`
+    lifeTime! < 0 || timeout_(remove, (lifeTime || GlobalConsts.DefaultRectFlashTime) * (1 + +fgCache.m))
     return remove;
 } as {
     (el: null, rect: Rect, lifeTime: -1, classNames: string, knownViewOffset: ViewOffset): () => void
