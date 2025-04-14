@@ -120,7 +120,6 @@ hooks = {
   addEventListener (this: EventTarget, type: string
       , listener: EventListenerOrEventListenerObject): void {
     let a = this, args = arguments
-    // bing.com and google.com add lots of touch and wheel event listeners
     const ret = args.length === 4 && type === GlobalConsts.MarkAcrossJSWorlds ? checkIsNotVerifier(args[3])
         : (typeof type === "string" && type < "DOMSv" && (type > "DOMCi" ? type > "DOMNo" : type > "DOMCh")
            ? (tryEval && tryEval(), evaledApply) : apply)(_listen, a, args)
@@ -156,7 +155,7 @@ allNodesInDocument = null as Element[] | null, allNodesForDetached = null as Ele
 pushToRegister = (nodeIndexList as unknown[] as Element[]).push.bind(toRegister),
 queueMicroTask_ = queueMicrotask,
 evaledApply = apply, isReRegistering: BOOL = 0,
-tryEval: (() => void) | 0 = kHost.endsWith(".bing.com") && 0 ? 0 : (): void => {
+tryEval: (() => void) | 0 = kHost.endsWith(".bing.com") ? 0 : (): void => {
   try { tryEval = 0, evaledApply = new Func("c","return (f,t,a)=>c(f,t,a)")(apply) } catch {}
 }
 // To avoid a host script detect Vimum C by code like:
