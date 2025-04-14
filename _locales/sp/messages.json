@@ -8,7 +8,7 @@
   "userCustomized": { "message": "Acceso directo personalizado" },
   "name": { "message": "Vimium C - Todo vía teclado" },
   "description": { "message":
-"Una herramienta de atajos de teclado para navegación de páginas basada en el teclado y operaciones con pestañas del navegador con un omnibar avanzado y atajos globales."
+"Una herramienta de atajos de teclado para navegación de páginas basada en el teclado y operaciones con pestañas del navegador con un omnibar avanzado y atajos globales"
   },
   "lang1": { "message": "sp" },
   "noActiveState": { "message": "Según lo configurado, aquí no hay estado activo" },

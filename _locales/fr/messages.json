@@ -8,7 +8,7 @@
   "userCustomized": { "message": "Raccourci personnalisé" },
   "name": { "message": "Vimium C - Tout par le clavier" },
   "description": { "message":
-"Un outil de raccourcis clavier pour une navigation de page centrée sur l'usage du clavier, des opérations sur les onglets du navigateur avec une omnibar avancée ainsi que des raccourcis globaux"
+"Outil de raccourcis clavier pour une navigation de page centrée sur l'usage du clavier, des opérations sur les onglets du navigateur avec une omnibar avancée ainsi que des raccourcis globaux"
   },
   "lang1": { "message": "fr" },
   "i18n": { "message": "options=fr,en show=en" },
