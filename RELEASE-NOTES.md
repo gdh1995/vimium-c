@@ -4,9 +4,15 @@ Release Notes of Vimium C
 ReadMe: https://github.com/gdh1995/vimium-c/#readme .<br/>
 说明文档: https://gitee.com/gdh1995/vimium-c#readme , https://github.com/gdh1995/vimium-c/blob/master/README-zh.md .
 
-#### v2.12
+#### v2.14
 * update minimum browser version to Chromium 109 and Firefox 115 in the public released packages
   * they are the last versions supporting Win 7 and Win 8 series
+
+#### v2.12.2
+* fix a recent bug that Vimium C might break some websites including IEEE on Chromium-based browsers
+* fix quite a few UI issues on recent versions of Chrome and Firefox
+* add the `findSelected` command and some other features which have been implemented by Vimium
+* Vomnibar: add .neverMasked to always filter out masked history items
 
 #### v2.11.3
 * fix broken LinkHints.activateCopyImage
