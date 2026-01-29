@@ -254,7 +254,7 @@ Object.assign<typeof updateHooks_, { [key in SettingsNS.DeclaredUpdateHooks]: Se
       const map = extAllowList_
       map.forEach((v, k): void => { v !== false && map.delete(k) })
       if (!val) { return; }
-      for (let arr = val.split("\n"), i = arr.length, wordCharRe = /^[\da-z_]/i as RegExpI; 0 <= --i; ) {
+      for (let arr = val.split("\n"), i = arr.length, wordCharRe = /^[\da-z_{]/i as RegExpI; 0 <= --i; ) {
         if ((val = arr[i].trim()) && wordCharRe.test(val)) {
           map.set(val, true)
         }
