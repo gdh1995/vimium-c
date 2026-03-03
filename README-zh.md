@@ -24,15 +24,15 @@
 [![评分](https://img.shields.io/badge/dynamic/json?logo=Microsoft%20Edge&label=评分&query=%24.averageRating&url=https%3A%2F%2Fmicrosoftedge.microsoft.com%2Faddons%2Fgetproductdetailsbycrxid%2Faibcglbfblnogfjhbcmmpobjhnomhcdo
   )](https://microsoftedge.microsoft.com/addons/detail/aibcglbfblnogfjhbcmmpobjhnomhcdo)
 [![Chrome 102+](https://img.shields.io/chrome-web-store/v/hfjbmagddngcpeloejdejnfgbamkjaeg?logo=Google%20Chrome&logoColor=white&label=Chrome%20102%2B&labelColor=4285F4&color=critical
-  )](https://chrome.google.com/webstore/detail/vimium-c-all-by-keyboard/hfjbmagddngcpeloejdejnfgbamkjaeg)
+  )](https://chromewebstore.google.com/detail/vimium-c-all-by-keyboard/hfjbmagddngcpeloejdejnfgbamkjaeg)
 [![用户数](https://img.shields.io/chrome-web-store/users/hfjbmagddngcpeloejdejnfgbamkjaeg?logo=Google%20Chrome&logoColor=white&label=用户数&labelColor=4285F4&color=critical
-  )](https://chrome.google.com/webstore/detail/vimium-c-all-by-keyboard/hfjbmagddngcpeloejdejnfgbamkjaeg)
+  )](https://chromewebstore.google.com/detail/vimium-c-all-by-keyboard/hfjbmagddngcpeloejdejnfgbamkjaeg)
 [![评分](https://img.shields.io/chrome-web-store/rating/hfjbmagddngcpeloejdejnfgbamkjaeg?logo=Google%20Chrome&logoColor=white&label=评分&labelColor=4285F4&color=critical
-  )](https://chrome.google.com/webstore/detail/vimium-c-all-by-keyboard/hfjbmagddngcpeloejdejnfgbamkjaeg)
+  )](https://chromewebstore.google.com/detail/vimium-c-all-by-keyboard/hfjbmagddngcpeloejdejnfgbamkjaeg)
 
 **在 [Firefox 附加组件](https://addons.mozilla.org/firefox/addon/vimium-c/?src=external-readme) /
 [Microsoft Edge 加载项](https://microsoftedge.microsoft.com/addons/detail/aibcglbfblnogfjhbcmmpobjhnomhcdo) /
-[Chrome 网上应用店](https://chrome.google.com/webstore/detail/vimium-c-all-by-keyboard/hfjbmagddngcpeloejdejnfgbamkjaeg
+[Chrome 网上应用店](https://chromewebstore.google.com/detail/vimium-c-all-by-keyboard/hfjbmagddngcpeloejdejnfgbamkjaeg
   ) 中查看**
 
 Vimium C 是一款开源、免费的键盘增强类浏览器扩展，支持为多种多样的命令任意设置快捷键。
@@ -124,29 +124,29 @@ Vimium C 具有完善的安全机制：
 
 * PDF Viewer for Vimium C （支持 Vimium C 的 PDF 阅读器）
   * 基于 [PDF.js](https://github.com/mozilla/pdf.js/) 修改并发布，可以代替应用商店里的 [PDF Viewer](
-      https://chrome.google.com/webstore/detail/pdf-viewer/oemmndcbldboiebfnladdacbdfmadadm)
+      https://chromewebstore.google.com/detail/pdf-viewer/oemmndcbldboiebfnladdacbdfmadadm)
   * 在 [Chrome 网上应用店](
-      https://chrome.google.com/webstore/detail/pdf-viewer-for-vimium-c/nacjakoppgmdcpemlfnfegmlhipddanj) 上查看
+      https://chromewebstore.google.com/detail/pdf-viewer-for-vimium-c/nacjakoppgmdcpemlfnfegmlhipddanj) 上查看
   * 项目主页：[vimium-c-helpers/pdf-viewer](https://gitee.com/gdh1995/vimium-c-helpers/tree/master/pdf-viewer)
 * 新标签页修改器
   * 接管浏览器的新标签页设置，转为打开一个可以随意修改的网址
   * 在 [Firefox 附加组件](https://addons.mozilla.org/firefox/addon/newtab-adapter/?src=external-vc-readme) 和
-    [Chrome 网上应用店](https://chrome.google.com/webstore/detail/newtab-adapter/cglpcedifkgalfdklahhcchnjepcckfn) 上查看
+    [Chrome 网上应用店](https://chromewebstore.google.com/detail/newtab-adapter/cglpcedifkgalfdklahhcchnjepcckfn) 上查看
   * 项目主页：[vimium-c-helpers/newtab](https://gitee.com/gdh1995/vimium-c-helpers/tree/master/newtab#git-readme)
 * 快捷键补充工具
   * 提供 32 个可全局绑定的快捷键，快捷键被触发时通知其它扩展（比如 Vimium C）执行相应操作
   * 在
     [Firefox 附加组件](https://addons.mozilla.org/firefox/addon/shortcut-forwarding-tool/?src=external-vc-readme) 和
     [Chrome 网上应用店](
-      https://chrome.google.com/webstore/detail/shortcut-forwarding-tool/clnalilglegcjmlgenoppklmfppddien) 上查看
+      https://chromewebstore.google.com/detail/shortcut-forwarding-tool/clnalilglegcjmlgenoppklmfppddien) 上查看
   * 项目主页：[vimium-c-helpers/shortcuts](https://gitee.com/gdh1995/vimium-c-helpers/tree/master/shortcuts#git-readme)
 * 微度新标签页修改版
   * [www.weidunewtab.com](http://www.weidunewtab.com/)（英文网址：[www.newtabplus.com](
       http://www.newtabplus.com/)）的修改精简版，界面文字只保留了中文翻译
   * 此版本不接管浏览器新标签页设置，如需接管新标签页，推荐使用 [新标签页修改器](
-      https://chrome.google.com/webstore/detail/newtab-adapter/cglpcedifkgalfdklahhcchnjepcckfn) 等扩展
+      https://chromewebstore.google.com/detail/newtab-adapter/cglpcedifkgalfdklahhcchnjepcckfn) 等扩展
   * 在 [Chrome 网上应用店](
-      https://chrome.google.com/webstore/detail/微度新标签页修改版/hdnehngglnbnehkfcidabjckinphnief) 上查看
+      https://chromewebstore.google.com/detail/微度新标签页修改版/hdnehngglnbnehkfcidabjckinphnief) 上查看
 
 
 <a name="changelog"></a>
