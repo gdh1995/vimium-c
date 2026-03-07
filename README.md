@@ -24,15 +24,15 @@
 [![rating](https://img.shields.io/badge/dynamic/json?logo=Microsoft%20Edge&label=rating&query=%24.averageRating&url=https%3A%2F%2Fmicrosoftedge.microsoft.com%2Faddons%2Fgetproductdetailsbycrxid%2Faibcglbfblnogfjhbcmmpobjhnomhcdo
   )](https://microsoftedge.microsoft.com/addons/detail/aibcglbfblnogfjhbcmmpobjhnomhcdo)
 [![Chrome 102+](https://img.shields.io/chrome-web-store/v/hfjbmagddngcpeloejdejnfgbamkjaeg?logo=Google%20Chrome&logoColor=white&label=Chrome%20102%2B&labelColor=4285F4&color=critical
-  )](https://chrome.google.com/webstore/detail/vimium-c-all-by-keyboard/hfjbmagddngcpeloejdejnfgbamkjaeg)
+  )](https://chromewebstore.google.com/detail/vimium-c-all-by-keyboard/hfjbmagddngcpeloejdejnfgbamkjaeg)
 [![users](https://img.shields.io/chrome-web-store/users/hfjbmagddngcpeloejdejnfgbamkjaeg?logo=Google%20Chrome&logoColor=white&label=users&labelColor=4285F4&color=critical
-  )](https://chrome.google.com/webstore/detail/vimium-c-all-by-keyboard/hfjbmagddngcpeloejdejnfgbamkjaeg)
+  )](https://chromewebstore.google.com/detail/vimium-c-all-by-keyboard/hfjbmagddngcpeloejdejnfgbamkjaeg)
 [![rating](https://img.shields.io/chrome-web-store/rating/hfjbmagddngcpeloejdejnfgbamkjaeg?logo=Google%20Chrome&logoColor=white&label=rating&labelColor=4285F4&color=critical
-  )](https://chrome.google.com/webstore/detail/vimium-c-all-by-keyboard/hfjbmagddngcpeloejdejnfgbamkjaeg)
+  )](https://chromewebstore.google.com/detail/vimium-c-all-by-keyboard/hfjbmagddngcpeloejdejnfgbamkjaeg)
 
 **Visit on [Firefox Add-ons](https://addons.mozilla.org/firefox/addon/vimium-c/?src=external-readme) /
 [Microsoft Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/aibcglbfblnogfjhbcmmpobjhnomhcdo) /
-[Chrome Web Store](https://chrome.google.com/webstore/detail/vimium-c-all-by-keyboard/hfjbmagddngcpeloejdejnfgbamkjaeg
+[Chrome Web Store](https://chromewebstore.google.com/detail/vimium-c-all-by-keyboard/hfjbmagddngcpeloejdejnfgbamkjaeg
   )**
 
 A <span style="color: #a55e18;">C</span>ustomized
@@ -251,29 +251,29 @@ __Other extensions supporting Vimium C:__
 * PDF Viewer for Vimium C
   * built from (modified) [PDF.js](https://github.com/mozilla/pdf.js/),
     and is a replacement for the extension named [PDF Viewer](
-      https://chrome.google.com/webstore/detail/pdf-viewer/oemmndcbldboiebfnladdacbdfmadadm)
+      https://chromewebstore.google.com/detail/pdf-viewer/oemmndcbldboiebfnladdacbdfmadadm)
   * visit it on [Chrome Web Store](
-      https://chrome.google.com/webstore/detail/pdf-viewer-for-vimium-c/nacjakoppgmdcpemlfnfegmlhipddanj)
+      https://chromewebstore.google.com/detail/pdf-viewer-for-vimium-c/nacjakoppgmdcpemlfnfegmlhipddanj)
   * Project home: [vimium-c-helpers/pdf-viewer](https://github.com/gdh1995/vimium-c-helpers/tree/master/pdf-viewer)
 * NewTab Adapter
   * take over browser's new tab settings and open another configurable URL
   * visit it on [Firefox Add-ons](https://addons.mozilla.org/firefox/addon/newtab-adapter/?src=external-vc-readme) /
-    [Chrome Web Store](https://chrome.google.com/webstore/detail/newtab-adapter/cglpcedifkgalfdklahhcchnjepcckfn)
+    [Chrome Web Store](https://chromewebstore.google.com/detail/newtab-adapter/cglpcedifkgalfdklahhcchnjepcckfn)
   * project home: [vimium-c-helpers/newtab](https://github.com/gdh1995/vimium-c-helpers/tree/master/newtab#readme)
 * Shortcut Forwarding Tool
   * provide 32 configurable shortcuts and forward them to another extension like Vimium C
   * visit it on
     [Firefox Add-ons](https://addons.mozilla.org/firefox/addon/shortcut-forwarding-tool/?src=external-vc-readme) /
     [Chrome Web Store](
-      https://chrome.google.com/webstore/detail/shortcut-forwarding-tool/clnalilglegcjmlgenoppklmfppddien)
+      https://chromewebstore.google.com/detail/shortcut-forwarding-tool/clnalilglegcjmlgenoppklmfppddien)
   * project home: [vimium-c-helpers/shortcuts](https://github.com/gdh1995/vimium-c-helpers/tree/master/shortcuts#readme)
 * Modified Weidu New Tab (微度新标签页修改版)
   * a modified and lite version of [www.weidunewtab.com](http://www.weidunewtab.com/) (or
       [www.newtabplus.com](http://www.newtabplus.com/) ), with Chinese translation only
   * it does not take over browser's new tab settings; if needed then [NewTab Adapter](
-      https://chrome.google.com/webstore/detail/newtab-adapter/cglpcedifkgalfdklahhcchnjepcckfn) is recommended
+      https://chromewebstore.google.com/detail/newtab-adapter/cglpcedifkgalfdklahhcchnjepcckfn) is recommended
   * visit it on [Chrome Web Store](
-      https://chrome.google.com/webstore/detail/微度新标签页修改版/hdnehngglnbnehkfcidabjckinphnief)
+      https://chromewebstore.google.com/detail/微度新标签页修改版/hdnehngglnbnehkfcidabjckinphnief)
 
 
 <a name="changelog"></a>
