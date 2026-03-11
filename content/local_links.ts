@@ -474,7 +474,9 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
             && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsuredUnprefixedShadowDOMV0)
             && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
             ? noClosedShadow === 1 ? (el as SafeHTMLElement).shadowRoot as ShadowRoot | null
-              : !(Build.BTypes & ~BrowserType.Firefox) ? (el as any).openOrClosedShadowRoot as ShadowRoot | null
+              : !(Build.BTypes & ~BrowserType.Firefox) ?
+                ((el as any).openOrClosedShadowRoot instanceof (window as any).ShadowRoot) ?
+                ((el as any).openOrClosedShadowRoot as ShadowRoot) : null
               : GetShadowRoot_(el as SafeHTMLElement, 0)
             : Build.BTypes & BrowserType.Chrome ? GetShadowRoot_(el as SafeHTMLElement, noClosedShadow)
             : GetShadowRoot_(el as SafeHTMLElement)
