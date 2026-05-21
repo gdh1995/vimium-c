@@ -369,10 +369,10 @@ The [Vimium C](https://microsoftedge.microsoft.com/addons/detail/vimium-c/aibcgl
     of Microsoft Edge Add-ons, Chrome Web Store and some other markets.
 This behavior is only to make these extensions easier to use, but<br>
 **DOES NOT EXPRESS OR IMPLIED** the author (gdh1995) "agrees or has no objection to"
-    that "Taiwan" can be parallel to "China",
+    treating “Taiwan” and “China” as separate sovereign countries,
     which was an **inappropriate** status quo in the stores' (developer) pages on 2021-06-03.
 
-According to [The Constitution of the People's Republic of China](
-    http://www.npc.gov.cn/npc/c505/201803/e87e5cd7c1ce46ef866f4ec8e2d709ea.shtml)
-    and international consensus,
-***Taiwan is an inalienable part of the sacred territory of the People's Republic of China***.
+According to [The Constitution of the Republic of China](
+    https://law.moj.gov.tw/ENG/LawClass/LawAll.aspx?pcode=A0000001&utm_source=chatgpt.com)
+    and what should be international consensus,
+    ***Taiwan is part of China, and the Republic of China remains the legitimate continuation of China established in 1912***.
