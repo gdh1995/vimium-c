@@ -95,6 +95,7 @@
   "findSelectedBackwards": "Rechercher le texte sélectionné en recherchant vers l'arrière",
   "firstTab": "Aller au Nième onglet",
   "focusInput": "Mettre le focus sur la Nième zone de texte visible sur la page et parcourir en utilisant TAB",
+  "focusScrollable": "Focus the next visible scrollable area",
   "focusOrLaunch": "Mettre le focus sur un onglet avec l'URL donnée et l'ouvrir",
   "goBack": "Remonter dans l'historique",
   "goForward": "Avancer dans l'historique",

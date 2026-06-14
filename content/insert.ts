@@ -40,6 +40,8 @@ let onExitSuppress: ((this: void) => void) | 0 | undefined
 let onWndBlur2: ((this: void) => void) | undefined | null
 let passAsNormal: BOOL = 0
 let readonlyFocused_: 0 | 1 | -1 = 0
+let allowedEditableFocus: LockableElement | null = null
+let allowedEditableFocusUntil = 0
 
 export {
   lock_ as raw_insert_lock, insert_global_, passAsNormal, readonlyFocused_,
@@ -56,6 +58,21 @@ export function set_grabBackFocus (_newGrabBackFocus: typeof grabBackFocus): voi
 export function set_onWndBlur2 (_newOnBlur: typeof onWndBlur2): void { onWndBlur2 = _newOnBlur }
 export function set_passAsNormal (_newNormal: BOOL): void { passAsNormal = _newNormal }
 export function set_readonlyFocused_ (_newRoFocused: 0 | 1 | -1): 0 | 1 | -1 { return readonlyFocused_ = _newRoFocused }
+export function allowEditableFocus_ (element: LockableElement): void {
+  allowedEditableFocus = element
+  allowedEditableFocusUntil = getTime() + 1500
+}
+export const onEditableMouseDown = (event: Event): void => {
+  if (!isEnabled_ || (!OnChrome || Build.MinCVer >= BrowserVer.Min$Event$$IsTrusted
+      ? !event.isTrusted : event.isTrusted === false)) { return }
+  let target = event.target as EventTarget | Element | null
+  if (target && target !== ui_box && getEditableType_<EventTarget>(target)) {
+    allowEditableFocus_(target as LockableElement)
+  } else {
+    allowedEditableFocus = null
+    allowedEditableFocusUntil = getTime() + 1500
+  }
+}
 // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
 
 export const insertInit = (doesGrab?: boolean | null, inLoading?: 1): void => {
@@ -262,7 +279,12 @@ export const onFocus = (event: Event | FocusEvent): void => {
   if (type = getEditableType_<EventTarget>(target)) {
     if (grabBackFocus) {
       (grabBackFocus as Exclude<typeof grabBackFocus, boolean>)(event, target);
+    } else if (target !== allowedEditableFocus && getTime() > allowedEditableFocusUntil) {
+      Stop_(event)
+      ; (target as LockableElement).blur()
+      if (lock_ === target) { lock_ = null }
     } else {
+      allowedEditableFocus = null
       esc!(HandlerResult.Nothing)
       lock_ = target
       // here ignore the rare case of an XMLDocument with a editable node on Firefox, for smaller code

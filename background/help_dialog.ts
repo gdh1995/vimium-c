@@ -274,6 +274,7 @@ const commandGroups_: {
     , "copyCurrentTitle"
     , "switchFocus", "$flash, select=\"\"/all/all-line/start/end"
     , "focusInput", "$keep, select=\"\"/all/all-line/start/end"
+    , "focusScrollable"
     , "LinkHints.activateCopyLinkUrl"
     , "LinkHints.activateCopyLinkText", "$join:boolean/string"
     , "openCopiedUrlInCurrentTab"

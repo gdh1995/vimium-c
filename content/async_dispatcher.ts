@@ -9,7 +9,7 @@ import {
 } from "../lib/dom_utils"
 import { suppressTail_ } from "../lib/keyboard_utils"
 import { Point2D, center_, getVisibleClientRect_, view_, selRange_, isContaining_ } from "../lib/rect"
-import { insert_Lock_ } from "./insert"
+import { allowEditableFocus_, insert_Lock_ } from "./insert"
 import { post_, send_ } from "./port"
 import { flash_, getSelected, getSelectionBoundingBox_, moveSel_s_throwable } from "./dom_ui"
 import { coreHints, hintApi, hintManager, mode1_ as hintMode1_, hintOptions, isHintsActive } from "./link_hints"
@@ -521,6 +521,7 @@ export const select_ = (element: LockableElement, rect?: Rect | null, show_flash
   const range = sel && selRange_(sel)
   const focusedRange = range && range.cloneRange()
   const focusedRect = focusedRange && getSelectionBoundingBox_(focusedRange.collapse(!1), 0, focusedRange)
+  allowEditableFocus_(element)
   return catchAsyncErrorSilently(click_async(element
       , focusedRect && (!rect || isContaining_(rect, focusedRect)) ? focusedRect : rect, 1)).then((): void => {
     view_(element, !show_flash, y)

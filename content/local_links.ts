@@ -276,6 +276,21 @@ export const getEditable = (hints: Hint[], element: SafeHTMLElement): void => {
   }
 }
 
+export const getScrollable = (hints: Hint[], element: SafeHTMLElement): void => {
+  const rect = getVisibleClientRect_(element, null)
+  if (!rect) { return }
+  const width = rect.r - rect.l, height = rect.b - rect.t
+  if (height > GlobalConsts.MinScrollableAreaSizeForDetection - 1
+      && element.clientHeight + 5 < element.scrollHeight
+      && shouldScroll_s(element, kDim.byY, 0) > 0) {
+    hints.push([element, rect, ClickType.scrollY])
+  } else if (width > GlobalConsts.MinScrollableAreaSizeForDetection - 1
+      && element.clientWidth + 5 < element.scrollWidth
+      && shouldScroll_s(element, kDim.byX, 0) > 0) {
+    hints.push([element, rect, ClickType.scrollX])
+  }
+}
+
 const getIfOnlyVisible = (hints: (Hint | Hint0)[], element: SafeElement): void => {
   const arr = getVisibleClientRect_(element, null)
   arr && hints.push([element as SafeElementForMouse

@@ -359,7 +359,7 @@ nickyfeng@edgetranslate.com
 saladict@crimx.com`
 : "",
     filterLinkHints: false,
-    grabBackFocus: false,
+    grabBackFocus: true,
     hideHud: false,
     ignoreReadonly: GlobalConsts.kCssDefault as const
         || "#read-only-cursor-text-area" // GitHub source file content

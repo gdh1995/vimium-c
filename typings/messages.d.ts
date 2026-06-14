@@ -252,7 +252,7 @@ declare const enum kBgCmd {
 
 declare const enum kFgCmd {
   callTee, findMode, linkHints, marks, scroll, visualMode, vomnibar, insertMode, toggle,
-  passNextKey, goNext, autoOpen, focusInput, editText, scrollSelect, toggleStyle, dispatchEventCmd, showHelpDialog,
+  passNextKey, goNext, autoOpen, focusInput, focusScrollable, editText, scrollSelect, toggleStyle, dispatchEventCmd, showHelpDialog,
   framesGoBack, goToMark,
   END, ENDS = "END",
 }
@@ -489,6 +489,8 @@ interface CmdOptions {
     flash?: boolean;
     reachable?: boolean | number; // default to true
     prefer?: string;
+  } & CSSOptions & Req.FallbackOptions
+  [kFgCmd.focusScrollable]: {
   } & CSSOptions & Req.FallbackOptions
   [kFgCmd.editText]: {
     dom?: boolean;

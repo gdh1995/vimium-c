@@ -94,6 +94,7 @@
   "findSelectedBackwards": "Find the selected text, searching backwards",
   "firstTab": "Go to the first N-th tab",
   "focusInput": "Focus the N-th visible text box on the page and cycle using tab",
+  "focusScrollable": "Focus the next visible scrollable area",
   "focusOrLaunch": "Focus a tab with given URL or open it",
   "goBack": "Go back in history",
   "goForward": "Go forward in history",

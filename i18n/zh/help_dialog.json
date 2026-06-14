@@ -101,6 +101,7 @@
   "findSelected": "查找选择的词语",
   "findSelectedBackwards": "向上查找选择的词语",
   "focusInput": "进入文本框选择模式（Tab 切换）",
+  "focusScrollable": "Focus the next visible scrollable area",
   "focusOrLaunch": "切换到或新建指定网址的标签页",
   "goBack": "在历史记录中后退",
   "goForward": "在历史记录中前进",

@@ -117,7 +117,8 @@ import {
 } from "./local_links"
 import {
   matchHintsByKey, zIndexes_, rotate1, initFilterEngine, initAlphabetEngine, renderMarkers, generateHintText,
-  getMatchingHints, activeHint_, hintFilterReset, set_maxPrefixLen_, set_zIndexes_, adjustMarkers_old_cr_edge,
+  getMatchingHints, activeHint_, hintFilterReset, set_maxPrefixLen_, set_zIndexes_, spreadOverlappingMarkers,
+  adjustMarkers_old_cr_edge,
   createHint
 } from "./hint_filters"
 import { executeHintInOfficer, removeFlash, set_removeFlash } from "./link_actions"
@@ -307,6 +308,7 @@ const render: BaseHintWorker["r"] = (hints, arr: FrameHintsInfo["v"], raw_apis):
     manager_ || setMode(mode_)
     if (hints.length) {
       box_ = addElementList(hints, arr, ((managerOrA.d satisfies 0 | 1 | 3) | coreHints.d) as typeof managerOrA.d)
+      spreadOverlappingMarkers(hints)
     } else if (!manager_) {
       adjustUI();
     }
