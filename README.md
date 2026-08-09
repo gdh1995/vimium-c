@@ -56,6 +56,8 @@ A <span style="color: #a55e18;">C</span>ustomized
 
 [阅读中文介绍 (description in Chinese) 。](README-zh.md)
 
+[Prečítať slovenský popis (description in Slovak).](README-sk.md)
+
 This project is mainly developed and maintained by [gdh1995](https://github.com/gdh1995) (Gong Dahan),
 and open-sourced under the [Apache-2.0 license](LICENSE.txt).
 
@@ -239,6 +241,7 @@ Here're some advanced usages which are different with philc/vimium:
 __<span style="color: #2f508e;">Vim</span>ium <span style="color: #a55e18;">C</span>:__
 
 * [中文介绍 (description in Chinese)](README-zh.md)
+* [Slovenský popis (description in Slovak)](README-sk.md)
 * a web extension for Firefox, Microsoft Edge and Google Chrome that provides keyboard-based navigation and control
     of the web, in the spirit of the Vim editor.
 * add some powerful functions and provide more configurable details and convenience.
