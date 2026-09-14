@@ -53,6 +53,9 @@ const _onBookmarksImport = OnChrome ? [
   (): void => { browser_.bookmarks.onCreated.addListener(BookmarkManager_.Delay_); BookmarkManager_.Delay_() }
 ] : null
 let _onBookmarkPermissionChange = (allowList: (boolean | undefined | null)[]): void => {
+  // the first report arrives while refresh_ is still loading the tree; resetting then would
+  // run the pending query on an empty list and drop the tree's results
+  if (allowList[0] && bookmarkCache_.status_ !== BookmarkStatus.revoked) { return }
   bookmarkCache_.bookmarks_ = []
   bookmarkCache_.dirs_ = []
   BookmarkManager_._didLoad(allowList[0] ? BookmarkStatus.notInited : BookmarkStatus.revoked)
