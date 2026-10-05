@@ -13,60 +13,84 @@
     "type": "module"
   },
   "commands": {
-    "createTab": { "description": "__MSG_createTab_s__" },
-    "goBack": { "description": "__MSG_goBack_s__" },
-    "goForward": { "description": "__MSG_goForward_s__" },
-    "previousTab": { "description": "__MSG_previousTab_s__" },
-    "quickNext": { "description": "__MSG_quickNext_s__" },
-    "reloadTab": { "description": "__MSG_reloadTab_s__" },
-    "userCustomized1": { "description": "__MSG_userCustomized__ 1" },
-    "userCustomized2": { "description": "__MSG_userCustomized__ 2" }
+    "createTab": {
+      "description": "__MSG_createTab_s__"
+    },
+    "goBack": {
+      "description": "__MSG_goBack_s__"
+    },
+    "goForward": {
+      "description": "__MSG_goForward_s__"
+    },
+    "previousTab": {
+      "description": "__MSG_previousTab_s__"
+    },
+    "quickNext": {
+      "description": "__MSG_quickNext_s__"
+    },
+    "reloadTab": {
+      "description": "__MSG_reloadTab_s__"
+    },
+    "userCustomized1": {
+      "description": "__MSG_userCustomized__ 1"
+    },
+    "userCustomized2": {
+      "description": "__MSG_userCustomized__ 2"
+    },
+    "_execute_browser_action": {}
   },
-  "content_scripts": [ {
-    "all_frames": true,
-    "js": [
-      "lib/env.js",
-      "lib/utils.js",
-      "lib/keyboard_utils.js",
-      "lib/dom_utils.js",
-      "lib/rect.js",
-      "content/dom_ui.js",
-      "content/async_dispatcher.js",
-      "content/hud.js",
-      "content/insert.js",
-      "content/key_handler.js",
-      "content/port.js",
-      "content/pagination.js",
-      "content/marks.js",
-      "content/local_links.js",
-      "content/hint_filters.js",
-      "content/link_actions.js",
-      "content/link_hints.js",
-      "content/omni.js",
-      "content/mode_find.js",
-      "content/visual.js",
-      "content/scroller.js",
-      "content/request_handlers.js",
-      "content/commands.js",
-      "content/extend_click.js",
-      "content/extend_click_ff.js",
-      "content/frontend.js"
-    ],
-    "match_about_blank": true,
-    "match_origin_as_fallback": true,
-    "matches": [ "<all_urls>" ],
-    "run_at": "document_start"
-  }, {
-    "all_frames": true,
-    "js": [
-      "content/extend_click_vc.js"
-    ],
-    "match_about_blank": true,
-    "match_origin_as_fallback": true,
-    "matches": [ "<all_urls>" ],
-    "run_at": "document_start",
-    "world": "MAIN"
-  } ],
+  "content_scripts": [
+    {
+      "all_frames": true,
+      "js": [
+        "lib/env.js",
+        "lib/utils.js",
+        "lib/keyboard_utils.js",
+        "lib/dom_utils.js",
+        "lib/rect.js",
+        "content/dom_ui.js",
+        "content/async_dispatcher.js",
+        "content/hud.js",
+        "content/insert.js",
+        "content/key_handler.js",
+        "content/port.js",
+        "content/pagination.js",
+        "content/marks.js",
+        "content/local_links.js",
+        "content/hint_filters.js",
+        "content/link_actions.js",
+        "content/link_hints.js",
+        "content/omni.js",
+        "content/mode_find.js",
+        "content/visual.js",
+        "content/scroller.js",
+        "content/request_handlers.js",
+        "content/commands.js",
+        "content/extend_click.js",
+        "content/extend_click_ff.js",
+        "content/frontend.js"
+      ],
+      "match_about_blank": true,
+      "match_origin_as_fallback": true,
+      "matches": [
+        "<all_urls>"
+      ],
+      "run_at": "document_start"
+    },
+    {
+      "all_frames": true,
+      "js": [
+        "content/extend_click_vc.js"
+      ],
+      "match_about_blank": true,
+      "match_origin_as_fallback": true,
+      "matches": [
+        "<all_urls>"
+      ],
+      "run_at": "document_start",
+      "world": "MAIN"
+    }
+  ],
   "content_security_policy": {
     "extension_pages": "script-src 'self'; style-src 'self' 'unsafe-inline'; object-src 'none'"
   },
@@ -125,9 +149,18 @@
   "update_url": "https://clients2.google.com/service/update2/crx",
   "version": "2.12.3",
   "version_name": "2.12.2",
-  "web_accessible_resources": [ {
-    "resources": [ "content/*", "front/vomnibar*", "lib/*" ],
-    "matches": [ "<all_urls>", "chrome-extension://*/*" ],
-    "use_dynamic_url": false
-  } ]
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "content/*",
+        "front/vomnibar*",
+        "lib/*"
+      ],
+      "matches": [
+        "<all_urls>",
+        "chrome-extension://*/*"
+      ],
+      "use_dynamic_url": false
+    }
+  ]
 }
