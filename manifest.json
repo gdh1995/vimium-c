@@ -20,7 +20,8 @@
     "quickNext": { "description": "__MSG_quickNext_s__" },
     "reloadTab": { "description": "__MSG_reloadTab_s__" },
     "userCustomized1": { "description": "__MSG_userCustomized__ 1" },
-    "userCustomized2": { "description": "__MSG_userCustomized__ 2" }
+    "userCustomized2": { "description": "__MSG_userCustomized__ 2" },
+    "_execute_browser_action": {}
   },
   "content_scripts": [ {
     "all_frames": true,
