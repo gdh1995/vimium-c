@@ -1,7 +1,7 @@
 import {
   cPort, cRepeat, get_cOptions, set_cPort, set_cOptions, set_cRepeat, framesForTab_, findCSS_, cKey, reqH_, runOnTee_,
   curTabId_, settingsCache_, OnChrome, visualWordsRe_, CurCVer_, OnEdge, OnFirefox, substitute_, CONST_, set_runOnTee_,
-  curWndId_, vomnibarPage_f, vomnibarBgOptions_, replaceTeeTask_, blank_, offscreenPort_, teeTask_,
+  curWndId_, vomnibarPage_f, vomnibarBgOptions_, replaceTeeTask_, offscreenPort_, teeTask_,
   curIncognito_, OnOther_, keyToCommandMap_, Origin2_, CurFFVer_
 } from "./store"
 import * as BgUtils_ from "./utils"
@@ -33,8 +33,12 @@ let _offscreenLoading = false
 
 set_runOnTee_(((task, serializable, data): Promise<boolean | string> => {
   if (Build.MV3 && task === kTeeTask.Paste && OnChrome && serializable >= 0) {
-    return navigator.permissions!.query({ name: "clipboard-read" }).catch(blank_)
-        .then((res) => !!res && res.state !== "denied" && runOnTee_(kTeeTask.Paste, -1 - <number> serializable, null))
+    // #1467: on Chromium/Edge 156+, `permissions.query({name: "clipboard-read"})` inside the MV3
+    // service worker resolves to "denied" (or rejects) even if the extension has the permission and
+    // its documents still get "granted", so such a pre-check would block every pasting forever.
+    // The real reading is done in the offscreen document by `document.execCommand("paste")`, and if
+    // the permission is really missing it just fails and a "not allowed" HUD will be shown, so skip it.
+    return runOnTee_(kTeeTask.Paste, -1 - <number> serializable, null)
   }
   const useOffscreen = !!Build.MV3 && !_offscreenFailed && OnChrome && (Build.MinCVer >= BrowserVer.MinOffscreenAPIs
         || CurCVer_ > BrowserVer.MinOffscreenAPIs - 1)
