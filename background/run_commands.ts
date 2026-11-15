@@ -234,6 +234,7 @@ export const executeCommand = (registryEntry: CommandsNS.Item, count: number, la
     const { alias_: fgAlias } = registryEntry,
     wantCSS = (kFgCmd.END <= 32 || fgAlias < 32) && <BOOL> (((
       (1 << kFgCmd.linkHints) | (1 << kFgCmd.marks) | (1 << kFgCmd.passNextKey) | (1 << kFgCmd.focusInput)
+      | (1 << kFgCmd.focusScrollable)
     ) >> fgAlias) & 1)
         || fgAlias === kFgCmd.scroll && (!!options && (options as CmdOptions[kFgCmd.scroll]).keepHover === false)
     set_cPort(port!)

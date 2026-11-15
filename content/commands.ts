@@ -42,10 +42,10 @@ import {
   insert_global_, insert_last2_, set_insert_last2_, insert_last_mutable, resetInsertAndScrolling
 } from "./insert"
 import { activate as visualActivate, deactivate as visualDeactivate } from "./visual"
-import { activate as scActivate, onActivate, currentScrolling, setNewScrolling, scrollTick } from "./scroller"
+import { activate as scActivate, onActivate, currentScrolling, setNewScrolling, scrollTick, scrolled, suppressScroll } from "./scroller"
 import { activate as omniActivate, hide as omniHide } from "./omni"
 import { findNextInText, findNextInRel } from "./pagination"
-import { traverse, getEditable, filterOutNonReachable } from "./local_links"
+import { traverse, getEditable, getScrollable, filterOutNonReachable } from "./local_links"
 import {
   select_, unhover_async, set_lastHovered_, lastHovered_, catchAsyncErrorSilently, setupIDC_cr, click_async,
   wrap_enable_bubbles, set_lastBubbledHovered_
@@ -394,6 +394,29 @@ set_contentCommands_([
       }
     })
     })
+  },
+  /* kFgCmd.focusScrollable: */ (options: CmdOptions[kFgCmd.focusScrollable], count: number): void => {
+    set_cropNotReady_(2)
+    const areas = traverse(kSafeAllSelector, options, getScrollable) as Hint[]
+    scrolled === 1 && suppressScroll()
+    if (!areas.length) {
+      return runFallbackKey(options, kTip.noTargets)
+    }
+    const cur = derefInDoc_(currentScrolling), len = areas.length
+    let index = count > 0 ? -1 : 0
+    if (cur) {
+      for (let i = 0; i < len; i++) {
+        if (areas[i][0] === cur || contains_s(areas[i][0], cur)) {
+          index = i
+          break
+        }
+      }
+    }
+    index = ((index + count) % len + len) % len
+    const element = areas[index][0]
+    setNewScrolling(element)
+    flash_(element)
+    runFallbackKey(options, 0)
   },
   /* kFgCmd.editText: */ (options: CmdOptions[kFgCmd.editText], count: number) => {
     const editable = insert_Lock_() && getEditableType_<0>(raw_insert_lock!) > EditableType.MaxNotEditableElement

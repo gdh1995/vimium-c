@@ -1,4 +1,4 @@
-import { chromeVer_, createRegExp, Lower, math, max_, OnChrome, OnEdge, OnFirefox } from "../lib/utils"
+import { chromeVer_, createRegExp, Lower, math, max_, min_, OnChrome, OnEdge, OnFirefox } from "../lib/utils"
 import {
   createElement_, querySelector_unsafe_, htmlTag_, docEl_unsafe_, removeEl_s, ALA, attr_s,
   contains_s, setClassName_s, setVisibility_s, toggleClass_s, textContent_s, appendNode_s, hasTag_
@@ -7,7 +7,7 @@ import {
   HintItem, FilteredHintItem, MarkerElement, HintText, isHC_,
   hintMode_, useFilter_, hintKeyStatus, KeyStatus, hintChars, allHints, setMode, resetMode, hintOptions
 } from "./link_hints"
-import { bZoom_, boundingRect_, dimSize_, WithOldZoom,  } from "../lib/rect"
+import { bZoom_, boundingRect_, dimSize_, Point2D, wndSize_, WithOldZoom,  } from "../lib/rect"
 import { BSP, DEL, ENTER, SPC } from "../lib/keyboard_utils"
 import { ClickType, closableClasses_, maxLeft_, maxRight_, maxTop_ } from "./local_links"
 import { ui_root } from "./dom_ui"
@@ -425,6 +425,42 @@ export const renderMarkers = (hintItemArray: readonly HintItem[]): void => {
     } else {
       marker.append!(right);
     }
+  }
+}
+
+export const spreadOverlappingMarkers = (hintItemArray: readonly HintItem[]): void => {
+  const placed: Rect[] = [], gap = 2, vw = wndSize_(1), vh = wndSize_()
+  const overlaps = (a: Rect, b: Rect): boolean =>
+    a.r + gap > b.l && a.l < b.r + gap && a.b + gap > b.t && a.t < b.b + gap
+  for (const hint of hintItemArray) {
+    const marker = hint.m
+    if (marker.style.visibility) { continue }
+    const rect = boundingRect_(marker)
+    const width = rect.r - rect.l, height = rect.b - rect.t
+    if (width < 1 || height < 1) { continue }
+    const baseLeft = parseFloat(marker.style.left || "0") || 0, baseTop = parseFloat(marker.style.top || "0") || 0
+    let bestRect = rect, bestDx = 0, bestDy = 0
+    if (placed.some(overlaps.bind(0, rect))) {
+      const stepX = min_(max_(width + gap, 12), 48), stepY = min_(max_(height + gap, 12), 32)
+      const shifts: readonly Point2D[] = [
+        [0, stepY], [stepX, 0], [0, -stepY], [-stepX, 0],
+        [stepX, stepY], [-stepX, stepY], [stepX, -stepY], [-stepX, -stepY],
+        [0, stepY * 2], [stepX * 2, 0], [0, -stepY * 2], [-stepX * 2, 0]
+      ]
+      for (const [dx, dy] of shifts) {
+        const candidate = { l: rect.l + dx, t: rect.t + dy, r: rect.r + dx, b: rect.b + dy }
+        if (candidate.l >= 0 && candidate.t >= 0 && candidate.r <= vw && candidate.b <= vh
+            && !placed.some(overlaps.bind(0, candidate))) {
+          bestRect = candidate; bestDx = dx; bestDy = dy
+          break
+        }
+      }
+      if (bestDx || bestDy) {
+        marker.style.left = baseLeft + bestDx + "px"
+        marker.style.top = baseTop + bestDy + "px"
+      }
+    }
+    placed.push(bestRect)
   }
 }
 

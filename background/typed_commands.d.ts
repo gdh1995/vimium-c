@@ -416,6 +416,7 @@ interface CmdNameIds {
   findSelectedBackwards: kBgCmd.performFind
   firstTab: kBgCmd.goToTab
   focusInput: kFgCmd.focusInput
+  focusScrollable: kFgCmd.focusScrollable
   focusOrLaunch: kBgCmd.openUrl
   goBack: kFgCmd.framesGoBack
   goForward: kFgCmd.framesGoBack

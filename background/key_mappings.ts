@@ -749,6 +749,7 @@ export const availableCommands_: { readonly [key in kCName]: CommandsNS.Descript
   findSelectedBackwards: [ kBgCmd.performFind, kCxt.bg, 0, { selected: "line", $count: -1 } ],
   firstTab: [ kBgCmd.goToTab, kCxt.bg, 0, { absolute: true } ],
   focusInput: [ kFgCmd.focusInput, kCxt.fg, 0 ],
+  focusScrollable: [ kFgCmd.focusScrollable, kCxt.fg, 0 ],
   focusOrLaunch: [ kBgCmd.openUrl, kCxt.bg, 1, { reuse: ReuseType.reuse } ],
   goBack: [ kFgCmd.framesGoBack, kCxt.fg, 0, { $count: -1 } ],
   goForward: [ kFgCmd.framesGoBack, kCxt.fg, 0 ],

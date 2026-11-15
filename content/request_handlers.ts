@@ -9,7 +9,8 @@ import { set_keyIdCorrectionOffset_old_cr_, handler_stack, suppressTail_ } from 
 import {
   editableTypes_, markFramesetTagUnsafe_old_cr, OnDocLoaded_, BU, docHasFocus_, deepActiveEl_unsafe_,
   hasTag_, querySelector_unsafe_, isHTML_, createElement_, setClassName_s, onReadyState_, MayWoPopover, withoutPopover_,
-  docEl_unsafe_, scrollIntoView_, CLK, ElementProto_not_ff, isIFrameElement, DAC, removeEl_s, toggleClass_s, getElDesc_
+  docEl_unsafe_, scrollIntoView_, CLK, ElementProto_not_ff, isIFrameElement, DAC, MDW, removeEl_s, toggleClass_s,
+  getElDesc_
 } from "../lib/dom_utils"
 import { set_isOldZoom_, WithOldZoom } from "../lib/rect"
 import {
@@ -30,7 +31,9 @@ import { dispatchMark } from "./marks"
 import {
   set_findCSS, styleInHUD, deactivate as findExit, toggleSelectableStyle, styleSelColorIn, styleSelColorOut
 } from "./mode_find"
-import { exitGrab, grabBackFocus, insertInit, set_grabBackFocus, onFocus, onBlur, insert_Lock_ } from "./insert"
+import {
+  exitGrab, grabBackFocus, insertInit, set_grabBackFocus, onFocus, onBlur, onEditableMouseDown, insert_Lock_
+} from "./insert"
 import { onActivate, setNewScrolling } from "./scroller"
 import { hide as omniHide } from "./omni"
 
@@ -304,6 +307,7 @@ set_hookOnWnd((function (action: HookAction): void {
   OnChrome && f(CLK, anyClickHandler, t)
   f(OnChrome ? DAC: CLK, onActivate, t)
   if (action !== HookAction.Suppress) {
+    f(MDW, onEditableMouseDown, t)
     f("focus", onFocus, t)
     // https://developer.chrome.com/blog/page-lifecycle-api/
     OnChrome && f("freeze", onFreezePort, t)
