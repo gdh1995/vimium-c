@@ -67,6 +67,7 @@ interface HintManager extends BaseHintWorker {
     /** resetMode */ s: typeof resetMode
     /** onFrameUnload */ u: typeof onFrameUnload
     /** resetHints */ v (): void;
+    /** doesWantToReloadLinkHints */ w: typeof doesWantToReloadLinkHints
 }
 interface HintOfficer extends BaseHintWorker {
     p: HintManager | null
@@ -871,7 +872,7 @@ const coreHints: HintManager = {
   x: checkLast, c: clear, o: collectFrameHints, j: delayToExecute, e: executeHintInOfficer, g: getPreciseChildRect,
   l: highlightHint, r: render, t: rotate1,
   p: null,
-  n: onKeydown, s: resetMode, i: reinit, v: resetHints, u: onFrameUnload
+  n: onKeydown, s: resetMode, i: reinit, v: resetHints, u: onFrameUnload, w: doesWantToReloadLinkHints
 }
 if (!Build.NDEBUG) { coreHints.hints_ = coreHints.keyStatus_ = null }
 

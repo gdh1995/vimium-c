@@ -122,7 +122,7 @@ set_requestHandlers([
           set_clickable_(new WeakSet!<Element>(oldSet))
         }
         const manager = parHints && parHints.p || parHints
-        manager && manager.h && abs_(getTime() - abs_(manager.h)) < 1200 && manager.i(1)
+        manager && manager.h && abs_(getTime() - abs_(manager.h)) < 1200 && manager.w("lo") && manager.i(1)
       }, 330);
     });
     isAsContent || (injector || vApi).$r!(InjectorTask.extInited);
