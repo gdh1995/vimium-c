@@ -460,6 +460,7 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
   //     },[aria-selected],[data-tab]`
   const tree_scopes: Array<typeof cur_scope> = [[cur_arr, 0
       , clickableSelector && createElementSet(querySelectorAll_unsafe_(clickableSelector, traverseRoot, 1)!) ]]
+  const SRCtor = window.ShadowRoot as ShadowRootConstructor
   let cur_scope: [HintSources, number, IterableElementSet | null] | undefined, cur_tree: HintSources, cur_ind: number
   for (; cur_scope = tree_scopes.pop(); ) {
     for ([cur_tree, cur_ind, extraClickable_] = cur_scope; cur_ind < cur_tree.length; ) {
@@ -470,13 +471,14 @@ const isOtherClickable = (hints: Hint[], element: NonHTMLButFormattedElement | S
       }
       if ("lang" in (el as ElementToHTML)) {
         filter(output, el as SafeHTMLElement)
+        let sr_ff: ShadowRoot | Element | null
         const shadow = !(Build.BTypes & BrowserType.Edge)
             && (!(Build.BTypes & BrowserType.Chrome) || Build.MinCVer >= BrowserVer.MinEnsuredUnprefixedShadowDOMV0)
             && (!(Build.BTypes & BrowserType.Firefox) || Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1)
             ? noClosedShadow === 1 ? (el as SafeHTMLElement).shadowRoot as ShadowRoot | null
               : !(Build.BTypes & ~BrowserType.Firefox) ?
-                ((el as any).openOrClosedShadowRoot instanceof (window as any).ShadowRoot) ?
-                ((el as any).openOrClosedShadowRoot as ShadowRoot) : null
+                (sr_ff = (el as any).openOrClosedShadowRoot) &&
+                (sr_ff instanceof SRCtor ? sr_ff : null)
               : GetShadowRoot_(el as SafeHTMLElement, 0)
             : Build.BTypes & BrowserType.Chrome ? GetShadowRoot_(el as SafeHTMLElement, noClosedShadow)
             : GetShadowRoot_(el as SafeHTMLElement)

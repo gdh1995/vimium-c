@@ -197,8 +197,10 @@ export const GetShadowRoot_ = ((el: HTMLElement, noClosed_cr?: BOOL
       ): ShadowRoot | Element | RadioNodeList | Window | null => {
     let sr: Element["shadowRoot"] | Element["webkitShadowRoot"]
     if (OnFirefox) {
-      return Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1
+      const sr_ff: ShadowRoot | Element | null =
+          Build.MinFFVer >= FirefoxBrowserVer.MinEnsuredShadowDOMV1
           ? (el as any).openOrClosedShadowRoot : (el as any).openOrClosedShadowRoot || null
+      return sr_ff && (sr_ff instanceof (window.ShadowRoot as ShadowRootConstructor) ? sr_ff : null)
     }
     if (OnChrome && noClosed_cr !== 1 && (Build.MinCVer >= BrowserVer.Min$dom$$openOrClosedShadowRoot
           || chromeVer_ > BrowserVer.Min$dom$$openOrClosedShadowRoot - 1)) {
