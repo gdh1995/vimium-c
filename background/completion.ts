@@ -95,7 +95,13 @@ const bookmarkEngine = {
     } else if (bookmarkCache_.status_ >= BookmarkStatus.inited) {
       bookmarkEngine.performSearch_();
     } else {
-      BookmarkManager_.onLoad_ = (): void => { if (!query.o) { bookmarkEngine.performSearch_() } }
+      BookmarkManager_.onLoad_ = (): void => {
+        if (bookmarkCache_.status_ === BookmarkStatus.initing) {
+          BookmarkManager_.onLoad_ = (): void => { if (!query.o) { bookmarkEngine.performSearch_() } }
+        } else if (!query.o) {
+          bookmarkEngine.performSearch_()
+        }
+      }
     }
     bookmarkCache_.status_ === BookmarkStatus.notInited && BookmarkManager_.refresh_()
   },
