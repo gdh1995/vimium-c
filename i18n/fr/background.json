@@ -86,5 +86,5 @@
   "turnOff": "$1 a été désactivée",
   "Upgrade": "Mise à jour",
   "upgradeMsg": "Vimium C a été mise à jour vers la v$1.\n",
-  "upgradeMsg2": "Basé sur les API Manifest V3."
+  "upgradeMsg2": "Correction du problème des faux rapports d'« impossibilité de lire le presse-papiers »."
 }

@@ -82,5 +82,5 @@
   "turnOff": "$1 bolo vypnuté",
   "Upgrade": "Aktualizovať",
   "upgradeMsg": "Vimium C bol aktualizovaný na verziu v$1.\n",
-  "upgradeMsg2": "Oprava tohto by mohla narušiť fungovanie webových stránok, ako je IEEE."
+  "upgradeMsg2": "Opravený problém s falošnými hláseniami „nedá sa prečítať schránka“."
 }
