@@ -632,8 +632,9 @@ declare const enum BrowserVer {
   MinURLParse = 126, // even if EXP or LEGACY
   MinEnsuredDialogToggleEvent = 132, // even if LEGACY; if EXP on 131
   MinMaybeInteractivity = 132, // if EXP
-  MinNo$TimerType$$Fake = 999,
-  assumedVer = 998,
+  MinNavPermQueryReturnsWrongDenied = 156, // not sure why
+  MinNo$TimerType$$Fake = 9999,
+  assumedVer = 9998,
 }
 declare const enum FirefoxBrowserVer {
   // `dom.dialog_element.enabled` is default to false on FF63
@@ -714,9 +715,9 @@ declare const enum FirefoxBrowserVer {
   MinURLParse = 126,
   MinEnsuredPopover = 133, // fix MinMaybePopover
   // members of a Selection are never updated when an <input> gets focused, so no work-around
-  Min$Selection$SupportTextBox = 999,
+  Min$Selection$SupportTextBox = 9999,
   None = 0,
-  assumedVer = 999,
+  assumedVer = 9999,
 }
 
 /** @todo: trace https://bugs.chromium.org/p/chromium/issues/detail?id=968651&can=2&q=reduced-motion%20change */
