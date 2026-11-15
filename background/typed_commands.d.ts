@@ -507,7 +507,7 @@ type kCName = keyof CmdNameIds
 
 declare const enum kShortcutAliases { nextTab1 = "quickNext" }
 type StandardShortcutNames = "createTab" | "goBack" | "goForward" | "previousTab"
-    | "nextTab" | "reloadTab" | CNameLiterals.userCustomized
+    | "nextTab" | "reloadTab" | CNameLiterals.userCustomized | "_execute_action"
 
 interface ObjectConstructor {
   assign<T extends object, Ensured extends keyof T>(target: PartialOrEnsured<T, Ensured>

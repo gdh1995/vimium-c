@@ -265,6 +265,16 @@ var Tasks = {
                 old.includes(item) || old.push(item)
               }
             }
+          } else if (key.endsWith("{}") && val instanceof Object) {
+            const old = manifest[key.slice(0, -2)]
+            for (const [key, subVal] of Object.entries(val)) {
+              if (key[0] === "-") {
+                if (subVal != null) { throw Error("Invalid: " + JSON.stringify(val))}
+                delete old[key.slice(1)]
+              } else {
+                old[key] = subVal
+              }
+            }
           } else {
             val != null ? (manifest[key] = val) : delete manifest[key]
           }

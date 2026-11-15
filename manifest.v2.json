@@ -37,6 +37,10 @@
     "default_popup": "pages/action.html",
     "default_title": "__MSG_name__\n\n__MSG_noActiveState__"
   },
+  "commands{}": {
+    "-_execute_action": null,
+    "_execute_browser_action": {}
+  },
   "content_security_policy": "script-src 'self'; style-src 'self' 'unsafe-inline'; object-src 'none'",
   "host_permissions": null,
   "manifest_version": 2,

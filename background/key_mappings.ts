@@ -438,8 +438,8 @@ const parseKeyMappings_ = (wholeMappings: string): void => {
       }
     }
     for (const shortcut of CONST_.GlobalCommands_) {
-      if (!shortcut.startsWith("user") && !cmdMap.has(shortcut)) {
-        if (regItem = makeCommand_(shortcut as Exclude<typeof shortcut, `user${string}`>, null)) {
+      if (!shortcut.startsWith("user") && !cmdMap.has(shortcut) && !shortcut.startsWith("_")) {
+        if (regItem = makeCommand_(shortcut as Exclude<typeof shortcut, `user${string}` | `_${string}`>, null)) {
           cmdMap.set(shortcut, regItem)
         }
       }
