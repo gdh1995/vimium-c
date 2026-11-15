@@ -29,27 +29,21 @@ export function set_maxPrefixLen_ (_newMaxPrefixLen: 0): void { maxPrefixLen_ = 
 export const hintFilterReset = (): void => { pageNumberHintArray = zIndexes_ = activeHint_ = null }
 
 export const createHint = (link: Hint): HintItem => {
-  const rect = link[1], type = link[2],
-  marker = createElement_("span") as MarkerElement, st = marker.style,
-  isBox = type > ClickType.MaxNotBox, P = "px",
-  isScrollY = type === ClickType.scrollY,
-  isScrollX = type === ClickType.scrollX;
-  let i: number = isScrollY
-      ? max_(rect.l, rect.r - GlobalConsts.MaxHeightOfLinkHintMarker)
-      : isScrollX
-      ? max_(rect.l, (rect.l + rect.r - GlobalConsts.MaxHeightOfLinkHintMarker) / 2)
-      : link.length < 4 ? rect.l : (link as Hint4)[3][0].l + (link as Hint4)[3][1];
+  const marker = createElement_("span") as MarkerElement, st = marker.style,
+  rect = link[1], type = link[2], left = rect.l, top = rect.t,
+  isBox = type > ClickType.MaxNotBox, P = "px"
+  let i: number = type < ClickType.scrollX ? link.length < 4 ? left : (link as Hint4)[3][0].l + (link as Hint4)[3][1]
+      : type > ClickType.scrollX ? max_(left, rect.r - GlobalConsts.MaxHeightOfLinkHintMarker)
+      : max_(left, (left + rect.r - GlobalConsts.MaxHeightOfLinkHintMarker) / 2)
   marker.className = isBox ? "LH BH" : "LH";
   st.left = i + P;
   if ((!OnChrome || Build.MinCVer < BrowserVer.MinAbsolutePositionNotCauseScrollbar)
       && i > maxLeft_ && maxRight_) {
     st.maxWidth = maxRight_ - i + P;
   }
-  i = isScrollY
-      ? max_(rect.t, (rect.t + rect.b - GlobalConsts.MaxHeightOfLinkHintMarker) / 2)
-      : isScrollX
-      ? max_(rect.t, rect.b - GlobalConsts.MaxHeightOfLinkHintMarker)
-      : rect.t;
+  i = type < ClickType.scrollX ? top
+      : type > ClickType.scrollX ? max_(top, (top + rect.b - GlobalConsts.MaxHeightOfLinkHintMarker) / 2)
+      : max_(top, rect.b - GlobalConsts.MaxHeightOfLinkHintMarker)
   st.top = i + P;
   if ((!OnChrome || Build.MinCVer < BrowserVer.MinAbsolutePositionNotCauseScrollbar)
       && i > maxTop_) {
