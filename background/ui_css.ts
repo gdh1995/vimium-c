@@ -310,7 +310,12 @@ export const MediaWatcher_ = {
       }
       const args = MediaWatcher_.watchers_.map(i => typeof i === "object" ? i.media : "")
       if (args.join("")) {
-        void runOnTee_(kTeeTask.updateMedia, args, null).then(MediaWatcher_._onAsyncResults_mv3)
+        if (OnFirefox) {
+          // Firefox MV3 uses a background page: do not open a focused tee popup just to query media.
+          MediaWatcher_._onAsyncResults_mv3(args.map(i => !!i && matchMedia(i).matches))
+        } else {
+          void runOnTee_(kTeeTask.updateMedia, args, null).then(MediaWatcher_._onAsyncResults_mv3)
+        }
       }
       return
     }
