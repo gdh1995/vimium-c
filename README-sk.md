@@ -45,7 +45,7 @@ Vimium C je <span style="color: #a55e18;">C</span>ustomizovaná (prispôsobená)
   a [funkciu vkladania (inje**k**cie)](https://github.com/gdh1995/vimium-c/wiki/Inject-into-other-extensions),
   v <span style="color: #a55e18;">**C**</span>-štýle kódu pre rýchlejšie akcie a nižšiu spotrebu zdrojov.
 
-[阅读中文介绍 (popis v čínštine) 。](README-zh.md)
+[Read description in English (popis v angličtine);](README.md) [阅读中文介绍 (popis v čínštine) 。](README-zh.md)
 
 Tento projekt vyvíja a spravuje najmä [gdh1995](https://github.com/gdh1995) (Gong Dahan),
 a je open-source pod licenciou [Apache-2.0](LICENSE.txt).

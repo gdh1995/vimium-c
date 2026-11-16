@@ -60,7 +60,7 @@ Vimium C 支持 Firefox 101+、新版 Microsoft Edge 102+ 和 Chrome 102+ 等现
 
 Vimium C 的部分旧代码以 MIT 许可协议开源，可以前往 https://github.com/gdh1995/vimium-c/tree/MIT-licensed-v1 获得源码。
 
-[Here's its description in English](README.md)（点击查看英文介绍）。
+[Here's its description in English](README.md)（点击查看英文介绍）；[Prečítať slovenský popis](README-sk.md)（点击查看斯洛伐克语介绍）。
 
 # 主要功能
 
